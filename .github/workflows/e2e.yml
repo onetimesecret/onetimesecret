@@ -115,6 +115,11 @@ jobs:
           # Generate a secure secret for testing
           TEST_SECRET=$(openssl rand -hex 32)
 
+          # Pin a deterministic brand color so the container is "branded" and
+          # head-base.rue renders the mask-icon/theme-color tags. #3B82F6 is the
+          # neutral default (#3049); the brand-customization E2E asserts the
+          # mask-icon color matches it exactly. Without this the tags are
+          # correctly omitted (unbranded) and that assertion has nothing to test.
           docker run -d \
             --name ${{ env.CONTAINER_NAME }} \
             --link ${{ env.REDIS_CONTAINER_NAME }}:redis \
@@ -124,6 +129,7 @@ jobs:
             -e HOST=localhost:3000 \
             -e SSL=false \
             -e RACK_ENV=production \
+            -e BRAND_PRIMARY_COLOR='#3B82F6' \
             ${{ env.OCI_IMAGE_NAME }}
 
           if [ "${{ env.DEBUG_ENABLED }}" == "true" ]; then

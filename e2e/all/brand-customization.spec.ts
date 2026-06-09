@@ -327,26 +327,37 @@ test.describe('Brand Customization - Console Error Monitoring', () => {
 });
 
 test.describe('Brand Customization - head-base meta tags', () => {
-  // head-base.rue partial renders:
-  //   <link rel="mask-icon" href="..." color="{{brand_primary_color}}">
-  // The color attribute should carry a hex color value derived from the
-  // configured brand color.
-  //
-  // Note: <meta name="theme-color"> was removed in 5b2e760 (PWA cleanup).
+  // head-base.rue conditionally renders the brand-colored tags:
+  //   {{#if has_brand_color}}
+  //     <link rel="mask-icon" href="..." color="{{brand_primary_color}}">
+  //     <meta name="theme-color" content="{{brand_primary_color}}" ...>
+  //   {{/if}}
+  // The tags are emitted only when a brand color is configured; unbranded
+  // deployments deliberately omit them so the frontend can fall through to
+  // NEUTRAL_BRAND_DEFAULTS. This suite expects a brand color to be configured
+  // (CI pins BRAND_PRIMARY_COLOR=#3B82F6, the neutral default / NEUTRAL_BLUE),
+  // so the tag is always present and its color must match exactly — no skip,
+  // so a regression in the template→config wiring fails the build.
 
-  test('link mask-icon color attribute carries a valid hex color', async ({ page }) => {
+  test('mask-icon renders with the configured brand color', async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    const maskIcon = page.locator('link[rel="mask-icon"]');
 
-    const maskIconColor = await page
-      .locator('link[rel="mask-icon"]')
-      .getAttribute('color');
+    await expect(
+      maskIcon,
+      'mask-icon tag must render when a brand color is configured'
+    ).toHaveCount(1);
+    await expect(maskIcon).toHaveAttribute('color', NEUTRAL_BLUE);
+  });
 
-    expect(maskIconColor, 'link[mask-icon] color should be present').toBeTruthy();
-    expect(
-      maskIconColor && isHexColor(maskIconColor),
-      `link[mask-icon] color should be a hex color, got: ${maskIconColor}`
-    ).toBe(true);
+  test('light theme-color meta agrees with the mask-icon brand color', async ({ page }) => {
+    await page.goto('/');
+    const themeColor = page.locator(
+      'meta[name="theme-color"][media="(prefers-color-scheme: light)"]'
+    );
+
+    await expect(themeColor).toHaveCount(1);
+    await expect(themeColor).toHaveAttribute('content', NEUTRAL_BLUE);
   });
 });
 
