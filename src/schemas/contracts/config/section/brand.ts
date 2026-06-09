@@ -33,6 +33,7 @@ const brandSchema = z.object({
   product_name: nullableString,
   product_domain: nullableString,
   support_email: nullableString,
+  signature_name: nullableString,
   footer_text: nullableString,
   logo_url: nullableString,
   logo_dark_url: nullableString,

@@ -5,6 +5,8 @@
 
 <%= t('email.expiration_warning.reminder_label') %> <%= t('email.expiration_warning.after_expiration') %>
 
+<%= signature_name || t('email.expiration_warning.signature') %>
+
 <%= t('email.expiration_warning.footer_note', product_name: product_name) %>
 
 --
