@@ -112,7 +112,6 @@ module Onetime
               identity: domain,
               dkim_status: response.dkim_attributes&.status,
               mail_from_domain: mail_from_domain,
-              mail_from_configured: mail_from_configured,
             },
           }
         rescue Aws::SESV2::Errors::ServiceError => ex

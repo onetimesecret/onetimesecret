@@ -62,7 +62,6 @@ RSpec.describe Onetime::Mail::SenderStrategies::SESSenderStrategy do
         expect(result[:provider_data][:region]).to eq('us-east-1')
         expect(result[:provider_data][:identity]).to eq('example.com')
         expect(result[:provider_data][:mail_from_domain]).to eq('mail.example.com')
-        expect(result[:provider_data][:mail_from_configured]).to be true
       end
 
       it 'configures a custom MAIL FROM domain on the identity' do
@@ -146,7 +145,6 @@ RSpec.describe Onetime::Mail::SenderStrategies::SESSenderStrategy do
         expect(result[:dns_records].map { |r| r[:type] }).to eq(%w[CNAME CNAME])
         expect(result[:dns_records].any? { |r| r[:type] == 'MX' }).to be false
         expect(result[:provider_data][:mail_from_domain]).to be_nil
-        expect(result[:provider_data][:mail_from_configured]).to be false
       end
 
       it 'indicates DKIM-only in the success message' do
@@ -296,15 +294,6 @@ RSpec.describe Onetime::Mail::SenderStrategies::SESSenderStrategy do
         expect(result[:message]).to include('awaiting propagation')
       end
     end
-
-    # MAIL FROM lifecycle: NOT_STARTED → PENDING → SUCCESS
-    #
-    # MAIL FROM configuration is independent of DKIM verification. An identity
-    # can have DKIM SUCCESS while MAIL FROM is still NOT_STARTED (never
-    # configured), PENDING (configured but DNS not yet verified), or SUCCESS.
-    #
-    # "Not started" means PutEmailIdentityMailFromAttributes was never called
-    # for this identity — it does NOT indicate a DKIM problem.
 
     context 'when MAIL FROM was never configured (NOT_STARTED)' do
       let(:dkim_attrs) do
