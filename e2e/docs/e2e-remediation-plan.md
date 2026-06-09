@@ -1,6 +1,6 @@
 # E2E Test Suite Remediation Plan
 
-> Status: **In progress** — Phases 0–1 complete ([PR #3409](https://github.com/onetimesecret/onetimesecret/pull/3409), [PR #3411](https://github.com/onetimesecret/onetimesecret/pull/3411)); Phase 2.1+2.2 / PR 3 in review ([PR #3412](https://github.com/onetimesecret/onetimesecret/pull/3412)); **next up: PR 4 / Phase 2.3.**
+> Status: **In progress** — Phases 0–1 complete ([PR #3409](https://github.com/onetimesecret/onetimesecret/pull/3409), [PR #3411](https://github.com/onetimesecret/onetimesecret/pull/3411)); Phase 2.1+2.2 / PR 3 in review ([PR #3412](https://github.com/onetimesecret/onetimesecret/pull/3412)); Phase 2.3 / PR 4 in review (branch `claude/e2e-phase24-networkidle-sweep`, stacked on #3412); **next up: PR 5 / Phase 2.4.**
 > Created: 2026-06-09 · Last updated: 2026-06-09 · Owner: TBD
 >
 > Motivation: The `container-e2e-tests` check has been a chronic source of red
@@ -17,8 +17,9 @@
 |------------|--------|-------|
 | Phase 0 / PR 1 — unblock #3399 mask-icon + this plan | ✅ **Done** | [PR #3409](https://github.com/onetimesecret/onetimesecret/pull/3409) · branch `claude/sleepy-shannon-21ko6k` |
 | Phase 1 / PR 2 — reporter/artifacts + lint-ban + flaky gate | ✅ **Done** | [PR #3411](https://github.com/onetimesecret/onetimesecret/pull/3411) · branch `claude/affectionate-clarke-4fyakw` |
-| Phase 2.1+2.2 / PR 3 — auth setup project + app-readiness signal | 🔄 **In review** | [PR #3412](https://github.com/onetimesecret/onetimesecret/pull/3412) · branch `claude/e2e-phase2-auth-readiness` (rebased onto `develop` after #3411 merged) |
-| Phase 2.3–2.4 / PRs 4–5 — `networkidle` sweep + lint→error, skip triage | ⏭️ **Next** | not started |
+| Phase 2.1+2.2 / PR 3 — auth setup project + app-readiness signal | 🔄 **In review** | [PR #3412](https://github.com/onetimesecret/onetimesecret/pull/3412) · branch `claude/e2e-phase2-auth-readiness` (rebased onto `develop` after #3411 merged; also carries the CI-triage-round-1 auth-compat sweep of `full/`) |
+| Phase 2.3 / PR 4 — `networkidle`/sleep sweep + lint→error | 🔄 **In review** | branch `claude/e2e-phase24-networkidle-sweep`, stacked on #3412 (draft PR targets `develop`; rebase + mark ready once #3412 merges) |
+| Phase 2.4 / PR 5 — defensive-skip triage | ⏭️ **Next** | not started |
 | Phase 3 / PR 6 — fixtures module, pinned config, parallel/shard | ⬜ Todo | not started |
 
 > **CI-signal caveat for stacked PRs:** `container-e2e-tests` only triggers on
@@ -31,68 +32,74 @@
 > PR 3 onward: base on `develop` so each phase is exercised by the very
 > workflow it modifies.
 
-### For a fresh contributor picking up PR 4 (Phase 2.3: `networkidle`/sleep sweep, lint → error)
+### For a fresh contributor picking up PR 5 (Phase 2.4: defensive-skip triage)
 
-1. **Verify Phases 0–2.2 already landed — do not redo them.** Phase 1:
-   `pnpm lint:e2e` runs (341 warnings, 0 errors), `.github/workflows/e2e.yml`
-   has a "Fail on flaky tests" step. Phase 2.1+2.2: `e2e/global.setup.ts`
-   exists, `e2e/playwright.config.ts` has `setup`/`chromium`/`full`/
-   `full-billing` projects, and `src/main.ts` sets
-   `html[data-app-ready="true"]`. If any of that is missing, see
+1. **Verify Phases 0–2.3 already landed — do not redo them.** Phase 1:
+   `.github/workflows/e2e.yml` has a "Fail on flaky tests" step. Phase
+   2.1+2.2: `e2e/global.setup.ts` exists, `e2e/playwright.config.ts` has
+   `setup`/`chromium`/`full`/`full-billing` projects, `src/main.ts` sets
+   `html[data-app-ready="true"]`. Phase 2.3: `pnpm lint:e2e` reports **0
+   problems** with `playwright/no-networkidle` and
+   `playwright/no-wait-for-timeout` at `'error'` (`eslint.config.ts:609-610`),
+   and `grep -rn "networkidle\|waitForTimeout" e2e/ --include='*.spec.ts'`
+   finds no call sites. If any of that is missing, see
    [PR #3411](https://github.com/onetimesecret/onetimesecret/pull/3411) /
-   [PR #3412](https://github.com/onetimesecret/onetimesecret/pull/3412).
-2. **Where to branch PR 4.** If #3412 has merged, branch off `develop`.
-   Otherwise stack on `claude/e2e-phase2-auth-readiness` — PR 4 sweeps the
-   spec files and flips the lint rules, and needs PR 3's readiness signal to
-   sweep *to*. Either way the PR must **target `develop`** (see the CI-signal
-   caveat above).
-3. **Concrete starting points** (verified against the tree as of PR 3):
-   - The lint baseline is **341 warnings, 0 errors** from `pnpm lint:e2e`:
-     298 `playwright/no-networkidle` + 43 `playwright/no-wait-for-timeout`.
-     By directory: `all/` 29, `auth/` 16, `full/` 262, `full-billing/` 34.
-     Sweep **per directory** (one reviewable commit each); flip both rules
-     from `'warn'` to `'error'` at `eslint.config.ts:606-607` in the final
-     commit, once the count is 0. Don't use `--quiet` to check progress — it
-     skips *executing* warn-level rules; `pnpm lint:e2e` shows them.
-   - The replacement primitive: wait on the app-readiness flag with a
-     web-first assertion —
-     `await expect(page.locator('html[data-app-ready="true"]')).toBeAttached()`.
-     Canonical usage: `e2e/global.setup.ts:53`. The flag is set in
-     `src/main.ts:47` after mount + brand theme + `router.isReady()`. For
-     waits that aren't "is the app up" (element state, URL changes), use
-     ordinary web-first assertions / `waitForURL` instead.
-   - 9 spec files also read or poll `window.__BOOTSTRAP_ME__` — some via
-     `waitForFunction` (e.g. `e2e/all/integration.spec.ts:307`), some via
-     `page.evaluate` reads (e.g. `e2e/auth/sso-csrf.spec.ts:47`); list them
-     with `grep -rl __BOOTSTRAP_ME__ e2e/all e2e/auth e2e/full`. Replace the
-     *readiness-polling* uses with the readiness flag while you're in each
-     file — that is explicitly Phase 2.2's "tests wait on that" half. (Reads
-     that inspect bootstrap *content*, like the sso-csrf shrimp checks, are
-     fine to keep.)
-   - Known interaction in `full/`: every spec still runs a manual
-     `loginUser(page)` helper (pattern at
-     `e2e/full/cross-org-domain-isolation.spec.ts:55-78`) even though the
-     `full` project now starts authenticated via `storageState`. When
-     sweeping `full/`, expect those helpers to be dead weight or actively
-     broken (an authed user visiting `/signin` gets redirected) — deleting
-     the call sites is in scope where it unblocks the sweep; broader spec
-     triage (the 143 defensive skips) stays PR 5.
-   - Check CI state of #3412 first: the first `full/` runs are *expected* red
-     (previously-masked failures). Quarantine via `e2e/QUARANTINE.md`
-     (`test.fixme` + owner + issue link) rather than re-skipping; the flaky
-     gate stays blocking.
-4. **Definition of done for PR 4:** `pnpm lint:e2e` reports **0 problems**
-   with both rules at `'error'`; no `networkidle` / `waitForTimeout` /
-   `__BOOTSTRAP_ME__`-polling call sites remain in `e2e/`; suite passes (or
-   failures are quarantined with issue links), and no test regresses to
-   pass-only-on-retry (the flaky gate enforces this).
+   [PR #3412](https://github.com/onetimesecret/onetimesecret/pull/3412) /
+   branch `claude/e2e-phase24-networkidle-sweep` (PR 4).
+2. **Where to branch PR 5.** If #3412 and PR 4 have merged, branch off
+   `develop`. Otherwise stack on `claude/e2e-phase24-networkidle-sweep` (the
+   tip of the stack). Either way the PR must **target `develop`** (see the
+   CI-signal caveat above).
+3. **Concrete starting points** (verified against the tree as of PR 4; rerun
+   the greps against yours):
+   - The census: **436** `test.skip(` call sites across
+     `all/` 47 · `auth/` 8 · `full/` 342 · `full-billing/` 39. Three classes:
+     - **143 runtime self-skips** `test.skip(true, '...')` — the "test that
+       can't fail" class this phase exists to kill (plan Phase 2 item 4).
+     - **~228 probe-then-skip guards** `test.skip(!cond, '...')`. Biggest
+       buckets: `!org` "requires at least 1 organization" (66), `!domain`
+       (33), `!hasSso` entitlement (31), switcher-not-visible (~21),
+       `!formLoaded` (9), `!isSubscriber` (9), `!toggle` (10).
+     - 12 declarative `test.skip('title', fn)` placeholders (magic-link/SSO/
+       Gmail-alias flows) + ~19 data-shape guards (`orgs.length < 2` etc.).
+   - Triage rule per the plan: (a) **guaranteed precondition → run it.** Key
+     fact: every customer gets a default workspace
+     (`apps/web/auth/operations/create_default_workspace.rb`, created lazily
+     via `lib/onetime/logic/organization_context.rb`), so the 66 `!org`
+     skips guard a condition the `full` project already guarantees — convert
+     them to real assertions. (b) **optional feature → tagged project or
+     env-pinned config**, not a runtime self-skip (SSO entitlement, billing).
+     (c) **unimplemented/needs-fixtures → `test.fixme` + issue link** (the
+     multi-org `orgs.length < 2` family needs a second-org fixture that does
+     not exist yet — that fixture work is PR 6's `fixtures.ts`, so `fixme`
+     with an issue is honest here).
+   - 12 `test.skip(!hasTestCredentials, ...)` remain **deliberately** (multi-
+     context invite suites, `organization-members` admin/member sections,
+     `plan-switching`) — they guard accounts beyond the storageState user
+     (TEST_ADMIN_*/TEST_MEMBER_*/TEST_SUBSCRIBER_*). Decide per the (b)/(c)
+     rule; don't blanket-delete.
+   - Auth model recap (PR 3 + the auth-compat sweep on its branch): `full/`
+     and `full-billing/` start authenticated via `storageState`; manual
+     `loginUser` helpers remain ONLY where they sign in as a *different*
+     account inside fresh `browser.newContext()` pages or after
+     `clearCookies()`. Don't reintroduce sign-in interactions on the default
+     `page`.
+   - Check CI state of #3412/PR 4 first: `.github/workflows/e2e.yml` runs
+     `e2e/all/ e2e/full/` with `--max-failures=20` (raised for triage
+     visibility). Genuinely-broken tests get `test.fixme` + a row in
+     `e2e/QUARANTINE.md` (owner + issue link) — never a new `test.skip`.
+4. **Definition of done for PR 5:** zero `test.skip(true, ...)` left in
+   `e2e/`; every remaining conditional skip names a real, documented
+   environment gate (and ideally a project/env pin instead); CI runs green
+   with **0 skipped-by-default** tests in `all/`; the flaky gate stays
+   blocking.
 5. **Hand off before you open the PR.** This doc is the tracker — leave it the
    way you found it: set your row in the Progress table and the PR-sequence
    table (status + PR link), update the status line at the top, and **rewrite
-   this section for PR 5** (defensive-skip triage, Phase 2.4) with verified
-   file/line starting points (don't guess — confirm them against your final
-   tree the way the pointers above were). A stale pickup section costs the
-   next contributor their first hour.
+   this section for PR 6** (fixtures.ts, pinned config, parallel/shard,
+   Phase 3) with verified file/line starting points (don't guess — confirm
+   them against your final tree the way the pointers above were). A stale
+   pickup section costs the next contributor their first hour.
 
 ## Headline finding
 
@@ -244,7 +251,13 @@ CI **red**.
    the setup/auth path waits on it. The other half — migrating *specs* off
    `__BOOTSTRAP_ME__` polling + `networkidle` onto the flag — lands with the
    PR 4 sweep. *(Highest-leverage flake fix.)*
-3. **Sweep `networkidle` → web-first assertions** (300 sites), per directory.
+3. ✅ **Sweep `networkidle` → web-first assertions** (PR 4, branch
+   `claude/e2e-phase24-networkidle-sweep`). All 341 flagged call sites (298
+   `networkidle` + 43 `waitForTimeout`) replaced per directory with the
+   readiness flag, `waitForURL`/web-first URL assertions for in-SPA
+   navigations, `expect.poll`/`waitForResponse` for capture flags and API
+   round-trips; both lint rules now `'error'`. `__BOOTSTRAP_ME__`
+   readiness-polling is gone (content reads remain, deliberately).
 4. **Convert the 143 defensive skips**: (a) guaranteed precondition → run it;
    (b) genuinely optional feature → tagged project, not runtime self-skip;
    (c) unimplemented → `test.fixme` + issue link.
@@ -272,7 +285,7 @@ _Live status is tracked in the **Progress & how to continue** section near the t
 | 1 | 0 | mask-icon conditional render + deterministic (skip-free) test + Ruby spec + CI brand-color pin | ✅ Done ([#3409](https://github.com/onetimesecret/onetimesecret/pull/3409)) — unblocks #3399 |
 | 2 | 1 | reporter/artifacts, lint rules (warn), flaky gate | ✅ Done ([#3411](https://github.com/onetimesecret/onetimesecret/pull/3411)) |
 | 3 | 2.1+2.2 | global-setup/auth fixture + app-readiness signal | 🔄 In review ([#3412](https://github.com/onetimesecret/onetimesecret/pull/3412)) — surfaces real `full/` failures (intended) |
-| 4 | 2.3 | `networkidle`/sleep sweep, by directory; lint → error | Med — large but mechanical |
+| 4 | 2.3 | `networkidle`/sleep sweep, by directory; lint → error | 🔄 In review (branch `claude/e2e-phase24-networkidle-sweep`, stacked on #3412) |
 | 5 | 2.4 | defensive-skip triage | Med |
 | 6 | 3 | fixtures.ts, pinned brand, parallel/shard | Low |
 
