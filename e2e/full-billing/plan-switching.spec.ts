@@ -69,7 +69,7 @@ async function loginSubscriber(page: Page): Promise<void> {
  */
 async function navigateToPlansPage(page: Page): Promise<void> {
   await page.goto('/billing/plans');
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   // Wait for plans to load (either plan cards or empty state)
   await page.waitForSelector(
@@ -598,7 +598,8 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       const monthlyTab = page.getByRole('button', { name: /monthly/i });
       if (await monthlyTab.isVisible()) {
         await monthlyTab.click();
-        await page.waitForTimeout(500);
+        // PlanSelector marks the active interval button with aria-pressed
+        await expect(monthlyTab).toHaveAttribute('aria-pressed', 'true');
       }
 
       // Get price from a plan card
@@ -609,7 +610,8 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       const yearlyTab = page.getByRole('button', { name: /yearly|annual/i });
       await expect(yearlyTab).toBeVisible();
       await yearlyTab.click();
-      await page.waitForTimeout(500);
+      // PlanSelector marks the active interval button with aria-pressed
+      await expect(yearlyTab).toHaveAttribute('aria-pressed', 'true');
 
       // Get price again - should be different (yearly pricing)
       const yearlyPrice = await planCards.first().locator('text=/\\$\\d+|EUR \\d+/').first().textContent();
