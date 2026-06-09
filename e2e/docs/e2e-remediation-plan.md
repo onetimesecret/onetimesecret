@@ -1,11 +1,45 @@
 # E2E Test Suite Remediation Plan
 
-> Status: **Proposed** · Created: 2026-06-09 · Owner: TBD
+> Status: **In progress** — Phase 0 complete ([PR #3409](https://github.com/onetimesecret/onetimesecret/pull/3409)); **next up: PR 2 / Phase 1.**
+> Created: 2026-06-09 · Last updated: 2026-06-09 · Owner: TBD
 >
 > Motivation: The `container-e2e-tests` check has been a chronic source of red
 > CI and perceived flakiness (e.g. PR #3399). This document itemizes the root
 > causes and lays out a phased, best-practice remediation so the suite becomes
 > trustworthy, fast, and maintainable. **We have no room for flaky tests.**
+>
+> **This is a living tracker.** Update the Progress section and the PR-sequence
+> table as each slice lands.
+
+## Progress & how to continue
+
+| Phase / PR | Status | Where |
+|------------|--------|-------|
+| Phase 0 / PR 1 — unblock #3399 mask-icon + this plan | ✅ **Done** | [PR #3409](https://github.com/onetimesecret/onetimesecret/pull/3409) · branch `claude/sleepy-shannon-21ko6k` |
+| Phase 1 / PR 2 — reporter/artifacts + lint-ban + flaky gate | ⏭️ **Next** | not started |
+| Phase 2 / PRs 3–5 — auth fixture, readiness signal, `networkidle` sweep, skip triage | ⬜ Todo | not started |
+| Phase 3 / PR 6 — fixtures module, pinned config, parallel/shard | ⬜ Todo | not started |
+
+### For a fresh contributor picking up PR 2
+
+1. **Verify Phase 0 already landed — do not redo it.** The mask-icon /
+   `has_brand_color` conditional render and the `BRAND_PRIMARY_COLOR` CI pin are
+   done. `git log --oneline | grep -Ei "head-base|brand color"` should show the
+   two Phase 0 commits. PR 2 starts at **Phase 1** below.
+2. **Branch reality.** Phase 0 lives on `claude/sleepy-shannon-21ko6k`, which is
+   **stacked on #3399's branch** (`claude/dazzling-lovelace-semxai`) because the
+   fix depends on #3399's `e621290` ("Pass brand_primary_color to Rhales template
+   context").
+3. **Where to branch PR 2.** Phase 1 (reporter / lint / flaky-gate) is
+   **independent of the brand work** — it touches `e2e/playwright.config.ts`,
+   `package.json`, `.github/workflows/e2e.yml`, and `eslint.config.ts`, none of
+   which need #3399. If #3399 + PR #3409 have merged to `develop`, branch PR 2 off
+   `develop`. Otherwise branch off `claude/sleepy-shannon-21ko6k` to continue the
+   stack so the `e2e.yml` edits don't conflict with Phase 0's, and rebase onto
+   `develop` once the stack merges.
+4. **Definition of done for PR 2:** the Phase 1 acceptance bullet, **plus** a
+   manual check that HTML + trace artifacts appear on a failed run and that a
+   deliberately-flaky test turns the job red.
 
 ## Headline finding
 
@@ -111,17 +145,34 @@ branches; the head-base E2E asserts an exact color with **no** `test.skip` and
 
 ## Phase 1 — Stop the bleeding (mechanical, high-leverage)
 
+> **Concrete starting points** (verified against the tree as of Phase 0):
+> - The reporter override that breaks the HTML report lives in **two** places that
+>   both override the `reporter` array in `e2e/playwright.config.ts:38`: the
+>   `package.json` `test:playwright` script (`--reporter=list`) and the
+>   `.github/workflows/e2e.yml` "Run Playwright E2E tests" step (`--reporter=github`).
+>   Net effect today: `playwright-report/` is never produced, so the upload step
+>   logs "No files were found with the provided path: e2e/playwright-report/".
+> - The `e2e.yml` "Upload Playwright Report" step currently uploads only
+>   `e2e/playwright-report/`; add `e2e/test-results/` (traces/videos/screenshots).
+> - Lint config is the flat `eslint.config.ts` at repo root. It currently targets
+>   `src/**` and does **not** lint `e2e/**` — add an `e2e/**` block.
+
 1. **Fix reporter/artifacts.** Make `e2e/playwright.config.ts` reporters
    environment-aware (CI: `list`, `github`, `html`, `json`, `blob`); drop the
    hard-coded `--reporter` overrides in `package.json` and `.github/workflows/e2e.yml`;
    upload both `e2e/playwright-report/` and `e2e/test-results/` with `if: always()`.
 2. **Lint-ban flaky primitives.** Add `eslint-plugin-playwright` to
-   `eslint.config.ts` for `e2e/**`; `no-restricted-syntax` forbidding
+   `eslint.config.ts` with an `e2e/**` block; `no-restricted-syntax` forbidding
    `waitForLoadState('networkidle')` and `page.waitForTimeout(...)`. Roll out
-   `warn` → directory sweeps → `error`.
+   `warn` → directory sweeps → `error` (there are ~300 `networkidle` + ~43
+   `waitForTimeout` call-sites today, so do **not** flip to `error` in this PR).
 3. **Make flake blocking.** Keep `retries: 2` for traces, add a CI step parsing
-   `results.json` that fails the job on any `flaky` outcome. Add
+   the JSON reporter output that fails the job on any `flaky` outcome. Add
    `e2e/QUARANTINE.md` for `test.fixme`'d tests with owner + issue link.
+
+**Acceptance:** HTML report + traces uploaded on failure; `networkidle` /
+`waitForTimeout` lint rules active (at `warn`); a retry-only ("flaky") pass turns
+CI **red**.
 
 ---
 
@@ -157,9 +208,11 @@ branches; the head-base E2E asserts an exact color with **no** `test.skip` and
 
 ## Suggested PR sequence
 
-| PR | Phase | Scope | Risk |
-|----|-------|-------|------|
-| 1 | 0 | mask-icon conditional render + deterministic (skip-free) test + Ruby spec + CI brand-color pin | Low — unblocks #3399 |
+_Live status is tracked in the **Progress & how to continue** section near the top._
+
+| PR | Phase | Scope | Risk / status |
+|----|-------|-------|---------------|
+| 1 | 0 | mask-icon conditional render + deterministic (skip-free) test + Ruby spec + CI brand-color pin | ✅ Done ([#3409](https://github.com/onetimesecret/onetimesecret/pull/3409)) — unblocks #3399 |
 | 2 | 1 | reporter/artifacts, lint rules (warn), flaky gate | Low |
 | 3 | 2.1+2.2 | global-setup/auth fixture + app-readiness signal | Med — surfaces real `full/` failures (intended) |
 | 4 | 2.3 | `networkidle`/sleep sweep, by directory; lint → error | Med — large but mechanical |
