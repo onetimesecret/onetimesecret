@@ -1,6 +1,6 @@
 # E2E Test Suite Remediation Plan
 
-> Status: **In progress** — Phases 0–1 complete ([PR #3409](https://github.com/onetimesecret/onetimesecret/pull/3409), [PR #3411](https://github.com/onetimesecret/onetimesecret/pull/3411)); Phase 2.1+2.2 / PR 3 in review ([PR #3412](https://github.com/onetimesecret/onetimesecret/pull/3412)); Phase 2.3 / PR 4 in review (branch `claude/e2e-phase24-networkidle-sweep`, stacked on #3412); **next up: PR 5 / Phase 2.4.**
+> Status: **In progress** — Phases 0–1 complete ([PR #3409](https://github.com/onetimesecret/onetimesecret/pull/3409), [PR #3411](https://github.com/onetimesecret/onetimesecret/pull/3411)); Phase 2.1+2.2 / PR 3 in review ([PR #3412](https://github.com/onetimesecret/onetimesecret/pull/3412)); Phase 2.3 / PR 4 in review ([PR #3416](https://github.com/onetimesecret/onetimesecret/pull/3416), stacked on #3412); **next up: PR 5 / Phase 2.4.**
 > Created: 2026-06-09 · Last updated: 2026-06-09 · Owner: TBD
 >
 > Motivation: The `container-e2e-tests` check has been a chronic source of red
@@ -18,7 +18,7 @@
 | Phase 0 / PR 1 — unblock #3399 mask-icon + this plan | ✅ **Done** | [PR #3409](https://github.com/onetimesecret/onetimesecret/pull/3409) · branch `claude/sleepy-shannon-21ko6k` |
 | Phase 1 / PR 2 — reporter/artifacts + lint-ban + flaky gate | ✅ **Done** | [PR #3411](https://github.com/onetimesecret/onetimesecret/pull/3411) · branch `claude/affectionate-clarke-4fyakw` |
 | Phase 2.1+2.2 / PR 3 — auth setup project + app-readiness signal | 🔄 **In review** | [PR #3412](https://github.com/onetimesecret/onetimesecret/pull/3412) · branch `claude/e2e-phase2-auth-readiness` (rebased onto `develop` after #3411 merged; also carries the CI-triage-round-1 auth-compat sweep of `full/`) |
-| Phase 2.3 / PR 4 — `networkidle`/sleep sweep + lint→error | 🔄 **In review** | branch `claude/e2e-phase24-networkidle-sweep`, stacked on #3412 (draft PR targets `develop`; rebase + mark ready once #3412 merges) |
+| Phase 2.3 / PR 4 — `networkidle`/sleep sweep + lint→error | 🔄 **In review** | [PR #3416](https://github.com/onetimesecret/onetimesecret/pull/3416) (draft) · branch `claude/e2e-phase24-networkidle-sweep`, stacked on #3412; rebase + mark ready once #3412 merges |
 | Phase 2.4 / PR 5 — defensive-skip triage | ⏭️ **Next** | not started |
 | Phase 3 / PR 6 — fixtures module, pinned config, parallel/shard | ⬜ Todo | not started |
 
@@ -45,7 +45,7 @@
    finds no call sites. If any of that is missing, see
    [PR #3411](https://github.com/onetimesecret/onetimesecret/pull/3411) /
    [PR #3412](https://github.com/onetimesecret/onetimesecret/pull/3412) /
-   branch `claude/e2e-phase24-networkidle-sweep` (PR 4).
+   [PR #3416](https://github.com/onetimesecret/onetimesecret/pull/3416).
 2. **Where to branch PR 5.** If #3412 and PR 4 have merged, branch off
    `develop`. Otherwise stack on `claude/e2e-phase24-networkidle-sweep` (the
    tip of the stack). Either way the PR must **target `develop`** (see the
@@ -285,7 +285,7 @@ _Live status is tracked in the **Progress & how to continue** section near the t
 | 1 | 0 | mask-icon conditional render + deterministic (skip-free) test + Ruby spec + CI brand-color pin | ✅ Done ([#3409](https://github.com/onetimesecret/onetimesecret/pull/3409)) — unblocks #3399 |
 | 2 | 1 | reporter/artifacts, lint rules (warn), flaky gate | ✅ Done ([#3411](https://github.com/onetimesecret/onetimesecret/pull/3411)) |
 | 3 | 2.1+2.2 | global-setup/auth fixture + app-readiness signal | 🔄 In review ([#3412](https://github.com/onetimesecret/onetimesecret/pull/3412)) — surfaces real `full/` failures (intended) |
-| 4 | 2.3 | `networkidle`/sleep sweep, by directory; lint → error | 🔄 In review (branch `claude/e2e-phase24-networkidle-sweep`, stacked on #3412) |
+| 4 | 2.3 | `networkidle`/sleep sweep, by directory; lint → error | 🔄 In review ([#3416](https://github.com/onetimesecret/onetimesecret/pull/3416), stacked on #3412) |
 | 5 | 2.4 | defensive-skip triage | Med |
 | 6 | 3 | fixtures.ts, pinned brand, parallel/shard | Low |
 
