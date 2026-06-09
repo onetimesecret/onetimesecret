@@ -9,8 +9,9 @@
 import { generateBrandPalette } from '@/utils/brand-palette';
 import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
 import { useProductIdentity } from '@/shared/stores/identityStore';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useAsyncHandler, type AsyncHandlerOptions } from './useAsyncHandler';
-import { watch, onScopeDispose } from 'vue';
+import { computed, watch, onScopeDispose } from 'vue';
 import { storeToRefs } from 'pinia';
 
 /** Neutral seed used to enumerate the full set of CSS variable keys. */
@@ -99,6 +100,7 @@ export function useBrandTheme(): void {
 
   const identityStore = useProductIdentity();
   const { primaryColor, brand } = storeToRefs(identityStore);
+  const bootstrapStore = useBootstrapStore();
 
   const asyncHandlerOptions: AsyncHandlerOptions = {
     notify: false,
@@ -126,19 +128,19 @@ export function useBrandTheme(): void {
     applyPalette(newColor);
   }, { immediate: true });
 
-  // Favicon override: when brand settings include a custom favicon_url,
-  // update all <link rel="icon"> elements in the document head.
-  watch(
-    () => brand.value?.favicon_url,
-    (faviconUrl) => {
-      if (faviconUrl) {
-        applyFavicon(faviconUrl);
-      } else {
-        restoreFavicons();
-      }
-    },
-    { immediate: true }
+  // Favicon override: per-domain favicon_url takes priority, then
+  // installation-level brand_favicon_url from bootstrap config.
+  const effectiveFaviconUrl = computed(() =>
+    brand.value?.favicon_url || bootstrapStore.brand_favicon_url
   );
+
+  watch(effectiveFaviconUrl, (faviconUrl) => {
+    if (faviconUrl) {
+      applyFavicon(faviconUrl);
+    } else {
+      restoreFavicons();
+    }
+  }, { immediate: true });
 
   onScopeDispose(() => {
     clearOverrides();

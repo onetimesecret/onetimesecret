@@ -67,6 +67,11 @@
                 <p style="margin: 6px 0 0 0; font-family: Helvetica, Arial, sans-serif; font-size: 11px; line-height: 16px; color: #97a1ab;">
                   <%= h(t('email.common.automated_notice', product_name: product_name)) %>
                 </p>
+                <% if support_email %>
+                <p style="margin: 4px 0 0 0; font-family: Helvetica, Arial, sans-serif; font-size: 11px; line-height: 16px; color: #97a1ab;">
+                  <a href="mailto:<%= h(support_email) %>" style="color: <%= brand_color %>; text-decoration: none;" rel="noopener noreferrer"><%= h(support_email) %></a>
+                </p>
+                <% end %>
               </td>
             </tr>
           </table>
