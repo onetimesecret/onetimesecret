@@ -129,6 +129,7 @@ module Core
             'brand_font_family' => nil,
             'brand_button_text_light' => nil,
             'brand_logo_url' => nil,
+            'brand_favicon_url' => nil,
             'brand_totp_issuer' => nil,
             'd9s_enabled' => nil,
             'development' => nil,

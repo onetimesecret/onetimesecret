@@ -60,6 +60,7 @@ module Core
         logic.process
 
         if logic.redirect_url
+          res['cache-control'] = 'public, max-age=86400'
           res.redirect(logic.redirect_url, 302)
         else
           res['content-type']   = logic.content_type
