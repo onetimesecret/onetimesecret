@@ -17,6 +17,7 @@
 #
 
 require 'cgi'
+require 'sanitize'
 
 module Onetime
   module CLI
@@ -164,7 +165,10 @@ module Onetime
       end
 
       def strip_html(html)
-        CGI.unescapeHTML(html).gsub(/<[^>]+>/, '').strip
+        # Decode entities then strip tags via Sanitize (proper HTML parser,
+        # same decode→sanitize order as the frontend's DOMPurify pipeline).
+        # Sanitize re-encodes & as &amp; — decode that back for plain text.
+        Sanitize.fragment(CGI.unescapeHTML(html)).gsub('&amp;', '&').strip
       end
 
       def pad(text)
