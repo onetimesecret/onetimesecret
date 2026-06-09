@@ -35,8 +35,8 @@ module DomainsAPI::Logic
 
         raise_form_error 'Domain not found' unless @custom_domain
 
-        # Verify the customer owns this domain through their organization
-        unless @custom_domain.owner?(@cust)
+        # Verify the customer can access this domain through org membership
+        unless @custom_domain.accessible_by?(@cust)
           raise_form_error 'Domain not found'
         end
 
@@ -45,7 +45,9 @@ module DomainsAPI::Logic
         raise_form_error 'Domain has no associated organization' unless domain_org
         require_entitlement_in!(domain_org, 'custom_domains')
 
-        # Domain-scope enforcement: deny if member is scoped to a different domain (#3384)
+        # Domain-scope enforcement: deny if member is scoped to a different domain (#3384).
+        # nil membership is colonel-only here: require_entitlement_in! above
+        # already rejected any non-colonel without an active membership row.
         membership = Onetime::OrganizationMembership.find_by_org_customer(
           domain_org.objid, @cust.objid
         )

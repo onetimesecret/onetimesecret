@@ -240,23 +240,51 @@ module Onetime
       self.class.generate_id
     end
 
-    # Check if the given customer is the owner of this domain
-    # In the new model, ownership is through organization membership
+    # Check if the given customer can access this domain through their
+    # organization membership (any role: owner, admin, or member).
     #
-    # @param cust [Onetime::Customer, String] The customer object or customer ID to check
-    # @return [Boolean] true if the customer is the owner, false otherwise
+    # Active status is verified for owners only (via org.owner?); for other
+    # roles this checks presence in the org's members sorted set, which is
+    # intentionally tolerant of legacy members without an
+    # OrganizationMembership record (membership migration is incomplete).
+    # Endpoints needing active-status or role guarantees must follow this
+    # with require_entitlement_in!, which loads the membership record.
+    #
+    # @param cust [Onetime::Customer, String] The customer object or customer ID
+    # @return [Boolean] true if the customer belongs to the domain's organization
+    def accessible_by?(cust)
+      resolve_org_and_customer(cust) do |org, customer|
+        org.owner?(customer) || org.member?(customer)
+      end
+    end
+
+    # Strict ownership check: true only if the customer has an owner-role
+    # membership in the domain's organization. Delegates to Organization#owner?
+    # which verifies active membership with role='owner'.
+    #
+    # @param cust [Onetime::Customer, String] The customer object or customer ID
+    # @return [Boolean] true only if the customer is an org owner
     def owner?(cust)
+      resolve_org_and_customer(cust) do |org, customer|
+        org.owner?(customer)
+      end
+    end
+
+    private
+
+    def resolve_org_and_customer(cust)
       return false unless org_id
 
       org = Onetime::Organization.load(org_id)
       return false unless org
 
-      # Normalize input to Customer object for safe method calls
       customer = cust.is_a?(Onetime::Customer) ? cust : Onetime::Customer.load(cust)
       return false unless customer
 
-      org.owner?(customer) || org.member?(customer)
+      yield org, customer
     end
+
+    public
 
     # Check if this domain is owned by the given organization
     #
