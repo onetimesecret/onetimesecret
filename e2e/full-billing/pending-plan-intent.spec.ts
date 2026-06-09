@@ -25,6 +25,13 @@
 
 import { test, expect, Page } from '@playwright/test';
 
+// The `full-billing` project starts every test authenticated as TEST_USER_*
+// via storageState (e2e/playwright.config.ts), but this whole file tests the
+// *unauthenticated* pricing -> signup -> checkout intent flow (an
+// authenticated visitor never sees the signup form or the signup redirects).
+// Opt out of the shared session.
+test.use({ storageState: { cookies: [], origins: [] } });
+
 /**
  * Generate a unique test email for signup
  */

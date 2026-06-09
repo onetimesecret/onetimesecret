@@ -18,7 +18,9 @@
  * - Strict email binding (no acknowledge_email_mismatch option)
  *
  * Prerequisites:
- * - Set TEST_USER_EMAIL, TEST_USER_PASSWORD environment variables for org owner
+ * - Authenticated as the org owner via the project storageState
+ *   (e2e/global.setup.ts consumes TEST_USER_*); multi-context scenarios sign
+ *   in manually inside fresh (unauthenticated) browser contexts
  * - Application running locally or PLAYWRIGHT_BASE_URL set
  *
  * Usage:
@@ -40,7 +42,11 @@ const generateTestEmail = (prefix: string) =>
 // -----------------------------------------------------------------------------
 
 /**
- * Authenticate user via login form using password tab
+ * Authenticate user via login form using password tab.
+ *
+ * Only valid on pages from a fresh `browser.newContext()` (unauthenticated):
+ * the default `page` fixture already carries the storageState session, and
+ * an authenticated visitor to /signin is redirected away from the form.
  */
 async function loginUser(page: Page, email?: string, password?: string): Promise<void> {
   await page.goto('/signin');
@@ -145,11 +151,8 @@ async function getInvitationToken(page: Page, email: string): Promise<string | n
 // -----------------------------------------------------------------------------
 
 test.describe('INV-001: New User Atomic Signup Flow', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('new user can signup and join organization atomically', async ({ page, context }) => {
-    // Setup: Login as org owner and create invitation for new email
-    await loginUser(page);
+    // Setup: create an invitation for a new email (storageState session is the org owner)
     const invitedEmail = generateTestEmail('new-user-signup');
     const testPassword = 'TestPassword123!';
 
@@ -504,12 +507,8 @@ test.describe('INV-007: Wrong Email State', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-008: Already Member State', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('already member shows info message', async ({ page }) => {
-    // Login as org owner (who is already a member of their org)
-    await loginUser(page);
-
+    // The storageState session is the org owner (already a member of their org)
     // Get owner's email
     const bootstrapResponse = await page.request.get('/api/v2/bootstrap/authenticated');
     const bootstrapData = await bootstrapResponse.json();
@@ -585,11 +584,8 @@ test.describe('INV-010: Invalid Token State', () => {
     await expect(invitationDetails).not.toBeVisible();
   });
 
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('revoked invitation link becomes invalid', async ({ page, context }) => {
-    // Login and create an invitation
-    await loginUser(page);
+    // Create an invitation (storageState session is the org owner)
     const testEmail = generateTestEmail('revoke-test');
     await navigateToOrgTeam(page);
     await createInvitation(page, testEmail);
@@ -624,11 +620,8 @@ test.describe('INV-010: Invalid Token State', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Invite Flow State Transitions', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('loading state shows spinner during fetch', async ({ page, context }) => {
     // Create invitation first
-    await loginUser(page);
     const testEmail = generateTestEmail('loading-test');
     await navigateToOrgTeam(page);
     await createInvitation(page, testEmail);
@@ -661,7 +654,6 @@ test.describe('Invite Flow State Transitions', () => {
 
   test('invitation context displays organization info', async ({ page, context }) => {
     // Create invitation
-    await loginUser(page);
     const testEmail = generateTestEmail('context-test');
     await navigateToOrgTeam(page);
     await createInvitation(page, testEmail);
