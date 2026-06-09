@@ -118,7 +118,7 @@ module Core
         # Backend gate: if a SignupConfig exists and disables signup, don't show the form.
         def effective_signup_enabled?(domain_id)
           config = Onetime::CustomDomain::SignupConfig.find_by_domain_id(domain_id)
-          return true unless config
+          return true unless config&.enabled?
 
           config.signup_enabled?
         end

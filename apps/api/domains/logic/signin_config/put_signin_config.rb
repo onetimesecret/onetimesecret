@@ -30,7 +30,7 @@ module DomainsAPI
 
         def process_params
           @domain_id          = sanitize_identifier(params['extid'])
-          @enabled            = parse_boolean(params['enabled'])
+          @enabled            = params.key?('enabled') ? parse_boolean(params['enabled']) : false
           @signin_enabled     = params.key?('signin_enabled') ? parse_boolean(params['signin_enabled']) : false
           @restrict_to        = params['restrict_to'].to_s.strip.then { |v| v.empty? ? nil : v }
           @email_auth_enabled = params.key?('email_auth_enabled') ? parse_boolean(params['email_auth_enabled']) : false

@@ -161,7 +161,7 @@ module Core
 
       def signup_enabled?
         config = domain_signup_config
-        return config.signup_enabled? if config
+        return config.signup_enabled? if config&.enabled?
 
         auth_settings['enabled'] && auth_settings['signup']
       end
@@ -174,7 +174,7 @@ module Core
 
       def resolve_autoverify
         config = domain_signup_config
-        return config.autoverify? if config
+        return config.autoverify? if config&.enabled?
 
         auth_settings['autoverify'].to_s == 'true'
       end

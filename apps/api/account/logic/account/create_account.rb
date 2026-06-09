@@ -171,7 +171,7 @@ module AccountAPI::Logic
 
       def resolve_autoverify
         config = domain_signup_config
-        return config.autoverify? if config
+        return config.autoverify? if config&.enabled?
 
         site.dig('authentication', 'autoverify').to_s.eql?('true')
       end
