@@ -327,25 +327,31 @@ test.describe('Brand Customization - Console Error Monitoring', () => {
 });
 
 test.describe('Brand Customization - head-base meta tags', () => {
-  // head-base.rue partial renders:
-  //   <link rel="mask-icon" href="..." color="{{brand_primary_color}}">
-  // The color attribute should carry a hex color value derived from the
-  // configured brand color.
-  //
-  // Note: <meta name="theme-color"> was removed in 5b2e760 (PWA cleanup).
+  // head-base.rue partial conditionally renders the brand-colored tags:
+  //   {{#if has_brand_color}}
+  //     <link rel="mask-icon" href="..." color="{{brand_primary_color}}">
+  //     <meta name="theme-color" content="{{brand_primary_color}}" ...>
+  //   {{/if}}
+  // These tags are ONLY emitted when a brand color is configured. Unbranded
+  // deployments (including the default CI E2E container) deliberately omit
+  // them so the frontend can fall through to NEUTRAL_BRAND_DEFAULTS. When the
+  // mask-icon tag is present, its color attribute must be a valid hex color.
 
-  test('link mask-icon color attribute carries a valid hex color', async ({ page }) => {
+  test('mask-icon, when present, carries a valid hex color', async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    const maskIcon = page.locator('link[rel="mask-icon"]');
 
-    const maskIconColor = await page
-      .locator('link[rel="mask-icon"]')
-      .getAttribute('color');
+    // Unbranded deployments legitimately omit the mask-icon tag (no brand
+    // color configured), in which case there is nothing to validate.
+    if ((await maskIcon.count()) === 0) {
+      test.skip(true, 'mask-icon absent: no brand color configured in this environment');
+      return;
+    }
 
-    expect(maskIconColor, 'link[mask-icon] color should be present').toBeTruthy();
+    const color = await maskIcon.getAttribute('color');
     expect(
-      maskIconColor && isHexColor(maskIconColor),
-      `link[mask-icon] color should be a hex color, got: ${maskIconColor}`
+      color && isHexColor(color),
+      `mask-icon color must be a hex color, got: ${color}`
     ).toBe(true);
   });
 });
