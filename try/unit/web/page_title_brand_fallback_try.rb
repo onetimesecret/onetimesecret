@@ -116,17 +116,19 @@ vars = @host.initialize_view_vars(Rack::Request.new(build_env))
 vars.key?('brand_primary_color')
 #=> true
 
-## brand_primary_color is a String hex color
-vars = @host.initialize_view_vars(Rack::Request.new(build_env))
-[vars['brand_primary_color'].is_a?(String), vars['brand_primary_color'].start_with?('#')]
+## brand_primary_color is a String hex color when brand primary_color is set
+with_brand_conf({ 'primary_color' => '#112233' }) do
+  vars = @host.initialize_view_vars(Rack::Request.new(build_env))
+  [vars['brand_primary_color'].is_a?(String), vars['brand_primary_color'].start_with?('#')]
+end
 #=> [true, true]
 
-## [regression guard] brand_primary_color default is neutral blue, NOT OTS-orange
+## [regression guard] brand_primary_color is nil when brand absent — backend no longer backfills, frontend fallback chain owns the default (#3381)
 with_brand_conf(nil) do
   vars = @host.initialize_view_vars(Rack::Request.new(build_env))
   vars['brand_primary_color']
 end
-#=> '#3B82F6'
+#=> nil
 
 ## initialize_view_vars exposes 'brand_product_name'
 vars = @host.initialize_view_vars(Rack::Request.new(build_env))
