@@ -49,7 +49,10 @@ vi.mock('vue-i18n', () => ({
     t: (key: string) => {
       const translations: Record<string, string> = {
         'web.domains.signin.update_success': 'Signin configuration updated',
-        'web.domains.signin.delete_success': 'Signin configuration removed',
+        // The "delete" flow was renamed to "reset to defaults"; the success
+        // notification key moved delete_success → reset_success. The action
+        // (deleteConfig / DELETE of the record) is unchanged.
+        'web.domains.signin.reset_success': 'Signin configuration reset to defaults',
         'web.COMMON.unexpected_error': 'An unexpected error occurred',
       };
       return translations[key] ?? key;
@@ -513,6 +516,135 @@ describe('useSigninConfig', () => {
   });
 
   // ---------------------------------------------------------------------------
+  // autoSaveFields (multi-key partial save — invariants 5 & 6)
+  //
+  // autoSaveField (single key) is covered above; it delegates to autoSaveFields,
+  // so the no-op-while-saving and finally-clear guards are already exercised
+  // transitively. This block covers the multi-key path the component uses for
+  // the atomic restrict_to + availability-flag commit, plus the signin_enabled
+  // passthrough no UI touches.
+  // ---------------------------------------------------------------------------
+
+  describe('autoSaveFields', () => {
+    it('merges a multi-key partial and sends all of it in one full-replacement PUT', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      mockPutConfigForDomain.mockResolvedValue({
+        record: { ...mockSigninConfigData, restrict_to: 'sso', sso_enabled: true },
+      });
+
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+
+      // The Mode B pick: restrict_to + its availability flag, atomically.
+      await composable.autoSaveFields({ restrict_to: 'sso', sso_enabled: true });
+
+      expect(mockPutConfigForDomain).toHaveBeenCalledTimes(1);
+      expect(mockPutConfigForDomain).toHaveBeenCalledWith(
+        'dm-ext-123',
+        expect.objectContaining({ restrict_to: 'sso', sso_enabled: true })
+      );
+      // Both fields landed in formState via the merge.
+      expect(composable.formState.value.restrict_to).toBe('sso');
+      expect(composable.formState.value.sso_enabled).toBe(true);
+    });
+
+    it('attributes savingField to the explicit hint when provided', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      let resolveSave: (value: unknown) => void;
+      mockPutConfigForDomain.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveSave = resolve;
+          })
+      );
+
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+
+      // restrict_to comes first in the partial, but the hint pins the spinner
+      // to restrict_to anyway (the component passes 'restrict_to' as the hint).
+      const promise = composable.autoSaveFields(
+        { restrict_to: 'email_auth', email_auth_enabled: true },
+        'restrict_to'
+      );
+      expect(composable.savingField.value).toBe('restrict_to');
+
+      resolveSave!({ record: mockSigninConfigData });
+      await promise;
+      expect(composable.savingField.value).toBeNull();
+    });
+
+    it('defaults savingField to the first partial key when no hint is given', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      let resolveSave: (value: unknown) => void;
+      mockPutConfigForDomain.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveSave = resolve;
+          })
+      );
+
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+
+      const promise = composable.autoSaveFields({ email_auth_enabled: true, sso_enabled: true });
+      // First key of the partial drives the spinner attribution.
+      expect(composable.savingField.value).toBe('email_auth_enabled');
+
+      resolveSave!({ record: mockSigninConfigData });
+      await promise;
+    });
+
+    it('preserves signin_enabled untouched through an unrelated auto-save (passthrough)', async () => {
+      // signin_enabled has no UI control on the form. A patch that changes
+      // another field must spread-merge it through unchanged, and the PUT must
+      // still carry it.
+      mockGetConfigForDomain.mockResolvedValue({
+        record: { ...mockSigninConfigData, signin_enabled: true },
+      });
+      mockPutConfigForDomain.mockResolvedValue({
+        record: { ...mockSigninConfigData, signin_enabled: true, sso_enabled: true },
+      });
+
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+      expect(composable.formState.value.signin_enabled).toBe(true);
+
+      await composable.autoSaveFields({ sso_enabled: true }, 'sso_enabled');
+
+      // The PUT carried signin_enabled even though the patch never named it.
+      expect(mockPutConfigForDomain).toHaveBeenCalledWith(
+        'dm-ext-123',
+        expect.objectContaining({ signin_enabled: true, sso_enabled: true })
+      );
+    });
+
+    it('is a no-op while a save is already in flight (multi-key path)', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      let resolveSave: (value: unknown) => void;
+      mockPutConfigForDomain.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveSave = resolve;
+          })
+      );
+
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+
+      const first = composable.autoSaveFields({ restrict_to: 'sso', sso_enabled: true }, 'restrict_to');
+      // Second concurrent multi-key call is dropped.
+      await composable.autoSaveFields({ restrict_to: 'password' }, 'restrict_to');
+
+      expect(mockPutConfigForDomain).toHaveBeenCalledTimes(1);
+      expect(composable.formState.value.restrict_to).toBe('sso');
+
+      resolveSave!({ record: mockSigninConfigData });
+      await first;
+    });
+  });
+
+  // ---------------------------------------------------------------------------
   // deleteConfig
   // ---------------------------------------------------------------------------
 
@@ -573,8 +705,10 @@ describe('useSigninConfig', () => {
 
       await composable.deleteConfig();
 
+      // deleteConfig still performs the DELETE; only the success copy changed
+      // (delete_success → reset_success) when the surface was renamed to "reset".
       expect(mockNotificationsShow).toHaveBeenCalledWith(
-        'Signin configuration removed',
+        'Signin configuration reset to defaults',
         'success',
         'top'
       );
