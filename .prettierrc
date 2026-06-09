@@ -47,7 +47,7 @@
   "tabWidth": 2,
   "trailingComma": "es5",
   "useTabs": false,
-  "tailwindConfig": "./tailwind.config.ts",
+  "tailwindStylesheet": "./src/assets/style.css",
   "tailwindFunctions": ["clsx", "cn"],
   "tailwindAttributes": ["class", ":class", "className", "ngClass"],
   "tailwindPreserveDuplicates": false

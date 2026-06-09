@@ -1,9 +1,37 @@
-@import "tailwindcss";
-@config "../../tailwind.config.ts";
+@import "tailwindcss" source(none);
 @plugin "@tailwindcss/forms";
 @plugin "@tailwindcss/typography";
 
+/*
+ * Class-based dark mode — replaces `darkMode: 'class'` from the former
+ * tailwind.config.ts. Dark mode is toggled by adding the `dark` class to
+ * <html> (see src/shared/composables/useTheme.ts).
+ */
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Source paths Tailwind scans for class names — replaces the `content`
+ * array from the former tailwind.config.ts. `source(none)` on the import
+ * above disables automatic detection so only these explicit globs are
+ * scanned. Paths are relative to this file (src/assets/).
+ *
+ * src/assets/tailwind-safelist.ts is matched by the src glob below; it lists
+ * dynamically-generated classes (e.g. SplitButton corners) that the scanner
+ * cannot otherwise detect.
+ */
+@source "../*.html";
+@source "../**/*.{vue,js,ts,jsx,tsx,mjs}";
+@source "../../templates/web/**/*.html";
+@source "../../apps/web/auth/views/**/*.erb";
+
 @theme {
+  /*
+   * Brand font family (Zilla Slab + serif fallback) — replaces
+   * `fontFamily.brand` from the former tailwind.config.ts. The default
+   * sans/serif/mono families come from Tailwind's own theme.
+   */
+  --font-brand: 'Zilla Slab', ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+
   /* Brand color palette - 11 shades */
   --color-brand-50: #fcf8f2;
   --color-brand-100: #fcf4e8;
@@ -58,9 +86,6 @@
 
   /* Custom animations */
   --animate-gradient-x: gradient-x 5s ease-in-out infinite;
-
-  /* Custom background sizes */
-  --background-size-200%: 200% 100%;
 }
 
 /* Custom keyframe animations */
