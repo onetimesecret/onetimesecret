@@ -1,4 +1,7 @@
 @import "tailwindcss";
+/* This file is the v4 design-system entry. eslint-plugin-tailwindcss points
+   its `config` setting here (absolute path, see eslint.config.ts), NOT at
+   tailwind.config.ts — the plugin reads its config target as CSS. */
 @config "../../tailwind.config.ts";
 @plugin "@tailwindcss/forms";
 @plugin "@tailwindcss/typography";

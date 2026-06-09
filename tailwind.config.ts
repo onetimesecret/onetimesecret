@@ -10,6 +10,14 @@ import defaultTheme from 'tailwindcss/defaultTheme';
  * npx prettier path/2/ComponentFile.vue --write --log-level debug
  * <!-- prettier-ignore-attribute class -->
  *
+ * NOTE (v4): This legacy JS config is loaded by the build via the
+ * `@config "../../tailwind.config.ts"` directive in src/assets/style.css.
+ * Do NOT point eslint-plugin-tailwindcss's `settings.tailwindcss.config`
+ * at this file — under v4 the plugin reads its config target *as CSS* and
+ * will throw "Invalid declaration" on this TS source. That setting must
+ * point at the CSS entry (src/assets/style.css), absolute path. See the
+ * note in eslint.config.ts.
+ *
  **/
 
 export default {
