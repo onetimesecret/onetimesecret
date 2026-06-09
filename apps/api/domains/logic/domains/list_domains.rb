@@ -50,7 +50,9 @@ module DomainsAPI::Logic
       def process
         domains = target_organization.list_domains
 
-        # Domain-scope enforcement: filter by membership scope (#3384)
+        # Domain-scope enforcement: filter by membership scope (#3384).
+        # nil membership means the caller passed require_entitlement_in! via
+        # org-owner status (not a regular member row) — show all domains.
         membership = Onetime::OrganizationMembership.find_by_org_customer(
           target_organization.objid, @cust.objid
         )

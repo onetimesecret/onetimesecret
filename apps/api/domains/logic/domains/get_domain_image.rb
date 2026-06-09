@@ -51,7 +51,7 @@ module DomainsAPI::Logic
         # Domain-scope enforcement (#3384)
         membership = Onetime::OrganizationMembership.find_by_org_customer(@organization.objid, @cust.objid)
         if membership && !membership.can_access_domain?(@custom_domain)
-          raise_form_error 'Domain not found'
+          raise_not_found 'Domain not found'
         end
 
         @display_domain = @custom_domain.display_domain

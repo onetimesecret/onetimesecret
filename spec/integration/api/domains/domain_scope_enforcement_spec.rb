@@ -235,7 +235,7 @@ RSpec.describe 'Domain-scope enforcement (#3384)', type: :integration do
         strategy_result_for(scoped_admin),
         { 'extid' => domain_b.extid },
       )
-      expect { logic.raise_concerns }.to raise_error(OT::FormError, 'Domain not found')
+      expect { logic.raise_concerns }.to raise_error(OT::RecordNotFound, 'Domain not found')
     end
 
     it 'org-scoped admin can access any domain' do
@@ -257,7 +257,7 @@ RSpec.describe 'Domain-scope enforcement (#3384)', type: :integration do
         strategy_result_for(scoped_admin),
         { 'extid' => domain_b.extid },
       )
-      expect { logic.raise_concerns }.to raise_error(OT::FormError, 'Domain not found')
+      expect { logic.raise_concerns }.to raise_error(OT::RecordNotFound, 'Domain not found')
     end
 
     it 'domain-scoped admin can access brand for their scoped domain' do
@@ -282,7 +282,7 @@ RSpec.describe 'Domain-scope enforcement (#3384)', type: :integration do
       )
       # Scope check fires before the image-exists check, so we get
       # "Domain not found" not "Image not found"
-      expect { logic.raise_concerns }.to raise_error(OT::FormError, 'Domain not found')
+      expect { logic.raise_concerns }.to raise_error(OT::RecordNotFound, 'Domain not found')
     end
   end
 
@@ -353,7 +353,7 @@ RSpec.describe 'Domain-scope enforcement (#3384)', type: :integration do
         strategy_result_for(scoped_owner),
         { 'extid' => domain_b.extid },
       )
-      expect { logic.raise_concerns }.to raise_error(OT::FormError, 'Domain not found')
+      expect { logic.raise_concerns }.to raise_error(OT::RecordNotFound, 'Domain not found')
     end
 
     it 'org-scoped owner can write config for any domain' do

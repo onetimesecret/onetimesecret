@@ -50,7 +50,7 @@ module DomainsAPI::Logic
           domain_org.objid, @cust.objid
         )
         if membership && !membership.can_access_domain?(@custom_domain)
-          raise_form_error 'Domain not found'
+          raise_not_found 'Domain not found'
         end
       end
 
