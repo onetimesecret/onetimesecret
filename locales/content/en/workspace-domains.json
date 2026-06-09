@@ -518,6 +518,15 @@
     "text": "SSO is not yet configured for this domain. Enable single sign-on to allow team members to authenticate using your organization's identity provider.",
     "content_hash": "c439214b"
   },
+  "web.domains.sso.edit_credentials": {
+    "text": "Edit credentials"
+  },
+  "web.domains.sso.configure_button": {
+    "text": "Configure"
+  },
+  "web.domains.sso.upgrade_required": {
+    "text": "Upgrade to configure"
+  },
   "web.domains.signup.title": {
     "text": "Signup Validation",
     "content_hash": "2c34ac0a"

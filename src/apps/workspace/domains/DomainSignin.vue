@@ -10,17 +10,19 @@
  * to a single method.
  */
 import { useI18n } from 'vue-i18n';
-import { computed, onMounted, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter, onBeforeRouteLeave } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
 import DomainSigninConfigForm from '@/apps/workspace/components/domains/DomainSigninConfigForm.vue';
+import SsoCredentialsModal from '@/apps/workspace/components/domains/SsoCredentialsModal.vue';
 import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
 import { useDomain } from '@/shared/composables/useDomain';
 
 import { useSigninConfig } from '@/shared/composables/useSigninConfig';
+import { useSsoConfig } from '@/shared/composables/useSsoConfig';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { ENTITLEMENTS } from '@/types/organization';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
@@ -55,6 +57,7 @@ const organization = computed(() =>
 );
 const { can } = useEntitlements(organization);
 const canCustomSignin = computed(() => can(ENTITLEMENTS.CUSTOM_SIGNIN_CONFIG));
+const canManageSso = computed(() => can(ENTITLEMENTS.MANAGE_SSO));
 const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
 
 // ---------------------------------------------------------------------------
@@ -78,6 +81,41 @@ const {
 } = useSigninConfig(props.extid);
 
 // ---------------------------------------------------------------------------
+// SSO config composable
+// ---------------------------------------------------------------------------
+
+const {
+  isLoading: ssoConfigLoading,
+  isInitialized: ssoInitialized,
+  isSaving: ssoSaving,
+  isDeleting: ssoDeleting,
+  isTesting,
+  error: _ssoConfigError,
+  ssoConfig,
+  formState: ssoFormState,
+  testResult,
+  testError,
+  isConfigured: ssoIsConfigured,
+  hasUnsavedChanges: ssoHasUnsavedChanges,
+  clientSecretMasked,
+  initialize: initializeSsoConfig,
+  saveConfig: saveSsoConfig,
+  deleteConfig: deleteSsoConfig,
+  testConnection,
+  discardChanges: discardSsoChanges,
+} = useSsoConfig(props.extid);
+
+const showSsoModal = ref(false);
+
+const handleOpenSsoModal = () => {
+  showSsoModal.value = true;
+};
+
+const handleCloseSsoModal = () => {
+  showSsoModal.value = false;
+};
+
+// ---------------------------------------------------------------------------
 // Navigation
 // ---------------------------------------------------------------------------
 
@@ -87,7 +125,7 @@ const handleBack = () => {
 
 // Unsaved changes guard
 onBeforeRouteLeave((_to, _from, next) => {
-  if (hasUnsavedChanges.value) {
+  if (hasUnsavedChanges.value || ssoHasUnsavedChanges.value) {
     const answer = window.confirm(t('web.branding.you_have_unsaved_changes_are_you_sure'));
     if (answer) next();
     else next(false);
@@ -109,6 +147,10 @@ onMounted(async () => {
   if (canCustomSignin.value) {
     await initializeSigninConfig();
   }
+
+  if (canManageSso.value) {
+    await initializeSsoConfig();
+  }
 });
 
 // Handle race condition: organizations (and thus entitlements) may load after
@@ -116,6 +158,12 @@ onMounted(async () => {
 watch(canCustomSignin, async (entitled) => {
   if (entitled && !isInitialized.value) {
     await initializeSigninConfig();
+  }
+});
+
+watch(canManageSso, async (entitled) => {
+  if (entitled && !ssoInitialized.value) {
+    await initializeSsoConfig();
   }
 });
 </script>
@@ -235,11 +283,37 @@ watch(canCustomSignin, async (entitled) => {
             :is-deleting="isDeleting"
             :has-unsaved-changes="hasUnsavedChanges"
             :is-configured="isConfigured"
+            :sso-configured="ssoIsConfigured"
+            :can-manage-sso="canManageSso"
             @save="saveConfig"
             @delete="deleteConfig"
-            @discard="discardChanges" />
+            @discard="discardChanges"
+            @configure-sso="handleOpenSsoModal" />
         </div>
       </div>
+
+      <!-- SSO Credentials Modal -->
+      <SsoCredentialsModal
+        :is-open="showSsoModal"
+        :domain-ext-id="props.extid"
+        :domain-host="customDomainRecord?.display_domain ?? ''"
+        :org-id="props.orgid"
+        v-model:form-state="ssoFormState"
+        :sso-config="ssoConfig"
+        :is-loading="ssoConfigLoading"
+        :is-saving="ssoSaving"
+        :is-deleting="ssoDeleting"
+        :is-testing="isTesting"
+        :has-unsaved-changes="ssoHasUnsavedChanges"
+        :is-configured="ssoIsConfigured"
+        :client-secret-masked="clientSecretMasked"
+        :test-result="testResult"
+        :test-error="testError"
+        @close="handleCloseSsoModal"
+        @save="saveSsoConfig"
+        @delete="deleteSsoConfig"
+        @test="testConnection"
+        @discard="discardSsoChanges" />
     </div>
   </div>
 </template>

@@ -20,7 +20,6 @@ import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { ENTITLEMENTS } from '@/types/organization';
 import {
-  isOrgsSsoEnabled,
   isOrgsCustomMailEnabled,
   isOrgsIncomingSecretsEnabled,
 } from '@/utils/features';
@@ -62,7 +61,6 @@ const organization = computed(() =>
 const { can } = useEntitlements(organization);
 
 const canBrand = computed(() => can(ENTITLEMENTS.CUSTOM_BRANDING));
-const canManageSso = computed(() => can(ENTITLEMENTS.MANAGE_SSO));
 const canEmailConfig = computed(() => can(ENTITLEMENTS.CUSTOM_MAIL_SENDER));
 const canIncomingSecrets = computed(() => can(ENTITLEMENTS.INCOMING_SECRETS));
 const canCustomSignin = computed(() => can(ENTITLEMENTS.CUSTOM_SIGNIN_CONFIG));
@@ -159,17 +157,6 @@ const sections = computed<Section[]>(() => [
     descriptionKey: 'web.domains.detail.signin_description',
     available: true,
     locked: !canCustomSignin.value,
-    toggleable: false,
-    enabled: false,
-  },
-  {
-    key: 'sso',
-    route: { name: 'DomainSso', params: { orgid: props.orgid, extid: props.extid } },
-    icon: { collection: 'heroicons', name: 'key' },
-    titleKey: 'web.domains.sso.configure_sso',
-    descriptionKey: 'web.domains.detail.sso_description',
-    available: isOrgsSsoEnabled(),
-    locked: !canManageSso.value,
     toggleable: false,
     enabled: false,
   },

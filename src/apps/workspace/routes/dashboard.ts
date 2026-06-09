@@ -165,28 +165,6 @@ const routes: Array<RouteRecordRaw> = [
     props: true,
   },
   {
-    path: '/org/:orgid/domains/:extid/sso',
-    name: 'DomainSso',
-    component: () => import('@/apps/workspace/domains/DomainSso.vue'),
-    meta: {
-      title: 'web.TITLES.domain_sso',
-      requiresAuth: true,
-      requiresOrgRole: 'admin',
-      layout: WorkspaceLayout,
-      layoutProps: {
-        displayPoweredBy: false,
-      },
-      scopesAvailable: {
-        organization: 'show',
-        domain: 'show',
-        onOrgSwitch: '/dashboard',
-        onDomainSwitch: 'same',
-      },
-      sentryScrubParams: false,
-    },
-    props: true,
-  },
-  {
     path: '/org/:orgid/domains/:extid/signup',
     name: 'DomainSignup',
     component: () => import('@/apps/workspace/domains/DomainSignup.vue'),

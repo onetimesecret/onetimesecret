@@ -67,7 +67,12 @@ const mockDomain = {
   updated: new Date('2024-01-01'),
 };
 
-function mountComponent({ canBrand = false, canManageSso = false, canEmailConfig = false, canIncomingSecrets = false } = {}) {
+function mountComponent({
+  canBrand = false,
+  canManageSso = false,
+  canEmailConfig = false,
+  canIncomingSecrets = false,
+} = {}) {
   return mount(DomainsTableActionsCell, {
     props: {
       domain: mockDomain,
@@ -138,8 +143,13 @@ describe('DomainsTableActionsCell', () => {
       const withIncoming = mountComponent({ canIncomingSecrets: true });
       expect(withIncoming.findAll('[role="menuitem"]')).toHaveLength(3);
 
-      // With all: Manage Brand, Verify Domain, Configure SSO, Configure Email, Configure Incoming Secrets, Remove (6 items)
-      const withAll = mountComponent({ canBrand: true, canManageSso: true, canEmailConfig: true, canIncomingSecrets: true });
+      // With all capabilities: 6 items
+      const withAll = mountComponent({
+        canBrand: true,
+        canManageSso: true,
+        canEmailConfig: true,
+        canIncomingSecrets: true,
+      });
       expect(withAll.findAll('[role="menuitem"]')).toHaveLength(6);
     });
 
@@ -179,7 +189,7 @@ describe('DomainsTableActionsCell', () => {
       expect(texts).toContain('Configure SSO');
     });
 
-    it('links "Configure SSO" to DomainSso route with correct params', () => {
+    it('links "Configure SSO" to DomainSignin route with correct params', () => {
       const wrapper = mountComponent({ canManageSso: true });
 
       const links = wrapper.findAll('a[data-to]');
@@ -188,7 +198,7 @@ describe('DomainsTableActionsCell', () => {
       expect(ssoLink).toBeDefined();
       const to = JSON.parse(ssoLink!.attributes('data-to')!);
       expect(to).toEqual({
-        name: 'DomainSso',
+        name: 'DomainSignin',
         params: { orgid: 'org_ext_123', extid: 'dm-test-extid' },
       });
     });

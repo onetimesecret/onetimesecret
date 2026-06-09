@@ -30,6 +30,8 @@ const props = defineProps<{
   isDeleting: boolean;
   hasUnsavedChanges: boolean;
   isConfigured: boolean;
+  ssoConfigured: boolean;
+  canManageSso: boolean;
 }>();
 
 // ---------------------------------------------------------------------------
@@ -40,6 +42,7 @@ const emit = defineEmits<{
   (e: 'save'): void;
   (e: 'delete'): void;
   (e: 'discard'): void;
+  (e: 'configure-sso'): void;
   (e: 'update:formState', value: SigninConfigFormState): void;
 }>();
 
@@ -303,6 +306,40 @@ class="space-y-6">
             <option value="true">{{ t('web.COMMON.enabled') }}</option>
             <option value="false">{{ t('web.COMMON.disabled') }}</option>
           </select>
+        </div>
+
+        <!-- SSO Credentials -->
+        <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+          <div>
+            <span class="text-sm font-medium text-gray-900 dark:text-white">
+              {{ t('web.domains.sso.title') }}
+            </span>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              {{ t('web.domains.sso.config_description') }}
+            </p>
+          </div>
+          <button
+            v-if="canManageSso"
+            type="button"
+            @click="emit('configure-sso')"
+            class="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+            <OIcon
+              collection="heroicons"
+              name="cog-6-tooth"
+              class="size-4"
+              aria-hidden="true" />
+            {{ ssoConfigured ? t('web.domains.sso.edit_credentials') : t('web.domains.sso.configure_button') }}
+          </button>
+          <span
+            v-else
+            class="inline-flex items-center gap-1.5 text-sm text-gray-400 dark:text-gray-500">
+            <OIcon
+              collection="heroicons"
+              name="lock-closed"
+              class="size-4"
+              aria-hidden="true" />
+            {{ t('web.domains.sso.upgrade_required') }}
+          </span>
         </div>
       </fieldset>
 
