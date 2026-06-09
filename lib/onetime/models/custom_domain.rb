@@ -243,6 +243,13 @@ module Onetime
     # Check if the given customer can access this domain through their
     # organization membership (any role: owner, admin, or member).
     #
+    # Active status is verified for owners only (via org.owner?); for other
+    # roles this checks presence in the org's members sorted set, which is
+    # intentionally tolerant of legacy members without an
+    # OrganizationMembership record (membership migration is incomplete).
+    # Endpoints needing active-status or role guarantees must follow this
+    # with require_entitlement_in!, which loads the membership record.
+    #
     # @param cust [Onetime::Customer, String] The customer object or customer ID
     # @return [Boolean] true if the customer belongs to the domain's organization
     def accessible_by?(cust)

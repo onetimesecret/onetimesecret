@@ -45,7 +45,9 @@ module DomainsAPI::Logic
         raise_form_error 'Domain has no associated organization' unless domain_org
         require_entitlement_in!(domain_org, 'custom_domains')
 
-        # Domain-scope enforcement: deny if member is scoped to a different domain (#3384)
+        # Domain-scope enforcement: deny if member is scoped to a different domain (#3384).
+        # nil membership is colonel-only here: require_entitlement_in! above
+        # already rejected any non-colonel without an active membership row.
         membership = Onetime::OrganizationMembership.find_by_org_customer(
           domain_org.objid, @cust.objid
         )
