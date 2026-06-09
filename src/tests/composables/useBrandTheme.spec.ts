@@ -365,4 +365,41 @@ describe('useBrandTheme', () => {
       scope.stop();
     });
   });
+
+  describe('install-config color override (#3381 regression guard)', () => {
+    it('non-neutral install color overrides --color-brand-500 on the DOM', async () => {
+      // Simulates the identityStore resolving to an install-level brand color
+      // (BRAND_PRIMARY_COLOR env var) when no per-domain branding is set.
+      const INSTALL_COLOR = '#E11D48';
+      mockPrimaryColor.value = INSTALL_COLOR;
+
+      const scope = effectScope();
+      scope.run(() => useBrandTheme());
+      await nextTick();
+
+      const expected = generateBrandPalette(INSTALL_COLOR);
+      expect(getVar('--color-brand-500')).toBe(expected['--color-brand-500']);
+      expect(getVar('--color-brand-500')).not.toBe('');
+
+      scope.stop();
+    });
+
+    it('install color palette is fully applied (not partial)', async () => {
+      const INSTALL_COLOR = '#E11D48';
+      mockPrimaryColor.value = INSTALL_COLOR;
+
+      const scope = effectScope();
+      scope.run(() => useBrandTheme());
+      await nextTick();
+
+      const expected = generateBrandPalette(INSTALL_COLOR);
+      let appliedCount = 0;
+      for (const [key, value] of Object.entries(expected)) {
+        if (getVar(key) === value) appliedCount++;
+      }
+      expect(appliedCount).toBe(ALL_KEYS.length);
+
+      scope.stop();
+    });
+  });
 });
