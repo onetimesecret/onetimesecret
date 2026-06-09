@@ -8,10 +8,16 @@ module Onetime
   module Utils
     # TOTP utility for testing and debugging MFA
     class TOTP
+      def self.default_issuer
+        if defined?(OT) && OT.respond_to?(:conf) && OT.conf
+          OT.conf.dig('brand', 'totp_issuer')
+        end || Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:totp_issuer]
+      end
+
       # Generate a TOTP code from a secret
       #
       # @param secret [String] Base32-encoded secret
-      # @param issuer [String] Optional issuer name (default: OneTimeSecret)
+      # @param issuer [String] Optional issuer name (resolved from brand config by default)
       # @param drift [Integer] Optional drift window in seconds (default: 15)
       # @return [Hash] Hash with current code, previous code, next code, and metadata
       #
@@ -20,7 +26,7 @@ module Onetime
       #   puts result[:current_code]  # => "123456"
       #   puts result[:valid_for]     # => 23 (seconds remaining)
       #
-      def self.generate(secret, issuer: 'OneTimeSecret', drift: 15)
+      def self.generate(secret, issuer: default_issuer, drift: 15)
         totp = ROTP::TOTP.new(secret, issuer: issuer)
 
         current_time = Time.now.to_i
@@ -47,7 +53,7 @@ module Onetime
       # @param drift [Integer] Drift window in seconds (default: 15)
       # @return [Hash] Verification result with details
       #
-      def self.verify(secret, code, drift: 15, issuer: 'OneTimeSecret')
+      def self.verify(secret, code, drift: 15, issuer: default_issuer)
         totp = ROTP::TOTP.new(secret, issuer: issuer)
 
         valid_at = totp.verify(code, drift_behind: drift, drift_ahead: drift)
