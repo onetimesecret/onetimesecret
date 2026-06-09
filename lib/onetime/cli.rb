@@ -112,6 +112,13 @@ require_relative 'cli/session_command'
 require_relative 'cli/totp_command'
 require_relative 'cli/ratelimit_command'
 
+# Load banner CLI commands
+require_relative 'cli/banner/shared'
+require_relative 'cli/banner_command'
+require_relative 'cli/banner/set_command'
+require_relative 'cli/banner/show_command'
+require_relative 'cli/banner/clear_command'
+
 # Load worker and scheduler commands (top-level)
 require_relative 'cli/worker_command'
 require_relative 'cli/scheduler_command'
