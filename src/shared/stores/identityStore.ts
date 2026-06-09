@@ -74,13 +74,21 @@ export const useProductIdentity = defineStore('productIdentity', () => {
    *   1. Per-domain branding (Redis custom domain settings)
    *   2. Install config (BRAND_PRIMARY_COLOR env var via bootstrapStore)
    *   3. Neutral last resort (NEUTRAL_BRAND_DEFAULTS.primary_color)
+   *
+   * Both steps 1 and 2 are validated through primaryColorValidator so
+   * malformed values degrade gracefully instead of reaching the palette
+   * generator.
    */
   function resolvePrimaryColor(brandColor: unknown): string {
-    const parsed = gracefulParse(primaryColorValidator, brandColor, 'PrimaryColor');
-    const validated = parsed.ok ? parsed.data : null;
+    const domainParsed = gracefulParse(primaryColorValidator, brandColor, 'PrimaryColor');
+    const domainValidated = domainParsed.ok ? domainParsed.data : null;
+
+    const installParsed = gracefulParse(primaryColorValidator, bootstrapStore.brand_primary_color, 'InstallPrimaryColor');
+    const installValidated = installParsed.ok ? installParsed.data : null;
+
     return (
-      validated ??
-      bootstrapStore.brand_primary_color ??
+      domainValidated ??
+      installValidated ??
       NEUTRAL_BRAND_DEFAULTS.primary_color
     );
   }
