@@ -11,8 +11,7 @@ This directory contains modernized HTML `<head>` templates for the Onetime Secre
 - Security headers (X-Frame-Options, X-Content-Type-Options, Permissions-Policy)
 - CSRF token
 - SEO metadata (canonical URL, title, description)
-- PWA configuration (manifest, theme-color, apple-mobile-web-app settings)
-- Modern favicon strategy
+- Modern favicon strategy (mask-icon with brand color)
 - Cache control
 - Vite asset links
 
@@ -48,11 +47,6 @@ This directory contains modernized HTML `<head>` templates for the Onetime Secre
 - Added `X-Content-Type-Options: nosniff`
 - Added `Permissions-Policy` to disable unnecessary features
 - Upgraded referrer policy from `no-referrer` to `strict-origin-when-cross-origin`
-
-### PWA/Mobile Enhancements
-- Uncommented web app manifest
-- Added dark mode theme-color support
-- Enhanced apple-mobile-web-app configuration
 
 ### Icon Strategy
 - Removed versioning query params (`?v=3`)

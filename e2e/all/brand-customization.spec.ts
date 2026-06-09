@@ -328,26 +328,8 @@ test.describe('Brand Customization - Console Error Monitoring', () => {
 
 test.describe('Brand Customization - head-base meta tags', () => {
   // head-base.rue partial renders:
-  //   <meta name="theme-color" content="{{brand_primary_color}}" media="(prefers-color-scheme: light)">
   //   <link rel="mask-icon" href="..." color="{{brand_primary_color}}">
-  // Both should carry a hex color value derived from the configured brand color.
-
-  test('meta theme-color carries a valid hex color', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-
-    // There are two theme-color metas (light + dark media). The light one
-    // is the brand-driven value; the dark one is hardcoded #1a1a1a.
-    const lightThemeColor = await page
-      .locator('meta[name="theme-color"][media*="light"]')
-      .getAttribute('content');
-
-    expect(lightThemeColor, 'meta[theme-color] light should be present').toBeTruthy();
-    expect(
-      lightThemeColor && isHexColor(lightThemeColor),
-      `meta[theme-color] light should be a hex color, got: ${lightThemeColor}`
-    ).toBe(true);
-  });
+  // The color attribute should carry a hex color value derived from the configured brand color.
 
   test('link mask-icon color attribute carries a valid hex color', async ({ page }) => {
     await page.goto('/');
@@ -362,20 +344,6 @@ test.describe('Brand Customization - head-base meta tags', () => {
       maskIconColor && isHexColor(maskIconColor),
       `link[mask-icon] color should be a hex color, got: ${maskIconColor}`
     ).toBe(true);
-  });
-
-  test('theme-color and mask-icon agree on the brand color', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-
-    const lightThemeColor = await page
-      .locator('meta[name="theme-color"][media*="light"]')
-      .getAttribute('content');
-    const maskIconColor = await page
-      .locator('link[rel="mask-icon"]')
-      .getAttribute('color');
-
-    expect(lightThemeColor?.toLowerCase()).toBe(maskIconColor?.toLowerCase());
   });
 });
 

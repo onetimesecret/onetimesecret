@@ -257,7 +257,7 @@ useBrandTheme()
 - `lib/onetime/models/custom_domain/brand_settings.rb` — Schema, validation, defaults
 - `apps/web/core/views/helpers/initialize_view_vars.rb` — View var setup
 - `apps/web/core/views/serializers/config_serializer.rb` — Bootstrap payload
-- `apps/web/core/templates/partials/head-base.rue` — `theme-color`/`mask-icon` use `{{brand_primary_color}}`
+- `apps/web/core/templates/partials/head-base.rue` — `mask-icon` uses `{{brand_primary_color}}`
 - `lib/onetime/mail/views/base.rb` — `TemplateContext` helpers (`brand_color`, `logo_url`, `logo_alt`, `product_name`, `support_email`)
 - `etc/defaults/config.defaults.yaml` — Ships a `brand:` block with all-nil defaults; operators set `BRAND_*` ENV vars to populate it
 - `etc/config.schema.yaml` — Top-level `brand:` schema (all keys optional, validated by `bin/ots validate`)
