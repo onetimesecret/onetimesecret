@@ -16,18 +16,18 @@
 | Phase / PR | Status | Where |
 |------------|--------|-------|
 | Phase 0 / PR 1 — unblock #3399 mask-icon + this plan | ✅ **Done** | [PR #3409](https://github.com/onetimesecret/onetimesecret/pull/3409) · branch `claude/sleepy-shannon-21ko6k` |
-| Phase 1 / PR 2 — reporter/artifacts + lint-ban + flaky gate | 🔄 **In review** | branch `claude/affectionate-clarke-4fyakw` (stacked on PR 1) |
+| Phase 1 / PR 2 — reporter/artifacts + lint-ban + flaky gate | 🔄 **In review** | [PR #3411](https://github.com/onetimesecret/onetimesecret/pull/3411) · branch `claude/affectionate-clarke-4fyakw` |
 | Phase 2 / PRs 3–5 — auth fixture, readiness signal, `networkidle` sweep, skip triage | ⏭️ **Next** | not started |
 | Phase 3 / PR 6 — fixtures module, pinned config, parallel/shard | ⬜ Todo | not started |
 
 > **CI-signal caveat for stacked PRs:** `container-e2e-tests` only triggers on
 > PRs that target `develop`, `main`, or `rel/*` (the `pull_request.branches`
-> filter in `.github/workflows/e2e.yml`). PRs stacked on a feature branch —
-> PR 1 (→ #3399's branch) and PR 2 (→ PR 1's branch) — get **no E2E run of
-> their own**; the green/red signal appears one hop downstream (on #3399's
-> checks) once the stack merges forward, or when the PR is rebased onto
-> `develop`. From PR 3 onward, base directly on `develop` (Phase 2+ work is
-> independent of the brand stack) so each phase is exercised by the very
+> filter in `.github/workflows/e2e.yml`). A PR stacked on a feature branch gets
+> **no E2E run of its own** — PR 1 (based on #3399's branch) only saw its
+> green/red signal one hop downstream, on #3399's checks. PR 2 was branched
+> from the stack, but #3399/#3409 merged to `develop` while it was in flight,
+> so it targets `develop` directly and gets a real run. Keep it that way for
+> PR 3 onward: base on `develop` so each phase is exercised by the very
 > workflow it modifies.
 
 ### For a fresh contributor picking up PR 2
