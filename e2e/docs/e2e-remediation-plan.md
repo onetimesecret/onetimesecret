@@ -1,6 +1,6 @@
 # E2E Test Suite Remediation Plan
 
-> Status: **In progress** — Phase 0 complete ([PR #3409](https://github.com/onetimesecret/onetimesecret/pull/3409)); **next up: PR 2 / Phase 1.**
+> Status: **In progress** — Phase 0 complete ([PR #3409](https://github.com/onetimesecret/onetimesecret/pull/3409)); Phase 1 / PR 2 in review; **next up: PR 3 / Phase 2.**
 > Created: 2026-06-09 · Last updated: 2026-06-09 · Owner: TBD
 >
 > Motivation: The `container-e2e-tests` check has been a chronic source of red
@@ -16,30 +16,57 @@
 | Phase / PR | Status | Where |
 |------------|--------|-------|
 | Phase 0 / PR 1 — unblock #3399 mask-icon + this plan | ✅ **Done** | [PR #3409](https://github.com/onetimesecret/onetimesecret/pull/3409) · branch `claude/sleepy-shannon-21ko6k` |
-| Phase 1 / PR 2 — reporter/artifacts + lint-ban + flaky gate | ⏭️ **Next** | not started |
-| Phase 2 / PRs 3–5 — auth fixture, readiness signal, `networkidle` sweep, skip triage | ⬜ Todo | not started |
+| Phase 1 / PR 2 — reporter/artifacts + lint-ban + flaky gate | 🔄 **In review** | [PR #3411](https://github.com/onetimesecret/onetimesecret/pull/3411) · branch `claude/affectionate-clarke-4fyakw` |
+| Phase 2 / PRs 3–5 — auth fixture, readiness signal, `networkidle` sweep, skip triage | ⏭️ **Next** | not started |
 | Phase 3 / PR 6 — fixtures module, pinned config, parallel/shard | ⬜ Todo | not started |
 
-### For a fresh contributor picking up PR 2
+> **CI-signal caveat for stacked PRs:** `container-e2e-tests` only triggers on
+> PRs that target `develop`, `main`, or `rel/*` (the `pull_request.branches`
+> filter in `.github/workflows/e2e.yml`). A PR stacked on a feature branch gets
+> **no E2E run of its own** — PR 1 (based on #3399's branch) only saw its
+> green/red signal one hop downstream, on #3399's checks. PR 2 was branched
+> from the stack, but #3399/#3409 merged to `develop` while it was in flight,
+> so it targets `develop` directly and gets a real run. Keep it that way for
+> PR 3 onward: base on `develop` so each phase is exercised by the very
+> workflow it modifies.
 
-1. **Verify Phase 0 already landed — do not redo it.** The mask-icon /
-   `has_brand_color` conditional render and the `BRAND_PRIMARY_COLOR` CI pin are
-   done. `git log --oneline | grep -Ei "head-base|brand color"` should show the
-   two Phase 0 commits. PR 2 starts at **Phase 1** below.
-2. **Branch reality.** Phase 0 lives on `claude/sleepy-shannon-21ko6k`, which is
-   **stacked on #3399's branch** (`claude/dazzling-lovelace-semxai`) because the
-   fix depends on #3399's `e621290` ("Pass brand_primary_color to Rhales template
-   context").
-3. **Where to branch PR 2.** Phase 1 (reporter / lint / flaky-gate) is
-   **independent of the brand work** — it touches `e2e/playwright.config.ts`,
-   `package.json`, `.github/workflows/e2e.yml`, and `eslint.config.ts`, none of
-   which need #3399. If #3399 + PR #3409 have merged to `develop`, branch PR 2 off
-   `develop`. Otherwise branch off `claude/sleepy-shannon-21ko6k` to continue the
-   stack so the `e2e.yml` edits don't conflict with Phase 0's, and rebase onto
-   `develop` once the stack merges.
-4. **Definition of done for PR 2:** the Phase 1 acceptance bullet, **plus** a
-   manual check that HTML + trace artifacts appear on a failed run and that a
-   deliberately-flaky test turns the job red.
+### For a fresh contributor picking up PR 3
+
+1. **Verify Phases 0–1 already landed — do not redo them.** Phase 0:
+   `git log --oneline | grep -Ei "head-base|brand color"` shows the two
+   conditional-render commits. Phase 1: `pnpm lint:e2e` runs (≈341 warnings, 0
+   errors), `.github/workflows/e2e.yml` has a "Fail on flaky tests" step, and
+   `e2e/playwright.config.ts` has the environment-aware `reporter` array. If
+   any of that is missing, see [PR #3411](https://github.com/onetimesecret/onetimesecret/pull/3411).
+2. **Where to branch PR 3.** If #3411 has merged, branch off `develop`.
+   Otherwise stack on `claude/affectionate-clarke-4fyakw` — PR 3 edits
+   `e2e/playwright.config.ts` and `e2e.yml`, both touched by PR 2. Either way
+   the PR must **target `develop`** (see the CI-signal caveat above).
+3. **Concrete starting points** (verified against the tree as of Phase 1):
+   - Credential gating in `full/` is `test.skip(!hasTestCredentials, ...)`
+     driven by `TEST_USER_EMAIL` / `TEST_USER_PASSWORD` (79 sites; canonical
+     pattern at `e2e/full/cross-org-domain-isolation.spec.ts:35`). **No auth
+     fixture, `globalSetup`, or `storageState` exists anywhere yet.**
+   - `e2e/playwright.config.ts` defines a single `chromium` project — the
+     `setup` project, `dependencies: ['setup']`, and `storageState` all go
+     there.
+   - The app-readiness signal belongs right after `app.mount('#app')` in
+     `src/main.ts` (~line 25); specs currently poll `window.__BOOTSTRAP_ME__`
+     directly instead.
+   - The workflow's "Run Playwright E2E tests" step runs `e2e/all/` only and
+     seeds no credentials — extend it to `e2e/all e2e/full` and inject
+     `TEST_USER_*` env vars.
+4. **Definition of done for PR 3:** `full/` executes in CI against a seeded
+   session — red is acceptable and *expected* at first (it surfaces real,
+   previously-masked failures; quarantine via `e2e/QUARANTINE.md` rather than
+   re-skipping); the readiness signal exists and the auth/setup path waits on
+   it instead of `networkidle`.
+5. **Hand off before you open the PR.** This doc is the tracker — leave it the
+   way you found it: set your row in the Progress table and the PR-sequence
+   table (status + PR link), update the status line at the top, and **rewrite
+   this section for PR 4** with verified file/line starting points (don't
+   guess — confirm them against your final tree the way the pointers above
+   were). A stale pickup section costs the next contributor their first hour.
 
 ## Headline finding
 
@@ -213,7 +240,7 @@ _Live status is tracked in the **Progress & how to continue** section near the t
 | PR | Phase | Scope | Risk / status |
 |----|-------|-------|---------------|
 | 1 | 0 | mask-icon conditional render + deterministic (skip-free) test + Ruby spec + CI brand-color pin | ✅ Done ([#3409](https://github.com/onetimesecret/onetimesecret/pull/3409)) — unblocks #3399 |
-| 2 | 1 | reporter/artifacts, lint rules (warn), flaky gate | Low |
+| 2 | 1 | reporter/artifacts, lint rules (warn), flaky gate | 🔄 In review ([#3411](https://github.com/onetimesecret/onetimesecret/pull/3411)) |
 | 3 | 2.1+2.2 | global-setup/auth fixture + app-readiness signal | Med — surfaces real `full/` failures (intended) |
 | 4 | 2.3 | `networkidle`/sleep sweep, by directory; lint → error | Med — large but mechanical |
 | 5 | 2.4 | defensive-skip triage | Med |
