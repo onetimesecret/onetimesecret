@@ -26,6 +26,7 @@ module Onetime
       #   { type: 'CNAME', name: 'token3._domainkey.example.com', value: 'token3.dkim.amazonses.com' }
       #   { type: 'MX',    name: 'mail.example.com',              value: 'feedback-smtp.us-east-1.amazonses.com' }
       #   { type: 'TXT',   name: 'mail.example.com',              value: 'v=spf1 include:amazonses.com ~all' }
+      #   { type: 'TXT',   name: '_dmarc.example.com',            value: 'v=DMARC1; p=none;', optional: true }
       #
       # Provider comparison (for devs coming from Lettermint): the MAIL FROM
       # MX + SPF TXT above are SES's equivalent of Lettermint's single
@@ -95,6 +96,8 @@ module Onetime
           else
             mail_from_domain = nil
           end
+
+          records << build_dmarc_record(domain)
 
           message = if mail_from_configured
                       "Provisioned sender identity for #{domain} with custom MAIL FROM domain"
@@ -312,6 +315,26 @@ module Onetime
               value: 'v=spf1 include:amazonses.com ~all',
             },
           ]
+        end
+
+        # Builds a suggested DMARC TXT record for the sender domain.
+        #
+        # AWS SES does not provision or return a DMARC record from its API;
+        # the AWS console shows this as an "Info" advisory. We mirror that
+        # framing: the record is recommended for monitoring but not required
+        # for SES verification or delivery. An existing DMARC policy at the
+        # organizational domain already covers subdomains.
+        #
+        # @param domain [String] Sender domain (e.g. "example.com")
+        # @return [Hash] TXT record in standard format with optional: true
+        #
+        def build_dmarc_record(domain)
+          {
+            type: 'TXT',
+            name: "_dmarc.#{domain}",
+            value: 'v=DMARC1; p=none;',
+            optional: true,
+          }
         end
 
         # Configures a custom MAIL FROM domain on the SES identity.

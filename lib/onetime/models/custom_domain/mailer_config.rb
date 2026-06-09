@@ -382,6 +382,7 @@ module Onetime
             'value' => record['value'],
             'status' => per_record_status,
           }
+          result['optional'] = true if record['optional'] == true || record['optional'] == 'true'
           if check
             result['dns_exists']    = check['dns_exists']
             result['value_matches'] = check['value_matches']

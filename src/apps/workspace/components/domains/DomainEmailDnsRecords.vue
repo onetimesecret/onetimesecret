@@ -177,12 +177,30 @@ const formatDate = (date: Date): string => new Intl.DateTimeFormat(undefined, {
         v-for="(record, index) in dnsRecords"
         :key="index"
         data-testid="dns-record-card"
-        class="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
-        <!-- Card header: type badge + status -->
+        :class="[
+          'rounded-lg border p-4',
+          record.optional
+            ? 'border-dashed border-sky-200 bg-sky-50/30 dark:border-sky-800 dark:bg-sky-950/20'
+            : 'border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900'
+        ]">
+        <!-- Card header: type badge + optional indicator + status -->
         <div class="flex items-center justify-between">
-          <span class="inline-flex rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-300">
-            {{ record.type }}
-          </span>
+          <div class="inline-flex items-center gap-2">
+            <span class="inline-flex rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+              {{ record.type }}
+            </span>
+            <span
+              v-if="record.optional"
+              class="inline-flex items-center gap-1 rounded bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-700 dark:bg-sky-900/30 dark:text-sky-300"
+              data-testid="dns-record-optional-badge">
+              <OIcon
+                collection="heroicons"
+                name="information-circle"
+                class="size-3.5"
+                aria-hidden="true" />
+              {{ t('web.domains.email.dns_optional_label') }}
+            </span>
+          </div>
           <!-- DNS + Resolving dual indicators -->
           <div class="inline-flex items-center gap-3">
             <span
@@ -267,6 +285,14 @@ const formatDate = (date: Date): string => new Intl.DateTimeFormat(undefined, {
             {{ record.value }}
           </code>
         </div>
+
+        <!-- Advisory hint for optional records -->
+        <p
+          v-if="record.optional"
+          class="mt-3 text-xs text-sky-600 dark:text-sky-400"
+          data-testid="dns-record-optional-hint">
+          {{ t('web.domains.email.dns_optional_hint') }}
+        </p>
       </div>
     </div>
 
