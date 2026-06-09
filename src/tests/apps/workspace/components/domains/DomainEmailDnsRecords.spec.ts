@@ -61,6 +61,8 @@ const i18n = createI18n({
             copy: 'Copy',
             dns_check_label: 'DNS',
             provider_check_label: 'Provider',
+            dns_optional_label: 'Recommended',
+            dns_optional_hint: 'This record is recommended but not required for verification. A DMARC policy at your organizational domain may already cover this subdomain.',
           },
         },
         COMMON: {
@@ -451,6 +453,49 @@ describe('DomainEmailDnsRecords', () => {
       const banners = wrapper.findAll('[role="status"]');
       const pendingBanner = banners.find((b) => b.classes().includes('bg-amber-50'));
       expect(pendingBanner).toBeDefined();
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Optional / advisory records (DMARC)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  describe('Optional / advisory records', () => {
+    const optionalRecords: EmailDnsRecord[] = [
+      { type: 'CNAME', name: 'abc._domainkey.example.com', value: 'abc.dkim.amazonses.com', status: 'pending' },
+      { type: 'TXT', name: '_dmarc.example.com', value: 'v=DMARC1; p=none;', status: 'pending', optional: true },
+    ];
+
+    it('shows Recommended badge on optional records', () => {
+      wrapper = mountComponent({ dnsRecords: optionalRecords });
+
+      const badges = wrapper.findAll('[data-testid="dns-record-optional-badge"]');
+      expect(badges).toHaveLength(1);
+      expect(badges[0].text()).toContain('Recommended');
+    });
+
+    it('does not show Recommended badge on required records', () => {
+      wrapper = mountComponent({ dnsRecords: optionalRecords });
+
+      const cards = wrapper.findAll('[data-testid="dns-record-card"]');
+      const firstCard = cards[0];
+      expect(firstCard.find('[data-testid="dns-record-optional-badge"]').exists()).toBe(false);
+    });
+
+    it('shows advisory hint text on optional records', () => {
+      wrapper = mountComponent({ dnsRecords: optionalRecords });
+
+      const hints = wrapper.findAll('[data-testid="dns-record-optional-hint"]');
+      expect(hints).toHaveLength(1);
+      expect(hints[0].text()).toContain('recommended but not required');
+    });
+
+    it('applies dashed border styling to optional records', () => {
+      wrapper = mountComponent({ dnsRecords: optionalRecords });
+
+      const cards = wrapper.findAll('[data-testid="dns-record-card"]');
+      expect(cards[1].classes()).toContain('border-dashed');
+      expect(cards[0].classes()).not.toContain('border-dashed');
     });
   });
 
