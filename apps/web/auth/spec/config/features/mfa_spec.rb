@@ -24,8 +24,10 @@ RSpec.describe 'Auth::Config::Features::MFA' do
         db: db,
         features: [:base, :login, :logout, :two_factor_base, :otp, :recovery_codes],
       ) do
-        # Configuration values from mfa.rb
-        otp_issuer 'OneTimeSecret'
+        # Configuration values from mfa.rb — issuer derived from brand config
+        totp_issuer = OT.conf.dig('brand', 'totp_issuer') ||
+                      Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:totp_issuer]
+        otp_issuer totp_issuer
         otp_setup_param 'otp_setup'
         otp_setup_raw_param 'otp_raw_secret'
         otp_auth_param 'otp_code'
@@ -88,8 +90,10 @@ RSpec.describe 'Auth::Config::Features::MFA' do
         app.rodauth.new(request.scope)
       end
 
-      it 'sets otp_issuer to OneTimeSecret' do
-        expect(rodauth_instance.otp_issuer).to eq('OneTimeSecret')
+      it 'sets otp_issuer from brand config' do
+        expected = OT.conf.dig('brand', 'totp_issuer') ||
+                   Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:totp_issuer]
+        expect(rodauth_instance.otp_issuer).to eq(expected)
       end
 
       it 'sets otp_auth_failures_limit to configured constant' do

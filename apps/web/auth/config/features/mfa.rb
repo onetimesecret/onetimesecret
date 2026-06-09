@@ -20,8 +20,10 @@ module Auth::Config::Features
       auth.enable :otp             # Time-based One-Time Password (TOTP)
       auth.enable :recovery_codes  # Backup codes for MFA
 
-      # MFA Configuration
-      auth.otp_issuer 'OneTimeSecret'
+      # MFA Configuration — issuer from brand config so client QR and server agree
+      totp_issuer = OT.conf.dig('brand', 'totp_issuer') ||
+                    Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:totp_issuer]
+      auth.otp_issuer totp_issuer
       auth.otp_setup_param 'otp_setup'
       auth.otp_setup_raw_param 'otp_raw_secret'
       auth.otp_auth_param 'otp_code'
