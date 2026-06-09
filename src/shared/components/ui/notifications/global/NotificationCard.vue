@@ -64,10 +64,10 @@ const showProgressBar = computed(() =>
 
 <template>
   <Transition
-    enter-active-class="transform ease-out duration-300 transition"
+    enter-active-class="transform ease-out duration-300 transition motion-reduce:duration-0"
     :enter-from-class="enterFromClasses"
     enter-to-class="translate-x-0 opacity-100"
-    leave-active-class="transition ease-in duration-200"
+    leave-active-class="transition ease-in duration-200 motion-reduce:duration-0"
     leave-from-class="opacity-100 translate-x-0"
     :leave-to-class="enterFromClasses">
     <div
@@ -112,7 +112,7 @@ const showProgressBar = computed(() =>
   </Transition>
 </template>
 
-<style>
+<style scoped>
 @keyframes shrink {
   from { width: 100%; }
   to { width: 0%; }

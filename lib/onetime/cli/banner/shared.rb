@@ -9,6 +9,8 @@ module Onetime
   module CLI
     module Banner
       module Shared
+        BANNER_KEY = 'global_banner'
+
         def humanize_seconds(seconds)
           if seconds >= 86_400
             format('%dd %dh', seconds / 86_400, (seconds % 86_400) / 3600)

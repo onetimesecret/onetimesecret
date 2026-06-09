@@ -21,11 +21,12 @@ export type NotificationsStore = {
   severity: NotificationSeverity;
   isVisible: boolean;
   position: NotificationPosition;
+  duration: number;
   _initialized: boolean;
 
   // Actions
   init: () => void;
-  show: (msg: string, sev: 'success' | 'error' | 'info', pos?: NotificationPosition, duration?: number) => void;
+  show: (msg: string, sev: 'success' | 'error' | 'info', pos?: NotificationPosition, dur?: number) => void;
   hide: () => void;
   $reset: () => void;
 } & PiniaCustomProperties;
@@ -66,6 +67,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
   const severity = ref<NotificationSeverity>(null);
   const isVisible = ref(false);
   const position = ref<NotificationPosition>('top');
+  const duration = ref(DEFAULT_AUTO_HIDE_MS);
   const _initialized = ref(false);
   let _hideTimerId: ReturnType<typeof setTimeout> | null = null;
 
@@ -102,7 +104,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
   }
 
   /** Display a notification with auto-dismissal. Defaults to 5 s; pass 0 or negative to disable. */
-  function show(msg: string, sev: NotificationSeverity, pos?: NotificationPosition, duration?: number) {
+  function show(msg: string, sev: NotificationSeverity, pos?: NotificationPosition, dur?: number) {
     // Clear any pending hide timer so earlier timeouts don't dismiss this message
     if (_hideTimerId !== null) {
       clearTimeout(_hideTimerId);
@@ -112,9 +114,10 @@ export const useNotificationsStore = defineStore('notifications', () => {
     message.value = msg;
     severity.value = sev;
     position.value = pos || 'top';
-    isVisible.value = true;
 
-    const ms = duration ?? DEFAULT_AUTO_HIDE_MS;
+    const ms = dur ?? DEFAULT_AUTO_HIDE_MS;
+    duration.value = ms;
+    isVisible.value = true;
     if (ms > 0) {
       _hideTimerId = setTimeout(() => {
         hide();
@@ -131,6 +134,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
     isVisible.value = false;
     message.value = '';
     severity.value = null;
+    duration.value = DEFAULT_AUTO_HIDE_MS;
   }
 
   /** Reset store to initial state (clears message, severity, visibility, position). */
@@ -143,6 +147,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
     severity.value = null;
     isVisible.value = false;
     position.value = 'top';
+    duration.value = DEFAULT_AUTO_HIDE_MS;
     _initialized.value = false;
   }
 
@@ -154,6 +159,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
     severity,
     isVisible,
     position,
+    duration,
     _initialized,
 
     // Actions
