@@ -7,7 +7,7 @@
  * classes (like those in SplitButton) are included in the build, we explicitly
  * reference them here so Tailwind's scanner can detect them.
  *
- * This file is included in tailwind.config.ts content configuration.
+ * This file is scanned via the @source globs in src/assets/style.css.
  */
 
 // SplitButton corner classes - dynamically generated via string concatenation

@@ -449,10 +449,10 @@ export default [
       tailwindcss: {
         // These are the default values but feel free to customize
         callees: ['classnames', 'clsx', 'ctl'],
-        // Tailwind v4: point at the CSS entry (the design-system source), not the
-        // legacy JS config. Absolute path is required — eslint-plugin-tailwindcss
-        // resolves `tailwindcss` relative to dirname(config), and a relative value
-        // makes that resolution fail ("Could not resolve tailwindcss").
+        // Tailwind v4: point at the CSS entry — the single source of truth for the
+        // theme. The path must be absolute: the plugin resolves `tailwindcss`
+        // relative to the config's directory, so a relative value fails with
+        // "Could not resolve tailwindcss".
         config: `${import.meta.dirname}/src/assets/style.css`,
         cssFiles: ['**/*.css', '!**/node_modules', '!**/.*', '!**/dist', '!**/build'],
         cssFilesRefreshRate: 5_000,
