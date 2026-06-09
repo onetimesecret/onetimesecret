@@ -99,15 +99,33 @@ const STANDARD_COLORS: Record<string, SeverityColors> = {
 
 // Banner uses /90 opacity instead of /95 — override at the bg level only.
 // Everything else (text, icon, ring) matches standard.
-const BANNER_COLORS: Record<string, SeverityColors> = Object.fromEntries(
-  Object.entries(STANDARD_COLORS).map(([key, colors]) => [
-    key,
-    {
-      ...colors,
-      bgClasses: colors.bgClasses.replace(/\/95/g, '/90'),
-    },
-  ])
-);
+//
+// These bg classes are written as explicit literals (not a runtime transform
+// of STANDARD_COLORS) because Tailwind v4 scans source text for class names:
+// a value like `bg-green-50/90` must appear verbatim in a file or its utility
+// is never generated.
+const BANNER_COLORS: Record<string, SeverityColors> = {
+  success: {
+    ...STANDARD_COLORS.success,
+    bgClasses: 'bg-green-50/90 dark:bg-green-950/90',
+  },
+  error: {
+    ...STANDARD_COLORS.error,
+    bgClasses: 'bg-brand-50/90 dark:bg-brand-950/90',
+  },
+  warning: {
+    ...STANDARD_COLORS.warning,
+    bgClasses: 'bg-branddim-50/90 dark:bg-branddim-950/90',
+  },
+  info: {
+    ...STANDARD_COLORS.info,
+    bgClasses: 'bg-brandcomp-50/90 dark:bg-brandcomp-950/90',
+  },
+  loading: {
+    ...STANDARD_COLORS.loading,
+    bgClasses: 'bg-brandcompdim-50/90 dark:bg-brandcompdim-950/90',
+  },
+};
 
 const DEFAULT_COLORS: SeverityColors = STANDARD_COLORS.info;
 
