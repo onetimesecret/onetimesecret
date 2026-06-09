@@ -22,6 +22,7 @@ interface Props {
   alignment?: 'left' | 'right';
   showLabel?: boolean;
   rounded?: RoundedSize;
+  duration?: number;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -31,6 +32,7 @@ const props = withDefaults(defineProps<Props>(), {
   alignment: 'right',
   showLabel: true,
   rounded: 'md',
+  duration: 5000,
 });
 
 const effectiveSeverity = computed(() => props.loading ? 'loading' : props.severity);
@@ -69,10 +71,10 @@ const iconClasses = computed(() => {
 
 <template>
   <Transition
-    enter-active-class="transform ease-out duration-200 transition"
+    enter-active-class="transform ease-out duration-200 transition motion-reduce:duration-0"
     :enter-from-class="enterFromClasses"
     enter-to-class="translate-x-0 opacity-100 scale-100"
-    leave-active-class="transition ease-in duration-150"
+    leave-active-class="transition ease-in duration-150 motion-reduce:duration-0"
     leave-from-class="opacity-100 scale-100"
     :leave-to-class="enterFromClasses">
     <div
@@ -111,7 +113,7 @@ const iconClasses = computed(() => {
   </Transition>
 </template>
 
-<style>
+<style scoped>
 @keyframes subtle-pulse {
   0%,
   100% {

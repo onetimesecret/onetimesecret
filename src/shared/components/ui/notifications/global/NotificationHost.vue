@@ -51,6 +51,7 @@ const variantComponent = computed(() => ({
       :message="translatedMessage"
       :severity="notifications.severity"
       :position="notifications.position"
+      :duration="notifications.duration"
       @dismiss="notifications.hide" />
   </Teleport>
 </template>
