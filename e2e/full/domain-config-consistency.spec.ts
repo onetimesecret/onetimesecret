@@ -16,7 +16,7 @@
  * 5. Cross-screen consistency
  *
  * Prerequisites:
- * - Set TEST_USER_EMAIL and TEST_USER_PASSWORD environment variables
+ * - Authenticated via the project storageState (e2e/global.setup.ts consumes TEST_USER_*)
  * - User must have access to an organization with relevant entitlements
  * - At least one custom domain should exist for testing
  *
@@ -26,8 +26,6 @@
  */
 
 import { expect, Page, test } from '@playwright/test';
-
-const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD);
 
 // -----------------------------------------------------------------------------
 // Types
@@ -48,29 +46,6 @@ type ConfigScreenType = 'email' | 'sso' | 'incoming';
 // -----------------------------------------------------------------------------
 // Test Helpers
 // -----------------------------------------------------------------------------
-
-/**
- * Authenticate user via login form
- */
-async function loginUser(page: Page): Promise<void> {
-  await page.goto('/signin');
-
-  const passwordTab = page.getByRole('tab', { name: /password/i });
-  await passwordTab.waitFor({ state: 'visible', timeout: 5000 });
-  await passwordTab.click();
-
-  const passwordInput = page.locator('input[type="password"]');
-  await passwordInput.waitFor({ state: 'visible', timeout: 5000 });
-
-  const emailInput = page.locator('#signin-email-password');
-  await emailInput.fill(process.env.TEST_USER_EMAIL || '');
-  await passwordInput.fill(process.env.TEST_USER_PASSWORD || '');
-
-  const submitButton = page.locator('button[type="submit"]');
-  await submitButton.click();
-
-  await page.waitForURL(/\/(account|dashboard|org)/, { timeout: 30000 });
-}
 
 /**
  * Get the first organization the user has access to
@@ -194,11 +169,8 @@ async function getElementYPosition(element: ReturnType<Page['locator']>): Promis
 // -----------------------------------------------------------------------------
 
 test.describe('Domain Config - Toggle-Form State Coupling', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-DCC-001: form fields are disabled when toggle is OFF (Incoming)', async ({ page }) => {
@@ -325,11 +297,8 @@ test.describe('Domain Config - Toggle-Form State Coupling', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Domain Config - Info Banner Visibility', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-DCC-004: shows info banner when feature is disabled', async ({ page }) => {
@@ -408,11 +377,8 @@ test.describe('Domain Config - Info Banner Visibility', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Domain Config - Toggle Position and Label', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-DCC-006: toggle is positioned after form fields (Incoming)', async ({ page }) => {
@@ -464,11 +430,8 @@ test.describe('Domain Config - Toggle Position and Label', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Domain Config - Cross-Screen Consistency', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-DCC-008: all config screens have consistent toggle placement', async ({ page }) => {
@@ -549,11 +512,8 @@ test.describe('Domain Config - Cross-Screen Consistency', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Domain Config - Accessibility', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-DCC-010: toggle has proper ARIA attributes', async ({ page }) => {

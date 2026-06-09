@@ -11,7 +11,7 @@
 // navigates to the equivalent page for the new org.
 //
 // Prerequisites:
-// - Set TEST_USER_EMAIL and TEST_USER_PASSWORD environment variables
+// - Authenticated via the project storageState (e2e/global.setup.ts consumes TEST_USER_*)
 // - Test user must have at least 2 organizations
 // - Test user: domaincontext@onetime.dev (has "Default Workspace" and "A Second Organization")
 // - Base URL: https://dev.onetime.dev (or PLAYWRIGHT_BASE_URL)
@@ -24,9 +24,6 @@
 //
 
 import { expect, Page, test } from '@playwright/test';
-
-// Check if test credentials are configured
-const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD);
 
 // Known org names for test user domaincontext@onetime.dev
 const ORG_DEFAULT = 'Default Workspace';
@@ -44,34 +41,6 @@ const TABS = {
 // -----------------------------------------------------------------------------
 // Test Helpers
 // -----------------------------------------------------------------------------
-
-/**
- * Authenticate user via login form
- */
-async function loginUser(page: Page): Promise<void> {
-  await page.goto('/signin');
-
-  // Click Password tab - Magic Link is the default, password input is hidden
-  const passwordTab = page.getByRole('tab', { name: /password/i });
-  await passwordTab.waitFor({ state: 'visible', timeout: 5000 });
-  await passwordTab.click();
-
-  // Wait for password input to be visible after tab switch
-  const passwordInput = page.locator('input[type="password"]');
-  await passwordInput.waitFor({ state: 'visible', timeout: 5000 });
-
-  // Now fill the form (email input is in the password tab panel)
-  const emailInput = page.locator('#signin-email-password');
-  await emailInput.fill(process.env.TEST_USER_EMAIL || 'domaincontext@onetime.dev');
-  await passwordInput.fill(process.env.TEST_USER_PASSWORD || 'testpassword');
-
-  // Submit
-  const submitButton = page.locator('button[type="submit"]');
-  await submitButton.click();
-
-  // Wait for redirect to dashboard/account
-  await page.waitForURL(/\/(account|dashboard)/, { timeout: 30000 });
-}
 
 /**
  * Extract org extid from URL
@@ -190,11 +159,8 @@ function getCurrentTab(page: Page): string | null {
 // -----------------------------------------------------------------------------
 
 test.describe('Org Switcher Navigation - Same Tab Navigation', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   // -------------------------------------------------------------------------
@@ -441,11 +407,8 @@ test.describe('Org Switcher Navigation - Same Tab Navigation', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Org Switcher Navigation - Edge Cases', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   // -------------------------------------------------------------------------

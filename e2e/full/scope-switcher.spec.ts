@@ -12,7 +12,7 @@
 // - Edge cases (single org user, no domains)
 //
 // Prerequisites:
-// - Set TEST_USER_EMAIL and TEST_USER_PASSWORD environment variables
+// - Authenticated via the project storageState (e2e/global.setup.ts consumes TEST_USER_*)
 // - Application running locally or PLAYWRIGHT_BASE_URL set
 // - User should have multiple organizations and domains for full coverage
 //
@@ -26,9 +26,6 @@
 //     pnpm test:playwright scope-switcher.spec.ts
 
 import { expect, Page, test } from '@playwright/test';
-
-// Check if test credentials are configured
-const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD);
 
 /**
  * Data-testid recommendations for components:
@@ -53,26 +50,6 @@ const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_US
 // -----------------------------------------------------------------------------
 // Test Helpers
 // -----------------------------------------------------------------------------
-
-/**
- * Authenticate user via login form
- */
-async function loginUser(page: Page): Promise<void> {
-  await page.goto('/signin');
-
-  const emailInput = page.locator('input[type="email"], input[name="email"]');
-  const passwordInput = page.locator('input[type="password"], input[name="password"]');
-  const submitButton = page.locator('button[type="submit"]');
-
-  if (await emailInput.isVisible()) {
-    await emailInput.fill(process.env.TEST_USER_EMAIL || 'test@example.com');
-    await passwordInput.fill(process.env.TEST_USER_PASSWORD || 'testpassword');
-    await submitButton.click();
-
-    // Wait for redirect to dashboard/account
-    await page.waitForURL(/\/(account|dashboard)/, { timeout: 30000 });
-  }
-}
 
 /**
  * Locators for Organization Scope Switcher
@@ -153,11 +130,8 @@ async function isElementDisabled(
 // -----------------------------------------------------------------------------
 
 test.describe('Scope Switcher - Visibility Rules', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   // -------------------------------------------------------------------------
@@ -496,11 +470,8 @@ test.describe('Scope Switcher - Visibility Rules', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Scope Switcher - Switching Behavior', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   // -------------------------------------------------------------------------
@@ -712,11 +683,8 @@ test.describe('Scope Switcher - Switching Behavior', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Scope Switcher - Locked State Behavior', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-SS-040: Locked org switcher shows current org but is not clickable', async ({
@@ -797,11 +765,8 @@ test.describe('Scope Switcher - Locked State Behavior', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Scope Switcher - Edge Cases', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-SS-050: Single org user sees switcher with one option', async ({ page }) => {
@@ -921,11 +886,8 @@ test.describe('Scope Switcher - Edge Cases', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Scope Switcher - State Persistence', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-SS-060: Org selection persists across page navigation', async ({ page }) => {
@@ -993,11 +955,8 @@ test.describe('Scope Switcher - State Persistence', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Scope Switcher - Accessibility', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-SS-070: Org switcher has proper ARIA labels', async ({ page }) => {
