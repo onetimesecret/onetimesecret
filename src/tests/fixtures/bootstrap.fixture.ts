@@ -138,6 +138,7 @@ export const baseBootstrap: BootstrapPayload = {
   brand_font_family: null,
   brand_button_text_light: null,
   brand_logo_url: null,
+  brand_favicon_url: null,
   brand_totp_issuer: null,
 };
 

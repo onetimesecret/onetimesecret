@@ -55,6 +55,7 @@ module Onetime
         product_name: 'OTS',
         totp_issuer: 'OTS',
         logo_url: nil,
+        favicon_url: nil,
       }.freeze
 
       # Returns defaults with primary_color resolved from brand config.
@@ -79,6 +80,7 @@ module Onetime
           product_name: brand_conf['product_name'] || GLOBAL_DEFAULTS[:product_name],
           totp_issuer: brand_conf['totp_issuer'] || GLOBAL_DEFAULTS[:totp_issuer],
           logo_url: brand_conf['logo_url'] || GLOBAL_DEFAULTS[:logo_url],
+          favicon_url: brand_conf['favicon_url'] || GLOBAL_DEFAULTS[:favicon_url],
         }
       end
 

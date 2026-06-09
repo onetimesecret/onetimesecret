@@ -126,6 +126,10 @@
     hasExplicitImgSize.value ? { height: `${props.logo!.size}px` } : undefined
   );
 
+  const headerEnabled = computed(() =>
+    headerConfig.value?.enabled !== false
+  );
+
   const navigationEnabled = computed(() =>
     headerConfig.value?.navigation?.enabled !== false
   );
@@ -188,7 +192,7 @@
 </script>
 
 <template>
-  <div class="w-full">
+  <div v-if="headerEnabled" class="w-full">
     <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
       <!-- Logo lockup -->
       <div class="shrink-0">

@@ -512,6 +512,7 @@ export const bootstrapSchema = z.object({
   brand_font_family: z.enum(fontFamilyValues).nullish(),
   brand_button_text_light: z.boolean().nullish(),
   brand_logo_url: z.string().nullish(),
+  brand_favicon_url: z.string().nullish(),
   brand_totp_issuer: z.string().nullish(),
 
   // ─────────────────────────────────────────────────────────────────────────────
