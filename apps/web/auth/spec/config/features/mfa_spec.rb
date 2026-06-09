@@ -87,7 +87,7 @@ RSpec.describe 'Auth::Config::Features::MFA' do
         app.rodauth.new(request.scope)
       end
 
-      it 'sets otp_issuer from brand config' do
+      it 'sets otp_issuer to the configured value' do
         expect(rodauth_instance.otp_issuer).to eq(MFA_OTP_ISSUER)
       end
 

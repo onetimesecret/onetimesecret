@@ -55,8 +55,8 @@ module Onetime
       # @param drift [Integer] Drift window in seconds (default: 15)
       # @return [Hash] Verification result with details
       #
-      def self.verify(secret, code, drift: 15, issuer: default_issuer)
-        totp = ROTP::TOTP.new(secret, issuer: issuer)
+      def self.verify(secret, code, drift: 15)
+        totp = ROTP::TOTP.new(secret)
 
         valid_at = totp.verify(code, drift_behind: drift, drift_ahead: drift)
 
