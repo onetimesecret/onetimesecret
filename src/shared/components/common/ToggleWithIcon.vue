@@ -18,6 +18,7 @@ const { t } = useI18n();
   const emit = defineEmits<{
     (e: 'update:enabled', value: boolean): void
   }>();
+
 </script>
 
 <template>

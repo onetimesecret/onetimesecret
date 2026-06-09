@@ -129,28 +129,6 @@ const handleDelete = () => {
     <form v-else
 @submit.prevent="handleSave"
 class="space-y-6">
-      <!-- Signin Enabled -->
-      <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
-        <div>
-          <label
-            for="signin-domain-enabled"
-            class="text-sm font-medium text-gray-900 dark:text-white">
-            {{ t('web.domains.signin.signin_enabled_label') }}
-          </label>
-          <p
-            id="signin-domain-enabled-hint"
-            class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            {{ t('web.domains.signin.signin_enabled_hint') }}
-          </p>
-        </div>
-        <ToggleWithIcon
-          :enabled="Boolean(formState.signin_enabled)"
-          :disabled="isSaving"
-          :on-label="t('web.COMMON.enabled')"
-          :off-label="t('web.COMMON.disabled')"
-          @update:enabled="updateField('signin_enabled', $event)" />
-      </div>
-
       <!-- Restrict to single auth method -->
       <fieldset>
         <legend class="text-sm font-medium text-gray-900 dark:text-white">
@@ -322,26 +300,6 @@ class="space-y-6">
           </div>
         </div>
       </fieldset>
-
-      <!-- Enabled Toggle (master switch for this per-domain config) -->
-      <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
-        <div>
-          <label
-            for="signin-enabled"
-            class="text-sm font-medium text-gray-900 dark:text-white">
-            {{ t('web.domains.signin.enabled_label') }}
-          </label>
-          <p
-            id="signin-enabled-hint"
-            class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            {{ t('web.domains.signin.enabled_hint') }}
-          </p>
-        </div>
-        <ToggleWithIcon
-          :enabled="Boolean(formState.enabled)"
-          :disabled="isSaving"
-          @update:enabled="updateField('enabled', $event)" />
-      </div>
 
       <!-- Action Buttons -->
       <div class="flex items-center justify-between border-t border-gray-200 pt-6 dark:border-gray-700">

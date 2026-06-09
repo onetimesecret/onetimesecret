@@ -1129,6 +1129,9 @@
   "web.domains.signin.signin_enabled_label": {
     "text": "Sign-in enabled"
   },
+  "web.domains.signin.header_toggle_label": {
+    "text": "Sign-in"
+  },
   "web.domains.signin.signin_enabled_hint": {
     "text": "Whether users can sign in on this domain"
   },

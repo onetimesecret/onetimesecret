@@ -14,6 +14,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter, onBeforeRouteLeave } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import OIcon from '@/shared/components/icons/OIcon.vue';
+import ToggleWithIcon from '@/shared/components/common/ToggleWithIcon.vue';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
 import DomainSigninConfigForm from '@/apps/workspace/components/domains/DomainSigninConfigForm.vue';
@@ -249,7 +250,7 @@ watch(canManageSso, async (entitled) => {
                 class="size-5 text-brand-600 dark:text-brand-400"
                 aria-hidden="true" />
             </div>
-            <div>
+            <div class="flex-1">
               <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
                 {{ t('web.domains.signin.title') }}
               </h2>
@@ -257,6 +258,12 @@ watch(canManageSso, async (entitled) => {
                 {{ t('web.domains.signin.config_description') }}
               </p>
             </div>
+            <ToggleWithIcon
+              :enabled="Boolean(formState.enabled)"
+              :disabled="isSaving"
+              :on-label="t('web.COMMON.enabled')"
+              :off-label="t('web.COMMON.disabled')"
+              @update:enabled="formState.enabled = $event" />
           </div>
         </div>
 
