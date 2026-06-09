@@ -11,6 +11,8 @@
 // 8. Delete confirmation two-step
 // 9. Accessibility (radiogroup roles, aria-describedby, role="switch")
 
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
@@ -57,62 +59,52 @@ vi.mock('@/shared/components/common/ToggleWithIcon.vue', () => ({
 }));
 
 // ---------------------------------------------------------------------------
-// i18n
+// i18n — load the REAL generated bundle, not invented strings.
+//
+// The previous version built createI18n with inline messages, so it supplied
+// the very strings it asserted ("How can users sign in?") — blind by
+// construction. Loading generated/locales/en.json instead means assertions
+// verify the component's i18n WIRING: each key resolves to the copy that
+// actually ships. A key the component references but that is missing/stale in
+// the bundle renders as the raw path, breaking the text assertions below.
+//
+// Division of labor: detecting keys referenced in code but never authored
+// anywhere is handled generically by src/tests/i18n/key-validation.spec.ts.
+// That coupling matters — `toContain(COPY.x)` is tautological for a TRULY
+// missing key (both the render and COPY collapse to the same key path), so
+// key-validation is the net for that class; this spec verifies copy wiring.
 // ---------------------------------------------------------------------------
+
+const realEn = JSON.parse(
+  readFileSync(resolve(process.cwd(), 'generated/locales/en.json'), 'utf-8')
+);
 
 const i18n = createI18n({
   legacy: false,
   locale: 'en',
-  messages: {
-    en: {
-      web: {
-        domains: {
-          signin: {
-            mode_question: 'How can users sign in?',
-            mode_any: 'Any available method',
-            mode_any_hint: 'Show every method available on this domain.',
-            mode_one: 'One specific method',
-            mode_one_hint: 'Restrict the sign-in page to a single method.',
-            methods_list_label: 'Methods shown on the sign-in page',
-            restrict_picker_hint: 'Only methods available on this domain are listed.',
-            availability_always: 'Always available',
-            availability_global_on: 'Follows global policy · On',
-            availability_global_off: 'Not available',
-            availability_unavailable: 'Unavailable site-wide',
-            allow_on_domain: 'Allow on this domain',
-            method_password: 'Password',
-            method_email_auth: 'Email authentication',
-            method_webauthn: 'WebAuthn / Passkeys',
-            method_sso: 'Single Sign-On',
-            method_password_blurb: 'Password only',
-            method_email_auth_blurb: 'Passwordless magic-link sign-in',
-            method_webauthn_blurb: 'Biometrics and security keys',
-            method_sso_blurb: 'External identity provider',
-            // The two-step "revert to global defaults" flow (internally a
-            // DELETE of the SigninConfig record). Renamed from delete_* to
-            // reset_* in the component; the emit is still 'delete'.
-            reset_to_defaults: 'Reset to defaults',
-            reset_confirm: 'Reset sign-in for this domain?',
-            reset_keeps_sso: 'SSO credentials are kept.',
-            reset_action: 'Reset',
-          },
-          sso: {
-            configure_button: 'Configure',
-            edit_credentials: 'Edit credentials',
-            upgrade_required: 'Upgrade required',
-          },
-        },
-        COMMON: {
-          enabled: 'Enabled',
-          disabled: 'Disabled',
-          processing: 'Processing...',
-          yes_delete: 'Yes, delete',
-          word_cancel: 'Cancel',
-        },
-      },
-    },
-  },
+  messages: { en: realEn },
 });
+
+/** Resolve a key against the real bundle. */
+const t = (key: string) => i18n.global.t(key);
+
+/**
+ * Copy the component renders, sourced from the bundle — never hand-typed here.
+ * Assertions reference these so they track the shipped copy automatically.
+ */
+const COPY = {
+  configure: t('web.domains.sso.configure_button'),
+  editCredentials: t('web.domains.sso.edit_credentials'),
+  upgradeRequired: t('web.domains.sso.upgrade_required'),
+  availabilityGlobalOn: t('web.domains.signin.availability_global_on'),
+  availabilityGlobalOff: t('web.domains.signin.availability_global_off'),
+  availabilityUnavailable: t('web.domains.signin.availability_unavailable'),
+  allowOnDomain: t('web.domains.signin.allow_on_domain'),
+  resetToDefaults: t('web.domains.signin.reset_to_defaults'),
+  resetConfirm: t('web.domains.signin.reset_confirm'),
+  resetAction: t('web.domains.signin.reset_action'),
+  cancel: t('web.COMMON.word_cancel'),
+} as const;
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -313,7 +305,7 @@ describe('DomainSigninConfigForm', () => {
   describe('mode A: SSO configure', () => {
     it('renders the SSO Configure button when canManageSso', () => {
       wrapper = mountForm({ canManageSso: true });
-      const configureBtn = wrapper.findAll('button').find((b) => b.text().includes('Configure'));
+      const configureBtn = wrapper.findAll('button').find((b) => b.text().includes(COPY.configure));
       expect(configureBtn).toBeTruthy();
     });
 
@@ -321,15 +313,15 @@ describe('DomainSigninConfigForm', () => {
       wrapper = mountForm({ canManageSso: true });
       const configureBtn = wrapper
         .findAll('button')
-        .find((b) => b.text().includes('Configure'))!;
+        .find((b) => b.text().includes(COPY.configure))!;
       await configureBtn.trigger('click');
       expect(wrapper.emitted('configure-sso')).toBeTruthy();
     });
 
     it('renders the upgrade hint instead of Configure when not canManageSso', () => {
       wrapper = mountForm({ canManageSso: false });
-      expect(wrapper.text()).toContain('Upgrade required');
-      const configureBtn = wrapper.findAll('button').find((b) => b.text().includes('Configure'));
+      expect(wrapper.text()).toContain(COPY.upgradeRequired);
+      const configureBtn = wrapper.findAll('button').find((b) => b.text().includes(COPY.configure));
       expect(configureBtn).toBeUndefined();
     });
   });
@@ -391,7 +383,7 @@ describe('DomainSigninConfigForm', () => {
       wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'sso' } });
       const configureBtn = wrapper
         .findAll('button')
-        .find((b) => b.text().includes('Configure') || b.text().includes('Edit credentials'));
+        .find((b) => b.text().includes(COPY.configure) || b.text().includes(COPY.editCredentials));
       expect(configureBtn).toBeTruthy();
       await configureBtn!.trigger('click');
       expect(wrapper.emitted('configure-sso')).toBeTruthy();
@@ -479,36 +471,36 @@ describe('DomainSigninConfigForm', () => {
     });
 
     describe('Mode A (any available method) — unavailable state', () => {
-      it('shows the WebAuthn static "not available" reason when webauthn is off', () => {
+      it('shows the WebAuthn static "global off" reason when webauthn is off', () => {
         wrapper = mountForm({ globalAvailability: { ...allAvailable, webauthn: false } });
-        expect(wrapper.text()).toContain('Not available');
+        expect(wrapper.text()).toContain(COPY.availabilityGlobalOff);
       });
 
       it('shows the WebAuthn static "global on" reason when webauthn is on', () => {
         wrapper = mountForm({ globalAvailability: allAvailable });
-        expect(wrapper.text()).toContain('Follows global policy · On');
+        expect(wrapper.text()).toContain(COPY.availabilityGlobalOn);
       });
 
       it('disables the email toggle and shows "Unavailable" reason when email_auth is off', () => {
         wrapper = mountForm({ globalAvailability: { ...allAvailable, email_auth: false } });
         expect(toggles(wrapper)[0].attributes('disabled')).toBeDefined();
-        expect(wrapper.find('#signin-email-auth-hint').text()).toContain('Unavailable site-wide');
+        expect(wrapper.find('#signin-email-auth-hint').text()).toContain(COPY.availabilityUnavailable);
       });
 
       it('shows "Allow on this domain" reason for email when available', () => {
         wrapper = mountForm({ globalAvailability: allAvailable });
-        expect(wrapper.find('#signin-email-auth-hint').text()).toContain('Allow on this domain');
+        expect(wrapper.find('#signin-email-auth-hint').text()).toContain(COPY.allowOnDomain);
       });
 
       it('disables the sso toggle and shows "Unavailable" reason when sso is off', () => {
         wrapper = mountForm({ globalAvailability: { ...allAvailable, sso: false } });
         expect(toggles(wrapper)[1].attributes('disabled')).toBeDefined();
-        expect(wrapper.find('#signin-sso-hint').text()).toContain('Unavailable site-wide');
+        expect(wrapper.find('#signin-sso-hint').text()).toContain(COPY.availabilityUnavailable);
       });
 
       it('shows "Allow on this domain" reason for sso when available', () => {
         wrapper = mountForm({ globalAvailability: allAvailable });
-        expect(wrapper.find('#signin-sso-hint').text()).toContain('Allow on this domain');
+        expect(wrapper.find('#signin-sso-hint').text()).toContain(COPY.allowOnDomain);
       });
 
       it('forces the email toggle visually off when globally unavailable, even if formState says enabled', () => {
@@ -655,13 +647,13 @@ describe('DomainSigninConfigForm', () => {
   describe('reset flow', () => {
     it('shows the reset button when isConfigured', () => {
       wrapper = mountForm({ isConfigured: true });
-      const resetBtn = wrapper.findAll('button').find((b) => b.text().includes('Reset to defaults'));
+      const resetBtn = wrapper.findAll('button').find((b) => b.text().includes(COPY.resetToDefaults));
       expect(resetBtn).toBeTruthy();
     });
 
     it('does not show the reset button when not isConfigured', () => {
       wrapper = mountForm({ isConfigured: false });
-      const resetBtn = wrapper.findAll('button').find((b) => b.text().includes('Reset to defaults'));
+      const resetBtn = wrapper.findAll('button').find((b) => b.text().includes(COPY.resetToDefaults));
       expect(resetBtn).toBeUndefined();
     });
 
@@ -669,9 +661,9 @@ describe('DomainSigninConfigForm', () => {
       wrapper = mountForm({ isConfigured: true });
       const resetBtn = wrapper
         .findAll('button')
-        .find((b) => b.text().includes('Reset to defaults'))!;
+        .find((b) => b.text().includes(COPY.resetToDefaults))!;
       await resetBtn.trigger('click');
-      expect(wrapper.text()).toContain('Reset sign-in for this domain?');
+      expect(wrapper.text()).toContain(COPY.resetConfirm);
     });
 
     it('emits delete when confirmation is accepted', async () => {
@@ -679,12 +671,12 @@ describe('DomainSigninConfigForm', () => {
       wrapper = mountForm({ isConfigured: true });
       const resetBtn = wrapper
         .findAll('button')
-        .find((b) => b.text().includes('Reset to defaults'))!;
+        .find((b) => b.text().includes(COPY.resetToDefaults))!;
       await resetBtn.trigger('click');
 
-      // Confirm button text is exactly "Reset" (reset_action); avoid matching
-      // the now-hidden "Reset to defaults" trigger by checking equality.
-      const confirmBtn = wrapper.findAll('button').find((b) => b.text().trim() === 'Reset')!;
+      // Confirm button text is exactly reset_action; checking equality avoids
+      // matching the now-hidden reset-to-defaults trigger.
+      const confirmBtn = wrapper.findAll('button').find((b) => b.text().trim() === COPY.resetAction)!;
       await confirmBtn.trigger('click');
 
       expect(wrapper.emitted('delete')).toBeTruthy();
@@ -694,13 +686,13 @@ describe('DomainSigninConfigForm', () => {
       wrapper = mountForm({ isConfigured: true });
       const resetBtn = wrapper
         .findAll('button')
-        .find((b) => b.text().includes('Reset to defaults'))!;
+        .find((b) => b.text().includes(COPY.resetToDefaults))!;
       await resetBtn.trigger('click');
-      expect(wrapper.text()).toContain('Reset sign-in for this domain?');
+      expect(wrapper.text()).toContain(COPY.resetConfirm);
 
-      const cancelBtn = wrapper.findAll('button').find((b) => b.text().includes('Cancel'))!;
+      const cancelBtn = wrapper.findAll('button').find((b) => b.text().includes(COPY.cancel))!;
       await cancelBtn.trigger('click');
-      expect(wrapper.text()).not.toContain('Reset sign-in for this domain?');
+      expect(wrapper.text()).not.toContain(COPY.resetConfirm);
     });
   });
 
@@ -795,10 +787,10 @@ describe('DomainSigninConfigForm', () => {
         formState: { ...defaultFormState, restrict_to: 'sso' },
         canManageSso: false,
       });
-      expect(wrapper.text()).toContain('Upgrade required');
+      expect(wrapper.text()).toContain(COPY.upgradeRequired);
       const configureBtn = wrapper
         .findAll('button')
-        .find((b) => b.text().includes('Configure') || b.text().includes('Edit credentials'));
+        .find((b) => b.text().includes(COPY.configure) || b.text().includes(COPY.editCredentials));
       expect(configureBtn).toBeUndefined();
     });
 
@@ -808,7 +800,7 @@ describe('DomainSigninConfigForm', () => {
         ssoConfigured: true,
         canManageSso: true,
       });
-      expect(wrapper.text()).toContain('Edit credentials');
+      expect(wrapper.text()).toContain(COPY.editCredentials);
     });
   });
 });

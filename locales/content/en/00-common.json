@@ -1505,5 +1505,23 @@
     "text": "Your organization's unique identifier",
     "context": "Tooltip for organization ID in user menu footer",
     "content_hash": "c8c08d29"
+  },
+  "web.COMMON.success": {
+    "text": "Success"
+  },
+  "web.COMMON.need_help": {
+    "text": "Need help"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "Open help dialog"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "Focus is now in the main text area"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "Copy icon"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "Copied icon"
   }
 }

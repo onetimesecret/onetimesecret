@@ -256,44 +256,39 @@ describe('i18n Key Validation', () => {
   });
 
   describe('Key Existence Validation', () => {
-    it('should validate that all extracted keys exist in English locale', () => {
-      const missingKeys: ExtractedKey[] = [];
+    it('every static t() key referenced in source exists in the English locale', () => {
+      const missing = extractedKeys.filter((e) => !keyExists(enMessages, e.key));
 
-      for (const extracted of extractedKeys) {
-        if (!keyExists(enMessages, extracted.key)) {
-          missingKeys.push(extracted);
+      // Group by file for an actionable failure message.
+      const byFile = new Map<string, ExtractedKey[]>();
+      for (const k of missing) {
+        const relativePath = path.relative(SRC_DIR, k.file);
+        if (!byFile.has(relativePath)) {
+          byFile.set(relativePath, []);
+        }
+        byFile.get(relativePath)!.push(k);
+      }
+
+      const errorLines: string[] = [
+        `Found ${missing.length} i18n key(s) referenced in source but absent from`,
+        `the English locale.`,
+        ``,
+        `Fix: author the key under locales/content/en/ then run "pnpm run locales:sync".`,
+      ];
+      for (const [file, keys] of byFile) {
+        errorLines.push(`\n  ${file}:`);
+        for (const k of keys) {
+          errorLines.push(`    Line ${k.line}: "${k.key}"`);
         }
       }
 
-      if (missingKeys.length > 0) {
-        // Group by file for better reporting
-        const byFile = new Map<string, ExtractedKey[]>();
-        for (const key of missingKeys) {
-          const relativePath = path.relative(SRC_DIR, key.file);
-          if (!byFile.has(relativePath)) {
-            byFile.set(relativePath, []);
-          }
-          byFile.get(relativePath)!.push(key);
-        }
-
-        // Build error message
-        const errorLines: string[] = [`Found ${missingKeys.length} missing i18n keys:`];
-        for (const [file, keys] of byFile) {
-          errorLines.push(`\n  ${file}:`);
-          for (const k of keys) {
-            errorLines.push(`    Line ${k.line}: "${k.key}"`);
-          }
-        }
-
-        // Log for visibility but don't fail - this is informational
-        console.warn(errorLines.join('\n'));
-      }
-
-      // This assertion documents the current state and tracks progress
-      // The test passes to allow CI to continue, but warns about missing keys
-      // As keys are added to locale files, this number should decrease
-      // Set to 0 once all keys are properly defined
-      expect(missingKeys.length).toBeGreaterThanOrEqual(0);
+      // Real gate: any missing key fails the build. The failure detail lives in
+      // the assertion message, so the suite's global onConsoleLog suppression
+      // (vitest.config.ts) is irrelevant here.
+      expect(
+        missing.map((k) => k.key),
+        errorLines.join('\n')
+      ).toEqual([]);
     });
   });
 

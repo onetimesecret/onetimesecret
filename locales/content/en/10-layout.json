@@ -342,5 +342,8 @@
   "web.layout.workspace_context": {
     "text": "Workspace context",
     "content_hash": "dc6fa4f5"
+  },
+  "web.help.default_content": {
+    "text": "Please contact support for assistance"
   }
 }

@@ -1047,5 +1047,8 @@
     "text": "You are already a member of this organization",
     "context": "Returned when accept invite by user who is already a member",
     "content_hash": "f56ad547"
+  },
+  "web.organizations.organizations": {
+    "text": "Organizations"
   }
 }
