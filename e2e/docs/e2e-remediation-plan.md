@@ -95,9 +95,17 @@ change without brand config; it is deterministic, not random.
    valid, present must be hex.
 5. **Backend regression spec**: unbranded → no `mask-icon` tag; branded → tag
    present with exact value. Locks the contract.
+6. **Pin a deterministic brand color in CI** (`.github/workflows/e2e.yml`): run
+   the container with `-e BRAND_PRIMARY_COLOR='#3B82F6'` (the neutral default,
+   `#3049`). This makes the head-base assertion deterministic so the E2E test can
+   require the tag's presence and assert its exact color **without a defensive
+   skip** — the test fails on any template→config regression rather than silently
+   skipping. (Pulled forward from Phase 3 so PR 1 exemplifies "a test must be able
+   to fail" instead of introducing a new self-skip.)
 
 **Acceptance:** `container-e2e-tests` green on #3399; new Ruby spec covers both
-branches.
+branches; the head-base E2E asserts an exact color with **no** `test.skip` and
+**no** `networkidle`.
 
 ---
 
@@ -139,8 +147,9 @@ branches.
 
 1. **`e2e/fixtures.ts`**: `authedPage`, auto-collecting `consoleErrors` fixture
    (single maintained ignore-list), `gotoReady(path)` helper.
-2. **Pin a known brand config** in `e2e.yml` (`BRAND_PRIMARY_COLOR=#3B82F6`);
-   upgrade the mask-icon test to strict equality.
+2. **Extend the pinned-config approach** beyond the brand color (done for
+   `BRAND_PRIMARY_COLOR` in Phase 0) so every environment-coupled assertion tests
+   a known, deterministic state rather than "whatever the default serves".
 3. **Parallelize + shard**: once tests own their data, `fullyParallel: true`,
    raise `workers`, add a CI shard matrix merging `blob` reports.
 
@@ -150,7 +159,7 @@ branches.
 
 | PR | Phase | Scope | Risk |
 |----|-------|-------|------|
-| 1 | 0 | mask-icon conditional render + test + Ruby spec | Low — unblocks #3399 |
+| 1 | 0 | mask-icon conditional render + deterministic (skip-free) test + Ruby spec + CI brand-color pin | Low — unblocks #3399 |
 | 2 | 1 | reporter/artifacts, lint rules (warn), flaky gate | Low |
 | 3 | 2.1+2.2 | global-setup/auth fixture + app-readiness signal | Med — surfaces real `full/` failures (intended) |
 | 4 | 2.3 | `networkidle`/sleep sweep, by directory; lint → error | Med — large but mechanical |
