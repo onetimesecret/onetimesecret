@@ -1108,6 +1108,12 @@
   "web.domains.signin.config_description": {
     "text": "Configure sign-in authentication methods for this domain"
   },
+  "web.domains.signin.access_denied": {
+    "text": "Access Denied"
+  },
+  "web.domains.signin.upgrade_to_configure": {
+    "text": "Upgrade your plan to configure sign-in methods for this domain."
+  },
   "web.domains.signin.not_configured_notice": {
     "text": "Sign-in configuration is not yet set for this domain. Configure overrides to control which authentication methods are available on this domain's sign-in page."
   },

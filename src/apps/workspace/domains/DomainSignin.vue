@@ -10,7 +10,7 @@
  * to a single method.
  */
 import { useI18n } from 'vue-i18n';
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, watch } from 'vue';
 import { useRouter, onBeforeRouteLeave } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import OIcon from '@/shared/components/icons/OIcon.vue';
@@ -21,6 +21,8 @@ import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
 import { useDomain } from '@/shared/composables/useDomain';
 
 import { useSigninConfig } from '@/shared/composables/useSigninConfig';
+import { useEntitlements } from '@/shared/composables/useEntitlements';
+import { ENTITLEMENTS } from '@/types/organization';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 
 const { t } = useI18n();
@@ -48,9 +50,12 @@ const {
 
 const organizationStore = useOrganizationStore();
 const { organizations } = storeToRefs(organizationStore);
-const _organization = computed(() =>
+const organization = computed(() =>
   organizations.value.find((o) => o.extid === props.orgid) ?? null
 );
+const { can } = useEntitlements(organization);
+const canCustomSignin = computed(() => can(ENTITLEMENTS.CUSTOM_SIGNIN_CONFIG));
+const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
 
 // ---------------------------------------------------------------------------
 // Signin config composable
@@ -58,7 +63,7 @@ const _organization = computed(() =>
 
 const {
   isLoading: signinLoading,
-  isInitialized: _isInitialized,
+  isInitialized,
   isSaving,
   isDeleting,
   error: signinError,
@@ -97,7 +102,21 @@ onBeforeRouteLeave((_to, _from, next) => {
 
 onMounted(async () => {
   await initializeDomain();
-  await initializeSigninConfig();
+
+  // Only fetch the signin config when the entitlement is available. Fetching
+  // without it returns a server error, which would surface as an inline alert
+  // instead of the access-denied upgrade prompt below.
+  if (canCustomSignin.value) {
+    await initializeSigninConfig();
+  }
+});
+
+// Handle race condition: organizations (and thus entitlements) may load after
+// onMounted runs. Watch for the entitlement to become true and initialize then.
+watch(canCustomSignin, async (entitled) => {
+  if (entitled && !isInitialized.value) {
+    await initializeSigninConfig();
+  }
 });
 </script>
 
@@ -132,11 +151,41 @@ onMounted(async () => {
     <!-- Content -->
     <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
       <!-- Loading State -->
-      <SettingsSkeleton v-if="domainLoading || signinLoading" />
+      <!-- signinLoading defaults to true and only resolves once the config is
+           fetched; for unentitled users we skip that fetch, so it must not gate
+           the skeleton or it would spin forever instead of showing the guard. -->
+      <SettingsSkeleton v-if="domainLoading || (canCustomSignin && signinLoading)" />
 
       <!-- Error State -->
       <div v-else-if="domainError || signinError" class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
         <BasicFormAlerts :error="(domainError?.message ?? signinError?.message) ?? ''" />
+      </div>
+
+      <!-- Access Denied / Upgrade Banner -->
+      <div
+        v-else-if="!canCustomSignin"
+        class="rounded-lg border border-gray-200 bg-white p-8 text-center dark:border-gray-700 dark:bg-gray-800">
+        <OIcon
+          collection="heroicons"
+          name="lock-closed"
+          class="mx-auto size-12 text-gray-400"
+          aria-hidden="true" />
+        <h3 class="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
+          {{ t('web.domains.signin.access_denied') }}
+        </h3>
+        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.domains.signin.upgrade_to_configure') }}
+        </p>
+        <RouterLink
+          :to="billingRoute"
+          class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
+          {{ t('web.billing.overview.view_plans_action') }}
+          <OIcon
+            collection="heroicons"
+            name="arrow-right"
+            class="size-4"
+            aria-hidden="true" />
+        </RouterLink>
       </div>
 
       <!-- Signin Configuration Form -->
