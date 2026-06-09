@@ -156,6 +156,39 @@ describe('identityStore primaryColor resolution', () => {
 
       expect(upperHex(identity.primaryColor)).toBe(upperHex(NEUTRAL_HEX));
     });
+
+    it('install config changing independently of domain_branding updates primaryColor', async () => {
+      const bootstrap = useBootstrapStore();
+      bootstrap.$patch({
+        domain_branding: null,
+        brand_primary_color: INSTALL_COLOR,
+      });
+
+      const identity = useProductIdentity();
+      expect(upperHex(identity.primaryColor)).toBe(upperHex(INSTALL_COLOR));
+
+      const NEW_INSTALL = '#8B5CF6';
+      bootstrap.$patch({ brand_primary_color: NEW_INSTALL });
+      await nextTick();
+
+      expect(upperHex(identity.primaryColor)).toBe(upperHex(NEW_INSTALL));
+    });
+
+    it('install config removed independently falls to neutral', async () => {
+      const bootstrap = useBootstrapStore();
+      bootstrap.$patch({
+        domain_branding: null,
+        brand_primary_color: INSTALL_COLOR,
+      });
+
+      const identity = useProductIdentity();
+      expect(upperHex(identity.primaryColor)).toBe(upperHex(INSTALL_COLOR));
+
+      bootstrap.$patch({ brand_primary_color: undefined });
+      await nextTick();
+
+      expect(upperHex(identity.primaryColor)).toBe(upperHex(NEUTRAL_HEX));
+    });
   });
 
   // ═══════════════════════════════════════════════════════════════════════════

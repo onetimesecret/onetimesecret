@@ -131,6 +131,14 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     state.buttonTextLight = brand?.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
   });
 
+  // Watch for install-config color changes (e.g. /bootstrap/me refresh)
+  watch(
+    () => bootstrapStore.brand_primary_color,
+    () => {
+      state.primaryColor = resolvePrimaryColor(state.brand?.primary_color);
+    }
+  );
+
   // Watch homepage_config for toggle state (authoritative source, separate from brand)
   watch(homepage_config, (newConfig) => {
     state.allowPublicHomepage = newConfig?.enabled ?? false;
