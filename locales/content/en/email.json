@@ -75,7 +75,7 @@
     "content_hash": "88c72144"
   },
   "email.welcome.signature": {
-    "text": "Delano",
+    "text": "Support Team",
     "renderer": "erb",
     "content_hash": "f58154f7"
   },
@@ -115,7 +115,7 @@
     "content_hash": "fbb7eb2d"
   },
   "email.password_request.signature": {
-    "text": "Delano",
+    "text": "Support Team",
     "renderer": "erb",
     "content_hash": "f58154f7"
   },
@@ -160,7 +160,7 @@
     "content_hash": "1863f5be"
   },
   "email.magic_link.signature": {
-    "text": "Delano",
+    "text": "Support Team",
     "renderer": "erb",
     "content_hash": "f58154f7"
   },
@@ -250,7 +250,7 @@
     "content_hash": "3f6b45dd"
   },
   "email.secret_revealed.signature": {
-    "text": "Delano",
+    "text": "Support Team",
     "renderer": "erb",
     "content_hash": "f58154f7"
   },
@@ -303,6 +303,10 @@
     "text": "After expiration, the secret will be permanently deleted.",
     "renderer": "erb",
     "content_hash": "bd0a9bee"
+  },
+  "email.expiration_warning.signature": {
+    "text": "Support Team",
+    "renderer": "erb"
   },
   "email.expiration_warning.footer_note": {
     "text": "You received this because a secret you created on %{product_name} is about to expire.",
@@ -395,7 +399,7 @@
     "content_hash": "734882d2"
   },
   "email.organization_invitation.signature": {
-    "text": "Delano",
+    "text": "Support Team",
     "renderer": "erb",
     "content_hash": "f58154f7"
   },
@@ -435,7 +439,7 @@
     "content_hash": "be92cff3"
   },
   "email.password_changed.signature": {
-    "text": "Delano",
+    "text": "Support Team",
     "renderer": "erb",
     "content_hash": "f58154f7"
   },
@@ -490,7 +494,7 @@
     "content_hash": "f8d47b82"
   },
   "email.email_changed.signature": {
-    "text": "Delano",
+    "text": "Support Team",
     "renderer": "erb",
     "content_hash": "f58154f7"
   },
@@ -540,7 +544,7 @@
     "content_hash": "f8d47b82"
   },
   "email.email_change_requested.signature": {
-    "text": "Delano",
+    "text": "Support Team",
     "renderer": "erb",
     "content_hash": "f58154f7"
   },
@@ -595,7 +599,7 @@
     "content_hash": "d4d835fc"
   },
   "email.email_change_confirmation.signature": {
-    "text": "Delano",
+    "text": "Support Team",
     "renderer": "erb",
     "content_hash": "f58154f7"
   },
@@ -625,7 +629,7 @@
     "content_hash": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
-    "text": "Delano",
+    "text": "Support Team",
     "renderer": "erb",
     "content_hash": "f58154f7"
   },
@@ -650,7 +654,7 @@
     "content_hash": "97ef0a3e"
   },
   "email.mfa_disabled.signature": {
-    "text": "Delano",
+    "text": "Support Team",
     "renderer": "erb",
     "content_hash": "f58154f7"
   },
@@ -695,7 +699,7 @@
     "content_hash": "450c54c5"
   },
   "email.new_login_alert.signature": {
-    "text": "Delano",
+    "text": "Support Team",
     "renderer": "erb",
     "content_hash": "f58154f7"
   },
@@ -715,7 +719,7 @@
     "content_hash": "d442beed"
   },
   "email.member_removed.signature": {
-    "text": "Delano",
+    "text": "Support Team",
     "renderer": "erb",
     "content_hash": "f58154f7"
   },
@@ -735,7 +739,7 @@
     "content_hash": "c2280c0c"
   },
   "email.role_changed.signature": {
-    "text": "Delano",
+    "text": "Support Team",
     "renderer": "erb",
     "content_hash": "f58154f7"
   },
@@ -755,7 +759,7 @@
     "content_hash": "7095fc69"
   },
   "email.organization_deleted.signature": {
-    "text": "Delano",
+    "text": "Support Team",
     "renderer": "erb",
     "content_hash": "f58154f7"
   },
@@ -795,7 +799,7 @@
     "content_hash": "36008943"
   },
   "email.payment_receipt.signature": {
-    "text": "Delano",
+    "text": "Support Team",
     "renderer": "erb",
     "content_hash": "f58154f7"
   },
@@ -820,7 +824,7 @@
     "content_hash": "926406b1"
   },
   "email.payment_failed.signature": {
-    "text": "Delano",
+    "text": "Support Team",
     "renderer": "erb",
     "content_hash": "f58154f7"
   },
@@ -845,7 +849,7 @@
     "content_hash": "66a1419e"
   },
   "email.trial_expiring.signature": {
-    "text": "Delano",
+    "text": "Support Team",
     "renderer": "erb",
     "content_hash": "f58154f7"
   },
@@ -870,7 +874,7 @@
     "content_hash": "5a96ae38"
   },
   "email.subscription_changed.signature": {
-    "text": "Delano",
+    "text": "Support Team",
     "renderer": "erb",
     "content_hash": "f58154f7"
   },

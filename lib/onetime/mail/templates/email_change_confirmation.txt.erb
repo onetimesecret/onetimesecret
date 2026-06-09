@@ -6,7 +6,7 @@
 
 <%= t('email.email_change_confirmation.ignore_notice') %>
 
-<%= t('email.email_change_confirmation.signature') %>
+<%= signature_name || t('email.email_change_confirmation.signature') %>
 
 <%= t('email.email_change_confirmation.postscript', email_address: new_email) %>
 

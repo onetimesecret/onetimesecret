@@ -34,12 +34,31 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
 
-  /* Reporter to use. */
-  reporter: [
-    ['html', { outputFolder: 'playwright-report' }],
-    ['github'], // GitHub Actions annotations
-    ['line'], // Terminal output
-  ],
+  /* Reporter to use.
+   *
+   * Environment-aware so nothing needs a `--reporter` CLI override (a CLI
+   * override *replaces* this whole array — that's how CI lost its HTML
+   * report; see e2e/docs/e2e-remediation-plan.md, Phase 1).
+   *
+   * CI additionally emits:
+   *  - json → test-results/results.json, parsed by the workflow's flaky
+   *    gate (a "passed only on retry" outcome fails the job)
+   *  - blob → blob-report/, mergeable across future CI shards
+   */
+  reporter: process.env.CI
+    ? [
+        ['list'], // Terminal output (CI logs)
+        ['github'], // GitHub Actions annotations
+        ['html', { outputFolder: 'playwright-report', open: 'never' }],
+        ['json', { outputFile: 'test-results/results.json' }],
+        // Unlike the other reporters, blob's default outputDir resolves
+        // against process.cwd(), not this config's directory - pin it.
+        ['blob', { outputDir: 'blob-report' }],
+      ]
+    : [
+        ['html', { outputFolder: 'playwright-report', open: 'never' }],
+        ['line'], // Terminal output
+      ],
 
   /* Shared settings for all the projects below. */
   use: {
