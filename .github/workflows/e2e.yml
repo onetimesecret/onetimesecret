@@ -28,6 +28,9 @@ on:
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'vite.config.ts'
+      # The suite itself: spec/config changes must run the suite they change
+      - 'e2e/**'
+      - 'eslint.config.ts'
       - '.github/workflows/**'
 
 permissions:
