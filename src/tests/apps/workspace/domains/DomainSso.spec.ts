@@ -332,6 +332,20 @@ describe('DomainSso', () => {
       const loadingText = wrapper.find('.text-center p');
       expect(loadingText.exists()).toBe(false);
     });
+
+    // Positive half of the guard invariant: an entitled user mid config-fetch
+    // must see the skeleton. Pins the (canManageSso && ssoLoading) clause so a
+    // future "simplify to domainLoading" edit goes red instead of silently
+    // dropping the skeleton during a real fetch.
+    it('shows the skeleton while the config fetches for an entitled user', async () => {
+      mockCanManageSso.value = true;
+      mockSsoLoading.value = true;
+      mockDomain.value = { display_domain: 'example.com' };
+      wrapper = await mountComponent();
+
+      expect(wrapper.find('[aria-busy="true"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="domain-sso-config-form"]').exists()).toBe(false);
+    });
   });
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -417,6 +431,25 @@ describe('DomainSso', () => {
 
       expect(wrapper.text()).toContain('Access Denied');
       expect(wrapper.text()).toContain('You do not have permission to manage SSO');
+    });
+
+    // Regression for the latent skeleton-guard trap. Unentitled users skip
+    // initializeSsoConfig() in onMounted, so the composable's isLoading stays at
+    // its ref(true) init. The skeleton guard must be qualified by the
+    // entitlement — domainLoading || (canManageSso && ssoLoading). The naive
+    // domainLoading || ssoLoading form spins the skeleton forever and the
+    // upgrade prompt never renders. Mirrors the shipped DomainSignin fix.
+    it('shows the access-denied guard, not a perpetual skeleton, when unentitled with the config fetch skipped', async () => {
+      mockCanManageSso.value = false;
+      mockSsoLoading.value = true; // initialize() skipped -> isLoading stuck at ref(true)
+      mockDomain.value = { display_domain: 'example.com' };
+      wrapper = await mountComponent();
+
+      // Skeleton must not win the v-if (aria-busy is skeleton-unique here)...
+      expect(wrapper.find('[aria-busy="true"]').exists()).toBe(false);
+      // ...the access-denied upgrade guard renders instead.
+      expect(wrapper.text()).toContain('Access Denied');
+      expect(wrapper.find('[data-testid="domain-sso-config-form"]').exists()).toBe(false);
     });
 
     it('does not show DomainSsoConfigForm when manage_sso not available', async () => {

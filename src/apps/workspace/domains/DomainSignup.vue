@@ -159,7 +159,10 @@ watch(canCustomSignup, async (entitled) => {
     <!-- Content -->
     <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
       <!-- Loading State -->
-      <SettingsSkeleton v-if="domainLoading || signupLoading" />
+      <!-- signupLoading defaults to true and only resolves once the config is
+           fetched; for unentitled users we skip that fetch, so it must not gate
+           the skeleton or it would spin forever instead of showing the guard. -->
+      <SettingsSkeleton v-if="domainLoading || (canCustomSignup && signupLoading)" />
 
       <!-- Error State -->
       <div v-else-if="domainError || signupError" class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">

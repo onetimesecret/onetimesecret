@@ -261,7 +261,14 @@ end
 # ============================================================
 
 ## Anonymous user is rejected
-@anon_result = MockStrategyResult.anonymous
+@anon_cust = Onetime::Customer.new
+@anon_cust.role = 'anonymous'
+@anon_result = MockStrategyResult.new(
+  session: {},
+  user: @anon_cust,
+  auth_method: 'anonymous',
+  metadata: {},
+)
 @logic_anon = build_put(extid: @domain.extid, strategy_result: @anon_result)
 begin
   @logic_anon.raise_concerns
