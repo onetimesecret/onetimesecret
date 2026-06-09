@@ -16,10 +16,15 @@
 #   bin/ots banner set "temp notice" --ttl 3600      # auto-expire in 1 hour
 #
 
+require 'cgi'
+
 module Onetime
   module CLI
     class BannerSetCommand < Command
       desc 'Set the global broadcast banner (dry-run by default)'
+
+      # Inner display width of the ASCII preview box (between │ borders).
+      INNER_WIDTH = 62
 
       argument :content,
         type: :string,
@@ -83,19 +88,17 @@ module Onetime
       #
       # Content is stripped of HTML and decoded (same result as the
       # frontend's DOMPurify pass rendered as plain text).
-      INNER_WIDTH = 62
-
       def render_preview(banner_text)
         plain = strip_html(banner_text)
 
         # Banner row budget (display columns):
         #   " "(1) + megaphone(2) + "  "(2) + text + "  "(2) + "[x]"(3) + " "(1) = 11 fixed
         text_budget = INNER_WIDTH - 11
-        display = if plain.length > text_budget
-                    "#{plain[0, text_budget - 3]}..."
-                  else
-                    plain
-                  end
+        display     = if plain.length > text_budget
+                        "#{plain[0, text_budget - 3]}..."
+                      else
+                        plain
+                      end
 
         banner_fill = ' ' * (text_budget - display.length)
 
@@ -103,21 +106,24 @@ module Onetime
         nav    = 'Sign In   Sign Up '
         gap    = ' ' * (INNER_WIDTH - header.length - nav.length)
 
+        border_h = '─' * INNER_WIDTH
+        input_h  = '─' * 32
+
         puts
         puts 'Preview (sanitized, links shown as text):'
-        puts "┌#{"─" * INNER_WIDTH}┐"
+        puts "┌#{border_h}┐"
         puts "│ \u{1F4E2}  #{display}#{banner_fill}  [x] │"
-        puts "├#{"─" * INNER_WIDTH}┤"
+        puts "├#{border_h}┤"
         puts "│#{pad(header + gap + nav)}│"
         puts "│#{pad('')}│"
         puts "│#{center('Paste a password, secret')}│"
         puts "│#{center('message or private link.')}│"
-        puts "│#{center("┌#{"─" * 32}┐")}│"
+        puts "│#{center("┌#{input_h}┐")}│"
         puts "│#{center("│#{' ' * 32}│")}│"
-        puts "│#{center("└#{"─" * 32}┘")}│"
+        puts "│#{center("└#{input_h}┘")}│"
         puts "│#{center('[ Create a secret link ]')}│"
         puts "│#{pad('')}│"
-        puts "└#{"─" * INNER_WIDTH}┘"
+        puts "└#{border_h}┘"
       end
 
       def render_dry_run(banner_text, ttl)
@@ -158,14 +164,7 @@ module Onetime
       end
 
       def strip_html(html)
-        html
-          .gsub('&amp;', '&')
-          .gsub('&lt;', '<')
-          .gsub('&gt;', '>')
-          .gsub('&quot;', '"')
-          .gsub('&#39;', "'")
-          .gsub(/<[^>]+>/, '')
-          .strip
+        CGI.unescapeHTML(html).gsub(/<[^>]+>/, '').strip
       end
 
       def pad(text)

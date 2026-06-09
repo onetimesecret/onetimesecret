@@ -25,9 +25,9 @@ module Onetime
       def call(json: false, **)
         boot_application!
 
-        db = Familia.dbclient(0)
+        db          = Familia.dbclient(0)
         banner_text = db.get('global_banner')
-        ttl = db.ttl('global_banner')
+        ttl         = db.ttl('global_banner')
 
         if json
           display_json(banner_text, ttl)

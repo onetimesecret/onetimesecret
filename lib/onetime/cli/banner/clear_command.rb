@@ -26,7 +26,7 @@ module Onetime
       def call(apply: false, **)
         boot_application!
 
-        db = Familia.dbclient(0)
+        db          = Familia.dbclient(0)
         banner_text = db.get('global_banner')
 
         if banner_text.nil? || banner_text.empty?
