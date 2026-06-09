@@ -66,9 +66,9 @@ module Core
         output['frontend_development'] = development['enabled'] || false
         output['frontend_host']        = development['frontend_host'] || ''
 
-        # Branding config for frontend stores. Sourced from view_vars which
-        # InitializeViewVars populates from OT.conf['brand'] with neutral
-        # BrandSettingsConstants defaults per #3049.
+        # Branding config for frontend stores. brand_primary_color is nil
+        # when BRAND_PRIMARY_COLOR is unset — the frontend fallback chain
+        # resolves the default (#3381).
         output['brand_primary_color']         = view_vars['brand_primary_color']
         output['brand_product_name']          = view_vars['brand_product_name']
         output['brand_product_domain']        = view_vars['brand_product_domain']

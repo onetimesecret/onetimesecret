@@ -188,12 +188,8 @@ module Core
         base_scheme          = safe_site['ssl'] == false ? 'http://' : 'https://'
         baseuri              = base_scheme + site_host
 
-        # Brand config exposed to view templates (mask-icon, etc.)
-        # and to first-paint Vue state. BrandSettingsConstants supplies the
-        # neutral fallbacks (#3B82F6, allow_public_* = false) per #3049.
         brand_defaults              = Onetime::CustomDomain::BrandSettingsConstants::DEFAULTS
-        brand_primary_color         = brand_config['primary_color'] ||
-                                      brand_defaults[:primary_color]
+        brand_primary_color         = brand_config['primary_color']
         support_email               = brand_config['support_email'] ||
                                       Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:support_email]
         # docs_host: full documentation URL exposed to bootstrap. Sources from
