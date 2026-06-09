@@ -24,6 +24,13 @@
 
 import { test, expect, Page } from '@playwright/test';
 
+// The `full-billing` project starts every test authenticated as TEST_USER_*
+// via storageState (e2e/playwright.config.ts), but this file signs in as a
+// *subscriber* account (TEST_SUBSCRIBER_*, falling back to TEST_USER_*) via
+// the real form. Opt out of the shared session so /signin renders the form
+// instead of redirecting an already-authenticated visitor away.
+test.use({ storageState: { cookies: [], origins: [] } });
+
 // Check if subscriber credentials are configured
 const hasSubscriberCredentials = !!(
   process.env.TEST_SUBSCRIBER_EMAIL && process.env.TEST_SUBSCRIBER_PASSWORD

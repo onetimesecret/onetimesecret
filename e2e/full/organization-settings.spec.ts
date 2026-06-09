@@ -26,7 +26,7 @@
  *   - org-section-settings: Settings panel
  *
  * Prerequisites:
- * - Set TEST_USER_EMAIL and TEST_USER_PASSWORD environment variables
+ * - Authenticated via the project storageState (e2e/global.setup.ts consumes TEST_USER_*)
  * - Test user must have at least one organization
  *
  * Usage:
@@ -35,9 +35,6 @@
  */
 
 import { expect, Page, test } from '@playwright/test';
-
-// Check if test credentials are configured
-const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD);
 
 // -----------------------------------------------------------------------------
 // Types
@@ -51,34 +48,6 @@ interface OrgInfo {
 // -----------------------------------------------------------------------------
 // Test Helpers
 // -----------------------------------------------------------------------------
-
-/**
- * Authenticate user via login form
- */
-async function loginUser(page: Page): Promise<void> {
-  await page.goto('/signin');
-
-  // Click Password tab - Magic Link is the default, password input is hidden
-  const passwordTab = page.getByRole('tab', { name: /password/i });
-  await passwordTab.waitFor({ state: 'visible', timeout: 5000 });
-  await passwordTab.click();
-
-  // Wait for password input to be visible after tab switch
-  const passwordInput = page.locator('input[type="password"]');
-  await passwordInput.waitFor({ state: 'visible', timeout: 5000 });
-
-  // Fill the form
-  const emailInput = page.locator('#signin-email-password');
-  await emailInput.fill(process.env.TEST_USER_EMAIL || '');
-  await passwordInput.fill(process.env.TEST_USER_PASSWORD || '');
-
-  // Submit
-  const submitButton = page.locator('button[type="submit"]');
-  await submitButton.click();
-
-  // Wait for redirect to dashboard/account
-  await page.waitForURL(/\/(account|dashboard|org)/, { timeout: 30000 });
-}
 
 /**
  * Get the first organization from the /orgs page
@@ -125,11 +94,8 @@ function getCurrentTab(page: Page): string | null {
 // -----------------------------------------------------------------------------
 
 test.describe('ORG-LIST: Organizations List Page (/orgs)', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('ORG-LIST-001: Organizations list renders with correct testids', async ({ page }) => {
@@ -250,13 +216,11 @@ test.describe('ORG-LIST: Organizations List Page (/orgs)', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
 
   let testOrg: OrgInfo | null = null;
 
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
     testOrg = await getFirstOrganization(page);
   });
 
@@ -620,11 +584,8 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
 // -----------------------------------------------------------------------------
 
 test.describe('ORG-ERROR: Organization Error States', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('ORG-ERROR-001: Invalid org extid shows error state', async ({ page }) => {
@@ -652,13 +613,11 @@ test.describe('ORG-ERROR: Organization Error States', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('ORG-A11Y: Organization Settings Accessibility', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
 
   let testOrg: OrgInfo | null = null;
 
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
     testOrg = await getFirstOrganization(page);
   });
 

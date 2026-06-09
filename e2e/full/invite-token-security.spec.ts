@@ -22,7 +22,8 @@
  * - SEC-INV-005: Email-mismatched invite_token does NOT auto-login
  *
  * Prerequisites:
- * - Set TEST_USER_EMAIL, TEST_USER_PASSWORD environment variables for org owner
+ * - Authenticated as the org owner via the project storageState
+ *   (e2e/global.setup.ts consumes TEST_USER_*)
  * - Application running locally or PLAYWRIGHT_BASE_URL set
  *
  * Usage:
@@ -32,9 +33,6 @@
 
 import { expect, Page, test } from '@playwright/test';
 
-// Check if test credentials are configured
-const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD);
-
 // Generate unique email addresses for test isolation
 const generateTestEmail = (prefix: string) =>
   `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@test.onetimesecret.com`;
@@ -42,34 +40,6 @@ const generateTestEmail = (prefix: string) =>
 // -----------------------------------------------------------------------------
 // Test Helpers
 // -----------------------------------------------------------------------------
-
-/**
- * Authenticate user via login form using password tab
- */
-async function loginUser(page: Page, email?: string, password?: string): Promise<void> {
-  await page.goto('/signin');
-
-  // Click Password tab - Magic Link is the default, password input is hidden
-  const passwordTab = page.getByRole('tab', { name: /password/i });
-  await passwordTab.waitFor({ state: 'visible', timeout: 5000 });
-  await passwordTab.click();
-
-  // Wait for password input to be visible after tab switch
-  const passwordInput = page.locator('input[type="password"]');
-  await passwordInput.waitFor({ state: 'visible', timeout: 5000 });
-
-  // Fill the form
-  const emailInput = page.locator('#signin-email-password');
-  await emailInput.fill(email || process.env.TEST_USER_EMAIL || '');
-  await passwordInput.fill(password || process.env.TEST_USER_PASSWORD || '');
-
-  // Submit
-  const submitButton = page.locator('button[type="submit"]');
-  await submitButton.click();
-
-  // Wait for redirect to dashboard/account
-  await page.waitForURL(/\/(account|dashboard|org)/, { timeout: 30000 });
-}
 
 /**
  * Navigate to organization team settings page
@@ -194,6 +164,10 @@ async function createAccountViaAPI(
 
 test.describe('SEC-INV-001: Garbage invite_token does NOT auto-login', () => {
   test('signup with garbage invite_token leaves user unauthenticated', async ({ page }) => {
+    // The full project starts authenticated via storageState; this scenario
+    // asserts an *unauthenticated* outcome, so drop that session first.
+    await page.context().clearCookies();
+
     const testEmail = generateTestEmail('garbage-token');
     const testPassword = 'TestPassword123!';
     const garbageToken = 'nonexistent_garbage_token_' + Date.now();
@@ -229,6 +203,10 @@ test.describe('SEC-INV-002: Garbage invite_token does NOT suppress verification'
   test('signup with garbage invite_token results in unverified account state', async ({
     page,
   }) => {
+    // The full project starts authenticated via storageState; this scenario
+    // asserts an *unauthenticated* outcome, so drop that session first.
+    await page.context().clearCookies();
+
     const testEmail = generateTestEmail('verify-not-suppressed');
     const testPassword = 'TestPassword123!';
     const garbageToken = 'fake_token_should_not_suppress_' + Date.now();
@@ -292,14 +270,11 @@ test.describe('SEC-INV-002: Garbage invite_token does NOT suppress verification'
 // -----------------------------------------------------------------------------
 
 test.describe('SEC-INV-003: Valid invite_token auto-login works', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('signup with valid invite_token auto-logs-in and auto-verifies the user', async ({
     page,
     context,
   }) => {
-    // Step 1: Login as org owner and create a valid invitation
-    await loginUser(page);
+    // Step 1: create a valid invitation (storageState session is the org owner)
     const invitedEmail = generateTestEmail('valid-token-autologin');
     const testPassword = 'TestPassword123!';
 

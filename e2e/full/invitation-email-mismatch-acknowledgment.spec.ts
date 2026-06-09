@@ -16,7 +16,9 @@
  * 3. "Continue as" triggers logout and redirect to invite page
  *
  * Prerequisites:
- * - Set TEST_USER_EMAIL, TEST_USER_PASSWORD environment variables
+ * - Authenticated as the org owner via the project storageState
+ *   (e2e/global.setup.ts consumes TEST_USER_*); multi-context scenarios sign
+ *   in manually inside fresh (unauthenticated) browser contexts
  * - Application running locally or PLAYWRIGHT_BASE_URL set
  *
  * Usage:
@@ -38,7 +40,11 @@ const generateTestEmail = (prefix: string) =>
 // -----------------------------------------------------------------------------
 
 /**
- * Authenticate user via login form using password tab
+ * Authenticate user via login form using password tab.
+ *
+ * Only valid on pages from a fresh `browser.newContext()` (unauthenticated):
+ * the default `page` fixture already carries the storageState session, and
+ * an authenticated visitor to /signin is redirected away from the form.
  */
 async function loginUser(page: Page, email?: string, password?: string): Promise<void> {
   await page.goto('/signin');
@@ -286,15 +292,11 @@ test.describe('MISMATCH-003: Continue As Triggers Logout', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('MISMATCH-004: Unauthenticated User Sees Inline Auth Forms', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('When unauthenticated, shows signup or signin inline form (no mismatch)', async ({
     page,
     context,
   }) => {
-    await loginUser(page);
-
-    // Get current user's email
+    // Get the current (storageState) user's email
     const bootstrapResponse = await page.request.get('/api/v2/bootstrap/authenticated');
     const bootstrapData = await bootstrapResponse.json();
     const currentEmail = bootstrapData.record?.email;

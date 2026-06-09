@@ -15,7 +15,7 @@
  * This validates the architecture that SSO config is scoped to domain, not org.
  *
  * Prerequisites:
- * - Set TEST_USER_EMAIL and TEST_USER_PASSWORD environment variables
+ * - Authenticated via the project storageState (e2e/global.setup.ts consumes TEST_USER_*)
  * - User must have access to an organization with manage_sso entitlement
  * - Organization must have at least 2 custom domains
  *
@@ -30,9 +30,6 @@
  */
 
 import { expect, Page, test } from '@playwright/test';
-
-// Check if test credentials are configured
-const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD);
 
 // -----------------------------------------------------------------------------
 // Types
@@ -64,34 +61,6 @@ interface SsoConfigData {
 // -----------------------------------------------------------------------------
 // Test Helpers
 // -----------------------------------------------------------------------------
-
-/**
- * Authenticate user via login form
- */
-async function loginUser(page: Page): Promise<void> {
-  await page.goto('/signin');
-
-  // Click Password tab - Magic Link is the default, password input is hidden
-  const passwordTab = page.getByRole('tab', { name: /password/i });
-  await passwordTab.waitFor({ state: 'visible', timeout: 5000 });
-  await passwordTab.click();
-
-  // Wait for password input to be visible after tab switch
-  const passwordInput = page.locator('input[type="password"]');
-  await passwordInput.waitFor({ state: 'visible', timeout: 5000 });
-
-  // Fill the form
-  const emailInput = page.locator('#signin-email-password');
-  await emailInput.fill(process.env.TEST_USER_EMAIL || '');
-  await passwordInput.fill(process.env.TEST_USER_PASSWORD || '');
-
-  // Submit
-  const submitButton = page.locator('button[type="submit"]');
-  await submitButton.click();
-
-  // Wait for redirect to dashboard/account
-  await page.waitForURL(/\/(account|dashboard|org)/, { timeout: 30000 });
-}
 
 /**
  * Get the first organization the user has access to
@@ -327,11 +296,8 @@ async function setupDomainSsoMock(
 // -----------------------------------------------------------------------------
 
 test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-MPROV-001: configure Entra ID for first domain and Google for second domain', async ({
@@ -603,11 +569,8 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Multi-Domain SSO - SSO Hub Display', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-MPROV-005: SSO hub displays all organization domains', async ({ page }) => {
@@ -700,11 +663,8 @@ test.describe('Multi-Domain SSO - SSO Hub Display', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-MPROV-008: Entra ID requires tenant_id field', async ({ page }) => {
@@ -820,11 +780,8 @@ test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Multi-Domain SSO - Configuration Isolation', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-MPROV-012: domain A config is not visible on domain B page', async ({ page }) => {

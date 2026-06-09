@@ -11,8 +11,7 @@
  * requested org differs from the cached org.
  *
  * Prerequisites:
- * - TEST_USER_EMAIL=domaincontext@onetime.dev
- * - TEST_USER_PASSWORD from environment variable
+ * - Authenticated via the project storageState (e2e/global.setup.ts consumes TEST_USER_*)
  * - User must have 2 organizations:
  *   - "Default Workspace" with custom domains
  *   - "A Second Organization" with no custom domains
@@ -26,12 +25,6 @@
  */
 
 import { expect, Page, Request, test } from '@playwright/test';
-
-// Check if test credentials are configured
-const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD);
-
-// Test user should be domaincontext@onetime.dev per requirements
-const TEST_USER_EMAIL = process.env.TEST_USER_EMAIL || 'domaincontext@onetime.dev';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -53,34 +46,6 @@ interface ApiCallInfo {
 // -----------------------------------------------------------------------------
 // Test Helpers
 // -----------------------------------------------------------------------------
-
-/**
- * Authenticate user via login form
- */
-async function loginUser(page: Page): Promise<void> {
-  await page.goto('/signin');
-
-  // Click Password tab - Magic Link is the default, password input is hidden
-  const passwordTab = page.getByRole('tab', { name: /password/i });
-  await passwordTab.waitFor({ state: 'visible', timeout: 5000 });
-  await passwordTab.click();
-
-  // Wait for password input to be visible after tab switch
-  const passwordInput = page.locator('input[type="password"]');
-  await passwordInput.waitFor({ state: 'visible', timeout: 5000 });
-
-  // Now fill the form (email input is in the password tab panel)
-  const emailInput = page.locator('#signin-email-password');
-  await emailInput.fill(TEST_USER_EMAIL);
-  await passwordInput.fill(process.env.TEST_USER_PASSWORD || '');
-
-  // Submit
-  const submitButton = page.locator('button[type="submit"]');
-  await submitButton.click();
-
-  // Wait for redirect to dashboard/account
-  await page.waitForURL(/\/(account|dashboard|org)/, { timeout: 30000 });
-}
 
 /**
  * Get list of organizations the user has access to
@@ -268,11 +233,8 @@ function extractOrgIdFromRequest(request: Request): string | null {
 // -----------------------------------------------------------------------------
 
 test.describe('DomainsStore Org Context Cache Fix', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   // ---------------------------------------------------------------------------
@@ -577,11 +539,8 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('DomainsStore Cache - Edge Cases', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-DSC-004: Browser back/forward maintains correct org domain context', async ({

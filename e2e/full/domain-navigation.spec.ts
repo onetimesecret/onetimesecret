@@ -9,7 +9,7 @@
  * - DomainVerify -> DomainDetail
  *
  * Prerequisites:
- * - Set TEST_USER_EMAIL and TEST_USER_PASSWORD environment variables
+ * - Authenticated via the project storageState (e2e/global.setup.ts consumes TEST_USER_*)
  * - User must have access to an organization with at least one domain
  *
  * Usage:
@@ -18,8 +18,6 @@
  */
 
 import { expect, Page, test } from '@playwright/test';
-
-const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD);
 
 // -----------------------------------------------------------------------------
 // Types
@@ -38,29 +36,6 @@ interface DomainInfo {
 // -----------------------------------------------------------------------------
 // Test Helpers
 // -----------------------------------------------------------------------------
-
-/**
- * Authenticate user via login form
- */
-async function loginUser(page: Page): Promise<void> {
-  await page.goto('/signin');
-
-  const passwordTab = page.getByRole('tab', { name: /password/i });
-  await passwordTab.waitFor({ state: 'visible', timeout: 5000 });
-  await passwordTab.click();
-
-  const passwordInput = page.locator('input[type="password"]');
-  await passwordInput.waitFor({ state: 'visible', timeout: 5000 });
-
-  const emailInput = page.locator('#signin-email-password');
-  await emailInput.fill(process.env.TEST_USER_EMAIL || '');
-  await passwordInput.fill(process.env.TEST_USER_PASSWORD || '');
-
-  const submitButton = page.locator('button[type="submit"]');
-  await submitButton.click();
-
-  await page.waitForURL(/\/(account|dashboard|org)/, { timeout: 30000 });
-}
 
 /**
  * Get the first organization the user has access to
@@ -124,11 +99,8 @@ async function clickBackButton(page: Page): Promise<void> {
 // -----------------------------------------------------------------------------
 
 test.describe('Domain Sub-page Navigation', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-DN-001: SSO page back button navigates to DomainDetail', async ({ page }) => {
@@ -231,11 +203,8 @@ test.describe('Domain Sub-page Navigation', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('DomainHeader External Link', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-DN-004: DomainIncoming header link includes /incoming path', async ({ page }) => {

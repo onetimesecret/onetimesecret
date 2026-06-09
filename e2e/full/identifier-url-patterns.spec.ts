@@ -14,7 +14,7 @@
 //   - md: Metadata (e.g., mdx7y4z1)
 //
 // Prerequisites:
-//   - Set TEST_USER_EMAIL and TEST_USER_PASSWORD environment variables
+//   - Authenticated via the project storageState (e2e/global.setup.ts consumes TEST_USER_*)
 //   - Application running locally or PLAYWRIGHT_BASE_URL set
 //   - User should have at least one organization and optionally domains
 //
@@ -35,9 +35,6 @@ declare global {
     };
   }
 }
-
-// Check if test credentials are configured
-const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD);
 
 // -----------------------------------------------------------------------------
 // Identifier Pattern Constants
@@ -78,26 +75,6 @@ const PATTERNS = {
 // -----------------------------------------------------------------------------
 // Test Helpers
 // -----------------------------------------------------------------------------
-
-/**
- * Authenticate user via login form
- */
-async function loginUser(page: Page): Promise<void> {
-  await page.goto('/signin');
-
-  const emailInput = page.locator('input[type="email"], input[name="email"]');
-  const passwordInput = page.locator('input[type="password"], input[name="password"]');
-  const submitButton = page.locator('button[type="submit"]');
-
-  if (await emailInput.isVisible()) {
-    await emailInput.fill(process.env.TEST_USER_EMAIL || 'test@example.com');
-    await passwordInput.fill(process.env.TEST_USER_PASSWORD || 'testpassword');
-    await submitButton.click();
-
-    // Wait for redirect to dashboard/account
-    await page.waitForURL(/\/(account|dashboard)/, { timeout: 30000 });
-  }
-}
 
 /**
  * Check if a URL path contains a UUID (internal ID format)
@@ -167,11 +144,8 @@ function extractIdentifiers(url: string): string[] {
 // -----------------------------------------------------------------------------
 
 test.describe('Opaque Identifier Pattern - URL Security', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   // -------------------------------------------------------------------------
@@ -495,11 +469,8 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Opaque Identifier Pattern - Security Validation', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-ID-040: No internal IDs exposed in network requests', async ({ page }) => {
@@ -619,11 +590,8 @@ test.describe('Opaque Identifier Pattern - Security Validation', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Opaque Identifier Pattern - Format Consistency', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-ID-050: Organization ExtIds consistently use "on" prefix', async ({ page }) => {
@@ -728,11 +696,8 @@ test.describe('Opaque Identifier Pattern - Format Consistency', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Opaque Identifier Pattern - Regression Prevention', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-ID-060: Verify window state uses correct ID fields', async ({ page }) => {
