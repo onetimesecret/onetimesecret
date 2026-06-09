@@ -17,6 +17,7 @@ RSpec.describe Onetime::CustomDomain::BrandSettings do
         product_name
         product_domain
         support_email
+        signature_name
         footer_text
         description
         logo_url

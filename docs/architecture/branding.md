@@ -327,26 +327,40 @@ Transactional emails close with a sign-off line. Historically this was the
 hardcoded i18n string `"Delano"` baked into every `email.*.signature` key
 across all 30 locales — it sat *below* the brand layer, so the private-label
 neutralization (#3048/#3049) never reached it. The sign-off is now a brand
-value, resolved by the `signature_name` `TemplateContext` helper:
+value, resolved by the `signature_name` `TemplateContext` helper as **two
+independent tiers that do not cascade into each other**:
 
 ```ruby
 # lib/onetime/mail/views/base.rb (TemplateContext)
 def signature_name
-  @data[:signature_name] ||            # 1. per-message / per-domain override
-    conf_dig('brand', 'signature_name')  # 2. install-wide BRAND_SIGNATURE_NAME
+  if @data.key?(:signature_name)   # DOMAIN tier: per-domain brand value
+    @data[:signature_name]         #   (may be nil — does NOT fall to install)
+  else                             # INSTALL tier: account-level sends
+    conf_dig('brand', 'signature_name')  # BRAND_SIGNATURE_NAME (may be nil)
+  end
 end
 ```
 
-Templates fall back to the neutral i18n default when it resolves to nil:
+Templates fall back to the neutral i18n default when either tier resolves to nil:
 
 ```erb
 <%= h(signature_name || t('email.welcome.signature')) %>
 ```
 
-Resolution order: per-domain/per-message data → `BRAND_SIGNATURE_NAME` →
-`email.*.signature` (`"Support Team"`). It is deliberately decoupled from
-`product_name` so an operator can sign mail with a person or team
-("Jane from Acme") without renaming the product everywhere else.
+- **Install tier** (account-level mail, no `:signature_name` in data):
+  `BRAND_SIGNATURE_NAME` → `email.*.signature` (`"Support Team"`).
+- **Domain tier** (domain-scoped mail passes `signature_name:` from the
+  custom domain's `BrandSettings`): per-domain value → `email.*.signature`.
+  A white-label domain that leaves its sign-off unset does **not** inherit the
+  install operator's `BRAND_SIGNATURE_NAME`; it falls straight through to the
+  neutral i18n default, keeping the domain isolated from the install identity.
+
+The per-domain value is a real `BrandSettings` field
+(`lib/onetime/models/custom_domain/brand_settings.rb`) — settable per custom
+domain via the brand API, sanitized at the write boundary, never seeded from
+the install env/config. It is deliberately decoupled from `product_name` so a
+sign-off can be a person or team ("Jane from Acme") without renaming the
+product everywhere else.
 
 ### SecretPreview.vue
 

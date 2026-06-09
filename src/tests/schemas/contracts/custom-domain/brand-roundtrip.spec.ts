@@ -9,8 +9,9 @@
 // at the bottom for grep coverage of intent.
 //
 // Contract under test:
-//   - 7 new nullish() fields: product_name, product_domain, support_email,
-//     footer_text, logo_url, logo_dark_url, favicon_url
+//   - nullish() identity fields: product_name, product_domain, support_email,
+//     signature_name, footer_text, logo_url, logo_dark_url, favicon_url
+//   - signature_name applies a stripHtmlTags transform (sanitized sign-off)
 //   - product_name and footer_text apply a stripHtmlTags transform
 //   - support_email validates as email
 //   - logo_url, logo_dark_url, favicon_url validate as URL
@@ -42,6 +43,7 @@ function fullCanonical(): Record<string, unknown> {
     product_name: 'My App',
     product_domain: 'app.example.com',
     support_email: 'support@example.com',
+    signature_name: 'Support Crew',
     footer_text: 'Footer notice',
     logo_url: 'https://example.com/logo.svg',
     logo_dark_url: 'https://example.com/logo-dark.svg',
