@@ -211,8 +211,15 @@ jobs:
           # the container, which CI does not configure yet. The trailing
           # slashes matter: CLI filters are partial-path matches, so a bare
           # 'e2e/full' would also pull in 'e2e/full-billing/'.
+          #
+          # --max-failures=20: the full/ suite is newly enabled and still
+          # being triaged (e2e/docs/e2e-remediation-plan.md, Phase 2). At 5,
+          # one failure class aborts the run and hides everything behind it
+          # ("272 did not run" on the first #3412 run); 20 keeps the
+          # circuit-breaker for catastrophic runs while surfacing whole
+          # failure classes per CI cycle. Tighten again once triage is done.
           pnpm test:playwright e2e/all/ e2e/full/ \
-            --max-failures=5
+            --max-failures=20
         env:
           PLAYWRIGHT_BASE_URL: ${{ env.TEST_BASE_URL }}
 
