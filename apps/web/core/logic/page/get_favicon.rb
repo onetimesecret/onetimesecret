@@ -25,7 +25,7 @@ module Core
       # - strategy_result.metadata[:display_domain] - Normalized domain name
       #
       class GetFavicon < Core::Logic::Base
-        attr_reader :custom_domain, :icon_data, :content_type, :content_length, :use_default, :image_source
+        attr_reader :custom_domain, :icon_data, :content_type, :content_length, :use_default, :image_source, :redirect_url
 
         FAVICON_SIZE = 32 # 32x32 pixels
 
@@ -68,8 +68,12 @@ module Core
 
         def process
           if use_default
-            # Serve default favicon
-            serve_default_favicon
+            brand_favicon = OT.conf.dig('brand', 'favicon_url')
+            if brand_favicon && !brand_favicon.empty?
+              serve_redirect_favicon(brand_favicon)
+            else
+              serve_default_favicon
+            end
           else
             # Serve custom favicon from Redis (cached or generate)
             serve_custom_favicon
@@ -143,6 +147,11 @@ module Core
 
           # Return PNG data
           resized.to_blob
+        end
+
+        def serve_redirect_favicon(url)
+          @redirect_url = url
+          OT.ld "[GetFavicon] Redirecting to brand favicon: #{url}"
         end
 
         def serve_default_favicon
