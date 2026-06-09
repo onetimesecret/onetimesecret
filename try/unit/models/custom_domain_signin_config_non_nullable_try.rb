@@ -6,10 +6,10 @@
 # and sso_enabled.
 #
 # Covers:
-#   - init defaults: all three fields default to false (not nil)
+#   - init defaults: all boolean fields default to false (conservative)
 #   - Predicate methods: signin_enabled?, email_auth_enabled?, sso_enabled? return correct booleans
 #   - Legacy nil coercion: predicates treat nil as false (conservative)
-#   - create! defaults: omitted fields default to false
+#   - create! defaults: all omitted boolean fields default to false
 #   - create! with explicit true values
 #   - restrict_to remains nullable (string, not boolean)
 #   - Round-trip through save/load
@@ -33,7 +33,7 @@ OT.info "Cleaned Redis for SigninConfig non-nullable boolean test run"
 
 # --- init defaults ---
 
-## New SigninConfig has signin_enabled == false (not nil)
+## New SigninConfig has signin_enabled == false (conservative default)
 @fresh = Onetime::CustomDomain::SigninConfig.new(domain_id: 'init_test_1')
 @fresh.signin_enabled
 #=> false
@@ -138,7 +138,7 @@ OT.info "Cleaned Redis for SigninConfig non-nullable boolean test run"
 
 # --- create! defaults ---
 
-## create! without signin_enabled sets it to false
+## create! without signin_enabled defaults to false (conservative)
 @ts_cd1 = Familia.now.to_i
 @domain_cd1 = Onetime::CustomDomain.create!("si-cd1-#{@ts_cd1}-#{SecureRandom.hex(2)}.example.com", @org.objid)
 @created_default = Onetime::CustomDomain::SigninConfig.create!(
@@ -272,7 +272,7 @@ OT.info "Cleaned Redis for SigninConfig non-nullable boolean test run"
 @trip_loaded3.sso_enabled?
 #=> true
 
-## Round-trip: false values survive save/load
+## Round-trip: default false values survive save/load
 @ts_trip4 = Familia.now.to_i
 @domain_trip4 = Onetime::CustomDomain.create!("si-trip4-#{@ts_trip4}-#{SecureRandom.hex(2)}.example.com", @org.objid)
 @trip_config4 = Onetime::CustomDomain::SigninConfig.create!(
@@ -312,7 +312,7 @@ OT.info "Cleaned Redis for SigninConfig non-nullable boolean test run"
 @serial_result[:sso_enabled].is_a?(FalseClass) || @serial_result[:sso_enabled].is_a?(TrueClass)
 #=> true
 
-## Serialized shape matches API contract when all false
+## Serialized shape matches API contract when all false (conservative defaults)
 @serial_result
 #=> {signin_enabled: false, email_auth_enabled: false, sso_enabled: false}
 

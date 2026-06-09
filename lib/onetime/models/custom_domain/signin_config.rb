@@ -15,7 +15,11 @@
 #   - Method isolation: hide methods that aren't relevant for a domain's users
 #
 # Non-Nullable Override Semantics:
-#   Boolean fields are non-nullable with conservative defaults (false).
+#   All boolean fields are non-nullable with conservative defaults (false).
+#   The `enabled` master switch gates whether this config is consulted at
+#   all — when off, runtime resolution falls back to global. This is the
+#   safety mechanism: creating a record never changes behavior until an
+#   admin explicitly enables it and sets the fields they want.
 #   When an admin configures a domain, the config they see is the config
 #   that runs — no invisible inheritance from install-level defaults.
 #
@@ -161,7 +165,9 @@ module Onetime
           config.enabled            = attrs.key?(:enabled) ? attrs[:enabled] : false
           config.restrict_to        = attrs[:restrict_to] if attrs.key?(:restrict_to)
 
-          # Non-nullable boolean fields with conservative defaults
+          # Convention: all boolean fields use conservative defaults (false).
+          # The `enabled` master switch gates runtime consultation — creating
+          # a record never changes behavior until explicitly enabled.
           config.signin_enabled     = attrs.key?(:signin_enabled) ? attrs[:signin_enabled] : false
           config.email_auth_enabled = attrs.key?(:email_auth_enabled) ? attrs[:email_auth_enabled] : false
           config.sso_enabled        = attrs.key?(:sso_enabled) ? attrs[:sso_enabled] : false
