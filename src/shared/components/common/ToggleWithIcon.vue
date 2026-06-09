@@ -9,6 +9,8 @@ const { t } = useI18n();
   interface Props {
     enabled: boolean;
     disabled: boolean;
+    onLabel?: string;
+    offLabel?: string;
   }
 
   const props = defineProps<Props>();
@@ -19,6 +21,10 @@ const { t } = useI18n();
 </script>
 
 <template>
+  <div class="inline-flex items-center">
+  <span v-if="props.onLabel || props.offLabel" class="mr-2 text-sm text-gray-500 dark:text-gray-400">
+    {{ props.enabled ? props.onLabel : props.offLabel }}
+  </span>
   <Switch
     :model-value="props.enabled"
     @update:model-value="emit('update:enabled', $event)"
@@ -68,4 +74,5 @@ const { t } = useI18n();
       </span>
     </span>
   </Switch>
+  </div>
 </template>

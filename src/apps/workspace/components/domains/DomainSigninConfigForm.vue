@@ -11,6 +11,7 @@
 import { useI18n } from 'vue-i18n';
 import { computed, ref } from 'vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
+import ToggleWithIcon from '@/shared/components/common/ToggleWithIcon.vue';
 import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
 import {
   SIGNIN_RESTRICT_TO_METADATA,
@@ -142,15 +143,12 @@ class="space-y-6">
             {{ t('web.domains.signin.signin_enabled_hint') }}
           </p>
         </div>
-        <select
-          id="signin-domain-enabled"
-          aria-describedby="signin-domain-enabled-hint"
-          :value="String(formState.signin_enabled)"
-          @change="updateField('signin_enabled', ($event.target as HTMLSelectElement).value === 'true')"
-          class="rounded-md border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-          <option value="true">{{ t('web.COMMON.enabled') }}</option>
-          <option value="false">{{ t('web.COMMON.disabled') }}</option>
-        </select>
+        <ToggleWithIcon
+          :enabled="Boolean(formState.signin_enabled)"
+          :disabled="isSaving"
+          :on-label="t('web.COMMON.enabled')"
+          :off-label="t('web.COMMON.disabled')"
+          @update:enabled="updateField('signin_enabled', $event)" />
       </div>
 
       <!-- Restrict to single auth method -->
@@ -272,15 +270,12 @@ class="space-y-6">
               {{ t('web.domains.signin.email_auth_hint') }}
             </p>
           </div>
-          <select
-            id="signin-email-auth"
-            aria-describedby="signin-email-auth-hint"
-            :value="String(formState.email_auth_enabled)"
-            @change="updateField('email_auth_enabled', ($event.target as HTMLSelectElement).value === 'true')"
-            class="rounded-md border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-            <option value="true">{{ t('web.COMMON.enabled') }}</option>
-            <option value="false">{{ t('web.COMMON.disabled') }}</option>
-          </select>
+          <ToggleWithIcon
+            :enabled="Boolean(formState.email_auth_enabled)"
+            :disabled="isSaving"
+            :on-label="t('web.COMMON.enabled')"
+            :off-label="t('web.COMMON.disabled')"
+            @update:enabled="updateField('email_auth_enabled', $event)" />
         </div>
 
         <!-- SSO -->
@@ -297,49 +292,34 @@ class="space-y-6">
               {{ t('web.domains.signin.sso_enabled_hint') }}
             </p>
           </div>
-          <select
-            id="signin-sso"
-            aria-describedby="signin-sso-hint"
-            :value="String(formState.sso_enabled)"
-            @change="updateField('sso_enabled', ($event.target as HTMLSelectElement).value === 'true')"
-            class="rounded-md border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-            <option value="true">{{ t('web.COMMON.enabled') }}</option>
-            <option value="false">{{ t('web.COMMON.disabled') }}</option>
-          </select>
-        </div>
-
-        <!-- SSO Credentials -->
-        <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
-          <div>
-            <span class="text-sm font-medium text-gray-900 dark:text-white">
-              {{ t('web.domains.sso.title') }}
+          <div class="flex items-center gap-3">
+            <button
+              v-if="canManageSso"
+              type="button"
+              @click="emit('configure-sso')"
+              class="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+              <OIcon
+                collection="heroicons"
+                name="cog-6-tooth"
+                class="size-4"
+                aria-hidden="true" />
+              {{ ssoConfigured ? t('web.domains.sso.edit_credentials') : t('web.domains.sso.configure_button') }}
+            </button>
+            <span
+              v-else
+              class="inline-flex items-center gap-1.5 text-sm text-gray-400 dark:text-gray-500">
+              <OIcon
+                collection="heroicons"
+                name="lock-closed"
+                class="size-4"
+                aria-hidden="true" />
+              {{ t('web.domains.sso.upgrade_required') }}
             </span>
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {{ t('web.domains.sso.config_description') }}
-            </p>
+            <ToggleWithIcon
+              :enabled="Boolean(formState.sso_enabled)"
+              :disabled="isSaving"
+              @update:enabled="updateField('sso_enabled', $event)" />
           </div>
-          <button
-            v-if="canManageSso"
-            type="button"
-            @click="emit('configure-sso')"
-            class="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
-            <OIcon
-              collection="heroicons"
-              name="cog-6-tooth"
-              class="size-4"
-              aria-hidden="true" />
-            {{ ssoConfigured ? t('web.domains.sso.edit_credentials') : t('web.domains.sso.configure_button') }}
-          </button>
-          <span
-            v-else
-            class="inline-flex items-center gap-1.5 text-sm text-gray-400 dark:text-gray-500">
-            <OIcon
-              collection="heroicons"
-              name="lock-closed"
-              class="size-4"
-              aria-hidden="true" />
-            {{ t('web.domains.sso.upgrade_required') }}
-          </span>
         </div>
       </fieldset>
 
@@ -357,47 +337,10 @@ class="space-y-6">
             {{ t('web.domains.signin.enabled_hint') }}
           </p>
         </div>
-        <button
-          id="signin-enabled"
-          type="button"
-          role="switch"
-          :aria-checked="formState.enabled"
-          aria-describedby="signin-enabled-hint"
-          @click="updateField('enabled', !formState.enabled)"
-          :class="[
-            'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800',
-            formState.enabled ? 'bg-brand-600' : 'bg-gray-200 dark:bg-gray-600',
-          ]">
-          <span class="sr-only">{{ t('web.domains.signin.enabled_label') }}</span>
-          <span
-            :class="[
-              'pointer-events-none relative inline-block size-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-              formState.enabled ? 'translate-x-5' : 'translate-x-0',
-            ]">
-            <span
-              :class="[
-                'absolute inset-0 flex h-full w-full items-center justify-center transition-opacity',
-                formState.enabled ? 'opacity-0 duration-100 ease-out' : 'opacity-100 duration-200 ease-in',
-              ]"
-              aria-hidden="true">
-              <OIcon
-                collection="heroicons"
-                name="x-mark"
-                class="size-3 text-gray-400" />
-            </span>
-            <span
-              :class="[
-                'absolute inset-0 flex h-full w-full items-center justify-center transition-opacity',
-                formState.enabled ? 'opacity-100 duration-200 ease-in' : 'opacity-0 duration-100 ease-out',
-              ]"
-              aria-hidden="true">
-              <OIcon
-                collection="heroicons"
-                name="check"
-                class="size-3 text-brand-600" />
-            </span>
-          </span>
-        </button>
+        <ToggleWithIcon
+          :enabled="Boolean(formState.enabled)"
+          :disabled="isSaving"
+          @update:enabled="updateField('enabled', $event)" />
       </div>
 
       <!-- Action Buttons -->

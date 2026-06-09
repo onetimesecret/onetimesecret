@@ -33,9 +33,6 @@
     () => props.domain
   );
 
-  const showExternalLink = computed(
-    () => !props.hasUnsavedChanges && !!props.externalPath
-  );
 </script>
 
 <template>
@@ -56,7 +53,6 @@
               <a
                 :href="`https://${domain.display_domain}${externalPath}`"
                 target="_blank"
-                v-show="showExternalLink"
                 rel="noopener noreferrer"
                 class="ml-1
                   text-gray-400 hover:text-gray-600
