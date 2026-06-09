@@ -458,7 +458,11 @@ export default [
       tailwindcss: {
         // These are the default values but feel free to customize
         callees: ['classnames', 'clsx', 'ctl'],
-        config: 'tailwind.config.ts', // returned from `loadConfig()` utility if not provided
+        // Tailwind v4: point at the CSS entry — the single source of truth for the
+        // theme. The path must be absolute: the plugin resolves `tailwindcss`
+        // relative to the config's directory, so a relative value fails with
+        // "Could not resolve tailwindcss".
+        config: `${import.meta.dirname}/src/assets/style.css`,
         cssFiles: ['**/*.css', '!**/node_modules', '!**/.*', '!**/dist', '!**/build'],
         cssFilesRefreshRate: 5_000,
         removeDuplicates: true,
