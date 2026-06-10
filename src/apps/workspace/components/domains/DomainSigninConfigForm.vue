@@ -23,7 +23,7 @@
  * Everything auto-saves (PUT is full-replacement); there is no Save button.
  */
 import { useI18n } from 'vue-i18n';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import ToggleWithIcon from '@/shared/components/common/ToggleWithIcon.vue';
 import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
@@ -89,6 +89,19 @@ const { t } = useI18n();
 const oneSelectedIntent = ref(false);
 
 const isModeOne = computed(() => props.formState.restrict_to !== null || oneSelectedIntent.value);
+
+/**
+ * Clear the local "intent" flag whenever restrict_to reverts to null
+ * externally (e.g. Reset to defaults / parent delete). Without this the
+ * lingering intent keeps isModeOne true after the config is wiped, stranding
+ * the form in Mode B with no method selected instead of reverting to Mode A.
+ */
+watch(
+  () => props.formState.restrict_to,
+  (v) => {
+    if (v === null) oneSelectedIntent.value = false;
+  }
+);
 
 // ---------------------------------------------------------------------------
 // Method availability (only offer globally-available methods)

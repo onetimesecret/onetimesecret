@@ -200,6 +200,7 @@ describe('DomainsTableActionsCell', () => {
       expect(to).toEqual({
         name: 'DomainSignin',
         params: { orgid: 'org_ext_123', extid: 'dm-test-extid' },
+        query: { modal: 'sso' },
       });
     });
   });

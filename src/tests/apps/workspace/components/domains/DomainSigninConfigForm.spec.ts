@@ -582,6 +582,50 @@ describe('DomainSigninConfigForm', () => {
   });
 
   // -----------------------------------------------------------------------
+  // Invariant 5 — restrict_to reverting to null externally returns to Mode A
+  //
+  // "Reset to defaults" goes through handleDelete → emit('delete'); the parent
+  // deletes the SigninConfig and restrict_to comes back null. The local
+  // "intent" flag set by selectModeOne() must NOT keep the form in Mode B once
+  // restrict_to is null again — a watcher clears it so the form reverts to
+  // Mode A (availability fieldset shown, method picker hidden).
+  // -----------------------------------------------------------------------
+
+  describe('invariant 5: external restrict_to revert returns to Mode A', () => {
+    it('reverts to Mode A when restrict_to is cleared after a method was set', async () => {
+      // Start in Mode B with a method selected.
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'sso' } });
+      expect(wrapper.find('#signin-mode-one').attributes('aria-checked')).toBe('true');
+      expect(wrapper.find('#signin-restrict-password').exists()).toBe(true);
+
+      // Parent deletes the config: restrict_to returns to null.
+      await wrapper.setProps({ formState: { ...defaultFormState, restrict_to: null } });
+
+      // Form is back in Mode A: availability fieldset shown, picker gone.
+      expect(wrapper.find('#signin-mode-any').attributes('aria-checked')).toBe('true');
+      expect(wrapper.find('#signin-mode-one').attributes('aria-checked')).toBe('false');
+      expect(toggles(wrapper)).toHaveLength(2);
+      expect(wrapper.find('#signin-restrict-password').exists()).toBe(false);
+    });
+
+    it('reverts to Mode A when restrict_to clears after entering Mode B via the segment', async () => {
+      // Enter Mode B locally (oneSelectedIntent = true) without a method set.
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: null } });
+      await wrapper.find('#signin-mode-one').trigger('click');
+      expect(wrapper.find('#signin-restrict-password').exists()).toBe(true);
+
+      // A method gets picked (restrict_to set), then the config is reset to null.
+      await wrapper.setProps({ formState: { ...defaultFormState, restrict_to: 'sso' } });
+      await wrapper.setProps({ formState: { ...defaultFormState, restrict_to: null } });
+
+      // The lingering intent flag is cleared: Mode A is shown, not a stale Mode B.
+      expect(wrapper.find('#signin-mode-any').attributes('aria-checked')).toBe('true');
+      expect(toggles(wrapper)).toHaveLength(2);
+      expect(wrapper.find('#signin-restrict-password').exists()).toBe(false);
+    });
+  });
+
+  // -----------------------------------------------------------------------
   // No Save / no Discard button (regression guard for the redesign)
   // -----------------------------------------------------------------------
 
