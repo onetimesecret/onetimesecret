@@ -49,7 +49,10 @@ export const SCOPE_PRESETS = {
   /** Both switchers hidden (e.g., account pages) */
   hideBoth: { organization: 'hide', domain: 'hide' } as const,
 
-  /** Both switchers visible but locked (e.g., receipt pages - shows context without allowing change) */
+  /**
+   * Both switchers visible but locked (e.g., receipt pages - shows context
+   * without allowing change)
+   */
   lockBoth: { organization: 'locked', domain: 'locked' } as const,
 
   /** Org interactive, domain locked to current (e.g., domain detail pages) */

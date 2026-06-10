@@ -55,10 +55,19 @@ const jurisdictionDetails = z.object({
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const brandSettingsResponseSchema = createApiResponseSchema(brandSettingsSchema);
-export const customDomainResponseSchema = createApiResponseSchema(customDomainSchema, customDomainDetailsSchema);
-export const customDomainListResponseSchema = createApiListResponseSchema(customDomainSchema, customDomainDetailsSchema);
+export const customDomainResponseSchema = createApiResponseSchema(
+  customDomainSchema,
+  customDomainDetailsSchema
+);
+export const customDomainListResponseSchema = createApiListResponseSchema(
+  customDomainSchema,
+  customDomainDetailsSchema
+);
 export const imagePropsResponseSchema = createApiResponseSchema(imagePropsSchema);
-export const jurisdictionResponseSchema = createApiResponseSchema(jurisdictionRecord, jurisdictionDetails);
+export const jurisdictionResponseSchema = createApiResponseSchema(
+  jurisdictionRecord,
+  jurisdictionDetails
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Type exports

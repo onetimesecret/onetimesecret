@@ -16,7 +16,9 @@ export const incomingConfigResponseSchema = createApiResponseSchema(incomingConf
 export { incomingSecretResponseSchema, validateRecipientResponseSchema };
 
 // Wrap validateRecipient in the standard envelope
-export const validateRecipientEnvelopeSchema = createApiResponseSchema(validateRecipientResponseSchema);
+export const validateRecipientEnvelopeSchema = createApiResponseSchema(
+  validateRecipientResponseSchema
+);
 
 export type IncomingConfigResponse = z.infer<typeof incomingConfigResponseSchema>;
 export type IncomingSecretResponse = z.infer<typeof incomingSecretResponseSchema>;

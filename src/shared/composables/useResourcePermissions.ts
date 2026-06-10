@@ -118,7 +118,8 @@ export function useResourcePermissions(): UseResourcePermissionsReturn {
   }
 
   const getOrgPermissions = (extid: string) => findOrgPermissions(allPermissions.value, extid);
-  const getDomainPermissions = (extid: string) => findDomainPermissions(allPermissions.value, extid);
+  const getDomainPermissions = (extid: string) =>
+    findDomainPermissions(allPermissions.value, extid);
 
   async function canAccess(resourceType: ResourceType, resourceId: string): Promise<boolean> {
     if (allPermissions.value) {

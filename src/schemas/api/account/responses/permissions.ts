@@ -84,4 +84,6 @@ export const singleResourcePermissionsResponseSchema = z.object({
   permissions: resourcePermissionsSchema,
 });
 
-export type SingleResourcePermissionsResponse = z.infer<typeof singleResourcePermissionsResponseSchema>;
+export type SingleResourcePermissionsResponse = z.infer<
+  typeof singleResourcePermissionsResponseSchema
+>;

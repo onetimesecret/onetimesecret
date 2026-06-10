@@ -52,7 +52,8 @@ export function useJurisdictionDisplayNames() {
   const { t } = useI18n();
   const jurisdictionStore = useJurisdictionStore();
 
-  const resolveDisplayName = (jurisdiction: Jurisdiction): string => t(jurisdiction.display_name_i18n_key);
+  const resolveDisplayName = (jurisdiction: Jurisdiction): string =>
+    t(jurisdiction.display_name_i18n_key);
 
   const currentJurisdictionWithDisplayName = computed((): JurisdictionWithDisplayName | null => {
     const jurisdiction = jurisdictionStore.getCurrentJurisdiction;
@@ -64,11 +65,14 @@ export function useJurisdictionDisplayNames() {
     };
   });
 
-  const jurisdictionsWithDisplayName = computed((): JurisdictionWithDisplayName[] => jurisdictionStore.getAllJurisdictions.map((j) => ({
-      ...j,
-      display_name: resolveDisplayName(j),
-      icon: resolveJurisdictionIcon(j),
-    })));
+  const jurisdictionsWithDisplayName = computed(
+    (): JurisdictionWithDisplayName[] =>
+      jurisdictionStore.getAllJurisdictions.map((j) => ({
+        ...j,
+        display_name: resolveDisplayName(j),
+        icon: resolveJurisdictionIcon(j),
+      }))
+  );
 
   return {
     resolveDisplayName,

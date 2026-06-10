@@ -114,7 +114,10 @@ export const emailDnsRecordSchema = z.object({
   /** Whether the DNS record value matches the provisioned value. Null if not yet checked. */
   value_matches: z.boolean().nullable().optional(),
 
-  /** Whether the provider (e.g. Lettermint) has verified this specific record. Absent if no provider data yet. */
+  /**
+   * Whether the provider (e.g. Lettermint) has verified this specific
+   * record. Absent if no provider data yet.
+   */
   provider_verified: z.boolean().nullable().optional(),
 });
 
@@ -161,10 +164,16 @@ export const customDomainEmailConfigCanonical = z.object({
   /** Timestamp of last successful validation. Null if never validated. */
   last_validated_at: z.number().nullable(),
 
-  /** Timestamp when DNS record check completed. Null if not yet checked or re-validate in progress. */
+  /**
+   * Timestamp when DNS record check completed. Null if not yet checked or
+   * re-validate in progress.
+   */
   dns_check_completed_at: z.number().nullable(),
 
-  /** Timestamp when provider verification check completed. Null if not yet checked or re-validate in progress. */
+  /**
+   * Timestamp when provider verification check completed. Null if not yet
+   * checked or re-validate in progress.
+   */
   provider_check_completed_at: z.number().nullable(),
 
   /** Last error message if verification failed (e.g., "Provider status: not_found"). */

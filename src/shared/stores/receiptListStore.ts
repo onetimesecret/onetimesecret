@@ -13,7 +13,10 @@ import { ref, type Ref } from 'vue';
  * Options for filtering receipt list queries.
  */
 export interface FetchListOptions {
-  /** Scope of the query: 'org' for organization, 'domain' for custom domain, or undefined for customer */
+  /**
+   * Scope of the query: 'org' for organization, 'domain' for custom domain,
+   * or undefined for customer
+   */
   scope?: 'org' | 'domain';
   /** Required when scope is 'domain' - the external ID of the custom domain */
   domainExtid?: string;

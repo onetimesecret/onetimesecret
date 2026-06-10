@@ -17,7 +17,10 @@ import { z } from 'zod';
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const receiptResponseSchema = createApiResponseSchema(receiptSchema, receiptDetailsSchema);
-export const receiptListResponseSchema = createApiListResponseSchema(receiptListSchema, receiptListDetailsSchema);
+export const receiptListResponseSchema = createApiListResponseSchema(
+  receiptListSchema,
+  receiptListDetailsSchema
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Type exports
