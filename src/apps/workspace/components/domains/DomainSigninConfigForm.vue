@@ -4,21 +4,29 @@
 /**
  * Domain Sign-In Configuration Form
  *
- * Presentational component for per-domain signin overrides. Two modes,
- * switched by a 2-segment control:
+ * Presentational component for per-domain signin overrides. Three modes,
+ * switched by a 3-segment control:
  *
- * - "Any available method" (restrict_to === null): the sign-in page shows
- *   every globally-available method. Email / SSO carry per-domain availability
- *   toggles (AND semantics — a domain can only narrow a global method).
+ * - "Any available method" (signin_enabled && restrict_to === null): the
+ *   sign-in page shows every globally-available method. Email / SSO carry
+ *   per-domain availability toggles (AND semantics — a domain can only
+ *   narrow a global method).
  *
- * - "One specific method" (restrict_to !== null): the sign-in page shows ONLY
- *   the chosen method. No availability toggles here, so "restrict to X while X
- *   disabled" is unexpressible. Picking a method also flips that method's
- *   availability flag on (the login page gates restrict_to through the same
- *   availability resolution), committed atomically in one PUT.
+ * - "One specific method" (signin_enabled && restrict_to !== null): the
+ *   sign-in page shows ONLY the chosen method. No availability toggles here,
+ *   so "restrict to X while X disabled" is unexpressible. Picking a method
+ *   also flips that method's availability flag on (the login page gates
+ *   restrict_to through the same availability resolution), committed
+ *   atomically in one PUT.
  *
- * Only globally-available methods are offered in either mode — otherwise a
- * restrict_to value with no backing method would yield a blank login page.
+ * - "Sign-in disabled" (signin_enabled === false): no sign-in at all on this
+ *   domain. The public sign-in page shows a "not available" notice and POST
+ *   /signin is blocked server-side. restrict_to and the availability flags
+ *   are preserved so switching back restores the previous setup.
+ *
+ * Only globally-available methods are offered in either method mode —
+ * otherwise a restrict_to value with no backing method would yield a blank
+ * login page.
  *
  * Everything auto-saves (PUT is full-replacement); there is no Save button.
  */
@@ -88,7 +96,69 @@ const { t } = useI18n();
  */
 const oneSelectedIntent = ref(false);
 
-const isModeOne = computed(() => props.formState.restrict_to !== null || oneSelectedIntent.value);
+/**
+ * "Sign-in disabled" wins over a preserved restrict_to: when signin_enabled
+ * is false the method modes are not shown, whatever restrict_to holds.
+ */
+const isModeDisabled = computed(() => props.formState.signin_enabled === false);
+
+const isModeOne = computed(
+  () => !isModeDisabled.value && (props.formState.restrict_to !== null || oneSelectedIntent.value)
+);
+
+const isModeAny = computed(() => !isModeDisabled.value && !isModeOne.value);
+
+/** Hint paragraph under the mode switch, per active mode. */
+const modeHint = computed(() => {
+  if (isModeDisabled.value) return t('web.domains.signin.mode_disabled_hint');
+  if (isModeOne.value) return t('web.domains.signin.mode_one_hint');
+  return t('web.domains.signin.mode_any_hint');
+});
+
+// ---------------------------------------------------------------------------
+// Mode switch keyboard support (roving tabindex)
+// ---------------------------------------------------------------------------
+
+/**
+ * Roving tabindex: the radiogroup is a single tab stop (the checked
+ * segment); arrow keys move focus between segments. Activation stays on
+ * click/Enter/Space (manual activation) — selecting a mode fires an
+ * auto-save PUT, and WAI-ARIA APG recommends NOT having selection follow
+ * focus when activation has side effects like network requests.
+ */
+const MODE_SEGMENT_IDS = ['signin-mode-any', 'signin-mode-one', 'signin-mode-disabled'] as const;
+
+const checkedModeIndex = computed(() => {
+  if (isModeDisabled.value) return 2;
+  if (isModeOne.value) return 1;
+  return 0;
+});
+
+const modeTabindex = (index: number) => (checkedModeIndex.value === index ? 0 : -1);
+
+const onModeKeydown = (event: KeyboardEvent) => {
+  const handled = ['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp', 'Home', 'End'];
+  if (!handled.includes(event.key)) return;
+  event.preventDefault();
+
+  const segments = MODE_SEGMENT_IDS.map((id) => document.getElementById(id)).filter(
+    (el): el is HTMLElement => el !== null
+  );
+  if (segments.length === 0) return;
+
+  const current = segments.indexOf(document.activeElement as HTMLElement);
+  let next: number;
+  if (event.key === 'Home') {
+    next = 0;
+  } else if (event.key === 'End') {
+    next = segments.length - 1;
+  } else {
+    const delta = event.key === 'ArrowRight' || event.key === 'ArrowDown' ? 1 : -1;
+    const from = current === -1 ? checkedModeIndex.value : current;
+    next = (from + delta + segments.length) % segments.length;
+  }
+  segments[next].focus();
+};
 
 /**
  * Clear the local "intent" flag whenever restrict_to reverts to null
@@ -170,20 +240,44 @@ const isEditing = computed(() => props.isConfigured);
 // Handlers
 // ---------------------------------------------------------------------------
 
-/** Switch to "Any available method": clears restrict_to (REPLACE → show all). */
+/**
+ * Switch to "Any available method": clears restrict_to (REPLACE → show all)
+ * and re-enables sign-in when coming from "Sign-in disabled" — committed
+ * atomically as one PUT.
+ */
 const selectModeAny = () => {
   oneSelectedIntent.value = false;
-  if (props.formState.restrict_to !== null) {
-    emit('auto-save', { restrict_to: null }, 'restrict_to');
-  }
+  const patch: Partial<SigninConfigFormState> = {};
+  if (props.formState.restrict_to !== null) patch.restrict_to = null;
+  if (!props.formState.signin_enabled) patch.signin_enabled = true;
+  if (Object.keys(patch).length === 0) return;
+  // Attribute the saving indicator to restrict_to only when it is actually
+  // in the patch; a pure re-enable from "Sign-in disabled" (restrict_to
+  // already null) saves signin_enabled alone.
+  const fieldKey = 'restrict_to' in patch ? 'restrict_to' : 'signin_enabled';
+  emit('auto-save', patch, fieldKey);
 };
 
 /**
  * Switch to "One specific method": reveal the picker locally but do NOT save
- * until a method is actually chosen (no method = nothing to persist).
+ * until a method is actually chosen (no method = nothing to persist). Coming
+ * from "Sign-in disabled", re-enabling IS persisted immediately — sign-in
+ * must come back on even before a method is picked (a preserved restrict_to
+ * restores that method; null shows the picker).
  */
 const selectModeOne = () => {
   oneSelectedIntent.value = true;
+  if (!props.formState.signin_enabled) {
+    emit('auto-save', { signin_enabled: true }, 'signin_enabled');
+  }
+};
+
+/** Switch to "Sign-in disabled": persists signin_enabled=false immediately. */
+const selectModeDisabled = () => {
+  oneSelectedIntent.value = false;
+  if (props.formState.signin_enabled) {
+    emit('auto-save', { signin_enabled: false }, 'signin_enabled');
+  }
 };
 
 /**
@@ -199,6 +293,7 @@ const selectMethod = (value: SigninRestrictTo) => {
   const patch: Partial<SigninConfigFormState> = { restrict_to: value };
   if (value === 'email_auth') patch.email_auth_enabled = true;
   if (value === 'sso') patch.sso_enabled = true;
+  if (!props.formState.signin_enabled) patch.signin_enabled = true;
   emit('auto-save', patch, 'restrict_to');
 };
 
@@ -228,17 +323,19 @@ const handleDelete = () => {
         <div
           class="mt-3 inline-flex rounded-lg border border-gray-300 bg-gray-100 p-1 dark:border-gray-600 dark:bg-gray-700"
           role="radiogroup"
-          aria-labelledby="signin-mode-legend">
+          aria-labelledby="signin-mode-legend"
+          @keydown="onModeKeydown">
           <button
             id="signin-mode-any"
             type="button"
             role="radio"
-            :aria-checked="!isModeOne"
+            :aria-checked="isModeAny"
+            :tabindex="modeTabindex(0)"
             :disabled="isSaving"
             @click="selectModeAny"
             :class="[
               'rounded-md px-4 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
-              !isModeOne
+              isModeAny
                 ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-800 dark:text-white'
                 : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200',
             ]">
@@ -249,6 +346,7 @@ const handleDelete = () => {
             type="button"
             role="radio"
             :aria-checked="isModeOne"
+            :tabindex="modeTabindex(1)"
             :disabled="isSaving"
             @click="selectModeOne"
             :class="[
@@ -259,19 +357,52 @@ const handleDelete = () => {
             ]">
             {{ t('web.domains.signin.mode_one') }}
           </button>
+          <button
+            id="signin-mode-disabled"
+            type="button"
+            role="radio"
+            :aria-checked="isModeDisabled"
+            :tabindex="modeTabindex(2)"
+            :disabled="isSaving"
+            @click="selectModeDisabled"
+            :class="[
+              'rounded-md px-4 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
+              isModeDisabled
+                ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-800 dark:text-white'
+                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200',
+            ]">
+            {{ t('web.domains.signin.mode_disabled') }}
+          </button>
         </div>
 
         <p
           id="signin-mode-hint"
           class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-          {{ isModeOne ? t('web.domains.signin.mode_one_hint') : t('web.domains.signin.mode_any_hint') }}
+          {{ modeHint }}
         </p>
       </fieldset>
 
       <!-- ===================================================================
+           Mode: Sign-in disabled — no method list; explain what visitors see
+           =================================================================== -->
+      <div
+        v-if="isModeDisabled"
+        data-testid="signin-disabled-mode-notice"
+        class="flex items-start gap-3 rounded-md bg-amber-50 px-4 py-3 dark:bg-amber-900/20">
+        <OIcon
+          collection="heroicons"
+          name="information-circle"
+          class="mt-0.5 size-5 flex-shrink-0 text-amber-500 dark:text-amber-400"
+          aria-hidden="true" />
+        <p class="flex-1 text-sm text-amber-700 dark:text-amber-300">
+          {{ t('web.domains.signin.mode_disabled_notice') }}
+        </p>
+      </div>
+
+      <!-- ===================================================================
            Mode A — Any available method: static rows + availability toggles
            =================================================================== -->
-      <fieldset v-if="!isModeOne" class="space-y-3">
+      <fieldset v-else-if="!isModeOne" class="space-y-3">
         <legend class="text-sm font-medium text-gray-900 dark:text-white">
           {{ t('web.domains.signin.methods_list_label') }}
         </legend>

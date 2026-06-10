@@ -137,12 +137,16 @@ describe('DomainHeader', () => {
       expect(link.attributes('href')).toBe('https://example.com/incoming');
     });
 
-    it('hides external link when hasUnsavedChanges is true', () => {
+    // The external link is ALWAYS visible since e42617e ([#3383] "always
+    // show domain icon" — the showExternalLink computed and its v-show were
+    // removed). These cases pin that contract across the two conditions
+    // that previously hid it.
+
+    it('keeps external link visible when hasUnsavedChanges is true', () => {
       const domain = createMockDomain();
       const wrapper = mountComponent({ domain, hasUnsavedChanges: true });
       const link = wrapper.find('a[target="_blank"]');
-      // v-show sets display:none, element still exists
-      expect(link.isVisible()).toBe(false);
+      expect(link.isVisible()).toBe(true);
     });
 
     it('shows external link when hasUnsavedChanges is false and domain is active', () => {
@@ -152,17 +156,14 @@ describe('DomainHeader', () => {
       expect(link.isVisible()).toBe(true);
     });
 
-    it('hides external link when the domain is not active', () => {
-      // Inactive/unverified domains have no live frontend — the external
-      // link would resolve to a non-functional host. Hide it regardless
-      // of the unsaved-changes flag.
+    it('keeps external link visible when the domain is not active', () => {
       mockIsActive.value = false;
       mockDisplayStatus.value = 'Pending';
       mockStatusIcon.value = 'close-circle';
       const domain = createMockDomain();
       const wrapper = mountComponent({ domain, hasUnsavedChanges: false });
       const link = wrapper.find('a[target="_blank"]');
-      expect(link.isVisible()).toBe(false);
+      expect(link.isVisible()).toBe(true);
     });
   });
 
