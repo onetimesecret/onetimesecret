@@ -36,6 +36,8 @@
 
 import { expect, Page, test } from '@playwright/test';
 
+import { orgsSsoEnabled } from '../support/env';
+
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
@@ -50,28 +52,28 @@ interface OrgInfo {
 // -----------------------------------------------------------------------------
 
 /**
- * Get the first organization from the /orgs page
+ * Get the first organization from the /orgs page.
+ *
+ * Every customer is guaranteed a default workspace
+ * (apps/web/auth/operations/create_default_workspace.rb, created lazily via
+ * lib/onetime/logic/organization_context.rb), so the list and at least one
+ * card MUST render — this helper asserts instead of returning null.
  */
-async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
+async function getFirstOrganization(page: Page): Promise<OrgInfo> {
   await page.goto('/orgs');
   await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   const orgsList = page.getByTestId('organizations-list');
-  const isOrgListVisible = await orgsList.isVisible().catch(() => false);
-
-  if (!isOrgListVisible) {
-    return null;
-  }
+  await expect(orgsList).toBeVisible();
 
   // Get the first org card
   const orgCard = orgsList.locator('[data-testid^="org-card-"]').first();
-  if (!(await orgCard.isVisible().catch(() => false))) {
-    return null;
-  }
+  await expect(orgCard).toBeVisible();
 
   // Extract extid from data-testid attribute
   const cardTestId = await orgCard.getAttribute('data-testid');
   const extid = cardTestId?.replace('org-card-', '') || '';
+  expect(extid, 'org card must carry org-card-{extid} testid').not.toBe('');
 
   // Get org name
   const orgNameElement = orgCard.getByTestId('org-name');
@@ -102,75 +104,39 @@ test.describe('ORG-LIST: Organizations List Page (/orgs)', () => {
     await page.goto('/orgs');
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    // Verify organizations-list container exists
+    // Every customer has a default workspace, so the list - not the empty
+    // state - must render
     const orgsList = page.getByTestId('organizations-list');
-    const isLoading = page.locator('text=/loading/i');
+    await expect(orgsList).toBeVisible();
 
-    // Either we have orgs list or empty state (loading spinner should clear)
-    await expect(isLoading).not.toBeVisible({ timeout: 5000 }).catch(() => {
-      // Loading may have completed before we checked
-    });
+    // Verify at least one org card exists
+    const orgCards = orgsList.locator('[data-testid^="org-card-"]');
+    const cardCount = await orgCards.count();
+    expect(cardCount).toBeGreaterThan(0);
 
-    const hasOrgsList = await orgsList.isVisible().catch(() => false);
-    const hasEmptyState = await page.locator('text=/no organizations/i').isVisible().catch(() => false);
+    // Verify first card has expected testids
+    const firstCard = orgCards.first();
+    await expect(firstCard).toBeVisible();
 
-    // One of these must be true
-    expect(hasOrgsList || hasEmptyState).toBe(true);
+    // Check for org-link-{extid}
+    const orgLink = firstCard.locator('[data-testid^="org-link-"]');
+    await expect(orgLink).toBeVisible();
 
-    if (hasOrgsList) {
-      // Verify at least one org card exists
-      const orgCards = orgsList.locator('[data-testid^="org-card-"]');
-      const cardCount = await orgCards.count();
-      expect(cardCount).toBeGreaterThan(0);
-
-      // Verify first card has expected testids
-      const firstCard = orgCards.first();
-      await expect(firstCard).toBeVisible();
-
-      // Check for org-link-{extid}
-      const orgLink = firstCard.locator('[data-testid^="org-link-"]');
-      await expect(orgLink).toBeVisible();
-
-      // Check for org-name
-      const orgName = firstCard.getByTestId('org-name');
-      await expect(orgName).toBeVisible();
-      const nameText = await orgName.textContent();
-      expect(nameText?.trim().length).toBeGreaterThan(0);
-    }
+    // Check for org-name
+    const orgName = firstCard.getByTestId('org-name');
+    await expect(orgName).toBeVisible();
+    const nameText = await orgName.textContent();
+    expect(nameText?.trim().length).toBeGreaterThan(0);
   });
 
-  test('ORG-LIST-002: Empty state displays when no organizations', async ({ page }) => {
-    // This test verifies the empty state UI exists - it may not trigger for users with orgs
-    await page.goto('/orgs');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-    const orgsList = page.getByTestId('organizations-list');
-    const hasOrgsList = await orgsList.isVisible().catch(() => false);
-
-    if (!hasOrgsList) {
-      // Verify empty state elements
-      const emptyStateIcon = page.locator('[class*="building-office"], svg[class*="text-gray-400"]');
-      const emptyStateText = page.locator('text=/no organizations/i');
-
-      // At least the empty state message should be present
-      await expect(emptyStateText).toBeVisible();
-
-      // Create button should be visible in empty state
-      const createButton = page.locator('button:has-text("Create")');
-      await expect(createButton).toBeVisible();
-    } else {
-      // User has organizations - skip empty state verification
-      test.skip(true, 'User has organizations - empty state not applicable');
-    }
-  });
+  // ORG-LIST-002 ("Empty state displays when no organizations") was deleted
+  // in the Phase 2.4 skip triage: every customer is guaranteed a default
+  // workspace, so its empty-state branch could never execute and the test
+  // could only pass-or-skip. The empty state needs a unit test with a
+  // mocked store, not an E2E test.
 
   test('ORG-LIST-003: Navigation to org detail page works', async ({ page }) => {
     const org = await getFirstOrganization(page);
-
-    if (!org) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
 
     // Click the org link to navigate to detail page
     const orgLink = page.getByTestId(`org-link-${org.extid}`);
@@ -189,12 +155,7 @@ test.describe('ORG-LIST: Organizations List Page (/orgs)', () => {
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const orgsList = page.getByTestId('organizations-list');
-    const hasOrgsList = await orgsList.isVisible().catch(() => false);
-
-    if (!hasOrgsList) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
+    await expect(orgsList).toBeVisible();
 
     // Get first org card
     const firstCard = orgsList.locator('[data-testid^="org-card-"]').first();
@@ -217,7 +178,7 @@ test.describe('ORG-LIST: Organizations List Page (/orgs)', () => {
 
 test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () => {
 
-  let testOrg: OrgInfo | null = null;
+  let testOrg: OrgInfo;
 
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
@@ -225,11 +186,6 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
   });
 
   test('ORG-DETAIL-001: Tab navigation structure renders correctly', async ({ page }) => {
-    if (!testOrg) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
-
     await page.goto(`/org/${testOrg.extid}`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
@@ -242,26 +198,24 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
     await expect(subscriptionTab).toBeVisible();
     await expect(settingsTab).toBeVisible();
 
-    // SSO tab is entitlement-gated - may or may not be visible
+    // SSO tab presence is dual-controlled (ORGS_SSO_ENABLED + manage_sso);
+    // the E2E_ORGS_SSO gate tells us which state to expect
     const ssoTab = page.getByTestId('org-tab-sso');
-    const hasSsoTab = await ssoTab.isVisible().catch(() => false);
 
     // Verify tabs have correct ARIA attributes
     await expect(domainsTab).toHaveAttribute('role', 'tab');
     await expect(subscriptionTab).toHaveAttribute('role', 'tab');
     await expect(settingsTab).toHaveAttribute('role', 'tab');
 
-    if (hasSsoTab) {
+    if (orgsSsoEnabled) {
+      await expect(ssoTab).toBeVisible();
       await expect(ssoTab).toHaveAttribute('role', 'tab');
+    } else {
+      await expect(ssoTab).not.toBeVisible();
     }
   });
 
   test('ORG-DETAIL-002: Default tab is domains', async ({ page }) => {
-    if (!testOrg) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
-
     // Navigate without specifying tab
     await page.goto(`/org/${testOrg.extid}`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
@@ -276,11 +230,6 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
   });
 
   test('ORG-DETAIL-003: Domains tab navigation and panel', async ({ page }) => {
-    if (!testOrg) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
-
     await page.goto(`/org/${testOrg.extid}/domains`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
@@ -302,11 +251,6 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
   });
 
   test('ORG-DETAIL-004: Subscription tab navigation and panel', async ({ page }) => {
-    if (!testOrg) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
-
     await page.goto(`/org/${testOrg.extid}/subscription`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
@@ -325,11 +269,6 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
   });
 
   test('ORG-DETAIL-005: Settings tab navigation and panel', async ({ page }) => {
-    if (!testOrg) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
-
     await page.goto(`/org/${testOrg.extid}/settings`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
@@ -351,21 +290,16 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
   });
 
   test('ORG-DETAIL-006: SSO tab (entitlement-gated)', async ({ page }) => {
-    if (!testOrg) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
+    test.skip(
+      !orgsSsoEnabled,
+      'Org SSO tab requires ORGS_SSO_ENABLED on the target server — set E2E_ORGS_SSO=true (see e2e/support/env.ts)'
+    );
 
     await page.goto(`/org/${testOrg.extid}`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const ssoTab = page.getByTestId('org-tab-sso');
-    const hasSsoTab = await ssoTab.isVisible().catch(() => false);
-
-    if (!hasSsoTab) {
-      test.skip(true, 'SSO tab not visible - user may not have manage_sso entitlement');
-      return;
-    }
+    await expect(ssoTab).toBeVisible();
 
     // Click SSO tab (the aria-selected assertion below waits for the
     // tab navigation to settle)
@@ -383,11 +317,6 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
   });
 
   test('ORG-DETAIL-007: Tab click updates URL', async ({ page }) => {
-    if (!testOrg) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
-
     await page.goto(`/org/${testOrg.extid}`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
@@ -411,11 +340,6 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
   });
 
   test('ORG-DETAIL-008: Back navigation to /orgs works', async ({ page }) => {
-    if (!testOrg) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
-
     await page.goto(`/org/${testOrg.extid}`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
@@ -432,11 +356,6 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
   });
 
   test('ORG-DETAIL-009: Direct URL navigation to specific tabs works', async ({ page }) => {
-    if (!testOrg) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
-
     // Test direct navigation to each tab
     const tabs = [
       { url: 'domains', testid: 'org-section-domains' },
@@ -454,11 +373,6 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
   });
 
   test('ORG-DETAIL-010: Browser back/forward navigation preserves tab state', async ({ page }) => {
-    if (!testOrg) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
-
     // Start on domains tab
     await page.goto(`/org/${testOrg.extid}/domains`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
@@ -490,25 +404,28 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
   });
 
   test('ORG-DETAIL-011: Back/forward to entitlement-gated tab redirects to domains', async ({ page }) => {
-    if (!testOrg) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
+    // With E2E_ORGS_SSO the user has every tab, so there is no gated tab
+    // left to exercise the redirect with - a structural limitation of the
+    // scenario, not a runtime probe.
+    test.skip(
+      orgsSsoEnabled,
+      'All tabs accessible when E2E_ORGS_SSO=true — no entitlement-gated tab to verify the redirect with'
+    );
 
     await page.goto(`/org/${testOrg.extid}`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    // Check which tabs the user lacks access to
+    // Check which tabs the user lacks access to. On a standalone target the
+    // members tab is granted and SSO stays feature-flagged off, so at least
+    // one gated tab must exist - if both render, the env gate is mis-set.
     const membersTab = page.getByTestId('org-tab-members');
     const ssoTab = page.getByTestId('org-tab-sso');
     const hasMembersTab = await membersTab.isVisible().catch(() => false);
     const hasSsoTab = await ssoTab.isVisible().catch(() => false);
-
-    // If user has access to both members and SSO, we can't test the redirect
-    if (hasMembersTab && hasSsoTab) {
-      test.skip(true, 'User has access to all tabs - cannot test entitlement redirect');
-      return;
-    }
+    expect(
+      hasMembersTab && hasSsoTab,
+      'every tab is accessible but E2E_ORGS_SSO is not set — fix the env gate'
+    ).toBe(false);
 
     // Determine which gated tab to test
     const gatedTab = !hasMembersTab ? 'members' : 'sso';
@@ -555,11 +472,6 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
   });
 
   test('ORG-TAB-ORDER-001: Tabs render in correct visual order', async ({ page }) => {
-    if (!testOrg) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
-
     await page.goto(`/org/${testOrg.extid}`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
@@ -608,7 +520,7 @@ test.describe('ORG-ERROR: Organization Error States', () => {
 
 test.describe('ORG-A11Y: Organization Settings Accessibility', () => {
 
-  let testOrg: OrgInfo | null = null;
+  let testOrg: OrgInfo;
 
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
@@ -616,11 +528,6 @@ test.describe('ORG-A11Y: Organization Settings Accessibility', () => {
   });
 
   test('ORG-A11Y-001: Tab navigation with keyboard (Arrow keys)', async ({ page }) => {
-    if (!testOrg) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
-
     await page.goto(`/org/${testOrg.extid}`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
@@ -650,14 +557,12 @@ test.describe('ORG-A11Y: Organization Settings Accessibility', () => {
     const settingsTab = page.getByTestId('org-tab-settings');
     await expect(settingsTab).toBeFocused();
 
-    // Press ArrowRight again - should go to SSO if entitled, or wrap to domains
+    // Press ArrowRight again - goes to SSO when the env grants it,
+    // otherwise wraps to domains (deterministic per E2E_ORGS_SSO)
     await page.keyboard.press('ArrowRight');
 
-    const ssoTab = page.getByTestId('org-tab-sso');
-    const hasSsoTab = await ssoTab.isVisible().catch(() => false);
-
-    if (hasSsoTab) {
-      await expect(ssoTab).toBeFocused();
+    if (orgsSsoEnabled) {
+      await expect(page.getByTestId('org-tab-sso')).toBeFocused();
     } else {
       // Wraps back to domains
       await expect(domainsTab).toBeFocused();
@@ -665,11 +570,6 @@ test.describe('ORG-A11Y: Organization Settings Accessibility', () => {
   });
 
   test('ORG-A11Y-002: Tab panels have correct ARIA attributes', async ({ page }) => {
-    if (!testOrg) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
-
     await page.goto(`/org/${testOrg.extid}/domains`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
@@ -695,7 +595,7 @@ test.describe('ORG-A11Y: Organization Settings Accessibility', () => {
  * | ID              | Title                                          | Priority   | Automation |
  * |-----------------|------------------------------------------------|------------|------------|
  * | ORG-LIST-001    | Organizations list renders with correct testids| Critical   | Automated  |
- * | ORG-LIST-002    | Empty state displays when no organizations     | Medium     | Automated  |
+ * | ORG-LIST-002    | (deleted — empty state unreachable E2E; default workspace is guaranteed) | — | — |
  * | ORG-LIST-003    | Navigation to org detail page works            | Critical   | Automated  |
  * | ORG-LIST-004    | Org cards display plan badges correctly        | Low        | Automated  |
  * | ORG-DETAIL-001  | Tab navigation structure renders correctly     | Critical   | Automated  |

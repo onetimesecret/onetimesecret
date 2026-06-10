@@ -30,4 +30,9 @@
 
 | Test (file › title) | Owner | Issue | Quarantined | Reason |
 |---------------------|-------|-------|-------------|--------|
-| _none — keep it that way_ | | | | |
+| `full/organization-members.spec.ts` › MBR-ROLE-001 Owner sees role selector dropdown for non-owner members | delano | [#3419](https://github.com/onetimesecret/onetimesecret/issues/3419) | 2026-06-10 | Needs a non-owner member in the test org; multi-member fixture is PR 6 work |
+| `full/organization-members.spec.ts` › MBR-ROLE-002 Owner can change member role from member to admin | delano | [#3419](https://github.com/onetimesecret/onetimesecret/issues/3419) | 2026-06-10 | Needs a non-owner member in the test org |
+| `full/organization-members.spec.ts` › MBR-ROLE-004 Role selector shows only admin and member options | delano | [#3419](https://github.com/onetimesecret/onetimesecret/issues/3419) | 2026-06-10 | Needs a non-owner member in the test org |
+| `full/organization-members.spec.ts` › MBR-REMOVE-001 Owner sees remove button for non-owner members | delano | [#3419](https://github.com/onetimesecret/onetimesecret/issues/3419) | 2026-06-10 | Needs a non-owner member; previous version could not fail (`count >= 0`) |
+| `full/organization-members.spec.ts` › MBR-REMOVE-003 Clicking remove shows confirmation dialog | delano | [#3419](https://github.com/onetimesecret/onetimesecret/issues/3419) | 2026-06-10 | Needs a removable (non-owner) member |
+| `full/organization-members.spec.ts` › MBR-REMOVE-004 Confirming removal removes member from list | delano | [#3419](https://github.com/onetimesecret/onetimesecret/issues/3419) | 2026-06-10 | Needs a removable (non-owner) member |
