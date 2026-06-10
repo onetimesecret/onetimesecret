@@ -1,15 +1,18 @@
 // src/tests/apps/workspace/components/domains/DomainSigninConfigForm.spec.ts
 //
-// Tests for DomainSigninConfigForm.vue covering the two-mode redesign:
+// Tests for DomainSigninConfigForm.vue covering the three-mode design:
 // 1. Loading skeleton display
-// 2. Mode switch (Any available method / One specific method) as radiogroup
+// 2. Mode switch (Any available method / One specific method / Sign-in
+//    disabled) as radiogroup
 // 3. Mode A: static rows + availability toggles (email_auth, sso), auto-save
 // 4. Mode B: single-choice restrict_to radios, picking flips availability flag
-// 5. Global availability gating hides unavailable methods in both modes
-// 6. SSO Configure reachable in both modes; upgrade hint when !canManageSso
-// 7. Per-field loading feedback via savingField
-// 8. Delete confirmation two-step
-// 9. Accessibility (radiogroup roles, aria-describedby, role="switch")
+// 5. Disabled mode (#3415): persists signin_enabled=false, hides method UI,
+//    preserves restrict_to/flags; re-enabling transitions save atomically
+// 6. Global availability gating hides unavailable methods in both method modes
+// 7. SSO Configure reachable in both method modes; upgrade hint when !canManageSso
+// 8. Per-field loading feedback via savingField
+// 9. Delete confirmation two-step
+// 10. Accessibility (radiogroup roles, aria-describedby, role="switch")
 
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
@@ -100,6 +103,8 @@ const COPY = {
   availabilityGlobalOff: t('web.domains.signin.availability_global_off'),
   availabilityUnavailable: t('web.domains.signin.availability_unavailable'),
   allowOnDomain: t('web.domains.signin.allow_on_domain'),
+  modeDisabledHint: t('web.domains.signin.mode_disabled_hint'),
+  modeDisabledNotice: t('web.domains.signin.mode_disabled_notice'),
   resetToDefaults: t('web.domains.signin.reset_to_defaults'),
   resetConfirm: t('web.domains.signin.reset_confirm'),
   resetAction: t('web.domains.signin.reset_action'),
@@ -239,6 +244,118 @@ describe('DomainSigninConfigForm', () => {
       // Picker is revealed (radio list rendered) but nothing persisted yet.
       expect(wrapper.find('#signin-restrict-password').exists()).toBe(true);
       expect(wrapper.emitted('auto-save')).toBeFalsy();
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Mode: Sign-in disabled (#3415)
+  //
+  // Third segment in the mode switch. signin_enabled === false wins over a
+  // preserved restrict_to for display; transitions persist signin_enabled
+  // atomically with whatever else the target mode requires.
+  // -----------------------------------------------------------------------
+
+  describe('mode: sign-in disabled', () => {
+    const disabledFormState: SigninConfigFormState = {
+      ...defaultFormState,
+      signin_enabled: false,
+    };
+
+    it('renders the third segment in the mode switch', () => {
+      wrapper = mountForm();
+      expect(wrapper.find('#signin-mode-disabled').exists()).toBe(true);
+      expect(wrapper.find('#signin-mode-disabled').attributes('role')).toBe('radio');
+    });
+
+    it('is checked when signin_enabled is false', () => {
+      wrapper = mountForm({ formState: disabledFormState });
+      expect(wrapper.find('#signin-mode-disabled').attributes('aria-checked')).toBe('true');
+      expect(wrapper.find('#signin-mode-any').attributes('aria-checked')).toBe('false');
+      expect(wrapper.find('#signin-mode-one').attributes('aria-checked')).toBe('false');
+    });
+
+    it('wins over a preserved restrict_to for display', () => {
+      wrapper = mountForm({ formState: { ...disabledFormState, restrict_to: 'sso' } });
+      expect(wrapper.find('#signin-mode-disabled').attributes('aria-checked')).toBe('true');
+      expect(wrapper.find('#signin-mode-one').attributes('aria-checked')).toBe('false');
+    });
+
+    it('clicking "Sign-in disabled" auto-saves signin_enabled=false', async () => {
+      wrapper = mountForm(); // defaultFormState has signin_enabled: true
+      await wrapper.find('#signin-mode-disabled').trigger('click');
+
+      const emitted = wrapper.emitted('auto-save');
+      expect(emitted).toBeTruthy();
+      expect(emitted![0]).toEqual([{ signin_enabled: false }, 'signin_enabled']);
+    });
+
+    it('clicking it again when already disabled does not auto-save', async () => {
+      wrapper = mountForm({ formState: disabledFormState });
+      await wrapper.find('#signin-mode-disabled').trigger('click');
+      expect(wrapper.emitted('auto-save')).toBeFalsy();
+    });
+
+    it('disabling does NOT clear restrict_to or availability flags (preserved for re-enable)', async () => {
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'sso', sso_enabled: true },
+      });
+      await wrapper.find('#signin-mode-disabled').trigger('click');
+
+      const patch = wrapper.emitted('auto-save')![0][0] as Partial<SigninConfigFormState>;
+      expect(Object.keys(patch)).toEqual(['signin_enabled']);
+    });
+
+    it('hides method toggles and radios while disabled', () => {
+      wrapper = mountForm({ formState: { ...disabledFormState, restrict_to: 'sso' } });
+      expect(toggles(wrapper)).toHaveLength(0);
+      expect(wrapper.findAll('input[type="radio"][name="restrict_to"]')).toHaveLength(0);
+    });
+
+    it('shows the disabled-mode hint and notice', () => {
+      wrapper = mountForm({ formState: disabledFormState });
+      expect(wrapper.find('#signin-mode-hint').text()).toContain(COPY.modeDisabledHint);
+      expect(wrapper.find('[data-testid="signin-disabled-mode-notice"]').text()).toContain(
+        COPY.modeDisabledNotice
+      );
+    });
+
+    it('does not show the notice in the method modes', () => {
+      wrapper = mountForm();
+      expect(wrapper.find('[data-testid="signin-disabled-mode-notice"]').exists()).toBe(false);
+    });
+
+    it('re-enabling via "Any available method" saves signin_enabled=true', async () => {
+      wrapper = mountForm({ formState: disabledFormState });
+      await wrapper.find('#signin-mode-any').trigger('click');
+
+      const emitted = wrapper.emitted('auto-save');
+      expect(emitted).toBeTruthy();
+      expect(emitted![0][0]).toEqual({ signin_enabled: true });
+    });
+
+    it('re-enabling via Any also clears a preserved restrict_to atomically', async () => {
+      wrapper = mountForm({ formState: { ...disabledFormState, restrict_to: 'sso' } });
+      await wrapper.find('#signin-mode-any').trigger('click');
+
+      const emitted = wrapper.emitted('auto-save');
+      expect(emitted![0][0]).toEqual({ restrict_to: null, signin_enabled: true });
+    });
+
+    it('re-enabling via "One specific method" saves signin_enabled=true immediately', async () => {
+      // Unlike the Any→One transition (which persists nothing until a method
+      // is picked), leaving the disabled state must persist signin_enabled
+      // right away — the public page should stop showing the notice.
+      wrapper = mountForm({ formState: disabledFormState });
+      await wrapper.find('#signin-mode-one').trigger('click');
+
+      const emitted = wrapper.emitted('auto-save');
+      expect(emitted).toBeTruthy();
+      expect(emitted![0]).toEqual([{ signin_enabled: true }, 'signin_enabled']);
+    });
+
+    it('mode switch segments are disabled while saving', () => {
+      wrapper = mountForm({ isSaving: true });
+      expect(wrapper.find('#signin-mode-disabled').attributes('disabled')).toBeDefined();
     });
   });
 

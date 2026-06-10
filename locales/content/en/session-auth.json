@@ -128,6 +128,14 @@
     "context": "Shown on signin page when SSO signup is blocked by the email domain policy (per-domain SignupConfig or global allowed_signup_domains).",
     "content_hash": "87603782"
   },
+  "web.login.signin_disabled_heading": {
+    "text": "Sign-in is not available",
+    "context": "Page heading on /signin when sign-in is disabled for the current domain (per-domain SigninConfig)."
+  },
+  "web.login.signin_disabled_message": {
+    "text": "Sign-in is currently not available on this domain.",
+    "context": "Body text of the notice shown instead of the auth form when sign-in is disabled for the current domain. A return-to-homepage link is shown below it."
+  },
   "web.signup.create_your_account": {
     "text": "Create Your Account",
     "content_hash": "5f4c33d7"

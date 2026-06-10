@@ -1180,6 +1180,15 @@
   "web.domains.signin.mode_one_hint": {
     "text": "Restrict the sign-in page to a single method. Only methods available on this domain are listed."
   },
+  "web.domains.signin.mode_disabled": {
+    "text": "Sign-in disabled"
+  },
+  "web.domains.signin.mode_disabled_hint": {
+    "text": "Users cannot sign in on this domain."
+  },
+  "web.domains.signin.mode_disabled_notice": {
+    "text": "Visitors to this domain's sign-in page see a notice that sign-in is not available, with a link back to the homepage. Your previous method settings are kept and restored when you re-enable sign-in."
+  },
   "web.domains.signin.methods_list_label": {
     "text": "Methods shown on the sign-in page"
   },

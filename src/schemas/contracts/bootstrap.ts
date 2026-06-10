@@ -263,6 +263,10 @@ const organizationFeaturesInner = z.object({
 
 export const featuresSchema = z.object({
   markdown: z.boolean().default(false),
+  // Sign-in availability for the current domain context (AND of global
+  // AUTH_SIGNIN and the domain SigninConfig). false renders the public
+  // /signin page as a friendly "not available" notice (#3415).
+  signin: z.boolean().optional(),
   mfa: z.boolean().optional(),
   lockout: z.boolean().optional(),
   password_requirements: z.boolean().optional(),

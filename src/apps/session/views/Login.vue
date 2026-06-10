@@ -4,6 +4,7 @@
 import { useI18n } from 'vue-i18n';
 import AuthMethodSelector from '@/apps/session/components/AuthMethodSelector.vue';
 import AuthView from '@/apps/session/components/AuthView.vue';
+import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useProductIdentity } from '@/shared/stores/identityStore';
 import { useLanguageStore } from '@/shared/stores/languageStore';
@@ -18,7 +19,14 @@ const router = useRouter();
 
 const languageStore = useLanguageStore();
 const bootstrapStore = useBootstrapStore();
-const { authentication } = storeToRefs(bootstrapStore);
+const { authentication, features } = storeToRefs(bootstrapStore);
+
+// Per-domain sign-in disable (#3415). features.signin is the resolved
+// availability for THIS domain context (AND of global AUTH_SIGNIN and the
+// domain SigninConfig). Only an explicit false disables: the global-off case
+// never reaches this page (the requiresFeature route guard redirects to '/'),
+// so in practice this branch renders for domain-level disables.
+const signinDisabled = computed(() => features.value?.signin === false);
 
 // Custom domain branding: replace generic icon with domain logo on sign-in page
 const identityStore = useProductIdentity();
@@ -81,30 +89,49 @@ const handleModeChange = (_mode: AuthMode) => {
 
 <template>
   <AuthView
-    :heading="t('web.COMMON.login_to_your_account')"
+    :heading="signinDisabled ? t('web.login.signin_disabled_heading') : t('web.COMMON.login_to_your_account')"
     heading-id="signin-heading"
     :title-logo="isCustom ? logoUri : null"
     :title="isCustom ? displayName : null"
     :with-subheading="true"
     :hide-icon="false"
     :hide-background-icon="isCustom"
-    :show-return-home="false">
+    :show-return-home="signinDisabled">
     <template #form>
-      <!-- Auth error from redirects (SSO failure, invalid magic link, etc.) -->
+      <!-- Sign-in disabled for this domain: friendly notice instead of the
+           auth form. AuthView's return-home link provides the way out. -->
       <div
-        v-if="authError"
-        role="alert"
-        class="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
-        {{ authError }}
+        v-if="signinDisabled"
+        data-testid="signin-disabled-panel"
+        class="space-y-3 py-2 text-center">
+        <OIcon
+          collection="heroicons"
+          name="lock-closed"
+          class="mx-auto size-10 text-gray-400 dark:text-gray-500"
+          aria-hidden="true" />
+        <p class="text-sm text-gray-600 dark:text-gray-400">
+          {{ t('web.login.signin_disabled_message') }}
+        </p>
       </div>
 
-      <AuthMethodSelector
-        ref="authMethodSelectorRef"
-        :locale="languageStore.currentLocale ?? ''"
-        @mode-change="handleModeChange" />
+      <template v-else>
+        <!-- Auth error from redirects (SSO failure, invalid magic link, etc.) -->
+        <div
+          v-if="authError"
+          role="alert"
+          class="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+          {{ authError }}
+        </div>
+
+        <AuthMethodSelector
+          ref="authMethodSelectorRef"
+          :locale="languageStore.currentLocale ?? ''"
+          @mode-change="handleModeChange" />
+      </template>
     </template>
     <template #footer>
       <nav
+        v-if="!signinDisabled"
         aria-label="Additional sign-in options"
         class="flex items-center justify-center gap-2 text-sm">
         <!-- Consistent footer for all modes when passwordless methods enabled -->
