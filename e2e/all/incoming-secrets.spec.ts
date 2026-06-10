@@ -17,9 +17,19 @@ import { test, expect, Page } from '@playwright/test';
  * 5. Test character counter for memo field
  * 6. Test feature-disabled state (graceful error message)
  *
- * Prerequisites:
- * - Backend server running with incoming secrets feature enabled in config
- * - At least one recipient configured in the backend
+ * Determinism (remediation plan Phase 2.4): the /incoming route is
+ * unconditional — the backend serves the SPA shell for it with auth=noauth
+ * (apps/web/core/routes.txt) and the Vue router registers it statically
+ * (src/apps/secret/routes/incoming.ts) — and every backend response these
+ * tests depend on is mocked via page.route(). There is therefore nothing
+ * environmental to probe: the form either renders from the mocked config or
+ * the product is broken, so the tests assert instead of skipping.
+ *
+ * The recipient fixtures match incomingRecipientSchema
+ * (src/schemas/api/incoming/responses/config.ts): `digest` (hashed email,
+ * never plaintext) + `display_name`. A stale `{hash, name}` shape previously
+ * failed schema validation in the store, which silently put the page into
+ * its config-error state and made 19 of these tests self-skip in CI.
  *
  * Running:
  *   # With dev server
@@ -27,16 +37,13 @@ import { test, expect, Page } from '@playwright/test';
  *
  *   # With production build
  *   PLAYWRIGHT_BASE_URL=http://localhost:7143 pnpm test:playwright e2e/all/incoming-secrets.spec.ts
- *
- * Note: Tests use API mocking to simulate various backend states.
- * If backend doesn't support /incoming route, tests will be skipped.
  */
 
-// Test data constants
+// Test data constants — shape must match incomingRecipientSchema.
 const MOCK_RECIPIENTS = [
-  { hash: 'abc123hash', name: 'Security Team' },
-  { hash: 'def456hash', name: 'Support Team' },
-  { hash: 'ghi789hash', name: 'HR Department' },
+  { digest: 'abc123digest', display_name: 'Security Team' },
+  { digest: 'def456digest', display_name: 'Support Team' },
+  { digest: 'ghi789digest', display_name: 'HR Department' },
 ];
 
 const MOCK_CONFIG_ENABLED = {
@@ -83,12 +90,13 @@ const MOCK_SUCCESS_RESPONSE = {
   },
   details: {
     memo: 'Test memo',
-    recipient: 'abc123hash',
+    recipient: 'abc123digest',
   },
 };
 
 /**
  * Helper to set up API mocking for incoming config endpoint
+ * (the store fetches /api/incoming/config; `**` matches the prefix)
  */
 async function mockIncomingConfig(page: Page, configResponse: object) {
   await page.route('**/incoming/config', async (route) => {
@@ -142,40 +150,23 @@ function filterCriticalErrors(errors: string[]): string[] {
 }
 
 /**
- * Helper to navigate to incoming page with proper setup
- * Returns false if route is not available (404)
+ * Navigate to /incoming with the given config mock and wait for the app to
+ * finish booting. The route always exists; no availability probing.
  */
-async function navigateToIncoming(page: Page, configResponse: object): Promise<boolean> {
+async function gotoIncoming(page: Page, configResponse: object): Promise<void> {
   await mockIncomingConfig(page, configResponse);
-  const response = await page.goto('/incoming');
-
-  if (response?.status() === 404) {
-    return false;
-  }
-
-  await page.waitForLoadState('domcontentloaded');
-
-  // Wait for Vue app to render
-  try {
-    await page.waitForSelector('h1, form, [class*="empty"]', { timeout: 10000 });
-  } catch {
-    // Page may be showing error state
-  }
-
-  return true;
+  await page.goto('/incoming');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 }
 
 /**
- * Helper to wait for form to be interactive
+ * Assert the incoming form rendered from the mocked (enabled) config.
+ * Fails — never skips — when the form is missing: that means the page fell
+ * into its error/disabled state, which is a product or fixture regression.
  */
-async function waitForFormReady(page: Page): Promise<boolean> {
-  try {
-    await page.waitForSelector('form', { state: 'visible', timeout: 5000 });
-    await page.waitForSelector('#incoming-recipient', { state: 'visible', timeout: 5000 });
-    return true;
-  } catch {
-    return false;
-  }
+async function expectFormReady(page: Page): Promise<void> {
+  await expect(page.getByTestId('incoming-form')).toBeVisible();
+  await expect(page.locator('#incoming-recipient')).toBeVisible();
 }
 
 test.describe('Incoming Secrets - Form Loading', () => {
@@ -186,60 +177,15 @@ test.describe('Incoming Secrets - Form Loading', () => {
   test('navigates to /incoming and loads form when feature is enabled', async ({ page }) => {
     const consoleErrors = setupErrorCollection(page);
 
-    // Set up API mocking before navigation
-    await mockIncomingConfig(page, MOCK_CONFIG_ENABLED);
+    await gotoIncoming(page, MOCK_CONFIG_ENABLED);
 
-    // Navigate and wait for Vue app to mount
-    const response = await page.goto('/incoming');
-
-    // Skip test if route not supported (404)
-    if (response?.status() === 404) {
-      test.skip(true, 'Incoming route not available in this environment');
-      return;
-    }
-
-    await page.waitForLoadState('domcontentloaded');
-
-    // Wait for Vue app to hydrate and render content
-    const vueRendered = await page.waitForFunction(() => {
-      const h1 = document.querySelector('h1');
-      return h1 && h1.textContent && h1.textContent.trim().length > 0;
-    }, { timeout: 10000 }).then(() => true).catch(() => false);
-
-    // If Vue app didn't render content, skip the test
-    if (!vueRendered) {
-      // Check if we have at least some content (error page, etc.)
-      const bodyText = await page.textContent('body');
-      const hasContent = bodyText && bodyText.trim().length > 50;
-
-      if (!hasContent) {
-        // No content at all - likely backend not running properly
-        test.skip(true, 'Page content not rendering (backend may not be available)');
-        return;
-      }
-    }
-
-    // Verify page title area is visible (may be in header or page body)
+    // Page header renders with content
     const pageTitle = page.locator('h1').first();
-    const hasTitleVisible = await pageTitle.isVisible().catch(() => false);
-
-    if (!hasTitleVisible) {
-      // No title visible - skip as feature not available
-      test.skip(true, 'Page title not visible (feature may not be configured)');
-      return;
-    }
-
     await expect(pageTitle).toBeVisible();
+    await expect(pageTitle).not.toBeEmpty();
 
-    // Verify form container is visible (only if feature is enabled)
-    const formContainer = page.locator('form');
-    const hasForm = await formContainer.isVisible().catch(() => false);
-
-    if (hasForm) {
-      // Verify recipient dropdown is present
-      const recipientDropdown = page.locator('#incoming-recipient');
-      await expect(recipientDropdown).toBeVisible();
-    }
+    // Form and recipient dropdown render from the mocked config
+    await expectFormReady(page);
 
     // Verify no critical JavaScript errors occurred (listener was registered
     // before navigation; the assertions above already waited for the UI)
@@ -251,22 +197,11 @@ test.describe('Incoming Secrets - Form Loading', () => {
   });
 
   test('shows feature disabled state when backend has feature disabled', async ({ page }) => {
-    const routeAvailable = await navigateToIncoming(page, MOCK_CONFIG_DISABLED);
+    await gotoIncoming(page, MOCK_CONFIG_DISABLED);
 
-    if (!routeAvailable) {
-      test.skip(true, 'Incoming route not available');
-      return;
-    }
-
-    // Should show empty state / feature disabled message
-    // The form should NOT be visible
-    const form = page.locator('form');
-    const formVisible = await form.isVisible().catch(() => false);
-    expect(formVisible).toBe(false);
-
-    // Should show some indication that feature is disabled
-    const pageContent = await page.textContent('body');
-    expect(pageContent).toBeTruthy();
+    // The feature-disabled empty state renders; the form does not
+    await expect(page.getByTestId('incoming-feature-disabled')).toBeVisible();
+    await expect(page.getByTestId('incoming-form')).not.toBeVisible();
   });
 
   test('handles API error gracefully when config fails to load', async ({ page }) => {
@@ -278,24 +213,14 @@ test.describe('Incoming Secrets - Form Loading', () => {
       });
     });
 
-    const response = await page.goto('/incoming');
-
-    if (response?.status() === 404) {
-      test.skip(true, 'Incoming route not available');
-      return;
-    }
+    await page.goto('/incoming');
 
     // Wait for the app to finish booting; the mocked 500 means the page
-    // must settle into its error/disabled state without the form.
+    // must settle into its error state without the form.
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    // Form should not be visible (web-first assertion retries while the
-    // error handling completes)
-    await expect(page.locator('form')).not.toBeVisible();
-
-    // Page should still render (body element exists)
-    const bodyExists = await page.locator('body').count();
-    expect(bodyExists).toBeGreaterThan(0);
+    await expect(page.getByTestId('incoming-config-error')).toBeVisible();
+    await expect(page.getByTestId('incoming-form')).not.toBeVisible();
   });
 });
 
@@ -305,17 +230,8 @@ test.describe('Incoming Secrets - Recipients Dropdown', () => {
   });
 
   test('populates recipients dropdown with configured recipients', async ({ page }) => {
-    const routeAvailable = await navigateToIncoming(page, MOCK_CONFIG_ENABLED);
-    if (!routeAvailable) {
-      test.skip(true, 'Incoming route not available');
-      return;
-    }
-
-    const formReady = await waitForFormReady(page);
-    if (!formReady) {
-      test.skip(true, 'Form not available (feature may be disabled)');
-      return;
-    }
+    await gotoIncoming(page, MOCK_CONFIG_ENABLED);
+    await expectFormReady(page);
 
     // Click the recipient dropdown to open it
     const recipientDropdown = page.locator('#incoming-recipient');
@@ -324,48 +240,29 @@ test.describe('Incoming Secrets - Recipients Dropdown', () => {
     // Verify all mock recipients are listed in the dropdown
     const listbox = page.getByTestId('recipient-listbox');
     for (const recipient of MOCK_RECIPIENTS) {
-      const recipientOption = listbox.getByText(recipient.name, { exact: true });
+      const recipientOption = listbox.getByText(recipient.display_name, { exact: true });
       await expect(recipientOption).toBeVisible();
     }
   });
 
   test('allows selecting a recipient from dropdown', async ({ page }) => {
-    const routeAvailable = await navigateToIncoming(page, MOCK_CONFIG_ENABLED);
-    if (!routeAvailable) {
-      test.skip(true, 'Incoming route not available');
-      return;
-    }
-
-    const formReady = await waitForFormReady(page);
-    if (!formReady) {
-      test.skip(true, 'Form not available');
-      return;
-    }
+    await gotoIncoming(page, MOCK_CONFIG_ENABLED);
+    await expectFormReady(page);
 
     // Open dropdown
     const recipientDropdown = page.locator('#incoming-recipient');
     await recipientDropdown.click();
 
     // Select first recipient
-    const firstRecipient = page.locator(`text=${MOCK_RECIPIENTS[0].name}`).first();
-    await firstRecipient.click();
+    await page.getByTestId(`recipient-option-${MOCK_RECIPIENTS[0].digest}`).click();
 
     // Verify dropdown now shows selected recipient name
-    await expect(recipientDropdown).toContainText(MOCK_RECIPIENTS[0].name);
+    await expect(recipientDropdown).toContainText(MOCK_RECIPIENTS[0].display_name);
   });
 
   test('closes dropdown when clicking outside', async ({ page }) => {
-    const routeAvailable = await navigateToIncoming(page, MOCK_CONFIG_ENABLED);
-    if (!routeAvailable) {
-      test.skip(true, 'Incoming route not available');
-      return;
-    }
-
-    const formReady = await waitForFormReady(page);
-    if (!formReady) {
-      test.skip(true, 'Form not available');
-      return;
-    }
+    await gotoIncoming(page, MOCK_CONFIG_ENABLED);
+    await expectFormReady(page);
 
     // Open dropdown
     const recipientDropdown = page.locator('#incoming-recipient');
@@ -383,17 +280,8 @@ test.describe('Incoming Secrets - Recipients Dropdown', () => {
   });
 
   test('shows empty state when no recipients configured', async ({ page }) => {
-    const routeAvailable = await navigateToIncoming(page, MOCK_CONFIG_NO_RECIPIENTS);
-    if (!routeAvailable) {
-      test.skip(true, 'Incoming route not available');
-      return;
-    }
-
-    const formReady = await waitForFormReady(page);
-    if (!formReady) {
-      test.skip(true, 'Form not available');
-      return;
-    }
+    await gotoIncoming(page, MOCK_CONFIG_NO_RECIPIENTS);
+    await expectFormReady(page);
 
     // Open dropdown
     const recipientDropdown = page.locator('#incoming-recipient');
@@ -411,44 +299,26 @@ test.describe('Incoming Secrets - Form Validation', () => {
   });
 
   test('submit button is disabled when form is incomplete', async ({ page }) => {
-    const routeAvailable = await navigateToIncoming(page, MOCK_CONFIG_ENABLED);
-    if (!routeAvailable) {
-      test.skip(true, 'Incoming route not available');
-      return;
-    }
-
-    const formReady = await waitForFormReady(page);
-    if (!formReady) {
-      test.skip(true, 'Form not available');
-      return;
-    }
+    await gotoIncoming(page, MOCK_CONFIG_ENABLED);
+    await expectFormReady(page);
 
     // Find submit button - it should be disabled initially
-    const submitButton = page.locator('button[type="submit"]');
+    const submitButton = page.getByTestId('incoming-form-submit');
     await expect(submitButton).toBeDisabled();
   });
 
   test('submit button becomes enabled when required fields are filled', async ({ page }) => {
     await mockIncomingSecretCreate(page, MOCK_SUCCESS_RESPONSE);
-    const routeAvailable = await navigateToIncoming(page, MOCK_CONFIG_ENABLED);
-    if (!routeAvailable) {
-      test.skip(true, 'Incoming route not available');
-      return;
-    }
+    await gotoIncoming(page, MOCK_CONFIG_ENABLED);
+    await expectFormReady(page);
 
-    const formReady = await waitForFormReady(page);
-    if (!formReady) {
-      test.skip(true, 'Form not available');
-      return;
-    }
-
-    const submitButton = page.locator('button[type="submit"]');
+    const submitButton = page.getByTestId('incoming-form-submit');
     await expect(submitButton).toBeDisabled();
 
     // Select a recipient
     const recipientDropdown = page.locator('#incoming-recipient');
     await recipientDropdown.click();
-    await page.locator(`text=${MOCK_RECIPIENTS[0].name}`).first().click();
+    await page.getByTestId(`recipient-option-${MOCK_RECIPIENTS[0].digest}`).click();
 
     // Still disabled - need secret content
     await expect(submitButton).toBeDisabled();
@@ -461,45 +331,27 @@ test.describe('Incoming Secrets - Form Validation', () => {
     await expect(submitButton).toBeEnabled();
   });
 
-  test('shows validation error when submitting without recipient', async ({ page }) => {
-    const routeAvailable = await navigateToIncoming(page, MOCK_CONFIG_ENABLED);
-    if (!routeAvailable) {
-      test.skip(true, 'Incoming route not available');
-      return;
-    }
-
-    const formReady = await waitForFormReady(page);
-    if (!formReady) {
-      test.skip(true, 'Form not available');
-      return;
-    }
+  test('submit stays blocked without a recipient', async ({ page }) => {
+    await gotoIncoming(page, MOCK_CONFIG_ENABLED);
+    await expectFormReady(page);
 
     // Fill only secret content
     const secretTextarea = page.locator('textarea').first();
     await secretTextarea.fill('Test secret');
 
-    // Try to submit (button should be disabled, but let's verify the form state)
-    const submitButton = page.locator('button[type="submit"]');
+    // Submit must remain disabled until a recipient is selected
+    const submitButton = page.getByTestId('incoming-form-submit');
     await expect(submitButton).toBeDisabled();
   });
 
   test('reset button clears all form fields', async ({ page }) => {
-    const routeAvailable = await navigateToIncoming(page, MOCK_CONFIG_ENABLED);
-    if (!routeAvailable) {
-      test.skip(true, 'Incoming route not available');
-      return;
-    }
-
-    const formReady = await waitForFormReady(page);
-    if (!formReady) {
-      test.skip(true, 'Form not available');
-      return;
-    }
+    await gotoIncoming(page, MOCK_CONFIG_ENABLED);
+    await expectFormReady(page);
 
     // Fill in form fields
     const recipientDropdown = page.locator('#incoming-recipient');
     await recipientDropdown.click();
-    await page.locator(`text=${MOCK_RECIPIENTS[0].name}`).first().click();
+    await page.getByTestId(`recipient-option-${MOCK_RECIPIENTS[0].digest}`).click();
 
     const secretTextarea = page.locator('textarea').first();
     await secretTextarea.fill('Test secret content');
@@ -508,8 +360,7 @@ test.describe('Incoming Secrets - Form Validation', () => {
     await memoInput.fill('Test memo');
 
     // Click reset/clear button
-    const resetButton = page.locator('button[type="button"]', { hasText: /clear form/i });
-    await resetButton.click();
+    await page.getByTestId('incoming-form-reset').click();
 
     // Verify fields are cleared
     await expect(memoInput).toHaveValue('');
@@ -525,24 +376,14 @@ test.describe('Incoming Secrets - Memo Character Counter', () => {
   });
 
   test('shows character counter when approaching limit', async ({ page }) => {
-    const routeAvailable = await navigateToIncoming(page, MOCK_CONFIG_ENABLED);
-    if (!routeAvailable) {
-      test.skip(true, 'Incoming route not available');
-      return;
-    }
-
-    const formReady = await waitForFormReady(page);
-    if (!formReady) {
-      test.skip(true, 'Form not available');
-      return;
-    }
+    await gotoIncoming(page, MOCK_CONFIG_ENABLED);
+    await expectFormReady(page);
 
     const memoInput = page.locator('#incoming-memo');
 
     // Counter should not be visible initially
     const counter = page.locator('text=/\\d+\\s*\\/\\s*50/');
-    const counterInitiallyVisible = await counter.isVisible().catch(() => false);
-    expect(counterInitiallyVisible).toBe(false);
+    await expect(counter).not.toBeVisible();
 
     // Fill memo with 80%+ of limit (40+ chars for 50 char limit)
     await memoInput.fill('This is a long memo that approaches the limit');
@@ -552,37 +393,16 @@ test.describe('Incoming Secrets - Memo Character Counter', () => {
   });
 
   test('respects maxlength attribute on memo input', async ({ page }) => {
-    const routeAvailable = await navigateToIncoming(page, MOCK_CONFIG_ENABLED);
-    if (!routeAvailable) {
-      test.skip(true, 'Incoming route not available');
-      return;
-    }
+    await gotoIncoming(page, MOCK_CONFIG_ENABLED);
+    await expectFormReady(page);
 
-    const formReady = await waitForFormReady(page);
-    if (!formReady) {
-      test.skip(true, 'Form not available');
-      return;
-    }
-
-    const memoInput = page.locator('#incoming-memo');
-
-    // Verify maxlength attribute is set
-    const maxLength = await memoInput.getAttribute('maxlength');
-    expect(maxLength).toBe('50');
+    // maxlength comes from the mocked memo_max_length
+    await expect(page.locator('#incoming-memo')).toHaveAttribute('maxlength', '50');
   });
 
   test('counter color changes at limit', async ({ page }) => {
-    const routeAvailable = await navigateToIncoming(page, MOCK_CONFIG_ENABLED);
-    if (!routeAvailable) {
-      test.skip(true, 'Incoming route not available');
-      return;
-    }
-
-    const formReady = await waitForFormReady(page);
-    if (!formReady) {
-      test.skip(true, 'Form not available');
-      return;
-    }
+    await gotoIncoming(page, MOCK_CONFIG_ENABLED);
+    await expectFormReady(page);
 
     const memoInput = page.locator('#incoming-memo');
 
@@ -604,22 +424,13 @@ test.describe('Incoming Secrets - Happy Path Flow', () => {
     const consoleErrors = setupErrorCollection(page);
 
     await mockIncomingSecretCreate(page, MOCK_SUCCESS_RESPONSE);
-    const routeAvailable = await navigateToIncoming(page, MOCK_CONFIG_ENABLED);
-    if (!routeAvailable) {
-      test.skip(true, 'Incoming route not available');
-      return;
-    }
-
-    const formReady = await waitForFormReady(page);
-    if (!formReady) {
-      test.skip(true, 'Form not available');
-      return;
-    }
+    await gotoIncoming(page, MOCK_CONFIG_ENABLED);
+    await expectFormReady(page);
 
     // Step 1: Select recipient
     const recipientDropdown = page.locator('#incoming-recipient');
     await recipientDropdown.click();
-    await page.locator(`text=${MOCK_RECIPIENTS[0].name}`).first().click();
+    await page.getByTestId(`recipient-option-${MOCK_RECIPIENTS[0].digest}`).click();
 
     // Step 2: Enter secret content
     const secretTextarea = page.locator('textarea').first();
@@ -630,7 +441,7 @@ test.describe('Incoming Secrets - Happy Path Flow', () => {
     await memoInput.fill('Quarterly report credentials');
 
     // Step 4: Submit
-    const submitButton = page.locator('button[type="submit"]');
+    const submitButton = page.getByTestId('incoming-form-submit');
     await expect(submitButton).toBeEnabled();
     await submitButton.click();
 
@@ -638,17 +449,15 @@ test.describe('Incoming Secrets - Happy Path Flow', () => {
     await expect(page).toHaveURL(/\/incoming\/test-metadata-key/);
 
     // Step 6: Verify success page elements
-    // Success icon/checkmark should be visible
+    // Success heading should be visible
     const successHeading = page.locator('h1');
     await expect(successHeading).toBeVisible();
 
     // Reference ID should be displayed
-    const referenceId = page.locator('code', { hasText: 'test-metadata-key' });
-    await expect(referenceId).toBeVisible();
+    await expect(page.getByTestId('incoming-reference-id')).toContainText('test-metadata-key');
 
     // "Send Another Secret" button should be visible
-    const createAnotherButton = page.locator('button', { hasText: /send another/i });
-    await expect(createAnotherButton).toBeVisible();
+    await expect(page.getByTestId('incoming-send-another-btn')).toBeVisible();
 
     // Verify no critical errors (listener was registered before navigation;
     // the assertions above already waited for the UI)
@@ -661,59 +470,37 @@ test.describe('Incoming Secrets - Happy Path Flow', () => {
 
   test('success page shows reference ID and copy button', async ({ page }) => {
     await mockIncomingSecretCreate(page, MOCK_SUCCESS_RESPONSE);
-    const routeAvailable = await navigateToIncoming(page, MOCK_CONFIG_ENABLED);
-    if (!routeAvailable) {
-      test.skip(true, 'Incoming route not available');
-      return;
-    }
-
-    const formReady = await waitForFormReady(page);
-    if (!formReady) {
-      test.skip(true, 'Form not available');
-      return;
-    }
+    await gotoIncoming(page, MOCK_CONFIG_ENABLED);
+    await expectFormReady(page);
 
     // Complete the form
     const recipientDropdown = page.locator('#incoming-recipient');
     await recipientDropdown.click();
-    await page.locator(`text=${MOCK_RECIPIENTS[0].name}`).first().click();
+    await page.getByTestId(`recipient-option-${MOCK_RECIPIENTS[0].digest}`).click();
 
     const secretTextarea = page.locator('textarea').first();
     await secretTextarea.fill('Test secret');
 
-    await page.locator('button[type="submit"]').click();
+    await page.getByTestId('incoming-form-submit').click();
     await page.waitForURL(/\/incoming\//, { timeout: 10000 });
 
     // Verify reference ID display
-    const referenceCode = page.locator('code').first();
-    await expect(referenceCode).toContainText('test-metadata-key');
+    await expect(page.getByTestId('incoming-reference-id')).toContainText('test-metadata-key');
 
     // Verify copy button exists
-    const copyButton = page.locator('button[title*="Copy"]');
-    await expect(copyButton).toBeVisible();
+    await expect(page.getByTestId('incoming-copy-reference-btn')).toBeVisible();
   });
 
   test('create another button returns to form', async ({ page }) => {
     await mockIncomingConfig(page, MOCK_CONFIG_ENABLED);
 
-    // Navigate directly to success page
-    const response = await page.goto('/incoming/test-metadata-key');
-    if (response?.status() === 404) {
-      test.skip(true, 'Incoming route not available');
-      return;
-    }
+    // Navigate directly to success page (renders purely from the route
+    // param; no API call involved)
+    await page.goto('/incoming/test-metadata-key');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    await page.waitForLoadState('domcontentloaded');
-
-    // Wait for send another secret button
-    const createAnotherButton = page.locator('button', { hasText: /send another/i });
-    const buttonVisible = await createAnotherButton.isVisible({ timeout: 5000 }).catch(() => false);
-
-    if (!buttonVisible) {
-      test.skip(true, 'Success page not rendering properly');
-      return;
-    }
-
+    const createAnotherButton = page.getByTestId('incoming-send-another-btn');
+    await expect(createAnotherButton).toBeVisible();
     await createAnotherButton.click();
 
     // Should navigate back to form
@@ -735,22 +522,13 @@ test.describe('Incoming Secrets - Error Handling', () => {
       });
     });
 
-    const routeAvailable = await navigateToIncoming(page, MOCK_CONFIG_ENABLED);
-    if (!routeAvailable) {
-      test.skip(true, 'Incoming route not available');
-      return;
-    }
-
-    const formReady = await waitForFormReady(page);
-    if (!formReady) {
-      test.skip(true, 'Form not available');
-      return;
-    }
+    await gotoIncoming(page, MOCK_CONFIG_ENABLED);
+    await expectFormReady(page);
 
     // Fill form
     const recipientDropdown = page.locator('#incoming-recipient');
     await recipientDropdown.click();
-    await page.locator(`text=${MOCK_RECIPIENTS[0].name}`).first().click();
+    await page.getByTestId(`recipient-option-${MOCK_RECIPIENTS[0].digest}`).click();
 
     const secretTextarea = page.locator('textarea').first();
     await secretTextarea.fill('Test secret');
@@ -758,47 +536,37 @@ test.describe('Incoming Secrets - Error Handling', () => {
     // Submit and wait for the mocked 500 response to complete - the
     // deterministic signal that error handling has been triggered.
     const failedResponse = page.waitForResponse('**/incoming/secret');
-    await page.locator('button[type="submit"]').click();
+    await page.getByTestId('incoming-form-submit').click();
     await failedResponse;
 
     // Form should remain visible for retry
-    const form = page.locator('form');
-    await expect(form).toBeVisible();
+    await expect(page.getByTestId('incoming-form')).toBeVisible();
   });
 
-  test('handles network timeout gracefully', async ({ page }) => {
+  test('handles network failure during submission gracefully', async ({ page }) => {
     await page.route('**/incoming/secret', async (route) => {
-      // Simulate network delay/timeout
-      await new Promise((resolve) => setTimeout(resolve, 10000));
       await route.abort('timedout');
     });
 
-    const routeAvailable = await navigateToIncoming(page, MOCK_CONFIG_ENABLED);
-    if (!routeAvailable) {
-      test.skip(true, 'Incoming route not available');
-      return;
-    }
-
-    const formReady = await waitForFormReady(page);
-    if (!formReady) {
-      test.skip(true, 'Form not available');
-      return;
-    }
+    await gotoIncoming(page, MOCK_CONFIG_ENABLED);
+    await expectFormReady(page);
 
     // Fill form
     const recipientDropdown = page.locator('#incoming-recipient');
     await recipientDropdown.click();
-    await page.locator(`text=${MOCK_RECIPIENTS[0].name}`).first().click();
+    await page.getByTestId(`recipient-option-${MOCK_RECIPIENTS[0].digest}`).click();
 
     const secretTextarea = page.locator('textarea').first();
     await secretTextarea.fill('Test secret');
 
-    // Submit - this will timeout
-    const submitButton = page.locator('button[type="submit"]');
+    // Submit - the aborted request must surface as a handled error
+    const submitButton = page.getByTestId('incoming-form-submit');
     await submitButton.click();
 
-    // Form should remain on page
-    await expect(page.locator('form')).toBeVisible();
+    // Form remains on page and the submit button recovers from its
+    // submitting state (isSubmitting resets in the error path)
+    await expect(page.getByTestId('incoming-form')).toBeVisible();
+    await expect(submitButton).toBeEnabled();
   });
 });
 
@@ -808,41 +576,19 @@ test.describe('Incoming Secrets - Accessibility', () => {
   });
 
   test('form elements have proper ARIA attributes', async ({ page }) => {
-    const routeAvailable = await navigateToIncoming(page, MOCK_CONFIG_ENABLED);
-    if (!routeAvailable) {
-      test.skip(true, 'Incoming route not available');
-      return;
-    }
+    await gotoIncoming(page, MOCK_CONFIG_ENABLED);
+    await expectFormReady(page);
 
-    const formReady = await waitForFormReady(page);
-    if (!formReady) {
-      test.skip(true, 'Form not available');
-      return;
-    }
+    // Recipient dropdown has a non-empty aria-label
+    await expect(page.locator('#incoming-recipient')).toHaveAttribute('aria-label', /.+/);
 
-    // Recipient dropdown has aria-label
-    const recipientDropdown = page.locator('#incoming-recipient');
-    const ariaLabel = await recipientDropdown.getAttribute('aria-label');
-    expect(ariaLabel).toBeTruthy();
-
-    // Memo input has aria-label
-    const memoInput = page.locator('#incoming-memo');
-    const memoAriaLabel = await memoInput.getAttribute('aria-label');
-    expect(memoAriaLabel).toBeTruthy();
+    // Memo input has a non-empty aria-label
+    await expect(page.locator('#incoming-memo')).toHaveAttribute('aria-label', /.+/);
   });
 
   test('dropdown has proper ARIA expanded state', async ({ page }) => {
-    const routeAvailable = await navigateToIncoming(page, MOCK_CONFIG_ENABLED);
-    if (!routeAvailable) {
-      test.skip(true, 'Incoming route not available');
-      return;
-    }
-
-    const formReady = await waitForFormReady(page);
-    if (!formReady) {
-      test.skip(true, 'Form not available');
-      return;
-    }
+    await gotoIncoming(page, MOCK_CONFIG_ENABLED);
+    await expectFormReady(page);
 
     const recipientDropdown = page.locator('#incoming-recipient');
 
@@ -857,25 +603,18 @@ test.describe('Incoming Secrets - Accessibility', () => {
   });
 
   test('form is keyboard navigable', async ({ page }) => {
-    const routeAvailable = await navigateToIncoming(page, MOCK_CONFIG_ENABLED);
-    if (!routeAvailable) {
-      test.skip(true, 'Incoming route not available');
-      return;
-    }
-
-    const formReady = await waitForFormReady(page);
-    if (!formReady) {
-      test.skip(true, 'Form not available');
-      return;
-    }
+    await gotoIncoming(page, MOCK_CONFIG_ENABLED);
+    await expectFormReady(page);
 
     // Tab through form elements
     await page.keyboard.press('Tab');
     await page.keyboard.press('Tab');
 
-    // Focus should move through form
-    const focusedElement = await page.evaluate(() => document.activeElement?.tagName);
-    expect(focusedElement).toBeTruthy();
+    // Focus must have moved off the document body into the page content
+    const focusedElement = await page.evaluate(
+      () => document.activeElement?.tagName ?? 'BODY'
+    );
+    expect(focusedElement).not.toBe('BODY');
   });
 });
 
@@ -884,21 +623,8 @@ test.describe('Incoming Secrets - Mobile Responsiveness', () => {
     // Set mobile viewport before navigation
     await page.setViewportSize({ width: 375, height: 667 });
 
-    const routeAvailable = await navigateToIncoming(page, MOCK_CONFIG_ENABLED);
-    if (!routeAvailable) {
-      test.skip(true, 'Incoming route not available');
-      return;
-    }
-
-    const formReady = await waitForFormReady(page);
-    if (!formReady) {
-      test.skip(true, 'Form not available');
-      return;
-    }
-
-    // Form should be visible and not overflow
-    const form = page.locator('form');
-    await expect(form).toBeVisible();
+    await gotoIncoming(page, MOCK_CONFIG_ENABLED);
+    await expectFormReady(page);
 
     // Check no horizontal overflow
     const { scrollWidth, viewportWidth, hasOverflow } = await page.evaluate(() => {
@@ -922,28 +648,20 @@ test.describe('Incoming Secrets - Mobile Responsiveness', () => {
     // Set mobile viewport before navigation
     await page.setViewportSize({ width: 375, height: 667 });
 
-    const routeAvailable = await navigateToIncoming(page, MOCK_CONFIG_ENABLED);
-    if (!routeAvailable) {
-      test.skip(true, 'Incoming route not available');
-      return;
-    }
-
-    const formReady = await waitForFormReady(page);
-    if (!formReady) {
-      test.skip(true, 'Form not available');
-      return;
-    }
+    await gotoIncoming(page, MOCK_CONFIG_ENABLED);
+    await expectFormReady(page);
 
     // Get button positions
-    const submitButton = page.locator('button[type="submit"]');
-    const resetButton = page.locator('button[type="button"]', { hasText: /clear form/i });
+    const submitButton = page.getByTestId('incoming-form-submit');
+    const resetButton = page.getByTestId('incoming-form-reset');
 
     const submitBox = await submitButton.boundingBox();
     const resetBox = await resetButton.boundingBox();
 
-    // On mobile, buttons should be stacked (different Y positions)
-    // Submit should come before reset (order-1 vs order-2 in mobile)
-    expect(submitBox).toBeTruthy();
-    expect(resetBox).toBeTruthy();
+    // On mobile the action row is flex-col: submit (order-1) renders above
+    // reset (order-2), i.e. strictly smaller Y
+    expect(submitBox).not.toBeNull();
+    expect(resetBox).not.toBeNull();
+    expect(submitBox!.y).toBeLessThan(resetBox!.y);
   });
 });
