@@ -24,6 +24,8 @@
 
 import { test, expect, Page } from '@playwright/test';
 
+import { allowDestructiveTests, hasSubscriberCredentials } from '../support/env';
+
 // The `full-billing` project starts every test authenticated as TEST_USER_*
 // via storageState (e2e/playwright.config.ts), but this file signs in as a
 // *subscriber* account (TEST_SUBSCRIBER_*, falling back to TEST_USER_*) via
@@ -31,12 +33,8 @@ import { test, expect, Page } from '@playwright/test';
 // instead of redirecting an already-authenticated visitor away.
 test.use({ storageState: { cookies: [], origins: [] } });
 
-// Check if subscriber credentials are configured
-const hasSubscriberCredentials = !!(
-  process.env.TEST_SUBSCRIBER_EMAIL && process.env.TEST_SUBSCRIBER_PASSWORD
-);
-
-// Also support TEST_USER_* for backwards compatibility with billing-blockers.spec.ts
+// TEST_USER_* remains an accepted fallback identity for the non-subscriber
+// flow (TC-2314-002); subscriber-only tests gate on TEST_SUBSCRIBER_*.
 const hasTestCredentials = hasSubscriberCredentials || !!(
   process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD
 );
@@ -132,16 +130,21 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       await loginSubscriber(page);
       await navigateToPlansPage(page);
 
+      test.skip(
+        !hasSubscriberCredentials,
+        'Requires a subscriber account — set TEST_SUBSCRIBER_EMAIL/PASSWORD (see e2e/support/env.ts)'
+      );
       const isSubscriber = await hasActiveSubscription(page);
-      test.skip(!isSubscriber, 'Test account is not a subscriber - cannot test plan switching');
+      expect(isSubscriber, 'TEST_SUBSCRIBER_* account must hold an active subscription').toBe(true);
 
       // Find an upgrade option (a plan that is NOT current)
       const upgradeButton = page.locator('button').filter({
         hasText: /upgrade/i,
       }).first();
 
-      const hasUpgradeOption = await upgradeButton.isVisible().catch(() => false);
-      test.skip(!hasUpgradeOption, 'No upgrade option available for current plan');
+      // Subscriber contract: TEST_SUBSCRIBER_* sits on a mid-tier plan so
+      // an upgrade option exists
+      await expect(upgradeButton).toBeVisible();
 
       // Click upgrade
       await upgradeButton.click();
@@ -161,16 +164,19 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       await loginSubscriber(page);
       await navigateToPlansPage(page);
 
+      test.skip(
+        hasSubscriberCredentials,
+        'N/A with a subscriber account — this flow runs on the TEST_USER_* fallback identity'
+      );
       const isSubscriber = await hasActiveSubscription(page);
-      test.skip(isSubscriber, 'Test account is a subscriber - cannot test new subscriber flow');
+      expect(isSubscriber, 'TEST_USER_* fallback account must not hold a subscription').toBe(false);
 
       // Find a paid plan button
       const planButton = page.locator('button').filter({
         hasText: /upgrade|select/i,
       }).first();
 
-      const hasOption = await planButton.isVisible().catch(() => false);
-      test.skip(!hasOption, 'No plan selection option available');
+      await expect(planButton).toBeVisible();
 
       // Set up listener for navigation to Stripe
       const navigationPromise = page.waitForURL(/checkout\.stripe\.com|\/billing/, { timeout: 10000 });
@@ -191,16 +197,20 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       await loginSubscriber(page);
       await navigateToPlansPage(page);
 
+      test.skip(
+        !hasSubscriberCredentials,
+        'Requires a subscriber account — set TEST_SUBSCRIBER_EMAIL/PASSWORD (see e2e/support/env.ts)'
+      );
       const isSubscriber = await hasActiveSubscription(page);
-      test.skip(!isSubscriber, 'Test account is not a subscriber');
+      expect(isSubscriber, 'TEST_SUBSCRIBER_* account must hold an active subscription').toBe(true);
 
       // Click on a different plan to open modal
       const planChangeButton = page.locator('button').filter({
         hasText: /upgrade|downgrade/i,
       }).first();
 
-      const hasButton = await planChangeButton.isVisible().catch(() => false);
-      test.skip(!hasButton, 'No plan change button available');
+      // Subscriber contract: a non-current plan with a change button exists
+      await expect(planChangeButton).toBeVisible();
 
       await planChangeButton.click();
 
@@ -233,16 +243,20 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       await loginSubscriber(page);
       await navigateToPlansPage(page);
 
+      test.skip(
+        !hasSubscriberCredentials,
+        'Requires a subscriber account — set TEST_SUBSCRIBER_EMAIL/PASSWORD (see e2e/support/env.ts)'
+      );
       const isSubscriber = await hasActiveSubscription(page);
-      test.skip(!isSubscriber, 'Test account is not a subscriber');
+      expect(isSubscriber, 'TEST_SUBSCRIBER_* account must hold an active subscription').toBe(true);
 
       // Look for downgrade button specifically
       const downgradeButton = page.locator('button').filter({
         hasText: /downgrade/i,
       }).first();
 
-      const hasDowngrade = await downgradeButton.isVisible().catch(() => false);
-      test.skip(!hasDowngrade, 'No downgrade option available for current plan');
+      // Subscriber contract: mid-tier plan, so a downgrade option exists
+      await expect(downgradeButton).toBeVisible();
 
       await downgradeButton.click();
 
@@ -265,16 +279,20 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       await loginSubscriber(page);
       await navigateToPlansPage(page);
 
+      test.skip(
+        !hasSubscriberCredentials,
+        'Requires a subscriber account — set TEST_SUBSCRIBER_EMAIL/PASSWORD (see e2e/support/env.ts)'
+      );
       const isSubscriber = await hasActiveSubscription(page);
-      test.skip(!isSubscriber, 'Test account is not a subscriber');
+      expect(isSubscriber, 'TEST_SUBSCRIBER_* account must hold an active subscription').toBe(true);
 
       // Open plan change modal
       const planChangeButton = page.locator('button').filter({
         hasText: /upgrade|downgrade/i,
       }).first();
 
-      const hasButton = await planChangeButton.isVisible().catch(() => false);
-      test.skip(!hasButton, 'No plan change button available');
+      // Subscriber contract: a non-current plan with a change button exists
+      await expect(planChangeButton).toBeVisible();
 
       await planChangeButton.click();
 
@@ -298,16 +316,20 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       await loginSubscriber(page);
       await navigateToPlansPage(page);
 
+      test.skip(
+        !hasSubscriberCredentials,
+        'Requires a subscriber account — set TEST_SUBSCRIBER_EMAIL/PASSWORD (see e2e/support/env.ts)'
+      );
       const isSubscriber = await hasActiveSubscription(page);
-      test.skip(!isSubscriber, 'Test account is not a subscriber');
+      expect(isSubscriber, 'TEST_SUBSCRIBER_* account must hold an active subscription').toBe(true);
 
       // Open modal
       const planChangeButton = page.locator('button').filter({
         hasText: /upgrade|downgrade/i,
       }).first();
 
-      const hasButton = await planChangeButton.isVisible().catch(() => false);
-      test.skip(!hasButton, 'No plan change button available');
+      // Subscriber contract: a non-current plan with a change button exists
+      await expect(planChangeButton).toBeVisible();
 
       await planChangeButton.click();
 
@@ -337,24 +359,28 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
     // be run against test accounts with Stripe in test mode.
 
     test.skip(
-      !process.env.ALLOW_DESTRUCTIVE_TESTS,
-      'Skipping destructive tests. Set ALLOW_DESTRUCTIVE_TESTS=1 to run.'
+      !allowDestructiveTests,
+      'Destructive: mutates the Stripe test subscription. Set ALLOW_DESTRUCTIVE_TESTS=1 to run (see e2e/support/env.ts).'
     );
 
     test('TC-2314-007: Upgrade executes successfully', async ({ page }) => {
       await loginSubscriber(page);
       await navigateToPlansPage(page);
 
+      test.skip(
+        !hasSubscriberCredentials,
+        'Requires a subscriber account — set TEST_SUBSCRIBER_EMAIL/PASSWORD (see e2e/support/env.ts)'
+      );
       const isSubscriber = await hasActiveSubscription(page);
-      test.skip(!isSubscriber, 'Test account is not a subscriber');
+      expect(isSubscriber, 'TEST_SUBSCRIBER_* account must hold an active subscription').toBe(true);
 
       // Find upgrade button
       const upgradeButton = page.locator('button').filter({
         hasText: /upgrade/i,
       }).first();
 
-      const hasUpgrade = await upgradeButton.isVisible().catch(() => false);
-      test.skip(!hasUpgrade, 'No upgrade option available');
+      // Subscriber contract: mid-tier plan, so an upgrade option exists
+      await expect(upgradeButton).toBeVisible();
 
       await upgradeButton.click();
 
@@ -395,16 +421,20 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       await loginSubscriber(page);
       await navigateToPlansPage(page);
 
+      test.skip(
+        !hasSubscriberCredentials,
+        'Requires a subscriber account — set TEST_SUBSCRIBER_EMAIL/PASSWORD (see e2e/support/env.ts)'
+      );
       const isSubscriber = await hasActiveSubscription(page);
-      test.skip(!isSubscriber, 'Test account is not a subscriber');
+      expect(isSubscriber, 'TEST_SUBSCRIBER_* account must hold an active subscription').toBe(true);
 
       // Find downgrade button
       const downgradeButton = page.locator('button').filter({
         hasText: /downgrade/i,
       }).first();
 
-      const hasDowngrade = await downgradeButton.isVisible().catch(() => false);
-      test.skip(!hasDowngrade, 'No downgrade option available');
+      // Subscriber contract: mid-tier plan, so a downgrade option exists
+      await expect(downgradeButton).toBeVisible();
 
       await downgradeButton.click();
 
@@ -456,16 +486,20 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
 
       await navigateToPlansPage(page);
 
+      test.skip(
+        !hasSubscriberCredentials,
+        'Requires a subscriber account — set TEST_SUBSCRIBER_EMAIL/PASSWORD (see e2e/support/env.ts)'
+      );
       const isSubscriber = await hasActiveSubscription(page);
-      test.skip(!isSubscriber, 'Test account is not a subscriber');
+      expect(isSubscriber, 'TEST_SUBSCRIBER_* account must hold an active subscription').toBe(true);
 
       // Try to open plan change modal
       const planChangeButton = page.locator('button').filter({
         hasText: /upgrade|downgrade/i,
       }).first();
 
-      const hasButton = await planChangeButton.isVisible().catch(() => false);
-      test.skip(!hasButton, 'No plan change button available');
+      // Subscriber contract: a non-current plan with a change button exists
+      await expect(planChangeButton).toBeVisible();
 
       await planChangeButton.click();
 
@@ -481,16 +515,20 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       await loginSubscriber(page);
       await navigateToPlansPage(page);
 
+      test.skip(
+        !hasSubscriberCredentials,
+        'Requires a subscriber account — set TEST_SUBSCRIBER_EMAIL/PASSWORD (see e2e/support/env.ts)'
+      );
       const isSubscriber = await hasActiveSubscription(page);
-      test.skip(!isSubscriber, 'Test account is not a subscriber');
+      expect(isSubscriber, 'TEST_SUBSCRIBER_* account must hold an active subscription').toBe(true);
 
       // Find the current plan card (has "Current" badge)
       const currentPlanCard = page.locator('[class*="plan"], [class*="card"]').filter({
         has: page.locator('text=/current/i'),
       }).first();
 
-      const hasCurrent = await currentPlanCard.isVisible().catch(() => false);
-      test.skip(!hasCurrent, 'Cannot identify current plan');
+      // A subscriber's current plan must be badged
+      await expect(currentPlanCard).toBeVisible();
 
       // The button for current plan should be disabled or styled differently
       const currentButton = currentPlanCard.locator('button').first();
@@ -545,8 +583,12 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
       await loginSubscriber(page);
       await navigateToPlansPage(page);
 
+      test.skip(
+        !hasSubscriberCredentials,
+        'Requires a subscriber account — set TEST_SUBSCRIBER_EMAIL/PASSWORD (see e2e/support/env.ts)'
+      );
       const isSubscriber = await hasActiveSubscription(page);
-      test.skip(!isSubscriber, 'Test account is not a subscriber');
+      expect(isSubscriber, 'TEST_SUBSCRIBER_* account must hold an active subscription').toBe(true);
 
       // Set up API interception
       const apiPromise = page.waitForResponse(
@@ -559,8 +601,8 @@ test.describe('Plan Switching for Existing Subscribers - E2E', () => {
         hasText: /upgrade|downgrade/i,
       }).first();
 
-      const hasButton = await planChangeButton.isVisible().catch(() => false);
-      test.skip(!hasButton, 'No plan change button available');
+      // Subscriber contract: a non-current plan with a change button exists
+      await expect(planChangeButton).toBeVisible();
 
       await planChangeButton.click();
 

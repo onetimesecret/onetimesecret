@@ -79,10 +79,10 @@ test.describe('Plan Selection to Signup URL', () => {
     await waitForPricingPageLoad(page);
 
     // Find a paid plan CTA
+    // The full-billing project targets a billing-enabled server: the
+    // catalog must render paid CTAs
     const paidPlanCta = page.getByRole('link', { name: /get started/i }).first();
-    const isVisible = await paidPlanCta.isVisible().catch(() => false);
-
-    test.skip(!isVisible, 'No paid plan CTAs available to test');
+    await expect(paidPlanCta).toBeVisible();
 
     // Click and verify URL params
     await paidPlanCta.click();
@@ -98,10 +98,9 @@ test.describe('Plan Selection to Signup URL', () => {
     await waitForPricingPageLoad(page);
 
     // Find highlighted plan's CTA
+    // Deep links must highlight the linked plan on a billing-enabled server
     const highlightedCard = page.locator('.ring-yellow-500, .ring-yellow-400').first();
-    const hasHighlighted = await highlightedCard.isVisible().catch(() => false);
-
-    test.skip(!hasHighlighted, 'No highlighted plan found');
+    await expect(highlightedCard).toBeVisible();
 
     const cta = highlightedCard.getByRole('link');
     await cta.click();
@@ -115,10 +114,9 @@ test.describe('Plan Selection to Signup URL', () => {
     await page.goto('/pricing');
     await waitForPricingPageLoad(page);
 
+    // The catalog must include the free tier
     const freePlanCta = page.getByRole('link', { name: /get started free/i }).first();
-    const isVisible = await freePlanCta.isVisible().catch(() => false);
-
-    test.skip(!isVisible, 'No free tier plan found');
+    await expect(freePlanCta).toBeVisible();
 
     await freePlanCta.click();
     await expect(page).toHaveURL('/signup');
@@ -269,8 +267,10 @@ test.describe('Signup Submission with Plan Intent', () => {
 // Marked as skipped by default - enable when test infrastructure supports it.
 
 test.describe('Post-Verification Redirect', () => {
-  // Skip these tests unless email verification is disabled in test environment
-  test.skip(({ page }) => true, 'Requires email verification disabled or mail interceptor');
+  // fixme(#3421): needs a mail interceptor (or verification disabled) to
+  // follow the verification link; an unconditional test.skip hid the whole
+  // describe forever. Quarantined in e2e/QUARANTINE.md.
+  test.fixme(true, 'Needs mail-interceptor fixture (PR 6) — see #3421');
 
   test.describe('when verification is disabled (test mode)', () => {
     test('signup with plan params auto-redirects to checkout after verification', async ({ page }) => {

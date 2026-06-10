@@ -170,8 +170,8 @@ test.describe('Stripe Integration Blockers - E2E', () => {
         .filter({ has: page.locator('button') })
         .first();
 
-      const isVisible = await planCard.isVisible().catch(() => false);
-      test.skip(!isVisible, 'No plan cards available to verify structure');
+      // Billing-enabled target: the catalog must render plan cards
+      await expect(planCard).toBeVisible();
 
       // Plan cards should have name, price, and action button
       await expect(planCard.locator('h2, h3, [class*="title"]').first()).toBeVisible();
@@ -221,8 +221,9 @@ test.describe('Stripe Integration Blockers - E2E', () => {
         .locator('a[href*="/billing/plans"], a[href*="/plans"]:not([href*="pricing"])')
         .first();
 
-      const isVisible = await upgradeLink.isVisible().catch(() => false);
-      test.skip(!isVisible, 'No upgrade link found on dashboard (may already be on paid plan)');
+      // The full-billing storageState user is a fresh free-plan signup, so
+      // the dashboard must offer an upgrade path
+      await expect(upgradeLink).toBeVisible();
 
       await upgradeLink.click();
       await expect(page).toHaveURL(/\/billing\/plans|\/plans/);
@@ -262,9 +263,10 @@ test.describe('Stripe Integration Blockers - E2E', () => {
       await page.goto('/account');
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
+      // TC-2309-005 above asserts this link exists (BLOCKER 5); a missing
+      // link is the same product failure here, not a skip
       const billingLink = page.locator('a:has-text(/billing|subscription/i)').first();
-      const isVisible = await billingLink.isVisible().catch(() => false);
-      test.skip(!isVisible, 'Billing link not found - BLOCKER 5 prevents this test');
+      await expect(billingLink).toBeVisible();
 
       await billingLink.click();
       await expect(page).toHaveURL(/\/billing/);

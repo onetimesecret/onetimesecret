@@ -195,9 +195,8 @@ test.describe('CTA Navigation', () => {
     // Find a paid plan CTA (not free tier)
     // Paid plans have "Get Started" text (from start_trial locale key)
     const paidPlanCta = page.getByRole('link', { name: /get started/i }).first();
-    const isVisible = await paidPlanCta.isVisible().catch(() => false);
-
-    test.skip(!isVisible, 'No paid plan CTAs available to test');
+    // Billing-enabled target: the catalog must render this element
+    await expect(paidPlanCta).toBeVisible();
 
     await paidPlanCta.click();
 
@@ -216,9 +215,8 @@ test.describe('CTA Navigation', () => {
 
     // Find the highlighted plan's CTA
     const highlightedCard = page.locator('.ring-yellow-500, .ring-yellow-400').first();
-    const hasHighlighted = await highlightedCard.isVisible().catch(() => false);
-
-    test.skip(!hasHighlighted, 'No highlighted plan found for this deep link');
+    // Billing-enabled target: the catalog must render this element
+    await expect(highlightedCard).toBeVisible();
 
     const cta = highlightedCard.getByRole('link');
     await cta.click();
@@ -240,9 +238,8 @@ test.describe('CTA Navigation', () => {
 
     // Click a paid plan CTA
     const paidPlanCta = page.getByRole('link', { name: /get started/i }).first();
-    const isVisible = await paidPlanCta.isVisible().catch(() => false);
-
-    test.skip(!isVisible, 'No yearly paid plan CTAs available');
+    // Billing-enabled target: the catalog must render this element
+    await expect(paidPlanCta).toBeVisible();
 
     await paidPlanCta.click();
 
@@ -257,9 +254,8 @@ test.describe('CTA Navigation', () => {
     // Find free plan CTA - it has different text like "Get started free"
     // The free tier uses getCtaLabel which returns 'get_started_free' for free tier
     const freePlanCta = page.getByRole('link', { name: /get started free/i }).first();
-    const isVisible = await freePlanCta.isVisible().catch(() => false);
-
-    test.skip(!isVisible, 'No free tier plan found');
+    // Billing-enabled target: the catalog must render this element
+    await expect(freePlanCta).toBeVisible();
 
     await freePlanCta.click();
 
@@ -361,8 +357,8 @@ test.describe('Billing Interval Toggle', () => {
       has: page.locator('text=/get started/i'),
     }).first();
 
-    const isVisible = await paidPlanCard.isVisible().catch(() => false);
-    test.skip(!isVisible, 'No paid yearly plan found to verify pricing display');
+    // Billing-enabled target: the catalog must render this element
+    await expect(paidPlanCard).toBeVisible();
 
     // Yearly plans should show "Yearly: $X" text
     const yearlyPriceLabel = paidPlanCard.locator('text=/yearly:/i');
@@ -387,7 +383,8 @@ test.describe('Plan Card Display', () => {
     const planCards = getPlanCards(page);
     const planCount = await planCards.count();
 
-    test.skip(planCount === 0, 'No plan cards to verify');
+    // Billing-enabled target: the catalog must have plan cards
+    expect(planCount).toBeGreaterThan(0);
 
     // Check first plan card has required elements
     const firstCard = planCards.first();
@@ -430,7 +427,8 @@ test.describe('Plan Card Display', () => {
     const planCards = getPlanCards(page);
     const planCount = await planCards.count();
 
-    test.skip(planCount === 0, 'No plan cards to verify');
+    // Billing-enabled target: the catalog must have plan cards
+    expect(planCount).toBeGreaterThan(0);
 
     // Get features from first card
     const firstCard = planCards.first();
@@ -504,7 +502,8 @@ test.describe('Pricing Page Accessibility', () => {
     });
 
     const ctaCount = await ctaLinks.count();
-    test.skip(ctaCount === 0, 'No CTA links to verify');
+    // Billing-enabled target: the catalog must have CTA links
+    expect(ctaCount).toBeGreaterThan(0);
 
     // Each CTA should have accessible text
     for (let i = 0; i < ctaCount; i++) {
