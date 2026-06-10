@@ -10,7 +10,6 @@
  */
 import { useI18n } from 'vue-i18n';
 import { computed, ref, watch } from 'vue';
-import { RouterLink } from 'vue-router';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import CopyToClipboardButton from '@/shared/components/ui/CopyToClipboardButton.vue';
 import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
@@ -133,10 +132,6 @@ const callbackUrl = computed(() => {
 });
 
 const showDomainFilter = computed(() => false);
-
-const signinSettingsPath = computed(
-  () => `/org/${props.orgId}/domains/${props.domainExtId}/signin`,
-);
 
 const currentProviderOption = computed(() =>
   providerOptions.find((o) => o.value === props.formState.provider_type)
@@ -690,86 +685,6 @@ aria-hidden="true">*</span>
           role="alert">
           {{ domainInputError }}
         </p>
-      </div>
-
-      <!-- Enabled Toggle -->
-      <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
-        <div>
-          <label
-            for="domain-sso-enabled"
-            class="text-sm font-medium text-gray-900 dark:text-white">
-            {{ t('web.organizations.sso.enabled') }}
-          </label>
-          <p
-            id="domain-enabled-hint"
-            class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            {{ t('web.organizations.sso.enabled_hint') }}
-          </p>
-        </div>
-        <button
-          type="button"
-          role="switch"
-          :aria-checked="formState.enabled"
-          aria-describedby="domain-enabled-hint"
-          @click="updateField('enabled', !formState.enabled)"
-          :class="[
-            'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800',
-            formState.enabled ? 'bg-brand-600' : 'bg-gray-200 dark:bg-gray-600',
-          ]">
-          <span class="sr-only">{{ t('web.organizations.sso.enabled') }}</span>
-          <span
-            :class="[
-              'pointer-events-none relative inline-block size-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-              formState.enabled ? 'translate-x-5' : 'translate-x-0',
-            ]">
-            <span
-              :class="[
-                'absolute inset-0 flex h-full w-full items-center justify-center transition-opacity',
-                formState.enabled ? 'opacity-0 duration-100 ease-out' : 'opacity-100 duration-200 ease-in',
-              ]"
-              aria-hidden="true">
-              <OIcon
-                collection="heroicons"
-                name="x-mark"
-                class="size-3 text-gray-400" />
-            </span>
-            <span
-              :class="[
-                'absolute inset-0 flex h-full w-full items-center justify-center transition-opacity',
-                formState.enabled ? 'opacity-100 duration-200 ease-in' : 'opacity-0 duration-100 ease-out',
-              ]"
-              aria-hidden="true">
-              <OIcon
-                collection="heroicons"
-                name="check"
-                class="size-3 text-brand-600" />
-            </span>
-          </span>
-        </button>
-      </div>
-
-      <!-- Sign-in method enforcement notice -->
-      <div class="flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
-        <OIcon
-          collection="heroicons"
-          name="information-circle"
-          class="mt-0.5 size-5 flex-shrink-0 text-gray-400 dark:text-gray-500"
-          aria-hidden="true" />
-        <div>
-          <p class="text-sm text-gray-700 dark:text-gray-300">
-            {{ t('web.domains.sso.enforce_moved_notice') }}
-          </p>
-          <RouterLink
-            :to="signinSettingsPath"
-            class="mt-1 inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
-            {{ t('web.domains.signin.configure_signin') }}
-            <OIcon
-              collection="heroicons"
-              name="arrow-right"
-              class="size-4"
-              aria-hidden="true" />
-          </RouterLink>
-        </div>
       </div>
 
       <!-- Action Buttons -->

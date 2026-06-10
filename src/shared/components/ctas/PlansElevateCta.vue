@@ -8,7 +8,9 @@ import { useRouter } from 'vue-router';
 const { t } = useI18n();
 
 const router = useRouter();
-const pricingLink = computed(() => router.resolve({ name: t('pricing') }).href);
+// 'pricing' is a Vue Router route name, not an i18n key (it previously leaned
+// on vue-i18n's missing-key fallback returning the literal — fragile).
+const pricingLink = computed(() => router.resolve({ name: 'pricing' }).href);
 
 </script>
 

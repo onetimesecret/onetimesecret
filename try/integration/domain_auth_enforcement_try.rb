@@ -13,6 +13,7 @@
 # Also exercises the serializer-level visibility gates:
 #   - DomainSerializer.effective_signin_enabled? / effective_signup_enabled?
 #   - ConfigSerializer.resolve_restrict_to
+#   - ConfigSerializer.resolve_signin (features.signin display gate)
 #
 # Covers:
 #   1. No SigninConfig record -> falls back to global
@@ -22,6 +23,7 @@
 #   5. Default reconciliation: new SigninConfig conservative defaults
 #   6. Serializer visibility gates
 #   7. ConfigSerializer resolve_restrict_to domain override
+#   11. ConfigSerializer resolve_signin AND semantics (#3415)
 #
 # Run:
 #   try try/integration/domain_auth_enforcement_try.rb --agent
@@ -475,6 +477,93 @@ Core::Views::ConfigSerializer.send(:resolve_tenant_sso_config, { 'display_domain
   !Core::Views::ConfigSerializer.send(:resolve_tenant_sso_config, { 'display_domain' => @domain_sso_c.display_domain }).nil?,
 ]
 #=> [true, true]
+
+# ===================================================================
+# 11. ConfigSerializer resolve_signin (features.signin, AND semantics)
+# ===================================================================
+#
+# resolve_signin is the DISPLAY gate for per-domain sign-in disable
+# (#3415): it feeds features.signin in the bootstrap so the public
+# /signin page can render a friendly "not available" notice instead
+# of the auth form. Global signin comes from site.authentication
+# (AUTH_ENABLED + AUTH_SIGNIN) via view_vars['site'], so each case
+# passes it explicitly — no singleton stubbing needed. AND semantics:
+# a domain may DISABLE sign-in but can never enable it when sign-in
+# is globally off.
+
+@site_signin_on  = { 'authentication' => { 'enabled' => true, 'signin' => true } }
+@site_signin_off = { 'authentication' => { 'enabled' => true, 'signin' => false } }
+@site_auth_off   = { 'authentication' => { 'enabled' => false, 'signin' => true } }
+
+## resolve_signin: global on + no domain context => true
+Core::Views::ConfigSerializer.send(:resolve_signin, { 'site' => @site_signin_on })
+#=> true
+
+## resolve_signin: global signin off + no domain context => false
+Core::Views::ConfigSerializer.send(:resolve_signin, { 'site' => @site_signin_off })
+#=> false
+
+## resolve_signin: global auth master off + no domain context => false
+Core::Views::ConfigSerializer.send(:resolve_signin, { 'site' => @site_auth_off })
+#=> false
+
+## resolve_signin: domain with no SigninConfig => global (true)
+@domain_si_a = Onetime::CustomDomain.create!("dae-si-a-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+Core::Views::ConfigSerializer.send(
+  :resolve_signin,
+  { 'site' => @site_signin_on, 'display_domain' => @domain_si_a.display_domain },
+)
+#=> true
+
+## resolve_signin: global on + master ON + signin_enabled false => false (domain disables)
+@domain_si_b = Onetime::CustomDomain.create!("dae-si-b-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@config_si_b = Onetime::CustomDomain::SigninConfig.create!(
+  domain_id: @domain_si_b.identifier,
+  enabled: true,
+  signin_enabled: false,
+)
+Core::Views::ConfigSerializer.send(
+  :resolve_signin,
+  { 'site' => @site_signin_on, 'display_domain' => @domain_si_b.display_domain },
+)
+#=> false
+
+## resolve_signin: global on + master ON + signin_enabled true => true
+@domain_si_c = Onetime::CustomDomain.create!("dae-si-c-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@config_si_c = Onetime::CustomDomain::SigninConfig.create!(
+  domain_id: @domain_si_c.identifier,
+  enabled: true,
+  signin_enabled: true,
+)
+Core::Views::ConfigSerializer.send(
+  :resolve_signin,
+  { 'site' => @site_signin_on, 'display_domain' => @domain_si_c.display_domain },
+)
+#=> true
+
+## resolve_signin: global OFF + master ON + signin_enabled true => false (domain cannot widen)
+Core::Views::ConfigSerializer.send(
+  :resolve_signin,
+  { 'site' => @site_signin_off, 'display_domain' => @domain_si_c.display_domain },
+)
+#=> false
+
+## resolve_signin: master OFF + signin_enabled false => global (true; config ignored)
+@domain_si_d = Onetime::CustomDomain.create!("dae-si-d-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@config_si_d = Onetime::CustomDomain::SigninConfig.create!(
+  domain_id: @domain_si_d.identifier,
+  enabled: false,
+  signin_enabled: false,
+)
+Core::Views::ConfigSerializer.send(
+  :resolve_signin,
+  { 'site' => @site_signin_on, 'display_domain' => @domain_si_d.display_domain },
+)
+#=> true
+
+## resolve_signin: missing site config => false (no global capability to narrow)
+Core::Views::ConfigSerializer.send(:resolve_signin, {})
+#=> false
 
 # --- Cleanup ---
 

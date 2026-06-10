@@ -165,6 +165,7 @@ Fully branded secret sharing across your organization with extended retention
 - `custom_domains`
 - `custom_mail_sender`
 - `custom_privacy_defaults`
+- `custom_signin_config`
 - `extended_default_expiration`
 - `homepage_secrets`
 - `incoming_secrets`

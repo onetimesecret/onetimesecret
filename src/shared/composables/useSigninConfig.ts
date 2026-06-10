@@ -80,6 +80,13 @@ export function useSigninConfig(domainExtId: string) {
   const isDeleting = ref(false);
   const error = ref<ApplicationError | null>(null);
 
+  /**
+   * The form field currently being auto-saved (toggle save-on-change), or
+   * null. Drives per-toggle loading feedback so only the flipped toggle
+   * spins while the others merely disable.
+   */
+  const savingField = ref<keyof SigninConfigFormState | null>(null);
+
   /** The full config object from the API. Null = unconfigured (404). */
   const signinConfig = ref<CustomDomainSigninConfig | null>(null);
 
@@ -176,11 +183,56 @@ export function useSigninConfig(domainExtId: string) {
         formState.value = configToFormState(result.record);
         savedFormState.value = { ...formState.value };
         notifications.show(t('web.domains.signin.update_success'), 'success', 'top');
+      } else if (savedFormState.value) {
+        // PUT failed (wrapAction notified the user and returned undefined).
+        // Every change auto-saves optimistically, so revert formState to the
+        // last-saved snapshot — otherwise a toggle/radio stays visually in the
+        // new position while the server still holds the old value.
+        formState.value = { ...savedFormState.value };
       }
     } finally {
       isSaving.value = false;
     }
   };
+
+  /**
+   * Merge a partial form patch and persist immediately (save-on-change).
+   *
+   * The signin form auto-saves every change — there is no Save button. The
+   * PUT is a full replacement, so the merged formState is sent in full; the
+   * partial only carries the fields that changed. Multi-field saves (e.g.
+   * picking a restrict_to method also flips its availability flag) commit
+   * atomically as one PUT, avoiding a two-request race.
+   *
+   * @param partial - fields to merge into formState before saving
+   * @param savingFieldHint - field to attribute the spinner to; defaults to
+   *   the partial's first key
+   */
+  const autoSaveFields = async (
+    partial: Partial<SigninConfigFormState>,
+    savingFieldHint?: keyof SigninConfigFormState
+  ) => {
+    if (isSaving.value) return;
+    formState.value = { ...formState.value, ...partial };
+    savingField.value =
+      savingFieldHint ?? (Object.keys(partial)[0] as keyof SigninConfigFormState | undefined) ?? null;
+    try {
+      await saveConfig();
+    } finally {
+      savingField.value = null;
+    }
+  };
+
+  /**
+   * Update a single field and persist immediately (save-on-change).
+   *
+   * Thin wrapper over autoSaveFields for the single-field callers (the header
+   * master `enabled` toggle in DomainSignin.vue still calls this).
+   */
+  const autoSaveField = <K extends keyof SigninConfigFormState>(
+    field: K,
+    value: SigninConfigFormState[K]
+  ) => autoSaveFields({ [field]: value } as Partial<SigninConfigFormState>, field);
 
   /**
    * Delete the signin config for this domain.
@@ -195,7 +247,7 @@ export function useSigninConfig(domainExtId: string) {
         signinConfig.value = null;
         formState.value = createDefaultFormState();
         savedFormState.value = { ...formState.value };
-        notifications.show(t('web.domains.signin.delete_success'), 'success', 'top');
+        notifications.show(t('web.domains.signin.reset_success'), 'success', 'top');
       });
     } finally {
       isDeleting.value = false;
@@ -220,6 +272,7 @@ export function useSigninConfig(domainExtId: string) {
     error,
     signinConfig,
     formState,
+    savingField,
 
     // Computed
     isConfigured,
@@ -228,6 +281,8 @@ export function useSigninConfig(domainExtId: string) {
     // Actions
     initialize,
     saveConfig,
+    autoSaveField,
+    autoSaveFields,
     deleteConfig,
     discardChanges,
   };

@@ -10,22 +10,27 @@
  * to a single method.
  */
 import { useI18n } from 'vue-i18n';
-import { computed, onMounted, watch } from 'vue';
-import { useRouter, onBeforeRouteLeave } from 'vue-router';
+import { computed, onMounted, ref, watch } from 'vue';
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import OIcon from '@/shared/components/icons/OIcon.vue';
+import ToggleWithIcon from '@/shared/components/common/ToggleWithIcon.vue';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
 import DomainSigninConfigForm from '@/apps/workspace/components/domains/DomainSigninConfigForm.vue';
+import SsoCredentialsModal from '@/apps/workspace/components/domains/SsoCredentialsModal.vue';
 import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
 import { useDomain } from '@/shared/composables/useDomain';
 
 import { useSigninConfig } from '@/shared/composables/useSigninConfig';
+import { useSsoConfig } from '@/shared/composables/useSsoConfig';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { ENTITLEMENTS } from '@/types/organization';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 
 const { t } = useI18n();
+const route = useRoute();
 const router = useRouter();
 
 const props = defineProps<{
@@ -55,7 +60,29 @@ const organization = computed(() =>
 );
 const { can } = useEntitlements(organization);
 const canCustomSignin = computed(() => can(ENTITLEMENTS.CUSTOM_SIGNIN_CONFIG));
+const canManageSso = computed(() => can(ENTITLEMENTS.MANAGE_SSO));
 const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
+
+// ---------------------------------------------------------------------------
+// Global method availability (install-level config)
+// ---------------------------------------------------------------------------
+
+// The workspace app runs on the dashboard domain, so bootstrap features reflect
+// the install/global auth config — correct for gating which methods a domain
+// may offer. undefined is treated as available (codebase convention). SSO is a
+// union (boolean | config object); an object's `enabled` flag is authoritative.
+const bootstrapStore = useBootstrapStore();
+const globalAvailability = computed(() => {
+  const features = bootstrapStore.features;
+  const sso = features?.sso;
+  const ssoAvailable =
+    typeof sso === 'object' && sso !== null ? sso.enabled : sso !== false;
+  return {
+    email_auth: features?.email_auth !== false,
+    webauthn: features?.webauthn !== false,
+    sso: ssoAvailable,
+  };
+});
 
 // ---------------------------------------------------------------------------
 // Signin config composable
@@ -69,13 +96,58 @@ const {
   error: signinError,
   signinConfig: _signinConfig,
   formState,
+  savingField,
   isConfigured,
   hasUnsavedChanges,
   initialize: initializeSigninConfig,
-  saveConfig,
+  autoSaveField,
+  autoSaveFields,
   deleteConfig,
-  discardChanges,
 } = useSigninConfig(props.extid);
+
+// ---------------------------------------------------------------------------
+// SSO config composable
+// ---------------------------------------------------------------------------
+
+const {
+  isLoading: ssoConfigLoading,
+  isInitialized: ssoInitialized,
+  isSaving: ssoSaving,
+  isDeleting: ssoDeleting,
+  isTesting,
+  error: _ssoConfigError,
+  ssoConfig,
+  formState: ssoFormState,
+  testResult,
+  testError,
+  isConfigured: ssoIsConfigured,
+  hasUnsavedChanges: ssoHasUnsavedChanges,
+  clientSecretMasked,
+  initialize: initializeSsoConfig,
+  saveConfig: saveSsoConfig,
+  deleteConfig: deleteSsoConfig,
+  testConnection,
+  discardChanges: discardSsoChanges,
+} = useSsoConfig(props.extid);
+
+const showSsoModal = ref(false);
+
+// Deep link support: `?modal=sso` opens the SSO credentials modal on load,
+// e.g. from the org SSO tab's Configure link.
+const wantsSsoModal = computed(() => route.query.modal === 'sso');
+
+const handleOpenSsoModal = () => {
+  showSsoModal.value = true;
+};
+
+const handleCloseSsoModal = () => {
+  showSsoModal.value = false;
+  // Strip the deep-link param so a refresh doesn't reopen the modal.
+  if (wantsSsoModal.value) {
+    const { modal: _modal, ...query } = route.query;
+    router.replace({ query });
+  }
+};
 
 // ---------------------------------------------------------------------------
 // Navigation
@@ -85,9 +157,10 @@ const handleBack = () => {
   router.push(`/org/${props.orgid}/domains/${props.extid}`);
 };
 
-// Unsaved changes guard
+// Unsaved changes guard. The signin form auto-saves, so its hasUnsavedChanges
+// is effectively always false; this now guards the SSO modal's pending edits.
 onBeforeRouteLeave((_to, _from, next) => {
-  if (hasUnsavedChanges.value) {
+  if (ssoHasUnsavedChanges.value) {
     const answer = window.confirm(t('web.branding.you_have_unsaved_changes_are_you_sure'));
     if (answer) next();
     else next(false);
@@ -109,6 +182,11 @@ onMounted(async () => {
   if (canCustomSignin.value) {
     await initializeSigninConfig();
   }
+
+  if (canManageSso.value) {
+    await initializeSsoConfig();
+    if (wantsSsoModal.value) showSsoModal.value = true;
+  }
 });
 
 // Handle race condition: organizations (and thus entitlements) may load after
@@ -116,6 +194,13 @@ onMounted(async () => {
 watch(canCustomSignin, async (entitled) => {
   if (entitled && !isInitialized.value) {
     await initializeSigninConfig();
+  }
+});
+
+watch(canManageSso, async (entitled) => {
+  if (entitled && !ssoInitialized.value) {
+    await initializeSsoConfig();
+    if (wantsSsoModal.value) showSsoModal.value = true;
   }
 });
 </script>
@@ -201,7 +286,7 @@ watch(canCustomSignin, async (entitled) => {
                 class="size-5 text-brand-600 dark:text-brand-400"
                 aria-hidden="true" />
             </div>
-            <div>
+            <div class="flex-1">
               <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
                 {{ t('web.domains.signin.title') }}
               </h2>
@@ -209,6 +294,13 @@ watch(canCustomSignin, async (entitled) => {
                 {{ t('web.domains.signin.config_description') }}
               </p>
             </div>
+            <ToggleWithIcon
+              :enabled="Boolean(formState.enabled)"
+              :disabled="isSaving"
+              :loading="savingField === 'enabled'"
+              :on-label="t('web.COMMON.enabled')"
+              :off-label="t('web.COMMON.disabled')"
+              @update:enabled="autoSaveField('enabled', $event)" />
           </div>
         </div>
 
@@ -229,17 +321,43 @@ watch(canCustomSignin, async (entitled) => {
 
           <DomainSigninConfigForm
             :domain-ext-id="props.extid"
-            v-model:form-state="formState"
+            :form-state="formState"
             :is-loading="signinLoading"
             :is-saving="isSaving"
             :is-deleting="isDeleting"
-            :has-unsaved-changes="hasUnsavedChanges"
             :is-configured="isConfigured"
-            @save="saveConfig"
+            :sso-configured="ssoIsConfigured"
+            :can-manage-sso="canManageSso"
+            :global-availability="globalAvailability"
+            :saving-field="savingField"
+            @auto-save="autoSaveFields"
             @delete="deleteConfig"
-            @discard="discardChanges" />
+            @configure-sso="handleOpenSsoModal" />
         </div>
       </div>
+
+      <!-- SSO Credentials Modal -->
+      <SsoCredentialsModal
+        :is-open="showSsoModal"
+        :domain-ext-id="props.extid"
+        :domain-host="customDomainRecord?.display_domain ?? ''"
+        :org-id="props.orgid"
+        v-model:form-state="ssoFormState"
+        :sso-config="ssoConfig"
+        :is-loading="ssoConfigLoading"
+        :is-saving="ssoSaving"
+        :is-deleting="ssoDeleting"
+        :is-testing="isTesting"
+        :has-unsaved-changes="ssoHasUnsavedChanges"
+        :is-configured="ssoIsConfigured"
+        :client-secret-masked="clientSecretMasked"
+        :test-result="testResult"
+        :test-error="testError"
+        @close="handleCloseSsoModal"
+        @save="saveSsoConfig"
+        @delete="deleteSsoConfig"
+        @test="testConnection"
+        @discard="discardSsoChanges" />
     </div>
   </div>
 </template>
