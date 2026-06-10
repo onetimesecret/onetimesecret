@@ -232,7 +232,12 @@ function extractOrgIdFromRequest(request: Request): string | null {
 // Test Suite: DomainsStore Org Context Cache Fix
 // -----------------------------------------------------------------------------
 
-test.describe('DomainsStore Org Context Cache Fix', () => {
+// QUARANTINED — E2E remediation plan Phase 2.4 / PR 5 (issue #3420).
+// Needs ≥2 organizations (expects orgs literally named "Default Workspace" and
+// "A Second Organization") with per-org domain caches to compare — seeded data
+// the CI account does not have. Quarantined with test.describe.fixme until the
+// second-org + per-org-domain fixtures land in PR 6. See e2e/QUARANTINE.md.
+test.describe.fixme('DomainsStore Org Context Cache Fix', () => {
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
   });
@@ -538,7 +543,8 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
 // Additional Edge Case Tests
 // -----------------------------------------------------------------------------
 
-test.describe('DomainsStore Cache - Edge Cases', () => {
+// QUARANTINED with the suite above — needs ≥2 orgs (issue #3420).
+test.describe.fixme('DomainsStore Cache - Edge Cases', () => {
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
   });

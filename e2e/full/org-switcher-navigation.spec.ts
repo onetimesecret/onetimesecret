@@ -162,7 +162,13 @@ function getCurrentTab(page: Page): string | null {
 // Org Switcher Navigation Test Suite
 // -----------------------------------------------------------------------------
 
-test.describe('Org Switcher Navigation - Same Tab Navigation', () => {
+// QUARANTINED — E2E remediation plan Phase 2.4 / PR 5 (issue #3420).
+// The org switcher only renders for accounts with ≥2 organizations; the CI
+// account has a single default workspace, so every test here previously
+// pass-or-skipped on "Org switcher not visible". Quarantined with
+// test.describe.fixme until the second-org fixture lands in PR 6.
+// See e2e/QUARANTINE.md.
+test.describe.fixme('Org Switcher Navigation - Same Tab Navigation', () => {
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
   });
@@ -409,7 +415,8 @@ test.describe('Org Switcher Navigation - Same Tab Navigation', () => {
 // Edge Cases and Error Handling
 // -----------------------------------------------------------------------------
 
-test.describe('Org Switcher Navigation - Edge Cases', () => {
+// QUARANTINED with the suite above — needs ≥2 orgs (issue #3420).
+test.describe.fixme('Org Switcher Navigation - Edge Cases', () => {
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
   });
