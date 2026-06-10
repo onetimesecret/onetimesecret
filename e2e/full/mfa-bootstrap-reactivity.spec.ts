@@ -251,14 +251,14 @@ test.describe('MFA Flow - bootstrapStore Reactivity', () => {
     await loginWithMfaCredentials(page);
     await expect(page).toHaveURL(/\/mfa-verify/);
 
-    // Generate or use provided OTP
-    let otpCode: string;
-    try {
-      otpCode = await generateTotpCode(process.env.TEST_MFA_SECRET || '');
-    } catch (error) {
-      test.skip(true, 'OTP generation not available');
-      return;
-    }
+    // Deriving a live code needs the TOTP seed; gate on it so the requirement
+    // is explicit. A bad/garbage seed now FAILS (generateTotpCode throws)
+    // instead of silently skipping — the skip was the "can't fail" anti-pattern.
+    test.skip(
+      !process.env.TEST_MFA_SECRET,
+      'TC-MFA-004 requires TEST_MFA_SECRET (the TOTP seed) to derive a code'
+    );
+    const otpCode = await generateTotpCode(process.env.TEST_MFA_SECRET as string);
 
     // Enter OTP code
     // Handle both single input and multiple digit inputs

@@ -189,10 +189,7 @@ test.describe.fixme('Org Switcher Navigation - Same Tab Navigation', () => {
     const orgTrigger = orgSwitcher.trigger(page);
     const triggerVisible = await orgTrigger.isVisible().catch(() => false);
 
-    if (!triggerVisible) {
-      test.skip(true, 'Org switcher not visible - may be using hideBoth preset');
-      return;
-    }
+    expect(triggerVisible, 'org switcher requires ≥2 orgs — second-org fixture (#3420)').toBe(true);
 
     // Store the initial URL for comparison
     const initialUrl = page.url();
@@ -243,10 +240,7 @@ test.describe.fixme('Org Switcher Navigation - Same Tab Navigation', () => {
     const orgTrigger = orgSwitcher.trigger(page);
     const triggerVisible = await orgTrigger.isVisible().catch(() => false);
 
-    if (!triggerVisible) {
-      test.skip(true, 'Org switcher not visible on billing tab');
-      return;
-    }
+    expect(triggerVisible, 'org switcher requires ≥2 orgs — second-org fixture (#3420)').toBe(true);
 
     const initialUrl = page.url();
 
@@ -284,10 +278,7 @@ test.describe.fixme('Org Switcher Navigation - Same Tab Navigation', () => {
     const orgTrigger = orgSwitcher.trigger(page);
     const triggerVisible = await orgTrigger.isVisible().catch(() => false);
 
-    if (!triggerVisible) {
-      test.skip(true, 'Org switcher not visible on settings tab');
-      return;
-    }
+    expect(triggerVisible, 'org switcher requires ≥2 orgs — second-org fixture (#3420)').toBe(true);
 
     const initialUrl = page.url();
 
@@ -329,10 +320,7 @@ test.describe.fixme('Org Switcher Navigation - Same Tab Navigation', () => {
     const orgTrigger = orgSwitcher.trigger(page);
     const triggerVisible = await orgTrigger.isVisible().catch(() => false);
 
-    if (!triggerVisible) {
-      test.skip(true, 'Org switcher not visible');
-      return;
-    }
+    expect(triggerVisible, 'org switcher requires ≥2 orgs — second-org fixture (#3420)').toBe(true);
 
     // Record initial state
     const initialExtid = extid1;
@@ -383,10 +371,7 @@ test.describe.fixme('Org Switcher Navigation - Same Tab Navigation', () => {
     const orgTrigger = orgSwitcher.trigger(page);
     const triggerVisible = await orgTrigger.isVisible().catch(() => false);
 
-    if (!triggerVisible) {
-      test.skip(true, 'Org switcher not visible');
-      return;
-    }
+    expect(triggerVisible, 'org switcher requires ≥2 orgs — second-org fixture (#3420)').toBe(true);
 
     // Get initial org name from header/trigger
     const initialTriggerText = await orgTrigger.textContent();
@@ -433,10 +418,7 @@ test.describe.fixme('Org Switcher Navigation - Edge Cases', () => {
     const orgTrigger = orgSwitcher.trigger(page);
     const triggerVisible = await orgTrigger.isVisible().catch(() => false);
 
-    if (!triggerVisible) {
-      test.skip(true, 'Org switcher not visible');
-      return;
-    }
+    expect(triggerVisible, 'org switcher requires ≥2 orgs — second-org fixture (#3420)').toBe(true);
 
     const initialUrl = page.url();
 
@@ -468,10 +450,7 @@ test.describe.fixme('Org Switcher Navigation - Edge Cases', () => {
     const orgTrigger = orgSwitcher.trigger(page);
     const triggerVisible = await orgTrigger.isVisible().catch(() => false);
 
-    if (!triggerVisible) {
-      test.skip(true, 'Org switcher not visible');
-      return;
-    }
+    expect(triggerVisible, 'org switcher requires ≥2 orgs — second-org fixture (#3420)').toBe(true);
 
     // Switch to Second Organization
     await switchOrgViaSwitcher(page, ORG_SECOND);

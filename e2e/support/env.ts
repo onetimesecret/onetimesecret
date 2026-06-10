@@ -47,11 +47,14 @@ export const env = {
   /** The SSO sign-in UI is configured (E2E_SSO_UI) — OmniAuth/SSO buttons render. */
   hasSsoUi: flag('E2E_SSO_UI'),
 
-  /** An MFA/TOTP-enrolled account is available (TEST_MFA_USER_*). */
+  /**
+   * An MFA/TOTP-enrolled account is available. Matches the convention already
+   * used by e2e/full/mfa-bootstrap-reactivity.spec.ts.
+   */
   hasMfaAccount:
     flag('TEST_MFA_USER_EMAIL') &&
     flag('TEST_MFA_USER_PASSWORD') &&
-    flag('TEST_MFA_USER_SECRET'),
+    (flag('TEST_MFA_SECRET') || flag('TEST_MFA_OTP')),
 };
 
 /**
@@ -68,5 +71,5 @@ export const gateReason = {
     'an OmniAuth/SSO provider enabled).',
   mfaAccount:
     'Requires an MFA/TOTP-enrolled account — set TEST_MFA_USER_EMAIL / ' +
-    'TEST_MFA_USER_PASSWORD / TEST_MFA_USER_SECRET.',
+    'TEST_MFA_USER_PASSWORD / TEST_MFA_SECRET.',
 } as const;

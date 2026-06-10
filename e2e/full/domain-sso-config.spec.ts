@@ -30,6 +30,21 @@
 
 import { expect, Page, test } from '@playwright/test';
 
+import { env, gateReason } from '../support/env';
+
+// HOLDING ACTION — not coverage (E2E remediation plan Phase 2.4 / PR 5).
+// Per-domain SSO config needs BOTH a custom domain and the manage_sso
+// entitlement / SSO UI — optional deployment config, so env-gated rather than
+// fixme'd: set E2E_CUSTOM_DOMAINS and E2E_SSO_UI against a suitably-configured
+// target to run it. No CI lane sets either yet, so this suite is DORMANT in CI
+// — real coverage returns when PR 6 adds a configured lane + fixtures.
+test.beforeEach(() => {
+  test.skip(
+    !env.hasCustomDomains || !env.hasSsoUi,
+    `${gateReason.customDomains} ${gateReason.ssoUi}`
+  );
+});
+
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
@@ -915,28 +930,25 @@ test.describe('Domain SSO Configuration - Access Control', () => {
     page.setDefaultTimeout(15000);
   });
 
-  test('TC-DSSO-019: shows access denied for users without manage_sso entitlement', async ({
-    page,
-  }) => {
-    const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+  // Inverted precondition: this asserts the *absence* of the manage_sso
+  // entitlement, but the suite above is gated on E2E_SSO_UI (entitlement
+  // present), so it can never hold here. Quarantined as test.fixme until a
+  // no-entitlement lane exists; do not assert this in the SSO-gated file.
+  test.fixme(
+    'TC-DSSO-019: shows access denied for users without manage_sso entitlement',
+    async ({ page }) => {
+      const org = await getFirstOrganization(page);
+      expect(org, 'default workspace should exist').not.toBeNull();
 
-    // Navigate to org settings
-    await page.goto(`/org/${org!.extid}`);
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+      // Navigate to org settings
+      await page.goto(`/org/${org!.extid}`);
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    // Check if SSO tab is NOT visible (no entitlement)
-    const ssoTab = page.locator('[data-testid="org-tab-sso"]');
-    const ssoTabVisible = await ssoTab.isVisible().catch(() => false);
-
-    if (!ssoTabVisible) {
-      // User doesn't have manage_sso entitlement - SSO tab is correctly hidden
-      expect(ssoTabVisible).toBe(false);
-    } else {
-      // User has entitlement - this test is not applicable
-      test.skip(true, 'User has manage_sso entitlement');
+      // Without the manage_sso entitlement the SSO tab is correctly hidden.
+      const ssoTab = page.locator('[data-testid="org-tab-sso"]');
+      await expect(ssoTab).toBeHidden();
     }
-  });
+  );
 
   test('TC-DSSO-020: domain SSO page shows access denied without entitlement', async ({ page }) => {
     const org = await getFirstOrganization(page);

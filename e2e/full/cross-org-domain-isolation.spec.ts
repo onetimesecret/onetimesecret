@@ -206,10 +206,10 @@ test.describe.fixme('Cross-Organization Domain Isolation', () => {
       // Find orgs with domains to test isolation
       const orgsWithDomains = orgs.filter((o) => o.domainCount > 0);
 
-      if (orgsWithDomains.length < 1) {
-        test.skip(true, 'Test requires at least one organization with domains');
-        return;
-      }
+      expect(
+        orgsWithDomains.length,
+        'requires ≥1 org with domains — second-org + per-org-domain fixture (#3420)'
+      ).toBeGreaterThanOrEqual(1);
 
       // Test each org's page (domains tab is default)
       for (const currentOrg of orgs) {
@@ -465,10 +465,10 @@ test.describe.fixme('Cross-Organization Domain Isolation', () => {
             await verifyEmptyDomainsState(page);
           }
         } else {
-          test.skip(true, 'OrgB not found in org switcher dropdown');
+          throw new Error('OrgB not found in org switcher — needs second-org fixture (#3420)');
         }
       } else {
-        test.skip(true, 'Org switcher not visible on domains page');
+        throw new Error('Org switcher not visible on domains page — needs second-org fixture (#3420)');
       }
     });
   });

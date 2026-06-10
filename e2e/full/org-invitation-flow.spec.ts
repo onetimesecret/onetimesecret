@@ -597,22 +597,14 @@ test.describe('INV-011: Revoke Invitation', () => {
 test.describe('INV-012: Gmail Alias Normalization', () => {
   test.skip(!hasTestCredentials, 'Skipping: Requires specific email setup for Gmail alias testing');
 
-  test.skip('Gmail alias normalization allows user+tag@gmail.com to match user@gmail.com', async () => {
-    // This test requires a real Gmail account setup
-    // The normalizeEmail function in AcceptInvite.vue handles:
-    // - Lowercasing
-    // - Stripping + suffixes (user+tag@domain → user@domain)
-
-    // Verify the normalization function works correctly
-    // by checking the UI behavior when a +tag email is invited
-
-    // Note: Full E2E test would require:
-    // 1. Create invitation for user+tag@gmail.com
-    // 2. Login as user@gmail.com
-    // 3. Verify NO mismatch warning (emails match after normalization)
-
-    // For now, we verify the function exists in the component
-    test.skip(true, 'Gmail alias test requires real email accounts');
+  // QUARANTINED (E2E remediation plan Phase 2.4 / PR 5, issue #3421): needs real
+  // Gmail accounts + captured invite email. Unimplemented placeholder ->
+  // test.fixme. normalizeEmail() in AcceptInvite.vue is unit-tested; see
+  // e2e/QUARANTINE.md.
+  test.fixme('Gmail alias normalization allows user+tag@gmail.com to match user@gmail.com', async () => {
+    // TODO(#3421): create an invite for user+tag@gmail.com, sign in as
+    // user@gmail.com, and assert NO mismatch warning (emails match after
+    // normalization) — once a mail interceptor exists.
   });
 });
 
@@ -765,17 +757,13 @@ test.describe('INV-SEC-002: Account Enumeration Prevention', () => {
 test.describe('INV-017: Complete Invitation Acceptance Flow', () => {
   test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
 
-  test.skip('After accepting invitation, user can see and access the organization in their org list', async () => {
-    // This is a full integration test that would require:
-    // 1. Owner creates invitation
-    // 2. New user creates account with invited email
-    // 3. New user accepts invitation
-    // 4. New user verifies org appears in their list
-
-    // Note: This test is complex and may need Mailpit integration
-    // for full email verification flow
-
-    test.skip(true, 'Full integration test requires email verification setup');
+  // QUARANTINED (E2E remediation plan Phase 2.4 / PR 5, issue #3421): full
+  // multi-account integration — owner invites, a NEW account signs up with the
+  // invited email, accepts, and sees the org. Needs a second account + Mailpit.
+  // Unimplemented placeholder -> test.fixme. See e2e/QUARANTINE.md.
+  test.fixme('After accepting invitation, user can see and access the organization in their org list', async () => {
+    // TODO(#3421): owner creates invite -> new account signs up with the
+    // invited email -> accepts -> asserts the org appears in their list.
   });
 });
 

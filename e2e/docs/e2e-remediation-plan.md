@@ -19,7 +19,7 @@
 | Phase 1 / PR 2 — reporter/artifacts + lint-ban + flaky gate | ✅ **Done** | [PR #3411](https://github.com/onetimesecret/onetimesecret/pull/3411) · branch `claude/affectionate-clarke-4fyakw` |
 | Phase 2.1+2.2 / PR 3 — auth setup project + app-readiness signal | 🔄 **In review** | [PR #3412](https://github.com/onetimesecret/onetimesecret/pull/3412) · branch `claude/e2e-phase2-auth-readiness` (rebased onto `develop` after #3411 merged; also carries the CI-triage-round-1 auth-compat sweep of `full/`) |
 | Phase 2.3 / PR 4 — `networkidle`/sleep sweep + lint→error | 🔄 **In review** | [PR #3416](https://github.com/onetimesecret/onetimesecret/pull/3416) (draft) · branch `claude/e2e-phase24-networkidle-sweep`, stacked on #3412; rebase + mark ready once #3412 merges |
-| Phase 2.4 / PR 5 — defensive-skip triage | ⏭️ **Next** | not started |
+| Phase 2.4 / PR 5 — defensive-skip triage | 🔄 **In progress (mechanical half)** | branch `claude/hopeful-bardeen-j5695i` — `all/incoming-secrets` revived (47 self-skips → real assertions), `e2e/support/env.ts` gates, fixture-dependent suites `test.fixme`'d, domain/SSO/MFA suites env-gated. **73 of 143 `test.skip(true)` removed; ~70 org-existence conversions deferred** to a CI-verified follow-up (see `e2e/QUARANTINE.md`). |
 | Phase 3 / PR 6 — fixtures module, pinned config, parallel/shard | ⬜ Todo | not started |
 
 > **CI-signal caveat for stacked PRs:** `container-e2e-tests` only triggers on
@@ -33,6 +33,23 @@
 > workflow it modifies.
 
 ### For a fresh contributor picking up PR 5 (Phase 2.4: defensive-skip triage)
+
+> **Status (PR 5, branch `claude/hopeful-bardeen-j5695i`):** the *mechanical,
+> can't-add-red half* is done — `all/incoming-secrets.spec.ts` revived (its 47
+> self-skips were a bug: the mock recipient shape `{hash,name}` never matched
+> the `{digest,display_name}` schema, so the form never rendered and every test
+> silently skipped; now real assertions), `e2e/support/env.ts` added,
+> fixture-dependent suites `test.fixme`'d and domain/SSO/MFA suites env-gated
+> (all logged in `e2e/QUARANTINE.md`). **73 of 143 `test.skip(true)` removed.**
+> Two things are deliberately **deferred to a CI-verified follow-up** (do NOT do
+> them blind — PR 4 proved the org UI doesn't always render as these tests
+> assert, so converting their guards can trade known red for fresh red):
+> (1) the ~70 org-existence `test.skip(true)` → assertion conversions in
+> `organization-settings`, `identifier-url-patterns`, `scope-switcher`,
+> `organization-members`; (2) the `organization-members` role/remove `test.fixme`
+> rows for issue #3419. Also note: **env-gating is a holding action, not
+> coverage** — no CI lane sets `E2E_CUSTOM_DOMAINS`/`E2E_SSO_UI`/`TEST_MFA_*`
+> yet, so those suites are dormant until PR 6 adds a configured lane.
 
 1. **Verify Phases 0–2.3 already landed — do not redo them.** Phase 1:
    `.github/workflows/e2e.yml` has a "Fail on flaky tests" step. Phase
@@ -286,7 +303,7 @@ _Live status is tracked in the **Progress & how to continue** section near the t
 | 2 | 1 | reporter/artifacts, lint rules (warn), flaky gate | ✅ Done ([#3411](https://github.com/onetimesecret/onetimesecret/pull/3411)) |
 | 3 | 2.1+2.2 | global-setup/auth fixture + app-readiness signal | 🔄 In review ([#3412](https://github.com/onetimesecret/onetimesecret/pull/3412)) — surfaces real `full/` failures (intended) |
 | 4 | 2.3 | `networkidle`/sleep sweep, by directory; lint → error | 🔄 In review ([#3416](https://github.com/onetimesecret/onetimesecret/pull/3416), stacked on #3412) |
-| 5 | 2.4 | defensive-skip triage | Med |
+| 5 | 2.4 | defensive-skip triage — revive `incoming-secrets`, env gates, `fixme` fixture-dependent suites | 🔄 In progress (`claude/hopeful-bardeen-j5695i`); org-existence assertion conversions split to a CI-verified follow-up |
 | 6 | 3 | fixtures.ts, pinned brand, parallel/shard | Low |
 
 ## Key risks & mitigations

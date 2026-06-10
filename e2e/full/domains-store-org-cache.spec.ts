@@ -359,8 +359,9 @@ test.describe.fixme('DomainsStore Org Context Cache Fix', () => {
 
       // Validate we found two DIFFERENT orgs
       if (defaultWorkspace.extid === secondOrg.extid) {
-        test.skip(true, `Found same org twice: ${defaultWorkspace.name} (${defaultWorkspace.extid})`);
-        return;
+        throw new Error(
+          `expected two distinct orgs but found ${defaultWorkspace.name} twice — needs second-org fixture (#3420)`
+        );
       }
 
       console.log(`[TC-DSC-002] Using Default Workspace: "${defaultWorkspace.name}" (${defaultWorkspace.extid})`);
@@ -559,8 +560,7 @@ test.describe.fixme('DomainsStore Cache - Edge Cases', () => {
     const secondOrg = findOrgByName(orgs, 'Second Organization');
 
     if (!defaultWorkspace || !secondOrg) {
-      test.skip(true, 'Test requires specific organizations');
-      return;
+      throw new Error('requires "Default Workspace" + "Second Organization" — second-org fixture (#3420)');
     }
 
     // Navigate to Default Workspace (domains tab is default)
@@ -621,8 +621,7 @@ test.describe.fixme('DomainsStore Cache - Edge Cases', () => {
 
     const secondOrg = findOrgByName(orgs, 'Second Organization');
     if (!secondOrg) {
-      test.skip(true, 'Test requires "A Second Organization"');
-      return;
+      throw new Error('requires a "Second Organization" — second-org fixture (#3420)');
     }
 
     // Navigate to Second Org (domains tab is default, should be empty)
