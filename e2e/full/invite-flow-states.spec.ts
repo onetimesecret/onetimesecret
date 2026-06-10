@@ -229,10 +229,11 @@ test.describe('INV-001: New User Atomic Signup Flow', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-002: New User Magic Link Flow', () => {
-  test.skip('new user can join via magic link', async () => {
-    // Lower priority - skip if magic link feature not enabled in test env
-    // Magic link requires email delivery infrastructure
-    test.skip(true, 'Magic link flow requires email infrastructure - not tested in basic suite');
+  // QUARANTINED (E2E remediation plan Phase 2.4 / PR 5, issue #3421): the magic
+  // link arrives by email, so this needs a mail interceptor the CI container
+  // does not run. Unimplemented placeholder -> test.fixme. See e2e/QUARANTINE.md.
+  test.fixme('new user can join via magic link', async () => {
+    // TODO(#3421): drive the magic-link join once a mail interceptor exists.
   });
 });
 
@@ -241,9 +242,11 @@ test.describe('INV-002: New User Magic Link Flow', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-003: New User SSO Flow', () => {
-  test.skip('new user can join via SSO', async () => {
-    // Requires SSO configuration in test environment
-    test.skip(true, 'SSO flow requires SSO provider configuration - not tested in basic suite');
+  // QUARANTINED (E2E remediation plan Phase 2.4 / PR 5, issue #3421): needs an
+  // SSO/IdP configured AND a captured invite email. Unimplemented placeholder
+  // -> test.fixme. See e2e/QUARANTINE.md.
+  test.fixme('new user can join via SSO', async () => {
+    // TODO(#3421): drive the SSO join once an IdP + mail interceptor exist.
   });
 });
 
@@ -324,9 +327,11 @@ test.describe('INV-004: Existing User Signin Flow', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-005: Existing User MFA Flow', () => {
-  test.skip('existing user with MFA completes invite flow', async () => {
-    // Requires MFA to be enabled for test user
-    test.skip(true, 'MFA flow requires MFA-enabled test account - not tested in basic suite');
+  // QUARANTINED (E2E remediation plan Phase 2.4 / PR 5, issue #3421): needs an
+  // MFA-enrolled invitee account (TEST_MFA_* — see e2e/support/env.ts).
+  // Unimplemented placeholder -> test.fixme. See e2e/QUARANTINE.md.
+  test.fixme('existing user with MFA completes invite flow', async () => {
+    // TODO(#3421): drive the MFA invite flow with a seeded MFA account.
   });
 });
 

@@ -172,7 +172,15 @@ async function verifyEmptyDomainsState(page: Page): Promise<void> {
 // Test Suite: Cross-Organization Domain Isolation
 // -----------------------------------------------------------------------------
 
-test.describe('Cross-Organization Domain Isolation', () => {
+// QUARANTINED — E2E remediation plan Phase 2.4 / PR 5 (issue #3420).
+// Every test here needs ≥2 organizations (most with disjoint custom-domain
+// sets) — seeded data relationships the CI account (one default workspace, no
+// domains) does not have. These were among the hard failures aborting the
+// #3412/#3416 runs: the file's getUserOrganizations() DOM scraper times out,
+// tripping --max-failures and hiding the rest of the suite. Quarantined with
+// test.describe.fixme (not test.skip, which hides them) until the second-org +
+// per-org-domain fixtures land in PR 6. See e2e/QUARANTINE.md.
+test.describe.fixme('Cross-Organization Domain Isolation', () => {
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
   });
@@ -198,10 +206,10 @@ test.describe('Cross-Organization Domain Isolation', () => {
       // Find orgs with domains to test isolation
       const orgsWithDomains = orgs.filter((o) => o.domainCount > 0);
 
-      if (orgsWithDomains.length < 1) {
-        test.skip(true, 'Test requires at least one organization with domains');
-        return;
-      }
+      expect(
+        orgsWithDomains.length,
+        'requires ≥1 org with domains — second-org + per-org-domain fixture (#3420)'
+      ).toBeGreaterThanOrEqual(1);
 
       // Test each org's page (domains tab is default)
       for (const currentOrg of orgs) {
@@ -457,10 +465,10 @@ test.describe('Cross-Organization Domain Isolation', () => {
             await verifyEmptyDomainsState(page);
           }
         } else {
-          test.skip(true, 'OrgB not found in org switcher dropdown');
+          throw new Error('OrgB not found in org switcher — needs second-org fixture (#3420)');
         }
       } else {
-        test.skip(true, 'Org switcher not visible on domains page');
+        throw new Error('Org switcher not visible on domains page — needs second-org fixture (#3420)');
       }
     });
   });
@@ -558,7 +566,8 @@ test.describe('Cross-Organization Domain Isolation', () => {
 // Test Suite: API-Level Domain Isolation (Network Interception)
 // -----------------------------------------------------------------------------
 
-test.describe('API-Level Domain Isolation', () => {
+// QUARANTINED with the suite above — needs ≥2 orgs (issue #3420).
+test.describe.fixme('API-Level Domain Isolation', () => {
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
   });

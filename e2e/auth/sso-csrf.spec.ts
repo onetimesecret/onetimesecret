@@ -8,6 +8,18 @@
 
 import { test, expect } from '@playwright/test';
 
+import { env, gateReason } from '../support/env';
+
+// HOLDING ACTION — not coverage (E2E remediation plan Phase 2.4 / PR 5).
+// These assert the SSO sign-in UI, which only renders when an OmniAuth/SSO
+// provider is configured — optional deployment config the CI container does
+// not set. Env-gated on E2E_SSO_UI so the skip names a real condition instead
+// of an unconditional skip; CI does not set it (and does not run e2e/auth/ at
+// all), so this suite is DORMANT until a SSO-configured target/lane exists.
+test.beforeEach(() => {
+  test.skip(!env.hasSsoUi, gateReason.ssoUi);
+});
+
 /**
  * SSO Form Submission E2E Tests
  *
@@ -54,10 +66,8 @@ test.describe('SSO Form Submission', () => {
       return !!state.features?.sso;
     });
 
-    if (!ssoEnabled) {
-      test.skip(true, 'SSO is not enabled in this environment');
-      return;
-    }
+    // Gated on E2E_SSO_UI above, so SSO must be enabled here.
+    expect(ssoEnabled, 'SSO should be enabled when E2E_SSO_UI is set').toBe(true);
 
     // SSO button should be visible
     const ssoButton = page.locator('[data-testid="sso-button"]');
@@ -73,12 +83,8 @@ test.describe('SSO Form Submission', () => {
 
     // Check if SSO button exists
     const ssoButton = page.locator('[data-testid="sso-button"]');
-    const ssoButtonVisible = await ssoButton.isVisible().catch(() => false);
-
-    if (!ssoButtonVisible) {
-      test.skip(true, 'SSO button not present - OmniAuth may not be enabled');
-      return;
-    }
+    // Gated on E2E_SSO_UI above, so the SSO button must render here.
+    await expect(ssoButton).toBeVisible();
 
     // Intercept form submissions to verify CSRF token
     let formSubmission: { action: string; method: string; shrimp: string | null } | null = null;
@@ -170,12 +176,8 @@ test.describe('SSO Form Submission', () => {
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const ssoButton = page.locator('[data-testid="sso-button"]');
-    const ssoButtonVisible = await ssoButton.isVisible().catch(() => false);
-
-    if (!ssoButtonVisible) {
-      test.skip(true, 'SSO button not present - OmniAuth may not be enabled');
-      return;
-    }
+    // Gated on E2E_SSO_UI above, so the SSO button must render here.
+    await expect(ssoButton).toBeVisible();
 
     // Prevent actual form submission
     await page.addInitScript(() => {
@@ -205,12 +207,8 @@ test.describe('SSO Form Submission', () => {
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const ssoButton = page.locator('[data-testid="sso-button"]');
-    const ssoButtonVisible = await ssoButton.isVisible().catch(() => false);
-
-    if (!ssoButtonVisible) {
-      test.skip(true, 'SSO button not present - OmniAuth may not be enabled');
-      return;
-    }
+    // Gated on E2E_SSO_UI above, so the SSO button must render here.
+    await expect(ssoButton).toBeVisible();
 
     // Divider with "or continue with" text should be visible
     const dividerText = page.locator('text=/or continue with/i');
@@ -224,12 +222,8 @@ test.describe('SSO Form - Structure Validation', () => {
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const ssoButton = page.locator('[data-testid="sso-button"]');
-    const ssoButtonVisible = await ssoButton.isVisible().catch(() => false);
-
-    if (!ssoButtonVisible) {
-      test.skip(true, 'SSO button not present - OmniAuth may not be enabled');
-      return;
-    }
+    // Gated on E2E_SSO_UI above, so the SSO button must render here.
+    await expect(ssoButton).toBeVisible();
 
     // Capture the form that gets created
     let formAction: string | null = null;
@@ -266,12 +260,8 @@ test.describe('SSO Form - Structure Validation', () => {
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const ssoButton = page.locator('[data-testid="sso-button"]');
-    const ssoButtonVisible = await ssoButton.isVisible().catch(() => false);
-
-    if (!ssoButtonVisible) {
-      test.skip(true, 'SSO button not present - OmniAuth may not be enabled');
-      return;
-    }
+    // Gated on E2E_SSO_UI above, so the SSO button must render here.
+    await expect(ssoButton).toBeVisible();
 
     // Capture all form inputs
     let formInputs: Array<{ name: string; type: string }> = [];

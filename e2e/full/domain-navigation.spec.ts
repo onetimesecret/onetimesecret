@@ -19,6 +19,19 @@
 
 import { expect, Page, test } from '@playwright/test';
 
+import { env, gateReason } from '../support/env';
+
+// HOLDING ACTION — not coverage (E2E remediation plan Phase 2.4 / PR 5).
+// Every test needs a custom domain on the test account (optional deployment
+// config), so it is env-gated rather than fixme'd (issue #3420): set
+// E2E_CUSTOM_DOMAINS against a domains-enabled target to run it. No CI lane
+// sets that yet, so this suite is DORMANT in CI — real coverage returns when
+// PR 6 adds a domains-enabled lane + fixtures. Gating before the body runs
+// keeps CI from timing out in the org/domain DOM helpers.
+test.beforeEach(() => {
+  test.skip(!env.hasCustomDomains, gateReason.customDomains);
+});
+
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------

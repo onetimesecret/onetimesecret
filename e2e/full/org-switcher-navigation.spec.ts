@@ -162,7 +162,13 @@ function getCurrentTab(page: Page): string | null {
 // Org Switcher Navigation Test Suite
 // -----------------------------------------------------------------------------
 
-test.describe('Org Switcher Navigation - Same Tab Navigation', () => {
+// QUARANTINED — E2E remediation plan Phase 2.4 / PR 5 (issue #3420).
+// The org switcher only renders for accounts with ≥2 organizations; the CI
+// account has a single default workspace, so every test here previously
+// pass-or-skipped on "Org switcher not visible". Quarantined with
+// test.describe.fixme until the second-org fixture lands in PR 6.
+// See e2e/QUARANTINE.md.
+test.describe.fixme('Org Switcher Navigation - Same Tab Navigation', () => {
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
   });
@@ -183,10 +189,7 @@ test.describe('Org Switcher Navigation - Same Tab Navigation', () => {
     const orgTrigger = orgSwitcher.trigger(page);
     const triggerVisible = await orgTrigger.isVisible().catch(() => false);
 
-    if (!triggerVisible) {
-      test.skip(true, 'Org switcher not visible - may be using hideBoth preset');
-      return;
-    }
+    expect(triggerVisible, 'org switcher requires ≥2 orgs — second-org fixture (#3420)').toBe(true);
 
     // Store the initial URL for comparison
     const initialUrl = page.url();
@@ -237,10 +240,7 @@ test.describe('Org Switcher Navigation - Same Tab Navigation', () => {
     const orgTrigger = orgSwitcher.trigger(page);
     const triggerVisible = await orgTrigger.isVisible().catch(() => false);
 
-    if (!triggerVisible) {
-      test.skip(true, 'Org switcher not visible on billing tab');
-      return;
-    }
+    expect(triggerVisible, 'org switcher requires ≥2 orgs — second-org fixture (#3420)').toBe(true);
 
     const initialUrl = page.url();
 
@@ -278,10 +278,7 @@ test.describe('Org Switcher Navigation - Same Tab Navigation', () => {
     const orgTrigger = orgSwitcher.trigger(page);
     const triggerVisible = await orgTrigger.isVisible().catch(() => false);
 
-    if (!triggerVisible) {
-      test.skip(true, 'Org switcher not visible on settings tab');
-      return;
-    }
+    expect(triggerVisible, 'org switcher requires ≥2 orgs — second-org fixture (#3420)').toBe(true);
 
     const initialUrl = page.url();
 
@@ -323,10 +320,7 @@ test.describe('Org Switcher Navigation - Same Tab Navigation', () => {
     const orgTrigger = orgSwitcher.trigger(page);
     const triggerVisible = await orgTrigger.isVisible().catch(() => false);
 
-    if (!triggerVisible) {
-      test.skip(true, 'Org switcher not visible');
-      return;
-    }
+    expect(triggerVisible, 'org switcher requires ≥2 orgs — second-org fixture (#3420)').toBe(true);
 
     // Record initial state
     const initialExtid = extid1;
@@ -377,10 +371,7 @@ test.describe('Org Switcher Navigation - Same Tab Navigation', () => {
     const orgTrigger = orgSwitcher.trigger(page);
     const triggerVisible = await orgTrigger.isVisible().catch(() => false);
 
-    if (!triggerVisible) {
-      test.skip(true, 'Org switcher not visible');
-      return;
-    }
+    expect(triggerVisible, 'org switcher requires ≥2 orgs — second-org fixture (#3420)').toBe(true);
 
     // Get initial org name from header/trigger
     const initialTriggerText = await orgTrigger.textContent();
@@ -409,7 +400,8 @@ test.describe('Org Switcher Navigation - Same Tab Navigation', () => {
 // Edge Cases and Error Handling
 // -----------------------------------------------------------------------------
 
-test.describe('Org Switcher Navigation - Edge Cases', () => {
+// QUARANTINED with the suite above — needs ≥2 orgs (issue #3420).
+test.describe.fixme('Org Switcher Navigation - Edge Cases', () => {
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
   });
@@ -426,10 +418,7 @@ test.describe('Org Switcher Navigation - Edge Cases', () => {
     const orgTrigger = orgSwitcher.trigger(page);
     const triggerVisible = await orgTrigger.isVisible().catch(() => false);
 
-    if (!triggerVisible) {
-      test.skip(true, 'Org switcher not visible');
-      return;
-    }
+    expect(triggerVisible, 'org switcher requires ≥2 orgs — second-org fixture (#3420)').toBe(true);
 
     const initialUrl = page.url();
 
@@ -461,10 +450,7 @@ test.describe('Org Switcher Navigation - Edge Cases', () => {
     const orgTrigger = orgSwitcher.trigger(page);
     const triggerVisible = await orgTrigger.isVisible().catch(() => false);
 
-    if (!triggerVisible) {
-      test.skip(true, 'Org switcher not visible');
-      return;
-    }
+    expect(triggerVisible, 'org switcher requires ≥2 orgs — second-org fixture (#3420)').toBe(true);
 
     // Switch to Second Organization
     await switchOrgViaSwitcher(page, ORG_SECOND);

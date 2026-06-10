@@ -268,9 +268,12 @@ test.describe('Signup Submission with Plan Intent', () => {
 // These tests require email verification to be disabled or a mail interceptor.
 // Marked as skipped by default - enable when test infrastructure supports it.
 
-test.describe('Post-Verification Redirect', () => {
-  // Skip these tests unless email verification is disabled in test environment
-  test.skip(({ page }) => true, 'Requires email verification disabled or mail interceptor');
+// QUARANTINED — E2E remediation plan Phase 2.4 / PR 5 (issue #3421).
+// Needs a mail interceptor (Mailpit/MailHog) to capture the verification link;
+// CI runs with AUTH_AUTOVERIFY=true and cannot exercise the post-verification
+// redirect. Was `test.skip(() => true)` — an unconditional skip that could only
+// pass-or-skip. See e2e/QUARANTINE.md.
+test.describe.fixme('Post-Verification Redirect', () => {
 
   test.describe('when verification is disabled (test mode)', () => {
     test('signup with plan params auto-redirects to checkout after verification', async ({ page }) => {

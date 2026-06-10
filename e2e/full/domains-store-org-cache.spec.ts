@@ -232,7 +232,12 @@ function extractOrgIdFromRequest(request: Request): string | null {
 // Test Suite: DomainsStore Org Context Cache Fix
 // -----------------------------------------------------------------------------
 
-test.describe('DomainsStore Org Context Cache Fix', () => {
+// QUARANTINED — E2E remediation plan Phase 2.4 / PR 5 (issue #3420).
+// Needs ≥2 organizations (expects orgs literally named "Default Workspace" and
+// "A Second Organization") with per-org domain caches to compare — seeded data
+// the CI account does not have. Quarantined with test.describe.fixme until the
+// second-org + per-org-domain fixtures land in PR 6. See e2e/QUARANTINE.md.
+test.describe.fixme('DomainsStore Org Context Cache Fix', () => {
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
   });
@@ -354,8 +359,9 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
 
       // Validate we found two DIFFERENT orgs
       if (defaultWorkspace.extid === secondOrg.extid) {
-        test.skip(true, `Found same org twice: ${defaultWorkspace.name} (${defaultWorkspace.extid})`);
-        return;
+        throw new Error(
+          `expected two distinct orgs but found ${defaultWorkspace.name} twice — needs second-org fixture (#3420)`
+        );
       }
 
       console.log(`[TC-DSC-002] Using Default Workspace: "${defaultWorkspace.name}" (${defaultWorkspace.extid})`);
@@ -538,7 +544,8 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
 // Additional Edge Case Tests
 // -----------------------------------------------------------------------------
 
-test.describe('DomainsStore Cache - Edge Cases', () => {
+// QUARANTINED with the suite above — needs ≥2 orgs (issue #3420).
+test.describe.fixme('DomainsStore Cache - Edge Cases', () => {
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
   });
@@ -553,8 +560,7 @@ test.describe('DomainsStore Cache - Edge Cases', () => {
     const secondOrg = findOrgByName(orgs, 'Second Organization');
 
     if (!defaultWorkspace || !secondOrg) {
-      test.skip(true, 'Test requires specific organizations');
-      return;
+      throw new Error('requires "Default Workspace" + "Second Organization" — second-org fixture (#3420)');
     }
 
     // Navigate to Default Workspace (domains tab is default)
@@ -615,8 +621,7 @@ test.describe('DomainsStore Cache - Edge Cases', () => {
 
     const secondOrg = findOrgByName(orgs, 'Second Organization');
     if (!secondOrg) {
-      test.skip(true, 'Test requires "A Second Organization"');
-      return;
+      throw new Error('requires a "Second Organization" — second-org fixture (#3420)');
     }
 
     // Navigate to Second Org (domains tab is default, should be empty)

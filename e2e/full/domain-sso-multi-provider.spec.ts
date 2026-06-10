@@ -31,6 +31,22 @@
 
 import { expect, Page, test } from '@playwright/test';
 
+import { env, gateReason } from '../support/env';
+
+// HOLDING ACTION — not coverage (E2E remediation plan Phase 2.4 / PR 5).
+// Multi-domain SSO needs several custom domains plus the manage_sso
+// entitlement / SSO UI — optional deployment config, so env-gated rather than
+// fixme'd: set E2E_CUSTOM_DOMAINS (multiple) and E2E_SSO_UI against a
+// suitably-configured target to run it. No CI lane sets either yet, so this
+// suite is DORMANT in CI — real coverage returns when PR 6 adds a configured
+// lane + fixtures.
+test.beforeEach(() => {
+  test.skip(
+    !env.hasCustomDomains || !env.hasSsoUi,
+    `${gateReason.customDomains} ${gateReason.ssoUi}`
+  );
+});
+
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
