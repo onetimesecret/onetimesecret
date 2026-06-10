@@ -223,7 +223,10 @@ describe('DomainSigninConfigForm', () => {
 
       const emitted = wrapper.emitted('auto-save');
       expect(emitted).toBeTruthy();
-      expect(emitted![0][0]).toEqual({ restrict_to: null });
+      // Assert the full tuple: patch AND the 'restrict_to' field-key, matching
+      // the Mode A toggle tests. The field-key drives per-field saving feedback,
+      // so an unasserted second arg would let a regression slip through.
+      expect(emitted![0]).toEqual([{ restrict_to: null }, 'restrict_to']);
     });
 
     it('clicking "Any available method" when already null does not auto-save', async () => {
