@@ -42,7 +42,9 @@ concurrency:
 
 jobs:
   container-e2e-tests:
-    timeout-minutes: 25
+    # Must exceed Playwright's globalTimeout (20 min, e2e/playwright.config.ts)
+    # plus ~4-5 min of image build + container startup + artifact upload.
+    timeout-minutes: 30
     runs-on: ubuntu-24.04
 
     env:

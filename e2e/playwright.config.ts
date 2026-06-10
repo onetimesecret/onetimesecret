@@ -178,8 +178,17 @@ export default defineConfig({
   /* Timeout for entire test suite */
   timeout: 60000,
 
-  /* Global timeout for entire test run */
-  globalTimeout: 10 * 60 * 1000, // 10 minutes
+  /* Global timeout for entire test run.
+   *
+   * Sized for the post-Phase-2 reality: CI runs all/ + full/ (~330 tests)
+   * on a single serial worker, which cannot finish inside the old 10-minute
+   * budget - runs aborted at exactly 10.0m with hundreds of tests reported
+   * "did not run" (observed on #3414/#3416 CI). Keep this under the
+   * workflow job's timeout-minutes (30) minus ~4-5 min of container
+   * build/setup overhead. Shrinking this again is a Phase 3 goal
+   * (fullyParallel + more workers), not a budget to win back by hiding
+   * tests. */
+  globalTimeout: 20 * 60 * 1000, // 20 minutes
 
   /* Expect timeout for assertions */
   expect: {
