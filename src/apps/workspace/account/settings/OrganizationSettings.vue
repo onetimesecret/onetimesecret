@@ -1736,8 +1736,14 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                       <p class="font-medium text-gray-900 dark:text-white">
                         {{ domain.display_domain }}
                       </p>
-                      <p class="text-xs text-gray-500 dark:text-gray-400">
-                        {{ domain.verified ? t('web.domains.verified') : t('web.domains.pending_verification') }}
+                      <router-link
+                        v-if="!domain.verified"
+                        :to="`/org/${orgId}/domains/${domain.extid}/verify`"
+                        class="text-xs text-yellow-700 hover:underline dark:text-yellow-400">
+                        {{ t('web.domains.pending_verification') }}
+                      </router-link>
+                      <p v-else class="text-xs text-gray-500 dark:text-gray-400">
+                        {{ t('web.domains.verified') }}
                       </p>
                     </div>
                   </div>
@@ -1760,7 +1766,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                     </span>
                     <!-- Configure SSO link -->
                     <router-link
-                      :to="`/org/${orgId}/domains/${domain.extid}/sso`"
+                      :to="`/org/${orgId}/domains/${domain.extid}/signin?modal=sso`"
                       class="inline-flex items-center gap-1 rounded-md bg-white px-2.5 py-1.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-600 dark:text-gray-200 dark:ring-gray-500 dark:hover:bg-gray-500">
                       <OIcon
                         collection="heroicons"

@@ -147,7 +147,8 @@ export function useMfa() {
    * step of OTP setup. The backend returns a 422 status with the secrets, which
    * is the EXPECTED behavior in JSON-only mode (not an error).
    *
-   * @param issuer - The TOTP issuer label shown in authenticator apps (from brand_totp_issuer config)
+   * @param issuer - The TOTP issuer label shown in authenticator apps
+   *   (from brand_totp_issuer config)
    * @param email - The user's email address to associate with the MFA setup
    * @param password - Optional password for authentication (may be required by backend)
    * @returns OtpSetupData with QR code and secrets, or null on actual errors

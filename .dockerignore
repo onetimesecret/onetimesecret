@@ -66,7 +66,6 @@ etc/puma.rb
 !tsconfig*.json
 !vite.config.ts
 !postcss.config.mjs
-!tailwind.config.ts
 !eslint.config.ts
 !.commit_hash.txt
 .mcp.json

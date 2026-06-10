@@ -95,7 +95,10 @@ export const customDomainSchema = customDomainCanonical.extend({
 
   // Nested objects with V3 transforms
   vhost: transforms.fromObject.nested(vhostSchema.passthrough().strip()).nullable().default(null),
-  brand: transforms.fromObject.nested(brandSettingsSchema.passthrough().strip()).nullable().default(null),
+  brand: transforms.fromObject
+    .nested(brandSettingsSchema.passthrough().strip())
+    .nullable()
+    .default(null),
 
   // Nested email config with shape transforms
   email_config: customDomainEmailConfigSchema.nullable().optional(),

@@ -263,6 +263,12 @@ const organizationFeaturesInner = z.object({
 
 export const featuresSchema = z.object({
   markdown: z.boolean().default(false),
+  // Sign-in availability for the current domain context (AND of global
+  // AUTH_SIGNIN and the domain SigninConfig). Only an explicit false
+  // disables — it renders the public /signin page as a friendly "not
+  // available" notice (#3415); true and undefined (older backends) both
+  // keep the auth form.
+  signin: z.boolean().optional(),
   mfa: z.boolean().optional(),
   lockout: z.boolean().optional(),
   password_requirements: z.boolean().optional(),
@@ -552,7 +558,8 @@ export const bootstrapSchema = z.object({
   fallback_locale: z.string().default('en'),
   supported_locales: z.array(z.string()).default([]),
   i18n_enabled: z.boolean().default(true),
-  // Date/time display format: 'locale', 'iso8601', 'us', 'eu', 'eu-dot', 'uk', 'long', or date-fns pattern
+  // Date/time display format: 'locale', 'iso8601', 'us', 'eu', 'eu-dot', 'uk',
+  // 'long', or a date-fns pattern
   date_format: z.string().default('locale'),
   datetime_format: z.string().default('locale'),
 

@@ -315,7 +315,9 @@ export function hasPassword(): boolean {
 /**
  * Pure predicate: current user is owner in the given state.
  */
-export function isOwnerOf(state: { organization?: { current_user_role?: string | null } | null }): boolean {
+export function isOwnerOf(state: {
+  organization?: { current_user_role?: string | null } | null;
+}): boolean {
   return state.organization?.current_user_role === 'owner';
 }
 
@@ -337,7 +339,9 @@ export function isOwner(): boolean {
  * route through useOrgPermissions here — that reads organizationStore
  * (one reactive hop later) and would cause tab flash on load.
  */
-export function isOwnerOrAdminOf(state: { organization?: { current_user_role?: string | null } | null }): boolean {
+export function isOwnerOrAdminOf(state: {
+  organization?: { current_user_role?: string | null } | null;
+}): boolean {
   const role = state.organization?.current_user_role;
   return role === 'owner' || role === 'admin';
 }

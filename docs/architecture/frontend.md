@@ -358,13 +358,13 @@ if (error.value) {
 
 ## Styling
 
-**Framework:** Tailwind CSS 3.4
+**Framework:** Tailwind CSS 4
 
 **Pattern:**
 - Utility-first classes
 - Dark mode support via `dark:` prefix
 - Responsive design via breakpoints (sm, md, lg, xl)
-- Custom colors in `tailwind.config.js`
+- Custom theme (colors, fonts, dark mode, source paths) defined CSS-first in `src/assets/style.css`
 
 **Example:**
 ```vue

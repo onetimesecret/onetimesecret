@@ -336,6 +336,9 @@
     "text": "For security, share this link separately from other details.",
     "content_hash": "c46e6204"
   },
+  "web.COMMON.copy_to_clipboard": {
+    "text": "Copy to clipboard"
+  },
   "web.COMMON.copied_to_clipboard": {
     "text": "Copied to clipboard",
     "content_hash": "d37078fe"
@@ -1320,6 +1323,9 @@
     "text": "Organization Settings",
     "content_hash": "cc1d9e61"
   },
+  "web.TITLES.domain_signin": {
+    "text": "Sign-In Configuration"
+  },
   "web.TITLES.domain_sso": {
     "text": "Domain SSO",
     "content_hash": "13161464"
@@ -1499,5 +1505,23 @@
     "text": "Your organization's unique identifier",
     "context": "Tooltip for organization ID in user menu footer",
     "content_hash": "c8c08d29"
+  },
+  "web.COMMON.success": {
+    "text": "Success"
+  },
+  "web.COMMON.need_help": {
+    "text": "Need help"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "Open help dialog"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "Focus is now in the main text area"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "Copy icon"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "Copied icon"
   }
 }

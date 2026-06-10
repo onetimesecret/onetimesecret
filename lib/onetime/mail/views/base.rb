@@ -61,6 +61,14 @@ module Onetime
       class Base
         TEMPLATE_PATH = File.expand_path('../templates', __dir__)
 
+        # Templates whose plaintext body must NOT be wrapped in the shared
+        # text layout (layout.txt.erb). feedback_email is operator-facing — it
+        # is sent FROM a user TO the operators who *are* support — so appending
+        # a "Support: <address>" line is nonsensical, and its own trailing
+        # block is a signature sign-off, not the product footer. Wrapping it
+        # would also double-print a footer. See #3362.
+        TEXT_LAYOUT_EXCLUDED = %w[feedback_email].freeze
+
         attr_reader :data, :locale
 
         # @param data [Hash] Template variables
@@ -77,10 +85,29 @@ module Onetime
           raise NotImplementedError, "#{self.class} must implement #subject"
         end
 
-        # Render the text template
-        # @return [String]
+        # Render the text template, wrapped in the shared text layout.
+        #
+        # Mirrors render_html: the per-template file provides only the body
+        # content; layout.txt.erb supplies the consolidated footer (product
+        # name, base URI) plus the conditional BRAND_SUPPORT_EMAIL line so the
+        # plaintext/multipart-fallback path carries the support contact too.
+        # Before #3362 render_text used no layout, so the support contact was
+        # wired into the HTML footer only and omitted from plaintext.
+        #
+        # Excluded templates (TEXT_LAYOUT_EXCLUDED) keep their own footer and
+        # are returned unwrapped. wrap_in_layout guards on File.exist?, so a
+        # missing layout.txt.erb yields unwrapped content rather than raising;
+        # the rescue below only covers subclasses with no .txt.erb at all.
+        #
+        # @return [String, nil] nil if the subclass has no .txt.erb template
         def render_text
-          render_template('txt')
+          content = render_template('txt')
+          return content if TEXT_LAYOUT_EXCLUDED.include?(template_name)
+
+          wrap_in_layout(content, 'txt')
+        rescue Errno::ENOENT
+          # No .txt.erb for this subclass (html-only mailer); mirrors render_html.
+          nil
         end
 
         # Render the HTML template, wrapped in the shared layout.

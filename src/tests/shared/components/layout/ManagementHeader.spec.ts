@@ -57,8 +57,7 @@ describe('ManagementHeader', () => {
   const mountComponent = (
     props: Record<string, unknown> = {},
     storeState: Record<string, unknown> = {}
-  ) => {
-    return mount(ManagementHeader, {
+  ) => mount(ManagementHeader, {
       props: {
         displayMasthead: true,
         displayNavigation: true,
@@ -74,6 +73,12 @@ describe('ManagementHeader', () => {
             initialState: {
               bootstrap: {
                 authenticated: storeState.authenticated ?? true,
+                ui: {
+                  header:
+                    storeState.header !== undefined
+                      ? storeState.header
+                      : { navigation: { enabled: true } },
+                },
               },
             },
           }),
@@ -83,7 +88,6 @@ describe('ManagementHeader', () => {
         default: '<div class="slot-content">Context Bar Content</div>',
       },
     });
-  };
 
   describe('Slot Passthrough', () => {
     it('passes default slot content to MastHead context-switchers slot', async () => {
@@ -215,6 +219,42 @@ describe('ManagementHeader', () => {
 
       const container = wrapper.find('.max-w-4xl');
       expect(container.exists()).toBe(true);
+    });
+  });
+
+  // HEADER_ENABLED gate (#3362): operator config collapses the entire
+  // <header> banner landmark — no empty landmark, no whitespace band.
+  describe('HEADER_ENABLED gate', () => {
+    it('removes the <header> element when header.enabled is false', async () => {
+      wrapper = mountComponent({}, { header: { enabled: false } });
+      await nextTick();
+
+      expect(wrapper.find('header').exists()).toBe(false);
+      // Content collapses with the landmark, not merely emptied.
+      expect(wrapper.find('.masthead').exists()).toBe(false);
+    });
+
+    it('renders the <header> element when header.enabled is true', async () => {
+      wrapper = mountComponent({}, { header: { enabled: true } });
+      await nextTick();
+
+      expect(wrapper.find('header').exists()).toBe(true);
+    });
+
+    it('renders the <header> element when header.enabled is omitted (default true)', async () => {
+      wrapper = mountComponent({}, { header: { navigation: { enabled: true } } });
+      await nextTick();
+
+      expect(wrapper.find('header').exists()).toBe(true);
+    });
+
+    it('renders the <header> element when header config is entirely absent (store getter undefined)', async () => {
+      // The bootstrap store returns undefined when state.ui.header is unset;
+      // headerConfig?.enabled !== false must treat that as enabled, not hidden.
+      wrapper = mountComponent({}, { header: null });
+      await nextTick();
+
+      expect(wrapper.find('header').exists()).toBe(true);
     });
   });
 });

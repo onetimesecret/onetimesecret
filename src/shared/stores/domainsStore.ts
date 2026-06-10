@@ -67,7 +67,10 @@ export type DomainsStore = {
   initialized: boolean;
 
   // Actions
-  addDomain: (domain: string, orgId?: string) => Promise<{ record: CustomDomain; details?: CustomDomainDetails }>;
+  addDomain: (
+    domain: string,
+    orgId?: string
+  ) => Promise<{ record: CustomDomain; details?: CustomDomainDetails }>;
   fetchList: () => Promise<void>;
   getDomain: (extid: string) => Promise<CustomDomain>;
   verifyDomain: (extid: string) => Promise<CustomDomain>;
@@ -91,8 +94,14 @@ export type DomainsStore = {
 
   // Email config
   getEmailConfig: (extid: string) => Promise<CustomDomainEmailConfig | null>;
-  putEmailConfig: (extid: string, payload: PutEmailConfigRequest) => Promise<CustomDomainEmailConfig>;
-  patchEmailConfig: (extid: string, payload: PatchEmailConfigRequest) => Promise<CustomDomainEmailConfig>;
+  putEmailConfig: (
+    extid: string,
+    payload: PutEmailConfigRequest
+  ) => Promise<CustomDomainEmailConfig>;
+  patchEmailConfig: (
+    extid: string,
+    payload: PatchEmailConfigRequest
+  ) => Promise<CustomDomainEmailConfig>;
   deleteEmailConfig: (extid: string) => Promise<DeleteEmailConfigResponse>;
   validateEmailConfig: (extid: string) => Promise<ValidateEmailConfigResponse>;
   testEmailConfig: (extid: string) => Promise<TestEmailConfigResponse>;
@@ -133,7 +142,8 @@ export const useDomainsStore = defineStore('domains', () => {
    * @param domain - The domain name to add
    * @param orgId - Optional organization ID. If provided, adds domain for that org.
    *                If not provided, uses the organization from session context.
-   * @returns Object containing the domain record and details (including domain_context if set by server)
+   * @returns Object containing the domain record and details (including
+   *   domain_context if set by server)
    */
   async function addDomain(domain: string, orgId?: string) {
     const payload: { domain: string; org_id?: string } = { domain };
@@ -338,7 +348,10 @@ export const useDomainsStore = defineStore('domains', () => {
    * homepage_config to keep all consumers (workspace views and identity store)
    * reactive without requiring a page reload.
    */
-  async function putHomepageConfig(extid: string, enabled: boolean): Promise<HomepageConfigResponse> {
+  async function putHomepageConfig(
+    extid: string,
+    enabled: boolean
+  ): Promise<HomepageConfigResponse> {
     const response = await $api.put(`/api/domains/${extid}/homepage-config`, { enabled });
     const result = gracefulParse(homepageConfigResponseSchema, response.data, 'HomepageConfigResponse');
     if (!result.ok) {

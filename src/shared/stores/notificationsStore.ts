@@ -102,7 +102,12 @@ export const useNotificationsStore = defineStore('notifications', () => {
   }
 
   /** Display a notification with auto-dismissal. Defaults to 5 s; pass 0 or negative to disable. */
-  function show(msg: string, sev: NotificationSeverity, pos?: NotificationPosition, duration?: number) {
+  function show(
+    msg: string,
+    sev: NotificationSeverity,
+    pos?: NotificationPosition,
+    duration?: number
+  ) {
     // Clear any pending hide timer so earlier timeouts don't dismiss this message
     if (_hideTimerId !== null) {
       clearTimeout(_hideTimerId);

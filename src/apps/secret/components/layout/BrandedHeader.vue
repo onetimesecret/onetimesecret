@@ -4,17 +4,26 @@
   import { useI18n } from 'vue-i18n';
   import BrandedMasthead from '@/apps/secret/components/layout/BrandedMastHead.vue';
   import MastHead from '@/shared/components/layout/MastHead.vue';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import type { LayoutProps } from '@/types/ui/layouts';
+  import { storeToRefs } from 'pinia';
   import { computed } from 'vue';
   const { t } = useI18n();
 
   const productIdentity = useProductIdentity();
 
+  const bootstrapStore = useBootstrapStore();
+  const { headerConfig } = storeToRefs(bootstrapStore);
+
   const props = withDefaults(defineProps<LayoutProps>(), {
     displayMasthead: true,
     displayNavigation: false,
   });
+
+  // Operator-level header gate (HEADER_ENABLED). When disabled, the entire
+  // <header> banner landmark collapses — no empty landmark, no padding band.
+  const headerEnabled = computed(() => headerConfig.value?.enabled !== false);
 
   const headertext = computed(() => productIdentity.allowPublicHomepage ? t('web.homepage.create_a_secure_link') : t('web.homepage.secure_links'));
   const subtext = computed(() => productIdentity.allowPublicHomepage
@@ -23,7 +32,9 @@
 </script>
 
 <template>
-  <header class="bg-white dark:bg-gray-900">
+  <header
+    v-if="headerEnabled"
+    class="bg-white dark:bg-gray-900">
     <div
       v-if="displayMasthead"
       class="container mx-auto min-w-[320px] max-w-2xl p-4">

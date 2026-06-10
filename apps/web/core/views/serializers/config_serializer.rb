@@ -165,6 +165,7 @@ module Core
           features = view_vars['features'] || {}
 
           {
+            'signin' => resolve_signin(view_vars),
             'lockout' => Onetime.auth_config.lockout_enabled?,
             'password_requirements' => Onetime.auth_config.password_requirements_enabled?,
             'active_sessions' => Onetime.auth_config.active_sessions_enabled?,
@@ -194,6 +195,34 @@ module Core
           end
 
           Onetime.auth_config.restrict_to
+        end
+
+        # Resolve sign-in availability for the current request context.
+        #
+        # AND semantics (mirrors resolve_email_auth): a domain may DISABLE
+        # sign-in entirely but can never enable it when sign-in is off
+        # globally (AUTH_ENABLED + AUTH_SIGNIN). The domain override only
+        # ever narrows the global capability.
+        #
+        # This is the DISPLAY gate: features.signin in the bootstrap lets
+        # the public /signin page render a friendly "not available" notice
+        # instead of the auth form. The runtime POST gate lives in
+        # Core::Controllers::Base#signin_enabled? and consults the same
+        # SigninConfig state.
+        #
+        # @param view_vars [Hash] View variables with request context
+        # @return [Boolean] true if sign-in is available
+        def resolve_signin(view_vars)
+          auth_settings = (view_vars['site'] || {})['authentication'] || {}
+          global        = !!(auth_settings['enabled'] && auth_settings['signin'])
+
+          domain_id = resolve_domain_id(view_vars)
+          if domain_id
+            signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id)
+            return global && signin_config.signin_enabled? if signin_config&.enabled?
+          end
+
+          global
         end
 
         # Resolve email_auth availability for the current request context.

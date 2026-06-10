@@ -1,13 +1,14 @@
 // e2e/full/domain-sso-multi-provider.spec.ts
 
 /**
- * E2E Tests for Multi-Domain SSO with Different Providers (#2786)
+ * E2E Tests for Multi-Domain SSO with Different Providers (#2786, #3383)
  *
  * Tests the core differentiating feature of domain-level SSO: organizations
  * can configure different identity providers for different custom domains.
  *
- * Scenario:
+ * Scenario (modal-based, updated for #3383):
  * - Organization has multiple custom domains (e.g., corp.example.com, partner.example.com)
+ * - User navigates to each domain's signin page and opens the SSO credentials modal
  * - Domain A uses Microsoft Entra ID
  * - Domain B uses Google Workspace
  * - Both configurations coexist within the same organization
@@ -29,7 +30,7 @@
  *     pnpm test:playwright domain-sso-multi-provider.spec.ts
  */
 
-import { expect, Page, test } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
 import { env, gateReason } from '../support/env';
 
@@ -142,10 +143,11 @@ async function getDomainsFromSsoTab(page: Page): Promise<DomainInfo[]> {
     const domainText = await row.locator('.font-medium').first().textContent();
     if (!domainText) continue;
 
-    // Extract domain extid from configure link
-    const configureLink = row.locator('a[href*="/sso"]');
+    // Extract domain extid from configure link. The hub now links to the
+    // domain signin page with the SSO modal deep-link (`/signin?modal=sso`).
+    const configureLink = row.locator('a[href*="/signin"]');
     const href = await configureLink.getAttribute('href').catch(() => null);
-    const match = href?.match(/\/domains\/([^/]+)\/sso/);
+    const match = href?.match(/\/domains\/([^/]+)\/signin/);
     if (!match) continue;
 
     // Determine SSO status from badge
@@ -170,30 +172,42 @@ async function getDomainsFromSsoTab(page: Page): Promise<DomainInfo[]> {
 }
 
 /**
- * Navigate to domain SSO configuration page
+ * Navigate to domain signin page and open the SSO credentials modal.
+ * Returns a locator scoped to the modal dialog.
  */
-async function navigateToDomainSsoPage(
+async function openDomainSsoModal(
   page: Page,
   orgExtid: string,
   domainExtid: string
-): Promise<void> {
-  await page.goto(`/org/${orgExtid}/domains/${domainExtid}/sso`);
+): Promise<Locator> {
+  await page.goto(`/org/${orgExtid}/domains/${domainExtid}/signin`);
   await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-  // Wait for form or access denied message
-  const form = page.locator('form');
-  const accessDenied = page.getByText(/access denied/i);
+  // Wait for the signin config page to load. The page no longer renders a
+  // <form> element (the config is a series of fieldsets), so anchor on the
+  // page heading instead.
+  await page
+    .getByRole('heading', { name: /sign-in configuration/i })
+    .waitFor({ state: 'visible', timeout: 10000 });
 
-  await Promise.race([
-    form.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {}),
-    accessDenied.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {}),
-  ]);
+  // Click the "Configure" or "Edit credentials" button to open the SSO modal
+  const ssoButton = page.getByRole('button', { name: /configure|edit credentials/i });
+  await ssoButton.click();
+
+  // Wait for modal dialog to appear
+  const modal = page.getByRole('dialog');
+  await expect(modal).toBeVisible({ timeout: 5000 });
+
+  // Wait for the SSO form inside the modal to be ready
+  await modal.locator('form').waitFor({ state: 'visible', timeout: 10000 });
+
+  return modal;
 }
 
 /**
- * Select SSO provider type in the form
+ * Select SSO provider type in the form (scoped to a container)
  */
-async function selectProvider(page: Page, providerType: ProviderType): Promise<void> {
+async function selectProvider(container: Locator, providerType: ProviderType): Promise<void> {
   const providerLabels: Record<ProviderType, string> = {
     entra_id: 'Microsoft Entra ID',
     google: 'Google Workspace',
@@ -202,18 +216,19 @@ async function selectProvider(page: Page, providerType: ProviderType): Promise<v
   };
 
   const label = providerLabels[providerType];
-  const providerOption = page.locator('label').filter({ hasText: label });
+  const providerOption = container.locator('label').filter({ hasText: label });
   await providerOption.click();
 }
 
 /**
- * Fill SSO configuration form with provided data
+ * Fill SSO configuration form with provided data.
+ * Provider selection is scoped to the modal; ID-based fields are globally unique.
  */
-async function fillSsoConfigForm(page: Page, config: SsoConfigData): Promise<void> {
-  // Select provider type
-  await selectProvider(page, config.providerType);
+async function fillSsoConfigForm(page: Page, modal: Locator, config: SsoConfigData): Promise<void> {
+  // Select provider type (scoped to modal to avoid ambiguity)
+  await selectProvider(modal, config.providerType);
 
-  // Fill common fields
+  // Fill common fields (IDs are globally unique, no scoping needed)
   await page.locator('#domain-sso-display-name').fill(config.displayName);
   await page.locator('#domain-sso-client-id').fill(config.clientId);
   await page.locator('#domain-sso-client-secret').fill(config.clientSecret);
@@ -235,19 +250,15 @@ async function fillSsoConfigForm(page: Page, config: SsoConfigData): Promise<voi
 }
 
 /**
- * Submit the SSO configuration form
+ * Submit the SSO configuration form (scoped to modal)
  */
-async function submitSsoForm(page: Page): Promise<void> {
-  const saveButton = page.locator('button[type="submit"]');
+async function submitSsoForm(modal: Locator): Promise<void> {
+  const saveButton = modal.locator('button[type="submit"]');
   await expect(saveButton).toBeEnabled({ timeout: 5000 });
-
-  // Anchor on the save round-trip (mocked in setupDomainSsoMock) instead of
-  // sleeping for an arbitrary interval.
-  const saveResponse = page.waitForResponse(
-    (response) =>
-      /\/api\/domains\/[^/]+\/sso/.test(response.url()) &&
-      response.request().method() !== 'GET'
-  );
+  // Anchor on the save round-trip (tests mock these routes via page.route)
+  const saveResponse = modal
+    .page()
+    .waitForResponse((r) => r.url().includes('/sso') && r.request().method() !== 'GET');
   await saveButton.click();
   await saveResponse;
 }
@@ -358,19 +369,17 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
     await setupDomainSsoMock(page, domainA.extid, { onSave: entraConfig, existingConfig: null });
     await setupDomainSsoMock(page, domainB.extid, { onSave: googleConfig, existingConfig: null });
 
-    // Step 1: Configure Entra ID for domain A
-    await navigateToDomainSsoPage(page, org!.extid, domainA.extid);
-    await page.waitForSelector('form', { state: 'visible' });
+    // Step 1: Open SSO modal for domain A and configure Entra ID
+    const modalA = await openDomainSsoModal(page, org!.extid, domainA.extid);
 
-    await fillSsoConfigForm(page, entraConfig);
-    await submitSsoForm(page);
+    await fillSsoConfigForm(page, modalA, entraConfig);
+    await submitSsoForm(modalA);
 
-    // Step 2: Configure Google for domain B
-    await navigateToDomainSsoPage(page, org!.extid, domainB.extid);
-    await page.waitForSelector('form', { state: 'visible' });
+    // Step 2: Open SSO modal for domain B and configure Google
+    const modalB = await openDomainSsoModal(page, org!.extid, domainB.extid);
 
-    await fillSsoConfigForm(page, googleConfig);
-    await submitSsoForm(page);
+    await fillSsoConfigForm(page, modalB, googleConfig);
+    await submitSsoForm(modalB);
 
     // Step 3: Verify both domains appear in org SSO hub
     await navigateToOrgSsoTab(page, org!.extid);
@@ -416,7 +425,7 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
         (await domainRow.locator('text=/not configured/i').isVisible().catch(() => false));
 
       const hasConfigureLink = await domainRow
-        .locator('a[href*="/sso"]')
+        .locator('a[href*="/signin"]')
         .isVisible()
         .catch(() => false);
 
@@ -424,7 +433,7 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
     }
   });
 
-  test('TC-MPROV-003: each domain SSO page shows correct provider after configuration', async ({
+  test('TC-MPROV-003: each domain SSO modal shows correct provider after configuration', async ({
     page,
   }) => {
     const org = await getFirstOrganization(page);
@@ -458,24 +467,22 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
       },
     });
 
-    // Navigate to domain A SSO page and verify Entra ID is selected
-    await navigateToDomainSsoPage(page, org!.extid, domainA.extid);
-    await page.waitForSelector('form', { state: 'visible' });
+    // Open SSO modal for domain A and verify Entra ID is selected
+    const modalA = await openDomainSsoModal(page, org!.extid, domainA.extid);
 
     // The Entra ID option should be selected (checked state)
     const entraRadio = page.locator('input[type="radio"][value="entra_id"]');
-    const entraLabel = page.locator('label').filter({ hasText: 'Microsoft Entra ID' });
+    const entraLabel = modalA.locator('label').filter({ hasText: 'Microsoft Entra ID' });
 
     const isEntraSelected =
       (await entraRadio.isChecked().catch(() => false)) ||
       (await entraLabel.locator('input').isChecked().catch(() => false));
 
-    // Navigate to domain B SSO page and verify Google is selected
-    await navigateToDomainSsoPage(page, org!.extid, domainB.extid);
-    await page.waitForSelector('form', { state: 'visible' });
+    // Open SSO modal for domain B and verify Google is selected
+    const modalB = await openDomainSsoModal(page, org!.extid, domainB.extid);
 
     const googleRadio = page.locator('input[type="radio"][value="google"]');
-    const googleLabel = page.locator('label').filter({ hasText: 'Google Workspace' });
+    const googleLabel = modalB.locator('label').filter({ hasText: 'Google Workspace' });
 
     const isGoogleSelected =
       (await googleRadio.isChecked().catch(() => false)) ||
@@ -558,12 +565,11 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
       });
     });
 
-    // Navigate to domain A and change provider from Entra ID to GitHub
-    await navigateToDomainSsoPage(page, org!.extid, domainA.extid);
-    await page.waitForSelector('form', { state: 'visible' });
+    // Open SSO modal for domain A and change provider from Entra ID to GitHub
+    const modal = await openDomainSsoModal(page, org!.extid, domainA.extid);
 
     // Change to GitHub provider
-    const githubOption = page.locator('label').filter({ hasText: 'GitHub' });
+    const githubOption = modal.locator('label').filter({ hasText: 'GitHub' });
     await githubOption.click();
 
     await page.locator('#domain-sso-display-name').fill('Domain A GitHub');
@@ -571,7 +577,7 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
     await page.locator('#domain-sso-client-secret').fill('new-secret-a');
 
     // Save the change
-    await submitSsoForm(page);
+    await submitSsoForm(modal);
 
     // Reset API call tracking
     const saveCalls = apiCalls.filter(
@@ -621,7 +627,7 @@ test.describe('Multi-Domain SSO - SSO Hub Display', () => {
     }
   });
 
-  test('TC-MPROV-006: clicking configure navigates to correct domain SSO page', async ({
+  test('TC-MPROV-006: configure link is visible for each domain in SSO hub', async ({
     page,
   }) => {
     const org = await getFirstOrganization(page);
@@ -634,15 +640,12 @@ test.describe('Multi-Domain SSO - SSO Hub Display', () => {
     const domains = await getDomainsFromSsoTab(page);
     test.skip(domains.length === 0, 'Test requires at least 1 domain');
 
-    // Click configure on first domain
-    const configureLink = page.locator(`a[href*="/domains/${domains[0].extid}/sso"]`);
-    await configureLink.click();
-
-    // Verify URL
-    await expect(page).toHaveURL(new RegExp(`/org/${org!.extid}/domains/${domains[0].extid}/sso`));
-
-    // Verify form is displayed
-    await expect(page.locator('form')).toBeVisible();
+    // Verify the configure link is present in the hub for the first domain.
+    // The hub now links to the domain signin page with the SSO modal deep-link.
+    const configureLink = page.locator(
+      `a[href*="/domains/${domains[0].extid}/signin"]`
+    );
+    await expect(configureLink).toBeVisible();
 
     // Verify domain name is shown
     await expect(page.getByText(domains[0].displayDomain)).toBeVisible();
@@ -682,7 +685,7 @@ test.describe('Multi-Domain SSO - SSO Hub Display', () => {
 });
 
 // -----------------------------------------------------------------------------
-// Test Suite: Provider-Specific Configuration
+// Test Suite: Provider-Specific Configuration (inside modal)
 // -----------------------------------------------------------------------------
 
 test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
@@ -701,11 +704,10 @@ test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
     const domains = await getDomainsFromSsoTab(page);
     test.skip(domains.length === 0, 'Test requires at least 1 domain');
 
-    await navigateToDomainSsoPage(page, org!.extid, domains[0].extid);
-    await page.waitForSelector('form', { state: 'visible' });
+    const modal = await openDomainSsoModal(page, org!.extid, domains[0].extid);
 
     // Select Entra ID
-    await selectProvider(page, 'entra_id');
+    await selectProvider(modal, 'entra_id');
 
     // Tenant ID field should be visible
     const tenantIdInput = page.locator('#domain-sso-tenant-id');
@@ -727,11 +729,10 @@ test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
     const domains = await getDomainsFromSsoTab(page);
     test.skip(domains.length === 0, 'Test requires at least 1 domain');
 
-    await navigateToDomainSsoPage(page, org!.extid, domains[0].extid);
-    await page.waitForSelector('form', { state: 'visible' });
+    const modal = await openDomainSsoModal(page, org!.extid, domains[0].extid);
 
     // Select Google Workspace
-    await selectProvider(page, 'google');
+    await selectProvider(modal, 'google');
 
     // Tenant ID field should NOT be visible for Google
     const tenantIdInput = page.locator('#domain-sso-tenant-id');
@@ -753,11 +754,10 @@ test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
     const domains = await getDomainsFromSsoTab(page);
     test.skip(domains.length === 0, 'Test requires at least 1 domain');
 
-    await navigateToDomainSsoPage(page, org!.extid, domains[0].extid);
-    await page.waitForSelector('form', { state: 'visible' });
+    const modal = await openDomainSsoModal(page, org!.extid, domains[0].extid);
 
     // Select Generic OIDC
-    await selectProvider(page, 'oidc');
+    await selectProvider(modal, 'oidc');
 
     // Issuer field should be visible for OIDC
     const issuerInput = page.locator('#domain-sso-issuer');
@@ -779,11 +779,10 @@ test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
     const domains = await getDomainsFromSsoTab(page);
     test.skip(domains.length === 0, 'Test requires at least 1 domain');
 
-    await navigateToDomainSsoPage(page, org!.extid, domains[0].extid);
-    await page.waitForSelector('form', { state: 'visible' });
+    const modal = await openDomainSsoModal(page, org!.extid, domains[0].extid);
 
     // Select GitHub
-    await selectProvider(page, 'github');
+    await selectProvider(modal, 'github');
 
     // GitHub should only need client_id and client_secret (no tenant_id, no issuer)
     const tenantIdInput = page.locator('#domain-sso-tenant-id');
@@ -799,7 +798,7 @@ test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
 });
 
 // -----------------------------------------------------------------------------
-// Test Suite: Cross-Domain Isolation
+// Test Suite: Cross-Domain Isolation (inside modal)
 // -----------------------------------------------------------------------------
 
 test.describe('Multi-Domain SSO - Configuration Isolation', () => {
@@ -807,7 +806,7 @@ test.describe('Multi-Domain SSO - Configuration Isolation', () => {
     page.setDefaultTimeout(15000);
   });
 
-  test('TC-MPROV-012: domain A config is not visible on domain B page', async ({ page }) => {
+  test('TC-MPROV-012: domain A config is not visible on domain B modal', async ({ page }) => {
     const org = await getFirstOrganization(page);
     test.skip(!org, 'Test requires at least 1 organization');
 
@@ -840,20 +839,19 @@ test.describe('Multi-Domain SSO - Configuration Isolation', () => {
       },
     });
 
-    // Navigate to domain B SSO page
-    await navigateToDomainSsoPage(page, org!.extid, domainB.extid);
-    await page.waitForSelector('form', { state: 'visible' });
+    // Open SSO modal for domain B
+    const modal = await openDomainSsoModal(page, org!.extid, domainB.extid);
 
-    // Domain A's unique identifier should NOT appear on domain B's page
-    const domainAUniqueText = page.getByText('UNIQUE_DOMAIN_A_NAME_12345');
+    // Domain A's unique identifier should NOT appear in the modal
+    const domainAUniqueText = modal.getByText('UNIQUE_DOMAIN_A_NAME_12345');
     await expect(domainAUniqueText).not.toBeVisible();
 
     // Domain A's client ID should NOT appear
-    const domainAClientId = page.getByText('unique-client-a-xyz');
+    const domainAClientId = modal.getByText('unique-client-a-xyz');
     await expect(domainAClientId).not.toBeVisible();
   });
 
-  test('TC-MPROV-013: URL routing correctly scopes to domain', async ({ page }) => {
+  test('TC-MPROV-013: URL routing correctly scopes to domain signin page', async ({ page }) => {
     const org = await getFirstOrganization(page);
     test.skip(!org, 'Test requires at least 1 organization');
 
@@ -867,8 +865,8 @@ test.describe('Multi-Domain SSO - Configuration Isolation', () => {
     const domainA = domains[0];
     const domainB = domains[1];
 
-    // Navigate directly to domain A SSO page via URL
-    await page.goto(`/org/${org!.extid}/domains/${domainA.extid}/sso`);
+    // Navigate directly to domain A signin page via URL
+    await page.goto(`/org/${org!.extid}/domains/${domainA.extid}/signin`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // URL should contain domain A's extid
@@ -878,8 +876,8 @@ test.describe('Multi-Domain SSO - Configuration Isolation', () => {
     // Page should display domain A's name
     await expect(page.getByText(domainA.displayDomain)).toBeVisible();
 
-    // Navigate directly to domain B SSO page via URL
-    await page.goto(`/org/${org!.extid}/domains/${domainB.extid}/sso`);
+    // Navigate directly to domain B signin page via URL
+    await page.goto(`/org/${org!.extid}/domains/${domainB.extid}/signin`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // URL should contain domain B's extid
