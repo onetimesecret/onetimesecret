@@ -108,6 +108,13 @@ const isModeOne = computed(
 
 const isModeAny = computed(() => !isModeDisabled.value && !isModeOne.value);
 
+/** Hint paragraph under the mode switch, per active mode. */
+const modeHint = computed(() => {
+  if (isModeDisabled.value) return t('web.domains.signin.mode_disabled_hint');
+  if (isModeOne.value) return t('web.domains.signin.mode_one_hint');
+  return t('web.domains.signin.mode_any_hint');
+});
+
 // ---------------------------------------------------------------------------
 // Mode switch keyboard support (roving tabindex)
 // ---------------------------------------------------------------------------
@@ -121,7 +128,11 @@ const isModeAny = computed(() => !isModeDisabled.value && !isModeOne.value);
  */
 const MODE_SEGMENT_IDS = ['signin-mode-any', 'signin-mode-one', 'signin-mode-disabled'] as const;
 
-const checkedModeIndex = computed(() => (isModeDisabled.value ? 2 : isModeOne.value ? 1 : 0));
+const checkedModeIndex = computed(() => {
+  if (isModeDisabled.value) return 2;
+  if (isModeOne.value) return 1;
+  return 0;
+});
 
 const modeTabindex = (index: number) => (checkedModeIndex.value === index ? 0 : -1);
 
@@ -354,13 +365,7 @@ const handleDelete = () => {
         <p
           id="signin-mode-hint"
           class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-          {{
-            isModeDisabled
-              ? t('web.domains.signin.mode_disabled_hint')
-              : isModeOne
-                ? t('web.domains.signin.mode_one_hint')
-                : t('web.domains.signin.mode_any_hint')
-          }}
+          {{ modeHint }}
         </p>
       </fieldset>
 
