@@ -215,7 +215,9 @@ export function useSigninConfig(domainExtId: string) {
     if (isSaving.value) return;
     formState.value = { ...formState.value, ...partial };
     savingField.value =
-      savingFieldHint ?? (Object.keys(partial)[0] as keyof SigninConfigFormState | undefined) ?? null;
+      savingFieldHint ??
+      (Object.keys(partial)[0] as keyof SigninConfigFormState | undefined) ??
+      null;
     try {
       await saveConfig();
     } finally {
