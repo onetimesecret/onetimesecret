@@ -24,6 +24,8 @@
 
 import { expect, Page, test } from '@playwright/test';
 
+import { hasCustomDomain } from '../support/env';
+
 // Extend Window interface for test-specific properties
 declare global {
   interface Window {
@@ -156,46 +158,33 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
       await page.goto('/dashboard');
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-      // Find and click an organization link
-      const orgLink = page.locator('a[href*="/org/"]').first();
-      const hasOrgLink = await orgLink.isVisible().catch(() => false);
-
-      if (hasOrgLink) {
-        await orgLink.click();
-        // Wait for the router to land on the org route
-        await page.waitForURL(/\/org\//);
-
-        const currentUrl = page.url();
-
-        // Verify URL contains ExtId with 'on' prefix
-        expect(
-          containsExtIdWithPrefix(currentUrl, EXTID_PREFIXES.organization),
-          `Organization URL should contain ExtId with 'on' prefix. URL: ${currentUrl}`
-        ).toBe(true);
-
-        // Verify URL does NOT contain UUID (internal ID)
-        expect(
-          containsUUID(currentUrl),
-          `Organization URL should NOT contain UUID. URL: ${currentUrl}, Found IDs: ${extractIdentifiers(currentUrl).join(', ')}`
-        ).toBe(false);
-      } else {
-        // Navigate to org list and find an org
+      // Find and click an organization link; if the dashboard exposes
+      // none, the /orgs list MUST (default workspace guarantee)
+      let orgLink = page.locator('a[href*="/org/"]').first();
+      if (!(await orgLink.isVisible().catch(() => false))) {
         await page.goto('/orgs');
         await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-        const orgCard = page.locator('a[href*="/org/on"]').first();
-        if (await orgCard.isVisible().catch(() => false)) {
-          await orgCard.click();
-          // Wait for the router to land on the org route
-          await page.waitForURL(/\/org\/on/);
-
-          const currentUrl = page.url();
-          expect(containsExtIdWithPrefix(currentUrl, EXTID_PREFIXES.organization)).toBe(true);
-          expect(containsUUID(currentUrl)).toBe(false);
-        } else {
-          test.skip(true, 'No organizations available to test');
-        }
+        orgLink = page.locator('a[href*="/org/on"]').first();
       }
+      await expect(orgLink).toBeVisible();
+
+      await orgLink.click();
+      // Wait for the router to land on the org route
+      await page.waitForURL(/\/org\//);
+
+      const currentUrl = page.url();
+
+      // Verify URL contains ExtId with 'on' prefix
+      expect(
+        containsExtIdWithPrefix(currentUrl, EXTID_PREFIXES.organization),
+        `Organization URL should contain ExtId with 'on' prefix. URL: ${currentUrl}`
+      ).toBe(true);
+
+      // Verify URL does NOT contain UUID (internal ID)
+      expect(
+        containsUUID(currentUrl),
+        `Organization URL should NOT contain UUID. URL: ${currentUrl}, Found IDs: ${extractIdentifiers(currentUrl).join(', ')}`
+      ).toBe(false);
     });
 
     test('TC-ID-002: Organization members URL uses ExtId', async ({ page }) => {
@@ -203,34 +192,31 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
       await page.goto('/orgs');
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
+      // Default workspace guarantee: the orgs list always has a card
       const orgLink = page.locator('a[href*="/org/on"]').first();
-      const hasOrgLink = await orgLink.isVisible().catch(() => false);
+      await expect(orgLink).toBeVisible();
 
-      if (hasOrgLink) {
-        // Get the href to extract the org extid
-        const href = await orgLink.getAttribute('href');
-        if (href) {
-          // Navigate to members page
-          await page.goto(`${href}/members`);
-          await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+      // Get the href to extract the org extid
+      const href = await orgLink.getAttribute('href');
+      expect(href).toBeTruthy();
 
-          const currentUrl = page.url();
+      // Navigate to members page
+      await page.goto(`${href}/members`);
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-          expect(
-            containsExtIdWithPrefix(currentUrl, EXTID_PREFIXES.organization),
-            `Members URL should contain org ExtId. URL: ${currentUrl}`
-          ).toBe(true);
+      const currentUrl = page.url();
 
-          expect(
-            currentUrl.includes('/members'),
-            `URL should include /members path. URL: ${currentUrl}`
-          ).toBe(true);
+      expect(
+        containsExtIdWithPrefix(currentUrl, EXTID_PREFIXES.organization),
+        `Members URL should contain org ExtId. URL: ${currentUrl}`
+      ).toBe(true);
 
-          expect(containsUUID(currentUrl)).toBe(false);
-        }
-      } else {
-        test.skip(true, 'No organizations available to test');
-      }
+      expect(
+        currentUrl.includes('/members'),
+        `URL should include /members path. URL: ${currentUrl}`
+      ).toBe(true);
+
+      expect(containsUUID(currentUrl)).toBe(false);
     });
 
     test('TC-ID-003: Clicking org card navigates to ExtId URL', async ({ page }) => {
@@ -241,35 +227,28 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
       const orgSwitcher = page.locator(
         '[data-testid="org-scope-switcher-trigger"], button[aria-label*="organization" i]'
       );
-      const hasSwitcher = await orgSwitcher.isVisible().catch(() => false);
+      await expect(orgSwitcher).toBeVisible();
+      await orgSwitcher.click();
 
-      if (hasSwitcher) {
-        await orgSwitcher.click();
+      // Look for gear icon in dropdown
+      const menuItem = page.locator('[role="menuitem"]').first();
+      await menuItem.hover();
 
-        // Look for gear icon in dropdown
-        const menuItem = page.locator('[role="menuitem"]').first();
-        await menuItem.hover();
+      const gearIcon = menuItem.locator('button[aria-label*="settings" i]');
+      await expect(gearIcon).toBeVisible();
 
-        const gearIcon = menuItem.locator('button[aria-label*="settings" i]');
-        const hasGear = await gearIcon.isVisible().catch(() => false);
+      await gearIcon.click();
+      // Wait for the router to land on the org settings route
+      await page.waitForURL(/\/org\//);
 
-        if (hasGear) {
-          await gearIcon.click();
-          // Wait for the router to land on the org settings route
-          await page.waitForURL(/\/org\//);
+      const currentUrl = page.url();
 
-          const currentUrl = page.url();
+      expect(
+        PATTERNS.orgExtId.test(currentUrl),
+        `After clicking org settings, URL should have /org/on... pattern. URL: ${currentUrl}`
+      ).toBe(true);
 
-          expect(
-            PATTERNS.orgExtId.test(currentUrl),
-            `After clicking org settings, URL should have /org/on... pattern. URL: ${currentUrl}`
-          ).toBe(true);
-
-          expect(containsUUID(currentUrl)).toBe(false);
-        }
-      } else {
-        test.skip(true, 'Organization switcher not visible');
-      }
+      expect(containsUUID(currentUrl)).toBe(false);
     });
   });
 
@@ -278,81 +257,84 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
   // -------------------------------------------------------------------------
   test.describe('Domain URL Patterns', () => {
     test('TC-ID-010: Domain detail URL uses ExtId (cd prefix)', async ({ page }) => {
+      test.skip(
+        !hasCustomDomain,
+        'Requires a custom domain — set E2E_CUSTOM_DOMAINS>=1 (see e2e/support/env.ts)'
+      );
+
       await page.goto('/domains');
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Find a domain link (not "Add Domain" link)
       const domainLink = page.locator('a[href*="/domains/cd"]').first();
-      const hasDomainLink = await domainLink.isVisible().catch(() => false);
+      await expect(domainLink).toBeVisible();
 
-      if (hasDomainLink) {
-        await domainLink.click();
-        // Wait for the router to land on the domain route
-        await page.waitForURL(/\/domains\/cd/);
+      await domainLink.click();
+      // Wait for the router to land on the domain route
+      await page.waitForURL(/\/domains\/cd/);
 
-        const currentUrl = page.url();
+      const currentUrl = page.url();
 
-        expect(
-          containsExtIdWithPrefix(currentUrl, EXTID_PREFIXES.domain),
-          `Domain URL should contain ExtId with 'cd' prefix. URL: ${currentUrl}`
-        ).toBe(true);
+      expect(
+        containsExtIdWithPrefix(currentUrl, EXTID_PREFIXES.domain),
+        `Domain URL should contain ExtId with 'cd' prefix. URL: ${currentUrl}`
+      ).toBe(true);
 
-        expect(
-          containsUUID(currentUrl),
-          `Domain URL should NOT contain UUID. URL: ${currentUrl}`
-        ).toBe(false);
-      } else {
-        test.skip(true, 'No custom domains available to test');
-      }
+      expect(
+        containsUUID(currentUrl),
+        `Domain URL should NOT contain UUID. URL: ${currentUrl}`
+      ).toBe(false);
     });
 
     test('TC-ID-011: Domain verify URL uses ExtId', async ({ page }) => {
+      test.skip(
+        !hasCustomDomain,
+        'Requires a custom domain — set E2E_CUSTOM_DOMAINS>=1 (see e2e/support/env.ts)'
+      );
+
       await page.goto('/domains');
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const domainLink = page.locator('a[href*="/domains/cd"]').first();
-      const hasDomainLink = await domainLink.isVisible().catch(() => false);
+      await expect(domainLink).toBeVisible();
 
-      if (hasDomainLink) {
-        const href = await domainLink.getAttribute('href');
-        if (href) {
-          // Navigate to verify subpath
-          await page.goto(`${href}/verify`);
-          await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+      const href = await domainLink.getAttribute('href');
+      expect(href).toBeTruthy();
 
-          const currentUrl = page.url();
+      // Navigate to verify subpath
+      await page.goto(`${href}/verify`);
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-          expect(containsExtIdWithPrefix(currentUrl, EXTID_PREFIXES.domain)).toBe(true);
-          expect(currentUrl.includes('/verify')).toBe(true);
-          expect(containsUUID(currentUrl)).toBe(false);
-        }
-      } else {
-        test.skip(true, 'No custom domains available to test');
-      }
+      const currentUrl = page.url();
+
+      expect(containsExtIdWithPrefix(currentUrl, EXTID_PREFIXES.domain)).toBe(true);
+      expect(currentUrl.includes('/verify')).toBe(true);
+      expect(containsUUID(currentUrl)).toBe(false);
     });
 
     test('TC-ID-012: Domain branding URL uses ExtId', async ({ page }) => {
+      test.skip(
+        !hasCustomDomain,
+        'Requires a custom domain — set E2E_CUSTOM_DOMAINS>=1 (see e2e/support/env.ts)'
+      );
+
       await page.goto('/domains');
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const domainLink = page.locator('a[href*="/domains/cd"]').first();
-      const hasDomainLink = await domainLink.isVisible().catch(() => false);
+      await expect(domainLink).toBeVisible();
 
-      if (hasDomainLink) {
-        const href = await domainLink.getAttribute('href');
-        if (href) {
-          await page.goto(`${href}/brand`);
-          await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+      const href = await domainLink.getAttribute('href');
+      expect(href).toBeTruthy();
 
-          const currentUrl = page.url();
+      await page.goto(`${href}/brand`);
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-          expect(containsExtIdWithPrefix(currentUrl, EXTID_PREFIXES.domain)).toBe(true);
-          expect(currentUrl.includes('/brand')).toBe(true);
-          expect(containsUUID(currentUrl)).toBe(false);
-        }
-      } else {
-        test.skip(true, 'No custom domains available to test');
-      }
+      const currentUrl = page.url();
+
+      expect(containsExtIdWithPrefix(currentUrl, EXTID_PREFIXES.domain)).toBe(true);
+      expect(currentUrl.includes('/brand')).toBe(true);
+      expect(containsUUID(currentUrl)).toBe(false);
     });
   });
 
@@ -367,29 +349,28 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
       const secretInput = page.locator('textarea[aria-label*="secret content"]');
       const createButton = page.locator('button:has-text("Create Link")');
 
-      if (await secretInput.isVisible()) {
-        await secretInput.fill('Test secret for identifier pattern validation');
-        await createButton.click();
+      // Secret creation is the product's core flow - the form must render
+      await expect(secretInput).toBeVisible();
 
-        // Wait for redirect to receipt page
-        await page.waitForURL(/\/receipt\/.+/, { timeout: 15000 });
+      await secretInput.fill('Test secret for identifier pattern validation');
+      await createButton.click();
 
-        const currentUrl = page.url();
+      // Wait for redirect to receipt page
+      await page.waitForURL(/\/receipt\/.+/, { timeout: 15000 });
 
-        // Receipt URLs should NOT contain UUIDs
-        expect(
-          containsUUID(currentUrl),
-          `Secret receipt URL should NOT contain UUID. URL: ${currentUrl}`
-        ).toBe(false);
+      const currentUrl = page.url();
 
-        // The identifier in the URL should be the secret key (opaque)
-        expect(
-          /\/receipt\/[a-zA-Z0-9]+/.test(currentUrl),
-          `Receipt URL should have opaque identifier format. URL: ${currentUrl}`
-        ).toBe(true);
-      } else {
-        test.skip(true, 'Secret creation form not available');
-      }
+      // Receipt URLs should NOT contain UUIDs
+      expect(
+        containsUUID(currentUrl),
+        `Secret receipt URL should NOT contain UUID. URL: ${currentUrl}`
+      ).toBe(false);
+
+      // The identifier in the URL should be the secret key (opaque)
+      expect(
+        /\/receipt\/[a-zA-Z0-9]+/.test(currentUrl),
+        `Receipt URL should have opaque identifier format. URL: ${currentUrl}`
+      ).toBe(true);
     });
   });
 
@@ -436,6 +417,11 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
     });
 
     test('TC-ID-031: Domains list to domain detail maintains ExtId', async ({ page }) => {
+      test.skip(
+        !hasCustomDomain,
+        'Requires a custom domain — set E2E_CUSTOM_DOMAINS>=1 (see e2e/support/env.ts)'
+      );
+
       await page.goto('/domains');
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
@@ -447,23 +433,21 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
       });
 
       const domainCard = page.locator('a[href*="/domains/cd"]').first();
-      if (await domainCard.isVisible().catch(() => false)) {
-        await domainCard.click();
-        await page.waitForURL(/\/domains\/cd/);
+      await expect(domainCard).toBeVisible();
 
-        // Navigate to subpages if available
-        const verifyTab = page.locator('a[href*="/verify"]');
-        if (await verifyTab.isVisible().catch(() => false)) {
-          await verifyTab.click();
-          await page.waitForURL(/\/verify/);
-        }
+      await domainCard.click();
+      await page.waitForURL(/\/domains\/cd/);
 
-        // Verify no visited URLs contain UUIDs
-        const urlsWithUUIDs = visitedUrls.filter(containsUUID);
-        expect(urlsWithUUIDs.length).toBe(0);
-      } else {
-        test.skip(true, 'No custom domains available to test');
+      // Navigate to subpages if available
+      const verifyTab = page.locator('a[href*="/verify"]');
+      if (await verifyTab.isVisible().catch(() => false)) {
+        await verifyTab.click();
+        await page.waitForURL(/\/verify/);
       }
+
+      // Verify no visited URLs contain UUIDs
+      const urlsWithUUIDs = visitedUrls.filter(containsUUID);
+      expect(urlsWithUUIDs.length).toBe(0);
     });
   });
 });

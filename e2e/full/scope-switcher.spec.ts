@@ -27,6 +27,8 @@
 
 import { expect, Page, test } from '@playwright/test';
 
+import { hasCustomDomain } from '../support/env';
+
 /**
  * Data-testid recommendations for components:
  *
@@ -157,16 +159,16 @@ test.describe('Scope Switcher - Visibility Rules', () => {
       await page.goto('/dashboard');
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
+      // Domain switcher visibility is keyed to the E2E_CUSTOM_DOMAINS
+      // gate: with domains it must render interactive, without it must
+      // stay hidden - both states are assertable
       const domainTrigger = domainSwitcher.trigger(page);
-      const isVisible = await domainTrigger.isVisible().catch(() => false);
-
-      // Domain switcher visibility depends on user having custom domains
-      // For users without domains, it should be hidden (not an error)
-      if (isVisible) {
+      if (hasCustomDomain) {
+        await expect(domainTrigger).toBeVisible();
         const isDisabled = await isElementDisabled(page, domainTrigger);
-        expect(isDisabled, 'Domain switcher should be interactive on Dashboard when visible').toBe(
-          false
-        );
+        expect(isDisabled, 'Domain switcher should be interactive on Dashboard').toBe(false);
+      } else {
+        await expect(domainTrigger).not.toBeVisible();
       }
     });
   });
@@ -193,14 +195,15 @@ test.describe('Scope Switcher - Visibility Rules', () => {
       await page.goto('/');
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
+      // Visibility keyed to the E2E_CUSTOM_DOMAINS gate - both states
+      // are assertable
       const domainTrigger = domainSwitcher.trigger(page);
-      const isVisible = await domainTrigger.isVisible().catch(() => false);
-
-      // Only visible if user has custom domains enabled
-      // Test passes if either visible or correctly hidden
-      if (isVisible) {
+      if (hasCustomDomain) {
+        await expect(domainTrigger).toBeVisible();
         const isDisabled = await isElementDisabled(page, domainTrigger);
         expect(isDisabled).toBe(false);
+      } else {
+        await expect(domainTrigger).not.toBeVisible();
       }
     });
   });
@@ -218,48 +221,38 @@ test.describe('Scope Switcher - Visibility Rules', () => {
       await page.goto('/orgs');
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-      // Look for org link or navigate to first org
+      // The default workspace guarantees an org link
       const orgLink = page.locator('a[href*="/org/"]').first();
-      const hasOrgLink = await orgLink.isVisible().catch(() => false);
+      await expect(orgLink).toBeVisible();
 
-      if (hasOrgLink) {
-        await orgLink.click();
-        // Wait for the router to land on the org route
-        await page.waitForURL(/\/org\//);
+      await orgLink.click();
+      // Wait for the router to land on the org route
+      await page.waitForURL(/\/org\//);
 
-        const orgTrigger = orgSwitcher.trigger(page);
-        const isVisible = await orgTrigger.isVisible().catch(() => false);
-
-        if (isVisible) {
-          // On org settings page, switcher should be locked
-          const isDisabled = await isElementDisabled(page, orgTrigger);
-          expect(
-            isDisabled,
-            'Organization switcher should be locked (disabled) on org settings page'
-          ).toBe(true);
-        }
-      } else {
-        test.skip(true, 'No organizations available to test org settings page');
-      }
+      // On org settings page, switcher should be locked (visible, disabled)
+      const orgTrigger = orgSwitcher.trigger(page);
+      await expect(orgTrigger).toBeVisible();
+      const isDisabled = await isElementDisabled(page, orgTrigger);
+      expect(
+        isDisabled,
+        'Organization switcher should be locked (disabled) on org settings page'
+      ).toBe(true);
     });
 
     test('TC-SS-006: Domain switcher is hidden on org settings page', async ({ page }) => {
       await page.goto('/orgs');
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
+      // The default workspace guarantees an org link
       const orgLink = page.locator('a[href*="/org/"]').first();
-      const hasOrgLink = await orgLink.isVisible().catch(() => false);
+      await expect(orgLink).toBeVisible();
 
-      if (hasOrgLink) {
-        await orgLink.click();
-        // Wait for the router to land on the org route
-        await page.waitForURL(/\/org\//);
+      await orgLink.click();
+      // Wait for the router to land on the org route
+      await page.waitForURL(/\/org\//);
 
-        const domainTrigger = domainSwitcher.trigger(page);
-        const isVisible = await domainTrigger.isVisible().catch(() => false);
-
-        expect(isVisible, 'Domain switcher should be hidden on org settings page').toBe(false);
-      }
+      const domainTrigger = domainSwitcher.trigger(page);
+      await expect(domainTrigger).not.toBeVisible();
     });
   });
 
@@ -281,14 +274,15 @@ test.describe('Scope Switcher - Visibility Rules', () => {
       await page.goto('/domains');
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
+      // Visibility keyed to the E2E_CUSTOM_DOMAINS gate - both states
+      // are assertable
       const domainTrigger = domainSwitcher.trigger(page);
-      // May not be visible if user has no domains - that's expected behavior
-      const isVisible = await domainTrigger.isVisible().catch(() => false);
-
-      // If visible, should be interactive
-      if (isVisible) {
+      if (hasCustomDomain) {
+        await expect(domainTrigger).toBeVisible();
         const isDisabled = await isElementDisabled(page, domainTrigger);
         expect(isDisabled).toBe(false);
+      } else {
+        await expect(domainTrigger).not.toBeVisible();
       }
     });
   });
@@ -298,35 +292,37 @@ test.describe('Scope Switcher - Visibility Rules', () => {
   // -------------------------------------------------------------------------
   test.describe('Domain Detail (/domains/:extid)', () => {
     test('TC-SS-009: Organization switcher is visible on domain detail', async ({ page }) => {
+      test.skip(
+        !hasCustomDomain,
+        'Domain detail requires a custom domain — set E2E_CUSTOM_DOMAINS>=1 (see e2e/support/env.ts)'
+      );
+
       await page.goto('/domains');
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-      // Find a domain link
+      // E2E_CUSTOM_DOMAINS promises at least one domain link
       const domainLink = page
         .locator('a[href*="/domains/"]')
         .filter({
           hasNot: page.locator('text=/add/i'),
         })
         .first();
-      const hasDomainLink = await domainLink.isVisible().catch(() => false);
+      await expect(domainLink).toBeVisible();
 
-      if (hasDomainLink) {
-        await domainLink.click();
-        // Wait for the router to land on the domain route
-        await page.waitForURL(/\/domains\/./);
+      await domainLink.click();
+      // Wait for the router to land on the domain route
+      await page.waitForURL(/\/domains\/./);
 
-        const orgTrigger = orgSwitcher.trigger(page);
-        const isVisible = await orgTrigger.isVisible().catch(() => false);
-
-        expect(isVisible, 'Organization switcher should be visible on domain detail page').toBe(
-          true
-        );
-      } else {
-        test.skip(true, 'No domains available to test domain detail page');
-      }
+      const orgTrigger = orgSwitcher.trigger(page);
+      await expect(orgTrigger).toBeVisible();
     });
 
     test('TC-SS-010: Domain switcher is locked on domain detail', async ({ page }) => {
+      test.skip(
+        !hasCustomDomain,
+        'Domain detail requires a custom domain — set E2E_CUSTOM_DOMAINS>=1 (see e2e/support/env.ts)'
+      );
+
       await page.goto('/domains');
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
@@ -336,21 +332,16 @@ test.describe('Scope Switcher - Visibility Rules', () => {
           hasNot: page.locator('text=/add/i'),
         })
         .first();
-      const hasDomainLink = await domainLink.isVisible().catch(() => false);
+      await expect(domainLink).toBeVisible();
 
-      if (hasDomainLink) {
-        await domainLink.click();
-        // Wait for the router to land on the domain route
-        await page.waitForURL(/\/domains\/./);
+      await domainLink.click();
+      // Wait for the router to land on the domain route
+      await page.waitForURL(/\/domains\/./);
 
-        const domainTrigger = domainSwitcher.trigger(page);
-        const isVisible = await domainTrigger.isVisible().catch(() => false);
-
-        if (isVisible) {
-          const isDisabled = await isElementDisabled(page, domainTrigger);
-          expect(isDisabled, 'Domain switcher should be locked on domain detail page').toBe(true);
-        }
-      }
+      const domainTrigger = domainSwitcher.trigger(page);
+      await expect(domainTrigger).toBeVisible();
+      const isDisabled = await isElementDisabled(page, domainTrigger);
+      expect(isDisabled, 'Domain switcher should be locked on domain detail page').toBe(true);
     });
   });
 
@@ -487,8 +478,7 @@ test.describe('Scope Switcher - Switching Behavior', () => {
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const trigger = orgSwitcher.trigger(page);
-      const isVisible = await trigger.isVisible().catch(() => false);
-      test.skip(!isVisible, 'Organization switcher not visible');
+      await expect(trigger).toBeVisible();
 
       await trigger.click();
 
@@ -502,8 +492,7 @@ test.describe('Scope Switcher - Switching Behavior', () => {
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const trigger = orgSwitcher.trigger(page);
-      const isVisible = await trigger.isVisible().catch(() => false);
-      test.skip(!isVisible, 'Organization switcher not visible');
+      await expect(trigger).toBeVisible();
 
       await trigger.click();
 
@@ -525,8 +514,7 @@ test.describe('Scope Switcher - Switching Behavior', () => {
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const trigger = orgSwitcher.trigger(page);
-      const isVisible = await trigger.isVisible().catch(() => false);
-      test.skip(!isVisible, 'Organization switcher not visible');
+      await expect(trigger).toBeVisible();
 
       // Get current org name - and require it to be real, so the
       // post-switch assertion below can't degrade into a vacuous
@@ -561,8 +549,7 @@ test.describe('Scope Switcher - Switching Behavior', () => {
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const trigger = orgSwitcher.trigger(page);
-      const isVisible = await trigger.isVisible().catch(() => false);
-      test.skip(!isVisible, 'Organization switcher not visible');
+      await expect(trigger).toBeVisible();
 
       await trigger.click();
 
@@ -585,8 +572,7 @@ test.describe('Scope Switcher - Switching Behavior', () => {
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const trigger = orgSwitcher.trigger(page);
-      const isVisible = await trigger.isVisible().catch(() => false);
-      test.skip(!isVisible, 'Organization switcher not visible');
+      await expect(trigger).toBeVisible();
 
       await trigger.click();
 
@@ -609,8 +595,11 @@ test.describe('Scope Switcher - Switching Behavior', () => {
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const trigger = domainSwitcher.trigger(page);
-      const isVisible = await trigger.isVisible().catch(() => false);
-      test.skip(!isVisible, 'Domain switcher not visible (user may not have domains)');
+      test.skip(
+        !hasCustomDomain,
+        'Domain switcher requires a custom domain — set E2E_CUSTOM_DOMAINS>=1 (see e2e/support/env.ts)'
+      );
+      await expect(trigger).toBeVisible();
 
       await trigger.click();
 
@@ -623,8 +612,11 @@ test.describe('Scope Switcher - Switching Behavior', () => {
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const trigger = domainSwitcher.trigger(page);
-      const isVisible = await trigger.isVisible().catch(() => false);
-      test.skip(!isVisible, 'Domain switcher not visible');
+      test.skip(
+        !hasCustomDomain,
+        'Domain switcher requires a custom domain — set E2E_CUSTOM_DOMAINS>=1 (see e2e/support/env.ts)'
+      );
+      await expect(trigger).toBeVisible();
 
       await trigger.click();
 
@@ -649,8 +641,11 @@ test.describe('Scope Switcher - Switching Behavior', () => {
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const trigger = domainSwitcher.trigger(page);
-      const isVisible = await trigger.isVisible().catch(() => false);
-      test.skip(!isVisible, 'Domain switcher not visible');
+      test.skip(
+        !hasCustomDomain,
+        'Domain switcher requires a custom domain — set E2E_CUSTOM_DOMAINS>=1 (see e2e/support/env.ts)'
+      );
+      await expect(trigger).toBeVisible();
 
       await trigger.click();
 
@@ -668,8 +663,11 @@ test.describe('Scope Switcher - Switching Behavior', () => {
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const trigger = domainSwitcher.trigger(page);
-      const isVisible = await trigger.isVisible().catch(() => false);
-      test.skip(!isVisible, 'Domain switcher not visible');
+      test.skip(
+        !hasCustomDomain,
+        'Domain switcher requires a custom domain — set E2E_CUSTOM_DOMAINS>=1 (see e2e/support/env.ts)'
+      );
+      await expect(trigger).toBeVisible();
 
       await trigger.click();
 
@@ -700,8 +698,7 @@ test.describe('Scope Switcher - Locked State Behavior', () => {
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const trigger = orgSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-    test.skip(!isVisible, 'Organization switcher not visible on billing page');
+    await expect(trigger).toBeVisible();
 
     // Should display current org
     const orgName = await trigger.textContent();
@@ -723,8 +720,7 @@ test.describe('Scope Switcher - Locked State Behavior', () => {
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const trigger = orgSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-    test.skip(!isVisible, 'Organization switcher not visible');
+    await expect(trigger).toBeVisible();
 
     // Should have aria-disabled or disabled attribute
     const ariaDisabled = await trigger.getAttribute('aria-disabled');
@@ -747,23 +743,23 @@ test.describe('Scope Switcher - Locked State Behavior', () => {
         hasNot: page.locator('text=/add/i'),
       })
       .first();
-    const hasDomainLink = await domainLink.isVisible().catch(() => false);
-    test.skip(!hasDomainLink, 'No domains available');
+    test.skip(
+      !hasCustomDomain,
+      'Requires a custom domain — set E2E_CUSTOM_DOMAINS>=1 (see e2e/support/env.ts)'
+    );
+    await expect(domainLink).toBeVisible();
 
     await domainLink.click();
     // Wait for the router to land on the domain route
     await page.waitForURL(/\/domains\/./);
 
     const trigger = domainSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
+    await expect(trigger).toBeVisible();
+    const domainName = await trigger.textContent();
+    expect(domainName).toBeTruthy();
 
-    if (isVisible) {
-      const domainName = await trigger.textContent();
-      expect(domainName).toBeTruthy();
-
-      const isDisabled = await isElementDisabled(page, trigger);
-      expect(isDisabled).toBe(true);
-    }
+    const isDisabled = await isElementDisabled(page, trigger);
+    expect(isDisabled).toBe(true);
   });
 });
 
@@ -781,8 +777,7 @@ test.describe('Scope Switcher - Edge Cases', () => {
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const trigger = orgSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-    test.skip(!isVisible, 'Organization switcher not visible');
+    await expect(trigger).toBeVisible();
 
     await trigger.click();
 
@@ -799,17 +794,14 @@ test.describe('Scope Switcher - Edge Cases', () => {
     await page.goto('/dashboard');
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    // Check window state for domains
-    const hasDomains = await page.evaluate(() => {
-      const state = (window as any).__BOOTSTRAP_ME__;
-      return state?.domains_enabled && (state?.custom_domains?.length || 0) > 0;
-    });
-
+    // Keyed to the E2E_CUSTOM_DOMAINS gate rather than probing window
+    // state: without domains the switcher must be hidden, with them it
+    // must render
     const trigger = domainSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-
-    if (!hasDomains) {
-      expect(isVisible).toBe(false);
+    if (hasCustomDomain) {
+      await expect(trigger).toBeVisible();
+    } else {
+      await expect(trigger).not.toBeVisible();
     }
   });
 
@@ -818,8 +810,11 @@ test.describe('Scope Switcher - Edge Cases', () => {
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const trigger = domainSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-    test.skip(!isVisible, 'Domain switcher not visible');
+    test.skip(
+      !hasCustomDomain,
+      'Domain switcher requires a custom domain — set E2E_CUSTOM_DOMAINS>=1 (see e2e/support/env.ts)'
+    );
+    await expect(trigger).toBeVisible();
 
     await trigger.click();
 
@@ -841,8 +836,7 @@ test.describe('Scope Switcher - Edge Cases', () => {
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const trigger = orgSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-    test.skip(!isVisible, 'Organization switcher not visible');
+    await expect(trigger).toBeVisible();
 
     // Focus and open with Enter
     await trigger.focus();
@@ -860,13 +854,16 @@ test.describe('Scope Switcher - Edge Cases', () => {
     await expect(dropdown).not.toBeVisible();
   });
 
-  test('TC-SS-054: Switching org resets domain scope if domain not available', async ({ page }) => {
+  // fixme(#3420): the org-switch domain-scope reset needs a second org AND
+  // per-org domains - fixtures that do not exist until PR 6. As written the
+  // test had no assertion at all (flagged in #3416 review) and could never
+  // fail. Quarantined in e2e/QUARANTINE.md.
+  test.fixme('TC-SS-054: Switching org resets domain scope if domain not available', async ({ page }) => {
     await page.goto('/dashboard');
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const orgTrigger = orgSwitcher.trigger(page);
-    const orgVisible = await orgTrigger.isVisible().catch(() => false);
-    test.skip(!orgVisible, 'Organization switcher not visible');
+    await expect(orgTrigger).toBeVisible();
 
     const domainTrigger = domainSwitcher.trigger(page);
     const domainVisible = await domainTrigger.isVisible().catch(() => false);
@@ -901,8 +898,7 @@ test.describe('Scope Switcher - State Persistence', () => {
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const trigger = orgSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-    test.skip(!isVisible, 'Organization switcher not visible');
+    await expect(trigger).toBeVisible();
 
     // Get current org
     const orgName = await trigger.textContent();
@@ -924,8 +920,11 @@ test.describe('Scope Switcher - State Persistence', () => {
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const trigger = domainSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-    test.skip(!isVisible, 'Domain switcher not visible');
+    test.skip(
+      !hasCustomDomain,
+      'Domain switcher requires a custom domain — set E2E_CUSTOM_DOMAINS>=1 (see e2e/support/env.ts)'
+    );
+    await expect(trigger).toBeVisible();
 
     const domainName = await trigger.textContent();
 
@@ -944,8 +943,11 @@ test.describe('Scope Switcher - State Persistence', () => {
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const trigger = domainSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-    test.skip(!isVisible, 'Domain switcher not visible');
+    test.skip(
+      !hasCustomDomain,
+      'Domain switcher requires a custom domain — set E2E_CUSTOM_DOMAINS>=1 (see e2e/support/env.ts)'
+    );
+    await expect(trigger).toBeVisible();
 
     await trigger.click();
     const menuItem = page.locator('[role="menuitem"]').first();
@@ -970,8 +972,7 @@ test.describe('Scope Switcher - Accessibility', () => {
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const trigger = orgSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-    test.skip(!isVisible, 'Organization switcher not visible');
+    await expect(trigger).toBeVisible();
 
     const ariaLabel = await trigger.getAttribute('aria-label');
     expect(ariaLabel).toBeTruthy();
@@ -983,8 +984,11 @@ test.describe('Scope Switcher - Accessibility', () => {
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const trigger = domainSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-    test.skip(!isVisible, 'Domain switcher not visible');
+    test.skip(
+      !hasCustomDomain,
+      'Domain switcher requires a custom domain — set E2E_CUSTOM_DOMAINS>=1 (see e2e/support/env.ts)'
+    );
+    await expect(trigger).toBeVisible();
 
     const ariaLabel = await trigger.getAttribute('aria-label');
     expect(ariaLabel).toBeTruthy();
@@ -995,8 +999,7 @@ test.describe('Scope Switcher - Accessibility', () => {
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const trigger = orgSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-    test.skip(!isVisible, 'Organization switcher not visible');
+    await expect(trigger).toBeVisible();
 
     await trigger.click();
 
@@ -1009,8 +1012,7 @@ test.describe('Scope Switcher - Accessibility', () => {
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const trigger = orgSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-    test.skip(!isVisible, 'Organization switcher not visible');
+    await expect(trigger).toBeVisible();
 
     await trigger.click();
 
@@ -1024,8 +1026,7 @@ test.describe('Scope Switcher - Accessibility', () => {
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const trigger = orgSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-    test.skip(!isVisible, 'Organization switcher not visible');
+    await expect(trigger).toBeVisible();
 
     await trigger.click();
 

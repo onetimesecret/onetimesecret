@@ -25,6 +25,13 @@
 
 import { expect, Page, test } from '@playwright/test';
 
+// fixme(#3420): every test in this suite switches between two named orgs
+// ("Default Workspace" / "A Second Organization") that only exist for a
+// hand-provisioned dev account. The CI account has exactly one default
+// workspace, so the whole file is quarantined until PR 6's fixtures.ts can
+// seed a second org. Rows in e2e/QUARANTINE.md.
+test.fixme(true, 'Needs a second-org fixture (PR 6 fixtures.ts) — see #3420');
+
 // Known org names for test user domaincontext@onetime.dev
 const ORG_DEFAULT = 'Default Workspace';
 const ORG_SECOND = 'A Second Organization';
@@ -181,12 +188,7 @@ test.describe('Org Switcher Navigation - Same Tab Navigation', () => {
     // Verify org switcher shows Default Workspace (may be visible even when "locked")
     // The fix makes it navigable on org-specific pages
     const orgTrigger = orgSwitcher.trigger(page);
-    const triggerVisible = await orgTrigger.isVisible().catch(() => false);
-
-    if (!triggerVisible) {
-      test.skip(true, 'Org switcher not visible - may be using hideBoth preset');
-      return;
-    }
+    await expect(orgTrigger).toBeVisible();
 
     // Store the initial URL for comparison
     const initialUrl = page.url();
@@ -235,12 +237,7 @@ test.describe('Org Switcher Navigation - Same Tab Navigation', () => {
     expect(page.url()).toContain(`/org/${extid1}/billing`);
 
     const orgTrigger = orgSwitcher.trigger(page);
-    const triggerVisible = await orgTrigger.isVisible().catch(() => false);
-
-    if (!triggerVisible) {
-      test.skip(true, 'Org switcher not visible on billing tab');
-      return;
-    }
+    await expect(orgTrigger).toBeVisible();
 
     const initialUrl = page.url();
 
@@ -276,12 +273,7 @@ test.describe('Org Switcher Navigation - Same Tab Navigation', () => {
     expect(page.url()).toContain(`/org/${extid1}/settings`);
 
     const orgTrigger = orgSwitcher.trigger(page);
-    const triggerVisible = await orgTrigger.isVisible().catch(() => false);
-
-    if (!triggerVisible) {
-      test.skip(true, 'Org switcher not visible on settings tab');
-      return;
-    }
+    await expect(orgTrigger).toBeVisible();
 
     const initialUrl = page.url();
 
@@ -321,12 +313,7 @@ test.describe('Org Switcher Navigation - Same Tab Navigation', () => {
     const extid1 = await navigateToOrgTab(page, ORG_DEFAULT, 'domains');
 
     const orgTrigger = orgSwitcher.trigger(page);
-    const triggerVisible = await orgTrigger.isVisible().catch(() => false);
-
-    if (!triggerVisible) {
-      test.skip(true, 'Org switcher not visible');
-      return;
-    }
+    await expect(orgTrigger).toBeVisible();
 
     // Record initial state
     const initialExtid = extid1;
@@ -375,12 +362,7 @@ test.describe('Org Switcher Navigation - Same Tab Navigation', () => {
     const extid1 = await navigateToOrgTab(page, ORG_DEFAULT, 'domains');
 
     const orgTrigger = orgSwitcher.trigger(page);
-    const triggerVisible = await orgTrigger.isVisible().catch(() => false);
-
-    if (!triggerVisible) {
-      test.skip(true, 'Org switcher not visible');
-      return;
-    }
+    await expect(orgTrigger).toBeVisible();
 
     // Get initial org name from header/trigger
     const initialTriggerText = await orgTrigger.textContent();
@@ -424,12 +406,7 @@ test.describe('Org Switcher Navigation - Edge Cases', () => {
     const extid = await navigateToOrgTab(page, ORG_DEFAULT, 'domains');
 
     const orgTrigger = orgSwitcher.trigger(page);
-    const triggerVisible = await orgTrigger.isVisible().catch(() => false);
-
-    if (!triggerVisible) {
-      test.skip(true, 'Org switcher not visible');
-      return;
-    }
+    await expect(orgTrigger).toBeVisible();
 
     const initialUrl = page.url();
 
@@ -459,12 +436,7 @@ test.describe('Org Switcher Navigation - Edge Cases', () => {
     const originalUrl = page.url();
 
     const orgTrigger = orgSwitcher.trigger(page);
-    const triggerVisible = await orgTrigger.isVisible().catch(() => false);
-
-    if (!triggerVisible) {
-      test.skip(true, 'Org switcher not visible');
-      return;
-    }
+    await expect(orgTrigger).toBeVisible();
 
     // Switch to Second Organization
     await switchOrgViaSwitcher(page, ORG_SECOND);
