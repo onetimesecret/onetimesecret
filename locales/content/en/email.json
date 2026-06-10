@@ -912,5 +912,8 @@
     "text": "This is an automated message from %{product_name}.",
     "renderer": "erb",
     "content_hash": "8fbabfba"
+  },
+  "email.common.support_label": {
+    "text": "Support"
   }
 }
