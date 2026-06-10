@@ -71,5 +71,5 @@ export const gateReason = {
     'an OmniAuth/SSO provider enabled).',
   mfaAccount:
     'Requires an MFA/TOTP-enrolled account — set TEST_MFA_USER_EMAIL / ' +
-    'TEST_MFA_USER_PASSWORD / TEST_MFA_SECRET.',
+    'TEST_MFA_USER_PASSWORD / TEST_MFA_SECRET (or TEST_MFA_OTP).',
 } as const;
