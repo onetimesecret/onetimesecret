@@ -23,6 +23,8 @@
 
 import { test, expect, Page } from '@playwright/test';
 
+import { billingUiEnabled } from '../support/env';
+
 /**
  * Wait for page to stabilize after navigation.
  *
@@ -49,6 +51,11 @@ test.describe('Pending Plan Intent - Signup Flow', () => {
   });
 
   test('pricing deep link preserves product and interval in signup redirect', async ({ page }) => {
+    test.skip(
+      !billingUiEnabled,
+      'Plan CTAs require a billing catalog on the target server — set E2E_BILLING_UI=true (see e2e/support/env.ts)'
+    );
+
     // Visit pricing page with specific plan
     await page.goto('/pricing/identity_plus_v1/yearly');
     await waitForPageLoad(page);
@@ -58,10 +65,10 @@ test.describe('Pending Plan Intent - Signup Flow', () => {
     const cardVisible = await highlightedCard.isVisible().catch(() => false);
 
     if (!cardVisible) {
-      // Fall back to any paid plan CTA
+      // Fall back to any paid plan CTA - one of the two must exist on a
+      // billing-enabled deployment
       const paidPlanCta = page.getByRole('link', { name: /get started/i }).first();
-      const ctaVisible = await paidPlanCta.isVisible().catch(() => false);
-      test.skip(!ctaVisible, 'No plan CTAs available - billing may be disabled');
+      await expect(paidPlanCta).toBeVisible();
       await paidPlanCta.click();
     } else {
       const cta = highlightedCard.getByRole('link');
@@ -313,14 +320,18 @@ test.describe('Pending Plan Intent - E2E Deep Link Flow', () => {
   });
 
   test('full flow: pricing → signup → preserves params for backend', async ({ page }) => {
+    test.skip(
+      !billingUiEnabled,
+      'Plan CTAs require a billing catalog on the target server — set E2E_BILLING_UI=true (see e2e/support/env.ts)'
+    );
+
     // Step 1: Start at pricing deep link
     await page.goto('/pricing/identity_plus_v1/yearly');
     await waitForPageLoad(page);
 
     // Step 2: Click CTA to go to signup
     const paidPlanCta = page.getByRole('link', { name: /get started/i }).first();
-    const ctaVisible = await paidPlanCta.isVisible().catch(() => false);
-    test.skip(!ctaVisible, 'No plan CTAs available - billing may be disabled');
+    await expect(paidPlanCta).toBeVisible();
 
     await paidPlanCta.click();
     await expect(page).toHaveURL(/\/signup\?/);

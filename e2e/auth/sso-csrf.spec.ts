@@ -8,6 +8,8 @@
 
 import { test, expect } from '@playwright/test';
 
+import { ssoSigninEnabled } from '../support/env';
+
 /**
  * SSO Form Submission E2E Tests
  *
@@ -21,10 +23,15 @@ import { test, expect } from '@playwright/test';
  * state parameter provides CSRF protection during the IdP redirect flow. The shrimp
  * field is still included for consistency with other forms but is not validated
  * server-side for SSO requests.
+ *
+ * Environment gate (plan Phase 2.4): whether the signin page renders the
+ * SSO button depends on the target server's OmniAuth configuration — a
+ * deployment decision, not something to probe at runtime. The SSO describes
+ * are gated once on E2E_SSO_UI (e2e/support/env.ts); when the gate is on,
+ * the button MUST be present or the tests fail.
  */
-test.describe('SSO Form Submission', () => {
+test.describe('Signin page', () => {
   test.beforeEach(async ({ page }) => {
-    // Extended timeout for page load
     page.setDefaultTimeout(15000);
   });
 
@@ -37,29 +44,53 @@ test.describe('SSO Form Submission', () => {
     await expect(page.locator('body')).toBeVisible();
   });
 
+  test('CSRF token is available to the signin page', async ({ page }) => {
+    await page.goto('/signin');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+
+    // Get the shrimp value from bootstrap state before it's consumed
+    // Note: Bootstrap state may already be consumed by the app
+    const shrimpFromBootstrap = await page.evaluate(() => {
+      const state = (window as Window & { __BOOTSTRAP_ME__?: { shrimp?: string } | true }).__BOOTSTRAP_ME__;
+
+      // If state is still an object, extract shrimp
+      if (state && typeof state === 'object' && 'shrimp' in state) {
+        return state.shrimp;
+      }
+
+      // State was consumed by the app
+      return null;
+    });
+
+    // Alternative source: the X-CSRF-Token header on API responses
+    const response = await page.request.get('/api/v2/status');
+    const csrfHeader = response.headers()['x-csrf-token'];
+
+    // At least one CSRF mechanism must expose a plausible token. The old
+    // version of this test only checked whichever source happened to be
+    // present and passed vacuously when both were missing.
+    const token = shrimpFromBootstrap || csrfHeader;
+    expect(token, 'no CSRF token via bootstrap state or X-CSRF-Token header').toBeTruthy();
+    expect(String(token).length).toBeGreaterThan(10);
+  });
+});
+
+test.describe('SSO Form Submission', () => {
+  test.skip(
+    !ssoSigninEnabled,
+    'SSO signin requires OmniAuth on the target server — set E2E_SSO_UI=true (see e2e/support/env.ts)'
+  );
+
+  test.beforeEach(async ({ page }) => {
+    // Extended timeout for page load
+    page.setDefaultTimeout(15000);
+  });
+
   test('SSO button is visible when OmniAuth is enabled', async ({ page }) => {
     await page.goto('/signin');
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    // Check if SSO is enabled via bootstrap state
-    const ssoEnabled = await page.evaluate(() => {
-      type BootstrapState = { features?: { sso?: boolean | object } } | undefined;
-      const state = (window as Window & { __BOOTSTRAP_ME__?: BootstrapState | true }).__BOOTSTRAP_ME__;
-      // Bootstrap state may be consumed (set to true) or still an object
-      if (state === true || state === undefined) {
-        // Check if the SSO button is visible as fallback
-        return document.querySelector('[data-testid="sso-button"]') !== null;
-      }
-      // features.sso can be a boolean or an ssoConfig object
-      return !!state.features?.sso;
-    });
-
-    if (!ssoEnabled) {
-      test.skip(true, 'SSO is not enabled in this environment');
-      return;
-    }
-
-    // SSO button should be visible
+    // SSO button must be visible on an SSO-enabled deployment
     const ssoButton = page.locator('[data-testid="sso-button"]');
     await expect(ssoButton).toBeVisible();
 
@@ -71,14 +102,8 @@ test.describe('SSO Form Submission', () => {
     await page.goto('/signin');
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    // Check if SSO button exists
     const ssoButton = page.locator('[data-testid="sso-button"]');
-    const ssoButtonVisible = await ssoButton.isVisible().catch(() => false);
-
-    if (!ssoButtonVisible) {
-      test.skip(true, 'SSO button not present - OmniAuth may not be enabled');
-      return;
-    }
+    await expect(ssoButton).toBeVisible();
 
     // Intercept form submissions to verify CSRF token
     let formSubmission: { action: string; method: string; shrimp: string | null } | null = null;
@@ -129,53 +154,12 @@ test.describe('SSO Form Submission', () => {
     expect(formSubmission?.shrimp?.length).toBeGreaterThan(0);
   });
 
-  test('shrimp token originates from bootstrap state', async ({ page }) => {
-    await page.goto('/signin');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-    // Get the shrimp value from bootstrap state before it's consumed
-    // Note: Bootstrap state may already be consumed by the app
-    const shrimpFromBootstrap = await page.evaluate(() => {
-      const state = (window as Window & { __BOOTSTRAP_ME__?: { shrimp?: string } | true }).__BOOTSTRAP_ME__;
-
-      // If state is still an object, extract shrimp
-      if (state && typeof state === 'object' && 'shrimp' in state) {
-        return state.shrimp;
-      }
-
-      // State was consumed - check csrfStore via Vue app
-      // The csrfStore should have the shrimp value
-      return null;
-    });
-
-    // If we can capture bootstrap shrimp, verify it's a valid token format
-    if (shrimpFromBootstrap) {
-      expect(typeof shrimpFromBootstrap).toBe('string');
-      expect(shrimpFromBootstrap.length).toBeGreaterThan(10);
-    }
-
-    // Alternative verification: check that the page has a valid CSRF mechanism
-    // by verifying the X-CSRF-Token header is present in API responses
-    const response = await page.request.get('/api/v2/status');
-    const csrfHeader = response.headers()['x-csrf-token'];
-
-    // CSRF token should be returned in response headers for API calls
-    if (csrfHeader) {
-      expect(csrfHeader.length).toBeGreaterThan(10);
-    }
-  });
-
   test('SSO button shows loading state when clicked', async ({ page }) => {
     await page.goto('/signin');
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const ssoButton = page.locator('[data-testid="sso-button"]');
-    const ssoButtonVisible = await ssoButton.isVisible().catch(() => false);
-
-    if (!ssoButtonVisible) {
-      test.skip(true, 'SSO button not present - OmniAuth may not be enabled');
-      return;
-    }
+    await expect(ssoButton).toBeVisible();
 
     // Prevent actual form submission
     await page.addInitScript(() => {
@@ -205,12 +189,7 @@ test.describe('SSO Form Submission', () => {
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const ssoButton = page.locator('[data-testid="sso-button"]');
-    const ssoButtonVisible = await ssoButton.isVisible().catch(() => false);
-
-    if (!ssoButtonVisible) {
-      test.skip(true, 'SSO button not present - OmniAuth may not be enabled');
-      return;
-    }
+    await expect(ssoButton).toBeVisible();
 
     // Divider with "or continue with" text should be visible
     const dividerText = page.locator('text=/or continue with/i');
@@ -219,17 +198,17 @@ test.describe('SSO Form Submission', () => {
 });
 
 test.describe('SSO Form - Structure Validation', () => {
+  test.skip(
+    !ssoSigninEnabled,
+    'SSO signin requires OmniAuth on the target server — set E2E_SSO_UI=true (see e2e/support/env.ts)'
+  );
+
   test('form action points to correct OmniAuth endpoint', async ({ page }) => {
     await page.goto('/signin');
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const ssoButton = page.locator('[data-testid="sso-button"]');
-    const ssoButtonVisible = await ssoButton.isVisible().catch(() => false);
-
-    if (!ssoButtonVisible) {
-      test.skip(true, 'SSO button not present - OmniAuth may not be enabled');
-      return;
-    }
+    await expect(ssoButton).toBeVisible();
 
     // Capture the form that gets created
     let formAction: string | null = null;
@@ -266,12 +245,7 @@ test.describe('SSO Form - Structure Validation', () => {
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const ssoButton = page.locator('[data-testid="sso-button"]');
-    const ssoButtonVisible = await ssoButton.isVisible().catch(() => false);
-
-    if (!ssoButtonVisible) {
-      test.skip(true, 'SSO button not present - OmniAuth may not be enabled');
-      return;
-    }
+    await expect(ssoButton).toBeVisible();
 
     // Capture all form inputs
     let formInputs: Array<{ name: string; type: string }> = [];
