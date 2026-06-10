@@ -16,6 +16,7 @@
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { storeToRefs } from 'pinia';
+  import { computed } from 'vue';
 
   const props = withDefaults(defineProps<LayoutProps>(), {
     displayMasthead: true,
@@ -25,11 +26,17 @@
   });
 
   const bootstrapStore = useBootstrapStore();
-  const { authenticated } = storeToRefs(bootstrapStore);
+  const { authenticated, headerConfig } = storeToRefs(bootstrapStore);
+
+  // Operator-level header gate (HEADER_ENABLED). When disabled, the entire
+  // <header> banner landmark collapses — no empty landmark, no padding band.
+  const headerEnabled = computed(() => headerConfig.value?.enabled !== false);
 </script>
 
 <template>
-  <header class="border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+  <header
+    v-if="headerEnabled"
+    class="border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
     <!-- Single row header with Logo, Context Switchers, and User Menu -->
     <div :class="['container mx-auto min-w-[320px] px-4', colonel ? 'max-w-6xl' : 'max-w-4xl']">
       <div class="py-3">
