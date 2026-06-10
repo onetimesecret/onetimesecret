@@ -158,10 +158,11 @@ async function getDomainsFromSsoTab(page: Page): Promise<DomainInfo[]> {
     const domainText = await row.locator('.font-medium').first().textContent();
     if (!domainText) continue;
 
-    // Extract domain extid from configure link (hub still renders /sso links)
-    const configureLink = row.locator('a[href*="/sso"]');
+    // Extract domain extid from configure link. The hub now links to the
+    // domain signin page with the SSO modal deep-link (`/signin?modal=sso`).
+    const configureLink = row.locator('a[href*="/signin"]');
     const href = await configureLink.getAttribute('href').catch(() => null);
-    const match = href?.match(/\/domains\/([^/]+)\/sso/);
+    const match = href?.match(/\/domains\/([^/]+)\/signin/);
     if (!match) continue;
 
     // Determine SSO status from badge
@@ -197,8 +198,12 @@ async function openDomainSsoModal(
   await page.goto(`/org/${orgExtid}/domains/${domainExtid}/signin`);
   await page.waitForLoadState('networkidle');
 
-  // Wait for the signin config form to load
-  await page.locator('form').waitFor({ state: 'visible', timeout: 10000 });
+  // Wait for the signin config page to load. The page no longer renders a
+  // <form> element (the config is a series of fieldsets), so anchor on the
+  // page heading instead.
+  await page
+    .getByRole('heading', { name: /sign-in configuration/i })
+    .waitFor({ state: 'visible', timeout: 10000 });
 
   // Click the "Configure" or "Edit credentials" button to open the SSO modal
   const ssoButton = page.getByRole('button', { name: /configure|edit credentials/i });
@@ -435,7 +440,7 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
         (await domainRow.locator('text=/not configured/i').isVisible().catch(() => false));
 
       const hasConfigureLink = await domainRow
-        .locator('a[href*="/sso"]')
+        .locator('a[href*="/signin"]')
         .isVisible()
         .catch(() => false);
 
@@ -653,8 +658,11 @@ test.describe('Multi-Domain SSO - SSO Hub Display', () => {
     const domains = await getDomainsFromSsoTab(page);
     test.skip(domains.length === 0, 'Test requires at least 1 domain');
 
-    // Verify the configure link is present in the hub for the first domain
-    const configureLink = page.locator(`a[href*="/domains/${domains[0].extid}/sso"]`);
+    // Verify the configure link is present in the hub for the first domain.
+    // The hub now links to the domain signin page with the SSO modal deep-link.
+    const configureLink = page.locator(
+      `a[href*="/domains/${domains[0].extid}/signin"]`
+    );
     await expect(configureLink).toBeVisible();
 
     // Verify domain name is shown
