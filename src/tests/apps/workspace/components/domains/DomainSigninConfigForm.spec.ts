@@ -324,13 +324,15 @@ describe('DomainSigninConfigForm', () => {
       expect(wrapper.find('[data-testid="signin-disabled-mode-notice"]').exists()).toBe(false);
     });
 
-    it('re-enabling via "Any available method" saves signin_enabled=true', async () => {
+    it('re-enabling via "Any available method" saves signin_enabled=true with matching field key', async () => {
+      // The saving-field hint must name what is actually in the patch: a
+      // pure re-enable (restrict_to already null) saves signin_enabled only.
       wrapper = mountForm({ formState: disabledFormState });
       await wrapper.find('#signin-mode-any').trigger('click');
 
       const emitted = wrapper.emitted('auto-save');
       expect(emitted).toBeTruthy();
-      expect(emitted![0][0]).toEqual({ signin_enabled: true });
+      expect(emitted![0]).toEqual([{ signin_enabled: true }, 'signin_enabled']);
     });
 
     it('re-enabling via Any also clears a preserved restrict_to atomically', async () => {
@@ -338,7 +340,10 @@ describe('DomainSigninConfigForm', () => {
       await wrapper.find('#signin-mode-any').trigger('click');
 
       const emitted = wrapper.emitted('auto-save');
-      expect(emitted![0][0]).toEqual({ restrict_to: null, signin_enabled: true });
+      expect(emitted![0]).toEqual([
+        { restrict_to: null, signin_enabled: true },
+        'restrict_to',
+      ]);
     });
 
     it('re-enabling via "One specific method" saves signin_enabled=true immediately', async () => {
@@ -853,29 +858,59 @@ describe('DomainSigninConfigForm', () => {
     });
 
     // -------------------------------------------------------------------
-    // Keyboard / roving-tabindex gap (documented, not enforced)
+    // Keyboard navigation (roving tabindex)
     //
-    // The frontend agent flagged that the mode switch is built from plain
-    // <button>s in a role="radiogroup" WITHOUT arrow-key roving tabindex —
-    // an ARIA radiogroup is expected to manage a single tab-stop and move
-    // selection with Arrow keys. These tests document the CURRENT behavior
-    // (each segment is natively Tab-reachable; Enter/click activates) and
-    // make the missing roving visible without failing the build.
-    //
-    // TODO a11y: roving tabindex — the radiogroup segments should use a
-    // single tab-stop with arrow-key navigation and aria-checked-driven
-    // focus, rather than being independently Tab-focusable <button>s.
+    // The radiogroup is a single tab stop: the CHECKED segment carries
+    // tabindex="0", the others "-1". Arrow keys move focus between
+    // segments WITHOUT selecting — activation stays on click/Enter/Space
+    // (manual activation), because selecting a mode fires an auto-save
+    // PUT and selection-follows-focus would write on every arrow press.
     // -------------------------------------------------------------------
-    describe('keyboard navigation (roving-tabindex gap)', () => {
-      it('mode segments are each independently Tab-reachable (no roving tabindex)', () => {
+    describe('keyboard navigation (roving tabindex)', () => {
+      it('only the checked segment is in the tab order', () => {
+        wrapper = mountForm(); // defaults to mode Any
+        expect(wrapper.find('#signin-mode-any').attributes('tabindex')).toBe('0');
+        expect(wrapper.find('#signin-mode-one').attributes('tabindex')).toBe('-1');
+        expect(wrapper.find('#signin-mode-disabled').attributes('tabindex')).toBe('-1');
+      });
+
+      it('the tab stop follows the checked segment', () => {
+        wrapper = mountForm({ formState: { ...defaultFormState, signin_enabled: false } });
+        expect(wrapper.find('#signin-mode-disabled').attributes('tabindex')).toBe('0');
+        expect(wrapper.find('#signin-mode-any').attributes('tabindex')).toBe('-1');
+        expect(wrapper.find('#signin-mode-one').attributes('tabindex')).toBe('-1');
+      });
+
+      it('ArrowRight moves focus to the next segment without selecting', async () => {
         wrapper = mountForm();
         const any = wrapper.find('#signin-mode-any');
-        const one = wrapper.find('#signin-mode-one');
-        // Roving would set tabindex="-1" on the unselected segment; current
-        // markup sets none, so both are in the natural tab order. Documenting
-        // the gap: neither carries a roving tabindex attribute.
-        expect(any.attributes('tabindex')).toBeUndefined();
-        expect(one.attributes('tabindex')).toBeUndefined();
+        (any.element as HTMLElement).focus();
+        await any.trigger('keydown', { key: 'ArrowRight' });
+
+        expect(document.activeElement?.id).toBe('signin-mode-one');
+        // Focus moved, nothing selected or saved.
+        expect(wrapper.find('#signin-mode-any').attributes('aria-checked')).toBe('true');
+        expect(wrapper.emitted('auto-save')).toBeFalsy();
+      });
+
+      it('ArrowLeft wraps from the first to the last segment', async () => {
+        wrapper = mountForm();
+        const any = wrapper.find('#signin-mode-any');
+        (any.element as HTMLElement).focus();
+        await any.trigger('keydown', { key: 'ArrowLeft' });
+
+        expect(document.activeElement?.id).toBe('signin-mode-disabled');
+      });
+
+      it('End jumps to the last segment, Home back to the first', async () => {
+        wrapper = mountForm();
+        const any = wrapper.find('#signin-mode-any');
+        (any.element as HTMLElement).focus();
+        await any.trigger('keydown', { key: 'End' });
+        expect(document.activeElement?.id).toBe('signin-mode-disabled');
+
+        await wrapper.find('#signin-mode-disabled').trigger('keydown', { key: 'Home' });
+        expect(document.activeElement?.id).toBe('signin-mode-any');
       });
 
       it('activating a segment via keyboard (Enter→click) switches mode', async () => {

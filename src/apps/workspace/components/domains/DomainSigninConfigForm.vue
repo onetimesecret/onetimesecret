@@ -109,6 +109,47 @@ const isModeOne = computed(
 const isModeAny = computed(() => !isModeDisabled.value && !isModeOne.value);
 
 // ---------------------------------------------------------------------------
+// Mode switch keyboard support (roving tabindex)
+// ---------------------------------------------------------------------------
+
+/**
+ * Roving tabindex: the radiogroup is a single tab stop (the checked
+ * segment); arrow keys move focus between segments. Activation stays on
+ * click/Enter/Space (manual activation) — selecting a mode fires an
+ * auto-save PUT, and WAI-ARIA APG recommends NOT having selection follow
+ * focus when activation has side effects like network requests.
+ */
+const MODE_SEGMENT_IDS = ['signin-mode-any', 'signin-mode-one', 'signin-mode-disabled'] as const;
+
+const checkedModeIndex = computed(() => (isModeDisabled.value ? 2 : isModeOne.value ? 1 : 0));
+
+const modeTabindex = (index: number) => (checkedModeIndex.value === index ? 0 : -1);
+
+const onModeKeydown = (event: KeyboardEvent) => {
+  const handled = ['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp', 'Home', 'End'];
+  if (!handled.includes(event.key)) return;
+  event.preventDefault();
+
+  const segments = MODE_SEGMENT_IDS.map((id) => document.getElementById(id)).filter(
+    (el): el is HTMLElement => el !== null
+  );
+  if (segments.length === 0) return;
+
+  const current = segments.indexOf(document.activeElement as HTMLElement);
+  let next: number;
+  if (event.key === 'Home') {
+    next = 0;
+  } else if (event.key === 'End') {
+    next = segments.length - 1;
+  } else {
+    const delta = event.key === 'ArrowRight' || event.key === 'ArrowDown' ? 1 : -1;
+    const from = current === -1 ? checkedModeIndex.value : current;
+    next = (from + delta + segments.length) % segments.length;
+  }
+  segments[next].focus();
+};
+
+// ---------------------------------------------------------------------------
 // Method availability (only offer globally-available methods)
 // ---------------------------------------------------------------------------
 
@@ -186,7 +227,11 @@ const selectModeAny = () => {
   if (props.formState.restrict_to !== null) patch.restrict_to = null;
   if (!props.formState.signin_enabled) patch.signin_enabled = true;
   if (Object.keys(patch).length === 0) return;
-  emit('auto-save', patch, 'restrict_to');
+  // Attribute the saving indicator to restrict_to only when it is actually
+  // in the patch; a pure re-enable from "Sign-in disabled" (restrict_to
+  // already null) saves signin_enabled alone.
+  const fieldKey = 'restrict_to' in patch ? 'restrict_to' : 'signin_enabled';
+  emit('auto-save', patch, fieldKey);
 };
 
 /**
@@ -254,12 +299,14 @@ const handleDelete = () => {
         <div
           class="mt-3 inline-flex rounded-lg border border-gray-300 bg-gray-100 p-1 dark:border-gray-600 dark:bg-gray-700"
           role="radiogroup"
-          aria-labelledby="signin-mode-legend">
+          aria-labelledby="signin-mode-legend"
+          @keydown="onModeKeydown">
           <button
             id="signin-mode-any"
             type="button"
             role="radio"
             :aria-checked="isModeAny"
+            :tabindex="modeTabindex(0)"
             :disabled="isSaving"
             @click="selectModeAny"
             :class="[
@@ -275,6 +322,7 @@ const handleDelete = () => {
             type="button"
             role="radio"
             :aria-checked="isModeOne"
+            :tabindex="modeTabindex(1)"
             :disabled="isSaving"
             @click="selectModeOne"
             :class="[
@@ -290,6 +338,7 @@ const handleDelete = () => {
             type="button"
             role="radio"
             :aria-checked="isModeDisabled"
+            :tabindex="modeTabindex(2)"
             :disabled="isSaving"
             @click="selectModeDisabled"
             :class="[
