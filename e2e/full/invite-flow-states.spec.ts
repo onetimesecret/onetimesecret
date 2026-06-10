@@ -229,10 +229,10 @@ test.describe('INV-001: New User Atomic Signup Flow', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-002: New User Magic Link Flow', () => {
-  test.skip('new user can join via magic link', async () => {
-    // Lower priority - skip if magic link feature not enabled in test env
-    // Magic link requires email delivery infrastructure
-    test.skip(true, 'Magic link flow requires email infrastructure - not tested in basic suite');
+  // fixme(#3421): needs a mail interceptor to capture the magic link.
+  // Quarantined in e2e/QUARANTINE.md.
+  test.fixme('new user can join via magic link', async () => {
+    // Magic link requires email delivery infrastructure (see #3421)
   });
 });
 
@@ -241,9 +241,10 @@ test.describe('INV-002: New User Magic Link Flow', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-003: New User SSO Flow', () => {
-  test.skip('new user can join via SSO', async () => {
-    // Requires SSO configuration in test environment
-    test.skip(true, 'SSO flow requires SSO provider configuration - not tested in basic suite');
+  // fixme(#3421): needs an SSO provider (see also the E2E_SSO_UI gate) and
+  // email capture. Quarantined in e2e/QUARANTINE.md.
+  test.fixme('new user can join via SSO', async () => {
+    // Requires SSO provider configuration in the test environment (see #3421)
   });
 });
 
@@ -324,9 +325,11 @@ test.describe('INV-004: Existing User Signin Flow', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-005: Existing User MFA Flow', () => {
-  test.skip('existing user with MFA completes invite flow', async () => {
-    // Requires MFA to be enabled for test user
-    test.skip(true, 'MFA flow requires MFA-enabled test account - not tested in basic suite');
+  // fixme(#3421): needs an MFA-enrolled second account (TEST_MFA_* gates the
+  // dedicated MFA suite; the invite crossover also needs mail capture).
+  // Quarantined in e2e/QUARANTINE.md.
+  test.fixme('existing user with MFA completes invite flow', async () => {
+    // Requires an MFA-enabled invitee account (see #3421)
   });
 });
 
@@ -337,7 +340,11 @@ test.describe('INV-005: Existing User MFA Flow', () => {
 test.describe('INV-006: Direct Accept Flow', () => {
   test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
 
-  test('signed-in user with matching email can accept directly', async ({ browser }) => {
+  // fixme(#3419): self-inviting the storageState user is single-shot - once
+  // accepted (or on retry after a partial run) the invitation can never be
+  // recreated, so the test degraded into pass-or-skip. Needs the fresh
+  // second-account fixture from PR 6. Quarantined in e2e/QUARANTINE.md.
+  test.fixme('signed-in user with matching email can accept directly', async ({ browser }) => {
     // Create two contexts - owner creates invitation for test user email
     const ownerContext = await browser.newContext();
     const matchingUserContext = await browser.newContext();
@@ -355,20 +362,12 @@ test.describe('INV-006: Direct Accept Flow', () => {
 
       await navigateToOrgTeam(ownerPage);
 
-      // Create invitation for the test user's email
-      // Note: This may fail if user is already a member - that's expected
-      try {
-        await createInvitation(ownerPage, testUserEmail);
-      } catch {
-        test.skip(true, 'Could not create invitation - user may already be a member');
-        return;
-      }
+      // Create invitation for the invitee's email - the fixture guarantees
+      // a fresh, never-invited account, so failure here is a real bug
+      await createInvitation(ownerPage, testUserEmail);
 
       const token = await getInvitationToken(ownerPage, testUserEmail);
-      if (!token) {
-        test.skip(true, 'Could not create invitation for test user email');
-        return;
-      }
+      expect(token, 'invitation token must be retrievable after creation').toBeTruthy();
 
       // Login as the matching user in second context
       await loginUser(matchingUserPage);
@@ -421,7 +420,7 @@ test.describe('INV-006: Direct Accept Flow', () => {
         const wrongEmailState = matchingUserPage.getByTestId('invite-wrong-email');
 
         if (await invalidState.isVisible().catch(() => false)) {
-          test.skip(true, 'Invitation is invalid or expired');
+          expect(false, 'freshly created invitation reported invalid/expired').toBe(true);
         } else if (await wrongEmailState.isVisible().catch(() => false)) {
           test.fail(true, 'Email mismatch detected when emails should match');
         }

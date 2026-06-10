@@ -713,28 +713,25 @@ test.describe('Opaque Identifier Pattern - Regression Prevention', () => {
     await page.goto('/orgs');
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
+    // Default workspace guarantee: the orgs list always has a card
     const orgLink = page.locator('a[href*="/org/on"]').first();
-    const hasOrg = await orgLink.isVisible().catch(() => false);
+    await expect(orgLink).toBeVisible();
 
-    if (hasOrg) {
-      const href = await orgLink.getAttribute('href');
-      if (href) {
-        // Navigate directly to the URL (simulating bookmark or shared link)
-        await page.goto(href);
-        await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    const href = await orgLink.getAttribute('href');
+    expect(href).toBeTruthy();
 
-        // Page should load successfully (not 404)
-        const response = await page.evaluate(() => ({
-          title: document.title,
-          has404: document.body.textContent?.includes('404') || false,
-        }));
+    // Navigate directly to the URL (simulating bookmark or shared link)
+    await page.goto(href!);
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-        expect(response.has404).toBe(false);
-        expect(response.title).not.toBe('');
-      }
-    } else {
-      test.skip(true, 'No organizations available to test');
-    }
+    // Page should load successfully (not 404)
+    const response = await page.evaluate(() => ({
+      title: document.title,
+      has404: document.body.textContent?.includes('404') || false,
+    }));
+
+    expect(response.has404).toBe(false);
+    expect(response.title).not.toBe('');
   });
 
   test('TC-ID-062: Invalid ExtId format shows appropriate error', async ({ page }) => {

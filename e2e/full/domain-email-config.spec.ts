@@ -24,6 +24,18 @@
 
 import { expect, Page, test } from '@playwright/test';
 
+import { hasCustomDomain } from '../support/env';
+
+// Environment gate (plan Phase 2.4): per-domain email config needs a custom
+// domain on the test account, which requires DOMAINS_ENABLED=true on the
+// target server (off in CI) plus ORGS_CUSTOM_MAIL_ENABLED for the email
+// feature itself. Gate the whole file on the documented E2E_CUSTOM_DOMAINS
+// variable; when it is set, every precondition below is asserted, not probed.
+test.skip(
+  !hasCustomDomain,
+  'Custom-domain email config requires E2E_CUSTOM_DOMAINS>=1 (see e2e/support/env.ts)'
+);
+
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
@@ -142,10 +154,10 @@ test.describe('Domain Email Config - Form Loading', () => {
 
   test('TC-DEC-001: email config form loads successfully', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     const formLoaded = await navigateToEmailConfig(page, org!.extid, domain!.extid);
     expect(formLoaded, 'Email config form should load').toBe(true);
@@ -157,10 +169,10 @@ test.describe('Domain Email Config - Form Loading', () => {
 
   test('TC-DEC-002: form displays domain context', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     await navigateToEmailConfig(page, org!.extid, domain!.extid);
 
@@ -171,10 +183,10 @@ test.describe('Domain Email Config - Form Loading', () => {
 
   test('TC-DEC-003: back navigation returns to domains list', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     await navigateToEmailConfig(page, org!.extid, domain!.extid);
 
@@ -198,10 +210,10 @@ test.describe('Domain Email Config - Form Fields', () => {
 
   test('TC-DEC-004: from_name field accepts input', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     await navigateToEmailConfig(page, org!.extid, domain!.extid);
 
@@ -212,10 +224,10 @@ test.describe('Domain Email Config - Form Fields', () => {
 
   test('TC-DEC-005: from_address field validates email format', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     await navigateToEmailConfig(page, org!.extid, domain!.extid);
 
@@ -231,10 +243,10 @@ test.describe('Domain Email Config - Form Fields', () => {
 
   test('TC-DEC-006: reply_to field is optional', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     await navigateToEmailConfig(page, org!.extid, domain!.extid);
 
@@ -248,10 +260,10 @@ test.describe('Domain Email Config - Form Fields', () => {
 
   test('TC-DEC-007: fields have proper labels', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     await navigateToEmailConfig(page, org!.extid, domain!.extid);
 
@@ -273,10 +285,10 @@ test.describe('Domain Email Config - Toggle Behavior', () => {
 
   test('TC-DEC-008: enabled toggle is present', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     await navigateToEmailConfig(page, org!.extid, domain!.extid);
 
@@ -286,15 +298,15 @@ test.describe('Domain Email Config - Toggle Behavior', () => {
 
   test('TC-DEC-009: toggle can be switched', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     await navigateToEmailConfig(page, org!.extid, domain!.extid);
 
     const toggle = await findEnabledToggle(page);
-    test.skip(!toggle, 'Toggle not found');
+    expect(toggle, 'enabled toggle must render in the email config form').toBeTruthy();
 
     const initialState = await isToggleEnabled(toggle!);
 
@@ -305,15 +317,15 @@ test.describe('Domain Email Config - Toggle Behavior', () => {
 
   test('TC-DEC-010: toggle has proper ARIA attributes', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     await navigateToEmailConfig(page, org!.extid, domain!.extid);
 
     const toggle = await findEnabledToggle(page);
-    test.skip(!toggle, 'Toggle not found');
+    expect(toggle, 'enabled toggle must render in the email config form').toBeTruthy();
 
     const role = await toggle!.getAttribute('role');
     expect(role).toBe('switch');
@@ -334,10 +346,10 @@ test.describe('Domain Email Config - Form Validation', () => {
 
   test('TC-DEC-011: save button disabled when required fields empty', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     await navigateToEmailConfig(page, org!.extid, domain!.extid);
 
@@ -355,10 +367,10 @@ test.describe('Domain Email Config - Form Validation', () => {
 
   test('TC-DEC-012: save button enabled when required fields filled', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     await navigateToEmailConfig(page, org!.extid, domain!.extid);
 
@@ -376,10 +388,10 @@ test.describe('Domain Email Config - Form Validation', () => {
 
   test('TC-DEC-013: invalid email format prevents save', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     await navigateToEmailConfig(page, org!.extid, domain!.extid);
 
@@ -407,10 +419,10 @@ test.describe('Domain Email Config - Save and Delete', () => {
 
   test('TC-DEC-014: save button submits form', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     await navigateToEmailConfig(page, org!.extid, domain!.extid);
 
@@ -449,10 +461,10 @@ test.describe('Domain Email Config - Save and Delete', () => {
 
   test('TC-DEC-015: delete button shows confirmation', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     await navigateToEmailConfig(page, org!.extid, domain!.extid);
 
@@ -476,10 +488,10 @@ test.describe('Domain Email Config - Save and Delete', () => {
 
   test('TC-DEC-016: discard button resets form changes', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     await navigateToEmailConfig(page, org!.extid, domain!.extid);
 
@@ -516,10 +528,10 @@ test.describe('Domain Email Config - Mobile', () => {
     await page.setViewportSize({ width: 375, height: 667 });
 
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     await navigateToEmailConfig(page, org!.extid, domain!.extid);
 

@@ -26,6 +26,13 @@
 
 import { expect, Page, Request, test } from '@playwright/test';
 
+// fixme(#3420): every test compares per-org domain caches across two named
+// orgs ("Default Workspace" / "A Second Organization") that only exist on a
+// hand-provisioned dev account - the second-org + per-org-domain fixtures
+// land with PR 6's fixtures.ts. Quarantined as a file; rows in
+// e2e/QUARANTINE.md.
+test.fixme(true, 'Needs second-org + per-org domain fixtures (PR 6 fixtures.ts) — see #3420');
+
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
@@ -244,7 +251,7 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
     test('Domain switcher shows correct domains when navigating between orgs', async ({ page }) => {
       // Get user organizations
       const orgs = await getUserOrganizations(page);
-      test.skip(orgs.length < 2, 'Test requires user with at least 2 organizations');
+      expect(orgs.length, 'fixture must provide at least 2 organizations (#3420)').toBeGreaterThanOrEqual(2);
 
       // Find Default Workspace (has domains) and A Second Organization (no domains)
       const defaultWorkspace = findOrgByName(orgs, 'Default Workspace');
@@ -252,11 +259,8 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
 
       if (!defaultWorkspace || !secondOrg) {
         // Fall back to first two orgs if named orgs not found
-        test.skip(
-          true,
-          'Test requires "Default Workspace" with domains and "A Second Organization" without domains'
-        );
-        return;
+        expect(false, 'fixture must provide the named org pair (#3420)').toBe(true);
+          return;
       }
 
       // Step 1: Navigate to Default Workspace dashboard
@@ -334,7 +338,7 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
     test('Manage Domains page shows correct domains for each organization', async ({ page }) => {
       // Get user organizations
       const orgs = await getUserOrganizations(page);
-      test.skip(orgs.length < 2, 'Test requires user with at least 2 organizations');
+      expect(orgs.length, 'fixture must provide at least 2 organizations (#3420)').toBeGreaterThanOrEqual(2);
 
       // Log available orgs for debugging
       console.log(`[TC-DSC-002] Found ${orgs.length} orgs:`, orgs.map((o) => `"${o.name}" (${o.extid})`).join(', '));
@@ -345,16 +349,13 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
 
       if (!defaultWorkspace || !secondOrg) {
         const orgNames = orgs.map((o) => `"${o.name}" (${o.extid})`).join(', ');
-        test.skip(
-          true,
-          `Test requires "Default Workspace" and "Second Organization". Found: ${orgNames}`
-        );
-        return;
+        expect(false, 'fixture must provide the named org pair (#3420)').toBe(true);
+          return;
       }
 
       // Validate we found two DIFFERENT orgs
       if (defaultWorkspace.extid === secondOrg.extid) {
-        test.skip(true, `Found same org twice: ${defaultWorkspace.name} (${defaultWorkspace.extid})`);
+        expect(false, `found same org twice: ${defaultWorkspace.name} (${defaultWorkspace.extid})`).toBe(true);
         return;
       }
 
@@ -439,18 +440,15 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
     }) => {
       // Get user organizations
       const orgs = await getUserOrganizations(page);
-      test.skip(orgs.length < 2, 'Test requires user with at least 2 organizations');
+      expect(orgs.length, 'fixture must provide at least 2 organizations (#3420)').toBeGreaterThanOrEqual(2);
 
       // Find named orgs
       const defaultWorkspace = findOrgByName(orgs, 'Default Workspace');
       const secondOrg = findOrgByName(orgs, 'Second Organization');
 
       if (!defaultWorkspace || !secondOrg) {
-        test.skip(
-          true,
-          'Test requires "Default Workspace" with domains and "A Second Organization" without domains'
-        );
-        return;
+        expect(false, 'fixture must provide the named org pair (#3420)').toBe(true);
+          return;
       }
 
       // Track API calls to /api/domains
@@ -547,13 +545,13 @@ test.describe('DomainsStore Cache - Edge Cases', () => {
     page,
   }) => {
     const orgs = await getUserOrganizations(page);
-    test.skip(orgs.length < 2, 'Test requires user with at least 2 organizations');
+    expect(orgs.length, 'fixture must provide at least 2 organizations (#3420)').toBeGreaterThanOrEqual(2);
 
     const defaultWorkspace = findOrgByName(orgs, 'Default Workspace');
     const secondOrg = findOrgByName(orgs, 'Second Organization');
 
     if (!defaultWorkspace || !secondOrg) {
-      test.skip(true, 'Test requires specific organizations');
+      expect(false, 'fixture must provide the named org pair (#3420)').toBe(true);
       return;
     }
 
@@ -611,11 +609,11 @@ test.describe('DomainsStore Cache - Edge Cases', () => {
 
   test('TC-DSC-005: Page refresh maintains correct org domain context', async ({ page }) => {
     const orgs = await getUserOrganizations(page);
-    test.skip(orgs.length < 2, 'Test requires user with at least 2 organizations');
+    expect(orgs.length, 'fixture must provide at least 2 organizations (#3420)').toBeGreaterThanOrEqual(2);
 
     const secondOrg = findOrgByName(orgs, 'Second Organization');
     if (!secondOrg) {
-      test.skip(true, 'Test requires "A Second Organization"');
+      expect(false, 'fixture must provide "A Second Organization" (#3420)').toBe(true);
       return;
     }
 

@@ -31,6 +31,17 @@
 
 import { expect, Page, test } from '@playwright/test';
 
+import { customDomainCount, hasCustomDomain, orgsSsoEnabled } from '../support/env';
+
+// Environment gate (plan Phase 2.4): multi-provider SSO config operates on
+// custom domains behind the ORGS_SSO_ENABLED + manage_sso dual control.
+// Gate the whole file on the documented E2E_ORGS_SSO + E2E_CUSTOM_DOMAINS
+// variables; with the gates set, every precondition is asserted, not probed.
+test.skip(
+  !orgsSsoEnabled || !hasCustomDomain,
+  'Org SSO management requires E2E_ORGS_SSO=true and E2E_CUSTOM_DOMAINS>=1 (see e2e/support/env.ts)'
+);
+
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
@@ -311,14 +322,15 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
     page,
   }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
+    test.skip(customDomainCount < 2, 'Requires E2E_CUSTOM_DOMAINS>=2 (see e2e/support/env.ts)');
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length < 2, 'Test requires at least 2 domains for multi-provider testing');
+    expect(domains.length).toBeGreaterThanOrEqual(2);
 
     const domainA = domains[0];
     const domainB = domains[1];
@@ -371,11 +383,11 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
     page,
   }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
     // Verify SSO section is visible
     const ssoSection = page.locator('[data-testid="org-section-sso"]');
@@ -412,14 +424,15 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
     page,
   }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
+    test.skip(customDomainCount < 2, 'Requires E2E_CUSTOM_DOMAINS>=2 (see e2e/support/env.ts)');
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length < 2, 'Test requires at least 2 domains');
+    expect(domains.length).toBeGreaterThanOrEqual(2);
 
     const domainA = domains[0];
     const domainB = domains[1];
@@ -474,14 +487,15 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
     page,
   }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
+    test.skip(customDomainCount < 2, 'Requires E2E_CUSTOM_DOMAINS>=2 (see e2e/support/env.ts)');
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length < 2, 'Test requires at least 2 domains');
+    expect(domains.length).toBeGreaterThanOrEqual(2);
 
     const domainA = domains[0];
     const domainB = domains[1];
@@ -582,11 +596,11 @@ test.describe('Multi-Domain SSO - SSO Hub Display', () => {
 
   test('TC-MPROV-005: SSO hub displays all organization domains', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
     const ssoSection = page.locator('[data-testid="org-section-sso"]');
     await expect(ssoSection).toBeVisible();
@@ -609,14 +623,14 @@ test.describe('Multi-Domain SSO - SSO Hub Display', () => {
     page,
   }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeGreaterThan(0);
 
     // Click configure on first domain
     const configureLink = page.locator(`a[href*="/domains/${domains[0].extid}/sso"]`);
@@ -636,11 +650,11 @@ test.describe('Multi-Domain SSO - SSO Hub Display', () => {
     page,
   }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
     const ssoSection = page.locator('[data-testid="org-section-sso"]');
     await expect(ssoSection).toBeVisible();
@@ -676,14 +690,14 @@ test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
 
   test('TC-MPROV-008: Entra ID requires tenant_id field', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeGreaterThan(0);
 
     await navigateToDomainSsoPage(page, org!.extid, domains[0].extid);
     await page.waitForSelector('form', { state: 'visible' });
@@ -702,14 +716,14 @@ test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
 
   test('TC-MPROV-009: Google Workspace does not require tenant_id', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeGreaterThan(0);
 
     await navigateToDomainSsoPage(page, org!.extid, domains[0].extid);
     await page.waitForSelector('form', { state: 'visible' });
@@ -728,14 +742,14 @@ test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
 
   test('TC-MPROV-010: Generic OIDC requires issuer field', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeGreaterThan(0);
 
     await navigateToDomainSsoPage(page, org!.extid, domains[0].extid);
     await page.waitForSelector('form', { state: 'visible' });
@@ -754,14 +768,14 @@ test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
 
   test('TC-MPROV-011: GitHub uses minimal configuration', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeGreaterThan(0);
 
     await navigateToDomainSsoPage(page, org!.extid, domains[0].extid);
     await page.waitForSelector('form', { state: 'visible' });
@@ -793,14 +807,15 @@ test.describe('Multi-Domain SSO - Configuration Isolation', () => {
 
   test('TC-MPROV-012: domain A config is not visible on domain B page', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
+    test.skip(customDomainCount < 2, 'Requires E2E_CUSTOM_DOMAINS>=2 (see e2e/support/env.ts)');
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length < 2, 'Test requires at least 2 domains');
+    expect(domains.length).toBeGreaterThanOrEqual(2);
 
     const domainA = domains[0];
     const domainB = domains[1];
@@ -839,14 +854,15 @@ test.describe('Multi-Domain SSO - Configuration Isolation', () => {
 
   test('TC-MPROV-013: URL routing correctly scopes to domain', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
+    test.skip(customDomainCount < 2, 'Requires E2E_CUSTOM_DOMAINS>=2 (see e2e/support/env.ts)');
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length < 2, 'Test requires at least 2 domains');
+    expect(domains.length).toBeGreaterThanOrEqual(2);
 
     const domainA = domains[0];
     const domainB = domains[1];

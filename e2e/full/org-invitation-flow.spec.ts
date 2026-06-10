@@ -595,9 +595,9 @@ test.describe('INV-011: Revoke Invitation', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-012: Gmail Alias Normalization', () => {
-  test.skip(!hasTestCredentials, 'Skipping: Requires specific email setup for Gmail alias testing');
-
-  test.skip('Gmail alias normalization allows user+tag@gmail.com to match user@gmail.com', async () => {
+  // fixme(#3421): needs real (or intercepted) Gmail-alias mailboxes.
+  // Quarantined in e2e/QUARANTINE.md.
+  test.fixme('Gmail alias normalization allows user+tag@gmail.com to match user@gmail.com', async () => {
     // This test requires a real Gmail account setup
     // The normalizeEmail function in AcceptInvite.vue handles:
     // - Lowercasing
@@ -611,8 +611,7 @@ test.describe('INV-012: Gmail Alias Normalization', () => {
     // 2. Login as user@gmail.com
     // 3. Verify NO mismatch warning (emails match after normalization)
 
-    // For now, we verify the function exists in the component
-    test.skip(true, 'Gmail alias test requires real email accounts');
+    // Requires real email accounts or a mail interceptor (see #3421)
   });
 });
 
@@ -763,9 +762,10 @@ test.describe('INV-SEC-002: Account Enumeration Prevention', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-017: Complete Invitation Acceptance Flow', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
-  test.skip('After accepting invitation, user can see and access the organization in their org list', async () => {
+  // fixme(#3421): the full acceptance round-trip needs email verification
+  // capture (mail interceptor) plus a fresh invitee account. Quarantined in
+  // e2e/QUARANTINE.md.
+  test.fixme('After accepting invitation, user can see and access the organization in their org list', async () => {
     // This is a full integration test that would require:
     // 1. Owner creates invitation
     // 2. New user creates account with invited email
@@ -773,9 +773,7 @@ test.describe('INV-017: Complete Invitation Acceptance Flow', () => {
     // 4. New user verifies org appears in their list
 
     // Note: This test is complex and may need Mailpit integration
-    // for full email verification flow
-
-    test.skip(true, 'Full integration test requires email verification setup');
+    // for full email verification flow (see #3421)
   });
 });
 

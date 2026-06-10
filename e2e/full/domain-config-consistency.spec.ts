@@ -27,6 +27,17 @@
 
 import { expect, Page, test } from '@playwright/test';
 
+import { hasCustomDomain } from '../support/env';
+
+// Environment gate (plan Phase 2.4): these consistency checks run against
+// per-domain config screens, which need a custom domain on the test account
+// (DOMAINS_ENABLED=true on the target; off in CI). With the gate set, every
+// precondition below is asserted, not probed.
+test.skip(
+  !hasCustomDomain,
+  'Domain config screens require E2E_CUSTOM_DOMAINS>=1 (see e2e/support/env.ts)'
+);
+
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
@@ -175,16 +186,16 @@ test.describe('Domain Config - Toggle-Form State Coupling', () => {
 
   test('TC-DCC-001: form fields are disabled when toggle is OFF (Incoming)', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     const formLoaded = await navigateToDomainConfig(page, org!.extid, domain!.extid, 'incoming');
-    test.skip(!formLoaded, 'Incoming config form not available');
+    expect(formLoaded, 'incoming config form must load for a provisioned domain').toBe(true);
 
     const toggle = await findEnabledToggle(page);
-    test.skip(!toggle, 'Enabled toggle not found');
+    expect(toggle, 'enabled toggle must render in the config form').toBeTruthy();
 
     // Ensure toggle is OFF
     if (await isToggleEnabled(toggle!)) {
@@ -218,16 +229,16 @@ test.describe('Domain Config - Toggle-Form State Coupling', () => {
     page,
   }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     const formLoaded = await navigateToDomainConfig(page, org!.extid, domain!.extid, 'incoming');
-    test.skip(!formLoaded, 'Incoming config form not available');
+    expect(formLoaded, 'incoming config form must load for a provisioned domain').toBe(true);
 
     const toggle = await findEnabledToggle(page);
-    test.skip(!toggle, 'Enabled toggle not found');
+    expect(toggle, 'enabled toggle must render in the config form').toBeTruthy();
 
     // Ensure toggle is OFF first
     if (await isToggleEnabled(toggle!)) {
@@ -263,16 +274,16 @@ test.describe('Domain Config - Toggle-Form State Coupling', () => {
 
   test('TC-DCC-003: toggle state persists after page refresh', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     const formLoaded = await navigateToDomainConfig(page, org!.extid, domain!.extid, 'incoming');
-    test.skip(!formLoaded, 'Incoming config form not available');
+    expect(formLoaded, 'incoming config form must load for a provisioned domain').toBe(true);
 
     const toggle = await findEnabledToggle(page);
-    test.skip(!toggle, 'Enabled toggle not found');
+    expect(toggle, 'enabled toggle must render in the config form').toBeTruthy();
 
     // Record initial state
     const initialState = await isToggleEnabled(toggle!);
@@ -297,16 +308,16 @@ test.describe('Domain Config - Info Banner Visibility', () => {
 
   test('TC-DCC-004: shows info banner when feature is disabled', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     const formLoaded = await navigateToDomainConfig(page, org!.extid, domain!.extid, 'incoming');
-    test.skip(!formLoaded, 'Incoming config form not available');
+    expect(formLoaded, 'incoming config form must load for a provisioned domain').toBe(true);
 
     const toggle = await findEnabledToggle(page);
-    test.skip(!toggle, 'Enabled toggle not found');
+    expect(toggle, 'enabled toggle must render in the config form').toBeTruthy();
 
     // Ensure toggle is OFF
     if (await isToggleEnabled(toggle!)) {
@@ -338,16 +349,16 @@ test.describe('Domain Config - Info Banner Visibility', () => {
 
   test('TC-DCC-005: info banner content changes or hides when enabled', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     const formLoaded = await navigateToDomainConfig(page, org!.extid, domain!.extid, 'incoming');
-    test.skip(!formLoaded, 'Incoming config form not available');
+    expect(formLoaded, 'incoming config form must load for a provisioned domain').toBe(true);
 
     const toggle = await findEnabledToggle(page);
-    test.skip(!toggle, 'Enabled toggle not found');
+    expect(toggle, 'enabled toggle must render in the config form').toBeTruthy();
 
     // Ensure toggle is ON
     if (!(await isToggleEnabled(toggle!))) {
@@ -377,25 +388,25 @@ test.describe('Domain Config - Toggle Position and Label', () => {
 
   test('TC-DCC-006: toggle is positioned after form fields (Incoming)', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     const formLoaded = await navigateToDomainConfig(page, org!.extid, domain!.extid, 'incoming');
-    test.skip(!formLoaded, 'Incoming config form not available');
+    expect(formLoaded, 'incoming config form must load for a provisioned domain').toBe(true);
 
     const toggle = await findEnabledToggle(page);
-    test.skip(!toggle, 'Enabled toggle not found');
+    expect(toggle, 'enabled toggle must render in the config form').toBeTruthy();
 
     // Get toggle Y position
     const toggleY = await getElementYPosition(toggle!);
-    test.skip(toggleY === null, 'Could not get toggle position');
+    expect(toggleY, 'toggle must have a bounding box').not.toBeNull();
 
     // Get first form input Y position
     const firstInput = page.locator('form input:not([type="hidden"]), form textarea').first();
     const inputY = await getElementYPosition(firstInput);
-    test.skip(inputY === null, 'Could not get input position');
+    expect(inputY, 'first form input must have a bounding box').not.toBeNull();
 
     // Toggle should be below form inputs (higher Y value)
     expect(toggleY!, 'Toggle should be positioned below form fields').toBeGreaterThan(inputY!);
@@ -403,13 +414,13 @@ test.describe('Domain Config - Toggle Position and Label', () => {
 
   test('TC-DCC-007: toggle label contains "Enabled" text', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     const formLoaded = await navigateToDomainConfig(page, org!.extid, domain!.extid, 'incoming');
-    test.skip(!formLoaded, 'Incoming config form not available');
+    expect(formLoaded, 'incoming config form must load for a provisioned domain').toBe(true);
 
     // Look for label with "Enabled" text near the toggle
     const enabledLabel = page.locator('label:has-text("Enabled"), span:has-text("Enabled")');
@@ -430,10 +441,10 @@ test.describe('Domain Config - Cross-Screen Consistency', () => {
 
   test('TC-DCC-008: all config screens have consistent toggle placement', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     const screens: ConfigScreenType[] = ['incoming', 'email'];
     const togglePositions: { screen: string; hasToggle: boolean; isBelow: boolean }[] = [];
@@ -472,10 +483,10 @@ test.describe('Domain Config - Cross-Screen Consistency', () => {
 
   test('TC-DCC-009: all config screens use "Enabled" label pattern', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     const screens: ConfigScreenType[] = ['incoming', 'email'];
     const labelConsistency: { screen: string; hasEnabledLabel: boolean }[] = [];
@@ -512,16 +523,16 @@ test.describe('Domain Config - Accessibility', () => {
 
   test('TC-DCC-010: toggle has proper ARIA attributes', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     const formLoaded = await navigateToDomainConfig(page, org!.extid, domain!.extid, 'incoming');
-    test.skip(!formLoaded, 'Incoming config form not available');
+    expect(formLoaded, 'incoming config form must load for a provisioned domain').toBe(true);
 
     const toggle = await findEnabledToggle(page);
-    test.skip(!toggle, 'Enabled toggle not found');
+    expect(toggle, 'enabled toggle must render in the config form').toBeTruthy();
 
     // Check ARIA attributes
     const role = await toggle!.getAttribute('role');
@@ -539,16 +550,16 @@ test.describe('Domain Config - Accessibility', () => {
 
   test('TC-DCC-011: disabled form fields have proper aria-disabled attribute', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     const formLoaded = await navigateToDomainConfig(page, org!.extid, domain!.extid, 'incoming');
-    test.skip(!formLoaded, 'Incoming config form not available');
+    expect(formLoaded, 'incoming config form must load for a provisioned domain').toBe(true);
 
     const toggle = await findEnabledToggle(page);
-    test.skip(!toggle, 'Enabled toggle not found');
+    expect(toggle, 'enabled toggle must render in the config form').toBeTruthy();
 
     // Ensure toggle is OFF
     if (await isToggleEnabled(toggle!)) {

@@ -19,6 +19,17 @@
 
 import { expect, Page, test } from '@playwright/test';
 
+import { hasCustomDomain, orgsSsoEnabled } from '../support/env';
+
+// Environment gate (plan Phase 2.4): every test navigates per-domain config
+// pages, which need a custom domain on the test account (DOMAINS_ENABLED=true
+// on the target; off in CI). The SSO-page tests additionally need
+// E2E_ORGS_SSO. With the gates set, preconditions are asserted, not probed.
+test.skip(
+  !hasCustomDomain,
+  'Domain config pages require E2E_CUSTOM_DOMAINS>=1 (see e2e/support/env.ts)'
+);
+
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
@@ -104,26 +115,25 @@ test.describe('Domain Sub-page Navigation', () => {
   });
 
   test('TC-DN-001: SSO page back button navigates to DomainDetail', async ({ page }) => {
+    test.skip(
+      !orgsSsoEnabled,
+      'Domain SSO page requires E2E_ORGS_SSO=true (see e2e/support/env.ts)'
+    );
+
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     // Navigate to SSO config page
     const ssoUrl = `/org/${org!.extid}/domains/${domain!.extid}/sso`;
     await page.goto(ssoUrl);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    // Verify we're on the SSO page
+    // Verify we're on the SSO page - E2E_ORGS_SSO promises access
     const ssoTitle = page.locator('[data-testid="sso-config-title"], h2:has-text("SSO")');
-    const onSsoPage = await ssoTitle.isVisible().catch(() => false);
-
-    // SSO might require entitlement - skip if access denied
-    if (!onSsoPage) {
-      const accessDenied = await page.locator('text=access denied').first().isVisible().catch(() => false);
-      test.skip(accessDenied, 'SSO access denied - requires entitlement');
-    }
+    await expect(ssoTitle).toBeVisible();
 
     // Click back button
     await clickBackButton(page);
@@ -140,24 +150,21 @@ test.describe('Domain Sub-page Navigation', () => {
 
   test('TC-DN-002: Incoming page back button navigates to DomainDetail', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     // Navigate to Incoming config page
     const incomingUrl = `/org/${org!.extid}/domains/${domain!.extid}/incoming`;
     await page.goto(incomingUrl);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    // Verify we're on the Incoming page or check for access denied
+    // Verify we're on the Incoming page - the provisioned environment the
+    // E2E_CUSTOM_DOMAINS gate documents grants incoming_secrets (automatic
+    // on standalone targets)
     const incomingTitle = page.locator('h2:has-text("Incoming")');
-    const onIncomingPage = await incomingTitle.isVisible().catch(() => false);
-
-    if (!onIncomingPage) {
-      const accessDenied = await page.locator('text=access denied').first().isVisible().catch(() => false);
-      test.skip(accessDenied, 'Incoming access denied - requires entitlement');
-    }
+    await expect(incomingTitle).toBeVisible();
 
     // Click back button
     await clickBackButton(page);
@@ -172,10 +179,10 @@ test.describe('Domain Sub-page Navigation', () => {
 
   test('TC-DN-003: Verify page back button navigates to DomainDetail', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     // Navigate to Verify page
     const verifyUrl = `/org/${org!.extid}/domains/${domain!.extid}/verify`;
@@ -209,22 +216,20 @@ test.describe('DomainHeader External Link', () => {
 
   test('TC-DN-004: DomainIncoming header link includes /incoming path', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     // Navigate to Incoming config page
     const incomingUrl = `/org/${org!.extid}/domains/${domain!.extid}/incoming`;
     await page.goto(incomingUrl);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    // Check for access denied
-    const accessDenied = await page.locator('text=access denied').first().isVisible().catch(() => false);
-    test.skip(accessDenied, 'Incoming access denied - requires entitlement');
-
-    // Find the external link in the header
+    // The provisioned environment grants incoming access - the header's
+    // external link must render
     const externalLink = page.locator('a[target="_blank"][href*="https://"]').first();
+    await expect(externalLink).toBeVisible();
     const href = await externalLink.getAttribute('href');
 
     // Should include /incoming path
@@ -233,23 +238,25 @@ test.describe('DomainHeader External Link', () => {
   });
 
   test('TC-DN-005: DomainSso header link does not include path suffix', async ({ page }) => {
+    test.skip(
+      !orgsSsoEnabled,
+      'Domain SSO page requires E2E_ORGS_SSO=true (see e2e/support/env.ts)'
+    );
+
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    expect(domain, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeTruthy();
 
     // Navigate to SSO config page
     const ssoUrl = `/org/${org!.extid}/domains/${domain!.extid}/sso`;
     await page.goto(ssoUrl);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    // Check for access denied
-    const accessDenied = await page.locator('text=access denied').first().isVisible().catch(() => false);
-    test.skip(accessDenied, 'SSO access denied - requires entitlement');
-
-    // Find the external link in the header
+    // E2E_ORGS_SSO promises access - the header's external link must render
     const externalLink = page.locator('a[target="_blank"][href*="https://"]').first();
+    await expect(externalLink).toBeVisible();
     const href = await externalLink.getAttribute('href');
 
     // Should NOT have any path suffix (just the domain)

@@ -30,6 +30,22 @@
 
 import { expect, Page, test } from '@playwright/test';
 
+import { customDomainCount, hasCustomDomain, orgsSsoEnabled } from '../support/env';
+
+/**
+ * Environment gates (plan Phase 2.4): the SSO management surface is
+ * dual-controlled - ORGS_SSO_ENABLED on the server AND the manage_sso
+ * entitlement (granted automatically on standalone targets) - and operates
+ * on custom domains (DOMAINS_ENABLED=true; off in CI). Each feature
+ * describe below is gated once on the documented E2E_ORGS_SSO +
+ * E2E_CUSTOM_DOMAINS variables; the Access Control describe inverts the
+ * gate to exercise the entitlement-denied states. With gates set, every
+ * precondition is asserted, not probed.
+ */
+const SSO_GATE_REASON =
+  'Org SSO management requires E2E_ORGS_SSO=true and E2E_CUSTOM_DOMAINS>=1 (see e2e/support/env.ts)';
+const ssoSuiteEnabled = orgsSsoEnabled && hasCustomDomain;
+
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
@@ -166,23 +182,25 @@ async function navigateToDomainSsoPage(
 // -----------------------------------------------------------------------------
 
 test.describe('Domain SSO Configuration - Navigation', () => {
+  test.skip(!ssoSuiteEnabled, SSO_GATE_REASON);
+
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
   });
 
   test('TC-DSSO-001: navigates from org settings SSO tab to domain SSO page', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
 
     // Check if SSO tab is available (entitlement check)
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
     // Get domains from SSO tab
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeGreaterThan(0);
 
     // Click configure link on first domain
     const configureLink = page.locator(`a[href*="/domains/${domains[0].extid}/sso"]`);
@@ -197,14 +215,14 @@ test.describe('Domain SSO Configuration - Navigation', () => {
 
   test('TC-DSSO-002: back button returns to org settings domains tab', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeGreaterThan(0);
 
     // Navigate to domain SSO page
     await navigateToDomainSsoPage(page, org!.extid, domains[0].extid);
@@ -219,14 +237,14 @@ test.describe('Domain SSO Configuration - Navigation', () => {
 
   test('TC-DSSO-003: direct URL navigation to domain SSO page works', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeGreaterThan(0);
 
     // Direct navigation to domain SSO page
     await page.goto(`/org/${org!.extid}/domains/${domains[0].extid}/sso`);
@@ -245,17 +263,19 @@ test.describe('Domain SSO Configuration - Navigation', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Domain SSO Configuration - Domain List', () => {
+  test.skip(!ssoSuiteEnabled, SSO_GATE_REASON);
+
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
   });
 
   test('TC-DSSO-004: displays list of domains with SSO status badges', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
     // Check SSO section is visible
     const ssoSection = page.locator('[data-testid="org-section-sso"]');
@@ -273,11 +293,11 @@ test.describe('Domain SSO Configuration - Domain List', () => {
 
   test('TC-DSSO-005: shows "Not Configured" badge for domains without SSO', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
     const domains = await getDomainsFromSsoTab(page);
     const unconfiguredDomains = domains.filter((d) => d.ssoStatus === 'not_configured');
@@ -294,14 +314,14 @@ test.describe('Domain SSO Configuration - Domain List', () => {
 
   test('TC-DSSO-006: configure link navigates to domain SSO page', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeGreaterThan(0);
 
     // Find and click configure button
     const configureButton = page
@@ -319,11 +339,11 @@ test.describe('Domain SSO Configuration - Domain List', () => {
 
   test('TC-DSSO-007: empty domains state shows add domain prompt', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
     const domains = await getDomainsFromSsoTab(page);
 
@@ -343,21 +363,23 @@ test.describe('Domain SSO Configuration - Domain List', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Domain SSO Configuration - Form', () => {
+  test.skip(!ssoSuiteEnabled, SSO_GATE_REASON);
+
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
   });
 
   test('TC-DSSO-008: shows empty form for domain without SSO config', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
     const domains = await getDomainsFromSsoTab(page);
     const unconfiguredDomain = domains.find((d) => d.ssoStatus === 'not_configured');
-    test.skip(!unconfiguredDomain, 'Test requires a domain without SSO config');
+    expect(unconfiguredDomain, 'suite expects a domain without SSO config (fresh fixture)').toBeTruthy();
 
     await navigateToDomainSsoPage(page, org!.extid, unconfiguredDomain!.extid);
 
@@ -375,14 +397,14 @@ test.describe('Domain SSO Configuration - Form', () => {
 
   test('TC-DSSO-009: provider type selector shows all 4 options', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeGreaterThan(0);
 
     await navigateToDomainSsoPage(page, org!.extid, domains[0].extid);
 
@@ -398,14 +420,14 @@ test.describe('Domain SSO Configuration - Form', () => {
 
   test('TC-DSSO-010: selecting Entra ID shows tenant_id field', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeGreaterThan(0);
 
     await navigateToDomainSsoPage(page, org!.extid, domains[0].extid);
     await page.waitForSelector('form', { state: 'visible' });
@@ -421,14 +443,14 @@ test.describe('Domain SSO Configuration - Form', () => {
 
   test('TC-DSSO-011: selecting OIDC shows issuer field', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeGreaterThan(0);
 
     await navigateToDomainSsoPage(page, org!.extid, domains[0].extid);
     await page.waitForSelector('form', { state: 'visible' });
@@ -444,15 +466,15 @@ test.describe('Domain SSO Configuration - Form', () => {
 
   test('TC-DSSO-012: form validation prevents save without required fields', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
     const domains = await getDomainsFromSsoTab(page);
     const unconfiguredDomain = domains.find((d) => d.ssoStatus === 'not_configured');
-    test.skip(!unconfiguredDomain, 'Test requires a domain without SSO config');
+    expect(unconfiguredDomain, 'suite expects a domain without SSO config (fresh fixture)').toBeTruthy();
 
     await navigateToDomainSsoPage(page, org!.extid, unconfiguredDomain!.extid);
     await page.waitForSelector('form', { state: 'visible' });
@@ -500,20 +522,22 @@ test.describe('Domain SSO Configuration - Form', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Domain SSO Configuration - Test Connection', () => {
+  test.skip(!ssoSuiteEnabled, SSO_GATE_REASON);
+
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
   });
 
   test('TC-DSSO-013: test connection button sends test request', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeGreaterThan(0);
 
     await navigateToDomainSsoPage(page, org!.extid, domains[0].extid);
     await page.waitForSelector('form', { state: 'visible' });
@@ -559,14 +583,14 @@ test.describe('Domain SSO Configuration - Test Connection', () => {
 
   test('TC-DSSO-014: shows success message for valid credentials', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeGreaterThan(0);
 
     await navigateToDomainSsoPage(page, org!.extid, domains[0].extid);
     await page.waitForSelector('form', { state: 'visible' });
@@ -606,14 +630,14 @@ test.describe('Domain SSO Configuration - Test Connection', () => {
 
   test('TC-DSSO-015: shows error details for invalid credentials', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS promises at least one domain').toBeGreaterThan(0);
 
     await navigateToDomainSsoPage(page, org!.extid, domains[0].extid);
     await page.waitForSelector('form', { state: 'visible' });
@@ -659,21 +683,23 @@ test.describe('Domain SSO Configuration - Test Connection', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Domain SSO Configuration - Save and Delete', () => {
+  test.skip(!ssoSuiteEnabled, SSO_GATE_REASON);
+
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
   });
 
   test('TC-DSSO-016: save button creates new SSO config', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
     const domains = await getDomainsFromSsoTab(page);
     const unconfiguredDomain = domains.find((d) => d.ssoStatus === 'not_configured');
-    test.skip(!unconfiguredDomain, 'Test requires a domain without SSO config');
+    expect(unconfiguredDomain, 'suite expects a domain without SSO config (fresh fixture)').toBeTruthy();
 
     await navigateToDomainSsoPage(page, org!.extid, unconfiguredDomain!.extid);
     await page.waitForSelector('form', { state: 'visible' });
@@ -724,15 +750,15 @@ test.describe('Domain SSO Configuration - Save and Delete', () => {
 
   test('TC-DSSO-017: delete button removes SSO config with confirmation', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
     const domains = await getDomainsFromSsoTab(page);
     const configuredDomain = domains.find((d) => d.ssoStatus !== 'not_configured');
-    test.skip(!configuredDomain, 'Test requires a domain with SSO config');
+    expect(configuredDomain, 'suite expects a domain with SSO config (TC-DSSO-016 creates one)').toBeTruthy();
 
     await navigateToDomainSsoPage(page, org!.extid, configuredDomain!.extid);
     await page.waitForSelector('form', { state: 'visible' });
@@ -779,6 +805,8 @@ test.describe('Domain SSO Configuration - Save and Delete', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Domain SSO Configuration - Multi-Domain', () => {
+  test.skip(!ssoSuiteEnabled, SSO_GATE_REASON);
+
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
   });
@@ -787,14 +815,15 @@ test.describe('Domain SSO Configuration - Multi-Domain', () => {
     page,
   }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     await navigateToOrgSsoTab(page, org!.extid);
     const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    expect(hasSso, 'E2E_ORGS_SSO promises the manage_sso entitlement + SSO tab').toBe(true);
 
+    test.skip(customDomainCount < 2, 'Requires E2E_CUSTOM_DOMAINS>=2 (see e2e/support/env.ts)');
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length < 2, 'Test requires at least 2 domains');
+    expect(domains.length).toBeGreaterThanOrEqual(2);
 
     const domainA = domains[0];
     const domainB = domains[1];
@@ -919,48 +948,42 @@ test.describe('Domain SSO Configuration - Access Control', () => {
     page,
   }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     // Navigate to org settings
     await page.goto(`/org/${org!.extid}`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    // Check if SSO tab is NOT visible (no entitlement)
+    // Without the entitlement/feature flag the SSO tab must be hidden;
+    // when E2E_ORGS_SSO grants it, this denial test is structurally N/A
+    test.skip(orgsSsoEnabled, 'N/A when E2E_ORGS_SSO grants the manage_sso entitlement');
     const ssoTab = page.locator('[data-testid="org-tab-sso"]');
-    const ssoTabVisible = await ssoTab.isVisible().catch(() => false);
-
-    if (!ssoTabVisible) {
-      // User doesn't have manage_sso entitlement - SSO tab is correctly hidden
-      expect(ssoTabVisible).toBe(false);
-    } else {
-      // User has entitlement - this test is not applicable
-      test.skip(true, 'User has manage_sso entitlement');
-    }
+    await expect(ssoTab).not.toBeVisible();
   });
 
   test('TC-DSSO-020: domain SSO page shows access denied without entitlement', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
+    expect(org, 'every customer has a default workspace (create_default_workspace.rb)').toBeTruthy();
 
     // Navigate directly to a domain SSO page
     // Use a fake domain extid since we're testing access control
     await page.goto(`/org/${org!.extid}/domains/test-domain/sso`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    // Should show either:
-    // 1. Access denied message (no entitlement)
-    // 2. Error message (domain not found)
-    // 3. SSO form (has entitlement)
+    // Without the entitlement, the SSO form must NOT render: only an
+    // access-denied or not-found state is acceptable. (When E2E_ORGS_SSO
+    // grants the entitlement this denial test is structurally N/A.)
+    test.skip(orgsSsoEnabled, 'N/A when E2E_ORGS_SSO grants the manage_sso entitlement');
+
     const accessDenied = page.getByText(/access denied/i);
     const errorMessage = page.getByText(/error|not found/i);
     const form = page.locator('form');
 
     const hasAccessDenied = await accessDenied.isVisible().catch(() => false);
     const hasError = await errorMessage.isVisible().catch(() => false);
-    const hasForm = await form.isVisible().catch(() => false);
 
-    // One of these states should be true
-    expect(hasAccessDenied || hasError || hasForm).toBe(true);
+    expect(hasAccessDenied || hasError, 'expected an access-denied or not-found state').toBe(true);
+    await expect(form).not.toBeVisible();
   });
 });
 

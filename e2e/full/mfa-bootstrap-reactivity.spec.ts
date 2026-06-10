@@ -251,14 +251,10 @@ test.describe('MFA Flow - bootstrapStore Reactivity', () => {
     await loginWithMfaCredentials(page);
     await expect(page).toHaveURL(/\/mfa-verify/);
 
-    // Generate or use provided OTP
-    let otpCode: string;
-    try {
-      otpCode = await generateTotpCode(process.env.TEST_MFA_SECRET || '');
-    } catch (error) {
-      test.skip(true, 'OTP generation not available');
-      return;
-    }
+    // Generate or use provided OTP. The describe-level TEST_MFA_* gate
+    // promises one of TEST_MFA_OTP / TEST_MFA_SECRET, so a generation
+    // failure is a broken credential setup - fail, don't skip.
+    const otpCode: string = await generateTotpCode(process.env.TEST_MFA_SECRET || '');
 
     // Enter OTP code
     // Handle both single input and multiple digit inputs
