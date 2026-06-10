@@ -528,8 +528,11 @@ test.describe('Scope Switcher - Switching Behavior', () => {
       const isVisible = await trigger.isVisible().catch(() => false);
       test.skip(!isVisible, 'Organization switcher not visible');
 
-      // Get current org name
-      const currentOrgName = await trigger.textContent();
+      // Get current org name - and require it to be real, so the
+      // post-switch assertion below can't degrade into a vacuous
+      // not.toContainText('') that passes without waiting
+      const currentOrgName = (await trigger.textContent())?.trim() ?? '';
+      expect(currentOrgName).not.toBe('');
 
       await trigger.click();
 
@@ -540,14 +543,15 @@ test.describe('Scope Switcher - Switching Behavior', () => {
       if (itemCount > 1) {
         // Click the second org (different from current)
         const differentOrg = menuItems.nth(1);
-        const differentOrgName = await differentOrg.textContent();
+        const differentOrgName = (await differentOrg.textContent())?.trim() ?? '';
 
         if (differentOrgName !== currentOrgName) {
           await differentOrg.click();
 
           // Verify trigger now shows new org (web-first assertion waits
-          // for the switcher to update)
-          await expect(trigger).not.toHaveText(currentOrgName ?? '');
+          // for the switcher to update; toContainText does substring
+          // matching with normalized whitespace)
+          await expect(trigger).not.toContainText(currentOrgName);
         }
       }
     });
