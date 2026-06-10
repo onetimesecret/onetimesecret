@@ -20,9 +20,14 @@
 
   const authStore = useAuthStore();
   const bootstrapStore = useBootstrapStore();
-  const { authentication, homepage_config } = storeToRefs(bootstrapStore);
+  const { authentication, homepage_config, headerConfig } = storeToRefs(bootstrapStore);
 
   const isUserPresent = computed(() => authStore.isUserPresent);
+
+  // Operator-level header gate (HEADER_ENABLED). When disabled, the entire
+  // <header> banner landmark collapses — no empty landmark, no padding band.
+  // Distinct from displayHeader (per-route concern). Both must hold to render.
+  const headerEnabled = computed(() => headerConfig.value?.enabled !== false);
 
   // Per-domain link toggles (custom-domain homepage). Default to enabled
   // when no domain config exists. System-level flags remain the master
@@ -40,7 +45,7 @@
 
 <template>
   <header
-    v-if="displayHeader"
+    v-if="displayHeader && headerEnabled"
     class="bg-white dark:bg-gray-900">
     <div class="container mx-auto min-w-[320px] max-w-2xl p-4">
       <MastHead v-if="displayMasthead" v-bind="props" />
