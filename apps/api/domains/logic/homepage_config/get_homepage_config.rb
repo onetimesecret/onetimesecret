@@ -45,6 +45,7 @@ module DomainsAPI
                         enabled: @homepage_config.enabled?,
                         signup_enabled: @homepage_config.signup_enabled?,
                         signin_enabled: @homepage_config.signin_enabled?,
+                        disabled_homepage_variant: @homepage_config.disabled_homepage_variant_value,
                         created_at: @homepage_config.created.to_i,
                         updated_at: @homepage_config.updated.to_i,
                       }
