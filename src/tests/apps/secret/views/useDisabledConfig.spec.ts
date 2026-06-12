@@ -12,12 +12,19 @@
 import { useDisabledConfig } from '@/apps/secret/views/disabled/useDisabledConfig';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useProductIdentity } from '@/shared/stores/identityStore';
+import { submitSsoLogin } from '@/shared/utils/sso';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Identity store reads i18n during init (preReveal default copy); stub it.
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: (key: string) => key }),
+}));
+
+// Spy on the SSO form-submit helper so onSsoLogin can be asserted without
+// navigating the jsdom window.
+vi.mock('@/shared/utils/sso', () => ({
+  submitSsoLogin: vi.fn(),
 }));
 
 interface SetupOptions {
@@ -34,12 +41,19 @@ interface SetupOptions {
   recipientIntroUrl?: string | null;
   /** Per-domain disabled-homepage variant. Null/omitted means
    *  "use the frontend DEFAULT_DISABLED_HOMEPAGE_VARIANT". */
-  homepageVariant?: 'v1' | 'minimal' | 'legacy' | null;
+  homepageVariant?: 'v1' | 'minimal' | 'closed' | null;
   /** Tri-state operator overrides for the auto-detected affordances. */
   disabledHomepage?: {
     show_promo?: boolean | null;
     show_what_is_this?: boolean | null;
   };
+  // SSO one-click context
+  /** Configured SSO providers (features.sso.providers). */
+  ssoProviders?: Array<{ route_name: string; display_name: string }>;
+  /** Global SSO-only restriction (features.restrict_to === 'sso'). */
+  ssoOnly?: boolean;
+  /** Per-domain SSO enforcement (features.sso.enforce_sso_only). */
+  enforceSsoOnly?: boolean;
 }
 
 /**
@@ -69,6 +83,21 @@ function setup(opts: SetupOptions = {}) {
     disabled_homepage: {
       show_promo: opts.disabledHomepage?.show_promo ?? null,
       show_what_is_this: opts.disabledHomepage?.show_what_is_this ?? null,
+    },
+    // Specify features fully rather than spreading bootstrap.features: the
+    // store's `state: () => ({ ...DEFAULTS })` shallow-spread shares one
+    // features object across instances, and $patch's deep-merge would
+    // otherwise leak restrict_to/sso between tests.
+    features: {
+      restrict_to: opts.ssoOnly ? 'sso' : null,
+      sso:
+        opts.ssoProviders === undefined && opts.enforceSsoOnly === undefined
+          ? false
+          : {
+              enabled: true,
+              providers: opts.ssoProviders ?? [],
+              enforce_sso_only: opts.enforceSsoOnly ?? false,
+            },
     },
     homepage_config:
       opts.homepageVariant === undefined
@@ -122,15 +151,15 @@ describe('useDisabledConfig', () => {
       window.history.replaceState({}, '', '/');
     });
 
-    it('falls back to the frontend default (minimal) when no per-domain config', () => {
+    it('falls back to the frontend default (closed) when no per-domain config', () => {
       const { config } = setup();
-      expect(config.variant.value).toBe('minimal');
+      expect(config.variant.value).toBe('closed');
     });
 
     it('falls back to the frontend default when homepage_config sets variant=null', () => {
       // Null means "no per-domain override" — operator never opted in.
       const { config } = setup({ homepageVariant: null });
-      expect(config.variant.value).toBe('minimal');
+      expect(config.variant.value).toBe('closed');
     });
 
     it('respects the per-domain variant from homepage_config', () => {
@@ -145,16 +174,16 @@ describe('useDisabledConfig', () => {
       bootstrap.$patch({
         homepage_config: {
           ...bootstrap.homepage_config!,
-          disabled_homepage_variant: 'legacy',
+          disabled_homepage_variant: 'closed',
         },
       });
-      expect(config.variant.value).toBe('legacy');
+      expect(config.variant.value).toBe('closed');
     });
 
     it('?variant URL override wins over homepage_config', () => {
-      window.history.replaceState({}, '', '/?variant=legacy');
+      window.history.replaceState({}, '', '/?variant=closed');
       const { config } = setup({ homepageVariant: 'v1' });
-      expect(config.variant.value).toBe('legacy');
+      expect(config.variant.value).toBe('closed');
     });
 
     it('?variant override falls through silently when the value is invalid', () => {
@@ -170,8 +199,67 @@ describe('useDisabledConfig', () => {
       const { config } = setup({ homepageVariant: 'v1' });
       expect(config.variant.value).toBe('v1');
 
-      window.history.replaceState({}, '', '/?variant=legacy');
+      window.history.replaceState({}, '', '/?variant=closed');
       expect(config.variant.value).toBe('v1');
+    });
+  });
+
+  describe('one-click SSO', () => {
+    const oneProvider = [{ route_name: 'oidc', display_name: 'Okta' }];
+
+    it('is off by default (no SSO restriction)', () => {
+      const { config } = setup();
+      expect(config.props.ssoOneClick).toBe(false);
+      expect(config.props.ssoProviderName).toBeNull();
+    });
+
+    it('is on when SSO is the only method and a single provider is configured', () => {
+      const { config } = setup({ ssoOnly: true, ssoProviders: oneProvider });
+      expect(config.props.ssoOneClick).toBe(true);
+      expect(config.props.ssoProviderName).toBe('Okta');
+    });
+
+    it('is off with multiple providers (the chooser on /signin is still needed)', () => {
+      const { config } = setup({
+        ssoOnly: true,
+        ssoProviders: [
+          { route_name: 'oidc', display_name: 'Okta' },
+          { route_name: 'google', display_name: 'Google' },
+        ],
+      });
+      expect(config.props.ssoOneClick).toBe(false);
+    });
+
+    it('is off when a single provider exists but SSO is not the only method', () => {
+      // Other login methods remain, so /signin still offers a real choice.
+      const { config } = setup({ ssoProviders: oneProvider });
+      expect(config.props.ssoOneClick).toBe(false);
+    });
+
+    it('is on for a custom domain enforcing SSO with a single provider', () => {
+      const { config } = setup({
+        domainStrategy: 'custom',
+        enforceSsoOnly: true,
+        ssoProviders: oneProvider,
+      });
+      expect(config.props.ssoOneClick).toBe(true);
+    });
+
+    it('is off when sign-in is disabled, even with single-provider SSO-only', () => {
+      const { config } = setup({ authSignin: false, ssoOnly: true, ssoProviders: oneProvider });
+      expect(config.props.ssoOneClick).toBe(false);
+    });
+
+    it('onSsoLogin submits an SSO form for the single provider', () => {
+      const { config } = setup({ ssoOnly: true, ssoProviders: oneProvider });
+      config.props.onSsoLogin();
+      expect(submitSsoLogin).toHaveBeenCalledWith(expect.objectContaining({ routeName: 'oidc' }));
+    });
+
+    it('onSsoLogin is a no-op when not in one-click mode', () => {
+      const { config } = setup({ ssoProviders: oneProvider });
+      config.props.onSsoLogin();
+      expect(submitSsoLogin).not.toHaveBeenCalled();
     });
   });
 

@@ -7,7 +7,7 @@
   import { computed, ref, watch } from 'vue';
 
   /*
-    Minimal — a quiet refresh of the legacy two-tagline view.
+    Minimal — a quiet refresh of the closed two-tagline view.
 
     Same visual restraint as the original (small mark, single column,
     no promo, no trust strip, no eyebrow), but with refreshed copy and a
@@ -60,7 +60,7 @@
       </div>
     </div>
 
-    <!-- Headline (smaller than V1, larger than legacy) -->
+    <!-- Headline (smaller than V1, larger than closed) -->
     <h1 class="text-balance font-brand text-2xl font-bold leading-tight tracking-tight text-gray-800 dark:text-gray-100 sm:text-3xl">
       <i18n-t
         v-if="isBranded"
@@ -96,8 +96,26 @@
 
     <!-- CTA row (ghost button, smaller than V1) -->
     <div class="mt-6 inline-flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+      <!-- One-click SSO: skip /signin and POST straight to the provider when
+           SSO is the only login method and a single provider is configured. -->
+      <button
+        v-if="showSignin && ssoOneClick"
+        type="button"
+        data-testid="disabled-homepage-sso"
+        class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2 text-sm font-semibold text-gray-800 transition-colors hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:hover:border-gray-600 dark:hover:bg-gray-800 dark:focus:ring-offset-gray-900"
+        @click="onSsoLogin">
+        {{
+          ssoProviderName
+            ? $t('web.login.sign_in_with_provider', { provider: ssoProviderName })
+            : $t('homepage_secrets.disabled.signin_cta')
+        }}
+        <OIcon
+          collection="heroicons"
+          name="arrow-right"
+          class="size-4" />
+      </button>
       <router-link
-        v-if="showSignin"
+        v-else-if="showSignin"
         to="/signin"
         data-testid="disabled-homepage-signin"
         class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2 text-sm font-semibold text-gray-800 transition-colors hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:hover:border-gray-600 dark:hover:bg-gray-800 dark:focus:ring-offset-gray-900">

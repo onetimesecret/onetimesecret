@@ -3,7 +3,7 @@
 <script setup lang="ts">
   import type { DisabledHomepageVariant } from '@/schemas/contracts/disabled-homepage';
   import { computed, type Component } from 'vue';
-  import DisabledLegacy from './disabled/variants/DisabledLegacy.vue';
+  import DisabledClosed from './disabled/variants/DisabledClosed.vue';
   import DisabledMinimal from './disabled/variants/DisabledMinimal.vue';
   import DisabledV1 from './disabled/variants/DisabledV1.vue';
   import { useDisabledConfig } from './disabled/useDisabledConfig';
@@ -36,7 +36,7 @@
   const VARIANTS: Record<DisabledHomepageVariant, Component> = {
     v1: DisabledV1,
     minimal: DisabledMinimal,
-    legacy: DisabledLegacy,
+    closed: DisabledClosed,
   };
 
   const { variant, props } = useDisabledConfig();

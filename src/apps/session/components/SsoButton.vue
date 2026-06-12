@@ -4,7 +4,8 @@
 import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
-import { ref, computed } from 'vue';
+import { submitSsoLogin } from '@/shared/utils/sso';
+import { ref } from 'vue';
 
 export interface Props {
   /**
@@ -40,54 +41,19 @@ const csrfStore = useCsrfStore();
 const isLoading = ref(false);
 
 /**
- * SSO route path built from the routeName prop.
- */
-const ssoRoute = computed(() => `/auth/sso/${props.routeName}`);
-
-/**
- * Initiates SSO login by submitting a form to the provider endpoint.
- * This creates a traditional form POST to /auth/sso/:provider which triggers
- * the OmniAuth flow and redirects to the identity provider.
+ * Initiates SSO login by submitting a form POST to /auth/sso/:provider,
+ * which triggers the OmniAuth flow and redirects to the identity provider.
+ *
+ * The form submission navigates away from the page, so there's no response
+ * to handle and no need to reset isLoading.
  */
 const handleSsoLogin = () => {
   isLoading.value = true;
-
-  // Create and submit a form to POST to the SSO endpoint
-  // This needs to be a form submission (not fetch) because it redirects to the IdP
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = ssoRoute.value;
-
-  /**
-   * Include CSRF token in form submission for consistency.
-   *
-   * Note: Rack::Protection skips /auth/sso/* routes (see security.rb).
-   * OmniAuth's OAuth state parameter provides CSRF protection instead.
-   * The shrimp token is included but not validated for these routes.
-   */
-  const csrfInput = document.createElement('input');
-  csrfInput.type = 'hidden';
-  csrfInput.name = 'shrimp';
-  csrfInput.value = csrfStore.shrimp;
-  form.appendChild(csrfInput);
-
-  /**
-   * Include redirect URL when provided.
-   * The backend will store this and redirect the user after successful SSO.
-   */
-  if (props.redirect) {
-    const redirectInput = document.createElement('input');
-    redirectInput.type = 'hidden';
-    redirectInput.name = 'redirect';
-    redirectInput.value = props.redirect;
-    form.appendChild(redirectInput);
-  }
-
-  document.body.appendChild(form);
-  form.submit();
-
-  // Note: The form submission will navigate away from the page,
-  // so we don't need to handle the response or reset isLoading
+  submitSsoLogin({
+    routeName: props.routeName,
+    shrimp: csrfStore.shrimp,
+    redirect: props.redirect || undefined,
+  });
 };
 </script>
 
