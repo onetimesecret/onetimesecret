@@ -3,6 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useMfa } from '@/shared/composables/useMfa';
 import { setupTestPinia } from '../setup';
+import QRCode from 'qrcode';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 
 // Mock QR code generation
@@ -106,6 +107,50 @@ describe('useMfa', () => {
       expect(result?.otp_raw_secret).toBe('JBSWY3DPEHPK3PXP');
       expect(result?.qr_code).toBe('data:image/png;base64,mockQrCode');
       expect(setupData.value?.qr_code).toBeDefined();
+    });
+
+    // Regression test for #3431: the QR code must encode the HMAC'd secret
+    // (otp_setup) — the value the server validates against and that manual entry
+    // displays — NOT otp_raw_secret. Encoding the raw secret made every scanned
+    // code fail with "Authentication failed" while manual entry worked.
+    it('encodes otp_setup (the HMACd secret) in the QR, not otp_raw_secret', async () => {
+      const hmacResponse = {
+        otp_setup: 'HMACSECRET234567',
+        otp_raw_secret: 'JBSWY3DPEHPK3PXP',
+      };
+
+      axiosMock.onPost('/auth/otp-setup').reply(422, hmacResponse);
+
+      const { setupMfa } = useMfa();
+      await setupMfa('Onetime Secret', 'test@example.com', 'password123');
+
+      const toDataURL = vi.mocked(QRCode.toDataURL);
+      expect(toDataURL).toHaveBeenCalledTimes(1);
+      const encodedUri = toDataURL.mock.calls[0][0] as string;
+      expect(encodedUri).toContain('secret=HMACSECRET234567');
+      expect(encodedUri).not.toContain('JBSWY3DPEHPK3PXP');
+      // Hardened URI should pin TOTP parameters to Rodauth/ROTP defaults.
+      expect(encodedUri).toContain('algorithm=SHA1');
+      expect(encodedUri).toContain('digits=6');
+      expect(encodedUri).toContain('period=30');
+    });
+
+    it('falls back to otp_secret field name when encoding the QR', async () => {
+      const hmacResponse = {
+        otp_secret: 'ALTSECRETFIELD22',
+        otp_raw_secret: 'JBSWY3DPEHPK3PXP',
+      };
+
+      axiosMock.onPost('/auth/otp-setup').reply(422, hmacResponse);
+
+      const { setupMfa, setupData } = useMfa();
+      await setupMfa('Onetime Secret', 'test@example.com');
+
+      expect(setupData.value?.otp_setup).toBe('ALTSECRETFIELD22');
+      const toDataURL = vi.mocked(QRCode.toDataURL);
+      const encodedUri = toDataURL.mock.calls[0][0] as string;
+      expect(encodedUri).toContain('secret=ALTSECRETFIELD22');
+      expect(encodedUri).not.toContain('JBSWY3DPEHPK3PXP');
     });
 
     it('handles HMAC setup without password parameter', async () => {

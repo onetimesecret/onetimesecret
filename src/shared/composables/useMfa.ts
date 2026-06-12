@@ -9,7 +9,8 @@
  * 1. Setup Flow (HMAC-based):
  *    a) User requests setup → POST /auth/otp-setup {} (empty payload)
  *    b) Backend returns 422 with otp_setup (HMAC'd secret) + otp_raw_secret
- *    c) Frontend generates QR code from otp_raw_secret
+ *    c) Frontend generates QR code from otp_setup (the HMAC'd secret Rodauth
+ *       provisions and validates against — the same value shown for manual entry)
  *    d) User scans QR code and enters OTP
  *    e) POST /auth/otp-setup {otp_code, otp_setup, otp_raw_secret, password}
  *    f) Backend validates and enables MFA → 200 success
@@ -155,7 +156,7 @@ export function useMfa() {
    * Success path (HMAC enabled):
    * - POST /auth/otp-setup {} (empty or with password)
    * - Receive 422 with {otp_setup, otp_raw_secret, error: "..."}
-   * - Generate QR code from otp_raw_secret
+   * - Generate QR code from otp_setup (the HMAC'd secret the server validates)
    * - Return enriched setup data for user to scan
    *
    * The 422 status is treated as success because it contains the necessary
@@ -175,7 +176,11 @@ export function useMfa() {
         const response = await $api.post<OtpSetupResponse>('/auth/otp-setup', payload);
         const validated = otpSetupResponseSchema.parse(response.data);
 
-        // Standard response (non-HMAC mode): includes QR code data directly
+        // Standard response (non-HMAC mode): generate the QR from otp_setup,
+        // the same field the HMAC path (enrichSetupResponse) encodes. In
+        // non-HMAC mode otp_setup is the raw secret; with HMAC it is the
+        // HMAC'd secret. Either way it is the value the server validates and
+        // the value shown for manual entry, so both callsites stay consistent.
         if (validated.otp_raw_secret && validated.otp_setup) {
           validated.qr_code = await generateQrCode(siteName, email, validated.otp_setup);
         }

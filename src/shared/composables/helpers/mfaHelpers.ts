@@ -23,11 +23,18 @@ import QRCode from 'qrcode';
  * - Microsoft Authenticator
  * - 1Password
  *
- * @param secret - Base32-encoded secret key for TOTP generation
+ * @param secret - Base32-encoded secret key for TOTP generation. This MUST be
+ *   the same secret the server validates against. With Rodauth's HMAC OTP keys
+ *   enabled, that is the HMAC'd secret (otp_setup), NOT the raw secret.
  * @returns Data URL (image/png) that can be used as img src attribute
  *
  * TOTP URI format:
- * otpauth://totp/Issuer:user@example.com?secret=SECRET&issuer=Issuer
+ * otpauth://totp/Issuer:user@example.com?secret=SECRET&issuer=Issuer&algorithm=SHA1&digits=6&period=30
+ *
+ * algorithm/digits/period are pinned to ROTP's (and therefore Rodauth's)
+ * defaults so that authenticator apps which assume different defaults still
+ * compute codes the server accepts. The secret is normalized to canonical
+ * base32 (whitespace stripped, uppercased) for the same reason.
  *
  * Note: emailAddress is currently a placeholder. In production, this should be
  * fetched from the authenticated user's account information.
@@ -37,7 +44,16 @@ export async function generateQrCode(
   emailAddress: string,
   secret: string
 ): Promise<string> {
-  const otpUrl = `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(emailAddress)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}`;
+  // Authenticator apps and ROTP treat base32 as case-insensitive and ignore
+  // spaces, but some QR readers are stricter. Emit canonical base32.
+  const normalizedSecret = secret.replace(/\s+/g, '').toUpperCase();
+
+  const label = `${encodeURIComponent(issuer)}:${encodeURIComponent(emailAddress)}`;
+  const otpUrl =
+    `otpauth://totp/${label}` +
+    `?secret=${normalizedSecret}` +
+    `&issuer=${encodeURIComponent(issuer)}` +
+    `&algorithm=SHA1&digits=6&period=30`;
   return await QRCode.toDataURL(otpUrl);
 }
 
@@ -46,8 +62,10 @@ export async function generateQrCode(
  *
  * In HMAC mode, the backend returns a 422 status with setup secrets.
  * This function validates that the response includes both:
- * - otp_setup or otp_secret: HMAC'd secret for server validation
- * - otp_raw_secret: Raw secret for QR code generation
+ * - otp_setup or otp_secret: HMAC'd secret — this is the value the QR code
+ *   encodes AND the value the server validates TOTP codes against
+ * - otp_raw_secret: Raw secret — echoed back to the server so it can re-derive
+ *   the HMAC during verification (it is NOT what the QR code encodes)
  *
  * @param errorData - Response data from 422 status (not actually an error)
  * @returns true if response contains valid HMAC setup data
@@ -65,8 +83,8 @@ export function hasHmacSetupData(errorData: any): boolean {
  *
  * Takes the 422 response from HMAC setup and:
  * 1. Validates the response schema
- * 2. Generates a QR code from the raw secret
- * 3. Normalizes field names (otp_secret → otp_setup)
+ * 2. Normalizes field names (otp_secret → otp_setup)
+ * 3. Generates a QR code from the HMAC'd secret (otp_setup)
  * 4. Returns enriched data ready for user display
  *
  * @param errorData - Response data from HMAC setup (422 status)
@@ -91,13 +109,22 @@ export async function enrichSetupResponse(
     // Validate response structure against expected schema
     const validated = otpSetupResponseSchema.parse(errorData);
 
-    // Ensure we have otp_setup for the verification step. When HMAC is
-    // enabled, the field name is otp_secret; otherwise otp_secret.
+    // Ensure we have otp_setup for the verification step. When HMAC is enabled,
+    // some Rodauth versions return the HMAC'd secret under otp_secret rather
+    // than otp_setup; normalize both to otp_setup.
     validated.otp_setup = validated.otp_setup || errorData.otp_secret || errorData.otp_setup;
 
-    // Generate QR code for authenticator app scanning
-    if (validated.otp_raw_secret) {
-      validated.qr_code = await generateQrCode(siteName, email, validated.otp_raw_secret);
+    // Generate QR code for authenticator app scanning.
+    //
+    // IMPORTANT: With otp_keys_use_hmac? enabled (apps/web/auth/config/features/
+    // mfa.rb), Rodauth derives otp_user_key = HMAC(raw secret) and builds the
+    // provisioning URI from that HMAC'd value — which is exactly what otp_setup
+    // carries and what the manual-entry key displays. TOTP codes are verified
+    // against this HMAC'd secret at both setup and login. Encoding otp_raw_secret
+    // here seeded authenticators with the wrong secret, so every scanned code was
+    // rejected while manual entry of otp_setup worked. (#3431)
+    if (validated.otp_setup) {
+      validated.qr_code = await generateQrCode(siteName, email, validated.otp_setup);
     }
 
     return validated;
