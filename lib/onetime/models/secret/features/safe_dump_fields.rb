@@ -37,23 +37,29 @@ module Onetime::Secret::Features
       base.safe_dump_field :shortid, ->(obj) { obj.shortid }
       base.safe_dump_field :state
 
-      # Numeric fields are cast at this boundary because Familia v2 storage
-      # is type-preserving, not type-enforcing: a record written with String
-      # values anywhere upstream (unconverted params, console writes, raw
-      # HSET) hydrates those Strings right back, and the V3 API schema
-      # rejects the payload — z.number() does not coerce "604800", so the
-      # recipient sees "no longer available" for a secret that was never
-      # consumed (#3424). The cast is a no-op for healthy records and
-      # guarantees the wire type either way; unset lifespans stay nil.
-      # Longer term this belongs in proactive coercion at write/load time
-      # rather than at the last mile.
+      # Cast numeric fields at this boundary: Familia v2 storage is
+      # type-preserving, not type-enforcing, so a value written as a Ruby
+      # String anywhere upstream (unconverted params, console writes, raw
+      # HSET) hydrates back as a String, and the strict z.number() V3 schema
+      # then rejects the whole payload — the recipient sees "no longer
+      # available" for a secret that was never consumed (#3424). The cast is
+      # a no-op for healthy records and neutralizes poisoned ones either way.
+      #   - lifespan / *_ttl are integer-second durations: to_i is lossless,
+      #     and the > 0 guard preserves nil/-1 for unset values.
+      #   - created / updated are float epoch seconds (Familia.now): to_f, NOT
+      #     to_i. These values double as sorted-set scores, so truncating the
+      #     sub-second precision would reorder range queries. The contract is
+      #     z.number(), which accepts either, so we keep the fuller value.
+      # Longer term this belongs in proactive coercion at write/load time, not
+      # at the last mile. A read-only detector for already-poisoned records
+      # lives in scripts/diagnostics/detect_string_typed_numerics.rb.
       # Mechanism tests: try/unit/models/secret_numeric_field_types_try.rb
       base.safe_dump_field :secret_ttl, ->(m) { m.lifespan.to_i > 0 ? m.lifespan.to_i : nil }
       base.safe_dump_field :lifespan, ->(m) { m.lifespan.to_i > 0 ? m.lifespan.to_i : nil }
       base.safe_dump_field :has_passphrase, ->(m) { m.has_passphrase? }
       base.safe_dump_field :verification, ->(m) { m.verification? }
-      base.safe_dump_field :created, ->(m) { m.created&.to_i }
-      base.safe_dump_field :updated, ->(m) { m.updated&.to_i }
+      base.safe_dump_field :created, ->(m) { m.created&.to_f }
+      base.safe_dump_field :updated, ->(m) { m.updated&.to_f }
 
       # State boolean fields - canonical names
       base.safe_dump_field :is_previewed, ->(m) { m.state?(:previewed) }

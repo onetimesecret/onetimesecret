@@ -40,11 +40,15 @@
 #    only the state field.
 #
 # MITIGATION (#3424): the safe_dump lambdas in Secret and Receipt now cast
-# the numeric fields at the serialization boundary (lifespan/secret_ttl
-# via to_i with nil/-1 preserved for unset, created/updated via &.to_i).
-# Hydration is intentionally untouched -- getters still return whatever
-# type is at rest (parts 3 and 4 below pin that) -- but the wire format is
-# numeric even for poisoned records, so the V3 schema passes either way.
+# the numeric fields at the serialization boundary. lifespan/secret_ttl use
+# to_i (lossless integer-second durations, nil/-1 preserved for unset);
+# created/updated use to_f, NOT to_i, to keep the sub-second precision that
+# matters when those values are used as sorted-set scores. Hydration is
+# intentionally untouched -- getters still return whatever type is at rest
+# (parts 3 and 4 below pin that) -- but the wire format is numeric even for
+# poisoned records, so the V3 schema passes either way. A read-only detector
+# for finding already-poisoned records at rest lives in
+# scripts/diagnostics/detect_string_typed_numerics.rb (part 6 below).
 #
 # The companion frontend test (string-typed lifespan/created rejected by
 # the V3 schema) lives in:
@@ -54,10 +58,12 @@
 # the mirror-image bug where writers bypassed JSON serialization.
 
 require_relative '../../support/test_models'
+require_relative '../../../scripts/diagnostics/detect_string_typed_numerics'
 
 OT.boot! :test, true
 
 @redis = Familia.dbclient
+@detector = Diagnostics::DetectStringTypedNumerics
 @lifespan = 604_800
 @receipt, @secret = Onetime::Receipt.spawn_pair('anon', @lifespan, 'numeric type fidelity probe')
 @secret_key = @secret.dbkey
@@ -87,11 +93,12 @@ loaded = Onetime::Secret.load(@secret.objid)
 [loaded.created.class, loaded.updated.class]
 #=> [Float, Float]
 
-## safe_dump emits native numeric types for all four V3 z.number() fields
-## (the boundary cast truncates float timestamps to whole epoch seconds)
+## safe_dump emits native numeric types for all four V3 z.number() fields:
+## integer-second durations and float epoch-second timestamps (to_f keeps
+## the float; truncating would reorder sorted-set range queries)
 sd = Onetime::Secret.load(@secret.objid).safe_dump
 [sd[:lifespan].class, sd[:secret_ttl].class, sd[:created].class, sd[:updated].class]
-#=> [Integer, Integer, Integer, Integer]
+#=> [Integer, Integer, Float, Float]
 
 ## The rendered JSON carries unquoted numbers -- this payload passes the
 ## V3 schema (lifespan: z.number(), secret_ttl: z.number())
@@ -105,14 +112,14 @@ fresh = Onetime::Secret.load(@secret.objid)
 fresh.previewed!
 sd = Onetime::Secret.load(@secret.objid).safe_dump
 [sd[:state], sd[:lifespan].class, sd[:created].class]
-#=> ['previewed', Integer, Integer]
+#=> ['previewed', Integer, Float]
 
 ## Receipt safe_dump numeric fields are natively typed too
 ## (lifespan, secret_ttl, metadata_ttl, receipt_ttl, created, updated)
 sd = Onetime::Receipt.load(@receipt.objid).safe_dump
 [sd[:lifespan].class, sd[:secret_ttl].class, sd[:metadata_ttl].class,
  sd[:receipt_ttl].class, sd[:created].class, sd[:updated].class,]
-#=> [Integer, Integer, Integer, Integer, Integer, Integer]
+#=> [Integer, Integer, Integer, Integer, Float, Float]
 
 # ------------------------------------------------------------------
 # 2. Ruling out bare bytes at rest (v1-era raw values, and the
@@ -154,11 +161,13 @@ loaded = Onetime::Secret.load(@secret.objid)
 [loaded.lifespan.class, loaded.created.class, loaded.updated.class]
 #=> [String, String, String]
 
-## The boundary cast recovers native Integers from the poisoned record,
-## so the V3 payload carries numbers despite the Strings underneath
+## The boundary cast recovers native numbers from the poisoned record, so
+## the V3 payload carries numbers despite the Strings underneath. lifespan/
+## secret_ttl come back Integer (to_i); created/updated come back Float
+## (to_f), preserving the stored sub-second value
 sd = Onetime::Secret.load(@secret.objid).safe_dump
 [sd[:lifespan], sd[:secret_ttl], sd[:created], sd[:updated]]
-#=> [604800, 604800, 1735142814, 1735204014]
+#=> [604800, 604800, 1735142814.123456, 1735204014.0]
 
 ## The rendered JSON is unquoted -- this payload passes the strict
 ## z.number() fields of the V3 schema even for a poisoned record
@@ -231,11 +240,58 @@ unsaved = Onetime::Secret.new(owner_id: 'anon')
 unsaved.safe_dump[:lifespan]
 #=> nil
 
+# ------------------------------------------------------------------
+# 6. Detector. The boundary cast fixes the wire but leaves the at-rest
+#    bytes corrupt, so scripts/diagnostics/detect_string_typed_numerics.rb
+#    scans for records that need fixing (and helps locate the writer).
+#    It flags JSON strings where the schema wants JSON numbers -- the
+#    mirror image of #3016's detector, which flags non-JSON bytes. These
+#    pin the predicate so the scan can be trusted.
+# ------------------------------------------------------------------
+
+## A JSON-quoted numeric string (the #3424 poison) is detected
+@detector.string_typed_numeric?('"604800"')
+#=> true
+
+## A bare JSON number is healthy (parses to Integer, not String)
+@detector.string_typed_numeric?('604800')
+#=> false
+
+## A bare JSON float is healthy (parses to Float)
+@detector.string_typed_numeric?('1735142814.123456')
+#=> false
+
+## nil and empty (unset field) are not flagged
+[@detector.string_typed_numeric?(nil), @detector.string_typed_numeric?('')]
+#=> [false, false]
+
+## A bare non-JSON string is NOT this bug -- that is #3016's detector
+@detector.string_typed_numeric?('anon')
+#=> false
+
+## poisoned_fields returns only the string-typed numeric fields from a hash
+fields = { 'lifespan' => '"604800"', 'created' => '1781282977.7', 'updated' => '"1781282977"' }
+@detector.poisoned_fields(fields, %w[lifespan created updated]).sort
+#=> ['lifespan', 'updated']
+
+## End-to-end: a poisoned record's real hgetall is flagged by the detector
+raw = @redis.hgetall(@poisoned.dbkey)
+@detector.poisoned_fields(raw, %w[lifespan created updated]).include?('lifespan')
+#=> true
+
+## ...and a healthy record's hgetall is clean
+@receipt3, @secret3 = Onetime::Receipt.spawn_pair('anon', 3600, 'detector control')
+raw = @redis.hgetall(@secret3.dbkey)
+@detector.poisoned_fields(raw, %w[lifespan created updated])
+#=> []
+
 # TEARDOWN
 
 @secret.delete!
 @receipt.delete!
 @secret2.delete!
 @receipt2.delete!
+@secret3.delete!
+@receipt3.delete!
 @poisoned.delete!
 @sticky.delete!
