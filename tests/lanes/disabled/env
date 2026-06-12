@@ -1,0 +1,4 @@
+# Lane: disabled — integration specs for AUTHENTICATION_MODE=disabled
+# (auth code paths intentionally absent; see ADR-007).
+# CI job: ruby-integration-disabled (T3)
+AUTHENTICATION_MODE=disabled

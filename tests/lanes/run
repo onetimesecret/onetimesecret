@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+#
+# tests/lanes/run — hermetic test lane runner.
+#
+# Usage:
+#   tests/lanes/run --list
+#   tests/lanes/run <lane> [--overlay <name>]...
+#
+# Examples:
+#   tests/lanes/run unit
+#   tests/lanes/run full-pg --overlay billing
+#
+# Runs a lane's tasks (tests/lanes/<lane>/tasks) with exactly the lane's
+# environment, regardless of what the calling shell exported. CI and local
+# development both enter through this script — that is the parity contract.
+#
+# Environment precedence (highest wins):
+#   overlays > lane env > base.env > (nothing)
+#
+# "Nothing" is literal: every mode/endpoint variable the lane files own is
+# cleared before loading, so a dev shell's REDIS_URL or AUTH_DATABASE_URL
+# (direnv-loaded or otherwise) can never leak into a test run.
+
+set -euo pipefail
+
+LANES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${LANES_DIR}/../.." && pwd)"
+
+list_lanes() {
+  local dir
+  for dir in "${LANES_DIR}"/*/; do
+    if [[ -f "${dir}tasks" && -f "${dir}env" ]]; then
+      basename "${dir}"
+    fi
+  done
+}
+
+if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
+  echo "usage: tests/lanes/run <lane> [--overlay <name>]..."
+  echo
+  echo "Lanes:"
+  list_lanes | sed 's/^/  /'
+  echo
+  echo "Overlays:"
+  for f in "${LANES_DIR}"/overlays/*.env; do
+    [[ -e "$f" ]] && basename "$f" .env | sed 's/^/  /'
+  done
+  exit 0
+fi
+
+LANE="$1"
+shift
+LANE_DIR="${LANES_DIR}/${LANE}"
+if [[ ! -f "${LANE_DIR}/env" || ! -f "${LANE_DIR}/tasks" ]]; then
+  echo "error: unknown lane '${LANE}' (see: tests/lanes/run --list)" >&2
+  exit 64
+fi
+
+OVERLAYS=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --overlay)
+      [[ $# -ge 2 ]] || { echo "error: --overlay requires a name" >&2; exit 64; }
+      OVERLAYS+=("$2")
+      shift 2
+      ;;
+    *)
+      echo "error: unknown argument '$1'" >&2
+      exit 64
+      ;;
+  esac
+done
+
+# Hermetic boundary: clear every variable the lane files own. Whatever
+# direnv loaded for dev (or a previous lane) stops here.
+unset RACK_ENV AUTHENTICATION_MODE BILLING_ENABLED ORGS_SSO_ENABLED \
+      REDIS_URL VALKEY_URL RABBITMQ_URL \
+      AUTH_DATABASE_URL AUTH_DATABASE_URL_MIGRATIONS \
+      AUTH_DATABASE_URL_PG AUTH_DATABASE_URL_MIGRATIONS_PG \
+      SECRET SESSION_SECRET AUTH_SECRET ARGON2_SECRET \
+      FEDERATION_SECRET IDENTIFIER_SECRET
+
+set -a
+# shellcheck source=/dev/null
+source "${LANES_DIR}/base.env"
+# shellcheck source=/dev/null
+source "${LANE_DIR}/env"
+if [[ ${#OVERLAYS[@]} -gt 0 ]]; then
+  for name in "${OVERLAYS[@]}"; do
+    overlay_file="${LANES_DIR}/overlays/${name}.env"
+    if [[ ! -f "${overlay_file}" ]]; then
+      echo "error: unknown overlay '${name}' (no ${overlay_file})" >&2
+      exit 64
+    fi
+    # shellcheck source=/dev/null
+    source "${overlay_file}"
+  done
+fi
+set +a
+
+echo "[lane:${LANE}] mode=${AUTHENTICATION_MODE:-?}" \
+     "billing=${BILLING_ENABLED:-false}" \
+     "redis=${REDIS_URL:-?}" \
+     "auth_db=${AUTH_DATABASE_URL:-n/a}"
+
+cd "${REPO_ROOT}"
+exec bash -e "${LANE_DIR}/tasks"

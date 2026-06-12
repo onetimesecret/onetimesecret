@@ -1,0 +1,4 @@
+# Lane tasks: executed top-to-bottom from the repo root by tests/lanes/run
+# (bash -e: first failure stops the lane). Keep each line standalone.
+pnpm run locales:sync
+bundle exec rake spec:integration:disabled

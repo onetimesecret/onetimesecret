@@ -1,0 +1,10 @@
+# Lane tasks: executed top-to-bottom from the repo root by tests/lanes/run
+# (bash -e: first failure stops the lane). Keep each line standalone.
+#
+# locales + JSON schemas are generated prerequisites: spec:fast includes
+# the billing catalog spec that reads gitignored
+# generated/schemas/config/billing.schema.json.
+pnpm run locales:sync
+pnpm run schemas:json:generate
+bundle exec rake try:unit
+bundle exec rake spec:fast

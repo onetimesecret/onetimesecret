@@ -1,0 +1,8 @@
+# Lane tasks: executed top-to-bottom from the repo root by tests/lanes/run
+# (bash -e: first failure stops the lane). Keep each line standalone.
+#
+# smoke:ruby includes spec:apps:web_billing, which reads the gitignored
+# generated billing schema — hence schemas:json:generate.
+pnpm run locales:sync
+pnpm run schemas:json:generate
+pnpm run test:smoke

@@ -1,0 +1,4 @@
+# Lane: smoke — representative cross-stack check (target: under 2 min).
+# Cleans the TEST valkey (2121), runs smoke:ruby, then vitest.
+# CI job: smoke-test (T3)
+AUTHENTICATION_MODE=simple
