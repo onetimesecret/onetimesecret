@@ -210,18 +210,22 @@ export function useDisabledConfig(): DisabledHomepageBindings {
     submitSsoLogin({ routeName: provider.route_name, shrimp: csrfStore.shrimp });
   };
 
-  // Variant resolution: URL override → per-domain homepage_config →
-  // frontend default. URL is read once at composable-call time (page
-  // loads don't preserve query params); the homepage_config fallback
-  // stays reactive so a $patch on the domain config still flips the
-  // variant. When neither resolves, fall through to the frontend
-  // constant — homepage_config is null on the canonical site and on
-  // any custom domain that hasn't opted into a non-default variant.
+  // Variant resolution (highest precedence first):
+  //   1. ?variant= URL override (dogfood/preview)
+  //   2. per-domain homepage_config.disabled_homepage_variant
+  //   3. deployment-wide ui.homepage.disabled_variant
+  //      (DEFAULT_DISABLED_HOMEPAGE_VARIANT env var)
+  //   4. frontend DEFAULT_DISABLED_HOMEPAGE_VARIANT constant
+  // URL is read once at composable-call time (page loads don't preserve query
+  // params); the store-backed fallbacks stay reactive so a $patch on the
+  // domain or site config still flips the variant. homepage_config is null on
+  // the canonical site and on any custom domain that hasn't opted in.
   const urlOverride = readUrlVariantOverride();
   const variant = computed<DisabledHomepageVariant>(
     () =>
       urlOverride ??
       homepage_config.value?.disabled_homepage_variant ??
+      ui.value?.homepage?.disabled_variant ??
       DEFAULT_DISABLED_HOMEPAGE_VARIANT
   );
 

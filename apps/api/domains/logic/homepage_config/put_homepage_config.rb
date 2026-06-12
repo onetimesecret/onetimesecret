@@ -27,6 +27,10 @@ module DomainsAPI
           @enabled         = parse_boolean(params['enabled'])
           @signup_enabled  = parse_boolean(params['signup_enabled']) if params.key?('signup_enabled')
           @signin_enabled  = parse_boolean(params['signin_enabled']) if params.key?('signin_enabled')
+          # Only touch the variant when the client sends the key; an explicit
+          # blank/unknown value clears the override (falls back to default).
+          @set_variant     = params.key?('disabled_homepage_variant')
+          @disabled_homepage_variant = params['disabled_homepage_variant'] if @set_variant
         end
 
         def raise_concerns
@@ -46,6 +50,7 @@ module DomainsAPI
             enabled: @enabled,
             signup_enabled: @signup_enabled,
             signin_enabled: @signin_enabled,
+            **(@set_variant ? { disabled_homepage_variant: @disabled_homepage_variant } : {}),
           )
 
           OT.ld "[PutHomepageConfig] saved domain=#{@custom_domain.identifier} " \
@@ -63,6 +68,7 @@ module DomainsAPI
               enabled: @homepage_config.enabled?,
               signup_enabled: @homepage_config.signup_enabled?,
               signin_enabled: @homepage_config.signin_enabled?,
+              disabled_homepage_variant: @homepage_config.disabled_homepage_variant_value,
               created_at: @homepage_config.created.to_i,
               updated_at: @homepage_config.updated.to_i,
             },

@@ -42,6 +42,9 @@ interface SetupOptions {
   /** Per-domain disabled-homepage variant. Null/omitted means
    *  "use the frontend DEFAULT_DISABLED_HOMEPAGE_VARIANT". */
   homepageVariant?: 'v1' | 'minimal' | 'closed' | null;
+  /** Deployment-wide default variant (ui.homepage.disabled_variant, from the
+   *  DEFAULT_DISABLED_HOMEPAGE_VARIANT env var). */
+  siteDefaultVariant?: 'v1' | 'minimal' | 'closed' | null;
   /** Tri-state operator overrides for the auto-detected affordances. */
   disabledHomepage?: {
     show_promo?: boolean | null;
@@ -75,6 +78,7 @@ function setup(opts: SetupOptions = {}) {
       ...bootstrap.ui,
       homepage: {
         ...(bootstrap.ui.homepage ?? { matching_cidrs: [], mode_header: 'O-Homepage-Mode' }),
+        disabled_variant: opts.siteDefaultVariant ?? null,
         public_links: {
           recipient_intro: opts.recipientIntroUrl ?? null,
         },
@@ -164,6 +168,22 @@ describe('useDisabledConfig', () => {
 
     it('respects the per-domain variant from homepage_config', () => {
       const { config } = setup({ homepageVariant: 'v1' });
+      expect(config.variant.value).toBe('v1');
+    });
+
+    it('uses the deployment-wide ui.homepage.disabled_variant when no per-domain config', () => {
+      const { config } = setup({ siteDefaultVariant: 'minimal' });
+      expect(config.variant.value).toBe('minimal');
+    });
+
+    it('per-domain homepage_config wins over the deployment-wide default', () => {
+      const { config } = setup({ siteDefaultVariant: 'minimal', homepageVariant: 'v1' });
+      expect(config.variant.value).toBe('v1');
+    });
+
+    it('?variant override wins over the deployment-wide default', () => {
+      window.history.replaceState({}, '', '/?variant=v1');
+      const { config } = setup({ siteDefaultVariant: 'minimal' });
       expect(config.variant.value).toBe('v1');
     });
 

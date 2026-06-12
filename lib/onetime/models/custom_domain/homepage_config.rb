@@ -24,6 +24,16 @@ module Onetime
 
       SCHEMA = 'models/domain-homepage-config'
 
+      # Recognised disabled-homepage variants (mirrors the frontend
+      # disabledHomepageVariantSchema). Anything else is treated as nil so the
+      # domain falls back to the deployment-wide / frontend default.
+      VALID_DISABLED_HOMEPAGE_VARIANTS = %w[v1 minimal closed].freeze
+
+      # Sentinel for upsert: distinguishes "caller omitted the variant" (leave
+      # the stored value as-is) from an explicit nil (clear the per-domain
+      # override so the domain falls back to the default).
+      UNCHANGED_VARIANT = Object.new.freeze
+
       prefix :custom_domain__homepage_config
 
       # domain_id is the CustomDomain's identifier (objid), used as our key.
@@ -41,6 +51,12 @@ module Onetime
       # the link regardless of this domain-level value.
       field :signup_enabled
       field :signin_enabled
+
+      # Which disabled-homepage variant this domain renders when the homepage
+      # secret form is gated by auth. nil (unset) = fall back to the
+      # deployment-wide default (site.interface.ui.homepage.disabled_variant)
+      # and ultimately the frontend DEFAULT_DISABLED_HOMEPAGE_VARIANT constant.
+      field :disabled_homepage_variant
 
       # Timestamps (Unix epoch integers)
       field :created
@@ -69,6 +85,13 @@ module Onetime
       # Whether the Sign In link should render on this domain's homepage.
       def signin_enabled?
         signin_enabled != false
+      end
+
+      # Recognised disabled-homepage variant for this domain, or nil to fall
+      # back to the deployment-wide / frontend default. Guards against blank or
+      # stale values in Redis (records pre-dating this field have none).
+      def disabled_homepage_variant_value
+        self.class.coerce_disabled_homepage_variant(disabled_homepage_variant)
       end
 
       # Enable homepage secrets for this domain.
@@ -112,6 +135,10 @@ module Onetime
       def validation_errors
         errors = []
         errors << 'domain_id is required' if domain_id.to_s.empty?
+        unless disabled_homepage_variant.to_s.empty? ||
+               VALID_DISABLED_HOMEPAGE_VARIANTS.include?(disabled_homepage_variant.to_s)
+          errors << "invalid disabled_homepage_variant: #{disabled_homepage_variant}"
+        end
         errors
       end
 
@@ -123,6 +150,14 @@ module Onetime
       end
 
       class << self
+        # Normalise a disabled-homepage variant to a recognised id, or nil
+        # (= use the deployment-wide / frontend default). Blank and unknown
+        # values both collapse to nil.
+        def coerce_disabled_homepage_variant(value)
+          v = value.to_s.strip
+          VALID_DISABLED_HOMEPAGE_VARIANTS.include?(v) ? v : nil
+        end
+
         # Find homepage config by domain ID.
         #
         # @param domain_id [String] CustomDomain identifier (objid)
@@ -156,17 +191,19 @@ module Onetime
         # @param domain_id [String] CustomDomain identifier
         # @param enabled [Boolean, String] Whether to enable homepage secrets
         # @return [CustomDomain::HomepageConfig] The config (created or updated)
-        def upsert(domain_id:, enabled:, signup_enabled: nil, signin_enabled: nil)
+        def upsert(domain_id:, enabled:, signup_enabled: nil, signin_enabled: nil, disabled_homepage_variant: UNCHANGED_VARIANT)
           raise Onetime::Problem, 'domain_id is required' if domain_id.to_s.empty?
 
           config = find_by_domain_id(domain_id)
           now    = Familia.now.to_i
+          set_variant = !disabled_homepage_variant.equal?(UNCHANGED_VARIANT)
 
           if config
             config.created      ||= now  # repair missing created from legacy records
             config.enabled        = enabled.to_s
             config.signup_enabled = signup_enabled unless signup_enabled.nil?
             config.signin_enabled = signin_enabled unless signin_enabled.nil?
+            config.disabled_homepage_variant = coerce_disabled_homepage_variant(disabled_homepage_variant) if set_variant
             config.updated        = now
           else
             config = new(
@@ -174,6 +211,7 @@ module Onetime
               enabled: enabled.to_s,
               signup_enabled: signup_enabled.nil? || signup_enabled,
               signin_enabled: signin_enabled.nil? || signin_enabled,
+              disabled_homepage_variant: set_variant ? coerce_disabled_homepage_variant(disabled_homepage_variant) : nil,
               created: now,
               updated: now,
             )
@@ -241,6 +279,9 @@ module Onetime
           config.enabled        = attrs[:enabled].to_s if attrs.key?(:enabled)
           config.signup_enabled = attrs[:signup_enabled] if attrs.key?(:signup_enabled)
           config.signin_enabled = attrs[:signin_enabled] if attrs.key?(:signin_enabled)
+          if attrs.key?(:disabled_homepage_variant)
+            config.disabled_homepage_variant = coerce_disabled_homepage_variant(attrs[:disabled_homepage_variant])
+          end
 
           now            = Familia.now.to_i
           config.created = now
