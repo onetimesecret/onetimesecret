@@ -9,9 +9,10 @@
 #   docker compose -f compose.test.yml down
 #
 # PORT SCHEME: every test service publishes on 127.0.0.1 with a port that
-# starts with 21 — "21 + last two digits of the canonical port":
+# starts with 21. New services take "21 + last two digits of the canonical
+# port"; valkey predates the scheme and keeps its established 2121:
 #
-#   valkey     2121   (canonical 6379; established convention)
+#   valkey     2121   (canonical 6379; grandfathered, not 2179)
 #   postgres   2132   (canonical 5432)
 #   rabbitmq   2172   (canonical 5672)
 #
@@ -32,7 +33,7 @@ services:
     ports:
       - '127.0.0.1:2121:6379'
     healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
+      test: ['CMD', 'valkey-cli', 'ping']
       interval: 10s
       timeout: 10s
       retries: 5

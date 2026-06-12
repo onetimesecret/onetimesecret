@@ -74,9 +74,10 @@ write_file compose.test.yml <<'EOF'
 #   docker compose -f compose.test.yml down
 #
 # PORT SCHEME: every test service publishes on 127.0.0.1 with a port that
-# starts with 21 — "21 + last two digits of the canonical port":
+# starts with 21. New services take "21 + last two digits of the canonical
+# port"; valkey predates the scheme and keeps its established 2121:
 #
-#   valkey     2121   (canonical 6379; established convention)
+#   valkey     2121   (canonical 6379; grandfathered, not 2179)
 #   postgres   2132   (canonical 5432)
 #   rabbitmq   2172   (canonical 5672)
 #
@@ -97,7 +98,7 @@ services:
     ports:
       - '127.0.0.1:2121:6379'
     healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
+      test: ['CMD', 'valkey-cli', 'ping']
       interval: 10s
       timeout: 10s
       retries: 5
@@ -257,6 +258,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --overlay)
       [[ $# -ge 2 ]] || { echo "error: --overlay requires a name" >&2; exit 64; }
+      [[ "$2" =~ ^[A-Za-z0-9_-]+$ ]] || { echo "error: overlay name '$2' contains invalid characters" >&2; exit 64; }
       OVERLAYS+=("$2")
       shift 2
       ;;
@@ -300,7 +302,7 @@ echo "[lane:${LANE}] mode=${AUTHENTICATION_MODE:-?}" \
      "auth_db=${AUTH_DATABASE_URL:-n/a}"
 
 cd "${REPO_ROOT}"
-exec bash -e "${LANE_DIR}/tasks"
+exec bash -euo pipefail "${LANE_DIR}/tasks"
 EOF
 
 # ============================================================================
@@ -332,7 +334,7 @@ EOF
 
 write_file tests/lanes/unit/tasks <<'EOF'
 # Lane tasks: executed top-to-bottom from the repo root by tests/lanes/run
-# (bash -e: first failure stops the lane). Keep each line standalone.
+# (bash -euo pipefail: first failure stops the lane). Keep each line standalone.
 #
 # locales + JSON schemas are generated prerequisites: spec:fast includes
 # the billing catalog spec that reads gitignored
@@ -355,7 +357,7 @@ EOF
 
 write_file tests/lanes/simple/tasks <<'EOF'
 # Lane tasks: executed top-to-bottom from the repo root by tests/lanes/run
-# (bash -e: first failure stops the lane). Keep each line standalone.
+# (bash -euo pipefail: first failure stops the lane). Keep each line standalone.
 pnpm run locales:sync
 bundle exec rake try:integration:simple
 bundle exec rake spec:integration:simple
@@ -380,7 +382,7 @@ EOF
 
 write_file tests/lanes/full-sqlite/tasks <<'EOF'
 # Lane tasks: executed top-to-bottom from the repo root by tests/lanes/run
-# (bash -e: first failure stops the lane). Keep each line standalone.
+# (bash -euo pipefail: first failure stops the lane). Keep each line standalone.
 pnpm run locales:sync
 bundle exec rake spec:integration:full
 EOF
@@ -407,7 +409,7 @@ EOF
 
 write_file tests/lanes/full-pg/tasks <<'EOF'
 # Lane tasks: executed top-to-bottom from the repo root by tests/lanes/run
-# (bash -e: first failure stops the lane). Keep each line standalone.
+# (bash -euo pipefail: first failure stops the lane). Keep each line standalone.
 pnpm run locales:sync
 bundle exec rake spec:integration:full:postgres
 EOF
@@ -433,7 +435,7 @@ EOF
 
 write_file tests/lanes/full-pg-agnostic/tasks <<'EOF'
 # Lane tasks: executed top-to-bottom from the repo root by tests/lanes/run
-# (bash -e: first failure stops the lane). Keep each line standalone.
+# (bash -euo pipefail: first failure stops the lane). Keep each line standalone.
 pnpm run locales:sync
 bundle exec rake spec:integration:full:agnostic_on_pg
 EOF
@@ -451,7 +453,7 @@ EOF
 
 write_file tests/lanes/disabled/tasks <<'EOF'
 # Lane tasks: executed top-to-bottom from the repo root by tests/lanes/run
-# (bash -e: first failure stops the lane). Keep each line standalone.
+# (bash -euo pipefail: first failure stops the lane). Keep each line standalone.
 pnpm run locales:sync
 bundle exec rake spec:integration:disabled
 EOF
@@ -471,7 +473,7 @@ EOF
 
 write_file tests/lanes/api/tasks <<'EOF'
 # Lane tasks: executed top-to-bottom from the repo root by tests/lanes/run
-# (bash -e: first failure stops the lane). Keep each line standalone.
+# (bash -euo pipefail: first failure stops the lane). Keep each line standalone.
 pnpm run locales:sync
 bundle exec rake spec:api
 EOF
@@ -489,7 +491,7 @@ EOF
 
 write_file tests/lanes/smoke/tasks <<'EOF'
 # Lane tasks: executed top-to-bottom from the repo root by tests/lanes/run
-# (bash -e: first failure stops the lane). Keep each line standalone.
+# (bash -euo pipefail: first failure stops the lane). Keep each line standalone.
 #
 # smoke:ruby includes spec:apps:web_billing, which reads the gitignored
 # generated billing schema — hence schemas:json:generate.
@@ -591,16 +593,17 @@ have no lanes — run them via pnpm directly.
 ## Ports: the 21 rule
 
 Every test service publishes on `127.0.0.1` with a port starting with
-21 — "21 + last two digits of the canonical port". Dev services keep
-canonical ports. A leaked dev config therefore cannot reach a test
+21. New services take "21 + last two digits of the canonical port";
+valkey predates the scheme and keeps its established 2121. Dev services
+keep canonical ports. A leaked dev config therefore cannot reach a test
 service, and a test run cannot reach dev data. This plus the hermetic
 runner is the answer to "tests wiped my dev database".
 
-| Service  | Test port | Canonical |
-| -------- | --------- | --------- |
-| valkey   | 2121      | 6379      |
-| postgres | 2132      | 5432      |
-| rabbitmq | 2172      | 5672      |
+| Service  | Test port | Canonical                |
+| -------- | --------- | ------------------------ |
+| valkey   | 2121      | 6379 (port grandfathered)|
+| postgres | 2132      | 5432                     |
+| rabbitmq | 2172      | 5672                     |
 
 Port mappings are defined **only** in `compose.test.yml`. The env files
 here carry matching URLs; if a URL in this tree doesn't point at a 21xx

@@ -61,6 +61,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --overlay)
       [[ $# -ge 2 ]] || { echo "error: --overlay requires a name" >&2; exit 64; }
+      [[ "$2" =~ ^[A-Za-z0-9_-]+$ ]] || { echo "error: overlay name '$2' contains invalid characters" >&2; exit 64; }
       OVERLAYS+=("$2")
       shift 2
       ;;
@@ -104,4 +105,4 @@ echo "[lane:${LANE}] mode=${AUTHENTICATION_MODE:-?}" \
      "auth_db=${AUTH_DATABASE_URL:-n/a}"
 
 cd "${REPO_ROOT}"
-exec bash -e "${LANE_DIR}/tasks"
+exec bash -euo pipefail "${LANE_DIR}/tasks"

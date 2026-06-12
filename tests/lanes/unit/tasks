@@ -1,5 +1,5 @@
 # Lane tasks: executed top-to-bottom from the repo root by tests/lanes/run
-# (bash -e: first failure stops the lane). Keep each line standalone.
+# (bash -euo pipefail: first failure stops the lane). Keep each line standalone.
 #
 # locales + JSON schemas are generated prerequisites: spec:fast includes
 # the billing catalog spec that reads gitignored

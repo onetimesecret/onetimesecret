@@ -52,16 +52,17 @@ have no lanes — run them via pnpm directly.
 ## Ports: the 21 rule
 
 Every test service publishes on `127.0.0.1` with a port starting with
-21 — "21 + last two digits of the canonical port". Dev services keep
-canonical ports. A leaked dev config therefore cannot reach a test
+21. New services take "21 + last two digits of the canonical port";
+valkey predates the scheme and keeps its established 2121. Dev services
+keep canonical ports. A leaked dev config therefore cannot reach a test
 service, and a test run cannot reach dev data. This plus the hermetic
 runner is the answer to "tests wiped my dev database".
 
-| Service  | Test port | Canonical |
-| -------- | --------- | --------- |
-| valkey   | 2121      | 6379      |
-| postgres | 2132      | 5432      |
-| rabbitmq | 2172      | 5672      |
+| Service  | Test port | Canonical                |
+| -------- | --------- | ------------------------ |
+| valkey   | 2121      | 6379 (port grandfathered)|
+| postgres | 2132      | 5432                     |
+| rabbitmq | 2172      | 5672                     |
 
 Port mappings are defined **only** in `compose.test.yml`. The env files
 here carry matching URLs; if a URL in this tree doesn't point at a 21xx
