@@ -35,11 +35,16 @@
 #    encodes whatever Ruby type the application assigned. Assign a String
 #    (an unconverted form param, config value, console fix, or any code
 #    path that calls hset with a quoted value) and the record is poisoned:
-#    it hydrates as String on every subsequent load, safe_dump passes the
-#    String through unchanged (no cast at the serialization boundary), and
-#    every V3 GET for that record fails schema validation forever. The
-#    recipient flow never heals it: previewed! uses save_fields(:state),
-#    which rewrites only the state field.
+#    it hydrates as String on every subsequent load. The recipient flow
+#    never heals it: previewed! uses save_fields(:state), which rewrites
+#    only the state field.
+#
+# MITIGATION (#3424): the safe_dump lambdas in Secret and Receipt now cast
+# the numeric fields at the serialization boundary (lifespan/secret_ttl
+# via to_i with nil/-1 preserved for unset, created/updated via &.to_i).
+# Hydration is intentionally untouched -- getters still return whatever
+# type is at rest (parts 3 and 4 below pin that) -- but the wire format is
+# numeric even for poisoned records, so the V3 schema passes either way.
 #
 # The companion frontend test (string-typed lifespan/created rejected by
 # the V3 schema) lives in:
@@ -83,9 +88,10 @@ loaded = Onetime::Secret.load(@secret.objid)
 #=> [Float, Float]
 
 ## safe_dump emits native numeric types for all four V3 z.number() fields
+## (the boundary cast truncates float timestamps to whole epoch seconds)
 sd = Onetime::Secret.load(@secret.objid).safe_dump
 [sd[:lifespan].class, sd[:secret_ttl].class, sd[:created].class, sd[:updated].class]
-#=> [Integer, Integer, Float, Float]
+#=> [Integer, Integer, Integer, Integer]
 
 ## The rendered JSON carries unquoted numbers -- this payload passes the
 ## V3 schema (lifespan: z.number(), secret_ttl: z.number())
@@ -99,14 +105,14 @@ fresh = Onetime::Secret.load(@secret.objid)
 fresh.previewed!
 sd = Onetime::Secret.load(@secret.objid).safe_dump
 [sd[:state], sd[:lifespan].class, sd[:created].class]
-#=> ['previewed', Integer, Float]
+#=> ['previewed', Integer, Integer]
 
 ## Receipt safe_dump numeric fields are natively typed too
 ## (lifespan, secret_ttl, metadata_ttl, receipt_ttl, created, updated)
 sd = Onetime::Receipt.load(@receipt.objid).safe_dump
 [sd[:lifespan].class, sd[:secret_ttl].class, sd[:metadata_ttl].class,
  sd[:receipt_ttl].class, sd[:created].class, sd[:updated].class,]
-#=> [Integer, Integer, Integer, Integer, Float, Float]
+#=> [Integer, Integer, Integer, Integer, Integer, Integer]
 
 # ------------------------------------------------------------------
 # 2. Ruling out bare bytes at rest (v1-era raw values, and the
@@ -129,12 +135,18 @@ loaded = Onetime::Secret.load(@secret.objid)
 
 # ------------------------------------------------------------------
 # 3. THE REPRODUCTION. JSON-quoted numeric strings at rest are the
-#    only state that produces the #3424 payload. deserialize_value
-#    faithfully returns a Ruby String, and safe_dump has no cast at
-#    the boundary, so the String goes straight to the wire.
+#    only state that produces the #3424 payload: deserialize_value
+#    faithfully returns a Ruby String. Before the boundary cast,
+#    safe_dump passed that String straight to the wire
+#    ('{"lifespan":"604800"}'), which strict z.number() rejects --
+#    gracefulParse threw, record stayed null, and the recipient saw
+#    UnknownSecret ("That information is no longer available"). The
+#    cast now neutralizes the poison at serialization time.
 # ------------------------------------------------------------------
 
-## JSON-quoted numeric bytes (quote bytes included) hydrate as String
+## JSON-quoted numeric bytes (quote bytes included) hydrate as String --
+## the poisoned state. Hydration is intentionally not coerced; only the
+## safe_dump boundary is.
 @redis.hset(@secret_key, 'lifespan', '"604800"')
 @redis.hset(@secret_key, 'created', '"1735142814.123456"')
 @redis.hset(@secret_key, 'updated', '"1735204014"')
@@ -142,18 +154,17 @@ loaded = Onetime::Secret.load(@secret.objid)
 [loaded.lifespan.class, loaded.created.class, loaded.updated.class]
 #=> [String, String, String]
 
-## safe_dump passes the Strings through unchanged -- the exact field
-## values reported in #3424 (strings where the V3 schema wants numbers)
+## The boundary cast recovers native Integers from the poisoned record,
+## so the V3 payload carries numbers despite the Strings underneath
 sd = Onetime::Secret.load(@secret.objid).safe_dump
 [sd[:lifespan], sd[:secret_ttl], sd[:created], sd[:updated]]
-#=> ['604800', '604800', '1735142814.123456', '1735204014']
+#=> [604800, 604800, 1735142814, 1735204014]
 
-## The rendered JSON now carries quoted numerics. z.number() does not
-## coerce, so gracefulParse throws, record stays null, and the recipient
-## sees UnknownSecret ("That information is no longer available")
+## The rendered JSON is unquoted -- this payload passes the strict
+## z.number() fields of the V3 schema even for a poisoned record
 sd = Onetime::Secret.load(@secret.objid).safe_dump
 Familia::JsonSerializer.dump(lifespan: sd[:lifespan], secret_ttl: sd[:secret_ttl])
-#=> '{"lifespan":"604800","secret_ttl":"604800"}'
+#=> '{"lifespan":604800,"secret_ttl":604800}'
 
 # ------------------------------------------------------------------
 # 4. The writer mechanism: how an environment gets into that state.
@@ -187,18 +198,20 @@ loaded = Onetime::Secret.load(@sticky.objid)
 #=> [String, Float, String]
 
 ## The recipient flow cannot heal a poisoned record either: previewed!
-## writes only the state field, so the String survives to the V3 payload
+## writes only the state field. The String survives at rest -- but the
+## boundary cast keeps the V3 payload numeric regardless
 poisoned = Onetime::Secret.load(@poisoned.objid)
 poisoned.previewed!
-Onetime::Secret.load(@poisoned.objid).safe_dump[:lifespan]
-#=> '604800'
+reloaded = Onetime::Secret.load(@poisoned.objid)
+[reloaded.lifespan.class, reloaded.safe_dump[:lifespan]]
+#=> [String, 604800]
 
 # ------------------------------------------------------------------
-# 5. Fix verification harness. The boundary cast proposed in #3268 /
-#    #3424 normalizes poisoned records and is a no-op for healthy
-#    ones, so it would make safe_dump output schema-valid either way.
-#    (Not applied to the model here -- this documents the behavior a
-#    fix must satisfy.)
+# 5. Cast semantics pinned at the getter level. The safe_dump lambdas
+#    in secret/features/safe_dump_fields.rb (and the receipt mirror)
+#    rely on to_i recovering Integers from poisoned Strings while
+#    being a no-op for healthy values, with nil preserved for unset
+#    lifespans. These cases pin that contract.
 # ------------------------------------------------------------------
 
 ## to_i recovers native Integers from a poisoned record's String fields
@@ -211,6 +224,12 @@ loaded = Onetime::Secret.load(@poisoned.objid)
 value = Onetime::Secret.load(@secret2.objid).lifespan
 [value, value.to_i]
 #=> [3600, 3600]
+
+## An unset lifespan stays nil on the wire (not 0): the V3 null-rejection
+## path for legacy records is unchanged by the cast
+unsaved = Onetime::Secret.new(owner_id: 'anon')
+unsaved.safe_dump[:lifespan]
+#=> nil
 
 # TEARDOWN
 

@@ -62,13 +62,21 @@ module Onetime::Receipt::Features
                 val.empty? ? m.secret_identifier.to_s.slice(0, 8) : val
         }
       base.safe_dump_field :secret_identifier
-      base.safe_dump_field :secret_ttl, ->(m) { m.secret_ttl || -1 }
-      base.safe_dump_field :metadata_ttl, ->(m) { m.lifespan }
-      base.safe_dump_field :receipt_ttl, ->(m) { m.lifespan }
-      base.safe_dump_field :lifespan
+
+      # Numeric fields are cast at this boundary because Familia v2 storage
+      # is type-preserving, not type-enforcing: a String written upstream
+      # hydrates as a String and fails the strict z.number() V3 schema. The
+      # cast is a no-op for healthy records; unset secret_ttl stays -1 and
+      # unset lifespans stay nil, as before. See the longer note in
+      # secret/features/safe_dump_fields.rb and #3424.
+      # Mechanism tests: try/unit/models/secret_numeric_field_types_try.rb
+      base.safe_dump_field :secret_ttl, ->(m) { m.secret_ttl.to_i > 0 ? m.secret_ttl.to_i : -1 }
+      base.safe_dump_field :metadata_ttl, ->(m) { m.lifespan.to_i > 0 ? m.lifespan.to_i : nil }
+      base.safe_dump_field :receipt_ttl, ->(m) { m.lifespan.to_i > 0 ? m.lifespan.to_i : nil }
+      base.safe_dump_field :lifespan, ->(m) { m.lifespan.to_i > 0 ? m.lifespan.to_i : nil }
       base.safe_dump_field :share_domain
-      base.safe_dump_field :created
-      base.safe_dump_field :updated
+      base.safe_dump_field :created, ->(m) { m.created&.to_i }
+      base.safe_dump_field :updated, ->(m) { m.updated&.to_i }
       base.safe_dump_field :shared
       # Obscure recipient emails at serialization time so the raw address
       # never reaches the frontend, while the underlying record keeps the

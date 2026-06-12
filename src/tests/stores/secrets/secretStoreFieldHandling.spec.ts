@@ -211,12 +211,16 @@ describe('secretStore', () => {
     });
 
     // Issue #3424: a backend record whose numeric fields were written as
-    // Ruby Strings (Familia v2 preserves the written type) serializes as
-    // {"lifespan":"604800",...}. The V3 schema is strict z.number() with no
-    // coercion, so parsing must fail — the store surfaces a fetch error,
-    // record stays null, and the recipient sees UnknownSecret ("no longer
-    // available") even though the backend returned 200 and the secret was
-    // never consumed. Backend-side reproduction of the same mechanism:
+    // Ruby Strings (Familia v2 preserves the written type) used to
+    // serialize as {"lifespan":"604800",...}. The V3 schema is strict
+    // z.number() with no coercion, so parsing fails — the store surfaces a
+    // fetch error, record stays null, and the recipient sees UnknownSecret
+    // ("no longer available") even though the backend returned 200 and the
+    // secret was never consumed. Current backends cast these fields at the
+    // safe_dump boundary, so string payloads can only come from older or
+    // third-party servers — and the schema intentionally stays strict
+    // rather than papering over them with coercion. Backend-side
+    // reproduction + cast regression tests:
     // try/unit/models/secret_numeric_field_types_try.rb
     describe('numeric field wire types (issue #3424)', () => {
       it('rejects string-typed lifespan/secret_ttl (V3 z.number() does not coerce)', async () => {
