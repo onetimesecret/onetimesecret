@@ -1,0 +1,3 @@
+# Lane: unit — unit + app specs and unit tryouts (no auth-mode boundary).
+# CI job: ruby-unit (T2)
+AUTHENTICATION_MODE=simple

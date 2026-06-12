@@ -110,3 +110,12 @@ playwright/.cache/
 # Saved authenticated session (e2e/global.setup.ts) - never commit
 e2e/.auth/
 *.egg-info/
+
+# Local direnv overlay markers in test lanes (tests/lanes/README.md)
+tests/lanes/**/.overlays
+
+# Test lanes are the exception to the env-file ignore rules above:
+# committed on purpose, dummy values only (tests/lanes/README.md)
+!tests/lanes/**/.envrc
+!tests/lanes/base.env
+!tests/lanes/overlays/*.env

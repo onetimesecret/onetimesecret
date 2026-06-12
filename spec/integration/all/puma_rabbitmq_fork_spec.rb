@@ -16,7 +16,8 @@
 #
 # This validates the fix for GitHub issue #2167.
 #
-# REQUIREMENT: RabbitMQ must be running on localhost:5672
+# REQUIREMENT: RabbitMQ must be reachable at RABBITMQ_URL
+# (default amqp://localhost:5672)
 # Skip with: SKIP_RABBITMQ_TESTS=1 bundle exec rspec ...
 #
 require_relative '../../spec_helper'
@@ -32,12 +33,13 @@ RSpec.describe 'Puma RabbitMQ Fork Safety', type: :integration do
     skip 'Skipping RabbitMQ tests (SKIP_RABBITMQ_TESTS=1)' if ENV['SKIP_RABBITMQ_TESTS'] == '1'
 
     # Check RabbitMQ is available
+    @rabbitmq_url = ENV.fetch('RABBITMQ_URL', 'amqp://localhost:5672')
     begin
-      test_conn = Bunny.new('amqp://localhost:5672')
+      test_conn = Bunny.new(@rabbitmq_url)
       test_conn.start
       test_conn.close
     rescue Bunny::TCPConnectionFailed
-      skip 'RabbitMQ not available on localhost:5672'
+      skip "RabbitMQ not available at #{@rabbitmq_url}"
     end
 
     startup_attempts = 0
@@ -80,7 +82,7 @@ RSpec.describe 'Puma RabbitMQ Fork Safety', type: :integration do
         before_worker_boot do
           puts "[before_worker_boot] Reconnecting RabbitMQ (PID: \#{Process.pid})"
           begin
-            $rmq_test_conn = Bunny.new('amqp://localhost:5672')
+            $rmq_test_conn = Bunny.new('#{@rabbitmq_url}')
             $rmq_test_conn.start
             $rmq_test_channel = $rmq_test_conn.create_channel
             puts "[before_worker_boot] RabbitMQ reconnected in worker \#{Process.pid}"
@@ -98,7 +100,7 @@ RSpec.describe 'Puma RabbitMQ Fork Safety', type: :integration do
 
         # Simulate preload: create RabbitMQ connection during preload
         puts "[preload] Connecting to RabbitMQ (PID: \#{Process.pid})"
-        $rmq_test_conn = Bunny.new('amqp://localhost:5672')
+        $rmq_test_conn = Bunny.new('#{@rabbitmq_url}')
         $rmq_test_conn.start
 
         # Simulate the ConnectionPool pattern (this is what causes the issue)
