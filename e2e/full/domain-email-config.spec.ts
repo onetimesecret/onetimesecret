@@ -24,6 +24,19 @@
 
 import { expect, Page, test } from '@playwright/test';
 
+import { env, gateReason } from '../support/env';
+
+// HOLDING ACTION — not coverage (E2E remediation plan Phase 2.4 / PR 5).
+// Every test needs a custom domain on the test account (optional deployment
+// config), so it is env-gated rather than fixme'd (issue #3420): set
+// E2E_CUSTOM_DOMAINS against a domains-enabled target to run it. No CI lane
+// sets that yet, so this suite is DORMANT in CI — real coverage returns when
+// PR 6 adds a domains-enabled lane + fixtures. Gating before the body runs
+// keeps CI from timing out in the org/domain DOM helpers.
+test.beforeEach(() => {
+  test.skip(!env.hasCustomDomains, gateReason.customDomains);
+});
+
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
@@ -47,7 +60,7 @@ interface DomainInfo {
  */
 async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
   await page.goto('/orgs');
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   const orgLink = page.locator('a[href*="/org/"]').first();
   if (!(await orgLink.isVisible().catch(() => false))) {
@@ -70,7 +83,7 @@ async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
  */
 async function getFirstDomain(page: Page, orgExtid: string): Promise<DomainInfo | null> {
   await page.goto(`/org/${orgExtid}/domains`);
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   const domainLink = page.locator('a[href*="/domains/"]').first();
   if (!(await domainLink.isVisible().catch(() => false))) {
@@ -98,7 +111,7 @@ async function navigateToEmailConfig(
   domainExtid: string
 ): Promise<boolean> {
   await page.goto(`/org/${orgExtid}/domains/${domainExtid}/email`);
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   const form = page.locator('form');
   return form.isVisible().catch(() => false);
@@ -298,12 +311,9 @@ test.describe('Domain Email Config - Toggle Behavior', () => {
 
     const initialState = await isToggleEnabled(toggle!);
 
-    // Click toggle
+    // Click toggle and poll for the reactive state to flip (no sleep)
     await toggle!.click();
-    await page.waitForTimeout(300);
-
-    const newState = await isToggleEnabled(toggle!);
-    expect(newState).not.toBe(initialState);
+    await expect.poll(() => isToggleEnabled(toggle!)).toBe(!initialState);
   });
 
   test('TC-DEC-010: toggle has proper ARIA attributes', async ({ page }) => {
@@ -446,8 +456,8 @@ test.describe('Domain Email Config - Save and Delete', () => {
     const saveButton = page.locator('button[type="submit"]');
     await saveButton.click();
 
-    await page.waitForTimeout(1000);
-    expect(saveRequestMade).toBe(true);
+    // Poll for the capture flag set by the route handler (no sleep)
+    await expect.poll(() => saveRequestMade).toBe(true);
   });
 
   test('TC-DEC-015: delete button shows confirmation', async ({ page }) => {

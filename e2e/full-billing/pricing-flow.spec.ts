@@ -544,7 +544,7 @@ test.describe('Error States', () => {
     });
 
     await page.goto('/pricing');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Should show "no plans available" message
     const noPlansMessage = page.locator('text=/no.*plans available/i');

@@ -19,6 +19,19 @@
 
 import { expect, Page, test } from '@playwright/test';
 
+import { env, gateReason } from '../support/env';
+
+// HOLDING ACTION — not coverage (E2E remediation plan Phase 2.4 / PR 5).
+// Every test needs a custom domain on the test account (optional deployment
+// config), so it is env-gated rather than fixme'd (issue #3420): set
+// E2E_CUSTOM_DOMAINS against a domains-enabled target to run it. No CI lane
+// sets that yet, so this suite is DORMANT in CI — real coverage returns when
+// PR 6 adds a domains-enabled lane + fixtures. Gating before the body runs
+// keeps CI from timing out in the org/domain DOM helpers.
+test.beforeEach(() => {
+  test.skip(!env.hasCustomDomains, gateReason.customDomains);
+});
+
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
@@ -42,7 +55,7 @@ interface DomainInfo {
  */
 async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
   await page.goto('/orgs');
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   const orgLink = page.locator('a[href*="/org/"]').first();
   if (!(await orgLink.isVisible().catch(() => false))) {
@@ -65,7 +78,7 @@ async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
  */
 async function getFirstDomain(page: Page, orgExtid: string): Promise<DomainInfo | null> {
   await page.goto(`/org/${orgExtid}/domains`);
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   const domainLink = page.locator('a[href*="/domains/"]').first();
   if (!(await domainLink.isVisible().catch(() => false))) {
@@ -113,7 +126,7 @@ test.describe('Domain Sub-page Navigation', () => {
     // Navigate to SSO config page
     const ssoUrl = `/org/${org!.extid}/domains/${domain!.extid}/sso`;
     await page.goto(ssoUrl);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Verify we're on the SSO page
     const ssoTitle = page.locator('[data-testid="sso-config-title"], h2:has-text("SSO")');
@@ -148,7 +161,7 @@ test.describe('Domain Sub-page Navigation', () => {
     // Navigate to Incoming config page
     const incomingUrl = `/org/${org!.extid}/domains/${domain!.extid}/incoming`;
     await page.goto(incomingUrl);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Verify we're on the Incoming page or check for access denied
     const incomingTitle = page.locator('h2:has-text("Incoming")');
@@ -180,7 +193,7 @@ test.describe('Domain Sub-page Navigation', () => {
     // Navigate to Verify page
     const verifyUrl = `/org/${org!.extid}/domains/${domain!.extid}/verify`;
     await page.goto(verifyUrl);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Verify we're on the Verify page
     const verifyTitle = page.locator('h2:has-text("Verify")');
@@ -217,7 +230,7 @@ test.describe('DomainHeader External Link', () => {
     // Navigate to Incoming config page
     const incomingUrl = `/org/${org!.extid}/domains/${domain!.extid}/incoming`;
     await page.goto(incomingUrl);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Check for access denied
     const accessDenied = await page.locator('text=access denied').first().isVisible().catch(() => false);
@@ -242,7 +255,7 @@ test.describe('DomainHeader External Link', () => {
     // Navigate to SSO config page
     const ssoUrl = `/org/${org!.extid}/domains/${domain!.extid}/sso`;
     await page.goto(ssoUrl);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Check for access denied
     const accessDenied = await page.locator('text=access denied').first().isVisible().catch(() => false);

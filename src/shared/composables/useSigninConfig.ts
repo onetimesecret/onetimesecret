@@ -13,8 +13,8 @@
  * @param domainExtId - Domain external ID for API calls
  */
 
-import type { ApplicationError } from '@/schemas/errors';
 import type { PutSigninConfigRequest } from '@/schemas/api/domains/requests/signin-config';
+import type { ApplicationError } from '@/schemas/errors';
 import type {
   CustomDomainSigninConfig,
   SigninRestrictTo,
@@ -24,7 +24,7 @@ import { useNotificationsStore } from '@/shared/stores';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { type AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
+import { useAsyncHandler, type AsyncHandlerOptions } from './useAsyncHandler';
 
 /**
  * Form state for signin configuration.
@@ -214,8 +214,10 @@ export function useSigninConfig(domainExtId: string) {
   ) => {
     if (isSaving.value) return;
     formState.value = { ...formState.value, ...partial };
-    savingField.value =
-      savingFieldHint ?? (Object.keys(partial)[0] as keyof SigninConfigFormState | undefined) ?? null;
+
+    const firstKey = Object.keys(partial)[0] as keyof SigninConfigFormState | undefined;
+    savingField.value = savingFieldHint ?? firstKey ?? null;
+
     try {
       await saveConfig();
     } finally {

@@ -60,22 +60,28 @@ async function loginUser(page: Page, email?: string, password?: string): Promise
   await page.goto('/signin');
 
   // Click Password tab - Magic Link is the default, password input is hidden
+  // Handle both signin variants (canonical logic: e2e/global.setup.ts):
+  // default deployments render SignInForm directly (the CI container does);
+  // passwordless-first deployments hide the password panel behind a
+  // "Password" tab with different test ids.
+  const signinEmail = email || process.env.TEST_USER_EMAIL || '';
+  const signinPassword = password || process.env.TEST_USER_PASSWORD || '';
+  const signinForm = page.getByTestId('signin-form');
   const passwordTab = page.getByRole('tab', { name: /password/i });
-  await passwordTab.waitFor({ state: 'visible', timeout: 5000 });
-  await passwordTab.click();
+  await expect(signinForm.or(passwordTab).first()).toBeVisible();
 
-  // Wait for password input to be visible after tab switch
-  const passwordInput = page.locator('input[type="password"]');
-  await passwordInput.waitFor({ state: 'visible', timeout: 5000 });
-
-  // Fill the form
-  const emailInput = page.locator('#signin-email-password');
-  await emailInput.fill(email || process.env.TEST_USER_EMAIL || '');
-  await passwordInput.fill(password || process.env.TEST_USER_PASSWORD || '');
-
-  // Submit
-  const submitButton = page.locator('button[type="submit"]');
-  await submitButton.click();
+  if (await passwordTab.isVisible()) {
+    // Passwordless-first variant (magic links / WebAuthn enabled)
+    await passwordTab.click();
+    await page.getByTestId('password-email-input').fill(signinEmail);
+    await page.getByTestId('password-input').fill(signinPassword);
+    await page.getByTestId('password-submit').click();
+  } else {
+    // Password-only variant (CI container default)
+    await page.getByTestId('signin-email-input').fill(signinEmail);
+    await page.getByTestId('signin-password-input').fill(signinPassword);
+    await page.getByTestId('signin-submit').click();
+  }
 
   // Wait for redirect to dashboard/account
   await page.waitForURL(/\/(account|dashboard|org)/, { timeout: 30000 });
@@ -92,7 +98,7 @@ async function navigateToOrgTeam(page: Page, orgExtid?: string): Promise<string>
 
   // Navigate to org list and find first org
   await page.goto('/orgs');
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   // Find the first organization link with team tab
   const orgLink = page.locator('a[href*="/org/"]').first();
@@ -257,7 +263,7 @@ test.describe('INV-002: Unauthenticated User Inline Auth Flow', () => {
 
     // Visit invitation link
     await page.goto(`/invite/${token}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Verify invitation details page loads
     await expect(page.getByText(/invitation/i)).toBeVisible();
@@ -317,7 +323,7 @@ test.describe('INV-003: Email Mismatch Warning', () => {
       await loginUser(wrongUserPage); // Logs in as test user (different from invited email)
 
       await wrongUserPage.goto(`/invite/${token}`);
-      await wrongUserPage.waitForLoadState('networkidle');
+      await expect(wrongUserPage.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Verify wrong_email state is shown
       const wrongEmailState = wrongUserPage.getByTestId('invite-wrong-email');
@@ -371,7 +377,7 @@ test.describe('INV-004: Continue As Invited Email Flow', () => {
       // Wrong user logs in and visits invitation
       await loginUser(wrongUserPage);
       await wrongUserPage.goto(`/invite/${token}`);
-      await wrongUserPage.waitForLoadState('networkidle');
+      await expect(wrongUserPage.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Click continue as — logs out and redirects to invite page
       const continueAsBtn = wrongUserPage.getByRole('button', { name: /continue as/i });
@@ -423,7 +429,7 @@ test.describe('INV-005: Matching Email User Flow', () => {
       // Clear cookies and visit as unauthenticated to verify button states
       await ownerContext.clearCookies();
       await ownerPage.goto(`/invite/${token}`);
-      await ownerPage.waitForLoadState('networkidle');
+      await expect(ownerPage.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Accept button should be visible (even for unauthenticated)
       const acceptButton = ownerPage.getByRole('button', { name: /accept/i });
@@ -456,7 +462,7 @@ test.describe('INV-007a: Authenticated Decline Flow', () => {
 
     // Visit invitation page (still logged in as owner - simulates matching email)
     await page.goto(`/invite/${token}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Click decline
     const declineButton = page.getByRole('button', { name: /decline/i });
@@ -487,7 +493,7 @@ test.describe('INV-007b: Unauthenticated Decline Flow', () => {
 
     // Visit invitation page
     await page.goto(`/invite/${token}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Decline button should work without auth
     const declineButton = page.getByRole('button', { name: /decline/i });
@@ -508,7 +514,7 @@ test.describe('INV-008: Expired Invitation', () => {
     const fakeToken = 'expired-fake-token-' + Date.now();
 
     await page.goto(`/invite/${fakeToken}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Error message should be visible
     await expect(page.getByText(/invalid|expired/i)).toBeVisible();
@@ -583,7 +589,7 @@ test.describe('INV-011: Revoke Invitation', () => {
     // Verify invitation link is now invalid
     await context.clearCookies();
     await page.goto(`/invite/${token}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Should show error
     await expect(page.getByText(/invalid|expired|not found/i)).toBeVisible();
@@ -597,22 +603,14 @@ test.describe('INV-011: Revoke Invitation', () => {
 test.describe('INV-012: Gmail Alias Normalization', () => {
   test.skip(!hasTestCredentials, 'Skipping: Requires specific email setup for Gmail alias testing');
 
-  test.skip('Gmail alias normalization allows user+tag@gmail.com to match user@gmail.com', async () => {
-    // This test requires a real Gmail account setup
-    // The normalizeEmail function in AcceptInvite.vue handles:
-    // - Lowercasing
-    // - Stripping + suffixes (user+tag@domain → user@domain)
-
-    // Verify the normalization function works correctly
-    // by checking the UI behavior when a +tag email is invited
-
-    // Note: Full E2E test would require:
-    // 1. Create invitation for user+tag@gmail.com
-    // 2. Login as user@gmail.com
-    // 3. Verify NO mismatch warning (emails match after normalization)
-
-    // For now, we verify the function exists in the component
-    test.skip(true, 'Gmail alias test requires real email accounts');
+  // QUARANTINED (E2E remediation plan Phase 2.4 / PR 5, issue #3421): needs real
+  // Gmail accounts + captured invite email. Unimplemented placeholder ->
+  // test.fixme. normalizeEmail() in AcceptInvite.vue is unit-tested; see
+  // e2e/QUARANTINE.md.
+  test.fixme('Gmail alias normalization allows user+tag@gmail.com to match user@gmail.com', async () => {
+    // TODO(#3421): create an invite for user+tag@gmail.com, sign in as
+    // user@gmail.com, and assert NO mismatch warning (emails match after
+    // normalization) — once a mail interceptor exists.
   });
 });
 
@@ -650,7 +648,7 @@ test.describe('INV-016: Invalid Token', () => {
     const invalidToken = 'invalid-token-format-12345-' + Date.now();
 
     await page.goto(`/invite/${invalidToken}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Error message should be visible
     await expect(page.getByText(/invalid|expired/i)).toBeVisible();
@@ -738,7 +736,7 @@ test.describe('INV-SEC-002: Account Enumeration Prevention', () => {
       // Log in as different user and visit invitation
       await loginUser(wrongUserPage);
       await wrongUserPage.goto(`/invite/${token}`);
-      await wrongUserPage.waitForLoadState('networkidle');
+      await expect(wrongUserPage.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Click continue as — logs out and redirects to invite page
       const continueAsBtn = wrongUserPage.getByRole('button', { name: /continue as/i });
@@ -765,17 +763,13 @@ test.describe('INV-SEC-002: Account Enumeration Prevention', () => {
 test.describe('INV-017: Complete Invitation Acceptance Flow', () => {
   test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
 
-  test.skip('After accepting invitation, user can see and access the organization in their org list', async () => {
-    // This is a full integration test that would require:
-    // 1. Owner creates invitation
-    // 2. New user creates account with invited email
-    // 3. New user accepts invitation
-    // 4. New user verifies org appears in their list
-
-    // Note: This test is complex and may need Mailpit integration
-    // for full email verification flow
-
-    test.skip(true, 'Full integration test requires email verification setup');
+  // QUARANTINED (E2E remediation plan Phase 2.4 / PR 5, issue #3421): full
+  // multi-account integration — owner invites, a NEW account signs up with the
+  // invited email, accepts, and sees the org. Needs a second account + Mailpit.
+  // Unimplemented placeholder -> test.fixme. See e2e/QUARANTINE.md.
+  test.fixme('After accepting invitation, user can see and access the organization in their org list', async () => {
+    // TODO(#3421): owner creates invite -> new account signs up with the
+    // invited email -> accepts -> asserts the org appears in their list.
   });
 });
 

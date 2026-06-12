@@ -64,12 +64,7 @@ test.describe('Brand Customization - CSS Variable Injection', () => {
     });
 
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
-
-    // Wait for Vue to mount and useBrandTheme to execute
-    await page.waitForFunction(() => {
-      return (window as any).__BOOTSTRAP_ME__ === true;
-    }, { timeout: 30000 });
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const palette = await getBrandPaletteFromPage(page);
 
@@ -110,12 +105,7 @@ test.describe('Brand Customization - CSS Variable Injection', () => {
 
   test('brand-500 variable reflects neutral blue by default', async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
-
-    // Wait for bootstrap consumption
-    await page.waitForFunction(() => {
-      return (window as any).__BOOTSTRAP_ME__ === true;
-    }, { timeout: 30000 });
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Check brand-500 specifically - this is the primary color shade
     const brand500 = await page.evaluate(() => {
@@ -143,7 +133,7 @@ test.describe('Brand Customization - Light/Dark Mode', () => {
     // Force light color scheme
     await page.emulateMedia({ colorScheme: 'light' });
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Verify page is visible and functional
     await expect(page.locator('body')).toBeVisible();
@@ -174,7 +164,7 @@ test.describe('Brand Customization - Light/Dark Mode', () => {
     // Force dark color scheme
     await page.emulateMedia({ colorScheme: 'dark' });
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Verify page is visible and functional
     await expect(page.locator('body')).toBeVisible();
@@ -209,16 +199,12 @@ test.describe('Brand Customization - Light/Dark Mode', () => {
 
   test('brand colors remain consistent across theme toggle', async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    // Wait for Vue mount
-    await page.waitForFunction(() => {
-      return (window as any).__BOOTSTRAP_ME__ === true;
-    }, { timeout: 30000 });
-
-    // Get brand-500 in light mode
+    // Get brand-500 in light mode. No settle wait needed: the brand palette
+    // is written once during mount and is theme-independent (which is exactly
+    // what this test asserts); getComputedStyle forces a synchronous recalc.
     await page.emulateMedia({ colorScheme: 'light' });
-    await page.waitForTimeout(100); // Allow re-render
 
     const lightBrand500 = await page.evaluate(() => {
       return getComputedStyle(document.documentElement)
@@ -228,7 +214,6 @@ test.describe('Brand Customization - Light/Dark Mode', () => {
 
     // Switch to dark mode
     await page.emulateMedia({ colorScheme: 'dark' });
-    await page.waitForTimeout(100);
 
     const darkBrand500 = await page.evaluate(() => {
       return getComputedStyle(document.documentElement)
@@ -259,12 +244,7 @@ test.describe('Brand Customization - Console Error Monitoring', () => {
     });
 
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
-
-    // Wait for brand theme to be fully applied
-    await page.waitForFunction(() => {
-      return (window as any).__BOOTSTRAP_ME__ === true;
-    }, { timeout: 30000 });
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Filter for actual errors (not warnings or info)
     const errors = consoleMessages.filter((m) => m.type === 'error');
@@ -305,11 +285,13 @@ test.describe('Brand Customization - Console Error Monitoring', () => {
 
       // Accept 200 or 404 (some paths may not exist)
       const status = response?.status() ?? 0;
-      if (status !== 200 && status !== 404) {
-        continue; // Skip paths that error out
-      }
 
-      await page.waitForLoadState('networkidle');
+      // goto() already waited for the document load; when the SPA shell was
+      // served, also wait for the app to finish booting so late mount/render
+      // errors are captured before moving to the next path.
+      if (status === 200) {
+        await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+      }
     }
 
     // Filter out expected/ignorable errors
@@ -364,11 +346,7 @@ test.describe('Brand Customization - head-base meta tags', () => {
 test.describe('Brand Customization - Palette Structure Validation', () => {
   test('all 4 palette prefixes have complete shade scales', async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
-
-    await page.waitForFunction(() => {
-      return (window as any).__BOOTSTRAP_ME__ === true;
-    }, { timeout: 30000 });
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const palette = await getBrandPaletteFromPage(page);
 
@@ -387,11 +365,7 @@ test.describe('Brand Customization - Palette Structure Validation', () => {
 
   test('shade progression follows lightness gradient (50 lightest, 950 darkest)', async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
-
-    await page.waitForFunction(() => {
-      return (window as any).__BOOTSTRAP_ME__ === true;
-    }, { timeout: 30000 });
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Get brand palette values and convert to perceived lightness
     const lightnessValues = await page.evaluate((steps: string[]) => {
