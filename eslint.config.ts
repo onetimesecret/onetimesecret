@@ -622,10 +622,13 @@ export default [
    * e2e/docs/e2e-remediation-plan.md, Phase 1):
    *  - waitForLoadState('networkidle') / { waitUntil: 'networkidle' }
    *  - page.waitForTimeout(...)
-   * Severity is 'warn' during the Phase 2 directory-by-directory sweep
-   * (~300 networkidle + ~43 waitForTimeout call-sites today); flips to
-   * 'error' once the sweep lands (plan Phase 1 item 2 / PR 4).
-   * Run with: pnpm lint:e2e (no --quiet, so warnings are visible)
+   * The Phase 2.3 sweep (PR 4) removed all 341 call-sites, so both rules
+   * are 'error': new occurrences fail lint instead of accruing as
+   * warnings. Wait on the app-readiness flag instead -
+   * `await expect(page.locator('html[data-app-ready="true"]')).toBeAttached()`
+   * (canonical usage: e2e/global.setup.ts) - or use web-first assertions /
+   * waitForURL for element- and URL-level waits.
+   * Run with: pnpm lint:e2e
    */
   {
     files: ['e2e/**/*.ts'],
@@ -643,8 +646,8 @@ export default [
       playwright: pluginPlaywright,
     },
     rules: {
-      'playwright/no-networkidle': 'warn',
-      'playwright/no-wait-for-timeout': 'warn',
+      'playwright/no-networkidle': 'error',
+      'playwright/no-wait-for-timeout': 'error',
 
       // TODO: dead since #3414 scoped the tailwind flat/recommended spread to
       // src/**/*.vue - these 'off' entries no longer override anything. Kept

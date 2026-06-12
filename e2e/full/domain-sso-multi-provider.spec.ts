@@ -32,6 +32,22 @@
 
 import { expect, Locator, Page, test } from '@playwright/test';
 
+import { env, gateReason } from '../support/env';
+
+// HOLDING ACTION — not coverage (E2E remediation plan Phase 2.4 / PR 5).
+// Multi-domain SSO needs several custom domains plus the manage_sso
+// entitlement / SSO UI — optional deployment config, so env-gated rather than
+// fixme'd: set E2E_CUSTOM_DOMAINS (multiple) and E2E_SSO_UI against a
+// suitably-configured target to run it. No CI lane sets either yet, so this
+// suite is DORMANT in CI — real coverage returns when PR 6 adds a configured
+// lane + fixtures.
+test.beforeEach(() => {
+  test.skip(
+    !env.hasCustomDomains || !env.hasSsoUi,
+    `${gateReason.customDomains} ${gateReason.ssoUi}`
+  );
+});
+
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
@@ -68,7 +84,7 @@ interface SsoConfigData {
  */
 async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
   await page.goto('/orgs');
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   const orgLink = page.locator('a[href*="/org/"]').first();
   if (!(await orgLink.isVisible().catch(() => false))) {
@@ -91,7 +107,7 @@ async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
  */
 async function navigateToOrgSsoTab(page: Page, orgExtid: string): Promise<void> {
   await page.goto(`/org/${orgExtid}/sso`);
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   // Wait for SSO tab to be active or section to be visible
   const ssoSection = page.locator('[data-testid="org-section-sso"]');
@@ -165,7 +181,7 @@ async function openDomainSsoModal(
   domainExtid: string
 ): Promise<Locator> {
   await page.goto(`/org/${orgExtid}/domains/${domainExtid}/signin`);
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   // Wait for the signin config page to load. The page no longer renders a
   // <form> element (the config is a series of fieldsets), so anchor on the
@@ -239,9 +255,12 @@ async function fillSsoConfigForm(page: Page, modal: Locator, config: SsoConfigDa
 async function submitSsoForm(modal: Locator): Promise<void> {
   const saveButton = modal.locator('button[type="submit"]');
   await expect(saveButton).toBeEnabled({ timeout: 5000 });
+  // Anchor on the save round-trip (tests mock these routes via page.route)
+  const saveResponse = modal
+    .page()
+    .waitForResponse((r) => r.url().includes('/sso') && r.request().method() !== 'GET');
   await saveButton.click();
-  // Wait for save operation to complete
-  await modal.page().waitForTimeout(500);
+  await saveResponse;
 }
 
 /**
@@ -848,7 +867,7 @@ test.describe('Multi-Domain SSO - Configuration Isolation', () => {
 
     // Navigate directly to domain A signin page via URL
     await page.goto(`/org/${org!.extid}/domains/${domainA.extid}/signin`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // URL should contain domain A's extid
     expect(page.url()).toContain(domainA.extid);
@@ -859,7 +878,7 @@ test.describe('Multi-Domain SSO - Configuration Isolation', () => {
 
     // Navigate directly to domain B signin page via URL
     await page.goto(`/org/${org!.extid}/domains/${domainB.extid}/signin`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // URL should contain domain B's extid
     expect(page.url()).toContain(domainB.extid);

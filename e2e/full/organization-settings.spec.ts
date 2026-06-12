@@ -54,7 +54,7 @@ interface OrgInfo {
  */
 async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
   await page.goto('/orgs');
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   const orgsList = page.getByTestId('organizations-list');
   const isOrgListVisible = await orgsList.isVisible().catch(() => false);
@@ -100,13 +100,13 @@ test.describe('ORG-LIST: Organizations List Page (/orgs)', () => {
 
   test('ORG-LIST-001: Organizations list renders with correct testids', async ({ page }) => {
     await page.goto('/orgs');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Verify organizations-list container exists
     const orgsList = page.getByTestId('organizations-list');
     const isLoading = page.locator('text=/loading/i');
 
-    // Either we have orgs list or empty state (no loading spinner after networkidle)
+    // Either we have orgs list or empty state (loading spinner should clear)
     await expect(isLoading).not.toBeVisible({ timeout: 5000 }).catch(() => {
       // Loading may have completed before we checked
     });
@@ -142,7 +142,7 @@ test.describe('ORG-LIST: Organizations List Page (/orgs)', () => {
   test('ORG-LIST-002: Empty state displays when no organizations', async ({ page }) => {
     // This test verifies the empty state UI exists - it may not trigger for users with orgs
     await page.goto('/orgs');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const orgsList = page.getByTestId('organizations-list');
     const hasOrgsList = await orgsList.isVisible().catch(() => false);
@@ -186,7 +186,7 @@ test.describe('ORG-LIST: Organizations List Page (/orgs)', () => {
 
   test('ORG-LIST-004: Org cards display plan badges correctly', async ({ page }) => {
     await page.goto('/orgs');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const orgsList = page.getByTestId('organizations-list');
     const hasOrgsList = await orgsList.isVisible().catch(() => false);
@@ -231,7 +231,7 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
     }
 
     await page.goto(`/org/${testOrg.extid}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Verify tab buttons exist with correct testids
     const domainsTab = page.getByTestId('org-tab-domains');
@@ -264,7 +264,7 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
 
     // Navigate without specifying tab
     await page.goto(`/org/${testOrg.extid}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Domains tab should be selected
     const domainsTab = page.getByTestId('org-tab-domains');
@@ -282,7 +282,7 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
     }
 
     await page.goto(`/org/${testOrg.extid}/domains`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Verify tab is selected
     const domainsTab = page.getByTestId('org-tab-domains');
@@ -308,7 +308,7 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
     }
 
     await page.goto(`/org/${testOrg.extid}/subscription`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Verify tab is selected
     const subscriptionTab = page.getByTestId('org-tab-subscription');
@@ -331,7 +331,7 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
     }
 
     await page.goto(`/org/${testOrg.extid}/settings`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Verify tab is selected
     const settingsTab = page.getByTestId('org-tab-settings');
@@ -357,7 +357,7 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
     }
 
     await page.goto(`/org/${testOrg.extid}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const ssoTab = page.getByTestId('org-tab-sso');
     const hasSsoTab = await ssoTab.isVisible().catch(() => false);
@@ -367,9 +367,9 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
       return;
     }
 
-    // Click SSO tab
+    // Click SSO tab (the aria-selected assertion below waits for the
+    // tab navigation to settle)
     await ssoTab.click();
-    await page.waitForLoadState('networkidle');
 
     // Verify tab is selected
     await expect(ssoTab).toHaveAttribute('aria-selected', 'true');
@@ -389,30 +389,24 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
     }
 
     await page.goto(`/org/${testOrg.extid}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    // Click subscription tab
+    // Click subscription tab (waitForURL pins each tab navigation)
     const subscriptionTab = page.getByTestId('org-tab-subscription');
     await subscriptionTab.click();
-    await page.waitForLoadState('networkidle');
-
-    expect(page.url()).toContain('/subscription');
+    await page.waitForURL(/\/subscription/);
     expect(getCurrentTab(page)).toBe('subscription');
 
     // Click settings tab
     const settingsTab = page.getByTestId('org-tab-settings');
     await settingsTab.click();
-    await page.waitForLoadState('networkidle');
-
-    expect(page.url()).toContain('/settings');
+    await page.waitForURL(/\/settings/);
     expect(getCurrentTab(page)).toBe('settings');
 
     // Click domains tab
     const domainsTab = page.getByTestId('org-tab-domains');
     await domainsTab.click();
-    await page.waitForLoadState('networkidle');
-
-    expect(page.url()).toContain('/domains');
+    await page.waitForURL(/\/domains/);
     expect(getCurrentTab(page)).toBe('domains');
   });
 
@@ -423,7 +417,7 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
     }
 
     await page.goto(`/org/${testOrg.extid}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Find the back link (arrow-left icon with org name)
     const backLink = page.locator('a[href="/orgs"]');
@@ -452,7 +446,7 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
 
     for (const tab of tabs) {
       await page.goto(`/org/${testOrg.extid}/${tab.url}`);
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const panel = page.getByTestId(tab.testid);
       await expect(panel).toBeVisible({ timeout: 10000 });
@@ -467,7 +461,7 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
 
     // Start on domains tab
     await page.goto(`/org/${testOrg.extid}/domains`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Navigate to subscription tab
     const subscriptionTab = page.getByTestId('org-tab-subscription');
@@ -479,19 +473,19 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
     await settingsTab.click();
     await page.waitForURL(/\/settings/);
 
-    // Go back to subscription
+    // Go back to subscription (waitForURL pins each history navigation)
     await page.goBack();
-    await page.waitForLoadState('networkidle');
+    await page.waitForURL(/\/subscription/);
     expect(getCurrentTab(page)).toBe('subscription');
 
     // Go back to domains
     await page.goBack();
-    await page.waitForLoadState('networkidle');
+    await page.waitForURL(/\/domains/);
     expect(getCurrentTab(page)).toBe('domains');
 
     // Go forward to subscription
     await page.goForward();
-    await page.waitForLoadState('networkidle');
+    await page.waitForURL(/\/subscription/);
     expect(getCurrentTab(page)).toBe('subscription');
   });
 
@@ -502,7 +496,7 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
     }
 
     await page.goto(`/org/${testOrg.extid}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Check which tabs the user lacks access to
     const membersTab = page.getByTestId('org-tab-members');
@@ -521,7 +515,7 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
 
     // Navigate to domains, then settings to build history
     await page.goto(`/org/${testOrg.extid}/domains`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const settingsTab = page.getByTestId('org-tab-settings');
     await settingsTab.click();
@@ -529,7 +523,7 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
 
     // Directly navigate to the gated tab URL (simulating a bookmark or typed URL)
     await page.goto(`/org/${testOrg.extid}/${gatedTab}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Should redirect to domains since user lacks entitlement
     await page.waitForURL(/\/domains/, { timeout: 5000 });
@@ -548,9 +542,9 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
       window.history.pushState({}, '', url);
     }, `/org/${testOrg.extid}/${gatedTab}`);
 
-    // Go back (should land on the gated URL, then immediately redirect)
+    // Go back (should land on the gated URL, then immediately redirect);
+    // the waitForURL below pins the corrected destination
     await page.goBack();
-    await page.waitForLoadState('networkidle');
 
     // URL should be corrected to domains
     await page.waitForURL(/\/domains/, { timeout: 5000 });
@@ -567,7 +561,7 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
     }
 
     await page.goto(`/org/${testOrg.extid}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Get all tab buttons in DOM order
     const tabList = page.locator('[role="tablist"] button[role="tab"]');
@@ -591,7 +585,7 @@ test.describe('ORG-ERROR: Organization Error States', () => {
   test('ORG-ERROR-001: Invalid org extid shows error state', async ({ page }) => {
     // Navigate to a non-existent org
     await page.goto('/org/invalid-org-id-12345');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Should show error state, not tabs
     const domainsTab = page.getByTestId('org-tab-domains');
@@ -628,7 +622,7 @@ test.describe('ORG-A11Y: Organization Settings Accessibility', () => {
     }
 
     await page.goto(`/org/${testOrg.extid}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Tab order: Domains -> Members -> Subscription -> Settings (-> SSO if entitled)
     // Focus the domains tab
@@ -677,7 +671,7 @@ test.describe('ORG-A11Y: Organization Settings Accessibility', () => {
     }
 
     await page.goto(`/org/${testOrg.extid}/domains`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Verify tabpanel role
     const domainsPanel = page.getByTestId('org-section-domains');
@@ -685,7 +679,7 @@ test.describe('ORG-A11Y: Organization Settings Accessibility', () => {
 
     // Navigate to settings
     await page.goto(`/org/${testOrg.extid}/settings`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const settingsPanel = page.getByTestId('org-section-settings');
     await expect(settingsPanel).toHaveAttribute('role', 'tabpanel');

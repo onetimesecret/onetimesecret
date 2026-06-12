@@ -47,13 +47,13 @@ const generateTestEmail = (prefix: string) =>
 async function navigateToOrgTeam(page: Page, orgExtid?: string): Promise<string> {
   if (orgExtid) {
     await page.goto(`/org/${orgExtid}/team`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
     return orgExtid;
   }
 
   // Navigate to org list and find first org
   await page.goto('/orgs');
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   // Find the first organization link with team tab
   const orgLink = page.locator('a[href*="/org/"]').first();
@@ -62,7 +62,7 @@ async function navigateToOrgTeam(page: Page, orgExtid?: string): Promise<string>
   const extractedOrgExtid = match?.[1] || '';
 
   await page.goto(`/org/${extractedOrgExtid}/team`);
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
   return extractedOrgExtid;
 }
 
@@ -287,7 +287,7 @@ test.describe('SEC-INV-003: Valid invite_token auto-login works', () => {
     await context.clearCookies();
 
     await page.goto(`/invite/${token}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Step 3: Complete signup via the inline form
     const signupState = page.getByTestId('invite-signup-required');
@@ -470,7 +470,7 @@ test.describe('SEC-INV-005: Invite page with garbage token', () => {
     const garbageToken = 'garbage_security_test_' + Date.now();
 
     await page.goto(`/invite/${garbageToken}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Should show the invalid state
     const invalidState = page.getByTestId('invite-invalid');
