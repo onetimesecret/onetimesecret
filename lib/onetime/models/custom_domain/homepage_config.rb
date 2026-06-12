@@ -29,11 +29,6 @@ module Onetime
       # domain falls back to the deployment-wide / frontend default.
       VALID_DISABLED_HOMEPAGE_VARIANTS = %w[v1 minimal closed].freeze
 
-      # Sentinel for upsert: distinguishes "caller omitted the variant" (leave
-      # the stored value as-is) from an explicit nil (clear the per-domain
-      # override so the domain falls back to the default).
-      UNCHANGED_VARIANT = Object.new.freeze
-
       prefix :custom_domain__homepage_config
 
       # domain_id is the CustomDomain's identifier (objid), used as our key.
@@ -190,28 +185,31 @@ module Onetime
         #
         # @param domain_id [String] CustomDomain identifier
         # @param enabled [Boolean, String] Whether to enable homepage secrets
+        # @param disabled_homepage_variant [String, nil] Merge semantics, matching
+        #   signup_enabled/signin_enabled: nil leaves the stored value unchanged;
+        #   "" (or any unrecognised value) clears the override back to the default;
+        #   a recognised id ('v1' | 'minimal' | 'closed') sets it.
         # @return [CustomDomain::HomepageConfig] The config (created or updated)
-        def upsert(domain_id:, enabled:, signup_enabled: nil, signin_enabled: nil, disabled_homepage_variant: UNCHANGED_VARIANT)
+        def upsert(domain_id:, enabled:, signup_enabled: nil, signin_enabled: nil, disabled_homepage_variant: nil)
           raise Onetime::Problem, 'domain_id is required' if domain_id.to_s.empty?
 
           config = find_by_domain_id(domain_id)
           now    = Familia.now.to_i
-          set_variant = !disabled_homepage_variant.equal?(UNCHANGED_VARIANT)
 
           if config
-            config.created      ||= now  # repair missing created from legacy records
-            config.enabled        = enabled.to_s
-            config.signup_enabled = signup_enabled unless signup_enabled.nil?
-            config.signin_enabled = signin_enabled unless signin_enabled.nil?
-            config.disabled_homepage_variant = coerce_disabled_homepage_variant(disabled_homepage_variant) if set_variant
-            config.updated        = now
+            config.created                 ||= now  # repair missing created from legacy records
+            config.enabled                   = enabled.to_s
+            config.signup_enabled            = signup_enabled unless signup_enabled.nil?
+            config.signin_enabled            = signin_enabled unless signin_enabled.nil?
+            config.disabled_homepage_variant = coerce_disabled_homepage_variant(disabled_homepage_variant) unless disabled_homepage_variant.nil?
+            config.updated                   = now
           else
             config = new(
               domain_id: domain_id,
               enabled: enabled.to_s,
               signup_enabled: signup_enabled.nil? || signup_enabled,
               signin_enabled: signin_enabled.nil? || signin_enabled,
-              disabled_homepage_variant: set_variant ? coerce_disabled_homepage_variant(disabled_homepage_variant) : nil,
+              disabled_homepage_variant: coerce_disabled_homepage_variant(disabled_homepage_variant),
               created: now,
               updated: now,
             )
