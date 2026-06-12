@@ -395,9 +395,14 @@ Onetime::CustomDomain::HomepageConfig.find_by_domain_id(@var_domain.identifier).
 @var_cfg.disabled_homepage_variant_value
 #=> nil
 
-## upsert with explicit nil clears a previously stored variant
+## upsert with explicit nil leaves a previously stored variant unchanged (merge semantics)
 Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @var_domain.identifier, enabled: true, disabled_homepage_variant: 'v1')
 @var_cfg = Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @var_domain.identifier, enabled: true, disabled_homepage_variant: nil)
+@var_cfg.disabled_homepage_variant_value
+#=> 'v1'
+
+## upsert with an empty string clears a previously stored variant (reset to default)
+@var_cfg = Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @var_domain.identifier, enabled: true, disabled_homepage_variant: '')
 @var_cfg.disabled_homepage_variant_value
 #=> nil
 
