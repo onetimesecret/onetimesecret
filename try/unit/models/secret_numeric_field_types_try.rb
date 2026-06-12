@@ -240,6 +240,25 @@ unsaved = Onetime::Secret.new(owner_id: 'anon')
 unsaved.safe_dump[:lifespan]
 #=> nil
 
+## Degenerate case: a JSON-quoted empty string at rest ('""', a writer
+## assigned a Ruby "") hydrates as "" and dumps as 0.0. Deliberate:
+## created/updated are NON-nullable z.number() in the V3 secret and
+## receipt shapes, so emitting nil here would fail gracefulParse and make
+## the record unreachable again -- a wrong-but-parseable epoch-0 keeps it
+## viewable. The detector flags these records (see part 6).
+@redis.hset(@sticky.dbkey, 'created', '""')
+loaded = Onetime::Secret.load(@sticky.objid)
+[loaded.created, loaded.safe_dump[:created]]
+#=> ['', 0.0]
+
+## Truly empty bytes at rest ('') are a different case: Familia's
+## deserialize_value treats them as unset and hydrates nil, so the
+## nil-safe cast dumps nil, never 0.0
+@redis.hset(@sticky.dbkey, 'created', '')
+loaded = Onetime::Secret.load(@sticky.objid)
+[loaded.created, loaded.safe_dump[:created]]
+#=> [nil, nil]
+
 # ------------------------------------------------------------------
 # 6. Detector. The boundary cast fixes the wire but leaves the at-rest
 #    bytes corrupt, so scripts/diagnostics/detect_string_typed_numerics.rb
@@ -264,6 +283,12 @@ unsaved.safe_dump[:lifespan]
 ## nil and empty (unset field) are not flagged
 [@detector.string_typed_numeric?(nil), @detector.string_typed_numeric?('')]
 #=> [false, false]
+
+## A JSON-quoted EMPTY string at rest IS flagged: the raw bytes '""' are
+## not empty, and they parse to a Ruby String -- so the degenerate
+## records from part 5 do surface in a scan
+@detector.string_typed_numeric?('""')
+#=> true
 
 ## A bare non-JSON string is NOT this bug -- that is #3016's detector
 @detector.string_typed_numeric?('anon')

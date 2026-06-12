@@ -68,12 +68,15 @@ module Diagnostics
       field_names.select { |name| string_typed_numeric?(fields[name]) }
     end
 
-    def run(sample_limit: 10, verbose: false)
+    # scan_count is the Redis SCAN COUNT hint per iteration; raise it for
+    # large keyspaces to reduce round-trips (at the cost of longer
+    # individual SCAN calls on the server).
+    def run(sample_limit: 10, verbose: false, scan_count: 200)
       redis  = Familia.dbclient
       report = {}
 
       MODELS.each do |model, spec|
-        report[model] = scan_model(redis, model, spec, sample_limit)
+        report[model] = scan_model(redis, model, spec, sample_limit, scan_count)
       end
 
       print_report(report, sample_limit, verbose)
@@ -82,10 +85,10 @@ module Diagnostics
 
     private
 
-    def scan_model(redis, model, spec, sample_limit)
+    def scan_model(redis, model, spec, sample_limit, scan_count)
       result = { total: 0, poisoned: 0, by_field: Hash.new(0), samples: [] }
 
-      redis.scan_each(match: spec[:match], count: 200) do |key|
+      redis.scan_each(match: spec[:match], count: scan_count) do |key|
         next unless redis.type(key) == 'hash'
 
         result[:total] += 1
