@@ -110,7 +110,7 @@ async function _getBootstrapState(page: Page): Promise<BootstrapState | null> {
  */
 async function loginWithMfaCredentials(page: Page): Promise<void> {
   await page.goto('/signin');
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   const emailInput = page.locator('input[type="email"], input[name="email"]');
   const passwordInput = page.locator('input[type="password"], input[name="password"]');
@@ -122,8 +122,10 @@ async function loginWithMfaCredentials(page: Page): Promise<void> {
   await passwordInput.fill(process.env.TEST_MFA_USER_PASSWORD || '');
   await submitButton.click();
 
-  // Wait for navigation (either to MFA page or error)
-  await page.waitForLoadState('networkidle');
+  // With MFA enabled, a successful password step routes to /mfa-verify
+  // (failed logins stay on /signin with an inline error, which the callers'
+  // own toHaveURL assertions surface with a trace).
+  await page.waitForURL(/\/mfa-verify/, { timeout: 15000 });
 }
 
 // =============================================================================
@@ -164,7 +166,7 @@ test.describe('MFA Flow - bootstrapStore Reactivity', () => {
 
     // Attempt to navigate away - should be redirected back to /mfa-verify
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Route guard should redirect back to MFA verification
     await expect(page).toHaveURL(/\/mfa-verify/, { timeout: 10000 });
@@ -184,7 +186,7 @@ test.describe('MFA Flow - bootstrapStore Reactivity', () => {
 
     for (const route of protectedRoutes) {
       await page.goto(route);
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Should be redirected to MFA verification
       expect(
@@ -195,7 +197,7 @@ test.describe('MFA Flow - bootstrapStore Reactivity', () => {
 
     // Public routes should remain accessible but with limited functionality
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Root should also redirect to MFA when awaiting
     expect(page.url()).toContain('/mfa-verify');
@@ -249,14 +251,14 @@ test.describe('MFA Flow - bootstrapStore Reactivity', () => {
     await loginWithMfaCredentials(page);
     await expect(page).toHaveURL(/\/mfa-verify/);
 
-    // Generate or use provided OTP
-    let otpCode: string;
-    try {
-      otpCode = await generateTotpCode(process.env.TEST_MFA_SECRET || '');
-    } catch (error) {
-      test.skip(true, 'OTP generation not available');
-      return;
-    }
+    // Deriving a live code needs the TOTP seed; gate on it so the requirement
+    // is explicit. A bad/garbage seed now FAILS (generateTotpCode throws)
+    // instead of silently skipping — the skip was the "can't fail" anti-pattern.
+    test.skip(
+      !process.env.TEST_MFA_SECRET,
+      'TC-MFA-004 requires TEST_MFA_SECRET (the TOTP seed) to derive a code'
+    );
+    const otpCode = await generateTotpCode(process.env.TEST_MFA_SECRET as string);
 
     // Enter OTP code
     // Handle both single input and multiple digit inputs
@@ -277,17 +279,15 @@ test.describe('MFA Flow - bootstrapStore Reactivity', () => {
     const verifyButton = page.locator('button').filter({ hasText: /verify/i });
     await verifyButton.first().click();
 
-    // Wait for navigation after successful verification
-    await page.waitForLoadState('networkidle');
-
-    // Should redirect to dashboard or home (not stay on MFA page)
+    // Successful verification navigates away from the MFA page (web-first
+    // URL assertion waits for the redirect)
+    await expect(page).not.toHaveURL(/\/mfa-verify/, { timeout: 15000 });
     const currentUrl = page.url();
-    expect(currentUrl).not.toContain('/mfa-verify');
     expect(currentUrl).not.toContain('/signin');
 
     // Verify we can now access protected routes
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Should stay on dashboard (not redirect to /mfa-verify)
     await expect(page).toHaveURL(/\/dashboard/);
@@ -304,13 +304,12 @@ test.describe('MFA Flow - bootstrapStore Reactivity', () => {
     const cancelButton = page.locator('button').filter({ hasText: /cancel/i });
     await cancelButton.first().click();
 
-    // Should redirect to signin
-    await page.waitForLoadState('networkidle');
+    // Should redirect to signin (web-first URL assertion waits for it)
     await expect(page).toHaveURL(/\/signin/);
 
     // Verify session is cleared - accessing protected route should redirect to signin
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     await expect(page).toHaveURL(/\/signin/);
   });
@@ -326,21 +325,14 @@ test.describe('MFA Flow - bootstrapStore Reactivity', () => {
     const recoveryLink = page.locator('button').filter({ hasText: /recovery/i });
     await recoveryLink.first().click();
 
-    // Wait for mode switch
-    await page.waitForTimeout(500);
-
-    // Look for recovery code input that appeared after clicking recovery
+    // Wait for the mode switch: either the recovery input or the
+    // back-to-OTP control appears (web-first assertion, no sleep)
     const recoveryInput = page.locator('input#recovery-code, input[placeholder*="recovery" i]');
-    const isRecoveryMode = await recoveryInput.isVisible().catch(() => false);
-
-    // Back to OTP option should be visible
     const backToOtp = page.locator('button').filter({ hasText: /back|code/i });
-    const hasBackOption = await backToOtp.first().isVisible().catch(() => false);
-
-    expect(
-      isRecoveryMode || hasBackOption,
+    await expect(
+      recoveryInput.or(backToOtp.first()).first(),
       'Recovery code mode should be accessible'
-    ).toBe(true);
+    ).toBeVisible();
   });
 });
 
@@ -415,15 +407,13 @@ test.describe('MFA Flow - Edge Cases', () => {
     const verifyButton = page.locator('button').filter({ hasText: /verify/i });
     await verifyButton.first().click();
 
-    // Wait for error response
-    await page.waitForLoadState('networkidle');
+    // Error message should be displayed (web-first assertion waits for the
+    // failed verification round-trip)
+    const errorMessage = page.locator('[role="alert"], .text-red-800, .text-red-200');
+    await expect(errorMessage.first()).toBeVisible({ timeout: 5000 });
 
     // Should still be on MFA page (not redirected)
     await expect(page).toHaveURL(/\/mfa-verify/);
-
-    // Error message should be displayed
-    const errorMessage = page.locator('[role="alert"], .text-red-800, .text-red-200');
-    await expect(errorMessage.first()).toBeVisible({ timeout: 5000 });
   });
 
   test('TC-MFA-021: Direct navigation to /mfa-verify without pending MFA redirects', async ({
@@ -431,7 +421,7 @@ test.describe('MFA Flow - Edge Cases', () => {
   }) => {
     // Navigate directly to MFA page without being in MFA-pending state
     await page.goto('/mfa-verify');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Should redirect to signin (unauthenticated) or dashboard (authenticated)
     const currentUrl = page.url();
@@ -447,7 +437,7 @@ test.describe('MFA Flow - Edge Cases', () => {
 
     // Refresh the page
     await page.reload();
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Should still be on MFA verification page
     // (server maintains session state, client reinitializes from /bootstrap/me)

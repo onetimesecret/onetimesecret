@@ -64,7 +64,7 @@ test.describe('Secret Context - Actor Roles', () => {
 
     // Navigate to a secret view page
     await page.goto('/secret/test-secret-key');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Owner should see burn control or owner-specific UI
     const bodyText = await page.textContent('body');
@@ -122,8 +122,17 @@ test.describe('Secret Context - Actor Roles', () => {
       }
     });
 
+    // Collect console errors from the whole page lifecycle (registered
+    // before navigation so load-time errors are captured too)
+    const consoleErrors: string[] = [];
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        consoleErrors.push(msg.text());
+      }
+    });
+
     await page.goto('/secret/test-secret-key');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const bodyText = await page.textContent('body');
     expect(bodyText).toBeTruthy();
@@ -135,15 +144,6 @@ test.describe('Secret Context - Actor Roles', () => {
     // - NO owner warning
 
     // Verify page loads without errors
-    const consoleErrors: string[] = [];
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        consoleErrors.push(msg.text());
-      }
-    });
-
-    await page.waitForTimeout(1000); // Wait for any async errors
-
     const criticalErrors = consoleErrors.filter(
       (error) =>
         !error.includes('Non-Error promise rejection') && !error.includes('Script error') && !error.includes('WebSocket') && !error.includes('[vite]') && !error.includes('hmr')
@@ -190,8 +190,17 @@ test.describe('Secret Context - Actor Roles', () => {
       }
     });
 
+    // Collect console errors from the whole page lifecycle (registered
+    // before navigation so load-time errors are captured too)
+    const consoleErrors: string[] = [];
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        consoleErrors.push(msg.text());
+      }
+    });
+
     await page.goto('/secret/test-secret-key');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const bodyText = await page.textContent('body');
     expect(bodyText).toBeTruthy();
@@ -201,15 +210,6 @@ test.describe('Secret Context - Actor Roles', () => {
     // - NO entitlements upgrade
     // - NO burn control (not owner)
     // - NO owner warning
-
-    const consoleErrors: string[] = [];
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        consoleErrors.push(msg.text());
-      }
-    });
-
-    await page.waitForTimeout(1000);
 
     const criticalErrors = consoleErrors.filter(
       (error) =>
@@ -247,14 +247,8 @@ test.describe('Secret Context - Actor Roles', () => {
       }
     });
 
-    await page.goto('/secret/test-secret-key');
-    await page.waitForLoadState('networkidle');
-
-    // Should show passphrase input
-    const bodyText = await page.textContent('body');
-    expect(bodyText).toBeTruthy();
-
-    // Verify no errors during passphrase handling
+    // Collect console errors from the whole page lifecycle (registered
+    // before navigation so load-time errors are captured too)
     const consoleErrors: string[] = [];
     page.on('console', (msg) => {
       if (msg.type() === 'error') {
@@ -262,8 +256,14 @@ test.describe('Secret Context - Actor Roles', () => {
       }
     });
 
-    await page.waitForTimeout(1000);
+    await page.goto('/secret/test-secret-key');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
+    // Should show passphrase input
+    const bodyText = await page.textContent('body');
+    expect(bodyText).toBeTruthy();
+
+    // Verify no errors during passphrase handling
     const criticalErrors = consoleErrors.filter(
       (error) =>
         !error.includes('Non-Error promise rejection') && !error.includes('Script error') && !error.includes('WebSocket') && !error.includes('[vite]') && !error.includes('hmr')
@@ -312,7 +312,7 @@ test.describe('Secret Context - Actor Roles', () => {
     });
 
     await page.goto('/secret/test-secret-key');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Verify branded theme is applied
     const bodyText = await page.textContent('body');
@@ -347,14 +347,8 @@ test.describe('Secret Context - Actor Roles', () => {
       }
     });
 
-    await page.goto('/secret/test-secret-key');
-    await page.waitForLoadState('networkidle');
-
-    // Should show "already viewed" message
-    const bodyText = await page.textContent('body');
-    expect(bodyText).toBeTruthy();
-
-    // Verify graceful error handling
+    // Collect console errors from the whole page lifecycle (registered
+    // before navigation so load-time errors are captured too)
     const consoleErrors: string[] = [];
     page.on('console', (msg) => {
       if (msg.type() === 'error') {
@@ -362,7 +356,14 @@ test.describe('Secret Context - Actor Roles', () => {
       }
     });
 
-    await page.waitForTimeout(1000);
+    await page.goto('/secret/test-secret-key');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+
+    // Should show "already viewed" message
+    const bodyText = await page.textContent('body');
+    expect(bodyText).toBeTruthy();
+
+    // Verify graceful error handling
 
     const criticalErrors = consoleErrors.filter(
       (error) =>

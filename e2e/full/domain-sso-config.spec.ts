@@ -31,6 +31,21 @@
 
 import { expect, Locator, Page, test } from '@playwright/test';
 
+import { env, gateReason } from '../support/env';
+
+// HOLDING ACTION — not coverage (E2E remediation plan Phase 2.4 / PR 5).
+// Per-domain SSO config needs BOTH a custom domain and the manage_sso
+// entitlement / SSO UI — optional deployment config, so env-gated rather than
+// fixme'd: set E2E_CUSTOM_DOMAINS and E2E_SSO_UI against a suitably-configured
+// target to run it. No CI lane sets either yet, so this suite is DORMANT in CI
+// — real coverage returns when PR 6 adds a configured lane + fixtures.
+test.beforeEach(() => {
+  test.skip(
+    !env.hasCustomDomains || !env.hasSsoUi,
+    `${gateReason.customDomains} ${gateReason.ssoUi}`
+  );
+});
+
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
@@ -55,7 +70,7 @@ interface DomainInfo {
  */
 async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
   await page.goto('/orgs');
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   const orgLink = page.locator('a[href*="/org/"]').first();
   if (!(await orgLink.isVisible().catch(() => false))) {
@@ -78,7 +93,7 @@ async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
  */
 async function navigateToOrgSsoTab(page: Page, orgExtid: string): Promise<void> {
   await page.goto(`/org/${orgExtid}/sso`);
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   // Wait for SSO tab to be active or section to be visible
   const ssoSection = page.locator('[data-testid="org-section-sso"]');
@@ -152,7 +167,7 @@ async function openDomainSsoModal(
   domainExtid: string
 ): Promise<Locator> {
   await page.goto(`/org/${orgExtid}/domains/${domainExtid}/signin`);
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   // Wait for the signin config page to load. The page no longer renders a
   // <form> element (the config is a series of fieldsets), so anchor on the
@@ -184,7 +199,7 @@ async function navigateToDomainSigninPage(
   domainExtid: string
 ): Promise<void> {
   await page.goto(`/org/${orgExtid}/domains/${domainExtid}/signin`);
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   // Wait for the signin config heading (entitled view) or the access-denied
   // message (no manage_sso entitlement). The page no longer renders a <form>.
@@ -265,7 +280,7 @@ test.describe('Domain SSO Configuration - Navigation', () => {
 
     // Navigate directly to signin page
     await page.goto(`/org/${org!.extid}/domains/${domains[0].extid}/signin`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Verify signin page loaded correctly (page has no <form>; anchor on heading)
     await expect(
@@ -588,11 +603,8 @@ test.describe('Domain SSO Configuration - Test Connection', () => {
     const testButton = modal.locator('button').filter({ hasText: /test/i });
     await testButton.click();
 
-    // Wait for response
-    await page.waitForTimeout(500);
-
-    // Verify request was made
-    expect(testRequestMade).toBe(true);
+    // Wait until the mocked test-connection round-trip is captured
+    await expect.poll(() => testRequestMade).toBe(true);
   });
 
   test('TC-DSSO-014: shows success message for valid credentials', async ({ page }) => {
@@ -753,11 +765,8 @@ test.describe('Domain SSO Configuration - Save and Delete', () => {
     const saveButton = modal.locator('button[type="submit"]');
     await saveButton.click();
 
-    // Wait for save to complete
-    await page.waitForTimeout(1000);
-
-    // Verify request was made
-    expect(saveRequestMade).toBe(true);
+    // Wait until the mocked save round-trip is captured
+    await expect.poll(() => saveRequestMade).toBe(true);
   });
 
   test('TC-DSSO-017: delete button removes SSO config with confirmation', async ({ page }) => {
@@ -802,11 +811,8 @@ test.describe('Domain SSO Configuration - Save and Delete', () => {
         await confirmButton.click();
       }
 
-      // Wait for deletion
-      await page.waitForTimeout(1000);
-
-      // Verify request was made
-      expect(deleteRequestMade).toBe(true);
+      // Wait until the mocked delete round-trip is captured
+      await expect.poll(() => deleteRequestMade).toBe(true);
     } else {
       // Delete button not visible - pass test but note this
       expect(true).toBe(true);
@@ -904,10 +910,13 @@ test.describe('Domain SSO Configuration - Multi-Domain', () => {
     await page.locator('#domain-sso-client-secret').fill('secret-a');
     await page.locator('#domain-sso-tenant-id').fill('tenant-a');
 
-    // Step 3: Save domain A config
+    // Step 3: Save domain A config (anchor on the mocked save round-trip)
     const saveButtonA = modalA.locator('button[type="submit"]');
+    const saveResponseA = page.waitForResponse(
+      (r) => r.url().includes(`/api/domains/${domainA.extid}/sso`) && r.request().method() !== 'GET'
+    );
     await saveButtonA.click();
-    await page.waitForTimeout(500);
+    await saveResponseA;
 
     // Step 4: Open SSO modal for domain B (navigates to domain B's signin page)
     const modalB = await openDomainSsoModal(page, org!.extid, domainB.extid);
@@ -920,10 +929,13 @@ test.describe('Domain SSO Configuration - Multi-Domain', () => {
     await page.locator('#domain-sso-client-id').fill('client-b');
     await page.locator('#domain-sso-client-secret').fill('secret-b');
 
-    // Step 6: Save domain B config
+    // Step 6: Save domain B config (anchor on the mocked save round-trip)
     const saveButtonB = modalB.locator('button[type="submit"]');
+    const saveResponseB = page.waitForResponse(
+      (r) => r.url().includes(`/api/domains/${domainB.extid}/sso`) && r.request().method() !== 'GET'
+    );
     await saveButtonB.click();
-    await page.waitForTimeout(500);
+    await saveResponseB;
 
     // Step 7: Return to org settings and verify both show configured status
     // (In real scenario, need to refresh domain list data)
@@ -943,7 +955,11 @@ test.describe('Domain SSO Configuration - Access Control', () => {
     page.setDefaultTimeout(15000);
   });
 
-  test('TC-DSSO-019: shows access denied for users without manage_sso entitlement', async ({
+  // Inverted precondition: this asserts the *absence* of the manage_sso
+  // entitlement, but the suite is gated on E2E_SSO_UI (entitlement present),
+  // so it can never hold here. Quarantined as test.fixme until a
+  // no-entitlement lane exists; do not assert this in the SSO-gated file.
+  test.fixme('TC-DSSO-019: shows access denied for users without manage_sso entitlement', async ({
     page,
   }) => {
     const org = await getFirstOrganization(page);
@@ -951,7 +967,7 @@ test.describe('Domain SSO Configuration - Access Control', () => {
 
     // Navigate to org settings
     await page.goto(`/org/${org!.extid}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Check if SSO tab is NOT visible (no entitlement)
     const ssoTab = page.locator('[data-testid="org-tab-sso"]');
@@ -988,7 +1004,7 @@ test.describe('Domain SSO Configuration - Access Control', () => {
       // User doesn't have manage_sso - navigate to signin page
       // The "Upgrade to configure" text should appear instead of the configure button
       await page.goto(`/org/${org!.extid}/domains/test-domain/signin`);
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Should show either upgrade prompt or access denied
       const upgradeText = page.getByText(/upgrade to configure/i);

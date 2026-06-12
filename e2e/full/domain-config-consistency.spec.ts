@@ -27,6 +27,20 @@
 
 import { expect, Page, test } from '@playwright/test';
 
+import { env, gateReason } from '../support/env';
+
+// HOLDING ACTION — not coverage (E2E remediation plan Phase 2.4 / PR 5).
+// Every test needs a custom domain on the test account. That is optional
+// deployment config, so it is env-gated rather than fixme'd (issue #3420):
+// set E2E_CUSTOM_DOMAINS against a domains-enabled target to run it. No CI
+// lane sets that yet, so this suite is DORMANT in CI — real coverage returns
+// when PR 6 adds a domains-enabled lane + fixtures. Gating in a top-level
+// beforeEach skips before the org/domain DOM helpers run, so CI no longer
+// times out here (these were among the #3412/#3416 failures).
+test.beforeEach(() => {
+  test.skip(!env.hasCustomDomains, gateReason.customDomains);
+});
+
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
@@ -52,7 +66,7 @@ type ConfigScreenType = 'email' | 'sso' | 'incoming';
  */
 async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
   await page.goto('/orgs');
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   const orgLink = page.locator('a[href*="/org/"]').first();
   if (!(await orgLink.isVisible().catch(() => false))) {
@@ -75,7 +89,7 @@ async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
  */
 async function getFirstDomain(page: Page, orgExtid: string): Promise<DomainInfo | null> {
   await page.goto(`/org/${orgExtid}/domains`);
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   // Look for domain links
   const domainLink = page.locator('a[href*="/domains/"]').first();
@@ -106,7 +120,7 @@ async function navigateToDomainConfig(
 ): Promise<boolean> {
   const url = `/org/${orgExtid}/domains/${domainExtid}/${configType}`;
   await page.goto(url);
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   // Check if form is visible (page loaded successfully)
   const form = page.locator('form');
@@ -189,7 +203,7 @@ test.describe('Domain Config - Toggle-Form State Coupling', () => {
     // Ensure toggle is OFF
     if (await isToggleEnabled(toggle!)) {
       await toggle!.click();
-      await page.waitForTimeout(300);
+      await expect.poll(() => isToggleEnabled(toggle!)).toBe(false);
     }
 
     // Verify toggle is OFF
@@ -232,15 +246,12 @@ test.describe('Domain Config - Toggle-Form State Coupling', () => {
     // Ensure toggle is OFF first
     if (await isToggleEnabled(toggle!)) {
       await toggle!.click();
-      await page.waitForTimeout(300);
+      await expect.poll(() => isToggleEnabled(toggle!)).toBe(false);
     }
 
-    // Now turn toggle ON
+    // Now turn toggle ON and poll for the reactive state to flip (no sleep)
     await toggle!.click();
-    await page.waitForTimeout(300);
-
-    // Verify toggle is ON
-    expect(await isToggleEnabled(toggle!)).toBe(true);
+    await expect.poll(() => isToggleEnabled(toggle!)).toBe(true);
 
     // Check that form inputs are enabled
     const inputs = page.locator('form input:not([type="hidden"]), form textarea, form select');
@@ -280,12 +291,9 @@ test.describe('Domain Config - Toggle-Form State Coupling', () => {
     // Record initial state
     const initialState = await isToggleEnabled(toggle!);
 
-    // Toggle the state
+    // Toggle the state and poll for it to flip (no sleep)
     await toggle!.click();
-    await page.waitForTimeout(500);
-
-    const newState = await isToggleEnabled(toggle!);
-    expect(newState).not.toBe(initialState);
+    await expect.poll(() => isToggleEnabled(toggle!)).toBe(!initialState);
 
     // Note: This test verifies toggle click changes state
     // Persistence verification would require saving and reloading
@@ -317,7 +325,7 @@ test.describe('Domain Config - Info Banner Visibility', () => {
     // Ensure toggle is OFF
     if (await isToggleEnabled(toggle!)) {
       await toggle!.click();
-      await page.waitForTimeout(300);
+      await expect.poll(() => isToggleEnabled(toggle!)).toBe(false);
     }
 
     // Look for info/warning banner
@@ -358,7 +366,7 @@ test.describe('Domain Config - Info Banner Visibility', () => {
     // Ensure toggle is ON
     if (!(await isToggleEnabled(toggle!))) {
       await toggle!.click();
-      await page.waitForTimeout(300);
+      await expect.poll(() => isToggleEnabled(toggle!)).toBe(true);
     }
 
     // With toggle ON, disabled-specific banner should not be visible
@@ -559,7 +567,7 @@ test.describe('Domain Config - Accessibility', () => {
     // Ensure toggle is OFF
     if (await isToggleEnabled(toggle!)) {
       await toggle!.click();
-      await page.waitForTimeout(300);
+      await expect.poll(() => isToggleEnabled(toggle!)).toBe(false);
     }
 
     // Check that disabled inputs have proper attributes

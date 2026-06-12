@@ -141,7 +141,7 @@ test.describe('Signup Form Plan Intent Capture', () => {
 
   test('signup page displays correctly with plan params', async ({ page }) => {
     await page.goto('/signup?product=identity_plus_v1&interval=monthly');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Verify we're on signup page with params preserved
     await expect(page).toHaveURL(/\/signup\?product=identity_plus_v1&interval=monthly/);
@@ -156,7 +156,7 @@ test.describe('Signup Form Plan Intent Capture', () => {
 
   test('signup form action includes plan params', async ({ page }) => {
     await page.goto('/signup?product=team_plus_v1&interval=yearly');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Check that the form action or hidden inputs include plan params
     // The implementation uses query params on the form action
@@ -206,7 +206,7 @@ test.describe('Signup Submission with Plan Intent', () => {
     });
 
     await page.goto('/signup?product=identity_plus_v1&interval=monthly');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Fill signup form
     const emailInput = page.getByRole('textbox', { name: /email/i });
@@ -216,11 +216,11 @@ test.describe('Signup Submission with Plan Intent', () => {
     await emailInput.fill(testEmail);
     await passwordInput.fill('TestPassword123!');
 
-    // Click submit
+    // Click submit and wait for the create-account request to fire (the
+    // route handler above captures it before letting it continue)
+    const createAccountRequest = page.waitForRequest('**/auth/create-account**');
     await submitButton.click();
-
-    // Wait briefly for request to be captured
-    await page.waitForTimeout(1000);
+    await createAccountRequest;
 
     // Verify request URL included plan params
     if (capturedRequest) {
@@ -240,7 +240,7 @@ test.describe('Signup Submission with Plan Intent', () => {
     });
 
     await page.goto('/signup');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const emailInput = page.getByRole('textbox', { name: /email/i });
     const passwordInput = page.locator('input[type="password"]').first();
@@ -248,9 +248,12 @@ test.describe('Signup Submission with Plan Intent', () => {
 
     await emailInput.fill(testEmail);
     await passwordInput.fill('TestPassword123!');
-    await submitButton.click();
 
-    await page.waitForTimeout(1000);
+    // Submit and wait for the create-account request to fire (the route
+    // handler above captures it before letting it continue)
+    const createAccountRequest = page.waitForRequest('**/auth/create-account**');
+    await submitButton.click();
+    await createAccountRequest;
 
     if (capturedRequest) {
       expect(capturedRequest.url).not.toContain('product=');
@@ -265,9 +268,12 @@ test.describe('Signup Submission with Plan Intent', () => {
 // These tests require email verification to be disabled or a mail interceptor.
 // Marked as skipped by default - enable when test infrastructure supports it.
 
-test.describe('Post-Verification Redirect', () => {
-  // Skip these tests unless email verification is disabled in test environment
-  test.skip(({ page }) => true, 'Requires email verification disabled or mail interceptor');
+// QUARANTINED — E2E remediation plan Phase 2.4 / PR 5 (issue #3421).
+// Needs a mail interceptor (Mailpit/MailHog) to capture the verification link;
+// CI runs with AUTH_AUTOVERIFY=true and cannot exercise the post-verification
+// redirect. Was `test.skip(() => true)` — an unconditional skip that could only
+// pass-or-skip. See e2e/QUARANTINE.md.
+test.describe.fixme('Post-Verification Redirect', () => {
 
   test.describe('when verification is disabled (test mode)', () => {
     test('signup with plan params auto-redirects to checkout after verification', async ({ page }) => {
@@ -281,7 +287,7 @@ test.describe('Post-Verification Redirect', () => {
       const testEmail = generateTestEmail();
 
       await page.goto('/signup?product=identity_plus_v1&interval=monthly');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const emailInput = page.getByRole('textbox', { name: /email/i });
       const passwordInput = page.locator('input[type="password"]').first();
@@ -301,7 +307,7 @@ test.describe('Post-Verification Redirect', () => {
       const testEmail = generateTestEmail();
 
       await page.goto('/signup');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const emailInput = page.getByRole('textbox', { name: /email/i });
       const passwordInput = page.locator('input[type="password"]').first();
@@ -332,7 +338,7 @@ test.describe('Checkout Page After Redirect', () => {
     await page.goto('/billing/plans/identity_plus_v1/monthly');
 
     // Page should load (may redirect to login if not authenticated)
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Either we see the checkout page or are redirected to login
     const url = page.url();
@@ -346,7 +352,7 @@ test.describe('Checkout Page After Redirect', () => {
     // When unauthenticated user accesses checkout directly, they should be
     // redirected to signup with the plan params preserved
     await page.goto('/billing/plans/team_plus_v1/yearly');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const url = page.url();
 
@@ -373,7 +379,7 @@ test.describe('Plan Intent Edge Cases', () => {
 
   test('invalid product/interval combination is handled gracefully', async ({ page }) => {
     await page.goto('/signup?product=nonexistent_plan&interval=invalid');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Signup page should still load
     const emailInput = page.getByRole('textbox', { name: /email/i });

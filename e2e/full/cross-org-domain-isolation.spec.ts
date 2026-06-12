@@ -53,7 +53,7 @@ interface OrgInfo {
 async function getUserOrganizations(page: Page): Promise<OrgInfo[]> {
   // Navigate to orgs list
   await page.goto('/orgs');
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   // Find all organization cards/links
   const orgLinks = page.locator('a[href*="/org/"]');
@@ -90,7 +90,7 @@ async function getUserOrganizations(page: Page): Promise<OrgInfo[]> {
  */
 async function getOrgDomains(page: Page, orgExtid: string): Promise<string[]> {
   await page.goto(`/org/${orgExtid}`);
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   // Wait for either domains table or empty state
   const domainsTable = page.locator('table');
@@ -138,8 +138,8 @@ async function verifyDisplayedDomains(
   expectedDomains: string[],
   unexpectedDomains: string[] = []
 ): Promise<void> {
-  // Wait for page to settle
-  await page.waitForLoadState('networkidle');
+  // No settle wait needed: the visibility assertions below are web-first
+  // and retry until the domain list has rendered.
 
   // Check for expected domains
   for (const domain of expectedDomains) {
@@ -172,7 +172,15 @@ async function verifyEmptyDomainsState(page: Page): Promise<void> {
 // Test Suite: Cross-Organization Domain Isolation
 // -----------------------------------------------------------------------------
 
-test.describe('Cross-Organization Domain Isolation', () => {
+// QUARANTINED — E2E remediation plan Phase 2.4 / PR 5 (issue #3420).
+// Every test here needs ≥2 organizations (most with disjoint custom-domain
+// sets) — seeded data relationships the CI account (one default workspace, no
+// domains) does not have. These were among the hard failures aborting the
+// #3412/#3416 runs: the file's getUserOrganizations() DOM scraper times out,
+// tripping --max-failures and hiding the rest of the suite. Quarantined with
+// test.describe.fixme (not test.skip, which hides them) until the second-org +
+// per-org-domain fixtures land in PR 6. See e2e/QUARANTINE.md.
+test.describe.fixme('Cross-Organization Domain Isolation', () => {
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
   });
@@ -198,15 +206,15 @@ test.describe('Cross-Organization Domain Isolation', () => {
       // Find orgs with domains to test isolation
       const orgsWithDomains = orgs.filter((o) => o.domainCount > 0);
 
-      if (orgsWithDomains.length < 1) {
-        test.skip(true, 'Test requires at least one organization with domains');
-        return;
-      }
+      expect(
+        orgsWithDomains.length,
+        'requires ≥1 org with domains — second-org + per-org-domain fixture (#3420)'
+      ).toBeGreaterThanOrEqual(1);
 
       // Test each org's page (domains tab is default)
       for (const currentOrg of orgs) {
         await page.goto(`/org/${currentOrg.extid}`);
-        await page.waitForLoadState('networkidle');
+        await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
         // Verify URL contains correct org
         const currentUrl = page.url();
@@ -267,7 +275,7 @@ test.describe('Cross-Organization Domain Isolation', () => {
 
       // First visit org WITH domains to establish it as "active" context
       await page.goto(`/org/${orgWithDomains.extid}`);
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Verify we see domains
       await expect(page.locator('table')).toBeVisible();
@@ -275,7 +283,7 @@ test.describe('Cross-Organization Domain Isolation', () => {
 
       // Now navigate to org WITHOUT domains (domains tab is default)
       await page.goto(`/org/${orgWithoutDomains.extid}`);
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Should see empty state, NOT the previous org's domains
       await verifyEmptyDomainsState(page);
@@ -313,11 +321,11 @@ test.describe('Cross-Organization Domain Isolation', () => {
 
       // Navigate to dashboard first (sets some "active" context)
       await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Directly navigate to orgB's page (domains tab is default)
       await page.goto(`/org/${orgB.extid}`);
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Verify URL is correct
       expect(page.url()).toContain(`/org/${orgB.extid}`);
@@ -335,7 +343,7 @@ test.describe('Cross-Organization Domain Isolation', () => {
 
       // Now directly navigate to orgA's page (domains tab is default)
       await page.goto(`/org/${orgA.extid}`);
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Verify URL is correct
       expect(page.url()).toContain(`/org/${orgA.extid}`);
@@ -370,7 +378,7 @@ test.describe('Cross-Organization Domain Isolation', () => {
 
       // Step 1: Navigate to OrgA (domains tab is default)
       await page.goto(`/org/${orgA.extid}`);
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       if (orgA.domains.length > 0) {
         await verifyDisplayedDomains(page, orgA.domains);
@@ -380,7 +388,7 @@ test.describe('Cross-Organization Domain Isolation', () => {
 
       // Step 2: Navigate to OrgB via URL (domains tab is default)
       await page.goto(`/org/${orgB.extid}`);
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Verify domain list updated to OrgB
       if (orgB.domains.length > 0) {
@@ -398,7 +406,7 @@ test.describe('Cross-Organization Domain Isolation', () => {
 
       // Step 3: Navigate back to OrgA (domains tab is default)
       await page.goto(`/org/${orgA.extid}`);
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Verify domain list shows OrgA domains again
       if (orgA.domains.length > 0) {
@@ -423,7 +431,7 @@ test.describe('Cross-Organization Domain Isolation', () => {
 
       // Start on OrgA page (domains tab is default)
       await page.goto(`/org/${orgA.extid}`);
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Try to use org switcher if visible
       const orgSwitcherTrigger = page.locator(
@@ -446,11 +454,8 @@ test.describe('Cross-Organization Domain Isolation', () => {
         if (hasOrgBItem) {
           await orgBItem.click();
 
-          // Wait for navigation/update
-          await page.waitForLoadState('networkidle');
-          await page.waitForTimeout(500); // Allow time for reactive updates
-
-          // Verify URL changed to OrgB
+          // Verify URL changed to OrgB (web-first assertion waits for the
+          // switcher navigation and reactive updates to settle)
           await expect(page).toHaveURL(new RegExp(`/org/${orgB.extid}`));
 
           // Verify domain list updated
@@ -460,10 +465,10 @@ test.describe('Cross-Organization Domain Isolation', () => {
             await verifyEmptyDomainsState(page);
           }
         } else {
-          test.skip(true, 'OrgB not found in org switcher dropdown');
+          throw new Error('OrgB not found in org switcher — needs second-org fixture (#3420)');
         }
       } else {
-        test.skip(true, 'Org switcher not visible on domains page');
+        throw new Error('Org switcher not visible on domains page — needs second-org fixture (#3420)');
       }
     });
   });
@@ -489,21 +494,19 @@ test.describe('Cross-Organization Domain Isolation', () => {
 
       // Navigate to OrgA (domains tab is default)
       await page.goto(`/org/${orgA.extid}`);
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Verify OrgA domains
       const initialOrgADomains = orgA.domains.slice();
 
       // Navigate to OrgB (domains tab is default)
       await page.goto(`/org/${orgB.extid}`);
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-      // Go back using browser back button
+      // Go back using browser back button; the web-first URL assertion
+      // waits for the history navigation to settle
       await page.goBack();
-      await page.waitForLoadState('networkidle');
-
-      // Verify we're back on OrgA and seeing correct domains
-      expect(page.url()).toContain(`/org/${orgA.extid}`);
+      await expect(page).toHaveURL(new RegExp(`/org/${orgA.extid}`));
 
       if (initialOrgADomains.length > 0) {
         await verifyDisplayedDomains(page, initialOrgADomains, orgB.domains);
@@ -511,12 +514,10 @@ test.describe('Cross-Organization Domain Isolation', () => {
         await verifyEmptyDomainsState(page);
       }
 
-      // Go forward
+      // Go forward; the web-first URL assertion waits for the history
+      // navigation to settle
       await page.goForward();
-      await page.waitForLoadState('networkidle');
-
-      // Verify we're on OrgB with correct domains
-      expect(page.url()).toContain(`/org/${orgB.extid}`);
+      await expect(page).toHaveURL(new RegExp(`/org/${orgB.extid}`));
 
       if (orgB.domains.length > 0) {
         await verifyDisplayedDomains(page, orgB.domains, orgA.domains);
@@ -539,14 +540,14 @@ test.describe('Cross-Organization Domain Isolation', () => {
 
       // Navigate to org page (domains tab is default)
       await page.goto(`/org/${org.extid}`);
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Record current state
       const urlBeforeRefresh = page.url();
 
       // Refresh the page
       await page.reload();
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Verify URL is still correct
       expect(page.url()).toBe(urlBeforeRefresh);
@@ -565,7 +566,8 @@ test.describe('Cross-Organization Domain Isolation', () => {
 // Test Suite: API-Level Domain Isolation (Network Interception)
 // -----------------------------------------------------------------------------
 
-test.describe('API-Level Domain Isolation', () => {
+// QUARANTINED with the suite above — needs ≥2 orgs (issue #3420).
+test.describe.fixme('API-Level Domain Isolation', () => {
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
   });
@@ -593,8 +595,12 @@ test.describe('API-Level Domain Isolation', () => {
 
     // Navigate to OrgA (domains tab is default)
     await page.goto(`/org/${orgA.extid}`);
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000); // Allow API calls to complete
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    // Wait for the domains tab UI (table or empty state) - its appearance
+    // implies the org-scoped domains API call has completed.
+    await expect(
+      page.locator('table').or(page.getByText(/no domains found|get started by adding/i)).first()
+    ).toBeVisible();
 
     // Check API calls included OrgA context
     const orgACalls = apiCalls.filter((call) => call.orgInUrl === orgA.extid);
@@ -604,8 +610,12 @@ test.describe('API-Level Domain Isolation', () => {
 
     // Navigate to OrgB (domains tab is default)
     await page.goto(`/org/${orgB.extid}`);
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    // Wait for the domains tab UI (table or empty state) - its appearance
+    // implies the org-scoped domains API call has completed.
+    await expect(
+      page.locator('table').or(page.getByText(/no domains found|get started by adding/i)).first()
+    ).toBeVisible();
 
     // Check API calls included OrgB context
     const orgBCalls = apiCalls.filter((call) => call.orgInUrl === orgB.extid);
