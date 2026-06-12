@@ -56,7 +56,6 @@ const DEFAULTS: BootstrapPayload = {
   brand_button_text_light: undefined,
   brand_logo_url: undefined,
   brand_favicon_url: undefined,
-  brand_totp_issuer: undefined,
 };
 
 /**

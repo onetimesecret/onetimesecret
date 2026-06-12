@@ -35,7 +35,6 @@ def minimal_view_vars(overrides = {})
     'brand_button_text_light' => false,
     'brand_logo_url' => nil,
     'brand_favicon_url' => nil,
-    'brand_totp_issuer' => nil,
     'support_email' => nil,
     'docs_host' => 'https://docs.onetimesecret.com/',
   }.merge(overrides)
