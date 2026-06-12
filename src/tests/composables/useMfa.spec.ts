@@ -135,6 +135,24 @@ describe('useMfa', () => {
       expect(encodedUri).toContain('period=30');
     });
 
+    it('normalizes the secret to canonical base32 in the QR (strips spaces, uppercases)', async () => {
+      const hmacResponse = {
+        otp_setup: 'jbsw y3dp ehpk 3pxp',
+        otp_raw_secret: 'RAWSECRETVALUE22',
+      };
+
+      axiosMock.onPost('/auth/otp-setup').reply(422, hmacResponse);
+
+      const { setupMfa } = useMfa();
+      await setupMfa('Onetime Secret', 'test@example.com');
+
+      const toDataURL = vi.mocked(QRCode.toDataURL);
+      const encodedUri = toDataURL.mock.calls[0][0] as string;
+      expect(encodedUri).toContain('secret=JBSWY3DPEHPK3PXP');
+      expect(encodedUri).not.toContain('jbsw');
+      expect(encodedUri).not.toContain(' ');
+    });
+
     it('falls back to otp_secret field name when encoding the QR', async () => {
       const hmacResponse = {
         otp_secret: 'ALTSECRETFIELD22',
