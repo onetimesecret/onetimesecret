@@ -9,7 +9,8 @@
  * 1. Setup Flow (HMAC-based):
  *    a) User requests setup → POST /auth/otp-setup {} (empty payload)
  *    b) Backend returns 422 with otp_setup (HMAC'd secret) + otp_raw_secret
- *    c) Frontend generates QR code from otp_raw_secret
+ *       + provisioning_uri (Rodauth's authoritative otpauth:// URI)
+ *    c) Frontend renders the QR code directly from provisioning_uri
  *    d) User scans QR code and enters OTP
  *    e) POST /auth/otp-setup {otp_code, otp_setup, otp_raw_secret, password}
  *    f) Backend validates and enables MFA → 200 success
@@ -147,25 +148,19 @@ export function useMfa() {
    * step of OTP setup. The backend returns a 422 status with the secrets, which
    * is the EXPECTED behavior in JSON-only mode (not an error).
    *
-   * @param siteName - The site name to display in the authenticator app (e.g., "Onetime Secret")
-   * @param email - The user's email address to associate with the MFA setup
    * @param password - Optional password for authentication (may be required by backend)
    * @returns OtpSetupData with QR code and secrets, or null on actual errors
    *
    * Success path (HMAC enabled):
    * - POST /auth/otp-setup {} (empty or with password)
-   * - Receive 422 with {otp_setup, otp_raw_secret, error: "..."}
-   * - Generate QR code from otp_raw_secret
+   * - Receive 422 with {otp_setup, otp_raw_secret, provisioning_uri, error: "..."}
+   * - Render QR code from the backend's provisioning_uri
    * - Return enriched setup data for user to scan
    *
    * The 422 status is treated as success because it contains the necessary
    * setup data. A true error would not include otp_raw_secret.
    */
-  async function setupMfa(
-    siteName: string,
-    email: string,
-    password?: string
-  ): Promise<OtpSetupData | null> {
+  async function setupMfa(password?: string): Promise<OtpSetupData | null> {
     clearError();
 
     const result = await wrap(async () => {
@@ -175,9 +170,10 @@ export function useMfa() {
         const response = await $api.post<OtpSetupResponse>('/auth/otp-setup', payload);
         const validated = otpSetupResponseSchema.parse(response.data);
 
-        // Standard response (non-HMAC mode): includes QR code data directly
-        if (validated.otp_raw_secret && validated.otp_setup) {
-          validated.qr_code = await generateQrCode(siteName, email, validated.otp_setup);
+        // Standard response (non-HMAC mode): render the QR from the backend's
+        // authoritative provisioning URI when present.
+        if (validated.provisioning_uri) {
+          validated.qr_code = await generateQrCode(validated.provisioning_uri);
         }
 
         setupData.value = validated;
@@ -190,7 +186,7 @@ export function useMfa() {
         const errorData = axiosErr.response?.data;
 
         if (axiosErr.response?.status === 422 && errorData && hasHmacSetupData(errorData)) {
-          const hmacData = await enrichSetupResponse(errorData, siteName, email);
+          const hmacData = await enrichSetupResponse(errorData);
           if (hmacData) {
             setupData.value = hmacData;
             return hmacData; // Success: proceed to QR code display
