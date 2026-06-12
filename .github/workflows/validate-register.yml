@@ -47,11 +47,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: onetimesecret/translation-rules
-          # translation-rules main as of 2026-06-11 (merge of PR #19; re-verified
+          # translation-rules main as of 2026-06-11 (merge of PR #20; re-verified
           # clean against app content at this SHA: 20 files, 10 tokens, exit 0).
           # Bumping this pin is how the app repo adopts new rules — deliberately,
           # as a reviewable diff, same as the yq pin below.
-          ref: d4abb932482d402e68965e18f56a089b5def0bb2
+          ref: 374f5c38639a4a4183e523614d212cc9d2e5ee21
           path: .translation-rules
 
       - name: Install yq (pinned + checksum-verified)
