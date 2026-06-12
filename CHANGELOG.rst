@@ -12,6 +12,175 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 
    <!--scriv-insert-here-->
 
+.. _changelog-v0.25.9:
+
+v0.25.9 — 2026-06-09
+====================
+
+Added
+-----
+
+- Opt-in on-demand heap dumps for diagnosing memory growth. When
+  ``HEAP_DUMP_ENABLED`` is set (default off), every OTS process (web, scheduler,
+  worker, CLI) installs a ``SIGUSR2`` handler at boot; ``kill -USR2 <pid>``
+  writes an ``ObjectSpace.dump_all`` snapshot to ``heap-<pid>-<epoch>.json``
+  (under ``HEAP_DUMP_DIR``, default ``/var/tmp``) so operators can diagnose RSS
+  vs. Ruby heap growth without attaching GDB or restarting with extra
+  instrumentation. The dump runs in a spawned thread (``ObjectSpace.dump_all``
+  is not signal-safe) and the handler is installed in the Puma/Sneakers master
+  and inherited by forked workers. A companion ``scripts/analyze-heapdump``
+  summarizes a dump (object counts by type, bytes by type, top STRING
+  allocation sites). (#3366)
+
+Security
+--------
+
+- Heap dumps are off by default and gated behind ``HEAP_DUMP_ENABLED``: a dump
+  serializes live String values, so it contains plaintext secrets and key
+  material, and the handler is a memory-disclosure primitive that bypasses the
+  default container ptrace restriction. When enabled, dumps are written
+  owner-only (``0600``) and created exclusively (``O_EXCL``) so they cannot
+  clobber or follow a pre-planted symlink in a shared directory. Treat a dump
+  file as a credential and delete it after analysis. (#3366)
+
+AI Assistance
+-------------
+
+- Heap dump boot initializer, analysis script, and tests drafted with AI
+  assistance. (#3366)
+
+.. _changelog-v0.25.8:
+
+v0.25.8 — 2026-06-06
+====================
+
+Added
+-----
+
+- SSO self-heal: when a legacy user signs in via domain SSO, ``JoinDomainOrganization`` now repoints ``default_org_id`` to the domain org and soft-archives the personal workspace. Retries on subsequent logins if adoption partially failed. (#3336)
+- ``Organization#archive!`` / ``archived?`` / ``unarchive!`` soft-archival methods backed by ``archived_at`` and ``archived_comment`` fields. (#3336)
+- ``OrganizationLoader`` step 4 now skips archived default workspaces. (#3336)
+- Familia migration ``20260606_01_unique_index_json_to_raw`` rewrites legacy JSON-encoded ``unique_index`` values (written by Familia 2.9) to the raw 2.10 storage format, restoring generated finders such as ``CustomDomain.from_display_domain`` and the domain-based ``OrganizationLoader`` selection used for custom-domain SSO. Stale class-level indexes are discovered automatically via ``Familia.stale_indexes``; organization-scoped ``email_index`` keys are handled via an explicit SCAN pattern. Idempotent and dry-run by default. (#3347)
+- Boot-time ``CheckUniqueIndexFormat`` initializer warns (non-fatally) when any class-level ``unique_index`` still holds legacy JSON-encoded data, logging the exact ``bin/ots migrate`` remediation command so a deploy that skips the rebuild no longer degrades silently. (#3347)
+
+Changed
+-------
+
+- Upgraded Familia to v2.10. Existing ``unique_index`` hashkeys now store identifiers as raw strings rather than JSON-encoded strings. Run ``rebuild_<name>_index`` (e.g. ``CustomDomain.rebuild_display_domain_index``) after deploy to convert legacy entries. (#3336)
+- Bumped Familia to v2.10.1 for its unique-index introspection API (``Familia.stale_indexes``, ``Familia.assert_indexes_current!``, ``Familia.legacy_json_encoded?``). (#3347)
+
+Fixed
+-----
+
+- Tryouts accessing ``Familia::StringKey`` fields on unsaved parents now call ``.save`` first, satisfying Familia v2.10's ``raise_on_unsaved_parent_write`` guard. (#3336)
+
+.. _changelog-v0.25.6:
+
+v0.25.6 — 2026-06-01
+====================
+
+Changed
+-------
+
+- ``CustomDomain#allow_public_homepage?`` and ``allow_public_api?`` fail
+  closed when the corresponding ``HomepageConfig`` / ``ApiConfig`` record is
+  missing: they return ``false`` (the safe default for a public-access
+  toggle) and emit an ``OT.le`` log line pointing operators at the
+  ``20260417_01_backfill_homepage_config`` migration. The fallback to
+  ``BrandSettings`` (which the field has been removed from) is gone. With
+  the new bootstrap below, the missing-record case is data corruption
+  rather than expected state — but a hot read-path predicate on a Rack
+  authorization flow is the wrong layer to raise on integrity violations;
+  the write path (``create!`` bootstrap, brand PUT upsert, migration)
+  handles strict enforcement, and the ``?``-suffix convention of boolean
+  return is preserved. Treat the log line's rate as an alertable signal.
+  (#3026)
+- ``CustomDomain.create!`` now bootstraps default-disabled ``HomepageConfig`` and
+  ``ApiConfig`` records via the existing ``find_or_create_for_domain`` primitive,
+  symmetric with the sibling-cleanup pattern in ``destroy!``. This maintains the
+  per-domain config invariant going forward without requiring callers to defend
+  against missing records. Rollback on a failed ``create!`` also tears down
+  these records to avoid orphans. (#3026)
+- Removed the legacy ``/api/domains/:extid/recipients`` endpoints (``GET`` / ``PUT`` / ``DELETE``) and their backing ``Onetime::CustomDomain::IncomingSecretsConfig`` JSON-blob model. ``CustomDomain::IncomingConfig`` is now the single source of truth for per-domain incoming recipients. The frontend service ``recipients.service.ts`` and the dual-state composable architecture in ``useIncomingConfig`` are likewise gone. (#3095)
+- ``RecipientResolver#enabled?`` now returns ``false`` for any custom domain that has no ``IncomingConfig`` record. The implicit fallback to the legacy ``incoming_secrets`` jsonkey blob has been removed. (#3095)
+- ``CustomDomain::IncomingConfig#public_recipients`` now returns the canonical ``{'digest' => ..., 'display_name' => ...}`` shape (string keys) used by the canonical-domain initializer and consumed by ``CreateIncomingSecret``. The earlier ``{hash:, name:}`` symbol-key shape has been retired. (#3095)
+- Narrowed ``Billing`` logger scope to payment-only concerns (Stripe checkout, invoices, webhooks). Entitlement operations in ``ApplySubscriptionToOrg`` now log under the ``Ents`` category for cleaner ``DEBUG_ENTS=1`` filtering. (#3257)
+- Standardized database command logging on the canonical ``DEBUG_DATABASE`` env var; the undocumented ``DATABASE_DEBUG``, ``DEBUG_VALKEY``, and ``DEBUG_REDIS`` aliases have been removed. (#3274)
+
+Removed
+-------
+
+- Retired the legacy ``allow_public_homepage`` and ``allow_public_api`` fields
+  on ``BrandSettings``. ``HomepageConfig`` and ``ApiConfig`` are the single
+  source of truth post-#3023 backfill. The brand-update endpoint no longer
+  accepts these keys, the serializer strips them from the branding response so
+  pre-cleanup Redis hashes can't echo stale values through, and the
+  ``BrandSettings#allow_public_homepage?`` / ``allow_public_api?`` predicates
+  are gone. (#3026)
+- Frontend Zod schemas dropped matching ``allow_public_homepage`` /
+  ``allow_public_api`` from the v2 and v3 brand shapes and the canonical
+  ``brandSettingsCanonical`` contract. ``brandStore``'s default branding
+  and ``isEqual`` comparator no longer reference the retired keys, and any
+  legacy values returned by older backends are now silently stripped by
+  the schema parsers. The ``allowPublicHomepage`` computed in
+  ``identityStore`` (derived from ``homepage_config.enabled``) is unchanged
+  and remains the single read-side surface for the toggle. (#3026)
+- Colonel admin endpoint ``GET /api/v1/colonel/domains`` restructured to
+  emit ``homepage_config`` and ``api_config`` blocks at the top level of
+  each domain entry (matching the public domain serializer shape), with
+  the legacy ``brand.allow_public_homepage`` / ``brand.allow_public_api``
+  fields removed. ``ColonelDomains.vue`` and the colonel response Zod
+  schema were updated in lockstep so the admin list no longer claims
+  these are brand fields. (#3026)
+- CLI ``ots domains info`` and ``ots domains verify`` outputs separated
+  ``Feature Toggles`` from ``Brand Settings`` so the toggle state is no
+  longer attributed to brand configuration. The verify JSON output emits
+  ``homepage_config`` / ``api_config`` at the top level instead of nesting
+  under ``brand``. The unused ``DomainsHelpers#format_brand_summary``
+  helper was deleted — it had no callers and its name no longer
+  matched the post-cleanup data model. (#3026)
+
+Fixed
+-----
+
+- Adding a recipient on a domain's incoming-secrets configuration no longer wipes existing recipients on save. The form now reads plaintext recipients from the ``IncomingConfig`` admin endpoint and writes the merged list back via ``PUT /api/domains/:extid/incoming-config``, replacing the legacy hashed-digest model that left the client unable to round-trip prior entries. (#3095)
+
+Deployment
+----------
+
+- Operators must run the ``migrate_incoming_secrets_to_config`` housekeeping chore as part of the deploy that picks up these changes, before traffic resumes. The chore copies entries from the legacy ``CustomDomain#incoming_secrets`` JSON blob into newly created ``IncomingConfig`` records and is idempotent::
+
+      bin/ots housekeeping run Onetime::CustomDomain migrate_incoming_secrets_to_config
+
+  Until the chore has run, custom domains whose recipients were configured before this change will appear disabled to the resolver. The nightly housekeeping cron will run the chore as a safety net, but the explicit invocation at deploy time is the supported path. (#3095)
+
+- The ``jsonkey :incoming_secrets`` field declaration on ``CustomDomain`` is intentionally retained for one release so the chore can re-read the legacy data if needed. It will be removed in a follow-up release once telemetry confirms all domains have a corresponding ``IncomingConfig`` record. (#3095)
+
+.. _changelog-v0.25.0:
+
+v0.25.0 — 2026-04-29
+====================
+
+Changed
+-------
+
+- Invitation login flow now accepts the invite atomically during login instead of requiring a separate API call afterward. Reduces latency and prevents race conditions where login succeeds but invite acceptance fails. (#2897)
+- The HomepageConfig backfill migration now emits a periodic progress line (every 250 domains) with a running stat breakdown, so operators have visibility into long-running backfills. Small datasets remain quiet — no progress output below the threshold. (#3023)
+- ``CustomDomain::HomepageConfig`` and ``CustomDomain::ApiConfig`` gained ``find_or_create_for_domain``, an atomic create-if-missing class method backed by Familia's ``save_if_not_exists!`` (WATCH + MULTI). The backfill migration now uses it, so a concurrent PUT that writes before the migration does cannot have its value silently overwritten. ``upsert`` remains in place for PUT endpoint callers where last-write-wins is the intended semantic. (#3023)
+
+Removed
+-------
+
+- Dropped the vestigial ``ots:migration_needed:db_0`` SETNX write from the connection pool initializer. The flag was never read and its name misled operators grepping Redis — actual migrations run through ``bin/ots migrate`` and ``Familia::Migration::Base``, which are independent of this key. Removes one Redis round-trip per boot. (#3027)
+
+Fixed
+-----
+
+- Added a backfill migration for ``CustomDomain::HomepageConfig`` so domains that had ``allow_public_homepage`` enabled under the legacy BrandSettings schema continue to render correctly after the v0.25 homepage-config split. The migration is idempotent and safe to re-run; production was already manually pre-mitigated. (#3023)
+- ``CustomDomain#destroy!`` now cleans up the ``HomepageConfig`` and ``ApiConfig`` sibling records in addition to the existing ``SsoConfig`` / ``MailerConfig`` / ``IncomingConfig`` cleanup. Each sibling cleanup is isolated so one failure does not block the others, preventing orphaned per-domain config records when a domain is removed. (#3023)
+- ``OrganizationMembership#accept!`` now re-populates ``org_email_lookup`` with the activated membership's objid after ``activate_members_instance`` returns. The Familia 2.5.0 upgrade introduced automatic class-index cleanup on ``Horreum#destroy!``, which meant the destroy of the staged UUID model wiped the index entry the composite-keyed save had just written (both share the same ``org_email_key``). Without the restore, ``find_by_org_email`` returned ``nil`` for freshly accepted invitations. (#3023)
+- ``Onetime::CustomDomain.claim_orphaned_domain`` no longer calls ``save`` inside a raw ``dbclient.multi`` block. Inside MULTI, Familia's unique-index guard issues HGETs that return ``QUEUED`` instead of real identifiers, making the guard blind — the method could raise a spurious ``RecordExistsError`` or silently bypass validation under concurrent orphan claims. The block now uses Familia 2.6.0's ``atomic_write``, which runs ``prepare_for_save`` (and therefore ``guard_unique_indexes!``) outside the transaction with real reads, then wraps the scalar HMSET, index updates, and collection mutations (``add_to_organization_domains``, ``owners``) in a single MULTI/EXEC. Independent of #3020 — same surface symptom, different root cause. (#3025)
+
 .. _changelog-v0.24.2:
 
 v0.24.2 — 2026-03-14
