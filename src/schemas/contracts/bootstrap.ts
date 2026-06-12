@@ -22,7 +22,7 @@ import { z } from 'zod';
 import { CanonicalPlanIdSchema } from '@/schemas/contracts/config/billing';
 import { regionsConfigSchema } from '@/schemas/contracts/config/section/jurisdiction';
 import { brandSettingsCanonical, homepageConfigCanonical } from '@/schemas/contracts/custom-domain';
-import { disabledHomepageConfigSchema } from '@/schemas/contracts/disabled-homepage';
+import { disabledHomepageConfigSchema, disabledHomepageVariantSchema } from '@/schemas/contracts/disabled-homepage';
 import { customerCanonical } from '@/schemas/contracts/customer';
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -169,6 +169,17 @@ export const homepagePublicLinksSchema = z.object({
  */
 export const homepageUiConfigSchema = z.object({
   public_links: homepagePublicLinksSchema.optional(),
+  /**
+   * Deployment-wide default disabled-homepage variant, from the
+   * `DEFAULT_DISABLED_HOMEPAGE_VARIANT` env var
+   * (`site.interface.ui.homepage.disabled_variant`). Sits between the
+   * per-domain `homepage_config.disabled_homepage_variant` and the frontend
+   * `DEFAULT_DISABLED_HOMEPAGE_VARIANT` constant in the resolution chain.
+   *
+   * `.catch(null)` so an unrecognised value degrades to the frontend default
+   * rather than failing the whole bootstrap parse.
+   */
+  disabled_variant: disabledHomepageVariantSchema.nullable().catch(null).optional(),
 });
 
 export const uiInterfaceSchema = z.object({
