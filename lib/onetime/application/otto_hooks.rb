@@ -95,6 +95,59 @@ module Onetime
           { error: error.message, error_type: 'Unauthorized' }
         end
 
+        # Plan-catalog cache misses (Billing::PlanCacheMissError) are a known,
+        # expected backend condition: the Stripe-synced plan catalog isn't
+        # populated (or a stale plan_id no longer resolves), so org plan/limit
+        # resolution fails closed in WithMaterializedLimits/WithPlanEntitlements.
+        # That is an ops problem, not an unexpected crash, so it must not surface
+        # as an unhandled 500 on otherwise-valid read endpoints (account
+        # permissions, domains list, organizations). Return 503 with a safe,
+        # generic message — never the error's internal "cache or config" wording
+        # or the plan_id/organization_id it carries.
+        #
+        # Registered by string name (not the constant) per Otto's lazy-loading
+        # form: Otto matches handlers on error.class.name, so this is harmless in
+        # builds where the billing app — and thus Billing::PlanCacheMissError —
+        # is never loaded (the error can't be raised there). log_level :error
+        # keeps the fail-closed design's ops visibility intact.
+        router.register_error_handler('Billing::PlanCacheMissError', status: 503, log_level: :error) do |_error, _req|
+          {
+            error: 'Plan catalog is temporarily unavailable. Please try again shortly.',
+            error_type: 'PlanCatalogUnavailable',
+          }
+        end
+
+        # Stripe circuit breaker open (Billing::CircuitOpenError) is the sibling
+        # "backend temporarily can't serve" case: the breaker trips after
+        # consecutive Stripe failures and fails fast to let the upstream recover.
+        # Like the catalog miss above it is a known backend condition, not a
+        # crash, so map it to 503 rather than letting it surface as a 500.
+        #
+        # Forward-looking, not a fix for an observed 500: today the breaker only
+        # wraps the catalog Pull, whose callers (CLI, boot, webhook handler that
+        # rescues it, scheduled jobs) are off the synchronous HTTP edge, so this
+        # error cannot currently reach an Otto-handled request. The customer
+        # facing billing endpoints call Stripe directly and already handle outages
+        # via their own Stripe::StripeError rescues. This registration only fires
+        # if a synchronous endpoint later routes a Stripe call through the breaker.
+        #
+        # Drop the error's message — it carries the internal failure count
+        # ("...(7 failures)...") — and never name the upstream provider. Surface
+        # retry_after in the body (Otto error handlers return a body hash only and
+        # cannot set a Retry-After response header). log_level :warn, not :error:
+        # this is a transient, self-healing protective state, unlike the catalog
+        # miss which signals an operator-actionable config/sync problem. Registered
+        # by string name per Otto's lazy-loading form (harmless when billing is not
+        # loaded — the error can't be raised there).
+        router.register_error_handler('Billing::CircuitOpenError', status: 503, log_level: :warn) do |error, _req|
+          body               = {
+            error: 'The billing service is temporarily unavailable. Please try again shortly.',
+            error_type: 'BillingServiceUnavailable',
+          }
+          body[:retry_after] = error.retry_after if error.retry_after
+          body
+        end
+
         # Give the router the same trusted-proxy list as the outer IP-privacy
         # middleware. Done here (not in each build_router) so no Otto app can
         # land with an inconsistent trust list. Placed before the debug-only

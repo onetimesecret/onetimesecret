@@ -32,6 +32,35 @@ module Auth::Config::Hooks
       # - Verification attempts (POST with OTP code)
       #
       auth.before_otp_setup_route do
+        # ----------------------------------------------------------------
+        # Emit Rodauth's authoritative TOTP provisioning URI (issue #3431)
+        # ----------------------------------------------------------------
+        #
+        # By the time this hook body runs, Rodauth's json feature has already
+        # executed (via super) its own before_otp_setup_route, which — in the
+        # HMAC JSON flow — generates the setup secret and populates the
+        # response with:
+        #   - otp_setup_param     => otp_user_key (the HMAC'd key the
+        #                            authenticator must actually use)
+        #   - otp_setup_raw_param => the raw key, used ONLY for the setup
+        #                            handshake (NOT a valid TOTP secret)
+        #
+        # The SPA historically reconstructed the otpauth:// URI itself and, on
+        # the HMAC path, encoded the raw key — so scanned codes never matched
+        # what the server validates (otp built from otp_user_key), while the
+        # manually-displayed otp_setup key worked. We instead emit Rodauth's
+        # own otp_provisioning_uri (built from otp_user_key, with the correct
+        # issuer/digits/period) as the single source of truth, so the frontend
+        # can render the QR directly without guessing the secret or params.
+        #
+        # Rebuild the tmp OTP key from the raw secret we just handed the client
+        # so otp_provisioning_uri reflects exactly that secret, independent of
+        # any later key regeneration in the route body.
+        if otp_keys_use_hmac? && (raw_secret = json_response[otp_setup_raw_param])
+          otp_tmp_key(raw_secret)
+          json_response[:provisioning_uri] = otp_provisioning_uri
+        end
+
         is_post      = request.post?
         has_otp_code = !param_or_nil(otp_auth_param).to_s.empty?
         has_password = !param_or_nil(password_param).to_s.empty?

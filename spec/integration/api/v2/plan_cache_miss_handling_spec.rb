@@ -15,13 +15,16 @@ require_relative '../../../../apps/web/billing/errors'
 # 1. When an org has an invalid/nonexistent planid, entitlement checks raise
 #    PlanCacheMissError (not silently returning defaults)
 # 2. Error carries plan_id, organization_id, and context for logging
-# 3. Error type allows API layer to handle it as 500 without exposing internals
+# 3. Error type allows the API edge to map it to a dedicated status without
+#    exposing internals
 #
 # The error flow:
 # 1. API request triggers entitlement check via require_entitlement!
 # 2. require_entitlement! calls auth_org.can?(entitlement)
 # 3. can? calls entitlements which raises PlanCacheMissError for invalid planid
-# 4. Otto catches unhandled exception and returns 500 server_error response
+# 4. OttoHooks#configure_otto_request_hook has a registered handler that maps
+#    Billing::PlanCacheMissError to a 503 (PlanCatalogUnavailable) with a safe,
+#    generic body — it is a known ops condition, not an unhandled 500.
 #
 # Note: Full HTTP integration tests require SECRET env var. These tests verify
 # the error behavior at the logic layer which is sufficient to confirm the
@@ -207,8 +210,9 @@ RSpec.describe 'API V2 PlanCacheMissError Handling', type: :integration, billing
     end
 
     it 'is not a user-actionable error type' do
-      # Unlike EntitlementRequired which returns 403, PlanCacheMissError
-      # should result in 500 because it represents a configuration problem
+      # Unlike EntitlementRequired which returns 403, PlanCacheMissError is not
+      # user-actionable: it represents a backend catalog/ops problem. The API
+      # edge maps it to 503 (see OttoHooks), distinct from the 403 path.
       expect(Billing::PlanCacheMissError.ancestors).not_to include(Onetime::EntitlementRequired)
     end
   end
