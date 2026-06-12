@@ -40,7 +40,6 @@ export const CONFIG_SERIALIZER_FIELDS = [
   'brand_button_text_light',
   'brand_logo_url',
   'brand_favicon_url',
-  'brand_totp_issuer',
   'd9s_enabled',
   'development',
   'diagnostics',

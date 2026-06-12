@@ -210,7 +210,6 @@ module Core
         brand_support_email         = brand_config['support_email'] || brand_global_defaults[:support_email]
         brand_logo_url              = brand_config['logo_url'] || brand_global_defaults[:logo_url]
         brand_favicon_url           = brand_config['favicon_url'] || brand_global_defaults[:favicon_url]
-        brand_totp_issuer           = brand_config['totp_issuer'] || brand_global_defaults[:totp_issuer]
 
         # Return all view variables as a hash
         {
@@ -252,7 +251,6 @@ module Core
           'brand_support_email' => brand_support_email,
           'brand_logo_url' => brand_logo_url,
           'brand_favicon_url' => brand_favicon_url,
-          'brand_totp_issuer' => brand_totp_issuer,
           'support_email' => support_email,
           'docs_host' => docs_host,
         }
