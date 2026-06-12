@@ -95,6 +95,28 @@ module Onetime
           { error: error.message, error_type: 'Unauthorized' }
         end
 
+        # Plan-catalog cache misses (Billing::PlanCacheMissError) are a known,
+        # expected backend condition: the Stripe-synced plan catalog isn't
+        # populated (or a stale plan_id no longer resolves), so org plan/limit
+        # resolution fails closed in WithMaterializedLimits/WithPlanEntitlements.
+        # That is an ops problem, not an unexpected crash, so it must not surface
+        # as an unhandled 500 on otherwise-valid read endpoints (account
+        # permissions, domains list, organizations). Return 503 with a safe,
+        # generic message — never the error's internal "cache or config" wording
+        # or the plan_id/organization_id it carries.
+        #
+        # Registered by string name (not the constant) per Otto's lazy-loading
+        # form: Otto matches handlers on error.class.name, so this is harmless in
+        # builds where the billing app — and thus Billing::PlanCacheMissError —
+        # is never loaded (the error can't be raised there). log_level :error
+        # keeps the fail-closed design's ops visibility intact.
+        router.register_error_handler('Billing::PlanCacheMissError', status: 503, log_level: :error) do |_error, _req|
+          {
+            error: 'Plan catalog is temporarily unavailable. Please try again shortly.',
+            error_type: 'PlanCatalogUnavailable',
+          }
+        end
+
         # Give the router the same trusted-proxy list as the outer IP-privacy
         # middleware. Done here (not in each build_router) so no Otto app can
         # land with an inconsistent trust list. Placed before the debug-only
