@@ -61,13 +61,26 @@ module Onetime
       class Base
         TEMPLATE_PATH = File.expand_path('../templates', __dir__)
 
-        # Templates whose plaintext body must NOT be wrapped in the shared
-        # text layout (layout.txt.erb). feedback_email is operator-facing — it
-        # is sent FROM a user TO the operators who *are* support — so appending
-        # a "Support: <address>" line is nonsensical, and its own trailing
-        # block is a signature sign-off, not the product footer. Wrapping it
-        # would also double-print a footer. See #3362.
-        TEXT_LAYOUT_EXCLUDED = %w[feedback_email].freeze
+        # Whether render_text wraps the body in the shared text layout
+        # (layout.txt.erb, which appends the product footer plus the
+        # conditional support line). Defaults to true. A subclass opts out at
+        # its own definition site with `text_layout false`, so the rationale
+        # for opting out travels with the declaration. See #3362.
+        @text_layout = true
+
+        class << self
+          # Declarative per-template switch for the shared text layout. Call in
+          # a subclass body: `text_layout false`.
+          def text_layout(enabled)
+            @text_layout = enabled
+          end
+
+          # Whether this template wraps its text body in the shared layout.
+          # `!= false` so subclasses that never declare (nil) default to on.
+          def text_layout?
+            @text_layout != false
+          end
+        end
 
         attr_reader :data, :locale
 
@@ -94,15 +107,15 @@ module Onetime
         # Before #3362 render_text used no layout, so the support contact was
         # wired into the HTML footer only and omitted from plaintext.
         #
-        # Excluded templates (TEXT_LAYOUT_EXCLUDED) keep their own footer and
-        # are returned unwrapped. wrap_in_layout guards on File.exist?, so a
+        # Templates that opt out (`text_layout false`) keep their own footer
+        # and are returned unwrapped. wrap_in_layout guards on File.exist?, so a
         # missing layout.txt.erb yields unwrapped content rather than raising;
         # the rescue below only covers subclasses with no .txt.erb at all.
         #
         # @return [String, nil] nil if the subclass has no .txt.erb template
         def render_text
           content = render_template('txt')
-          return content if TEXT_LAYOUT_EXCLUDED.include?(template_name)
+          return content unless self.class.text_layout?
 
           wrap_in_layout(content, 'txt')
         rescue Errno::ENOENT

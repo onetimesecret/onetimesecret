@@ -157,8 +157,12 @@ end
 # feedback_email exclusion — keeps its own footer, gets no support line
 # ============================================================================
 
-## [exclusion] feedback_email is listed in TEXT_LAYOUT_EXCLUDED
-Onetime::Mail::Templates::Base::TEXT_LAYOUT_EXCLUDED.include?('feedback_email')
+## [exclusion] FeedbackEmail opts out of the shared text layout
+Onetime::Mail::Templates::FeedbackEmail.text_layout?
+#=> false
+
+## [exclusion] wrapped templates (SecretLink) default to the shared text layout
+Onetime::Mail::Templates::SecretLink.text_layout?
 #=> true
 
 ## [exclusion] FeedbackEmail#render_text gets no support line even when configured
