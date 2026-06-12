@@ -54,6 +54,33 @@ module Onetime
         'application/x-www-form-urlencoded' => proc { |body| Rack::Utils.parse_nested_query(body) },
       }.freeze
 
+      # IP ranges that are always treated as proxy hops, never as the client.
+      # IPv4: RFC1918 (10/8, 172.16/12, 192.168/16), loopback (127/8) and
+      # link-local (169.254/16). IPv6: loopback (::1), ULA (fc00::/7, the
+      # f[cd] branch) and link-local (fe80::/10, the fe[89ab] branch). Otto's
+      # IPPrivacyMiddleware walks X-Forwarded-For and returns the first
+      # address that does NOT match a trusted proxy, so trusting these private
+      # ranges is what lets the real public visitor IP surface in deployments
+      # where every proxy hop has an internal address (Kubernetes ingress,
+      # cloud load balancers).
+      #
+      # Defined at module scope (not inside `class << self`) so it is reachable
+      # as MiddlewareStack::PRIVATE_PROXY_RANGES from the Otto router wiring in
+      # OttoHooks, while remaining lexically visible to the singleton methods
+      # below.
+      PRIVATE_PROXY_RANGES = /
+        \A(?:
+          10\.|
+          127\.|
+          192\.168\.|
+          169\.254\.|
+          172\.(?:1[6-9]|2\d|3[01])\.|
+          ::1\z|
+          f[cd]|
+          fe[89ab]
+        )
+      /ix
+
       class << self
         # Build locale map for Otto::Locale::Middleware
         #
@@ -125,25 +152,6 @@ module Onetime
           end
         end
 
-        # IP ranges that are always treated as proxy hops, never as the client.
-        # Covers RFC1918, loopback, link-local, and IPv6 ULA/loopback. Otto's
-        # IPPrivacyMiddleware walks X-Forwarded-For and returns the first
-        # address that does NOT match a trusted proxy, so trusting these private
-        # ranges is what lets the real public visitor IP surface in deployments
-        # where every proxy hop has an internal address (Kubernetes ingress,
-        # cloud load balancers).
-        PRIVATE_PROXY_RANGES = %r{
-          \A(?:
-            10\.|
-            127\.|
-            192\.168\.|
-            169\.254\.|
-            172\.(?:1[6-9]|2\d|3[01])\.|
-            ::1\z|
-            f[cd]
-          )
-        }ix
-
         # Build the Otto security config handed to IPPrivacyMiddleware.
         #
         # Returns nil when trusted proxy support is disabled, which leaves the
@@ -164,12 +172,24 @@ module Onetime
         #
         # @return [Otto::Security::Config, nil]
         def ip_privacy_security_config
-          trusted_proxy = OT.conf.dig('site', 'network', 'trusted_proxy') || {}
-          return nil unless trusted_proxy['enabled'] == true
+          return nil unless trusted_proxy_enabled?
 
           config = Otto::Security::Config.new
           config.add_trusted_proxy(PRIVATE_PROXY_RANGES)
           config
+        end
+
+        # Whether the deployment has declared a trusted reverse proxy in front
+        # of the app (site.network.trusted_proxy.enabled). Single source of
+        # truth for both IP-resolution paths: the outer IPPrivacyMiddleware
+        # (ip_privacy_security_config, above) and the Otto router's own trust
+        # list (OttoHooks#configure_otto_trusted_proxies). Keeping one predicate
+        # ensures the two paths never disagree about whether to honor forwarded
+        # headers.
+        #
+        # @return [Boolean]
+        def trusted_proxy_enabled?
+          OT.conf.dig('site', 'network', 'trusted_proxy', 'enabled') == true
         end
 
         def configure(builder, application_context: nil)
