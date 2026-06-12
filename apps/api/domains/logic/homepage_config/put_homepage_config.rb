@@ -55,7 +55,9 @@ module DomainsAPI
 
           OT.ld "[PutHomepageConfig] saved domain=#{@custom_domain.identifier} " \
                 "enabled=#{@homepage_config.enabled?} signup=#{@homepage_config.signup_enabled?} " \
-                "signin=#{@homepage_config.signin_enabled?} updated=#{@homepage_config.updated}"
+                "signin=#{@homepage_config.signin_enabled?} " \
+                "variant=#{@homepage_config.disabled_homepage_variant_value.inspect} " \
+                "updated=#{@homepage_config.updated}"
 
           success_data
         end
