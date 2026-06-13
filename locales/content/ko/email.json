@@ -410,9 +410,9 @@
     "source_hash": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "%{product_name} 계정의 이메일 주소가 %{date}에 %{new_email_masked}(으)로 변경되었습니다.",
+    "text": "%{product_name} 계정의 이메일 주소가 %{new_email_masked}(으)로 변경되었습니다.",
     "renderer": "erb",
-    "source_hash": "6f3419d1"
+    "source_hash": "aadf015b"
   },
   "email.email_changed.security_notice": {
     "text": "본인이 변경하지 않았다면 계정이 손상되었을 수 있으니 즉시 고객 지원에 문의해 주세요.",

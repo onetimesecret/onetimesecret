@@ -410,9 +410,9 @@
     "source_hash": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "%{product_name}アカウントのメールアドレスは、%{date}に%{new_email_masked}に変更されました。",
+    "text": "%{product_name}アカウントのメールアドレスは、%{new_email_masked}に変更されました。",
     "renderer": "erb",
-    "source_hash": "6f3419d1"
+    "source_hash": "aadf015b"
   },
   "email.email_changed.security_notice": {
     "text": "この変更を行っていない場合は、アカウントが侵害されている可能性がありますので、すぐにサポートにご連絡ください。",

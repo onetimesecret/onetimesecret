@@ -410,9 +410,9 @@
     "source_hash": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "La retpoŝta adreso por via konto %{product_name} estis ŝanĝita al %{new_email_masked} je %{date}.",
+    "text": "La retpoŝta adreso por via konto %{product_name} estis ŝanĝita al %{new_email_masked}.",
     "renderer": "erb",
-    "source_hash": "6f3419d1"
+    "source_hash": "aadf015b"
   },
   "email.email_changed.security_notice": {
     "text": "Se vi ne faris ĉi tiun ŝanĝon, bonvolu tuj kontakti subtenon ĉar via konto eble estas kompromitita.",
