@@ -91,4 +91,17 @@ Entry points (slash commands): /d:start-translation-session or /d:translate-para
 
 Glossary (when & how): entries originate from the terminology choices made while translating in step 6 — there is no separate list that step 7 reads. Record one whenever you fix the target rendering of a recurring domain/brand term (secret, passphrase, burn, email, …) so the next task and the next session stay consistent. Two inputs shape the choice but are not the source of new rows: guides/for-translators/<locale>.md holds prior agreed terms (read in step 0), and QC reviews surface good renderings after the fact (see TRANSLATION_PROTOCOL.md → "Glossary Updates from QC"), written via the same INSERT INTO glossary. Note the gap: the parallel drain workflows (/d:translate-parallel-agents, /d:start-translation-session orchestration, and the translate-parallel-locales* workflows) do NOT execute step 7 — their agents translate, save, and verify only. To accrue glossary entries for an agent-drained locale, run a manual session or a QC pass afterward.
 
+Export (step 8 — per-locale vs once): `migrate/export.py` takes ONE locale and writes that locale's completed rows to `content/<locale>/`; run it once per finished locale. `store.py export` is locale-independent — it dumps the committable tables (glossary, session_log, translation_issues) to `db/*.sql` and regenerates `checksums.sha256` — so run it once after the per-locale loop, not inside it. Export only fully drained locales (`tasks/next.py <locale> --stats` shows `pending: 0`); partial locales would write half-translated content. For a batch (substitute the locales you finished this session):
+
+```bash
+# Change directory to the repo root from anywhere inside it.
+cd "$(git rev-parse --show-toplevel)"
+for loc in de_AT es fr fr_CA ja nl; do
+  python locales/scripts/migrate/export.py "$loc"
+done
+python locales/scripts/store.py export    # once, not per-locale
+```
+
+Then stage the exported content dirs plus `locales/db/*.sql` for step 9.
+
 Live gap (from this session): none of these steps create tasks for stale keys (translated but English changed) — create.py is target-blind, and harmonize.py would strip source_hash. That's the change we were about to make to create.py.
