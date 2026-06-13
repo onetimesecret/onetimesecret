@@ -409,16 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "כתובת הדוא״ל עבור חשבון %{product_name} שלך שונתה ל-%{new_email_masked}.",
-    "renderer": "erb",
-    "source_hash": "6f3419d1"
-  },
-  "email.email_changed.security_notice": {
-    "text": "אם לא ביצעת שינוי זה, אנא צור קשר עם התמיכה מיד מכיוון שהחשבון שלך עשוי להיות פרוץ.",
-    "renderer": "erb",
-    "source_hash": "f505b562"
-  },
   "email.email_changed.change_notice": {
     "text": "כתובת הדוא״ל בחשבון %{product_name} שלך שונתה.",
     "renderer": "erb",
@@ -518,16 +508,6 @@
     "text": "אמת את כתובת הדוא״ל החדשה שלך",
     "renderer": "erb",
     "source_hash": "0ec73977"
-  },
-  "email.email_change_confirmation.body": {
-    "text": "אנא אמת כתובת דוא״ל זו כדי להשלים את השינוי עבור חשבון %{product_name} שלך.",
-    "renderer": "erb",
-    "source_hash": "4df742ab"
-  },
-  "email.email_change_confirmation.verify_button": {
-    "text": "אמת כתובת דוא״ל",
-    "renderer": "erb",
-    "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
     "text": "התקבלה בקשה לשנות את כתובת הדוא״ל בחשבון %{product_name} שלך ל-%{new_email}.",

@@ -409,16 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "O endereço de e-mail da sua conta %{product_name} foi alterado para %{new_email_masked}.",
-    "renderer": "erb",
-    "source_hash": "aadf015b"
-  },
-  "email.email_changed.security_notice": {
-    "text": "Se você não fez esta alteração, entre em contato com o suporte imediatamente, pois sua conta pode estar comprometida.",
-    "renderer": "erb",
-    "source_hash": "f505b562"
-  },
   "email.email_changed.change_notice": {
     "text": "O endereço de e-mail da sua conta %{product_name} foi alterado.",
     "renderer": "erb",
@@ -518,16 +508,6 @@
     "text": "Verifique Seu Novo Endereço de E-mail",
     "renderer": "erb",
     "source_hash": "0ec73977"
-  },
-  "email.email_change_confirmation.body": {
-    "text": "Por favor, verifique este endereço de e-mail para concluir a alteração em sua conta %{product_name}.",
-    "renderer": "erb",
-    "source_hash": "4df742ab"
-  },
-  "email.email_change_confirmation.verify_button": {
-    "text": "Verificar Endereço de E-mail",
-    "renderer": "erb",
-    "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
     "text": "Uma solicitação foi feita para alterar o endereço de e-mail da sua conta %{product_name} para %{new_email}.",

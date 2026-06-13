@@ -409,16 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "Die E-Mail-Adresse für dein %{product_name}-Konto wurde auf %{new_email_masked} geändert.",
-    "renderer": "erb",
-    "source_hash": "aadf015b"
-  },
-  "email.email_changed.security_notice": {
-    "text": "Wenn du diese Änderung nicht vorgenommen hast, kontaktiere bitte sofort den Support, da dein Konto möglicherweise kompromittiert wurde.",
-    "renderer": "erb",
-    "source_hash": "f505b562"
-  },
   "email.email_changed.change_notice": {
     "text": "Die E-Mail-Adresse deines %{product_name}-Kontos wurde geändert.",
     "renderer": "erb",
@@ -518,16 +508,6 @@
     "text": "Bestätige deine neue E-Mail-Adresse",
     "renderer": "erb",
     "source_hash": "0ec73977"
-  },
-  "email.email_change_confirmation.body": {
-    "text": "Bitte bestätige diese E-Mail-Adresse, um die Änderung für dein %{product_name}-Konto abzuschließen.",
-    "renderer": "erb",
-    "source_hash": "4df742ab"
-  },
-  "email.email_change_confirmation.verify_button": {
-    "text": "E-Mail-Adresse bestätigen",
-    "renderer": "erb",
-    "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
     "text": "Es wurde eine Anfrage gestellt, die E-Mail-Adresse deines %{product_name}-Kontos zu %{new_email} zu ändern.",

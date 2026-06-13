@@ -409,16 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "La retpoŝta adreso por via konto %{product_name} estis ŝanĝita al %{new_email_masked}.",
-    "renderer": "erb",
-    "source_hash": "aadf015b"
-  },
-  "email.email_changed.security_notice": {
-    "text": "Se vi ne faris ĉi tiun ŝanĝon, bonvolu tuj kontakti subtenon ĉar via konto eble estas kompromitita.",
-    "renderer": "erb",
-    "source_hash": "f505b562"
-  },
   "email.email_changed.change_notice": {
     "text": "La retpoŝta adreso de via %{product_name}-konto estis ŝanĝita.",
     "renderer": "erb",
@@ -518,16 +508,6 @@
     "text": "Kontrolu vian novan retpoŝtan adreson",
     "renderer": "erb",
     "source_hash": "0ec73977"
-  },
-  "email.email_change_confirmation.body": {
-    "text": "Bonvolu kontroli ĉi tiun retpoŝtan adreson por kompletigi la ŝanĝon por via konto %{product_name}.",
-    "renderer": "erb",
-    "source_hash": "4df742ab"
-  },
-  "email.email_change_confirmation.verify_button": {
-    "text": "Kontroli retpoŝtan adreson",
-    "renderer": "erb",
-    "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
     "text": "Peto estis farita por ŝanĝi la retpoŝtan adreson de via %{product_name}-konto al %{new_email}.",

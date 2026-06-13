@@ -409,16 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "E-mailadressen for din %{product_name}-konto blev ændret til %{new_email_masked}.",
-    "renderer": "erb",
-    "source_hash": "6f3419d1"
-  },
-  "email.email_changed.security_notice": {
-    "text": "Hvis du ikke har foretaget denne ændring, kontakt venligst support med det samme, da din konto kan være kompromitteret.",
-    "renderer": "erb",
-    "source_hash": "f505b562"
-  },
   "email.email_changed.change_notice": {
     "text": "E-mailadressen på din %{product_name}-konto er blevet ændret.",
     "renderer": "erb",
@@ -518,16 +508,6 @@
     "text": "Bekræft din nye e-mailadresse",
     "renderer": "erb",
     "source_hash": "0ec73977"
-  },
-  "email.email_change_confirmation.body": {
-    "text": "Bekræft venligst denne e-mailadresse for at fuldføre ændringen af din %{product_name}-konto.",
-    "renderer": "erb",
-    "source_hash": "4df742ab"
-  },
-  "email.email_change_confirmation.verify_button": {
-    "text": "Bekræft e-mailadresse",
-    "renderer": "erb",
-    "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
     "text": "Der er anmodet om at ændre e-mailadressen på din %{product_name}-konto til %{new_email}.",

@@ -409,16 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "%{product_name} hesabınızın e-posta adresi %{new_email_masked} olarak değiştirildi.",
-    "renderer": "erb",
-    "source_hash": "6f3419d1"
-  },
-  "email.email_changed.security_notice": {
-    "text": "Bu değişikliği siz yapmadıysanız, hesabınız tehlikede olabileceğinden lütfen derhal destekle iletişime geçin.",
-    "renderer": "erb",
-    "source_hash": "f505b562"
-  },
   "email.email_changed.change_notice": {
     "text": "%{product_name} hesabınızdaki e-posta adresi değiştirildi.",
     "renderer": "erb",
@@ -518,16 +508,6 @@
     "text": "Yeni E-posta Adresinizi Doğrulayın",
     "renderer": "erb",
     "source_hash": "0ec73977"
-  },
-  "email.email_change_confirmation.body": {
-    "text": "%{product_name} hesabınız için değişikliği tamamlamak üzere lütfen bu e-posta adresini doğrulayın.",
-    "renderer": "erb",
-    "source_hash": "4df742ab"
-  },
-  "email.email_change_confirmation.verify_button": {
-    "text": "E-posta Adresini Doğrula",
-    "renderer": "erb",
-    "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
     "text": "%{product_name} hesabınızdaki e-posta adresini %{new_email} olarak değiştirmek için bir talep yapıldı.",

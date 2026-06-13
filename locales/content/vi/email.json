@@ -409,16 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "Địa chỉ email cho tài khoản %{product_name} của bạn đã được thay đổi thành %{new_email_masked}.",
-    "renderer": "erb",
-    "source_hash": "6f3419d1"
-  },
-  "email.email_changed.security_notice": {
-    "text": "Nếu bạn không thực hiện thay đổi này, vui lòng liên hệ hỗ trợ ngay lập tức vì tài khoản của bạn có thể đã bị xâm phạm.",
-    "renderer": "erb",
-    "source_hash": "f505b562"
-  },
   "email.email_changed.change_notice": {
     "text": "Địa chỉ email trên tài khoản %{product_name} của bạn đã được thay đổi.",
     "renderer": "erb",
@@ -518,16 +508,6 @@
     "text": "Xác minh địa chỉ email mới của bạn",
     "renderer": "erb",
     "source_hash": "0ec73977"
-  },
-  "email.email_change_confirmation.body": {
-    "text": "Vui lòng xác minh địa chỉ email này để hoàn tất thay đổi cho tài khoản %{product_name} của bạn.",
-    "renderer": "erb",
-    "source_hash": "4df742ab"
-  },
-  "email.email_change_confirmation.verify_button": {
-    "text": "Xác minh địa chỉ email",
-    "renderer": "erb",
-    "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
     "text": "Đã có yêu cầu thay đổi địa chỉ email trên tài khoản %{product_name} của bạn thành %{new_email}.",

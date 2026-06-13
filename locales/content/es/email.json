@@ -409,16 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "La dirección de correo de tu cuenta de %{product_name} fue cambiada a %{new_email_masked}.",
-    "renderer": "erb",
-    "source_hash": "aadf015b"
-  },
-  "email.email_changed.security_notice": {
-    "text": "Si no realizaste este cambio, contacta con soporte inmediatamente ya que tu cuenta puede estar comprometida.",
-    "renderer": "erb",
-    "source_hash": "f505b562"
-  },
   "email.email_changed.change_notice": {
     "text": "La dirección de correo electrónico de tu cuenta de %{product_name} ha sido cambiada.",
     "renderer": "erb",
@@ -518,16 +508,6 @@
     "text": "Verifica tu nueva dirección de correo",
     "renderer": "erb",
     "source_hash": "0ec73977"
-  },
-  "email.email_change_confirmation.body": {
-    "text": "Por favor, verifica esta dirección de correo para completar el cambio de tu cuenta de %{product_name}.",
-    "renderer": "erb",
-    "source_hash": "4df742ab"
-  },
-  "email.email_change_confirmation.verify_button": {
-    "text": "Verificar dirección de correo",
-    "renderer": "erb",
-    "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
     "text": "Se ha solicitado un cambio de dirección de correo electrónico en tu cuenta de %{product_name} a %{new_email}.",

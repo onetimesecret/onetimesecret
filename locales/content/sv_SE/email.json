@@ -409,16 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "E-postadressen för ditt %{product_name}-konto ändrades till %{new_email_masked}.",
-    "renderer": "erb",
-    "source_hash": "6f3419d1"
-  },
-  "email.email_changed.security_notice": {
-    "text": "Om du inte gjorde denna ändring, vänligen kontakta supporten omedelbart eftersom ditt konto kan vara komprometterat.",
-    "renderer": "erb",
-    "source_hash": "f505b562"
-  },
   "email.email_changed.change_notice": {
     "text": "E-postadressen för ditt %{product_name}-konto har ändrats.",
     "renderer": "erb",
@@ -518,16 +508,6 @@
     "text": "Verifiera din nya e-postadress",
     "renderer": "erb",
     "source_hash": "0ec73977"
-  },
-  "email.email_change_confirmation.body": {
-    "text": "Vänligen verifiera denna e-postadress för att slutföra ändringen av ditt %{product_name}-konto.",
-    "renderer": "erb",
-    "source_hash": "4df742ab"
-  },
-  "email.email_change_confirmation.verify_button": {
-    "text": "Verifiera e-postadress",
-    "renderer": "erb",
-    "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
     "text": "En begäran har gjorts om att ändra e-postadressen för ditt %{product_name}-konto till %{new_email}.",

@@ -409,16 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "E-mailová adresa tvého účtu %{product_name} byla změněna na %{new_email_masked}.",
-    "renderer": "erb",
-    "source_hash": "6f3419d1"
-  },
-  "email.email_changed.security_notice": {
-    "text": "Pokud jsi tuto změnu neprovedli, kontaktuj okamžitě podporu, protože tvůj účet může být kompromitován.",
-    "renderer": "erb",
-    "source_hash": "f505b562"
-  },
   "email.email_changed.change_notice": {
     "text": "E-mailová adresa tvého účtu %{product_name} byla změněna.",
     "renderer": "erb",
@@ -518,16 +508,6 @@
     "text": "Ověř svou novou e-mailovou adresu",
     "renderer": "erb",
     "source_hash": "0ec73977"
-  },
-  "email.email_change_confirmation.body": {
-    "text": "Prosím ověř tuto e-mailovou adresu pro dokončení změny tvého účtu %{product_name}.",
-    "renderer": "erb",
-    "source_hash": "4df742ab"
-  },
-  "email.email_change_confirmation.verify_button": {
-    "text": "Ověřit e-mailovou adresu",
-    "renderer": "erb",
-    "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
     "text": "Byl podán požadavek na změnu e-mailové adresy tvého účtu %{product_name} na %{new_email}.",

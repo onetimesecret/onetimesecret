@@ -409,16 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "A %{product_name} fiókjához tartozó e-mail cím megváltozott erre: %{new_email_masked}.",
-    "renderer": "erb",
-    "source_hash": "6f3419d1"
-  },
-  "email.email_changed.security_notice": {
-    "text": "Ha nem Ön kezdeményezte ezt a módosítást, kérjük, azonnal lépjen kapcsolatba az ügyfélszolgálattal, mert fiókja veszélybe kerülhetett.",
-    "renderer": "erb",
-    "source_hash": "f505b562"
-  },
   "email.email_changed.change_notice": {
     "text": "A %{product_name} fiókjához tartozó e-mail cím megváltozott.",
     "renderer": "erb",
@@ -518,16 +508,6 @@
     "text": "Új e-mail cím ellenőrzése",
     "renderer": "erb",
     "source_hash": "0ec73977"
-  },
-  "email.email_change_confirmation.body": {
-    "text": "Kérjük, ellenőrizze ezt az e-mail címet a %{product_name} fiókjához tartozó módosítás befejezéséhez.",
-    "renderer": "erb",
-    "source_hash": "4df742ab"
-  },
-  "email.email_change_confirmation.verify_button": {
-    "text": "E-mail cím ellenőrzése",
-    "renderer": "erb",
-    "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
     "text": "Kérelem érkezett a %{product_name} fiókjához tartozó e-mail cím módosítására a következőre: %{new_email}.",

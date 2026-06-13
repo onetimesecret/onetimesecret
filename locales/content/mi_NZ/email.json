@@ -409,16 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "Kua hurihia te wāhitau īmēra mō tō pūkete %{product_name} ki %{new_email_masked}.",
-    "renderer": "erb",
-    "source_hash": "6f3419d1"
-  },
-  "email.email_changed.security_notice": {
-    "text": "Mēnā ehara i a koe i huri i tēnei, tēnā whakapā tere ki te tautoko nā te mea tērā pea kua whakaekea tō pūkete.",
-    "renderer": "erb",
-    "source_hash": "f505b562"
-  },
   "email.email_changed.change_notice": {
     "text": "Kua hurihia te wāhitau īmēra o tō pūkete %{product_name}.",
     "renderer": "erb",
@@ -518,16 +508,6 @@
     "text": "Manatoko Tō Wāhitau Īmēra Hou",
     "renderer": "erb",
     "source_hash": "0ec73977"
-  },
-  "email.email_change_confirmation.body": {
-    "text": "Tēnā manatoko i tēnei wāhitau īmēra hei whakaoti i te huringa mō tō pūkete %{product_name}.",
-    "renderer": "erb",
-    "source_hash": "4df742ab"
-  },
-  "email.email_change_confirmation.verify_button": {
-    "text": "Manatoko Wāhitau Īmēra",
-    "renderer": "erb",
-    "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
     "text": "Kua tonoa he huringa wāhitau īmēra mō tō pūkete %{product_name} ki %{new_email}.",

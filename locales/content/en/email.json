@@ -449,16 +449,6 @@
     "renderer": "erb",
     "content_hash": "db70f965"
   },
-  "email.email_changed.body": {
-    "text": "The email address for your %{product_name} account has been changed to %{new_email_masked}.",
-    "renderer": "erb",
-    "content_hash": "aadf015b"
-  },
-  "email.email_changed.security_notice": {
-    "text": "If you did not make this change, please contact support immediately as your account may be compromised.",
-    "renderer": "erb",
-    "content_hash": "f505b562"
-  },
   "email.email_changed.change_notice": {
     "text": "The email address on your %{product_name} account has been changed.",
     "renderer": "erb",
@@ -558,16 +548,6 @@
     "text": "Verify Your New Email Address",
     "renderer": "erb",
     "content_hash": "0ec73977"
-  },
-  "email.email_change_confirmation.body": {
-    "text": "Please verify this email address to complete the change for your %{product_name} account.",
-    "renderer": "erb",
-    "content_hash": "4df742ab"
-  },
-  "email.email_change_confirmation.verify_button": {
-    "text": "Verify Email Address",
-    "renderer": "erb",
-    "content_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
     "text": "A request was made to change the email address on your %{product_name} account to %{new_email}.",

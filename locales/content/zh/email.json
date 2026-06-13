@@ -409,16 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "您 %{product_name} 账户的邮箱地址已更改为 %{new_email_masked}。",
-    "renderer": "erb",
-    "source_hash": "aadf015b"
-  },
-  "email.email_changed.security_notice": {
-    "text": "如果这不是您本人操作，请立即联系支持团队，您的账户可能已被盗用。",
-    "renderer": "erb",
-    "source_hash": "f505b562"
-  },
   "email.email_changed.change_notice": {
     "text": "您的 %{product_name} 账户邮箱地址已更改。",
     "renderer": "erb",
@@ -518,16 +508,6 @@
     "text": "验证您的新邮箱地址",
     "renderer": "erb",
     "source_hash": "0ec73977"
-  },
-  "email.email_change_confirmation.body": {
-    "text": "请验证此邮箱地址以完成您 %{product_name} 账户的更改。",
-    "renderer": "erb",
-    "source_hash": "4df742ab"
-  },
-  "email.email_change_confirmation.verify_button": {
-    "text": "验证邮箱地址",
-    "renderer": "erb",
-    "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
     "text": "有人请求将您的 %{product_name} 账户邮箱地址更改为 %{new_email}。",

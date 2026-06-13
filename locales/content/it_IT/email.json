@@ -409,16 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "L'indirizzo email del tuo account %{product_name} è stato modificato in %{new_email_masked}.",
-    "renderer": "erb",
-    "source_hash": "6f3419d1"
-  },
-  "email.email_changed.security_notice": {
-    "text": "Se non hai effettuato questa modifica, contatta immediatamente il supporto poiché il tuo account potrebbe essere stato compromesso.",
-    "renderer": "erb",
-    "source_hash": "f505b562"
-  },
   "email.email_changed.change_notice": {
     "text": "L'indirizzo email del tuo account %{product_name} è stato modificato.",
     "renderer": "erb",
@@ -518,16 +508,6 @@
     "text": "Verifica il tuo nuovo indirizzo email",
     "renderer": "erb",
     "source_hash": "0ec73977"
-  },
-  "email.email_change_confirmation.body": {
-    "text": "Verifica questo indirizzo email per completare la modifica del tuo account %{product_name}.",
-    "renderer": "erb",
-    "source_hash": "4df742ab"
-  },
-  "email.email_change_confirmation.verify_button": {
-    "text": "Verifica indirizzo email",
-    "renderer": "erb",
-    "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
     "text": "È stata effettuata una richiesta di modifica dell'indirizzo email del tuo account %{product_name} in %{new_email}.",

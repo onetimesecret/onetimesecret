@@ -409,16 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "E-poštni naslov za vaš račun %{product_name} je bil spremenjen na %{new_email_masked}.",
-    "renderer": "erb",
-    "source_hash": "6f3419d1"
-  },
-  "email.email_changed.security_notice": {
-    "text": "Če te spremembe niste opravili vi, nemudoma kontaktirajte podporo, saj je vaš račun morda ogrožen.",
-    "renderer": "erb",
-    "source_hash": "f505b562"
-  },
   "email.email_changed.change_notice": {
     "text": "E-poštni naslov vašega računa %{product_name} je bil spremenjen.",
     "renderer": "erb",
@@ -518,16 +508,6 @@
     "text": "Preverite svoj novi e-poštni naslov",
     "renderer": "erb",
     "source_hash": "0ec73977"
-  },
-  "email.email_change_confirmation.body": {
-    "text": "Prosimo, preverite ta e-poštni naslov, da dokončate spremembo za svoj račun %{product_name}.",
-    "renderer": "erb",
-    "source_hash": "4df742ab"
-  },
-  "email.email_change_confirmation.verify_button": {
-    "text": "Preveri e-poštni naslov",
-    "renderer": "erb",
-    "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
     "text": "Prejeta je bila zahteva za spremembo e-poštnega naslova vašega računa %{product_name} na %{new_email}.",

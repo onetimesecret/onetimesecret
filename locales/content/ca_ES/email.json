@@ -409,16 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "L'adreça de correu electrònic del teu compte de %{product_name} s'ha canviat a %{new_email_masked}.",
-    "renderer": "erb",
-    "source_hash": "6f3419d1"
-  },
-  "email.email_changed.security_notice": {
-    "text": "Si no has fet aquest canvi, si us plau contacta amb el suport immediatament ja que el teu compte pot estar compromès.",
-    "renderer": "erb",
-    "source_hash": "f505b562"
-  },
   "email.email_changed.change_notice": {
     "text": "L'adreça de correu electrònic del teu compte de %{product_name} s'ha canviat.",
     "renderer": "erb",
@@ -518,16 +508,6 @@
     "text": "Verifica la teva nova adreça de correu electrònic",
     "renderer": "erb",
     "source_hash": "0ec73977"
-  },
-  "email.email_change_confirmation.body": {
-    "text": "Si us plau, verifica aquesta adreça de correu electrònic per completar el canvi del teu compte de %{product_name}.",
-    "renderer": "erb",
-    "source_hash": "4df742ab"
-  },
-  "email.email_change_confirmation.verify_button": {
-    "text": "Verificar adreça de correu electrònic",
-    "renderer": "erb",
-    "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
     "text": "S'ha sol·licitat un canvi d'adreça de correu electrònic del teu compte de %{product_name} a %{new_email}.",

@@ -409,16 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "Η διεύθυνση email του λογαριασμού σας στο %{product_name} άλλαξε σε %{new_email_masked}.",
-    "renderer": "erb",
-    "source_hash": "6f3419d1"
-  },
-  "email.email_changed.security_notice": {
-    "text": "Εάν δεν κάνατε εσείς αυτήν την αλλαγή, επικοινωνήστε αμέσως με την υποστήριξη καθώς ο λογαριασμός σας μπορεί να έχει παραβιαστεί.",
-    "renderer": "erb",
-    "source_hash": "f505b562"
-  },
   "email.email_changed.change_notice": {
     "text": "Η διεύθυνση email του λογαριασμού σας στο %{product_name} έχει αλλάξει.",
     "renderer": "erb",
@@ -518,16 +508,6 @@
     "text": "Επαληθεύστε τη νέα σας διεύθυνση email",
     "renderer": "erb",
     "source_hash": "0ec73977"
-  },
-  "email.email_change_confirmation.body": {
-    "text": "Επαληθεύστε αυτή τη διεύθυνση email για να ολοκληρώσετε την αλλαγή του λογαριασμού σας στο %{product_name}.",
-    "renderer": "erb",
-    "source_hash": "4df742ab"
-  },
-  "email.email_change_confirmation.verify_button": {
-    "text": "Επαλήθευση διεύθυνσης email",
-    "renderer": "erb",
-    "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
     "text": "Υποβλήθηκε αίτημα αλλαγής της διεύθυνσης email του λογαριασμού σας στο %{product_name} σε %{new_email}.",

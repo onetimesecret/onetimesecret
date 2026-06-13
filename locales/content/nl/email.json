@@ -409,16 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "Het e-mailadres voor je %{product_name}-account is gewijzigd naar %{new_email_masked}.",
-    "renderer": "erb",
-    "source_hash": "aadf015b"
-  },
-  "email.email_changed.security_notice": {
-    "text": "Als je deze wijziging niet hebt aangebracht, neem dan onmiddellijk contact op met de ondersteuning, omdat je account mogelijk is gehackt.",
-    "renderer": "erb",
-    "source_hash": "f505b562"
-  },
   "email.email_changed.change_notice": {
     "text": "Het e-mailadres van je %{product_name}-account is gewijzigd.",
     "renderer": "erb",
@@ -518,16 +508,6 @@
     "text": "Verifieer je nieuwe e-mailadres",
     "renderer": "erb",
     "source_hash": "0ec73977"
-  },
-  "email.email_change_confirmation.body": {
-    "text": "Verifieer dit e-mailadres om de wijziging voor je %{product_name}-account te voltooien.",
-    "renderer": "erb",
-    "source_hash": "4df742ab"
-  },
-  "email.email_change_confirmation.verify_button": {
-    "text": "E-mailadres verifiëren",
-    "renderer": "erb",
-    "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
     "text": "Er is een verzoek gedaan om het e-mailadres van je %{product_name}-account te wijzigen naar %{new_email}.",

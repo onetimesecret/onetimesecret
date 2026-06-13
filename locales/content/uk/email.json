@@ -409,16 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "Електронну адресу для Вашого облікового запису %{product_name} було змінено на %{new_email_masked}.",
-    "renderer": "erb",
-    "source_hash": "6f3419d1"
-  },
-  "email.email_changed.security_notice": {
-    "text": "Якщо Ви не робили цієї зміни, будь ласка, негайно зверніться до служби підтримки, оскільки Ваш обліковий запис може бути скомпрометовано.",
-    "renderer": "erb",
-    "source_hash": "f505b562"
-  },
   "email.email_changed.change_notice": {
     "text": "Адресу електронної пошти Вашого облікового запису %{product_name} було змінено.",
     "renderer": "erb",
@@ -518,16 +508,6 @@
     "text": "Підтвердіть Вашу нову електронну адресу",
     "renderer": "erb",
     "source_hash": "0ec73977"
-  },
-  "email.email_change_confirmation.body": {
-    "text": "Будь ласка, підтвердіть цю електронну адресу, щоб завершити зміну для Вашого облікового запису %{product_name}.",
-    "renderer": "erb",
-    "source_hash": "4df742ab"
-  },
-  "email.email_change_confirmation.verify_button": {
-    "text": "Підтвердити електронну адресу",
-    "renderer": "erb",
-    "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
     "text": "Було зроблено запит на зміну адреси електронної пошти Вашого облікового запису %{product_name} на %{new_email}.",
