@@ -73,6 +73,11 @@ Prep (once, after English source changes)
 2. Generate hashes — writes content_hash on en; seeds missing source_hash watermarks on every translation locale. · pnpm run locales:hashes (= add_hashes.py) · human/dev (preview with :hashes:dry-run)
 3. Compile to app format (optional for translating; needed for the app/types) — merges content/ → generated/. · pnpm run locales:sync (= compile.py --all --merged) · human/dev, also auto-runs on pnpm dev/build
 
+Database (once)
+
+- Initialize the task DB before the first session — creates locales/db/tasks.db from schema.sql. · python locales/scripts/store.py init · agent/dev
+- Apply later schema updates to an existing DB — idempotent; does NOT create a missing DB (use init for that). · python locales/scripts/store.py migrate · agent/dev
+
 Session loop (per locale)
 
 4. Generate/refresh tasks — walks en, groups sibling keys by level, writes translation_tasks rows. Re-run to pick up new English. · python locales/scripts/tasks/create.py <locale> · agent (run via Bash inside the session) — or orchestrated by /d:translate-parallel-agents for many locales
