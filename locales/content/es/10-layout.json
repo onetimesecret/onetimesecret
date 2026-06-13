@@ -1,6 +1,6 @@
 {
   "web.footer.api_docs": {
-    "text": "Documentación de API",
+    "text": "Documentación de la API",
     "source_hash": "f4137804"
   },
   "web.footer.branding_guide": {
@@ -24,7 +24,7 @@
     "source_hash": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "Consulta nuestros términos y condiciones",
+    "text": "Consulta nuestros Términos y condiciones",
     "source_hash": "0dde60b7"
   },
   "web.footer.terms": {
@@ -44,23 +44,23 @@
     "source_hash": "be91940b"
   },
   "web.footer.legals": {
-    "text": "Legal",
+    "text": "Avisos legales",
     "source_hash": "0a410c78"
   },
   "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "Cuando envíes tus comentarios, veremos:",
+    "text": "Cuando envíes comentarios, veremos:",
     "source_hash": "fe77172e"
   },
   "web.footer.read_our_privacy_policy": {
-    "text": "Lee nuestra política de privacidad",
+    "text": "Lee nuestra Política de privacidad",
     "source_hash": "eb443229"
   },
   "web.footer.check_our_service_status": {
-    "text": "Consulta el estado del servicio",
+    "text": "Comprueba el estado de nuestro servicio",
     "source_hash": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "Explora nuestra documentación de API",
+    "text": "Explora la documentación de nuestra API",
     "source_hash": "45beb8f8"
   },
   "web.footer.docs": {
@@ -88,7 +88,7 @@
     "source_hash": "77468d43"
   },
   "web.footer.view_our_subscription_pricing": {
-    "text": "Consulta nuestros precios de suscripción",
+    "text": "Consulta los precios de nuestras suscripciones",
     "source_hash": "55f1f590"
   },
   "web.footer.learn_about_our_company": {
@@ -124,19 +124,19 @@
     "source_hash": "4d4a570f"
   },
   "web.meta.were_making_onetime_secret_available_in_multiple": {
-    "text": "Estamos haciendo que {onetime-secret} esté disponible en varios idiomas. Dado que esta es una nueva función, puedes encontrar errores de traducción o frases incómodas. Tus comentarios nos ayudan a mejorar; si detectas algún problema, por favor {send-feedback}",
+    "text": "Estamos haciendo que {onetime-secret} esté disponible en varios idiomas. Como se trata de una función nueva, es posible que encuentres errores de traducción o frases poco naturales. Tus comentarios nos ayudan a mejorar; si detectas algún problema, {send-feedback}",
     "source_hash": "3b482d7f"
   },
   "web.meta.translations_are_new_spotted_an_error": {
-    "text": "Las traducciones son nuevas. ¿Detectaste un error? {send-feedback}",
+    "text": "Las traducciones son nuevas. ¿Has detectado un error? {send-feedback}",
     "source_hash": "31eca08d"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "Recientemente agregamos traducciones. ¿Encontraste un error? {send-feedback}",
+    "text": "Hace poco añadimos traducciones. ¿Has detectado un error? {send-feedback}",
     "source_hash": "6e2455c1"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
-    "text": "La privacidad y la seguridad deben ser accesibles para todos, independientemente del idioma. Estamos agregando traducciones para ayudar tanto a nuestros usuarios como a los destinatarios de sus mensajes a comprender mejor cómo usar y acceder de forma segura a mensajes y enlaces seguros. Dado que esta es una nueva función, es posible que encuentres algunos errores de traducción o instrucciones poco claras. Para ayudarnos a mejorar la claridad y precisión de nuestras traducciones, especialmente para contenido crítico relacionado con la seguridad, por favor {send-feedback} si detectas algún problema",
+    "text": "La privacidad y la seguridad deberían ser accesibles para todos, independientemente del idioma. Estamos añadiendo traducciones para ayudar tanto a nuestros usuarios como a los destinatarios de sus mensajes a comprender mejor cómo usar y acceder de forma segura a los mensajes y enlaces seguros. Como se trata de una función nueva, es posible que encuentres algunos errores de traducción o instrucciones poco claras. Para ayudarnos a mejorar la claridad y la precisión de nuestras traducciones, especialmente en el contenido crítico relacionado con la seguridad, {send-feedback} si detectas algún problema",
     "source_hash": "1b8bb38f"
   },
   "web.help.learn_more": {
@@ -148,15 +148,15 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Estás viendo un mensaje seguro que alguien compartió contigo a través de Onetime Secret. Este contenido se muestra solo una vez y luego se elimina permanentemente de nuestros servidores.",
+    "text": "Estás viendo un mensaje seguro que se compartió contigo a través de Onetime Secret. Este contenido se muestra solo una vez y después se elimina permanentemente de nuestros servidores.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "¿Puedo ver este secreto de nuevo más tarde?",
+    "text": "¿Puedo volver a ver este secreto más tarde?",
     "source_hash": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "No. Por razones de seguridad, este secreto solo se puede ver una vez. Después de cerrar esta página, el contenido se eliminará permanentemente y nadie podrá recuperarlo, incluyéndonos a nosotros.",
+    "text": "No. Por razones de seguridad, este secreto solo se puede ver una vez. Después de cerrar esta página, el contenido se eliminará permanentemente y nadie podrá recuperarlo, ni siquiera nosotros.",
     "source_hash": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
@@ -164,11 +164,11 @@
     "source_hash": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Usa el botón 'Copiar al portapapeles' para copiar todo el secreto. Para secretos más largos, asegúrate de verificar que has copiado el contenido completo antes de abandonar esta página.",
+    "text": "Usa el botón 'Copiar al portapapeles' para copiar todo el secreto. Para secretos más largos, asegúrate de verificar que has copiado el contenido completo antes de salir de esta página.",
     "source_hash": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "¿Se registra cuando veo este secreto?",
+    "text": "¿Se registra que veo este secreto?",
     "source_hash": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
@@ -196,11 +196,11 @@
     "source_hash": "a70766ae"
   },
   "web.layout.company_logo": {
-    "text": "Logo de la empresa",
+    "text": "Logotipo de la empresa",
     "source_hash": "87a86135"
   },
   "web.layout.brand_logo": {
-    "text": "Logo de marca",
+    "text": "Logotipo de la marca",
     "source_hash": "e458e2b5"
   },
   "web.layout.dashboard_navigation": {
@@ -220,11 +220,11 @@
     "source_hash": "f65216b3"
   },
   "web.layout.release_notes": {
-    "text": "Notas de versión",
+    "text": "Notas de la versión",
     "source_hash": "bd4702c1"
   },
   "web.layout.loading_settings_content": {
-    "text": "Cargando contenido de configuración...",
+    "text": "Cargando contenido de la configuración...",
     "source_hash": "81a2a30e"
   },
   "web.layout.settings_sections_0": {
@@ -240,7 +240,7 @@
     "source_hash": "e26d51d3"
   },
   "web.layout.customize_your_app_preferences_and_settings": {
-    "text": "Personaliza las preferencias y configuraciones de tu aplicación",
+    "text": "Personaliza las preferencias y la configuración de tu aplicación",
     "source_hash": "00d74c98"
   },
   "web.layout.return_home": {
@@ -256,11 +256,11 @@
     "source_hash": "299291b0"
   },
   "web.layout.view_privacy_policy": {
-    "text": "Ver política de privacidad",
+    "text": "Ver Política de privacidad",
     "source_hash": "377733b6"
   },
   "web.layout.view_terms_of_service": {
-    "text": "Ver términos de servicio",
+    "text": "Ver Términos del servicio",
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
@@ -272,7 +272,7 @@
     "source_hash": "76363a64"
   },
   "web.layout.terms_of_service": {
-    "text": "Términos de servicio",
+    "text": "Términos del servicio",
     "source_hash": "4afa55bf"
   },
   "web.layout.privacy_policy": {
@@ -324,11 +324,11 @@
     "source_hash": "c0cfa9b2"
   },
   "web.layout.switch_to_blank_mode": {
-    "text": "Cambiar a modo {0}",
+    "text": "Cambiar al modo {0}",
     "source_hash": "c8b909e0"
   },
   "web.layout.blank_mode_enabled": {
-    "text": "Modo {0} activado",
+    "text": "Modo {0} habilitado",
     "source_hash": "e1d200cb"
   },
   "web.layout.workspace": {
@@ -338,5 +338,9 @@
   "web.layout.workspace_context": {
     "text": "Contexto del espacio de trabajo",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Espacio de trabajo",
+    "source_hash": "87bb59ba"
   }
 }

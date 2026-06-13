@@ -32,11 +32,11 @@
     "source_hash": "74a883a0"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Bewerk systeemconfiguratie-instellingen. Wijzigingen worden direct toegepast na opslaan.",
+    "text": "Bewerk de systeemconfiguratie-instellingen. Wijzigingen worden direct na opslaan toegepast.",
     "source_hash": "6025d269"
   },
   "web.colonel.invalidJson": {
-    "text": "Ongeldige JSON in {section}-sectie",
+    "text": "Ongeldige JSON in sectie {section}",
     "source_hash": "a75ac7a3"
   },
   "web.colonel.validationError": {
@@ -44,11 +44,11 @@
     "source_hash": "2aa2d0b4"
   },
   "web.colonel.errorFetchingConfig": {
-    "text": "Fout bij laden van configuratie",
+    "text": "Fout bij het laden van de configuratie",
     "source_hash": "08baf6d2"
   },
   "web.colonel.errorSavingConfig": {
-    "text": "Fout bij opslaan van configuratie",
+    "text": "Fout bij het opslaan van de configuratie",
     "source_hash": "48df54c7"
   },
   "web.colonel.configSaved": {
@@ -92,7 +92,7 @@
     "source_hash": "b6cf56ca"
   },
   "web.colonel.sectionEffectivelyEmpty": {
-    "text": "{section}-sectie heeft geen geconfigureerde waarden",
+    "text": "Sectie {section} heeft geen geconfigureerde waarden",
     "source_hash": "efb63b77"
   },
   "web.colonel.dashboard": {
@@ -116,7 +116,7 @@
     "source_hash": "6b0cc904"
   },
   "web.colonel.usersDescription": {
-    "text": "Beheer gebruikersaccounts en rechten",
+    "text": "Beheer gebruikersaccounts en machtigingen",
     "source_hash": "6cfc012c"
   },
   "web.colonel.domains": {
@@ -136,7 +136,7 @@
     "source_hash": "7881ca9e"
   },
   "web.colonel.welcomeDesc": {
-    "text": "Beheerderspaneel voor OneTimeSecret",
+    "text": "Administratief configuratiescherm voor OneTimeSecret",
     "source_hash": "57c1e752"
   },
   "web.colonel.quickActions": {
@@ -168,11 +168,11 @@
     "source_hash": "aefbd2db"
   },
   "web.colonel.stats.secretsCreated": {
-    "text": "Berichten aangemaakt",
+    "text": "Aangemaakte berichten",
     "source_hash": "a97ee479"
   },
   "web.colonel.stats.secretsShared": {
-    "text": "Berichten gedeeld",
+    "text": "Gedeelde berichten",
     "source_hash": "5deb082c"
   },
   "web.colonel.stats.totalCustomers": {
@@ -180,11 +180,11 @@
     "source_hash": "0ca3aa44"
   },
   "web.colonel.stats.emailsSent": {
-    "text": "E-mails verzonden",
+    "text": "Verzonden e-mails",
     "source_hash": "87cfb3ab"
   },
   "web.colonel.stats.systemHealth": {
-    "text": "Systeemgezondheid",
+    "text": "Systeemstatus",
     "source_hash": "c3d66242"
   },
   "web.colonel.stats.healthy": {
@@ -196,7 +196,7 @@
     "source_hash": "9c28f55c"
   },
   "web.colonel.actions.viewActivityDesc": {
-    "text": "Systeemactiviteit en gebruik monitoren",
+    "text": "Systeemactiviteit en -gebruik monitoren",
     "source_hash": "f88e9eda"
   },
   "web.colonel.actions.manageAccounts": {
@@ -204,7 +204,7 @@
     "source_hash": "9d114268"
   },
   "web.colonel.actions.manageAccountsDesc": {
-    "text": "Gebruikersaccountbeheer",
+    "text": "Beheer van gebruikersaccounts",
     "source_hash": "d73af927"
   },
   "web.colonel.actions.configureDomains": {
@@ -236,11 +236,11 @@
     "source_hash": "3b2fe03e"
   },
   "web.colonel.pendingMessages": {
-    "text": "Wachtend",
+    "text": "In behandeling",
     "source_hash": "331551b0"
   },
   "web.colonel.consumers": {
-    "text": "Consumenten",
+    "text": "Consumers",
     "source_hash": "212b350d"
   },
   "web.colonel.processingRate": {
@@ -252,11 +252,11 @@
     "source_hash": "3693e288"
   },
   "web.colonel.workerHealth": {
-    "text": "Werkerstatus",
+    "text": "Workerstatus",
     "source_hash": "52be3ac1"
   },
   "web.colonel.activeWorkers": {
-    "text": "actieve werkers",
+    "text": "actieve workers",
     "source_hash": "ea68cfee"
   },
   "web.colonel.noQueueData": {
@@ -284,7 +284,7 @@
     "source_hash": "9e6e12fe"
   },
   "web.colonel.resetToActual": {
-    "text": "Terugzetten naar werkelijk plan",
+    "text": "Terugzetten naar het werkelijke plan",
     "source_hash": "2cea3f92"
   },
   "web.colonel.currentActualPlan": {
@@ -304,11 +304,11 @@
     "source_hash": "ae2c8dd9"
   },
   "web.colonel.testModeDescription": {
-    "text": "Test je applicatie met verschillende planrechten. Wijzigingen zijn tijdelijk en zijn alleen van toepassing op je sessie.",
+    "text": "Test je applicatie met verschillende planrechten. Wijzigingen zijn tijdelijk en gelden alleen voor je sessie.",
     "source_hash": "be03a409"
   },
   "web.colonel.warningTestMode": {
-    "text": "Je test met {planName}-rechten (tijdelijke sessie-override).",
+    "text": "Je test met de rechten van {planName} (tijdelijke sessie-overschrijving).",
     "source_hash": "1a8aecf1"
   },
   "web.colonel.organizations.title": {
@@ -316,11 +316,11 @@
     "source_hash": "2730183d"
   },
   "web.colonel.organizations.description": {
-    "text": "Organisatie-factureringssynchronisatie monitoren",
+    "text": "Synchronisatiestatus van organisatiefacturering monitoren",
     "source_hash": "d8f4398b"
   },
   "web.colonel.organizations.pageTitle": {
-    "text": "Factureringsmonitor",
+    "text": "Factureringsstatusmonitor",
     "source_hash": "9ef57da4"
   },
   "web.colonel.organizations.organizationsCount": {
@@ -328,7 +328,7 @@
     "source_hash": "bc2feb56"
   },
   "web.colonel.organizations.needAttention": {
-    "text": "{count} hebben aandacht nodig",
+    "text": "{count} vereisen aandacht",
     "source_hash": "1c8e5840"
   },
   "web.colonel.organizations.unknownCount": {
@@ -424,7 +424,7 @@
     "source_hash": "4999c6c6"
   },
   "web.colonel.organizations.columns.default_workspace": {
-    "text": "Standaard werkruimte",
+    "text": "Standaardwerkruimte",
     "source_hash": "53aa279e"
   },
   "web.colonel.organizations.columns.has_billing": {
@@ -432,11 +432,11 @@
     "source_hash": "db0628ed"
   },
   "web.colonel.organizations.legacy.title": {
-    "text": "Organisaties factureringsbeheer",
+    "text": "Factureringsbeheer organisaties",
     "source_hash": "5c7e07e7"
   },
   "web.colonel.organizations.legacy.description": {
-    "text": "Organisaties beheren en factureringssynchronisatie monitoren ({total} totaal)",
+    "text": "Beheer organisaties en monitor de synchronisatiestatus van facturering ({total} totaal)",
     "source_hash": "996b446d"
   },
   "web.colonel.organizations.legacy.empty": {
@@ -464,7 +464,7 @@
     "source_hash": "e2641093"
   },
   "web.colonel.organizations.actions.checking": {
-    "text": "Controleren...",
+    "text": "Bezig met controleren...",
     "source_hash": "2e5f79bb"
   },
   "web.colonel.organizations.expanded.customer": {
@@ -492,7 +492,7 @@
     "source_hash": "d92625c2"
   },
   "web.colonel.organizations.investigation.mismatchFound": {
-    "text": "Afwijking gevonden",
+    "text": "Verschil gevonden",
     "source_hash": "361d22f3"
   },
   "web.colonel.organizations.investigation.unableToCompare": {
@@ -512,7 +512,7 @@
     "source_hash": "fb9ef894"
   },
   "web.colonel.organizations.investigation.resolvedPlan": {
-    "text": "Opgelost plan",
+    "text": "Bepaald plan",
     "source_hash": "17c5b37a"
   },
   "web.colonel.organizations.investigation.priceId": {
@@ -544,11 +544,11 @@
     "source_hash": "48f8052e"
   },
   "web.colonel.bannedIps.title": {
-    "text": "Geblokkeerde IP's",
+    "text": "Geblokkeerde IP-adressen",
     "source_hash": "0ece5643"
   },
   "web.colonel.bannedIps.description": {
-    "text": "IP-blokkadelijst beheren",
+    "text": "Beheer de lijst met geblokkeerde IP-adressen",
     "source_hash": "dd0d2614"
   },
   "web.colonel.usageExport.title": {
@@ -556,7 +556,7 @@
     "source_hash": "10a0cb94"
   },
   "web.colonel.usageExport.description": {
-    "text": "Gebruiksgegevens en statistieken exporteren",
+    "text": "Exporteer gebruiksgegevens en statistieken",
     "source_hash": "2fd0a2e2"
   },
   "web.colonel.systemSettings.title": {
@@ -572,7 +572,7 @@
     "source_hash": "6170ab94"
   },
   "web.colonel.customDomains.description": {
-    "text": "Aangepaste domeinen en branding beheren",
+    "text": "Beheer aangepaste domeinen en branding",
     "source_hash": "808ee2cb"
   },
   "web.colonel.feedback.send_feedback": {
@@ -580,7 +580,7 @@
     "source_hash": "8235980b"
   },
   "web.colonel.feedback.sending_ellipses": {
-    "text": "Verzenden...",
+    "text": "Bezig met verzenden...",
     "source_hash": "286a3af7"
   },
   "web.colonel.titles.index": {
@@ -608,7 +608,7 @@
     "source_hash": "c4545e98"
   },
   "web.colonel.titles.authdb": {
-    "text": "Authenticatiedatabase",
+    "text": "Auth-database",
     "source_hash": "c683c9a6"
   },
   "web.colonel.titles.bannedIps": {
@@ -632,7 +632,203 @@
     "source_hash": "a7f64157"
   },
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
-    "text": "Wanneer je feedback verstuurt, zien wij:",
+    "text": "Wanneer je feedback verzendt, zien we:",
     "source_hash": "fe77172e"
+  },
+  "web.colonel.previewPlanMode": {
+    "text": "Planvoorbeeldmodus",
+    "source_hash": "cf53f19d"
+  },
+  "web.colonel.previewModeDescription": {
+    "text": "Bekijk de applicatie zoals deze wordt weergegeven aan klanten met een ander plan. Dit beïnvloedt alleen jouw weergave en wijzigt het werkelijke plan van een organisatie niet.",
+    "source_hash": "6fe23f23"
+  },
+  "web.colonel.previewModeActive": {
+    "text": "Voorbeeld actief",
+    "source_hash": "a558d603"
+  },
+  "web.colonel.bannedIps.empty": {
+    "text": "Geen geblokkeerde IP-adressen",
+    "source_hash": "bd101143"
+  },
+  "web.colonel.bannedIps.currentIp": {
+    "text": "Je huidige IP-adres",
+    "source_hash": "72f9fefe"
+  },
+  "web.colonel.bannedIps.confirmUnban": {
+    "text": "Blokkering van {ip} opheffen?",
+    "source_hash": "ff009b1c"
+  },
+  "web.colonel.bannedIps.actions.ban": {
+    "text": "IP blokkeren",
+    "source_hash": "f91a5285"
+  },
+  "web.colonel.bannedIps.actions.quickBan": {
+    "text": "Snel blokkeren",
+    "source_hash": "c32d0943"
+  },
+  "web.colonel.bannedIps.actions.unban": {
+    "text": "Blokkering opheffen",
+    "source_hash": "25fb5989"
+  },
+  "web.colonel.bannedIps.actions.cancel": {
+    "text": "Annuleren",
+    "source_hash": "19766ed6"
+  },
+  "web.colonel.bannedIps.columns.ipAddress": {
+    "text": "IP-adres",
+    "source_hash": "3c3de0c9"
+  },
+  "web.colonel.bannedIps.columns.reason": {
+    "text": "Reden",
+    "source_hash": "f81ab834"
+  },
+  "web.colonel.bannedIps.columns.bannedAt": {
+    "text": "Geblokkeerd op",
+    "source_hash": "dfbd120e"
+  },
+  "web.colonel.bannedIps.columns.bannedBy": {
+    "text": "Geblokkeerd door",
+    "source_hash": "9f47db0e"
+  },
+  "web.colonel.bannedIps.error.banFailed": {
+    "text": "Kan IP-adres niet blokkeren",
+    "source_hash": "24e94d9b"
+  },
+  "web.colonel.bannedIps.error.unbanFailed": {
+    "text": "Kan blokkering van IP-adres niet opheffen",
+    "source_hash": "66bbac9a"
+  },
+  "web.colonel.bannedIps.form.title": {
+    "text": "IP-adres blokkeren",
+    "source_hash": "3f5b3dfa"
+  },
+  "web.colonel.bannedIps.form.ipLabel": {
+    "text": "IP-adres",
+    "source_hash": "3c3de0c9"
+  },
+  "web.colonel.bannedIps.form.reasonLabel": {
+    "text": "Reden",
+    "source_hash": "f81ab834"
+  },
+  "web.colonel.bannedIps.form.reasonPlaceholder": {
+    "text": "Optionele reden",
+    "source_hash": "956688a5"
+  },
+  "web.colonel.bannedIps.success.banned": {
+    "text": "IP-adres {ip} is geblokkeerd",
+    "source_hash": "b6f861d5"
+  },
+  "web.colonel.bannedIps.success.unbanned": {
+    "text": "Blokkering van IP-adres {ip} is opgeheven",
+    "source_hash": "dbe93550"
+  },
+  "web.colonel.customDomains.empty": {
+    "text": "Geen aangepaste domeinen geconfigureerd",
+    "source_hash": "e10b39f7"
+  },
+  "web.colonel.customDomains.noLogo": {
+    "text": "Geen logo",
+    "source_hash": "ee5e36ff"
+  },
+  "web.colonel.customDomains.labels.organization": {
+    "text": "Organisatie",
+    "source_hash": "d764d425"
+  },
+  "web.colonel.customDomains.labels.externalId": {
+    "text": "Externe ID",
+    "source_hash": "69da56ba"
+  },
+  "web.colonel.customDomains.labels.created": {
+    "text": "Aangemaakt",
+    "source_hash": "d70b9e24"
+  },
+  "web.colonel.customDomains.labels.updated": {
+    "text": "Bijgewerkt",
+    "source_hash": "3a5ecca1"
+  },
+  "web.colonel.customDomains.labels.favicon": {
+    "text": "Favicon",
+    "source_hash": "42955289"
+  },
+  "web.colonel.customDomains.status.verified": {
+    "text": "Geverifieerd",
+    "source_hash": "4f783840"
+  },
+  "web.colonel.customDomains.status.resolving": {
+    "text": "Bezig met omzetten",
+    "source_hash": "3287a034"
+  },
+  "web.colonel.customDomains.status.ready": {
+    "text": "Gereed",
+    "source_hash": "5fa7aac5"
+  },
+  "web.colonel.customDomains.status.publicHomepage": {
+    "text": "Openbare startpagina",
+    "source_hash": "2ae3ccba"
+  },
+  "web.colonel.customDomains.status.publicApi": {
+    "text": "Openbare API",
+    "source_hash": "ab3aa426"
+  },
+  "web.colonel.customDomains.status.pending": {
+    "text": "In behandeling",
+    "source_hash": "331551b0"
+  },
+  "web.colonel.pagination.showing": {
+    "text": "{start}–{end} van {total} weergegeven",
+    "source_hash": "64af6de2"
+  },
+  "web.colonel.pagination.itemsPerPage": {
+    "text": "Items per pagina",
+    "source_hash": "766a02e0"
+  },
+  "web.colonel.pagination.perPage": {
+    "text": "{count} per pagina",
+    "source_hash": "34671d42"
+  },
+  "web.colonel.pagination.pageOf": {
+    "text": "Pagina {current} van {total}",
+    "source_hash": "f0df6412"
+  },
+  "web.colonel.secrets.empty": {
+    "text": "Geen berichten gevonden",
+    "source_hash": "28647b3b"
+  },
+  "web.colonel.secrets.never": {
+    "text": "Nooit",
+    "source_hash": "6300ef80"
+  },
+  "web.colonel.secrets.columns.shortId": {
+    "text": "Korte ID",
+    "source_hash": "7eaeb4a7"
+  },
+  "web.colonel.secrets.columns.state": {
+    "text": "Status",
+    "source_hash": "a3b50c47"
+  },
+  "web.colonel.secrets.columns.created": {
+    "text": "Aangemaakt",
+    "source_hash": "d70b9e24"
+  },
+  "web.colonel.secrets.columns.expiration": {
+    "text": "Verloopt",
+    "source_hash": "f38d6e0e"
+  },
+  "web.colonel.secrets.columns.age": {
+    "text": "Leeftijd (dagen)",
+    "source_hash": "52ae64c6"
+  },
+  "web.colonel.secrets.state.new": {
+    "text": "Nieuw",
+    "source_hash": "18fdd549"
+  },
+  "web.colonel.secrets.state.received": {
+    "text": "Ontvangen",
+    "source_hash": "49f19bee"
+  },
+  "web.colonel.secrets.state.viewed": {
+    "text": "Bekeken",
+    "source_hash": "1b28d178"
   }
 }

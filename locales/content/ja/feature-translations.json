@@ -1,18 +1,18 @@
 {
   "web.translations.welcomes_contributors_for_both_existing_and_new_": {
-    "text": "既存および新しい言語の両方の貢献者を歓迎します。",
+    "text": "既存の言語と新しい言語の両方について、貢献者を歓迎しています。",
     "source_hash": "87abcdeb"
   },
   "web.translations.our_github_project": {
-    "text": "GitHubプロジェクト",
+    "text": "当社のGitHubプロジェクト",
     "source_hash": "dabd28e2"
   },
   "web.translations.if_youre_interested_in_translation": {
-    "text": "翻訳に興味がある場合は、",
+    "text": "翻訳にご興味がある場合は、",
     "source_hash": "10056bff"
   },
   "web.translations.whove_helped_with_translations_as_we_continue_to": {
-    "text": "新機能の開発を続ける中で、翻訳を手伝ってくれた人々。",
+    "text": "新機能の開発を続ける中で、翻訳にご協力いただいた方々に感謝します。",
     "source_hash": "d629cc71"
   },
   "web.translations.25_contributors": {
@@ -20,15 +20,15 @@
     "source_hash": "080aa720"
   },
   "web.translations.were_grateful_to_the": {
-    "text": "感謝しています:",
+    "text": "心から感謝しています:",
     "source_hash": "cf446287"
   },
   "web.translations.as_we_add_new_features_our_translations_graduall": {
-    "text": "新機能を追加するにつれて、翻訳は徐々に更新が必要になります。これは、onetimesecret.comと世界中の何千ものセルフホスティングインストールの両方に影響します。",
+    "text": "新機能を追加するにつれて、翻訳を最新の状態に保つために徐々に更新が必要になります。これはonetimesecret.comと、世界中の数千のセルフホスト環境の両方に影響します。",
     "source_hash": "c6fb1cf5"
   },
   "web.translations.remember_to_include_your_email_if_youre_not_logg": {
-    "text": "- ログインしていない場合は、メールを含めることを忘れないでください。すべての翻訳は、より多くの人々が安全に通信するのに役立ちます。",
+    "text": "- ログインしていない場合は、メールアドレスを忘れずに記入してください。すべての翻訳が、より多くの人が安全にコミュニケーションを取るのに役立ちます。",
     "source_hash": "1a8ccc7d"
   },
   "web.translations.reach_out_to_us": {
@@ -36,35 +36,35 @@
     "source_hash": "fee7dd79"
   },
   "web.translations.have_questions": {
-    "text": "質問がありますか?",
+    "text": "ご質問はありますか？",
     "source_hash": "75e4b61a"
   },
   "web.translations.send_translations_by_email_to": {
-    "text": "翻訳をメールで送信:",
+    "text": "翻訳をメールで次の宛先にお送りください:",
     "source_hash": "f96a59a1"
   },
   "web.translations.english_template": {
-    "text": "英語テンプレート",
+    "text": "英語のテンプレート",
     "source_hash": "1a843644"
   },
   "web.translations.start_a_new_translation_from_our": {
-    "text": "以下から新しい翻訳を開始:",
+    "text": "次から新しい翻訳を始めてください:",
     "source_hash": "b963b7e9"
   },
   "web.translations.update_a_language_directly_through_our_github_pr": {
-    "text": "GitHubプロジェクトを通じて言語を直接更新する",
+    "text": "当社のGitHubプロジェクトを通じて、言語を直接更新する",
     "source_hash": "449cde87"
   },
   "web.translations.review_existing_translations_using_the_language_": {
-    "text": "上記の言語セレクターを使用して、既存の翻訳を確認する",
+    "text": "上の言語セレクターを使用して、既存の翻訳を確認する",
     "source_hash": "74ea57e9"
   },
   "web.translations.ready_to_help_some_ways_to_contribute": {
-    "text": "お手伝いする準備はできていますか？貢献方法はいくつかあります：",
+    "text": "協力する準備はできましたか？貢献する方法をいくつかご紹介します:",
     "source_hash": "13131e36"
   },
   "web.translations.the_following_people_have_donated_their_time_to_": {
-    "text": "以下の人々は、Onetime Secretの影響範囲を拡大するために時間を寄付してくれました：",
+    "text": "次の方々が、Onetime Secretの普及を広げるために時間を提供してくださいました:",
     "source_hash": "85a766af"
   },
   "web.translations.translations": {
@@ -76,19 +76,19 @@
     "source_hash": "bb60a45d"
   },
   "web.translations.your_language_skills_can_help_expand_access_to_s": {
-    "text": "あなたの言語スキルは、安全な通信へのアクセスを拡大するのに役立ちます。",
+    "text": "あなたの語学力が、安全なコミュニケーションへのアクセス拡大に役立ちます。",
     "source_hash": "ad22076b"
   },
   "web.translations.thanks_to_our_community_we_support_over_20_langu": {
-    "text": "コミュニティのおかげで、現在20以上の言語をサポートしています。しかし、急速な開発ペースにより、多くの翻訳は最新の状態を維持するために更新が必要です。これは、onetimesecret.comと世界中の何千ものセルフホスティングインストールの両方に影響します。",
+    "text": "コミュニティのおかげで、現在20以上の言語に対応しています。ただし、開発のペースが速いため、多くの翻訳を最新の状態に保つために更新が必要です。これはonetimesecret.comと、世界中の数千のセルフホスト環境の両方に影響します。",
     "source_hash": "ba5c4395"
   },
   "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
-    "text": "2012年以来、Onetime Secretは世界中で機密情報を安全に共有する方法を提供してきました。英語が主要言語ではない地域のユーザーがいるため、正確な翻訳は、安全なコミュニケーションを誰もがアクセスできるようにするために不可欠です。",
+    "text": "2012年以来、Onetime Secretは世界中で機密情報を安全に共有する方法を提供してきました。英語が主要言語でない地域にもユーザーがいるため、安全なコミュニケーションを誰もが利用できるようにするには、正確な翻訳が不可欠です。",
     "source_hash": "87a6e9af"
   },
   "web.translations.help_secure_communication_go_global": {
-    "text": "安全なコミュニケーションをグローバルに",
+    "text": "安全なコミュニケーションを世界中に広めるためにご協力ください",
     "source_hash": "e94bdc8e"
   }
 }

@@ -12,15 +12,15 @@
     "source_hash": "02b7b86b"
   },
   "web.dashboard.get_started_by_creating_your_first_secret": {
-    "text": "Begin door uw eerste bericht aan te maken.",
+    "text": "Ga aan de slag door je eerste bericht aan te maken.",
     "source_hash": "e96db24d"
   },
   "web.dashboard.fetch_error_title": {
-    "text": "Kan gegevens niet laden",
+    "text": "Gegevens kunnen niet worden geladen",
     "source_hash": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "Er was een probleem bij het laden van je gegevens. Probeer het opnieuw.",
+    "text": "Er is een probleem opgetreden bij het laden van je gegevens. Probeer het opnieuw.",
     "source_hash": "ff0d904e"
   }
 }

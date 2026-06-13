@@ -66,7 +66,7 @@
     "context": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
   },
   "web.auth.security.authentication_failed": {
-    "text": "Authenticatie mislukt. Controleer je inloggegevens en probeer het opnieuw.",
+    "text": "Authenticatie mislukt. Controleer je gegevens en probeer het opnieuw.",
     "source_hash": "b0eeece9"
   },
   "web.auth.security.rate_limited": {
@@ -82,7 +82,7 @@
     "source_hash": "f5f1bd09"
   },
   "web.auth.security.recovery_code_used": {
-    "text": "Deze herstelcode is al gebruikt. Elke code kan slechts één keer worden gebruikt.",
+    "text": "Deze herstelcode is al gebruikt. Elke code kan maar één keer worden gebruikt.",
     "source_hash": "b51d6820"
   },
   "web.auth.security.network_error": {
@@ -115,11 +115,11 @@
     "source_hash": "5d75aeb0"
   },
   "web.auth.magicLink.emailPlaceholder": {
-    "text": "Voer je e-mail in",
+    "text": "Voer je e-mailadres in",
     "source_hash": "2837f6fa"
   },
   "web.auth.magicLink.sendLink": {
-    "text": "Inloglink verzenden",
+    "text": "Inloglink versturen",
     "source_hash": "f5f52392"
   },
   "web.auth.magicLink.checkEmail": {
@@ -127,7 +127,7 @@
     "source_hash": "77322879"
   },
   "web.auth.magicLink.sentTo": {
-    "text": "We hebben een inloglink verzonden naar {email}",
+    "text": "We hebben een inloglink gestuurd naar {email}",
     "source_hash": "d9193f59"
   },
   "web.auth.magicLink.linkExpiresIn": {
@@ -147,7 +147,7 @@
     "source_hash": "9ff8cfaf"
   },
   "web.auth.magicLink.requestFailed": {
-    "text": "Verzenden van inloglink mislukt. Probeer het opnieuw.",
+    "text": "Versturen van inloglink mislukt. Probeer het opnieuw.",
     "source_hash": "4c685e97"
   },
   "web.auth.magicLink.invalidLink": {
@@ -199,7 +199,7 @@
     "source_hash": "63407e97"
   },
   "web.auth.webauthn.setupFailed": {
-    "text": "Biometrisch inloggen instellen mislukt",
+    "text": "Instellen van biometrisch inloggen mislukt",
     "source_hash": "290cca44"
   },
   "web.auth.webauthn.passwordRequired": {
@@ -232,12 +232,12 @@
     "source_hash": "c87ccdb4"
   },
   "web.auth.passkeys.description": {
-    "text": "Log in met Face ID, Touch ID, Windows Hello of een beveiligingssleutel",
+    "text": "Inloggen met Face ID, Touch ID, Windows Hello of een beveiligingssleutel",
     "context": "Description of passkey authentication",
     "source_hash": "a513ed5c"
   },
   "web.auth.passkeys.setup_description": {
-    "text": "Met passkeys log je veilig in zonder wachtwoord",
+    "text": "Met passkeys kun je veilig inloggen zonder wachtwoord",
     "context": "Setup page description",
     "source_hash": "85630bef"
   },
@@ -287,12 +287,12 @@
     "source_hash": "1d97fde4"
   },
   "web.auth.passkeys.no_passkeys_description": {
-    "text": "Voeg een passkey toe om veiliger in te loggen zonder wachtwoord",
+    "text": "Voeg een passkey toe om veiliger in te loggen zonder een wachtwoord in te voeren",
     "context": "Description for empty state",
     "source_hash": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "Passkey naam",
+    "text": "Naam van passkey",
     "context": "Label for passkey name field",
     "source_hash": "22eefa67"
   },
@@ -322,7 +322,7 @@
     "source_hash": "5a0ce96c"
   },
   "web.auth.passkeys.benefit_synced": {
-    "text": "Gesynchroniseerd tussen je apparaten bij gebruik van platform-authenticators",
+    "text": "Gesynchroniseerd op al je apparaten bij gebruik van platformauthenticators",
     "context": "Passkey benefit",
     "source_hash": "7480c7ae"
   },
@@ -344,11 +344,11 @@
     "source_hash": "1a8f382e"
   },
   "web.auth.lockout.contact_support": {
-    "text": "Neem contact op met de ondersteuning als je directe toegang nodig hebt",
+    "text": "Neem contact op met support als je direct toegang nodig hebt",
     "source_hash": "23d82e46"
   },
   "web.auth.lockout.try_password_reset": {
-    "text": "Je kunt in plaats daarvan je wachtwoord resetten",
+    "text": "Je kunt in plaats daarvan je wachtwoord opnieuw instellen",
     "source_hash": "a98a3f9d"
   },
   "web.auth.sessions._guidance": {
@@ -392,7 +392,7 @@
     "source_hash": "c3812fc4"
   },
   "web.auth.sessions.remove_all": {
-    "text": "Alle andere sessies uitloggen",
+    "text": "Uitloggen op alle andere sessies",
     "source_hash": "412bb9e2"
   },
   "web.auth.sessions.confirm_remove": {
@@ -400,7 +400,7 @@
     "source_hash": "ef12c1ba"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "Dit logt je uit op alle andere apparaten. Weet je het zeker?",
+    "text": "Hiermee word je uitgelogd op alle andere apparaten. Weet je het zeker?",
     "source_hash": "4a1a73e9"
   },
   "web.auth.sessions.no_sessions": {
@@ -452,7 +452,7 @@
     "source_hash": "efd0134a"
   },
   "web.auth.mfa.step_verify": {
-    "text": "2. Verifieer installatie",
+    "text": "2. Instelling verifiëren",
     "source_hash": "59bba5f7"
   },
   "web.auth.mfa.scan_qr": {
@@ -464,7 +464,7 @@
     "source_hash": "3ea15b3e"
   },
   "web.auth.mfa.verify_code": {
-    "text": "Voer de 6-cijferige code van je app in",
+    "text": "Voer de 6-cijferige code uit je app in",
     "source_hash": "38f61733"
   },
   "web.auth.mfa.enter_code": {
@@ -484,7 +484,7 @@
     "source_hash": "217de0fc"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "Ongeldige code. Codes verlopen elke 30 seconden. Probeer de nieuwste code van je authenticator-app.",
+    "text": "Ongeldige code. Codes verlopen elke 30 seconden. Probeer de nieuwste code uit je authenticator-app.",
     "source_hash": "94b58889"
   },
   "web.auth.mfa.success_enabled": {
@@ -504,7 +504,7 @@
     "source_hash": "e7cf3ef4"
   },
   "web.auth.mfa.password_reason": {
-    "text": "Bevestig je identiteit om tweefactorauthenticatie-instellingen te wijzigen",
+    "text": "Bevestig je identiteit om de instellingen voor tweefactorauthenticatie te wijzigen",
     "source_hash": "09a96c07"
   },
   "web.auth.mfa.last_used": {
@@ -548,7 +548,7 @@
     "source_hash": "06d9123b"
   },
   "web.auth.mfa.benefit_unauthorized": {
-    "text": "Voorkom ongeautoriseerde toegang zelfs als je wachtwoord is gecompromitteerd",
+    "text": "Voorkom ongeautoriseerde toegang, zelfs als je wachtwoord is gecompromitteerd",
     "source_hash": "61d99c71"
   },
   "web.auth.mfa.benefit_apps": {
@@ -556,7 +556,7 @@
     "source_hash": "6ee8ab12"
   },
   "web.auth.mfa.benefit_recovery": {
-    "text": "Back-up herstelcodes voor noodtoegang",
+    "text": "Back-upherstelcodes voor noodtoegang",
     "source_hash": "747917bb"
   },
   "web.auth.mfa.password_placeholder": {
@@ -584,7 +584,7 @@
     "source_hash": "4da96e87"
   },
   "web.auth.mfa.enter_code_description": {
-    "text": "Voer de 6-cijferige code van je authenticator-app in",
+    "text": "Voer de 6-cijferige code uit je authenticator-app in",
     "source_hash": "a160dee6"
   },
   "web.auth.mfa.enable_and_continue": {
@@ -592,7 +592,7 @@
     "source_hash": "37c8090d"
   },
   "web.auth.mfa.complete_setup": {
-    "text": "Installatie voltooien",
+    "text": "Instelling voltooien",
     "source_hash": "30e87601"
   },
   "web.auth.mfa.enter_recovery_code": {
@@ -624,7 +624,7 @@
     "source_hash": "8c44a306"
   },
   "web.auth.mfa.enter_all_digits": {
-    "text": "Voer alle 6 cijfers in om door te gaan",
+    "text": "Voer alle 6 de cijfers in om door te gaan",
     "source_hash": "7914f7b2"
   },
   "web.auth.mfa.digit_of_count": {
@@ -636,15 +636,15 @@
     "source_hash": "579c7f4e"
   },
   "web.auth.recovery_codes.description": {
-    "text": "Bewaar deze codes op een veilige plek. Elke code kan één keer worden gebruikt als je geen toegang meer hebt tot je authenticator.",
+    "text": "Bewaar deze codes op een veilige plek. Elke code kan eenmaal worden gebruikt als je de toegang tot je authenticator verliest.",
     "source_hash": "87aebdfb"
   },
   "web.auth.recovery_codes.warning": {
-    "text": "Deze codes worden slechts één keer getoond",
+    "text": "Deze codes worden maar één keer getoond",
     "source_hash": "d13f2877"
   },
   "web.auth.recovery_codes.save_required": {
-    "text": "Je moet je herstelcodes downloaden of kopiëren voordat je de installatie voltooit.",
+    "text": "Je moet je herstelcodes downloaden of kopiëren voordat je de instelling voltooit.",
     "source_hash": "6b97bc6d"
   },
   "web.auth.recovery_codes.generate_new": {
@@ -656,7 +656,7 @@
     "source_hash": "aa652d21"
   },
   "web.auth.recovery_codes.generate_new_warning": {
-    "text": "Dit maakt alle bestaande herstelcodes ongeldig",
+    "text": "Hierdoor worden alle bestaande herstelcodes ongeldig",
     "source_hash": "9795a175"
   },
   "web.auth.recovery_codes.download": {
@@ -696,7 +696,7 @@
     "source_hash": "b5d484e7"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "Elke code kan slechts één keer worden gebruikt. Genereer nieuwe codes als je er weinig over hebt.",
+    "text": "Elke code kan maar één keer worden gebruikt. Genereer nieuwe codes als je er bijna doorheen bent.",
     "source_hash": "737a7702"
   },
   "web.auth.recovery_codes.none_remaining": {
@@ -704,7 +704,7 @@
     "source_hash": "9ae26d68"
   },
   "web.auth.recovery_codes.generate_success": {
-    "text": "Nieuwe herstelcodes zijn gegenereerd",
+    "text": "Er zijn nieuwe herstelcodes gegenereerd",
     "source_hash": "831cb1aa"
   },
   "web.auth.recovery_codes.link_title": {
@@ -712,9 +712,21 @@
     "source_hash": "579c7f4e"
   },
   "web.auth.security._guidance.context": {
-    "text": "⚠️ BEVEILIGINGSKRITISCH: Berichten voorkomen informatielekken. Zie src/locales/SECURITY-TRANSLATION-GUIDE.md"
+    "text": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
   },
   "web.auth.sessions._guidance.context": {
-    "text": "Beheerpagina voor ingelogde apparaten/browsers van de gebruiker"
+    "text": "User's logged-in devices/browsers management page"
+  },
+  "web.auth.mfa.alternative_auth_options": {
+    "text": "Alternatieve authenticatieopties",
+    "source_hash": "5ddea736"
+  },
+  "web.auth.sessions.session_singular": {
+    "text": "sessie",
+    "source_hash": "3f3af1ec"
+  },
+  "web.auth.sessions.session_plural": {
+    "text": "sessies",
+    "source_hash": "1225ae6c"
   }
 }

@@ -24,7 +24,7 @@
     "source_hash": "db3183e3"
   },
   "web.branding.preview_of_the_secret_link_page_for_recipients": {
-    "text": "セキュアリンクにアクセスする受信者の表示のプレビュー",
+    "text": "セキュアリンクにアクセスした際の受信者の表示プレビュー",
     "source_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
@@ -32,7 +32,7 @@
     "source_hash": "215d3659"
   },
   "web.branding.switch_to_safari_browser_view": {
-    "text": "Safariブラウザビューに切り替え",
+    "text": "Safariブラウザ表示に切り替える",
     "source_hash": "6e0fe791"
   },
   "web.branding.microsoft_edge": {
@@ -48,7 +48,7 @@
     "source_hash": "5cd54386"
   },
   "web.branding.switch_to_edge_browser_view": {
-    "text": "Edgeブラウザビューに切り替え",
+    "text": "Edgeブラウザ表示に切り替える",
     "source_hash": "a8fcd82d"
   },
   "web.branding.charactercount_500_characters": {
@@ -64,19 +64,19 @@
     "source_hash": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
-    "text": "これらの指示は、受信者がシークレットの内容を表示する前に表示されます",
+    "text": "この説明は、受信者がシークレットの内容を表示する前に表示されます",
     "source_hash": "9d5a6334"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_after": {
-    "text": "これらの指示は、受信者がシークレットを表示した後に表示されます",
+    "text": "この説明は、受信者がシークレットを表示した後に表示されます",
     "source_hash": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "公開前の説明",
+    "text": "表示前の説明",
     "source_hash": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "公開後の説明",
+    "text": "表示後の説明",
     "source_hash": "72ecc23a"
   },
   "web.branding.instructions": {
@@ -88,7 +88,7 @@
     "source_hash": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
-    "text": "クリックしてロゴをアップロードします。推奨サイズ：128x128ピクセル。最大ファイルサイズ：1MB。サポートされている形式：PNG、JPG、SVG",
+    "text": "クリックしてロゴをアップロードします。推奨サイズ: 128x128ピクセル。最大ファイルサイズ: 1MB。対応形式: PNG、JPG、SVG",
     "source_hash": "a35452bf"
   },
   "web.branding.upload_logo": {
@@ -96,11 +96,11 @@
     "source_hash": "c3330082"
   },
   "web.branding.loading_preview": {
-    "text": "プレビューを読み込み中...",
+    "text": "プレビューを読み込んでいます...",
     "source_hash": "c02130fa"
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
-    "text": "「シークレットを表示」ボタンをテストして、受信者がどのようにあなたのシークレットを見るかをプレビューします",
+    "text": "「シークレットを表示」ボタンを試して、受信者にシークレットがどのように表示されるかをプレビューします",
     "source_hash": "3b58a297"
   },
   "web.branding.eye_icon": {
@@ -108,7 +108,7 @@
     "source_hash": "7f605d3c"
   },
   "web.branding.click_the_preview_image_below_to_update_your_logo": {
-    "text": "以下のプレビュー画像をクリックして、ロゴを更新します（最小128x128ピクセル推奨、最大1MB）",
+    "text": "下のプレビュー画像をクリックしてロゴを更新します（128x128ピクセル以上を推奨、最大1MB）",
     "source_hash": "77a19049"
   },
   "web.branding.image_icon": {
@@ -116,7 +116,7 @@
     "source_hash": "b0d64fcf"
   },
   "web.branding.use_the_controls_above_to_customize_brand_details": {
-    "text": "上のコントロールを使用して、ブランドの色、スタイル、受信者への指示をカスタマイズします",
+    "text": "上のコントロールを使用して、ブランドカラー、スタイル、受信者への説明をカスタマイズします",
     "source_hash": "d6287134"
   },
   "web.branding.customization_icon": {
@@ -124,7 +124,7 @@
     "source_hash": "bde04d31"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
-    "text": "保存されていない変更があります。よろしいですか？",
+    "text": "保存されていない変更があります。よろしいですか?",
     "source_hash": "184b6a83"
   },
   "web.branding.failed_to_load_brand_settings": {
@@ -132,19 +132,19 @@
     "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "これは、受信者があなたの安全なメッセージをどのように見るかのインタラクティブなプレビューです。次のことができます： - 上部のコントロールを使用して色とフォントをカスタマイズ - ロゴをアップロード（最小128x128ピクセル推奨、最大1MB） - 「秘密を表示」ボタンを使用してプレビューをテスト",
+    "text": "これは、受信者にセキュアメッセージがどのように表示されるかのインタラクティブなプレビューです。次のことができます: - 上のコントロールを使用して色とフォントをカスタマイズ - ロゴをアップロード（128x128ピクセル以上を推奨、最大1MB） - 「シークレットを表示」ボタンでプレビューをテスト",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
-    "text": "これは、受信者があなたの安全なメッセージをどのように見るかのインタラクティブなプレビューです。次のことができます： - 上部のコントロールを使用して色とフォントをカスタマイズ - ロゴをアップロード（最小128x128ピクセル推奨、最大1MB） - 「秘密を表示」ボタンを使用してプレビューをテスト",
+    "text": "これは、受信者にセキュアメッセージがどのように表示されるかのインタラクティブなプレビューです。次のことができます: - 上のコントロールを使用して色とフォントをカスタマイズ - ロゴをアップロード（128x128ピクセル以上を推奨、最大1MB） - 「シークレットを表示」ボタンでプレビューをテスト",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
-    "text": "日本語の漢字「秘」(ひみつ) - 「秘密」または「機密」を意味する",
+    "text": "「秘」（ひみつ）の漢字。「秘密」または「機密」を意味します",
     "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Powered by Onetime Secret",
+    "text": "提供: Onetime Secret",
     "source_hash": "935442d0"
   },
   "web.branding.heading_logo": {
@@ -156,7 +156,7 @@
     "source_hash": "0f82fe72"
   },
   "web.branding.switch_to_edge_preview": {
-    "text": "Edgeプレビューに切り替え",
+    "text": "Edgeプレビューに切り替える",
     "source_hash": "83883d84"
   },
   "web.branding.safari": {
@@ -164,11 +164,15 @@
     "source_hash": "5f033039"
   },
   "web.branding.switch_to_safari_preview": {
-    "text": "Safariプレビューに切り替え",
+    "text": "Safariプレビューに切り替える",
     "source_hash": "f24ac447"
   },
   "web.branding.upgrade_to_customize": {
-    "text": "このドメインのブランディングをカスタマイズするにはプランをアップグレードしてください。",
+    "text": "このドメインのブランディングをカスタマイズするには、プランをアップグレードしてください。",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "ブランド設定が正常に保存されました",
+    "source_hash": "9960c252"
   }
 }

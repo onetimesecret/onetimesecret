@@ -1,18 +1,18 @@
 {
   "web.errors.why_is_this_secret_unavailable": {
-    "text": "このシークレットが利用できない理由は?",
+    "text": "このシークレットが利用できないのはなぜですか？",
     "source_hash": "bd545472"
   },
   "web.errors.secrets_are_designed_to_be_viewed_only_once": {
-    "text": "シークレットは一度だけ表示されるように設計されています。このリンクはすでにアクセスされたか、期限切れになったか、送信者によって手動で削除された可能性があります。",
+    "text": "シークレットは1回だけ閲覧できるように設計されています。このリンクはすでにアクセスされたか、期限切れになったか、送信者によって手動で削除された可能性があります。",
     "source_hash": "44c54ed2"
   },
   "web.errors.what_should_i_do_now": {
-    "text": "どうすればいいですか?",
+    "text": "今、何をすればよいですか？",
     "source_hash": "fbf3e67f"
   },
   "web.errors.contact_the_person_who_sent_you_this_link": {
-    "text": "このリンクを送信した人に連絡し、新しいシークレットを作成するよう依頼してください。元の情報にアクセスできなかったことを伝えてください。",
+    "text": "このリンクを送信した相手に連絡し、新しいシークレットの作成を依頼してください。元の情報にアクセスできなかったことをお伝えください。",
     "source_hash": "d9f4f41a"
   },
   "web.errors.warning_dismissed": {
@@ -44,27 +44,27 @@
     "source_hash": "b7bb3f34"
   },
   "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
-    "text": "次に何をすべきか分からない場合は、このリンクを送信した人に詳細な情報を確認してください。",
+    "text": "次に何をすればよいかわからない場合は、このリンクを送信した相手に連絡して詳細をご確認ください。",
     "source_hash": "0df00d3f"
   },
   "web.errors.information_shared_through_our_service_can_only_": {
-    "text": "私たちのサービスを通じて共有された情報は一度だけアクセスできます。一度表示されると、コンテンツは機密性を確保するために私たちのサーバーから完全に削除されます。このアプローチは、露出を制限し、不正アクセスを防止することで、機密データを保護するのに役立ちます。",
+    "text": "当社のサービスを通じて共有された情報は、1回だけアクセスできます。閲覧されると、機密性を確保するため、内容は当社のサーバーから完全に削除されます。この仕組みにより、機密データの露出を制限し、不正アクセスを防止することで、データを保護します。",
     "source_hash": "a3fd8283"
   },
   "web.errors.were_sorry_but_an_unexpected_error_occurred_whil": {
-    "text": "申し訳ありませんが、リクエストの処理中に予期しないエラーが発生しました。チームに通知されており、修正に取り組んでいます。",
+    "text": "申し訳ありませんが、リクエストの処理中に予期しないエラーが発生しました。当社のチームに通知され、修正に取り組んでいます。",
     "source_hash": "f3b50965"
   },
   "web.errors.t_web_common_oops_something_went_wrong": {
-    "text": "{0} 何かがうまくいきませんでした",
+    "text": "{0} 問題が発生しました",
     "source_hash": "93529f24"
   },
   "web.errors.go_share_a_secret": {
-    "text": "シークレットを共有しましょう!",
+    "text": "シークレットを共有しましょう！",
     "source_hash": "04c04b1a"
   },
   "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
-    "text": "お探しのページは存在しないか、移動された可能性があります。心配しないでください、誰にでも起こることです！",
+    "text": "お探しのページは存在しないか、移動されました。ご心配なく、誰にでも起こることです。",
     "source_hash": "e26522de"
   },
   "web.errors.t_web_common_oops_404": {
@@ -72,7 +72,7 @@
     "source_hash": "ba5b5737"
   },
   "web.errors.unable_to_load_data_due_to_data_format_issues_pl": {
-    "text": "データ形式の問題によりデータを読み込めません。後でもう一度お試しください。",
+    "text": "データ形式の問題により、データを読み込めません。しばらくしてからもう一度お試しください。",
     "source_hash": "a7b6f998"
   }
 }

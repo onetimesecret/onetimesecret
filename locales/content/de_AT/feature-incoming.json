@@ -1,6 +1,6 @@
 {
   "incoming.page_title": {
-    "text": "Ein Geheimnis senden",
+    "text": "Eine Nachricht senden",
     "source_hash": "f83b6303"
   },
   "incoming.page_description": {
@@ -8,7 +8,7 @@
     "source_hash": "08beca74"
   },
   "incoming.loading_config": {
-    "text": "Wird geladen...",
+    "text": "Lädt...",
     "source_hash": "47d2a515"
   },
   "incoming.config_error_title": {
@@ -20,7 +20,7 @@
     "source_hash": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
-    "text": "Diese Funktion ist derzeit deaktiviert. Bitte kontaktieren Sie den Support für Hilfe.",
+    "text": "Diese Funktion ist derzeit deaktiviert. Bitte wenden Sie sich an den Support.",
     "source_hash": "f13fbf2b"
   },
   "incoming.memo_label": {
@@ -28,7 +28,7 @@
     "source_hash": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "Kurze Beschreibung (z.B. Passwortzurücksetzungsanfrage)",
+    "text": "Kurze Beschreibung (z. B. Anfrage zum Zurücksetzen des Passworts)",
     "source_hash": "16bf83fd"
   },
   "incoming.memo_hint": {
@@ -40,23 +40,23 @@
     "source_hash": "9bcbb3bc"
   },
   "incoming.recipient_placeholder": {
-    "text": "Wählen Sie einen Empfänger",
+    "text": "Empfänger auswählen",
     "source_hash": "4eb1ed54"
   },
   "incoming.recipient_aria_label": {
-    "text": "Wählen Sie einen Empfänger für dieses Geheimnis",
+    "text": "Wählen Sie einen Empfänger für diese Nachricht aus",
     "source_hash": "c98ac75f"
   },
   "incoming.recipient_hint": {
-    "text": "Wählen Sie, wer diese sichere Nachricht erhalten soll",
+    "text": "Wählen Sie aus, wer diese sichere Nachricht erhalten soll",
     "source_hash": "0dfafc45"
   },
   "incoming.no_recipients_available": {
-    "text": "Keine Empfänger verfügbar",
+    "text": "Es sind keine Empfänger verfügbar",
     "source_hash": "62834334"
   },
   "incoming.secret_content_label": {
-    "text": "Geheime Informationen",
+    "text": "Vertrauliche Informationen",
     "source_hash": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
@@ -64,15 +64,15 @@
     "source_hash": "7d7abb48"
   },
   "incoming.secret_content_hint": {
-    "text": "Diese Informationen werden verschlüsselt und sind nur einmal einsehbar",
+    "text": "Diese Informationen werden verschlüsselt und können nur einmal angesehen werden",
     "source_hash": "f9151d61"
   },
   "incoming.submit_button": {
-    "text": "Geheimnis senden",
+    "text": "Nachricht senden",
     "source_hash": "2a09f5e0"
   },
   "incoming.submit_secret": {
-    "text": "Geheimnis senden",
+    "text": "Nachricht senden",
     "source_hash": "2a09f5e0"
   },
   "incoming.submitting_button": {
@@ -84,11 +84,11 @@
     "source_hash": "286a3af7"
   },
   "incoming.reset_button": {
-    "text": "Formular löschen",
+    "text": "Formular leeren",
     "source_hash": "f6c2bb83"
   },
   "incoming.reset_form": {
-    "text": "Formular löschen",
+    "text": "Formular leeren",
     "source_hash": "f6c2bb83"
   },
   "incoming.success_title": {
@@ -108,11 +108,11 @@
     "source_hash": "c72895ba"
   },
   "incoming.success_info_description": {
-    "text": "Der Empfänger kann dieses Geheimnis nur einmal ansehen. Nachdem er es angesehen hat, wird das Geheimnis dauerhaft gelöscht.",
+    "text": "Der Empfänger kann diese Nachricht nur einmal ansehen. Nach dem Ansehen wird die Nachricht dauerhaft gelöscht.",
     "source_hash": "8120bd40"
   },
   "incoming.create_another": {
-    "text": "Ein weiteres Geheimnis senden",
+    "text": "Weitere Nachricht senden",
     "source_hash": "8a61d95c"
   },
   "incoming.tagline1": {
@@ -120,7 +120,7 @@
     "source_hash": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "Halten Sie Passwörter und private Daten aus E-Mail- und Chat-Protokollen fern",
+    "text": "Halten Sie Passwörter und private Daten aus E-Mails und Chat-Protokollen heraus",
     "source_hash": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
@@ -130,5 +130,33 @@
   "incoming.receipt_link_text": {
     "text": "Beleg",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Upgrade erforderlich",
+    "source_hash": "16487236"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Diese Funktion erfordert ein Upgrade Ihres Tarifs. Bitte wenden Sie sich an den Kontoeigentümer, um eingehende Nachrichten zu aktivieren.",
+    "source_hash": "5df7f715"
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Die Notiz darf höchstens {max} Zeichen lang sein",
+    "source_hash": "5727f2d3"
+  },
+  "incoming.validation_secret_required": {
+    "text": "Der Nachrichteninhalt ist erforderlich",
+    "source_hash": "699783c9"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Bitte wählen Sie einen Empfänger aus",
+    "source_hash": "67bb4666"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "Die Funktion für eingehende Nachrichten ist nicht aktiviert",
+    "source_hash": "0616d3f4"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Bitte überprüfen Sie das Formular auf Fehler",
+    "source_hash": "9056e064"
   }
 }

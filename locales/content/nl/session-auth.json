@@ -1,10 +1,10 @@
 {
   "web.login.alternate_prefix": {
-    "text": "Heb je een account nodig?",
+    "text": "Nog geen account?",
     "source_hash": "8b827e19"
   },
   "web.login.need_an_account": {
-    "text": "Aanmelden.",
+    "text": "Meld je aan.",
     "source_hash": "10647723"
   },
   "web.login.forgot_your_password": {
@@ -16,7 +16,7 @@
     "source_hash": "bcc0bcc9"
   },
   "web.login.enter_your_credentials": {
-    "text": "Voer je inloggegevens in",
+    "text": "Voer je gegevens in",
     "source_hash": "07e1c44e"
   },
   "web.login.remember_me": {
@@ -24,11 +24,11 @@
     "source_hash": "f93267aa"
   },
   "web.login.send_sign_in_link": {
-    "text": "Inloglink verzenden",
+    "text": "Inloglink versturen",
     "source_hash": "b1402b67"
   },
   "web.login.secure_link_helper": {
-    "text": "Een beveiligde link wordt naar je e-mailinbox verzonden.",
+    "text": "Er wordt een beveiligde link naar je e-mailinbox gestuurd.",
     "source_hash": "d31d20cf"
   },
   "web.login.or_divider": {
@@ -40,7 +40,7 @@
     "source_hash": "bedac809"
   },
   "web.login.use_passwordless": {
-    "text": "Wachtwoordloos inloggen",
+    "text": "Inloggen zonder wachtwoord gebruiken",
     "source_hash": "dddc0097"
   },
   "web.login.create_account": {
@@ -56,7 +56,7 @@
     "source_hash": "e7cf3ef4"
   },
   "web.login.tab_magic_link": {
-    "text": "Magische link",
+    "text": "Magic link",
     "source_hash": "7a9ba11a"
   },
   "web.login.tab_passkey": {
@@ -68,7 +68,7 @@
     "source_hash": "c225cdfb"
   },
   "web.login.or_continue_with": {
-    "text": "Of doorgaan met",
+    "text": "Of ga verder met",
     "source_hash": "eb4e8d3b"
   },
   "web.login.sign_in_with_sso": {
@@ -80,27 +80,27 @@
     "source_hash": "b8794f11"
   },
   "web.auth.sso.signing_in": {
-    "text": "Doorsturen naar identiteitsprovider...",
+    "text": "Doorverwijzen naar identity provider...",
     "source_hash": "4d1213f9"
   },
   "web.auth.sso.error": {
-    "text": "SSO-aanmelding mislukt. Probeer het opnieuw.",
+    "text": "SSO-inloggen mislukt. Probeer het opnieuw.",
     "source_hash": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
-    "text": "SSO-authenticatie mislukt. Probeer het opnieuw of gebruik wachtwoord-login.",
+    "text": "SSO-authenticatie mislukt. Probeer het opnieuw of log in met een wachtwoord.",
     "source_hash": "13a2210a"
   },
   "web.login.errors.token_missing": {
-    "text": "De authenticatielink is onvolledig. Vraag een nieuwe aanmeldlink aan.",
+    "text": "De authenticatielink is onvolledig. Vraag een nieuwe inloglink aan.",
     "source_hash": "f4a10652"
   },
   "web.login.errors.token_expired": {
-    "text": "Deze aanmeldlink is verlopen. Vraag een nieuwe aan.",
+    "text": "Deze inloglink is verlopen. Vraag een nieuwe aan.",
     "source_hash": "f0de42ec"
   },
   "web.login.errors.token_invalid": {
-    "text": "Deze aanmeldlink is ongeldig. Vraag een nieuwe aan.",
+    "text": "Deze inloglink is ongeldig. Vraag een nieuwe aan.",
     "source_hash": "270c6401"
   },
   "web.signup.create_your_account": {
@@ -116,7 +116,7 @@
     "source_hash": "6c52846f"
   },
   "web.signup.error_title": {
-    "text": "Fout bij account aanmaken",
+    "text": "Fout bij aanmaken account",
     "source_hash": "e380a0b6"
   },
   "web.signup.password_error": {
@@ -151,7 +151,7 @@
     "source_hash": "cec1312b"
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "Kan account niet verifiëren. Probeer het opnieuw of neem contact op met de ondersteuning.",
+    "text": "Account kan niet worden geverifieerd. Probeer het opnieuw of neem contact op met support.",
     "source_hash": "c0df463f"
   },
   "web.auth.verify.check_email": {
@@ -171,15 +171,15 @@
     "source_hash": "00eeea79"
   },
   "web.auth.verify.check_email_help": {
-    "text": "Controleer je e-mail voor de meest recente verificatielink",
+    "text": "Controleer je e-mail op de meest recente verificatielink",
     "source_hash": "1c4a5748"
   },
   "web.auth.verify.check_spam": {
-    "text": "Controleer je spam/ongewenste e-mail map als je de e-mail niet kunt vinden",
+    "text": "Controleer je spam-/ongewenste-mailmap als je de e-mail niet kunt vinden",
     "source_hash": "ae481e5e"
   },
   "web.auth.verify.contact_support": {
-    "text": "Neem contact op met de ondersteuning als je problemen blijft ondervinden",
+    "text": "Neem contact op met support als je problemen blijft houden",
     "source_hash": "c0067275"
   },
   "web.auth.verify.missing_key_title": {
@@ -187,7 +187,7 @@
     "source_hash": "e0b448ac"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "Gebruik de verificatielink die naar je e-mailadres is verzonden om je account te verifiëren.",
+    "text": "Gebruik de verificatielink die naar je e-mailadres is gestuurd om je account te verifiëren.",
     "source_hash": "b1a8cfc6"
   },
   "web.auth.verify.create_new_account": {
@@ -215,7 +215,7 @@
     "source_hash": "01103d45"
   },
   "web.auth.change_password.error": {
-    "text": "Wachtwoord wijzigen mislukt. Controleer je huidige wachtwoord en probeer het opnieuw.",
+    "text": "Wijzigen van wachtwoord mislukt. Controleer je huidige wachtwoord en probeer het opnieuw.",
     "source_hash": "1aa11b3f"
   },
   "web.auth.close_account.title": {
@@ -227,7 +227,7 @@
     "source_hash": "f12de64e"
   },
   "web.auth.close_account.confirm": {
-    "text": "Ik begrijp dat deze actie permanent is",
+    "text": "Ik begrijp dat deze actie definitief is",
     "source_hash": "b44b1366"
   },
   "web.auth.close_account.password": {
@@ -243,15 +243,15 @@
     "source_hash": "19766ed6"
   },
   "web.auth.password_reset_request.title": {
-    "text": "Wachtwoordreset aanvragen",
+    "text": "Wachtwoordherstel aanvragen",
     "source_hash": "456d421c"
   },
   "web.auth.password_reset_request.description": {
-    "text": "Voer hieronder je e-mailadres in en we sturen je een link om je wachtwoord te resetten",
+    "text": "Voer hieronder je e-mailadres in en we sturen je een link om je wachtwoord opnieuw in te stellen",
     "source_hash": "31c5f80f"
   },
   "web.auth.password_reset_request.button": {
-    "text": "Resetlink verzenden",
+    "text": "Herstellink versturen",
     "source_hash": "7d5f16d4"
   },
   "web.auth.password_reset.title": {
@@ -260,11 +260,11 @@
     "source_hash": "3dfdf7c4"
   },
   "web.auth.password_reset.description": {
-    "text": "Voer hieronder je nieuwe wachtwoord in. Zorg ervoor dat het sterk en uniek is om je account te beschermen.",
+    "text": "Voer hieronder je nieuwe wachtwoord in. Zorg dat het sterk en uniek is om je account te beschermen.",
     "source_hash": "5c789083"
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "Er is een e-mail naar je verzonden met een link om het wachtwoord van je account te resetten",
+    "text": "Er is een e-mail naar je gestuurd met een link om het wachtwoord voor je account opnieuw in te stellen",
     "source_hash": "63a6af45"
   },
   "web.auth.terms.agree_prefix": {
@@ -272,7 +272,7 @@
     "source_hash": "26a58d00"
   },
   "web.auth.account.title": {
-    "text": "Accountinformatie",
+    "text": "Accountgegevens",
     "context": "User account overview/dashboard section",
     "source_hash": "4e59b6c7"
   },
@@ -341,19 +341,19 @@
     "source_hash": "e1513814"
   },
   "web.help.title": {
-    "text": "Help en ondersteuning",
+    "text": "Help en support",
     "source_hash": "1f8ecc24"
   },
   "web.help.signin_troubleshooting": {
-    "text": "Probleemoplossing bij inloggen",
+    "text": "Problemen met inloggen oplossen",
     "source_hash": "a9a88a01"
   },
   "web.help.magic_link_not_arriving": {
-    "text": "Magische link komt niet aan?",
+    "text": "Magic link komt niet aan?",
     "source_hash": "6919ce70"
   },
   "web.help.check_spam_folder": {
-    "text": "Controleer je spam- of ongewenste e-mailmap",
+    "text": "Controleer je spam- of ongewenste-mailmap",
     "source_hash": "813fe2d8"
   },
   "web.help.check_email_spelling": {
@@ -373,7 +373,7 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Gebruik de optie Magische link om in te loggen zonder wachtwoord. Eenmaal ingelogd kun je je wachtwoord wijzigen in Accountinstellingen.",
+    "text": "Je kunt een link voor wachtwoordherstel aanvragen om een nieuw wachtwoord aan te maken.",
     "source_hash": "2a058600"
   },
   "web.help.account_locked": {
@@ -381,22 +381,50 @@
     "source_hash": "ef1251c1"
   },
   "web.help.account_locked_explanation": {
-    "text": "Na meerdere mislukte inlogpogingen worden accounts tijdelijk vergrendeld voor de veiligheid. Wacht 15 minuten en probeer het opnieuw, of gebruik Magische link om in te loggen.",
+    "text": "Na meerdere mislukte inlogpogingen worden accounts om veiligheidsredenen tijdelijk vergrendeld. Wacht 15 minuten en probeer het opnieuw, of gebruik een magic link om in te loggen.",
     "source_hash": "4b2cf891"
   },
   "web.help.still_need_help": {
-    "text": "Nog steeds hulp nodig?",
+    "text": "Heb je nog hulp nodig?",
     "source_hash": "5ff7d19e"
   },
   "web.help.contact_us_description": {
-    "text": "Als je nog steeds problemen ondervindt, staan we klaar om te helpen. Stuur ons een bericht en we nemen zo snel mogelijk contact met je op.",
+    "text": "Als je nog steeds problemen hebt, helpen we je graag. Stuur ons een bericht en we nemen zo snel mogelijk contact met je op.",
     "source_hash": "d97c90fe"
   },
   "web.help.contact_support": {
-    "text": "Contact ondersteuning",
+    "text": "Contact opnemen met support",
     "source_hash": "f8d47b82"
   },
   "web.auth.verify._guidance.context": {
-    "text": "E-mailverificatieproces na aanmelden"
+    "text": "Email verification flow after signup"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "SSO-account",
+    "source_hash": "b8f4c728"
+  },
+  "web.help.reset_password_link": {
+    "text": "Wachtwoord opnieuw instellen",
+    "source_hash": "e0edfeb3"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "Single sign-on is beschikbaar voor dit domein",
+    "source_hash": "af87d51e"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "De organisatiebeheerder kan SSO inschakelen zodat teamleden hier kunnen inloggen. Neem contact op met de beheerder voor toegang.",
+    "source_hash": "f3726509"
+  },
+  "web.login.errors.sso_not_configured": {
+    "text": "Single sign-on is niet geconfigureerd voor dit domein. Neem contact op met je beheerder.",
+    "source_hash": "b39ef93e"
+  },
+  "web.login.errors.invalid_email": {
+    "text": "Het e-mailadres van je identity provider is ongeldig. Neem contact op met je beheerder.",
+    "source_hash": "10c12029"
+  },
+  "web.login.errors.domain_not_allowed": {
+    "text": "Je e-maildomein is niet geautoriseerd voor SSO-aanmelding. Neem contact op met je beheerder.",
+    "source_hash": "87603782"
   }
 }

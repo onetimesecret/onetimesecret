@@ -4,7 +4,7 @@
     "source_hash": "ba42602c"
   },
   "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
-    "text": "{0} actual: {1}. Haz clic para alternar entre opciones.",
+    "text": "{0} actual: {1}. Haz clic para recorrer las opciones.",
     "source_hash": "84bf49e6"
   },
   "web.branding.use_setting": {
@@ -12,27 +12,27 @@
     "source_hash": "8a18d118"
   },
   "web.branding.font_family": {
-    "text": "Familia de fuente",
+    "text": "Familia de fuentes",
     "source_hash": "f81339da"
   },
   "web.branding.corner_style": {
-    "text": "Estilo de esquinas",
+    "text": "Estilo de las esquinas",
     "source_hash": "fcb3ecdf"
   },
   "web.branding.brand_color": {
-    "text": "Color de marca",
+    "text": "Color de la marca",
     "source_hash": "db3183e3"
   },
   "web.branding.preview_of_the_secret_link_page_for_recipients": {
-    "text": "Vista previa de la vista del destinatario al acceder a tu enlace seguro",
+    "text": "Vista previa de lo que verá el destinatario al acceder a tu enlace seguro",
     "source_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
-    "text": "Vista previa y personalizar",
+    "text": "Previsualizar y personalizar",
     "source_hash": "215d3659"
   },
   "web.branding.switch_to_safari_browser_view": {
-    "text": "Cambiar a vista del navegador Safari",
+    "text": "Cambiar a la vista del navegador Safari",
     "source_hash": "6e0fe791"
   },
   "web.branding.microsoft_edge": {
@@ -48,7 +48,7 @@
     "source_hash": "5cd54386"
   },
   "web.branding.switch_to_edge_browser_view": {
-    "text": "Cambiar a vista del navegador Edge",
+    "text": "Cambiar a la vista del navegador Edge",
     "source_hash": "a8fcd82d"
   },
   "web.branding.charactercount_500_characters": {
@@ -60,7 +60,7 @@
     "source_hash": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Contacta a onboarding{'@'}example.com si tienes preguntas",
+    "text": "Contacta con onboarding{'@'}example.com si tienes alguna pregunta",
     "source_hash": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
@@ -72,11 +72,11 @@
     "source_hash": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Instrucciones previas a revelar",
+    "text": "Instrucciones previas a la revelación",
     "source_hash": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "Instrucciones posteriores a revelar",
+    "text": "Instrucciones posteriores a la revelación",
     "source_hash": "72ecc23a"
   },
   "web.branding.instructions": {
@@ -84,15 +84,15 @@
     "source_hash": "934652dc"
   },
   "web.branding.logo_controls": {
-    "text": "Controles de logo",
+    "text": "Controles del logotipo",
     "source_hash": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
-    "text": "Haz clic para subir un logotipo. Tamaño recomendado: 128x128 píxeles. Tamaño máximo de archivo: 1MB. Formatos admitidos: PNG, JPG, SVG",
+    "text": "Haz clic para subir un logotipo. Tamaño recomendado: 128x128 píxeles. Tamaño máximo de archivo: 1 MB. Formatos compatibles: PNG, JPG, SVG",
     "source_hash": "a35452bf"
   },
   "web.branding.upload_logo": {
-    "text": "Subir logo",
+    "text": "Subir logotipo",
     "source_hash": "c3330082"
   },
   "web.branding.loading_preview": {
@@ -100,7 +100,7 @@
     "source_hash": "c02130fa"
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
-    "text": "Previsualiza cómo los destinatarios verán tus secretos probando el botón \"Ver Secreto\"",
+    "text": "Previsualiza cómo verán tus secretos los destinatarios probando el botón \"Ver secreto\"",
     "source_hash": "3b58a297"
   },
   "web.branding.eye_icon": {
@@ -108,7 +108,7 @@
     "source_hash": "7f605d3c"
   },
   "web.branding.click_the_preview_image_below_to_update_your_logo": {
-    "text": "Haz clic en la imagen de vista previa a continuación para actualizar tu logotipo (mínimo 128x128 píxeles recomendado, 1MB máx)",
+    "text": "Haz clic en la imagen de vista previa de abajo para actualizar tu logotipo (se recomienda un mínimo de 128x128 píxeles, 1 MB máximo)",
     "source_hash": "77a19049"
   },
   "web.branding.image_icon": {
@@ -116,7 +116,7 @@
     "source_hash": "b0d64fcf"
   },
   "web.branding.use_the_controls_above_to_customize_brand_details": {
-    "text": "Usa los controles de arriba para personalizar el color de la marca, estilos e instrucciones para el destinatario",
+    "text": "Usa los controles de arriba para personalizar el color de la marca, los estilos y las instrucciones para los destinatarios",
     "source_hash": "d6287134"
   },
   "web.branding.customization_icon": {
@@ -128,15 +128,15 @@
     "source_hash": "184b6a83"
   },
   "web.branding.failed_to_load_brand_settings": {
-    "text": "Error al cargar la configuración de marca",
+    "text": "No se pudo cargar la configuración de marca",
     "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Esta es una vista previa interactiva de cómo los destinatarios verán tus mensajes seguros. Puedes: - Personalizar colores y fuentes usando los controles de arriba - Subir un logo (se recomiendan mínimo 128x128 píxeles, máximo 1MB) - Probar la vista previa usando el botón \"Ver secreto\"",
+    "text": "Esta es una vista previa interactiva de cómo verán tus mensajes seguros los destinatarios. Puedes: - Personalizar colores y fuentes usando los controles de arriba - Subir un logotipo (se recomienda un mínimo de 128x128 píxeles, 1 MB máximo) - Probar la vista previa usando el botón \"Ver secreto\"",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
-    "text": "Esta es una vista previa interactiva de cómo los destinatarios verán tus mensajes seguros. Puedes: - Personalizar colores y fuentes usando los controles de arriba - Subir un logotipo (mínimo 128x128 píxeles recomendado, 1MB máx) - Probar la vista previa usando el botón \"Ver Secreto\"",
+    "text": "Esta es una vista previa interactiva de cómo verán tus mensajes seguros los destinatarios. Puedes: - Personalizar colores y fuentes usando los controles de arriba - Subir un logotipo (se recomienda un mínimo de 128x128 píxeles, 1 MB máximo) - Probar la vista previa usando el botón \"Ver secreto\"",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
@@ -144,11 +144,11 @@
     "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Impulsado por Onetime Secret",
+    "text": "Con la tecnología de Onetime Secret",
     "source_hash": "935442d0"
   },
   "web.branding.heading_logo": {
-    "text": "Logo de {0}",
+    "text": "Logotipo de {0}",
     "source_hash": "3a3c98ed"
   },
   "web.branding.edge": {
@@ -156,7 +156,7 @@
     "source_hash": "0f82fe72"
   },
   "web.branding.switch_to_edge_preview": {
-    "text": "Cambiar a vista previa de Edge",
+    "text": "Cambiar a la vista previa de Edge",
     "source_hash": "83883d84"
   },
   "web.branding.safari": {
@@ -164,11 +164,15 @@
     "source_hash": "5f033039"
   },
   "web.branding.switch_to_safari_preview": {
-    "text": "Cambiar a vista previa de Safari",
+    "text": "Cambiar a la vista previa de Safari",
     "source_hash": "f24ac447"
   },
   "web.branding.upgrade_to_customize": {
     "text": "Mejora tu plan para personalizar la marca de este dominio.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "Configuración de marca guardada correctamente",
+    "source_hash": "9960c252"
   }
 }

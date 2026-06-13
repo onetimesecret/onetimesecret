@@ -10,12 +10,12 @@
     "source_hash": "9c965ab8"
   },
   "email.secret_link.subject": {
-    "text": "%{sender_email} hat Ihnen ein Geheimnis gesendet",
+    "text": "%{sender_email} hat Ihnen eine Nachricht gesendet",
     "renderer": "erb",
     "source_hash": "3156abde"
   },
   "email.secret_link.sent_you_secret": {
-    "text": "hat Ihnen ein Geheimnis gesendet:",
+    "text": "hat Ihnen eine Nachricht gesendet:",
     "renderer": "erb",
     "source_hash": "c0571266"
   },
@@ -25,7 +25,7 @@
     "source_hash": "496d6960"
   },
   "email.secret_link.link_works_once": {
-    "text": "Dieser Link funktioniert nur einmal. Nach dem Ansehen wird das Geheimnis dauerhaft gelöscht.",
+    "text": "Dieser Link funktioniert nur einmal. Nach dem Ansehen wird die Nachricht dauerhaft gelöscht.",
     "renderer": "erb",
     "source_hash": "fecaf0a1"
   },
@@ -35,7 +35,7 @@
     "source_hash": "d01479b3"
   },
   "email.welcome.subject": {
-    "text": "Willkommen bei %{product_name} - Bitte verifizieren Sie Ihre E-Mail",
+    "text": "Willkommen bei %{product_name} - Bitte bestätigen Sie Ihre E-Mail-Adresse",
     "renderer": "erb",
     "source_hash": "96008c17"
   },
@@ -45,17 +45,17 @@
     "source_hash": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
-    "text": "Bitte verifizieren Sie Ihre E-Mail-Adresse, indem Sie auf den Link unten klicken:",
+    "text": "Bitte bestätigen Sie Ihre E-Mail-Adresse, indem Sie auf den folgenden Link klicken:",
     "renderer": "erb",
     "source_hash": "e373dcee"
   },
   "email.welcome.verify_button": {
-    "text": "E-Mail-Adresse verifizieren",
+    "text": "E-Mail-Adresse bestätigen",
     "renderer": "erb",
     "source_hash": "d261b9df"
   },
   "email.welcome.copy_link_prompt": {
-    "text": "Oder kopieren Sie diesen Link:",
+    "text": "Oder kopieren Sie diesen Link und fügen Sie ihn ein:",
     "renderer": "erb",
     "source_hash": "88c72144"
   },
@@ -65,7 +65,7 @@
     "source_hash": "f58154f7"
   },
   "email.welcome.postscript": {
-    "text": "P.S. Diese E-Mail wurde an %{email_address} gesendet. Wenn Sie kein Konto erstellt haben, können Sie diese Nachricht ignorieren.",
+    "text": "P.S. Diese E-Mail wurde an %{email_address} gesendet. Wenn Sie kein Konto erstellt haben, können Sie diese Nachricht bedenkenlos ignorieren.",
     "renderer": "erb",
     "source_hash": "05709148"
   },
@@ -75,12 +75,12 @@
     "source_hash": "a9882af1"
   },
   "email.password_request.title": {
-    "text": "Setzen Sie Ihr Passwort zurück",
+    "text": "Passwort zurücksetzen",
     "renderer": "erb",
     "source_hash": "0568c7b0"
   },
   "email.password_request.request_notice": {
-    "text": "Wir haben eine Anfrage erhalten, Ihr Passwort für %{product_name} zurückzusetzen.",
+    "text": "Wir haben eine Anfrage zum Zurücksetzen Ihres Passworts für %{product_name} erhalten.",
     "renderer": "erb",
     "source_hash": "4ad3b5cd"
   },
@@ -90,12 +90,12 @@
     "source_hash": "4e70f1fd"
   },
   "email.password_request.copy_link_prompt": {
-    "text": "Oder kopieren Sie diesen Link:",
+    "text": "Oder kopieren Sie diesen Link und fügen Sie ihn ein:",
     "renderer": "erb",
     "source_hash": "88c72144"
   },
   "email.password_request.ignore_notice": {
-    "text": "Wenn Sie keine Passwortzurücksetzung angefordert haben, können Sie diese E-Mail ignorieren.",
+    "text": "Wenn Sie kein Zurücksetzen des Passworts angefordert haben, können Sie diese E-Mail bedenkenlos ignorieren.",
     "renderer": "erb",
     "source_hash": "fbb7eb2d"
   },
@@ -110,12 +110,12 @@
     "source_hash": "8ab1dbea"
   },
   "email.magic_link.subject": {
-    "text": "Anmelden bei %{display_domain}",
+    "text": "Bei %{display_domain} eintragen",
     "renderer": "erb",
     "source_hash": "2967293e"
   },
   "email.magic_link.title": {
-    "text": "Mit Magic Link anmelden",
+    "text": "Mit Magic Link eintragen",
     "renderer": "erb",
     "source_hash": "0b84879b"
   },
@@ -125,12 +125,12 @@
     "source_hash": "3a34aa1f"
   },
   "email.magic_link.login_button": {
-    "text": "Anmelden",
+    "text": "Eintragen",
     "renderer": "erb",
     "source_hash": "bcc0bcc9"
   },
   "email.magic_link.copy_link_prompt": {
-    "text": "Oder kopieren Sie diesen Link:",
+    "text": "Oder kopieren Sie diesen Link und fügen Sie ihn ein:",
     "renderer": "erb",
     "source_hash": "88c72144"
   },
@@ -140,7 +140,7 @@
     "source_hash": "a6967fa7"
   },
   "email.magic_link.ignore_notice": {
-    "text": "Wenn Sie diesen Link nicht angefordert haben, können Sie diese E-Mail ignorieren.",
+    "text": "Wenn Sie diesen Link nicht angefordert haben, können Sie diese E-Mail bedenkenlos ignorieren.",
     "renderer": "erb",
     "source_hash": "1863f5be"
   },
@@ -155,7 +155,7 @@
     "source_hash": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
-    "text": "Sie haben eine geheime Nachricht erhalten",
+    "text": "Sie haben eine sichere Nachricht erhalten",
     "renderer": "erb",
     "source_hash": "c7c36a80"
   },
@@ -170,12 +170,12 @@
     "source_hash": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
-    "text": "Jemand hat Ihnen eine sichere Nachricht über %{display_domain} gesendet.",
+    "text": "Jemand hat Ihnen über %{display_domain} eine sichere Nachricht gesendet.",
     "renderer": "erb",
     "source_hash": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
-    "text": "Um dieses Geheimnis anzusehen, klicken Sie auf den Link unten:",
+    "text": "Um diese Nachricht anzusehen, klicken Sie auf den folgenden Link:",
     "renderer": "erb",
     "source_hash": "1dcdc014"
   },
@@ -185,12 +185,12 @@
     "source_hash": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "Dieser Link funktioniert nur einmal. Nach dem Ansehen wird das Geheimnis dauerhaft gelöscht.",
+    "text": "Dieser Link funktioniert nur einmal. Nach dem Ansehen wird die Nachricht dauerhaft gelöscht.",
     "renderer": "erb",
     "source_hash": "fecaf0a1"
   },
   "email.incoming_secret.passphrase_required": {
-    "text": "Dieses Geheimnis ist mit einer Sicherheitsphrase geschützt. Der Absender sollte sie Ihnen separat mitteilen.",
+    "text": "Diese Nachricht ist mit einer Sicherheitsphrase geschützt. Der Absender sollte sie Ihnen separat mitteilen.",
     "renderer": "erb",
     "source_hash": "1e49826b"
   },
@@ -205,27 +205,27 @@
     "source_hash": "d01479b3"
   },
   "email.secret_revealed.subject": {
-    "text": "Ihr Geheimnis wurde angesehen",
+    "text": "Ihre Nachricht wurde angesehen",
     "renderer": "erb",
     "source_hash": "0767ae45"
   },
   "email.secret_revealed.title": {
-    "text": "Ihr Geheimnis wurde angesehen",
+    "text": "Ihre Nachricht wurde angesehen",
     "renderer": "erb",
     "source_hash": "6a530d71"
   },
   "email.secret_revealed.viewed_on": {
-    "text": "Ihr Geheimnis wurde am %{date} angesehen.",
+    "text": "Ihre Nachricht wurde am %{date} angesehen.",
     "renderer": "erb",
     "source_hash": "6a3d346c"
   },
   "email.secret_revealed.secret_id_label": {
-    "text": "Geheimnis-ID:",
+    "text": "Nachrichten-ID:",
     "renderer": "erb",
     "source_hash": "ab567438"
   },
   "email.secret_revealed.automated_notice": {
-    "text": "Dies ist eine automatische Benachrichtigung. Keine Aktion erforderlich.",
+    "text": "Dies ist eine automatische Benachrichtigung. Es ist keine Aktion erforderlich.",
     "renderer": "erb",
     "source_hash": "3f6b45dd"
   },
@@ -245,17 +245,17 @@
     "source_hash": "83cbd163"
   },
   "email.expiration_warning.subject": {
-    "text": "Ihr geheimer Link läuft bald ab",
+    "text": "Ihr Link zur Nachricht läuft bald ab",
     "renderer": "erb",
     "source_hash": "74813c5f"
   },
   "email.expiration_warning.expires_in": {
-    "text": "Ihr geheimer Link läuft in %{time_remaining} ab",
+    "text": "Ihr Link zur Nachricht läuft in %{time_remaining} ab",
     "renderer": "erb",
     "source_hash": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
-    "text": "Sehen Sie Ihr Geheimnis an, bevor es abläuft",
+    "text": "Sehen Sie Ihre Nachricht an, bevor sie abläuft",
     "renderer": "erb",
     "source_hash": "9e7d7396"
   },
@@ -265,7 +265,7 @@
     "source_hash": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "Nach dem Ablauf wird das Geheimnis dauerhaft gelöscht und kann nicht wiederhergestellt werden.",
+    "text": "Nach Ablauf wird die Nachricht dauerhaft gelöscht und kann nicht wiederhergestellt werden.",
     "renderer": "erb",
     "source_hash": "deb92a01"
   },
@@ -275,22 +275,22 @@
     "source_hash": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "Sehen Sie es an, bevor es weg ist:",
+    "text": "Sehen Sie sie an, bevor sie verschwindet:",
     "renderer": "erb",
     "source_hash": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "Nach dem Ablauf wird das Geheimnis dauerhaft gelöscht.",
+    "text": "Nach Ablauf wird die Nachricht dauerhaft gelöscht.",
     "renderer": "erb",
     "source_hash": "bd0a9bee"
   },
   "email.feedback_email.subject": {
-    "text": "Feedback vom %{date} über %{display_domain} (%{strategy})",
+    "text": "Rückmeldung am %{date} über %{display_domain} (%{strategy})",
     "renderer": "erb",
     "source_hash": "f7498c8b"
   },
   "email.feedback_email.title": {
-    "text": "Benutzer-Feedback",
+    "text": "Benutzer-Rückmeldung",
     "renderer": "erb",
     "source_hash": "47296999"
   },
@@ -300,7 +300,7 @@
     "source_hash": "dc45d36f"
   },
   "email.feedback_email.domain_label": {
-    "text": "Domäne:",
+    "text": "Bereich:",
     "renderer": "erb",
     "source_hash": "a4c7de06"
   },
@@ -340,7 +340,7 @@
     "source_hash": "ce7cfeaf"
   },
   "email.organization_invitation.link_instruction": {
-    "text": "Oder kopieren Sie diesen Link:",
+    "text": "Oder kopieren Sie diesen Link und fügen Sie ihn ein:",
     "renderer": "erb",
     "source_hash": "88c72144"
   },
@@ -360,17 +360,17 @@
     "source_hash": "f58154f7"
   },
   "email.organization_invitation.postscript": {
-    "text": "P.S. Diese E-Mail wurde an %{invited_email} gesendet. Wenn Sie diese Einladung nicht erwartet haben, können Sie diese Nachricht ignorieren.",
+    "text": "P.S. Diese E-Mail wurde an %{invited_email} gesendet. Wenn Sie diese Einladung nicht erwartet haben, können Sie diese Nachricht bedenkenlos ignorieren.",
     "renderer": "erb",
     "source_hash": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
-    "text": "ein Mitglied",
+    "text": "Mitglied",
     "renderer": "erb",
     "source_hash": "efdef688"
   },
   "email.organization_invitation.roles.admin": {
-    "text": "ein Administrator",
+    "text": "Administrator",
     "renderer": "erb",
     "source_hash": "603fd5c3"
   },
@@ -410,12 +410,12 @@
     "source_hash": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "Die E-Mail-Adresse für Ihr %{product_name}-Konto wurde auf %{new_email_masked} geändert.",
+    "text": "Die E-Mail-Adresse Ihres %{product_name}-Kontos wurde auf %{new_email_masked} geändert.",
     "renderer": "erb",
     "source_hash": "6f3419d1"
   },
   "email.email_changed.security_notice": {
-    "text": "Wenn Sie diese Änderung nicht vorgenommen haben, kontaktieren Sie bitte umgehend den Support, da Ihr Konto möglicherweise kompromittiert wurde.",
+    "text": "Wenn Sie diese Änderung nicht vorgenommen haben, kontaktieren Sie bitte umgehend den Support, da Ihr Konto möglicherweise kompromittiert ist.",
     "renderer": "erb",
     "source_hash": "f505b562"
   },
@@ -470,7 +470,7 @@
     "source_hash": "704cbdca"
   },
   "email.email_change_requested.change_notice": {
-    "text": "Es wurde eine Anfrage zur Änderung der E-Mail-Adresse Ihres %{product_name}-Kontos gestellt.",
+    "text": "Es wurde beantragt, die E-Mail-Adresse Ihres %{product_name}-Kontos zu ändern.",
     "renderer": "erb",
     "source_hash": "d7e39154"
   },
@@ -485,12 +485,12 @@
     "source_hash": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "Wenn Sie diese Anfrage gestellt haben, überprüfen Sie Ihre neue E-Mail-Adresse auf einen Bestätigungslink. Es wurden noch keine Änderungen vorgenommen.",
+    "text": "Wenn Sie diese Anfrage gestellt haben, prüfen Sie Ihr neues E-Mail-Postfach auf einen Bestätigungslink. Es wurden noch keine Änderungen vorgenommen.",
     "renderer": "erb",
     "source_hash": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
-    "text": "Wenn Sie diese Anfrage nicht gestellt haben, können Sie diese E-Mail ignorieren. Ihr Konto wurde nicht geändert.",
+    "text": "Wenn Sie diese Anfrage nicht gestellt haben, können Sie diese E-Mail bedenkenlos ignorieren. Ihr Konto wurde nicht geändert.",
     "renderer": "erb",
     "source_hash": "ff41a7b7"
   },
@@ -525,12 +525,12 @@
     "source_hash": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
-    "text": "E-Mail-Adresse verifizieren",
+    "text": "E-Mail-Adresse bestätigen",
     "renderer": "erb",
     "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
-    "text": "Es wurde eine Anfrage gestellt, die E-Mail-Adresse Ihres %{product_name}-Kontos auf %{new_email} zu ändern.",
+    "text": "Es wurde beantragt, die E-Mail-Adresse Ihres %{product_name}-Kontos auf %{new_email} zu ändern.",
     "renderer": "erb",
     "source_hash": "33277e1b"
   },
@@ -540,7 +540,7 @@
     "source_hash": "c2736949"
   },
   "email.email_change_confirmation.copy_link_prompt": {
-    "text": "Oder kopieren Sie diesen Link:",
+    "text": "Oder kopieren Sie diesen Link und fügen Sie ihn ein:",
     "renderer": "erb",
     "source_hash": "88c72144"
   },
@@ -550,7 +550,7 @@
     "source_hash": "e744f5a7"
   },
   "email.email_change_confirmation.ignore_notice": {
-    "text": "Wenn Sie diese Änderung nicht angefordert haben, können Sie diese E-Mail ignorieren. Ihre E-Mail-Adresse wird nicht geändert.",
+    "text": "Wenn Sie diese Änderung nicht angefordert haben, können Sie diese E-Mail bedenkenlos ignorieren. Ihre E-Mail-Adresse wird nicht geändert.",
     "renderer": "erb",
     "source_hash": "d4d835fc"
   },
@@ -580,7 +580,7 @@
     "source_hash": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
-    "text": "Ihr Konto ist jetzt sicherer. Sie müssen beim Anmelden einen Verifizierungscode aus Ihrer Authenticator-App eingeben.",
+    "text": "Ihr Konto ist jetzt sicherer. Beim Eintragen müssen Sie einen Bestätigungscode aus Ihrer Authentifizierungs-App eingeben.",
     "renderer": "erb",
     "source_hash": "e7c11bb0"
   },
@@ -645,12 +645,12 @@
     "source_hash": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "Wenn das nicht Sie waren, ist Ihr Konto möglicherweise kompromittiert.",
+    "text": "Wenn Sie das nicht waren, ist Ihr Konto möglicherweise kompromittiert.",
     "renderer": "erb",
     "source_hash": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
-    "text": "Konto sichern",
+    "text": "Konto absichern",
     "renderer": "erb",
     "source_hash": "450c54c5"
   },
@@ -680,7 +680,7 @@
     "source_hash": "f58154f7"
   },
   "email.role_changed.subject": {
-    "text": "Ihre Rolle wurde in %{organization_name} geändert",
+    "text": "Ihre Rolle in %{organization_name} wurde geändert",
     "renderer": "erb",
     "source_hash": "f987a7ad"
   },
@@ -690,7 +690,7 @@
     "source_hash": "8f892809"
   },
   "email.role_changed.body": {
-    "text": "Ihre Rolle in \"%{organization_name}\" wurde von %{old_role} auf %{new_role} geändert.",
+    "text": "Ihre Rolle in \"%{organization_name}\" wurde von %{old_role} zu %{new_role} geändert.",
     "renderer": "erb",
     "source_hash": "c2280c0c"
   },
@@ -770,7 +770,7 @@
     "source_hash": "a287ab86"
   },
   "email.payment_failed.body": {
-    "text": "Wir konnten Ihre Zahlung für %{product_name} nicht verarbeiten. Bitte aktualisieren Sie Ihre Zahlungsmethode, um eine Dienstunterbrechung zu vermeiden.",
+    "text": "Wir konnten Ihre Zahlung für %{product_name} nicht verarbeiten. Bitte aktualisieren Sie Ihre Zahlungsmethode, um eine Unterbrechung des Dienstes zu vermeiden.",
     "renderer": "erb",
     "source_hash": "6496ef22"
   },
@@ -820,12 +820,12 @@
     "source_hash": "7523a022"
   },
   "email.subscription_changed.body": {
-    "text": "Ihr %{product_name}-Abonnement wurde von %{old_plan} auf %{new_plan} geändert.",
+    "text": "Ihr %{product_name}-Abonnement wurde von %{old_plan} zu %{new_plan} geändert.",
     "renderer": "erb",
     "source_hash": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
-    "text": "Diese Änderung ist ab %{date} wirksam.",
+    "text": "Diese Änderung wird am %{date} wirksam.",
     "renderer": "erb",
     "source_hash": "5a96ae38"
   },
@@ -835,12 +835,12 @@
     "source_hash": "f58154f7"
   },
   "email.common.greeting": {
-    "text": "Guten Tag,",
+    "text": "Hallo,",
     "renderer": "erb",
     "source_hash": "dafe7694"
   },
   "email.common.thanks": {
-    "text": "Vielen Dank,",
+    "text": "Danke,",
     "renderer": "erb",
     "source_hash": "11dfba8f"
   },
@@ -858,5 +858,45 @@
     "text": "Onetime Secret",
     "renderer": "erb",
     "source_hash": "1cd0194a"
+  },
+  "email.common.secret_link_label": {
+    "text": "Link zur Nachricht",
+    "source_hash": "18ddf44f"
+  },
+  "email.common.automated_notice": {
+    "text": "Dies ist eine automatisch generierte Nachricht von %{product_name}.",
+    "source_hash": "8fbabfba"
+  },
+  "email.expiration_warning.footer_note": {
+    "text": "Sie haben diese E-Mail erhalten, weil eine von Ihnen auf %{product_name} erstellte Nachricht bald abläuft.",
+    "source_hash": "920779e4"
+  },
+  "email.feedback_email.user_id_label": {
+    "text": "Benutzer:",
+    "source_hash": "93d6b3e9"
+  },
+  "email.feedback_email.timezone_label": {
+    "text": "Zeitzone:",
+    "source_hash": "39651ebf"
+  },
+  "email.feedback_email.version_label": {
+    "text": "Version:",
+    "source_hash": "4c5726ee"
+  },
+  "email.incoming_secret.footer_note": {
+    "text": "Sie haben diese E-Mail erhalten, weil Ihnen jemand über %{product_name} eine Nachricht gesendet hat. Wenn Sie sie nicht erwartet haben, können Sie diese E-Mail bedenkenlos ignorieren.",
+    "source_hash": "91ee6e8d"
+  },
+  "email.secret_link.passphrase_label": {
+    "text": "Sicherheitsphrase erforderlich:",
+    "source_hash": "1ab9a20f"
+  },
+  "email.secret_link.passphrase_required": {
+    "text": "Diese Nachricht ist mit einer Sicherheitsphrase geschützt. Der Absender sollte sie Ihnen separat mitteilen.",
+    "source_hash": "1e49826b"
+  },
+  "email.secret_link.footer_note": {
+    "text": "Sie haben diese E-Mail erhalten, weil %{sender_email} %{product_name} verwendet hat, um eine Nachricht mit Ihnen zu teilen. Wenn Sie sie nicht erwartet haben, können Sie diese E-Mail bedenkenlos ignorieren.",
+    "source_hash": "2d544dad"
   }
 }

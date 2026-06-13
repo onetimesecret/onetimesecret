@@ -4,19 +4,19 @@
     "source_hash": "1e6287f1"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "Vos données résident exclusivement dans la région choisie et ne sont jamais transférées entre régions",
+    "text": "Vos données résident exclusivement dans la région que vous avez choisie et ne sont jamais transférées d'une région à l'autre",
     "source_hash": "5e904993"
   },
   "web.regions.separate_environments_explanation": {
-    "text": "Chaque région fonctionne comme un environnement complètement indépendant avec sa propre infrastructure, clés de chiffrement et stockage de données",
+    "text": "Chaque région fonctionne comme un environnement entièrement indépendant, avec sa propre infrastructure, ses propres clés de chiffrement et son propre stockage de données",
     "source_hash": "cd996732"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "Nous maintenons une politique stricte : les données clients ne sont jamais transférées entre régions en aucune circonstance",
+    "text": "Nous appliquons une politique stricte : les données des clients ne sont jamais transférées entre les régions, en aucune circonstance",
     "source_hash": "33b74be3"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "Important : Passer à une région différente crée un nouveau compte. Vos données restent dans votre région d'origine.",
+    "text": "Important : passer à une autre région crée un nouveau compte. Vos données restent dans votre région d'origine.",
     "source_hash": "40e3ee34"
   },
   "web.regions.your_region": {
@@ -52,7 +52,7 @@
     "source_hash": "d13d2931"
   },
   "web.regions.privacy_description": {
-    "text": "Assurez-vous que vos informations personnelles sont traitées conformément aux lois et réglementations de votre pays en matière de vie privée, empêchant tout accès ou utilisation non autorisé.",
+    "text": "Assurez-vous que vos renseignements personnels sont traités conformément aux lois et règlements sur la protection de la vie privée de votre pays, ce qui prévient tout accès non autorisé ou toute utilisation abusive.",
     "source_hash": "28d9d42e"
   },
   "web.regions.compliance_title": {
@@ -60,7 +60,7 @@
     "source_hash": "8aa0df2a"
   },
   "web.regions.compliance_description": {
-    "text": "Respectez les exigences du RGPD, de la HIPAA, du CCPA et d'autres réglementations régionales de protection des données",
+    "text": "Répondez aux exigences du RGPD, de la HIPAA, de la CCPA et aux autres exigences régionales en matière de protection des données",
     "source_hash": "c3b2ee43"
   },
   "web.regions.performance_title": {
@@ -68,7 +68,7 @@
     "source_hash": "504b7b49"
   },
   "web.regions.performance_description": {
-    "text": "Des données stockées plus près de vous signifient une latence plus faible et de meilleures performances.",
+    "text": "Des données stockées plus près de vous signifient une latence réduite et de meilleures performances.",
     "source_hash": "e133ef1d"
   },
   "web.regions.regions": {
@@ -76,7 +76,7 @@
     "source_hash": "610c65d8"
   },
   "web.regions.contact_our_compliance_team": {
-    "text": "contacter notre équipe de conformité",
+    "text": "communiquer avec notre équipe de conformité",
     "source_hash": "87e6746e"
   },
   "web.regions.review_our_documentation": {
@@ -84,19 +84,19 @@
     "source_hash": "9cbd03df"
   },
   "web.regions.your_account_and_data_are_protected_under_the_la": {
-    "text": "Votre compte et vos données sont protégés par les lois et règlements des pays suivants",
+    "text": "Votre compte et vos données sont protégés par les lois de",
     "source_hash": "5f5ef5b6"
   },
   "web.regions.this_regulatory_framework_is_determined_by_your_": {
-    "text": "Ce cadre réglementaire est déterminé par votre domaine d'accès :",
+    "text": "Votre cadre réglementaire est déterminé par votre domaine d'accès :",
     "source_hash": "7fdbc59c"
   },
   "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
-    "text": "Chaque juridiction maintient une conformité légale et une gouvernance des données distinctes. Bien que vous puissiez créer des comptes dans plusieurs juridictions, celles-ci restent juridiquement distinctes et les données ne sont pas partagées entre les zones réglementaires.",
+    "text": "Chaque région est entièrement distincte, avec sa propre infrastructure, et lorsque c'est possible, son propre fournisseur d'hébergement local. Vous pouvez créer des comptes dans plusieurs régions, mais aucune donnée n'est partagée entre elles.",
     "source_hash": "5c0b350e"
   },
   "web.regions.to_understand_the_specific_regulations_and_prote": {
-    "text": "Pour comprendre les réglementations et protections spécifiques qui s'appliquent à votre compte, veuillez",
+    "text": "Pour des détails sur les règlements et les protections qui s'appliquent à votre compte,",
     "source_hash": "e8acc835"
   },
   "web.regions.current": {
@@ -116,11 +116,11 @@
     "source_hash": "d69b9ac7"
   },
   "web.regions.data_center_location_currentjurisdiction_identif": {
-    "text": "Emplacement du centre de données : {0}",
+    "text": "Emplacement du centre de données : {0}",
     "source_hash": "f1699c90"
   },
   "web.regions.data_region": {
-    "text": "Région de données",
+    "text": "Région des données",
     "source_hash": "a1c6039f"
   },
   "web.regions.unknown_jurisdiction": {
@@ -128,7 +128,7 @@
     "source_hash": "eae2e122"
   },
   "web.regions.serving_you_from_the": {
-    "text": "Vous servir depuis",
+    "text": "Nous vous servons depuis",
     "source_hash": "25db17aa"
   },
   "web.regions.continue_to_jurisdiction_domain": {
@@ -136,7 +136,7 @@
     "source_hash": "dd1a44e4"
   },
   "web.regions.current_jurisdiction": {
-    "text": "Juridiction actuelle :",
+    "text": "Juridiction actuelle :",
     "source_hash": "d0f2192d"
   },
   "web.regions.changing_regions_title": {
@@ -144,27 +144,27 @@
     "source_hash": "189d6685"
   },
   "web.regions.changing_regions_description": {
-    "text": "Notre politique est de ne jamais transférer de données entre les régions. Chaque région fonctionne comme un environnement complètement indépendant.",
+    "text": "Notre politique est de ne jamais transférer de données entre les régions. Chaque région fonctionne comme un environnement entièrement indépendant.",
     "source_hash": "cf45b8be"
   },
   "web.regions.changing_regions_how_to": {
-    "text": "Pour utiliser une autre région, créez un nouveau compte en utilisant la même adresse courriel associée à votre courriel de contact de facturation.",
+    "text": "Pour utiliser une autre région, créez-y un nouveau compte en utilisant la même adresse courriel que celle associée à votre courriel de contact de facturation.",
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Si votre courriel de contact de facturation diffère de votre courriel de compte Onetime Secret, utilisez le courriel de contact de facturation pour le nouveau compte régional afin de conserver vos avantages d'abonnement.",
+    "text": "Si votre courriel de contact de facturation diffère de celui de votre compte Onetime Secret, utilisez le courriel de contact de facturation pour le compte de la nouvelle région afin de conserver les avantages de votre abonnement.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
-    "text": "Vos avantages d'abonnement s'appliqueront automatiquement à tout compte créé avec votre adresse courriel de facturation.",
+    "text": "Les avantages de votre abonnement s'appliqueront automatiquement à tout compte créé avec votre adresse courriel de facturation.",
     "source_hash": "5b2238b2"
   },
   "web.regions.jurisdictions.eu.name": {
-    "text": "European Union",
+    "text": "Union européenne",
     "source_hash": "7fe24f2b"
   },
   "web.regions.jurisdictions.us.name": {
-    "text": "United States",
+    "text": "États-Unis",
     "source_hash": "49dca65f"
   },
   "web.regions.jurisdictions.ca.name": {
@@ -172,19 +172,23 @@
     "source_hash": "be55ef3f"
   },
   "web.regions.jurisdictions.uk.name": {
-    "text": "United Kingdom",
+    "text": "Royaume-Uni",
     "source_hash": "8d23a6e3"
   },
   "web.regions.jurisdictions.nz.name": {
-    "text": "New Zealand",
+    "text": "Nouvelle-Zélande",
     "source_hash": "2898e16d"
   },
   "web.regions.jurisdictions.at.name": {
-    "text": "Austria",
+    "text": "Autriche",
     "source_hash": "c9cab023"
   },
   "web.regions.jurisdictions.apac.name": {
-    "text": "Asia-Pacific",
+    "text": "Asie-Pacifique",
     "source_hash": "7a757670"
+  },
+  "web.regions.no_region_configured": {
+    "text": "Aucune information de région n'est actuellement disponible pour votre compte.",
+    "source_hash": "bbfe2a32"
   }
 }

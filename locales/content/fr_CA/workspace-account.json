@@ -4,7 +4,7 @@
     "source_hash": "74a883a0"
   },
   "web.account.change_password": {
-    "text": "Modifier le mot de passe",
+    "text": "Changer le mot de passe",
     "source_hash": "a949f462"
   },
   "web.account.close_account": {
@@ -24,15 +24,15 @@
     "source_hash": "cbc4ef92"
   },
   "web.account.customer_information": {
-    "text": "Information client",
+    "text": "Information du client",
     "source_hash": "8258db6d"
   },
   "web.account.customer_since": {
-    "text": "Client depuis :",
+    "text": "Client depuis :",
     "source_hash": "0b37cff3"
   },
   "web.account.email": {
-    "text": "Courriel :",
+    "text": "Courriel :",
     "source_hash": "17507dcf"
   },
   "web.account.region": {
@@ -40,7 +40,7 @@
     "source_hash": "d3a008ef"
   },
   "web.account.account_balance": {
-    "text": "Solde :",
+    "text": "Solde :",
     "source_hash": "e0351221"
   },
   "web.account.default_payment_method": {
@@ -56,11 +56,11 @@
     "source_hash": "a151f2e9"
   },
   "web.account.quantity": {
-    "text": "Quantité :",
+    "text": "Quantité :",
     "source_hash": "d4b2cb96"
   },
   "web.account.next_billing_date": {
-    "text": "Prochaine date de facturation :",
+    "text": "Prochaine date de facturation :",
     "source_hash": "8e6f9cfe"
   },
   "web.account.changePassword.username": {
@@ -92,15 +92,15 @@
     "source_hash": "4ceca1d5"
   },
   "web.account.customer_id": {
-    "text": "Identifiant client",
+    "text": "ID du client",
     "source_hash": "62566c64"
   },
   "web.account.account_id_customerid": {
-    "text": "Identifiant du compte",
+    "text": "ID du compte",
     "source_hash": "919bb4cb"
   },
   "web.account.created_windowprops_cust_secrets_created_secrets": {
-    "text": "Créé {0} secrets depuis {1}.",
+    "text": "{0} secrets créés depuis {1}.",
     "source_hash": "8cb99810"
   },
   "web.account.delete_account": {
@@ -112,7 +112,7 @@
     "source_hash": "23189d55"
   },
   "web.account.account_type_windowprops_plan_options_name": {
-    "text": "Type de compte : {0}",
+    "text": "Type de compte : {0}",
     "source_hash": "617bfe67"
   },
   "web.account.your_account": {
@@ -128,7 +128,7 @@
     "source_hash": "f6f841b9"
   },
   "web.account.customer_id_cust_custid": {
-    "text": "Identifiant client : {0}",
+    "text": "ID du client : {0}",
     "source_hash": "7e2d4201"
   },
   "web.account.token_generated": {
@@ -136,7 +136,7 @@
     "source_hash": "05986d95"
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
-    "text": "🔐 Conservez ce jeton en lieu sûr ! Il donne un accès complet à votre compte.",
+    "text": "Conservez ce jeton en lieu sûr. Il peut être utilisé pour créer et gérer des secrets par l'entremise de l'API.",
     "source_hash": "8839aa4d"
   },
   "web.account.confirm_with_your_password": {
@@ -144,7 +144,7 @@
     "source_hash": "ff2147fd"
   },
   "web.account.are_you_sure_you_want_to_permanently_delete_your": {
-    "text": "Êtes-vous sûr de vouloir supprimer définitivement votre compte ? Cette action ne peut être annulée.",
+    "text": "Êtes-vous certain de vouloir supprimer définitivement votre compte ? Cette action est irréversible.",
     "source_hash": "4fa3e4b8"
   },
   "web.account.confirm_account_deletion": {
@@ -172,19 +172,19 @@
     "source_hash": "ec31577b"
   },
   "web.account.burn_them_before_continuing": {
-    "text": "détruisez-les avant de continuer",
+    "text": "brûlez-les avant de continuer",
     "source_hash": "f89a5794"
   },
   "web.account.any_secrets_you_wish_to_remove": {
-    "text": "Tout secret que vous souhaitez supprimer,",
+    "text": "Tout secret que vous souhaitez retirer,",
     "source_hash": "b45e2dd5"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
-    "text": "Les secrets restent actifs jusqu'à leur expiration.",
+    "text": "Les secrets resteront actifs jusqu'à leur expiration.",
     "source_hash": "ddb4e2b5"
   },
   "web.account.please_be_advised": {
-    "text": "Veuillez prendre note :",
+    "text": "Veuillez prendre note :",
     "source_hash": "086020fd"
   },
   "web.account.account_deleted_successfully": {
@@ -196,7 +196,7 @@
     "source_hash": "fb1e6fa5"
   },
   "web.account.are_you_sure_you_want_to_deactivate_your_account": {
-    "text": "Êtes-vous sûr de vouloir désactiver votre compte ? Toutes vos données seront définitivement supprimées de nos serveurs. Cette action ne peut être annulée.",
+    "text": "Êtes-vous certain de vouloir désactiver votre compte ? Toutes vos données seront définitivement supprimées de nos serveurs pour toujours. Cette action est irréversible.",
     "source_hash": "4940e20a"
   },
   "web.account.deactivate_account": {
@@ -208,15 +208,15 @@
     "source_hash": "74a883a0"
   },
   "web.settings.description": {
-    "text": "Gérer les paramètres et préférences de votre compte",
+    "text": "Gérez les paramètres et les préférences de votre compte",
     "source_hash": "2ff0853c"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
-    "text": "Gérer les paramètres et les préférences de votre compte",
+    "text": "Gérez les paramètres et les préférences de votre compte",
     "source_hash": "2ff0853c"
   },
   "web.settings.back_to_dashboard": {
-    "text": "Retour au tableau de bord",
+    "text": "Retour au compte",
     "source_hash": "97ba1d39"
   },
   "web.settings.sections.account": {
@@ -248,11 +248,11 @@
     "source_hash": "efb52e71"
   },
   "web.settings.theme.description": {
-    "text": "Choisir le thème clair ou sombre",
+    "text": "Choisissez un thème clair ou sombre",
     "source_hash": "ff0ae84f"
   },
   "web.settings.theme.choose_light_or_dark_theme": {
-    "text": "Choisir le thème clair ou sombre",
+    "text": "Choisissez un thème clair ou sombre",
     "source_hash": "ff0ae84f"
   },
   "web.settings.language.title": {
@@ -260,19 +260,19 @@
     "source_hash": "a4fe6526"
   },
   "web.settings.language.description": {
-    "text": "Sélectionner votre langue préférée",
+    "text": "Sélectionnez votre langue préférée",
     "source_hash": "475bba7a"
   },
   "web.settings.language.select_your_preferred_language": {
-    "text": "Sélectionner votre langue préférée",
+    "text": "Sélectionnez votre langue préférée",
     "source_hash": "475bba7a"
   },
   "web.settings.security_settings_description": {
-    "text": "Gérer l'authentification et la sécurité du compte",
+    "text": "Gérez l'authentification et la sécurité du compte",
     "source_hash": "945109d1"
   },
   "web.settings.profile_settings_description": {
-    "text": "Gérer les informations de votre compte",
+    "text": "Gérez l'information de votre compte",
     "source_hash": "4a23a29f"
   },
   "web.settings.profile.title": {
@@ -280,11 +280,11 @@
     "source_hash": "d696a35b"
   },
   "web.settings.profile.change_email": {
-    "text": "Modifier le courriel",
+    "text": "Modifier l'adresse courriel",
     "source_hash": "18c3f2d5"
   },
   "web.settings.profile.current_email": {
-    "text": "Courriel actuel",
+    "text": "Adresse courriel actuelle",
     "source_hash": "5f1cab64"
   },
   "web.settings.profile.current_password": {
@@ -292,15 +292,15 @@
     "source_hash": "8ac76099"
   },
   "web.settings.profile.new_email": {
-    "text": "Nouveau courriel",
+    "text": "Nouvelle adresse courriel",
     "source_hash": "5bafb4be"
   },
   "web.settings.profile.enter_password_to_confirm": {
-    "text": "Entrer votre mot de passe actuel",
+    "text": "Entrez votre mot de passe actuel",
     "source_hash": "27814c03"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "Votre mot de passe est requis pour des raisons de sécurité",
+    "text": "Votre mot de passe est requis à des fins de sécurité",
     "source_hash": "d18f62f2"
   },
   "web.settings.profile.verification_email_notice": {
@@ -308,15 +308,15 @@
     "source_hash": "575082a1"
   },
   "web.settings.profile.update_email": {
-    "text": "Mettre à jour le courriel",
+    "text": "Mettre à jour l'adresse courriel",
     "source_hash": "6ec61b2e"
   },
   "web.settings.profile.change_email_description": {
-    "text": "Modifier l'adresse courriel associée à votre compte",
+    "text": "Mettez à jour l'adresse courriel associée à votre compte",
     "source_hash": "636abb16"
   },
   "web.settings.profile.all_fields_required": {
-    "text": "Tous les champs sont obligatoires",
+    "text": "Tous les champs sont requis",
     "source_hash": "04814271"
   },
   "web.settings.profile.invalid_email": {
@@ -324,15 +324,15 @@
     "source_hash": "b00f7e3a"
   },
   "web.settings.profile.email_same_as_current": {
-    "text": "Le nouveau courriel doit être différent du courriel actuel",
+    "text": "La nouvelle adresse courriel doit être différente de l'adresse actuelle",
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "Courriel mis à jour avec succès. Veuillez vérifier votre boîte de réception pour confirmer votre nouvelle adresse courriel.",
+    "text": "Courriel de vérification envoyé. Veuillez consulter votre nouvelle boîte de réception et cliquer sur le lien de confirmation pour terminer la modification.",
     "source_hash": "58de2536"
   },
   "web.settings.profile.email_change_error": {
-    "text": "Échec de la mise à jour du courriel. Veuillez réessayer.",
+    "text": "Échec de la mise à jour de l'adresse courriel. Veuillez réessayer.",
     "source_hash": "aeba6591"
   },
   "web.settings.sessions.title": {
@@ -340,11 +340,11 @@
     "source_hash": "b58fa4e0"
   },
   "web.settings.sessions.description": {
-    "text": "Gérer vos sessions actives",
+    "text": "Gérez vos sessions actives",
     "source_hash": "e5646da4"
   },
   "web.settings.sessions.manage_active_sessions": {
-    "text": "Gérer vos sessions actives",
+    "text": "Gérez vos sessions actives",
     "source_hash": "e5646da4"
   },
   "web.settings.password.title": {
@@ -352,11 +352,11 @@
     "source_hash": "e7cf3ef4"
   },
   "web.settings.password.description": {
-    "text": "Modifier votre mot de passe de compte",
+    "text": "Mettez à jour le mot de passe de votre compte",
     "source_hash": "cb3ae40b"
   },
   "web.settings.password.update_account_password": {
-    "text": "Modifier votre mot de passe de compte",
+    "text": "Mettez à jour le mot de passe de votre compte",
     "source_hash": "cb3ae40b"
   },
   "web.settings.delete_account.title": {
@@ -364,19 +364,19 @@
     "source_hash": "c031bf99"
   },
   "web.settings.delete_account.description": {
-    "text": "Supprimer définitivement votre compte et toutes vos données",
+    "text": "Supprimez définitivement votre compte et toutes vos données",
     "source_hash": "7a3a6da2"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "Supprimer définitivement votre compte et toutes vos données",
+    "text": "Supprimez définitivement votre compte et toutes vos données",
     "source_hash": "7a3a6da2"
   },
   "web.settings.security.security_score": {
-    "text": "Score de sécurité",
+    "text": "Indice de sécurité",
     "source_hash": "02d2f374"
   },
   "web.settings.security.score_description": {
-    "text": "La santé globale de la sécurité de votre compte",
+    "text": "L'état de sécurité global de votre compte",
     "source_hash": "cf20935e"
   },
   "web.settings.security.excellent": {
@@ -388,7 +388,7 @@
     "source_hash": "c939327c"
   },
   "web.settings.security.fair": {
-    "text": "Passable",
+    "text": "Moyen",
     "source_hash": "f7b19afc"
   },
   "web.settings.security.weak": {
@@ -400,11 +400,11 @@
     "source_hash": "c38bcbf5"
   },
   "web.settings.security.enable_mfa_recommendation": {
-    "text": "Activer l'authentification à deux facteurs pour une protection renforcée",
+    "text": "Activez l'authentification à deux facteurs pour une protection renforcée",
     "source_hash": "6beda528"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
-    "text": "Générer des codes de récupération comme sauvegarde",
+    "text": "Générez des codes de récupération comme solution de secours",
     "source_hash": "eb5f3ebd"
   },
   "web.settings.security.configured": {
@@ -436,27 +436,27 @@
     "source_hash": "30737484"
   },
   "web.settings.security.best_practices": {
-    "text": "Bonnes pratiques de sécurité",
+    "text": "Pratiques exemplaires de sécurité",
     "source_hash": "fd71b2da"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "Utiliser un mot de passe fort et unique pour votre compte",
+    "text": "Utilisez un mot de passe fort et unique pour votre compte",
     "source_hash": "5fc8cbf4"
   },
   "web.settings.security.enable_mfa_for_protection": {
-    "text": "Activer l'authentification à deux facteurs pour une protection supplémentaire",
+    "text": "Activez l'authentification à deux facteurs pour une protection supplémentaire",
     "source_hash": "107e4898"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "Sauvegarder vos codes de récupération dans un endroit sécurisé",
+    "text": "Conservez vos codes de récupération dans un endroit sécurisé",
     "source_hash": "605513fc"
   },
   "web.settings.security.review_sessions_regularly": {
-    "text": "Vérifier et révoquer régulièrement les sessions inutilisées",
+    "text": "Examinez et révoquez régulièrement les sessions inutilisées",
     "source_hash": "efe59445"
   },
   "web.settings.security.view_details": {
-    "text": "Voir les détails",
+    "text": "Afficher les détails",
     "source_hash": "d1bf045b"
   },
   "web.settings.api.title": {
@@ -464,11 +464,11 @@
     "source_hash": "21fc84f3"
   },
   "web.settings.api.description": {
-    "text": "Gérer les clés API et les intégrations",
+    "text": "Gérez les clés API et les intégrations",
     "source_hash": "70976099"
   },
   "web.settings.api.manage_api_keys": {
-    "text": "Gérer les clés API et les intégrations",
+    "text": "Gérez les clés API et les intégrations",
     "source_hash": "70976099"
   },
   "web.settings.api.documentation": {
@@ -484,7 +484,7 @@
     "source_hash": "26a5af61"
   },
   "web.settings.api.complete_api_documentation": {
-    "text": "Documentation complète de l'API et des points de terminaison",
+    "text": "Documentation complète de l'API et points de terminaison",
     "source_hash": "c1c87ad8"
   },
   "web.settings.api.code_examples": {
@@ -496,11 +496,11 @@
     "source_hash": "61c5956f"
   },
   "web.settings.api.security_best_practices": {
-    "text": "Bonnes pratiques de sécurité",
+    "text": "Pratiques exemplaires de sécurité",
     "source_hash": "fd71b2da"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "Ne jamais enregistrer les clés API dans le contrôle de version",
+    "text": "Ne validez jamais de clés API dans le système de contrôle de version",
     "source_hash": "cc8c327e"
   },
   "web.settings.api.use_environment_variables": {
@@ -508,11 +508,11 @@
     "source_hash": "c05e8802"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "Effectuez une rotation régulière des clés API pour plus de sécurité",
+    "text": "Renouvelez régulièrement les clés API pour la sécurité",
     "source_hash": "eda6a5db"
   },
   "web.settings.api.use_https_only": {
-    "text": "Toujours utiliser HTTPS pour les requêtes API",
+    "text": "Utilisez toujours HTTPS lors des requêtes à l'API",
     "source_hash": "b3f405ef"
   },
   "web.settings.api.monitor_api_usage": {
@@ -532,7 +532,7 @@
     "source_hash": "eefad6ba"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "Gérer vos préférences de confidentialité",
+    "text": "Gérez vos préférences de confidentialité",
     "source_hash": "add087da"
   },
   "web.settings.privacy.your_privacy": {
@@ -552,7 +552,7 @@
     "source_hash": "3e154b1c"
   },
   "web.settings.privacy.explanation": {
-    "text": "Ceci n'est pas un paramètre, car il n'y a rien à activer ou désactiver. Votre vie privée fait partie intégrante de notre fonctionnement.",
+    "text": "Ce n'est pas un paramètre, car il n'y a rien à activer ou à désactiver. Votre vie privée est intégrée à notre façon de fonctionner.",
     "source_hash": "ed943792"
   },
   "web.settings.notifications.title": {
@@ -560,11 +560,11 @@
     "source_hash": "07a063ca"
   },
   "web.settings.notifications.description": {
-    "text": "Gérer la façon dont vous recevez les notifications",
+    "text": "Gérez la façon dont vous recevez les notifications",
     "source_hash": "148c5ff6"
   },
   "web.settings.notifications.error_updating": {
-    "text": "Échec de la mise à jour des préférences de notification. Veuillez réessayer.",
+    "text": "Échec de la mise à jour de la préférence de notification. Veuillez réessayer.",
     "source_hash": "c08abc04"
   },
   "web.settings.notifications.reveal_notifications.title": {
@@ -572,19 +572,19 @@
     "source_hash": "c0fb2e25"
   },
   "web.settings.notifications.reveal_notifications.description": {
-    "text": "Recevoir un courriel lorsque quelqu'un consulte votre secret",
+    "text": "Recevez un courriel lorsque quelqu'un consulte votre secret",
     "source_hash": "a3a67095"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Vous serez averti chaque fois qu'un destinataire consulte l'un de vos secrets",
+    "text": "Vous serez avisé chaque fois qu'un destinataire consulte l'un de vos secrets",
     "source_hash": "ba93106d"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "Les courriels de notification incluent uniquement l'horodatage et l'identifiant du secret. Les informations sur le destinataire ne sont jamais incluses.",
+    "text": "Les courriels de notification n'incluent que l'horodatage et l'ID du secret. L'information sur le lecteur n'est jamais incluse.",
     "source_hash": "7aac282f"
   },
   "web.settings.caution.title": {
-    "text": "Zone de prudence",
+    "text": "Zone à considérer avec prudence",
     "source_hash": "fe27a3a8"
   },
   "web.settings.caution.description": {
@@ -596,19 +596,19 @@
     "source_hash": "bdcea052"
   },
   "web.settings.caution.export_your_data": {
-    "text": "Exporter vos données de compte",
+    "text": "Exportez les données de votre compte",
     "source_hash": "dc5ffcb0"
   },
   "web.settings.caution.export_description": {
-    "text": "Demander une copie complète de vos données de compte dans un format lisible par machine",
+    "text": "Demandez une copie complète des données de votre compte dans un format lisible par machine",
     "source_hash": "369c3391"
   },
   "web.settings.caution.request_data_export": {
-    "text": "Demander une exportation des données",
+    "text": "Demander l'exportation des données",
     "source_hash": "902394be"
   },
   "web.settings.caution.export_info": {
-    "text": "Délai de traitement des exportations",
+    "text": "Délai de traitement de l'exportation",
     "source_hash": "2ebb2d44"
   },
   "web.settings.caution.export_info_description": {
@@ -616,15 +616,15 @@
     "source_hash": "a2f81e3b"
   },
   "web.settings.caution.deletion_warning_title": {
-    "text": "La suppression de votre compte entraînera :",
+    "text": "La suppression de votre compte va :",
     "source_hash": "17a8a676"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "La suppression permanente de tous vos secrets",
+    "text": "Supprimer définitivement tous vos secrets",
     "source_hash": "974ccdb9"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "La suppression de toutes les métadonnées et de l'historique des secrets",
+    "text": "Retirer toutes les métadonnées et l'historique des secrets",
     "source_hash": "ec4ee372"
   },
   "web.settings.caution.deletion_warning_api_keys": {
@@ -640,7 +640,7 @@
     "source_hash": "cf02eb0c"
   },
   "web.settings.profile.email_confirmed_success": {
-    "text": "Votre courriel a été mis à jour avec succès. Veuillez vous connecter avec votre nouvelle adresse courriel.",
+    "text": "Votre adresse courriel a été mise à jour avec succès. Veuillez vous connecter avec votre nouvelle adresse courriel.",
     "source_hash": "a84efcea"
   },
   "web.settings.profile.email_confirm_verifying": {
@@ -648,7 +648,7 @@
     "source_hash": "a6a4745f"
   },
   "web.settings.profile.email_confirm_error_title": {
-    "text": "Échec du changement de courriel",
+    "text": "Échec de la modification de l'adresse courriel",
     "source_hash": "953f3936"
   },
   "web.settings.profile.email_confirm_invalid": {
@@ -676,11 +676,23 @@
     "source_hash": "286a3af7"
   },
   "web.settings.profile.email_change_pending": {
-    "text": "Un courriel de vérification a été envoyé. Vérifiez votre boîte de réception et cliquez sur le lien de confirmation.",
+    "text": "Un courriel de vérification a été envoyé. Consultez votre boîte de réception et cliquez sur le lien de confirmation.",
     "source_hash": "5806c93f"
   },
   "web.settings.profile.didnt_receive_email": {
-    "text": "Vous n'avez pas reçu le courriel ?",
+    "text": "Vous n'avez pas reçu le courriel ?",
     "source_hash": "fe3ac3ad"
+  },
+  "web.settings.api.api_disabled_notice": {
+    "text": "L'API est désactivée pour cette instance.",
+    "source_hash": "66d12d6b"
+  },
+  "web.settings.security.sso_managed_title": {
+    "text": "Sécurité gérée par l'authentification unique (SSO)",
+    "source_hash": "1f6c9472"
+  },
+  "web.settings.security.sso_managed_description": {
+    "text": "Votre compte est authentifié au moyen du fournisseur d'authentification unique de votre organisation. Le mot de passe, l'authentification multifacteur et les codes de récupération sont gérés par votre fournisseur d'identité.",
+    "source_hash": "cd0cf39f"
   }
 }

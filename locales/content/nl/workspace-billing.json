@@ -28,7 +28,7 @@
     "source_hash": "ab8be865"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "Auditlogs vereisen Multi-Team plan of hoger",
+    "text": "Auditlogs vereisen het Multi-Team-plan of hoger",
     "source_hash": "91df96b0"
   },
   "web.billing.manage_subscription_and_billing": {
@@ -88,7 +88,7 @@
     "source_hash": "cbc4ef92"
   },
   "web.billing.plans.legacy_plan_info": {
-    "text": "Je hebt een bestaand plan met speciale prijzen.",
+    "text": "Je hebt een overgenomen plan met speciale prijzen.",
     "source_hash": "e9aa8bf0"
   },
   "web.billing.plans.early_supporter_plan": {
@@ -96,7 +96,7 @@
     "source_hash": "f37cd0d9"
   },
   "web.billing.plans.legacy_plan_warning": {
-    "text": "Van plan wisselen betekent dat je je huidige speciale tarief verliest. Dit kan niet ongedaan worden gemaakt.",
+    "text": "Bij het wisselen van plan verlies je je overgenomen tarief. Dit kan niet ongedaan worden gemaakt.",
     "source_hash": "eda13d64"
   },
   "web.billing.overview.no_payment_method": {
@@ -120,7 +120,7 @@
     "source_hash": "a865d424"
   },
   "web.billing.overview.view_plans_description": {
-    "text": "Vergelijk en upgrade",
+    "text": "Vergelijken en upgraden",
     "source_hash": "40e02bff"
   },
   "web.billing.overview.view_invoices_action": {
@@ -148,7 +148,7 @@
     "source_hash": "41e922d2"
   },
   "web.billing.overview.load_error": {
-    "text": "Factuurgegevens konden niet worden geladen",
+    "text": "Laden van factureringsgegevens mislukt",
     "source_hash": "3bc44882"
   },
   "web.billing.overview.upgrade_success": {
@@ -180,15 +180,15 @@
     "source_hash": "6170ab94"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
-    "text": "Aangepaste privacystandaarden",
+    "text": "Aangepaste privacy-standaardinstellingen",
     "source_hash": "e677e27d"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "Uitgebreide standaardverlooptijd",
+    "text": "Verlengde standaardvervaltijd",
     "source_hash": "19b19637"
   },
   "web.billing.overview.entitlements.custom_mail_sender": {
-    "text": "Aangepaste e-mailstandaarden",
+    "text": "Aangepaste e-mailstandaardinstellingen",
     "source_hash": "95aebfb9"
   },
   "web.billing.overview.entitlements.custom_branding": {
@@ -196,7 +196,7 @@
     "source_hash": "237dabec"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "Homepage-berichten",
+    "text": "Berichten op homepage",
     "source_hash": "6360f7ec"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
@@ -204,7 +204,7 @@
     "source_hash": "883dbca9"
   },
   "web.billing.overview.entitlements.manage_org": {
-    "text": "Organisaties beheren",
+    "text": "Organisatie beheren",
     "source_hash": "be0fe4c3"
   },
   "web.billing.overview.entitlements.manage_teams": {
@@ -220,19 +220,19 @@
     "source_hash": "5428d7fe"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "Single Sign-On",
+    "text": "Single sign-on",
     "source_hash": "cf7cd744"
   },
   "web.billing.overview.entitlements.priority_support": {
-    "text": "Prioriteitsondersteuning",
+    "text": "Prioriteitssupport",
     "source_hash": "ed8a65c8"
   },
   "web.billing.overview.entitlements.sla": {
-    "text": "Service Level Agreement",
+    "text": "Service level agreement",
     "source_hash": "436f2550"
   },
   "web.billing.overview.entitlements_load_error": {
-    "text": "Kan functiedetails niet laden",
+    "text": "Functiedetails konden niet worden geladen",
     "source_hash": "c350973c"
   },
   "web.billing.overview.no_entitlements": {
@@ -240,7 +240,7 @@
     "source_hash": "03d195e8"
   },
   "web.billing.features.create_secrets": {
-    "text": "Berichten maken en delen",
+    "text": "Berichten aanmaken en delen",
     "source_hash": "303f9386"
   },
   "web.billing.features.api_access": {
@@ -264,7 +264,7 @@
     "source_hash": "237dabec"
   },
   "web.billing.features.homepage_secrets": {
-    "text": "Homepage-berichten",
+    "text": "Berichten op homepage",
     "source_hash": "6360f7ec"
   },
   "web.billing.features.manage_teams": {
@@ -280,15 +280,15 @@
     "source_hash": "5428d7fe"
   },
   "web.billing.features.sso": {
-    "text": "Single Sign-On (SSO)",
+    "text": "Single sign-on (SSO)",
     "source_hash": "5db5c812"
   },
   "web.billing.features.priority_support": {
-    "text": "Prioriteitsondersteuning",
+    "text": "Prioriteitssupport",
     "source_hash": "ed8a65c8"
   },
   "web.billing.features.sla": {
-    "text": "Service Level Agreement",
+    "text": "Service level agreement",
     "source_hash": "436f2550"
   },
   "web.billing.features.centralized_billing": {
@@ -312,7 +312,7 @@
     "source_hash": "79506c82"
   },
   "web.billing.plans.choose_plan": {
-    "text": "Kies het plan dat bij je past",
+    "text": "Kies het plan dat bij je behoeften past",
     "source_hash": "5f039cb9"
   },
   "web.billing.plans.subtitle": {
@@ -336,7 +336,7 @@
     "source_hash": "d955b7e8"
   },
   "web.billing.plans.cancel_to_downgrade": {
-    "text": "Annuleren om te wisselen",
+    "text": "Opzeggen om te wisselen",
     "source_hash": "1c4cda89"
   },
   "web.billing.plans.monthly": {
@@ -376,7 +376,7 @@
     "source_hash": "44e90aad"
   },
   "web.billing.plans.multi_team_account": {
-    "text": "Organisatie-account",
+    "text": "Organisatieaccount",
     "source_hash": "86e3a165"
   },
   "web.billing.plans.features": {
@@ -392,7 +392,7 @@
     "source_hash": "923fd434"
   },
   "web.billing.plans.priority_support": {
-    "text": "Prioriteitsondersteuning",
+    "text": "Prioriteitssupport",
     "source_hash": "acea4b40"
   },
   "web.billing.plans.select_plan": {
@@ -400,11 +400,11 @@
     "source_hash": "8709f894"
   },
   "web.billing.plans.contact_sales": {
-    "text": "Neem contact op met sales",
+    "text": "Contact opnemen met sales",
     "source_hash": "484aa053"
   },
   "web.billing.plans.custom_needs_title": {
-    "text": "Heb je vragen of iets specifieks nodig?",
+    "text": "Heb je vragen of iets op maat nodig?",
     "source_hash": "2f68484c"
   },
   "web.billing.plans.custom_needs_description": {
@@ -428,7 +428,7 @@
     "source_hash": "728ecef0"
   },
   "web.billing.plans.most_popular": {
-    "text": "Meest populair",
+    "text": "Populairst",
     "source_hash": "9e1006a4"
   },
   "web.billing.plans.suggested": {
@@ -436,15 +436,15 @@
     "source_hash": "93b63bab"
   },
   "web.billing.plans.everything_in": {
-    "text": "Bevat alles in {plan}",
+    "text": "Bevat alles uit {plan}",
     "source_hash": "1c73c298"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "Geen {interval} plannen beschikbaar op dit moment.",
+    "text": "Op dit moment geen {interval} plannen beschikbaar.",
     "source_hash": "d8454436"
   },
   "web.billing.plans.load_error": {
-    "text": "Plannen konden niet worden geladen",
+    "text": "Laden van plannen mislukt",
     "source_hash": "a37d4d9a"
   },
   "web.billing.plans.change_immediate": {
@@ -464,7 +464,7 @@
     "source_hash": "001e4901"
   },
   "web.billing.plans.due_today": {
-    "text": "Vandaag verschuldigd:",
+    "text": "Vandaag te betalen:",
     "source_hash": "e370e3aa"
   },
   "web.billing.plans.next_billing": {
@@ -476,7 +476,7 @@
     "source_hash": "5670e027"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "Je functielimieten worden direct bijgewerkt na de planwijziging.",
+    "text": "Je functielimieten worden direct na de planwijziging bijgewerkt.",
     "source_hash": "9cb09f73"
   },
   "web.billing.plans.change_failed": {
@@ -504,15 +504,15 @@
     "source_hash": "a0943c3b"
   },
   "web.billing.plans.next_bill_amount": {
-    "text": "Volgend factuurbedrag:",
+    "text": "Bedrag volgende factuur:",
     "source_hash": "526ad28f"
   },
   "web.billing.plans.credit_applied_to_bill": {
-    "text": "Tegoed toegepast:",
+    "text": "Toegepast tegoed:",
     "source_hash": "e5f2e81a"
   },
   "web.billing.plans.amount_due_next_billing": {
-    "text": "Verschuldigd bedrag bij volgende facturering:",
+    "text": "Te betalen bedrag bij volgende facturering:",
     "source_hash": "22ee868a"
   },
   "web.billing.plans.remaining_account_credit": {
@@ -568,7 +568,7 @@
     "source_hash": "fb81b961"
   },
   "web.billing.invoices.pending": {
-    "text": "In afwachting",
+    "text": "In behandeling",
     "source_hash": "331551b0"
   },
   "web.billing.invoices.failed": {
@@ -584,15 +584,15 @@
     "source_hash": "ed077f3d"
   },
   "web.billing.invoices.uncollectible": {
-    "text": "Niet-inbaar",
+    "text": "Oninbaar",
     "source_hash": "c8d3b241"
   },
   "web.billing.invoices.void": {
-    "text": "Ongeldig",
+    "text": "Geannuleerd",
     "source_hash": "4e7ba403"
   },
   "web.billing.invoices.load_error": {
-    "text": "Facturen laden mislukt",
+    "text": "Laden van facturen mislukt",
     "source_hash": "0b0cb3f7"
   },
   "web.billing.notices.org_managed": {
@@ -632,7 +632,7 @@
     "source_hash": "2bda1c7b"
   },
   "web.billing.subscription.canceled": {
-    "text": "Geannuleerd",
+    "text": "Opgezegd",
     "source_hash": "13ca2ee2"
   },
   "web.billing.subscription.catalog_name": {
@@ -664,11 +664,11 @@
     "source_hash": "b6f47df3"
   },
   "web.billing.start_today": {
-    "text": "Vandaag beginnen",
+    "text": "Begin vandaag",
     "source_hash": "80e73fc7"
   },
   "web.billing.start_today_with_identity_plus": {
-    "text": "Vandaag beginnen met Identity Plus",
+    "text": "Begin vandaag met Identity Plus",
     "source_hash": "cce4c7d7"
   },
   "web.billing.per_month": {
@@ -704,7 +704,7 @@
     "source_hash": "272d3c80"
   },
   "web.billing.upgrade_for_teams": {
-    "text": "Upgrade voor teams",
+    "text": "Upgraden voor teams",
     "source_hash": "90dfb533"
   },
   "web.billing.benefits_of": {
@@ -720,15 +720,15 @@
     "source_hash": "2ecdd437"
   },
   "web.billing.upgrade_for_yourdomain": {
-    "text": "Upgraden voor secrets.jouwdomein.com",
+    "text": "Upgraden voor secrets.yourdomain.com",
     "source_hash": "8e4d766a"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
-    "text": "Inclusief alle functies en onbeperkte deelmogelijkheden",
+    "text": "Alle plannen bevatten privacyfuncties en onbeperkte deelcapaciteit",
     "source_hash": "e728e4e1"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "Alle plannen omvatten keuze uit datalocatie: {0} regio's",
+    "text": "Alle plannen bevatten keuze uit datalokaliteit: {0} regio's",
     "source_hash": "22a60b49"
   },
   "web.billing.get_started": {
@@ -740,7 +740,7 @@
     "source_hash": "eaf5e2ef"
   },
   "web.billing.elevate_your_secure_sharing_with_custom_domains_": {
-    "text": "Verbeter uw veilige delen met aangepaste domeinen, onbeperkte capaciteit en functies op bedrijfsniveau.",
+    "text": "Til je beveiligde delen naar een hoger niveau met aangepaste domeinen, onbeperkte capaciteit en functies van enterprise-niveau.",
     "source_hash": "db458d30"
   },
   "web.billing.payment_frequency": {
@@ -748,7 +748,7 @@
     "source_hash": "b2c87e39"
   },
   "web.billing.secure_your_brand_and_build_customer_trust_with_": {
-    "text": "Beveilig uw merk en bouw klantenvertrouwen op met links vanaf uw domein. Perfect voor bedrijven die privacy en professionaliteit waarderen.",
+    "text": "Beveilig je merk en bouw klantvertrouwen op met links vanaf je eigen domein. Perfect voor bedrijven die privacy en professionaliteit waarderen.",
     "source_hash": "c07cd25c"
   },
   "web.billing.secure_links_stronger_connections": {
@@ -760,21 +760,21 @@
     "source_hash": "d0204fc4"
   },
   "web.billing.cancel.link_text": {
-    "text": "Abonnement annuleren",
+    "text": "Abonnement opzeggen",
     "context": "Link text shown below the plan selector for paid users",
     "source_hash": "3f85967f"
   },
   "web.billing.cancel.title": {
-    "text": "Abonnement annuleren",
+    "text": "Abonnement opzeggen",
     "context": "Modal dialog heading/title",
     "source_hash": "882e0c83"
   },
   "web.billing.cancel.confirmation": {
-    "text": "Weet je zeker dat je je {plan}-abonnement wilt annuleren?",
+    "text": "Weet je zeker dat je je {plan}-abonnement wilt opzeggen?",
     "source_hash": "f4d1b6ee"
   },
   "web.billing.cancel.what_happens": {
-    "text": "Wat er gebeurt wanneer je annuleert:",
+    "text": "Wat er gebeurt als je opzegt:",
     "source_hash": "4d8f5751"
   },
   "web.billing.cancel.access_until": {
@@ -782,11 +782,11 @@
     "source_hash": "eab1efe3"
   },
   "web.billing.cancel.access_until_period_end": {
-    "text": "Je behoudt toegang tot het einde van je huidige factureringsperiode",
+    "text": "Je behoudt toegang totdat je huidige factureringsperiode afloopt",
     "source_hash": "1b07a54a"
   },
   "web.billing.cancel.no_future_charges": {
-    "text": "Je wordt niet meer in rekening gebracht",
+    "text": "Je wordt niet opnieuw in rekening gebracht",
     "source_hash": "a01cdc16"
   },
   "web.billing.cancel.downgrade_to_free": {
@@ -799,30 +799,30 @@
     "source_hash": "31e80c41"
   },
   "web.billing.cancel.confirm_cancel": {
-    "text": "Abonnement annuleren",
+    "text": "Abonnement opzeggen",
     "context": "Primary action button in modal - confirms the cancellation",
     "source_hash": "882e0c83"
   },
   "web.billing.cancel.success": {
-    "text": "Je abonnement is geannuleerd. Je behoudt toegang tot het einde van je factureringsperiode.",
+    "text": "Je abonnement is opgezegd. Je behoudt toegang tot het einde van je factureringsperiode.",
     "source_hash": "e18fd9d5"
   },
   "web.billing.cancel.error": {
-    "text": "Abonnement annuleren mislukt. Probeer het opnieuw.",
+    "text": "Opzeggen van abonnement mislukt. Probeer het opnieuw.",
     "source_hash": "68e8bdde"
   },
   "web.billing.cancel.scheduled_title": {
-    "text": "Abonnementsannulering gepland",
+    "text": "Opzegging van abonnement gepland",
     "context": "Alert banner heading shown when cancellation is pending",
     "source_hash": "1427d139"
   },
   "web.billing.cancel.scheduled_description": {
-    "text": "Je abonnement blijft actief tot {date}. Je hebt tot dan volledige toegang tot alle functies.",
+    "text": "Je abonnement blijft actief tot {date}. Tot dan houd je volledige toegang tot alle functies.",
     "context": "Alert banner description explaining continued access",
     "source_hash": "aab4b1dc"
   },
   "web.billing.cancel.scheduled_note": {
-    "text": "Van gedachten veranderd? Je kunt je abonnement op elk moment vóór de annuleringsdatum opnieuw activeren.",
+    "text": "Van gedachten veranderd? Je kunt je abonnement op elk moment vóór de opzegdatum opnieuw activeren.",
     "context": "Alert banner note encouraging reactivation",
     "source_hash": "c94d5527"
   },
@@ -835,11 +835,11 @@
     "source_hash": "db966d47"
   },
   "web.billing.overview.entitlements.workspace_branding": {
-    "text": "Werkruimte-branding",
+    "text": "Workspace-branding",
     "source_hash": "e7acbf6f"
   },
   "web.billing.features.extended_retention": {
-    "text": "30 dagen berichtretentie",
+    "text": "Berichtbewaring van 30 dagen",
     "source_hash": "21d6d514"
   },
   "web.billing.features.incoming_secrets": {
@@ -875,7 +875,7 @@
     "source_hash": "db966d47"
   },
   "web.billing.features.workspace_branding": {
-    "text": "Werkruimte-branding",
+    "text": "Workspace-branding",
     "source_hash": "e7acbf6f"
   },
   "web.billing.features.dedicated_infrastructure": {
@@ -908,23 +908,23 @@
     "source_hash": "2e20e596"
   },
   "web.billing.currency_migration.choose_timing": {
-    "text": "Wanneer moet de overschakeling plaatsvinden?",
+    "text": "Wanneer moet de overstap plaatsvinden?",
     "source_hash": "f4aabb13"
   },
   "web.billing.currency_migration.graceful_title": {
-    "text": "Overschakelen aan het einde van de factureringsperiode",
+    "text": "Overstappen aan het einde van de factureringsperiode",
     "source_hash": "55cd980b"
   },
   "web.billing.currency_migration.graceful_description": {
-    "text": "Je huidige plan blijft actief tot {date}. Daarna voltooi je de afrekening voor je nieuwe plan.",
+    "text": "Je huidige plan blijft actief tot {date}. Daarna rond je het afrekenen voor je nieuwe plan af.",
     "source_hash": "b8661418"
   },
   "web.billing.currency_migration.immediate_title": {
-    "text": "Direct overschakelen",
+    "text": "Direct overstappen",
     "source_hash": "e9d0ba59"
   },
   "web.billing.currency_migration.immediate_description": {
-    "text": "Je huidige plan wordt nu geannuleerd. Je ontvangt een terugbetaling voor ongebruikte tijd en voltooit de afrekening voor het nieuwe plan.",
+    "text": "Je huidige plan wordt nu opgezegd. Je ontvangt een terugbetaling voor je ongebruikte tijd en rondt het afrekenen voor het nieuwe plan af.",
     "source_hash": "b08de0ca"
   },
   "web.billing.currency_migration.confirm": {
@@ -936,23 +936,23 @@
     "source_hash": "4a6e1ced"
   },
   "web.billing.currency_migration.success": {
-    "text": "Je abonnementsvaluta is succesvol bijgewerkt.",
+    "text": "De valuta van je abonnement is succesvol bijgewerkt.",
     "source_hash": "a8bf437e"
   },
   "web.billing.currency_migration.graceful_success": {
-    "text": "Je huidige plan blijft actief tot het einde van de factureringsperiode. Daarna word je gevraagd de afrekening voor je nieuwe plan te voltooien.",
+    "text": "Je huidige plan blijft actief tot het einde van de factureringsperiode. Daarna word je gevraagd het afrekenen voor je nieuwe plan af te ronden.",
     "source_hash": "15d41483"
   },
   "web.billing.currency_migration.warning_credit_balance": {
-    "text": "Je hebt een tegoed in {currency} dat niet kan worden overgedragen naar de nieuwe valuta.",
+    "text": "Je hebt een tegoed in {currency} dat niet kan worden overgezet naar de nieuwe valuta.",
     "source_hash": "aa15be91"
   },
   "web.billing.currency_migration.warning_pending_items": {
-    "text": "Je hebt openstaande factuuritems die moeten worden afgehandeld voor de migratie.",
+    "text": "Je hebt openstaande factuuritems die vóór de migratie moeten worden afgehandeld.",
     "source_hash": "7b4c5e10"
   },
   "web.billing.currency_migration.warning_coupons": {
-    "text": "Actieve kortingscodes op je account zijn mogelijk niet compatibel met de nieuwe valuta.",
+    "text": "Actieve kortingsbonnen op je account zijn mogelijk niet compatibel met de nieuwe valuta.",
     "source_hash": "f572ee81"
   },
   "web.billing.currency_migration.pending_title": {
@@ -961,7 +961,7 @@
     "source_hash": "018ae653"
   },
   "web.billing.currency_migration.pending_description": {
-    "text": "Je huidige plan eindigt op {date}. Voltooi je overschakeling naar {plan} ({currency}).",
+    "text": "Je huidige plan eindigt op {date}. Rond je overstap naar {plan} ({currency}) af.",
     "source_hash": "998ba4ab"
   },
   "web.billing.currency_migration.complete_migration": {
@@ -970,23 +970,79 @@
     "source_hash": "fa794e0c"
   },
   "web.billing.checkout_session_failed": {
-    "text": "Afrekensessie kon niet worden aangemaakt",
+    "text": "Aanmaken van afrekensessie mislukt",
     "context": "Error when Stripe checkout session creation returns no URL",
     "source_hash": "a53f6fa3"
   },
   "web.billing.checkout_initiate_failed": {
-    "text": "Afrekenen kon niet worden gestart",
+    "text": "Starten van afrekenen mislukt",
     "context": "Fallback error for checkout failures",
     "source_hash": "3ff06e41"
   },
   "web.billing.plan_switch_success": {
-    "text": "Succesvol overgestapt naar {plan}",
+    "text": "Succesvol overgeschakeld naar {plan}",
     "context": "Success message after plan change",
     "source_hash": "ab7c715c"
   },
   "web.billing.plan_unavailable_region_mismatch": {
-    "text": "Alleen beschikbaar in je oorspronkelijke abonnementsregio",
+    "text": "Alleen beschikbaar in de regio van je oorspronkelijke abonnement",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Je bent al geabonneerd op dit plan.",
+    "source_hash": "2b02438b"
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Abonnement opnieuw activeren",
+    "source_hash": "aa036442"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "Je abonnement is opnieuw geactiveerd. Je wordt normaal gefactureerd.",
+    "source_hash": "523bf7bf"
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "Opnieuw activeren van abonnement mislukt. Probeer het opnieuw of neem contact op met support.",
+    "source_hash": "d0c79bd4"
+  },
+  "web.billing.features.manage_orgs": {
+    "text": "Organisatiebeheer",
+    "source_hash": "780ad17c"
+  },
+  "web.billing.features.flexible_from_domain": {
+    "text": "Flexibel afzenderdomein voor e-mail",
+    "source_hash": "607572c3"
+  },
+  "web.billing.features.unlimited_admins": {
+    "text": "Onbeperkt beheerders",
+    "source_hash": "5871a536"
+  },
+  "web.billing.features.manage_sso": {
+    "text": "SSO",
+    "source_hash": "5ba3ac9f"
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Flexibel afzenderdomein voor e-mail",
+    "source_hash": "607572c3"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "Organisaties beheren",
+    "source_hash": "be0fe4c3"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Single sign-on (SSO)",
+    "source_hash": "5db5c812"
+  },
+  "web.billing.overview.entitlements.manage_billing": {
+    "text": "Facturering beheren",
+    "source_hash": "6d3a16f5"
+  },
+  "web.billing.overview.entitlements.custom_signup_validation": {
+    "text": "Aangepaste aanmeldvalidatie",
+    "source_hash": "0ff55bfa"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Opnieuw activeren",
+    "source_hash": "2dc7478f"
   }
 }

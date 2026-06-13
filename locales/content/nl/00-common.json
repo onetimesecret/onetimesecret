@@ -13,7 +13,7 @@
     "source_hash": "fdc5d2e9"
   },
   "web.COMMON.website_url": {
-    "text": "https://onetimesecret.com/nl",
+    "text": "https://onetimesecret.com/en",
     "source_hash": "440f5303"
   },
   "web.COMMON.button_generate_secret_short": {
@@ -37,7 +37,7 @@
     "source_hash": "6170ab94"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Versterk verbindingen en bouw vertrouwen met je eigen merkgebonden beveiligde links.",
+    "text": "Versterk verbindingen en wek vertrouwen met je eigen gebrande beveiligde links.",
     "source_hash": "71fddc05"
   },
   "web.COMMON.get_started_button": {
@@ -57,15 +57,15 @@
     "source_hash": "155f816c"
   },
   "web.COMMON.submitting": {
-    "text": "Verzenden...",
+    "text": "Bezig met verzenden...",
     "source_hash": "64115d5b"
   },
   "web.COMMON.processing": {
-    "text": "Verwerken...",
+    "text": "Bezig met verwerken...",
     "source_hash": "f40a853e"
   },
   "web.COMMON.description": {
-    "text": "Houd gevoelige informatie uit je chatgeschiedenis en e-mail. Deel een beveiligde link die slechts één keer beschikbaar is.",
+    "text": "Houd gevoelige informatie buiten je chatlogs en e-mail. Deel een beveiligde link die maar één keer beschikbaar is.",
     "source_hash": "4c895f85"
   },
   "web.COMMON.incorrect_passphrase": {
@@ -73,11 +73,11 @@
     "source_hash": "a55f9636"
   },
   "web.COMMON.keywords": {
-    "text": "bericht,wachtwoord generator,deel een bericht,eenmalig",
+    "text": "beveiligd bericht,wachtwoordgenerator,een bericht delen,onetime",
     "source_hash": "52728258"
   },
   "web.COMMON.button_create_secret": {
-    "text": "Maak een beveiligde link",
+    "text": "Een beveiligde link aanmaken",
     "source_hash": "a3e07632"
   },
   "web.COMMON.button_generate_secret": {
@@ -101,7 +101,7 @@
     "source_hash": "f6f6311d"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "Plaats hier de inhoud van je bericht...",
+    "text": "Hier komt de inhoud van je bericht...",
     "source_hash": "54630bab"
   },
   "web.COMMON.header_create_account": {
@@ -173,7 +173,7 @@
     "source_hash": "77322879"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Klik om te onthullen →",
+    "text": "Klik om weer te geven →",
     "source_hash": "41658f99"
   },
   "web.COMMON.click_to_verify": {
@@ -185,7 +185,7 @@
     "source_hash": "9ac6488f"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Controleer de wachtwoordzin nogmaals",
+    "text": "Controleer die wachtwoordzin nog eens",
     "source_hash": "b582f3a6"
   },
   "web.COMMON.enter_passphrase_here": {
@@ -217,11 +217,11 @@
     "source_hash": "e198269c"
   },
   "web.COMMON.secret_was_truncated": {
-    "text": "Het bericht is ingekort",
+    "text": "Het bericht is afgekapt",
     "source_hash": "1d1730d4"
   },
   "web.COMMON.signup_for_more": {
-    "text": "Registreer voor meer",
+    "text": "Meld je aan voor meer",
     "source_hash": "cc1421d0"
   },
   "web.COMMON.login_to_your_account": {
@@ -229,7 +229,7 @@
     "source_hash": "62f1fe13"
   },
   "web.COMMON.sent_to": {
-    "text": "Verzonden naar:",
+    "text": "Verzonden naar: ",
     "source_hash": "e79c8bcb"
   },
   "web.COMMON.field_email": {
@@ -249,7 +249,7 @@
     "source_hash": "0dffe234"
   },
   "web.COMMON.share_a_secret": {
-    "text": "Deel een bericht",
+    "text": "Een bericht delen",
     "source_hash": "5384461b"
   },
   "web.COMMON.title_home": {
@@ -297,11 +297,11 @@
     "source_hash": "84195de9"
   },
   "web.COMMON.verification_sent_to": {
-    "text": "Een verificatie is verzonden naar",
+    "text": "Er is een verificatie verzonden naar",
     "source_hash": "62da29c0"
   },
   "web.COMMON.autoverified_success": {
-    "text": "Account aangemaakt. Log alsjeblieft in.",
+    "text": "Account aangemaakt. Log in.",
     "source_hash": "fd3610bf"
   },
   "web.COMMON.signup_success_generic": {
@@ -313,7 +313,7 @@
     "source_hash": "0a7afc29"
   },
   "web.COMMON.burn_confirmation_title": {
-    "text": "Bevestig alsjeblieft",
+    "text": "Bevestig",
     "source_hash": "dcd78dfb"
   },
   "web.COMMON.burn_confirmation_message": {
@@ -321,7 +321,7 @@
     "source_hash": "5dde5dd9"
   },
   "web.COMMON.confirm_burn": {
-    "text": "Ja, dit bericht verbranden",
+    "text": "Ja, verbrand dit bericht",
     "source_hash": "6e5b02a7"
   },
   "web.COMMON.burn_security_notice": {
@@ -329,7 +329,7 @@
     "source_hash": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
-    "text": "Deel deze link voor de veiligheid apart van andere gegevens.",
+    "text": "Deel deze link voor de veiligheid los van andere gegevens.",
     "source_hash": "c46e6204"
   },
   "web.COMMON.copied_to_clipboard": {
@@ -349,7 +349,7 @@
     "source_hash": "abf07ced"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "Je kunt geen account verifiëren als je al bent ingelogd",
+    "text": "Je kunt een account niet verifiëren wanneer je al bent ingelogd",
     "source_hash": "f0a17c5f"
   },
   "web.COMMON.show_password": {
@@ -385,7 +385,7 @@
     "source_hash": "6e069c11"
   },
   "web.COMMON.redirecting": {
-    "text": "Doorverwijzen...",
+    "text": "Bezig met doorverwijzen...",
     "source_hash": "cd23991b"
   },
   "web.COMMON.continue": {
@@ -425,11 +425,11 @@
     "source_hash": "35322b5b"
   },
   "web.COMMON.saving": {
-    "text": "Opslaan...",
+    "text": "Bezig met opslaan...",
     "source_hash": "dc85af8f"
   },
   "web.COMMON.adding_ellipses": {
-    "text": "Toevoegen",
+    "text": "Bezig met toevoegen",
     "source_hash": "0a6691ef"
   },
   "web.COMMON.e_g_example": {
@@ -493,7 +493,7 @@
     "source_hash": "11a6767d"
   },
   "web.COMMON.end": {
-    "text": "Einde",
+    "text": "End",
     "source_hash": "f4db1e48"
   },
   "web.COMMON.general": {
@@ -513,7 +513,7 @@
     "source_hash": "6e69b59e"
   },
   "web.COMMON.go_on_then": {
-    "text": "Ga door.",
+    "text": "Vooruit dan.",
     "source_hash": "fb697cc7"
   },
   "web.COMMON.loading_ellipses": {
@@ -565,7 +565,7 @@
     "source_hash": "dd167905"
   },
   "web.COMMON.other": {
-    "text": "Anders",
+    "text": "Overig",
     "source_hash": "f97e9da0"
   },
   "web.COMMON.min_width_1024px": {
@@ -613,11 +613,11 @@
     "source_hash": "663d6499"
   },
   "web.COMMON.great": {
-    "text": "Uitstekend",
+    "text": "Geweldig",
     "source_hash": "c8cc1c7b"
   },
   "web.COMMON.pretty_good": {
-    "text": "Behoorlijk goed",
+    "text": "Vrij goed",
     "source_hash": "521a41b6"
   },
   "web.COMMON.fair": {
@@ -625,11 +625,11 @@
     "source_hash": "f7b19afc"
   },
   "web.COMMON.meh": {
-    "text": "Mwah",
+    "text": "Matig",
     "source_hash": "8b0d6190"
   },
   "web.COMMON.not_great": {
-    "text": "Niet geweldig",
+    "text": "Niet goed",
     "source_hash": "00561207"
   },
   "web.COMMON.open_options": {
@@ -653,7 +653,7 @@
     "source_hash": "da84ff02"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Controleer de wachtwoordzin nogmaals",
+    "text": "Controleer die wachtwoordzin nog eens",
     "source_hash": "b582f3a6"
   },
   "web.COMMON.press_copy_button_below": {
@@ -721,7 +721,7 @@
     "source_hash": "19766ed6"
   },
   "web.LABELS.saving": {
-    "text": "Opslaan...",
+    "text": "Bezig met opslaan...",
     "source_hash": "dc85af8f"
   },
   "web.LABELS.saved": {
@@ -769,7 +769,7 @@
     "source_hash": "b749e205"
   },
   "web.LABELS.receipts": {
-    "text": "Ontvangstbewijzen",
+    "text": "Bonnetjes",
     "source_hash": "60a627df"
   },
   "web.LABELS.share": {
@@ -809,7 +809,7 @@
     "source_hash": "73758343"
   },
   "web.LABELS.view_progress": {
-    "text": "Voortgang bekijken",
+    "text": "Weergavevoortgang",
     "source_hash": "6c072c1f"
   },
   "web.LABELS.help_section": {
@@ -817,7 +817,7 @@
     "source_hash": "614e14f0"
   },
   "web.LABELS.passphrase_protected": {
-    "text": "Beveiligd met wachtwoordzin",
+    "text": "Beschermd met een wachtwoordzin",
     "source_hash": "a52b9edf"
   },
   "web.LABELS.feedback_received": {
@@ -825,7 +825,7 @@
     "source_hash": "3fa595ef"
   },
   "web.LABELS.sending_ellipses": {
-    "text": "Verzenden...",
+    "text": "Bezig met verzenden...",
     "source_hash": "286a3af7"
   },
   "web.LABELS.title_recent_secrets": {
@@ -841,7 +841,7 @@
     "source_hash": "0e916101"
   },
   "web.LABELS.reload": {
-    "text": "Herladen",
+    "text": "Opnieuw laden",
     "source_hash": "bdc090ec"
   },
   "web.LABELS.filter": {
@@ -853,7 +853,7 @@
     "source_hash": "83b12c22"
   },
   "web.LABELS.caption_recent_secrets": {
-    "text": "Beveiligde links aangemaakt in deze sessie",
+    "text": "Beveiligde links die in deze sessie zijn aangemaakt",
     "source_hash": "6c7ceab8"
   },
   "web.LABELS.create_link_short": {
@@ -906,11 +906,11 @@
     "source_hash": "49f19bee"
   },
   "web.STATUS.previewed": {
-    "text": "Voorbekeken",
+    "text": "Bekeken in voorbeeld",
     "source_hash": "3d391a9b"
   },
   "web.STATUS.revealed": {
-    "text": "Onthuld",
+    "text": "Weergegeven",
     "source_hash": "17376ee4"
   },
   "web.STATUS.burned": {
@@ -946,7 +946,7 @@
     "source_hash": "b0cbaa5b"
   },
   "web.STATUS.securing": {
-    "text": "Beveiligen",
+    "text": "Bezig met beveiligen",
     "source_hash": "37c84053"
   },
   "web.STATUS.copied": {
@@ -966,19 +966,19 @@
     "source_hash": "83b9a0ca"
   },
   "web.STATUS.viewed_description": {
-    "text": "Beveiligde link is geopend en klaar om bekeken te worden",
+    "text": "Beveiligde link is geopend en klaar om te worden bekeken",
     "source_hash": "f392af12"
   },
   "web.STATUS.received_description": {
-    "text": "Bericht is onthuld aan de ontvanger",
+    "text": "Bericht is weergegeven aan de ontvanger",
     "source_hash": "ceb756b4"
   },
   "web.STATUS.previewed_description": {
-    "text": "Beveiligde link is geopend en klaar om onthuld te worden",
+    "text": "Beveiligde link is geopend en klaar om te worden weergegeven",
     "source_hash": "cc7d1e92"
   },
   "web.STATUS.revealed_description": {
-    "text": "Berichtinhoud is onthuld aan de ontvanger",
+    "text": "Berichtinhoud is weergegeven aan de ontvanger",
     "source_hash": "39b32f80"
   },
   "web.STATUS.burned_description": {
@@ -1022,11 +1022,11 @@
     "source_hash": "ac7c949f"
   },
   "web.FEATURES.unlimited_views": {
-    "text": "Onbeperkte weergaven",
+    "text": "Onbeperkt aantal weergaven",
     "source_hash": "3f6859b0"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Vertrouwd merkdomein",
+    "text": "Vertrouwde domeinbranding",
     "source_hash": "5e39b05c"
   },
   "web.FEATURES.encrypted_in_transit": {
@@ -1042,7 +1042,7 @@
     "source_hash": "6ac0d345"
   },
   "web.UNITS.ttl.time.hour": {
-    "text": "uur | uren",
+    "text": "uur | uur",
     "source_hash": "f4fef91b"
   },
   "web.UNITS.ttl.time.minute": {
@@ -1058,7 +1058,7 @@
     "source_hash": "cb3f91d5"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "Nog {count} {unit}",
+    "text": "nog {count} {unit}",
     "source_hash": "18f6c6e8"
   },
   "web.UNITS.ttl_remaining.time.day": {
@@ -1066,7 +1066,7 @@
     "source_hash": "6702855e"
   },
   "web.UNITS.ttl_remaining.time.hour": {
-    "text": "uur resterend | uren resterend",
+    "text": "uur resterend | uur resterend",
     "source_hash": "2eaebd6f"
   },
   "web.UNITS.ttl_remaining.time.minute": {
@@ -1082,7 +1082,7 @@
     "source_hash": "cb3f91d5"
   },
   "web.UNITS.limited_views": {
-    "text": "{count} weergavelimiet",
+    "text": "Limiet van {count} weergaven",
     "source_hash": "8db0e228"
   },
   "web.UNITS.days_remaining": {
@@ -1122,11 +1122,11 @@
     "source_hash": "fdfd41de"
   },
   "web.TITLES.reset_password": {
-    "text": "Wachtwoord herstellen",
+    "text": "Wachtwoord opnieuw instellen",
     "source_hash": "4e70f1fd"
   },
   "web.TITLES.logout": {
-    "text": "Uitloggen",
+    "text": "Bezig met uitloggen",
     "source_hash": "afbce8a6"
   },
   "web.TITLES.verify_account": {
@@ -1138,7 +1138,7 @@
     "source_hash": "bc074b60"
   },
   "web.TITLES.email_login": {
-    "text": "Inloggen met e-mail",
+    "text": "Inloggen via e-mail",
     "source_hash": "c316e3d7"
   },
   "web.TITLES.accept_invitation": {
@@ -1154,7 +1154,7 @@
     "source_hash": "c11bd410"
   },
   "web.TITLES.receipt": {
-    "text": "Berichtontvangstbewijs",
+    "text": "Berichtbonnetje",
     "source_hash": "fe0c79e9"
   },
   "web.TITLES.burn_secret": {
@@ -1182,7 +1182,7 @@
     "source_hash": "b416f537"
   },
   "web.TITLES.domain_brand": {
-    "text": "Merkdomein",
+    "text": "Domein branden",
     "source_hash": "35e4dfbe"
   },
   "web.TITLES.account": {
@@ -1222,11 +1222,11 @@
     "source_hash": "78801183"
   },
   "web.TITLES.change_email": {
-    "text": "E-mail wijzigen",
+    "text": "E-mailadres wijzigen",
     "source_hash": "18c3f2d5"
   },
   "web.TITLES.confirm_email_change": {
-    "text": "E-mailadres wijzigen bevestigen",
+    "text": "E-mailwijziging bevestigen",
     "source_hash": "c2736949"
   },
   "web.TITLES.security_overview": {
@@ -1283,7 +1283,7 @@
     "source_hash": "dfe95783"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
-    "text": "De focus is nu in het hoofdtekstveld",
+    "text": "Focus ligt nu in het hoofdtekstgebied",
     "source_hash": "e00dd260"
   },
   "web.INSTRUCTION.sharing_instructions": {
@@ -1303,7 +1303,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Controleer altijd of je op de officiële Onetime Secret-website bent. Fraudeurs maken soms nepwebsites die er precies uitzien als Onetime Secret om je berichten te stelen. Om phishing-aanvallen te voorkomen, controleer het domein voordat je nieuwe links aanmaakt.",
+    "text": "Controleer altijd of je je op de officiële Onetime Secret-website bevindt. Fraudeurs maken soms nepwebsites die er precies uitzien als Onetime Secret om je berichten te stelen. Om phishingaanvallen te voorkomen, controleer je het regiodomein voordat je nieuwe links aanmaakt.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1311,11 +1311,11 @@
     "source_hash": "97e283c7"
   },
   "web.pricing.subtitle": {
-    "text": "Kies het plan dat bij je past. Alle plannen bevatten onbeperkt berichten delen en privacy-eerst ontwerp.",
+    "text": "Kies het plan dat bij je behoeften past. Alle plannen bevatten onbeperkt beveiligd delen en een privacy-eerst ontwerp.",
     "source_hash": "9204dff4"
   },
   "web.pricing.get_started_free": {
-    "text": "Gratis starten",
+    "text": "Gratis aan de slag",
     "source_hash": "6bb5a4a7"
   },
   "web.pricing.start_trial": {
@@ -1374,12 +1374,12 @@
     "source_hash": "6615bf1c"
   },
   "api.errors.service_unavailable": {
-    "text": "Service tijdelijk niet beschikbaar. Probeer het zo opnieuw.",
+    "text": "Dienst tijdelijk niet beschikbaar. Probeer het binnenkort opnieuw.",
     "context": "Error message when database connection fails",
     "source_hash": "343ccdcb"
   },
   "api.errors.request_processing_error": {
-    "text": "Je verzoek kan momenteel niet worden verwerkt",
+    "text": "Kan je verzoek op dit moment niet verwerken",
     "context": "Error message for recoverable server errors",
     "source_hash": "fb961f3f"
   },
@@ -1387,5 +1387,105 @@
     "text": "Upgrade om meer functies te ontgrendelen",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "Authenticatie vereist",
+    "source_hash": "0fcfb12d"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "Deze actie is niet beschikbaar in de modus met alleen SSO",
+    "source_hash": "9bc26394"
+  },
+  "web.COMMON.configure": {
+    "text": "Configureren",
+    "source_hash": "6defafa2"
+  },
+  "web.COMMON.add": {
+    "text": "Toevoegen",
+    "source_hash": "9fd728c6"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Ja, verwijderen",
+    "source_hash": "7b05a8e3"
+  },
+  "web.COMMON.error_code": {
+    "text": "Foutcode",
+    "source_hash": "46832415"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTP-status",
+    "source_hash": "b2a629f2"
+  },
+  "web.COMMON.details": {
+    "text": "Details",
+    "source_hash": "45989de4"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Wachtwoord bevestigen",
+    "source_hash": "c292210c"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Wachtwoorden moeten overeenkomen",
+    "source_hash": "0c060bd4"
+  },
+  "web.COMMON.and": {
+    "text": "en",
+    "source_hash": "6201111b"
+  },
+  "web.COMMON.or": {
+    "text": "of",
+    "source_hash": "7175517a"
+  },
+  "web.COMMON.copied": {
+    "text": "Gekopieerd",
+    "source_hash": "8d525e5f"
+  },
+  "web.COMMON.copy": {
+    "text": "Kopiëren",
+    "source_hash": "e21f935f"
+  },
+  "web.COMMON.copy_email": {
+    "text": "E-mailadres kopiëren",
+    "source_hash": "61b94846"
+  },
+  "web.COMMON.copy_id": {
+    "text": "Account-ID kopiëren",
+    "source_hash": "fd493ffd"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "De unieke identificatie van je organisatie",
+    "source_hash": "c8c08d29"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Wachtwoordzin tonen",
+    "source_hash": "76880d38"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Wachtwoordzin verbergen",
+    "source_hash": "8ecdc98c"
+  },
+  "web.STATUS.unverified": {
+    "text": "Niet geverifieerd",
+    "source_hash": "33c8e8de"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Domeininstellingen",
+    "source_hash": "e24f338d"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "Domein-SSO",
+    "source_hash": "13161464"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "Validatie van domeinregistratie",
+    "source_hash": "c8ce809a"
+  },
+  "web.TITLES.domain_email": {
+    "text": "E-mailconfiguratie",
+    "source_hash": "6f38aa51"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Inkomende berichten",
+    "source_hash": "883dbca9"
   }
 }

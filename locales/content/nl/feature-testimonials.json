@@ -1,10 +1,10 @@
 {
   "web.testimonials.ai_generated_testimonial": {
-    "text": "AI-gegenereerde getuigenis",
+    "text": "AI-gegenereerde testimonial",
     "source_hash": "ff4d6634"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
-    "text": "AI-gegenereerde inhoud ter demonstratie. Niet van een echte persoon of bedrijf.",
+    "text": "AI-gegenereerde inhoud ter demonstratie. Niet afkomstig van een echte persoon of echt bedrijf.",
     "source_hash": "d7093de7"
   },
   "web.testimonials.randomtestimonial_stars_5": {
@@ -28,7 +28,7 @@
     "source_hash": "f46a8839"
   },
   "web.testimonials.ai_generated_testimonials": {
-    "text": "AI-gegenereerde getuigenissen",
+    "text": "AI-gegenereerde testimonials",
     "source_hash": "947cd6b4"
   },
   "web.testimonials.this_quote_was_generated_by": {
@@ -36,7 +36,7 @@
     "source_hash": "7879a747"
   },
   "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
-    "text": "Het was gebaseerd op de inhoud van de pagina en vertegenwoordigt geen echte persoon of bedrijf.",
+    "text": "Het is gebaseerd op de inhoud van de pagina en vertegenwoordigt geen echte persoon of echt bedrijf.",
     "source_hash": "8b290e9a"
   },
   "web.testimonials.artificial_feedback": {
@@ -44,7 +44,7 @@
     "source_hash": "4c8d20ba"
   },
   "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {
-    "text": "Deze inhoud is door AI gegenereerd op basis van de inhoud van deze pagina en vertegenwoordigt geen echte persoon of bedrijf.",
+    "text": "Deze inhoud is AI-gegenereerd op basis van de inhoud van deze pagina en vertegenwoordigt geen echte persoon of echt bedrijf.",
     "source_hash": "03c16436"
   }
 }

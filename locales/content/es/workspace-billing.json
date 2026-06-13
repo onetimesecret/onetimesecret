@@ -8,7 +8,7 @@
     "source_hash": "a99b7a98"
   },
   "web.billing.upgrade.required": {
-    "text": "Mejora requerida",
+    "text": "Se requiere mejorar el plan",
     "source_hash": "16487236"
   },
   "web.billing.upgrade.viewPlans": {
@@ -24,15 +24,15 @@
     "source_hash": "e8af8484"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "El acceso a API requiere Identity Plus o superior",
+    "text": "El acceso a la API requiere Identity Plus o superior",
     "source_hash": "ab8be865"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "Los registros de auditoría requieren el plan Multi-Team o superior",
+    "text": "Los registros de auditoría requieren el plan de Varios equipos o superior",
     "source_hash": "91df96b0"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "Gestiona tu suscripción, organizaciones y configuración de facturación",
+    "text": "Gestiona tu suscripción, tus organizaciones y la configuración de facturación",
     "source_hash": "3995095c"
   },
   "web.billing.overview.title": {
@@ -40,11 +40,11 @@
     "source_hash": "479a3c4c"
   },
   "web.billing.overview.description": {
-    "text": "Consulta y gestiona tu suscripción y detalles de pago",
+    "text": "Consulta y gestiona tu suscripción y los detalles de pago",
     "source_hash": "60e5a00e"
   },
   "web.billing.overview.billing_for_organization": {
-    "text": "Facturación para esta organización",
+    "text": "Facturación de esta organización",
     "source_hash": "21806992"
   },
   "web.billing.overview.current_plan": {
@@ -52,7 +52,7 @@
     "source_hash": "5d856320"
   },
   "web.billing.overview.plan_features": {
-    "text": "Características del plan",
+    "text": "Funciones del plan",
     "source_hash": "fbab9086"
   },
   "web.billing.overview.payment_method": {
@@ -84,7 +84,7 @@
     "source_hash": "2d0b195b"
   },
   "web.billing.overview.manage_subscription": {
-    "text": "Administrar suscripción",
+    "text": "Gestionar suscripción",
     "source_hash": "cbc4ef92"
   },
   "web.billing.plans.legacy_plan_info": {
@@ -92,19 +92,19 @@
     "source_hash": "e9aa8bf0"
   },
   "web.billing.plans.early_supporter_plan": {
-    "text": "Identity Plus (Colaborador temprano)",
+    "text": "Identity Plus (Early Supporter)",
     "source_hash": "f37cd0d9"
   },
   "web.billing.plans.legacy_plan_warning": {
-    "text": "Cambiar de plan hará que pierdas tu tarifa heredada. Esto no se puede deshacer.",
+    "text": "Cambiar de plan supondrá la pérdida de tu tarifa heredada. Esto no se puede deshacer.",
     "source_hash": "eda13d64"
   },
   "web.billing.overview.no_payment_method": {
-    "text": "Sin método de pago registrado",
+    "text": "No hay ningún método de pago registrado",
     "source_hash": "77f71037"
   },
   "web.billing.overview.no_upcoming_billing": {
-    "text": "Sin facturación próxima",
+    "text": "No hay próximas facturaciones",
     "source_hash": "746314de"
   },
   "web.billing.overview.days_remaining": {
@@ -120,7 +120,7 @@
     "source_hash": "a865d424"
   },
   "web.billing.overview.view_plans_description": {
-    "text": "Comparar y mejorar",
+    "text": "Compara y mejora",
     "source_hash": "40e02bff"
   },
   "web.billing.overview.view_invoices_action": {
@@ -136,11 +136,11 @@
     "source_hash": "6d3a16f5"
   },
   "web.billing.overview.manage_billing_description": {
-    "text": "Actualizar información de pago",
+    "text": "Actualiza la información de pago",
     "source_hash": "1f981aaf"
   },
   "web.billing.overview.no_organizations_title": {
-    "text": "Sin organizaciones",
+    "text": "No hay organizaciones",
     "source_hash": "12420110"
   },
   "web.billing.overview.no_organizations_description": {
@@ -148,11 +148,11 @@
     "source_hash": "41e922d2"
   },
   "web.billing.overview.load_error": {
-    "text": "Error al cargar la información de facturación",
+    "text": "No se pudo cargar la información de facturación",
     "source_hash": "3bc44882"
   },
   "web.billing.overview.upgrade_success": {
-    "text": "Tu plan ha sido mejorado exitosamente",
+    "text": "Tu plan se ha mejorado correctamente",
     "source_hash": "00ac43f8"
   },
   "web.billing.overview.upgrade_success_description": {
@@ -172,7 +172,7 @@
     "source_hash": "6c664c31"
   },
   "web.billing.overview.entitlements.api_access": {
-    "text": "Acceso a API",
+    "text": "Acceso a la API",
     "source_hash": "5f31cc2f"
   },
   "web.billing.overview.entitlements.custom_domains": {
@@ -180,15 +180,15 @@
     "source_hash": "6170ab94"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
-    "text": "Configuración de privacidad personalizada",
+    "text": "Opciones de privacidad personalizadas predeterminadas",
     "source_hash": "e677e27d"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "Expiración predeterminada extendida",
+    "text": "Expiración predeterminada ampliada",
     "source_hash": "19b19637"
   },
   "web.billing.overview.entitlements.custom_mail_sender": {
-    "text": "Configuración de correo personalizada",
+    "text": "Configuración de correo predeterminada personalizada",
     "source_hash": "95aebfb9"
   },
   "web.billing.overview.entitlements.custom_branding": {
@@ -196,7 +196,7 @@
     "source_hash": "237dabec"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "Secretos en página de inicio",
+    "text": "Secretos en la página de inicio",
     "source_hash": "6360f7ec"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
@@ -204,7 +204,7 @@
     "source_hash": "883dbca9"
   },
   "web.billing.overview.entitlements.manage_org": {
-    "text": "Gestionar organizaciones",
+    "text": "Gestionar organización",
     "source_hash": "be0fe4c3"
   },
   "web.billing.overview.entitlements.manage_teams": {
@@ -232,11 +232,11 @@
     "source_hash": "436f2550"
   },
   "web.billing.overview.entitlements_load_error": {
-    "text": "No se pudieron cargar los detalles de funciones",
+    "text": "No se pudieron cargar los detalles de las funciones",
     "source_hash": "c350973c"
   },
   "web.billing.overview.no_entitlements": {
-    "text": "Sin funciones disponibles",
+    "text": "No hay funciones disponibles",
     "source_hash": "03d195e8"
   },
   "web.billing.features.create_secrets": {
@@ -244,7 +244,7 @@
     "source_hash": "303f9386"
   },
   "web.billing.features.api_access": {
-    "text": "Acceso a API",
+    "text": "Acceso a la API",
     "source_hash": "5f31cc2f"
   },
   "web.billing.features.custom_domains": {
@@ -264,7 +264,7 @@
     "source_hash": "237dabec"
   },
   "web.billing.features.homepage_secrets": {
-    "text": "Secretos en página de inicio",
+    "text": "Secretos en la página de inicio",
     "source_hash": "6360f7ec"
   },
   "web.billing.features.manage_teams": {
@@ -296,7 +296,7 @@
     "source_hash": "62042d3b"
   },
   "web.billing.features.audit_trail": {
-    "text": "Historial de auditoría",
+    "text": "Registro de auditoría",
     "source_hash": "d52b4039"
   },
   "web.billing.features.activity_stream": {
@@ -304,7 +304,7 @@
     "source_hash": "b9c6cba7"
   },
   "web.billing.features.handoff_workflows": {
-    "text": "Flujos de trabajo de entrega",
+    "text": "Flujos de trabajo de traspaso",
     "source_hash": "07202af3"
   },
   "web.billing.plans.title": {
@@ -312,7 +312,7 @@
     "source_hash": "79506c82"
   },
   "web.billing.plans.choose_plan": {
-    "text": "Elige el plan que se adapte a tus necesidades",
+    "text": "Elige el plan que se ajuste a tus necesidades",
     "source_hash": "5f039cb9"
   },
   "web.billing.plans.subtitle": {
@@ -332,7 +332,7 @@
     "source_hash": "7ec0261b"
   },
   "web.billing.plans.downgrade": {
-    "text": "Reducir",
+    "text": "Cambiar a un plan inferior",
     "source_hash": "d955b7e8"
   },
   "web.billing.plans.cancel_to_downgrade": {
@@ -352,7 +352,7 @@
     "source_hash": "eec5d08b"
   },
   "web.billing.plans.save_yearly": {
-    "text": "Ahorra {percent}% con facturación anual",
+    "text": "Ahorra un {percent}% con la facturación anual",
     "source_hash": "88c451f2"
   },
   "web.billing.plans.free_plan": {
@@ -364,7 +364,7 @@
     "source_hash": "267ad4cf"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "Multi equipo",
+    "text": "Varios equipos",
     "source_hash": "ffc73d2c"
   },
   "web.billing.plans.individual_account": {
@@ -380,7 +380,7 @@
     "source_hash": "86e3a165"
   },
   "web.billing.plans.features": {
-    "text": "Características",
+    "text": "Funciones",
     "source_hash": "5697d03d"
   },
   "web.billing.plans.unlimited_secrets": {
@@ -388,7 +388,7 @@
     "source_hash": "0f077568"
   },
   "web.billing.plans.api_access": {
-    "text": "Acceso a API",
+    "text": "Acceso a la API",
     "source_hash": "923fd434"
   },
   "web.billing.plans.priority_support": {
@@ -400,7 +400,7 @@
     "source_hash": "8709f894"
   },
   "web.billing.plans.contact_sales": {
-    "text": "Contactar ventas",
+    "text": "Contactar con ventas",
     "source_hash": "484aa053"
   },
   "web.billing.plans.custom_needs_title": {
@@ -436,7 +436,7 @@
     "source_hash": "93b63bab"
   },
   "web.billing.plans.everything_in": {
-    "text": "Incluye todo en {plan}",
+    "text": "Incluye todo lo de {plan}",
     "source_hash": "1c73c298"
   },
   "web.billing.plans.no_plans_available": {
@@ -444,7 +444,7 @@
     "source_hash": "d8454436"
   },
   "web.billing.plans.load_error": {
-    "text": "Error al cargar los planes",
+    "text": "No se pudieron cargar los planes",
     "source_hash": "a37d4d9a"
   },
   "web.billing.plans.change_immediate": {
@@ -460,7 +460,7 @@
     "source_hash": "edb868c4"
   },
   "web.billing.plans.credit_label": {
-    "text": "Crédito por tiempo no utilizado:",
+    "text": "Crédito por el tiempo no utilizado:",
     "source_hash": "001e4901"
   },
   "web.billing.plans.due_today": {
@@ -476,11 +476,11 @@
     "source_hash": "5670e027"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "Los límites de tus funciones se actualizarán inmediatamente después del cambio de plan.",
+    "text": "Tus límites de funciones se actualizarán inmediatamente después del cambio de plan.",
     "source_hash": "9cb09f73"
   },
   "web.billing.plans.change_failed": {
-    "text": "Error al cambiar el plan. Por favor, inténtalo de nuevo.",
+    "text": "El cambio de plan falló. Inténtalo de nuevo.",
     "source_hash": "a4e86372"
   },
   "web.billing.plans.confirm_upgrade": {
@@ -488,7 +488,7 @@
     "source_hash": "71a4ab02"
   },
   "web.billing.plans.confirm_downgrade": {
-    "text": "Confirmar reducción",
+    "text": "Confirmar cambio a plan inferior",
     "source_hash": "deaf8189"
   },
   "web.billing.plans.upgrade_to": {
@@ -496,7 +496,7 @@
     "source_hash": "b1e4e88c"
   },
   "web.billing.plans.downgrade_to": {
-    "text": "¿Reducir a {plan}?",
+    "text": "¿Cambiar a {plan}?",
     "source_hash": "8eb8ea81"
   },
   "web.billing.plans.credit_applies_heading": {
@@ -528,7 +528,7 @@
     "source_hash": "5ade0861"
   },
   "web.billing.invoices.view_history": {
-    "text": "Consulta tu historial de facturación y descarga facturas",
+    "text": "Consulta tu historial de facturación y descarga las facturas",
     "source_hash": "eb72573c"
   },
   "web.billing.invoices.invoice_date": {
@@ -548,7 +548,7 @@
     "source_hash": "d6eafe82"
   },
   "web.billing.invoices.invoice_number": {
-    "text": "Factura n.°",
+    "text": "Factura n.º",
     "source_hash": "48a67cac"
   },
   "web.billing.invoices.no_invoices": {
@@ -564,7 +564,7 @@
     "source_hash": "a865d424"
   },
   "web.billing.invoices.paid": {
-    "text": "Pagado",
+    "text": "Pagada",
     "source_hash": "fb81b961"
   },
   "web.billing.invoices.pending": {
@@ -572,7 +572,7 @@
     "source_hash": "331551b0"
   },
   "web.billing.invoices.failed": {
-    "text": "Fallido",
+    "text": "Fallida",
     "source_hash": "031a8f0f"
   },
   "web.billing.invoices.draft": {
@@ -592,7 +592,7 @@
     "source_hash": "4e7ba403"
   },
   "web.billing.invoices.load_error": {
-    "text": "Error al cargar las facturas",
+    "text": "No se pudieron cargar las facturas",
     "source_hash": "0b0cb3f7"
   },
   "web.billing.notices.org_managed": {
@@ -608,7 +608,7 @@
     "source_hash": "ce8f2a24"
   },
   "web.billing.limits.members_upgrade": {
-    "text": "Mejora para añadir más miembros",
+    "text": "Mejora tu plan para añadir más miembros",
     "source_hash": "602bdef4"
   },
   "web.billing.subscription.title": {
@@ -620,19 +620,19 @@
     "source_hash": "c7a08e1d"
   },
   "web.billing.subscription.active": {
-    "text": "Activo",
+    "text": "Activa",
     "source_hash": "92340695"
   },
   "web.billing.subscription.inactive": {
-    "text": "Inactivo",
+    "text": "Inactiva",
     "source_hash": "ac7c949f"
   },
   "web.billing.subscription.past_due": {
-    "text": "Vencido",
+    "text": "Vencida",
     "source_hash": "2bda1c7b"
   },
   "web.billing.subscription.canceled": {
-    "text": "Cancelado",
+    "text": "Cancelada",
     "source_hash": "13ca2ee2"
   },
   "web.billing.subscription.catalog_name": {
@@ -640,7 +640,7 @@
     "source_hash": "fa8ed0bd"
   },
   "web.billing.subscription.team_usage": {
-    "text": "Uso de equipos",
+    "text": "Uso del equipo",
     "source_hash": "f9989642"
   },
   "web.billing.subscription.teams_used": {
@@ -652,7 +652,7 @@
     "source_hash": "9baaf69e"
   },
   "web.billing.portal.description": {
-    "text": "Gestiona tu suscripción, métodos de pago e historial de facturación",
+    "text": "Gestiona tu suscripción, los métodos de pago y el historial de facturación",
     "source_hash": "1a8f3c19"
   },
   "web.billing.portal.open_portal": {
@@ -664,11 +664,11 @@
     "source_hash": "b6f47df3"
   },
   "web.billing.start_today": {
-    "text": "Comienza hoy",
+    "text": "Empieza hoy",
     "source_hash": "80e73fc7"
   },
   "web.billing.start_today_with_identity_plus": {
-    "text": "Comienza hoy con Identity Plus",
+    "text": "Empieza hoy con Identity Plus",
     "source_hash": "cce4c7d7"
   },
   "web.billing.per_month": {
@@ -680,7 +680,7 @@
     "source_hash": "f5bedf1c"
   },
   "web.billing.privacy_first_design": {
-    "text": "Diseño con privacidad primero",
+    "text": "Diseño que prioriza la privacidad",
     "source_hash": "587d738c"
   },
   "web.billing.identity_plus": {
@@ -688,7 +688,7 @@
     "source_hash": "bb273516"
   },
   "web.billing.click_this_lightning_bolt_to_upgrade_for_custom_domains": {
-    "text": "Haz clic en este rayo para mejorar y obtener dominios personalizados",
+    "text": "Haz clic en este rayo para mejorar tu plan y obtener dominios personalizados",
     "source_hash": "84cb4258"
   },
   "web.billing.maybe_later": {
@@ -700,11 +700,11 @@
     "source_hash": "4799b02e"
   },
   "web.billing.upgrade_to_identity_plus": {
-    "text": "Mejorar a Identity Plus",
+    "text": "Mejora a Identity Plus",
     "source_hash": "272d3c80"
   },
   "web.billing.upgrade_for_teams": {
-    "text": "Mejorar para equipos",
+    "text": "Mejora para equipos",
     "source_hash": "90dfb533"
   },
   "web.billing.benefits_of": {
@@ -716,19 +716,19 @@
     "source_hash": "f13e5f3e"
   },
   "web.billing.upgrade_to": {
-    "text": "Mejorar a",
+    "text": "Mejora a",
     "source_hash": "2ecdd437"
   },
   "web.billing.upgrade_for_yourdomain": {
-    "text": "Mejorar para secrets.tudominio.com",
+    "text": "Mejora para secrets.yourdomain.com",
     "source_hash": "8e4d766a"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
-    "text": "Todos los planes incluyen funciones de privacidad y capacidad de compartición ilimitada",
+    "text": "Todos los planes incluyen funciones de privacidad y capacidad de uso compartido ilimitada",
     "source_hash": "e728e4e1"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "Todos los planes incluyen elección de localización de datos: {0} regiones",
+    "text": "Todos los planes incluyen la posibilidad de elegir la localidad de los datos: {0} regiones",
     "source_hash": "22a60b49"
   },
   "web.billing.get_started": {
@@ -740,7 +740,7 @@
     "source_hash": "eaf5e2ef"
   },
   "web.billing.elevate_your_secure_sharing_with_custom_domains_": {
-    "text": "Eleva tu compartición segura con dominios personalizados, capacidad ilimitada y características de nivel empresarial.",
+    "text": "Eleva tu uso compartido seguro con dominios personalizados, capacidad ilimitada y funciones de nivel empresarial.",
     "source_hash": "db458d30"
   },
   "web.billing.payment_frequency": {
@@ -748,15 +748,15 @@
     "source_hash": "b2c87e39"
   },
   "web.billing.secure_your_brand_and_build_customer_trust_with_": {
-    "text": "Asegura tu marca y genera confianza en el cliente con enlaces desde tu dominio. Perfecto para empresas que valoran la privacidad y el profesionalismo.",
+    "text": "Protege tu marca y genera confianza en los clientes con enlaces desde tu dominio. Perfecto para empresas que valoran la privacidad y la profesionalidad.",
     "source_hash": "c07cd25c"
   },
   "web.billing.secure_links_stronger_connections": {
-    "text": "Enlaces seguros, conexiones más fuertes",
+    "text": "Enlaces seguros, conexiones más sólidas",
     "source_hash": "dd8dae5d"
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
-    "text": "Nivel Identity no encontrado en los niveles de producto",
+    "text": "El nivel Identity no se encontró en los niveles de producto",
     "source_hash": "d0204fc4"
   },
   "web.billing.cancel.link_text": {
@@ -770,7 +770,7 @@
     "source_hash": "882e0c83"
   },
   "web.billing.cancel.confirmation": {
-    "text": "¿Estás seguro de que deseas cancelar tu suscripción {plan}?",
+    "text": "¿Seguro que quieres cancelar tu suscripción a {plan}?",
     "source_hash": "f4d1b6ee"
   },
   "web.billing.cancel.what_happens": {
@@ -778,15 +778,15 @@
     "source_hash": "4d8f5751"
   },
   "web.billing.cancel.access_until": {
-    "text": "Mantendrás acceso a todas las funciones hasta {date}",
+    "text": "Conservarás el acceso a todas las funciones hasta el {date}",
     "source_hash": "eab1efe3"
   },
   "web.billing.cancel.access_until_period_end": {
-    "text": "Mantendrás el acceso hasta que termine tu período de facturación actual",
+    "text": "Conservarás el acceso hasta que finalice tu periodo de facturación actual",
     "source_hash": "1b07a54a"
   },
   "web.billing.cancel.no_future_charges": {
-    "text": "No se te cobrará de nuevo",
+    "text": "No se te volverá a cobrar",
     "source_hash": "a01cdc16"
   },
   "web.billing.cancel.downgrade_to_free": {
@@ -804,11 +804,11 @@
     "source_hash": "882e0c83"
   },
   "web.billing.cancel.success": {
-    "text": "Tu suscripción ha sido cancelada. Mantendrás el acceso hasta el final de tu período de facturación.",
+    "text": "Tu suscripción ha sido cancelada. Conservarás el acceso hasta el final de tu periodo de facturación.",
     "source_hash": "e18fd9d5"
   },
   "web.billing.cancel.error": {
-    "text": "Error al cancelar la suscripción. Por favor, inténtalo de nuevo.",
+    "text": "No se pudo cancelar la suscripción. Inténtalo de nuevo.",
     "source_hash": "68e8bdde"
   },
   "web.billing.cancel.scheduled_title": {
@@ -817,12 +817,12 @@
     "source_hash": "1427d139"
   },
   "web.billing.cancel.scheduled_description": {
-    "text": "Tu suscripción permanecerá activa hasta {date}. Continuarás teniendo acceso completo a todas las funciones hasta entonces.",
+    "text": "Tu suscripción permanecerá activa hasta el {date}. Hasta entonces, seguirás teniendo acceso completo a todas las funciones.",
     "context": "Alert banner description explaining continued access",
     "source_hash": "aab4b1dc"
   },
   "web.billing.cancel.scheduled_note": {
-    "text": "¿Cambiaste de opinión? Puedes reactivar tu suscripción en cualquier momento antes de la fecha de cancelación.",
+    "text": "¿Has cambiado de opinión? Puedes reactivar tu suscripción en cualquier momento antes de la fecha de cancelación.",
     "context": "Alert banner note encouraging reactivation",
     "source_hash": "c94d5527"
   },
@@ -831,7 +831,7 @@
     "source_hash": "04e0f1e9"
   },
   "web.billing.overview.entitlements.ip_access_rules": {
-    "text": "Reglas de acceso IP",
+    "text": "Reglas de acceso por IP",
     "source_hash": "db966d47"
   },
   "web.billing.overview.entitlements.workspace_branding": {
@@ -871,7 +871,7 @@
     "source_hash": "04e0f1e9"
   },
   "web.billing.features.ip_access_rules": {
-    "text": "Reglas de acceso IP",
+    "text": "Reglas de acceso por IP",
     "source_hash": "db966d47"
   },
   "web.billing.features.workspace_branding": {
@@ -904,7 +904,7 @@
     "source_hash": "edb868c4"
   },
   "web.billing.currency_migration.current_period_ends": {
-    "text": "El período actual termina:",
+    "text": "El periodo actual finaliza:",
     "source_hash": "2e20e596"
   },
   "web.billing.currency_migration.choose_timing": {
@@ -912,11 +912,11 @@
     "source_hash": "f4aabb13"
   },
   "web.billing.currency_migration.graceful_title": {
-    "text": "Cambiar al final del período de facturación",
+    "text": "Cambiar al final del periodo de facturación",
     "source_hash": "55cd980b"
   },
   "web.billing.currency_migration.graceful_description": {
-    "text": "Tu plan actual permanece activo hasta {date}. Después de eso, completarás el proceso de pago para tu nuevo plan.",
+    "text": "Tu plan actual permanecerá activo hasta el {date}. Después de eso, completarás el pago de tu nuevo plan.",
     "source_hash": "b8661418"
   },
   "web.billing.currency_migration.immediate_title": {
@@ -924,7 +924,7 @@
     "source_hash": "e9d0ba59"
   },
   "web.billing.currency_migration.immediate_description": {
-    "text": "Tu plan actual se cancela ahora. Recibirás un reembolso por el tiempo no utilizado y completarás el proceso de pago para el nuevo plan.",
+    "text": "Tu plan actual se cancela ahora. Recibirás un reembolso por el tiempo no utilizado y completarás el pago del nuevo plan.",
     "source_hash": "b08de0ca"
   },
   "web.billing.currency_migration.confirm": {
@@ -932,27 +932,27 @@
     "source_hash": "1edc1c78"
   },
   "web.billing.currency_migration.error": {
-    "text": "La migración de moneda ha fallado. Por favor, inténtalo de nuevo.",
+    "text": "La migración de moneda falló. Inténtalo de nuevo.",
     "source_hash": "4a6e1ced"
   },
   "web.billing.currency_migration.success": {
-    "text": "La moneda de tu suscripción se ha actualizado con éxito.",
+    "text": "La moneda de tu suscripción se ha actualizado correctamente.",
     "source_hash": "a8bf437e"
   },
   "web.billing.currency_migration.graceful_success": {
-    "text": "Tu plan actual permanecerá activo hasta el final del período de facturación. Se te pedirá que completes el proceso de pago para tu nuevo plan después de eso.",
+    "text": "Tu plan actual permanecerá activo hasta el final del periodo de facturación. Después de eso, se te pedirá que completes el pago de tu nuevo plan.",
     "source_hash": "15d41483"
   },
   "web.billing.currency_migration.warning_credit_balance": {
-    "text": "Tienes un saldo de crédito en {currency} que no puede transferirse a la nueva moneda.",
+    "text": "Tienes un saldo a favor en {currency} que no se puede transferir a la nueva moneda.",
     "source_hash": "aa15be91"
   },
   "web.billing.currency_migration.warning_pending_items": {
-    "text": "Tienes elementos de factura pendientes que deben resolverse antes de la migración.",
+    "text": "Tienes elementos de factura pendientes que deberán resolverse antes de la migración.",
     "source_hash": "7b4c5e10"
   },
   "web.billing.currency_migration.warning_coupons": {
-    "text": "Los cupones activos en tu cuenta pueden no ser compatibles con la nueva moneda.",
+    "text": "Los cupones activos en tu cuenta podrían no ser compatibles con la nueva moneda.",
     "source_hash": "f572ee81"
   },
   "web.billing.currency_migration.pending_title": {
@@ -961,7 +961,7 @@
     "source_hash": "018ae653"
   },
   "web.billing.currency_migration.pending_description": {
-    "text": "Tu plan actual termina el {date}. Completa el cambio a {plan} ({currency}).",
+    "text": "Tu plan actual finaliza el {date}. Completa tu cambio a {plan} ({currency}).",
     "source_hash": "998ba4ab"
   },
   "web.billing.currency_migration.complete_migration": {
@@ -970,23 +970,79 @@
     "source_hash": "fa794e0c"
   },
   "web.billing.checkout_session_failed": {
-    "text": "Error al crear la sesión de pago",
+    "text": "No se pudo crear la sesión de pago",
     "context": "Error when Stripe checkout session creation returns no URL",
     "source_hash": "a53f6fa3"
   },
   "web.billing.checkout_initiate_failed": {
-    "text": "Error al iniciar el pago",
+    "text": "No se pudo iniciar el pago",
     "context": "Fallback error for checkout failures",
     "source_hash": "3ff06e41"
   },
   "web.billing.plan_switch_success": {
-    "text": "Cambio exitoso al plan {plan}",
+    "text": "Cambiaste correctamente a {plan}",
     "context": "Success message after plan change",
     "source_hash": "ab7c715c"
   },
   "web.billing.plan_unavailable_region_mismatch": {
-    "text": "Disponible solo en tu región de suscripción original",
+    "text": "Disponible solo en la región de tu suscripción original",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Ya estás suscrito a este plan.",
+    "source_hash": "2b02438b"
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Reactivar suscripción",
+    "source_hash": "aa036442"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "Tu suscripción ha sido reactivada. Se te seguirá cobrando con normalidad.",
+    "source_hash": "523bf7bf"
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "No se pudo reactivar la suscripción. Inténtalo de nuevo o contacta con soporte.",
+    "source_hash": "d0c79bd4"
+  },
+  "web.billing.features.manage_orgs": {
+    "text": "Gestión de organizaciones",
+    "source_hash": "780ad17c"
+  },
+  "web.billing.features.flexible_from_domain": {
+    "text": "Dominio de remitente de correo flexible",
+    "source_hash": "607572c3"
+  },
+  "web.billing.features.unlimited_admins": {
+    "text": "Administradores ilimitados",
+    "source_hash": "5871a536"
+  },
+  "web.billing.features.manage_sso": {
+    "text": "SSO",
+    "source_hash": "5ba3ac9f"
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Dominio de remitente de correo flexible",
+    "source_hash": "607572c3"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "Gestionar organizaciones",
+    "source_hash": "be0fe4c3"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Inicio de sesión único (SSO)",
+    "source_hash": "5db5c812"
+  },
+  "web.billing.overview.entitlements.manage_billing": {
+    "text": "Gestionar facturación",
+    "source_hash": "6d3a16f5"
+  },
+  "web.billing.overview.entitlements.custom_signup_validation": {
+    "text": "Validación de registro personalizada",
+    "source_hash": "0ff55bfa"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Reactivar",
+    "source_hash": "2dc7478f"
   }
 }

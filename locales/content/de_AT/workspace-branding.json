@@ -1,10 +1,10 @@
 {
   "web.branding.color_picker": {
-    "text": "Farbwähler",
+    "text": "Farbauswahl",
     "source_hash": "ba42602c"
   },
   "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
-    "text": "Aktuell {0}: {1}. Klicken, um durch Optionen zu wechseln.",
+    "text": "Aktuell {0}: {1}. Klicken Sie, um durch die Optionen zu blättern.",
     "source_hash": "84bf49e6"
   },
   "web.branding.use_setting": {
@@ -24,7 +24,7 @@
     "source_hash": "db3183e3"
   },
   "web.branding.preview_of_the_secret_link_page_for_recipients": {
-    "text": "Vorschau auf die geheime Link-Seite für Empfänger",
+    "text": "Vorschau der Ansicht des Empfängers beim Zugriff auf Ihren sicheren Link",
     "source_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
@@ -32,7 +32,7 @@
     "source_hash": "215d3659"
   },
   "web.branding.switch_to_safari_browser_view": {
-    "text": "Zu Safari-Browseransicht wechseln",
+    "text": "Zur Safari-Browseransicht wechseln",
     "source_hash": "6e0fe791"
   },
   "web.branding.microsoft_edge": {
@@ -48,7 +48,7 @@
     "source_hash": "5cd54386"
   },
   "web.branding.switch_to_edge_browser_view": {
-    "text": "Zu Edge-Browseransicht wechseln",
+    "text": "Zur Edge-Browseransicht wechseln",
     "source_hash": "a8fcd82d"
   },
   "web.branding.charactercount_500_characters": {
@@ -56,7 +56,7 @@
     "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Verwenden Sie Ihr Handy, um den QR-Code zu scannen",
+    "text": "Verwenden Sie Ihr Telefon, um den QR-Code zu scannen",
     "source_hash": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
@@ -64,19 +64,19 @@
     "source_hash": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
-    "text": "Diese Anweisungen werden den Empfängern angezeigt, bevor sie den geheimen Inhalt preisgeben",
+    "text": "Diese Anweisungen werden den Empfängern angezeigt, bevor sie den Inhalt der Nachricht anzeigen",
     "source_hash": "9d5a6334"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_after": {
-    "text": "Diese Anweisungen werden den Empfängern angezeigt, nachdem sie das Geheimnis enthüllt haben.",
+    "text": "Diese Anweisungen werden den Empfängern angezeigt, nachdem sie die Nachricht angezeigt haben",
     "source_hash": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Anweisungen vor der Anzeige",
+    "text": "Anweisungen vor dem Anzeigen",
     "source_hash": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "Anweisungen nach der Anzeige",
+    "text": "Anweisungen nach dem Anzeigen",
     "source_hash": "72ecc23a"
   },
   "web.branding.instructions": {
@@ -84,7 +84,7 @@
     "source_hash": "934652dc"
   },
   "web.branding.logo_controls": {
-    "text": "Logo-Steuerung",
+    "text": "Logo-Steuerelemente",
     "source_hash": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
@@ -100,7 +100,7 @@
     "source_hash": "c02130fa"
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
-    "text": "Zeigen Sie in einer Vorschau an, wie die Empfänger Ihre Geheimnisse sehen werden, indem Sie die Schaltfläche \"Geheimnis anzeigen\" testen",
+    "text": "Sehen Sie in der Vorschau, wie Empfänger Ihre Nachrichten sehen werden, indem Sie die Schaltfläche „Nachricht ansehen“ testen",
     "source_hash": "3b58a297"
   },
   "web.branding.eye_icon": {
@@ -108,7 +108,7 @@
     "source_hash": "7f605d3c"
   },
   "web.branding.click_the_preview_image_below_to_update_your_logo": {
-    "text": "Klicken Sie auf das Vorschaubild unten, um Ihr Logo zu aktualisieren (mindestens 128x128 Pixel empfohlen, maximal 1 MB)",
+    "text": "Klicken Sie auf das Vorschaubild unten, um Ihr Logo zu aktualisieren (mindestens 128x128 Pixel empfohlen, max. 1MB)",
     "source_hash": "77a19049"
   },
   "web.branding.image_icon": {
@@ -116,7 +116,7 @@
     "source_hash": "b0d64fcf"
   },
   "web.branding.use_the_controls_above_to_customize_brand_details": {
-    "text": "Verwenden Sie die Steuerelemente oben, um Markenfarben, Stile und Empfängeranweisungen anzupassen",
+    "text": "Verwenden Sie die Steuerelemente oben, um Markenfarbe, Stile und Empfängeranweisungen anzupassen",
     "source_hash": "d6287134"
   },
   "web.branding.customization_icon": {
@@ -124,7 +124,7 @@
     "source_hash": "bde04d31"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
-    "text": "Sie haben nicht gespeicherte Änderungen. Sind Sie sicher?",
+    "text": "Sie haben ungespeicherte Änderungen. Sind Sie sicher?",
     "source_hash": "184b6a83"
   },
   "web.branding.failed_to_load_brand_settings": {
@@ -132,15 +132,15 @@
     "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Dies ist eine interaktive Vorschau, wie Empfänger Ihre sicheren Nachrichten sehen werden. Sie können: - Farben und Schriften mit den obigen Steuerelementen anpassen - Ein Logo hochladen (empfohlen mindestens 128x128 Pixel, max. 1MB) - Die Vorschau mit der Schaltfläche 'Geheimnis anzeigen' testen",
+    "text": "Dies ist eine interaktive Vorschau, wie Empfänger Ihre sicheren Nachrichten sehen werden. Sie können: - Farben und Schriftarten mit den Steuerelementen oben anpassen - Ein Logo hochladen (mindestens 128x128 Pixel empfohlen, max. 1MB) - Die Vorschau mit der Schaltfläche „Nachricht ansehen“ testen",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
-    "text": "Dies ist eine interaktive Vorschau darauf, wie die Empfänger Ihre sicheren Nachrichten sehen werden. Sie können: - Farben und Schriftarten mit den obigen Steuerelementen anpassen - ein Logo hochladen (mindestens 128x128 Pixel empfohlen, maximal 1 MB) - die Vorschau mit der Schaltfläche \"Geheimnis anzeigen\" testen",
+    "text": "Dies ist eine interaktive Vorschau, wie Empfänger Ihre sicheren Nachrichten sehen werden. Sie können: - Farben und Schriftarten mit den Steuerelementen oben anpassen - Ein Logo hochladen (mindestens 128x128 Pixel empfohlen, max. 1MB) - Die Vorschau mit der Schaltfläche „Nachricht ansehen“ testen",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
-    "text": "Japanisches Kanji '秘' (himitsu) bedeutet 'Geheimnis' oder 'vertraulich'",
+    "text": "Japanisches Kanji '秘' (himitsu) mit der Bedeutung 'geheim' oder 'vertraulich'",
     "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
@@ -148,7 +148,7 @@
     "source_hash": "935442d0"
   },
   "web.branding.heading_logo": {
-    "text": "{0}-Logo",
+    "text": "{0} Logo",
     "source_hash": "3a3c98ed"
   },
   "web.branding.edge": {
@@ -156,7 +156,7 @@
     "source_hash": "0f82fe72"
   },
   "web.branding.switch_to_edge_preview": {
-    "text": "Zu Edge-Vorschau wechseln",
+    "text": "Zur Edge-Vorschau wechseln",
     "source_hash": "83883d84"
   },
   "web.branding.safari": {
@@ -164,11 +164,15 @@
     "source_hash": "5f033039"
   },
   "web.branding.switch_to_safari_preview": {
-    "text": "Zu Safari-Vorschau wechseln",
+    "text": "Zur Safari-Vorschau wechseln",
     "source_hash": "f24ac447"
   },
   "web.branding.upgrade_to_customize": {
-    "text": "Upgraden Sie Ihren Tarif, um das Branding für diese Domäne anzupassen.",
+    "text": "Upgraden Sie Ihren Tarif, um das Branding für diesen Bereich anzupassen.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "Markeneinstellungen erfolgreich gespeichert",
+    "source_hash": "9960c252"
   }
 }
