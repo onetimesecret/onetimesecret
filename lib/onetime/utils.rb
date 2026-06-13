@@ -137,18 +137,25 @@ module Onetime
         # Generate password with guaranteed complexity when multiple character sets are enabled
         password_chars = []
 
-        # Ensure at least one character from each selected set
+        # Ensure at least one character from each selected set.
+        #
+        # SECURITY: use secure_sample, not Array#sample. Array#sample draws
+        # from Ruby's default Random (Mersenne Twister), which is not a CSPRNG.
+        # The remaining characters below already use SecureRandom, so mixing in
+        # Array#sample here would leave the guaranteed positions of every
+        # generated password derivable from the predictable default PRNG —
+        # undermining the cryptographic guarantee this method documents.
         # When excluding ambiguous chars, sample from filtered sets to maintain guarantee
         if opts['exclude_ambiguous']
-          password_chars << (UPPERCASE - AMBIGUOUS_CHARS).sample if opts['uppercase']
-          password_chars << (LOWERCASE - AMBIGUOUS_CHARS).sample if opts['lowercase']
-          password_chars << (NUMBERS - AMBIGUOUS_CHARS).sample if opts['numbers']
-          password_chars << (SYMBOLS - AMBIGUOUS_CHARS).sample if opts['symbols']
+          password_chars << secure_sample(UPPERCASE - AMBIGUOUS_CHARS) if opts['uppercase']
+          password_chars << secure_sample(LOWERCASE - AMBIGUOUS_CHARS) if opts['lowercase']
+          password_chars << secure_sample(NUMBERS - AMBIGUOUS_CHARS) if opts['numbers']
+          password_chars << secure_sample(SYMBOLS - AMBIGUOUS_CHARS) if opts['symbols']
         else
-          password_chars << UPPERCASE.sample if opts['uppercase']
-          password_chars << LOWERCASE.sample if opts['lowercase']
-          password_chars << NUMBERS.sample if opts['numbers']
-          password_chars << SYMBOLS.sample if opts['symbols']
+          password_chars << secure_sample(UPPERCASE) if opts['uppercase']
+          password_chars << secure_sample(LOWERCASE) if opts['lowercase']
+          password_chars << secure_sample(NUMBERS) if opts['numbers']
+          password_chars << secure_sample(SYMBOLS) if opts['symbols']
         end
 
         # Fill remaining length with random characters from the full set
@@ -160,8 +167,12 @@ module Onetime
           password_chars.concat(remaining_chars)
         end
 
-        # Shuffle and join to create final password
-        password_chars.shuffle.join
+        # Shuffle and join to create final password.
+        #
+        # SECURITY: use secure_shuffle, not Array#shuffle. Array#shuffle also
+        # draws from the default (non-CSPRNG) Random, so the final ordering of
+        # the guaranteed characters would otherwise be predictable.
+        secure_shuffle(password_chars).join
       end
 
       # NOTE: Temporary until Familia 2-pre11
@@ -279,6 +290,39 @@ module Onetime
       def multiple_char_sets_requested?(opts)
         enabled_sets = [opts['uppercase'], opts['lowercase'], opts['numbers'], opts['symbols']].count(true)
         enabled_sets > 1
+      end
+
+      # Cryptographically secure replacement for Array#sample.
+      #
+      # Array#sample draws from Ruby's default Random (Mersenne Twister), which
+      # is not suitable for generating secret material. Returns nil for an empty
+      # array to match Array#sample's contract.
+      #
+      # @param array [Array] the array to pick from
+      # @return [Object, nil] a randomly selected element, or nil if empty
+      def secure_sample(array)
+        return nil if array.empty?
+
+        array[SecureRandom.random_number(array.length)]
+      end
+
+      # Cryptographically secure replacement for Array#shuffle.
+      #
+      # Fisher-Yates shuffle driven by SecureRandom so the resulting ordering
+      # cannot be predicted from the default PRNG's state. Returns a new array
+      # and leaves the input untouched, matching Array#shuffle's contract.
+      #
+      # @param array [Array] the array to shuffle
+      # @return [Array] a new, securely shuffled array
+      def secure_shuffle(array)
+        arr = array.dup
+        index = arr.length - 1
+        while index > 0
+          swap_with = SecureRandom.random_number(index + 1)
+          arr[index], arr[swap_with] = arr[swap_with], arr[index]
+          index -= 1
+        end
+        arr
       end
     end
   end
