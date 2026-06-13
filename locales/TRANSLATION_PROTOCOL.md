@@ -96,6 +96,39 @@ git add locales/content/eo/ locales/db/*.sql
 git commit -m "[#2319] Add eo translations from session"
 ```
 
+## Parallel / Agent-Driven Sessions
+
+When draining many locales at once (e.g. via `/d:translate-parallel-agents` or
+`/d:start-translation-session`), spawn one `saas-translator` agent per locale. Details
+that aren't obvious and cost a round-trip each to discover:
+
+- **No `.env.sh`.** The project uses direnv (`.envrc`); the legacy `source .env.sh` is
+  gone. The task scripts need no environment setup — run `python locales/scripts/tasks/...`
+  directly from the repo root.
+- **One writer per locale; skip `--claim`.** With a single agent per locale there is no
+  race: `next.py {LOCALE}` (returns the next *pending* task) → translate → `update.py {ID}`
+  (marks it completed) advances with zero orphans. `--claim` only earns its keep when
+  several writers share one locale; if you use it, reset stranded `in_progress` rows at
+  session start (`update.py {ID} --status pending`) — `next.py` only ever returns *pending*
+  tasks, so an abandoned claim is invisible until reset.
+- **Write translations via a temp file, not inline JSON.** Apostrophes and quotes (common
+  in fr/es/it) break shell single-quoting and HEREDOCs. Write the `{"key": "translation"}`
+  object to a temp file and pass `--file`:
+  `update.py {ID} --file /tmp/trans_{LOCALE}.json --validate`.
+- **`--validate` is advisory.** It warns on missing/extra keys but still saves and still
+  exits 0 — it does NOT block a bad write. Agents must read the `Warning:` lines and
+  re-submit with the exact source key set. A completed row's key set must match the source
+  exactly.
+- **SQLite concurrency: enable WAL, expect lock waits.** All locales write to one
+  `tasks.db`. Out of the box it is `journal_mode=delete`, `busy_timeout=0`. Set WAL once
+  before fanning out so readers never block the writer:
+  `sqlite3 locales/db/tasks.db "PRAGMA journal_mode=WAL"`. `update.py` connects with a 30s
+  busy timeout; on `database is locked`, wait ~2s and retry (up to 3x).
+- **Verify after draining.** Because `--validate` does not gate writes, audit each locale's
+  completed rows for: key-set mismatch; interpolation/markup tokens (`{var}`, `{{var}}`,
+  `%{x}`, `%s`, `<tag>`) preserved in the translation; and untranslated-English leakage. Fix
+  in place with `update.py --file`.
+
 ## Task Output Format
 
 Title: `**Task 8** · _common.json · web.TITLES · 44 keys`
