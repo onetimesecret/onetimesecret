@@ -193,7 +193,10 @@ def insert_tasks(
             "Run 'python locales/scripts/store.py init' to create it first."
         )
 
-    conn = sqlite3.connect(DB_FILE)
+    # timeout: tolerate write-lock contention when several locale agents run in
+    # parallel against this one DB file. Pair with WAL mode (PRAGMA journal_mode=WAL,
+    # set once on the db) so readers never block the writer. See TRANSLATION_PROTOCOL.md.
+    conn = sqlite3.connect(DB_FILE, timeout=30)
     cursor = conn.cursor()
     count = 0
 
