@@ -281,6 +281,27 @@ module Onetime
           nil
         end
 
+        # Resolve effective signup availability, combining the install-level
+        # (global) capability with an optional per-domain override.
+        #
+        # AND semantics: an enabled per-domain config can only *narrow* the
+        # global capability — it can never re-enable signup when the operator
+        # has disabled it globally (AUTH_ENABLED / AUTH_SIGNUP). When no config
+        # is enabled, the global value is authoritative.
+        #
+        # Mirrors SigninConfig.resolve_signin_enabled and is the source of
+        # truth for the runtime gate (Core::Controllers::Base#signup_enabled?).
+        #
+        # @param global [Boolean] install-level availability (auth.enabled && auth.signup)
+        # @param config [SignupConfig, nil] the per-domain config, if any
+        # @return [Boolean]
+        def resolve_signup_enabled(global, config)
+          global = global == true
+          return global unless config&.enabled?
+
+          global && config.signup_enabled?
+        end
+
         # Check if a domain has signup config.
         #
         # @param domain_id [String] CustomDomain identifier

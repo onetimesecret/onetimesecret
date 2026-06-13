@@ -159,6 +159,30 @@ module Onetime
           config.sso_enabled?
         end
 
+        # Resolve effective sign-in availability, combining the install-level
+        # (global) capability with an optional per-domain override.
+        #
+        # AND semantics: an enabled per-domain config can only *narrow* the
+        # global capability — it can never re-enable sign-in when the operator
+        # has disabled it globally (AUTH_ENABLED / AUTH_SIGNIN). When no config
+        # is enabled, the global value is authoritative.
+        #
+        # This is the single source of truth shared by the display gate
+        # (Core::Views::Serializers::ConfigSerializer#resolve_signin) and the
+        # runtime gate (Core::Controllers::Base#signin_enabled?), so the
+        # rendered page and the POST handler cannot disagree about whether a
+        # global kill switch is in effect.
+        #
+        # @param global [Boolean] install-level availability (auth.enabled && auth.signin)
+        # @param config [SigninConfig, nil] the per-domain config, if any
+        # @return [Boolean]
+        def resolve_signin_enabled(global, config)
+          global = global == true
+          return global unless config&.enabled?
+
+          global && config.signin_enabled?
+        end
+
         # Check if a domain has signin config.
         #
         # @param domain_id [String] CustomDomain identifier
