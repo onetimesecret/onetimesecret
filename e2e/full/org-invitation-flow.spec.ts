@@ -164,7 +164,7 @@ async function getInvitationToken(page: Page, email: string): Promise<string | n
   // We'll need to intercept the API call or check the URL after clicking
   // For now, we'll use the API to get the token
   const response = await page.request.get(
-    `/api/v2/org/${await getCurrentOrgExtid(page)}/invitations`
+    `/api/v2/org/${getCurrentOrgExtid(page)}/invitations`
   );
   const data = await response.json();
 
@@ -175,7 +175,7 @@ async function getInvitationToken(page: Page, email: string): Promise<string | n
 /**
  * Get current organization extid from URL
  */
-async function getCurrentOrgExtid(page: Page): Promise<string> {
+function getCurrentOrgExtid(page: Page): string {
   const url = page.url();
   const match = url.match(/\/org\/([^/]+)/);
   return match?.[1] || '';

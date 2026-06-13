@@ -140,7 +140,7 @@ async function createInvitation(
 /**
  * Get current organization extid from URL
  */
-async function getCurrentOrgExtid(page: Page): Promise<string> {
+function getCurrentOrgExtid(page: Page): string {
   const url = page.url();
   const match = url.match(/\/org\/([^/]+)/);
   return match?.[1] || '';
@@ -150,7 +150,7 @@ async function getCurrentOrgExtid(page: Page): Promise<string> {
  * Extract invitation token from pending invitations list via API
  */
 async function getInvitationToken(page: Page, email: string): Promise<string | null> {
-  const orgExtid = await getCurrentOrgExtid(page);
+  const orgExtid = getCurrentOrgExtid(page);
   const response = await page.request.get(`/api/v2/org/${orgExtid}/invitations`);
   const data = await response.json();
 
