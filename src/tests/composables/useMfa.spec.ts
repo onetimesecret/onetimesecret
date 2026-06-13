@@ -170,6 +170,25 @@ describe('useMfa', () => {
       expect(error.value).toBe('web.auth.security.internal_error');
     });
 
+    it('surfaces an error when a 200 setup response omits provisioning_uri', async () => {
+      // Non-HMAC 200 path with setup secrets but no provisioning_uri: no
+      // scannable QR can be rendered (the SPA must not reconstruct it, #3431),
+      // so setupMfa must fail visibly instead of populating setupData with an
+      // undefined qr_code (the blank-scan-step gap). Mirrors the 422 skew case.
+      axiosMock.onPost('/auth/otp-setup').reply(200, {
+        otp_setup: 'plain_secret',
+        otp_raw_secret: 'JBSWY3DPEHPK3PXP',
+      });
+
+      const { setupMfa, setupData, error } = useMfa();
+      const result = await setupMfa();
+
+      expect(result).toBeNull();
+      expect(setupData.value).toBeNull();
+      expect(error.value).toBe('web.auth.security.internal_error');
+      expect(QRCode.toDataURL).not.toHaveBeenCalled();
+    });
+
     it('handles rate limiting errors', async () => {
       axiosMock.onPost('/auth/otp-setup').reply(429, { error: 'Too many requests' });
 
