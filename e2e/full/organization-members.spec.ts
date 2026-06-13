@@ -372,7 +372,7 @@ test.describe('MBR-INVITE: Invite Member Flow', () => {
     const emailInput = page.locator('#invite-email');
     await emailInput.fill('invalid-email');
 
-    const sendButton = page.getByRole('button', { name: /send invite/i });
+    const sendButton = page.getByRole('button', { name: /send invit/i });
     await sendButton.click();
 
     // Should show validation error or HTML5 validation prevents submission
@@ -390,9 +390,9 @@ test.describe('MBR-INVITE: Invite Member Flow', () => {
     }
 
     // Get the owner's email (who is already a member)
-    const bootstrapResponse = await page.request.get('/api/v2/bootstrap/authenticated');
+    const bootstrapResponse = await page.request.get('/bootstrap/me');
     const bootstrapData = await bootstrapResponse.json();
-    const ownerEmail = bootstrapData.record?.email;
+    const ownerEmail = bootstrapData.email;
 
     if (!ownerEmail) {
       test.skip(true, 'Could not get owner email from bootstrap');
@@ -406,11 +406,13 @@ test.describe('MBR-INVITE: Invite Member Flow', () => {
     const emailInput = page.locator('#invite-email');
     await emailInput.fill(ownerEmail);
 
-    const sendButton = page.getByRole('button', { name: /send invite/i });
+    const sendButton = page.getByRole('button', { name: /send invit/i });
     await sendButton.click();
 
-    // Should show error about already being a member
-    await expect(page.getByText(/already|member|exists/i)).toBeVisible({ timeout: 10000 });
+    // Should show error about already being a member. Keep the pattern
+    // specific: bare /member/i matches the team page chrome (Invite Member
+    // button, Members heading) and trips strict mode.
+    await expect(page.getByText(/already a member/i)).toBeVisible({ timeout: 10000 });
   });
 });
 

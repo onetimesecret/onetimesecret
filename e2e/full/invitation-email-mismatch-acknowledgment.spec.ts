@@ -40,11 +40,21 @@ const generateTestEmail = (prefix: string) =>
 // -----------------------------------------------------------------------------
 
 /**
+ * Context options for a truly unauthenticated browser context.
+ *
+ * `browser.newContext()` inherits the `full` project's `use` options —
+ * including its storageState (the owner session) — so a bare newContext()
+ * is NOT unauthenticated. Pass these options to opt out explicitly.
+ */
+const unauthenticatedContext = { storageState: { cookies: [], origins: [] } };
+
+/**
  * Authenticate user via login form using password tab.
  *
- * Only valid on pages from a fresh `browser.newContext()` (unauthenticated):
- * the default `page` fixture already carries the storageState session, and
- * an authenticated visitor to /signin is redirected away from the form.
+ * Only valid on pages from an unauthenticated context
+ * (`browser.newContext(unauthenticatedContext)`): the default `page` fixture
+ * and bare `browser.newContext()` carry the storageState session, and an
+ * authenticated visitor to /signin is redirected away from the form.
  */
 async function loginUser(page: Page, email?: string, password?: string): Promise<void> {
   await page.goto('/signin');
@@ -120,7 +130,7 @@ async function createInvitation(
   await roleSelect.selectOption(role);
 
   // Submit
-  const sendButton = page.getByRole('button', { name: /send invite/i });
+  const sendButton = page.getByRole('button', { name: /send invit/i });
   await sendButton.click();
 
   // Wait for success
@@ -158,8 +168,8 @@ test.describe('MISMATCH-001: Email Mismatch Warning Display', () => {
   test('When logged in with different email, mismatch warning shows Continue As option', async ({
     browser,
   }) => {
-    const ownerContext = await browser.newContext();
-    const wrongUserContext = await browser.newContext();
+    const ownerContext = await browser.newContext(unauthenticatedContext);
+    const wrongUserContext = await browser.newContext(unauthenticatedContext);
 
     const ownerPage = await ownerContext.newPage();
     const wrongUserPage = await wrongUserContext.newPage();
@@ -207,8 +217,8 @@ test.describe('MISMATCH-002: Accept Button Hidden When Email Mismatch', () => {
   test('Accept button is NOT visible when email mismatch exists (strict binding)', async ({
     browser,
   }) => {
-    const ownerContext = await browser.newContext();
-    const wrongUserContext = await browser.newContext();
+    const ownerContext = await browser.newContext(unauthenticatedContext);
+    const wrongUserContext = await browser.newContext(unauthenticatedContext);
 
     const ownerPage = await ownerContext.newPage();
     const wrongUserPage = await wrongUserContext.newPage();
@@ -255,8 +265,8 @@ test.describe('MISMATCH-003: Continue As Triggers Logout', () => {
   test('Clicking "Continue as" logs out user and redirects to invite page', async ({
     browser,
   }) => {
-    const ownerContext = await browser.newContext();
-    const wrongUserContext = await browser.newContext();
+    const ownerContext = await browser.newContext(unauthenticatedContext);
+    const wrongUserContext = await browser.newContext(unauthenticatedContext);
 
     const ownerPage = await ownerContext.newPage();
     const wrongUserPage = await wrongUserContext.newPage();
@@ -283,9 +293,9 @@ test.describe('MISMATCH-003: Continue As Triggers Logout', () => {
       await wrongUserPage.waitForURL(/\/invite\//, { timeout: 10000 });
 
       // Verify user is logged out
-      const response = await wrongUserPage.request.get('/api/v2/bootstrap/authenticated');
+      const response = await wrongUserPage.request.get('/bootstrap/me');
       const data = await response.json();
-      expect(data.authenticated || data.record?.authenticated).toBeFalsy();
+      expect(data.authenticated).toBeFalsy();
     } finally {
       await ownerContext.close();
       await wrongUserContext.close();
@@ -303,9 +313,9 @@ test.describe('MISMATCH-004: Unauthenticated User Sees Inline Auth Forms', () =>
     context,
   }) => {
     // Get the current (storageState) user's email
-    const bootstrapResponse = await page.request.get('/api/v2/bootstrap/authenticated');
+    const bootstrapResponse = await page.request.get('/bootstrap/me');
     const bootstrapData = await bootstrapResponse.json();
-    const currentEmail = bootstrapData.record?.email;
+    const currentEmail = bootstrapData.email;
     expect(currentEmail).toBeTruthy();
 
     // Create invitation for a different test email
@@ -356,8 +366,8 @@ test.describe('MISMATCH-005: API Rejects Email Mismatch', () => {
   test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
 
   test('Direct API call with mismatched email returns error', async ({ browser }) => {
-    const ownerContext = await browser.newContext();
-    const wrongUserContext = await browser.newContext();
+    const ownerContext = await browser.newContext(unauthenticatedContext);
+    const wrongUserContext = await browser.newContext(unauthenticatedContext);
 
     const ownerPage = await ownerContext.newPage();
     const wrongUserPage = await wrongUserContext.newPage();
@@ -391,8 +401,8 @@ test.describe('MISMATCH-005: API Rejects Email Mismatch', () => {
   });
 
   test('API rejects even with acknowledge_email_mismatch flag (security change)', async ({ browser }) => {
-    const ownerContext = await browser.newContext();
-    const wrongUserContext = await browser.newContext();
+    const ownerContext = await browser.newContext(unauthenticatedContext);
+    const wrongUserContext = await browser.newContext(unauthenticatedContext);
 
     const ownerPage = await ownerContext.newPage();
     const wrongUserPage = await wrongUserContext.newPage();
