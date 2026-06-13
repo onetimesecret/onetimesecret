@@ -84,8 +84,9 @@ module Onetime
       # @example Generate with custom options
       #   Utils.strand(12, { symbols: true, uppercase: false })
       #
-      # @security Cryptographically secure - uses SecureRandom.random_number which
-      #   provides cryptographically secure random number generation. Suitable for
+      # @security Cryptographically secure - every source of randomness in this
+      #   method (character selection, the guaranteed one-per-set characters, and
+      #   the final positional shuffle) is drawn from SecureRandom. Suitable for
       #   generating secure tokens, passwords, and other security-critical identifiers.
       def strand(len = 12, options = true)
         raise ArgumentError, 'Length must be positive' unless len.positive?
@@ -137,18 +138,20 @@ module Onetime
         # Generate password with guaranteed complexity when multiple character sets are enabled
         password_chars = []
 
-        # Ensure at least one character from each selected set
+        # Ensure at least one character from each selected set. Draw from
+        # SecureRandom (not Array#sample's default Mersenne Twister) so every
+        # character of a generated secret comes from a CSPRNG.
         # When excluding ambiguous chars, sample from filtered sets to maintain guarantee
         if opts['exclude_ambiguous']
-          password_chars << (UPPERCASE - AMBIGUOUS_CHARS).sample if opts['uppercase']
-          password_chars << (LOWERCASE - AMBIGUOUS_CHARS).sample if opts['lowercase']
-          password_chars << (NUMBERS - AMBIGUOUS_CHARS).sample if opts['numbers']
-          password_chars << (SYMBOLS - AMBIGUOUS_CHARS).sample if opts['symbols']
+          password_chars << (UPPERCASE - AMBIGUOUS_CHARS).sample(random: SecureRandom) if opts['uppercase']
+          password_chars << (LOWERCASE - AMBIGUOUS_CHARS).sample(random: SecureRandom) if opts['lowercase']
+          password_chars << (NUMBERS - AMBIGUOUS_CHARS).sample(random: SecureRandom) if opts['numbers']
+          password_chars << (SYMBOLS - AMBIGUOUS_CHARS).sample(random: SecureRandom) if opts['symbols']
         else
-          password_chars << UPPERCASE.sample if opts['uppercase']
-          password_chars << LOWERCASE.sample if opts['lowercase']
-          password_chars << NUMBERS.sample if opts['numbers']
-          password_chars << SYMBOLS.sample if opts['symbols']
+          password_chars << UPPERCASE.sample(random: SecureRandom) if opts['uppercase']
+          password_chars << LOWERCASE.sample(random: SecureRandom) if opts['lowercase']
+          password_chars << NUMBERS.sample(random: SecureRandom) if opts['numbers']
+          password_chars << SYMBOLS.sample(random: SecureRandom) if opts['symbols']
         end
 
         # Fill remaining length with random characters from the full set
@@ -160,8 +163,8 @@ module Onetime
           password_chars.concat(remaining_chars)
         end
 
-        # Shuffle and join to create final password
-        password_chars.shuffle.join
+        # Shuffle (via SecureRandom) and join to create final password
+        password_chars.shuffle(random: SecureRandom).join
       end
 
       # NOTE: Temporary until Familia 2-pre11

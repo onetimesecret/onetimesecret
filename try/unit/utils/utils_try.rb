@@ -39,6 +39,28 @@ Onetime::Utils.strand.size
 Onetime::Utils.strand(20).size
 #=> 20
 
+## strand complexity path (all character sets) honors the requested length
+Onetime::Utils.strand(16, { 'uppercase' => true, 'lowercase' => true, 'numbers' => true, 'symbols' => true }).size
+#=> 16
+
+## strand complexity path guarantees at least one char from each enabled set
+pw = Onetime::Utils.strand(16, { 'uppercase' => true, 'lowercase' => true, 'numbers' => true, 'symbols' => true })
+[!!(pw =~ /[A-Z]/), !!(pw =~ /[a-z]/), !!(pw =~ /[0-9]/)]
+#=> [true, true, true]
+
+## strand complexity path draws from SecureRandom, not Ruby's seedable PRNG.
+## With len == set count there are no fill chars, so the whole password comes
+## from the guaranteed-char sampling + final shuffle. Seeding Kernel#srand
+## identically would make the output reproducible if those used the default
+## (Mersenne Twister) PRNG; SecureRandom makes them differ.
+@cx_opts = { 'uppercase' => true, 'lowercase' => true, 'numbers' => true, 'symbols' => true, 'exclude_ambiguous' => false }
+Kernel.srand(99)
+strand_a = Onetime::Utils.strand(4, @cx_opts)
+Kernel.srand(99)
+strand_b = Onetime::Utils.strand(4, @cx_opts)
+strand_a == strand_b
+#=> false
+
 ## Obscure email address (standard email)
 Onetime::Utils.obscure_email('tryouts@onetimesecret.com')
 #=> 'tr***@o***.com'
