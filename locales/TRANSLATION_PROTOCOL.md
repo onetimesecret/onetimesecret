@@ -158,7 +158,6 @@ locales/scripts/
     create.py         # Generate tasks grouped by parent path
     next.py           # --claim, --filter, --stats, --id
     update.py         # TASK_ID '{"key": "val"}'
-    translate.py      # Claude-powered translation
   migrate/
     export.py         # SQLite -> locales/content/
     bootstrap.py      # Initialize locale content
