@@ -11,12 +11,12 @@ Three-tier architecture:
 - locales/db/tasks.db - Ephemeral, hydrated on-demand for queries
 
 Usage:
-    python run_translation.py LOCALE [OPTIONS]
+    python translate.py LOCALE [OPTIONS]
 
 Examples:
-    python run_translation.py eo --limit 10 --dry-run
-    python run_translation.py eo --limit 20 --mock
-    python run_translation.py eo --file auth.json --mock
+    python translate.py eo --limit 10 --dry-run
+    python translate.py eo --limit 20 --mock
+    python translate.py eo --file auth.json --mock
 """
 
 import argparse
@@ -446,9 +446,9 @@ def main() -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-    python run_translation.py eo --limit 10 --dry-run
-    python run_translation.py eo --limit 20 --mock
-    python run_translation.py eo --file auth.json --mock
+    python translate.py eo --limit 10 --dry-run
+    python translate.py eo --limit 20 --mock
+    python translate.py eo --file auth.json --mock
         """,
     )
 
