@@ -42,11 +42,21 @@ const generateTestEmail = (prefix: string) =>
 // -----------------------------------------------------------------------------
 
 /**
+ * Context options for a truly unauthenticated browser context.
+ *
+ * `browser.newContext()` inherits the `full` project's `use` options —
+ * including its storageState (the owner session) — so a bare newContext()
+ * is NOT unauthenticated. Pass these options to opt out explicitly.
+ */
+const unauthenticatedContext = { storageState: { cookies: [], origins: [] } };
+
+/**
  * Authenticate user via login form using password tab.
  *
- * Only valid on pages from a fresh `browser.newContext()` (unauthenticated):
- * the default `page` fixture already carries the storageState session, and
- * an authenticated visitor to /signin is redirected away from the form.
+ * Only valid on pages from an unauthenticated context
+ * (`browser.newContext(unauthenticatedContext)`): the default `page` fixture
+ * and bare `browser.newContext()` carry the storageState session, and an
+ * authenticated visitor to /signin is redirected away from the form.
  */
 async function loginUser(page: Page, email?: string, password?: string): Promise<void> {
   await page.goto('/signin');
@@ -124,7 +134,7 @@ async function createInvitation(
   await roleSelect.selectOption(role);
 
   // Submit
-  const sendButton = page.getByRole('button', { name: /send invite/i });
+  const sendButton = page.getByRole('button', { name: /send invit/i });
   await sendButton.click();
 
   // Wait for success
@@ -191,8 +201,8 @@ test.describe('INV-001: New User Atomic Signup Flow', () => {
       const signupForm = page.getByTestId('invite-signup-form');
       await expect(signupForm).toBeVisible();
 
-      // Email should be displayed (readonly from invitation)
-      await expect(page.getByText(invitedEmail)).toBeVisible();
+      // Email should be displayed (readonly input prefilled from invitation)
+      await expect(page.getByTestId('invite-signup-email-input')).toHaveValue(invitedEmail);
 
       // Fill password fields
       const passwordInput = signupForm.locator('input[type="password"]').first();
@@ -207,13 +217,20 @@ test.describe('INV-001: New User Atomic Signup Flow', () => {
         await termsCheckbox.check();
       }
 
-      // Submit form - "Create Account & Join" button
+      // Submit form - "Continue" button
       const submitButton = signupForm.locator('button[type="submit"]');
       await expect(submitButton).toBeEnabled();
       await submitButton.click();
 
-      // Verify success message and redirect
-      await expect(page.getByText(/accept_success|joined|welcome/i)).toBeVisible({
+      // Signup establishes the session but does NOT accept the invitation:
+      // the state machine recomputes to direct_accept and the user confirms
+      // the join with the explicit Accept button (AcceptInvite.onAuthSuccess).
+      const acceptButton = page.getByTestId('accept-invitation-btn');
+      await expect(acceptButton).toBeVisible({ timeout: 15000 });
+      await acceptButton.click();
+
+      // Verify the terminal accepted state ("Invitation accepted successfully")
+      await expect(page.getByTestId('invite-accepted')).toBeVisible({
         timeout: 15000,
       });
 
@@ -265,8 +282,8 @@ test.describe('INV-004: Existing User Signin Flow', () => {
 
   test('existing user can signin and accept invitation', async ({ browser }) => {
     // Create two browser contexts - one for owner, one for invited user
-    const ownerContext = await browser.newContext();
-    const inviteeContext = await browser.newContext();
+    const ownerContext = await browser.newContext(unauthenticatedContext);
+    const inviteeContext = await browser.newContext(unauthenticatedContext);
 
     const ownerPage = await ownerContext.newPage();
     const inviteePage = await inviteeContext.newPage();
@@ -305,8 +322,10 @@ test.describe('INV-004: Existing User Signin Flow', () => {
         const signinForm = inviteePage.getByTestId('invite-signin-form');
         await expect(signinForm).toBeVisible();
 
-        // Email should be displayed (readonly from invitation)
-        await expect(inviteePage.getByText(invitedEmail)).toBeVisible();
+        // Email should be displayed (readonly input prefilled from invitation)
+        await expect(inviteePage.getByTestId('invite-signin-email-input')).toHaveValue(
+          invitedEmail
+        );
 
         // The form expects password for the invited email
         // Since this is a generated email, the account may not exist
@@ -350,8 +369,8 @@ test.describe('INV-006: Direct Accept Flow', () => {
 
   test('signed-in user with matching email can accept directly', async ({ browser }) => {
     // Create two contexts - owner creates invitation for test user email
-    const ownerContext = await browser.newContext();
-    const matchingUserContext = await browser.newContext();
+    const ownerContext = await browser.newContext(unauthenticatedContext);
+    const matchingUserContext = await browser.newContext(unauthenticatedContext);
 
     const ownerPage = await ownerContext.newPage();
     const matchingUserPage = await matchingUserContext.newPage();
@@ -452,8 +471,8 @@ test.describe('INV-007: Wrong Email State', () => {
   test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
 
   test('signed-in user with wrong email sees continue-as prompt', async ({ browser }) => {
-    const ownerContext = await browser.newContext();
-    const wrongUserContext = await browser.newContext();
+    const ownerContext = await browser.newContext(unauthenticatedContext);
+    const wrongUserContext = await browser.newContext(unauthenticatedContext);
 
     const ownerPage = await ownerContext.newPage();
     const wrongUserPage = await wrongUserContext.newPage();
@@ -503,9 +522,9 @@ test.describe('INV-007: Wrong Email State', () => {
       await wrongUserPage.waitForURL(/\/invite\//, { timeout: 10000 });
 
       // Verify user is logged out
-      const response = await wrongUserPage.request.get('/api/v2/bootstrap/authenticated');
+      const response = await wrongUserPage.request.get('/bootstrap/me');
       const data = await response.json();
-      expect(data.authenticated || data.record?.authenticated).toBeFalsy();
+      expect(data.authenticated).toBeFalsy();
     } finally {
       await ownerContext.close();
       await wrongUserContext.close();
@@ -521,9 +540,9 @@ test.describe('INV-008: Already Member State', () => {
   test('already member shows info message', async ({ page }) => {
     // The storageState session is the org owner (already a member of their org)
     // Get owner's email
-    const bootstrapResponse = await page.request.get('/api/v2/bootstrap/authenticated');
+    const bootstrapResponse = await page.request.get('/bootstrap/me');
     const bootstrapData = await bootstrapResponse.json();
-    const ownerEmail = bootstrapData.record?.email;
+    const ownerEmail = bootstrapData.email;
     expect(ownerEmail).toBeTruthy();
 
     // Navigate to org team and try to create invitation for self
@@ -536,11 +555,13 @@ test.describe('INV-008: Already Member State', () => {
     const emailInput = page.locator('#invite-email');
     await emailInput.fill(ownerEmail);
 
-    const sendButton = page.getByRole('button', { name: /send invite/i });
+    const sendButton = page.getByRole('button', { name: /send invit/i });
     await sendButton.click();
 
-    // Should show error about already being a member
-    await expect(page.getByText(/already|member|exists/i)).toBeVisible({ timeout: 10000 });
+    // Should show error about already being a member. Keep the pattern
+    // specific: bare /member/i matches the team page chrome (Invite Member
+    // button, Members heading) and trips strict mode.
+    await expect(page.getByText(/already a member/i)).toBeVisible({ timeout: 10000 });
   });
 });
 
@@ -677,11 +698,12 @@ test.describe('Invite Flow State Transitions', () => {
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Invitation context should show:
-    // - Invited email
-    await expect(page.getByText(testEmail)).toBeVisible();
+    // - Invited email (readonly input prefilled from the invitation; the
+    //   email is not rendered as page text in the signup_required state)
+    await expect(page.getByTestId('invite-signup-email-input')).toHaveValue(testEmail);
 
     // - Role (member/admin)
-    await expect(page.getByText(/member|admin/i)).toBeVisible();
+    await expect(page.getByText(/member|admin/i).first()).toBeVisible();
 
     // - Organization name (varies by test environment)
     const invitationContext = page.getByTestId('invitation-context');
