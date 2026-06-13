@@ -561,7 +561,7 @@
   },
   "web.organizations.invitations.email_mismatch_body": {
     "text": "此邀请发送给 {invitedEmail}。您当前登录的是 {currentEmail}。",
-    "source_hash": "b8d3e5f7"
+    "source_hash": "78a6f301"
   },
   "web.organizations.invitations.continue_as_invited_email": {
     "text": "以 {email} 身份继续",
