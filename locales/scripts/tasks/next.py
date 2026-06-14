@@ -53,7 +53,7 @@ def get_next_task(
     if not DB_FILE.exists():
         raise FileNotFoundError(
             f"Database not found: {DB_FILE}\n"
-            "Run 'python store.py migrate' to create it first."
+            "Run 'python locales/scripts/store.py init' to create it first."
         )
 
     conn = sqlite3.connect(DB_FILE)

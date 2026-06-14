@@ -561,7 +561,7 @@
   },
   "web.organizations.invitations.email_mismatch_body": {
     "text": "To zaproszenie jest dla {invitedEmail}. Jesteś obecnie zalogowany jako {currentEmail}.",
-    "source_hash": "b8d3e5f7"
+    "source_hash": "78a6f301"
   },
   "web.organizations.invitations.continue_as_invited_email": {
     "text": "Kontynuuj jako {email}",
