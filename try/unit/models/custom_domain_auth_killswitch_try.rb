@@ -71,6 +71,10 @@ Onetime::CustomDomain::SignupConfig.resolve_signup_enabled(true, nil)
 Onetime::CustomDomain::SignupConfig.resolve_signup_enabled(false, nil)
 #=> false
 
+## nil global coerces to unavailable (defensive) — mirrors the SigninConfig invariant
+Onetime::CustomDomain::SignupConfig.resolve_signup_enabled(nil, nil)
+#=> false
+
 ## global on, enabled config that allows signup => available
 Onetime::CustomDomain::SignupConfig.resolve_signup_enabled(true, signup_config(enabled: true, signup_enabled: true))
 #=> true
