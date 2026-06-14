@@ -108,7 +108,17 @@ require_relative '../database'
 # crashes calling db.database_type on nil. Mirrors the reload performed
 # by ProductionConfigHelper#boot_onetime_app for integration specs.
 Onetime.auth_config.reload! if Onetime.respond_to?(:auth_config) && Onetime.auth_config.respond_to?(:reload!)
-require_relative '../application'
+
+# Only eagerly load the full auth application in full mode. The reload above has
+# now picked up AUTHENTICATION_MODE from the environment; in simple mode (the
+# unit/apps RSpec leg that also runs these config specs) full_enabled? is false
+# and Auth::Database.connection is nil (database.rb:111), so configuring Rodauth
+# via application.rb -> router.rb would crash post_configure on db.database_type
+# (base.rb:443). Self-contained config specs that build their own in-memory app
+# (e.g. mfa_provisioning_uri_spec.rb via create_test_database) don't need the
+# real application booted. Integration specs always run in full mode, where this
+# pre-load still happens and #3234's namespace-stability guarantee holds.
+require_relative '../application' if Onetime.respond_to?(:auth_config) && Onetime.auth_config.full_enabled?
 
 # =============================================================================
 # TENANT VERIFYING MOCK REGISTRATION
