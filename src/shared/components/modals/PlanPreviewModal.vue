@@ -5,6 +5,7 @@ import ListSkeleton from '@/shared/components/closet/ListSkeleton.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { usePreviewPlanMode } from '@/shared/composables/usePreviewPlanMode';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { createApi } from '@/api';
 import {
   Dialog,
@@ -18,6 +19,7 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 const bootstrapStore = useBootstrapStore();
+const organizationStore = useOrganizationStore();
 const $api = createApi();
 
 const props = defineProps<{
@@ -101,6 +103,31 @@ const actualPlanName = computed(() => {
   return plan?.name || planId;
 });
 
+/**
+ * Sync client state after the preview override changes on the server.
+ *
+ * Two independent pieces of state must be refreshed, because they come from
+ * different endpoints:
+ *
+ * 1. bootstrapStore.refresh() — picks up `entitlement_preview_planid` /
+ *    `entitlement_preview_plan_name`, which drive the preview banner.
+ *
+ * 2. organizationStore.fetchEntitlements() — the org's entitlements/limits
+ *    (what `useEntitlements` gates features on) are NOT part of the bootstrap
+ *    payload. They are served by the preview-aware billing entitlements
+ *    endpoint. Without re-fetching them, the banner flips but the rest of the
+ *    UI keeps gating against the org's actual plan.
+ */
+const syncPreviewState = async () => {
+  await bootstrapStore.refresh();
+
+  const extid =
+    organizationStore.currentOrganization?.extid ?? bootstrapStore.organization?.extid;
+  if (extid) {
+    await organizationStore.fetchEntitlements(extid);
+  }
+};
+
 const handleActivateTestMode = async (planId: string) => {
   isLoading.value = true;
   error.value = null;
@@ -108,8 +135,9 @@ const handleActivateTestMode = async (planId: string) => {
   try {
     await $api.post('/api/colonel/entitlement-preview', { planid: planId });
 
-    // Refresh bootstrap store to get updated entitlements (no page reload needed)
-    await bootstrapStore.refresh();
+    // Refresh banner state and re-fetch the org's preview-aware entitlements
+    // so feature gating reflects the selected plan (no page reload needed).
+    await syncPreviewState();
     emit('close');
   } catch (err: unknown) {
     console.error('Failed to activate test mode:', err);
@@ -126,8 +154,9 @@ const handleResetToActual = async () => {
   try {
     await $api.post('/api/colonel/entitlement-preview', { planid: null });
 
-    // Refresh bootstrap store to clear test mode (no page reload needed)
-    await bootstrapStore.refresh();
+    // Refresh banner state and re-fetch the org's actual entitlements so
+    // feature gating returns to the real plan (no page reload needed).
+    await syncPreviewState();
     emit('close');
   } catch (err: unknown) {
     console.error('Failed to reset test mode:', err);

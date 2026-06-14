@@ -205,9 +205,19 @@ module Billing
       # - Organization has no planid
       # - Entitlements not materialized and plan not found in cache
       #
+      # Preview mode: when a colonel is previewing a plan
+      # (session[:entitlement_preview_planid] is set), the limits come from the
+      # previewed plan instead of the org's actual plan. This mirrors the
+      # entitlements side (org.entitlements_for_request(session)); without it the
+      # previewed plan's entitlements would surface while its limits would not,
+      # leaving limit-gated UI reflecting the wrong plan.
+      #
       # @param org [Onetime::Organization] Organization instance
       # @return [Hash] Limits with nil for infinity
       def build_limits_hash(org)
+        preview_planid = session_preview_planid
+        return preview_limits_hash(preview_planid) if preview_planid
+
         return {} if org.planid.to_s.empty?
 
         # Materialized path: read from org-local storage (no Plan.load)
@@ -225,6 +235,46 @@ module Billing
         limits = plan.limits_hash
         limits.transform_values do |value|
           value == Float::INFINITY ? nil : value
+        end
+      end
+
+      # Colonel preview plan id from the session, or nil when not previewing.
+      #
+      # Guards against non-hash sessions and treats blank values as "no preview"
+      # (matching limit_for_request / the SetEntitlementPreview clear path).
+      #
+      # @return [String, nil] Preview plan id, or nil
+      def session_preview_planid
+        return nil unless session.respond_to?(:[])
+
+        planid = session[:entitlement_preview_planid]
+        return nil if planid.nil? || planid.to_s.empty?
+
+        planid.to_s
+      end
+
+      # Build the limits hash for a previewed plan.
+      #
+      # Loads the plan via the same Stripe-cache-then-config fallback used when
+      # setting preview mode, and emits the same on-wire format as
+      # build_limits_hash (flattened keys, nil for unlimited). Returns an empty
+      # hash when the plan cannot be resolved.
+      #
+      # @param planid [String] Previewed plan id
+      # @return [Hash] Limits with nil for infinity
+      def preview_limits_hash(planid)
+        result = ::Billing::Plan.load_with_fallback(planid)
+
+        if result[:plan]
+          result[:plan].limits_hash.transform_values do |value|
+            value == Float::INFINITY ? nil : value
+          end
+        elsif result[:config]
+          (result[:config][:limits] || {}).transform_values do |value|
+            value == 'unlimited' ? nil : value.to_i
+          end
+        else
+          {}
         end
       end
 
