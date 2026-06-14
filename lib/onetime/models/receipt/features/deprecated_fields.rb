@@ -227,6 +227,7 @@ module Onetime::Receipt::Features
         return unless secret_expired?
 
         previous_state         = state
+        original_secret_id     = secret_identifier
         self.state             = 'expired'
         self.updated           = Familia.now.to_i
         self.secret_identifier = ''
@@ -236,7 +237,7 @@ module Onetime::Receipt::Features
         secret_logger.info 'Receipt state transition to expired',
           {
             receipt_id: shortid,
-            secret_id: secret_identifier,
+            secret_id: original_secret_id,
             previous_state: previous_state,
             new_state: 'expired',
             timestamp: updated,
