@@ -53,11 +53,9 @@ module V2::Logic
 
         @correct_passphrase = !potential_secret.has_passphrase? || potential_secret.passphrase?(passphrase)
         viewable            = potential_secret.viewable?
-        # Use the parsed @continue boolean (set in process_params), not the raw
-        # param. The raw value is a string for form/query requests, and every
-        # non-empty string — including "false" — is truthy in Ruby, so reading
-        # params['continue'] directly would burn the secret even when the
-        # client explicitly sent continue=false.
+        # Use the parsed boolean (true / 'true' only), not the raw param: the
+        # raw value treats any non-empty string as truthy, so a deliberate
+        # `continue=false` would burn the secret anyway.
         @greenlighted       = viewable && correct_passphrase && continue
 
         secret_logger.debug 'Secret burn initiated',
