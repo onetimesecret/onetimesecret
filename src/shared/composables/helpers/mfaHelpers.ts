@@ -64,6 +64,8 @@ export async function renderSetupQr(validated: OtpSetupData): Promise<OtpSetupDa
     return null;
   }
 
+  // Sets qr_code on `validated` in place and returns the same object reference
+  // (callers pass the parsed response and use the return value interchangeably).
   validated.qr_code = await generateQrCode(validated.provisioning_uri);
   return validated;
 }

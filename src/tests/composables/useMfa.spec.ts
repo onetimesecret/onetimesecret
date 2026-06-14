@@ -189,6 +189,26 @@ describe('useMfa', () => {
       expect(QRCode.toDataURL).not.toHaveBeenCalled();
     });
 
+    it('renders the QR on a 200 setup response that includes provisioning_uri', async () => {
+      // Non-HMAC 200 happy path: provisioning_uri present, so renderSetupQr
+      // produces the QR and setupData is populated (no blank-scan-step).
+      const setupResponse = {
+        otp_setup: 'plain_secret',
+        otp_raw_secret: 'JBSWY3DPEHPK3PXP',
+        provisioning_uri:
+          'otpauth://totp/OTS:test@example.com?secret=plain_secret&issuer=OTS',
+      };
+
+      axiosMock.onPost('/auth/otp-setup').reply(200, setupResponse);
+
+      const { setupMfa, setupData } = useMfa();
+      const result = await setupMfa();
+
+      expect(result?.qr_code).toBe('data:image/png;base64,mockQrCode');
+      expect(setupData.value?.qr_code).toBe('data:image/png;base64,mockQrCode');
+      expect(QRCode.toDataURL).toHaveBeenCalledWith(setupResponse.provisioning_uri);
+    });
+
     it('handles rate limiting errors', async () => {
       axiosMock.onPost('/auth/otp-setup').reply(429, { error: 'Too many requests' });
 
