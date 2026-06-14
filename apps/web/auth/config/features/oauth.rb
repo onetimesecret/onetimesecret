@@ -147,11 +147,28 @@ module Auth::Config::Features
       # ─── Scopes ────────────────────────────────────────────────────────
       auth.oauth_application_scopes %w[openid profile email]
 
+      # ─── PKCE enforcement ──────────────────────────────────────────────
+      # :oauth_pkce (enabled above) makes PKCE *available* but not *mandatory*:
+      # without this, a client can complete the authorization-code flow with no
+      # code_challenge at all. Migration 010's CHECK constraint only rejects a
+      # stored code_challenge_method='plain' — it does NOT force PKCE to be
+      # present. oauth_require_pkce closes that gap so the "PKCE-only" posture is
+      # enforced server-side for every registered client, not just the seeded SP.
+      # Every authorization-code flow in this codebase already uses S256 PKCE
+      # (omniauth.rb sets `pkce: true`), so this rejects no working client.
+      auth.oauth_require_pkce true
+
       # ─── URI schemes ───────────────────────────────────────────────────
-      # `http` is allowed by default so localhost callbacks work in dev. In
-      # production, tighten by setting OAUTH_VALID_URI_SCHEMES=https (a
-      # space-separated list); when unset, both http and https are accepted.
-      auth.oauth_valid_uri_schemes ENV.fetch('OAUTH_VALID_URI_SCHEMES', 'http https').split
+      # Production defaults to https-only: an http:// redirect is interceptable,
+      # letting an attacker steal the authorization code before PKCE verification,
+      # so an operator who flips AUTH_OAUTH_ENABLED=true without reading the env
+      # docs must not silently accept http:// redirect URIs. dev/test default to
+      # `http https` so localhost callbacks keep working (the seeded SP client
+      # registers http://localhost:3000/...). OAUTH_VALID_URI_SCHEMES (a
+      # space-separated list) overrides the default in any environment — set it
+      # to `http https` to allow http in a non-prod-tagged deployment.
+      default_uri_schemes = Onetime.production? ? 'https' : 'http https'
+      auth.oauth_valid_uri_schemes ENV.fetch('OAUTH_VALID_URI_SCHEMES', default_uri_schemes).split
 
       # ─── Token endpoint auth methods ───────────────────────────────────
       # No `client_secret_jwt` or `private_key_jwt` for v1.
