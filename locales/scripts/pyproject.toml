@@ -1,0 +1,18 @@
+[project]
+name = "ots-i18n-tools"
+version = "0.1.0"
+description = "Consolidated OneTimeSecret locale tooling CLI"
+requires-python = ">=3.11"
+
+[project.optional-dependencies]
+rich = ["rich>=13"]
+
+[project.scripts]
+ots-i18n = "i18n.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["i18n"]
