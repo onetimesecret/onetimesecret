@@ -549,7 +549,7 @@ def format_task_human(task: dict) -> str:
     ]
 
     table_str = render_table(
-        ["Key", "English", "Esperanto"],
+        ["Key", "English", task.get("locale") or "Translation"],
         rows,
         col_styles=["cyan", None, None],
         widths=[28, 60, 60],
