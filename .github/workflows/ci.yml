@@ -233,7 +233,7 @@ jobs:
       - *checkout-step
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.14'
 
@@ -320,7 +320,7 @@ jobs:
         uses: ./.github/actions/setup-ruby-test-env
 
       - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.14'
 
@@ -362,7 +362,7 @@ jobs:
         uses: ./.github/actions/setup-node-env
 
       - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.14'
 
@@ -403,7 +403,7 @@ jobs:
         uses: ./.github/actions/setup-ruby-test-env
 
       - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.14'
 
@@ -448,7 +448,7 @@ jobs:
         uses: ./.github/actions/setup-ruby-test-env
 
       - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.14'
 
@@ -550,7 +550,7 @@ jobs:
         uses: ./.github/actions/setup-ruby-test-env
 
       - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.14'
 
@@ -603,7 +603,7 @@ jobs:
         uses: ./.github/actions/setup-ruby-test-env
 
       - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.14'
 
@@ -824,7 +824,7 @@ jobs:
       # Post CI metrics summary as PR comment (PRs only, skip forks - no write access)
       - name: Post metrics to PR
         if: github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           github-token: ${{ github.token }}
           script: |
