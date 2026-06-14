@@ -1,3 +1,5 @@
+# locales/scripts/i18n/commands/content.py
+
 """``content`` command group.
 
 Locale content-file operations, ported behavior-for-behavior from the legacy

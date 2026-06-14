@@ -1,3 +1,5 @@
+# locales/scripts/i18n/__init__.py
+
 """Consolidated OneTimeSecret locale tooling.
 
 A single CLI (``i18n``) that wraps the previously separate locale scripts

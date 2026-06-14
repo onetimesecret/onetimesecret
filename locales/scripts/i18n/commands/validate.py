@@ -1,3 +1,5 @@
+# locales/scripts/i18n/commands/validate.py
+
 """``validate`` command group.
 
 Ports the legacy locale validation scripts as subcommands:

@@ -1,3 +1,5 @@
+# locales/scripts/i18n/commands/store.py
+
 """``db`` command group.
 
 Database management for translation auditing and queries. Ported from the

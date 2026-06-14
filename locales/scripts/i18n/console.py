@@ -1,3 +1,5 @@
+# locales/scripts/i18n/console.py
+
 """Table rendering with an optional ``rich`` dependency.
 
 This is the one intentional behavior change in the port, isolated here:

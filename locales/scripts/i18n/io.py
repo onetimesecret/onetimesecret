@@ -1,3 +1,5 @@
+# locales/scripts/i18n/io.py
+
 """JSON file handling and key traversal.
 
 Ported verbatim from the legacy ``locales/scripts/keys.py``. Provides the

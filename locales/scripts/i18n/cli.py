@@ -1,3 +1,5 @@
+# locales/scripts/i18n/cli.py
+
 """Top-level CLI: argument parsing and dispatch.
 
 Each command group registers its own subparser tree via ``register()``.

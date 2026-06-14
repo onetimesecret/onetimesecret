@@ -1,3 +1,5 @@
+# locales/scripts/i18n/config.py
+
 """Single source of truth for locale-tooling paths and constants.
 
 Everything is resolved from this file's location so the package works

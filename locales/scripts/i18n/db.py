@@ -1,3 +1,5 @@
+# locales/scripts/i18n/db.py
+
 """SQLite connection management and schema lifecycle.
 
 Ported from the legacy ``locales/scripts/store.py`` (connection + schema

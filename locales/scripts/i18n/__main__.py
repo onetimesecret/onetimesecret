@@ -1,3 +1,5 @@
+# locales/scripts/i18n/__main__.py
+
 """Zero-install launcher.
 
 Lets ``python3 locales/scripts/i18n <args>`` run from the repo root with no
