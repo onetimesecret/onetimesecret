@@ -6,11 +6,13 @@
 # for each, and commits with stats from the translation database.
 #
 # Usage:
-#   ./export-and-commit.sh [--dry-run] [--harmonize]
+#   ./export-and-commit.sh [--dry-run]
 #
 # Options:
 #   --dry-run     Show what would be done without making changes
-#   --harmonize   Run harmonize.py --create-missing before export
+#
+# Missing locale files are created by export.py itself, so no separate
+# harmonize step is needed.
 
 set -euo pipefail
 
@@ -19,16 +21,11 @@ LOCALES_DIR="$(dirname "$SCRIPT_DIR")"
 CONTENT_DIR="$LOCALES_DIR/content"
 
 DRY_RUN=false
-HARMONIZE=false
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --dry-run)
             DRY_RUN=true
-            shift
-            ;;
-        --harmonize)
-            HARMONIZE=true
             shift
             ;;
         *)
@@ -65,11 +62,6 @@ main() {
     echo
 
     for locale in $(get_locales); do
-        # Harmonize first if requested (creates missing files)
-        if [[ "$HARMONIZE" == true ]]; then
-            python "$SCRIPT_DIR/migrate/harmonize.py" "$locale" --create-missing -q 2>/dev/null || true
-        fi
-
         # Skip if no completed tasks to export
         if ! python "$SCRIPT_DIR/migrate/export.py" "$locale" --quiet 2>/dev/null; then
             ((skipped++)) || true

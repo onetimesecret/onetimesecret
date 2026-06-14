@@ -67,7 +67,10 @@ def update_task(
             f"Invalid status: {status}. Must be one of: {VALID_STATUSES}"
         )
 
-    conn = sqlite3.connect(DB_FILE)
+    # timeout: tolerate write-lock contention when several locale agents run in
+    # parallel against this one DB file. Pair with WAL mode (PRAGMA journal_mode=WAL,
+    # set once on the db) so readers never block the writer. See TRANSLATION_PROTOCOL.md.
+    conn = sqlite3.connect(DB_FILE, timeout=30)
     conn.row_factory = sqlite3.Row
 
     try:
@@ -230,7 +233,12 @@ Examples:
     parser.add_argument(
         "--validate",
         action="store_true",
-        help="Validate translations against expected keys before saving",
+        help=(
+            "Warn on key mismatches (missing/extra keys vs the source) before "
+            "saving. ADVISORY ONLY: it prints warnings to stderr but still saves "
+            "and still exits 0 — it does NOT block a bad write. Read the warnings "
+            "and re-run with the corrected key set if any appear."
+        ),
     )
 
     args = parser.parse_args()
@@ -281,7 +289,8 @@ Examples:
             if warnings:
                 for warning in warnings:
                     print(f"Warning: {warning}", file=sys.stderr)
-                # Continue anyway, but note the warnings
+                # Advisory only: we warn but still save (exit 0). Callers must
+                # read these warnings and re-submit with the correct keys.
 
         # Update the task
         task = update_task(

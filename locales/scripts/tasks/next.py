@@ -56,7 +56,10 @@ def get_next_task(
             "Run 'python locales/scripts/store.py init' to create it first."
         )
 
-    conn = sqlite3.connect(DB_FILE)
+    # timeout: tolerate write-lock contention when several locale agents run in
+    # parallel against this one DB file. Pair with WAL mode (PRAGMA journal_mode=WAL,
+    # set once on the db) so readers never block the writer. See TRANSLATION_PROTOCOL.md.
+    conn = sqlite3.connect(DB_FILE, timeout=30)
     conn.row_factory = sqlite3.Row
 
     try:
@@ -130,7 +133,10 @@ def get_task_by_id(task_id: int) -> Optional[dict]:
     if not DB_FILE.exists():
         raise FileNotFoundError(f"Database not found: {DB_FILE}")
 
-    conn = sqlite3.connect(DB_FILE)
+    # timeout: tolerate write-lock contention when several locale agents run in
+    # parallel against this one DB file. Pair with WAL mode (PRAGMA journal_mode=WAL,
+    # set once on the db) so readers never block the writer. See TRANSLATION_PROTOCOL.md.
+    conn = sqlite3.connect(DB_FILE, timeout=30)
     conn.row_factory = sqlite3.Row
 
     try:
@@ -174,7 +180,10 @@ def get_task_stats(locale: str) -> dict:
     if not DB_FILE.exists():
         raise FileNotFoundError(f"Database not found: {DB_FILE}")
 
-    conn = sqlite3.connect(DB_FILE)
+    # timeout: tolerate write-lock contention when several locale agents run in
+    # parallel against this one DB file. Pair with WAL mode (PRAGMA journal_mode=WAL,
+    # set once on the db) so readers never block the writer. See TRANSLATION_PROTOCOL.md.
+    conn = sqlite3.connect(DB_FILE, timeout=30)
 
     try:
         cursor = conn.cursor()

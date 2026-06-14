@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """
-Generate translation tasks by comparing English source files with target locale.
+Generate translation tasks for a target locale by mirroring the English
+source structure. Target-blind: it walks the English files only and does not
+read the locale's existing translations.
 
 Groups sibling keys by parent path (e.g., web.COMMON.buttons.submit and
 web.COMMON.buttons.cancel become a single task for web.COMMON.buttons).
@@ -174,7 +176,9 @@ def insert_tasks(
 ) -> tuple[sqlite3.Connection, int]:
     """Insert translation tasks into the database.
 
-    Uses INSERT OR REPLACE to handle existing levels (updates them).
+    Upserts on (file, level_path, locale): inserts new levels, and for levels
+    that already exist refreshes only keys_json + updated_at. It never touches
+    status or translations_json, so in-flight / completed work is preserved.
 
     Args:
         tasks: List of TranslationTask records to insert.
@@ -189,7 +193,10 @@ def insert_tasks(
             "Run 'python locales/scripts/store.py init' to create it first."
         )
 
-    conn = sqlite3.connect(DB_FILE)
+    # timeout: tolerate write-lock contention when several locale agents run in
+    # parallel against this one DB file. Pair with WAL mode (PRAGMA journal_mode=WAL,
+    # set once on the db) so readers never block the writer. See TRANSLATION_PROTOCOL.md.
+    conn = sqlite3.connect(DB_FILE, timeout=30)
     cursor = conn.cursor()
     count = 0
 
