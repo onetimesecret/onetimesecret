@@ -129,6 +129,17 @@ const syncPreviewState = async () => {
   const extid =
     organizationStore.currentOrganization?.extid ?? bootstrapStore.organization?.extid;
 
+  if (!extid) {
+    // An active org should always be present in the colonel preview context.
+    // If it isn't, the banner would still update while feature gating stayed on
+    // the old plan — the exact mismatch this feature fixes. Surface it instead
+    // of failing silently so the half-updated state is debuggable.
+    console.warn(
+      '[PlanPreviewModal] No organization extid resolvable; skipping entitlements refresh. ' +
+        'Preview banner may not match feature gating until a page reload.'
+    );
+  }
+
   await Promise.all([
     bootstrapStore.refresh(),
     extid ? organizationStore.fetchEntitlements(extid) : Promise.resolve(),
