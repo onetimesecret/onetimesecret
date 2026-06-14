@@ -3,11 +3,11 @@
 # Populate the translation tasks DB for every current locale.
 #
 # "Current locales" = every directory under locales/content/ except the English
-# source (en). For each, runs `create.py LOCALE`, which mirrors the full English
-# level structure into the translation_tasks table (one task per English level).
+# source (en). For each, runs `i18n tasks create LOCALE`, which mirrors the full
+# English level structure into the translation_tasks table (one task per level).
 #
-# Safe to re-run: create.py upserts via ON CONFLICT(file, level_path, locale) and
-# only refreshes keys_json + updated_at — it never touches `status` or
+# Safe to re-run: `tasks create` upserts via ON CONFLICT(file, level_path, locale)
+# and only refreshes keys_json + updated_at — it never touches `status` or
 # `translations_json`, so in-flight / completed work is preserved.
 #
 # By default this SKIPS locales that already have tasks (so the locales currently
@@ -18,9 +18,9 @@
 # resolve paths relative to the repo. Run from anywhere in the repo.
 #
 # Usage:
-#   locales/scripts/tasks/create-all.sh            # populate locales with no tasks yet
-#   locales/scripts/tasks/create-all.sh --force    # (re)generate for ALL locales
-#   locales/scripts/tasks/create-all.sh --dry-run  # preview, write nothing
+#   locales/scripts/create-all.sh            # populate locales with no tasks yet
+#   locales/scripts/create-all.sh --force    # (re)generate for ALL locales
+#   locales/scripts/create-all.sh --dry-run  # preview, write nothing
 #
 # Note: --force issues writes against tasks.db; avoid it while translation agents
 # are actively draining the queue (run it when idle).
@@ -86,9 +86,9 @@ for locale in "${locales[@]}"; do
 
   echo "== $locale: generating tasks (existing: $existing) =="
   if [ "$DRY_RUN" -eq 1 ]; then
-    python locales/scripts/tasks/create.py "$locale" --dry-run | tail -4
+    python3 locales/scripts/i18n tasks create "$locale" --dry-run | tail -4
   else
-    python locales/scripts/tasks/create.py "$locale" | tail -4
+    python3 locales/scripts/i18n tasks create "$locale" | tail -4
   fi
   created=$((created + 1))
   echo
