@@ -49,9 +49,8 @@ RSpec.describe V1::Logic::Secrets::BurnSecret do
 
   before do
     allow(Onetime::Receipt).to receive(:load).with('receipt123').and_return(receipt)
-    # Stub load_owner (the correct method name) on the secret.
-    # The production code at burn_secret.rb:39 calls load_customer,
-    # which does NOT exist, so process will raise NoMethodError.
+    # Stub load_owner on the secret — process calls it to resolve the owner
+    # before incrementing their secrets_burned counter.
     allow(secret).to receive(:load_owner).and_return(owner)
   end
 
@@ -64,8 +63,6 @@ RSpec.describe V1::Logic::Secrets::BurnSecret do
       it 'calls load_owner on the secret to retrieve the owner' do
         subject.process
 
-        # This test will FAIL because the production code calls
-        # secret.load_customer instead of secret.load_owner
         expect(secret).to have_received(:load_owner)
       end
 
