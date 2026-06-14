@@ -49,7 +49,7 @@ get_locales() {
 # Get stats for a locale as "completed/total"
 get_stats() {
     local locale="$1"
-    python "$SCRIPT_DIR/tasks/next.py" "$locale" --stats --json 2>/dev/null | \
+    python3 "$SCRIPT_DIR/i18n" tasks next "$locale" --stats --json 2>/dev/null | \
         python -c "import sys,json; d=json.load(sys.stdin); print(f\"{d.get('completed',0)}/{sum(d.values())}\")" 2>/dev/null || echo "0/0"
 }
 
@@ -63,7 +63,7 @@ main() {
 
     for locale in $(get_locales); do
         # Skip if no completed tasks to export
-        if ! python "$SCRIPT_DIR/migrate/export.py" "$locale" --quiet 2>/dev/null; then
+        if ! python3 "$SCRIPT_DIR/i18n" tasks export "$locale" --quiet 2>/dev/null; then
             ((skipped++)) || true
             continue
         fi

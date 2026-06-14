@@ -131,7 +131,7 @@ fi
 echo "---"
 echo "Generating merged locale files..."
 if command -v python3 &>/dev/null; then
-    python3 locales/scripts/build/compile.py --all --merged
+    python3 locales/scripts/i18n content compile --all --merged
     echo "OK:   Locales generated in generated/locales/"
 else
     echo "Skip: python3 not found — skipping locale generation"
