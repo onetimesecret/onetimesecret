@@ -107,7 +107,7 @@ module Billing
       # @param customer [Onetime::Customer]
       # @return [Onetime::Organization, nil]
       def self.default_org_for(customer)
-        orgs = customer.organization_instances.to_a
+        orgs = customer.organization_instances.to_a.reject(&:archived?)
         return nil if orgs.empty?
 
         if customer.default_org_id.to_s.length.positive?

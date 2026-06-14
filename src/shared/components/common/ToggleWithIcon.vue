@@ -2,13 +2,14 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-  import { Switch } from '@headlessui/vue';
 
 const { t } = useI18n();
 
   interface Props {
     enabled: boolean;
     disabled: boolean;
+    ariaDescribedby?: string;
+    srLabel?: string;
   }
 
   const props = defineProps<Props>();
@@ -18,17 +19,27 @@ const { t } = useI18n();
   }>();
 </script>
 
+<!--
+  Plain `role="switch"` button rather than HeadlessUI's <Switch>: HeadlessUI
+  sets aria-describedby from its SwitchGroup/Description context (undefined when
+  unwrapped), which stomps a fallthrough/bound aria-describedby. Consumers here
+  reference a parent-owned hint <p id="...">, so we control the attrs directly.
+  A native button toggles on Space/Enter via click, so no extra key handling.
+-->
 <template>
-  <Switch
-    :model-value="props.enabled"
-    @update:model-value="emit('update:enabled', $event)"
+  <button
+    type="button"
+    role="switch"
+    :aria-checked="props.enabled"
+    :aria-describedby="ariaDescribedby"
     :disabled="disabled"
+    @click="emit('update:enabled', !props.enabled)"
     :class="[
-      props.enabled ? 'bg-indigo-600' : 'bg-gray-200',
+      props.enabled ? 'bg-brand-600' : 'bg-gray-200',
       disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
-      'relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2'
+      'relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2'
     ]">
-    <span class="sr-only">{{ t('web.branding.use_setting') }}</span>
+    <span class="sr-only">{{ srLabel ?? t('web.branding.use_setting') }}</span>
     <span
       :class="[
         enabled ? 'translate-x-5' : 'translate-x-0',
@@ -59,7 +70,7 @@ const { t } = useI18n();
         ]"
         aria-hidden="true">
         <svg
-          class="size-3 text-indigo-600"
+          class="size-3 text-brand-600"
           fill="currentColor"
           viewBox="0 0 12 12">
           <path
@@ -67,5 +78,5 @@ const { t } = useI18n();
         </svg>
       </span>
     </span>
-  </Switch>
+  </button>
 </template>

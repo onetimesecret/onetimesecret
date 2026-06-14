@@ -13,32 +13,61 @@
 import { otpSetupResponseSchema } from '@/schemas/api/auth/responses/auth';
 import type { OtpSetupData } from '@/types/auth';
 import QRCode from 'qrcode';
+import { captureMessage, isDiagnosticsEnabled } from '@/services/diagnostics.service';
 
 /**
- * Generates a QR code data URL from an OTP secret
+ * Renders a backend-provided otpauth:// provisioning URI as a QR code data URL
  *
- * Creates a standard TOTP URI that can be scanned by authenticator apps like:
- * - Google Authenticator
- * - Authy
- * - Microsoft Authenticator
- * - 1Password
+ * The provisioning URI is emitted authoritatively by the backend (Rodauth's
+ * `otp_provisioning_uri`, surfaced as `provisioning_uri` in the otp-setup
+ * response). It already contains the correct secret and TOTP parameters
+ * (issuer/algorithm/digits/period), so the frontend must NOT reconstruct the
+ * URI or re-declare those parameters — doing so is what caused the QR to encode
+ * the wrong secret (issue #3431). This function only renders the QR image.
  *
- * @param secret - Base32-encoded secret key for TOTP generation
- * @returns Data URL (image/png) that can be used as img src attribute
+ * The result is scannable by authenticator apps such as Google Authenticator,
+ * Authy, Microsoft Authenticator, and 1Password.
  *
- * TOTP URI format:
- * otpauth://totp/Issuer:user@example.com?secret=SECRET&issuer=Issuer
- *
- * Note: emailAddress is currently a placeholder. In production, this should be
- * fetched from the authenticated user's account information.
+ * @param provisioningUri - otpauth:// URI from the backend (`provisioning_uri`)
+ * @returns Data URL (image/png) that can be used as an img src attribute
  */
-export async function generateQrCode(
-  issuer: string,
-  emailAddress: string,
-  secret: string
-): Promise<string> {
-  const otpUrl = `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(emailAddress)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}`;
-  return await QRCode.toDataURL(otpUrl);
+export async function generateQrCode(provisioningUri: string): Promise<string> {
+  return await QRCode.toDataURL(provisioningUri);
+}
+
+/**
+ * Renders the QR code for a parsed otp-setup response from the backend's
+ * authoritative provisioning_uri and returns the response with `qr_code` set.
+ *
+ * Returns null when provisioning_uri is absent. The QR can only be produced
+ * from the backend URI (the SPA must NOT reconstruct it — that caused the
+ * wrong-secret bug in #3431), so a missing provisioning_uri means we cannot
+ * render a scannable code. Failing here — rather than returning setup data
+ * with an undefined qr_code — prevents the wizard from advancing to a blank
+ * scan step with no error. Shared by both the 200 (non-HMAC) and 422 (HMAC)
+ * setup paths so neither can silently surface a broken QR.
+ *
+ * @param validated - A schema-validated otp-setup response
+ * @returns The response with qr_code populated, or null if no provisioning_uri
+ */
+export async function renderSetupQr(validated: OtpSetupData): Promise<OtpSetupData | null> {
+  if (!validated.provisioning_uri) {
+    console.error(
+      '[mfaHelpers] otp-setup response is missing provisioning_uri; cannot render QR code'
+    );
+    if (isDiagnosticsEnabled()) {
+      captureMessage('MFA setup response missing provisioning_uri', {
+        service: 'web',
+        errorType: 'technical',
+      });
+    }
+    return null;
+  }
+
+  // Sets qr_code on `validated` in place and returns the same object reference
+  // (callers pass the parsed response and use the return value interchangeably).
+  validated.qr_code = await generateQrCode(validated.provisioning_uri);
+  return validated;
 }
 
 /**
@@ -46,8 +75,9 @@ export async function generateQrCode(
  *
  * In HMAC mode, the backend returns a 422 status with setup secrets.
  * This function validates that the response includes both:
- * - otp_setup or otp_secret: HMAC'd secret for server validation
- * - otp_raw_secret: Raw secret for QR code generation
+ * - otp_setup or otp_secret: HMAC'd secret (the actual TOTP key the
+ *   authenticator must use, and the value the server validates against)
+ * - otp_raw_secret: Raw secret used only for the setup handshake
  *
  * @param errorData - Response data from 422 status (not actually an error)
  * @returns true if response contains valid HMAC setup data
@@ -65,13 +95,11 @@ export function hasHmacSetupData(errorData: any): boolean {
  *
  * Takes the 422 response from HMAC setup and:
  * 1. Validates the response schema
- * 2. Generates a QR code from the raw secret
+ * 2. Renders a QR code from the backend's authoritative provisioning_uri
  * 3. Normalizes field names (otp_secret → otp_setup)
  * 4. Returns enriched data ready for user display
  *
  * @param errorData - Response data from HMAC setup (422 status)
- * @param siteName - The site name to display in the authenticator app
- * @param email - The user's email address to associate with the MFA setup
  * @returns Validated and enriched OtpSetupData, or null if validation fails
  *
  * Error handling:
@@ -82,25 +110,20 @@ export function hasHmacSetupData(errorData: any): boolean {
  * This function is critical for the HMAC flow because it transforms
  * the "error" response into actionable setup data for the user.
  */
-export async function enrichSetupResponse(
-  errorData: any,
-  siteName: string,
-  email: string
-): Promise<OtpSetupData | null> {
+export async function enrichSetupResponse(errorData: any): Promise<OtpSetupData | null> {
   try {
     // Validate response structure against expected schema
     const validated = otpSetupResponseSchema.parse(errorData);
 
-    // Ensure we have otp_setup for the verification step. When HMAC is
-    // enabled, the field name is otp_secret; otherwise otp_secret.
+    // Ensure we have otp_setup (the value shown for manual entry and sent back
+    // on verification). When HMAC is enabled, the field may arrive as otp_secret.
     validated.otp_setup = validated.otp_setup || errorData.otp_secret || errorData.otp_setup;
 
-    // Generate QR code for authenticator app scanning
-    if (validated.otp_raw_secret) {
-      validated.qr_code = await generateQrCode(siteName, email, validated.otp_raw_secret);
-    }
-
-    return validated;
+    // Render the QR from the backend's authoritative provisioning URI so the
+    // encoded secret/params always match what the server validates (#3431).
+    // provisioning_uri is always present on the HMAC path; its absence means a
+    // backend/frontend version skew, which renderSetupQr fails loudly on.
+    return await renderSetupQr(validated);
   } catch (parseErr) {
     console.error('[mfaHelpers] Parse error:', parseErr);
     return null;

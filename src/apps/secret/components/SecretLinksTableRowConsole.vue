@@ -263,8 +263,8 @@
           :class="[
             'font-mono text-[clamp(3.5rem,8vw,4.5rem)] font-light uppercase leading-none tracking-[0.3em] transition-colors duration-150',
             isTerminal
-              ? 'dark:text-gray-500/12 text-gray-400/15 group-hover/row:text-gray-400/30 dark:group-hover/row:text-gray-500/25'
-              : 'dark:text-gray-500/18 text-gray-400/20 group-hover/row:text-gray-400/40 dark:group-hover/row:text-gray-500/35',
+              ? 'text-gray-500/20 group-hover/row:text-gray-500/35 dark:text-gray-500/12 dark:group-hover/row:text-gray-500/25'
+              : 'text-gray-500/25 group-hover/row:text-gray-500/45 dark:text-gray-500/18 dark:group-hover/row:text-gray-500/35',
           ]">
           {{ displayKey }}
         </span>

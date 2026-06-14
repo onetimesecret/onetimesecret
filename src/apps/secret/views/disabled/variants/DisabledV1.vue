@@ -122,8 +122,26 @@
 
     <!-- CTA row -->
     <div class="mt-9 inline-flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
+      <!-- One-click SSO: skip /signin and POST straight to the provider when
+           SSO is the only login method and a single provider is configured. -->
+      <button
+        v-if="ssoOneClick"
+        type="button"
+        data-testid="disabled-homepage-sso"
+        class="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-brand-600 px-7 py-3.5 font-sans text-[15px] font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+        @click="onSsoLogin">
+        {{
+          ssoProviderName
+            ? $t('web.login.sign_in_with_provider', { provider: ssoProviderName })
+            : $t('homepage_secrets.disabled.signin_cta')
+        }}
+        <OIcon
+          collection="heroicons"
+          name="arrow-right"
+          class="size-4" />
+      </button>
       <router-link
-        v-if="showSignin"
+        v-else-if="showSignin"
         to="/signin"
         data-testid="disabled-homepage-signin"
         class="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-7 py-3.5 font-sans text-[15px] font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">

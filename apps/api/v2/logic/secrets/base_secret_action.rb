@@ -431,7 +431,7 @@ module V2::Logic
             domain: domain,
             custom_domain: custom_domain?,
             allow_public: domain_record.allow_public_homepage?,
-            is_owner: domain_record.owner?(@cust),
+            accessible: domain_record.accessible_by?(@cust),
             user_id: @cust&.objid,
           }
 
@@ -477,14 +477,14 @@ module V2::Logic
       # - Anonymous on the canonical domain (with share_domain set to a custom
       #   domain): not permitted.
       def validate_domain_permissions(domain_record)
-        # Owner / org member can always use the domain.
-        return if domain_record.owner?(@cust)
+        # Any org member can always use the domain.
+        return if domain_record.accessible_by?(@cust)
 
-        # Authenticated non-owner: permission denied regardless of toggle.
+        # Authenticated non-member: permission denied regardless of toggle.
         # The toggle controls anonymous traffic, not who may share via the
         # domain when authenticated.
         unless anonymous_user?
-          secret_logger.warn 'Non-owner attempted domain access',
+          secret_logger.warn 'Non-member attempted domain access',
             {
               domain: share_domain,
               user_id: @cust&.objid,

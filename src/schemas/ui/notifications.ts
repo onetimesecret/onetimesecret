@@ -19,7 +19,7 @@ export type NotificationSeverity = ErrorSeverity | 'success' | null;
 /**
  * Horizontal alignment for notification components
  *
- * Used by StatusCorner and SubtleProgress to control
+ * Used by NotificationCard and NotificationPill to control
  * horizontal positioning within the viewport.
  */
 export type NotificationAlignment = 'left' | 'center' | 'right';

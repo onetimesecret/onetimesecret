@@ -7,7 +7,7 @@
   import ErrorDisplay from '@/shared/components/ui/ErrorDisplay.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import SecretReceiptTable from '@/apps/secret/components/SecretReceiptTable.vue';
-  import ToastNotification from '@/shared/components/ui/ToastNotification.vue';
+  import { InlineToast } from '@/shared/components/ui/notifications';
   import { useReceiptList } from '@/shared/composables/useReceiptList';
   import { onMounted, computed, ref, onBeforeUnmount } from 'vue';
 
@@ -139,7 +139,7 @@
       </div>
 
       <!-- Toast notification for actions -->
-      <ToastNotification
+      <InlineToast
         :show="showToast"
         :message="toastMessage"
         aria-live="polite" />

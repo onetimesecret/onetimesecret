@@ -58,6 +58,12 @@ site:
         mode: <%= ENV['UI_HOMEPAGE_MODE'] || nil %>
         matching_cidrs: <%= ENV['UI_HOMEPAGE_MATCHING_CIDRS']&.split(',')&.map(&:strip) || [] %>
         mode_header: <%= ENV['UI_HOMEPAGE_MODE_HEADER'] || 'O-Homepage-Mode' %>
+        # Deployment-wide default landing page when the homepage secret form
+        # is gated by auth (auth.required or mode=external). One of: closed
+        # (quiet two-tagline, no CTA), minimal, or v1. Per-domain config and
+        # the ?variant= URL override take precedence; blank uses the frontend
+        # default (closed).
+        disabled_variant: <%= ENV['DEFAULT_DISABLED_HOMEPAGE_VARIANT'] || nil %>
         # Links rendered when a public visitor lands on the homepage but
         # the secret form is gated by auth (e.g. mode=external). Recipients
         # arriving via a shared link use these to learn about the service.
@@ -602,10 +608,26 @@ emailer:
 #
 email_providers:
   # AWS SES configuration
+  # See docs/architecture/custom-mail-sender-ses.md for the domain-level flow.
   ses:
-    # AWS region for SES endpoints (affects MX record values)
+    # AWS region for SES sender-domain provisioning (the SESv2 API client used
+    # to create/get/delete email identities). This is independent of
+    # EMAILER_REGION, which configures the install-level transactional mailer.
+    # For data-residency, use a regional endpoint such as ca-central-1 (Canada)
+    # or ap-southeast-2 (Sydney). Confirm SES is available in the region.
     # Override via CUSTOM_MAIL_SES_REGION env var
     region: <%= ENV['CUSTOM_MAIL_SES_REGION'] || 'us-east-1' %>
+    # AWS credentials for the SES provisioning API client, kept independent of
+    # the SMTP/transactional mailer credentials. build_provider_config('ses')
+    # otherwise resolves the key pair from emailer.user/pass (i.e.
+    # SMTP_USERNAME/SMTP_PASSWORD when EMAILER_MODE=smtp), which would silently
+    # use the SMTP login as the AWS key. These dedicated knobs fall back to the
+    # standard AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY and, when set, override
+    # the emailer-derived values. Leave unset only when SES is also the delivery
+    # backend (EMAILER_MODE=ses) and the emailer already carries the AWS keys.
+    # Override via CUSTOM_MAIL_SES_ACCESS_KEY_ID / CUSTOM_MAIL_SES_SECRET_ACCESS_KEY
+    access_key_id: <%= ENV['CUSTOM_MAIL_SES_ACCESS_KEY_ID'] || ENV['AWS_ACCESS_KEY_ID'] %>
+    secret_access_key: <%= ENV['CUSTOM_MAIL_SES_SECRET_ACCESS_KEY'] || ENV['AWS_SECRET_ACCESS_KEY'] %>
     # Number of DKIM selectors (SES uses 3 by default)
     dkim_selector_count: 3
     # SPF include domain

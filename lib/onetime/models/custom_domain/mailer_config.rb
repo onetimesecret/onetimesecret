@@ -368,9 +368,14 @@ module Onetime
           name  = record['name']
           check = dns_checks.find { |c| c['name'] == name }
 
+          is_optional = record['optional'] == true || record['optional'] == 'true'
+
           # Per-record status from DNS check facts when available;
           # fall back to overall status only when no check data exists yet.
-          per_record_status = if check
+          # Optional records are never DNS-checked, so they stay 'pending'.
+          per_record_status = if is_optional
+                                'pending'
+                              elsif check
                                 check['value_matches'] ? 'verified' : 'failed'
                               else
                                 current_status
@@ -382,6 +387,7 @@ module Onetime
             'value' => record['value'],
             'status' => per_record_status,
           }
+          result['optional'] = true if record['optional'] == true || record['optional'] == 'true'
           if check
             result['dns_exists']    = check['dns_exists']
             result['value_matches'] = check['value_matches']
@@ -436,17 +442,20 @@ module Onetime
 
       # Resolve effective provider for this mailer config.
       #
-      # Uses the config's provider field if set, otherwise falls back to
-      # installation-level provider from Mailer.determine_provider.
+      # Uses the config's provider field if set, otherwise falls back to the
+      # installation-level sender provider (Mailer.determine_sender_provider).
+      # The result is normalized (stripped, lowercased) so every consumer —
+      # strategy dispatch, credential lookup, comparisons — sees a canonical
+      # provider name and need not re-normalize.
       #
-      # @return [String, nil] Provider name or nil if not resolvable
+      # @return [String] Lowercased provider name, or '' if not resolvable
       def effective_provider
-        resolved = provider.to_s.strip
+        resolved = provider.to_s.strip.downcase
         return resolved unless resolved.empty?
 
         # Fallback to installation-level sender provider, which itself
         # falls back to the sending transport (EMAILER_MODE).
-        Onetime::Mail::Mailer.send(:determine_sender_provider)
+        Onetime::Mail::Mailer.determine_sender_provider.to_s.strip.downcase
       end
 
       class << self

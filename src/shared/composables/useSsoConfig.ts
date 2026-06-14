@@ -50,6 +50,7 @@ export interface SsoConfigFormState {
   allowed_domains: string[];
   enabled: boolean;
   enforce_sso_only: boolean;
+  grant_org_scope: boolean;
 }
 
 function createDefaultFormState(): SsoConfigFormState {
@@ -63,6 +64,7 @@ function createDefaultFormState(): SsoConfigFormState {
     allowed_domains: [],
     enabled: false,
     enforce_sso_only: false,
+    grant_org_scope: false,
   };
 }
 
@@ -94,6 +96,7 @@ function configToFormState(config: CustomDomainSsoConfig): SsoConfigFormState {
     allowed_domains: config.allowed_domains ?? [],
     enabled: config.enabled,
     enforce_sso_only: config.enforce_sso_only,
+    grant_org_scope: config.grant_org_scope,
   };
 }
 
@@ -183,6 +186,7 @@ export function useSsoConfig(domainExtId: string) {
       current.issuer !== saved.issuer ||
       current.enabled !== saved.enabled ||
       current.enforce_sso_only !== saved.enforce_sso_only ||
+      current.grant_org_scope !== saved.grant_org_scope ||
       !arraysEqual(current.allowed_domains, saved.allowed_domains)
     );
   });
@@ -229,6 +233,7 @@ export function useSsoConfig(domainExtId: string) {
           allowed_domains: formState.value.allowed_domains,
           enabled: formState.value.enabled,
           enforce_sso_only: formState.value.enforce_sso_only,
+          grant_org_scope: formState.value.grant_org_scope,
         };
 
         // Only include client_secret if provided (non-empty)

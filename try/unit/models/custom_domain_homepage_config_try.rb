@@ -345,5 +345,82 @@ Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@focd2_domain.identifie
 @focd2_cfg2.signin_enabled?
 #=> false
 
+# -------------------------------------------------------------------
+# disabled_homepage_variant field coverage
+# -------------------------------------------------------------------
+
+## coerce_disabled_homepage_variant accepts a recognised variant
+Onetime::CustomDomain::HomepageConfig.coerce_disabled_homepage_variant('minimal')
+#=> 'minimal'
+
+## coerce_disabled_homepage_variant trims surrounding whitespace
+Onetime::CustomDomain::HomepageConfig.coerce_disabled_homepage_variant('  v1  ')
+#=> 'v1'
+
+## coerce_disabled_homepage_variant returns nil for an unknown value
+Onetime::CustomDomain::HomepageConfig.coerce_disabled_homepage_variant('bogus')
+#=> nil
+
+## coerce_disabled_homepage_variant returns nil for blank input
+Onetime::CustomDomain::HomepageConfig.coerce_disabled_homepage_variant('')
+#=> nil
+
+## Setup: fresh domain for variant tests
+@var_domain = Onetime::CustomDomain.create!("hp-cfg-var-#{@ts}-#{@entropy}.example.com", @org.objid)
+Onetime::CustomDomain::HomepageConfig.delete_for_domain!(@var_domain.identifier)
+Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@var_domain.identifier)
+#=> false
+
+## upsert without a variant leaves disabled_homepage_variant_value nil (use default)
+@var_cfg = Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @var_domain.identifier, enabled: true)
+@var_cfg.disabled_homepage_variant_value
+#=> nil
+
+## upsert with a recognised variant stores it
+@var_cfg = Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @var_domain.identifier, enabled: true, disabled_homepage_variant: 'minimal')
+@var_cfg.disabled_homepage_variant_value
+#=> 'minimal'
+
+## reload from Redis confirms the variant persisted
+Onetime::CustomDomain::HomepageConfig.find_by_domain_id(@var_domain.identifier).disabled_homepage_variant_value
+#=> 'minimal'
+
+## upsert without the variant kwarg does not clobber the stored value
+@var_cfg = Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @var_domain.identifier, enabled: false)
+@var_cfg.disabled_homepage_variant_value
+#=> 'minimal'
+
+## upsert with an unknown variant coerces to nil (clears the override)
+@var_cfg = Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @var_domain.identifier, enabled: true, disabled_homepage_variant: 'nope')
+@var_cfg.disabled_homepage_variant_value
+#=> nil
+
+## upsert with explicit nil leaves a previously stored variant unchanged (merge semantics)
+Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @var_domain.identifier, enabled: true, disabled_homepage_variant: 'v1')
+@var_cfg = Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @var_domain.identifier, enabled: true, disabled_homepage_variant: nil)
+@var_cfg.disabled_homepage_variant_value
+#=> 'v1'
+
+## upsert with an empty string clears a previously stored variant (reset to default)
+@var_cfg = Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @var_domain.identifier, enabled: true, disabled_homepage_variant: '')
+@var_cfg.disabled_homepage_variant_value
+#=> nil
+
+## create! stores a coerced variant
+@cr_domain = Onetime::CustomDomain.create!("hp-cfg-cr-#{@ts}-#{@entropy}.example.com", @org.objid)
+Onetime::CustomDomain::HomepageConfig.delete_for_domain!(@cr_domain.identifier)
+@cr_cfg = Onetime::CustomDomain::HomepageConfig.create!(domain_id: @cr_domain.identifier, enabled: true, disabled_homepage_variant: 'v1')
+@cr_cfg.disabled_homepage_variant_value
+#=> 'v1'
+
+## validation_errors flags a stored value outside the recognised set
+@bad_cfg = Onetime::CustomDomain::HomepageConfig.new(domain_id: 'x', disabled_homepage_variant: 'bogus')
+@bad_cfg.validation_errors.any? { |e| e.include?('disabled_homepage_variant') }
+#=> true
+
+## validation_errors stays clean for a recognised variant
+Onetime::CustomDomain::HomepageConfig.new(domain_id: 'x', disabled_homepage_variant: 'closed').validation_errors
+#=> []
+
 # Teardown
 Familia.dbclient.flushdb

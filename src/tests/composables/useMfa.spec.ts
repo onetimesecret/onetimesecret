@@ -3,6 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useMfa } from '@/shared/composables/useMfa';
 import { setupTestPinia } from '../setup';
+import QRCode from 'qrcode';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 
 // Mock QR code generation
@@ -93,40 +94,51 @@ describe('useMfa', () => {
       const hmacResponse = {
         otp_setup: 'hmac_secret_123',
         otp_raw_secret: 'JBSWY3DPEHPK3PXP',
+        provisioning_uri:
+          'otpauth://totp/OneTimeSecret:test@example.com?secret=hmac_secret_123&issuer=OneTimeSecret',
         error: 'MFA setup requires verification',
       };
 
       axiosMock.onPost('/auth/otp-setup').reply(422, hmacResponse);
 
       const { setupMfa, setupData } = useMfa();
-      const result = await setupMfa('Onetime Secret', 'test@example.com', 'password123');
+      const result = await setupMfa('password123');
 
       expect(result).toBeTruthy();
       expect(result?.otp_setup).toBe('hmac_secret_123');
       expect(result?.otp_raw_secret).toBe('JBSWY3DPEHPK3PXP');
       expect(result?.qr_code).toBe('data:image/png;base64,mockQrCode');
       expect(setupData.value?.qr_code).toBeDefined();
+      // The QR must be rendered from the backend's provisioning_uri verbatim,
+      // not reconstructed client-side from a secret (issue #3431).
+      expect(QRCode.toDataURL).toHaveBeenCalledWith(hmacResponse.provisioning_uri);
     });
 
     it('handles HMAC setup without password parameter', async () => {
       const hmacResponse = {
         otp_setup: 'hmac_secret_456',
         otp_raw_secret: 'JBSWY3DPEHPK3PXQ',
+        provisioning_uri:
+          'otpauth://totp/OneTimeSecret:test@example.com?secret=hmac_secret_456&issuer=OneTimeSecret',
       };
 
       axiosMock.onPost('/auth/otp-setup').reply(422, hmacResponse);
 
       const { setupMfa } = useMfa();
-      const result = await setupMfa('Onetime Secret', 'test@example.com');
+      const result = await setupMfa();
 
       expect(result?.otp_raw_secret).toBe('JBSWY3DPEHPK3PXQ');
+      expect(result?.qr_code).toBe('data:image/png;base64,mockQrCode');
+      // QR is rendered from the backend's provisioning_uri verbatim, even on
+      // the no-password path (issue #3431).
+      expect(QRCode.toDataURL).toHaveBeenCalledWith(hmacResponse.provisioning_uri);
     });
 
     it('handles actual errors (not HMAC success)', async () => {
       axiosMock.onPost('/auth/otp-setup').reply(403, { error: 'Incorrect password' });
 
       const { setupMfa, error } = useMfa();
-      const result = await setupMfa('Onetime Secret', 'test@example.com', 'wrong_password');
+      const result = await setupMfa('wrong_password');
 
       expect(result).toBeNull();
       expect(error.value).toBe('web.auth.security.internal_error');
@@ -136,17 +148,72 @@ describe('useMfa', () => {
       axiosMock.onPost('/auth/otp-setup').reply(422, { error: 'Validation failed' });
 
       const { setupMfa, error } = useMfa();
-      const result = await setupMfa('Onetime Secret', 'test@example.com');
+      const result = await setupMfa();
 
       expect(result).toBeNull();
       expect(error.value).toBe('web.auth.security.internal_error');
+    });
+
+    it('surfaces an error when HMAC 422 omits provisioning_uri (version skew)', async () => {
+      // Both HMAC secrets present (passes hasHmacSetupData) but no
+      // provisioning_uri — e.g. the SPA is deployed ahead of the backend hook.
+      // Must fail visibly rather than advance to a blank scan step (#3431).
+      axiosMock.onPost('/auth/otp-setup').reply(422, {
+        otp_setup: 'hmac_secret',
+        otp_raw_secret: 'JBSWY3DPEHPK3PXP',
+      });
+
+      const { setupMfa, error } = useMfa();
+      const result = await setupMfa();
+
+      expect(result).toBeNull();
+      expect(error.value).toBe('web.auth.security.internal_error');
+    });
+
+    it('surfaces an error when a 200 setup response omits provisioning_uri', async () => {
+      // Non-HMAC 200 path with setup secrets but no provisioning_uri: no
+      // scannable QR can be rendered (the SPA must not reconstruct it, #3431),
+      // so setupMfa must fail visibly instead of populating setupData with an
+      // undefined qr_code (the blank-scan-step gap). Mirrors the 422 skew case.
+      axiosMock.onPost('/auth/otp-setup').reply(200, {
+        otp_setup: 'plain_secret',
+        otp_raw_secret: 'JBSWY3DPEHPK3PXP',
+      });
+
+      const { setupMfa, setupData, error } = useMfa();
+      const result = await setupMfa();
+
+      expect(result).toBeNull();
+      expect(setupData.value).toBeNull();
+      expect(error.value).toBe('web.auth.security.internal_error');
+      expect(QRCode.toDataURL).not.toHaveBeenCalled();
+    });
+
+    it('renders the QR on a 200 setup response that includes provisioning_uri', async () => {
+      // Non-HMAC 200 happy path: provisioning_uri present, so renderSetupQr
+      // produces the QR and setupData is populated (no blank-scan-step).
+      const setupResponse = {
+        otp_setup: 'plain_secret',
+        otp_raw_secret: 'JBSWY3DPEHPK3PXP',
+        provisioning_uri:
+          'otpauth://totp/OTS:test@example.com?secret=plain_secret&issuer=OTS',
+      };
+
+      axiosMock.onPost('/auth/otp-setup').reply(200, setupResponse);
+
+      const { setupMfa, setupData } = useMfa();
+      const result = await setupMfa();
+
+      expect(result?.qr_code).toBe('data:image/png;base64,mockQrCode');
+      expect(setupData.value?.qr_code).toBe('data:image/png;base64,mockQrCode');
+      expect(QRCode.toDataURL).toHaveBeenCalledWith(setupResponse.provisioning_uri);
     });
 
     it('handles rate limiting errors', async () => {
       axiosMock.onPost('/auth/otp-setup').reply(429, { error: 'Too many requests' });
 
       const { setupMfa, error } = useMfa();
-      const result = await setupMfa('Onetime Secret', 'test@example.com');
+      const result = await setupMfa();
 
       expect(result).toBeNull();
       expect(error.value).toBe('web.auth.security.internal_error');
@@ -156,7 +223,7 @@ describe('useMfa', () => {
       axiosMock.onPost('/auth/otp-setup').reply(401, { error: 'Not authenticated' });
 
       const { setupMfa, error } = useMfa();
-      const result = await setupMfa('Onetime Secret', 'test@example.com');
+      const result = await setupMfa();
 
       expect(result).toBeNull();
       expect(error.value).toBe('web.auth.security.internal_error');
@@ -439,6 +506,7 @@ describe('useMfa', () => {
       const hmacResponse = {
         otp_setup: 'hmac',
         otp_raw_secret: 'SECRET',
+        provisioning_uri: 'otpauth://totp/test@example.com?secret=hmac&issuer=test',
       };
 
       axiosMock.onPost('/auth/otp-setup').reply(422, hmacResponse);
@@ -447,7 +515,7 @@ describe('useMfa', () => {
 
       expect(isLoading.value).toBe(false);
 
-      const promise = setupMfa('Onetime Secret', 'test@example.com');
+      const promise = setupMfa();
       // Note: isLoading is synchronous, so we can't check during promise execution easily
       await promise;
 
@@ -461,7 +529,7 @@ describe('useMfa', () => {
 
       const { setupMfa, error, clearError } = useMfa();
 
-      await setupMfa('Onetime Secret', 'test@example.com');
+      await setupMfa();
       expect(error.value).toBe('web.auth.security.internal_error');
 
       // Clear error manually
@@ -475,7 +543,7 @@ describe('useMfa', () => {
       // First attempt fails
       axiosMock.onPost('/auth/otp-setup').reply(403, { error: 'Forbidden' });
 
-      await setupMfa('Onetime Secret', 'test@example.com');
+      await setupMfa();
       expect(error.value).toBeTruthy();
 
       // Second attempt succeeds - reset the mock
@@ -483,9 +551,10 @@ describe('useMfa', () => {
       axiosMock.onPost('/auth/otp-setup').reply(422, {
         otp_setup: 'hmac',
         otp_raw_secret: 'SECRET',
+        provisioning_uri: 'otpauth://totp/test@example.com?secret=hmac&issuer=test',
       });
 
-      await setupMfa('Onetime Secret', 'test@example.com');
+      await setupMfa();
       // Error should be cleared by clearError() call at start of setupMfa
       expect(error.value).toBeNull();
     });

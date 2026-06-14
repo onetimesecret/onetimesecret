@@ -381,6 +381,49 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
     end
   end
 
+  # ==========================================================================
+  # Provider enumeration consistency
+  #
+  # PROVIDER_TYPES is the canonical list of valid SSO providers. Several
+  # in-model structures must enumerate that same set — PROVIDER_METADATA,
+  # PROVIDER_ROUTE_MAP, and the to_omniauth_options dispatch — plus the test
+  # fixtures used to exercise them. SsoConfig has no external strategy registry
+  # to derive from (unlike MailerConfig, whose validation derives from
+  # SenderStrategies), and a case/dispatch statement is code, not data, so these
+  # are kept in lockstep with a guard rather than by construction. Without it, a
+  # provider added to one list but not another would pass validation yet fail at
+  # runtime (e.g. to_omniauth_options raising "Unsupported"). This catches that
+  # drift in CI.
+  # ==========================================================================
+
+  describe 'provider enumeration consistency' do
+    it 'PROVIDER_METADATA covers exactly PROVIDER_TYPES' do
+      expect(described_class::PROVIDER_METADATA.keys.sort)
+        .to eq(described_class::PROVIDER_TYPES.sort)
+    end
+
+    it 'PROVIDER_ROUTE_MAP covers exactly PROVIDER_TYPES' do
+      expect(described_class::PROVIDER_ROUTE_MAP.keys.sort)
+        .to eq(described_class::PROVIDER_TYPES.sort)
+    end
+
+    it 'to_omniauth_options dispatches every PROVIDER_TYPES value' do
+      fake_domain = instance_double(Onetime::CustomDomain, extid: 'cd_guard_extid')
+      allow_any_instance_of(described_class).to receive(:custom_domain).and_return(fake_domain)
+
+      described_class::PROVIDER_TYPES.each do |provider_type|
+        config = build_minimal_domain_sso_config(domain_id: 'guard-domain', provider_type: provider_type)
+        expect { config.to_omniauth_options }
+          .not_to raise_error, "to_omniauth_options has no dispatch branch for '#{provider_type}'"
+      end
+    end
+
+    it 'test fixtures enumerate the same providers as the model' do
+      expect(DomainSsoTestFixtures::PROVIDER_TYPES.map(&:to_s).sort)
+        .to eq(described_class::PROVIDER_TYPES.sort)
+    end
+  end
+
   describe '#requires_domain_filter?' do
     it 'returns true for GitHub' do
       config = build_domain_sso_config(:github)

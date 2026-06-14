@@ -74,6 +74,20 @@ module Onetime
           PROVISIONING_PROVIDERS.include?(provider.to_s.downcase)
         end
 
+        # Check if a provider has a sender strategy at all.
+        #
+        # Broader than supports_provisioning?: this includes 'smtp', whose
+        # strategy is a deliberate no-op for identity provisioning and
+        # teardown. Use this to decide whether an operation can be
+        # dispatched to a strategy (e.g. sender-identity deletion).
+        #
+        # @param provider [String, Symbol] Provider name
+        # @return [Boolean] true if a strategy is registered for the provider
+        #
+        def supported?(provider)
+          PROVIDER_STRATEGIES.key?(provider.to_s.downcase)
+        end
+
         # List all supported provider names.
         #
         # @return [Array<String>] Provider names

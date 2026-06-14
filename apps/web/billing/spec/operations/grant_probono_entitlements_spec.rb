@@ -46,6 +46,7 @@ RSpec.describe Billing::Operations::GrantProbonoEntitlements do
       extid: 'org_ext_1',
       objid: 'org_obj_1',
       is_default: true,
+      archived?: false,
       planid: 'free_v1',
       complimentary: nil,
       :planid= => nil,
@@ -79,9 +80,9 @@ RSpec.describe Billing::Operations::GrantProbonoEntitlements do
   # ---------------------------------------------------------------------------
 
   describe '.default_org_for' do
-    let(:org_a) { double('OrgA', objid: 'a', is_default: false) }
-    let(:org_b) { double('OrgB', objid: 'b', is_default: true) }
-    let(:org_c) { double('OrgC', objid: 'c', is_default: false) }
+    let(:org_a) { double('OrgA', objid: 'a', is_default: false, archived?: false) }
+    let(:org_b) { double('OrgB', objid: 'b', is_default: true, archived?: false) }
+    let(:org_c) { double('OrgC', objid: 'c', is_default: false, archived?: false) }
 
     it 'returns nil when customer has no organizations' do
       allow(customer).to receive(:organization_instances)

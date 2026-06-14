@@ -58,6 +58,10 @@ module DomainsAPI
           # Track whether enforce_sso_only was explicitly provided (for PATCH semantics)
           @enforce_sso_only_provided = !params['enforce_sso_only'].nil?
           @enforce_sso_only          = parse_boolean(params['enforce_sso_only'])
+
+          # Track whether grant_org_scope was explicitly provided (for PATCH semantics)
+          @grant_org_scope_provided = !params['grant_org_scope'].nil?
+          @grant_org_scope          = parse_boolean(params['grant_org_scope'])
         end
 
         def raise_concerns
@@ -142,6 +146,7 @@ module DomainsAPI
             allowed_domains: @allowed_domains,
             enabled: @enabled,
             enforce_sso_only: @enforce_sso_only,
+            grant_org_scope: @grant_org_scope,
           }
         end
 
@@ -230,6 +235,7 @@ module DomainsAPI
             allowed_domains: @allowed_domains,
             enabled: @enabled,
             enforce_sso_only: @enforce_sso_only,
+            grant_org_scope: @grant_org_scope,
           )
         end
 
@@ -258,6 +264,7 @@ module DomainsAPI
           @sso_config.issuer           = @issuer unless @issuer.to_s.empty?
           @sso_config.enabled          = @enabled.to_s if @enabled_provided
           @sso_config.enforce_sso_only = @enforce_sso_only.to_s if @enforce_sso_only_provided
+          @sso_config.grant_org_scope  = @grant_org_scope.to_s if @grant_org_scope_provided
 
           # Only update client_secret if provided (preserves existing otherwise)
           @sso_config.client_secret = @client_secret unless @client_secret.to_s.empty?

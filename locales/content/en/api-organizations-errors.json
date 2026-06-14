@@ -1,4 +1,7 @@
 {
+  "api.organizations.errors.domain_scoped_forbidden": {
+    "text": "Domain-scoped members cannot perform this action"
+  },
   "api.organizations.errors.organization_not_found": {
     "text": "Organization not found: %{extid}",
     "context": "Returned when an organization extid cannot be resolved",

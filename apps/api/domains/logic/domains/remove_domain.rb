@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/domain_validation/strategy'
+require 'onetime/operations/delete_sender_domain'
 require_relative '../base'
 
 module DomainsAPI::Logic
@@ -24,9 +25,25 @@ module DomainsAPI::Logic
         @custom_domain = Onetime::CustomDomain.find_by_extid(@extid)
         raise_form_error 'Domain not found' unless @custom_domain
 
-        # Verify the customer owns this domain through their organization
-        unless @custom_domain.owner?(@cust)
+        # Verify the customer can access this domain through org membership
+        unless @custom_domain.accessible_by?(@cust)
           raise_form_error 'Domain not found'
+        end
+
+        # Domain deletion requires admin+ (custom_domains entitlement),
+        # consistent with AddDomain (#3033) and GetDomain.
+        domain_org = @custom_domain.primary_organization
+        raise_form_error 'Domain has no associated organization' unless domain_org
+        require_entitlement_in!(domain_org, 'custom_domains')
+
+        # Domain-scope enforcement: deny cross-domain deletion (#3384).
+        # nil membership is colonel-only here: require_entitlement_in! above
+        # already rejected any non-colonel without an active membership row.
+        membership = Onetime::OrganizationMembership.find_by_org_customer(
+          domain_org.objid, @cust.objid
+        )
+        if membership && !membership.can_access_domain?(@custom_domain)
+          raise_not_found 'Domain not found'
         end
       end
 
@@ -37,6 +54,9 @@ module DomainsAPI::Logic
 
         # Delete from external SSL provider via strategy
         delete_vhost
+
+        # Delete from external mail provider before destroy! wipes mailer_config
+        delete_sender_domain
 
         # Destroy method operates inside a multi block that deletes the domain
         # record, removes it from customer's domain list, and global list so
@@ -65,6 +85,12 @@ module DomainsAPI::Logic
       rescue HTTParty::ResponseError, Timeout::Error, Errno::ECONNREFUSED => ex
         OT.le "[RemoveDomain.delete_vhost error] #{@cust.extid} #{@display_domain} #{ex}"
         # Continue with domain removal even if vhost deletion fails
+      end
+
+      def delete_sender_domain
+        Onetime::Operations::DeleteSenderDomain.new(
+          mailer_config: @custom_domain.mailer_config,
+        ).call
       end
 
       def success_data

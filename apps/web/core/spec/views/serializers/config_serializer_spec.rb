@@ -472,10 +472,28 @@ RSpec.describe Core::Views::ConfigSerializer do
         end
       end
 
-      context 'when incoming_secrets_enabled is true' do
+      context 'when incoming_secrets_enabled is true but install-level incoming.enabled is false' do
         let(:view_vars_with_incoming) do
           base_view_vars.merge(
             'features' => base_view_vars['features'].merge(
+              'incoming' => { 'enabled' => false },
+              'organizations' => { 'enabled' => false, 'incoming_secrets_enabled' => true }
+            )
+          )
+        end
+
+        it 'returns incoming_secrets_enabled as false (install gate takes precedence)' do
+          result = described_class.build_feature_flags(view_vars_with_incoming)
+
+          expect(result['organizations']['incoming_secrets_enabled']).to be false
+        end
+      end
+
+      context 'when both incoming_secrets_enabled and install-level incoming.enabled are true' do
+        let(:view_vars_with_incoming) do
+          base_view_vars.merge(
+            'features' => base_view_vars['features'].merge(
+              'incoming' => { 'enabled' => true },
               'organizations' => { 'enabled' => false, 'incoming_secrets_enabled' => true }
             )
           )
@@ -501,6 +519,7 @@ RSpec.describe Core::Views::ConfigSerializer do
         let(:view_vars_all_orgs) do
           base_view_vars.merge(
             'features' => base_view_vars['features'].merge(
+              'incoming' => { 'enabled' => true },
               'organizations' => {
                 'enabled' => true,
                 'sso_enabled' => true,
@@ -526,6 +545,7 @@ RSpec.describe Core::Views::ConfigSerializer do
         let(:view_vars_mail_and_incoming_only) do
           base_view_vars.merge(
             'features' => base_view_vars['features'].merge(
+              'incoming' => { 'enabled' => true },
               'organizations' => {
                 'enabled' => true,
                 'sso_enabled' => false,

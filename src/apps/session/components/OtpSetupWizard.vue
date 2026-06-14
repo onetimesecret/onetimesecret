@@ -5,9 +5,7 @@
 import OtpCodeInput from '@/apps/session/components/OtpCodeInput.vue';
 import { useMfa } from '@/shared/composables/useMfa';
 import { useClipboard } from '@/shared/composables/useClipboard';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
-import { storeToRefs } from 'pinia';
 import { ref, computed, onMounted } from 'vue';
 
 const emit = defineEmits<{
@@ -20,9 +18,6 @@ const { setupData, recoveryCodes, isLoading, error, setupMfa, enableMfa } = useM
 const notificationsStore = useNotificationsStore();
 const { copyToClipboard } = useClipboard();
 
-const bootstrapStore = useBootstrapStore();
-const { ui, email } = storeToRefs(bootstrapStore);
-
 // Simplified wizard: setup or codes
 const currentStep = ref<'setup' | 'codes'>('setup');
 // Track whether recovery codes have been saved (downloaded or copied)
@@ -31,13 +26,10 @@ const otpCode = ref('');
 const password = ref('');
 const otpInputRef = ref<InstanceType<typeof OtpCodeInput> | null>(null);
 
-// Auto-load QR code on mount (without password initially)
+// Auto-load QR code on mount (without password initially). The QR is rendered
+// from the backend's provisioning_uri, so no site name / email is needed here.
 onMounted(async () => {
-  // Get site name and user email from bootstrap store
-  const siteName = ui.value?.header?.branding?.site_name || 'Onetime Secret';
-  const userEmail = email.value || '';
-
-  await setupMfa(siteName, userEmail);
+  await setupMfa();
 });
 
 // Handle OTP code input

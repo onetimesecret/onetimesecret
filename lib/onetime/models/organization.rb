@@ -64,7 +64,7 @@ module Onetime
     # Core fields
     field :display_name
     field :description
-    field :owner_id       # custid of organization owner (internal objid of Customer)
+    field :owner_id       # DEPRECATED: Use created_by for audit trail, OrganizationMembership role='owner' for authority. Retained until membership migration completes everywhere.
     field :created_by     # Immutable audit field — custid of organization creator. Set once at create!. See ADR-012.
     field :contact_email  # Primary billing/contact email
     field :is_default     # Boolean: true for auto-created workspace (prevents deletion)
@@ -92,23 +92,8 @@ module Onetime
       objid
     end
 
-    def archived?
-      !archived_at.to_s.empty?
-    end
-
-    def archive!(comment = nil)
-      self.archived_at      = Familia.now.to_f
-      self.archived_comment = comment if comment
-      save
-    end
-
-    def unarchive!
-      self.archived_at      = ''
-      self.archived_comment = ''
-      save
-    end
-
-    # Owner management
+    # DEPRECATED: Loads customer by owner_id. Prefer OrganizationMembership
+    # lookup via find_by_org_customer and checking membership.owner? role.
     def owner
       Onetime::Customer.load(owner_id) if owner_id
     end
@@ -264,6 +249,7 @@ module Onetime
       receipts.member?(dummy_receipt)
     end
 
+    # DEPRECATED: Alias for loading customer via owner_id. See owner_id deprecation note.
     def get_customer
       Onetime::Customer.find_by_objid(owner_id)
     end
@@ -279,6 +265,33 @@ module Onetime
 
       # Otherwise, only owners can delete
       owner?(current_user)
+    end
+
+    def archived?
+      !archived_at.to_s.empty?
+    end
+
+    def archive!(comment = nil)
+      self.archived_at      = Familia.now.to_f
+      self.archived_comment = comment if comment
+      save
+    end
+
+    # Reverse a soft-archive.
+    #
+    # NOTE: For personal workspaces (is_default: true) archived by the domain
+    # SSO self-heal (see JoinDomainOrganization#adopt_domain_default_org),
+    # unarchiving is durable only while the customer's default_org_id points at
+    # a different active org (e.g. the domain org). The self-heal runs on every
+    # SSO login, including the already_member path, so if this workspace would
+    # again resolve as the customer's default — i.e. default_org_id is empty or
+    # points back at this workspace — it will be re-archived on their next
+    # domain SSO login. To restore it permanently, also repoint default_org_id
+    # to the org the customer should default to.
+    def unarchive!
+      self.archived_at      = ''
+      self.archived_comment = ''
+      save
     end
 
     # Re-materialize entitlements for all active memberships.

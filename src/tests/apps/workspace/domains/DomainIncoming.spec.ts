@@ -156,6 +156,11 @@ vi.mock('@/types/organization', () => ({
   },
 }));
 
+let mockIsOrgsIncomingSecretsEnabled = true;
+vi.mock('@/utils/features', () => ({
+  isOrgsIncomingSecretsEnabled: () => mockIsOrgsIncomingSecretsEnabled,
+}));
+
 // ---------------------------------------------------------------------------
 // i18n setup
 // ---------------------------------------------------------------------------
@@ -205,6 +210,7 @@ describe('DomainIncoming', () => {
     vi.clearAllMocks();
 
     // Reset mocks to defaults
+    mockIsOrgsIncomingSecretsEnabled = true;
     mockCanIncoming = ref(true);
     mockDomainState.isLoading.value = false;
     mockDomainState.error.value = null;

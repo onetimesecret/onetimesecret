@@ -54,6 +54,33 @@ module Onetime
         'application/x-www-form-urlencoded' => proc { |body| Rack::Utils.parse_nested_query(body) },
       }.freeze
 
+      # IP ranges that are always treated as proxy hops, never as the client.
+      # IPv4: RFC1918 (10/8, 172.16/12, 192.168/16), loopback (127/8) and
+      # link-local (169.254/16). IPv6: loopback (::1), ULA (fc00::/7, the
+      # f[cd] branch) and link-local (fe80::/10, the fe[89ab] branch). Otto's
+      # IPPrivacyMiddleware walks X-Forwarded-For and returns the first
+      # address that does NOT match a trusted proxy, so trusting these private
+      # ranges is what lets the real public visitor IP surface in deployments
+      # where every proxy hop has an internal address (Kubernetes ingress,
+      # cloud load balancers).
+      #
+      # Defined at module scope (not inside `class << self`) so it is reachable
+      # as MiddlewareStack::PRIVATE_PROXY_RANGES from the Otto router wiring in
+      # OttoHooks, while remaining lexically visible to the singleton methods
+      # below.
+      PRIVATE_PROXY_RANGES = /
+        \A(?:
+          10\.|
+          127\.|
+          192\.168\.|
+          169\.254\.|
+          172\.(?:1[6-9]|2\d|3[01])\.|
+          ::1\z|
+          f[cd]|
+          fe[89ab]
+        )
+      /ix
+
       class << self
         # Build locale map for Otto::Locale::Middleware
         #
@@ -125,6 +152,46 @@ module Onetime
           end
         end
 
+        # Build the Otto security config handed to IPPrivacyMiddleware.
+        #
+        # Returns nil when trusted proxy support is disabled, which leaves the
+        # middleware in its default direct-connection mode (REMOTE_ADDR is the
+        # client) — correct for deployments not behind a proxy.
+        #
+        # When site.network.trusted_proxy is enabled, the returned config trusts
+        # the private proxy ranges so the middleware resolves the real client
+        # from the forwarded headers instead of masking the ingress hop. This
+        # mirrors the trust the ConfigureTrustedProxy initializer applies to
+        # Rack::Request#ip, keeping both IP resolution paths in agreement.
+        #
+        # NOTE: only RFC1918/loopback proxy hops are trusted here. Trusting
+        # public proxy ranges (e.g. a CDN with public egress IPs) would need
+        # CIDR matching, which Otto's prefix-based trusted_proxy list does not
+        # support. The site.network.trusted_proxy.cidrs setting therefore only
+        # affects Rack::Request#ip today, not this middleware.
+        #
+        # @return [Otto::Security::Config, nil]
+        def ip_privacy_security_config
+          return nil unless trusted_proxy_enabled?
+
+          config = Otto::Security::Config.new
+          config.add_trusted_proxy(PRIVATE_PROXY_RANGES)
+          config
+        end
+
+        # Whether the deployment has declared a trusted reverse proxy in front
+        # of the app (site.network.trusted_proxy.enabled). Single source of
+        # truth for both IP-resolution paths: the outer IPPrivacyMiddleware
+        # (ip_privacy_security_config, above) and the Otto router's own trust
+        # list (OttoHooks#configure_otto_trusted_proxies). Keeping one predicate
+        # ensures the two paths never disagree about whether to honor forwarded
+        # headers.
+        #
+        # @return [Boolean]
+        def trusted_proxy_enabled?
+          OT.conf.dig('site', 'network', 'trusted_proxy', 'enabled') == true
+        end
+
         def configure(builder, application_context: nil)
           logger = Onetime.get_logger('App')
           logger.debug 'Configuring common middleware',
@@ -134,12 +201,21 @@ module Onetime
 
           # IP Privacy FIRST - masks public IPs before logging/monitoring
           # Private/localhost IPs are automatically exempted for development
-          # Uses Otto's privacy middleware as a standalone Rack component
+          # Uses Otto's privacy middleware as a standalone Rack component.
+          #
+          # The middleware needs a security config that knows which proxies to
+          # trust; without one it treats REMOTE_ADDR (the ingress/proxy hop) as
+          # the client and overwrites X-Forwarded-For with it, hiding the real
+          # visitor IP from every downstream consumer (ban checks, sessions,
+          # identity resolution, the Colonel "current IP" panel). See
+          # ip_privacy_security_config.
+          ip_privacy_config = ip_privacy_security_config
           logger.debug 'Setting up IP Privacy middleware',
             {
               note: 'masks public IPs',
+              trusted_proxy: !ip_privacy_config.nil?,
             }
-          builder.use Otto::Security::Middleware::IPPrivacyMiddleware
+          builder.use Otto::Security::Middleware::IPPrivacyMiddleware, ip_privacy_config
 
           # IP Ban middleware - blocks banned IPs (after IP privacy)
           logger.debug 'Setting up IP Ban middleware'

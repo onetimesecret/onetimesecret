@@ -44,6 +44,11 @@ module OrganizationAPI::Logic
         # Load actor's membership to check their role
         @actor_membership = load_actor_membership(@organization)
 
+        # Domain-scoped members cannot perform member operations
+        if @actor_membership&.domain_scoped?
+          raise_form_error(error_key: 'api.organizations.errors.domain_scoped_forbidden', error_type: :forbidden)
+        end
+
         # Load target member
         @target_member     = load_member(@member_extid)
         @target_membership = load_membership(@organization, @target_member)
