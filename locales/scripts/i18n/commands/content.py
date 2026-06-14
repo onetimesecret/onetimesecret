@@ -22,7 +22,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from ..config import CONTENT_DIR, GENERATED_DIR, LOCALES_DIR, SOURCE_LOCALE
+from ..config import CONTENT_DIR, GENERATED_DIR, SOURCE_LOCALE
 from ..io import (
     KeyPathConflictError,
     load_json_file,
@@ -31,11 +31,10 @@ from ..io import (
     walk_keys,
 )
 
-# compile.py / decompile.py standard mode read-write the app's nested locale
-# files under ``<project_root>/src/locales``. config exposes LOCALES_DIR
-# (== legacy LOCALES_DIR), and PROJECT_ROOT == LOCALES_DIR.parent, so this is
-# the exact legacy ``PROJECT_ROOT / "src" / "locales"`` derivation.
-SRC_LOCALES_DIR: Path = LOCALES_DIR.parent / "src" / "locales"
+# compile and decompile share a single app-consumable surface: the merged,
+# nested per-locale files under ``generated/locales`` (config's GENERATED_DIR).
+# compile writes them; decompile recovers manual edits back into the flat-key
+# content source of truth. There is no per-file ``src/locales`` seam anymore.
 
 
 # ---------------------------------------------------------------------------
@@ -60,15 +59,15 @@ def _register_compile(gsub) -> None:
         description="Sync translations from content JSON to generated/locales.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
+Compiles each locale's flat-key content JSON into a single merged, nested
+JSON file under generated/locales (the app-consumable form).
+
 Examples:
-    python compile.py eo --dry-run
-    python compile.py eo --file auth.json
-    python compile.py eo
-    python compile.py --all
-    python compile.py --all --dry-run
-    python compile.py eo --clobber       # Replace files instead of merging
-    python compile.py --all --merged     # Output single merged file per locale
-    python compile.py --all --merged --output-dir generated/locales
+    i18n content compile eo --dry-run
+    i18n content compile eo
+    i18n content compile --all
+    i18n content compile --all --dry-run
+    i18n content compile --all --output-dir generated/locales
         """,
     )
     c.add_argument(
@@ -79,33 +78,18 @@ Examples:
     c.add_argument(
         "--all",
         action="store_true",
-        help="Sync all locales in content directory",
-    )
-    c.add_argument(
-        "--file",
-        dest="file_filter",
-        help="Only sync this file (e.g., 'auth.json')",
+        help="Compile all locales in the content directory",
     )
     c.add_argument(
         "--dry-run",
         action="store_true",
-        help="Show what would be synced without making changes",
-    )
-    c.add_argument(
-        "--clobber",
-        action="store_true",
-        help="Replace target files entirely instead of merging with existing",
+        help="Show what would be compiled without writing",
     )
     c.add_argument(
         "-v",
         "--verbose",
         action="store_true",
         help="Verbose output",
-    )
-    c.add_argument(
-        "--merged",
-        action="store_true",
-        help="Output single merged JSON file per locale (for backend consumption)",
     )
     c.add_argument(
         "--output-dir",
@@ -124,12 +108,17 @@ def _register_decompile(gsub) -> None:
         description="Sync translations from generated/locales to content JSON.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
+Recovers manual edits to the compiled generated/locales files back into the
+flat-key content JSON (the source of truth). Each generated key is routed to
+the content file that owns it -- the target locale's own layout first, the
+source locale as fallback for keys not yet present in that locale.
+
 Examples:
-    python decompile.py en --dry-run
-    python decompile.py en --file feature-organizations.json
-    python decompile.py en
-    python decompile.py --all
-    python decompile.py en --report-orphans
+    i18n content decompile en --dry-run
+    i18n content decompile en --file feature-organizations.json
+    i18n content decompile en
+    i18n content decompile --all
+    i18n content decompile en --report-orphans
         """,
     )
     c.add_argument(
@@ -140,12 +129,12 @@ Examples:
     c.add_argument(
         "--all",
         action="store_true",
-        help="Sync all locales in generated/locales directory",
+        help="Sync all locales that have a generated/locales file",
     )
     c.add_argument(
         "--file",
         dest="file_filter",
-        help="Only sync this file (e.g., 'feature-organizations.json')",
+        help="Only write changes routed to this content file (e.g., '00-common.json')",
     )
     c.add_argument(
         "--dry-run",
@@ -155,12 +144,12 @@ Examples:
     c.add_argument(
         "--report-orphans",
         action="store_true",
-        help="Report keys in content that don't exist in src",
+        help="Report keys in content that no longer exist in the generated file",
     )
     c.add_argument(
         "--remove",
         action="store_true",
-        help="Remove keys from content that don't exist in src (dangerous)",
+        help="Remove content keys absent from the generated file (dangerous)",
     )
     c.add_argument(
         "-v",
@@ -310,85 +299,6 @@ def _compile_get_source_keys(locale_dir: Path) -> set[str]:
     return keys
 
 
-def _compile_sync_locale(
-    locale: str,
-    file_filter: str | None = None,
-    dry_run: bool = False,
-    verbose: bool = False,
-    clobber: bool = False,
-) -> dict[str, int]:
-    """Sync translations from content JSON to src/locales."""
-    content_dir = CONTENT_DIR / locale
-    target_dir = SRC_LOCALES_DIR / locale
-
-    if not content_dir.exists():
-        print(f"No content found for '{locale}'")
-        print(f"  Expected: {content_dir}")
-        return {}
-
-    content_files = sorted(content_dir.glob("*.json"))
-    if file_filter:
-        content_files = [f for f in content_files if f.name == file_filter]
-
-    if not content_files:
-        print(f"No content files found in {content_dir}")
-        return {}
-
-    stats: dict[str, int] = {}
-
-    for content_file in content_files:
-        file_name = content_file.name
-        target_file = target_dir / file_name
-
-        content = load_json_file(content_file)
-        if not content:
-            continue
-
-        translations = _compile_get_translations(content)
-        if not translations:
-            if verbose:
-                print(f"  {file_name}: no translations yet")
-            continue
-
-        stats[file_name] = len(translations)
-
-        if dry_run:
-            print(
-                f"\n[DRY-RUN] Would update {file_name} ({len(translations)} keys)"
-            )
-            if verbose:
-                sample = list(translations.items())[:5]
-                for key, value in sample:
-                    print(f"  {key}: {value[:50]}...")
-                if len(translations) > 5:
-                    print(f"  ... and {len(translations) - 5} more")
-            continue
-
-        target_data = {} if clobber else load_json_file(target_file)
-
-        for key, translation in translations.items():
-            try:
-                set_nested_value(target_data, key, translation, strict=True)
-            except KeyPathConflictError as e:
-                print(f"Error in {file_name}: {e}", file=sys.stderr)
-                print(
-                    "  This indicates conflicting key structures.",
-                    file=sys.stderr,
-                )
-                print("  Fix the source data before syncing.", file=sys.stderr)
-                return {}
-
-        save_json_file(target_file, target_data)
-        print(f"Updated {target_file}: {len(translations)} keys")
-
-        if verbose:
-            sample = list(translations.items())[:3]
-            for key, value in sample:
-                print(f"  {key}: {value[:40]}...")
-
-    return stats
-
-
 def _compile_sync_locale_merged(
     locale: str,
     output_dir: Path,
@@ -470,10 +380,6 @@ def _compile_handler(args) -> int:
         parser.error("Either LOCALE or --all must be specified")
     if args.locale and args.all:
         parser.error("Cannot specify both LOCALE and --all")
-    if args.merged and args.file_filter:
-        parser.error("Cannot use --file with --merged mode")
-    if args.merged and args.clobber:
-        parser.error("--clobber is not applicable in --merged mode")
 
     if args.all:
         locale_dirs = sorted(
@@ -483,134 +389,94 @@ def _compile_handler(args) -> int:
             print(f"No locale directories found in {CONTENT_DIR}")
             return 1
         print(
-            f"Syncing {len(locale_dirs)} locales: {', '.join(locale_dirs[:5])}{'...' if len(locale_dirs) > 5 else ''}"
+            f"Compiling {len(locale_dirs)} locales: {', '.join(locale_dirs[:5])}{'...' if len(locale_dirs) > 5 else ''}"
         )
         print()
     else:
         locale_dirs = [args.locale]
 
-    # Merged mode
-    if args.merged:
-        output_dir = args.output_dir
-        if args.verbose:
-            print(f"Output directory: {output_dir}")
+    output_dir = args.output_dir
+    if args.verbose:
+        print(f"Output directory: {output_dir}")
 
-        all_key_counts: dict[str, int] = {}
-        default_locale = SOURCE_LOCALE  # Used for percentage calculation
-
-        for locale in locale_dirs:
-            if args.verbose:
-                if args.all:
-                    print(f"\n{'=' * 60}")
-                    print(f"Locale: {locale}")
-                    print(f"{'=' * 60}")
-
-                print(f"Syncing translations for '{locale}' (merged mode)")
-                print(f"  From: {CONTENT_DIR / locale}")
-                print(f"  To:   {output_dir / f'{locale}.json'}")
-                print()
-
-            key_count = _compile_sync_locale_merged(
-                locale=locale,
-                output_dir=output_dir,
-                dry_run=args.dry_run,
-                verbose=args.verbose,
-            )
-
-            if key_count > 0:
-                all_key_counts[locale] = key_count
-
-        if args.all and all_key_counts and not args.dry_run:
-            source_keys = _compile_get_source_keys(CONTENT_DIR / default_locale)
-            source_key_count = len(source_keys)
-
-            locale_stats: dict[str, tuple[int, int, bool]] = {}
-            for locale in all_key_counts:
-                locale_keys = _compile_get_source_keys(CONTENT_DIR / locale)
-                translated = len(source_keys & locale_keys)
-                has_orphans = bool(locale_keys - source_keys)
-                locale_stats[locale] = (
-                    translated,
-                    all_key_counts[locale],
-                    has_orphans,
-                )
-
-            other_locales = [
-                (loc, stats)
-                for loc, stats in locale_stats.items()
-                if loc != default_locale
-            ]
-            other_locales.sort(key=lambda x: x[1][0], reverse=True)
-
-            print(f"\n{'=' * 60}")
-            print(f"Locale sync complete ({len(all_key_counts)} locales)")
-            print(f"{'=' * 60}")
-
-            if default_locale in locale_stats:
-                translated, total, _ = locale_stats[default_locale]
-                print(
-                    f"  {default_locale:8} {source_key_count:5} keys (100.0%)"
-                )
-                print()
-
-            grand_total = sum(all_key_counts.values())
-            for locale, (translated, total, has_orphans) in other_locales:
-                if source_key_count > 0:
-                    pct = (translated / source_key_count) * 100
-                    pct_str = f"{pct:5.1f}%"
-                else:
-                    pct_str = "  N/A"
-                marker = " *" if has_orphans else ""
-                print(f"  {locale:8} {translated:5} keys ({pct_str}){marker}")
-
-            print(f"{'=' * 60}")
-            print(
-                f"Total: {grand_total} keys  (* = has orphaned keys not in source)"
-            )
-
-        return 0
-
-    # Standard (non-merged) mode
-    all_stats: dict[str, dict[str, int]] = {}
+    all_key_counts: dict[str, int] = {}
+    default_locale = SOURCE_LOCALE  # Used for percentage calculation
 
     for locale in locale_dirs:
-        if args.all:
-            print(f"\n{'=' * 60}")
-            print(f"Locale: {locale}")
-            print(f"{'=' * 60}")
+        if args.verbose:
+            if args.all:
+                print(f"\n{'=' * 60}")
+                print(f"Locale: {locale}")
+                print(f"{'=' * 60}")
 
-        print(f"Syncing translations for '{locale}'")
-        print(f"  From: {CONTENT_DIR / locale}")
-        print(f"  To:   {SRC_LOCALES_DIR / locale}")
-        print()
+            print(f"Compiling '{locale}'")
+            print(f"  From: {CONTENT_DIR / locale}")
+            print(f"  To:   {output_dir / f'{locale}.json'}")
+            print()
 
-        stats = _compile_sync_locale(
+        key_count = _compile_sync_locale_merged(
             locale=locale,
-            file_filter=args.file_filter,
+            output_dir=output_dir,
             dry_run=args.dry_run,
             verbose=args.verbose,
-            clobber=args.clobber,
         )
 
-        if stats:
-            all_stats[locale] = stats
-            if not args.dry_run and not args.all:
-                total = sum(stats.values())
-                print(
-                    f"\nSynced {total} translations across {len(stats)} files"
-                )
+        if key_count > 0:
+            all_key_counts[locale] = key_count
 
-    if args.all and all_stats and not args.dry_run:
+    # Single-locale runs print nothing on their own (the merged helper is quiet
+    # unless verbose); emit one confirmation line so the command isn't silent.
+    if not args.all and not args.dry_run and not args.verbose:
+        locale = locale_dirs[0]
+        count = all_key_counts.get(locale, 0)
+        print(
+            f"Compiled {locale}: {count} keys -> {output_dir / f'{locale}.json'}"
+        )
+
+    if args.all and all_key_counts and not args.dry_run:
+        source_keys = _compile_get_source_keys(CONTENT_DIR / default_locale)
+        source_key_count = len(source_keys)
+
+        locale_stats: dict[str, tuple[int, int, bool]] = {}
+        for locale in all_key_counts:
+            locale_keys = _compile_get_source_keys(CONTENT_DIR / locale)
+            translated = len(source_keys & locale_keys)
+            has_orphans = bool(locale_keys - source_keys)
+            locale_stats[locale] = (
+                translated,
+                all_key_counts[locale],
+                has_orphans,
+            )
+
+        other_locales = [
+            (loc, stats)
+            for loc, stats in locale_stats.items()
+            if loc != default_locale
+        ]
+        other_locales.sort(key=lambda x: x[1][0], reverse=True)
+
         print(f"\n{'=' * 60}")
-        print("Summary")
+        print(f"Compile complete ({len(all_key_counts)} locales)")
         print(f"{'=' * 60}")
-        grand_total = 0
-        for locale, stats in sorted(all_stats.items()):
-            locale_total = sum(stats.values())
-            grand_total += locale_total
-            print(f"  {locale}: {locale_total} keys across {len(stats)} files")
+
+        if default_locale in locale_stats:
+            print(f"  {default_locale:8} {source_key_count:5} keys (100.0%)")
+            print()
+
+        grand_total = sum(all_key_counts.values())
+        for locale, (translated, total, has_orphans) in other_locales:
+            if source_key_count > 0:
+                pct = (translated / source_key_count) * 100
+                pct_str = f"{pct:5.1f}%"
+            else:
+                pct_str = "  N/A"
+            marker = " *" if has_orphans else ""
+            print(f"  {locale:8} {translated:5} keys ({pct_str}){marker}")
+
         print(f"{'=' * 60}")
-        print(f"Total: {grand_total} keys across {len(all_stats)} locales")
+        print(
+            f"Total: {grand_total} keys  (* = has orphaned keys not in source)"
+        )
 
     return 0
 
@@ -618,6 +484,26 @@ def _compile_handler(args) -> int:
 # ---------------------------------------------------------------------------
 # decompile  (<- build/decompile.py)
 # ---------------------------------------------------------------------------
+
+
+def _decompile_build_ownership(locale: str) -> dict[str, str]:
+    """Map each content key to the content file that owns it.
+
+    The target locale's own layout wins; the source locale fills in keys the
+    target doesn't have yet (new-locale bootstrap and edit-recovery, where the
+    generated file may carry keys the target locale hasn't split into files).
+    """
+    owner: dict[str, str] = {}
+    for layout_locale in (locale, SOURCE_LOCALE):
+        layout_dir = CONTENT_DIR / layout_locale
+        if not layout_dir.exists():
+            continue
+        for content_file in sorted(layout_dir.glob("*.json")):
+            data = load_json_file(content_file)
+            for key in data:
+                # First writer wins -> target locale's placement beats source.
+                owner.setdefault(key, content_file.name)
+    return owner
 
 
 def _decompile_sync_locale(
@@ -628,40 +514,65 @@ def _decompile_sync_locale(
     report_orphans: bool = False,
     remove_orphans: bool = False,
 ) -> dict[str, dict[str, int]]:
-    """Sync translations from src/locales to content JSON."""
-    src_dir = SRC_LOCALES_DIR / locale
+    """Sync translations from the merged generated file back into content JSON.
+
+    Reads ``generated/locales/<locale>.json`` (the app-consumable merged form),
+    routes each key to the content file that owns it, and applies add/update
+    edits. Orphan detection/removal compares content keys against the full set
+    of keys present in the generated file.
+    """
+    generated_file = GENERATED_DIR / f"{locale}.json"
     content_dir = CONTENT_DIR / locale
 
-    if not src_dir.exists():
-        print(f"No source found for '{locale}'")
-        print(f"  Expected: {src_dir}")
+    if not generated_file.exists():
+        print(f"No generated file for '{locale}'")
+        print(f"  Expected: {generated_file}")
         return {}
 
-    src_files = sorted(src_dir.glob("*.json"))
+    generated_data = load_json_file(generated_file)
+    gen_keys = dict(walk_keys(generated_data))
+    if not gen_keys:
+        if verbose:
+            print(f"  {generated_file.name}: no keys found")
+        return {}
+
+    owner = _decompile_build_ownership(locale)
+
+    # Route each generated key to its owning content file.
+    routed: dict[str, dict[str, str]] = {}
+    unrouted: list[str] = []
+    for key_path, value in gen_keys.items():
+        file_name = owner.get(key_path)
+        if file_name is None:
+            unrouted.append(key_path)
+            continue
+        routed.setdefault(file_name, {})[key_path] = value
+
+    if unrouted:
+        print(
+            f"  Warning: {len(unrouted)} key(s) in {generated_file.name} map to "
+            f"no content file (target or source layout); skipped."
+        )
+        if verbose:
+            for key in unrouted[:10]:
+                print(f"    - {key}")
+            if len(unrouted) > 10:
+                print(f"    ... and {len(unrouted) - 10} more")
+
+    # Process every routed target plus every existing content file (so orphan
+    # scanning sees files that receive no updates), restricted by --file.
+    file_names = set(routed)
+    if content_dir.exists():
+        file_names.update(p.name for p in content_dir.glob("*.json"))
     if file_filter:
-        src_files = [f for f in src_files if f.name == file_filter]
-
-    if not src_files:
-        print(f"No source files found in {src_dir}")
-        return {}
+        file_names = {f for f in file_names if f == file_filter}
 
     stats: dict[str, dict[str, int]] = {}
 
-    for src_file in src_files:
-        file_name = src_file.name
+    for file_name in sorted(file_names):
         content_file = content_dir / file_name
-
-        src_data = load_json_file(src_file)
-        if not src_data:
-            continue
-
-        src_keys = dict(walk_keys(src_data))
-        if not src_keys:
-            if verbose:
-                print(f"  {file_name}: no keys found")
-            continue
-
         content_data = load_json_file(content_file)
+        file_keys = routed.get(file_name, {})
 
         added = 0
         updated = 0
@@ -669,7 +580,7 @@ def _decompile_sync_locale(
         removed = 0
         orphans = []
 
-        for key_path, value in src_keys.items():
+        for key_path, value in file_keys.items():
             if key_path in content_data:
                 existing = content_data[key_path]
                 if isinstance(existing, dict):
@@ -696,7 +607,11 @@ def _decompile_sync_locale(
 
         if report_orphans or remove_orphans:
             for key_path in list(content_data.keys()):
-                if key_path not in src_keys:
+                # Metadata keys (any "_"-prefixed segment) never reach the
+                # generated file; excluding them keeps --remove from nuking them.
+                if _compile_is_metadata_key(key_path):
+                    continue
+                if key_path not in gen_keys:
                     orphans.append(key_path)
                     if remove_orphans:
                         if dry_run and verbose:
@@ -754,10 +669,10 @@ def _decompile_handler(args) -> int:
 
     if args.all:
         locale_dirs = sorted(
-            [d.name for d in SRC_LOCALES_DIR.iterdir() if d.is_dir()]
-        )
+            p.stem for p in GENERATED_DIR.glob("*.json")
+        ) if GENERATED_DIR.exists() else []
         if not locale_dirs:
-            print(f"No locale directories found in {SRC_LOCALES_DIR}")
+            print(f"No generated locale files found in {GENERATED_DIR}")
             return 1
         print(
             f"Syncing {len(locale_dirs)} locales: {', '.join(locale_dirs[:5])}{'...' if len(locale_dirs) > 5 else ''}"
@@ -775,7 +690,7 @@ def _decompile_handler(args) -> int:
             print(f"{'=' * 60}")
 
         print(f"Syncing translations for '{locale}'")
-        print(f"  From: {SRC_LOCALES_DIR / locale}")
+        print(f"  From: {GENERATED_DIR / f'{locale}.json'}")
         print(f"  To:   {CONTENT_DIR / locale}")
         print()
 
