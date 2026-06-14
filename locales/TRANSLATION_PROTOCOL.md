@@ -264,7 +264,7 @@ Monitor with single-poll pattern (see "Monitoring the process" section). Agents 
 ### Adding QC Findings to Database
 
 ```bash
-python locales/scripts/store.py query \
+python3 locales/scripts/i18n db query \
   "INSERT INTO translation_issues
    (locale, file, key_path, issue_type, severity, description, detected_by)
    VALUES ('tr', 'secret-manage.json', 'web.private.key_name',
@@ -276,7 +276,7 @@ python locales/scripts/store.py query \
 QC reviews often surface high-quality translation choices worth standardizing:
 
 ```bash
-python locales/scripts/store.py query \
+python3 locales/scripts/i18n db query \
   "INSERT INTO glossary (locale, term, translation, context, notes)
    VALUES ('de', 'passphrase', 'Passphrase', 'security feature',
            'Keep as loanword - standard in German tech')"
@@ -290,4 +290,4 @@ Avoid: each sleep N && command spawned as a background task creates an independe
 
 ## Esperanto Status
 
-Run `python locales/scripts/tasks/next.py eo --stats` to check current progress.
+Run `python3 locales/scripts/i18n tasks next eo --stats` to check current progress.
