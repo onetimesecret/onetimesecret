@@ -1,9 +1,11 @@
-#!/usr/bin/env python3
-"""
-Shared utilities for translation scripts.
+"""JSON file handling and key traversal.
 
-Provides common functions for JSON file handling and key traversal.
+Ported verbatim from the legacy ``locales/scripts/keys.py``. Provides the
+shared primitives for reading, walking, and writing the flat/nested locale
+content files.
 """
+
+from __future__ import annotations
 
 import json
 import sys
