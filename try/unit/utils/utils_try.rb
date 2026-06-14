@@ -177,4 +177,26 @@ OT::Utils.normalize_email(nil)
 OT::Utils.normalize_email('')
 #=> ''
 
+## strand complexity path honours the requested length
+Onetime::Utils.strand(16, { 'uppercase' => true, 'lowercase' => true, 'numbers' => true, 'symbols' => true }).size
+#=> 16
+
+## strand complexity path guarantees at least one char from each enabled class
+@strand_complexity = Onetime::Utils.strand(12)
+[@strand_complexity.match?(/[A-Z]/), @strand_complexity.match?(/[a-z]/), @strand_complexity.match?(/[0-9]/)]
+#=> [true, true, true]
+
+## strand complexity path draws from a CSPRNG, not the seedable default PRNG
+# Regression for the Array#sample / Array#shuffle weakness: identical
+# Kernel#srand seeds must NOT reproduce the output. len == enabled-set count
+# so there are no SecureRandom fill chars that could mask a default-PRNG
+# dependency in the guaranteed-character and shuffle steps.
+@strand_opts = { 'uppercase' => true, 'lowercase' => true, 'numbers' => true, 'symbols' => true, 'exclude_ambiguous' => false }
+srand(424242)
+@strand_first = Onetime::Utils.strand(4, @strand_opts)
+srand(424242)
+@strand_second = Onetime::Utils.strand(4, @strand_opts)
+@strand_first == @strand_second
+#=> false
+
 Onetime::Utils.instance_variable_set(:@fortunes, @original_fortunes)
