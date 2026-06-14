@@ -294,35 +294,30 @@ module Onetime
 
       # Cryptographically secure replacement for Array#sample.
       #
-      # Array#sample draws from Ruby's default Random (Mersenne Twister), which
-      # is not suitable for generating secret material. Returns nil for an empty
-      # array to match Array#sample's contract.
+      # Array#sample without a random: source draws from Ruby's default Random
+      # (Mersenne Twister), which is unsuitable for secret material. SecureRandom
+      # satisfies the random: contract (it responds to #rand), so we delegate to
+      # the standard library rather than reimplement selection. Returns nil for
+      # an empty array to match Array#sample's contract.
       #
       # @param array [Array] the array to pick from
       # @return [Object, nil] a randomly selected element, or nil if empty
       def secure_sample(array)
         return nil if array.empty?
 
-        array[SecureRandom.random_number(array.length)]
+        array.sample(random: SecureRandom)
       end
 
       # Cryptographically secure replacement for Array#shuffle.
       #
-      # Fisher-Yates shuffle driven by SecureRandom so the resulting ordering
-      # cannot be predicted from the default PRNG's state. Returns a new array
-      # and leaves the input untouched, matching Array#shuffle's contract.
+      # Delegates to Array#shuffle with random: SecureRandom so the resulting
+      # ordering cannot be predicted from the default PRNG's state. Returns a new
+      # array and leaves the input untouched, matching Array#shuffle's contract.
       #
       # @param array [Array] the array to shuffle
       # @return [Array] a new, securely shuffled array
       def secure_shuffle(array)
-        arr = array.dup
-        index = arr.length - 1
-        while index > 0
-          swap_with = SecureRandom.random_number(index + 1)
-          arr[index], arr[swap_with] = arr[swap_with], arr[index]
-          index -= 1
-        end
-        arr
+        array.shuffle(random: SecureRandom)
       end
     end
   end
