@@ -4,26 +4,23 @@
   import { useI18n } from 'vue-i18n';
   import BrandedMasthead from '@/apps/secret/components/layout/BrandedMastHead.vue';
   import MastHead from '@/shared/components/layout/MastHead.vue';
-  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { useHeaderEnabled } from '@/shared/composables/useHeaderEnabled';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import type { LayoutProps } from '@/types/ui/layouts';
-  import { storeToRefs } from 'pinia';
   import { computed } from 'vue';
   const { t } = useI18n();
 
   const productIdentity = useProductIdentity();
-
-  const bootstrapStore = useBootstrapStore();
-  const { headerConfig } = storeToRefs(bootstrapStore);
 
   const props = withDefaults(defineProps<LayoutProps>(), {
     displayMasthead: true,
     displayNavigation: false,
   });
 
-  // Operator-level header gate (HEADER_ENABLED). When disabled, the entire
-  // <header> banner landmark collapses — no empty landmark, no padding band.
-  const headerEnabled = computed(() => headerConfig.value?.enabled !== false);
+  // Operator-level header gate (HEADER_ENABLED), shared via composable. When
+  // disabled, the entire <header> banner landmark collapses — no empty
+  // landmark, no padding band.
+  const { headerEnabled } = useHeaderEnabled();
 
   const headertext = computed(() => productIdentity.allowPublicHomepage ? t('web.homepage.create_a_secure_link') : t('web.homepage.secure_links'));
   const subtext = computed(() => productIdentity.allowPublicHomepage

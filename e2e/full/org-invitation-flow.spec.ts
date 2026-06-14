@@ -50,11 +50,21 @@ const generateTestEmail = (prefix: string) =>
 // -----------------------------------------------------------------------------
 
 /**
+ * Context options for a truly unauthenticated browser context.
+ *
+ * `browser.newContext()` inherits the `full` project's `use` options —
+ * including its storageState (the owner session) — so a bare newContext()
+ * is NOT unauthenticated. Pass these options to opt out explicitly.
+ */
+const unauthenticatedContext = { storageState: { cookies: [], origins: [] } };
+
+/**
  * Authenticate user via login form using password tab.
  *
- * Only valid on pages from a fresh `browser.newContext()` (unauthenticated):
- * the default `page` fixture already carries the storageState session, and
- * an authenticated visitor to /signin is redirected away from the form.
+ * Only valid on pages from an unauthenticated context
+ * (`browser.newContext(unauthenticatedContext)`): the default `page` fixture
+ * and bare `browser.newContext()` carry the storageState session, and an
+ * authenticated visitor to /signin is redirected away from the form.
  */
 async function loginUser(page: Page, email?: string, password?: string): Promise<void> {
   await page.goto('/signin');
@@ -130,7 +140,7 @@ async function createInvitation(
   await roleSelect.selectOption(role);
 
   // Submit
-  const sendButton = page.getByRole('button', { name: /send invite/i });
+  const sendButton = page.getByRole('button', { name: /send invit/i });
   await sendButton.click();
 
   // Wait for success
@@ -154,7 +164,7 @@ async function getInvitationToken(page: Page, email: string): Promise<string | n
   // We'll need to intercept the API call or check the URL after clicking
   // For now, we'll use the API to get the token
   const response = await page.request.get(
-    `/api/v2/org/${await getCurrentOrgExtid(page)}/invitations`
+    `/api/v2/org/${getCurrentOrgExtid(page)}/invitations`
   );
   const data = await response.json();
 
@@ -165,7 +175,7 @@ async function getInvitationToken(page: Page, email: string): Promise<string | n
 /**
  * Get current organization extid from URL
  */
-async function getCurrentOrgExtid(page: Page): Promise<string> {
+function getCurrentOrgExtid(page: Page): string {
   const url = page.url();
   const match = url.match(/\/org\/([^/]+)/);
   return match?.[1] || '';
@@ -229,7 +239,7 @@ test.describe('INV-001: Organization Invitation Sending', () => {
     await emailInput.fill(testEmail);
     await roleSelect.selectOption('member');
 
-    const sendButton = page.getByRole('button', { name: /send invite/i });
+    const sendButton = page.getByRole('button', { name: /send invit/i });
     await sendButton.click();
 
     // Verify success message
@@ -284,8 +294,8 @@ test.describe('INV-002: Unauthenticated User Inline Auth Flow', () => {
       // Inline signup form should be visible
       const signupForm = page.getByTestId('invite-signup-form');
       await expect(signupForm).toBeVisible();
-      // Email should be displayed from invitation
-      await expect(page.getByText(testEmail)).toBeVisible();
+      // Email should be displayed from invitation (readonly input value)
+      await expect(page.getByTestId('invite-signup-email-input')).toHaveValue(testEmail);
     } else if (hasSigninForm) {
       // Inline signin form should be visible
       const signinForm = page.getByTestId('invite-signin-form');
@@ -304,8 +314,8 @@ test.describe('INV-003: Email Mismatch Warning', () => {
     browser,
   }) => {
     // Create two browser contexts - one for owner, one for wrong user
-    const ownerContext = await browser.newContext();
-    const wrongUserContext = await browser.newContext();
+    const ownerContext = await browser.newContext(unauthenticatedContext);
+    const wrongUserContext = await browser.newContext(unauthenticatedContext);
 
     const ownerPage = await ownerContext.newPage();
     const wrongUserPage = await wrongUserContext.newPage();
@@ -336,8 +346,9 @@ test.describe('INV-003: Email Mismatch Warning', () => {
       // Verify warning shows factual "Different account" framing
       await expect(wrongUserPage.getByText(/different|mismatch/i)).toBeVisible();
 
-      // Verify invited email is shown
-      await expect(wrongUserPage.getByText(invitedEmail)).toBeVisible();
+      // Verify invited email is shown (appears in both the warning body and
+      // the "Continue as" button - first() avoids a strict mode violation)
+      await expect(wrongUserPage.getByText(invitedEmail).first()).toBeVisible();
 
       // Verify "Continue as" button is visible (using testid)
       const continueAsBtn = wrongUserPage.getByTestId('continue-as-btn');
@@ -359,8 +370,8 @@ test.describe('INV-004: Continue As Invited Email Flow', () => {
   test('Clicking Continue As logs out and redirects to invite page', async ({
     browser,
   }) => {
-    const ownerContext = await browser.newContext();
-    const wrongUserContext = await browser.newContext();
+    const ownerContext = await browser.newContext(unauthenticatedContext);
+    const wrongUserContext = await browser.newContext(unauthenticatedContext);
 
     const ownerPage = await ownerContext.newPage();
     const wrongUserPage = await wrongUserContext.newPage();
@@ -387,9 +398,9 @@ test.describe('INV-004: Continue As Invited Email Flow', () => {
       await wrongUserPage.waitForURL(/\/invite\//, { timeout: 10000 });
 
       // Verify user is logged out by checking API
-      const response = await wrongUserPage.request.get('/api/v2/bootstrap/authenticated');
+      const response = await wrongUserPage.request.get('/bootstrap/me');
       const data = await response.json();
-      expect(data.authenticated || data.record?.authenticated).toBeFalsy();
+      expect(data.authenticated).toBeFalsy();
     } finally {
       await ownerContext.close();
       await wrongUserContext.close();
@@ -407,7 +418,7 @@ test.describe('INV-005: Matching Email User Flow', () => {
     // We'll simulate by having the org owner invite themselves (edge case) or
     // by creating a specific user account first
 
-    const ownerContext = await browser.newContext();
+    const ownerContext = await browser.newContext(unauthenticatedContext);
     const ownerPage = await ownerContext.newPage();
 
     try {
@@ -431,12 +442,17 @@ test.describe('INV-005: Matching Email User Flow', () => {
       await ownerPage.goto(`/invite/${token}`);
       await expect(ownerPage.locator('html[data-app-ready="true"]')).toBeAttached();
 
-      // Accept button should be visible (even for unauthenticated)
-      const acceptButton = ownerPage.getByRole('button', { name: /accept/i });
-      await expect(acceptButton).toBeVisible();
+      // Unauthenticated + unknown email shows the signup_required state with
+      // an inline signup form: a "Continue" submit (the accept path) and a
+      // "Decline" button - there is no standalone Accept button here.
+      const signupState = ownerPage.getByTestId('invite-signup-required');
+      await expect(signupState).toBeVisible();
+
+      const signupSubmit = ownerPage.getByTestId('invite-signup-submit');
+      await expect(signupSubmit).toBeVisible();
 
       // Decline button should also be visible
-      const declineButton = ownerPage.getByRole('button', { name: /decline/i });
+      const declineButton = ownerPage.getByTestId('invite-signup-decline');
       await expect(declineButton).toBeVisible();
 
       // Invitation details should show organization and role
@@ -624,9 +640,9 @@ test.describe('INV-014: Duplicate Member Invitation', () => {
     await navigateToOrgTeam(page);
 
     // Get the owner's email (who is already a member)
-    const bootstrapResponse = await page.request.get('/api/v2/bootstrap/authenticated');
+    const bootstrapResponse = await page.request.get('/bootstrap/me');
     const bootstrapData = await bootstrapResponse.json();
-    const ownerEmail = bootstrapData.record?.email;
+    const ownerEmail = bootstrapData.email;
 
     // Try to invite the owner (existing member)
     const inviteButton = page.getByRole('button', { name: /invite member/i });
@@ -635,11 +651,13 @@ test.describe('INV-014: Duplicate Member Invitation', () => {
     const emailInput = page.locator('#invite-email');
     await emailInput.fill(ownerEmail);
 
-    const sendButton = page.getByRole('button', { name: /send invite/i });
+    const sendButton = page.getByRole('button', { name: /send invit/i });
     await sendButton.click();
 
-    // Should show error about already being a member
-    await expect(page.getByText(/already|member|exists/i)).toBeVisible({ timeout: 10000 });
+    // Should show error about already being a member. Keep the pattern
+    // specific: bare /member/i matches the team page chrome (Invite Member
+    // button, Members heading) and trips strict mode.
+    await expect(page.getByText(/already a member/i)).toBeVisible({ timeout: 10000 });
   });
 });
 
@@ -719,8 +737,8 @@ test.describe('INV-SEC-002: Account Enumeration Prevention', () => {
   test('Continue-as flow does not reveal whether invited email has existing account', async ({
     browser,
   }) => {
-    const ownerContext = await browser.newContext();
-    const wrongUserContext = await browser.newContext();
+    const ownerContext = await browser.newContext(unauthenticatedContext);
+    const wrongUserContext = await browser.newContext(unauthenticatedContext);
 
     const ownerPage = await ownerContext.newPage();
     const wrongUserPage = await wrongUserContext.newPage();

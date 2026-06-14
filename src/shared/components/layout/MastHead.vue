@@ -4,6 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import DefaultLogo from '@/shared/components/logos/DefaultLogo.vue';
   import UserMenu from '@/shared/components/navigation/UserMenu.vue';
+  import { useHeaderEnabled } from '@/shared/composables/useHeaderEnabled';
   import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
   import { useAuthStore } from '@/shared/stores/authStore';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
@@ -126,13 +127,10 @@
     hasExplicitImgSize.value ? { height: `${props.logo!.size}px` } : undefined
   );
 
-  const headerEnabled = computed(() =>
-    headerConfig.value?.enabled !== false
-  );
-
-  const navigationEnabled = computed(() =>
-    headerConfig.value?.navigation?.enabled !== false
-  );
+  // Operator-level header/navigation gates (HEADER_ENABLED), shared with the
+  // header wrappers via the composable. Local headerConfig above stays for
+  // branding/logo resolution.
+  const { headerEnabled, navigationEnabled } = useHeaderEnabled();
 
   // Logo component handling
   const isVueComponent = computed(() => logoConfig.value.url.endsWith('.vue'));

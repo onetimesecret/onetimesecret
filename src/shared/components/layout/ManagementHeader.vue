@@ -13,10 +13,10 @@
 <script setup lang="ts">
   import MastHead from '@/shared/components/layout/MastHead.vue';
   import ImprovedPrimaryNav from '@/shared/components/navigation/ImprovedPrimaryNav.vue';
+  import { useHeaderEnabled } from '@/shared/composables/useHeaderEnabled';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { storeToRefs } from 'pinia';
-  import { computed } from 'vue';
 
   const props = withDefaults(defineProps<LayoutProps>(), {
     displayMasthead: true,
@@ -26,11 +26,11 @@
   });
 
   const bootstrapStore = useBootstrapStore();
-  const { authenticated, headerConfig } = storeToRefs(bootstrapStore);
+  const { authenticated } = storeToRefs(bootstrapStore);
 
   // Operator-level header gate (HEADER_ENABLED). When disabled, the entire
   // <header> banner landmark collapses — no empty landmark, no padding band.
-  const headerEnabled = computed(() => headerConfig.value?.enabled !== false);
+  const { headerEnabled } = useHeaderEnabled();
 </script>
 
 <template>
