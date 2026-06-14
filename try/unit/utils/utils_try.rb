@@ -44,9 +44,11 @@ Onetime::Utils.strand(16, { 'uppercase' => true, 'lowercase' => true, 'numbers' 
 #=> 16
 
 ## strand complexity path guarantees at least one char from each enabled set
+## (symbols matched as any non-alphanumeric char, since the password only draws
+## from the upper/lower/digit/symbol sets)
 pw = Onetime::Utils.strand(16, { 'uppercase' => true, 'lowercase' => true, 'numbers' => true, 'symbols' => true })
-[!!(pw =~ /[A-Z]/), !!(pw =~ /[a-z]/), !!(pw =~ /[0-9]/)]
-#=> [true, true, true]
+[!!(pw =~ /[A-Z]/), !!(pw =~ /[a-z]/), !!(pw =~ /[0-9]/), !!(pw =~ /[^A-Za-z0-9]/)]
+#=> [true, true, true, true]
 
 ## strand complexity path draws from SecureRandom, not Ruby's seedable PRNG.
 ## With len == set count there are no fill chars, so the whole password comes
