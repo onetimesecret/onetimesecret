@@ -4,7 +4,7 @@
     "source_hash": "ba42602c"
   },
   "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
-    "text": "Huidige {0}: {1}. Klik om door opties te bladeren.",
+    "text": "Huidig {0}: {1}. Klik om door de opties te bladeren.",
     "source_hash": "84bf49e6"
   },
   "web.branding.use_setting": {
@@ -24,11 +24,11 @@
     "source_hash": "db3183e3"
   },
   "web.branding.preview_of_the_secret_link_page_for_recipients": {
-    "text": "Voorbeeld van de geheime linkpagina voor ontvangers",
+    "text": "Voorbeeld van de weergave voor de ontvanger bij het openen van je beveiligde link",
     "source_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
-    "text": "Voorbeeld en aanpassen",
+    "text": "Voorbeeld bekijken en aanpassen",
     "source_hash": "215d3659"
   },
   "web.branding.switch_to_safari_browser_view": {
@@ -60,15 +60,15 @@
     "source_hash": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Neem contact op met onboarding{'@'}voorbeeld.com met eventuele vragen",
+    "text": "Neem bij vragen contact op met onboarding{'@'}example.com",
     "source_hash": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
-    "text": "Deze instructies worden aan ontvangers getoond voordat ze de geheime inhoud bekijken",
+    "text": "Deze instructies worden aan ontvangers getoond voordat ze de inhoud van het bericht onthullen",
     "source_hash": "9d5a6334"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_after": {
-    "text": "Deze instructies worden aan ontvangers getoond nadat ze het geheim hebben onthuld",
+    "text": "Deze instructies worden aan ontvangers getoond nadat ze het bericht hebben onthuld",
     "source_hash": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
@@ -84,11 +84,11 @@
     "source_hash": "934652dc"
   },
   "web.branding.logo_controls": {
-    "text": "Logo-bediening",
+    "text": "Logobesturing",
     "source_hash": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
-    "text": "Klik om een logo te uploaden. Aanbevolen grootte: 128x128 pixels. Maximale bestandsgrootte: 1MB. Ondersteunde formaten: PNG, JPG, SVG",
+    "text": "Klik om een logo te uploaden. Aanbevolen formaat: 128x128 pixels. Maximale bestandsgrootte: 1 MB. Ondersteunde formaten: PNG, JPG, SVG",
     "source_hash": "a35452bf"
   },
   "web.branding.upload_logo": {
@@ -100,7 +100,7 @@
     "source_hash": "c02130fa"
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
-    "text": "Bekijk hoe ontvangers uw berichten zullen zien door de knop \"Bericht bekijken\" te testen",
+    "text": "Bekijk een voorbeeld van hoe ontvangers je berichten zien door op de knop \"Bericht bekijken\" te testen",
     "source_hash": "3b58a297"
   },
   "web.branding.eye_icon": {
@@ -108,7 +108,7 @@
     "source_hash": "7f605d3c"
   },
   "web.branding.click_the_preview_image_below_to_update_your_logo": {
-    "text": "Klik op de voorbeeldafbeelding hieronder om uw logo bij te werken (minimaal 128x128 pixels aanbevolen, 1MB max)",
+    "text": "Klik op de voorbeeldafbeelding hieronder om je logo bij te werken (minimaal 128x128 pixels aanbevolen, max. 1 MB)",
     "source_hash": "77a19049"
   },
   "web.branding.image_icon": {
@@ -124,23 +124,23 @@
     "source_hash": "bde04d31"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
-    "text": "U heeft niet-opgeslagen wijzigingen. Weet u het zeker?",
+    "text": "Je hebt niet-opgeslagen wijzigingen. Weet je het zeker?",
     "source_hash": "184b6a83"
   },
   "web.branding.failed_to_load_brand_settings": {
-    "text": "Merkinstellingen laden mislukt",
+    "text": "Laden van merkinstellingen mislukt",
     "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Dit is een interactief voorbeeld van hoe ontvangers je beveiligde berichten zullen zien. Je kunt: - Kleuren en lettertypen aanpassen met de bedieningselementen hierboven - Een logo uploaden (minimaal 128x128 pixels aanbevolen, max 1MB) - Het voorbeeld testen met de \"Bericht bekijken\"-knop",
+    "text": "Dit is een interactief voorbeeld van hoe ontvangers je beveiligde berichten zien. Je kunt: - Kleuren en lettertypen aanpassen met de besturingselementen hierboven - Een logo uploaden (minimaal 128x128 pixels aanbevolen, max. 1 MB) - Het voorbeeld testen met de knop \"Bericht bekijken\"",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
-    "text": "Dit is een interactief voorbeeld van hoe ontvangers uw beveiligde berichten zullen zien. U kunt: - Kleuren en lettertypen aanpassen met de besturingselementen hierboven - Een logo uploaden (minimaal 128x128 pixels aanbevolen, 1MB max) - Het voorbeeld testen met de knop \"Bericht bekijken\"",
+    "text": "Dit is een interactief voorbeeld van hoe ontvangers je beveiligde berichten zien. Je kunt: - Kleuren en lettertypen aanpassen met de besturingselementen hierboven - Een logo uploaden (minimaal 128x128 pixels aanbevolen, max. 1 MB) - Het voorbeeld testen met de knop \"Bericht bekijken\"",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
-    "text": "Japans kanji '秘' (himitsu) wat 'geheim' of 'vertrouwelijk' betekent",
+    "text": "Japans kanji '秘' (himitsu), wat 'geheim' of 'vertrouwelijk' betekent",
     "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
@@ -170,5 +170,9 @@
   "web.branding.upgrade_to_customize": {
     "text": "Upgrade je plan om de branding voor dit domein aan te passen.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "Merkinstellingen succesvol opgeslagen",
+    "source_hash": "9960c252"
   }
 }

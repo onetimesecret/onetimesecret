@@ -5,7 +5,7 @@
     "source_hash": "9e2074ae"
   },
   "email.incomingsupport.body1": {
-    "text": "お客様から以下の情報が送信されました",
+    "text": "お客様から次の情報が送信されました",
     "renderer": "erb",
     "source_hash": "9c965ab8"
   },
@@ -15,7 +15,7 @@
     "source_hash": "3156abde"
   },
   "email.secret_link.sent_you_secret": {
-    "text": "がシークレットを送信しました:",
+    "text": "さんがシークレットを送信しました:",
     "renderer": "erb",
     "source_hash": "c0571266"
   },
@@ -25,32 +25,32 @@
     "source_hash": "496d6960"
   },
   "email.secret_link.link_works_once": {
-    "text": "このリンクは1回のみ有効です。閲覧後、シークレットは完全に削除されます。",
+    "text": "このリンクは1回しか使用できません。閲覧後、シークレットは完全に削除されます。",
     "renderer": "erb",
     "source_hash": "fecaf0a1"
   },
   "email.secret_link.sent_via": {
-    "text": "経由",
+    "text": "送信元",
     "renderer": "erb",
     "source_hash": "d01479b3"
   },
   "email.welcome.subject": {
-    "text": "%{product_name}へようこそ - メールアドレスを認証してください",
+    "text": "%{product_name}へようこそ - メールアドレスを確認してください",
     "renderer": "erb",
     "source_hash": "96008c17"
   },
   "email.welcome.title": {
-    "text": "%{product_name}へようこそ!",
+    "text": "%{product_name}へようこそ",
     "renderer": "erb",
     "source_hash": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
-    "text": "下のリンクをクリックして、メールアドレスを認証してください:",
+    "text": "下のリンクをクリックして、メールアドレスを確認してください:",
     "renderer": "erb",
     "source_hash": "e373dcee"
   },
   "email.welcome.verify_button": {
-    "text": "メールアドレスを認証",
+    "text": "メールアドレスを確認",
     "renderer": "erb",
     "source_hash": "d261b9df"
   },
@@ -65,12 +65,12 @@
     "source_hash": "f58154f7"
   },
   "email.welcome.postscript": {
-    "text": "追伸: このメールは%{email_address}宛に送信されました。アカウントを作成していない場合は、このメッセージを無視してください。",
+    "text": "追伸: このメールは%{email_address}宛に送信されました。アカウントを作成していない場合は、このメッセージを無視していただいて問題ありません。",
     "renderer": "erb",
     "source_hash": "05709148"
   },
   "email.password_request.subject": {
-    "text": "パスワードをリセット (%{display_domain})",
+    "text": "パスワードをリセットしてください (%{display_domain})",
     "renderer": "erb",
     "source_hash": "a9882af1"
   },
@@ -80,7 +80,7 @@
     "source_hash": "0568c7b0"
   },
   "email.password_request.request_notice": {
-    "text": "%{product_name}のパスワードリセットのリクエストを受け付けました。",
+    "text": "%{product_name}のパスワードをリセットするリクエストを受け付けました。",
     "renderer": "erb",
     "source_hash": "4ad3b5cd"
   },
@@ -95,7 +95,7 @@
     "source_hash": "88c72144"
   },
   "email.password_request.ignore_notice": {
-    "text": "パスワードリセットをリクエストしていない場合は、このメールを無視してください。",
+    "text": "パスワードのリセットをリクエストしていない場合は、このメールを無視していただいて問題ありません。",
     "renderer": "erb",
     "source_hash": "fbb7eb2d"
   },
@@ -110,22 +110,22 @@
     "source_hash": "8ab1dbea"
   },
   "email.magic_link.subject": {
-    "text": "%{display_domain}にログイン",
+    "text": "%{display_domain}にサインイン",
     "renderer": "erb",
     "source_hash": "2967293e"
   },
   "email.magic_link.title": {
-    "text": "マジックリンクでログイン",
+    "text": "マジックリンクでサインイン",
     "renderer": "erb",
     "source_hash": "0b84879b"
   },
   "email.magic_link.request_notice": {
-    "text": "%{product_name}アカウントへのログインリンクのリクエストがありました。",
+    "text": "%{product_name}アカウントのログインリンクをリクエストしました。",
     "renderer": "erb",
     "source_hash": "3a34aa1f"
   },
   "email.magic_link.login_button": {
-    "text": "ログイン",
+    "text": "サインイン",
     "renderer": "erb",
     "source_hash": "bcc0bcc9"
   },
@@ -135,12 +135,12 @@
     "source_hash": "88c72144"
   },
   "email.magic_link.expiration_notice": {
-    "text": "このリンクは15分で期限切れになります。",
+    "text": "このリンクは15分後に期限切れになります。",
     "renderer": "erb",
     "source_hash": "a6967fa7"
   },
   "email.magic_link.ignore_notice": {
-    "text": "このリンクをリクエストしていない場合は、このメールを無視してください。",
+    "text": "このリンクをリクエストしていない場合は、このメールを無視していただいて問題ありません。",
     "renderer": "erb",
     "source_hash": "1863f5be"
   },
@@ -155,12 +155,12 @@
     "source_hash": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
-    "text": "シークレットメッセージを受信しました",
+    "text": "シークレットメッセージが届きました",
     "renderer": "erb",
     "source_hash": "c7c36a80"
   },
   "email.incoming_secret.received_message": {
-    "text": "安全なメッセージを受信しました:",
+    "text": "安全なメッセージが届きました:",
     "renderer": "erb",
     "source_hash": "7d3cd4cb"
   },
@@ -170,7 +170,7 @@
     "source_hash": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
-    "text": "%{display_domain}を通じて安全なメッセージが送信されました。",
+    "text": "%{display_domain}を通じて、安全なメッセージが送信されました。",
     "renderer": "erb",
     "source_hash": "12ac0a81"
   },
@@ -185,22 +185,22 @@
     "source_hash": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "このリンクは1回のみ有効です。閲覧後、シークレットは完全に削除されます。",
+    "text": "このリンクは1回しか使用できません。閲覧後、シークレットは完全に削除されます。",
     "renderer": "erb",
     "source_hash": "fecaf0a1"
   },
   "email.incoming_secret.passphrase_required": {
-    "text": "このシークレットはパスフレーズで保護されています。送信者から別途パスフレーズを受け取ってください。",
+    "text": "このシークレットはパスフレーズで保護されています。送信者から別途お知らせがあるはずです。",
     "renderer": "erb",
     "source_hash": "1e49826b"
   },
   "email.incoming_secret.passphrase_label": {
-    "text": "パスフレーズが必要です:",
+    "text": "パスフレーズが必要:",
     "renderer": "erb",
     "source_hash": "1ab9a20f"
   },
   "email.incoming_secret.sent_via": {
-    "text": "経由",
+    "text": "送信元",
     "renderer": "erb",
     "source_hash": "d01479b3"
   },
@@ -215,7 +215,7 @@
     "source_hash": "6a530d71"
   },
   "email.secret_revealed.viewed_on": {
-    "text": "シークレットは%{date}に閲覧されました。",
+    "text": "%{date}に、シークレットが閲覧されました。",
     "renderer": "erb",
     "source_hash": "6a3d346c"
   },
@@ -225,7 +225,7 @@
     "source_hash": "ab567438"
   },
   "email.secret_revealed.automated_notice": {
-    "text": "これは自動通知です。対応は不要です。",
+    "text": "これは自動通知です。操作は必要ありません。",
     "renderer": "erb",
     "source_hash": "3f6b45dd"
   },
@@ -265,27 +265,27 @@
     "source_hash": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "期限切れ後、シークレットは完全に削除され、復元できなくなります。",
+    "text": "期限切れになると、シークレットは完全に削除され、復元できなくなります。",
     "renderer": "erb",
     "source_hash": "deb92a01"
   },
   "email.expiration_warning.sent_via": {
-    "text": "経由",
+    "text": "送信元",
     "renderer": "erb",
     "source_hash": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "消える前に確認してください:",
+    "text": "なくなる前にご確認ください:",
     "renderer": "erb",
     "source_hash": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "期限切れ後、シークレットは完全に削除されます。",
+    "text": "期限切れになると、シークレットは完全に削除されます。",
     "renderer": "erb",
     "source_hash": "bd0a9bee"
   },
   "email.feedback_email.subject": {
-    "text": "%{display_domain}からのフィードバック (%{date}) (%{strategy})",
+    "text": "%{date}に%{display_domain}経由のフィードバック (%{strategy})",
     "renderer": "erb",
     "source_hash": "f7498c8b"
   },
@@ -305,7 +305,7 @@
     "source_hash": "a4c7de06"
   },
   "email.feedback_email.strategy_label": {
-    "text": "戦略:",
+    "text": "ストラテジー:",
     "renderer": "erb",
     "source_hash": "8132ec6b"
   },
@@ -315,27 +315,27 @@
     "source_hash": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "シークレットサポート",
+    "text": "Secretサポート",
     "renderer": "erb",
     "source_hash": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
-    "text": "%{organization_name}への招待",
+    "text": "%{organization_name}への参加に招待されました",
     "renderer": "erb",
     "source_hash": "58591e00"
   },
   "email.organization_invitation.title": {
-    "text": "%{organization_name}への招待を受けました!",
+    "text": "%{organization_name}への参加に招待されました",
     "renderer": "erb",
     "source_hash": "19548dfd"
   },
   "email.organization_invitation.body": {
-    "text": "%{inviter_email}から「%{organization_name}」に%{role_description}として招待されました。",
+    "text": "%{inviter_email}があなたを%{role_description}として「%{organization_name}」への参加に招待しました。",
     "renderer": "erb",
     "source_hash": "e4d3fb65"
   },
   "email.organization_invitation.accept_button": {
-    "text": "招待を承諾",
+    "text": "招待を承認",
     "renderer": "erb",
     "source_hash": "ce7cfeaf"
   },
@@ -360,7 +360,7 @@
     "source_hash": "f58154f7"
   },
   "email.organization_invitation.postscript": {
-    "text": "追伸: このメールは%{invited_email}宛に送信されました。この招待に心当たりがない場合は、このメッセージを無視してください。",
+    "text": "追伸: このメールは%{invited_email}宛に送信されました。この招待に心当たりがない場合は、このメッセージを無視していただいて問題ありません。",
     "renderer": "erb",
     "source_hash": "608e2b40"
   },
@@ -385,12 +385,12 @@
     "source_hash": "adb1f471"
   },
   "email.password_changed.body": {
-    "text": "%{product_name}のパスワードが%{date} %{time}に変更されました。",
+    "text": "%{date} %{time}に、%{product_name}のパスワードが変更されました。",
     "renderer": "erb",
     "source_hash": "21f5117c"
   },
   "email.password_changed.security_notice": {
-    "text": "この変更を行っていない場合は、すぐにパスワードをリセットし、サポートに連絡してアカウントを保護してください。",
+    "text": "この変更を行っていない場合は、パスワードをリセットしてサポートに連絡し、ただちにアカウントを保護してください。",
     "renderer": "erb",
     "source_hash": "be92cff3"
   },
@@ -410,12 +410,12 @@
     "source_hash": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "%{product_name}アカウントのメールアドレスは、%{date}に%{new_email_masked}に変更されました。",
+    "text": "%{product_name}アカウントのメールアドレスが%{new_email_masked}に変更されました。",
     "renderer": "erb",
     "source_hash": "6f3419d1"
   },
   "email.email_changed.security_notice": {
-    "text": "この変更を行っていない場合は、アカウントが侵害されている可能性がありますので、すぐにサポートにご連絡ください。",
+    "text": "この変更を行っていない場合は、アカウントが侵害されている可能性があるため、ただちにサポートにご連絡ください。",
     "renderer": "erb",
     "source_hash": "f505b562"
   },
@@ -435,17 +435,17 @@
     "source_hash": "f4a9cdda"
   },
   "email.email_changed.if_you_initiated": {
-    "text": "この変更をご自身で行った場合、追加の操作は必要ありません。",
+    "text": "この変更を行った場合は、これ以上の操作は必要ありません。",
     "renderer": "erb",
     "source_hash": "5cb54887"
   },
   "email.email_changed.not_you_notice": {
-    "text": "この変更に心当たりがない場合、アカウントが不正アクセスを受けている可能性があります。",
+    "text": "この変更を行っていない場合、アカウントが侵害されている可能性があります。",
     "renderer": "erb",
     "source_hash": "08f479fb"
   },
   "email.email_changed.contact_support": {
-    "text": "サポートに連絡",
+    "text": "サポートに問い合わせる",
     "renderer": "erb",
     "source_hash": "f8d47b82"
   },
@@ -455,17 +455,17 @@
     "source_hash": "f58154f7"
   },
   "email.email_changed.postscript": {
-    "text": "追伸: このメールはメールアドレスの変更をお知らせするために%{email_address}宛てに送信されました。",
+    "text": "追伸: このメールは、メールアドレスの変更をお知らせするために%{email_address}宛に送信されました。",
     "renderer": "erb",
     "source_hash": "475cae37"
   },
   "email.email_change_requested.subject": {
-    "text": "メールアドレス変更のリクエスト (%{display_domain})",
+    "text": "メールアドレスの変更がリクエストされました (%{display_domain})",
     "renderer": "erb",
     "source_hash": "be3441d6"
   },
   "email.email_change_requested.title": {
-    "text": "メールアドレス変更のリクエスト",
+    "text": "メールアドレスの変更リクエスト",
     "renderer": "erb",
     "source_hash": "704cbdca"
   },
@@ -485,17 +485,17 @@
     "source_hash": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "このリクエストをされた場合は、新しいメールアドレスに届く確認リンクをご確認ください。まだ変更は行われていません。",
+    "text": "このリクエストを行った場合は、新しいメールアドレスに届いた確認リンクをご確認ください。変更はまだ行われていません。",
     "renderer": "erb",
     "source_hash": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
-    "text": "このリクエストに覚えがない場合は、このメールを無視していただいて問題ありません。アカウントは変更されていません。",
+    "text": "このリクエストを行っていない場合は、このメールを無視していただいて問題ありません。アカウントは変更されていません。",
     "renderer": "erb",
     "source_hash": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
-    "text": "サポートに連絡",
+    "text": "サポートに問い合わせる",
     "renderer": "erb",
     "source_hash": "f8d47b82"
   },
@@ -505,27 +505,27 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_requested.postscript": {
-    "text": "追伸: このメールは、アカウントのメールアドレス変更がリクエストされたため、%{email_address}宛てに送信されました。",
+    "text": "追伸: このメールは、アカウントのメールアドレス変更がリクエストされたため、%{email_address}宛に送信されました。",
     "renderer": "erb",
     "source_hash": "500e085e"
   },
   "email.email_change_confirmation.subject": {
-    "text": "新しいメールアドレスを認証してください (%{display_domain})",
+    "text": "新しいメールアドレスを確認してください (%{display_domain})",
     "renderer": "erb",
     "source_hash": "6caae414"
   },
   "email.email_change_confirmation.title": {
-    "text": "新しいメールアドレスを認証",
+    "text": "新しいメールアドレスを確認",
     "renderer": "erb",
     "source_hash": "0ec73977"
   },
   "email.email_change_confirmation.body": {
-    "text": "%{product_name}アカウントの変更を完了するために、このメールアドレスを認証してください。",
+    "text": "%{product_name}アカウントの変更を完了するため、このメールアドレスを確認してください。",
     "renderer": "erb",
     "source_hash": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
-    "text": "メールアドレスを認証",
+    "text": "メールアドレスを確認",
     "renderer": "erb",
     "source_hash": "d261b9df"
   },
@@ -535,7 +535,7 @@
     "source_hash": "33277e1b"
   },
   "email.email_change_confirmation.confirm_button": {
-    "text": "メールアドレス変更を確認",
+    "text": "メールアドレスの変更を確認",
     "renderer": "erb",
     "source_hash": "c2736949"
   },
@@ -550,7 +550,7 @@
     "source_hash": "e744f5a7"
   },
   "email.email_change_confirmation.ignore_notice": {
-    "text": "この変更をリクエストしていない場合、このメールは無視して問題ありません。メールアドレスは変更されません。",
+    "text": "この変更をリクエストしていない場合は、このメールを無視していただいて問題ありません。メールアドレスは変更されません。",
     "renderer": "erb",
     "source_hash": "d4d835fc"
   },
@@ -560,7 +560,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_confirmation.postscript": {
-    "text": "追伸: このメールはメールアドレスの変更を確認するために%{email_address}宛てに送信されました。",
+    "text": "追伸: このメールは、メールアドレスの変更を確認するために%{email_address}宛に送信されました。",
     "renderer": "erb",
     "source_hash": "b72f557c"
   },
@@ -575,12 +575,12 @@
     "source_hash": "2398ed9e"
   },
   "email.mfa_enabled.body": {
-    "text": "%{product_name}アカウントの二要素認証が%{date}に有効になりました。",
+    "text": "%{date}に、%{product_name}アカウントの二要素認証が有効になりました。",
     "renderer": "erb",
     "source_hash": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
-    "text": "アカウントのセキュリティが向上しました。ログイン時に認証アプリから確認コードを入力する必要があります。",
+    "text": "アカウントのセキュリティが強化されました。サインイン時に、認証アプリの確認コードを入力する必要があります。",
     "renderer": "erb",
     "source_hash": "e7c11bb0"
   },
@@ -600,12 +600,12 @@
     "source_hash": "372d577a"
   },
   "email.mfa_disabled.body": {
-    "text": "%{product_name}アカウントの二要素認証が%{date}に無効になりました。",
+    "text": "%{date}に、%{product_name}アカウントの二要素認証が無効になりました。",
     "renderer": "erb",
     "source_hash": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "アカウントのセキュリティが低下しています。この変更を行っていない場合は、すぐにアカウントを保護してください。",
+    "text": "アカウントのセキュリティが低下しました。この変更を行っていない場合は、ただちにアカウントを保護してください。",
     "renderer": "erb",
     "source_hash": "97ef0a3e"
   },
@@ -615,17 +615,17 @@
     "source_hash": "f58154f7"
   },
   "email.new_login_alert.subject": {
-    "text": "アカウントへの新しいログイン (%{display_domain})",
+    "text": "アカウントへの新しいサインイン (%{display_domain})",
     "renderer": "erb",
     "source_hash": "a704f0bb"
   },
   "email.new_login_alert.title": {
-    "text": "新しいログインが検出されました",
+    "text": "新しいサインインが検出されました",
     "renderer": "erb",
     "source_hash": "61172ee4"
   },
   "email.new_login_alert.body": {
-    "text": "%{product_name}アカウントへの新しいログインが%{date} %{time}に検出されました。",
+    "text": "%{date} %{time}に、%{product_name}アカウントへの新しいサインインが検出されました。",
     "renderer": "erb",
     "source_hash": "040f8f48"
   },
@@ -645,7 +645,7 @@
     "source_hash": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "これがあなたではない場合、アカウントが侵害されている可能性があります。",
+    "text": "これがあなたの操作でない場合、アカウントが侵害されている可能性があります。",
     "renderer": "erb",
     "source_hash": "e2f819c9"
   },
@@ -680,17 +680,17 @@
     "source_hash": "f58154f7"
   },
   "email.role_changed.subject": {
-    "text": "%{organization_name}でのあなたの役割が変更されました",
+    "text": "%{organization_name}でのロールが変更されました",
     "renderer": "erb",
     "source_hash": "f987a7ad"
   },
   "email.role_changed.title": {
-    "text": "あなたの役割が変更されました",
+    "text": "ロールが変更されました",
     "renderer": "erb",
     "source_hash": "8f892809"
   },
   "email.role_changed.body": {
-    "text": "「%{organization_name}」でのあなたの役割が%{old_role}から%{new_role}に変更されました。",
+    "text": "「%{organization_name}」でのあなたのロールが%{old_role}から%{new_role}に変更されました。",
     "renderer": "erb",
     "source_hash": "c2280c0c"
   },
@@ -730,7 +730,7 @@
     "source_hash": "7e677ab8"
   },
   "email.payment_receipt.body": {
-    "text": "お支払いありがとうございます。お支払いの詳細は以下の通りです:",
+    "text": "お支払いいただきありがとうございます。お支払いの詳細は次のとおりです:",
     "renderer": "erb",
     "source_hash": "a1fb6502"
   },
@@ -770,12 +770,12 @@
     "source_hash": "a287ab86"
   },
   "email.payment_failed.body": {
-    "text": "%{product_name}のお支払いを処理できませんでした。サービスの中断を避けるため、支払い方法を更新してください。",
+    "text": "%{product_name}のお支払いを処理できませんでした。サービスの中断を避けるため、お支払い方法を更新してください。",
     "renderer": "erb",
     "source_hash": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {
-    "text": "支払い方法を更新",
+    "text": "お支払い方法を更新",
     "renderer": "erb",
     "source_hash": "926406b1"
   },
@@ -785,7 +785,7 @@
     "source_hash": "f58154f7"
   },
   "email.trial_expiring.subject": {
-    "text": "%{product_name}のトライアルがあと%{days_remaining}日で終了します",
+    "text": "%{product_name}のトライアルは%{days_remaining}日後に終了します",
     "renderer": "erb",
     "source_hash": "82114f95"
   },
@@ -795,7 +795,7 @@
     "source_hash": "36200518"
   },
   "email.trial_expiring.body": {
-    "text": "%{product_name}の無料トライアルは%{days_remaining}日後に終了します。すべての機能へのアクセスを維持するには、今すぐアップグレードしてください。",
+    "text": "%{product_name}の無料トライアルは%{days_remaining}日後に終了します。すべての機能を引き続きご利用いただくには、今すぐアップグレードしてください。",
     "renderer": "erb",
     "source_hash": "17fc32dd"
   },
@@ -825,7 +825,7 @@
     "source_hash": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
-    "text": "この変更は%{date}から有効です。",
+    "text": "この変更は%{date}に有効になります。",
     "renderer": "erb",
     "source_hash": "5a96ae38"
   },
@@ -840,7 +840,7 @@
     "source_hash": "dafe7694"
   },
   "email.common.thanks": {
-    "text": "よろしくお願いいたします。",
+    "text": "よろしくお願いいたします、",
     "renderer": "erb",
     "source_hash": "11dfba8f"
   },
@@ -858,5 +858,45 @@
     "text": "Onetime Secret",
     "renderer": "erb",
     "source_hash": "1cd0194a"
+  },
+  "email.common.secret_link_label": {
+    "text": "シークレットリンク",
+    "source_hash": "18ddf44f"
+  },
+  "email.common.automated_notice": {
+    "text": "これは%{product_name}からの自動送信メッセージです。",
+    "source_hash": "8fbabfba"
+  },
+  "email.expiration_warning.footer_note": {
+    "text": "%{product_name}で作成したシークレットがまもなく期限切れになるため、このメールが届いています。",
+    "source_hash": "920779e4"
+  },
+  "email.feedback_email.user_id_label": {
+    "text": "ユーザー:",
+    "source_hash": "93d6b3e9"
+  },
+  "email.feedback_email.timezone_label": {
+    "text": "タイムゾーン:",
+    "source_hash": "39651ebf"
+  },
+  "email.feedback_email.version_label": {
+    "text": "バージョン:",
+    "source_hash": "4c5726ee"
+  },
+  "email.incoming_secret.footer_note": {
+    "text": "誰かが%{product_name}を使用してシークレットを送信したため、このメールが届いています。心当たりがない場合は、このメールを無視していただいて問題ありません。",
+    "source_hash": "91ee6e8d"
+  },
+  "email.secret_link.passphrase_label": {
+    "text": "パスフレーズが必要:",
+    "source_hash": "1ab9a20f"
+  },
+  "email.secret_link.passphrase_required": {
+    "text": "このシークレットはパスフレーズで保護されています。送信者から別途お知らせがあるはずです。",
+    "source_hash": "1e49826b"
+  },
+  "email.secret_link.footer_note": {
+    "text": "%{sender_email}が%{product_name}を使用してシークレットを共有したため、このメールが届いています。心当たりがない場合は、このメールを無視していただいて問題ありません。",
+    "source_hash": "2d544dad"
   }
 }

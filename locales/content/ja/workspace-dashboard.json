@@ -1,10 +1,10 @@
 {
   "web.dashboard.title_received": {
-    "text": "受信済み",
+    "text": "閲覧済み",
     "source_hash": "49f19bee"
   },
   "web.dashboard.title_not_received": {
-    "text": "未受信",
+    "text": "未閲覧",
     "source_hash": "a4cf12ca"
   },
   "web.dashboard.title_no_recent_secrets": {

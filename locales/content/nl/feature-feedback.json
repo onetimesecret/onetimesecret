@@ -28,15 +28,15 @@
     "source_hash": "f58154f7"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "Helpinhoud komt hier.",
+    "text": "Hier komt de hulpinhoud.",
     "source_hash": "796979ea"
   },
   "web.feedback.founder_note_line1": {
-    "text": "Ik lees elk stukje feedback dat hier binnenkomt. Zo bepaal ik waar ik mijn tijd aan besteed.",
+    "text": "Ik lees alle feedback die hier binnenkomt. Zo bepaal ik waar ik mijn tijd aan besteed.",
     "source_hash": "8b430d93"
   },
   "web.feedback.founder_note_line2": {
-    "text": "Als er iets niet klopt, of je hebt ideeën over hoe het zou moeten werken, dan is dit de juiste plek.",
+    "text": "Als er iets niet klopt, of je hebt ideeën over hoe het zou moeten werken, dan ben je hier op de juiste plek.",
     "source_hash": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
@@ -56,7 +56,19 @@
     "source_hash": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
-    "text": "Het lijkt erop dat je een ongeautoriseerde wijziging van het e-mailadres op je account meldt. Beschrijf wat er is gebeurd en we onderzoeken het direct.",
+    "text": "Het lijkt erop dat je een ongeautoriseerde e-mailwijziging op je account meldt. Beschrijf wat er is gebeurd, dan onderzoeken we het direct.",
     "source_hash": "00e56551"
+  },
+  "web.feedback.anonymous_no_reply": {
+    "text": "Let op: als je een reactie wilt, onderteken dan of voeg een e-mailadres toe in het bericht.",
+    "source_hash": "c984f705"
+  },
+  "web.feedback.characters_remaining": {
+    "text": "Nog {count} tekens",
+    "source_hash": "8d796f40"
+  },
+  "web.feedback.character_limit_reached": {
+    "text": "Tekenlimiet bereikt",
+    "source_hash": "031e9310"
   }
 }

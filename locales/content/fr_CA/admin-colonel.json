@@ -8,15 +8,15 @@
     "source_hash": "52e93cc0"
   },
   "web.colonel.customers_details_counts_recent_customer_count_o_0": {
-    "text": "Clients ({0} de {1})",
+    "text": "Clients ({0} sur {1})",
     "source_hash": "eb88db1d"
   },
   "web.colonel.user_feedback_total_details_counts_feedback_coun_0": {
-    "text": "Commentaires des utilisateurs (Total : {0})",
+    "text": "Retours d'information des utilisateurs (total : {0})",
     "source_hash": "d4a80454"
   },
   "web.colonel.metadata_secrets_details_counts_metadata_count_d_0": {
-    "text": "Métadonnées / Secrets : {0}/{1} ({2}/{3}/{4} au total)",
+    "text": "Métadonnées / Secrets : {0}/{1} ({2}/{3}/{4} au total)",
     "source_hash": "5a341707"
   },
   "web.colonel.secrets_details_counts_secret_count_0": {
@@ -24,7 +24,7 @@
     "source_hash": "dd1c471a"
   },
   "web.colonel.active_in_the_past_5_minutes_0": {
-    "text": "(actif dans les 5 dernières minutes)",
+    "text": "(actifs au cours des 5 dernières minutes)",
     "source_hash": "a2b19058"
   },
   "web.colonel.configEditorTitle": {
@@ -32,11 +32,11 @@
     "source_hash": "74a883a0"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Modifier les paramètres de configuration du système. Les modifications s'appliquent immédiatement après l'enregistrement.",
+    "text": "Modifiez les paramètres de configuration du système. Les modifications s'appliquent immédiatement après l'enregistrement.",
     "source_hash": "6025d269"
   },
   "web.colonel.invalidJson": {
-    "text": "JSON invalide dans la section {section}",
+    "text": "JSON non valide dans la section {section}",
     "source_hash": "a75ac7a3"
   },
   "web.colonel.validationError": {
@@ -60,15 +60,15 @@
     "source_hash": "74e8897e"
   },
   "web.colonel.multipleSectionsInvalid": {
-    "text": "Plusieurs sections ont des erreurs de validation : {sections}",
+    "text": "Plusieurs sections présentent des erreurs de validation : {sections}",
     "source_hash": "71fdaea1"
   },
   "web.colonel.sectionHasError": {
-    "text": "{section} a des erreurs de validation : {error}",
+    "text": "{section} présente des erreurs de validation : {error}",
     "source_hash": "e5e01aa0"
   },
   "web.colonel.sectionSaved": {
-    "text": "{section} enregistré avec succès",
+    "text": "{section} enregistrée avec succès",
     "source_hash": "7be1d5d2"
   },
   "web.colonel.saveSection": {
@@ -84,15 +84,15 @@
     "source_hash": "a710c2b9"
   },
   "web.colonel.schemaValidationError": {
-    "text": "Erreur de validation du schéma : {message} ({path})",
+    "text": "Erreur de validation du schéma : {message} ({path})",
     "source_hash": "5f838cb2"
   },
   "web.colonel.unknownValidationError": {
-    "text": "Erreur de validation inconnue : {error}",
+    "text": "Erreur de validation inconnue : {error}",
     "source_hash": "b6cf56ca"
   },
   "web.colonel.sectionEffectivelyEmpty": {
-    "text": "La section {section} n'a pas de valeurs configurées",
+    "text": "La section {section} ne contient aucune valeur configurée",
     "source_hash": "efb63b77"
   },
   "web.colonel.dashboard": {
@@ -100,7 +100,7 @@
     "source_hash": "67b69646"
   },
   "web.colonel.admin": {
-    "text": "Admin",
+    "text": "Administration",
     "source_hash": "c1c224b0"
   },
   "web.colonel.activity": {
@@ -116,7 +116,7 @@
     "source_hash": "6b0cc904"
   },
   "web.colonel.usersDescription": {
-    "text": "Gérer les comptes utilisateurs et les permissions",
+    "text": "Gérer les comptes d'utilisateurs et les permissions",
     "source_hash": "6cfc012c"
   },
   "web.colonel.domains": {
@@ -148,11 +148,11 @@
     "source_hash": "9ef7d438"
   },
   "web.colonel.viewAll": {
-    "text": "Voir tout",
+    "text": "Tout afficher",
     "source_hash": "ff5573a6"
   },
   "web.colonel.activityPlaceholder": {
-    "text": "Les données d'activité seront affichées ici",
+    "text": "Les données d'activité s'afficheront ici",
     "source_hash": "aaf9e948"
   },
   "web.colonel.stats.totalSecrets": {
@@ -184,11 +184,11 @@
     "source_hash": "87cfb3ab"
   },
   "web.colonel.stats.systemHealth": {
-    "text": "Santé du système",
+    "text": "État du système",
     "source_hash": "c3d66242"
   },
   "web.colonel.stats.healthy": {
-    "text": "En bonne santé",
+    "text": "Sain",
     "source_hash": "7f1e323b"
   },
   "web.colonel.actions.viewActivity": {
@@ -204,7 +204,7 @@
     "source_hash": "9d114268"
   },
   "web.colonel.actions.manageAccountsDesc": {
-    "text": "Administration des comptes utilisateurs",
+    "text": "Administration des comptes d'utilisateurs",
     "source_hash": "d73af927"
   },
   "web.colonel.actions.configureDomains": {
@@ -216,7 +216,7 @@
     "source_hash": "1f712094"
   },
   "web.colonel.actions.systemSettings": {
-    "text": "Paramètres système",
+    "text": "Paramètres du système",
     "source_hash": "1f87f883"
   },
   "web.colonel.actions.systemSettingsDesc": {
@@ -244,7 +244,7 @@
     "source_hash": "212b350d"
   },
   "web.colonel.processingRate": {
-    "text": "Débit/sec",
+    "text": "Taux/s",
     "source_hash": "cfde439c"
   },
   "web.colonel.connectionStatus": {
@@ -252,11 +252,11 @@
     "source_hash": "3693e288"
   },
   "web.colonel.workerHealth": {
-    "text": "Santé des workers",
+    "text": "Santé des processus de travail",
     "source_hash": "52be3ac1"
   },
   "web.colonel.activeWorkers": {
-    "text": "workers actifs",
+    "text": "processus de travail actifs",
     "source_hash": "ea68cfee"
   },
   "web.colonel.noQueueData": {
@@ -264,27 +264,27 @@
     "source_hash": "331ffa6b"
   },
   "web.colonel.loadingQueueData": {
-    "text": "Chargement des données de la file d'attente...",
+    "text": "Chargement des données de file d'attente...",
     "source_hash": "a3762a00"
   },
   "web.colonel.testPlanMode": {
-    "text": "Mode test de forfait",
+    "text": "Mode forfait de test",
     "source_hash": "eba59223"
   },
   "web.colonel.testingAsPlan": {
-    "text": "Test avec {planName}",
+    "text": "Test en tant que {planName}",
     "source_hash": "b3032f1a"
   },
   "web.colonel.clickToReset": {
-    "text": "Cliquer pour réinitialiser",
+    "text": "Cliquez pour réinitialiser",
     "source_hash": "4b25034d"
   },
   "web.colonel.selectTestPlan": {
-    "text": "Sélectionner un forfait à tester",
+    "text": "Sélectionnez un forfait à tester",
     "source_hash": "9e6e12fe"
   },
   "web.colonel.resetToActual": {
-    "text": "Réinitialiser au forfait actuel",
+    "text": "Réinitialiser au forfait réel",
     "source_hash": "2cea3f92"
   },
   "web.colonel.currentActualPlan": {
@@ -308,7 +308,7 @@
     "source_hash": "be03a409"
   },
   "web.colonel.warningTestMode": {
-    "text": "Vous testez avec les droits {planName} (remplacement temporaire de session).",
+    "text": "Vous effectuez un test avec les droits du forfait {planName} (remplacement temporaire de la session).",
     "source_hash": "1a8aecf1"
   },
   "web.colonel.organizations.title": {
@@ -316,11 +316,11 @@
     "source_hash": "2730183d"
   },
   "web.colonel.organizations.description": {
-    "text": "Surveiller la synchronisation de la facturation des organisations",
+    "text": "Surveiller la santé de la synchronisation de facturation des organisations",
     "source_hash": "d8f4398b"
   },
   "web.colonel.organizations.pageTitle": {
-    "text": "Surveillance de la santé de facturation",
+    "text": "Moniteur de santé de la facturation",
     "source_hash": "9ef57da4"
   },
   "web.colonel.organizations.organizationsCount": {
@@ -352,7 +352,7 @@
     "source_hash": "a52ace42"
   },
   "web.colonel.organizations.filters.potentiallyStale": {
-    "text": "Potentiellement périmé",
+    "text": "Potentiellement obsolète",
     "source_hash": "40137b37"
   },
   "web.colonel.organizations.filters.unknown": {
@@ -368,11 +368,11 @@
     "source_hash": "92340695"
   },
   "web.colonel.organizations.filters.trialing": {
-    "text": "En période d'essai",
+    "text": "Période d'essai",
     "source_hash": "3792573d"
   },
   "web.colonel.organizations.filters.pastDue": {
-    "text": "En retard",
+    "text": "En souffrance",
     "source_hash": "2bda1c7b"
   },
   "web.colonel.organizations.filters.canceled": {
@@ -428,7 +428,7 @@
     "source_hash": "53aa279e"
   },
   "web.colonel.organizations.columns.has_billing": {
-    "text": "A une facturation",
+    "text": "Facturation active",
     "source_hash": "db0628ed"
   },
   "web.colonel.organizations.legacy.title": {
@@ -436,7 +436,7 @@
     "source_hash": "5c7e07e7"
   },
   "web.colonel.organizations.legacy.description": {
-    "text": "Gérer les organisations et surveiller l'état de synchronisation de la facturation ({total} au total)",
+    "text": "Gérer les organisations et surveiller la santé de la synchronisation de facturation ({total} au total)",
     "source_hash": "996b446d"
   },
   "web.colonel.organizations.legacy.empty": {
@@ -444,11 +444,11 @@
     "source_hash": "538995db"
   },
   "web.colonel.organizations.legacy.potentially_stale": {
-    "text": "potentiellement périmé",
+    "text": "potentiellement obsolète",
     "source_hash": "3ddfec45"
   },
   "web.colonel.organizations.status.stale": {
-    "text": "Périmé",
+    "text": "Obsolète",
     "source_hash": "40c9e59c"
   },
   "web.colonel.organizations.status.unknown": {
@@ -460,11 +460,11 @@
     "source_hash": "96879611"
   },
   "web.colonel.organizations.actions.investigate": {
-    "text": "Enquêter",
+    "text": "Examiner",
     "source_hash": "e2641093"
   },
   "web.colonel.organizations.actions.checking": {
-    "text": "Vérification en cours...",
+    "text": "Vérification...",
     "source_hash": "2e5f79bb"
   },
   "web.colonel.organizations.expanded.customer": {
@@ -476,15 +476,15 @@
     "source_hash": "4999c6c6"
   },
   "web.colonel.organizations.expanded.orgId": {
-    "text": "ID de l'org.",
+    "text": "Identifiant de l'organisation",
     "source_hash": "5e6b9932"
   },
   "web.colonel.organizations.investigation.failed": {
-    "text": "Enquête échouée",
+    "text": "Échec de l'examen",
     "source_hash": "193aa900"
   },
   "web.colonel.organizations.investigation.result": {
-    "text": "Résultat de l'enquête",
+    "text": "Résultat de l'examen",
     "source_hash": "2dbc5cc3"
   },
   "web.colonel.organizations.investigation.verifiedSynced": {
@@ -516,7 +516,7 @@
     "source_hash": "17c5b37a"
   },
   "web.colonel.organizations.investigation.priceId": {
-    "text": "ID du prix",
+    "text": "Identifiant de prix",
     "source_hash": "b39a8f3e"
   },
   "web.colonel.organizations.investigation.local": {
@@ -540,15 +540,15 @@
     "source_hash": "d8707d41"
   },
   "web.colonel.secrets.description": {
-    "text": "Voir et gérer tous les secrets",
+    "text": "Consulter et gérer tous les secrets",
     "source_hash": "48f8052e"
   },
   "web.colonel.bannedIps.title": {
-    "text": "IP bannies",
+    "text": "Adresses IP bannies",
     "source_hash": "0ece5643"
   },
   "web.colonel.bannedIps.description": {
-    "text": "Gérer la liste des IP bannies",
+    "text": "Gérer la liste des bannissements d'adresses IP",
     "source_hash": "dd0d2614"
   },
   "web.colonel.usageExport.title": {
@@ -556,7 +556,7 @@
     "source_hash": "10a0cb94"
   },
   "web.colonel.usageExport.description": {
-    "text": "Exporter les données et statistiques d'utilisation",
+    "text": "Exporter les données et les statistiques d'utilisation",
     "source_hash": "2fd0a2e2"
   },
   "web.colonel.systemSettings.title": {
@@ -576,11 +576,11 @@
     "source_hash": "808ee2cb"
   },
   "web.colonel.feedback.send_feedback": {
-    "text": "Envoyer des commentaires",
+    "text": "Envoyer le retour d'information",
     "source_hash": "8235980b"
   },
   "web.colonel.feedback.sending_ellipses": {
-    "text": "Envoi en cours...",
+    "text": "Envoi...",
     "source_hash": "286a3af7"
   },
   "web.colonel.titles.index": {
@@ -620,7 +620,7 @@
     "source_hash": "10a0cb94"
   },
   "web.colonel.titles.info": {
-    "text": "Information système",
+    "text": "Information sur le système",
     "source_hash": "8ad54ec1"
   },
   "web.colonel.titles.organizations": {
@@ -632,7 +632,203 @@
     "source_hash": "a7f64157"
   },
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
-    "text": "Lorsque vous envoyez des commentaires, nous verrons :",
+    "text": "Lorsque vous soumettez un retour d'information, nous verrons :",
     "source_hash": "fe77172e"
+  },
+  "web.colonel.previewPlanMode": {
+    "text": "Mode aperçu de forfait",
+    "source_hash": "cf53f19d"
+  },
+  "web.colonel.previewModeDescription": {
+    "text": "Prévisualisez l'application telle qu'elle apparaît aux clients sur un autre forfait. Cela n'affecte que votre vue et ne change pas le forfait réel d'aucune organisation.",
+    "source_hash": "6fe23f23"
+  },
+  "web.colonel.previewModeActive": {
+    "text": "Aperçu actif",
+    "source_hash": "a558d603"
+  },
+  "web.colonel.bannedIps.empty": {
+    "text": "Aucune adresse IP bannie",
+    "source_hash": "bd101143"
+  },
+  "web.colonel.bannedIps.currentIp": {
+    "text": "Votre adresse IP actuelle",
+    "source_hash": "72f9fefe"
+  },
+  "web.colonel.bannedIps.confirmUnban": {
+    "text": "Annuler le bannissement de {ip} ?",
+    "source_hash": "ff009b1c"
+  },
+  "web.colonel.bannedIps.actions.ban": {
+    "text": "Bannir l'adresse IP",
+    "source_hash": "f91a5285"
+  },
+  "web.colonel.bannedIps.actions.quickBan": {
+    "text": "Bannissement rapide",
+    "source_hash": "c32d0943"
+  },
+  "web.colonel.bannedIps.actions.unban": {
+    "text": "Annuler le bannissement",
+    "source_hash": "25fb5989"
+  },
+  "web.colonel.bannedIps.actions.cancel": {
+    "text": "Annuler",
+    "source_hash": "19766ed6"
+  },
+  "web.colonel.bannedIps.columns.ipAddress": {
+    "text": "Adresse IP",
+    "source_hash": "3c3de0c9"
+  },
+  "web.colonel.bannedIps.columns.reason": {
+    "text": "Raison",
+    "source_hash": "f81ab834"
+  },
+  "web.colonel.bannedIps.columns.bannedAt": {
+    "text": "Banni le",
+    "source_hash": "dfbd120e"
+  },
+  "web.colonel.bannedIps.columns.bannedBy": {
+    "text": "Banni par",
+    "source_hash": "9f47db0e"
+  },
+  "web.colonel.bannedIps.error.banFailed": {
+    "text": "Échec du bannissement de l'adresse IP",
+    "source_hash": "24e94d9b"
+  },
+  "web.colonel.bannedIps.error.unbanFailed": {
+    "text": "Échec de l'annulation du bannissement de l'adresse IP",
+    "source_hash": "66bbac9a"
+  },
+  "web.colonel.bannedIps.form.title": {
+    "text": "Bannir l'adresse IP",
+    "source_hash": "3f5b3dfa"
+  },
+  "web.colonel.bannedIps.form.ipLabel": {
+    "text": "Adresse IP",
+    "source_hash": "3c3de0c9"
+  },
+  "web.colonel.bannedIps.form.reasonLabel": {
+    "text": "Raison",
+    "source_hash": "f81ab834"
+  },
+  "web.colonel.bannedIps.form.reasonPlaceholder": {
+    "text": "Raison facultative",
+    "source_hash": "956688a5"
+  },
+  "web.colonel.bannedIps.success.banned": {
+    "text": "L'adresse IP {ip} a été bannie",
+    "source_hash": "b6f861d5"
+  },
+  "web.colonel.bannedIps.success.unbanned": {
+    "text": "Le bannissement de l'adresse IP {ip} a été annulé",
+    "source_hash": "dbe93550"
+  },
+  "web.colonel.customDomains.empty": {
+    "text": "Aucun domaine personnalisé configuré",
+    "source_hash": "e10b39f7"
+  },
+  "web.colonel.customDomains.noLogo": {
+    "text": "Aucun logo",
+    "source_hash": "ee5e36ff"
+  },
+  "web.colonel.customDomains.labels.organization": {
+    "text": "Organisation",
+    "source_hash": "d764d425"
+  },
+  "web.colonel.customDomains.labels.externalId": {
+    "text": "Identifiant externe",
+    "source_hash": "69da56ba"
+  },
+  "web.colonel.customDomains.labels.created": {
+    "text": "Créé",
+    "source_hash": "d70b9e24"
+  },
+  "web.colonel.customDomains.labels.updated": {
+    "text": "Mis à jour",
+    "source_hash": "3a5ecca1"
+  },
+  "web.colonel.customDomains.labels.favicon": {
+    "text": "Favicon",
+    "source_hash": "42955289"
+  },
+  "web.colonel.customDomains.status.verified": {
+    "text": "Vérifié",
+    "source_hash": "4f783840"
+  },
+  "web.colonel.customDomains.status.resolving": {
+    "text": "Résolution en cours",
+    "source_hash": "3287a034"
+  },
+  "web.colonel.customDomains.status.ready": {
+    "text": "Prêt",
+    "source_hash": "5fa7aac5"
+  },
+  "web.colonel.customDomains.status.publicHomepage": {
+    "text": "Page d'accueil publique",
+    "source_hash": "2ae3ccba"
+  },
+  "web.colonel.customDomains.status.publicApi": {
+    "text": "API publique",
+    "source_hash": "ab3aa426"
+  },
+  "web.colonel.customDomains.status.pending": {
+    "text": "En attente",
+    "source_hash": "331551b0"
+  },
+  "web.colonel.pagination.showing": {
+    "text": "Affichage de {start}–{end} sur {total}",
+    "source_hash": "64af6de2"
+  },
+  "web.colonel.pagination.itemsPerPage": {
+    "text": "Éléments par page",
+    "source_hash": "766a02e0"
+  },
+  "web.colonel.pagination.perPage": {
+    "text": "{count} par page",
+    "source_hash": "34671d42"
+  },
+  "web.colonel.pagination.pageOf": {
+    "text": "Page {current} sur {total}",
+    "source_hash": "f0df6412"
+  },
+  "web.colonel.secrets.empty": {
+    "text": "Aucun secret trouvé",
+    "source_hash": "28647b3b"
+  },
+  "web.colonel.secrets.never": {
+    "text": "Jamais",
+    "source_hash": "6300ef80"
+  },
+  "web.colonel.secrets.columns.shortId": {
+    "text": "ID court",
+    "source_hash": "7eaeb4a7"
+  },
+  "web.colonel.secrets.columns.state": {
+    "text": "État",
+    "source_hash": "a3b50c47"
+  },
+  "web.colonel.secrets.columns.created": {
+    "text": "Créé",
+    "source_hash": "d70b9e24"
+  },
+  "web.colonel.secrets.columns.expiration": {
+    "text": "Expiration",
+    "source_hash": "f38d6e0e"
+  },
+  "web.colonel.secrets.columns.age": {
+    "text": "Âge (jours)",
+    "source_hash": "52ae64c6"
+  },
+  "web.colonel.secrets.state.new": {
+    "text": "Nouveau",
+    "source_hash": "18fdd549"
+  },
+  "web.colonel.secrets.state.received": {
+    "text": "Reçu",
+    "source_hash": "49f19bee"
+  },
+  "web.colonel.secrets.state.viewed": {
+    "text": "Consulté",
+    "source_hash": "1b28d178"
   }
 }

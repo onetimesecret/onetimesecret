@@ -1,14 +1,14 @@
 {
   "web.login.alternate_prefix": {
-    "text": "Besoin d'un compte ?",
+    "text": "Besoin d'un compte ?",
     "source_hash": "8b827e19"
   },
   "web.login.need_an_account": {
-    "text": "S'inscrire.",
+    "text": "Inscrivez-vous.",
     "source_hash": "10647723"
   },
   "web.login.forgot_your_password": {
-    "text": "Mot de passe oublié ?",
+    "text": "Vous avez oublié votre mot de passe ?",
     "source_hash": "afd25fdf"
   },
   "web.login.button_sign_in": {
@@ -28,7 +28,7 @@
     "source_hash": "b1402b67"
   },
   "web.login.secure_link_helper": {
-    "text": "Un lien sécurisé sera envoyé à votre boîte de courriel.",
+    "text": "Un lien sécurisé sera envoyé dans votre boîte de réception.",
     "source_hash": "d31d20cf"
   },
   "web.login.or_divider": {
@@ -64,7 +64,7 @@
     "source_hash": "904c9aa9"
   },
   "web.login.need_help": {
-    "text": "Besoin d'aide ?",
+    "text": "Besoin d'aide ?",
     "source_hash": "c225cdfb"
   },
   "web.login.or_continue_with": {
@@ -72,7 +72,7 @@
     "source_hash": "eb4e8d3b"
   },
   "web.login.sign_in_with_sso": {
-    "text": "Se connecter avec SSO",
+    "text": "Se connecter avec le SSO",
     "source_hash": "73e984e9"
   },
   "web.login.sign_in_with_provider": {
@@ -88,7 +88,7 @@
     "source_hash": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
-    "text": "L'authentification SSO a échoué. Veuillez réessayer ou utiliser la connexion par mot de passe.",
+    "text": "Échec de l'authentification SSO. Veuillez réessayer ou utiliser la connexion par mot de passe.",
     "source_hash": "13a2210a"
   },
   "web.login.errors.token_missing": {
@@ -100,15 +100,15 @@
     "source_hash": "f0de42ec"
   },
   "web.login.errors.token_invalid": {
-    "text": "Ce lien de connexion n'est pas valide. Veuillez en demander un nouveau.",
+    "text": "Ce lien de connexion est invalide. Veuillez en demander un nouveau.",
     "source_hash": "270c6401"
   },
   "web.signup.create_your_account": {
-    "text": "Créer votre compte",
+    "text": "Créez votre compte",
     "source_hash": "5f4c33d7"
   },
   "web.signup.alternate_prefix": {
-    "text": "Vous avez déjà un compte ?",
+    "text": "Vous avez déjà un compte ?",
     "source_hash": "f5dcb5d5"
   },
   "web.signup.have_an_account": {
@@ -116,7 +116,7 @@
     "source_hash": "6c52846f"
   },
   "web.signup.error_title": {
-    "text": "Erreur de création de compte",
+    "text": "Erreur de création du compte",
     "source_hash": "e380a0b6"
   },
   "web.signup.password_error": {
@@ -131,7 +131,7 @@
     "context": "Email verification flow after signup"
   },
   "web.auth.verify.title": {
-    "text": "Vérifier votre compte",
+    "text": "Vérifiez votre compte",
     "source_hash": "3e2303ab"
   },
   "web.auth.verify.success": {
@@ -147,19 +147,19 @@
     "source_hash": "ee3ed5d2"
   },
   "web.auth.verify.already_verified": {
-    "text": "Ce compte a déjà été vérifié. Vous pouvez maintenant vous connecter.",
+    "text": "Ce compte a déjà été vérifié. Vous pouvez vous connecter maintenant.",
     "source_hash": "cec1312b"
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "Impossible de vérifier le compte. Veuillez réessayer ou contacter le soutien.",
+    "text": "Impossible de vérifier le compte. Veuillez réessayer ou communiquer avec le soutien.",
     "source_hash": "c0df463f"
   },
   "web.auth.verify.check_email": {
-    "text": "Veuillez vérifier votre courriel pour obtenir un lien de vérification",
+    "text": "Veuillez vérifier votre courriel pour y trouver un lien de vérification",
     "source_hash": "79ffefd8"
   },
   "web.auth.verify.error": {
-    "text": "La vérification du compte a échoué. Veuillez vérifier votre lien de vérification ou en demander un nouveau.",
+    "text": "Échec de la vérification du compte. Veuillez vérifier votre lien de vérification ou en demander un nouveau.",
     "source_hash": "7aac4a45"
   },
   "web.auth.verify.error_title": {
@@ -167,19 +167,19 @@
     "source_hash": "cb3a722b"
   },
   "web.auth.verify.what_to_do": {
-    "text": "Que dois-je faire ?",
+    "text": "Que dois-je faire ?",
     "source_hash": "00eeea79"
   },
   "web.auth.verify.check_email_help": {
-    "text": "Vérifiez votre courriel pour obtenir le lien de vérification le plus récent",
+    "text": "Vérifiez votre courriel pour y trouver le lien de vérification le plus récent",
     "source_hash": "1c4a5748"
   },
   "web.auth.verify.check_spam": {
-    "text": "Vérifiez votre dossier de courrier indésirable si vous ne trouvez pas le courriel",
+    "text": "Vérifiez votre dossier de pourriels si vous ne trouvez pas le courriel",
     "source_hash": "ae481e5e"
   },
   "web.auth.verify.contact_support": {
-    "text": "Contactez le soutien si vous continuez à éprouver des difficultés",
+    "text": "Communiquez avec le soutien si vous continuez d'avoir des problèmes",
     "source_hash": "c0067275"
   },
   "web.auth.verify.missing_key_title": {
@@ -195,7 +195,7 @@
     "source_hash": "0e24ec84"
   },
   "web.auth.change_password.title": {
-    "text": "Modifier le mot de passe",
+    "text": "Changer le mot de passe",
     "source_hash": "a949f462"
   },
   "web.auth.change_password.current_password": {
@@ -215,7 +215,7 @@
     "source_hash": "01103d45"
   },
   "web.auth.change_password.error": {
-    "text": "La modification du mot de passe a échoué. Veuillez vérifier votre mot de passe actuel et réessayer.",
+    "text": "Échec du changement de mot de passe. Veuillez vérifier votre mot de passe actuel et réessayer.",
     "source_hash": "1aa11b3f"
   },
   "web.auth.close_account.title": {
@@ -255,12 +255,12 @@
     "source_hash": "7d5f16d4"
   },
   "web.auth.password_reset.title": {
-    "text": "Choisir un nouveau mot de passe",
+    "text": "Choisissez un nouveau mot de passe",
     "context": "Password reset request flow - user requests a reset link",
     "source_hash": "3dfdf7c4"
   },
   "web.auth.password_reset.description": {
-    "text": "Veuillez entrer votre nouveau mot de passe ci-dessous. Assurez-vous qu'il est fort et unique pour protéger votre compte.",
+    "text": "Veuillez entrer votre nouveau mot de passe ci-dessous. Assurez-vous qu'il soit robuste et unique pour protéger votre compte.",
     "source_hash": "5c789083"
   },
   "web.auth.passwordReset.emailSent": {
@@ -272,7 +272,7 @@
     "source_hash": "26a58d00"
   },
   "web.auth.account.title": {
-    "text": "Informations du compte",
+    "text": "Information du compte",
     "context": "User account overview/dashboard section",
     "source_hash": "4e59b6c7"
   },
@@ -349,11 +349,11 @@
     "source_hash": "a9a88a01"
   },
   "web.help.magic_link_not_arriving": {
-    "text": "Le lien magique n'arrive pas ?",
+    "text": "Le lien magique n'arrive pas ?",
     "source_hash": "6919ce70"
   },
   "web.help.check_spam_folder": {
-    "text": "Vérifiez votre dossier de courrier indésirable",
+    "text": "Vérifiez votre dossier de pourriels ou de courrier indésirable",
     "source_hash": "813fe2d8"
   },
   "web.help.check_email_spelling": {
@@ -361,7 +361,7 @@
     "source_hash": "5f319557"
   },
   "web.help.wait_few_minutes": {
-    "text": "Attendez quelques minutes – les courriels peuvent parfois être retardés",
+    "text": "Attendez quelques minutes - les courriels peuvent parfois être retardés",
     "source_hash": "884fc272"
   },
   "web.help.try_again": {
@@ -369,23 +369,23 @@
     "source_hash": "68109f96"
   },
   "web.help.forgot_password": {
-    "text": "Mot de passe oublié ?",
+    "text": "Vous avez oublié votre mot de passe ?",
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Utilisez l'option Lien magique pour vous connecter sans mot de passe. Une fois connecté, vous pourrez modifier votre mot de passe dans les Paramètres du compte.",
+    "text": "Vous pouvez demander un lien de réinitialisation de mot de passe pour créer un nouveau mot de passe.",
     "source_hash": "2a058600"
   },
   "web.help.account_locked": {
-    "text": "Compte temporairement verrouillé ?",
+    "text": "Compte temporairement verrouillé ?",
     "source_hash": "ef1251c1"
   },
   "web.help.account_locked_explanation": {
-    "text": "Après plusieurs tentatives de connexion échouées, les comptes sont temporairement verrouillés pour des raisons de sécurité. Attendez 15 minutes et réessayez, ou utilisez le Lien magique pour vous connecter.",
+    "text": "Après plusieurs tentatives de connexion échouées, les comptes sont temporairement verrouillés pour des raisons de sécurité. Attendez 15 minutes et réessayez, ou utilisez le lien magique pour vous connecter.",
     "source_hash": "4b2cf891"
   },
   "web.help.still_need_help": {
-    "text": "Besoin d'aide supplémentaire ?",
+    "text": "Vous avez encore besoin d'aide ?",
     "source_hash": "5ff7d19e"
   },
   "web.help.contact_us_description": {
@@ -393,10 +393,38 @@
     "source_hash": "d97c90fe"
   },
   "web.help.contact_support": {
-    "text": "Contacter le soutien",
+    "text": "Communiquer avec le soutien",
     "source_hash": "f8d47b82"
   },
   "web.auth.verify._guidance.context": {
-    "text": "Processus de vérification par courriel après l'inscription"
+    "text": "Email verification flow after signup"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "Compte SSO",
+    "source_hash": "b8f4c728"
+  },
+  "web.help.reset_password_link": {
+    "text": "Réinitialiser le mot de passe",
+    "source_hash": "e0edfeb3"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "L'authentification unique est disponible pour ce domaine",
+    "source_hash": "af87d51e"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "L'administrateur de l'organisation peut activer le SSO pour permettre aux membres de l'équipe de se connecter ici. Communiquez avec l'administrateur pour obtenir l'accès.",
+    "source_hash": "f3726509"
+  },
+  "web.login.errors.sso_not_configured": {
+    "text": "L'authentification unique n'est pas configurée pour ce domaine. Veuillez communiquer avec votre administrateur.",
+    "source_hash": "b39ef93e"
+  },
+  "web.login.errors.invalid_email": {
+    "text": "L'adresse courriel provenant de votre fournisseur d'identité est invalide. Veuillez communiquer avec votre administrateur.",
+    "source_hash": "10c12029"
+  },
+  "web.login.errors.domain_not_allowed": {
+    "text": "Votre domaine de courriel n'est pas autorisé pour l'inscription par SSO. Veuillez communiquer avec votre administrateur.",
+    "source_hash": "87603782"
   }
 }

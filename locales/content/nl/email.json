@@ -25,7 +25,7 @@
     "source_hash": "496d6960"
   },
   "email.secret_link.link_works_once": {
-    "text": "Deze link werkt maar één keer. Na het bekijken wordt het bericht permanent verwijderd.",
+    "text": "Deze link werkt slechts één keer. Na het bekijken wordt het bericht permanent verwijderd.",
     "renderer": "erb",
     "source_hash": "fecaf0a1"
   },
@@ -35,7 +35,7 @@
     "source_hash": "d01479b3"
   },
   "email.welcome.subject": {
-    "text": "Welkom bij %{product_name} - Verifieer alsjeblieft je e-mail",
+    "text": "Welkom bij %{product_name} - Verifieer je e-mailadres",
     "renderer": "erb",
     "source_hash": "96008c17"
   },
@@ -70,22 +70,22 @@
     "source_hash": "05709148"
   },
   "email.password_request.subject": {
-    "text": "Reset je wachtwoord (%{display_domain})",
+    "text": "Stel je wachtwoord opnieuw in (%{display_domain})",
     "renderer": "erb",
     "source_hash": "a9882af1"
   },
   "email.password_request.title": {
-    "text": "Reset je wachtwoord",
+    "text": "Stel je wachtwoord opnieuw in",
     "renderer": "erb",
     "source_hash": "0568c7b0"
   },
   "email.password_request.request_notice": {
-    "text": "We hebben een verzoek ontvangen om je wachtwoord te resetten voor %{product_name}.",
+    "text": "We hebben een verzoek ontvangen om je wachtwoord voor %{product_name} opnieuw in te stellen.",
     "renderer": "erb",
     "source_hash": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
-    "text": "Wachtwoord resetten",
+    "text": "Wachtwoord opnieuw instellen",
     "renderer": "erb",
     "source_hash": "4e70f1fd"
   },
@@ -95,7 +95,7 @@
     "source_hash": "88c72144"
   },
   "email.password_request.ignore_notice": {
-    "text": "Als je geen wachtwoordreset hebt aangevraagd, kun je deze e-mail veilig negeren.",
+    "text": "Als je geen wachtwoordherstel hebt aangevraagd, kun je deze e-mail veilig negeren.",
     "renderer": "erb",
     "source_hash": "fbb7eb2d"
   },
@@ -115,7 +115,7 @@
     "source_hash": "2967293e"
   },
   "email.magic_link.title": {
-    "text": "Inloggen met magische link",
+    "text": "Inloggen met magic link",
     "renderer": "erb",
     "source_hash": "0b84879b"
   },
@@ -185,12 +185,12 @@
     "source_hash": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "Deze link werkt maar één keer. Na het bekijken wordt het bericht permanent verwijderd.",
+    "text": "Deze link werkt slechts één keer. Na het bekijken wordt het bericht permanent verwijderd.",
     "renderer": "erb",
     "source_hash": "fecaf0a1"
   },
   "email.incoming_secret.passphrase_required": {
-    "text": "Dit bericht is beveiligd met een wachtwoordzin. De afzender moet deze apart aan je doorgeven.",
+    "text": "Dit bericht is beveiligd met een wachtwoordzin. De afzender hoort deze apart aan je te verstrekken.",
     "renderer": "erb",
     "source_hash": "1e49826b"
   },
@@ -265,7 +265,7 @@
     "source_hash": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "Na verlopen wordt het bericht permanent verwijderd en kan het niet worden hersteld.",
+    "text": "Na het verlopen wordt het bericht permanent verwijderd en kan het niet worden hersteld.",
     "renderer": "erb",
     "source_hash": "deb92a01"
   },
@@ -275,12 +275,12 @@
     "source_hash": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "Bekijk het voordat het verdwijnt:",
+    "text": "Bekijk het voordat het weg is:",
     "renderer": "erb",
     "source_hash": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "Na verlopen wordt het bericht permanent verwijderd.",
+    "text": "Na het verlopen wordt het bericht permanent verwijderd.",
     "renderer": "erb",
     "source_hash": "bd0a9bee"
   },
@@ -320,17 +320,17 @@
     "source_hash": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
-    "text": "Je bent uitgenodigd om deel te nemen aan %{organization_name}",
+    "text": "Je bent uitgenodigd om lid te worden van %{organization_name}",
     "renderer": "erb",
     "source_hash": "58591e00"
   },
   "email.organization_invitation.title": {
-    "text": "Je bent uitgenodigd om deel te nemen aan %{organization_name}!",
+    "text": "Je bent uitgenodigd om lid te worden van %{organization_name}!",
     "renderer": "erb",
     "source_hash": "19548dfd"
   },
   "email.organization_invitation.body": {
-    "text": "%{inviter_email} heeft je uitgenodigd om deel te nemen aan \"%{organization_name}\" als %{role_description}.",
+    "text": "%{inviter_email} heeft je uitgenodigd om lid te worden van \"%{organization_name}\" als %{role_description}.",
     "renderer": "erb",
     "source_hash": "e4d3fb65"
   },
@@ -350,7 +350,7 @@
     "source_hash": "dabc54d5"
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "Als je niet wilt deelnemen, kun je deze e-mail gewoon negeren of de uitnodiging afwijzen.",
+    "text": "Als je geen lid wilt worden, kun je deze e-mail gewoon negeren of de uitnodiging afwijzen.",
     "renderer": "erb",
     "source_hash": "734882d2"
   },
@@ -365,12 +365,12 @@
     "source_hash": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
-    "text": "een lid",
+    "text": "lid",
     "renderer": "erb",
     "source_hash": "efdef688"
   },
   "email.organization_invitation.roles.admin": {
-    "text": "een beheerder",
+    "text": "beheerder",
     "renderer": "erb",
     "source_hash": "603fd5c3"
   },
@@ -385,12 +385,12 @@
     "source_hash": "adb1f471"
   },
   "email.password_changed.body": {
-    "text": "Je wachtwoord voor %{product_name} is gewijzigd op %{date} om %{time}.",
+    "text": "Je wachtwoord voor %{product_name} is op %{date} om %{time} gewijzigd.",
     "renderer": "erb",
     "source_hash": "21f5117c"
   },
   "email.password_changed.security_notice": {
-    "text": "Als je deze wijziging niet hebt aangebracht, beveilig dan onmiddellijk je account door je wachtwoord te resetten en contact op te nemen met de ondersteuning.",
+    "text": "Als je deze wijziging niet hebt aangebracht, beveilig je account dan onmiddellijk door je wachtwoord opnieuw in te stellen en contact op te nemen met support.",
     "renderer": "erb",
     "source_hash": "be92cff3"
   },
@@ -410,12 +410,12 @@
     "source_hash": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "Het e-mailadres voor je %{product_name}-account is gewijzigd naar %{new_email_masked} op %{date}.",
+    "text": "Het e-mailadres voor je %{product_name}-account is gewijzigd naar %{new_email_masked}.",
     "renderer": "erb",
     "source_hash": "6f3419d1"
   },
   "email.email_changed.security_notice": {
-    "text": "Als je deze wijziging niet hebt aangebracht, neem dan onmiddellijk contact op met de ondersteuning, omdat je account mogelijk is gehackt.",
+    "text": "Als je deze wijziging niet hebt aangebracht, neem dan onmiddellijk contact op met support, want je account is mogelijk gecompromitteerd.",
     "renderer": "erb",
     "source_hash": "f505b562"
   },
@@ -435,7 +435,7 @@
     "source_hash": "f4a9cdda"
   },
   "email.email_changed.if_you_initiated": {
-    "text": "Als je deze wijziging hebt aangebracht, hoef je verder niets te doen.",
+    "text": "Als je deze wijziging hebt aangebracht, is er geen verdere actie vereist.",
     "renderer": "erb",
     "source_hash": "5cb54887"
   },
@@ -455,7 +455,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_changed.postscript": {
-    "text": "P.S. Deze e-mail is verzonden naar %{email_address} om je te informeren over een wijziging van je e-mailadres.",
+    "text": "P.S. Deze e-mail is verzonden naar %{email_address} om je op de hoogte te stellen van een wijziging van het e-mailadres.",
     "renderer": "erb",
     "source_hash": "475cae37"
   },
@@ -470,7 +470,7 @@
     "source_hash": "704cbdca"
   },
   "email.email_change_requested.change_notice": {
-    "text": "Er is een verzoek ingediend om het e-mailadres van je %{product_name}-account te wijzigen.",
+    "text": "Er is een verzoek gedaan om het e-mailadres van je %{product_name}-account te wijzigen.",
     "renderer": "erb",
     "source_hash": "d7e39154"
   },
@@ -485,7 +485,7 @@
     "source_hash": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "Als je dit verzoek hebt gedaan, controleer dan je nieuwe e-mailadres voor een bevestigingslink. Er zijn nog geen wijzigingen doorgevoerd.",
+    "text": "Als je dit verzoek hebt gedaan, controleer dan je nieuwe e-mail voor een bevestigingslink. Er zijn nog geen wijzigingen aangebracht.",
     "renderer": "erb",
     "source_hash": "aa1bf526"
   },
@@ -495,7 +495,7 @@
     "source_hash": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
-    "text": "Neem contact op met support",
+    "text": "Contact opnemen met support",
     "renderer": "erb",
     "source_hash": "f8d47b82"
   },
@@ -505,7 +505,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_requested.postscript": {
-    "text": "P.S. Deze e-mail is verzonden naar %{email_address} omdat er een e-mailwijziging is aangevraagd voor je account.",
+    "text": "P.S. Deze e-mail is verzonden naar %{email_address} omdat er een e-mailwijziging voor je account is aangevraagd.",
     "renderer": "erb",
     "source_hash": "500e085e"
   },
@@ -535,7 +535,7 @@
     "source_hash": "33277e1b"
   },
   "email.email_change_confirmation.confirm_button": {
-    "text": "E-mailadres wijzigen bevestigen",
+    "text": "E-mailwijziging bevestigen",
     "renderer": "erb",
     "source_hash": "c2736949"
   },
@@ -560,7 +560,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_confirmation.postscript": {
-    "text": "P.S. Deze e-mail is verzonden naar %{email_address} om een wijziging van je e-mailadres te bevestigen.",
+    "text": "P.S. Deze e-mail is verzonden naar %{email_address} om een wijziging van e-mailadres te bevestigen.",
     "renderer": "erb",
     "source_hash": "b72f557c"
   },
@@ -575,12 +575,12 @@
     "source_hash": "2398ed9e"
   },
   "email.mfa_enabled.body": {
-    "text": "Tweefactorauthenticatie is ingeschakeld voor je %{product_name}-account op %{date}.",
+    "text": "Tweefactorauthenticatie is op %{date} ingeschakeld voor je %{product_name}-account.",
     "renderer": "erb",
     "source_hash": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
-    "text": "Je account is nu veiliger. Je moet een verificatiecode van je authenticator-app invoeren bij het inloggen.",
+    "text": "Je account is nu beter beveiligd. Je moet bij het inloggen een verificatiecode uit je authenticator-app invoeren.",
     "renderer": "erb",
     "source_hash": "e7c11bb0"
   },
@@ -600,12 +600,12 @@
     "source_hash": "372d577a"
   },
   "email.mfa_disabled.body": {
-    "text": "Tweefactorauthenticatie is uitgeschakeld voor je %{product_name}-account op %{date}.",
+    "text": "Tweefactorauthenticatie is op %{date} uitgeschakeld voor je %{product_name}-account.",
     "renderer": "erb",
     "source_hash": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "Je account is nu minder veilig. Als je deze wijziging niet hebt aangebracht, beveilig dan onmiddellijk je account.",
+    "text": "Je account is nu minder beveiligd. Als je deze wijziging niet hebt aangebracht, beveilig je account dan onmiddellijk.",
     "renderer": "erb",
     "source_hash": "97ef0a3e"
   },
@@ -625,7 +625,7 @@
     "source_hash": "61172ee4"
   },
   "email.new_login_alert.body": {
-    "text": "Er is een nieuwe aanmelding bij je %{product_name}-account gedetecteerd op %{date} om %{time}.",
+    "text": "Er is op %{date} om %{time} een nieuwe aanmelding bij je %{product_name}-account gedetecteerd.",
     "renderer": "erb",
     "source_hash": "040f8f48"
   },
@@ -645,7 +645,7 @@
     "source_hash": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "Als jij dit niet was, is je account mogelijk gehackt.",
+    "text": "Als jij dit niet was, is je account mogelijk gecompromitteerd.",
     "renderer": "erb",
     "source_hash": "e2f819c9"
   },
@@ -790,12 +790,12 @@
     "source_hash": "82114f95"
   },
   "email.trial_expiring.title": {
-    "text": "Je proefperiode loopt bijna af",
+    "text": "Je proefperiode eindigt binnenkort",
     "renderer": "erb",
     "source_hash": "36200518"
   },
   "email.trial_expiring.body": {
-    "text": "Je gratis proefperiode van %{product_name} verloopt over %{days_remaining} dagen. Upgrade nu om toegang te behouden tot alle functies.",
+    "text": "Je gratis proefperiode van %{product_name} verloopt over %{days_remaining} dagen. Upgrade nu om toegang tot alle functies te behouden.",
     "renderer": "erb",
     "source_hash": "17fc32dd"
   },
@@ -845,12 +845,12 @@
     "source_hash": "11dfba8f"
   },
   "email.common.unsubscribe": {
-    "text": "Uitschrijven",
+    "text": "Afmelden",
     "renderer": "erb",
     "source_hash": "3e92efb7"
   },
   "email.common.view_in_browser": {
-    "text": "Bekijk in browser",
+    "text": "Bekijken in browser",
     "renderer": "erb",
     "source_hash": "be843876"
   },
@@ -858,5 +858,45 @@
     "text": "Onetime Secret",
     "renderer": "erb",
     "source_hash": "1cd0194a"
+  },
+  "email.common.secret_link_label": {
+    "text": "Beveiligde link",
+    "source_hash": "18ddf44f"
+  },
+  "email.common.automated_notice": {
+    "text": "Dit is een automatisch bericht van %{product_name}.",
+    "source_hash": "8fbabfba"
+  },
+  "email.expiration_warning.footer_note": {
+    "text": "Je ontvangt dit omdat een bericht dat je op %{product_name} hebt aangemaakt bijna verloopt.",
+    "source_hash": "920779e4"
+  },
+  "email.feedback_email.user_id_label": {
+    "text": "Gebruiker:",
+    "source_hash": "93d6b3e9"
+  },
+  "email.feedback_email.timezone_label": {
+    "text": "Tijdzone:",
+    "source_hash": "39651ebf"
+  },
+  "email.feedback_email.version_label": {
+    "text": "Versie:",
+    "source_hash": "4c5726ee"
+  },
+  "email.incoming_secret.footer_note": {
+    "text": "Je ontvangt dit omdat iemand %{product_name} heeft gebruikt om je een bericht te sturen. Als je dit niet verwachtte, kun je deze e-mail veilig negeren.",
+    "source_hash": "91ee6e8d"
+  },
+  "email.secret_link.passphrase_label": {
+    "text": "Wachtwoordzin vereist:",
+    "source_hash": "1ab9a20f"
+  },
+  "email.secret_link.passphrase_required": {
+    "text": "Dit bericht is beveiligd met een wachtwoordzin. De afzender hoort deze apart aan je te verstrekken.",
+    "source_hash": "1e49826b"
+  },
+  "email.secret_link.footer_note": {
+    "text": "Je ontvangt dit omdat %{sender_email} %{product_name} heeft gebruikt om een bericht met je te delen. Als je dit niet verwachtte, kun je deze e-mail veilig negeren.",
+    "source_hash": "2d544dad"
   }
 }

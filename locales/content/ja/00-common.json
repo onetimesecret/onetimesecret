@@ -5,15 +5,15 @@
     "note": "empty source"
   },
   "web.COMMON.tagline": {
-    "text": "一度しか使えないセキュアなリンク",
+    "text": "1回限り使えるセキュアなリンク",
     "source_hash": "9da7aece"
   },
   "web.COMMON.powered_by": {
-    "text": "Powered by",
+    "text": "提供:",
     "source_hash": "fdc5d2e9"
   },
   "web.COMMON.website_url": {
-    "text": "https://onetimesecret.com/ja",
+    "text": "https://onetimesecret.com/en",
     "source_hash": "440f5303"
   },
   "web.COMMON.button_generate_secret_short": {
@@ -21,7 +21,7 @@
     "source_hash": "fdcbfcc7"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "フォームが有効な場合、パスワード生成は無効になります",
+    "text": "フォームが有効な場合、パスワードの生成は無効になります",
     "source_hash": "dc0e2b8c"
   },
   "web.COMMON.email_placeholder": {
@@ -29,7 +29,7 @@
     "source_hash": "f2350739"
   },
   "web.COMMON.password_placeholder": {
-    "text": "パスワードを入力",
+    "text": "パスワードを入力してください",
     "source_hash": "c06bf967"
   },
   "web.COMMON.custom_domains_title": {
@@ -37,15 +37,15 @@
     "source_hash": "6170ab94"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "独自のブランドシークレットリンクで、つながりを強化し信頼を築きましょう。",
+    "text": "独自のブランドを冠したシークレットリンクで、つながりを強化し信頼を築きましょう。",
     "source_hash": "71fddc05"
   },
   "web.COMMON.get_started_button": {
-    "text": "はじめる",
+    "text": "始める",
     "source_hash": "983f3110"
   },
   "web.COMMON.confirm_password_placeholder": {
-    "text": "パスワードを再入力",
+    "text": "パスワードを再入力してください",
     "source_hash": "bfd8c343"
   },
   "web.COMMON.header_settings": {
@@ -65,7 +65,7 @@
     "source_hash": "f40a853e"
   },
   "web.COMMON.description": {
-    "text": "チャットログやメールに機密情報を残さないでください。一度しか利用できないシークレットリンクを共有しましょう。",
+    "text": "機密情報をチャットログやメールから切り離しましょう。1回限り利用できるシークレットリンクを共有します。",
     "source_hash": "4c895f85"
   },
   "web.COMMON.incorrect_passphrase": {
@@ -73,7 +73,7 @@
     "source_hash": "a55f9636"
   },
   "web.COMMON.keywords": {
-    "text": "シークレット,パスワード生成,シークレット共有,ワンタイム",
+    "text": "シークレット,パスワード生成,シークレットを共有,onetime",
     "source_hash": "52728258"
   },
   "web.COMMON.button_create_secret": {
@@ -93,15 +93,15 @@
     "source_hash": "e7611f05"
   },
   "web.COMMON.secret_passphrase_hint": {
-    "text": "推測されにくい単語やフレーズ",
+    "text": "推測されにくい単語またはフレーズ",
     "source_hash": "29d0cf13"
   },
   "web.COMMON.secret_recipient_address": {
-    "text": "受信者のアドレス",
+    "text": "受信者アドレス",
     "source_hash": "f6f6311d"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "シークレットの内容をここに入力...",
+    "text": "ここにシークレットの内容を入力...",
     "source_hash": "54630bab"
   },
   "web.COMMON.header_create_account": {
@@ -113,7 +113,7 @@
     "source_hash": "4efca0d1"
   },
   "web.COMMON.header_sign_in": {
-    "text": "ログイン",
+    "text": "サインイン",
     "source_hash": "bcc0bcc9"
   },
   "web.COMMON.header_dashboard": {
@@ -125,7 +125,7 @@
     "source_hash": "d0527e4b"
   },
   "web.COMMON.secret": {
-    "text": "シークレット",
+    "text": "シークレット | シークレット",
     "source_hash": "c7ebd045"
   },
   "web.COMMON.recent": {
@@ -161,15 +161,15 @@
     "source_hash": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "シークレットを削除すると、閲覧される前に消去されます(クリックして確認)",
+    "text": "シークレットを削除すると、閲覧される前に破棄されます（クリックして確認）",
     "source_hash": "c6a8b145"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "シークレットの削除は取り消すことができません",
+    "text": "シークレットの削除は永久的で、元に戻すことはできません",
     "source_hash": "ab774967"
   },
   "web.COMMON.msg_check_email": {
-    "text": "メールを確認してください",
+    "text": "メールをご確認ください",
     "source_hash": "77322879"
   },
   "web.COMMON.click_to_continue": {
@@ -177,7 +177,7 @@
     "source_hash": "41658f99"
   },
   "web.COMMON.click_to_verify": {
-    "text": "続けてアカウントを認証:",
+    "text": "続けてアカウントを確認してください:",
     "source_hash": "954d6fc9"
   },
   "web.COMMON.error_secret": {
@@ -185,11 +185,11 @@
     "source_hash": "9ac6488f"
   },
   "web.COMMON.error_passphrase": {
-    "text": "パスフレーズを再確認してください",
+    "text": "パスフレーズをもう一度ご確認ください",
     "source_hash": "b582f3a6"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "パスフレーズを入力してください",
+    "text": "ここにパスフレーズを入力してください",
     "source_hash": "ee855dad"
   },
   "web.COMMON.view_secret": {
@@ -205,7 +205,7 @@
     "source_hash": "e981ddae"
   },
   "web.COMMON.oops": {
-    "text": "おっと!",
+    "text": "おっと！",
     "source_hash": "8344947a"
   },
   "web.COMMON.error": {
@@ -221,7 +221,7 @@
     "source_hash": "1d1730d4"
   },
   "web.COMMON.signup_for_more": {
-    "text": "詳しくはサインアップ",
+    "text": "登録してさらに活用",
     "source_hash": "cc1421d0"
   },
   "web.COMMON.login_to_your_account": {
@@ -229,7 +229,7 @@
     "source_hash": "62f1fe13"
   },
   "web.COMMON.sent_to": {
-    "text": "送信先:",
+    "text": "送信先: ",
     "source_hash": "e79c8bcb"
   },
   "web.COMMON.field_email": {
@@ -297,15 +297,15 @@
     "source_hash": "84195de9"
   },
   "web.COMMON.verification_sent_to": {
-    "text": "認証メールを送信しました:",
+    "text": "確認メールの送信先:",
     "source_hash": "62da29c0"
   },
   "web.COMMON.autoverified_success": {
-    "text": "アカウントが作成されました。ログインしてください。",
+    "text": "アカウントが作成されました。サインインしてください。",
     "source_hash": "fd3610bf"
   },
   "web.COMMON.signup_success_generic": {
-    "text": "このメールアドレスに紐づくアカウントが存在する場合、認証メールが送信されます。",
+    "text": "このメールアドレスのアカウントが存在する場合、確認メールが届きます。",
     "source_hash": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
@@ -313,19 +313,19 @@
     "source_hash": "0a7afc29"
   },
   "web.COMMON.burn_confirmation_title": {
-    "text": "確認してください",
+    "text": "ご確認ください",
     "source_hash": "dcd78dfb"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "このシークレットを削除してもよろしいですか?この操作は取り消すことができません。",
+    "text": "このシークレットを削除してもよろしいですか？この操作は元に戻せません。",
     "source_hash": "5dde5dd9"
   },
   "web.COMMON.confirm_burn": {
-    "text": "はい、このシークレットを削除",
+    "text": "はい、このシークレットを削除します",
     "source_hash": "6e5b02a7"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "シークレットを削除すると、受信される前に消去されます。",
+    "text": "シークレットを削除すると、受信される前に破棄されます。",
     "source_hash": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
@@ -337,7 +337,7 @@
     "source_hash": "d37078fe"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "受信リンクを作成",
+    "text": "受信用を作成",
     "source_hash": "5bb95106"
   },
   "web.COMMON.faq_title": {
@@ -345,11 +345,11 @@
     "source_hash": "bd7394ac"
   },
   "web.COMMON.verification_not_valid": {
-    "text": "認証が無効です",
+    "text": "確認が無効です",
     "source_hash": "abf07ced"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "ログイン中はアカウントを認証できません",
+    "text": "すでにログインしている場合、アカウントを確認できません",
     "source_hash": "f0a17c5f"
   },
   "web.COMMON.show_password": {
@@ -361,11 +361,11 @@
     "source_hash": "a60a56c5"
   },
   "web.COMMON.minimum_8_characters": {
-    "text": "パスワードは8文字以上必要です",
+    "text": "パスワードは8文字以上である必要があります",
     "source_hash": "e3b8d09d"
   },
   "web.COMMON.password_requirements": {
-    "text": "パスワードは8文字以上必要です",
+    "text": "パスワードは8文字以上である必要があります",
     "source_hash": "e5054833"
   },
   "web.COMMON.passwords_do_not_match": {
@@ -377,11 +377,11 @@
     "source_hash": "6876f12e"
   },
   "web.COMMON.form_processing": {
-    "text": "リクエストを処理中",
+    "text": "リクエストを処理しています",
     "source_hash": "a512a73b"
   },
   "web.COMMON.remember_me_description": {
-    "text": "30日間ログイン状態を維持",
+    "text": "30日間ログイン状態を保持する",
     "source_hash": "6e069c11"
   },
   "web.COMMON.redirecting": {
@@ -393,15 +393,15 @@
     "source_hash": "31fbef16"
   },
   "web.COMMON.are_you_sure": {
-    "text": "よろしいですか?",
+    "text": "よろしいですか？",
     "source_hash": "f0762c4f"
   },
   "web.COMMON.danger_zone": {
-    "text": "危険ゾーン",
+    "text": "危険な操作",
     "source_hash": "3c1c01b4"
   },
   "web.COMMON.caution_zone": {
-    "text": "注意が必要なゾーン",
+    "text": "慎重に検討が必要な操作",
     "source_hash": "fe27a3a8"
   },
   "web.COMMON.user_menu": {
@@ -433,7 +433,7 @@
     "source_hash": "0a6691ef"
   },
   "web.COMMON.e_g_example": {
-    "text": "例",
+    "text": "例:",
     "source_hash": "a79b4bf9"
   },
   "web.COMMON.example_placeholder": {
@@ -465,7 +465,7 @@
     "source_hash": "c3812fc4"
   },
   "web.COMMON.press_esc_to_close": {
-    "text": "ESCキーで閉じる",
+    "text": "ESCキーを押して閉じる",
     "source_hash": "5aa83883"
   },
   "web.COMMON.enter": {
@@ -493,27 +493,27 @@
     "source_hash": "11a6767d"
   },
   "web.COMMON.end": {
-    "text": "終了",
+    "text": "End",
     "source_hash": "f4db1e48"
   },
   "web.COMMON.general": {
-    "text": "一般",
+    "text": "全般",
     "source_hash": "c910d474"
   },
   "web.COMMON.note": {
-    "text": "メモ",
+    "text": "注記",
     "source_hash": "d8da2c49"
   },
   "web.COMMON.monthly": {
-    "text": "月間",
+    "text": "月額",
     "source_hash": "9b11f6b7"
   },
   "web.COMMON.yearly": {
-    "text": "年間",
+    "text": "年額",
     "source_hash": "6e69b59e"
   },
   "web.COMMON.go_on_then": {
-    "text": "続けてください。",
+    "text": "では、どうぞ。",
     "source_hash": "fb697cc7"
   },
   "web.COMMON.loading_ellipses": {
@@ -537,7 +537,7 @@
     "source_hash": "f2488fd4"
   },
   "web.COMMON.switch": {
-    "text": "切替",
+    "text": "切り替え",
     "source_hash": "78b49fb2"
   },
   "web.COMMON.features": {
@@ -585,7 +585,7 @@
     "source_hash": "8b3795aa"
   },
   "web.COMMON.email_address_copied_to_clipboard": {
-    "text": "メールアドレスをクリップボードにコピーしました!",
+    "text": "メールアドレスをクリップボードにコピーしました！",
     "source_hash": "23238b4e"
   },
   "web.COMMON.value": {
@@ -613,7 +613,7 @@
     "source_hash": "663d6499"
   },
   "web.COMMON.great": {
-    "text": "とても良い",
+    "text": "非常に良い",
     "source_hash": "c8cc1c7b"
   },
   "web.COMMON.pretty_good": {
@@ -621,15 +621,15 @@
     "source_hash": "521a41b6"
   },
   "web.COMMON.fair": {
-    "text": "普通",
+    "text": "まずまず",
     "source_hash": "f7b19afc"
   },
   "web.COMMON.meh": {
-    "text": "まあまあ",
+    "text": "いまひとつ",
     "source_hash": "8b0d6190"
   },
   "web.COMMON.not_great": {
-    "text": "あまり良くない",
+    "text": "良くない",
     "source_hash": "00561207"
   },
   "web.COMMON.open_options": {
@@ -653,7 +653,7 @@
     "source_hash": "da84ff02"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "パスフレーズを再確認してください",
+    "text": "パスフレーズをもう一度ご確認ください",
     "source_hash": "b582f3a6"
   },
   "web.COMMON.press_copy_button_below": {
@@ -677,15 +677,15 @@
     "source_hash": "ba8a80fd"
   },
   "web.LABELS.view_toggle.show_less": {
-    "text": "閉じる",
+    "text": "表示を減らす",
     "source_hash": "0264d7b0"
   },
   "web.LABELS.enable": {
-    "text": "有効にする",
+    "text": "有効化",
     "source_hash": "5342e09f"
   },
   "web.LABELS.disable": {
-    "text": "無効にする",
+    "text": "無効化",
     "source_hash": "b7e3e4aa"
   },
   "web.LABELS.stats": {
@@ -725,7 +725,7 @@
     "source_hash": "dc85af8f"
   },
   "web.LABELS.saved": {
-    "text": "保存済み",
+    "text": "保存しました",
     "source_hash": "b5c120b3"
   },
   "web.LABELS.save": {
@@ -749,7 +749,7 @@
     "source_hash": "57330d93"
   },
   "web.LABELS.need_help": {
-    "text": "ヘルプが必要ですか?",
+    "text": "お困りですか？",
     "source_hash": "c225cdfb"
   },
   "web.LABELS.create_new_secret": {
@@ -757,7 +757,7 @@
     "source_hash": "311d266c"
   },
   "web.LABELS.actions": {
-    "text": "操作",
+    "text": "アクション",
     "source_hash": "ff8059dc"
   },
   "web.LABELS.no_passphrase": {
@@ -769,7 +769,7 @@
     "source_hash": "b749e205"
   },
   "web.LABELS.receipts": {
-    "text": "受信確認",
+    "text": "受領証",
     "source_hash": "60a627df"
   },
   "web.LABELS.share": {
@@ -789,7 +789,7 @@
     "source_hash": "96d2098c"
   },
   "web.LABELS.items_count": {
-    "text": "{count}件",
+    "text": "{count}件のアイテム",
     "source_hash": "63e0dea7"
   },
   "web.LABELS.recipients_count": {
@@ -809,7 +809,7 @@
     "source_hash": "73758343"
   },
   "web.LABELS.view_progress": {
-    "text": "進捗を表示",
+    "text": "閲覧の進捗",
     "source_hash": "6c072c1f"
   },
   "web.LABELS.help_section": {
@@ -845,7 +845,7 @@
     "source_hash": "bdc090ec"
   },
   "web.LABELS.filter": {
-    "text": "フィルター",
+    "text": "絞り込み",
     "source_hash": "638e249f"
   },
   "web.LABELS.clear": {
@@ -882,7 +882,7 @@
     "source_hash": "d5b67bc9"
   },
   "web.LABELS.creating_links_for": {
-    "text": "リンクを作成中:",
+    "text": "リンクの作成対象",
     "source_hash": "57db069e"
   },
   "web.LABELS.scope_indicator": {
@@ -898,7 +898,7 @@
     "source_hash": "1b9f384c"
   },
   "web.STATUS.viewed": {
-    "text": "リンクが開かれました",
+    "text": "リンクを開封済み",
     "source_hash": "66844573"
   },
   "web.STATUS.received": {
@@ -910,7 +910,7 @@
     "source_hash": "3d391a9b"
   },
   "web.STATUS.revealed": {
-    "text": "閲覧済み",
+    "text": "表示済み",
     "source_hash": "17376ee4"
   },
   "web.STATUS.burned": {
@@ -918,7 +918,7 @@
     "source_hash": "6d747b33"
   },
   "web.STATUS.destroyed": {
-    "text": "削除済み",
+    "text": "破棄済み",
     "source_hash": "ff49630c"
   },
   "web.STATUS.expiring_soon": {
@@ -950,7 +950,7 @@
     "source_hash": "37c84053"
   },
   "web.STATUS.copied": {
-    "text": "コピー済み",
+    "text": "コピーしました",
     "source_hash": "8d525e5f"
   },
   "web.STATUS.time_remaining": {
@@ -966,19 +966,19 @@
     "source_hash": "83b9a0ca"
   },
   "web.STATUS.viewed_description": {
-    "text": "シークレットリンクが開かれ、閲覧可能な状態です",
+    "text": "シークレットリンクが開封され、閲覧可能な状態です",
     "source_hash": "f392af12"
   },
   "web.STATUS.received_description": {
-    "text": "シークレットは受信者に閲覧されました",
+    "text": "シークレットが受信者に表示されました",
     "source_hash": "ceb756b4"
   },
   "web.STATUS.previewed_description": {
-    "text": "シークレットリンクが開かれ、閲覧可能な状態です",
+    "text": "シークレットリンクが開封され、表示可能な状態です",
     "source_hash": "cc7d1e92"
   },
   "web.STATUS.revealed_description": {
-    "text": "シークレットの内容が受信者に閲覧されました",
+    "text": "シークレットの内容が受信者に表示されました",
     "source_hash": "39b32f80"
   },
   "web.STATUS.burned_description": {
@@ -986,15 +986,15 @@
     "source_hash": "e7aa1ec1"
   },
   "web.STATUS.destroyed_description": {
-    "text": "シークレットは完全に削除されました",
+    "text": "シークレットは完全に破棄されました",
     "source_hash": "9bcb9949"
   },
   "web.STATUS.expiring_soon_description": {
-    "text": "シークレットがまもなく期限切れになります",
+    "text": "シークレットはまもなく期限切れになります",
     "source_hash": "e182e8f4"
   },
   "web.STATUS.orphaned_description": {
-    "text": "シークレットは孤立状態となり、まもなく削除されます",
+    "text": "シークレットは孤立し、まもなく破棄されます",
     "source_hash": "49b87422"
   },
   "web.STATUS.expired_description": {
@@ -1010,7 +1010,7 @@
     "source_hash": "90611565"
   },
   "web.STATUS.dns_incorrect": {
-    "text": "DNS設定エラー",
+    "text": "DNSが正しくありません",
     "source_hash": "7848d601"
   },
   "web.STATUS.active": {
@@ -1022,7 +1022,7 @@
     "source_hash": "ac7c949f"
   },
   "web.FEATURES.unlimited_views": {
-    "text": "無制限の閲覧",
+    "text": "閲覧回数無制限",
     "source_hash": "3f6859b0"
   },
   "web.FEATURES.custom_domain_protected": {
@@ -1030,7 +1030,7 @@
     "source_hash": "5e39b05c"
   },
   "web.FEATURES.encrypted_in_transit": {
-    "text": "転送中および保存時に暗号化",
+    "text": "転送中および保存時の暗号化",
     "source_hash": "314c7974"
   },
   "web.UNITS.ttl.duration": {
@@ -1038,19 +1038,19 @@
     "source_hash": "e6c9e0e6"
   },
   "web.UNITS.ttl.time.day": {
-    "text": "日",
+    "text": "日 | 日",
     "source_hash": "6ac0d345"
   },
   "web.UNITS.ttl.time.hour": {
-    "text": "時間",
+    "text": "時間 | 時間",
     "source_hash": "f4fef91b"
   },
   "web.UNITS.ttl.time.minute": {
-    "text": "分",
+    "text": "分 | 分",
     "source_hash": "08d71a9f"
   },
   "web.UNITS.ttl.time.second": {
-    "text": "秒",
+    "text": "秒 | 秒",
     "source_hash": "e655e068"
   },
   "web.UNITS.ttl.noOptionsAvailable": {
@@ -1058,23 +1058,23 @@
     "source_hash": "cb3f91d5"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "残り{count}{unit}",
+    "text": "残り{count} {unit}",
     "source_hash": "18f6c6e8"
   },
   "web.UNITS.ttl_remaining.time.day": {
-    "text": "日",
+    "text": "日 | 日",
     "source_hash": "6702855e"
   },
   "web.UNITS.ttl_remaining.time.hour": {
-    "text": "時間",
+    "text": "時間 | 時間",
     "source_hash": "2eaebd6f"
   },
   "web.UNITS.ttl_remaining.time.minute": {
-    "text": "分",
+    "text": "分 | 分",
     "source_hash": "26c80140"
   },
   "web.UNITS.ttl_remaining.time.second": {
-    "text": "秒",
+    "text": "秒 | 秒",
     "source_hash": "01159ce3"
   },
   "web.UNITS.ttl_remaining.noOptionsAvailable": {
@@ -1082,7 +1082,7 @@
     "source_hash": "cb3f91d5"
   },
   "web.UNITS.limited_views": {
-    "text": "閲覧制限: {count}回",
+    "text": "閲覧回数の上限{count}回",
     "source_hash": "8db0e228"
   },
   "web.UNITS.days_remaining": {
@@ -1110,7 +1110,7 @@
     "source_hash": "b79cac92"
   },
   "web.TITLES.signin": {
-    "text": "ログイン",
+    "text": "サインイン",
     "source_hash": "bcc0bcc9"
   },
   "web.TITLES.signup": {
@@ -1118,11 +1118,11 @@
     "source_hash": "0dffe234"
   },
   "web.TITLES.forgot_password": {
-    "text": "パスワードを忘れた場合",
+    "text": "パスワードをお忘れの場合",
     "source_hash": "fdfd41de"
   },
   "web.TITLES.reset_password": {
-    "text": "パスワードのリセット",
+    "text": "パスワードをリセット",
     "source_hash": "4e70f1fd"
   },
   "web.TITLES.logout": {
@@ -1130,7 +1130,7 @@
     "source_hash": "afbce8a6"
   },
   "web.TITLES.verify_account": {
-    "text": "アカウントの検証",
+    "text": "アカウントを確認",
     "source_hash": "2f3ea760"
   },
   "web.TITLES.mfa_verify": {
@@ -1142,7 +1142,7 @@
     "source_hash": "c316e3d7"
   },
   "web.TITLES.accept_invitation": {
-    "text": "招待を承諾",
+    "text": "招待を承認",
     "source_hash": "ce7cfeaf"
   },
   "web.TITLES.secret": {
@@ -1154,7 +1154,7 @@
     "source_hash": "c11bd410"
   },
   "web.TITLES.receipt": {
-    "text": "シークレットの受信確認",
+    "text": "シークレット受領証",
     "source_hash": "fe0c79e9"
   },
   "web.TITLES.burn_secret": {
@@ -1178,11 +1178,11 @@
     "source_hash": "0f09df73"
   },
   "web.TITLES.domain_verify": {
-    "text": "ドメインの検証",
+    "text": "ドメインを検証",
     "source_hash": "b416f537"
   },
   "web.TITLES.domain_brand": {
-    "text": "ブランドドメイン",
+    "text": "ドメインのブランディング",
     "source_hash": "35e4dfbe"
   },
   "web.TITLES.account": {
@@ -1222,7 +1222,7 @@
     "source_hash": "78801183"
   },
   "web.TITLES.change_email": {
-    "text": "メールアドレスの変更",
+    "text": "メールアドレスを変更",
     "source_hash": "18c3f2d5"
   },
   "web.TITLES.confirm_email_change": {
@@ -1234,7 +1234,7 @@
     "source_hash": "8f6fb4eb"
   },
   "web.TITLES.change_password": {
-    "text": "パスワードの変更",
+    "text": "パスワードを変更",
     "source_hash": "a949f462"
   },
   "web.TITLES.mfa_settings": {
@@ -1242,7 +1242,7 @@
     "source_hash": "bc074b60"
   },
   "web.TITLES.active_sessions": {
-    "text": "アクティブセッション",
+    "text": "アクティブなセッション",
     "source_hash": "b58fa4e0"
   },
   "web.TITLES.recovery_codes": {
@@ -1283,55 +1283,55 @@
     "source_hash": "dfe95783"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
-    "text": "メインテキストエリアにフォーカスが移動しました",
+    "text": "フォーカスがメインのテキストエリアに移動しました",
     "source_hash": "e00dd260"
   },
   "web.INSTRUCTION.sharing_instructions": {
-    "text": "共有方法",
+    "text": "共有手順",
     "source_hash": "1a450046"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "意図した受信者にリンクを共有してください",
+    "text": "リンクを意図した受信者と共有してください",
     "source_hash": "43bdee1d"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "パスフレーズは安全なチャネルで別途共有してください",
+    "text": "パスフレーズは安全なチャネルを通じて別途共有してください",
     "source_hash": "c348d386"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
-    "text": "機密情報を共有する際は、別の安全なチャネルを使用してください",
+    "text": "機密情報の共有には別の安全なチャネルを使用してください",
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "常にOnetime Secret公式サイトにアクセスしていることを確認してください。詐欺師がOnetime Secretと同じように見せかけた偽サイトを作成し、シークレットを盗もうとすることがあります。フィッシング攻撃を防ぐため、新しいリンクを作成する前にドメインを確認してください。",
+    "text": "必ず公式のOnetime Secretウェブサイトにアクセスしていることを確認してください。詐欺者がOnetime Secretとそっくりの偽サイトを作成し、シークレットを盗もうとする場合があります。フィッシング攻撃を防ぐため、新しいリンクを作成する前にリージョンドメインを確認してください。",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
-    "text": "シンプルで透明な料金",
+    "text": "シンプルで透明性のある料金",
     "source_hash": "97e283c7"
   },
   "web.pricing.subtitle": {
-    "text": "ニーズに合ったプランをお選びください。すべてのプランで無制限のシークレット共有とプライバシー第一の設計が含まれています。",
+    "text": "ニーズに合ったプランをお選びください。すべてのプランに、無制限のシークレット共有とプライバシー第一の設計が含まれています。",
     "source_hash": "9204dff4"
   },
   "web.pricing.get_started_free": {
-    "text": "無料ではじめる",
+    "text": "無料で始める",
     "source_hash": "6bb5a4a7"
   },
   "web.pricing.start_trial": {
-    "text": "はじめる",
+    "text": "始める",
     "source_hash": "983f3110"
   },
   "web.pricing.already_have_account": {
-    "text": "既にアカウントをお持ちですか?",
+    "text": "すでにアカウントをお持ちですか？",
     "source_hash": "e77fea93"
   },
   "web.pricing.sign_in": {
-    "text": "ログイン",
+    "text": "サインイン",
     "source_hash": "bfd402b2"
   },
   "web.pricing.recommended_for_you": {
-    "text": "おすすめ",
+    "text": "おすすめのプラン",
     "source_hash": "00093fbd"
   },
   "web.COMMON.received": {
@@ -1355,11 +1355,11 @@
     "source_hash": "0ec1a5db"
   },
   "web.pricing.free_tier_description": {
-    "text": "基本機能でシークレットを作成・共有。クレジットカード不要。",
+    "text": "基本機能でシークレットを作成・共有できます。クレジットカードは不要です。",
     "source_hash": "3a4f2bc0"
   },
   "web.COMMON.enter_password_to_continue": {
-    "text": "続行するにはパスワードを入力してください",
+    "text": "続けるにはパスワードを入力してください",
     "context": "Prompt for password confirmation modal",
     "source_hash": "09055357"
   },
@@ -1374,7 +1374,7 @@
     "source_hash": "6615bf1c"
   },
   "api.errors.service_unavailable": {
-    "text": "サービスが一時的に利用できません。しばらくしてから再度お試しください。",
+    "text": "サービスが一時的に利用できません。しばらくしてからもう一度お試しください。",
     "context": "Error message when database connection fails",
     "source_hash": "343ccdcb"
   },
@@ -1384,8 +1384,108 @@
     "source_hash": "fb961f3f"
   },
   "web.COMMON.upgrade_description": {
-    "text": "アップグレードしてより多くの機能を利用する",
+    "text": "アップグレードしてさらに多くの機能を利用",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "認証が必要です",
+    "source_hash": "0fcfb12d"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "この操作はSSO専用モードでは利用できません",
+    "source_hash": "9bc26394"
+  },
+  "web.COMMON.configure": {
+    "text": "設定",
+    "source_hash": "6defafa2"
+  },
+  "web.COMMON.add": {
+    "text": "追加",
+    "source_hash": "9fd728c6"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "はい、削除します",
+    "source_hash": "7b05a8e3"
+  },
+  "web.COMMON.error_code": {
+    "text": "エラーコード",
+    "source_hash": "46832415"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTPステータス",
+    "source_hash": "b2a629f2"
+  },
+  "web.COMMON.details": {
+    "text": "詳細",
+    "source_hash": "45989de4"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "パスワードの確認",
+    "source_hash": "c292210c"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "パスワードが一致している必要があります",
+    "source_hash": "0c060bd4"
+  },
+  "web.COMMON.and": {
+    "text": "および",
+    "source_hash": "6201111b"
+  },
+  "web.COMMON.or": {
+    "text": "または",
+    "source_hash": "7175517a"
+  },
+  "web.COMMON.copied": {
+    "text": "コピーしました",
+    "source_hash": "8d525e5f"
+  },
+  "web.COMMON.copy": {
+    "text": "コピー",
+    "source_hash": "e21f935f"
+  },
+  "web.COMMON.copy_email": {
+    "text": "メールアドレスをコピー",
+    "source_hash": "61b94846"
+  },
+  "web.COMMON.copy_id": {
+    "text": "アカウントIDをコピー",
+    "source_hash": "fd493ffd"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "組織の一意の識別子",
+    "source_hash": "c8c08d29"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "パスフレーズを表示",
+    "source_hash": "76880d38"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "パスフレーズを非表示",
+    "source_hash": "8ecdc98c"
+  },
+  "web.STATUS.unverified": {
+    "text": "未検証",
+    "source_hash": "33c8e8de"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "ドメイン設定",
+    "source_hash": "e24f338d"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "ドメインSSO",
+    "source_hash": "13161464"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "ドメイン登録検証",
+    "source_hash": "c8ce809a"
+  },
+  "web.TITLES.domain_email": {
+    "text": "メール設定",
+    "source_hash": "6f38aa51"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "受信シークレット",
+    "source_hash": "883dbca9"
   }
 }

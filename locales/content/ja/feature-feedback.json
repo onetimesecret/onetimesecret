@@ -1,10 +1,10 @@
 {
   "web.feedback.your_feedback": {
-    "text": "フィードバック",
+    "text": "あなたのフィードバック",
     "source_hash": "cdb1c0a5"
   },
   "web.feedback.all_feedback_welcome": {
-    "text": "すべてのフィードバックを歓迎します!",
+    "text": "どんなフィードバックでも歓迎します",
     "source_hash": "c57d3006"
   },
   "web.feedback.help_us_improve": {
@@ -16,7 +16,7 @@
     "source_hash": "41689bb4"
   },
   "web.feedback.share_your_feedback": {
-    "text": "フィードバックを共有",
+    "text": "フィードバックをお寄せください",
     "source_hash": "6d62dfbd"
   },
   "web.feedback.delano_mandelbaum": {
@@ -28,15 +28,15 @@
     "source_hash": "f58154f7"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "ヘルプコンテンツはこちら。",
+    "text": "ここにヘルプ内容が表示されます。",
     "source_hash": "796979ea"
   },
   "web.feedback.founder_note_line1": {
-    "text": "ここに届くすべてのフィードバックを読んでいます。これが何に時間を費やすべきかを判断する方法です。",
+    "text": "ここに届くすべてのフィードバックに目を通しています。それが、何に時間を費やすべきかを判断する方法です。",
     "source_hash": "8b430d93"
   },
   "web.feedback.founder_note_line2": {
-    "text": "何か問題がある場合や、どう機能すべきかについてアイデアがあれば、ここが適切な場所です。",
+    "text": "何かおかしいと感じたり、こうあるべきだというアイデアがあれば、ここが最適な場所です。",
     "source_hash": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
@@ -44,7 +44,7 @@
     "source_hash": "acd8409b"
   },
   "web.feedback.enter_your_feedback": {
-    "text": "フィードバックを入力",
+    "text": "フィードバックを入力してください",
     "source_hash": "1bb310f4"
   },
   "web.feedback.send_feedback": {
@@ -56,7 +56,19 @@
     "source_hash": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
-    "text": "アカウントでの不正なメールアドレス変更を報告されているようです。何が起きたかをご説明ください。すぐに調査いたします。",
+    "text": "アカウントでの不正なメールアドレス変更を報告されているようです。何が起きたかをご記入いただければ、ただちに調査いたします。",
     "source_hash": "00e56551"
+  },
+  "web.feedback.anonymous_no_reply": {
+    "text": "注意: 返信をご希望の場合は、メッセージに署名するか、メールアドレスを記入してください。",
+    "source_hash": "c984f705"
+  },
+  "web.feedback.characters_remaining": {
+    "text": "残り{count}文字",
+    "source_hash": "8d796f40"
+  },
+  "web.feedback.character_limit_reached": {
+    "text": "文字数の上限に達しました",
+    "source_hash": "031e9310"
   }
 }
