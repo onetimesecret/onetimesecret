@@ -50,7 +50,13 @@ module Core
         # Includes only the fields needed for:
         # - Domain context initialization (id, extid)
         # - Basic display (display_name, is_default)
-        # - Entitlement checks (planid, entitlements, limits)
+        # - Plan identity and role (planid, current_user_role)
+        #
+        # NOTE: entitlements and limits are intentionally NOT included here.
+        # They are served by the preview-aware billing entitlements endpoint
+        # (GET /billing/api/entitlements/:extid) and loaded into the org via
+        # organizationStore.fetchEntitlements. Adding them here would bypass
+        # colonel preview mode, which only the billing endpoint resolves.
         #
         # @param org [Onetime::Organization] Organization to serialize
         # @param cust [Onetime::Customer] Current user for role calculation

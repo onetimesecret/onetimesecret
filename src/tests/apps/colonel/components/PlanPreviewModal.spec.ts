@@ -5,6 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createI18n } from 'vue-i18n';
 import { createTestingPinia } from '@pinia/testing';
 import PlanPreviewModal from '@/shared/components/modals/PlanPreviewModal.vue';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { nextTick } from 'vue';
 
 // Mock HeadlessUI components
@@ -144,6 +145,11 @@ describe('PlanPreviewModal', () => {
       },
       global: {
         plugins: [i18n, pinia],
+        // organizationStore calls useApi() at setup; provide a stub so the
+        // store can be instantiated (its actions are stubbed by testing pinia).
+        provide: {
+          api: { get: mockGet, post: mockPost, put: vi.fn(), delete: vi.fn() },
+        },
       },
     });
 
@@ -305,6 +311,58 @@ describe('PlanPreviewModal', () => {
       await nextTick();
 
       expect(wrapper.text()).toContain('Failed to activate test mode');
+    });
+  });
+
+  // Regression: the modal must re-fetch the org's entitlements/limits after a
+  // preview toggle. Those drive useEntitlements feature gating and are NOT in
+  // the bootstrap payload, so refreshing bootstrap alone leaves the UI gating
+  // against the org's real plan instead of the previewed plan.
+  describe('Entitlement refresh', () => {
+    const orgState = {
+      organization: {
+        objid: 'org_1',
+        extid: 'on-abc',
+        display_name: 'Acme',
+        is_default: true,
+      },
+    };
+
+    it('re-fetches org entitlements after activating preview mode', async () => {
+      mockPost.mockResolvedValueOnce({ data: { status: 'active' } });
+
+      wrapper = await mountComponent({}, { ...orgState });
+      const orgStore = useOrganizationStore();
+
+      const planButton = wrapper.findAll('button').find(
+        btn => btn.text().includes('Identity Plus')
+      );
+      await planButton!.trigger('click');
+      await nextTick();
+      await nextTick();
+
+      expect(orgStore.fetchEntitlements).toHaveBeenCalledWith('on-abc');
+    });
+
+    it('re-fetches org entitlements after resetting to actual plan', async () => {
+      mockPost.mockResolvedValueOnce({
+        data: { status: 'cleared', actual_planid: 'free' },
+      });
+
+      wrapper = await mountComponent({}, {
+        entitlement_preview_planid: 'identity_v1',
+        ...orgState,
+      });
+      const orgStore = useOrganizationStore();
+
+      const resetButton = wrapper.findAll('button').find(
+        btn => btn.text().includes('Reset to Actual Plan')
+      );
+      await resetButton!.trigger('click');
+      await nextTick();
+      await nextTick();
+
+      expect(orgStore.fetchEntitlements).toHaveBeenCalledWith('on-abc');
     });
   });
 
