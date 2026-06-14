@@ -1,10 +1,19 @@
 """Single source of truth for locale-tooling paths and constants.
 
 Everything is resolved from this file's location so the package works
-regardless of the current working directory. The default ``DB_FILE`` path is
-identical to the legacy ``locales/scripts/store.py`` value, so default
-behavior is unchanged; ``I18N_DB_FILE`` provides an override for isolated
-testing.
+regardless of the current working directory. All path defaults are identical
+to the legacy loose-script values, so default behavior is unchanged.
+
+Four environment overrides relocate the filesystem surfaces for isolated
+testing (the suite under ``locales/scripts/tests`` drives the real CLI
+against a throwaway tmp tree via these):
+
+* ``I18N_CONTENT_DIR``   -- source-of-truth flat-key JSON tree
+* ``I18N_GENERATED_DIR`` -- app-consumable merged compiled output
+* ``I18N_DB_DIR``        -- schema/exports/working-DB directory
+* ``I18N_DB_FILE``       -- the working SQLite file (defaults under DB_DIR)
+
+``I18N_DEFAULT_LOCALE`` additionally overrides the source locale.
 """
 
 from __future__ import annotations
@@ -22,15 +31,17 @@ SCRIPTS_DIR: Path = Path(__file__).resolve().parents[1]
 SOURCE_LOCALE: str = os.environ.get("I18N_DEFAULT_LOCALE", "en")
 
 # Content (flat-key JSON, version-controlled source of truth).
-CONTENT_DIR: Path = LOCALES_DIR / "content"
+CONTENT_DIR: Path = Path(os.environ.get("I18N_CONTENT_DIR", LOCALES_DIR / "content"))
 EN_DIR: Path = CONTENT_DIR / SOURCE_LOCALE
 
-# App-consumable merged output. Mirrors build/compile.py's GENERATED_LOCALES_DIR
-# (PROJECT_ROOT / "generated" / "locales", where PROJECT_ROOT == LOCALES_DIR.parent).
-GENERATED_DIR: Path = LOCALES_DIR.parent / "generated" / "locales"
+# App-consumable merged output. The live compile target: merged per-locale
+# JSON under PROJECT_ROOT / "generated" / "locales" (PROJECT_ROOT == LOCALES_DIR.parent).
+GENERATED_DIR: Path = Path(
+    os.environ.get("I18N_GENERATED_DIR", LOCALES_DIR.parent / "generated" / "locales")
+)
 
 # Working database for translation workflows.
-DB_DIR: Path = LOCALES_DIR / "db"
+DB_DIR: Path = Path(os.environ.get("I18N_DB_DIR", LOCALES_DIR / "db"))
 SCHEMA_FILE: Path = DB_DIR / "schema.sql"
 DB_FILE: Path = Path(os.environ.get("I18N_DB_FILE", DB_DIR / "tasks.db"))
 

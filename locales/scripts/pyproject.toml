@@ -6,6 +6,9 @@ requires-python = ">=3.11"
 
 [project.optional-dependencies]
 rich = ["rich>=13"]
+# The CLI itself stays zero-install; the suite under ./tests runs on the stdlib
+# (`python3 -m unittest discover -s tests`). pytest is an optional convenience.
+test = ["pytest>=8"]
 
 [project.scripts]
 ots-i18n = "i18n.cli:main"
