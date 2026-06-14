@@ -119,13 +119,20 @@ const actualPlanName = computed(() => {
  *    UI keeps gating against the org's actual plan.
  */
 const syncPreviewState = async () => {
-  await bootstrapStore.refresh();
-
+  // The two refreshes are independent and hit different endpoints:
+  //   - bootstrapStore.refresh() updates entitlement_preview_planid /
+  //     _plan_name (the banner) from /bootstrap/me
+  //   - fetchEntitlements() reloads the org's preview-aware entitlements/limits
+  //     (what useEntitlements gates on) from the billing endpoint
+  // The active org's extid does not change across a preview toggle, so resolve
+  // it up front and run both requests concurrently.
   const extid =
     organizationStore.currentOrganization?.extid ?? bootstrapStore.organization?.extid;
-  if (extid) {
-    await organizationStore.fetchEntitlements(extid);
-  }
+
+  await Promise.all([
+    bootstrapStore.refresh(),
+    extid ? organizationStore.fetchEntitlements(extid) : Promise.resolve(),
+  ]);
 };
 
 const handleActivateTestMode = async (planId: string) => {
