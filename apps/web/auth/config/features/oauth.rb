@@ -40,11 +40,6 @@ require 'rodauth/oauth'
 
 module Auth::Config::Features
   module OAuth
-    # Endpoints reached programmatically by SP clients — no browser session,
-    # no CSRF. /authorize is intentionally absent: it is browser-driven and
-    # must keep CSRF protection. See the check_csrf? override below.
-    OAUTH_NO_CSRF_PATHS = %w[/token /userinfo /revoke /jwks].freeze
-
     def self.configure(auth)
       auth.enable :oauth_authorization_code_grant,
         :oauth_pkce,
@@ -57,77 +52,33 @@ module Auth::Config::Features
       auth.oauth_applications_table :oauth_applications
       auth.oauth_grants_table :oauth_grants
 
-      # ─── Issuer / authorization server URL ────────────────────────────
-      # The OP is mounted at base_url + Auth::Application.uri_prefix
-      # (e.g. http://localhost:3000/auth). The gem's default
-      # `authorization_server_url` returns just `base_url`, missing the
-      # mount prefix — that would make ID tokens claim `iss:
-      # http://localhost:3000` while OmniAuth/discovery clients expect
-      # `http://localhost:3000/auth`.
+      # ─── Mount prefix / issuer ─────────────────────────────────────────
+      # The OP is mounted under Auth::Application.uri_prefix (e.g. /auth) via
+      # Rack::URLMap, which sets SCRIPT_NAME=/auth and strips it from PATH_INFO.
+      # Rodauth route matching keeps working off `remaining_path` (so `prefix`
+      # is left at its empty default), but `base_url`/`route_path` don't include
+      # the mount point — so discovery URLs, the `issuer`, and the per-endpoint
+      # CSRF exemptions used to drop `/auth`.
       #
-      # We override `authorization_server_url` (consumed by the default
-      # `oauth_jwt_issuer`, oauth_jwt_base.rb:36) AND
-      # `oauth_server_metadata_body` so the discovery `issuer` field
-      # honors the same value — by default that field is `base_url`
-      # ignoring authorization_server_url (oauth_base.rb:746-748).
-      #
-      # OAUTH_ISSUER overrides both for static prod deployments.
+      # The forked rodauth-oauth exposes `oauth_mount_prefix` (Gemfile pins the
+      # fork; see #3465 and apps/web/auth/docs/rodauth-prefix-mismatch.md). It
+      # makes the gem honor the mount point in `*_path`/`*_url` generation, the
+      # discovery `issuer` (via authorization_server_url), and the per-feature
+      # `check_csrf?` comparisons — replacing the local
+      # prefix_oauth_endpoint_urls! helper and the oauth_server_metadata_body /
+      # openid_configuration_body / check_csrf? overrides this file used to
+      # carry. Route matching is unaffected (it uses remaining_path), so setting
+      # rodauth's global `prefix` is still not needed.
+      auth.oauth_mount_prefix Auth::Application.uri_prefix
+
+      # The gem derives the discovery `issuer` (and oauth_jwt_issuer,
+      # oauth_jwt_base.rb:36) from authorization_server_url, whose default is now
+      # `base_url + oauth_mount_prefix`. The only issuer behavior that stays
+      # OTS-specific is OAUTH_ISSUER, which pins the issuer for static prod
+      # deployments; fall back to the gem default otherwise.
       auth.auth_class_eval do
         define_method(:authorization_server_url) do
-          ENV.fetch('OAUTH_ISSUER') { "#{base_url}#{Auth::Application.uri_prefix}" }
-        end
-
-        # The gem's *_url methods build `base_url + route_path(name)`, and
-        # route_path uses rodauth's `prefix` (empty by default). Since this
-        # rodauth instance is mounted under Auth::Application.uri_prefix
-        # (`/auth`), the generated URLs come out without that prefix
-        # (e.g. `http://host/authorize` instead of `http://host/auth/authorize`).
-        #
-        # Setting rodauth.prefix system-wide is NOT a viable fix: doing so
-        # also changes `request.is *_path` matching, but `remaining_path` is
-        # already `/token` after Rack::URLMap strips SCRIPT_NAME, breaking
-        # every rodauth route. The mismatch is structural — see
-        # apps/web/auth/docs/rodauth-prefix-mismatch.md for the full analysis.
-        define_method(:oauth_server_metadata_body) do |path = nil|
-          body          = super(path)
-          body[:issuer] = authorization_server_url
-
-          prefix_oauth_endpoint_urls!(body)
-          body
-        end
-
-        # OIDC discovery (`/.well-known/openid-configuration`) goes through
-        # `openid_configuration_body`, which calls oauth_server_metadata_body
-        # but then merges in `userinfo_endpoint: userinfo_url` AFTER our patch
-        # (oidc.rb:811). Re-apply the prefix patch after super so userinfo
-        # comes out with /auth.
-        define_method(:openid_configuration_body) do |path = nil|
-          body = super(path)
-          prefix_oauth_endpoint_urls!(body)
-          body
-        end
-
-        # Shared helper to rewrite endpoint URLs in a metadata body, adding
-        # the Rack mount prefix when missing. rodauth-oauth builds URLs from
-        # `base_url + route_path(name)` and route_path uses rodauth's own
-        # `prefix` (empty by default); since the auth app is mounted under
-        # /auth, the generated URLs need the prefix added.
-        define_method(:prefix_oauth_endpoint_urls!) do |body|
-          uri_prefix = Auth::Application.uri_prefix
-          [:authorization_endpoint, :token_endpoint, :userinfo_endpoint, :jwks_uri, :revocation_endpoint, :registration_endpoint, :introspection_endpoint, :end_session_endpoint].each do |key|
-            next unless body[key].is_a?(String)
-
-            uri = URI.parse(body[key])
-            # Treat as already-prefixed only when the path starts with
-            # "/auth/" or equals "/auth" — guard against substring matches
-            # (e.g. URI "/authorize" contains "/auth" but is NOT prefixed).
-            next if uri.path == uri_prefix
-            next if uri.path.start_with?("#{uri_prefix}/")
-
-            uri.path  = "#{uri_prefix}#{uri.path}"
-            body[key] = uri.to_s
-          end
-          body
+          ENV.fetch('OAUTH_ISSUER') { super() }
         end
       end
 
@@ -198,28 +149,24 @@ module Auth::Config::Features
         end
       end
 
-      # ─── CSRF bypass for IdP endpoints ─────────────────────────────────
-      # rodauth-oauth's per-feature `check_csrf?` overrides compare against
-      # *unprefixed* path names (e.g. `/token`), but rodauth's `request.path`
-      # returns the full Rack `SCRIPT_NAME + PATH_INFO` (e.g. `/auth/token`)
-      # — see oauth_base.rb:158. With rodauth's `prefix` left at the default
-      # empty string but Auth::Router mounted at /auth, those comparisons
-      # never match and the gem's intended CSRF exemption silently fails
-      # back to super. (Underlying issue: rodauth prefix mismatch — see
-      # apps/web/auth/docs/rodauth-prefix-mismatch.md.)
+      # ─── CSRF: keep /revoke exempt (load-bearing, OTS-specific) ─────────
+      # Now that oauth_mount_prefix aligns the gem's `*_path` helpers with the
+      # browser-absolute `request.path`, the gem's own per-feature `check_csrf?`
+      # exemptions work again: /token (oauth_base) and /userinfo (oidc) are
+      # exempt at the gem level, /authorize keeps CSRF (browser-driven), and
+      # /jwks is GET-only. So the broad local request.path override is gone.
       #
-      # Endpoints in OAUTH_NO_CSRF_PATHS (defined above) are reached
-      # programmatically by SP clients without a browser session, so CSRF
-      # doesn't apply. PKCE + client_secret on /token + bearer auth on
-      # /userinfo provide the protocol-level equivalents. /authorize is *not*
-      # in this set — it is browser-driven and must keep CSRF protection
-      # (matches gem behavior in non-JSON mode).
+      # The one exemption the gem does NOT give us is a blanket /revoke: its
+      # oauth_token_revocation `check_csrf?` enforces CSRF on form-encoded
+      # /revoke (exempting only JSON), which is inverted from RFC 7009 —
+      # /revoke is form-encoded and authenticated by client credentials, not
+      # CSRF tokens. SP clients call it programmatically, so we exempt it
+      # regardless of content type. This is independent of the prefix fix; do
+      # NOT drop it. (revoke_path is mount-aware via oauth_mount_prefix, so this
+      # matches request.path under the /auth mount.)
       auth.auth_class_eval do
         define_method(:check_csrf?) do
-          paths      = Auth::Config::Features::OAuth::OAUTH_NO_CSRF_PATHS
-          full_paths = paths.map { |p| "#{Auth::Application.uri_prefix}#{p}" }
-          return false if full_paths.include?(request.path)
-          return false if request.path.start_with?("#{Auth::Application.uri_prefix}/.well-known/")
+          return false if request.path == revoke_path
 
           super()
         end
