@@ -81,5 +81,29 @@ RSpec.describe V1::Logic::Secrets::BurnSecret do
         expect(secret).to have_received(:burned!)
       end
     end
+
+    # Regression: the burn must honour the parsed `continue` boolean, not the
+    # raw param. Every non-empty string is truthy in Ruby, so reading
+    # params['continue'] directly burned the secret even when the caller
+    # explicitly sent continue=false (the common form/query shape).
+    context 'when continue is the string "false"' do
+      subject { described_class.new(session, customer, base_params.merge('continue' => 'false')) }
+
+      before do
+        allow(secret).to receive(:burned!)
+      end
+
+      it 'does not burn the secret' do
+        subject.process
+
+        expect(secret).not_to have_received(:burned!)
+      end
+
+      it 'does not greenlight the burn' do
+        subject.process
+
+        expect(subject.greenlighted).to be_falsey
+      end
+    end
   end
 end
