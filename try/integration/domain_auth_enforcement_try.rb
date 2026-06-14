@@ -134,24 +134,33 @@ ctrl.signin_enabled?
 #=> true
 
 # ===================================================================
-# 3. SigninConfig exists, enabled=true, signin_enabled=true -> allows signin
+# 3. SigninConfig exists, enabled=true, signin_enabled=true
+#    -> allows signin ONLY when the global kill switch also permits it.
+#       AND semantics: an enabled domain config narrows, never widens,
+#       the install-level capability. The global kill switch always wins,
+#       and the runtime gate matches the display gate (resolve_signin).
 # ===================================================================
 
-## Enabled config with signin_enabled=true returns true (regardless of global)
+## Enabled config with signin_enabled=true allows signin when global also permits
 @domain_on = Onetime::CustomDomain.create!("dae-on-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
 @config_on = Onetime::CustomDomain::SigninConfig.create!(
   domain_id: @domain_on.identifier,
   enabled: true,
   signin_enabled: true,
 )
-ctrl = SigninGateController.new(signin_config: @config_on, auth_settings: GLOBAL_SIGNIN_OFF)
+ctrl = SigninGateController.new(signin_config: @config_on, auth_settings: GLOBAL_SIGNIN_ON)
 ctrl.signin_enabled?
 #=> true
 
-## Enabled config with signin_enabled=true overrides global auth_off
-ctrl2 = SigninGateController.new(signin_config: @config_on, auth_settings: GLOBAL_AUTH_OFF)
-ctrl2.signin_enabled?
-#=> true
+## Global kill switch wins: an enabled config cannot re-enable signin when AUTH_SIGNIN is off
+ctrl_signin_off = SigninGateController.new(signin_config: @config_on, auth_settings: GLOBAL_SIGNIN_OFF)
+ctrl_signin_off.signin_enabled?
+#=> false
+
+## Global kill switch wins: an enabled config cannot re-enable signin when AUTH_ENABLED is off
+ctrl_auth_off = SigninGateController.new(signin_config: @config_on, auth_settings: GLOBAL_AUTH_OFF)
+ctrl_auth_off.signin_enabled?
+#=> false
 
 # ===================================================================
 # 4. SigninConfig exists, enabled=true, signin_enabled=false -> blocks signin

@@ -23,6 +23,12 @@
 #   When an admin configures a domain, the config they see is the config
 #   that runs — no invisible inheritance from install-level defaults.
 #
+#   The install-level kill switch still wins: an enabled config can only
+#   NARROW availability, never re-enable sign-in that is disabled globally
+#   (AUTH_ENABLED / AUTH_SIGNIN). Field-level values are taken from the
+#   config as-is (no inheritance), but the global capability gates the
+#   result. See `resolve_signin_enabled`.
+#
 # Scope Boundary:
 #   Install-wide security posture (MFA, lockout, password_requirements,
 #   active_sessions) is NOT overridable per domain. Those are infrastructure,
@@ -168,7 +174,7 @@ module Onetime
         # is enabled, the global value is authoritative.
         #
         # This is the single source of truth shared by the display gate
-        # (Core::Views::Serializers::ConfigSerializer#resolve_signin) and the
+        # (Core::Views::ConfigSerializer#resolve_signin) and the
         # runtime gate (Core::Controllers::Base#signin_enabled?), so the
         # rendered page and the POST handler cannot disagree about whether a
         # global kill switch is in effect.
