@@ -154,18 +154,21 @@ module Core
 
       protected
 
+      # Runtime gate for POST /signin. Delegates to the shared resolver so the
+      # global kill switch (AUTH_ENABLED / AUTH_SIGNIN) always wins: a per-domain
+      # SigninConfig can only narrow availability, never re-enable sign-in that
+      # is disabled globally. Keep in lockstep with ConfigSerializer#resolve_signin.
       def signin_enabled?
-        config = domain_signin_config
-        return config.signin_enabled? if config&.enabled?
-
-        auth_settings['enabled'] && auth_settings['signin']
+        global = auth_settings['enabled'] && auth_settings['signin']
+        Onetime::CustomDomain::SigninConfig.resolve_signin_enabled(global, domain_signin_config)
       end
 
+      # Runtime gate for POST /signup. Same AND semantics as signin_enabled?:
+      # a per-domain SignupConfig can only narrow availability, never re-enable
+      # signup that is disabled globally (AUTH_ENABLED / AUTH_SIGNUP).
       def signup_enabled?
-        config = domain_signup_config
-        return config.signup_enabled? if config&.enabled?
-
-        auth_settings['enabled'] && auth_settings['signup']
+        global = auth_settings['enabled'] && auth_settings['signup']
+        Onetime::CustomDomain::SignupConfig.resolve_signup_enabled(global, domain_signup_config)
       end
 
       private

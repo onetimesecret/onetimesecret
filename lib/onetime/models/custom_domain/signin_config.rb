@@ -23,6 +23,12 @@
 #   When an admin configures a domain, the config they see is the config
 #   that runs — no invisible inheritance from install-level defaults.
 #
+#   The install-level kill switch still wins: an enabled config can only
+#   NARROW availability, never re-enable sign-in that is disabled globally
+#   (AUTH_ENABLED / AUTH_SIGNIN). Field-level values are taken from the
+#   config as-is (no inheritance), but the global capability gates the
+#   result. See `resolve_signin_enabled`.
+#
 # Scope Boundary:
 #   Install-wide security posture (MFA, lockout, password_requirements,
 #   active_sessions) is NOT overridable per domain. Those are infrastructure,
@@ -157,6 +163,50 @@ module Onetime
           return true unless config&.enabled?
 
           config.sso_enabled?
+        end
+
+        # Resolve effective sign-in availability, combining the install-level
+        # (global) capability with an optional per-domain override.
+        #
+        # AND semantics: an enabled per-domain config can only *narrow* the
+        # global capability — it can never re-enable sign-in when the operator
+        # has disabled it globally (AUTH_ENABLED / AUTH_SIGNIN). When no config
+        # is enabled, the global value is authoritative.
+        #
+        # This is the single source of truth shared by the display gate
+        # (Core::Views::ConfigSerializer#resolve_signin) and the
+        # runtime gate (Core::Controllers::Base#signin_enabled?), so the
+        # rendered page and the POST handler cannot disagree about whether a
+        # global kill switch is in effect.
+        #
+        # @param global [Boolean] install-level availability (auth.enabled && auth.signin)
+        # @param config [SigninConfig, nil] the per-domain config, if any
+        # @return [Boolean]
+        def resolve_signin_enabled(global, config)
+          global = global == true
+          return global unless config&.enabled?
+
+          global && config.signin_enabled?
+        end
+
+        # Resolve effective email-auth (magic-link) availability, combining the
+        # install-level capability with an optional per-domain override.
+        #
+        # Same AND semantics and strict-boolean coercion as resolve_signin_enabled:
+        # a domain config can only narrow email-auth, never re-enable it when it
+        # is disabled globally. Currently consulted only by the display gate
+        # (Core::Views::ConfigSerializer#resolve_email_auth) — there is no runtime
+        # email-auth gate today — but routed through here so any future gate uses
+        # the same single source of truth and cannot drift.
+        #
+        # @param global [Boolean] install-level availability (auth_config.email_auth_enabled?)
+        # @param config [SigninConfig, nil] the per-domain config, if any
+        # @return [Boolean]
+        def resolve_email_auth_enabled(global, config)
+          global = global == true
+          return global unless config&.enabled?
+
+          global && config.email_auth_enabled?
         end
 
         # Check if a domain has signin config.

@@ -205,22 +205,20 @@ module Core
         # This is the DISPLAY gate: features.signin in the bootstrap lets
         # the public /signin page render a friendly "not available" notice
         # instead of the auth form. The runtime POST gate lives in
-        # Core::Controllers::Base#signin_enabled? and consults the same
-        # SigninConfig state.
+        # Core::Controllers::Base#signin_enabled? and resolves through the
+        # same SigninConfig.resolve_signin_enabled helper, so the rendered
+        # page and the POST handler cannot disagree.
         #
         # @param view_vars [Hash] View variables with request context
         # @return [Boolean] true if sign-in is available
         def resolve_signin(view_vars)
           auth_settings = (view_vars['site'] || {})['authentication'] || {}
-          global        = !!(auth_settings['enabled'] && auth_settings['signin'])
+          global        = auth_settings['enabled'] && auth_settings['signin']
 
-          domain_id = resolve_domain_id(view_vars)
-          if domain_id
-            signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id)
-            return global && signin_config.signin_enabled? if signin_config&.enabled?
-          end
+          domain_id     = resolve_domain_id(view_vars)
+          signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id) if domain_id
 
-          global
+          Onetime::CustomDomain::SigninConfig.resolve_signin_enabled(global, signin_config)
         end
 
         # Resolve email_auth availability for the current request context.
@@ -233,15 +231,11 @@ module Core
         # @param view_vars [Hash] View variables with request context
         # @return [Boolean] true if email_auth is available
         def resolve_email_auth(view_vars)
-          global = Onetime.auth_config.email_auth_enabled?
+          global        = Onetime.auth_config.email_auth_enabled?
+          domain_id     = resolve_domain_id(view_vars)
+          signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id) if domain_id
 
-          domain_id = resolve_domain_id(view_vars)
-          if domain_id
-            signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id)
-            return global && signin_config.email_auth_enabled? if signin_config&.enabled?
-          end
-
-          global
+          Onetime::CustomDomain::SigninConfig.resolve_email_auth_enabled(global, signin_config)
         end
 
         # Build SSO configuration for frontend
