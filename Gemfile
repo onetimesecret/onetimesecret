@@ -22,7 +22,16 @@ gem 'otto', '~> 2.2'
 gem 'rhales', '~> 0.6.2'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'
-gem 'rodauth-oauth', '~> 1.6'
+# Forked to add `oauth_mount_prefix`, which fixes the Rack::URLMap mount-prefix
+# mismatch (discovery URLs, issuer, and per-endpoint CSRF exemptions losing the
+# `/auth` mount point) at the gem level — see onetimesecret/onetimesecret#3465
+# and apps/web/auth/docs/rodauth-prefix-mismatch.md. Pinned to an immutable SHA
+# (not the mutable `claude/gifted-volta-4tpzai` branch) so `bundle update` can't
+# silently drift this security-critical gem. Bump the ref when the fork advances;
+# drop the fork once the change is upstreamed to os85/rodauth-oauth.
+gem 'rodauth-oauth', '~> 1.6',
+  git: 'https://github.com/onetimesecret/rodauth-oauth.git',
+  ref: '6e91089d5ee598a5ee6e78a5992d9e778ba7ccad'
 gem 'rodauth-omniauth', '~> 0.4'
 gem 'rodauth-tools', '~> 0.3.1'
 

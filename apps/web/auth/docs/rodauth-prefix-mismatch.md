@@ -1,6 +1,17 @@
-# Rodauth Prefix Mismatch — Investigation & Deferral
+# Rodauth Prefix Mismatch — Investigation & Resolution
 
 Issue #3104 follow-up item #12.
+
+> **Update — resolved in #3465.** The decoupling knob described under
+> "When this might become a fix" now exists. The forked `rodauth-oauth`
+> (consumed via the `Gemfile`) adds an `oauth_mount_prefix` setting, and the
+> local override surface in `features/oauth.rb` has collapsed to that single
+> setting plus a slim `OAUTH_ISSUER` shim and the load-bearing `/revoke` CSRF
+> exemption. The rest of this document is the original investigation, retained
+> for history, with two **Correction** notes inline: the claim that setting
+> `rodauth.prefix '/auth'` "breaks every rodauth route" does **not** hold for
+> rodauth 2.42.0 — route matching is segment-based and prefix-independent (see
+> the empirical table under "Why we don't fix the root cause").
 
 ## Summary
 
@@ -19,11 +30,21 @@ namespaces inside the rodauth instance:
 | `*_url` methods         | `base_url + /token`          |
 
 `request.is` / `r.on` match against `remaining_path`, while the gem's CSRF
-and metadata code paths inspect `request.path`. Setting `rodauth.prefix =
-'/auth'` would synchronize those, but would also produce `remaining_path =
-'/token'` versus required `'/auth/token'` in `request.is token_path`,
-breaking every rodauth route. The two namespaces are mutually exclusive at
-the framework level.
+and metadata code paths inspect `request.path`.
+
+> **Correction (#3465).** An earlier draft claimed that setting
+> `rodauth.prefix = '/auth'` would make `request.is token_path` require
+> `/auth/token` while `remaining_path` is `/token`, "breaking every rodauth
+> route," and that the two namespaces are "mutually exclusive at the framework
+> level." That is **not** how rodauth 2.42.0 matches. `handle_<name>` runs
+> `request.is send(:"#{name}_route")` against the bare route *segment*
+> (`"token"`), and `route!` looks up `route_hash[remaining_path]` whose keys
+> are `"/#{segment}"` — both prefix-independent. `prefix` only feeds
+> `route_path` (URL generation and the `check_csrf?` string comparisons), not
+> matching. So `prefix '/auth'` under `Rack::URLMap('/auth')` routes fine; it
+> fixes the URL and CSRF symptoms but **not** the issuer, and it is rejected
+> for a different reason (blast radius on every non-OAuth route). See the
+> corrected rationale and empirical table below.
 
 ## Concrete symptoms
 
@@ -110,9 +131,16 @@ Two things follow:
 
 Three approaches were considered and rejected:
 
-1. **Set `rodauth.prefix '/auth'`.** Breaks route matching: `request.is
-   token_path` becomes `request.is '/auth/token'`, but `remaining_path` is
-   `/token` after URLMap strips `SCRIPT_NAME`. Every rodauth route 404s.
+1. **Set `rodauth.prefix '/auth'`.** ~~Breaks route matching~~ — it does
+   **not** (see the Correction in Summary and the table below). Under
+   `Rack::URLMap('/auth')`, `prefix '/auth'` routes correctly and fixes the
+   discovery-URL and CSRF symptoms. The real reasons to avoid it: (a) it does
+   **not** fix the issuer (`base_url`, prefix-independent); and (b) `prefix`
+   prefixes **every** rodauth route's URL generation (login, logout, omniauth,
+   email links), whereas OTS only wants the OAuth/OIDC endpoints prefixed and
+   already does manual `Auth::Application.uri_prefix` prefixing elsewhere
+   (`json_mode.rb`) that assumes unprefixed `*_path`. The OAuth-scoped,
+   gem-level `oauth_mount_prefix` (taken in #3465) avoids that blast radius.
 
 2. **Mount auth app at `/` and route internally with `r.on('auth')`.**
    Loses isolation from main app routing; conflicts with the
@@ -124,37 +152,58 @@ Three approaches were considered and rejected:
    user who has set `rodauth.prefix` non-empty. Belongs in an upstream
    issue, not a local monkey-patch.
 
-The current patch surface (3 method overrides + 1 helper) is small,
-documented, and exercised by integration tests. The cost of carrying it
-is lower than the cost of any structural fix.
+At the time of writing, the patch surface (3 method overrides + 1 helper) was
+deemed smaller than any structural fix. **#3465 superseded that judgment:** the
+gem-level `oauth_mount_prefix` collapses the surface to one setting (plus the
+`OAUTH_ISSUER` shim and the `/revoke` exemption), so the structural fix is now
+the cheaper one to carry.
+
+### Empirical verification (rodauth 2.42.0)
+
+Measured with `Rack::Test` + `Rack::URLMap` — pristine rodauth core (no fork)
+for the routing rows, the fork for the post-fix row:
+
+| Scenario | Result |
+|----------|--------|
+| pristine core — `prefix '/auth'` + `URLMap('/auth')`, `GET /auth/login` | `200`, login form → **routes** (refutes "every route 404s") |
+| pristine core — `prefix` unset + `URLMap('/auth')`, `GET /auth/login` | `200` → routes (OTS today) |
+| pristine core — `prefix '/auth'`, **no** mount, `GET /auth/login` | `404`; `GET /login` → `200` (prefix alone doesn't relocate routes; the mount does) |
+| **fork (post-fix)** — `oauth_mount_prefix '/auth'` (prefix unset) + `URLMap('/auth')` | `POST /auth/token` routes & **CSRF-exempt**; discovery `token_endpoint` = `http://example.org/auth/token`, `issuer` = `http://example.org/auth` |
+
+The first three rows show `prefix` is irrelevant to *matching* (segment-based,
+via `route_hash[remaining_path]` + `request.is <segment>`); the fourth shows the
+fork's `oauth_mount_prefix` carrying the mount point into URL generation, the
+`issuer`, and the per-endpoint CSRF comparisons without touching matching.
+Pinned by `rodauth-oauth`'s `test/oauth/mount_prefix_test.rb` (URLMap mount) and
+an OTS-config replica run under Ruby 3.4.9.
 
 ## Regression coverage
 
-Any new rodauth-oauth route or per-feature `check_csrf?` override the gem
-adds in a future version will hit the same trap. Reviewers of gem bumps
-should check:
+**Superseded by #3465.** New OAuth routes and per-feature `check_csrf?`
+overrides are now handled at the gem level: every route defined via the fork's
+`auth_server_route` gets mount-aware `*_path`/`*_url` automatically, so there is
+no local list (`OAUTH_NO_CSRF_PATHS`) or helper (`prefix_oauth_endpoint_urls!`)
+to keep in sync — both were removed. The gem-bump checklist now lives in the
+fork (`doc/release_notes/1_6_5.md`): a new per-feature CSRF override must compare
+against the route's (mount-aware) `*_path`, and new discovery fields must be
+populated from a route's `*_url` helper rather than `base_url` directly.
 
-- `grep -rn 'case request.path' rodauth-oauth-X.Y.Z/lib/` — any new
-  per-feature CSRF override needs its path added to `OAUTH_NO_CSRF_PATHS`.
-- `grep -rn 'oauth_server_metadata_body\|openid_configuration_body'` for
-  new metadata fields that bypass `prefix_oauth_endpoint_urls!`.
-- Any new `*_endpoint` field added to discovery metadata needs to be
-  appended to the symbol list at `features/oauth.rb:116`.
+Integration tests pinning the behavior:
 
-Current integration tests pinning the behavior:
+- `apps/web/auth/spec/integration/oauth/*` — exercise discovery, /token,
+  /userinfo, /revoke under the `/auth` mount.
+- `rodauth-oauth`'s `test/oauth/mount_prefix_test.rb` — pins the gem-level
+  mount-prefix behavior (discovery URLs, issuer, and /token CSRF exemption
+  under a `Rack::URLMap` mount).
 
-- `spec/integration/oauth_idp_lifecycle_spec.rb` — exercises /token,
-  /userinfo, /revoke under the `/auth` mount; would 403 on CSRF or 404
-  on path mismatch if the overrides regressed.
-- Discovery endpoint specs — verify the `iss` field and endpoint URLs
-  contain `/auth`.
+## This became the fix (#3465)
 
-## When this might become a fix
-
-If rodauth or rodauth-oauth grows a config knob that decouples
-"prefix used for URL generation" from "prefix used for `request.is`
-matching" (e.g. an explicit `mount_prefix` separate from `prefix`), all
-three overrides above collapse into a single setting. Until then, the
-mismatch is a framework-level constraint of running rodauth-oauth
-behind `Rack::URLMap`, and the local patch is the right place to absorb
-it.
+rodauth-oauth grew exactly the config knob anticipated here: an
+`oauth_mount_prefix` that decouples "prefix used for URL generation /
+`request.path` comparison" from "prefix used for route matching" (which stays on
+`remaining_path`). The forked gem (consumed via the `Gemfile`) honors it in the
+discovery metadata builders, the per-feature `check_csrf?` comparisons, and the
+issuer derivation, so the three local overrides collapsed into the single
+`auth.oauth_mount_prefix { Auth::Application.uri_prefix }` setting. The `/revoke`
+CSRF exemption is retained separately (load-bearing — see the Nuance section);
+the `OAUTH_ISSUER` shim is retained for static prod deployments.
