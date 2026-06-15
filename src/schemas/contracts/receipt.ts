@@ -181,10 +181,12 @@ export const receiptBaseCanonical = z.object({
   revealed: z.date().nullable(),
   burned: z.date().nullable(),
 
-  // TTL fields (seconds). Nullable: safe_dump emits null when lifespan is
-  // unset/zero (lib/onetime/models/receipt/features/safe_dump_fields.rb).
-  // A non-nullable z.number() rejected that null — the null half of #3424.
-  secret_ttl: z.number().nullable(),
+  // TTL fields (seconds). receipt_ttl/lifespan are nullable because safe_dump
+  // emits null for them when lifespan is unset/zero
+  // (lib/onetime/models/receipt/features/safe_dump_fields.rb) — the null half
+  // of #3424. secret_ttl is NOT nullable: its lambda emits -1 (not nil) for an
+  // unset value, so it is always a number on the wire.
+  secret_ttl: z.number(),
   receipt_ttl: z.number().nullable(),
   lifespan: z.number().nullable(),
 

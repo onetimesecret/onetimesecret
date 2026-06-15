@@ -559,12 +559,16 @@ describe('V3 schema null-safety audit', () => {
       }
     );
 
-    it.each(['secret_ttl', 'receipt_ttl', 'lifespan'])(
+    it.each(['receipt_ttl', 'lifespan'])(
       'receipt record field "%s" accepts null',
       (field) => {
         expect(fieldAcceptsNull(recordFieldSchema(receiptResponseSchema, field))).toBe(true);
       }
     );
+
+    it('receipt record field "secret_ttl" rejects null (backend emits -1, not nil)', () => {
+      expect(fieldAcceptsNull(recordFieldSchema(receiptResponseSchema, 'secret_ttl'))).toBe(false);
+    });
 
     it('V3 secret response schema accepts a lifespan-less record (null secret_ttl/lifespan)', () => {
       // Mirrors the backend payload for a secret whose lifespan is unset:
