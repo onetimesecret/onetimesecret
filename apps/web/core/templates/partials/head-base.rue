@@ -24,7 +24,9 @@
            (docker/branding/ at build time, or public/web at runtime).
        The /favicon.ico route additionally honours per-custom-domain icons
        and brand.favicon_url. See docs/customization/branding-favicon.md. -->
+  {{#if show_default_svg_favicon}}
   <link nonce="{{app.nonce}}" rel="icon" type="image/svg+xml" href="/favicon.svg">
+  {{/if}}
   <link nonce="{{app.nonce}}" rel="icon" href="/favicon.ico" sizes="32x32">
   <link nonce="{{app.nonce}}" rel="apple-touch-icon" sizes="180x180" href="{{brand_apple_touch_icon_url}}">
   <link nonce="{{app.nonce}}" rel="manifest" href="/site.webmanifest">

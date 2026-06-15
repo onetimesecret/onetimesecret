@@ -98,6 +98,36 @@ vars = @host.initialize_view_vars(Rack::Request.new(build_env))
 #=> [true, true]
 
 # ============================================================================
+# SVG favicon precedence gate (must not shadow per-domain / brand favicon)
+# ============================================================================
+
+## default (canonical) install with no brand favicon emits the crisp SVG favicon
+with_brand_conf(nil) do
+  vars = @host.initialize_view_vars(Rack::Request.new(build_env))
+  vars['show_default_svg_favicon']
+end
+#=> true
+
+## a brand.favicon_url install suppresses the static SVG (the /favicon.ico redirect wins)
+with_brand_conf({ 'favicon_url' => 'https://cdn.acme.test/favicon.ico' }) do
+  vars = @host.initialize_view_vars(Rack::Request.new(build_env))
+  vars['show_default_svg_favicon']
+end
+#=> false
+
+## [regression guard] a custom domain suppresses the static SVG so its uploaded /favicon.ico is not shadowed
+def build_custom_env
+  env = build_env
+  env['onetime.domain_strategy'] = :custom
+  env
+end
+with_brand_conf(nil) do
+  vars = @host.initialize_view_vars(Rack::Request.new(build_custom_env))
+  vars['show_default_svg_favicon']
+end
+#=> false
+
+# ============================================================================
 # [trust regression guard] shipped defaults are brand-NEUTRAL
 # ============================================================================
 

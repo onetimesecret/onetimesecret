@@ -220,6 +220,18 @@ module Core
         brand_apple_touch_icon_url  = brand_config['apple_touch_icon_url'] || '/apple-touch-icon.png'
         brand_og_image_url          = brand_config['og_image_url'] || "#{baseuri}/social-preview.png"
 
+        # Whether to emit the static neutral SVG favicon link. Modern browsers
+        # prefer an SVG <link rel="icon"> over the .ico, so we must NOT emit it
+        # when a higher-precedence favicon is in play, or the neutral keyhole
+        # would shadow it:
+        #   - custom domains serve their uploaded icon via the /favicon.ico
+        #     route (no favicon_url field), and
+        #   - brand.favicon_url installs serve via a /favicon.ico redirect.
+        # In both cases we fall back to the .ico link alone, which the route
+        # resolves correctly. Canonical/default installs get the crisp SVG.
+        show_default_svg_favicon    = domain_strategy != :custom &&
+                                      brand_favicon_url.to_s.strip.empty?
+
         # Return all view variables as a hash
         {
           'authenticated' => authenticated,
@@ -262,6 +274,7 @@ module Core
           'brand_favicon_url' => brand_favicon_url,
           'brand_apple_touch_icon_url' => brand_apple_touch_icon_url,
           'brand_og_image_url' => brand_og_image_url,
+          'show_default_svg_favicon' => show_default_svg_favicon,
           'support_email' => support_email,
           'docs_host' => docs_host,
         }

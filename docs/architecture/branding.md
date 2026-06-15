@@ -333,7 +333,13 @@ a `BRAND_*_URL` env var or a replacement file dropped into the brand directory
   still take precedence.
 - `apps/web/core/views/helpers/initialize_view_vars.rb` — resolves
   `brand_apple_touch_icon_url` and `brand_og_image_url` (override or neutral
-  default path).
+  default path), and `show_default_svg_favicon`.
+- **SVG favicon precedence gate**: browsers prefer an SVG `<link rel="icon">`
+  over the `.ico`, so the static neutral `/favicon.svg` link is emitted **only**
+  for canonical/default installs with no `brand.favicon_url`. On a custom domain
+  (uploaded icon served by the `/favicon.ico` route) or a `brand.favicon_url`
+  install (a `/favicon.ico` redirect), the SVG link is suppressed so it cannot
+  shadow the higher-precedence favicon.
 - `apps/web/core/templates/partials/head-base.rue` / `head.rue` — emit the
   full pack (`rel="icon"` SVG+ICO, `apple-touch-icon`, `manifest`, `mask-icon`,
   `og:image`, `twitter:image`).
