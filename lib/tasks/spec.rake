@@ -25,9 +25,10 @@
 #   └── all/        # Runs in ALL modes (infrastructure validation)
 #
 #   apps/web/auth/spec/integration/
-#   └── full/           # Full-mode specs (Rodauth, OmniAuth, SSO)
-#       ├── basicauth/  # BasicAuth contract tests
-#       └── migrations/ # DB migration tests
+#   ├── full/           # Full-mode specs (Rodauth, OmniAuth, SSO)
+#   │   ├── basicauth/  # BasicAuth contract tests
+#   │   └── migrations/ # DB migration tests
+#   └── strategies/     # Redis-only auth strategy specs (isolated process; see #3468)
 #
 # The "all/" specs run three times (once per mode). This is intentional: they
 # validate that infrastructure (Puma forking, RabbitMQ, routing) works correctly
