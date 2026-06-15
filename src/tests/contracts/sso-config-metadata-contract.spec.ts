@@ -168,6 +168,7 @@ describe('customDomainSsoConfigCanonical schema', () => {
       requires_domain_filter: true,
       idp_controls_access: false,
       enforce_sso_only: false,
+      grant_org_scope: false,
       created_at: 1700000000,
       updated_at: 1700000000,
     };

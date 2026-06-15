@@ -47,7 +47,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::SESSenderStrategy do
           .and_return(create_response)
       end
 
-      it 'returns success with fully-qualified DKIM and MAIL FROM records' do
+      it 'returns success with fully-qualified DKIM, MAIL FROM, and advisory DMARC records' do
         result = strategy.provision_dns_records(mailer_config, credentials: credentials)
 
         expect(result[:success]).to be true
@@ -57,6 +57,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::SESSenderStrategy do
           { type: 'CNAME', name: 'ghi789._domainkey.example.com', value: 'ghi789.dkim.amazonses.com' },
           { type: 'MX', name: 'mail.example.com', value: 'feedback-smtp.us-east-1.amazonses.com' },
           { type: 'TXT', name: 'mail.example.com', value: 'v=spf1 include:amazonses.com ~all' },
+          { type: 'TXT', name: '_dmarc.example.com', value: 'v=DMARC1; p=none;', optional: true },
         ])
         expect(result[:provider_data][:dkim_tokens]).to eq(%w[abc123 def456 ghi789])
         expect(result[:provider_data][:region]).to eq('us-east-1')
@@ -73,6 +74,12 @@ RSpec.describe Onetime::Mail::SenderStrategies::SESSenderStrategy do
             mail_from_domain: 'mail.example.com',
             behavior_on_mx_failure: 'USE_DEFAULT_VALUE',
           )
+      end
+
+      it 'includes MAIL FROM in the success message' do
+        result = strategy.provision_dns_records(mailer_config, credentials: credentials)
+
+        expect(result[:message]).to include('custom MAIL FROM domain')
       end
     end
 
@@ -132,13 +139,76 @@ RSpec.describe Onetime::Mail::SenderStrategies::SESSenderStrategy do
           .and_raise(Aws::SESV2::Errors::ServiceError.new(nil, 'mail from rejected'))
       end
 
-      it 'still succeeds with DKIM records but omits MAIL FROM records' do
+      it 'still succeeds with DKIM and advisory DMARC records but omits MAIL FROM records' do
         result = strategy.provision_dns_records(mailer_config, credentials: credentials)
 
         expect(result[:success]).to be true
-        expect(result[:dns_records].map { |r| r[:type] }).to eq(%w[CNAME CNAME])
+        non_optional = result[:dns_records].reject { |r| r[:optional] }
+        expect(non_optional.map { |r| r[:type] }).to eq(%w[CNAME CNAME])
         expect(result[:dns_records].any? { |r| r[:type] == 'MX' }).to be false
         expect(result[:provider_data][:mail_from_domain]).to be_nil
+
+        dmarc = result[:dns_records].find { |r| r[:name].include?('_dmarc') }
+        expect(dmarc).to be_truthy
+        expect(dmarc[:optional]).to be true
+      end
+
+      it 'indicates DKIM-only in the success message' do
+        result = strategy.provision_dns_records(mailer_config, credentials: credentials)
+
+        expect(result[:message]).to include('MAIL FROM not configured')
+        expect(result[:message]).to include('DKIM only')
+      end
+
+      it 'logs a warning about the MAIL FROM failure' do
+        strategy.provision_dns_records(mailer_config, credentials: credentials)
+
+        expect(strategy).to have_received(:log_warn)
+          .with(a_string_matching(/MAIL FROM setup failed/))
+      end
+    end
+
+    context 'advisory DMARC record' do
+      let(:dkim_attrs) do
+        double('DkimAttributes',
+          tokens: %w[abc123 def456 ghi789],
+          status: 'PENDING')
+      end
+      let(:create_response) do
+        double('CreateEmailIdentityResponse', dkim_attributes: dkim_attrs)
+      end
+
+      before do
+        allow(mock_client).to receive(:create_email_identity)
+          .with(email_identity: 'example.com')
+          .and_return(create_response)
+      end
+
+      it 'includes a DMARC TXT record marked as optional' do
+        result = strategy.provision_dns_records(mailer_config, credentials: credentials)
+
+        dmarc = result[:dns_records].find { |r| r[:name] == '_dmarc.example.com' }
+        expect(dmarc).to eq(
+          type: 'TXT',
+          name: '_dmarc.example.com',
+          value: 'v=DMARC1; p=none;',
+          optional: true,
+        )
+      end
+
+      it 'places DMARC record after MAIL FROM records' do
+        result = strategy.provision_dns_records(mailer_config, credentials: credentials)
+
+        dmarc_index = result[:dns_records].index { |r| r[:name].include?('_dmarc') }
+        expect(dmarc_index).to eq(result[:dns_records].length - 1)
+      end
+
+      it 'does not mark required records as optional' do
+        result = strategy.provision_dns_records(mailer_config, credentials: credentials)
+
+        required = result[:dns_records].reject { |r| r[:optional] }
+        expect(required.length).to eq(5)
+        required.each { |r| expect(r).not_to have_key(:optional) }
       end
     end
 
@@ -272,6 +342,111 @@ RSpec.describe Onetime::Mail::SenderStrategies::SESSenderStrategy do
         expect(result[:verified]).to be false
         expect(result[:status]).to eq('pending')
         expect(result[:message]).to include('awaiting propagation')
+      end
+    end
+
+    context 'when MAIL FROM was never configured (NOT_STARTED)' do
+      let(:dkim_attrs) do
+        double('DkimAttributes',
+          tokens: %w[abc123 def456 ghi789],
+          status: 'SUCCESS',
+          signing_enabled: true)
+      end
+      let(:mail_from_attrs) do
+        double('MailFromAttributes',
+          mail_from_domain: '',
+          mail_from_domain_status: 'NOT_STARTED')
+      end
+      let(:get_response) do
+        double('GetEmailIdentityResponse',
+          dkim_attributes: dkim_attrs,
+          mail_from_attributes: mail_from_attrs,
+          identity_type: 'DOMAIN')
+      end
+
+      before do
+        allow(mock_client).to receive(:get_email_identity)
+          .with(email_identity: 'example.com')
+          .and_return(get_response)
+      end
+
+      it 'reports DKIM verified but MAIL FROM not started' do
+        result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
+
+        expect(result[:verified]).to be true
+        expect(result[:status]).to eq('success')
+        expect(result[:details][:mail_from_domain]).to eq('')
+        expect(result[:details][:mail_from_status]).to eq('NOT_STARTED')
+      end
+    end
+
+    context 'when MAIL FROM is pending DNS verification' do
+      let(:dkim_attrs) do
+        double('DkimAttributes',
+          tokens: %w[abc123 def456 ghi789],
+          status: 'SUCCESS',
+          signing_enabled: true)
+      end
+      let(:mail_from_attrs) do
+        double('MailFromAttributes',
+          mail_from_domain: 'mail.example.com',
+          mail_from_domain_status: 'PENDING')
+      end
+      let(:get_response) do
+        double('GetEmailIdentityResponse',
+          dkim_attributes: dkim_attrs,
+          mail_from_attributes: mail_from_attrs,
+          identity_type: 'DOMAIN')
+      end
+
+      before do
+        allow(mock_client).to receive(:get_email_identity)
+          .with(email_identity: 'example.com')
+          .and_return(get_response)
+      end
+
+      it 'reports DKIM verified with MAIL FROM pending' do
+        result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
+
+        expect(result[:verified]).to be true
+        expect(result[:status]).to eq('success')
+        expect(result[:details][:mail_from_domain]).to eq('mail.example.com')
+        expect(result[:details][:mail_from_status]).to eq('PENDING')
+      end
+    end
+
+    context 'when MAIL FROM verification has failed' do
+      let(:dkim_attrs) do
+        double('DkimAttributes',
+          tokens: %w[abc123 def456 ghi789],
+          status: 'SUCCESS',
+          signing_enabled: true)
+      end
+      let(:mail_from_attrs) do
+        double('MailFromAttributes',
+          mail_from_domain: 'mail.example.com',
+          mail_from_domain_status: 'FAILED')
+      end
+      let(:get_response) do
+        double('GetEmailIdentityResponse',
+          dkim_attributes: dkim_attrs,
+          mail_from_attributes: mail_from_attrs,
+          identity_type: 'DOMAIN')
+      end
+
+      before do
+        allow(mock_client).to receive(:get_email_identity)
+          .with(email_identity: 'example.com')
+          .and_return(get_response)
+      end
+
+      it 'reports DKIM verified despite MAIL FROM failure' do
+        result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
+
+        expect(result[:verified]).to be true
+        expect(result[:status]).to eq('success')
+        expect(result[:details][:mail_from_domain]).to eq('mail.example.com')
+        expect(result[:details][:mail_from_status]).to eq('FAILED')
       end
     end
 

@@ -3,7 +3,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
-import ToastNotification from '@/shared/components/ui/ToastNotification.vue';
+import { InlineToast } from '@/shared/components/ui/notifications';
 import type { RecentSecretRecord } from '@/shared/composables/useRecentSecrets';
 import { computed, ref, onMounted, onBeforeUnmount, provide } from 'vue';
 
@@ -122,7 +122,7 @@ onBeforeUnmount(() => {
       </ul>
     </div>
 
-    <ToastNotification
+    <InlineToast
       :show="showToast"
       :message="toastMessage"
       aria-live="polite" />

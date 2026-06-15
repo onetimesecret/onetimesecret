@@ -91,7 +91,8 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       instance_double(
         Onetime::OrganizationMembership,
         active?: true,
-        admin?: true
+        admin?: true,
+        domain_scoped?: false
       )
     end
 
@@ -152,7 +153,7 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
 
     context 'when user lacks manage_members entitlement' do
       let(:member_without_entitlement) do
-        instance_double(Onetime::OrganizationMembership, active?: true)
+        instance_double(Onetime::OrganizationMembership, active?: true, domain_scoped?: false)
       end
 
       before do
@@ -261,7 +262,7 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
 
     context 'with valid params and admin permission' do
       let(:admin_membership) do
-        instance_double(Onetime::OrganizationMembership, admin?: true, active?: true)
+        instance_double(Onetime::OrganizationMembership, admin?: true, active?: true, domain_scoped?: false)
       end
 
       before do
@@ -288,7 +289,7 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
     end
 
     let(:owner_membership) do
-      instance_double(Onetime::OrganizationMembership, active?: true)
+      instance_double(Onetime::OrganizationMembership, active?: true, domain_scoped?: false)
     end
 
     before do
@@ -384,7 +385,7 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
     let(:entitlements) { double('SortedSet', any?: has_entitlements) }
     let(:has_entitlements) { false }
     let(:owner_membership) do
-      instance_double(Onetime::OrganizationMembership, active?: true)
+      instance_double(Onetime::OrganizationMembership, active?: true, domain_scoped?: false)
     end
 
     before do

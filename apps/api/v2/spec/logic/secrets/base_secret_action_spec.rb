@@ -191,10 +191,10 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
         organization_instances: [])
     end
 
-    # Stand-in for CustomDomain. owner? and allow_public_homepage? are the
+    # Stand-in for CustomDomain. accessible_by? and allow_public_homepage? are the
     # only methods validate_domain_permissions touches on the record.
     def build_domain_record(owner: false, allow_public_homepage: false)
-      double('CustomDomain', owner?: owner, allow_public_homepage?: allow_public_homepage)
+      double('CustomDomain', accessible_by?: owner, allow_public_homepage?: allow_public_homepage)
     end
 
     # Build a subject seeded with @cust and @share_domain so the helper
@@ -751,7 +751,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
     # Domain double that passes all permission and verification checks.
     def build_passing_domain_record(owner: true)
       double('CustomDomain',
-        owner?: owner,
+        accessible_by?: owner,
         allow_public_homepage?: true,
         verified: 'true')
     end
@@ -821,7 +821,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       let(:host_domain)     { 'local-secrets.afb.pet' }
       let(:domain_record) do
         double('CustomDomain',
-          owner?: false,
+          accessible_by?: false,
           allow_public_homepage?: false,
           verified: 'true')
       end
@@ -879,7 +879,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       let(:host_domain)   { 'local-secrets.afb.pet' }
       let(:domain_record) do
         double('CustomDomain',
-          owner?: false,
+          accessible_by?: false,
           allow_public_homepage?: true,
           verified: 'true')
       end
@@ -938,7 +938,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       let(:host_domain) { 'secrets.acme.com' }
       let(:host_record) do
         double('CustomDomain',
-          owner?: false,
+          accessible_by?: false,
           allow_public_homepage?: true,
           verified: 'true')
       end
@@ -995,7 +995,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
     end
 
     let(:host_record) do
-      double('CustomDomain', owner?: false, allow_public_homepage?: true, verified: 'true')
+      double('CustomDomain', accessible_by?: false, allow_public_homepage?: true, verified: 'true')
     end
 
     # Real nested payload, exactly as a guest POST would arrive.

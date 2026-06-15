@@ -11,9 +11,9 @@ src/apps/secret/views/
 └── disabled/
     ├── useDisabledConfig.ts    derives { variant, props } from stores
     └── variants/
-        ├── DisabledV1.vue       default — full hero + trust strip + promo
-        ├── DisabledMinimal.vue  small mark + headline + ghost CTA
-        └── DisabledLegacy.vue   pre-refresh two-tagline (rollback target)
+        ├── DisabledV1.vue       full hero + trust strip + promo + SSO-aware CTA
+        ├── DisabledMinimal.vue  small mark + headline + SSO-aware ghost CTA
+        └── DisabledClosed.vue   pre-refresh two-tagline, no CTA (default)
 ```
 
 Dispatcher consumes `useDisabledConfig()`, picks a component from a
@@ -35,7 +35,7 @@ The optional affordance overrides stay on the site-level
 
 | location                                          | field                       | type                            | semantics                                                |
 | ------------------------------------------------- | --------------------------- | ------------------------------- | -------------------------------------------------------- |
-| `homepage_config`                                 | `disabled_homepage_variant` | `'v1' \| 'minimal' \| 'legacy' \| null` | which component this domain renders (`null` = default)   |
+| `homepage_config`                                 | `disabled_homepage_variant` | `'v1' \| 'minimal' \| 'closed' \| null` | which component this domain renders (`null` = default)   |
 | `bootstrap.disabled_homepage`                     | `show_promo`                | `boolean \| null`               | tri-state override (`null` = auto, `true/false` = force) |
 | `bootstrap.disabled_homepage`                     | `show_what_is_this`         | `boolean \| null`               | same                                                     |
 
@@ -59,9 +59,10 @@ per-domain operator config is the long-term path: PATCH the value, no
 frontend release. Until then:
 
 - **Frontend default**: change `DEFAULT_DISABLED_HOMEPAGE_VARIANT` in
-  `disabled-homepage.ts`. Requires a frontend release. This is the
-  source of truth for unconfigured domains and the canonical site.
-- **URL param**: `?variant=legacy` on any disabled-homepage URL.
+  `disabled-homepage.ts` (currently `closed`). Requires a frontend
+  release. This is the source of truth for unconfigured domains and the
+  canonical site.
+- **URL param**: `?variant=minimal` on any disabled-homepage URL.
 
 Override individual feature flags via the site-level bootstrap block —
 set `show_promo` / `show_what_is_this` to `true` / `false` / `null`
@@ -77,6 +78,23 @@ set `show_promo` / `show_what_is_this` to `true` / `false` / `null`
 
 Missing URLs suppress the matching affordance — an operator override
 can't resurrect a link to `https:///` or to `null`.
+
+## Sign-in CTA (one-click SSO)
+
+The `minimal` / `v1` variants render a sign-in CTA (the `closed` default
+has none). The CTA's target is derived in `useDisabledConfig`:
+
+- **One-click SSO** — when SSO is the only login method *and* exactly one
+  provider is configured, the CTA POSTs straight to `/auth/sso/:provider`
+  (via `shared/utils/sso.ts`), skipping `/signin`. In that configuration
+  `/signin` is itself just a single "Sign in with X" button, so the hop
+  adds nothing. "SSO only" mirrors `AuthMethodSelector`: global
+  `restrict_to === 'sso'`, or a custom domain with `enforce_sso_only`.
+- **Otherwise** — the CTA is a normal `<router-link to="/signin">`, so
+  multi-provider and mixed-method deployments keep the chooser.
+
+The composable exposes `ssoOneClick`, `ssoProviderName`, and `onSsoLogin`
+in the props bag; variants stay presentational and never read stores.
 
 ## Centred logo
 

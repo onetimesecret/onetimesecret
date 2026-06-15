@@ -58,6 +58,12 @@ site:
         mode: <%= ENV['UI_HOMEPAGE_MODE'] || nil %>
         matching_cidrs: <%= ENV['UI_HOMEPAGE_MATCHING_CIDRS']&.split(',')&.map(&:strip) || [] %>
         mode_header: <%= ENV['UI_HOMEPAGE_MODE_HEADER'] || 'O-Homepage-Mode' %>
+        # Deployment-wide default landing page when the homepage secret form
+        # is gated by auth (auth.required or mode=external). One of: closed
+        # (quiet two-tagline, no CTA), minimal, or v1. Per-domain config and
+        # the ?variant= URL override take precedence; blank uses the frontend
+        # default (closed).
+        disabled_variant: <%= ENV['DEFAULT_DISABLED_HOMEPAGE_VARIANT'] || nil %>
         # Links rendered when a public visitor lands on the homepage but
         # the secret form is gated by auth (e.g. mode=external). Recipients
         # arriving via a shared link use these to learn about the service.

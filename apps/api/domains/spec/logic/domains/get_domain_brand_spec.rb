@@ -118,6 +118,10 @@ RSpec.describe DomainsAPI::Logic::Domains::GetDomainBrand do
     allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
       .with('org123', 'owner123')
       .and_return(owner_membership)
+
+    # Domain-scope enforcement (#3384): memberships must respond to can_access_domain?
+    allow(owner_membership).to receive(:can_access_domain?).and_return(true)
+    allow(member_membership).to receive(:can_access_domain?).and_return(true)
   end
 
   describe 'policy integration' do

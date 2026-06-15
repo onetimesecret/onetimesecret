@@ -50,6 +50,7 @@ module DomainsAPI
           @allowed_domains  = parse_allowed_domains(params['allowed_domains'])
           @enabled          = parse_boolean(params['enabled'])
           @enforce_sso_only = parse_boolean(params['enforce_sso_only'])
+          @grant_org_scope  = parse_boolean(params['grant_org_scope'])
         end
 
         def raise_concerns
@@ -127,6 +128,7 @@ module DomainsAPI
             allowed_domains: @allowed_domains,
             enabled: @enabled,
             enforce_sso_only: @enforce_sso_only,
+            grant_org_scope: @grant_org_scope,
           }
         end
 
@@ -187,6 +189,7 @@ module DomainsAPI
             allowed_domains: @allowed_domains,
             enabled: @enabled,
             enforce_sso_only: @enforce_sso_only,
+            grant_org_scope: @grant_org_scope,
           )
         end
 
@@ -208,6 +211,7 @@ module DomainsAPI
           @sso_config.allowed_domains  = @allowed_domains # Empty array clears the field
           @sso_config.enabled          = @enabled.to_s
           @sso_config.enforce_sso_only = @enforce_sso_only.to_s
+          @sso_config.grant_org_scope  = @grant_org_scope.to_s
 
           # Update timestamp for replacement
           @sso_config.updated = Familia.now.to_i

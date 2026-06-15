@@ -117,11 +117,13 @@ module Onetime
 
       # Enforcement settings
       field :enforce_sso_only  # Boolean string ('true'/'false')
+      field :grant_org_scope   # Boolean string ('true'/'false')
 
       def init
         self.enabled          ||= 'false'
         self.provider_type    ||= 'oidc'
         self.enforce_sso_only ||= 'false'
+        self.grant_org_scope  ||= 'false'
       end
 
       # Check if SSO is enabled for this domain.
@@ -136,6 +138,10 @@ module Onetime
       # @return [Boolean] true if SSO is the only allowed auth method
       def enforce_sso_only?
         enforce_sso_only.to_s == 'true'
+      end
+
+      def grant_org_scope?
+        grant_org_scope.to_s == 'true'
       end
 
       # Returns metadata for the current provider type.
@@ -386,6 +392,7 @@ module Onetime
           config.issuer           = attrs[:issuer] if attrs.key?(:issuer)
           config.enabled          = attrs[:enabled].to_s if attrs.key?(:enabled)
           config.enforce_sso_only = attrs[:enforce_sso_only].to_s if attrs.key?(:enforce_sso_only)
+          config.grant_org_scope  = attrs[:grant_org_scope].to_s if attrs.key?(:grant_org_scope)
 
           # Set encrypted fields
           config.client_id     = attrs[:client_id] if attrs.key?(:client_id)
