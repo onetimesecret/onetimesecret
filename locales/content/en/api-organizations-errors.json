@@ -1,6 +1,7 @@
 {
   "api.organizations.errors.domain_scoped_forbidden": {
-    "text": "Domain-scoped members cannot perform this action"
+    "text": "Domain-scoped members cannot perform this action",
+    "content_hash": "0a06a035"
   },
   "api.organizations.errors.organization_not_found": {
     "text": "Organization not found: %{extid}",

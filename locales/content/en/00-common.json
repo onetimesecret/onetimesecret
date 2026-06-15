@@ -1489,7 +1489,8 @@
   },
   "web.COMMON.copy": {
     "text": "Copy",
-    "context": "Tooltip for copy buttons"
+    "context": "Tooltip for copy buttons",
+    "content_hash": "e21f935f"
   },
   "web.COMMON.copy_email": {
     "text": "Copy email address",

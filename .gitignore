@@ -72,6 +72,8 @@ bin/rubocop
 support/schemas/
 tsconfig.tsbuildinfo
 *.db
+*.db-shm
+*.db-wal
 !locales/db/*.sql
 !routes.txt
 !scripts/requirements-*.txt
