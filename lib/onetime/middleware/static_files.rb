@@ -64,7 +64,13 @@ module Onetime
             Onetime.ld '[StaticFiles] Enabling StaticFiles middleware'
             require 'rack/static'
             use Rack::Static,
-              urls: ['/dist', '/img', '/v3', '/site.webmanifest'],
+              urls: ['/dist', '/img', '/v3', '/site.webmanifest',
+                     # Favicon + mobile/social variety pack at the document root.
+                     # /favicon.ico is intentionally omitted: it is served by the
+                     # Core::Controllers::Page#favicon route so per-custom-domain
+                     # icons and brand.favicon_url redirects keep working.
+                     '/favicon.svg', '/safari-pinned-tab.svg', '/apple-touch-icon.png',
+                     '/icon-192.png', '/icon-512.png', '/social-preview.png'],
               root: 'public/web'
           end
 

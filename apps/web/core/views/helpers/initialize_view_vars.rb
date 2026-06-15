@@ -210,6 +210,15 @@ module Core
         brand_support_email         = brand_config['support_email'] || brand_global_defaults[:support_email]
         brand_logo_url              = brand_config['logo_url'] || brand_global_defaults[:logo_url]
         brand_favicon_url           = brand_config['favicon_url'] || brand_global_defaults[:favicon_url]
+        # Mobile/social variety-pack URLs used by the HTML head. Unlike the
+        # fields above (which default to nil and fall through to the frontend
+        # neutral theme), these resolve to the bundled NEUTRAL asset files so
+        # the head always emits a valid, brand-agnostic pack. Operators set
+        # BRAND_APPLE_TOUCH_ICON_URL / BRAND_OG_IMAGE_URL (or drop replacement
+        # files into the brand directory) to override. og:image must be
+        # absolute for social scrapers, so the default is anchored to baseuri.
+        brand_apple_touch_icon_url  = brand_config['apple_touch_icon_url'] || '/apple-touch-icon.png'
+        brand_og_image_url          = brand_config['og_image_url'] || "#{baseuri}/social-preview.png"
 
         # Return all view variables as a hash
         {
@@ -251,6 +260,8 @@ module Core
           'brand_support_email' => brand_support_email,
           'brand_logo_url' => brand_logo_url,
           'brand_favicon_url' => brand_favicon_url,
+          'brand_apple_touch_icon_url' => brand_apple_touch_icon_url,
+          'brand_og_image_url' => brand_og_image_url,
           'support_email' => support_email,
           'docs_host' => docs_host,
         }
