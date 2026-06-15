@@ -57,10 +57,10 @@ describe('secretStore', () => {
 
       // This highlights an important lesson: when tests fail with 404s, always
       // verify your mock endpoints match what the code actually calls.
-      it('rejects missing lifespan field from API (V3 requires number)', async () => {
+      it('accepts null lifespan field from API (#3424)', async () => {
         const testKey = 'abc123';
 
-        const mockResponseWithoutLifespan = {
+        const mockResponseWithNullLifespan = {
           success: true,
           record: {
             ...mockSecretRecordRaw,
@@ -76,10 +76,11 @@ describe('secretStore', () => {
           },
         };
 
-        axiosMock?.onGet(`/api/v3/secret/${testKey}`).reply(200, mockResponseWithoutLifespan);
+        axiosMock?.onGet(`/api/v3/secret/${testKey}`).reply(200, mockResponseWithNullLifespan);
 
-        // V3 schema requires z.number() — null is rejected
-        await expect(store.fetch(testKey)).rejects.toThrow();
+        // safe_dump emits null for an unset lifespan; V3 schema is nullable.
+        await store.fetch(testKey);
+        expect(store.record?.lifespan).toBeNull();
       });
 
       it('maintains is_owner state after reveal operation', async () => {
@@ -134,7 +135,7 @@ describe('secretStore', () => {
         expect(store.record?.secret_ttl).toBe(86400); // Verify TTL is preserved
       });
 
-      it('rejects null lifespan value (V3 requires numbers)', async () => {
+      it('accepts null lifespan value (#3424)', async () => {
         const response = {
           ...mockSecretResponse,
           record: {
@@ -145,8 +146,10 @@ describe('secretStore', () => {
         };
         axiosMock?.onGet('/api/v3/secret/abc123').reply(200, response);
 
-        // V3 schema requires z.number() — null is rejected
-        await expect(store.fetch('abc123')).rejects.toThrow();
+        // safe_dump emits null for an unset lifespan; V3 schema is nullable.
+        await store.fetch('abc123');
+        expect(store.record?.lifespan).toBeNull();
+        expect(store.record?.secret_ttl).toBeNull();
       });
 
       it('maintains consistent lifespan after reveal', async () => {
@@ -178,7 +181,7 @@ describe('secretStore', () => {
         expect(store.record?.lifespan).toBe(initialLifespan);
       });
 
-      it('rejects null lifespan value (V3 requires numbers)', async () => {
+      it('accepts null lifespan value (#3424)', async () => {
         const response = {
           ...mockSecretResponse,
           record: {
@@ -189,8 +192,10 @@ describe('secretStore', () => {
         };
         axiosMock?.onGet('/api/v3/secret/abc123').reply(200, response);
 
-        // V3 schema requires z.number() — null is rejected
-        await expect(store.fetch('abc123')).rejects.toThrow();
+        // safe_dump emits null for an unset lifespan; V3 schema is nullable.
+        await store.fetch('abc123');
+        expect(store.record?.lifespan).toBeNull();
+        expect(store.record?.secret_ttl).toBeNull();
       });
 
       it('calculates TTL duration in seconds', async () => {

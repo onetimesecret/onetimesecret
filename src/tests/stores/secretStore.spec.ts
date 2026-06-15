@@ -413,7 +413,7 @@ describe('secretStore', () => {
         expect(store.record?.lifespan).toBe(86400);
       });
 
-      it('rejects null TTL values (V3 requires numbers)', async () => {
+      it('accepts null TTL values (lifespan-less secret, #3424)', async () => {
         const response = {
           ...mockSecretResponse,
           record: {
@@ -425,8 +425,12 @@ describe('secretStore', () => {
 
         axiosMock?.onGet('/api/v3/secret/abc123').reply(200, response);
 
-        // V3 schema requires z.number() — null is rejected
-        await expect(store.fetch('abc123')).rejects.toThrow();
+        // safe_dump emits null for an unset lifespan; the V3 schema is
+        // z.number().nullable() so this parses instead of stranding the secret.
+        await store.fetch('abc123');
+
+        expect(store.record?.lifespan).toBeNull();
+        expect(store.record?.secret_ttl).toBeNull();
       });
 
       it('handles zero lifespan from API', async () => {
@@ -445,7 +449,7 @@ describe('secretStore', () => {
         expect(store.record?.lifespan).toBe(0);
       });
 
-      it('rejects null lifespan from API (V3 requires numbers)', async () => {
+      it('accepts null lifespan from API (#3424)', async () => {
         const nullLifespanResponse = {
           ...mockSecretResponse,
           record: {
@@ -456,7 +460,9 @@ describe('secretStore', () => {
 
         axiosMock?.onGet('/api/v3/secret/abc123').reply(200, nullLifespanResponse);
 
-        await expect(store.fetch('abc123')).rejects.toThrow();
+        await store.fetch('abc123');
+
+        expect(store.record?.lifespan).toBeNull();
       });
 
       it('rejects missing lifespan field from API (V3 requires numbers)', async () => {
