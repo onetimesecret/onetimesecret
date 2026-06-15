@@ -80,6 +80,9 @@ const primaryColor =
 - `BRAND_ALLOW_PUBLIC_HOMEPAGE` → `brand_allow_public_homepage`
 - `BRAND_ALLOW_PUBLIC_API` → `brand_allow_public_api`
 - `BRAND_LOGO_URL` → `brand_logo_url`
+- `BRAND_FAVICON_URL` → `/favicon.ico` route redirect (see variety pack below)
+- `BRAND_APPLE_TOUCH_ICON_URL` → `brand_apple_touch_icon_url` (head `apple-touch-icon`)
+- `BRAND_OG_IMAGE_URL` → `brand_og_image_url` (head `og:image` / `twitter:image`)
 - `BRAND_TOTP_ISSUER` → MFA issuer label
 - `BRAND_SIGNATURE_NAME` → email sign-off name (separate from `product_name`; falls back to the neutral i18n default `"Support Team"`)
 
@@ -304,6 +307,42 @@ Tailwind `theme.colors.brand.500` etc. resolve to these vars (see `tailwind.conf
 oklch palette generation runs once on mount (immediate watcher) and again whenever `identityStore.primaryColor` changes — typically a per-domain navigation or a brand-color save. The composable memoizes the most recent `(hex → 44-entry palette)` result in module scope (`src/shared/composables/useBrandTheme.ts`), so re-renders that don't change the input are O(1) lookups.
 
 The math chain (hex → sRGB → linear → LMS → oklab → oklch + binary-search gamut clip per shade) is ~32 iterations × 11 shades × 4 scales per regeneration; negligible on modern hardware but observable in CPU traces during initial theme apply. In production, watch first-paint CPU on the `useBrandTheme` activation frame and any spike when an admin saves a new `primary_color` (live brand-color updates trigger one regeneration per change).
+
+## Static Icon Assets (Favicon & Variety Pack)
+
+The colour/value chain above resolves *strings* (hex colours, product names,
+URLs). The favicon and the mobile/social icon pack are a parallel concern: a
+set of **static files** served from the document root and referenced by the
+HTML head. They follow the same neutralization philosophy — the OSS repo ships
+brand-neutral assets so a self-hosted install never serves the OTS favicon.
+
+**Pack** (`public/web/`): `favicon.svg`, `favicon.ico`, `apple-touch-icon.png`,
+`icon-192.png`, `icon-512.png`, `safari-pinned-tab.svg`, `site.webmanifest`,
+`social-preview.png` (og:image). All are generated from a single keyhole glyph
++ neutral palette by `scripts/branding/generate-favicons.mjs` (isolated from
+the pnpm workspace so `sharp` never enters the app bundle).
+
+**Override precedence** (favicon): per-custom-domain icon (Redis, unchanged)
+→ site-level override → neutral bundled default. Site-level override is either
+a `BRAND_*_URL` env var or a replacement file dropped into the brand directory
+(`docker/branding/` at build time, or mounted over `public/web` at runtime).
+
+**Wiring**:
+- `apps/web/core/logic/page/get_favicon.rb` — `/favicon.ico` route; 302s to
+  `brand.favicon_url` when set, else serves the neutral file; per-domain icons
+  still take precedence.
+- `apps/web/core/views/helpers/initialize_view_vars.rb` — resolves
+  `brand_apple_touch_icon_url` and `brand_og_image_url` (override or neutral
+  default path).
+- `apps/web/core/templates/partials/head-base.rue` / `head.rue` — emit the
+  full pack (`rel="icon"` SVG+ICO, `apple-touch-icon`, `manifest`, `mask-icon`,
+  `og:image`, `twitter:image`).
+- `lib/onetime/middleware/static_files.rb` — serves the root-level assets when
+  running without a reverse proxy.
+- `Dockerfile` — build-time `docker/branding/` overlay (no-op by default).
+
+See [`docs/customization/branding-favicon.md`](../customization/branding-favicon.md)
+for the operator-facing how-to.
 
 ## Special Cases
 
