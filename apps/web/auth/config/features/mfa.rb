@@ -62,8 +62,15 @@ module Auth::Config::Features
       # after_login hook in apps/web/auth/config/hooks/login.rb which checks
       # uses_two_factor_authentication? and sets json_response[:mfa_required] = true
 
-      # Generate 8-character alphanumeric codes (like: 4k9m-x2pq)
-      # This provides ~1.7 billion possible codes (36^8)
+      # Recovery codes are CSPRNG-backed (SecureRandom) 64-bit values rendered
+      # in base36 — roughly 13 characters, e.g. "3w5e11264sgsf", with ~1.8e19
+      # (2**64) possibilities. 64 bits is deliberately chosen over a longer
+      # token: recovery codes are verified server-side, are rate-limited, and
+      # are bound to a single account, so they are not an offline-guessable
+      # artifact — and a shorter code is far less error-prone for a user to type
+      # when they are locked out. (Familia labels the 64-bit tier "trace"; the
+      # higher tiers carry the same "resist intentional guessing" caveat and
+      # only buy length, so we stay at 64-bit by design.)
       auth.new_recovery_code do
         Familia.generate_trace_id
       end

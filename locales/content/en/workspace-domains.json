@@ -731,6 +731,14 @@
     "text": "Provider",
     "content_hash": "472590ae"
   },
+  "web.domains.email.dns_optional_label": {
+    "text": "Recommended",
+    "content_hash": "a1b2c3d4"
+  },
+  "web.domains.email.dns_optional_hint": {
+    "text": "This record is recommended but not required for verification. A DMARC policy at your organizational domain may already cover this subdomain.",
+    "content_hash": "e5f6a7b8"
+  },
   "web.domains.email.copy": {
     "text": "Copy",
     "content_hash": "e21f935f"

@@ -16,15 +16,19 @@ import {
   DEFAULT_DISABLED_HOMEPAGE_VARIANT,
   disabledHomepageVariantSchema,
 } from '@/schemas/contracts/disabled-homepage';
+import type { Features } from '@/schemas/contracts/bootstrap';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useProductIdentity } from '@/shared/stores/identityStore';
+import type { SsoProvider } from '@/utils/features';
+import { submitSsoLogin } from '@/shared/utils/sso';
 import { storeToRefs } from 'pinia';
 import { computed, type ComputedRef } from 'vue';
 
 /**
  * Read a one-off variant override from the current URL.
  *
- * Operator/dogfood escape hatch: `?variant=legacy` (or `minimal` / `v1`)
+ * Operator/dogfood escape hatch: `?variant=minimal` (or `v1` / `closed`)
  * wins over bootstrap config. Useful for previewing a variant before
  * flipping the deployment default, and for sanity-checking dispatch
  * when bootstrap is suspected of carrying a stale value.
@@ -74,6 +78,16 @@ export interface DisabledHomepageProps {
   showPromo: boolean;
   /** External href for the promo's "Learn how" link — null when unresolvable. */
   promoHref: string | null;
+  /**
+   * Whether the sign-in CTA should initiate SSO directly instead of routing
+   * to /signin. True only when SSO is the sole login method and exactly one
+   * provider is configured, so the extra /signin hop adds nothing.
+   */
+  ssoOneClick: boolean;
+  /** Display name of the single SSO provider, for the one-click CTA label. */
+  ssoProviderName: string | null;
+  /** Initiates one-click SSO login (POST to /auth/sso/:provider). */
+  onSsoLogin: () => void;
 }
 
 interface DisabledHomepageBindings {
@@ -93,14 +107,43 @@ function applyOverride(override: boolean | null | undefined, auto: boolean): boo
   return override === null || override === undefined ? auto : override;
 }
 
+/**
+ * The single SSO provider to one-click into from the disabled-homepage CTA, or
+ * null when the CTA should fall back to the standard /signin link.
+ *
+ * Returns a provider only when SSO is the sole login method — mirroring
+ * AuthMethodSelector: global `restrict_to === 'sso'`, or a custom domain with
+ * `enforce_sso_only` — *and* exactly one provider is configured. With multiple
+ * providers, /signin still has to present a chooser, so the hop earns its keep
+ * and we don't short-circuit it.
+ */
+function resolveSsoOneClickProvider(
+  features: Features | undefined,
+  isCustom: boolean
+): SsoProvider | null {
+  const sso = features?.sso;
+  const providers =
+    sso && typeof sso !== 'boolean' && sso.enabled && Array.isArray(sso.providers)
+      ? sso.providers
+      : [];
+  if (providers.length !== 1) return null;
+
+  const restrictedToSso = features?.restrict_to === 'sso';
+  const enforcedForDomain =
+    typeof sso === 'object' && sso !== null ? sso.enforce_sso_only === true : false;
+  return restrictedToSso || (isCustom && enforcedForDomain) ? providers[0] : null;
+}
+
 export function useDisabledConfig(): DisabledHomepageBindings {
   const identityStore = useProductIdentity();
   const { isCustom, primaryColor, logoUri, displayName, displayDomain, brand, siteHost } =
     storeToRefs(identityStore);
 
   const bootstrapStore = useBootstrapStore();
-  const { authentication, billing_enabled, disabled_homepage, homepage_config, ui } =
+  const { authentication, billing_enabled, disabled_homepage, features, homepage_config, ui } =
     storeToRefs(bootstrapStore);
+
+  const csrfStore = useCsrfStore();
 
   // "Branded" means a custom domain has actually been configured with a brand
   // description — distinct from isCustom, which can be true even when no
@@ -154,18 +197,35 @@ export function useDisabledConfig(): DisabledHomepageBindings {
 
   const showSignin = computed(() => !!authentication.value?.signin);
 
-  // Variant resolution: URL override → per-domain homepage_config →
-  // frontend default. URL is read once at composable-call time (page
-  // loads don't preserve query params); the homepage_config fallback
-  // stays reactive so a $patch on the domain config still flips the
-  // variant. When neither resolves, fall through to the frontend
-  // constant — homepage_config is null on the canonical site and on
-  // any custom domain that hasn't opted into a non-default variant.
+  // One-click SSO: when SSO is the only sign-in method and a single provider
+  // is configured, the CTA POSTs straight to the IdP instead of routing to
+  // /signin (itself just a lone "Sign in with <provider>" button in that
+  // configuration). See resolveSsoOneClickProvider for the gating.
+  const ssoProvider = computed(() => resolveSsoOneClickProvider(features.value, isCustom.value));
+  const ssoOneClick = computed(() => showSignin.value && ssoProvider.value !== null);
+
+  const onSsoLogin = () => {
+    const provider = ssoProvider.value;
+    if (!provider) return;
+    submitSsoLogin({ routeName: provider.route_name, shrimp: csrfStore.shrimp });
+  };
+
+  // Variant resolution (highest precedence first):
+  //   1. ?variant= URL override (dogfood/preview)
+  //   2. per-domain homepage_config.disabled_homepage_variant
+  //   3. deployment-wide ui.homepage.disabled_variant
+  //      (DEFAULT_DISABLED_HOMEPAGE_VARIANT env var)
+  //   4. frontend DEFAULT_DISABLED_HOMEPAGE_VARIANT constant
+  // URL is read once at composable-call time (page loads don't preserve query
+  // params); the store-backed fallbacks stay reactive so a $patch on the
+  // domain or site config still flips the variant. homepage_config is null on
+  // the canonical site and on any custom domain that hasn't opted in.
   const urlOverride = readUrlVariantOverride();
   const variant = computed<DisabledHomepageVariant>(
     () =>
       urlOverride ??
       homepage_config.value?.disabled_homepage_variant ??
+      ui.value?.homepage?.disabled_variant ??
       DEFAULT_DISABLED_HOMEPAGE_VARIANT
   );
 
@@ -184,6 +244,9 @@ export function useDisabledConfig(): DisabledHomepageBindings {
     get whatIsThisHref() { return whatIsThisHref.value; },
     get showPromo() { return showPromo.value; },
     get promoHref() { return promoHref.value; },
+    get ssoOneClick() { return ssoOneClick.value; },
+    get ssoProviderName() { return ssoProvider.value?.display_name ?? null; },
+    onSsoLogin,
   } satisfies DisabledHomepageProps;
 
   return { variant, props };

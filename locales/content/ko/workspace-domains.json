@@ -503,6 +503,14 @@
     "text": "값",
     "source_hash": "8e37953d"
   },
+  "web.domains.email.dns_optional_label": {
+    "text": "Recommended",
+    "source_hash": "a1b2c3d4"
+  },
+  "web.domains.email.dns_optional_hint": {
+    "text": "This record is recommended but not required for verification. A DMARC policy at your organizational domain may already cover this subdomain.",
+    "source_hash": "e5f6a7b8"
+  },
   "web.domains.email.copy": {
     "text": "복사",
     "source_hash": "e21f935f"

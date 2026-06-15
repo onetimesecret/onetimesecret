@@ -210,6 +210,66 @@ describe('secretStore', () => {
       });
     });
 
+    // Issue #3424: a backend record whose numeric fields were written as
+    // Ruby Strings (Familia v2 preserves the written type) used to
+    // serialize as {"lifespan":"604800",...}. The V3 schema is strict
+    // z.number() with no coercion, so parsing fails — the store surfaces a
+    // fetch error, record stays null, and the recipient sees UnknownSecret
+    // ("no longer available") even though the backend returned 200 and the
+    // secret was never consumed. Current backends cast these fields at the
+    // safe_dump boundary, so string payloads can only come from older or
+    // third-party servers — and the schema intentionally stays strict
+    // rather than papering over them with coercion. Backend-side
+    // reproduction + cast regression tests:
+    // try/unit/models/secret_numeric_field_types_try.rb
+    describe('numeric field wire types (issue #3424)', () => {
+      it('rejects string-typed lifespan/secret_ttl (V3 z.number() does not coerce)', async () => {
+        const response = {
+          ...mockSecretResponse,
+          record: {
+            ...mockSecretResponse.record,
+            lifespan: '604800',
+            secret_ttl: '604800',
+          },
+        };
+        axiosMock?.onGet('/api/v3/secret/abc123').reply(200, response);
+
+        // "604800" fails where 604800 would pass
+        await expect(store.fetch('abc123')).rejects.toThrow();
+      });
+
+      it('rejects string-typed created/updated timestamps', async () => {
+        const response = {
+          ...mockSecretResponse,
+          record: {
+            ...mockSecretResponse.record,
+            created: '1735142814.123456',
+            updated: '1735204014',
+          },
+        };
+        axiosMock?.onGet('/api/v3/secret/abc123').reply(200, response);
+
+        await expect(store.fetch('abc123')).rejects.toThrow();
+      });
+
+      it('accepts float timestamps (Familia.now writes float epoch seconds)', async () => {
+        const response = {
+          ...mockSecretResponse,
+          record: {
+            ...mockSecretResponse.record,
+            created: 1735142814.71047,
+            updated: 1735204014.123456,
+          },
+        };
+        axiosMock?.onGet('/api/v3/secret/abc123').reply(200, response);
+
+        await store.fetch('abc123');
+        const created = store.record?.created;
+        expect(created).toBeInstanceOf(Date);
+        expect(Math.floor(created!.getTime() / 1000)).toBe(1735142814);
+      });
+    });
+
     describe('field interaction', () => {
       it('preserves both fields through store operations', async () => {
         // Setup initial state

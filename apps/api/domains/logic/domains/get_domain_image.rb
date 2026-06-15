@@ -45,8 +45,14 @@ module DomainsAPI::Logic
         raise_form_error 'Invalid domain identifier format' unless @extid.match?(/\A[a-z0-9]+\z/)
 
         @custom_domain = load_custom_domain(@extid)
-        @organization = load_organization_for_domain(@custom_domain)
+        @organization  = load_organization_for_domain(@custom_domain)
         require_entitlement_in!(@organization, config_entitlement)
+
+        # Domain-scope enforcement (#3384)
+        membership = Onetime::OrganizationMembership.find_by_org_customer(@organization.objid, @cust.objid)
+        if membership && !membership.can_access_domain?(@custom_domain)
+          raise_not_found 'Domain not found'
+        end
 
         @display_domain = @custom_domain.display_domain
 

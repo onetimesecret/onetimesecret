@@ -360,11 +360,11 @@ result
 #=> false
 
 # ============================================================================
-# CustomDomain#owner? Unit B migration coverage (custom_domain.rb:270).
+# CustomDomain#owner? and #accessible_by? (#3340).
+# owner? is strict: true only for membership with role='owner'.
+# accessible_by? is loose: true for any org member (owner, admin, or member).
 # A customer whose custid matches org.owner_id but who has NO membership is
-# no longer treated as the domain's owner. The route-level integration suite
-# (try/integration/api/domains/add_domain_role_gate_try.rb) uses create!
-# exclusively, so this membership-less edge is uncovered there.
+# rejected by both methods.
 # ============================================================================
 
 ## CustomDomain#owner? returns false when org.owner_id matches but no membership
@@ -377,6 +377,22 @@ ghost_org = Onetime::Organization.new(
 ghost_org.save
 ghost_domain = Onetime::CustomDomain.create!("ghost-#{@test_suffix}.example.com", ghost_org.objid)
 result = ghost_domain.owner?(ghost_owner)
+ghost_domain.destroy!
+ghost_org.destroy!
+ghost_owner.destroy!
+result
+#=> false
+
+## CustomDomain#accessible_by? returns false when no membership exists
+ghost_owner = Onetime::Customer.create!(email: "ghost_cd_a2_#{@test_suffix}@onetimesecret.com")
+ghost_org = Onetime::Organization.new(
+  display_name: "Ghost CD Org A2",
+  owner_id: ghost_owner.custid,
+  contact_email: "ghost_cd_a2_#{@test_suffix}@acme.com",
+)
+ghost_org.save
+ghost_domain = Onetime::CustomDomain.create!("ghost2-#{@test_suffix}.example.com", ghost_org.objid)
+result = ghost_domain.accessible_by?(ghost_owner)
 ghost_domain.destroy!
 ghost_org.destroy!
 ghost_owner.destroy!
@@ -400,6 +416,24 @@ ghost_org.destroy!
 ghost_member.destroy!
 result
 #=> true
+
+## CustomDomain#accessible_by? returns true for member-role; owner? returns false
+ghost_member = Onetime::Customer.create!(email: "ghost_cd_c_#{@test_suffix}@onetimesecret.com")
+ghost_org = Onetime::Organization.new(
+  display_name: "Ghost CD Org C",
+  owner_id: "some_other_custid_#{@test_suffix}",
+  contact_email: "ghost_cd_c_#{@test_suffix}@acme.com",
+)
+ghost_org.save
+ghost_org.add_members_instance(ghost_member, through_attrs: { role: 'member' })
+ghost_domain = Onetime::CustomDomain.create!("member-access-#{@test_suffix}.example.com", ghost_org.objid)
+result = [ghost_domain.accessible_by?(ghost_member), ghost_domain.owner?(ghost_member)]
+ghost_domain.destroy!
+ghost_org.remove_members_instance(ghost_member)
+ghost_org.destroy!
+ghost_member.destroy!
+result
+#=> [true, false]
 
 # Teardown
 @org.destroy!

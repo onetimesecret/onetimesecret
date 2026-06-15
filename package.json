@@ -206,7 +206,7 @@
     "@vue/compiler-dom": "^3.5.34",
     "@vue/test-utils": "^2.4.10",
     "axios-mock-adapter": "^2.1.0",
-    "esbuild": "^0.27.4",
+    "esbuild": "^0.28.0",
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^4.4.4",

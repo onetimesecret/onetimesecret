@@ -27,6 +27,12 @@ module OrganizationAPI::Logic
         @organization = load_organization(@extid)
         require_entitlement_in!(@organization, 'manage_members')
 
+        # Domain-scoped members cannot perform member operations
+        actor_membership = Onetime::OrganizationMembership.find_by_org_customer(@organization.objid, cust.objid)
+        if actor_membership&.domain_scoped?
+          raise_form_error(error_key: 'api.organizations.errors.domain_scoped_forbidden', error_type: :forbidden)
+        end
+
         # Find invitation by token
         @invitation = Onetime::OrganizationMembership.find_by_token(@token)
         if @invitation.nil?

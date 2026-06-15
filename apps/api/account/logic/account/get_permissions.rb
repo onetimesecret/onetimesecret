@@ -128,6 +128,11 @@ module AccountAPI::Logic
 
         load_resource_and_organization!
         verify_organization_membership!
+
+        # Domain-scope enforcement: deny if member cannot access this domain (#3384)
+        if resource_type == 'domain' && @membership && !@membership.can_access_domain?(@resource)
+          raise_not_found_error('Domain not found')
+        end
       end
 
       def process
@@ -176,7 +181,8 @@ module AccountAPI::Logic
       end
 
       def serialize_org_with_domains(org, mem)
-        domains = org.list_domains
+        # Domain-scope enforcement: filter by membership scope (#3384)
+        domains = org.list_domains.select { |d| mem.can_access_domain?(d) }
 
         {
           extid: org.extid,
