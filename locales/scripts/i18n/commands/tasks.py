@@ -68,6 +68,16 @@ Examples:
         action="store_true",
         help="Show what would be generated without writing",
     )
+    c.add_argument(
+        "--missing-only",
+        action="store_true",
+        help=(
+            "Enqueue only keys untranslated in content/<locale> (absent, or "
+            "empty text without skip), skipping levels with no work. Catches a "
+            "locale up to a grown English source without re-touching reviewed "
+            "translations. Run once per locale (re-running rewrites keys_json)."
+        ),
+    )
     c.set_defaults(func=_create_handler)
 
 
@@ -281,11 +291,41 @@ def get_keys_from_file(file_path: Path) -> dict[str, str]:
     return dict(walk_keys(data))
 
 
+def get_translated_keys(locale: str, file_name: str) -> set[str]:
+    """Full key paths already handled for ``locale`` in ``file_name``.
+
+    A target entry counts as handled when it carries a truthy ``skip`` flag or
+    a non-empty ``text`` value. Used by ``create --missing-only`` to enqueue
+    only the untranslated delta instead of the full English tree. Returns an
+    empty set when the target file does not exist yet (everything is missing).
+    """
+    target = CONTENT_DIR / locale / file_name
+    if not target.exists():
+        return set()
+    done: set[str] = set()
+    for full_key, entry in load_json_file(target).items():
+        if not isinstance(entry, dict):
+            continue
+        if entry.get("skip") or entry.get("text", "") != "":
+            done.add(full_key)
+    return done
+
+
 def generate_tasks(
     locale: str,
     dry_run: bool = False,
+    missing_only: bool = False,
 ) -> tuple[list[TranslationTask], dict[str, int]]:
-    """Generate translation tasks from English source files."""
+    """Generate translation tasks from English source files.
+
+    Default behaviour is target-blind: every English key becomes a task,
+    regardless of the locale's existing translations. With ``missing_only``,
+    each English file is filtered against ``content/<locale>`` so only
+    untranslated keys (absent, or empty ``text`` without ``skip``) are
+    enqueued; levels left with no work produce no row. This is the
+    "translate the new strings only" path for catching a locale up to a grown
+    English source without re-touching reviewed translations.
+    """
     if not EN_DIR.exists():
         print(f"Error: English directory not found: {EN_DIR}", file=sys.stderr)
         sys.exit(1)
@@ -302,10 +342,19 @@ def generate_tasks(
 
     for en_file in en_files:
         file_name = en_file.name
-        stats["total_files"] += 1
 
-        # Get English keys
+        # English keys, already excluding skip + underscore-meta entries.
         en_keys = get_keys_from_file(en_file)
+
+        if missing_only:
+            done = get_translated_keys(locale, file_name)
+            en_keys = {k: v for k, v in en_keys.items() if k not in done}
+
+        # A fully-translated (or empty) file contributes no tasks.
+        if not en_keys:
+            continue
+
+        stats["total_files"] += 1
         stats["total_keys"] += len(en_keys)
 
         # Group keys by level
@@ -371,12 +420,14 @@ def insert_tasks(tasks: list[TranslationTask]) -> int:
 
 
 def _create_handler(args) -> int:
-    print(f"Generating translation tasks for '{args.locale}'")
+    mode = " (missing-only)" if args.missing_only else ""
+    print(f"Generating translation tasks for '{args.locale}'{mode}")
     print()
 
     tasks, stats = generate_tasks(
         locale=args.locale,
         dry_run=args.dry_run,
+        missing_only=args.missing_only,
     )
 
     print()
@@ -905,6 +956,15 @@ def export_locale(
                 full_key = f"{level_path}.{key}"
 
                 translation = translations[key]
+
+                # An empty/whitespace "translation" must never overwrite an
+                # existing value or strip an intentional skip flag. This closes
+                # the default (target-blind) create hazard where a locale's
+                # already-skipped/translated key could be enqueued, "completed"
+                # blank, and clobbered here. --missing-only never enqueues such
+                # keys; this guards the default path too.
+                if not (isinstance(translation, str) and translation.strip()):
+                    continue
 
                 if full_key in content:
                     # Update existing entry

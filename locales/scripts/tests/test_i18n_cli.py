@@ -342,6 +342,103 @@ class TasksFlowTest(I18nCliTestCase):
             "exported translation did not reach content/eo at the expected key",
         )
 
+    def test_create_missing_only_enqueues_only_untranslated(self) -> None:
+        # Mirror en into eo as if fully translated, then knock out ONE key so
+        # exactly one untranslated key remains for --missing-only to find.
+        import sqlite3
+
+        eo = self.content / "eo"
+        eo.mkdir(parents=True)
+        victim: tuple[Path, str] | None = None
+        for f in sorted((self.content / "en").glob("*.json")):
+            data = json.loads(f.read_text("utf-8"))
+            shutil.copy(f, eo / f.name)
+            translatable = [
+                k
+                for k, v in data.items()
+                if isinstance(v, dict)
+                and not v.get("skip")
+                and v.get("text", "") != ""
+                and not k.startswith("_")
+            ]
+            if victim is None and len(translatable) >= 2:
+                victim = (eo / f.name, translatable[0])
+        self.assertIsNotNone(victim, "need an en file with >=2 translatable keys")
+        path, missing_key = victim
+        d = json.loads(path.read_text("utf-8"))
+        del d[missing_key]
+        path.write_text(json.dumps(d), encoding="utf-8")
+
+        self.assertOk(
+            self.run_cli("tasks", "create", "eo", "--missing-only"),
+            "create --missing-only",
+        )
+        conn = sqlite3.connect(self.db_dir / "tasks.db")
+        rows = conn.execute(
+            "SELECT level_path, keys_json FROM translation_tasks "
+            "WHERE locale='eo'"
+        ).fetchall()
+        conn.close()
+        enqueued = [
+            f"{level_path}.{leaf}"
+            for level_path, keys_json in rows
+            for leaf in json.loads(keys_json)
+        ]
+        self.assertEqual(
+            enqueued,
+            [missing_key],
+            f"missing-only enqueued {enqueued}, expected only {missing_key}",
+        )
+
+    def test_export_skips_empty_translation_preserving_skip(self) -> None:
+        # An empty/whitespace completed translation must not blank existing
+        # content or strip an intentional skip flag on export.
+        import sqlite3
+
+        eo = self.content / "eo"
+        eo.mkdir(parents=True)
+        en_files = sorted((self.content / "en").glob("*.json"))
+        data = json.loads(en_files[0].read_text("utf-8"))
+        full_key = next(
+            k
+            for k, v in data.items()
+            if isinstance(v, dict)
+            and not v.get("skip")
+            and v.get("text", "") != ""
+            and not k.startswith("_")
+        )
+        level_path, _, leaf = full_key.rpartition(".")
+        # Seed eo with this key intentionally skipped + a value to preserve.
+        (eo / en_files[0].name).write_text(
+            json.dumps({full_key: {"text": "KEEP", "skip": True}}),
+            encoding="utf-8",
+        )
+        self.assertOk(self.run_cli("tasks", "create", "eo"), "create")
+        db = sqlite3.connect(self.db_dir / "tasks.db")
+        (task_id,) = db.execute(
+            "SELECT id FROM translation_tasks "
+            "WHERE locale='eo' AND file=? AND level_path=?",
+            (en_files[0].name, level_path),
+        ).fetchone()
+        db.close()
+        self.assertOk(
+            self.run_cli(
+                "tasks", "update", str(task_id), json.dumps({leaf: "   "})
+            ),
+            "update blank",
+        )
+        self.assertOk(self.run_cli("tasks", "export", "eo"), "export")
+        after = json.loads((eo / en_files[0].name).read_text("utf-8"))
+        self.assertEqual(
+            after[full_key].get("text"),
+            "KEEP",
+            "empty translation blanked an existing value",
+        )
+        self.assertTrue(
+            after[full_key].get("skip"),
+            "empty translation stripped an intentional skip flag",
+        )
+
     def test_next_human_header_uses_locale_not_hardcoded(self) -> None:
         # Regression: format_task_human once hardcoded 'Esperanto' as the third
         # column header for every locale.
