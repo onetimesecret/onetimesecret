@@ -343,9 +343,17 @@ a `BRAND_*_URL` env var or a replacement file dropped into the brand directory
 - `apps/web/core/templates/partials/head-base.rue` / `head.rue` — emit the
   full pack (`rel="icon"` SVG+ICO, `apple-touch-icon`, `manifest`, `mask-icon`,
   `og:image`, `twitter:image`).
+- `apps/web/core/logic/page/get_webmanifest.rb` — `/site.webmanifest` route;
+  overlays `brand.product_name` / `brand.primary_color` onto the on-disk neutral
+  manifest, so setting those env vars also brands the PWA install.
 - `lib/onetime/middleware/static_files.rb` — serves the root-level assets when
-  running without a reverse proxy.
-- `Dockerfile` — build-time `docker/branding/` overlay (no-op by default).
+  running without a reverse proxy (`/favicon.ico` and `/site.webmanifest` are
+  served by routes instead).
+- `Dockerfile` — build-time `docker/branding/` overlay (no-op by default); the
+  public OCI image uses it to bake the official brand.
+- `scripts/branding/` — single-source-of-truth generator (`mark.mjs`) + a
+  node-only drift check (`check.mjs`, run in CI via `pnpm gen:favicons:check`)
+  that fails if the committed text assets diverge from the source.
 
 See [`docs/customization/branding-favicon.md`](../customization/branding-favicon.md)
 for the operator-facing how-to.

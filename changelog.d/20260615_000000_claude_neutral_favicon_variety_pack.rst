@@ -10,25 +10,23 @@ Added
   ``BRAND_OG_IMAGE_URL``, by dropping replacement files into ``docker/branding/``
   at build time, or by mounting over ``public/web`` at runtime. Per-custom-domain
   favicons continue to take precedence. (#3048, #3049)
+- Brand-aware PWA manifest: ``/site.webmanifest`` is now served by a route that
+  overlays ``BRAND_PRODUCT_NAME`` and ``BRAND_PRIMARY_COLOR`` onto the neutral
+  manifest, so the Android home-screen install reflects the configured brand.
 
 Changed
 -------
 
 - Shipped favicon/icon/social defaults are now brand-neutral (a generic keyhole
   mark on neutral blue) instead of the One-Time Secret brand, so a self-hosted
-  install never serves the company favicon by default. Regenerate or re-skin the
-  set with ``scripts/branding/``.
-
-Removed
--------
-
-- Removed the unreferenced One-Time Secret-branded ``favicon.svg``,
-  ``favicon.png``, and ``social-preview.png`` from ``public/web/img`` (and the
-  duplicate ``v3/img/favicon.svg``); the neutral document-root pack replaces them.
+  install never serves the company favicon by default. The One-Time Secret brand
+  assets still ship under ``public/web/img`` for installs (including
+  onetimesecret.com and the public OCI image) that opt into them via
+  configuration. Regenerate or re-skin the neutral set with ``pnpm gen:favicons``.
 
 Documentation
 -------------
 
 - Added ``docs/customization/branding-favicon.md`` and a variety-pack section to
-  ``docs/architecture/branding.md`` covering the favicon override precedence and
-  build-time vs. runtime customization.
+  ``docs/architecture/branding.md`` covering the favicon override precedence,
+  override surface, and build-time vs. runtime customization.

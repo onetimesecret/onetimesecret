@@ -42,6 +42,38 @@ For the favicon specifically (`/favicon.ico`), from highest to lowest priority:
 The rest of the pack (apple-touch, og:image, etc.) follows the same
 site-level-override → neutral-default model, minus the per-domain layer.
 
+## Override surface at a glance
+
+Two mechanisms, by design:
+
+- **Replacing the file** (brand directory at build, or a runtime mount) works for
+  **every** asset — it is the complete, uniform override path.
+- **`BRAND_*` env / config** is the no-rebuild convenience layer, and it covers
+  the high-value, CDN-friendly subset rather than every asset, to keep the
+  configuration surface small.
+
+| Asset | URL/config override | File override |
+|---|---|---|
+| `favicon.ico` | `BRAND_FAVICON_URL` (per-domain icon wins) | ✅ |
+| `apple-touch-icon.png` | `BRAND_APPLE_TOUCH_ICON_URL` | ✅ |
+| `social-preview.png` (og) | `BRAND_OG_IMAGE_URL` | ✅ |
+| `site.webmanifest` name/theme | `BRAND_PRODUCT_NAME` / `BRAND_PRIMARY_COLOR` | ✅ |
+| `favicon.svg`, `safari-pinned-tab.svg`, `icon-192/512.png` | — | ✅ |
+
+So there is always a uniform way to override anything (replace the file); the
+env layer is additive convenience, not a complete parallel surface.
+
+### Two favicon code paths (by design)
+
+1. **Server-rendered head** sets the initial favicon links from the neutral
+   defaults / `BRAND_*` config. The neutral SVG link is suppressed when a custom
+   domain or `brand.favicon_url` is in play, so it never shadows them.
+2. **Client-side** (`useBrandTheme`) re-points `<link rel="icon">` after hydration
+   when a per-domain `favicon_url` resolves — for SPA navigation between domains.
+
+Both read the same brand sources, so they agree; the server path is what
+search engines and the pre-hydration browser see.
+
 ## How to set your brand (pick one)
 
 ### Option A — URL overrides (no rebuild)
@@ -59,14 +91,20 @@ BRAND_LOGO_URL=https://cdn.example.com/logo.svg
 `BRAND_OG_IMAGE_URL` must be an absolute URL (social scrapers don't resolve
 relative paths).
 
+The PWA manifest is **brand-aware**: `/site.webmanifest` is served by a route
+that overlays `BRAND_PRODUCT_NAME` (name/short_name) and `BRAND_PRIMARY_COLOR`
+(theme_color) onto the on-disk neutral manifest, so setting those env vars also
+brands the Android home-screen install. Replace the file to change the icons.
+
 ### Option B — drop-in files at build time
 
 Place replacement files in [`docker/branding/`](../../docker/branding/) before
 building the image. The `Dockerfile` overlays them onto `public/web/` after the
 Vite build. The directory is empty in the repo, so this is a no-op until you
 opt in. This is the right choice for the assets that have no URL override
-(`favicon.svg`, `safari-pinned-tab.svg`, `icon-192.png`, `icon-512.png`,
-`site.webmanifest`).
+(`favicon.svg`, `safari-pinned-tab.svg`, `icon-192.png`, `icon-512.png`). The
+public OCI image uses this overlay to bake the official brand without changing
+the tracked neutral defaults.
 
 ### Option C — drop-in files at runtime
 
@@ -83,14 +121,21 @@ needed.
 ## Regenerating the neutral defaults
 
 The whole pack derives from a single keyhole glyph + neutral palette defined in
-`scripts/branding/generate-favicons.mjs`. To re-skin the OSS default (or
-produce your own pack to drop into `docker/branding/`):
+`scripts/branding/mark.mjs` (the single source of truth). To re-skin the OSS
+default (or produce your own pack to drop into `docker/branding/`):
 
 ```bash
-cd scripts/branding
-npm install          # isolated; does not touch the app's pnpm workspace
-npm run generate     # writes the pack into public/web and src/assets/branding
+pnpm run gen:favicons    # installs the isolated deps and regenerates the pack
 ```
 
-Edit `KEYHOLE_PATH` / `NEUTRAL_BLUE` in the script and re-run to change the
-mark or colour.
+Edit `KEYHOLE_PATH` / `NEUTRAL_BLUE` in `scripts/branding/mark.mjs` and re-run.
+The isolated generator deps (`sharp`, `png-to-ico`) never enter the app bundle
+or the pnpm workspace.
+
+### Drift guard
+
+CI runs `pnpm run gen:favicons:check` (node-only, no `sharp`), which fails if the
+committed text assets (`favicon.svg`, `safari-pinned-tab.svg`, `site.webmanifest`)
+no longer match `scripts/branding/mark.mjs` — so editing the mark without
+regenerating is caught. Raster drift (`.png`/`.ico`) is verified locally by
+re-running `gen:favicons` and checking `git diff`.

@@ -54,6 +54,17 @@ module Core
         res.body                    = view.render
       end
 
+      def webmanifest
+        logic = Core::Logic::Page::GetWebmanifest.new(strategy_result, req.params, locale)
+        logic.raise_concerns
+        logic.process
+
+        res['content-type']  = logic.content_type
+        res['cache-control'] = 'public, max-age=86400' # Cache for 1 day
+        res.write(logic.manifest_json)
+        res.finish
+      end
+
       def favicon
         logic = Core::Logic::Page::GetFavicon.new(strategy_result, req.params, locale)
         logic.raise_concerns
