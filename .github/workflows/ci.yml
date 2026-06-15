@@ -626,6 +626,55 @@ jobs:
           rabbitmq-url: 'amqp://guest:guest@localhost:5672'
           results-file: 'rspec_disabled_results.json'
 
+  ruby-integration-strategies:
+    name: T3 · Ruby Integration (Strategies, isolated)
+    timeout-minutes: 10
+    runs-on: *runs-on
+    needs: [changes, ruby-unit]
+    if: *if-ruby-integration
+    permissions: *perms-pr-comment
+
+    services:
+      redis: *valkey-service
+      rabbitmq: *rabbitmq-service
+
+    steps:
+      - *checkout-step
+
+      - name: Setup Ruby test environment
+        uses: ./.github/actions/setup-ruby-test-env
+
+      - name: Setup Python for locale sync
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Setup Node.js for locale sync
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Generate locale files
+        run: pnpm run locales:sync
+
+      # Redis-only auth strategy specs, isolated from the spec:integration:full
+      # process whose spec/integration/all RabbitMQ/fork specs corrupt the
+      # shared Familia/Redis connection (see #3468). Full mode + in-memory
+      # SQLite mirrors their verified-green environment; they issue no SQL.
+      - name: Run Ruby tests
+        uses: ./.github/actions/run-ruby-tests
+        with:
+          test-type: integration
+          auth-mode: full
+          auth-database-url: 'sqlite::memory:'
+          rspec-tag: 'strategies'
+          rabbitmq-url: 'amqp://guest:guest@localhost:5672'
+          results-file: 'rspec_strategies_results.json'
+          db-engine: sqlite
+
   # ============================================================================
   # TIER 4: CONTAINER VALIDATION (~2-3 min)
   # ============================================================================
@@ -640,6 +689,7 @@ jobs:
         ruby-integration-simple,
         ruby-integration-full,
         ruby-integration-disabled,
+        ruby-integration-strategies,
         typescript-unit,
       ]
     if: |
@@ -648,6 +698,7 @@ jobs:
       (needs.ruby-integration-simple.result == 'success' || needs.ruby-integration-simple.result == 'skipped') &&
       (needs.ruby-integration-full.result == 'success' || needs.ruby-integration-full.result == 'skipped') &&
       (needs.ruby-integration-disabled.result == 'success' || needs.ruby-integration-disabled.result == 'skipped') &&
+      (needs.ruby-integration-strategies.result == 'success' || needs.ruby-integration-strategies.result == 'skipped') &&
       (needs.typescript-unit.result == 'success' || needs.typescript-unit.result == 'skipped') &&
       !contains(needs.*.result, 'failure')
 
@@ -720,6 +771,7 @@ jobs:
       - ruby-integration-simple
       - ruby-integration-full
       - ruby-integration-disabled
+      - ruby-integration-strategies
       - typescript-unit
       - smoke-test
     if: always()
@@ -782,6 +834,7 @@ jobs:
       - ruby-integration-simple
       - ruby-integration-full
       - ruby-integration-disabled
+      - ruby-integration-strategies
       - smoke-test
       - check-oci-image
       - aggregate-test-results
@@ -819,6 +872,7 @@ jobs:
           echo "| Ruby Integration (Simple) | ${{ needs.ruby-integration-simple.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Ruby Integration (Full matrix) | ${{ needs.ruby-integration-full.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Ruby Integration (Disabled) | ${{ needs.ruby-integration-disabled.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruby Integration (Strategies) | ${{ needs.ruby-integration-strategies.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Container Validation | ${{ needs.check-oci-image.result }} |" >> $GITHUB_STEP_SUMMARY
 
       # Post CI metrics summary as PR comment (PRs only, skip forks - no write access)
