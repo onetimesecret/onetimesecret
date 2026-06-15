@@ -124,7 +124,9 @@ runs:
           echo "rspec-task=spec:fast" >> $GITHUB_OUTPUT
           echo "tryouts-task=try:unit" >> $GITHUB_OUTPUT
         elif [ "$TEST_TYPE" == "integration" ]; then
-          if [ "$AUTH_MODE" == "full" ] && [ "$RSPEC_TAG" == "postgres_database" ]; then
+          if [ "$RSPEC_TAG" == "strategies" ]; then
+            echo "rspec-task=spec:integration:strategies" >> $GITHUB_OUTPUT
+          elif [ "$AUTH_MODE" == "full" ] && [ "$RSPEC_TAG" == "postgres_database" ]; then
             echo "rspec-task=spec:integration:full:postgres" >> $GITHUB_OUTPUT
           elif [ "$AUTH_MODE" == "full" ] && [ "$RSPEC_TAG" == "agnostic_on_pg" ]; then
             echo "rspec-task=spec:integration:full:agnostic_on_pg" >> $GITHUB_OUTPUT
