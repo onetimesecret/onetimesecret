@@ -162,8 +162,12 @@ export const secretBaseCanonical = z.object({
  * ```
  */
 export const secretCanonical = secretBaseCanonical.extend({
-  secret_ttl: z.number(),
-  lifespan: z.number(),
+  // Nullable: safe_dump emits null when the secret has no/unset lifespan
+  // (lib/onetime/models/secret/features/safe_dump_fields.rb). A non-nullable
+  // z.number() rejected that null and surfaced as "no longer available" for an
+  // unconsumed secret — the null half of #3424 the string-cast fix left open.
+  secret_ttl: z.number().nullable(),
+  lifespan: z.number().nullable(),
 });
 
 /**

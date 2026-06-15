@@ -532,6 +532,83 @@ describe('V3 schema null-safety audit', () => {
   });
 
   // ---------------------------------------------------------------------------
+  // 3b. #3424 null half: TTL/lifespan numeric fields must accept null
+  // ---------------------------------------------------------------------------
+
+  describe('secret/receipt TTL null-safety audit (#3424 null half)', () => {
+    // The string half of #3424 (lifespan/secret_ttl arriving as JSON strings)
+    // was fixed by casting at the safe_dump boundary. The null half was not:
+    // safe_dump emits `null` for secret_ttl/lifespan when a secret has no/unset
+    // lifespan (try/unit/models/secret_numeric_field_types_try.rb pins
+    // `unsaved.safe_dump[:lifespan] #=> nil`). A non-nullable z.number()
+    // rejected that null, gracefulParse threw, and the recipient saw "no longer
+    // available" for an unconsumed secret — the exact #3424 symptom. These
+    // assertions pin the contract so it cannot silently re-tighten to z.number().
+
+    /** Resolve a `record.<field>` schema from a V3 response schema. */
+    function recordFieldSchema(responseSchema: AnySchema, field: string): AnySchema {
+      const root = unwrapSchema(responseSchema) as z.ZodObject<z.ZodRawShape>;
+      const record = unwrapSchema(root.shape.record) as z.ZodObject<z.ZodRawShape>;
+      return record.shape[field];
+    }
+
+    it.each(['secret_ttl', 'lifespan'])(
+      'secret record field "%s" accepts null',
+      (field) => {
+        expect(fieldAcceptsNull(recordFieldSchema(secretResponseSchema, field))).toBe(true);
+      }
+    );
+
+    it.each(['secret_ttl', 'receipt_ttl', 'lifespan'])(
+      'receipt record field "%s" accepts null',
+      (field) => {
+        expect(fieldAcceptsNull(recordFieldSchema(receiptResponseSchema, field))).toBe(true);
+      }
+    );
+
+    it('V3 secret response schema accepts a lifespan-less record (null secret_ttl/lifespan)', () => {
+      // Mirrors the backend payload for a secret whose lifespan is unset:
+      // safe_dump emits null for both TTL fields.
+      const lifespanlessSecretPayload = {
+        record: {
+          identifier: 'secret-abc123',
+          created: 1735142814,
+          updated: 1735204014,
+          key: 'secret-key-abc123',
+          shortid: 'sabc123',
+          state: 'new',
+          has_passphrase: false,
+          verification: false,
+          is_previewed: false,
+          is_revealed: false,
+          secret_ttl: null,
+          lifespan: null,
+        },
+        details: {
+          continue: false,
+          is_owner: false,
+          show_secret: false,
+          correct_passphrase: true,
+          display_lines: 1,
+          one_liner: null,
+        },
+        shrimp: 'csrf-token-xyz',
+      };
+
+      const result = secretResponseSchema.safeParse(lifespanlessSecretPayload);
+      if (!result.success) {
+        expect(result.error.issues).toEqual([]);
+      }
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.record.secret_ttl).toBeNull();
+        expect(result.data.record.lifespan).toBeNull();
+      }
+    });
+  });
+
+  // ---------------------------------------------------------------------------
   // 4. Cross-schema comparison: V2 model vs V3 response
   // ---------------------------------------------------------------------------
 

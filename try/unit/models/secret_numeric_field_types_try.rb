@@ -234,8 +234,10 @@ value = Onetime::Secret.load(@secret2.objid).lifespan
 [value, value.to_i]
 #=> [3600, 3600]
 
-## An unset lifespan stays nil on the wire (not 0): the V3 null-rejection
-## path for legacy records is unchanged by the cast
+## An unset lifespan stays nil on the wire (not 0). The V3 secret/receipt
+## contracts declare secret_ttl/lifespan z.number().nullable() so this null
+## parses (the null half of #3424); see
+## src/tests/contracts/v3-schema-null-safety.spec.ts
 unsaved = Onetime::Secret.new(owner_id: 'anon')
 unsaved.safe_dump[:lifespan]
 #=> nil
