@@ -69,7 +69,11 @@ module Auth::Config::Features
       # openid_configuration_body / check_csrf? overrides this file used to
       # carry. Route matching is unaffected (it uses remaining_path), so setting
       # rodauth's global `prefix` is still not needed.
-      auth.oauth_mount_prefix Auth::Application.uri_prefix
+      # Block form (not a bare value): Auth::Application is not defined yet when
+      # this config loads (application.rb requires config.rb before defining the
+      # Application class), so the prefix must be resolved lazily at request
+      # time, when oauth_mount_prefix is first read.
+      auth.oauth_mount_prefix { Auth::Application.uri_prefix }
 
       # The gem derives the discovery `issuer` (and oauth_jwt_issuer,
       # oauth_jwt_base.rb:36) from authorization_server_url, whose default is now
