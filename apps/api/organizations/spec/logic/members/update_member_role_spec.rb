@@ -61,7 +61,8 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
     instance_double(
       Onetime::OrganizationMembership,
       active?: true,
-      can?: true  # Owner has all entitlements including manage_org
+      can?: true,  # Owner has all entitlements including manage_org
+      domain_scoped?: false
     )
   end
 
@@ -154,7 +155,8 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
         instance_double(
           Onetime::OrganizationMembership,
           active?: true,
-          can?: false  # Member without manage_org entitlement
+          can?: false,  # Member without manage_org entitlement
+          domain_scoped?: false
         )
       end
 

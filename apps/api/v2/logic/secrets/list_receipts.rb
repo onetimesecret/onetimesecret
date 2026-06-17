@@ -140,7 +140,7 @@ module V2::Logic
       end
 
       # Domain scope: receipts created with a specific custom domain
-      # Access allowed for domain owner or any member of the domain's organization
+      # Access allowed for any member of the domain's organization
       def query_domain_receipts
         domain = Onetime::CustomDomain.find_by_extid(domain_extid)
         unless domain
@@ -153,8 +153,7 @@ module V2::Logic
           )
         end
 
-        domain_org = domain.organization
-        has_access = domain.owner?(cust) || domain_org&.member?(cust)
+        has_access = domain.accessible_by?(cust)
         unless has_access
           raise_form_error(
             I18n.t(

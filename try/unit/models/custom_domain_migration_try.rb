@@ -66,8 +66,8 @@ Familia.dbclient.flushdb if ENV['ENV'] == 'test'
 @domain1.org_id == @organization.objid
 #=> true
 
-## Validation: Domain belongs to organization via owner check
-@domain1.owner?(@customer)
+## Validation: Domain accessible by organization member
+@domain1.accessible_by?(@customer)
 #=> true
 
 ## Validation: Organization tracks its domains

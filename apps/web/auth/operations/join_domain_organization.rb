@@ -79,11 +79,14 @@ module Auth
         # Add as member — activates pending invitation if one exists,
         # otherwise creates membership directly. provisioning_source: 'sso'
         # attributes lifecycle to the JIT path regardless of prior invite state.
+        sso_config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain.identifier)
+        scope_id   = sso_config&.grant_org_scope? ? nil : domain.objid
+
         membership = Onetime::OrganizationMembership.ensure_membership(
           organization,
           customer,
           role: 'member',
-          domain_scope_id: domain.objid,
+          domain_scope_id: scope_id,
           provisioning_source: 'sso',
         )
 

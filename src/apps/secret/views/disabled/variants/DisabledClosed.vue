@@ -1,21 +1,21 @@
-<!-- src/apps/secret/views/disabled/variants/DisabledLegacy.vue -->
+<!-- src/apps/secret/views/disabled/variants/DisabledClosed.vue -->
 
 <script setup lang="ts">
   import DisabledHomepageTaglines from '@/apps/secret/components/conceal/DisabledHomepageTaglines.vue';
   import type { DisabledHomepageProps } from '../useDisabledConfig';
 
   /*
-    Legacy — the original two-tagline placeholder.
+    Closed — the quiet two-tagline placeholder (the default).
 
-    Kept as a rollback target for the V1 refresh. Renders the same
-    `DisabledHomepageTaglines` component the `disabled-ui` mode still uses,
-    so behaviour is identical to the pre-refresh DisabledHomepage.
+    Renders the same `DisabledHomepageTaglines` component the `disabled-ui`
+    mode still uses, so behaviour is identical to the pre-refresh
+    DisabledHomepage: a plain "members only" notice with no sign-in CTA.
 
     Accepts the full DisabledHomepageProps contract for compatibility with
     the dispatcher, but only consumes what it needs.
   */
 
-  // Legacy variant ignores the props bag entirely — kept for contract
+  // Closed variant ignores the props bag entirely — kept for contract
   // compatibility with the dispatcher. The `_` prefix matches the project's
   // unused-vars lint allowlist.
   const _props = defineProps<DisabledHomepageProps>();

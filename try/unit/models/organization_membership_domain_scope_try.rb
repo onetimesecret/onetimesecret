@@ -164,7 +164,55 @@ OT.boot! :test
 #=> false
 
 
+# =============================================================================
+# SsoConfig.grant_org_scope? predicate and conditional scope derivation (#3384)
+# =============================================================================
+
+## grant_org_scope? defaults to false on a new SsoConfig
+@default_sso_config = Onetime::CustomDomain::SsoConfig.new(domain_id: @domain_a_objid)
+@default_sso_config.grant_org_scope?
+#=> false
+
+## grant_org_scope? returns true when set to 'true'
+@orgscope_sso_config = Onetime::CustomDomain::SsoConfig.new(domain_id: @domain_b_objid, grant_org_scope: 'true')
+@orgscope_sso_config.grant_org_scope?
+#=> true
+
+## grant_org_scope? returns false when set to 'false' explicitly
+@noscope_sso_config = Onetime::CustomDomain::SsoConfig.new(domain_id: @domain_a_objid, grant_org_scope: 'false')
+@noscope_sso_config.grant_org_scope?
+#=> false
+
+## Conditional scope: grant_org_scope true yields nil (org-scoped)
+@scope_id_when_granted = @orgscope_sso_config.grant_org_scope? ? nil : @domain_b_objid
+@scope_id_when_granted.nil?
+#=> true
+
+## Conditional scope: grant_org_scope false yields domain objid (domain-scoped)
+@scope_id_when_default = @default_sso_config.grant_org_scope? ? nil : @domain_a_objid
+@scope_id_when_default
+#=> @domain_a_objid
+
+## ensure_membership with grant_org_scope=true produces org-scoped member
+@grant_customer = Onetime::Customer.create!(email: generate_unique_test_email("dscope_grant"))
+@grant_scope_id = @orgscope_sso_config.grant_org_scope? ? nil : @domain_b_objid
+@grant_result = Onetime::OrganizationMembership.ensure_membership(@org, @grant_customer, domain_scope_id: @grant_scope_id)
+@grant_result.org_scoped?
+#=> true
+
+## ensure_membership with grant_org_scope=false produces domain-scoped member
+@deny_customer = Onetime::Customer.create!(email: generate_unique_test_email("dscope_deny"))
+@deny_scope_id = @default_sso_config.grant_org_scope? ? nil : @domain_a_objid
+@deny_result = Onetime::OrganizationMembership.ensure_membership(@org, @deny_customer, domain_scope_id: @deny_scope_id)
+@deny_result.domain_scoped?
+#=> true
+
+## domain_scope_id matches the domain objid when grant_org_scope is false
+@deny_result.domain_scope_id
+#=> @domain_a_objid
+
+
 # Cleanup
-[@org, @owner, @scoped_customer, @ds_customer, @orgscoped_customer, @invite_customer].each do |obj|
+[@org, @owner, @scoped_customer, @ds_customer, @orgscoped_customer, @invite_customer, @grant_customer, @deny_customer].each do |obj|
   obj.destroy! if obj&.respond_to?(:destroy!) && obj.exists?
 end

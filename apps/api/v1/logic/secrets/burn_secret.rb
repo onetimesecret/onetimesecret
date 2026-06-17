@@ -33,8 +33,10 @@ module V1::Logic
 
           @correct_passphrase = !potential_secret.has_passphrase? || potential_secret.passphrase?(passphrase)
           viewable = potential_secret.viewable?
-          continue_result = params['continue']
-          @greenlighted = viewable && correct_passphrase && continue_result
+          # Use the parsed boolean (true / 'true' only), not the raw param: the
+          # raw value treats any non-empty string as truthy, so a deliberate
+          # `continue=false` would burn the secret anyway.
+          @greenlighted = viewable && correct_passphrase && continue
 
           if greenlighted
             @secret = potential_secret

@@ -11,6 +11,7 @@
 import { useI18n } from 'vue-i18n';
 import { computed, ref, watch } from 'vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
+import ToggleWithIcon from '@/shared/components/common/ToggleWithIcon.vue';
 import CopyToClipboardButton from '@/shared/components/ui/CopyToClipboardButton.vue';
 import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
 import { useClipboard } from '@/shared/composables/useClipboard';
@@ -685,6 +686,24 @@ aria-hidden="true">*</span>
           role="alert">
           {{ domainInputError }}
         </p>
+      </div>
+
+      <!-- Grant Org Scope Toggle -->
+      <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+        <div>
+          <p class="text-sm font-medium text-gray-900 dark:text-white">
+            {{ t('web.organizations.sso.grant_org_scope') }}
+          </p>
+          <p
+            id="domain-grant-org-scope-hint"
+            class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {{ t('web.organizations.sso.grant_org_scope_hint') }}
+          </p>
+        </div>
+        <ToggleWithIcon
+          :enabled="formState.grant_org_scope"
+          :disabled="isSaving"
+          @update:enabled="updateField('grant_org_scope', $event)" />
       </div>
 
       <!-- Action Buttons -->

@@ -26,6 +26,7 @@ module DomainsAPI
             display_name: config.display_name,
             enabled: config.enabled?,
             enforce_sso_only: config.enforce_sso_only?,
+            grant_org_scope: config.grant_org_scope?,
             client_id: reveal_or_nil(config.client_id),
             client_secret_masked: mask_secret(config.client_secret),
             tenant_id: config.tenant_id,

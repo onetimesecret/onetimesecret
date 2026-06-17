@@ -68,9 +68,21 @@
   <SettingsLayout>
     <div>
       <div class="mb-6">
-        <h1 class="text-3xl font-bold dark:text-white">
-          {{ t('web.auth.mfa.title') }}
-        </h1>
+        <div class="flex items-center gap-3">
+          <h1 class="text-3xl font-bold dark:text-white">
+            {{ t('web.auth.mfa.title') }}
+          </h1>
+          <span
+            v-if="mfaStatus"
+            :class="[
+              'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
+              mfaStatus.enabled
+                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300',
+            ]">
+            {{ mfaStatus.enabled ? t('web.auth.account.mfa_enabled') : t('web.auth.account.mfa_disabled') }}
+          </span>
+        </div>
         <p class="mt-2 text-gray-600 dark:text-gray-400">
           {{ t('web.auth.mfa.setup_description') }}
         </p>
@@ -127,22 +139,10 @@
           class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
           <div class="flex items-start justify-between">
             <div class="flex-1">
-              <div class="flex items-center gap-3">
-                <i class="fas fa-shield-check text-3xl text-green-500"></i>
-                <div>
-                  <h2 class="text-xl font-semibold dark:text-white">
-                    {{ t('web.auth.mfa.enabled') }}
-                  </h2>
-                  <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                    {{ t('web.auth.mfa.protected_description') }}
-                  </p>
-                </div>
-              </div>
-
               <!-- Last used -->
               <div
                 v-if="mfaStatus.last_used_at"
-                class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                class="text-sm text-gray-600 dark:text-gray-400">
                 {{
                   t('web.auth.mfa.last_used', {
                     time: formatDisplayDateTime(new Date(mfaStatus.last_used_at)),
@@ -151,7 +151,7 @@
               </div>
               <div
                 v-else
-                class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                class="text-sm text-gray-600 dark:text-gray-400">
                 {{ t('web.auth.mfa.never_used') }}
               </div>
 
@@ -187,24 +187,8 @@
           class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
           <div class="flex items-start justify-between">
             <div class="flex-1">
-              <div class="flex items-center gap-3">
-                <i class="fas fa-shield-alt text-3xl text-gray-400"></i>
-                <div>
-                  <h2 class="text-xl font-semibold dark:text-white">
-                    {{ t('web.auth.mfa.disabled') }}
-                  </h2>
-                  <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                    {{ t('web.auth.mfa.enable_description') }}
-                  </p>
-                </div>
-              </div>
-
               <!-- Benefits list -->
-              <ul class="mt-4 space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <li class="flex items-center">
-                  <i class="fas fa-check mr-2 text-green-500"></i>
-                  {{ t('web.auth.mfa.benefit_unauthorized') }}
-                </li>
+              <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                 <li class="flex items-center">
                   <i class="fas fa-check mr-2 text-green-500"></i>
                   {{ t('web.auth.mfa.benefit_apps') }}
@@ -222,7 +206,7 @@
               type="button"
               data-testid="mfa-enable-btn"
               class="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
-              {{ t('web.auth.mfa.enable') }}
+              {{ t('web.settings.security.enable') }}
             </button>
           </div>
         </div>

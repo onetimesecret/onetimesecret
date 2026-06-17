@@ -4,7 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import { iconLibraryComponents } from '@/shared/components/icons/sprites';
   import CriticalSprites from '@/shared/components/icons/sprites/CriticalSprites.vue';
-  import { SubtleProgress } from '@/shared/components/ui/notifications';
+  import { NotificationHost } from '@/shared/components/ui/notifications';
   import QuietLayout from '@/shared/layouts/MinimalLayout.vue';
   import { useBrandTheme } from '@/shared/composables/useBrandTheme';
   import type { LayoutProps } from '@/types/ui/layouts';
@@ -135,7 +135,7 @@
         :key="$route.fullPath" />
     </router-view>
 
-    <SubtleProgress />
+    <NotificationHost />
 
     <!-- Sprite rendering: critical immediately + others dynamically -->
     <div

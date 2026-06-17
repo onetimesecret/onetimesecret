@@ -26,7 +26,7 @@ module DomainsAPI
         SENSITIVE_FIELDS = %w[client_id client_secret].freeze
 
         # Fields safe to log with their actual values
-        SAFE_FIELDS = %w[provider_type display_name enabled enforce_sso_only tenant_id issuer allowed_domains].freeze
+        SAFE_FIELDS = %w[provider_type display_name enabled enforce_sso_only grant_org_scope tenant_id issuer allowed_domains].freeze
 
         # Log a Domain SSO audit event with structured data.
         #
@@ -130,7 +130,7 @@ module DomainsAPI
         # @return [Object] Field value
         def extract_old_value(config, field)
           case field
-          when 'enabled', 'enforce_sso_only'
+          when 'enabled', 'enforce_sso_only', 'grant_org_scope'
             config.public_send(:"#{field}?")
           when 'allowed_domains'
             config.allowed_domains
@@ -148,7 +148,7 @@ module DomainsAPI
           value = params[field] || params[field.to_sym]
 
           case field
-          when 'enabled', 'enforce_sso_only'
+          when 'enabled', 'enforce_sso_only', 'grant_org_scope'
             case value
             when true, 'true', '1', 1
               true

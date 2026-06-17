@@ -12,6 +12,105 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 
    <!--scriv-insert-here-->
 
+.. _changelog-v0.25.9:
+
+v0.25.9 — 2026-06-09
+====================
+
+Added
+-----
+
+- **On-demand heap dumps**: Added opt-in ``SIGUSR2``-triggered heap dumps (via ``HEAP_DUMP_ENABLED``) for diagnosing process memory growth. Includes a ``scripts/analyze-heapdump`` analysis utility. (#3366)
+
+Security
+--------
+
+- **Heap dump safety**: Dumps are disabled by default, written owner-only (``0600``) via ``O_EXCL``, and may contain plaintext secrets. Operators should treat dump files as sensitive credentials. (#3366)
+
+AI Assistance
+-------------
+
+- Heap dump boot initializer, analysis script, and tests drafted with AI assistance. (#3366)
+
+.. _changelog-v0.25.8:
+
+v0.25.8 — 2026-06-06
+====================
+
+Added
+-----
+
+- **SSO self-heal**: Legacy users signing in via domain SSO now automatically adopt their domain organization as their default workspace. (#3336)
+- **Organization soft-archival**: Added ``Organization#archive!``, ``archived?``, and ``unarchive!`` methods. (#3336)
+- **Familia storage migration**: Added migration ``20260606_01_unique_index_json_to_raw`` to rewrite legacy JSON-encoded indexes to the raw format required by Familia 2.10, restoring broken custom-domain SSO lookups. (#3347)
+- **Index validation**: Added a boot-time warning if any legacy JSON-encoded indexes remain, including the exact remediation command. (#3347)
+
+Changed
+-------
+
+- Upgraded Familia to v2.10.1. Unique index keys are now stored as raw strings rather than JSON-encoded strings. (#3336, #3347)
+
+Fixed
+-----
+
+- Tryouts calling writes on unsaved parent objects now save first, satisfying Familia v2.10's strict validation rules. (#3336)
+
+.. _changelog-v0.25.6:
+
+v0.25.6 — 2026-06-01
+====================
+
+Changed
+-------
+
+- **Config split enforcement**: ``CustomDomain#allow_public_homepage?`` and ``allow_public_api?`` now fail closed (returning ``false``) if their corresponding config records are missing, migrating completely away from the retired ``BrandSettings`` fallbacks. (#3026)
+- **Auto-bootstrapping configs**: ``CustomDomain.create!`` now automatically boots default-disabled ``HomepageConfig`` and ``ApiConfig`` records, keeping configuration structures in sync. (#3026)
+- **Recipient configuration consolidation**: Removed legacy domain recipient endpoints and the ``IncomingSecretsConfig`` model. Consolidated all recipient storage into the ``CustomDomain::IncomingConfig`` model. (#3095)
+- **Structured logger cleanup**: Narrowed ``Billing`` logs to payments, routing subscription entitlements to ``Ents`` logs (filterable via ``DEBUG_ENTS=1``). Unified database logging under the ``DEBUG_DATABASE`` environment variable. (#3257, #3274)
+
+Removed
+-------
+
+- **Retired brand configurations**: Fully removed the legacy ``allow_public_homepage`` and ``allow_public_api`` fields from ``BrandSettings``, their API endpoints, frontend schemas, and administrative views. (#3026)
+
+Fixed
+-----
+
+- **Recipient management**: Fixed a bug where saving domain recipients would overwrite existing entries by moving to a merged PUT payload model on plaintext recipients. (#3095)
+
+Deployment
+----------
+
+- **Action Required**: Operators must run the ``migrate_incoming_secrets_to_config`` housekeeping chore during deployment to migrate legacy recipient records before traffic resumes::
+
+      bin/ots housekeeping run Onetime::CustomDomain migrate_incoming_secrets_to_config
+
+  (#3095)
+
+.. _changelog-v0.25.0:
+
+v0.25.0 — 2026-04-29
+====================
+
+Changed
+-------
+
+- **Atomic invite acceptance**: Consolidated the invitation login flow to accept invitations atomically during login, eliminating race conditions and reducing API roundtrips. (#2897)
+- **Atomic domain configuration**: Added ``find_or_create_for_domain`` to ``HomepageConfig`` and ``ApiConfig`` using Familia's atomic transaction primitives to avoid concurrent write clobbering. (#3023)
+
+Removed
+-------
+
+- Removed the unused ``ots:migration_needed:db_0`` Redis write on application boot, saving one round-trip per startup. (#3027)
+
+Fixed
+-----
+
+- **Homepage configuration backfill**: Added a migration to preserve public homepage settings for existing custom domains using the new split configuration architecture. (#3023)
+- **Cascading domain deletion**: Updated ``CustomDomain#destroy!`` to reliably clean up companion configuration records, preventing orphan Redis keys. (#3023)
+- **Organization lookup restoration**: Restored organization email indexes destroyed by automated cleanup logic during membership activation. (#3023)
+- **Thread-safe unique index validation**: Refactored domain claiming to run unique-index validations outside of MULTI blocks, resolving intermittent concurrent verification failures. (#3025)
+
 .. _changelog-v0.24.2:
 
 v0.24.2 — 2026-03-14

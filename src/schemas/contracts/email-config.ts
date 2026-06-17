@@ -119,6 +119,9 @@ export const emailDnsRecordSchema = z.object({
    * record. Absent if no provider data yet.
    */
   provider_verified: z.boolean().nullable().optional(),
+
+  /** Whether this record is advisory (recommended but not required for verification). */
+  optional: z.boolean().optional(),
 });
 
 export type EmailDnsRecord = z.infer<typeof emailDnsRecordSchema>;

@@ -65,9 +65,9 @@ import { useI18n } from 'vue-i18n';
 import { useApi } from '@/shared/composables/useApi';
 
 import {
-  generateQrCode,
   hasHmacSetupData,
   enrichSetupResponse,
+  renderSetupQr,
   mapMfaError,
 } from './helpers/mfaHelpers';
 
@@ -154,7 +154,7 @@ export function useMfa() {
    * Success path (HMAC enabled):
    * - POST /auth/otp-setup {} (empty or with password)
    * - Receive 422 with {otp_setup, otp_raw_secret, provisioning_uri, error: "..."}
-   * - Render QR code from the backend's provisioning_uri (issuer included)
+   * - Render QR code from the backend's provisioning_uri
    * - Return enriched setup data for user to scan
    *
    * The 422 status is treated as success because it contains the necessary
@@ -171,13 +171,17 @@ export function useMfa() {
         const validated = otpSetupResponseSchema.parse(response.data);
 
         // Standard response (non-HMAC mode): render the QR from the backend's
-        // authoritative provisioning URI when present.
-        if (validated.provisioning_uri) {
-          validated.qr_code = await generateQrCode(validated.provisioning_uri);
+        // authoritative provisioning URI. If it's absent we cannot produce a
+        // scannable code (the SPA must not reconstruct the URI — #3431), so
+        // fail visibly rather than advancing to a blank scan step. This mirrors
+        // the 422 (HMAC) path, which fails loudly on the same condition.
+        const enriched = await renderSetupQr(validated);
+        if (!enriched) {
+          throw createError(t('web.auth.security.internal_error'), 'technical');
         }
 
-        setupData.value = validated;
-        return validated;
+        setupData.value = enriched;
+        return enriched;
       } catch (err: unknown) {
         // HMAC Setup Success Path: 422 with secrets (not a real error)
         // When HMAC is enabled, backend returns 422 with otp_setup and otp_raw_secret

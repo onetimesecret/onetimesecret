@@ -651,6 +651,100 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
   end
 
   # ==========================================================================
+  # Domain-scoped SSO toggle: grant_org_scope on SsoConfig (#3384)
+  # ==========================================================================
+  #
+  # CustomDomain::SsoConfig.grant_org_scope controls whether SSO-provisioned
+  # members get org-scoped (full org access) or domain-scoped (isolated to
+  # the SSO domain) membership.
+  #
+  #   grant_org_scope: false (default) → domain_scope_id = domain.objid
+  #   grant_org_scope: true            → domain_scope_id = nil (org-scoped)
+  #
+  # The enforcement point is JoinDomainOrganization lines 82-83:
+  #   sso_config = SsoConfig.find_by_domain_id(domain.identifier)
+  #   scope_id = sso_config&.grant_org_scope? ? nil : domain.objid
+  #
+  describe 'grant_org_scope toggle on SsoConfig (#3384)', :shared_db_state do
+    # Fresh SSO customer per example (never pre-joined)
+    let!(:scope_test_customer) do
+      customer = Onetime::Customer.new(email: "scope-#{test_run_id}@tenant.example.com")
+      customer.save
+      customer
+    end
+
+    after do
+      Onetime::CustomDomain::SsoConfig.delete_for_domain!(tenant_custom_domain.identifier) rescue nil
+      scope_test_customer&.destroy! rescue nil
+    end
+
+    it 'grant_org_scope: false (default) creates domain-scoped membership' do
+      # Create SsoConfig with grant_org_scope defaulting to false.
+      # Minimal config: only domain_id needed; grant_org_scope defaults via init.
+      sso_config = Onetime::CustomDomain::SsoConfig.new(
+        domain_id: tenant_custom_domain.identifier,
+      )
+      sso_config.save
+
+      result = Auth::Operations::JoinDomainOrganization.new(
+        customer: scope_test_customer,
+        domain_id: tenant_custom_domain.identifier,
+      ).call
+
+      expect(result[:joined]).to be(true), "Expected join to succeed, got: #{result.inspect}"
+
+      membership = result[:membership]
+      expect(membership).not_to be_nil, 'Expected membership in result'
+      expect(membership.domain_scoped?).to be(true),
+        "Expected domain-scoped membership, got domain_scope_id=#{membership.domain_scope_id.inspect}"
+      expect(membership.domain_scope_id).to eq(tenant_custom_domain.objid),
+        "domain_scope_id should equal the domain's objid"
+      expect(membership.org_scoped?).to be(false)
+    end
+
+    it 'grant_org_scope: true creates org-scoped membership' do
+      sso_config = Onetime::CustomDomain::SsoConfig.new(
+        domain_id: tenant_custom_domain.identifier,
+        grant_org_scope: 'true',
+      )
+      sso_config.save
+
+      result = Auth::Operations::JoinDomainOrganization.new(
+        customer: scope_test_customer,
+        domain_id: tenant_custom_domain.identifier,
+      ).call
+
+      expect(result[:joined]).to be(true), "Expected join to succeed, got: #{result.inspect}"
+
+      membership = result[:membership]
+      expect(membership).not_to be_nil, 'Expected membership in result'
+      expect(membership.org_scoped?).to be(true),
+        "Expected org-scoped membership, got domain_scope_id=#{membership.domain_scope_id.inspect}"
+      expect(membership.domain_scope_id.to_s).to be_empty,
+        'domain_scope_id should be nil/empty for org-scoped membership'
+      expect(membership.domain_scoped?).to be(false)
+    end
+
+    it 'no SsoConfig record falls back to domain-scoped membership' do
+      # When no SsoConfig exists, find_by_domain_id returns nil.
+      # The op's nil-safe call: sso_config&.grant_org_scope? → nil → falsy
+      # so scope_id = domain.objid (domain-scoped).
+      result = Auth::Operations::JoinDomainOrganization.new(
+        customer: scope_test_customer,
+        domain_id: tenant_custom_domain.identifier,
+      ).call
+
+      expect(result[:joined]).to be(true)
+
+      membership = result[:membership]
+      expect(membership).not_to be_nil
+      expect(membership.domain_scoped?).to be(true),
+        'Without SsoConfig, membership should default to domain-scoped'
+      expect(membership.domain_scope_id).to eq(tenant_custom_domain.objid)
+    end
+  end
+
+  # ==========================================================================
   # End-to-end: real OAuth callback flow asserting tenant org membership
   # ==========================================================================
   #

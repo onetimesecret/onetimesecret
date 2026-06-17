@@ -20,11 +20,10 @@ import { captureMessage, isDiagnosticsEnabled } from '@/services/diagnostics.ser
  *
  * The provisioning URI is emitted authoritatively by the backend (Rodauth's
  * `otp_provisioning_uri`, surfaced as `provisioning_uri` in the otp-setup
- * response). It already contains the correct secret, issuer (from the
- * brand-configured otp_issuer), and TOTP parameters (algorithm/digits/period),
- * so the frontend must NOT reconstruct the URI or re-declare those parameters —
- * doing so is what caused the QR to encode the wrong secret (issue #3431). This
- * function only renders the QR image.
+ * response). It already contains the correct secret and TOTP parameters
+ * (issuer/algorithm/digits/period), so the frontend must NOT reconstruct the
+ * URI or re-declare those parameters — doing so is what caused the QR to encode
+ * the wrong secret (issue #3431). This function only renders the QR image.
  *
  * The result is scannable by authenticator apps such as Google Authenticator,
  * Authy, Microsoft Authenticator, and 1Password.
@@ -34,6 +33,41 @@ import { captureMessage, isDiagnosticsEnabled } from '@/services/diagnostics.ser
  */
 export async function generateQrCode(provisioningUri: string): Promise<string> {
   return await QRCode.toDataURL(provisioningUri);
+}
+
+/**
+ * Renders the QR code for a parsed otp-setup response from the backend's
+ * authoritative provisioning_uri and returns the response with `qr_code` set.
+ *
+ * Returns null when provisioning_uri is absent. The QR can only be produced
+ * from the backend URI (the SPA must NOT reconstruct it — that caused the
+ * wrong-secret bug in #3431), so a missing provisioning_uri means we cannot
+ * render a scannable code. Failing here — rather than returning setup data
+ * with an undefined qr_code — prevents the wizard from advancing to a blank
+ * scan step with no error. Shared by both the 200 (non-HMAC) and 422 (HMAC)
+ * setup paths so neither can silently surface a broken QR.
+ *
+ * @param validated - A schema-validated otp-setup response
+ * @returns The response with qr_code populated, or null if no provisioning_uri
+ */
+export async function renderSetupQr(validated: OtpSetupData): Promise<OtpSetupData | null> {
+  if (!validated.provisioning_uri) {
+    console.error(
+      '[mfaHelpers] otp-setup response is missing provisioning_uri; cannot render QR code'
+    );
+    if (isDiagnosticsEnabled()) {
+      captureMessage('MFA setup response missing provisioning_uri', {
+        service: 'web',
+        errorType: 'technical',
+      });
+    }
+    return null;
+  }
+
+  // Sets qr_code on `validated` in place and returns the same object reference
+  // (callers pass the parsed response and use the return value interchangeably).
+  validated.qr_code = await generateQrCode(validated.provisioning_uri);
+  return validated;
 }
 
 /**
@@ -86,27 +120,10 @@ export async function enrichSetupResponse(errorData: any): Promise<OtpSetupData 
     validated.otp_setup = validated.otp_setup || errorData.otp_secret || errorData.otp_setup;
 
     // Render the QR from the backend's authoritative provisioning URI so the
-    // encoded secret/issuer/params always match what the server validates (#3431).
+    // encoded secret/params always match what the server validates (#3431).
     // provisioning_uri is always present on the HMAC path; its absence means a
-    // backend/frontend version skew. Fail loudly instead of returning setup
-    // data with no QR, which would leave the user on a blank scan step with no
-    // error (issue #3431 follow-up).
-    if (!validated.provisioning_uri) {
-      console.error(
-        '[mfaHelpers] HMAC setup response is missing provisioning_uri; cannot render QR code'
-      );
-      if (isDiagnosticsEnabled()) {
-        captureMessage('MFA setup response missing provisioning_uri', {
-          service: 'web',
-          errorType: 'technical',
-        });
-      }
-      return null;
-    }
-
-    validated.qr_code = await generateQrCode(validated.provisioning_uri);
-
-    return validated;
+    // backend/frontend version skew, which renderSetupQr fails loudly on.
+    return await renderSetupQr(validated);
   } catch (parseErr) {
     console.error('[mfaHelpers] Parse error:', parseErr);
     return null;

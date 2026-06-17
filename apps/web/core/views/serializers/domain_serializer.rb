@@ -110,6 +110,7 @@ module Core
             'enabled' => homepage_config.enabled?,
             'signup_enabled' => homepage_config.signup_enabled? && effective_signup_enabled?(domain_id),
             'signin_enabled' => homepage_config.signin_enabled? && effective_signin_enabled?(domain_id),
+            'disabled_homepage_variant' => homepage_config.disabled_homepage_variant_value,
             'created_at' => homepage_config.created&.to_i,
             'updated_at' => homepage_config.updated&.to_i,
           }
