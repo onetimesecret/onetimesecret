@@ -121,6 +121,21 @@ test.describe('SSO missing-email error (issue #3478)', () => {
       await expect(page.getByRole('heading', { name: /log in to your account/i })).toBeVisible();
     });
   }
+
+  test('an unrecognized auth_error code still renders a generic alert (never blank)', async ({
+    page,
+  }) => {
+    // Issue #3478 anti-frozen-screen guarantee: a code this bundle does not
+    // recognize (e.g. a backend newer than the deployed frontend) must still
+    // surface an error rather than a silent/blank page.
+    await page.goto('/signin?auth_error=some_unknown_code_xyz');
+    await page.waitForLoadState('networkidle');
+
+    const alert = page.getByRole('alert');
+    await expect(alert).toBeVisible();
+    await expect(alert).not.toBeEmpty();
+    await expect(page.getByRole('heading', { name: /log in to your account/i })).toBeVisible();
+  });
 });
 
 /**

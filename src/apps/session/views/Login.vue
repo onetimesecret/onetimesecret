@@ -43,8 +43,14 @@ const authErrorMessages: Record<string, string> = {
 
 onMounted(() => {
   const errorCode = route.query.auth_error;
-  if (typeof errorCode === 'string' && errorCode in authErrorMessages) {
-    authError.value = t(authErrorMessages[errorCode]);
+  if (typeof errorCode === 'string' && errorCode.length > 0) {
+    // Render a message for ANY auth_error code so a redirect from the auth
+    // backend never lands on a silent/blank page (the "frozen loading screen"
+    // in issue #3478). Known codes get their specific localized message;
+    // unrecognized codes — e.g. from a backend newer than this bundle —
+    // fall back to the generic SSO failure copy instead of rendering nothing.
+    const messageKey = authErrorMessages[errorCode] ?? 'web.login.errors.sso_failed';
+    authError.value = t(messageKey);
     // Clear the query param to prevent showing error on refresh
     router.replace({ query: { ...route.query, auth_error: undefined } });
   }

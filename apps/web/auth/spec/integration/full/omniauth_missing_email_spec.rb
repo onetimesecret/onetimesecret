@@ -242,6 +242,7 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
   describe 'structurally malformed emails from the IdP' do
     [
       ['missing @',        'nomailbox.fabrikam.onmicrosoft.com'],
+      ['empty local part', '@fabrikam.onmicrosoft.com'],
       ['empty domain',     'nomailbox@'],
       ['bare @',           '@'],
       ['multiple @',       'no@mailbox@fabrikam.onmicrosoft.com'],
@@ -255,32 +256,6 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
         ensure
           teardown_mock_auth
         end
-      end
-    end
-  end
-
-  # ==========================================================================
-  # Known guard gap: an empty LOCAL part is not rejected today
-  # ==========================================================================
-  #
-  # before_omniauth_create_account checks `email_parts.length != 2` and an empty
-  # DOMAIN, but not an empty LOCAL part. So "@domain.com" splits to
-  # ["", "domain.com"] (length 2, non-empty last) and slips past the guard.
-  # Pinned so the gap is visible; a hardened guard (good to do alongside the
-  # #3478 fix) should also reject an empty local part. NB: on PostgreSQL the
-  # accounts.valid_email CHECK constraint would still reject it at insert time;
-  # on SQLite (this suite) it proceeds — so we only assert it is NOT surfaced as
-  # invalid_email, which holds on both backends.
-  describe 'known guard gap: empty local part is not (yet) rejected' do
-    it 'does not flag "@domain.com" as invalid_email today' do
-      setup_entra_mock_auth(email: '@fabrikam.onmicrosoft.com')
-
-      begin
-        post_sso_callback(:oidc)
-        expect(last_response.location.to_s).not_to include('auth_error=invalid_email'),
-          "Empty-local-part email unexpectedly flagged invalid: #{last_response.location.inspect}"
-      ensure
-        teardown_mock_auth
       end
     end
   end
