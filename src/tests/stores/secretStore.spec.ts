@@ -413,7 +413,7 @@ describe('secretStore', () => {
         expect(store.record?.lifespan).toBe(86400);
       });
 
-      it('accepts null TTL values (lifespan-less secret, #3424)', async () => {
+      it('rejects null TTL values (V3 requires numbers, #3424/#3299)', async () => {
         const response = {
           ...mockSecretResponse,
           record: {
@@ -425,12 +425,10 @@ describe('secretStore', () => {
 
         axiosMock?.onGet('/api/v3/secret/abc123').reply(200, response);
 
-        // safe_dump emits null for an unset lifespan; the V3 schema is
-        // z.number().nullable() so this parses instead of stranding the secret.
-        await store.fetch('abc123');
-
-        expect(store.record?.lifespan).toBeNull();
-        expect(store.record?.secret_ttl).toBeNull();
+        // A real secret always has a lifespan (#3299 guarantees it at write
+        // time), so the strict z.number() contract rejects a null TTL rather
+        // than rendering an ambiguous expiration downstream.
+        await expect(store.fetch('abc123')).rejects.toThrow();
       });
 
       it('handles zero lifespan from API', async () => {
@@ -449,7 +447,7 @@ describe('secretStore', () => {
         expect(store.record?.lifespan).toBe(0);
       });
 
-      it('accepts null lifespan from API (#3424)', async () => {
+      it('rejects null lifespan from API (V3 requires numbers, #3424/#3299)', async () => {
         const nullLifespanResponse = {
           ...mockSecretResponse,
           record: {
@@ -460,9 +458,7 @@ describe('secretStore', () => {
 
         axiosMock?.onGet('/api/v3/secret/abc123').reply(200, nullLifespanResponse);
 
-        await store.fetch('abc123');
-
-        expect(store.record?.lifespan).toBeNull();
+        await expect(store.fetch('abc123')).rejects.toThrow();
       });
 
       it('rejects missing lifespan field from API (V3 requires numbers)', async () => {

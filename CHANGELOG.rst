@@ -355,6 +355,7 @@ Removed
 Fixed
 -----
 
+
 - Fixed NameError in ShowSecretStatus API logic where `@realttl` instance variable was referenced as undefined `current_expiration` method
 - Fixed syntax errors in Team and Organization models where double dots (`team..to_s`, `org..to_s`) caused parsing failures
 

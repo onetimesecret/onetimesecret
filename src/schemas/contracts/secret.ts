@@ -162,12 +162,12 @@ export const secretBaseCanonical = z.object({
  * ```
  */
 export const secretCanonical = secretBaseCanonical.extend({
-  // Nullable: safe_dump emits null when the secret has no/unset lifespan
-  // (lib/onetime/models/secret/features/safe_dump_fields.rb). A non-nullable
-  // z.number() rejected that null and surfaced as "no longer available" for an
-  // unconsumed secret — the null half of #3424 the string-cast fix left open.
-  secret_ttl: z.number().nullable(),
-  lifespan: z.number().nullable(),
+  // Non-nullable by contract: a real secret always has a lifespan, so safe_dump
+  // emits a plain integer (never null/0) and the write-time guarantee lives in
+  // Receipt.spawn_pair + config normalization (#3299). This strict z.number() is
+  // the read-time enforcement of that invariant (#3424).
+  secret_ttl: z.number(),
+  lifespan: z.number(),
 });
 
 /**
