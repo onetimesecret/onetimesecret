@@ -29,14 +29,10 @@ RSpec.describe 'Organization.create_from_v1_customer! created_by dual-write',
     ENV.delete('REDIS_URL')
     ENV.delete('VALKEY_URL')
 
-    # Standalone materialization happens inside Organization.create!, which
-    # runs here in before(:all) -- BEFORE billing_isolation.rb's before(:each)
-    # disable hook fires. So a prior spec (or env) leaving BILLING_ENABLED=true
-    # would make create! treat the org as SaaS and skip materialization,
-    # failing the standalone assertions below. Disable billing explicitly here
-    # so this spec is self-contained rather than dependent on hook ordering.
-    BillingTestHelpers.disable_billing!
-
+    # These examples assert standalone-mode materialization, which
+    # Organization.create! performs in this before(:all) only when billing is
+    # disabled. billing_isolation.rb disables billing before every example
+    # group's context hooks (#3418), so no per-spec toggle is needed here.
     begin
       OT.boot! :test, false unless OT.ready?
     rescue Redis::CannotConnectError, Redis::ConnectionError => e
