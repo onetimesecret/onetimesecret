@@ -95,6 +95,15 @@ higher-precedence favicon. Routes: `/favicon.ico` (`get_favicon.rb`) and
 neutral manifest). Full how-to:
 [branding-favicon](../product/branding-favicon.md).
 
+`scripts/branding/mark.mjs` is the single source of truth for the mark geometry
+and neutral palette (`pnpm run gen:favicons` rasterizes the pack). Its three
+constants — `PRIMARY_COLOUR`, `BACKGROUND_COLOUR`, `KEYHOLE_PATH` — read
+generator-only env vars (`MARK_PRIMARY_COLOR`, `MARK_BACKGROUND_COLOR`,
+`MARK_PATH`; deliberately not the runtime `BRAND_*` vars, to keep an ambient
+`BRAND_PRIMARY_COLOR` from polluting the neutral defaults), so operators can
+generate a custom-coloured pack without editing the source. See the Usage block
+in that file.
+
 ## Special cases
 
 - **Email templates** can't use CSS vars — brand colour must be inline hex from

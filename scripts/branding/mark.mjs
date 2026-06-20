@@ -7,19 +7,39 @@
 // nothing (no `sharp`) so it can run anywhere — the rasterizing generator
 // (generate-favicons.mjs) and the CI drift check (check.mjs) both import it.
 //
-// Changing KEYHOLE_PATH or NEUTRAL_BLUE here is how you re-skin the OSS default;
-// re-run `npm run generate` afterwards to refresh the raster assets.
+// ## Usage
+//
+// Regenerate the OSS-default pack (neutral blue keyhole):
+//
+//   pnpm run gen:favicons          # from repo root; installs isolated deps, rasterizes
+//
+// Generate a custom-coloured pack without editing this file, by overriding the
+// three constants below via env vars:
+//
+//   MARK_PRIMARY_COLOR='#3B82F6' pnpm run gen:favicons        # re-tint the mark
+//   MARK_BACKGROUND_COLOR='#0B1020' pnpm run gen:favicons     # dark tile/keyhole
+//   MARK_PATH='m...' pnpm run gen:favicons                    # swap the glyph
+//
+// These are deliberately MARK_*-prefixed, NOT the runtime BRAND_* vars: a dev or
+// CI shell often has BRAND_PRIMARY_COLOR set, and reusing it would silently
+// regenerate non-neutral defaults and trip the drift check. Overrides here are
+// explicit opt-in for producing your own pack. Drop the output into
+// `docker/public/` (build-time overlay) to bake it into the image. CI runs
+// `pnpm run gen:favicons:check` (with no MARK_* set) to guard the committed
+// neutral defaults. See docs/architecture/branding.md.
 
 // Keyhole glyph from WebHostingHub Glyphs (OFL). Native viewBox is 0 0 512 1024
 // (tall: a circle over a flared stem). Matches src/shared/components/icons/KeyholeIcon.vue.
 export const KEYHOLE_PATH =
+  process.env.MARK_PATH ||
   'm363 488l149 472q0 27-18.5 45.5T448 1024H64q-26 0-45-18.5T0 960l149-472q-67-31-108-93.5T0 256Q0 150 75 75T256 0t181 75t75 181q0 76-41 138.5T363 488';
 
-// Neutral palette — must NOT be OTS orange (#DC4A22). Mirrors the frontend
-// NEUTRAL_BRAND_DEFAULTS (#3B82F6) so the shipped favicon and the first-paint
-// Vue theme agree. See src/shared/constants/brand.ts.
-export const NEUTRAL_BLUE = '#3B82F6';
-export const MARK_ON_COLOR = '#FFFFFF';
+// Neutral palette. Mirrors the frontend NEUTRAL_BRAND_DEFAULTS (#3B82F6) so
+// the shipped favicon and the first-paint Vue theme agree. Override via env
+// vars to generate a custom pack (see Usage above).
+// See src/shared/constants/brand.ts.
+export const PRIMARY_COLOUR = process.env.MARK_PRIMARY_COLOR || '#3B82F6'; // a neutral blue
+export const BACKGROUND_COLOUR = process.env.MARK_BACKGROUND_COLOR || '#FFFFFF';
 
 // Centers the native 512x1024 keyhole inside a `size`x`size` canvas, scaled so
 // the glyph occupies ~`coverage` of the height, leaving even padding.
@@ -37,8 +57,8 @@ export function squareIconSvg(size = 512) {
   const radius = Math.round(size * 0.1875); // ~iOS superellipse-ish corner
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="App icon">
-  <rect width="${size}" height="${size}" rx="${radius}" ry="${radius}" fill="${NEUTRAL_BLUE}"/>
-  <path transform="${keyholeTransform(size)}" fill="${MARK_ON_COLOR}" d="${KEYHOLE_PATH}"/>
+  <rect width="${size}" height="${size}" rx="${radius}" ry="${radius}" fill="${PRIMARY_COLOUR}"/>
+  <path transform="${keyholeTransform(size)}" fill="${BACKGROUND_COLOUR}" d="${KEYHOLE_PATH}"/>
 </svg>
 `;
 }
@@ -66,12 +86,12 @@ export function ogImageSvg() {
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#1E3A8A"/>
-      <stop offset="1" stop-color="${NEUTRAL_BLUE}"/>
+      <stop offset="1" stop-color="${PRIMARY_COLOUR}"/>
     </linearGradient>
   </defs>
   <rect width="${w}" height="${h}" fill="url(#bg)"/>
   <g transform="translate(${tx} ${ty})">
-    <path transform="${keyholeTransform(markSize, 0.78)}" fill="${MARK_ON_COLOR}" d="${KEYHOLE_PATH}"/>
+    <path transform="${keyholeTransform(markSize, 0.78)}" fill="${BACKGROUND_COLOUR}" d="${KEYHOLE_PATH}"/>
   </g>
 </svg>
 `;
@@ -82,21 +102,23 @@ export function ogImageSvg() {
 // when configured (see Core::Controllers::Page#webmanifest), and operators can
 // also replace this file via the brand directory.
 export function webmanifest() {
-  return JSON.stringify(
-    {
-      name: 'My App',
-      short_name: 'My App',
-      icons: [
-        { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-        { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-        { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
-      ],
-      theme_color: NEUTRAL_BLUE,
-      background_color: '#ffffff',
-      display: 'standalone',
-      start_url: '/',
-    },
-    null,
-    2
-  ) + '\n';
+  return (
+    JSON.stringify(
+      {
+        name: 'My App',
+        short_name: 'My App',
+        icons: [
+          { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+        theme_color: PRIMARY_COLOUR,
+        background_color: '#ffffff',
+        display: 'standalone',
+        start_url: '/',
+      },
+      null,
+      2
+    ) + '\n'
+  );
 }

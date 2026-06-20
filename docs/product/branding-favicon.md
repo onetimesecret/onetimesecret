@@ -85,6 +85,21 @@ The pack derives from a single keyhole glyph + neutral palette in
 pnpm run gen:favicons    # installs isolated deps, regenerates the pack
 ```
 
-Edit `KEYHOLE_PATH` / `NEUTRAL_BLUE` and re-run. Generator deps (`sharp`,
-`png-to-ico`) stay out of the app bundle. CI runs `pnpm run gen:favicons:check`
-(node-only) and fails if the committed text assets diverge from `mark.mjs`.
+To generate a **custom-coloured** pack without editing the source, override the
+`PRIMARY_COLOUR`, `BACKGROUND_COLOUR`, and `KEYHOLE_PATH` constants via env vars
+(`MARK_PRIMARY_COLOR`, `MARK_BACKGROUND_COLOR`, `MARK_PATH`) — see the Usage
+block in `scripts/branding/mark.mjs`:
+
+```bash
+MARK_PRIMARY_COLOR='#DC4A22' pnpm run gen:favicons
+```
+
+These are `MARK_*`-prefixed on purpose — not the runtime `BRAND_*` vars — so a
+shell that already exports `BRAND_PRIMARY_COLOR` can't silently regenerate
+non-neutral defaults.
+
+Drop the output into `docker/public/` to bake it in (Option B). Generator deps
+(`sharp`, `png-to-ico`) stay out of the app bundle. CI runs
+`pnpm run gen:favicons:check` (node-only) and fails if the committed text assets
+diverge from `mark.mjs`, so use env overrides to produce *your own* pack, not to
+re-skin the committed neutral defaults.
