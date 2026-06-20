@@ -20,7 +20,7 @@ All locales (including English) use the same format in `content/{locale}/*.json`
 ```json
 {
   "web.COMMON.tagline": {
-    "text": "Secure links that only work once"
+    "text": "Links that only work once"
   },
   "web.COMMON.broadcast": {
     "text": "",

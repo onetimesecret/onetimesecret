@@ -112,7 +112,7 @@ site:
           #   - MFA authenticator app issuer label
           #   - Outbound email sender name
           # Falls back to i18n key if not set.
-          site_name: <%= ENV['SITE_NAME'] || 'One-Time Secret' %>
+          site_name: <%= ENV['SITE_NAME'] || 'Secure Links' %>
         # Navigation configuration
         navigation:
           # Enable/disable header navigation entirely
