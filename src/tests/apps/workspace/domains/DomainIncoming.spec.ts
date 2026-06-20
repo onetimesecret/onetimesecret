@@ -74,9 +74,14 @@ vi.mock('@/shared/composables/useDomain', () => ({
 
 // Mock useEntitlements
 let mockCanIncoming = ref(true);
+let mockCanManageOrg = ref(true);
 vi.mock('@/shared/composables/useEntitlements', () => ({
   useEntitlements: () => ({
-    can: () => mockCanIncoming.value,
+    can: (entitlement: string) => {
+      if (entitlement === 'incoming_secrets') return mockCanIncoming.value;
+      if (entitlement === 'manage_org') return mockCanManageOrg.value;
+      return true;
+    },
   }),
 }));
 
@@ -153,6 +158,7 @@ vi.mock('@/apps/workspace/components/domains/DomainIncomingConfigForm.vue', () =
 vi.mock('@/types/organization', () => ({
   ENTITLEMENTS: {
     INCOMING_SECRETS: 'incoming_secrets',
+    MANAGE_ORG: 'manage_org',
   },
 }));
 
@@ -168,30 +174,10 @@ vi.mock('@/utils/features', () => ({
 const i18n = createI18n({
   legacy: false,
   locale: 'en',
-  messages: {
-    en: {
-      web: {
-        domains: {
-          incoming: {
-            title: 'Incoming Secrets',
-            access_denied: 'Feature Not Available',
-            access_denied_description: 'Upgrade your plan to enable incoming secrets.',
-            upgrade_to_configure: 'Upgrade to configure',
-            config_title: 'Configure Recipients',
-            config_description: 'Manage who receives secrets sent to this domain.',
-            not_configured_notice: 'No recipients are configured. Add recipients to start receiving incoming secrets.',
-          },
-        },
-        branding: {
-          you_have_unsaved_changes_are_you_sure: 'You have unsaved changes. Are you sure you want to leave?',
-        },
-        COMMON: {
-          loading: 'Loading...',
-          back: 'Back',
-        },
-      },
-    },
-  },
+  missingWarn: false,
+  fallbackWarn: false,
+  missing: (_, key) => key,
+  messages: { en: {} },
 });
 
 // ---------------------------------------------------------------------------
@@ -212,6 +198,7 @@ describe('DomainIncoming', () => {
     // Reset mocks to defaults
     mockIsOrgsIncomingSecretsEnabled = true;
     mockCanIncoming = ref(true);
+    mockCanManageOrg = ref(true);
     mockDomainState.isLoading.value = false;
     mockDomainState.error.value = null;
     mockIncomingConfigState = createMockIncomingConfigState();
@@ -263,7 +250,7 @@ describe('DomainIncoming', () => {
       wrapper = mountComponent();
       await flushPromises();
 
-      expect(wrapper.text()).toContain('Loading...');
+      expect(wrapper.text()).toContain('web.COMMON.loading');
     });
 
     it('PG-LOAD-003: shows form after initialization', async () => {
@@ -294,7 +281,7 @@ describe('DomainIncoming', () => {
       // When isInitialized is false and isLoading is true, the form should not render yet
       // The loading state is handled by the page component itself, not the form
       // This test verifies the page shows loading state
-      expect(wrapper.text()).toContain('Loading') || expect(mockIncomingConfigState.isLoading.value).toBe(true);
+      expect(wrapper.text()).toContain('web.COMMON.loading');
     });
   });
 
