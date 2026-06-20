@@ -532,6 +532,120 @@ describe('V3 schema null-safety audit', () => {
   });
 
   // ---------------------------------------------------------------------------
+  // 3b. #3424/#3299 TTL/lifespan numeric fields are non-nullable by contract
+  // ---------------------------------------------------------------------------
+
+  describe('secret/receipt TTL non-null contract (#3424/#3299)', () => {
+    // A real secret/receipt always has a lifespan, so safe_dump emits a plain
+    // integer (never null/0) and the write-time guarantee lives in
+    // Receipt.spawn_pair + config normalization (#3299). The strict z.number()
+    // contract is the read-time enforcement of that invariant: null must be
+    // REJECTED, not silently accepted. The earlier accept-null patch was a
+    // mistake (it let the model emit ambiguous expirations); these assertions
+    // pin the contract so it cannot regress back to z.number().nullable().
+
+    /** Resolve a `record.<field>` schema from a V3 response schema. */
+    function recordFieldSchema(responseSchema: AnySchema, field: string): AnySchema {
+      const root = unwrapSchema(responseSchema) as z.ZodObject<z.ZodRawShape>;
+      const record = unwrapSchema(root.shape.record) as z.ZodObject<z.ZodRawShape>;
+      return record.shape[field];
+    }
+
+    it.each(['secret_ttl', 'lifespan'])(
+      'secret record field "%s" rejects null (non-nullable z.number())',
+      (field) => {
+        expect(fieldAcceptsNull(recordFieldSchema(secretResponseSchema, field))).toBe(false);
+      }
+    );
+
+    it.each(['secret_ttl', 'receipt_ttl', 'lifespan'])(
+      'receipt record field "%s" rejects null (non-nullable z.number())',
+      (field) => {
+        expect(fieldAcceptsNull(recordFieldSchema(receiptResponseSchema, field))).toBe(false);
+      }
+    );
+
+    it('V3 secret response schema rejects a null secret_ttl/lifespan record', () => {
+      // A null TTL means an ambiguous expiration, which #3299 guarantees can
+      // never reach the wire. The contract rejects it rather than rendering
+      // "no longer available" downstream from a silently-coerced 0.
+      const nullTtlSecretPayload = {
+        record: {
+          identifier: 'secret-abc123',
+          created: 1735142814,
+          updated: 1735204014,
+          key: 'secret-key-abc123',
+          shortid: 'sabc123',
+          state: 'new',
+          has_passphrase: false,
+          verification: false,
+          is_previewed: false,
+          is_revealed: false,
+          secret_ttl: null,
+          lifespan: null,
+        },
+        details: {
+          continue: false,
+          is_owner: false,
+          show_secret: false,
+          correct_passphrase: true,
+          display_lines: 1,
+          one_liner: null,
+        },
+        shrimp: 'csrf-token-xyz',
+      };
+
+      const result = secretResponseSchema.safeParse(nullTtlSecretPayload);
+      expect(result.success).toBe(false);
+
+      if (!result.success) {
+        const issueFields = result.error.issues.map((i) => i.path.join('.'));
+        expect(issueFields).toContain('record.secret_ttl');
+        expect(issueFields).toContain('record.lifespan');
+      }
+    });
+
+    it('V3 secret response schema accepts a record with integer secret_ttl/lifespan', () => {
+      const validTtlSecretPayload = {
+        record: {
+          identifier: 'secret-abc123',
+          created: 1735142814,
+          updated: 1735204014,
+          key: 'secret-key-abc123',
+          shortid: 'sabc123',
+          state: 'new',
+          has_passphrase: false,
+          verification: false,
+          is_previewed: false,
+          is_revealed: false,
+          secret_ttl: 3600,
+          lifespan: 3600,
+        },
+        details: {
+          continue: false,
+          is_owner: false,
+          show_secret: false,
+          correct_passphrase: true,
+          display_lines: 1,
+          one_liner: null,
+        },
+        shrimp: 'csrf-token-xyz',
+      };
+
+      const result = secretResponseSchema.safeParse(validTtlSecretPayload);
+      if (!result.success) {
+        expect(result.error.issues).toEqual([]);
+      }
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.record.secret_ttl).toBe(3600);
+        expect(result.data.record.lifespan).toBe(3600);
+      }
+    });
+  });
+
+  // ---------------------------------------------------------------------------
   // 4. Cross-schema comparison: V2 model vs V3 response
   // ---------------------------------------------------------------------------
 

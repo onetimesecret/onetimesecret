@@ -181,7 +181,10 @@ export const receiptBaseCanonical = z.object({
   revealed: z.date().nullable(),
   burned: z.date().nullable(),
 
-  // TTL fields (all numbers, seconds)
+  // TTL fields (seconds), non-nullable by contract: a real receipt always has a
+  // lifespan, so safe_dump emits plain integers (never null/0) and the
+  // write-time guarantee lives in Receipt.spawn_pair + config normalization
+  // (#3299). This strict z.number() is the read-time enforcement (#3424).
   secret_ttl: z.number(),
   receipt_ttl: z.number(),
   lifespan: z.number(),

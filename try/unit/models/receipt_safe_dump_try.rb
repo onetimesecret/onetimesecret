@@ -118,11 +118,13 @@ dumped = receipt.safe_dump
 dumped[:secret_ttl]
 #=> 3600
 
-## Receipt safe_dump returns -1 for secret_ttl when not set (via lambda)
+## Receipt safe_dump coerces an unset secret_ttl to 0 (never nil/-1): a real
+## receipt always has a lifespan (#3299), and the non-nullable z.number() V3
+## contract enforces that at read time
 receipt = Receipt.new
 dumped = receipt.safe_dump
 dumped[:secret_ttl]
-#=> -1
+#=> 0
 
 ## Receipt safe_dump does NOT include passphrase field (security)
 fields = Receipt.safe_dump_fields

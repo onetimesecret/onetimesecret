@@ -37,25 +37,28 @@ module Onetime::Secret::Features
       base.safe_dump_field :shortid, ->(obj) { obj.shortid }
       base.safe_dump_field :state
 
-      # Cast numeric fields at this boundary: Familia v2 storage is
-      # type-preserving, not type-enforcing, so a value written as a Ruby
-      # String anywhere upstream (unconverted params, console writes, raw
-      # HSET) hydrates back as a String, and the strict z.number() V3 schema
-      # then rejects the whole payload — the recipient sees "no longer
-      # available" for a secret that was never consumed (#3424). The cast is
-      # a no-op for healthy records and neutralizes poisoned ones either way.
-      #   - lifespan / *_ttl are integer-second durations: to_i is lossless,
-      #     and the > 0 guard preserves nil/-1 for unset values.
-      #   - created / updated are float epoch seconds (Familia.now): to_f, NOT
-      #     to_i. These values double as sorted-set scores, so truncating the
-      #     sub-second precision would reorder range queries. The contract is
-      #     z.number(), which accepts either, so we keep the fuller value.
-      # Longer term this belongs in proactive coercion at write/load time, not
-      # at the last mile. A read-only detector for already-poisoned records
-      # lives in scripts/diagnostics/detect_string_typed_numerics.rb.
+      # Coerce numeric fields to Integer at this read boundary so the payload
+      # always satisfies the strict z.number() V3 contract. Familia v2 storage
+      # is type-preserving, not type-enforcing, so a value written as a Ruby
+      # String anywhere upstream (unconverted params, console writes, raw HSET)
+      # hydrates back as a String and would otherwise be rejected — the
+      # recipient sees "no longer available" for a secret nobody consumed
+      # (#3424). lifespan is an integer-second duration, so to_i is lossless.
+      # We do NOT emit nil/0 sentinels: a real secret always has a lifespan, and
+      # the contract enforces that invariant at read time. The write-time
+      # guarantee lives in Receipt.spawn_pair and config normalization (#3299);
+      # this cast additionally neutralizes already-poisoned records.
+      # (created / updated stay to_f below — they are float epoch seconds that
+      # double as sorted-set scores, so sub-second precision must be preserved.)
+      # A read-only detector for poisoned records lives in
+      # scripts/diagnostics/detect_string_typed_numerics.rb.
       # Mechanism tests: try/unit/models/secret_numeric_field_types_try.rb
-      base.safe_dump_field :secret_ttl, ->(m) { m.lifespan.to_i > 0 ? m.lifespan.to_i : nil }
-      base.safe_dump_field :lifespan, ->(m) { m.lifespan.to_i > 0 ? m.lifespan.to_i : nil }
+      base.safe_dump_field :lifespan, ->(m) { m.lifespan.to_i }
+
+      # @deprecated: legacy *_ttl field, to be removed in v0.26. Redundant with
+      # lifespan and can be derived in the v1 and v2 logic classes.
+      base.safe_dump_field :secret_ttl, ->(m) { m.lifespan.to_i }
+
       base.safe_dump_field :has_passphrase, ->(m) { m.has_passphrase? }
       base.safe_dump_field :verification, ->(m) { m.verification? }
       base.safe_dump_field :created, ->(m) { m.created&.to_f }

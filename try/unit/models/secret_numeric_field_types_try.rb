@@ -39,9 +39,12 @@
 #    never heals it: previewed! uses save_fields(:state), which rewrites
 #    only the state field.
 #
-# MITIGATION (#3424): the safe_dump lambdas in Secret and Receipt now cast
+# MITIGATION (#3424/#3299): the safe_dump lambdas in Secret and Receipt cast
 # the numeric fields at the serialization boundary. lifespan/secret_ttl use
-# to_i (lossless integer-second durations, nil/-1 preserved for unset);
+# to_i (lossless integer-second durations) and emit a plain Integer with no
+# nil/-1 sentinel -- a real record always has a lifespan (guaranteed at write
+# time by Receipt.spawn_pair + config normalization, #3299), and the strict
+# z.number() V3 contract enforces that invariant at read time;
 # created/updated use to_f, NOT to_i, to keep the sub-second precision that
 # matters when those values are used as sorted-set scores. Hydration is
 # intentionally untouched -- getters still return whatever type is at rest
@@ -219,13 +222,14 @@ reloaded = Onetime::Secret.load(@poisoned.objid)
 # 5. Cast semantics pinned at the getter level. The safe_dump lambdas
 #    in secret/features/safe_dump_fields.rb (and the receipt mirror)
 #    rely on to_i recovering Integers from poisoned Strings while
-#    being a no-op for healthy values, with nil preserved for unset
-#    lifespans. These cases pin that contract.
+#    being a no-op for healthy values. Unset lifespans coerce to 0 (the
+#    contract treats that as an invalid record, never null). These cases
+#    pin that contract.
 # ------------------------------------------------------------------
 
 ## to_i recovers native Integers from a poisoned record's String fields
 loaded = Onetime::Secret.load(@poisoned.objid)
-[loaded.lifespan.to_i, loaded.lifespan.to_i > 0 ? loaded.lifespan.to_i : nil]
+[loaded.lifespan.to_i, loaded.safe_dump[:lifespan]]
 #=> [604800, 604800]
 
 ## ...and is a no-op for a healthy record's native values
@@ -234,11 +238,14 @@ value = Onetime::Secret.load(@secret2.objid).lifespan
 [value, value.to_i]
 #=> [3600, 3600]
 
-## An unset lifespan stays nil on the wire (not 0): the V3 null-rejection
-## path for legacy records is unchanged by the cast
+## An unset lifespan coerces to 0 on the wire (never nil). The V3 secret and
+## receipt contracts declare secret_ttl/lifespan as non-nullable z.number(),
+## so the read-time guard rejects a null but accepts this degenerate 0; a real
+## record can never reach this state (#3299 guarantees a lifespan at write
+## time). See src/tests/contracts/v3-schema-null-safety.spec.ts
 unsaved = Onetime::Secret.new(owner_id: 'anon')
 unsaved.safe_dump[:lifespan]
-#=> nil
+#=> 0
 
 ## Degenerate case: a JSON-quoted empty string at rest ('""', a writer
 ## assigned a Ruby "") hydrates as "" and dumps as 0.0. Deliberate:
