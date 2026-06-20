@@ -325,7 +325,9 @@ the pnpm workspace so `sharp` never enters the app bundle).
 **Override precedence** (favicon): per-custom-domain icon (Redis, unchanged)
 → site-level override → neutral bundled default. Site-level override is either
 a `BRAND_*_URL` env var or a replacement file dropped into the brand directory
-(`docker/branding/` at build time, or mounted over `public/web` at runtime).
+(`docker/branding/public/web/` at build time, or mounted over `public/web` at
+runtime). The build-time directory mirrors the container filesystem
+(rootfs-overlay convention), so assets sit at the path they ship to.
 
 **Wiring**:
 - `apps/web/core/logic/page/get_favicon.rb` — `/favicon.ico` route; 302s to
@@ -355,7 +357,7 @@ a `BRAND_*_URL` env var or a replacement file dropped into the brand directory
   node-only drift check (`check.mjs`, run in CI via `pnpm gen:favicons:check`)
   that fails if the committed text assets diverge from the source.
 
-See [`docs/customization/branding-favicon.md`](../customization/branding-favicon.md)
+See [`docs/product/branding-favicon.md`](../product/branding-favicon.md)
 for the operator-facing how-to.
 
 ## Special Cases

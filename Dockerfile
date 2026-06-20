@@ -156,14 +156,17 @@ RUN set -eux && \
 # into the image without modifying tracked files, drop replacement assets
 # (favicon.ico, favicon.svg, apple-touch-icon.png, icon-192.png, icon-512.png,
 # safari-pinned-tab.svg, site.webmanifest, social-preview.png, ...) into
-# docker/branding/ before building. The directory is empty (.gitkeep only) in
-# the OSS repo, so this step is a no-op by default and never overlays our
-# company brand onto self-hosted builds.
+# docker/branding/ before building. The directory mirrors the container
+# filesystem (rootfs-overlay convention): assets live at the path they ship to,
+# e.g. docker/branding/public/web/favicon.svg, and the tree is overlaid onto the
+# app root. Only public/web/.gitkeep is tracked in the OSS repo, so this step is
+# a no-op by default and never overlays our company brand onto self-hosted builds.
 COPY docker/branding/ /tmp/branding/
 RUN set -eux && \
-    rm -f /tmp/branding/.gitkeep /tmp/branding/README.md && \
+    rm -f /tmp/branding/README.md && \
+    find /tmp/branding -name .gitkeep -delete && \
     if [ -n "$(find /tmp/branding -type f 2>/dev/null)" ]; then \
-      cp -R /tmp/branding/. public/web/ && \
+      cp -R /tmp/branding/. ./ && \
       chmod -R a+rX public/web && \
       echo "NOTICE: applied docker/branding overlay" >&2 ; \
     else \

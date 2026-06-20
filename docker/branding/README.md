@@ -1,8 +1,13 @@
 # Build-time branding overlay
 
-This directory is **empty by default** (just `.gitkeep`) in the open-source
-repository. It is the build-time half of the favicon/branding override
-mechanism — a counterpart to the runtime `BRAND_*` env vars.
+This directory is **empty by default** (just `public/web/.gitkeep`) in the
+open-source repository. It is the build-time half of the favicon/branding
+override mechanism — a counterpart to the runtime `BRAND_*` env vars.
+
+It follows the **rootfs-overlay convention**: the directory mirrors the
+container filesystem, so each asset lives at the path it ships to and the tree
+is overlaid onto the app root at build time. No path remapping to memorize —
+where a file sits here is where it lands in the image.
 
 ## Why it exists
 
@@ -13,24 +18,25 @@ serves our company favicon — a trust/impersonation hazard.
 
 If you operate your own install (including onetimesecret.com itself, which runs
 like a self-hosted deployment), drop your replacement assets here before
-building the image. The `Dockerfile` overlays them onto `public/web/` after the
-Vite build. Because the directory is empty here, the overlay is a no-op for
-everyone who hasn't opted in.
+building the image. The `Dockerfile` overlays this tree onto the app root after
+the Vite build, so files under `public/web/` land in the served document root.
+Because the directory is empty here, the overlay is a no-op for everyone who
+hasn't opted in.
 
 ## Usage
 
-1. Place any of these files in this directory (matching the names served from
-   the document root):
+1. Place any of these files under `public/web/` in this directory (the path
+   mirrors where they are served from the document root):
 
    ```
-   favicon.ico
-   favicon.svg
-   apple-touch-icon.png
-   icon-192.png
-   icon-512.png
-   safari-pinned-tab.svg
-   site.webmanifest
-   social-preview.png
+   public/web/favicon.ico
+   public/web/favicon.svg
+   public/web/apple-touch-icon.png
+   public/web/icon-192.png
+   public/web/icon-512.png
+   public/web/safari-pinned-tab.svg
+   public/web/site.webmanifest
+   public/web/social-preview.png
    ```
 
    You only need to include the files you want to override; the rest fall back
@@ -51,5 +57,5 @@ everyone who hasn't opted in.
   icon/logo per custom domain; that always takes precedence over the
   site-level defaults above.
 
-See `docs/customization/branding-favicon.md` for the full precedence model and
+See `docs/product/branding-favicon.md` for the full precedence model and
 how to regenerate the neutral defaults with `scripts/branding/`.

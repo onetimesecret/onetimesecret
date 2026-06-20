@@ -21,9 +21,9 @@
        tracked defaults via either:
          - BRAND_* env URL overrides (favicon/apple-touch/og), or
          - dropping replacement files into the brand directory
-           (docker/branding/ at build time, or public/web at runtime).
+           (docker/branding/public/web/ at build time, or public/web at runtime).
        The /favicon.ico route additionally honours per-custom-domain icons
-       and brand.favicon_url. See docs/customization/branding-favicon.md. -->
+       and brand.favicon_url. See docs/product/branding-favicon.md. -->
   {{#if show_default_svg_favicon}}
   <link nonce="{{app.nonce}}" rel="icon" type="image/svg+xml" href="/favicon.svg">
   {{/if}}

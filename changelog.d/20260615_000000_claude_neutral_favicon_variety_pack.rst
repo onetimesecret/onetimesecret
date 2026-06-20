@@ -7,8 +7,9 @@ Added
   Apple touch icon, PWA web manifest + icons, Safari pinned-tab mask icon, and
   Open Graph / Twitter ``og:image``. Operators can override per asset with
   ``BRAND_FAVICON_URL``, ``BRAND_APPLE_TOUCH_ICON_URL``, and
-  ``BRAND_OG_IMAGE_URL``, by dropping replacement files into ``docker/branding/``
-  at build time, or by mounting over ``public/web`` at runtime. Per-custom-domain
+  ``BRAND_OG_IMAGE_URL``, by dropping replacement files into
+  ``docker/branding/public/web/`` at build time, or by mounting over
+  ``public/web`` at runtime. Per-custom-domain
   favicons continue to take precedence. (#3048, #3049)
 - Brand-aware PWA manifest: ``/site.webmanifest`` is now served by a route that
   overlays ``BRAND_PRODUCT_NAME`` and ``BRAND_PRIMARY_COLOR`` onto the neutral
@@ -27,6 +28,6 @@ Changed
 Documentation
 -------------
 
-- Added ``docs/customization/branding-favicon.md`` and a variety-pack section to
+- Added ``docs/product/branding-favicon.md`` and a variety-pack section to
   ``docs/architecture/branding.md`` covering the favicon override precedence,
   override surface, and build-time vs. runtime customization.

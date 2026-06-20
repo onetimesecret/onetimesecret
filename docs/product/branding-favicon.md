@@ -2,7 +2,7 @@
 
 This guide covers the **static icon assets** — `favicon.ico`, the SVG favicon,
 Apple touch icon, PWA icons + manifest, the Safari pinned-tab mask, and the
-Open Graph / Twitter social card. For the brand *colour/value* system (primary
+Open Graph / Twitter social card. For the brand _colour/value_ system (primary
 colour, product name, fonts, per-domain palettes) see
 [`docs/architecture/branding.md`](../architecture/branding.md).
 
@@ -18,15 +18,15 @@ runs like a self-hosted install — overrides with its own brand.
 
 The assets live at the document root:
 
-| Asset | File | Referenced as |
-|---|---|---|
-| Modern favicon | `public/web/favicon.svg` | `<link rel="icon" type="image/svg+xml">` |
-| Legacy favicon | `public/web/favicon.ico` | `/favicon.ico` route |
-| Apple touch icon | `public/web/apple-touch-icon.png` (180²) | `<link rel="apple-touch-icon">` |
-| PWA icons | `public/web/icon-192.png`, `icon-512.png` | `site.webmanifest` |
-| PWA manifest | `public/web/site.webmanifest` | `<link rel="manifest">` |
-| Safari pinned tab | `public/web/safari-pinned-tab.svg` | `<link rel="mask-icon">` |
-| Social card | `public/web/social-preview.png` (1200×630) | `og:image` / `twitter:image` |
+| Asset             | File                                       | Referenced as                            |
+| ----------------- | ------------------------------------------ | ---------------------------------------- |
+| Modern favicon    | `public/web/favicon.svg`                   | `<link rel="icon" type="image/svg+xml">` |
+| Legacy favicon    | `public/web/favicon.ico`                   | `/favicon.ico` route                     |
+| Apple touch icon  | `public/web/apple-touch-icon.png` (180²)   | `<link rel="apple-touch-icon">`          |
+| PWA icons         | `public/web/icon-192.png`, `icon-512.png`  | `site.webmanifest`                       |
+| PWA manifest      | `public/web/site.webmanifest`              | `<link rel="manifest">`                  |
+| Safari pinned tab | `public/web/safari-pinned-tab.svg`         | `<link rel="mask-icon">`                 |
+| Social card       | `public/web/social-preview.png` (1200×630) | `og:image` / `twitter:image`             |
 
 ## Precedence
 
@@ -52,13 +52,13 @@ Two mechanisms, by design:
   the high-value, CDN-friendly subset rather than every asset, to keep the
   configuration surface small.
 
-| Asset | URL/config override | File override |
-|---|---|---|
-| `favicon.ico` | `BRAND_FAVICON_URL` (per-domain icon wins) | ✅ |
-| `apple-touch-icon.png` | `BRAND_APPLE_TOUCH_ICON_URL` | ✅ |
-| `social-preview.png` (og) | `BRAND_OG_IMAGE_URL` | ✅ |
-| `site.webmanifest` name/theme | `BRAND_PRODUCT_NAME` / `BRAND_PRIMARY_COLOR` | ✅ |
-| `favicon.svg`, `safari-pinned-tab.svg`, `icon-192/512.png` | — | ✅ |
+| Asset                                                      | URL/config override                          | File override |
+| ---------------------------------------------------------- | -------------------------------------------- | ------------- |
+| `favicon.ico`                                              | `BRAND_FAVICON_URL` (per-domain icon wins)   | ✅            |
+| `apple-touch-icon.png`                                     | `BRAND_APPLE_TOUCH_ICON_URL`                 | ✅            |
+| `social-preview.png` (og)                                  | `BRAND_OG_IMAGE_URL`                         | ✅            |
+| `site.webmanifest` name/theme                              | `BRAND_PRODUCT_NAME` / `BRAND_PRIMARY_COLOR` | ✅            |
+| `favicon.svg`, `safari-pinned-tab.svg`, `icon-192/512.png` | —                                            | ✅            |
 
 So there is always a uniform way to override anything (replace the file); the
 env layer is additive convenience, not a complete parallel surface.
@@ -98,13 +98,16 @@ brands the Android home-screen install. Replace the file to change the icons.
 
 ### Option B — drop-in files at build time
 
-Place replacement files in [`docker/branding/`](../../docker/branding/) before
-building the image. The `Dockerfile` overlays them onto `public/web/` after the
-Vite build. The directory is empty in the repo, so this is a no-op until you
-opt in. This is the right choice for the assets that have no URL override
-(`favicon.svg`, `safari-pinned-tab.svg`, `icon-192.png`, `icon-512.png`). The
-public OCI image uses this overlay to bake the official brand without changing
-the tracked neutral defaults.
+Place replacement files under
+[`docker/branding/public/web/`](../../docker/branding/) before building the
+image. The directory follows the **rootfs-overlay convention** — it mirrors the
+container filesystem, so each asset lives at the path it ships to (e.g.
+`docker/branding/public/web/favicon.svg`) and the `Dockerfile` overlays the tree
+onto the app root after the Vite build. The directory is empty in the repo, so
+this is a no-op until you opt in. This is the right choice for the assets that
+have no URL override (`favicon.svg`, `safari-pinned-tab.svg`, `icon-192.png`,
+`icon-512.png`). The public OCI image uses this overlay to bake the official
+brand without changing the tracked neutral defaults.
 
 ### Option C — drop-in files at runtime
 
@@ -122,7 +125,7 @@ needed.
 
 The whole pack derives from a single keyhole glyph + neutral palette defined in
 `scripts/branding/mark.mjs` (the single source of truth). To re-skin the OSS
-default (or produce your own pack to drop into `docker/branding/`):
+default (or produce your own pack to drop into `docker/branding/public/web/`):
 
 ```bash
 pnpm run gen:favicons    # installs the isolated deps and regenerates the pack
@@ -134,8 +137,9 @@ or the pnpm workspace.
 
 ### Drift guard
 
-CI runs `pnpm run gen:favicons:check` (node-only, no `sharp`), which fails if the
-committed text assets (`favicon.svg`, `safari-pinned-tab.svg`, `site.webmanifest`)
-no longer match `scripts/branding/mark.mjs` — so editing the mark without
-regenerating is caught. Raster drift (`.png`/`.ico`) is verified locally by
-re-running `gen:favicons` and checking `git diff`.
+CI runs `pnpm run gen:favicons:check` (node-only, requiring no external
+image-processing dependencies like `sharp`), which fails if the committed text
+assets (`favicon.svg`, `safari-pinned-tab.svg`, `site.webmanifest`) no longer
+match `scripts/branding/mark.mjs` — so editing the mark without regenerating is
+caught. Raster drift (`.png`/`.ico`) is verified locally by re-running
+`gen:favicons` and checking `git diff`.
