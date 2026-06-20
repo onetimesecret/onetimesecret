@@ -98,16 +98,14 @@ brands the Android home-screen install. Replace the file to change the icons.
 
 ### Option B — drop-in files at build time
 
-Place replacement files under
-[`docker/branding/public/web/`](../../docker/branding/) before building the
-image. The directory follows the **rootfs-overlay convention** — it mirrors the
-container filesystem, so each asset lives at the path it ships to (e.g.
-`docker/branding/public/web/favicon.svg`) and the `Dockerfile` overlays the tree
-onto the app root after the Vite build. The directory is empty in the repo, so
-this is a no-op until you opt in. This is the right choice for the assets that
-have no URL override (`favicon.svg`, `safari-pinned-tab.svg`, `icon-192.png`,
-`icon-512.png`). The public OCI image uses this overlay to bake the official
-brand without changing the tracked neutral defaults.
+Place replacement files in [`docker/public/`](../../docker/public/) before
+building the image. The directory is named for its destination — the
+`Dockerfile` copies its contents into `public/web/` after the Vite build (drop
+the files in directly; the layout is flat). The directory is empty in the repo,
+so this is a no-op until you opt in. This is the right choice for the assets
+that have no URL override (`favicon.svg`, `safari-pinned-tab.svg`,
+`icon-192.png`, `icon-512.png`). The public OCI image uses this overlay to bake
+the official brand without changing the tracked neutral defaults.
 
 ### Option C — drop-in files at runtime
 
@@ -125,7 +123,7 @@ needed.
 
 The whole pack derives from a single keyhole glyph + neutral palette defined in
 `scripts/branding/mark.mjs` (the single source of truth). To re-skin the OSS
-default (or produce your own pack to drop into `docker/branding/public/web/`):
+default (or produce your own pack to drop into `docker/public/`):
 
 ```bash
 pnpm run gen:favicons    # installs the isolated deps and regenerates the pack

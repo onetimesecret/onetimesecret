@@ -11,7 +11,7 @@ module Core
       # GetWebmanifest - Serve a brand-aware PWA web manifest.
       #
       # Reads the on-disk neutral manifest (public/web/site.webmanifest, which is
-      # itself overridable via the docker/branding build overlay or a runtime
+      # itself overridable via the docker/public build overlay or a runtime
       # file mount) and overlays the site-level brand fields from OT.conf:
       #
       #   - name / short_name <- brand.product_name (when set)

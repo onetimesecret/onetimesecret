@@ -11,7 +11,7 @@
 // one used by KeyholeIcon.vue) into the full set of files referenced by the
 // HTML head. Operators override per deployment via BRAND_* env vars (URL
 // overrides) or by dropping replacement files into the brand directory
-// (docker/branding/public/web/ at build time, or public/web at runtime) — see
+// (docker/public/ at build time, or public/web at runtime) — see
 // docs/product/branding-favicon.md.
 //
 // SINGLE SOURCE OF TRUTH
