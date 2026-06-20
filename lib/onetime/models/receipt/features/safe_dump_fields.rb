@@ -77,8 +77,8 @@ module Onetime::Receipt::Features
       base.safe_dump_field :receipt_ttl, ->(m) { m.lifespan.to_i }
       base.safe_dump_field :lifespan, ->(m) { m.lifespan.to_i }
       base.safe_dump_field :share_domain
-      base.safe_dump_field :created, ->(m) { m.created&.to_f }
-      base.safe_dump_field :updated, ->(m) { m.updated&.to_f }
+      base.safe_dump_field :created, ->(m) { m.created.to_f }
+      base.safe_dump_field :updated, ->(m) { m.updated.to_f }
       base.safe_dump_field :shared
       # Obscure recipient emails at serialization time so the raw address
       # never reaches the frontend, while the underlying record keeps the

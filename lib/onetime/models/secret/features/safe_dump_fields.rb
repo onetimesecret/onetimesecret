@@ -61,8 +61,8 @@ module Onetime::Secret::Features
 
       base.safe_dump_field :has_passphrase, ->(m) { m.has_passphrase? }
       base.safe_dump_field :verification, ->(m) { m.verification? }
-      base.safe_dump_field :created, ->(m) { m.created&.to_f }
-      base.safe_dump_field :updated, ->(m) { m.updated&.to_f }
+      base.safe_dump_field :created, ->(m) { m.created.to_f }
+      base.safe_dump_field :updated, ->(m) { m.updated.to_f }
 
       # State boolean fields - canonical names
       base.safe_dump_field :is_previewed, ->(m) { m.state?(:previewed) }
