@@ -109,4 +109,5 @@ repos:
         entry: pnpm run type-check
         language: system
         pass_filenames: false
-        always_run: true
+        files: \.(ts|tsx|vue)$
+        always_run: false
