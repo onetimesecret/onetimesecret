@@ -55,7 +55,7 @@ const i18n = createI18n({
     en: {
       web: {
         homepage: {
-          one_time_secret_literal: 'Onetime Secret',
+          one_time_secret_literal: '{product_name}',
           signup_individual_and_business_plans: 'Sign up',
           log_in_to_onetime_secret: 'Log in',
         },
@@ -108,6 +108,8 @@ describe('MastHead', () => {
       email?: string | null;
       cust?: typeof mockCustomer | null;
       domain_logo?: string | null;
+      brand_logo_url?: string | null;
+      brand_product_name?: string | null;
     } = {}
   ) => {
     const pinia = createTestingPinia({
@@ -120,13 +122,12 @@ describe('MastHead', () => {
           email: storeState.email ?? null,
           cust: storeState.cust ?? null,
           domain_logo: storeState.domain_logo ?? null,
+          brand_logo_url: storeState.brand_logo_url ?? null,
+          brand_product_name: storeState.brand_product_name ?? 'Onetime Secret',
           ui: {
             header: {
               navigation: { enabled: true },
-              branding: {
-                logo: { url: 'DefaultLogo.vue', alt: 'Onetime Secret' },
-                site_name: 'Onetime Secret',
-              },
+              logo: { href: '/', show_name: true },
             },
           },
           authentication: {
@@ -339,7 +340,7 @@ describe('MastHead', () => {
     });
   });
 
-  describe('Static config logo (ui.header.branding.logo.url)', () => {
+  describe('Static config logo (brand_logo_url)', () => {
     const mountWithStaticLogoUrl = (
       logoUrl: string,
       storeState: Parameters<typeof mountComponent>[1] = {}
@@ -354,13 +355,12 @@ describe('MastHead', () => {
             email: storeState.email ?? null,
             cust: storeState.cust ?? null,
             domain_logo: storeState.domain_logo ?? null,
+            brand_logo_url: logoUrl,
+            brand_product_name: 'Brand',
             ui: {
               header: {
                 navigation: { enabled: true },
-                branding: {
-                  logo: { url: logoUrl, alt: 'Brand' },
-                  site_name: 'Brand',
-                },
+                logo: { href: '/' },
               },
             },
             authentication: { enabled: true, signin: true, signup: true },
@@ -418,7 +418,7 @@ describe('MastHead', () => {
     });
 
     it('does NOT treat the default DefaultLogo.vue config as a custom logo (regression)', async () => {
-      // Stock install: config.defaults.yaml ships branding.logo.url = 'DefaultLogo.vue'.
+      // Stock install: no brand_logo_url set, so the bundled DefaultLogo.vue is used.
       // This must continue to use the regular guest size (48px), not the 160px custom size.
       wrapper = mountComponent(
         {},
@@ -451,16 +451,14 @@ describe('MastHead', () => {
             email: storeState.email ?? null,
             cust: storeState.cust ?? null,
             domain_logo: storeState.domain_logo ?? null,
+            brand_logo_url: storeState.brand_logo_url ?? null,
+            brand_product_name: 'Brand',
             ui: {
               header: {
                 navigation: { enabled: true },
-                branding: {
-                  logo: {
-                    url: storeState.domain_logo ?? 'DefaultLogo.vue',
-                    alt: 'Brand',
-                    prominent,
-                  },
-                  site_name: 'Brand',
+                logo: {
+                  href: '/',
+                  prominent,
                 },
               },
             },
@@ -716,9 +714,9 @@ describe('MastHead', () => {
      * Priority chain in getShowSiteName():
      *   1. props.logo.showSiteName            (caller-site override)
      *   2. domain_logo.value                  (multi-tenant: always hide)
-     *   3. headerConfig.branding.logo.show_name  (LOGO_SHOW_NAME explicit)
-     *   4. isCustomStaticLogo.value           (heuristic: non-default LOGO_URL)
-     *   5. !!site_name                        (default tied to SITE_NAME)
+     *   3. headerConfig.logo.show_name        (LOGO_SHOW_NAME explicit)
+     *   4. isCustomStaticLogo.value           (heuristic: non-default brand_logo_url)
+     *   5. !!brand_product_name               (default tied to the product name)
      *
      * #3160: in v0.25.3 step 4 ran ahead of step 3, so operators setting
      * LOGO_URL + LOGO_SHOW_NAME=true silently lost their wordmark.
@@ -742,16 +740,14 @@ describe('MastHead', () => {
             email: storeState.email ?? null,
             cust: storeState.cust ?? null,
             domain_logo: storeState.domain_logo ?? null,
+            brand_logo_url: branding.logoUrl,
+            brand_product_name: branding.siteName,
             ui: {
               header: {
                 navigation: { enabled: true },
-                branding: {
-                  logo: {
-                    url: branding.logoUrl,
-                    alt: 'Brand',
-                    show_name: branding.showName,
-                  },
-                  site_name: branding.siteName,
+                logo: {
+                  href: '/',
+                  show_name: branding.showName,
                 },
               },
             },
@@ -925,10 +921,10 @@ describe('MastHead', () => {
      * Key setup requirements:
      *   1. Own i18n instance with `{product_name}` placeholders — the
      *      module-level i18n uses static strings so interpolation is ignored.
-     *   2. branding.logo.alt and branding.site_name cleared — otherwise the
-     *      `||` chain in getLogoAlt/getSiteName short-circuits before t().
-     *   3. Non-.vue logo URL — so the <img :alt> branch renders (the
-     *      DefaultLogo mock doesn't expose alt).
+     *   2. No props.logo.alt/siteName override — alt now derives solely from
+     *      brand_product_name via t(), so the interpolation path is exercised.
+     *   3. Non-.vue logo URL (brand_logo_url) — so the <img :alt> branch
+     *      renders (the DefaultLogo mock doesn't expose alt).
      */
     const brandI18n = createI18n({
       legacy: false,
@@ -965,13 +961,11 @@ describe('MastHead', () => {
             cust: null,
             domain_logo: null,
             brand_product_name: brandProductName,
+            brand_logo_url: '/static/brand.png',
             ui: {
               header: {
                 navigation: { enabled: true },
-                branding: {
-                  logo: { url: '/static/brand.png', alt: null },
-                  site_name: null,
-                },
+                logo: { href: '/' },
               },
             },
             authentication: {

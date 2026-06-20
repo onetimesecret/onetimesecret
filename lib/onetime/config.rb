@@ -181,6 +181,42 @@ module Onetime
             (format: EU:eu.example.com,CA:ca.example.com) instead.
           MSG
         },
+        {
+          path: %w[site interface ui header branding],
+          env: nil,
+          message: <<~MSG.chomp,
+            site.interface.ui.header.branding is ignored. Brand identity moved to
+            the top-level brand: block — set logo via brand.logo_url
+            (BRAND_LOGO_URL) and the product name via brand.product_name
+            (BRAND_PRODUCT_NAME). The header block now holds layout-only keys
+            (logo.href, logo.show_name, logo.prominent).
+          MSG
+        },
+        {
+          path: nil,
+          env: 'SITE_NAME',
+          message: <<~MSG.chomp,
+            SITE_NAME is deprecated. Set BRAND_PRODUCT_NAME instead. SITE_NAME is
+            still read as a fallback for brand.product_name, but that support will
+            be removed.
+          MSG
+        },
+        {
+          path: nil,
+          env: 'LOGO_URL',
+          message: <<~MSG.chomp,
+            LOGO_URL is deprecated. Set BRAND_LOGO_URL instead. LOGO_URL is still
+            read as a fallback for brand.logo_url, but that support will be removed.
+          MSG
+        },
+        {
+          path: nil,
+          env: 'LOGO_ALT',
+          message: <<~MSG.chomp,
+            LOGO_ALT is deprecated and ignored. The masthead logo alt text now
+            derives from brand.product_name (BRAND_PRODUCT_NAME).
+          MSG
+        },
       ].freeze
 
     end
@@ -428,17 +464,23 @@ module Onetime
       conf
     end
 
-    # Maps each brand config key to its backing env var. String fields are
-    # trimmed (empty -> nil); button_text_light is coerced to a real boolean.
+    # Maps each brand config key to its backing env var(s). A value may be a
+    # single var or an ordered list; the first var that is *set* wins (so a
+    # deprecated alias is consulted only when the canonical BRAND_* var is
+    # unset). String fields are trimmed (empty -> nil); button_text_light is
+    # coerced to a real boolean.
+    #
+    # The legacy header vars (SITE_NAME, LOGO_URL) are retained as fallbacks so
+    # existing installs keep working; both are flagged in DEPRECATIONS.
     BRAND_ENV = {
       'primary_color' => 'BRAND_PRIMARY_COLOR',
-      'product_name' => 'BRAND_PRODUCT_NAME',
+      'product_name' => %w[BRAND_PRODUCT_NAME SITE_NAME],
       'product_domain' => 'BRAND_PRODUCT_DOMAIN',
       'support_email' => 'BRAND_SUPPORT_EMAIL',
       'signature_name' => 'BRAND_SIGNATURE_NAME',
       'corner_style' => 'BRAND_CORNER_STYLE',
       'font_family' => 'BRAND_FONT_FAMILY',
-      'logo_url' => 'BRAND_LOGO_URL',
+      'logo_url' => %w[BRAND_LOGO_URL LOGO_URL],
       'favicon_url' => 'BRAND_FAVICON_URL',
       'apple_touch_icon_url' => 'BRAND_APPLE_TOUCH_ICON_URL',
       'og_image_url' => 'BRAND_OG_IMAGE_URL',
@@ -456,10 +498,13 @@ module Onetime
     def normalize_brand(conf)
       brand = (conf['brand'] ||= {})
 
-      BRAND_ENV.each do |key, env|
-        raw = ENV.fetch(env, nil)
+      BRAND_ENV.each do |key, envs|
+        # First env var that is set wins (set-but-empty still counts, so an
+        # explicit BRAND_* blank neutralizes a deprecated alias rather than
+        # falling through to it).
+        raw = Array(envs).filter_map { |name| ENV.fetch(name, nil) }.first
         if raw.nil?
-          # Env not set: keep any YAML-supplied value, normalizing blanks to nil.
+          # No env set: keep any YAML-supplied value, normalizing blanks to nil.
           existing   = brand[key]
           brand[key] = nil if existing.is_a?(String) && existing.strip.empty?
         else

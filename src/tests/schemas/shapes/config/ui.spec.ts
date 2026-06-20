@@ -71,12 +71,13 @@ describe('userInterfaceHeaderShape', () => {
     expect(userInterfaceHeaderShape.parse({}).enabled).toBe(true);
   });
 
-  it('preserves branding/navigation passthrough', () => {
+  it('preserves logo/navigation passthrough', () => {
     const result = userInterfaceHeaderShape.parse({
-      branding: { site_name: 'OTS' },
+      logo: { show_name: false, prominent: true },
       navigation: { enabled: false },
     });
-    expect(result.branding?.site_name).toBe('OTS');
+    expect(result.logo?.show_name).toBe(false);
+    expect(result.logo?.prominent).toBe(true);
     expect(result.navigation?.enabled).toBe(false);
   });
 });
@@ -89,7 +90,7 @@ describe('userInterfaceFooterLinksShape', () => {
 
 describe('UI pass-through shapes (no augmentation)', () => {
   it('logo / capabilities / help parse populated input verbatim', () => {
-    expect(userInterfaceLogoShape.parse({ url: '/img/logo.svg' }).url).toBe('/img/logo.svg');
+    expect(userInterfaceLogoShape.parse({ href: '/home' }).href).toBe('/home');
     expect(uiCapabilitiesShape.parse({ burn: true }).burn).toBe(true);
     expect(uiHelpShape.parse({ enabled: false }).enabled).toBe(false);
   });

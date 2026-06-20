@@ -13,22 +13,13 @@ import { z } from 'zod';
 import { nullableString } from '../shared/primitives';
 
 /**
- * Logo configuration
+ * Masthead logo presentation. The logo *asset* (url) and product name now live
+ * in the top-level `brand` block; these are display-only knobs.
  */
 const userInterfaceLogoSchema = z.object({
-  url: z.string().optional(),
-  alt: z.string().optional(),
   href: z.string().optional(),
   show_name: z.boolean().optional(),
   prominent: z.boolean().optional(),
-});
-
-/**
- * Header branding configuration
- */
-const userInterfaceHeaderBrandingSchema = z.object({
-  logo: userInterfaceLogoSchema.optional(),
-  site_name: z.string().optional(),
 });
 
 /**
@@ -65,7 +56,7 @@ const userInterfaceHomepageSchema = z.object({
  */
 const userInterfaceHeaderSchema = z.object({
   enabled: z.boolean().optional(),
-  branding: userInterfaceHeaderBrandingSchema.optional(),
+  logo: userInterfaceLogoSchema.optional(),
   navigation: userInterfaceHeaderNavigationSchema.optional(),
 });
 

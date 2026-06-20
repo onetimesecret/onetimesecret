@@ -124,13 +124,13 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
       initialState: {
         bootstrap: {
           ...buildBootstrapState(storeState),
+          // Site-wide brand identity now lives in top-level brand_* fields.
+          // No brand_logo_url here => getLogoUrl falls through to DefaultLogo.
+          brand_product_name: 'Onetime Secret',
           ui: {
             header: {
               navigation: { enabled: true },
-              branding: {
-                logo: { url: 'DefaultLogo.vue', alt: 'Onetime Secret' },
-                site_name: 'Onetime Secret',
-              },
+              logo: { href: '/' },
             },
           },
           authentication: {

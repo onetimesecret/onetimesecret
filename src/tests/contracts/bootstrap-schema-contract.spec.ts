@@ -443,7 +443,7 @@ describe('Bootstrap realistic payload parsing', () => {
             logo: {
               url: '/img/logo.svg',
               alt: 'OTS',
-              link_to: '/',
+              href: '/',
             },
             site_name: 'One-Time Secret',
           },

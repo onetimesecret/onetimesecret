@@ -312,7 +312,7 @@ describe('bootstrapStore', () => {
         header: {
           enabled: true,
           branding: {
-            logo: { url: '/logo.png', alt: 'Logo', link_to: '/' },
+            logo: { url: '/logo.png', alt: 'Logo', href: '/' },
             site_name: 'Custom Site',
           },
         },
@@ -776,7 +776,7 @@ describe('bootstrapStore', () => {
             header: {
               enabled: true,
               branding: {
-                logo: { url: '/logo.png', alt: 'Logo', link_to: '/' },
+                logo: { url: '/logo.png', alt: 'Logo', href: '/' },
                 site_name: 'My Site',
               },
             },
@@ -949,7 +949,7 @@ describe('bootstrapStore', () => {
         header: {
           enabled: true,
           branding: {
-            logo: { url: '/custom.png', alt: 'Custom', link_to: '/home' },
+            logo: { url: '/custom.png', alt: 'Custom', href: '/home' },
             site_name: 'Complex Site',
           },
           navigation: { enabled: true },
@@ -1457,7 +1457,7 @@ describe('bootstrapStore', () => {
         header: {
           enabled: true,
           branding: {
-            logo: { url: '/logo.png', alt: 'Logo', link_to: '/' },
+            logo: { url: '/logo.png', alt: 'Logo', href: '/' },
             site_name: 'Test Site',
           },
           navigation: {

@@ -82,37 +82,29 @@ site:
         receipt: <%= ENV['UI_CAPABILITIES_RECEIPT'] != 'false' %>
         recipient: <%= ENV['UI_CAPABILITIES_RECIPIENT'] != 'false' %>
       # Header configuration
-      # Controls branding and navigation in the site header
+      # Masthead layout only. Brand *identity* — the logo asset, product name,
+      # colours — lives in the top-level `brand:` block (BRAND_* env vars); the
+      # keys here control only how the masthead *presents* that identity.
+      # See docs/architecture/branding.md.
       header:
         # Control switch to enable/disable header customization
         enabled: <%= ENV['HEADER_ENABLED'] != 'false' %>
-        # Branding configuration for the masthead logo and site identity
-        branding:
-          # Logo lockup: icon + optional text mark in the masthead
-          logo:
-            # Vue component name or image URL (e.g. DefaultLogo.vue, /img/logo.svg)
-            url: <%= ENV['LOGO_URL'] || 'DefaultLogo.vue' %>
-            alt: <%= ENV['LOGO_ALT'] || 'Share a Secret One-Time' %>
-            link_to: <%= ENV['LOGO_LINK'] || '/' %>
-            # Show the site name as a text mark next to the logo icon.
-            # Set false for icon-only display; SITE_NAME remains active
-            # in page titles, MFA labels, and emails regardless.
-            show_name: <%= ENV['LOGO_SHOW_NAME'] != 'false' %>
-            # Render the logo at a larger size in the authenticated header.
-            # Useful for rasterized brand assets (e.g. LOGO_URL=/img/brand.png)
-            # that need more visual presence alongside the org/domain switchers.
-            # The default (false) keeps the logo compact (40px) so context
-            # switchers fit on the same row. When true, custom logos render at
-            # 80px in authenticated views. Unauthenticated views (branded
-            # homepage / disabled page) always render the logo prominently.
-            prominent: <%= ENV['LOGO_PROMINENT'] == 'true' %>
-          # Product name used across the application:
-          #   - Masthead text mark (when logo.show_name is true)
-          #   - Browser page title
-          #   - MFA authenticator app issuer label
-          #   - Outbound email sender name
-          # Falls back to i18n key if not set.
-          site_name: <%= ENV['SITE_NAME'] || 'Secure Links' %>
+        # Masthead logo presentation. The logo *asset* comes from
+        # brand.logo_url (BRAND_LOGO_URL); these are display knobs only.
+        logo:
+          # Where the masthead logo links to.
+          href: <%= ENV['LOGO_LINK'] || '/' %>
+          # Show the product name (brand.product_name) as a text mark next to
+          # the logo icon. Set false for icon-only display.
+          show_name: <%= ENV['LOGO_SHOW_NAME'] != 'false' %>
+          # Render the logo at a larger size in the authenticated header.
+          # Useful for rasterized brand assets (e.g. BRAND_LOGO_URL=/img/brand.png)
+          # that need more visual presence alongside the org/domain switchers.
+          # The default (false) keeps the logo compact (40px) so context
+          # switchers fit on the same row. When true, custom logos render at
+          # 80px in authenticated views. Unauthenticated views (branded
+          # homepage / disabled page) always render the logo prominently.
+          prominent: <%= ENV['LOGO_PROMINENT'] == 'true' %>
         # Navigation configuration
         navigation:
           # Enable/disable header navigation entirely

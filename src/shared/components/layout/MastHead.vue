@@ -22,6 +22,7 @@
     ui,
     domain_logo,
     brand_product_name,
+    brand_logo_url,
   } = storeToRefs(bootstrapStore);
 
   const props = withDefaults(defineProps<LayoutProps>(), {
@@ -47,22 +48,27 @@
   const DEFAULT_LOGO = 'DefaultLogo.vue';
 
   // Helper functions for logo configuration
-  // Priority: props > custom domain logo > static config > default
-  const getLogoUrl = () => props.logo?.url || domain_logo.value || headerConfig.value?.branding?.logo?.url || DEFAULT_LOGO;
-  const getLogoAlt = () => props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('web.homepage.one_time_secret_literal', { product_name: brand_product_name?.value ?? NEUTRAL_BRAND_DEFAULTS.product_name });
-  const getLogoHref = () => props.logo?.href || headerConfig.value?.branding?.logo?.link_to || '/';
+  // Logo asset priority: props > custom domain logo > site-wide brand > default.
+  // The site-wide asset comes from brand_logo_url (BRAND_LOGO_URL, with the
+  // deprecated LOGO_URL folded in server-side), not the header config.
+  const getLogoUrl = () => props.logo?.url || domain_logo.value || brand_logo_url?.value || DEFAULT_LOGO;
+  // Alt text derives from the brand product name; the header config no longer
+  // carries a logo alt string.
+  const getLogoAlt = () => props.logo?.alt || t('web.homepage.one_time_secret_literal', { product_name: brand_product_name?.value ?? NEUTRAL_BRAND_DEFAULTS.product_name });
+  const getLogoHref = () => props.logo?.href || headerConfig.value?.logo?.href || '/';
 
-  // Static-config custom logo: operator set LOGO_URL to anything other than the
-  // bundled DefaultLogo.vue. Distinct from domain_logo (per-tenant runtime signal),
-  // because the two have different override semantics for the site name.
+  // Site-wide custom logo: operator set BRAND_LOGO_URL (the bundled
+  // DefaultLogo.vue is a frontend-only sentinel and never a brand value).
+  // Distinct from domain_logo (per-tenant runtime signal) because the two have
+  // different override semantics for the site name.
   const isCustomStaticLogo = computed(() =>
-    !!headerConfig.value?.branding?.logo?.url
-    && headerConfig.value.branding.logo.url !== DEFAULT_LOGO
+    !!brand_logo_url?.value
+    && brand_logo_url.value !== DEFAULT_LOGO
   );
 
   // LOGO_PROMINENT opt-in for larger logo sizing.
   const isProminentLogo = computed(() =>
-    headerConfig.value?.branding?.logo?.prominent === true
+    headerConfig.value?.logo?.prominent === true
   );
 
   // Logo sizing: LOGO_PROMINENT controls size, auth state determines the tier.
@@ -76,21 +82,22 @@
   // Priority:
   //   1. props.logo.showSiteName            (caller-site override)
   //   2. domain_logo.value                  (per-tenant: always hide platform name)
-  //   3. headerConfig.branding.logo.show_name  (LOGO_SHOW_NAME explicit config)
-  //   4. isCustomStaticLogo.value           (heuristic: custom LOGO_URL usually
-  //                                          embeds its own wordmark)
-  //   5. !!site_name                        (default visibility tied to SITE_NAME)
+  //   3. headerConfig.logo.show_name        (LOGO_SHOW_NAME explicit config)
+  //   4. isCustomStaticLogo.value           (heuristic: custom BRAND_LOGO_URL
+  //                                          usually embeds its own wordmark)
+  //   5. !!brand_product_name               (default visibility tied to the
+  //                                          configured product name)
   const getShowSiteName = () => {
     if (props.logo?.showSiteName != null) return props.logo.showSiteName;
     if (domain_logo.value) return false;
 
-    const showName = headerConfig.value?.branding?.logo?.show_name;
+    const showName = headerConfig.value?.logo?.show_name;
     if (showName != null) return showName;
 
     if (isCustomStaticLogo.value) return false;
-    return !!headerConfig.value?.branding?.site_name;
+    return !!brand_product_name?.value;
   };
-  const getSiteName = () => props.logo?.siteName || headerConfig.value?.branding?.site_name || t('web.homepage.one_time_secret_literal', { product_name: brand_product_name?.value ?? NEUTRAL_BRAND_DEFAULTS.product_name });
+  const getSiteName = () => props.logo?.siteName || t('web.homepage.one_time_secret_literal', { product_name: brand_product_name?.value ?? NEUTRAL_BRAND_DEFAULTS.product_name });
   const getAriaLabel = () => props.logo?.ariaLabel;
   const getIsColonelArea = () => props.logo?.isColonelArea ?? props.colonel;
 
@@ -129,7 +136,7 @@
 
   // Operator-level header/navigation gates (HEADER_ENABLED), shared with the
   // header wrappers via the composable. Local headerConfig above stays for
-  // branding/logo resolution.
+  // logo presentation (href / show_name / prominent).
   const { headerEnabled, navigationEnabled } = useHeaderEnabled();
 
   // Logo component handling

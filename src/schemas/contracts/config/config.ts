@@ -82,7 +82,7 @@ export const apiInterfaceSchema = z.object({
                 .object({
                   url: z.string().optional(),
                   alt: z.string().optional(),
-                  link_to: z.string().optional(),
+                  href: z.string().optional(),
                   show_name: booleanOrString,
                   prominent: booleanOrString,
                 })

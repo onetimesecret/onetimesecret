@@ -80,10 +80,12 @@ export const footerLinksConfigSchema = z.object({
   groups: z.array(footerGroupSchema).default([]),
 });
 
+/**
+ * Masthead logo presentation. The logo *asset* (brand_logo_url) and product
+ * name now live in the top-level brand fields; these are display-only knobs.
+ */
 export const headerLogoSchema = z.object({
-  url: z.string().default(''),
-  alt: z.string().default(''),
-  link_to: z.string().default('/'),
+  href: z.string().default('/'),
   show_name: z.boolean().optional(),
   /**
    * When true, render the logo at a larger size in the authenticated header.
@@ -93,18 +95,13 @@ export const headerLogoSchema = z.object({
   prominent: z.boolean().optional(),
 });
 
-export const headerBrandingSchema = z.object({
-  logo: headerLogoSchema.default(headerLogoSchema.parse({})),
-  site_name: z.string().optional(),
-});
-
 export const headerNavigationSchema = z.object({
   enabled: z.boolean().default(true),
 });
 
 export const headerConfigSchema = z.object({
   enabled: z.boolean().default(true),
-  branding: headerBrandingSchema.optional(),
+  logo: headerLogoSchema.optional(),
   navigation: headerNavigationSchema.optional(),
 });
 
@@ -122,7 +119,7 @@ export const headerConfigSchema = z.object({
  *   header: {
  *     enabled: true,
  *     branding: {
- *       logo: { url: '/images/logo.svg', alt: 'Company Logo', link_to: '/' },
+ *       logo: { url: '/images/logo.svg', alt: 'Company Logo', href: '/' },
  *       site_name: 'My Secret Sharing App',
  *     },
  *     navigation: { enabled: true },
@@ -429,7 +426,6 @@ export type FooterGroup = z.infer<typeof footerGroupSchema>;
 export type FooterLinksConfig = z.infer<typeof footerLinksConfigSchema>;
 export type WorkspaceLinksConfig = z.infer<typeof workspaceLinksConfigSchema>;
 export type HeaderLogo = z.infer<typeof headerLogoSchema>;
-export type HeaderBranding = z.infer<typeof headerBrandingSchema>;
 export type HeaderNavigation = z.infer<typeof headerNavigationSchema>;
 export type HeaderConfig = z.infer<typeof headerConfigSchema>;
 export type UiCapabilities = z.infer<typeof uiCapabilitiesSchema>;

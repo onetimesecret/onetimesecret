@@ -202,8 +202,10 @@ module Onetime
         end
 
         def site_product_name
+          # brand.product_name is the single site-wide identity authority; it
+          # already falls back to the deprecated SITE_NAME env via
+          # Config#normalize_brand, so no header.branding lookup is needed here.
           OT.conf.dig('brand', 'product_name') ||
-            OT.conf.dig('site', 'interface', 'ui', 'header', 'branding', 'site_name') ||
             Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:product_name]
         end
 
