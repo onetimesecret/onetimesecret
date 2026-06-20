@@ -627,7 +627,7 @@ test.describe('INV-010: Invalid Token State', () => {
     expect(token).toBeTruthy();
 
     // Find and click revoke button
-    const invitationRow = page.locator('.rounded-md').filter({ hasText: testEmail });
+    const invitationRow = page.getByTestId('org-invitation-row').filter({ hasText: testEmail });
     const revokeButton = invitationRow.getByRole('button', { name: /revoke/i });
 
     await expect(revokeButton).toBeVisible();
