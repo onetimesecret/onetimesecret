@@ -505,11 +505,11 @@
   },
   "web.domains.email.dns_optional_label": {
     "text": "Recommended",
-    "source_hash": "a1b2c3d4"
+    "source_hash": "d70604e8"
   },
   "web.domains.email.dns_optional_hint": {
     "text": "This record is recommended but not required for verification. A DMARC policy at your organizational domain may already cover this subdomain.",
-    "source_hash": "e5f6a7b8"
+    "source_hash": "58e1a12b"
   },
   "web.domains.email.copy": {
     "text": "Copiar",

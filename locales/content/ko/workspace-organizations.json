@@ -561,7 +561,7 @@
   },
   "web.organizations.invitations.email_mismatch_body": {
     "text": "이 초대는 {invitedEmail} 대상입니다. 현재 {currentEmail}(으)로 로그인되어 있습니다.",
-    "source_hash": "b8d3e5f7"
+    "source_hash": "78a6f301"
   },
   "web.organizations.invitations.continue_as_invited_email": {
     "text": "{email}(으)로 계속",
