@@ -130,6 +130,16 @@ jobs:
           # immediately (no email round-trip), which is what lets the e2e
           # auth setup project (e2e/global.setup.ts) register + sign in the
           # ephemeral TEST_USER_* account for the full/ suite.
+          #
+          # EMAILER_MODE=logger routes outbound email to the logging backend
+          # instead of SMTP. Without it, emailer.mode defaults to 'smtp' and
+          # emailer.host to the placeholder 'smtp.provider.com' (etc/defaults/
+          # config.defaults.yaml). With jobs disabled (default), email-sending
+          # flows fall back to *synchronous* delivery (publisher.rb), so any
+          # flow that emails — e.g. org invitations (fallback: :sync) — tries
+          # to connect to that unreachable host and the request 500s. There is
+          # no SMTP/Mailpit sidecar here and the suite never reads real emails
+          # (invite tokens come from the API), so logging delivery is correct.
           docker run -d \
             --name ${{ env.CONTAINER_NAME }} \
             --link ${{ env.REDIS_CONTAINER_NAME }}:redis \
@@ -141,6 +151,7 @@ jobs:
             -e RACK_ENV=production \
             -e BRAND_PRIMARY_COLOR='#3B82F6' \
             -e AUTH_AUTOVERIFY=true \
+            -e EMAILER_MODE=logger \
             ${{ env.OCI_IMAGE_NAME }}
 
           if [ "${{ env.DEBUG_ENABLED }}" == "true" ]; then

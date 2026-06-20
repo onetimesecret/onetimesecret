@@ -6,11 +6,13 @@
 # for each, and commits with stats from the translation database.
 #
 # Usage:
-#   ./export-and-commit.sh [--dry-run] [--harmonize]
+#   ./export-and-commit.sh [--dry-run]
 #
 # Options:
 #   --dry-run     Show what would be done without making changes
-#   --harmonize   Run harmonize.py --create-missing before export
+#
+# Missing locale files are created by export.py itself, so no separate
+# harmonize step is needed.
 
 set -euo pipefail
 
@@ -19,16 +21,11 @@ LOCALES_DIR="$(dirname "$SCRIPT_DIR")"
 CONTENT_DIR="$LOCALES_DIR/content"
 
 DRY_RUN=false
-HARMONIZE=false
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --dry-run)
             DRY_RUN=true
-            shift
-            ;;
-        --harmonize)
-            HARMONIZE=true
             shift
             ;;
         *)
@@ -52,7 +49,7 @@ get_locales() {
 # Get stats for a locale as "completed/total"
 get_stats() {
     local locale="$1"
-    python "$SCRIPT_DIR/tasks/next.py" "$locale" --stats --json 2>/dev/null | \
+    python3 "$SCRIPT_DIR/i18n" tasks next "$locale" --stats --json 2>/dev/null | \
         python -c "import sys,json; d=json.load(sys.stdin); print(f\"{d.get('completed',0)}/{sum(d.values())}\")" 2>/dev/null || echo "0/0"
 }
 
@@ -65,13 +62,8 @@ main() {
     echo
 
     for locale in $(get_locales); do
-        # Harmonize first if requested (creates missing files)
-        if [[ "$HARMONIZE" == true ]]; then
-            python "$SCRIPT_DIR/migrate/harmonize.py" "$locale" --create-missing -q 2>/dev/null || true
-        fi
-
         # Skip if no completed tasks to export
-        if ! python "$SCRIPT_DIR/migrate/export.py" "$locale" --quiet 2>/dev/null; then
+        if ! python3 "$SCRIPT_DIR/i18n" tasks export "$locale" --quiet 2>/dev/null; then
             ((skipped++)) || true
             continue
         fi
