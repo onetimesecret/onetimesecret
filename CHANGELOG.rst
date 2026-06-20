@@ -12,6 +12,96 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 
    <!--scriv-insert-here-->
 
+.. _changelog-v0.25.11:
+
+v0.25.11 — 2026-06-20
+=====================
+
+Fixed
+-----
+
+- Secrets and Receipts now guarantee a non-null integer ``lifespan``/TTL end-to-end, closing the null half of #3424. ``Receipt.spawn_pair`` — the single creation choke point — coerces ``lifespan`` to an Integer, which both stores the correct type (Familia v2 is type-preserving, so a ``String`` would persist as a ``String``) and fixes a latent bug where ``lifespan * 2`` string-multiplied the receipt's expiration. Config normalization now also coerces the confirmed leak path ``features.incoming.default_ttl`` (set from an env var via ERB, so a set ``INCOMING_DEFAULT_TTL`` yielded a ``String``) and hardens ``site.secret_options.default_ttl`` against any non-Integer, not just ``String``. The ``safe_dump`` lambdas emit a plain integer with no ``nil``/``-1`` sentinel, and the V3 ``secret``/``receipt`` contracts keep ``secret_ttl``/``receipt_ttl``/``lifespan`` as strict, non-nullable ``z.number()`` — the read-time enforcement of that invariant. An earlier patch widened those fields to ``z.number().nullable()``; it was reverted because a real record can never have an ambiguous expiration. (#3424, #3299)
+
+- **SSO sign-in no longer freezes when the IdP returns no usable email.** When an identity provider (Entra ID, OIDC, …) authenticates a user but supplies no usable email claim, the OmniAuth callback redirects to ``/signin?auth_error=invalid_email`` and the sign-in page now reliably renders a localized error instead of a blank/"frozen" loading screen. The frontend now shows a message for *any* ``auth_error`` code — unrecognized codes (e.g. from a backend newer than the deployed bundle) fall back to a generic SSO-failure message rather than rendering nothing — and the backend callback guard now also rejects an empty local part (``@example.com``) so it can no longer fall through to account creation and 500. This is a stopgap for the frozen-screen symptom; supplying a stable identifier fallback (UPN/``oid``) for emailless SSO users is tracked separately. (#3478)
+
+.. _changelog-v0.25.10:
+
+v0.25.10 — 2026-06-13
+=====================
+
+Added
+-----
+
+- ``scripts/diagnostics/detect_string_typed_numerics.rb``, a read-only scan that finds Secret/Receipt records whose numeric fields are stored as JSON strings at rest (the corruption behind #3424, distinct from the non-JSON bytes that ``check_raw_email_fields.rb`` finds for #3016). The ``safe_dump`` cast keeps the API correct, but the bytes stay corrupt; this locates them and reports a per-record signature to help trace the writer. (#3424)
+
+- One-click SSO on the disabled-homepage variants (``minimal`` and ``v1``).
+  When SSO is the sole login method and a single provider is configured, the
+  homepage shows a direct SSO sign-in button instead of a ``/signin`` link,
+  mirroring the activation logic of the auth-method selector (global
+  ``restrict_to: sso`` or a custom domain with ``enforce_sso_only``). (#3433)
+
+- ``scripts/ip_privacy_trusted_proxy_repro.rb``, a standalone diagnostic that
+  models the chained ``IPPrivacyMiddleware`` instances and prints the broken
+  vs. fixed behaviour, kept for the trusted-proxy harmonization follow-up.
+  (#3427)
+
+Changed
+-------
+
+- The disabled-homepage ``legacy`` variant is renamed to ``closed`` and is now
+  the default. It remains a quiet, no-CTA placeholder; self-hosters who pinned
+  ``minimal`` or relied on the ``legacy`` name should update their disabled
+  homepage configuration. (#3433)
+
+- Corrected the MFA recovery-code generation comment, which inaccurately described the codes as 8-character / ``36^8``. ``new_recovery_code`` emits a CSPRNG-backed 64-bit base36 token (~13 chars, ~1.8e19 possibilities); the comment now documents the real format and entropy. No change to the generated codes. (#3455)
+
+Fixed
+-----
+
+- Secret and Receipt API responses now coerce their numeric fields to numbers at the ``safe_dump`` serialization boundary: TTL/lifespan fields (``lifespan``, ``secret_ttl``, ``metadata_ttl``, ``receipt_ttl``) cast to integers, and the ``created``/``updated`` timestamps cast to floats so their sub-second precision (used as sorted-set scores) is preserved. Familia v2 storage is type-preserving, so a record whose numeric fields were ever written as strings (unconverted params, console writes, raw ``HSET``) hydrated them as strings and failed the strict ``z.number()`` V3 schema — recipients saw "That information is no longer available" for secrets that were never consumed, with the sender's dashboard stuck on "Previewed". The cast is a no-op for healthy records and neutralizes affected ones; it emits a plain integer with no ``null``/``-1`` sentinel, since a real record always has a lifespan (see #3299 for the write-time guarantee). (#3424, #3268)
+
+- MFA enrollment QR codes now encode the secret the server actually
+  validates. With HMAC mode enabled the frontend was reconstructing the
+  ``otpauth://`` URI from ``otp_raw_secret`` (the setup-handshake key) instead
+  of ``otp_setup`` (the HMAC'd key the authenticator must use), so scanned
+  codes never matched and setup could not complete. The backend now emits
+  Rodauth's authoritative ``provisioning_uri`` and the frontend renders it
+  directly without reconstruction. (#3431)
+
+- Behind a trusted proxy, the IP-privacy middleware now masks the real client
+  IP instead of the proxy's. The middleware was mounted first in the common
+  stack with no security config, so it resolved ``REMOTE_ADDR`` (ignoring
+  ``X-Forwarded-For``) and overwrote the forwarded headers with a masked proxy
+  address before any later strategy could read the client IP — the
+  ``site.network.trusted_proxy`` setting from #3116 ran too late to help. The
+  middleware stack now passes it an Otto security config that trusts the
+  private proxy ranges (RFC1918, loopback, link-local, IPv6 ULA/loopback) when
+  ``site.network.trusted_proxy.enabled`` is true. Direct-connection
+  deployments are unaffected; the stored IP is still masked to a /24, just the
+  correct one. Public-egress CDN ranges still need CIDR matching, which Otto's
+  prefix-based trusted-proxy list does not do. (#3427)
+
+- The burn endpoints (v1 and v2) now honour ``continue=false``. Both parsed
+  the flag into a proper boolean in ``process_params`` but then computed
+  ``greenlighted`` from the raw ``params['continue']`` instead. Because every
+  non-empty string is truthy in Ruby, a request carrying the string
+  ``"false"`` (the common shape for form/query submissions) burned the secret
+  anyway, destroying it against the caller's explicit intent. The greenlight
+  check now uses the parsed ``continue`` boolean, so only a genuine truthy
+  confirmation burns the secret.
+
+- The "Receipt state transition" audit log lines now record the actual secret
+  identifier. ``Receipt#revealed!``, ``Receipt#burned!`` and ``Receipt#expired!``
+  cleared ``secret_identifier`` to an empty string before building the log
+  payload, so every reveal/burn/expire event was logged with ``secret_id: ""``
+  — defeating the trail for incident review. The identifier is now captured
+  before it is cleared (matching ``orphaned!``), so the log reflects which
+  secret the event refers to.
+
+- ``Onetime::Utils.strand`` now draws every character of a generated secret from ``SecureRandom``. The complexity branch (used by default when more than one character set is enabled) previously seeded the guaranteed one-per-set characters with ``Array#sample`` and produced the final ordering with ``Array#shuffle``, both of which fall back to Ruby's non-cryptographic Mersenne Twister PRNG. Generated passwords are now fully CSPRNG-backed; there is no change to length, character sets, or the one-char-per-set guarantee. (#3452)
+
+- MFA OTP setup now fails visibly instead of advancing to a blank QR scan step when a setup response omits ``provisioning_uri``. The 422 (HMAC) path already failed loudly on this; the 200 (non-HMAC) path silently set an undefined ``qr_code``. Both paths now share a ``renderSetupQr`` helper. (#3455)
+
 .. _changelog-v0.25.9:
 
 v0.25.9 — 2026-06-09
