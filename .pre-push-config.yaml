@@ -108,5 +108,6 @@ repos:
         name: TypeScript Type Check
         entry: pnpm run type-check
         language: system
-        pass_filenames: true
-        always_run: true
+        pass_filenames: false
+        files: \.(ts|tsx|vue)$
+        always_run: false
