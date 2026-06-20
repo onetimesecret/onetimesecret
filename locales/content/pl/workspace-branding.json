@@ -139,7 +139,7 @@
     "text": "To jest interaktywny podgląd tego, jak odbiorcy zobaczą Twoje bezpieczne wiadomości. Możesz: - Dostosować kolory i czcionki za pomocą kontrolek powyżej - Przesłać logo (zalecane minimum 128x128 pikseli, maks. 1MB) - Przetestować podgląd za pomocą przycisku \"Wyświetl wiadomość\"",
     "source_hash": "3d8b2c0d"
   },
-  "web.branding.default_logo_icon": {
+  "web.branding.maruhi_logo_icon": {
     "text": "Japoński znak kanji '秘' (himitsu) oznaczający 'sekret' lub 'poufny'",
     "source_hash": "1e04ba2e"
   },

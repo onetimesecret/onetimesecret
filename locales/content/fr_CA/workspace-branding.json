@@ -139,7 +139,7 @@
     "text": "Il s'agit d'un aperçu interactif de la façon dont les destinataires verront vos messages sécurisés. Vous pouvez : - Personnaliser les couleurs et les polices à l'aide des commandes ci-dessus - télécharger un logo (128x128 pixels minimum recommandés, 1MB maximum) - tester l'aperçu à l'aide du bouton \"Voir le secret\"",
     "source_hash": "3d8b2c0d"
   },
-  "web.branding.default_logo_icon": {
+  "web.branding.maruhi_logo_icon": {
     "text": "Kanji japonais '秘' (himitsu) signifiant 'secret' ou 'confidentiel'",
     "source_hash": "1e04ba2e"
   },

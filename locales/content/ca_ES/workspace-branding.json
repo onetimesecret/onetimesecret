@@ -139,7 +139,7 @@
     "text": "Aquesta és una vista prèvia interactiva de com els destinataris veuran els teus missatges segurs. Pots: - Personalitzar colors i tipus de lletra utilitzant els controls de sobre - Carregar un logotip (mínim 128x128 píxels recomanat, 1 MB màx.) - Provar la vista prèvia utilitzant el botó \"Visualitza el secret\"",
     "source_hash": "3d8b2c0d"
   },
-  "web.branding.default_logo_icon": {
+  "web.branding.maruhi_logo_icon": {
     "text": "Kanji japonès '秘' (himitsu) que significa 'secret' o 'confidencial'",
     "source_hash": "1e04ba2e"
   },

@@ -143,9 +143,13 @@
     "text": "This is an interactive preview of how recipients will see your secure messages. You can: - Customize colors and fonts using the controls above - Upload a logo (minimum 128x128 pixels recommended, 1MB max) - Test the preview using the \"View Secret\" button",
     "content_hash": "3d8b2c0d"
   },
-  "web.branding.default_logo_icon": {
+  "web.branding.maruhi_logo_icon": {
     "text": "Japanese kanji '秘' (himitsu) meaning 'secret' or 'confidential'",
     "content_hash": "1e04ba2e"
+  },
+  "web.branding.default_logo_icon": {
+    "text": "Site logo",
+    "content_hash": "6031e47c"
   },
   "web.branding.powered_by_onetime_secret": {
     "text": "Powered by {product_name}",
@@ -158,10 +162,6 @@
   "web.branding.contrast_ratio_label": {
     "text": "Contrast ratio",
     "content_hash": "e5f6a7b8"
-  },
-  "web.branding.keyhole_logo_icon": {
-    "text": "Keyhole icon representing secure, private sharing",
-    "content_hash": "f2a3b4c5"
   },
   "web.branding.heading_logo": {
     "text": "{0} Logo",

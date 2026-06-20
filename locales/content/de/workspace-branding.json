@@ -139,7 +139,7 @@
     "text": "Dies ist eine interaktive Vorschau, wie Empfänger deine sicheren Nachrichten sehen werden. Du kannst: - Farben und Schriftarten mit den Steuerelementen oben anpassen - Ein Logo hochladen (mindestens 128x128 Pixel empfohlen, maximal 1MB) - Die Vorschau mit dem \"Nachricht anzeigen\"-Button testen",
     "source_hash": "3d8b2c0d"
   },
-  "web.branding.default_logo_icon": {
+  "web.branding.maruhi_logo_icon": {
     "text": "Japanisches Kanji '秘' (himitsu), bedeutet 'geheim' oder 'vertraulich'",
     "source_hash": "1e04ba2e"
   },

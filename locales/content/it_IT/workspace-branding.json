@@ -139,7 +139,7 @@
     "text": "Questa è un'anteprima interattiva di come i destinatari vedranno i vostri messaggi protetti. È possibile: - Personalizzare i colori e i caratteri utilizzando i controlli in alto - Caricare un logo (si consiglia un minimo di 128x128 pixel, 1MB al massimo) - Testare l'anteprima utilizzando il pulsante \"Visualizza segreto\"",
     "source_hash": "3d8b2c0d"
   },
-  "web.branding.default_logo_icon": {
+  "web.branding.maruhi_logo_icon": {
     "text": "Kanji giapponese '秘' (himitsu) che significa 'segreto' o 'confidenziale'",
     "source_hash": "1e04ba2e"
   },

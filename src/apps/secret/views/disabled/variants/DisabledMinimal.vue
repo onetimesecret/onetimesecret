@@ -1,7 +1,7 @@
 <!-- src/apps/secret/views/disabled/variants/DisabledMinimal.vue -->
 
 <script setup lang="ts">
-  import MonotoneJapaneseSecretButtonIcon from '@/shared/components/icons/MonotoneJapaneseSecretButtonIcon.vue';
+  import DefaultIcon from '@/shared/components/icons/DefaultIcon.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import type { DisabledHomepageProps } from '../useDisabledConfig';
   import { computed, ref, watch } from 'vue';
@@ -35,7 +35,7 @@
 
 <template>
   <div class="mx-auto flex w-full max-w-xl flex-col items-center px-4 pb-12 pt-20 text-center sm:pt-28">
-    <!-- Small mark — priority: configured custom-domain logo → branded monogram → OTS mark -->
+    <!-- Small mark — priority: configured custom-domain logo → branded monogram → default mark -->
     <div class="mb-6 flex items-center justify-center">
       <img
         v-if="hasUsableLogo"
@@ -54,7 +54,7 @@
         v-else
         class="flex size-14 items-center justify-center rounded-2xl bg-brand-500 text-white dark:bg-brand-600"
         aria-hidden="true">
-        <MonotoneJapaneseSecretButtonIcon
+        <DefaultIcon
           :size="36"
           class="text-white" />
       </div>

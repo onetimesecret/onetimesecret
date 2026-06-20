@@ -139,7 +139,7 @@
     "text": "Đây là bản xem trước tương tác về cách người nhận sẽ thấy tin nhắn an toàn của bạn. Bạn có thể: - Tùy chỉnh màu sắc và phông chữ bằng các điều khiển ở trên - Tải lên logo (tối thiểu 128x128 pixel được đề xuất, tối đa 1MB) - Kiểm tra xem trước bằng nút \"Xem bí mật\"",
     "source_hash": "3d8b2c0d"
   },
-  "web.branding.default_logo_icon": {
+  "web.branding.maruhi_logo_icon": {
     "text": "Chữ Hán '秘' (himitsu) có nghĩa là 'bí mật' hoặc 'bảo mật'",
     "source_hash": "1e04ba2e"
   },

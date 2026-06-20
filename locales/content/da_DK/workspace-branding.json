@@ -139,7 +139,7 @@
     "text": "Dette er en interaktiv forhåndsvisning af, hvordan modtagerne vil se dine sikre beskeder. Det kan du gøre: - Tilpasse farver og skrifttyper ved hjælp af kontrollerne ovenfor - Uploade et logo (minimum 128x128 pixels anbefales, maks. 1 MB) - Teste forhåndsvisningen ved hjælp af knappen \"View Secret\"",
     "source_hash": "3d8b2c0d"
   },
-  "web.branding.default_logo_icon": {
+  "web.branding.maruhi_logo_icon": {
     "text": "Japansk kanji '秘' (himitsu) som betyder 'hemmelighed' eller 'fortroligt'",
     "source_hash": "1e04ba2e"
   },

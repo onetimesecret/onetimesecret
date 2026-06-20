@@ -1,14 +1,14 @@
-// src/tests/shared/components/logos/DefaultLogo.spec.ts
+// src/tests/shared/components/logos/OnetimeSecretMaruhiLogo.spec.ts
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createI18n } from 'vue-i18n';
-import DefaultLogo from '@/shared/components/logos/DefaultLogo.vue';
+import OnetimeSecretMaruhiLogo from '@/shared/components/logos/OnetimeSecretMaruhiLogo.vue';
 
-// Mock the default (keyhole) icon component
-vi.mock('@/shared/components/icons/DefaultIcon.vue', () => ({
+// Mock Maruhi icon component
+vi.mock('@/shared/components/icons/MaruhiIcon.vue', () => ({
   default: {
-    name: 'DefaultIcon',
+    name: 'MaruhiIcon',
     template: '<svg class="logo-icon" :width="size" :height="size" :aria-label="ariaLabel" :title="title" />',
     props: ['size', 'ariaLabel', 'title', 'class'],
   },
@@ -24,7 +24,7 @@ const i18n = createI18n({
           one_time_secret_literal: 'Onetime Secret',
         },
         branding: {
-          default_logo_icon: 'Site logo',
+          maruhi_logo_icon: "Japanese kanji '秘' (himitsu) meaning 'secret' or 'confidential'",
         },
         COMMON: {
           tagline: 'Keep passwords out of your email & chat logs',
@@ -34,7 +34,7 @@ const i18n = createI18n({
   },
 });
 
-describe('DefaultLogo', () => {
+describe('OnetimeSecretMaruhiLogo', () => {
   let wrapper: VueWrapper;
 
   beforeEach(() => {
@@ -47,7 +47,7 @@ describe('DefaultLogo', () => {
     }
   });
 
-  const mountComponent = (props: Record<string, unknown> = {}) => mount(DefaultLogo, {
+  const mountComponent = (props: Record<string, unknown> = {}) => mount(OnetimeSecretMaruhiLogo, {
       props: {
         isUserPresent: false,
         ...props,

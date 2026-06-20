@@ -2,11 +2,12 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-    import MonotoneJapaneseSecretButton from '@/shared/components/icons/MonotoneJapaneseSecretButtonIcon.vue';
+  import { computed } from 'vue';
+
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import DefaultIcon from '@/shared/components/icons/DefaultIcon.vue';
   import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
   import { type LogoConfig } from '@/types/ui/layouts';
-  import { computed } from 'vue';
 
   /**
    * Props for controlling logo appearance
@@ -24,10 +25,9 @@
   const bootstrapStore = useBootstrapStore();
 
   /**
-   * Brand-aware aria-label. Falls back to NEUTRAL_BRAND_DEFAULTS.product_name
+   * Brand-aware logo label. Falls back to NEUTRAL_BRAND_DEFAULTS.product_name
    * (a generic "My App") when bootstrap config has not provided a brand name.
-   * Never defaults to OTS branding — keeps private-label deployments neutral
-   * (#3048 / #3049).
+   * Never defaults to OTS branding — keeps private-label deployments neutral.
    */
   const ariaLabel = computed(
     () => props.ariaLabel || bootstrapStore.brand_product_name || NEUTRAL_BRAND_DEFAULTS.product_name
@@ -54,7 +54,7 @@
       :href="props.href"
       class="flex items-center gap-3">
       <!-- Logo Mark -->
-      <MonotoneJapaneseSecretButton
+      <DefaultIcon
         :size="svgSize"
         :aria-label="ariaLabel"
         :title="t('web.branding.default_logo_icon')"
@@ -73,7 +73,7 @@
           class="pointer-events-none absolute inset-0 flex items-center justify-center">
           <span
             class="-rotate-6 transform-gpu rounded-lg bg-brand-500 px-2 py-1 text-sm font-bold tracking-widest text-white shadow-lg dark:bg-brand-600/90"
-            style="transform-origin: center;">
+            style="transform-origin: center">
             Colonels Only
           </span>
         </div>

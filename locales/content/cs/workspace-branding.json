@@ -139,7 +139,7 @@
     "text": "Toto je interaktivní náhled toho, jak příjemci uvidí tvé zabezpečené zprávy. Můžeš: - Přizpůsobit barvy a písma pomocí ovládacích prvků výše - Nahrát logo (doporučeno minimálně 128x128 pixelů, max 1MB) - Otestovat náhled pomocí tlačítka \"Zobrazit tajemství\"",
     "source_hash": "3d8b2c0d"
   },
-  "web.branding.default_logo_icon": {
+  "web.branding.maruhi_logo_icon": {
     "text": "Japonské kandži '秘' (himitsu) znamenající 'tajemství' nebo 'důvěrné'",
     "source_hash": "1e04ba2e"
   },

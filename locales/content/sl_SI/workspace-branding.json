@@ -139,7 +139,7 @@
     "text": "To je interaktiven predogled tega, kako bodo prejemniki videli vaša varna sporočila. Lahko: - Prilagodite barve in pisave z zgornjimi kontrolami - Naložite logotip (priporočeno najmanj 128x128 slikovnih točk, največ 1MB) - Testirajte predogled z gumbom \"Prikaži skrivnost\"",
     "source_hash": "3d8b2c0d"
   },
-  "web.branding.default_logo_icon": {
+  "web.branding.maruhi_logo_icon": {
     "text": "Japonski kanji '秘' (himitsu), ki pomeni 'skrivnost' ali 'zaupno'",
     "source_hash": "1e04ba2e"
   },

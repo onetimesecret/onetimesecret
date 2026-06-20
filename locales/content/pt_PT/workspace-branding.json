@@ -139,7 +139,7 @@
     "text": "Esta é uma pré-visualização interativa de como os destinatários verão as suas mensagens seguras. Pode: - Personalizar cores e fontes usando os controlos acima - Carregar um logotipo (mínimo 128x128 pixels recomendado, 1MB máx) - Testar a pré-visualização usando o botão \"Visualizar Mensagem Secreta\"",
     "source_hash": "3d8b2c0d"
   },
-  "web.branding.default_logo_icon": {
+  "web.branding.maruhi_logo_icon": {
     "text": "Kanji japonês '秘' (himitsu) que significa 'secreto' ou 'confidencial'",
     "source_hash": "1e04ba2e"
   },

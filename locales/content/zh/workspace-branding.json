@@ -139,7 +139,7 @@
     "text": "这是接收者如何看到您的安全消息的交互式预览。您可以：- 使用上方的控件自定义颜色和字体 - 上传徽标（推荐最小 128x128 像素，最大 1MB）- 使用「查看内容」按钮测试预览",
     "source_hash": "3d8b2c0d"
   },
-  "web.branding.default_logo_icon": {
+  "web.branding.maruhi_logo_icon": {
     "text": "日文汉字「秘」(himitsu)，意为「秘密」或「机密」",
     "source_hash": "1e04ba2e"
   },

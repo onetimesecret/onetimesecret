@@ -1,13 +1,12 @@
-<!-- src/shared/components/logos/KeyholeLogo.vue -->
+<!-- src/shared/components/logos/OnetimeSecretMaruhiLogo.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-  import { computed } from 'vue';
-
+  import MaruhiIcon from '@/shared/components/icons/MaruhiIcon.vue';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-  import KeyholeIcon from '@/shared/components/icons/KeyholeIcon.vue';
   import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
   import { type LogoConfig } from '@/types/ui/layouts';
+  import { computed } from 'vue';
 
   /**
    * Props for controlling logo appearance
@@ -25,9 +24,10 @@
   const bootstrapStore = useBootstrapStore();
 
   /**
-   * Brand-aware logo label. Falls back to NEUTRAL_BRAND_DEFAULTS.product_name
+   * Brand-aware aria-label. Falls back to NEUTRAL_BRAND_DEFAULTS.product_name
    * (a generic "My App") when bootstrap config has not provided a brand name.
-   * Never defaults to OTS branding — keeps private-label deployments neutral.
+   * Never defaults to OTS branding — keeps private-label deployments neutral
+   * (#3048 / #3049).
    */
   const ariaLabel = computed(
     () => props.ariaLabel || bootstrapStore.brand_product_name || NEUTRAL_BRAND_DEFAULTS.product_name
@@ -54,10 +54,10 @@
       :href="props.href"
       class="flex items-center gap-3">
       <!-- Logo Mark -->
-      <KeyholeIcon
+      <MaruhiIcon
         :size="svgSize"
         :aria-label="ariaLabel"
-        :title="t('web.branding.keyhole_logo_icon', 'Keyhole secure sharing icon')"
+        :title="t('web.branding.maruhi_logo_icon')"
         class="shrink-0 text-brand-500 dark:text-white" />
       <!-- Text Mark -->
       <!-- Company Name -->
@@ -73,7 +73,7 @@
           class="pointer-events-none absolute inset-0 flex items-center justify-center">
           <span
             class="-rotate-6 transform-gpu rounded-lg bg-brand-500 px-2 py-1 text-sm font-bold tracking-widest text-white shadow-lg dark:bg-brand-600/90"
-            style="transform-origin: center">
+            style="transform-origin: center;">
             Colonels Only
           </span>
         </div>

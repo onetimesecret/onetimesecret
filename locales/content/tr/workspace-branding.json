@@ -139,7 +139,7 @@
     "text": "Bu, alıcıların güvenli mesajlarınızı nasıl göreceğinin etkileşimli bir önizlemesidir. Şunları yapabilirsiniz: - Yukarıdaki kontrolleri kullanarak renkleri ve yazı tiplerini özelleştirin - Bir logo yükleyin (minimum 128x128 piksel önerilir, 1MB maks) - \"Mesajı Görüntüle\" düğmesini kullanarak önizlemeyi test edin",
     "source_hash": "3d8b2c0d"
   },
-  "web.branding.default_logo_icon": {
+  "web.branding.maruhi_logo_icon": {
     "text": "Japonca kanji '秘' (himitsu) anlamı 'gizli' veya 'gizlilik'",
     "source_hash": "1e04ba2e"
   },

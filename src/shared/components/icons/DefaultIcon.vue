@@ -1,4 +1,4 @@
-<!-- src/shared/components/icons/KeyholeIcon.vue -->
+<!-- src/shared/components/icons/DefaultIcon.vue (keyhole — the neutral default mark) -->
 
 <!--
 Icon from WebHostingHub Glyphs by WebHostingHub

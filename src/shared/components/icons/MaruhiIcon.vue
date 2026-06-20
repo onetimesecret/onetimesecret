@@ -1,4 +1,4 @@
-<!-- src/shared/components/icons/MonotoneJapaneseSecretButtonIcon.vue -->
+<!-- src/shared/components/icons/MaruhiIcon.vue -->
 
 <!--
 emojione-monotone-japanese-secret-button.svg

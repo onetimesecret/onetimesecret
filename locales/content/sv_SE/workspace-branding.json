@@ -139,7 +139,7 @@
     "text": "Detta är en interaktiv förhandsgranskning av hur mottagare kommer att se dina säkra meddelanden. Du kan: - Anpassa färger och teckensnitt med kontrollerna ovan - Ladda upp en logotyp (minst 128x128 pixlar rekommenderas, max 1MB) - Testa förhandsgranskningen med knappen \"Visa hemlighet\"",
     "source_hash": "3d8b2c0d"
   },
-  "web.branding.default_logo_icon": {
+  "web.branding.maruhi_logo_icon": {
     "text": "Japanskt kanji '秘' (himitsu) som betyder 'hemlighet' eller 'konfidentiellt'",
     "source_hash": "1e04ba2e"
   },

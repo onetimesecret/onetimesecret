@@ -139,7 +139,7 @@
     "text": "Ez egy interaktív előnézet arról, hogyan fogják a címzettek látni biztonságos üzeneteit. Lehetőségei: - Színek és betűtípusok testreszabása a fenti vezérlőkkel - Logó feltöltése (minimum 128x128 pixel javasolt, maximum 1MB) - Előnézet tesztelése a \"Titok megtekintése\" gombbal",
     "source_hash": "3d8b2c0d"
   },
-  "web.branding.default_logo_icon": {
+  "web.branding.maruhi_logo_icon": {
     "text": "Japán kanji '秘' (himitsu) jelentése 'titok' vagy 'bizalmas'",
     "source_hash": "1e04ba2e"
   },
