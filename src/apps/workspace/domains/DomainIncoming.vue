@@ -205,7 +205,7 @@ watch(() => props.extid, async () => {
           class="mx-auto size-12 text-gray-400"
           aria-hidden="true" />
         <h3 class="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
-          {{ t('web.domains.incoming.upgrade_required_title') }}
+          {{ t('incoming.upgrade_required_title') }}
         </h3>
         <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
           {{ t('web.domains.incoming.upgrade_to_configure') }}

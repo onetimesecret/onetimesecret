@@ -323,16 +323,16 @@ test.describe('Domain Incoming - Entitlement Gating (#3479 Fix B)', () => {
 
     await navigateToDomainIncomingPage(page, org!.extid, domain!.extid);
 
-    // Access denied banner should be visible
-    const accessDenied = page.getByText(/access denied/i);
-    await expect(accessDenied).toBeVisible();
+    // Upgrade Required banner should be visible (plan-gate fires first)
+    const upgradeRequired = page.getByText(/upgrade required/i);
+    await expect(upgradeRequired).toBeVisible();
 
     // Config form should NOT be visible
     const form = page.locator('form');
     await expect(form).not.toBeVisible();
   });
 
-  test('TC-DIE-004: shows access denied when user lacks both entitlements (mocked)', async ({
+  test('TC-DIE-004: shows upgrade required when user lacks both entitlements (mocked)', async ({
     page,
   }) => {
     const org = await getFirstOrganization(page);
@@ -349,9 +349,9 @@ test.describe('Domain Incoming - Entitlement Gating (#3479 Fix B)', () => {
 
     await navigateToDomainIncomingPage(page, org!.extid, domain!.extid);
 
-    // Access denied banner should be visible
-    const accessDenied = page.getByText(/access denied/i);
-    await expect(accessDenied).toBeVisible();
+    // Upgrade Required banner should be visible (plan-gate fires first when incoming_secrets missing)
+    const upgradeRequired = page.getByText(/upgrade required/i);
+    await expect(upgradeRequired).toBeVisible();
 
     // Config form should NOT be visible
     const form = page.locator('form');
@@ -379,9 +379,9 @@ test.describe('Domain Incoming - Entitlement Gating (#3479 Fix B)', () => {
 
     await navigateToDomainIncomingPage(page, org!.extid, domain!.extid);
 
-    // Access denied should be visible
-    const accessDenied = page.getByText(/access denied/i);
-    await expect(accessDenied).toBeVisible();
+    // Upgrade Required should be visible (plan-gate path)
+    const upgradeRequired = page.getByText(/upgrade required/i);
+    await expect(upgradeRequired).toBeVisible();
 
     // Upgrade link SHOULD be present for plan upgrade case
     const upgradeLink = page.locator(`a[href*="/billing/${org!.extid}/plans"]`);
