@@ -1,20 +1,20 @@
 // src/tests/stores/bootstrapStore.spec.ts
 
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
 import * as bootstrapService from '@/services/bootstrap.service';
-import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import { setupTestPinia } from '../setup';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import {
-  authenticatedBootstrap,
   anonymousBootstrap,
-  mfaPendingBootstrap,
+  authenticatedBootstrap,
+  baseBootstrap,
   colonelBootstrap,
   customDomainsBootstrap,
-  standaloneBootstrap,
-  baseBootstrap,
+  mfaPendingBootstrap,
   mockCustomer,
+  standaloneBootstrap,
 } from '@/tests/fixtures/bootstrap.fixture';
-import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
+import { setupTestPinia } from '../setup';
 
 // Mock the bootstrap service
 vi.mock('@/services/bootstrap.service', () => ({
@@ -525,7 +525,15 @@ describe('bootstrapStore', () => {
           identifier: 'EU',
           enabled: true,
           current_jurisdiction: 'EU',
-          jurisdictions: [{ identifier: 'EU', display_name: 'Europe', domain: 'eu.example.com', icon: { collection: 'flags', name: 'eu' }, enabled: true }],
+          jurisdictions: [
+            {
+              identifier: 'EU',
+              display_name: 'Europe',
+              domain: 'eu.example.com',
+              icon: { collection: 'flags', name: 'eu' },
+              enabled: true,
+            },
+          ],
         },
       });
 
@@ -613,8 +621,20 @@ describe('bootstrapStore', () => {
 
     it('preserves regions configuration through reset (server config)', () => {
       const jurisdictions = [
-        { identifier: 'EU', display_name: 'Europe', domain: 'eu.example.com', icon: { collection: 'flags', name: 'eu' }, enabled: true },
-        { identifier: 'US', display_name: 'United States', domain: 'us.example.com', icon: { collection: 'flags', name: 'us' }, enabled: true },
+        {
+          identifier: 'EU',
+          display_name: 'Europe',
+          domain: 'eu.example.com',
+          icon: { collection: 'flags', name: 'eu' },
+          enabled: true,
+        },
+        {
+          identifier: 'US',
+          display_name: 'United States',
+          domain: 'us.example.com',
+          icon: { collection: 'flags', name: 'us' },
+          enabled: true,
+        },
       ];
       store.update({
         regions: {
@@ -1051,9 +1071,8 @@ describe('bootstrapStore', () => {
     });
 
     it('schema defaults represent valid BootstrapPayload subset', async () => {
-      const { BOOTSTRAP_UI_DEFAULTS, bootstrapUiSchema } = await import(
-        '@/tests/contracts/bootstrap-test-schema'
-      );
+      const { BOOTSTRAP_UI_DEFAULTS, bootstrapUiSchema } =
+        await import('@/tests/contracts/bootstrap-test-schema');
 
       // Parsing an empty object should produce the same defaults
       const parsedDefaults = bootstrapUiSchema.parse({});
@@ -1187,7 +1206,12 @@ describe('bootstrapStore', () => {
 
     it('preserves all server config fields together through resetForLogout', () => {
       // Set up all server config fields
-      const sentryConfig = { dsn: 'https://test@sentry.io/123', enabled: true, logErrors: true, trackComponents: true };
+      const sentryConfig = {
+        dsn: 'https://test@sentry.io/123',
+        enabled: true,
+        logErrors: true,
+        trackComponents: true,
+      };
       store.update({
         authentication: { enabled: false, signup: false, signin: true },
         ui: { enabled: false, header: { enabled: false } },
@@ -1196,7 +1220,15 @@ describe('bootstrapStore', () => {
           identifier: 'EU',
           enabled: true,
           current_jurisdiction: 'EU',
-          jurisdictions: [{ identifier: 'EU', display_name: 'Europe', domain: 'eu.example.com', icon: { collection: 'flags', name: 'eu' }, enabled: true }],
+          jurisdictions: [
+            {
+              identifier: 'EU',
+              display_name: 'Europe',
+              domain: 'eu.example.com',
+              icon: { collection: 'flags', name: 'eu' },
+              enabled: true,
+            },
+          ],
         },
         secret_options: { default_ttl: 7200, ttl_options: [300, 600] },
         diagnostics: { sentry: sentryConfig },
@@ -1446,9 +1478,27 @@ describe('bootstrapStore', () => {
 
     it('updates deeply nested regions configuration', () => {
       const jurisdictions = [
-        { identifier: 'EU', display_name: 'Europe', domain: 'eu.example.com', icon: { collection: 'flags', name: 'eu' }, enabled: true },
-        { identifier: 'US', display_name: 'United States', domain: 'us.example.com', icon: { collection: 'flags', name: 'us' }, enabled: true },
-        { identifier: 'CA', display_name: 'Canada', domain: 'ca.example.com', icon: { collection: 'flags', name: 'ca' }, enabled: true },
+        {
+          identifier: 'EU',
+          display_name: 'Europe',
+          domain: 'eu.example.com',
+          icon: { collection: 'flags', name: 'eu' },
+          enabled: true,
+        },
+        {
+          identifier: 'US',
+          display_name: 'United States',
+          domain: 'us.example.com',
+          icon: { collection: 'flags', name: 'us' },
+          enabled: true,
+        },
+        {
+          identifier: 'CA',
+          display_name: 'Canada',
+          domain: 'ca.example.com',
+          icon: { collection: 'flags', name: 'ca' },
+          enabled: true,
+        },
       ];
       const regionsConfig = {
         identifier: 'EU',
@@ -1461,7 +1511,7 @@ describe('bootstrapStore', () => {
 
       expect(store.regions?.identifier).toBe('EU');
       expect(store.regions?.jurisdictions).toHaveLength(3);
-      expect(store.regions?.jurisdictions?.find(j => j.identifier === 'CA')).toBeDefined();
+      expect(store.regions?.jurisdictions?.find((j) => j.identifier === 'CA')).toBeDefined();
     });
 
     it('replaces entire nested object on update (not deep merge)', () => {

@@ -22,18 +22,28 @@
 
 import { z } from 'zod';
 
-import { siteSchema, siteAuthenticationSchema, passphraseSchema, passwordGenerationSchema } from './section/site';
-import { storageSchema, redisSchema } from './section/storage';
-import { emailerSchema, mailSchema, mailConnectionSchema, mailValidationSchema } from './section/mail';
+import { capabilitiesSchema } from './section/capabilities';
+import { developmentSchema } from './section/development';
 import { diagnosticsSchema } from './section/diagnostics';
 import { featuresSchema } from './section/features';
-import { capabilitiesSchema } from './section/capabilities';
 import { i18nSchema } from './section/i18n';
-import { developmentSchema } from './section/development';
-import { userInterfaceSchema, apiSchema } from './section/ui';
-import { limitsSchema } from './section/limits';
-import { secretOptionsSchema } from './section/secret_options';
 import { jobsSchema } from './section/jobs';
+import { limitsSchema } from './section/limits';
+import {
+  emailerSchema,
+  mailConnectionSchema,
+  mailSchema,
+  mailValidationSchema,
+} from './section/mail';
+import { secretOptionsSchema } from './section/secret_options';
+import {
+  passphraseSchema,
+  passwordGenerationSchema,
+  siteAuthenticationSchema,
+  siteSchema,
+} from './section/site';
+import { redisSchema, storageSchema } from './section/storage';
+import { apiSchema, userInterfaceSchema } from './section/ui';
 
 // ============================================================================
 // Flexible Type Helpers (for API response parsing)
@@ -433,27 +443,27 @@ export type SystemSettingsDetails = z.infer<typeof systemSettingsDetailsSchema>;
 
 // Re-export section schemas for direct access
 export {
-  siteSchema,
-  siteAuthenticationSchema,
+  apiSchema,
+  capabilitiesSchema,
+  developmentSchema,
+  diagnosticsSchema,
+  emailerSchema,
+  featuresSchema,
+  i18nSchema,
+  jobsSchema,
+  limitsSchema,
+  mailConnectionSchema,
+  mailSchema,
+  mailValidationSchema,
   passphraseSchema,
   passwordGenerationSchema,
-  storageSchema,
   redisSchema,
-  emailerSchema,
-  mailSchema,
-  mailConnectionSchema,
-  mailValidationSchema,
-  diagnosticsSchema,
-  featuresSchema,
-  capabilitiesSchema,
-  i18nSchema,
-  developmentSchema,
-  userInterfaceSchema,
-  apiSchema,
-  limitsSchema,
   secretOptionsSchema,
-  jobsSchema,
+  siteAuthenticationSchema,
+  siteSchema,
+  storageSchema,
+  userInterfaceSchema,
 };
 
 // Aliases for backward compatibility
-export { staticMailSchema, mutableMailSchema, simpleLoggingSchema as loggingSchema };
+export { simpleLoggingSchema as loggingSchema, mutableMailSchema, staticMailSchema };

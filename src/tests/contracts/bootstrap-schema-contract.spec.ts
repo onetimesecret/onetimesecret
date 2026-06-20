@@ -8,10 +8,13 @@
 // - Type mismatches (field type differs between layers)
 // - Undocumented fields (field exists but not in contract)
 
-import { describe, expect, it } from 'vitest';
 import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
-import { apiInterfaceSchema, featuresSchema, organizationSchema } from '@/schemas/contracts/bootstrap';
-import { bootstrapUiSchema, BOOTSTRAP_UI_DEFAULTS } from './bootstrap-test-schema';
+import {
+  apiInterfaceSchema,
+  featuresSchema,
+  organizationSchema,
+} from '@/schemas/contracts/bootstrap';
+import { describe, expect, it } from 'vitest';
 import {
   ALL_SERIALIZER_FIELDS,
   AUTHENTICATION_SERIALIZER_FIELDS,
@@ -22,6 +25,7 @@ import {
   ORGANIZATION_SERIALIZER_FIELDS,
   SYSTEM_SERIALIZER_FIELDS,
 } from './bootstrap-serializer-fields';
+import { BOOTSTRAP_UI_DEFAULTS, bootstrapUiSchema } from './bootstrap-test-schema';
 
 // ============================================================================
 // DOCUMENTATION: Intentional Exclusions and Frontend-Only Fields
@@ -34,8 +38,7 @@ import {
 const INTENTIONAL_EXCLUSIONS: Record<string, string> = {
   // domain_locale is extracted from domain_branding.locale in serializer
   // but not exposed as a top-level field in BootstrapPayload
-  domain_locale:
-    'Extracted from domain_branding.locale; not a top-level BootstrapPayload field',
+  domain_locale: 'Extracted from domain_branding.locale; not a top-level BootstrapPayload field',
 
   // frontend_development is deprecated in favor of development.enabled
   frontend_development:
@@ -94,11 +97,12 @@ describe('Bootstrap schema contract (serializer fields)', () => {
   describe('serializer field coverage', () => {
     // Authentication serializer fields
     describe('AuthenticationSerializer fields', () => {
-      it.each(
-        AUTHENTICATION_SERIALIZER_FIELDS.filter((f) => !(f in INTENTIONAL_EXCLUSIONS))
-      )('BootstrapPayload declares authentication field "%s"', (field) => {
-        expect(BOOTSTRAP_PAYLOAD_KEYS).toContain(field);
-      });
+      it.each(AUTHENTICATION_SERIALIZER_FIELDS.filter((f) => !(f in INTENTIONAL_EXCLUSIONS)))(
+        'BootstrapPayload declares authentication field "%s"',
+        (field) => {
+          expect(BOOTSTRAP_PAYLOAD_KEYS).toContain(field);
+        }
+      );
     });
 
     // Config serializer fields
@@ -175,18 +179,13 @@ describe('Bootstrap schema contract (serializer fields)', () => {
       ] as const;
 
       for (const excluded of Object.keys(INTENTIONAL_EXCLUSIONS)) {
-        expect(
-          allSerializerAndMeta as readonly string[]
-        ).toContain(excluded);
+        expect(allSerializerAndMeta as readonly string[]).toContain(excluded);
       }
     });
 
     it('all frontend-only fields are documented', () => {
       // Verify that any BootstrapPayload fields not in serializers are documented
-      const allBackendFields = [
-        ...ALL_SERIALIZER_FIELDS,
-        ...Object.keys(INTENTIONAL_EXCLUSIONS),
-      ];
+      const allBackendFields = [...ALL_SERIALIZER_FIELDS, ...Object.keys(INTENTIONAL_EXCLUSIONS)];
 
       const frontendOnlyInPayload = BOOTSTRAP_PAYLOAD_KEYS.filter(
         (f) => !allBackendFields.includes(f) && !(f in FRONTEND_ONLY_FIELDS)
