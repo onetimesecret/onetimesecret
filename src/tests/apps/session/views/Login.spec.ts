@@ -12,6 +12,10 @@
  * - token_missing -> web.login.errors.token_missing
  * - token_expired -> web.login.errors.token_expired
  * - token_invalid -> web.login.errors.token_invalid
+ * - invalid_email -> web.login.errors.invalid_email
+ *
+ * Unrecognized codes fall back to the generic sso_failed message so the page
+ * never renders blank (issue #3478 — the "frozen loading screen").
  */
 
 import { mount, VueWrapper, flushPromises } from '@vue/test-utils';
@@ -69,6 +73,8 @@ const i18n = createI18n({
             token_missing: 'Login link is missing required token.',
             token_expired: 'Login link has expired. Please request a new one.',
             token_invalid: 'Login link is invalid. Please request a new one.',
+            invalid_email:
+              'The email address from your identity provider is invalid. Please contact your administrator.',
           },
           create_account_prefix: "Don't have an account?",
           create_account_link: 'Sign up',
@@ -152,12 +158,25 @@ describe('Login.vue auth_error handling', () => {
       expect(alert.text()).toContain('invalid');
     });
 
-    it('ignores unknown error codes', async () => {
+    it('displays invalid_email error from SSO (issue #3478)', async () => {
+      wrapper = await createWrapper({ auth_error: 'invalid_email' });
+      await flushPromises();
+
+      const alert = wrapper.find('[role="alert"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain('email address from your identity provider is invalid');
+    });
+
+    it('shows a generic error for unknown codes (never a blank page)', async () => {
+      // Regression guard for issue #3478: an auth_error code this bundle does
+      // not recognize (e.g. from a backend newer than the deployed frontend)
+      // must still render an error rather than a silent/frozen page.
       wrapper = await createWrapper({ auth_error: 'unknown_error_code' });
       await flushPromises();
 
       const alert = wrapper.find('[role="alert"]');
-      expect(alert.exists()).toBe(false);
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain('SSO authentication failed');
     });
 
     it('does not display error when no auth_error param', async () => {
