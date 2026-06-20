@@ -16,6 +16,29 @@ RSpec.configure do |config|
     BillingTestHelpers.disable_billing!
   end
 
+  # Disable billing before each example group's context hooks, too.
+  #
+  # before(:context)/before(:all) hooks run BEFORE the first before(:each), so a
+  # spec that exercises billing-sensitive logic in before(:all) -- e.g. creating
+  # an Organization that materializes STANDALONE_ENTITLEMENTS at create! time --
+  # would otherwise observe whatever BILLING_ENABLED the environment or a prior
+  # example happened to leave set. Under the `billing: on` CI matrix that default
+  # is "true", which makes Organization.create! treat the org as SaaS and skip
+  # standalone materialization, producing a suite-order-dependent flake where the
+  # outcome tracks the RSpec seed rather than the code (issue #3418).
+  #
+  # This mirrors the before(:each) default at the context scope so the billing
+  # default is deterministic for before(:all) setup as well. It is safe by
+  # construction: the `billing: off` CI matrix already runs every group's
+  # before(:all) with billing disabled, so disabling here cannot introduce new
+  # failures. Groups that need billing enabled during before(:all) opt back in
+  # explicitly within their own before(:all) (e.g. BillingTestHelpers.restore_billing!),
+  # which runs after this hook; per-example billing is unaffected and continues
+  # to opt in via the `billing: true` before(:each) hook below.
+  config.before(:context) do
+    BillingTestHelpers.disable_billing!
+  end
+
   # Clean up billing state after tests that enable it
   config.after(:each) do
     if @billing_enabled_in_test

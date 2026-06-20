@@ -309,8 +309,8 @@ describe('DomainIncoming', () => {
       wrapper = mountComponent();
       await flushPromises();
 
-      expect(wrapper.text()).toContain('Feature Not Available');
-      expect(wrapper.text()).toContain('Upgrade your plan');
+      expect(wrapper.text()).toContain('incoming.upgrade_required_title');
+      expect(wrapper.text()).toContain('web.domains.incoming.upgrade_to_configure');
     });
 
     it('PG-ENT-002: hides form when entitlement missing', async () => {
