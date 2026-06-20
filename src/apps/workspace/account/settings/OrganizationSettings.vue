@@ -1319,6 +1319,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                 <div
                   v-for="invitation in invitations"
                   :key="invitation.id"
+                  data-testid="org-invitation-row"
                   class="flex items-center justify-between rounded-md bg-gray-50 px-4 py-3 dark:bg-gray-700/50">
                   <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
                     <span class="text-sm font-medium text-gray-900 dark:text-white">{{ invitation.email }}</span>

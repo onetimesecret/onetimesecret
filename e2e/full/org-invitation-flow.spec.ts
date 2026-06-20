@@ -148,24 +148,11 @@ async function createInvitation(
 }
 
 /**
- * Extract invitation token from pending invitations list
+ * Extract invitation token from pending invitations list via API
  */
 async function getInvitationToken(page: Page, email: string): Promise<string | null> {
-  // Look for the pending invitation row
-  const invitationRow = page.locator('.rounded-md').filter({
-    hasText: email,
-  });
-
-  if (!(await invitationRow.isVisible())) {
-    return null;
-  }
-
-  // The token should be available via the resend/revoke button actions
-  // We'll need to intercept the API call or check the URL after clicking
-  // For now, we'll use the API to get the token
-  const response = await page.request.get(
-    `/api/v2/org/${getCurrentOrgExtid(page)}/invitations`
-  );
+  const orgExtid = getCurrentOrgExtid(page);
+  const response = await page.request.get(`/api/v2/org/${orgExtid}/invitations`);
   const data = await response.json();
 
   const invitation = data.records?.find((inv: { email: string }) => inv.email === email);
@@ -557,7 +544,7 @@ test.describe('INV-010: Resend Invitation', () => {
     await createInvitation(page, testEmail);
 
     // Find the resend button for this invitation
-    const invitationRow = page.locator('.rounded-md').filter({ hasText: testEmail });
+    const invitationRow = page.getByTestId('org-invitation-row').filter({ hasText: testEmail });
     const resendButton = invitationRow.getByRole('button', { name: /resend/i });
 
     await expect(resendButton).toBeVisible();
@@ -588,7 +575,7 @@ test.describe('INV-011: Revoke Invitation', () => {
     expect(token).toBeTruthy();
 
     // Find and click revoke button
-    const invitationRow = page.locator('.rounded-md').filter({ hasText: testEmail });
+    const invitationRow = page.getByTestId('org-invitation-row').filter({ hasText: testEmail });
     const revokeButton = invitationRow.getByRole('button', { name: /revoke/i });
 
     await expect(revokeButton).toBeVisible();
