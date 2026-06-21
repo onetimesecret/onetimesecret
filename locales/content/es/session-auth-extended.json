@@ -716,5 +716,20 @@
   },
   "web.auth.sessions._guidance.context": {
     "text": "Página de gestión de dispositivos/navegadores con sesión iniciada"
+  },
+  "web.auth.google": {
+    "text": "Google"
+  },
+  "web.auth.mfa.alternative_auth_options": {
+    "text": "Opciones de autenticación alternativas"
+  },
+  "web.auth.remember.enabled": {
+    "text": "Mantener la sesión iniciada"
+  },
+  "web.auth.sessions.session_singular": {
+    "text": "sesión"
+  },
+  "web.auth.sessions.session_plural": {
+    "text": "sesiones"
   }
 }

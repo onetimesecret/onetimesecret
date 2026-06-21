@@ -1,0 +1,29 @@
+{
+  "api.domains.errors.domain_id_required": {
+    "text": "Se requiere el ID del dominio"
+  },
+  "api.domains.errors.domain_not_found": {
+    "text": "Dominio no encontrado: %{extid}"
+  },
+  "api.domains.errors.organization_not_found": {
+    "text": "No se encontró ninguna organización para el dominio: %{domain}"
+  },
+  "api.domains.errors.incoming_secrets_disabled": {
+    "text": "Los secretos entrantes no están habilitados en esta instancia"
+  },
+  "api.domains.errors.incoming_secrets_entitlement_required": {
+    "text": "La gestión de secretos entrantes requiere el derecho incoming_secrets. Mejora tu plan."
+  },
+  "api.domains.errors.incoming_config_not_found": {
+    "text": "No se encontró ninguna configuración de entrada para el dominio: %{extid}"
+  },
+  "api.domains.errors.recipients_max_exceeded": {
+    "text": "Se permite un máximo de %{max} destinatarios"
+  },
+  "api.domains.errors.recipients_invalid_email": {
+    "text": "Correo electrónico no válido: %{email}"
+  },
+  "api.domains.errors.recipients_duplicate": {
+    "text": "No se permiten correos electrónicos de destinatarios duplicados"
+  }
+}

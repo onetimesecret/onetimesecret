@@ -1,0 +1,71 @@
+{
+  "api.entitlements.errors.context_unavailable": {
+    "text": "No se pueden verificar los derechos (contexto de organización no disponible)"
+  },
+  "api.entitlements.errors.api_access_required": {
+    "text": "El acceso a la API requiere mejorar el plan"
+  },
+  "api.entitlements.errors.custom_privacy_defaults_required": {
+    "text": "Los valores predeterminados de privacidad personalizados requieren mejorar el plan"
+  },
+  "api.entitlements.errors.extended_default_expiration_required": {
+    "text": "La expiración predeterminada extendida requiere mejorar el plan"
+  },
+  "api.entitlements.errors.custom_domains_required": {
+    "text": "Los dominios personalizados requieren mejorar el plan"
+  },
+  "api.entitlements.errors.custom_branding_required": {
+    "text": "La marca personalizada requiere mejorar el plan"
+  },
+  "api.entitlements.errors.homepage_secrets_required": {
+    "text": "Los secretos en la página de inicio requieren mejorar el plan"
+  },
+  "api.entitlements.errors.incoming_secrets_required": {
+    "text": "Los secretos entrantes requieren mejorar el plan"
+  },
+  "api.entitlements.errors.custom_mail_sender_required": {
+    "text": "El remitente de correo personalizado requiere mejorar el plan"
+  },
+  "api.entitlements.errors.flexible_from_domain_required": {
+    "text": "El dominio de remitente flexible requiere mejorar el plan"
+  },
+  "api.entitlements.errors.manage_org_required": {
+    "text": "La gestión de la organización requiere mejorar el plan"
+  },
+  "api.entitlements.errors.manage_teams_required": {
+    "text": "La gestión de equipos requiere mejorar el plan"
+  },
+  "api.entitlements.errors.manage_members_required": {
+    "text": "La gestión de miembros requiere mejorar el plan"
+  },
+  "api.entitlements.errors.manage_sso_required": {
+    "text": "La gestión de SSO requiere mejorar el plan"
+  },
+  "api.entitlements.errors.audit_logs_required": {
+    "text": "Los registros de auditoría requieren mejorar el plan"
+  },
+  "api.entitlements.errors.custom_signup_validation_required": {
+    "text": "La validación de registro personalizada requiere mejorar el plan"
+  },
+  "api.entitlements.errors.create_secrets_required": {
+    "text": "La creación de secretos requiere mejorar el plan"
+  },
+  "api.entitlements.errors.view_receipt_required": {
+    "text": "La visualización de recibos requiere mejorar el plan"
+  },
+  "api.entitlements.errors.notifications_required": {
+    "text": "Las notificaciones requieren mejorar el plan"
+  },
+  "api.entitlements.errors.workspace_branding_required": {
+    "text": "La marca del espacio de trabajo requiere mejorar el plan"
+  },
+  "api.entitlements.errors.ip_access_rules_required": {
+    "text": "Las reglas de acceso por IP requieren mejorar el plan"
+  },
+  "api.entitlements.errors.manage_billing_required": {
+    "text": "La gestión de facturación requiere mejorar el plan"
+  },
+  "api.entitlements.errors.custom_signin_config_required": {
+    "text": "La configuración de inicio de sesión personalizada requiere mejorar el plan"
+  }
+}

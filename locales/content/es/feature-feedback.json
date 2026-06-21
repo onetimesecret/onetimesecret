@@ -58,5 +58,14 @@
   "web.feedback.reason_email_change_unauthorized": {
     "text": "Parece que estás reportando un cambio de correo electrónico no autorizado en tu cuenta. Por favor, describe lo que ocurrió y lo investigaremos de inmediato.",
     "source_hash": "00e56551"
+  },
+  "web.feedback.anonymous_no_reply": {
+    "text": "Nota: si deseas una respuesta, firma el mensaje o incluye una dirección de correo electrónico en él."
+  },
+  "web.feedback.characters_remaining": {
+    "text": "{count} caracteres restantes"
+  },
+  "web.feedback.character_limit_reached": {
+    "text": "Se alcanzó el límite de caracteres"
   }
 }
