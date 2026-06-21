@@ -1,0 +1,107 @@
+{
+  "api.organizations.errors.domain_scoped_forbidden": {
+    "text": "Les membres limités à un domaine ne peuvent pas effectuer cette action"
+  },
+  "api.organizations.errors.organization_not_found": {
+    "text": "Organisation introuvable : %{extid}"
+  },
+  "api.organizations.errors.organization_owner_required": {
+    "text": "Seul le propriétaire de l'organisation peut effectuer cette action"
+  },
+  "api.organizations.errors.organization_member_required": {
+    "text": "Vous devez être membre de l'organisation pour effectuer cette action"
+  },
+  "api.organizations.errors.organization_admin_required": {
+    "text": "Seuls les propriétaires et les administrateurs de l'organisation peuvent effectuer cette action"
+  },
+  "api.organizations.errors.extid_required": {
+    "text": "Identifiant d'organisation requis"
+  },
+  "api.organizations.errors.display_name_required": {
+    "text": "Le nom de l'organisation est requis"
+  },
+  "api.organizations.errors.display_name_too_long": {
+    "text": "Le nom de l'organisation doit comporter moins de %{max} caractères"
+  },
+  "api.organizations.errors.description_too_long": {
+    "text": "La description doit comporter moins de %{max} caractères"
+  },
+  "api.organizations.errors.contact_email_exists": {
+    "text": "Une organisation avec ce courriel de contact existe déjà"
+  },
+  "api.organizations.errors.creation_in_progress": {
+    "text": "Création de l'organisation en cours. Veuillez réessayer."
+  },
+  "api.organizations.errors.organization_limit_reached": {
+    "text": "Limite d'organisations atteinte. Mettez à niveau votre forfait pour créer plus d'organisations."
+  },
+  "api.organizations.invitations.errors.invitation_not_found": {
+    "text": "Invitation introuvable"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "Le courriel est requis"
+  },
+  "api.organizations.invitations.errors.invalid_email_format": {
+    "text": "Format de courriel invalide"
+  },
+  "api.organizations.invitations.errors.invalid_role": {
+    "text": "Le rôle doit être membre ou administrateur"
+  },
+  "api.organizations.invitations.errors.cannot_invite_as_owner": {
+    "text": "Impossible d'inviter en tant que propriétaire"
+  },
+  "api.organizations.invitations.errors.user_already_member": {
+    "text": "L'utilisateur est déjà membre de cette organisation"
+  },
+  "api.organizations.invitations.errors.invitation_already_pending": {
+    "text": "Une invitation est déjà en attente pour ce courriel"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Limite de membres atteinte. Mettez à niveau votre forfait pour inviter plus de membres."
+  },
+  "api.organizations.invitations.errors.resend_only_pending": {
+    "text": "Seules les invitations en attente peuvent être renvoyées"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Limite maximale de renvois (%{max}) atteinte"
+  },
+  "api.organizations.invitations.errors.revoke_only_pending": {
+    "text": "Seules les invitations en attente peuvent être révoquées"
+  },
+  "api.organizations.members.errors.member_not_found": {
+    "text": "Membre introuvable : %{extid}"
+  },
+  "api.organizations.members.errors.member_not_in_organization": {
+    "text": "Membre introuvable dans cette organisation"
+  },
+  "api.organizations.members.errors.member_not_active": {
+    "text": "Le membre n'est pas actif"
+  },
+  "api.organizations.members.errors.invalid_role_value": {
+    "text": "Rôle invalide. Doit être l'un des suivants : %{roles}"
+  },
+  "api.organizations.members.errors.cannot_change_owner_role": {
+    "text": "Impossible de modifier le rôle de propriétaire. Utilisez plutôt le transfert de propriété."
+  },
+  "api.organizations.members.errors.member_already_has_role": {
+    "text": "Le membre possède déjà le rôle : %{role}"
+  },
+  "api.organizations.members.errors.cannot_promote_to_owner": {
+    "text": "Impossible de promouvoir au rang de propriétaire. Utilisez plutôt le transfert de propriété."
+  },
+  "api.organizations.members.errors.must_be_member": {
+    "text": "Vous devez être membre de cette organisation"
+  },
+  "api.organizations.members.errors.cannot_remove_owner": {
+    "text": "Impossible de retirer le propriétaire de l'organisation. Transférez d'abord la propriété."
+  },
+  "api.organizations.members.errors.cannot_remove_self": {
+    "text": "Impossible de vous retirer vous-même. Utilisez plutôt l'option de quitter l'organisation."
+  },
+  "api.organizations.members.errors.admin_cannot_remove_admin": {
+    "text": "Les administrateurs ne peuvent pas retirer d'autres administrateurs. Seuls les propriétaires le peuvent."
+  },
+  "api.organizations.members.errors.no_permission_to_remove": {
+    "text": "Vous n'avez pas la permission de retirer des membres"
+  }
+}
