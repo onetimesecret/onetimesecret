@@ -2,9 +2,9 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { createTestingPinia } from '@pinia/testing';
 import { defineComponent, ref, computed } from 'vue';
+import { createTestI18n } from '@tests/setup';
 
 // Mock vue-router
 vi.mock('vue-router', () => ({
@@ -75,21 +75,7 @@ vi.mock('@/apps/session/components/SsoButton.vue', () => ({
   },
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        login: {
-          or_continue_with: 'Or continue with',
-          custom_domain_sso_title: 'Single sign-on required',
-          custom_domain_sso_description: 'Contact your administrator to configure SSO for this domain.',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 /**
  * AuthMethodSelector Component Tests
@@ -636,7 +622,7 @@ describe('AuthMethodSelector', () => {
         },
       });
 
-      expect(wrapper.text()).toContain('Or continue with');
+      expect(wrapper.text()).toContain('web.login.or_continue_with');
       const ssoButtons = wrapper.findAll('[data-testid="sso-button"]');
       expect(ssoButtons.length).toBe(2);
     });
@@ -916,8 +902,8 @@ describe('AuthMethodSelector', () => {
       });
 
       const noSsoMessage = wrapper.find('[data-testid="auth-custom-domain-no-sso"]');
-      expect(noSsoMessage.text()).toContain('Single sign-on required');
-      expect(noSsoMessage.text()).toContain('Contact your administrator');
+      expect(noSsoMessage.text()).toContain('web.login.custom_domain_sso_title');
+      expect(noSsoMessage.text()).toContain('web.login.custom_domain_sso_description');
     });
 
     it('custom domain with enforce_sso_only=true ignores passwordless flags (SSO takes precedence)', async () => {

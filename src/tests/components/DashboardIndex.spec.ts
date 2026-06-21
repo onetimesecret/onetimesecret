@@ -2,9 +2,9 @@
 
 import { mount, flushPromises } from '@vue/test-utils';
 import { beforeEach, describe, expect, it, vi, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { computed } from 'vue';
 import { createTestingPinia } from '@pinia/testing';
+import { createTestI18n } from '@tests/setup';
 
 // Shared mock state that can be mutated per test
 interface MockDomainContextState {
@@ -76,11 +76,7 @@ const UpgradeBannerStub = {
 };
 
 // i18n setup
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: { en: {} },
-});
+const i18n = createTestI18n();
 
 describe('DashboardIndex', () => {
   beforeEach(async () => {

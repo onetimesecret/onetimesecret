@@ -162,6 +162,10 @@ export const secretBaseCanonical = z.object({
  * ```
  */
 export const secretCanonical = secretBaseCanonical.extend({
+  // Non-nullable by contract: a real secret always has a lifespan, so safe_dump
+  // emits a plain integer (never null/0) and the write-time guarantee lives in
+  // Receipt.spawn_pair + config normalization (#3299). This strict z.number() is
+  // the read-time enforcement of that invariant (#3424).
   secret_ttl: z.number(),
   lifespan: z.number(),
 });

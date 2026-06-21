@@ -5,8 +5,8 @@ import { useAuthStore } from '@/shared/stores/authStore';
 import { flushPromises, mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { createMemoryHistory, createRouter } from 'vue-router';
+import { createTestI18n } from '@tests/setup';
 import { createSharedApiInstance, getGlobalAxiosMock } from '../../setup-stores';
 
 // Mock components
@@ -27,43 +27,7 @@ vi.mock('@/shared/components/forms/BasicFormAlerts.vue', () => ({
   },
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        COMMON: {
-          processing: 'Processing...',
-        },
-        organizations: {
-          invitations: {
-            invitation_details: 'Invitation Details',
-            you_are_invited: "You've been invited to join",
-            email_address: 'Email Address',
-            invited_as: 'Role',
-            invited_by: 'Invited by',
-            expires_at: 'Expires',
-            must_sign_in: 'Please sign in to accept this invitation',
-            accept_invitation: 'Accept Invitation',
-            decline_invitation: 'Decline Invitation',
-            accept_success: 'Invitation accepted successfully',
-            accept_error: 'Failed to accept invitation',
-            decline_success: 'Invitation declined',
-            decline_error: 'Failed to decline invitation',
-            expired_message: 'This invitation has expired',
-            invalid_token: 'Invalid or expired invitation',
-            loading_invitation: 'Loading invitation details',
-            roles: {
-              member: 'Member',
-              admin: 'Admin',
-            },
-          },
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 describe('AcceptInvite', () => {
   let pinia: ReturnType<typeof createPinia>;
@@ -156,7 +120,7 @@ describe('AcceptInvite', () => {
 
       const wrapper = await mountComponent();
 
-      expect(wrapper.text()).toContain('Member');
+      expect(wrapper.text()).toContain('web.organizations.invitations.roles.member');
     });
 
     it('displays admin role correctly', async () => {
@@ -167,7 +131,7 @@ describe('AcceptInvite', () => {
 
       const wrapper = await mountComponent();
 
-      expect(wrapper.text()).toContain('Admin');
+      expect(wrapper.text()).toContain('web.organizations.invitations.roles.admin');
     });
 
     it('shows accept and decline buttons for authenticated user with pending invitation', async () => {
@@ -193,8 +157,8 @@ describe('AcceptInvite', () => {
       const buttons = wrapper.findAll('button');
       const buttonTexts = buttons.map((b) => b.text());
 
-      expect(buttonTexts.some((t) => t.includes('Accept'))).toBe(true);
-      expect(buttonTexts.some((t) => t.includes('Decline'))).toBe(true);
+      expect(buttonTexts.some((t) => t.includes('web.organizations.invitations.accept_invitation'))).toBe(true);
+      expect(buttonTexts.some((t) => t.includes('web.organizations.invitations.decline_invitation'))).toBe(true);
     });
   });
 
@@ -207,7 +171,7 @@ describe('AcceptInvite', () => {
 
       const wrapper = await mountComponent();
 
-      expect(wrapper.text()).toContain('This invitation has expired');
+      expect(wrapper.text()).toContain('web.organizations.invitations.expired_message');
     });
   });
 
@@ -225,7 +189,7 @@ describe('AcceptInvite', () => {
 
       // Component should show invalid state with error message
       expect(wrapper.find('[data-testid="invite-invalid"]').exists()).toBe(true);
-      expect(wrapper.text()).toContain('Invalid or expired invitation');
+      expect(wrapper.text()).toContain('web.organizations.invitations.invalid_token');
     });
 
     it('shows error message for API errors', async () => {
@@ -241,7 +205,7 @@ describe('AcceptInvite', () => {
 
       // Component should show invalid state with error message
       expect(wrapper.find('[data-testid="invite-invalid"]').exists()).toBe(true);
-      expect(wrapper.text()).toContain('Invalid or expired invitation');
+      expect(wrapper.text()).toContain('web.organizations.invitations.invalid_token');
     });
   });
 
@@ -256,7 +220,7 @@ describe('AcceptInvite', () => {
 
       const wrapper = await mountComponent();
 
-      expect(wrapper.text()).toContain('Please sign in to accept this invitation');
+      expect(wrapper.text()).toContain('web.organizations.invitations.must_sign_in');
     });
 
     it('shows signup form when user is not authenticated and no account exists', async () => {
@@ -296,11 +260,13 @@ describe('AcceptInvite', () => {
       axiosMock.onPost('/api/invite/test-token-123/accept').reply(200, {});
 
       const wrapper = await mountComponent();
-      const acceptButton = wrapper.findAll('button').find((b) => b.text().includes('Accept'));
+      const acceptButton = wrapper
+        .findAll('button')
+        .find((b) => b.text().includes('web.organizations.invitations.accept_invitation'));
       await acceptButton?.trigger('click');
       await flushPromises();
 
-      expect(wrapper.text()).toContain('Invitation accepted successfully');
+      expect(wrapper.text()).toContain('web.organizations.invitations.accept_success');
       // Action row must be torn down once accepted — prevents flicker during redirect delay
       expect(wrapper.find('[data-testid="accept-invitation-btn"]').exists()).toBe(false);
       expect(wrapper.find('[data-testid="decline-invitation-btn"]').exists()).toBe(false);
@@ -316,7 +282,9 @@ describe('AcceptInvite', () => {
       });
 
       const wrapper = await mountComponent();
-      const acceptButton = wrapper.findAll('button').find((b) => b.text().includes('Accept'));
+      const acceptButton = wrapper
+        .findAll('button')
+        .find((b) => b.text().includes('web.organizations.invitations.accept_invitation'));
       await acceptButton?.trigger('click');
       await flushPromises();
 
@@ -346,11 +314,13 @@ describe('AcceptInvite', () => {
       axiosMock.onPost('/api/invite/test-token-123/decline').reply(200, {});
 
       const wrapper = await mountComponent();
-      const declineButton = wrapper.findAll('button').find((b) => b.text().includes('Decline'));
+      const declineButton = wrapper
+        .findAll('button')
+        .find((b) => b.text().includes('web.organizations.invitations.decline_invitation'));
       await declineButton?.trigger('click');
       await flushPromises();
 
-      expect(wrapper.text()).toContain('Invitation declined');
+      expect(wrapper.text()).toContain('web.organizations.invitations.decline_success');
       // Action row must be torn down once declined — prevents flicker during redirect delay
       expect(wrapper.find('[data-testid="accept-invitation-btn"]').exists()).toBe(false);
       expect(wrapper.find('[data-testid="decline-invitation-btn"]').exists()).toBe(false);
@@ -366,7 +336,9 @@ describe('AcceptInvite', () => {
       });
 
       const wrapper = await mountComponent();
-      const declineButton = wrapper.findAll('button').find((b) => b.text().includes('Decline'));
+      const declineButton = wrapper
+        .findAll('button')
+        .find((b) => b.text().includes('web.organizations.invitations.decline_invitation'));
       await declineButton?.trigger('click');
       await flushPromises();
 
@@ -395,7 +367,7 @@ describe('AcceptInvite', () => {
 
       const wrapper = await mountComponent();
 
-      expect(wrapper.find('h1').text()).toContain('Invitation Details');
+      expect(wrapper.find('h1').text()).toContain('web.organizations.invitations.invitation_details');
     });
 
     it('has proper container styling', async () => {

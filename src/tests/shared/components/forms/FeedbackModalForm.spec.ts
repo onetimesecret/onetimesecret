@@ -9,8 +9,8 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { createTestingPinia } from '@pinia/testing';
+import { createTestI18n } from '@tests/setup';
 import FeedbackModalForm from '@/shared/components/forms/FeedbackModalForm.vue';
 import { nextTick } from 'vue';
 
@@ -29,41 +29,7 @@ vi.mock('@vueuse/core', () => ({
   useMediaQuery: () => ({ value: true }),
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        COMMON: {
-          feedback_text: 'Enter your feedback...',
-          button_send_feedback: 'Send Feedback',
-          enter: 'Enter',
-          mac: 'Mac',
-          enter_0: 'Cmd+Enter',
-          ctrl_enter: 'Ctrl+Enter',
-        },
-        LABELS: {
-          feedback_received: 'Feedback received',
-          sending_ellipses: 'Sending...',
-        },
-        feedback: {
-          your_feedback: 'Your feedback',
-          send_feedback: 'Send Feedback',
-          enter_your_feedback: 'Enter your feedback',
-          when_you_submit_feedback_well_see: "When you submit feedback, we'll see:",
-        },
-        account: {
-          customer_id: 'Customer ID',
-          timezone: 'Timezone',
-        },
-        site: {
-          website_version: 'Version',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 describe('FeedbackModalForm', () => {
   let wrapper: VueWrapper;
@@ -135,8 +101,8 @@ describe('FeedbackModalForm', () => {
       await nextTick();
 
       const html = wrapper.html();
-      // Should show customer ID line with email value
-      expect(html).toContain('Customer ID');
+      // Should show customer ID line with email value (pass-through i18n: raw key)
+      expect(html).toContain('web.account.customer_id');
       expect(html).toContain(authenticatedCustomer.email);
     });
 
@@ -149,7 +115,8 @@ describe('FeedbackModalForm', () => {
 
       const html = wrapper.html();
       // Should NOT show customer ID line - the <li> with customer info should be hidden
-      expect(html).not.toContain('Customer ID');
+      // (pass-through i18n: raw key)
+      expect(html).not.toContain('web.account.customer_id');
       // Email should not appear (it's null anyway, but the line should be hidden)
       expect(html).not.toContain('test@example.com');
     });
@@ -162,8 +129,8 @@ describe('FeedbackModalForm', () => {
       await nextTick();
 
       const html = wrapper.html();
-      // Should NOT show customer ID line
-      expect(html).not.toContain('Customer ID');
+      // Should NOT show customer ID line (pass-through i18n: raw key)
+      expect(html).not.toContain('web.account.customer_id');
     });
   });
 
@@ -176,7 +143,7 @@ describe('FeedbackModalForm', () => {
       await nextTick();
 
       const html = wrapper.html();
-      expect(html).toContain('Timezone');
+      expect(html).toContain('web.account.timezone');
     });
 
     it('displays timezone for anonymous users', async () => {
@@ -187,7 +154,7 @@ describe('FeedbackModalForm', () => {
       await nextTick();
 
       const html = wrapper.html();
-      expect(html).toContain('Timezone');
+      expect(html).toContain('web.account.timezone');
     });
 
     it('displays version for all users', async () => {
@@ -198,7 +165,7 @@ describe('FeedbackModalForm', () => {
       await nextTick();
 
       const html = wrapper.html();
-      expect(html).toContain('Version');
+      expect(html).toContain('web.site.website_version');
       expect(html).toContain('0.20.0 (test)');
     });
   });
@@ -217,8 +184,9 @@ describe('FeedbackModalForm', () => {
       await nextTick();
 
       // Should still show customer ID line since objid is present
+      // (pass-through i18n: raw key)
       const html = wrapper.html();
-      expect(html).toContain('Customer ID');
+      expect(html).toContain('web.account.customer_id');
     });
 
     it('handles customer with empty string objid as anonymous', async () => {
@@ -234,8 +202,9 @@ describe('FeedbackModalForm', () => {
       await nextTick();
 
       // Empty string is falsy, so customer ID should NOT be shown
+      // (pass-through i18n: raw key)
       const html = wrapper.html();
-      expect(html).not.toContain('Customer ID');
+      expect(html).not.toContain('web.account.customer_id');
     });
   });
 
@@ -261,7 +230,7 @@ describe('FeedbackModalForm', () => {
 
       const button = wrapper.find('button[type="submit"]');
       expect(button.exists()).toBe(true);
-      expect(button.text()).toBe('Send Feedback');
+      expect(button.text()).toBe('web.COMMON.button_send_feedback');
     });
 
     it('includes CSRF token in form', async () => {

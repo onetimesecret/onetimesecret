@@ -13,7 +13,7 @@
 import { mount, VueWrapper, flushPromises } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
-import { createI18n } from 'vue-i18n';
+import { createTestI18n } from '@tests/setup';
 import DomainEmailConfigForm from '@/apps/workspace/components/domains/DomainEmailConfigForm.vue';
 import type { EmailConfigFormState } from '@/shared/composables/useEmailConfig';
 
@@ -41,46 +41,7 @@ vi.mock('@/shared/components/forms/BasicFormAlerts.vue', () => ({
 // i18n setup
 // ─────────────────────────────────────────────────────────────────────────────
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        domains: {
-          enabled: 'Enabled',
-          are_you_sure_you_want_to_remove_this_domain: 'Are you sure you want to remove this configuration?',
-          email: {
-            from_name_label: 'From Name',
-            from_name_placeholder: 'Acme Corp',
-            from_address_label: 'From Address',
-            from_address_placeholder: "noreply{'@'}example.com",
-            reply_to_label: 'Reply-To Address',
-            reply_to_placeholder: "support{'@'}example.com",
-            config_description: 'When enabled, this domain uses its own email sender',
-            discard_changes: 'Discard Changes',
-            save_changes: 'Save Changes',
-            disabled_notice: 'Email sending is currently disabled. Enable the feature to configure email settings.',
-            test_email_title: 'Test email delivery',
-            test_email_hint: 'Send a test email to yourself using the saved configuration.',
-            send_test: 'Send test',
-            test_email_sent: 'Test email sent successfully',
-            test_email_failed: 'Failed to send test email',
-            test_email_sent_to: 'Sent to {email}',
-            delivered_via: 'Delivered via {provider}',
-          },
-        },
-        COMMON: {
-          remove: 'Remove',
-          yes_delete: 'Yes, delete',
-          word_cancel: 'Cancel',
-          saving: 'Saving...',
-          processing: 'Processing...',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Test Fixtures
@@ -135,8 +96,7 @@ describe('DomainEmailConfigForm', () => {
     error: string;
     displayDomain: string;
     flexibleFromDomain: boolean;
-  }> = {}) => {
-    return mount(DomainEmailConfigForm, {
+  }> = {}) => mount(DomainEmailConfigForm, {
       props: {
         formState: props.formState ?? emptyFormState,
         isConfigured: props.isConfigured ?? false,
@@ -155,7 +115,6 @@ describe('DomainEmailConfigForm', () => {
         plugins: [i18n, pinia],
       },
     });
-  };
 
   // ─────────────────────────────────────────────────────────────────────────
   // Sender identity fields
@@ -255,7 +214,7 @@ describe('DomainEmailConfigForm', () => {
       });
 
       const buttons = wrapper.findAll('button[type="button"]');
-      const discardButton = buttons.find((b) => b.text().includes('Discard Changes'));
+      const discardButton = buttons.find((b) => b.text().includes('web.domains.email.discard_changes'));
       expect(discardButton).toBeDefined();
 
       await discardButton!.trigger('click');
@@ -271,14 +230,14 @@ describe('DomainEmailConfigForm', () => {
 
       // Click remove button to show confirmation
       const buttons = wrapper.findAll('button[type="button"]');
-      const removeButton = buttons.find((b) => b.text().includes('Remove'));
+      const removeButton = buttons.find((b) => b.text().includes('web.COMMON.remove'));
       expect(removeButton).toBeDefined();
       await removeButton!.trigger('click');
       await flushPromises();
 
       // Click confirm delete button
       const confirmButtons = wrapper.findAll('button[type="button"]');
-      const confirmButton = confirmButtons.find((b) => b.text().includes('Yes, delete'));
+      const confirmButton = confirmButtons.find((b) => b.text().includes('web.COMMON.yes_delete'));
       expect(confirmButton).toBeDefined();
       await confirmButton!.trigger('click');
       await flushPromises();
@@ -430,7 +389,7 @@ describe('DomainEmailConfigForm', () => {
       });
 
       const saveButton = wrapper.find('button[type="submit"]');
-      expect(saveButton.text()).toContain('Saving...');
+      expect(saveButton.text()).toContain('web.COMMON.saving');
     });
 
     it('save button shows default text when not saving', () => {
@@ -440,7 +399,7 @@ describe('DomainEmailConfigForm', () => {
       });
 
       const saveButton = wrapper.find('button[type="submit"]');
-      expect(saveButton.text()).toContain('Save Changes');
+      expect(saveButton.text()).toContain('web.domains.email.save_changes');
     });
 
     it('discard button is hidden when no unsaved changes', () => {
@@ -450,7 +409,7 @@ describe('DomainEmailConfigForm', () => {
       });
 
       const buttons = wrapper.findAll('button[type="button"]');
-      const discardButton = buttons.find((b) => b.text().includes('Discard Changes'));
+      const discardButton = buttons.find((b) => b.text().includes('web.domains.email.discard_changes'));
       expect(discardButton).toBeUndefined();
     });
 
@@ -461,7 +420,7 @@ describe('DomainEmailConfigForm', () => {
       });
 
       const buttons = wrapper.findAll('button[type="button"]');
-      const discardButton = buttons.find((b) => b.text().includes('Discard Changes'));
+      const discardButton = buttons.find((b) => b.text().includes('web.domains.email.discard_changes'));
       expect(discardButton).toBeDefined();
     });
 
@@ -472,7 +431,7 @@ describe('DomainEmailConfigForm', () => {
       });
 
       const buttons = wrapper.findAll('button[type="button"]');
-      const removeButton = buttons.find((b) => b.text().includes('Remove'));
+      const removeButton = buttons.find((b) => b.text().includes('web.COMMON.remove'));
       expect(removeButton).toBeUndefined();
     });
 
@@ -483,7 +442,7 @@ describe('DomainEmailConfigForm', () => {
       });
 
       const buttons = wrapper.findAll('button[type="button"]');
-      const removeButton = buttons.find((b) => b.text().includes('Remove'));
+      const removeButton = buttons.find((b) => b.text().includes('web.COMMON.remove'));
       expect(removeButton).toBeDefined();
     });
   });
@@ -500,11 +459,11 @@ describe('DomainEmailConfigForm', () => {
       });
 
       const buttons = wrapper.findAll('button[type="button"]');
-      const removeButton = buttons.find((b) => b.text().includes('Remove'));
+      const removeButton = buttons.find((b) => b.text().includes('web.COMMON.remove'));
       await removeButton!.trigger('click');
       await flushPromises();
 
-      expect(wrapper.text()).toContain('Are you sure you want to remove this configuration?');
+      expect(wrapper.text()).toContain('web.domains.are_you_sure_you_want_to_remove_this_domain');
     });
 
     it('shows cancel button in confirmation state', async () => {
@@ -514,11 +473,11 @@ describe('DomainEmailConfigForm', () => {
       });
 
       const buttons = wrapper.findAll('button[type="button"]');
-      const removeButton = buttons.find((b) => b.text().includes('Remove'));
+      const removeButton = buttons.find((b) => b.text().includes('web.COMMON.remove'));
       await removeButton!.trigger('click');
       await flushPromises();
 
-      const cancelButton = wrapper.findAll('button[type="button"]').find((b) => b.text().includes('Cancel'));
+      const cancelButton = wrapper.findAll('button[type="button"]').find((b) => b.text().includes('web.COMMON.word_cancel'));
       expect(cancelButton).toBeDefined();
     });
 
@@ -530,16 +489,16 @@ describe('DomainEmailConfigForm', () => {
 
       // Show confirmation
       const buttons = wrapper.findAll('button[type="button"]');
-      const removeButton = buttons.find((b) => b.text().includes('Remove'));
+      const removeButton = buttons.find((b) => b.text().includes('web.COMMON.remove'));
       await removeButton!.trigger('click');
       await flushPromises();
 
       // Click cancel
-      const cancelButton = wrapper.findAll('button[type="button"]').find((b) => b.text().includes('Cancel'));
+      const cancelButton = wrapper.findAll('button[type="button"]').find((b) => b.text().includes('web.COMMON.word_cancel'));
       await cancelButton!.trigger('click');
       await flushPromises();
 
-      expect(wrapper.text()).not.toContain('Are you sure you want to remove this configuration?');
+      expect(wrapper.text()).not.toContain('web.domains.are_you_sure_you_want_to_remove_this_domain');
     });
   });
 
@@ -784,7 +743,7 @@ describe('DomainEmailConfigForm', () => {
 
       const emitted = wrapper.emitted('update:formState');
       expect(emitted).toBeTruthy();
-      // Find the emission that contains from_address (may not be the first if other fields emit too)
+      // Find the emission with from_address (may not be first if other fields emit)
       const lastEmission = emitted![emitted!.length - 1][0] as EmailConfigFormState;
       expect(lastEmission.from_address).toBe('support@example.com');
     });

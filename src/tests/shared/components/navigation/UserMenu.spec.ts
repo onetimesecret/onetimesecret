@@ -2,8 +2,8 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { createTestingPinia } from '@pinia/testing';
+import { createTestI18n } from '@tests/setup';
 import UserMenu from '@/shared/components/navigation/UserMenu.vue';
 import { nextTick, ref } from 'vue';
 
@@ -128,51 +128,7 @@ vi.mock('@/shared/stores/identityStore', () => ({
   }),
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        MENU: {
-          dashboard: 'Dashboard',
-          account: 'Account',
-          billing: 'Billing',
-          colonel: 'Colonel',
-          logout: 'Logout',
-          mfaVerification: 'MFA Verification',
-        },
-        TITLES: {
-          dashboard: 'Dashboard',
-          recent: 'Recent',
-          account: 'Account',
-          help: 'Help',
-          feedback: 'Feedback',
-        },
-        COMMON: {
-          header_logout: 'Logout',
-          user_menu: 'User menu',
-        },
-        navigation: {
-          billing: 'Billing',
-        },
-        colonel: {
-          admin: 'Colonel',
-          previewPlanMode: 'Test Plan Mode',
-        },
-        auth: {
-          complete_mfa_verification: 'Complete MFA Verification',
-          mfa_required: 'MFA Required',
-          mfa_verification_required: 'MFA verification required',
-        },
-        layout: {
-          toggle_dark_mode: 'Toggle dark mode',
-          switch_to_blank_mode: 'Switch to {0} mode',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 describe('UserMenu', () => {
   let wrapper: VueWrapper;
@@ -635,7 +591,7 @@ describe('UserMenu', () => {
         wrapper = mountComponent({ colonel: true });
         const menuTexts = await getVisibleMenuItemTexts();
 
-        expectMenuContains(menuTexts, ['test plan']);
+        expectMenuContains(menuTexts, ['web.colonel.previewPlanMode']);
       });
     });
 
@@ -659,7 +615,7 @@ describe('UserMenu', () => {
         wrapper = mountComponent({ colonel: true });
         const menuTexts = await getVisibleMenuItemTexts();
 
-        expectMenuContains(menuTexts, ['test plan']);
+        expectMenuContains(menuTexts, ['web.colonel.previewPlanMode']);
       });
     });
 

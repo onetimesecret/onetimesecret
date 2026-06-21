@@ -2,9 +2,9 @@
 
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { defineComponent, h, nextTick } from 'vue';
 import { setupTestPinia } from '@/tests/setup';
+import { createTestI18n } from '@tests/setup';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
 import { authenticatedBootstrap } from '@/tests/fixtures/bootstrap.fixture';
@@ -38,15 +38,7 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
   }),
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  // Fall back to the key path so tests can match on stable identifiers
-  // (e.g. assertions check `data-tab-to` rather than label text).
-  missingWarn: false,
-  fallbackWarn: false,
-  messages: { en: {} },
-});
+const i18n = createTestI18n();
 
 interface MountedLayout {
   wrapper: VueWrapper;

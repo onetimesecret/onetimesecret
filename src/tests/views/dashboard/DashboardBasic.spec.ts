@@ -2,8 +2,8 @@
 
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { createTestingPinia } from '@pinia/testing';
+import { createTestI18n } from '@tests/setup';
 import DashboardBasic from '@/apps/workspace/dashboard/DashboardBasic.vue';
 
 // Mock components
@@ -21,21 +21,14 @@ vi.mock('@/apps/secret/components/RecentSecretsTable.vue', () => ({
   },
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {},
-  },
-});
+const i18n = createTestI18n();
 
 describe('DashboardBasic', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  const mountComponent = (custOverrides = {}, billingEnabled = true) => {
-    return mount(DashboardBasic, {
+  const mountComponent = (custOverrides = {}, billingEnabled = true) => mount(DashboardBasic, {
       global: {
         plugins: [
           i18n,
@@ -54,7 +47,6 @@ describe('DashboardBasic', () => {
         ],
       },
     });
-  };
 
   describe('Rendering', () => {
     it('renders SecretForm component', () => {

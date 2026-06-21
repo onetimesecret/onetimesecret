@@ -2,11 +2,11 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { createTestingPinia } from '@pinia/testing';
 import { nextTick } from 'vue';
 import CautionZone from '@/apps/workspace/account/settings/CautionZone.vue';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { createTestI18n } from '@tests/setup';
 
 // Mock vue-router
 vi.mock('vue-router', () => ({
@@ -45,29 +45,7 @@ vi.mock('@/apps/workspace/components/account/AccountDeleteButtonWithModalForm.vu
   },
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        COMMON: {
-          caution_zone: 'Caution Zone',
-        },
-        auth: {
-          close_account: {
-            title: 'Close Account',
-          },
-        },
-        settings: {
-          delete_account: {
-            permanently_delete_your_account: 'Permanently delete your account and all of its data.',
-          },
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 /**
  * CautionZone Component Tests
@@ -142,7 +120,7 @@ describe('CautionZone', () => {
         extid: 'ur1a2b3c4d',
       });
 
-      expect(wrapper.text()).toContain('Caution Zone');
+      expect(wrapper.text()).toContain('web.COMMON.caution_zone');
     });
 
     it('displays close account title', () => {
@@ -151,7 +129,7 @@ describe('CautionZone', () => {
         extid: 'ur1a2b3c4d',
       });
 
-      expect(wrapper.text()).toContain('Close Account');
+      expect(wrapper.text()).toContain('web.auth.close_account.title');
     });
 
     it('displays account deletion description', () => {
@@ -160,7 +138,7 @@ describe('CautionZone', () => {
         extid: 'ur1a2b3c4d',
       });
 
-      expect(wrapper.text()).toContain('Permanently delete your account');
+      expect(wrapper.text()).toContain('web.settings.delete_account.permanently_delete_your_account');
     });
   });
 
@@ -242,8 +220,8 @@ describe('CautionZone', () => {
 
       await nextTick();
 
-      expect(wrapper.text()).toContain('Caution Zone');
-      expect(wrapper.text()).toContain('Close Account');
+      expect(wrapper.text()).toContain('web.COMMON.caution_zone');
+      expect(wrapper.text()).toContain('web.auth.close_account.title');
     });
   });
 

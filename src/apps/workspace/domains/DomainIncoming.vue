@@ -54,7 +54,14 @@ const organization = computed(() =>
   organizations.value.find((o) => o.extid === props.orgid) ?? null
 );
 const { can } = useEntitlements(organization);
-const canManageIncoming = computed(() => can(ENTITLEMENTS.INCOMING_SECRETS));
+// Plan entitlement: does org subscription include incoming secrets?
+const hasIncomingEntitlement = computed(() => can(ENTITLEMENTS.INCOMING_SECRETS));
+// Role capability: does user have permission to manage org settings?
+const hasManageOrgCapability = computed(() => can(ENTITLEMENTS.MANAGE_ORG));
+// Both required to configure
+const canManageIncoming = computed(
+  () => hasManageOrgCapability.value && hasIncomingEntitlement.value
+);
 const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
 const incomingSecretsEnabled = computed(() => isOrgsIncomingSecretsEnabled());
 
@@ -188,9 +195,36 @@ watch(() => props.extid, async () => {
         </p>
       </div>
 
-      <!-- Access Denied / Upgrade Banner -->
+      <!-- Upgrade Required: org plan lacks incoming_secrets entitlement -->
       <div
-        v-else-if="!canManageIncoming"
+        v-else-if="!hasIncomingEntitlement"
+        class="rounded-lg border border-gray-200 bg-white p-8 text-center dark:border-gray-700 dark:bg-gray-800">
+        <OIcon
+          collection="heroicons"
+          name="sparkles"
+          class="mx-auto size-12 text-gray-400"
+          aria-hidden="true" />
+        <h3 class="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
+          {{ t('incoming.upgrade_required_title') }}
+        </h3>
+        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.domains.incoming.upgrade_to_configure') }}
+        </p>
+        <RouterLink
+          :to="billingRoute"
+          class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
+          {{ t('web.billing.invoices.view_plans') }}
+          <OIcon
+            collection="heroicons"
+            name="arrow-right"
+            class="size-4"
+            aria-hidden="true" />
+        </RouterLink>
+      </div>
+
+      <!-- Access Denied: user lacks manage_org capability (has plan, but not owner) -->
+      <div
+        v-else-if="!hasManageOrgCapability"
         class="rounded-lg border border-gray-200 bg-white p-8 text-center dark:border-gray-700 dark:bg-gray-800">
         <OIcon
           collection="heroicons"
@@ -203,16 +237,6 @@ watch(() => props.extid, async () => {
         <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
           {{ t('web.domains.incoming.access_denied_description') }}
         </p>
-        <RouterLink
-          :to="billingRoute"
-          class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
-          {{ t('web.domains.incoming.upgrade_to_configure') }}
-          <OIcon
-            collection="heroicons"
-            name="arrow-right"
-            class="size-4"
-            aria-hidden="true" />
-        </RouterLink>
       </div>
 
       <!-- Incoming Secrets Configuration Form -->

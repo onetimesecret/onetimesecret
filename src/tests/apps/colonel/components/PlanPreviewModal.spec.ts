@@ -2,10 +2,10 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { createTestingPinia } from '@pinia/testing';
 import PlanPreviewModal from '@/shared/components/modals/PlanPreviewModal.vue';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
+import { createTestI18n } from '@tests/setup';
 import { nextTick } from 'vue';
 
 // Mock HeadlessUI components
@@ -69,29 +69,7 @@ const defaultPlansResponse = {
   },
 };
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        colonel: {
-          previewPlanMode: 'Test Plan Mode',
-          previewModeDescription: 'Temporarily override your plan to test features',
-          currentActualPlan: 'Current Actual Plan',
-          previewModeActive: 'Test Mode Active',
-          testingAsPlan: 'Testing as {planName}',
-          availablePlans: 'Available Plans',
-          resetToActual: 'Reset to Actual Plan',
-        },
-        COMMON: {
-          processing: 'Processing...',
-          word_cancel: 'Cancel',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 describe('PlanPreviewModal', () => {
   let wrapper: VueWrapper;
@@ -183,7 +161,7 @@ describe('PlanPreviewModal', () => {
 
     it('renders modal title from i18n', async () => {
       wrapper = await mountComponent();
-      expect(wrapper.text()).toContain('Test Plan Mode');
+      expect(wrapper.text()).toContain('web.colonel.previewPlanMode');
     });
   });
 
@@ -194,7 +172,7 @@ describe('PlanPreviewModal', () => {
         entitlement_preview_plan_name: 'Identity Plus',
       });
 
-      expect(wrapper.text()).toContain('Test Mode Active');
+      expect(wrapper.text()).toContain('web.colonel.previewModeActive');
     });
 
     it('shows current test plan name when testing', async () => {
@@ -211,7 +189,7 @@ describe('PlanPreviewModal', () => {
         entitlement_preview_planid: null,
       });
 
-      expect(wrapper.text()).not.toContain('Test Mode Active');
+      expect(wrapper.text()).not.toContain('web.colonel.previewModeActive');
     });
 
     it('shows reset button when test mode is active', async () => {
@@ -220,7 +198,7 @@ describe('PlanPreviewModal', () => {
       });
 
       const resetButton = wrapper.findAll('button').find(
-        btn => btn.text().includes('Reset to Actual Plan')
+        btn => btn.text().includes('web.colonel.resetToActual')
       );
 
       expect(resetButton?.exists()).toBe(true);
@@ -232,7 +210,7 @@ describe('PlanPreviewModal', () => {
       });
 
       const resetButton = wrapper.findAll('button').find(
-        btn => btn.text().includes('Reset to Actual Plan')
+        btn => btn.text().includes('web.colonel.resetToActual')
       );
 
       expect(resetButton).toBeUndefined();
@@ -279,7 +257,7 @@ describe('PlanPreviewModal', () => {
       });
 
       const resetButton = wrapper.findAll('button').find(
-        btn => btn.text().includes('Reset to Actual Plan')
+        btn => btn.text().includes('web.colonel.resetToActual')
       );
 
       expect(resetButton?.exists()).toBe(true);
@@ -356,7 +334,7 @@ describe('PlanPreviewModal', () => {
       const orgStore = useOrganizationStore();
 
       const resetButton = wrapper.findAll('button').find(
-        btn => btn.text().includes('Reset to Actual Plan')
+        btn => btn.text().includes('web.colonel.resetToActual')
       );
       await resetButton!.trigger('click');
       await nextTick();
@@ -402,7 +380,7 @@ describe('PlanPreviewModal', () => {
       wrapper = await mountComponent();
 
       const cancelButton = wrapper.findAll('button').find(
-        btn => btn.text().includes('Cancel')
+        btn => btn.text().includes('web.COMMON.word_cancel')
       );
 
       expect(cancelButton?.exists()).toBe(true);
@@ -429,7 +407,7 @@ describe('PlanPreviewModal', () => {
 
       // Try to close
       const cancelButton = wrapper.findAll('button').find(
-        btn => btn.text().includes('Cancel')
+        btn => btn.text().includes('web.COMMON.word_cancel')
       );
       await cancelButton!.trigger('click');
 

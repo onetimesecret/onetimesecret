@@ -12,42 +12,14 @@
 
 import { mount } from '@vue/test-utils';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
+import { createTestI18n } from '@tests/setup';
 import { createTestingPinia } from '@pinia/testing';
 import { createRouter, createMemoryHistory } from 'vue-router';
 import SecretReceiptTableItem from '@/apps/secret/components/SecretReceiptTableItem.vue';
 import type { ReceiptList } from '@/schemas/shapes/v3/receipt';
 
-// Minimal i18n setup
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        STATUS: {
-          expired: 'Expired',
-          burned: 'Burned',
-          revealed: 'Revealed',
-          previewed: 'Previewed',
-          new: 'New',
-        },
-        LABELS: {
-          encrypted: 'Encrypted',
-          passphrase_protected: 'Passphrase protected',
-          copy_to_clipboard: 'Copy to clipboard',
-        },
-        COMMON: {
-          view_secret: 'View secret',
-          burn: 'Burn',
-        },
-        receipt: {
-          view_receipt: 'View receipt',
-        },
-      },
-    },
-  },
-});
+// Minimal i18n setup (pass-through: keys render as-is per ADR-014)
+const i18n = createTestI18n();
 
 // Minimal router
 const router = createRouter({
@@ -144,7 +116,7 @@ describe('SecretReceiptTableItem', () => {
       const wrapper = mountComponent(receipt);
       const statusLabel = wrapper.find('.font-semibold.tracking-wide');
 
-      expect(statusLabel.text()).toBe('BURNED');
+      expect(statusLabel.text()).toBe('WEB.STATUS.BURNED');
       expect(statusLabel.classes()).toContain('text-red-600');
     });
 
@@ -157,7 +129,7 @@ describe('SecretReceiptTableItem', () => {
       const wrapper = mountComponent(receipt);
       const statusLabel = wrapper.find('.font-semibold.tracking-wide');
 
-      expect(statusLabel.text()).toBe('BURNED');
+      expect(statusLabel.text()).toBe('WEB.STATUS.BURNED');
     });
 
     it('shows BURNED when is_burned=true and is_destroyed=true', () => {
@@ -169,7 +141,7 @@ describe('SecretReceiptTableItem', () => {
       const wrapper = mountComponent(receipt);
       const statusLabel = wrapper.find('.font-semibold.tracking-wide');
 
-      expect(statusLabel.text()).toBe('BURNED');
+      expect(statusLabel.text()).toBe('WEB.STATUS.BURNED');
     });
 
     it('shows EXPIRED when is_expired=true but is_burned=false', () => {
@@ -181,7 +153,7 @@ describe('SecretReceiptTableItem', () => {
       const wrapper = mountComponent(receipt);
       const statusLabel = wrapper.find('.font-semibold.tracking-wide');
 
-      expect(statusLabel.text()).toBe('EXPIRED');
+      expect(statusLabel.text()).toBe('WEB.STATUS.EXPIRED');
     });
 
     it('shows EXPIRED when secret_ttl=0 and is_burned=false', () => {
@@ -193,7 +165,7 @@ describe('SecretReceiptTableItem', () => {
       const wrapper = mountComponent(receipt);
       const statusLabel = wrapper.find('.font-semibold.tracking-wide');
 
-      expect(statusLabel.text()).toBe('EXPIRED');
+      expect(statusLabel.text()).toBe('WEB.STATUS.EXPIRED');
     });
 
     it('shows EXPIRED when is_destroyed=true but is_burned=false', () => {
@@ -205,7 +177,7 @@ describe('SecretReceiptTableItem', () => {
       const wrapper = mountComponent(receipt);
       const statusLabel = wrapper.find('.font-semibold.tracking-wide');
 
-      expect(statusLabel.text()).toBe('EXPIRED');
+      expect(statusLabel.text()).toBe('WEB.STATUS.EXPIRED');
     });
 
     it('shows REVEALED when is_revealed=true (not expired or burned)', () => {
@@ -216,7 +188,7 @@ describe('SecretReceiptTableItem', () => {
       const wrapper = mountComponent(receipt);
       const statusLabel = wrapper.find('.font-semibold.tracking-wide');
 
-      expect(statusLabel.text()).toBe('REVEALED');
+      expect(statusLabel.text()).toBe('WEB.STATUS.REVEALED');
     });
 
     it('shows REVEALED when is_revealed=true even if is_destroyed=true and secret_ttl=-1', () => {
@@ -230,7 +202,7 @@ describe('SecretReceiptTableItem', () => {
       const wrapper = mountComponent(receipt);
       const statusLabel = wrapper.find('.font-semibold.tracking-wide');
 
-      expect(statusLabel.text()).toBe('REVEALED');
+      expect(statusLabel.text()).toBe('WEB.STATUS.REVEALED');
     });
 
     it('shows REVEALED when is_revealed=true even if is_expired=true', () => {
@@ -242,7 +214,7 @@ describe('SecretReceiptTableItem', () => {
       const wrapper = mountComponent(receipt);
       const statusLabel = wrapper.find('.font-semibold.tracking-wide');
 
-      expect(statusLabel.text()).toBe('REVEALED');
+      expect(statusLabel.text()).toBe('WEB.STATUS.REVEALED');
     });
 
     it('shows PREVIEWED when is_previewed=true (not expired, burned, or revealed)', () => {
@@ -253,7 +225,7 @@ describe('SecretReceiptTableItem', () => {
       const wrapper = mountComponent(receipt);
       const statusLabel = wrapper.find('.font-semibold.tracking-wide');
 
-      expect(statusLabel.text()).toBe('PREVIEWED');
+      expect(statusLabel.text()).toBe('WEB.STATUS.PREVIEWED');
     });
 
     it('shows NEW when no state flags are set', () => {
@@ -262,7 +234,7 @@ describe('SecretReceiptTableItem', () => {
       const wrapper = mountComponent(receipt);
       const statusLabel = wrapper.find('.font-semibold.tracking-wide');
 
-      expect(statusLabel.text()).toBe('NEW');
+      expect(statusLabel.text()).toBe('WEB.STATUS.NEW');
     });
   });
 

@@ -9,12 +9,12 @@ const autoInitPlugin = () =>
         /* mock implementation */
       },
     })) as unknown as PiniaPlugin;
-import { createTestingPinia, TestingPinia } from '@pinia/testing';
-import axios, { AxiosInstance } from 'axios';
+import { createTestingPinia } from '@pinia/testing';
+import type { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import type { PiniaPluginContext } from 'pinia';
 import { PiniaPlugin, setActivePinia } from 'pinia';
-import { afterEach, beforeEach, vi } from 'vitest';
+import { vi } from 'vitest';
 import type { ComponentPublicInstance } from 'vue';
 import { createApp, h } from 'vue';
 import { createI18n } from 'vue-i18n';
@@ -39,14 +39,29 @@ interface BootstrapPayload {
 }
 
 // Mock global objects that JSDOM doesn't support
-global.fetch = vi.fn();
-global.Request = vi.fn();
-global.Response = {
+globalThis.fetch = vi.fn();
+globalThis.Request = vi.fn() as typeof Request;
+globalThis.Response = {
   error: vi.fn(),
   json: vi.fn(),
   redirect: vi.fn(),
   prototype: Response.prototype,
 } as unknown as typeof Response;
+
+/**
+ * Creates pass-through i18n instance for tests (ADR-014).
+ * Keys render as-is; no translations applied.
+ */
+export function createTestI18n() {
+  return createI18n({
+    legacy: false,
+    locale: 'en',
+    missingWarn: false,
+    fallbackWarn: false,
+    missing: (_, key) => key,
+    messages: { en: {} },
+  });
+}
 
 export function createVueWrapper() {
   const app = createApp({
@@ -55,13 +70,8 @@ export function createVueWrapper() {
     },
   });
 
-  // Setup i18n with composition API mode
-  const i18n = createI18n({
-    legacy: false,
-    locale: 'en',
-    fallbackLocale: 'en',
-    messages: { en: {} },
-  });
+  // Setup i18n with pass-through mode (ADR-014)
+  const i18n = createTestI18n();
 
   app.use(i18n);
 
@@ -121,7 +131,7 @@ export async function setupTestPinia(options: SetupTestPiniaOptions = {}): Promi
     stubActions = false,
     mockAxios = true,
     mountApp = true,
-    windowState = {}, // allow test cases to provide their own state
+    windowState: _windowState = {}, // allow test cases to provide their own state
   } = options;
 
   try {

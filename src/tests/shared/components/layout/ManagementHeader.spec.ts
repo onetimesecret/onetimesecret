@@ -2,10 +2,10 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { createTestingPinia } from '@pinia/testing';
 import ManagementHeader from '@/shared/components/layout/ManagementHeader.vue';
 import { nextTick } from 'vue';
+import { createTestI18n } from '@tests/setup';
 
 // Mock MastHead component
 vi.mock('@/shared/components/layout/MastHead.vue', () => ({
@@ -27,19 +27,7 @@ vi.mock('@/shared/components/navigation/ImprovedPrimaryNav.vue', () => ({
 }));
 
 // Mock i18n
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        layout: {
-          main_navigation: 'Main Navigation',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 describe('ManagementHeader', () => {
   let wrapper: VueWrapper;

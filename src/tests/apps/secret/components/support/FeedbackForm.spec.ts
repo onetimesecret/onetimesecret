@@ -9,8 +9,8 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { createTestingPinia } from '@pinia/testing';
+import { createTestI18n } from '@tests/setup';
 import FeedbackForm from '@/apps/secret/components/support/FeedbackForm.vue';
 import { nextTick } from 'vue';
 
@@ -24,38 +24,7 @@ vi.mock('@/shared/composables/useFormSubmission', () => ({
   }),
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        COMMON: {
-          feedback_text: 'Enter your feedback...',
-          button_send_feedback: 'Send Feedback',
-        },
-        LABELS: {
-          feedback_received: 'Feedback received',
-          sending_ellipses: 'Sending...',
-        },
-        feedback: {
-          your_feedback: 'Your feedback',
-          send_feedback: 'Send Feedback',
-          when_you_submit_feedback_well_see: "When you submit feedback, we'll see:",
-          reason_email_change_unauthorized: 'Email change unauthorized',
-          sending_ellipses: 'Sending...',
-        },
-        account: {
-          customer_id: 'Customer ID',
-          timezone: 'Timezone',
-        },
-        site: {
-          website_version: 'Version',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 describe('FeedbackForm', () => {
   let wrapper: VueWrapper;
@@ -128,7 +97,8 @@ describe('FeedbackForm', () => {
 
       const html = wrapper.html();
       // Should show customer ID line with email value (changed from extid to email in #2761)
-      expect(html).toContain('Customer ID');
+      // Pass-through i18n renders the raw key (ADR-014)
+      expect(html).toContain('web.account.customer_id');
       expect(html).toContain(authenticatedCustomer.email);
     });
 
@@ -168,7 +138,7 @@ describe('FeedbackForm', () => {
       await nextTick();
 
       const html = wrapper.html();
-      expect(html).toContain('Timezone');
+      expect(html).toContain('web.account.timezone');
     });
 
     it('displays timezone for anonymous users', async () => {
@@ -179,7 +149,7 @@ describe('FeedbackForm', () => {
       await nextTick();
 
       const html = wrapper.html();
-      expect(html).toContain('Timezone');
+      expect(html).toContain('web.account.timezone');
     });
 
     it('displays version for all users', async () => {
@@ -190,7 +160,7 @@ describe('FeedbackForm', () => {
       await nextTick();
 
       const html = wrapper.html();
-      expect(html).toContain('Version');
+      expect(html).toContain('web.site.website_version');
       expect(html).toContain('0.20.0 (test)');
     });
   });

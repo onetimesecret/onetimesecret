@@ -11,7 +11,7 @@ import ColorPicker from '@/shared/components/common/ColorPicker.vue';
 import { mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';
-import { createI18n } from 'vue-i18n';
+import { createTestI18n } from '@tests/setup';
 
 // Stub vue-color pickers so we can drive `update:modelValue` from tests.
 // Each picker accepts a modelValue prop and re-emits when we trigger.
@@ -40,19 +40,7 @@ vi.mock('@/shared/components/common/HoverTooltip.vue', () => ({
   },
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        branding: {
-          color_picker: 'Color Picker',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 describe('ColorPicker', () => {
   let wrapper: VueWrapper;
