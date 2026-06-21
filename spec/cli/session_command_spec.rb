@@ -16,9 +16,10 @@ RSpec.describe 'Session Command', type: :cli do
     }
   end
 
-  before do
-    allow(Marshal).to receive(:load).and_return(session_data)
-  end
+  # Session data is stored as JSON; load_session_data parses it with
+  # JSON.parse (not Marshal.load) so crafted Redis bytes cannot trigger a
+  # deserialization gadget chain.
+  let(:serialized_session) { JSON.generate(session_data) }
 
   describe 'without subcommand' do
     it 'displays usage information' do
@@ -49,7 +50,7 @@ RSpec.describe 'Session Command', type: :cli do
 
     it 'displays session information when found' do
       allow(redis).to receive(:exists).with("session:#{session_id}").and_return(1)
-      allow(redis).to receive(:get).and_return(Marshal.dump(session_data))
+      allow(redis).to receive(:get).and_return(serialized_session)
       allow(redis).to receive(:ttl).and_return(3600)
 
       output = run_cli_command_quietly('session', 'inspect', session_id)
@@ -71,7 +72,7 @@ RSpec.describe 'Session Command', type: :cli do
     it 'lists sessions with default limit' do
       session_keys = (1..5).map { |i| "session:#{i}" }
       allow(redis).to receive(:scan_each).and_return(session_keys.each)
-      allow(redis).to receive(:get).and_return(Marshal.dump(session_data))
+      allow(redis).to receive(:get).and_return(serialized_session)
 
       output = run_cli_command_quietly('session', 'list')
       expect(output[:stdout]).to include('Active Sessions')
@@ -80,7 +81,7 @@ RSpec.describe 'Session Command', type: :cli do
     it 'respects --limit option' do
       session_keys = (1..30).map { |i| "session:#{i}" }
       allow(redis).to receive(:scan_each).and_return(session_keys.each)
-      allow(redis).to receive(:get).and_return(Marshal.dump(session_data))
+      allow(redis).to receive(:get).and_return(serialized_session)
 
       output = run_cli_command_quietly('session', 'list', '--limit', '5')
       expect(output[:stdout]).to include('Active Sessions (limit: 5)')
@@ -95,7 +96,7 @@ RSpec.describe 'Session Command', type: :cli do
 
     it 'searches for sessions matching email' do
       allow(redis).to receive(:scan_each).and_return(["session:#{session_id}"].each)
-      allow(redis).to receive(:get).and_return(Marshal.dump(session_data))
+      allow(redis).to receive(:get).and_return(serialized_session)
 
       output = run_cli_command_quietly('session', 'search', 'test@example.com')
       expect(output[:stdout]).to include('Searching for sessions')
@@ -118,7 +119,7 @@ RSpec.describe 'Session Command', type: :cli do
 
     it 'prompts for confirmation without --force' do
       allow(redis).to receive(:exists).and_return(1)
-      allow(redis).to receive(:get).and_return(Marshal.dump(session_data))
+      allow(redis).to receive(:get).and_return(serialized_session)
       allow($stdin).to receive(:gets).and_return("n\n")
 
       output = run_cli_command_quietly('session', 'delete', session_id)
@@ -128,7 +129,7 @@ RSpec.describe 'Session Command', type: :cli do
 
     it 'deletes session with --force flag' do
       allow(redis).to receive(:exists).and_return(1)
-      allow(redis).to receive(:get).and_return(Marshal.dump(session_data))
+      allow(redis).to receive(:get).and_return(serialized_session)
       expect(redis).to receive(:del).with("session:#{session_id}")
 
       output = run_cli_command_quietly('session', 'delete', session_id, '--force')

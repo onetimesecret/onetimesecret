@@ -269,7 +269,13 @@ module Onetime
 
     def load_yaml_with_erb(path)
       parsed_template = ERB.new(File.read(path))
-      YAML.load(parsed_template.result) || {}
+      # Use safe_load so a malicious config file cannot instantiate arbitrary
+      # Ruby objects (!ruby/object). Symbol is permitted because config keys
+      # and values use symbols; dates must be quoted (loaded as strings),
+      # consistent with the rest of the codebase's YAML loaders. aliases: true
+      # keeps anchors/aliases working, matching the config validator
+      # (operations/config/validate.rb) so a config that validates also boots.
+      YAML.safe_load(parsed_template.result, permitted_classes: [Symbol], aliases: true) || {}
     end
     private :load_yaml_with_erb
 
@@ -558,39 +564,23 @@ module Onetime
       obj.freeze
     end
 
-    # Creates a complete deep copy of a configuration hash using Marshal
-    # dump and load. This ensures all nested objects are properly duplicated,
-    # preventing unintended sharing of references that could lead to data
-    # corruption if modified.
+    # Creates a complete deep copy of a configuration hash, preventing
+    # unintended sharing of references that could let a mutation of one clone
+    # corrupt another component's view of the config.
+    #
+    # Delegates to Onetime::Utils::Enumerables.deep_clone, the single hardened
+    # implementation: a YAML.safe_load(YAML.dump(...)) round-trip that permits
+    # only plain data types (no arbitrary Ruby objects). Config comes from
+    # trusted local files, so we opt out of the serialized-size gate (max_size)
+    # to preserve this path's historical unrestricted behavior for large
+    # deployment configs.
     #
     # @param config_hash [Hash] The configuration hash to be cloned
     # @return [Hash] A deep copy of the original configuration hash
-    # @raise [OT::Problem] When Marshal serialization fails due to unserializable objects
+    # @raise [OT::Problem] When serialization fails
     # @security Prevents configuration mutations from affecting multiple components
-    #
-    # @limitations
-    #   This method has significant limitations due to its reliance on Marshal:
-    #   - Cannot clone objects with singleton methods, procs, lambdas, or IO objects
-    #   - Will fail when encountering objects that implement custom _dump methods without _load
-    #   - Loses any non-serializable attributes from complex objects
-    #   - May not preserve class/module references across different Ruby processes
-    #   - Thread-safety issues may arise with concurrent serialization operations
-    #   - Performance can degrade with deeply nested or large object structures
-    #
-    #   Consider using a recursive approach for specialized object cloning when
-    #   dealing with configuration containing custom objects, procs, or other
-    #   non-serializable elements. For critical security contexts, validate that
-    #   all configuration elements are serializable before using this method.
-    #
     def deep_clone(config_hash)
-      # Previously used Marshal here. But in Ruby 3.1 it died cryptically with
-      # a singleton error. It seems like it's related to gibbler but since we
-      # know we only expect a regular hash here without any methods, procs
-      # etc, we use YAML instead to accomplish the same thing (JSON is
-      # another option but it turns all the symbol keys into strings).
-      YAML.load(YAML.dump(config_hash))
-    rescue TypeError => ex
-      raise OT::Problem, "[deep_clone] #{ex.message}"
+      Onetime::Utils::Enumerables.deep_clone(config_hash, max_size: Float::INFINITY)
     end
 
     # Applies default values to its config level peers
