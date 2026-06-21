@@ -1,0 +1,192 @@
+# Resolved-artifact freshness + hash gate (translation-rules SPEC.md §2.4).
+#
+# The vendored artifacts — locales/.resolved/<locale>.json (machine governance)
+# and locales/guides/for-translators/<locale>.md (human guide) — are COMMITTED to this
+# repo (SPEC §2.3 "Output commit policy"), not CI-generated-only. That commit
+# is exactly what this gate exists to police: it proves the committed artifacts
+# are (a) pinned to a known translation-rules commit and (b) byte-identical to
+# what that commit's resolver emits. Hand edits to a generated file — the
+# "bypass by direct edit" failure §2.4 is built to stop — are rejected here.
+#
+# SCOPE: resolver-managed locales ONLY. A locale is in scope iff this repo has a
+# vendored locales/.resolved/<locale>.json. We deliberately do NOT hash-gate the
+# whole locales/guides/for-translators/ tree: most guides there are
+# hand-authored prose (Phase 2 not yet migrated, SPEC §7) and would fail a
+# resolver-output comparison. The .resolved/<locale>.json file is the
+# "this locale is resolver-governed" signal — the same role register.yaml plays
+# upstream in validate-register.yml.
+#
+# PINNED_RULES_REF is bumped DELIBERATELY — same protocol as validate-register.yml's
+# `ref:` and yq pins — whenever translation-rules adds or changes a governed
+# locale and the vendored artifacts here are regenerated. It MUST equal the
+# translation-rules commit the committed artifacts were generated from (it is
+# asserted against each .resolved/<locale>.json's _meta.source_commit below);
+# bumping it without re-running locales/scripts/sync-resolved.sh against that
+# same commit will (correctly) fail the gate.
+
+name: resolved-freshness
+
+on:
+  pull_request:
+    paths:
+      - 'locales/.resolved/**'
+      - 'locales/guides/for-translators/**'
+      - 'locales/content/**'
+      # Re-run when the gate's own pin is bumped — otherwise a bad bump merges
+      # unvalidated and fails the next unrelated PR (same reasoning as
+      # validate-register.yml).
+      - '.github/workflows/resolved-freshness.yml'
+  push:
+    branches: [main, develop]
+    paths:
+      - 'locales/.resolved/**'
+      - 'locales/guides/for-translators/**'
+      - 'locales/content/**'
+      - '.github/workflows/resolved-freshness.yml'
+
+permissions:
+  contents: read
+
+env:
+  # translation-rules commit the vendored artifacts were generated from.
+  # Placeholder = validate-register.yml's current ref (translation-rules main as
+  # of 2026-06-11). BUMP DELIBERATELY, as a reviewable diff, to the commit
+  # locales/scripts/sync-resolved.sh was last run against — and regenerate the
+  # vendored artifacts in the same PR. This value is asserted to equal every
+  # .resolved/<locale>.json's _meta.source_commit.
+  PINNED_RULES_REF: 374f5c38639a4a4183e523614d212cc9d2e5ee21
+
+jobs:
+  resolved-freshness:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout app repo
+        uses: actions/checkout@v4
+
+      - name: Checkout translation-rules (authority, read-only, pinned)
+        uses: actions/checkout@v4
+        with:
+          repository: onetimesecret/translation-rules
+          # Pinned to a SHA — not a moving branch — so the gate is reproducible.
+          # Bump deliberately (see PINNED_RULES_REF comment above), same as the
+          # validate-register.yml ref/yq pins.
+          ref: ${{ env.PINNED_RULES_REF }}
+          path: .translation-rules
+
+      - name: Install uv (pinned)
+        # The resolver is uv-managed; `uv run` auto-syncs deps from the inline
+        # script metadata / lockfile. Pin the installer action, bump deliberately.
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.5.18"
+
+      - name: Install jq (for _meta.source_commit assertions)
+        run: |
+          set -euo pipefail
+          if ! command -v jq >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y jq
+          fi
+          jq --version
+
+      - name: Freshness + hash gate (resolver-managed locales only)
+        env:
+          PINNED_RULES_REF: ${{ env.PINNED_RULES_REF }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+
+          rules=.translation-rules
+          app_locales="$(pwd)/locales"
+          resolved_dir="${app_locales}/.resolved"
+
+          # The pinned checkout must actually be at PINNED_RULES_REF, else every
+          # source_commit assertion below is meaningless.
+          actual_ref="$(git -C "$rules" rev-parse HEAD)"
+          if [ "$actual_ref" != "$PINNED_RULES_REF" ]; then
+            echo "::error::translation-rules checkout is at ${actual_ref}, expected PINNED_RULES_REF=${PINNED_RULES_REF}"
+            exit 1
+          fi
+
+          if [ ! -d "$resolved_dir" ]; then
+            echo "::notice::no locales/.resolved/ dir — nothing vendored yet; gate scanned nothing"
+            exit 0
+          fi
+
+          fail=0
+          checked=0
+
+          # SCOPE: iterate the VENDORED .resolved/<locale>.json files only. This
+          # is what restricts the gate to resolver-managed locales and keeps it
+          # off the hand-authored for-translators guides.
+          for resolved_json in "$resolved_dir"/*.json; do
+            locale="$(basename "$resolved_json" .json)"
+            echo "::group::freshness ${locale}"
+            checked=$((checked + 1))
+
+            # The committed locale must still be governed upstream at the pinned
+            # ref; otherwise we cannot regenerate it to compare.
+            if [ ! -f "${rules}/locales/${locale}/register.yaml" ]; then
+              echo "::error::${locale}: vendored .resolved present but locale is not governed (no register.yaml) at PINNED_RULES_REF — stale vendor or wrong pin"
+              fail=1
+              echo "::endgroup::"
+              continue
+            fi
+
+            # (a) source_commit pin equality.
+            src="$(jq -r '._meta.source_commit // empty' "$resolved_json")"
+            if [ -z "$src" ]; then
+              echo "::error::${locale}: .resolved/${locale}.json has no _meta.source_commit"
+              fail=1
+            elif [ "$src" != "$PINNED_RULES_REF" ]; then
+              echo "::error::${locale}: _meta.source_commit=${src} != PINNED_RULES_REF=${PINNED_RULES_REF} — vendored artifact is stale (re-run locales/scripts/sync-resolved.sh)"
+              fail=1
+            else
+              echo "${locale}: source_commit pin OK (${src})"
+            fi
+
+            # (b) byte-for-byte hash match: regenerate to a throwaway dir and
+            # diff against the committed artifacts. Any hand edit fails here.
+            tmp_emit="$(mktemp -d)"
+            index_tmp="$(mktemp)"
+            (
+              cd "$rules" && \
+              uv run resolver/resolve.py "$locale" \
+                --lint \
+                --emit=md,json \
+                --emit-dir "$tmp_emit" \
+                --source-commit "$PINNED_RULES_REF" \
+                --index-path "$index_tmp"
+            )
+            rm -f "$index_tmp"
+
+            # JSON artifact: committed locales/.resolved/<locale>.json
+            if ! diff -u "$resolved_json" "${tmp_emit}/.resolved/${locale}.json"; then
+              echo "::error::${locale}: committed .resolved/${locale}.json differs from resolver output at PINNED_RULES_REF — hand edit or stale vendor; re-run locales/scripts/sync-resolved.sh"
+              fail=1
+            fi
+
+            # Markdown artifact: committed at locales/guides/for-translators/<locale>.md
+            # (SPEC §2.3). The resolver emits <emit-dir>/guides/for-translators/<locale>.md
+            # and sync-resolved.sh passes --emit-dir <app>/locales, so the committed
+            # guide and the freshly regenerated one share that subpath.
+            committed_md="${app_locales}/guides/for-translators/${locale}.md"
+            if [ ! -f "$committed_md" ]; then
+              echo "::error::${locale}: vendored .resolved present but committed guide ${committed_md#"$(pwd)/"} is missing — re-run locales/scripts/sync-resolved.sh"
+              fail=1
+            elif ! diff -u "$committed_md" "${tmp_emit}/guides/for-translators/${locale}.md"; then
+              echo "::error::${locale}: committed guides/for-translators/${locale}.md differs from resolver output at PINNED_RULES_REF — hand edit or stale vendor; re-run locales/scripts/sync-resolved.sh"
+              fail=1
+            fi
+
+            rm -rf "$tmp_emit"
+            echo "::endgroup::"
+          done
+
+          if [ "$checked" -eq 0 ]; then
+            echo "::notice::no vendored .resolved/<locale>.json files — gate scanned nothing"
+            exit 0
+          fi
+
+          echo "resolved-freshness: checked ${checked} resolver-managed locale(s) against ${PINNED_RULES_REF}"
+          exit "$fail"
