@@ -152,7 +152,7 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Nếu email liên hệ thanh toán khác với email tài khoản {product_name}, hãy sử dụng email liên hệ thanh toán cho tài khoản khu vực mới để duy trì quyền lợi đăng ký.",
+    "text": "Nếu email liên hệ thanh toán của bạn khác với email tài khoản {product_name}, hãy sử dụng email liên hệ thanh toán cho tài khoản khu vực mới để duy trì các quyền lợi đăng ký của bạn.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
@@ -186,5 +186,8 @@
   "web.regions.jurisdictions.apac.name": {
     "text": "Asia-Pacific",
     "source_hash": "7a757670"
+  },
+  "web.regions.no_region_configured": {
+    "text": "Hiện không có thông tin khu vực cho tài khoản của bạn."
   }
 }

@@ -22,5 +22,14 @@
   "web.dashboard.fetch_error_description": {
     "text": "Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử lại.",
     "source_hash": "ff0d904e"
+  },
+  "web.teams.create_first_team_title": {
+    "text": "Tạo nhóm đầu tiên của bạn"
+  },
+  "web.teams.create_first_team_description": {
+    "text": "Nhóm cho phép bạn cộng tác với những người khác trong một không gian làm việc chung."
+  },
+  "web.teams.create_team": {
+    "text": "Tạo nhóm"
   }
 }

@@ -988,5 +988,47 @@
     "text": "Chỉ khả dụng trong khu vực đăng ký ban đầu",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Bạn đã đăng ký gói này rồi."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Kích hoạt lại đăng ký"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "Đăng ký của bạn đã được kích hoạt lại. Bạn sẽ tiếp tục bị tính phí như bình thường."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "Không thể kích hoạt lại đăng ký. Vui lòng thử lại hoặc liên hệ bộ phận hỗ trợ."
+  },
+  "web.billing.features.manage_orgs": {
+    "text": "Quản lý tổ chức"
+  },
+  "web.billing.features.flexible_from_domain": {
+    "text": "Tên miền người gửi email linh hoạt"
+  },
+  "web.billing.features.unlimited_admins": {
+    "text": "Quản trị viên không giới hạn"
+  },
+  "web.billing.features.manage_sso": {
+    "text": "SSO"
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Tên miền người gửi email linh hoạt"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "Quản lý tổ chức"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Đăng nhập một lần (SSO)"
+  },
+  "web.billing.overview.entitlements.manage_billing": {
+    "text": "Quản lý thanh toán"
+  },
+  "web.billing.overview.entitlements.custom_signup_validation": {
+    "text": "Xác thực đăng ký tùy chỉnh"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Kích hoạt lại"
   }
 }
