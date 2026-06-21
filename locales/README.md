@@ -93,6 +93,13 @@ Run `/d:review-locale-branches` to:
 2. Launch parallel code-reviewer agents by language family
 3. Consolidate findings for triage
 
+#### Review vs Retrospective
+
+Review = raw observation. Prose, no schema, human/agent-authored, lives in BASE_REVIEW_PATH/reviews/<date>/LOCALE.md. Answers "what did we see?". Can be per locale or cross-locale (e.g. GROUP_NAME.md, with the locales listed in the content).
+
+Retrospective = the decision a finding drives. Schema'd frontmatter, lifecycle-tracked (pending→applied), lives in BASE_RETRO_PATH/retrospectives/. Answers "what rule changes because of it, and is it done?"
+
+
 ## Translation Workflow
 
 Prep (once, after English source changes)
