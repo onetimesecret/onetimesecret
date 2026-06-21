@@ -98,6 +98,27 @@ git add locales/content/eo/ locales/db/*.sql
 git commit -m "[#2319] Add eo translations from session"
 ```
 
+### 8. Create branches for review (bulk workflow)
+
+After exporting multiple locales, create isolated branches for independent review:
+
+```bash
+# Preview (default)
+locales/scripts/branch-per-locale.sh --changed
+
+# Execute
+locales/scripts/branch-per-locale.sh --changed --execute
+```
+
+Creates `i18n/update-{locale}` branches off develop. Each branch contains only one locale's changes.
+
+### 9. Review branches
+
+Run `/d:review-locale-branches` to orchestrate parallel code-reviewer agents grouped by language family. The workflow:
+1. Automated variable validation (catches mechanical issues)
+2. Agent review by family (linguistic/quality checks)
+3. Triage and fix critical findings before merge
+
 ## Parallel / Agent-Driven Sessions
 
 When draining many locales at once (e.g. via `/d:translate-parallel-agents` or
