@@ -1,0 +1,71 @@
+{
+  "api.entitlements.errors.context_unavailable": {
+    "text": "Δεν είναι δυνατή η επαλήθευση των δικαιωμάτων (μη διαθέσιμο πλαίσιο οργανισμού)"
+  },
+  "api.entitlements.errors.api_access_required": {
+    "text": "Η πρόσβαση στο API απαιτεί αναβάθμιση προγράμματος"
+  },
+  "api.entitlements.errors.custom_privacy_defaults_required": {
+    "text": "Οι προσαρμοσμένες προεπιλογές απορρήτου απαιτούν αναβάθμιση προγράμματος"
+  },
+  "api.entitlements.errors.extended_default_expiration_required": {
+    "text": "Η εκτεταμένη προεπιλεγμένη λήξη απαιτεί αναβάθμιση προγράμματος"
+  },
+  "api.entitlements.errors.custom_domains_required": {
+    "text": "Οι προσαρμοσμένοι τομείς απαιτούν αναβάθμιση προγράμματος"
+  },
+  "api.entitlements.errors.custom_branding_required": {
+    "text": "Η προσαρμοσμένη επωνυμία απαιτεί αναβάθμιση προγράμματος"
+  },
+  "api.entitlements.errors.homepage_secrets_required": {
+    "text": "Τα μυστικά αρχικής σελίδας απαιτούν αναβάθμιση προγράμματος"
+  },
+  "api.entitlements.errors.incoming_secrets_required": {
+    "text": "Τα εισερχόμενα μυστικά απαιτούν αναβάθμιση προγράμματος"
+  },
+  "api.entitlements.errors.custom_mail_sender_required": {
+    "text": "Ο προσαρμοσμένος αποστολέας αλληλογραφίας απαιτεί αναβάθμιση προγράμματος"
+  },
+  "api.entitlements.errors.flexible_from_domain_required": {
+    "text": "Ο ευέλικτος τομέας αποστολής απαιτεί αναβάθμιση προγράμματος"
+  },
+  "api.entitlements.errors.manage_org_required": {
+    "text": "Η διαχείριση οργανισμού απαιτεί αναβάθμιση προγράμματος"
+  },
+  "api.entitlements.errors.manage_teams_required": {
+    "text": "Η διαχείριση ομάδων απαιτεί αναβάθμιση προγράμματος"
+  },
+  "api.entitlements.errors.manage_members_required": {
+    "text": "Η διαχείριση μελών απαιτεί αναβάθμιση προγράμματος"
+  },
+  "api.entitlements.errors.manage_sso_required": {
+    "text": "Η διαχείριση SSO απαιτεί αναβάθμιση προγράμματος"
+  },
+  "api.entitlements.errors.audit_logs_required": {
+    "text": "Τα αρχεία ελέγχου απαιτούν αναβάθμιση προγράμματος"
+  },
+  "api.entitlements.errors.custom_signup_validation_required": {
+    "text": "Η προσαρμοσμένη επικύρωση εγγραφής απαιτεί αναβάθμιση προγράμματος"
+  },
+  "api.entitlements.errors.create_secrets_required": {
+    "text": "Η δημιουργία μυστικών απαιτεί αναβάθμιση προγράμματος"
+  },
+  "api.entitlements.errors.view_receipt_required": {
+    "text": "Η προβολή αποδείξεων απαιτεί αναβάθμιση προγράμματος"
+  },
+  "api.entitlements.errors.notifications_required": {
+    "text": "Οι ειδοποιήσεις απαιτούν αναβάθμιση προγράμματος"
+  },
+  "api.entitlements.errors.workspace_branding_required": {
+    "text": "Η επωνυμία χώρου εργασίας απαιτεί αναβάθμιση προγράμματος"
+  },
+  "api.entitlements.errors.ip_access_rules_required": {
+    "text": "Οι κανόνες πρόσβασης IP απαιτούν αναβάθμιση προγράμματος"
+  },
+  "api.entitlements.errors.manage_billing_required": {
+    "text": "Η διαχείριση χρέωσης απαιτεί αναβάθμιση προγράμματος"
+  },
+  "api.entitlements.errors.custom_signin_config_required": {
+    "text": "Η προσαρμοσμένη διαμόρφωση σύνδεσης απαιτεί αναβάθμιση προγράμματος"
+  }
+}
