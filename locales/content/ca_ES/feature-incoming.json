@@ -130,5 +130,26 @@
   "incoming.receipt_link_text": {
     "text": "rebut",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Cal millorar el pla"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Aquesta funció requereix una millora del pla. Si us plau, contacta amb el propietari del compte per habilitar els secrets entrants."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "La nota ha de tenir {max} caràcters o menys"
+  },
+  "incoming.validation_secret_required": {
+    "text": "El contingut del secret és obligatori"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Si us plau, selecciona un destinatari"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "La funció de secrets entrants no està habilitada"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Si us plau, comprova si hi ha errors al formulari"
   }
 }

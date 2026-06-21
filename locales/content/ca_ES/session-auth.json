@@ -395,5 +395,35 @@
   "web.help.contact_support": {
     "text": "Contactar amb el suport",
     "source_hash": "f8d47b82"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "Compte SSO"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Email verification flow after signup"
+  },
+  "web.help.reset_password_link": {
+    "text": "Restableix la contrasenya"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "L'inici de sessió únic està disponible per a aquest domini"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "L'administrador de l'organització pot activar l'SSO per permetre que els membres de l'equip iniciïn la sessió aquí. Contacta amb l'administrador per obtenir accés."
+  },
+  "web.login.signin_disabled_heading": {
+    "text": "L'inici de sessió no està disponible"
+  },
+  "web.login.signin_disabled_message": {
+    "text": "Actualment, l'inici de sessió no està disponible en aquest domini."
+  },
+  "web.login.errors.sso_not_configured": {
+    "text": "L'inici de sessió únic no està configurat per a aquest domini. Si us plau, contacta amb el teu administrador."
+  },
+  "web.login.errors.invalid_email": {
+    "text": "L'adreça de correu electrònic del teu proveïdor d'identitat no és vàlida. Si us plau, contacta amb el teu administrador."
+  },
+  "web.login.errors.domain_not_allowed": {
+    "text": "El domini del teu correu electrònic no està autoritzat per al registre amb SSO. Si us plau, contacta amb el teu administrador."
   }
 }
