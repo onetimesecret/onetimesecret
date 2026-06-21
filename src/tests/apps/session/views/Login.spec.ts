@@ -114,7 +114,7 @@ describe('Login.vue auth_error handling', () => {
 
       const alert = wrapper.find('[role="alert"]');
       expect(alert.exists()).toBe(true);
-      expect(alert.text()).toContain('expired');
+      expect(alert.text()).toContain('web.login.errors.token_expired');
     });
 
     it('displays token missing error', async () => {
@@ -123,7 +123,7 @@ describe('Login.vue auth_error handling', () => {
 
       const alert = wrapper.find('[role="alert"]');
       expect(alert.exists()).toBe(true);
-      expect(alert.text()).toContain('missing');
+      expect(alert.text()).toContain('web.login.errors.token_missing');
     });
 
     it('displays token invalid error', async () => {
@@ -132,7 +132,7 @@ describe('Login.vue auth_error handling', () => {
 
       const alert = wrapper.find('[role="alert"]');
       expect(alert.exists()).toBe(true);
-      expect(alert.text()).toContain('invalid');
+      expect(alert.text()).toContain('web.login.errors.token_invalid');
     });
 
     it('displays invalid_email error from SSO (issue #3478)', async () => {

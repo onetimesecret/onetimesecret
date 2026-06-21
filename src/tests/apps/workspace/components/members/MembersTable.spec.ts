@@ -196,8 +196,8 @@ describe('MembersTable', () => {
     it('hides header section in compact mode', () => {
       mountComponent({ compact: true });
 
-      expect(wrapper.text()).not.toContain('Team Members');
-      expect(wrapper.text()).not.toContain('Manage your team members');
+      expect(wrapper.text()).not.toContain('web.organizations.members.title');
+      expect(wrapper.text()).not.toContain('web.organizations.members.description');
     });
 
     it('applies container styling in full mode', () => {
