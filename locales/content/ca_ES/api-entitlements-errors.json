@@ -1,0 +1,71 @@
+{
+  "api.entitlements.errors.context_unavailable": {
+    "text": "No s'han pogut verificar els drets (context de l'organització no disponible)"
+  },
+  "api.entitlements.errors.api_access_required": {
+    "text": "L'accés a l'API requereix una millora del pla"
+  },
+  "api.entitlements.errors.custom_privacy_defaults_required": {
+    "text": "Els valors predeterminats de privadesa personalitzats requereixen una millora del pla"
+  },
+  "api.entitlements.errors.extended_default_expiration_required": {
+    "text": "L'expiració predeterminada ampliada requereix una millora del pla"
+  },
+  "api.entitlements.errors.custom_domains_required": {
+    "text": "Els dominis personalitzats requereixen una millora del pla"
+  },
+  "api.entitlements.errors.custom_branding_required": {
+    "text": "La marca personalitzada requereix una millora del pla"
+  },
+  "api.entitlements.errors.homepage_secrets_required": {
+    "text": "Els secrets a la pàgina d'inici requereixen una millora del pla"
+  },
+  "api.entitlements.errors.incoming_secrets_required": {
+    "text": "Els secrets entrants requereixen una millora del pla"
+  },
+  "api.entitlements.errors.custom_mail_sender_required": {
+    "text": "El remitent de correu personalitzat requereix una millora del pla"
+  },
+  "api.entitlements.errors.flexible_from_domain_required": {
+    "text": "El domini de remitent flexible requereix una millora del pla"
+  },
+  "api.entitlements.errors.manage_org_required": {
+    "text": "La gestió d'organitzacions requereix una millora del pla"
+  },
+  "api.entitlements.errors.manage_teams_required": {
+    "text": "La gestió d'equips requereix una millora del pla"
+  },
+  "api.entitlements.errors.manage_members_required": {
+    "text": "La gestió de membres requereix una millora del pla"
+  },
+  "api.entitlements.errors.manage_sso_required": {
+    "text": "La gestió de l'SSO requereix una millora del pla"
+  },
+  "api.entitlements.errors.audit_logs_required": {
+    "text": "Els registres d'auditoria requereixen una millora del pla"
+  },
+  "api.entitlements.errors.custom_signup_validation_required": {
+    "text": "La validació de registre personalitzada requereix una millora del pla"
+  },
+  "api.entitlements.errors.create_secrets_required": {
+    "text": "Crear secrets requereix una millora del pla"
+  },
+  "api.entitlements.errors.view_receipt_required": {
+    "text": "Veure rebuts requereix una millora del pla"
+  },
+  "api.entitlements.errors.notifications_required": {
+    "text": "Les notificacions requereixen una millora del pla"
+  },
+  "api.entitlements.errors.workspace_branding_required": {
+    "text": "La marca de l'espai de treball requereix una millora del pla"
+  },
+  "api.entitlements.errors.ip_access_rules_required": {
+    "text": "Les regles d'accés per IP requereixen una millora del pla"
+  },
+  "api.entitlements.errors.manage_billing_required": {
+    "text": "La gestió de la facturació requereix una millora del pla"
+  },
+  "api.entitlements.errors.custom_signin_config_required": {
+    "text": "La configuració d'inici de sessió personalitzada requereix una millora del pla"
+  }
+}
