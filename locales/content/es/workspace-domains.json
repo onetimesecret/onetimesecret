@@ -846,5 +846,389 @@
   "web.domains.sso.not_configured_notice": {
     "text": "El SSO aún no está configurado para este dominio. Habilita el inicio de sesión único para permitir que los miembros del equipo se autentiquen usando el proveedor de identidad de tu organización.",
     "source_hash": "c439214b"
+  },
+  "api.domains.errors.add_admin_required": {
+    "text": "Solo los propietarios y administradores de la organización pueden añadir dominios personalizados"
+  },
+  "web.domains.public_homepage": {
+    "text": "Página de inicio pública"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Dominio verificado y activo"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS no configurado — haz clic para corregir"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Dominio no verificado — haz clic para verificar"
+  },
+  "web.domains.status_tooltip_unverified": {
+    "text": "Estado del dominio sin verificar — haz clic para actualizar"
+  },
+  "web.domains.last_check_failed": {
+    "text": "La última comprobación de verificación falló"
+  },
+  "web.domains.last_check_failed_ago": {
+    "text": "última comprobación fallida {0}"
+  },
+  "web.domains.verify_now": {
+    "text": "Verificar ahora"
+  },
+  "web.domains.click_to_verify": {
+    "text": "haz clic para verificar"
+  },
+  "web.domains.remove_domain_description": {
+    "text": "Elimina permanentemente este dominio y toda su configuración."
+  },
+  "web.domains.add_access_denied": {
+    "text": "Acceso denegado"
+  },
+  "web.domains.add_access_denied_description": {
+    "text": "No tienes permiso para añadir dominios a esta organización. Contacta con el administrador de tu organización."
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "No se pudo cargar el widget de DNS"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "El widget de DNS no está disponible"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "No se pudo inicializar el widget de DNS"
+  },
+  "web.domains.verified": {
+    "text": "Verificado"
+  },
+  "web.domains.pending_verification": {
+    "text": "Pendiente de verificación"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Tienes cambios sin guardar. ¿Seguro que quieres salir?"
+  },
+  "web.domains.entitlement_required_owner": {
+    "text": "Esta función requiere mejorar el plan."
+  },
+  "web.domains.entitlement_required_member": {
+    "text": "Esta función no está disponible en tu plan actual. Contacta con el propietario de tu organización."
+  },
+  "web.domains.detail.manage": {
+    "text": "Gestionar"
+  },
+  "web.domains.detail.features": {
+    "text": "Funciones"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Secretos en la página de inicio"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Permite el acceso público para crear secretos en la página de inicio de tu dominio"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logotipo, colores y marca personalizada"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Configuración del proveedor de inicio de sesión único (SSO)"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Configuración personalizada del remitente de correo electrónico"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Configuración de destinatarios de secretos entrantes"
+  },
+  "web.domains.detail.signup_description": {
+    "text": "Estrategia de validación de registro por dominio"
+  },
+  "web.domains.detail.signin_description": {
+    "text": "Configuración del método de inicio de sesión por dominio"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Proveedor"
+  },
+  "web.domains.email.test_email_title": {
+    "text": "Probar la entrega de correo"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Envíate un correo de prueba a ti mismo con la configuración guardada. Funciona incluso cuando la función aún no está habilitada."
+  },
+  "web.domains.email.send_test": {
+    "text": "Enviar prueba"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Correo de prueba enviado correctamente"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "No se pudo enviar el correo de prueba"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Enviado a {email}"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Entregado mediante {provider}"
+  },
+  "web.domains.incoming.feature_disabled": {
+    "text": "Secretos entrantes no disponibles"
+  },
+  "web.domains.incoming.feature_disabled_description": {
+    "text": "Los secretos entrantes no están habilitados en esta instancia. Contacta con tu administrador."
+  },
+  "web.domains.signin.title": {
+    "text": "Configuración de inicio de sesión"
+  },
+  "web.domains.signin.configure_signin": {
+    "text": "Configurar inicio de sesión"
+  },
+  "web.domains.signin.config_description": {
+    "text": "Configura los métodos de autenticación para iniciar sesión en este dominio"
+  },
+  "web.domains.signin.access_denied": {
+    "text": "Acceso denegado"
+  },
+  "web.domains.signin.upgrade_to_configure": {
+    "text": "Mejora tu plan para configurar los métodos de inicio de sesión de este dominio."
+  },
+  "web.domains.signin.not_configured_notice": {
+    "text": "Todavía no se ha establecido la configuración de inicio de sesión para este dominio. Configura las anulaciones para controlar qué métodos de autenticación están disponibles en la página de inicio de sesión de este dominio."
+  },
+  "web.domains.signin.signin_enabled_label": {
+    "text": "Inicio de sesión habilitado"
+  },
+  "web.domains.signin.header_toggle_label": {
+    "text": "Inicio de sesión"
+  },
+  "web.domains.signin.signin_enabled_hint": {
+    "text": "Si los usuarios pueden iniciar sesión en este dominio"
+  },
+  "web.domains.signin.restrict_to_label": {
+    "text": "Restringir el método de inicio de sesión"
+  },
+  "web.domains.signin.restrict_to_hint": {
+    "text": "Restringe este dominio a un único método de autenticación. Cuando se establece, solo se muestra el método elegido en la página de inicio de sesión."
+  },
+  "web.domains.signin.all_methods": {
+    "text": "Todos los métodos"
+  },
+  "web.domains.signin.all_methods_description": {
+    "text": "Mostrar todos los métodos de autenticación habilitados en la página de inicio de sesión"
+  },
+  "web.domains.signin.method_password": {
+    "text": "Contraseña"
+  },
+  "web.domains.signin.method_email_auth": {
+    "text": "Autenticación por correo electrónico"
+  },
+  "web.domains.signin.method_webauthn": {
+    "text": "WebAuthn / claves de acceso"
+  },
+  "web.domains.signin.method_sso": {
+    "text": "Single Sign-On"
+  },
+  "web.domains.signin.method_overrides_label": {
+    "text": "Anulaciones de método"
+  },
+  "web.domains.signin.method_overrides_hint": {
+    "text": "Habilita o deshabilita métodos de autenticación individuales para este dominio"
+  },
+  "web.domains.signin.mode_question": {
+    "text": "¿Cómo pueden iniciar sesión los usuarios?"
+  },
+  "web.domains.signin.mode_any": {
+    "text": "Cualquier método disponible"
+  },
+  "web.domains.signin.mode_any_hint": {
+    "text": "Muestra todos los métodos disponibles en este dominio. Limita los métodos individuales a continuación."
+  },
+  "web.domains.signin.mode_one": {
+    "text": "Un método específico"
+  },
+  "web.domains.signin.mode_one_hint": {
+    "text": "Restringe la página de inicio de sesión a un único método. Solo se enumeran los métodos disponibles en este dominio."
+  },
+  "web.domains.signin.mode_disabled": {
+    "text": "Inicio de sesión deshabilitado"
+  },
+  "web.domains.signin.mode_disabled_hint": {
+    "text": "Los usuarios no pueden iniciar sesión en este dominio."
+  },
+  "web.domains.signin.mode_disabled_notice": {
+    "text": "Los visitantes de la página de inicio de sesión de este dominio ven un aviso de que el inicio de sesión no está disponible, con un enlace de vuelta a la página de inicio. Tu configuración de métodos anterior se conserva y se restaura cuando vuelves a habilitar el inicio de sesión."
+  },
+  "web.domains.signin.methods_list_label": {
+    "text": "Métodos que se muestran en la página de inicio de sesión"
+  },
+  "web.domains.signin.restrict_picker_hint": {
+    "text": "Solo se enumeran los métodos disponibles en este dominio."
+  },
+  "web.domains.signin.availability_always": {
+    "text": "Siempre disponible"
+  },
+  "web.domains.signin.availability_global_on": {
+    "text": "Sigue la política global · Activado"
+  },
+  "web.domains.signin.availability_global_off": {
+    "text": "No disponible"
+  },
+  "web.domains.signin.availability_unavailable": {
+    "text": "No disponible en todo el sitio"
+  },
+  "web.domains.signin.allow_on_domain": {
+    "text": "Permitir en este dominio"
+  },
+  "web.domains.signin.method_password_blurb": {
+    "text": "Solo contraseña"
+  },
+  "web.domains.signin.method_email_auth_blurb": {
+    "text": "Inicio de sesión con enlace mágico sin contraseña"
+  },
+  "web.domains.signin.method_webauthn_blurb": {
+    "text": "Datos biométricos y llaves de seguridad"
+  },
+  "web.domains.signin.method_sso_blurb": {
+    "text": "Proveedor de identidad externo"
+  },
+  "web.domains.signin.email_auth_label": {
+    "text": "Autenticación por correo electrónico"
+  },
+  "web.domains.signin.email_auth_hint": {
+    "text": "Permitir la autenticación por correo electrónico sin contraseña en este dominio"
+  },
+  "web.domains.signin.sso_enabled_label": {
+    "text": "Single Sign-On"
+  },
+  "web.domains.signin.sso_enabled_hint": {
+    "text": "Permitir la autenticación SSO en este dominio"
+  },
+  "web.domains.signin.enabled_label": {
+    "text": "Habilitar la configuración de inicio de sesión"
+  },
+  "web.domains.signin.enabled_hint": {
+    "text": "Cuando está habilitada, este dominio utiliza la configuración de inicio de sesión definida arriba"
+  },
+  "web.domains.signin.save_config": {
+    "text": "Guardar configuración"
+  },
+  "web.domains.signin.update_success": {
+    "text": "La configuración de inicio de sesión se actualizó correctamente"
+  },
+  "web.domains.signin.reset_to_defaults": {
+    "text": "Restablecer los valores predeterminados"
+  },
+  "web.domains.signin.reset_confirm": {
+    "text": "¿Restablecer el inicio de sesión a los valores predeterminados globales?"
+  },
+  "web.domains.signin.reset_keeps_sso": {
+    "text": "Tus credenciales de SSO se conservan. Elimínalas por separado en la pantalla de configuración de SSO."
+  },
+  "web.domains.signin.reset_action": {
+    "text": "Sí, restablecer"
+  },
+  "web.domains.signin.reset_success": {
+    "text": "La configuración de inicio de sesión se restableció a los valores predeterminados globales"
+  },
+  "web.domains.signup.title": {
+    "text": "Validación de registro"
+  },
+  "web.domains.signup.config_description": {
+    "text": "Configura la validación de registro para este dominio"
+  },
+  "web.domains.signup.access_denied": {
+    "text": "Acceso denegado"
+  },
+  "web.domains.signup.upgrade_to_configure": {
+    "text": "Mejora tu plan para configurar la validación de registro por dominio."
+  },
+  "web.domains.signup.configure_signup": {
+    "text": "Configurar registro"
+  },
+  "web.domains.signup.not_configured_notice": {
+    "text": "La validación de registro aún no está configurada para este dominio. Configura una estrategia para controlar quién puede registrarse a través de este dominio."
+  },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "Los registros están actualmente deshabilitados a nivel de sitio. Esta política por dominio está configurada, pero no controlará ningún tráfico hasta que se habiliten los registros del sitio."
+  },
+  "web.domains.signup.strategy_label": {
+    "text": "Estrategia de validación"
+  },
+  "web.domains.signup.strategy_description": {
+    "text": "Elige cómo se validan las direcciones de correo electrónico cuando los usuarios se registran en este dominio."
+  },
+  "web.domains.signup.network_validation_warning": {
+    "text": "Esta estrategia realiza llamadas de red durante el registro, lo que puede añadir latencia o ser bloqueado por algunos proveedores."
+  },
+  "web.domains.signup.allowed_domains_label": {
+    "text": "Dominios de registro permitidos"
+  },
+  "web.domains.signup.allowed_domains_hint": {
+    "text": "Solo estos dominios de correo electrónico podrán registrarse. Añade un dominio por entrada."
+  },
+  "web.domains.signup.domain_placeholder": {
+    "text": "example.com"
+  },
+  "web.domains.signup.invalid_domain": {
+    "text": "Introduce un dominio válido (p. ej. example.com)"
+  },
+  "web.domains.signup.domain_exists": {
+    "text": "Este dominio ya está en la lista"
+  },
+  "web.domains.signup.remove_domain": {
+    "text": "Eliminar {domain}"
+  },
+  "web.domains.signup.enabled_label": {
+    "text": "Habilitar la validación por dominio"
+  },
+  "web.domains.signup.enabled_hint": {
+    "text": "Cuando está habilitada, los registros en este dominio utilizan la estrategia de arriba en lugar de la política global."
+  },
+  "web.domains.signup.delete_config": {
+    "text": "Eliminar configuración"
+  },
+  "web.domains.signup.delete_confirm": {
+    "text": "¿Eliminar la configuración de validación de registro? Los registros volverán a usar la política global."
+  },
+  "web.domains.signup.save_config": {
+    "text": "Guardar configuración"
+  },
+  "web.domains.signup.update_success": {
+    "text": "La validación de registro se actualizó correctamente"
+  },
+  "web.domains.signup.delete_success": {
+    "text": "La configuración de validación de registro se eliminó correctamente"
+  },
+  "web.domains.signup.domain_overrides_label": {
+    "text": "Anulaciones de dominio"
+  },
+  "web.domains.signup.domain_overrides_hint": {
+    "text": "Anula la configuración de registro global para este dominio"
+  },
+  "web.domains.signup.signup_enabled_label": {
+    "text": "Registro habilitado"
+  },
+  "web.domains.signup.signup_enabled_hint": {
+    "text": "Anula si el registro está habilitado para este dominio"
+  },
+  "web.domains.signup.autoverify_label": {
+    "text": "Verificar cuentas automáticamente"
+  },
+  "web.domains.signup.autoverify_hint": {
+    "text": "Anula si las cuentas nuevas se verifican automáticamente en este dominio"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Prueba de conexión correcta — el proveedor respondió correctamente"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "La prueba de conexión falló"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "Para exigir SSO en todos los inicios de sesión de este dominio, configúralo en los ajustes de inicio de sesión del dominio. El modo solo SSO restringe la página de inicio de sesión al proveedor de SSO configurado aquí."
+  },
+  "web.domains.sso.edit_credentials": {
+    "text": "Editar credenciales"
+  },
+  "web.domains.sso.configure_button": {
+    "text": "Configurar"
+  },
+  "web.domains.sso.upgrade_required": {
+    "text": "Mejora tu plan para configurar"
   }
 }

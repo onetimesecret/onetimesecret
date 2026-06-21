@@ -148,7 +148,7 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Estás viendo un mensaje seguro que alguien compartió contigo a través de {product_name}. Este contenido se muestra solo una vez y luego se elimina permanentemente de nuestros servidores.",
+    "text": "Estás viendo un mensaje seguro que se compartió contigo a través de {product_name}. Este contenido se muestra una sola vez y luego se elimina permanentemente de nuestros servidores.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -338,5 +338,11 @@
   "web.layout.workspace_context": {
     "text": "Contexto del espacio de trabajo",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Espacio de trabajo"
+  },
+  "web.help.default_content": {
+    "text": "Contacta con soporte para obtener ayuda"
   }
 }

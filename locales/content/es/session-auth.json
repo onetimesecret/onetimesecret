@@ -398,5 +398,32 @@
   },
   "web.auth.verify._guidance.context": {
     "text": "Flujo de verificación de correo electrónico después del registro"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "Cuenta SSO"
+  },
+  "web.help.reset_password_link": {
+    "text": "Restablecer contraseña"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "El inicio de sesión único (SSO) está disponible para este dominio"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "El administrador de la organización puede habilitar el SSO para permitir que los miembros del equipo inicien sesión aquí. Contacta con el administrador para obtener acceso."
+  },
+  "web.login.signin_disabled_heading": {
+    "text": "El inicio de sesión no está disponible"
+  },
+  "web.login.signin_disabled_message": {
+    "text": "Actualmente, el inicio de sesión no está disponible en este dominio."
+  },
+  "web.login.errors.sso_not_configured": {
+    "text": "El inicio de sesión único (SSO) no está configurado para este dominio. Contacta con tu administrador."
+  },
+  "web.login.errors.invalid_email": {
+    "text": "La dirección de correo electrónico de tu proveedor de identidad no es válida. Contacta con tu administrador."
+  },
+  "web.login.errors.domain_not_allowed": {
+    "text": "Tu dominio de correo electrónico no está autorizado para registrarse mediante SSO. Contacta con tu administrador."
   }
 }
