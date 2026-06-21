@@ -1,0 +1,71 @@
+{
+  "api.entitlements.errors.context_unavailable": {
+    "text": "Det går inte att verifiera behörigheter (organisationskontext ej tillgänglig)"
+  },
+  "api.entitlements.errors.api_access_required": {
+    "text": "API-åtkomst kräver en planuppgradering"
+  },
+  "api.entitlements.errors.custom_privacy_defaults_required": {
+    "text": "Anpassade integritetsstandarder kräver en planuppgradering"
+  },
+  "api.entitlements.errors.extended_default_expiration_required": {
+    "text": "Förlängd standardförfallotid kräver en planuppgradering"
+  },
+  "api.entitlements.errors.custom_domains_required": {
+    "text": "Anpassade domäner kräver en planuppgradering"
+  },
+  "api.entitlements.errors.custom_branding_required": {
+    "text": "Anpassad varumärkesprofilering kräver en planuppgradering"
+  },
+  "api.entitlements.errors.homepage_secrets_required": {
+    "text": "Hemligheter på startsidan kräver en planuppgradering"
+  },
+  "api.entitlements.errors.incoming_secrets_required": {
+    "text": "Inkommande hemligheter kräver en planuppgradering"
+  },
+  "api.entitlements.errors.custom_mail_sender_required": {
+    "text": "Anpassad e-postavsändare kräver en planuppgradering"
+  },
+  "api.entitlements.errors.flexible_from_domain_required": {
+    "text": "Flexibel från-domän kräver en planuppgradering"
+  },
+  "api.entitlements.errors.manage_org_required": {
+    "text": "Organisationshantering kräver en planuppgradering"
+  },
+  "api.entitlements.errors.manage_teams_required": {
+    "text": "Teamhantering kräver en planuppgradering"
+  },
+  "api.entitlements.errors.manage_members_required": {
+    "text": "Medlemshantering kräver en planuppgradering"
+  },
+  "api.entitlements.errors.manage_sso_required": {
+    "text": "SSO-hantering kräver en planuppgradering"
+  },
+  "api.entitlements.errors.audit_logs_required": {
+    "text": "Granskningsloggar kräver en planuppgradering"
+  },
+  "api.entitlements.errors.custom_signup_validation_required": {
+    "text": "Anpassad registreringsvalidering kräver en planuppgradering"
+  },
+  "api.entitlements.errors.create_secrets_required": {
+    "text": "Att skapa hemligheter kräver en planuppgradering"
+  },
+  "api.entitlements.errors.view_receipt_required": {
+    "text": "Att visa kvitton kräver en planuppgradering"
+  },
+  "api.entitlements.errors.notifications_required": {
+    "text": "Aviseringar kräver en planuppgradering"
+  },
+  "api.entitlements.errors.workspace_branding_required": {
+    "text": "Varumärkesprofilering för arbetsyta kräver en planuppgradering"
+  },
+  "api.entitlements.errors.ip_access_rules_required": {
+    "text": "IP-åtkomstregler kräver en planuppgradering"
+  },
+  "api.entitlements.errors.manage_billing_required": {
+    "text": "Faktureringshantering kräver en planuppgradering"
+  },
+  "api.entitlements.errors.custom_signin_config_required": {
+    "text": "Anpassad inloggningskonfiguration kräver en planuppgradering"
+  }
+}

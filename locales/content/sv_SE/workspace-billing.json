@@ -988,5 +988,47 @@
     "text": "Tillgänglig endast i din ursprungliga prenumerationsregion",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Du prenumererar redan på den här planen."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Återaktivera prenumeration"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "Din prenumeration har återaktiverats. Du kommer att faktureras som vanligt."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "Det gick inte att återaktivera prenumerationen. Försök igen eller kontakta supporten."
+  },
+  "web.billing.features.manage_orgs": {
+    "text": "Organisationshantering"
+  },
+  "web.billing.features.flexible_from_domain": {
+    "text": "Flexibel avsändardomän för e-post"
+  },
+  "web.billing.features.unlimited_admins": {
+    "text": "Obegränsat antal administratörer"
+  },
+  "web.billing.features.manage_sso": {
+    "text": "SSO"
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Flexibel avsändardomän för e-post"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "Hantera organisationer"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Enkel inloggning (SSO)"
+  },
+  "web.billing.overview.entitlements.manage_billing": {
+    "text": "Hantera fakturering"
+  },
+  "web.billing.overview.entitlements.custom_signup_validation": {
+    "text": "Anpassad registreringsvalidering"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Återaktivera"
   }
 }

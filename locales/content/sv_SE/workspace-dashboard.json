@@ -22,5 +22,14 @@
   "web.dashboard.fetch_error_description": {
     "text": "Det uppstod ett problem vid laddning av din data. Försök igen.",
     "source_hash": "ff0d904e"
+  },
+  "web.teams.create_first_team_title": {
+    "text": "Skapa ditt första team"
+  },
+  "web.teams.create_first_team_description": {
+    "text": "Med team kan du samarbeta med andra i en delad arbetsyta."
+  },
+  "web.teams.create_team": {
+    "text": "Skapa team"
   }
 }

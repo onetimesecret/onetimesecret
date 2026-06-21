@@ -130,5 +130,26 @@
   "incoming.receipt_link_text": {
     "text": "kvitto",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Uppgradering krävs"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Den här funktionen kräver en planuppgradering. Kontakta kontots ägare för att aktivera inkommande hemligheter."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Notisen får vara högst {max} tecken"
+  },
+  "incoming.validation_secret_required": {
+    "text": "Hemlighetens innehåll krävs"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Välj en mottagare"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "Funktionen inkommande hemligheter är inte aktiverad"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Kontrollera formuläret för fel"
   }
 }

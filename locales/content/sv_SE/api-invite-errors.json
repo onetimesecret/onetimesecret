@@ -1,0 +1,23 @@
+{
+  "api.invite.errors.invitation_not_found_or_expired": {
+    "text": "Inbjudan hittades inte eller har gått ut"
+  },
+  "api.invite.errors.token_required": {
+    "text": "Token krävs"
+  },
+  "api.invite.errors.organization_no_longer_exists": {
+    "text": "Organisationen finns inte längre"
+  },
+  "api.invite.errors.invitation_already_processed": {
+    "text": "Inbjudan har redan %{status}"
+  },
+  "api.invite.errors.invitation_expired": {
+    "text": "Inbjudan har gått ut"
+  },
+  "api.invite.errors.email_mismatch": {
+    "text": "Din e-postadress matchar inte inbjudan"
+  },
+  "api.invite.errors.already_member": {
+    "text": "Du är redan medlem i den här organisationen"
+  }
+}
