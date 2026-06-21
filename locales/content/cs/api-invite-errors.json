@@ -1,0 +1,23 @@
+{
+  "api.invite.errors.invitation_not_found_or_expired": {
+    "text": "Pozvánka nebyla nalezena nebo vypršela"
+  },
+  "api.invite.errors.token_required": {
+    "text": "Je vyžadován token"
+  },
+  "api.invite.errors.organization_no_longer_exists": {
+    "text": "Organizace již neexistuje"
+  },
+  "api.invite.errors.invitation_already_processed": {
+    "text": "Pozvánka již má stav: %{status}"
+  },
+  "api.invite.errors.invitation_expired": {
+    "text": "Platnost pozvánky vypršela"
+  },
+  "api.invite.errors.email_mismatch": {
+    "text": "Tvoje e-mailová adresa neodpovídá pozvánce"
+  },
+  "api.invite.errors.already_member": {
+    "text": "Již jsi členem této organizace"
+  }
+}

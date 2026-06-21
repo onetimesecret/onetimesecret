@@ -1,0 +1,29 @@
+{
+  "api.domains.errors.domain_id_required": {
+    "text": "Je vyžadováno ID domény"
+  },
+  "api.domains.errors.domain_not_found": {
+    "text": "Doména nenalezena: %{extid}"
+  },
+  "api.domains.errors.organization_not_found": {
+    "text": "Pro doménu nebyla nalezena organizace: %{domain}"
+  },
+  "api.domains.errors.incoming_secrets_disabled": {
+    "text": "Příchozí tajemství nejsou na této instanci povolena"
+  },
+  "api.domains.errors.incoming_secrets_entitlement_required": {
+    "text": "Správa příchozích tajemství vyžaduje oprávnění incoming_secrets. Přejdi na vyšší plán."
+  },
+  "api.domains.errors.incoming_config_not_found": {
+    "text": "Pro doménu nebyla nalezena konfigurace příchozích tajemství: %{extid}"
+  },
+  "api.domains.errors.recipients_max_exceeded": {
+    "text": "Maximální povolený počet příjemců je %{max}"
+  },
+  "api.domains.errors.recipients_invalid_email": {
+    "text": "Neplatný e-mail: %{email}"
+  },
+  "api.domains.errors.recipients_duplicate": {
+    "text": "Duplicitní e-maily příjemců nejsou povoleny"
+  }
+}

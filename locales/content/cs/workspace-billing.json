@@ -988,5 +988,47 @@
     "text": "Dostupné pouze v tvém původním regionu předplatného",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "K tomuto plánu už máš předplatné."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Znovu aktivovat předplatné"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "Tvoje předplatné bylo znovu aktivováno. Bude ti dál účtováno jako obvykle."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "Opětovná aktivace předplatného se nezdařila. Zkus to prosím znovu nebo kontaktuj podporu."
+  },
+  "web.billing.features.manage_orgs": {
+    "text": "Správa organizace"
+  },
+  "web.billing.features.flexible_from_domain": {
+    "text": "Flexibilní doména odesílatele e-mailů"
+  },
+  "web.billing.features.unlimited_admins": {
+    "text": "Neomezený počet správců"
+  },
+  "web.billing.features.manage_sso": {
+    "text": "SSO"
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Flexibilní doména odesílatele e-mailů"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "Spravovat organizace"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Jednotné přihlášení (SSO)"
+  },
+  "web.billing.overview.entitlements.manage_billing": {
+    "text": "Spravovat fakturaci"
+  },
+  "web.billing.overview.entitlements.custom_signup_validation": {
+    "text": "Vlastní ověření registrace"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Znovu aktivovat"
   }
 }
