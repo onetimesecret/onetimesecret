@@ -2,7 +2,6 @@
 
 import { mount, VueWrapper, flushPromises } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { createPinia, setActivePinia } from 'pinia';
 import BillingOverview from '@/apps/workspace/billing/BillingOverview.vue';
 import { nextTick, ref } from 'vue';
@@ -10,6 +9,7 @@ import {
   createMockOverviewResponse,
   mockOverviewResponses,
 } from '@/tests/fixtures/billing.fixture';
+import { createTestI18n } from '@tests/setup';
 
 vi.mock('vue-router', () => ({
   useRoute: () => ({
@@ -92,21 +92,7 @@ const defaultOverviewResponse = createMockOverviewResponse({
   organization: { id: 'org_123', external_id: 'on1abc123', display_name: 'Test Org', billing_email: null },
 });
 
-const i18n = createI18n({
-  legacy: false, locale: 'en',
-  messages: { en: { web: {
-    billing: {
-      overview: { title: 'Billing Overview', organization_selector: 'Select Organization', current_plan: 'Current Plan',
-        upgrade_plan: 'Upgrade Plan', change_plan: 'Change Plan', plan_features: 'Plan Features',
-        no_organizations_title: 'No Organizations', no_organizations_description: 'Create an organization to get started',
-        no_entitlements: 'No entitlements available', next_billing_date: 'Next Billing Date',
-        days_remaining: 'days remaining' },
-      subscription: { active: 'Active' }, plans: { free_plan: 'Free' },
-      features: { feature1: 'Feature One', feature2: 'Feature Two' },
-    },
-    organizations: { create_organization: 'Create Organization' }, COMMON: { loading: 'Loading...' },
-  }}},
-});
+const i18n = createTestI18n();
 
 const routerLinkStub = { template: '<a class="router-link"><slot /></a>', props: ['to'] };
 
@@ -160,7 +146,7 @@ describe('BillingOverview', () => {
       resolveOrg!(mockOrganization);
       await flushPromises();
       // Component renders plan info after loading
-      expect(wrapper.text()).toContain('Current Plan');
+      expect(wrapper.text()).toContain('web.billing.overview.current_plan');
     });
   });
 
@@ -173,15 +159,15 @@ describe('BillingOverview', () => {
     it('shows "Free" for users without subscription', async () => {
       mockGetOverview.mockResolvedValueOnce(mockOverviewResponses.free);
       wrapper = await mountComponent({ organizations: [mockFreeOrganization] });
-      expect(wrapper.text()).toContain('Free');
+      expect(wrapper.text()).toContain('web.billing.plans.free_plan');
     });
   });
 
   describe('Entitlements Display', () => {
     it('renders entitlements list from plan features', async () => {
       wrapper = await mountComponent();
-      expect(wrapper.text()).toContain('Feature One');
-      expect(wrapper.text()).toContain('Feature Two');
+      expect(wrapper.text()).toContain('web.billing.features.feature1');
+      expect(wrapper.text()).toContain('web.billing.features.feature2');
     });
 
     it('shows entitlements loading skeleton during load', async () => {
@@ -201,7 +187,7 @@ describe('BillingOverview', () => {
 
       resolveOverview!(defaultOverviewResponse);
       await flushPromises();
-      expect(wrapper.text()).toContain('Feature One');
+      expect(wrapper.text()).toContain('web.billing.features.feature1');
     });
 
     it('handles entitlements API error gracefully', async () => {
@@ -232,20 +218,20 @@ describe('BillingOverview', () => {
   describe('Action Buttons', () => {
     it('shows "Change Plan" button for subscribers', async () => {
       wrapper = await mountComponent();
-      expect(wrapper.text()).toContain('Change Plan');
+      expect(wrapper.text()).toContain('web.billing.overview.change_plan');
     });
 
     it('shows "Upgrade Plan" button for free users', async () => {
       mockGetOverview.mockResolvedValueOnce(mockOverviewResponses.free);
       wrapper = await mountComponent({ organizations: [mockFreeOrganization] });
-      expect(wrapper.text()).toContain('Upgrade Plan');
+      expect(wrapper.text()).toContain('web.billing.overview.upgrade_plan');
     });
   });
 
   describe('Empty State', () => {
     it('shows empty state when no organizations', async () => {
       wrapper = await mountComponent({ organizations: [] });
-      expect(wrapper.text()).toContain('No Organizations');
+      expect(wrapper.text()).toContain('web.billing.overview.no_organizations_title');
       expect(wrapper.find('a').exists()).toBe(true);
     });
   });
@@ -255,7 +241,7 @@ describe('BillingOverview', () => {
       wrapper = await mountComponent();
       const billingDateEl = wrapper.find('[data-testid="next-billing-date"]');
       expect(billingDateEl.exists()).toBe(true);
-      expect(billingDateEl.text()).toContain('Next Billing Date');
+      expect(billingDateEl.text()).toContain('web.billing.overview.next_billing_date');
 
       const expectedDate = new Date(defaultOverviewResponse.subscription!.period_end * 1000);
       // Default date_format is 'locale', so output varies by environment.

@@ -2,9 +2,9 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import PasswordConfirmModal from '@/shared/components/modals/PasswordConfirmModal.vue';
 import { nextTick } from 'vue';
+import { createTestI18n } from '@tests/setup';
 
 // Mock HeadlessUI components
 vi.mock('@headlessui/vue', () => ({
@@ -45,25 +45,7 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
   },
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        COMMON: {
-          word_confirm: 'Confirm',
-          word_cancel: 'Cancel',
-          processing: 'Processing...',
-          field_password: 'Password',
-          password_placeholder: 'Enter your password',
-          show_password: 'Show password',
-          hide_password: 'Hide password',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 describe('PasswordConfirmModal', () => {
   let wrapper: VueWrapper;
@@ -78,8 +60,7 @@ describe('PasswordConfirmModal', () => {
     }
   });
 
-  const mountComponent = (props: Record<string, unknown> = {}) => {
-    return mount(PasswordConfirmModal, {
+  const mountComponent = (props: Record<string, unknown> = {}) => mount(PasswordConfirmModal, {
       props: {
         open: true,
         title: 'Confirm Action',
@@ -89,7 +70,6 @@ describe('PasswordConfirmModal', () => {
         plugins: [i18n],
       },
     });
-  };
 
   describe('Rendering', () => {
     it('renders the modal when open prop is true', () => {
@@ -130,8 +110,8 @@ describe('PasswordConfirmModal', () => {
 
     it('renders confirm and cancel buttons', () => {
       wrapper = mountComponent();
-      expect(wrapper.text()).toContain('Confirm');
-      expect(wrapper.text()).toContain('Cancel');
+      expect(wrapper.text()).toContain('web.COMMON.word_confirm');
+      expect(wrapper.text()).toContain('web.COMMON.word_cancel');
     });
 
     it('renders lock icon by default', () => {
@@ -224,7 +204,7 @@ describe('PasswordConfirmModal', () => {
 
     it('shows processing text during loading', () => {
       wrapper = mountComponent({ loading: true });
-      expect(wrapper.text()).toContain('Processing...');
+      expect(wrapper.text()).toContain('web.COMMON.processing');
     });
 
     it('shows spinner during loading', () => {
@@ -296,7 +276,7 @@ describe('PasswordConfirmModal', () => {
     it('emits cancel event when cancel button is clicked', async () => {
       wrapper = mountComponent();
       const cancelButton = wrapper.findAll('button').find(btn =>
-        btn.text().includes('Cancel')
+        btn.text().includes('web.COMMON.word_cancel')
       );
 
       await cancelButton!.trigger('click');
@@ -307,7 +287,7 @@ describe('PasswordConfirmModal', () => {
     it('emits update:open with false when cancel is clicked', async () => {
       wrapper = mountComponent();
       const cancelButton = wrapper.findAll('button').find(btn =>
-        btn.text().includes('Cancel')
+        btn.text().includes('web.COMMON.word_cancel')
       );
 
       await cancelButton!.trigger('click');

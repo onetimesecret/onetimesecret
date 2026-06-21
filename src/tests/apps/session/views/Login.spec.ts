@@ -12,15 +12,19 @@
  * - token_missing -> web.login.errors.token_missing
  * - token_expired -> web.login.errors.token_expired
  * - token_invalid -> web.login.errors.token_invalid
+ * - invalid_email -> web.login.errors.invalid_email
+ *
+ * Unrecognized codes fall back to the generic sso_failed message so the page
+ * never renders blank (issue #3478 — the "frozen loading screen").
  */
 
 import { mount, VueWrapper, flushPromises } from '@vue/test-utils';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
 import { createRouter, createMemoryHistory, Router } from 'vue-router';
 import { nextTick, defineComponent } from 'vue';
 import Login from '@/apps/session/views/Login.vue';
+import { createTestI18n } from '@tests/setup';
 
 // Mock child components to isolate Login view testing
 vi.mock('@/apps/session/components/AuthMethodSelector.vue', () => ({
@@ -63,30 +67,7 @@ vi.mock('@/shared/stores/languageStore', () => ({
   }),
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        login: {
-          title: 'Sign in',
-          subtitle: 'Welcome back',
-          errors: {
-            sso_failed: 'SSO authentication failed. Please try again.',
-            token_missing: 'Login link is missing required token.',
-            token_expired: 'Login link has expired. Please request a new one.',
-            token_invalid: 'Login link is invalid. Please request a new one.',
-          },
-          create_account_prefix: "Don't have an account?",
-          create_account_link: 'Sign up',
-          signin_disabled_heading: 'Sign-in is not available',
-          signin_disabled_message: 'Sign-in is currently not available on this domain.',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 describe('Login.vue auth_error handling', () => {
   let router: Router;
@@ -136,7 +117,7 @@ describe('Login.vue auth_error handling', () => {
 
       const alert = wrapper.find('[role="alert"]');
       expect(alert.exists()).toBe(true);
-      expect(alert.text()).toContain('SSO authentication failed');
+      expect(alert.text()).toContain('web.login.errors.sso_failed');
     });
 
     it('displays token expired error', async () => {
@@ -145,7 +126,7 @@ describe('Login.vue auth_error handling', () => {
 
       const alert = wrapper.find('[role="alert"]');
       expect(alert.exists()).toBe(true);
-      expect(alert.text()).toContain('expired');
+      expect(alert.text()).toContain('web.login.errors.token_expired');
     });
 
     it('displays token missing error', async () => {
@@ -154,7 +135,7 @@ describe('Login.vue auth_error handling', () => {
 
       const alert = wrapper.find('[role="alert"]');
       expect(alert.exists()).toBe(true);
-      expect(alert.text()).toContain('missing');
+      expect(alert.text()).toContain('web.login.errors.token_missing');
     });
 
     it('displays token invalid error', async () => {
@@ -163,15 +144,28 @@ describe('Login.vue auth_error handling', () => {
 
       const alert = wrapper.find('[role="alert"]');
       expect(alert.exists()).toBe(true);
-      expect(alert.text()).toContain('invalid');
+      expect(alert.text()).toContain('web.login.errors.token_invalid');
     });
 
-    it('ignores unknown error codes', async () => {
+    it('displays invalid_email error from SSO (issue #3478)', async () => {
+      wrapper = await createWrapper({ auth_error: 'invalid_email' });
+      await flushPromises();
+
+      const alert = wrapper.find('[role="alert"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain('web.login.errors.invalid_email');
+    });
+
+    it('shows a generic error for unknown codes (never a blank page)', async () => {
+      // Regression guard for issue #3478: an auth_error code this bundle does
+      // not recognize (e.g. from a backend newer than the deployed frontend)
+      // must still render an error rather than a silent/frozen page.
       wrapper = await createWrapper({ auth_error: 'unknown_error_code' });
       await flushPromises();
 
       const alert = wrapper.find('[role="alert"]');
-      expect(alert.exists()).toBe(false);
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain('web.login.errors.sso_failed');
     });
 
     it('does not display error when no auth_error param', async () => {
@@ -259,7 +253,7 @@ describe('Login.vue auth_error handling', () => {
       wrapper = await createWrapper({}, disabledState);
       await flushPromises();
 
-      expect(wrapper.text()).toContain('Sign-in is currently not available on this domain.');
+      expect(wrapper.text()).toContain('web.login.signin_disabled_message');
     });
 
     it('switches the page heading and enables the return-home affordance', async () => {
@@ -267,7 +261,7 @@ describe('Login.vue auth_error handling', () => {
       await flushPromises();
 
       const authView = wrapper.findComponent({ name: 'AuthView' });
-      expect(authView.props('heading')).toBe('Sign-in is not available');
+      expect(authView.props('heading')).toBe('web.login.signin_disabled_heading');
       expect(authView.props('showReturnHome')).toBe(true);
     });
 

@@ -413,7 +413,7 @@ describe('secretStore', () => {
         expect(store.record?.lifespan).toBe(86400);
       });
 
-      it('rejects null TTL values (V3 requires numbers)', async () => {
+      it('rejects null TTL values (V3 requires numbers, #3424/#3299)', async () => {
         const response = {
           ...mockSecretResponse,
           record: {
@@ -425,7 +425,9 @@ describe('secretStore', () => {
 
         axiosMock?.onGet('/api/v3/secret/abc123').reply(200, response);
 
-        // V3 schema requires z.number() — null is rejected
+        // A real secret always has a lifespan (#3299 guarantees it at write
+        // time), so the strict z.number() contract rejects a null TTL rather
+        // than rendering an ambiguous expiration downstream.
         await expect(store.fetch('abc123')).rejects.toThrow();
       });
 
@@ -445,7 +447,7 @@ describe('secretStore', () => {
         expect(store.record?.lifespan).toBe(0);
       });
 
-      it('rejects null lifespan from API (V3 requires numbers)', async () => {
+      it('rejects null lifespan from API (V3 requires numbers, #3424/#3299)', async () => {
         const nullLifespanResponse = {
           ...mockSecretResponse,
           record: {

@@ -11,8 +11,8 @@
 import { mount, VueWrapper, flushPromises } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
-import { createI18n } from 'vue-i18n';
 import { ref } from 'vue';
+import { createTestI18n } from '@tests/setup';
 import DomainIncoming from '@/apps/workspace/domains/DomainIncoming.vue';
 import {
   emptyFormState,
@@ -74,9 +74,14 @@ vi.mock('@/shared/composables/useDomain', () => ({
 
 // Mock useEntitlements
 let mockCanIncoming = ref(true);
+let mockCanManageOrg = ref(true);
 vi.mock('@/shared/composables/useEntitlements', () => ({
   useEntitlements: () => ({
-    can: () => mockCanIncoming.value,
+    can: (entitlement: string) => {
+      if (entitlement === 'incoming_secrets') return mockCanIncoming.value;
+      if (entitlement === 'manage_org') return mockCanManageOrg.value;
+      return true;
+    },
   }),
 }));
 
@@ -153,6 +158,7 @@ vi.mock('@/apps/workspace/components/domains/DomainIncomingConfigForm.vue', () =
 vi.mock('@/types/organization', () => ({
   ENTITLEMENTS: {
     INCOMING_SECRETS: 'incoming_secrets',
+    MANAGE_ORG: 'manage_org',
   },
 }));
 
@@ -162,37 +168,10 @@ vi.mock('@/utils/features', () => ({
 }));
 
 // ---------------------------------------------------------------------------
-// i18n setup
+// i18n setup (ADR-014: pass-through mode)
 // ---------------------------------------------------------------------------
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        domains: {
-          incoming: {
-            title: 'Incoming Secrets',
-            access_denied: 'Feature Not Available',
-            access_denied_description: 'Upgrade your plan to enable incoming secrets.',
-            upgrade_to_configure: 'Upgrade to configure',
-            config_title: 'Configure Recipients',
-            config_description: 'Manage who receives secrets sent to this domain.',
-            not_configured_notice: 'No recipients are configured. Add recipients to start receiving incoming secrets.',
-          },
-        },
-        branding: {
-          you_have_unsaved_changes_are_you_sure: 'You have unsaved changes. Are you sure you want to leave?',
-        },
-        COMMON: {
-          loading: 'Loading...',
-          back: 'Back',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -212,6 +191,7 @@ describe('DomainIncoming', () => {
     // Reset mocks to defaults
     mockIsOrgsIncomingSecretsEnabled = true;
     mockCanIncoming = ref(true);
+    mockCanManageOrg = ref(true);
     mockDomainState.isLoading.value = false;
     mockDomainState.error.value = null;
     mockIncomingConfigState = createMockIncomingConfigState();
@@ -263,7 +243,7 @@ describe('DomainIncoming', () => {
       wrapper = mountComponent();
       await flushPromises();
 
-      expect(wrapper.text()).toContain('Loading...');
+      expect(wrapper.text()).toContain('web.COMMON.loading');
     });
 
     it('PG-LOAD-003: shows form after initialization', async () => {
@@ -294,7 +274,7 @@ describe('DomainIncoming', () => {
       // When isInitialized is false and isLoading is true, the form should not render yet
       // The loading state is handled by the page component itself, not the form
       // This test verifies the page shows loading state
-      expect(wrapper.text()).toContain('Loading') || expect(mockIncomingConfigState.isLoading.value).toBe(true);
+      expect(wrapper.text()).toContain('web.COMMON.loading');
     });
   });
 
@@ -309,8 +289,8 @@ describe('DomainIncoming', () => {
       wrapper = mountComponent();
       await flushPromises();
 
-      expect(wrapper.text()).toContain('Feature Not Available');
-      expect(wrapper.text()).toContain('Upgrade your plan');
+      expect(wrapper.text()).toContain('incoming.upgrade_required_title');
+      expect(wrapper.text()).toContain('web.domains.incoming.upgrade_to_configure');
     });
 
     it('PG-ENT-002: hides form when entitlement missing', async () => {

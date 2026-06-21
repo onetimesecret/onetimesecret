@@ -2,9 +2,9 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { createPinia, setActivePinia } from 'pinia';
 import PlanChangeModal from '@/apps/workspace/billing/PlanChangeModal.vue';
+import { createTestI18n } from '@tests/setup';
 import { nextTick } from 'vue';
 
 // Mock HeadlessUI components
@@ -106,37 +106,7 @@ const mockPreviewResponse = {
   },
 };
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        billing: {
-          plans: {
-            upgrade: 'Upgrade',
-            downgrade: 'Downgrade',
-            upgrade_to: 'Upgrade to {plan}?',
-            downgrade_to: 'Downgrade to {plan}?',
-            confirm_upgrade: 'Confirm Upgrade',
-            confirm_downgrade: 'Confirm Downgrade',
-            change_immediate: 'Your plan will change immediately.',
-            current_plan_label: 'Current plan:',
-            new_plan_label: 'New plan:',
-            credit_label: 'Credit for unused time:',
-            next_invoice: 'Next invoice',
-            limits_update_notice: 'Your feature limits will update immediately after the plan change.',
-            change_failed: 'Plan change failed. Please try again.',
-          },
-        },
-        COMMON: {
-          processing: 'Processing...',
-          word_cancel: 'Cancel',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 describe('PlanChangeModal', () => {
   let wrapper: VueWrapper;
@@ -197,7 +167,7 @@ describe('PlanChangeModal', () => {
     it('shows upgrade label when upgrading', async () => {
       mockPreviewPlanChange.mockResolvedValueOnce(mockPreviewResponse);
       wrapper = await mountComponent();
-      expect(wrapper.text()).toContain('Upgrade');
+      expect(wrapper.text()).toContain('web.billing.plans.upgrade_to');
     });
 
     it('shows downgrade label when downgrading', async () => {
@@ -205,7 +175,7 @@ describe('PlanChangeModal', () => {
       const downgradePlan = { ...mockTargetPlan, tier: 'free', display_order: 5, amount: 1900 };
       mockPreviewPlanChange.mockResolvedValueOnce(mockPreviewResponse);
       wrapper = await mountComponent({ targetPlan: downgradePlan });
-      expect(wrapper.text()).toContain('Downgrade');
+      expect(wrapper.text()).toContain('web.billing.plans.downgrade_to');
     });
   });
 
@@ -283,7 +253,7 @@ describe('PlanChangeModal', () => {
 
       // Click confirm button
       const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text().includes('Confirm')
+        btn => btn.text().includes('confirm_')
       );
       await confirmButton?.trigger('click');
       await nextTick();
@@ -308,7 +278,7 @@ describe('PlanChangeModal', () => {
       await nextTick();
 
       const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text().includes('Confirm')
+        btn => btn.text().includes('confirm_')
       );
       await confirmButton?.trigger('click');
       await nextTick();
@@ -332,7 +302,7 @@ describe('PlanChangeModal', () => {
       await nextTick();
 
       const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text().includes('Confirm')
+        btn => btn.text().includes('confirm_')
       );
       await confirmButton?.trigger('click');
       await nextTick();
@@ -350,7 +320,7 @@ describe('PlanChangeModal', () => {
       await nextTick();
 
       const cancelButton = wrapper.findAll('button').find(
-        btn => btn.text().includes('Cancel')
+        btn => btn.text().includes('word_cancel')
       );
       await cancelButton?.trigger('click');
 
@@ -371,14 +341,14 @@ describe('PlanChangeModal', () => {
 
       // Start plan change
       const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text().includes('Confirm')
+        btn => btn.text().includes('confirm_')
       );
       await confirmButton?.trigger('click');
       await nextTick();
 
       // Try to close
       const cancelButton = wrapper.findAll('button').find(
-        btn => btn.text().includes('Cancel')
+        btn => btn.text().includes('word_cancel')
       );
       await cancelButton?.trigger('click');
 
@@ -401,7 +371,7 @@ describe('PlanChangeModal', () => {
       wrapper = await mountComponent();
 
       const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text().includes('Confirm')
+        btn => btn.text().includes('confirm_')
       );
       expect(confirmButton?.attributes('disabled')).toBeDefined();
 
@@ -414,7 +384,7 @@ describe('PlanChangeModal', () => {
       await nextTick();
 
       const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text().includes('Confirm')
+        btn => btn.text().includes('confirm_')
       );
       expect(confirmButton?.attributes('disabled')).toBeDefined();
     });
@@ -432,12 +402,12 @@ describe('PlanChangeModal', () => {
       await nextTick();
 
       const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text().includes('Confirm')
+        btn => btn.text().includes('confirm_')
       );
       await confirmButton?.trigger('click');
       await nextTick();
 
-      expect(wrapper.text()).toContain('Processing');
+      expect(wrapper.text()).toContain('web.COMMON.processing');
 
       resolveChange!({ success: true, new_plan: 'test' });
     });
@@ -450,7 +420,7 @@ describe('PlanChangeModal', () => {
       await nextTick();
 
       // Preview has credit_applied: 2900
-      expect(wrapper.text()).toContain('Credit for unused time');
+      expect(wrapper.text()).toContain('web.billing.plans.credit_label');
     });
   });
 
@@ -571,7 +541,7 @@ describe('PlanChangeModal', () => {
       await nextTick();
 
       // Should fall back to legacy display (shows "Next invoice")
-      expect(wrapper.text()).toContain('Next invoice');
+      expect(wrapper.text()).toContain('web.billing.plans.next_invoice');
     });
 
     it('includes tax in display when present', async () => {

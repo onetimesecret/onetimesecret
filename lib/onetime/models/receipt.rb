@@ -203,6 +203,14 @@ module Onetime
       # See: apps/api/v2/logic/secrets/base_secret_action.rb for validation.
       #
       def spawn_pair(owner_id, lifespan, content, passphrase: nil, domain: nil, kind: nil)
+        # Coerce at the single creation choke point so lifespan is always stored
+        # as an Integer (#3299). Familia v2 storage is type-preserving, so a
+        # String here ("604800" from unconverted ERB/params) would hydrate back
+        # as a String and trip the strict z.number() V3 contract — and worse,
+        # `lifespan * 2` below would string-multiply ("604800604800") instead of
+        # doubling. to_i is lossless for healthy integer-second values.
+        lifespan = lifespan.to_i
+
         secret  = Onetime::Secret.new(owner_id: owner_id)
         receipt = Onetime::Receipt.new(owner_id: owner_id)
 

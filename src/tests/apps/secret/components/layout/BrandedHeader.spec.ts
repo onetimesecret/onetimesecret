@@ -6,8 +6,8 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { createTestingPinia } from '@pinia/testing';
+import { createTestI18n } from '@tests/setup';
 import BrandedHeader from '@/apps/secret/components/layout/BrandedHeader.vue';
 import { nextTick } from 'vue';
 
@@ -49,35 +49,7 @@ vi.mock('vue-router', () => ({
   useRouter: vi.fn(() => ({ push: vi.fn() })),
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        homepage: {
-          create_a_secure_link: 'Create a Secure Link',
-          secure_links: 'Secure Links',
-          send_sensitive_information_that_can_only_be_viewed_once:
-            'Send sensitive information that can only be viewed once',
-          a_trusted_way_to_share_sensitive_information_etc:
-            'A trusted way to share sensitive information',
-          one_time_secret_literal: 'Onetime Secret',
-        },
-        layout: {
-          brand_logo: 'Brand Logo',
-        },
-        shared: {
-          pre_reveal_default: 'Click to reveal',
-          post_reveal_default: 'Secret has been revealed',
-        },
-        COMMON: {
-          tagline: 'Keep passwords out of your email & chat logs',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 describe('BrandedHeader', () => {
   let wrapper: VueWrapper;
@@ -211,9 +183,9 @@ describe('BrandedHeader', () => {
 
       await nextTick();
       const branded = wrapper.find('.branded-masthead');
-      expect(branded.attributes('data-headertext')).toBe('Secure Links');
+      expect(branded.attributes('data-headertext')).toBe('web.homepage.secure_links');
       expect(branded.attributes('data-subtext')).toBe(
-        'A trusted way to share sensitive information'
+        'web.homepage.a_trusted_way_to_share_sensitive_information_etc'
       );
     });
 
@@ -237,7 +209,7 @@ describe('BrandedHeader', () => {
 
       await nextTick();
       const branded = wrapper.find('.branded-masthead');
-      expect(branded.attributes('data-headertext')).toBe('Create a Secure Link');
+      expect(branded.attributes('data-headertext')).toBe('web.homepage.create_a_secure_link');
     });
   });
 

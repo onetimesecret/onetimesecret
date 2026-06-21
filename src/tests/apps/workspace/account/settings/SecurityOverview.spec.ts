@@ -2,10 +2,10 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { createTestingPinia } from '@pinia/testing';
 import { ref } from 'vue';
 import SecurityOverview from '@/apps/workspace/account/settings/SecurityOverview.vue';
+import { createTestI18n } from '@tests/setup';
 
 // Mock vue-router
 vi.mock('vue-router', () => ({
@@ -67,65 +67,7 @@ vi.mock('@/shared/composables/useAccount', () => ({
   }),
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        auth: {
-          change_password: { title: 'Password' },
-          mfa: {
-            title: 'Two-Factor Authentication',
-            setup_description: 'Add an extra layer of security',
-          },
-          recovery_codes: {
-            title: 'Recovery Codes',
-            description: 'Backup codes for account recovery',
-          },
-          passkeys: {
-            title: 'Passkeys',
-            description: 'Use biometrics or security keys',
-            count: '{count} passkey | {count} passkeys',
-            not_configured: 'Not configured',
-          },
-          sessions: {
-            title: 'Active Sessions',
-          },
-          account: {
-            mfa_enabled: 'Enabled',
-            mfa_disabled: 'Not enabled',
-          },
-        },
-        settings: {
-          password: { update_account_password: 'Update your account password' },
-          sessions: { manage_active_sessions: 'Manage your active sessions' },
-          security: {
-            configured: 'Configured',
-            change: 'Change',
-            manage: 'Manage',
-            enable: 'Enable',
-            codes_available: '{0} codes available',
-            no_codes: 'No codes generated',
-            active_sessions: '{0} active',
-            excellent: 'Excellent',
-            good: 'Good',
-            fair: 'Fair',
-            weak: 'Weak',
-            security_score: 'Security Score',
-            score_description: 'Your account security status',
-            improve_security: 'Improve your security',
-            enable_mfa_recommendation: 'Enable two-factor authentication',
-            generate_recovery_codes_recommendation: 'Generate recovery codes',
-            sso_managed_title: 'Security managed by SSO',
-            sso_managed_description:
-              "Your account is authenticated through your organization's single sign-on provider.",
-          },
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 /**
  * SecurityOverview Component Tests
@@ -232,7 +174,7 @@ describe('SecurityOverview', () => {
       wrapper = mountComponent();
 
       const passkeyCard = findCardByIcon('finger-print-solid');
-      expect(passkeyCard?.text()).toContain('Passkeys');
+      expect(passkeyCard?.text()).toContain('web.auth.passkeys.title');
     });
 
     it('displays passkey card description', () => {
@@ -240,7 +182,7 @@ describe('SecurityOverview', () => {
       wrapper = mountComponent();
 
       const passkeyCard = findCardByIcon('finger-print-solid');
-      expect(passkeyCard?.text()).toContain('Use biometrics or security keys');
+      expect(passkeyCard?.text()).toContain('web.auth.passkeys.description');
     });
 
     it('shows fingerprint icon on passkey card', () => {
@@ -261,7 +203,7 @@ describe('SecurityOverview', () => {
       wrapper = mountComponent();
 
       const passkeyCard = findCardByIcon('finger-print-solid');
-      expect(passkeyCard?.text()).toContain('Not configured');
+      expect(passkeyCard?.text()).toContain('web.auth.passkeys.not_configured');
     });
 
     it('shows passkey count when passkeys exist (singular)', () => {
@@ -272,7 +214,7 @@ describe('SecurityOverview', () => {
       wrapper = mountComponent();
 
       const passkeyCard = findCardByIcon('finger-print-solid');
-      expect(passkeyCard?.text()).toContain('1 passkey');
+      expect(passkeyCard?.text()).toContain('web.auth.passkeys.count');
     });
 
     it('shows passkey count when multiple passkeys exist (plural)', () => {
@@ -283,7 +225,7 @@ describe('SecurityOverview', () => {
       wrapper = mountComponent();
 
       const passkeyCard = findCardByIcon('finger-print-solid');
-      expect(passkeyCard?.text()).toContain('3 passkeys');
+      expect(passkeyCard?.text()).toContain('web.auth.passkeys.count');
     });
 
     it('shows inactive status when no passkeys configured', () => {
@@ -294,7 +236,7 @@ describe('SecurityOverview', () => {
       wrapper = mountComponent();
 
       const passkeyCard = findCardByIcon('finger-print-solid');
-      expect(passkeyCard?.text()).toContain('Not configured');
+      expect(passkeyCard?.text()).toContain('web.auth.passkeys.not_configured');
       expect(passkeyCard?.html()).toContain('bg-gray-50');
     });
 
@@ -320,7 +262,7 @@ describe('SecurityOverview', () => {
 
       const passkeyCard = findCardByIcon('finger-print-solid');
       const actionLink = passkeyCard?.find('.router-link');
-      expect(actionLink?.text()).toContain('Enable');
+      expect(actionLink?.text()).toContain('web.settings.security.enable');
     });
 
     it('shows "Manage" action when passkeys exist', () => {
@@ -332,7 +274,7 @@ describe('SecurityOverview', () => {
 
       const passkeyCard = findCardByIcon('finger-print-solid');
       const actionLink = passkeyCard?.find('.router-link');
-      expect(actionLink?.text()).toContain('Manage');
+      expect(actionLink?.text()).toContain('web.settings.security.manage');
     });
 
     it('links to passkey settings page', () => {
@@ -363,7 +305,7 @@ describe('SecurityOverview', () => {
 
       const card = findCardByIcon('key-solid');
       expect(card?.html()).toContain('bg-yellow-50');
-      expect(card?.text()).toContain('Not enabled');
+      expect(card?.text()).toContain('web.auth.account.mfa_disabled');
     });
 
     it('MFA card shows correct status when enabled', () => {
@@ -375,7 +317,7 @@ describe('SecurityOverview', () => {
 
       const card = findCardByIcon('key-solid');
       expect(card?.html()).toContain('bg-green-50');
-      expect(card?.text()).toContain('Enabled');
+      expect(card?.text()).toContain('web.auth.account.mfa_enabled');
     });
 
     it('recovery codes card shows count when available', () => {
@@ -386,7 +328,7 @@ describe('SecurityOverview', () => {
       wrapper = mountComponent();
 
       const card = findCardByIcon('document-text-solid');
-      expect(card?.text()).toContain('5 codes available');
+      expect(card?.text()).toContain('web.settings.security.codes_available');
     });
 
     it('recovery codes card shows inactive when no codes', () => {
@@ -398,7 +340,7 @@ describe('SecurityOverview', () => {
 
       const card = findCardByIcon('document-text-solid');
       expect(card?.html()).toContain('bg-gray-50');
-      expect(card?.text()).toContain('No codes generated');
+      expect(card?.text()).toContain('web.settings.security.no_codes');
     });
   });
 
@@ -681,7 +623,7 @@ describe('SecurityOverview', () => {
       wrapper = mountComponent();
 
       expect(wrapper.find('[data-icon="shield-check-solid"]').exists()).toBe(true);
-      expect(wrapper.text()).toContain('Security managed by SSO');
+      expect(wrapper.text()).toContain('web.settings.security.sso_managed_title');
     });
 
     it('does not render the cards grid when all cards are filtered out', () => {

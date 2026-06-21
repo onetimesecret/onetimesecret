@@ -37,6 +37,7 @@
   // Branch settings
   branchPrefix: 'deps/',
   branchNameStrict: true,
+  pruneStaleBranches: true,
 
   // Automerge settings
   automerge: true,

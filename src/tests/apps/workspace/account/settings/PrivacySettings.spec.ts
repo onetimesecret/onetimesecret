@@ -8,7 +8,7 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
+import { createTestI18n } from '@tests/setup';
 import PrivacySettings from '@/apps/workspace/account/settings/PrivacySettings.vue';
 
 // Mock vue-router
@@ -34,26 +34,7 @@ vi.mock('@/apps/workspace/layouts/SettingsLayout.vue', () => ({
   },
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        settings: {
-          privacy: {
-            title: 'Privacy',
-            manage_privacy_settings: 'Manage your privacy settings',
-            your_privacy: 'Your Privacy',
-            non_negotiable: 'Non-negotiable',
-            no_analytics_statement: 'We do not track you',
-            explanation: 'No cookies, no analytics, no tracking.',
-          },
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 /**
  * PrivacySettings Component Tests
@@ -109,13 +90,13 @@ describe('PrivacySettings', () => {
 
       const heading = wrapper.find('h2');
       expect(heading.exists()).toBe(true);
-      expect(heading.text()).toBe('Privacy');
+      expect(heading.text()).toBe('web.settings.privacy.title');
     });
 
     it('renders section description', () => {
       wrapper = mountComponent();
 
-      expect(wrapper.text()).toContain('Manage your privacy settings');
+      expect(wrapper.text()).toContain('web.settings.privacy.manage_privacy_settings');
     });
   });
 
@@ -123,25 +104,25 @@ describe('PrivacySettings', () => {
     it('renders privacy statement title', () => {
       wrapper = mountComponent();
 
-      expect(wrapper.text()).toContain('Your Privacy');
+      expect(wrapper.text()).toContain('web.settings.privacy.your_privacy');
     });
 
     it('renders non-negotiable badge', () => {
       wrapper = mountComponent();
 
-      expect(wrapper.text()).toContain('Non-negotiable');
+      expect(wrapper.text()).toContain('web.settings.privacy.non_negotiable');
     });
 
     it('renders no analytics statement', () => {
       wrapper = mountComponent();
 
-      expect(wrapper.text()).toContain('We do not track you');
+      expect(wrapper.text()).toContain('web.settings.privacy.no_analytics_statement');
     });
 
     it('renders explanation text', () => {
       wrapper = mountComponent();
 
-      expect(wrapper.text()).toContain('No cookies, no analytics, no tracking');
+      expect(wrapper.text()).toContain('web.settings.privacy.explanation');
     });
   });
 

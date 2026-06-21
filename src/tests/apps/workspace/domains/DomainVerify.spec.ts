@@ -2,10 +2,10 @@
 
 import { mount, flushPromises } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { createPinia, setActivePinia } from 'pinia';
 import DomainVerify from '@/apps/workspace/domains/DomainVerify.vue';
 import { ref, computed } from 'vue';
+import { createTestI18n } from '@tests/setup';
 
 // Mock route params
 const mockRouteParams = { extid: 'dm-test-extid' };
@@ -110,36 +110,8 @@ vi.mock('pinia', async (importOriginal) => {
   };
 });
 
-// i18n setup
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        domains: {
-          verify_your_domain: 'Verify Your Domain',
-          before_we_can_activate_links_for: 'Before we can activate links for',
-          youll_need_to_complete_these_steps: "you'll need to complete these steps",
-          configure_dns_records: 'Configure DNS Records',
-          dns_widget_description: 'Use this widget to configure your DNS records',
-          verify_domain: 'Verify Domain',
-          loading_domain_information: 'Loading domain information...',
-          domain_verification_initiated_successfully: 'Domain verification initiated successfully',
-          in_order_to_connect_your_domain_youll_need_to_ha: 'In order to connect your domain, you\'ll need to have',
-          if_you_already_have_a_cname_record_for_that_addr: 'If you already have a CNAME record for that address',
-          and_remove_any_other_a_aaaa_or_cname_records_for: 'and remove any other A, AAAA, or CNAME records for',
-          please_note_that_for_apex_domains: 'Please note that for apex domains',
-          a_cname_record_is_not_allowed_instead_youll_need: 'a CNAME record is not allowed. Instead, you\'ll need',
-        },
-        COMMON: {
-          processing: 'Processing...',
-          important: 'Important',
-        },
-      },
-    },
-  },
-});
+// i18n setup (pass-through; renders keys as-is per ADR-014)
+const i18n = createTestI18n();
 
 // Test fixtures
 const createMockDomain = (overrides = {}) => ({
@@ -266,7 +238,7 @@ describe('DomainVerify', () => {
 
       const button = wrapper.find('[data-testid="verify-domain-button"]');
       expect(button.exists()).toBe(true);
-      expect(button.text()).toContain('Verify Domain');
+      expect(button.text()).toContain('web.domains.verify_domain');
     });
 
     it('triggers verification on button click', async () => {
@@ -299,7 +271,7 @@ describe('DomainVerify', () => {
       const wrapper = await mountComponent();
 
       const button = wrapper.find('[data-testid="verify-domain-button"]');
-      expect(button.text()).toContain('Processing...');
+      expect(button.text()).toContain('web.COMMON.processing');
     });
 
     it('button re-enables after verification completes', async () => {
@@ -384,7 +356,7 @@ describe('DomainVerify', () => {
 
       const wrapper = await mountComponent();
 
-      expect(wrapper.text()).toContain('Loading domain information...');
+      expect(wrapper.text()).toContain('web.domains.loading_domain_information');
     });
 
     it('hides DnsWidget when dns_widget feature flag is disabled', async () => {

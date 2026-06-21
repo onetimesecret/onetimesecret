@@ -2,7 +2,7 @@
 
 import { mount, VueWrapper, flushPromises } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
+import { createTestI18n } from '@tests/setup';
 import Pricing from '@/apps/secret/support/Pricing.vue';
 import { createMockPlan, mockPlans } from '@/tests/fixtures/billing.fixture';
 import type { Plan as BillingPlan } from '@/services/billing.service';
@@ -84,43 +84,6 @@ vi.mock('@/types/billing', () => ({
     }).format(amount / 100),
 }));
 
-// i18n setup - use same pattern as other billing specs
-const createTestI18n = () => createI18n({
-    legacy: false,
-    locale: 'en',
-    messages: {
-      en: {
-        web: {
-          pricing: {
-            title: 'Choose Your Plan',
-            subtitle: 'Select the plan that works best for you',
-            get_started_free: 'Get Started Free',
-            start_trial: 'Start Trial',
-            already_have_account: 'Already have an account?',
-            sign_in: 'Sign in',
-            recommended_for_you: 'Recommended for You',
-            free_tier_description: 'Create and share secrets with basic features. No credit card required.',
-          },
-          billing: {
-            plans: {
-              monthly: 'Monthly',
-              yearly: 'Yearly',
-              per_month: '/month',
-              most_popular: 'Most Popular',
-              features: 'Features',
-              custom_needs_title: 'Need something custom?',
-              custom_needs_description: 'Contact us for enterprise solutions',
-              no_plans_available: 'No {interval} plans available',
-            },
-          },
-          COMMON: {
-            loading: 'Loading...',
-          },
-        },
-      },
-    },
-  });
-
 // Test fixtures
 // Plan IDs are now family-keyed without interval suffix
 // Backend returns separate plan objects for monthly/yearly with the same id
@@ -185,7 +148,7 @@ describe('Pricing.vue', () => {
       await mountComponent();
 
       const monthlyButton = wrapper.find('button[aria-pressed="true"]');
-      expect(monthlyButton.text()).toBe('Monthly');
+      expect(monthlyButton.text()).toBe('web.billing.plans.monthly');
     });
 
     it('parses /pricing/:product/:interval for monthly', async () => {
@@ -193,7 +156,7 @@ describe('Pricing.vue', () => {
       await mountComponent();
 
       const monthlyButton = wrapper.find('button[aria-pressed="true"]');
-      expect(monthlyButton.text()).toBe('Monthly');
+      expect(monthlyButton.text()).toBe('web.billing.plans.monthly');
     });
 
     it('parses /pricing/:product/:interval for yearly', async () => {
@@ -201,7 +164,7 @@ describe('Pricing.vue', () => {
       await mountComponent();
 
       const yearlyButton = wrapper.find('button[aria-pressed="true"]');
-      expect(yearlyButton.text()).toBe('Yearly');
+      expect(yearlyButton.text()).toBe('web.billing.plans.yearly');
     });
 
     it('normalizes "annual" to year interval', async () => {
@@ -209,7 +172,7 @@ describe('Pricing.vue', () => {
       await mountComponent();
 
       const yearlyButton = wrapper.find('button[aria-pressed="true"]');
-      expect(yearlyButton.text()).toBe('Yearly');
+      expect(yearlyButton.text()).toBe('web.billing.plans.yearly');
     });
 
     it('ignores invalid interval params and defaults to month', async () => {
@@ -217,7 +180,7 @@ describe('Pricing.vue', () => {
       await mountComponent();
 
       const monthlyButton = wrapper.find('button[aria-pressed="true"]');
-      expect(monthlyButton.text()).toBe('Monthly');
+      expect(monthlyButton.text()).toBe('web.billing.plans.monthly');
     });
 
     it('highlights matching product from URL param', async () => {
@@ -229,7 +192,7 @@ describe('Pricing.vue', () => {
       expect(highlightedCards.length).toBeGreaterThan(0);
 
       // Check for "Recommended for You" badge
-      expect(wrapper.text()).toContain('Recommended for You');
+      expect(wrapper.text()).toContain('web.pricing.recommended_for_you');
     });
   });
 
@@ -281,7 +244,7 @@ describe('Pricing.vue', () => {
       await mountComponent();
 
       // single_team_monthly has is_popular: true
-      expect(wrapper.text()).toContain('Most Popular');
+      expect(wrapper.text()).toContain('web.billing.plans.most_popular');
     });
 
     it('does not show badge when is_popular is false or undefined', async () => {
@@ -293,7 +256,7 @@ describe('Pricing.vue', () => {
       mockListPlans.mockResolvedValueOnce({ plans: plansWithoutPopular });
       await mountComponent();
 
-      expect(wrapper.text()).not.toContain('Most Popular');
+      expect(wrapper.text()).not.toContain('web.billing.plans.most_popular');
     });
   });
 
@@ -490,7 +453,7 @@ describe('Pricing.vue', () => {
       // region with an sr-only loading label (no visible spinner/text).
       const loadingContainer = wrapper.find('[role="status"][aria-busy="true"]');
       expect(loadingContainer.exists()).toBe(true);
-      expect(wrapper.text()).toContain('Loading...');
+      expect(wrapper.text()).toContain('web.COMMON.loading');
 
       // Cleanup: resolve the promise to complete the test properly
       resolvePromise!({ plans: [] });
@@ -509,7 +472,7 @@ describe('Pricing.vue', () => {
       mockListPlans.mockResolvedValueOnce({ plans: [] });
       await mountComponent();
 
-      expect(wrapper.text()).toContain('No monthly plans available');
+      expect(wrapper.text()).toContain('web.billing.plans.no_plans_available');
     });
 
     it('shows empty state for interval with no matching plans', async () => {
@@ -520,7 +483,7 @@ describe('Pricing.vue', () => {
 
       await mountComponent();
 
-      expect(wrapper.text()).toContain('No yearly plans available');
+      expect(wrapper.text()).toContain('web.billing.plans.no_plans_available');
     });
   });
 
@@ -535,8 +498,8 @@ describe('Pricing.vue', () => {
       expect(buttons.length).toBe(2);
 
       // Monthly should be pressed by default
-      const monthlyButton = buttons.find(b => b.text() === 'Monthly');
-      const yearlyButton = buttons.find(b => b.text() === 'Yearly');
+      const monthlyButton = buttons.find(b => b.text() === 'web.billing.plans.monthly');
+      const yearlyButton = buttons.find(b => b.text() === 'web.billing.plans.yearly');
 
       expect(monthlyButton?.attributes('aria-pressed')).toBe('true');
       expect(yearlyButton?.attributes('aria-pressed')).toBe('false');
@@ -546,12 +509,12 @@ describe('Pricing.vue', () => {
       await mountComponent();
 
       // Click yearly button
-      const yearlyButton = wrapper.findAll('button').find(b => b.text() === 'Yearly');
+      const yearlyButton = wrapper.findAll('button').find(b => b.text() === 'web.billing.plans.yearly');
       await yearlyButton?.trigger('click');
 
       const buttons = wrapper.findAll('button[aria-pressed]');
-      const monthlyButton = buttons.find(b => b.text() === 'Monthly');
-      const yearlyBtn = buttons.find(b => b.text() === 'Yearly');
+      const monthlyButton = buttons.find(b => b.text() === 'web.billing.plans.monthly');
+      const yearlyBtn = buttons.find(b => b.text() === 'web.billing.plans.yearly');
 
       expect(monthlyButton?.attributes('aria-pressed')).toBe('false');
       expect(yearlyBtn?.attributes('aria-pressed')).toBe('true');
@@ -593,7 +556,7 @@ describe('Pricing.vue', () => {
       await mountComponent();
 
       const monthlyButton = wrapper.find('button[aria-pressed="true"]');
-      expect(monthlyButton.text()).toBe('Monthly');
+      expect(monthlyButton.text()).toBe('web.billing.plans.monthly');
     });
 
     it('handles year vs yearly interval params', async () => {
@@ -601,7 +564,7 @@ describe('Pricing.vue', () => {
       await mountComponent();
 
       const yearlyButton = wrapper.find('button[aria-pressed="true"]');
-      expect(yearlyButton.text()).toBe('Yearly');
+      expect(yearlyButton.text()).toBe('web.billing.plans.yearly');
     });
 
     it('product highlight is case insensitive', async () => {
@@ -632,10 +595,10 @@ describe('Pricing.vue', () => {
       await mountComponent();
 
       // Free plan should show "Get Started Free"
-      expect(wrapper.text()).toContain('Get Started Free');
+      expect(wrapper.text()).toContain('web.pricing.get_started_free');
 
       // Paid plans should show "Start Trial"
-      expect(wrapper.text()).toContain('Start Trial');
+      expect(wrapper.text()).toContain('web.pricing.start_trial');
     });
 
     it('calculates fallback monthly equivalent when API field missing', async () => {
@@ -720,7 +683,7 @@ describe('Pricing.vue', () => {
       mockListPlans.mockResolvedValueOnce({ plans: [freePlan] });
       await mountComponent();
 
-      expect(wrapper.text()).toContain('Get Started Free');
+      expect(wrapper.text()).toContain('web.pricing.get_started_free');
     });
 
     it('free plan section shows description', async () => {
@@ -735,7 +698,7 @@ describe('Pricing.vue', () => {
       await mountComponent();
 
       // Free plan section shows description
-      expect(wrapper.text()).toContain('Create and share secrets with basic features');
+      expect(wrapper.text()).toContain('web.pricing.free_tier_description');
     });
 
     it('free plan is not marked as popular by default', async () => {
@@ -751,7 +714,7 @@ describe('Pricing.vue', () => {
 
       // Free plan card should not have "Most Popular" badge
       // Check that "Most Popular" is NOT shown when only free plan exists
-      expect(wrapper.text()).not.toContain('Most Popular');
+      expect(wrapper.text()).not.toContain('web.billing.plans.most_popular');
     });
 
     it('free plan appears alongside paid plans', async () => {
@@ -809,8 +772,8 @@ describe('Pricing.vue', () => {
 
       // Free plan should appear in standalone banner section
       expect(wrapper.text()).toContain('Free');
-      expect(wrapper.text()).toContain('Get Started Free');
-      expect(wrapper.text()).toContain('Create and share secrets with basic features');
+      expect(wrapper.text()).toContain('web.pricing.get_started_free');
+      expect(wrapper.text()).toContain('web.pricing.free_tier_description');
     });
 
     it('shows free plan as card when freePlanStandalone is false', async () => {
