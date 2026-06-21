@@ -634,5 +634,152 @@
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
     "text": "Kiam vi sendos retrosciigon, ni vidos:",
     "source_hash": "fe77172e"
+  },
+  "web.colonel.previewPlanMode": {
+    "text": "Antaŭrigarda plana reĝimo"
+  },
+  "web.colonel.previewModeDescription": {
+    "text": "Antaŭrigardu la aplikaĵon kiel ĝi aperas al klientoj kun malsama plano. Tio efikas nur al via vido kaj ne ŝanĝas la efektivan planon de iu ajn organizo."
+  },
+  "web.colonel.previewModeActive": {
+    "text": "Antaŭrigardo aktiva"
+  },
+  "web.colonel.bannedIps.empty": {
+    "text": "Neniuj malpermesitaj IP-oj"
+  },
+  "web.colonel.bannedIps.currentIp": {
+    "text": "Via aktuala IP-adreso"
+  },
+  "web.colonel.bannedIps.confirmUnban": {
+    "text": "Ĉu nuligi malpermeson de {ip}?"
+  },
+  "web.colonel.bannedIps.actions.ban": {
+    "text": "Malpermesi IP-on"
+  },
+  "web.colonel.bannedIps.actions.quickBan": {
+    "text": "Rapida malpermeso"
+  },
+  "web.colonel.bannedIps.actions.unban": {
+    "text": "Nuligi malpermeson"
+  },
+  "web.colonel.bannedIps.actions.cancel": {
+    "text": "Nuligi"
+  },
+  "web.colonel.bannedIps.columns.ipAddress": {
+    "text": "IP-adreso"
+  },
+  "web.colonel.bannedIps.columns.reason": {
+    "text": "Kialo"
+  },
+  "web.colonel.bannedIps.columns.bannedAt": {
+    "text": "Malpermesita je"
+  },
+  "web.colonel.bannedIps.columns.bannedBy": {
+    "text": "Malpermesita de"
+  },
+  "web.colonel.bannedIps.error.banFailed": {
+    "text": "Malsukcesis malpermesi la IP-adreson"
+  },
+  "web.colonel.bannedIps.error.unbanFailed": {
+    "text": "Malsukcesis nuligi la malpermeson de la IP-adreso"
+  },
+  "web.colonel.bannedIps.form.title": {
+    "text": "Malpermesi IP-adreson"
+  },
+  "web.colonel.bannedIps.form.ipLabel": {
+    "text": "IP-adreso"
+  },
+  "web.colonel.bannedIps.form.reasonLabel": {
+    "text": "Kialo"
+  },
+  "web.colonel.bannedIps.form.reasonPlaceholder": {
+    "text": "Nedeviga kialo"
+  },
+  "web.colonel.bannedIps.success.banned": {
+    "text": "La IP-adreso {ip} estas malpermesita"
+  },
+  "web.colonel.bannedIps.success.unbanned": {
+    "text": "La malpermeso de la IP-adreso {ip} estas nuligita"
+  },
+  "web.colonel.customDomains.empty": {
+    "text": "Neniuj propraj domajnoj agorditaj"
+  },
+  "web.colonel.customDomains.noLogo": {
+    "text": "Neniu logo"
+  },
+  "web.colonel.customDomains.labels.organization": {
+    "text": "Organizo"
+  },
+  "web.colonel.customDomains.labels.externalId": {
+    "text": "Ekstera ID"
+  },
+  "web.colonel.customDomains.labels.created": {
+    "text": "Kreita"
+  },
+  "web.colonel.customDomains.labels.updated": {
+    "text": "Ĝisdatigita"
+  },
+  "web.colonel.customDomains.labels.favicon": {
+    "text": "Favicon"
+  },
+  "web.colonel.customDomains.status.verified": {
+    "text": "Kontrolita"
+  },
+  "web.colonel.customDomains.status.resolving": {
+    "text": "Solvanta"
+  },
+  "web.colonel.customDomains.status.ready": {
+    "text": "Preta"
+  },
+  "web.colonel.customDomains.status.publicHomepage": {
+    "text": "Publika hejmpaĝo"
+  },
+  "web.colonel.customDomains.status.publicApi": {
+    "text": "Publika API"
+  },
+  "web.colonel.customDomains.status.pending": {
+    "text": "Atendanta"
+  },
+  "web.colonel.pagination.showing": {
+    "text": "Montrante {start}–{end} el {total}"
+  },
+  "web.colonel.pagination.itemsPerPage": {
+    "text": "Eroj por paĝo"
+  },
+  "web.colonel.pagination.perPage": {
+    "text": "{count} por paĝo"
+  },
+  "web.colonel.pagination.pageOf": {
+    "text": "Paĝo {current} el {total}"
+  },
+  "web.colonel.secrets.empty": {
+    "text": "Neniuj sekretoj trovitaj"
+  },
+  "web.colonel.secrets.never": {
+    "text": "Neniam"
+  },
+  "web.colonel.secrets.columns.shortId": {
+    "text": "Mallonga ID"
+  },
+  "web.colonel.secrets.columns.state": {
+    "text": "Stato"
+  },
+  "web.colonel.secrets.columns.created": {
+    "text": "Kreita"
+  },
+  "web.colonel.secrets.columns.expiration": {
+    "text": "Eksvalidiĝo"
+  },
+  "web.colonel.secrets.columns.age": {
+    "text": "Aĝo (tagoj)"
+  },
+  "web.colonel.secrets.state.new": {
+    "text": "Nova"
+  },
+  "web.colonel.secrets.state.received": {
+    "text": "Ricevita"
+  },
+  "web.colonel.secrets.state.viewed": {
+    "text": "Vidita"
   }
 }

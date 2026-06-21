@@ -1,0 +1,107 @@
+{
+  "api.organizations.errors.domain_scoped_forbidden": {
+    "text": "Membroj limigitaj al domajno ne povas plenumi ĉi tiun agon"
+  },
+  "api.organizations.errors.organization_not_found": {
+    "text": "Organizo ne trovita: %{extid}"
+  },
+  "api.organizations.errors.organization_owner_required": {
+    "text": "Nur la posedanto de la organizo povas plenumi ĉi tiun agon"
+  },
+  "api.organizations.errors.organization_member_required": {
+    "text": "Vi devas esti membro de la organizo por plenumi ĉi tiun agon"
+  },
+  "api.organizations.errors.organization_admin_required": {
+    "text": "Nur posedantoj kaj administrantoj de la organizo povas plenumi ĉi tiun agon"
+  },
+  "api.organizations.errors.extid_required": {
+    "text": "Organiza ID necesas"
+  },
+  "api.organizations.errors.display_name_required": {
+    "text": "Organiznomo necesas"
+  },
+  "api.organizations.errors.display_name_too_long": {
+    "text": "Organiznomo devas esti malpli ol %{max} signoj"
+  },
+  "api.organizations.errors.description_too_long": {
+    "text": "Priskribo devas esti malpli ol %{max} signoj"
+  },
+  "api.organizations.errors.contact_email_exists": {
+    "text": "Organizo kun ĉi tiu kontakta retpoŝtadreso jam ekzistas"
+  },
+  "api.organizations.errors.creation_in_progress": {
+    "text": "Kreado de organizo en progreso. Bonvolu reprovi."
+  },
+  "api.organizations.errors.organization_limit_reached": {
+    "text": "Limo de organizoj atingita. Altniveligu vian planon por krei pli da organizoj."
+  },
+  "api.organizations.invitations.errors.invitation_not_found": {
+    "text": "Invito ne trovita"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "Retpoŝtadreso necesas"
+  },
+  "api.organizations.invitations.errors.invalid_email_format": {
+    "text": "Nevalida formato de retpoŝtadreso"
+  },
+  "api.organizations.invitations.errors.invalid_role": {
+    "text": "Rolo devas esti membro aŭ administranto"
+  },
+  "api.organizations.invitations.errors.cannot_invite_as_owner": {
+    "text": "Ne eblas inviti kiel posedanto"
+  },
+  "api.organizations.invitations.errors.user_already_member": {
+    "text": "La uzanto jam estas membro de ĉi tiu organizo"
+  },
+  "api.organizations.invitations.errors.invitation_already_pending": {
+    "text": "Invito jam atendanta por ĉi tiu retpoŝtadreso"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Limo de membroj atingita. Altniveligu vian planon por inviti pli da membroj."
+  },
+  "api.organizations.invitations.errors.resend_only_pending": {
+    "text": "Eblas resendi nur atendantajn invitojn"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Maksimuma limo de resendoj (%{max}) atingita"
+  },
+  "api.organizations.invitations.errors.revoke_only_pending": {
+    "text": "Eblas revoki nur atendantajn invitojn"
+  },
+  "api.organizations.members.errors.member_not_found": {
+    "text": "Membro ne trovita: %{extid}"
+  },
+  "api.organizations.members.errors.member_not_in_organization": {
+    "text": "Membro ne trovita en ĉi tiu organizo"
+  },
+  "api.organizations.members.errors.member_not_active": {
+    "text": "La membro ne estas aktiva"
+  },
+  "api.organizations.members.errors.invalid_role_value": {
+    "text": "Nevalida rolo. Devas esti unu el: %{roles}"
+  },
+  "api.organizations.members.errors.cannot_change_owner_role": {
+    "text": "Ne eblas ŝanĝi la rolon de posedanto. Anstataŭe uzu transdonon de posedo."
+  },
+  "api.organizations.members.errors.member_already_has_role": {
+    "text": "La membro jam havas la rolon: %{role}"
+  },
+  "api.organizations.members.errors.cannot_promote_to_owner": {
+    "text": "Ne eblas promocii al posedanto. Anstataŭe uzu transdonon de posedo."
+  },
+  "api.organizations.members.errors.must_be_member": {
+    "text": "Vi devas esti membro de ĉi tiu organizo"
+  },
+  "api.organizations.members.errors.cannot_remove_owner": {
+    "text": "Ne eblas forigi la posedanton de la organizo. Unue transdonu la posedon."
+  },
+  "api.organizations.members.errors.cannot_remove_self": {
+    "text": "Ne eblas forigi vin mem. Anstataŭe uzu forlasi la organizon."
+  },
+  "api.organizations.members.errors.admin_cannot_remove_admin": {
+    "text": "Administrantoj ne povas forigi aliajn administrantojn. Nur posedantoj povas."
+  },
+  "api.organizations.members.errors.no_permission_to_remove": {
+    "text": "Vi ne havas permeson forigi membrojn"
+  }
+}

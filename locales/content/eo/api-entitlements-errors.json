@@ -1,0 +1,71 @@
+{
+  "api.entitlements.errors.context_unavailable": {
+    "text": "Ne eblas kontroli rajtigojn (organiza kunteksto ne disponebla)"
+  },
+  "api.entitlements.errors.api_access_required": {
+    "text": "API-aliro postulas plibonigon de la plano"
+  },
+  "api.entitlements.errors.custom_privacy_defaults_required": {
+    "text": "Propraj privatecaj defaŭltoj postulas plibonigon de la plano"
+  },
+  "api.entitlements.errors.extended_default_expiration_required": {
+    "text": "Plilongigita defaŭlta eksvalidiĝo postulas plibonigon de la plano"
+  },
+  "api.entitlements.errors.custom_domains_required": {
+    "text": "Propraj domajnoj postulas plibonigon de la plano"
+  },
+  "api.entitlements.errors.custom_branding_required": {
+    "text": "Propra marko postulas plibonigon de la plano"
+  },
+  "api.entitlements.errors.homepage_secrets_required": {
+    "text": "Hejmpaĝaj sekretoj postulas plibonigon de la plano"
+  },
+  "api.entitlements.errors.incoming_secrets_required": {
+    "text": "Envenantaj sekretoj postulas plibonigon de la plano"
+  },
+  "api.entitlements.errors.custom_mail_sender_required": {
+    "text": "Propra poŝtsendilo postulas plibonigon de la plano"
+  },
+  "api.entitlements.errors.flexible_from_domain_required": {
+    "text": "Fleksebla sendint-domajno postulas plibonigon de la plano"
+  },
+  "api.entitlements.errors.manage_org_required": {
+    "text": "Organiza administrado postulas plibonigon de la plano"
+  },
+  "api.entitlements.errors.manage_teams_required": {
+    "text": "Team-administrado postulas plibonigon de la plano"
+  },
+  "api.entitlements.errors.manage_members_required": {
+    "text": "Membro-administrado postulas plibonigon de la plano"
+  },
+  "api.entitlements.errors.manage_sso_required": {
+    "text": "SSO-administrado postulas plibonigon de la plano"
+  },
+  "api.entitlements.errors.audit_logs_required": {
+    "text": "Kontrolaj protokoloj postulas plibonigon de la plano"
+  },
+  "api.entitlements.errors.custom_signup_validation_required": {
+    "text": "Propra registriĝa validigo postulas plibonigon de la plano"
+  },
+  "api.entitlements.errors.create_secrets_required": {
+    "text": "Krei sekretojn postulas plibonigon de la plano"
+  },
+  "api.entitlements.errors.view_receipt_required": {
+    "text": "Vidi kvitancojn postulas plibonigon de la plano"
+  },
+  "api.entitlements.errors.notifications_required": {
+    "text": "Sciigoj postulas plibonigon de la plano"
+  },
+  "api.entitlements.errors.workspace_branding_required": {
+    "text": "Laborspaco-marko postulas plibonigon de la plano"
+  },
+  "api.entitlements.errors.ip_access_rules_required": {
+    "text": "IP-aliraj reguloj postulas plibonigon de la plano"
+  },
+  "api.entitlements.errors.manage_billing_required": {
+    "text": "Fakturada administrado postulas plibonigon de la plano"
+  },
+  "api.entitlements.errors.custom_signin_config_required": {
+    "text": "Propra ensaluta agordo postulas plibonigon de la plano"
+  }
+}

@@ -1299,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Ĉiam kontrolu, ke vi estas sur la oficiala retejo de {product_name}. Frauduloj foje kreas falsajn retejojn, kiuj aspektas ekzakte kiel {product_name} por ŝteli viajn sekretojn. Por eviti phishing-atakojn, kontrolu la regiona domajno antaŭ krei novajn ligilojn.",
+    "text": "Ĉiam kontrolu ke vi estas sur la oficiala retejo de {product_name}. Friponoj foje kreas falsajn retejojn kiuj aspektas ekzakte kiel {product_name} por ŝteli viajn sekretojn. Por eviti phishing-atakojn, kontrolu la regionan domajnon antaŭ ol krei novajn ligilojn.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1383,5 +1383,110 @@
     "text": "Altigu vian planon por malŝlosi pliajn funkciojn",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "Aŭtentikigo necesa"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "Ĉi tiu ago ne disponeblas en nur-SSO reĝimo"
+  },
+  "web.COMMON.configure": {
+    "text": "Agordi"
+  },
+  "web.COMMON.copy_to_clipboard": {
+    "text": "Kopii al tondujo"
+  },
+  "web.COMMON.add": {
+    "text": "Aldoni"
+  },
+  "web.COMMON.enabled": {
+    "text": "Ŝaltita"
+  },
+  "web.COMMON.disabled": {
+    "text": "Malŝaltita"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Jes, forigi"
+  },
+  "web.COMMON.error_code": {
+    "text": "Erarkodo"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTP-stato"
+  },
+  "web.COMMON.details": {
+    "text": "Detaloj"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Konfirmu pasvorton"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "La pasvortoj devas kongrui"
+  },
+  "web.COMMON.and": {
+    "text": "kaj"
+  },
+  "web.COMMON.or": {
+    "text": "aŭ"
+  },
+  "web.COMMON.copied": {
+    "text": "Kopiita"
+  },
+  "web.COMMON.copy": {
+    "text": "Kopii"
+  },
+  "web.COMMON.copy_email": {
+    "text": "Kopii retpoŝtadreson"
+  },
+  "web.COMMON.copy_id": {
+    "text": "Kopii konto-ID"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "La unika identigilo de via organizo"
+  },
+  "web.COMMON.success": {
+    "text": "Sukceso"
+  },
+  "web.COMMON.need_help": {
+    "text": "Ĉu vi bezonas helpon"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "Malfermi helpdialogon"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "La fokuso nun estas en la ĉefa tekstkampo"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Montri sekretan frazon"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Kaŝi sekretan frazon"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "Kopia piktogramo"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "Kopiita piktogramo"
+  },
+  "web.STATUS.unverified": {
+    "text": "Nekontrolita"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Domajnaj Agordoj"
+  },
+  "web.TITLES.domain_signin": {
+    "text": "Agordo de Ensaluto"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "Domajna SSO"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "Validigo de Domajna Registriĝo"
+  },
+  "web.TITLES.domain_email": {
+    "text": "Retpoŝta Agordo"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Alvenantaj Sekretoj"
   }
 }

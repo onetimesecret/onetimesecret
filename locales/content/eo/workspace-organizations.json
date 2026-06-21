@@ -770,5 +770,200 @@
   "web.organizations.sso.status_not_configured": {
     "text": "Ne Agordita",
     "source_hash": "bbea960e"
+  },
+  "api.organizations.errors.not_found": {
+    "text": "Organizo ne trovita: %{extid}"
+  },
+  "api.organizations.errors.owner_required": {
+    "text": "Nur la posedanto de la organizo povas plenumi ĉi tiun agon"
+  },
+  "api.organizations.errors.admin_required": {
+    "text": "Nur posedantoj kaj administrantoj de la organizo povas plenumi ĉi tiun agon"
+  },
+  "api.organizations.errors.member_required": {
+    "text": "Vi devas esti membro de la organizo por plenumi ĉi tiun agon"
+  },
+  "api.organizations.invitations.errors.create_admin_required": {
+    "text": "Nur posedantoj kaj administrantoj de la organizo povas krei invitojn"
+  },
+  "api.organizations.invitations.errors.resend_admin_required": {
+    "text": "Nur posedantoj kaj administrantoj de la organizo povas resendi invitojn"
+  },
+  "api.organizations.invitations.errors.view_admin_required": {
+    "text": "Nur posedantoj kaj administrantoj de la organizo povas vidi invitojn"
+  },
+  "api.organizations.invitations.errors.revoke_admin_required": {
+    "text": "Nur posedantoj kaj administrantoj de la organizo povas revoki invitojn"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "Retpoŝto necesas"
+  },
+  "api.organizations.invitations.errors.email_invalid": {
+    "text": "Nevalida retpoŝta formato"
+  },
+  "api.organizations.invitations.errors.role_invalid": {
+    "text": "Rolo devas esti membro aŭ administranto"
+  },
+  "api.organizations.invitations.errors.cannot_invite_owner": {
+    "text": "Ne eblas inviti kiel posedanton"
+  },
+  "api.organizations.invitations.errors.already_member": {
+    "text": "La uzanto jam estas membro de ĉi tiu organizo"
+  },
+  "api.organizations.invitations.errors.already_pending": {
+    "text": "Invito jam atendas por ĉi tiu retpoŝto"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Limo de membroj atingita. Altniveligu vian planon por inviti pliajn membrojn."
+  },
+  "api.organizations.invitations.errors.not_found": {
+    "text": "Invito ne trovita"
+  },
+  "api.organizations.invitations.errors.cannot_resend_non_pending": {
+    "text": "Eblas resendi nur atendantajn invitojn"
+  },
+  "api.organizations.invitations.errors.cannot_revoke_non_pending": {
+    "text": "Eblas revoki nur atendantajn invitojn"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Maksimuma resendlimo (%{max}) atingita"
+  },
+  "api.organizations.invitations.errors.accept_token_required": {
+    "text": "Ĵetono necesas"
+  },
+  "api.organizations.invitations.errors.accept_organization_gone": {
+    "text": "La organizo ne plu ekzistas"
+  },
+  "api.organizations.invitations.errors.accept_already_acted": {
+    "text": "La invito jam estis %{status}"
+  },
+  "api.organizations.invitations.errors.accept_expired": {
+    "text": "La invito eksvalidiĝis"
+  },
+  "api.organizations.invitations.errors.accept_email_mismatch": {
+    "text": "Via retpoŝtadreso ne kongruas kun la invito"
+  },
+  "api.organizations.invitations.errors.accept_already_member": {
+    "text": "Vi jam estas membro de ĉi tiu organizo"
+  },
+  "web.organizations.entitlements_title": {
+    "text": "Rajtigoj de la Organizo"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Vidi kaj agordi viajn laborspacojn"
+  },
+  "web.organizations.delete_organization_remove_domains_first": {
+    "text": "Forigu ĉiujn proprajn domajnojn antaŭ ol forigi ĉi tiun organizon."
+  },
+  "web.organizations.default_org_delete_notice_title": {
+    "text": "Forigo de ĉi tiu organizo"
+  },
+  "web.organizations.default_org_delete_notice_before": {
+    "text": "Ĉi tio estas via defaŭlta organizo kaj ne povas esti forigita el la panelo. Por forigi ĝin, bonvolu kontakti per la"
+  },
+  "web.organizations.default_org_delete_notice_link": {
+    "text": "komenta formularo"
+  },
+  "web.organizations.default_org_delete_notice_after": {
+    "text": "."
+  },
+  "web.organizations.leave_organization": {
+    "text": "Forlasi ĉi tiun organizon"
+  },
+  "web.organizations.leave_organization_warning": {
+    "text": "Vi perdos aliron al ĉi tiu organizo kaj ĝiaj rimedoj."
+  },
+  "web.organizations.leave_organization_confirm_title": {
+    "text": "Forlasi Organizon"
+  },
+  "web.organizations.leave_organization_confirm_message": {
+    "text": "Ĉu vi certas, ke vi volas forlasi {name}? Vi bezonos novan inviton por realiĝi."
+  },
+  "web.organizations.leave_organization_success": {
+    "text": "Vi forlasis la organizon."
+  },
+  "web.organizations.leave_error": {
+    "text": "Malsukcesis forlasi la organizon"
+  },
+  "web.organizations.organizations": {
+    "text": "Organizoj"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "de {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "kiel {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Reen al hejmo"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Ĉi tiu invito estis sendita al ĉi tiu retpoŝtadreso"
+  },
+  "web.organizations.invitations.signup_continue": {
+    "text": "Daŭrigi"
+  },
+  "web.organizations.invitations.signin_continue": {
+    "text": "Ensaluti"
+  },
+  "web.organizations.invitations.confirm_join_below": {
+    "text": "Preskaŭ farite — konfirmu sube por aliĝi al la organizo."
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Iri al Organizoj"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Vi jam estas membro de ĉi tiu organizo"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Aliĝi al {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Ensalutu por aliĝi al {orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Rifuzi"
+  },
+  "web.organizations.members.member_quota": {
+    "text": "{used} el {limit} membroj"
+  },
+  "web.organizations.members.pending_suffix": {
+    "text": "({count} atendantaj)"
+  },
+  "web.organizations.members.limit_reached_hint": {
+    "text": "Limo de membroj atingita."
+  },
+  "web.organizations.sso.view_discovery_document": {
+    "text": "Vidi malkovran dokumenton"
+  },
+  "web.organizations.sso.callback_url": {
+    "text": "Retroalvoka URL"
+  },
+  "web.organizations.sso.callback_url_hint": {
+    "text": "Aldonu ĉi tiun URL al la permesataj alidirektaj URI-oj de via identeca provizanto"
+  },
+  "web.organizations.sso.enforce_sso_only": {
+    "text": "Devigi nur SSO"
+  },
+  "web.organizations.sso.enforce_sso_only_hint": {
+    "text": "Postuli SSO por ĉiuj ensalutoj sur ĉi tiu domajno. Kiam ŝaltita, pasvort-bazita aŭtentikigo estas malŝaltita."
+  },
+  "web.organizations.sso.grant_org_scope": {
+    "text": "Doni tutorganizan aliron"
+  },
+  "web.organizations.sso.grant_org_scope_hint": {
+    "text": "Novaj membroj, kiuj aliĝas per la SSO de ĉi tiu domajno, ricevos aliron al ĉiuj domajnoj de la organizo. Ekzistantaj membroj ne estas tuŝataj. Kiam malŝaltita (defaŭlte), novaj membroj povas aliri nur ĉi tiun domajnon."
+  },
+  "web.organizations.sso.no_domains": {
+    "text": "Neniuj kontrolitaj domajnoj"
+  },
+  "web.organizations.sso.no_domains_description": {
+    "text": "Aldonu kaj kontrolu domajnon antaŭ ol agordi SSO por ĝi."
+  },
+  "web.organizations.tabs.team": {
+    "text": "Teamo"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }
