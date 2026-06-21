@@ -1299,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "常に{product_name}公式サイトにアクセスしていることを確認してください。詐欺師が{product_name}と同じように見せかけた偽サイトを作成し、シークレットを盗もうとすることがあります。フィッシング攻撃を防ぐため、新しいリンクを作成する前にドメインを確認してください。",
+    "text": "常に公式の{product_name}ウェブサイトにアクセスしていることを確認してください。詐欺師は、シークレットを盗むために{product_name}とまったく同じように見える偽のウェブサイトを作成することがあります。フィッシング攻撃を回避するため、新しいリンクを作成する前にリージョンのドメインを確認してください。",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1383,5 +1383,110 @@
     "text": "アップグレードしてより多くの機能を利用する",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "認証が必要です"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "このアクションはSSO専用モードでは利用できません"
+  },
+  "web.COMMON.configure": {
+    "text": "設定"
+  },
+  "web.COMMON.copy_to_clipboard": {
+    "text": "クリップボードにコピー"
+  },
+  "web.COMMON.add": {
+    "text": "追加"
+  },
+  "web.COMMON.enabled": {
+    "text": "有効"
+  },
+  "web.COMMON.disabled": {
+    "text": "無効"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "はい、削除します"
+  },
+  "web.COMMON.error_code": {
+    "text": "エラーコード"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTPステータス"
+  },
+  "web.COMMON.details": {
+    "text": "詳細"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "パスワードの確認"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "パスワードが一致している必要があります"
+  },
+  "web.COMMON.and": {
+    "text": "および"
+  },
+  "web.COMMON.or": {
+    "text": "または"
+  },
+  "web.COMMON.copied": {
+    "text": "コピーしました"
+  },
+  "web.COMMON.copy": {
+    "text": "コピー"
+  },
+  "web.COMMON.copy_email": {
+    "text": "メールアドレスをコピー"
+  },
+  "web.COMMON.copy_id": {
+    "text": "アカウントIDをコピー"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "組織の一意の識別子"
+  },
+  "web.COMMON.success": {
+    "text": "成功"
+  },
+  "web.COMMON.need_help": {
+    "text": "サポートが必要ですか"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "ヘルプダイアログを開く"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "フォーカスがメインのテキストエリアに移動しました"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "パスフレーズを表示"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "パスフレーズを非表示"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "コピーアイコン"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "コピー済みアイコン"
+  },
+  "web.STATUS.unverified": {
+    "text": "未検証"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "ドメイン設定"
+  },
+  "web.TITLES.domain_signin": {
+    "text": "サインイン設定"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "ドメインSSO"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "ドメインサインアップ検証"
+  },
+  "web.TITLES.domain_email": {
+    "text": "メール設定"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "受信シークレット"
   }
 }

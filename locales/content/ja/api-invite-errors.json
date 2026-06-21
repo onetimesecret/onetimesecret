@@ -1,0 +1,23 @@
+{
+  "api.invite.errors.invitation_not_found_or_expired": {
+    "text": "招待が見つからないか、有効期限が切れています"
+  },
+  "api.invite.errors.token_required": {
+    "text": "トークンが必要です"
+  },
+  "api.invite.errors.organization_no_longer_exists": {
+    "text": "組織は存在しなくなりました"
+  },
+  "api.invite.errors.invitation_already_processed": {
+    "text": "この招待はすでに処理されています(%{status})"
+  },
+  "api.invite.errors.invitation_expired": {
+    "text": "招待の有効期限が切れています"
+  },
+  "api.invite.errors.email_mismatch": {
+    "text": "メールアドレスが招待と一致しません"
+  },
+  "api.invite.errors.already_member": {
+    "text": "すでにこの組織のメンバーです"
+  }
+}

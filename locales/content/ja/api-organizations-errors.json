@@ -1,0 +1,107 @@
+{
+  "api.organizations.errors.domain_scoped_forbidden": {
+    "text": "ドメインに限定されたメンバーはこの操作を実行できません"
+  },
+  "api.organizations.errors.organization_not_found": {
+    "text": "組織が見つかりません: %{extid}"
+  },
+  "api.organizations.errors.organization_owner_required": {
+    "text": "この操作を実行できるのは組織のオーナーのみです"
+  },
+  "api.organizations.errors.organization_member_required": {
+    "text": "この操作を実行するには組織のメンバーである必要があります"
+  },
+  "api.organizations.errors.organization_admin_required": {
+    "text": "この操作を実行できるのは組織のオーナーと管理者のみです"
+  },
+  "api.organizations.errors.extid_required": {
+    "text": "組織IDが必要です"
+  },
+  "api.organizations.errors.display_name_required": {
+    "text": "組織名は必須です"
+  },
+  "api.organizations.errors.display_name_too_long": {
+    "text": "組織名は%{max}文字未満である必要があります"
+  },
+  "api.organizations.errors.description_too_long": {
+    "text": "説明は%{max}文字未満である必要があります"
+  },
+  "api.organizations.errors.contact_email_exists": {
+    "text": "この連絡先メールアドレスの組織はすでに存在します"
+  },
+  "api.organizations.errors.creation_in_progress": {
+    "text": "組織を作成しています。もう一度お試しください。"
+  },
+  "api.organizations.errors.organization_limit_reached": {
+    "text": "組織数の上限に達しました。さらに組織を作成するにはプランをアップグレードしてください。"
+  },
+  "api.organizations.invitations.errors.invitation_not_found": {
+    "text": "招待が見つかりません"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "メールアドレスは必須です"
+  },
+  "api.organizations.invitations.errors.invalid_email_format": {
+    "text": "メールアドレスの形式が無効です"
+  },
+  "api.organizations.invitations.errors.invalid_role": {
+    "text": "ロールはメンバーまたは管理者である必要があります"
+  },
+  "api.organizations.invitations.errors.cannot_invite_as_owner": {
+    "text": "オーナーとして招待することはできません"
+  },
+  "api.organizations.invitations.errors.user_already_member": {
+    "text": "ユーザーはすでにこの組織のメンバーです"
+  },
+  "api.organizations.invitations.errors.invitation_already_pending": {
+    "text": "このメールアドレス宛の招待はすでに保留中です"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "メンバー数の上限に達しました。さらにメンバーを招待するにはプランをアップグレードしてください。"
+  },
+  "api.organizations.invitations.errors.resend_only_pending": {
+    "text": "再送信できるのは保留中の招待のみです"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "再送信回数の上限(%{max})に達しました"
+  },
+  "api.organizations.invitations.errors.revoke_only_pending": {
+    "text": "取り消せるのは保留中の招待のみです"
+  },
+  "api.organizations.members.errors.member_not_found": {
+    "text": "メンバーが見つかりません: %{extid}"
+  },
+  "api.organizations.members.errors.member_not_in_organization": {
+    "text": "この組織にメンバーが見つかりません"
+  },
+  "api.organizations.members.errors.member_not_active": {
+    "text": "メンバーは有効ではありません"
+  },
+  "api.organizations.members.errors.invalid_role_value": {
+    "text": "無効なロールです。次のいずれかである必要があります: %{roles}"
+  },
+  "api.organizations.members.errors.cannot_change_owner_role": {
+    "text": "オーナーのロールは変更できません。代わりに所有権の譲渡を使用してください。"
+  },
+  "api.organizations.members.errors.member_already_has_role": {
+    "text": "メンバーはすでに次のロールを持っています: %{role}"
+  },
+  "api.organizations.members.errors.cannot_promote_to_owner": {
+    "text": "オーナーに昇格させることはできません。代わりに所有権の譲渡を使用してください。"
+  },
+  "api.organizations.members.errors.must_be_member": {
+    "text": "この組織のメンバーである必要があります"
+  },
+  "api.organizations.members.errors.cannot_remove_owner": {
+    "text": "組織のオーナーは削除できません。先に所有権を譲渡してください。"
+  },
+  "api.organizations.members.errors.cannot_remove_self": {
+    "text": "自分自身を削除することはできません。代わりに組織からの退出を使用してください。"
+  },
+  "api.organizations.members.errors.admin_cannot_remove_admin": {
+    "text": "管理者は他の管理者を削除できません。オーナーのみが削除できます。"
+  },
+  "api.organizations.members.errors.no_permission_to_remove": {
+    "text": "メンバーを削除する権限がありません"
+  }
+}

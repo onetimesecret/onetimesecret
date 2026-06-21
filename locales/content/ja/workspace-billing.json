@@ -988,5 +988,47 @@
     "text": "元のサブスクリプションリージョンでのみ利用可能",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "すでにこのプランに登録済みです。"
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "サブスクリプションを再開"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "サブスクリプションが再開されました。通常どおり請求が継続されます。"
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "サブスクリプションの再開に失敗しました。もう一度お試しいただくか、サポートにお問い合わせください。"
+  },
+  "web.billing.features.manage_orgs": {
+    "text": "組織管理"
+  },
+  "web.billing.features.flexible_from_domain": {
+    "text": "柔軟な送信元メールドメイン"
+  },
+  "web.billing.features.unlimited_admins": {
+    "text": "管理者数無制限"
+  },
+  "web.billing.features.manage_sso": {
+    "text": "SSO"
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "柔軟な送信元メールドメイン"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "組織を管理"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "シングルサインオン (SSO)"
+  },
+  "web.billing.overview.entitlements.manage_billing": {
+    "text": "請求を管理"
+  },
+  "web.billing.overview.entitlements.custom_signup_validation": {
+    "text": "カスタム登録検証"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "再開"
   }
 }
