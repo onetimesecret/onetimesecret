@@ -1,0 +1,23 @@
+{
+  "api.invite.errors.invitation_not_found_or_expired": {
+    "text": "Запрошення не знайдено або термін його дії закінчився"
+  },
+  "api.invite.errors.token_required": {
+    "text": "Потрібен токен"
+  },
+  "api.invite.errors.organization_no_longer_exists": {
+    "text": "Організація більше не існує"
+  },
+  "api.invite.errors.invitation_already_processed": {
+    "text": "Запрошення вже %{status}"
+  },
+  "api.invite.errors.invitation_expired": {
+    "text": "Термін дії запрошення закінчився"
+  },
+  "api.invite.errors.email_mismatch": {
+    "text": "Ваша електронна адреса не збігається із запрошенням"
+  },
+  "api.invite.errors.already_member": {
+    "text": "Ви вже є учасником цієї організації"
+  }
+}

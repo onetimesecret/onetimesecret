@@ -398,5 +398,725 @@
   "web.domains.dns_widget_description": {
     "text": "Використовуйте інструмент нижче, щоб автоматично визначити Вашого DNS-провайдера та отримати покрокові інструкції для налаштування Вашого домену.",
     "source_hash": "91c1af2e"
+  },
+  "api.domains.errors.add_admin_required": {
+    "text": "Лише власники та адміністратори організації можуть додавати користувацькі домени"
+  },
+  "web.domains.public_homepage": {
+    "text": "Публічна домашня сторінка"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Домен підтверджено та активовано"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS не налаштовано — натисніть, щоб виправити"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Домен не підтверджено — натисніть, щоб підтвердити"
+  },
+  "web.domains.status_tooltip_unverified": {
+    "text": "Статус домену не підтверджено — натисніть, щоб оновити"
+  },
+  "web.domains.last_check_failed": {
+    "text": "Остання перевірка підтвердження не вдалася"
+  },
+  "web.domains.last_check_failed_ago": {
+    "text": "остання перевірка не вдалася {0}"
+  },
+  "web.domains.verify_now": {
+    "text": "Підтвердити зараз"
+  },
+  "web.domains.click_to_verify": {
+    "text": "натисніть, щоб підтвердити"
+  },
+  "web.domains.remove_domain_description": {
+    "text": "Назавжди видалити цей домен та всі його налаштування."
+  },
+  "web.domains.add_access_denied": {
+    "text": "Доступ заборонено"
+  },
+  "web.domains.add_access_denied_description": {
+    "text": "У Вас немає дозволу додавати домени до цієї організації. Зверніться до адміністратора Вашої організації."
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "Не вдалося завантажити віджет DNS"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "Віджет DNS недоступний"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "Не вдалося ініціалізувати віджет DNS"
+  },
+  "web.domains.verified": {
+    "text": "Підтверджено"
+  },
+  "web.domains.pending_verification": {
+    "text": "Очікує підтвердження"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "У Вас є незбережені зміни. Ви впевнені, що хочете залишити сторінку?"
+  },
+  "web.domains.entitlement_required_owner": {
+    "text": "Ця функція потребує оновлення тарифного плану."
+  },
+  "web.domains.entitlement_required_member": {
+    "text": "Ця функція недоступна у Вашому поточному тарифному плані. Зверніться до власника Вашої організації."
+  },
+  "web.domains.detail.manage": {
+    "text": "Керувати"
+  },
+  "web.domains.detail.features": {
+    "text": "Функції"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Таємниці на домашній сторінці"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Дозволити публічний доступ для створення таємниць на домашній сторінці Вашого домену"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Логотип, кольори та власне брендування"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Налаштування провайдера єдиного входу"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Налаштування власного відправника електронної пошти"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Налаштування отримувача вхідних таємниць"
+  },
+  "web.domains.detail.signup_description": {
+    "text": "Стратегія перевірки реєстрації для домену"
+  },
+  "web.domains.detail.signin_description": {
+    "text": "Налаштування методу входу для домену"
+  },
+  "web.domains.email.title": {
+    "text": "Надсилання електронної пошти"
+  },
+  "web.domains.email.config_title": {
+    "text": "Налаштування електронної пошти"
+  },
+  "web.domains.email.config_description": {
+    "text": "Налаштуйте надсилання електронної пошти для цього домену"
+  },
+  "web.domains.email.provider_label": {
+    "text": "Постачальник електронної пошти"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "Виберіть постачальника електронної пошти"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "Ім'я відправника"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "напр. Acme Security"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "Адреса відправника"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "напр. secrets{'@'}example.com"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Адреса для відповіді"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "напр. support{'@'}example.com"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Зберегти зміни"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Скасувати зміни"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Використовувати налаштування облікового запису за замовчуванням"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "Потребує підтвердження домену за допомогою записів DKIM та SPF"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Потребує налаштування автентифікації домену"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Потребує підтвердження домену"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "Використовує налаштування надсилання електронної пошти Вашого облікового запису за замовчуванням"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "Записи DNS"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "Додайте наступні записи DNS, щоб підтвердити свій домен для надсилання електронної пошти."
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Тип"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Ім'я"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Значення"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Постачальник"
+  },
+  "web.domains.email.dns_optional_label": {
+    "text": "Рекомендовано"
+  },
+  "web.domains.email.dns_optional_hint": {
+    "text": "Цей запис рекомендовано, але не є обов'язковим для підтвердження. Політика DMARC на Вашому організаційному домені вже може охоплювати цей субдомен."
+  },
+  "web.domains.email.copy": {
+    "text": "Копіювати"
+  },
+  "web.domains.email.copied": {
+    "text": "Скопійовано"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Підтверджено"
+  },
+  "web.domains.email.status_pending": {
+    "text": "Очікування"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Не вдалося"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Перевірити повторно"
+  },
+  "web.domains.email.validating": {
+    "text": "Перевірка..."
+  },
+  "web.domains.email.domain_verified": {
+    "text": "Домен підтверджено"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "Перевірку не пройдено"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Остання перевірка"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Оновіть свій тарифний план, щоб налаштувати надсилання електронної пошти для цього домену."
+  },
+  "web.domains.email.configure_email": {
+    "text": "Налаштувати електронну пошту"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Доступ заборонено"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "У Вас немає дозволу керувати налаштуваннями електронної пошти для цього домену. Зверніться до адміністратора Вашої організації."
+  },
+  "web.domains.email.update_success": {
+    "text": "Налаштування електронної пошти успішно збережено"
+  },
+  "web.domains.email.delete_success": {
+    "text": "Налаштування електронної пошти успішно видалено"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "Листи для цього домену наразі надсилаються від глобального відправника. Завершіть налаштування електронної пошти, щоб використовувати власну ідентичність відправника."
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "Власне надсилання електронної пошти наразі вимкнено. Листи надсилатимуться від глобального відправника. Увімкніть функцію нижче, щоб використовувати власну ідентичність відправника."
+  },
+  "web.domains.email.test_email_title": {
+    "text": "Тестова доставка електронної пошти"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Надішліть собі тестовий лист, використовуючи збережені налаштування. Працює навіть тоді, коли функцію ще не ввімкнено."
+  },
+  "web.domains.email.send_test": {
+    "text": "Надіслати тест"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Тестовий лист успішно надіслано"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Не вдалося надіслати тестовий лист"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Надіслано на {email}"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Доставлено через {provider}"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "Не налаштовано"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "Використовується відправник за замовчуванням"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Підтверджено"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Очікує підтвердження"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Вимкнено"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "Відправника електронної пошти не налаштовано — листи використовують відправника платформи за замовчуванням"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "Налаштування відправника електронної пошти очікує підтвердження — листи використовують відправника платформи за замовчуванням"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "Відправника електронної пошти вимкнено — листи використовують відправника платформи за замовчуванням"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "Відправника електронної пошти підтверджено — листи надсилаються з цього домену"
+  },
+  "web.domains.incoming.title": {
+    "text": "Вхідні таємниці"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Налаштування вхідних таємниць"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Дозволити зовнішнім користувачам надсилати таємниці безпосередньо визначеним одержувачам на цьому домені"
+  },
+  "web.domains.incoming.feature_disabled": {
+    "text": "Вхідні таємниці недоступні"
+  },
+  "web.domains.incoming.feature_disabled_description": {
+    "text": "Вхідні таємниці не ввімкнено на цьому екземплярі. Зверніться до Вашого адміністратора."
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Доступ заборонено"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "У Вас немає дозволу керувати налаштуваннями вхідних таємниць для цього домену. Зверніться до адміністратора Вашої організації."
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Оновіть свій тарифний план, щоб налаштувати вхідні таємниці для цього домену."
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Налаштувати вхідні таємниці"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "Вхідні таємниці не налаштовано для цього домену. Додайте одержувачів, щоб дозволити зовнішнім користувачам надсилати таємниці Вашій команді."
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "Вхідні таємниці наразі вимкнено. Зовнішні користувачі не можуть надсилати таємниці одержувачам на цьому домені. Увімкніть функцію нижче, щоб дозволити вхідні таємниці."
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Одержувачі"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Визначте, хто може отримувати вхідні таємниці на цьому домені. Одержувачі отримуватимуть сповіщення електронною поштою, коли їм надсилається таємниця."
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Додати одержувача"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Видалити"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "Адреса електронної пошти"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "recipient{'@'}example.com"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Відображуване ім'я"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "напр. Security Team"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "Одержувачів не налаштовано"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Додайте одержувачів, щоб дозволити зовнішнім користувачам надсилати таємниці Вашій команді."
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Недійсна адреса електронної пошти"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "Цю адресу електронної пошти вже додано"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "Дозволено максимум {max} одержувачів"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "Відображуване ім'я є обов'язковим"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "Адреса електронної пошти є обов'язковою"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Зберегти зміни"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Скасувати зміни"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "Налаштування вхідних таємниць успішно збережено"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "Налаштування вхідних таємниць успішно видалено"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} одержувач | {count} одержувачів"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "Не налаштовано"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Налаштовано"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Вимкнено"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "Вхідні таємниці не налаштовано - зовнішні користувачі не можуть надсилати таємниці на цей домен"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "Вхідні таємниці ввімкнено з {count} одержувач(ами)"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "Функцію вхідних таємниць вимкнено для цього домену"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Увімкнути вхідні таємниці"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Дозволити зовнішнім користувачам надсилати таємниці одержувачам на цьому домені"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "Публічна URL-адреса"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Поділіться цією URL-адресою із зовнішніми користувачами, щоб дозволити їм надсилати таємниці"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "Копіювати URL-адресу"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "URL-адресу скопійовано до буфера обміну"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Ви впевнені, що хочете видалити всіх одержувачів? Зовнішні користувачі більше не зможуть надсилати таємниці на цей домен."
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Досягнуто максимальної кількості одержувачів"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "Цю адресу електронної пошти вже додано"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "Збереження замінить усіх наявних одержувачів Вашими незбереженими змінами. Ви впевнені?"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Видалити всіх одержувачів"
+  },
+  "web.domains.signin.title": {
+    "text": "Налаштування входу"
+  },
+  "web.domains.signin.configure_signin": {
+    "text": "Налаштувати вхід"
+  },
+  "web.domains.signin.config_description": {
+    "text": "Налаштуйте методи автентифікації для входу на цьому домені"
+  },
+  "web.domains.signin.access_denied": {
+    "text": "Доступ заборонено"
+  },
+  "web.domains.signin.upgrade_to_configure": {
+    "text": "Оновіть свій тарифний план, щоб налаштувати методи входу для цього домену."
+  },
+  "web.domains.signin.not_configured_notice": {
+    "text": "Налаштування входу ще не задано для цього домену. Налаштуйте перевизначення, щоб контролювати, які методи автентифікації доступні на сторінці входу цього домену."
+  },
+  "web.domains.signin.signin_enabled_label": {
+    "text": "Вхід увімкнено"
+  },
+  "web.domains.signin.header_toggle_label": {
+    "text": "Вхід"
+  },
+  "web.domains.signin.signin_enabled_hint": {
+    "text": "Чи можуть користувачі входити на цьому домені"
+  },
+  "web.domains.signin.restrict_to_label": {
+    "text": "Обмежити метод входу"
+  },
+  "web.domains.signin.restrict_to_hint": {
+    "text": "Обмежте цей домен одним методом автентифікації. Коли задано, на сторінці входу відображається лише вибраний метод."
+  },
+  "web.domains.signin.all_methods": {
+    "text": "Усі методи"
+  },
+  "web.domains.signin.all_methods_description": {
+    "text": "Показувати всі ввімкнені методи автентифікації на сторінці входу"
+  },
+  "web.domains.signin.method_password": {
+    "text": "Пароль"
+  },
+  "web.domains.signin.method_email_auth": {
+    "text": "Автентифікація електронною поштою"
+  },
+  "web.domains.signin.method_webauthn": {
+    "text": "WebAuthn / Ключі доступу"
+  },
+  "web.domains.signin.method_sso": {
+    "text": "Єдиний вхід"
+  },
+  "web.domains.signin.method_overrides_label": {
+    "text": "Перевизначення методів"
+  },
+  "web.domains.signin.method_overrides_hint": {
+    "text": "Увімкнути або вимкнути окремі методи автентифікації для цього домену"
+  },
+  "web.domains.signin.mode_question": {
+    "text": "Як користувачі можуть входити?"
+  },
+  "web.domains.signin.mode_any": {
+    "text": "Будь-який доступний метод"
+  },
+  "web.domains.signin.mode_any_hint": {
+    "text": "Показувати кожен метод, доступний на цьому домені. Звузьте окремі методи нижче."
+  },
+  "web.domains.signin.mode_one": {
+    "text": "Один конкретний метод"
+  },
+  "web.domains.signin.mode_one_hint": {
+    "text": "Обмежте сторінку входу одним методом. Перелічено лише методи, доступні на цьому домені."
+  },
+  "web.domains.signin.mode_disabled": {
+    "text": "Вхід вимкнено"
+  },
+  "web.domains.signin.mode_disabled_hint": {
+    "text": "Користувачі не можуть входити на цьому домені."
+  },
+  "web.domains.signin.mode_disabled_notice": {
+    "text": "Відвідувачі сторінки входу цього домену бачать повідомлення про те, що вхід недоступний, із посиланням назад на домашню сторінку. Ваші попередні налаштування методів зберігаються та відновлюються, коли Ви знову вмикаєте вхід."
+  },
+  "web.domains.signin.methods_list_label": {
+    "text": "Методи, що відображаються на сторінці входу"
+  },
+  "web.domains.signin.restrict_picker_hint": {
+    "text": "Перелічено лише методи, доступні на цьому домені."
+  },
+  "web.domains.signin.availability_always": {
+    "text": "Завжди доступно"
+  },
+  "web.domains.signin.availability_global_on": {
+    "text": "Дотримується глобальної політики · Увімкнено"
+  },
+  "web.domains.signin.availability_global_off": {
+    "text": "Недоступно"
+  },
+  "web.domains.signin.availability_unavailable": {
+    "text": "Недоступно на всьому сайті"
+  },
+  "web.domains.signin.allow_on_domain": {
+    "text": "Дозволити на цьому домені"
+  },
+  "web.domains.signin.method_password_blurb": {
+    "text": "Лише пароль"
+  },
+  "web.domains.signin.method_email_auth_blurb": {
+    "text": "Вхід без пароля за магічним посиланням"
+  },
+  "web.domains.signin.method_webauthn_blurb": {
+    "text": "Біометрія та ключі безпеки"
+  },
+  "web.domains.signin.method_sso_blurb": {
+    "text": "Зовнішній провайдер ідентифікації"
+  },
+  "web.domains.signin.email_auth_label": {
+    "text": "Автентифікація електронною поштою"
+  },
+  "web.domains.signin.email_auth_hint": {
+    "text": "Дозволити автентифікацію електронною поштою без пароля на цьому домені"
+  },
+  "web.domains.signin.sso_enabled_label": {
+    "text": "Єдиний вхід"
+  },
+  "web.domains.signin.sso_enabled_hint": {
+    "text": "Дозволити автентифікацію через SSO на цьому домені"
+  },
+  "web.domains.signin.enabled_label": {
+    "text": "Увімкнути налаштування входу"
+  },
+  "web.domains.signin.enabled_hint": {
+    "text": "Коли ввімкнено, цей домен використовує налаштування входу, задані вище"
+  },
+  "web.domains.signin.save_config": {
+    "text": "Зберегти налаштування"
+  },
+  "web.domains.signin.update_success": {
+    "text": "Налаштування входу успішно оновлено"
+  },
+  "web.domains.signin.reset_to_defaults": {
+    "text": "Скинути до значень за замовчуванням"
+  },
+  "web.domains.signin.reset_confirm": {
+    "text": "Скинути вхід до глобальних значень за замовчуванням?"
+  },
+  "web.domains.signin.reset_keeps_sso": {
+    "text": "Ваші облікові дані SSO зберігаються. Видаліть їх окремо на екрані налаштувань SSO."
+  },
+  "web.domains.signin.reset_action": {
+    "text": "Так, скинути"
+  },
+  "web.domains.signin.reset_success": {
+    "text": "Налаштування входу скинуто до глобальних значень за замовчуванням"
+  },
+  "web.domains.signup.title": {
+    "text": "Перевірка реєстрації"
+  },
+  "web.domains.signup.config_description": {
+    "text": "Налаштуйте перевірку реєстрації для цього домену"
+  },
+  "web.domains.signup.access_denied": {
+    "text": "Доступ заборонено"
+  },
+  "web.domains.signup.upgrade_to_configure": {
+    "text": "Оновіть свій тарифний план, щоб налаштувати перевірку реєстрації для домену."
+  },
+  "web.domains.signup.configure_signup": {
+    "text": "Налаштувати реєстрацію"
+  },
+  "web.domains.signup.not_configured_notice": {
+    "text": "Перевірку реєстрації ще не налаштовано для цього домену. Налаштуйте стратегію, щоб контролювати, хто може реєструватися через цей домен."
+  },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "Реєстрацію наразі вимкнено на рівні сайту. Цю політику для домену налаштовано, але вона не обмежуватиме трафік, доки реєстрацію на сайті не буде ввімкнено."
+  },
+  "web.domains.signup.strategy_label": {
+    "text": "Стратегія перевірки"
+  },
+  "web.domains.signup.strategy_description": {
+    "text": "Виберіть, як перевіряються адреси електронної пошти, коли користувачі реєструються на цьому домені."
+  },
+  "web.domains.signup.network_validation_warning": {
+    "text": "Ця стратегія виконує мережеві запити під час реєстрації, що може збільшити затримку або бути заблокованим деякими постачальниками."
+  },
+  "web.domains.signup.allowed_domains_label": {
+    "text": "Дозволені домени для реєстрації"
+  },
+  "web.domains.signup.allowed_domains_hint": {
+    "text": "Реєструватися дозволено лише з цих доменів електронної пошти. Додавайте по одному домену на запис."
+  },
+  "web.domains.signup.domain_placeholder": {
+    "text": "example.com"
+  },
+  "web.domains.signup.invalid_domain": {
+    "text": "Будь ласка, введіть дійсний домен (напр. example.com)"
+  },
+  "web.domains.signup.domain_exists": {
+    "text": "Цей домен вже є у списку"
+  },
+  "web.domains.signup.remove_domain": {
+    "text": "Видалити {domain}"
+  },
+  "web.domains.signup.enabled_label": {
+    "text": "Увімкнути перевірку для домену"
+  },
+  "web.domains.signup.enabled_hint": {
+    "text": "Коли ввімкнено, реєстрація на цьому домені використовує наведену вище стратегію замість глобальної політики."
+  },
+  "web.domains.signup.delete_config": {
+    "text": "Видалити налаштування"
+  },
+  "web.domains.signup.delete_confirm": {
+    "text": "Видалити налаштування перевірки реєстрації? Реєстрація повернеться до глобальної політики."
+  },
+  "web.domains.signup.save_config": {
+    "text": "Зберегти налаштування"
+  },
+  "web.domains.signup.update_success": {
+    "text": "Перевірку реєстрації успішно оновлено"
+  },
+  "web.domains.signup.delete_success": {
+    "text": "Налаштування перевірки реєстрації успішно видалено"
+  },
+  "web.domains.signup.domain_overrides_label": {
+    "text": "Перевизначення для домену"
+  },
+  "web.domains.signup.domain_overrides_hint": {
+    "text": "Перевизначити глобальні налаштування реєстрації для цього домену"
+  },
+  "web.domains.signup.signup_enabled_label": {
+    "text": "Реєстрацію ввімкнено"
+  },
+  "web.domains.signup.signup_enabled_hint": {
+    "text": "Перевизначити, чи ввімкнено реєстрацію для цього домену"
+  },
+  "web.domains.signup.autoverify_label": {
+    "text": "Автоматично перевіряти облікові записи"
+  },
+  "web.domains.signup.autoverify_hint": {
+    "text": "Перевизначити, чи нові облікові записи автоматично перевіряються на цьому домені"
+  },
+  "web.domains.sso.title": {
+    "text": "Єдиний вхід"
+  },
+  "web.domains.sso.config_title": {
+    "text": "Налаштування SSO"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Налаштуйте автентифікацію єдиного входу для цього домену"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Доступ заборонено"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "У Вас немає дозволу керувати налаштуваннями SSO для цього домену. Зверніться до адміністратора Вашої організації."
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Оновіть свій тарифний план, щоб налаштувати єдиний вхід для цього домену."
+  },
+  "web.domains.sso.create_success": {
+    "text": "Налаштування SSO успішно створено"
+  },
+  "web.domains.sso.update_success": {
+    "text": "Налаштування SSO успішно оновлено"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "Налаштування SSO успішно видалено"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Тест з'єднання успішний — провайдер відповів коректно"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Тест з'єднання не вдався"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "Щоб вимагати SSO для всіх входів на цьому домені, налаштуйте це в налаштуваннях входу домену. Режим лише SSO обмежує сторінку входу провайдером SSO, налаштованим тут."
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "Налаштувати SSO"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "SSO ще не налаштовано для цього домену. Увімкніть єдиний вхід, щоб дозволити учасникам команди автентифікуватися за допомогою провайдера ідентифікації Вашої організації."
+  },
+  "web.domains.sso.edit_credentials": {
+    "text": "Редагувати облікові дані"
+  },
+  "web.domains.sso.configure_button": {
+    "text": "Налаштувати"
+  },
+  "web.domains.sso.upgrade_required": {
+    "text": "Оновіть, щоб налаштувати"
   }
 }

@@ -682,5 +682,14 @@
   "web.settings.profile.didnt_receive_email": {
     "text": "Не отримали лист?",
     "source_hash": "fe3ac3ad"
+  },
+  "web.settings.api.api_disabled_notice": {
+    "text": "API вимкнено для цього екземпляра."
+  },
+  "web.settings.security.sso_managed_title": {
+    "text": "Безпекою керує SSO"
+  },
+  "web.settings.security.sso_managed_description": {
+    "text": "Ваш обліковий запис автентифікується через провайдера єдиного входу Вашої організації. Паролем, багатофакторною автентифікацією та кодами відновлення керує Ваш провайдер ідентифікації."
   }
 }

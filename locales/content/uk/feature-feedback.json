@@ -58,5 +58,14 @@
   "web.feedback.reason_email_change_unauthorized": {
     "text": "Схоже, ви повідомляєте про несанкціоновану зміну електронної пошти вашого облікового запису. Опишіть, що сталося, і ми негайно розберемося.",
     "source_hash": "00e56551"
+  },
+  "web.feedback.anonymous_no_reply": {
+    "text": "Примітка: якщо Ви хочете отримати відповідь, будь ласка, підпишіться або вкажіть електронну адресу в повідомленні."
+  },
+  "web.feedback.characters_remaining": {
+    "text": "Залишилось {count} символів"
+  },
+  "web.feedback.character_limit_reached": {
+    "text": "Досягнуто ліміту символів"
   }
 }
