@@ -148,7 +148,7 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Egy biztonságos üzenetet tekint meg, amelyet az {product_name}-en keresztül osztottak meg Önnel. Ez a tartalom csak egyszer jelenik meg, majd véglegesen törlődik szervereinkről.",
+    "text": "Egy biztonságos üzenetet tekint meg, amelyet a {product_name} szolgáltatáson keresztül osztottak meg Önnel. Ez a tartalom csak egyszer jelenik meg, majd véglegesen törlődik a szervereinkről.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -264,7 +264,7 @@
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "{product_name} főoldal meglátogatása",
+    "text": "A {product_name} kezdőlapjának megtekintése",
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {
@@ -338,5 +338,11 @@
   "web.layout.workspace_context": {
     "text": "Munkaterület kontextus",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Munkaterület"
+  },
+  "web.help.default_content": {
+    "text": "Segítségért kérjük, vegye fel a kapcsolatot az ügyfélszolgálattal"
   }
 }

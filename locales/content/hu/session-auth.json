@@ -395,5 +395,35 @@
   "web.help.contact_support": {
     "text": "Kapcsolatfelvétel az ügyfélszolgálattal",
     "source_hash": "f8d47b82"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "SSO-fiók"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Email verification flow after signup"
+  },
+  "web.help.reset_password_link": {
+    "text": "Jelszó visszaállítása"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "Az egyszeri bejelentkezés elérhető ehhez a doménhez"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "A szervezet adminisztrátora engedélyezheti az SSO-t, hogy a csapattagok itt bejelentkezhessenek. A hozzáférésért forduljon az adminisztrátorhoz."
+  },
+  "web.login.signin_disabled_heading": {
+    "text": "A bejelentkezés nem érhető el"
+  },
+  "web.login.signin_disabled_message": {
+    "text": "A bejelentkezés jelenleg nem érhető el ezen a doménen."
+  },
+  "web.login.errors.sso_not_configured": {
+    "text": "Az egyszeri bejelentkezés nincs beállítva ehhez a doménhez. Kérjük, forduljon az adminisztrátorhoz."
+  },
+  "web.login.errors.invalid_email": {
+    "text": "Az identitásszolgáltatótól kapott e-mail-cím érvénytelen. Kérjük, forduljon az adminisztrátorhoz."
+  },
+  "web.login.errors.domain_not_allowed": {
+    "text": "Az Ön e-mail-doménje nem jogosult az SSO-regisztrációra. Kérjük, forduljon az adminisztrátorhoz."
   }
 }

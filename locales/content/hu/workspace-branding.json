@@ -144,7 +144,7 @@
     "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Szolgáltatja a {product_name}",
+    "text": "Üzemelteti: {product_name}",
     "source_hash": "d8e9f0a1"
   },
   "web.branding.low_contrast_warning": {
@@ -178,5 +178,11 @@
   "web.branding.upgrade_to_customize": {
     "text": "Frissítse csomagját a domén márkajelzésének testreszabásához.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "A márkabeállítások sikeresen mentve"
+  },
+  "web.branding.keyhole_logo_icon": {
+    "text": "Kulcslyuk ikon, amely a biztonságos, privát megosztást jelképezi"
   }
 }

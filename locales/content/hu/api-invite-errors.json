@@ -1,0 +1,23 @@
+{
+  "api.invite.errors.invitation_not_found_or_expired": {
+    "text": "A meghívás nem található vagy lejárt"
+  },
+  "api.invite.errors.token_required": {
+    "text": "Token szükséges"
+  },
+  "api.invite.errors.organization_no_longer_exists": {
+    "text": "A szervezet már nem létezik"
+  },
+  "api.invite.errors.invitation_already_processed": {
+    "text": "A meghívás állapota már: %{status}"
+  },
+  "api.invite.errors.invitation_expired": {
+    "text": "A meghívás lejárt"
+  },
+  "api.invite.errors.email_mismatch": {
+    "text": "Az Ön e-mail-címe nem egyezik a meghívással"
+  },
+  "api.invite.errors.already_member": {
+    "text": "Ön már tagja ennek a szervezetnek"
+  }
+}
