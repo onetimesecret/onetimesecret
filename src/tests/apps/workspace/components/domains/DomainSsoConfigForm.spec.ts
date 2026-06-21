@@ -13,7 +13,7 @@
 import { mount, VueWrapper, flushPromises } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
-import { createI18n } from 'vue-i18n';
+import { createTestI18n } from '@tests/setup';
 import DomainSsoConfigForm from '@/apps/workspace/components/domains/DomainSsoConfigForm.vue';
 import ToggleWithIcon from '@/shared/components/common/ToggleWithIcon.vue';
 import type { SsoConfigFormState } from '@/shared/composables/useSsoConfig';
@@ -55,91 +55,8 @@ vi.mock('@/schemas/shapes/domains/sso-config', () => ({
   },
 }));
 
-// i18n setup
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        organizations: {
-          sso: {
-            provider_type: 'Provider Type',
-            provider_type_description: 'Select your identity provider',
-            display_name: 'Display Name',
-            display_name_hint: 'Name shown to users',
-            display_name_placeholder: 'Company SSO',
-            client_id: 'Client ID',
-            client_id_placeholder: 'Enter client ID',
-            client_secret: 'Client Secret',
-            client_secret_placeholder: 'Enter client secret',
-            client_secret_update_hint: 'Leave blank to keep existing secret',
-            tenant_id: 'Tenant ID',
-            tenant_id_hint: 'Your Azure AD tenant ID',
-            tenant_id_placeholder: 'Enter tenant ID',
-            issuer: 'Issuer URL',
-            issuer_hint: 'Your OIDC issuer URL',
-            issuer_placeholder: 'https://issuer.example.com',
-            allowed_domains: 'Allowed Domains',
-            allowed_domains_hint: 'Only users with these email domains can sign in',
-            add_domain: 'Add Domain',
-            invalid_domain: 'Invalid domain format',
-            domain_exists: 'Domain already added',
-            enabled: 'Enable SSO',
-            enabled_description: 'Allow users to sign in with this provider',
-            save: 'Save Configuration',
-            saving: 'Saving...',
-            delete: 'Delete Configuration',
-            deleting: 'Deleting...',
-            confirm_delete: 'Delete SSO Configuration',
-            confirm_delete_message: 'This action cannot be undone',
-            cancel: 'Cancel',
-            load_error: 'Failed to load configuration',
-            save_error: 'Failed to save configuration',
-            delete_error: 'Failed to delete configuration',
-            create_success: 'SSO configuration created',
-            update_success: 'SSO configuration updated',
-            delete_success: 'SSO configuration deleted',
-            test_connection: 'Test Connection',
-            test_connection_hint: 'Verify your IdP credentials are correct',
-            test_button: 'Test',
-            testing: 'Testing...',
-            test_error: 'Connection test failed',
-            auth_endpoint: 'Authorization Endpoint',
-            missing_fields: 'Missing fields',
-            delete_config: 'Delete Configuration',
-            delete_confirm: 'Are you sure you want to delete this SSO configuration?',
-            domain_placeholder: 'example.com',
-            enabled_hint: 'Allow users to sign in with this provider',
-            enforce_sso_only: 'Enforce SSO Only',
-            enforce_sso_only_hint: 'Require SSO for all users on this domain',
-            grant_org_scope: 'Grant Org Scope',
-            grant_org_scope_hint: 'Give SSO users org-wide access',
-            save_config: 'Save Configuration',
-          },
-        },
-        branding: {
-          use_setting: 'Use setting',
-        },
-        COMMON: {
-          loading: 'Loading...',
-          show_password: 'Show password',
-          hide_password: 'Hide password',
-          note: 'Note',
-          error_code: 'Error code',
-          http_status: 'HTTP status',
-          details: 'Details',
-          add: 'Add',
-          yes_delete: 'Yes, delete',
-          word_cancel: 'Cancel',
-          save_changes: 'Save Changes',
-          saving: 'Saving...',
-          processing: 'Processing...',
-        },
-      },
-    },
-  },
-});
+// i18n setup (pass-through: keys render as raw key paths — see ADR-014)
+const i18n = createTestI18n();
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Test Fixtures
@@ -467,7 +384,7 @@ describe('DomainSsoConfigForm', () => {
 
       // The component shows a hint to leave blank to keep existing secret
       const hintText = wrapper.text();
-      expect(hintText).toContain('Leave blank to keep existing secret');
+      expect(hintText).toContain('web.organizations.sso.client_secret_update_hint');
     });
 
     it('emits save event on form submit', async () => {
@@ -520,7 +437,7 @@ describe('DomainSsoConfigForm', () => {
   describe('Test connection', () => {
     const findTestButton = (w: VueWrapper) => {
       const buttons = w.findAll('button[type="button"]');
-      return buttons.find((b) => b.text().includes('Test'));
+      return buttons.find((b) => b.text().includes('test_button'));
     };
 
     it('emits test event when test button clicked', async () => {
@@ -591,12 +508,12 @@ describe('DomainSsoConfigForm', () => {
   describe('Delete functionality', () => {
     const findDeleteButton = (w: VueWrapper) => {
       const buttons = w.findAll('button[type="button"]');
-      return buttons.find((b) => b.text().includes('Delete Configuration'));
+      return buttons.find((b) => b.text().includes('delete_config'));
     };
 
     const findConfirmDeleteButton = (w: VueWrapper) => {
       const buttons = w.findAll('button[type="button"]');
-      return buttons.find((b) => b.text().includes('Yes, delete'));
+      return buttons.find((b) => b.text().includes('yes_delete'));
     };
 
     it('shows delete button when isConfigured is true', async () => {
@@ -608,7 +525,7 @@ describe('DomainSsoConfigForm', () => {
 
       const deleteButton = findDeleteButton(wrapper);
       expect(deleteButton).toBeDefined();
-      expect(deleteButton!.text()).toContain('Delete Configuration');
+      expect(deleteButton!.text()).toContain('delete_config');
     });
 
     it('emits delete event after confirmation', async () => {

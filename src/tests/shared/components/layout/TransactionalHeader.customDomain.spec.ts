@@ -9,9 +9,9 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { createTestingPinia } from '@pinia/testing';
 import TransactionalHeader from '@/shared/components/layout/TransactionalHeader.vue';
+import { createTestI18n } from '@tests/setup';
 import { nextTick } from 'vue';
 
 // Mock MastHead to track rendering and capture props
@@ -27,11 +27,7 @@ vi.mock('@/shared/components/layout/MastHead.vue', () => ({
   },
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: { en: {} },
-});
+const i18n = createTestI18n();
 
 describe('TransactionalHeader — Custom Domain Leak Vector', () => {
   let wrapper: VueWrapper;

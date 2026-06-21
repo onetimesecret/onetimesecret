@@ -2,9 +2,9 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { h, defineComponent } from 'vue';
 import { createTestingPinia } from '@pinia/testing';
+import { createTestI18n } from '@tests/setup';
 
 // Mock vue-router
 vi.mock('vue-router', () => ({
@@ -45,22 +45,7 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
   },
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        COMMON: {
-          home: 'Home',
-        },
-        LABELS: {
-          dismiss: 'Dismiss',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 /**
  * TransactionalLayout Component Tests

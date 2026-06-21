@@ -11,8 +11,8 @@
 import { mount, VueWrapper, flushPromises } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
-import { createI18n } from 'vue-i18n';
 import { ref } from 'vue';
+import { createTestI18n } from '@tests/setup';
 import DomainIncoming from '@/apps/workspace/domains/DomainIncoming.vue';
 import {
   emptyFormState,
@@ -168,17 +168,10 @@ vi.mock('@/utils/features', () => ({
 }));
 
 // ---------------------------------------------------------------------------
-// i18n setup
+// i18n setup (ADR-014: pass-through mode)
 // ---------------------------------------------------------------------------
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  missingWarn: false,
-  fallbackWarn: false,
-  missing: (_, key) => key,
-  messages: { en: {} },
-});
+const i18n = createTestI18n();
 
 // ---------------------------------------------------------------------------
 // Tests

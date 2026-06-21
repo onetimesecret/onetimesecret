@@ -8,7 +8,7 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
+import { createTestI18n } from '@tests/setup';
 import type { Organization } from '@/types/organization';
 
 // Mock OIcon component
@@ -22,19 +22,7 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
 
 import OrganizationCard from '@/apps/workspace/components/organizations/OrganizationCard.vue';
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        organizations: {
-          organizations: 'Organizations',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 /**
  * OrganizationCard Component Tests
@@ -72,8 +60,7 @@ describe('OrganizationCard', () => {
     }
   });
 
-  const mountComponent = (organization: Organization = createMockOrganization()) => {
-    return mount(OrganizationCard, {
+  const mountComponent = (organization: Organization = createMockOrganization()) => mount(OrganizationCard, {
       props: {
         organization,
       },
@@ -81,7 +68,6 @@ describe('OrganizationCard', () => {
         plugins: [i18n],
       },
     });
-  };
 
   describe('Basic Rendering', () => {
     it('renders organization display_name', () => {
@@ -389,7 +375,7 @@ describe('OrganizationCard', () => {
     it('renders organization label in metadata section', () => {
       wrapper = mountComponent();
 
-      expect(wrapper.text()).toContain('Organizations');
+      expect(wrapper.text()).toContain('web.organizations.organizations');
     });
 
     it('has metadata section with mt-4 spacing', () => {

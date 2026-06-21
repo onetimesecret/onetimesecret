@@ -8,10 +8,10 @@
 // 5. Empty state when no records
 // 6. Last validated timestamp display
 
-import { mount, VueWrapper, flushPromises } from '@vue/test-utils';
+import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
-import { createI18n } from 'vue-i18n';
+import { createTestI18n } from '@tests/setup';
 import DomainEmailDnsRecords from '@/apps/workspace/components/domains/DomainEmailDnsRecords.vue';
 import type { EmailDnsRecord, EmailValidationStatus } from '@/schemas/contracts/email-config';
 
@@ -37,41 +37,7 @@ vi.mock('@/shared/composables/useClipboard', () => ({
 // i18n setup
 // ─────────────────────────────────────────────────────────────────────────────
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        domains: {
-          email: {
-            dns_records_title: 'DNS Records',
-            dns_records_description: 'Add the following DNS records to your domain to authenticate email sending.',
-            dns_column_type: 'Type',
-            dns_column_name: 'Name',
-            dns_column_value: 'Value',
-            revalidate: 'Re-validate',
-            validating: 'Validating...',
-            domain_verified: 'Domain email sending is verified',
-            validation_failed: 'Validation failed. Please check your DNS records.',
-            status_verified: 'Verified',
-            status_pending: 'Pending',
-            status_failed: 'Failed',
-            last_validated: 'Last validated',
-            copy: 'Copy',
-            dns_check_label: 'DNS',
-            provider_check_label: 'Provider',
-            dns_optional_label: 'Recommended',
-            dns_optional_hint: 'This record is recommended but not required for verification. A DMARC policy at your organizational domain may already cover this subdomain.',
-          },
-        },
-        COMMON: {
-          status: 'Status',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Test Fixtures
@@ -113,8 +79,7 @@ describe('DomainEmailDnsRecords', () => {
     providerCheckCompletedAt: Date | null;
     lastError: string | null;
     isValidating: boolean;
-  }> = {}) => {
-    return mount(DomainEmailDnsRecords, {
+  }> = {}) => mount(DomainEmailDnsRecords, {
       props: {
         dnsRecords: props.dnsRecords ?? mockDnsRecords,
         validationStatus: props.validationStatus ?? 'pending',
@@ -128,7 +93,6 @@ describe('DomainEmailDnsRecords', () => {
         plugins: [i18n, pinia],
       },
     });
-  };
 
   // ─────────────────────────────────────────────────────────────────────────
   // DNS records cards
@@ -178,8 +142,8 @@ describe('DomainEmailDnsRecords', () => {
       wrapper = mountComponent();
 
       const cards = wrapper.findAll('[data-testid="dns-record-card"]');
-      expect(cards[0].text()).toContain('Name');
-      expect(cards[0].text()).toContain('Value');
+      expect(cards[0].text()).toContain('web.domains.email.dns_column_name');
+      expect(cards[0].text()).toContain('web.domains.email.dns_column_value');
     });
   });
 
@@ -192,8 +156,8 @@ describe('DomainEmailDnsRecords', () => {
       wrapper = mountComponent();
 
       const cards = wrapper.findAll('[data-testid="dns-record-card"]');
-      expect(cards[0].text()).toContain('DNS');
-      expect(cards[0].text()).toContain('Provider');
+      expect(cards[0].text()).toContain('web.domains.email.dns_check_label');
+      expect(cards[0].text()).toContain('web.domains.email.provider_check_label');
     });
 
     it('applies emerald to DNS indicator when dns_exists is true', () => {
@@ -204,7 +168,7 @@ describe('DomainEmailDnsRecords', () => {
 
       const cards = wrapper.findAll('[data-testid="dns-record-card"]');
       const indicators = cards[0].findAll('.inline-flex.items-center.gap-1');
-      const dnsIndicator = indicators.find((i) => i.text().includes('DNS'));
+      const dnsIndicator = indicators.find((i) => i.text().includes('dns_check_label'));
       expect(dnsIndicator!.classes()).toContain('text-emerald-600');
     });
 
@@ -216,7 +180,7 @@ describe('DomainEmailDnsRecords', () => {
 
       const cards = wrapper.findAll('[data-testid="dns-record-card"]');
       const indicators = cards[0].findAll('.inline-flex.items-center.gap-1');
-      const dnsIndicator = indicators.find((i) => i.text().includes('DNS'));
+      const dnsIndicator = indicators.find((i) => i.text().includes('dns_check_label'));
       expect(dnsIndicator!.classes()).toContain('text-gray-300');
     });
 
@@ -230,7 +194,7 @@ describe('DomainEmailDnsRecords', () => {
 
       const cards = wrapper.findAll('[data-testid="dns-record-card"]');
       const indicators = cards[0].findAll('.inline-flex.items-center.gap-1');
-      const resolvingIndicator = indicators.find((i) => i.text().includes('Provider'));
+      const resolvingIndicator = indicators.find((i) => i.text().includes('provider_check_label'));
       expect(resolvingIndicator!.classes()).toContain('text-emerald-600');
     });
 
@@ -242,7 +206,7 @@ describe('DomainEmailDnsRecords', () => {
 
       const cards = wrapper.findAll('[data-testid="dns-record-card"]');
       const indicators = cards[0].findAll('.inline-flex.items-center.gap-1');
-      const resolvingIndicator = indicators.find((i) => i.text().includes('Provider'));
+      const resolvingIndicator = indicators.find((i) => i.text().includes('provider_check_label'));
       expect(resolvingIndicator!.classes()).toContain('text-emerald-600');
     });
 
@@ -259,7 +223,7 @@ describe('DomainEmailDnsRecords', () => {
 
       const cards = wrapper.findAll('[data-testid="dns-record-card"]');
       const indicators = cards[0].findAll('.inline-flex.items-center.gap-1');
-      const resolvingIndicator = indicators.find((i) => i.text().includes('Provider'));
+      const resolvingIndicator = indicators.find((i) => i.text().includes('provider_check_label'));
       expect(resolvingIndicator!.classes()).toContain('text-gray-300');
     });
 
@@ -268,7 +232,7 @@ describe('DomainEmailDnsRecords', () => {
 
       const cards = wrapper.findAll('[data-testid="dns-record-card"]');
       const indicators = cards[0].findAll('.inline-flex.items-center.gap-1');
-      const resolvingIndicator = indicators.find((i) => i.text().includes('Provider'));
+      const resolvingIndicator = indicators.find((i) => i.text().includes('provider_check_label'));
       expect(resolvingIndicator!.classes()).toContain('text-gray-300');
     });
 
@@ -293,7 +257,7 @@ describe('DomainEmailDnsRecords', () => {
       wrapper = mountComponent();
 
       const buttons = wrapper.findAll('button[type="button"]');
-      const revalidateButton = buttons.find((b) => b.text().includes('Re-validate'));
+      const revalidateButton = buttons.find((b) => b.text().includes('web.domains.email.revalidate'));
       expect(revalidateButton).toBeDefined();
 
       await revalidateButton!.trigger('click');
@@ -306,7 +270,7 @@ describe('DomainEmailDnsRecords', () => {
       wrapper = mountComponent({ isValidating: true });
 
       const buttons = wrapper.findAll('button[type="button"]');
-      const revalidateButton = buttons.find((b) => b.text().includes('Validating...'));
+      const revalidateButton = buttons.find((b) => b.text().includes('web.domains.email.validating'));
       expect(revalidateButton).toBeDefined();
       expect(revalidateButton!.attributes('disabled')).toBeDefined();
     });
@@ -315,7 +279,7 @@ describe('DomainEmailDnsRecords', () => {
       wrapper = mountComponent({ isValidating: true });
 
       const buttons = wrapper.findAll('button[type="button"]');
-      const revalidateButton = buttons.find((b) => b.text().includes('Validating...'));
+      const revalidateButton = buttons.find((b) => b.text().includes('web.domains.email.validating'));
       expect(revalidateButton).toBeDefined();
     });
 
@@ -323,7 +287,7 @@ describe('DomainEmailDnsRecords', () => {
       wrapper = mountComponent({ isValidating: false });
 
       const buttons = wrapper.findAll('button[type="button"]');
-      const revalidateButton = buttons.find((b) => b.text().includes('Re-validate'));
+      const revalidateButton = buttons.find((b) => b.text().includes('web.domains.email.revalidate'));
       expect(revalidateButton).toBeDefined();
     });
   });
@@ -343,7 +307,7 @@ describe('DomainEmailDnsRecords', () => {
 
       const banner = wrapper.find('[role="status"]');
       expect(banner.exists()).toBe(true);
-      expect(banner.text()).toContain('Domain email sending is verified');
+      expect(banner.text()).toContain('web.domains.email.domain_verified');
     });
 
     it('shows failed banner when status is failed and both checks complete', () => {
@@ -351,7 +315,7 @@ describe('DomainEmailDnsRecords', () => {
 
       const banner = wrapper.find('[role="alert"]');
       expect(banner.exists()).toBe(true);
-      expect(banner.text()).toContain('Validation failed');
+      expect(banner.text()).toContain('web.domains.email.validation_failed');
     });
 
     it('shows error message in failed banner when lastError is present', () => {
@@ -370,7 +334,7 @@ describe('DomainEmailDnsRecords', () => {
       wrapper = mountComponent({ validationStatus: 'pending' });
 
       const banners = wrapper.findAll('[role="status"]');
-      const pendingBanner = banners.find((b) => b.text().includes('Pending'));
+      const pendingBanner = banners.find((b) => b.text().includes('web.domains.email.status_pending'));
       expect(pendingBanner).toBeDefined();
     });
 
@@ -382,7 +346,7 @@ describe('DomainEmailDnsRecords', () => {
       });
 
       const banners = wrapper.findAll('[role="status"]');
-      const pendingBanner = banners.find((b) => b.text().includes('Pending'));
+      const pendingBanner = banners.find((b) => b.text().includes('web.domains.email.status_pending'));
       expect(pendingBanner).toBeDefined();
     });
 
@@ -394,7 +358,7 @@ describe('DomainEmailDnsRecords', () => {
       });
 
       const banners = wrapper.findAll('[role="status"]');
-      const pendingBanner = banners.find((b) => b.text().includes('Pending'));
+      const pendingBanner = banners.find((b) => b.text().includes('web.domains.email.status_pending'));
       expect(pendingBanner).toBeDefined();
     });
 
@@ -407,7 +371,7 @@ describe('DomainEmailDnsRecords', () => {
       });
 
       const banner = wrapper.find('[role="status"]');
-      expect(banner.text()).toContain('Last validated');
+      expect(banner.text()).toContain('web.domains.email.last_validated');
     });
 
     it('shows last validated timestamp in failed banner', () => {
@@ -419,7 +383,7 @@ describe('DomainEmailDnsRecords', () => {
       });
 
       const banner = wrapper.find('[role="alert"]');
-      expect(banner.text()).toContain('Last validated');
+      expect(banner.text()).toContain('web.domains.email.last_validated');
     });
 
     it('does not show timestamp when lastValidatedAt is null', () => {
@@ -430,7 +394,7 @@ describe('DomainEmailDnsRecords', () => {
       });
 
       const banner = wrapper.find('[role="status"]');
-      expect(banner.text()).not.toContain('Last validated');
+      expect(banner.text()).not.toContain('web.domains.email.last_validated');
     });
 
     it('uses emerald background for verified banner', () => {
@@ -471,7 +435,7 @@ describe('DomainEmailDnsRecords', () => {
 
       const badges = wrapper.findAll('[data-testid="dns-record-optional-badge"]');
       expect(badges).toHaveLength(1);
-      expect(badges[0].text()).toContain('Recommended');
+      expect(badges[0].text()).toContain('web.domains.email.dns_optional_label');
     });
 
     it('does not show Recommended badge on required records', () => {
@@ -487,7 +451,7 @@ describe('DomainEmailDnsRecords', () => {
 
       const hints = wrapper.findAll('[data-testid="dns-record-optional-hint"]');
       expect(hints).toHaveLength(1);
-      expect(hints[0].text()).toContain('recommended but not required');
+      expect(hints[0].text()).toContain('web.domains.email.dns_optional_hint');
     });
 
     it('applies dashed border styling to optional records', () => {
@@ -519,7 +483,7 @@ describe('DomainEmailDnsRecords', () => {
       wrapper = mountComponent({ dnsRecords: [] });
 
       const emptyState = wrapper.find('.border-dashed');
-      expect(emptyState.text()).toContain('Add the following DNS records');
+      expect(emptyState.text()).toContain('web.domains.email.dns_records_description');
     });
 
     it('does not show cards when records list is empty', () => {
@@ -539,7 +503,7 @@ describe('DomainEmailDnsRecords', () => {
 
       const heading = wrapper.find('#dns-records-heading');
       expect(heading.exists()).toBe(true);
-      expect(heading.text()).toBe('DNS Records');
+      expect(heading.text()).toBe('web.domains.email.dns_records_title');
     });
 
     it('section is labelled by heading', () => {
@@ -556,7 +520,7 @@ describe('DomainEmailDnsRecords', () => {
       // Each record has 2 copy buttons (name + value), so 3 records = 6 buttons
       // (plus the re-validate button which doesn't have an aria-label attribute in same format)
       const filteredButtons = copyButtons.filter((b) =>
-        b.attributes('aria-label')?.includes('Copy')
+        b.attributes('aria-label')?.includes('web.domains.email.copy')
       );
       expect(filteredButtons.length).toBe(6);
     });

@@ -1,12 +1,12 @@
 ---
 id: "011"
-status: proposed
+status: accepted
 title: "ADR-011: I18n Initialization in Test Setup"
 ---
 
 ## Status
 
-Proposed
+Accepted
 
 ## Date
 

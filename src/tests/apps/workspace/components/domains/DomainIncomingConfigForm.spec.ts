@@ -8,7 +8,7 @@
 import { mount, type VueWrapper, flushPromises, DOMWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
-import { createI18n } from 'vue-i18n';
+import { createTestI18n } from '@tests/setup';
 import DomainIncomingConfigForm from '@/apps/workspace/components/domains/DomainIncomingConfigForm.vue';
 import {
   emptyFormState,
@@ -41,47 +41,7 @@ vi.mock('@/shared/components/forms/BasicFormAlerts.vue', () => ({
 // i18n
 // ---------------------------------------------------------------------------
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        domains: {
-          enabled: 'Enabled',
-          incoming: {
-            add_recipient: 'Add Recipient',
-            badge_configured: 'Configured',
-            delete_all_recipients: 'Delete all',
-            disabled_notice: 'Disabled',
-            discard_changes: 'Discard',
-            email_label: 'Email',
-            email_placeholder: "name{'@'}example.com",
-            empty_state: 'No recipients yet',
-            empty_state_description: 'Add up to 20 recipients',
-            enabled_hint: 'Toggle incoming secrets',
-            name_label: 'Name',
-            name_placeholder: 'Display name',
-            recipients_title: 'Recipients',
-            remove_all_confirmation: 'Remove all?',
-            remove_recipient: 'Remove',
-            save_changes: 'Save',
-            validation_duplicate_email: 'Already added',
-            validation_email_required: 'Required',
-            validation_invalid_email: 'Invalid email',
-            validation_max_recipients: 'Maximum {max} recipients',
-          },
-        },
-        COMMON: {
-          processing: 'Working…',
-          saving: 'Saving…',
-          word_cancel: 'Cancel',
-          yes_delete: 'Yes, delete',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -136,7 +96,7 @@ describe('DomainIncomingConfigForm (single-list, plaintext)', () => {
     it('renders the empty state when there are no recipients', () => {
       const wrapper = mountForm({ formState: emptyFormState });
 
-      expect(wrapper.text()).toContain('No recipients yet');
+      expect(wrapper.text()).toContain('web.domains.incoming.empty_state');
       expect(wrapper.findAll('li')).toHaveLength(0);
     });
 
@@ -155,7 +115,7 @@ describe('DomainIncomingConfigForm (single-list, plaintext)', () => {
       const wrapper = mountForm({ formState: maxRecipientsFormState, maxRecipients: 20 });
 
       expect(wrapper.find('input#recipient-email').exists()).toBe(false);
-      expect(wrapper.text()).toContain('Maximum 20 recipients');
+      expect(wrapper.text()).toContain('web.domains.incoming.validation_max_recipients');
     });
   });
 
@@ -165,7 +125,7 @@ describe('DomainIncomingConfigForm (single-list, plaintext)', () => {
 
       await wrapper.find('input#recipient-email').setValue('new@example.com');
       await wrapper.find('input#recipient-name').setValue('New One');
-      await findButtonByText(wrapper, 'Add Recipient').trigger('click');
+      await findButtonByText(wrapper, 'web.domains.incoming.add_recipient').trigger('click');
 
       const emitted = wrapper.emitted('addRecipient');
       expect(emitted).toBeTruthy();
@@ -179,7 +139,7 @@ describe('DomainIncomingConfigForm (single-list, plaintext)', () => {
 
       await emailInput.setValue('new@example.com');
       await nameInput.setValue('New One');
-      await findButtonByText(wrapper, 'Add Recipient').trigger('click');
+      await findButtonByText(wrapper, 'web.domains.incoming.add_recipient').trigger('click');
       await flushPromises();
 
       expect(emailInput.element.value).toBe('');
@@ -195,7 +155,7 @@ describe('DomainIncomingConfigForm (single-list, plaintext)', () => {
       await wrapper.find('input#recipient-email').trigger('keydown.enter');
       await flushPromises();
 
-      expect(wrapper.text()).toContain('Invalid email');
+      expect(wrapper.text()).toContain('web.domains.incoming.validation_invalid_email');
       expect(wrapper.emitted('addRecipient')).toBeUndefined();
     });
 
@@ -205,10 +165,10 @@ describe('DomainIncomingConfigForm (single-list, plaintext)', () => {
       // Email format is valid here, so the Add button is enabled and click
       // reaches handleAddRecipient, which surfaces the duplicate error.
       await wrapper.find('input#recipient-email').setValue('SECURITY@acme.com');
-      await findButtonByText(wrapper, 'Add Recipient').trigger('click');
+      await findButtonByText(wrapper, 'web.domains.incoming.add_recipient').trigger('click');
       await flushPromises();
 
-      expect(wrapper.text()).toContain('Already added');
+      expect(wrapper.text()).toContain('web.domains.incoming.validation_duplicate_email');
       expect(wrapper.emitted('addRecipient')).toBeUndefined();
     });
   });
@@ -219,7 +179,7 @@ describe('DomainIncomingConfigForm (single-list, plaintext)', () => {
 
       const removeButtons = wrapper
         .findAll('button')
-        .filter((b) => b.attributes('aria-label') === 'Remove');
+        .filter((b) => b.attributes('aria-label') === 'web.domains.incoming.remove_recipient');
       expect(removeButtons).toHaveLength(3);
 
       await removeButtons[1].trigger('click');
@@ -283,14 +243,14 @@ describe('DomainIncomingConfigForm (single-list, plaintext)', () => {
         savedFormState: singleRecipientFormState,
         hasUnsavedChanges: false,
       });
-      expect(noChanges.text()).not.toContain('Discard');
+      expect(noChanges.text()).not.toContain('web.domains.incoming.discard_changes');
 
       const withChanges = mountForm({
         formState: singleRecipientFormState,
         savedFormState: emptyFormState,
         hasUnsavedChanges: true,
       });
-      expect(withChanges.text()).toContain('Discard');
+      expect(withChanges.text()).toContain('web.domains.incoming.discard_changes');
     });
 
     it('emits discard when the Discard button is clicked', async () => {
@@ -302,7 +262,7 @@ describe('DomainIncomingConfigForm (single-list, plaintext)', () => {
 
       const discardButton = wrapper
         .findAll('button')
-        .find((b) => b.text().includes('Discard'));
+        .find((b) => b.text().includes('web.domains.incoming.discard_changes'));
       expect(discardButton).toBeDefined();
       await discardButton!.trigger('click');
 
@@ -335,7 +295,7 @@ describe('DomainIncomingConfigForm (single-list, plaintext)', () => {
         formState: emptyFormState,
         savedFormState: emptyFormState,
       });
-      expect(wrapper.text()).not.toContain('Delete all');
+      expect(wrapper.text()).not.toContain('web.domains.incoming.delete_all_recipients');
     });
 
     it('shows the Delete button when savedFormState has recipients', () => {
@@ -343,7 +303,7 @@ describe('DomainIncomingConfigForm (single-list, plaintext)', () => {
         formState: singleRecipientFormState,
         savedFormState: singleRecipientFormState,
       });
-      expect(wrapper.text()).toContain('Delete all');
+      expect(wrapper.text()).toContain('web.domains.incoming.delete_all_recipients');
     });
 
     it('shows the Delete button when savedFormState.enabled is true (even with no recipients)', () => {
@@ -353,7 +313,7 @@ describe('DomainIncomingConfigForm (single-list, plaintext)', () => {
         formState: emptyFormState,
         savedFormState: { enabled: true, recipients: [] },
       });
-      expect(wrapper.text()).toContain('Delete all');
+      expect(wrapper.text()).toContain('web.domains.incoming.delete_all_recipients');
     });
 
     it('reveals the confirmation prompt when Delete is clicked', async () => {
@@ -361,10 +321,10 @@ describe('DomainIncomingConfigForm (single-list, plaintext)', () => {
         formState: singleRecipientFormState,
         savedFormState: singleRecipientFormState,
       });
-      const deleteBtn = wrapper.findAll('button').find((b) => b.text().includes('Delete all'));
+      const deleteBtn = wrapper.findAll('button').find((b) => b.text().includes('web.domains.incoming.delete_all_recipients'));
       await deleteBtn!.trigger('click');
 
-      expect(wrapper.text()).toContain('Remove all?');
+      expect(wrapper.text()).toContain('web.domains.incoming.remove_all_confirmation');
     });
 
     it('emits delete when confirmation is accepted', async () => {
@@ -372,11 +332,11 @@ describe('DomainIncomingConfigForm (single-list, plaintext)', () => {
         formState: singleRecipientFormState,
         savedFormState: singleRecipientFormState,
       });
-      const deleteBtn = wrapper.findAll('button').find((b) => b.text().includes('Delete all'));
+      const deleteBtn = wrapper.findAll('button').find((b) => b.text().includes('web.domains.incoming.delete_all_recipients'));
       await deleteBtn!.trigger('click');
       const confirmBtn = wrapper
         .findAll('button')
-        .find((b) => b.text().includes('Yes, delete'));
+        .find((b) => b.text().includes('web.COMMON.yes_delete'));
       await confirmBtn!.trigger('click');
 
       expect(wrapper.emitted('delete')).toBeTruthy();

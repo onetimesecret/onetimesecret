@@ -2,7 +2,7 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
+import { createTestI18n } from '@tests/setup';
 import DefaultLogo from '@/shared/components/logos/DefaultLogo.vue';
 
 // Mock MonotoneJapaneseSecretButton icon component
@@ -14,25 +14,7 @@ vi.mock('@/shared/components/icons/MonotoneJapaneseSecretButtonIcon.vue', () => 
   },
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        homepage: {
-          one_time_secret_literal: 'Onetime Secret',
-        },
-        branding: {
-          default_logo_icon: 'Onetime Secret Logo',
-        },
-        COMMON: {
-          tagline: 'Keep passwords out of your email & chat logs',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 describe('DefaultLogo', () => {
   let wrapper: VueWrapper;
@@ -47,8 +29,7 @@ describe('DefaultLogo', () => {
     }
   });
 
-  const mountComponent = (props: Record<string, unknown> = {}) => {
-    return mount(DefaultLogo, {
+  const mountComponent = (props: Record<string, unknown> = {}) => mount(DefaultLogo, {
       props: {
         isUserPresent: false,
         ...props,
@@ -57,7 +38,6 @@ describe('DefaultLogo', () => {
         plugins: [i18n],
       },
     });
-  };
 
   describe('Text Size Tiers', () => {
     it('uses text-xs for size <= 32', () => {
@@ -202,7 +182,7 @@ describe('DefaultLogo', () => {
       wrapper = mountComponent({ showSiteName: true, siteName: 'Test' });
 
       const html = wrapper.html();
-      expect(html).toContain('Keep passwords out of your email');
+      expect(html).toContain('web.COMMON.tagline');
     });
   });
 
@@ -258,7 +238,7 @@ describe('DefaultLogo', () => {
     it('falls back to i18n aria-label when no prop', () => {
       wrapper = mountComponent({});
 
-      const container = wrapper.find('[aria-label="Onetime Secret"]');
+      const container = wrapper.find('[aria-label="web.homepage.one_time_secret_literal"]');
       expect(container.exists()).toBe(true);
     });
 

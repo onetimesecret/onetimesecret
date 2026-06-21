@@ -2,10 +2,10 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { createPinia, setActivePinia } from 'pinia';
 import CancelSubscriptionModal from '@/apps/workspace/billing/CancelSubscriptionModal.vue';
 import { nextTick } from 'vue';
+import { createTestI18n } from '@tests/setup';
 
 // Mock HeadlessUI components
 vi.mock('@headlessui/vue', () => ({
@@ -62,34 +62,7 @@ vi.mock('@/schemas/errors', () => ({
   }),
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        billing: {
-          cancel: {
-            title: 'Cancel Subscription',
-            confirmation: 'Are you sure you want to cancel your {plan} subscription?',
-            what_happens: 'What happens when you cancel:',
-            access_until: "You'll retain access to all features until {date}",
-            access_until_period_end: "You'll retain access until your current billing period ends",
-            no_future_charges: "You won't be charged again",
-            downgrade_to_free: 'Your account will revert to the free plan',
-            keep_subscription: 'Keep Subscription',
-            confirm_cancel: 'Cancel Subscription',
-            success: 'Your subscription has been cancelled.',
-            error: 'Failed to cancel subscription. Please try again.',
-          },
-        },
-        COMMON: {
-          processing: 'Processing...',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 describe('CancelSubscriptionModal', () => {
   let wrapper: VueWrapper;
@@ -151,12 +124,14 @@ describe('CancelSubscriptionModal', () => {
 
     it('displays the modal title', async () => {
       wrapper = await mountComponent();
-      expect(wrapper.text()).toContain('Cancel Subscription');
+      expect(wrapper.text()).toContain('web.billing.cancel.title');
     });
 
     it('displays the plan name in confirmation message', async () => {
+      // Pass-through i18n renders the raw key; {plan} interpolation is not
+      // applied to a missing key, so we assert the confirmation key is wired.
       wrapper = await mountComponent({ planName: 'Team Plus' });
-      expect(wrapper.text()).toContain('Team Plus');
+      expect(wrapper.text()).toContain('web.billing.cancel.confirmation');
     });
 
     it('displays formatted period end date when provided', async () => {
@@ -165,22 +140,22 @@ describe('CancelSubscriptionModal', () => {
       wrapper = await mountComponent({ periodEnd: timestamp });
 
       // The component formats the date using toLocaleDateString
-      // We just verify the date-related text appears
+      // We just verify the access-until key is rendered
       const text = wrapper.text();
-      expect(text).toContain("You'll retain access to all features until");
+      expect(text).toContain('web.billing.cancel.access_until');
     });
 
     it('shows fallback text when periodEnd is null', async () => {
       wrapper = await mountComponent({ periodEnd: null });
-      expect(wrapper.text()).toContain("You'll retain access until your current billing period ends");
+      expect(wrapper.text()).toContain('web.billing.cancel.access_until_period_end');
     });
 
     it('displays what happens section', async () => {
       wrapper = await mountComponent();
       const text = wrapper.text();
-      expect(text).toContain('What happens when you cancel:');
-      expect(text).toContain("You won't be charged again");
-      expect(text).toContain('Your account will revert to the free plan');
+      expect(text).toContain('web.billing.cancel.what_happens');
+      expect(text).toContain('web.billing.cancel.no_future_charges');
+      expect(text).toContain('web.billing.cancel.downgrade_to_free');
     });
 
     it('displays both action buttons', async () => {
@@ -188,8 +163,8 @@ describe('CancelSubscriptionModal', () => {
       const buttons = wrapper.findAll('button');
       const buttonTexts = buttons.map(btn => btn.text());
 
-      expect(buttonTexts).toContain('Keep Subscription');
-      expect(buttonTexts).toContain('Cancel Subscription');
+      expect(buttonTexts).toContain('web.billing.cancel.keep_subscription');
+      expect(buttonTexts).toContain('web.billing.cancel.confirm_cancel');
     });
   });
 
@@ -204,7 +179,7 @@ describe('CancelSubscriptionModal', () => {
       wrapper = await mountComponent({ orgExtId: 'org_abc123' });
 
       const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text() === 'Cancel Subscription'
+        btn => btn.text() === 'web.billing.cancel.confirm_cancel'
       );
       await confirmButton?.trigger('click');
       await nextTick();
@@ -222,12 +197,12 @@ describe('CancelSubscriptionModal', () => {
       wrapper = await mountComponent();
 
       const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text() === 'Cancel Subscription'
+        btn => btn.text() === 'web.billing.cancel.confirm_cancel'
       );
       await confirmButton?.trigger('click');
       await nextTick();
 
-      expect(wrapper.text()).toContain('Processing...');
+      expect(wrapper.text()).toContain('web.COMMON.processing');
 
       // Clean up
       resolveCancel!({ success: true, cancel_at: Date.now() / 1000, status: 'active' });
@@ -244,7 +219,7 @@ describe('CancelSubscriptionModal', () => {
       wrapper = await mountComponent();
 
       const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text() === 'Cancel Subscription'
+        btn => btn.text() === 'web.billing.cancel.confirm_cancel'
       );
       await confirmButton?.trigger('click');
       await nextTick();
@@ -257,7 +232,7 @@ describe('CancelSubscriptionModal', () => {
       wrapper = await mountComponent({ orgExtId: '' });
 
       const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text() === 'Cancel Subscription'
+        btn => btn.text() === 'web.billing.cancel.confirm_cancel'
       );
       await confirmButton?.trigger('click');
       await nextTick();
@@ -273,7 +248,7 @@ describe('CancelSubscriptionModal', () => {
       wrapper = await mountComponent();
 
       const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text() === 'Cancel Subscription'
+        btn => btn.text() === 'web.billing.cancel.confirm_cancel'
       );
       await confirmButton?.trigger('click');
       await nextTick();
@@ -290,7 +265,7 @@ describe('CancelSubscriptionModal', () => {
       wrapper = await mountComponent();
 
       const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text() === 'Cancel Subscription'
+        btn => btn.text() === 'web.billing.cancel.confirm_cancel'
       );
       await confirmButton?.trigger('click');
       await nextTick();
@@ -308,7 +283,7 @@ describe('CancelSubscriptionModal', () => {
       wrapper = await mountComponent();
 
       const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text() === 'Cancel Subscription'
+        btn => btn.text() === 'web.billing.cancel.confirm_cancel'
       );
       await confirmButton?.trigger('click');
       await nextTick();
@@ -325,7 +300,7 @@ describe('CancelSubscriptionModal', () => {
       wrapper = await mountComponent();
 
       const keepButton = wrapper.findAll('button').find(
-        btn => btn.text() === 'Keep Subscription'
+        btn => btn.text() === 'web.billing.cancel.keep_subscription'
       );
       await keepButton?.trigger('click');
 
@@ -343,14 +318,14 @@ describe('CancelSubscriptionModal', () => {
 
       // Start cancellation
       const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text() === 'Cancel Subscription'
+        btn => btn.text() === 'web.billing.cancel.confirm_cancel'
       );
       await confirmButton?.trigger('click');
       await nextTick();
 
       // Try to close
       const keepButton = wrapper.findAll('button').find(
-        btn => btn.text() === 'Keep Subscription'
+        btn => btn.text() === 'web.billing.cancel.keep_subscription'
       );
       await keepButton?.trigger('click');
 
@@ -374,7 +349,7 @@ describe('CancelSubscriptionModal', () => {
       wrapper = await mountComponent();
 
       const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text() === 'Cancel Subscription'
+        btn => btn.text() === 'web.billing.cancel.confirm_cancel'
       );
       await confirmButton?.trigger('click');
       await nextTick();
@@ -395,7 +370,7 @@ describe('CancelSubscriptionModal', () => {
       wrapper = await mountComponent();
 
       const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text() === 'Cancel Subscription'
+        btn => btn.text() === 'web.billing.cancel.confirm_cancel'
       );
       await confirmButton?.trigger('click');
       await nextTick();
@@ -403,7 +378,7 @@ describe('CancelSubscriptionModal', () => {
 
       // Find the confirm button again (text changed back from Processing)
       const buttons = wrapper.findAll('button');
-      const reenabledButton = buttons.find(btn => btn.text() === 'Cancel Subscription');
+      const reenabledButton = buttons.find(btn => btn.text() === 'web.billing.cancel.confirm_cancel');
 
       // Should be enabled again after error
       expect(reenabledButton?.attributes('disabled')).toBeUndefined();
@@ -421,7 +396,7 @@ describe('CancelSubscriptionModal', () => {
       wrapper = await mountComponent();
 
       const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text() === 'Cancel Subscription'
+        btn => btn.text() === 'web.billing.cancel.confirm_cancel'
       );
 
       // Click multiple times

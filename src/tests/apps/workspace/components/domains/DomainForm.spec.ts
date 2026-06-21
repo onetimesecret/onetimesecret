@@ -11,7 +11,7 @@
 
 import { mount, VueWrapper, flushPromises } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
+import { createTestI18n } from '@tests/setup';
 import DomainForm from '@/apps/workspace/components/domains/DomainForm.vue';
 
 // ---------------------------------------------------------------------------
@@ -48,29 +48,7 @@ vi.mock('@/shared/components/ui/ErrorDisplay.vue', () => ({
 // i18n setup
 // ---------------------------------------------------------------------------
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        domains: {
-          please_enter_a_domain_name: 'Please enter a domain name',
-          secrets_example_dot_com: 'secrets.example.com',
-        },
-        COMMON: {
-          e_g_example: 'e.g.',
-          back: 'Back',
-          continue: 'Continue',
-          adding_ellipses: 'Adding',
-        },
-        layout: {
-          go_back_to_previous_page: 'Go back to previous page',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -89,8 +67,7 @@ describe('DomainForm', () => {
     }
   });
 
-  const mountComponent = (props: { isSubmitting?: boolean } = {}) => {
-    return mount(DomainForm, {
+  const mountComponent = (props: { isSubmitting?: boolean } = {}) => mount(DomainForm, {
       props: {
         isSubmitting: props.isSubmitting ?? false,
       },
@@ -98,7 +75,6 @@ describe('DomainForm', () => {
         plugins: [i18n],
       },
     });
-  };
 
   // -------------------------------------------------------------------------
   // Form rendering
@@ -126,7 +102,7 @@ describe('DomainForm', () => {
 
       const backButton = wrapper.find('[data-testid="domain-add-cancel-btn"]');
       expect(backButton.exists()).toBe(true);
-      expect(backButton.text()).toContain('Back');
+      expect(backButton.text()).toContain('web.COMMON.back');
     });
 
     it('renders submit button', () => {
@@ -134,7 +110,7 @@ describe('DomainForm', () => {
 
       const submitButton = wrapper.find('[data-testid="domain-add-submit"]');
       expect(submitButton.exists()).toBe(true);
-      expect(submitButton.text()).toContain('Continue');
+      expect(submitButton.text()).toContain('web.COMMON.continue');
     });
 
     it('does not show error display initially', () => {
@@ -159,7 +135,7 @@ describe('DomainForm', () => {
 
       const errorDisplay = wrapper.find('[data-testid="error-display"]');
       expect(errorDisplay.exists()).toBe(true);
-      expect(errorDisplay.attributes('data-message')).toBe('Please enter a domain name');
+      expect(errorDisplay.attributes('data-message')).toBe('web.domains.please_enter_a_domain_name');
     });
 
     it('does not emit submit event when form is empty', async () => {
@@ -378,7 +354,7 @@ describe('DomainForm', () => {
       wrapper = mountComponent();
 
       const backButton = wrapper.find('[data-testid="domain-add-cancel-btn"]');
-      expect(backButton.attributes('aria-label')).toBe('Go back to previous page');
+      expect(backButton.attributes('aria-label')).toBe('web.layout.go_back_to_previous_page');
     });
 
     it('is a button type button (not submit)', () => {
@@ -398,15 +374,15 @@ describe('DomainForm', () => {
       wrapper = mountComponent({ isSubmitting: false });
 
       const submitButton = wrapper.find('[data-testid="domain-add-submit"]');
-      expect(submitButton.text()).toContain('Continue');
-      expect(submitButton.text()).not.toContain('Adding');
+      expect(submitButton.text()).toContain('web.COMMON.continue');
+      expect(submitButton.text()).not.toContain('web.COMMON.adding_ellipses');
     });
 
     it('shows loading text when isSubmitting is true', () => {
       wrapper = mountComponent({ isSubmitting: true });
 
       const submitButton = wrapper.find('[data-testid="domain-add-submit"]');
-      expect(submitButton.text()).toContain('Adding');
+      expect(submitButton.text()).toContain('web.COMMON.adding_ellipses');
     });
 
     it('shows spinner when isSubmitting is true', () => {

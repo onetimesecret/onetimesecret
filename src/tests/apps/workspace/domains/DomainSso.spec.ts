@@ -10,10 +10,10 @@
 
 import { mount, flushPromises, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { createPinia, setActivePinia } from 'pinia';
 import { ref } from 'vue';
 import DomainSso from '@/apps/workspace/domains/DomainSso.vue';
+import { createTestI18n } from '@tests/setup';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mocks
@@ -162,41 +162,7 @@ vi.mock('@/types/organization', () => ({
 }));
 
 // i18n setup
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        domains: {
-          sso: {
-            title: 'Domain SSO Configuration',
-            access_denied: 'Access Denied',
-            access_denied_description: 'You do not have permission to manage SSO for this domain.',
-            upgrade_to_configure: 'You do not have permission to manage SSO for this domain. Upgrade your plan to enable this feature.',
-            config_title: 'SSO Provider Configuration',
-            config_description: 'Configure single sign-on for this domain.',
-            update_success: 'SSO configuration updated successfully',
-            delete_success: 'SSO configuration deleted successfully',
-            not_configured_notice: 'SSO is not configured for this domain yet.',
-          },
-        },
-        billing: {
-          overview: {
-            view_plans_action: 'View Plans',
-          },
-        },
-        branding: {
-          you_have_unsaved_changes_are_you_sure: 'You have unsaved changes. Are you sure you want to leave?',
-        },
-        COMMON: {
-          back: 'Back',
-          loading: 'Loading...',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Tests
@@ -278,7 +244,7 @@ describe('DomainSso', () => {
 
       const title = wrapper.find('[data-testid="sso-config-title"]');
       expect(title.exists()).toBe(true);
-      expect(title.text()).toContain('Domain SSO Configuration');
+      expect(title.text()).toContain('web.domains.sso.title');
     });
 
     it('displays domain name when loaded', async () => {
@@ -314,7 +280,7 @@ describe('DomainSso', () => {
       // Should show loading skeleton (SettingsSkeleton) with its busy status region
       const skeleton = wrapper.find('[role="status"]');
       expect(skeleton.exists()).toBe(true);
-      expect(wrapper.text()).toContain('Loading...');
+      expect(wrapper.text()).toContain('web.COMMON.loading');
     });
 
     it('calls initialize on mount', async () => {
@@ -415,8 +381,8 @@ describe('DomainSso', () => {
       mockDomain.value = { display_domain: 'example.com' };
       wrapper = await mountComponent();
 
-      expect(wrapper.text()).toContain('Access Denied');
-      expect(wrapper.text()).toContain('You do not have permission to manage SSO');
+      expect(wrapper.text()).toContain('web.domains.sso.access_denied');
+      expect(wrapper.text()).toContain('web.domains.sso.upgrade_to_configure');
     });
 
     it('does not show DomainSsoConfigForm when manage_sso not available', async () => {
@@ -516,7 +482,7 @@ describe('DomainSso', () => {
 
       const backButton = wrapper.find('button');
       expect(backButton.exists()).toBe(true);
-      expect(backButton.text()).toContain('Back');
+      expect(backButton.text()).toContain('web.COMMON.back');
     });
 
     it('loading skeleton exposes a busy status region', async () => {

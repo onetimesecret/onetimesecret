@@ -8,7 +8,7 @@
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ref } from 'vue';
-import { createI18n } from 'vue-i18n';
+import { createTestI18n } from '@tests/setup';
 import { createTestingPinia } from '@pinia/testing';
 import type { Pinia } from 'pinia';
 import type { ApplicationError } from '@/schemas/errors';
@@ -41,25 +41,7 @@ vi.mock('@/shared/stores/identityStore', () => ({
 
 import EntitlementUpgradePrompt from '@/apps/workspace/components/billing/EntitlementUpgradePrompt.vue';
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        billing: {
-          upgrade: {
-            required: 'Upgrade required',
-            viewPlans: 'View Plans',
-          },
-        },
-        LABELS: {
-          dismiss: 'Dismiss',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 function createError(overrides: Partial<ApplicationError> = {}): ApplicationError {
   return {
@@ -145,7 +127,7 @@ describe('EntitlementUpgradePrompt', () => {
   describe('content display', () => {
     it('shows the upgrade required heading', () => {
       const wrapper = mountPrompt();
-      expect(wrapper.text()).toContain('Upgrade required');
+      expect(wrapper.text()).toContain('web.billing.upgrade.required');
     });
 
     it('displays the error message from the entitlement gate', () => {
@@ -164,7 +146,7 @@ describe('EntitlementUpgradePrompt', () => {
         error: createError({ message: '' }),
       });
       // displayMessage falls back to t('web.billing.upgrade.required')
-      expect(wrapper.text()).toContain('Upgrade required');
+      expect(wrapper.text()).toContain('web.billing.upgrade.required');
     });
 
     it('includes a router-link to the billing plans page', () => {
@@ -231,7 +213,7 @@ describe('EntitlementUpgradePrompt', () => {
     it('dismiss button has accessible label', () => {
       const wrapper = mountPrompt();
       const button = wrapper.find('button');
-      expect(button.attributes('aria-label')).toBe('Dismiss');
+      expect(button.attributes('aria-label')).toBe('web.LABELS.dismiss');
     });
   });
 });

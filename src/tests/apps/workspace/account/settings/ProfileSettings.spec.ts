@@ -12,7 +12,7 @@ import { createTestingPinia } from '@pinia/testing';
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick, ref } from 'vue';
-import { createI18n } from 'vue-i18n';
+import { createTestI18n } from '@tests/setup';
 
 // vue-router stubs
 vi.mock('vue-router', () => ({
@@ -89,13 +89,7 @@ vi.mock('@/shared/composables/useEntitlements', () => ({
   }),
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: { en: {} },
-  missingWarn: false,
-  fallbackWarn: false,
-});
+const i18n = createTestI18n();
 
 describe('ProfileSettings', () => {
   let wrapper: VueWrapper;
