@@ -22,5 +22,14 @@
   "web.dashboard.fetch_error_description": {
     "text": "加载数据时出现问题，请重试。",
     "source_hash": "ff0d904e"
+  },
+  "web.teams.create_first_team_title": {
+    "text": "创建您的第一个团队"
+  },
+  "web.teams.create_first_team_description": {
+    "text": "团队让您在共享工作区中与他人协作。"
+  },
+  "web.teams.create_team": {
+    "text": "创建团队"
   }
 }

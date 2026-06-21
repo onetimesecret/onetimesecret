@@ -1,0 +1,8 @@
+{
+  "api.account.errors.invalid_email": {
+    "text": "这是有效的邮箱地址吗？"
+  },
+  "api.account.errors.password_too_short": {
+    "text": "密码太短"
+  }
+}
