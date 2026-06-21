@@ -6,10 +6,10 @@
 // - Typography: font-medium (not font-semibold) for section headings
 // - Section heading: text-lg font-medium text-gray-600 dark:text-gray-300
 
-import { mount, VueWrapper, flushPromises } from '@vue/test-utils';
+import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { createTestingPinia } from '@pinia/testing';
+import { createTestI18n } from '@tests/setup';
 import NotificationSettings from '@/apps/workspace/account/settings/NotificationSettings.vue';
 
 // Mock vue-router
@@ -50,29 +50,7 @@ vi.mock('@/shared/stores/accountStore', () => ({
   }),
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        settings: {
-          notifications: {
-            title: 'Notifications',
-            description: 'Manage your notification preferences',
-            error_updating: 'Error updating notification preference',
-            privacy_note: 'We respect your privacy and only send essential notifications.',
-            reveal_notifications: {
-              title: 'Secret Reveal Notifications',
-              description: 'Get notified when someone views your secret',
-              help: 'You will receive an email when your secret is revealed.',
-            },
-          },
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 /**
  * NotificationSettings Component Tests
@@ -136,13 +114,13 @@ describe('NotificationSettings', () => {
 
       const heading = wrapper.find('h2');
       expect(heading.exists()).toBe(true);
-      expect(heading.text()).toBe('Notifications');
+      expect(heading.text()).toBe('web.settings.notifications.title');
     });
 
     it('renders section description', () => {
       wrapper = mountComponent();
 
-      expect(wrapper.text()).toContain('Manage your notification preferences');
+      expect(wrapper.text()).toContain('web.settings.notifications.description');
     });
   });
 
@@ -150,19 +128,19 @@ describe('NotificationSettings', () => {
     it('renders reveal notification title', () => {
       wrapper = mountComponent();
 
-      expect(wrapper.text()).toContain('Secret Reveal Notifications');
+      expect(wrapper.text()).toContain('web.settings.notifications.reveal_notifications.title');
     });
 
     it('renders reveal notification description', () => {
       wrapper = mountComponent();
 
-      expect(wrapper.text()).toContain('Get notified when someone views your secret');
+      expect(wrapper.text()).toContain('web.settings.notifications.reveal_notifications.description');
     });
 
     it('renders help text', () => {
       wrapper = mountComponent();
 
-      expect(wrapper.text()).toContain('You will receive an email when your secret is revealed');
+      expect(wrapper.text()).toContain('web.settings.notifications.reveal_notifications.help');
     });
 
     it('renders eye icon for reveal notifications', () => {
@@ -218,7 +196,7 @@ describe('NotificationSettings', () => {
     it('renders info box with privacy note', () => {
       wrapper = mountComponent();
 
-      expect(wrapper.text()).toContain('We respect your privacy');
+      expect(wrapper.text()).toContain('web.settings.notifications.privacy_note');
     });
 
     it('info box has information icon', () => {

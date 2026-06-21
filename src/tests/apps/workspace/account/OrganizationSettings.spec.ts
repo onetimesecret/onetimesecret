@@ -5,7 +5,7 @@ import { createTestingPinia } from '@pinia/testing';
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick, ref } from 'vue';
-import { createI18n } from 'vue-i18n';
+import { createTestI18n } from '@tests/setup';
 
 // Mock vue-router
 vi.mock('vue-router', () => ({
@@ -198,109 +198,8 @@ vi.mock('@/shared/composables/useEntitlementError', () => ({
   }),
 }));
 
-// i18n setup
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        organizations: {
-          title: 'Organizations',
-          not_found: 'Organization not found',
-          load_error: 'Failed to load organization',
-          update_success: 'Organization updated',
-          update_error: 'Failed to update organization',
-          billing_email_updated: 'Billing email updated successfully',
-          billing_email_managed_on_billing:
-            'Billing email can be changed on the Billing Overview page',
-          general_settings: 'General Settings',
-          display_name: 'Display Name',
-          description: 'Description',
-          contact_email: 'Billing Email',
-          contact_email_help: 'This email will receive billing notifications',
-          billing_coming_soon: 'Billing Coming Soon',
-          billing_coming_soon_description: 'Billing features will be available soon',
-          tabs: {
-            general: 'Settings',
-            members: 'Team',
-            billing: 'Billing',
-          },
-          members: {
-            member_singular: 'member',
-            member_plural: 'members',
-            no_members: 'No members yet',
-            role_updated: 'Role updated',
-            member_removed: 'Member removed',
-          },
-          invitations: {
-            invite_member: 'Invite Member',
-            upgrade_to_invite: 'Upgrade to invite members',
-            upgrade_prompt: 'Upgrade your plan to invite team members',
-            pending_invitations: 'Pending Invitations',
-            invite_sent: 'Invitation sent',
-            invite_error: 'Failed to send invitation',
-            resend: 'Resend',
-            revoke: 'Revoke',
-            resend_success: 'Invitation resent',
-            resend_error: 'Failed to resend invitation',
-            revoke_success: 'Invitation revoked',
-            revoke_error: 'Failed to revoke invitation',
-            email_address: 'Email Address',
-            email_placeholder: 'Enter email address',
-            role: 'Role',
-            roles: {
-              member: 'Member',
-              admin: 'Admin',
-            },
-            send_invite: 'Send Invite',
-            status: {
-              pending: 'Pending',
-            },
-          },
-          sso: {
-            domain_sso_title: 'Domain SSO',
-            domain_sso_description: 'Configure SSO for your domains',
-            no_domains: 'No domains configured',
-            no_domains_description: 'Add a domain to configure SSO',
-          },
-        },
-        domains: {
-          add_domain: 'Add Domain',
-        },
-        billing: {
-          overview: {
-            view_plans_action: 'View Plans',
-            plan_features: 'Plan Features',
-            upgrade_plan: 'Upgrade Plan',
-            manage_billing: 'Manage Billing',
-            view_invoices: 'View Invoices',
-            no_entitlements: 'No entitlements',
-          },
-          subscription: {
-            status: 'Subscription Status',
-            catalog_name: 'Current Plan',
-            team_usage: 'Team Usage',
-            teams_used: '{used} of {limit} teams used',
-          },
-          plans: {
-            free_plan: 'Free Plan',
-          },
-        },
-        COMMON: {
-          loading: 'Loading...',
-          not_set: 'Not set',
-          word_edit: 'Edit',
-          word_save: 'Save',
-          word_cancel: 'Cancel',
-          save_changes: 'Save Changes',
-          saving: 'Saving...',
-          processing: 'Processing...',
-        },
-      },
-    },
-  },
-});
+// i18n setup (pass-through: keys render as-is, see ADR-014)
+const i18n = createTestI18n();
 
 // Router stubs
 const routerLinkStub = {
@@ -352,10 +251,12 @@ describe('OrganizationSettings', () => {
   };
 
   const switchToSettingsTab = async (w: VueWrapper) => {
-    // Find the Settings tab button (located in the nav tabs area)
+    // Find the Settings (general) tab button (located in the nav tabs area).
+    // Match by stable id, not rendered text: under pass-through i18n the tab
+    // label renders the raw key 'web.organizations.tabs.general', not 'Settings'.
     const navTabs = w.find('nav[aria-label="Organization settings tabs"]');
     const tabs = navTabs.findAll('button');
-    const settingsTab = tabs.find((tab) => tab.text() === 'Settings');
+    const settingsTab = tabs.find((tab) => tab.attributes('id') === 'org-tab-general');
     if (!settingsTab) {
       throw new Error('Settings tab not found');
     }
@@ -391,7 +292,7 @@ describe('OrganizationSettings', () => {
 
         const section = findBillingEmailSection(wrapper);
         expect(section.exists()).toBe(true);
-        expect(section.text()).toContain('Billing Email');
+        expect(section.text()).toContain('web.organizations.contact_email');
       });
 
       it('hides billing email field for organizations without a paid plan', async () => {
@@ -420,7 +321,7 @@ describe('OrganizationSettings', () => {
 
         const editLink = findEditLink(wrapper);
         expect(editLink.exists()).toBe(true);
-        expect(editLink.text()).toBe('Edit');
+        expect(editLink.text()).toBe('web.COMMON.word_edit');
       });
 
       it('Edit link points to billing overview page', async () => {
@@ -439,7 +340,7 @@ describe('OrganizationSettings', () => {
         await switchToSettingsTab(wrapper);
 
         const section = findBillingEmailSection(wrapper);
-        expect(section.text()).toContain('Not set');
+        expect(section.text()).toContain('web.COMMON.not_set');
       });
 
       it('shows "Not set" when contact_email is null', async () => {
@@ -450,7 +351,7 @@ describe('OrganizationSettings', () => {
         await switchToSettingsTab(wrapper);
 
         const section = findBillingEmailSection(wrapper);
-        expect(section.text()).toContain('Not set');
+        expect(section.text()).toContain('web.COMMON.not_set');
       });
     });
 
@@ -469,7 +370,7 @@ describe('OrganizationSettings', () => {
 
         const section = findBillingEmailSection(wrapper);
         // The helper text explains billing email is managed on the billing page
-        expect(section.text()).toContain('Billing Overview');
+        expect(section.text()).toContain('web.organizations.billing_email_managed_on_billing');
       });
     });
 
@@ -480,7 +381,7 @@ describe('OrganizationSettings', () => {
 
         const section = findBillingEmailSection(wrapper);
         expect(section.exists()).toBe(true);
-        expect(section.text()).toContain('Billing Email');
+        expect(section.text()).toContain('web.organizations.contact_email');
       });
 
       it('shows billing email field for non-default organization with paid plan', async () => {
@@ -492,7 +393,7 @@ describe('OrganizationSettings', () => {
 
         const section = findBillingEmailSection(wrapper);
         expect(section.exists()).toBe(true);
-        expect(section.text()).toContain('Billing Email');
+        expect(section.text()).toContain('web.organizations.contact_email');
         expect(section.text()).toContain(nonDefaultOrg.contact_email);
       });
     });

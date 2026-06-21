@@ -2,9 +2,9 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { createTestingPinia } from '@pinia/testing';
 import { defineComponent, ref } from 'vue';
+import { createTestI18n } from '@tests/setup';
 
 // Mock vue-router
 vi.mock('vue-router', () => ({
@@ -47,51 +47,7 @@ vi.mock('@/shared/composables/useWebAuthn', () => ({
   useWebAuthn: () => mockWebAuthnState,
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        auth: {
-          passkeys: {
-            title: 'Passkeys',
-            setup_description: 'Use biometrics or hardware keys for passwordless sign-in',
-            add_passkey: 'Add passkey',
-            registered_success: 'Passkey registered successfully',
-            no_passkeys: 'No passkeys registered',
-            no_passkeys_description: 'Add a passkey to enable passwordless authentication',
-            created: 'Created',
-            last_used: 'Last used {time}',
-            never_used: 'Never used',
-            remove_passkey: 'Remove',
-            benefit_secure: 'More secure than passwords',
-            benefit_fast: 'Fast and convenient',
-            benefit_synced: 'Synced across devices',
-            description: 'Use biometrics or security keys',
-            count: '{count} passkey | {count} passkeys',
-            not_configured: 'Not configured',
-          },
-          webauthn: {
-            notSupported: 'Your browser does not support WebAuthn',
-            requiresModernBrowser: 'Please use a modern browser to enable passkeys',
-            supportedMethods: 'Face ID, Touch ID, or security keys',
-          },
-          mfa: {
-            title: 'Two-Factor Authentication',
-          },
-          recovery_codes: {
-            link_title: 'Recovery Codes',
-          },
-        },
-        LABELS: {
-          benefits: 'Benefits',
-          related_settings: 'Related Settings',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 /**
  * PasskeySettings Component Tests
