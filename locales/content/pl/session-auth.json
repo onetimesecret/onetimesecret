@@ -395,5 +395,35 @@
   "web.help.contact_support": {
     "text": "Skontaktuj się z pomocą techniczną",
     "source_hash": "f8d47b82"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "Konto SSO"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Email verification flow after signup"
+  },
+  "web.help.reset_password_link": {
+    "text": "Zresetuj hasło"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "Jednokrotne logowanie jest dostępne dla tej domeny"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "Administrator organizacji może włączyć SSO, aby umożliwić członkom zespołu logowanie się tutaj. Skontaktuj się z administratorem, aby uzyskać dostęp."
+  },
+  "web.login.signin_disabled_heading": {
+    "text": "Logowanie jest niedostępne"
+  },
+  "web.login.signin_disabled_message": {
+    "text": "Logowanie jest obecnie niedostępne w tej domenie."
+  },
+  "web.login.errors.sso_not_configured": {
+    "text": "Jednokrotne logowanie nie jest skonfigurowane dla tej domeny. Skontaktuj się z administratorem."
+  },
+  "web.login.errors.invalid_email": {
+    "text": "Adres e-mail z Twojego dostawcy tożsamości jest nieprawidłowy. Skontaktuj się z administratorem."
+  },
+  "web.login.errors.domain_not_allowed": {
+    "text": "Twoja domena e-mail nie jest autoryzowana do rejestracji przez SSO. Skontaktuj się z administratorem."
   }
 }

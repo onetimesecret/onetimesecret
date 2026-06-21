@@ -398,5 +398,725 @@
   "web.domains.dns_widget_description": {
     "text": "Użyj narzędzia poniżej, aby automatycznie wykryć dostawcę DNS i uzyskać instrukcje krok po kroku dotyczące konfiguracji domeny.",
     "source_hash": "91c1af2e"
+  },
+  "api.domains.errors.add_admin_required": {
+    "text": "Tylko właściciele i administratorzy organizacji mogą dodawać domeny niestandardowe"
+  },
+  "web.domains.public_homepage": {
+    "text": "Publiczna strona główna"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Domena zweryfikowana i aktywna"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS nieskonfigurowany — kliknij, aby naprawić"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Domena niezweryfikowana — kliknij, aby zweryfikować"
+  },
+  "web.domains.status_tooltip_unverified": {
+    "text": "Status domeny niezweryfikowany — kliknij, aby odświeżyć"
+  },
+  "web.domains.last_check_failed": {
+    "text": "Ostatnia weryfikacja nie powiodła się"
+  },
+  "web.domains.last_check_failed_ago": {
+    "text": "ostatnia weryfikacja nie powiodła się {0}"
+  },
+  "web.domains.verify_now": {
+    "text": "Zweryfikuj teraz"
+  },
+  "web.domains.click_to_verify": {
+    "text": "kliknij, aby zweryfikować"
+  },
+  "web.domains.remove_domain_description": {
+    "text": "Trwale usuń tę domenę i całą jej konfigurację."
+  },
+  "web.domains.add_access_denied": {
+    "text": "Odmowa dostępu"
+  },
+  "web.domains.add_access_denied_description": {
+    "text": "Nie masz uprawnień do dodawania domen do tej organizacji. Skontaktuj się z administratorem organizacji."
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "Nie udało się załadować widżetu DNS"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "Widżet DNS jest niedostępny"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "Nie udało się zainicjować widżetu DNS"
+  },
+  "web.domains.verified": {
+    "text": "Zweryfikowano"
+  },
+  "web.domains.pending_verification": {
+    "text": "Oczekuje na weryfikację"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Masz niezapisane zmiany. Czy na pewno chcesz wyjść?"
+  },
+  "web.domains.entitlement_required_owner": {
+    "text": "Ta funkcja wymaga ulepszenia planu."
+  },
+  "web.domains.entitlement_required_member": {
+    "text": "Ta funkcja jest niedostępna w Twoim obecnym planie. Skontaktuj się z właścicielem organizacji."
+  },
+  "web.domains.detail.manage": {
+    "text": "Zarządzaj"
+  },
+  "web.domains.detail.features": {
+    "text": "Funkcje"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Sekrety na stronie głównej"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Zezwól na publiczny dostęp w celu tworzenia sekretów na stronie głównej Twojej domeny"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logo, kolory i niestandardowy branding"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Ustawienia dostawcy jednokrotnego logowania"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Niestandardowa konfiguracja nadawcy e-mail"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Ustawienia odbiorców przychodzących sekretów"
+  },
+  "web.domains.detail.signup_description": {
+    "text": "Strategia walidacji rejestracji dla poszczególnych domen"
+  },
+  "web.domains.detail.signin_description": {
+    "text": "Konfiguracja metody logowania dla poszczególnych domen"
+  },
+  "web.domains.email.title": {
+    "text": "Wysyłanie e-maili"
+  },
+  "web.domains.email.config_title": {
+    "text": "Konfiguracja e-mail"
+  },
+  "web.domains.email.config_description": {
+    "text": "Skonfiguruj wysyłanie e-maili dla tej domeny"
+  },
+  "web.domains.email.provider_label": {
+    "text": "Dostawca poczty e-mail"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "Wybierz dostawcę poczty e-mail"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "Nazwa nadawcy"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "np. Acme Security"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "Adres nadawcy"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "np. secrets{'@'}example.com"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Adres zwrotny (Reply-To)"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "np. support{'@'}example.com"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Zapisz zmiany"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Odrzuć zmiany"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Użyj ustawień domyślnych konta"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "Wymaga weryfikacji domeny za pomocą rekordów DKIM i SPF"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Wymaga konfiguracji uwierzytelniania domeny"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Wymaga weryfikacji domeny"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "Używa domyślnej konfiguracji wysyłania e-maili z Twojego konta"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "Rekordy DNS"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "Dodaj poniższe rekordy DNS, aby zweryfikować swoją domenę do wysyłania e-maili."
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Typ"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Nazwa"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Wartość"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Dostawca"
+  },
+  "web.domains.email.dns_optional_label": {
+    "text": "Zalecane"
+  },
+  "web.domains.email.dns_optional_hint": {
+    "text": "Ten rekord jest zalecany, ale nie jest wymagany do weryfikacji. Polityka DMARC w Twojej domenie organizacyjnej może już obejmować tę poddomenę."
+  },
+  "web.domains.email.copy": {
+    "text": "Kopiuj"
+  },
+  "web.domains.email.copied": {
+    "text": "Skopiowano"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Zweryfikowano"
+  },
+  "web.domains.email.status_pending": {
+    "text": "Oczekuje"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Niepowodzenie"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Zweryfikuj ponownie"
+  },
+  "web.domains.email.validating": {
+    "text": "Weryfikowanie..."
+  },
+  "web.domains.email.domain_verified": {
+    "text": "Domena zweryfikowana"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "Weryfikacja nie powiodła się"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Ostatnio zweryfikowano"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Ulepsz swój plan, aby skonfigurować wysyłanie e-maili dla tej domeny."
+  },
+  "web.domains.email.configure_email": {
+    "text": "Konfiguruj e-mail"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Odmowa dostępu"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "Nie masz uprawnień do zarządzania ustawieniami e-mail dla tej domeny. Skontaktuj się z administratorem swojej organizacji."
+  },
+  "web.domains.email.update_success": {
+    "text": "Konfiguracja e-mail została pomyślnie zapisana"
+  },
+  "web.domains.email.delete_success": {
+    "text": "Konfiguracja e-mail została pomyślnie usunięta"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "E-maile dla tej domeny są obecnie wysyłane od globalnego nadawcy. Uzupełnij konfigurację e-mail, aby używać własnej tożsamości nadawcy."
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "Niestandardowe wysyłanie e-maili jest obecnie wyłączone. E-maile będą wysyłane od globalnego nadawcy. Włącz tę funkcję poniżej, aby używać własnej tożsamości nadawcy."
+  },
+  "web.domains.email.test_email_title": {
+    "text": "Testuj dostarczanie e-maili"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Wyślij testowy e-mail do siebie, używając zapisanej konfiguracji. Działa nawet wtedy, gdy funkcja nie jest jeszcze włączona."
+  },
+  "web.domains.email.send_test": {
+    "text": "Wyślij test"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Testowy e-mail został pomyślnie wysłany"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Nie udało się wysłać testowego e-maila"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Wysłano do {email}"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Dostarczono przez {provider}"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "Nieskonfigurowano"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "Używa domyślnego nadawcy"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Zweryfikowano"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Oczekuje na weryfikację"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Wyłączono"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "Nie skonfigurowano nadawcy e-mail — e-maile używają domyślnego nadawcy platformy"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "Konfiguracja nadawcy e-mail oczekuje na weryfikację — e-maile używają domyślnego nadawcy platformy"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "Nadawca e-mail jest wyłączony — e-maile używają domyślnego nadawcy platformy"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "Nadawca e-mail zweryfikowany — e-maile są wysyłane z tej domeny"
+  },
+  "web.domains.incoming.title": {
+    "text": "Przychodzące sekrety"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Konfiguracja przychodzących sekretów"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Zezwól użytkownikom zewnętrznym na wysyłanie sekretów bezpośrednio do wyznaczonych odbiorców w tej domenie"
+  },
+  "web.domains.incoming.feature_disabled": {
+    "text": "Przychodzące sekrety niedostępne"
+  },
+  "web.domains.incoming.feature_disabled_description": {
+    "text": "Przychodzące sekrety nie są włączone w tej instancji. Skontaktuj się z administratorem."
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Odmowa dostępu"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "Nie masz uprawnień do zarządzania ustawieniami przychodzących sekretów dla tej domeny. Skontaktuj się z administratorem swojej organizacji."
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Ulepsz swój plan, aby skonfigurować przychodzące sekrety dla tej domeny."
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Konfiguruj przychodzące sekrety"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "Przychodzące sekrety nie są skonfigurowane dla tej domeny. Dodaj odbiorców, aby umożliwić użytkownikom zewnętrznym wysyłanie sekretów do Twojego zespołu."
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "Przychodzące sekrety są obecnie wyłączone. Użytkownicy zewnętrzni nie mogą wysyłać sekretów do odbiorców w tej domenie. Włącz tę funkcję poniżej, aby zezwolić na przychodzące sekrety."
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Odbiorcy"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Określ, kto może otrzymywać przychodzące sekrety w tej domenie. Odbiorcy otrzymają powiadomienia e-mail, gdy zostanie do nich wysłany sekret."
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Dodaj odbiorcę"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Usuń"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "Adres e-mail"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "recipient{'@'}example.com"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Nazwa wyświetlana"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "np. Security Team"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "Nie skonfigurowano odbiorców"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Dodaj odbiorców, aby umożliwić użytkownikom zewnętrznym wysyłanie sekretów do Twojego zespołu."
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Nieprawidłowy adres e-mail"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "Ten adres e-mail został już dodany"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "Maksymalna liczba dozwolonych odbiorców: {max}"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "Nazwa wyświetlana jest wymagana"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "Adres e-mail jest wymagany"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Zapisz zmiany"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Odrzuć zmiany"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "Konfiguracja przychodzących sekretów została pomyślnie zapisana"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "Konfiguracja przychodzących sekretów została pomyślnie usunięta"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} odbiorca | {count} odbiorców"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "Nieskonfigurowano"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Skonfigurowano"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Wyłączono"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "Przychodzące sekrety nie są skonfigurowane - użytkownicy zewnętrzni nie mogą wysyłać sekretów do tej domeny"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "Przychodzące sekrety włączone, liczba odbiorców: {count}"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "Funkcja przychodzących sekretów jest wyłączona dla tej domeny"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Włącz przychodzące sekrety"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Zezwól użytkownikom zewnętrznym na wysyłanie sekretów do odbiorców w tej domenie"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "Publiczny adres URL"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Udostępnij ten adres URL użytkownikom zewnętrznym, aby umożliwić im wysyłanie sekretów"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "Kopiuj adres URL"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "Adres URL skopiowano do schowka"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Czy na pewno chcesz usunąć wszystkich odbiorców? Użytkownicy zewnętrzni nie będą już mogli wysyłać sekretów do tej domeny."
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Osiągnięto maksymalną liczbę odbiorców"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "Ten adres e-mail został już dodany"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "Zapisanie zastąpi wszystkich istniejących odbiorców Twoimi oczekującymi zmianami. Czy na pewno?"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Usuń wszystkich odbiorców"
+  },
+  "web.domains.signin.title": {
+    "text": "Konfiguracja logowania"
+  },
+  "web.domains.signin.configure_signin": {
+    "text": "Konfiguruj logowanie"
+  },
+  "web.domains.signin.config_description": {
+    "text": "Skonfiguruj metody uwierzytelniania przy logowaniu dla tej domeny"
+  },
+  "web.domains.signin.access_denied": {
+    "text": "Odmowa dostępu"
+  },
+  "web.domains.signin.upgrade_to_configure": {
+    "text": "Ulepsz swój plan, aby skonfigurować metody logowania dla tej domeny."
+  },
+  "web.domains.signin.not_configured_notice": {
+    "text": "Konfiguracja logowania nie została jeszcze ustawiona dla tej domeny. Skonfiguruj nadpisania, aby kontrolować, które metody uwierzytelniania są dostępne na stronie logowania tej domeny."
+  },
+  "web.domains.signin.signin_enabled_label": {
+    "text": "Logowanie włączone"
+  },
+  "web.domains.signin.header_toggle_label": {
+    "text": "Logowanie"
+  },
+  "web.domains.signin.signin_enabled_hint": {
+    "text": "Określa, czy użytkownicy mogą logować się w tej domenie"
+  },
+  "web.domains.signin.restrict_to_label": {
+    "text": "Ogranicz metodę logowania"
+  },
+  "web.domains.signin.restrict_to_hint": {
+    "text": "Ogranicz tę domenę do jednej metody uwierzytelniania. Po ustawieniu na stronie logowania wyświetlana jest tylko wybrana metoda."
+  },
+  "web.domains.signin.all_methods": {
+    "text": "Wszystkie metody"
+  },
+  "web.domains.signin.all_methods_description": {
+    "text": "Pokaż wszystkie włączone metody uwierzytelniania na stronie logowania"
+  },
+  "web.domains.signin.method_password": {
+    "text": "Hasło"
+  },
+  "web.domains.signin.method_email_auth": {
+    "text": "Uwierzytelnianie e-mail"
+  },
+  "web.domains.signin.method_webauthn": {
+    "text": "WebAuthn / Klucze dostępu"
+  },
+  "web.domains.signin.method_sso": {
+    "text": "Jednokrotne logowanie"
+  },
+  "web.domains.signin.method_overrides_label": {
+    "text": "Nadpisania metod"
+  },
+  "web.domains.signin.method_overrides_hint": {
+    "text": "Włącz lub wyłącz poszczególne metody uwierzytelniania dla tej domeny"
+  },
+  "web.domains.signin.mode_question": {
+    "text": "Jak użytkownicy mogą się logować?"
+  },
+  "web.domains.signin.mode_any": {
+    "text": "Dowolna dostępna metoda"
+  },
+  "web.domains.signin.mode_any_hint": {
+    "text": "Pokaż każdą metodę dostępną w tej domenie. Zawęź poszczególne metody poniżej."
+  },
+  "web.domains.signin.mode_one": {
+    "text": "Jedna konkretna metoda"
+  },
+  "web.domains.signin.mode_one_hint": {
+    "text": "Ogranicz stronę logowania do jednej metody. Wymienione są tylko metody dostępne w tej domenie."
+  },
+  "web.domains.signin.mode_disabled": {
+    "text": "Logowanie wyłączone"
+  },
+  "web.domains.signin.mode_disabled_hint": {
+    "text": "Użytkownicy nie mogą logować się w tej domenie."
+  },
+  "web.domains.signin.mode_disabled_notice": {
+    "text": "Odwiedzający stronę logowania tej domeny widzą informację, że logowanie jest niedostępne, wraz z linkiem powrotnym do strony głównej. Twoje poprzednie ustawienia metod są zachowywane i przywracane po ponownym włączeniu logowania."
+  },
+  "web.domains.signin.methods_list_label": {
+    "text": "Metody wyświetlane na stronie logowania"
+  },
+  "web.domains.signin.restrict_picker_hint": {
+    "text": "Wymienione są tylko metody dostępne w tej domenie."
+  },
+  "web.domains.signin.availability_always": {
+    "text": "Zawsze dostępne"
+  },
+  "web.domains.signin.availability_global_on": {
+    "text": "Zgodne z polityką globalną · Wł."
+  },
+  "web.domains.signin.availability_global_off": {
+    "text": "Niedostępne"
+  },
+  "web.domains.signin.availability_unavailable": {
+    "text": "Niedostępne w całej witrynie"
+  },
+  "web.domains.signin.allow_on_domain": {
+    "text": "Zezwól w tej domenie"
+  },
+  "web.domains.signin.method_password_blurb": {
+    "text": "Tylko hasło"
+  },
+  "web.domains.signin.method_email_auth_blurb": {
+    "text": "Logowanie bez hasła za pomocą magicznego linku"
+  },
+  "web.domains.signin.method_webauthn_blurb": {
+    "text": "Dane biometryczne i klucze bezpieczeństwa"
+  },
+  "web.domains.signin.method_sso_blurb": {
+    "text": "Zewnętrzny dostawca tożsamości"
+  },
+  "web.domains.signin.email_auth_label": {
+    "text": "Uwierzytelnianie e-mail"
+  },
+  "web.domains.signin.email_auth_hint": {
+    "text": "Zezwól na uwierzytelnianie e-mail bez hasła w tej domenie"
+  },
+  "web.domains.signin.sso_enabled_label": {
+    "text": "Jednokrotne logowanie"
+  },
+  "web.domains.signin.sso_enabled_hint": {
+    "text": "Zezwól na uwierzytelnianie SSO w tej domenie"
+  },
+  "web.domains.signin.enabled_label": {
+    "text": "Włącz konfigurację logowania"
+  },
+  "web.domains.signin.enabled_hint": {
+    "text": "Po włączeniu ta domena korzysta z ustawień logowania skonfigurowanych powyżej"
+  },
+  "web.domains.signin.save_config": {
+    "text": "Zapisz konfigurację"
+  },
+  "web.domains.signin.update_success": {
+    "text": "Konfiguracja logowania została pomyślnie zaktualizowana"
+  },
+  "web.domains.signin.reset_to_defaults": {
+    "text": "Przywróć ustawienia domyślne"
+  },
+  "web.domains.signin.reset_confirm": {
+    "text": "Przywrócić logowanie do globalnych ustawień domyślnych?"
+  },
+  "web.domains.signin.reset_keeps_sso": {
+    "text": "Twoje poświadczenia SSO są zachowywane. Usuń je osobno na ekranie konfiguracji SSO."
+  },
+  "web.domains.signin.reset_action": {
+    "text": "Tak, przywróć"
+  },
+  "web.domains.signin.reset_success": {
+    "text": "Ustawienia logowania przywrócono do globalnych ustawień domyślnych"
+  },
+  "web.domains.signup.title": {
+    "text": "Walidacja rejestracji"
+  },
+  "web.domains.signup.config_description": {
+    "text": "Skonfiguruj walidację rejestracji dla tej domeny"
+  },
+  "web.domains.signup.access_denied": {
+    "text": "Odmowa dostępu"
+  },
+  "web.domains.signup.upgrade_to_configure": {
+    "text": "Ulepsz swój plan, aby skonfigurować walidację rejestracji dla poszczególnych domen."
+  },
+  "web.domains.signup.configure_signup": {
+    "text": "Konfiguruj rejestrację"
+  },
+  "web.domains.signup.not_configured_notice": {
+    "text": "Walidacja rejestracji nie jest jeszcze skonfigurowana dla tej domeny. Skonfiguruj strategię, aby kontrolować, kto może rejestrować się za pośrednictwem tej domeny."
+  },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "Rejestracje są obecnie wyłączone na poziomie witryny. Ta polityka dla poszczególnych domen jest skonfigurowana, ale nie będzie ograniczać żadnego ruchu, dopóki rejestracje w witrynie nie zostaną włączone."
+  },
+  "web.domains.signup.strategy_label": {
+    "text": "Strategia walidacji"
+  },
+  "web.domains.signup.strategy_description": {
+    "text": "Wybierz, w jaki sposób adresy e-mail są walidowane podczas rejestracji użytkowników w tej domenie."
+  },
+  "web.domains.signup.network_validation_warning": {
+    "text": "Ta strategia wykonuje połączenia sieciowe podczas rejestracji, co może zwiększać opóźnienia lub być blokowane przez niektórych dostawców."
+  },
+  "web.domains.signup.allowed_domains_label": {
+    "text": "Dozwolone domeny rejestracji"
+  },
+  "web.domains.signup.allowed_domains_hint": {
+    "text": "Tylko te domeny e-mail będą mogły się rejestrować. Dodaj jedną domenę na wpis."
+  },
+  "web.domains.signup.domain_placeholder": {
+    "text": "example.com"
+  },
+  "web.domains.signup.invalid_domain": {
+    "text": "Wprowadź prawidłową domenę (np. example.com)"
+  },
+  "web.domains.signup.domain_exists": {
+    "text": "Ta domena jest już na liście"
+  },
+  "web.domains.signup.remove_domain": {
+    "text": "Usuń {domain}"
+  },
+  "web.domains.signup.enabled_label": {
+    "text": "Włącz walidację dla poszczególnych domen"
+  },
+  "web.domains.signup.enabled_hint": {
+    "text": "Po włączeniu rejestracje w tej domenie używają powyższej strategii zamiast polityki globalnej."
+  },
+  "web.domains.signup.delete_config": {
+    "text": "Usuń konfigurację"
+  },
+  "web.domains.signup.delete_confirm": {
+    "text": "Usunąć konfigurację walidacji rejestracji? Rejestracje będą korzystać z polityki globalnej."
+  },
+  "web.domains.signup.save_config": {
+    "text": "Zapisz konfigurację"
+  },
+  "web.domains.signup.update_success": {
+    "text": "Walidacja rejestracji została pomyślnie zaktualizowana"
+  },
+  "web.domains.signup.delete_success": {
+    "text": "Konfiguracja walidacji rejestracji została pomyślnie usunięta"
+  },
+  "web.domains.signup.domain_overrides_label": {
+    "text": "Nadpisania domeny"
+  },
+  "web.domains.signup.domain_overrides_hint": {
+    "text": "Zastąp globalne ustawienia rejestracji dla tej domeny"
+  },
+  "web.domains.signup.signup_enabled_label": {
+    "text": "Rejestracja włączona"
+  },
+  "web.domains.signup.signup_enabled_hint": {
+    "text": "Zastąp ustawienie, czy rejestracja jest włączona dla tej domeny"
+  },
+  "web.domains.signup.autoverify_label": {
+    "text": "Automatyczna weryfikacja kont"
+  },
+  "web.domains.signup.autoverify_hint": {
+    "text": "Zastąp ustawienie, czy nowe konta są automatycznie weryfikowane w tej domenie"
+  },
+  "web.domains.sso.title": {
+    "text": "Jednokrotne logowanie"
+  },
+  "web.domains.sso.config_title": {
+    "text": "Konfiguracja SSO"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Skonfiguruj uwierzytelnianie jednokrotnym logowaniem dla tej domeny"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Odmowa dostępu"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "Nie masz uprawnień do zarządzania ustawieniami SSO dla tej domeny. Skontaktuj się z administratorem swojej organizacji."
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Ulepsz swój plan, aby skonfigurować jednokrotne logowanie dla tej domeny."
+  },
+  "web.domains.sso.create_success": {
+    "text": "Konfiguracja SSO została pomyślnie utworzona"
+  },
+  "web.domains.sso.update_success": {
+    "text": "Konfiguracja SSO została pomyślnie zaktualizowana"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "Konfiguracja SSO została pomyślnie usunięta"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Test połączenia zakończony powodzeniem — dostawca odpowiedział prawidłowo"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Test połączenia nie powiódł się"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "Aby wymagać SSO dla wszystkich logowań w tej domenie, skonfiguruj to w ustawieniach logowania domeny. Tryb wyłącznie SSO ogranicza stronę logowania do dostawcy SSO skonfigurowanego tutaj."
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "Konfiguruj SSO"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "SSO nie jest jeszcze skonfigurowane dla tej domeny. Włącz jednokrotne logowanie, aby umożliwić członkom zespołu uwierzytelnianie za pomocą dostawcy tożsamości Twojej organizacji."
+  },
+  "web.domains.sso.edit_credentials": {
+    "text": "Edytuj poświadczenia"
+  },
+  "web.domains.sso.configure_button": {
+    "text": "Konfiguruj"
+  },
+  "web.domains.sso.upgrade_required": {
+    "text": "Ulepsz, aby skonfigurować"
   }
 }

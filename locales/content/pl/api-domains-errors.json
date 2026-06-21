@@ -1,0 +1,29 @@
+{
+  "api.domains.errors.domain_id_required": {
+    "text": "Wymagany identyfikator domeny"
+  },
+  "api.domains.errors.domain_not_found": {
+    "text": "Nie znaleziono domeny: %{extid}"
+  },
+  "api.domains.errors.organization_not_found": {
+    "text": "Nie znaleziono organizacji dla domeny: %{domain}"
+  },
+  "api.domains.errors.incoming_secrets_disabled": {
+    "text": "Przychodzące sekrety nie są włączone w tej instancji"
+  },
+  "api.domains.errors.incoming_secrets_entitlement_required": {
+    "text": "Zarządzanie przychodzącymi sekretami wymaga uprawnienia incoming_secrets. Ulepsz swój plan."
+  },
+  "api.domains.errors.incoming_config_not_found": {
+    "text": "Nie znaleziono konfiguracji przychodzącej dla domeny: %{extid}"
+  },
+  "api.domains.errors.recipients_max_exceeded": {
+    "text": "Maksymalna liczba dozwolonych odbiorców: %{max}"
+  },
+  "api.domains.errors.recipients_invalid_email": {
+    "text": "Nieprawidłowy adres e-mail: %{email}"
+  },
+  "api.domains.errors.recipients_duplicate": {
+    "text": "Zduplikowane adresy e-mail odbiorców są niedozwolone"
+  }
+}
