@@ -1,0 +1,8 @@
+{
+  "api.account.errors.invalid_email": {
+    "text": "He wāhitau īmēra whaimana tēnā?"
+  },
+  "api.account.errors.password_too_short": {
+    "text": "He poto rawa te kupuhipa"
+  }
+}

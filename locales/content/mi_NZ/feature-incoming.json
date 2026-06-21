@@ -130,5 +130,26 @@
   "incoming.receipt_link_text": {
     "text": "rihīti",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Me Whakapiki"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Me whakapiki mahere mō tēnei āhuatanga. Tēnā whakapā atu ki te rangatira pūkete ki te whakahohe i ngā karere huna taemai."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Me noho te memo ki te {max} pūāhua, iti iho rānei"
+  },
+  "incoming.validation_secret_required": {
+    "text": "E hiahiatia ana te ihirangi karere huna"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Tēnā tīpakohia tētahi kaiwhiwhi"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "Kāore te āhuatanga karere huna taemai i te whakahohea"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Tēnā tirohia te puka mō ngā hapa"
   }
 }

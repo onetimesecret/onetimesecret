@@ -1,0 +1,23 @@
+{
+  "api.invite.errors.invitation_not_found_or_expired": {
+    "text": "Kāore i kitea te tono, kua pau rānei"
+  },
+  "api.invite.errors.token_required": {
+    "text": "E hiahiatia ana te tokena"
+  },
+  "api.invite.errors.organization_no_longer_exists": {
+    "text": "Kāore te whakahaere e noho tonu"
+  },
+  "api.invite.errors.invitation_already_processed": {
+    "text": "Kua %{status} kētia te tono"
+  },
+  "api.invite.errors.invitation_expired": {
+    "text": "Kua pau te tono"
+  },
+  "api.invite.errors.email_mismatch": {
+    "text": "Kāore tō wāhitau īmēra e hāngai ki te tono"
+  },
+  "api.invite.errors.already_member": {
+    "text": "He mema kē koe nō tēnei whakahaere"
+  }
+}

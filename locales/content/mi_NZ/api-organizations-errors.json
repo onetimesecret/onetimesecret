@@ -1,0 +1,107 @@
+{
+  "api.organizations.errors.domain_scoped_forbidden": {
+    "text": "Kāore e taea e ngā mema kua herea ki te rohe te mahi i tēnei"
+  },
+  "api.organizations.errors.organization_not_found": {
+    "text": "Kāore i kitea te whakahaere: %{extid}"
+  },
+  "api.organizations.errors.organization_owner_required": {
+    "text": "Ko te rangatira whakahaere anake e taea ai te mahi i tēnei"
+  },
+  "api.organizations.errors.organization_member_required": {
+    "text": "Me noho koe hei mema whakahaere kia taea ai te mahi i tēnei"
+  },
+  "api.organizations.errors.organization_admin_required": {
+    "text": "Ko ngā rangatira me ngā kaiwhakahaere whakahaere anake e taea ai te mahi i tēnei"
+  },
+  "api.organizations.errors.extid_required": {
+    "text": "E hiahiatia ana te ID whakahaere"
+  },
+  "api.organizations.errors.display_name_required": {
+    "text": "E hiahiatia ana te ingoa whakahaere"
+  },
+  "api.organizations.errors.display_name_too_long": {
+    "text": "Me iti iho te ingoa whakahaere i te %{max} pūāhua"
+  },
+  "api.organizations.errors.description_too_long": {
+    "text": "Me iti iho te whakaahuatanga i te %{max} pūāhua"
+  },
+  "api.organizations.errors.contact_email_exists": {
+    "text": "Kei te ora kē tētahi whakahaere me tēnei īmēra whakapā"
+  },
+  "api.organizations.errors.creation_in_progress": {
+    "text": "Kei te haere tonu te waihanga whakahaere. Tēnā ngana anō."
+  },
+  "api.organizations.errors.organization_limit_reached": {
+    "text": "Kua eke ki te tepe whakahaere. Whakapikihia tō mahere ki te waihanga whakahaere anō."
+  },
+  "api.organizations.invitations.errors.invitation_not_found": {
+    "text": "Kāore i kitea te tono"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "E hiahiatia ana te īmēra"
+  },
+  "api.organizations.invitations.errors.invalid_email_format": {
+    "text": "Hōputu īmēra muhu"
+  },
+  "api.organizations.invitations.errors.invalid_role": {
+    "text": "Me noho te tūranga hei mema, hei kaiwhakahaere rānei"
+  },
+  "api.organizations.invitations.errors.cannot_invite_as_owner": {
+    "text": "Kāore e taea te tono hei rangatira"
+  },
+  "api.organizations.invitations.errors.user_already_member": {
+    "text": "He mema kē te kaiwhakamahi nō tēnei whakahaere"
+  },
+  "api.organizations.invitations.errors.invitation_already_pending": {
+    "text": "Kei te tārewa kē tētahi tono mō tēnei īmēra"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Kua eke ki te tepe mema. Whakapikihia tō mahere ki te tono mema anō."
+  },
+  "api.organizations.invitations.errors.resend_only_pending": {
+    "text": "Ka taea anake te tuku anō i ngā tono tārewa"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Kua eke ki te tepe tuku-anō mōrahi (%{max})"
+  },
+  "api.organizations.invitations.errors.revoke_only_pending": {
+    "text": "Ka taea anake te whakakore i ngā tono tārewa"
+  },
+  "api.organizations.members.errors.member_not_found": {
+    "text": "Kāore i kitea te mema: %{extid}"
+  },
+  "api.organizations.members.errors.member_not_in_organization": {
+    "text": "Kāore i kitea te mema i tēnei whakahaere"
+  },
+  "api.organizations.members.errors.member_not_active": {
+    "text": "Kāore te mema e kaha"
+  },
+  "api.organizations.members.errors.invalid_role_value": {
+    "text": "Tūranga muhu. Me noho ko tētahi o: %{roles}"
+  },
+  "api.organizations.members.errors.cannot_change_owner_role": {
+    "text": "Kāore e taea te huri i te tūranga rangatira. Whakamahia te whakawhiti rangatiratanga."
+  },
+  "api.organizations.members.errors.member_already_has_role": {
+    "text": "Kei te mema kē te tūranga: %{role}"
+  },
+  "api.organizations.members.errors.cannot_promote_to_owner": {
+    "text": "Kāore e taea te whakatairanga ki te rangatira. Whakamahia te whakawhiti rangatiratanga."
+  },
+  "api.organizations.members.errors.must_be_member": {
+    "text": "Me noho koe hei mema o tēnei whakahaere"
+  },
+  "api.organizations.members.errors.cannot_remove_owner": {
+    "text": "Kāore e taea te tango i te rangatira whakahaere. Whakawhitihia te rangatiratanga i te tuatahi."
+  },
+  "api.organizations.members.errors.cannot_remove_self": {
+    "text": "Kāore e taea te tango i a koe anō. Whakamahia te wehe whakahaere."
+  },
+  "api.organizations.members.errors.admin_cannot_remove_admin": {
+    "text": "Kāore e taea e ngā kaiwhakahaere te tango i ētahi atu kaiwhakahaere. Ko ngā rangatira anake."
+  },
+  "api.organizations.members.errors.no_permission_to_remove": {
+    "text": "Kāore ōu whaimana ki te tango mema"
+  }
+}
