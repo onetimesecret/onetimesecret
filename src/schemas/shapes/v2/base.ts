@@ -100,7 +100,8 @@ export type BaseModel = z.infer<typeof baseModelSchema>;
  *
  * // Derive TypeScript type
  * type User = z.infer<typeof userSchema>;
- * // { identifier: string; created: Date; updated: Date; name: string; email: string; role: 'admin' | 'user' }
+ * // { identifier: string; created: Date; updated: Date; name: string;
+ * //   email: string; role: 'admin' | 'user' }
  * ```
  */
 export const createModelSchema = <T extends z.ZodRawShape>(fields: T) =>

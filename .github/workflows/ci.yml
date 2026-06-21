@@ -471,6 +471,17 @@ jobs:
           rabbitmq-url: 'amqp://guest:guest@localhost:5672'
           results-file: 'rspec_simple_results.json'
 
+      # API contract specs (spec/api/) — a different axis than auth mode.
+      # Non-blocking so the lane is RUN on every PR (preventing the silent
+      # re-orphaning these specs already suffered) while a subset is red
+      # against the membership-based entitlement contract (#3225 / ADR-012
+      # Stage 3). Remove continue-on-error once #3225 greens the lane.
+      - name: Run API contract specs (spec/api, non-blocking)
+        continue-on-error: true
+        env:
+          REDIS_URL: 'redis://127.0.0.1:2121/0'
+        run: bundle exec rake spec:api
+
   ruby-integration-full:
     name: 'T3 · Ruby Integration (Full, ${{ matrix.name }})'
     timeout-minutes: 10

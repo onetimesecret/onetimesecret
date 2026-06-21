@@ -29,6 +29,7 @@ import type { TestSsoConnectionResponse } from '@/services/sso.service';
 const props = defineProps<{
   domainExtId: string;
   domainHost: string;
+  orgId: string;
   formState: SsoConfigFormState;
   ssoConfig: CustomDomainSsoConfig | null;
   isLoading: boolean;
@@ -687,60 +688,12 @@ aria-hidden="true">*</span>
         </p>
       </div>
 
-      <!-- Enabled Toggle -->
-      <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
-        <div>
-          <label
-            for="domain-sso-enabled"
-            class="text-sm font-medium text-gray-900 dark:text-white">
-            {{ t('web.organizations.sso.enabled') }}
-          </label>
-          <p
-            id="domain-enabled-hint"
-            class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            {{ t('web.organizations.sso.enabled_hint') }}
-          </p>
-        </div>
-        <ToggleWithIcon
-          id="domain-sso-enabled"
-          :enabled="formState.enabled"
-          :disabled="false"
-          :aria-describedby="'domain-enabled-hint'"
-          :sr-label="t('web.organizations.sso.enabled')"
-          @update:enabled="updateField('enabled', $event)" />
-      </div>
-
-      <!-- Enforce SSO Only Toggle -->
-      <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
-        <div>
-          <label
-            for="domain-sso-enforce-only"
-            class="text-sm font-medium text-gray-900 dark:text-white">
-            {{ t('web.organizations.sso.enforce_sso_only') }}
-          </label>
-          <p
-            id="domain-enforce-sso-only-hint"
-            class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            {{ t('web.organizations.sso.enforce_sso_only_hint') }}
-          </p>
-        </div>
-        <ToggleWithIcon
-          id="domain-sso-enforce-only"
-          :enabled="formState.enforce_sso_only"
-          :disabled="false"
-          :aria-describedby="'domain-enforce-sso-only-hint'"
-          :sr-label="t('web.organizations.sso.enforce_sso_only')"
-          @update:enabled="updateField('enforce_sso_only', $event)" />
-      </div>
-
       <!-- Grant Org Scope Toggle -->
       <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
         <div>
-          <label
-            for="domain-sso-grant-org-scope"
-            class="text-sm font-medium text-gray-900 dark:text-white">
+          <p class="text-sm font-medium text-gray-900 dark:text-white">
             {{ t('web.organizations.sso.grant_org_scope') }}
-          </label>
+          </p>
           <p
             id="domain-grant-org-scope-hint"
             class="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -748,11 +701,8 @@ aria-hidden="true">*</span>
           </p>
         </div>
         <ToggleWithIcon
-          id="domain-sso-grant-org-scope"
           :enabled="formState.grant_org_scope"
-          :disabled="false"
-          :aria-describedby="'domain-grant-org-scope-hint'"
-          :sr-label="t('web.organizations.sso.grant_org_scope')"
+          :disabled="isSaving"
           @update:enabled="updateField('grant_org_scope', $event)" />
       </div>
 

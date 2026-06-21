@@ -20,7 +20,6 @@ import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { ENTITLEMENTS } from '@/types/organization';
 import {
-  isOrgsSsoEnabled,
   isOrgsCustomMailEnabled,
   isOrgsIncomingSecretsEnabled,
 } from '@/utils/features';
@@ -62,9 +61,9 @@ const organization = computed(() =>
 const { can } = useEntitlements(organization);
 
 const canBrand = computed(() => can(ENTITLEMENTS.CUSTOM_BRANDING));
-const canManageSso = computed(() => can(ENTITLEMENTS.MANAGE_SSO));
 const canEmailConfig = computed(() => can(ENTITLEMENTS.CUSTOM_MAIL_SENDER));
 const canIncomingSecrets = computed(() => can(ENTITLEMENTS.INCOMING_SECRETS));
+const canCustomSignin = computed(() => can(ENTITLEMENTS.CUSTOM_SIGNIN_CONFIG));
 const canCustomSignup = computed(() => can(ENTITLEMENTS.CUSTOM_SIGNUP_VALIDATION));
 
 /** Current user is owner or admin — can modify domain settings */
@@ -104,6 +103,7 @@ interface Section {
   enabled: boolean;
 }
 
+// eslint-disable-next-line max-lines-per-function
 const sections = computed<Section[]>(() => [
   {
     key: 'brand',
@@ -150,13 +150,13 @@ const sections = computed<Section[]>(() => [
     enabled: false,
   },
   {
-    key: 'sso',
-    route: { name: 'DomainSso', params: { orgid: props.orgid, extid: props.extid } },
-    icon: { collection: 'heroicons', name: 'key' },
-    titleKey: 'web.domains.sso.configure_sso',
-    descriptionKey: 'web.domains.detail.sso_description',
-    available: isOrgsSsoEnabled(),
-    locked: !canManageSso.value,
+    key: 'signin',
+    route: { name: 'DomainSignin', params: { orgid: props.orgid, extid: props.extid } },
+    icon: { collection: 'heroicons', name: 'arrow-right-on-rectangle' },
+    titleKey: 'web.domains.signin.configure_signin',
+    descriptionKey: 'web.domains.detail.signin_description',
+    available: true,
+    locked: !canCustomSignin.value,
     toggleable: false,
     enabled: false,
   },
@@ -173,7 +173,13 @@ const sections = computed<Section[]>(() => [
   },
 ]);
 
-const visibleSections = computed(() => sections.value.filter((s) => s.available));
+// Unlocked sections first, locked (greyed-out, upgrade-gated) last.
+// Array#sort is stable, so original order is preserved within each group.
+const visibleSections = computed(() =>
+  sections.value
+    .filter((s) => s.available)
+    .sort((a, b) => Number(a.locked) - Number(b.locked))
+);
 
 onMounted(() => {
   initializeDomain();
@@ -203,7 +209,8 @@ aria-hidden="true" />
       <DomainHeader
         :domain="customDomainRecord"
         :has-unsaved-changes="false"
-        :orgid="props.orgid" />
+        :orgid="props.orgid"
+        external-path="/" />
     </div>
 
     <!-- Features list -->

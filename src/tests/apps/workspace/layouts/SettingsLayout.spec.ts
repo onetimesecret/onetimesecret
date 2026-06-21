@@ -2,7 +2,7 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
+import { createTestI18n } from '@tests/setup';
 import { h, defineComponent, ref } from 'vue';
 
 // Mock vue-router
@@ -25,55 +25,7 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
   },
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        settings: {
-          profile: {
-            title: 'Profile',
-            change_email: 'Change Email',
-          },
-          preferences: 'Preferences',
-          privacy: { title: 'Privacy' },
-          notifications: { title: 'Notifications' },
-          security_settings_description: 'Manage your security settings',
-          profile_settings_description: 'Manage your profile settings',
-          api: { manage_api_keys: 'Manage API keys' },
-          caution: {
-            title: 'Caution Zone',
-            description: 'Dangerous account actions',
-          },
-          manage_your_account_settings_and_preferences:
-            'Manage your account settings and preferences',
-        },
-        COMMON: {
-          security: 'Security',
-        },
-        account: {
-          api_key: 'API Key',
-          region: 'Region',
-          your_account: 'Account',
-          settings: 'Settings',
-        },
-        auth: {
-          change_password: { title: 'Change Password' },
-          mfa: { title: 'Two-Factor Authentication' },
-          sessions: { title: 'Active Sessions' },
-          recovery_codes: { title: 'Recovery Codes' },
-        },
-        regions: {
-          data_sovereignty_title: 'Data Sovereignty',
-          your_region: 'Your Region',
-          available_regions: 'Available Regions',
-          why_it_matters: 'Why It Matters',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 /**
  * SettingsLayout Component Tests

@@ -9,6 +9,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useDomainsStore, useReceiptListStore } from '@/shared/stores';
   import { useFooterConfig } from '@/shared/composables/useFooterConfig';
@@ -28,7 +29,7 @@
   const { t, locale } = useI18n();
   const route = useRoute();
   const bootstrapStore = useBootstrapStore();
-  const { ot_version, ot_version_long, domains_enabled, support_host, ui } = storeToRefs(bootstrapStore);
+  const { ot_version, ot_version_long, domains_enabled, support_host, ui, brand_product_name } = storeToRefs(bootstrapStore);
   const { showVersionConfig } = useFooterConfig();
 
   // Store instances for counts
@@ -246,13 +247,13 @@
           </span>
           <span
             v-if="displayPoweredBy"
-            :title="`${t('web.homepage.onetime_secret_literal')} ${t('web.COMMON.version')}`">
+            :title="`${t('web.homepage.onetime_secret_literal', { product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name })} ${t('web.COMMON.version')}`">
             <a
               :href="t('web.COMMON.website_url')"
               target="_blank"
               rel="noopener noreferrer">
               {{ t('web.COMMON.powered_by') }}
-              {{ t('web.homepage.onetime_secret_literal') }}
+              {{ t('web.homepage.onetime_secret_literal', { product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name }) }}
             </a>
           </span>
         </div>

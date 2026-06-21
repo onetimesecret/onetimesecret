@@ -19,28 +19,24 @@ OT.boot! :test, true
 # Tests for the structured logging system with strategic categories.
 # Categories: Auth, Ents, Session, HTTP, Familia, Org, Otto, Rhales, Secret, App
 
-## Configuration Loading - Config file exists
-File.exist?(File.join(Dir.pwd, 'etc', 'logging.yaml'))
-#=> true
+## Configuration Loading - Effective config loaded at boot
+OT.logging_conf.class
+#=> Hash
 
 ## Configuration Loading - Config file structure
-config = YAML.load_file(File.join(Dir.pwd, 'etc', 'logging.yaml'))
-config.key?('default_level')
+OT.logging_conf.key?('default_level')
 #=> true
 
 ## Configuration Loading - Loggers configuration exists
-config = YAML.load_file(File.join(Dir.pwd, 'etc', 'logging.yaml'))
-config.key?('loggers')
+OT.logging_conf.key?('loggers')
 #=> true
 
 ## Configuration Loading - Auth logger configured
-config = YAML.load_file(File.join(Dir.pwd, 'etc', 'logging.yaml'))
-config['loggers'].key?('Auth')
+OT.logging_conf['loggers'].key?('Auth')
 #=> true
 
 ## Configuration Loading - HTTP config exists
-config = YAML.load_file(File.join(Dir.pwd, 'etc', 'logging.yaml'))
-config.key?('http')
+OT.logging_conf.key?('http')
 #=> true
 
 ## SemanticLogger Integration - Auth logger exists
@@ -284,26 +280,21 @@ Thread.current[:log_category] = nil
 logger_name
 #=> "Secret"
 
-## Configuration Loading - Config path from Onetime.conf
-site_path = Onetime.conf.dig(:site, :path) || Dir.pwd
-config_path = File.join(site_path, 'etc', 'logging.yaml')
+## Configuration Loading - Config path resolves for this environment
+config_path = Onetime::Utils::ConfigResolver.resolve('logging') ||
+              Onetime::Utils::ConfigResolver.defaults_path('logging')
 File.exist?(config_path)
 #=> true
 
 ## Configuration Loading - Config loads successfully
-site_path = Onetime.conf.dig(:site, :path) || Dir.pwd
-config = YAML.load_file(File.join(site_path, 'etc', 'logging.yaml'))
-!config.nil?
+!OT.logging_conf.nil?
 #=> true
 
 ## Configuration Loading - Config has required keys
-site_path = Onetime.conf.dig(:site, :path) || Dir.pwd
-config = YAML.load_file(File.join(site_path, 'etc', 'logging.yaml'))
-config.key?('default_level') && config.key?('loggers') && config.key?('http')
+conf = OT.logging_conf
+conf.key?('default_level') && conf.key?('loggers') && conf.key?('http')
 #=> true
 
 ## Configuration Loading - Auth logger is configured
-site_path = Onetime.conf.dig(:site, :path) || Dir.pwd
-config = YAML.load_file(File.join(site_path, 'etc', 'logging.yaml'))
-config['loggers'].key?('Auth')
+OT.logging_conf['loggers'].key?('Auth')
 #=> true

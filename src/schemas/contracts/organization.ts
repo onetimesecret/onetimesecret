@@ -129,6 +129,7 @@ export const KNOWN_ENTITLEMENTS = [
   'custom_domains',
   'custom_mail_sender',
   'custom_privacy_defaults',
+  'custom_signin_config',
   'custom_signup_validation',
   'extended_default_expiration',
   'flexible_from_domain',

@@ -205,7 +205,7 @@ Multi-factor authentication adds a second layer of security beyond your password
 5. Set up MFA again with your authenticator
 
 **If you lost everything:**
-1. Contact support at support@onetimesecret.com
+1. Contact support (check your instance's configured support email)
 2. Include: account email, approximate signup date, recent activity
 3. Wait for identity verification (1-2 business days)
 4. Support will guide you through recovery process

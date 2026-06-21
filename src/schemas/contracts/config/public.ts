@@ -20,7 +20,8 @@ import { z } from 'zod';
  * Public API Secret Options Schema
  *
  * @example Validate and parse the data
- *    const parsedSecretOptions: SecretOptions = publicSecretOptionsSchema.parse(receivedSecretOptions);
+ *    const parsedSecretOptions: SecretOptions =
+ *      publicSecretOptionsSchema.parse(receivedSecretOptions);
  */
 export const publicSecretOptionsSchema = z.object({
   /**

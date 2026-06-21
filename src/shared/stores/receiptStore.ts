@@ -62,7 +62,8 @@ export type ReceiptStore = {
   $reset: () => void;
 } & PiniaCustomProperties;
 
-// eslint-disable-next-line max-lines-per-function -- Store definition naturally groups related functionality
+// Store definition naturally groups related functionality.
+// eslint-disable-next-line max-lines-per-function
 export const useReceiptStore = defineStore('receipt', () => {
   const $api = useApi();
 

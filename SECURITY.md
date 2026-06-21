@@ -12,6 +12,9 @@ If you are using an unsupported version, we strongly recommend upgrading to rece
 
 If you discover a security vulnerability within this project, we encourage you to report it as soon as possible. Here’s how you can do it:
 
+> [!NOTE]
+> Before emailing, confirm your question isn't already answered here. If this is your first time contacting us, please mention that you've read this policy. That tells us we're starting from a shared understanding of how reports are handled.
+
 ### How to Report
 
 1. **Email**: Send an email to `security@onetimesecret.com` with the subject line "Vulnerability Report: [Brief Description]".
@@ -26,6 +29,8 @@ If you discover a security vulnerability within this project, we encourage you t
 1. **Acknowledgment**: You will receive an acknowledgment of your report within 5 business days.
 2. **Initial Assessment**: We will conduct an initial assessment of the vulnerability within 14 business days.
 3. **Updates**: You can expect to receive updates on the status of your report at least once every 7 days until the issue is resolved or a decision is made.
+
+We do not currently operate a paid bounty program but are open to discussing rewards on a case-by-case basis for significant vulnerabilities.
 
 ### Resolution Process
 

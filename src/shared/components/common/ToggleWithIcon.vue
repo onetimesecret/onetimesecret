@@ -1,82 +1,116 @@
 <!-- src/shared/components/common/ToggleWithIcon.vue -->
 
 <script setup lang="ts">
+  import { computed } from 'vue';
   import { useI18n } from 'vue-i18n';
+  import { Switch } from '@headlessui/vue';
 
 const { t } = useI18n();
 
   interface Props {
     enabled: boolean;
-    disabled: boolean;
-    ariaDescribedby?: string;
-    srLabel?: string;
+    /** Disables interaction (dimmed). Defaults to false. */
+    disabled?: boolean;
+    /**
+     * Shows an in-knob spinner and blocks interaction. Opt-in for callers
+     * that auto-save on change and want per-toggle pending feedback.
+     */
+    loading?: boolean;
+    onLabel?: string;
+    offLabel?: string;
   }
 
-  const props = defineProps<Props>();
+  const props = withDefaults(defineProps<Props>(), {
+    disabled: false,
+    loading: false,
+  });
 
   const emit = defineEmits<{
     (e: 'update:enabled', value: boolean): void
   }>();
+
+  // A loading toggle is non-interactive while its change persists.
+  const isDisabled = computed(() => props.disabled || props.loading);
+
 </script>
 
-<!--
-  Plain `role="switch"` button rather than HeadlessUI's <Switch>: HeadlessUI
-  sets aria-describedby from its SwitchGroup/Description context (undefined when
-  unwrapped), which stomps a fallthrough/bound aria-describedby. Consumers here
-  reference a parent-owned hint <p id="...">, so we control the attrs directly.
-  A native button toggles on Space/Enter via click, so no extra key handling.
--->
 <template>
-  <button
-    type="button"
-    role="switch"
-    :aria-checked="props.enabled"
-    :aria-describedby="ariaDescribedby"
-    :disabled="disabled"
-    @click="emit('update:enabled', !props.enabled)"
+  <div class="inline-flex items-center">
+  <span v-if="props.onLabel || props.offLabel" class="mr-2 text-sm text-gray-500 dark:text-gray-400">
+    {{ props.enabled ? props.onLabel : props.offLabel }}
+  </span>
+  <Switch
+    :model-value="props.enabled"
+    @update:model-value="emit('update:enabled', $event)"
+    :disabled="isDisabled"
     :class="[
-      props.enabled ? 'bg-brand-600' : 'bg-gray-200',
-      disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
-      'relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2'
+      props.enabled ? 'bg-indigo-600' : 'bg-gray-200',
+      isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
+      'relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2'
     ]">
-    <span class="sr-only">{{ srLabel ?? t('web.branding.use_setting') }}</span>
+    <span class="sr-only">{{ t('web.branding.use_setting') }}</span>
     <span
       :class="[
         enabled ? 'translate-x-5' : 'translate-x-0',
         'pointer-events-none relative inline-block size-5 rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
       ]">
+      <!-- Saving spinner (auto-save callers) -->
       <span
-        :class="[
-          enabled ? 'opacity-0 duration-100 ease-out' : 'opacity-100 duration-200 ease-in',
-          'absolute inset-0 flex size-full items-center justify-center transition-opacity',
-        ]"
+        v-if="loading"
+        class="absolute inset-0 flex size-full items-center justify-center"
         aria-hidden="true">
         <svg
-          class="size-3 text-gray-400"
-          fill="none"
-          viewBox="0 0 12 12">
-          <path
-            d="M4 8l2-2m0 0l2-2M6 6L4 4m2 2l2 2"
+          class="size-3 animate-spin text-indigo-600 motion-reduce:animate-none"
+          viewBox="0 0 24 24"
+          fill="none">
+          <circle
+            class="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
             stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round" />
-        </svg>
-      </span>
-      <span
-        :class="[
-          enabled ? 'opacity-100 duration-200 ease-in' : 'opacity-0 duration-100 ease-out',
-          'absolute inset-0 flex size-full items-center justify-center transition-opacity',
-        ]"
-        aria-hidden="true">
-        <svg
-          class="size-3 text-brand-600"
-          fill="currentColor"
-          viewBox="0 0 12 12">
+            stroke-width="4" />
           <path
-            d="M3.707 5.293a1 1 0 00-1.414 1.414l1.414-1.414zM5 8l-.707.707a1 1 0 001.414 0L5 8zm4.707-3.293a1 1 0 00-1.414-1.414l1.414 1.414zm-7.414 2l2 2 1.414-1.414-2-2-1.414 1.414zm3.414 2l4-4-1.414-1.414-4 4 1.414 1.414z" />
+            class="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
         </svg>
       </span>
+      <template v-else>
+        <span
+          :class="[
+            enabled ? 'opacity-0 duration-100 ease-out' : 'opacity-100 duration-200 ease-in',
+            'absolute inset-0 flex size-full items-center justify-center transition-opacity',
+          ]"
+          aria-hidden="true">
+          <svg
+            class="size-3 text-gray-400"
+            fill="none"
+            viewBox="0 0 12 12">
+            <path
+              d="M4 8l2-2m0 0l2-2M6 6L4 4m2 2l2 2"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+        </span>
+        <span
+          :class="[
+            enabled ? 'opacity-100 duration-200 ease-in' : 'opacity-0 duration-100 ease-out',
+            'absolute inset-0 flex size-full items-center justify-center transition-opacity',
+          ]"
+          aria-hidden="true">
+          <svg
+            class="size-3 text-indigo-600"
+            fill="currentColor"
+            viewBox="0 0 12 12">
+            <path
+              d="M3.707 5.293a1 1 0 00-1.414 1.414l1.414-1.414zM5 8l-.707.707a1 1 0 001.414 0L5 8zm4.707-3.293a1 1 0 00-1.414-1.414l1.414 1.414zm-7.414 2l2 2 1.414-1.414-2-2-1.414 1.414zm3.414 2l4-4-1.414-1.414-4 4 1.414 1.414z" />
+          </svg>
+        </span>
+      </template>
     </span>
-  </button>
+  </Switch>
+  </div>
 </template>

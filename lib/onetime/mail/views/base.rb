@@ -61,6 +61,27 @@ module Onetime
       class Base
         TEMPLATE_PATH = File.expand_path('../templates', __dir__)
 
+        # Whether render_text wraps the body in the shared text layout
+        # (layout.txt.erb, which appends the product footer plus the
+        # conditional support line). Defaults to true. A subclass opts out at
+        # its own definition site with `text_layout false`, so the rationale
+        # for opting out travels with the declaration. See #3362.
+        @text_layout = true
+
+        class << self
+          # Declarative per-template switch for the shared text layout. Call in
+          # a subclass body: `text_layout false`.
+          def text_layout(enabled)
+            @text_layout = enabled
+          end
+
+          # Whether this template wraps its text body in the shared layout.
+          # `!= false` so subclasses that never declare (nil) default to on.
+          def text_layout?
+            @text_layout != false
+          end
+        end
+
         attr_reader :data, :locale
 
         # @param data [Hash] Template variables
@@ -77,10 +98,29 @@ module Onetime
           raise NotImplementedError, "#{self.class} must implement #subject"
         end
 
-        # Render the text template
-        # @return [String]
+        # Render the text template, wrapped in the shared text layout.
+        #
+        # Mirrors render_html: the per-template file provides only the body
+        # content; layout.txt.erb supplies the consolidated footer (product
+        # name, base URI) plus the conditional BRAND_SUPPORT_EMAIL line so the
+        # plaintext/multipart-fallback path carries the support contact too.
+        # Before #3362 render_text used no layout, so the support contact was
+        # wired into the HTML footer only and omitted from plaintext.
+        #
+        # Templates that opt out (`text_layout false`) keep their own footer
+        # and are returned unwrapped. wrap_in_layout guards on File.exist?, so a
+        # missing layout.txt.erb yields unwrapped content rather than raising;
+        # the rescue below only covers subclasses with no .txt.erb at all.
+        #
+        # @return [String, nil] nil if the subclass has no .txt.erb template
         def render_text
-          render_template('txt')
+          content = render_template('txt')
+          return content unless self.class.text_layout?
+
+          wrap_in_layout(content, 'txt')
+        rescue Errno::ENOENT
+          # No .txt.erb for this subclass (html-only mailer); mirrors render_html.
+          nil
         end
 
         # Render the HTML template, wrapped in the shared layout.
@@ -149,9 +189,9 @@ module Onetime
         # Site host configuration helper
         # @return [String]
         def site_host
-          return 'onetimesecret.com' unless defined?(OT) && OT.respond_to?(:conf)
+          return 'localhost' unless defined?(OT) && OT.respond_to?(:conf)
 
-          OT.conf.dig('site', 'host') || 'onetimesecret.com'
+          OT.conf.dig('site', 'host') || 'localhost'
         end
 
         # Site base URI configuration helper
@@ -161,10 +201,10 @@ module Onetime
           "#{scheme}#{site_host}"
         end
 
-        # Site product name configuration helper
-        # @return [String]
         def site_product_name
-          OT.conf.dig('site', 'interface', 'ui', 'header', 'branding', 'site_name') || 'One-Time Secret'
+          OT.conf.dig('brand', 'product_name') ||
+            OT.conf.dig('site', 'interface', 'ui', 'header', 'branding', 'site_name') ||
+            Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:product_name]
         end
 
         # Product name with fallback to site config
@@ -288,14 +328,73 @@ module Onetime
             @data[:display_domain] || @data[:share_domain] || site_host
           end
 
-          # Get product name from site config
+          # Brand color helper - resolves from per-message data, brand config, or
+          # the neutral default (#3B82F6) defined in BrandSettingsConstants.
+          # @return [String] Hex color string
+          def brand_color
+            @brand_color ||= @data[:brand_color] ||
+                             conf_dig('brand', 'primary_color') ||
+                             Onetime::CustomDomain::BrandSettingsConstants::DEFAULTS[:primary_color]
+          end
+
+          # Support email helper - resolves from brand config or GLOBAL_DEFAULTS.
+          # GLOBAL_DEFAULTS[:support_email] is nil per #3049 — operators must
+          # set BRAND_SUPPORT_EMAIL to populate.
+          # @return [String, nil]
+          def support_email
+            @support_email ||= conf_dig('brand', 'support_email') ||
+                               Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:support_email]
+          end
+
+          # Email sign-off name. Resolves the configurable signature
+          # independently of product_name so operators can sign mail with a
+          # person or team without renaming the product everywhere else.
+          #
+          # Resolution order (highest priority first):
+          #   1. @data[:signature_name] — optional per-message override.
+          #   2. brand.signature_name (BRAND_SIGNATURE_NAME) — install-wide.
+          #
+          # Returns nil when unconfigured so templates fall back to the neutral
+          # i18n default (email.*.signature, "Support Team") rather than a
+          # hardcoded person's name. See docs/architecture/branding.md.
+          # @return [String, nil]
+          def signature_name
+            return @signature_name if defined?(@signature_name)
+
+            @signature_name = @data[:signature_name] ||
+                              conf_dig('brand', 'signature_name')
+          end
+
+          # Logo alt text helper - delegates to product_name so the logo's
+          # accessible name matches the surrounding brand identity.
+          # @return [String]
+          def logo_alt
+            product_name
+          end
+
+          # Logo URL helper - resolves from brand config; nil when no brand
+          # logo is configured. Per #3049 the develop default of
+          # "#{baseuri}/img/onetime-logo-v3-xl.svg" has been neutralized so
+          # shipped/private-label instances don't leak OTS branding. Templates
+          # check truthiness and render a text-only header when nil.
+          # @return [String, nil]
+          def logo_url
+            return @logo_url if defined?(@logo_url)
+
+            @logo_url = conf_dig('brand', 'logo_url') ||
+                        Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:logo_url]
+          end
+
           def site_product_name
-            @site_product_name ||= conf_dig('site', 'interface', 'ui', 'header', 'branding', 'site_name') || t('email.common.onetime_secret')
+            @site_product_name ||=
+              conf_dig('brand', 'product_name') ||
+              conf_dig('site', 'interface', 'ui', 'header', 'branding', 'site_name') ||
+              Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:product_name]
           end
 
           # Get host from site config
           def site_host
-            @site_host ||= conf_dig('site', 'host') || 'onetimesecret.com'
+            @site_host ||= conf_dig('site', 'host') || 'localhost'
           end
 
           # Get base URI from site config

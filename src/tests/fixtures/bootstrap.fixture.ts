@@ -128,6 +128,17 @@ export const baseBootstrap: BootstrapPayload = {
   domain_context: null,
   domain_locale: null,
   frontend_development: false,
+  // Brand fields (per-installation defaults from OT.conf['brand']).
+  // null mirrors what the Ruby serializer emits when BRAND_* ENV is unset.
+  brand_primary_color: null,
+  brand_product_name: null,
+  brand_product_domain: null,
+  brand_support_email: null,
+  brand_corner_style: null,
+  brand_font_family: null,
+  brand_button_text_light: null,
+  brand_logo_url: null,
+  brand_favicon_url: null,
 };
 
 // =============================================================================

@@ -108,7 +108,7 @@
     "text": "계정 만들기",
     "source_hash": "0dffe234"
   },
-  "web.COMMON.header_about": {
+  "web.COMMON.about": {
     "text": "소개",
     "source_hash": "4efca0d1"
   },
@@ -439,10 +439,6 @@
   "web.COMMON.example_placeholder": {
     "text": "예: {example}",
     "source_hash": "cc921aaa"
-  },
-  "web.COMMON.about": {
-    "text": "소개",
-    "source_hash": "d833339d"
   },
   "web.COMMON.status": {
     "text": "상태",
@@ -1303,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "항상 공식 Onetime Secret 웹사이트에 있는지 확인하세요. 사기꾼들은 때때로 비밀을 훔치기 위해 Onetime Secret과 똑같이 생긴 가짜 웹사이트를 만듭니다. 피싱 공격을 피하려면 새 링크를 만들기 전에 지역 도메인을 확인하세요.",
+    "text": "항상 공식 {product_name} 웹사이트에 있는지 확인하세요. 사기꾼들은 때때로 비밀을 훔치기 위해 {product_name}과 똑같이 생긴 가짜 웹사이트를 만듭니다. 피싱 공격을 피하려면 새 링크를 만들기 전에 지역 도메인을 확인하세요.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {

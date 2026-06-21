@@ -71,13 +71,18 @@ import { test, expect } from '@playwright/test';
  * 3. Mock window.__BOOTSTRAP_ME__ with custom_domains array
  */
 
+// The seven custom-domain workflow tests below are declarative `test.fixme`
+// placeholders — never implemented, all requiring a custom domain on the test
+// account (E2E remediation plan Phase 2.4 / PR 5, issue #3420; see
+// e2e/QUARANTINE.md). The two tests that assert the *no-custom-domain* path
+// (the CI account's reality) run normally — they must stay able to fail.
 test.describe('Domain Context - Consultant Workflow', () => {
   test.beforeEach(async ({ page }) => {
     // Set reasonable timeout for E2E tests
     page.setDefaultTimeout(15000);
   });
 
-  test.skip('displays domain context indicator for user with custom domains', async ({ page }) => {
+  test.fixme('displays domain context indicator for user with custom domains', async ({ page }) => {
     /**
      * This test validates that the domain context indicator appears when a user
      * has custom domains configured.
@@ -109,7 +114,7 @@ test.describe('Domain Context - Consultant Workflow', () => {
     expect(indicatorText?.length).toBeGreaterThan(0);
   });
 
-  test.skip('context indicator shows correct styling for custom domain', async ({ page }) => {
+  test.fixme('context indicator shows correct styling for custom domain', async ({ page }) => {
     /**
      * Validates that custom domains get brand-colored styling
      * while canonical domain gets neutral gray styling.
@@ -133,7 +138,7 @@ test.describe('Domain Context - Consultant Workflow', () => {
     expect(hasCustomStyling).toBe(true);
   });
 
-  test.skip('persists domain context selection across page navigation', async ({ page }) => {
+  test.fixme('persists domain context selection across page navigation', async ({ page }) => {
     /**
      * Validates that domain context persists in sessionStorage and survives
      * page navigation within the same browser session.
@@ -160,7 +165,7 @@ test.describe('Domain Context - Consultant Workflow', () => {
     expect(persistedContext).toBe(initialContext);
   });
 
-  test.skip('creates secret with correct domain context', async ({ page }) => {
+  test.fixme('creates secret with correct domain context', async ({ page }) => {
     /**
      * Full consultant workflow: create a secret and verify it uses
      * the correct domain context.
@@ -241,7 +246,7 @@ test.describe('Domain Context - Consultant Workflow', () => {
     expect(hasDomainContext).toBe(true);
   });
 
-  test.skip('context switcher allows changing between domains', async ({ page }) => {
+  test.fixme('context switcher allows changing between domains', async ({ page }) => {
     /**
      * Tests the DomainContextSwitcher dropdown interaction.
      * Component: src/shared/components/navigation/DomainContextSwitcher.vue
@@ -276,7 +281,7 @@ test.describe('Domain Context - Consultant Workflow', () => {
     expect(storedDomain).toBe('widgets.example.com');
   });
 
-  test.skip('context indicator updates when switching domains', async ({ page }) => {
+  test.fixme('context indicator updates when switching domains', async ({ page }) => {
     /**
      * Validates real-time reactivity when context changes via DomainContextSwitcher.
      *
@@ -306,7 +311,7 @@ test.describe('Domain Context - Consultant Workflow', () => {
     expect(newDomain).not.toBe(initialDomain);
   });
 
-  test.skip('canonical domain shows Personal label', async ({ page }) => {
+  test.fixme('canonical domain shows Personal label', async ({ page }) => {
     /**
      * Validates that the canonical domain displays as "Personal" with gray styling.
      *

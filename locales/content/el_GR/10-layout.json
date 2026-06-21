@@ -148,7 +148,7 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Βλέπετε ένα ασφαλές μήνυμα που μοιράστηκε μαζί σας μέσω του Onetime Secret. Αυτό το περιεχόμενο εμφανίζεται μόνο μία φορά και στη συνέχεια διαγράφεται οριστικά από τους διακομιστές μας.",
+    "text": "Βλέπετε ένα ασφαλές μήνυμα που μοιράστηκε μαζί σας μέσω του {product_name}. Αυτό το περιεχόμενο εμφανίζεται μόνο μία φορά και στη συνέχεια διαγράφεται οριστικά από τους διακομιστές μας.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -264,7 +264,7 @@
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Επισκεφθείτε την αρχική σελίδα του Onetime Secret",
+    "text": "Επισκεφθείτε την αρχική σελίδα του {product_name}",
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {

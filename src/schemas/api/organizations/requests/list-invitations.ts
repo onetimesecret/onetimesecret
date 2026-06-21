@@ -11,7 +11,8 @@ import { z } from 'zod';
 // TODO: Add request parameters for this endpoint.
 // Path params: extid
 export const listInvitationsRequestSchema = z.object({
-  // TODO: fill in from OrganizationAPI::Logic::Invitations::ListInvitations raise_concerns / process
+  // TODO: fill in from OrganizationAPI::Logic::Invitations::ListInvitations
+  // raise_concerns / process
 });
 
 export type ListInvitationsRequest = z.infer<typeof listInvitationsRequestSchema>;

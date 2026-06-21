@@ -217,8 +217,8 @@ module Onetime
     #
     def load(path = nil)
       using_default_path = path.nil?
-      path ||= self.path
-      loading_file = path
+      path             ||= self.path
+      loading_file       = path
 
       if path.nil? || path.empty?
         raise ArgumentError, 'Config path not set (checked etc/config.yaml and SERVICE_PATHS)'
@@ -241,7 +241,7 @@ module Onetime
       end
 
       loading_file = path
-      env_config = load_yaml_with_erb(path)
+      env_config   = load_yaml_with_erb(path)
 
       if base_config.empty?
         env_config
@@ -348,8 +348,20 @@ module Onetime
         conf['site']['secret_options']['ttl_options'] = ttl_options.map(&:to_i)
       end
 
-      if default_ttl.is_a?(String)
+      # Coerce to Integer for any non-Integer value, not just String. YAML loads
+      # a bare `604800.0` as Float and ERB returns String when an env var is set;
+      # both must become Integer seconds before reaching spawn_pair (#3299).
+      if !default_ttl.nil? && !default_ttl.is_a?(Integer)
         conf['site']['secret_options']['default_ttl'] = default_ttl.to_i
+      end
+
+      # Confirmed leak path (#3299): features.incoming.default_ttl is set from
+      # `ENV['INCOMING_DEFAULT_TTL'] || 604800`, so a set env var yields a String
+      # that flows uncoerced through recipient_resolver -> create_incoming_secret
+      # -> spawn_pair. Normalize it the same way as the site default.
+      incoming_ttl = conf.dig('features', 'incoming', 'default_ttl')
+      if !incoming_ttl.nil? && !incoming_ttl.is_a?(Integer)
+        conf['features']['incoming']['default_ttl'] = incoming_ttl.to_i
       end
 
       # Process passphrase configuration

@@ -231,10 +231,16 @@ export const patchSsoConfigPayloadSchema = z.object({
    */
   client_secret: z.string().optional(),
 
-  /** Azure AD tenant ID (required for entra_id only). See customDomainSsoConfigCanonical for provider-specific requirements. */
+  /**
+   * Azure AD tenant ID (required for entra_id only). See
+   * customDomainSsoConfigCanonical for provider-specific requirements.
+   */
   tenant_id: z.string().optional(),
 
-  /** OIDC issuer URL (required for oidc only). See customDomainSsoConfigCanonical for provider-specific requirements. */
+  /**
+   * OIDC issuer URL (required for oidc only). See
+   * customDomainSsoConfigCanonical for provider-specific requirements.
+   */
   issuer: z.string().url('Issuer must be a valid URL').optional(),
 
   /** Email domain allowlist. Empty array means no restriction. */
@@ -277,10 +283,16 @@ export const putSsoConfigPayloadSchema = z.object({
   /** OAuth client secret. Required for non-OIDC providers (OIDC supports public clients). */
   client_secret: z.string().optional(),
 
-  /** Azure AD tenant ID (required for entra_id only). See customDomainSsoConfigCanonical for provider-specific requirements. */
+  /**
+   * Azure AD tenant ID (required for entra_id only). See
+   * customDomainSsoConfigCanonical for provider-specific requirements.
+   */
   tenant_id: z.string().optional(),
 
-  /** OIDC issuer URL (required for oidc only). See customDomainSsoConfigCanonical for provider-specific requirements. */
+  /**
+   * OIDC issuer URL (required for oidc only). See
+   * customDomainSsoConfigCanonical for provider-specific requirements.
+   */
   issuer: z.string().url('Issuer must be a valid URL').optional(),
 
   /** Email domain allowlist. Empty array means no restriction. */

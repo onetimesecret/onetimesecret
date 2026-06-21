@@ -1,9 +1,25 @@
 // e2e/playwright.config.ts
 
 import { defineConfig, devices } from '@playwright/test';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // Default local server URL (Ruby backend with built assets)
 const DEFAULT_LOCAL_URL = 'http://localhost:7143';
+
+// Directory containing this config file. package.json is `"type": "module"`,
+// so the config loads as ESM and `__dirname` is unavailable.
+const CONFIG_DIR = path.dirname(fileURLToPath(import.meta.url));
+
+/**
+ * Authenticated session produced by global.setup.ts and consumed by the
+ * `full` / `full-billing` projects via `storageState`. Absolute on purpose
+ * so writer (setup script) and readers (project `use` blocks) agree on one
+ * location regardless of cwd — Playwright path resolution is inconsistent
+ * (e.g. the blob reporter below resolves against cwd, not the config dir).
+ * The .auth/ directory is gitignored.
+ */
+export const STORAGE_STATE = path.join(CONFIG_DIR, '.auth', 'user.json');
 
 /**
  * Playwright configuration for E2E integration testing
@@ -34,12 +50,31 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
 
-  /* Reporter to use. */
-  reporter: [
-    ['html', { outputFolder: 'playwright-report' }],
-    ['github'], // GitHub Actions annotations
-    ['line'], // Terminal output
-  ],
+  /* Reporter to use.
+   *
+   * Environment-aware so nothing needs a `--reporter` CLI override (a CLI
+   * override *replaces* this whole array — that's how CI lost its HTML
+   * report; see e2e/docs/e2e-remediation-plan.md, Phase 1).
+   *
+   * CI additionally emits:
+   *  - json → test-results/results.json, parsed by the workflow's flaky
+   *    gate (a "passed only on retry" outcome fails the job)
+   *  - blob → blob-report/, mergeable across future CI shards
+   */
+  reporter: process.env.CI
+    ? [
+        ['list'], // Terminal output (CI logs)
+        ['github'], // GitHub Actions annotations
+        ['html', { outputFolder: 'playwright-report', open: 'never' }],
+        ['json', { outputFile: 'test-results/results.json' }],
+        // Unlike the other reporters, blob's default outputDir resolves
+        // against process.cwd(), not this config's directory - pin it.
+        ['blob', { outputDir: 'blob-report' }],
+      ]
+    : [
+        ['html', { outputFolder: 'playwright-report', open: 'never' }],
+        ['line'], // Terminal output
+      ],
 
   /* Shared settings for all the projects below. */
   use: {
@@ -65,14 +100,66 @@ export default defineConfig({
     navigationTimeout: 15000,
   },
 
-  /* Configure projects for major browsers */
+  /* Configure projects.
+   *
+   * Auth model (e2e/docs/e2e-remediation-plan.md, Phase 2.1):
+   *  - `setup` registers/signs in the TEST_USER_* account once via the real
+   *    signup + signin UI and saves the session to STORAGE_STATE.
+   *  - `full` and `full-billing` depend on `setup` and start every test
+   *    already authenticated via storageState.
+   *  - `chromium` (all/ + auth/ suites) stays credential-free: no
+   *    dependency on `setup`, no storageState.
+   *
+   * CLI path filters (e.g. `pnpm test:playwright e2e/all e2e/full`) select
+   * which suites run; Playwright always runs dependency projects in full, so
+   * `setup` only executes when a dependent project has matching tests.
+   */
   projects: [
     {
-      name: 'chromium',
+      name: 'setup',
+      // Overrides the top-level testMatch (which only matches *.spec.ts)
+      testMatch: 'global.setup.ts',
       use: {
         ...devices['Desktop Chrome'],
         // Extra time for container responses
         actionTimeout: 30000,
+      },
+    },
+
+    {
+      // Credential-free suites: all/ (runs in CI) and auth/ (unauthenticated
+      // signup/SSO-CSRF flows). Keep the historical project name so existing
+      // `--project=chromium` invocations keep working.
+      name: 'chromium',
+      testIgnore: ['full/**', 'full-billing/**'],
+      use: {
+        ...devices['Desktop Chrome'],
+        // Extra time for container responses
+        actionTimeout: 30000,
+      },
+    },
+
+    {
+      // Authenticated suite; requires TEST_USER_EMAIL / TEST_USER_PASSWORD.
+      name: 'full',
+      testMatch: 'full/**/*.spec.ts',
+      dependencies: ['setup'],
+      use: {
+        ...devices['Desktop Chrome'],
+        actionTimeout: 30000,
+        storageState: STORAGE_STATE,
+      },
+    },
+
+    {
+      // Authenticated suite + billing enabled on the target server.
+      name: 'full-billing',
+      testMatch: 'full-billing/**/*.spec.ts',
+      dependencies: ['setup'],
+      use: {
+        ...devices['Desktop Chrome'],
+        actionTimeout: 30000,
+        storageState: STORAGE_STATE,
       },
     },
 
@@ -91,8 +178,17 @@ export default defineConfig({
   /* Timeout for entire test suite */
   timeout: 60000,
 
-  /* Global timeout for entire test run */
-  globalTimeout: 10 * 60 * 1000, // 10 minutes
+  /* Global timeout for entire test run.
+   *
+   * Sized for the post-Phase-2 reality: CI runs all/ + full/ (~330 tests)
+   * on a single serial worker, which cannot finish inside the old 10-minute
+   * budget - runs aborted at exactly 10.0m with hundreds of tests reported
+   * "did not run" (observed on #3414/#3416 CI). Keep this under the
+   * workflow job's timeout-minutes (30) minus ~4-5 min of container
+   * build/setup overhead. Shrinking this again is a Phase 3 goal
+   * (fullyParallel + more workers), not a budget to win back by hiding
+   * tests. */
+  globalTimeout: 20 * 60 * 1000, // 20 minutes
 
   /* Expect timeout for assertions */
   expect: {

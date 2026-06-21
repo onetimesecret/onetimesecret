@@ -13,7 +13,7 @@
  * 4. Saves or deletes configuration
  *
  * Prerequisites:
- * - Set TEST_USER_EMAIL and TEST_USER_PASSWORD environment variables
+ * - Authenticated via the project storageState (e2e/global.setup.ts consumes TEST_USER_*)
  * - User must have access to an organization with custom domains
  * - At least one custom domain should exist for testing
  *
@@ -24,7 +24,18 @@
 
 import { expect, Page, test } from '@playwright/test';
 
-const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD);
+import { env, gateReason } from '../support/env';
+
+// HOLDING ACTION — not coverage (E2E remediation plan Phase 2.4 / PR 5).
+// Every test needs a custom domain on the test account (optional deployment
+// config), so it is env-gated rather than fixme'd (issue #3420): set
+// E2E_CUSTOM_DOMAINS against a domains-enabled target to run it. No CI lane
+// sets that yet, so this suite is DORMANT in CI — real coverage returns when
+// PR 6 adds a domains-enabled lane + fixtures. Gating before the body runs
+// keeps CI from timing out in the org/domain DOM helpers.
+test.beforeEach(() => {
+  test.skip(!env.hasCustomDomains, gateReason.customDomains);
+});
 
 // -----------------------------------------------------------------------------
 // Types
@@ -45,34 +56,11 @@ interface DomainInfo {
 // -----------------------------------------------------------------------------
 
 /**
- * Authenticate user via login form
- */
-async function loginUser(page: Page): Promise<void> {
-  await page.goto('/signin');
-
-  const passwordTab = page.getByRole('tab', { name: /password/i });
-  await passwordTab.waitFor({ state: 'visible', timeout: 5000 });
-  await passwordTab.click();
-
-  const passwordInput = page.locator('input[type="password"]');
-  await passwordInput.waitFor({ state: 'visible', timeout: 5000 });
-
-  const emailInput = page.locator('#signin-email-password');
-  await emailInput.fill(process.env.TEST_USER_EMAIL || '');
-  await passwordInput.fill(process.env.TEST_USER_PASSWORD || '');
-
-  const submitButton = page.locator('button[type="submit"]');
-  await submitButton.click();
-
-  await page.waitForURL(/\/(account|dashboard|org)/, { timeout: 30000 });
-}
-
-/**
  * Get the first organization the user has access to
  */
 async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
   await page.goto('/orgs');
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   const orgLink = page.locator('a[href*="/org/"]').first();
   if (!(await orgLink.isVisible().catch(() => false))) {
@@ -95,7 +83,7 @@ async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
  */
 async function getFirstDomain(page: Page, orgExtid: string): Promise<DomainInfo | null> {
   await page.goto(`/org/${orgExtid}/domains`);
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   const domainLink = page.locator('a[href*="/domains/"]').first();
   if (!(await domainLink.isVisible().catch(() => false))) {
@@ -123,7 +111,7 @@ async function navigateToEmailConfig(
   domainExtid: string
 ): Promise<boolean> {
   await page.goto(`/org/${orgExtid}/domains/${domainExtid}/email`);
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   const form = page.locator('form');
   return form.isVisible().catch(() => false);
@@ -161,11 +149,8 @@ async function isToggleEnabled(toggle: ReturnType<Page['locator']>): Promise<boo
 // -----------------------------------------------------------------------------
 
 test.describe('Domain Email Config - Form Loading', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-DEC-001: email config form loads successfully', async ({ page }) => {
@@ -220,11 +205,8 @@ test.describe('Domain Email Config - Form Loading', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Domain Email Config - Form Fields', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-DEC-004: from_name field accepts input', async ({ page }) => {
@@ -298,11 +280,8 @@ test.describe('Domain Email Config - Form Fields', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Domain Email Config - Toggle Behavior', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-DEC-008: enabled toggle is present', async ({ page }) => {
@@ -332,12 +311,9 @@ test.describe('Domain Email Config - Toggle Behavior', () => {
 
     const initialState = await isToggleEnabled(toggle!);
 
-    // Click toggle
+    // Click toggle and poll for the reactive state to flip (no sleep)
     await toggle!.click();
-    await page.waitForTimeout(300);
-
-    const newState = await isToggleEnabled(toggle!);
-    expect(newState).not.toBe(initialState);
+    await expect.poll(() => isToggleEnabled(toggle!)).toBe(!initialState);
   });
 
   test('TC-DEC-010: toggle has proper ARIA attributes', async ({ page }) => {
@@ -365,11 +341,8 @@ test.describe('Domain Email Config - Toggle Behavior', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Domain Email Config - Form Validation', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-DEC-011: save button disabled when required fields empty', async ({ page }) => {
@@ -441,11 +414,8 @@ test.describe('Domain Email Config - Form Validation', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Domain Email Config - Save and Delete', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-DEC-014: save button submits form', async ({ page }) => {
@@ -486,8 +456,8 @@ test.describe('Domain Email Config - Save and Delete', () => {
     const saveButton = page.locator('button[type="submit"]');
     await saveButton.click();
 
-    await page.waitForTimeout(1000);
-    expect(saveRequestMade).toBe(true);
+    // Poll for the capture flag set by the route handler (no sleep)
+    await expect.poll(() => saveRequestMade).toBe(true);
   });
 
   test('TC-DEC-015: delete button shows confirmation', async ({ page }) => {
@@ -551,16 +521,12 @@ test.describe('Domain Email Config - Save and Delete', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Domain Email Config - Mobile', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
   });
 
   test('TC-DEC-017: form is usable on mobile viewport', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
-
-    await loginUser(page);
 
     const org = await getFirstOrganization(page);
     test.skip(!org, 'Test requires at least 1 organization');

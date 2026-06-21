@@ -68,7 +68,7 @@ const { t } = useI18n();
       class="absolute left-[max(-7rem,calc(50%-52rem))] top-1/2 -z-10 -translate-y-1/2 transform-gpu blur-2xl"
       aria-hidden="true">
       <div
-        class="aspect-[577/310] w-[36.0625rem] bg-gradient-to-r from-[#dc4a22] to-[#fcf4e8] opacity-30"
+        class="aspect-[577/310] w-[36.0625rem] bg-gradient-to-r from-[#3B82F6] to-[#dbeafe] opacity-30"
         style="
           clip-path: polygon(
             74.8% 41.9%,
@@ -92,7 +92,7 @@ const { t } = useI18n();
     </div>
     <MovingGlobules
       from-colour="#23b5dd"
-      to-colour="#dc4a22"
+      to-colour="#3B82F6"
       speed="10s"
       :interval="1000"
       :scale="2" />
@@ -100,7 +100,7 @@ const { t } = useI18n();
       class="absolute left-[max(45rem,calc(50%+8rem))] top-1/2 -z-10 -translate-y-1/2 transform-gpu blur-2xl"
       aria-hidden="true">
       <div
-        class="aspect-[577/310] w-[36.0625rem] bg-gradient-to-r from-[#dc4a22] to-[#fcf4e8] opacity-30"
+        class="aspect-[577/310] w-[36.0625rem] bg-gradient-to-r from-[#3B82F6] to-[#dbeafe] opacity-30"
         style="
           clip-path: polygon(
             74.8% 41.9%,

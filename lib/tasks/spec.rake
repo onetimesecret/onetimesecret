@@ -199,7 +199,7 @@ namespace :spec do
       env = {
         'RACK_ENV' => 'test',
         'AUTHENTICATION_MODE' => 'full',
-        'AUTH_DATABASE_URL' => (ENV['AUTH_DATABASE_URL'].to_s.empty? ? 'sqlite::memory:' : ENV['AUTH_DATABASE_URL']),
+        'AUTH_DATABASE_URL' => (ENV['AUTH_DATABASE_URL'].to_s.empty? ? 'sqlite::memory:' : ENV.fetch('AUTH_DATABASE_URL', nil)),
         'ORGS_SSO_ENABLED' => 'true',
       }
       sh env, "bundle exec rspec apps/web/auth/spec/integration/strategies --tag ~postgres_database #{rspec_format_options}"
@@ -230,10 +230,34 @@ namespace :spec do
     end
 
     desc 'Run all integration tests (all modes, isolated processes)'
-    task all: INTEGRATION_MODES + ['oauth', 'strategies']
+    task all: INTEGRATION_MODES + %w[oauth strategies]
 
     desc 'Run all integration tests including Postgres'
     task 'all:with_postgres': INTEGRATION_MODES + ['full:postgres']
+  end
+
+  # API contract specs (spec/api/) are organized by API surface and version
+  # (v1/v2/v3, account, domains) — a DIFFERENT axis than auth mode. They are
+  # NOT folded into spec:integration:<mode> on purpose: doing so would re-mix
+  # the API-contract and auth-mode taxonomies. Most specs are mode-agnostic
+  # entitlement/wire-format checks; the few that need a specific mode set it
+  # themselves. Real Valkey on port 2121 is required (type: :integration).
+  #
+  # NOTE: a subset currently fails against the membership-based entitlement
+  # contract (#3225 / ADR-012 Stage 3): they stub the removed `logic.org` and
+  # gate on `org.can?`, but production now checks `auth_membership.can?`. These
+  # were latent because nothing ran them. Repair is tracked as #3225 follow-up;
+  # this lane makes the drift visible. Not yet wired into the CI gate.
+  #
+  # Deliberately NOT a prerequisite of spec:all while red: `sh` raises on a
+  # non-zero exit, so folding it in would hard-fail `rake spec:all` locally on
+  # the known #3225 drift. CI runs this lane via a dedicated non-blocking step
+  # (continue-on-error) — see .github/workflows/ci.yml — so visibility is kept
+  # without blocking. Add it back to spec:all once #3225 greens the lane.
+  desc 'Run API contract specs (spec/api/, mode-agnostic; needs Valkey on 2121)'
+  task :api do
+    env = { 'RACK_ENV' => 'test', 'AUTHENTICATION_MODE' => 'simple' }
+    sh env, "bundle exec rspec spec/api #{rspec_format_options}"
   end
 
   desc 'Run all non-integration specs (unit, cli, apps)'

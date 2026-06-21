@@ -12,4 +12,6 @@ import { z } from 'zod';
 // Path params (if any) are handled by the OpenAPI generator.
 export const resendEmailChangeConfirmationRequestSchema = z.object({});
 
-export type ResendEmailChangeConfirmationRequest = z.infer<typeof resendEmailChangeConfirmationRequestSchema>;
+export type ResendEmailChangeConfirmationRequest = z.infer<
+  typeof resendEmailChangeConfirmationRequestSchema
+>;

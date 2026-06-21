@@ -108,7 +108,7 @@
     "text": "Hesap Oluştur",
     "source_hash": "0dffe234"
   },
-  "web.COMMON.header_about": {
+  "web.COMMON.about": {
     "text": "Hakkında",
     "source_hash": "4efca0d1"
   },
@@ -439,10 +439,6 @@
   "web.COMMON.example_placeholder": {
     "text": "örn. {example}",
     "source_hash": "cc921aaa"
-  },
-  "web.COMMON.about": {
-    "text": "Hakkında",
-    "source_hash": "d833339d"
   },
   "web.COMMON.status": {
     "text": "Durum",
@@ -1303,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Her zaman resmi Onetime Secret web sitesinde olduğunuzu doğrulayın. Dolandırıcılar bazen gizli mesajlarınızı çalmak için Onetime Secret'a tıpatıp benzeyen sahte web siteleri oluştururlar. Kimlik avı saldırılarından kaçınmak için yeni bağlantılar oluşturmadan önce alan adını kontrol edin.",
+    "text": "Her zaman resmi {product_name} web sitesinde olduğunuzu doğrulayın. Dolandırıcılar bazen gizli mesajlarınızı çalmak için {product_name}'a tıpatıp benzeyen sahte web siteleri oluştururlar. Kimlik avı saldırılarından kaçınmak için yeni bağlantılar oluşturmadan önce alan adını kontrol edin.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {

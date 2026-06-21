@@ -20,8 +20,9 @@ import { z } from 'zod';
 
 // Import canonical schemas from contracts (NOT shapes, which have transforms)
 import { CanonicalPlanIdSchema } from '@/schemas/contracts/config/billing';
+import { featuresDomainsSchema } from '@/schemas/contracts/config/section/features';
 import { regionsConfigSchema } from '@/schemas/contracts/config/section/jurisdiction';
-import { brandSettingsCanonical, homepageConfigCanonical } from '@/schemas/contracts/custom-domain';
+import { brandSettingsCanonical, cornerStyleValues, fontFamilyValues, homepageConfigCanonical } from '@/schemas/contracts/custom-domain';
 import { disabledHomepageConfigSchema, disabledHomepageVariantSchema } from '@/schemas/contracts/disabled-homepage';
 import { customerCanonical } from '@/schemas/contracts/customer';
 
@@ -273,6 +274,12 @@ const organizationFeaturesInner = z.object({
 
 export const featuresSchema = z.object({
   markdown: z.boolean().default(false),
+  // Sign-in availability for the current domain context (AND of global
+  // AUTH_SIGNIN and the domain SigninConfig). Only an explicit false
+  // disables — it renders the public /signin page as a friendly "not
+  // available" notice (#3415); true and undefined (older backends) both
+  // keep the auth form.
+  signin: z.boolean().optional(),
   mfa: z.boolean().optional(),
   lockout: z.boolean().optional(),
   password_requirements: z.boolean().optional(),
@@ -480,6 +487,8 @@ export const bootstrapSchema = z.object({
   authentication: authenticationSettingsSchema.default(authenticationSettingsInner.parse({})),
   d9s_enabled: z.boolean().default(false),
   diagnostics: diagnosticsSchema.default(diagnosticsInner.parse({})),
+  docs_host: z.string().default(''),
+  domains: featuresDomainsSchema.optional(),
   domains_enabled: z.boolean().default(false),
   features: featuresSchema.default(featuresSchema.parse({})),
   frontend_development: z.boolean().default(false),
@@ -489,6 +498,7 @@ export const bootstrapSchema = z.object({
   regions_enabled: z.boolean().default(false),
   secret_options: secretOptionsSchema.default(secretOptionsSchema.parse({})),
   site_host: z.string().default(''),
+  support_email: z.string().default(''),
   support_host: z.string().default(''),
   ui: uiInterfaceSchema.default(uiInterfaceSchema.parse({})),
   available_jurisdictions: z.array(z.string()).default([]),
@@ -498,6 +508,28 @@ export const bootstrapSchema = z.object({
   disabled_homepage: disabledHomepageConfigSchema.default(
     disabledHomepageConfigSchema.parse({})
   ),
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Brand fields (per-installation defaults from OT.conf['brand'])
+  //
+  // Resolution order at the store layer:
+  //   1. domain_branding.<field>           (per-domain, from Redis)
+  //   2. bootstrapStore.brand_<field>      (per-installation, these fields)
+  //   3. NEUTRAL_BRAND_DEFAULTS.<field>    (frontend neutral fallback)
+  //
+  // No `.default()` here by design — defaults flow through
+  // NEUTRAL_BRAND_DEFAULTS at the store layer, not the schema. Eager
+  // `.default()` would short-circuit the nullish-coalescing fallback chain.
+  // ─────────────────────────────────────────────────────────────────────────────
+  brand_primary_color: z.string().nullish(),
+  brand_product_name: z.string().nullish(),
+  brand_product_domain: z.string().nullish(),
+  brand_support_email: z.string().nullish(),
+  brand_corner_style: z.enum(cornerStyleValues).nullish(),
+  brand_font_family: z.enum(fontFamilyValues).nullish(),
+  brand_button_text_light: z.boolean().nullish(),
+  brand_logo_url: z.string().nullish(),
+  brand_favicon_url: z.string().nullish(),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // AuthenticationSerializer fields
@@ -536,7 +568,8 @@ export const bootstrapSchema = z.object({
   fallback_locale: z.string().default('en'),
   supported_locales: z.array(z.string()).default([]),
   i18n_enabled: z.boolean().default(true),
-  // Date/time display format: 'locale', 'iso8601', 'us', 'eu', 'eu-dot', 'uk', 'long', or date-fns pattern
+  // Date/time display format: 'locale', 'iso8601', 'us', 'eu', 'eu-dot', 'uk',
+  // 'long', or a date-fns pattern
   date_format: z.string().default('locale'),
   datetime_format: z.string().default('locale'),
 

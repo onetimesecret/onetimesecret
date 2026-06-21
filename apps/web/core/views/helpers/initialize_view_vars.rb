@@ -166,10 +166,18 @@ module Core
         description          = I18n.t('web.COMMON.description', locale: i18n_locale, default: 'Keep sensitive info out of your chat logs & email')
         keywords             = I18n.t('web.COMMON.keywords', locale: i18n_locale, default: 'secret,password,share,private,link')
 
-        # Use the display domain name for branded instances, otherwise use the default app name.
-        # This provides a default title for initial page load before Vue takes over title management.
+        # Brand config — source of truth for tag-level branding (page_title,
+        # mask-icon, etc.) and for default Vue app theming on first paint.
+        brand_config         = OT.conf.fetch('brand', {})
+        brand_product_name   = brand_config['product_name'] ||
+                               Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:product_name]
+
+        # Use the display domain name for branded instances, otherwise the
+        # configured brand product name. site_name (the deprecated
+        # site.interface.ui.header.branding.site_name) is kept only as a tail
+        # fallback for instances mid-migration; remove once consumers update.
         site_name            = site_config.dig('interface', 'ui', 'header', 'branding', 'site_name')
-        page_title           = display_domain || site_name || 'One-Time Secret'
+        page_title           = display_domain || brand_product_name || site_name
         no_cache             = false
         frontend_host        = development['frontend_host']
         frontend_development = development['enabled']
@@ -179,6 +187,29 @@ module Core
         site_host            = safe_site['host']
         base_scheme          = safe_site['ssl'] == false ? 'http://' : 'https://'
         baseuri              = base_scheme + site_host
+
+        brand_defaults              = Onetime::CustomDomain::BrandSettingsConstants::DEFAULTS
+        brand_primary_color         = brand_config['primary_color']
+        has_brand_color             = !brand_primary_color.to_s.strip.empty?
+        support_email               = brand_config['support_email'] ||
+                                      Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:support_email]
+        # docs_host: full documentation URL exposed to bootstrap. Sources from
+        # DOCS_URL env var with the same default the YAML footer link uses, since
+        # the legacy site.support.host path was retired in #1461.
+        docs_host                   = ENV.fetch('DOCS_URL', 'https://docs.onetimesecret.com/')
+        brand_corner_style          = brand_config['corner_style'] || brand_defaults[:corner_style]
+        brand_font_family           = brand_config['font_family'] || brand_defaults[:font_family]
+        brand_button_text_light     = brand_config.fetch('button_text_light', brand_defaults[:button_text_light])
+        brand_allow_public_homepage = brand_config.fetch('allow_public_homepage', false)
+        brand_allow_public_api      = brand_config.fetch('allow_public_api', false)
+        # Site-wide brand fields not in DEFAULTS (per-domain Data class) —
+        # sourced from GLOBAL_DEFAULTS or directly from brand_config. Frontend
+        # falls through to NEUTRAL_BRAND_DEFAULTS when nil.
+        brand_global_defaults       = Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS
+        brand_product_domain        = brand_config['product_domain']
+        brand_support_email         = brand_config['support_email'] || brand_global_defaults[:support_email]
+        brand_logo_url              = brand_config['logo_url'] || brand_global_defaults[:logo_url]
+        brand_favicon_url           = brand_config['favicon_url'] || brand_global_defaults[:favicon_url]
 
         # Return all view variables as a hash
         {
@@ -208,6 +239,20 @@ module Core
           'shrimp' => shrimp,
           'site' => safe_site,
           'site_host' => site_host,
+          'brand_primary_color' => brand_primary_color,
+          'has_brand_color' => has_brand_color,
+          'brand_product_name' => brand_product_name,
+          'brand_corner_style' => brand_corner_style,
+          'brand_font_family' => brand_font_family,
+          'brand_button_text_light' => brand_button_text_light,
+          'brand_allow_public_homepage' => brand_allow_public_homepage,
+          'brand_allow_public_api' => brand_allow_public_api,
+          'brand_product_domain' => brand_product_domain,
+          'brand_support_email' => brand_support_email,
+          'brand_logo_url' => brand_logo_url,
+          'brand_favicon_url' => brand_favicon_url,
+          'support_email' => support_email,
+          'docs_host' => docs_host,
         }
       end
 

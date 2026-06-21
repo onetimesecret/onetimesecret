@@ -46,6 +46,16 @@ const DEFAULTS: BootstrapPayload = {
   entitlement_preview_planid: undefined,
   entitlement_preview_plan_name: undefined,
   organization: undefined,
+  // Brand fields (per-installation defaults from OT.conf['brand'])
+  brand_primary_color: undefined,
+  brand_product_name: undefined,
+  brand_product_domain: undefined,
+  brand_support_email: undefined,
+  brand_corner_style: undefined,
+  brand_font_family: undefined,
+  brand_button_text_light: undefined,
+  brand_logo_url: undefined,
+  brand_favicon_url: undefined,
 };
 
 /**

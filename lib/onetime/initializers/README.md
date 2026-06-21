@@ -17,7 +17,7 @@ The `execute(context)` method does the work. Don't perform work at file-load tim
 Logging conventions in `lib/onetime/initializers/`
 
 **Logger selection** — prefer a named logger:
-- `OT.boot_logger` — default for initializer code (boot phase). See `configure_familia.rb`, `detect_legacy_data_and_warn.rb`, `print_log_banner.rb`, `load_locales.rb`, `setup_diagnostics.rb`.
+- `OT.boot_logger` — default for initializer code (boot phase). See `configure_familia.rb`, `print_log_banner.rb`, `load_locales.rb`, `setup_diagnostics.rb`.
 - Category loggers when topic is specific: `Onetime.familia_logger` (database/Familia), `Onetime.bunny_logger` (RabbitMQ), or a local `app_logger` from the cached-logger registry (`configure_trusted_proxy.rb`, `configure_domains.rb`).
 - **Deprecated**: `OT.ld` / `OT.li` / `OT.le` / `OT.info`. These global helpers infer the category from the caller's file path (`class_methods.rb:291`) — files under `lib/onetime/initializers/` resolve to the `Boot` category, the same one `OT.boot_logger` returns. Prefer the named logger: it's explicit at the call site, avoids the `caller_locations` stack walk, and won't silently re-route if a file moves out of `/initializers/`. It also lets an initializer log to a non-Boot category (e.g. Familia, Bunny) where path inference would still pick Boot. Existing call sites (`check_redis_url`, `setup_i18n`, `setup_connection_pool`, `load_fortunes`) should migrate to `OT.boot_logger` or the appropriate category logger.
 - Never bare `puts` / `warn` except in `cleanup`/`reconnect` rescue paths where the logger itself may be unavailable (see `setup_loggers.rb:84`).

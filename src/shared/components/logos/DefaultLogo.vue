@@ -2,7 +2,9 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-  import MonotoneJapaneseSecretButton from '@/shared/components/icons/MonotoneJapaneseSecretButtonIcon.vue';
+    import MonotoneJapaneseSecretButton from '@/shared/components/icons/MonotoneJapaneseSecretButtonIcon.vue';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
   import { type LogoConfig } from '@/types/ui/layouts';
   import { computed } from 'vue';
 
@@ -19,8 +21,17 @@
   );
 
   const { t } = useI18n();
+  const bootstrapStore = useBootstrapStore();
 
-  const ariaLabel = computed(() => props.ariaLabel || t('web.homepage.one_time_secret_literal'));
+  /**
+   * Brand-aware aria-label. Falls back to NEUTRAL_BRAND_DEFAULTS.product_name
+   * (a generic "My App") when bootstrap config has not provided a brand name.
+   * Never defaults to OTS branding — keeps private-label deployments neutral
+   * (#3048 / #3049).
+   */
+  const ariaLabel = computed(
+    () => props.ariaLabel || bootstrapStore.brand_product_name || NEUTRAL_BRAND_DEFAULTS.product_name
+  );
 
   const svgSize = computed(() =>
     typeof props.size === 'number' && props.size > 0 ? props.size : 64

@@ -22,5 +22,14 @@
   "web.dashboard.fetch_error_description": {
     "text": "There was a problem loading your data. Please try again.",
     "content_hash": "ff0d904e"
+  },
+  "web.teams.create_first_team_title": {
+    "text": "Create your first team"
+  },
+  "web.teams.create_first_team_description": {
+    "text": "Teams let you collaborate with others in a shared workspace."
+  },
+  "web.teams.create_team": {
+    "text": "Create team"
   }
 }

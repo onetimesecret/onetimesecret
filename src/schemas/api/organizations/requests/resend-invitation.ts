@@ -11,7 +11,8 @@ import { z } from 'zod';
 // TODO: Add request parameters for this endpoint.
 // Path params: extid, token
 export const resendInvitationRequestSchema = z.object({
-  // TODO: fill in from OrganizationAPI::Logic::Invitations::ResendInvitation raise_concerns / process
+  // TODO: fill in from OrganizationAPI::Logic::Invitations::ResendInvitation
+  // raise_concerns / process
 });
 
 export type ResendInvitationRequest = z.infer<typeof resendInvitationRequestSchema>;

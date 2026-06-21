@@ -292,13 +292,16 @@
     "content_hash": "37ca715f"
   },
   "web.colonel.previewPlanMode": {
-    "text": "Preview plan mode"
+    "text": "Preview plan mode",
+    "content_hash": "cf53f19d"
   },
   "web.colonel.previewModeDescription": {
-    "text": "Preview the application as it appears to customers on a different plan. This affects your view only and does not change any organization's actual plan."
+    "text": "Preview the application as it appears to customers on a different plan. This affects your view only and does not change any organization's actual plan.",
+    "content_hash": "6fe23f23"
   },
   "web.colonel.previewModeActive": {
-    "text": "Preview active"
+    "text": "Preview active",
+    "content_hash": "a558d603"
   },
   "web.colonel.availablePlans": {
     "text": "Available plans",

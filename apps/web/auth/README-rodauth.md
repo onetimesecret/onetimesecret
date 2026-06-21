@@ -36,7 +36,7 @@ module Auth::Config::Features
   def self.configure(auth)
     # auth is the Rodauth::Auth instance inside configure block
     # Call configuration methods directly on it
-    auth.otp_issuer 'OneTimeSecret'
+    auth.otp_issuer BrandSettingsConstants.global_defaults[:totp_issuer]
     auth.password_minimum_length 8
     # ... all feature configs
   end

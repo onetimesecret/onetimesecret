@@ -33,6 +33,8 @@ module DomainsAPI
           @validation_strategy    = sanitize_plain_text(params['validation_strategy'])
           @allowed_signup_domains = parse_allowed_domains(params['allowed_signup_domains'])
           @enabled                = parse_boolean(params['enabled'])
+          @signup_enabled         = params.key?('signup_enabled') ? parse_boolean(params['signup_enabled']) : false
+          @autoverify             = params.key?('autoverify') ? parse_boolean(params['autoverify']) : false
         end
 
         def raise_concerns
@@ -120,6 +122,8 @@ module DomainsAPI
             validation_strategy: @validation_strategy,
             allowed_signup_domains: @allowed_signup_domains,
             enabled: @enabled,
+            signup_enabled: @signup_enabled,
+            autoverify: @autoverify,
           )
         end
 
@@ -130,6 +134,8 @@ module DomainsAPI
           @signup_config.validation_strategy    = @validation_strategy
           @signup_config.allowed_signup_domains = @allowed_signup_domains
           @signup_config.enabled                = @enabled.to_s
+          @signup_config.signup_enabled         = @signup_enabled
+          @signup_config.autoverify             = @autoverify
           @signup_config.updated                = Familia.now.to_i
 
           @signup_config.commit_fields
@@ -141,6 +147,8 @@ module DomainsAPI
             validation_strategy: config.validation_strategy,
             allowed_signup_domains: config.allowed_signup_domains,
             enabled: config.enabled?,
+            signup_enabled: config.signup_enabled?,
+            autoverify: config.autoverify?,
             requires_allowlist: config.requires_allowlist?,
             network_validation: config.network_validation?,
             created_at: config.created.to_i,

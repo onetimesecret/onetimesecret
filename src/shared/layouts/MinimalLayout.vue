@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
+  import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { storeToRefs } from 'pinia';
   import type { LayoutProps } from '@/types/ui/layouts';
@@ -11,7 +12,7 @@
   const { t } = useI18n();
 
   const bootstrapStore = useBootstrapStore();
-  const { site_host } = storeToRefs(bootstrapStore);
+  const { site_host, brand_product_name } = storeToRefs(bootstrapStore);
   const props = withDefaults(defineProps<LayoutProps>(), {});
 </script>
 
@@ -49,8 +50,8 @@
           :href="`https://${site_host}`"
           class="text-[0.7rem] text-gray-300 transition-colors duration-200 hover:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:text-gray-600 dark:hover:text-gray-500"
           rel="noopener noreferrer"
-          :aria-label="t('web.homepage.visit_onetime_secret_home')">
-          {{ t('web.branding.powered_by_onetime_secret') }}
+          :aria-label="t('web.homepage.visit_onetime_secret_home', { product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name })">
+          {{ t('web.branding.powered_by_onetime_secret', { product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name }) }}
         </a>
       </div>
     </template>

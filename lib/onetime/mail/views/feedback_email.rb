@@ -25,6 +25,13 @@ module Onetime
       #   baseuri:          Override site base URI
       #
       class FeedbackEmail < Base
+        # Do not wrap the plaintext body in the shared text layout. This email
+        # is operator-facing — it is sent FROM a user TO the operators who *are*
+        # support — so appending a "Support: <address>" line is nonsensical, and
+        # its own trailing block is a signature sign-off, not the product
+        # footer. Wrapping it would also double-print a footer. See #3362.
+        text_layout false
+
         # Placeholder rendered when an optional metadata field is absent.
         # Older queued jobs and minimal test fixtures may not supply
         # user_id/tz/version, but the templates reference them unconditionally.

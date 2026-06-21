@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/logic/signup_config_resolution'
+
 module AccountAPI::Logic
   module Account
     # Create Account
@@ -11,6 +13,8 @@ module AccountAPI::Logic
     #   exists to prevent email enumeration. Sends a verification email to
     #   new and unverified accounts.
     class CreateAccount < AccountAPI::Logic::Base
+      include Onetime::Logic::SignupConfigResolution
+
       SCHEMAS = { response: 'createAccount' }.freeze
 
       using Familia::Refinements::TimeLiterals
@@ -25,8 +29,7 @@ module AccountAPI::Logic
         @email    = sanitize_email(params['login'])
         @password = self.class.normalize_password(params['password'])
 
-        autoverify_setting = site.dig('authentication', 'autoverify')
-        @autoverify        = autoverify_setting.to_s.eql?('true') || false
+        @autoverify = resolve_autoverify
 
         # This is a hidden field, so it should be empty. If it has a value, it's
         # a simple bot trying to submit the form or similar chicanery. We just
@@ -103,7 +106,7 @@ module AccountAPI::Logic
           # Capture the signup domain for re-verification and background jobs,
           # and record the provisioning origin as lifecycle/audit metadata.
           # Origin is metadata only — capabilities are governed by org role.
-          custom_domain = if display_domain
+          custom_domain            = if display_domain
                             Onetime::CustomDomain.load_by_display_domain(display_domain)
                           end
           cust.signup_domain_id    = custom_domain.identifier if custom_domain
@@ -168,6 +171,14 @@ module AccountAPI::Logic
       #   - Uses case-insensitive domain matching
       def allowed_signup_domain?(email)
         Onetime::SignupValidation.valid_signup_email?(email, display_domain: display_domain)
+      end
+
+      def signup_config_display_domain
+        display_domain
+      end
+
+      def signup_config_auth_setting(key)
+        site.dig('authentication', key)
       end
     end
   end

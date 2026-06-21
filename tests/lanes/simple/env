@@ -1,0 +1,3 @@
+# Lane: simple — integration specs for AUTHENTICATION_MODE=simple.
+# CI job: ruby-integration-simple (T3)
+AUTHENTICATION_MODE=simple

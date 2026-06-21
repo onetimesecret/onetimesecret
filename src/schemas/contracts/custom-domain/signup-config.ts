@@ -123,6 +123,18 @@ export const customDomainSignupConfigCanonical = z.object({
   enabled: z.boolean(),
 
   /**
+   * Whether signup is enabled on this custom domain.
+   * Defaults to false (conservative: off until explicitly enabled).
+   */
+  signup_enabled: z.boolean(),
+
+  /**
+   * Whether new accounts on this domain skip email verification.
+   * Defaults to false (conservative: require verification).
+   */
+  autoverify: z.boolean(),
+
+  /**
    * Whether the current strategy requires an allowlist.
    * Read-only, computed from validation_strategy.
    */
@@ -171,6 +183,12 @@ export const putSignupConfigPayloadSchema = z.object({
 
   /** Whether the per-domain config is active. Defaults to false. */
   enabled: z.boolean().optional(),
+
+  /** Whether signup is enabled. Defaults to false. */
+  signup_enabled: z.boolean().optional(),
+
+  /** Whether new accounts skip email verification. Defaults to false. */
+  autoverify: z.boolean().optional(),
 });
 
 /**

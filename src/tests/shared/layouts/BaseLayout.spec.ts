@@ -2,9 +2,9 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { h, defineComponent, ref } from 'vue';
 import { createTestingPinia } from '@pinia/testing';
+import { createTestI18n } from '@tests/setup';
 
 // Mock useTheme composable
 vi.mock('@/shared/composables/useTheme', () => ({
@@ -34,19 +34,7 @@ vi.mock('@/utils/color-utils', () => ({
   isColorValue: (value: string) => value.startsWith('#') || value.startsWith('rgb'),
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        LABELS: {
-          dismiss: 'Dismiss',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 /**
  * BaseLayout Component Tests

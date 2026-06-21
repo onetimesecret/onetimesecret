@@ -144,6 +144,120 @@ RSpec.describe Core::Views::ConfigSerializer do
       expect(result['features']).to have_key('sso')
     end
 
+    describe 'brand_* bootstrap exposure' do
+      let(:brand_view_vars) do
+        base_view_vars.merge(
+          'brand_primary_color' => '#112233',
+          'brand_product_name' => 'Acme Vault',
+          'brand_product_domain' => 'vault.acme.test',
+          'brand_support_email' => 'help@acme.test',
+          'brand_corner_style' => 'square',
+          'brand_font_family' => 'serif',
+          'brand_button_text_light' => false,
+          'brand_logo_url' => 'https://acme.test/logo.svg',
+          'brand_favicon_url' => 'https://acme.test/favicon.png',
+          'support_email' => 'help@acme.test',
+          'docs_host' => 'https://docs.acme.test/'
+        )
+      end
+
+      it 'copies brand_primary_color from view_vars to output' do
+        result = described_class.serialize(brand_view_vars)
+        expect(result['brand_primary_color']).to eq('#112233')
+      end
+
+      it 'copies brand_product_name from view_vars to output' do
+        result = described_class.serialize(brand_view_vars)
+        expect(result['brand_product_name']).to eq('Acme Vault')
+      end
+
+      it 'copies brand_product_domain from view_vars to output' do
+        result = described_class.serialize(brand_view_vars)
+        expect(result['brand_product_domain']).to eq('vault.acme.test')
+      end
+
+      it 'copies brand_support_email from view_vars to output' do
+        result = described_class.serialize(brand_view_vars)
+        expect(result['brand_support_email']).to eq('help@acme.test')
+      end
+
+      it 'copies brand_corner_style from view_vars to output' do
+        result = described_class.serialize(brand_view_vars)
+        expect(result['brand_corner_style']).to eq('square')
+      end
+
+      it 'copies brand_font_family from view_vars to output' do
+        result = described_class.serialize(brand_view_vars)
+        expect(result['brand_font_family']).to eq('serif')
+      end
+
+      it 'copies brand_button_text_light from view_vars to output' do
+        result = described_class.serialize(brand_view_vars)
+        expect(result['brand_button_text_light']).to be false
+      end
+
+      it 'copies brand_logo_url from view_vars to output' do
+        result = described_class.serialize(brand_view_vars)
+        expect(result['brand_logo_url']).to eq('https://acme.test/logo.svg')
+      end
+
+      it 'copies brand_favicon_url from view_vars to output' do
+        result = described_class.serialize(brand_view_vars)
+        expect(result['brand_favicon_url']).to eq('https://acme.test/favicon.png')
+      end
+
+      it 'copies support_email from view_vars to output' do
+        result = described_class.serialize(brand_view_vars)
+        expect(result['support_email']).to eq('help@acme.test')
+      end
+
+      it 'copies docs_host from view_vars to output' do
+        result = described_class.serialize(brand_view_vars)
+        expect(result['docs_host']).to eq('https://docs.acme.test/')
+      end
+
+      it 'leaves brand_* keys nil when view_vars omits them' do
+        result = described_class.serialize(base_view_vars)
+        %w[
+          brand_primary_color
+          brand_product_name
+          brand_product_domain
+          brand_support_email
+          brand_corner_style
+          brand_font_family
+          brand_button_text_light
+          brand_logo_url
+          brand_favicon_url
+        ].each do |key|
+          expect(result[key]).to be_nil, "expected #{key} to be nil when view_vars omits it"
+        end
+      end
+
+      it 'includes every brand_* key in the output_template (single source of truth)' do
+        template_keys = described_class.output_template.keys
+        %w[
+          brand_primary_color
+          brand_product_name
+          brand_product_domain
+          brand_support_email
+          brand_corner_style
+          brand_font_family
+          brand_button_text_light
+          brand_logo_url
+          brand_favicon_url
+        ].each do |key|
+          expect(template_keys).to include(key), "output_template missing #{key}"
+        end
+      end
+
+      it 'includes general config keys in the output_template' do
+        template_keys = described_class.output_template.keys
+        %w[support_email docs_host].each do |key|
+          expect(template_keys).to include(key), "output_template missing #{key}"
+        end
+      end
+    end
+
     it 'returns api as a nested object with enabled and guest_routes' do
       result = described_class.serialize(base_view_vars)
       expect(result).to have_key('api')
@@ -264,6 +378,62 @@ RSpec.describe Core::Views::ConfigSerializer do
         it 'does not call platform sso_providers' do
           expect(mock_auth_config).not_to receive(:sso_providers)
           described_class.build_sso_config(custom_domain_view_vars)
+        end
+      end
+
+      context 'when SigninConfig blocks SSO (sso_permitted_for? returns false)' do
+        let(:domain_sso_config) do
+          instance_double(
+            Onetime::CustomDomain::SsoConfig,
+            enabled?: true,
+            provider_type: 'oidc',
+            display_name: 'Corp SSO',
+            platform_route_name: 'oidc',
+            enforce_sso_only?: false
+          )
+        end
+
+        before do
+          allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+            .with(custom_display_domain)
+            .and_return(custom_domain_obj)
+          allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
+            .with(domain_id)
+            .and_return(domain_sso_config)
+          # SigninConfig gate blocks SSO for this domain
+          allow(Onetime::CustomDomain::SigninConfig).to receive(:sso_permitted_for?)
+            .with(domain_id)
+            .and_return(false)
+        end
+
+        context 'with platform fallback denied (default)' do
+          before do
+            allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
+          end
+
+          it 'returns disabled SSO (SigninConfig gate overrides SsoConfig)' do
+            result = described_class.build_sso_config(custom_domain_view_vars)
+
+            expect(result['enabled']).to be false
+            expect(result['providers']).to eq([])
+          end
+        end
+
+        context 'with platform fallback allowed' do
+          before do
+            allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+            allow(mock_auth_config).to receive(:sso_enabled?).and_return(true)
+            allow(mock_auth_config).to receive(:sso_providers).and_return([
+              { 'route_name' => 'oidc', 'display_name' => 'Platform SSO' },
+            ])
+          end
+
+          it 'falls back to platform SSO (SigninConfig blocks tenant, not platform)' do
+            result = described_class.build_sso_config(custom_domain_view_vars)
+
+            expect(result['enabled']).to be true
+            expect(result['providers'][0]['display_name']).to eq('Platform SSO')
+          end
         end
       end
 

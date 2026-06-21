@@ -11,11 +11,11 @@
  */
 
 import { mount } from '@vue/test-utils';
-import { createI18n } from 'vue-i18n';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { computed, defineComponent } from 'vue';
 import { createRouter, createWebHistory, type Router } from 'vue-router';
 
+import { createTestI18n } from '@tests/setup';
 import { toExtId, toObjId, type ExtId, type ObjId } from '@/types/identifiers';
 import type { Organization } from '@/types/organization';
 
@@ -68,27 +68,6 @@ function createTestRouter(): Router {
         component: { template: '<div>Settings</div>' },
       },
     ],
-  });
-}
-
-/**
- * Creates a minimal i18n instance for tests
- */
-function createTestI18n() {
-  return createI18n({
-    legacy: false,
-    locale: 'en',
-    fallbackLocale: 'en',
-    messages: {
-      en: {
-        web: {
-          organizations: {
-            title: 'Organizations',
-            organizations: 'Organizations',
-          },
-        },
-      },
-    },
   });
 }
 

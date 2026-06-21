@@ -12,7 +12,7 @@
 // - BLOCKER 10: /org/domains route broken
 //
 // Prerequisites:
-// - Set TEST_USER_EMAIL and TEST_USER_PASSWORD environment variables
+// - Authenticated via the project storageState (e2e/global.setup.ts consumes TEST_USER_*)
 // - Application running locally or PLAYWRIGHT_BASE_URL set
 //
 // Usage:
@@ -24,29 +24,6 @@
 //   PLAYWRIGHT_BASE_URL=https://dev.onetime.dev TEST_USER_EMAIL=... pnpm test:playwright billing-blockers.spec.ts
 
 import { expect, Page, test } from '@playwright/test';
-
-// Check if test credentials are configured
-const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD);
-
-/**
- * Authenticate user via login form
- */
-async function loginUser(page: Page): Promise<void> {
-  await page.goto('/signin');
-
-  const emailInput = page.locator('input[type="email"], input[name="email"]');
-  const passwordInput = page.locator('input[type="password"], input[name="password"]');
-  const submitButton = page.locator('button[type="submit"]');
-
-  if (await emailInput.isVisible()) {
-    await emailInput.fill(process.env.TEST_USER_EMAIL || 'test@example.com');
-    await passwordInput.fill(process.env.TEST_USER_PASSWORD || 'testpassword');
-    await submitButton.click();
-
-    // Wait for redirect to dashboard/account
-    await page.waitForURL(/\/(account|dashboard)/, { timeout: 30000 });
-  }
-}
 
 /**
  * Wait for API response and capture result
@@ -81,8 +58,6 @@ async function _waitForApiResponse(
 }
 
 test.describe('Stripe Integration Blockers - E2E', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
   });
@@ -93,11 +68,10 @@ test.describe('Stripe Integration Blockers - E2E', () => {
   // ---------------------------------------------------------------------------
   test.describe('BLOCKER 1 & 2: Billing Plans Page', () => {
     test('TC-2309-001: Monthly plans tab displays available plans', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/billing/plans');
 
       // Wait for page to load
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Monthly tab should be active by default or click to activate
       const monthlyTab = page.getByRole('button', { name: /monthly/i });
@@ -129,18 +103,18 @@ test.describe('Stripe Integration Blockers - E2E', () => {
     });
 
     test('TC-2309-002: Yearly plans tab displays available plans', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/billing/plans');
 
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Click yearly tab
       const yearlyTab = page.getByRole('button', { name: /yearly|annual/i });
       await expect(yearlyTab).toBeVisible();
       await yearlyTab.click();
 
-      // Wait for tab switch
-      await page.waitForTimeout(500);
+      // Wait for the tab switch to take effect (PlanSelector marks the
+      // active interval button with aria-pressed)
+      await expect(yearlyTab).toHaveAttribute('aria-pressed', 'true');
 
       // BLOCKER 2 ASSERTION: Check for empty state
       const emptyMessage = page.locator('text=/no yearly plans available/i');
@@ -164,7 +138,6 @@ test.describe('Stripe Integration Blockers - E2E', () => {
     });
 
     test('Plans API returns non-empty plans array', async ({ page }) => {
-      await loginUser(page);
 
       // Intercept API call
       const apiPromise = page.waitForResponse(
@@ -188,9 +161,8 @@ test.describe('Stripe Integration Blockers - E2E', () => {
     });
 
     test('Plan cards include required information', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/billing/plans');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Find any visible plan card
       const planCard = page
@@ -214,9 +186,8 @@ test.describe('Stripe Integration Blockers - E2E', () => {
   // ---------------------------------------------------------------------------
   test.describe('BLOCKER 4: Dashboard Upgrade Banner', () => {
     test('TC-2309-004: Free user sees plan indicator or upgrade prompt', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Look for plan status indicator (badge, text, etc.)
       const planIndicator = page.locator('text=/free|current plan|upgrade|view plans/i');
@@ -243,9 +214,8 @@ test.describe('Stripe Integration Blockers - E2E', () => {
     });
 
     test('Upgrade link navigates to plans page', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const upgradeLink = page
         .locator('a[href*="/billing/plans"], a[href*="/plans"]:not([href*="pricing"])')
@@ -265,9 +235,8 @@ test.describe('Stripe Integration Blockers - E2E', () => {
   // ---------------------------------------------------------------------------
   test.describe('BLOCKER 5: Account Settings Billing Link', () => {
     test('TC-2309-005: Account settings includes billing navigation', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/account');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Look for billing/subscription link in navigation
       const billingLink = page.locator(
@@ -290,9 +259,8 @@ test.describe('Stripe Integration Blockers - E2E', () => {
     });
 
     test('Billing link navigates to billing overview', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/account');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const billingLink = page.locator('a:has-text(/billing|subscription/i)').first();
       const isVisible = await billingLink.isVisible().catch(() => false);
@@ -309,9 +277,8 @@ test.describe('Stripe Integration Blockers - E2E', () => {
   // ---------------------------------------------------------------------------
   test.describe('BLOCKER 6: Billing Overview Features', () => {
     test('TC-2309-006: Billing overview displays plan features', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/billing/overview');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Check for "No features available" message
       const noFeaturesMessage = page.locator('text=/no features available|no entitlements/i');
@@ -337,9 +304,8 @@ test.describe('Stripe Integration Blockers - E2E', () => {
     });
 
     test('Current plan card displays correctly', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/billing/overview');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Current plan card should show plan name
       const planCard = page.locator('text=/current plan|your plan/i').first();
@@ -356,7 +322,6 @@ test.describe('Stripe Integration Blockers - E2E', () => {
     });
 
     test('Entitlements API returns 200', async ({ page }) => {
-      await loginUser(page);
 
       // Intercept entitlements API call
       const apiPromise = page.waitForResponse(
@@ -386,9 +351,8 @@ test.describe('Stripe Integration Blockers - E2E', () => {
   // ---------------------------------------------------------------------------
   test.describe('BLOCKER 9: Billing History Organization Resolution', () => {
     test('TC-2309-009: Billing history loads without organization error', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/billing/invoices');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Check for organization not found error
       const orgError = page.locator('text=/organization not found/i');
@@ -414,9 +378,8 @@ test.describe('Stripe Integration Blockers - E2E', () => {
     });
 
     test('Organization selector works correctly', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/billing/invoices');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Look for org selector (only shown when multiple orgs exist)
       const orgSelector = page.locator('select[id*="org"], [class*="org-select"]');
@@ -436,9 +399,8 @@ test.describe('Stripe Integration Blockers - E2E', () => {
   // ---------------------------------------------------------------------------
   test.describe('BLOCKER 10: Organization Domains Route', () => {
     test('TC-2309-010: /org/domains route loads correctly', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/org/domains');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Check for error treating "domains" as org ID
       const orgIdError = page.locator('text=/organization not found.*domains/i');
@@ -461,17 +423,18 @@ test.describe('Stripe Integration Blockers - E2E', () => {
     });
 
     test('Domains page accessible from organization navigation', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/orgs');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Look for domains link in org navigation
       const domainsLink = page.locator('a:has-text(/domain/i)').first();
       const isVisible = await domainsLink.isVisible().catch(() => false);
 
       if (isVisible) {
+        // Record the pre-click URL and wait for the navigation to move
+        const urlBefore = page.url();
         await domainsLink.click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForURL((url) => url.href !== urlBefore);
 
         // Should not show org ID error
         const orgIdError = page.locator('text=/organization not found.*domains/i');
@@ -490,7 +453,6 @@ test.describe('Stripe Integration Blockers - E2E', () => {
   // ---------------------------------------------------------------------------
   test.describe('Billing Navigation Integration', () => {
     test('User menu has billing option', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/dashboard');
 
       // Open user menu
@@ -501,24 +463,22 @@ test.describe('Stripe Integration Blockers - E2E', () => {
 
       if (hasMenu) {
         await userMenu.click();
-        await page.waitForTimeout(300);
 
         const billingOption = page.locator(
           '[role="menuitem"]:has-text(/billing/i), a:has-text(/billing/i)'
         );
-        const hasBilling = await billingOption
-          .first()
-          .isVisible()
-          .catch(() => false);
 
-        expect(hasBilling, 'User menu should have Billing option').toBe(true);
+        // Web-first assertion waits for the menu to open and render
+        await expect(
+          billingOption.first(),
+          'User menu should have Billing option'
+        ).toBeVisible();
       }
     });
 
     test('Footer has Plans link', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const footerPlansLink = page.locator('footer a:has-text(/plans|pricing/i)');
       const isVisible = await footerPlansLink
@@ -533,15 +493,14 @@ test.describe('Stripe Integration Blockers - E2E', () => {
     });
 
     test('Complete upgrade flow is accessible', async ({ page }) => {
-      await loginUser(page);
 
       // Start from dashboard
       await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Navigate to billing plans (however the app exposes it)
       await page.goto('/billing/plans');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Verify plans are displayed
       const planCards = page.locator('[class*="plan"], [class*="card"]').filter({

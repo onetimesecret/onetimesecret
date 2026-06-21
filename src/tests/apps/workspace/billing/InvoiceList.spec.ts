@@ -2,9 +2,9 @@
 
 import { mount, VueWrapper, flushPromises } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { createPinia, setActivePinia } from 'pinia';
 import InvoiceList from '@/apps/workspace/billing/InvoiceList.vue';
+import { createTestI18n } from '@tests/setup';
 import { nextTick } from 'vue';
 
 // Mock HeadlessUI components (none used in this component, but keep for consistency)
@@ -115,37 +115,7 @@ const mockInvoices = [
   },
 ];
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        billing: {
-          invoices: {
-            title: 'Invoices',
-            invoice_date: 'Date',
-            invoice_amount: 'Amount',
-            invoice_status: 'Status',
-            invoice_download: 'Download',
-            no_invoices: 'No invoices yet',
-            load_error: 'Failed to load invoices',
-            paid: 'Paid',
-            pending: 'Pending',
-            failed: 'Failed',
-          },
-          overview: {
-            organization_selector: 'Select Organization',
-            no_organizations_title: 'No organizations found',
-          },
-        },
-        COMMON: {
-          loading: 'Loading...',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 describe('InvoiceList', () => {
   let wrapper: VueWrapper;
@@ -204,7 +174,7 @@ describe('InvoiceList', () => {
       // Should show the loading skeleton (busy status region with sr-only label)
       const skeleton = wrapper.find('[role="status"][aria-busy="true"]');
       expect(skeleton.exists()).toBe(true);
-      expect(wrapper.text()).toContain('Loading...');
+      expect(wrapper.text()).toContain('web.COMMON.loading');
 
       // Clean up
       resolveInvoices!({ invoices: [] });
@@ -239,7 +209,7 @@ describe('InvoiceList', () => {
       mockListInvoices.mockResolvedValueOnce({ invoices: [] });
       wrapper = await mountComponent();
 
-      expect(wrapper.text()).toContain('No invoices yet');
+      expect(wrapper.text()).toContain('web.billing.invoices.no_invoices');
       // Should show the empty state icon
       const emptyIcon = wrapper.find('[data-name="document-text"]');
       expect(emptyIcon.exists()).toBe(true);
@@ -277,23 +247,23 @@ describe('InvoiceList', () => {
       wrapper = await mountComponent();
 
       // Check that status text is displayed
-      expect(wrapper.text()).toContain('Paid');
-      expect(wrapper.text()).toContain('Pending');
-      expect(wrapper.text()).toContain('Failed');
+      expect(wrapper.text()).toContain('web.billing.invoices.paid');
+      expect(wrapper.text()).toContain('web.billing.invoices.pending');
+      expect(wrapper.text()).toContain('web.billing.invoices.failed');
 
       // Check for status badge classes
       const badges = wrapper.findAll('span.inline-flex');
 
       // Find paid badge (green)
-      const paidBadge = badges.find(b => b.text() === 'Paid');
+      const paidBadge = badges.find(b => b.text() === 'web.billing.invoices.paid');
       expect(paidBadge?.classes()).toContain('bg-green-100');
 
       // Find pending badge (yellow)
-      const pendingBadge = badges.find(b => b.text() === 'Pending');
+      const pendingBadge = badges.find(b => b.text() === 'web.billing.invoices.pending');
       expect(pendingBadge?.classes()).toContain('bg-yellow-100');
 
       // Find failed badge (red)
-      const failedBadge = badges.find(b => b.text() === 'Failed');
+      const failedBadge = badges.find(b => b.text() === 'web.billing.invoices.failed');
       expect(failedBadge?.classes()).toContain('bg-red-100');
     });
   });
@@ -304,7 +274,7 @@ describe('InvoiceList', () => {
       wrapper = await mountComponent();
 
       const downloadButtons = wrapper.findAll('button').filter(
-        btn => btn.text().includes('Download')
+        btn => btn.text().includes('web.billing.invoices.invoice_download')
       );
       // First two invoices have download URLs
       expect(downloadButtons.length).toBe(2);
@@ -327,7 +297,7 @@ describe('InvoiceList', () => {
       wrapper = await mountComponent();
 
       const downloadButton = wrapper.findAll('button').find(
-        btn => btn.text().includes('Download')
+        btn => btn.text().includes('web.billing.invoices.invoice_download')
       );
       await downloadButton?.trigger('click');
 

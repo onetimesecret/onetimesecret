@@ -49,9 +49,10 @@ module Auth::Config::Hooks
         # the HMAC path, encoded the raw key — so scanned codes never matched
         # what the server validates (otp built from otp_user_key), while the
         # manually-displayed otp_setup key worked. We instead emit Rodauth's
-        # own otp_provisioning_uri (built from otp_user_key, with the correct
-        # issuer/digits/period) as the single source of truth, so the frontend
-        # can render the QR directly without guessing the secret or params.
+        # own otp_provisioning_uri (built from otp_user_key, with the
+        # brand-configured otp_issuer and correct digits/period) as the single
+        # source of truth, so the frontend can render the QR directly without
+        # guessing the secret, issuer, or params.
         #
         # Rebuild the tmp OTP key from the raw secret we just handed the client
         # so otp_provisioning_uri reflects exactly that secret, independent of

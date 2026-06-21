@@ -108,7 +108,7 @@
     "text": "Konto erstellen",
     "source_hash": "0dffe234"
   },
-  "web.COMMON.header_about": {
+  "web.COMMON.about": {
     "text": "Über uns",
     "source_hash": "4efca0d1"
   },
@@ -439,10 +439,6 @@
   "web.COMMON.example_placeholder": {
     "text": "z.B. {example}",
     "source_hash": "cc921aaa"
-  },
-  "web.COMMON.about": {
-    "text": "Über uns",
-    "source_hash": "d833339d"
   },
   "web.COMMON.status": {
     "text": "Status",
@@ -1303,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Vergewissern Sie sich immer, dass Sie sich auf der offiziellen Onetime Secret-Website befinden. Betrüger erstellen manchmal gefälschte Websites, die genauso aussehen wie Onetime Secret, um Ihre Geheimnisse zu stehlen. Um Phishing-Angriffe zu vermeiden, überprüfen Sie die Domain, bevor Sie neue Links erstellen.",
+    "text": "Vergewissern Sie sich immer, dass Sie sich auf der offiziellen {product_name}-Website befinden. Betrüger erstellen manchmal gefälschte Websites, die genauso aussehen wie {product_name}, um Ihre Geheimnisse zu stehlen. Um Phishing-Angriffe zu vermeiden, überprüfen Sie die Domain, bevor Sie neue Links erstellen.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {

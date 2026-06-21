@@ -8,10 +8,6 @@
 <%= t('email.email_change_requested.not_you_notice') %>
 <%= baseuri %><%= support_path %>
 
-<%= t('email.email_change_requested.signature') %>
+<%= signature_name || t('email.email_change_requested.signature') %>
 
 <%= t('email.email_change_requested.postscript', email_address: old_email) %>
-
---
-<%= product_name %>
-<%= baseuri %>

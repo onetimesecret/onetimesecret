@@ -9,9 +9,9 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { createTestingPinia } from '@pinia/testing';
 import TransactionalHeader from '@/shared/components/layout/TransactionalHeader.vue';
+import { createTestI18n } from '@tests/setup';
 import { nextTick } from 'vue';
 
 // Mock MastHead to track rendering and capture props
@@ -27,11 +27,7 @@ vi.mock('@/shared/components/layout/MastHead.vue', () => ({
   },
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: { en: {} },
-});
+const i18n = createTestI18n();
 
 describe('TransactionalHeader — Custom Domain Leak Vector', () => {
   let wrapper: VueWrapper;
@@ -62,6 +58,7 @@ describe('TransactionalHeader — Custom Domain Leak Vector', () => {
       domain_logo?: string | null;
       authentication?: { enabled?: boolean; signin?: boolean; signup?: boolean };
       homepage_config?: HomepageConfigState;
+      header?: Record<string, unknown>;
     } = {}
   ) => {
     const pinia = createTestingPinia({
@@ -76,7 +73,7 @@ describe('TransactionalHeader — Custom Domain Leak Vector', () => {
             ? storeState.homepage_config
             : null,
           ui: {
-            header: {
+            header: storeState.header ?? {
               navigation: { enabled: true },
               branding: {
                 logo: { url: 'DefaultLogo.vue', alt: 'Onetime Secret' },
@@ -322,6 +319,60 @@ describe('TransactionalHeader — Custom Domain Leak Vector', () => {
         expect(wrapper.find('[data-testid="header-signin-link"]').exists()).toBe(true);
         expect(wrapper.find('[role="separator"]').exists()).toBe(true);
       });
+    });
+  });
+
+  // HEADER_ENABLED gate (#3362): operator config collapses the entire
+  // <header> banner landmark — no empty landmark, no whitespace band.
+  // This guard is folded into the existing displayHeader check (both must hold).
+  describe('HEADER_ENABLED gate', () => {
+    it('removes the <header> element when header.enabled is false', async () => {
+      wrapper = mountComponent({}, {
+        domain_strategy: 'canonical',
+        header: { enabled: false },
+      });
+
+      await nextTick();
+      expect(wrapper.find('header').exists()).toBe(false);
+      // Content collapses with the landmark, not merely emptied.
+      expect(wrapper.find('.masthead').exists()).toBe(false);
+    });
+
+    it('renders the <header> element when header.enabled is true', async () => {
+      wrapper = mountComponent({}, {
+        domain_strategy: 'canonical',
+        header: { enabled: true },
+      });
+
+      await nextTick();
+      expect(wrapper.find('header').exists()).toBe(true);
+    });
+
+    it('renders the <header> element when header.enabled is omitted (default true)', async () => {
+      wrapper = mountComponent({}, { domain_strategy: 'canonical' });
+
+      await nextTick();
+      expect(wrapper.find('header').exists()).toBe(true);
+    });
+
+    // Regression: header.enabled is orthogonal to displayMasthead. With the
+    // header enabled but masthead hidden (custom-domain fallback), the minimal
+    // nav must still render — the operator gate must not break showMinimalNav.
+    it('still fires showMinimalNav when header.enabled is true but displayMasthead is false', async () => {
+      wrapper = mountComponent(
+        { displayMasthead: false, displayNavigation: true },
+        {
+          domain_strategy: 'custom',
+          header: { enabled: true },
+          authentication: { enabled: true, signin: true, signup: true },
+        }
+      );
+
+      await nextTick();
+      expect(wrapper.find('header').exists()).toBe(true);
+      expect(wrapper.find('.masthead').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="header-signup-link"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="header-signin-link"]').exists()).toBe(true);
     });
   });
 

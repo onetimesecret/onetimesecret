@@ -152,7 +152,7 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Om din faktureringskontakts e-postadress skiljer sig från din Onetime Secret-kontos e-postadress, använd faktureringskontaktens e-postadress för det nya regionkontot för att behålla dina prenumerationsförmåner.",
+    "text": "Om din faktureringskontakts e-postadress skiljer sig från din {product_name}-kontos e-postadress, använd faktureringskontaktens e-postadress för det nya regionkontot för att behålla dina prenumerationsförmåner.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {

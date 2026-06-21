@@ -108,7 +108,7 @@
     "text": "Ustvarite račun",
     "source_hash": "0dffe234"
   },
-  "web.COMMON.header_about": {
+  "web.COMMON.about": {
     "text": "O nas",
     "source_hash": "4efca0d1"
   },
@@ -439,10 +439,6 @@
   "web.COMMON.example_placeholder": {
     "text": "npr. {example}",
     "source_hash": "cc921aaa"
-  },
-  "web.COMMON.about": {
-    "text": "O projektu",
-    "source_hash": "d833339d"
   },
   "web.COMMON.status": {
     "text": "Stanje",
@@ -1303,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Vedno preverite, da ste na uradni spletni strani Onetime Secret. Goljufi včasih ustvarijo lažne spletne strani, ki izgledajo točno kot Onetime Secret, da vam ukradejo skrivnosti. Da se izognete phishing napadom, pred ustvarjanjem novih povezav preverite regionalno domeno.",
+    "text": "Vedno preverite, da ste na uradni spletni strani {product_name}. Goljufi včasih ustvarijo lažne spletne strani, ki izgledajo točno kot {product_name}, da vam ukradejo skrivnosti. Da se izognete phishing napadom, pred ustvarjanjem novih povezav preverite regionalno domeno.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {

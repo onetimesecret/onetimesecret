@@ -108,7 +108,7 @@
     "text": "创建账户",
     "source_hash": "0dffe234"
   },
-  "web.COMMON.header_about": {
+  "web.COMMON.about": {
     "text": "关于",
     "source_hash": "4efca0d1"
   },
@@ -439,10 +439,6 @@
   "web.COMMON.example_placeholder": {
     "text": "例如 {example}",
     "source_hash": "cc921aaa"
-  },
-  "web.COMMON.about": {
-    "text": "关于",
-    "source_hash": "d833339d"
   },
   "web.COMMON.status": {
     "text": "状态",
@@ -1303,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "请确认您访问的是 Onetime Secret 官方网站。不法分子有时会创建与 Onetime Secret 外观完全相同的虚假网站来窃取您的信息。为避免钓鱼攻击，请在创建新链接前核实域名。",
+    "text": "请确认您访问的是 {product_name} 官方网站。不法分子有时会创建与 {product_name} 外观完全相同的虚假网站来窃取您的信息。为避免钓鱼攻击，请在创建新链接前核实域名。",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {

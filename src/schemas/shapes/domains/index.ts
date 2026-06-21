@@ -5,4 +5,5 @@
 
 export * from './email-config';
 export * from './incoming-config';
+export * from './signin-config';
 export * from './sso-config';

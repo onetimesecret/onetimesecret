@@ -17,7 +17,9 @@
 # ---
 # The backend now emits Rodauth's authoritative otp_provisioning_uri as
 # `provisioning_uri` in the otp-setup response (see
-# apps/web/auth/config/hooks/mfa.rb), and the SPA renders it directly.
+# apps/web/auth/config/hooks/mfa.rb), and the SPA renders it directly. Because
+# otp_provisioning_uri is built from the brand-configured otp_issuer, the issuer
+# in the QR also stays correct without any client-side reconstruction.
 #
 # These tests exercise the mechanism through the real otp-setup route, in the
 # real feature-enable order (json before otp), with a before_otp_setup_route

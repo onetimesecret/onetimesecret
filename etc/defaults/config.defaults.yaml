@@ -93,7 +93,7 @@ site:
             # Vue component name or image URL (e.g. DefaultLogo.vue, /img/logo.svg)
             url: <%= ENV['LOGO_URL'] || 'DefaultLogo.vue' %>
             alt: <%= ENV['LOGO_ALT'] || 'Share a Secret One-Time' %>
-            href: <%= ENV['LOGO_LINK'] || '/' %>
+            link_to: <%= ENV['LOGO_LINK'] || '/' %>
             # Show the site name as a text mark next to the logo icon.
             # Set false for icon-only display; SITE_NAME remains active
             # in page titles, MFA labels, and emails regardless.
@@ -413,6 +413,19 @@ site:
       # No-proxy / direct connection: set enabled: false above rather
       # than depth: 0; the master switch falls back to REMOTE_ADDR.
       depth: <%= ENV['TRUSTED_PROXY_DEPTH']&.to_i || 1 %>
+
+brand:
+  primary_color: <%= ENV['BRAND_PRIMARY_COLOR'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_PRIMARY_COLOR'].gsub("'", "''")}'} %>
+  product_name: <%= ENV['BRAND_PRODUCT_NAME'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_PRODUCT_NAME'].gsub("'", "''")}'} %>
+  product_domain: <%= ENV['BRAND_PRODUCT_DOMAIN'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_PRODUCT_DOMAIN'].gsub("'", "''")}'} %>
+  support_email: <%= ENV['BRAND_SUPPORT_EMAIL'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_SUPPORT_EMAIL'].gsub("'", "''")}'} %>
+  corner_style: <%= ENV['BRAND_CORNER_STYLE'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_CORNER_STYLE'].gsub("'", "''")}'} %>
+  font_family: <%= ENV['BRAND_FONT_FAMILY'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_FONT_FAMILY'].gsub("'", "''")}'} %>
+  button_text_light: <%= ENV['BRAND_BUTTON_TEXT_LIGHT'].to_s.empty? ? 'null' : ENV['BRAND_BUTTON_TEXT_LIGHT'] != 'false' %>
+  logo_url: <%= ENV['BRAND_LOGO_URL'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_LOGO_URL'].gsub("'", "''")}'} %>
+  favicon_url: <%= ENV['BRAND_FAVICON_URL'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_FAVICON_URL'].gsub("'", "''")}'} %>
+  totp_issuer: <%= ENV['BRAND_TOTP_ISSUER'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_TOTP_ISSUER'].gsub("'", "''")}'} %>
+  signature_name: <%= ENV['BRAND_SIGNATURE_NAME'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_SIGNATURE_NAME'].gsub("'", "''")}'} %>
 
 features:
   regions:

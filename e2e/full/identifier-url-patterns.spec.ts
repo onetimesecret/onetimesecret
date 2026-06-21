@@ -14,7 +14,7 @@
 //   - md: Metadata (e.g., mdx7y4z1)
 //
 // Prerequisites:
-//   - Set TEST_USER_EMAIL and TEST_USER_PASSWORD environment variables
+//   - Authenticated via the project storageState (e2e/global.setup.ts consumes TEST_USER_*)
 //   - Application running locally or PLAYWRIGHT_BASE_URL set
 //   - User should have at least one organization and optionally domains
 //
@@ -35,9 +35,6 @@ declare global {
     };
   }
 }
-
-// Check if test credentials are configured
-const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD);
 
 // -----------------------------------------------------------------------------
 // Identifier Pattern Constants
@@ -78,26 +75,6 @@ const PATTERNS = {
 // -----------------------------------------------------------------------------
 // Test Helpers
 // -----------------------------------------------------------------------------
-
-/**
- * Authenticate user via login form
- */
-async function loginUser(page: Page): Promise<void> {
-  await page.goto('/signin');
-
-  const emailInput = page.locator('input[type="email"], input[name="email"]');
-  const passwordInput = page.locator('input[type="password"], input[name="password"]');
-  const submitButton = page.locator('button[type="submit"]');
-
-  if (await emailInput.isVisible()) {
-    await emailInput.fill(process.env.TEST_USER_EMAIL || 'test@example.com');
-    await passwordInput.fill(process.env.TEST_USER_PASSWORD || 'testpassword');
-    await submitButton.click();
-
-    // Wait for redirect to dashboard/account
-    await page.waitForURL(/\/(account|dashboard)/, { timeout: 30000 });
-  }
-}
 
 /**
  * Check if a URL path contains a UUID (internal ID format)
@@ -167,11 +144,8 @@ function extractIdentifiers(url: string): string[] {
 // -----------------------------------------------------------------------------
 
 test.describe('Opaque Identifier Pattern - URL Security', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   // -------------------------------------------------------------------------
@@ -180,7 +154,7 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
   test.describe('Organization URL Patterns', () => {
     test('TC-ID-001: Organization settings URL uses ExtId (on prefix)', async ({ page }) => {
       await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Find and click an organization link
       const orgLink = page.locator('a[href*="/org/"]').first();
@@ -188,7 +162,8 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
 
       if (hasOrgLink) {
         await orgLink.click();
-        await page.waitForLoadState('networkidle');
+        // Wait for the router to land on the org route
+        await page.waitForURL(/\/org\//);
 
         const currentUrl = page.url();
 
@@ -206,12 +181,13 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
       } else {
         // Navigate to org list and find an org
         await page.goto('/orgs');
-        await page.waitForLoadState('networkidle');
+        await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
         const orgCard = page.locator('a[href*="/org/on"]').first();
         if (await orgCard.isVisible().catch(() => false)) {
           await orgCard.click();
-          await page.waitForLoadState('networkidle');
+          // Wait for the router to land on the org route
+          await page.waitForURL(/\/org\/on/);
 
           const currentUrl = page.url();
           expect(containsExtIdWithPrefix(currentUrl, EXTID_PREFIXES.organization)).toBe(true);
@@ -225,7 +201,7 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
     test('TC-ID-002: Organization members URL uses ExtId', async ({ page }) => {
       // Navigate to an organization first
       await page.goto('/orgs');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const orgLink = page.locator('a[href*="/org/on"]').first();
       const hasOrgLink = await orgLink.isVisible().catch(() => false);
@@ -236,7 +212,7 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
         if (href) {
           // Navigate to members page
           await page.goto(`${href}/members`);
-          await page.waitForLoadState('networkidle');
+          await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
           const currentUrl = page.url();
 
@@ -259,7 +235,7 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
 
     test('TC-ID-003: Clicking org card navigates to ExtId URL', async ({ page }) => {
       await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Try to find the org scope switcher or org card
       const orgSwitcher = page.locator(
@@ -279,7 +255,8 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
 
         if (hasGear) {
           await gearIcon.click();
-          await page.waitForLoadState('networkidle');
+          // Wait for the router to land on the org settings route
+          await page.waitForURL(/\/org\//);
 
           const currentUrl = page.url();
 
@@ -302,7 +279,7 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
   test.describe('Domain URL Patterns', () => {
     test('TC-ID-010: Domain detail URL uses ExtId (cd prefix)', async ({ page }) => {
       await page.goto('/domains');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Find a domain link (not "Add Domain" link)
       const domainLink = page.locator('a[href*="/domains/cd"]').first();
@@ -310,7 +287,8 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
 
       if (hasDomainLink) {
         await domainLink.click();
-        await page.waitForLoadState('networkidle');
+        // Wait for the router to land on the domain route
+        await page.waitForURL(/\/domains\/cd/);
 
         const currentUrl = page.url();
 
@@ -330,7 +308,7 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
 
     test('TC-ID-011: Domain verify URL uses ExtId', async ({ page }) => {
       await page.goto('/domains');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const domainLink = page.locator('a[href*="/domains/cd"]').first();
       const hasDomainLink = await domainLink.isVisible().catch(() => false);
@@ -340,7 +318,7 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
         if (href) {
           // Navigate to verify subpath
           await page.goto(`${href}/verify`);
-          await page.waitForLoadState('networkidle');
+          await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
           const currentUrl = page.url();
 
@@ -355,7 +333,7 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
 
     test('TC-ID-012: Domain branding URL uses ExtId', async ({ page }) => {
       await page.goto('/domains');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const domainLink = page.locator('a[href*="/domains/cd"]').first();
       const hasDomainLink = await domainLink.isVisible().catch(() => false);
@@ -364,7 +342,7 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
         const href = await domainLink.getAttribute('href');
         if (href) {
           await page.goto(`${href}/brand`);
-          await page.waitForLoadState('networkidle');
+          await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
           const currentUrl = page.url();
 
@@ -384,7 +362,7 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
   test.describe('Secret URL Patterns', () => {
     test('TC-ID-020: Created secret receipt URL uses proper format', async ({ page }) => {
       await page.goto('/');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const secretInput = page.locator('textarea[aria-label*="secret content"]');
       const createButton = page.locator('button:has-text("Create Link")');
@@ -421,7 +399,7 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
   test.describe('Navigation Flow URL Validation', () => {
     test('TC-ID-030: Dashboard to org settings maintains ExtId', async ({ page }) => {
       await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Track all navigation URLs
       const visitedUrls: string[] = [];
@@ -436,17 +414,17 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
       const orgNavLink = page.locator('a[href="/orgs"]');
       if (await orgNavLink.isVisible().catch(() => false)) {
         await orgNavLink.click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForURL(/\/orgs/);
       } else {
         await page.goto('/orgs');
-        await page.waitForLoadState('networkidle');
+        await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
       }
 
       // Click on first organization
       const orgCard = page.locator('a[href*="/org/on"]').first();
       if (await orgCard.isVisible().catch(() => false)) {
         await orgCard.click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForURL(/\/org\/on/);
       }
 
       // Verify no visited URLs contain UUIDs
@@ -459,7 +437,7 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
 
     test('TC-ID-031: Domains list to domain detail maintains ExtId', async ({ page }) => {
       await page.goto('/domains');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const visitedUrls: string[] = [];
       page.on('framenavigated', (frame) => {
@@ -471,13 +449,13 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
       const domainCard = page.locator('a[href*="/domains/cd"]').first();
       if (await domainCard.isVisible().catch(() => false)) {
         await domainCard.click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForURL(/\/domains\/cd/);
 
         // Navigate to subpages if available
         const verifyTab = page.locator('a[href*="/verify"]');
         if (await verifyTab.isVisible().catch(() => false)) {
           await verifyTab.click();
-          await page.waitForLoadState('networkidle');
+          await page.waitForURL(/\/verify/);
         }
 
         // Verify no visited URLs contain UUIDs
@@ -495,11 +473,8 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Opaque Identifier Pattern - Security Validation', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-ID-040: No internal IDs exposed in network requests', async ({ page }) => {
@@ -520,19 +495,19 @@ test.describe('Opaque Identifier Pattern - Security Validation', () => {
 
     // Navigate through several pages
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     await page.goto('/orgs');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const orgLink = page.locator('a[href*="/org/on"]').first();
     if (await orgLink.isVisible().catch(() => false)) {
       await orgLink.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForURL(/\/org\/on/);
     }
 
     await page.goto('/domains');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Filter out known exceptions (if any)
     const unexpectedInternalIds = requestsWithInternalIds.filter(
@@ -549,7 +524,7 @@ test.describe('Opaque Identifier Pattern - Security Validation', () => {
 
   test('TC-ID-041: Browser history entries use ExtId format', async ({ page }) => {
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const historyEntries: string[] = [];
 
@@ -575,12 +550,12 @@ test.describe('Opaque Identifier Pattern - Security Validation', () => {
 
     // Navigate through the app
     await page.goto('/orgs');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const orgLink = page.locator('a[href*="/org/on"]').first();
     if (await orgLink.isVisible().catch(() => false)) {
       await orgLink.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForURL(/\/org\/on/);
     }
 
     // Check all history entries for internal IDs
@@ -594,7 +569,7 @@ test.describe('Opaque Identifier Pattern - Security Validation', () => {
 
   test('TC-ID-042: Link href attributes use ExtId format', async ({ page }) => {
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Collect all links on the page
     const links = await page.locator('a[href]').all();
@@ -619,16 +594,13 @@ test.describe('Opaque Identifier Pattern - Security Validation', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Opaque Identifier Pattern - Format Consistency', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-ID-050: Organization ExtIds consistently use "on" prefix', async ({ page }) => {
     await page.goto('/orgs');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Find all org-related links
     const orgLinks = await page.locator('a[href*="/org/"]').all();
@@ -651,7 +623,7 @@ test.describe('Opaque Identifier Pattern - Format Consistency', () => {
 
   test('TC-ID-051: Domain ExtIds consistently use "cd" prefix', async ({ page }) => {
     await page.goto('/domains');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Find all domain-related links (excluding "Add Domain" type links)
     const domainLinks = await page.locator('a[href*="/domains/"]').all();
@@ -701,7 +673,7 @@ test.describe('Opaque Identifier Pattern - Format Consistency', () => {
 
     for (const pagePath of pagesToVisit) {
       await page.goto(pagePath);
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const links = await page.locator('a[href]').all();
       for (const link of links) {
@@ -728,16 +700,13 @@ test.describe('Opaque Identifier Pattern - Format Consistency', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Opaque Identifier Pattern - Regression Prevention', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-ID-060: Verify window state uses correct ID fields', async ({ page }) => {
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Check that organizations in window state have both id and extid
     const stateCheck = await page.evaluate(() => {
@@ -758,7 +727,7 @@ test.describe('Opaque Identifier Pattern - Regression Prevention', () => {
   test('TC-ID-061: Direct URL navigation with ExtId works', async ({ page }) => {
     // First, find a valid org ExtId
     await page.goto('/orgs');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const orgLink = page.locator('a[href*="/org/on"]').first();
     const hasOrg = await orgLink.isVisible().catch(() => false);
@@ -768,7 +737,7 @@ test.describe('Opaque Identifier Pattern - Regression Prevention', () => {
       if (href) {
         // Navigate directly to the URL (simulating bookmark or shared link)
         await page.goto(href);
-        await page.waitForLoadState('networkidle');
+        await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
         // Page should load successfully (not 404)
         const response = await page.evaluate(() => ({

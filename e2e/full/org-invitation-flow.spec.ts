@@ -14,7 +14,10 @@
  * Issue: https://github.com/onetimesecret/onetimesecret/issues/2319
  *
  * Prerequisites:
- * - Set TEST_USER_EMAIL, TEST_USER_PASSWORD environment variables for org owner
+ * - Authenticated as the org owner via the project storageState
+ *   (e2e/global.setup.ts consumes TEST_USER_*); the multi-context scenarios
+ *   below additionally sign in manually inside fresh (unauthenticated)
+ *   browser contexts
  * - Application running locally or PLAYWRIGHT_BASE_URL set
  * - Mailpit or similar for email testing (optional for full flow)
  *
@@ -47,28 +50,48 @@ const generateTestEmail = (prefix: string) =>
 // -----------------------------------------------------------------------------
 
 /**
- * Authenticate user via login form using password tab
+ * Context options for a truly unauthenticated browser context.
+ *
+ * `browser.newContext()` inherits the `full` project's `use` options —
+ * including its storageState (the owner session) — so a bare newContext()
+ * is NOT unauthenticated. Pass these options to opt out explicitly.
+ */
+const unauthenticatedContext = { storageState: { cookies: [], origins: [] } };
+
+/**
+ * Authenticate user via login form using password tab.
+ *
+ * Only valid on pages from an unauthenticated context
+ * (`browser.newContext(unauthenticatedContext)`): the default `page` fixture
+ * and bare `browser.newContext()` carry the storageState session, and an
+ * authenticated visitor to /signin is redirected away from the form.
  */
 async function loginUser(page: Page, email?: string, password?: string): Promise<void> {
   await page.goto('/signin');
 
   // Click Password tab - Magic Link is the default, password input is hidden
+  // Handle both signin variants (canonical logic: e2e/global.setup.ts):
+  // default deployments render SignInForm directly (the CI container does);
+  // passwordless-first deployments hide the password panel behind a
+  // "Password" tab with different test ids.
+  const signinEmail = email || process.env.TEST_USER_EMAIL || '';
+  const signinPassword = password || process.env.TEST_USER_PASSWORD || '';
+  const signinForm = page.getByTestId('signin-form');
   const passwordTab = page.getByRole('tab', { name: /password/i });
-  await passwordTab.waitFor({ state: 'visible', timeout: 5000 });
-  await passwordTab.click();
+  await expect(signinForm.or(passwordTab).first()).toBeVisible();
 
-  // Wait for password input to be visible after tab switch
-  const passwordInput = page.locator('input[type="password"]');
-  await passwordInput.waitFor({ state: 'visible', timeout: 5000 });
-
-  // Fill the form
-  const emailInput = page.locator('#signin-email-password');
-  await emailInput.fill(email || process.env.TEST_USER_EMAIL || '');
-  await passwordInput.fill(password || process.env.TEST_USER_PASSWORD || '');
-
-  // Submit
-  const submitButton = page.locator('button[type="submit"]');
-  await submitButton.click();
+  if (await passwordTab.isVisible()) {
+    // Passwordless-first variant (magic links / WebAuthn enabled)
+    await passwordTab.click();
+    await page.getByTestId('password-email-input').fill(signinEmail);
+    await page.getByTestId('password-input').fill(signinPassword);
+    await page.getByTestId('password-submit').click();
+  } else {
+    // Password-only variant (CI container default)
+    await page.getByTestId('signin-email-input').fill(signinEmail);
+    await page.getByTestId('signin-password-input').fill(signinPassword);
+    await page.getByTestId('signin-submit').click();
+  }
 
   // Wait for redirect to dashboard/account
   await page.waitForURL(/\/(account|dashboard|org)/, { timeout: 30000 });
@@ -85,7 +108,7 @@ async function navigateToOrgTeam(page: Page, orgExtid?: string): Promise<string>
 
   // Navigate to org list and find first org
   await page.goto('/orgs');
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   // Find the first organization link with team tab
   const orgLink = page.locator('a[href*="/org/"]').first();
@@ -117,7 +140,7 @@ async function createInvitation(
   await roleSelect.selectOption(role);
 
   // Submit
-  const sendButton = page.getByRole('button', { name: /send invite/i });
+  const sendButton = page.getByRole('button', { name: /send invit/i });
   await sendButton.click();
 
   // Wait for success
@@ -141,7 +164,7 @@ async function getInvitationToken(page: Page, email: string): Promise<string | n
   // We'll need to intercept the API call or check the URL after clicking
   // For now, we'll use the API to get the token
   const response = await page.request.get(
-    `/api/v2/org/${await getCurrentOrgExtid(page)}/invitations`
+    `/api/v2/org/${getCurrentOrgExtid(page)}/invitations`
   );
   const data = await response.json();
 
@@ -152,7 +175,7 @@ async function getInvitationToken(page: Page, email: string): Promise<string | n
 /**
  * Get current organization extid from URL
  */
-async function getCurrentOrgExtid(page: Page): Promise<string> {
+function getCurrentOrgExtid(page: Page): string {
   const url = page.url();
   const match = url.match(/\/org\/([^/]+)/);
   return match?.[1] || '';
@@ -182,11 +205,8 @@ async function _createAccount(page: Page, email: string, password: string): Prom
 // -----------------------------------------------------------------------------
 
 test.describe('INV-001: Organization Invitation Sending', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('Organization owner can send invitation to new member with email validation', async ({
@@ -219,7 +239,7 @@ test.describe('INV-001: Organization Invitation Sending', () => {
     await emailInput.fill(testEmail);
     await roleSelect.selectOption('member');
 
-    const sendButton = page.getByRole('button', { name: /send invite/i });
+    const sendButton = page.getByRole('button', { name: /send invit/i });
     await sendButton.click();
 
     // Verify success message
@@ -235,14 +255,11 @@ test.describe('INV-001: Organization Invitation Sending', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-002: Unauthenticated User Inline Auth Flow', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('Unauthenticated user sees inline signup/signin form on invitation page', async ({
     page,
     context,
   }) => {
     // First, create an invitation as org owner
-    await loginUser(page);
     const testEmail = generateTestEmail('inline-auth-test');
     await navigateToOrgTeam(page);
     await createInvitation(page, testEmail);
@@ -256,7 +273,7 @@ test.describe('INV-002: Unauthenticated User Inline Auth Flow', () => {
 
     // Visit invitation link
     await page.goto(`/invite/${token}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Verify invitation details page loads
     await expect(page.getByText(/invitation/i)).toBeVisible();
@@ -277,8 +294,8 @@ test.describe('INV-002: Unauthenticated User Inline Auth Flow', () => {
       // Inline signup form should be visible
       const signupForm = page.getByTestId('invite-signup-form');
       await expect(signupForm).toBeVisible();
-      // Email should be displayed from invitation
-      await expect(page.getByText(testEmail)).toBeVisible();
+      // Email should be displayed from invitation (readonly input value)
+      await expect(page.getByTestId('invite-signup-email-input')).toHaveValue(testEmail);
     } else if (hasSigninForm) {
       // Inline signin form should be visible
       const signinForm = page.getByTestId('invite-signin-form');
@@ -297,8 +314,8 @@ test.describe('INV-003: Email Mismatch Warning', () => {
     browser,
   }) => {
     // Create two browser contexts - one for owner, one for wrong user
-    const ownerContext = await browser.newContext();
-    const wrongUserContext = await browser.newContext();
+    const ownerContext = await browser.newContext(unauthenticatedContext);
+    const wrongUserContext = await browser.newContext(unauthenticatedContext);
 
     const ownerPage = await ownerContext.newPage();
     const wrongUserPage = await wrongUserContext.newPage();
@@ -316,7 +333,7 @@ test.describe('INV-003: Email Mismatch Warning', () => {
       await loginUser(wrongUserPage); // Logs in as test user (different from invited email)
 
       await wrongUserPage.goto(`/invite/${token}`);
-      await wrongUserPage.waitForLoadState('networkidle');
+      await expect(wrongUserPage.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Verify wrong_email state is shown
       const wrongEmailState = wrongUserPage.getByTestId('invite-wrong-email');
@@ -329,8 +346,9 @@ test.describe('INV-003: Email Mismatch Warning', () => {
       // Verify warning shows factual "Different account" framing
       await expect(wrongUserPage.getByText(/different|mismatch/i)).toBeVisible();
 
-      // Verify invited email is shown
-      await expect(wrongUserPage.getByText(invitedEmail)).toBeVisible();
+      // Verify invited email is shown (appears in both the warning body and
+      // the "Continue as" button - first() avoids a strict mode violation)
+      await expect(wrongUserPage.getByText(invitedEmail).first()).toBeVisible();
 
       // Verify "Continue as" button is visible (using testid)
       const continueAsBtn = wrongUserPage.getByTestId('continue-as-btn');
@@ -352,8 +370,8 @@ test.describe('INV-004: Continue As Invited Email Flow', () => {
   test('Clicking Continue As logs out and redirects to invite page', async ({
     browser,
   }) => {
-    const ownerContext = await browser.newContext();
-    const wrongUserContext = await browser.newContext();
+    const ownerContext = await browser.newContext(unauthenticatedContext);
+    const wrongUserContext = await browser.newContext(unauthenticatedContext);
 
     const ownerPage = await ownerContext.newPage();
     const wrongUserPage = await wrongUserContext.newPage();
@@ -370,7 +388,7 @@ test.describe('INV-004: Continue As Invited Email Flow', () => {
       // Wrong user logs in and visits invitation
       await loginUser(wrongUserPage);
       await wrongUserPage.goto(`/invite/${token}`);
-      await wrongUserPage.waitForLoadState('networkidle');
+      await expect(wrongUserPage.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Click continue as — logs out and redirects to invite page
       const continueAsBtn = wrongUserPage.getByRole('button', { name: /continue as/i });
@@ -380,9 +398,9 @@ test.describe('INV-004: Continue As Invited Email Flow', () => {
       await wrongUserPage.waitForURL(/\/invite\//, { timeout: 10000 });
 
       // Verify user is logged out by checking API
-      const response = await wrongUserPage.request.get('/api/v2/bootstrap/authenticated');
+      const response = await wrongUserPage.request.get('/bootstrap/me');
       const data = await response.json();
-      expect(data.authenticated || data.record?.authenticated).toBeFalsy();
+      expect(data.authenticated).toBeFalsy();
     } finally {
       await ownerContext.close();
       await wrongUserContext.close();
@@ -400,7 +418,7 @@ test.describe('INV-005: Matching Email User Flow', () => {
     // We'll simulate by having the org owner invite themselves (edge case) or
     // by creating a specific user account first
 
-    const ownerContext = await browser.newContext();
+    const ownerContext = await browser.newContext(unauthenticatedContext);
     const ownerPage = await ownerContext.newPage();
 
     try {
@@ -422,14 +440,19 @@ test.describe('INV-005: Matching Email User Flow', () => {
       // Clear cookies and visit as unauthenticated to verify button states
       await ownerContext.clearCookies();
       await ownerPage.goto(`/invite/${token}`);
-      await ownerPage.waitForLoadState('networkidle');
+      await expect(ownerPage.locator('html[data-app-ready="true"]')).toBeAttached();
 
-      // Accept button should be visible (even for unauthenticated)
-      const acceptButton = ownerPage.getByRole('button', { name: /accept/i });
-      await expect(acceptButton).toBeVisible();
+      // Unauthenticated + unknown email shows the signup_required state with
+      // an inline signup form: a "Continue" submit (the accept path) and a
+      // "Decline" button - there is no standalone Accept button here.
+      const signupState = ownerPage.getByTestId('invite-signup-required');
+      await expect(signupState).toBeVisible();
+
+      const signupSubmit = ownerPage.getByTestId('invite-signup-submit');
+      await expect(signupSubmit).toBeVisible();
 
       // Decline button should also be visible
-      const declineButton = ownerPage.getByRole('button', { name: /decline/i });
+      const declineButton = ownerPage.getByTestId('invite-signup-decline');
       await expect(declineButton).toBeVisible();
 
       // Invitation details should show organization and role
@@ -445,11 +468,8 @@ test.describe('INV-005: Matching Email User Flow', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-007a: Authenticated Decline Flow', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('Authenticated user can decline invitation and is redirected home', async ({ page }) => {
     // Create invitation
-    await loginUser(page);
     const testEmail = generateTestEmail('decline-auth');
     await navigateToOrgTeam(page);
     await createInvitation(page, testEmail);
@@ -458,7 +478,7 @@ test.describe('INV-007a: Authenticated Decline Flow', () => {
 
     // Visit invitation page (still logged in as owner - simulates matching email)
     await page.goto(`/invite/${token}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Click decline
     const declineButton = page.getByRole('button', { name: /decline/i });
@@ -473,14 +493,11 @@ test.describe('INV-007a: Authenticated Decline Flow', () => {
 });
 
 test.describe('INV-007b: Unauthenticated Decline Flow', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('Unauthenticated user can decline invitation without signing in', async ({
     page,
     context,
   }) => {
     // Create invitation as owner
-    await loginUser(page);
     const testEmail = generateTestEmail('decline-unauth');
     await navigateToOrgTeam(page);
     await createInvitation(page, testEmail);
@@ -492,7 +509,7 @@ test.describe('INV-007b: Unauthenticated Decline Flow', () => {
 
     // Visit invitation page
     await page.goto(`/invite/${token}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Decline button should work without auth
     const declineButton = page.getByRole('button', { name: /decline/i });
@@ -513,7 +530,7 @@ test.describe('INV-008: Expired Invitation', () => {
     const fakeToken = 'expired-fake-token-' + Date.now();
 
     await page.goto(`/invite/${fakeToken}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Error message should be visible
     await expect(page.getByText(/invalid|expired/i)).toBeVisible();
@@ -533,10 +550,7 @@ test.describe('INV-008: Expired Invitation', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-010: Resend Invitation', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('Organization owner can resend pending invitation', async ({ page }) => {
-    await loginUser(page);
     const testEmail = generateTestEmail('resend');
 
     await navigateToOrgTeam(page);
@@ -560,13 +574,10 @@ test.describe('INV-010: Resend Invitation', () => {
 });
 
 test.describe('INV-011: Revoke Invitation', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('Organization owner can revoke pending invitation making link invalid', async ({
     page,
     context,
   }) => {
-    await loginUser(page);
     const testEmail = generateTestEmail('revoke');
 
     await navigateToOrgTeam(page);
@@ -594,7 +605,7 @@ test.describe('INV-011: Revoke Invitation', () => {
     // Verify invitation link is now invalid
     await context.clearCookies();
     await page.goto(`/invite/${token}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Should show error
     await expect(page.getByText(/invalid|expired|not found/i)).toBeVisible();
@@ -608,22 +619,14 @@ test.describe('INV-011: Revoke Invitation', () => {
 test.describe('INV-012: Gmail Alias Normalization', () => {
   test.skip(!hasTestCredentials, 'Skipping: Requires specific email setup for Gmail alias testing');
 
-  test.skip('Gmail alias normalization allows user+tag@gmail.com to match user@gmail.com', async () => {
-    // This test requires a real Gmail account setup
-    // The normalizeEmail function in AcceptInvite.vue handles:
-    // - Lowercasing
-    // - Stripping + suffixes (user+tag@domain → user@domain)
-
-    // Verify the normalization function works correctly
-    // by checking the UI behavior when a +tag email is invited
-
-    // Note: Full E2E test would require:
-    // 1. Create invitation for user+tag@gmail.com
-    // 2. Login as user@gmail.com
-    // 3. Verify NO mismatch warning (emails match after normalization)
-
-    // For now, we verify the function exists in the component
-    test.skip(true, 'Gmail alias test requires real email accounts');
+  // QUARANTINED (E2E remediation plan Phase 2.4 / PR 5, issue #3421): needs real
+  // Gmail accounts + captured invite email. Unimplemented placeholder ->
+  // test.fixme. normalizeEmail() in AcceptInvite.vue is unit-tested; see
+  // e2e/QUARANTINE.md.
+  test.fixme('Gmail alias normalization allows user+tag@gmail.com to match user@gmail.com', async () => {
+    // TODO(#3421): create an invite for user+tag@gmail.com, sign in as
+    // user@gmail.com, and assert NO mismatch warning (emails match after
+    // normalization) — once a mail interceptor exists.
   });
 });
 
@@ -632,17 +635,14 @@ test.describe('INV-012: Gmail Alias Normalization', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-014: Duplicate Member Invitation', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('Inviting existing organization member shows validation error', async ({ page }) => {
-    await loginUser(page);
 
     await navigateToOrgTeam(page);
 
     // Get the owner's email (who is already a member)
-    const bootstrapResponse = await page.request.get('/api/v2/bootstrap/authenticated');
+    const bootstrapResponse = await page.request.get('/bootstrap/me');
     const bootstrapData = await bootstrapResponse.json();
-    const ownerEmail = bootstrapData.record?.email;
+    const ownerEmail = bootstrapData.email;
 
     // Try to invite the owner (existing member)
     const inviteButton = page.getByRole('button', { name: /invite member/i });
@@ -651,11 +651,13 @@ test.describe('INV-014: Duplicate Member Invitation', () => {
     const emailInput = page.locator('#invite-email');
     await emailInput.fill(ownerEmail);
 
-    const sendButton = page.getByRole('button', { name: /send invite/i });
+    const sendButton = page.getByRole('button', { name: /send invit/i });
     await sendButton.click();
 
-    // Should show error about already being a member
-    await expect(page.getByText(/already|member|exists/i)).toBeVisible({ timeout: 10000 });
+    // Should show error about already being a member. Keep the pattern
+    // specific: bare /member/i matches the team page chrome (Invite Member
+    // button, Members heading) and trips strict mode.
+    await expect(page.getByText(/already a member/i)).toBeVisible({ timeout: 10000 });
   });
 });
 
@@ -664,7 +666,7 @@ test.describe('INV-016: Invalid Token', () => {
     const invalidToken = 'invalid-token-format-12345-' + Date.now();
 
     await page.goto(`/invite/${invalidToken}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Error message should be visible
     await expect(page.getByText(/invalid|expired/i)).toBeVisible();
@@ -687,6 +689,11 @@ test.describe('INV-016: Invalid Token', () => {
 
 test.describe('INV-SEC-001: Open Redirect Prevention', () => {
   test('Open redirect attack prevention validates redirect parameter', async ({ page }) => {
+    // This test exercises the *login form's* redirect handling, so drop the
+    // storageState session first - an authenticated visitor to /signin is
+    // redirected away and the form (with its assertions) never renders.
+    await page.context().clearCookies();
+
     // Attempt to use malicious redirect URL
     const maliciousRedirects = [
       'https://evil.com/phishing',
@@ -730,8 +737,8 @@ test.describe('INV-SEC-002: Account Enumeration Prevention', () => {
   test('Continue-as flow does not reveal whether invited email has existing account', async ({
     browser,
   }) => {
-    const ownerContext = await browser.newContext();
-    const wrongUserContext = await browser.newContext();
+    const ownerContext = await browser.newContext(unauthenticatedContext);
+    const wrongUserContext = await browser.newContext(unauthenticatedContext);
 
     const ownerPage = await ownerContext.newPage();
     const wrongUserPage = await wrongUserContext.newPage();
@@ -747,7 +754,7 @@ test.describe('INV-SEC-002: Account Enumeration Prevention', () => {
       // Log in as different user and visit invitation
       await loginUser(wrongUserPage);
       await wrongUserPage.goto(`/invite/${token}`);
-      await wrongUserPage.waitForLoadState('networkidle');
+      await expect(wrongUserPage.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Click continue as — logs out and redirects to invite page
       const continueAsBtn = wrongUserPage.getByRole('button', { name: /continue as/i });
@@ -774,17 +781,13 @@ test.describe('INV-SEC-002: Account Enumeration Prevention', () => {
 test.describe('INV-017: Complete Invitation Acceptance Flow', () => {
   test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
 
-  test.skip('After accepting invitation, user can see and access the organization in their org list', async () => {
-    // This is a full integration test that would require:
-    // 1. Owner creates invitation
-    // 2. New user creates account with invited email
-    // 3. New user accepts invitation
-    // 4. New user verifies org appears in their list
-
-    // Note: This test is complex and may need Mailpit integration
-    // for full email verification flow
-
-    test.skip(true, 'Full integration test requires email verification setup');
+  // QUARANTINED (E2E remediation plan Phase 2.4 / PR 5, issue #3421): full
+  // multi-account integration — owner invites, a NEW account signs up with the
+  // invited email, accepts, and sees the org. Needs a second account + Mailpit.
+  // Unimplemented placeholder -> test.fixme. See e2e/QUARANTINE.md.
+  test.fixme('After accepting invitation, user can see and access the organization in their org list', async () => {
+    // TODO(#3421): owner creates invite -> new account signs up with the
+    // invited email -> accepts -> asserts the org appears in their list.
   });
 });
 

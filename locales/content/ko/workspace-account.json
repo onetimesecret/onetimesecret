@@ -476,7 +476,7 @@
     "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Onetime Secret을 애플리케이션에 통합하는 방법 알아보기",
+    "text": "{product_name}을 애플리케이션에 통합하는 방법 알아보기",
     "source_hash": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {

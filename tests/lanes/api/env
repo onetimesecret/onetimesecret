@@ -1,0 +1,6 @@
+# Lane: api — API contract specs (spec/api), an axis separate from auth
+# mode. Needs only Valkey.
+# CI: non-blocking step in ruby-integration-simple (T3) while #3225 is
+# open. Gating policy (blocking or not) is CI's decision, not the lane's;
+# the lane just defines the run.
+AUTHENTICATION_MODE=simple

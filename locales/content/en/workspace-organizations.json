@@ -139,6 +139,9 @@
     "text": "General Settings",
     "content_hash": "de322f87"
   },
+  "web.organizations.entitlements_title": {
+    "text": "Organization Entitlements"
+  },
   "web.organizations.billing_settings": {
     "text": "Billing & Subscription",
     "content_hash": "896913f0"
@@ -240,7 +243,8 @@
     "content_hash": "ab2d2c05"
   },
   "web.organizations.delete_organization_remove_domains_first": {
-    "text": "Remove all custom domains before deleting this organization."
+    "text": "Remove all custom domains before deleting this organization.",
+    "content_hash": "44678715"
   },
   "web.organizations.delete": {
     "text": "Delete",
@@ -275,22 +279,28 @@
     "content_hash": "cdb4ee2a"
   },
   "web.organizations.leave_organization": {
-    "text": "Leave this organization"
+    "text": "Leave this organization",
+    "content_hash": "d534cff9"
   },
   "web.organizations.leave_organization_warning": {
-    "text": "You will lose access to this organization and its resources."
+    "text": "You will lose access to this organization and its resources.",
+    "content_hash": "e9daab07"
   },
   "web.organizations.leave_organization_confirm_title": {
-    "text": "Leave Organization"
+    "text": "Leave Organization",
+    "content_hash": "ec8314da"
   },
   "web.organizations.leave_organization_confirm_message": {
-    "text": "Are you sure you want to leave {name}? You will need a new invitation to rejoin."
+    "text": "Are you sure you want to leave {name}? You will need a new invitation to rejoin.",
+    "content_hash": "e21c5fec"
   },
   "web.organizations.leave_organization_success": {
-    "text": "You have left the organization."
+    "text": "You have left the organization.",
+    "content_hash": "fc803eb3"
   },
   "web.organizations.leave_error": {
-    "text": "Failed to leave organization"
+    "text": "Failed to leave organization",
+    "content_hash": "6cb6af43"
   },
   "web.organizations.members.title": {
     "text": "Members",
@@ -756,10 +766,12 @@
     "content_hash": "19432210"
   },
   "web.organizations.sso.grant_org_scope": {
-    "text": "Grant org-wide access"
+    "text": "Grant org-wide access",
+    "content_hash": "2070cef2"
   },
   "web.organizations.sso.grant_org_scope_hint": {
-    "text": "New members who join via this domain's SSO will be granted access to all organization domains. Existing members are unaffected. When disabled (default), new members can only access this domain."
+    "text": "New members who join via this domain's SSO will be granted access to all organization domains. Existing members are unaffected. When disabled (default), new members can only access this domain.",
+    "content_hash": "2ac9f345"
   },
   "web.organizations.sso.save_config": {
     "text": "Save SSO Configuration",
@@ -1050,5 +1062,8 @@
     "text": "You are already a member of this organization",
     "context": "Returned when accept invite by user who is already a member",
     "content_hash": "f56ad547"
+  },
+  "web.organizations.organizations": {
+    "text": "Organizations"
   }
 }

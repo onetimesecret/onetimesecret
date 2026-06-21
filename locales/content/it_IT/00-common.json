@@ -108,7 +108,7 @@
     "text": "Crea account",
     "source_hash": "0dffe234"
   },
-  "web.COMMON.header_about": {
+  "web.COMMON.about": {
     "text": "Informazioni",
     "source_hash": "4efca0d1"
   },
@@ -439,10 +439,6 @@
   "web.COMMON.example_placeholder": {
     "text": "es. {example}",
     "source_hash": "cc921aaa"
-  },
-  "web.COMMON.about": {
-    "text": "Informazioni",
-    "source_hash": "d833339d"
   },
   "web.COMMON.status": {
     "text": "Stato",
@@ -1303,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Verifica sempre di essere sul sito ufficiale di Onetime Secret. I truffatori a volte creano siti falsi che sembrano identici a Onetime Secret per rubare i tuoi segreti. Per evitare attacchi di phishing, controlla il dominio prima di creare nuovi link.",
+    "text": "Verifica sempre di essere sul sito ufficiale di {product_name}. I truffatori a volte creano siti falsi che sembrano identici a {product_name} per rubare i tuoi segreti. Per evitare attacchi di phishing, controlla il dominio prima di creare nuovi link.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {

@@ -2,8 +2,8 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { h, defineComponent } from 'vue';
+import { createTestI18n } from '@tests/setup';
 
 // Mock OIcon component
 vi.mock('@/shared/components/icons/OIcon.vue', () => ({
@@ -14,22 +14,7 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
   },
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        settings: {
-          section: {
-            title: 'Test Section',
-            description: 'Test description',
-          },
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 /**
  * SettingsSection Component Tests
