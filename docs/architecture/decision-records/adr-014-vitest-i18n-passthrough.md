@@ -1,12 +1,12 @@
 ---
 id: "014"
-status: proposed
+status: accepted
 title: "ADR-014: Pass-through i18n in Vitest Component Tests"
 ---
 
 ## Status
 
-Proposed
+Accepted
 
 ## Date
 
@@ -37,6 +37,16 @@ Assertions check raw keys: `expect(wrapper.text()).toContain('web.domains.title'
 
 Tests that specifically verify locale switching or pluralization may define targeted messages; these are rare.
 
+## Implementation
+
+Import the shared helper from `src/tests/setup.ts`:
+
+```typescript
+import { createTestI18n } from '@tests/setup';
+
+const i18n = createTestI18n();
+```
+
 ## Consequences
 
-Component tests verify locales keys are wired up correctly, not the translation content. Updating translations doesn't require updating test assertions. One pattern across all component tests.
+Component tests verify locale keys are wired up correctly, not the translation content. Updating translations doesn't require updating test assertions. One pattern across all component tests.
