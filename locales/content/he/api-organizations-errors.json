@@ -1,0 +1,107 @@
+{
+  "api.organizations.errors.domain_scoped_forbidden": {
+    "text": "חברים המוגבלים לדומיין אינם יכולים לבצע פעולה זו"
+  },
+  "api.organizations.errors.organization_not_found": {
+    "text": "הארגון לא נמצא: %{extid}"
+  },
+  "api.organizations.errors.organization_owner_required": {
+    "text": "רק בעל הארגון יכול לבצע פעולה זו"
+  },
+  "api.organizations.errors.organization_member_required": {
+    "text": "עליך להיות חבר בארגון כדי לבצע פעולה זו"
+  },
+  "api.organizations.errors.organization_admin_required": {
+    "text": "רק בעלי הארגון ומנהליו יכולים לבצע פעולה זו"
+  },
+  "api.organizations.errors.extid_required": {
+    "text": "נדרש מזהה ארגון"
+  },
+  "api.organizations.errors.display_name_required": {
+    "text": "נדרש שם ארגון"
+  },
+  "api.organizations.errors.display_name_too_long": {
+    "text": "שם הארגון חייב להיות קצר מ-%{max} תווים"
+  },
+  "api.organizations.errors.description_too_long": {
+    "text": "התיאור חייב להיות קצר מ-%{max} תווים"
+  },
+  "api.organizations.errors.contact_email_exists": {
+    "text": "כבר קיים ארגון עם כתובת דוא״ל ליצירת קשר זו"
+  },
+  "api.organizations.errors.creation_in_progress": {
+    "text": "יצירת הארגון מתבצעת. אנא נסה שוב."
+  },
+  "api.organizations.errors.organization_limit_reached": {
+    "text": "הגעת למגבלת הארגונים. שדרג את התוכנית שלך כדי ליצור ארגונים נוספים."
+  },
+  "api.organizations.invitations.errors.invitation_not_found": {
+    "text": "ההזמנה לא נמצאה"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "נדרש דוא״ל"
+  },
+  "api.organizations.invitations.errors.invalid_email_format": {
+    "text": "פורמט דוא״ל לא תקין"
+  },
+  "api.organizations.invitations.errors.invalid_role": {
+    "text": "התפקיד חייב להיות חבר או מנהל"
+  },
+  "api.organizations.invitations.errors.cannot_invite_as_owner": {
+    "text": "לא ניתן להזמין בתפקיד בעלים"
+  },
+  "api.organizations.invitations.errors.user_already_member": {
+    "text": "המשתמש כבר חבר בארגון זה"
+  },
+  "api.organizations.invitations.errors.invitation_already_pending": {
+    "text": "כבר קיימת הזמנה ממתינה לכתובת דוא״ל זו"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "הגעת למגבלת החברים. שדרג את התוכנית שלך כדי להזמין חברים נוספים."
+  },
+  "api.organizations.invitations.errors.resend_only_pending": {
+    "text": "ניתן לשלוח מחדש רק הזמנות ממתינות"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "הגעת למגבלת השליחה מחדש המרבית (%{max})"
+  },
+  "api.organizations.invitations.errors.revoke_only_pending": {
+    "text": "ניתן לבטל רק הזמנות ממתינות"
+  },
+  "api.organizations.members.errors.member_not_found": {
+    "text": "החבר לא נמצא: %{extid}"
+  },
+  "api.organizations.members.errors.member_not_in_organization": {
+    "text": "החבר לא נמצא בארגון זה"
+  },
+  "api.organizations.members.errors.member_not_active": {
+    "text": "החבר אינו פעיל"
+  },
+  "api.organizations.members.errors.invalid_role_value": {
+    "text": "תפקיד לא תקין. חייב להיות אחד מ: %{roles}"
+  },
+  "api.organizations.members.errors.cannot_change_owner_role": {
+    "text": "לא ניתן לשנות את תפקיד הבעלים. השתמש בהעברת בעלות במקום."
+  },
+  "api.organizations.members.errors.member_already_has_role": {
+    "text": "לחבר כבר יש את התפקיד: %{role}"
+  },
+  "api.organizations.members.errors.cannot_promote_to_owner": {
+    "text": "לא ניתן לקדם לתפקיד בעלים. השתמש בהעברת בעלות במקום."
+  },
+  "api.organizations.members.errors.must_be_member": {
+    "text": "עליך להיות חבר בארגון זה"
+  },
+  "api.organizations.members.errors.cannot_remove_owner": {
+    "text": "לא ניתן להסיר את בעל הארגון. העבר תחילה את הבעלות."
+  },
+  "api.organizations.members.errors.cannot_remove_self": {
+    "text": "לא ניתן להסיר את עצמך. השתמש ביציאה מהארגון במקום."
+  },
+  "api.organizations.members.errors.admin_cannot_remove_admin": {
+    "text": "מנהלים אינם יכולים להסיר מנהלים אחרים. רק בעלים יכולים."
+  },
+  "api.organizations.members.errors.no_permission_to_remove": {
+    "text": "אין לך הרשאה להסיר חברים"
+  }
+}
