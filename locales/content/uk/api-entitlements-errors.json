@@ -1,0 +1,71 @@
+{
+  "api.entitlements.errors.context_unavailable": {
+    "text": "Не вдалося перевірити права (контекст організації недоступний)"
+  },
+  "api.entitlements.errors.api_access_required": {
+    "text": "Доступ до API потребує оновлення тарифного плану"
+  },
+  "api.entitlements.errors.custom_privacy_defaults_required": {
+    "text": "Власні налаштування приватності за замовчуванням потребують оновлення тарифного плану"
+  },
+  "api.entitlements.errors.extended_default_expiration_required": {
+    "text": "Подовжений термін дії за замовчуванням потребує оновлення тарифного плану"
+  },
+  "api.entitlements.errors.custom_domains_required": {
+    "text": "Власні домени потребують оновлення тарифного плану"
+  },
+  "api.entitlements.errors.custom_branding_required": {
+    "text": "Власний брендинг потребує оновлення тарифного плану"
+  },
+  "api.entitlements.errors.homepage_secrets_required": {
+    "text": "Таємниці на головній сторінці потребують оновлення тарифного плану"
+  },
+  "api.entitlements.errors.incoming_secrets_required": {
+    "text": "Вхідні таємниці потребують оновлення тарифного плану"
+  },
+  "api.entitlements.errors.custom_mail_sender_required": {
+    "text": "Власний відправник пошти потребує оновлення тарифного плану"
+  },
+  "api.entitlements.errors.flexible_from_domain_required": {
+    "text": "Гнучкий домен відправника потребує оновлення тарифного плану"
+  },
+  "api.entitlements.errors.manage_org_required": {
+    "text": "Керування організацією потребує оновлення тарифного плану"
+  },
+  "api.entitlements.errors.manage_teams_required": {
+    "text": "Керування командами потребує оновлення тарифного плану"
+  },
+  "api.entitlements.errors.manage_members_required": {
+    "text": "Керування учасниками потребує оновлення тарифного плану"
+  },
+  "api.entitlements.errors.manage_sso_required": {
+    "text": "Керування SSO потребує оновлення тарифного плану"
+  },
+  "api.entitlements.errors.audit_logs_required": {
+    "text": "Журнали аудиту потребують оновлення тарифного плану"
+  },
+  "api.entitlements.errors.custom_signup_validation_required": {
+    "text": "Власна перевірка під час реєстрації потребує оновлення тарифного плану"
+  },
+  "api.entitlements.errors.create_secrets_required": {
+    "text": "Створення таємниць потребує оновлення тарифного плану"
+  },
+  "api.entitlements.errors.view_receipt_required": {
+    "text": "Перегляд квитанцій потребує оновлення тарифного плану"
+  },
+  "api.entitlements.errors.notifications_required": {
+    "text": "Сповіщення потребують оновлення тарифного плану"
+  },
+  "api.entitlements.errors.workspace_branding_required": {
+    "text": "Брендинг робочої області потребує оновлення тарифного плану"
+  },
+  "api.entitlements.errors.ip_access_rules_required": {
+    "text": "Правила доступу за IP-адресою потребують оновлення тарифного плану"
+  },
+  "api.entitlements.errors.manage_billing_required": {
+    "text": "Керування оплатою потребує оновлення тарифного плану"
+  },
+  "api.entitlements.errors.custom_signin_config_required": {
+    "text": "Власна конфігурація входу потребує оновлення тарифного плану"
+  }
+}

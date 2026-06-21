@@ -578,5 +578,344 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Скоро закінчується",
     "source_hash": "a5dcfef9"
+  },
+  "api.organizations.errors.not_found": {
+    "text": "Організацію не знайдено: %{extid}"
+  },
+  "api.organizations.errors.owner_required": {
+    "text": "Лише власник організації може виконати цю дію"
+  },
+  "api.organizations.errors.admin_required": {
+    "text": "Лише власники та адміністратори організації можуть виконати цю дію"
+  },
+  "api.organizations.errors.member_required": {
+    "text": "Ви повинні бути учасником організації, щоб виконати цю дію"
+  },
+  "api.organizations.invitations.errors.create_admin_required": {
+    "text": "Лише власники та адміністратори організації можуть створювати запрошення"
+  },
+  "api.organizations.invitations.errors.resend_admin_required": {
+    "text": "Лише власники та адміністратори організації можуть повторно надсилати запрошення"
+  },
+  "api.organizations.invitations.errors.view_admin_required": {
+    "text": "Лише власники та адміністратори організації можуть переглядати запрошення"
+  },
+  "api.organizations.invitations.errors.revoke_admin_required": {
+    "text": "Лише власники та адміністратори організації можуть відкликати запрошення"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "Адреса електронної пошти є обов'язковою"
+  },
+  "api.organizations.invitations.errors.email_invalid": {
+    "text": "Недійсний формат електронної пошти"
+  },
+  "api.organizations.invitations.errors.role_invalid": {
+    "text": "Роль повинна бути «учасник» або «адміністратор»"
+  },
+  "api.organizations.invitations.errors.cannot_invite_owner": {
+    "text": "Неможливо запросити як власника"
+  },
+  "api.organizations.invitations.errors.already_member": {
+    "text": "Користувач вже є учасником цієї організації"
+  },
+  "api.organizations.invitations.errors.already_pending": {
+    "text": "Для цієї адреси електронної пошти вже є запрошення в очікуванні"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Досягнуто ліміту учасників. Оновіть свій тарифний план, щоб запросити більше учасників."
+  },
+  "api.organizations.invitations.errors.not_found": {
+    "text": "Запрошення не знайдено"
+  },
+  "api.organizations.invitations.errors.cannot_resend_non_pending": {
+    "text": "Повторно надсилати можна лише запрошення в очікуванні"
+  },
+  "api.organizations.invitations.errors.cannot_revoke_non_pending": {
+    "text": "Відкликати можна лише запрошення в очікуванні"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Досягнуто максимального ліміту повторних надсилань (%{max})"
+  },
+  "api.organizations.invitations.errors.accept_token_required": {
+    "text": "Токен є обов'язковим"
+  },
+  "api.organizations.invitations.errors.accept_organization_gone": {
+    "text": "Організація більше не існує"
+  },
+  "api.organizations.invitations.errors.accept_already_acted": {
+    "text": "Запрошення вже %{status}"
+  },
+  "api.organizations.invitations.errors.accept_expired": {
+    "text": "Термін дії запрошення закінчився"
+  },
+  "api.organizations.invitations.errors.accept_email_mismatch": {
+    "text": "Ваша адреса електронної пошти не відповідає запрошенню"
+  },
+  "api.organizations.invitations.errors.accept_already_member": {
+    "text": "Ви вже є учасником цієї організації"
+  },
+  "web.organizations.entitlements_title": {
+    "text": "Права організації"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Переглядайте та налаштовуйте свої робочі області"
+  },
+  "web.organizations.delete_organization_remove_domains_first": {
+    "text": "Видаліть усі власні домени перед видаленням цієї організації."
+  },
+  "web.organizations.default_org_delete_notice_title": {
+    "text": "Видалення цієї організації"
+  },
+  "web.organizations.default_org_delete_notice_before": {
+    "text": "Це Ваша організація за замовчуванням, і її не можна видалити з панелі керування. Щоб видалити її, будь ласка, зверніться через"
+  },
+  "web.organizations.default_org_delete_notice_link": {
+    "text": "форму зворотного зв'язку"
+  },
+  "web.organizations.default_org_delete_notice_after": {
+    "text": "."
+  },
+  "web.organizations.leave_organization": {
+    "text": "Вийти з цієї організації"
+  },
+  "web.organizations.leave_organization_warning": {
+    "text": "Ви втратите доступ до цієї організації та її ресурсів."
+  },
+  "web.organizations.leave_organization_confirm_title": {
+    "text": "Вийти з організації"
+  },
+  "web.organizations.leave_organization_confirm_message": {
+    "text": "Ви впевнені, що хочете вийти з {name}? Вам знадобиться нове запрошення, щоб приєднатися знову."
+  },
+  "web.organizations.leave_organization_success": {
+    "text": "Ви вийшли з організації."
+  },
+  "web.organizations.leave_error": {
+    "text": "Не вдалося вийти з організації"
+  },
+  "web.organizations.organizations": {
+    "text": "Організації"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "від {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "як {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Назад на головну"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Це запрошення було надіслано на цю адресу електронної пошти"
+  },
+  "web.organizations.invitations.signup_continue": {
+    "text": "Продовжити"
+  },
+  "web.organizations.invitations.signin_continue": {
+    "text": "Увійти"
+  },
+  "web.organizations.invitations.confirm_join_below": {
+    "text": "Майже готово — підтвердьте нижче, щоб приєднатися до організації."
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Перейти до організацій"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Ви вже є учасником цієї організації"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Приєднатися до {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Увійдіть, щоб приєднатися до {orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Відхилити"
+  },
+  "web.organizations.members.member_quota": {
+    "text": "{used} із {limit} учасників"
+  },
+  "web.organizations.members.pending_suffix": {
+    "text": "({count} в очікуванні)"
+  },
+  "web.organizations.members.limit_reached_hint": {
+    "text": "Досягнуто ліміту учасників."
+  },
+  "web.organizations.sso.title": {
+    "text": "Єдиний вхід (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "Налаштуйте SSO, щоб дозволити учасникам входити за допомогою провайдера ідентифікації Вашої організації"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Тип провайдера"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Виберіть провайдера ідентифікації Вашої організації"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Відображуване ім'я"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "Зрозуміла назва, що показується користувачам під час входу"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "напр. Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "Client ID"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "Ваш Client ID для OAuth"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Client Secret"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "Ваш Client Secret для OAuth"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Залиште порожнім, щоб зберегти наявний секрет"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "Tenant ID"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "Ідентифікатор клієнта Вашого Azure AD / Entra ID"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "напр. 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "URL-адреса видавця (Issuer)"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "URL-адреса виявлення OIDC для Вашого провайдера ідентифікації"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "напр. https://login.example.com"
+  },
+  "web.organizations.sso.view_discovery_document": {
+    "text": "Переглянути документ виявлення"
+  },
+  "web.organizations.sso.callback_url": {
+    "text": "URL-адреса зворотного виклику"
+  },
+  "web.organizations.sso.callback_url_hint": {
+    "text": "Додайте цю URL-адресу до дозволених URI перенаправлення Вашого провайдера ідентифікації"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "Дозволені домени електронної пошти"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Входити можуть лише користувачі з адресами електронної пошти з цих доменів. Залиште порожнім, щоб дозволити всі домени."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "напр. acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Будь ласка, введіть дійсний домен (напр. example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Цей домен вже є у списку"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "Видалити {domain}"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "Увімкнути SSO"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "Коли ввімкнено, учасники організації можуть входити за допомогою цього провайдера SSO"
+  },
+  "web.organizations.sso.enforce_sso_only": {
+    "text": "Застосовувати лише SSO"
+  },
+  "web.organizations.sso.enforce_sso_only_hint": {
+    "text": "Вимагати SSO для всіх входів на цьому домені. Коли ввімкнено, автентифікацію за паролем вимкнено."
+  },
+  "web.organizations.sso.grant_org_scope": {
+    "text": "Надати доступ на рівні всієї організації"
+  },
+  "web.organizations.sso.grant_org_scope_hint": {
+    "text": "Нові учасники, які приєднуються через SSO цього домену, отримуватимуть доступ до всіх доменів організації. Це не впливає на наявних учасників. Коли вимкнено (за замовчуванням), нові учасники можуть отримати доступ лише до цього домену."
+  },
+  "web.organizations.sso.save_config": {
+    "text": "Зберегти налаштування SSO"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Видалити налаштування"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "Ви впевнені? Це вимкне SSO для Вашої організації."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "Не вдалося завантажити налаштування SSO"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "Не вдалося зберегти налаштування SSO"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "Налаштування SSO успішно створено"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "Налаштування SSO успішно оновлено"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "Налаштування SSO успішно видалено"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "Не вдалося видалити налаштування SSO"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Перевірити з'єднання"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Перевірте, чи доступний провайдер ідентифікації (не перевіряє облікові дані)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Перевірити з'єднання"
+  },
+  "web.organizations.sso.testing": {
+    "text": "Перевірка..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "Не вдалося перевірити з'єднання"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Кінцева точка авторизації"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Відсутні поля"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Увімкнено"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Налаштовано"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "SSO домену"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Налаштуйте SSO для кожного підтвердженого домену"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "Щоб змінити провайдера, спочатку видаліть це налаштування"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Не налаштовано"
+  },
+  "web.organizations.sso.no_domains": {
+    "text": "Немає підтверджених доменів"
+  },
+  "web.organizations.sso.no_domains_description": {
+    "text": "Додайте та підтвердьте домен, перш ніж налаштовувати для нього SSO."
+  },
+  "web.organizations.tabs.team": {
+    "text": "Команда"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

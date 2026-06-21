@@ -1,0 +1,29 @@
+{
+  "api.domains.errors.domain_id_required": {
+    "text": "Потрібен ID домену"
+  },
+  "api.domains.errors.domain_not_found": {
+    "text": "Домен не знайдено: %{extid}"
+  },
+  "api.domains.errors.organization_not_found": {
+    "text": "Організацію не знайдено для домену: %{domain}"
+  },
+  "api.domains.errors.incoming_secrets_disabled": {
+    "text": "Вхідні таємниці не ввімкнено на цьому екземплярі"
+  },
+  "api.domains.errors.incoming_secrets_entitlement_required": {
+    "text": "Керування вхідними таємницями потребує права incoming_secrets. Будь ласка, оновіть свій тарифний план."
+  },
+  "api.domains.errors.incoming_config_not_found": {
+    "text": "Конфігурацію вхідних не знайдено для домену: %{extid}"
+  },
+  "api.domains.errors.recipients_max_exceeded": {
+    "text": "Дозволено щонайбільше %{max} одержувачів"
+  },
+  "api.domains.errors.recipients_invalid_email": {
+    "text": "Недійсна електронна адреса: %{email}"
+  },
+  "api.domains.errors.recipients_duplicate": {
+    "text": "Повторювані електронні адреси одержувачів не дозволені"
+  }
+}

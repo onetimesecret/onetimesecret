@@ -988,5 +988,47 @@
     "text": "Доступно лише у вашому початковому регіоні підписки",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Ви вже підписані на цей тарифний план."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Відновити підписку"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "Вашу підписку відновлено. Плата стягуватиметься у звичайному режимі."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "Не вдалося відновити підписку. Будь ласка, спробуйте ще раз або зверніться до служби підтримки."
+  },
+  "web.billing.features.manage_orgs": {
+    "text": "Керування організаціями"
+  },
+  "web.billing.features.flexible_from_domain": {
+    "text": "Гнучкий домен відправника електронної пошти"
+  },
+  "web.billing.features.unlimited_admins": {
+    "text": "Необмежена кількість адміністраторів"
+  },
+  "web.billing.features.manage_sso": {
+    "text": "SSO"
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Гнучкий домен відправника електронної пошти"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "Керування організаціями"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Єдиний вхід (SSO)"
+  },
+  "web.billing.overview.entitlements.manage_billing": {
+    "text": "Керування оплатою"
+  },
+  "web.billing.overview.entitlements.custom_signup_validation": {
+    "text": "Користувацька перевірка реєстрації"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Відновити"
   }
 }
