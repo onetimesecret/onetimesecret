@@ -16,7 +16,7 @@ import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';
-import { createI18n } from 'vue-i18n';
+import { createTestI18n } from '@tests/setup';
 
 // Mock OIcon — keeps the DOM lean and avoids icon library lookups
 vi.mock('@/shared/components/icons/OIcon.vue', () => ({
@@ -27,16 +27,7 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
   },
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      first: 'First message',
-      second: 'Second message',
-    },
-  },
-});
+const i18n = createTestI18n();
 
 describe('NotificationHost (auto-dismiss)', () => {
   let wrapper: VueWrapper;
