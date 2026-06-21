@@ -8,6 +8,7 @@ import { nextTick } from 'vue';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
 import { createTestI18n } from '@tests/setup';
+import { createI18n } from 'vue-i18n';
 
 // Mock DefaultLogo component
 vi.mock('@/shared/components/logos/DefaultLogo.vue', () => ({
