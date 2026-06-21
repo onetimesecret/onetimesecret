@@ -39,7 +39,7 @@ module Onetime
         # system bypasses the shell (/bin/sh -c) entirely, so shell
         # metacharacters in any argument are passed through literally instead
         # of being interpreted — no command injection.
-        cmd = ['stripe', 'trigger', event_type]
+        cmd  = ['stripe', 'trigger', event_type]
         cmd += ['--subscription', subscription] if subscription
         cmd += ['--customer', customer] if customer
 
