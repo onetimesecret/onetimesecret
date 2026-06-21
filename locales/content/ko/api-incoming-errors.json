@@ -1,0 +1,5 @@
+{
+  "api.incoming.errors.custom_domain_unresolved": {
+    "text": "사용자 정의 도메인의 조직을 확인할 수 없습니다"
+  }
+}

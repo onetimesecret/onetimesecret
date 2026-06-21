@@ -1383,5 +1383,110 @@
     "text": "업그레이드하여 더 많은 기능을 사용하세요",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "인증이 필요합니다"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "이 작업은 SSO 전용 모드에서 사용할 수 없습니다"
+  },
+  "web.COMMON.configure": {
+    "text": "구성"
+  },
+  "web.COMMON.copy_to_clipboard": {
+    "text": "클립보드에 복사"
+  },
+  "web.COMMON.add": {
+    "text": "추가"
+  },
+  "web.COMMON.enabled": {
+    "text": "활성화됨"
+  },
+  "web.COMMON.disabled": {
+    "text": "비활성화됨"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "예, 삭제합니다"
+  },
+  "web.COMMON.error_code": {
+    "text": "오류 코드"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTP 상태"
+  },
+  "web.COMMON.details": {
+    "text": "세부 정보"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "비밀번호 확인"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "비밀번호가 일치해야 합니다"
+  },
+  "web.COMMON.and": {
+    "text": "및"
+  },
+  "web.COMMON.or": {
+    "text": "또는"
+  },
+  "web.COMMON.copied": {
+    "text": "복사됨"
+  },
+  "web.COMMON.copy": {
+    "text": "복사"
+  },
+  "web.COMMON.copy_email": {
+    "text": "이메일 주소 복사"
+  },
+  "web.COMMON.copy_id": {
+    "text": "계정 ID 복사"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "조직의 고유 식별자"
+  },
+  "web.COMMON.success": {
+    "text": "성공"
+  },
+  "web.COMMON.need_help": {
+    "text": "도움이 필요하세요"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "도움말 대화 상자 열기"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "이제 본문 입력 영역에 포커스가 있습니다"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "접근 문구 표시"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "접근 문구 숨기기"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "복사 아이콘"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "복사됨 아이콘"
+  },
+  "web.STATUS.unverified": {
+    "text": "미확인"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "도메인 설정"
+  },
+  "web.TITLES.domain_signin": {
+    "text": "로그인 구성"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "도메인 SSO"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "도메인 가입 검증"
+  },
+  "web.TITLES.domain_email": {
+    "text": "이메일 구성"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "수신 비밀 메시지"
   }
 }

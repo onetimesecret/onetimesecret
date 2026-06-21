@@ -716,5 +716,20 @@
   },
   "web.auth.sessions._guidance.context": {
     "text": "사용자의 로그인된 기기/브라우저 관리 페이지"
+  },
+  "web.auth.google": {
+    "text": "Google"
+  },
+  "web.auth.mfa.alternative_auth_options": {
+    "text": "대체 인증 옵션"
+  },
+  "web.auth.remember.enabled": {
+    "text": "로그인 상태 유지"
+  },
+  "web.auth.sessions.session_singular": {
+    "text": "세션"
+  },
+  "web.auth.sessions.session_plural": {
+    "text": "세션"
   }
 }

@@ -988,5 +988,47 @@
     "text": "기존 구독 지역에서만 사용 가능",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "이미 이 요금제를 구독하고 계십니다."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "구독 재활성화"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "구독이 재활성화되었습니다. 평소대로 계속 청구됩니다."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "구독을 재활성화하지 못했습니다. 다시 시도하거나 지원팀에 문의하세요."
+  },
+  "web.billing.features.manage_orgs": {
+    "text": "조직 관리"
+  },
+  "web.billing.features.flexible_from_domain": {
+    "text": "유연한 이메일 발신자 도메인"
+  },
+  "web.billing.features.unlimited_admins": {
+    "text": "무제한 관리자"
+  },
+  "web.billing.features.manage_sso": {
+    "text": "SSO"
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "유연한 이메일 발신자 도메인"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "조직 관리"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Single Sign-On (SSO)"
+  },
+  "web.billing.overview.entitlements.manage_billing": {
+    "text": "결제 관리"
+  },
+  "web.billing.overview.entitlements.custom_signup_validation": {
+    "text": "사용자 정의 가입 검증"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "재활성화"
   }
 }
