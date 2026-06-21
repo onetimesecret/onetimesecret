@@ -60,7 +60,6 @@ CLAUDE.md
 !.oci-build.json
 .github/*md
 .eslintcache
-.claude
 .rspec*
 .qodo
 .continuerc.json
