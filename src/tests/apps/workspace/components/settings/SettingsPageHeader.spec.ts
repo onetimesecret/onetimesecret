@@ -2,26 +2,10 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
+import { createTestI18n } from '@tests/setup';
 import { h, defineComponent } from 'vue';
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        TITLES: {
-          account: 'Settings',
-        },
-        settings: {
-          manage_your_account_settings_and_preferences:
-            'Manage your account settings and preferences',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 /**
  * SettingsPageHeader Component Tests

@@ -2,36 +2,13 @@
 
 import MembersTable from '@/apps/workspace/components/members/MembersTable.vue';
 import type { OrganizationMember, OrganizationRole } from '@/types/organization';
+import { createTestI18n } from '@tests/setup';
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick, ref } from 'vue';
 
-// Mock vue-i18n — must include createI18n because transitive imports (e.g.
-// @/i18n via store setup) reference it from the same module.
-vi.mock('vue-i18n', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('vue-i18n')>();
-  return {
-    ...actual,
-    useI18n: () => ({
-      t: (key: string, params?: Record<string, string>) => {
-        const translations: Record<string, string> = {
-          'web.organizations.members.title': 'Team Members',
-          'web.organizations.members.description': 'Manage your team members and their roles',
-          'web.organizations.members.member': 'Member',
-          'web.organizations.members.role': 'Role',
-          'web.organizations.members.joined': 'Joined',
-          'web.organizations.members.actions': 'Actions',
-          'web.organizations.members.remove_member_title': 'Remove Member',
-          'web.organizations.members.remove_member_confirm': `Are you sure you want to remove ${params?.name ?? 'this member'}?`,
-          'web.organizations.members.roles.owner': 'Owner',
-          'web.organizations.members.roles.admin': 'Admin',
-          'web.organizations.members.roles.member': 'Member',
-        };
-        return translations[key] ?? key;
-      },
-    }),
-  };
-});
+// i18n setup (ADR-014: pass-through mode — keys render as-is)
+const i18n = createTestI18n();
 
 // Mock child components
 vi.mock('@/shared/components/icons/OIcon.vue', () => ({
@@ -159,6 +136,9 @@ describe('MembersTable', () => {
   const mountComponent = (props: Partial<typeof defaultProps> = {}) => {
     wrapper = mount(MembersTable, {
       props: { ...defaultProps, ...props },
+      global: {
+        plugins: [i18n],
+      },
     });
     return wrapper;
   };
@@ -182,10 +162,10 @@ describe('MembersTable', () => {
     it('displays table headers', () => {
       mountComponent();
 
-      expect(wrapper.text()).toContain('Member');
-      expect(wrapper.text()).toContain('Role');
-      expect(wrapper.text()).toContain('Joined');
-      expect(wrapper.text()).toContain('Actions');
+      expect(wrapper.text()).toContain('web.organizations.members.member');
+      expect(wrapper.text()).toContain('web.organizations.members.role');
+      expect(wrapper.text()).toContain('web.organizations.members.joined');
+      expect(wrapper.text()).toContain('web.organizations.members.actions');
     });
 
     it('formats joined date correctly', () => {
@@ -209,8 +189,8 @@ describe('MembersTable', () => {
     it('shows header section in full mode', () => {
       mountComponent({ compact: false });
 
-      expect(wrapper.text()).toContain('Team Members');
-      expect(wrapper.text()).toContain('Manage your team members');
+      expect(wrapper.text()).toContain('web.organizations.members.title');
+      expect(wrapper.text()).toContain('web.organizations.members.description');
     });
 
     it('hides header section in compact mode', () => {
@@ -399,7 +379,7 @@ describe('MembersTable', () => {
         members: [createMember({ role: 'admin' })],
       });
 
-      const removeButton = wrapper.find('button[aria-label="Remove Member"]');
+      const removeButton = wrapper.find('button[aria-label="web.organizations.members.remove_member_title"]');
       expect(removeButton.exists()).toBe(true);
     });
 
@@ -410,7 +390,7 @@ describe('MembersTable', () => {
         members: [createMember({ role: 'owner', is_owner: true })],
       });
 
-      const removeButton = wrapper.find('button[aria-label="Remove Member"]');
+      const removeButton = wrapper.find('button[aria-label="web.organizations.members.remove_member_title"]');
       expect(removeButton.exists()).toBe(false);
 
       // Shows placeholder instead
@@ -427,7 +407,7 @@ describe('MembersTable', () => {
         isLoading: true,
       });
 
-      const removeButton = wrapper.find('button[aria-label="Remove Member"]');
+      const removeButton = wrapper.find('button[aria-label="web.organizations.members.remove_member_title"]');
       expect(removeButton.attributes('disabled')).toBeDefined();
     });
   });
@@ -453,7 +433,7 @@ describe('MembersTable', () => {
         isLoading: true,
       });
 
-      const removeButton = wrapper.find('button[aria-label="Remove Member"]');
+      const removeButton = wrapper.find('button[aria-label="web.organizations.members.remove_member_title"]');
       expect(removeButton.attributes('disabled')).toBeDefined();
       expect(removeButton.classes()).toContain('disabled:opacity-50');
       expect(removeButton.classes()).toContain('disabled:cursor-not-allowed');
@@ -469,7 +449,7 @@ describe('MembersTable', () => {
         members: [createMember({ extid: 'mem_admin', email: 'admin@example.com', role: 'admin' })],
       });
 
-      const removeButton = wrapper.find('button[aria-label="Remove Member"]');
+      const removeButton = wrapper.find('button[aria-label="web.organizations.members.remove_member_title"]');
       await removeButton.trigger('click');
 
       expect(mockReveal).toHaveBeenCalled();
@@ -492,7 +472,7 @@ describe('MembersTable', () => {
         members: [createMember({ extid: 'mem_admin', email: 'admin@example.com', role: 'admin' })],
       });
 
-      const removeButton = wrapper.find('button[aria-label="Remove Member"]');
+      const removeButton = wrapper.find('button[aria-label="web.organizations.members.remove_member_title"]');
       // Click triggers reveal() but doesn't await it yet
       removeButton.trigger('click');
       await nextTick();
@@ -502,10 +482,10 @@ describe('MembersTable', () => {
       expect(dialog.exists()).toBe(true);
 
       const title = wrapper.find('[data-testid="dialog-title"]');
-      expect(title.text()).toBe('Remove Member');
+      expect(title.text()).toBe('web.organizations.members.remove_member_title');
 
       const message = wrapper.find('[data-testid="dialog-message"]');
-      expect(message.text()).toContain('admin@example.com');
+      expect(message.text()).toBe('web.organizations.members.remove_member_confirm');
 
       // Cleanup: resolve the pending promise
       resolveReveal!(false);
@@ -521,7 +501,7 @@ describe('MembersTable', () => {
         members: [createMember({ extid: 'mem_admin', email: 'admin@example.com', role: 'admin' })],
       });
 
-      const removeButton = wrapper.find('button[aria-label="Remove Member"]');
+      const removeButton = wrapper.find('button[aria-label="web.organizations.members.remove_member_title"]');
       await removeButton.trigger('click');
       await flushPromises();
 
@@ -541,7 +521,7 @@ describe('MembersTable', () => {
         members: [createMember({ extid: 'mem_admin', email: 'admin@example.com', role: 'admin' })],
       });
 
-      const removeButton = wrapper.find('button[aria-label="Remove Member"]');
+      const removeButton = wrapper.find('button[aria-label="web.organizations.members.remove_member_title"]');
       await removeButton.trigger('click');
       await flushPromises();
 
@@ -560,7 +540,7 @@ describe('MembersTable', () => {
         members: [createMember({ extid: 'mem_admin', role: 'admin' })],
       });
 
-      const removeButton = wrapper.find('button[aria-label="Remove Member"]');
+      const removeButton = wrapper.find('button[aria-label="web.organizations.members.remove_member_title"]');
       await removeButton.trigger('click');
       await flushPromises();
 
@@ -586,7 +566,7 @@ describe('MembersTable', () => {
         members: [createMember({ extid: 'mem_admin', role: 'admin' })],
       });
 
-      const removeButton = wrapper.find('button[aria-label="Remove Member"]');
+      const removeButton = wrapper.find('button[aria-label="web.organizations.members.remove_member_title"]');
       removeButton.trigger('click');
       await nextTick();
       await nextTick();

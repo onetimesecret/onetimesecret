@@ -8,7 +8,7 @@
 
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
+import { createTestI18n } from '@tests/setup';
 import { createTestingPinia } from '@pinia/testing';
 import { computed, ref } from 'vue';
 import type { Pinia } from 'pinia';
@@ -52,27 +52,7 @@ vi.mock('@/shared/stores/identityStore', () => ({
 
 import UpgradeBanner from '@/apps/workspace/dashboard/components/UpgradeBanner.vue';
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        billing: {
-          upgrade_to_identity_plus: 'Upgrade to Identity Plus',
-          elevate_your_secure_sharing_with_custom_domains_:
-            'Elevate your secure sharing with custom domains and branding',
-          upgrade: {
-            viewPlans: 'View Plans',
-          },
-        },
-        LABELS: {
-          dismiss: 'Dismiss',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 describe('UpgradeBanner', () => {
   let pinia: Pinia;
@@ -161,12 +141,14 @@ describe('UpgradeBanner', () => {
   describe('banner content', () => {
     it('displays upgrade heading text', () => {
       const wrapper = mountBanner();
-      expect(wrapper.text()).toContain('Upgrade to Identity Plus');
+      expect(wrapper.text()).toContain('web.billing.upgrade_to_identity_plus');
     });
 
     it('displays branding feature description', () => {
       const wrapper = mountBanner();
-      expect(wrapper.text()).toContain('custom domains and branding');
+      expect(wrapper.text()).toContain(
+        'web.billing.elevate_your_secure_sharing_with_custom_domains_'
+      );
     });
 
     it('renders view plans link when org has extid', () => {
@@ -223,7 +205,7 @@ describe('UpgradeBanner', () => {
     it('dismiss button has accessible label', () => {
       const wrapper = mountBanner();
       const button = wrapper.find('button');
-      expect(button.attributes('aria-label')).toBe('Dismiss');
+      expect(button.attributes('aria-label')).toBe('web.LABELS.dismiss');
     });
   });
 });
