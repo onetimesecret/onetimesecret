@@ -1,67 +1,84 @@
 ---
-description: Translate locale files for a target language using git diff workflow
+description: Translate locale files for a single target language using git diff detection, routed through the agent protocol
 argument-hint: <lang-code>
-allowed-tools: Bash(git diff:*), Bash(cp:*), Bash(pnpm run locale:validate:*), Bash(ls:*), Bash(cat:*), Read, Edit, Write, Glob
+allowed-tools: Bash(git diff:*), Bash(cp:*), Bash(ls:*), Bash(cat:*), Bash([ -s:*), Task, Read, Glob
 ---
 
-# Create New Language Translation
+# Translate a Single Language
 
-Uses the `saas-translator` skill.
-
-## Pre-Flight Check
-
-First, detect if this repo has its own translation protocol:
-
-```bash
-# Check for established translation workflow
-ls locales/TRANSLATION_PROTOCOL.md 2>/dev/null && echo "PROTOCOL_FOUND"
-```
-
-**If `PROTOCOL_FOUND`**: This repo has a structured translation workflow. Read and follow `locales/TRANSLATION_PROTOCOL.md` instead of the generic workflow below.
-
-Otherwise, continue with the generic workflow below.
+Orchestration ONLY. This command detects what needs translating for one language,
+then routes the actual translation work to a `saas-translator` agent that follows
+`locales/AGENT_TRANSLATION_PROTOCOL.md` exactly and reads its per-locale governance
+from `locales/.resolved/{LANG}.json`. It carries no per-locale convention prose.
 
 ## Detect Locale Structure
 
 ```bash
-# Modern structure (flat keys with text field)
 ls locales/content/en/*.json 2>/dev/null && echo "MODERN_STRUCTURE"
-
-# Legacy structure
-ls src/locales/en/*.json 2>/dev/null && echo "LEGACY_STRUCTURE"
 ```
 
-Set paths based on detection:
-- **Modern**: `./locales/content/{lang}/`, guide at `locales/guides/for-translators/{lang}.md`
-- **Legacy**: `src/locales/{lang}/`, guide at `src/locales/{lang}/export-guide.md`
+Source of truth is `./locales/content/{lang}/`.
 
-**Paths to IGNORE** (do not edit): `./generate/`, `./src/locales/` — compiled/legacy, not source
+**Paths to IGNORE** (do not edit): `./generate/`, `./src/locales/` — compiled/legacy, not source.
 
-## Workflow
+## Eligibility gate
 
-1. **Get the diff** between English source and target locale:
+A language is eligible for automated drain **only if**
+`locales/.resolved/{LANG}.json` exists with a populated `register` and a populated
+`glossary` (i.e., its governance has been back-ported upstream). Check it first and
+**SKIP + warn** if it is missing:
+
+```bash
+[ -s "locales/.resolved/$LANG.json" ] && echo "ELIGIBLE: $LANG" \
+  || echo "SKIP (no resolved governance): $LANG — back-port locales/.resolved/$LANG.json first"
+```
+
+If not eligible, stop and report — do not translate without the resolved artifact.
+
+## Detection / diff flow
+
+1. **Get the diff** between English source and the target language to scope the
+   new/changed keys:
    ```bash
-   # Modern structure
    git diff --no-index locales/content/en locales/content/{lang} 2>/dev/null || echo "New locale"
-
-   # Legacy structure
-   git diff --no-index src/locales/en src/locales/{lang} 2>/dev/null || echo "New locale"
    ```
 
-2. **Process file by file**, translating new/changed keys from English
+2. **For a brand-new language**, seed the directory from English structure so the
+   keys exist to be drained:
+   ```bash
+   cp -r locales/content/en locales/content/{lang}
+   ```
 
-3. **Reference the locale's export-guide** for language-specific rules (terminology, formality, formatting)
+3. **Build the task queue** so the agent has pending work:
+   ```bash
+   python3 locales/scripts/i18n tasks create {lang}
+   python3 locales/scripts/i18n tasks next {lang} --stats
+   ```
 
-4. **Preserve**: `{{variables}}`, HTML tags, special characters
+## Route the translation to an agent
 
-5. **Validate** if available: `pnpm run locale:validate {lang}`
+Launch a `saas-translator` agent with a short prompt — workflow and governance live
+in the referenced files:
 
-## For New Languages
+```
+Task tool:
+  description: "Translate {LANG}"
+  subagent_type: "saas-translator"
+  prompt: |
+    Drain translation tasks for locale {LANG}. Follow
+    locales/AGENT_TRANSLATION_PROTOCOL.md exactly. Per-locale governance
+    (register, glossary, binding rules, declined decisions):
+    locales/.resolved/{LANG}.json. Preserve all interpolation/markup tokens;
+    brand names stay English. Loop until 0 pending; do not export or commit.
+```
 
-1. Copy English structure to target language directory
-2. Read the export-guide for language-specific conventions (do not edit the guide)
-3. Translate each JSON file, following export-guide rules
+## Done
+
+DONE = `python3 locales/scripts/i18n tasks next {lang} --stats` shows 0 pending.
+Verify, then report. Do NOT export or commit — that's a separate human step.
 
 ## For Multiple Locales in Parallel
 
-Use `/d:translate-parallel-agents` to orchestrate multiple `saas-translator` background agents translating different locales simultaneously. This is more efficient for batch translation work.
+Use `/d:translate-parallel-agents` to orchestrate multiple `saas-translator`
+background agents translating different locales simultaneously. This is more
+efficient for batch translation work.
