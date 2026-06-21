@@ -1,0 +1,23 @@
+{
+  "api.invite.errors.invitation_not_found_or_expired": {
+    "text": "ההזמנה לא נמצאה או פג תוקפה"
+  },
+  "api.invite.errors.token_required": {
+    "text": "נדרש אסימון"
+  },
+  "api.invite.errors.organization_no_longer_exists": {
+    "text": "הארגון כבר אינו קיים"
+  },
+  "api.invite.errors.invitation_already_processed": {
+    "text": "ההזמנה כבר %{status}"
+  },
+  "api.invite.errors.invitation_expired": {
+    "text": "תוקף ההזמנה פג"
+  },
+  "api.invite.errors.email_mismatch": {
+    "text": "כתובת הדוא״ל שלך אינה תואמת להזמנה"
+  },
+  "api.invite.errors.already_member": {
+    "text": "אתה כבר חבר בארגון זה"
+  }
+}

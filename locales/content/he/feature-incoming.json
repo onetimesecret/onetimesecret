@@ -130,5 +130,26 @@
   "incoming.receipt_link_text": {
     "text": "קבלה",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "נדרש שדרוג"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "תכונה זו מחייבת שדרוג תוכנית. אנא פנה לבעל החשבון כדי להפעיל סודות נכנסים."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "התזכיר חייב להכיל {max} תווים או פחות"
+  },
+  "incoming.validation_secret_required": {
+    "text": "נדרש תוכן סוד"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "אנא בחר נמען"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "תכונת הסודות הנכנסים אינה מופעלת"
+  },
+  "incoming.validation_form_errors": {
+    "text": "אנא בדוק את הטופס לאיתור שגיאות"
   }
 }

@@ -578,5 +578,344 @@
   "web.organizations.invitations.expires_soon": {
     "text": "פג תוקף בקרוב",
     "source_hash": "a5dcfef9"
+  },
+  "api.organizations.errors.not_found": {
+    "text": "הארגון לא נמצא: %{extid}"
+  },
+  "api.organizations.errors.owner_required": {
+    "text": "רק בעל הארגון יכול לבצע פעולה זו"
+  },
+  "api.organizations.errors.admin_required": {
+    "text": "רק בעלי ארגון ומנהלים יכולים לבצע פעולה זו"
+  },
+  "api.organizations.errors.member_required": {
+    "text": "עליך להיות חבר בארגון כדי לבצע פעולה זו"
+  },
+  "api.organizations.invitations.errors.create_admin_required": {
+    "text": "רק בעלי ארגון ומנהלים יכולים ליצור הזמנות"
+  },
+  "api.organizations.invitations.errors.resend_admin_required": {
+    "text": "רק בעלי ארגון ומנהלים יכולים לשלוח הזמנות מחדש"
+  },
+  "api.organizations.invitations.errors.view_admin_required": {
+    "text": "רק בעלי ארגון ומנהלים יכולים לצפות בהזמנות"
+  },
+  "api.organizations.invitations.errors.revoke_admin_required": {
+    "text": "רק בעלי ארגון ומנהלים יכולים לבטל הזמנות"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "דואר אלקטרוני הוא שדה חובה"
+  },
+  "api.organizations.invitations.errors.email_invalid": {
+    "text": "תבנית דואר אלקטרוני לא תקינה"
+  },
+  "api.organizations.invitations.errors.role_invalid": {
+    "text": "התפקיד חייב להיות חבר או מנהל"
+  },
+  "api.organizations.invitations.errors.cannot_invite_owner": {
+    "text": "לא ניתן להזמין כבעלים"
+  },
+  "api.organizations.invitations.errors.already_member": {
+    "text": "המשתמש כבר חבר בארגון זה"
+  },
+  "api.organizations.invitations.errors.already_pending": {
+    "text": "כבר קיימת הזמנה ממתינה עבור כתובת דואר אלקטרוני זו"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "הגעת למגבלת החברים. שדרג את התוכנית שלך כדי להזמין חברים נוספים."
+  },
+  "api.organizations.invitations.errors.not_found": {
+    "text": "ההזמנה לא נמצאה"
+  },
+  "api.organizations.invitations.errors.cannot_resend_non_pending": {
+    "text": "ניתן לשלוח מחדש רק הזמנות ממתינות"
+  },
+  "api.organizations.invitations.errors.cannot_revoke_non_pending": {
+    "text": "ניתן לבטל רק הזמנות ממתינות"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "הגעת למגבלת השליחה המרבית מחדש (%{max})"
+  },
+  "api.organizations.invitations.errors.accept_token_required": {
+    "text": "אסימון הוא שדה חובה"
+  },
+  "api.organizations.invitations.errors.accept_organization_gone": {
+    "text": "הארגון כבר אינו קיים"
+  },
+  "api.organizations.invitations.errors.accept_already_acted": {
+    "text": "ההזמנה כבר %{status}"
+  },
+  "api.organizations.invitations.errors.accept_expired": {
+    "text": "תוקף ההזמנה פג"
+  },
+  "api.organizations.invitations.errors.accept_email_mismatch": {
+    "text": "כתובת הדואר האלקטרוני שלך אינה תואמת להזמנה"
+  },
+  "api.organizations.invitations.errors.accept_already_member": {
+    "text": "אתה כבר חבר בארגון זה"
+  },
+  "web.organizations.entitlements_title": {
+    "text": "הרשאות הארגון"
+  },
+  "web.organizations.page_description_short": {
+    "text": "צפה והגדר את מרחבי העבודה שלך"
+  },
+  "web.organizations.delete_organization_remove_domains_first": {
+    "text": "הסר את כל הדומיינים המותאמים אישית לפני מחיקת ארגון זה."
+  },
+  "web.organizations.default_org_delete_notice_title": {
+    "text": "מחיקת ארגון זה"
+  },
+  "web.organizations.default_org_delete_notice_before": {
+    "text": "זהו ארגון ברירת המחדל שלך ולא ניתן להסירו מלוח הבקרה. כדי למחוק אותו, פנה אלינו באמצעות"
+  },
+  "web.organizations.default_org_delete_notice_link": {
+    "text": "טופס המשוב"
+  },
+  "web.organizations.default_org_delete_notice_after": {
+    "text": "."
+  },
+  "web.organizations.leave_organization": {
+    "text": "עזוב ארגון זה"
+  },
+  "web.organizations.leave_organization_warning": {
+    "text": "תאבד את הגישה לארגון זה ולמשאביו."
+  },
+  "web.organizations.leave_organization_confirm_title": {
+    "text": "עזיבת ארגון"
+  },
+  "web.organizations.leave_organization_confirm_message": {
+    "text": "האם אתה בטוח שברצונך לעזוב את {name}? תזדקק להזמנה חדשה כדי להצטרף מחדש."
+  },
+  "web.organizations.leave_organization_success": {
+    "text": "עזבת את הארגון."
+  },
+  "web.organizations.leave_error": {
+    "text": "עזיבת הארגון נכשלה"
+  },
+  "web.organizations.organizations": {
+    "text": "ארגונים"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "על ידי {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "בתפקיד {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "חזרה לדף הבית"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "הזמנה זו נשלחה לכתובת דואר אלקטרוני זו"
+  },
+  "web.organizations.invitations.signup_continue": {
+    "text": "המשך"
+  },
+  "web.organizations.invitations.signin_continue": {
+    "text": "התחברות"
+  },
+  "web.organizations.invitations.confirm_join_below": {
+    "text": "כמעט סיימת — אשר למטה כדי להצטרף לארגון."
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "עבור לארגונים"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "אתה כבר חבר בארגון זה"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "הצטרף אל {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "התחבר כדי להצטרף אל {orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "דחה"
+  },
+  "web.organizations.members.member_quota": {
+    "text": "{used} מתוך {limit} חברים"
+  },
+  "web.organizations.members.pending_suffix": {
+    "text": "({count} ממתינים)"
+  },
+  "web.organizations.members.limit_reached_hint": {
+    "text": "הגעת למגבלת החברים."
+  },
+  "web.organizations.sso.title": {
+    "text": "כניסה יחידה (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "הגדר SSO כדי לאפשר לחברים להיכנס באמצעות ספק הזהויות של הארגון שלך"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "סוג ספק"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "בחר את ספק הזהויות של הארגון שלך"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "שם תצוגה"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "שם ידידותי המוצג למשתמשים בעת הכניסה"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "לדוגמה Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "Client ID"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "ה-Client ID של OAuth שלך"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Client Secret"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "ה-Client Secret של OAuth שלך"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "השאר ריק כדי לשמור על הסוד הקיים"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "Tenant ID"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "מזהה ה-tenant של Azure AD / Entra ID שלך"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "לדוגמה 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "Issuer URL"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "כתובת ה-URL לגילוי OIDC של ספק הזהויות שלך"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "לדוגמה https://login.example.com"
+  },
+  "web.organizations.sso.view_discovery_document": {
+    "text": "הצג מסמך גילוי"
+  },
+  "web.organizations.sso.callback_url": {
+    "text": "Callback URL"
+  },
+  "web.organizations.sso.callback_url_hint": {
+    "text": "הוסף כתובת URL זו לכתובות ההפניה המורשות של ספק הזהויות שלך"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "דומייני דואר אלקטרוני מורשים"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "רק משתמשים עם כתובות דואר אלקטרוני מדומיינים אלה יכולים להיכנס. השאר ריק כדי לאפשר את כל הדומיינים."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "לדוגמה acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "הזן דומיין תקין (לדוגמה example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "דומיין זה כבר נמצא ברשימה"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "הסר את {domain}"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "הפעל SSO"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "כאשר מופעל, חברי הארגון יכולים להיכנס באמצעות ספק SSO זה"
+  },
+  "web.organizations.sso.enforce_sso_only": {
+    "text": "אכוף SSO בלבד"
+  },
+  "web.organizations.sso.enforce_sso_only_hint": {
+    "text": "חייב SSO לכל הכניסות בדומיין זה. כאשר מופעל, אימות מבוסס סיסמה מושבת."
+  },
+  "web.organizations.sso.grant_org_scope": {
+    "text": "הענק גישה לכל הארגון"
+  },
+  "web.organizations.sso.grant_org_scope_hint": {
+    "text": "חברים חדשים שמצטרפים באמצעות ה-SSO של דומיין זה יקבלו גישה לכל דומייני הארגון. חברים קיימים אינם מושפעים. כאשר מושבת (ברירת מחדל), חברים חדשים יכולים לגשת רק לדומיין זה."
+  },
+  "web.organizations.sso.save_config": {
+    "text": "שמור תצורת SSO"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "מחק תצורה"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "האם אתה בטוח? פעולה זו תשבית את ה-SSO עבור הארגון שלך."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "טעינת תצורת ה-SSO נכשלה"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "שמירת תצורת ה-SSO נכשלה"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "תצורת ה-SSO נוצרה בהצלחה"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "תצורת ה-SSO עודכנה בהצלחה"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "תצורת ה-SSO נמחקה בהצלחה"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "מחיקת תצורת ה-SSO נכשלה"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "בדוק חיבור"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "ודא שספק הזהויות נגיש (אינו מאמת פרטי כניסה)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "בדוק חיבור"
+  },
+  "web.organizations.sso.testing": {
+    "text": "בודק..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "בדיקת החיבור נכשלה"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "נקודת קצה לאישור"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "שדות חסרים"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "מופעל"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "מוגדר"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "SSO של דומיין"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "הגדר SSO עבור כל דומיין מאומת"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "כדי לשנות ספק, מחק תחילה תצורה זו"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "לא מוגדר"
+  },
+  "web.organizations.sso.no_domains": {
+    "text": "אין דומיינים מאומתים"
+  },
+  "web.organizations.sso.no_domains_description": {
+    "text": "הוסף ואמת דומיין לפני הגדרת SSO עבורו."
+  },
+  "web.organizations.tabs.team": {
+    "text": "צוות"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

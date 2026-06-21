@@ -398,5 +398,725 @@
   "web.domains.dns_widget_description": {
     "text": "השתמש בכלי למטה כדי לזהות אוטומטית את ספק ה-DNS שלך ולקבל הוראות צעד אחר צעד להגדרת הדומיין שלך.",
     "source_hash": "91c1af2e"
+  },
+  "api.domains.errors.add_admin_required": {
+    "text": "רק בעלי ארגון ומנהלים יכולים להוסיף דומיינים מותאמים אישית"
+  },
+  "web.domains.public_homepage": {
+    "text": "דף בית ציבורי"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "הדומיין אומת והוא פעיל"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS לא מוגדר — לחץ לתיקון"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "הדומיין לא אומת — לחץ לאימות"
+  },
+  "web.domains.status_tooltip_unverified": {
+    "text": "סטטוס הדומיין לא אומת — לחץ לרענון"
+  },
+  "web.domains.last_check_failed": {
+    "text": "בדיקת האימות האחרונה נכשלה"
+  },
+  "web.domains.last_check_failed_ago": {
+    "text": "הבדיקה האחרונה נכשלה {0}"
+  },
+  "web.domains.verify_now": {
+    "text": "אמת עכשיו"
+  },
+  "web.domains.click_to_verify": {
+    "text": "לחץ לאימות"
+  },
+  "web.domains.remove_domain_description": {
+    "text": "הסרה סופית של דומיין זה וכל התצורה שלו."
+  },
+  "web.domains.add_access_denied": {
+    "text": "הגישה נדחתה"
+  },
+  "web.domains.add_access_denied_description": {
+    "text": "אין לך הרשאה להוסיף דומיינים לארגון זה. פנה למנהל הארגון שלך."
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "טעינת רכיב ה-DNS נכשלה"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "רכיב ה-DNS אינו זמין"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "אתחול רכיב ה-DNS נכשל"
+  },
+  "web.domains.verified": {
+    "text": "אומת"
+  },
+  "web.domains.pending_verification": {
+    "text": "ממתין לאימות"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "יש לך שינויים שלא נשמרו. האם אתה בטוח שברצונך לצאת?"
+  },
+  "web.domains.entitlement_required_owner": {
+    "text": "תכונה זו דורשת שדרוג תוכנית."
+  },
+  "web.domains.entitlement_required_member": {
+    "text": "תכונה זו אינה זמינה בתוכנית הנוכחית שלך. פנה לבעל הארגון שלך."
+  },
+  "web.domains.detail.manage": {
+    "text": "ניהול"
+  },
+  "web.domains.detail.features": {
+    "text": "תכונות"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "סודות בדף הבית"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "אפשר גישה ציבורית ליצירת סודות בדף הבית של הדומיין שלך"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "לוגו, צבעים ומיתוג מותאם אישית"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "הגדרות ספק כניסה יחידה (SSO)"
+  },
+  "web.domains.detail.email_description": {
+    "text": "תצורת שולח דואר אלקטרוני מותאם אישית"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "הגדרות נמען לסודות נכנסים"
+  },
+  "web.domains.detail.signup_description": {
+    "text": "אסטרטגיית אימות הרשמה לכל דומיין"
+  },
+  "web.domains.detail.signin_description": {
+    "text": "תצורת שיטת כניסה לכל דומיין"
+  },
+  "web.domains.email.title": {
+    "text": "שליחת דואר אלקטרוני"
+  },
+  "web.domains.email.config_title": {
+    "text": "תצורת דואר אלקטרוני"
+  },
+  "web.domains.email.config_description": {
+    "text": "הגדר שליחת דואר אלקטרוני עבור דומיין זה"
+  },
+  "web.domains.email.provider_label": {
+    "text": "ספק דואר אלקטרוני"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "בחר ספק דואר אלקטרוני"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "שם השולח"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "לדוגמה Acme Security"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "כתובת השולח"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "לדוגמה secrets{'@'}example.com"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "כתובת למענה"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "לדוגמה support{'@'}example.com"
+  },
+  "web.domains.email.save_changes": {
+    "text": "שמור שינויים"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "בטל שינויים"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "השתמש בברירות המחדל של החשבון"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "דורש אימות דומיין באמצעות רשומות DKIM ו-SPF"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "דורש הגדרת אימות דומיין"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "דורש אימות דומיין"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "משתמש בתצורת שליחת הדואר האלקטרוני שהיא ברירת המחדל של חשבונך"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "רשומות DNS"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "הוסף את רשומות ה-DNS הבאות כדי לאמת את הדומיין שלך לשליחת דואר אלקטרוני."
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "סוג"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "שם"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "ערך"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "ספק"
+  },
+  "web.domains.email.dns_optional_label": {
+    "text": "מומלץ"
+  },
+  "web.domains.email.dns_optional_hint": {
+    "text": "רשומה זו מומלצת אך אינה נדרשת לאימות. ייתכן שמדיניות DMARC בדומיין הארגוני שלך כבר מכסה תת-דומיין זה."
+  },
+  "web.domains.email.copy": {
+    "text": "העתק"
+  },
+  "web.domains.email.copied": {
+    "text": "הועתק"
+  },
+  "web.domains.email.status_verified": {
+    "text": "אומת"
+  },
+  "web.domains.email.status_pending": {
+    "text": "ממתין"
+  },
+  "web.domains.email.status_failed": {
+    "text": "נכשל"
+  },
+  "web.domains.email.revalidate": {
+    "text": "אמת מחדש"
+  },
+  "web.domains.email.validating": {
+    "text": "מאמת..."
+  },
+  "web.domains.email.domain_verified": {
+    "text": "הדומיין אומת"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "האימות נכשל"
+  },
+  "web.domains.email.last_validated": {
+    "text": "אומת לאחרונה"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "שדרג את התוכנית שלך כדי להגדיר שליחת דואר אלקטרוני עבור דומיין זה."
+  },
+  "web.domains.email.configure_email": {
+    "text": "הגדר דואר אלקטרוני"
+  },
+  "web.domains.email.access_denied": {
+    "text": "הגישה נדחתה"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "אין לך הרשאה לנהל את הגדרות הדואר האלקטרוני עבור דומיין זה. פנה למנהל הארגון שלך."
+  },
+  "web.domains.email.update_success": {
+    "text": "תצורת הדואר האלקטרוני נשמרה בהצלחה"
+  },
+  "web.domains.email.delete_success": {
+    "text": "תצורת הדואר האלקטרוני הוסרה בהצלחה"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "הודעות הדואר האלקטרוני עבור דומיין זה נשלחות כעת מהשולח הגלובלי. השלם את תצורת הדואר האלקטרוני כדי להשתמש בזהות השולח שלך."
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "שליחת דואר אלקטרוני מותאם אישית מושבתת כעת. הודעות הדואר האלקטרוני יישלחו מהשולח הגלובלי. הפעל את התכונה למטה כדי להשתמש בזהות השולח המותאמת אישית שלך."
+  },
+  "web.domains.email.test_email_title": {
+    "text": "בדיקת מסירת דואר אלקטרוני"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "שלח לעצמך הודעת דואר אלקטרוני לבדיקה באמצעות התצורה השמורה. פועל גם כאשר התכונה עדיין אינה מופעלת."
+  },
+  "web.domains.email.send_test": {
+    "text": "שלח בדיקה"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "הודעת הבדיקה נשלחה בהצלחה"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "שליחת הודעת הבדיקה נכשלה"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "נשלח אל {email}"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "נמסר באמצעות {provider}"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "לא מוגדר"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "משתמש בשולח ברירת המחדל"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "אומת"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "ממתין לאימות"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "מושבת"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "לא הוגדר שולח דואר אלקטרוני — ההודעות משתמשות בשולח ברירת המחדל של הפלטפורמה"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "תצורת שולח הדואר האלקטרוני ממתינה לאימות — ההודעות משתמשות בשולח ברירת המחדל של הפלטפורמה"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "שולח הדואר האלקטרוני מושבת — ההודעות משתמשות בשולח ברירת המחדל של הפלטפורמה"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "שולח הדואר האלקטרוני אומת — ההודעות נשלחות מדומיין זה"
+  },
+  "web.domains.incoming.title": {
+    "text": "סודות נכנסים"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "תצורת סודות נכנסים"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "אפשר למשתמשים חיצוניים לשלוח סודות ישירות לנמענים ייעודיים בדומיין זה"
+  },
+  "web.domains.incoming.feature_disabled": {
+    "text": "סודות נכנסים אינם זמינים"
+  },
+  "web.domains.incoming.feature_disabled_description": {
+    "text": "סודות נכנסים אינם מופעלים במופע זה. פנה למנהל שלך."
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "הגישה נדחתה"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "אין לך הרשאה לנהל את הגדרות הסודות הנכנסים עבור דומיין זה. פנה למנהל הארגון שלך."
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "שדרג את התוכנית שלך כדי להגדיר סודות נכנסים עבור דומיין זה."
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "הגדר סודות נכנסים"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "סודות נכנסים אינם מוגדרים עבור דומיין זה. הוסף נמענים כדי לאפשר למשתמשים חיצוניים לשלוח סודות לצוות שלך."
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "סודות נכנסים מושבתים כעת. משתמשים חיצוניים אינם יכולים לשלוח סודות לנמענים בדומיין זה. הפעל את התכונה למטה כדי לאפשר סודות נכנסים."
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "נמענים"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "הגדר מי יכול לקבל סודות נכנסים בדומיין זה. הנמענים יקבלו התראות בדואר אלקטרוני כאשר נשלח אליהם סוד."
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "הוסף נמען"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "הסר"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "כתובת דואר אלקטרוני"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "recipient{'@'}example.com"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "שם תצוגה"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "לדוגמה Security Team"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "לא הוגדרו נמענים"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "הוסף נמענים כדי לאפשר למשתמשים חיצוניים לשלוח סודות לצוות שלך."
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "כתובת דואר אלקטרוני לא תקינה"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "כתובת דואר אלקטרוני זו כבר נוספה"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "מותר עד {max} נמענים"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "שם תצוגה הוא שדה חובה"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "כתובת דואר אלקטרוני היא שדה חובה"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "שמור שינויים"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "בטל שינויים"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "תצורת הסודות הנכנסים נשמרה בהצלחה"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "תצורת הסודות הנכנסים הוסרה בהצלחה"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "נמען {count} | {count} נמענים"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "לא מוגדר"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "מוגדר"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "מושבת"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "סודות נכנסים אינם מוגדרים - משתמשים חיצוניים אינם יכולים לשלוח סודות לדומיין זה"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "סודות נכנסים מופעלים עם {count} נמענים"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "תכונת הסודות הנכנסים מושבתת עבור דומיין זה"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "הפעל סודות נכנסים"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "אפשר למשתמשים חיצוניים לשלוח סודות לנמענים בדומיין זה"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "כתובת URL ציבורית"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "שתף כתובת URL זו עם משתמשים חיצוניים כדי לאפשר להם לשלוח סודות"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "העתק כתובת URL"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "כתובת ה-URL הועתקה ללוח"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "האם אתה בטוח שברצונך להסיר את כל הנמענים? משתמשים חיצוניים לא יוכלו עוד לשלוח סודות לדומיין זה."
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "הגעת למספר המרבי של נמענים"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "כתובת דואר אלקטרוני זו כבר נוספה"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "השמירה תחליף את כל הנמענים הקיימים בשינויים הממתינים שלך. האם אתה בטוח?"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "מחק את כל הנמענים"
+  },
+  "web.domains.signin.title": {
+    "text": "תצורת כניסה"
+  },
+  "web.domains.signin.configure_signin": {
+    "text": "הגדר כניסה"
+  },
+  "web.domains.signin.config_description": {
+    "text": "הגדר שיטות אימות כניסה עבור דומיין זה"
+  },
+  "web.domains.signin.access_denied": {
+    "text": "הגישה נדחתה"
+  },
+  "web.domains.signin.upgrade_to_configure": {
+    "text": "שדרג את התוכנית שלך כדי להגדיר שיטות כניסה עבור דומיין זה."
+  },
+  "web.domains.signin.not_configured_notice": {
+    "text": "תצורת הכניסה עדיין לא הוגדרה עבור דומיין זה. הגדר עקיפות כדי לשלוט אילו שיטות אימות זמינות בדף הכניסה של דומיין זה."
+  },
+  "web.domains.signin.signin_enabled_label": {
+    "text": "כניסה מופעלת"
+  },
+  "web.domains.signin.header_toggle_label": {
+    "text": "כניסה"
+  },
+  "web.domains.signin.signin_enabled_hint": {
+    "text": "האם משתמשים יכולים להיכנס בדומיין זה"
+  },
+  "web.domains.signin.restrict_to_label": {
+    "text": "הגבל שיטת כניסה"
+  },
+  "web.domains.signin.restrict_to_hint": {
+    "text": "הגבל דומיין זה לשיטת אימות אחת. כאשר מוגדר, רק השיטה הנבחרת מוצגת בדף הכניסה."
+  },
+  "web.domains.signin.all_methods": {
+    "text": "כל השיטות"
+  },
+  "web.domains.signin.all_methods_description": {
+    "text": "הצג את כל שיטות האימות המופעלות בדף הכניסה"
+  },
+  "web.domains.signin.method_password": {
+    "text": "סיסמה"
+  },
+  "web.domains.signin.method_email_auth": {
+    "text": "אימות בדואר אלקטרוני"
+  },
+  "web.domains.signin.method_webauthn": {
+    "text": "WebAuthn / מפתחות גישה"
+  },
+  "web.domains.signin.method_sso": {
+    "text": "כניסה יחידה (SSO)"
+  },
+  "web.domains.signin.method_overrides_label": {
+    "text": "עקיפות שיטה"
+  },
+  "web.domains.signin.method_overrides_hint": {
+    "text": "הפעל או השבת שיטות אימות בודדות עבור דומיין זה"
+  },
+  "web.domains.signin.mode_question": {
+    "text": "כיצד משתמשים יכולים להיכנס?"
+  },
+  "web.domains.signin.mode_any": {
+    "text": "כל שיטה זמינה"
+  },
+  "web.domains.signin.mode_any_hint": {
+    "text": "הצג כל שיטה הזמינה בדומיין זה. צמצם שיטות בודדות למטה."
+  },
+  "web.domains.signin.mode_one": {
+    "text": "שיטה ספציפית אחת"
+  },
+  "web.domains.signin.mode_one_hint": {
+    "text": "הגבל את דף הכניסה לשיטה אחת. רק שיטות הזמינות בדומיין זה מוצגות."
+  },
+  "web.domains.signin.mode_disabled": {
+    "text": "כניסה מושבתת"
+  },
+  "web.domains.signin.mode_disabled_hint": {
+    "text": "משתמשים אינם יכולים להיכנס בדומיין זה."
+  },
+  "web.domains.signin.mode_disabled_notice": {
+    "text": "מבקרים בדף הכניסה של דומיין זה רואים הודעה שהכניסה אינה זמינה, עם קישור חזרה לדף הבית. הגדרות השיטה הקודמות שלך נשמרות ומשוחזרות כאשר תפעיל מחדש את הכניסה."
+  },
+  "web.domains.signin.methods_list_label": {
+    "text": "שיטות המוצגות בדף הכניסה"
+  },
+  "web.domains.signin.restrict_picker_hint": {
+    "text": "רק שיטות הזמינות בדומיין זה מוצגות."
+  },
+  "web.domains.signin.availability_always": {
+    "text": "זמין תמיד"
+  },
+  "web.domains.signin.availability_global_on": {
+    "text": "עוקב אחר מדיניות גלובלית · מופעל"
+  },
+  "web.domains.signin.availability_global_off": {
+    "text": "לא זמין"
+  },
+  "web.domains.signin.availability_unavailable": {
+    "text": "לא זמין בכל האתר"
+  },
+  "web.domains.signin.allow_on_domain": {
+    "text": "אפשר בדומיין זה"
+  },
+  "web.domains.signin.method_password_blurb": {
+    "text": "סיסמה בלבד"
+  },
+  "web.domains.signin.method_email_auth_blurb": {
+    "text": "כניסה ללא סיסמה באמצעות קישור קסם"
+  },
+  "web.domains.signin.method_webauthn_blurb": {
+    "text": "אמצעים ביומטריים ומפתחות אבטחה"
+  },
+  "web.domains.signin.method_sso_blurb": {
+    "text": "ספק זהויות חיצוני"
+  },
+  "web.domains.signin.email_auth_label": {
+    "text": "אימות בדואר אלקטרוני"
+  },
+  "web.domains.signin.email_auth_hint": {
+    "text": "אפשר אימות בדואר אלקטרוני ללא סיסמה בדומיין זה"
+  },
+  "web.domains.signin.sso_enabled_label": {
+    "text": "כניסה יחידה (SSO)"
+  },
+  "web.domains.signin.sso_enabled_hint": {
+    "text": "אפשר אימות SSO בדומיין זה"
+  },
+  "web.domains.signin.enabled_label": {
+    "text": "הפעל תצורת כניסה"
+  },
+  "web.domains.signin.enabled_hint": {
+    "text": "כאשר מופעל, דומיין זה משתמש בהגדרות הכניסה שהוגדרו למעלה"
+  },
+  "web.domains.signin.save_config": {
+    "text": "שמור תצורה"
+  },
+  "web.domains.signin.update_success": {
+    "text": "תצורת הכניסה עודכנה בהצלחה"
+  },
+  "web.domains.signin.reset_to_defaults": {
+    "text": "אפס לברירות המחדל"
+  },
+  "web.domains.signin.reset_confirm": {
+    "text": "לאפס את הכניסה לברירות המחדל הגלובליות?"
+  },
+  "web.domains.signin.reset_keeps_sso": {
+    "text": "פרטי הכניסה של SSO שלך נשמרים. הסר אותם בנפרד במסך תצורת SSO."
+  },
+  "web.domains.signin.reset_action": {
+    "text": "כן, אפס"
+  },
+  "web.domains.signin.reset_success": {
+    "text": "הגדרות הכניסה אופסו לברירות המחדל הגלובליות"
+  },
+  "web.domains.signup.title": {
+    "text": "אימות הרשמה"
+  },
+  "web.domains.signup.config_description": {
+    "text": "הגדר אימות הרשמה עבור דומיין זה"
+  },
+  "web.domains.signup.access_denied": {
+    "text": "הגישה נדחתה"
+  },
+  "web.domains.signup.upgrade_to_configure": {
+    "text": "שדרג את התוכנית שלך כדי להגדיר אימות הרשמה לכל דומיין."
+  },
+  "web.domains.signup.configure_signup": {
+    "text": "הגדר הרשמה"
+  },
+  "web.domains.signup.not_configured_notice": {
+    "text": "אימות הרשמה עדיין לא הוגדר עבור דומיין זה. הגדר אסטרטגיה כדי לשלוט מי יכול להירשם דרך דומיין זה."
+  },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "ההרשמות מושבתות כעת ברמת האתר. מדיניות זו לכל דומיין מוגדרת אך לא תסנן תעבורה כלשהי עד שההרשמות באתר יופעלו."
+  },
+  "web.domains.signup.strategy_label": {
+    "text": "אסטרטגיית אימות"
+  },
+  "web.domains.signup.strategy_description": {
+    "text": "בחר כיצד מאומתות כתובות דואר אלקטרוני כאשר משתמשים נרשמים בדומיין זה."
+  },
+  "web.domains.signup.network_validation_warning": {
+    "text": "אסטרטגיה זו מבצעת קריאות רשת במהלך ההרשמה, מה שעלול להוסיף השהיה או להיחסם על ידי ספקים מסוימים."
+  },
+  "web.domains.signup.allowed_domains_label": {
+    "text": "דומיינים מורשים להרשמה"
+  },
+  "web.domains.signup.allowed_domains_hint": {
+    "text": "רק דומייני הדואר האלקטרוני האלה יורשו להירשם. הוסף דומיין אחד לכל ערך."
+  },
+  "web.domains.signup.domain_placeholder": {
+    "text": "example.com"
+  },
+  "web.domains.signup.invalid_domain": {
+    "text": "הזן דומיין תקין (לדוגמה example.com)"
+  },
+  "web.domains.signup.domain_exists": {
+    "text": "דומיין זה כבר נמצא ברשימה"
+  },
+  "web.domains.signup.remove_domain": {
+    "text": "הסר את {domain}"
+  },
+  "web.domains.signup.enabled_label": {
+    "text": "הפעל אימות לכל דומיין"
+  },
+  "web.domains.signup.enabled_hint": {
+    "text": "כאשר מופעל, הרשמות בדומיין זה משתמשות באסטרטגיה שלמעלה במקום במדיניות הגלובלית."
+  },
+  "web.domains.signup.delete_config": {
+    "text": "מחק תצורה"
+  },
+  "web.domains.signup.delete_confirm": {
+    "text": "למחוק את תצורת אימות ההרשמה? ההרשמות יחזרו למדיניות הגלובלית."
+  },
+  "web.domains.signup.save_config": {
+    "text": "שמור תצורה"
+  },
+  "web.domains.signup.update_success": {
+    "text": "אימות ההרשמה עודכן בהצלחה"
+  },
+  "web.domains.signup.delete_success": {
+    "text": "תצורת אימות ההרשמה הוסרה בהצלחה"
+  },
+  "web.domains.signup.domain_overrides_label": {
+    "text": "עקיפות דומיין"
+  },
+  "web.domains.signup.domain_overrides_hint": {
+    "text": "עקוף את הגדרות ההרשמה הגלובליות עבור דומיין זה"
+  },
+  "web.domains.signup.signup_enabled_label": {
+    "text": "הרשמה מופעלת"
+  },
+  "web.domains.signup.signup_enabled_hint": {
+    "text": "עקוף האם ההרשמה מופעלת עבור דומיין זה"
+  },
+  "web.domains.signup.autoverify_label": {
+    "text": "אמת חשבונות אוטומטית"
+  },
+  "web.domains.signup.autoverify_hint": {
+    "text": "עקוף האם חשבונות חדשים מאומתים אוטומטית בדומיין זה"
+  },
+  "web.domains.sso.title": {
+    "text": "כניסה יחידה (SSO)"
+  },
+  "web.domains.sso.config_title": {
+    "text": "תצורת SSO"
+  },
+  "web.domains.sso.config_description": {
+    "text": "הגדר אימות כניסה יחידה עבור דומיין זה"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "הגישה נדחתה"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "אין לך הרשאה לנהל את הגדרות ה-SSO עבור דומיין זה. פנה למנהל הארגון שלך."
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "שדרג את התוכנית שלך כדי להגדיר כניסה יחידה עבור דומיין זה."
+  },
+  "web.domains.sso.create_success": {
+    "text": "תצורת ה-SSO נוצרה בהצלחה"
+  },
+  "web.domains.sso.update_success": {
+    "text": "תצורת ה-SSO עודכנה בהצלחה"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "תצורת ה-SSO הוסרה בהצלחה"
+  },
+  "web.domains.sso.test_success": {
+    "text": "בדיקת החיבור הצליחה — הספק הגיב כראוי"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "בדיקת החיבור נכשלה"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "כדי לחייב SSO לכל הכניסות בדומיין זה, הגדר זאת בהגדרות הכניסה של הדומיין. מצב SSO-בלבד מגביל את דף הכניסה לספק ה-SSO שהוגדר כאן."
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "הגדר SSO"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "SSO עדיין לא הוגדר עבור דומיין זה. הפעל כניסה יחידה כדי לאפשר לחברי הצוות לבצע אימות באמצעות ספק הזהויות של הארגון שלך."
+  },
+  "web.domains.sso.edit_credentials": {
+    "text": "ערוך פרטי כניסה"
+  },
+  "web.domains.sso.configure_button": {
+    "text": "הגדר"
+  },
+  "web.domains.sso.upgrade_required": {
+    "text": "שדרג כדי להגדיר"
   }
 }

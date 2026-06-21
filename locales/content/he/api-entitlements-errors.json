@@ -1,0 +1,71 @@
+{
+  "api.entitlements.errors.context_unavailable": {
+    "text": "לא ניתן לאמת זכאויות (הקשר הארגון אינו זמין)"
+  },
+  "api.entitlements.errors.api_access_required": {
+    "text": "גישה ל-API מחייבת שדרוג תוכנית"
+  },
+  "api.entitlements.errors.custom_privacy_defaults_required": {
+    "text": "ברירות מחדל מותאמות אישית לפרטיות מחייבות שדרוג תוכנית"
+  },
+  "api.entitlements.errors.extended_default_expiration_required": {
+    "text": "תפוגת ברירת מחדל מורחבת מחייבת שדרוג תוכנית"
+  },
+  "api.entitlements.errors.custom_domains_required": {
+    "text": "דומיינים מותאמים אישית מחייבים שדרוג תוכנית"
+  },
+  "api.entitlements.errors.custom_branding_required": {
+    "text": "מיתוג מותאם אישית מחייב שדרוג תוכנית"
+  },
+  "api.entitlements.errors.homepage_secrets_required": {
+    "text": "סודות בדף הבית מחייבים שדרוג תוכנית"
+  },
+  "api.entitlements.errors.incoming_secrets_required": {
+    "text": "סודות נכנסים מחייבים שדרוג תוכנית"
+  },
+  "api.entitlements.errors.custom_mail_sender_required": {
+    "text": "שולח דוא״ל מותאם אישית מחייב שדרוג תוכנית"
+  },
+  "api.entitlements.errors.flexible_from_domain_required": {
+    "text": "דומיין שולח גמיש מחייב שדרוג תוכנית"
+  },
+  "api.entitlements.errors.manage_org_required": {
+    "text": "ניהול ארגון מחייב שדרוג תוכנית"
+  },
+  "api.entitlements.errors.manage_teams_required": {
+    "text": "ניהול צוותים מחייב שדרוג תוכנית"
+  },
+  "api.entitlements.errors.manage_members_required": {
+    "text": "ניהול חברים מחייב שדרוג תוכנית"
+  },
+  "api.entitlements.errors.manage_sso_required": {
+    "text": "ניהול SSO מחייב שדרוג תוכנית"
+  },
+  "api.entitlements.errors.audit_logs_required": {
+    "text": "יומני ביקורת מחייבים שדרוג תוכנית"
+  },
+  "api.entitlements.errors.custom_signup_validation_required": {
+    "text": "אימות הרשמה מותאם אישית מחייב שדרוג תוכנית"
+  },
+  "api.entitlements.errors.create_secrets_required": {
+    "text": "יצירת סודות מחייבת שדרוג תוכנית"
+  },
+  "api.entitlements.errors.view_receipt_required": {
+    "text": "צפייה בקבלות מחייבת שדרוג תוכנית"
+  },
+  "api.entitlements.errors.notifications_required": {
+    "text": "התראות מחייבות שדרוג תוכנית"
+  },
+  "api.entitlements.errors.workspace_branding_required": {
+    "text": "מיתוג סביבת עבודה מחייב שדרוג תוכנית"
+  },
+  "api.entitlements.errors.ip_access_rules_required": {
+    "text": "כללי גישת IP מחייבים שדרוג תוכנית"
+  },
+  "api.entitlements.errors.manage_billing_required": {
+    "text": "ניהול חיובים מחייב שדרוג תוכנית"
+  },
+  "api.entitlements.errors.custom_signin_config_required": {
+    "text": "הגדרת התחברות מותאמת אישית מחייבת שדרוג תוכנית"
+  }
+}

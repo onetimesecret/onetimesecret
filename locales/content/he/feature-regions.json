@@ -152,7 +152,7 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "אם דואר אלקטרוני של איש הקשר לחיוב שלך שונה מדואר אלקטרוני של חשבון {product_name} שלך, השתמש בדואר האלקטרוני של איש הקשר לחיוב לחשבון באזור החדש כדי לשמור על הטבות המנוי שלך.",
+    "text": "אם כתובת הדוא״ל של איש הקשר לחיובים שונה מכתובת הדוא״ל של חשבון {product_name} שלך, השתמש בכתובת הדוא״ל של איש הקשר לחיובים עבור חשבון האזור החדש כדי לשמור על הטבות המנוי שלך.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
@@ -186,5 +186,8 @@
   "web.regions.jurisdictions.apac.name": {
     "text": "Asia-Pacific",
     "source_hash": "7a757670"
+  },
+  "web.regions.no_region_configured": {
+    "text": "כרגע אין מידע על אזורים זמין עבור החשבון שלך."
   }
 }

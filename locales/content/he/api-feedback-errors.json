@@ -1,0 +1,5 @@
+{
+  "api.feedback.errors.rate_limit_exceeded": {
+    "text": "יותר מדי הגשות משוב. אנא נסה שוב מאוחר יותר."
+  }
+}
