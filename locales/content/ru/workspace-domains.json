@@ -846,5 +846,389 @@
   "web.domains.sso.not_configured_notice": {
     "text": "SSO ещё не настроен для этого домена. Включите единый вход, чтобы участники команды могли проходить аутентификацию через провайдера идентификации вашей организации.",
     "source_hash": "c439214b"
+  },
+  "api.domains.errors.add_admin_required": {
+    "text": "Только владельцы и администраторы организации могут добавлять пользовательские домены"
+  },
+  "web.domains.public_homepage": {
+    "text": "Публичная домашняя страница"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Домен подтверждён и активен"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS не настроен — нажмите, чтобы исправить"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Домен не подтверждён — нажмите, чтобы подтвердить"
+  },
+  "web.domains.status_tooltip_unverified": {
+    "text": "Статус домена не подтверждён — нажмите, чтобы обновить"
+  },
+  "web.domains.last_check_failed": {
+    "text": "Последняя проверка не удалась"
+  },
+  "web.domains.last_check_failed_ago": {
+    "text": "последняя проверка не удалась {0}"
+  },
+  "web.domains.verify_now": {
+    "text": "Подтвердить сейчас"
+  },
+  "web.domains.click_to_verify": {
+    "text": "нажмите, чтобы подтвердить"
+  },
+  "web.domains.remove_domain_description": {
+    "text": "Безвозвратно удалить этот домен и всю его конфигурацию."
+  },
+  "web.domains.add_access_denied": {
+    "text": "Доступ запрещён"
+  },
+  "web.domains.add_access_denied_description": {
+    "text": "У вас нет разрешения на добавление доменов в эту организацию. Обратитесь к администратору вашей организации."
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "Не удалось загрузить виджет DNS"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "Виджет DNS недоступен"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "Не удалось инициализировать виджет DNS"
+  },
+  "web.domains.verified": {
+    "text": "Подтверждён"
+  },
+  "web.domains.pending_verification": {
+    "text": "Ожидает подтверждения"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "У вас есть несохранённые изменения. Вы уверены, что хотите выйти?"
+  },
+  "web.domains.entitlement_required_owner": {
+    "text": "Для этой функции требуется переход на более высокий план."
+  },
+  "web.domains.entitlement_required_member": {
+    "text": "Эта функция недоступна на вашем текущем плане. Обратитесь к владельцу вашей организации."
+  },
+  "web.domains.detail.manage": {
+    "text": "Управление"
+  },
+  "web.domains.detail.features": {
+    "text": "Функции"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Секреты на домашней странице"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Разрешить публичный доступ для создания секретов на домашней странице вашего домена"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Логотип, цвета и персонализированный брендинг"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Настройки поставщика единого входа (SSO)"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Настройка пользовательского отправителя писем"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Настройки получателя входящих секретов"
+  },
+  "web.domains.detail.signup_description": {
+    "text": "Стратегия проверки регистрации для каждого домена"
+  },
+  "web.domains.detail.signin_description": {
+    "text": "Настройка способа входа для каждого домена"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Поставщик"
+  },
+  "web.domains.email.test_email_title": {
+    "text": "Проверка доставки писем"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Отправьте себе тестовое письмо, используя сохранённую конфигурацию. Работает, даже если функция ещё не включена."
+  },
+  "web.domains.email.send_test": {
+    "text": "Отправить тест"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Тестовое письмо успешно отправлено"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Не удалось отправить тестовое письмо"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Отправлено на {email}"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Доставлено через {provider}"
+  },
+  "web.domains.incoming.feature_disabled": {
+    "text": "Входящие секреты недоступны"
+  },
+  "web.domains.incoming.feature_disabled_description": {
+    "text": "Входящие секреты не включены для этого экземпляра. Обратитесь к администратору."
+  },
+  "web.domains.signin.title": {
+    "text": "Настройка входа"
+  },
+  "web.domains.signin.configure_signin": {
+    "text": "Настроить вход"
+  },
+  "web.domains.signin.config_description": {
+    "text": "Настройте способы аутентификации при входе для этого домена"
+  },
+  "web.domains.signin.access_denied": {
+    "text": "Доступ запрещён"
+  },
+  "web.domains.signin.upgrade_to_configure": {
+    "text": "Перейдите на более высокий план, чтобы настроить способы входа для этого домена."
+  },
+  "web.domains.signin.not_configured_notice": {
+    "text": "Настройка входа для этого домена ещё не задана. Настройте переопределения, чтобы управлять тем, какие способы аутентификации доступны на странице входа этого домена."
+  },
+  "web.domains.signin.signin_enabled_label": {
+    "text": "Вход включён"
+  },
+  "web.domains.signin.header_toggle_label": {
+    "text": "Вход"
+  },
+  "web.domains.signin.signin_enabled_hint": {
+    "text": "Могут ли пользователи входить на этом домене"
+  },
+  "web.domains.signin.restrict_to_label": {
+    "text": "Ограничить способ входа"
+  },
+  "web.domains.signin.restrict_to_hint": {
+    "text": "Ограничьте этот домен одним способом аутентификации. Если задано, на странице входа показывается только выбранный способ."
+  },
+  "web.domains.signin.all_methods": {
+    "text": "Все способы"
+  },
+  "web.domains.signin.all_methods_description": {
+    "text": "Показывать на странице входа все включённые способы аутентификации"
+  },
+  "web.domains.signin.method_password": {
+    "text": "Пароль"
+  },
+  "web.domains.signin.method_email_auth": {
+    "text": "Аутентификация по электронной почте"
+  },
+  "web.domains.signin.method_webauthn": {
+    "text": "WebAuthn / Ключи доступа"
+  },
+  "web.domains.signin.method_sso": {
+    "text": "Единый вход (SSO)"
+  },
+  "web.domains.signin.method_overrides_label": {
+    "text": "Переопределения способов"
+  },
+  "web.domains.signin.method_overrides_hint": {
+    "text": "Включайте или отключайте отдельные способы аутентификации для этого домена"
+  },
+  "web.domains.signin.mode_question": {
+    "text": "Как пользователи могут входить?"
+  },
+  "web.domains.signin.mode_any": {
+    "text": "Любой доступный способ"
+  },
+  "web.domains.signin.mode_any_hint": {
+    "text": "Показывать все способы, доступные на этом домене. Ограничьте отдельные способы ниже."
+  },
+  "web.domains.signin.mode_one": {
+    "text": "Один определённый способ"
+  },
+  "web.domains.signin.mode_one_hint": {
+    "text": "Ограничьте страницу входа одним способом. Перечислены только способы, доступные на этом домене."
+  },
+  "web.domains.signin.mode_disabled": {
+    "text": "Вход отключён"
+  },
+  "web.domains.signin.mode_disabled_hint": {
+    "text": "Пользователи не могут входить на этом домене."
+  },
+  "web.domains.signin.mode_disabled_notice": {
+    "text": "Посетители страницы входа этого домена видят уведомление о том, что вход недоступен, со ссылкой обратно на домашнюю страницу. Ваши предыдущие настройки способов сохраняются и восстанавливаются при повторном включении входа."
+  },
+  "web.domains.signin.methods_list_label": {
+    "text": "Способы, показываемые на странице входа"
+  },
+  "web.domains.signin.restrict_picker_hint": {
+    "text": "Перечислены только способы, доступные на этом домене."
+  },
+  "web.domains.signin.availability_always": {
+    "text": "Всегда доступно"
+  },
+  "web.domains.signin.availability_global_on": {
+    "text": "Следует глобальной политике · Включено"
+  },
+  "web.domains.signin.availability_global_off": {
+    "text": "Недоступно"
+  },
+  "web.domains.signin.availability_unavailable": {
+    "text": "Недоступно на всём сайте"
+  },
+  "web.domains.signin.allow_on_domain": {
+    "text": "Разрешить на этом домене"
+  },
+  "web.domains.signin.method_password_blurb": {
+    "text": "Только пароль"
+  },
+  "web.domains.signin.method_email_auth_blurb": {
+    "text": "Вход без пароля по волшебной ссылке"
+  },
+  "web.domains.signin.method_webauthn_blurb": {
+    "text": "Биометрия и ключи безопасности"
+  },
+  "web.domains.signin.method_sso_blurb": {
+    "text": "Внешний поставщик идентификации"
+  },
+  "web.domains.signin.email_auth_label": {
+    "text": "Аутентификация по электронной почте"
+  },
+  "web.domains.signin.email_auth_hint": {
+    "text": "Разрешить аутентификацию по электронной почте без пароля на этом домене"
+  },
+  "web.domains.signin.sso_enabled_label": {
+    "text": "Единый вход (SSO)"
+  },
+  "web.domains.signin.sso_enabled_hint": {
+    "text": "Разрешить аутентификацию через SSO на этом домене"
+  },
+  "web.domains.signin.enabled_label": {
+    "text": "Включить настройку входа"
+  },
+  "web.domains.signin.enabled_hint": {
+    "text": "Если включено, этот домен использует настройки входа, заданные выше"
+  },
+  "web.domains.signin.save_config": {
+    "text": "Сохранить конфигурацию"
+  },
+  "web.domains.signin.update_success": {
+    "text": "Настройка входа успешно обновлена"
+  },
+  "web.domains.signin.reset_to_defaults": {
+    "text": "Сбросить к значениям по умолчанию"
+  },
+  "web.domains.signin.reset_confirm": {
+    "text": "Сбросить вход к глобальным значениям по умолчанию?"
+  },
+  "web.domains.signin.reset_keeps_sso": {
+    "text": "Ваши учётные данные SSO сохраняются. Удалите их отдельно на экране настройки SSO."
+  },
+  "web.domains.signin.reset_action": {
+    "text": "Да, сбросить"
+  },
+  "web.domains.signin.reset_success": {
+    "text": "Настройки входа сброшены к глобальным значениям по умолчанию"
+  },
+  "web.domains.signup.title": {
+    "text": "Проверка регистрации"
+  },
+  "web.domains.signup.config_description": {
+    "text": "Настройте проверку регистрации для этого домена"
+  },
+  "web.domains.signup.access_denied": {
+    "text": "Доступ запрещён"
+  },
+  "web.domains.signup.upgrade_to_configure": {
+    "text": "Перейдите на более высокий план, чтобы настроить проверку регистрации для каждого домена."
+  },
+  "web.domains.signup.configure_signup": {
+    "text": "Настроить регистрацию"
+  },
+  "web.domains.signup.not_configured_notice": {
+    "text": "Проверка регистрации для этого домена ещё не настроена. Настройте стратегию, чтобы управлять тем, кто может регистрироваться через этот домен."
+  },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "Регистрация в настоящее время отключена на уровне сайта. Эта политика для отдельного домена настроена, но не будет ограничивать трафик, пока регистрация на сайте не будет включена."
+  },
+  "web.domains.signup.strategy_label": {
+    "text": "Стратегия проверки"
+  },
+  "web.domains.signup.strategy_description": {
+    "text": "Выберите, как проверяются адреса электронной почты при регистрации пользователей на этом домене."
+  },
+  "web.domains.signup.network_validation_warning": {
+    "text": "Эта стратегия выполняет сетевые запросы во время регистрации, что может увеличить задержку или быть заблокировано некоторыми поставщиками."
+  },
+  "web.domains.signup.allowed_domains_label": {
+    "text": "Разрешённые домены для регистрации"
+  },
+  "web.domains.signup.allowed_domains_hint": {
+    "text": "Регистрироваться смогут только эти домены электронной почты. Добавляйте по одному домену в каждой записи."
+  },
+  "web.domains.signup.domain_placeholder": {
+    "text": "example.com"
+  },
+  "web.domains.signup.invalid_domain": {
+    "text": "Пожалуйста, введите действительный домен (например, example.com)"
+  },
+  "web.domains.signup.domain_exists": {
+    "text": "Этот домен уже есть в списке"
+  },
+  "web.domains.signup.remove_domain": {
+    "text": "Удалить {domain}"
+  },
+  "web.domains.signup.enabled_label": {
+    "text": "Включить проверку для каждого домена"
+  },
+  "web.domains.signup.enabled_hint": {
+    "text": "Если включено, регистрация на этом домене использует указанную выше стратегию вместо глобальной политики."
+  },
+  "web.domains.signup.delete_config": {
+    "text": "Удалить конфигурацию"
+  },
+  "web.domains.signup.delete_confirm": {
+    "text": "Удалить конфигурацию проверки регистрации? Регистрация вернётся к глобальной политике."
+  },
+  "web.domains.signup.save_config": {
+    "text": "Сохранить конфигурацию"
+  },
+  "web.domains.signup.update_success": {
+    "text": "Проверка регистрации успешно обновлена"
+  },
+  "web.domains.signup.delete_success": {
+    "text": "Конфигурация проверки регистрации успешно удалена"
+  },
+  "web.domains.signup.domain_overrides_label": {
+    "text": "Переопределения домена"
+  },
+  "web.domains.signup.domain_overrides_hint": {
+    "text": "Переопределить глобальные настройки регистрации для этого домена"
+  },
+  "web.domains.signup.signup_enabled_label": {
+    "text": "Регистрация включена"
+  },
+  "web.domains.signup.signup_enabled_hint": {
+    "text": "Переопределить, включена ли регистрация для этого домена"
+  },
+  "web.domains.signup.autoverify_label": {
+    "text": "Автоматически подтверждать аккаунты"
+  },
+  "web.domains.signup.autoverify_hint": {
+    "text": "Переопределить, подтверждаются ли новые аккаунты автоматически на этом домене"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Проверка подключения прошла успешно — поставщик ответил корректно"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Проверка подключения не удалась"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "Чтобы требовать SSO для всех входов на этом домене, настройте это в настройках входа домена. Режим «только SSO» ограничивает страницу входа поставщиком SSO, настроенным здесь."
+  },
+  "web.domains.sso.edit_credentials": {
+    "text": "Редактировать учётные данные"
+  },
+  "web.domains.sso.configure_button": {
+    "text": "Настроить"
+  },
+  "web.domains.sso.upgrade_required": {
+    "text": "Перейдите на более высокий план для настройки"
   }
 }

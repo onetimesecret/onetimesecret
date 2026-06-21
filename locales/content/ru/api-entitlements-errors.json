@@ -1,0 +1,71 @@
+{
+  "api.entitlements.errors.context_unavailable": {
+    "text": "Не удалось проверить права (контекст организации недоступен)"
+  },
+  "api.entitlements.errors.api_access_required": {
+    "text": "Для доступа к API требуется переход на более высокий план"
+  },
+  "api.entitlements.errors.custom_privacy_defaults_required": {
+    "text": "Для пользовательских настроек конфиденциальности по умолчанию требуется переход на более высокий план"
+  },
+  "api.entitlements.errors.extended_default_expiration_required": {
+    "text": "Для расширенного срока действия по умолчанию требуется переход на более высокий план"
+  },
+  "api.entitlements.errors.custom_domains_required": {
+    "text": "Для пользовательских доменов требуется переход на более высокий план"
+  },
+  "api.entitlements.errors.custom_branding_required": {
+    "text": "Для пользовательского брендинга требуется переход на более высокий план"
+  },
+  "api.entitlements.errors.homepage_secrets_required": {
+    "text": "Для секретов на главной странице требуется переход на более высокий план"
+  },
+  "api.entitlements.errors.incoming_secrets_required": {
+    "text": "Для входящих секретов требуется переход на более высокий план"
+  },
+  "api.entitlements.errors.custom_mail_sender_required": {
+    "text": "Для пользовательского отправителя почты требуется переход на более высокий план"
+  },
+  "api.entitlements.errors.flexible_from_domain_required": {
+    "text": "Для гибкого домена отправителя требуется переход на более высокий план"
+  },
+  "api.entitlements.errors.manage_org_required": {
+    "text": "Для управления организацией требуется переход на более высокий план"
+  },
+  "api.entitlements.errors.manage_teams_required": {
+    "text": "Для управления командами требуется переход на более высокий план"
+  },
+  "api.entitlements.errors.manage_members_required": {
+    "text": "Для управления участниками требуется переход на более высокий план"
+  },
+  "api.entitlements.errors.manage_sso_required": {
+    "text": "Для управления SSO требуется переход на более высокий план"
+  },
+  "api.entitlements.errors.audit_logs_required": {
+    "text": "Для журналов аудита требуется переход на более высокий план"
+  },
+  "api.entitlements.errors.custom_signup_validation_required": {
+    "text": "Для пользовательской проверки регистрации требуется переход на более высокий план"
+  },
+  "api.entitlements.errors.create_secrets_required": {
+    "text": "Для создания секретов требуется переход на более высокий план"
+  },
+  "api.entitlements.errors.view_receipt_required": {
+    "text": "Для просмотра квитанций требуется переход на более высокий план"
+  },
+  "api.entitlements.errors.notifications_required": {
+    "text": "Для уведомлений требуется переход на более высокий план"
+  },
+  "api.entitlements.errors.workspace_branding_required": {
+    "text": "Для брендинга рабочего пространства требуется переход на более высокий план"
+  },
+  "api.entitlements.errors.ip_access_rules_required": {
+    "text": "Для правил доступа по IP-адресу требуется переход на более высокий план"
+  },
+  "api.entitlements.errors.manage_billing_required": {
+    "text": "Для управления оплатой требуется переход на более высокий план"
+  },
+  "api.entitlements.errors.custom_signin_config_required": {
+    "text": "Для пользовательской настройки входа требуется переход на более высокий план"
+  }
+}
