@@ -130,5 +130,26 @@
   "incoming.receipt_link_text": {
     "text": "biên lai",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Yêu cầu nâng cấp"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Tính năng này yêu cầu nâng cấp gói. Vui lòng liên hệ chủ sở hữu tài khoản để bật tính năng bí mật đến."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Ghi chú phải có {max} ký tự hoặc ít hơn"
+  },
+  "incoming.validation_secret_required": {
+    "text": "Nội dung bí mật là bắt buộc"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Vui lòng chọn người nhận"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "Tính năng bí mật đến chưa được bật"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Vui lòng kiểm tra biểu mẫu để tìm lỗi"
   }
 }

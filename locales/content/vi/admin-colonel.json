@@ -634,5 +634,152 @@
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
     "text": "Khi bạn gửi phản hồi, chúng tôi sẽ thấy:",
     "source_hash": "fe77172e"
+  },
+  "web.colonel.previewPlanMode": {
+    "text": "Chế độ xem trước gói"
+  },
+  "web.colonel.previewModeDescription": {
+    "text": "Xem trước ứng dụng theo cách nó hiển thị với khách hàng đang dùng một gói khác. Điều này chỉ ảnh hưởng đến chế độ xem của bạn và không thay đổi gói thực tế của bất kỳ tổ chức nào."
+  },
+  "web.colonel.previewModeActive": {
+    "text": "Đang xem trước"
+  },
+  "web.colonel.bannedIps.empty": {
+    "text": "Không có IP nào bị chặn"
+  },
+  "web.colonel.bannedIps.currentIp": {
+    "text": "Địa chỉ IP hiện tại của bạn"
+  },
+  "web.colonel.bannedIps.confirmUnban": {
+    "text": "Bỏ chặn {ip}?"
+  },
+  "web.colonel.bannedIps.actions.ban": {
+    "text": "Chặn IP"
+  },
+  "web.colonel.bannedIps.actions.quickBan": {
+    "text": "Chặn nhanh"
+  },
+  "web.colonel.bannedIps.actions.unban": {
+    "text": "Bỏ chặn"
+  },
+  "web.colonel.bannedIps.actions.cancel": {
+    "text": "Hủy"
+  },
+  "web.colonel.bannedIps.columns.ipAddress": {
+    "text": "Địa chỉ IP"
+  },
+  "web.colonel.bannedIps.columns.reason": {
+    "text": "Lý do"
+  },
+  "web.colonel.bannedIps.columns.bannedAt": {
+    "text": "Chặn lúc"
+  },
+  "web.colonel.bannedIps.columns.bannedBy": {
+    "text": "Chặn bởi"
+  },
+  "web.colonel.bannedIps.error.banFailed": {
+    "text": "Không thể chặn địa chỉ IP"
+  },
+  "web.colonel.bannedIps.error.unbanFailed": {
+    "text": "Không thể bỏ chặn địa chỉ IP"
+  },
+  "web.colonel.bannedIps.form.title": {
+    "text": "Chặn địa chỉ IP"
+  },
+  "web.colonel.bannedIps.form.ipLabel": {
+    "text": "Địa chỉ IP"
+  },
+  "web.colonel.bannedIps.form.reasonLabel": {
+    "text": "Lý do"
+  },
+  "web.colonel.bannedIps.form.reasonPlaceholder": {
+    "text": "Lý do (tùy chọn)"
+  },
+  "web.colonel.bannedIps.success.banned": {
+    "text": "Địa chỉ IP {ip} đã bị chặn"
+  },
+  "web.colonel.bannedIps.success.unbanned": {
+    "text": "Địa chỉ IP {ip} đã được bỏ chặn"
+  },
+  "web.colonel.customDomains.empty": {
+    "text": "Chưa cấu hình tên miền tùy chỉnh nào"
+  },
+  "web.colonel.customDomains.noLogo": {
+    "text": "Không có logo"
+  },
+  "web.colonel.customDomains.labels.organization": {
+    "text": "Tổ chức"
+  },
+  "web.colonel.customDomains.labels.externalId": {
+    "text": "ID bên ngoài"
+  },
+  "web.colonel.customDomains.labels.created": {
+    "text": "Ngày tạo"
+  },
+  "web.colonel.customDomains.labels.updated": {
+    "text": "Ngày cập nhật"
+  },
+  "web.colonel.customDomains.labels.favicon": {
+    "text": "Favicon"
+  },
+  "web.colonel.customDomains.status.verified": {
+    "text": "Đã xác minh"
+  },
+  "web.colonel.customDomains.status.resolving": {
+    "text": "Đang phân giải"
+  },
+  "web.colonel.customDomains.status.ready": {
+    "text": "Sẵn sàng"
+  },
+  "web.colonel.customDomains.status.publicHomepage": {
+    "text": "Trang chủ công khai"
+  },
+  "web.colonel.customDomains.status.publicApi": {
+    "text": "API công khai"
+  },
+  "web.colonel.customDomains.status.pending": {
+    "text": "Đang chờ"
+  },
+  "web.colonel.pagination.showing": {
+    "text": "Đang hiển thị {start}–{end} trong số {total}"
+  },
+  "web.colonel.pagination.itemsPerPage": {
+    "text": "Số mục mỗi trang"
+  },
+  "web.colonel.pagination.perPage": {
+    "text": "{count} mỗi trang"
+  },
+  "web.colonel.pagination.pageOf": {
+    "text": "Trang {current} trên {total}"
+  },
+  "web.colonel.secrets.empty": {
+    "text": "Không tìm thấy bí mật nào"
+  },
+  "web.colonel.secrets.never": {
+    "text": "Không bao giờ"
+  },
+  "web.colonel.secrets.columns.shortId": {
+    "text": "ID ngắn"
+  },
+  "web.colonel.secrets.columns.state": {
+    "text": "Trạng thái"
+  },
+  "web.colonel.secrets.columns.created": {
+    "text": "Ngày tạo"
+  },
+  "web.colonel.secrets.columns.expiration": {
+    "text": "Ngày hết hạn"
+  },
+  "web.colonel.secrets.columns.age": {
+    "text": "Tuổi (ngày)"
+  },
+  "web.colonel.secrets.state.new": {
+    "text": "Mới"
+  },
+  "web.colonel.secrets.state.received": {
+    "text": "Đã nhận"
+  },
+  "web.colonel.secrets.state.viewed": {
+    "text": "Đã xem"
   }
 }

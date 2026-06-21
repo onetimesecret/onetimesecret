@@ -398,5 +398,725 @@
   "web.domains.dns_widget_description": {
     "text": "Sử dụng công cụ bên dưới để tự động phát hiện nhà cung cấp DNS và nhận hướng dẫn từng bước để cấu hình tên miền.",
     "source_hash": "91c1af2e"
+  },
+  "api.domains.errors.add_admin_required": {
+    "text": "Chỉ chủ sở hữu và quản trị viên của tổ chức mới có thể thêm tên miền tùy chỉnh"
+  },
+  "web.domains.public_homepage": {
+    "text": "Trang chủ công khai"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Tên miền đã xác minh và đang hoạt động"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "Chưa cấu hình DNS — nhấp để khắc phục"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Tên miền chưa được xác minh — nhấp để xác minh"
+  },
+  "web.domains.status_tooltip_unverified": {
+    "text": "Trạng thái tên miền chưa được xác minh — nhấp để làm mới"
+  },
+  "web.domains.last_check_failed": {
+    "text": "Lần kiểm tra xác minh gần nhất đã thất bại"
+  },
+  "web.domains.last_check_failed_ago": {
+    "text": "lần kiểm tra gần nhất thất bại {0}"
+  },
+  "web.domains.verify_now": {
+    "text": "Xác minh ngay"
+  },
+  "web.domains.click_to_verify": {
+    "text": "nhấp để xác minh"
+  },
+  "web.domains.remove_domain_description": {
+    "text": "Xóa vĩnh viễn tên miền này và toàn bộ cấu hình của nó."
+  },
+  "web.domains.add_access_denied": {
+    "text": "Truy cập bị từ chối"
+  },
+  "web.domains.add_access_denied_description": {
+    "text": "Bạn không có quyền thêm tên miền vào tổ chức này. Vui lòng liên hệ quản trị viên tổ chức của bạn."
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "Không thể tải tiện ích DNS"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "Tiện ích DNS không khả dụng"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "Không thể khởi tạo tiện ích DNS"
+  },
+  "web.domains.verified": {
+    "text": "Đã xác minh"
+  },
+  "web.domains.pending_verification": {
+    "text": "Đang chờ xác minh"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Bạn có các thay đổi chưa được lưu. Bạn có chắc chắn muốn rời đi không?"
+  },
+  "web.domains.entitlement_required_owner": {
+    "text": "Tính năng này yêu cầu nâng cấp gói."
+  },
+  "web.domains.entitlement_required_member": {
+    "text": "Tính năng này không khả dụng trên gói hiện tại của bạn. Vui lòng liên hệ chủ sở hữu tổ chức của bạn."
+  },
+  "web.domains.detail.manage": {
+    "text": "Quản lý"
+  },
+  "web.domains.detail.features": {
+    "text": "Tính năng"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Bí mật trang chủ"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Cho phép truy cập công khai để tạo bí mật trên trang chủ tên miền của bạn"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logo, màu sắc và thương hiệu tùy chỉnh"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Cài đặt nhà cung cấp đăng nhập một lần"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Cấu hình người gửi email tùy chỉnh"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Cài đặt người nhận bí mật đến"
+  },
+  "web.domains.detail.signup_description": {
+    "text": "Chiến lược xác thực đăng ký theo từng tên miền"
+  },
+  "web.domains.detail.signin_description": {
+    "text": "Cấu hình phương thức đăng nhập theo từng tên miền"
+  },
+  "web.domains.email.title": {
+    "text": "Gửi email"
+  },
+  "web.domains.email.config_title": {
+    "text": "Cấu hình email"
+  },
+  "web.domains.email.config_description": {
+    "text": "Cấu hình việc gửi email cho tên miền này"
+  },
+  "web.domains.email.provider_label": {
+    "text": "Nhà cung cấp email"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "Chọn một nhà cung cấp email"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "Tên người gửi"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "ví dụ: Acme Security"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "Địa chỉ người gửi"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "ví dụ: secrets{'@'}example.com"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Địa chỉ trả lời (Reply-To)"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "ví dụ: support{'@'}example.com"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Lưu thay đổi"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Hủy thay đổi"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Dùng mặc định của tài khoản"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "Yêu cầu xác minh tên miền qua bản ghi DKIM và SPF"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Yêu cầu thiết lập xác thực tên miền"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Yêu cầu xác minh tên miền"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "Sử dụng cấu hình gửi email mặc định của tài khoản bạn"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "Bản ghi DNS"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "Thêm các bản ghi DNS sau để xác minh tên miền của bạn cho việc gửi email."
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Loại"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Tên"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Giá trị"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Nhà cung cấp"
+  },
+  "web.domains.email.dns_optional_label": {
+    "text": "Khuyến nghị"
+  },
+  "web.domains.email.dns_optional_hint": {
+    "text": "Bản ghi này được khuyến nghị nhưng không bắt buộc để xác minh. Một chính sách DMARC tại tên miền tổ chức của bạn có thể đã bao gồm tên miền phụ này."
+  },
+  "web.domains.email.copy": {
+    "text": "Sao chép"
+  },
+  "web.domains.email.copied": {
+    "text": "Đã sao chép"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Đã xác minh"
+  },
+  "web.domains.email.status_pending": {
+    "text": "Đang chờ"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Thất bại"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Xác thực lại"
+  },
+  "web.domains.email.validating": {
+    "text": "Đang xác thực..."
+  },
+  "web.domains.email.domain_verified": {
+    "text": "Tên miền đã được xác minh"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "Xác thực thất bại"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Lần xác thực gần nhất"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Nâng cấp gói của bạn để cấu hình việc gửi email cho tên miền này."
+  },
+  "web.domains.email.configure_email": {
+    "text": "Cấu hình email"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Truy cập bị từ chối"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "Bạn không có quyền quản lý cài đặt email cho tên miền này. Vui lòng liên hệ quản trị viên tổ chức của bạn."
+  },
+  "web.domains.email.update_success": {
+    "text": "Đã lưu cấu hình email thành công"
+  },
+  "web.domains.email.delete_success": {
+    "text": "Đã xóa cấu hình email thành công"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "Email cho tên miền này hiện đang được gửi từ người gửi toàn cục. Hoàn tất cấu hình email để sử dụng danh tính người gửi của riêng bạn."
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "Việc gửi email tùy chỉnh hiện đang bị vô hiệu hóa. Email sẽ được gửi từ người gửi toàn cục. Bật tính năng bên dưới để sử dụng danh tính người gửi tùy chỉnh của bạn."
+  },
+  "web.domains.email.test_email_title": {
+    "text": "Kiểm tra việc gửi email"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Gửi một email kiểm tra cho chính bạn bằng cấu hình đã lưu. Hoạt động ngay cả khi tính năng chưa được bật."
+  },
+  "web.domains.email.send_test": {
+    "text": "Gửi thử"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Đã gửi email kiểm tra thành công"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Không thể gửi email kiểm tra"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Đã gửi đến {email}"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Được gửi qua {provider}"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "Chưa cấu hình"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "Đang dùng người gửi mặc định"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Đã xác minh"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Đang chờ xác minh"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Đã vô hiệu hóa"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "Chưa cấu hình người gửi email — email sử dụng người gửi mặc định của nền tảng"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "Cấu hình người gửi email đang chờ xác minh — email sử dụng người gửi mặc định của nền tảng"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "Người gửi email đã bị vô hiệu hóa — email sử dụng người gửi mặc định của nền tảng"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "Người gửi email đã được xác minh — email được gửi từ tên miền này"
+  },
+  "web.domains.incoming.title": {
+    "text": "Bí mật đến"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Cấu hình bí mật đến"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Cho phép người dùng bên ngoài gửi bí mật trực tiếp đến những người nhận được chỉ định trên tên miền này"
+  },
+  "web.domains.incoming.feature_disabled": {
+    "text": "Bí mật đến không khả dụng"
+  },
+  "web.domains.incoming.feature_disabled_description": {
+    "text": "Bí mật đến chưa được bật trên phiên bản này. Vui lòng liên hệ quản trị viên của bạn."
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Truy cập bị từ chối"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "Bạn không có quyền quản lý cài đặt bí mật đến cho tên miền này. Vui lòng liên hệ quản trị viên tổ chức của bạn."
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Nâng cấp gói của bạn để cấu hình bí mật đến cho tên miền này."
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Cấu hình bí mật đến"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "Bí mật đến chưa được cấu hình cho tên miền này. Thêm người nhận để cho phép người dùng bên ngoài gửi bí mật đến nhóm của bạn."
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "Bí mật đến hiện đang bị vô hiệu hóa. Người dùng bên ngoài không thể gửi bí mật đến những người nhận trên tên miền này. Bật tính năng bên dưới để cho phép bí mật đến."
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Người nhận"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Xác định ai có thể nhận bí mật đến trên tên miền này. Người nhận sẽ nhận được thông báo qua email khi một bí mật được gửi đến họ."
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Thêm người nhận"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Xóa"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "Địa chỉ email"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "recipient{'@'}example.com"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Tên hiển thị"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "ví dụ: Security Team"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "Chưa cấu hình người nhận"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Thêm người nhận để cho phép người dùng bên ngoài gửi bí mật đến nhóm của bạn."
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Địa chỉ email không hợp lệ"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "Địa chỉ email này đã được thêm"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "Cho phép tối đa {max} người nhận"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "Tên hiển thị là bắt buộc"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "Địa chỉ email là bắt buộc"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Lưu thay đổi"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Hủy thay đổi"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "Đã lưu cấu hình bí mật đến thành công"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "Đã xóa cấu hình bí mật đến thành công"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} người nhận | {count} người nhận"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "Chưa cấu hình"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Đã cấu hình"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Đã vô hiệu hóa"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "Bí mật đến chưa được cấu hình - người dùng bên ngoài không thể gửi bí mật đến tên miền này"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "Bí mật đến đã được bật với {count} người nhận"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "Tính năng bí mật đến đã bị vô hiệu hóa cho tên miền này"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Bật bí mật đến"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Cho phép người dùng bên ngoài gửi bí mật đến những người nhận trên tên miền này"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "URL công khai"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Chia sẻ URL này với người dùng bên ngoài để cho phép họ gửi bí mật"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "Sao chép URL"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "Đã sao chép URL vào clipboard"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Bạn có chắc chắn muốn xóa tất cả người nhận không? Người dùng bên ngoài sẽ không còn có thể gửi bí mật đến tên miền này."
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Đã đạt số lượng người nhận tối đa"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "Địa chỉ email này đã được thêm"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "Việc lưu sẽ thay thế tất cả người nhận hiện có bằng các thay đổi đang chờ của bạn. Bạn có chắc chắn không?"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Xóa tất cả người nhận"
+  },
+  "web.domains.signin.title": {
+    "text": "Cấu hình đăng nhập"
+  },
+  "web.domains.signin.configure_signin": {
+    "text": "Cấu hình đăng nhập"
+  },
+  "web.domains.signin.config_description": {
+    "text": "Cấu hình các phương thức xác thực đăng nhập cho tên miền này"
+  },
+  "web.domains.signin.access_denied": {
+    "text": "Truy cập bị từ chối"
+  },
+  "web.domains.signin.upgrade_to_configure": {
+    "text": "Nâng cấp gói của bạn để cấu hình các phương thức đăng nhập cho tên miền này."
+  },
+  "web.domains.signin.not_configured_notice": {
+    "text": "Cấu hình đăng nhập chưa được thiết lập cho tên miền này. Cấu hình các tùy chỉnh để kiểm soát những phương thức xác thực nào khả dụng trên trang đăng nhập của tên miền này."
+  },
+  "web.domains.signin.signin_enabled_label": {
+    "text": "Đã bật đăng nhập"
+  },
+  "web.domains.signin.header_toggle_label": {
+    "text": "Đăng nhập"
+  },
+  "web.domains.signin.signin_enabled_hint": {
+    "text": "Người dùng có thể đăng nhập trên tên miền này hay không"
+  },
+  "web.domains.signin.restrict_to_label": {
+    "text": "Giới hạn phương thức đăng nhập"
+  },
+  "web.domains.signin.restrict_to_hint": {
+    "text": "Giới hạn tên miền này ở một phương thức xác thực duy nhất. Khi được thiết lập, chỉ phương thức đã chọn được hiển thị trên trang đăng nhập."
+  },
+  "web.domains.signin.all_methods": {
+    "text": "Tất cả phương thức"
+  },
+  "web.domains.signin.all_methods_description": {
+    "text": "Hiển thị tất cả các phương thức xác thực đã bật trên trang đăng nhập"
+  },
+  "web.domains.signin.method_password": {
+    "text": "Mật khẩu"
+  },
+  "web.domains.signin.method_email_auth": {
+    "text": "Xác thực qua email"
+  },
+  "web.domains.signin.method_webauthn": {
+    "text": "WebAuthn / Passkeys"
+  },
+  "web.domains.signin.method_sso": {
+    "text": "Đăng nhập một lần"
+  },
+  "web.domains.signin.method_overrides_label": {
+    "text": "Tùy chỉnh phương thức"
+  },
+  "web.domains.signin.method_overrides_hint": {
+    "text": "Bật hoặc tắt từng phương thức xác thực riêng lẻ cho tên miền này"
+  },
+  "web.domains.signin.mode_question": {
+    "text": "Người dùng có thể đăng nhập như thế nào?"
+  },
+  "web.domains.signin.mode_any": {
+    "text": "Bất kỳ phương thức khả dụng nào"
+  },
+  "web.domains.signin.mode_any_hint": {
+    "text": "Hiển thị mọi phương thức khả dụng trên tên miền này. Thu hẹp từng phương thức riêng lẻ bên dưới."
+  },
+  "web.domains.signin.mode_one": {
+    "text": "Một phương thức cụ thể"
+  },
+  "web.domains.signin.mode_one_hint": {
+    "text": "Giới hạn trang đăng nhập ở một phương thức duy nhất. Chỉ những phương thức khả dụng trên tên miền này được liệt kê."
+  },
+  "web.domains.signin.mode_disabled": {
+    "text": "Đã tắt đăng nhập"
+  },
+  "web.domains.signin.mode_disabled_hint": {
+    "text": "Người dùng không thể đăng nhập trên tên miền này."
+  },
+  "web.domains.signin.mode_disabled_notice": {
+    "text": "Khách truy cập trang đăng nhập của tên miền này sẽ thấy thông báo rằng đăng nhập không khả dụng, kèm theo một liên kết quay lại trang chủ. Cài đặt phương thức trước đó của bạn được giữ lại và khôi phục khi bạn bật lại đăng nhập."
+  },
+  "web.domains.signin.methods_list_label": {
+    "text": "Các phương thức hiển thị trên trang đăng nhập"
+  },
+  "web.domains.signin.restrict_picker_hint": {
+    "text": "Chỉ những phương thức khả dụng trên tên miền này được liệt kê."
+  },
+  "web.domains.signin.availability_always": {
+    "text": "Luôn khả dụng"
+  },
+  "web.domains.signin.availability_global_on": {
+    "text": "Tuân theo chính sách toàn cục · Bật"
+  },
+  "web.domains.signin.availability_global_off": {
+    "text": "Không khả dụng"
+  },
+  "web.domains.signin.availability_unavailable": {
+    "text": "Không khả dụng trên toàn trang"
+  },
+  "web.domains.signin.allow_on_domain": {
+    "text": "Cho phép trên tên miền này"
+  },
+  "web.domains.signin.method_password_blurb": {
+    "text": "Chỉ mật khẩu"
+  },
+  "web.domains.signin.method_email_auth_blurb": {
+    "text": "Đăng nhập bằng liên kết không cần mật khẩu"
+  },
+  "web.domains.signin.method_webauthn_blurb": {
+    "text": "Sinh trắc học và khóa bảo mật"
+  },
+  "web.domains.signin.method_sso_blurb": {
+    "text": "Nhà cung cấp danh tính bên ngoài"
+  },
+  "web.domains.signin.email_auth_label": {
+    "text": "Xác thực qua email"
+  },
+  "web.domains.signin.email_auth_hint": {
+    "text": "Cho phép xác thực qua email không cần mật khẩu trên tên miền này"
+  },
+  "web.domains.signin.sso_enabled_label": {
+    "text": "Đăng nhập một lần"
+  },
+  "web.domains.signin.sso_enabled_hint": {
+    "text": "Cho phép xác thực SSO trên tên miền này"
+  },
+  "web.domains.signin.enabled_label": {
+    "text": "Bật cấu hình đăng nhập"
+  },
+  "web.domains.signin.enabled_hint": {
+    "text": "Khi được bật, tên miền này sử dụng các cài đặt đăng nhập đã cấu hình ở trên"
+  },
+  "web.domains.signin.save_config": {
+    "text": "Lưu cấu hình"
+  },
+  "web.domains.signin.update_success": {
+    "text": "Đã cập nhật cấu hình đăng nhập thành công"
+  },
+  "web.domains.signin.reset_to_defaults": {
+    "text": "Đặt lại về mặc định"
+  },
+  "web.domains.signin.reset_confirm": {
+    "text": "Đặt lại đăng nhập về mặc định toàn cục?"
+  },
+  "web.domains.signin.reset_keeps_sso": {
+    "text": "Thông tin xác thực SSO của bạn được giữ lại. Hãy xóa chúng riêng trên màn hình cấu hình SSO."
+  },
+  "web.domains.signin.reset_action": {
+    "text": "Có, đặt lại"
+  },
+  "web.domains.signin.reset_success": {
+    "text": "Đã đặt lại cài đặt đăng nhập về mặc định toàn cục"
+  },
+  "web.domains.signup.title": {
+    "text": "Xác thực đăng ký"
+  },
+  "web.domains.signup.config_description": {
+    "text": "Cấu hình xác thực đăng ký cho tên miền này"
+  },
+  "web.domains.signup.access_denied": {
+    "text": "Truy cập bị từ chối"
+  },
+  "web.domains.signup.upgrade_to_configure": {
+    "text": "Nâng cấp gói của bạn để cấu hình xác thực đăng ký theo từng tên miền."
+  },
+  "web.domains.signup.configure_signup": {
+    "text": "Cấu hình đăng ký"
+  },
+  "web.domains.signup.not_configured_notice": {
+    "text": "Xác thực đăng ký chưa được cấu hình cho tên miền này. Cấu hình một chiến lược để kiểm soát ai có thể đăng ký qua tên miền này."
+  },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "Việc đăng ký hiện đang bị tắt ở cấp độ trang. Chính sách theo từng tên miền này đã được cấu hình nhưng sẽ không kiểm soát lưu lượng nào cho đến khi việc đăng ký trên trang được bật."
+  },
+  "web.domains.signup.strategy_label": {
+    "text": "Chiến lược xác thực"
+  },
+  "web.domains.signup.strategy_description": {
+    "text": "Chọn cách các địa chỉ email được xác thực khi người dùng đăng ký trên tên miền này."
+  },
+  "web.domains.signup.network_validation_warning": {
+    "text": "Chiến lược này thực hiện các lệnh gọi mạng trong quá trình đăng ký, điều này có thể làm tăng độ trễ hoặc bị một số nhà cung cấp chặn."
+  },
+  "web.domains.signup.allowed_domains_label": {
+    "text": "Các tên miền đăng ký được phép"
+  },
+  "web.domains.signup.allowed_domains_hint": {
+    "text": "Chỉ những tên miền email này mới được phép đăng ký. Thêm một tên miền cho mỗi mục."
+  },
+  "web.domains.signup.domain_placeholder": {
+    "text": "example.com"
+  },
+  "web.domains.signup.invalid_domain": {
+    "text": "Vui lòng nhập một tên miền hợp lệ (ví dụ: example.com)"
+  },
+  "web.domains.signup.domain_exists": {
+    "text": "Tên miền này đã có trong danh sách"
+  },
+  "web.domains.signup.remove_domain": {
+    "text": "Xóa {domain}"
+  },
+  "web.domains.signup.enabled_label": {
+    "text": "Bật xác thực theo từng tên miền"
+  },
+  "web.domains.signup.enabled_hint": {
+    "text": "Khi được bật, việc đăng ký trên tên miền này sử dụng chiến lược ở trên thay vì chính sách toàn cục."
+  },
+  "web.domains.signup.delete_config": {
+    "text": "Xóa cấu hình"
+  },
+  "web.domains.signup.delete_confirm": {
+    "text": "Xóa cấu hình xác thực đăng ký? Việc đăng ký sẽ quay về chính sách toàn cục."
+  },
+  "web.domains.signup.save_config": {
+    "text": "Lưu cấu hình"
+  },
+  "web.domains.signup.update_success": {
+    "text": "Đã cập nhật xác thực đăng ký thành công"
+  },
+  "web.domains.signup.delete_success": {
+    "text": "Đã xóa cấu hình xác thực đăng ký thành công"
+  },
+  "web.domains.signup.domain_overrides_label": {
+    "text": "Tùy chỉnh tên miền"
+  },
+  "web.domains.signup.domain_overrides_hint": {
+    "text": "Ghi đè cài đặt đăng ký toàn cục cho tên miền này"
+  },
+  "web.domains.signup.signup_enabled_label": {
+    "text": "Đã bật đăng ký"
+  },
+  "web.domains.signup.signup_enabled_hint": {
+    "text": "Ghi đè việc đăng ký có được bật cho tên miền này hay không"
+  },
+  "web.domains.signup.autoverify_label": {
+    "text": "Tự động xác minh tài khoản"
+  },
+  "web.domains.signup.autoverify_hint": {
+    "text": "Ghi đè việc các tài khoản mới có được tự động xác minh trên tên miền này hay không"
+  },
+  "web.domains.sso.title": {
+    "text": "Đăng nhập một lần"
+  },
+  "web.domains.sso.config_title": {
+    "text": "Cấu hình SSO"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Cấu hình xác thực đăng nhập một lần cho tên miền này"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Truy cập bị từ chối"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "Bạn không có quyền quản lý cài đặt SSO cho tên miền này. Vui lòng liên hệ quản trị viên tổ chức của bạn."
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Nâng cấp gói của bạn để cấu hình đăng nhập một lần cho tên miền này."
+  },
+  "web.domains.sso.create_success": {
+    "text": "Đã tạo cấu hình SSO thành công"
+  },
+  "web.domains.sso.update_success": {
+    "text": "Đã cập nhật cấu hình SSO thành công"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "Đã xóa cấu hình SSO thành công"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Kiểm tra kết nối thành công — nhà cung cấp đã phản hồi chính xác"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Kiểm tra kết nối thất bại"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "Để yêu cầu SSO cho mọi lần đăng nhập trên tên miền này, hãy cấu hình nó trong cài đặt đăng nhập của tên miền. Chế độ chỉ SSO giới hạn trang đăng nhập ở nhà cung cấp SSO được cấu hình tại đây."
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "Cấu hình SSO"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "SSO chưa được cấu hình cho tên miền này. Bật đăng nhập một lần để cho phép các thành viên nhóm xác thực bằng nhà cung cấp danh tính của tổ chức bạn."
+  },
+  "web.domains.sso.edit_credentials": {
+    "text": "Chỉnh sửa thông tin xác thực"
+  },
+  "web.domains.sso.configure_button": {
+    "text": "Cấu hình"
+  },
+  "web.domains.sso.upgrade_required": {
+    "text": "Nâng cấp để cấu hình"
   }
 }
