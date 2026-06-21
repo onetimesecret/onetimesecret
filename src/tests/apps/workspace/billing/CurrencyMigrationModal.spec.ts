@@ -5,6 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createPinia, setActivePinia } from 'pinia';
 import CurrencyMigrationModal from '@/apps/workspace/billing/CurrencyMigrationModal.vue';
 import { createTestI18n } from '@tests/setup';
+import { createI18n } from 'vue-i18n';
 import { nextTick } from 'vue';
 
 // Mock HeadlessUI components
@@ -387,6 +388,28 @@ describe('CurrencyMigrationModal', () => {
       );
       await cancelBtn?.trigger('click');
       expect(wrapper.emitted('close')).toBeTruthy();
+    });
+  });
+
+  describe('Currency interpolation (real i18n)', () => {
+    it('renders actual currency codes via interpolation', async () => {
+      const realI18n = createI18n({
+        legacy: false,
+        locale: 'en',
+        messages: {
+          en: {
+            'web.billing.currency_migration.description': 'Switch from {from} to {to}',
+          },
+        },
+      });
+
+      wrapper = mount(CurrencyMigrationModal, {
+        props: { open: true, orgExtId: 'org_123', conflict: mockConflict },
+        global: { plugins: [realI18n, pinia] },
+      });
+      await nextTick();
+
+      expect(wrapper.text()).toContain('Switch from EUR to CAD');
     });
   });
 });
