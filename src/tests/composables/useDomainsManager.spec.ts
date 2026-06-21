@@ -133,18 +133,13 @@ vi.mock('@/shared/composables/useAsyncHandler', () => ({
   }),
 }));
 
+// ADR-014 pass-through i18n: keys render AS-IS (raw key strings), no translations.
+// This composable test mocks vue-i18n wholesale (it does not install an i18n plugin),
+// so the shared createTestI18n() helper does not apply here. The equivalent
+// pass-through is an identity t() — mirroring the helper's `missing: (_, key) => key`.
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
-    t: (key: string) => {
-      const translations: Record<string, string> = {
-        'web.domains.domain_added_successfully': 'Domain added successfully',
-        'web.domains.domain_claimed_successfully': 'Domain claimed successfully',
-        'web.domains.domain_removed_successfully': 'Domain removed successfully',
-        'web.domains.failed_to_add_domain': 'Failed to add domain',
-        'web.domains.domain_verification_initiated_successfully': 'Domain verification initiated successfully',
-      };
-      return translations[key] || key;
-    },
+    t: (key: string) => key,
   }),
   createI18n: vi.fn(() => ({
     global: {
@@ -205,7 +200,7 @@ describe('useDomainsManager', () => {
           params: { orgid: 'test-org-id', extid: newDomainData.extid },
         });
         expect(mockDependencies.notificationsStore.show).toHaveBeenCalledWith(
-          'Domain added successfully',
+          'web.domains.domain_added_successfully',
           'success',
           'top'
         );
@@ -314,7 +309,7 @@ describe('useDomainsManager', () => {
 
         expect(mockDependencies.domainsStore.deleteDomain).toHaveBeenCalledWith('domain-1');
         expect(mockDependencies.notificationsStore.show).toHaveBeenCalledWith(
-          'Domain removed successfully',
+          'web.domains.domain_removed_successfully',
           'success',
           'top'
         );
@@ -451,7 +446,7 @@ describe('useDomainsManager', () => {
       await handleAddDomain('test-domain.com');
 
       expect(error.value).toMatchObject({
-        message: 'Failed to add domain',
+        message: 'web.domains.failed_to_add_domain',
         type: 'human',
         severity: 'error',
       });
