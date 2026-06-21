@@ -1,0 +1,107 @@
+{
+  "api.organizations.errors.domain_scoped_forbidden": {
+    "text": "Участники с ограничением по домену не могут выполнить это действие"
+  },
+  "api.organizations.errors.organization_not_found": {
+    "text": "Организация не найдена: %{extid}"
+  },
+  "api.organizations.errors.organization_owner_required": {
+    "text": "Только владелец организации может выполнить это действие"
+  },
+  "api.organizations.errors.organization_member_required": {
+    "text": "Чтобы выполнить это действие, Вы должны быть участником организации"
+  },
+  "api.organizations.errors.organization_admin_required": {
+    "text": "Только владельцы и администраторы организации могут выполнить это действие"
+  },
+  "api.organizations.errors.extid_required": {
+    "text": "Требуется ID организации"
+  },
+  "api.organizations.errors.display_name_required": {
+    "text": "Название организации обязательно"
+  },
+  "api.organizations.errors.display_name_too_long": {
+    "text": "Название организации должно содержать менее %{max} символов"
+  },
+  "api.organizations.errors.description_too_long": {
+    "text": "Описание должно содержать менее %{max} символов"
+  },
+  "api.organizations.errors.contact_email_exists": {
+    "text": "Организация с таким контактным адресом электронной почты уже существует"
+  },
+  "api.organizations.errors.creation_in_progress": {
+    "text": "Создание организации выполняется. Пожалуйста, повторите попытку."
+  },
+  "api.organizations.errors.organization_limit_reached": {
+    "text": "Достигнут лимит организаций. Перейдите на более высокий план, чтобы создавать больше организаций."
+  },
+  "api.organizations.invitations.errors.invitation_not_found": {
+    "text": "Приглашение не найдено"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "Требуется адрес электронной почты"
+  },
+  "api.organizations.invitations.errors.invalid_email_format": {
+    "text": "Недействительный формат адреса электронной почты"
+  },
+  "api.organizations.invitations.errors.invalid_role": {
+    "text": "Роль должна быть «участник» или «администратор»"
+  },
+  "api.organizations.invitations.errors.cannot_invite_as_owner": {
+    "text": "Невозможно пригласить в роли владельца"
+  },
+  "api.organizations.invitations.errors.user_already_member": {
+    "text": "Пользователь уже является участником этой организации"
+  },
+  "api.organizations.invitations.errors.invitation_already_pending": {
+    "text": "Приглашение для этого адреса электронной почты уже ожидает обработки"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Достигнут лимит участников. Перейдите на более высокий план, чтобы приглашать больше участников."
+  },
+  "api.organizations.invitations.errors.resend_only_pending": {
+    "text": "Повторно отправить можно только ожидающие приглашения"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Достигнут максимальный лимит повторных отправок (%{max})"
+  },
+  "api.organizations.invitations.errors.revoke_only_pending": {
+    "text": "Отозвать можно только ожидающие приглашения"
+  },
+  "api.organizations.members.errors.member_not_found": {
+    "text": "Участник не найден: %{extid}"
+  },
+  "api.organizations.members.errors.member_not_in_organization": {
+    "text": "Участник не найден в этой организации"
+  },
+  "api.organizations.members.errors.member_not_active": {
+    "text": "Участник неактивен"
+  },
+  "api.organizations.members.errors.invalid_role_value": {
+    "text": "Недействительная роль. Должна быть одной из: %{roles}"
+  },
+  "api.organizations.members.errors.cannot_change_owner_role": {
+    "text": "Невозможно изменить роль владельца. Вместо этого используйте передачу прав владения."
+  },
+  "api.organizations.members.errors.member_already_has_role": {
+    "text": "У участника уже есть роль: %{role}"
+  },
+  "api.organizations.members.errors.cannot_promote_to_owner": {
+    "text": "Невозможно повысить до владельца. Вместо этого используйте передачу прав владения."
+  },
+  "api.organizations.members.errors.must_be_member": {
+    "text": "Вы должны быть участником этой организации"
+  },
+  "api.organizations.members.errors.cannot_remove_owner": {
+    "text": "Невозможно удалить владельца организации. Сначала передайте права владения."
+  },
+  "api.organizations.members.errors.cannot_remove_self": {
+    "text": "Невозможно удалить самого себя. Вместо этого используйте выход из организации."
+  },
+  "api.organizations.members.errors.admin_cannot_remove_admin": {
+    "text": "Администраторы не могут удалять других администраторов. Это могут делать только владельцы."
+  },
+  "api.organizations.members.errors.no_permission_to_remove": {
+    "text": "У Вас нет прав для удаления участников"
+  }
+}

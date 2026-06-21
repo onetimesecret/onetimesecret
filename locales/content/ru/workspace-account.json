@@ -476,7 +476,7 @@
     "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Узнайте, как интегрировать {product_name} в свои приложения",
+    "text": "Узнайте, как интегрировать {product_name} в Ваши приложения",
     "source_hash": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {
@@ -682,5 +682,14 @@
   "web.settings.profile.didnt_receive_email": {
     "text": "Не получили письмо?",
     "source_hash": "fe3ac3ad"
+  },
+  "web.settings.api.api_disabled_notice": {
+    "text": "API отключён для этого экземпляра."
+  },
+  "web.settings.security.sso_managed_title": {
+    "text": "Безопасность управляется через SSO"
+  },
+  "web.settings.security.sso_managed_description": {
+    "text": "Ваш аккаунт проходит аутентификацию через поставщика единого входа (SSO) вашей организации. Пароль, многофакторная аутентификация и коды восстановления управляются вашим поставщиком идентификации."
   }
 }

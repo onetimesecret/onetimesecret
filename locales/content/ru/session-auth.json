@@ -398,5 +398,32 @@
   },
   "web.auth.verify._guidance.context": {
     "text": "Процесс подтверждения электронной почты после регистрации"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "Аккаунт SSO"
+  },
+  "web.help.reset_password_link": {
+    "text": "Сбросить пароль"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "Для этого домена доступен единый вход (SSO)"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "Администратор организации может включить SSO, чтобы участники команды могли входить здесь. Обратитесь к администратору для получения доступа."
+  },
+  "web.login.signin_disabled_heading": {
+    "text": "Вход недоступен"
+  },
+  "web.login.signin_disabled_message": {
+    "text": "Вход на этом домене в настоящее время недоступен."
+  },
+  "web.login.errors.sso_not_configured": {
+    "text": "Единый вход (SSO) не настроен для этого домена. Пожалуйста, обратитесь к администратору."
+  },
+  "web.login.errors.invalid_email": {
+    "text": "Адрес электронной почты, полученный от вашего поставщика идентификации, недействителен. Пожалуйста, обратитесь к администратору."
+  },
+  "web.login.errors.domain_not_allowed": {
+    "text": "Ваш домен электронной почты не авторизован для регистрации через SSO. Пожалуйста, обратитесь к администратору."
   }
 }
