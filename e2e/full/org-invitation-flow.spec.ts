@@ -152,7 +152,7 @@ async function createInvitation(
  */
 async function getInvitationToken(page: Page, email: string): Promise<string | null> {
   const orgExtid = getCurrentOrgExtid(page);
-  const response = await page.request.get(`/api/v2/org/${orgExtid}/invitations`);
+  const response = await page.request.get(`/api/organizations/${orgExtid}/invitations`);
   const data = await response.json();
 
   const invitation = data.records?.find((inv: { email: string }) => inv.email === email);
