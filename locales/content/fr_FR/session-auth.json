@@ -398,5 +398,32 @@
   },
   "web.auth.verify._guidance.context": {
     "text": "Flux de vérification d'e-mail après inscription"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "Compte SSO"
+  },
+  "web.help.reset_password_link": {
+    "text": "Réinitialiser le mot de passe"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "L'authentification unique est disponible pour ce domaine"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "L'administrateur de l'organisation peut activer le SSO pour permettre aux membres de l'équipe de se connecter ici. Contactez l'administrateur pour obtenir l'accès."
+  },
+  "web.login.signin_disabled_heading": {
+    "text": "La connexion n'est pas disponible"
+  },
+  "web.login.signin_disabled_message": {
+    "text": "La connexion n'est actuellement pas disponible sur ce domaine."
+  },
+  "web.login.errors.sso_not_configured": {
+    "text": "L'authentification unique n'est pas configurée pour ce domaine. Veuillez contacter votre administrateur."
+  },
+  "web.login.errors.invalid_email": {
+    "text": "L'adresse e-mail provenant de votre fournisseur d'identité est invalide. Veuillez contacter votre administrateur."
+  },
+  "web.login.errors.domain_not_allowed": {
+    "text": "Votre domaine de messagerie n'est pas autorisé pour l'inscription via SSO. Veuillez contacter votre administrateur."
   }
 }
