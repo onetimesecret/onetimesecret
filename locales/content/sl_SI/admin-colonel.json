@@ -634,5 +634,152 @@
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
     "text": "Ko pošljete povratne informacije, bomo videli:",
     "source_hash": "fe77172e"
+  },
+  "web.colonel.previewPlanMode": {
+    "text": "Način predogleda paketa"
+  },
+  "web.colonel.previewModeDescription": {
+    "text": "Predoglejte si aplikacijo, kot je videti strankam na drugem paketu. To vpliva samo na vaš pogled in ne spremeni dejanskega paketa nobene organizacije."
+  },
+  "web.colonel.previewModeActive": {
+    "text": "Predogled aktiven"
+  },
+  "web.colonel.bannedIps.empty": {
+    "text": "Ni blokiranih naslovov IP"
+  },
+  "web.colonel.bannedIps.currentIp": {
+    "text": "Vaš trenutni naslov IP"
+  },
+  "web.colonel.bannedIps.confirmUnban": {
+    "text": "Odblokiraj {ip}?"
+  },
+  "web.colonel.bannedIps.actions.ban": {
+    "text": "Blokiraj IP"
+  },
+  "web.colonel.bannedIps.actions.quickBan": {
+    "text": "Hitra blokada"
+  },
+  "web.colonel.bannedIps.actions.unban": {
+    "text": "Odblokiraj"
+  },
+  "web.colonel.bannedIps.actions.cancel": {
+    "text": "Prekliči"
+  },
+  "web.colonel.bannedIps.columns.ipAddress": {
+    "text": "Naslov IP"
+  },
+  "web.colonel.bannedIps.columns.reason": {
+    "text": "Razlog"
+  },
+  "web.colonel.bannedIps.columns.bannedAt": {
+    "text": "Blokirano dne"
+  },
+  "web.colonel.bannedIps.columns.bannedBy": {
+    "text": "Blokiral"
+  },
+  "web.colonel.bannedIps.error.banFailed": {
+    "text": "Blokiranje naslova IP ni uspelo"
+  },
+  "web.colonel.bannedIps.error.unbanFailed": {
+    "text": "Odblokiranje naslova IP ni uspelo"
+  },
+  "web.colonel.bannedIps.form.title": {
+    "text": "Blokiraj naslov IP"
+  },
+  "web.colonel.bannedIps.form.ipLabel": {
+    "text": "Naslov IP"
+  },
+  "web.colonel.bannedIps.form.reasonLabel": {
+    "text": "Razlog"
+  },
+  "web.colonel.bannedIps.form.reasonPlaceholder": {
+    "text": "Neobvezen razlog"
+  },
+  "web.colonel.bannedIps.success.banned": {
+    "text": "Naslov IP {ip} je bil blokiran"
+  },
+  "web.colonel.bannedIps.success.unbanned": {
+    "text": "Naslov IP {ip} je bil odblokiran"
+  },
+  "web.colonel.customDomains.empty": {
+    "text": "Ni nastavljenih domen po meri"
+  },
+  "web.colonel.customDomains.noLogo": {
+    "text": "Brez logotipa"
+  },
+  "web.colonel.customDomains.labels.organization": {
+    "text": "Organizacija"
+  },
+  "web.colonel.customDomains.labels.externalId": {
+    "text": "Zunanji ID"
+  },
+  "web.colonel.customDomains.labels.created": {
+    "text": "Ustvarjeno"
+  },
+  "web.colonel.customDomains.labels.updated": {
+    "text": "Posodobljeno"
+  },
+  "web.colonel.customDomains.labels.favicon": {
+    "text": "Favicon"
+  },
+  "web.colonel.customDomains.status.verified": {
+    "text": "Preverjeno"
+  },
+  "web.colonel.customDomains.status.resolving": {
+    "text": "Razreševanje"
+  },
+  "web.colonel.customDomains.status.ready": {
+    "text": "Pripravljeno"
+  },
+  "web.colonel.customDomains.status.publicHomepage": {
+    "text": "Javna domača stran"
+  },
+  "web.colonel.customDomains.status.publicApi": {
+    "text": "Javni API"
+  },
+  "web.colonel.customDomains.status.pending": {
+    "text": "V čakanju"
+  },
+  "web.colonel.pagination.showing": {
+    "text": "Prikaz {start}–{end} od {total}"
+  },
+  "web.colonel.pagination.itemsPerPage": {
+    "text": "Elementov na stran"
+  },
+  "web.colonel.pagination.perPage": {
+    "text": "{count} na stran"
+  },
+  "web.colonel.pagination.pageOf": {
+    "text": "Stran {current} od {total}"
+  },
+  "web.colonel.secrets.empty": {
+    "text": "Ni najdenih skrivnosti"
+  },
+  "web.colonel.secrets.never": {
+    "text": "Nikoli"
+  },
+  "web.colonel.secrets.columns.shortId": {
+    "text": "Kratki ID"
+  },
+  "web.colonel.secrets.columns.state": {
+    "text": "Stanje"
+  },
+  "web.colonel.secrets.columns.created": {
+    "text": "Ustvarjeno"
+  },
+  "web.colonel.secrets.columns.expiration": {
+    "text": "Potek"
+  },
+  "web.colonel.secrets.columns.age": {
+    "text": "Starost (dni)"
+  },
+  "web.colonel.secrets.state.new": {
+    "text": "Novo"
+  },
+  "web.colonel.secrets.state.received": {
+    "text": "Prejeto"
+  },
+  "web.colonel.secrets.state.viewed": {
+    "text": "Ogledano"
   }
 }

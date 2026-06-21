@@ -1,0 +1,71 @@
+{
+  "api.entitlements.errors.context_unavailable": {
+    "text": "Upravičenj ni mogoče preveriti (kontekst organizacije ni na voljo)"
+  },
+  "api.entitlements.errors.api_access_required": {
+    "text": "Dostop do API-ja zahteva nadgradnjo paketa"
+  },
+  "api.entitlements.errors.custom_privacy_defaults_required": {
+    "text": "Privzete nastavitve zasebnosti po meri zahtevajo nadgradnjo paketa"
+  },
+  "api.entitlements.errors.extended_default_expiration_required": {
+    "text": "Razširjen privzeti rok poteka zahteva nadgradnjo paketa"
+  },
+  "api.entitlements.errors.custom_domains_required": {
+    "text": "Lastne domene zahtevajo nadgradnjo paketa"
+  },
+  "api.entitlements.errors.custom_branding_required": {
+    "text": "Blagovna znamka po meri zahteva nadgradnjo paketa"
+  },
+  "api.entitlements.errors.homepage_secrets_required": {
+    "text": "Skrivnosti na domači strani zahtevajo nadgradnjo paketa"
+  },
+  "api.entitlements.errors.incoming_secrets_required": {
+    "text": "Dohodne skrivnosti zahtevajo nadgradnjo paketa"
+  },
+  "api.entitlements.errors.custom_mail_sender_required": {
+    "text": "Lasten pošiljatelj e-pošte zahteva nadgradnjo paketa"
+  },
+  "api.entitlements.errors.flexible_from_domain_required": {
+    "text": "Prilagodljiva domena pošiljatelja zahteva nadgradnjo paketa"
+  },
+  "api.entitlements.errors.manage_org_required": {
+    "text": "Upravljanje organizacije zahteva nadgradnjo paketa"
+  },
+  "api.entitlements.errors.manage_teams_required": {
+    "text": "Upravljanje ekip zahteva nadgradnjo paketa"
+  },
+  "api.entitlements.errors.manage_members_required": {
+    "text": "Upravljanje članov zahteva nadgradnjo paketa"
+  },
+  "api.entitlements.errors.manage_sso_required": {
+    "text": "Upravljanje SSO zahteva nadgradnjo paketa"
+  },
+  "api.entitlements.errors.audit_logs_required": {
+    "text": "Revizijski dnevniki zahtevajo nadgradnjo paketa"
+  },
+  "api.entitlements.errors.custom_signup_validation_required": {
+    "text": "Preverjanje registracije po meri zahteva nadgradnjo paketa"
+  },
+  "api.entitlements.errors.create_secrets_required": {
+    "text": "Ustvarjanje skrivnosti zahteva nadgradnjo paketa"
+  },
+  "api.entitlements.errors.view_receipt_required": {
+    "text": "Ogled potrdil zahteva nadgradnjo paketa"
+  },
+  "api.entitlements.errors.notifications_required": {
+    "text": "Obvestila zahtevajo nadgradnjo paketa"
+  },
+  "api.entitlements.errors.workspace_branding_required": {
+    "text": "Blagovna znamka delovnega prostora zahteva nadgradnjo paketa"
+  },
+  "api.entitlements.errors.ip_access_rules_required": {
+    "text": "Pravila dostopa po IP zahtevajo nadgradnjo paketa"
+  },
+  "api.entitlements.errors.manage_billing_required": {
+    "text": "Upravljanje obračunavanja zahteva nadgradnjo paketa"
+  },
+  "api.entitlements.errors.custom_signin_config_required": {
+    "text": "Konfiguracija prijave po meri zahteva nadgradnjo paketa"
+  }
+}

@@ -22,5 +22,14 @@
   "web.dashboard.fetch_error_description": {
     "text": "Pri nalaganju vaših podatkov je prišlo do težave. Poskusite znova.",
     "source_hash": "ff0d904e"
+  },
+  "web.teams.create_first_team_title": {
+    "text": "Ustvarite svojo prvo ekipo"
+  },
+  "web.teams.create_first_team_description": {
+    "text": "Ekipe vam omogočajo sodelovanje z drugimi v skupnem delovnem prostoru."
+  },
+  "web.teams.create_team": {
+    "text": "Ustvari ekipo"
   }
 }

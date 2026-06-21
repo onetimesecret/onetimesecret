@@ -398,5 +398,725 @@
   "web.domains.dns_widget_description": {
     "text": "Uporabite spodnje orodje za samodejno zaznavo vašega ponudnika DNS in pridobite navodila po korakih za konfiguracijo vaše domene.",
     "source_hash": "91c1af2e"
+  },
+  "api.domains.errors.add_admin_required": {
+    "text": "Samo lastniki in skrbniki organizacije lahko dodajo domene po meri"
+  },
+  "web.domains.public_homepage": {
+    "text": "Javna domača stran"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Domena preverjena in aktivna"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS ni konfiguriran — kliknite za popravilo"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Domena ni preverjena — kliknite za preverjanje"
+  },
+  "web.domains.status_tooltip_unverified": {
+    "text": "Stanje domene ni preverjeno — kliknite za osvežitev"
+  },
+  "web.domains.last_check_failed": {
+    "text": "Zadnje preverjanje ni uspelo"
+  },
+  "web.domains.last_check_failed_ago": {
+    "text": "zadnje preverjanje ni uspelo {0}"
+  },
+  "web.domains.verify_now": {
+    "text": "Preveri zdaj"
+  },
+  "web.domains.click_to_verify": {
+    "text": "kliknite za preverjanje"
+  },
+  "web.domains.remove_domain_description": {
+    "text": "Trajno odstranite to domeno in vso njeno konfiguracijo."
+  },
+  "web.domains.add_access_denied": {
+    "text": "Dostop zavrnjen"
+  },
+  "web.domains.add_access_denied_description": {
+    "text": "Nimate dovoljenja za dodajanje domen v to organizacijo. Obrnite se na skrbnika svoje organizacije."
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "Orodja DNS ni bilo mogoče naložiti"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "Orodje DNS ni na voljo"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "Orodja DNS ni bilo mogoče inicializirati"
+  },
+  "web.domains.verified": {
+    "text": "Preverjeno"
+  },
+  "web.domains.pending_verification": {
+    "text": "Čaka na preverjanje"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Imate neshranjene spremembe. Ali ste prepričani, da želite zapustiti stran?"
+  },
+  "web.domains.entitlement_required_owner": {
+    "text": "Ta funkcija zahteva nadgradnjo paketa."
+  },
+  "web.domains.entitlement_required_member": {
+    "text": "Ta funkcija ni na voljo v vašem trenutnem paketu. Obrnite se na lastnika svoje organizacije."
+  },
+  "web.domains.detail.manage": {
+    "text": "Upravljanje"
+  },
+  "web.domains.detail.features": {
+    "text": "Funkcije"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Skrivnosti na domači strani"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Dovolite javni dostop za ustvarjanje skrivnosti na domači strani vaše domene"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logotip, barve in lastna blagovna znamka"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Nastavitve ponudnika enotne prijave (SSO)"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Konfiguracija pošiljatelja e-pošte po meri"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Nastavitve prejemnika dohodnih skrivnosti"
+  },
+  "web.domains.detail.signup_description": {
+    "text": "Strategija preverjanja registracije za posamezno domeno"
+  },
+  "web.domains.detail.signin_description": {
+    "text": "Konfiguracija načina prijave za posamezno domeno"
+  },
+  "web.domains.email.title": {
+    "text": "Pošiljanje e-pošte"
+  },
+  "web.domains.email.config_title": {
+    "text": "Konfiguracija e-pošte"
+  },
+  "web.domains.email.config_description": {
+    "text": "Konfigurirajte pošiljanje e-pošte za to domeno"
+  },
+  "web.domains.email.provider_label": {
+    "text": "Ponudnik e-pošte"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "Izberite ponudnika e-pošte"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "Ime pošiljatelja"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "npr. Acme Security"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "Naslov pošiljatelja"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "npr. secrets{'@'}example.com"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Naslov za odgovor"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "npr. support{'@'}example.com"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Shrani spremembe"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Zavrzi spremembe"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Uporabi privzete nastavitve računa"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "Zahteva preverjanje domene prek zapisov DKIM in SPF"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Zahteva nastavitev avtentikacije domene"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Zahteva preverjanje domene"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "Uporablja privzeto konfiguracijo pošiljanja e-pošte vašega računa"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "Zapisi DNS"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "Dodajte naslednje zapise DNS za preverjanje svoje domene za pošiljanje e-pošte."
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Tip"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Ime"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Vrednost"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Ponudnik"
+  },
+  "web.domains.email.dns_optional_label": {
+    "text": "Priporočeno"
+  },
+  "web.domains.email.dns_optional_hint": {
+    "text": "Ta zapis je priporočen, vendar ni obvezen za preverjanje. Pravilnik DMARC pri vaši organizacijski domeni morda že pokriva to poddomeno."
+  },
+  "web.domains.email.copy": {
+    "text": "Kopiraj"
+  },
+  "web.domains.email.copied": {
+    "text": "Kopirano"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Preverjeno"
+  },
+  "web.domains.email.status_pending": {
+    "text": "V obdelavi"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Neuspešno"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Ponovno preveri"
+  },
+  "web.domains.email.validating": {
+    "text": "Preverjanje ..."
+  },
+  "web.domains.email.domain_verified": {
+    "text": "Domena preverjena"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "Preverjanje ni uspelo"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Zadnjič preverjeno"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Nadgradite svoj paket za konfiguracijo pošiljanja e-pošte za to domeno."
+  },
+  "web.domains.email.configure_email": {
+    "text": "Konfiguriraj e-pošto"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Dostop zavrnjen"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "Nimate dovoljenja za upravljanje nastavitev e-pošte za to domeno. Obrnite se na skrbnika svoje organizacije."
+  },
+  "web.domains.email.update_success": {
+    "text": "Konfiguracija e-pošte uspešno shranjena"
+  },
+  "web.domains.email.delete_success": {
+    "text": "Konfiguracija e-pošte uspešno odstranjena"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "E-poštna sporočila za to domeno se trenutno pošiljajo z globalnega pošiljatelja. Dokončajte konfiguracijo e-pošte, da uporabite lastno identiteto pošiljatelja."
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "Pošiljanje e-pošte po meri je trenutno onemogočeno. E-poštna sporočila bodo poslana z globalnega pošiljatelja. Omogočite spodnjo funkcijo, da uporabite svojo lastno identiteto pošiljatelja."
+  },
+  "web.domains.email.test_email_title": {
+    "text": "Preizkus dostave e-pošte"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Pošljite si preizkusno e-poštno sporočilo z uporabo shranjene konfiguracije. Deluje tudi, ko funkcija še ni omogočena."
+  },
+  "web.domains.email.send_test": {
+    "text": "Pošlji preizkus"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Preizkusno e-poštno sporočilo uspešno poslano"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Preizkusnega e-poštnega sporočila ni bilo mogoče poslati"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Poslano na {email}"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Dostavljeno prek {provider}"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "Ni konfigurirano"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "Uporablja privzetega pošiljatelja"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Preverjeno"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Čaka na preverjanje"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Onemogočeno"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "Pošiljatelj e-pošte ni konfiguriran — e-poštna sporočila uporabljajo privzetega pošiljatelja platforme"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "Konfiguracija pošiljatelja e-pošte čaka na preverjanje — e-poštna sporočila uporabljajo privzetega pošiljatelja platforme"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "Pošiljatelj e-pošte je onemogočen — e-poštna sporočila uporabljajo privzetega pošiljatelja platforme"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "Pošiljatelj e-pošte je preverjen — e-poštna sporočila se pošiljajo s te domene"
+  },
+  "web.domains.incoming.title": {
+    "text": "Dohodne skrivnosti"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Konfiguracija dohodnih skrivnosti"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Zunanjim uporabnikom omogočite, da pošljejo skrivnosti neposredno določenim prejemnikom na tej domeni"
+  },
+  "web.domains.incoming.feature_disabled": {
+    "text": "Dohodne skrivnosti niso na voljo"
+  },
+  "web.domains.incoming.feature_disabled_description": {
+    "text": "Dohodne skrivnosti na tej instanci niso omogočene. Obrnite se na svojega skrbnika."
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Dostop zavrnjen"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "Nimate dovoljenja za upravljanje nastavitev dohodnih skrivnosti za to domeno. Obrnite se na skrbnika svoje organizacije."
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Nadgradite paket, da boste lahko konfigurirali dohodne skrivnosti za to domeno."
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Konfiguriraj dohodne skrivnosti"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "Dohodne skrivnosti za to domeno niso konfigurirane. Dodajte prejemnike, da boste zunanjim uporabnikom omogočili pošiljanje skrivnosti vaši ekipi."
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "Dohodne skrivnosti so trenutno onemogočene. Zunanji uporabniki ne morejo pošiljati skrivnosti prejemnikom na tej domeni. Spodaj omogočite funkcijo, da dovolite dohodne skrivnosti."
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Prejemniki"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Določite, kdo lahko prejema dohodne skrivnosti na tej domeni. Prejemniki bodo prejeli e-poštno obvestilo, ko jim bo poslana skrivnost."
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Dodaj prejemnika"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Odstrani"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "E-poštni naslov"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "recipient{'@'}example.com"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Prikazno ime"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "npr. Varnostna ekipa"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "Ni konfiguriranih prejemnikov"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Dodajte prejemnike, da boste zunanjim uporabnikom omogočili pošiljanje skrivnosti vaši ekipi."
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Neveljaven e-poštni naslov"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "Ta e-poštni naslov je že dodan"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "Dovoljenih je največ {max} prejemnikov"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "Prikazno ime je obvezno"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "E-poštni naslov je obvezen"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Shrani spremembe"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Zavrzi spremembe"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "Konfiguracija dohodnih skrivnosti je bila uspešno shranjena"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "Konfiguracija dohodnih skrivnosti je bila uspešno odstranjena"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} prejemnik | {count} prejemnikov"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "Ni konfigurirano"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Konfigurirano"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Onemogočeno"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "Dohodne skrivnosti niso konfigurirane – zunanji uporabniki ne morejo pošiljati skrivnosti na to domeno"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "Dohodne skrivnosti so omogočene z {count} prejemniki"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "Funkcija dohodnih skrivnosti je za to domeno onemogočena"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Omogoči dohodne skrivnosti"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Zunanjim uporabnikom omogočite pošiljanje skrivnosti prejemnikom na tej domeni"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "Javni URL"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Ta URL delite z zunanjimi uporabniki, da jim omogočite pošiljanje skrivnosti"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "Kopiraj URL"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "URL kopiran v odložišče"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Ali ste prepričani, da želite odstraniti vse prejemnike? Zunanji uporabniki ne bodo več mogli pošiljati skrivnosti na to domeno."
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Doseženo je največje število prejemnikov"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "Ta e-poštni naslov je že dodan"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "S shranjevanjem boste vse obstoječe prejemnike zamenjali s svojimi neshranjenimi spremembami. Ali ste prepričani?"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Izbriši vse prejemnike"
+  },
+  "web.domains.signin.title": {
+    "text": "Konfiguracija prijave"
+  },
+  "web.domains.signin.configure_signin": {
+    "text": "Konfiguriraj prijavo"
+  },
+  "web.domains.signin.config_description": {
+    "text": "Konfigurirajte metode avtentikacije za prijavo na tej domeni"
+  },
+  "web.domains.signin.access_denied": {
+    "text": "Dostop zavrnjen"
+  },
+  "web.domains.signin.upgrade_to_configure": {
+    "text": "Nadgradite paket, da boste lahko konfigurirali metode prijave za to domeno."
+  },
+  "web.domains.signin.not_configured_notice": {
+    "text": "Konfiguracija prijave za to domeno še ni nastavljena. Konfigurirajte preglasitve, da nadzorujete, katere metode avtentikacije so na voljo na prijavni strani te domene."
+  },
+  "web.domains.signin.signin_enabled_label": {
+    "text": "Prijava omogočena"
+  },
+  "web.domains.signin.header_toggle_label": {
+    "text": "Prijava"
+  },
+  "web.domains.signin.signin_enabled_hint": {
+    "text": "Ali se lahko uporabniki prijavijo na tej domeni"
+  },
+  "web.domains.signin.restrict_to_label": {
+    "text": "Omeji metodo prijave"
+  },
+  "web.domains.signin.restrict_to_hint": {
+    "text": "Omejite to domeno na eno samo metodo avtentikacije. Ko je nastavljena, je na prijavni strani prikazana samo izbrana metoda."
+  },
+  "web.domains.signin.all_methods": {
+    "text": "Vse metode"
+  },
+  "web.domains.signin.all_methods_description": {
+    "text": "Na prijavni strani prikaži vse omogočene metode avtentikacije"
+  },
+  "web.domains.signin.method_password": {
+    "text": "Geslo"
+  },
+  "web.domains.signin.method_email_auth": {
+    "text": "Avtentikacija po e-pošti"
+  },
+  "web.domains.signin.method_webauthn": {
+    "text": "WebAuthn / Ključi za dostop"
+  },
+  "web.domains.signin.method_sso": {
+    "text": "Enotna prijava (SSO)"
+  },
+  "web.domains.signin.method_overrides_label": {
+    "text": "Preglasitve metod"
+  },
+  "web.domains.signin.method_overrides_hint": {
+    "text": "Omogočite ali onemogočite posamezne metode avtentikacije za to domeno"
+  },
+  "web.domains.signin.mode_question": {
+    "text": "Kako se lahko uporabniki prijavijo?"
+  },
+  "web.domains.signin.mode_any": {
+    "text": "Katera koli razpoložljiva metoda"
+  },
+  "web.domains.signin.mode_any_hint": {
+    "text": "Prikaži vsako metodo, ki je na voljo na tej domeni. Spodaj omejite posamezne metode."
+  },
+  "web.domains.signin.mode_one": {
+    "text": "Ena določena metoda"
+  },
+  "web.domains.signin.mode_one_hint": {
+    "text": "Omejite prijavno stran na eno samo metodo. Naštete so samo metode, ki so na voljo na tej domeni."
+  },
+  "web.domains.signin.mode_disabled": {
+    "text": "Prijava onemogočena"
+  },
+  "web.domains.signin.mode_disabled_hint": {
+    "text": "Uporabniki se na tej domeni ne morejo prijaviti."
+  },
+  "web.domains.signin.mode_disabled_notice": {
+    "text": "Obiskovalci prijavne strani te domene vidijo obvestilo, da prijava ni na voljo, s povezavo nazaj na domačo stran. Vaše prejšnje nastavitve metod se ohranijo in obnovijo, ko ponovno omogočite prijavo."
+  },
+  "web.domains.signin.methods_list_label": {
+    "text": "Metode, prikazane na prijavni strani"
+  },
+  "web.domains.signin.restrict_picker_hint": {
+    "text": "Naštete so samo metode, ki so na voljo na tej domeni."
+  },
+  "web.domains.signin.availability_always": {
+    "text": "Vedno na voljo"
+  },
+  "web.domains.signin.availability_global_on": {
+    "text": "Sledi globalnemu pravilniku · Vklopljeno"
+  },
+  "web.domains.signin.availability_global_off": {
+    "text": "Ni na voljo"
+  },
+  "web.domains.signin.availability_unavailable": {
+    "text": "Ni na voljo na celotnem spletnem mestu"
+  },
+  "web.domains.signin.allow_on_domain": {
+    "text": "Dovoli na tej domeni"
+  },
+  "web.domains.signin.method_password_blurb": {
+    "text": "Samo geslo"
+  },
+  "web.domains.signin.method_email_auth_blurb": {
+    "text": "Prijava brez gesla z magično povezavo"
+  },
+  "web.domains.signin.method_webauthn_blurb": {
+    "text": "Biometrija in varnostni ključi"
+  },
+  "web.domains.signin.method_sso_blurb": {
+    "text": "Zunanji ponudnik identitete"
+  },
+  "web.domains.signin.email_auth_label": {
+    "text": "Avtentikacija po e-pošti"
+  },
+  "web.domains.signin.email_auth_hint": {
+    "text": "Dovoli avtentikacijo po e-pošti brez gesla na tej domeni"
+  },
+  "web.domains.signin.sso_enabled_label": {
+    "text": "Enotna prijava (SSO)"
+  },
+  "web.domains.signin.sso_enabled_hint": {
+    "text": "Dovoli avtentikacijo SSO na tej domeni"
+  },
+  "web.domains.signin.enabled_label": {
+    "text": "Omogoči konfiguracijo prijave"
+  },
+  "web.domains.signin.enabled_hint": {
+    "text": "Ko je omogočeno, ta domena uporablja zgoraj konfigurirane nastavitve prijave"
+  },
+  "web.domains.signin.save_config": {
+    "text": "Shrani konfiguracijo"
+  },
+  "web.domains.signin.update_success": {
+    "text": "Konfiguracija prijave je bila uspešno posodobljena"
+  },
+  "web.domains.signin.reset_to_defaults": {
+    "text": "Ponastavi na privzete vrednosti"
+  },
+  "web.domains.signin.reset_confirm": {
+    "text": "Ponastavi prijavo na globalne privzete vrednosti?"
+  },
+  "web.domains.signin.reset_keeps_sso": {
+    "text": "Vaše poverilnice SSO se ohranijo. Odstranite jih ločeno na zaslonu za konfiguracijo SSO."
+  },
+  "web.domains.signin.reset_action": {
+    "text": "Da, ponastavi"
+  },
+  "web.domains.signin.reset_success": {
+    "text": "Nastavitve prijave so bile ponastavljene na globalne privzete vrednosti"
+  },
+  "web.domains.signup.title": {
+    "text": "Preverjanje registracije"
+  },
+  "web.domains.signup.config_description": {
+    "text": "Konfigurirajte preverjanje registracije za to domeno"
+  },
+  "web.domains.signup.access_denied": {
+    "text": "Dostop zavrnjen"
+  },
+  "web.domains.signup.upgrade_to_configure": {
+    "text": "Nadgradite paket, da boste lahko konfigurirali preverjanje registracije za posamezno domeno."
+  },
+  "web.domains.signup.configure_signup": {
+    "text": "Konfiguriraj registracijo"
+  },
+  "web.domains.signup.not_configured_notice": {
+    "text": "Preverjanje registracije za to domeno še ni konfigurirano. Konfigurirajte strategijo, da nadzorujete, kdo se lahko registrira prek te domene."
+  },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "Registracije so trenutno onemogočene na ravni spletnega mesta. Ta pravilnik za posamezno domeno je konfiguriran, vendar ne bo omejeval nobenega prometa, dokler registracije spletnega mesta niso omogočene."
+  },
+  "web.domains.signup.strategy_label": {
+    "text": "Strategija preverjanja"
+  },
+  "web.domains.signup.strategy_description": {
+    "text": "Izberite, kako se e-poštni naslovi preverjajo, ko se uporabniki registrirajo na tej domeni."
+  },
+  "web.domains.signup.network_validation_warning": {
+    "text": "Ta strategija med registracijo izvaja omrežne klice, kar lahko poveča zakasnitev ali ga nekateri ponudniki blokirajo."
+  },
+  "web.domains.signup.allowed_domains_label": {
+    "text": "Dovoljene domene za registracijo"
+  },
+  "web.domains.signup.allowed_domains_hint": {
+    "text": "Registracija bo dovoljena samo s teh e-poštnih domen. Dodajte eno domeno na vnos."
+  },
+  "web.domains.signup.domain_placeholder": {
+    "text": "example.com"
+  },
+  "web.domains.signup.invalid_domain": {
+    "text": "Vnesite veljavno domeno (npr. example.com)"
+  },
+  "web.domains.signup.domain_exists": {
+    "text": "Ta domena je že na seznamu"
+  },
+  "web.domains.signup.remove_domain": {
+    "text": "Odstrani {domain}"
+  },
+  "web.domains.signup.enabled_label": {
+    "text": "Omogoči preverjanje za posamezno domeno"
+  },
+  "web.domains.signup.enabled_hint": {
+    "text": "Ko je omogočeno, registracije na tej domeni namesto globalnega pravilnika uporabljajo zgornjo strategijo."
+  },
+  "web.domains.signup.delete_config": {
+    "text": "Izbriši konfiguracijo"
+  },
+  "web.domains.signup.delete_confirm": {
+    "text": "Izbriši konfiguracijo preverjanja registracije? Registracije se bodo vrnile na globalni pravilnik."
+  },
+  "web.domains.signup.save_config": {
+    "text": "Shrani konfiguracijo"
+  },
+  "web.domains.signup.update_success": {
+    "text": "Preverjanje registracije je bilo uspešno posodobljeno"
+  },
+  "web.domains.signup.delete_success": {
+    "text": "Konfiguracija preverjanja registracije je bila uspešno odstranjena"
+  },
+  "web.domains.signup.domain_overrides_label": {
+    "text": "Preglasitve domene"
+  },
+  "web.domains.signup.domain_overrides_hint": {
+    "text": "Preglasi globalne nastavitve registracije za to domeno"
+  },
+  "web.domains.signup.signup_enabled_label": {
+    "text": "Registracija omogočena"
+  },
+  "web.domains.signup.signup_enabled_hint": {
+    "text": "Preglasi, ali je registracija omogočena za to domeno"
+  },
+  "web.domains.signup.autoverify_label": {
+    "text": "Samodejno preveri račune"
+  },
+  "web.domains.signup.autoverify_hint": {
+    "text": "Preglasi, ali se novi računi na tej domeni samodejno preverijo"
+  },
+  "web.domains.sso.title": {
+    "text": "Enotna prijava (SSO)"
+  },
+  "web.domains.sso.config_title": {
+    "text": "Konfiguracija SSO"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Konfigurirajte avtentikacijo z enotno prijavo (SSO) za to domeno"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Dostop zavrnjen"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "Nimate dovoljenja za upravljanje nastavitev SSO za to domeno. Obrnite se na skrbnika svoje organizacije."
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Nadgradite paket, da boste lahko konfigurirali enotno prijavo (SSO) za to domeno."
+  },
+  "web.domains.sso.create_success": {
+    "text": "Konfiguracija SSO je bila uspešno ustvarjena"
+  },
+  "web.domains.sso.update_success": {
+    "text": "Konfiguracija SSO je bila uspešno posodobljena"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "Konfiguracija SSO je bila uspešno odstranjena"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Preizkus povezave je uspel — ponudnik se je pravilno odzval"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Preizkus povezave ni uspel"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "Če želite zahtevati SSO za vse prijave na tej domeni, ga konfigurirajte v nastavitvah prijave za domeno. Način samo SSO omeji prijavno stran na ponudnika SSO, konfiguriranega tukaj."
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "Konfiguriraj SSO"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "SSO za to domeno še ni konfiguriran. Omogočite enotno prijavo (SSO), da članom ekipe omogočite avtentikacijo prek ponudnika identitete vaše organizacije."
+  },
+  "web.domains.sso.edit_credentials": {
+    "text": "Uredi poverilnice"
+  },
+  "web.domains.sso.configure_button": {
+    "text": "Konfiguriraj"
+  },
+  "web.domains.sso.upgrade_required": {
+    "text": "Nadgradi za konfiguracijo"
   }
 }

@@ -395,5 +395,35 @@
   "web.help.contact_support": {
     "text": "Obrnite se na podporo",
     "source_hash": "f8d47b82"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "Račun SSO"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Email verification flow after signup"
+  },
+  "web.help.reset_password_link": {
+    "text": "Ponastavi geslo"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "Enotna prijava (SSO) je na voljo za to domeno"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "Skrbnik organizacije lahko omogoči SSO, da se člani ekipe lahko prijavijo tukaj. Za dostop se obrnite na skrbnika."
+  },
+  "web.login.signin_disabled_heading": {
+    "text": "Prijava ni na voljo"
+  },
+  "web.login.signin_disabled_message": {
+    "text": "Prijava trenutno ni na voljo na tej domeni."
+  },
+  "web.login.errors.sso_not_configured": {
+    "text": "Enotna prijava (SSO) za to domeno ni nastavljena. Obrnite se na svojega skrbnika."
+  },
+  "web.login.errors.invalid_email": {
+    "text": "E-poštni naslov vašega ponudnika identitete ni veljaven. Obrnite se na svojega skrbnika."
+  },
+  "web.login.errors.domain_not_allowed": {
+    "text": "Vaša e-poštna domena ni pooblaščena za registracijo prek SSO. Obrnite se na svojega skrbnika."
   }
 }
