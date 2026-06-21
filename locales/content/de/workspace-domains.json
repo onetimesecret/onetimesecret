@@ -846,5 +846,389 @@
   "web.domains.sso.not_configured_notice": {
     "text": "SSO ist für diese Domain noch nicht konfiguriert. Aktiviere Single Sign-On, um Teammitgliedern die Authentifizierung über den Identitätsanbieter deiner Organisation zu ermöglichen.",
     "source_hash": "c439214b"
+  },
+  "api.domains.errors.add_admin_required": {
+    "text": "Nur Inhaber und Admins der Organisation können benutzerdefinierte Domains hinzufügen"
+  },
+  "web.domains.public_homepage": {
+    "text": "Öffentliche Startseite"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Domain verifiziert und aktiv"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS nicht konfiguriert — zum Beheben klicken"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Domain nicht verifiziert — zum Verifizieren klicken"
+  },
+  "web.domains.status_tooltip_unverified": {
+    "text": "Domain-Status nicht verifiziert — zum Aktualisieren klicken"
+  },
+  "web.domains.last_check_failed": {
+    "text": "Letzte Verifizierungsprüfung fehlgeschlagen"
+  },
+  "web.domains.last_check_failed_ago": {
+    "text": "letzte Prüfung fehlgeschlagen {0}"
+  },
+  "web.domains.verify_now": {
+    "text": "Jetzt verifizieren"
+  },
+  "web.domains.click_to_verify": {
+    "text": "zum Verifizieren klicken"
+  },
+  "web.domains.remove_domain_description": {
+    "text": "Diese Domain und ihre gesamte Konfiguration dauerhaft entfernen."
+  },
+  "web.domains.add_access_denied": {
+    "text": "Zugriff verweigert"
+  },
+  "web.domains.add_access_denied_description": {
+    "text": "Du hast keine Berechtigung, Domains zu dieser Organisation hinzuzufügen. Wende dich an deinen Organisationsadministrator."
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "DNS-Widget konnte nicht geladen werden"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "DNS-Widget nicht verfügbar"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "DNS-Widget konnte nicht initialisiert werden"
+  },
+  "web.domains.verified": {
+    "text": "Verifiziert"
+  },
+  "web.domains.pending_verification": {
+    "text": "Verifizierung ausstehend"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Du hast ungespeicherte Änderungen. Möchtest du die Seite wirklich verlassen?"
+  },
+  "web.domains.entitlement_required_owner": {
+    "text": "Diese Funktion erfordert ein Tarif-Upgrade."
+  },
+  "web.domains.entitlement_required_member": {
+    "text": "Diese Funktion ist in deinem aktuellen Tarif nicht verfügbar. Wende dich an den Inhaber deiner Organisation."
+  },
+  "web.domains.detail.manage": {
+    "text": "Verwalten"
+  },
+  "web.domains.detail.features": {
+    "text": "Features"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Startseiten-Nachrichten"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Öffentlichen Zugriff erlauben, um Nachrichten auf der Startseite deiner Domain zu erstellen"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logo, Farben und eigenes Branding"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Einstellungen für den Single-Sign-On-Anbieter"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Konfiguration für eigenen E-Mail-Absender"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Empfängereinstellungen für eingehende Nachrichten"
+  },
+  "web.domains.detail.signup_description": {
+    "text": "Registrierungsvalidierungsstrategie pro Domain"
+  },
+  "web.domains.detail.signin_description": {
+    "text": "Konfiguration der Anmeldemethode pro Domain"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Anbieter"
+  },
+  "web.domains.email.test_email_title": {
+    "text": "E-Mail-Zustellung testen"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Sende dir mit der gespeicherten Konfiguration eine Test-E-Mail. Funktioniert auch, wenn die Funktion noch nicht aktiviert ist."
+  },
+  "web.domains.email.send_test": {
+    "text": "Test senden"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Test-E-Mail erfolgreich gesendet"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Test-E-Mail konnte nicht gesendet werden"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Gesendet an {email}"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Zugestellt über {provider}"
+  },
+  "web.domains.incoming.feature_disabled": {
+    "text": "Eingehende Nachrichten nicht verfügbar"
+  },
+  "web.domains.incoming.feature_disabled_description": {
+    "text": "Eingehende Nachrichten sind auf dieser Instanz nicht aktiviert. Wende dich an deinen Administrator."
+  },
+  "web.domains.signin.title": {
+    "text": "Anmeldekonfiguration"
+  },
+  "web.domains.signin.configure_signin": {
+    "text": "Anmeldung konfigurieren"
+  },
+  "web.domains.signin.config_description": {
+    "text": "Konfiguriere die Anmelde-Authentifizierungsmethoden für diese Domain"
+  },
+  "web.domains.signin.access_denied": {
+    "text": "Zugriff verweigert"
+  },
+  "web.domains.signin.upgrade_to_configure": {
+    "text": "Führe ein Upgrade deines Tarifs durch, um Anmeldemethoden für diese Domain zu konfigurieren."
+  },
+  "web.domains.signin.not_configured_notice": {
+    "text": "Für diese Domain ist noch keine Anmeldekonfiguration festgelegt. Konfiguriere Überschreibungen, um zu steuern, welche Authentifizierungsmethoden auf der Anmeldeseite dieser Domain verfügbar sind."
+  },
+  "web.domains.signin.signin_enabled_label": {
+    "text": "Anmeldung aktiviert"
+  },
+  "web.domains.signin.header_toggle_label": {
+    "text": "Anmeldung"
+  },
+  "web.domains.signin.signin_enabled_hint": {
+    "text": "Ob Benutzer sich auf dieser Domain anmelden können"
+  },
+  "web.domains.signin.restrict_to_label": {
+    "text": "Anmeldemethode einschränken"
+  },
+  "web.domains.signin.restrict_to_hint": {
+    "text": "Beschränke diese Domain auf eine einzige Authentifizierungsmethode. Wenn festgelegt, wird auf der Anmeldeseite nur die gewählte Methode angezeigt."
+  },
+  "web.domains.signin.all_methods": {
+    "text": "Alle Methoden"
+  },
+  "web.domains.signin.all_methods_description": {
+    "text": "Alle aktivierten Authentifizierungsmethoden auf der Anmeldeseite anzeigen"
+  },
+  "web.domains.signin.method_password": {
+    "text": "Passwort"
+  },
+  "web.domains.signin.method_email_auth": {
+    "text": "E-Mail-Authentifizierung"
+  },
+  "web.domains.signin.method_webauthn": {
+    "text": "WebAuthn / Passkeys"
+  },
+  "web.domains.signin.method_sso": {
+    "text": "Single Sign-On"
+  },
+  "web.domains.signin.method_overrides_label": {
+    "text": "Methodenüberschreibungen"
+  },
+  "web.domains.signin.method_overrides_hint": {
+    "text": "Einzelne Authentifizierungsmethoden für diese Domain aktivieren oder deaktivieren"
+  },
+  "web.domains.signin.mode_question": {
+    "text": "Wie können sich Benutzer anmelden?"
+  },
+  "web.domains.signin.mode_any": {
+    "text": "Jede verfügbare Methode"
+  },
+  "web.domains.signin.mode_any_hint": {
+    "text": "Jede auf dieser Domain verfügbare Methode anzeigen. Schränke einzelne Methoden unten ein."
+  },
+  "web.domains.signin.mode_one": {
+    "text": "Eine bestimmte Methode"
+  },
+  "web.domains.signin.mode_one_hint": {
+    "text": "Beschränke die Anmeldeseite auf eine einzige Methode. Es werden nur die auf dieser Domain verfügbaren Methoden aufgeführt."
+  },
+  "web.domains.signin.mode_disabled": {
+    "text": "Anmeldung deaktiviert"
+  },
+  "web.domains.signin.mode_disabled_hint": {
+    "text": "Benutzer können sich auf dieser Domain nicht anmelden."
+  },
+  "web.domains.signin.mode_disabled_notice": {
+    "text": "Besucher der Anmeldeseite dieser Domain sehen einen Hinweis, dass die Anmeldung nicht verfügbar ist, mit einem Link zurück zur Startseite. Deine vorherigen Methodeneinstellungen bleiben erhalten und werden wiederhergestellt, wenn du die Anmeldung wieder aktivierst."
+  },
+  "web.domains.signin.methods_list_label": {
+    "text": "Auf der Anmeldeseite angezeigte Methoden"
+  },
+  "web.domains.signin.restrict_picker_hint": {
+    "text": "Es werden nur die auf dieser Domain verfügbaren Methoden aufgeführt."
+  },
+  "web.domains.signin.availability_always": {
+    "text": "Immer verfügbar"
+  },
+  "web.domains.signin.availability_global_on": {
+    "text": "Folgt der globalen Richtlinie · Ein"
+  },
+  "web.domains.signin.availability_global_off": {
+    "text": "Nicht verfügbar"
+  },
+  "web.domains.signin.availability_unavailable": {
+    "text": "Seitenweit nicht verfügbar"
+  },
+  "web.domains.signin.allow_on_domain": {
+    "text": "Auf dieser Domain erlauben"
+  },
+  "web.domains.signin.method_password_blurb": {
+    "text": "Nur Passwort"
+  },
+  "web.domains.signin.method_email_auth_blurb": {
+    "text": "Passwortlose Anmeldung per Magic-Link"
+  },
+  "web.domains.signin.method_webauthn_blurb": {
+    "text": "Biometrie und Sicherheitsschlüssel"
+  },
+  "web.domains.signin.method_sso_blurb": {
+    "text": "Externer Identitätsanbieter"
+  },
+  "web.domains.signin.email_auth_label": {
+    "text": "E-Mail-Authentifizierung"
+  },
+  "web.domains.signin.email_auth_hint": {
+    "text": "Passwortlose E-Mail-Authentifizierung auf dieser Domain erlauben"
+  },
+  "web.domains.signin.sso_enabled_label": {
+    "text": "Single Sign-On"
+  },
+  "web.domains.signin.sso_enabled_hint": {
+    "text": "SSO-Authentifizierung auf dieser Domain erlauben"
+  },
+  "web.domains.signin.enabled_label": {
+    "text": "Anmeldekonfiguration aktivieren"
+  },
+  "web.domains.signin.enabled_hint": {
+    "text": "Wenn aktiviert, verwendet diese Domain die oben konfigurierten Anmeldeeinstellungen"
+  },
+  "web.domains.signin.save_config": {
+    "text": "Konfiguration speichern"
+  },
+  "web.domains.signin.update_success": {
+    "text": "Anmeldekonfiguration erfolgreich aktualisiert"
+  },
+  "web.domains.signin.reset_to_defaults": {
+    "text": "Auf Standardwerte zurücksetzen"
+  },
+  "web.domains.signin.reset_confirm": {
+    "text": "Anmeldung auf die globalen Standardwerte zurücksetzen?"
+  },
+  "web.domains.signin.reset_keeps_sso": {
+    "text": "Deine SSO-Anmeldedaten bleiben erhalten. Entferne sie separat auf dem SSO-Konfigurationsbildschirm."
+  },
+  "web.domains.signin.reset_action": {
+    "text": "Ja, zurücksetzen"
+  },
+  "web.domains.signin.reset_success": {
+    "text": "Anmeldeeinstellungen auf die globalen Standardwerte zurückgesetzt"
+  },
+  "web.domains.signup.title": {
+    "text": "Registrierungsvalidierung"
+  },
+  "web.domains.signup.config_description": {
+    "text": "Konfiguriere die Registrierungsvalidierung für diese Domain"
+  },
+  "web.domains.signup.access_denied": {
+    "text": "Zugriff verweigert"
+  },
+  "web.domains.signup.upgrade_to_configure": {
+    "text": "Führe ein Upgrade deines Tarifs durch, um die Registrierungsvalidierung pro Domain zu konfigurieren."
+  },
+  "web.domains.signup.configure_signup": {
+    "text": "Registrierung konfigurieren"
+  },
+  "web.domains.signup.not_configured_notice": {
+    "text": "Für diese Domain ist die Registrierungsvalidierung noch nicht konfiguriert. Konfiguriere eine Strategie, um zu steuern, wer sich über diese Domain registrieren kann."
+  },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "Registrierungen sind derzeit auf Site-Ebene deaktiviert. Diese domainspezifische Richtlinie ist konfiguriert, steuert aber keinen Traffic, bis die Registrierungen auf Site-Ebene aktiviert sind."
+  },
+  "web.domains.signup.strategy_label": {
+    "text": "Validierungsstrategie"
+  },
+  "web.domains.signup.strategy_description": {
+    "text": "Wähle aus, wie E-Mail-Adressen validiert werden, wenn sich Benutzer auf dieser Domain registrieren."
+  },
+  "web.domains.signup.network_validation_warning": {
+    "text": "Diese Strategie führt während der Registrierung Netzwerkaufrufe durch, die zu Latenz führen oder von einigen Anbietern blockiert werden können."
+  },
+  "web.domains.signup.allowed_domains_label": {
+    "text": "Zugelassene Registrierungs-Domains"
+  },
+  "web.domains.signup.allowed_domains_hint": {
+    "text": "Nur diese E-Mail-Domains dürfen sich registrieren. Füge eine Domain pro Eintrag hinzu."
+  },
+  "web.domains.signup.domain_placeholder": {
+    "text": "example.com"
+  },
+  "web.domains.signup.invalid_domain": {
+    "text": "Bitte gib eine gültige Domain ein (z. B. example.com)"
+  },
+  "web.domains.signup.domain_exists": {
+    "text": "Diese Domain ist bereits in der Liste"
+  },
+  "web.domains.signup.remove_domain": {
+    "text": "{domain} entfernen"
+  },
+  "web.domains.signup.enabled_label": {
+    "text": "Domainspezifische Validierung aktivieren"
+  },
+  "web.domains.signup.enabled_hint": {
+    "text": "Wenn aktiviert, verwenden Registrierungen auf dieser Domain die obige Strategie anstelle der globalen Richtlinie."
+  },
+  "web.domains.signup.delete_config": {
+    "text": "Konfiguration löschen"
+  },
+  "web.domains.signup.delete_confirm": {
+    "text": "Konfiguration der Registrierungsvalidierung löschen? Registrierungen greifen dann auf die globale Richtlinie zurück."
+  },
+  "web.domains.signup.save_config": {
+    "text": "Konfiguration speichern"
+  },
+  "web.domains.signup.update_success": {
+    "text": "Registrierungsvalidierung erfolgreich aktualisiert"
+  },
+  "web.domains.signup.delete_success": {
+    "text": "Konfiguration der Registrierungsvalidierung erfolgreich entfernt"
+  },
+  "web.domains.signup.domain_overrides_label": {
+    "text": "Domain-Überschreibungen"
+  },
+  "web.domains.signup.domain_overrides_hint": {
+    "text": "Globale Registrierungseinstellungen für diese Domain überschreiben"
+  },
+  "web.domains.signup.signup_enabled_label": {
+    "text": "Registrierung aktiviert"
+  },
+  "web.domains.signup.signup_enabled_hint": {
+    "text": "Überschreiben, ob die Registrierung für diese Domain aktiviert ist"
+  },
+  "web.domains.signup.autoverify_label": {
+    "text": "Konten automatisch verifizieren"
+  },
+  "web.domains.signup.autoverify_hint": {
+    "text": "Überschreiben, ob neue Konten auf dieser Domain automatisch verifiziert werden"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Verbindungstest erfolgreich — der Anbieter hat korrekt geantwortet"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Verbindungstest fehlgeschlagen"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "Um SSO für alle Anmeldungen auf dieser Domain zu erzwingen, konfiguriere es in den Anmeldeeinstellungen der Domain. Der Nur-SSO-Modus beschränkt die Anmeldeseite auf den hier konfigurierten SSO-Anbieter."
+  },
+  "web.domains.sso.edit_credentials": {
+    "text": "Anmeldedaten bearbeiten"
+  },
+  "web.domains.sso.configure_button": {
+    "text": "Konfigurieren"
+  },
+  "web.domains.sso.upgrade_required": {
+    "text": "Upgrade zum Konfigurieren"
   }
 }

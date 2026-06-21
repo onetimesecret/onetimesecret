@@ -634,5 +634,152 @@
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
     "text": "Wenn du Feedback sendest, sehen wir:",
     "source_hash": "fe77172e"
+  },
+  "web.colonel.previewPlanMode": {
+    "text": "Tarifvorschau-Modus"
+  },
+  "web.colonel.previewModeDescription": {
+    "text": "Sieh dir die Anwendung so an, wie sie Kunden mit einem anderen Tarif angezeigt wird. Dies wirkt sich nur auf deine Ansicht aus und ändert nicht den tatsächlichen Tarif einer Organisation."
+  },
+  "web.colonel.previewModeActive": {
+    "text": "Vorschau aktiv"
+  },
+  "web.colonel.bannedIps.empty": {
+    "text": "Keine gesperrten IPs"
+  },
+  "web.colonel.bannedIps.currentIp": {
+    "text": "Deine aktuelle IP-Adresse"
+  },
+  "web.colonel.bannedIps.confirmUnban": {
+    "text": "{ip} entsperren?"
+  },
+  "web.colonel.bannedIps.actions.ban": {
+    "text": "IP sperren"
+  },
+  "web.colonel.bannedIps.actions.quickBan": {
+    "text": "Schnellsperre"
+  },
+  "web.colonel.bannedIps.actions.unban": {
+    "text": "Entsperren"
+  },
+  "web.colonel.bannedIps.actions.cancel": {
+    "text": "Abbrechen"
+  },
+  "web.colonel.bannedIps.columns.ipAddress": {
+    "text": "IP-Adresse"
+  },
+  "web.colonel.bannedIps.columns.reason": {
+    "text": "Grund"
+  },
+  "web.colonel.bannedIps.columns.bannedAt": {
+    "text": "Gesperrt am"
+  },
+  "web.colonel.bannedIps.columns.bannedBy": {
+    "text": "Gesperrt von"
+  },
+  "web.colonel.bannedIps.error.banFailed": {
+    "text": "IP-Adresse konnte nicht gesperrt werden"
+  },
+  "web.colonel.bannedIps.error.unbanFailed": {
+    "text": "IP-Adresse konnte nicht entsperrt werden"
+  },
+  "web.colonel.bannedIps.form.title": {
+    "text": "IP-Adresse sperren"
+  },
+  "web.colonel.bannedIps.form.ipLabel": {
+    "text": "IP-Adresse"
+  },
+  "web.colonel.bannedIps.form.reasonLabel": {
+    "text": "Grund"
+  },
+  "web.colonel.bannedIps.form.reasonPlaceholder": {
+    "text": "Optionaler Grund"
+  },
+  "web.colonel.bannedIps.success.banned": {
+    "text": "Die IP-Adresse {ip} wurde gesperrt"
+  },
+  "web.colonel.bannedIps.success.unbanned": {
+    "text": "Die IP-Adresse {ip} wurde entsperrt"
+  },
+  "web.colonel.customDomains.empty": {
+    "text": "Keine benutzerdefinierten Domains konfiguriert"
+  },
+  "web.colonel.customDomains.noLogo": {
+    "text": "Kein Logo"
+  },
+  "web.colonel.customDomains.labels.organization": {
+    "text": "Organisation"
+  },
+  "web.colonel.customDomains.labels.externalId": {
+    "text": "Externe ID"
+  },
+  "web.colonel.customDomains.labels.created": {
+    "text": "Erstellt"
+  },
+  "web.colonel.customDomains.labels.updated": {
+    "text": "Aktualisiert"
+  },
+  "web.colonel.customDomains.labels.favicon": {
+    "text": "Favicon"
+  },
+  "web.colonel.customDomains.status.verified": {
+    "text": "Verifiziert"
+  },
+  "web.colonel.customDomains.status.resolving": {
+    "text": "Wird aufgelöst"
+  },
+  "web.colonel.customDomains.status.ready": {
+    "text": "Bereit"
+  },
+  "web.colonel.customDomains.status.publicHomepage": {
+    "text": "Öffentliche Startseite"
+  },
+  "web.colonel.customDomains.status.publicApi": {
+    "text": "Öffentliche API"
+  },
+  "web.colonel.customDomains.status.pending": {
+    "text": "Ausstehend"
+  },
+  "web.colonel.pagination.showing": {
+    "text": "{start}–{end} von {total} werden angezeigt"
+  },
+  "web.colonel.pagination.itemsPerPage": {
+    "text": "Einträge pro Seite"
+  },
+  "web.colonel.pagination.perPage": {
+    "text": "{count} pro Seite"
+  },
+  "web.colonel.pagination.pageOf": {
+    "text": "Seite {current} von {total}"
+  },
+  "web.colonel.secrets.empty": {
+    "text": "Keine Nachrichten gefunden"
+  },
+  "web.colonel.secrets.never": {
+    "text": "Nie"
+  },
+  "web.colonel.secrets.columns.shortId": {
+    "text": "Kurz-ID"
+  },
+  "web.colonel.secrets.columns.state": {
+    "text": "Status"
+  },
+  "web.colonel.secrets.columns.created": {
+    "text": "Erstellt"
+  },
+  "web.colonel.secrets.columns.expiration": {
+    "text": "Ablauf"
+  },
+  "web.colonel.secrets.columns.age": {
+    "text": "Alter (Tage)"
+  },
+  "web.colonel.secrets.state.new": {
+    "text": "Neu"
+  },
+  "web.colonel.secrets.state.received": {
+    "text": "Empfangen"
+  },
+  "web.colonel.secrets.state.viewed": {
+    "text": "Angesehen"
   }
 }
