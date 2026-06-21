@@ -104,7 +104,11 @@ module Onetime
            raise OT::Problem, "serialized size #{yaml_str.bytesize} exceeds limit #{max_size}"
          end
 
-         YAML.load(yaml_str)
+         # safe_load (rather than load) keeps this round-trip from
+         # materializing arbitrary Ruby objects. The input is our own
+         # YAML.dump output, so Symbol and aliases (emitted for shared object
+         # references) are both expected and safe to permit.
+         YAML.safe_load(yaml_str, permitted_classes: [Symbol], aliases: true)
       rescue TypeError, Psych::DisallowedClass, Psych::BadAlias => ex
          raise OT::Problem, "[deep_clone] #{ex.message}"
       end

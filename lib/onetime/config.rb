@@ -269,7 +269,11 @@ module Onetime
 
     def load_yaml_with_erb(path)
       parsed_template = ERB.new(File.read(path))
-      YAML.load(parsed_template.result) || {}
+      # Use safe_load so a malicious config file cannot instantiate arbitrary
+      # Ruby objects (!ruby/object). Symbol is permitted because config keys
+      # and values use symbols; dates must be quoted (loaded as strings),
+      # consistent with the rest of the codebase's YAML loaders.
+      YAML.safe_load(parsed_template.result, permitted_classes: [Symbol]) || {}
     end
     private :load_yaml_with_erb
 
@@ -588,7 +592,12 @@ module Onetime
       # know we only expect a regular hash here without any methods, procs
       # etc, we use YAML instead to accomplish the same thing (JSON is
       # another option but it turns all the symbol keys into strings).
-      YAML.load(YAML.dump(config_hash))
+      #
+      # safe_load (rather than load) keeps the round-trip from materializing
+      # arbitrary Ruby objects. The input is our own YAML.dump output, so
+      # Symbol and aliases (emitted for shared object references) are both
+      # expected and safe to permit.
+      YAML.safe_load(YAML.dump(config_hash), permitted_classes: [Symbol], aliases: true)
     rescue TypeError => ex
       raise OT::Problem, "[deep_clone] #{ex.message}"
     end
