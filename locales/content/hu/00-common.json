@@ -1299,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Mindig ellenőrizze, hogy a hivatalos {product_name} weboldalon van-e. A csalók néha hamis weboldalakat hoznak létre, amelyek pontosan úgy néznek ki, mint az {product_name}, hogy ellopják titkait. Az adathalász támadások elkerülése érdekében ellenőrizze a domain-t új linkek létrehozása előtt.",
+    "text": "Mindig ellenőrizze, hogy a hivatalos {product_name} weboldalon van-e. A csalók néha hamis weboldalakat hoznak létre, amelyek pontosan úgy néznek ki, mint az {product_name}, hogy ellopják titkait. Az adathalász támadások elkerülése érdekében ellenőrizze a régió domain-t új linkek létrehozása előtt.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1383,5 +1383,110 @@
     "text": "Frissítsen a további funkciók eléréséhez",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "Hitelesítés szükséges"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "Ez a művelet nem érhető el csak SSO módban"
+  },
+  "web.COMMON.configure": {
+    "text": "Beállítás"
+  },
+  "web.COMMON.copy_to_clipboard": {
+    "text": "Másolás vágólapra"
+  },
+  "web.COMMON.add": {
+    "text": "Hozzáadás"
+  },
+  "web.COMMON.enabled": {
+    "text": "Engedélyezve"
+  },
+  "web.COMMON.disabled": {
+    "text": "Letiltva"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Igen, törlés"
+  },
+  "web.COMMON.error_code": {
+    "text": "Hibakód"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTP-állapot"
+  },
+  "web.COMMON.details": {
+    "text": "Részletek"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Jelszó megerősítése"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "A jelszavaknak egyezniük kell"
+  },
+  "web.COMMON.and": {
+    "text": "és"
+  },
+  "web.COMMON.or": {
+    "text": "vagy"
+  },
+  "web.COMMON.copied": {
+    "text": "Másolva"
+  },
+  "web.COMMON.copy": {
+    "text": "Másolás"
+  },
+  "web.COMMON.copy_email": {
+    "text": "E-mail-cím másolása"
+  },
+  "web.COMMON.copy_id": {
+    "text": "Fiókazonosító másolása"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "A szervezet egyedi azonosítója"
+  },
+  "web.COMMON.success": {
+    "text": "Sikeres"
+  },
+  "web.COMMON.need_help": {
+    "text": "Segítségre van szüksége"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "Súgóablak megnyitása"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "A fókusz most a fő szövegmezőn van"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Hozzáférési mondat megjelenítése"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Hozzáférési mondat elrejtése"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "Másolás ikon"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "Másolva ikon"
+  },
+  "web.STATUS.unverified": {
+    "text": "Nem ellenőrzött"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Doménbeállítások"
+  },
+  "web.TITLES.domain_signin": {
+    "text": "Bejelentkezési konfiguráció"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "Domén SSO"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "Domén regisztrációs ellenőrzés"
+  },
+  "web.TITLES.domain_email": {
+    "text": "E-mail-konfiguráció"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Bejövő titkok"
   }
 }

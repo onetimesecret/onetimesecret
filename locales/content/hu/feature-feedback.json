@@ -58,5 +58,14 @@
   "web.feedback.reason_email_change_unauthorized": {
     "text": "Úgy tűnik, hogy jogosulatlan e-mail módosítást jelent a fiókján. Kérjük, írja le, mi történt, és azonnal kivizsgáljuk.",
     "source_hash": "00e56551"
+  },
+  "web.feedback.anonymous_no_reply": {
+    "text": "Megjegyzés: ha választ szeretne, kérjük, írja alá az üzenetet, vagy adjon meg benne egy e-mail-címet."
+  },
+  "web.feedback.characters_remaining": {
+    "text": "{count} karakter maradt"
+  },
+  "web.feedback.character_limit_reached": {
+    "text": "Elérte a karakterkorlátot"
   }
 }
