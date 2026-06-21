@@ -1,0 +1,5 @@
+{
+  "api.feedback.errors.rate_limit_exceeded": {
+    "text": "피드백 제출이 너무 많습니다. 잠시 후 다시 시도해 주세요."
+  }
+}
