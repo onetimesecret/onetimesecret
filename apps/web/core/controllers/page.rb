@@ -54,6 +54,21 @@ module Core
         res.body                    = view.render
       end
 
+      def webmanifest
+        logic = Core::Logic::Page::GetWebmanifest.new(strategy_result, req.params, locale)
+        logic.raise_concerns
+        logic.process
+
+        res['content-type']  = logic.content_type
+        # Shorter TTL than the static pack: this manifest is brand-aware (it
+        # overlays BRAND_PRODUCT_NAME / BRAND_PRIMARY_COLOR at request time), so
+        # cap caching at 1h to bound how long an env-config change can be stale
+        # in CDNs/browsers. Manifests are fetched infrequently, so this is cheap.
+        res['cache-control'] = 'public, max-age=3600' # 1 hour
+        res.write(logic.manifest_json)
+        res.finish
+      end
+
       def favicon
         logic = Core::Logic::Page::GetFavicon.new(strategy_result, req.params, locale)
         logic.raise_concerns

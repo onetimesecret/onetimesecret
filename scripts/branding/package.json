@@ -1,0 +1,14 @@
+{
+  "name": "ots-branding-generator",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Isolated generator for the neutral favicon + mobile/social variety pack. Not part of the application bundle or the root pnpm workspace.",
+  "scripts": {
+    "generate": "node generate-favicons.mjs"
+  },
+  "dependencies": {
+    "png-to-ico": "^2.1.8",
+    "sharp": "^0.34.4"
+  }
+}

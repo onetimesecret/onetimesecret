@@ -7,6 +7,7 @@
   <meta property="og:url" content="{{baseuri}}">
   <meta property="og:title" content="{{page_title}}">
   <meta property="og:description" content="{{description}}">
+  <meta property="og:image" content="{{brand_og_image_url}}">
 
   <!-- Twitter Card meta tags -->
   <meta name="twitter:card" content="summary_large_image">
@@ -14,4 +15,5 @@
   <meta property="twitter:url" content="{{baseuri}}">
   <meta name="twitter:title" content="{{page_title}}">
   <meta name="twitter:description" content="{{description}}">
+  <meta name="twitter:image" content="{{brand_og_image_url}}">
 </template>
