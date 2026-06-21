@@ -150,6 +150,28 @@ RUN set -eux && \
     rm -rf node_modules ~/.npm ~/.pnpm-store && \
     npm uninstall -g pnpm
 
+# Build-time branding overlay (trust signal).
+#
+# The repo ships brand-NEUTRAL favicon/icon/social defaults. To bake a brand
+# into the image without modifying tracked files, drop replacement assets
+# (favicon.ico, favicon.svg, apple-touch-icon.png, icon-192.png, icon-512.png,
+# safari-pinned-tab.svg, site.webmanifest, social-preview.png, ...) into
+# docker/public/ before building. The directory is named for where the files
+# land — they are copied into public/web/ after the Vite build. It is empty
+# (.gitkeep only) in the OSS repo, so this step is a no-op by default and never
+# overlays our company brand onto self-hosted builds.
+COPY docker/public/ /tmp/branding/
+RUN set -eux && \
+    rm -f /tmp/branding/.gitkeep && \
+    if [ -n "$(find /tmp/branding -type f 2>/dev/null)" ]; then \
+      cp -R /tmp/branding/. public/web/ && \
+      chmod -R a+rX public/web && \
+      echo "NOTICE: applied docker/public overlay" >&2 ; \
+    else \
+      echo "NOTICE: no docker/public overlay; using neutral defaults" >&2 ; \
+    fi && \
+    rm -rf /tmp/branding
+
 ##
 # FINAL-S6: Production image with S6 overlay for multi-process supervision
 #

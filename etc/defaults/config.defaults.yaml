@@ -424,6 +424,11 @@ brand:
   button_text_light: <%= ENV['BRAND_BUTTON_TEXT_LIGHT'].to_s.empty? ? 'null' : ENV['BRAND_BUTTON_TEXT_LIGHT'] != 'false' %>
   logo_url: <%= ENV['BRAND_LOGO_URL'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_LOGO_URL'].gsub("'", "''")}'} %>
   favicon_url: <%= ENV['BRAND_FAVICON_URL'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_FAVICON_URL'].gsub("'", "''")}'} %>
+  # URL overrides for the mobile/social variety pack served in the HTML head.
+  # When unset, neutral bundled defaults (public/web) are used; replacing the
+  # files via the brand directory is the alternative to these URL overrides.
+  apple_touch_icon_url: <%= ENV['BRAND_APPLE_TOUCH_ICON_URL'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_APPLE_TOUCH_ICON_URL'].gsub("'", "''")}'} %>
+  og_image_url: <%= ENV['BRAND_OG_IMAGE_URL'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_OG_IMAGE_URL'].gsub("'", "''")}'} %>
   totp_issuer: <%= ENV['BRAND_TOTP_ISSUER'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_TOTP_ISSUER'].gsub("'", "''")}'} %>
   signature_name: <%= ENV['BRAND_SIGNATURE_NAME'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_SIGNATURE_NAME'].gsub("'", "''")}'} %>
 

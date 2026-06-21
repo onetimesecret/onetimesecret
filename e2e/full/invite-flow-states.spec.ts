@@ -155,7 +155,7 @@ function getCurrentOrgExtid(page: Page): string {
  */
 async function getInvitationToken(page: Page, email: string): Promise<string | null> {
   const orgExtid = getCurrentOrgExtid(page);
-  const response = await page.request.get(`/api/v2/org/${orgExtid}/invitations`);
+  const response = await page.request.get(`/api/organizations/${orgExtid}/invitations`);
   const data = await response.json();
 
   const invitation = data.records?.find((inv: { email: string }) => inv.email === email);
@@ -627,7 +627,7 @@ test.describe('INV-010: Invalid Token State', () => {
     expect(token).toBeTruthy();
 
     // Find and click revoke button
-    const invitationRow = page.locator('.rounded-md').filter({ hasText: testEmail });
+    const invitationRow = page.getByTestId('org-invitation-row').filter({ hasText: testEmail });
     const revokeButton = invitationRow.getByRole('button', { name: /revoke/i });
 
     await expect(revokeButton).toBeVisible();

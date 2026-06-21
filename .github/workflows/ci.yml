@@ -132,6 +132,7 @@ jobs:
             frontend:
               - 'src/**'
               - 'public/**'
+              - 'scripts/branding/**'
               - 'package.json'
               - 'pnpm-lock.yaml'
               - 'vite.config.ts'
@@ -260,6 +261,13 @@ jobs:
 
       - name: Setup Node.js environment
         uses: ./.github/actions/setup-node-env
+
+      # Guard against branding asset drift: the committed neutral favicon/icon
+      # text assets must match scripts/branding/mark.mjs (the single source of
+      # truth). Node-only, no sharp install required. See
+      # docs/customization/branding-favicon.md.
+      - name: Verify branding assets are in sync
+        run: pnpm run gen:favicons:check
 
       - name: Build assets
         run: pnpm run build
