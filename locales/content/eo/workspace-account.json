@@ -682,5 +682,14 @@
   "web.settings.profile.didnt_receive_email": {
     "text": "Ĉu vi ne ricevis la retpoŝton?",
     "source_hash": "fe3ac3ad"
+  },
+  "web.settings.api.api_disabled_notice": {
+    "text": "La API estas malŝaltita por ĉi tiu instanco."
+  },
+  "web.settings.security.sso_managed_title": {
+    "text": "Sekureco administrata de SSO"
+  },
+  "web.settings.security.sso_managed_description": {
+    "text": "Via konto estas aŭtentikigita tra la unuopa ensaluta provizanto de via organizo. Pasvorto, plurfaktora aŭtentikigo kaj restaŭraj kodoj estas administrataj de via identeca provizanto."
   }
 }

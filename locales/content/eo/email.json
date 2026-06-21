@@ -60,7 +60,7 @@
     "source_hash": "88c72144"
   },
   "email.welcome.signature": {
-    "text": "Delano",
+    "text": "Subtena teamo",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -100,7 +100,7 @@
     "source_hash": "fbb7eb2d"
   },
   "email.password_request.signature": {
-    "text": "Delano",
+    "text": "Subtena teamo",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -145,7 +145,7 @@
     "source_hash": "1863f5be"
   },
   "email.magic_link.signature": {
-    "text": "Delano",
+    "text": "Subtena teamo",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -230,7 +230,7 @@
     "source_hash": "3f6b45dd"
   },
   "email.secret_revealed.signature": {
-    "text": "Delano",
+    "text": "Subtena teamo",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -355,7 +355,7 @@
     "source_hash": "734882d2"
   },
   "email.organization_invitation.signature": {
-    "text": "Delano",
+    "text": "Subtena teamo",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -395,7 +395,7 @@
     "source_hash": "be92cff3"
   },
   "email.password_changed.signature": {
-    "text": "Delano",
+    "text": "Subtena teamo",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -450,7 +450,7 @@
     "source_hash": "f8d47b82"
   },
   "email.email_changed.signature": {
-    "text": "Delano",
+    "text": "Subtena teamo",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -500,7 +500,7 @@
     "source_hash": "f8d47b82"
   },
   "email.email_change_requested.signature": {
-    "text": "Delano",
+    "text": "Subtena teamo",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -555,7 +555,7 @@
     "source_hash": "d4d835fc"
   },
   "email.email_change_confirmation.signature": {
-    "text": "Delano",
+    "text": "Subtena teamo",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -585,7 +585,7 @@
     "source_hash": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
-    "text": "Delano",
+    "text": "Subtena teamo",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -610,7 +610,7 @@
     "source_hash": "97ef0a3e"
   },
   "email.mfa_disabled.signature": {
-    "text": "Delano",
+    "text": "Subtena teamo",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -655,7 +655,7 @@
     "source_hash": "450c54c5"
   },
   "email.new_login_alert.signature": {
-    "text": "Delano",
+    "text": "Subtena teamo",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -675,7 +675,7 @@
     "source_hash": "d442beed"
   },
   "email.member_removed.signature": {
-    "text": "Delano",
+    "text": "Subtena teamo",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -695,7 +695,7 @@
     "source_hash": "c2280c0c"
   },
   "email.role_changed.signature": {
-    "text": "Delano",
+    "text": "Subtena teamo",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -715,7 +715,7 @@
     "source_hash": "7095fc69"
   },
   "email.organization_deleted.signature": {
-    "text": "Delano",
+    "text": "Subtena teamo",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -755,7 +755,7 @@
     "source_hash": "36008943"
   },
   "email.payment_receipt.signature": {
-    "text": "Delano",
+    "text": "Subtena teamo",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -780,7 +780,7 @@
     "source_hash": "926406b1"
   },
   "email.payment_failed.signature": {
-    "text": "Delano",
+    "text": "Subtena teamo",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -805,7 +805,7 @@
     "source_hash": "66a1419e"
   },
   "email.trial_expiring.signature": {
-    "text": "Delano",
+    "text": "Subtena teamo",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -830,7 +830,7 @@
     "source_hash": "5a96ae38"
   },
   "email.subscription_changed.signature": {
-    "text": "Delano",
+    "text": "Subtena teamo",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -858,5 +858,41 @@
     "text": "Onetime Secret",
     "renderer": "erb",
     "source_hash": "1cd0194a"
+  },
+  "email.common.secret_link_label": {
+    "text": "Sekreta ligilo"
+  },
+  "email.common.automated_notice": {
+    "text": "Ĉi tio estas aŭtomata mesaĝo de %{product_name}."
+  },
+  "email.common.support_label": {
+    "text": "Subteno"
+  },
+  "email.expiration_warning.signature": {
+    "text": "Subtena teamo"
+  },
+  "email.expiration_warning.footer_note": {
+    "text": "Vi ricevis ĉi tion ĉar sekreto kiun vi kreis sur %{product_name} baldaŭ eksvalidiĝos."
+  },
+  "email.feedback_email.user_id_label": {
+    "text": "Uzanto:"
+  },
+  "email.feedback_email.timezone_label": {
+    "text": "Horzono:"
+  },
+  "email.feedback_email.version_label": {
+    "text": "Versio:"
+  },
+  "email.incoming_secret.footer_note": {
+    "text": "Vi ricevis ĉi tion ĉar iu uzis %{product_name} por sendi al vi sekreton. Se vi ne atendis ĝin, vi povas sekure ignori ĉi tiun retmesaĝon."
+  },
+  "email.secret_link.passphrase_label": {
+    "text": "Sekreta frazo necesa:"
+  },
+  "email.secret_link.passphrase_required": {
+    "text": "Ĉi tiu sekreto estas protektita per sekreta frazo. La sendinto devus provizi ĝin al vi aparte."
+  },
+  "email.secret_link.footer_note": {
+    "text": "Vi ricevis ĉi tion ĉar %{sender_email} uzis %{product_name} por kunhavigi sekreton kun vi. Se vi ne atendis ĝin, vi povas sekure ignori ĉi tiun retmesaĝon."
   }
 }

@@ -36,7 +36,7 @@
     "source_hash": "7879a747"
   },
   "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
-    "text": "",
+    "text": "Ĝi baziĝis sur la enhavo de la paĝo kaj ne reprezentas realan personon aŭ firmaon.",
     "source_hash": "8b290e9a"
   },
   "web.testimonials.artificial_feedback": {
@@ -44,7 +44,7 @@
     "source_hash": "4c8d20ba"
   },
   "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {
-    "text": "",
+    "text": "Ĉi tiu enhavo estas AI-generita surbaze de la enhavo de ĉi tiu paĝo kaj ne reprezentas realan personon aŭ firmaon.",
     "source_hash": "03c16436"
   }
 }

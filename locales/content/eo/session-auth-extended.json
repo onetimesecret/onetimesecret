@@ -716,5 +716,20 @@
   },
   "web.auth.sessions._guidance.context": {
     "text": "Administra paĝo por ensalutitaj aparatoj/folumiloj de uzanto"
+  },
+  "web.auth.google": {
+    "text": "Google"
+  },
+  "web.auth.mfa.alternative_auth_options": {
+    "text": "Alternativaj aŭtentikigaj opcioj"
+  },
+  "web.auth.remember.enabled": {
+    "text": "Resti ensalutinta"
+  },
+  "web.auth.sessions.session_singular": {
+    "text": "seanco"
+  },
+  "web.auth.sessions.session_plural": {
+    "text": "seancoj"
   }
 }
