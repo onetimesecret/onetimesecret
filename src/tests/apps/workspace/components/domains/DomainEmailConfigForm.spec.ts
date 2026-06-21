@@ -743,7 +743,7 @@ describe('DomainEmailConfigForm', () => {
 
       const emitted = wrapper.emitted('update:formState');
       expect(emitted).toBeTruthy();
-      // Find the emission that contains from_address (may not be the first if other fields emit too)
+      // Find the emission with from_address (may not be first if other fields emit)
       const lastEmission = emitted![emitted!.length - 1][0] as EmailConfigFormState;
       expect(lastEmission.from_address).toBe('support@example.com');
     });

@@ -70,7 +70,8 @@ describe('PasskeySettings', () => {
 
       const isRegistering = ref(false);
       const successMessage = ref<string | null>(null);
-      const passkeys = ref<Array<{ id: string; name: string; created_at: string; last_used_at: string | null }>>([]);
+      type Passkey = { id: string; name: string; created_at: string; last_used_at: string | null };
+      const passkeys = ref<Array<Passkey>>([]);
       const isLoadingPasskeys = ref(false);
 
       const handleRegisterPasskey = async () => {
