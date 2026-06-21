@@ -19,12 +19,12 @@
  */
 
 import { mount, VueWrapper, flushPromises } from '@vue/test-utils';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
 import { createRouter, createMemoryHistory, Router } from 'vue-router';
 import { nextTick, defineComponent } from 'vue';
 import Login from '@/apps/session/views/Login.vue';
+import { createTestI18n } from '@tests/setup';
 
 // Mock child components to isolate Login view testing
 vi.mock('@/apps/session/components/AuthMethodSelector.vue', () => ({
@@ -59,30 +59,7 @@ vi.mock('@/shared/stores/languageStore', () => ({
   }),
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        login: {
-          title: 'Sign in',
-          subtitle: 'Welcome back',
-          errors: {
-            sso_failed: 'SSO authentication failed. Please try again.',
-            token_missing: 'Login link is missing required token.',
-            token_expired: 'Login link has expired. Please request a new one.',
-            token_invalid: 'Login link is invalid. Please request a new one.',
-            invalid_email:
-              'The email address from your identity provider is invalid. Please contact your administrator.',
-          },
-          create_account_prefix: "Don't have an account?",
-          create_account_link: 'Sign up',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 describe('Login.vue auth_error handling', () => {
   let router: Router;
@@ -128,7 +105,7 @@ describe('Login.vue auth_error handling', () => {
 
       const alert = wrapper.find('[role="alert"]');
       expect(alert.exists()).toBe(true);
-      expect(alert.text()).toContain('SSO authentication failed');
+      expect(alert.text()).toContain('web.login.errors.sso_failed');
     });
 
     it('displays token expired error', async () => {
@@ -164,7 +141,7 @@ describe('Login.vue auth_error handling', () => {
 
       const alert = wrapper.find('[role="alert"]');
       expect(alert.exists()).toBe(true);
-      expect(alert.text()).toContain('email address from your identity provider is invalid');
+      expect(alert.text()).toContain('web.login.errors.invalid_email');
     });
 
     it('shows a generic error for unknown codes (never a blank page)', async () => {
@@ -176,7 +153,7 @@ describe('Login.vue auth_error handling', () => {
 
       const alert = wrapper.find('[role="alert"]');
       expect(alert.exists()).toBe(true);
-      expect(alert.text()).toContain('SSO authentication failed');
+      expect(alert.text()).toContain('web.login.errors.sso_failed');
     });
 
     it('does not display error when no auth_error param', async () => {
