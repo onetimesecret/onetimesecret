@@ -710,5 +710,26 @@
   "web.auth.recovery_codes.link_title": {
     "text": "Códigos de recuperação",
     "source_hash": "579c7f4e"
+  },
+  "web.auth.google": {
+    "text": "Google"
+  },
+  "web.auth.mfa.alternative_auth_options": {
+    "text": "Opções de autenticação alternativas"
+  },
+  "web.auth.remember.enabled": {
+    "text": "Manter sessão iniciada"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions.session_singular": {
+    "text": "sessão"
+  },
+  "web.auth.sessions.session_plural": {
+    "text": "sessões"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "User's logged-in devices/browsers management page"
   }
 }
