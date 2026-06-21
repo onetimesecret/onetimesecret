@@ -988,5 +988,47 @@
     "text": "Alleen beschikbaar in je oorspronkelijke abonnementsregio",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Je bent al geabonneerd op dit plan."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Abonnement opnieuw activeren"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "Je abonnement is opnieuw geactiveerd. Je wordt op de normale manier verder gefactureerd."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "Opnieuw activeren van het abonnement is mislukt. Probeer het opnieuw of neem contact op met support."
+  },
+  "web.billing.features.manage_orgs": {
+    "text": "Organisatiebeheer"
+  },
+  "web.billing.features.flexible_from_domain": {
+    "text": "Flexibel e-mailafzenderdomein"
+  },
+  "web.billing.features.unlimited_admins": {
+    "text": "Onbeperkt aantal beheerders"
+  },
+  "web.billing.features.manage_sso": {
+    "text": "SSO"
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Flexibel e-mailafzenderdomein"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "Organisaties beheren"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Single sign-on (SSO)"
+  },
+  "web.billing.overview.entitlements.manage_billing": {
+    "text": "Facturatie beheren"
+  },
+  "web.billing.overview.entitlements.custom_signup_validation": {
+    "text": "Aangepaste aanmeldingsvalidatie"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Opnieuw activeren"
   }
 }

@@ -1,0 +1,71 @@
+{
+  "api.entitlements.errors.context_unavailable": {
+    "text": "Kan entitlements niet verifiëren (organisatiecontext niet beschikbaar)"
+  },
+  "api.entitlements.errors.api_access_required": {
+    "text": "API-toegang vereist een planupgrade"
+  },
+  "api.entitlements.errors.custom_privacy_defaults_required": {
+    "text": "Aangepaste privacystandaarden vereisen een planupgrade"
+  },
+  "api.entitlements.errors.extended_default_expiration_required": {
+    "text": "Verlengde standaardvervaltijd vereist een planupgrade"
+  },
+  "api.entitlements.errors.custom_domains_required": {
+    "text": "Aangepaste domeinen vereisen een planupgrade"
+  },
+  "api.entitlements.errors.custom_branding_required": {
+    "text": "Aangepaste branding vereist een planupgrade"
+  },
+  "api.entitlements.errors.homepage_secrets_required": {
+    "text": "Homepageberichten vereisen een planupgrade"
+  },
+  "api.entitlements.errors.incoming_secrets_required": {
+    "text": "Inkomende berichten vereisen een planupgrade"
+  },
+  "api.entitlements.errors.custom_mail_sender_required": {
+    "text": "Aangepaste e-mailafzender vereist een planupgrade"
+  },
+  "api.entitlements.errors.flexible_from_domain_required": {
+    "text": "Flexibel from-domein vereist een planupgrade"
+  },
+  "api.entitlements.errors.manage_org_required": {
+    "text": "Organisatiebeheer vereist een planupgrade"
+  },
+  "api.entitlements.errors.manage_teams_required": {
+    "text": "Teambeheer vereist een planupgrade"
+  },
+  "api.entitlements.errors.manage_members_required": {
+    "text": "Ledenbeheer vereist een planupgrade"
+  },
+  "api.entitlements.errors.manage_sso_required": {
+    "text": "SSO-beheer vereist een planupgrade"
+  },
+  "api.entitlements.errors.audit_logs_required": {
+    "text": "Auditlogboeken vereisen een planupgrade"
+  },
+  "api.entitlements.errors.custom_signup_validation_required": {
+    "text": "Aangepaste aanmeldvalidatie vereist een planupgrade"
+  },
+  "api.entitlements.errors.create_secrets_required": {
+    "text": "Het aanmaken van berichten vereist een planupgrade"
+  },
+  "api.entitlements.errors.view_receipt_required": {
+    "text": "Het bekijken van ontvangstbewijzen vereist een planupgrade"
+  },
+  "api.entitlements.errors.notifications_required": {
+    "text": "Meldingen vereisen een planupgrade"
+  },
+  "api.entitlements.errors.workspace_branding_required": {
+    "text": "Workspace-branding vereist een planupgrade"
+  },
+  "api.entitlements.errors.ip_access_rules_required": {
+    "text": "IP-toegangsregels vereisen een planupgrade"
+  },
+  "api.entitlements.errors.manage_billing_required": {
+    "text": "Facturatiebeheer vereist een planupgrade"
+  },
+  "api.entitlements.errors.custom_signin_config_required": {
+    "text": "Aangepaste inlogconfiguratie vereist een planupgrade"
+  }
+}

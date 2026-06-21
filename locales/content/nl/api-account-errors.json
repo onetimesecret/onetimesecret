@@ -1,0 +1,8 @@
+{
+  "api.account.errors.invalid_email": {
+    "text": "Is dat een geldig e-mailadres?"
+  },
+  "api.account.errors.password_too_short": {
+    "text": "Wachtwoord is te kort"
+  }
+}
