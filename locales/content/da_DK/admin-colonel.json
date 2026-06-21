@@ -634,5 +634,152 @@
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
     "text": "Når du sender feedback, kan vi se:",
     "source_hash": "fe77172e"
+  },
+  "web.colonel.previewPlanMode": {
+    "text": "Forhåndsvisning af plantilstand"
+  },
+  "web.colonel.previewModeDescription": {
+    "text": "Forhåndsvis applikationen, som den vises for kunder på en anden plan. Dette påvirker kun din egen visning og ændrer ikke nogen organisations faktiske plan."
+  },
+  "web.colonel.previewModeActive": {
+    "text": "Forhåndsvisning aktiv"
+  },
+  "web.colonel.bannedIps.empty": {
+    "text": "Ingen bandlyste IP'er"
+  },
+  "web.colonel.bannedIps.currentIp": {
+    "text": "Din nuværende IP-adresse"
+  },
+  "web.colonel.bannedIps.confirmUnban": {
+    "text": "Ophæv bandlysning af {ip}?"
+  },
+  "web.colonel.bannedIps.actions.ban": {
+    "text": "Bandlys IP"
+  },
+  "web.colonel.bannedIps.actions.quickBan": {
+    "text": "Hurtig bandlysning"
+  },
+  "web.colonel.bannedIps.actions.unban": {
+    "text": "Ophæv bandlysning"
+  },
+  "web.colonel.bannedIps.actions.cancel": {
+    "text": "Annuller"
+  },
+  "web.colonel.bannedIps.columns.ipAddress": {
+    "text": "IP-adresse"
+  },
+  "web.colonel.bannedIps.columns.reason": {
+    "text": "Årsag"
+  },
+  "web.colonel.bannedIps.columns.bannedAt": {
+    "text": "Bandlyst den"
+  },
+  "web.colonel.bannedIps.columns.bannedBy": {
+    "text": "Bandlyst af"
+  },
+  "web.colonel.bannedIps.error.banFailed": {
+    "text": "Kunne ikke bandlyse IP-adressen"
+  },
+  "web.colonel.bannedIps.error.unbanFailed": {
+    "text": "Kunne ikke ophæve bandlysningen af IP-adressen"
+  },
+  "web.colonel.bannedIps.form.title": {
+    "text": "Bandlys IP-adresse"
+  },
+  "web.colonel.bannedIps.form.ipLabel": {
+    "text": "IP-adresse"
+  },
+  "web.colonel.bannedIps.form.reasonLabel": {
+    "text": "Årsag"
+  },
+  "web.colonel.bannedIps.form.reasonPlaceholder": {
+    "text": "Valgfri årsag"
+  },
+  "web.colonel.bannedIps.success.banned": {
+    "text": "IP-adressen {ip} er blevet bandlyst"
+  },
+  "web.colonel.bannedIps.success.unbanned": {
+    "text": "Bandlysningen af IP-adressen {ip} er blevet ophævet"
+  },
+  "web.colonel.customDomains.empty": {
+    "text": "Ingen brugerdefinerede domæner konfigureret"
+  },
+  "web.colonel.customDomains.noLogo": {
+    "text": "Intet logo"
+  },
+  "web.colonel.customDomains.labels.organization": {
+    "text": "Organisation"
+  },
+  "web.colonel.customDomains.labels.externalId": {
+    "text": "Eksternt id"
+  },
+  "web.colonel.customDomains.labels.created": {
+    "text": "Oprettet"
+  },
+  "web.colonel.customDomains.labels.updated": {
+    "text": "Opdateret"
+  },
+  "web.colonel.customDomains.labels.favicon": {
+    "text": "Favicon"
+  },
+  "web.colonel.customDomains.status.verified": {
+    "text": "Bekræftet"
+  },
+  "web.colonel.customDomains.status.resolving": {
+    "text": "Slår op"
+  },
+  "web.colonel.customDomains.status.ready": {
+    "text": "Klar"
+  },
+  "web.colonel.customDomains.status.publicHomepage": {
+    "text": "Offentlig hjemmeside"
+  },
+  "web.colonel.customDomains.status.publicApi": {
+    "text": "Offentlig API"
+  },
+  "web.colonel.customDomains.status.pending": {
+    "text": "Afventer"
+  },
+  "web.colonel.pagination.showing": {
+    "text": "Viser {start}–{end} af {total}"
+  },
+  "web.colonel.pagination.itemsPerPage": {
+    "text": "Elementer pr. side"
+  },
+  "web.colonel.pagination.perPage": {
+    "text": "{count} pr. side"
+  },
+  "web.colonel.pagination.pageOf": {
+    "text": "Side {current} af {total}"
+  },
+  "web.colonel.secrets.empty": {
+    "text": "Ingen beskeder fundet"
+  },
+  "web.colonel.secrets.never": {
+    "text": "Aldrig"
+  },
+  "web.colonel.secrets.columns.shortId": {
+    "text": "Kort id"
+  },
+  "web.colonel.secrets.columns.state": {
+    "text": "Tilstand"
+  },
+  "web.colonel.secrets.columns.created": {
+    "text": "Oprettet"
+  },
+  "web.colonel.secrets.columns.expiration": {
+    "text": "Udløb"
+  },
+  "web.colonel.secrets.columns.age": {
+    "text": "Alder (dage)"
+  },
+  "web.colonel.secrets.state.new": {
+    "text": "Ny"
+  },
+  "web.colonel.secrets.state.received": {
+    "text": "Modtaget"
+  },
+  "web.colonel.secrets.state.viewed": {
+    "text": "Vist"
   }
 }

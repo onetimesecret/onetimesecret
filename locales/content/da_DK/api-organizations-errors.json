@@ -1,0 +1,107 @@
+{
+  "api.organizations.errors.domain_scoped_forbidden": {
+    "text": "Domæneafgrænsede medlemmer kan ikke udføre denne handling"
+  },
+  "api.organizations.errors.organization_not_found": {
+    "text": "Organisation ikke fundet: %{extid}"
+  },
+  "api.organizations.errors.organization_owner_required": {
+    "text": "Kun organisationens ejer kan udføre denne handling"
+  },
+  "api.organizations.errors.organization_member_required": {
+    "text": "Du skal være medlem af organisationen for at udføre denne handling"
+  },
+  "api.organizations.errors.organization_admin_required": {
+    "text": "Kun organisationens ejere og administratorer kan udføre denne handling"
+  },
+  "api.organizations.errors.extid_required": {
+    "text": "Organisations-id kræves"
+  },
+  "api.organizations.errors.display_name_required": {
+    "text": "Organisationsnavn kræves"
+  },
+  "api.organizations.errors.display_name_too_long": {
+    "text": "Organisationsnavnet skal være på mindre end %{max} tegn"
+  },
+  "api.organizations.errors.description_too_long": {
+    "text": "Beskrivelsen skal være på mindre end %{max} tegn"
+  },
+  "api.organizations.errors.contact_email_exists": {
+    "text": "Der findes allerede en organisation med denne kontakt-e-mail"
+  },
+  "api.organizations.errors.creation_in_progress": {
+    "text": "Oprettelse af organisation er i gang. Prøv venligst igen."
+  },
+  "api.organizations.errors.organization_limit_reached": {
+    "text": "Grænsen for organisationer er nået. Opgrader din plan for at oprette flere organisationer."
+  },
+  "api.organizations.invitations.errors.invitation_not_found": {
+    "text": "Invitation ikke fundet"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "E-mail kræves"
+  },
+  "api.organizations.invitations.errors.invalid_email_format": {
+    "text": "Ugyldigt e-mailformat"
+  },
+  "api.organizations.invitations.errors.invalid_role": {
+    "text": "Rollen skal være medlem eller administrator"
+  },
+  "api.organizations.invitations.errors.cannot_invite_as_owner": {
+    "text": "Kan ikke invitere som ejer"
+  },
+  "api.organizations.invitations.errors.user_already_member": {
+    "text": "Brugeren er allerede medlem af denne organisation"
+  },
+  "api.organizations.invitations.errors.invitation_already_pending": {
+    "text": "Der afventer allerede en invitation til denne e-mail"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Grænsen for medlemmer er nået. Opgrader din plan for at invitere flere medlemmer."
+  },
+  "api.organizations.invitations.errors.resend_only_pending": {
+    "text": "Kun afventende invitationer kan sendes igen"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Den maksimale grænse for gensendelse (%{max}) er nået"
+  },
+  "api.organizations.invitations.errors.revoke_only_pending": {
+    "text": "Kun afventende invitationer kan tilbagekaldes"
+  },
+  "api.organizations.members.errors.member_not_found": {
+    "text": "Medlem ikke fundet: %{extid}"
+  },
+  "api.organizations.members.errors.member_not_in_organization": {
+    "text": "Medlem ikke fundet i denne organisation"
+  },
+  "api.organizations.members.errors.member_not_active": {
+    "text": "Medlemmet er ikke aktivt"
+  },
+  "api.organizations.members.errors.invalid_role_value": {
+    "text": "Ugyldig rolle. Skal være en af: %{roles}"
+  },
+  "api.organizations.members.errors.cannot_change_owner_role": {
+    "text": "Ejerrollen kan ikke ændres. Brug ejerskabsoverdragelse i stedet."
+  },
+  "api.organizations.members.errors.member_already_has_role": {
+    "text": "Medlemmet har allerede rollen: %{role}"
+  },
+  "api.organizations.members.errors.cannot_promote_to_owner": {
+    "text": "Kan ikke forfremmes til ejer. Brug ejerskabsoverdragelse i stedet."
+  },
+  "api.organizations.members.errors.must_be_member": {
+    "text": "Du skal være medlem af denne organisation"
+  },
+  "api.organizations.members.errors.cannot_remove_owner": {
+    "text": "Organisationens ejer kan ikke fjernes. Overdrag ejerskabet først."
+  },
+  "api.organizations.members.errors.cannot_remove_self": {
+    "text": "Du kan ikke fjerne dig selv. Brug forlad organisation i stedet."
+  },
+  "api.organizations.members.errors.admin_cannot_remove_admin": {
+    "text": "Administratorer kan ikke fjerne andre administratorer. Det kan kun ejere."
+  },
+  "api.organizations.members.errors.no_permission_to_remove": {
+    "text": "Du har ikke tilladelse til at fjerne medlemmer"
+  }
+}
