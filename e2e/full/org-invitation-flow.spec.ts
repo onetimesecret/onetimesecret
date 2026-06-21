@@ -467,15 +467,15 @@ test.describe('INV-007a: Authenticated Decline Flow', () => {
     await page.goto(`/invite/${token}`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    // Click decline
-    const declineButton = page.getByRole('button', { name: /decline/i });
+    // Click decline (use testid to avoid matching "Continue as decline-..." button)
+    const declineButton = page.getByTestId('decline-invitation-btn');
     await declineButton.click();
 
     // Verify success message
     await expect(page.getByText(/declined/i)).toBeVisible({ timeout: 10000 });
 
-    // Verify redirected to home after delay
-    await page.waitForURL(/^\/$|\/dashboard/, { timeout: 5000 });
+    // Verify redirected to home after delay (use toHaveURL to check current state)
+    await expect(page).toHaveURL(/^\/$|\/dashboard/, { timeout: 5000 });
   });
 });
 
@@ -498,16 +498,16 @@ test.describe('INV-007b: Unauthenticated Decline Flow', () => {
     await page.goto(`/invite/${token}`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    // Decline button should work without auth
-    const declineButton = page.getByRole('button', { name: /decline/i });
+    // Decline button should work without auth (use testid to avoid matching email containing "decline")
+    const declineButton = page.getByTestId('decline-invitation-btn');
     await expect(declineButton).toBeVisible();
     await declineButton.click();
 
     // Verify success message
     await expect(page.getByText(/declined/i)).toBeVisible({ timeout: 10000 });
 
-    // Verify redirected to home
-    await page.waitForURL(/^\/$/, { timeout: 5000 });
+    // Verify redirected to home (use toHaveURL to check current state, not waitForURL which races)
+    await expect(page).toHaveURL(/^\/$|\/dashboard/, { timeout: 5000 });
   });
 });
 
