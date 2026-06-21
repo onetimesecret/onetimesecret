@@ -988,5 +988,47 @@
     "text": "Dostępne tylko w Twoim oryginalnym regionie subskrypcji",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Masz już subskrypcję tego planu."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Reaktywuj subskrypcję"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "Twoja subskrypcja została reaktywowana. Opłaty będą naliczane jak zwykle."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "Nie udało się reaktywować subskrypcji. Spróbuj ponownie lub skontaktuj się z pomocą techniczną."
+  },
+  "web.billing.features.manage_orgs": {
+    "text": "Zarządzanie organizacjami"
+  },
+  "web.billing.features.flexible_from_domain": {
+    "text": "Elastyczna domena nadawcy e-mail"
+  },
+  "web.billing.features.unlimited_admins": {
+    "text": "Nieograniczona liczba administratorów"
+  },
+  "web.billing.features.manage_sso": {
+    "text": "SSO"
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Elastyczna domena nadawcy e-mail"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "Zarządzanie organizacjami"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Jednokrotne logowanie (SSO)"
+  },
+  "web.billing.overview.entitlements.manage_billing": {
+    "text": "Zarządzanie płatnościami"
+  },
+  "web.billing.overview.entitlements.custom_signup_validation": {
+    "text": "Niestandardowa walidacja rejestracji"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Reaktywuj"
   }
 }

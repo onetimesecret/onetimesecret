@@ -634,5 +634,152 @@
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
     "text": "Gdy wyślesz opinię, zobaczymy:",
     "source_hash": "fe77172e"
+  },
+  "web.colonel.previewPlanMode": {
+    "text": "Tryb podglądu planu"
+  },
+  "web.colonel.previewModeDescription": {
+    "text": "Podejrzyj aplikację w takiej postaci, w jakiej widzą ją klienci korzystający z innego planu. Wpływa to wyłącznie na Twój widok i nie zmienia rzeczywistego planu żadnej organizacji."
+  },
+  "web.colonel.previewModeActive": {
+    "text": "Podgląd aktywny"
+  },
+  "web.colonel.bannedIps.empty": {
+    "text": "Brak zablokowanych adresów IP"
+  },
+  "web.colonel.bannedIps.currentIp": {
+    "text": "Twój bieżący adres IP"
+  },
+  "web.colonel.bannedIps.confirmUnban": {
+    "text": "Odblokować {ip}?"
+  },
+  "web.colonel.bannedIps.actions.ban": {
+    "text": "Zablokuj IP"
+  },
+  "web.colonel.bannedIps.actions.quickBan": {
+    "text": "Szybka blokada"
+  },
+  "web.colonel.bannedIps.actions.unban": {
+    "text": "Odblokuj"
+  },
+  "web.colonel.bannedIps.actions.cancel": {
+    "text": "Anuluj"
+  },
+  "web.colonel.bannedIps.columns.ipAddress": {
+    "text": "Adres IP"
+  },
+  "web.colonel.bannedIps.columns.reason": {
+    "text": "Powód"
+  },
+  "web.colonel.bannedIps.columns.bannedAt": {
+    "text": "Zablokowano"
+  },
+  "web.colonel.bannedIps.columns.bannedBy": {
+    "text": "Zablokowane przez"
+  },
+  "web.colonel.bannedIps.error.banFailed": {
+    "text": "Nie udało się zablokować adresu IP"
+  },
+  "web.colonel.bannedIps.error.unbanFailed": {
+    "text": "Nie udało się odblokować adresu IP"
+  },
+  "web.colonel.bannedIps.form.title": {
+    "text": "Zablokuj adres IP"
+  },
+  "web.colonel.bannedIps.form.ipLabel": {
+    "text": "Adres IP"
+  },
+  "web.colonel.bannedIps.form.reasonLabel": {
+    "text": "Powód"
+  },
+  "web.colonel.bannedIps.form.reasonPlaceholder": {
+    "text": "Opcjonalny powód"
+  },
+  "web.colonel.bannedIps.success.banned": {
+    "text": "Adres IP {ip} został zablokowany"
+  },
+  "web.colonel.bannedIps.success.unbanned": {
+    "text": "Adres IP {ip} został odblokowany"
+  },
+  "web.colonel.customDomains.empty": {
+    "text": "Nie skonfigurowano żadnych domen niestandardowych"
+  },
+  "web.colonel.customDomains.noLogo": {
+    "text": "Brak logo"
+  },
+  "web.colonel.customDomains.labels.organization": {
+    "text": "Organizacja"
+  },
+  "web.colonel.customDomains.labels.externalId": {
+    "text": "Identyfikator zewnętrzny"
+  },
+  "web.colonel.customDomains.labels.created": {
+    "text": "Utworzono"
+  },
+  "web.colonel.customDomains.labels.updated": {
+    "text": "Zaktualizowano"
+  },
+  "web.colonel.customDomains.labels.favicon": {
+    "text": "Favicon"
+  },
+  "web.colonel.customDomains.status.verified": {
+    "text": "Zweryfikowano"
+  },
+  "web.colonel.customDomains.status.resolving": {
+    "text": "Rozwiązywanie"
+  },
+  "web.colonel.customDomains.status.ready": {
+    "text": "Gotowe"
+  },
+  "web.colonel.customDomains.status.publicHomepage": {
+    "text": "Publiczna strona główna"
+  },
+  "web.colonel.customDomains.status.publicApi": {
+    "text": "Publiczne API"
+  },
+  "web.colonel.customDomains.status.pending": {
+    "text": "Oczekuje"
+  },
+  "web.colonel.pagination.showing": {
+    "text": "Wyświetlanie {start}–{end} z {total}"
+  },
+  "web.colonel.pagination.itemsPerPage": {
+    "text": "Elementów na stronę"
+  },
+  "web.colonel.pagination.perPage": {
+    "text": "{count} na stronę"
+  },
+  "web.colonel.pagination.pageOf": {
+    "text": "Strona {current} z {total}"
+  },
+  "web.colonel.secrets.empty": {
+    "text": "Nie znaleziono żadnych sekretów"
+  },
+  "web.colonel.secrets.never": {
+    "text": "Nigdy"
+  },
+  "web.colonel.secrets.columns.shortId": {
+    "text": "Krótki identyfikator"
+  },
+  "web.colonel.secrets.columns.state": {
+    "text": "Stan"
+  },
+  "web.colonel.secrets.columns.created": {
+    "text": "Utworzono"
+  },
+  "web.colonel.secrets.columns.expiration": {
+    "text": "Wygaśnięcie"
+  },
+  "web.colonel.secrets.columns.age": {
+    "text": "Wiek (dni)"
+  },
+  "web.colonel.secrets.state.new": {
+    "text": "Nowy"
+  },
+  "web.colonel.secrets.state.received": {
+    "text": "Otrzymany"
+  },
+  "web.colonel.secrets.state.viewed": {
+    "text": "Wyświetlony"
   }
 }

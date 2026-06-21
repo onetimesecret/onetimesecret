@@ -1,0 +1,71 @@
+{
+  "api.entitlements.errors.context_unavailable": {
+    "text": "Nie można zweryfikować uprawnień (kontekst organizacji niedostępny)"
+  },
+  "api.entitlements.errors.api_access_required": {
+    "text": "Dostęp do API wymaga ulepszenia planu"
+  },
+  "api.entitlements.errors.custom_privacy_defaults_required": {
+    "text": "Niestandardowe domyślne ustawienia prywatności wymagają ulepszenia planu"
+  },
+  "api.entitlements.errors.extended_default_expiration_required": {
+    "text": "Rozszerzone domyślne wygaśnięcie wymaga ulepszenia planu"
+  },
+  "api.entitlements.errors.custom_domains_required": {
+    "text": "Domeny niestandardowe wymagają ulepszenia planu"
+  },
+  "api.entitlements.errors.custom_branding_required": {
+    "text": "Niestandardowy branding wymaga ulepszenia planu"
+  },
+  "api.entitlements.errors.homepage_secrets_required": {
+    "text": "Sekrety na stronie głównej wymagają ulepszenia planu"
+  },
+  "api.entitlements.errors.incoming_secrets_required": {
+    "text": "Przychodzące sekrety wymagają ulepszenia planu"
+  },
+  "api.entitlements.errors.custom_mail_sender_required": {
+    "text": "Niestandardowy nadawca poczty wymaga ulepszenia planu"
+  },
+  "api.entitlements.errors.flexible_from_domain_required": {
+    "text": "Elastyczna domena nadawcy wymaga ulepszenia planu"
+  },
+  "api.entitlements.errors.manage_org_required": {
+    "text": "Zarządzanie organizacją wymaga ulepszenia planu"
+  },
+  "api.entitlements.errors.manage_teams_required": {
+    "text": "Zarządzanie zespołami wymaga ulepszenia planu"
+  },
+  "api.entitlements.errors.manage_members_required": {
+    "text": "Zarządzanie członkami wymaga ulepszenia planu"
+  },
+  "api.entitlements.errors.manage_sso_required": {
+    "text": "Zarządzanie SSO wymaga ulepszenia planu"
+  },
+  "api.entitlements.errors.audit_logs_required": {
+    "text": "Logi audytu wymagają ulepszenia planu"
+  },
+  "api.entitlements.errors.custom_signup_validation_required": {
+    "text": "Niestandardowa walidacja rejestracji wymaga ulepszenia planu"
+  },
+  "api.entitlements.errors.create_secrets_required": {
+    "text": "Tworzenie sekretów wymaga ulepszenia planu"
+  },
+  "api.entitlements.errors.view_receipt_required": {
+    "text": "Wyświetlanie potwierdzeń wymaga ulepszenia planu"
+  },
+  "api.entitlements.errors.notifications_required": {
+    "text": "Powiadomienia wymagają ulepszenia planu"
+  },
+  "api.entitlements.errors.workspace_branding_required": {
+    "text": "Branding obszaru roboczego wymaga ulepszenia planu"
+  },
+  "api.entitlements.errors.ip_access_rules_required": {
+    "text": "Reguły dostępu IP wymagają ulepszenia planu"
+  },
+  "api.entitlements.errors.manage_billing_required": {
+    "text": "Zarządzanie płatnościami wymaga ulepszenia planu"
+  },
+  "api.entitlements.errors.custom_signin_config_required": {
+    "text": "Niestandardowa konfiguracja logowania wymaga ulepszenia planu"
+  }
+}

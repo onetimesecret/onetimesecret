@@ -1,0 +1,5 @@
+{
+  "api.feedback.errors.rate_limit_exceeded": {
+    "text": "Zbyt wiele przesłanych opinii. Spróbuj ponownie później."
+  }
+}
