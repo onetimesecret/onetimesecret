@@ -770,5 +770,200 @@
   "web.organizations.sso.status_not_configured": {
     "text": "Não Configurado",
     "source_hash": "bbea960e"
+  },
+  "api.organizations.errors.not_found": {
+    "text": "Organização não encontrada: %{extid}"
+  },
+  "api.organizations.errors.owner_required": {
+    "text": "Apenas o proprietário da organização pode realizar esta ação"
+  },
+  "api.organizations.errors.admin_required": {
+    "text": "Apenas proprietários e administradores da organização podem realizar esta ação"
+  },
+  "api.organizations.errors.member_required": {
+    "text": "Você precisa ser membro da organização para realizar esta ação"
+  },
+  "api.organizations.invitations.errors.create_admin_required": {
+    "text": "Apenas proprietários e administradores da organização podem criar convites"
+  },
+  "api.organizations.invitations.errors.resend_admin_required": {
+    "text": "Apenas proprietários e administradores da organização podem reenviar convites"
+  },
+  "api.organizations.invitations.errors.view_admin_required": {
+    "text": "Apenas proprietários e administradores da organização podem visualizar convites"
+  },
+  "api.organizations.invitations.errors.revoke_admin_required": {
+    "text": "Apenas proprietários e administradores da organização podem revogar convites"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "O e-mail é obrigatório"
+  },
+  "api.organizations.invitations.errors.email_invalid": {
+    "text": "Formato de e-mail inválido"
+  },
+  "api.organizations.invitations.errors.role_invalid": {
+    "text": "A função deve ser membro ou administrador"
+  },
+  "api.organizations.invitations.errors.cannot_invite_owner": {
+    "text": "Não é possível convidar como proprietário"
+  },
+  "api.organizations.invitations.errors.already_member": {
+    "text": "O usuário já é membro desta organização"
+  },
+  "api.organizations.invitations.errors.already_pending": {
+    "text": "Já existe um convite pendente para este e-mail"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Limite de membros atingido. Faça upgrade do seu plano para convidar mais membros."
+  },
+  "api.organizations.invitations.errors.not_found": {
+    "text": "Convite não encontrado"
+  },
+  "api.organizations.invitations.errors.cannot_resend_non_pending": {
+    "text": "Só é possível reenviar convites pendentes"
+  },
+  "api.organizations.invitations.errors.cannot_revoke_non_pending": {
+    "text": "Só é possível revogar convites pendentes"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Limite máximo de reenvios (%{max}) atingido"
+  },
+  "api.organizations.invitations.errors.accept_token_required": {
+    "text": "O token é obrigatório"
+  },
+  "api.organizations.invitations.errors.accept_organization_gone": {
+    "text": "A organização não existe mais"
+  },
+  "api.organizations.invitations.errors.accept_already_acted": {
+    "text": "O convite já foi %{status}"
+  },
+  "api.organizations.invitations.errors.accept_expired": {
+    "text": "O convite expirou"
+  },
+  "api.organizations.invitations.errors.accept_email_mismatch": {
+    "text": "Seu endereço de e-mail não corresponde ao convite"
+  },
+  "api.organizations.invitations.errors.accept_already_member": {
+    "text": "Você já é membro desta organização"
+  },
+  "web.organizations.entitlements_title": {
+    "text": "Entitlements da organização"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Visualize e configure seus Workspaces"
+  },
+  "web.organizations.delete_organization_remove_domains_first": {
+    "text": "Remova todos os domínios personalizados antes de excluir esta organização."
+  },
+  "web.organizations.default_org_delete_notice_title": {
+    "text": "Excluindo esta organização"
+  },
+  "web.organizations.default_org_delete_notice_before": {
+    "text": "Esta é a sua organização padrão e não pode ser removida pelo painel. Para excluí-la, entre em contato pelo"
+  },
+  "web.organizations.default_org_delete_notice_link": {
+    "text": "formulário de feedback"
+  },
+  "web.organizations.default_org_delete_notice_after": {
+    "text": "."
+  },
+  "web.organizations.leave_organization": {
+    "text": "Sair desta organização"
+  },
+  "web.organizations.leave_organization_warning": {
+    "text": "Você perderá o acesso a esta organização e aos seus recursos."
+  },
+  "web.organizations.leave_organization_confirm_title": {
+    "text": "Sair da organização"
+  },
+  "web.organizations.leave_organization_confirm_message": {
+    "text": "Tem certeza de que deseja sair de {name}? Você precisará de um novo convite para retornar."
+  },
+  "web.organizations.leave_organization_success": {
+    "text": "Você saiu da organização."
+  },
+  "web.organizations.leave_error": {
+    "text": "Falha ao sair da organização"
+  },
+  "web.organizations.organizations": {
+    "text": "Organizações"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "por {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "como {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Voltar para a página inicial"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Este convite foi enviado para este endereço de e-mail"
+  },
+  "web.organizations.invitations.signup_continue": {
+    "text": "Continuar"
+  },
+  "web.organizations.invitations.signin_continue": {
+    "text": "Entrar"
+  },
+  "web.organizations.invitations.confirm_join_below": {
+    "text": "Quase lá — confirme abaixo para entrar na organização."
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Ir para Organizações"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Você já é membro desta organização"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Entrar em {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Entre para participar de {orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Recusar"
+  },
+  "web.organizations.members.member_quota": {
+    "text": "{used} de {limit} membros"
+  },
+  "web.organizations.members.pending_suffix": {
+    "text": "({count} pendente)"
+  },
+  "web.organizations.members.limit_reached_hint": {
+    "text": "Limite de membros atingido."
+  },
+  "web.organizations.sso.view_discovery_document": {
+    "text": "Ver documento de descoberta"
+  },
+  "web.organizations.sso.callback_url": {
+    "text": "Callback URL"
+  },
+  "web.organizations.sso.callback_url_hint": {
+    "text": "Adicione esta URL aos URIs de redirecionamento permitidos do seu provedor de identidade"
+  },
+  "web.organizations.sso.enforce_sso_only": {
+    "text": "Aplicar somente SSO"
+  },
+  "web.organizations.sso.enforce_sso_only_hint": {
+    "text": "Exigir SSO para todos os inícios de sessão neste domínio. Quando ativado, a autenticação baseada em senha é desativada."
+  },
+  "web.organizations.sso.grant_org_scope": {
+    "text": "Conceder acesso a toda a organização"
+  },
+  "web.organizations.sso.grant_org_scope_hint": {
+    "text": "Novos membros que ingressarem por meio do SSO deste domínio receberão acesso a todos os domínios da organização. Os membros existentes não são afetados. Quando desativado (padrão), os novos membros só podem acessar este domínio."
+  },
+  "web.organizations.sso.no_domains": {
+    "text": "Nenhum domínio verificado"
+  },
+  "web.organizations.sso.no_domains_description": {
+    "text": "Adicione e verifique um domínio antes de configurar o SSO para ele."
+  },
+  "web.organizations.tabs.team": {
+    "text": "Equipe"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }
