@@ -152,7 +152,7 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Ако имейлът за контакт за фактуриране се различава от имейла на вашия {product_name} акаунт, използвайте имейла за фактуриране за акаунта в новия регион, за да запазите предимствата на абонамента си.",
+    "text": "Ако имейлът ви за контакт за фактуриране се различава от имейла на вашия акаунт в {product_name}, използвайте имейла за контакт за фактуриране на акаунта за новия регион, за да запазите предимствата на абонамента си.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
@@ -186,5 +186,8 @@
   "web.regions.jurisdictions.apac.name": {
     "text": "Asia-Pacific",
     "source_hash": "7a757670"
+  },
+  "web.regions.no_region_configured": {
+    "text": "В момента няма налична информация за регион за вашия акаунт."
   }
 }

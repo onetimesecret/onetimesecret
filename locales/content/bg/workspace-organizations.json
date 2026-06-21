@@ -578,5 +578,344 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Изтича скоро",
     "source_hash": "a5dcfef9"
+  },
+  "api.organizations.errors.not_found": {
+    "text": "Организацията не е намерена: %{extid}"
+  },
+  "api.organizations.errors.owner_required": {
+    "text": "Само собственикът на организацията може да извърши това действие"
+  },
+  "api.organizations.errors.admin_required": {
+    "text": "Само собствениците и администраторите на организацията могат да извършат това действие"
+  },
+  "api.organizations.errors.member_required": {
+    "text": "Трябва да сте член на организацията, за да извършите това действие"
+  },
+  "api.organizations.invitations.errors.create_admin_required": {
+    "text": "Само собствениците и администраторите на организацията могат да създават покани"
+  },
+  "api.organizations.invitations.errors.resend_admin_required": {
+    "text": "Само собствениците и администраторите на организацията могат да изпращат повторно покани"
+  },
+  "api.organizations.invitations.errors.view_admin_required": {
+    "text": "Само собствениците и администраторите на организацията могат да преглеждат покани"
+  },
+  "api.organizations.invitations.errors.revoke_admin_required": {
+    "text": "Само собствениците и администраторите на организацията могат да отменят покани"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "Имейлът е задължителен"
+  },
+  "api.organizations.invitations.errors.email_invalid": {
+    "text": "Невалиден формат на имейл"
+  },
+  "api.organizations.invitations.errors.role_invalid": {
+    "text": "Ролята трябва да бъде член или администратор"
+  },
+  "api.organizations.invitations.errors.cannot_invite_owner": {
+    "text": "Не може да се покани като собственик"
+  },
+  "api.organizations.invitations.errors.already_member": {
+    "text": "Потребителят вече е член на тази организация"
+  },
+  "api.organizations.invitations.errors.already_pending": {
+    "text": "Вече има чакаща покана за този имейл"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Достигнат е лимитът на членове. Надстройте плана си, за да поканите повече членове."
+  },
+  "api.organizations.invitations.errors.not_found": {
+    "text": "Поканата не е намерена"
+  },
+  "api.organizations.invitations.errors.cannot_resend_non_pending": {
+    "text": "Можете да изпращате повторно само чакащи покани"
+  },
+  "api.organizations.invitations.errors.cannot_revoke_non_pending": {
+    "text": "Можете да отменяте само чакащи покани"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Достигнат е максималният лимит за повторно изпращане (%{max})"
+  },
+  "api.organizations.invitations.errors.accept_token_required": {
+    "text": "Изисква се токен"
+  },
+  "api.organizations.invitations.errors.accept_organization_gone": {
+    "text": "Организацията вече не съществува"
+  },
+  "api.organizations.invitations.errors.accept_already_acted": {
+    "text": "Поканата вече е %{status}"
+  },
+  "api.organizations.invitations.errors.accept_expired": {
+    "text": "Поканата е изтекла"
+  },
+  "api.organizations.invitations.errors.accept_email_mismatch": {
+    "text": "Вашият имейл адрес не съвпада с поканата"
+  },
+  "api.organizations.invitations.errors.accept_already_member": {
+    "text": "Вече сте член на тази организация"
+  },
+  "web.organizations.entitlements_title": {
+    "text": "Правомощия на организацията"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Преглеждайте и конфигурирайте вашите работни области"
+  },
+  "web.organizations.delete_organization_remove_domains_first": {
+    "text": "Премахнете всички персонализирани домейни, преди да изтриете тази организация."
+  },
+  "web.organizations.default_org_delete_notice_title": {
+    "text": "Изтриване на тази организация"
+  },
+  "web.organizations.default_org_delete_notice_before": {
+    "text": "Това е вашата организация по подразбиране и не може да бъде премахната от таблото. За да я изтриете, моля, свържете се чрез"
+  },
+  "web.organizations.default_org_delete_notice_link": {
+    "text": "формата за обратна връзка"
+  },
+  "web.organizations.default_org_delete_notice_after": {
+    "text": "."
+  },
+  "web.organizations.leave_organization": {
+    "text": "Напускане на тази организация"
+  },
+  "web.organizations.leave_organization_warning": {
+    "text": "Ще загубите достъп до тази организация и нейните ресурси."
+  },
+  "web.organizations.leave_organization_confirm_title": {
+    "text": "Напускане на организация"
+  },
+  "web.organizations.leave_organization_confirm_message": {
+    "text": "Сигурни ли сте, че искате да напуснете {name}? Ще ви е необходима нова покана, за да се присъедините отново."
+  },
+  "web.organizations.leave_organization_success": {
+    "text": "Напуснахте организацията."
+  },
+  "web.organizations.leave_error": {
+    "text": "Напускането на организацията беше неуспешно"
+  },
+  "web.organizations.organizations": {
+    "text": "Организации"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "от {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "като {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Обратно към началната страница"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Тази покана беше изпратена до този имейл адрес"
+  },
+  "web.organizations.invitations.signup_continue": {
+    "text": "Продължи"
+  },
+  "web.organizations.invitations.signin_continue": {
+    "text": "Влизане"
+  },
+  "web.organizations.invitations.confirm_join_below": {
+    "text": "Почти готово — потвърдете по-долу, за да се присъедините към организацията."
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Към Организации"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Вече сте член на тази организация"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Присъедини се към {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Влезте, за да се присъедините към {orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Откажи"
+  },
+  "web.organizations.members.member_quota": {
+    "text": "{used} от {limit} членове"
+  },
+  "web.organizations.members.pending_suffix": {
+    "text": "({count} чакащи)"
+  },
+  "web.organizations.members.limit_reached_hint": {
+    "text": "Достигнат е лимитът на членове."
+  },
+  "web.organizations.sso.title": {
+    "text": "Единно влизане (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "Конфигурирайте SSO, за да позволите на членовете да влизат с доставчика на идентичност на вашата организация"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Тип доставчик"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Изберете доставчика на идентичност на вашата организация"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Показвано име"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "Удобно име, показвано на потребителите при влизане"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "напр. Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "Client ID"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "Вашият OAuth client ID"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Client Secret"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "Вашият OAuth client secret"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Оставете празно, за да запазите съществуващата тайна"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "Tenant ID"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "Идентификаторът на вашия Azure AD / Entra ID наемател"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "напр. 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "Issuer URL"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "OIDC URL адресът за откриване на вашия доставчик на идентичност"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "напр. https://login.example.com"
+  },
+  "web.organizations.sso.view_discovery_document": {
+    "text": "Преглед на документа за откриване"
+  },
+  "web.organizations.sso.callback_url": {
+    "text": "Callback URL"
+  },
+  "web.organizations.sso.callback_url_hint": {
+    "text": "Добавете този URL към разрешените redirect URI адреси на вашия доставчик на идентичност"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "Разрешени имейл домейни"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Само потребители с имейл адреси от тези домейни могат да влизат. Оставете празно, за да разрешите всички домейни."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "напр. acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Моля, въведете валиден домейн (напр. example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Този домейн вече е в списъка"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "Премахване на {domain}"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "Активиране на SSO"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "Когато е активиран, членовете на организацията могат да влизат, използвайки този доставчик на SSO"
+  },
+  "web.organizations.sso.enforce_sso_only": {
+    "text": "Налагане само на SSO"
+  },
+  "web.organizations.sso.enforce_sso_only_hint": {
+    "text": "Изисквайте SSO за всички влизания на този домейн. Когато е активирано, удостоверяването с парола е деактивирано."
+  },
+  "web.organizations.sso.grant_org_scope": {
+    "text": "Предоставяне на достъп в цялата организация"
+  },
+  "web.organizations.sso.grant_org_scope_hint": {
+    "text": "На новите членове, които се присъединяват чрез SSO на този домейн, ще бъде предоставен достъп до всички домейни на организацията. Съществуващите членове не са засегнати. Когато е деактивирано (по подразбиране), новите членове могат да достъпват само този домейн."
+  },
+  "web.organizations.sso.save_config": {
+    "text": "Запазване на SSO конфигурацията"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Изтриване на конфигурацията"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "Сигурни ли сте? Това ще деактивира SSO за вашата организация."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "Неуспешно зареждане на SSO конфигурацията"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "Неуспешно запазване на SSO конфигурацията"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "Конфигурацията на SSO е създадена успешно"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "Конфигурацията на SSO е актуализирана успешно"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "Конфигурацията на SSO е изтрита успешно"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "Неуспешно изтриване на SSO конфигурацията"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Тест на връзката"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Проверете дали доставчикът на идентичност е достъпен (не валидира идентификационните данни)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Тест на връзката"
+  },
+  "web.organizations.sso.testing": {
+    "text": "Тестване..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "Неуспешен тест на връзката"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Крайна точка за оторизация"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Липсващи полета"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Активирано"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Конфигурирано"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "SSO за домейн"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Конфигурирайте SSO за всеки потвърден домейн"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "За да промените доставчика, първо изтрийте тази конфигурация"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Не е конфигурирано"
+  },
+  "web.organizations.sso.no_domains": {
+    "text": "Няма потвърдени домейни"
+  },
+  "web.organizations.sso.no_domains_description": {
+    "text": "Добавете и потвърдете домейн, преди да конфигурирате SSO за него."
+  },
+  "web.organizations.tabs.team": {
+    "text": "Екип"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

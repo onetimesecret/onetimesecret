@@ -634,5 +634,152 @@
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
     "text": "Когато изпратите обратна връзка, ще видим:",
     "source_hash": "fe77172e"
+  },
+  "web.colonel.previewPlanMode": {
+    "text": "Режим за преглед на план"
+  },
+  "web.colonel.previewModeDescription": {
+    "text": "Прегледайте приложението така, както изглежда за клиентите с различен план. Това засяга само вашия изглед и не променя действителния план на която и да е организация."
+  },
+  "web.colonel.previewModeActive": {
+    "text": "Прегледът е активен"
+  },
+  "web.colonel.bannedIps.empty": {
+    "text": "Няма блокирани IP адреси"
+  },
+  "web.colonel.bannedIps.currentIp": {
+    "text": "Вашият текущ IP адрес"
+  },
+  "web.colonel.bannedIps.confirmUnban": {
+    "text": "Да се отблокира ли {ip}?"
+  },
+  "web.colonel.bannedIps.actions.ban": {
+    "text": "Блокиране на IP"
+  },
+  "web.colonel.bannedIps.actions.quickBan": {
+    "text": "Бързо блокиране"
+  },
+  "web.colonel.bannedIps.actions.unban": {
+    "text": "Отблокиране"
+  },
+  "web.colonel.bannedIps.actions.cancel": {
+    "text": "Отказ"
+  },
+  "web.colonel.bannedIps.columns.ipAddress": {
+    "text": "IP адрес"
+  },
+  "web.colonel.bannedIps.columns.reason": {
+    "text": "Причина"
+  },
+  "web.colonel.bannedIps.columns.bannedAt": {
+    "text": "Блокиран на"
+  },
+  "web.colonel.bannedIps.columns.bannedBy": {
+    "text": "Блокиран от"
+  },
+  "web.colonel.bannedIps.error.banFailed": {
+    "text": "Блокирането на IP адреса е неуспешно"
+  },
+  "web.colonel.bannedIps.error.unbanFailed": {
+    "text": "Отблокирането на IP адреса е неуспешно"
+  },
+  "web.colonel.bannedIps.form.title": {
+    "text": "Блокиране на IP адрес"
+  },
+  "web.colonel.bannedIps.form.ipLabel": {
+    "text": "IP адрес"
+  },
+  "web.colonel.bannedIps.form.reasonLabel": {
+    "text": "Причина"
+  },
+  "web.colonel.bannedIps.form.reasonPlaceholder": {
+    "text": "Незадължителна причина"
+  },
+  "web.colonel.bannedIps.success.banned": {
+    "text": "IP адресът {ip} беше блокиран"
+  },
+  "web.colonel.bannedIps.success.unbanned": {
+    "text": "IP адресът {ip} беше отблокиран"
+  },
+  "web.colonel.customDomains.empty": {
+    "text": "Няма конфигурирани потребителски домейни"
+  },
+  "web.colonel.customDomains.noLogo": {
+    "text": "Няма лого"
+  },
+  "web.colonel.customDomains.labels.organization": {
+    "text": "Организация"
+  },
+  "web.colonel.customDomains.labels.externalId": {
+    "text": "Външен ИД"
+  },
+  "web.colonel.customDomains.labels.created": {
+    "text": "Създаден"
+  },
+  "web.colonel.customDomains.labels.updated": {
+    "text": "Обновен"
+  },
+  "web.colonel.customDomains.labels.favicon": {
+    "text": "Favicon"
+  },
+  "web.colonel.customDomains.status.verified": {
+    "text": "Проверен"
+  },
+  "web.colonel.customDomains.status.resolving": {
+    "text": "Разрешаване"
+  },
+  "web.colonel.customDomains.status.ready": {
+    "text": "Готов"
+  },
+  "web.colonel.customDomains.status.publicHomepage": {
+    "text": "Публична начална страница"
+  },
+  "web.colonel.customDomains.status.publicApi": {
+    "text": "Публичен API"
+  },
+  "web.colonel.customDomains.status.pending": {
+    "text": "В очакване"
+  },
+  "web.colonel.pagination.showing": {
+    "text": "Показани {start}–{end} от {total}"
+  },
+  "web.colonel.pagination.itemsPerPage": {
+    "text": "Елементи на страница"
+  },
+  "web.colonel.pagination.perPage": {
+    "text": "{count} на страница"
+  },
+  "web.colonel.pagination.pageOf": {
+    "text": "Страница {current} от {total}"
+  },
+  "web.colonel.secrets.empty": {
+    "text": "Не са намерени тайни"
+  },
+  "web.colonel.secrets.never": {
+    "text": "Никога"
+  },
+  "web.colonel.secrets.columns.shortId": {
+    "text": "Кратък ИД"
+  },
+  "web.colonel.secrets.columns.state": {
+    "text": "Състояние"
+  },
+  "web.colonel.secrets.columns.created": {
+    "text": "Създаден"
+  },
+  "web.colonel.secrets.columns.expiration": {
+    "text": "Изтичане"
+  },
+  "web.colonel.secrets.columns.age": {
+    "text": "Възраст (дни)"
+  },
+  "web.colonel.secrets.state.new": {
+    "text": "Нова"
+  },
+  "web.colonel.secrets.state.received": {
+    "text": "Получена"
+  },
+  "web.colonel.secrets.state.viewed": {
+    "text": "Прегледана"
   }
 }
