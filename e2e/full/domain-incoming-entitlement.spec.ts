@@ -459,8 +459,7 @@ test.describe('Domain Incoming - Error/Disabled Banner Exclusivity (#3479 Fix A)
     const formElement = page.locator('form');
     await expect(errorAlert.or(formElement).first()).toBeVisible();
 
-    // Look for error alert (BasicFormAlerts)
-    const errorAlert = page.locator('[role="alert"]');
+    // Look for disabled notice (BasicFormAlerts)
     const disabledNotice = page.locator('.bg-blue-50, .bg-blue-900\\/20').filter({
       hasText: /toggle|enable|feature|disabled/i,
     });
