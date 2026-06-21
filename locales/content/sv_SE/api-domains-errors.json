@@ -1,0 +1,29 @@
+{
+  "api.domains.errors.domain_id_required": {
+    "text": "Domän-ID krävs"
+  },
+  "api.domains.errors.domain_not_found": {
+    "text": "Domänen hittades inte: %{extid}"
+  },
+  "api.domains.errors.organization_not_found": {
+    "text": "Ingen organisation hittades för domänen: %{domain}"
+  },
+  "api.domains.errors.incoming_secrets_disabled": {
+    "text": "Inkommande hemligheter är inte aktiverat på den här instansen"
+  },
+  "api.domains.errors.incoming_secrets_entitlement_required": {
+    "text": "Hantering av inkommande hemligheter kräver behörigheten incoming_secrets. Uppgradera din plan."
+  },
+  "api.domains.errors.incoming_config_not_found": {
+    "text": "Ingen konfiguration för inkommande hittades för domänen: %{extid}"
+  },
+  "api.domains.errors.recipients_max_exceeded": {
+    "text": "Högst %{max} mottagare tillåtna"
+  },
+  "api.domains.errors.recipients_invalid_email": {
+    "text": "Ogiltig e-postadress: %{email}"
+  },
+  "api.domains.errors.recipients_duplicate": {
+    "text": "Dubblerade mottagar-e-postadresser är inte tillåtna"
+  }
+}

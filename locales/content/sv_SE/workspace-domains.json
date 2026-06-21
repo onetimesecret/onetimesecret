@@ -398,5 +398,725 @@
   "web.domains.dns_widget_description": {
     "text": "Använd verktyget nedan för att automatiskt upptäcka din DNS-leverantör och få steg-för-steg-instruktioner för att konfigurera din domän.",
     "source_hash": "91c1af2e"
+  },
+  "api.domains.errors.add_admin_required": {
+    "text": "Endast organisationsägare och administratörer kan lägga till anpassade domäner"
+  },
+  "web.domains.public_homepage": {
+    "text": "Offentlig startsida"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Domänen verifierad och aktiv"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS inte konfigurerat – klicka för att åtgärda"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Domänen inte verifierad – klicka för att verifiera"
+  },
+  "web.domains.status_tooltip_unverified": {
+    "text": "Domänstatus overifierad – klicka för att uppdatera"
+  },
+  "web.domains.last_check_failed": {
+    "text": "Den senaste verifieringskontrollen misslyckades"
+  },
+  "web.domains.last_check_failed_ago": {
+    "text": "senaste kontrollen misslyckades {0}"
+  },
+  "web.domains.verify_now": {
+    "text": "Verifiera nu"
+  },
+  "web.domains.click_to_verify": {
+    "text": "klicka för att verifiera"
+  },
+  "web.domains.remove_domain_description": {
+    "text": "Ta bort den här domänen och hela dess konfiguration permanent."
+  },
+  "web.domains.add_access_denied": {
+    "text": "Åtkomst nekad"
+  },
+  "web.domains.add_access_denied_description": {
+    "text": "Du har inte behörighet att lägga till domäner i den här organisationen. Kontakta din organisationsadministratör."
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "Det gick inte att läsa in DNS-widgeten"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "DNS-widgeten är inte tillgänglig"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "Det gick inte att initiera DNS-widgeten"
+  },
+  "web.domains.verified": {
+    "text": "Verifierad"
+  },
+  "web.domains.pending_verification": {
+    "text": "Väntar på verifiering"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Du har osparade ändringar. Är du säker på att du vill lämna sidan?"
+  },
+  "web.domains.entitlement_required_owner": {
+    "text": "Den här funktionen kräver en uppgradering av planen."
+  },
+  "web.domains.entitlement_required_member": {
+    "text": "Den här funktionen är inte tillgänglig i din nuvarande plan. Kontakta din organisationsägare."
+  },
+  "web.domains.detail.manage": {
+    "text": "Hantera"
+  },
+  "web.domains.detail.features": {
+    "text": "Funktioner"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Hemligheter på startsidan"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Tillåt offentlig åtkomst för att skapa hemligheter på din domäns startsida"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logotyp, färger och anpassad varumärkesprofilering"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Inställningar för single sign-on-leverantör"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Konfiguration av anpassad e-postavsändare"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Inställningar för mottagare av inkommande hemligheter"
+  },
+  "web.domains.detail.signup_description": {
+    "text": "Strategi för registreringsvalidering per domän"
+  },
+  "web.domains.detail.signin_description": {
+    "text": "Konfiguration av inloggningsmetod per domän"
+  },
+  "web.domains.email.title": {
+    "text": "E-postutskick"
+  },
+  "web.domains.email.config_title": {
+    "text": "E-postkonfiguration"
+  },
+  "web.domains.email.config_description": {
+    "text": "Konfigurera e-postutskick för den här domänen"
+  },
+  "web.domains.email.provider_label": {
+    "text": "E-postleverantör"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "Välj en e-postleverantör"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "Från-namn"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "t.ex. Acme Security"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "Från-adress"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "t.ex. secrets{'@'}example.com"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Reply-To-adress"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "t.ex. support{'@'}example.com"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Spara ändringar"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Ångra ändringar"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Använd kontots standardinställningar"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "Kräver domänverifiering via DKIM- och SPF-poster"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Kräver konfiguration av domänautentisering"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Kräver domänverifiering"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "Använder ditt kontos standardkonfiguration för e-postutskick"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "DNS-poster"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "Lägg till följande DNS-poster för att verifiera din domän för e-postutskick."
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Typ"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Namn"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Värde"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Leverantör"
+  },
+  "web.domains.email.dns_optional_label": {
+    "text": "Rekommenderas"
+  },
+  "web.domains.email.dns_optional_hint": {
+    "text": "Den här posten rekommenderas men krävs inte för verifiering. En DMARC-policy på din organisationsdomän kan redan täcka den här underdomänen."
+  },
+  "web.domains.email.copy": {
+    "text": "Kopiera"
+  },
+  "web.domains.email.copied": {
+    "text": "Kopierad"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Verifierad"
+  },
+  "web.domains.email.status_pending": {
+    "text": "Väntar"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Misslyckades"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Validera igen"
+  },
+  "web.domains.email.validating": {
+    "text": "Validerar..."
+  },
+  "web.domains.email.domain_verified": {
+    "text": "Domänen verifierad"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "Valideringen misslyckades"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Senast validerad"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Uppgradera din plan för att konfigurera e-postutskick för den här domänen."
+  },
+  "web.domains.email.configure_email": {
+    "text": "Konfigurera e-post"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Åtkomst nekad"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "Du har inte behörighet att hantera e-postinställningar för den här domänen. Kontakta din organisationsadministratör."
+  },
+  "web.domains.email.update_success": {
+    "text": "E-postkonfigurationen har sparats"
+  },
+  "web.domains.email.delete_success": {
+    "text": "E-postkonfigurationen har tagits bort"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "E-post för den här domänen skickas för närvarande från den globala avsändaren. Slutför e-postkonfigurationen för att använda din egen avsändaridentitet."
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "Anpassat e-postutskick är för närvarande inaktiverat. E-post skickas från den globala avsändaren. Aktivera funktionen nedan för att använda din anpassade avsändaridentitet."
+  },
+  "web.domains.email.test_email_title": {
+    "text": "Testa e-postleverans"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Skicka ett test-e-postmeddelande till dig själv med den sparade konfigurationen. Fungerar även när funktionen ännu inte är aktiverad."
+  },
+  "web.domains.email.send_test": {
+    "text": "Skicka test"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Test-e-postmeddelandet har skickats"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Det gick inte att skicka test-e-postmeddelandet"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Skickat till {email}"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Levererat via {provider}"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "Inte konfigurerad"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "Använder standardavsändare"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Verifierad"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Väntar på verifiering"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Inaktiverad"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "Ingen e-postavsändare konfigurerad – e-post använder plattformens standardavsändare"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "E-postavsändarens konfiguration väntar på verifiering – e-post använder plattformens standardavsändare"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "E-postavsändaren är inaktiverad – e-post använder plattformens standardavsändare"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "E-postavsändaren verifierad – e-post skickas från den här domänen"
+  },
+  "web.domains.incoming.title": {
+    "text": "Inkommande hemligheter"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Konfiguration av inkommande hemligheter"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Tillåt externa användare att skicka hemligheter direkt till angivna mottagare på den här domänen"
+  },
+  "web.domains.incoming.feature_disabled": {
+    "text": "Inkommande hemligheter är inte tillgängligt"
+  },
+  "web.domains.incoming.feature_disabled_description": {
+    "text": "Inkommande hemligheter är inte aktiverat på den här instansen. Kontakta din administratör."
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Åtkomst nekad"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "Du har inte behörighet att hantera inställningar för inkommande hemligheter för den här domänen. Kontakta din organisationsadministratör."
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Uppgradera din plan för att konfigurera inkommande hemligheter för den här domänen."
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Konfigurera inkommande hemligheter"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "Inkommande hemligheter är inte konfigurerat för den här domänen. Lägg till mottagare för att tillåta externa användare att skicka hemligheter till ditt team."
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "Inkommande hemligheter är för närvarande inaktiverat. Externa användare kan inte skicka hemligheter till mottagare på den här domänen. Aktivera funktionen nedan för att tillåta inkommande hemligheter."
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Mottagare"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Ange vem som kan ta emot inkommande hemligheter på den här domänen. Mottagare får e-postaviseringar när en hemlighet skickas till dem."
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Lägg till mottagare"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Ta bort"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "E-postadress"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "recipient{'@'}example.com"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Visningsnamn"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "t.ex. Security Team"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "Inga mottagare konfigurerade"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Lägg till mottagare för att tillåta externa användare att skicka hemligheter till ditt team."
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Ogiltig e-postadress"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "Den här e-postadressen är redan tillagd"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "Högst {max} mottagare tillåtna"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "Visningsnamn krävs"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "E-postadress krävs"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Spara ändringar"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Ångra ändringar"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "Konfigurationen för inkommande hemligheter har sparats"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "Konfigurationen för inkommande hemligheter har tagits bort"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} mottagare | {count} mottagare"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "Inte konfigurerad"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Konfigurerad"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Inaktiverad"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "Inkommande hemligheter inte konfigurerat – externa användare kan inte skicka hemligheter till den här domänen"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "Inkommande hemligheter aktiverat med {count} mottagare"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "Funktionen för inkommande hemligheter är inaktiverad för den här domänen"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Aktivera inkommande hemligheter"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Tillåt externa användare att skicka hemligheter till mottagare på den här domänen"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "Offentlig URL"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Dela den här URL:en med externa användare så att de kan skicka hemligheter"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "Kopiera URL"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "URL kopierad till urklipp"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Är du säker på att du vill ta bort alla mottagare? Externa användare kommer inte längre att kunna skicka hemligheter till den här domänen."
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Det maximala antalet mottagare har nåtts"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "Den här e-postadressen har redan lagts till"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "Om du sparar ersätts alla befintliga mottagare med dina väntande ändringar. Är du säker?"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Ta bort alla mottagare"
+  },
+  "web.domains.signin.title": {
+    "text": "Inloggningskonfiguration"
+  },
+  "web.domains.signin.configure_signin": {
+    "text": "Konfigurera inloggning"
+  },
+  "web.domains.signin.config_description": {
+    "text": "Konfigurera autentiseringsmetoder för inloggning på den här domänen"
+  },
+  "web.domains.signin.access_denied": {
+    "text": "Åtkomst nekad"
+  },
+  "web.domains.signin.upgrade_to_configure": {
+    "text": "Uppgradera din plan för att konfigurera inloggningsmetoder för den här domänen."
+  },
+  "web.domains.signin.not_configured_notice": {
+    "text": "Inloggningskonfiguration har ännu inte angetts för den här domänen. Konfigurera åsidosättningar för att styra vilka autentiseringsmetoder som är tillgängliga på den här domänens inloggningssida."
+  },
+  "web.domains.signin.signin_enabled_label": {
+    "text": "Inloggning aktiverad"
+  },
+  "web.domains.signin.header_toggle_label": {
+    "text": "Inloggning"
+  },
+  "web.domains.signin.signin_enabled_hint": {
+    "text": "Om användare kan logga in på den här domänen"
+  },
+  "web.domains.signin.restrict_to_label": {
+    "text": "Begränsa inloggningsmetod"
+  },
+  "web.domains.signin.restrict_to_hint": {
+    "text": "Begränsa den här domänen till en enda autentiseringsmetod. När detta är angivet visas endast den valda metoden på inloggningssidan."
+  },
+  "web.domains.signin.all_methods": {
+    "text": "Alla metoder"
+  },
+  "web.domains.signin.all_methods_description": {
+    "text": "Visa alla aktiverade autentiseringsmetoder på inloggningssidan"
+  },
+  "web.domains.signin.method_password": {
+    "text": "Lösenord"
+  },
+  "web.domains.signin.method_email_auth": {
+    "text": "E-postautentisering"
+  },
+  "web.domains.signin.method_webauthn": {
+    "text": "WebAuthn / Lösenordsnycklar"
+  },
+  "web.domains.signin.method_sso": {
+    "text": "Enkel inloggning"
+  },
+  "web.domains.signin.method_overrides_label": {
+    "text": "Metodåsidosättningar"
+  },
+  "web.domains.signin.method_overrides_hint": {
+    "text": "Aktivera eller inaktivera enskilda autentiseringsmetoder för den här domänen"
+  },
+  "web.domains.signin.mode_question": {
+    "text": "Hur kan användare logga in?"
+  },
+  "web.domains.signin.mode_any": {
+    "text": "Valfri tillgänglig metod"
+  },
+  "web.domains.signin.mode_any_hint": {
+    "text": "Visa alla metoder som är tillgängliga på den här domänen. Begränsa enskilda metoder nedan."
+  },
+  "web.domains.signin.mode_one": {
+    "text": "En specifik metod"
+  },
+  "web.domains.signin.mode_one_hint": {
+    "text": "Begränsa inloggningssidan till en enda metod. Endast metoder som är tillgängliga på den här domänen listas."
+  },
+  "web.domains.signin.mode_disabled": {
+    "text": "Inloggning inaktiverad"
+  },
+  "web.domains.signin.mode_disabled_hint": {
+    "text": "Användare kan inte logga in på den här domänen."
+  },
+  "web.domains.signin.mode_disabled_notice": {
+    "text": "Besökare på den här domänens inloggningssida ser ett meddelande om att inloggning inte är tillgänglig, med en länk tillbaka till startsidan. Dina tidigare metodinställningar behålls och återställs när du återaktiverar inloggning."
+  },
+  "web.domains.signin.methods_list_label": {
+    "text": "Metoder som visas på inloggningssidan"
+  },
+  "web.domains.signin.restrict_picker_hint": {
+    "text": "Endast metoder som är tillgängliga på den här domänen listas."
+  },
+  "web.domains.signin.availability_always": {
+    "text": "Alltid tillgänglig"
+  },
+  "web.domains.signin.availability_global_on": {
+    "text": "Följer global policy · På"
+  },
+  "web.domains.signin.availability_global_off": {
+    "text": "Inte tillgänglig"
+  },
+  "web.domains.signin.availability_unavailable": {
+    "text": "Inte tillgänglig på hela webbplatsen"
+  },
+  "web.domains.signin.allow_on_domain": {
+    "text": "Tillåt på den här domänen"
+  },
+  "web.domains.signin.method_password_blurb": {
+    "text": "Endast lösenord"
+  },
+  "web.domains.signin.method_email_auth_blurb": {
+    "text": "Lösenordslös inloggning med magisk länk"
+  },
+  "web.domains.signin.method_webauthn_blurb": {
+    "text": "Biometri och säkerhetsnycklar"
+  },
+  "web.domains.signin.method_sso_blurb": {
+    "text": "Extern identitetsleverantör"
+  },
+  "web.domains.signin.email_auth_label": {
+    "text": "E-postautentisering"
+  },
+  "web.domains.signin.email_auth_hint": {
+    "text": "Tillåt lösenordslös e-postautentisering på den här domänen"
+  },
+  "web.domains.signin.sso_enabled_label": {
+    "text": "Enkel inloggning"
+  },
+  "web.domains.signin.sso_enabled_hint": {
+    "text": "Tillåt SSO-autentisering på den här domänen"
+  },
+  "web.domains.signin.enabled_label": {
+    "text": "Aktivera inloggningskonfiguration"
+  },
+  "web.domains.signin.enabled_hint": {
+    "text": "När detta är aktiverat använder den här domänen inloggningsinställningarna som konfigurerats ovan"
+  },
+  "web.domains.signin.save_config": {
+    "text": "Spara konfiguration"
+  },
+  "web.domains.signin.update_success": {
+    "text": "Inloggningskonfigurationen har uppdaterats"
+  },
+  "web.domains.signin.reset_to_defaults": {
+    "text": "Återställ till standardinställningar"
+  },
+  "web.domains.signin.reset_confirm": {
+    "text": "Återställ inloggning till de globala standardinställningarna?"
+  },
+  "web.domains.signin.reset_keeps_sso": {
+    "text": "Dina SSO-uppgifter behålls. Ta bort dem separat på skärmen för SSO-konfiguration."
+  },
+  "web.domains.signin.reset_action": {
+    "text": "Ja, återställ"
+  },
+  "web.domains.signin.reset_success": {
+    "text": "Inloggningsinställningarna har återställts till de globala standardinställningarna"
+  },
+  "web.domains.signup.title": {
+    "text": "Registreringsvalidering"
+  },
+  "web.domains.signup.config_description": {
+    "text": "Konfigurera registreringsvalidering för denna domän"
+  },
+  "web.domains.signup.access_denied": {
+    "text": "Åtkomst nekad"
+  },
+  "web.domains.signup.upgrade_to_configure": {
+    "text": "Uppgradera din plan för att konfigurera registreringsvalidering per domän."
+  },
+  "web.domains.signup.configure_signup": {
+    "text": "Konfigurera registrering"
+  },
+  "web.domains.signup.not_configured_notice": {
+    "text": "Registreringsvalidering är ännu inte konfigurerad för denna domän. Konfigurera en strategi för att styra vem som kan registrera sig via denna domän."
+  },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "Registreringar är för närvarande inaktiverade på webbplatsnivå. Den här policyn per domän är konfigurerad men kommer inte att filtrera någon trafik förrän registreringar på webbplatsen aktiveras."
+  },
+  "web.domains.signup.strategy_label": {
+    "text": "Valideringsstrategi"
+  },
+  "web.domains.signup.strategy_description": {
+    "text": "Välj hur e-postadresser valideras när användare registrerar sig på denna domän."
+  },
+  "web.domains.signup.network_validation_warning": {
+    "text": "Den här strategin gör nätverksanrop under registreringen, vilket kan öka fördröjningen eller blockeras av vissa leverantörer."
+  },
+  "web.domains.signup.allowed_domains_label": {
+    "text": "Tillåtna registreringsdomäner"
+  },
+  "web.domains.signup.allowed_domains_hint": {
+    "text": "Endast dessa e-postdomäner tillåts att registrera sig. Lägg till en domän per post."
+  },
+  "web.domains.signup.domain_placeholder": {
+    "text": "example.com"
+  },
+  "web.domains.signup.invalid_domain": {
+    "text": "Ange en giltig domän (t.ex. example.com)"
+  },
+  "web.domains.signup.domain_exists": {
+    "text": "Den här domänen finns redan i listan"
+  },
+  "web.domains.signup.remove_domain": {
+    "text": "Ta bort {domain}"
+  },
+  "web.domains.signup.enabled_label": {
+    "text": "Aktivera validering per domän"
+  },
+  "web.domains.signup.enabled_hint": {
+    "text": "När detta är aktiverat använder registreringar på denna domän strategin ovan i stället för den globala policyn."
+  },
+  "web.domains.signup.delete_config": {
+    "text": "Ta bort konfiguration"
+  },
+  "web.domains.signup.delete_confirm": {
+    "text": "Ta bort konfigurationen för registreringsvalidering? Registreringar återgår till den globala policyn."
+  },
+  "web.domains.signup.save_config": {
+    "text": "Spara konfiguration"
+  },
+  "web.domains.signup.update_success": {
+    "text": "Registreringsvalideringen uppdaterades"
+  },
+  "web.domains.signup.delete_success": {
+    "text": "Konfigurationen för registreringsvalidering togs bort"
+  },
+  "web.domains.signup.domain_overrides_label": {
+    "text": "Domänåsidosättningar"
+  },
+  "web.domains.signup.domain_overrides_hint": {
+    "text": "Åsidosätt globala registreringsinställningar för denna domän"
+  },
+  "web.domains.signup.signup_enabled_label": {
+    "text": "Registrering aktiverad"
+  },
+  "web.domains.signup.signup_enabled_hint": {
+    "text": "Åsidosätt om registrering är aktiverad för denna domän"
+  },
+  "web.domains.signup.autoverify_label": {
+    "text": "Verifiera konton automatiskt"
+  },
+  "web.domains.signup.autoverify_hint": {
+    "text": "Åsidosätt om nya konton verifieras automatiskt på denna domän"
+  },
+  "web.domains.sso.title": {
+    "text": "Enkel inloggning"
+  },
+  "web.domains.sso.config_title": {
+    "text": "SSO-konfiguration"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Konfigurera autentisering med single sign-on för denna domän"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Åtkomst nekad"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "Du har inte behörighet att hantera SSO-inställningar för denna domän. Kontakta din organisationsadministratör."
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Uppgradera din plan för att konfigurera single sign-on för denna domän."
+  },
+  "web.domains.sso.create_success": {
+    "text": "SSO-konfigurationen skapades"
+  },
+  "web.domains.sso.update_success": {
+    "text": "SSO-konfigurationen uppdaterades"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "SSO-konfigurationen togs bort"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Anslutningstestet lyckades – leverantören svarade korrekt"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Anslutningstestet misslyckades"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "För att kräva SSO för alla inloggningar på denna domän konfigurerar du det i domänens inloggningsinställningar. Läget med enbart SSO begränsar inloggningssidan till den SSO-leverantör som konfigurerats här."
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "Konfigurera SSO"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "SSO är ännu inte konfigurerat för denna domän. Aktivera single sign-on för att låta teammedlemmar autentisera sig med din organisations identitetsleverantör."
+  },
+  "web.domains.sso.edit_credentials": {
+    "text": "Redigera autentiseringsuppgifter"
+  },
+  "web.domains.sso.configure_button": {
+    "text": "Konfigurera"
+  },
+  "web.domains.sso.upgrade_required": {
+    "text": "Uppgradera för att konfigurera"
   }
 }

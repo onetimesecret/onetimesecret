@@ -634,5 +634,152 @@
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
     "text": "När du skickar återkoppling ser vi:",
     "source_hash": "fe77172e"
+  },
+  "web.colonel.previewPlanMode": {
+    "text": "Förhandsgranska planläge"
+  },
+  "web.colonel.previewModeDescription": {
+    "text": "Förhandsgranska applikationen så som den visas för kunder på en annan plan. Detta påverkar endast din vy och ändrar inte någon organisations faktiska plan."
+  },
+  "web.colonel.previewModeActive": {
+    "text": "Förhandsgranskning aktiv"
+  },
+  "web.colonel.bannedIps.empty": {
+    "text": "Inga blockerade IP-adresser"
+  },
+  "web.colonel.bannedIps.currentIp": {
+    "text": "Din aktuella IP-adress"
+  },
+  "web.colonel.bannedIps.confirmUnban": {
+    "text": "Ta bort blockering av {ip}?"
+  },
+  "web.colonel.bannedIps.actions.ban": {
+    "text": "Blockera IP"
+  },
+  "web.colonel.bannedIps.actions.quickBan": {
+    "text": "Snabblockering"
+  },
+  "web.colonel.bannedIps.actions.unban": {
+    "text": "Ta bort blockering"
+  },
+  "web.colonel.bannedIps.actions.cancel": {
+    "text": "Avbryt"
+  },
+  "web.colonel.bannedIps.columns.ipAddress": {
+    "text": "IP-adress"
+  },
+  "web.colonel.bannedIps.columns.reason": {
+    "text": "Orsak"
+  },
+  "web.colonel.bannedIps.columns.bannedAt": {
+    "text": "Blockerad den"
+  },
+  "web.colonel.bannedIps.columns.bannedBy": {
+    "text": "Blockerad av"
+  },
+  "web.colonel.bannedIps.error.banFailed": {
+    "text": "Det gick inte att blockera IP-adressen"
+  },
+  "web.colonel.bannedIps.error.unbanFailed": {
+    "text": "Det gick inte att ta bort blockeringen av IP-adressen"
+  },
+  "web.colonel.bannedIps.form.title": {
+    "text": "Blockera IP-adress"
+  },
+  "web.colonel.bannedIps.form.ipLabel": {
+    "text": "IP-adress"
+  },
+  "web.colonel.bannedIps.form.reasonLabel": {
+    "text": "Orsak"
+  },
+  "web.colonel.bannedIps.form.reasonPlaceholder": {
+    "text": "Valfri orsak"
+  },
+  "web.colonel.bannedIps.success.banned": {
+    "text": "IP-adressen {ip} har blockerats"
+  },
+  "web.colonel.bannedIps.success.unbanned": {
+    "text": "Blockeringen av IP-adressen {ip} har tagits bort"
+  },
+  "web.colonel.customDomains.empty": {
+    "text": "Inga anpassade domäner konfigurerade"
+  },
+  "web.colonel.customDomains.noLogo": {
+    "text": "Ingen logotyp"
+  },
+  "web.colonel.customDomains.labels.organization": {
+    "text": "Organisation"
+  },
+  "web.colonel.customDomains.labels.externalId": {
+    "text": "Externt ID"
+  },
+  "web.colonel.customDomains.labels.created": {
+    "text": "Skapad"
+  },
+  "web.colonel.customDomains.labels.updated": {
+    "text": "Uppdaterad"
+  },
+  "web.colonel.customDomains.labels.favicon": {
+    "text": "Favicon"
+  },
+  "web.colonel.customDomains.status.verified": {
+    "text": "Verifierad"
+  },
+  "web.colonel.customDomains.status.resolving": {
+    "text": "Slår upp"
+  },
+  "web.colonel.customDomains.status.ready": {
+    "text": "Redo"
+  },
+  "web.colonel.customDomains.status.publicHomepage": {
+    "text": "Offentlig startsida"
+  },
+  "web.colonel.customDomains.status.publicApi": {
+    "text": "Offentligt API"
+  },
+  "web.colonel.customDomains.status.pending": {
+    "text": "Väntar"
+  },
+  "web.colonel.pagination.showing": {
+    "text": "Visar {start}–{end} av {total}"
+  },
+  "web.colonel.pagination.itemsPerPage": {
+    "text": "Objekt per sida"
+  },
+  "web.colonel.pagination.perPage": {
+    "text": "{count} per sida"
+  },
+  "web.colonel.pagination.pageOf": {
+    "text": "Sida {current} av {total}"
+  },
+  "web.colonel.secrets.empty": {
+    "text": "Inga hemligheter hittades"
+  },
+  "web.colonel.secrets.never": {
+    "text": "Aldrig"
+  },
+  "web.colonel.secrets.columns.shortId": {
+    "text": "Kort ID"
+  },
+  "web.colonel.secrets.columns.state": {
+    "text": "Tillstånd"
+  },
+  "web.colonel.secrets.columns.created": {
+    "text": "Skapad"
+  },
+  "web.colonel.secrets.columns.expiration": {
+    "text": "Utgång"
+  },
+  "web.colonel.secrets.columns.age": {
+    "text": "Ålder (dagar)"
+  },
+  "web.colonel.secrets.state.new": {
+    "text": "Ny"
+  },
+  "web.colonel.secrets.state.received": {
+    "text": "Mottagen"
+  },
+  "web.colonel.secrets.state.viewed": {
+    "text": "Visad"
   }
 }
