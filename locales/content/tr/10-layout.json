@@ -264,7 +264,7 @@
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "{product_name} ana sayfasını ziyaret et",
+    "text": "{product_name} ana sayfasını ziyaret edin",
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {
@@ -338,5 +338,11 @@
   "web.layout.workspace_context": {
     "text": "Çalışma alanı bağlamı",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Çalışma Alanı"
+  },
+  "web.help.default_content": {
+    "text": "Yardım için lütfen destekle iletişime geçin"
   }
 }

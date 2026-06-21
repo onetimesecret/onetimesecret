@@ -1,0 +1,107 @@
+{
+  "api.organizations.errors.domain_scoped_forbidden": {
+    "text": "Alan adı kapsamlı üyeler bu işlemi gerçekleştiremez"
+  },
+  "api.organizations.errors.organization_not_found": {
+    "text": "Kuruluş bulunamadı: %{extid}"
+  },
+  "api.organizations.errors.organization_owner_required": {
+    "text": "Bu işlemi yalnızca kuruluş sahibi gerçekleştirebilir"
+  },
+  "api.organizations.errors.organization_member_required": {
+    "text": "Bu işlemi gerçekleştirmek için bir kuruluş üyesi olmalısınız"
+  },
+  "api.organizations.errors.organization_admin_required": {
+    "text": "Bu işlemi yalnızca kuruluş sahipleri ve yöneticiler gerçekleştirebilir"
+  },
+  "api.organizations.errors.extid_required": {
+    "text": "Kuruluş kimliği gerekli"
+  },
+  "api.organizations.errors.display_name_required": {
+    "text": "Kuruluş adı gerekli"
+  },
+  "api.organizations.errors.display_name_too_long": {
+    "text": "Kuruluş adı %{max} karakterden kısa olmalıdır"
+  },
+  "api.organizations.errors.description_too_long": {
+    "text": "Açıklama %{max} karakterden kısa olmalıdır"
+  },
+  "api.organizations.errors.contact_email_exists": {
+    "text": "Bu iletişim e-postasına sahip bir kuruluş zaten mevcut"
+  },
+  "api.organizations.errors.creation_in_progress": {
+    "text": "Kuruluş oluşturma işlemi sürüyor. Lütfen tekrar deneyin."
+  },
+  "api.organizations.errors.organization_limit_reached": {
+    "text": "Kuruluş sınırına ulaşıldı. Daha fazla kuruluş oluşturmak için planınızı yükseltin."
+  },
+  "api.organizations.invitations.errors.invitation_not_found": {
+    "text": "Davet bulunamadı"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "E-posta gerekli"
+  },
+  "api.organizations.invitations.errors.invalid_email_format": {
+    "text": "Geçersiz e-posta biçimi"
+  },
+  "api.organizations.invitations.errors.invalid_role": {
+    "text": "Rol üye veya yönetici olmalıdır"
+  },
+  "api.organizations.invitations.errors.cannot_invite_as_owner": {
+    "text": "Sahip olarak davet edilemez"
+  },
+  "api.organizations.invitations.errors.user_already_member": {
+    "text": "Kullanıcı zaten bu kuruluşun üyesi"
+  },
+  "api.organizations.invitations.errors.invitation_already_pending": {
+    "text": "Bu e-posta için zaten bekleyen bir davet var"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Üye sınırına ulaşıldı. Daha fazla üye davet etmek için planınızı yükseltin."
+  },
+  "api.organizations.invitations.errors.resend_only_pending": {
+    "text": "Yalnızca bekleyen davetler yeniden gönderilebilir"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "En fazla yeniden gönderme sınırına (%{max}) ulaşıldı"
+  },
+  "api.organizations.invitations.errors.revoke_only_pending": {
+    "text": "Yalnızca bekleyen davetler iptal edilebilir"
+  },
+  "api.organizations.members.errors.member_not_found": {
+    "text": "Üye bulunamadı: %{extid}"
+  },
+  "api.organizations.members.errors.member_not_in_organization": {
+    "text": "Bu kuruluşta üye bulunamadı"
+  },
+  "api.organizations.members.errors.member_not_active": {
+    "text": "Üye aktif değil"
+  },
+  "api.organizations.members.errors.invalid_role_value": {
+    "text": "Geçersiz rol. Şunlardan biri olmalıdır: %{roles}"
+  },
+  "api.organizations.members.errors.cannot_change_owner_role": {
+    "text": "Sahip rolü değiştirilemez. Bunun yerine sahiplik aktarımını kullanın."
+  },
+  "api.organizations.members.errors.member_already_has_role": {
+    "text": "Üye zaten şu role sahip: %{role}"
+  },
+  "api.organizations.members.errors.cannot_promote_to_owner": {
+    "text": "Sahip olarak yükseltilemez. Bunun yerine sahiplik aktarımını kullanın."
+  },
+  "api.organizations.members.errors.must_be_member": {
+    "text": "Bu kuruluşun bir üyesi olmalısınız"
+  },
+  "api.organizations.members.errors.cannot_remove_owner": {
+    "text": "Kuruluş sahibi kaldırılamaz. Önce sahipliği aktarın."
+  },
+  "api.organizations.members.errors.cannot_remove_self": {
+    "text": "Kendinizi kaldıramazsınız. Bunun yerine kuruluştan ayrılma seçeneğini kullanın."
+  },
+  "api.organizations.members.errors.admin_cannot_remove_admin": {
+    "text": "Yöneticiler diğer yöneticileri kaldıramaz. Yalnızca sahipler kaldırabilir."
+  },
+  "api.organizations.members.errors.no_permission_to_remove": {
+    "text": "Üyeleri kaldırma izniniz yok"
+  }
+}
