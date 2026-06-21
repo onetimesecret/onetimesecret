@@ -130,5 +130,26 @@
   "incoming.receipt_link_text": {
     "text": "recibo",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Upgrade necessário"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Esta funcionalidade requer um upgrade do plano. Por favor contacta o proprietário da conta para ativar as mensagens confidenciais recebidas."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "A nota deve ter {max} caracteres ou menos"
+  },
+  "incoming.validation_secret_required": {
+    "text": "O conteúdo confidencial é obrigatório"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Por favor seleciona um destinatário"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "A funcionalidade de mensagens confidenciais recebidas não está ativada"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Por favor verifica se o formulário tem erros"
   }
 }

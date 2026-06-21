@@ -1,0 +1,23 @@
+{
+  "api.invite.errors.invitation_not_found_or_expired": {
+    "text": "Convite não encontrado ou expirado"
+  },
+  "api.invite.errors.token_required": {
+    "text": "O token é obrigatório"
+  },
+  "api.invite.errors.organization_no_longer_exists": {
+    "text": "A organização já não existe"
+  },
+  "api.invite.errors.invitation_already_processed": {
+    "text": "O convite já foi %{status}"
+  },
+  "api.invite.errors.invitation_expired": {
+    "text": "O convite expirou"
+  },
+  "api.invite.errors.email_mismatch": {
+    "text": "O teu endereço de e-mail não corresponde ao convite"
+  },
+  "api.invite.errors.already_member": {
+    "text": "Já és membro desta organização"
+  }
+}

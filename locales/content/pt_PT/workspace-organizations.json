@@ -578,5 +578,344 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Expira em breve",
     "source_hash": "a5dcfef9"
+  },
+  "api.organizations.errors.not_found": {
+    "text": "Organização não encontrada: %{extid}"
+  },
+  "api.organizations.errors.owner_required": {
+    "text": "Apenas o proprietário da organização pode realizar esta ação"
+  },
+  "api.organizations.errors.admin_required": {
+    "text": "Apenas os proprietários e administradores da organização podem realizar esta ação"
+  },
+  "api.organizations.errors.member_required": {
+    "text": "Tens de ser membro da organização para realizar esta ação"
+  },
+  "api.organizations.invitations.errors.create_admin_required": {
+    "text": "Apenas os proprietários e administradores da organização podem criar convites"
+  },
+  "api.organizations.invitations.errors.resend_admin_required": {
+    "text": "Apenas os proprietários e administradores da organização podem reenviar convites"
+  },
+  "api.organizations.invitations.errors.view_admin_required": {
+    "text": "Apenas os proprietários e administradores da organização podem ver convites"
+  },
+  "api.organizations.invitations.errors.revoke_admin_required": {
+    "text": "Apenas os proprietários e administradores da organização podem revogar convites"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "O e-mail é obrigatório"
+  },
+  "api.organizations.invitations.errors.email_invalid": {
+    "text": "Formato de e-mail inválido"
+  },
+  "api.organizations.invitations.errors.role_invalid": {
+    "text": "A função deve ser membro ou administrador"
+  },
+  "api.organizations.invitations.errors.cannot_invite_owner": {
+    "text": "Não é possível convidar como proprietário"
+  },
+  "api.organizations.invitations.errors.already_member": {
+    "text": "O utilizador já é membro desta organização"
+  },
+  "api.organizations.invitations.errors.already_pending": {
+    "text": "Já existe um convite pendente para este e-mail"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Limite de membros atingido. Faz upgrade do teu plano para convidar mais membros."
+  },
+  "api.organizations.invitations.errors.not_found": {
+    "text": "Convite não encontrado"
+  },
+  "api.organizations.invitations.errors.cannot_resend_non_pending": {
+    "text": "Só é possível reenviar convites pendentes"
+  },
+  "api.organizations.invitations.errors.cannot_revoke_non_pending": {
+    "text": "Só é possível revogar convites pendentes"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Limite máximo de reenvios (%{max}) atingido"
+  },
+  "api.organizations.invitations.errors.accept_token_required": {
+    "text": "O token é obrigatório"
+  },
+  "api.organizations.invitations.errors.accept_organization_gone": {
+    "text": "A organização já não existe"
+  },
+  "api.organizations.invitations.errors.accept_already_acted": {
+    "text": "O convite já foi %{status}"
+  },
+  "api.organizations.invitations.errors.accept_expired": {
+    "text": "O convite expirou"
+  },
+  "api.organizations.invitations.errors.accept_email_mismatch": {
+    "text": "O teu endereço de e-mail não corresponde ao convite"
+  },
+  "api.organizations.invitations.errors.accept_already_member": {
+    "text": "Já és membro desta organização"
+  },
+  "web.organizations.entitlements_title": {
+    "text": "Direitos da Organização"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Ver e configurar os teus espaços de trabalho"
+  },
+  "web.organizations.delete_organization_remove_domains_first": {
+    "text": "Remove todos os domínios personalizados antes de eliminar esta organização."
+  },
+  "web.organizations.default_org_delete_notice_title": {
+    "text": "Eliminar esta organização"
+  },
+  "web.organizations.default_org_delete_notice_before": {
+    "text": "Esta é a tua organização predefinida e não pode ser removida a partir do painel. Para a eliminar, contacta-nos através do"
+  },
+  "web.organizations.default_org_delete_notice_link": {
+    "text": "formulário de feedback"
+  },
+  "web.organizations.default_org_delete_notice_after": {
+    "text": "."
+  },
+  "web.organizations.leave_organization": {
+    "text": "Sair desta organização"
+  },
+  "web.organizations.leave_organization_warning": {
+    "text": "Perderás o acesso a esta organização e aos seus recursos."
+  },
+  "web.organizations.leave_organization_confirm_title": {
+    "text": "Sair da Organização"
+  },
+  "web.organizations.leave_organization_confirm_message": {
+    "text": "Tens a certeza de que queres sair de {name}? Precisarás de um novo convite para voltar a aderir."
+  },
+  "web.organizations.leave_organization_success": {
+    "text": "Saíste da organização."
+  },
+  "web.organizations.leave_error": {
+    "text": "Falha ao sair da organização"
+  },
+  "web.organizations.organizations": {
+    "text": "Organizações"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "por {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "como {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Voltar ao início"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Este convite foi enviado para este endereço de e-mail"
+  },
+  "web.organizations.invitations.signup_continue": {
+    "text": "Continuar"
+  },
+  "web.organizations.invitations.signin_continue": {
+    "text": "Iniciar sessão"
+  },
+  "web.organizations.invitations.confirm_join_below": {
+    "text": "Quase concluído — confirma abaixo para aderir à organização."
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Ir para as Organizações"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Já és membro desta organização"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Aderir a {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Inicia sessão para aderir a {orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Recusar"
+  },
+  "web.organizations.members.member_quota": {
+    "text": "{used} de {limit} membros"
+  },
+  "web.organizations.members.pending_suffix": {
+    "text": "({count} pendentes)"
+  },
+  "web.organizations.members.limit_reached_hint": {
+    "text": "Limite de membros atingido."
+  },
+  "web.organizations.sso.title": {
+    "text": "Single Sign-On (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "Configura o SSO para permitir que os membros iniciem sessão com o fornecedor de identidade da tua organização"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Tipo de fornecedor"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Seleciona o fornecedor de identidade da tua organização"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Nome a apresentar"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "Um nome amigável apresentado aos utilizadores ao iniciar sessão"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "p. ex. Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "Client ID"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "O teu client ID de OAuth"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Client Secret"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "O teu client secret de OAuth"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Deixa em branco para manter o secret existente"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "Tenant ID"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "O identificador de tenant do teu Azure AD / Entra ID"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "p. ex. 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "URL do emissor"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "O URL de descoberta OIDC do teu fornecedor de identidade"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "p. ex. https://login.example.com"
+  },
+  "web.organizations.sso.view_discovery_document": {
+    "text": "Ver documento de descoberta"
+  },
+  "web.organizations.sso.callback_url": {
+    "text": "URL de callback"
+  },
+  "web.organizations.sso.callback_url_hint": {
+    "text": "Adiciona este URL aos URIs de redirecionamento permitidos do teu fornecedor de identidade"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "Domínios de E-mail Permitidos"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Apenas os utilizadores com endereços de e-mail destes domínios podem iniciar sessão. Deixa vazio para permitir todos os domínios."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "p. ex. acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Introduz um domínio válido (p. ex. example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Este domínio já está na lista"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "Remover {domain}"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "Ativar SSO"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "Quando ativado, os membros da organização podem iniciar sessão usando este fornecedor de SSO"
+  },
+  "web.organizations.sso.enforce_sso_only": {
+    "text": "Impor apenas SSO"
+  },
+  "web.organizations.sso.enforce_sso_only_hint": {
+    "text": "Exigir SSO para todos os inícios de sessão neste domínio. Quando ativado, a autenticação baseada em palavra-passe é desativada."
+  },
+  "web.organizations.sso.grant_org_scope": {
+    "text": "Conceder acesso a toda a organização"
+  },
+  "web.organizations.sso.grant_org_scope_hint": {
+    "text": "Os novos membros que aderirem através do SSO deste domínio terão acesso a todos os domínios da organização. Os membros existentes não são afetados. Quando desativado (predefinição), os novos membros só podem aceder a este domínio."
+  },
+  "web.organizations.sso.save_config": {
+    "text": "Guardar Configuração de SSO"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Eliminar Configuração"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "Tens a certeza? Isto desativará o SSO para a tua organização."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "Falha ao carregar a configuração de SSO"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "Falha ao guardar a configuração de SSO"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "Configuração de SSO criada com sucesso"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "Configuração de SSO atualizada com sucesso"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "Configuração de SSO eliminada com sucesso"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "Falha ao eliminar a configuração de SSO"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Testar Ligação"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Verifica se o fornecedor de identidade está acessível (não valida as credenciais)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Testar Ligação"
+  },
+  "web.organizations.sso.testing": {
+    "text": "A testar..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "Falha ao testar a ligação"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Endpoint de autorização"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Campos em Falta"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Ativado"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Configurado"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "SSO de Domínio"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Configura o SSO para cada domínio verificado"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "Para alterar o fornecedor, elimina primeiro esta configuração"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Não Configurado"
+  },
+  "web.organizations.sso.no_domains": {
+    "text": "Nenhum domínio verificado"
+  },
+  "web.organizations.sso.no_domains_description": {
+    "text": "Adiciona e verifica um domínio antes de configurar o SSO para o mesmo."
+  },
+  "web.organizations.tabs.team": {
+    "text": "Equipa"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }
