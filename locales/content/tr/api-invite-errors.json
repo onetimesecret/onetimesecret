@@ -1,0 +1,23 @@
+{
+  "api.invite.errors.invitation_not_found_or_expired": {
+    "text": "Davet bulunamadı veya süresi doldu"
+  },
+  "api.invite.errors.token_required": {
+    "text": "Belirteç gerekli"
+  },
+  "api.invite.errors.organization_no_longer_exists": {
+    "text": "Kuruluş artık mevcut değil"
+  },
+  "api.invite.errors.invitation_already_processed": {
+    "text": "Davet zaten %{status} durumunda"
+  },
+  "api.invite.errors.invitation_expired": {
+    "text": "Davetin süresi doldu"
+  },
+  "api.invite.errors.email_mismatch": {
+    "text": "E-posta adresiniz davetle eşleşmiyor"
+  },
+  "api.invite.errors.already_member": {
+    "text": "Zaten bu kuruluşun üyesisiniz"
+  }
+}

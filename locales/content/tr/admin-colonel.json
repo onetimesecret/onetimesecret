@@ -634,5 +634,152 @@
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
     "text": "Geri bildirim gönderdiğinizde şunları göreceğiz:",
     "source_hash": "fe77172e"
+  },
+  "web.colonel.previewPlanMode": {
+    "text": "Plan önizleme modu"
+  },
+  "web.colonel.previewModeDescription": {
+    "text": "Uygulamayı, farklı bir plandaki müşterilere göründüğü şekilde önizleyin. Bu yalnızca sizin görünümünüzü etkiler ve herhangi bir kuruluşun gerçek planını değiştirmez."
+  },
+  "web.colonel.previewModeActive": {
+    "text": "Önizleme etkin"
+  },
+  "web.colonel.bannedIps.empty": {
+    "text": "Yasaklı IP yok"
+  },
+  "web.colonel.bannedIps.currentIp": {
+    "text": "Mevcut IP Adresiniz"
+  },
+  "web.colonel.bannedIps.confirmUnban": {
+    "text": "{ip} adresinin yasağı kaldırılsın mı?"
+  },
+  "web.colonel.bannedIps.actions.ban": {
+    "text": "IP'yi Yasakla"
+  },
+  "web.colonel.bannedIps.actions.quickBan": {
+    "text": "Hızlı Yasakla"
+  },
+  "web.colonel.bannedIps.actions.unban": {
+    "text": "Yasağı Kaldır"
+  },
+  "web.colonel.bannedIps.actions.cancel": {
+    "text": "İptal"
+  },
+  "web.colonel.bannedIps.columns.ipAddress": {
+    "text": "IP Adresi"
+  },
+  "web.colonel.bannedIps.columns.reason": {
+    "text": "Neden"
+  },
+  "web.colonel.bannedIps.columns.bannedAt": {
+    "text": "Yasaklanma Tarihi"
+  },
+  "web.colonel.bannedIps.columns.bannedBy": {
+    "text": "Yasaklayan"
+  },
+  "web.colonel.bannedIps.error.banFailed": {
+    "text": "IP adresi yasaklanamadı"
+  },
+  "web.colonel.bannedIps.error.unbanFailed": {
+    "text": "IP adresinin yasağı kaldırılamadı"
+  },
+  "web.colonel.bannedIps.form.title": {
+    "text": "IP Adresini Yasakla"
+  },
+  "web.colonel.bannedIps.form.ipLabel": {
+    "text": "IP Adresi"
+  },
+  "web.colonel.bannedIps.form.reasonLabel": {
+    "text": "Neden"
+  },
+  "web.colonel.bannedIps.form.reasonPlaceholder": {
+    "text": "İsteğe bağlı neden"
+  },
+  "web.colonel.bannedIps.success.banned": {
+    "text": "{ip} IP adresi yasaklandı"
+  },
+  "web.colonel.bannedIps.success.unbanned": {
+    "text": "{ip} IP adresinin yasağı kaldırıldı"
+  },
+  "web.colonel.customDomains.empty": {
+    "text": "Yapılandırılmış özel alan adı yok"
+  },
+  "web.colonel.customDomains.noLogo": {
+    "text": "Logo Yok"
+  },
+  "web.colonel.customDomains.labels.organization": {
+    "text": "Kuruluş"
+  },
+  "web.colonel.customDomains.labels.externalId": {
+    "text": "Harici Kimlik"
+  },
+  "web.colonel.customDomains.labels.created": {
+    "text": "Oluşturuldu"
+  },
+  "web.colonel.customDomains.labels.updated": {
+    "text": "Güncellendi"
+  },
+  "web.colonel.customDomains.labels.favicon": {
+    "text": "Favicon"
+  },
+  "web.colonel.customDomains.status.verified": {
+    "text": "Doğrulandı"
+  },
+  "web.colonel.customDomains.status.resolving": {
+    "text": "Çözümleniyor"
+  },
+  "web.colonel.customDomains.status.ready": {
+    "text": "Hazır"
+  },
+  "web.colonel.customDomains.status.publicHomepage": {
+    "text": "Herkese Açık Ana Sayfa"
+  },
+  "web.colonel.customDomains.status.publicApi": {
+    "text": "Herkese Açık API"
+  },
+  "web.colonel.customDomains.status.pending": {
+    "text": "Beklemede"
+  },
+  "web.colonel.pagination.showing": {
+    "text": "{total} öğeden {start}–{end} arası gösteriliyor"
+  },
+  "web.colonel.pagination.itemsPerPage": {
+    "text": "Sayfa başına öğe"
+  },
+  "web.colonel.pagination.perPage": {
+    "text": "Sayfa başına {count}"
+  },
+  "web.colonel.pagination.pageOf": {
+    "text": "Sayfa {current} / {total}"
+  },
+  "web.colonel.secrets.empty": {
+    "text": "Gizli mesaj bulunamadı"
+  },
+  "web.colonel.secrets.never": {
+    "text": "Hiçbir zaman"
+  },
+  "web.colonel.secrets.columns.shortId": {
+    "text": "Kısa Kimlik"
+  },
+  "web.colonel.secrets.columns.state": {
+    "text": "Durum"
+  },
+  "web.colonel.secrets.columns.created": {
+    "text": "Oluşturuldu"
+  },
+  "web.colonel.secrets.columns.expiration": {
+    "text": "Son Kullanım Tarihi"
+  },
+  "web.colonel.secrets.columns.age": {
+    "text": "Yaş (gün)"
+  },
+  "web.colonel.secrets.state.new": {
+    "text": "Yeni"
+  },
+  "web.colonel.secrets.state.received": {
+    "text": "Alındı"
+  },
+  "web.colonel.secrets.state.viewed": {
+    "text": "Görüntülendi"
   }
 }

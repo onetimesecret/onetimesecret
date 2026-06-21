@@ -1,0 +1,71 @@
+{
+  "api.entitlements.errors.context_unavailable": {
+    "text": "Yetkiler doğrulanamıyor (kuruluş bağlamı kullanılamıyor)"
+  },
+  "api.entitlements.errors.api_access_required": {
+    "text": "API erişimi için planınızı yükseltmeniz gerekir"
+  },
+  "api.entitlements.errors.custom_privacy_defaults_required": {
+    "text": "Özel gizlilik varsayılanları için planınızı yükseltmeniz gerekir"
+  },
+  "api.entitlements.errors.extended_default_expiration_required": {
+    "text": "Genişletilmiş varsayılan süre sonu için planınızı yükseltmeniz gerekir"
+  },
+  "api.entitlements.errors.custom_domains_required": {
+    "text": "Özel alan adları için planınızı yükseltmeniz gerekir"
+  },
+  "api.entitlements.errors.custom_branding_required": {
+    "text": "Özel markalama için planınızı yükseltmeniz gerekir"
+  },
+  "api.entitlements.errors.homepage_secrets_required": {
+    "text": "Ana sayfa gizli mesajları için planınızı yükseltmeniz gerekir"
+  },
+  "api.entitlements.errors.incoming_secrets_required": {
+    "text": "Gelen gizli mesajlar için planınızı yükseltmeniz gerekir"
+  },
+  "api.entitlements.errors.custom_mail_sender_required": {
+    "text": "Özel e-posta göndereni için planınızı yükseltmeniz gerekir"
+  },
+  "api.entitlements.errors.flexible_from_domain_required": {
+    "text": "Esnek gönderen alan adı için planınızı yükseltmeniz gerekir"
+  },
+  "api.entitlements.errors.manage_org_required": {
+    "text": "Kuruluş yönetimi için planınızı yükseltmeniz gerekir"
+  },
+  "api.entitlements.errors.manage_teams_required": {
+    "text": "Ekip yönetimi için planınızı yükseltmeniz gerekir"
+  },
+  "api.entitlements.errors.manage_members_required": {
+    "text": "Üye yönetimi için planınızı yükseltmeniz gerekir"
+  },
+  "api.entitlements.errors.manage_sso_required": {
+    "text": "SSO yönetimi için planınızı yükseltmeniz gerekir"
+  },
+  "api.entitlements.errors.audit_logs_required": {
+    "text": "Denetim günlükleri için planınızı yükseltmeniz gerekir"
+  },
+  "api.entitlements.errors.custom_signup_validation_required": {
+    "text": "Özel kayıt doğrulaması için planınızı yükseltmeniz gerekir"
+  },
+  "api.entitlements.errors.create_secrets_required": {
+    "text": "Gizli mesaj oluşturmak için planınızı yükseltmeniz gerekir"
+  },
+  "api.entitlements.errors.view_receipt_required": {
+    "text": "Makbuzları görüntülemek için planınızı yükseltmeniz gerekir"
+  },
+  "api.entitlements.errors.notifications_required": {
+    "text": "Bildirimler için planınızı yükseltmeniz gerekir"
+  },
+  "api.entitlements.errors.workspace_branding_required": {
+    "text": "Çalışma alanı markalaması için planınızı yükseltmeniz gerekir"
+  },
+  "api.entitlements.errors.ip_access_rules_required": {
+    "text": "IP erişim kuralları için planınızı yükseltmeniz gerekir"
+  },
+  "api.entitlements.errors.manage_billing_required": {
+    "text": "Faturalandırma yönetimi için planınızı yükseltmeniz gerekir"
+  },
+  "api.entitlements.errors.custom_signin_config_required": {
+    "text": "Özel giriş yapılandırması için planınızı yükseltmeniz gerekir"
+  }
+}
