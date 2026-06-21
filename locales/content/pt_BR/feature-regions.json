@@ -152,7 +152,7 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Se o seu e-mail de contato de cobrança for diferente do e-mail da sua conta {product_name}, use o e-mail de contato de cobrança para a conta na nova região para manter os benefícios da sua assinatura.",
+    "text": "Se o e-mail de contato de cobrança for diferente do e-mail da sua conta {product_name}, use o e-mail de contato de cobrança da conta da nova região para manter os benefícios da sua assinatura.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
@@ -186,5 +186,8 @@
   "web.regions.jurisdictions.apac.name": {
     "text": "Asia-Pacific",
     "source_hash": "7a757670"
+  },
+  "web.regions.no_region_configured": {
+    "text": "Nenhuma informação de região está disponível para sua conta no momento."
   }
 }

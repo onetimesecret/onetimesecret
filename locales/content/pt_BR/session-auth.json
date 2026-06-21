@@ -398,5 +398,32 @@
   },
   "web.auth.verify._guidance.context": {
     "text": "Fluxo de verificação de e-mail após o cadastro"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "Conta SSO"
+  },
+  "web.help.reset_password_link": {
+    "text": "Redefinir senha"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "O single sign-on (SSO) está disponível para este domínio"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "O administrador da organização pode habilitar o SSO para permitir que os membros da equipe entrem aqui. Entre em contato com o administrador para obter acesso."
+  },
+  "web.login.signin_disabled_heading": {
+    "text": "O início de sessão não está disponível"
+  },
+  "web.login.signin_disabled_message": {
+    "text": "No momento, o início de sessão não está disponível neste domínio."
+  },
+  "web.login.errors.sso_not_configured": {
+    "text": "O single sign-on (SSO) não está configurado para este domínio. Entre em contato com o seu administrador."
+  },
+  "web.login.errors.invalid_email": {
+    "text": "O endereço de e-mail do seu provedor de identidade é inválido. Entre em contato com o seu administrador."
+  },
+  "web.login.errors.domain_not_allowed": {
+    "text": "O domínio do seu e-mail não está autorizado para cadastro via SSO. Entre em contato com o seu administrador."
   }
 }

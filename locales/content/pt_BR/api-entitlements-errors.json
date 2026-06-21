@@ -1,0 +1,71 @@
+{
+  "api.entitlements.errors.context_unavailable": {
+    "text": "Não foi possível verificar os entitlements (contexto da organização indisponível)"
+  },
+  "api.entitlements.errors.api_access_required": {
+    "text": "O acesso à API requer upgrade do plano"
+  },
+  "api.entitlements.errors.custom_privacy_defaults_required": {
+    "text": "Os padrões de privacidade personalizados requerem upgrade do plano"
+  },
+  "api.entitlements.errors.extended_default_expiration_required": {
+    "text": "A expiração padrão estendida requer upgrade do plano"
+  },
+  "api.entitlements.errors.custom_domains_required": {
+    "text": "Os domínios personalizados requerem upgrade do plano"
+  },
+  "api.entitlements.errors.custom_branding_required": {
+    "text": "A marca personalizada requer upgrade do plano"
+  },
+  "api.entitlements.errors.homepage_secrets_required": {
+    "text": "As mensagens confidenciais na página inicial requerem upgrade do plano"
+  },
+  "api.entitlements.errors.incoming_secrets_required": {
+    "text": "As mensagens confidenciais recebidas requerem upgrade do plano"
+  },
+  "api.entitlements.errors.custom_mail_sender_required": {
+    "text": "O remetente de e-mail personalizado requer upgrade do plano"
+  },
+  "api.entitlements.errors.flexible_from_domain_required": {
+    "text": "O domínio de origem flexível requer upgrade do plano"
+  },
+  "api.entitlements.errors.manage_org_required": {
+    "text": "O gerenciamento de organizações requer upgrade do plano"
+  },
+  "api.entitlements.errors.manage_teams_required": {
+    "text": "O gerenciamento de equipes requer upgrade do plano"
+  },
+  "api.entitlements.errors.manage_members_required": {
+    "text": "O gerenciamento de membros requer upgrade do plano"
+  },
+  "api.entitlements.errors.manage_sso_required": {
+    "text": "O gerenciamento de SSO requer upgrade do plano"
+  },
+  "api.entitlements.errors.audit_logs_required": {
+    "text": "Os logs de auditoria requerem upgrade do plano"
+  },
+  "api.entitlements.errors.custom_signup_validation_required": {
+    "text": "A validação de cadastro personalizada requer upgrade do plano"
+  },
+  "api.entitlements.errors.create_secrets_required": {
+    "text": "Criar mensagens confidenciais requer upgrade do plano"
+  },
+  "api.entitlements.errors.view_receipt_required": {
+    "text": "Ver recibos requer upgrade do plano"
+  },
+  "api.entitlements.errors.notifications_required": {
+    "text": "As notificações requerem upgrade do plano"
+  },
+  "api.entitlements.errors.workspace_branding_required": {
+    "text": "A marca do espaço de trabalho requer upgrade do plano"
+  },
+  "api.entitlements.errors.ip_access_rules_required": {
+    "text": "As regras de acesso por IP requerem upgrade do plano"
+  },
+  "api.entitlements.errors.manage_billing_required": {
+    "text": "O gerenciamento de cobrança requer upgrade do plano"
+  },
+  "api.entitlements.errors.custom_signin_config_required": {
+    "text": "A configuração de início de sessão personalizada requer upgrade do plano"
+  }
+}
