@@ -634,5 +634,152 @@
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
     "text": "Když odešli zpětnou vazbu, uvidíme:",
     "source_hash": "fe77172e"
+  },
+  "web.colonel.previewPlanMode": {
+    "text": "Režim náhledu plánu"
+  },
+  "web.colonel.previewModeDescription": {
+    "text": "Zobraz si náhled aplikace tak, jak ji vidí zákazníci na jiném plánu. Ovlivní to pouze tvé zobrazení a nezmění skutečný plán žádné organizace."
+  },
+  "web.colonel.previewModeActive": {
+    "text": "Náhled aktivní"
+  },
+  "web.colonel.bannedIps.empty": {
+    "text": "Žádné zablokované IP adresy"
+  },
+  "web.colonel.bannedIps.currentIp": {
+    "text": "Tvoje aktuální IP adresa"
+  },
+  "web.colonel.bannedIps.confirmUnban": {
+    "text": "Odblokovat {ip}?"
+  },
+  "web.colonel.bannedIps.actions.ban": {
+    "text": "Zablokovat IP"
+  },
+  "web.colonel.bannedIps.actions.quickBan": {
+    "text": "Rychlé zablokování"
+  },
+  "web.colonel.bannedIps.actions.unban": {
+    "text": "Odblokovat"
+  },
+  "web.colonel.bannedIps.actions.cancel": {
+    "text": "Zrušit"
+  },
+  "web.colonel.bannedIps.columns.ipAddress": {
+    "text": "IP adresa"
+  },
+  "web.colonel.bannedIps.columns.reason": {
+    "text": "Důvod"
+  },
+  "web.colonel.bannedIps.columns.bannedAt": {
+    "text": "Zablokováno dne"
+  },
+  "web.colonel.bannedIps.columns.bannedBy": {
+    "text": "Zablokoval"
+  },
+  "web.colonel.bannedIps.error.banFailed": {
+    "text": "Zablokování IP adresy se nezdařilo"
+  },
+  "web.colonel.bannedIps.error.unbanFailed": {
+    "text": "Odblokování IP adresy se nezdařilo"
+  },
+  "web.colonel.bannedIps.form.title": {
+    "text": "Zablokovat IP adresu"
+  },
+  "web.colonel.bannedIps.form.ipLabel": {
+    "text": "IP adresa"
+  },
+  "web.colonel.bannedIps.form.reasonLabel": {
+    "text": "Důvod"
+  },
+  "web.colonel.bannedIps.form.reasonPlaceholder": {
+    "text": "Nepovinný důvod"
+  },
+  "web.colonel.bannedIps.success.banned": {
+    "text": "IP adresa {ip} byla zablokována"
+  },
+  "web.colonel.bannedIps.success.unbanned": {
+    "text": "IP adresa {ip} byla odblokována"
+  },
+  "web.colonel.customDomains.empty": {
+    "text": "Nejsou nakonfigurovány žádné vlastní domény"
+  },
+  "web.colonel.customDomains.noLogo": {
+    "text": "Bez loga"
+  },
+  "web.colonel.customDomains.labels.organization": {
+    "text": "Organizace"
+  },
+  "web.colonel.customDomains.labels.externalId": {
+    "text": "Externí ID"
+  },
+  "web.colonel.customDomains.labels.created": {
+    "text": "Vytvořeno"
+  },
+  "web.colonel.customDomains.labels.updated": {
+    "text": "Aktualizováno"
+  },
+  "web.colonel.customDomains.labels.favicon": {
+    "text": "Favicon"
+  },
+  "web.colonel.customDomains.status.verified": {
+    "text": "Ověřeno"
+  },
+  "web.colonel.customDomains.status.resolving": {
+    "text": "Překládá se"
+  },
+  "web.colonel.customDomains.status.ready": {
+    "text": "Připraveno"
+  },
+  "web.colonel.customDomains.status.publicHomepage": {
+    "text": "Veřejná domovská stránka"
+  },
+  "web.colonel.customDomains.status.publicApi": {
+    "text": "Veřejné API"
+  },
+  "web.colonel.customDomains.status.pending": {
+    "text": "Nevyřízeno"
+  },
+  "web.colonel.pagination.showing": {
+    "text": "Zobrazeno {start}–{end} z {total}"
+  },
+  "web.colonel.pagination.itemsPerPage": {
+    "text": "Položek na stránku"
+  },
+  "web.colonel.pagination.perPage": {
+    "text": "{count} na stránku"
+  },
+  "web.colonel.pagination.pageOf": {
+    "text": "Stránka {current} z {total}"
+  },
+  "web.colonel.secrets.empty": {
+    "text": "Nebyla nalezena žádná tajemství"
+  },
+  "web.colonel.secrets.never": {
+    "text": "Nikdy"
+  },
+  "web.colonel.secrets.columns.shortId": {
+    "text": "Krátké ID"
+  },
+  "web.colonel.secrets.columns.state": {
+    "text": "Stav"
+  },
+  "web.colonel.secrets.columns.created": {
+    "text": "Vytvořeno"
+  },
+  "web.colonel.secrets.columns.expiration": {
+    "text": "Vypršení"
+  },
+  "web.colonel.secrets.columns.age": {
+    "text": "Stáří (dny)"
+  },
+  "web.colonel.secrets.state.new": {
+    "text": "Nové"
+  },
+  "web.colonel.secrets.state.received": {
+    "text": "Přijato"
+  },
+  "web.colonel.secrets.state.viewed": {
+    "text": "Zobrazeno"
   }
 }
