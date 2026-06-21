@@ -578,5 +578,344 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Kmalu poteče",
     "source_hash": "a5dcfef9"
+  },
+  "api.organizations.errors.not_found": {
+    "text": "Organizacija ni najdena: %{extid}"
+  },
+  "api.organizations.errors.owner_required": {
+    "text": "To dejanje lahko izvede samo lastnik organizacije"
+  },
+  "api.organizations.errors.admin_required": {
+    "text": "To dejanje lahko izvedejo samo lastniki in skrbniki organizacije"
+  },
+  "api.organizations.errors.member_required": {
+    "text": "Za izvedbo tega dejanja morate biti član organizacije"
+  },
+  "api.organizations.invitations.errors.create_admin_required": {
+    "text": "Povabila lahko ustvarjajo samo lastniki in skrbniki organizacije"
+  },
+  "api.organizations.invitations.errors.resend_admin_required": {
+    "text": "Povabila lahko ponovno pošljejo samo lastniki in skrbniki organizacije"
+  },
+  "api.organizations.invitations.errors.view_admin_required": {
+    "text": "Povabila si lahko ogledajo samo lastniki in skrbniki organizacije"
+  },
+  "api.organizations.invitations.errors.revoke_admin_required": {
+    "text": "Povabila lahko prekličejo samo lastniki in skrbniki organizacije"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "E-pošta je obvezna"
+  },
+  "api.organizations.invitations.errors.email_invalid": {
+    "text": "Neveljavna oblika e-pošte"
+  },
+  "api.organizations.invitations.errors.role_invalid": {
+    "text": "Vloga mora biti član ali skrbnik"
+  },
+  "api.organizations.invitations.errors.cannot_invite_owner": {
+    "text": "Povabilo z vlogo lastnika ni mogoče"
+  },
+  "api.organizations.invitations.errors.already_member": {
+    "text": "Uporabnik je že član te organizacije"
+  },
+  "api.organizations.invitations.errors.already_pending": {
+    "text": "Povabilo za ta e-poštni naslov že čaka na obravnavo"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Dosežena je omejitev števila članov. Nadgradite paket, da povabite več članov."
+  },
+  "api.organizations.invitations.errors.not_found": {
+    "text": "Povabilo ni najdeno"
+  },
+  "api.organizations.invitations.errors.cannot_resend_non_pending": {
+    "text": "Ponovno je mogoče poslati samo povabila, ki čakajo na obravnavo"
+  },
+  "api.organizations.invitations.errors.cannot_revoke_non_pending": {
+    "text": "Preklicati je mogoče samo povabila, ki čakajo na obravnavo"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Dosežena je največja omejitev ponovnih pošiljanj (%{max})"
+  },
+  "api.organizations.invitations.errors.accept_token_required": {
+    "text": "Žeton je obvezen"
+  },
+  "api.organizations.invitations.errors.accept_organization_gone": {
+    "text": "Organizacija ne obstaja več"
+  },
+  "api.organizations.invitations.errors.accept_already_acted": {
+    "text": "Povabilo je bilo že %{status}"
+  },
+  "api.organizations.invitations.errors.accept_expired": {
+    "text": "Povabilo je poteklo"
+  },
+  "api.organizations.invitations.errors.accept_email_mismatch": {
+    "text": "Vaš e-poštni naslov se ne ujema s povabilom"
+  },
+  "api.organizations.invitations.errors.accept_already_member": {
+    "text": "Ste že član te organizacije"
+  },
+  "web.organizations.entitlements_title": {
+    "text": "Upravičenja organizacije"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Ogled in konfiguracija vaših delovnih prostorov"
+  },
+  "web.organizations.delete_organization_remove_domains_first": {
+    "text": "Pred izbrisom te organizacije odstranite vse domene po meri."
+  },
+  "web.organizations.default_org_delete_notice_title": {
+    "text": "Brisanje te organizacije"
+  },
+  "web.organizations.default_org_delete_notice_before": {
+    "text": "To je vaša privzeta organizacija in je ni mogoče odstraniti z nadzorne plošče. Če jo želite izbrisati, se obrnite prek"
+  },
+  "web.organizations.default_org_delete_notice_link": {
+    "text": "obrazca za povratne informacije"
+  },
+  "web.organizations.default_org_delete_notice_after": {
+    "text": "."
+  },
+  "web.organizations.leave_organization": {
+    "text": "Zapusti to organizacijo"
+  },
+  "web.organizations.leave_organization_warning": {
+    "text": "Izgubili boste dostop do te organizacije in njenih virov."
+  },
+  "web.organizations.leave_organization_confirm_title": {
+    "text": "Zapusti organizacijo"
+  },
+  "web.organizations.leave_organization_confirm_message": {
+    "text": "Ali ste prepričani, da želite zapustiti {name}? Za ponovno pridružitev boste potrebovali novo povabilo."
+  },
+  "web.organizations.leave_organization_success": {
+    "text": "Zapustili ste organizacijo."
+  },
+  "web.organizations.leave_error": {
+    "text": "Organizacije ni bilo mogoče zapustiti"
+  },
+  "web.organizations.organizations": {
+    "text": "Organizacije"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "od {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "kot {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Nazaj na domačo stran"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "To povabilo je bilo poslano na ta e-poštni naslov"
+  },
+  "web.organizations.invitations.signup_continue": {
+    "text": "Nadaljuj"
+  },
+  "web.organizations.invitations.signin_continue": {
+    "text": "Prijava"
+  },
+  "web.organizations.invitations.confirm_join_below": {
+    "text": "Skoraj končano — spodaj potrdite, da se pridružite organizaciji."
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Pojdi na Organizacije"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Ste že član te organizacije"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Pridruži se {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Prijavite se, da se pridružite {orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Zavrni"
+  },
+  "web.organizations.members.member_quota": {
+    "text": "{used} od {limit} članov"
+  },
+  "web.organizations.members.pending_suffix": {
+    "text": "({count} v obravnavi)"
+  },
+  "web.organizations.members.limit_reached_hint": {
+    "text": "Dosežena je omejitev števila članov."
+  },
+  "web.organizations.sso.title": {
+    "text": "Enotna prijava (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "Konfigurirajte SSO, da članom omogočite prijavo prek ponudnika identitete vaše organizacije"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Vrsta ponudnika"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Izberite ponudnika identitete vaše organizacije"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Prikazno ime"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "Prijazno ime, prikazano uporabnikom ob prijavi"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "npr. Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "ID odjemalca"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "Vaš ID odjemalca OAuth"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Skrivni ključ odjemalca"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "Vaš skrivni ključ odjemalca OAuth"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Pustite prazno, da obdržite obstoječi skrivni ključ"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "ID najemnika"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "Identifikator najemnika Azure AD / Entra ID"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "npr. 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "Issuer URL"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "Odkrivni URL OIDC za vašega ponudnika identitete"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "npr. https://login.example.com"
+  },
+  "web.organizations.sso.view_discovery_document": {
+    "text": "Ogled odkrivnega dokumenta"
+  },
+  "web.organizations.sso.callback_url": {
+    "text": "Callback URL"
+  },
+  "web.organizations.sso.callback_url_hint": {
+    "text": "Dodajte ta URL med dovoljene preusmeritvene URI-je vašega ponudnika identitete"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "Dovoljene e-poštne domene"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Prijavijo se lahko samo uporabniki z e-poštnimi naslovi s teh domen. Pustite prazno, da dovolite vse domene."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "npr. acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Vnesite veljavno domeno (npr. example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Ta domena je že na seznamu"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "Odstrani {domain}"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "Omogoči SSO"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "Ko je omogočeno, se lahko člani organizacije prijavijo s tem ponudnikom SSO"
+  },
+  "web.organizations.sso.enforce_sso_only": {
+    "text": "Vsili samo SSO"
+  },
+  "web.organizations.sso.enforce_sso_only_hint": {
+    "text": "Zahtevajte SSO za vse prijave na tej domeni. Ko je omogočeno, je avtentikacija z geslom onemogočena."
+  },
+  "web.organizations.sso.grant_org_scope": {
+    "text": "Dodeli dostop za celotno organizacijo"
+  },
+  "web.organizations.sso.grant_org_scope_hint": {
+    "text": "Novi člani, ki se pridružijo prek SSO te domene, bodo dobili dostop do vseh domen organizacije. To ne vpliva na obstoječe člane. Ko je onemogočeno (privzeto), lahko novi člani dostopajo samo do te domene."
+  },
+  "web.organizations.sso.save_config": {
+    "text": "Shrani konfiguracijo SSO"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Izbriši konfiguracijo"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "Ali ste prepričani? S tem boste onemogočili SSO za svojo organizacijo."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "Konfiguracije SSO ni bilo mogoče naložiti"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "Konfiguracije SSO ni bilo mogoče shraniti"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "Konfiguracija SSO je bila uspešno ustvarjena"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "Konfiguracija SSO je bila uspešno posodobljena"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "Konfiguracija SSO je bila uspešno izbrisana"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "Konfiguracije SSO ni bilo mogoče izbrisati"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Preizkusi povezavo"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Preverite, ali je ponudnik identitete dosegljiv (ne preverja poverilnic)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Preizkusi povezavo"
+  },
+  "web.organizations.sso.testing": {
+    "text": "Preizkušanje ..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "Povezave ni bilo mogoče preizkusiti"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Authorization Endpoint"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Manjkajoča polja"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Omogočeno"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Konfigurirano"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "SSO domene"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Konfigurirajte SSO za vsako preverjeno domeno"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "Če želite zamenjati ponudnika, najprej izbrišite to konfiguracijo"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Ni konfigurirano"
+  },
+  "web.organizations.sso.no_domains": {
+    "text": "Ni preverjenih domen"
+  },
+  "web.organizations.sso.no_domains_description": {
+    "text": "Pred konfiguracijo SSO dodajte in preverite domeno."
+  },
+  "web.organizations.tabs.team": {
+    "text": "Ekipa"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

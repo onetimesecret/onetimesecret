@@ -1,0 +1,29 @@
+{
+  "api.domains.errors.domain_id_required": {
+    "text": "Zahtevan je ID domene"
+  },
+  "api.domains.errors.domain_not_found": {
+    "text": "Domena ni najdena: %{extid}"
+  },
+  "api.domains.errors.organization_not_found": {
+    "text": "Organizacija za domeno ni najdena: %{domain}"
+  },
+  "api.domains.errors.incoming_secrets_disabled": {
+    "text": "Dohodne skrivnosti niso omogočene na tej namestitvi"
+  },
+  "api.domains.errors.incoming_secrets_entitlement_required": {
+    "text": "Upravljanje dohodnih skrivnosti zahteva upravičenje incoming_secrets. Nadgradite svoj paket."
+  },
+  "api.domains.errors.incoming_config_not_found": {
+    "text": "Konfiguracija dohodnih skrivnosti za domeno ni najdena: %{extid}"
+  },
+  "api.domains.errors.recipients_max_exceeded": {
+    "text": "Dovoljenih je največ %{max} prejemnikov"
+  },
+  "api.domains.errors.recipients_invalid_email": {
+    "text": "Neveljaven e-poštni naslov: %{email}"
+  },
+  "api.domains.errors.recipients_duplicate": {
+    "text": "Podvojeni e-poštni naslovi prejemnikov niso dovoljeni"
+  }
+}

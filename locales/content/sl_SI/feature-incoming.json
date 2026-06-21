@@ -130,5 +130,26 @@
   "incoming.receipt_link_text": {
     "text": "potrdilo",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Potrebna nadgradnja"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Ta funkcija zahteva nadgradnjo paketa. Za omogočanje dohodnih skrivnosti se obrnite na lastnika računa."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Zaznamek lahko vsebuje največ {max} znakov"
+  },
+  "incoming.validation_secret_required": {
+    "text": "Vsebina skrivnosti je obvezna"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Izberite prejemnika"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "Funkcija dohodnih skrivnosti ni omogočena"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Preverite, ali so v obrazcu napake"
   }
 }

@@ -1299,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Vedno preverite, da ste na uradni spletni strani {product_name}. Goljufi včasih ustvarijo lažne spletne strani, ki izgledajo točno kot {product_name}, da vam ukradejo skrivnosti. Da se izognete phishing napadom, pred ustvarjanjem novih povezav preverite regionalno domeno.",
+    "text": "Vedno preverite, ali ste na uradnem spletnem mestu {product_name}. Goljufi včasih ustvarijo lažna spletna mesta, ki so videti popolnoma enaka kot {product_name}, da bi vam ukradli skrivnosti. Da se izognete napadom z lažnim predstavljanjem, pred ustvarjanjem novih povezav preverite domeno regije.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1383,5 +1383,110 @@
     "text": "Nadgradite za odklepanje več funkcij",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "Zahtevana je avtentikacija"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "To dejanje ni na voljo v načinu samo SSO"
+  },
+  "web.COMMON.configure": {
+    "text": "Nastavi"
+  },
+  "web.COMMON.copy_to_clipboard": {
+    "text": "Kopiraj v odložišče"
+  },
+  "web.COMMON.add": {
+    "text": "Dodaj"
+  },
+  "web.COMMON.enabled": {
+    "text": "Omogočeno"
+  },
+  "web.COMMON.disabled": {
+    "text": "Onemogočeno"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Da, izbriši"
+  },
+  "web.COMMON.error_code": {
+    "text": "Koda napake"
+  },
+  "web.COMMON.http_status": {
+    "text": "Stanje HTTP"
+  },
+  "web.COMMON.details": {
+    "text": "Podrobnosti"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Potrdite geslo"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Gesli se morata ujemati"
+  },
+  "web.COMMON.and": {
+    "text": "in"
+  },
+  "web.COMMON.or": {
+    "text": "ali"
+  },
+  "web.COMMON.copied": {
+    "text": "Kopirano"
+  },
+  "web.COMMON.copy": {
+    "text": "Kopiraj"
+  },
+  "web.COMMON.copy_email": {
+    "text": "Kopiraj e-poštni naslov"
+  },
+  "web.COMMON.copy_id": {
+    "text": "Kopiraj ID računa"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "Enolični identifikator vaše organizacije"
+  },
+  "web.COMMON.success": {
+    "text": "Uspeh"
+  },
+  "web.COMMON.need_help": {
+    "text": "Potrebujete pomoč"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "Odpri pogovorno okno za pomoč"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "Pozornost je zdaj v glavnem polju z besedilom"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Pokaži pristopno frazo"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Skrij pristopno frazo"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "Ikona za kopiranje"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "Ikona kopirano"
+  },
+  "web.STATUS.unverified": {
+    "text": "Nepreverjeno"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Nastavitve domene"
+  },
+  "web.TITLES.domain_signin": {
+    "text": "Konfiguracija prijave"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "SSO domene"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "Preverjanje registracije domene"
+  },
+  "web.TITLES.domain_email": {
+    "text": "Konfiguracija e-pošte"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Dohodne skrivnosti"
   }
 }
