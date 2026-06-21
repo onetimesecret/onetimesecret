@@ -10,39 +10,10 @@ RSpec.describe Onetime::Application::OttoHooks do
   let(:host_class) { Class.new { include Onetime::Application::OttoHooks } }
   let(:host)       { host_class.new }
 
-  # Stand-in for the Otto router. We only assert OUR wiring (the gate + the
-  # ranges handed over); Otto's own client_ipaddress / secure? resolution from
-  # that trust list is covered by the gem.
-  let(:router) { instance_double(Otto) }
-
-  describe '#configure_otto_trusted_proxies' do
-    context 'when trusted_proxy is enabled' do
-      before do
-        allow(Onetime::Application::MiddlewareStack)
-          .to receive(:trusted_proxy_enabled?).and_return(true)
-      end
-
-      it 'hands the router the shared private-proxy ranges' do
-        expect(router).to receive(:add_trusted_proxy)
-          .with(Onetime::Application::MiddlewareStack::PRIVATE_PROXY_RANGES)
-
-        host.configure_otto_trusted_proxies(router)
-      end
-    end
-
-    context 'when trusted_proxy is disabled' do
-      before do
-        allow(Onetime::Application::MiddlewareStack)
-          .to receive(:trusted_proxy_enabled?).and_return(false)
-      end
-
-      it 'leaves the router trust list empty (direct-connection mode)' do
-        expect(router).not_to receive(:add_trusted_proxy)
-
-        host.configure_otto_trusted_proxies(router)
-      end
-    end
-  end
+  # Trusted-proxy resolution is no longer wired onto the Otto router. It lives
+  # entirely on the universal IPPrivacyMiddleware mount, configured once from
+  # MiddlewareStack.ip_privacy_security_config — see middleware_stack_spec.rb.
+  # OttoHooks therefore no longer touches add_trusted_proxy.
 
   describe '#configure_otto_request_hook error registrations' do
     # Spy router records every register_error_handler call so we can assert OUR
@@ -53,7 +24,6 @@ RSpec.describe Onetime::Application::OttoHooks do
       captured = registered
       Object.new.tap do |spy|
         spy.define_singleton_method(:register_request_helpers) { |*| }
-        spy.define_singleton_method(:add_trusted_proxy) { |*| }
         spy.define_singleton_method(:on_request_complete) { |*, &_blk| }
         spy.define_singleton_method(:register_error_handler) do |klass, status:, log_level:, &handler|
           captured[klass] = { status: status, log_level: log_level, handler: handler }
@@ -62,8 +32,6 @@ RSpec.describe Onetime::Application::OttoHooks do
     end
 
     before do
-      allow(Onetime::Application::MiddlewareStack)
-        .to receive(:trusted_proxy_enabled?).and_return(false)
       allow(Onetime).to receive(:debug?).and_return(false)
       host.configure_otto_request_hook(spy_router)
     end
