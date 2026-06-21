@@ -262,8 +262,10 @@ test.describe('INV-002: Unauthenticated User Inline Auth Flow', () => {
     await page.goto(`/invite/${token}`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    // Verify invitation details page loads
-    await expect(page.getByText(/invitation/i)).toBeVisible();
+    // Verify invitation details page loads. The page renders "invitation"
+    // in both the heading and supporting copy, so scope to the first match
+    // to avoid a strict-mode violation.
+    await expect(page.getByText(/invitation/i).first()).toBeVisible();
 
     // With Phase 7 inline forms, unauthenticated users see one of:
     // - signup_required state (new user, no account) with inline signup form
@@ -330,8 +332,10 @@ test.describe('INV-003: Email Mismatch Warning', () => {
       const mismatchWarning = wrongUserPage.getByTestId('email-mismatch-warning');
       await expect(mismatchWarning).toBeVisible();
 
-      // Verify warning shows factual "Different account" framing
-      await expect(wrongUserPage.getByText(/different|mismatch/i)).toBeVisible();
+      // Verify warning shows factual "Different account" framing. The
+      // copy + the "Continue as" button both match, so scope to the first
+      // to avoid a strict-mode violation.
+      await expect(wrongUserPage.getByText(/different|mismatch/i).first()).toBeVisible();
 
       // Verify invited email is shown (appears in both the warning body and
       // the "Continue as" button - first() avoids a strict mode violation)
@@ -498,8 +502,15 @@ test.describe('INV-007b: Unauthenticated Decline Flow', () => {
     await page.goto(`/invite/${token}`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    // Decline button should work without auth (use testid to avoid matching email containing "decline")
-    const declineButton = page.getByTestId('decline-invitation-btn');
+    // Decline button should work without auth. An unauthenticated invitee
+    // lands in the signup_required (or signin_required) state, where the
+    // decline control lives inside InviteSignUpForm / InviteSignInForm with
+    // the testid invite-signup-decline / invite-signin-decline — not the
+    // authenticated-state decline-invitation-btn.
+    const declineButton = page
+      .getByTestId('invite-signup-decline')
+      .or(page.getByTestId('invite-signin-decline'))
+      .first();
     await expect(declineButton).toBeVisible();
     await declineButton.click();
 
@@ -692,15 +703,17 @@ test.describe('INV-SEC-001: Open Redirect Prevention', () => {
     for (const maliciousUrl of maliciousRedirects) {
       await page.goto(`/signin?redirect=${encodeURIComponent(maliciousUrl)}`);
 
-      // Fill login form
-      const emailInput = page.getByLabel(/email/i);
-      const passwordInput = page.getByLabel(/password/i);
+      // Fill login form. Use the form's test ids — getByLabel(/password/i)
+      // also matches the show-password toggle and the "Forgot your password?"
+      // link, a strict-mode violation.
+      const emailInput = page.getByTestId('signin-email-input');
+      const passwordInput = page.getByTestId('signin-password-input');
 
       if (await emailInput.isVisible()) {
         await emailInput.fill(process.env.TEST_USER_EMAIL || '');
         await passwordInput.fill(process.env.TEST_USER_PASSWORD || '');
 
-        const submitButton = page.getByRole('button', { name: /sign in/i });
+        const submitButton = page.getByTestId('signin-submit');
         await submitButton.click();
 
         // Should NOT redirect to external URL

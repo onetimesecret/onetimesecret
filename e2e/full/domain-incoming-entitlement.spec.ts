@@ -56,12 +56,18 @@ interface DomainInfo {
 /**
  * Authenticate user via login form.
  *
+ * The `full` project starts every test already authenticated as TEST_USER_*
+ * via storageState (e2e/playwright.config.ts), so the session must be dropped
+ * first — an authenticated visitor to /signin is redirected away by the auth
+ * route guard (src/router/guards.routes.ts) and never sees the form.
+ *
  * Handles both signin variants (canonical logic: e2e/global.setup.ts):
  * - default deployments render SignInForm directly (the CI container does);
  * - passwordless-first deployments hide the password panel behind a
  *   "Password" tab with different test ids.
  */
 async function loginUser(page: Page): Promise<void> {
+  await page.context().clearCookies();
   await page.goto('/signin');
 
   const signinEmail = process.env.TEST_USER_EMAIL || '';
