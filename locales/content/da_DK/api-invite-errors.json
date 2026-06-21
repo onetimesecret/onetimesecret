@@ -1,0 +1,23 @@
+{
+  "api.invite.errors.invitation_not_found_or_expired": {
+    "text": "Invitation ikke fundet eller udløbet"
+  },
+  "api.invite.errors.token_required": {
+    "text": "Token kræves"
+  },
+  "api.invite.errors.organization_no_longer_exists": {
+    "text": "Organisationen findes ikke længere"
+  },
+  "api.invite.errors.invitation_already_processed": {
+    "text": "Invitationen er allerede blevet %{status}"
+  },
+  "api.invite.errors.invitation_expired": {
+    "text": "Invitationen er udløbet"
+  },
+  "api.invite.errors.email_mismatch": {
+    "text": "Din e-mailadresse stemmer ikke overens med invitationen"
+  },
+  "api.invite.errors.already_member": {
+    "text": "Du er allerede medlem af denne organisation"
+  }
+}

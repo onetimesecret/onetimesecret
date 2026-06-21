@@ -1,0 +1,8 @@
+{
+  "api.account.errors.invalid_email": {
+    "text": "Er det en gyldig e-mailadresse?"
+  },
+  "api.account.errors.password_too_short": {
+    "text": "Adgangskoden er for kort"
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "api.feedback.errors.rate_limit_exceeded": {
+    "text": "For mange feedback-indsendelser. Prøv venligst igen senere."
+  }
+}
