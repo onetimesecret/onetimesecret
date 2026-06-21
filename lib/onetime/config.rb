@@ -272,8 +272,10 @@ module Onetime
       # Use safe_load so a malicious config file cannot instantiate arbitrary
       # Ruby objects (!ruby/object). Symbol is permitted because config keys
       # and values use symbols; dates must be quoted (loaded as strings),
-      # consistent with the rest of the codebase's YAML loaders.
-      YAML.safe_load(parsed_template.result, permitted_classes: [Symbol]) || {}
+      # consistent with the rest of the codebase's YAML loaders. aliases: true
+      # keeps anchors/aliases working, matching the config validator
+      # (operations/config/validate.rb) so a config that validates also boots.
+      YAML.safe_load(parsed_template.result, permitted_classes: [Symbol], aliases: true) || {}
     end
     private :load_yaml_with_erb
 
@@ -566,17 +568,19 @@ module Onetime
     # unintended sharing of references that could let a mutation of one clone
     # corrupt another component's view of the config.
     #
-    # Delegates to Onetime::Utils::Enumerables.deep_clone, which is the single
-    # hardened implementation: a YAML.safe_load(YAML.dump(...)) round-trip that
-    # permits only plain data types (no arbitrary Ruby objects) and caps the
-    # serialized size. See that method for mechanism and limitations.
+    # Delegates to Onetime::Utils::Enumerables.deep_clone, the single hardened
+    # implementation: a YAML.safe_load(YAML.dump(...)) round-trip that permits
+    # only plain data types (no arbitrary Ruby objects). Config comes from
+    # trusted local files, so we opt out of the serialized-size gate (max_size)
+    # to preserve this path's historical unrestricted behavior for large
+    # deployment configs.
     #
     # @param config_hash [Hash] The configuration hash to be cloned
     # @return [Hash] A deep copy of the original configuration hash
-    # @raise [OT::Problem] When serialization fails or the size limit is exceeded
+    # @raise [OT::Problem] When serialization fails
     # @security Prevents configuration mutations from affecting multiple components
     def deep_clone(config_hash)
-      Onetime::Utils::Enumerables.deep_clone(config_hash)
+      Onetime::Utils::Enumerables.deep_clone(config_hash, max_size: Float::INFINITY)
     end
 
     # Applies default values to its config level peers
