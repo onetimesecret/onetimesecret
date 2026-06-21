@@ -130,5 +130,26 @@
   "incoming.receipt_link_text": {
     "text": "Beleg",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Upgrade erforderlich"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Diese Funktion erfordert ein Upgrade Ihres Tarifs. Bitte wenden Sie sich an den Kontoinhaber, um eingehende Nachrichten zu aktivieren."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Die Notiz darf höchstens {max} Zeichen lang sein"
+  },
+  "incoming.validation_secret_required": {
+    "text": "Nachrichteninhalt ist erforderlich"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Bitte wählen Sie einen Empfänger aus"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "Die Funktion für eingehende Nachrichten ist nicht aktiviert"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Bitte überprüfen Sie das Formular auf Fehler"
   }
 }
