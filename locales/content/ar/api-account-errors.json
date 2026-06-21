@@ -1,0 +1,8 @@
+{
+  "api.account.errors.invalid_email": {
+    "text": "هل هذا عنوان بريد إلكتروني صالح؟"
+  },
+  "api.account.errors.password_too_short": {
+    "text": "كلمة المرور قصيرة جداً"
+  }
+}
