@@ -1,0 +1,29 @@
+{
+  "api.domains.errors.domain_id_required": {
+    "text": "ドメインIDが必要です"
+  },
+  "api.domains.errors.domain_not_found": {
+    "text": "ドメインが見つかりません: %{extid}"
+  },
+  "api.domains.errors.organization_not_found": {
+    "text": "ドメインの組織が見つかりません: %{domain}"
+  },
+  "api.domains.errors.incoming_secrets_disabled": {
+    "text": "このインスタンスでは受信シークレットが有効になっていません"
+  },
+  "api.domains.errors.incoming_secrets_entitlement_required": {
+    "text": "受信シークレットの管理にはincoming_secretsエンタイトルメントが必要です。プランをアップグレードしてください。"
+  },
+  "api.domains.errors.incoming_config_not_found": {
+    "text": "ドメインの受信設定が見つかりません: %{extid}"
+  },
+  "api.domains.errors.recipients_max_exceeded": {
+    "text": "受信者は最大%{max}名まで指定できます"
+  },
+  "api.domains.errors.recipients_invalid_email": {
+    "text": "無効なメールアドレス: %{email}"
+  },
+  "api.domains.errors.recipients_duplicate": {
+    "text": "受信者のメールアドレスを重複して指定することはできません"
+  }
+}

@@ -716,5 +716,20 @@
   },
   "web.auth.sessions._guidance.context": {
     "text": "ユーザーのログイン済みデバイス/ブラウザ管理ページ"
+  },
+  "web.auth.google": {
+    "text": "Google"
+  },
+  "web.auth.mfa.alternative_auth_options": {
+    "text": "別の認証方法"
+  },
+  "web.auth.remember.enabled": {
+    "text": "ログイン状態を保持する"
+  },
+  "web.auth.sessions.session_singular": {
+    "text": "セッション"
+  },
+  "web.auth.sessions.session_plural": {
+    "text": "セッション"
   }
 }
