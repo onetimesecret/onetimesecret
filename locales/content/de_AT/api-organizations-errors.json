@@ -1,0 +1,107 @@
+{
+  "api.organizations.errors.domain_scoped_forbidden": {
+    "text": "Bereichsbezogene Mitglieder können diese Aktion nicht durchführen"
+  },
+  "api.organizations.errors.organization_not_found": {
+    "text": "Organisation nicht gefunden: %{extid}"
+  },
+  "api.organizations.errors.organization_owner_required": {
+    "text": "Nur der Organisationsinhaber kann diese Aktion durchführen"
+  },
+  "api.organizations.errors.organization_member_required": {
+    "text": "Sie müssen Mitglied der Organisation sein, um diese Aktion durchzuführen"
+  },
+  "api.organizations.errors.organization_admin_required": {
+    "text": "Nur Organisationsinhaber und Administratoren können diese Aktion durchführen"
+  },
+  "api.organizations.errors.extid_required": {
+    "text": "Organisations-ID erforderlich"
+  },
+  "api.organizations.errors.display_name_required": {
+    "text": "Der Organisationsname ist erforderlich"
+  },
+  "api.organizations.errors.display_name_too_long": {
+    "text": "Der Organisationsname muss weniger als %{max} Zeichen lang sein"
+  },
+  "api.organizations.errors.description_too_long": {
+    "text": "Die Beschreibung muss weniger als %{max} Zeichen lang sein"
+  },
+  "api.organizations.errors.contact_email_exists": {
+    "text": "Es existiert bereits eine Organisation mit dieser Kontakt-E-Mail-Adresse"
+  },
+  "api.organizations.errors.creation_in_progress": {
+    "text": "Die Organisation wird gerade erstellt. Bitte versuchen Sie es erneut."
+  },
+  "api.organizations.errors.organization_limit_reached": {
+    "text": "Organisationslimit erreicht. Führen Sie ein Upgrade Ihres Tarifs durch, um mehr Organisationen zu erstellen."
+  },
+  "api.organizations.invitations.errors.invitation_not_found": {
+    "text": "Einladung nicht gefunden"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "E-Mail-Adresse ist erforderlich"
+  },
+  "api.organizations.invitations.errors.invalid_email_format": {
+    "text": "Ungültiges E-Mail-Format"
+  },
+  "api.organizations.invitations.errors.invalid_role": {
+    "text": "Die Rolle muss Mitglied oder Administrator sein"
+  },
+  "api.organizations.invitations.errors.cannot_invite_as_owner": {
+    "text": "Eine Einladung als Inhaber ist nicht möglich"
+  },
+  "api.organizations.invitations.errors.user_already_member": {
+    "text": "Der Benutzer ist bereits Mitglied dieser Organisation"
+  },
+  "api.organizations.invitations.errors.invitation_already_pending": {
+    "text": "Für diese E-Mail-Adresse steht bereits eine Einladung aus"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Mitgliederlimit erreicht. Führen Sie ein Upgrade Ihres Tarifs durch, um mehr Mitglieder einzuladen."
+  },
+  "api.organizations.invitations.errors.resend_only_pending": {
+    "text": "Nur ausstehende Einladungen können erneut gesendet werden"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Maximales Limit für erneutes Senden (%{max}) erreicht"
+  },
+  "api.organizations.invitations.errors.revoke_only_pending": {
+    "text": "Nur ausstehende Einladungen können widerrufen werden"
+  },
+  "api.organizations.members.errors.member_not_found": {
+    "text": "Mitglied nicht gefunden: %{extid}"
+  },
+  "api.organizations.members.errors.member_not_in_organization": {
+    "text": "Mitglied in dieser Organisation nicht gefunden"
+  },
+  "api.organizations.members.errors.member_not_active": {
+    "text": "Mitglied ist nicht aktiv"
+  },
+  "api.organizations.members.errors.invalid_role_value": {
+    "text": "Ungültige Rolle. Muss eine der folgenden sein: %{roles}"
+  },
+  "api.organizations.members.errors.cannot_change_owner_role": {
+    "text": "Die Rolle des Inhabers kann nicht geändert werden. Verwenden Sie stattdessen die Inhaberschaftsübertragung."
+  },
+  "api.organizations.members.errors.member_already_has_role": {
+    "text": "Mitglied hat bereits die Rolle: %{role}"
+  },
+  "api.organizations.members.errors.cannot_promote_to_owner": {
+    "text": "Eine Beförderung zum Inhaber ist nicht möglich. Verwenden Sie stattdessen die Inhaberschaftsübertragung."
+  },
+  "api.organizations.members.errors.must_be_member": {
+    "text": "Sie müssen Mitglied dieser Organisation sein"
+  },
+  "api.organizations.members.errors.cannot_remove_owner": {
+    "text": "Der Organisationsinhaber kann nicht entfernt werden. Übertragen Sie zuerst die Inhaberschaft."
+  },
+  "api.organizations.members.errors.cannot_remove_self": {
+    "text": "Sie können sich nicht selbst entfernen. Verlassen Sie stattdessen die Organisation."
+  },
+  "api.organizations.members.errors.admin_cannot_remove_admin": {
+    "text": "Administratoren können keine anderen Administratoren entfernen. Nur Inhaber können das."
+  },
+  "api.organizations.members.errors.no_permission_to_remove": {
+    "text": "Sie haben keine Berechtigung, Mitglieder zu entfernen"
+  }
+}

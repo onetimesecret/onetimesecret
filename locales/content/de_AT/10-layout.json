@@ -148,7 +148,7 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Sie sehen eine sichere Nachricht, die über {product_name} mit Ihnen geteilt wurde. Dieser Inhalt wird nur einmal angezeigt und dann dauerhaft von unseren Servern gelöscht.",
+    "text": "Sie sehen eine sichere Nachricht, die über {product_name} mit Ihnen geteilt wurde. Dieser Inhalt wird nur einmal angezeigt und anschließend dauerhaft von unseren Servern gelöscht.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -338,5 +338,11 @@
   "web.layout.workspace_context": {
     "text": "Arbeitsbereich-Kontext",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Workspace"
+  },
+  "web.help.default_content": {
+    "text": "Bitte wenden Sie sich an den Support, um Unterstützung zu erhalten"
   }
 }
