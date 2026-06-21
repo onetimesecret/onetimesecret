@@ -476,7 +476,7 @@
     "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Leer hoe je {product_name} integreert in je applicaties",
+    "text": "Ontdek hoe je {product_name} in je applicaties integreert",
     "source_hash": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {
@@ -682,5 +682,14 @@
   "web.settings.profile.didnt_receive_email": {
     "text": "E-mail niet ontvangen?",
     "source_hash": "fe3ac3ad"
+  },
+  "web.settings.api.api_disabled_notice": {
+    "text": "De API is uitgeschakeld voor deze instance."
+  },
+  "web.settings.security.sso_managed_title": {
+    "text": "Beveiliging beheerd door SSO"
+  },
+  "web.settings.security.sso_managed_description": {
+    "text": "Je account wordt geverifieerd via de single sign-on-provider van je organisatie. Wachtwoord, multifactorauthenticatie en herstelcodes worden beheerd door je identity provider."
   }
 }

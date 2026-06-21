@@ -846,5 +846,389 @@
   "web.domains.sso.not_configured_notice": {
     "text": "SSO is nog niet geconfigureerd voor dit domein. Schakel single sign-on in om teamleden te laten authenticeren via de identiteitsprovider van je organisatie.",
     "source_hash": "c439214b"
+  },
+  "api.domains.errors.add_admin_required": {
+    "text": "Alleen eigenaren en beheerders van de organisatie kunnen aangepaste domeinen toevoegen"
+  },
+  "web.domains.public_homepage": {
+    "text": "Openbare homepage"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Domein geverifieerd en actief"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS niet geconfigureerd — klik om te herstellen"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Domein niet geverifieerd — klik om te verifiëren"
+  },
+  "web.domains.status_tooltip_unverified": {
+    "text": "Domeinstatus niet geverifieerd — klik om te vernieuwen"
+  },
+  "web.domains.last_check_failed": {
+    "text": "Laatste verificatiecontrole mislukt"
+  },
+  "web.domains.last_check_failed_ago": {
+    "text": "laatste controle mislukt {0}"
+  },
+  "web.domains.verify_now": {
+    "text": "Nu verifiëren"
+  },
+  "web.domains.click_to_verify": {
+    "text": "klik om te verifiëren"
+  },
+  "web.domains.remove_domain_description": {
+    "text": "Verwijder dit domein en alle bijbehorende configuratie permanent."
+  },
+  "web.domains.add_access_denied": {
+    "text": "Toegang geweigerd"
+  },
+  "web.domains.add_access_denied_description": {
+    "text": "Je hebt geen toestemming om domeinen aan deze organisatie toe te voegen. Neem contact op met de beheerder van je organisatie."
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "Laden van DNS-widget mislukt"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "DNS-widget niet beschikbaar"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "Initialiseren van DNS-widget mislukt"
+  },
+  "web.domains.verified": {
+    "text": "Geverifieerd"
+  },
+  "web.domains.pending_verification": {
+    "text": "Verificatie in behandeling"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Je hebt niet-opgeslagen wijzigingen. Weet je zeker dat je wilt vertrekken?"
+  },
+  "web.domains.entitlement_required_owner": {
+    "text": "Deze functie vereist een planupgrade."
+  },
+  "web.domains.entitlement_required_member": {
+    "text": "Deze functie is niet beschikbaar in je huidige plan. Neem contact op met de eigenaar van je organisatie."
+  },
+  "web.domains.detail.manage": {
+    "text": "Beheren"
+  },
+  "web.domains.detail.features": {
+    "text": "Functies"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Homepageberichten"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Sta openbare toegang toe om berichten aan te maken op de homepage van je domein"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logo, kleuren en aangepaste branding"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Instellingen voor single sign-on-provider"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Configuratie voor aangepaste e-mailafzender"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Instellingen voor ontvangers van inkomende berichten"
+  },
+  "web.domains.detail.signup_description": {
+    "text": "Aanmeldingsvalidatiestrategie per domein"
+  },
+  "web.domains.detail.signin_description": {
+    "text": "Configuratie van inlogmethode per domein"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Provider"
+  },
+  "web.domains.email.test_email_title": {
+    "text": "E-mailbezorging testen"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Stuur jezelf een test-e-mail met de opgeslagen configuratie. Werkt zelfs wanneer de functie nog niet is ingeschakeld."
+  },
+  "web.domains.email.send_test": {
+    "text": "Test versturen"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Test-e-mail succesvol verstuurd"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Versturen van test-e-mail mislukt"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Verstuurd naar {email}"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Bezorgd via {provider}"
+  },
+  "web.domains.incoming.feature_disabled": {
+    "text": "Inkomende berichten niet beschikbaar"
+  },
+  "web.domains.incoming.feature_disabled_description": {
+    "text": "Inkomende berichten is niet ingeschakeld op deze instance. Neem contact op met je beheerder."
+  },
+  "web.domains.signin.title": {
+    "text": "Inlogconfiguratie"
+  },
+  "web.domains.signin.configure_signin": {
+    "text": "Inloggen configureren"
+  },
+  "web.domains.signin.config_description": {
+    "text": "Configureer authenticatiemethoden voor inloggen op dit domein"
+  },
+  "web.domains.signin.access_denied": {
+    "text": "Toegang geweigerd"
+  },
+  "web.domains.signin.upgrade_to_configure": {
+    "text": "Upgrade je plan om inlogmethoden voor dit domein te configureren."
+  },
+  "web.domains.signin.not_configured_notice": {
+    "text": "De inlogconfiguratie is nog niet ingesteld voor dit domein. Configureer overrides om te bepalen welke authenticatiemethoden beschikbaar zijn op de inlogpagina van dit domein."
+  },
+  "web.domains.signin.signin_enabled_label": {
+    "text": "Inloggen ingeschakeld"
+  },
+  "web.domains.signin.header_toggle_label": {
+    "text": "Inloggen"
+  },
+  "web.domains.signin.signin_enabled_hint": {
+    "text": "Of gebruikers kunnen inloggen op dit domein"
+  },
+  "web.domains.signin.restrict_to_label": {
+    "text": "Inlogmethode beperken"
+  },
+  "web.domains.signin.restrict_to_hint": {
+    "text": "Beperk dit domein tot één authenticatiemethode. Wanneer ingesteld, wordt alleen de gekozen methode op de inlogpagina getoond."
+  },
+  "web.domains.signin.all_methods": {
+    "text": "Alle methoden"
+  },
+  "web.domains.signin.all_methods_description": {
+    "text": "Toon alle ingeschakelde authenticatiemethoden op de inlogpagina"
+  },
+  "web.domains.signin.method_password": {
+    "text": "Wachtwoord"
+  },
+  "web.domains.signin.method_email_auth": {
+    "text": "E-mailauthenticatie"
+  },
+  "web.domains.signin.method_webauthn": {
+    "text": "WebAuthn / Passkeys"
+  },
+  "web.domains.signin.method_sso": {
+    "text": "Single sign-on"
+  },
+  "web.domains.signin.method_overrides_label": {
+    "text": "Methode-overrides"
+  },
+  "web.domains.signin.method_overrides_hint": {
+    "text": "Schakel individuele authenticatiemethoden voor dit domein in of uit"
+  },
+  "web.domains.signin.mode_question": {
+    "text": "Hoe kunnen gebruikers inloggen?"
+  },
+  "web.domains.signin.mode_any": {
+    "text": "Elke beschikbare methode"
+  },
+  "web.domains.signin.mode_any_hint": {
+    "text": "Toon elke methode die op dit domein beschikbaar is. Beperk individuele methoden hieronder."
+  },
+  "web.domains.signin.mode_one": {
+    "text": "Eén specifieke methode"
+  },
+  "web.domains.signin.mode_one_hint": {
+    "text": "Beperk de inlogpagina tot één methode. Alleen methoden die op dit domein beschikbaar zijn, worden vermeld."
+  },
+  "web.domains.signin.mode_disabled": {
+    "text": "Inloggen uitgeschakeld"
+  },
+  "web.domains.signin.mode_disabled_hint": {
+    "text": "Gebruikers kunnen niet inloggen op dit domein."
+  },
+  "web.domains.signin.mode_disabled_notice": {
+    "text": "Bezoekers van de inlogpagina van dit domein zien een melding dat inloggen niet beschikbaar is, met een link terug naar de homepage. Je vorige methode-instellingen worden bewaard en hersteld wanneer je inloggen opnieuw inschakelt."
+  },
+  "web.domains.signin.methods_list_label": {
+    "text": "Methoden getoond op de inlogpagina"
+  },
+  "web.domains.signin.restrict_picker_hint": {
+    "text": "Alleen methoden die op dit domein beschikbaar zijn, worden vermeld."
+  },
+  "web.domains.signin.availability_always": {
+    "text": "Altijd beschikbaar"
+  },
+  "web.domains.signin.availability_global_on": {
+    "text": "Volgt globaal beleid · Aan"
+  },
+  "web.domains.signin.availability_global_off": {
+    "text": "Niet beschikbaar"
+  },
+  "web.domains.signin.availability_unavailable": {
+    "text": "Niet beschikbaar voor de hele site"
+  },
+  "web.domains.signin.allow_on_domain": {
+    "text": "Toestaan op dit domein"
+  },
+  "web.domains.signin.method_password_blurb": {
+    "text": "Alleen wachtwoord"
+  },
+  "web.domains.signin.method_email_auth_blurb": {
+    "text": "Wachtwoordloos inloggen met magic link"
+  },
+  "web.domains.signin.method_webauthn_blurb": {
+    "text": "Biometrie en beveiligingssleutels"
+  },
+  "web.domains.signin.method_sso_blurb": {
+    "text": "Externe identity provider"
+  },
+  "web.domains.signin.email_auth_label": {
+    "text": "E-mailauthenticatie"
+  },
+  "web.domains.signin.email_auth_hint": {
+    "text": "Sta wachtwoordloze e-mailauthenticatie toe op dit domein"
+  },
+  "web.domains.signin.sso_enabled_label": {
+    "text": "Single sign-on"
+  },
+  "web.domains.signin.sso_enabled_hint": {
+    "text": "Sta SSO-authenticatie toe op dit domein"
+  },
+  "web.domains.signin.enabled_label": {
+    "text": "Inlogconfiguratie inschakelen"
+  },
+  "web.domains.signin.enabled_hint": {
+    "text": "Wanneer ingeschakeld, gebruikt dit domein de hierboven geconfigureerde inloginstellingen"
+  },
+  "web.domains.signin.save_config": {
+    "text": "Configuratie opslaan"
+  },
+  "web.domains.signin.update_success": {
+    "text": "Inlogconfiguratie succesvol bijgewerkt"
+  },
+  "web.domains.signin.reset_to_defaults": {
+    "text": "Terugzetten naar standaardwaarden"
+  },
+  "web.domains.signin.reset_confirm": {
+    "text": "Inloggen terugzetten naar de globale standaardwaarden?"
+  },
+  "web.domains.signin.reset_keeps_sso": {
+    "text": "Je SSO-inloggegevens worden bewaard. Verwijder ze apart op het SSO-configuratiescherm."
+  },
+  "web.domains.signin.reset_action": {
+    "text": "Ja, terugzetten"
+  },
+  "web.domains.signin.reset_success": {
+    "text": "Inloginstellingen teruggezet naar de globale standaardwaarden"
+  },
+  "web.domains.signup.title": {
+    "text": "Aanmeldingsvalidatie"
+  },
+  "web.domains.signup.config_description": {
+    "text": "Configureer aanmeldingsvalidatie voor dit domein"
+  },
+  "web.domains.signup.access_denied": {
+    "text": "Toegang geweigerd"
+  },
+  "web.domains.signup.upgrade_to_configure": {
+    "text": "Upgrade je plan om aanmeldingsvalidatie per domein te configureren."
+  },
+  "web.domains.signup.configure_signup": {
+    "text": "Aanmelding configureren"
+  },
+  "web.domains.signup.not_configured_notice": {
+    "text": "Aanmeldingsvalidatie is nog niet geconfigureerd voor dit domein. Configureer een strategie om te bepalen wie zich via dit domein kan aanmelden."
+  },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "Aanmeldingen zijn momenteel uitgeschakeld op siteniveau. Dit beleid per domein is geconfigureerd, maar zal geen verkeer beperken totdat aanmeldingen op de site zijn ingeschakeld."
+  },
+  "web.domains.signup.strategy_label": {
+    "text": "Validatiestrategie"
+  },
+  "web.domains.signup.strategy_description": {
+    "text": "Kies hoe e-mailadressen worden gevalideerd wanneer gebruikers zich op dit domein aanmelden."
+  },
+  "web.domains.signup.network_validation_warning": {
+    "text": "Deze strategie voert netwerkaanroepen uit tijdens de aanmelding, wat extra latentie kan veroorzaken of door sommige providers kan worden geblokkeerd."
+  },
+  "web.domains.signup.allowed_domains_label": {
+    "text": "Toegestane aanmeldingsdomeinen"
+  },
+  "web.domains.signup.allowed_domains_hint": {
+    "text": "Alleen deze e-maildomeinen mogen zich aanmelden. Voeg één domein per item toe."
+  },
+  "web.domains.signup.domain_placeholder": {
+    "text": "example.com"
+  },
+  "web.domains.signup.invalid_domain": {
+    "text": "Voer een geldig domein in (bijv. example.com)"
+  },
+  "web.domains.signup.domain_exists": {
+    "text": "Dit domein staat al in de lijst"
+  },
+  "web.domains.signup.remove_domain": {
+    "text": "{domain} verwijderen"
+  },
+  "web.domains.signup.enabled_label": {
+    "text": "Validatie per domein inschakelen"
+  },
+  "web.domains.signup.enabled_hint": {
+    "text": "Wanneer ingeschakeld, gebruiken aanmeldingen op dit domein de bovenstaande strategie in plaats van het globale beleid."
+  },
+  "web.domains.signup.delete_config": {
+    "text": "Configuratie verwijderen"
+  },
+  "web.domains.signup.delete_confirm": {
+    "text": "Configuratie voor aanmeldingsvalidatie verwijderen? Aanmeldingen vallen terug op het globale beleid."
+  },
+  "web.domains.signup.save_config": {
+    "text": "Configuratie opslaan"
+  },
+  "web.domains.signup.update_success": {
+    "text": "Aanmeldingsvalidatie succesvol bijgewerkt"
+  },
+  "web.domains.signup.delete_success": {
+    "text": "Configuratie voor aanmeldingsvalidatie succesvol verwijderd"
+  },
+  "web.domains.signup.domain_overrides_label": {
+    "text": "Domein-overrides"
+  },
+  "web.domains.signup.domain_overrides_hint": {
+    "text": "Overschrijf globale aanmeldingsinstellingen voor dit domein"
+  },
+  "web.domains.signup.signup_enabled_label": {
+    "text": "Aanmelding ingeschakeld"
+  },
+  "web.domains.signup.signup_enabled_hint": {
+    "text": "Overschrijf of aanmelding is ingeschakeld voor dit domein"
+  },
+  "web.domains.signup.autoverify_label": {
+    "text": "Accounts automatisch verifiëren"
+  },
+  "web.domains.signup.autoverify_hint": {
+    "text": "Overschrijf of nieuwe accounts automatisch worden geverifieerd op dit domein"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Verbindingstest geslaagd — provider reageerde correct"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Verbindingstest mislukt"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "Om SSO te vereisen voor alle inlogpogingen op dit domein, configureer je dit in de inloginstellingen van het domein. De SSO-only-modus beperkt de inlogpagina tot de hier geconfigureerde SSO-provider."
+  },
+  "web.domains.sso.edit_credentials": {
+    "text": "Inloggegevens bewerken"
+  },
+  "web.domains.sso.configure_button": {
+    "text": "Configureren"
+  },
+  "web.domains.sso.upgrade_required": {
+    "text": "Upgrade om te configureren"
   }
 }

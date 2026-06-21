@@ -130,5 +130,26 @@
   "incoming.receipt_link_text": {
     "text": "ontvangstbewijs",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Upgrade vereist"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Deze functie vereist een planupgrade. Neem contact op met de accounteigenaar om inkomende berichten in te schakelen."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Memo mag maximaal {max} tekens bevatten"
+  },
+  "incoming.validation_secret_required": {
+    "text": "Berichtinhoud is vereist"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Selecteer een ontvanger"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "Functie voor inkomende berichten is niet ingeschakeld"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Controleer het formulier op fouten"
   }
 }

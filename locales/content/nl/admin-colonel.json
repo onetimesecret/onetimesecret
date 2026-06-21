@@ -634,5 +634,152 @@
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
     "text": "Wanneer je feedback verstuurt, zien wij:",
     "source_hash": "fe77172e"
+  },
+  "web.colonel.previewPlanMode": {
+    "text": "Planvoorbeeldmodus"
+  },
+  "web.colonel.previewModeDescription": {
+    "text": "Bekijk de applicatie zoals deze verschijnt voor klanten met een ander plan. Dit beïnvloedt alleen jouw weergave en verandert niets aan het werkelijke plan van een organisatie."
+  },
+  "web.colonel.previewModeActive": {
+    "text": "Voorbeeld actief"
+  },
+  "web.colonel.bannedIps.empty": {
+    "text": "Geen geblokkeerde IP's"
+  },
+  "web.colonel.bannedIps.currentIp": {
+    "text": "Je huidige IP-adres"
+  },
+  "web.colonel.bannedIps.confirmUnban": {
+    "text": "{ip} deblokkeren?"
+  },
+  "web.colonel.bannedIps.actions.ban": {
+    "text": "IP blokkeren"
+  },
+  "web.colonel.bannedIps.actions.quickBan": {
+    "text": "Snel blokkeren"
+  },
+  "web.colonel.bannedIps.actions.unban": {
+    "text": "Deblokkeren"
+  },
+  "web.colonel.bannedIps.actions.cancel": {
+    "text": "Annuleren"
+  },
+  "web.colonel.bannedIps.columns.ipAddress": {
+    "text": "IP-adres"
+  },
+  "web.colonel.bannedIps.columns.reason": {
+    "text": "Reden"
+  },
+  "web.colonel.bannedIps.columns.bannedAt": {
+    "text": "Geblokkeerd op"
+  },
+  "web.colonel.bannedIps.columns.bannedBy": {
+    "text": "Geblokkeerd door"
+  },
+  "web.colonel.bannedIps.error.banFailed": {
+    "text": "Blokkeren van IP-adres mislukt"
+  },
+  "web.colonel.bannedIps.error.unbanFailed": {
+    "text": "Deblokkeren van IP-adres mislukt"
+  },
+  "web.colonel.bannedIps.form.title": {
+    "text": "IP-adres blokkeren"
+  },
+  "web.colonel.bannedIps.form.ipLabel": {
+    "text": "IP-adres"
+  },
+  "web.colonel.bannedIps.form.reasonLabel": {
+    "text": "Reden"
+  },
+  "web.colonel.bannedIps.form.reasonPlaceholder": {
+    "text": "Optionele reden"
+  },
+  "web.colonel.bannedIps.success.banned": {
+    "text": "IP-adres {ip} is geblokkeerd"
+  },
+  "web.colonel.bannedIps.success.unbanned": {
+    "text": "IP-adres {ip} is gedeblokkeerd"
+  },
+  "web.colonel.customDomains.empty": {
+    "text": "Geen aangepaste domeinen geconfigureerd"
+  },
+  "web.colonel.customDomains.noLogo": {
+    "text": "Geen logo"
+  },
+  "web.colonel.customDomains.labels.organization": {
+    "text": "Organisatie"
+  },
+  "web.colonel.customDomains.labels.externalId": {
+    "text": "Externe ID"
+  },
+  "web.colonel.customDomains.labels.created": {
+    "text": "Aangemaakt"
+  },
+  "web.colonel.customDomains.labels.updated": {
+    "text": "Bijgewerkt"
+  },
+  "web.colonel.customDomains.labels.favicon": {
+    "text": "Favicon"
+  },
+  "web.colonel.customDomains.status.verified": {
+    "text": "Geverifieerd"
+  },
+  "web.colonel.customDomains.status.resolving": {
+    "text": "Bezig met oplossen"
+  },
+  "web.colonel.customDomains.status.ready": {
+    "text": "Gereed"
+  },
+  "web.colonel.customDomains.status.publicHomepage": {
+    "text": "Openbare homepage"
+  },
+  "web.colonel.customDomains.status.publicApi": {
+    "text": "Openbare API"
+  },
+  "web.colonel.customDomains.status.pending": {
+    "text": "In behandeling"
+  },
+  "web.colonel.pagination.showing": {
+    "text": "{start}–{end} van {total} weergegeven"
+  },
+  "web.colonel.pagination.itemsPerPage": {
+    "text": "Items per pagina"
+  },
+  "web.colonel.pagination.perPage": {
+    "text": "{count} per pagina"
+  },
+  "web.colonel.pagination.pageOf": {
+    "text": "Pagina {current} van {total}"
+  },
+  "web.colonel.secrets.empty": {
+    "text": "Geen berichten gevonden"
+  },
+  "web.colonel.secrets.never": {
+    "text": "Nooit"
+  },
+  "web.colonel.secrets.columns.shortId": {
+    "text": "Korte ID"
+  },
+  "web.colonel.secrets.columns.state": {
+    "text": "Status"
+  },
+  "web.colonel.secrets.columns.created": {
+    "text": "Aangemaakt"
+  },
+  "web.colonel.secrets.columns.expiration": {
+    "text": "Vervaldatum"
+  },
+  "web.colonel.secrets.columns.age": {
+    "text": "Leeftijd (dagen)"
+  },
+  "web.colonel.secrets.state.new": {
+    "text": "Nieuw"
+  },
+  "web.colonel.secrets.state.received": {
+    "text": "Ontvangen"
+  },
+  "web.colonel.secrets.state.viewed": {
+    "text": "Bekeken"
   }
 }

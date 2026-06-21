@@ -1,0 +1,29 @@
+{
+  "api.domains.errors.domain_id_required": {
+    "text": "Domein-ID vereist"
+  },
+  "api.domains.errors.domain_not_found": {
+    "text": "Domein niet gevonden: %{extid}"
+  },
+  "api.domains.errors.organization_not_found": {
+    "text": "Geen organisatie gevonden voor domein: %{domain}"
+  },
+  "api.domains.errors.incoming_secrets_disabled": {
+    "text": "Inkomende berichten zijn niet ingeschakeld op deze instance"
+  },
+  "api.domains.errors.incoming_secrets_entitlement_required": {
+    "text": "Beheer van inkomende berichten vereist de incoming_secrets-entitlement. Upgrade je plan."
+  },
+  "api.domains.errors.incoming_config_not_found": {
+    "text": "Geen inkomende-configuratie gevonden voor domein: %{extid}"
+  },
+  "api.domains.errors.recipients_max_exceeded": {
+    "text": "Maximaal %{max} ontvangers toegestaan"
+  },
+  "api.domains.errors.recipients_invalid_email": {
+    "text": "Ongeldig e-mailadres: %{email}"
+  },
+  "api.domains.errors.recipients_duplicate": {
+    "text": "Dubbele ontvanger-e-mailadressen zijn niet toegestaan"
+  }
+}
