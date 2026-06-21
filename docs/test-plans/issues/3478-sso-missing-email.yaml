@@ -1,0 +1,211 @@
+---
+# LLM-Optimized Test Cases: SSO Sign-in When the IdP Returns No Email
+# Schema version: 1.0.0
+#
+# Reproduces and guards issue #3478: "Unable to login with SSO/EntraID when the
+# user doesn't have an email address." When the identity provider returns no
+# usable email, the OmniAuth callback redirects to /signin?auth_error=invalid_email
+# and Login.vue must render a localized error — never a frozen loading screen.
+
+suite:
+  id: sso-missing-email
+  name: SSO Sign-in With Missing Email (Entra/OIDC)
+  feature: OmniAuth SSO callback error handling and Login.vue auth_error rendering
+  issue: https://github.com/onetimesecret/onetimesecret/issues/3478
+  tags: [auth, sso, omniauth, entra, oidc, error-handling, regression]
+  priority: high
+  e2e_spec: e2e/auth/sso-missing-email.spec.ts
+  notes: |
+    Root cause: Microsoft Entra ID on the v2.0 endpoint only emits the `email`
+    claim when the user has a `mail` attribute. omniauth-entra-id falls back to
+    `upn`, but v2.0 tokens omit `upn` by default (they carry preferred_username,
+    which is not used for info.email). So a user with no mailbox yields a blank
+    info.email -> backend redirect to /signin?auth_error=invalid_email
+    (apps/web/auth/config/hooks/omniauth.rb:133-150).
+
+    The reported "frozen loading screen" is what users see when that error is
+    NOT rendered (e.g. a stale frontend bundle lacking the invalid_email handler
+    in Login.vue:34-51). The user-observable contract these tests guard is:
+    landing on /signin?auth_error=invalid_email shows the error AND a usable
+    page — it must never hang.
+
+    SSO SETUP REQUIRED FOR THE FULL-FLOW CASES TO REPRODUCE THE FAILURE:
+      - Microsoft Entra ID, v2.0 endpoint (as omniauth-entra-id uses).
+      - A test user with NO `mail` attribute (no mailbox/license) -> no email claim.
+      - App registration token configuration with NO `email` and NO `upn` optional
+        claims (v2.0 omits `upn` by default and emits preferred_username, which OTS
+        does not use for email).
+      - OTS env: AUTH_SSO_ENABLED=true and ENTRA_TENANT_ID/ENTRA_CLIENT_ID/
+        ENTRA_CLIENT_SECRET set; ALLOWED_SIGNUP_DOMAIN MUST be unset (otherwise the
+        hook short-circuits to domain_not_allowed before the missing-email branch).
+      - CI-friendly stand-in: a local OIDC IdP (Zitadel/Keycloak per
+        docs/authentication/omniauth-testing.md) with a user that has no email
+        attribute reproduces the same flow without a cloud Entra tenant.
+
+definitions:
+  users:
+    anonymous: &user_anon
+      auth: logged_out
+      description: Unauthenticated visitor on the sign-in page
+
+tests:
+  # ===========================================================================
+  # User-observable contract (runnable without any IdP)
+  # ===========================================================================
+
+  - id: TC-3478-001
+    intent: >-
+      Landing on /signin with auth_error=invalid_email shows the localized error
+      on a usable page (regression guard against the "frozen loading screen").
+    setup:
+      <<: *user_anon
+    target: /signin?auth_error=invalid_email
+    action:
+      type: navigate
+    verify:
+      - The invalid_email error message is displayed in an alert
+      - selector: "[role='alert']"
+        assertion: visible
+      - selector: "[role='alert']"
+        assertion: contains
+        value: "email address from your identity provider is invalid"
+      - The page is usable, not a blank/stuck loading screen
+      - selector: "#signin-heading"
+        assertion: visible
+    priority: critical
+    severity: blocker
+    type: error
+    covers: [Login.vue, "web.login.errors.invalid_email", authErrorMessages]
+    notes: >-
+      This is the core regression. The exact English text lives in
+      locales/content/en/session-auth.json under web.login.errors.invalid_email.
+
+  - id: TC-3478-002
+    intent: Plain /signin with no auth_error param shows no error alert.
+    setup:
+      <<: *user_anon
+    target: /signin
+    action:
+      type: navigate
+    verify:
+      - No auth error alert is present on a clean sign-in page
+      - selector: "[role='alert']"
+        assertion: hidden
+      - selector: "#signin-heading"
+        assertion: visible
+    priority: medium
+    severity: minor
+    type: ui
+    covers: [Login.vue]
+
+  - id: TC-3478-003
+    intent: >-
+      The auth_error query param is cleared from the URL after mount, so a
+      refresh does not re-show the error, while the message stays visible.
+    setup:
+      <<: *user_anon
+    target: /signin?auth_error=invalid_email
+    action:
+      type: navigate
+    verify:
+      - Error alert is shown immediately on load
+      - selector: "[role='alert']"
+        assertion: visible
+      - URL no longer contains the auth_error query param after mount
+      - url:
+          query_params_absent: [auth_error]
+          description: Login.vue onMounted calls router.replace to strip auth_error
+    priority: medium
+    severity: minor
+    type: ui
+    covers: [Login.vue, "onMounted router.replace"]
+    notes: >-
+      Confirms the param-clearing behavior so the error doesn't persist across
+      refreshes. If timing makes the URL assertion flaky, assert the alert text
+      persists instead.
+
+  # ===========================================================================
+  # Full round-trip reproduction (requires a no-email IdP)
+  # ===========================================================================
+
+  - id: TC-3478-004
+    intent: >-
+      An Entra/OIDC user with NO email claim is returned to the sign-in page
+      with the invalid_email error after authenticating at the IdP — and the UI
+      does not hang.
+    setup:
+      <<: *user_anon
+      state:
+        sso_enabled: true
+        idp_returns_email: false
+    target: /signin
+    action:
+      type: click
+      element: "[data-testid='sso-button']"
+    verify:
+      - After IdP authentication the browser lands back on the sign-in page
+      - url:
+          pattern: "/signin"
+          description: Server redirected the callback to /signin
+      - The invalid_email error is shown (not a spinner, not a blank page)
+      - selector: "[role='alert']"
+        assertion: visible
+      - selector: "[role='alert']"
+        assertion: contains
+        value: "email address from your identity provider is invalid"
+      - User is not authenticated
+      - api:
+          endpoint: GET /bootstrap/me
+          assert:
+            authenticated: false
+    priority: high
+    severity: major
+    type: integration
+    covers:
+      - "apps/web/auth/config/hooks/omniauth.rb:before_omniauth_create_account"
+      - Login.vue
+    skip:
+      reason: >-
+        Requires an IdP that returns no email claim — an Entra v2.0 app+user with
+        no `mail` attribute and no email/upn optional claims, or a local
+        OIDC IdP (Zitadel/Keycloak) user with no email. See suite notes.
+      when: no_noemail_idp
+    notes: >-
+      In production this surfaces on /auth/sso/entra/callback. ALLOWED_SIGNUP_DOMAIN
+      must be unset or the flow stops at domain_not_allowed first.
+
+  - id: TC-3478-005
+    intent: >-
+      Control — an SSO user WITH a valid email signs in successfully, proving the
+      guard blocks only the missing-email case.
+    setup:
+      <<: *user_anon
+      state:
+        sso_enabled: true
+        idp_returns_email: true
+    target: /signin
+    action:
+      type: click
+      element: "[data-testid='sso-button']"
+    verify:
+      - User is authenticated and redirected away from the sign-in page
+      - url:
+          pattern: "^/(?!signin)"
+          description: Landed on an authenticated page, not back on /signin
+      - No invalid_email error is shown
+      - selector: "[role='alert']"
+        assertion: hidden
+      - api:
+          endpoint: GET /bootstrap/me
+          assert:
+            authenticated: true
+    priority: high
+    severity: major
+    type: integration
+    covers:
+      - "apps/web/auth/config/hooks/omniauth.rb"
+      - "apps/web/auth/config/hooks/login.rb:after_login"
+    skip:
+      reason: Requires a configured SSO IdP that returns a valid email claim.
+      when: no_idp
+    notes: Baseline so a regression that breaks all SSO logins is distinguishable.

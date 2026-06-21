@@ -2,12 +2,12 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { createTestingPinia } from '@pinia/testing';
 import MastHead from '@/shared/components/layout/MastHead.vue';
 import { nextTick } from 'vue';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
+import { createTestI18n } from '@tests/setup';
 
 // Mock DefaultLogo component
 vi.mock('@/shared/components/logos/DefaultLogo.vue', () => ({
@@ -48,28 +48,7 @@ vi.mock('vue-router', () => ({
   },
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        homepage: {
-          one_time_secret_literal: 'Onetime Secret',
-          signup_individual_and_business_plans: 'Sign up',
-          log_in_to_onetime_secret: 'Log in',
-        },
-        layout: {
-          main_navigation: 'Main Navigation',
-        },
-        COMMON: {
-          header_create_account: 'Create Account',
-          header_sign_in: 'Sign In',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 describe('MastHead', () => {
   let wrapper: VueWrapper;
@@ -627,8 +606,8 @@ describe('MastHead', () => {
       await nextTick();
 
       const html = wrapper.html();
-      expect(html).toContain('Sign In');
-      expect(html).toContain('Create Account');
+      expect(html).toContain('web.COMMON.header_sign_in');
+      expect(html).toContain('web.COMMON.header_create_account');
     });
 
     it('shows UserMenu for authenticated users', async () => {
@@ -898,7 +877,7 @@ describe('MastHead', () => {
       await nextTick();
 
       const nav = wrapper.find('nav[role="navigation"]');
-      expect(nav.attributes('aria-label')).toBe('Main Navigation');
+      expect(nav.attributes('aria-label')).toBe('web.layout.main_navigation');
     });
 
     it('logo link has aria-label', async () => {

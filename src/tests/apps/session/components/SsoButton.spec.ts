@@ -2,9 +2,9 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { createTestingPinia } from '@pinia/testing';
 import { defineComponent, ref } from 'vue';
+import { createTestI18n } from '@tests/setup';
 
 // Mock OIcon component
 vi.mock('@/shared/components/icons/OIcon.vue', () => ({
@@ -34,25 +34,7 @@ vi.mock('@/shared/stores/bootstrapStore', () => ({
   }),
 }));
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        auth: {
-          sso: {
-            signing_in: 'Signing in...',
-          },
-        },
-        login: {
-          sign_in_with_sso: 'Sign in with SSO',
-          sign_in_with_provider: 'Sign in with {provider}',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 /**
  * SsoButton Component Tests

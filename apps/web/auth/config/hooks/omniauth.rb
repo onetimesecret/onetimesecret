@@ -134,12 +134,16 @@ module Auth::Config::Hooks
         email       = omniauth_email.to_s.strip.downcase
         email_parts = email.split('@')
 
-        # Reject malformed emails from IdP (distinct from policy rejection).
-        # Redirect with a stable error code so Login.vue can show a localized message —
-        # matches the email_auth/omniauth_on_failure convention. Inline JSON via
-        # throw_error_status was clobbered by omniauth_on_failure, collapsing the
-        # specific code into the generic sso_failed.
-        if email_parts.length != 2 || email_parts.last.to_s.empty?
+        # Reject unusable emails from IdP (distinct from policy rejection): a
+        # missing/empty claim, or one without both a local part and a domain.
+        # Redirect with a stable error code so Login.vue can show a localized
+        # message — matches the email_auth/omniauth_on_failure convention.
+        # Inline JSON via throw_error_status was clobbered by omniauth_on_failure,
+        # collapsing the specific code into the generic sso_failed. Failing here
+        # (rather than letting a blank local part like "@example.com" fall
+        # through to account creation, which 500s on the PG valid_email CHECK)
+        # keeps the user on a localized error instead of a frozen screen (#3478).
+        if email_parts.length != 2 || email_parts.first.to_s.empty? || email_parts.last.to_s.empty?
           Auth::Logging.log_auth_event(
             :omniauth_invalid_email,
             level: :warn,

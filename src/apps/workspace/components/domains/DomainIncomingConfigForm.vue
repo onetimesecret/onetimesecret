@@ -181,9 +181,9 @@ function handleToggleEnabled(): void {
       v-if="error"
       :error="error" />
 
-    <!-- Disabled State Banner -->
+    <!-- Disabled State Banner (hidden when error present to avoid contradictory messages) -->
     <div
-      v-if="!isEnabled"
+      v-else-if="!isEnabled"
       class="flex items-start gap-3 rounded-md bg-blue-50 px-4 py-3 dark:bg-blue-900/20">
       <OIcon
         collection="heroicons"

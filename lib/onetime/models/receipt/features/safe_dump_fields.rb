@@ -63,20 +63,22 @@ module Onetime::Receipt::Features
         }
       base.safe_dump_field :secret_identifier
 
-      # Cast numeric fields at the serialization boundary — see the full note
-      # in secret/features/safe_dump_fields.rb (#3424). TTL/lifespan use to_i
-      # (lossless integer-second durations; secret_ttl keeps -1 and lifespan
-      # keeps nil when unset). created/updated use to_f, NOT to_i, to preserve
-      # the sub-second precision that matters when these values are used as
-      # sorted-set scores. Detector:
-      # scripts/diagnostics/detect_string_typed_numerics.rb
-      base.safe_dump_field :secret_ttl, ->(m) { m.secret_ttl.to_i > 0 ? m.secret_ttl.to_i : -1 }
-      base.safe_dump_field :metadata_ttl, ->(m) { m.lifespan.to_i > 0 ? m.lifespan.to_i : nil }
-      base.safe_dump_field :receipt_ttl, ->(m) { m.lifespan.to_i > 0 ? m.lifespan.to_i : nil }
-      base.safe_dump_field :lifespan, ->(m) { m.lifespan.to_i > 0 ? m.lifespan.to_i : nil }
+      # Coerce numeric fields to Integer at the serialization boundary — see the
+      # full note in secret/features/safe_dump_fields.rb (#3424/#3299). TTL and
+      # lifespan are integer-second durations, so to_i is lossless. We emit a
+      # plain number with no nil/-1 sentinel: a real receipt always has a
+      # lifespan, the write-time guarantee lives in Receipt.spawn_pair, and the
+      # strict z.number() V3 contract enforces the invariant at read time.
+      # created/updated stay to_f, NOT to_i, to preserve the sub-second
+      # precision that matters when these values are used as sorted-set scores.
+      # Detector: scripts/diagnostics/detect_string_typed_numerics.rb
+      base.safe_dump_field :secret_ttl, ->(m) { m.secret_ttl.to_i }
+      base.safe_dump_field :metadata_ttl, ->(m) { m.lifespan.to_i }
+      base.safe_dump_field :receipt_ttl, ->(m) { m.lifespan.to_i }
+      base.safe_dump_field :lifespan, ->(m) { m.lifespan.to_i }
       base.safe_dump_field :share_domain
-      base.safe_dump_field :created, ->(m) { m.created&.to_f }
-      base.safe_dump_field :updated, ->(m) { m.updated&.to_f }
+      base.safe_dump_field :created, ->(m) { m.created.to_f }
+      base.safe_dump_field :updated, ->(m) { m.updated.to_f }
       base.safe_dump_field :shared
       # Obscure recipient emails at serialization time so the raw address
       # never reaches the frontend, while the underlying record keeps the
