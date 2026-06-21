@@ -634,5 +634,152 @@
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
     "text": "I te wā e tuku urupare ana koe, ka kite mātou i:",
     "source_hash": "fe77172e"
+  },
+  "web.colonel.previewPlanMode": {
+    "text": "Aratau arokite mahere"
+  },
+  "web.colonel.previewModeDescription": {
+    "text": "Arokitea te taupānga e rite ana ki tā ngā kiritaki e kite ai i runga i tētahi mahere rerekē. Ka pā tēnei ki tāu tirohanga anake, kāore e huri i te mahere tūturu o tētahi whakahaere."
+  },
+  "web.colonel.previewModeActive": {
+    "text": "Arokite hohe"
+  },
+  "web.colonel.bannedIps.empty": {
+    "text": "Kāore he IP aukati"
+  },
+  "web.colonel.bannedIps.currentIp": {
+    "text": "Tō Wāhitau IP o Nāianei"
+  },
+  "web.colonel.bannedIps.confirmUnban": {
+    "text": "Whakawāteatia a {ip}?"
+  },
+  "web.colonel.bannedIps.actions.ban": {
+    "text": "Aukati IP"
+  },
+  "web.colonel.bannedIps.actions.quickBan": {
+    "text": "Aukati Tere"
+  },
+  "web.colonel.bannedIps.actions.unban": {
+    "text": "Whakawātea"
+  },
+  "web.colonel.bannedIps.actions.cancel": {
+    "text": "Whakakore"
+  },
+  "web.colonel.bannedIps.columns.ipAddress": {
+    "text": "Wāhitau IP"
+  },
+  "web.colonel.bannedIps.columns.reason": {
+    "text": "Take"
+  },
+  "web.colonel.bannedIps.columns.bannedAt": {
+    "text": "I Aukatia i"
+  },
+  "web.colonel.bannedIps.columns.bannedBy": {
+    "text": "Nā Wai i Aukati"
+  },
+  "web.colonel.bannedIps.error.banFailed": {
+    "text": "I rahu te aukati i te wāhitau IP"
+  },
+  "web.colonel.bannedIps.error.unbanFailed": {
+    "text": "I rahu te whakawātea i te wāhitau IP"
+  },
+  "web.colonel.bannedIps.form.title": {
+    "text": "Aukati Wāhitau IP"
+  },
+  "web.colonel.bannedIps.form.ipLabel": {
+    "text": "Wāhitau IP"
+  },
+  "web.colonel.bannedIps.form.reasonLabel": {
+    "text": "Take"
+  },
+  "web.colonel.bannedIps.form.reasonPlaceholder": {
+    "text": "Take kōwhiri"
+  },
+  "web.colonel.bannedIps.success.banned": {
+    "text": "Kua aukatia te wāhitau IP {ip}"
+  },
+  "web.colonel.bannedIps.success.unbanned": {
+    "text": "Kua whakawāteatia te wāhitau IP {ip}"
+  },
+  "web.colonel.customDomains.empty": {
+    "text": "Kāore he rohe ritenga kua whirihorahia"
+  },
+  "web.colonel.customDomains.noLogo": {
+    "text": "Kāore he Moko"
+  },
+  "web.colonel.customDomains.labels.organization": {
+    "text": "Whakahaere"
+  },
+  "web.colonel.customDomains.labels.externalId": {
+    "text": "ID o Waho"
+  },
+  "web.colonel.customDomains.labels.created": {
+    "text": "I Hangaia"
+  },
+  "web.colonel.customDomains.labels.updated": {
+    "text": "I Whakahōutia"
+  },
+  "web.colonel.customDomains.labels.favicon": {
+    "text": "Favicon"
+  },
+  "web.colonel.customDomains.status.verified": {
+    "text": "Kua manatokona"
+  },
+  "web.colonel.customDomains.status.resolving": {
+    "text": "Te whakatau"
+  },
+  "web.colonel.customDomains.status.ready": {
+    "text": "Kua rite"
+  },
+  "web.colonel.customDomains.status.publicHomepage": {
+    "text": "Whārangi Kāinga Tūmatanui"
+  },
+  "web.colonel.customDomains.status.publicApi": {
+    "text": "API Tūmatanui"
+  },
+  "web.colonel.customDomains.status.pending": {
+    "text": "Tārewa"
+  },
+  "web.colonel.pagination.showing": {
+    "text": "E whakaatu ana i te {start}–{end} o te {total}"
+  },
+  "web.colonel.pagination.itemsPerPage": {
+    "text": "Tūemi ia whārangi"
+  },
+  "web.colonel.pagination.perPage": {
+    "text": "{count} ia whārangi"
+  },
+  "web.colonel.pagination.pageOf": {
+    "text": "Whārangi {current} o te {total}"
+  },
+  "web.colonel.secrets.empty": {
+    "text": "Kāore he karere huna i kitea"
+  },
+  "web.colonel.secrets.never": {
+    "text": "Kāore rawa"
+  },
+  "web.colonel.secrets.columns.shortId": {
+    "text": "ID Poto"
+  },
+  "web.colonel.secrets.columns.state": {
+    "text": "Tūnga"
+  },
+  "web.colonel.secrets.columns.created": {
+    "text": "I Hangaia"
+  },
+  "web.colonel.secrets.columns.expiration": {
+    "text": "Paunga"
+  },
+  "web.colonel.secrets.columns.age": {
+    "text": "Pakeke (ngā rā)"
+  },
+  "web.colonel.secrets.state.new": {
+    "text": "Hou"
+  },
+  "web.colonel.secrets.state.received": {
+    "text": "Kua Whiwhia"
+  },
+  "web.colonel.secrets.state.viewed": {
+    "text": "Kua Tirohia"
   }
 }
