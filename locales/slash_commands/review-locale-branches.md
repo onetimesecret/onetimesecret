@@ -6,26 +6,28 @@ Reviews `i18n/update-*` branches by language family using parallel code-reviewer
 
 ### Stage 1: Automated Validation (run first)
 
-Run variable validation with `--json` for deterministic, machine-readable output:
+This stage is pure deterministic mechanics — it lives in the checked-in script,
+not in this prompt. Run variable validation across all `i18n/update-*` branches:
 
 ```bash
-for branch in $(git branch --list 'i18n/update-*' | tr -d ' ' | sed 's/\x1b\[[0-9;]*m//g'); do
-  locale=${branch#i18n/update-}
-  python3 locales/scripts/i18n validate variables --json --locale "$locale" > "/tmp/i18n-validate-${locale}.json"
-  count=$(jq '.summary | to_entries | map(.value) | add // 0' "/tmp/i18n-validate-${locale}.json")
-  if [ "$count" -gt 0 ]; then
-    echo "$locale: $count variable mismatches — /tmp/i18n-validate-${locale}.json"
-  fi
-done
+bash locales/scripts/review-locale-branches.sh validate
 ```
 
-Output is deterministic: `0` = clean, `N` = errors to fix. View details with `jq . /tmp/i18n-validate-{locale}.json`.
+For each branch it runs `python3 locales/scripts/i18n validate variables --json
+--locale <locale>`, writes the JSON to `/tmp/i18n-validate-{locale}.json` (pass a
+`RESULTS_DIR` argument to override), and prints one line per locale with a
+mismatch count > 0. It always exits 0 — it's a report, not a gate.
+
+Output is deterministic: a locale only appears if it has `N > 0` errors to fix.
+View details with `jq . /tmp/i18n-validate-{locale}.json`.
 
 **Why `--json`:** The `--summary` flag outputs bare numbers that are easy to misinterpret. JSON output is unambiguous and includes full issue details for fixing.
 
 ### Stage 2: Agent Review by Language Family
 
-Launch up to 5-6 `code-reviewer` agents in parallel, grouped by language family:
+Launch up to 5-6 `code-reviewer` agents in parallel, grouped by language family.
+The table below is for human readability; the authoritative mapping lives in the
+script — print it with `bash locales/scripts/review-locale-branches.sh families`:
 
 | Family | Locales |
 |--------|---------|
@@ -56,7 +58,7 @@ Create the output directory before launching agents:
 # distinct directories instead of overwriting each other.
 REVIEW_DATE=$(date +%Y-%m-%d-%H%M)
 REVIEW_DIR="locales/reviews/${REVIEW_DATE}"
-mkdir -p "$REVIEW_DIR"
+bash locales/scripts/review-locale-branches.sh init "$REVIEW_DIR"
 ```
 
 For each agent, use `subagent_type: "feature-dev:code-reviewer"` with `run_in_background: true`.
@@ -104,34 +106,17 @@ Format:
 
 ### Stage 3: Consolidate Group Reviews
 
-After all agents complete, create group summary files:
+This stage is pure deterministic mechanics — it lives in the checked-in script.
+After all agents complete, build the per-family group summary files:
 
 ```bash
-for group in semitic-rtl slavic germanic cjk romance other; do
-  # Map group to locales (from table above)
-  case $group in
-    semitic-rtl) locales="ar he" ;;
-    slavic) locales="bg cs pl ru sl_SI uk" ;;
-    germanic) locales="de de_AT nl sv_SE" ;;
-    romance) locales="ca_ES es fr_CA fr_FR it_IT pt_BR pt_PT" ;;
-    cjk) locales="ja ko zh" ;;
-    other) locales="da_DK el_GR eo hu mi_NZ tr vi" ;;
-  esac
-
-  echo "# ${group} Group Review - ${REVIEW_DATE}" > "${REVIEW_DIR}/${group}.md"
-  echo "" >> "${REVIEW_DIR}/${group}.md"
-  echo "Locales: ${locales}" >> "${REVIEW_DIR}/${group}.md"
-  echo "" >> "${REVIEW_DIR}/${group}.md"
-
-  for loc in $locales; do
-    if [ -f "${REVIEW_DIR}/${loc}.md" ]; then
-      echo "---" >> "${REVIEW_DIR}/${group}.md"
-      cat "${REVIEW_DIR}/${loc}.md" >> "${REVIEW_DIR}/${group}.md"
-      echo "" >> "${REVIEW_DIR}/${group}.md"
-    fi
-  done
-done
+bash locales/scripts/review-locale-branches.sh consolidate "$REVIEW_DIR"
 ```
+
+For each family group it writes `${REVIEW_DIR}/${group}.md` by concatenating the
+per-locale `${REVIEW_DIR}/${loc}.md` files that exist, with a header and `---`
+separators. The family->locales mapping comes from the script's authoritative
+table (see `review-locale-branches.sh families`).
 
 ### Stage 4: Triage and Fix
 
