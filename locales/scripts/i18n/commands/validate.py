@@ -817,16 +817,16 @@ def print_summary(results: dict[str, dict[str, list[dict]]]) -> None:
             totals.append((locale, count))
 
     if not totals:
-        print(f"{'total':<10} {0:>4}")
+        print("0 variable mismatches")
         return
 
     totals.sort(key=lambda x: -x[1])
 
     for locale, count in totals:
-        print(f"{locale:<10} {count:>4}")
+        print(f"{locale}: {count} variable mismatches")
 
     grand_total = sum(c for _, c in totals)
-    print(f"{'total':<10} {grand_total:>4}")
+    print(f"TOTAL: {grand_total} variable mismatches")
 
 
 def print_detailed(results: dict[str, dict[str, list[dict]]]) -> None:
