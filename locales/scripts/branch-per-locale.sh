@@ -40,9 +40,9 @@ for arg in "$@"; do
   esac
 done
 
-# Verify clean working tree (except locales/content which we expect to have changes)
-if ! git diff --quiet -- ':!locales/content'; then
-  die "working tree has uncommitted changes outside locales/content"
+# Verify clean working tree (except locales/ which we expect to have changes)
+if ! git diff --quiet -- ':!locales/'; then
+  die "working tree has uncommitted changes outside locales/"
 fi
 
 # Verify base branch exists
