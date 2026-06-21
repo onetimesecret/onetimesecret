@@ -710,5 +710,26 @@
   "web.auth.recovery_codes.link_title": {
     "text": "Κωδικοί ανάκτησης",
     "source_hash": "579c7f4e"
+  },
+  "web.auth.google": {
+    "text": "Google"
+  },
+  "web.auth.mfa.alternative_auth_options": {
+    "text": "Εναλλακτικές επιλογές ελέγχου ταυτότητας"
+  },
+  "web.auth.remember.enabled": {
+    "text": "Παραμείνετε συνδεδεμένοι"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions.session_singular": {
+    "text": "συνεδρία"
+  },
+  "web.auth.sessions.session_plural": {
+    "text": "συνεδρίες"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "User's logged-in devices/browsers management page"
   }
 }

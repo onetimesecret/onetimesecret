@@ -988,5 +988,47 @@
     "text": "Διαθέσιμο μόνο στην αρχική περιοχή συνδρομής σας",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Έχετε ήδη συνδρομή σε αυτό το πρόγραμμα."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Επανενεργοποίηση συνδρομής"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "Η συνδρομή σας επανενεργοποιήθηκε. Θα συνεχίσετε να χρεώνεστε κανονικά."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "Η επανενεργοποίηση της συνδρομής απέτυχε. Δοκιμάστε ξανά ή επικοινωνήστε με την υποστήριξη."
+  },
+  "web.billing.features.manage_orgs": {
+    "text": "Διαχείριση οργανισμού"
+  },
+  "web.billing.features.flexible_from_domain": {
+    "text": "Ευέλικτος τομέας αποστολέα email"
+  },
+  "web.billing.features.unlimited_admins": {
+    "text": "Απεριόριστοι διαχειριστές"
+  },
+  "web.billing.features.manage_sso": {
+    "text": "SSO"
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Ευέλικτος τομέας αποστολέα email"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "Διαχείριση οργανισμών"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Ενιαία σύνδεση (SSO)"
+  },
+  "web.billing.overview.entitlements.manage_billing": {
+    "text": "Διαχείριση χρέωσης"
+  },
+  "web.billing.overview.entitlements.custom_signup_validation": {
+    "text": "Προσαρμοσμένη επικύρωση εγγραφής"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Επανενεργοποίηση"
   }
 }
