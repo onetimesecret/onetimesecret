@@ -52,7 +52,9 @@ locales/reviews/{DATE}/
 Create the output directory before launching agents:
 
 ```bash
-REVIEW_DATE=$(date +%Y-%m-%d)
+# Timestamp to the minute so multiple review runs on the same day land in
+# distinct directories instead of overwriting each other.
+REVIEW_DATE=$(date +%Y-%m-%d-%H%M)
 REVIEW_DIR="locales/reviews/${REVIEW_DATE}"
 mkdir -p "$REVIEW_DIR"
 ```
