@@ -22,5 +22,14 @@
   "web.dashboard.fetch_error_description": {
     "text": "حدثت مشكلة في تحميل بياناتك. يرجى المحاولة مرة أخرى.",
     "source_hash": "ff0d904e"
+  },
+  "web.teams.create_first_team_title": {
+    "text": "أنشئ فريقك الأول"
+  },
+  "web.teams.create_first_team_description": {
+    "text": "تتيح لك الفِرق التعاون مع الآخرين في مساحة عمل مشتركة."
+  },
+  "web.teams.create_team": {
+    "text": "إنشاء فريق"
   }
 }

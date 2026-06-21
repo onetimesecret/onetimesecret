@@ -578,5 +578,344 @@
   "web.organizations.invitations.expires_soon": {
     "text": "تنتهي قريباً",
     "source_hash": "a5dcfef9"
+  },
+  "api.organizations.errors.not_found": {
+    "text": "لم يتم العثور على المؤسسة: %{extid}"
+  },
+  "api.organizations.errors.owner_required": {
+    "text": "يمكن لمالك المؤسسة فقط تنفيذ هذا الإجراء"
+  },
+  "api.organizations.errors.admin_required": {
+    "text": "يمكن لمالكي المؤسسة والمسؤولين فقط تنفيذ هذا الإجراء"
+  },
+  "api.organizations.errors.member_required": {
+    "text": "يجب أن تكون عضواً في المؤسسة لتنفيذ هذا الإجراء"
+  },
+  "api.organizations.invitations.errors.create_admin_required": {
+    "text": "يمكن لمالكي المؤسسة والمسؤولين فقط إنشاء الدعوات"
+  },
+  "api.organizations.invitations.errors.resend_admin_required": {
+    "text": "يمكن لمالكي المؤسسة والمسؤولين فقط إعادة إرسال الدعوات"
+  },
+  "api.organizations.invitations.errors.view_admin_required": {
+    "text": "يمكن لمالكي المؤسسة والمسؤولين فقط عرض الدعوات"
+  },
+  "api.organizations.invitations.errors.revoke_admin_required": {
+    "text": "يمكن لمالكي المؤسسة والمسؤولين فقط إلغاء الدعوات"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "البريد الإلكتروني مطلوب"
+  },
+  "api.organizations.invitations.errors.email_invalid": {
+    "text": "تنسيق البريد الإلكتروني غير صالح"
+  },
+  "api.organizations.invitations.errors.role_invalid": {
+    "text": "يجب أن يكون الدور عضواً أو مسؤولاً"
+  },
+  "api.organizations.invitations.errors.cannot_invite_owner": {
+    "text": "لا يمكن الدعوة بصفة مالك"
+  },
+  "api.organizations.invitations.errors.already_member": {
+    "text": "المستخدم عضو بالفعل في هذه المؤسسة"
+  },
+  "api.organizations.invitations.errors.already_pending": {
+    "text": "توجد دعوة معلقة بالفعل لهذا البريد الإلكتروني"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "تم بلوغ حد الأعضاء. قم بترقية خطتك لدعوة المزيد من الأعضاء."
+  },
+  "api.organizations.invitations.errors.not_found": {
+    "text": "لم يتم العثور على الدعوة"
+  },
+  "api.organizations.invitations.errors.cannot_resend_non_pending": {
+    "text": "يمكن إعادة إرسال الدعوات المعلقة فقط"
+  },
+  "api.organizations.invitations.errors.cannot_revoke_non_pending": {
+    "text": "يمكن إلغاء الدعوات المعلقة فقط"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "تم بلوغ الحد الأقصى لإعادة الإرسال (%{max})"
+  },
+  "api.organizations.invitations.errors.accept_token_required": {
+    "text": "الرمز مطلوب"
+  },
+  "api.organizations.invitations.errors.accept_organization_gone": {
+    "text": "المؤسسة لم تعد موجودة"
+  },
+  "api.organizations.invitations.errors.accept_already_acted": {
+    "text": "تم بالفعل %{status} الدعوة"
+  },
+  "api.organizations.invitations.errors.accept_expired": {
+    "text": "انتهت صلاحية الدعوة"
+  },
+  "api.organizations.invitations.errors.accept_email_mismatch": {
+    "text": "عنوان بريدك الإلكتروني لا يطابق الدعوة"
+  },
+  "api.organizations.invitations.errors.accept_already_member": {
+    "text": "أنت عضو بالفعل في هذه المؤسسة"
+  },
+  "web.organizations.entitlements_title": {
+    "text": "استحقاقات المؤسسة"
+  },
+  "web.organizations.page_description_short": {
+    "text": "اعرض مساحات العمل الخاصة بك وقم بإعدادها"
+  },
+  "web.organizations.delete_organization_remove_domains_first": {
+    "text": "أزل جميع النطاقات المخصّصة قبل حذف هذه المؤسسة."
+  },
+  "web.organizations.default_org_delete_notice_title": {
+    "text": "حذف هذه المؤسسة"
+  },
+  "web.organizations.default_org_delete_notice_before": {
+    "text": "هذه هي مؤسستك الافتراضية ولا يمكن إزالتها من لوحة التحكم. لحذفها، يرجى التواصل من خلال"
+  },
+  "web.organizations.default_org_delete_notice_link": {
+    "text": "نموذج الملاحظات"
+  },
+  "web.organizations.default_org_delete_notice_after": {
+    "text": "."
+  },
+  "web.organizations.leave_organization": {
+    "text": "مغادرة هذه المؤسسة"
+  },
+  "web.organizations.leave_organization_warning": {
+    "text": "ستفقد الوصول إلى هذه المؤسسة ومواردها."
+  },
+  "web.organizations.leave_organization_confirm_title": {
+    "text": "مغادرة المؤسسة"
+  },
+  "web.organizations.leave_organization_confirm_message": {
+    "text": "هل أنت متأكد من رغبتك في مغادرة {name}؟ ستحتاج إلى دعوة جديدة للانضمام مجدداً."
+  },
+  "web.organizations.leave_organization_success": {
+    "text": "لقد غادرت المؤسسة."
+  },
+  "web.organizations.leave_error": {
+    "text": "فشلت مغادرة المؤسسة"
+  },
+  "web.organizations.organizations": {
+    "text": "المؤسسات"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "بواسطة {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "بصفة {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "العودة إلى الصفحة الرئيسية"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "تم إرسال هذه الدعوة إلى عنوان البريد الإلكتروني هذا"
+  },
+  "web.organizations.invitations.signup_continue": {
+    "text": "متابعة"
+  },
+  "web.organizations.invitations.signin_continue": {
+    "text": "تسجيل الدخول"
+  },
+  "web.organizations.invitations.confirm_join_below": {
+    "text": "أوشكت على الانتهاء — أكّد أدناه للانضمام إلى المؤسسة."
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "الانتقال إلى المؤسسات"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "أنت عضو بالفعل في هذه المؤسسة"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "الانضمام إلى {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "سجّل الدخول للانضمام إلى {orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "رفض"
+  },
+  "web.organizations.members.member_quota": {
+    "text": "{used} من {limit} عضو"
+  },
+  "web.organizations.members.pending_suffix": {
+    "text": "({count} معلق)"
+  },
+  "web.organizations.members.limit_reached_hint": {
+    "text": "تم بلوغ حد الأعضاء."
+  },
+  "web.organizations.sso.title": {
+    "text": "تسجيل الدخول الموحّد (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "قم بإعداد تسجيل الدخول الموحّد (SSO) للسماح للأعضاء بتسجيل الدخول باستخدام موفّر الهوية الخاص بمؤسستك"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "نوع الموفّر"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "اختر موفّر الهوية الخاص بمؤسستك"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "الاسم المعروض"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "اسم ودّي يُعرض للمستخدمين عند تسجيل الدخول"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "مثال: Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "معرّف العميل (Client ID)"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "معرّف عميل OAuth الخاص بك"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "السر السري للعميل (Client Secret)"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "السر السري لعميل OAuth الخاص بك"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "اتركه فارغاً للاحتفاظ بالسر الحالي"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "معرّف المستأجر (Tenant ID)"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "معرّف المستأجر لـ Azure AD / Entra ID الخاص بك"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "مثال: 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "رابط المُصدِر (Issuer URL)"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "رابط اكتشاف OIDC لموفّر الهوية الخاص بك"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "مثال: https://login.example.com"
+  },
+  "web.organizations.sso.view_discovery_document": {
+    "text": "عرض مستند الاكتشاف"
+  },
+  "web.organizations.sso.callback_url": {
+    "text": "رابط رد الاتصال (Callback URL)"
+  },
+  "web.organizations.sso.callback_url_hint": {
+    "text": "أضف هذا الرابط إلى عناوين URI لإعادة التوجيه المسموح بها لدى موفّر الهوية الخاص بك"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "نطاقات البريد الإلكتروني المسموح بها"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "يمكن فقط للمستخدمين الذين لديهم عناوين بريد إلكتروني من هذه النطاقات تسجيل الدخول. اتركه فارغاً للسماح بجميع النطاقات."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "مثال: acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "يرجى إدخال نطاق صالح (مثال: example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "هذا النطاق موجود بالفعل في القائمة"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "إزالة {domain}"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "تفعيل تسجيل الدخول الموحّد (SSO)"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "عند التفعيل، يمكن لأعضاء المؤسسة تسجيل الدخول باستخدام موفّر تسجيل الدخول الموحّد (SSO) هذا"
+  },
+  "web.organizations.sso.enforce_sso_only": {
+    "text": "فرض تسجيل الدخول الموحّد (SSO) فقط"
+  },
+  "web.organizations.sso.enforce_sso_only_hint": {
+    "text": "تطلّب تسجيل الدخول الموحّد (SSO) لجميع عمليات تسجيل الدخول على هذا النطاق. عند التفعيل، تُعطّل المصادقة المعتمدة على كلمة المرور."
+  },
+  "web.organizations.sso.grant_org_scope": {
+    "text": "منح وصول على مستوى المؤسسة"
+  },
+  "web.organizations.sso.grant_org_scope_hint": {
+    "text": "سيُمنح الأعضاء الجدد الذين ينضمون عبر تسجيل الدخول الموحّد (SSO) لهذا النطاق وصولاً إلى جميع نطاقات المؤسسة. لا يتأثر الأعضاء الحاليون. عند التعطيل (الافتراضي)، يمكن للأعضاء الجدد الوصول إلى هذا النطاق فقط."
+  },
+  "web.organizations.sso.save_config": {
+    "text": "حفظ إعداد تسجيل الدخول الموحّد (SSO)"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "حذف الإعداد"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "هل أنت متأكد؟ سيؤدي هذا إلى تعطيل تسجيل الدخول الموحّد (SSO) لمؤسستك."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "فشل تحميل إعداد تسجيل الدخول الموحّد (SSO)"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "فشل حفظ إعداد تسجيل الدخول الموحّد (SSO)"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "تم إنشاء إعداد تسجيل الدخول الموحّد (SSO) بنجاح"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "تم تحديث إعداد تسجيل الدخول الموحّد (SSO) بنجاح"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "تم حذف إعداد تسجيل الدخول الموحّد (SSO) بنجاح"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "فشل حذف إعداد تسجيل الدخول الموحّد (SSO)"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "اختبار الاتصال"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "تحقق من إمكانية الوصول إلى موفّر الهوية (لا يتحقق من بيانات الاعتماد)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "اختبار الاتصال"
+  },
+  "web.organizations.sso.testing": {
+    "text": "جارٍ الاختبار..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "فشل اختبار الاتصال"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "نقطة نهاية التفويض"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "حقول مفقودة"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "مفعّل"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "تم الإعداد"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "تسجيل الدخول الموحّد للنطاق"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "قم بإعداد تسجيل الدخول الموحّد (SSO) لكل نطاق تم التحقق منه"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "لتغيير الموفّر، احذف هذا الإعداد أولاً"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "غير معدّ"
+  },
+  "web.organizations.sso.no_domains": {
+    "text": "لا توجد نطاقات تم التحقق منها"
+  },
+  "web.organizations.sso.no_domains_description": {
+    "text": "أضف نطاقاً وتحقق منه قبل إعداد تسجيل الدخول الموحّد (SSO) له."
+  },
+  "web.organizations.tabs.team": {
+    "text": "الفريق"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

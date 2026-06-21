@@ -988,5 +988,47 @@
     "text": "متاح في منطقة اشتراكك الأصلية فقط",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "أنت مشترك بالفعل في هذه الخطة."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "إعادة تفعيل الاشتراك"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "تمت إعادة تفعيل اشتراكك. ستستمر عملية الفوترة كالمعتاد."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "تعذّرت إعادة تفعيل الاشتراك. يرجى المحاولة مرة أخرى أو التواصل مع الدعم."
+  },
+  "web.billing.features.manage_orgs": {
+    "text": "إدارة المؤسسات"
+  },
+  "web.billing.features.flexible_from_domain": {
+    "text": "نطاق مرن لإرسال البريد الإلكتروني"
+  },
+  "web.billing.features.unlimited_admins": {
+    "text": "مسؤولون غير محدودين"
+  },
+  "web.billing.features.manage_sso": {
+    "text": "تسجيل الدخول الموحّد (SSO)"
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "نطاق مرن لإرسال البريد الإلكتروني"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "إدارة المؤسسات"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "تسجيل الدخول الموحّد (SSO)"
+  },
+  "web.billing.overview.entitlements.manage_billing": {
+    "text": "إدارة الفوترة"
+  },
+  "web.billing.overview.entitlements.custom_signup_validation": {
+    "text": "التحقق المخصّص من التسجيل"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "إعادة التفعيل"
   }
 }

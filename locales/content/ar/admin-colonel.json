@@ -634,5 +634,152 @@
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
     "text": "عند إرسال ملاحظاتك، سنرى:",
     "source_hash": "fe77172e"
+  },
+  "web.colonel.previewPlanMode": {
+    "text": "وضع معاينة الخطة"
+  },
+  "web.colonel.previewModeDescription": {
+    "text": "عاين التطبيق كما يظهر للعملاء على خطة مختلفة. يؤثر هذا على طريقة عرضك فقط ولا يغيّر الخطة الفعلية لأي مؤسسة."
+  },
+  "web.colonel.previewModeActive": {
+    "text": "المعاينة نشطة"
+  },
+  "web.colonel.bannedIps.empty": {
+    "text": "لا توجد عناوين IP محظورة"
+  },
+  "web.colonel.bannedIps.currentIp": {
+    "text": "عنوان IP الحالي الخاص بك"
+  },
+  "web.colonel.bannedIps.confirmUnban": {
+    "text": "إلغاء حظر {ip}؟"
+  },
+  "web.colonel.bannedIps.actions.ban": {
+    "text": "حظر IP"
+  },
+  "web.colonel.bannedIps.actions.quickBan": {
+    "text": "حظر سريع"
+  },
+  "web.colonel.bannedIps.actions.unban": {
+    "text": "إلغاء الحظر"
+  },
+  "web.colonel.bannedIps.actions.cancel": {
+    "text": "إلغاء"
+  },
+  "web.colonel.bannedIps.columns.ipAddress": {
+    "text": "عنوان IP"
+  },
+  "web.colonel.bannedIps.columns.reason": {
+    "text": "السبب"
+  },
+  "web.colonel.bannedIps.columns.bannedAt": {
+    "text": "تاريخ الحظر"
+  },
+  "web.colonel.bannedIps.columns.bannedBy": {
+    "text": "تم الحظر بواسطة"
+  },
+  "web.colonel.bannedIps.error.banFailed": {
+    "text": "فشل حظر عنوان IP"
+  },
+  "web.colonel.bannedIps.error.unbanFailed": {
+    "text": "فشل إلغاء حظر عنوان IP"
+  },
+  "web.colonel.bannedIps.form.title": {
+    "text": "حظر عنوان IP"
+  },
+  "web.colonel.bannedIps.form.ipLabel": {
+    "text": "عنوان IP"
+  },
+  "web.colonel.bannedIps.form.reasonLabel": {
+    "text": "السبب"
+  },
+  "web.colonel.bannedIps.form.reasonPlaceholder": {
+    "text": "سبب اختياري"
+  },
+  "web.colonel.bannedIps.success.banned": {
+    "text": "تم حظر عنوان IP {ip}"
+  },
+  "web.colonel.bannedIps.success.unbanned": {
+    "text": "تم إلغاء حظر عنوان IP {ip}"
+  },
+  "web.colonel.customDomains.empty": {
+    "text": "لم يتم إعداد أي نطاقات مخصّصة"
+  },
+  "web.colonel.customDomains.noLogo": {
+    "text": "بدون شعار"
+  },
+  "web.colonel.customDomains.labels.organization": {
+    "text": "المؤسسة"
+  },
+  "web.colonel.customDomains.labels.externalId": {
+    "text": "المعرّف الخارجي"
+  },
+  "web.colonel.customDomains.labels.created": {
+    "text": "تاريخ الإنشاء"
+  },
+  "web.colonel.customDomains.labels.updated": {
+    "text": "تاريخ التحديث"
+  },
+  "web.colonel.customDomains.labels.favicon": {
+    "text": "Favicon"
+  },
+  "web.colonel.customDomains.status.verified": {
+    "text": "تم التحقق"
+  },
+  "web.colonel.customDomains.status.resolving": {
+    "text": "قيد التحليل"
+  },
+  "web.colonel.customDomains.status.ready": {
+    "text": "جاهز"
+  },
+  "web.colonel.customDomains.status.publicHomepage": {
+    "text": "الصفحة الرئيسية العامة"
+  },
+  "web.colonel.customDomains.status.publicApi": {
+    "text": "API عام"
+  },
+  "web.colonel.customDomains.status.pending": {
+    "text": "معلّق"
+  },
+  "web.colonel.pagination.showing": {
+    "text": "عرض {start}–{end} من {total}"
+  },
+  "web.colonel.pagination.itemsPerPage": {
+    "text": "العناصر في كل صفحة"
+  },
+  "web.colonel.pagination.perPage": {
+    "text": "{count} في كل صفحة"
+  },
+  "web.colonel.pagination.pageOf": {
+    "text": "الصفحة {current} من {total}"
+  },
+  "web.colonel.secrets.empty": {
+    "text": "لم يتم العثور على أسرار"
+  },
+  "web.colonel.secrets.never": {
+    "text": "أبداً"
+  },
+  "web.colonel.secrets.columns.shortId": {
+    "text": "المعرّف المختصر"
+  },
+  "web.colonel.secrets.columns.state": {
+    "text": "الحالة"
+  },
+  "web.colonel.secrets.columns.created": {
+    "text": "تاريخ الإنشاء"
+  },
+  "web.colonel.secrets.columns.expiration": {
+    "text": "انتهاء الصلاحية"
+  },
+  "web.colonel.secrets.columns.age": {
+    "text": "العمر (بالأيام)"
+  },
+  "web.colonel.secrets.state.new": {
+    "text": "جديد"
+  },
+  "web.colonel.secrets.state.received": {
+    "text": "تم الاستلام"
+  },
+  "web.colonel.secrets.state.viewed": {
+    "text": "تمت المشاهدة"
   }
 }

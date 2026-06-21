@@ -152,7 +152,7 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "إذا كان بريد جهة اتصال الفوترة يختلف عن بريد حسابك في {product_name}، استخدم بريد جهة اتصال الفوترة لحساب المنطقة الجديدة للحفاظ على مزايا اشتراكك.",
+    "text": "إذا كان البريد الإلكتروني لجهة اتصال الفوترة مختلفاً عن البريد الإلكتروني لحسابك في {product_name}، فاستخدم البريد الإلكتروني لجهة اتصال الفوترة الخاص بحساب المنطقة الجديدة للحفاظ على مزايا اشتراكك.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
@@ -186,5 +186,8 @@
   "web.regions.jurisdictions.apac.name": {
     "text": "Asia-Pacific",
     "source_hash": "7a757670"
+  },
+  "web.regions.no_region_configured": {
+    "text": "لا تتوفر حالياً أي معلومات عن المنطقة لحسابك."
   }
 }
