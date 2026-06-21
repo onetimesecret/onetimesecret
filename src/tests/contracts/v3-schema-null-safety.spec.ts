@@ -643,6 +643,73 @@ describe('V3 schema null-safety audit', () => {
         expect(result.data.record.lifespan).toBe(3600);
       }
     });
+
+    /**
+     * Full receipt payload, valid except for the three null TTL fields. Mirrors
+     * the secret-side full-payload test above so a future regression that drops
+     * a TTL field from the assembled receiptSchema (or re-wraps it .nullable())
+     * is caught at the same granularity on the receipt side, not just by the
+     * field-level it.each introspection checks.
+     */
+    const receiptPayload = (ttl: number | null) => ({
+      record: {
+        identifier: 'receipt-abc123',
+        key: 'receipt-key-abc123',
+        shortid: 'rabc123',
+        state: 'burned',
+        created: 1735142814,
+        updated: 1735204014,
+        shared: 1735142820,
+        previewed: null,
+        revealed: null,
+        burned: 1735204014,
+        secret_ttl: ttl,
+        receipt_ttl: ttl,
+        lifespan: ttl,
+        is_previewed: false,
+        is_revealed: false,
+        is_burned: true,
+        is_destroyed: true,
+        is_expired: false,
+        is_orphaned: false,
+        natural_expiration: '7 days',
+        expiration: 1735747614,
+        expiration_in_seconds: 604800,
+        share_path: '/secret/abc123',
+        burn_path: '/private/rabc123/burn',
+        receipt_path: '/private/rabc123',
+        share_url: 'https://onetimesecret.com/secret/abc123',
+        receipt_url: 'https://onetimesecret.com/private/rabc123',
+        burn_url: 'https://onetimesecret.com/private/rabc123/burn',
+      },
+      shrimp: 'csrf-token-xyz',
+    });
+
+    it('V3 receipt response schema rejects a null secret_ttl/receipt_ttl/lifespan record', () => {
+      const result = receiptResponseSchema.safeParse(receiptPayload(null));
+      expect(result.success).toBe(false);
+
+      if (!result.success) {
+        const issueFields = result.error.issues.map((i) => i.path.join('.'));
+        expect(issueFields).toContain('record.secret_ttl');
+        expect(issueFields).toContain('record.receipt_ttl');
+        expect(issueFields).toContain('record.lifespan');
+      }
+    });
+
+    it('V3 receipt response schema accepts a record with integer TTL fields', () => {
+      const result = receiptResponseSchema.safeParse(receiptPayload(3600));
+      if (!result.success) {
+        expect(result.error.issues).toEqual([]);
+      }
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(result.data.record.secret_ttl).toBe(3600);
+        expect(result.data.record.receipt_ttl).toBe(3600);
+        expect(result.data.record.lifespan).toBe(3600);
+      }
+    });
   });
 
   // ---------------------------------------------------------------------------

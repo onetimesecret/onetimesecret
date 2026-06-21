@@ -260,11 +260,11 @@ loaded = Onetime::Secret.load(@sticky.objid)
 
 ## Truly empty bytes at rest ('') are a different case: Familia's
 ## deserialize_value treats them as unset and hydrates nil, so the
-## nil-safe cast dumps nil, never 0.0
+## .to_f cast dumps 0.0, never nil.
 @redis.hset(@sticky.dbkey, 'created', '')
 loaded = Onetime::Secret.load(@sticky.objid)
 [loaded.created, loaded.safe_dump[:created]]
-#=> [nil, nil]
+#=> [nil, 0.0]
 
 # ------------------------------------------------------------------
 # 6. Detector. The boundary cast fixes the wire but leaves the at-rest
