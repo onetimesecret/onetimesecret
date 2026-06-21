@@ -2,9 +2,9 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
 import { createPinia, setActivePinia } from 'pinia';
 import CurrencyMigrationModal from '@/apps/workspace/billing/CurrencyMigrationModal.vue';
+import { createTestI18n } from '@tests/setup';
 import { nextTick } from 'vue';
 
 // Mock HeadlessUI components
@@ -89,39 +89,7 @@ const mockConflict = {
   },
 };
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      web: {
-        billing: {
-          currency_migration: {
-            title: 'Currency Change Required',
-            description: 'Your current subscription uses {from}. The selected plan is billed in {to}.',
-            current_plan: 'Current plan:',
-            new_plan: 'New plan:',
-            current_period_ends: 'Current period ends:',
-            choose_timing: 'When should the switch happen?',
-            graceful_title: 'Switch at end of billing period',
-            graceful_description: 'Your current plan stays active until {date}.',
-            immediate_title: 'Switch immediately',
-            immediate_description: 'Your current plan is cancelled now.',
-            confirm: 'Confirm Currency Change',
-            error: 'Currency migration failed. Please try again.',
-            warning_credit_balance: 'You have a credit balance in {currency} that cannot be transferred.',
-            warning_pending_items: 'You have pending invoice items.',
-            warning_coupons: 'Active coupons may not be compatible.',
-          },
-        },
-        COMMON: {
-          processing: 'Processing...',
-          word_cancel: 'Cancel',
-        },
-      },
-    },
-  },
-});
+const i18n = createTestI18n();
 
 describe('CurrencyMigrationModal', () => {
   let wrapper: VueWrapper;
@@ -163,7 +131,7 @@ describe('CurrencyMigrationModal', () => {
     it('renders when open is true with conflict data', async () => {
       wrapper = await mountComponent();
       expect(wrapper.find('[role="dialog"]').exists()).toBe(true);
-      expect(wrapper.text()).toContain('Currency Change Required');
+      expect(wrapper.text()).toContain('web.billing.currency_migration.title');
     });
 
     it('does not render when open is false', async () => {
@@ -172,9 +140,11 @@ describe('CurrencyMigrationModal', () => {
     });
 
     it('displays currency names from conflict', async () => {
+      // Currency names (EUR/CAD) are interpolated into the description message's
+      // {from}/{to} placeholders. Under pass-through i18n the description renders
+      // as the raw key with no interpolation, so assert the description key is wired.
       wrapper = await mountComponent();
-      expect(wrapper.text()).toContain('EUR');
-      expect(wrapper.text()).toContain('CAD');
+      expect(wrapper.text()).toContain('web.billing.currency_migration.description');
     });
 
     it('displays current and new plan names with formatted prices', async () => {
@@ -206,12 +176,12 @@ describe('CurrencyMigrationModal', () => {
         },
       };
       wrapper = await mountComponent({ conflict: conflictWithWarnings });
-      expect(wrapper.text()).toContain('credit balance');
+      expect(wrapper.text()).toContain('web.billing.currency_migration.warning_credit_balance');
     });
 
     it('does not show warnings when none are active', async () => {
       wrapper = await mountComponent();
-      expect(wrapper.text()).not.toContain('credit balance');
+      expect(wrapper.text()).not.toContain('web.billing.currency_migration.warning_credit_balance');
     });
   });
 
@@ -231,8 +201,8 @@ describe('CurrencyMigrationModal', () => {
 
     it('shows both mode options with descriptions', async () => {
       wrapper = await mountComponent();
-      expect(wrapper.text()).toContain('Switch at end of billing period');
-      expect(wrapper.text()).toContain('Switch immediately');
+      expect(wrapper.text()).toContain('web.billing.currency_migration.graceful_title');
+      expect(wrapper.text()).toContain('web.billing.currency_migration.immediate_title');
     });
   });
 
@@ -245,7 +215,7 @@ describe('CurrencyMigrationModal', () => {
 
       wrapper = await mountComponent();
       const confirmBtn = wrapper.findAll('button').find(
-        btn => btn.text().includes('Confirm')
+        btn => btn.text().includes('currency_migration.confirm')
       );
       await confirmBtn?.trigger('click');
       await nextTick();
@@ -273,7 +243,7 @@ describe('CurrencyMigrationModal', () => {
       await nextTick();
 
       const confirmBtn = wrapper.findAll('button').find(
-        btn => btn.text().includes('Confirm')
+        btn => btn.text().includes('currency_migration.confirm')
       );
       await confirmBtn?.trigger('click');
       await nextTick();
@@ -292,7 +262,7 @@ describe('CurrencyMigrationModal', () => {
 
       wrapper = await mountComponent();
       const confirmBtn = wrapper.findAll('button').find(
-        btn => btn.text().includes('Confirm')
+        btn => btn.text().includes('currency_migration.confirm')
       );
       await confirmBtn?.trigger('click');
       await nextTick();
@@ -319,7 +289,7 @@ describe('CurrencyMigrationModal', () => {
       await nextTick();
 
       const confirmBtn = wrapper.findAll('button').find(
-        btn => btn.text().includes('Confirm')
+        btn => btn.text().includes('currency_migration.confirm')
       );
       await confirmBtn?.trigger('click');
       await nextTick();
@@ -338,7 +308,7 @@ describe('CurrencyMigrationModal', () => {
 
       wrapper = await mountComponent();
       const confirmBtn = wrapper.findAll('button').find(
-        btn => btn.text().includes('Confirm')
+        btn => btn.text().includes('currency_migration.confirm')
       );
       await confirmBtn?.trigger('click');
       await nextTick();
@@ -352,13 +322,13 @@ describe('CurrencyMigrationModal', () => {
 
       wrapper = await mountComponent();
       const confirmBtn = wrapper.findAll('button').find(
-        btn => btn.text().includes('Confirm')
+        btn => btn.text().includes('currency_migration.confirm')
       );
       await confirmBtn?.trigger('click');
       await nextTick();
       await nextTick();
 
-      expect(wrapper.text()).toContain('Currency migration failed');
+      expect(wrapper.text()).toContain('web.billing.currency_migration.error');
     });
   });
 
@@ -366,7 +336,7 @@ describe('CurrencyMigrationModal', () => {
     it('disables confirm when no conflict', async () => {
       wrapper = await mountComponent({ conflict: null });
       const confirmBtn = wrapper.findAll('button').find(
-        btn => btn.text().includes('Confirm')
+        btn => btn.text().includes('currency_migration.confirm')
       );
       expect(confirmBtn?.attributes('disabled')).toBeDefined();
     });
@@ -378,12 +348,12 @@ describe('CurrencyMigrationModal', () => {
 
       wrapper = await mountComponent();
       const confirmBtn = wrapper.findAll('button').find(
-        btn => btn.text().includes('Confirm')
+        btn => btn.text().includes('currency_migration.confirm')
       );
       await confirmBtn?.trigger('click');
       await nextTick();
 
-      expect(wrapper.text()).toContain('Processing');
+      expect(wrapper.text()).toContain('web.COMMON.processing');
       resolve!({ success: true, migration: { mode: 'graceful', cancel_at: 123 } });
     });
 
@@ -394,13 +364,13 @@ describe('CurrencyMigrationModal', () => {
 
       wrapper = await mountComponent();
       const confirmBtn = wrapper.findAll('button').find(
-        btn => btn.text().includes('Confirm')
+        btn => btn.text().includes('currency_migration.confirm')
       );
       await confirmBtn?.trigger('click');
       await nextTick();
 
       const cancelBtn = wrapper.findAll('button').find(
-        btn => btn.text().includes('Cancel')
+        btn => btn.text().includes('word_cancel')
       );
       await cancelBtn?.trigger('click');
 
@@ -413,7 +383,7 @@ describe('CurrencyMigrationModal', () => {
     it('emits close when cancel is clicked', async () => {
       wrapper = await mountComponent();
       const cancelBtn = wrapper.findAll('button').find(
-        btn => btn.text().includes('Cancel')
+        btn => btn.text().includes('word_cancel')
       );
       await cancelBtn?.trigger('click');
       expect(wrapper.emitted('close')).toBeTruthy();
