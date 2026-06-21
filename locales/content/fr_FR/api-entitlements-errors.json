@@ -1,0 +1,71 @@
+{
+  "api.entitlements.errors.context_unavailable": {
+    "text": "Impossible de vérifier les droits (contexte d'organisation indisponible)"
+  },
+  "api.entitlements.errors.api_access_required": {
+    "text": "L'accès à l'API nécessite une mise à niveau du forfait"
+  },
+  "api.entitlements.errors.custom_privacy_defaults_required": {
+    "text": "Les paramètres de confidentialité par défaut personnalisés nécessitent une mise à niveau du forfait"
+  },
+  "api.entitlements.errors.extended_default_expiration_required": {
+    "text": "L'expiration par défaut prolongée nécessite une mise à niveau du forfait"
+  },
+  "api.entitlements.errors.custom_domains_required": {
+    "text": "Les domaines personnalisés nécessitent une mise à niveau du forfait"
+  },
+  "api.entitlements.errors.custom_branding_required": {
+    "text": "L'image de marque personnalisée nécessite une mise à niveau du forfait"
+  },
+  "api.entitlements.errors.homepage_secrets_required": {
+    "text": "Les secrets de la page d'accueil nécessitent une mise à niveau du forfait"
+  },
+  "api.entitlements.errors.incoming_secrets_required": {
+    "text": "Les secrets entrants nécessitent une mise à niveau du forfait"
+  },
+  "api.entitlements.errors.custom_mail_sender_required": {
+    "text": "L'expéditeur d'e-mail personnalisé nécessite une mise à niveau du forfait"
+  },
+  "api.entitlements.errors.flexible_from_domain_required": {
+    "text": "Le domaine d'expéditeur flexible nécessite une mise à niveau du forfait"
+  },
+  "api.entitlements.errors.manage_org_required": {
+    "text": "La gestion de l'organisation nécessite une mise à niveau du forfait"
+  },
+  "api.entitlements.errors.manage_teams_required": {
+    "text": "La gestion des équipes nécessite une mise à niveau du forfait"
+  },
+  "api.entitlements.errors.manage_members_required": {
+    "text": "La gestion des membres nécessite une mise à niveau du forfait"
+  },
+  "api.entitlements.errors.manage_sso_required": {
+    "text": "La gestion du SSO nécessite une mise à niveau du forfait"
+  },
+  "api.entitlements.errors.audit_logs_required": {
+    "text": "Les journaux d'audit nécessitent une mise à niveau du forfait"
+  },
+  "api.entitlements.errors.custom_signup_validation_required": {
+    "text": "La validation d'inscription personnalisée nécessite une mise à niveau du forfait"
+  },
+  "api.entitlements.errors.create_secrets_required": {
+    "text": "La création de secrets nécessite une mise à niveau du forfait"
+  },
+  "api.entitlements.errors.view_receipt_required": {
+    "text": "L'affichage des reçus nécessite une mise à niveau du forfait"
+  },
+  "api.entitlements.errors.notifications_required": {
+    "text": "Les notifications nécessitent une mise à niveau du forfait"
+  },
+  "api.entitlements.errors.workspace_branding_required": {
+    "text": "L'image de marque de l'espace de travail nécessite une mise à niveau du forfait"
+  },
+  "api.entitlements.errors.ip_access_rules_required": {
+    "text": "Les règles d'accès IP nécessitent une mise à niveau du forfait"
+  },
+  "api.entitlements.errors.manage_billing_required": {
+    "text": "La gestion de la facturation nécessite une mise à niveau du forfait"
+  },
+  "api.entitlements.errors.custom_signin_config_required": {
+    "text": "La configuration de connexion personnalisée nécessite une mise à niveau du forfait"
+  }
+}
