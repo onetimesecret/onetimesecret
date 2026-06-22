@@ -164,11 +164,12 @@ module V1
       # Set the Content-Type header if it's not already set by the application
       res.headers['content-type'] ||= content_type
 
-      # Skip the Content-Security-Policy header if it's already set
-      return if res.headers['content-security-policy']
+      # Skip if a CSP header (enforced or report-only) is already set upstream
+      return if res.headers['content-security-policy'] || res.headers['content-security-policy-report-only']
 
       # Skip the CSP header unless it's enabled in site.security settings
-      return if OT.conf.dig('site', 'security', 'csp', 'enabled') != true
+      csp_conf = OT.conf.dig('site', 'security', 'csp') || {}
+      return if csp_conf['enabled'] != true
 
       # Skip the Content-Security-Policy header if the front is running in
       # development mode. We need to allow inline scripts and styles for
@@ -207,9 +208,21 @@ module V1
         ]
       end
 
-      OT.ld "[CSP] #{csp.join(' ')}" if OT.debug?
+      # Optional violation-reporting endpoint (useful while staging in
+      # report-only mode to collect violations before enforcing). Strip CR/LF
+      # and CSP delimiters so a misconfigured value can't inject header content
+      # or extra directives (value is trusted operator config, but be safe).
+      report_uri = csp_conf['report_uri'].to_s.gsub(/[\r\n;,]/, '').strip
+      csp << "report-uri #{report_uri};" unless report_uri.empty?
 
-      res.headers['content-security-policy'] = csp.join(' ')
+      # Report-only (default) emits Content-Security-Policy-Report-Only, which
+      # observes/reports violations without blocking. Set csp.report_only=false
+      # to ENFORCE via the Content-Security-Policy header.
+      header_name = csp_conf['report_only'] == false ? 'content-security-policy' : 'content-security-policy-report-only'
+
+      OT.ld "[CSP] (#{header_name}) #{csp.join(' ')}" if OT.debug?
+
+      res.headers[header_name] = csp.join(' ')
     end
 
     # Collectes request details in a single string for logging purposes.

@@ -309,17 +309,20 @@ site:
     # ENV: MIDDLEWARE_AUTHENTICITY_TOKEN (default: true)
     authenticity_token: <%= ENV['MIDDLEWARE_AUTHENTICITY_TOKEN'] != 'false' %>
     # Protects against Cross-Site Request Forgery (CSRF) attacks
-    # Validates HTTP Origin header matches expected origin
-    # ENV: MIDDLEWARE_HTTP_ORIGIN (default: false)
-    http_origin: <%= ENV['MIDDLEWARE_HTTP_ORIGIN'] == 'true' %>
+    # Validates HTTP Origin header matches expected origin. Requests without an
+    # Origin header (e.g. server-to-server API-token clients) are unaffected;
+    # only cross-origin state-changing requests are rejected.
+    # ENV: MIDDLEWARE_HTTP_ORIGIN (default: true). Set to 'false' to disable.
+    http_origin: <%= ENV['MIDDLEWARE_HTTP_ORIGIN'] != 'false' %>
     # Sets X-XSS-Protection header to enable browser XSS filtering
     # Modern browsers rely less on this as CSP becomes standard
-    # ENV: MIDDLEWARE_XSS_HEADER (default: false)
-    xss_header: <%= ENV['MIDDLEWARE_XSS_HEADER'] == 'true' %>
+    # ENV: MIDDLEWARE_XSS_HEADER (default: true). Set to 'false' to disable.
+    xss_header: <%= ENV['MIDDLEWARE_XSS_HEADER'] != 'false' %>
     # Prevents your site from being embedded in frames (clickjacking protection)
     # Sets X-Frame-Options header to SAMEORIGIN or DENY
-    # ENV: MIDDLEWARE_FRAME_OPTIONS (default: false)
-    frame_options: <%= ENV['MIDDLEWARE_FRAME_OPTIONS'] == 'true' %>
+    # ENV: MIDDLEWARE_FRAME_OPTIONS (default: true). Set to 'false' to allow
+    # embedding (also relax CSP frame-ancestors below if you do).
+    frame_options: <%= ENV['MIDDLEWARE_FRAME_OPTIONS'] != 'false' %>
     # Blocks directory traversal attacks using "../" in paths
     # Critical for preventing unauthorized file access
     # ENV: MIDDLEWARE_PATH_TRAVERSAL (default: false)
@@ -332,10 +335,12 @@ site:
     # Useful when IP-based access controls are implemented
     # ENV: MIDDLEWARE_IP_SPOOFING (default: false)
     ip_spoofing: <%= ENV['MIDDLEWARE_IP_SPOOFING'] == 'true' %>
-    # Forces all connections to use HTTPS via HSTS headers
-    # Disable only for development or when behind a secure proxy
-    # ENV: MIDDLEWARE_STRICT_TRANSPORT (default: false)
-    strict_transport: <%= ENV['MIDDLEWARE_STRICT_TRANSPORT'] == 'true' %>
+    # Forces all connections to use HTTPS via HSTS headers.
+    # Default tracks SSL: ON when SSL=true (production behind TLS), OFF for
+    # plain-HTTP development so a sticky HSTS policy is never set on http://.
+    # An explicit MIDDLEWARE_STRICT_TRANSPORT always wins over the SSL default.
+    # ENV: MIDDLEWARE_STRICT_TRANSPORT (default: tracks SSL). Set 'true'/'false' to force.
+    strict_transport: <%= (ENV['MIDDLEWARE_STRICT_TRANSPORT'] || ENV['SSL']).to_s == 'true' %>
   # Security Configuration
   # Additional security settings beyond middleware
   security:
@@ -348,9 +353,22 @@ site:
     # The nonce is available via `req.env['onetime.nonce']` for custom
     # script/style assets. Backend views add it automatically.
     #
-    # ENV: CSP_ENABLED (default: false)
+    # Rollout: CSP now ships ENABLED by default but in REPORT-ONLY mode, so a
+    # default deployment emits Content-Security-Policy-Report-Only (violations
+    # are reported/observable but nothing is blocked). Flip report_only to false
+    # to ENFORCE once you've confirmed no legitimate violations (e.g. the custom
+    # -domain DNS widget and any operator inline scripts carry the nonce).
+    #
+    # ENV: CSP_ENABLED (default: true). Set 'false' to emit no CSP at all.
     csp:
-      enabled: <%= ENV['CSP_ENABLED'] == 'true' || false %>
+      enabled: <%= ENV['CSP_ENABLED'] != 'false' %>
+      # ENV: CSP_REPORT_ONLY (default: true => report-only/staged).
+      # Set 'false' to ENFORCE the policy (block violations).
+      report_only: <%= ENV['CSP_REPORT_ONLY'] != 'false' %>
+      # Optional reporting endpoint; when set, a report-uri directive is added
+      # so the browser POSTs violation reports there.
+      # ENV: CSP_REPORT_URI (default: none)
+      report_uri: <%= ENV['CSP_REPORT_URI'] || nil %>
 
   # Network Configuration
   # Settings for proxy trust, client IP resolution, and network-level behavior.

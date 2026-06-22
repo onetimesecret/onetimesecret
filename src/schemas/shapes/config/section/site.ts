@@ -63,23 +63,31 @@ const sessionTree: AugmentTree = {
 };
 
 const cspTree: AugmentTree = {
-  enabled: (b) => b.default(false),
+  // CSP now ships enabled-by-default but staged in report-only mode.
+  // @sync etc/defaults/config.defaults.yaml (site.security.csp)
+  enabled: (b) => b.default(true),
+  report_only: (b) => b.default(true),
+  report_uri: (s) => s.nullable().default(null),
 };
 
 const securityTree: AugmentTree = {
   csp: cspTree,
 };
 
+// Secure-by-default middleware toggles.
+// @sync etc/defaults/config.defaults.yaml (site.middleware)
 const middlewareTree: AugmentTree = {
   static_files: (b) => b.default(true),
   utf8_sanitizer: (b) => b.default(true),
   authenticity_token: (b) => b.default(true),
-  http_origin: (b) => b.default(false),
-  xss_header: (b) => b.default(false),
-  frame_options: (b) => b.default(false),
+  http_origin: (b) => b.default(true),
+  xss_header: (b) => b.default(true),
+  frame_options: (b) => b.default(true),
   path_traversal: (b) => b.default(false),
   cookie_tossing: (b) => b.default(false),
   ip_spoofing: (b) => b.default(false),
+  // Effective server-side default tracks SSL (on under HTTPS, off in plain-HTTP
+  // dev); false is the conservative client-side fallback when unspecified.
   strict_transport: (b) => b.default(false),
 };
 

@@ -52,6 +52,10 @@ const sessionConfigSchema = z.object({
  */
 const cspSchema = z.object({
   enabled: z.boolean().optional(),
+  // Staged rollout: when true (default), CSP is emitted as report-only.
+  report_only: z.boolean().optional(),
+  // Optional violation-reporting endpoint.
+  report_uri: z.string().nullable().optional(),
 });
 
 /**

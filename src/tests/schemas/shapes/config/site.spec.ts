@@ -87,12 +87,14 @@ describe('sessionConfigShape — defaults and bounds', () => {
 });
 
 describe('cspShape / securityShape', () => {
-  it('csp.enabled defaults to false', () => {
-    expect(cspShape.parse({}).enabled).toBe(false);
+  it('csp.enabled defaults to true (staged report-only)', () => {
+    expect(cspShape.parse({}).enabled).toBe(true);
+    expect(cspShape.parse({}).report_only).toBe(true);
+    expect(cspShape.parse({}).report_uri).toBe(null);
   });
 
   it('security composes csp', () => {
-    expect(securityShape.parse({ csp: {} }).csp?.enabled).toBe(false);
+    expect(securityShape.parse({ csp: {} }).csp?.enabled).toBe(true);
   });
 });
 
@@ -102,12 +104,13 @@ describe('middlewareShape — defaults', () => {
     expect(result.static_files).toBe(true);
     expect(result.utf8_sanitizer).toBe(true);
     expect(result.authenticity_token).toBe(true);
-    expect(result.http_origin).toBe(false);
-    expect(result.xss_header).toBe(false);
-    expect(result.frame_options).toBe(false);
+    expect(result.http_origin).toBe(true);
+    expect(result.xss_header).toBe(true);
+    expect(result.frame_options).toBe(true);
     expect(result.path_traversal).toBe(false);
     expect(result.cookie_tossing).toBe(false);
     expect(result.ip_spoofing).toBe(false);
+    // Effective value tracks SSL server-side; false is the client fallback.
     expect(result.strict_transport).toBe(false);
   });
 });
@@ -213,6 +216,6 @@ describe('siteShape — composed sub-trees', () => {
     expect(result.authentication?.signup).toBe(true);
     expect(result.session?.expire_after).toBe(86400);
     expect(result.middleware?.static_files).toBe(true);
-    expect(result.security?.csp?.enabled).toBe(false);
+    expect(result.security?.csp?.enabled).toBe(true);
   });
 });
