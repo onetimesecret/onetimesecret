@@ -18,15 +18,56 @@
 module Auth::Config::Hooks
   module OmniAuth
     def self.configure(auth)
-      # Normalize email for case-insensitive account lookup.
-      # Required because:
-      # - SQLite (dev/test) uses case-sensitive string comparison
-      # - Redis Customer records require exact email match
-      # - IdPs may return emails with different casing than stored
-      # Uses NFC normalization and :fold for international email addresses.
+      # ========================================================================
+      # Resolve the SSO email (#3499 Phase 1) — single source of truth.
+      # ========================================================================
+      #
+      # Some IdPs (notably Microsoft EntraID) omit the standard `email` claim
+      # for users without an Exchange mailbox or when the app registration
+      # lacks the email optional claim (#3478). Fall back to the verified
+      # mailbox attribute `mail` (extra.raw_info["mail"]) when `info.email` is
+      # absent.
+      #
+      # TRUST TIERS (see issue #3499): only TIER-1, IdP-verified mailbox claims
+      # populate the email / drive account lookup:
+      #   - info.email            (standard OIDC, verified by the IdP)
+      #   - extra.raw_info["mail"] (Exchange mailbox attribute)
+      # Mutable TIER-2 identifiers (upn, preferred_username) are intentionally
+      # NOT used here — Microsoft warns they are mutable and unsafe for
+      # identity/authorization, and using them for account linking is an
+      # account-takeover vector.
+      #
+      # Returns a normalized email, or nil when no verified email is available
+      # (callers then fall through to the existing invalid_email handling).
+      #
+      # Uses NFC normalization and :fold for international/case-insensitive
+      # matching (SQLite is case-sensitive; Redis Customer records require an
+      # exact match; IdPs may vary casing).
+      auth.auth_class_eval do
+        def resolve_omniauth_email
+          info  = omniauth_info || {}
+          email = info['email']
+          if email.to_s.strip.empty?
+            raw   = (omniauth_extra && omniauth_extra['raw_info']) || {}
+            email = raw['mail']
+          end
+          email = email.to_s.strip
+          email.empty? ? nil : OT::Utils.normalize_email(email)
+        end
+      end
+
+      # Look up an existing account by the RESOLVED (tier-1) email so a
+      # returning user whose IdP omits `email` but provides `mail` is matched.
       auth.account_from_omniauth do
-        normalized_email = OT::Utils.normalize_email(omniauth_email)
-        _account_from_login(normalized_email)
+        email = resolve_omniauth_email
+        email && _account_from_login(email)
+      end
+
+      # Build new SSO accounts from the resolved email (resolution at the
+      # data-origin point, per #3499). before_omniauth_create_account remains
+      # validation-only and reads the resolved value.
+      auth.omniauth_new_account do
+        @account = _omniauth_new_account(resolve_omniauth_email)
       end
 
       # ========================================================================
@@ -131,7 +172,12 @@ module Auth::Config::Hooks
       # Global: Set via ALLOWED_SIGNUP_DOMAIN environment variable (comma-separated)
       #
       auth.before_omniauth_create_account do
-        email       = omniauth_email.to_s.strip.downcase
+        # Validate the RESOLVED tier-1 email (#3499): omniauth_new_account has
+        # already populated account[login_column] from resolve_omniauth_email,
+        # so honour the same value (incl. the mail fallback) here. A nil/empty
+        # result means no verified email was available and falls through to the
+        # invalid_email redirect below.
+        email       = resolve_omniauth_email.to_s.strip.downcase
         email_parts = email.split('@')
 
         # Reject unusable emails from IdP (distinct from policy rejection): a
