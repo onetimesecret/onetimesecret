@@ -88,7 +88,14 @@ SHA="$(git -C "$RULES_DIR" rev-parse HEAD)"
 # artifact is a pure function of $SHA (no wall-clock drift between this vendor
 # run and the CI freshness gate's regeneration). resolved-freshness.yml derives
 # the SAME value from PINNED_RULES_REF; the two MUST stay in lock-step.
-GENERATED_AT="$(git -C "$RULES_DIR" show -s --format=%cI "$SHA")"
+#
+# Do NOT use git's %cI here: it renders a UTC commit as "+00:00" on git <2.54
+# but "Z" on git >=2.54, so the vendor machine and the CI runner can disagree
+# byte-for-byte on an identical instant (this exact drift red-failed the gate).
+# Instead force UTC and a literal +00:00 offset via %cd/format-local, which is a
+# pure function of the commit across every git version.
+GENERATED_AT="$(TZ=UTC git -C "$RULES_DIR" show -s \
+  --date=format-local:'%Y-%m-%dT%H:%M:%S+00:00' --format=%cd "$SHA")"
 
 # Resolve the set of locales to vendor. An explicit LOCALES allow-list wins;
 # otherwise default to the locales ALREADY vendored (basenames of the committed
