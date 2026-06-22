@@ -3,6 +3,16 @@
 Branch: `feature/2319-workflow-historical`
 Issue: #2319
 
+> **Audience: human-driven, conversational sessions.** This file describes the
+> manual translation session — start a conversation with the protocol, claim the
+> next task, propose translations, accept/skip/revisit/quit, record glossary
+> decisions, run QC, and export/commit by hand.
+>
+> **Automated background agents do NOT follow this file.** A single translator
+> agent draining one locale follows the machine-executable spec in
+> [`AGENT_TRANSLATION_PROTOCOL.md`](./AGENT_TRANSLATION_PROTOCOL.md). The
+> orchestration slash commands point their agents at that file.
+
 ## Philosophy
 
 **"Excel first"** - We deliberately keep this workflow manual and conversational. No automation until the process is proven. The scripts are helpers, not a pipeline. Once we know exactly what works, we can build tooling.
@@ -118,39 +128,6 @@ Run `/d:review-locale-branches` to orchestrate parallel code-reviewer agents gro
 1. Automated variable validation (catches mechanical issues)
 2. Agent review by family (linguistic/quality checks)
 3. Triage and fix critical findings before merge
-
-## Parallel / Agent-Driven Sessions
-
-When draining many locales at once (e.g. via `/d:translate-parallel-agents` or
-`/d:start-translation-session`), spawn one `saas-translator` agent per locale. Details
-that aren't obvious and cost a round-trip each to discover:
-
-- **No `.env.sh`.** The project uses direnv (`.envrc`); the legacy `source .env.sh` is
-  gone. The task scripts need no environment setup — run `python3 locales/scripts/i18n tasks ...`
-  directly from the repo root.
-- **One writer per locale; skip `--claim`.** With a single agent per locale there is no
-  race: `tasks next {LOCALE}` (returns the next *pending* task) → translate → `tasks update {ID}`
-  (marks it completed) advances with zero orphans. `--claim` only earns its keep when
-  several writers share one locale; if you use it, reset stranded `in_progress` rows at
-  session start (`tasks update {ID} --status pending`) — `tasks next` only ever returns *pending*
-  tasks, so an abandoned claim is invisible until reset.
-- **Write translations via a temp file, not inline JSON.** Apostrophes and quotes (common
-  in fr/es/it) break shell single-quoting and HEREDOCs. Write the `{"key": "translation"}`
-  object to a temp file and pass `--file`:
-  `tasks update {ID} --file /tmp/trans_{LOCALE}.json --validate`.
-- **`--validate` is advisory.** It warns on missing/extra keys but still saves and still
-  exits 0 — it does NOT block a bad write. Agents must read the `Warning:` lines and
-  re-submit with the exact source key set. A completed row's key set must match the source
-  exactly.
-- **SQLite concurrency: enable WAL, expect lock waits.** All locales write to one
-  `tasks.db`. Out of the box it is `journal_mode=delete`, `busy_timeout=0`. Set WAL once
-  before fanning out so readers never block the writer:
-  `sqlite3 locales/db/tasks.db "PRAGMA journal_mode=WAL"`. `tasks update` connects with a 30s
-  busy timeout; on `database is locked`, wait ~2s and retry (up to 3x).
-- **Verify after draining.** Because `--validate` does not gate writes, audit each locale's
-  completed rows for: key-set mismatch; interpolation/markup tokens (`{var}`, `{{var}}`,
-  `%{x}`, `%s`, `<tag>`) preserved in the translation; and untranslated-English leakage. Fix
-  in place with `tasks update --file`.
 
 ## Task Output Format
 

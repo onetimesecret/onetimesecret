@@ -6,8 +6,18 @@ Ported from the legacy ``locales/scripts/store.py`` (connection + schema
 pieces only). Query/export/import logic lives with the ``db`` command group,
 not here. Path constants come from :mod:`i18n.config`.
 
-The connection uses ``timeout=30`` to tolerate write-lock contention when
-several locale agents run in parallel against the one DB file.
+Concurrency is the tool's job, not the caller's. ``tasks.db`` is a single
+file shared by every parallel locale agent, so :func:`get_connection` sets
+two pragmas on every connect:
+
+- ``journal_mode=WAL`` — readers never block the writer and vice versa, which
+  is what makes one-writer-per-locale fan-out safe. WAL is persisted on the
+  file, but we set it each connect so a freshly created or copied DB is always
+  in WAL without an out-of-band step.
+- ``busy_timeout`` (= the connect ``timeout``, in ms) — on lock contention
+  SQLite blocks and retries internally for this long instead of raising
+  ``database is locked`` immediately. Callers and agents therefore do not need
+  their own "wait and retry on locked" loop.
 """
 
 from __future__ import annotations
@@ -18,16 +28,50 @@ from typing import Iterator
 
 from .config import DB_DIR, DB_FILE, SCHEMA_FILE
 
+# How long (seconds) a connection waits on a held lock before giving up.
+# Drives both the sqlite3 connect timeout and the busy_timeout pragma.
+BUSY_TIMEOUT_SECONDS = 30
+
 
 @contextmanager
 def get_connection() -> Iterator[sqlite3.Connection]:
     """Context manager for database connections.
 
+    Enables WAL and a busy timeout on every connection so concurrent locale
+    agents tolerate lock contention without caller-side retry logic.
     Abstracts connection handling for future migration to libsql.
     """
-    conn = sqlite3.connect(DB_FILE, timeout=30)
+    conn = sqlite3.connect(DB_FILE, timeout=BUSY_TIMEOUT_SECONDS)
     conn.row_factory = sqlite3.Row
+    # Pragma setup and the yield share one try/finally so the connection is
+    # ALWAYS closed — including when a setup pragma re-raises (e.g. a lock
+    # timeout on the WAL switch below). Closing only after a successful setup
+    # would leak the handle/lock in exactly the contended batch that triggered
+    # the failure.
     try:
+        # Set outside any transaction (connection is in autocommit here). Order
+        # matters: install busy_timeout BEFORE the journal_mode=WAL switch, since
+        # switching to WAL itself takes a write lock — with the timeout armed it
+        # waits for a concurrent writer instead of raising "database is locked"
+        # during connection setup. (The connect timeout above already arms a busy
+        # handler, so this is belt-and-suspenders, but it keeps intent explicit
+        # and survives any change to that default.)
+        conn.execute(f"PRAGMA busy_timeout={BUSY_TIMEOUT_SECONDS * 1000}")
+        try:
+            conn.execute("PRAGMA journal_mode=WAL")
+        except sqlite3.OperationalError as exc:
+            # Switching journal mode is a write, which SQLite refuses on a
+            # read-only DB (a copied snapshot, or a checkout where the file is
+            # not writable) with "attempt to write a readonly database".
+            # Read-only inspection commands (db query/export, tasks --stats)
+            # must still work, so degrade gracefully in THAT case only: reads run
+            # in the file's existing journal mode. Any other OperationalError —
+            # notably a lock timeout, which the busy_timeout set above is meant
+            # to absorb — is a real concurrency failure that WAL exists to
+            # prevent; re-raise it rather than silently leaving parallel agents
+            # in rollback-journal mode where they hit "database is locked".
+            if "readonly" not in str(exc).lower():
+                raise
         yield conn
     finally:
         conn.close()
