@@ -9,7 +9,7 @@ Status: ✅ confirmed (source) · 🧪 runtime-PoC · 🔎 needs-validation.
 |----|---------|-----|---------|-------------|----------|--------|----------|
 | A1 | SSO email-match account takeover (no `email_verified`) | **Critical** | Moderate | High | No (SSO) | ✅ | 01; `config/hooks/omniauth.rb:27-30` |
 | C1 | TOCTOU race — one-time guarantee broken | **High** | Moderate¹ | High | **Yes** | 🧪 | 03 F1; `secret_state_management.rb:60`; PoC `poc/`, `evidence/race_poc_output.txt` |
-| A2 | SSO bypasses MFA unconditionally | **High** | Easy² | High | No (SSO+MFA) | ✅ | 01; `hooks/login.rb:128-133` |
+| A2 | SSO + local MFA — add opt-in 2nd factor after SSO (default unchanged, reclassified after industry research: SSO-as-authenticated is the norm) | Low–Med | n/a² | Med | No (SSO+MFA) | ✅ | 01; `hooks/login.rb:128-133` |
 | A3 | Host-header poisoning of reset/magic/verify links | **High** | Moderate | High | No (auth) | ✅ | 01/04; `detect_host.rb:156-194` |
 | A4 | SSO domain allowlist not enforced on linking path | **High** | Moderate | High | No (SSO) | ✅ | 01; `hooks/omniauth.rb:133-180` |
 | P1 | CSRF bypass for cookie-auth `/api/*` mutations | **High** | Moderate | High | No (login) | ✅ | 04; `security.rb:142` |
@@ -49,7 +49,7 @@ Status: ✅ confirmed (source) · 🧪 runtime-PoC · 🔎 needs-validation.
 
 **Footnotes**
 1. C1 is Easy under production multi-worker Puma (PoC: 12/12 processes); Hard within a single GIL-bound process.
-2. A2 requires SSO and MFA both enabled and the victim to log in via SSO.
+2. A2 reclassified Low–Med: treating SSO as fully authenticated (no local 2nd factor) is the industry default (WorkOS exempts SSO from MFA; Clerk/others defer to IdP MFA) and was an intentional choice (#3114). The fix is an *opt-in* "require local MFA after SSO" toggle (default off) for high-assurance operators — not a default change.
 3. C3 default-applicable only if the V1 API remains routable.
 4. AZ2 requires being any active member of the target org.
 5. A5 requires DB read access; impact is high because codes are the MFA fallback.
