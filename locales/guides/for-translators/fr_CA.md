@@ -1,135 +1,78 @@
-# Translation Guidance for French (Français)
+# GENERATED from translation-rules@18c2c91cce6e9ed5ca8520982bdd291740b56b84 — do not edit, do not cite as source
 
-This document combines the glossary and language-specific notes for French translations of Onetime Secret. It provides standardized translations for key terms and critical translation rules to ensure consistency across all French-language content.
+Locale: `fr_CA` · schema v1
 
-## Language-Specific Rules
+## Register
 
-These rules are critical for maintaining proper French conventions:
+- Form: **formal**
+- Pronoun: `vous`
+- Possessive: `votre`, `vos`
+- Forbidden tokens:
+  - `tu` (standalone_word, error) — informal subject pronoun
+  - `ton` (standalone_word, error) — informal possessive (masc.)
+  - `ta` (standalone_word, error) — informal possessive (fem.)
+  - `tes` (standalone_word, error) — informal possessive (plural)
+  - `toi` (standalone_word, error) — informal stressed pronoun
+  - `te` (standalone_word, error) — informal object pronoun (non-contracted)
+  - `toi-même` (standalone_word, error) — informal reflexive
+  - `t'` (word_prefix, error) — elided informal object/reflexive pronoun (t'envoie, t'inscrire)
+  - `t’` (word_prefix, error) — elided informal pronoun, curly apostrophe (U+2019)
 
-| Règle | Correct | Incorrect | Exemple |
-|-------|---------|-----------|---------|
-| Infinitif vs. Nom | Infinitif (boutons/liens), Nom (titres/headings) | Mixed forms | ✓ Mettre à niveau (button); ✗ Mise à niveau (button) |
-| Mot de passe vs. Phrase secrète | mot de passe (login), phrase secrète (secret) | Mixed usage | ✓ Entrez votre mot de passe (login); ✗ Entrez votre phrase secrète (login) |
-| Ponctuation française | Espace insécable avant `:` `;` `!` `?` | No space | ✓ Question : texte ?; ✗ Question: texte? |
+## Glossary
 
-## Translation Glossary
+### burn (en: burn)
+- _verb_: **brûler**
+  - ✓ Burn this secret before it is read. → Brûler ce secret avant qu'il ne soit lu.
+  - ✗ Burn this secret before it is read. → Détruire ce secret avant qu'il ne soit lu.
+### email (en: email)
+- _noun_: **courriel**
+  - ✓ Enter your email address. → Saisissez votre adresse courriel.
+  - ✗ Enter your email address. → Saisissez votre adresse e-mail.
+### encrypt (en: encrypt)
+- _state_: **chiffré**
+- _verb_: **chiffrer**
+  - ✓ This message is encrypted with your passphrase. → Ce message est chiffré avec votre phrase secrète.
+  - ✗ This message is encrypted with your passphrase. → Ce message est crypté avec ta phrase secrète.
+### link (en: link)
+- _noun_: **lien**
+  - ✓ Copy the secret link to share it. → Copiez le lien secret pour le partager.
+  - ✗ Copy the secret link to share it. → Copie ton lien secret pour le partager.
+### passphrase (en: passphrase)
+- _noun_: **phrase secrète**
+  - ✓ Enter the passphrase to view this secret. → Saisissez la phrase secrète pour consulter ce secret.
+  - ✗ Enter the passphrase to view this secret. → Saisissez le mot de passe pour consulter ce secret.
+### password (en: password)
+- _noun_: **mot de passe**
+  - ✓ Enter your password to sign in. → Saisissez votre mot de passe pour vous connecter.
+  - ✗ Enter your password to sign in. → Saisis ton mot de passe pour te connecter.
+### secret_object (en: secret)
+- _noun_: **secret**
+  - ✓ Your secret has been created. → Votre secret a été créé.
+  - ✗ Your secret has been created. → Ton secret a été créé.
 
-### Terminologie de base
+## Rules (binding)
 
-| anglais | français (CA) | Notes |
-|---------|-------------|-------|
-| secret (noun) | secret | Central concept of the application |
-| secret (adj) | secret/sécurisé | |
-| passphrase | phrase secrète | Authentication method for secrets |
-| burn | brûler | Action to delete a secret before viewing |
-| view/reveal | consulter/afficher | Action to access a secret |
-| link | lien | The URL that provides access to a secret |
-| encrypt/encrypted | chiffrer/chiffré | Security method |
-| secure | sécurisé | State of protection |
+- **MUST** (error): Use the locale's locked register form (formality, pronoun, possessives) in all UI and email content. `[rule.register-lock]`
+- **MUST** (error): Keep web.auth.security.* messages generic — never reveal which credential failed, precise timing, attempt counts, or account existence. `[rule.security-generic-messages]`
+- **MUST** (error): Preserve interpolation placeholders ({var}, {0}, %{var}) exactly — identical names, count, and syntax as the source string. `[rule.preserve-interpolation]`
+- **MUST** (error): Express countable strings with vue-i18n pipe syntax so the target language's plural forms are expressible. `[rule.pluralization-syntax]`
+- **MUST_NOT** (error): Do not translate or transliterate brand names (Onetime Secret, One-Time Secret, Identity Plus, Starlight); adapt only the surrounding grammar. `[rule.brand-names-untranslated]`
+- **MUST_NOT** (error): Do not translate underscore-prefixed metadata keys (_README, _meta, _translation_guidelines); they are documentation and never user-facing. `[rule.meta-keys-untranslated]`
+- **MUST** (error): Use the glossary's chosen term for each concept consistently; do not vary terminology across strings for the same sense. `[rule.terminology-consistency]`
+- **MUST** (warning): Destructive or irreversible action labels name their object (Delete Account, not Delete). `[rule.destructive-action-object]`
+- **MUST** (error): French content uses the formal vous register (vous / votre / vos) throughout product UI and email content; informal tutoiement (tu / ton / ta / tes) is forbidden. `[register.fr.formality]`
+- **MUST** (error): Place a non-breaking space before the double punctuation marks `:` `;` `!` `?`, per French typographic convention. `[rule.fr-punctuation-nbsp]`
+- **MUST** (warning): Use the infinitive for button and link labels (Mettre à niveau), and the noun form for titles and headings (Mise à niveau). `[rule.fr-infinitive-buttons]`
+- **MUST** (error): Keep mot de passe (system authentication / login) distinct from phrase secrète (protection of a secret); never use one where the other is meant. `[rule.fr-passphrase-password]`
+- **MUST** (error): Canadian French uses "courriel" for email throughout UI and email content; the European "e-mail" form is not used in fr_CA. `[rule.fr_CA-courriel]`
 
-### Éléments de l'interface utilisateur
+## Context (non-binding)
 
-| anglais | français (CA) | Notes |
-|---------|-------------|-------|
-| Share a secret | Partager un secret | Main action |
-| Create Account | Créer un compte | Registration |
-| Sign In | Se connecter | Authentication |
-| Dashboard | Compte | User's main page |
-| Settings | Paramètres | Configuration page |
-| Privacy Options | Options de confidentialité | Secret settings |
-| Feedback | Retour d'information | User comments |
+- Brand names stay in English across all locales; only surrounding grammar adapts.
+- [SHOULD] Prefer concise phrasing where meaning is preserved, and respect component character limits.
+- [SHOULD] Use active imperative voice for action labels and declarative voice for status and error messages.
 
-### Conditions d'état
+## Anti-patterns
 
-| anglais | français (CA) | Notes |
-|---------|-------------|-------|
-| received | reçu | Secret has been viewed |
-| burned | brûlé | Secret was deleted before viewing |
-| expired | expiré | Secret is no longer available due to time |
-| created | créé | Secret has been generated |
-| active | actif | Secret is available |
-| inactive | inactif | Secret is not available |
-
-### Termes liés au temps
-
-| anglais | français (CA) | Notes |
-|---------|-------------|-------|
-| expires in | expire dans | Time until secret is no longer available |
-| day/days | jour/jours | Time unit |
-| hour/hours | heure/heures | Time unit |
-| minute/minutes | minute/minutes | Time unit |
-| second/seconds | seconde/secondes | Time unit |
-
-### Caractéristiques de sécurité
-
-| anglais | français (CA) | Notes |
-|---------|-------------|-------|
-| one-time access | accès unique | Core security feature |
-| passphrase protection | protection par phrase secrète | Additional security |
-| encrypted in transit | chiffré en transit | Data protection method |
-| encrypted at rest | chiffré au repos | Storage protection |
-
-### Termes relatifs au compte
-
-| anglais | français (CA) | Notes |
-|---------|-------------|-------|
-| email | courriel | User identifier |
-| password | mot de passe | Authentication |
-| account | compte | User profile |
-| subscription | abonnement | Paid service |
-| customer | client | Paying user |
-
-### Termes liés au domaine
-
-| anglais | français (CA) | Notes |
-|---------|-------------|-------|
-| custom domain | domaine personnalisé | Premium feature |
-| domain verification | vérification du domaine | Setup process |
-| DNS record | enregistrement DNS | Configuration |
-| CNAME record | enregistrement CNAME | DNS setup |
-
-### Messages d'erreur
-
-| anglais | français (CA) | Notes |
-|---------|-------------|-------|
-| error | bug | Problem notification |
-| warning | attention | Caution notification |
-| oops | oups | Friendly error intro |
-
-### Boutons et actions
-
-| anglais | français (CA) | Notes |
-|---------|-------------|-------|
-| submit | soumettre | Form action |
-| cancel | annuler | Negative action |
-| confirm | confirmer | Positive action |
-| copy to clipboard | copier dans le presse-papiers | Utility action |
-| continue | continuer | Navigation |
-| back | retour | Navigation |
-
-### Conditions de commercialisation
-
-| anglais | français (CA) | Notes |
-|---------|-------------|-------|
-| secure links | liens sécurisés | Product feature |
-| privacy-first design | conception privilégiant la protection de la vie privée | Design philosophy |
-| custom branding | image de marque personnalisée | Premium feature |
-
-## Lignes directrices pour la traduction
-
-1. **Consistance** : Utiliser la même traduction pour un terme dans l'ensemble de l'application.
-2. **Contexte** : Tenir compte de la façon dont le terme est utilisé dans l'application.
-3. **Adaptation culturelle** : Adapter les termes aux conventions locales si nécessaire.
-4. **Exactitude technique** : Veiller à ce que les termes relatifs à la sécurité soient traduits avec précision.
-5. **Ton** : Maintenir un ton professionnel mais direct.
-6. **Clés littérales** : Les clés se terminant par `_literal` (ex : `onetime_secret_literal`) contiennent des noms de marque qui doivent rester en anglais tels quels.
-
-## Considérations particulières
-
-- Le terme "secret" est au cœur de la demande et doit être traduit de manière cohérente.
-- Les variations régionales (ex: "courriel" en français canadien vs "e-mail/courriel" en français européen) doivent être respectées.
-- Les termes techniques liés à la sécurité doivent être traduits de manière plus précise que la localisation.
-- Les éléments de l'interface utilisateur doivent respecter les conventions de la plate-forme pour la langue cible.
-- Pour les boutons et liens, utiliser l'infinitif (ex: "Mettre à niveau") plutôt que le nom (ex: "Mise à niveau").
-- Respecter la distinction entre "mot de passe" (pour l'authentification système) et "phrase secrète" (pour la protection des secrets).
-- Toujours inclure un espace insécable avant les signes de ponctuation doubles (`:` `;` `!` `?`).
+- Do not treat change-log or descriptive prose as prescriptive translation guidance. `[anti.changelog-as-guidance]`
+- Harmonize keys only — never rewrite translated text. A harmonize task that requires text changes is mislabeled; stop and escalate. `[anti.harmonize-text-rewrite]`
