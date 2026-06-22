@@ -118,7 +118,13 @@ sleep 120 && check_status  # another background task
 
 1. Run a single poll (no sleep, no background).
 2. Review results.
-3. Relaunch agents for any locale with pending > 0 (same short prompt as step 3).
+3. Relaunch a locale **only if it has pending > 0 AND no agent is currently
+   running for it**. The agent protocol is claim-free, so the task an active
+   agent is mid-translation stays `pending` until it writes back — relaunching
+   purely on `pending > 0` would start a second writer for a locale that already
+   has one, breaking the one-writer-per-locale invariant and letting two agents
+   update the same task. Track the live agents (the in-progress TodoWrite set /
+   the launched task handles) and exclude their locales.
 4. Manually trigger the next poll when ready.
 
 ### 5. Completion Criteria
@@ -171,7 +177,10 @@ When approaching context limits, use `/compact` with continuation instructions:
 ```
 /compact with instructions to continue monitoring translation agents for fr_CA, de, es.
 Poll with: python3 locales/scripts/i18n tasks next LOCALE --stats
-Relaunch agents for any locale with pending > 0.
+Compaction loses the live-agent set, so re-derive which locales still have a
+running agent BEFORE relaunching, then relaunch only locales with pending > 0
+AND no agent currently running — one writer per locale (the queue is claim-free,
+so an in-flight task stays pending until written).
 ```
 
 Then simply: `Please continue`

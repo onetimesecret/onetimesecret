@@ -65,23 +65,49 @@ cmd_validate() {
   local results_dir="${1:-/tmp}"
   mkdir -p "$results_dir"
 
-  # Enumerate i18n/update-* branches both local and remote: a fresh CI checkout
-  # commonly has them only as origin/i18n/update-*. Strip the remote prefix and
-  # de-duplicate so each locale is validated exactly once.
-  local branches
-  branches=$(git for-each-ref --format='%(refname:short)' \
-    'refs/heads/i18n/update-*' 'refs/remotes/origin/i18n/update-*' \
-    | sed 's#^origin/##' | sort -u)
+  # Enumerate i18n/update-* refs, local AND remote (a fresh checkout commonly
+  # has them only as origin/i18n/update-*). Keep each ref's full name so we can
+  # validate that branch's CONTENT — not whatever happens to be checked out —
+  # and dedup by locale, preferring a local branch over its remote ref.
+  local ref locale
+  declare -A ref_for=()
+  while IFS= read -r ref; do
+    [[ -n "$ref" ]] || continue
+    locale="${ref##*i18n/update-}"
+    [[ -n "${ref_for[$locale]:-}" ]] || ref_for["$locale"]="$ref"
+  done < <(git for-each-ref --format='%(refname:short)' \
+             'refs/heads/i18n/update-*' 'refs/remotes/origin/i18n/update-*')
 
-  local branch locale out count
-  for branch in $branches; do
-    locale="${branch#i18n/update-}"
+  local out rc count wtbase wt
+  for locale in "${!ref_for[@]}"; do
+    ref="${ref_for[$locale]}"
     out="${results_dir}/i18n-validate-${locale}.json"
-    # `validate variables` exits non-zero when it finds mismatches; under
-    # `set -e` that would abort the whole report on the first bad locale, so
-    # swallow the status (the JSON is still written to stdout) and keep going.
-    python3 locales/scripts/i18n validate variables --json --locale "$locale" > "$out" 2>/dev/null || true
-    count=$(jq '.summary | to_entries | map(.value) | add // 0' "$out" 2>/dev/null || echo 0)
+
+    # Materialize the branch in a throwaway detached worktree and validate its
+    # content there, so the report reflects the review branch rather than the
+    # current working tree. --detach avoids "branch already checked out".
+    wtbase="$(mktemp -d)"
+    wt="${wtbase}/wt"
+    if ! git worktree add --quiet --detach "$wt" "$ref" >/dev/null 2>&1; then
+      echo "$locale: ERROR — could not materialize $ref for validation" >&2
+      rm -rf "$wtbase"
+      continue
+    fi
+    rc=0
+    ( cd "$wt" && python3 locales/scripts/i18n validate variables --json --locale "$locale" ) \
+      >"$out" 2>/dev/null || rc=$?
+    git worktree remove --force "$wt" >/dev/null 2>&1 || true
+    rm -rf "$wtbase"
+
+    # Distinguish three outcomes by parsing the report, not by the exit code
+    # alone: a genuine failure (no parseable JSON — missing locale, crash, old
+    # CLI) must surface as an ERROR, not read as clean; "mismatches found"
+    # (valid JSON, rc!=0) reports the count; a clean run prints nothing.
+    count="$(jq '.summary | to_entries | map(.value) | add // 0' "$out" 2>/dev/null || true)"
+    if ! [[ "$count" =~ ^[0-9]+$ ]]; then
+      echo "$locale: ERROR — validation produced no parseable report (exit ${rc}); see $out" >&2
+      continue
+    fi
     if [ "$count" -gt 0 ]; then
       echo "$locale: $count variable mismatches — $out"
     fi

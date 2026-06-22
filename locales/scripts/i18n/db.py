@@ -49,10 +49,17 @@ def get_connection() -> Iterator[sqlite3.Connection]:
     # waits for a concurrent writer instead of raising "database is locked"
     # during connection setup. (The connect timeout above already arms a busy
     # handler, so this is belt-and-suspenders, but it keeps intent explicit and
-    # survives any change to that default.) journal_mode=WAL returns the
-    # existing mode harmlessly on a read-only or :memory: DB.
+    # survives any change to that default.)
     conn.execute(f"PRAGMA busy_timeout={BUSY_TIMEOUT_SECONDS * 1000}")
-    conn.execute("PRAGMA journal_mode=WAL")
+    try:
+        conn.execute("PRAGMA journal_mode=WAL")
+    except sqlite3.OperationalError:
+        # Switching journal mode is a write, which SQLite refuses on a
+        # read-only DB (a copied snapshot, or a checkout where the file is not
+        # writable). Read-only inspection commands (db query/export, tasks
+        # --stats) must still work, so degrade gracefully: reads run in the
+        # file's existing journal mode.
+        pass
     try:
         yield conn
     finally:

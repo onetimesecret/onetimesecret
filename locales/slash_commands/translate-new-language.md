@@ -11,6 +11,16 @@ then routes the actual translation work to a `saas-translator` agent that follow
 `locales/AGENT_TRANSLATION_PROTOCOL.md` exactly and reads its per-locale governance
 from `locales/.resolved/{LANG}.json`. It carries no per-locale convention prose.
 
+**Prerequisite (resolved-only): governance is back-ported first.** Under the
+resolved-only model a language becomes translatable only once
+`locales/.resolved/{LANG}.json` exists with a populated register + glossary.
+"New language" here means *new to translation* — its governance already exists,
+its content just hasn't been drained yet. This command does **not** bootstrap a
+language from nothing: if the resolved artifact is missing, back-port the
+language in the `translation-rules` repo (`authoring/backfill-locale.md`) and
+vendor the artifact first, then run this command. The gate below enforces that
+ordering rather than silently producing ungoverned translations.
+
 ## Detect Locale Structure
 
 ```bash
