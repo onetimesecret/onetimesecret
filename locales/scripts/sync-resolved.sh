@@ -149,7 +149,15 @@ if [ "${#preflight_bad[@]}" -ne 0 ]; then
   exit 2
 fi
 
-# --- emit per governed locale ------------------------------------------------
+# --- emit per governed locale (into a STAGING dir for atomic vendoring) -------
+# Emit every requested locale into a throwaway staging dir FIRST. Only after the
+# whole set resolves + lints + emits cleanly do we publish into locales/ (below).
+# Under `set -e`, a resolver/lint/schema failure on any locale aborts here before
+# a single file lands in locales/ — so a failed run never leaves a partial vendor
+# update. The existence/governance preflight above cannot catch a mid-run
+# resolver error; staging closes that gap.
+STAGE="$(mktemp -d)"
+trap 'rm -rf "$STAGE"' EXIT
 synced=()
 skipped=()
 
@@ -177,15 +185,16 @@ for d in "$RULES_DIR"/locales/*/; do
   echo "::sync ${locale}"
   # Run the resolver from inside the rules repo so it finds base.yaml, schema/,
   # locales/, retrospectives/ via its own defaults. Emit BOTH artifacts pinned
-  # to $SHA + $GENERATED_AT. Write the index to a throwaway temp file so the
-  # rules repo's committed resolver/index.json is left untouched.
+  # to $SHA + $GENERATED_AT into the STAGING dir (published into locales/ only
+  # after the whole set succeeds). Write the index to a throwaway temp file so
+  # the rules repo's committed resolver/index.json is left untouched.
   index_tmp="$(mktemp)"
   (
     cd "$RULES_DIR" && \
     uv run resolver/resolve.py "$locale" \
       --lint \
       --emit=md,json \
-      --emit-dir "$APP_LOCALES_DIR" \
+      --emit-dir "$STAGE" \
       --source-commit "$SHA" \
       --generated-at "$GENERATED_AT" \
       --index-path "$index_tmp"
@@ -208,6 +217,17 @@ if [ -n "$REQUESTED_LOCALES" ]; then
     fi
   done
 fi
+
+# --- publish: every requested locale emitted cleanly — copy staged artifacts --
+# into locales/ in one pass. NOTHING above this line has written to the app's
+# locales/ tree, so any abort before this point leaves the working tree
+# untouched (true all-or-nothing).
+for locale in "${synced[@]:-}"; do
+  [ -n "$locale" ] || continue
+  mkdir -p "$APP_LOCALES_DIR/.resolved" "$APP_LOCALES_DIR/guides/for-translators"
+  cp "$STAGE/.resolved/${locale}.json"            "$APP_LOCALES_DIR/.resolved/${locale}.json"
+  cp "$STAGE/guides/for-translators/${locale}.md" "$APP_LOCALES_DIR/guides/for-translators/${locale}.md"
+done
 
 # --- summary -----------------------------------------------------------------
 echo
