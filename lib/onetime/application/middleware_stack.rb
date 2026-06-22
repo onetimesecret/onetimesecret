@@ -182,11 +182,15 @@ module Onetime
         #     REMOTE_ADDR (one hop longer than Onetime's XFF-only chain). See the
         #     otto v2.3.0 migration guide. Mutually exclusive with add_trusted_proxy.
         #
-        # Header (site.network.trusted_proxy.header): otto 2.3.0 resolves from
-        # X-Forwarded-For ONLY in both modes; it has no RFC7239 `Forwarded`
-        # parser (otto#150). A `Forwarded`/`Both` setting is honored as "use
-        # X-Forwarded-For" and logged loudly, but the schema key still works so
-        # the option is not silently dropped.
+        # Header (site.network.trusted_proxy.header): in depth mode otto 2.3.1
+        # counts hops from the configured forwarded header — 'X-Forwarded-For'
+        # (default), RFC 7239 'Forwarded', or 'Both' — wired straight through to
+        # Otto::Security::Config#trusted_proxy_header (otto#150). The setter
+        # validates the value and raises on a typo, so a bad header fails the
+        # boot loudly rather than silently resolving from the wrong source. In
+        # filter/CIDR-walk mode otto reads the X-Forwarded-For family only and
+        # ignores this setting — matching the original ClientIpHelpers, where
+        # `header` was likewise a depth-mode-only concept.
         #
         # @return [Otto::Security::Config, nil]
         def ip_privacy_security_config
@@ -194,7 +198,8 @@ module Onetime
 
           tp     = OT.conf.dig('site', 'network', 'trusted_proxy') || {}
           mode   = tp['mode'] || 'filter'
-          header = tp['header'] || 'X-Forwarded-For'
+          header = tp['header'].to_s.strip
+          header = 'X-Forwarded-For' if header.empty?
 
           config = Otto::Security::Config.new
 
@@ -202,7 +207,11 @@ module Onetime
           # the removed router-level enable_full_ip_privacy! calls provided.
           config.ip_privacy_config.mask_private_ips = true
 
-          warn_unsupported_forwarded_header(header)
+          # Which forwarded header depth mode counts hops from (otto#150). otto
+          # honors this in depth mode only and reads the X-Forwarded-For family
+          # in CIDR-walk; the setter canonicalizes and raises on an unrecognized
+          # value, so a typo fails the boot rather than silently mis-resolving.
+          config.trusted_proxy_header = header
 
           if mode == 'depth'
             ots_depth                  = tp['depth'].to_i.clamp(1, 10)
@@ -223,25 +232,6 @@ module Onetime
           end
 
           config
-        end
-
-        # Warn loudly when the configured forwarded header is one otto 2.3.0
-        # cannot honor. Otto resolves from X-Forwarded-For only; it has no
-        # RFC7239 `Forwarded` parser (otto#150). We degrade to X-Forwarded-For
-        # rather than dropping the schema option, so the deployment keeps
-        # working but the operator learns the chosen header is not applied.
-        #
-        # @param header [String] the site.network.trusted_proxy.header value
-        # @return [void]
-        def warn_unsupported_forwarded_header(header)
-          return if header.nil? || header == 'X-Forwarded-For'
-
-          Onetime.boot_logger.warn(
-            'trusted_proxy.header is not supported by otto 2.3.0; using X-Forwarded-For',
-            requested: header,
-            reason: 'otto resolves the client IP from X-Forwarded-For only ' \
-                    '(no RFC7239 Forwarded parser); see onetimesecret/onetimesecret#3436 / otto#150',
-          )
         end
 
         # Whether the deployment has declared a trusted reverse proxy in front

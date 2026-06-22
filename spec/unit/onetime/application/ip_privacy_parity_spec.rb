@@ -29,7 +29,7 @@ RSpec.describe 'IP privacy / trusted-proxy parity (#3436)' do
 
   def stub_trusted_proxy(trusted_proxy)
     allow(OT).to receive(:conf).and_return(
-      'site' => { 'network' => { 'trusted_proxy' => trusted_proxy } }
+      'site' => { 'network' => { 'trusted_proxy' => trusted_proxy } },
     )
   end
 
@@ -45,7 +45,7 @@ RSpec.describe 'IP privacy / trusted-proxy parity (#3436)' do
 
     it "resolves the real public client into env['otto.client_ip'] and masks to its /24" do
       env = {
-        'REMOTE_ADDR'          => '10.244.10.5',     # private ingress hop (trusted)
+        'REMOTE_ADDR' => '10.244.10.5',     # private ingress hop (trusted)
         'HTTP_X_FORWARDED_FOR' => '203.0.113.42',    # real client
       }
 
@@ -75,7 +75,7 @@ RSpec.describe 'IP privacy / trusted-proxy parity (#3436)' do
       # Onetime depth 1 => otto trusted_proxy_depth 2 (chain = XFF + REMOTE_ADDR).
       # chain = [203.0.113.42, 10.244.10.5, 10.244.10.5] ; client = chain[-(2+1)].
       env = {
-        'REMOTE_ADDR'          => '10.244.10.5',
+        'REMOTE_ADDR' => '10.244.10.5',
         'HTTP_X_FORWARDED_FOR' => '203.0.113.42, 10.244.10.5',
       }
 
@@ -92,6 +92,56 @@ RSpec.describe 'IP privacy / trusted-proxy parity (#3436)' do
       build_mount.call(env)
 
       expect(captured[:env]['otto.client_ip']).to eq('10.244.10.0')
+    end
+  end
+
+  # otto#150: depth mode can now count hops from the RFC 7239 `Forwarded`
+  # header (or `Both`), wired through MiddlewareStack from
+  # site.network.trusted_proxy.header. Previously this degraded to
+  # X-Forwarded-For with a boot warning; now it is genuinely honored.
+  describe 'depth mode counting hops from the RFC 7239 Forwarded header' do
+    before { stub_trusted_proxy('enabled' => true, 'mode' => 'depth', 'depth' => 1, 'header' => 'Forwarded') }
+
+    it "resolves the client from `Forwarded for=` into env['otto.client_ip'] and masks to its /24" do
+      # Onetime depth 1 => otto depth 2; chain = Forwarded `for=` list + REMOTE_ADDR.
+      # chain = [203.0.113.42, 10.244.10.5, 10.244.10.5] ; client = chain[-(2+1)].
+      env = {
+        'REMOTE_ADDR' => '10.244.10.5',
+        'HTTP_FORWARDED' => 'for=203.0.113.42, for=10.244.10.5',
+        # An X-Forwarded-For present but NOT consulted in Forwarded mode.
+        'HTTP_X_FORWARDED_FOR' => '198.51.100.7',
+      }
+
+      build_mount.call(env)
+
+      expect(captured[:env]['otto.client_ip']).to eq('203.0.113.0')
+    end
+  end
+
+  describe "depth mode with header 'Both'" do
+    before { stub_trusted_proxy('enabled' => true, 'mode' => 'depth', 'depth' => 1, 'header' => 'Both') }
+
+    it 'prefers RFC 7239 Forwarded when it carries a for=' do
+      env = {
+        'REMOTE_ADDR' => '10.244.10.5',
+        'HTTP_FORWARDED' => 'for=203.0.113.42, for=10.244.10.5',
+        'HTTP_X_FORWARDED_FOR' => '198.51.100.7, 10.244.10.5',
+      }
+
+      build_mount.call(env)
+
+      expect(captured[:env]['otto.client_ip']).to eq('203.0.113.0')
+    end
+
+    it 'falls back to X-Forwarded-For when no Forwarded header is present' do
+      env = {
+        'REMOTE_ADDR' => '10.244.10.5',
+        'HTTP_X_FORWARDED_FOR' => '198.51.100.7, 10.244.10.5',
+      }
+
+      build_mount.call(env)
+
+      expect(captured[:env]['otto.client_ip']).to eq('198.51.100.0')
     end
   end
 end

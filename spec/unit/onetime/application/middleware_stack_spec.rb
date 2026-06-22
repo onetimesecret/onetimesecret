@@ -10,7 +10,7 @@ RSpec.describe Onetime::Application::MiddlewareStack do
 
     def stub_conf(trusted_proxy)
       allow(OT).to receive(:conf).and_return(
-        'site' => { 'network' => { 'trusted_proxy' => trusted_proxy } }
+        'site' => { 'network' => { 'trusted_proxy' => trusted_proxy } },
       )
     end
 
@@ -88,8 +88,8 @@ RSpec.describe Onetime::Application::MiddlewareStack do
       before do
         stub_conf(
           'enabled' => true,
-          'mode'    => 'filter',
-          'cidrs'   => ['203.0.113.0/24', '2001:db8::/32'],
+          'mode' => 'filter',
+          'cidrs' => ['203.0.113.0/24', '2001:db8::/32'],
         )
       end
 
@@ -109,8 +109,8 @@ RSpec.describe Onetime::Application::MiddlewareStack do
       it 'ignores blank CIDR entries without raising' do
         stub_conf(
           'enabled' => true,
-          'mode'    => 'filter',
-          'cidrs'   => ['', '  ', '203.0.113.0/24'],
+          'mode' => 'filter',
+          'cidrs' => ['', '  ', '203.0.113.0/24'],
         )
         expect { config }.not_to raise_error
         expect(config.trusted_proxy?('203.0.113.42')).to be(true)
@@ -121,8 +121,8 @@ RSpec.describe Onetime::Application::MiddlewareStack do
       before do
         stub_conf(
           'enabled' => true,
-          'mode'    => 'depth',
-          'depth'   => 2,
+          'mode' => 'depth',
+          'depth' => 2,
         )
       end
 
@@ -151,46 +151,43 @@ RSpec.describe Onetime::Application::MiddlewareStack do
       end
     end
 
-    context 'when an unsupported forwarded header is configured' do
-      let(:warnings) { [] }
-
-      before do
-        boot_logger = instance_double('boot_logger')
-        allow(boot_logger).to receive(:warn) { |msg, **kw| warnings << [msg, kw] }
-        allow(Onetime).to receive(:boot_logger).and_return(boot_logger)
+    context 'when a forwarded header is configured (otto#150)' do
+      it 'wires RFC 7239 Forwarded through to otto in depth mode' do
+        stub_conf('enabled' => true, 'mode' => 'depth', 'depth' => 1, 'header' => 'Forwarded')
+        expect(config.trusted_proxy_header).to eq('Forwarded')
       end
 
-      it 'warns and still builds an X-Forwarded-For config for Forwarded' do
-        stub_conf('enabled' => true, 'mode' => 'filter', 'header' => 'Forwarded')
-
-        expect(config).to be_a(Otto::Security::Config)
-        # degrades to XFF: still trusts RFC1918 via the regex
-        expect(config.trusted_proxy?('10.244.10.0')).to be(true)
-        expect(warnings.size).to eq(1)
-        expect(warnings.first.first).to match(/not supported by otto/i)
-        expect(warnings.first.last[:requested]).to eq('Forwarded')
+      it 'wires Both through to otto in depth mode' do
+        stub_conf('enabled' => true, 'mode' => 'depth', 'depth' => 1, 'header' => 'Both')
+        expect(config.trusted_proxy_header).to eq('Both')
       end
 
-      it 'warns for Both as well' do
-        stub_conf('enabled' => true, 'mode' => 'filter', 'header' => 'Both')
-
-        expect(config).to be_a(Otto::Security::Config)
-        expect(warnings.size).to eq(1)
-        expect(warnings.first.last[:requested]).to eq('Both')
+      it 'canonicalizes a case-insensitive header value' do
+        stub_conf('enabled' => true, 'mode' => 'depth', 'depth' => 1, 'header' => 'forwarded')
+        expect(config.trusted_proxy_header).to eq('Forwarded')
       end
 
-      it 'does not warn for the supported X-Forwarded-For header' do
-        stub_conf('enabled' => true, 'mode' => 'filter', 'header' => 'X-Forwarded-For')
+      it 'defaults to X-Forwarded-For when the header is absent' do
+        stub_conf('enabled' => true, 'mode' => 'filter')
+        expect(config.trusted_proxy_header).to eq('X-Forwarded-For')
+      end
 
-        config
-        expect(warnings).to be_empty
+      it 'treats a blank header as the default (no raise)' do
+        stub_conf('enabled' => true, 'mode' => 'filter', 'header' => '  ')
+        expect { config }.not_to raise_error
+        expect(config.trusted_proxy_header).to eq('X-Forwarded-For')
+      end
+
+      it 'fails the boot loudly on an unrecognized header (no silent mis-resolution)' do
+        stub_conf('enabled' => true, 'mode' => 'depth', 'depth' => 1, 'header' => 'Banana')
+        expect { config }.to raise_error(ArgumentError, /trusted_proxy_header/)
       end
     end
 
     describe '.trusted_proxy_enabled?' do
       def stub_conf(trusted_proxy)
         allow(OT).to receive(:conf).and_return(
-          'site' => { 'network' => { 'trusted_proxy' => trusted_proxy } }
+          'site' => { 'network' => { 'trusted_proxy' => trusted_proxy } },
         )
       end
 
