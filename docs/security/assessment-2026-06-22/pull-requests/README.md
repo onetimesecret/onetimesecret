@@ -13,8 +13,8 @@ the branches are cut from commit `ef971b0`, the pre-assessment code state).
 |----|--------|------|--------|
 | C1 | `claude/fix-one-time-reveal-atomicity` | main | pushed, reviewed ✅ |
 | S1/S2 | `claude/fix-secure-header-defaults` | main | pushed, reviewed ✅ |
-| #3499 PR-1 | `claude/fix-3499-resolve-omniauth-email` | main | pending review |
-| SSO PR-2 | `claude/fix-sso-secure-linking` | `claude/fix-3499-resolve-omniauth-email` | pending |
+| #3499 PR-1 | `claude/fix-3499-resolve-omniauth-email` | main | pushed (review env-limited; needs SSO-CI) |
+| SSO PR-2 | `claude/fix-sso-secure-linking` | `claude/fix-3499-resolve-omniauth-email` | implemented, under review |
 
 C1 and S1/S2 are independent (either order). The SSO pair is **stacked**:
 PR-2 targets PR-1's branch and must merge after it. PR-1 must NOT ship alone
