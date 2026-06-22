@@ -43,24 +43,35 @@ def get_connection() -> Iterator[sqlite3.Connection]:
     """
     conn = sqlite3.connect(DB_FILE, timeout=BUSY_TIMEOUT_SECONDS)
     conn.row_factory = sqlite3.Row
-    # Set outside any transaction (connection is in autocommit here). Order
-    # matters: install busy_timeout BEFORE the journal_mode=WAL switch, since
-    # switching to WAL itself takes a write lock — with the timeout armed it
-    # waits for a concurrent writer instead of raising "database is locked"
-    # during connection setup. (The connect timeout above already arms a busy
-    # handler, so this is belt-and-suspenders, but it keeps intent explicit and
-    # survives any change to that default.)
-    conn.execute(f"PRAGMA busy_timeout={BUSY_TIMEOUT_SECONDS * 1000}")
+    # Pragma setup and the yield share one try/finally so the connection is
+    # ALWAYS closed — including when a setup pragma re-raises (e.g. a lock
+    # timeout on the WAL switch below). Closing only after a successful setup
+    # would leak the handle/lock in exactly the contended batch that triggered
+    # the failure.
     try:
-        conn.execute("PRAGMA journal_mode=WAL")
-    except sqlite3.OperationalError:
-        # Switching journal mode is a write, which SQLite refuses on a
-        # read-only DB (a copied snapshot, or a checkout where the file is not
-        # writable). Read-only inspection commands (db query/export, tasks
-        # --stats) must still work, so degrade gracefully: reads run in the
-        # file's existing journal mode.
-        pass
-    try:
+        # Set outside any transaction (connection is in autocommit here). Order
+        # matters: install busy_timeout BEFORE the journal_mode=WAL switch, since
+        # switching to WAL itself takes a write lock — with the timeout armed it
+        # waits for a concurrent writer instead of raising "database is locked"
+        # during connection setup. (The connect timeout above already arms a busy
+        # handler, so this is belt-and-suspenders, but it keeps intent explicit
+        # and survives any change to that default.)
+        conn.execute(f"PRAGMA busy_timeout={BUSY_TIMEOUT_SECONDS * 1000}")
+        try:
+            conn.execute("PRAGMA journal_mode=WAL")
+        except sqlite3.OperationalError as exc:
+            # Switching journal mode is a write, which SQLite refuses on a
+            # read-only DB (a copied snapshot, or a checkout where the file is
+            # not writable) with "attempt to write a readonly database".
+            # Read-only inspection commands (db query/export, tasks --stats)
+            # must still work, so degrade gracefully in THAT case only: reads run
+            # in the file's existing journal mode. Any other OperationalError —
+            # notably a lock timeout, which the busy_timeout set above is meant
+            # to absorb — is a real concurrency failure that WAL exists to
+            # prevent; re-raise it rather than silently leaving parallel agents
+            # in rollback-journal mode where they hit "database is locked".
+            if "readonly" not in str(exc).lower():
+                raise
         yield conn
     finally:
         conn.close()

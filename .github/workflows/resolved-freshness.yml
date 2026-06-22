@@ -63,10 +63,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout app repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Checkout translation-rules (authority, read-only, pinned)
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: onetimesecret/translation-rules
           # Pinned to a SHA — not a moving branch — so the gate is reproducible.
@@ -78,7 +78,7 @@ jobs:
       - name: Install uv (pinned)
         # The resolver is uv-managed; `uv run` auto-syncs deps from the inline
         # script metadata / lockfile. Pin the installer action, bump deliberately.
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
         with:
           version: "0.5.18"
 
@@ -114,9 +114,15 @@ jobs:
           # same value locales/scripts/sync-resolved.sh stamps at vendor time.
           # Without this the regenerated JSON below would carry a fresh wall-clock
           # timestamp and the byte-for-byte diff would fail on _meta.generated_at
-          # alone. Deriving it from the SHA keeps the artifact a pure function of
-          # the source commit.
-          gen_at="$(git -C "$rules" show -s --format=%cI "$PINNED_RULES_REF")"
+          # alone.
+          #
+          # Do NOT use %cI: it renders a UTC commit as "+00:00" on git <2.54 but
+          # "Z" on git >=2.54, so this runner and the vendor machine can disagree
+          # byte-for-byte on an identical instant. Force UTC + a literal +00:00
+          # offset via %cd/format-local so the value is a pure function of the
+          # commit across git versions, matching sync-resolved.sh EXACTLY.
+          gen_at="$(TZ=UTC git -C "$rules" show -s \
+            --date=format-local:'%Y-%m-%dT%H:%M:%S+00:00' --format=%cd "$PINNED_RULES_REF")"
 
           if [ ! -d "$resolved_dir" ]; then
             echo "::notice::no locales/.resolved/ dir — nothing vendored yet; gate scanned nothing"

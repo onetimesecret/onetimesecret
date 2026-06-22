@@ -88,7 +88,14 @@ SHA="$(git -C "$RULES_DIR" rev-parse HEAD)"
 # artifact is a pure function of $SHA (no wall-clock drift between this vendor
 # run and the CI freshness gate's regeneration). resolved-freshness.yml derives
 # the SAME value from PINNED_RULES_REF; the two MUST stay in lock-step.
-GENERATED_AT="$(git -C "$RULES_DIR" show -s --format=%cI "$SHA")"
+#
+# Do NOT use git's %cI here: it renders a UTC commit as "+00:00" on git <2.54
+# but "Z" on git >=2.54, so the vendor machine and the CI runner can disagree
+# byte-for-byte on an identical instant (this exact drift red-failed the gate).
+# Instead force UTC and a literal +00:00 offset via %cd/format-local, which is a
+# pure function of the commit across every git version.
+GENERATED_AT="$(TZ=UTC git -C "$RULES_DIR" show -s \
+  --date=format-local:'%Y-%m-%dT%H:%M:%S+00:00' --format=%cd "$SHA")"
 
 # Resolve the set of locales to vendor. An explicit LOCALES allow-list wins;
 # otherwise default to the locales ALREADY vendored (basenames of the committed
@@ -121,7 +128,36 @@ else
 fi
 echo
 
-# --- emit per governed locale ------------------------------------------------
+# --- preflight: validate the FULL requested set before emitting anything ------
+# Vendoring is all-or-nothing. The emit loop below writes each locale's artifacts
+# as it goes, so without this gate a single bad locale (a typo, or one absent /
+# ungoverned upstream) would abort MID-RUN — after earlier locales were already
+# written — leaving a dirty partial vendor update. Validate every requested
+# locale up front and bail before touching the working tree.
+preflight_bad=()
+for want in $REQUESTED_LOCALES; do
+  if [ ! -d "$RULES_DIR/locales/$want" ]; then
+    echo "error: requested locale '${want}' is absent upstream (no $RULES_DIR/locales/${want})" >&2
+    preflight_bad+=("$want")
+  elif [ ! -f "$RULES_DIR/locales/$want/register.yaml" ]; then
+    echo "error: requested locale '${want}' is ungoverned (no register.yaml) — cannot vendor" >&2
+    preflight_bad+=("$want")
+  fi
+done
+if [ "${#preflight_bad[@]}" -ne 0 ]; then
+  echo "sync-resolved: aborting before any emit — cannot vendor: ${preflight_bad[*]}" >&2
+  exit 2
+fi
+
+# --- emit per governed locale (into a STAGING dir for atomic vendoring) -------
+# Emit every requested locale into a throwaway staging dir FIRST. Only after the
+# whole set resolves + lints + emits cleanly do we publish into locales/ (below).
+# Under `set -e`, a resolver/lint/schema failure on any locale aborts here before
+# a single file lands in locales/ — so a failed run never leaves a partial vendor
+# update. The existence/governance preflight above cannot catch a mid-run
+# resolver error; staging closes that gap.
+STAGE="$(mktemp -d)"
+trap 'rm -rf "$STAGE"' EXIT
 synced=()
 skipped=()
 
@@ -149,15 +185,16 @@ for d in "$RULES_DIR"/locales/*/; do
   echo "::sync ${locale}"
   # Run the resolver from inside the rules repo so it finds base.yaml, schema/,
   # locales/, retrospectives/ via its own defaults. Emit BOTH artifacts pinned
-  # to $SHA + $GENERATED_AT. Write the index to a throwaway temp file so the
-  # rules repo's committed resolver/index.json is left untouched.
+  # to $SHA + $GENERATED_AT into the STAGING dir (published into locales/ only
+  # after the whole set succeeds). Write the index to a throwaway temp file so
+  # the rules repo's committed resolver/index.json is left untouched.
   index_tmp="$(mktemp)"
   (
     cd "$RULES_DIR" && \
     uv run resolver/resolve.py "$locale" \
       --lint \
       --emit=md,json \
-      --emit-dir "$APP_LOCALES_DIR" \
+      --emit-dir "$STAGE" \
       --source-commit "$SHA" \
       --generated-at "$GENERATED_AT" \
       --index-path "$index_tmp"
@@ -180,6 +217,17 @@ if [ -n "$REQUESTED_LOCALES" ]; then
     fi
   done
 fi
+
+# --- publish: every requested locale emitted cleanly — copy staged artifacts --
+# into locales/ in one pass. NOTHING above this line has written to the app's
+# locales/ tree, so any abort before this point leaves the working tree
+# untouched (true all-or-nothing).
+for locale in "${synced[@]:-}"; do
+  [ -n "$locale" ] || continue
+  mkdir -p "$APP_LOCALES_DIR/.resolved" "$APP_LOCALES_DIR/guides/for-translators"
+  cp "$STAGE/.resolved/${locale}.json"            "$APP_LOCALES_DIR/.resolved/${locale}.json"
+  cp "$STAGE/guides/for-translators/${locale}.md" "$APP_LOCALES_DIR/guides/for-translators/${locale}.md"
+done
 
 # --- summary -----------------------------------------------------------------
 echo
