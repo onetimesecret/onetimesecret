@@ -148,12 +148,6 @@ module Onetime
           body
         end
 
-        # Give the router the same trusted-proxy list as the outer IP-privacy
-        # middleware. Done here (not in each build_router) so no Otto app can
-        # land with an inconsistent trust list. Placed before the debug-only
-        # request-logging hook below so it runs in production too.
-        configure_otto_trusted_proxies(router)
-
         return unless Onetime.debug?
 
         router.on_request_complete do |req, res, duration|
@@ -177,30 +171,6 @@ module Onetime
               user_agent: req.user_agent&.slice(0, 100),
             }
         end
-      end
-
-      # Mirror the trusted-proxy list onto the Otto router's own security
-      # config so req.client_ipaddress and req.secure? agree with Rack's
-      # request.ip about which hops to trust. No-op unless
-      # site.network.trusted_proxy is enabled (same gate as the outer
-      # IPPrivacyMiddleware via MiddlewareStack.ip_privacy_security_config).
-      #
-      # Defense-in-depth, not the primary path: the outer middleware runs
-      # first and has already rewritten REMOTE_ADDR to the resolved (masked)
-      # client by the time the router sees a request. For public clients that
-      # masked address is not a trusted proxy, so this list does not fire and
-      # they still depend on the outer rewrite — this list keeps resolution
-      # correct if that middleware is ever reordered or removed. It does change
-      # the private-origin requests the outer middleware exempts from masking
-      # (REMOTE_ADDR left private): the router now walks X-Forwarded-For and
-      # honors X-Forwarded-Proto for those, instead of returning the proxy hop.
-      #
-      # @param router [Otto] The Otto router instance to configure
-      # @return [void]
-      def configure_otto_trusted_proxies(router)
-        return unless Onetime::Application::MiddlewareStack.trusted_proxy_enabled?
-
-        router.add_trusted_proxy(Onetime::Application::MiddlewareStack::PRIVATE_PROXY_RANGES)
       end
     end
   end

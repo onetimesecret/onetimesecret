@@ -10,23 +10,35 @@ RSpec.describe Onetime::Application::MiddlewareStack do
 
     def stub_conf(trusted_proxy)
       allow(OT).to receive(:conf).and_return(
-        'site' => { 'network' => { 'trusted_proxy' => trusted_proxy } }
+        'site' => { 'network' => { 'trusted_proxy' => trusted_proxy } },
       )
     end
 
     context 'when trusted_proxy is absent' do
       before { allow(OT).to receive(:conf).and_return({}) }
 
-      it 'returns nil so the middleware stays in direct-connection mode' do
-        expect(config).to be_nil
+      it 'still masks private/localhost IPs while trusting no proxy hop' do
+        # The removed per-router enable_full_ip_privacy! calls ran
+        # unconditionally, so direct-connect deployments must keep masking
+        # private addresses rather than leaking them unmasked.
+        aggregate_failures do
+          expect(config).to be_a(Otto::Security::Config)
+          expect(config.ip_privacy_config.mask_private_ips).to be(true)
+          expect(config.trusted_proxy?('10.0.0.1')).to be(false)
+          expect(config.trusted_proxy_depth_mode?).to be(false)
+        end
       end
     end
 
     context 'when trusted_proxy is disabled' do
       before { stub_conf('enabled' => false) }
 
-      it 'returns nil' do
-        expect(config).to be_nil
+      it 'still masks private/localhost IPs while trusting no proxy hop' do
+        aggregate_failures do
+          expect(config).to be_a(Otto::Security::Config)
+          expect(config.ip_privacy_config.mask_private_ips).to be(true)
+          expect(config.trusted_proxy?('10.0.0.1')).to be(false)
+        end
       end
     end
 
@@ -71,12 +83,123 @@ RSpec.describe Onetime::Application::MiddlewareStack do
           expect(config.trusted_proxy?('fec0::1')).to be(false)
         end
       end
+
+      it 'enables full IP masking (private/localhost masked too)' do
+        # One universal mount replaces the per-router enable_full_ip_privacy!
+        # calls; the config must carry mask_private_ips so private addresses are
+        # masked, not exempted.
+        expect(config.ip_privacy_config.mask_private_ips).to be(true)
+      end
+
+      it 'uses CIDR-walk by default (no depth mode)' do
+        expect(config.trusted_proxy_depth_mode?).to be(false)
+      end
+    end
+
+    context 'when filter mode declares additional public CIDRs' do
+      before do
+        stub_conf(
+          'enabled' => true,
+          'mode' => 'filter',
+          'cidrs' => ['203.0.113.0/24', '2001:db8::/32'],
+        )
+      end
+
+      it 'trusts the configured public CIDRs in addition to RFC1918' do
+        aggregate_failures do
+          # configured public IPv4 CIDR
+          expect(config.trusted_proxy?('203.0.113.42')).to be(true)
+          # still trusts RFC1918
+          expect(config.trusted_proxy?('10.244.10.0')).to be(true)
+          # configured public IPv6 CIDR
+          expect(config.trusted_proxy?('2001:db8::1')).to be(true)
+          # an address outside both stays untrusted
+          expect(config.trusted_proxy?('198.51.100.7')).to be(false)
+        end
+      end
+
+      it 'ignores blank CIDR entries without raising' do
+        stub_conf(
+          'enabled' => true,
+          'mode' => 'filter',
+          'cidrs' => ['', '  ', '203.0.113.0/24'],
+        )
+        expect { config }.not_to raise_error
+        expect(config.trusted_proxy?('203.0.113.42')).to be(true)
+      end
+    end
+
+    context 'when depth mode is configured' do
+      before do
+        stub_conf(
+          'enabled' => true,
+          'mode' => 'depth',
+          'depth' => 2,
+        )
+      end
+
+      it 'maps Onetime depth N to otto trusted_proxy_depth N + 1' do
+        # otto#151 remap: otto appends REMOTE_ADDR to the chain, one hop longer
+        # than Onetime's XFF-only chain.
+        expect(config.trusted_proxy_depth).to eq(3)
+      end
+
+      it 'activates count-based depth mode' do
+        expect(config.trusted_proxy_depth_mode?).to be(true)
+      end
+
+      it 'does not also register CIDR proxies (mutually exclusive in otto)' do
+        expect(config.trusted_proxies).to be_empty
+      end
+
+      it 'clamps Onetime depth to 1..10 before the +1 remap' do
+        stub_conf('enabled' => true, 'mode' => 'depth', 'depth' => 50)
+        expect(config.trusted_proxy_depth).to eq(11) # clamp(1,10) => 10, +1 => 11
+      end
+
+      it 'treats a zero/blank depth as the minimum (1) before remap' do
+        stub_conf('enabled' => true, 'mode' => 'depth', 'depth' => 0)
+        expect(config.trusted_proxy_depth).to eq(2) # clamp(1,10) => 1, +1 => 2
+      end
+    end
+
+    context 'when a forwarded header is configured (otto#150)' do
+      it 'wires RFC 7239 Forwarded through to otto in depth mode' do
+        stub_conf('enabled' => true, 'mode' => 'depth', 'depth' => 1, 'header' => 'Forwarded')
+        expect(config.trusted_proxy_header).to eq('Forwarded')
+      end
+
+      it 'wires Both through to otto in depth mode' do
+        stub_conf('enabled' => true, 'mode' => 'depth', 'depth' => 1, 'header' => 'Both')
+        expect(config.trusted_proxy_header).to eq('Both')
+      end
+
+      it 'canonicalizes a case-insensitive header value' do
+        stub_conf('enabled' => true, 'mode' => 'depth', 'depth' => 1, 'header' => 'forwarded')
+        expect(config.trusted_proxy_header).to eq('Forwarded')
+      end
+
+      it 'defaults to X-Forwarded-For when the header is absent' do
+        stub_conf('enabled' => true, 'mode' => 'filter')
+        expect(config.trusted_proxy_header).to eq('X-Forwarded-For')
+      end
+
+      it 'treats a blank header as the default (no raise)' do
+        stub_conf('enabled' => true, 'mode' => 'filter', 'header' => '  ')
+        expect { config }.not_to raise_error
+        expect(config.trusted_proxy_header).to eq('X-Forwarded-For')
+      end
+
+      it 'fails the boot loudly on an unrecognized header (no silent mis-resolution)' do
+        stub_conf('enabled' => true, 'mode' => 'depth', 'depth' => 1, 'header' => 'Banana')
+        expect { config }.to raise_error(ArgumentError, /trusted_proxy_header/)
+      end
     end
 
     describe '.trusted_proxy_enabled?' do
       def stub_conf(trusted_proxy)
         allow(OT).to receive(:conf).and_return(
-          'site' => { 'network' => { 'trusted_proxy' => trusted_proxy } }
+          'site' => { 'network' => { 'trusted_proxy' => trusted_proxy } },
         )
       end
 

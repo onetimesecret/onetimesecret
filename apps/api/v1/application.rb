@@ -80,10 +80,11 @@ module V1
       # Configure Otto request lifecycle hooks (from OttoHooks module)
       configure_otto_request_hook(router)
 
-      # IP privacy is enabled globally in common middleware stack for public
-      # addresses. Must be enabled specifically for private and localhost
-      # addresses. See Otto::Middleware::IPPrivacy for details
-      router.enable_full_ip_privacy!
+      # IP privacy (incl. private/localhost masking) is configured once on the
+      # universal IPPrivacyMiddleware mount in MiddlewareStack via
+      # ip_privacy_security_config (mask_private_ips = true). The per-router
+      # enable_full_ip_privacy! call was removed to keep a single trust/privacy
+      # source; the mount's idempotency makes a second pass here redundant.
 
       # Default error responses
       headers             = { 'content-type' => 'application/json' }
