@@ -41,22 +41,29 @@ Discover, do not assume. Run these yourself in the main loop first:
      `tasks next <loc> --stats`), **or**
    - rebuild: `i18n db init` then `i18n db import` (loads committed
      glossary/session_log).
-2. **Targets.** If `$ARGUMENTS` is non-empty, use those locale codes verbatim.
-   Otherwise auto-detect: enumerate `locales/content/*` dirs and keep those whose
-   `i18n tasks next <loc> --stats` reports `pending > 0`.
+2. **Candidate targets.** If `$ARGUMENTS` is non-empty, use those locale codes
+   verbatim; otherwise enumerate `locales/content/*` dirs as candidates. (Do NOT
+   filter on `pending` yet — a fresh or just-imported DB has no task rows, so an
+   eligible untranslated locale would read `pending == 0` and be dropped before
+   its queue is ever built.)
 3. **Eligibility gate.** A locale is eligible for automated drain **only if**
    `locales/.resolved/<loc>.json` exists with a populated `register` and a
    populated `glossary` (its governance has been back-ported upstream). For each
-   candidate target, check this and **SKIP + warn** for any locale that lacks it:
+   candidate, check this and **SKIP + warn** for any locale that lacks it:
    ```bash
    jq -e '((.register // {}) | length > 0) and ((.glossary // {}) | length > 0)' "locales/.resolved/$loc.json" >/dev/null 2>&1 || echo "SKIP (no resolved governance): $loc"
    ```
-   Pass only eligible targets into the Workflow.
-4. **Build the queue per eligible target.** `i18n tasks create <loc>` (re)builds
-   `translation_tasks` from `en`. It is **target-blind**: it will not enqueue
-   *stale* keys (already translated, but `en` changed since), so `0 pending`
-   means "no untranslated keys," **not** "fully current." Note that limitation;
-   do not try to work around it here.
+4. **Refresh each eligible target's queue, THEN filter on pending.** Build the
+   queue before checking pending. Use `--missing-only` so an existing locale
+   enqueues only keys still untranslated in `content/<loc>` and never requeues
+   already-translated, reviewed strings:
+   ```bash
+   i18n tasks create <loc> --missing-only      # per eligible target
+   i18n tasks next <loc> --stats               # keep targets now showing pending > 0
+   ```
+   `tasks create` is still target-blind about *stale* keys (already translated but
+   `en` changed since), so `0 pending` means "no untranslated keys," **not** "fully
+   current" — note that, don't work around it here.
 
 Record the scouted (and eligible) target list + per-locale pending counts; pass
 them into the Workflow as `args`.

@@ -60,10 +60,13 @@ Only launch agents for `ELIGIBLE` locales.
 
 ### 1. Initialize Locales
 
-For each eligible locale that doesn't have tasks yet:
+For each eligible locale that doesn't have tasks yet, enqueue only keys still
+untranslated in `content/LOCALE` (`--missing-only`) so a DB rebuild never requeues
+already-translated, reviewed strings. Omit `--missing-only` only to bootstrap a
+brand-new, empty locale:
 
 ```bash
-python3 locales/scripts/i18n tasks create LOCALE
+python3 locales/scripts/i18n tasks create LOCALE --missing-only
 ```
 
 ### 2. Check Current Status

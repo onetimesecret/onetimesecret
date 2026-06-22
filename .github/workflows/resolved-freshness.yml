@@ -32,6 +32,10 @@ on:
       - 'locales/.resolved/**'
       - 'locales/guides/for-translators/**'
       - 'locales/content/**'
+      # The vendoring script controls the resolver args, emit paths, and the
+      # source_commit/generated_at this gate later asserts — re-run when it
+      # changes so a vendoring-script change can't merge unchecked.
+      - 'locales/scripts/sync-resolved.sh'
       # Re-run when the gate's own pin is bumped — otherwise a bad bump merges
       # unvalidated and fails the next unrelated PR (same reasoning as
       # validate-register.yml).
@@ -42,6 +46,7 @@ on:
       - 'locales/.resolved/**'
       - 'locales/guides/for-translators/**'
       - 'locales/content/**'
+      - 'locales/scripts/sync-resolved.sh'
       - '.github/workflows/resolved-freshness.yml'
 
 permissions:

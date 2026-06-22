@@ -65,6 +65,11 @@ cmd_validate() {
   local results_dir="${1:-/tmp}"
   mkdir -p "$results_dir"
 
+  # `validate` parses each report with jq; if jq is missing every parse fails and
+  # the loop prints ERROR for every locale yet still exits 0 — a clean-looking but
+  # empty report. Fail closed instead of failing open.
+  command -v jq >/dev/null 2>&1 || die "jq not found on PATH; the validate stage needs it to parse mismatch counts"
+
   # Enumerate i18n/update-* refs, local AND remote (a fresh checkout commonly
   # has them only as origin/i18n/update-*). Keep each ref's full name so we can
   # validate that branch's CONTENT — not whatever happens to be checked out —
