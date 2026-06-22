@@ -163,6 +163,27 @@ module V2::Logic
               )
             end
           else
+            # One-time guarantee (finding C1): atomically CLAIM the secret
+            # before disclosing it. revealed! returns true only for the single
+            # winning request; a concurrent request that already consumed this
+            # secret gets false here and must surface "gone" rather than
+            # re-disclose the plaintext it happened to decrypt above.
+            #
+            # Raising on a lost claim is correct one-time semantics: the secret
+            # really was consumed by another request (we hold no valid claim to
+            # it). This differs from the "don't raise mid-reveal" guidance in
+            # the class header, which is about transient errors when WE legitimately
+            # hold the value — here we do not.
+            unless secret.revealed!
+              secret_logger.info 'Secret reveal lost race; already consumed',
+                {
+                  secret_identifier: secret.shortid,
+                  action: 'reveal',
+                  result: :already_consumed,
+                }
+              raise OT::MissingSecret
+            end
+
             secret_logger.info 'Secret revealed successfully',
               {
                 secret_identifier: secret.shortid,
@@ -171,22 +192,10 @@ module V2::Logic
                 result: :success,
               }
 
+            # Count the share only for the winning reveal.
             owner.increment_field :secrets_shared if !owner.nil? && !owner.anonymous?
 
             Onetime::Customer.secrets_shared.increment
-
-            # Immediately mark the secret as revealed, so that it
-            # can't be shown again. If there's a network failure
-            # that prevents the client from receiving the response,
-            # we're not able to show it again. This is a feature
-            # not a bug.
-            #
-            # NOTE: This destructive action is called before the
-            # response is returned or even fully generated (which
-            # happens in success_data). This is a feature, not a
-            # bug but it means that all return values need to be
-            # pluck out of the secret object before this is called.
-            secret.revealed!
           end
 
         elsif secret.has_passphrase? && !correct_passphrase

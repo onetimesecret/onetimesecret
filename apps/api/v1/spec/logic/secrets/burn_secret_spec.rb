@@ -57,7 +57,7 @@ RSpec.describe V1::Logic::Secrets::BurnSecret do
   describe '#process' do
     context 'when secret is viewable and passphrase is correct' do
       before do
-        allow(secret).to receive(:burned!)
+        allow(secret).to receive(:burned!).and_return(true)
       end
 
       it 'calls load_owner on the secret to retrieve the owner' do
@@ -87,7 +87,7 @@ RSpec.describe V1::Logic::Secrets::BurnSecret do
       subject { described_class.new(session, customer, base_params.merge('continue' => 'false')) }
 
       before do
-        allow(secret).to receive(:burned!)
+        allow(secret).to receive(:burned!).and_return(true)
       end
 
       it 'does not burn the secret' do

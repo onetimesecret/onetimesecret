@@ -39,6 +39,42 @@ module Onetime::Secret::Features
         (key?(:ciphertext) || key?(:value)) && (state?(:new) || state?(:previewed))
       end
 
+      # Atomic single-winner consume claim (finding C1: the one-time guarantee
+      # must hold under concurrency).
+      #
+      # A "one-time" secret must be revealable/burnable exactly once even when
+      # simultaneous requests for the same identifier are served by separate
+      # Puma worker PROCESSES (no shared GIL). The previous flow was a TOCTOU:
+      # each request checked the in-memory state, decrypted, then destroyed —
+      # so two requests could both pass the guard and both disclose the secret.
+      #
+      # This Lua script runs server-side and, in ONE atomic step, deletes the
+      # secret's main hash key iff its state is still consumable (new/previewed),
+      # returning 1 to the single caller that wins. All other concurrent callers
+      # receive 0 and must treat the secret as already consumed (and MUST NOT
+      # disclose its value).
+      CONSUME_SCRIPT = <<~LUA
+        local state = redis.call('HGET', KEYS[1], 'state')
+        if state then
+          -- Familia stores field values JSON-encoded, so a string field is
+          -- quoted at rest (e.g. the literal characters "new"). Strip one
+          -- layer of surrounding double quotes so this matches the Ruby-side
+          -- state?(:new)/state?(:previewed) guard regardless of encoding.
+          state = string.gsub(state, '^"(.*)"$', '%1')
+        end
+        if state == 'new' or state == 'previewed' then
+          return redis.call('DEL', KEYS[1])
+        end
+        return 0
+      LUA
+
+      # @return [Boolean] true only for the single caller that atomically
+      #   claimed (and deleted) the secret's main key; false if it was already
+      #   consumed/expired by another request.
+      def claim_consumption!
+        dbclient.eval(CONSUME_SCRIPT, keys: [dbkey]).to_i == 1
+      end
+
       # MIGRATION NOTE: This method replaces the legacy `viewed!` method.
       # Existing data with state='viewed' should be migrated to state='previewed'.
       # The `viewed` timestamp field maps to the new `previewed` field.
@@ -57,35 +93,44 @@ module Onetime::Secret::Features
       # MIGRATION NOTE: This method replaces the legacy `received!` method.
       # Existing data with state='received' should be migrated to state='revealed'.
       # The `received` timestamp field maps to the new `revealed` field.
+      # Reveal-and-consume. Returns true ONLY for the single caller that wins
+      # the atomic claim; concurrent/duplicate callers get false and must not
+      # disclose the secret value (finding C1). Replaces the old non-atomic
+      # state-check-then-destroy.
       def revealed!
-        # A guard to allow only a fresh, new secret to be revealed. Also ensures that
-        # we don't support going from :previewed back to something else.
-        return unless state?(:new) || state?(:previewed)
+        # Atomic winner-take-all claim. Subsumes the old in-memory state guard
+        # (`return unless state?(:new) || state?(:previewed)`): the Lua check
+        # is the authoritative, race-free version of that same guard.
+        return false unless claim_consumption!
 
         md               = load_receipt
         md.revealed! unless md.nil?
-        # It's important for the state to change here, even though we're about to
-        # destroy the secret. This is because the state is used to determine if
-        # the secret is viewable. If we don't change the state here, the secret
-        # will still be viewable b/c (state?(:new) || state?(:previewed) == true).
+        # Mirror the state transition in memory so this instance's viewable?
+        # reflects reality for the rest of the request.
         @state           = 'revealed'
         # Clear ciphertext so the payload is not recoverable from this
         # instance. We don't clear arbitrary fields because safe_dump
         # and success_data still read state, lifespan, etc.
         @ciphertext      = nil
         @passphrase_temp = nil
+        # The main key was already removed by the atomic claim above; destroy!
+        # cleans up related fields / class indexes / instance registration. Its
+        # own main-key delete is a harmless no-op here.
         destroy!
+        true
       end
 
+      # Burn-and-consume. Returns true ONLY for the single winning caller; a
+      # concurrent reveal/burn that already consumed the secret yields false
+      # (finding C1). Burning an already-consumed secret is a benign no-op.
       def burned!
-        # A guard to allow only a fresh, new secret to be burned. Also ensures that
-        # we don't support going from :burned back to something else.
-        return unless state?(:new) || state?(:previewed)
+        return false unless claim_consumption!
 
         md               = load_receipt
         md.burned! unless md.nil?
         @passphrase_temp = nil
         destroy!
+        true
       end
 
       # Backward compatibility aliases for legacy method names

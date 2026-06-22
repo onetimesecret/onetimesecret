@@ -149,9 +149,16 @@ module V2::Logic
       # bug but it means that all return values need to be
       # plucked out of the secret object before this is called.
       def reveal_secret(owner)
+        # One-time guarantee (finding C1): claim atomically BEFORE disclosing.
+        # Only the single winning request may return the plaintext; a concurrent
+        # request that already consumed this secret must surface "gone" instead
+        # of re-disclosing the value it decrypted above.
+        unless secret.revealed!
+          raise OT::MissingSecret
+        end
+
         owner&.increment_field :secrets_shared unless owner&.anonymous?
         Onetime::Customer.secrets_shared.increment
-        secret.revealed!
       end
 
       def resolve_share_domain

@@ -41,8 +41,12 @@ module V1::Logic
           if greenlighted
             @secret = potential_secret
             owner = secret.load_owner
-            secret.burned!
-            owner.increment_field(:secrets_burned) if owner && !owner.anonymous?
+            # One-time guarantee (finding C1): only count the burn for the
+            # single winning atomic claim; a raced/already-consumed burn is a
+            # benign no-op.
+            if secret.burned!
+              owner.increment_field(:secrets_burned) if owner && !owner.anonymous?
+            end
             # TODO:
             # Onetime::Customer.global.increment_field :secrets_burned
 

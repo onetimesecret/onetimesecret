@@ -53,8 +53,10 @@ RSpec.describe V1::Logic::Secrets::ShowSecret do
         allow(secret).to receive(:truncated?).and_return(false)
         allow(secret).to receive(:original_size).and_return(100)
         allow(secret).to receive(:viewed!)
-        allow(secret).to receive(:received!)
-        allow(secret).to receive(:revealed!)
+        # Atomic consume now returns a boolean winner flag (finding C1); a
+        # falsey stub would make the happy-path test take the lost-claim branch.
+        allow(secret).to receive(:received!).and_return(true)
+        allow(secret).to receive(:revealed!).and_return(true)
         allow(secret).to receive(:previewed!)
         allow(secret).to receive(:verification).and_return('false')
         allow(secret).to receive(:state?).with(:new).and_return(true)
@@ -195,7 +197,7 @@ RSpec.describe V1::Logic::Secrets::ShowSecret do
     before do
       allow(Onetime::Secret).to receive(:load).with('secret_v2').and_return(v2_secret)
       allow(v2_secret).to receive(:load_owner).and_return(owner)
-      allow(v2_secret).to receive(:revealed!)
+      allow(v2_secret).to receive(:revealed!).and_return(true)
       allow(v2_secret).to receive(:previewed!)
       allow(v2_secret).to receive(:state?).with(:new).and_return(true)
       allow(v2_secret).to receive(:owner?).with(customer).and_return(false)

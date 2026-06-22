@@ -71,20 +71,33 @@ module V2::Logic
 
         if greenlighted
           @secret = potential_secret
-          secret.burned!
-          owner   = secret.load_owner
-          owner&.increment_field :secrets_burned unless owner&.anonymous?
-          Onetime::Customer.secrets_burned.increment
+          # One-time guarantee (finding C1): burned! is an atomic single-winner
+          # claim. If a concurrent reveal/burn already consumed this secret the
+          # claim fails — the burn goal (secret gone) is already satisfied, so we
+          # still report success but must not double-count the burn.
+          if secret.burned!
+            owner = secret.load_owner
+            owner&.increment_field :secrets_burned unless owner&.anonymous?
+            Onetime::Customer.secrets_burned.increment
 
-          secret_logger.info 'Secret burned successfully',
-            {
-              secret_identifier: secret.shortid,
-              receipt_identifier: receipt.identifier,
-              owner_id: owner&.custid,
-              user_id: cust&.custid,
-              action: 'burn',
-              result: :success,
-            }
+            secret_logger.info 'Secret burned successfully',
+              {
+                secret_identifier: secret.shortid,
+                receipt_identifier: receipt.identifier,
+                owner_id: owner&.custid,
+                user_id: cust&.custid,
+                action: 'burn',
+                result: :success,
+              }
+          else
+            secret_logger.info 'Burn raced; secret already consumed',
+              {
+                secret_identifier: potential_secret.shortid,
+                receipt_identifier: receipt.identifier,
+                action: 'burn',
+                result: :already_consumed,
+              }
+          end
 
         elsif !correct_passphrase
           secret_logger.warn 'Burn failed - incorrect passphrase',

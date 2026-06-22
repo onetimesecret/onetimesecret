@@ -40,6 +40,11 @@ module V1::Logic
           @is_truncated = secret.truncated?
           @original_size = secret.respond_to?(:original_size) ? secret.original_size : nil
 
+          # NOTE (finding C1): the verification-secret branch below intentionally
+          # does NOT gate on the atomic claim result — account-verification
+          # secrets (email verification), not one-time content secrets. The
+          # side effects (owner.verified!, sess.clear) are idempotent. Making
+          # verification reveals single-winner is tracked as a follow-up.
           if verification
             if owner.nil?
               raise_form_error "Unable to verify account"
@@ -53,22 +58,18 @@ module V1::Logic
             end
           else
 
+            # One-time guarantee (finding C1): claim the secret atomically
+            # BEFORE disclosing it. revealed! returns true only for the single
+            # winning request; a concurrent request that already consumed the
+            # secret gets false and must surface "gone" rather than re-disclose
+            # the plaintext it decrypted above.
+            unless secret.revealed!
+              raise OT::MissingSecret
+            end
+
             owner.increment_field(:secrets_shared) if owner && !owner.anonymous?
             # TODO:
             # Onetime::Customer.global.increment_field :secrets_shared
-
-            # Immediately mark the secret as revealed, so that it
-            # can't be shown again. If there's a network failure
-            # that prevents the client from receiving the response,
-            # we're not able to show it again. This is a feature
-            # not a bug.
-            #
-            # NOTE: This destructive action is called before the
-            # response is returned or even fully generated (which
-            # happens in success_data). This is a feature, not a
-            # bug but it means that all return values need to be
-            # pluck out of the secret object before this is called.
-            secret.revealed!
 
           end
 
