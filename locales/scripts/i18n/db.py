@@ -53,13 +53,19 @@ def get_connection() -> Iterator[sqlite3.Connection]:
     conn.execute(f"PRAGMA busy_timeout={BUSY_TIMEOUT_SECONDS * 1000}")
     try:
         conn.execute("PRAGMA journal_mode=WAL")
-    except sqlite3.OperationalError:
-        # Switching journal mode is a write, which SQLite refuses on a
-        # read-only DB (a copied snapshot, or a checkout where the file is not
-        # writable). Read-only inspection commands (db query/export, tasks
-        # --stats) must still work, so degrade gracefully: reads run in the
-        # file's existing journal mode.
-        pass
+    except sqlite3.OperationalError as exc:
+        # Switching journal mode is a write, which SQLite refuses on a read-only
+        # DB (a copied snapshot, or a checkout where the file is not writable)
+        # with "attempt to write a readonly database". Read-only inspection
+        # commands (db query/export, tasks --stats) must still work, so degrade
+        # gracefully in THAT case only: reads run in the file's existing journal
+        # mode. Any other OperationalError — notably a lock timeout, which the
+        # busy_timeout set above is meant to absorb — is a real concurrency
+        # failure that WAL exists to prevent; re-raise it rather than silently
+        # leaving parallel agents in rollback-journal mode where they hit
+        # "database is locked".
+        if "readonly" not in str(exc).lower():
+            raise
     try:
         yield conn
     finally:

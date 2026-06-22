@@ -78,8 +78,15 @@ cmd_validate() {
   done < <(git for-each-ref --format='%(refname:short)' \
              'refs/heads/i18n/update-*' 'refs/remotes/origin/i18n/update-*')
 
+  # Iterate locales in a stable, sorted order. Associative-array key order is
+  # hash-order (not deterministic across runs), but the slash command documents
+  # Stage 1 output as deterministic so saved reports diff cleanly run-to-run.
   local out rc count wtbase wt
-  for locale in "${!ref_for[@]}"; do
+  local -a sorted_locales=()
+  if [ "${#ref_for[@]}" -gt 0 ]; then
+    mapfile -t sorted_locales < <(printf '%s\n' "${!ref_for[@]}" | sort)
+  fi
+  for locale in "${sorted_locales[@]}"; do
     ref="${ref_for[$locale]}"
     out="${results_dir}/i18n-validate-${locale}.json"
 

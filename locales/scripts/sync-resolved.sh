@@ -121,6 +121,27 @@ else
 fi
 echo
 
+# --- preflight: validate the FULL requested set before emitting anything ------
+# Vendoring is all-or-nothing. The emit loop below writes each locale's artifacts
+# as it goes, so without this gate a single bad locale (a typo, or one absent /
+# ungoverned upstream) would abort MID-RUN — after earlier locales were already
+# written — leaving a dirty partial vendor update. Validate every requested
+# locale up front and bail before touching the working tree.
+preflight_bad=()
+for want in $REQUESTED_LOCALES; do
+  if [ ! -d "$RULES_DIR/locales/$want" ]; then
+    echo "error: requested locale '${want}' is absent upstream (no $RULES_DIR/locales/${want})" >&2
+    preflight_bad+=("$want")
+  elif [ ! -f "$RULES_DIR/locales/$want/register.yaml" ]; then
+    echo "error: requested locale '${want}' is ungoverned (no register.yaml) — cannot vendor" >&2
+    preflight_bad+=("$want")
+  fi
+done
+if [ "${#preflight_bad[@]}" -ne 0 ]; then
+  echo "sync-resolved: aborting before any emit — cannot vendor: ${preflight_bad[*]}" >&2
+  exit 2
+fi
+
 # --- emit per governed locale ------------------------------------------------
 synced=()
 skipped=()

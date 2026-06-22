@@ -63,10 +63,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout app repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Checkout translation-rules (authority, read-only, pinned)
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: onetimesecret/translation-rules
           # Pinned to a SHA — not a moving branch — so the gate is reproducible.
@@ -78,7 +78,7 @@ jobs:
       - name: Install uv (pinned)
         # The resolver is uv-managed; `uv run` auto-syncs deps from the inline
         # script metadata / lockfile. Pin the installer action, bump deliberately.
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
         with:
           version: "0.5.18"
 
