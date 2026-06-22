@@ -46,7 +46,7 @@ every target first and **SKIP + warn** for any locale that lacks it:
 ```bash
 for locale in $LOCALES; do
   f="locales/.resolved/$locale.json"
-  if [ -s "$f" ]; then
+  if [ -f "$f" ] && jq -e '((.register // {}) | length > 0) and ((.glossary // {}) | length > 0)' "$f" >/dev/null 2>&1; then
     echo "ELIGIBLE: $locale"
   else
     echo "SKIP (no resolved governance): $locale — back-port locales/.resolved/$locale.json first"

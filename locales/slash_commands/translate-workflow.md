@@ -49,7 +49,7 @@ Discover, do not assume. Run these yourself in the main loop first:
    populated `glossary` (its governance has been back-ported upstream). For each
    candidate target, check this and **SKIP + warn** for any locale that lacks it:
    ```bash
-   [ -s "locales/.resolved/$loc.json" ] || echo "SKIP (no resolved governance): $loc"
+   jq -e '((.register // {}) | length > 0) and ((.glossary // {}) | length > 0)' "locales/.resolved/$loc.json" >/dev/null 2>&1 || echo "SKIP (no resolved governance): $loc"
    ```
    Pass only eligible targets into the Workflow.
 4. **Build the queue per eligible target.** `i18n tasks create <loc>` (re)builds

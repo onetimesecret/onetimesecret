@@ -43,11 +43,16 @@ def get_connection() -> Iterator[sqlite3.Connection]:
     """
     conn = sqlite3.connect(DB_FILE, timeout=BUSY_TIMEOUT_SECONDS)
     conn.row_factory = sqlite3.Row
-    # Set outside any transaction (connection is in autocommit here).
-    # journal_mode=WAL fails harmlessly (returns the existing mode) on a
-    # read-only or :memory: DB, so guard nothing — just apply.
-    conn.execute("PRAGMA journal_mode=WAL")
+    # Set outside any transaction (connection is in autocommit here). Order
+    # matters: install busy_timeout BEFORE the journal_mode=WAL switch, since
+    # switching to WAL itself takes a write lock — with the timeout armed it
+    # waits for a concurrent writer instead of raising "database is locked"
+    # during connection setup. (The connect timeout above already arms a busy
+    # handler, so this is belt-and-suspenders, but it keeps intent explicit and
+    # survives any change to that default.) journal_mode=WAL returns the
+    # existing mode harmlessly on a read-only or :memory: DB.
     conn.execute(f"PRAGMA busy_timeout={BUSY_TIMEOUT_SECONDS * 1000}")
+    conn.execute("PRAGMA journal_mode=WAL")
     try:
         yield conn
     finally:

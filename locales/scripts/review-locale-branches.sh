@@ -65,12 +65,23 @@ cmd_validate() {
   local results_dir="${1:-/tmp}"
   mkdir -p "$results_dir"
 
-  for branch in $(git branch --list 'i18n/update-*' | tr -d ' ' | sed 's/\x1b\[[0-9;]*m//g'); do
-    local locale="${branch#i18n/update-}"
-    local out="${results_dir}/i18n-validate-${locale}.json"
-    python3 locales/scripts/i18n validate variables --json --locale "$locale" > "$out"
-    local count
-    count=$(jq '.summary | to_entries | map(.value) | add // 0' "$out")
+  # Enumerate i18n/update-* branches both local and remote: a fresh CI checkout
+  # commonly has them only as origin/i18n/update-*. Strip the remote prefix and
+  # de-duplicate so each locale is validated exactly once.
+  local branches
+  branches=$(git for-each-ref --format='%(refname:short)' \
+    'refs/heads/i18n/update-*' 'refs/remotes/origin/i18n/update-*' \
+    | sed 's#^origin/##' | sort -u)
+
+  local branch locale out count
+  for branch in $branches; do
+    locale="${branch#i18n/update-}"
+    out="${results_dir}/i18n-validate-${locale}.json"
+    # `validate variables` exits non-zero when it finds mismatches; under
+    # `set -e` that would abort the whole report on the first bad locale, so
+    # swallow the status (the JSON is still written to stdout) and keep going.
+    python3 locales/scripts/i18n validate variables --json --locale "$locale" > "$out" 2>/dev/null || true
+    count=$(jq '.summary | to_entries | map(.value) | add // 0' "$out" 2>/dev/null || echo 0)
     if [ "$count" -gt 0 ]; then
       echo "$locale: $count variable mismatches — $out"
     fi

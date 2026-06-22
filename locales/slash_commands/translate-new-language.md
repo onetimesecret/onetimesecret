@@ -1,7 +1,7 @@
 ---
 description: Translate locale files for a single target language using git diff detection, routed through the agent protocol
 argument-hint: <lang-code>
-allowed-tools: Bash(git diff:*), Bash(cp:*), Bash(ls:*), Bash(cat:*), Bash([ -s:*), Task, Read, Glob
+allowed-tools: Bash(git diff:*), Bash(cp:*), Bash(ls:*), Bash(cat:*), Bash([ -f:*), Bash(jq:*), Bash(python3 locales/scripts/i18n tasks:*), Task, Read, Glob
 ---
 
 # Translate a Single Language
@@ -29,8 +29,12 @@ A language is eligible for automated drain **only if**
 **SKIP + warn** if it is missing:
 
 ```bash
-[ -s "locales/.resolved/$LANG.json" ] && echo "ELIGIBLE: $LANG" \
-  || echo "SKIP (no resolved governance): $LANG — back-port locales/.resolved/$LANG.json first"
+if [ -f "locales/.resolved/$LANG.json" ] \
+   && jq -e '((.register // {}) | length > 0) and ((.glossary // {}) | length > 0)' "locales/.resolved/$LANG.json" >/dev/null 2>&1; then
+  echo "ELIGIBLE: $LANG"
+else
+  echo "SKIP (no resolved governance): $LANG — back-port locales/.resolved/$LANG.json first"
+fi
 ```
 
 If not eligible, stop and report — do not translate without the resolved artifact.
