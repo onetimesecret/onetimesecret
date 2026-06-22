@@ -35,6 +35,14 @@ already permits the fix; only the lockfile needs to move.
 4. **Regression:** run the SSO/OmniAuth integration specs (the `apps/web/auth/spec/integration/full/omniauth_*`
    suite) to confirm no behavioral change from the bump.
 
+## Test / verification
+
+- `bundle exec bundler-audit check --update` reports **no** advisory for `oauth2` (was GHSA-pp92-crg2-gfv9).
+- `Gemfile.lock` shows `oauth2 (>= 2.0.22)`; the `omniauth_openid_connect` → `openid_connect` →
+  `rack-oauth2` chain still resolves and `bundle install --frozen` succeeds.
+- The OmniAuth/OIDC integration specs (`apps/web/auth/spec/integration/full/omniauth_*`) pass unchanged.
+- Built OCI image contains the patched gem (inspect the in-image `Gemfile.lock`).
+
 ## Alternatives considered
 
 - **Wait until SSO ships:** not advisable even though SSO is off by default — it's a free, low-risk bump
