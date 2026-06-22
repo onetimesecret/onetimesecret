@@ -49,12 +49,14 @@ permissions:
 
 env:
   # translation-rules commit the vendored artifacts were generated from.
-  # Placeholder = validate-register.yml's current ref (translation-rules main as
-  # of 2026-06-11). BUMP DELIBERATELY, as a reviewable diff, to the commit
-  # locales/scripts/sync-resolved.sh was last run against — and regenerate the
-  # vendored artifacts in the same PR. This value is asserted to equal every
-  # .resolved/<locale>.json's _meta.source_commit.
-  PINNED_RULES_REF: 374f5c38639a4a4183e523614d212cc9d2e5ee21
+  # Currently pinned to the tip of translation-rules PR #29
+  # (claude/zen-fermi-7bhcnw) because that branch carries the SPEC §2.3 emit-path
+  # fix this gate's path comparison depends on. RE-PIN to the #29 merge commit on
+  # translation-rules main as the final step before this PR merges — and
+  # regenerate the vendored artifacts (locales/scripts/sync-resolved.sh) in the
+  # same diff. BUMP DELIBERATELY, as a reviewable diff. This value is asserted to
+  # equal every .resolved/<locale>.json's _meta.source_commit.
+  PINNED_RULES_REF: 18c2c91cce6e9ed5ca8520982bdd291740b56b84
 
 jobs:
   resolved-freshness:
@@ -108,6 +110,14 @@ jobs:
             exit 1
           fi
 
+          # Freeze _meta.generated_at to the pinned commit's committer date, the
+          # same value locales/scripts/sync-resolved.sh stamps at vendor time.
+          # Without this the regenerated JSON below would carry a fresh wall-clock
+          # timestamp and the byte-for-byte diff would fail on _meta.generated_at
+          # alone. Deriving it from the SHA keeps the artifact a pure function of
+          # the source commit.
+          gen_at="$(git -C "$rules" show -s --format=%cI "$PINNED_RULES_REF")"
+
           if [ ! -d "$resolved_dir" ]; then
             echo "::notice::no locales/.resolved/ dir — nothing vendored yet; gate scanned nothing"
             exit 0
@@ -156,6 +166,7 @@ jobs:
                 --emit=md,json \
                 --emit-dir "$tmp_emit" \
                 --source-commit "$PINNED_RULES_REF" \
+                --generated-at "$gen_at" \
                 --index-path "$index_tmp"
             )
             rm -f "$index_tmp"

@@ -16,15 +16,35 @@
 # lives at locales/guides/for-translators/<locale>.md with a base-only stub.
 #
 # Usage:
-#   locales/scripts/sync-resolved.sh [RULES_DIR]
+#   locales/scripts/sync-resolved.sh [RULES_DIR]              # refresh vendored set
+#   LOCALES="de_AT fr_CA" locales/scripts/sync-resolved.sh    # vendor a specific set
 #
 #   RULES_DIR  Path to a translation-rules checkout. Arg 1 overrides the
 #              ${RULES_DIR} env var, which defaults to ".translation-rules"
 #              (the read-only pinned checkout path used by the CI workflows).
+#   LOCALES    Optional space-separated allow-list. When set, vendor exactly these
+#              locales (still subject to the governed guard); a requested locale
+#              that is ungoverned or absent upstream is a hard error.
 #
-# Idempotent: re-running against the same checkout reproduces byte-identical
-# artifacts (the resolver pins _meta.source_commit to the SHA; pass
-# --generated-at upstream if you also need a frozen timestamp). Safe to re-run.
+#              When UNSET, the default set is the locales ALREADY vendored in this
+#              repo — i.e. the basenames of locales/.resolved/*.json. This is the
+#              same set the §2.4 freshness gate audits, so a bare re-run refreshes
+#              exactly what is committed and NOTHING ELSE. Critically, it will NOT
+#              vendor an upstream-governed locale that is not yet part of the
+#              committed set (e.g. fr/fr_CA pending native-speaker sign-off):
+#              doing so would byte-lock unreviewed governance and clobber the
+#              hand-authored locales/guides/for-translators/<locale>.md. Adding a
+#              locale is therefore a deliberate `LOCALES=<new>` run, after which it
+#              joins the committed set and subsequent bare runs keep it fresh.
+#
+#              Bootstrapping (no .resolved/ yet) with LOCALES unset vendors nothing
+#              and tells you to name the locale explicitly.
+#
+# Idempotent and fully reproducible: re-running against the same checkout emits
+# byte-identical artifacts. _meta.source_commit is pinned to the checkout SHA and
+# _meta.generated_at is pinned to that commit's committer date (%cI), so the
+# artifact is a pure function of the source commit — which is exactly what the
+# §2.4 freshness gate relies on when it regenerates and diffs. Safe to re-run.
 #
 # This script writes ONLY into the app repo's locales/ dir. It writes the
 # resolver index to a throwaway temp path so the rules repo's
@@ -64,10 +84,41 @@ fi
 
 # --- pin to the checkout's HEAD ----------------------------------------------
 SHA="$(git -C "$RULES_DIR" rev-parse HEAD)"
+# Freeze _meta.generated_at to the source commit's committer date so the emitted
+# artifact is a pure function of $SHA (no wall-clock drift between this vendor
+# run and the CI freshness gate's regeneration). resolved-freshness.yml derives
+# the SAME value from PINNED_RULES_REF; the two MUST stay in lock-step.
+GENERATED_AT="$(git -C "$RULES_DIR" show -s --format=%cI "$SHA")"
+
+# Resolve the set of locales to vendor. An explicit LOCALES allow-list wins;
+# otherwise default to the locales ALREADY vendored (basenames of the committed
+# locales/.resolved/*.json). Defaulting to the committed set — rather than to
+# "every governed locale upstream" — is what keeps a bare re-run from silently
+# vendoring an un-signed-off locale and clobbering its hand-authored guide.
+REQUESTED_LOCALES="${LOCALES:-}"
+default_set=0
+if [ -z "$REQUESTED_LOCALES" ]; then
+  default_set=1
+  for j in "$APP_LOCALES_DIR"/.resolved/*.json; do
+    [ -e "$j" ] || continue
+    REQUESTED_LOCALES="${REQUESTED_LOCALES:+$REQUESTED_LOCALES }$(basename "$j" .json)"
+  done
+  if [ -z "$REQUESTED_LOCALES" ]; then
+    echo "sync-resolved: nothing vendored yet and no LOCALES given — nothing to do." >&2
+    echo "       To bootstrap a locale: LOCALES=\"de_AT\" $0 [RULES_DIR]" >&2
+    exit 0
+  fi
+fi
 
 echo "sync-resolved: rules checkout = $RULES_DIR"
 echo "sync-resolved: rules SHA      = $SHA"
+echo "sync-resolved: generated_at   = $GENERATED_AT"
 echo "sync-resolved: emit target    = $APP_LOCALES_DIR"
+if [ "$default_set" -eq 1 ]; then
+  echo "sync-resolved: locale set     = $REQUESTED_LOCALES (default: already-vendored)"
+else
+  echo "sync-resolved: locale set     = $REQUESTED_LOCALES (explicit LOCALES)"
+fi
 echo
 
 # --- emit per governed locale ------------------------------------------------
@@ -78,6 +129,13 @@ skipped=()
 for d in "$RULES_DIR"/locales/*/; do
   [ -d "$d" ] || continue
   locale="$(basename "$d")"
+
+  # Vendor only the resolved set (explicit LOCALES, or the already-vendored
+  # default). Anything outside it is left untouched on disk.
+  case " $REQUESTED_LOCALES " in
+    *" $locale "*) : ;;          # in set — fall through
+    *) continue ;;               # not in set — leave any existing vendor untouched
+  esac
 
   # CRITICAL GUARD: only governed locales (those with register.yaml upstream)
   # are eligible. Anything else is a hand-authored content locale; emitting for
@@ -91,8 +149,8 @@ for d in "$RULES_DIR"/locales/*/; do
   echo "::sync ${locale}"
   # Run the resolver from inside the rules repo so it finds base.yaml, schema/,
   # locales/, retrospectives/ via its own defaults. Emit BOTH artifacts pinned
-  # to $SHA. Write the index to a throwaway temp file so the rules repo's
-  # committed resolver/index.json is left untouched.
+  # to $SHA + $GENERATED_AT. Write the index to a throwaway temp file so the
+  # rules repo's committed resolver/index.json is left untouched.
   index_tmp="$(mktemp)"
   (
     cd "$RULES_DIR" && \
@@ -101,11 +159,27 @@ for d in "$RULES_DIR"/locales/*/; do
       --emit=md,json \
       --emit-dir "$APP_LOCALES_DIR" \
       --source-commit "$SHA" \
+      --generated-at "$GENERATED_AT" \
       --index-path "$index_tmp"
   )
   rm -f "$index_tmp"
   synced+=("$locale")
 done
+
+# A requested locale that never synced is a typo or an ungoverned/absent locale
+# upstream — fail loudly rather than silently vendoring nothing for it.
+if [ -n "$REQUESTED_LOCALES" ]; then
+  for want in $REQUESTED_LOCALES; do
+    found=0
+    for got in "${synced[@]:-}"; do
+      [ "$got" = "$want" ] && found=1 && break
+    done
+    if [ "$found" -eq 0 ]; then
+      echo "error: requested locale '${want}' was not vendored — ungoverned (no register.yaml) or absent at $RULES_DIR/locales/${want}" >&2
+      exit 2
+    fi
+  done
+fi
 
 # --- summary -----------------------------------------------------------------
 echo
