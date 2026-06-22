@@ -349,12 +349,17 @@ test.describe('MBR-INVITE: Invite Member Flow', () => {
     // Pending invitation should appear in list
     await expect(page.getByText(testEmail)).toBeVisible({ timeout: 10000 });
 
-    // Pending badge should be visible
+    // Pending badge should be visible. Scope to this invitation's row
+    // (data-testid="org-invitation-row" in OrganizationSettings.vue) — a
+    // bare .rounded-md matches the list container too, so the badge filter
+    // would resolve to every pending invitation in the org (strict-mode
+    // violation once prior runs leave rows behind).
     const pendingBadge = page
-      .locator('.rounded-md')
+      .getByTestId('org-invitation-row')
       .filter({ hasText: testEmail })
       .locator('span')
-      .filter({ hasText: /pending/i });
+      .filter({ hasText: /pending/i })
+      .first();
     await expect(pendingBadge).toBeVisible();
   });
 

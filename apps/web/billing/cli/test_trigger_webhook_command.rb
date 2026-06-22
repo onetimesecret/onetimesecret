@@ -35,12 +35,15 @@ module Onetime
 
         puts "Triggering test webhook: #{event_type}"
 
-        # Build stripe CLI command
-        cmd  = "stripe trigger #{event_type}"
-        cmd += " --subscription #{subscription}" if subscription
-        cmd += " --customer #{customer}" if customer
+        # Build stripe CLI command as an argument array. The array form of
+        # system bypasses the shell (/bin/sh -c) entirely, so shell
+        # metacharacters in any argument are passed through literally instead
+        # of being interpreted — no command injection.
+        cmd  = ['stripe', 'trigger', event_type]
+        cmd += ['--subscription', subscription] if subscription
+        cmd += ['--customer', customer] if customer
 
-        puts "Command: #{cmd}"
+        puts "Command: #{cmd.join(' ')}"
         puts
 
         # Check if stripe CLI is available
@@ -50,8 +53,8 @@ module Onetime
           return
         end
 
-        # Execute command
-        system(cmd)
+        # Execute command (array form → no shell, no injection)
+        system(*cmd)
       rescue StandardError => ex
         puts "Error: #{ex.message}"
         puts "\nNote: Requires Stripe CLI installed (stripe.com/docs/stripe-cli)"

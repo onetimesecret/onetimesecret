@@ -47,15 +47,15 @@ module Onetime
         raw_data = dbclient.get(key)
         return nil unless raw_data
 
-        # Try different deserializations
+        # Session data is JSON-serializable, so parse it as JSON. We
+        # deliberately avoid Marshal.load on Redis-sourced bytes: Marshal
+        # executes its object graph (and any embedded gadget chain) *before*
+        # it can raise, so a rescue fallback offers no protection against a
+        # crafted payload planted at a session key.
         begin
-          Marshal.load(raw_data)
+          JSON.parse(raw_data)
         rescue StandardError
-          begin
-            JSON.parse(raw_data)
-          rescue StandardError
-            { '_raw' => raw_data[0..200] }
-          end
+          { '_raw' => raw_data[0..200] }
         end
       end
 

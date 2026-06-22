@@ -187,18 +187,15 @@ module Rack
           ttl  = dbclient.ttl(key)
           data = dbclient.get(key)
 
-          # Try to parse session data (from our own Redis session store)
-          # rubocop:disable Security/MarshalLoad
+          # Parse session data (from our own Redis session store) as JSON.
+          # We avoid Marshal.load here: it executes its object graph before
+          # it can raise, so untrusted Redis bytes could trigger a gadget
+          # chain on deserialization.
           parsed = begin
-            Marshal.load(data) # Session data serialized by Rack::Session
+            JSON.parse(data)
           rescue StandardError
-            begin
-              JSON.parse(data)
-            rescue StandardError
-              data
-            end
+            data
           end
-          # rubocop:enable Security/MarshalLoad
 
           logger.debug 'Redis session found',
             {

@@ -176,7 +176,7 @@ module V1
       csp = if OT.conf.dig('development', 'enabled')
         [
           "default-src 'none';",                               # Restrict to same origin by default
-          "script-src 'unsafe-inline' 'nonce-#{nonce}';",      # Allow Vite's dynamic module imports and source maps
+          "script-src 'nonce-#{nonce}';",                      # Nonce-only: omit 'unsafe-inline' so CSP Level 1 agents can't bypass the nonce
           "style-src 'self' 'unsafe-inline';",                 # Enable Vite's dynamic style injection
           "connect-src 'self' ws: wss: http: https:;",         # Allow WebSocket connections for hot module replacement
           "img-src 'self' data:;",                             # Allow images from same origin only
@@ -192,7 +192,7 @@ module V1
       else
         [
           "default-src 'none';",
-          "script-src 'unsafe-inline' 'nonce-#{nonce}';",      # unsafe-inline is ignored with a nonce
+          "script-src 'nonce-#{nonce}';",                      # Nonce-only: omit 'unsafe-inline' so CSP Level 1 agents can't bypass the nonce
           "style-src 'self' 'unsafe-inline';",
           "connect-src 'self' wss: https:;",                   # Only HTTPS and secure WebSockets
           "img-src 'self' data:;",

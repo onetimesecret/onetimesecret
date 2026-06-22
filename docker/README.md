@@ -33,3 +33,14 @@ The full stack requires additional env vars — see the compose file for require
 ## Building Images
 
 For standalone builds (Docker Bake, Podman, CI pipelines), see [Build Architecture](../docs/architecture/build-architecture.md).
+
+## Branding Overlay
+
+`docker/public/` bakes favicon/branding assets into the image at build time.
+Empty by default (`.gitignore` only). Drop replacement assets in before
+building — the `Dockerfile` copies them into `public/web/` after the Vite build
+(look for `NOTICE: applied docker/public overlay`). Include only the files you
+want to override; the rest fall back to neutral defaults.
+
+Full asset list and other ways to override:
+[branding-favicon](../docs/product/branding-favicon.md).

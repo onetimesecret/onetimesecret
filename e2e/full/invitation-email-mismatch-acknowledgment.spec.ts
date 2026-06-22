@@ -151,7 +151,7 @@ function getCurrentOrgExtid(page: Page): string {
  */
 async function getInvitationToken(page: Page, email: string): Promise<string | null> {
   const orgExtid = getCurrentOrgExtid(page);
-  const response = await page.request.get(`/api/v2/org/${orgExtid}/invitations`);
+  const response = await page.request.get(`/api/organizations/${orgExtid}/invitations`);
   const data = await response.json();
 
   const invitation = data.records?.find((inv: { email: string }) => inv.email === email);
@@ -393,7 +393,8 @@ test.describe('MISMATCH-005: API Rejects Email Mismatch', () => {
       expect(response.status()).toBeGreaterThanOrEqual(400);
 
       const data = await response.json();
-      expect(data.message).toContain('match');
+      // API returns { error: "...", error_type: "..." } per ADR-013
+      expect(data.error).toContain('match');
     } finally {
       await ownerContext.close();
       await wrongUserContext.close();
@@ -428,7 +429,8 @@ test.describe('MISMATCH-005: API Rejects Email Mismatch', () => {
       expect(response.status()).toBeGreaterThanOrEqual(400);
 
       const data = await response.json();
-      expect(data.message).toContain('match');
+      // API returns { error: "...", error_type: "..." } per ADR-013
+      expect(data.error).toContain('match');
     } finally {
       await ownerContext.close();
       await wrongUserContext.close();

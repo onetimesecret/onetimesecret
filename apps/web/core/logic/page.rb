@@ -12,3 +12,4 @@ module Core
 end
 
 require_relative 'page/get_favicon'
+require_relative 'page/get_webmanifest'

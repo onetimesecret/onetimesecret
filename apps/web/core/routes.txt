@@ -6,6 +6,7 @@ GET   /404                                       Core::Controllers::Page#not_fou
 GET   /500                                       Core::Controllers::Page#server_error auth=noauth
 GET   /robots.txt                                Core::Controllers::Page#robots_txt auth=noauth
 GET   /favicon.ico                               Core::Controllers::Page#favicon auth=noauth
+GET   /site.webmanifest                          Core::Controllers::Page#webmanifest auth=noauth
 GET   /feedback                                  Core::Controllers::Page#index auth=noauth
 GET   /health                                    Core::Controllers::Health#index auth=noauth
 GET   /health/advanced                           Core::Controllers::Health#advanced auth=noauth
