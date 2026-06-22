@@ -69,7 +69,12 @@ module Onetime
           return canonical if canonical && !canonical.empty?
 
           Otto::Utils.resolve_client_ip(env, env['otto.security_config'])
-        rescue StandardError
+        rescue StandardError => ex
+          # Unreachable in production (the middleware always sets
+          # otto.client_ip); if it ever fires, the bare Rack fallback has no
+          # trusted-proxy awareness and may return the ingress hop, so make the
+          # failure visible rather than silently mis-attributing the IP.
+          OT.le "[client_ip] resolve_client_ip failed, falling back to Rack::Request#ip: #{ex.message}"
           Rack::Request.new(env).ip
         end
       end

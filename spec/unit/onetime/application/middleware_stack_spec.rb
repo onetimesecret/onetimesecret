@@ -17,16 +17,28 @@ RSpec.describe Onetime::Application::MiddlewareStack do
     context 'when trusted_proxy is absent' do
       before { allow(OT).to receive(:conf).and_return({}) }
 
-      it 'returns nil so the middleware stays in direct-connection mode' do
-        expect(config).to be_nil
+      it 'still masks private/localhost IPs while trusting no proxy hop' do
+        # The removed per-router enable_full_ip_privacy! calls ran
+        # unconditionally, so direct-connect deployments must keep masking
+        # private addresses rather than leaking them unmasked.
+        aggregate_failures do
+          expect(config).to be_a(Otto::Security::Config)
+          expect(config.ip_privacy_config.mask_private_ips).to be(true)
+          expect(config.trusted_proxy?('10.0.0.1')).to be(false)
+          expect(config.trusted_proxy_depth_mode?).to be(false)
+        end
       end
     end
 
     context 'when trusted_proxy is disabled' do
       before { stub_conf('enabled' => false) }
 
-      it 'returns nil' do
-        expect(config).to be_nil
+      it 'still masks private/localhost IPs while trusting no proxy hop' do
+        aggregate_failures do
+          expect(config).to be_a(Otto::Security::Config)
+          expect(config.ip_privacy_config.mask_private_ips).to be(true)
+          expect(config.trusted_proxy?('10.0.0.1')).to be(false)
+        end
       end
     end
 

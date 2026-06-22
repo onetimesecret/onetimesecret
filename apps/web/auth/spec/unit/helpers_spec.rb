@@ -131,6 +131,30 @@ RSpec.describe Onetime::Application::AuthStrategies::Helpers do
     end
 
     # -----------------------------------------------------------------
+    # 4b) Resolver error: the rescue logs before falling back (no longer
+    #     silent), so an unexpected otto failure is detectable.
+    # -----------------------------------------------------------------
+    context 'when the fallback resolver raises unexpectedly' do
+      let(:env) do
+        {
+          'REMOTE_ADDR'          => '198.51.100.7',
+          'HTTP_USER_AGENT'      => 'curl/8.4.0',
+          'otto.security_config' => trusted_proxy_config('10.0.0.0/8'),
+        }
+      end
+
+      before do
+        allow(Otto::Utils).to receive(:resolve_client_ip)
+          .and_raise(StandardError, 'boom')
+      end
+
+      it 'logs the failure and falls back to the bare Rack IP' do
+        expect(OT).to receive(:le).with(/\[client_ip\] resolve_client_ip failed/)
+        expect(host.build_metadata(env)[:ip]).to eq('198.51.100.7')
+      end
+    end
+
+    # -----------------------------------------------------------------
     # 5) `additional` overrides built-in keys (preserves merge contract).
     # -----------------------------------------------------------------
     context 'when additional metadata overrides built-in keys' do

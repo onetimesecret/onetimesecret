@@ -192,20 +192,31 @@ module Onetime
         # ignores this setting — matching the original ClientIpHelpers, where
         # `header` was likewise a depth-mode-only concept.
         #
-        # @return [Otto::Security::Config, nil]
+        # Always returns a config (never nil): when no proxy is declared it
+        # carries mask_private_ips with an empty trust list, so private/localhost
+        # masking still applies to direct-connect deployments.
+        #
+        # @return [Otto::Security::Config]
         def ip_privacy_security_config
-          return nil unless trusted_proxy_enabled?
+          config = Otto::Security::Config.new
+
+          # Mask private/localhost IPs too, always. With one universal mount this
+          # is what the removed router-level enable_full_ip_privacy! calls
+          # provided — and those ran unconditionally, so masking must hold even
+          # for direct-connect deployments that declare no reverse proxy.
+          # Otherwise RFC1918/localhost client addresses would leak unmasked into
+          # session metadata, rate-limit keys, and logs.
+          config.ip_privacy_config.mask_private_ips = true
+
+          # No declared reverse proxy means no hop to trust: leave the proxy list
+          # empty so the middleware resolves the client from REMOTE_ADDR (and
+          # still masks it per the flag above).
+          return config unless trusted_proxy_enabled?
 
           tp     = OT.conf.dig('site', 'network', 'trusted_proxy') || {}
           mode   = tp['mode'] || 'filter'
           header = tp['header'].to_s.strip
           header = 'X-Forwarded-For' if header.empty?
-
-          config = Otto::Security::Config.new
-
-          # Mask private/localhost IPs too. With one universal mount this is what
-          # the removed router-level enable_full_ip_privacy! calls provided.
-          config.ip_privacy_config.mask_private_ips = true
 
           # Which forwarded header depth mode counts hops from (otto#150). otto
           # honors this in depth mode only and reads the X-Forwarded-For family
@@ -266,8 +277,8 @@ module Onetime
           ip_privacy_config = ip_privacy_security_config
           logger.debug 'Setting up IP Privacy middleware',
             {
-              note: 'masks public IPs',
-              trusted_proxy: !ip_privacy_config.nil?,
+              note: 'masks public and private IPs',
+              trusted_proxy: trusted_proxy_enabled?,
             }
           builder.use Otto::Security::Middleware::IPPrivacyMiddleware, ip_privacy_config
 
