@@ -31,6 +31,7 @@ Rodauth, which OTS already runs on the auth surface, emits `{ error: <user-facin
 - `error_type` is the field the frontend branches on. It is the Ruby class name (`RecordNotFound`, `FormError`, `Forbidden`, `LimitExceeded`, `EntitlementRequired`, `GuestRoutesDisabled`, `NotFound`, `ServerError`).
 - Class-specific fields may accompany the pair without renaming it: `field` on `FormError`, `error_key` for i18n lookup, `retry_after`/`attempts`/`max_attempts` on `LimitExceeded`, `entitlement`/`current_plan`/`upgrade_to` on `EntitlementRequired`.
 - `code` is reserved for per-operation discriminators that are not redundant with `error_type`. `GuestRoutesDisabled` uses it (`GUEST_CONCEAL_DISABLED`, `GUEST_REVEAL_DISABLED`, ...) because the class is one and the operations are many. New errors should justify a `code` before adding one; in most cases `error_type` is sufficient.
+- `request_id` is a cross-cutting correlation field (not class-specific). The Otto error handlers (`Onetime::Application::OttoHooks`) echo the request's `x-request-id` into every typed error body so an API consumer who reports an error gives us an id that appears verbatim in the `RequestLogger` request-log line (which logs `request_id` plus, now, the `error_type`). It is informational only — the frontend does not branch on it. The static `router.not_found`/`router.server_error` fallbacks are request-independent and omit it from the body; for those the `x-request-id` response header still carries the id. This supersedes the Otto-minted `error_id`, which is development-only in the body and logged without the `request_id`.
 
 This applies uniformly to application errors raised from logic classes and to Otto router fallback responses (`router.not_found`, `router.server_error`).
 
@@ -58,6 +59,8 @@ Outside the scope of #3221 but on the long-term trajectory of this contract:
 - **Frontend branches on `error_type`.** The HTTP error classifier currently uses status plus presence-of-message heuristics. Once `error_type` is reliable across the surface, it can branch on that directly.
 
 - **Schema-validated contract spec.** Generalize the existing error-response shape spec into a structural assertion: every registered error class's `to_h` must validate against an ADR-013 JSON Schema. Broken shapes fail CI rather than surfacing as frontend bugs.
+
+- **Extend `request_id` correlation to the Roda auth surface** (tracked in #3520). The `request_id` correlation field is currently echoed only by the Otto error handlers (`OttoHooks#with_error_correlation`). Typed errors on the `/auth` surface are rendered through `Auth::ErrorTranslator` and still omit `request_id` from the body and stash no `error_type` for `RequestLogger`. Until that handler echoes the id too, `request_id`-in-body is an Otto-app guarantee, not a whole-API one — on `/auth` the `x-request-id` response header remains the correlation handle.
 
 ## Implementation Notes
 

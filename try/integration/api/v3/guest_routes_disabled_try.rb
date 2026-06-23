@@ -235,7 +235,8 @@ with_guest_routes_config({ 'enabled' => false }) do
   body = JSON.parse(last_response.body)
   body.keys.sort
 end
-#=> ["code", "error", "error_type"]
+# request_id is the ADR-013 correlation field echoed from x-request-id by OttoHooks
+#=> ["code", "error", "error_type", "request_id"]
 
 # Teardown
 @cust.destroy!
