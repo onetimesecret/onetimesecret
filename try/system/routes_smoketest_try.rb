@@ -92,13 +92,14 @@ content = Familia::JsonSerializer.parse(response.body)
 
 ## V2 API conceal returns 422 with validation error when no secret provided
 # Standardized error format: { error: <user-facing message>, error_type: <machine-readable> }
+# plus request_id (ADR-013 correlation field, echoed from x-request-id by OttoHooks)
 # NOTE: Accept header required for JSON error responses (Otto content negotiation)
 # NOTE: Basic Auth required to bypass CSRF middleware for POST requests
 response = @mock_request.post('/api/v2/secret/conceal', @api_auth.merge('HTTP_ACCEPT' => 'application/json'))
 content = Familia::JsonSerializer.parse(response.body)
 has_msg = content['error'] == 'You did not provide anything to share'
 [response.status, has_msg, content.keys.sort]
-#=> [422, true, ['error', 'error_type', 'field']]
+#=> [422, true, ['error', 'error_type', 'field', 'request_id']]
 
 ## V2 API generate creates a secret and returns success with nested record data
 # NOTE: Basic Auth required to bypass CSRF middleware for POST requests
