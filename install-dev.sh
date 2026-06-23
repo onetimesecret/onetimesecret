@@ -39,15 +39,17 @@ declare -A LINKS=(
     ["data"]="data"
     ["Procfile.dev"]="Procfile.dev"
     ["Procfile.volatile"]="Procfile.volatile"
+    [".env"]="dotenv-main"
     [".env.test"]=".env.test"
     [".env.local"]=".env.local"
     ["etc/puma.rb"]="puma.rb"
 )
 
-# .env is NOT a shared symlink: it points at the in-repo .env.example (full
-# reference config) via link_env_example. Machine-specific overrides go in
-# .env.local, shared from OTS_DEV_CONFIG via the LINKS entry above and loaded
-# after .env by .envrc.
+# .env is a shared symlink to OTS_DEV_CONFIG/dotenv-main (the main env file,
+# named without a leading dot so it is visible in the shared config dir).
+# Machine-specific overrides go in .env.local, shared from OTS_DEV_CONFIG via
+# the LINKS entry above and loaded after .env by .envrc. The in-repo
+# .env.example remains the full reference config to copy from.
 
 # Generate .envrc for direnv-based env loading.
 # Creates the file if missing; leaves it alone if present so local
@@ -88,30 +90,6 @@ else
 fi
 ENVRC
     echo "Created: .envrc"
-}
-
-# Point .env at the in-repo .env.example so the full reference config is always
-# present and tracks the repo. This avoids copying the whole file just to edit a
-# few values: machine-specific overrides go in .env.local (symlinked from
-# OTS_DEV_CONFIG, loaded after .env by .envrc). Don't clobber a real .env file.
-link_env_example() {
-    if [[ ! -f ".env.example" ]]; then
-        echo "Skip: .env.example missing from checkout (unexpected — it is tracked)"
-        return
-    fi
-
-    if [[ -e ".env" && ! -L ".env" ]]; then
-        echo "Skip: .env already exists (not a symlink) — not replacing"
-        return
-    fi
-
-    if [[ -L ".env" && "$(readlink .env)" == ".env.example" ]]; then
-        echo "OK:   .env -> .env.example"
-        return
-    fi
-
-    ln -snf ".env.example" ".env"
-    echo "Link: .env -> .env.example"
 }
 
 # Replace the Caddy webroot symlink with this checkout's public/web.
@@ -326,13 +304,15 @@ if [[ -d "$OTS_DEV_CONFIG" ]]; then
     done
 fi
 
-# .env -> .env.example is in-repo (relative), so it is unconditional — not
-# gated on OTS_DEV_CONFIG like the shared links above.
-link_env_example
-
 # Fall back to local copies when symlink sources are absent.
 # Remove dangling symlinks first — [[ ! -e ]] is true for broken symlinks
 # but cp will fail because the link path still exists in the directory.
+if [[ ! -e ".env" && ! -e "$OTS_DEV_CONFIG/${LINKS[.env]}" && -f ".env.example" ]]; then
+    [[ -L ".env" ]] && rm ".env"
+    cp .env.example .env
+    echo "Copy: .env.example -> .env (no shared source)"
+fi
+
 if [[ ! -e "Procfile.dev" && -f "Procfile.dev.example" ]]; then
     [[ -L "Procfile.dev" ]] && rm "Procfile.dev"
     cp Procfile.dev.example Procfile.dev
