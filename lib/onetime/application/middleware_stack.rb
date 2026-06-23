@@ -13,6 +13,7 @@ require_relative '../middleware/ip_ban'
 require_relative '../middleware/health_access_control'
 require_relative '../middleware/csrf_response_header'
 require_relative '../middleware/normalize_content_type'
+require_relative '../middleware/normalize_env'
 require 'otto'
 
 module Onetime
@@ -216,6 +217,13 @@ module Onetime
               trusted_proxy: !ip_privacy_config.nil?,
             }
           builder.use Otto::Security::Middleware::IPPrivacyMiddleware, ip_privacy_config
+
+          # Restore Rack-spec compliance immediately after IP privacy. The
+          # privacy middleware clears HTTP_REFERER/HTTP_USER_AGENT by assigning
+          # nil ("even if nil, to clear original sensitive data"), which leaves
+          # a nil-valued CGI key in the env. That trips Rack::Lint in
+          # development (Core::Middleware::ViteProxy). See NormalizeEnv.
+          builder.use Onetime::Middleware::NormalizeEnv
 
           # IP Ban middleware - blocks banned IPs (after IP privacy)
           logger.debug 'Setting up IP Ban middleware'
