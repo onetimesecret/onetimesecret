@@ -302,11 +302,12 @@ describe('#3424 forensics — sender ListReceipts (dashboard) path', () => {
     expect(paths(issues)).toContain('records.0.state');
   });
 
-  it('UNCAST TIMESTAMP: a poisoned string "previewed" breaks (safe_dump never casts it)', () => {
-    // #3434/#3477 cast lifespan/secret_ttl/created/updated only. The receipt
-    // timestamp fields previewed/revealed/burned/shared are emitted RAW, so a
-    // value ever written as a String (legacy/console/raw HSET) fails the strict
-    // z.number().nullish() transform — an entire class the per-field casts missed.
+  it('UNCAST TIMESTAMP: the schema still rejects a string "previewed" (backend now casts it via to_i)', () => {
+    // #3434/#3477 cast lifespan/secret_ttl/created/updated only; previewed/
+    // revealed/burned/shared were emitted RAW. They are now coerced in receipt
+    // safe_dump (to_i → Integer|nil), so a String can no longer reach the wire.
+    // The schema stays strict z.number().nullish() as the read-time backstop,
+    // pinned here.
     const issues = failingFields(
       receiptListResponseSchema,
       receiptListResponse([healthyReceiptRecord({ previewed: '1735142890' })])
@@ -314,11 +315,10 @@ describe('#3424 forensics — sender ListReceipts (dashboard) path', () => {
     expect(paths(issues)).toContain('records.0.previewed');
   });
 
-  it('EMPTY-STRING HINGE: an unset timestamp hydrated as "" (not null) breaks z.number().nullish()', () => {
-    // Familia returns "" for some unset/loaded fields. If previewed/revealed/etc
-    // serialize as "" rather than null, EVERY such receipt fails. This is the
-    // difference between a benign dashboard and a universally broken one, and it
-    // depends on Familia hydration — flagged here so the backend test pins it.
+  it('EMPTY-STRING HINGE: the schema still rejects "" (backend safe_dump cast maps "".to_i → null)', () => {
+    // Familia can hydrate an unset field as "". The receipt safe_dump cast now
+    // maps "".to_i (0) → null, which the nullish transform accepts; the schema
+    // itself still rejects a raw "" as the backstop, pinned here.
     const issues = failingFields(
       receiptListResponseSchema,
       receiptListResponse([healthyReceiptRecord({ revealed: '' })])
@@ -351,19 +351,20 @@ describe('#3424 forensics — ShowReceipt (_receipt_attributes) path', () => {
     expect(failingFields(receiptResponseSchema, healthyShowReceiptResponse())).toEqual([]);
   });
 
-  it('NULL EXPIRATION: a consumed/expired secret yields expiration=null → breaks z.number()', () => {
+  it('NULL EXPIRATION: a consumed/expired secret yields expiration=null → now ACCEPTED (#3424 fix)', () => {
     // receipt.secret_expiration returns nil when secret_ttl is falsey (consumed
-    // or expired secret). The merge passes nil straight through; the v3 contract
-    // requires expiration: z.number() (non-null). This bypasses safe_dump
-    // entirely — a concrete, still-live leak the per-field casts never touched.
-    const issues = failingFields(
-      receiptResponseSchema,
-      healthyShowReceiptResponse({ expiration: null })
-    );
-    expect(paths(issues)).toContain('record.expiration');
+    // or expired secret). The contract previously required expiration: z.number()
+    // (non-null) and nulled the whole receipt. It is now z.date().nullable(): a
+    // consumed receipt legitimately has no live secret to expire.
+    expect(
+      failingFields(receiptResponseSchema, healthyShowReceiptResponse({ expiration: null }))
+    ).toEqual([]);
   });
 
-  it('UNCAST RAW TTL: expiration_in_seconds is raw receipt.secret_ttl → string breaks z.number()', () => {
+  it('UNCAST RAW TTL: the schema still rejects a string expiration_in_seconds (backend now casts it via to_i)', () => {
+    // The schema intentionally stays strict z.number(); the fix is the backend
+    // .to_i in ShowReceipt#_receipt_attributes, so a string can no longer reach
+    // the wire. This row pins that the contract is the read-time backstop.
     const issues = failingFields(
       receiptResponseSchema,
       healthyShowReceiptResponse({ expiration_in_seconds: '604800' })

@@ -240,7 +240,29 @@ schemas against legacy/poisoned/raw-merge fixtures (the gap §3 names) and pins
 the matrix in §2 so any regression in `safe_dump` shape or contract strictness
 fails CI with the field named.
 
-Both are additive and low-risk; neither changes a wire payload or a contract.
+### Quick win #3 — stop disguising load/parse errors as "viewed or expired" (root cause #6)
+
+`BaseShowSecret.vue` documented an `error` slot but never rendered it, so every
+failure — a real 404, a schema parse failure, *and a transient network/5xx* —
+fell through to the terminal `UnknownSecret` view whose copy literally reads
+"This secret has been viewed or expired." `useSecret` now records the failing
+status code (`state.errorCode`) and `BaseShowSecret` renders the `error` slot
+(neutral, retryable copy) for any non-404 failure, while a genuine 404
+(consumed/expired/missing) keeps the terminal view. Tests:
+`src/tests/composables/useSecret.spec.ts`.
+
+### Quick win #4 — close the receipt/dashboard uncast leaks (root cause #4)
+
+The matrix's still-live failures (§4.1/§4.2) are now fixed at the boundary:
+`ShowReceipt#_receipt_attributes` casts `expiration_in_seconds` (raw `secret_ttl`)
+with `.to_i`; the receipt `safe_dump` casts `previewed`/`revealed`/`burned`/
+`shared` to `Integer`-or-`nil` (no-ops for healthy `Familia.now.to_i` values);
+and the `expiration` contract is now nullable, since a consumed/expired receipt
+legitimately has no live secret expiration. (Backend tryouts must run in CI —
+this checkout's Ruby is 3.3.6 vs the locked 3.4.8 and has no datastore.)
+
+All four are additive and low-risk; #1–#3 change no wire payload, and #4's only
+contract change (nullable `expiration`) loosens, never tightens.
 
 ---
 
@@ -262,15 +284,16 @@ Both are additive and low-risk; neither changes a wire payload or a contract.
 
 **Short term (close the live leaks the matrix found):**
 
-- Fix `_receipt_attributes` (§4.1): `expiration_in_seconds` → `.to_i`; decide the
-  `expiration: null` contract (a consumed/expired receipt legitimately has no
-  expiration — the contract should be `z.number().nullable()` here, *or* the
-  logic should emit a sentinel; this is the one place strict-non-null is wrong).
-- Cast/normalize the raw receipt timestamp fields (§4.2), and resolve the `""`
-  hydration hinge with a backend tryout.
-- Add the missing `viewed→previewed` / `received→revealed` migration under
-  `migrations/`, and make `Secret#viewable?` (and the receipt enums) accept
-  legacy `viewed`/`received` until the migration has run everywhere (§4.3).
+- ✅ DONE (quick win #4): `_receipt_attributes` `expiration_in_seconds` → `.to_i`;
+  `expiration` contract made nullable; receipt timestamp fields
+  `previewed`/`revealed`/`burned`/`shared` cast in `safe_dump` (§4.1/§4.2).
+- ✅ DONE (quick win #3): error UX disambiguation so a parse/transient failure
+  isn't shown as "viewed or expired" (§4.3 takeaway, root cause #6).
+- STILL OPEN (deferred — security-sensitive, option not selected): the missing
+  `viewed→previewed` / `received→revealed` migration under `migrations/`, and
+  making `Secret#viewable?` (and the receipt enums) accept legacy
+  `viewed`/`received` until the migration has run everywhere (§4.3). This is the
+  one remaining path that still turns legacy-state data into a 404 / enum failure.
 
 **Systemic (the real cure — adopt #3496/#3514):**
 
