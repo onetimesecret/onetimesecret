@@ -69,7 +69,8 @@ export const receiptBaseSchema = receiptBaseCanonical.extend({
 export const receiptSchema = receiptCanonical.extend({
   ...v3TimestampOverrides,
   has_passphrase: z.boolean().nullish().transform((v) => v ?? false),
-  expiration: transforms.fromNumber.toDate,
+  // Nullable: null for a consumed/expired secret (see receiptCanonical, #3424).
+  expiration: transforms.fromNumber.toDateNullable,
 });
 
 /**

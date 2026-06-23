@@ -231,7 +231,11 @@ export const receiptBaseCanonical = z.object({
 export const receiptCanonical = receiptBaseCanonical.extend({
   secret_state: receiptStateSchema.nullish(),
   natural_expiration: z.string(),
-  expiration: z.date(),
+  // Nullable: a consumed/expired receipt has no live secret, so the backend
+  // (receipt.secret_expiration) legitimately returns null. The receipt page
+  // still renders to show the terminal status, so rejecting null here would
+  // null the whole record and surface "no longer available" (#3424).
+  expiration: z.date().nullable(),
   expiration_in_seconds: z.number(),
   share_path: z.string(),
   burn_path: z.string(),

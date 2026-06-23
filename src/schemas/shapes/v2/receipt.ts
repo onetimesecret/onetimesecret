@@ -135,7 +135,8 @@ export const receiptSchema = receiptBaseSchema.merge(
       secret_identifier: z.string().nullish().optional(),
       secret_shortid: z.string().nullish().optional(),
       key: z.string().nullish().optional(),
-      expiration: transforms.fromNumber.secondsToDate,
+      // Nullable: null for a consumed/expired secret (see receiptCanonical, #3424).
+      expiration: transforms.fromNumber.toDateNullable,
       expiration_in_seconds: transforms.fromString.number,
       identifier: z.string(),
     })
