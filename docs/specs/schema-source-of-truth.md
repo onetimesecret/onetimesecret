@@ -2,352 +2,183 @@
 ---
 # Schema as Single Source of Truth + Boundary Validation
 
-Design spec for [#3496](https://github.com/onetimesecret/onetimesecret/issues/3496),
-the systemic resolution of the [#3424](https://github.com/onetimesecret/onetimesecret/issues/3424)
-class of bugs ("secret immediately shows 'no longer available' / marked previewed,
-never viewable").
+Design spec for [#3496](https://github.com/onetimesecret/onetimesecret/issues/3496).
+Resolves the [#3424](https://github.com/onetimesecret/onetimesecret/issues/3424)
+class of failures: a secret renders "That information is no longer available"
+while it is neither expired nor consumed.
 
-This document captures the diagnosis, the conspiring root causes, a phased
-implementation plan, the alternatives considered, and acceptance criteria. It is
-written so the plan can be executed (or argued with) without re-deriving the
-investigation.
+Status: proposed.
 
-## Status
+## Behavior
 
-Proposed. No code changed by this document.
+A user reaches a secret through two independent paths, each with its own
+acceptance gate for `state`. A value outside a gate's accepted set fails that
+path, and every failure — together with legitimate expiry — renders the same
+screen, so the cause is not visible.
 
----
+**Recipient (secret link).** `GET /api/v3/guest/secret/:id` applies the
+`viewable?` gate before serializing: content present **and** `state ∈ {new,
+previewed}`. Any other value raises `MissingSecret` → HTTP 404 with no payload
+(consumed states `revealed`/`burned` 404 here too, correctly). A viewable secret
+is marked previewed, serialized via `safe_dump`, and returned 200; the frontend
+then validates it against the secret schema.
 
-## 1. Problem statement
+**Sender (dashboard / receipt).** Receipt fetches have no `viewable?` gate and
+always return 200. Acceptance is the frontend receipt enum (`new, shared,
+revealed, burned, previewed, expired, orphaned`); a `state` outside it fails
+`gracefulParse`.
 
-A recipient opens a secret link. The frontend calls
-`GET /api/v3/guest/secret/:identifier`, the backend returns **HTTP 200** with a
-valid record, but the frontend `gracefulParse(responseSchemas.secret, …)` fails,
-so `record` stays `null` and the user sees "That information is no longer
-available." The secret is never consumed; the sender dashboard shows "Previewed"
-but never "Viewed."
+Numeric and timestamp fields are coerced to their wire types at the `safe_dump`
+boundary (`to_i`/`to_f`) and cannot fail validation. `state` is emitted raw with
+no coercion and can.
 
-Three rounds of fixes have shipped against this:
+The recipient 404, the sender parse failure, and the legitimate gone-states all
+converge on `record == null` → the `UnknownSecret` screen. The three conditions
+are indistinguishable to the user and emit no operator signal.
 
-- **#3268** (proposal): `.to_i` casts in `safe_dump` lambdas.
-- **#3434** (merged): cast numeric fields at the `safe_dump` boundary —
-  `lifespan`/`secret_ttl` → `to_i`, `created`/`updated` → `to_f`.
-- **#3477** (merged): write-boundary coercion in `Receipt.spawn_pair`, config TTL
-  normalization, and reverting the contracts to strict non-null `z.number()`.
-
-All three shipped in v0.25.11. The reporter confirms **no change** in behavior as
-of 2026-06-22.
-
-## 2. What we proved
-
-1. **The numeric casts are airtight.** `safe_dump` emits `m.lifespan.to_i` /
-   `m.secret_ttl → m.lifespan.to_i` (always `Integer`) and `m.created.to_f` /
-   `m.updated.to_f` (always `Float`; even `nil.to_f == 0.0`). These four fields
-   can no longer fail `z.number()` under any stored value.
-   `lib/onetime/models/secret/features/safe_dump_fields.rb:56-65`, receipt
-   `:75-81`.
-
-2. **A fresh, healthy secret validates cleanly.** Reconstructing the exact
-   `GET /api/v3/guest/secret/:id` payload
-   (`apps/api/v2/logic/secrets/show_secret.rb:95-114`, serialized type-preserving
-   via Otto `response=json`): every `record` field is either cast (numerics),
-   method-computed to a real Boolean (`has_passphrase?`, `verification?`,
-   `state?(…)`), or the in-enum string `state='previewed'`; every `details` field
-   is forced to Boolean/Integer/nil by Ruby `!!`/`==`/arithmetic. **No field can
-   fail the strict schema for a current, healthy record.**
-
-3. **The recipient 200 path is guarded.** To return 200 (not 404), the backend
-   requires `secret.viewable?` = `state?(:new) || state?(:previewed)`
-   (`secret_state_management.rb:34`). So a legacy `state='viewed'` *secret* 404s
-   — it never reaches a parse failure. The **receipt/dashboard list path has no
-   such guard.**
-
-4. **Familia cannot enforce types.** Storage is *type-preserving, not
-   type-enforcing*: `serialize_value` → `Oj.dump`, `deserialize_value` →
-   `Oj.parse`, with a rescue that returns the raw string on non-JSON bytes. There
-   is **no** `field :x, type: Integer` / coerce / cast option in Familia 2.10/2.11.
-   A string that leaks in at write time round-trips as a string forever. The
-   `feature :schema_validation` + `SchemaRegistry` infrastructure exists but is
-   **not wired up** in OTS and only *detects* (validates `to_h`); it does not
-   coerce.
-
-5. **The datastore is very unlikely to be implicated.** Redis, Dragonfly, Valkey,
-   and KeyDB all return `HGET`/`HGETALL` values as byte-faithful bulk strings;
-   none numeric-encode `HSET` values. RESP3 double/bignumber typing applies to
-   score/coordinate/float commands, not hash field values, and Dragonfly defaults
-   to RESP2. The reporter's use of Dragonfly v1.38.1 does not change the
-   round-trip — the same stored bytes would reproduce on stock Redis. The
-   corruption is write-time / data-provenance, not engine behavior. (See §7 for
-   the cheap raw-bytes check.)
-
-**Reframing:** the bug is a *class* of strict-type mismatches, not one field — and
-crucially, **no one has ever captured the actual failing field**, because the
-frontend discards it. Three fixes were shipped on inference.
-
-## 3. Conspiring root causes
-
-Each is a necessary condition; together they make the bug possible and recurrent.
-
-1. **Type-preserving storage, no enforcement (Familia).** Any non-native value
-   persists with its wrong type indefinitely; no per-field type guarantee.
-
-2. **Open-ended set of string-injecting write paths.** ERB/ENV
-   (`INCOMING_DEFAULT_TTL`), YAML floats, raw params. #3299 found two and #3477
-   fixed two — but with no single choke point, the next leak is inevitable.
-
-3. **A strict, frontend-authored contract used as an all-or-nothing gate.**
-   `z.number()/z.boolean()/z.enum()` with zero coercion, and one bad field nulls
-   the *entire* record → `UnknownSecret`. The schema was written to the idealized
-   model, not to what `safe_dump` emits across the real keyspace (legacy `state`,
-   older payloads missing newer canonical keys).
-
-4. **Whack-a-mole remediation at the wrong layer.** Casting individual fields in
-   `safe_dump` is correct but incomplete by construction. `state` is the one
-   strict record field still read raw with no coercion
-   (`safe_dump_fields.rb:38`), and the legacy `viewed→previewed` rename has **no
-   data migration** — the "MIGRATION SCRIPT REQUIREMENTS" blocks in the safe_dump
-   files are aspirational comments only.
-
-5. **A broken diagnostic loop.** `gracefulParse` logs a generic string and puts
-   the precise `error.issues[].path` into Sentry *extras* (non-searchable);
-   `loggingService.error` receives a bare `Error` with no issues
-   (`src/utils/schemaValidation.ts:79-90`, `diagnostics.service.ts:117-122`). No
-   one — reporter or maintainer — has seen which field actually fails.
-
-6. **An ambiguous failure surface.** `UnknownSecret` renders identically for a
-   legitimate 404 (expired/consumed/legacy-unviewable) and a schema parse failure.
-   The reporter reasonably assumed parse failure; some instances are likely 404s
-   on legacy-state data.
-
-7. **Version/data skew.** The receipt list path + legacy `state='viewed'/'received'`
-   matches the dashboard symptom exactly. Helm chart pins an image and SPA bundles
-   can be CDN/browser-cached, so frontend schema and backend payload can desync
-   ("no change on v0.25.11" is also consistent with the running image/bundle
-   simply not being v0.25.11).
-
-## 4. Most-likely live explanations, ranked
-
-1. **Receipt/dashboard payload rejects a legacy `state` enum value**
-   (`'viewed'`/`'received'`) on the list endpoint — no viewability guard, emitted
-   raw, no migration. Best fit for "Previewed but never Viewed."
-   `src/schemas/contracts/receipt.ts:47-57,170`; `receipt/.../safe_dump_fields.rb:58`.
-2. **The deployment isn't effectively running v0.25.11** (chart/image pin or
-   cached SPA bundle) — simplest fit for "no change."
-3. **The recipient "no longer available" is partly a 404** on legacy-unviewable
-   records, conflated with the parse failure by the shared `UnknownSecret` view.
-4. **A missing required key** (older server/bundle skew) — `z.object` rejects
-   absent `is_previewed`/`is_revealed`.
-
-## 5. Target architecture
-
-```
-src/schemas/contracts/*.ts   ── canonical model truth (Zod, no transforms)  ◄── SINGLE SOURCE
-        │  z.toJSONSchema(io:'input', override)
-        ├─► generated/schemas/storage/*.schema.json   timestamps→number   →  Familia validates to_h (pre-save)
-        └─► generated/schemas/shapes/*.schema.json    wire projection      →  backend validates safe_dump (pre-response)
-                                                                            →  frontend gracefulParse (already)
+```mermaid
+flowchart TD
+    subgraph Recipient["Recipient — secret link"]
+        R1["GET /api/v3/guest/secret/:id"] --> RG{"viewable? gate<br/>state is new or previewed"}
+        RG -->|"no"| R404["MissingSecret → HTTP 404 (no payload)"]
+        RG -->|"yes"| RP["mark previewed, safe_dump, HTTP 200"]
+        RP --> RV{"gracefulParse — secret schema"}
+        RV -->|"valid"| ROK["confirmation / reveal"]
+        RV -->|"invalid: strict field mismatch"| RNULL["record = null"]
+        R404 --> RNULL
+    end
+    subgraph Sender["Sender — dashboard / receipt"]
+        S1["GET receipts (no viewable? gate)"] --> SP["safe_dump, HTTP 200"]
+        SP --> SV{"gracefulParse — receipt enum"}
+        SV -->|"valid"| SOK["render row"]
+        SV -->|"invalid: state not in enum"| SNULL["record = null"]
+    end
+    RNULL --> U["UnknownSecret: 'no longer available'"]
+    SNULL --> U
+    LEGIT["expired / consumed / never existed"] --> U
+    classDef bad fill:#fde8e8,stroke:#c0392b,color:#000
+    classDef sink fill:#fdeccd,stroke:#b9770e,color:#000
+    class R404,RNULL,SNULL bad
+    class U sink
 ```
 
-`to_h` (raw Ruby fields) is validated against **storage** schemas; `safe_dump`
-(wire output) is validated against **shape** schemas. The frontend consumes the
-same generated shapes it already does. Drift becomes a build failure, not a
-production incident.
+Open: what gives a production record a `state` outside the accepted set.
+Resolved by `HGET secret:<id>:object state` / `HGET receipt:<id>:object state` on
+a failing record.
 
-Design goals, each mapped to a root cause:
+## Root causes
 
-| Goal | Kills root cause |
-|---|---|
-| G1. One canonical model definition; backend & frontend types derived, never hand-aligned | #3, #7 |
-| G2. Backend physically cannot emit a payload the frontend rejects (validate at the boundary) | #3, #4 |
-| G3. Coercion generated from the contract, not hand-written per field | #4 |
-| G4. The at-rest keyspace reconciled to the contract (incl. the `state` rename) | #4, #1 |
-| G5. A single bad field never hides a viewable secret; failures self-report | #5, #6 |
+1. Familia storage is type-preserving, not type-enforcing: `field` values
+   round-trip as whatever Ruby type/bytes were written, with no `type:`/coerce
+   option. Wrong-typed or out-of-enum values persist and resurface unchanged.
+2. The contract is a strict, all-or-nothing gate: one unaccepted field nulls the
+   entire record.
+3. Coercion is per-field and manual in `safe_dump`; `state` is unguarded. There is
+   no systematic, contract-driven coercion.
+4. Validation failures are unobservable: `gracefulParse` keeps only a generic
+   message and routes the failing path to Sentry extras
+   (`src/utils/schemaValidation.ts`, `src/services/diagnostics.service.ts`).
+5. The failure surface is ambiguous: 404, parse failure, and legitimate expiry
+   render identically (`BaseShowSecret.vue` → `UnknownSecret.vue`).
 
-## 6. Phased implementation
+## Target architecture
 
-### Phase 0 — Make the failure visible (prerequisite)
-
-Without this we keep guessing, which is how three fixes missed. Not optional even
-for the systemic path — it is how we *prove* the fix closes #3424.
-
-- `src/utils/schemaValidation.ts:79-90`: build the error message from
-  `result.error.issues` (`path.join('.')` + `code` + `received`) and attach the
-  joined paths as a searchable Sentry tag `schemaField` (register it in
-  `diagnostics.service.ts:39 TAG_FIELDS`). Make `loggingService.error` carry the
-  issues, not a bare message.
-- Backend mirror: a sampled log when `safe_dump` output fails its shape schema
-  (enabled by Phase 2), so operators see the field server-side even without Sentry.
-- **Deliverable:** the reporter gets `records[N].state received "viewed"` instead
-  of a generic string. Confirms which hypothesis is real before we build further.
-
-### Phase 1 — Contracts as model source of truth + generate storage schemas
-
-- Add `contracts/*` to the generation registry (`src/schemas/registry.ts`); today
-  only shapes/API schemas generate (`scripts/json-schema/generate.ts`).
-- Add a second generation target: a `toStorageJsonSchema()` pass whose `override`
-  maps `z.date()` → `{ type: 'number' }` (epoch seconds, matching `to_h`) instead
-  of the current `date-time` string (`generate.ts:68-77`). Output to
-  `generated/schemas/storage/`; keep the wire output as `generated/schemas/shapes/`.
-- The contract file does not change; the *generation target* decides number vs
-  ISO string.
-- **Acceptance:** `pnpm run schemas:json:generate` emits both `storage/secret.schema.json`
-  and `shapes/secret.schema.json`; CI fails if they drift from the Zod source.
-
-### Phase 2 — Wire Familia validation at both boundaries
-
-- Add `json_schemer` to the Gemfile; in `lib/onetime/boot.rb` set
-  `Familia.schema_path = OT.root/'generated'/'schemas'/'storage'` and
-  `Familia.schema_validator = :json_schemer` (Familia otherwise falls back to a
-  silent `NullValidator`).
-- Enable `feature :schema_validation` + `schema 'secret.schema.json'` on
-  `OT::Secret` and `OT::Receipt` (`lib/onetime/models/secret.rb:14-30`).
-- **Two enforcement points** (this is the key refinement to #3496, which only
-  addressed storage):
-  1. **Pre-save:** validate `to_h` against the storage schema → blocks string
-     TTLs / bad `state` from entering Redis. Start in warn/log mode; flip to raise
-     after Phase 4.
-  2. **Pre-response:** validate `safe_dump` output against the **shape** schema in
-     the V3 logic base (or a tryout/CI gate) → this is the literal #3424 failure,
-     caught on our side first.
-- **Acceptance:** a tryout feeds a legacy `state='viewed'` record through both
-  validators and they flag it; a healthy record passes both.
-
-### Phase 3 — Generated coercion (eliminate whack-a-mole)
-
-- Replace per-field hand casts with a coercion map derived from the storage/shape
-  schema (field → JSON type). A small `SafeDump` coercion layer applies
-  `to_i`/`to_f`/boolean/enum-normalization generically, so every field is coerced
-  to its contract type — not just the numerics someone remembered.
-- Fold `state` legacy normalization (`viewed→previewed`, `received→revealed`,
-  unknown→safe canonical) into this layer for Secret and Receipt.
-- **Acceptance:** removing a hand cast doesn't change output; adding a contract
-  field auto-coerces with no safe_dump edit. The interim casts from #3434/#3477
-  are deleted.
-
-### Phase 4 — Reconcile the at-rest keyspace
-
-- Write the missing migration under `migrations/<date>/` that rewrites
-  `state='viewed'→'previewed'` and `'received'→'revealed'` for `secret:*` and
-  `receipt:*`.
-- Extend `scripts/diagnostics/detect_string_typed_numerics.rb` to also report
-  out-of-enum `state` and any field failing the storage schema (rename to a
-  general "schema drift detector"). Run on the reporter's two environments.
-- Flip Phase 2 pre-save validation from warn → raise once the detector reports
-  clean.
-
-### Phase 5 — Make it permanent + resilient consumer
-
-- **Fail-soft frontend:** if `gracefulParse` fails, attempt per-field salvage
-  (coerce/drop the offending field) so a viewable secret is shown rather than
-  nulled — and `UnknownSecret` distinguishes a true 404 from a parse failure.
-- CI gates: schema-sync check, `safe_dump`-vs-shape contract test with **legacy
-  fixtures** (today every test uses `state:'new'` — the gap that let this
-  through), and a generated-types check.
-
-**Minimum viable systemic change** = Phase 0 + 2 (pre-response validation) + 3
-(`state` in the coercion layer) + 4 (migration). Phases 1 and 5 complete the
-vision but the bug is closed by MVP.
-
-## 7. Cheapest single diagnostic (run alongside Phase 0)
-
-Pull the raw bytes of a failing record's field:
+`src/schemas/contracts/*.ts` is the single model definition. Two targets derive
+from it; nothing is hand-aligned.
 
 ```
-redis-cli -p <port> HGET secret:<objid>:object lifespan
+contracts/*.ts ── canonical model (Zod, no transforms)  ◄── SINGLE SOURCE
+   ├─► generated/schemas/storage/*  (timestamps → number)  → Familia validates to_h    (pre-save)
+   └─► generated/schemas/shapes/*   (wire projection)      → backend validates safe_dump (pre-response)
+                                                           → frontend gracefulParse      (already)
 ```
 
-- `"604800"` **with quotes** → written as a String upstream → engine exonerated;
-  this is the write-boundary / legacy-data problem (Phases 2 + 4).
-- `604800` **without quotes** → should round-trip as Integer on any store; if it
-  still arrives as a String, that is the first real evidence of an engine quirk
-  and warrants the cross-store round-trip script (Oj.dump → HSET → HGET → Oj.load
-  against Redis vs Dragonfly vs Valkey, asserting the returned Ruby class under
-  both RESP2 and RESP3).
+`to_h` is validated against storage schemas; `safe_dump` against shape schemas.
+`safe_dump ≠ to_h`, so both boundaries are required — validating only `to_h`
+leaves the wire payload unchecked. Drift between model, storage, and wire becomes
+a build failure, not a production incident.
 
-## 8. Alternatives considered
+## Phases
 
-**A. Keep casting fields in `safe_dump` as they surface (status quo).** Rejected:
-provably whack-a-mole — `state` is already the next unguarded field, and Familia's
-type-preserving storage guarantees a *next* one. This is the loop that produced
-#3268 → #3434 → #3477 with the bug still open.
+**0 — Observability.** Include the Zod issue path in the `gracefulParse` log
+message and as a searchable Sentry tag (`schemaField` in
+`diagnostics.service.ts` `TAG_FIELDS`); log on backend shape-validation failure.
 
-**B. Loosen the frontend schema (`z.coerce.*` / nullable+tolerant everywhere).**
-Rejected as the primary fix (kept as the Phase 5 safety net): it permanently
-abandons the type contract, hides real corruption, and the reverted
-nullable-contract attempt in #3477 already showed the maintainer prefers enforcing
-the invariant over relaxing it.
+**1 — Storage schemas.** Add `contracts/*` to `src/schemas/registry.ts`. Add a
+storage generation target whose `override` maps `z.date()` → `{ type: 'number' }`;
+output to `generated/schemas/storage/` alongside the existing wire output in
+`generated/schemas/shapes/`.
 
-**C. Add typed fields to Familia (`field :lifespan, type: Integer`).** The cleanest
-root fix for cause #1, but rejected for now: it requires upstream changes to the
-`delano/familia` gem (the capability does not exist in 2.10.1), a release, and a
-version bump. Worth proposing to Familia as a follow-up; the OTS-side coercion
-layer (Phase 3) is the same idea implemented where we control it, and de-risks the
-dependency.
+**2 — Familia validation.** Set `Familia.schema_path` + `schema_validator` in
+`lib/onetime/boot.rb`; enable `feature :schema_validation` on `OT::Secret` and
+`OT::Receipt`. Validate `to_h` against the storage schema before save (warn, then
+raise after Phase 4); validate `safe_dump` against the shape schema before
+response.
 
-**D. Enforce types only at the write boundary (the #3299 `spawn_pair` approach).**
-Rejected as sufficient on its own: it can't heal the existing corrupt keyspace,
-doesn't cover paths that bypass `spawn_pair` (console, raw HSET, future callers),
-and doesn't catch wire-shape drift. Necessary but partial — folded into Phases
-2/4.
+**3 — Generated coercion.** Replace hand-written `safe_dump` casts with a
+coercion layer driven by the schema (field → type). Normalize `state`: known
+renames (`viewed→previewed`, `received→revealed`) to canonical; unrecognized
+values to a logged fallback.
 
-**E. Validate only `to_h` against storage schemas (literal #3496 scope).**
-Rejected as incomplete: #3424 is a wire-shape failure, and `safe_dump` ≠ `to_h`
-(it renames, computes, and coerces). Validating only `to_h` would pass while the
-wire payload still breaks the frontend. The plan adds the safe_dump-vs-shape check
-that #3496 omitted.
+**4 — Reconcile keyspace.** Migrate at-rest `state` values to canonical for
+`secret:*` and `receipt:*`. Extend the diagnostic to report any field outside its
+schema, not only numerics. Flip Phase 2 to raise once clean.
 
-**F. Server-side render / inline the secret payload to bypass the SPA schema.**
-Rejected: large architectural change, loses the type-safety the contracts buy, and
-doesn't address the dashboard/list symptom.
+**5 — Resilient consumer.** On parse failure, salvage per-field rather than
+nulling the record; `UnknownSecret` distinguishes expiry/404 from a validation
+error. CI: schema-sync check and contract tests over out-of-enum/legacy
+`state` fixtures.
 
-**G. Do observability only and wait for the field.** Tempting and cheap (it is
-Phase 0), but rejected as the whole answer: it tells us which field, not why the
-class keeps recurring. Prerequisite, not cure.
+MVP closing #3424: Phases 0, 2 (pre-response), 3 (`state`), 4.
 
-**H. Blame/replace the datastore (Dragonfly → Redis).** Rejected: research shows
-all four Redis-compatible stores preserve hash-value bytes and reply types
-identically on the relevant path; the round-trip is deterministic and the same
-data reproduces on Redis. Store choice is not a variable here.
+## Alternatives
 
-## 9. Risks & mitigations
+- **A. Per-field casting as fields surface (status quo).** Incomplete by
+  construction; `state` is the next unguarded field. → root cause 3.
+- **B. Loosen the contract (coerce/nullable everywhere).** Abandons the type
+  guarantee and hides corruption; kept only as the Phase 5 salvage.
+- **C. Typed fields in Familia (`field :x, type: Integer`).** Correct at the
+  source but needs an upstream gem change; Phase 3 is the same idea where we
+  control it. → root cause 1.
+- **D. Write-boundary coercion only (#3299 `spawn_pair`).** Cannot heal existing
+  data; misses non-`spawn_pair` writers and wire-shape drift.
+- **E. Validate `to_h` only (#3496 as written).** `safe_dump ≠ to_h`; the wire
+  payload can still fail. Both boundaries required.
+- **F. Server-side render to bypass the SPA schema.** Large change, discards the
+  type guarantee, ignores the sender path.
+- **G. Observability only.** Identifies the field, not the recurrence; it is
+  Phase 0, not the cure.
+- **H. Replace the datastore.** Redis/Dragonfly/Valkey/KeyDB preserve hash bytes
+  and reply types identically; not a variable.
 
-- **Pre-save raise could reject writes on dirty data** → ship in warn mode, raise
-  only after the Phase 4 detector is clean.
-- **Generated-coercion behavior change** → land behind a contract test that diffs
-  old vs new `safe_dump` output on a fixture corpus *including legacy states*.
-- **`z.date()` dual-meaning confusion** → document the contract-vs-target
-  convention; the override lives only in the generator.
-- **Familia version**: the working checkout is 2.11.0 but OTS locks 2.10.1 —
-  verify `schema_validation`/`SchemaRegistry` APIs against the locked gem before
-  Phase 2.
+## Acceptance
 
-## 10. Acceptance criteria (tied to #3424)
+1. A validation failure reports the field path in logs and as a searchable tag.
+2. An out-of-enum `state` record is flagged by the diagnostic, normalized so the
+   wire payload validates, and rewritten by the migration.
+3. Representative recipient and sender payloads, including out-of-enum fixtures,
+   pass the generated schemas in CI.
+4. Removing any interim `to_i`/`to_f` cast leaves output unchanged.
+5. A viewable secret renders even if a non-essential field is malformed; expiry
+   and validation errors are distinguishable in the UI.
 
-1. Phase 0 yields the real `issues[].path` for a failing payload.
-2. A legacy `state='viewed'` record is (a) flagged by the detector, (b) rejected
-   by pre-save validation, (c) normalized by the coercion layer so the wire
-   payload validates, and (d) rewritten by the migration.
-3. A representative ShowSecret **and** ListReceipts payload — built from real
-   `safe_dump`, including legacy fixtures — passes the generated shape schema in CI.
-4. Removing any interim `to_i`/`to_f` cast leaves output unchanged (coercion is
-   now generated).
-5. The frontend renders a viewable secret even if one non-essential field is
-   malformed.
+## References
 
-## 11. References
-
-- Issues/PRs: #3424, #3268, #3299, #3434, #3477, #3496
+- Issues/PRs: #3424, #3496; prior numeric coercion #3268, #3299, #3434, #3477.
 - Backend: `lib/onetime/models/secret/features/safe_dump_fields.rb`,
   `lib/onetime/models/receipt/features/safe_dump_fields.rb`,
-  `apps/api/v2/logic/secrets/show_secret.rb`, `apps/api/v3/logic/secrets.rb`,
   `lib/onetime/models/secret/features/secret_state_management.rb`,
-  `lib/onetime/models/receipt.rb` (`spawn_pair`), `lib/onetime/config.rb`
-- Frontend: `src/schemas/contracts/secret.ts`, `src/schemas/contracts/receipt.ts`,
-  `src/schemas/shapes/v3/secret.ts`, `src/schemas/api/base.ts`,
+  `apps/api/v2/logic/secrets/show_secret.rb`, `apps/api/v3/logic/secrets.rb`,
+  `lib/onetime/boot.rb`.
+- Frontend: `src/schemas/contracts/{secret,receipt}.ts`,
+  `src/schemas/shapes/v3/{secret,receipt}.ts`, `src/schemas/api/base.ts`,
   `src/shared/stores/secretStore.ts`, `src/utils/schemaValidation.ts`,
-  `src/services/diagnostics.service.ts`
+  `src/services/diagnostics.service.ts`,
+  `src/shared/components/base/BaseShowSecret.vue`,
+  `src/apps/secret/reveal/UnknownSecret.vue`.
 - Generation: `scripts/json-schema/generate.ts`, `src/schemas/registry.ts`,
-  `generated/schemas/`
-- Familia: `lib/familia/horreum/serialization.rb`, `lib/familia/json_serializer.rb`,
-  `lib/familia/features/safe_dump.rb`, `lib/familia/features/schema_validation.rb`,
-  `lib/familia/schema_registry.rb`
+  `generated/schemas/`.
+- Familia: `lib/familia/horreum/serialization.rb`,
+  `lib/familia/features/safe_dump.rb`,
+  `lib/familia/features/schema_validation.rb`,
+  `lib/familia/schema_registry.rb`.
