@@ -70,4 +70,31 @@ RSpec.describe Onetime::Application::RequestLogger do
       expect(payload['request_id']).to eq('req-xyz-1')
     end
   end
+
+  # :minimal capture (the YAML default) normally omits request_id. Error lines
+  # must still carry it so the id the client received is greppable here.
+  context 'in :minimal capture mode' do
+    let(:config) { { 'capture' => 'minimal' } }
+
+    context 'on an error response' do
+      let(:status) { 404 }
+      let(:error_type) { 'RecordNotFound' }
+
+      it 'forces request_id onto the line alongside error_type' do
+        _level, payload = call(request_id: 'rid-min-1')
+        expect(payload['error_type']).to eq('RecordNotFound')
+        expect(payload['request_id']).to eq('rid-min-1')
+      end
+    end
+
+    context 'on a successful response' do
+      let(:status) { 200 }
+
+      it 'stays lean (no request_id)' do
+        _level, payload = call
+        expect(payload).not_to have_key('request_id')
+        expect(payload).not_to have_key('error_type')
+      end
+    end
+  end
 end

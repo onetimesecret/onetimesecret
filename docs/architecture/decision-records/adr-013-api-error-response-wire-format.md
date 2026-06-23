@@ -60,6 +60,8 @@ Outside the scope of #3221 but on the long-term trajectory of this contract:
 
 - **Schema-validated contract spec.** Generalize the existing error-response shape spec into a structural assertion: every registered error class's `to_h` must validate against an ADR-013 JSON Schema. Broken shapes fail CI rather than surfacing as frontend bugs.
 
+- **Extend `request_id` correlation to the Roda auth surface.** The `request_id` correlation field is currently echoed only by the Otto error handlers (`OttoHooks#with_error_correlation`). Typed errors on the `/auth` surface are rendered through `Auth::ErrorTranslator` and still omit `request_id` from the body and stash no `error_type` for `RequestLogger`. Until that handler echoes the id too, `request_id`-in-body is an Otto-app guarantee, not a whole-API one — on `/auth` the `x-request-id` response header remains the correlation handle.
+
 ## Implementation Notes
 
 Migration tracked in #3221.

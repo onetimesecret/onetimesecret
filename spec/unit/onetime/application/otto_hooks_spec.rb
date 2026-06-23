@@ -127,6 +127,32 @@ RSpec.describe Onetime::Application::OttoHooks do
         expect(body[:retry_after]).to eq(9)
         expect(env['otto.error_type']).to eq('BillingServiceUnavailable')
       end
+
+      # FormError#to_h compacts away a nil error_type, so the body carries none.
+      # The request log should still name the failure via the exception class.
+      it 'falls back to the exception class name for the log when the body omits error_type' do
+        env   = { 'HTTP_X_REQUEST_ID' => request_id }
+        entry = registered[Onetime::FormError]
+
+        body = entry[:handler].call(Onetime::FormError.new('You did not provide anything'), req_with(env))
+
+        expect(body).not_to have_key(:error_type)        # body contract unchanged
+        expect(env['otto.error_type']).to eq('FormError') # log still names it
+        expect(body[:request_id]).to eq(request_id)
+      end
+
+      it "prefers the FormError's own error_type over the class-name fallback" do
+        env   = { 'HTTP_X_REQUEST_ID' => request_id }
+        entry = registered[Onetime::FormError]
+
+        body = entry[:handler].call(
+          Onetime::FormError.new('Emails differ', error_type: 'email_mismatch'),
+          req_with(env),
+        )
+
+        expect(body[:error_type]).to eq('email_mismatch')
+        expect(env['otto.error_type']).to eq('email_mismatch')
+      end
     end
 
     describe 'Billing::CircuitOpenError (Stripe breaker open)' do

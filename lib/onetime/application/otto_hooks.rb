@@ -50,7 +50,7 @@ module Onetime
         not_found_handler = ->(error, req) {
           Onetime::Application::ErrorResolver.resolve!(error, req)
           body = error.respond_to?(:to_h) ? error.to_h : { message: error.message || 'Not Found' }
-          with_error_correlation(body, req)
+          with_error_correlation(body, req, error)
         }
         router.register_error_handler(Onetime::RecordNotFound, status: 404, log_level: :info, &not_found_handler)
         router.register_error_handler(Onetime::MissingSecret, status: 404, log_level: :info, &not_found_handler)
@@ -58,7 +58,7 @@ module Onetime
         # Form errors return 422 with error type and field info
         router.register_error_handler(Onetime::FormError, status: 422, log_level: :info) do |error, req|
           Onetime::Application::ErrorResolver.resolve!(error, req)
-          with_error_correlation(error.to_h, req)
+          with_error_correlation(error.to_h, req, error)
         end
 
         # Forbidden errors return 403. Resolver localizes when error_key is
@@ -67,25 +67,25 @@ module Onetime
         router.register_error_handler(Onetime::Forbidden, status: 403, log_level: :warn) do |error, req|
           Onetime::Application::ErrorResolver.resolve!(error, req)
           body = error.respond_to?(:to_h) ? error.to_h : { message: error.message }
-          with_error_correlation(body, req)
+          with_error_correlation(body, req, error)
         end
 
         # Rate limit exceeded errors return 429 with retry info
         router.register_error_handler(Onetime::LimitExceeded, status: 429, log_level: :warn) do |error, req|
           Onetime::Application::ErrorResolver.resolve!(error, req)
-          with_error_correlation(error.to_h, req)
+          with_error_correlation(error.to_h, req, error)
         end
 
         # Entitlement errors return 403 with upgrade path info
         # NOTE: Otto handles Content-Type header automatically; handler returns body hash only
         router.register_error_handler(Onetime::EntitlementRequired, status: 403, log_level: :info) do |error, req|
-          with_error_correlation(error.to_h, req)
+          with_error_correlation(error.to_h, req, error)
         end
 
         # Guest routes disabled errors return 403 with error code
         router.register_error_handler(Onetime::GuestRoutesDisabled, status: 403, log_level: :info) do |error, req|
           Onetime::Application::ErrorResolver.resolve!(error, req)
-          with_error_correlation(error.to_h, req)
+          with_error_correlation(error.to_h, req, error)
         end
 
         # Unauthorized errors return 401. Onetime::Unauthorized is a marker
@@ -94,7 +94,7 @@ module Onetime
         # 'Not authorized to update this receipt'). Symmetric with
         # Auth::ErrorTranslator so the Roda and Otto layers agree.
         router.register_error_handler(Onetime::Unauthorized, status: 401, log_level: :warn) do |error, req|
-          with_error_correlation({ error: error.message, error_type: 'Unauthorized' }, req)
+          with_error_correlation({ error: error.message, error_type: 'Unauthorized' }, req, error)
         end
 
         # Plan-catalog cache misses (Billing::PlanCacheMissError) are a known,
@@ -112,11 +112,11 @@ module Onetime
         # builds where the billing app — and thus Billing::PlanCacheMissError —
         # is never loaded (the error can't be raised there). log_level :error
         # keeps the fail-closed design's ops visibility intact.
-        router.register_error_handler('Billing::PlanCacheMissError', status: 503, log_level: :error) do |_error, req|
+        router.register_error_handler('Billing::PlanCacheMissError', status: 503, log_level: :error) do |error, req|
           with_error_correlation({
             error: 'Plan catalog is temporarily unavailable. Please try again shortly.',
             error_type: 'PlanCatalogUnavailable',
-          }, req)
+          }, req, error)
         end
 
         # Stripe circuit breaker open (Billing::CircuitOpenError) is the sibling
@@ -147,7 +147,7 @@ module Onetime
             error_type: 'BillingServiceUnavailable',
           }
           body[:retry_after] = error.retry_after if error.retry_after
-          with_error_correlation(body, req)
+          with_error_correlation(body, req, error)
         end
 
         # Give the router the same trusted-proxy list as the outer IP-privacy
@@ -230,11 +230,18 @@ module Onetime
       #
       # @param body [Hash] The JSON error body the handler is about to return
       # @param req [Rack::Request, Otto::Request, nil] The current request
+      # @param error [Exception, nil] The error being handled; used only as the
+      #   fallback source for error_type when the body omits it
       # @return [Hash] The body, with :request_id merged in when available
-      def with_error_correlation(body, req)
+      def with_error_correlation(body, req, error = nil)
         return body unless req.respond_to?(:env) && req.env
 
-        req.env['otto.error_type'] = body[:error_type] if body[:error_type]
+        # Prefer the body's class-specific error_type; fall back to the exception
+        # class name so the request log still names the failure for errors whose
+        # to_h compacts error_type away (e.g. a FormError raised without one).
+        # The body is left untouched — this fallback only feeds the request log.
+        error_type = body[:error_type] || error&.class&.name&.to_s&.split('::')&.last
+        req.env['otto.error_type'] = error_type if error_type
 
         request_id = req.env['HTTP_X_REQUEST_ID']
         request_id ? body.merge(request_id: request_id) : body
