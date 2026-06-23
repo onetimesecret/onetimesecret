@@ -40,6 +40,12 @@ export function useSecret(secretIdentifier: string, options?: SecretOptions) {
     success: '',
   });
 
+  // Pull the caller's onError out so we can compose it instead of letting the
+  // `...restOptions` spread replace ours. If a caller-supplied onError clobbered
+  // the default, `state.errorCode` would never be set and `isNotFound` would be
+  // permanently false — silently reverting the #3424 404-vs-error disambiguation.
+  const { onError: callerOnError, ...restOptions } = options ?? {};
+
   const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
     notify: (message, severity) => {
       if (severity === 'error') {
@@ -52,8 +58,9 @@ export function useSecret(secretIdentifier: string, options?: SecretOptions) {
     onError: (err) => {
       state.success = '';
       state.errorCode = err.code ?? null;
+      callerOnError?.(err);
     },
-    ...options,
+    ...restOptions,
   };
 
   const { wrap } = useAsyncHandler(defaultAsyncHandlerOptions);
