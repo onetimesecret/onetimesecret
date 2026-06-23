@@ -291,6 +291,8 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
+      # Required to upload coverage data to GitHub Code Quality.
+      code-quality: write
 
     services:
       redis: &valkey-service
@@ -314,7 +316,12 @@ jobs:
           - 5672:5672
 
     steps:
-      - *checkout-step
+      # Check out the PR head commit (not the merge commit) so coverage line
+      # numbers map correctly to the diff for GitHub Code Quality.
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Setup Ruby test environment
         uses: ./.github/actions/setup-ruby-test-env
@@ -337,6 +344,11 @@ jobs:
       - name: Generate JSON schemas
         run: pnpm run schemas:json:generate
 
+      # Enable SimpleCov for the test run below. Writing to GITHUB_ENV makes
+      # COVERAGE available to the composite action's `rake spec:fast` process.
+      - name: Enable coverage
+        run: echo "COVERAGE=true" >> "$GITHUB_ENV"
+
       - name: Run Ruby tests
         uses: ./.github/actions/run-ruby-tests
         with:
@@ -345,6 +357,16 @@ jobs:
           rabbitmq-url: 'amqp://guest:guest@localhost:5672'
           results-file: 'rspec_unit_results.json'
           debug-enabled: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+
+      # Uploads coverage/coverage.xml (Cobertura) to GitHub Code Quality.
+      # Skipped on forked PRs, which cannot write Code Quality data.
+      - name: Upload coverage report
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/upload-code-coverage@v1
+        with:
+          file: coverage/coverage.xml
+          language: Ruby
+          label: code-coverage/rspec
 
   typescript-unit:
     name: T2 · TypeScript Unit Tests
@@ -355,8 +377,17 @@ jobs:
       always() &&
       needs.changes.outputs.typescript == 'true' &&
       (needs.typescript-lint.result == 'success' || needs.typescript-lint.result == 'skipped')
+    permissions:
+      contents: read
+      # Required to upload coverage data to GitHub Code Quality.
+      code-quality: write
     steps:
-      - *checkout-step
+      # Check out the PR head commit (not the merge commit) so coverage line
+      # numbers map correctly to the diff for GitHub Code Quality.
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Setup Node.js environment
         uses: ./.github/actions/setup-node-env
@@ -369,8 +400,18 @@ jobs:
       - name: Generate locale files
         run: pnpm run locales:sync
 
-      - name: Run TypeScript tests
-        run: pnpm test
+      - name: Run TypeScript tests with coverage
+        run: pnpm test:base run --coverage --printConsoleTrace
+
+      # Uploads coverage/cobertura-coverage.xml (Cobertura) to Code Quality.
+      # Skipped on forked PRs, which cannot write Code Quality data.
+      - name: Upload coverage report
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/upload-code-coverage@v1
+        with:
+          file: coverage/cobertura-coverage.xml
+          language: TypeScript
+          label: code-coverage/vitest
 
       - name: Run type checking tests
         continue-on-error: true
