@@ -6,6 +6,10 @@
 # This ensures ConfigResolver uses test configs (spec/*.test.yaml) not production configs.
 ENV['RACK_ENV'] = 'test'
 
+# Start code coverage before any application code is required so the whole
+# codebase is tracked. Enabled only when COVERAGE=true (see .simplecov).
+require 'simplecov' if ENV['COVERAGE'] == 'true'
+
 # Debugging helpers for tests
 #
 # To debug tests with IRB console (debugger):

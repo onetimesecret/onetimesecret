@@ -40,6 +40,21 @@ export default defineConfig({
       '**/.{idea,git,cache,output,temp}/**',
       'src/tests/e2e/**', // Playwright E2E tests - run separately
     ],
+    coverage: {
+      provider: 'v8',
+      // Cobertura XML is uploaded to GitHub Code Quality; `text` prints a
+      // summary in the CI log. Only emitted when run with --coverage.
+      reporter: ['text', 'cobertura'],
+      reportsDirectory: 'coverage',
+      all: true, // include untested source files so they report as 0% covered
+      include: ['src/**'],
+      exclude: [
+        'src/tests/**',
+        'src/**/*.spec.ts',
+        'src/**/*.spec.vue',
+        'src/**/*.d.ts',
+      ],
+    },
     setupFiles: [
       'src/tests/setup-env.ts',
       'src/tests/setup-stores.ts',
