@@ -33,9 +33,11 @@ const errorContent = {
       type: 'object',
       properties: {
         error: { type: 'string', description: 'Error type identifier (e.g., "FormError")' },
+        error_type: { type: 'string', description: 'Machine-readable error class the client branches on (ADR-013, e.g., "RecordNotFound")' },
         message: { type: 'string', description: 'Human-readable error message' },
         field: { type: 'string', description: 'Field that caused the error, if applicable' },
         error_id: { type: 'string', description: 'Unique error tracking identifier' },
+        request_id: { type: 'string', description: 'Request correlation id; mirrors the x-request-id response header and appears in the server request log. Quote this when reporting an error.' },
       },
       required: ['message'],
     },

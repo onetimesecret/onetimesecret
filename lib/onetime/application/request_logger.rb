@@ -91,6 +91,16 @@ module Onetime
           payload[:headers] = request.env.select { |k, _| k.start_with?('HTTP_') }
         end
 
+        # Error classification stashed by the Otto error handlers
+        # (OttoHooks#with_error_correlation). Recorded regardless of capture
+        # mode because it only appears on error responses and is high-signal:
+        # the same line that carries request_id now also names *what* failed
+        # (e.g. RecordNotFound), keyed to the id the client received in the
+        # x-request-id header and the JSON error body.
+        if (error_type = request.env['otto.error_type'])
+          payload[:error_type] = error_type
+        end
+
         # Add duration_μs last so it appears rightmost in logs
         payload[:duration_ms] = duration_μs / 1000.0 if capture?(:duration_ms)
 

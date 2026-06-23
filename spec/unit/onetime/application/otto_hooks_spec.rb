@@ -68,6 +68,67 @@ RSpec.describe Onetime::Application::OttoHooks do
       host.configure_otto_request_hook(spy_router)
     end
 
+    describe 'error correlation (request_id + error_type)' do
+      let(:request_id) { 'req-abc-123' }
+
+      # Minimal stand-in for the Otto/Rack request: handlers only touch #env.
+      def req_with(env)
+        Object.new.tap do |o|
+          captured = env
+          o.define_singleton_method(:env) { captured }
+        end
+      end
+
+      it 'echoes the request_id into a typed 404 (RecordNotFound) body' do
+        env   = { 'HTTP_X_REQUEST_ID' => request_id }
+        entry = registered[Onetime::RecordNotFound]
+
+        body = entry[:handler].call(Onetime::RecordNotFound.new('nope'), req_with(env))
+
+        expect(body[:request_id]).to eq(request_id)
+        expect(body[:error_type]).to eq('RecordNotFound')
+      end
+
+      it 'stashes the error_type into env so RequestLogger can name what failed' do
+        env   = { 'HTTP_X_REQUEST_ID' => request_id }
+        entry = registered[Onetime::RecordNotFound]
+
+        entry[:handler].call(Onetime::RecordNotFound.new('nope'), req_with(env))
+
+        expect(env['otto.error_type']).to eq('RecordNotFound')
+      end
+
+      it 'omits request_id from the body when the request carries none' do
+        entry = registered[Onetime::RecordNotFound]
+
+        body = entry[:handler].call(Onetime::RecordNotFound.new('nope'), req_with({}))
+
+        expect(body).not_to have_key(:request_id)
+        expect(body[:error_type]).to eq('RecordNotFound')
+      end
+
+      it 'is nil-safe when no request is supplied (handler unit-test path)' do
+        entry = registered[Onetime::RecordNotFound]
+
+        expect { entry[:handler].call(Onetime::RecordNotFound.new('nope'), nil) }
+          .not_to raise_error
+      end
+
+      it 'also decorates the lazy-registered Billing::CircuitOpenError body' do
+        env   = { 'HTTP_X_REQUEST_ID' => request_id }
+        entry = registered['Billing::CircuitOpenError']
+
+        body = entry[:handler].call(
+          Billing::CircuitOpenError.new('Stripe circuit breaker is open', retry_after: 9),
+          req_with(env),
+        )
+
+        expect(body[:request_id]).to eq(request_id)
+        expect(body[:retry_after]).to eq(9)
+        expect(env['otto.error_type']).to eq('BillingServiceUnavailable')
+      end
+    end
+
     describe 'Billing::CircuitOpenError (Stripe breaker open)' do
       let(:entry) { registered['Billing::CircuitOpenError'] }
 
