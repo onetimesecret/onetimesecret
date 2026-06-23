@@ -29,6 +29,7 @@ let diagnosticsClient: DiagnosticsClient | null = null;
  * - errorType: human, security, technical (from error classification)
  * - errorSeverity: error severity level (from error classification)
  * - schema: Zod schema name (lowercase)
+ * - schemaField: failing field path(s) for a schema validation error (#3424)
  * - service: web, api
  * - jurisdiction: region code from bootstrap.regions.current_jurisdiction
  * - planid: plan identifier from bootstrap.organization.planid
@@ -36,7 +37,7 @@ let diagnosticsClient: DiagnosticsClient | null = null;
  *
  * @see https://github.com/onetimesecret/onetimesecret/issues/2964
  */
-const TAG_FIELDS = ['componentName', 'errorType', 'errorSeverity', 'schema', 'service', 'jurisdiction', 'planid', 'role'] as const;
+const TAG_FIELDS = ['componentName', 'errorType', 'errorSeverity', 'schema', 'schemaField', 'service', 'jurisdiction', 'planid', 'role'] as const;
 type _TagField = (typeof TAG_FIELDS)[number]; // Used for documentation; lookup via Set<string>
 const TAG_FIELDS_SET = new Set<string>(TAG_FIELDS);
 
