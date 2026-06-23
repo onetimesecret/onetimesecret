@@ -81,8 +81,12 @@ export function gracefulParse<T>(
   // expose the failing paths as a searchable `schemaField` tag, so the next
   // "no longer available" report names its own cause instead of being inferred.
   //
-  // Only field paths, issue codes, and Zod's type-level messages are logged —
-  // never the offending values — so this stays safe for secret payloads.
+  // We log field paths, issue codes, and Zod's type-level messages — not the
+  // parsed values themselves. One caveat: Zod's `invalid_enum_value` message
+  // embeds the received value (e.g. "...received 'x'"). Today that is safe
+  // because the only enum fields are `state`/`secret_state`, whose values are
+  // non-sensitive state names. If you add an enum over user-supplied data,
+  // redact or drop its message before it reaches Sentry.
   const issues = result.error.issues;
   const fieldPaths = [...new Set(issues.map((i) => i.path.join('.') || '(root)'))];
   const fieldSummary = issues
