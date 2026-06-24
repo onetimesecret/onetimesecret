@@ -103,15 +103,33 @@ module Core
         def serialize_homepage_config(homepage_config)
           return nil unless homepage_config
 
+          domain_id = homepage_config.domain_id
+
           {
-            'domain_id' => homepage_config.domain_id,
+            'domain_id' => domain_id,
             'enabled' => homepage_config.enabled?,
-            'signup_enabled' => homepage_config.signup_enabled?,
-            'signin_enabled' => homepage_config.signin_enabled?,
+            'signup_enabled' => homepage_config.signup_enabled? && effective_signup_enabled?(domain_id),
+            'signin_enabled' => homepage_config.signin_enabled? && effective_signin_enabled?(domain_id),
             'disabled_homepage_variant' => homepage_config.disabled_homepage_variant_value,
             'created_at' => homepage_config.created&.to_i,
             'updated_at' => homepage_config.updated&.to_i,
           }
+        end
+
+        # Backend gate: if a SignupConfig exists and disables signup, don't show the form.
+        def effective_signup_enabled?(domain_id)
+          config = Onetime::CustomDomain::SignupConfig.find_by_domain_id(domain_id)
+          return true unless config&.enabled?
+
+          config.signup_enabled?
+        end
+
+        # Backend gate: if an enabled SigninConfig disables signin, don't show the link.
+        def effective_signin_enabled?(domain_id)
+          config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id)
+          return true unless config&.enabled?
+
+          config.signin_enabled?
         end
 
         # Use extid (external ID) for public URLs, not domainid (internal objid)

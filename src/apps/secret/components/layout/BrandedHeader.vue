@@ -4,6 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import BrandedMasthead from '@/apps/secret/components/layout/BrandedMastHead.vue';
   import MastHead from '@/shared/components/layout/MastHead.vue';
+  import { useHeaderEnabled } from '@/shared/composables/useHeaderEnabled';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { computed } from 'vue';
@@ -16,6 +17,11 @@
     displayNavigation: false,
   });
 
+  // Operator-level header gate (HEADER_ENABLED), shared via composable. When
+  // disabled, the entire <header> banner landmark collapses — no empty
+  // landmark, no padding band.
+  const { headerEnabled } = useHeaderEnabled();
+
   const headertext = computed(() => productIdentity.allowPublicHomepage ? t('web.homepage.create_a_secure_link') : t('web.homepage.secure_links'));
   const subtext = computed(() => productIdentity.allowPublicHomepage
       ? t('web.homepage.send_sensitive_information_that_can_only_be_viewed_once')
@@ -23,7 +29,9 @@
 </script>
 
 <template>
-  <header class="bg-white dark:bg-gray-900">
+  <header
+    v-if="headerEnabled"
+    class="bg-white dark:bg-gray-900">
     <div
       v-if="displayMasthead"
       class="container mx-auto min-w-[320px] max-w-2xl p-4">

@@ -1,0 +1,106 @@
+# Phase 0 cross-repo prevention gate. Blocks any PR touching locale content
+# that introduces a forbidden register token (e.g. informal "du" in formal
+# de_AT). This is the load-bearing gate from translation-rules SPEC.md §1/§2.4
+# — the single mechanism that would have blocked the 2026-04-12 de_AT
+# regression. It needs neither base.yaml nor the resolver: just the authority's
+# existing bin/lint-register + the per-locale register.yaml token lists.
+#
+# Source of truth is the translation-rules repo, checked out read-only at a
+# pinned ref. Coverage grows automatically: every locale that has a
+# register.yaml upstream gets scanned. Today that is de_AT only. Verified
+# clean against current app content 2026-05-30 (20 files, 10 tokens, exit 0),
+# so activation will not fail unrelated PRs.
+#
+# Decision recorded: read-only checkout at a pinned ref, not a submodule. The
+# submodule is the eventual full-P1-4b form (it also carries .resolved JSON +
+# source_commit equality, which this slice does not). Pinning `ref:` to a SHA
+# or tag — not a moving `main` — is what makes the gate reproducible; bump it
+# deliberately the same way the yq pin is bumped.
+
+name: validate-register
+
+on:
+  pull_request:
+    paths:
+      - 'locales/content/**/*.json'
+      # The gate must also run when its own pins (translation-rules ref, yq)
+      # are bumped — otherwise a bump that makes existing content
+      # non-compliant merges unvalidated and fails the next unrelated PR.
+      - '.github/workflows/validate-register.yml'
+  push:
+    branches: [main, develop]
+    paths:
+      - 'locales/content/**/*.json'
+      - '.github/workflows/validate-register.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-register:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout app repo
+        uses: actions/checkout@v4
+
+      - name: Checkout translation-rules (authority, read-only)
+        uses: actions/checkout@v4
+        with:
+          repository: onetimesecret/translation-rules
+          # translation-rules main as of 2026-06-11 (merge of PR #20; re-verified
+          # clean against app content at this SHA: 20 files, 10 tokens, exit 0).
+          # Bumping this pin is how the app repo adopts new rules — deliberately,
+          # as a reviewable diff, same as the yq pin below.
+          ref: 374f5c38639a4a4183e523614d212cc9d2e5ee21
+          path: .translation-rules
+
+      - name: Install yq (pinned + checksum-verified)
+        env:
+          # Kept in lockstep with translation-rules .github/workflows/lint-register.yml.
+          # Bump deliberately, not via `latest`.
+          YQ_VERSION: v4.53.2
+          YQ_SHA256: d56bf5c6819e8e696340c312bd70f849dc1678a7cda9c2ad63eebd906371d56b
+        run: |
+          set -euo pipefail
+          tmpdir="$(mktemp -d)"
+          curl -fsSL -o "${tmpdir}/yq" \
+            "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+          echo "${YQ_SHA256}  ${tmpdir}/yq" | sha256sum -c -
+          sudo install -m 0755 "${tmpdir}/yq" /usr/local/bin/yq
+          rm -rf "${tmpdir}"
+          yq --version
+
+      - name: Lint each governed locale's content
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          rules=.translation-rules
+          fail=0
+          scanned=0
+          for d in "$rules"/locales/*/; do
+            locale="$(basename "$d")"
+            [ -f "${d}register.yaml" ] || continue
+            content_dir="locales/content/${locale}"
+            if [ ! -d "$content_dir" ]; then
+              echo "::notice::no app content for governed locale ${locale}; skipping"
+              continue
+            fi
+            scanned=$((scanned + 1))
+            echo "::group::lint ${locale}"
+            # The authority's own linter. It resolves register.yaml relative to
+            # its own location (.translation-rules/locales/<locale>/) and the
+            # content glob relative to this job's CWD (the app repo root).
+            # Non-zero from lint-register — forbidden token (1), config (2), or
+            # empty glob (3) — fails the gate.
+            if ! "$rules"/bin/lint-register "$locale" "${content_dir}/*.json"; then
+              echo "::error::forbidden register token (or scan error) in ${locale} content"
+              fail=1
+            fi
+            echo "::endgroup::"
+          done
+          if [ "$scanned" -eq 0 ]; then
+            echo "::error::no governed locale matched app content — gate scanned nothing (misconfigured path or ref?)"
+            exit 1
+          fi
+          echo "validate-register: scanned ${scanned} governed locale(s)"
+          exit "$fail"

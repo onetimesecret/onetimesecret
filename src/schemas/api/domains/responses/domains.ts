@@ -37,10 +37,19 @@ export const customDomainDetailsSchema = z.object({
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const brandSettingsResponseSchema = createApiResponseSchema(brandSettingschema);
-export const customDomainResponseSchema = createApiResponseSchema(customDomainCanonical, customDomainDetailsSchema);
-export const customDomainListResponseSchema = createApiListResponseSchema(customDomainCanonical, customDomainDetailsSchema);
+export const customDomainResponseSchema = createApiResponseSchema(
+  customDomainCanonical,
+  customDomainDetailsSchema
+);
+export const customDomainListResponseSchema = createApiListResponseSchema(
+  customDomainCanonical,
+  customDomainDetailsSchema
+);
 export const imagePropsResponseSchema = createApiResponseSchema(imagePropsSchema);
-export const jurisdictionResponseSchema = createApiResponseSchema(jurisdictionSchema, jurisdictionDetailsSchema);
+export const jurisdictionResponseSchema = createApiResponseSchema(
+  jurisdictionSchema,
+  jurisdictionDetailsSchema
+);
 
 export type BrandSettingsResponse = z.infer<typeof brandSettingsResponseSchema>;
 export type CustomDomainDetails = z.infer<typeof customDomainDetailsSchema>;

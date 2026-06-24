@@ -152,7 +152,9 @@ export function useEmailConfig(domainExtId: string) {
   const dnsCheckCompletedAt = computed(() => emailConfig.value?.dns_check_completed_at ?? null);
 
   /** Timestamp when provider verification check completed. */
-  const providerCheckCompletedAt = computed(() => emailConfig.value?.provider_check_completed_at ?? null);
+  const providerCheckCompletedAt = computed(
+    () => emailConfig.value?.provider_check_completed_at ?? null
+  );
 
   /** Last error from verification (e.g., "Provider status: not_found"). */
   const lastError = computed(() => emailConfig.value?.last_error ?? null);

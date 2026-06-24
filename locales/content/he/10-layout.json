@@ -148,7 +148,7 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "אתה צופה בהודעה מאובטחת ששותפה איתך דרך Onetime Secret. תוכן זה מוצג פעם אחת בלבד ולאחר מכן נמחק לצמיתות מהשרתים שלנו.",
+    "text": "אתה צופה בהודעה מאובטחת ששותפה איתך דרך {product_name}. תוכן זה מוצג פעם אחת בלבד ולאחר מכן נמחק לצמיתות מהשרתים שלנו.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -264,7 +264,7 @@
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "ביקור בדף הבית של Onetime Secret",
+    "text": "ביקור בדף הבית של {product_name}",
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {

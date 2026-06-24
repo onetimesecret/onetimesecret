@@ -15,7 +15,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
 import { createTestI18n } from '@tests/setup';
 import DomainSsoConfigForm from '@/apps/workspace/components/domains/DomainSsoConfigForm.vue';
-import ToggleWithIcon from '@/shared/components/common/ToggleWithIcon.vue';
 import type { SsoConfigFormState } from '@/shared/composables/useSsoConfig';
 import type { CustomDomainSsoConfig } from '@/schemas/shapes/domains/sso-config';
 import type { TestSsoConnectionResponse } from '@/services/sso.service';
@@ -30,6 +29,23 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
     name: 'OIcon',
     template: '<span class="o-icon" :data-icon-name="name" />',
     props: ['collection', 'name', 'class', 'size'],
+  },
+}));
+
+// Stub the toggle so we can assert role/state/emit without headlessui internals.
+vi.mock('@/shared/components/common/ToggleWithIcon.vue', () => ({
+  default: {
+    name: 'ToggleWithIcon',
+    props: ['enabled', 'disabled', 'loading', 'onLabel', 'offLabel'],
+    emits: ['update:enabled'],
+    template: `
+      <button
+        type="button"
+        role="switch"
+        :aria-checked="String(enabled)"
+        :disabled="disabled"
+        @click="$emit('update:enabled', !enabled)" />
+    `,
   },
 }));
 
@@ -115,7 +131,6 @@ const mockEnforceSsoOnlyFormState: SsoConfigFormState = {
 
 interface MountOptions {
   domainExtId?: string;
-  domainHost?: string;
   formState?: SsoConfigFormState;
   ssoConfig?: CustomDomainSsoConfig | null;
   isLoading?: boolean;
@@ -153,7 +168,6 @@ describe('DomainSsoConfigForm', () => {
 
   const defaultMountOptions: Required<MountOptions> = {
     domainExtId: 'dm_123',
-    domainHost: 'sso.example.com',
     formState: createDefaultFormState(),
     ssoConfig: null,
     isLoading: false,
@@ -602,254 +616,87 @@ describe('DomainSsoConfigForm', () => {
   });
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Enforce SSO Only Toggle
+  // Enforce SSO — moved to signin settings (#3383)
   // ─────────────────────────────────────────────────────────────────────────────
 
-  describe('Enforce SSO Only Toggle', () => {
-    /**
-     * Tests for the enforce_sso_only toggle (#3057, refactored #3384).
-     *
-     * The toggle uses the shared ToggleWithIcon component (HeadlessUI Switch)
-     * which renders a role="switch" button. It:
-     * - Renders with ID "domain-sso-enforce-only"
-     * - Shows regardless of SSO enabled state (admin can configure ahead of time)
-     * - Emits update:formState when clicked
-     * - Uses aria-checked to indicate state (managed by HeadlessUI)
-     */
-
-    it('renders toggle with correct role and ID', async () => {
+  describe('Enforce SSO notice', () => {
+    it('shows a notice linking to signin settings instead of an inline toggle', async () => {
       wrapper = await mountComponent({
         formState: { ...mockExistingFormState, enabled: true },
         isConfigured: true,
       });
 
-      const toggle = wrapper.find('#domain-sso-enforce-only');
-      expect(toggle.exists()).toBe(true);
-      expect(toggle.attributes('role')).toBe('switch');
-    });
-
-    it('toggle has associated label', async () => {
-      wrapper = await mountComponent({
-        formState: { ...mockExistingFormState, enabled: true },
-        isConfigured: true,
-      });
-
-      const label = wrapper.find('label[for="domain-sso-enforce-only"]');
-      expect(label.exists()).toBe(true);
-    });
-
-    it('emits update:formState with enforce_sso_only=true when toggle is clicked (was false)', async () => {
-      wrapper = await mountComponent({
-        formState: { ...mockExistingFormState, enabled: true, enforce_sso_only: false },
-        isConfigured: true,
-      });
+      const notice = wrapper.find('[aria-hidden="true"]');
+      expect(notice.exists()).toBe(true);
 
       const toggle = wrapper.find('#domain-sso-enforce-only');
-      expect(toggle.exists()).toBe(true);
-
-      await toggle.trigger('click');
-      await flushPromises();
-
-      const emitted = wrapper.emitted('update:formState');
-      expect(emitted).toBeTruthy();
-      if (emitted && emitted.length > 0) {
-        const lastEmit = emitted[emitted.length - 1][0] as SsoConfigFormState;
-        expect(lastEmit.enforce_sso_only).toBe(true);
-      }
-    });
-
-    it('emits update:formState with enforce_sso_only=false when toggle is clicked (was true)', async () => {
-      wrapper = await mountComponent({
-        formState: mockEnforceSsoOnlyFormState,
-        isConfigured: true,
-      });
-
-      const toggle = wrapper.find('#domain-sso-enforce-only');
-      expect(toggle.exists()).toBe(true);
-
-      await toggle.trigger('click');
-      await flushPromises();
-
-      const emitted = wrapper.emitted('update:formState');
-      expect(emitted).toBeTruthy();
-      if (emitted && emitted.length > 0) {
-        const lastEmit = emitted[emitted.length - 1][0] as SsoConfigFormState;
-        expect(lastEmit.enforce_sso_only).toBe(false);
-      }
-    });
-
-    it('reflects enforce_sso_only: true via aria-checked attribute', async () => {
-      wrapper = await mountComponent({
-        formState: mockEnforceSsoOnlyFormState,
-        isConfigured: true,
-      });
-
-      const toggle = wrapper.find('#domain-sso-enforce-only');
-      expect(toggle.exists()).toBe(true);
-      expect(toggle.attributes('aria-checked')).toBe('true');
-    });
-
-    it('reflects enforce_sso_only: false via aria-checked attribute', async () => {
-      wrapper = await mountComponent({
-        formState: { ...mockExistingFormState, enforce_sso_only: false },
-        isConfigured: true,
-      });
-
-      const toggle = wrapper.find('#domain-sso-enforce-only');
-      expect(toggle.exists()).toBe(true);
-      expect(toggle.attributes('aria-checked')).toBe('false');
-    });
-
-    it('has hint text element in the DOM', async () => {
-      wrapper = await mountComponent({
-        formState: { ...mockExistingFormState, enabled: true },
-        isConfigured: true,
-      });
-
-      const hint = wrapper.find('#domain-enforce-sso-only-hint');
-      expect(hint.exists()).toBe(true);
-    });
-
-    // ToggleWithIcon is a plain role="switch" button, so aria-describedby is
-    // forwarded directly to the toggle. (Previously HeadlessUI's <Switch>
-    // stomped it with its undefined SwitchGroup/Description context value.)
-    it('aria-describedby is forwarded to the switch button (regression #3384)', async () => {
-      wrapper = await mountComponent({
-        formState: { ...mockExistingFormState, enabled: true },
-        isConfigured: true,
-      });
-
-      const toggle = wrapper.find('#domain-sso-enforce-only');
-      expect(toggle.exists()).toBe(true);
-      expect(toggle.attributes('aria-describedby')).toBe('domain-enforce-sso-only-hint');
-    });
-
-    it('renders using ToggleWithIcon component', async () => {
-      wrapper = await mountComponent({
-        formState: { ...mockExistingFormState, enabled: true },
-        isConfigured: true,
-      });
-
-      const toggleComponent = wrapper.findComponent(ToggleWithIcon);
-      expect(toggleComponent.exists()).toBe(true);
+      expect(toggle.exists()).toBe(false);
     });
   });
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Grant Org Scope Toggle
+  // Grant org scope toggle (#3384)
+  //
+  // The toggle was restored to this form after the main→develop merge dropped it
+  // (the #3383 signin redesign deleted the enclosing toggle block; grant_org_scope
+  // was independent #3384 collateral). It writes back via updateField, which emits
+  // update:formState with the full patched state.
   // ─────────────────────────────────────────────────────────────────────────────
 
-  describe('Grant Org Scope Toggle', () => {
-    /**
-     * Tests for the grant_org_scope toggle (#3384).
-     *
-     * Controls whether SSO users get org-wide or domain-only access.
-     * Uses the shared ToggleWithIcon component (HeadlessUI Switch).
-     */
-
-    it('renders toggle with correct role and ID', async () => {
+  describe('Grant org scope toggle', () => {
+    it('renders the grant org scope toggle', async () => {
       wrapper = await mountComponent({
         formState: { ...mockExistingFormState, enabled: true },
         isConfigured: true,
       });
 
-      const toggle = wrapper.find('#domain-sso-grant-org-scope');
-      expect(toggle.exists()).toBe(true);
-      expect(toggle.attributes('role')).toBe('switch');
+      expect(wrapper.find('[role="switch"]').exists()).toBe(true);
     });
 
-    it('toggle has associated label', async () => {
-      wrapper = await mountComponent({
-        formState: { ...mockExistingFormState, enabled: true },
-        isConfigured: true,
-      });
-
-      const label = wrapper.find('label[for="domain-sso-grant-org-scope"]');
-      expect(label.exists()).toBe(true);
-    });
-
-    it('emits update:formState with grant_org_scope=true when toggle is clicked (was false)', async () => {
-      wrapper = await mountComponent({
-        formState: { ...mockExistingFormState, enabled: true, grant_org_scope: false },
-        isConfigured: true,
-      });
-
-      const toggle = wrapper.find('#domain-sso-grant-org-scope');
-      expect(toggle.exists()).toBe(true);
-
-      await toggle.trigger('click');
-      await flushPromises();
-
-      const emitted = wrapper.emitted('update:formState');
-      expect(emitted).toBeTruthy();
-      if (emitted && emitted.length > 0) {
-        const lastEmit = emitted[emitted.length - 1][0] as SsoConfigFormState;
-        expect(lastEmit.grant_org_scope).toBe(true);
-      }
-    });
-
-    it('emits update:formState with grant_org_scope=false when toggle is clicked (was true)', async () => {
+    it('reflects grant_org_scope: true via aria-checked', async () => {
       wrapper = await mountComponent({
         formState: { ...mockExistingFormState, grant_org_scope: true },
         isConfigured: true,
       });
 
-      const toggle = wrapper.find('#domain-sso-grant-org-scope');
-      expect(toggle.exists()).toBe(true);
-
-      await toggle.trigger('click');
-      await flushPromises();
-
-      const emitted = wrapper.emitted('update:formState');
-      expect(emitted).toBeTruthy();
-      if (emitted && emitted.length > 0) {
-        const lastEmit = emitted[emitted.length - 1][0] as SsoConfigFormState;
-        expect(lastEmit.grant_org_scope).toBe(false);
-      }
+      expect(wrapper.find('[role="switch"]').attributes('aria-checked')).toBe('true');
     });
 
-    it('reflects grant_org_scope: true via aria-checked attribute', async () => {
-      wrapper = await mountComponent({
-        formState: { ...mockExistingFormState, grant_org_scope: true },
-        isConfigured: true,
-      });
-
-      const toggle = wrapper.find('#domain-sso-grant-org-scope');
-      expect(toggle.exists()).toBe(true);
-      expect(toggle.attributes('aria-checked')).toBe('true');
-    });
-
-    it('reflects grant_org_scope: false via aria-checked attribute', async () => {
+    it('reflects grant_org_scope: false via aria-checked', async () => {
       wrapper = await mountComponent({
         formState: { ...mockExistingFormState, grant_org_scope: false },
         isConfigured: true,
       });
 
-      const toggle = wrapper.find('#domain-sso-grant-org-scope');
-      expect(toggle.exists()).toBe(true);
-      expect(toggle.attributes('aria-checked')).toBe('false');
+      expect(wrapper.find('[role="switch"]').attributes('aria-checked')).toBe('false');
     });
 
-    it('has hint text element in the DOM', async () => {
+    it('emits update:formState with grant_org_scope=true when toggled on (was false)', async () => {
       wrapper = await mountComponent({
-        formState: { ...mockExistingFormState, enabled: true },
+        formState: { ...mockExistingFormState, grant_org_scope: false },
         isConfigured: true,
       });
 
-      const hint = wrapper.find('#domain-grant-org-scope-hint');
-      expect(hint.exists()).toBe(true);
+      await wrapper.find('[role="switch"]').trigger('click');
+
+      const emitted = wrapper.emitted('update:formState');
+      expect(emitted).toBeTruthy();
+      const lastEmit = emitted![emitted!.length - 1][0] as SsoConfigFormState;
+      expect(lastEmit.grant_org_scope).toBe(true);
     });
 
-    // Same aria-describedby forwarding as enforce_sso_only — see comment there.
-    it('aria-describedby is forwarded to the switch button (regression #3384)', async () => {
+    it('emits update:formState with grant_org_scope=false when toggled off (was true)', async () => {
       wrapper = await mountComponent({
-        formState: { ...mockExistingFormState, enabled: true },
+        formState: { ...mockExistingFormState, grant_org_scope: true },
         isConfigured: true,
       });
 
-      const toggle = wrapper.find('#domain-sso-grant-org-scope');
-      expect(toggle.exists()).toBe(true);
-      expect(toggle.attributes('aria-describedby')).toBe('domain-grant-org-scope-hint');
+      await wrapper.find('[role="switch"]').trigger('click');
+
+      const emitted = wrapper.emitted('update:formState');
+      expect(emitted).toBeTruthy();
+      const lastEmit = emitted![emitted!.length - 1][0] as SsoConfigFormState;
+      expect(lastEmit.grant_org_scope).toBe(false);
     });
   });
 

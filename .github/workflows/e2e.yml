@@ -28,6 +28,9 @@ on:
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'vite.config.ts'
+      # The suite itself: spec/config changes must run the suite they change
+      - 'e2e/**'
+      - 'eslint.config.ts'
       - '.github/workflows/**'
 
 permissions:
@@ -39,7 +42,9 @@ concurrency:
 
 jobs:
   container-e2e-tests:
-    timeout-minutes: 25
+    # Must exceed Playwright's globalTimeout (20 min, e2e/playwright.config.ts)
+    # plus ~4-5 min of image build + container startup + artifact upload.
+    timeout-minutes: 30
     runs-on: ubuntu-24.04
 
     env:
@@ -115,6 +120,26 @@ jobs:
           # Generate a secure secret for testing
           TEST_SECRET=$(openssl rand -hex 32)
 
+          # Pin a deterministic brand color so the container is "branded" and
+          # head-base.rue renders the mask-icon/theme-color tags. #3B82F6 is the
+          # neutral default (#3049); the brand-customization E2E asserts the
+          # mask-icon color matches it exactly. Without this the tags are
+          # correctly omitted (unbranded) and that assertion has nothing to test.
+          #
+          # AUTH_AUTOVERIFY=true makes accounts created via /signup verified
+          # immediately (no email round-trip), which is what lets the e2e
+          # auth setup project (e2e/global.setup.ts) register + sign in the
+          # ephemeral TEST_USER_* account for the full/ suite.
+          #
+          # EMAILER_MODE=logger routes outbound email to the logging backend
+          # instead of SMTP. Without it, emailer.mode defaults to 'smtp' and
+          # emailer.host to the placeholder 'smtp.provider.com' (etc/defaults/
+          # config.defaults.yaml). With jobs disabled (default), email-sending
+          # flows fall back to *synchronous* delivery (publisher.rb), so any
+          # flow that emails — e.g. org invitations (fallback: :sync) — tries
+          # to connect to that unreachable host and the request 500s. There is
+          # no SMTP/Mailpit sidecar here and the suite never reads real emails
+          # (invite tokens come from the API), so logging delivery is correct.
           docker run -d \
             --name ${{ env.CONTAINER_NAME }} \
             --link ${{ env.REDIS_CONTAINER_NAME }}:redis \
@@ -124,6 +149,9 @@ jobs:
             -e HOST=localhost:3000 \
             -e SSL=false \
             -e RACK_ENV=production \
+            -e BRAND_PRIMARY_COLOR='#3B82F6' \
+            -e AUTH_AUTOVERIFY=true \
+            -e EMAILER_MODE=logger \
             ${{ env.OCI_IMAGE_NAME }}
 
           if [ "${{ env.DEBUG_ENABLED }}" == "true" ]; then
@@ -170,6 +198,7 @@ jobs:
           echo "✅ Basic health checks passed"
 
       - name: Run Playwright E2E tests
+        id: playwright
         run: |
           echo "🎭 Running Playwright E2E tests against containerized application..."
 
@@ -177,12 +206,78 @@ jobs:
           export PLAYWRIGHT_BASE_URL=${{ env.TEST_BASE_URL }}
           export CI=true
 
-          # Run only 'all/' tests - these work without auth or billing configuration
-          # Tests in 'full/' require authenticated sessions
-          # Tests in 'full-billing/' require auth + billing enabled
-          pnpm test:playwright e2e/all/ \
-            --reporter=github \
-            --max-failures=5
+          # Reporters come from e2e/playwright.config.ts (CI branch: list,
+          # github, html, json, blob). Do NOT pass --reporter here - a CLI
+          # override replaces the whole array and breaks the report artifacts
+          # and the flaky gate below.
+
+          # Ephemeral credentials for the authenticated 'full/' suite.
+          # e2e/global.setup.ts registers this account via the app's own
+          # /signup flow (AUTH_AUTOVERIFY=true on the container makes it
+          # immediately sign-in-able) and saves the session for storageState.
+          # Never hardcode these; they live only for this container's life.
+          export TEST_USER_EMAIL="e2e-$(openssl rand -hex 8)@example.com"
+          TEST_USER_PASSWORD="$(openssl rand -base64 24)"
+          echo "::add-mask::$TEST_USER_PASSWORD"
+          export TEST_USER_PASSWORD
+
+          # BLOCKING GATE = 'all/' only (credential-free, curated, green).
+          # The 'full/' suite is mid-remediation (e2e/docs/e2e-remediation-plan.md,
+          # Phase 2.4/3) and asserts states the CI container does not provision
+          # (>=2 orgs, full-auth-mode settings sections, seeded invitations), so
+          # it runs as a NON-BLOCKING, informational step below until the Phase 3
+          # fixtures + configured lanes land. 'full-billing/' additionally needs
+          # billing enabled, which CI does not configure yet. Trailing slash:
+          # CLI filters are partial-path matches.
+          pnpm test:playwright e2e/all/
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ env.TEST_BASE_URL }}
+
+      - name: Fail on flaky tests (passed only on retry)
+        # Run whenever Playwright ran, even if it failed (flake info still useful)
+        if: ${{ !cancelled() && steps.playwright.outcome != 'skipped' }}
+        run: |
+          REPORT=e2e/test-results/results.json
+
+          if [ ! -f "$REPORT" ]; then
+            echo "❌ Playwright JSON report not found at $REPORT."
+            echo "The reporter pipeline is broken (see e2e/playwright.config.ts)."
+            exit 1
+          fi
+
+          FLAKY=$(jq -r '.stats.flaky // 0' "$REPORT")
+          if [ "$FLAKY" -gt 0 ]; then
+            echo "❌ $FLAKY test(s) passed only on retry (flaky outcome)."
+            echo "Flake is blocking, not silent - fix or quarantine via e2e/QUARANTINE.md."
+            echo "See e2e/docs/e2e-remediation-plan.md (guiding principle 3)."
+            echo ""
+            echo "Flaky tests:"
+            jq -r '.. | objects | select(has("tests")) | select(any(.tests[]?; .status == "flaky"))
+                   | "  - \(.file):\(.line) › \(.title)"' "$REPORT"
+            exit 1
+          fi
+
+          echo "✅ No flaky (retry-only) passes detected."
+
+      - name: Run Playwright 'full/' suite (informational, non-blocking)
+        # The full/ suite is mid-remediation and not yet a coverage gate (see
+        # e2e/docs/e2e-remediation-plan.md + e2e/QUARANTINE.md). Run it for
+        # visibility — the whole failure tail, no --max-failures cap — but do
+        # NOT block the promote on it. continue-on-error keeps the job green
+        # while still showing this step red when the tail fails. Make it
+        # blocking again in Phase 3, once the fixtures + configured lanes
+        # (full-auth mode, multi-org seeding) exist.
+        continue-on-error: true
+        if: ${{ !cancelled() }}
+        run: |
+          echo "🎭 Running Playwright 'full/' suite (informational, non-blocking)..."
+          export PLAYWRIGHT_BASE_URL=${{ env.TEST_BASE_URL }}
+          export CI=true
+          export TEST_USER_EMAIL="e2e-$(openssl rand -hex 8)@example.com"
+          TEST_USER_PASSWORD="$(openssl rand -base64 24)"
+          echo "::add-mask::$TEST_USER_PASSWORD"
+          export TEST_USER_PASSWORD
+          pnpm test:playwright e2e/full/
         env:
           PLAYWRIGHT_BASE_URL: ${{ env.TEST_BASE_URL }}
 
@@ -193,6 +288,15 @@ jobs:
           name: playwright-report-e2e-integration
           path: e2e/playwright-report/
           retention-days: 7
+
+      - name: Upload Playwright test artifacts (traces, screenshots, videos)
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: playwright-test-results-e2e-integration
+          path: e2e/test-results/
+          retention-days: 7
+          if-no-files-found: ignore
 
       - name: Debug on failure
         if: failure() && env.DEBUG_ENABLED == 'true'

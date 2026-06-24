@@ -13,9 +13,9 @@ Onetime Secret provides three versions of its API:
 ## OpenAPI Definitions
 
 Generated OpenAPI definitions are available at:
-- `generated/openapi/api-v1.json`
-- `generated/openapi/api-v2.json`
-- `generated/openapi/api-v3.json`
+- `generated/openapi/openapi.v1.json`
+- `generated/openapi/openapi.v2.json`
+- `generated/openapi/openapi.v3.json`
 
 Run `pnpm run openapi:generate` to regenerate from source schemas.
 

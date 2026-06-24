@@ -108,7 +108,7 @@
     "text": "アカウントを作成",
     "source_hash": "0dffe234"
   },
-  "web.COMMON.header_about": {
+  "web.COMMON.about": {
     "text": "概要",
     "source_hash": "4efca0d1"
   },
@@ -439,10 +439,6 @@
   "web.COMMON.example_placeholder": {
     "text": "例: {example}",
     "source_hash": "cc921aaa"
-  },
-  "web.COMMON.about": {
-    "text": "概要",
-    "source_hash": "d833339d"
   },
   "web.COMMON.status": {
     "text": "ステータス",
@@ -1303,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "常にOnetime Secret公式サイトにアクセスしていることを確認してください。詐欺師がOnetime Secretと同じように見せかけた偽サイトを作成し、シークレットを盗もうとすることがあります。フィッシング攻撃を防ぐため、新しいリンクを作成する前にドメインを確認してください。",
+    "text": "常に{product_name}公式サイトにアクセスしていることを確認してください。詐欺師が{product_name}と同じように見せかけた偽サイトを作成し、シークレットを盗もうとすることがあります。フィッシング攻撃を防ぐため、新しいリンクを作成する前にドメインを確認してください。",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {

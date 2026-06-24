@@ -79,7 +79,9 @@ module Onetime::Receipt::Features
       base.safe_dump_field :share_domain
       base.safe_dump_field :created, ->(m) { m.created.to_f }
       base.safe_dump_field :updated, ->(m) { m.updated.to_f }
-      base.safe_dump_field :shared
+      # Coerce to Integer epoch seconds (or nil when unset) — see the note on
+      # :previewed below; emitted raw and uncovered by the #3434/#3477 casts (#3424).
+      base.safe_dump_field :shared, ->(m) { m.shared.to_i > 0 ? m.shared.to_i : nil }
       # Obscure recipient emails at serialization time so the raw address
       # never reaches the frontend, while the underlying record keeps the
       # clean value. obscure_email is a no-op when the value isn't an email
@@ -91,9 +93,14 @@ module Onetime::Receipt::Features
       base.safe_dump_field :shortid, ->(m) { m.identifier.slice(0, 8) }
       base.safe_dump_field :show_recipients, ->(m) { !m.recipients.to_s.empty? }
 
-      # New canonical timestamp fields
-      base.safe_dump_field :previewed
-      base.safe_dump_field :revealed
+      # New canonical timestamp fields. Coerce to Integer epoch seconds (or nil
+      # when unset) at the boundary — these are emitted raw and the #3434/#3477
+      # casts never covered them, so a value ever written as a String (legacy /
+      # console / raw HSET) or an empty string would trip the strict
+      # z.number().nullish() V3 transform and null the whole receipt (#3424).
+      # to_i is a no-op for the healthy Familia.now.to_i values already stored.
+      base.safe_dump_field :previewed, ->(m) { m.previewed.to_i > 0 ? m.previewed.to_i : nil }
+      base.safe_dump_field :revealed, ->(m) { m.revealed.to_i > 0 ? m.revealed.to_i : nil }
 
       # New canonical boolean fields
       base.safe_dump_field :is_previewed, ->(m) { m.state?(:previewed) }
@@ -104,7 +111,8 @@ module Onetime::Receipt::Features
       # BACKWARD COMPAT: Returns revealed timestamp for legacy clients
       # Falls back to revealed if received is nil (new data)
       base.safe_dump_field :received, ->(m) { m.received.to_s.empty? ? m.revealed : m.received }
-      base.safe_dump_field :burned
+      # Coerce to Integer epoch seconds (or nil when unset) — see :previewed note (#3424).
+      base.safe_dump_field :burned, ->(m) { m.burned.to_i > 0 ? m.burned.to_i : nil }
 
       # BACKWARD COMPAT: Returns true if previewed OR legacy viewed
       base.safe_dump_field :is_viewed, ->(m) { m.state?(:previewed) || m.state?(:viewed) }

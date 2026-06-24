@@ -152,8 +152,8 @@
     "content_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "You're viewing a secure message that was shared with you through Onetime Secret. This content is displayed only once and then permanently deleted from our servers.",
-    "content_hash": "e0f1a10c"
+    "text": "You're viewing a secure message that was shared with you through {product_name}. This content is displayed only once and then permanently deleted from our servers.",
+    "content_hash": "7a4e9d16"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "Can I view this secret again later?",
@@ -268,8 +268,8 @@
     "content_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Visit Onetime Secret homepage",
-    "content_hash": "625556d2"
+    "text": "Visit {product_name} homepage",
+    "content_hash": "87802af5"
   },
   "web.layout.footer_navigation": {
     "text": "Footer navigation",
@@ -342,5 +342,8 @@
   "web.layout.workspace_context": {
     "text": "Workspace context",
     "content_hash": "dc6fa4f5"
+  },
+  "web.help.default_content": {
+    "text": "Please contact support for assistance"
   }
 }

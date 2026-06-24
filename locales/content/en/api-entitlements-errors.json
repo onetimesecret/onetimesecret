@@ -108,5 +108,9 @@
     "text": "Billing management requires a plan upgrade",
     "context": "Returned when EntitlementRequired is raised for manage_billing",
     "content_hash": "dec5d6aa"
+  },
+  "api.entitlements.errors.custom_signin_config_required": {
+    "text": "Custom sign-in configuration requires a plan upgrade",
+    "context": "Returned when EntitlementRequired is raised for custom_signin_config"
   }
 }

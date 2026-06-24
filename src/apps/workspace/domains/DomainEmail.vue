@@ -167,7 +167,8 @@ watch(hasEntitlement, async (entitled) => {
       <DomainHeader
         :domain="customDomainRecord"
         :has-unsaved-changes="hasUnsavedChanges"
-        :orgid="props.orgid" />
+        :orgid="props.orgid"
+        external-path="/" />
     </div>
 
     <!-- Content -->

@@ -16,7 +16,9 @@
  * 3. "Continue as" triggers logout and redirect to invite page
  *
  * Prerequisites:
- * - Set TEST_USER_EMAIL, TEST_USER_PASSWORD environment variables
+ * - Authenticated as the org owner via the project storageState
+ *   (e2e/global.setup.ts consumes TEST_USER_*); multi-context scenarios sign
+ *   in manually inside fresh (unauthenticated) browser contexts
  * - Application running locally or PLAYWRIGHT_BASE_URL set
  *
  * Usage:
@@ -38,28 +40,48 @@ const generateTestEmail = (prefix: string) =>
 // -----------------------------------------------------------------------------
 
 /**
- * Authenticate user via login form using password tab
+ * Context options for a truly unauthenticated browser context.
+ *
+ * `browser.newContext()` inherits the `full` project's `use` options —
+ * including its storageState (the owner session) — so a bare newContext()
+ * is NOT unauthenticated. Pass these options to opt out explicitly.
+ */
+const unauthenticatedContext = { storageState: { cookies: [], origins: [] } };
+
+/**
+ * Authenticate user via login form using password tab.
+ *
+ * Only valid on pages from an unauthenticated context
+ * (`browser.newContext(unauthenticatedContext)`): the default `page` fixture
+ * and bare `browser.newContext()` carry the storageState session, and an
+ * authenticated visitor to /signin is redirected away from the form.
  */
 async function loginUser(page: Page, email?: string, password?: string): Promise<void> {
   await page.goto('/signin');
 
   // Click Password tab - Magic Link is the default, password input is hidden
+  // Handle both signin variants (canonical logic: e2e/global.setup.ts):
+  // default deployments render SignInForm directly (the CI container does);
+  // passwordless-first deployments hide the password panel behind a
+  // "Password" tab with different test ids.
+  const signinEmail = email || process.env.TEST_USER_EMAIL || '';
+  const signinPassword = password || process.env.TEST_USER_PASSWORD || '';
+  const signinForm = page.getByTestId('signin-form');
   const passwordTab = page.getByRole('tab', { name: /password/i });
-  await passwordTab.waitFor({ state: 'visible', timeout: 5000 });
-  await passwordTab.click();
+  await expect(signinForm.or(passwordTab).first()).toBeVisible();
 
-  // Wait for password input to be visible after tab switch
-  const passwordInput = page.locator('input[type="password"]');
-  await passwordInput.waitFor({ state: 'visible', timeout: 5000 });
-
-  // Fill the form
-  const emailInput = page.locator('#signin-email-password');
-  await emailInput.fill(email || process.env.TEST_USER_EMAIL || '');
-  await passwordInput.fill(password || process.env.TEST_USER_PASSWORD || '');
-
-  // Submit
-  const submitButton = page.locator('button[type="submit"]');
-  await submitButton.click();
+  if (await passwordTab.isVisible()) {
+    // Passwordless-first variant (magic links / WebAuthn enabled)
+    await passwordTab.click();
+    await page.getByTestId('password-email-input').fill(signinEmail);
+    await page.getByTestId('password-input').fill(signinPassword);
+    await page.getByTestId('password-submit').click();
+  } else {
+    // Password-only variant (CI container default)
+    await page.getByTestId('signin-email-input').fill(signinEmail);
+    await page.getByTestId('signin-password-input').fill(signinPassword);
+    await page.getByTestId('signin-submit').click();
+  }
 
   // Wait for redirect to dashboard/account
   await page.waitForURL(/\/(account|dashboard|org)/, { timeout: 30000 });
@@ -76,7 +98,7 @@ async function navigateToOrgTeam(page: Page, orgExtid?: string): Promise<string>
 
   // Navigate to org list and find first org
   await page.goto('/orgs');
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   // Find the first organization link with team tab
   const orgLink = page.locator('a[href*="/org/"]').first();
@@ -108,7 +130,7 @@ async function createInvitation(
   await roleSelect.selectOption(role);
 
   // Submit
-  const sendButton = page.getByRole('button', { name: /send invite/i });
+  const sendButton = page.getByRole('button', { name: /send invit/i });
   await sendButton.click();
 
   // Wait for success
@@ -118,7 +140,7 @@ async function createInvitation(
 /**
  * Get current organization extid from URL
  */
-async function getCurrentOrgExtid(page: Page): Promise<string> {
+function getCurrentOrgExtid(page: Page): string {
   const url = page.url();
   const match = url.match(/\/org\/([^/]+)/);
   return match?.[1] || '';
@@ -128,8 +150,8 @@ async function getCurrentOrgExtid(page: Page): Promise<string> {
  * Extract invitation token from pending invitations list via API
  */
 async function getInvitationToken(page: Page, email: string): Promise<string | null> {
-  const orgExtid = await getCurrentOrgExtid(page);
-  const response = await page.request.get(`/api/v2/org/${orgExtid}/invitations`);
+  const orgExtid = getCurrentOrgExtid(page);
+  const response = await page.request.get(`/api/organizations/${orgExtid}/invitations`);
   const data = await response.json();
 
   const invitation = data.records?.find((inv: { email: string }) => inv.email === email);
@@ -146,8 +168,8 @@ test.describe('MISMATCH-001: Email Mismatch Warning Display', () => {
   test('When logged in with different email, mismatch warning shows Continue As option', async ({
     browser,
   }) => {
-    const ownerContext = await browser.newContext();
-    const wrongUserContext = await browser.newContext();
+    const ownerContext = await browser.newContext(unauthenticatedContext);
+    const wrongUserContext = await browser.newContext(unauthenticatedContext);
 
     const ownerPage = await ownerContext.newPage();
     const wrongUserPage = await wrongUserContext.newPage();
@@ -164,7 +186,7 @@ test.describe('MISMATCH-001: Email Mismatch Warning Display', () => {
       // Different user logs in and visits invitation
       await loginUser(wrongUserPage);
       await wrongUserPage.goto(`/invite/${token}`);
-      await wrongUserPage.waitForLoadState('networkidle');
+      await expect(wrongUserPage.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Verify email mismatch warning is visible
       const mismatchWarning = wrongUserPage.locator('[data-testid="email-mismatch-warning"]');
@@ -195,8 +217,8 @@ test.describe('MISMATCH-002: Accept Button Hidden When Email Mismatch', () => {
   test('Accept button is NOT visible when email mismatch exists (strict binding)', async ({
     browser,
   }) => {
-    const ownerContext = await browser.newContext();
-    const wrongUserContext = await browser.newContext();
+    const ownerContext = await browser.newContext(unauthenticatedContext);
+    const wrongUserContext = await browser.newContext(unauthenticatedContext);
 
     const ownerPage = await ownerContext.newPage();
     const wrongUserPage = await wrongUserContext.newPage();
@@ -212,7 +234,7 @@ test.describe('MISMATCH-002: Accept Button Hidden When Email Mismatch', () => {
       // Wrong user visits invitation
       await loginUser(wrongUserPage);
       await wrongUserPage.goto(`/invite/${token}`);
-      await wrongUserPage.waitForLoadState('networkidle');
+      await expect(wrongUserPage.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Verify wrong_email state is shown
       const wrongEmailState = wrongUserPage.getByTestId('invite-wrong-email');
@@ -243,8 +265,8 @@ test.describe('MISMATCH-003: Continue As Triggers Logout', () => {
   test('Clicking "Continue as" logs out user and redirects to invite page', async ({
     browser,
   }) => {
-    const ownerContext = await browser.newContext();
-    const wrongUserContext = await browser.newContext();
+    const ownerContext = await browser.newContext(unauthenticatedContext);
+    const wrongUserContext = await browser.newContext(unauthenticatedContext);
 
     const ownerPage = await ownerContext.newPage();
     const wrongUserPage = await wrongUserContext.newPage();
@@ -261,7 +283,7 @@ test.describe('MISMATCH-003: Continue As Triggers Logout', () => {
       // Wrong user logs in and visits invitation
       await loginUser(wrongUserPage);
       await wrongUserPage.goto(`/invite/${token}`);
-      await wrongUserPage.waitForLoadState('networkidle');
+      await expect(wrongUserPage.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Click continue as — logs out and redirects to invite page
       const continueAsBtn = wrongUserPage.locator('[data-testid="continue-as-btn"]');
@@ -271,9 +293,9 @@ test.describe('MISMATCH-003: Continue As Triggers Logout', () => {
       await wrongUserPage.waitForURL(/\/invite\//, { timeout: 10000 });
 
       // Verify user is logged out
-      const response = await wrongUserPage.request.get('/api/v2/bootstrap/authenticated');
+      const response = await wrongUserPage.request.get('/bootstrap/me');
       const data = await response.json();
-      expect(data.authenticated || data.record?.authenticated).toBeFalsy();
+      expect(data.authenticated).toBeFalsy();
     } finally {
       await ownerContext.close();
       await wrongUserContext.close();
@@ -286,18 +308,14 @@ test.describe('MISMATCH-003: Continue As Triggers Logout', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('MISMATCH-004: Unauthenticated User Sees Inline Auth Forms', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('When unauthenticated, shows signup or signin inline form (no mismatch)', async ({
     page,
     context,
   }) => {
-    await loginUser(page);
-
-    // Get current user's email
-    const bootstrapResponse = await page.request.get('/api/v2/bootstrap/authenticated');
+    // Get the current (storageState) user's email
+    const bootstrapResponse = await page.request.get('/bootstrap/me');
     const bootstrapData = await bootstrapResponse.json();
-    const currentEmail = bootstrapData.record?.email;
+    const currentEmail = bootstrapData.email;
     expect(currentEmail).toBeTruthy();
 
     // Create invitation for a different test email
@@ -311,7 +329,7 @@ test.describe('MISMATCH-004: Unauthenticated User Sees Inline Auth Forms', () =>
 
     // Visit invitation
     await page.goto(`/invite/${token}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // When unauthenticated, no mismatch warning (can't compare emails)
     const mismatchWarning = page.getByTestId('email-mismatch-warning');
@@ -348,8 +366,8 @@ test.describe('MISMATCH-005: API Rejects Email Mismatch', () => {
   test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
 
   test('Direct API call with mismatched email returns error', async ({ browser }) => {
-    const ownerContext = await browser.newContext();
-    const wrongUserContext = await browser.newContext();
+    const ownerContext = await browser.newContext(unauthenticatedContext);
+    const wrongUserContext = await browser.newContext(unauthenticatedContext);
 
     const ownerPage = await ownerContext.newPage();
     const wrongUserPage = await wrongUserContext.newPage();
@@ -375,7 +393,8 @@ test.describe('MISMATCH-005: API Rejects Email Mismatch', () => {
       expect(response.status()).toBeGreaterThanOrEqual(400);
 
       const data = await response.json();
-      expect(data.message).toContain('match');
+      // API returns { error: "...", error_type: "..." } per ADR-013
+      expect(data.error).toContain('match');
     } finally {
       await ownerContext.close();
       await wrongUserContext.close();
@@ -383,8 +402,8 @@ test.describe('MISMATCH-005: API Rejects Email Mismatch', () => {
   });
 
   test('API rejects even with acknowledge_email_mismatch flag (security change)', async ({ browser }) => {
-    const ownerContext = await browser.newContext();
-    const wrongUserContext = await browser.newContext();
+    const ownerContext = await browser.newContext(unauthenticatedContext);
+    const wrongUserContext = await browser.newContext(unauthenticatedContext);
 
     const ownerPage = await ownerContext.newPage();
     const wrongUserPage = await wrongUserContext.newPage();
@@ -410,7 +429,8 @@ test.describe('MISMATCH-005: API Rejects Email Mismatch', () => {
       expect(response.status()).toBeGreaterThanOrEqual(400);
 
       const data = await response.json();
-      expect(data.message).toContain('match');
+      // API returns { error: "...", error_type: "..." } per ADR-013
+      expect(data.error).toContain('match');
     } finally {
       await ownerContext.close();
       await wrongUserContext.close();

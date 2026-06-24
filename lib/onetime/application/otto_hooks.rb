@@ -113,10 +113,14 @@ module Onetime
         # is never loaded (the error can't be raised there). log_level :error
         # keeps the fail-closed design's ops visibility intact.
         router.register_error_handler('Billing::PlanCacheMissError', status: 503, log_level: :error) do |error, req|
-          with_error_correlation({
-            error: 'Plan catalog is temporarily unavailable. Please try again shortly.',
-            error_type: 'PlanCatalogUnavailable',
-          }, req, error)
+          with_error_correlation(
+            {
+              error: 'Plan catalog is temporarily unavailable. Please try again shortly.',
+              error_type: 'PlanCatalogUnavailable',
+            },
+            req,
+            error,
+          )
         end
 
         # Stripe circuit breaker open (Billing::CircuitOpenError) is the sibling
@@ -150,12 +154,6 @@ module Onetime
           with_error_correlation(body, req, error)
         end
 
-        # Give the router the same trusted-proxy list as the outer IP-privacy
-        # middleware. Done here (not in each build_router) so no Otto app can
-        # land with an inconsistent trust list. Placed before the debug-only
-        # request-logging hook below so it runs in production too.
-        configure_otto_trusted_proxies(router)
-
         return unless Onetime.debug?
 
         router.on_request_complete do |req, res, duration|
@@ -179,30 +177,6 @@ module Onetime
               user_agent: req.user_agent&.slice(0, 100),
             }
         end
-      end
-
-      # Mirror the trusted-proxy list onto the Otto router's own security
-      # config so req.client_ipaddress and req.secure? agree with Rack's
-      # request.ip about which hops to trust. No-op unless
-      # site.network.trusted_proxy is enabled (same gate as the outer
-      # IPPrivacyMiddleware via MiddlewareStack.ip_privacy_security_config).
-      #
-      # Defense-in-depth, not the primary path: the outer middleware runs
-      # first and has already rewritten REMOTE_ADDR to the resolved (masked)
-      # client by the time the router sees a request. For public clients that
-      # masked address is not a trusted proxy, so this list does not fire and
-      # they still depend on the outer rewrite — this list keeps resolution
-      # correct if that middleware is ever reordered or removed. It does change
-      # the private-origin requests the outer middleware exempts from masking
-      # (REMOTE_ADDR left private): the router now walks X-Forwarded-For and
-      # honors X-Forwarded-Proto for those, instead of returning the proxy hop.
-      #
-      # @param router [Otto] The Otto router instance to configure
-      # @return [void]
-      def configure_otto_trusted_proxies(router)
-        return unless Onetime::Application::MiddlewareStack.trusted_proxy_enabled?
-
-        router.add_trusted_proxy(Onetime::Application::MiddlewareStack::PRIVATE_PROXY_RANGES)
       end
 
       private
@@ -240,7 +214,8 @@ module Onetime
         # class name so the request log still names the failure for errors whose
         # to_h compacts error_type away (e.g. a FormError raised without one).
         # The body is left untouched — this fallback only feeds the request log.
-        error_type = body[:error_type] || error&.class&.name&.to_s&.split('::')&.last
+        error_type                 = body[:error_type]
+        error_type               ||= error.class.name.to_s.split('::').last if error
         req.env['otto.error_type'] = error_type if error_type
 
         request_id = req.env['HTTP_X_REQUEST_ID']

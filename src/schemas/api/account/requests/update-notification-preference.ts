@@ -13,4 +13,6 @@ export const updateNotificationPreferenceRequestSchema = z.object({
   value: z.string(),
 });
 
-export type UpdateNotificationPreferenceRequest = z.infer<typeof updateNotificationPreferenceRequestSchema>;
+export type UpdateNotificationPreferenceRequest = z.infer<
+  typeof updateNotificationPreferenceRequestSchema
+>;

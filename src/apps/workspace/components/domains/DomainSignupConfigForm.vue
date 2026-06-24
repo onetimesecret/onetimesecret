@@ -324,6 +324,66 @@ class="space-y-6">
         </p>
       </div>
 
+      <!-- Domain-level Signup Toggles -->
+      <fieldset class="space-y-4">
+        <legend class="text-sm font-medium text-gray-900 dark:text-white">
+          {{ t('web.domains.signup.domain_overrides_label') }}
+        </legend>
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.domains.signup.domain_overrides_hint') }}
+        </p>
+
+        <!-- Signup Enabled (domain override) -->
+        <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+          <div>
+            <label
+              for="signup-domain-enabled"
+              class="text-sm font-medium text-gray-900 dark:text-white">
+              {{ t('web.domains.signup.signup_enabled_label') }}
+            </label>
+            <p
+              id="signup-domain-enabled-hint"
+              class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              {{ t('web.domains.signup.signup_enabled_hint') }}
+            </p>
+          </div>
+          <select
+            id="signup-domain-enabled"
+            aria-describedby="signup-domain-enabled-hint"
+            :value="String(formState.signup_enabled)"
+            @change="updateField('signup_enabled', ($event.target as HTMLSelectElement).value === 'true')"
+            class="rounded-md border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+            <option value="true">{{ t('web.COMMON.enabled') }}</option>
+            <option value="false">{{ t('web.COMMON.disabled') }}</option>
+          </select>
+        </div>
+
+        <!-- Autoverify (domain override) -->
+        <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+          <div>
+            <label
+              for="signup-autoverify"
+              class="text-sm font-medium text-gray-900 dark:text-white">
+              {{ t('web.domains.signup.autoverify_label') }}
+            </label>
+            <p
+              id="signup-autoverify-hint"
+              class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              {{ t('web.domains.signup.autoverify_hint') }}
+            </p>
+          </div>
+          <select
+            id="signup-autoverify"
+            aria-describedby="signup-autoverify-hint"
+            :value="String(formState.autoverify)"
+            @change="updateField('autoverify', ($event.target as HTMLSelectElement).value === 'true')"
+            class="rounded-md border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+            <option value="true">{{ t('web.COMMON.enabled') }}</option>
+            <option value="false">{{ t('web.COMMON.disabled') }}</option>
+          </select>
+        </div>
+      </fieldset>
+
       <!-- Enabled Toggle -->
       <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
         <div>

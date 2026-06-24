@@ -120,6 +120,11 @@ module Core
           'baseuri' => view_vars['baseuri'],
           'site_host' => view_vars['site_host'],
           'no_cache' => view_vars['no_cache'],
+          'brand_primary_color' => view_vars['brand_primary_color'],
+          'has_brand_color' => view_vars['has_brand_color'],
+          'brand_apple_touch_icon_url' => view_vars['brand_apple_touch_icon_url'],
+          'brand_og_image_url' => view_vars['brand_og_image_url'],
+          'show_default_svg_favicon' => view_vars['show_default_svg_favicon'],
           'vite_assets_html' => vite_assets(
             nonce: view_vars['nonce'],
             development: view_vars['frontend_development'],

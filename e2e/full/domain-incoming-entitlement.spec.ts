@@ -33,7 +33,21 @@
 
 import { expect, Page, test } from '@playwright/test';
 
+import { env, gateReason } from '../support/env';
+
 const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD);
+
+// HOLDING ACTION — not coverage (E2E remediation plan Phase 2.4 / PR 5).
+// Every test drives the custom-domain incoming-secrets pages
+// (/org/:id/domains/:extid/incoming), which require a custom domain on the test
+// account — optional deployment config, so env-gate rather than fixme (issue
+// #3420). No CI lane sets E2E_CUSTOM_DOMAINS, so this suite is DORMANT in CI:
+// gating in a top-level beforeEach skips before the org/domain DOM helpers run,
+// so CI no longer times out here (these were among the container-e2e failures).
+// Matches the sibling domain-* suites already listed in e2e/QUARANTINE.md.
+test.beforeEach(() => {
+  test.skip(!env.hasCustomDomains, gateReason.customDomains);
+});
 
 // -----------------------------------------------------------------------------
 // Types
@@ -54,24 +68,40 @@ interface DomainInfo {
 // -----------------------------------------------------------------------------
 
 /**
- * Authenticate user via login form
+ * Authenticate user via login form.
+ *
+ * The `full` project starts every test already authenticated as TEST_USER_*
+ * via storageState (e2e/playwright.config.ts), so the session must be dropped
+ * first — an authenticated visitor to /signin is redirected away by the auth
+ * route guard (src/router/guards.routes.ts) and never sees the form.
+ *
+ * Handles both signin variants (canonical logic: e2e/global.setup.ts):
+ * - default deployments render SignInForm directly (the CI container does);
+ * - passwordless-first deployments hide the password panel behind a
+ *   "Password" tab with different test ids.
  */
 async function loginUser(page: Page): Promise<void> {
+  await page.context().clearCookies();
   await page.goto('/signin');
 
+  const signinEmail = process.env.TEST_USER_EMAIL || '';
+  const signinPassword = process.env.TEST_USER_PASSWORD || '';
+  const signinForm = page.getByTestId('signin-form');
   const passwordTab = page.getByRole('tab', { name: /password/i });
-  await passwordTab.waitFor({ state: 'visible', timeout: 5000 });
-  await passwordTab.click();
+  await expect(signinForm.or(passwordTab).first()).toBeVisible();
 
-  const passwordInput = page.locator('input[type="password"]');
-  await passwordInput.waitFor({ state: 'visible', timeout: 5000 });
-
-  const emailInput = page.locator('#signin-email-password');
-  await emailInput.fill(process.env.TEST_USER_EMAIL || '');
-  await passwordInput.fill(process.env.TEST_USER_PASSWORD || '');
-
-  const submitButton = page.locator('button[type="submit"]');
-  await submitButton.click();
+  if (await passwordTab.isVisible()) {
+    // Passwordless-first variant (magic links / WebAuthn enabled)
+    await passwordTab.click();
+    await page.getByTestId('password-email-input').fill(signinEmail);
+    await page.getByTestId('password-input').fill(signinPassword);
+    await page.getByTestId('password-submit').click();
+  } else {
+    // Password-only variant (CI container default)
+    await page.getByTestId('signin-email-input').fill(signinEmail);
+    await page.getByTestId('signin-password-input').fill(signinPassword);
+    await page.getByTestId('signin-submit').click();
+  }
 
   await page.waitForURL(/\/(account|dashboard|org)/, { timeout: 30000 });
 }
@@ -81,7 +111,7 @@ async function loginUser(page: Page): Promise<void> {
  */
 async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
   await page.goto('/orgs');
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   const orgLink = page.locator('a[href*="/org/"]').first();
   if (!(await orgLink.isVisible().catch(() => false))) {
@@ -104,7 +134,7 @@ async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
  */
 async function getFirstDomain(page: Page, orgExtid: string): Promise<DomainInfo | null> {
   await page.goto(`/org/${orgExtid}/domains`);
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   const domainLink = page.locator('a[href*="/domains/"]').first();
   if (!(await domainLink.isVisible().catch(() => false))) {
@@ -132,10 +162,7 @@ async function navigateToDomainIncomingPage(
   domainExtid: string
 ): Promise<void> {
   await page.goto(`/org/${orgExtid}/domains/${domainExtid}/incoming`);
-  await page.waitForLoadState('networkidle');
-
-  // Wait for page content to stabilize
-  await page.waitForTimeout(500);
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 }
 
 /**
@@ -447,11 +474,12 @@ test.describe('Domain Incoming - Error/Disabled Banner Exclusivity (#3479 Fix A)
 
     await navigateToDomainIncomingPage(page, org!.extid, domain!.extid);
 
-    // Wait for form to attempt to load
-    await page.waitForTimeout(1000);
-
-    // Look for error alert (BasicFormAlerts)
+    // Wait for either error alert or form to appear
     const errorAlert = page.locator('[role="alert"]');
+    const formElement = page.locator('form');
+    await expect(errorAlert.or(formElement).first()).toBeVisible();
+
+    // Look for disabled notice (BasicFormAlerts)
     const disabledNotice = page.locator('.bg-blue-50, .bg-blue-900\\/20').filter({
       hasText: /toggle|enable|feature|disabled/i,
     });
@@ -492,8 +520,10 @@ test.describe('Domain Incoming - Error/Disabled Banner Exclusivity (#3479 Fix A)
 
     await navigateToDomainIncomingPage(page, org!.extid, domain!.extid);
 
-    // Wait for form to load
-    await page.waitForTimeout(1000);
+    // Wait for form or access-denied state to appear
+    const formElement = page.locator('form');
+    const accessDenied = page.getByText(/access denied/i);
+    await expect(formElement.or(accessDenied).first()).toBeVisible();
 
     // If form is visible and feature is disabled, disabled_notice should appear
     const form = page.locator('form');
@@ -581,9 +611,8 @@ test.describe('Domain Incoming - Toggle State Transitions', () => {
     // If currently enabled, toggle OFF and verify disabled_notice appears
     if (ariaChecked === 'true') {
       await toggle.click();
-      await page.waitForTimeout(300);
 
-      // Verify toggle is now OFF
+      // Wait for toggle state to update
       await expect(toggle).toHaveAttribute('aria-checked', 'false');
 
       // disabled_notice should now be visible
@@ -615,9 +644,8 @@ test.describe('Domain Incoming - Toggle State Transitions', () => {
       await expect(disabledNotice).toBeVisible();
 
       await toggle.click();
-      await page.waitForTimeout(300);
 
-      // Verify toggle is now ON
+      // Wait for toggle state to update
       await expect(toggle).toHaveAttribute('aria-checked', 'true');
 
       // disabled_notice should now be hidden
@@ -690,9 +718,6 @@ test.describe('Domain Incoming - Regression Prevention (#3479)', () => {
     test.skip(!domain, 'Test requires at least 1 domain');
 
     await navigateToDomainIncomingPage(page, org!.extid, domain!.extid);
-
-    // Wait for page to stabilize
-    await page.waitForTimeout(500);
 
     // Define the mutually exclusive states
     const loadingState = page.locator('[class*="skeleton"], [class*="loading"]');

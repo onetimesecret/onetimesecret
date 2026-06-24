@@ -4,6 +4,7 @@ import {
   brandSettingsSchema,
   type BrandSettings,
 } from '@/schemas/shapes/v3/custom-domain';
+import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
 import { cornerStyleClasses, fontFamilyClasses } from '@/shared/utils/brand-helpers';
 import { gracefulParse } from '@/utils/schemaValidation';
 import { defineStore, storeToRefs } from 'pinia';
@@ -11,7 +12,6 @@ import { computed, reactive, toRefs, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useBootstrapStore } from './bootstrapStore';
 
-export const DEFAULT_PRIMARY_COLOR = '#dc4a22';
 export const DEFAULT_CORNER_CLASS = 'rounded-lg';
 export const DEFAULT_BUTTON_TEXT_LIGHT = true; // light text for default colour
 
@@ -50,7 +50,8 @@ const primaryColorValidator = brandSettingsSchema.shape.primary_color;
  * Identity determines how the product is presented and behaves for the current domain
  */
 
-// eslint-disable-next-line max-lines-per-function -- Store setup requires coordinating multiple reactive refs and watchers
+// Store setup requires coordinating multiple reactive refs and watchers.
+// eslint-disable-next-line max-lines-per-function
 export const useProductIdentity = defineStore('productIdentity', () => {
   // Get i18n instance via injection
   const { t } = useI18n();
@@ -70,6 +71,30 @@ export const useProductIdentity = defineStore('productIdentity', () => {
   } = storeToRefs(bootstrapStore);
 
   /**
+   * Resolves the active primary color through a 3-step fallback chain:
+   *   1. Per-domain branding (Redis custom domain settings)
+   *   2. Install config (BRAND_PRIMARY_COLOR env var via bootstrapStore)
+   *   3. Neutral last resort (NEUTRAL_BRAND_DEFAULTS.primary_color)
+   *
+   * Both steps 1 and 2 are validated through primaryColorValidator so
+   * malformed values degrade gracefully instead of reaching the palette
+   * generator.
+   */
+  function resolvePrimaryColor(brandColor: unknown): string {
+    const domainParsed = gracefulParse(primaryColorValidator, brandColor, 'PrimaryColor');
+    const domainValidated = domainParsed.ok ? domainParsed.data : null;
+
+    const installParsed = gracefulParse(primaryColorValidator, bootstrapStore.brand_primary_color, 'InstallPrimaryColor');
+    const installValidated = installParsed.ok ? installParsed.data : null;
+
+    return (
+      domainValidated ??
+      installValidated ??
+      NEUTRAL_BRAND_DEFAULTS.primary_color
+    );
+  }
+
+  /**
    * Creates initial identity state from bootstrapStore values
    * Handles validation and default values for branding fields
    */
@@ -77,8 +102,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     const brandResult = gracefulParse(brandSettingsSchema, domain_branding.value ?? {}, 'BrandSettings');
     const brand = brandResult.ok ? brandResult.data : null;
 
-    const colorResult = gracefulParse(primaryColorValidator, brand?.primary_color, 'PrimaryColor');
-    const primaryColor = colorResult.ok ? (colorResult.data ?? DEFAULT_PRIMARY_COLOR) : DEFAULT_PRIMARY_COLOR;
+    const primaryColor = resolvePrimaryColor(brand?.primary_color);
     const buttonTextLight = brand?.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
     const allowPublicHomepage = homepage_config.value?.enabled ?? false;
 
@@ -104,10 +128,17 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     const brand = brandResult.ok ? brandResult.data : null;
     state.brand = brand;
 
-    const colorResult = gracefulParse(primaryColorValidator, brand?.primary_color, 'PrimaryColor');
-    state.primaryColor = colorResult.ok ? (colorResult.data ?? DEFAULT_PRIMARY_COLOR) : DEFAULT_PRIMARY_COLOR;
+    state.primaryColor = resolvePrimaryColor(brand?.primary_color);
     state.buttonTextLight = brand?.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
   });
+
+  // Watch for install-config color changes (e.g. /bootstrap/me refresh)
+  watch(
+    () => bootstrapStore.brand_primary_color,
+    () => {
+      state.primaryColor = resolvePrimaryColor(state.brand?.primary_color);
+    }
+  );
 
   // Watch homepage_config for toggle state (authoritative source, separate from brand)
   watch(homepage_config, (newConfig) => {

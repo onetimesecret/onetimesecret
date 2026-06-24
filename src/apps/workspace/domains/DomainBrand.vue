@@ -148,7 +148,8 @@ aria-hidden="true" />
         <DomainHeader
           :domain="customDomainRecord"
           :has-unsaved-changes="hasUnsavedChanges"
-          :orgid="props.orgid" />
+          :orgid="props.orgid"
+          external-path="/" />
 
         <BrandSettingsBar
           v-if="canBrand"
@@ -262,7 +263,7 @@ aria-hidden="true" />
             aria-labelledby="previewHeading">
             <div
               class="z-50 h-1 w-full"
-              :style="{ backgroundColor: color }"></div>
+              :style="{ backgroundColor: color ?? undefined }"></div>
             <SecretPreview
               v-if="!isLoading"
               ref="secretPreview"

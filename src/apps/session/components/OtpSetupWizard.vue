@@ -27,7 +27,8 @@ const password = ref('');
 const otpInputRef = ref<InstanceType<typeof OtpCodeInput> | null>(null);
 
 // Auto-load QR code on mount (without password initially). The QR is rendered
-// from the backend's provisioning_uri, so no site name / email is needed here.
+// from the backend's provisioning_uri (which carries the brand-configured
+// issuer), so no issuer/email is needed here.
 onMounted(async () => {
   await setupMfa();
 });

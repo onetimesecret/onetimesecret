@@ -1,0 +1,12 @@
+# Lane: full-pg-agnostic — DB-agnostic full-mode specs run against
+# PostgreSQL (catches SQLite/PG behavior drift in specs that claim to be
+# database-neutral).
+# CI job: ruby-integration-full (T3, "PG agnostic" rows; billing via overlay)
+#
+# Same database env as full-pg; see that lane for where roles come from.
+AUTHENTICATION_MODE=full
+ORGS_SSO_ENABLED=true
+AUTH_DATABASE_URL='postgresql://onetime_user:testpass@127.0.0.1:2132/onetime_auth_test'
+AUTH_DATABASE_URL_MIGRATIONS='postgresql://onetime_migrator:migratepass@127.0.0.1:2132/onetime_auth_test'
+AUTH_DATABASE_URL_PG='postgresql://onetime_user:testpass@127.0.0.1:2132/onetime_auth_test'
+AUTH_DATABASE_URL_MIGRATIONS_PG='postgresql://onetime_migrator:migratepass@127.0.0.1:2132/onetime_auth_test'

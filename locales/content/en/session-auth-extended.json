@@ -722,5 +722,11 @@
   "web.auth.recovery_codes.link_title": {
     "text": "Recovery Codes",
     "content_hash": "579c7f4e"
+  },
+  "web.auth.google": {
+    "text": "Google"
+  },
+  "web.auth.remember.enabled": {
+    "text": "Stay signed in"
   }
 }

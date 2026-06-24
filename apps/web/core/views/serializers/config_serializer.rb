@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/models/custom_domain/signin_config'
 require 'onetime/models/custom_domain/sso_config'
 require 'onetime/models/custom_domain'
 
@@ -65,6 +66,21 @@ module Core
         output['frontend_development'] = development['enabled'] || false
         output['frontend_host']        = development['frontend_host'] || ''
 
+        # Branding config for frontend stores. brand_primary_color is nil
+        # when BRAND_PRIMARY_COLOR is unset — the frontend fallback chain
+        # resolves the default (#3381).
+        output['brand_primary_color']         = view_vars['brand_primary_color']
+        output['brand_product_name']          = view_vars['brand_product_name']
+        output['brand_product_domain']        = view_vars['brand_product_domain']
+        output['brand_support_email']         = view_vars['brand_support_email']
+        output['brand_corner_style']          = view_vars['brand_corner_style']
+        output['brand_font_family']           = view_vars['brand_font_family']
+        output['brand_button_text_light']     = view_vars['brand_button_text_light']
+        output['brand_logo_url']              = view_vars['brand_logo_url']
+        output['brand_favicon_url']           = view_vars['brand_favicon_url']
+        output['support_email']               = view_vars['support_email']
+        output['docs_host']                   = view_vars['docs_host']
+
         # Pass development config to frontend (includes domain_context_enabled)
         output['development'] = {
           'enabled' => development['enabled'] || false,
@@ -105,9 +121,19 @@ module Core
           {
             'api' => nil,
             'authentication' => nil,
+            'brand_primary_color' => nil,
+            'brand_product_name' => nil,
+            'brand_product_domain' => nil,
+            'brand_support_email' => nil,
+            'brand_corner_style' => nil,
+            'brand_font_family' => nil,
+            'brand_button_text_light' => nil,
+            'brand_logo_url' => nil,
+            'brand_favicon_url' => nil,
             'd9s_enabled' => nil,
             'development' => nil,
             'diagnostics' => nil,
+            'docs_host' => nil,
             'domains' => nil,
             'domains_enabled' => nil,
             'features' => nil,
@@ -119,6 +145,7 @@ module Core
             'regions_enabled' => nil,
             'secret_options' => nil,
             'site_host' => nil,
+            'support_email' => nil,
             'support_host' => nil,
             'ui' => nil,
           }
@@ -136,15 +163,16 @@ module Core
           features = view_vars['features'] || {}
 
           {
+            'signin' => resolve_signin(view_vars),
             'lockout' => Onetime.auth_config.lockout_enabled?,
             'password_requirements' => Onetime.auth_config.password_requirements_enabled?,
             'active_sessions' => Onetime.auth_config.active_sessions_enabled?,
             'remember_me' => Onetime.auth_config.remember_me_enabled?,
             'mfa' => Onetime.auth_config.mfa_enabled?,
-            'email_auth' => Onetime.auth_config.email_auth_enabled?,
+            'email_auth' => resolve_email_auth(view_vars),
             'webauthn' => Onetime.auth_config.webauthn_enabled?,
             'sso' => build_sso_config(view_vars),
-            'restrict_to' => Onetime.auth_config.restrict_to,
+            'restrict_to' => resolve_restrict_to(view_vars),
             'organizations' => {
               'enabled' => features.dig('organizations', 'enabled') || false,
               'sso_enabled' => features.dig('organizations', 'sso_enabled') || false,
@@ -153,6 +181,61 @@ module Core
                                               features.dig('organizations', 'incoming_secrets_enabled')) || false,
             },
           }
+        end
+
+        # Resolve restrict_to for the current request context.
+        # Domain SigninConfig overrides global when enabled.
+        def resolve_restrict_to(view_vars)
+          domain_id = resolve_domain_id(view_vars)
+          if domain_id
+            signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id)
+            return signin_config.restrict_to if signin_config&.enabled?
+          end
+
+          Onetime.auth_config.restrict_to
+        end
+
+        # Resolve sign-in availability for the current request context.
+        #
+        # AND semantics (mirrors resolve_email_auth): a domain may DISABLE
+        # sign-in entirely but can never enable it when sign-in is off
+        # globally (AUTH_ENABLED + AUTH_SIGNIN). The domain override only
+        # ever narrows the global capability.
+        #
+        # This is the DISPLAY gate: features.signin in the bootstrap lets
+        # the public /signin page render a friendly "not available" notice
+        # instead of the auth form. The runtime POST gate lives in
+        # Core::Controllers::Base#signin_enabled? and resolves through the
+        # same SigninConfig.resolve_signin_enabled helper, so the rendered
+        # page and the POST handler cannot disagree.
+        #
+        # @param view_vars [Hash] View variables with request context
+        # @return [Boolean] true if sign-in is available
+        def resolve_signin(view_vars)
+          auth_settings = (view_vars['site'] || {})['authentication'] || {}
+          global        = auth_settings['enabled'] && auth_settings['signin']
+
+          domain_id     = resolve_domain_id(view_vars)
+          signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id) if domain_id
+
+          Onetime::CustomDomain::SigninConfig.resolve_signin_enabled(global, signin_config)
+        end
+
+        # Resolve email_auth availability for the current request context.
+        #
+        # AND semantics (differs from resolve_restrict_to's replace semantics):
+        # a domain may DISABLE email_auth but cannot ENABLE it when the global
+        # Rodauth route was never mounted. So the domain override only ever
+        # narrows the global capability, never widens it.
+        #
+        # @param view_vars [Hash] View variables with request context
+        # @return [Boolean] true if email_auth is available
+        def resolve_email_auth(view_vars)
+          global        = Onetime.auth_config.email_auth_enabled?
+          domain_id     = resolve_domain_id(view_vars)
+          signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id) if domain_id
+
+          Onetime::CustomDomain::SigninConfig.resolve_email_auth_enabled(global, signin_config)
         end
 
         # Build SSO configuration for frontend
@@ -188,7 +271,14 @@ module Core
 
         # Resolve tenant SSO configuration from request context
         #
-        # Looks up CustomDomain::SsoConfig for the custom domain.
+        # Looks up CustomDomain::SsoConfig (credentials) for the custom domain
+        # and gates it on SigninConfig.sso_permitted_for? — the shared
+        # activation authority. Tenant SSO config is returned only when the
+        # credentials store is enabled AND the SigninConfig permits SSO. This
+        # is the display half of the parity gate; the runtime half lives in
+        # apps/web/auth/config/hooks/omniauth_tenant.rb and consults the same
+        # predicate. SigninConfig.sso_enabled governs the TENANT's SSO only;
+        # build_sso_config's platform-fallback policy is unchanged.
         #
         # @param view_vars [Hash] View variables
         # @return [Onetime::CustomDomain::SsoConfig, nil] Config if found and enabled
@@ -197,9 +287,10 @@ module Core
           return nil unless domain_id
 
           domain_config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain_id)
-          return domain_config if domain_config&.enabled?
+          return nil unless domain_config&.enabled?
+          return nil unless Onetime::CustomDomain::SigninConfig.sso_permitted_for?(domain_id)
 
-          nil
+          domain_config
         end
 
         # Resolve domain identifier from view variables

@@ -11,7 +11,10 @@ import { z } from 'zod';
 // Envelope-wrapped response schemas
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const feedbackResponseSchema = createApiResponseSchema(feedbackSchema, feedbackDetailsSchema);
+export const feedbackResponseSchema = createApiResponseSchema(
+  feedbackSchema,
+  feedbackDetailsSchema
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Type exports

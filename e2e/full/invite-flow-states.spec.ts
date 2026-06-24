@@ -18,7 +18,9 @@
  * - Strict email binding (no acknowledge_email_mismatch option)
  *
  * Prerequisites:
- * - Set TEST_USER_EMAIL, TEST_USER_PASSWORD environment variables for org owner
+ * - Authenticated as the org owner via the project storageState
+ *   (e2e/global.setup.ts consumes TEST_USER_*); multi-context scenarios sign
+ *   in manually inside fresh (unauthenticated) browser contexts
  * - Application running locally or PLAYWRIGHT_BASE_URL set
  *
  * Usage:
@@ -40,28 +42,48 @@ const generateTestEmail = (prefix: string) =>
 // -----------------------------------------------------------------------------
 
 /**
- * Authenticate user via login form using password tab
+ * Context options for a truly unauthenticated browser context.
+ *
+ * `browser.newContext()` inherits the `full` project's `use` options —
+ * including its storageState (the owner session) — so a bare newContext()
+ * is NOT unauthenticated. Pass these options to opt out explicitly.
+ */
+const unauthenticatedContext = { storageState: { cookies: [], origins: [] } };
+
+/**
+ * Authenticate user via login form using password tab.
+ *
+ * Only valid on pages from an unauthenticated context
+ * (`browser.newContext(unauthenticatedContext)`): the default `page` fixture
+ * and bare `browser.newContext()` carry the storageState session, and an
+ * authenticated visitor to /signin is redirected away from the form.
  */
 async function loginUser(page: Page, email?: string, password?: string): Promise<void> {
   await page.goto('/signin');
 
   // Click Password tab - Magic Link is the default, password input is hidden
+  // Handle both signin variants (canonical logic: e2e/global.setup.ts):
+  // default deployments render SignInForm directly (the CI container does);
+  // passwordless-first deployments hide the password panel behind a
+  // "Password" tab with different test ids.
+  const signinEmail = email || process.env.TEST_USER_EMAIL || '';
+  const signinPassword = password || process.env.TEST_USER_PASSWORD || '';
+  const signinForm = page.getByTestId('signin-form');
   const passwordTab = page.getByRole('tab', { name: /password/i });
-  await passwordTab.waitFor({ state: 'visible', timeout: 5000 });
-  await passwordTab.click();
+  await expect(signinForm.or(passwordTab).first()).toBeVisible();
 
-  // Wait for password input to be visible after tab switch
-  const passwordInput = page.locator('input[type="password"]');
-  await passwordInput.waitFor({ state: 'visible', timeout: 5000 });
-
-  // Fill the form
-  const emailInput = page.locator('#signin-email-password');
-  await emailInput.fill(email || process.env.TEST_USER_EMAIL || '');
-  await passwordInput.fill(password || process.env.TEST_USER_PASSWORD || '');
-
-  // Submit
-  const submitButton = page.locator('button[type="submit"]');
-  await submitButton.click();
+  if (await passwordTab.isVisible()) {
+    // Passwordless-first variant (magic links / WebAuthn enabled)
+    await passwordTab.click();
+    await page.getByTestId('password-email-input').fill(signinEmail);
+    await page.getByTestId('password-input').fill(signinPassword);
+    await page.getByTestId('password-submit').click();
+  } else {
+    // Password-only variant (CI container default)
+    await page.getByTestId('signin-email-input').fill(signinEmail);
+    await page.getByTestId('signin-password-input').fill(signinPassword);
+    await page.getByTestId('signin-submit').click();
+  }
 
   // Wait for redirect to dashboard/account
   await page.waitForURL(/\/(account|dashboard|org)/, { timeout: 30000 });
@@ -73,13 +95,13 @@ async function loginUser(page: Page, email?: string, password?: string): Promise
 async function navigateToOrgTeam(page: Page, orgExtid?: string): Promise<string> {
   if (orgExtid) {
     await page.goto(`/org/${orgExtid}/team`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
     return orgExtid;
   }
 
   // Navigate to org list and find first org
   await page.goto('/orgs');
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   // Find the first organization link with team tab
   const orgLink = page.locator('a[href*="/org/"]').first();
@@ -88,7 +110,7 @@ async function navigateToOrgTeam(page: Page, orgExtid?: string): Promise<string>
   const extractedOrgExtid = match?.[1] || '';
 
   await page.goto(`/org/${extractedOrgExtid}/team`);
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
   return extractedOrgExtid;
 }
 
@@ -112,7 +134,7 @@ async function createInvitation(
   await roleSelect.selectOption(role);
 
   // Submit
-  const sendButton = page.getByRole('button', { name: /send invite/i });
+  const sendButton = page.getByRole('button', { name: /send invit/i });
   await sendButton.click();
 
   // Wait for success
@@ -133,7 +155,7 @@ function getCurrentOrgExtid(page: Page): string {
  */
 async function getInvitationToken(page: Page, email: string): Promise<string | null> {
   const orgExtid = getCurrentOrgExtid(page);
-  const response = await page.request.get(`/api/v2/org/${orgExtid}/invitations`);
+  const response = await page.request.get(`/api/organizations/${orgExtid}/invitations`);
   const data = await response.json();
 
   const invitation = data.records?.find((inv: { email: string }) => inv.email === email);
@@ -145,11 +167,11 @@ async function getInvitationToken(page: Page, email: string): Promise<string | n
 // -----------------------------------------------------------------------------
 
 test.describe('INV-001: New User Atomic Signup Flow', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
-  test('new user can signup and join organization atomically', async ({ page, context }) => {
-    // Setup: Login as org owner and create invitation for new email
-    await loginUser(page);
+  // fixme: needs a brand-new second account to accept the seeded invite (+ a
+  // mail interceptor for verification); CI provisions only the single owner
+  // account, so the accept-invitation UI never renders. See #3421.
+  test.fixme('new user can signup and join organization atomically', async ({ page, context }) => {
+    // Setup: create an invitation for a new email (storageState session is the org owner)
     const invitedEmail = generateTestEmail('new-user-signup');
     const testPassword = 'TestPassword123!';
 
@@ -163,7 +185,7 @@ test.describe('INV-001: New User Atomic Signup Flow', () => {
 
     // Navigate to invite page
     await page.goto(`/invite/${token}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Verify signup_required state is shown (account_exists: false)
     const signupState = page.getByTestId('invite-signup-required');
@@ -182,8 +204,8 @@ test.describe('INV-001: New User Atomic Signup Flow', () => {
       const signupForm = page.getByTestId('invite-signup-form');
       await expect(signupForm).toBeVisible();
 
-      // Email should be displayed (readonly from invitation)
-      await expect(page.getByText(invitedEmail)).toBeVisible();
+      // Email should be displayed (readonly input prefilled from invitation)
+      await expect(page.getByTestId('invite-signup-email-input')).toHaveValue(invitedEmail);
 
       // Fill password fields
       const passwordInput = signupForm.locator('input[type="password"]').first();
@@ -198,13 +220,20 @@ test.describe('INV-001: New User Atomic Signup Flow', () => {
         await termsCheckbox.check();
       }
 
-      // Submit form - "Create Account & Join" button
+      // Submit form - "Continue" button
       const submitButton = signupForm.locator('button[type="submit"]');
       await expect(submitButton).toBeEnabled();
       await submitButton.click();
 
-      // Verify success message and redirect
-      await expect(page.getByText(/accept_success|joined|welcome/i)).toBeVisible({
+      // Signup establishes the session but does NOT accept the invitation:
+      // the state machine recomputes to direct_accept and the user confirms
+      // the join with the explicit Accept button (AcceptInvite.onAuthSuccess).
+      const acceptButton = page.getByTestId('accept-invitation-btn');
+      await expect(acceptButton).toBeVisible({ timeout: 15000 });
+      await acceptButton.click();
+
+      // Verify the terminal accepted state ("Invitation accepted successfully")
+      await expect(page.getByTestId('invite-accepted')).toBeVisible({
         timeout: 15000,
       });
 
@@ -226,10 +255,11 @@ test.describe('INV-001: New User Atomic Signup Flow', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-002: New User Magic Link Flow', () => {
-  test.skip('new user can join via magic link', async () => {
-    // Lower priority - skip if magic link feature not enabled in test env
-    // Magic link requires email delivery infrastructure
-    test.skip(true, 'Magic link flow requires email infrastructure - not tested in basic suite');
+  // QUARANTINED (E2E remediation plan Phase 2.4 / PR 5, issue #3421): the magic
+  // link arrives by email, so this needs a mail interceptor the CI container
+  // does not run. Unimplemented placeholder -> test.fixme. See e2e/QUARANTINE.md.
+  test.fixme('new user can join via magic link', async () => {
+    // TODO(#3421): drive the magic-link join once a mail interceptor exists.
   });
 });
 
@@ -238,9 +268,11 @@ test.describe('INV-002: New User Magic Link Flow', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-003: New User SSO Flow', () => {
-  test.skip('new user can join via SSO', async () => {
-    // Requires SSO configuration in test environment
-    test.skip(true, 'SSO flow requires SSO provider configuration - not tested in basic suite');
+  // QUARANTINED (E2E remediation plan Phase 2.4 / PR 5, issue #3421): needs an
+  // SSO/IdP configured AND a captured invite email. Unimplemented placeholder
+  // -> test.fixme. See e2e/QUARANTINE.md.
+  test.fixme('new user can join via SSO', async () => {
+    // TODO(#3421): drive the SSO join once an IdP + mail interceptor exist.
   });
 });
 
@@ -253,8 +285,8 @@ test.describe('INV-004: Existing User Signin Flow', () => {
 
   test('existing user can signin and accept invitation', async ({ browser }) => {
     // Create two browser contexts - one for owner, one for invited user
-    const ownerContext = await browser.newContext();
-    const inviteeContext = await browser.newContext();
+    const ownerContext = await browser.newContext(unauthenticatedContext);
+    const inviteeContext = await browser.newContext(unauthenticatedContext);
 
     const ownerPage = await ownerContext.newPage();
     const inviteePage = await inviteeContext.newPage();
@@ -276,7 +308,7 @@ test.describe('INV-004: Existing User Signin Flow', () => {
 
       // Visit invitation as unauthenticated
       await inviteePage.goto(`/invite/${token}`);
-      await inviteePage.waitForLoadState('networkidle');
+      await expect(inviteePage.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Check which state we're in
       const signinState = inviteePage.getByTestId('invite-signin-required');
@@ -293,8 +325,10 @@ test.describe('INV-004: Existing User Signin Flow', () => {
         const signinForm = inviteePage.getByTestId('invite-signin-form');
         await expect(signinForm).toBeVisible();
 
-        // Email should be displayed (readonly from invitation)
-        await expect(inviteePage.getByText(invitedEmail)).toBeVisible();
+        // Email should be displayed (readonly input prefilled from invitation)
+        await expect(inviteePage.getByTestId('invite-signin-email-input')).toHaveValue(
+          invitedEmail
+        );
 
         // The form expects password for the invited email
         // Since this is a generated email, the account may not exist
@@ -321,9 +355,11 @@ test.describe('INV-004: Existing User Signin Flow', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-005: Existing User MFA Flow', () => {
-  test.skip('existing user with MFA completes invite flow', async () => {
-    // Requires MFA to be enabled for test user
-    test.skip(true, 'MFA flow requires MFA-enabled test account - not tested in basic suite');
+  // QUARANTINED (E2E remediation plan Phase 2.4 / PR 5, issue #3421): needs an
+  // MFA-enrolled invitee account (TEST_MFA_* — see e2e/support/env.ts).
+  // Unimplemented placeholder -> test.fixme. See e2e/QUARANTINE.md.
+  test.fixme('existing user with MFA completes invite flow', async () => {
+    // TODO(#3421): drive the MFA invite flow with a seeded MFA account.
   });
 });
 
@@ -336,8 +372,8 @@ test.describe('INV-006: Direct Accept Flow', () => {
 
   test('signed-in user with matching email can accept directly', async ({ browser }) => {
     // Create two contexts - owner creates invitation for test user email
-    const ownerContext = await browser.newContext();
-    const matchingUserContext = await browser.newContext();
+    const ownerContext = await browser.newContext(unauthenticatedContext);
+    const matchingUserContext = await browser.newContext(unauthenticatedContext);
 
     const ownerPage = await ownerContext.newPage();
     const matchingUserPage = await matchingUserContext.newPage();
@@ -372,7 +408,7 @@ test.describe('INV-006: Direct Accept Flow', () => {
 
       // Visit invitation page
       await matchingUserPage.goto(`/invite/${token}`);
-      await matchingUserPage.waitForLoadState('networkidle');
+      await expect(matchingUserPage.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Should show direct_accept state (authenticated with matching email)
       const directAcceptState = matchingUserPage.getByTestId('invite-direct-accept');
@@ -438,8 +474,8 @@ test.describe('INV-007: Wrong Email State', () => {
   test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
 
   test('signed-in user with wrong email sees continue-as prompt', async ({ browser }) => {
-    const ownerContext = await browser.newContext();
-    const wrongUserContext = await browser.newContext();
+    const ownerContext = await browser.newContext(unauthenticatedContext);
+    const wrongUserContext = await browser.newContext(unauthenticatedContext);
 
     const ownerPage = await ownerContext.newPage();
     const wrongUserPage = await wrongUserContext.newPage();
@@ -458,7 +494,7 @@ test.describe('INV-007: Wrong Email State', () => {
 
       // Visit invitation page
       await wrongUserPage.goto(`/invite/${token}`);
-      await wrongUserPage.waitForLoadState('networkidle');
+      await expect(wrongUserPage.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Should show wrong_email state
       const wrongEmailState = wrongUserPage.getByTestId('invite-wrong-email');
@@ -489,9 +525,9 @@ test.describe('INV-007: Wrong Email State', () => {
       await wrongUserPage.waitForURL(/\/invite\//, { timeout: 10000 });
 
       // Verify user is logged out
-      const response = await wrongUserPage.request.get('/api/v2/bootstrap/authenticated');
+      const response = await wrongUserPage.request.get('/bootstrap/me');
       const data = await response.json();
-      expect(data.authenticated || data.record?.authenticated).toBeFalsy();
+      expect(data.authenticated).toBeFalsy();
     } finally {
       await ownerContext.close();
       await wrongUserContext.close();
@@ -504,16 +540,12 @@ test.describe('INV-007: Wrong Email State', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-008: Already Member State', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('already member shows info message', async ({ page }) => {
-    // Login as org owner (who is already a member of their org)
-    await loginUser(page);
-
+    // The storageState session is the org owner (already a member of their org)
     // Get owner's email
-    const bootstrapResponse = await page.request.get('/api/v2/bootstrap/authenticated');
+    const bootstrapResponse = await page.request.get('/bootstrap/me');
     const bootstrapData = await bootstrapResponse.json();
-    const ownerEmail = bootstrapData.record?.email;
+    const ownerEmail = bootstrapData.email;
     expect(ownerEmail).toBeTruthy();
 
     // Navigate to org team and try to create invitation for self
@@ -526,11 +558,13 @@ test.describe('INV-008: Already Member State', () => {
     const emailInput = page.locator('#invite-email');
     await emailInput.fill(ownerEmail);
 
-    const sendButton = page.getByRole('button', { name: /send invite/i });
+    const sendButton = page.getByRole('button', { name: /send invit/i });
     await sendButton.click();
 
-    // Should show error about already being a member
-    await expect(page.getByText(/already|member|exists/i)).toBeVisible({ timeout: 10000 });
+    // Should show error about already being a member. Keep the pattern
+    // specific: bare /member/i matches the team page chrome (Invite Member
+    // button, Members heading) and trips strict mode.
+    await expect(page.getByText(/already a member/i)).toBeVisible({ timeout: 10000 });
   });
 });
 
@@ -544,7 +578,7 @@ test.describe('INV-009: Expired Invitation State', () => {
     const fakeToken = 'expired-fake-token-' + Date.now();
 
     await page.goto(`/invite/${fakeToken}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Should show invalid state (expired/revoked/not found)
     const invalidState = page.getByTestId('invite-invalid');
@@ -571,7 +605,7 @@ test.describe('INV-010: Invalid Token State', () => {
     const invalidToken = 'invalid-token-format-12345-' + Date.now();
 
     await page.goto(`/invite/${invalidToken}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Should show invalid state
     const invalidState = page.getByTestId('invite-invalid');
@@ -585,11 +619,8 @@ test.describe('INV-010: Invalid Token State', () => {
     await expect(invitationDetails).not.toBeVisible();
   });
 
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('revoked invitation link becomes invalid', async ({ page, context }) => {
-    // Login and create an invitation
-    await loginUser(page);
+    // Create an invitation (storageState session is the org owner)
     const testEmail = generateTestEmail('revoke-test');
     await navigateToOrgTeam(page);
     await createInvitation(page, testEmail);
@@ -599,7 +630,7 @@ test.describe('INV-010: Invalid Token State', () => {
     expect(token).toBeTruthy();
 
     // Find and click revoke button
-    const invitationRow = page.locator('.rounded-md').filter({ hasText: testEmail });
+    const invitationRow = page.getByTestId('org-invitation-row').filter({ hasText: testEmail });
     const revokeButton = invitationRow.getByRole('button', { name: /revoke/i });
 
     await expect(revokeButton).toBeVisible();
@@ -611,7 +642,7 @@ test.describe('INV-010: Invalid Token State', () => {
     // Clear cookies and try to use the revoked invitation
     await context.clearCookies();
     await page.goto(`/invite/${token}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Should show invalid state
     const invalidState = page.getByTestId('invite-invalid');
@@ -624,11 +655,8 @@ test.describe('INV-010: Invalid Token State', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Invite Flow State Transitions', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('loading state shows spinner during fetch', async ({ page, context }) => {
     // Create invitation first
-    await loginUser(page);
     const testEmail = generateTestEmail('loading-test');
     await navigateToOrgTeam(page);
     await createInvitation(page, testEmail);
@@ -644,7 +672,7 @@ test.describe('Invite Flow State Transitions', () => {
 
     // The loading state may be too fast to catch in most cases
     // Just verify we eventually reach a valid state
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // One of the valid states should be visible
     const signupState = page.getByTestId('invite-signup-required');
@@ -661,7 +689,6 @@ test.describe('Invite Flow State Transitions', () => {
 
   test('invitation context displays organization info', async ({ page, context }) => {
     // Create invitation
-    await loginUser(page);
     const testEmail = generateTestEmail('context-test');
     await navigateToOrgTeam(page);
     await createInvitation(page, testEmail);
@@ -671,14 +698,15 @@ test.describe('Invite Flow State Transitions', () => {
     // Clear cookies and visit invitation
     await context.clearCookies();
     await page.goto(`/invite/${token}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Invitation context should show:
-    // - Invited email
-    await expect(page.getByText(testEmail)).toBeVisible();
+    // - Invited email (readonly input prefilled from the invitation; the
+    //   email is not rendered as page text in the signup_required state)
+    await expect(page.getByTestId('invite-signup-email-input')).toHaveValue(testEmail);
 
     // - Role (member/admin)
-    await expect(page.getByText(/member|admin/i)).toBeVisible();
+    await expect(page.getByText(/member|admin/i).first()).toBeVisible();
 
     // - Organization name (varies by test environment)
     const invitationContext = page.getByTestId('invitation-context');

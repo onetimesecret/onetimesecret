@@ -235,10 +235,11 @@ describe('DefaultLogo', () => {
       expect(container.exists()).toBe(true);
     });
 
-    it('falls back to i18n aria-label when no prop', () => {
+    it('falls back to neutral brand aria-label when no prop', () => {
       wrapper = mountComponent({});
 
-      const container = wrapper.find('[aria-label="web.homepage.one_time_secret_literal"]');
+      // Falls back to NEUTRAL_BRAND_DEFAULTS.product_name ("My App")
+      const container = wrapper.find('[aria-label="My App"]');
       expect(container.exists()).toBe(true);
     });
 

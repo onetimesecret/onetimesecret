@@ -216,7 +216,8 @@
     "content_hash": "f03a4985"
   },
   "web.billing.overview.entitlements.manage_orgs": {
-    "text": "Manage Organizations"
+    "text": "Manage Organizations",
+    "content_hash": "be0fe4c3"
   },
   "web.billing.overview.entitlements.manage_teams": {
     "text": "Manage Teams",
@@ -235,10 +236,12 @@
     "content_hash": "5428d7fe"
   },
   "web.billing.overview.entitlements.manage_billing": {
-    "text": "Manage Billing"
+    "text": "Manage Billing",
+    "content_hash": "6d3a16f5"
   },
   "web.billing.overview.entitlements.custom_signup_validation": {
-    "text": "Custom Signup Validation"
+    "text": "Custom Signup Validation",
+    "content_hash": "0ff55bfa"
   },
   "web.billing.overview.entitlements.sso": {
     "text": "Single Sign-On",
@@ -297,13 +300,16 @@
     "content_hash": "b38b89db"
   },
   "web.billing.features.manage_orgs": {
-    "text": "Organization Management"
+    "text": "Organization Management",
+    "content_hash": "780ad17c"
   },
   "web.billing.features.flexible_from_domain": {
-    "text": "Flexible Email Sender Domain"
+    "text": "Flexible Email Sender Domain",
+    "content_hash": "607572c3"
   },
   "web.billing.features.unlimited_admins": {
-    "text": "Unlimited Administrators"
+    "text": "Unlimited Administrators",
+    "content_hash": "5871a536"
   },
   "web.billing.features.audit_logs": {
     "text": "Audit Logs",

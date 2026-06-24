@@ -6,12 +6,15 @@
   import CriticalSprites from '@/shared/components/icons/sprites/CriticalSprites.vue';
   import { NotificationHost } from '@/shared/components/ui/notifications';
   import QuietLayout from '@/shared/layouts/MinimalLayout.vue';
+  import { useBrandTheme } from '@/shared/composables/useBrandTheme';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { computed, ref, onMounted, watchEffect, type Component, markRaw } from 'vue';
   import { useRoute } from 'vue-router';
 
   const { locale } = useI18n();
   const route = useRoute();
+
+  useBrandTheme();
 
   // Cross-layout safety net merged before route.meta.layoutProps. Each
   // layout should own true defaults for every boolean prop it consumes

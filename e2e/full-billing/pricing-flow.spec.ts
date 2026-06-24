@@ -22,6 +22,14 @@
 
 import { test, expect, Page } from '@playwright/test';
 
+// The `full-billing` project starts every test authenticated as TEST_USER_*
+// via storageState (e2e/playwright.config.ts), but this file tests the
+// *public* pricing page as an anonymous visitor (plan CTAs link to /signup,
+// and the navigation test asserts the "Sign in" link reaches /signin - a
+// route authenticated visitors are redirected away from). Opt out of the
+// shared session.
+test.use({ storageState: { cookies: [], origins: [] } });
+
 /**
  * Wait for the pricing page to fully load with plans
  */
@@ -536,7 +544,7 @@ test.describe('Error States', () => {
     });
 
     await page.goto('/pricing');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Should show "no plans available" message
     const noPlansMessage = page.locator('text=/no.*plans available/i');

@@ -21,19 +21,57 @@ import {
 } from '@/schemas/api/account/responses/colonel';
 import { z } from 'zod';
 
-export const colonelInfoResponseSchema = createApiResponseSchema(z.object({}), colonelInfoDetailsSchema);
-export const colonelStatsResponseSchema = createApiResponseSchema(z.object({}), colonelStatsDetailsSchema);
-export const colonelUsersResponseSchema = createApiResponseSchema(z.object({}), colonelUsersDetailsSchema);
-export const colonelSecretsResponseSchema = createApiResponseSchema(z.object({}), colonelSecretsDetailsSchema);
-export const colonelCustomDomainsResponseSchema = createApiResponseSchema(z.object({}), colonelCustomDomainsDetailsSchema);
-export const colonelOrganizationsResponseSchema = createApiResponseSchema(z.object({}), colonelOrganizationsDetailsSchema);
-export const investigateOrganizationResponseSchema = createApiResponseSchema(investigateOrganizationResultSchema);
-export const databaseMetricsResponseSchema = createApiResponseSchema(z.object({}), databaseMetricsDetailsSchema);
-export const redisMetricsResponseSchema = createApiResponseSchema(z.object({}), redisMetricsDetailsSchema);
-export const bannedIPsResponseSchema = createApiResponseSchema(z.object({}), bannedIPsDetailsSchema);
-export const usageExportResponseSchema = createApiResponseSchema(z.object({}), usageExportDetailsSchema);
-export const queueMetricsResponseSchema = createApiResponseSchema(z.object({}), queueMetricsDetailsSchema);
-export const systemSettingsResponseSchema = createApiResponseSchema(z.object({}), systemSettingsDetailsSchema);
+export const colonelInfoResponseSchema = createApiResponseSchema(
+  z.object({}),
+  colonelInfoDetailsSchema
+);
+export const colonelStatsResponseSchema = createApiResponseSchema(
+  z.object({}),
+  colonelStatsDetailsSchema
+);
+export const colonelUsersResponseSchema = createApiResponseSchema(
+  z.object({}),
+  colonelUsersDetailsSchema
+);
+export const colonelSecretsResponseSchema = createApiResponseSchema(
+  z.object({}),
+  colonelSecretsDetailsSchema
+);
+export const colonelCustomDomainsResponseSchema = createApiResponseSchema(
+  z.object({}),
+  colonelCustomDomainsDetailsSchema
+);
+export const colonelOrganizationsResponseSchema = createApiResponseSchema(
+  z.object({}),
+  colonelOrganizationsDetailsSchema
+);
+export const investigateOrganizationResponseSchema = createApiResponseSchema(
+  investigateOrganizationResultSchema
+);
+export const databaseMetricsResponseSchema = createApiResponseSchema(
+  z.object({}),
+  databaseMetricsDetailsSchema
+);
+export const redisMetricsResponseSchema = createApiResponseSchema(
+  z.object({}),
+  redisMetricsDetailsSchema
+);
+export const bannedIPsResponseSchema = createApiResponseSchema(
+  z.object({}),
+  bannedIPsDetailsSchema
+);
+export const usageExportResponseSchema = createApiResponseSchema(
+  z.object({}),
+  usageExportDetailsSchema
+);
+export const queueMetricsResponseSchema = createApiResponseSchema(
+  z.object({}),
+  queueMetricsDetailsSchema
+);
+export const systemSettingsResponseSchema = createApiResponseSchema(
+  z.object({}),
+  systemSettingsDetailsSchema
+);
 
 export type ColonelInfoResponse = z.infer<typeof colonelInfoResponseSchema>;
 export type ColonelStatsResponse = z.infer<typeof colonelStatsResponseSchema>;

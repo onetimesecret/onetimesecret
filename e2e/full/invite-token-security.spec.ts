@@ -22,7 +22,8 @@
  * - SEC-INV-005: Email-mismatched invite_token does NOT auto-login
  *
  * Prerequisites:
- * - Set TEST_USER_EMAIL, TEST_USER_PASSWORD environment variables for org owner
+ * - Authenticated as the org owner via the project storageState
+ *   (e2e/global.setup.ts consumes TEST_USER_*)
  * - Application running locally or PLAYWRIGHT_BASE_URL set
  *
  * Usage:
@@ -31,9 +32,6 @@
  */
 
 import { expect, Page, test } from '@playwright/test';
-
-// Check if test credentials are configured
-const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD);
 
 // Generate unique email addresses for test isolation
 const generateTestEmail = (prefix: string) =>
@@ -44,46 +42,18 @@ const generateTestEmail = (prefix: string) =>
 // -----------------------------------------------------------------------------
 
 /**
- * Authenticate user via login form using password tab
- */
-async function loginUser(page: Page, email?: string, password?: string): Promise<void> {
-  await page.goto('/signin');
-
-  // Click Password tab - Magic Link is the default, password input is hidden
-  const passwordTab = page.getByRole('tab', { name: /password/i });
-  await passwordTab.waitFor({ state: 'visible', timeout: 5000 });
-  await passwordTab.click();
-
-  // Wait for password input to be visible after tab switch
-  const passwordInput = page.locator('input[type="password"]');
-  await passwordInput.waitFor({ state: 'visible', timeout: 5000 });
-
-  // Fill the form
-  const emailInput = page.locator('#signin-email-password');
-  await emailInput.fill(email || process.env.TEST_USER_EMAIL || '');
-  await passwordInput.fill(password || process.env.TEST_USER_PASSWORD || '');
-
-  // Submit
-  const submitButton = page.locator('button[type="submit"]');
-  await submitButton.click();
-
-  // Wait for redirect to dashboard/account
-  await page.waitForURL(/\/(account|dashboard|org)/, { timeout: 30000 });
-}
-
-/**
  * Navigate to organization team settings page
  */
 async function navigateToOrgTeam(page: Page, orgExtid?: string): Promise<string> {
   if (orgExtid) {
     await page.goto(`/org/${orgExtid}/team`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
     return orgExtid;
   }
 
   // Navigate to org list and find first org
   await page.goto('/orgs');
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   // Find the first organization link with team tab
   const orgLink = page.locator('a[href*="/org/"]').first();
@@ -92,7 +62,7 @@ async function navigateToOrgTeam(page: Page, orgExtid?: string): Promise<string>
   const extractedOrgExtid = match?.[1] || '';
 
   await page.goto(`/org/${extractedOrgExtid}/team`);
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
   return extractedOrgExtid;
 }
 
@@ -116,7 +86,7 @@ async function createInvitation(
   await roleSelect.selectOption(role);
 
   // Submit
-  const sendButton = page.getByRole('button', { name: /send invite/i });
+  const sendButton = page.getByRole('button', { name: /send invit/i });
   await sendButton.click();
 
   // Wait for success
@@ -137,7 +107,7 @@ function getCurrentOrgExtid(page: Page): string {
  */
 async function getInvitationToken(page: Page, email: string): Promise<string | null> {
   const orgExtid = getCurrentOrgExtid(page);
-  const response = await page.request.get(`/api/v2/org/${orgExtid}/invitations`);
+  const response = await page.request.get(`/api/organizations/${orgExtid}/invitations`);
   const data = await response.json();
 
   const invitation = data.records?.find((inv: { email: string }) => inv.email === email);
@@ -194,6 +164,10 @@ async function createAccountViaAPI(
 
 test.describe('SEC-INV-001: Garbage invite_token does NOT auto-login', () => {
   test('signup with garbage invite_token leaves user unauthenticated', async ({ page }) => {
+    // The full project starts authenticated via storageState; this scenario
+    // asserts an *unauthenticated* outcome, so drop that session first.
+    await page.context().clearCookies();
+
     const testEmail = generateTestEmail('garbage-token');
     const testPassword = 'TestPassword123!';
     const garbageToken = 'nonexistent_garbage_token_' + Date.now();
@@ -213,11 +187,11 @@ test.describe('SEC-INV-001: Garbage invite_token does NOT auto-login', () => {
     // Regardless of whether account creation succeeded (200) or was rejected
     // (e.g., CSRF issue, validation error), the critical assertion is that
     // the garbage invite_token did NOT grant an authenticated session.
-    const authResponse = await page.request.get('/api/v2/bootstrap/authenticated');
+    const authResponse = await page.request.get('/bootstrap/me');
     const authData = await authResponse.json();
 
     // SECURITY ASSERTION: garbage token must NOT grant authenticated session
-    expect(authData.authenticated || authData.record?.authenticated).toBeFalsy();
+    expect(authData.authenticated).toBeFalsy();
   });
 });
 
@@ -229,6 +203,10 @@ test.describe('SEC-INV-002: Garbage invite_token does NOT suppress verification'
   test('signup with garbage invite_token results in unverified account state', async ({
     page,
   }) => {
+    // The full project starts authenticated via storageState; this scenario
+    // asserts an *unauthenticated* outcome, so drop that session first.
+    await page.context().clearCookies();
+
     const testEmail = generateTestEmail('verify-not-suppressed');
     const testPassword = 'TestPassword123!';
     const garbageToken = 'fake_token_should_not_suppress_' + Date.now();
@@ -249,9 +227,9 @@ test.describe('SEC-INV-002: Garbage invite_token does NOT suppress verification'
 
     // Whether the POST succeeded (200) or was rejected by middleware (403),
     // the user must NOT be authenticated.
-    const authResponse = await page.request.get('/api/v2/bootstrap/authenticated');
+    const authResponse = await page.request.get('/bootstrap/me');
     const authData = await authResponse.json();
-    expect(authData.authenticated || authData.record?.authenticated).toBeFalsy();
+    expect(authData.authenticated).toBeFalsy();
 
     if (status === 200) {
       // Account was created. Now verify the account is NOT auto-verified
@@ -292,14 +270,14 @@ test.describe('SEC-INV-002: Garbage invite_token does NOT suppress verification'
 // -----------------------------------------------------------------------------
 
 test.describe('SEC-INV-003: Valid invite_token auto-login works', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
-  test('signup with valid invite_token auto-logs-in and auto-verifies the user', async ({
+  // fixme: needs a seeded invite_token consumed by a fresh signup; CI has no
+  // second account / mail interceptor, so the invite-direct-accept UI never
+  // renders. See #3421.
+  test.fixme('signup with valid invite_token auto-logs-in and auto-verifies the user', async ({
     page,
     context,
   }) => {
-    // Step 1: Login as org owner and create a valid invitation
-    await loginUser(page);
+    // Step 1: create a valid invitation (storageState session is the org owner)
     const invitedEmail = generateTestEmail('valid-token-autologin');
     const testPassword = 'TestPassword123!';
 
@@ -312,7 +290,7 @@ test.describe('SEC-INV-003: Valid invite_token auto-login works', () => {
     await context.clearCookies();
 
     await page.goto(`/invite/${token}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Step 3: Complete signup via the inline form
     const signupState = page.getByTestId('invite-signup-required');
@@ -342,20 +320,22 @@ test.describe('SEC-INV-003: Valid invite_token auto-login works', () => {
         await termsCheckbox.check();
       }
 
-      // Submit - "Create Account & Join" or similar
+      // Submit - "Continue" button
       const submitButton = signupForm.locator('button[type="submit"]');
       await expect(submitButton).toBeEnabled();
       await submitButton.click();
 
-      // Wait for success - should redirect (autologin fires with valid token)
-      await expect(
-        page.getByText(/accept_success|joined|welcome|success/i)
-      ).toBeVisible({ timeout: 15000 });
+      // Signup with a valid token establishes a session (autologin) and the
+      // page recomputes to the direct_accept confirmation state - the
+      // invitation itself stays pending until the explicit Accept click.
+      await expect(page.getByTestId('invite-direct-accept')).toBeVisible({
+        timeout: 15000,
+      });
 
       // Verify user IS authenticated (autologin worked)
-      const authResponse = await page.request.get('/api/v2/bootstrap/authenticated');
+      const authResponse = await page.request.get('/bootstrap/me');
       const authData = await authResponse.json();
-      expect(authData.authenticated || authData.record?.authenticated).toBeTruthy();
+      expect(authData.authenticated).toBeTruthy();
     } else if (isSigninRequired) {
       // Account already exists for this generated email - unusual but possible
       test.info().annotations.push({
@@ -374,6 +354,10 @@ test.describe('SEC-INV-004: Direct API attack with garbage invite_token', () => 
   test('POST to /auth/create-account with garbage invite_token does not grant a session', async ({
     page,
   }) => {
+    // The full project starts authenticated via storageState; this scenario
+    // simulates an *anonymous* attacker, so drop that session first.
+    await page.context().clearCookies();
+
     const testEmail = generateTestEmail('api-attack');
     const testPassword = 'TestPassword123!';
 
@@ -403,11 +387,11 @@ test.describe('SEC-INV-004: Direct API attack with garbage invite_token', () => 
       // but the critical check: was a session cookie set? (autologin)
 
       // Check if we got auto-logged-in (we should NOT be)
-      const authResponse = await page.request.get('/api/v2/bootstrap/authenticated');
+      const authResponse = await page.request.get('/bootstrap/me');
       const authData = await authResponse.json();
 
       // SECURITY ASSERTION: garbage token must NOT grant authenticated session
-      expect(authData.authenticated || authData.record?.authenticated).toBeFalsy();
+      expect(authData.authenticated).toBeFalsy();
 
       // Also verify: if we try to access protected resources, we're denied
       const protectedResponse = await page.request.get('/api/v2/account', {
@@ -422,6 +406,9 @@ test.describe('SEC-INV-004: Direct API attack with garbage invite_token', () => 
   test('POST to /auth/create-account with empty invite_token behaves normally', async ({
     page,
   }) => {
+    // Anonymous-visitor scenario: drop the storageState session first.
+    await page.context().clearCookies();
+
     const testEmail = generateTestEmail('empty-token');
     const testPassword = 'TestPassword123!';
 
@@ -444,15 +431,18 @@ test.describe('SEC-INV-004: Direct API attack with garbage invite_token', () => 
 
     if (response.status() === 200) {
       // No autologin should happen with empty token
-      const authResponse = await page.request.get('/api/v2/bootstrap/authenticated');
+      const authResponse = await page.request.get('/bootstrap/me');
       const authData = await authResponse.json();
-      expect(authData.authenticated || authData.record?.authenticated).toBeFalsy();
+      expect(authData.authenticated).toBeFalsy();
     }
   });
 
   test('POST to /auth/create-account with UUID-shaped fake token does not grant a session', async ({
     page,
   }) => {
+    // Anonymous-visitor scenario: drop the storageState session first.
+    await page.context().clearCookies();
+
     const testEmail = generateTestEmail('uuid-fake-token');
     const testPassword = 'TestPassword123!';
 
@@ -477,9 +467,9 @@ test.describe('SEC-INV-004: Direct API attack with garbage invite_token', () => 
     });
 
     if (response.status() === 200) {
-      const authResponse = await page.request.get('/api/v2/bootstrap/authenticated');
+      const authResponse = await page.request.get('/bootstrap/me');
       const authData = await authResponse.json();
-      expect(authData.authenticated || authData.record?.authenticated).toBeFalsy();
+      expect(authData.authenticated).toBeFalsy();
     }
   });
 });
@@ -492,10 +482,14 @@ test.describe('SEC-INV-005: Invite page with garbage token', () => {
   test('visiting /invite/garbage-token shows invalid state with no auth forms', async ({
     page,
   }) => {
+    // The final assertion checks an anonymous visitor stays unauthenticated,
+    // so drop the storageState session first.
+    await page.context().clearCookies();
+
     const garbageToken = 'garbage_security_test_' + Date.now();
 
     await page.goto(`/invite/${garbageToken}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Should show the invalid state
     const invalidState = page.getByTestId('invite-invalid');
@@ -517,9 +511,9 @@ test.describe('SEC-INV-005: Invite page with garbage token', () => {
     await expect(declineButton).not.toBeVisible();
 
     // User should NOT be authenticated
-    const authResponse = await page.request.get('/api/v2/bootstrap/authenticated');
+    const authResponse = await page.request.get('/bootstrap/me');
     const authData = await authResponse.json();
-    expect(authData.authenticated || authData.record?.authenticated).toBeFalsy();
+    expect(authData.authenticated).toBeFalsy();
   });
 });
 

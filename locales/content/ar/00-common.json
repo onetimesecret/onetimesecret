@@ -108,7 +108,7 @@
     "text": "إنشاء حساب",
     "source_hash": "0dffe234"
   },
-  "web.COMMON.header_about": {
+  "web.COMMON.about": {
     "text": "حول",
     "source_hash": "4efca0d1"
   },
@@ -439,10 +439,6 @@
   "web.COMMON.example_placeholder": {
     "text": "مثال: {example}",
     "source_hash": "cc921aaa"
-  },
-  "web.COMMON.about": {
-    "text": "حول",
-    "source_hash": "d833339d"
   },
   "web.COMMON.status": {
     "text": "الحالة",
@@ -1303,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "تحقق دائماً من أنك على موقع Onetime Secret الرسمي. يقوم المحتالون أحياناً بإنشاء مواقع مزيفة تبدو تماماً مثل Onetime Secret لسرقة أسرارك. لتجنب هجمات التصيد الاحتيالي، تحقق من نطاق المنطقة قبل إنشاء روابط جديدة.",
+    "text": "تحقق دائماً من أنك على موقع {product_name} الرسمي. يقوم المحتالون أحياناً بإنشاء مواقع مزيفة تبدو تماماً مثل {product_name} لسرقة أسرارك. لتجنب هجمات التصيد الاحتيالي، تحقق من نطاق المنطقة قبل إنشاء روابط جديدة.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {

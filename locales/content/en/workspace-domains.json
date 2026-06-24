@@ -507,6 +507,9 @@
     "text": "Connection test failed",
     "content_hash": "a45a37dd"
   },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "To require SSO for all sign-ins on this domain, configure it in the domain's sign-in settings. SSO-only mode restricts the login page to the SSO provider configured here."
+  },
   "web.domains.sso.configure_sso": {
     "text": "Configure SSO",
     "content_hash": "80d3a144"
@@ -514,6 +517,15 @@
   "web.domains.sso.not_configured_notice": {
     "text": "SSO is not yet configured for this domain. Enable single sign-on to allow team members to authenticate using your organization's identity provider.",
     "content_hash": "c439214b"
+  },
+  "web.domains.sso.edit_credentials": {
+    "text": "Edit credentials"
+  },
+  "web.domains.sso.configure_button": {
+    "text": "Configure"
+  },
+  "web.domains.sso.upgrade_required": {
+    "text": "Upgrade to configure"
   },
   "web.domains.signup.title": {
     "text": "Signup Validation",
@@ -721,11 +733,11 @@
   },
   "web.domains.email.dns_optional_label": {
     "text": "Recommended",
-    "content_hash": "a1b2c3d4"
+    "content_hash": "d70604e8"
   },
   "web.domains.email.dns_optional_hint": {
     "text": "This record is recommended but not required for verification. A DMARC policy at your organizational domain may already cover this subdomain.",
-    "content_hash": "e5f6a7b8"
+    "content_hash": "58e1a12b"
   },
   "web.domains.email.copy": {
     "text": "Copy",
@@ -884,10 +896,12 @@
     "content_hash": "452ab4fe"
   },
   "web.domains.incoming.feature_disabled": {
-    "text": "Incoming Secrets Unavailable"
+    "text": "Incoming Secrets Unavailable",
+    "content_hash": "0f96c5ec"
   },
   "web.domains.incoming.feature_disabled_description": {
-    "text": "Incoming secrets is not enabled on this instance. Contact your administrator."
+    "text": "Incoming secrets is not enabled on this instance. Contact your administrator.",
+    "content_hash": "dce981e0"
   },
   "web.domains.incoming.access_denied": {
     "text": "Access Denied",
@@ -1100,6 +1114,180 @@
   "web.domains.detail.signup_description": {
     "text": "Per-domain signup validation strategy",
     "content_hash": "3c5a511f"
+  },
+  "web.domains.detail.signin_description": {
+    "text": "Per-domain sign-in method configuration"
+  },
+  "web.domains.signin.title": {
+    "text": "Sign-In Configuration"
+  },
+  "web.domains.signin.configure_signin": {
+    "text": "Configure Sign-In"
+  },
+  "web.domains.signin.config_description": {
+    "text": "Configure sign-in authentication methods for this domain"
+  },
+  "web.domains.signin.access_denied": {
+    "text": "Access Denied"
+  },
+  "web.domains.signin.upgrade_to_configure": {
+    "text": "Upgrade your plan to configure sign-in methods for this domain."
+  },
+  "web.domains.signin.not_configured_notice": {
+    "text": "Sign-in configuration is not yet set for this domain. Configure overrides to control which authentication methods are available on this domain's sign-in page."
+  },
+  "web.domains.signin.signin_enabled_label": {
+    "text": "Sign-in enabled"
+  },
+  "web.domains.signin.header_toggle_label": {
+    "text": "Sign-in"
+  },
+  "web.domains.signin.signin_enabled_hint": {
+    "text": "Whether users can sign in on this domain"
+  },
+  "web.domains.signin.restrict_to_label": {
+    "text": "Restrict sign-in method"
+  },
+  "web.domains.signin.restrict_to_hint": {
+    "text": "Restrict this domain to a single authentication method. When set, only the chosen method is shown on the sign-in page."
+  },
+  "web.domains.signin.all_methods": {
+    "text": "All methods"
+  },
+  "web.domains.signin.all_methods_description": {
+    "text": "Show all enabled authentication methods on the sign-in page"
+  },
+  "web.domains.signin.method_password": {
+    "text": "Password"
+  },
+  "web.domains.signin.method_email_auth": {
+    "text": "Email authentication"
+  },
+  "web.domains.signin.method_webauthn": {
+    "text": "WebAuthn / Passkeys"
+  },
+  "web.domains.signin.method_sso": {
+    "text": "Single Sign-On"
+  },
+  "web.domains.signin.method_overrides_label": {
+    "text": "Method overrides"
+  },
+  "web.domains.signin.method_overrides_hint": {
+    "text": "Enable or disable individual authentication methods for this domain"
+  },
+  "web.domains.signin.mode_question": {
+    "text": "How can users sign in?"
+  },
+  "web.domains.signin.mode_any": {
+    "text": "Any available method"
+  },
+  "web.domains.signin.mode_any_hint": {
+    "text": "Show every method available on this domain. Narrow individual methods below."
+  },
+  "web.domains.signin.mode_one": {
+    "text": "One specific method"
+  },
+  "web.domains.signin.mode_one_hint": {
+    "text": "Restrict the sign-in page to a single method. Only methods available on this domain are listed."
+  },
+  "web.domains.signin.mode_disabled": {
+    "text": "Sign-in disabled"
+  },
+  "web.domains.signin.mode_disabled_hint": {
+    "text": "Users cannot sign in on this domain."
+  },
+  "web.domains.signin.mode_disabled_notice": {
+    "text": "Visitors to this domain's sign-in page see a notice that sign-in is not available, with a link back to the homepage. Your previous method settings are kept and restored when you re-enable sign-in."
+  },
+  "web.domains.signin.methods_list_label": {
+    "text": "Methods shown on the sign-in page"
+  },
+  "web.domains.signin.restrict_picker_hint": {
+    "text": "Only methods available on this domain are listed."
+  },
+  "web.domains.signin.availability_always": {
+    "text": "Always available"
+  },
+  "web.domains.signin.availability_global_on": {
+    "text": "Follows global policy · On"
+  },
+  "web.domains.signin.availability_global_off": {
+    "text": "Not available"
+  },
+  "web.domains.signin.availability_unavailable": {
+    "text": "Unavailable site-wide"
+  },
+  "web.domains.signin.allow_on_domain": {
+    "text": "Allow on this domain"
+  },
+  "web.domains.signin.method_password_blurb": {
+    "text": "Password only"
+  },
+  "web.domains.signin.method_email_auth_blurb": {
+    "text": "Passwordless magic-link sign-in"
+  },
+  "web.domains.signin.method_webauthn_blurb": {
+    "text": "Biometrics and security keys"
+  },
+  "web.domains.signin.method_sso_blurb": {
+    "text": "External identity provider"
+  },
+  "web.domains.signin.email_auth_label": {
+    "text": "Email authentication"
+  },
+  "web.domains.signin.email_auth_hint": {
+    "text": "Allow passwordless email authentication on this domain"
+  },
+  "web.domains.signin.sso_enabled_label": {
+    "text": "Single Sign-On"
+  },
+  "web.domains.signin.sso_enabled_hint": {
+    "text": "Allow SSO authentication on this domain"
+  },
+  "web.domains.signin.enabled_label": {
+    "text": "Enable sign-in configuration"
+  },
+  "web.domains.signin.enabled_hint": {
+    "text": "When enabled, this domain uses the sign-in settings configured above"
+  },
+  "web.domains.signin.save_config": {
+    "text": "Save configuration"
+  },
+  "web.domains.signin.update_success": {
+    "text": "Sign-in configuration updated successfully"
+  },
+  "web.domains.signin.reset_to_defaults": {
+    "text": "Reset to defaults"
+  },
+  "web.domains.signin.reset_confirm": {
+    "text": "Reset sign-in to the global defaults?"
+  },
+  "web.domains.signin.reset_keeps_sso": {
+    "text": "Your SSO credentials are kept. Remove them separately on the SSO configuration screen."
+  },
+  "web.domains.signin.reset_action": {
+    "text": "Yes, reset"
+  },
+  "web.domains.signin.reset_success": {
+    "text": "Sign-in settings reset to the global defaults"
+  },
+  "web.domains.signup.domain_overrides_label": {
+    "text": "Domain overrides"
+  },
+  "web.domains.signup.domain_overrides_hint": {
+    "text": "Override global signup settings for this domain"
+  },
+  "web.domains.signup.signup_enabled_label": {
+    "text": "Signup enabled"
+  },
+  "web.domains.signup.signup_enabled_hint": {
+    "text": "Override whether signup is enabled for this domain"
+  },
+  "web.domains.signup.autoverify_label": {
+    "text": "Auto-verify accounts"
+  },
+  "web.domains.signup.autoverify_hint": {
+    "text": "Override whether new accounts are automatically verified on this domain"
   },
   "web.domains.entitlement_required_owner": {
     "text": "This feature requires a plan upgrade.",

@@ -6,7 +6,9 @@ import { createTestingPinia } from '@pinia/testing';
 import MastHead from '@/shared/components/layout/MastHead.vue';
 import { nextTick } from 'vue';
 import { useAuthStore } from '@/shared/stores/authStore';
+import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
 import { createTestI18n } from '@tests/setup';
+import { createI18n } from 'vue-i18n';
 
 // Mock DefaultLogo component
 vi.mock('@/shared/components/logos/DefaultLogo.vue', () => ({
@@ -892,6 +894,130 @@ describe('MastHead', () => {
 
       const logoLink = wrapper.find('a[aria-label]');
       expect(logoLink.exists()).toBe(true);
+    });
+  });
+
+  describe('brand_product_name interpolation', () => {
+    /**
+     * These tests exercise the `t('...', { product_name })` interpolation
+     * path in getLogoAlt (line 51 of MastHead.vue).
+     *
+     * Key setup requirements:
+     *   1. Own i18n instance with `{product_name}` placeholders — the
+     *      module-level i18n uses static strings so interpolation is ignored.
+     *   2. branding.logo.alt and branding.site_name cleared — otherwise the
+     *      `||` chain in getLogoAlt/getSiteName short-circuits before t().
+     *   3. Non-.vue logo URL — so the <img :alt> branch renders (the
+     *      DefaultLogo mock doesn't expose alt).
+     */
+    const brandI18n = createI18n({
+      legacy: false,
+      locale: 'en',
+      messages: {
+        en: {
+          web: {
+            homepage: {
+              one_time_secret_literal: '{product_name}',
+              signup_individual_and_business_plans: 'Sign up',
+              log_in_to_onetime_secret: 'Log in',
+            },
+            layout: {
+              main_navigation: 'Main Navigation',
+            },
+            COMMON: {
+              header_create_account: 'Create Account',
+              header_sign_in: 'Sign In',
+            },
+          },
+        },
+      },
+    });
+
+    const mountWithBrand = (brandProductName: string | null | undefined) => {
+      const pinia = createTestingPinia({
+        createSpy: vi.fn,
+        stubActions: false,
+        initialState: {
+          bootstrap: {
+            authenticated: false,
+            awaiting_mfa: false,
+            email: null,
+            cust: null,
+            domain_logo: null,
+            brand_product_name: brandProductName,
+            ui: {
+              header: {
+                navigation: { enabled: true },
+                branding: {
+                  logo: { url: '/static/brand.png', alt: null },
+                  site_name: null,
+                },
+              },
+            },
+            authentication: {
+              enabled: true,
+              signin: true,
+              signup: true,
+            },
+          },
+        },
+      });
+
+      const authStore = useAuthStore(pinia);
+      (authStore as unknown as { isUserPresent: boolean }).isUserPresent = false;
+
+      return mount(MastHead, {
+        props: {
+          displayMasthead: true,
+          displayNavigation: true,
+        },
+        global: {
+          plugins: [brandI18n, pinia],
+          stubs: {
+            RouterLink: {
+              template: '<a :href="to"><slot /></a>',
+              props: ['to'],
+            },
+          },
+        },
+      });
+    };
+
+    it('interpolates brand_product_name into logo alt text', async () => {
+      wrapper = mountWithBrand('ACME');
+      await nextTick();
+
+      const img = wrapper.find('img#logo');
+      expect(img.exists()).toBe(true);
+      expect(img.attributes('alt')).toBe('ACME');
+    });
+
+    it('falls back to NEUTRAL_BRAND_DEFAULTS.product_name when undefined', async () => {
+      wrapper = mountWithBrand(undefined);
+      await nextTick();
+
+      const img = wrapper.find('img#logo');
+      expect(img.exists()).toBe(true);
+      expect(img.attributes('alt')).toBe(NEUTRAL_BRAND_DEFAULTS.product_name);
+    });
+
+    it('falls back to NEUTRAL_BRAND_DEFAULTS.product_name when null', async () => {
+      wrapper = mountWithBrand(null);
+      await nextTick();
+
+      const img = wrapper.find('img#logo');
+      expect(img.exists()).toBe(true);
+      expect(img.attributes('alt')).toBe(NEUTRAL_BRAND_DEFAULTS.product_name);
+    });
+
+    it('passes empty string through (nullish coalescing does not catch it)', async () => {
+      wrapper = mountWithBrand('');
+      await nextTick();
+
+      const img = wrapper.find('img#logo');
+      expect(img.exists()).toBe(true);
+      // ?? does not trigger on empty string — only on null/undefined
+      expect(img.attributes('alt')).toBe('');
     });
   });
 });

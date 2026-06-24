@@ -135,7 +135,10 @@ async function syncDomainContextToServer(
   }
 }
 
-/** Persist domain selection: custom domains sync to server + sessionStorage; others clear session */
+/**
+ * Persist domain selection: custom domains sync to server + sessionStorage;
+ * others clear session
+ */
 async function persistDomainContext(
   $api: AxiosInstance | undefined,
   domain: string,
@@ -261,7 +264,8 @@ export function useDomainContext() {
   const organizationStore = useOrganizationStore();
   getPermissions();
 
-  const availableDomains = computed<string[]>(() => buildAvailableDomains(permissionsDomains.value));
+  // Type param omitted (buildAvailableDomains already returns string[])
+  const availableDomains = computed(() => buildAvailableDomains(permissionsDomains.value));
 
   const fetchDomainsForOrganization = createPermissionsFetcher(organizationStore);
 

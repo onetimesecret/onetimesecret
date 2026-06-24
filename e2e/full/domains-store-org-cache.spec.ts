@@ -11,8 +11,7 @@
  * requested org differs from the cached org.
  *
  * Prerequisites:
- * - TEST_USER_EMAIL=domaincontext@onetime.dev
- * - TEST_USER_PASSWORD from environment variable
+ * - Authenticated via the project storageState (e2e/global.setup.ts consumes TEST_USER_*)
  * - User must have 2 organizations:
  *   - "Default Workspace" with custom domains
  *   - "A Second Organization" with no custom domains
@@ -26,12 +25,6 @@
  */
 
 import { expect, Page, Request, test } from '@playwright/test';
-
-// Check if test credentials are configured
-const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD);
-
-// Test user should be domaincontext@onetime.dev per requirements
-const TEST_USER_EMAIL = process.env.TEST_USER_EMAIL || 'domaincontext@onetime.dev';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -53,34 +46,6 @@ interface ApiCallInfo {
 // -----------------------------------------------------------------------------
 // Test Helpers
 // -----------------------------------------------------------------------------
-
-/**
- * Authenticate user via login form
- */
-async function loginUser(page: Page): Promise<void> {
-  await page.goto('/signin');
-
-  // Click Password tab - Magic Link is the default, password input is hidden
-  const passwordTab = page.getByRole('tab', { name: /password/i });
-  await passwordTab.waitFor({ state: 'visible', timeout: 5000 });
-  await passwordTab.click();
-
-  // Wait for password input to be visible after tab switch
-  const passwordInput = page.locator('input[type="password"]');
-  await passwordInput.waitFor({ state: 'visible', timeout: 5000 });
-
-  // Now fill the form (email input is in the password tab panel)
-  const emailInput = page.locator('#signin-email-password');
-  await emailInput.fill(TEST_USER_EMAIL);
-  await passwordInput.fill(process.env.TEST_USER_PASSWORD || '');
-
-  // Submit
-  const submitButton = page.locator('button[type="submit"]');
-  await submitButton.click();
-
-  // Wait for redirect to dashboard/account
-  await page.waitForURL(/\/(account|dashboard|org)/, { timeout: 30000 });
-}
 
 /**
  * Get list of organizations the user has access to
@@ -267,12 +232,14 @@ function extractOrgIdFromRequest(request: Request): string | null {
 // Test Suite: DomainsStore Org Context Cache Fix
 // -----------------------------------------------------------------------------
 
-test.describe('DomainsStore Org Context Cache Fix', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
+// QUARANTINED — E2E remediation plan Phase 2.4 / PR 5 (issue #3420).
+// Needs ≥2 organizations (expects orgs literally named "Default Workspace" and
+// "A Second Organization") with per-org domain caches to compare — seeded data
+// the CI account does not have. Quarantined with test.describe.fixme until the
+// second-org + per-org-domain fixtures land in PR 6. See e2e/QUARANTINE.md.
+test.describe.fixme('DomainsStore Org Context Cache Fix', () => {
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   // ---------------------------------------------------------------------------
@@ -299,7 +266,7 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
 
       // Step 1: Navigate to Default Workspace dashboard
       await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Wait for domain switcher to be ready
       const domainSwitcherTrigger = page.locator(
@@ -319,7 +286,7 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
       ).catch(() => null); // Don't fail if no domains API call (empty org)
 
       await page.goto(`/org/${secondOrg.extid}`);
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
       await domainsResponsePromise;
 
       // Verify domain switcher now shows only canonical domain (no custom domains)
@@ -350,7 +317,7 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
       ).catch(() => null);
 
       await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
       await returnDomainsPromise;
 
       // Verify domain switcher shows custom domains again
@@ -392,8 +359,9 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
 
       // Validate we found two DIFFERENT orgs
       if (defaultWorkspace.extid === secondOrg.extid) {
-        test.skip(true, `Found same org twice: ${defaultWorkspace.name} (${defaultWorkspace.extid})`);
-        return;
+        throw new Error(
+          `expected two distinct orgs but found ${defaultWorkspace.name} twice — needs second-org fixture (#3420)`
+        );
       }
 
       console.log(`[TC-DSC-002] Using Default Workspace: "${defaultWorkspace.name}" (${defaultWorkspace.extid})`);
@@ -401,7 +369,7 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
 
       // Step 1: Navigate to Default Workspace's organization page (domains tab is default)
       await page.goto(`/org/${defaultWorkspace.extid}`);
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Verify custom domains are listed
       const hasDomainsInDefault = await hasDomainsInTable(page);
@@ -426,7 +394,7 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
       ).catch(() => null);
 
       await page.goto(`/org/${secondOrg.extid}`);
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
       await domainsResponsePromise;
 
       // Verify URL contains the correct org extid
@@ -516,7 +484,7 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
       ).catch(() => null);
 
       await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
       await dashboardDomainsPromise;
 
       // Log calls made for Default Workspace for debugging
@@ -532,7 +500,7 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
       ).catch(() => null);
 
       await page.goto(`/org/${secondOrg.extid}`);
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
       await secondOrgDomainsPromise;
 
       // Verify a NEW API call was made (not returning cached data)
@@ -576,12 +544,10 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
 // Additional Edge Case Tests
 // -----------------------------------------------------------------------------
 
-test.describe('DomainsStore Cache - Edge Cases', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
+// QUARANTINED with the suite above — needs ≥2 orgs (issue #3420).
+test.describe.fixme('DomainsStore Cache - Edge Cases', () => {
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-DSC-004: Browser back/forward maintains correct org domain context', async ({
@@ -594,39 +560,38 @@ test.describe('DomainsStore Cache - Edge Cases', () => {
     const secondOrg = findOrgByName(orgs, 'Second Organization');
 
     if (!defaultWorkspace || !secondOrg) {
-      test.skip(true, 'Test requires specific organizations');
-      return;
+      throw new Error('requires "Default Workspace" + "Second Organization" — second-org fixture (#3420)');
     }
 
     // Navigate to Default Workspace (domains tab is default)
     await page.goto(`/org/${defaultWorkspace.extid}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const hasDomainsInitially = await hasDomainsInTable(page);
 
     // Click through to orgs list, then to second org (builds proper history stack)
     const backToOrgsLink = page.locator('a[href="/orgs"]').first();
     await backToOrgsLink.click();
-    await page.waitForLoadState('networkidle');
+    await expect(page).toHaveURL(/\/orgs/);
 
-    // Click on the second org card to navigate
+    // Click on the second org card to navigate (click auto-waits for the
+    // card; the URL assertion waits for the router navigation)
     const secondOrgCard = page.getByTestId(`org-card-${secondOrg.extid}`);
     await secondOrgCard.click();
-    await page.waitForLoadState('networkidle');
 
     // Verify we're on second org with empty state
-    expect(page.url()).toContain(secondOrg.extid);
+    await expect(page).toHaveURL(new RegExp(secondOrg.extid));
     const isEmptyAfterNav = await isEmptyDomainsState(page);
     expect(isEmptyAfterNav, 'Second org should show empty state').toBe(true);
 
     // Go back twice: second org -> orgs list -> default workspace
+    // (web-first URL assertions wait for each history navigation to settle)
     await page.goBack();
-    await page.waitForLoadState('networkidle');
+    await expect(page).toHaveURL(/\/orgs/);
     await page.goBack();
-    await page.waitForLoadState('networkidle');
 
     // Verify we're back on Default Workspace and domains are shown
-    expect(page.url()).toContain(defaultWorkspace.extid);
+    await expect(page).toHaveURL(new RegExp(defaultWorkspace.extid));
 
     const hasDomainsAfterBack = await hasDomainsInTable(page);
     expect(
@@ -635,13 +600,13 @@ test.describe('DomainsStore Cache - Edge Cases', () => {
     ).toBe(hasDomainsInitially);
 
     // Go forward twice to get back to Second Org
+    // (web-first URL assertions wait for each history navigation to settle)
     await page.goForward();
-    await page.waitForLoadState('networkidle');
+    await expect(page).toHaveURL(/\/orgs/);
     await page.goForward();
-    await page.waitForLoadState('networkidle');
 
     // Verify we're on Second Org and empty state is shown (not cached Default Workspace domains)
-    expect(page.url()).toContain(secondOrg.extid);
+    await expect(page).toHaveURL(new RegExp(secondOrg.extid));
 
     const isEmptyAfterForward = await isEmptyDomainsState(page);
     expect(
@@ -656,20 +621,19 @@ test.describe('DomainsStore Cache - Edge Cases', () => {
 
     const secondOrg = findOrgByName(orgs, 'Second Organization');
     if (!secondOrg) {
-      test.skip(true, 'Test requires "A Second Organization"');
-      return;
+      throw new Error('requires a "Second Organization" — second-org fixture (#3420)');
     }
 
     // Navigate to Second Org (domains tab is default, should be empty)
     await page.goto(`/org/${secondOrg.extid}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const isEmptyBefore = await isEmptyDomainsState(page);
     expect(isEmptyBefore, 'Second org should show empty state initially').toBe(true);
 
     // Refresh the page
     await page.reload();
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Verify empty state is still shown (no stale cache from another org)
     const isEmptyAfterRefresh = await isEmptyDomainsState(page);

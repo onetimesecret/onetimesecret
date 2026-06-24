@@ -108,7 +108,7 @@
     "text": "Account aanmaken",
     "source_hash": "0dffe234"
   },
-  "web.COMMON.header_about": {
+  "web.COMMON.about": {
     "text": "Over",
     "source_hash": "4efca0d1"
   },
@@ -439,10 +439,6 @@
   "web.COMMON.example_placeholder": {
     "text": "bijv. {example}",
     "source_hash": "cc921aaa"
-  },
-  "web.COMMON.about": {
-    "text": "Over",
-    "source_hash": "d833339d"
   },
   "web.COMMON.status": {
     "text": "Status",
@@ -1303,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Controleer altijd of je op de officiële Onetime Secret-website bent. Fraudeurs maken soms nepwebsites die er precies uitzien als Onetime Secret om je berichten te stelen. Om phishing-aanvallen te voorkomen, controleer het domein voordat je nieuwe links aanmaakt.",
+    "text": "Controleer altijd of je op de officiële {product_name}-website bent. Fraudeurs maken soms nepwebsites die er precies uitzien als {product_name} om je berichten te stelen. Om phishing-aanvallen te voorkomen, controleer het domein voordat je nieuwe links aanmaakt.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {

@@ -52,6 +52,14 @@ vi.mock('@/utils/features', () => ({
   hasPasswordlessMethods: () => false,
 }));
 
+vi.mock('@/shared/components/icons/OIcon.vue', () => ({
+  default: {
+    name: 'OIcon',
+    template: '<span class="o-icon" :data-icon-name="name" />',
+    props: ['collection', 'name', 'size'],
+  },
+}));
+
 // Mock stores
 vi.mock('@/shared/stores/languageStore', () => ({
   useLanguageStore: () => ({
@@ -65,7 +73,10 @@ describe('Login.vue auth_error handling', () => {
   let router: Router;
   let wrapper: VueWrapper;
 
-  const createWrapper = async (query: Record<string, string> = {}) => {
+  const createWrapper = async (
+    query: Record<string, string> = {},
+    initialState: Record<string, unknown> = {}
+  ) => {
     router = createRouter({
       history: createMemoryHistory(),
       routes: [
@@ -85,6 +96,7 @@ describe('Login.vue auth_error handling', () => {
           createTestingPinia({
             createSpy: vi.fn,
             stubActions: false,
+            initialState,
           }),
         ],
         stubs: {
@@ -214,6 +226,69 @@ describe('Login.vue auth_error handling', () => {
 
       const alert = wrapper.find('[role="alert"]');
       expect(alert.exists()).toBe(true);
+    });
+  });
+
+  // ---------------------------------------------------------------------
+  // Per-domain sign-in disable (#3415)
+  //
+  // features.signin is the resolved availability for the current domain
+  // context (AND of global AUTH_SIGNIN and the domain SigninConfig). An
+  // explicit false renders a friendly "not available" panel instead of
+  // the auth form; true or absent (older backends) renders the form.
+  // ---------------------------------------------------------------------
+
+  describe('per-domain sign-in disabled (features.signin === false)', () => {
+    const disabledState = { bootstrap: { features: { signin: false } } };
+
+    it('renders the disabled panel instead of the auth form', async () => {
+      wrapper = await createWrapper({}, disabledState);
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="signin-disabled-panel"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="auth-method-selector"]').exists()).toBe(false);
+    });
+
+    it('shows the not-available message', async () => {
+      wrapper = await createWrapper({}, disabledState);
+      await flushPromises();
+
+      expect(wrapper.text()).toContain('web.login.signin_disabled_message');
+    });
+
+    it('switches the page heading and enables the return-home affordance', async () => {
+      wrapper = await createWrapper({}, disabledState);
+      await flushPromises();
+
+      const authView = wrapper.findComponent({ name: 'AuthView' });
+      expect(authView.props('heading')).toBe('web.login.signin_disabled_heading');
+      expect(authView.props('showReturnHome')).toBe(true);
+    });
+
+    it('hides the footer sign-in options', async () => {
+      wrapper = await createWrapper({}, disabledState);
+      await flushPromises();
+
+      expect(wrapper.find('nav[aria-label="Additional sign-in options"]').exists()).toBe(false);
+    });
+
+    it('renders the auth form when features.signin is true', async () => {
+      wrapper = await createWrapper({}, { bootstrap: { features: { signin: true } } });
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="auth-method-selector"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="signin-disabled-panel"]').exists()).toBe(false);
+
+      const authView = wrapper.findComponent({ name: 'AuthView' });
+      expect(authView.props('showReturnHome')).toBe(false);
+    });
+
+    it('renders the auth form when features.signin is absent (older backends)', async () => {
+      wrapper = await createWrapper({});
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="auth-method-selector"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="signin-disabled-panel"]').exists()).toBe(false);
     });
   });
 });

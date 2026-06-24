@@ -11,6 +11,7 @@ import {
 } from 'vue-color';
 import 'vue-color/style.css';
 
+import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
 import HoverTooltip from './HoverTooltip.vue';
 
 const { t } = useI18n();
@@ -26,7 +27,7 @@ const props = withDefaults(defineProps<{
   disableAlpha?: boolean;
   presetColors?: string[];
 }>(), {
-  modelValue: '#dc4a22',
+  modelValue: NEUTRAL_BRAND_DEFAULTS.primary_color,
   id: undefined,
   variant: 'chrome',
   disableAlpha: false,

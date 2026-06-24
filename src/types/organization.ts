@@ -75,6 +75,7 @@ export const ENTITLEMENTS = {
 
   // Advanced
   AUDIT_LOGS: 'audit_logs',
+  CUSTOM_SIGNIN_CONFIG: 'custom_signin_config',
   CUSTOM_SIGNUP_VALIDATION: 'custom_signup_validation',
 } as const;
 

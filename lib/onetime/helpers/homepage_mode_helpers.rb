@@ -135,10 +135,12 @@ module Onetime
 
       # Returns the client IP used for homepage CIDR matching.
       #
-      # Delegates to Rack::Request#ip, which ConfigureTrustedProxy wires up
-      # at boot from site.network.trusted_proxy. Homepage mode no longer
-      # carries its own proxy-depth config, so CIDR matching stays consistent
-      # with every other IP-based feature.
+      # Delegates to Otto::Request#ip, which reads the canonical
+      # env['otto.client_ip'] resolved once by the universal IPPrivacyMiddleware
+      # mount (configured from site.network.trusted_proxy via
+      # MiddlewareStack.ip_privacy_security_config). Homepage mode carries no
+      # proxy config of its own, so CIDR matching stays consistent with every
+      # other IP-based feature.
       #
       # @return [String, nil] Client IP address
       def extract_client_ip_for_homepage

@@ -16,6 +16,10 @@ module AuthTestConstants
   MFA_RECOVERY_CODES_LIMIT = 4
   MFA_OTP_AUTH_FAILURES_LIMIT = 7
 
+  # Default TOTP issuer — matches BrandSettingsConstants::GLOBAL_DEFAULTS[:totp_issuer].
+  # Production resolves dynamically from brand config; tests use the static default.
+  MFA_OTP_ISSUER = 'OTS'
+
   # Account status IDs (from migration seed data)
   STATUS_UNVERIFIED = 1
   STATUS_VERIFIED = 2

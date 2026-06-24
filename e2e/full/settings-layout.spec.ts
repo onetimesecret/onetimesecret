@@ -1,6 +1,6 @@
 // src/tests/e2e/settings-layout.spec.ts
 
-import { test, expect, Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
 /**
  * E2E Tests - Settings Layout Refactoring Validation
@@ -31,34 +31,9 @@ import { test, expect, Page } from '@playwright/test';
  * 4. Route Transitions - navigation between settings pages is smooth
  */
 
-// Check if test credentials are configured (required for authenticated tests)
-const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD);
-
-// Helper to authenticate user (adjust based on actual auth flow)
-async function loginUser(page: Page): Promise<void> {
-  // Navigate to login page
-  await page.goto('/signin');
-
-  // Fill login form - adjust selectors to match actual form
-  const emailInput = page.locator('input[type="email"], input[name="email"]');
-  const passwordInput = page.locator('input[type="password"], input[name="password"]');
-  const submitButton = page.locator('button[type="submit"]');
-
-  // Check if login form is visible
-  if (await emailInput.isVisible()) {
-    await emailInput.fill(process.env.TEST_USER_EMAIL || 'test@example.com');
-    await passwordInput.fill(process.env.TEST_USER_PASSWORD || 'testpassword');
-    await submitButton.click();
-
-    // Wait for redirect to dashboard/account (longer timeout for CI)
-    await page.waitForURL(/\/(account|dashboard)/, { timeout: 30000 });
-  }
-}
-
 test.describe('E2E - Settings Layout Refactoring', () => {
   // Skip all tests if test credentials are not configured
   // These tests require authentication which needs a seeded test user
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
 
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
@@ -66,7 +41,6 @@ test.describe('E2E - Settings Layout Refactoring', () => {
 
   test.describe('Settings Page Navigation', () => {
     test('sidebar navigation renders all main sections', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/account/settings/profile');
 
       // Wait for settings layout to load
@@ -83,7 +57,6 @@ test.describe('E2E - Settings Layout Refactoring', () => {
     });
 
     test('clicking navigation item navigates to correct route', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/account/settings/profile');
 
       // Click on Security link
@@ -97,7 +70,6 @@ test.describe('E2E - Settings Layout Refactoring', () => {
     });
 
     test('active navigation item is visually distinguished', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/account/settings/profile');
 
       // Find the Profile nav item
@@ -118,7 +90,6 @@ test.describe('E2E - Settings Layout Refactoring', () => {
     });
 
     test('child navigation items appear when parent is active', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/account/settings/profile');
 
       // Profile children should be visible
@@ -135,7 +106,6 @@ test.describe('E2E - Settings Layout Refactoring', () => {
     });
 
     test('child navigation routes work correctly', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/account/settings/profile');
 
       // Click on Preferences (child of Profile)
@@ -148,7 +118,6 @@ test.describe('E2E - Settings Layout Refactoring', () => {
 
   test.describe('Settings Sections Rendering', () => {
     test('Profile settings section renders correctly', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/account/settings/profile');
 
       // Check for profile-specific content
@@ -165,7 +134,6 @@ test.describe('E2E - Settings Layout Refactoring', () => {
     });
 
     test('Security settings section renders correctly', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/account/settings/security');
 
       const content = page.locator('main');
@@ -179,7 +147,6 @@ test.describe('E2E - Settings Layout Refactoring', () => {
     });
 
     test('API settings section renders correctly', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/account/settings/api');
 
       const content = page.locator('main');
@@ -193,7 +160,6 @@ test.describe('E2E - Settings Layout Refactoring', () => {
     });
 
     test('section cards have proper structure', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/account/settings/profile');
 
       // Check for card-style sections
@@ -211,7 +177,6 @@ test.describe('E2E - Settings Layout Refactoring', () => {
 
   test.describe('Mobile Responsive Behavior', () => {
     test('layout adapts to mobile viewport', async ({ page }) => {
-      await loginUser(page);
 
       // Set mobile viewport
       await page.setViewportSize({ width: 375, height: 667 });
@@ -233,7 +198,6 @@ test.describe('E2E - Settings Layout Refactoring', () => {
     test('navigation is accessible on mobile', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 });
 
-      await loginUser(page);
       await page.goto('/account/settings/profile');
 
       // Navigation should still be usable
@@ -248,12 +212,11 @@ test.describe('E2E - Settings Layout Refactoring', () => {
     test('content does not overflow horizontally on mobile', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 });
 
-      await loginUser(page);
       await page.goto('/account/settings/profile');
 
-      // Wait for layout to stabilize
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(300);
+      // Wait for the app to finish booting; the overflow read below forces
+      // a synchronous layout pass itself.
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Check for horizontal overflow
       const { hasOverflow, scrollWidth, viewportWidth } = await page.evaluate(() => {
@@ -275,7 +238,6 @@ test.describe('E2E - Settings Layout Refactoring', () => {
     test('sidebar width is correct on desktop', async ({ page }) => {
       await page.setViewportSize({ width: 1280, height: 800 });
 
-      await loginUser(page);
       await page.goto('/account/settings/profile');
 
       // Sidebar should have fixed width on desktop (md:w-72 = 288px)
@@ -292,7 +254,6 @@ test.describe('E2E - Settings Layout Refactoring', () => {
 
   test.describe('Route Transitions', () => {
     test('navigation between settings pages preserves layout', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/account/settings/profile');
 
       // Navigate through multiple pages
@@ -313,7 +274,6 @@ test.describe('E2E - Settings Layout Refactoring', () => {
     });
 
     test('breadcrumb updates on navigation', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/account/settings/profile');
 
       // Check breadcrumb shows Settings
@@ -327,7 +287,6 @@ test.describe('E2E - Settings Layout Refactoring', () => {
     });
 
     test('clicking breadcrumb Account link navigates to account page', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/account/settings/profile');
 
       // Click Account in breadcrumb
@@ -338,7 +297,6 @@ test.describe('E2E - Settings Layout Refactoring', () => {
     });
 
     test('browser back button works correctly', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/account/settings/profile');
 
       // Navigate to Security
@@ -353,7 +311,6 @@ test.describe('E2E - Settings Layout Refactoring', () => {
     });
 
     test('direct URL navigation works', async ({ page }) => {
-      await loginUser(page);
 
       // Navigate directly to various settings pages
       const pages = [
@@ -372,7 +329,6 @@ test.describe('E2E - Settings Layout Refactoring', () => {
 
   test.describe('Accessibility', () => {
     test('settings navigation has proper ARIA attributes', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/account/settings/profile');
 
       const nav = page.locator('nav[aria-label="Settings navigation"]');
@@ -381,7 +337,6 @@ test.describe('E2E - Settings Layout Refactoring', () => {
     });
 
     test('page has single h1', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/account/settings/profile');
 
       const h1Elements = page.locator('h1');
@@ -391,7 +346,6 @@ test.describe('E2E - Settings Layout Refactoring', () => {
     });
 
     test('navigation links are focusable', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/account/settings/profile');
 
       // Tab to first nav link
@@ -419,7 +373,6 @@ test.describe('E2E - Settings Layout Refactoring', () => {
     });
 
     test('Enter key activates navigation links', async ({ page }) => {
-      await loginUser(page);
       await page.goto('/account/settings/profile');
 
       // Focus on Security link
@@ -436,7 +389,6 @@ test.describe('E2E - Settings Layout Refactoring', () => {
 
   test.describe('Error Handling', () => {
     test('handles missing settings route gracefully', async ({ page }) => {
-      await loginUser(page);
 
       await page.goto('/account/settings/nonexistent');
 
@@ -450,7 +402,6 @@ test.describe('E2E - Settings Layout Refactoring', () => {
     });
 
     test('settings page recovers from failed API calls', async ({ page }) => {
-      await loginUser(page);
 
       // Block API calls to simulate failure
       await page.route('**/api/**', (route) => route.abort());

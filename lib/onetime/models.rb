@@ -21,6 +21,7 @@ require_relative 'models/custom_domain/brand_settings'
 require_relative 'models/custom_domain/homepage_config'
 require_relative 'models/custom_domain/incoming_config'
 require_relative 'models/custom_domain/mailer_config'
+require_relative 'models/custom_domain/signin_config'
 require_relative 'models/custom_domain/signup_config'
 require_relative 'models/custom_domain/sso_config'
 

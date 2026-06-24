@@ -171,7 +171,7 @@ module Onetime
     # @return [void]
     # @raise [Onetime::Problem] if new_domain is already taken
     def update_display_domain(new_domain)
-      new_domain = new_domain.to_s.downcase
+      new_domain = self.class.display_domain(new_domain.to_s.downcase)
       old_domain = display_domain.to_s.downcase
 
       return if new_domain == old_domain
@@ -192,7 +192,7 @@ module Onetime
       self.display_domain = new_domain
       self.updated        = OT.now.to_i
 
-      # Re-parse derived fields from the new display_domain
+      # Re-parse derived fields from the normalized display_domain
       ps_domain    = PublicSuffix.parse(new_domain, default_rule: nil)
       @base_domain = ps_domain.domain.to_s
       @subdomain   = ps_domain.subdomain.to_s
@@ -313,6 +313,14 @@ module Onetime
     # save a repeated load within the same request — minimal benefit,
     # and it risks serving stale state after writes.
 
+    def signin_config
+      Onetime::CustomDomain::SigninConfig.find_by_domain_id(identifier)
+    end
+
+    def signin_config?
+      Onetime::CustomDomain::SigninConfig.exists_for_domain?(identifier)
+    end
+
     def sso_config
       Onetime::CustomDomain::SsoConfig.find_by_domain_id(identifier)
     end
@@ -413,6 +421,8 @@ module Onetime
       sibling_configs = [
         Onetime::CustomDomain::HomepageConfig,
         Onetime::CustomDomain::ApiConfig,
+        Onetime::CustomDomain::SigninConfig,
+        Onetime::CustomDomain::SignupConfig,
         Onetime::CustomDomain::SsoConfig,
         Onetime::CustomDomain::MailerConfig,
         Onetime::CustomDomain::IncomingConfig,
@@ -943,6 +953,8 @@ module Onetime
       #
       # Returns either a string or nil if invalid
       def base_domain(input)
+        return nil if contains_control_chars?(input)
+
         # We don't need to fuss with empty stripping spaces, prefixes,
         # etc because PublicSuffix does that for us.
         PublicSuffix.domain(input, default_rule: nil)
@@ -958,6 +970,8 @@ module Onetime
       # would return froogle.com.
       #
       def display_domain(input)
+        raise Onetime::Problem, 'Domain contains invalid control characters' if contains_control_chars?(input)
+
         ps_domain = PublicSuffix.parse(input, default_rule: nil)
         result    = ps_domain.subdomain || ps_domain.domain
 
@@ -976,6 +990,8 @@ module Onetime
       # Returns boolean, whether the domain is a valid public suffix
       # which checks without actually parsing it.
       def valid?(input)
+        return false if contains_control_chars?(input)
+
         PublicSuffix.valid?(input, default_rule: nil)
       end
 
@@ -987,6 +1003,51 @@ module Onetime
       rescue PublicSuffix::Error => ex
         OT.le "[CustomDomain.default_domain?] #{ex.message} for `#{input}"
         false
+      end
+
+      # Whether the input domain overlaps with the canonical site domain.
+      # Checks both exact match and base-domain match so that subdomains
+      # of the canonical host are also blocked (e.g. secrets.example.com
+      # when the site host is eu.example.com — both resolve to example.com).
+      #
+      # Uses PublicSuffix for normalization, so leading/trailing whitespace,
+      # casing differences, and trailing dots cannot circumvent the check.
+      #
+      # Placed before entitlement checks in AddDomain so it is absolute
+      # (no colonel bypass) — this is a system-integrity invariant.
+      def overlaps_canonical_domain?(input)
+        site_host = OT.conf.dig('site', 'host').to_s
+        return false if site_host.empty?
+
+        # Control characters are invalid in domain names (RFC 952/1123).
+        # Treat as overlap to block registration -- a domain that cannot
+        # be valid should never bypass the canonical-domain guard.
+        return true if contains_control_chars?(input)
+
+        return true if default_domain?(input)
+
+        # Strip port for PublicSuffix compatibility (e.g. localhost:3000)
+        canonical_host = site_host.split(':').first
+        input_base     = base_domain(input)
+        canonical_base = base_domain(canonical_host)
+
+        # Skip base-domain comparison when canonical can't be resolved
+        # (e.g. localhost in development)
+        return false if canonical_base.nil? || input_base.nil?
+
+        input_base == canonical_base
+      rescue PublicSuffix::Error => ex
+        OT.le "[CustomDomain.overlaps_canonical_domain?] #{ex.message} for `#{input}`"
+        false
+      end
+
+      # ASCII control characters (0x00-0x1F, 0x7F) are invalid in domain
+      # names per RFC 952/1123. PublicSuffix does not reject them, so we
+      # guard at this layer.
+      def contains_control_chars?(input)
+        return false if input.nil?
+
+        input.match?(/[\x00-\x1f\x7f]/)
       end
 
       # Simply instatiates a new CustomDomain object and checks if it exists.

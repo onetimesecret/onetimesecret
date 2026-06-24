@@ -77,7 +77,7 @@ const v3TimestampOverrides = {
  *   created: 1609372800,
  *   updated: 1609459200,
  *   vhost: { status: 'active', has_ssl: true },
- *   brand: { primary_color: '#dc4a22' },
+ *   brand: { primary_color: '#3B82F6' },
  * });
  *
  * console.log(domain.created instanceof Date); // true
@@ -95,7 +95,10 @@ export const customDomainSchema = customDomainCanonical.extend({
 
   // Nested objects with V3 transforms
   vhost: transforms.fromObject.nested(vhostSchema.passthrough().strip()).nullable().default(null),
-  brand: transforms.fromObject.nested(brandSettingsSchema.passthrough().strip()).nullable().default(null),
+  brand: transforms.fromObject
+    .nested(brandSettingsSchema.passthrough().strip())
+    .nullable()
+    .default(null),
 
   // Nested email config with shape transforms
   email_config: customDomainEmailConfigSchema.nullable().optional(),

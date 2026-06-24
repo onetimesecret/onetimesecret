@@ -3,6 +3,16 @@
 Branch: `feature/2319-workflow-historical`
 Issue: #2319
 
+> **Audience: human-driven, conversational sessions.** This file describes the
+> manual translation session — start a conversation with the protocol, claim the
+> next task, propose translations, accept/skip/revisit/quit, record glossary
+> decisions, run QC, and export/commit by hand.
+>
+> **Automated background agents do NOT follow this file.** A single translator
+> agent draining one locale follows the machine-executable spec in
+> [`AGENT_TRANSLATION_PROTOCOL.md`](./AGENT_TRANSLATION_PROTOCOL.md). The
+> orchestration slash commands point their agents at that file.
+
 ## Philosophy
 
 **"Excel first"** - We deliberately keep this workflow manual and conversational. No automation until the process is proven. The scripts are helpers, not a pipeline. Once we know exactly what works, we can build tooling.
@@ -28,6 +38,8 @@ To continue work in a new session, generate a handoff document that preserves ke
 
 ## Architecture
 
+All tooling is one command — `python3 locales/scripts/i18n --help` lists the content / tasks / db / validate groups.
+
 - **Task = one JSON level** - sibling keys grouped by parent path
 - **SQLite is working state** - translations live in `locales/db/tasks.db` until synced
 - **locales/content/ is source of truth** - `locales/content/{locale}/*.json` (flat format with `text` field)
@@ -49,44 +61,44 @@ Replace `[LOCALE]` with the target locale code (e.g., `eo`, `fr_CA`, `de`).
 
 ### 0. Generate tasks (if not already done)
 ```bash
-python locales/scripts/tasks/create.py eo
+python3 locales/scripts/i18n tasks create eo
 ```
-This populates the `translation_tasks` table required by `tasks/next.py`. Run once per locale, or re-run to refresh after English source changes.
+This populates the `translation_tasks` table required by `tasks next`. Run once per locale, or re-run to refresh after English source changes.
 
 Tasks are grouped by parent path (e.g., all keys under `web.COMMON.buttons`). This keeps work productive by batching related strings together rather than handling thousands of individual keys. Translators get more context since messages at the same level are usually related.
 
 ### 1. Check status
 ```bash
-python locales/scripts/tasks/next.py eo --stats
+python3 locales/scripts/i18n tasks next eo --stats
 ```
 
 ### 2. Claim next task
 ```bash
-python locales/scripts/tasks/next.py eo --claim
+python3 locales/scripts/i18n tasks next eo --claim
 ```
 Outputs formatted table with Key, English, Esperanto columns.
 
 ### 3. Review proposed translations
 Assistant proposes translations. Respond with:
-- **A** - Accept (runs tasks/update.py)
+- **A** - Accept (runs tasks update)
 - **S** - Skip (marks skipped, moves to next)
 - **R** - Revisit (marks pending, moves to next)
 - **Q** - Quit session
 
 ### 4. On accept, update task
 ```bash
-python locales/scripts/tasks/update.py TASK_ID '{"key": "translation", ...}'
+python3 locales/scripts/i18n tasks update TASK_ID '{"key": "translation", ...}'
 ```
 
 ### 5. Record glossary decisions
 ```bash
-python locales/scripts/store.py query "INSERT INTO glossary (locale, term, translation, notes) VALUES ('eo', 'secret', 'sekreto', 'core concept')"
+python3 locales/scripts/i18n db query "INSERT INTO glossary (locale, term, translation, notes) VALUES ('eo', 'secret', 'sekreto', 'core concept')"
 ```
 
 ### 6. End session - export to content
 ```bash
-python locales/scripts/migrate/export.py eo
-python locales/scripts/store.py export
+python3 locales/scripts/i18n tasks export eo
+python3 locales/scripts/i18n db export
 ```
 The frontend auto-generates `generated/locales/` on startup from `locales/content/`.
 
@@ -95,6 +107,27 @@ The frontend auto-generates `generated/locales/` on startup from `locales/conten
 git add locales/content/eo/ locales/db/*.sql
 git commit -m "[#2319] Add eo translations from session"
 ```
+
+### 8. Create branches for review (bulk workflow)
+
+After exporting multiple locales, create isolated branches for independent review:
+
+```bash
+# Preview (default)
+locales/scripts/branch-per-locale.sh --changed
+
+# Execute
+locales/scripts/branch-per-locale.sh --changed --execute
+```
+
+Creates `i18n/update-{locale}` branches off develop. Each branch contains only one locale's changes.
+
+### 9. Review branches
+
+Run `/d:review-locale-branches` to orchestrate parallel code-reviewer agents grouped by language family. The workflow:
+1. Automated variable validation (catches mechanical issues)
+2. Agent review by family (linguistic/quality checks)
+3. Triage and fix critical findings before merge
 
 ## Task Output Format
 
@@ -118,34 +151,28 @@ Sorted by English text length.
 
 ```
 locales/scripts/
-  build/
-    compile.py        # content -> generated (--all --merged)
-    decompile.py      # src -> content (reverse sync)
-  tasks/
-    create.py         # Generate tasks grouped by parent path
-    next.py           # --claim, --filter, --stats, --id
-    update.py         # TASK_ID '{"key": "val"}'
-    translate.py      # Claude-powered translation
-  migrate/
-    export.py         # SQLite -> locales/content/
-    bootstrap.py      # Initialize locale content
-    harmonize.py      # Harmonize locale files
-  validate/
-    json.py           # Validate JSON structure
-    pr.py             # PR validation
-    variables.py      # Audit variable usage
-  keys.py             # Key utilities
-  store.py            # migrate, hydrate, query
+  i18n/                 # unified CLI — run: python3 locales/scripts/i18n <group> <cmd>
+    cli.py              # argparse dispatcher (groups: content, tasks, db, validate)
+    config.py           # all paths, SOURCE_LOCALE, env overrides (I18N_DB_FILE, I18N_DEFAULT_LOCALE)
+    io.py               # JSON load/save + key-walk helpers (was keys.py)
+    db.py               # sqlite connection + schema init/migrate
+    console.py          # rich-optional table rendering
+    commands/
+      content.py        # compile, decompile, hashes, add-field
+      tasks.py          # create, next, update, export
+      store.py          # group "db": init, migrate, query, export, import
+      validate.py       # pr, variables
+  create-all.sh         # bulk: generate tasks for every locale
+  export-and-commit.sh  # bulk: export completed locales + commit
+  pyproject.toml
 
 locales/db/
-  schema.sql          # table definitions
-  tasks.db            # SQLite database (not in git)
-  *.sql               # SQL data files for hydrating tables. NOTE: tasks are not typically
-                      # hydrated; they're generated into the database and processed until
-                      # they are complete.
+  schema.sql            # table definitions
+  tasks.db              # SQLite database (gitignored)
+  *.sql                 # committable tables (glossary, session_log, translation_issues)
 
 locales/content/{locale}/  # source of truth (flat JSON with text field)
-generated/locales/         # app-consumable JSON (auto-generated by frontend)
+generated/locales/         # app-consumable JSON (built by `content compile`)
 ```
 
 ## Database Tables
@@ -158,8 +185,8 @@ generated/locales/         # app-consumable JSON (auto-generated by frontend)
 
 Export committable tables (`glossary`, `session_log`, `translation_issues`) to SQL for version control:
 ```bash
-python locales/scripts/store.py export   # Export to locales/db/*.sql
-python locales/scripts/store.py import   # Restore from SQL files
+python3 locales/scripts/i18n db export   # Export to locales/db/*.sql
+python3 locales/scripts/i18n db import   # Restore from SQL files
 ```
 
 ## Quality Control Protocol
@@ -199,7 +226,7 @@ One locale per agent. Report quality issues and glossary term suggestions.
 
 2. **Query issues by priority**
 ```bash
-python locales/scripts/store.py query \
+python3 locales/scripts/i18n db query \
   "SELECT locale, issue_type, severity, description
    FROM translation_issues
    WHERE status = 'open'
@@ -214,7 +241,7 @@ Fix [LOCALE] translation issues:
 
 4. **Update issue status after fixes**
 ```bash
-python locales/scripts/store.py query \
+python3 locales/scripts/i18n db query \
   "UPDATE translation_issues
    SET status = 'resolved', resolved_at = datetime('now'), resolved_by = 'agent'
    WHERE id IN (1, 2, 3)"
@@ -235,7 +262,7 @@ Monitor with single-poll pattern (see "Monitoring the process" section). Agents 
 ### Adding QC Findings to Database
 
 ```bash
-python locales/scripts/store.py query \
+python3 locales/scripts/i18n db query \
   "INSERT INTO translation_issues
    (locale, file, key_path, issue_type, severity, description, detected_by)
    VALUES ('tr', 'secret-manage.json', 'web.private.key_name',
@@ -247,7 +274,7 @@ python locales/scripts/store.py query \
 QC reviews often surface high-quality translation choices worth standardizing:
 
 ```bash
-python locales/scripts/store.py query \
+python3 locales/scripts/i18n db query \
   "INSERT INTO glossary (locale, term, translation, context, notes)
    VALUES ('de', 'passphrase', 'Passphrase', 'security feature',
            'Keep as loanword - standard in German tech')"
@@ -261,4 +288,4 @@ Avoid: each sleep N && command spawned as a background task creates an independe
 
 ## Esperanto Status
 
-Run `python locales/scripts/tasks/next.py eo --stats` to check current progress.
+Run `python3 locales/scripts/i18n tasks next eo --stats` to check current progress.

@@ -74,18 +74,40 @@ export function gracefulParse<T>(
     return { ok: true, data: result.data };
   }
 
-  const errorMessage = `Schema validation failed${context ? ` for ${context}` : ''}`;
+  // #3424: surface the field(s) that actually failed. Three fixes missed this
+  // bug because production discarded the failing field — the generic message
+  // reached the local log while the precise `issues[].path` lived only in
+  // non-searchable Sentry extras. We now build the message FROM the issues and
+  // expose the failing paths as a searchable `schemaField` tag, so the next
+  // "no longer available" report names its own cause instead of being inferred.
+  //
+  // We log field paths, issue codes, and Zod's type-level messages — not the
+  // parsed values themselves. One caveat: Zod's `invalid_enum_value` message
+  // embeds the received value (e.g. "...received 'x'"). Today that is safe
+  // because the only enum fields are `state`/`secret_state`, whose values are
+  // non-sensitive state names. If you add an enum over user-supplied data,
+  // redact or drop its message before it reaches Sentry.
+  const issues = result.error.issues;
+  const fieldPaths = [...new Set(issues.map((i) => i.path.join('.') || '(root)'))];
+  const fieldSummary = issues
+    .map((i) => `${i.path.join('.') || '(root)'}: ${i.code} (${i.message})`)
+    .join('; ');
+  const errorMessage =
+    `Schema validation failed${context ? ` for ${context}` : ''}` +
+    ` — ${issues.length} issue(s) [${fieldPaths.join(', ')}]: ${fieldSummary}`;
 
   if (isDevOrTest()) {
-    console.error(errorMessage, result.error.issues);
+    console.error(errorMessage, issues);
   } else {
-    // Log locally and send to Sentry with structured context
+    // Log locally (message now carries the fields) and send to Sentry with the
+    // failing paths promoted to a searchable tag, not just buried in extras.
     const schemaError = new Error(errorMessage);
     loggingService.error(schemaError);
     captureException(schemaError, {
       schema: context,
-      issues: result.error.issues,
-      issueCount: result.error.issues.length,
+      schemaField: fieldPaths.join(',').slice(0, 200),
+      issues,
+      issueCount: issues.length,
     });
   }
 

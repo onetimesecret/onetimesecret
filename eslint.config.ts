@@ -59,6 +59,7 @@ import pluginVueI18n from '@intlify/eslint-plugin-vue-i18n';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import parserTs from '@typescript-eslint/parser';
 import * as importPlugin from 'eslint-plugin-import';
+import pluginPlaywright from 'eslint-plugin-playwright';
 import pluginTailwindCSS from 'eslint-plugin-tailwindcss';
 import pluginVue from 'eslint-plugin-vue';
 import globals from 'globals';
@@ -80,7 +81,7 @@ export default [
    * Excludes all files except source and config files
    */
   {
-    ignores: ['**/*', '!src/**', '!*.config.ts', '!*.config.*js'],
+    ignores: ['**/*', '!src/**', '!e2e/**', '!*.config.ts', '!*.config.*js'],
   },
 
   /**
@@ -89,7 +90,13 @@ export default [
    * Handles basic ES features and import ordering
    */
   {
-    files: ['src/**/*.{js,mjs,cjs,ts,vue}', '!src/tests/**'],
+    // NOTE: in flat config, exclusions belong in block-level `ignores`, never
+    // as negated patterns inside `files` (a negated `files` entry matches
+    // every file *outside* the path, silently widening the block). Same
+    // idiom applies to the two sibling src/ blocks below. Test files have
+    // their own dedicated block further down.
+    files: ['src/**/*.{js,mjs,cjs,ts,vue}'],
+    ignores: ['src/tests/**'],
     languageOptions: {
       globals: {
         ...globals.browser,
@@ -169,11 +176,14 @@ export default [
   },
   /**
    * Typescript Rules
-   * Applies to .ts files in src/ only (excludes root config files)
-   * Configures TypeScript with type-aware linting
+   * Applies to .ts files and Vue SFC <script> blocks in src/ only
+   * (excludes root config files). Configures TypeScript with type-aware
+   * linting. The Vue block below overrides individual rules (e.g. max-len)
+   * where SFC templates need different treatment.
    */
   {
-    files: ['src/**/*.{ts,d.ts}', '!src/tests/**'],
+    files: ['src/**/*.{ts,d.ts}', 'src/**/*.vue'],
+    ignores: ['src/tests/**'],
     languageOptions: {
       parserOptions: {
         parser: parserTs,
@@ -309,7 +319,8 @@ export default [
    * Specific rules for Vue single-file components in src/ only
    */
   {
-    files: ['src/**/*.vue', '!src/tests/**'],
+    files: ['src/**/*.vue'],
+    ignores: ['src/tests/**'],
     languageOptions: {
       parser: vueEslintParser,
       parserOptions: {
@@ -442,9 +453,18 @@ export default [
     },
   },
 
-  // Include Tailwind recommended configuration
-  ...pluginTailwindCSS.configs['flat/recommended'],
+  // Include Tailwind recommended configuration, scoped to Vue SFCs only.
+  // The upstream flat/recommended configs ship without `files`, which would
+  // apply class-name linting to every file in the repo (and crash resolving
+  // the Tailwind v4 config from non-component files). No src/ .ts file uses
+  // the configured callees (classnames/clsx/ctl) or the class attribute
+  // regex, so .vue components are the only place these rules belong.
+  ...pluginTailwindCSS.configs['flat/recommended'].map((config) => ({
+    ...config,
+    files: ['src/**/*.vue'],
+  })),
   {
+    files: ['src/**/*.vue'],
     settings: {
       tailwindcss: {
         // These are the default values but feel free to customize
@@ -503,6 +523,13 @@ export default [
   /**
    * Test Files Configuration
    * Relaxes naming conventions and adds specific rules for test files
+   *
+   * NOTE: test files are deliberately excluded from the three src/ blocks
+   * above (via their `ignores: ['src/tests/**']`), so everything tests need
+   * must be declared here. Production-strictness rules (complexity, max-len,
+   * arrow-body-style, ...) used to leak in through the old negated-`files`
+   * pattern and made `pnpm lint:tests` fail; they are intentionally not
+   * re-applied here.
    */
   {
     files: ['src/tests/**/*.{ts,vue,d.ts}'],
@@ -515,6 +542,9 @@ export default [
         extraFileExtensions: ['.vue'],
       },
       globals: {
+        // Tests run under vitest (node) with a jsdom environment
+        ...globals.browser,
+        ...globals.node,
         // Vitest globals
         vitest: true,
         describe: true,
@@ -532,9 +562,24 @@ export default [
     plugins: {
       '@typescript-eslint': tseslint, // Add this line to properly register the plugin
       vue: pluginVue,
+      // Needed so `import/order: 'off'` below and inline
+      // `eslint-disable ... import/no-unresolved` directives in tests resolve
+      import: importPlugin,
     },
     rules: {
       'vue/multi-word-component-names': 'off', // Allow single-word names for test components
+
+      // Previously inherited (at error) from the src/ TS block via the
+      // negated-`files` accident; kept as a warning so the signal stays
+      // visible in editors without failing the --quiet lint:tests script.
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
 
       // Test structure rules
       'max-nested-callbacks': ['error', 6], // Prevent test suite organization from becoming too granular and hard to navigate.
@@ -568,6 +613,54 @@ export default [
       '@typescript-eslint/no-empty-function': 'off', // Allow empty mock functions
       '@typescript-eslint/no-non-null-assertion': 'off', // Allow non-null assertions in tests
       'no-console': 'off', // Allow console usage in tests
+    },
+  },
+
+  /**
+   * Playwright E2E Suite
+   * Bans the two primitives behind most E2E flake (see
+   * e2e/docs/e2e-remediation-plan.md, Phase 1):
+   *  - waitForLoadState('networkidle') / { waitUntil: 'networkidle' }
+   *  - page.waitForTimeout(...)
+   * The Phase 2.3 sweep (PR 4) removed all 341 call-sites, so both rules
+   * are 'error': new occurrences fail lint instead of accruing as
+   * warnings. Wait on the app-readiness flag instead -
+   * `await expect(page.locator('html[data-app-ready="true"]')).toBeAttached()`
+   * (canonical usage: e2e/global.setup.ts) - or use web-first assertions /
+   * waitForURL for element- and URL-level waits.
+   * Run with: pnpm lint:e2e
+   */
+  {
+    files: ['e2e/**/*.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+      parser: parserTs,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+    },
+    plugins: {
+      playwright: pluginPlaywright,
+    },
+    rules: {
+      'playwright/no-networkidle': 'error',
+      'playwright/no-wait-for-timeout': 'error',
+
+      // TODO: dead since #3414 scoped the tailwind flat/recommended spread to
+      // src/**/*.vue - these 'off' entries no longer override anything. Kept
+      // only to avoid churning lines the in-flight e2e sweep branch (#3416)
+      // sits next to; remove in the follow-up.
+      'tailwindcss/classnames-order': 'off',
+      'tailwindcss/enforces-negative-arbitrary-values': 'off',
+      'tailwindcss/enforces-shorthand': 'off',
+      'tailwindcss/migration-from-tailwind-2': 'off',
+      'tailwindcss/no-arbitrary-value': 'off',
+      'tailwindcss/no-custom-classname': 'off',
+      'tailwindcss/no-contradicting-classname': 'off',
+      'tailwindcss/no-unnecessary-arbitrary-value': 'off',
     },
   },
 

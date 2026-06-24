@@ -106,14 +106,18 @@ module Onetime
         defaults_file = Onetime::Utils::ConfigResolver.defaults_path('logging')
         override_file = Onetime::Utils::ConfigResolver.resolve('logging')
 
+        # safe_load prevents a malicious logger config from instantiating
+        # arbitrary Ruby objects; Symbol is permitted because log levels and
+        # category keys are symbols. aliases: true keeps YAML anchors working
+        # for shared formatter/appender settings.
         base_config = if defaults_file
-          YAML.load(ERB.new(File.read(defaults_file)).result) || {}
+          YAML.safe_load(ERB.new(File.read(defaults_file)).result, permitted_classes: [Symbol], aliases: true) || {}
         else
           {}
         end
 
         env_config = if override_file && override_file != defaults_file
-          YAML.load(ERB.new(File.read(override_file)).result) || {}
+          YAML.safe_load(ERB.new(File.read(override_file)).result, permitted_classes: [Symbol], aliases: true) || {}
         else
           {}
         end

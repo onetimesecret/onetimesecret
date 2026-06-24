@@ -209,7 +209,10 @@ export function useSsoConfig(domainExtId: string) {
       } else {
         formState.value = createDefaultFormState();
       }
-      savedFormState.value = { ...formState.value, allowed_domains: [...formState.value.allowed_domains] };
+      savedFormState.value = {
+        ...formState.value,
+        allowed_domains: [...formState.value.allowed_domains],
+      };
       isInitialized.value = true;
     });
 
@@ -247,7 +250,10 @@ export function useSsoConfig(domainExtId: string) {
       if (result?.record) {
         ssoConfig.value = result.record;
         formState.value = configToFormState(result.record);
-        savedFormState.value = { ...formState.value, allowed_domains: [...formState.value.allowed_domains] };
+        savedFormState.value = {
+          ...formState.value,
+          allowed_domains: [...formState.value.allowed_domains],
+        };
         notifications.show(t('web.domains.sso.update_success'), 'success', 'top');
       }
     } finally {
@@ -267,7 +273,10 @@ export function useSsoConfig(domainExtId: string) {
         await SsoService.deleteConfigForDomain(domainExtId);
         ssoConfig.value = null;
         formState.value = createDefaultFormState();
-        savedFormState.value = { ...formState.value, allowed_domains: [...formState.value.allowed_domains] };
+        savedFormState.value = {
+          ...formState.value,
+          allowed_domains: [...formState.value.allowed_domains],
+        };
         notifications.show(t('web.domains.sso.delete_success'), 'success', 'top');
       });
     } finally {

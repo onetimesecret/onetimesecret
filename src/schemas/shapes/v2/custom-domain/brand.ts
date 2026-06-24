@@ -3,9 +3,10 @@
 // V2 wire-format shapes for brand settings.
 // Uses string transforms for boolean fields (V2 sends "true"/"false" strings).
 
-import { localeSchema } from '@/schemas/i18n/locale';
+import { localeCodeSchema } from '@/schemas/i18n/locale';
 import { transforms } from '@/schemas/transforms';
 import { fontFamilyValues, cornerStyleValues } from '@/schemas/contracts';
+import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
 import { z } from 'zod';
 
 // Re-export UI helpers from shared location for backward compatibility.
@@ -39,7 +40,7 @@ export {
  * @example
  * ```typescript
  * const brand = brandSettingsSchema.parse({
- *   primary_color: '#dc4a22',
+ *   primary_color: '#3B82F6',
  *   button_text_light: 'false', // V2 sends as string
  * });
  * ```
@@ -49,7 +50,7 @@ export const brandSettingschema = z
     primary_color: z
       .string()
       .regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color')
-      .default('#dc4a22'), // Default to Onetime Secret brand colour
+      .default(NEUTRAL_BRAND_DEFAULTS.primary_color), // Neutral default, not OTS brand
     colour: z.string().optional(),
     instructions_pre_reveal: z.string().nullish(),
     instructions_reveal: z.string().nullish(),
@@ -62,7 +63,7 @@ export const brandSettingschema = z
     // returned by older backends are silently dropped by Zod (strict object).
     font_family: z.enum(fontFamilyValues).default('sans'),
     corner_style: z.enum(cornerStyleValues).default('rounded'),
-    locale: localeSchema.default('en'),
+    locale: localeCodeSchema.default('en'),
     default_ttl: transforms.fromString.number.nullish(),
     passphrase_required: transforms.fromString.boolean.default(false),
     notify_enabled: transforms.fromString.boolean.default(false),

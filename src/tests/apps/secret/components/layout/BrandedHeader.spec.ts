@@ -71,6 +71,7 @@ describe('BrandedHeader', () => {
       domain_logo?: string | null;
       domain_branding?: Record<string, unknown>;
       homepage_config?: Record<string, unknown> | null;
+      header?: Record<string, unknown>;
     } = {}
   ) => {
     const pinia = createTestingPinia({
@@ -95,7 +96,7 @@ describe('BrandedHeader', () => {
           },
           homepage_config: storeOverrides.homepage_config ?? null,
           ui: {
-            header: {
+            header: storeOverrides.header ?? {
               navigation: { enabled: true },
               branding: {
                 logo: { url: 'DefaultLogo.vue', alt: 'Onetime Secret' },
@@ -224,6 +225,40 @@ describe('BrandedHeader', () => {
       // The outer header exists but inner content is hidden via v-if
       expect(wrapper.find('.standard-masthead').exists()).toBe(false);
       expect(wrapper.find('.branded-masthead').exists()).toBe(false);
+    });
+  });
+
+  // HEADER_ENABLED gate (#3362): operator config collapses the entire
+  // <header> banner landmark — no empty landmark, no whitespace band.
+  describe('HEADER_ENABLED gate', () => {
+    it('removes the <header> element when header.enabled is false', async () => {
+      wrapper = mountComponent({}, {
+        domain_strategy: 'canonical',
+        header: { enabled: false },
+      });
+
+      await nextTick();
+      expect(wrapper.find('header').exists()).toBe(false);
+      // Content collapses with the landmark, not merely emptied.
+      expect(wrapper.find('.standard-masthead').exists()).toBe(false);
+      expect(wrapper.find('.branded-masthead').exists()).toBe(false);
+    });
+
+    it('renders the <header> element when header.enabled is true', async () => {
+      wrapper = mountComponent({}, {
+        domain_strategy: 'canonical',
+        header: { enabled: true },
+      });
+
+      await nextTick();
+      expect(wrapper.find('header').exists()).toBe(true);
+    });
+
+    it('renders the <header> element when header.enabled is omitted (default true)', async () => {
+      wrapper = mountComponent({}, { domain_strategy: 'canonical' });
+
+      await nextTick();
+      expect(wrapper.find('header').exists()).toBe(true);
     });
   });
 });

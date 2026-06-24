@@ -26,7 +26,10 @@
 #
 # See: docs/authentication/omniauth-sso.md (full configuration guide)
 # See: lib/onetime/models/custom_domain/sso_config.rb (per-domain SSO config)
+# See: lib/onetime/models/custom_domain/signin_config.rb (SSO activation authority)
 #
+
+require 'onetime/models/custom_domain/signin_config'
 
 module Auth::Config::Hooks
   module OmniAuthTenant
@@ -115,15 +118,23 @@ module Auth::Config::Hooks
           next # Continue with platform defaults (if allowed)
         end
 
-        # Look up domain-specific SSO configuration
-        sso_config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(custom_domain.identifier)
+        # Look up domain-specific SSO configuration (credentials store) and
+        # gate it on SigninConfig.sso_permitted_for? — the shared activation
+        # authority. This is the runtime half of the parity gate; the display
+        # half lives in config_serializer.rb#resolve_tenant_sso_config and
+        # consults the same predicate. The two MUST produce the same
+        # active/inactive decision for any domain so the SSO button is never
+        # shown when this route would reject (and never hidden when it works).
+        sso_config    = Onetime::CustomDomain::SsoConfig.find_by_domain_id(custom_domain.identifier)
+        sso_permitted = Onetime::CustomDomain::SigninConfig.sso_permitted_for?(custom_domain.identifier)
 
-        unless sso_config&.enabled?
+        unless sso_config&.enabled? && sso_permitted
           Auth::Logging.log_auth_event(
             :omniauth_tenant_sso_not_enabled,
             level: :info,
             host: host,
             domain_id: custom_domain.identifier,
+            sso_permitted: sso_permitted,
           )
 
           # Check if we should fall back to platform credentials

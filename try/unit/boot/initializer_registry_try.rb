@@ -592,3 +592,24 @@ discovered = Onetime::Boot::InitializerRegistry.discover { |k|
 }
 discovered.include?(@dsl_not_discoverable)
 #=> false
+
+# ============================================================
+# Teardown: remove the singleton-method mocks installed at the
+# top of this file so they don't leak into later try files run
+# under tryouts' shared (single-process) mode.
+#
+# Without this teardown, Onetime.app_logger remains a stdlib
+# Logger.new('/dev/null') for the rest of the run. When a later
+# file boots OT and calls Onetime.app_logger.debug(msg, payload)
+# (SemanticLogger-style 2-arg signature), stdlib Logger#debug
+# only accepts (progname=nil, &block) and raises:
+#   ArgumentError: wrong number of arguments (given 2, expected 0..1)
+#
+# This bit try/unit/web/page_title_brand_fallback_try.rb on
+# Ruby 3.4 CI (PR #3054 / issue #3048).
+# ============================================================
+[:now_in_μs, :debug?, :app_logger].each do |m|
+  ::Onetime.singleton_class.send(:remove_method, m)
+rescue NameError
+  # Already absent (e.g. file run in isolation); nothing to do.
+end

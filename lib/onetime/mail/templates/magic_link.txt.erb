@@ -6,10 +6,6 @@
 
 <%= t('email.magic_link.ignore_notice') %>
 
-<%= t('email.magic_link.signature') %>
+<%= signature_name || t('email.magic_link.signature') %>
 
 <%= t('email.magic_link.postscript', email_address: email_address) %>
-
---
-<%= product_name %>
-<%= baseuri %>

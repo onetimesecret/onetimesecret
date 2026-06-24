@@ -3,6 +3,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import MastHead from '@/shared/components/layout/MastHead.vue';
+  import { useHeaderEnabled } from '@/shared/composables/useHeaderEnabled';
   import { useAuthStore } from '@/shared/stores/authStore';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import type { LayoutProps } from '@/types/ui/layouts';
@@ -24,6 +25,12 @@
 
   const isUserPresent = computed(() => authStore.isUserPresent);
 
+  // Operator-level header gate (HEADER_ENABLED), shared via composable. When
+  // disabled, the entire <header> banner landmark collapses — no empty
+  // landmark, no padding band. Distinct from displayHeader (per-route
+  // concern); both must hold to render (see template v-if).
+  const { headerEnabled } = useHeaderEnabled();
+
   // Per-domain link toggles (custom-domain homepage). Default to enabled
   // when no domain config exists. System-level flags remain the master
   // switch — both layers must be true for the link to render.
@@ -40,7 +47,7 @@
 
 <template>
   <header
-    v-if="displayHeader"
+    v-if="displayHeader && headerEnabled"
     class="bg-white dark:bg-gray-900">
     <div class="container mx-auto min-w-[320px] max-w-2xl p-4">
       <MastHead v-if="displayMasthead" v-bind="props" />

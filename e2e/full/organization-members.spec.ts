@@ -19,7 +19,7 @@
  * - Owner role cannot be assigned via UI
  *
  * Prerequisites:
- * - Set TEST_USER_EMAIL and TEST_USER_PASSWORD environment variables (org owner)
+ * - Authenticated as the org owner via the project storageState (e2e/global.setup.ts consumes TEST_USER_*)
  * - Set TEST_ADMIN_EMAIL and TEST_ADMIN_PASSWORD for admin user tests (optional)
  * - Set TEST_MEMBER_EMAIL and TEST_MEMBER_PASSWORD for member user tests (optional)
  * - Application running locally or PLAYWRIGHT_BASE_URL set
@@ -52,28 +52,42 @@ interface OrgInfo {
 // -----------------------------------------------------------------------------
 
 /**
- * Authenticate user via login form
+ * Sign in as a *different* account than the shared session (e.g. the
+ * TEST_ADMIN_* / TEST_MEMBER_* role accounts in the hierarchy/permission
+ * suites below).
+ *
+ * The `full` project starts every test already authenticated as TEST_USER_*
+ * via storageState (e2e/playwright.config.ts), so the session must be
+ * dropped first — an authenticated visitor to /signin is redirected away
+ * and never sees the form.
  */
 async function loginUser(page: Page, email?: string, password?: string): Promise<void> {
+  await page.context().clearCookies();
   await page.goto('/signin');
 
   // Click Password tab - Magic Link is the default, password input is hidden
+  // Handle both signin variants (canonical logic: e2e/global.setup.ts):
+  // default deployments render SignInForm directly (the CI container does);
+  // passwordless-first deployments hide the password panel behind a
+  // "Password" tab with different test ids.
+  const signinEmail = email || process.env.TEST_USER_EMAIL || '';
+  const signinPassword = password || process.env.TEST_USER_PASSWORD || '';
+  const signinForm = page.getByTestId('signin-form');
   const passwordTab = page.getByRole('tab', { name: /password/i });
-  await passwordTab.waitFor({ state: 'visible', timeout: 5000 });
-  await passwordTab.click();
+  await expect(signinForm.or(passwordTab).first()).toBeVisible();
 
-  // Wait for password input to be visible after tab switch
-  const passwordInput = page.locator('input[type="password"]');
-  await passwordInput.waitFor({ state: 'visible', timeout: 5000 });
-
-  // Fill the form
-  const emailInput = page.locator('#signin-email-password');
-  await emailInput.fill(email || process.env.TEST_USER_EMAIL || '');
-  await passwordInput.fill(password || process.env.TEST_USER_PASSWORD || '');
-
-  // Submit
-  const submitButton = page.locator('button[type="submit"]');
-  await submitButton.click();
+  if (await passwordTab.isVisible()) {
+    // Passwordless-first variant (magic links / WebAuthn enabled)
+    await passwordTab.click();
+    await page.getByTestId('password-email-input').fill(signinEmail);
+    await page.getByTestId('password-input').fill(signinPassword);
+    await page.getByTestId('password-submit').click();
+  } else {
+    // Password-only variant (CI container default)
+    await page.getByTestId('signin-email-input').fill(signinEmail);
+    await page.getByTestId('signin-password-input').fill(signinPassword);
+    await page.getByTestId('signin-submit').click();
+  }
 
   // Wait for redirect to dashboard/account
   await page.waitForURL(/\/(account|dashboard|org)/, { timeout: 30000 });
@@ -84,7 +98,7 @@ async function loginUser(page: Page, email?: string, password?: string): Promise
  */
 async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
   await page.goto('/orgs');
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   const orgsList = page.getByTestId('organizations-list');
   const isOrgListVisible = await orgsList.isVisible().catch(() => false);
@@ -117,7 +131,7 @@ async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
 async function navigateToOrgTeam(page: Page, orgExtid?: string): Promise<string> {
   if (orgExtid) {
     await page.goto(`/org/${orgExtid}/team`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
     return orgExtid;
   }
 
@@ -127,7 +141,7 @@ async function navigateToOrgTeam(page: Page, orgExtid?: string): Promise<string>
   }
 
   await page.goto(`/org/${org.extid}/team`);
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
   return org.extid;
 }
 
@@ -185,11 +199,8 @@ async function getInvitationToken(page: Page, email: string): Promise<string | n
 // -----------------------------------------------------------------------------
 
 test.describe('MBR-LIST: Organization Members List', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('MBR-LIST-001: Team tab appears in organization settings navigation', async ({ page }) => {
@@ -200,7 +211,7 @@ test.describe('MBR-LIST: Organization Members List', () => {
     }
 
     await page.goto(`/org/${org.extid}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Check if team tab is visible (feature may be gated)
     const teamTab = page.getByTestId('org-tab-members');
@@ -224,7 +235,7 @@ test.describe('MBR-LIST: Organization Members List', () => {
 
     // Navigate directly to team tab
     await page.goto(`/org/${org.extid}/team`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Check if we're on team tab or redirected (feature may be gated)
     const url = page.url();
@@ -273,11 +284,8 @@ test.describe('MBR-LIST: Organization Members List', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('MBR-INVITE: Invite Member Flow', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('MBR-INVITE-001: Owner can see and click Invite Member button', async ({ page }) => {
@@ -341,12 +349,17 @@ test.describe('MBR-INVITE: Invite Member Flow', () => {
     // Pending invitation should appear in list
     await expect(page.getByText(testEmail)).toBeVisible({ timeout: 10000 });
 
-    // Pending badge should be visible
+    // Pending badge should be visible. Scope to this invitation's row
+    // (data-testid="org-invitation-row" in OrganizationSettings.vue) — a
+    // bare .rounded-md matches the list container too, so the badge filter
+    // would resolve to every pending invitation in the org (strict-mode
+    // violation once prior runs leave rows behind).
     const pendingBadge = page
-      .locator('.rounded-md')
+      .getByTestId('org-invitation-row')
       .filter({ hasText: testEmail })
       .locator('span')
-      .filter({ hasText: /pending/i });
+      .filter({ hasText: /pending/i })
+      .first();
     await expect(pendingBadge).toBeVisible();
   });
 
@@ -364,7 +377,7 @@ test.describe('MBR-INVITE: Invite Member Flow', () => {
     const emailInput = page.locator('#invite-email');
     await emailInput.fill('invalid-email');
 
-    const sendButton = page.getByRole('button', { name: /send invite/i });
+    const sendButton = page.getByRole('button', { name: /send invit/i });
     await sendButton.click();
 
     // Should show validation error or HTML5 validation prevents submission
@@ -382,9 +395,9 @@ test.describe('MBR-INVITE: Invite Member Flow', () => {
     }
 
     // Get the owner's email (who is already a member)
-    const bootstrapResponse = await page.request.get('/api/v2/bootstrap/authenticated');
+    const bootstrapResponse = await page.request.get('/bootstrap/me');
     const bootstrapData = await bootstrapResponse.json();
-    const ownerEmail = bootstrapData.record?.email;
+    const ownerEmail = bootstrapData.email;
 
     if (!ownerEmail) {
       test.skip(true, 'Could not get owner email from bootstrap');
@@ -398,11 +411,13 @@ test.describe('MBR-INVITE: Invite Member Flow', () => {
     const emailInput = page.locator('#invite-email');
     await emailInput.fill(ownerEmail);
 
-    const sendButton = page.getByRole('button', { name: /send invite/i });
+    const sendButton = page.getByRole('button', { name: /send invit/i });
     await sendButton.click();
 
-    // Should show error about already being a member
-    await expect(page.getByText(/already|member|exists/i)).toBeVisible({ timeout: 10000 });
+    // Should show error about already being a member. Keep the pattern
+    // specific: bare /member/i matches the team page chrome (Invite Member
+    // button, Members heading) and trips strict mode.
+    await expect(page.getByText(/already a member/i)).toBeVisible({ timeout: 10000 });
   });
 });
 
@@ -411,11 +426,8 @@ test.describe('MBR-INVITE: Invite Member Flow', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('MBR-ROLE: Change Member Role', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('MBR-ROLE-001: Owner sees role selector dropdown for non-owner members', async ({
@@ -554,11 +566,8 @@ test.describe('MBR-ROLE: Change Member Role', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('MBR-REMOVE: Remove Member', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('MBR-REMOVE-001: Owner sees remove button for non-owner members', async ({ page }) => {
@@ -696,14 +705,13 @@ test.describe('MBR-REMOVE: Remove Member', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('MBR-INVMGMT: Invitation Management', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
-  test('MBR-INVMGMT-001: Owner can resend pending invitation', async ({ page }) => {
+  // fixme: needs a seeded pending invitation in the org; CI has no such fixture,
+  // so the invitation row never renders. See #3419.
+  test.fixme('MBR-INVMGMT-001: Owner can resend pending invitation', async ({ page }) => {
     try {
       await navigateToOrgTeam(page);
     } catch {
@@ -730,7 +738,9 @@ test.describe('MBR-INVMGMT: Invitation Management', () => {
     await expect(page.getByText(testEmail)).toBeVisible();
   });
 
-  test('MBR-INVMGMT-002: Owner can revoke pending invitation', async ({ page }) => {
+  // fixme: needs a seeded pending invitation in the org; CI has no such fixture,
+  // so the invitation row never renders. See #3419.
+  test.fixme('MBR-INVMGMT-002: Owner can revoke pending invitation', async ({ page }) => {
     try {
       await navigateToOrgTeam(page);
     } catch {
@@ -767,15 +777,13 @@ test.describe('MBR-INVMGMT: Invitation Management', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('MBR-ACCEPT: Accept Invitation Flow', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
-  test('MBR-ACCEPT-001: Valid invitation token shows invitation details', async ({
+  // fixme: needs a valid seeded invitation token to render the details view;
+  // CI cannot seed the invitation relationship. See #3419.
+  test.fixme('MBR-ACCEPT-001: Valid invitation token shows invitation details', async ({
     page,
     context,
   }) => {
-    // Create invitation as owner
-    await loginUser(page);
-
+    // Create invitation as owner (storageState session)
     let orgExtid: string;
     try {
       orgExtid = await navigateToOrgTeam(page);
@@ -794,7 +802,7 @@ test.describe('MBR-ACCEPT: Accept Invitation Flow', () => {
 
     // Visit invitation link
     await page.goto(`/invite/${token}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Invitation details should be visible
     const invitationDetails = page.getByTestId('invitation-details');
@@ -804,13 +812,13 @@ test.describe('MBR-ACCEPT: Accept Invitation Flow', () => {
     await expect(page.getByText(/invited/i)).toBeVisible();
   });
 
-  test('MBR-ACCEPT-002: Unauthenticated user sees sign-in form (signin_required state)', async ({
+  // fixme: needs a valid seeded invitation token to reach the signin_required
+  // state; CI cannot seed the invitation relationship. See #3419.
+  test.fixme('MBR-ACCEPT-002: Unauthenticated user sees sign-in form (signin_required state)', async ({
     page,
     context,
   }) => {
-    // Create invitation as owner
-    await loginUser(page);
-
+    // Create invitation as owner (storageState session)
     try {
       await navigateToOrgTeam(page);
     } catch {
@@ -828,7 +836,7 @@ test.describe('MBR-ACCEPT: Accept Invitation Flow', () => {
 
     // Visit invitation as unauthenticated user
     await page.goto(`/invite/${token}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // In signin_required state, the component shows inline sign-in form
     // Sign-in notice should be visible (not accept/decline buttons)
@@ -847,9 +855,7 @@ test.describe('MBR-ACCEPT: Accept Invitation Flow', () => {
     page,
     context,
   }) => {
-    // Create invitation as owner
-    await loginUser(page);
-
+    // Create invitation as owner (storageState session)
     try {
       await navigateToOrgTeam(page);
     } catch {
@@ -867,7 +873,7 @@ test.describe('MBR-ACCEPT: Accept Invitation Flow', () => {
 
     // Visit invitation as unauthenticated user
     await page.goto(`/invite/${token}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // In signin_required state, decline button is NOT shown
     // User must authenticate first to accept or decline

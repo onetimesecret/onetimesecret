@@ -3,10 +3,10 @@
 # frozen_string_literal: true
 
 require_relative '../views'
-require 'onetime/helpers/client_ip_helpers'
 require 'onetime/helpers/session_helpers'
 require 'onetime/helpers/homepage_mode_helpers'
 require 'onetime/controllers/organization_context'
+require 'onetime/logic/signup_config_resolution'
 
 module Core
   module Controllers
@@ -15,6 +15,7 @@ module Core
       include Onetime::Helpers::SessionHelpers
       include Onetime::Helpers::HomepageModeHelpers
       include Onetime::Controllers::OrganizationContext
+      include Onetime::Logic::SignupConfigResolution
 
       attr_reader :req, :res, :locale
 
@@ -152,18 +153,45 @@ module Core
 
       protected
 
+      # Runtime gate for POST /signin. Delegates to the shared resolver so the
+      # global kill switch (AUTH_ENABLED / AUTH_SIGNIN) always wins: a per-domain
+      # SigninConfig can only narrow availability, never re-enable sign-in that
+      # is disabled globally. Keep in lockstep with ConfigSerializer#resolve_signin.
       def signin_enabled?
-        auth_settings['enabled'] && auth_settings['signin']
+        global = auth_settings['enabled'] && auth_settings['signin']
+        Onetime::CustomDomain::SigninConfig.resolve_signin_enabled(global, domain_signin_config)
       end
 
+      # Runtime gate for POST /signup. Same AND semantics as signin_enabled?:
+      # a per-domain SignupConfig can only narrow availability, never re-enable
+      # signup that is disabled globally (AUTH_ENABLED / AUTH_SIGNUP).
       def signup_enabled?
-        auth_settings['enabled'] && auth_settings['signup']
+        global = auth_settings['enabled'] && auth_settings['signup']
+        Onetime::CustomDomain::SignupConfig.resolve_signup_enabled(global, domain_signup_config)
       end
 
       private
 
       def auth_settings
         OT.conf.dig('site', 'authentication')
+      end
+
+      def signup_config_display_domain
+        req.env['onetime.display_domain']
+      end
+
+      def signup_config_auth_setting(key)
+        auth_settings[key]
+      end
+
+      def domain_signin_config
+        display_domain = req.env['onetime.display_domain']
+        return unless display_domain
+
+        custom_domain = Onetime::CustomDomain.load_by_display_domain(display_domain)
+        return unless custom_domain
+
+        Onetime::CustomDomain::SigninConfig.find_by_domain_id(custom_domain.identifier)
       end
 
       # Returns the StrategyResult created by Otto's RouteAuthWrapper

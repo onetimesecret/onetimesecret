@@ -39,14 +39,17 @@ declare -A LINKS=(
     ["data"]="data"
     ["Procfile.dev"]="Procfile.dev"
     ["Procfile.volatile"]="Procfile.volatile"
+    [".env"]="dotenv-main"
     [".env.test"]=".env.test"
+    [".env.local"]=".env.local"
     ["etc/puma.rb"]="puma.rb"
 )
 
-# Optional: .env if you have one
-if [[ -f "$OTS_DEV_CONFIG/.env" ]]; then
-    LINKS[".env"]=".env"
-fi
+# .env is a shared symlink to OTS_DEV_CONFIG/dotenv-main (the main env file,
+# named without a leading dot so it is visible in the shared config dir).
+# Machine-specific overrides go in .env.local, shared from OTS_DEV_CONFIG via
+# the LINKS entry above and loaded after .env by .envrc. The in-repo
+# .env.example remains the full reference config to copy from.
 
 # Generate .envrc for direnv-based env loading.
 # Creates the file if missing; leaves it alone if present so local
@@ -76,6 +79,14 @@ if [ -f .test-mode ]; then
 else
   export OTS_ENV_LOADED=dev
   dotenv_if_exists
+
+  # .env.local overrides happen last if the file exists. And only in dev mode.
+  #
+  # Because each dotenv call just exports variables into the same sub-shell, the order
+  # you write them determines precedence — later calls override earlier ones. So
+  # .env.local values would win over .env values in the above setup.
+  #
+  test -f .env.local && dotenv .env.local
 fi
 ENVRC
     echo "Created: .envrc"
@@ -275,7 +286,6 @@ if [[ ! -d "$OTS_DEV_CONFIG" ]]; then
     for shared_name in "${LINKS[@]}"; do
         echo "    - $shared_name"
     done
-    echo "    - .env  (optional)"
     echo "  Or point OTS_DEV_CONFIG at an existing directory."
     echo ""
 fi
@@ -297,6 +307,12 @@ fi
 # Fall back to local copies when symlink sources are absent.
 # Remove dangling symlinks first — [[ ! -e ]] is true for broken symlinks
 # but cp will fail because the link path still exists in the directory.
+if [[ ! -e ".env" && ! -e "$OTS_DEV_CONFIG/${LINKS[.env]}" && -f ".env.example" ]]; then
+    [[ -L ".env" ]] && rm ".env"
+    cp .env.example .env
+    echo "Copy: .env.example -> .env (no shared source)"
+fi
+
 if [[ ! -e "Procfile.dev" && -f "Procfile.dev.example" ]]; then
     [[ -L "Procfile.dev" ]] && rm "Procfile.dev"
     cp Procfile.dev.example Procfile.dev

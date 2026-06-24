@@ -10,7 +10,11 @@ const isLoading = ref(false);
 
 export function useDomainDropdown() {
   const bootstrapStore = useBootstrapStore();
-  const { domains_enabled: domainsEnabled, site_host, custom_domains } = storeToRefs(bootstrapStore);
+  const {
+    domains_enabled: domainsEnabled,
+    site_host,
+    custom_domains,
+  } = storeToRefs(bootstrapStore);
 
   // Build initial available domains from store values
   const defaultDomain = site_host.value;

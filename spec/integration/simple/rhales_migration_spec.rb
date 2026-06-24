@@ -230,6 +230,37 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
       end
     end
 
+    context 'Favicon and social variety pack' do
+      it 'emits the neutral SVG favicon for canonical installs (no brand override)' do
+        svg_icon = doc.css('link[rel="icon"][type="image/svg+xml"]')
+        expect(svg_icon).not_to be_empty
+        expect(svg_icon.first['href']).to eq('/favicon.svg')
+      end
+
+      it 'still emits the legacy .ico favicon link' do
+        hrefs = doc.css('link[rel="icon"]').map { |l| l['href'] }
+        expect(hrefs).to include('/favicon.ico')
+      end
+
+      it 'emits the apple-touch-icon link' do
+        expect(doc.css('link[rel="apple-touch-icon"]')).not_to be_empty
+      end
+
+      it 'emits the web manifest link' do
+        expect(doc.css('link[rel="manifest"]')).not_to be_empty
+      end
+
+      it 'emits og:image and twitter:image' do
+        expect(doc.css('meta[property="og:image"]')).not_to be_empty
+        expect(doc.css('meta[name="twitter:image"]')).not_to be_empty
+      end
+
+      it 'emits mobile web app metadata' do
+        expect(doc.css('meta[name="apple-mobile-web-app-title"]')).not_to be_empty
+        expect(doc.css('meta[name="application-name"]')).not_to be_empty
+      end
+    end
+
     context 'Vite Asset Loading' do
       # Note: These tests verify that vite_assets_html is included in the template.
       # The actual asset paths depend on whether a manifest exists and development mode.

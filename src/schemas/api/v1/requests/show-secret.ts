@@ -9,8 +9,8 @@ import { z } from 'zod';
 export const showSecretRequestSchema = z.object({
   /**
    * Do we include the secret here `key`?
-   * No. The key is a path parameter (/secret/:key), not a body/query parameter. The generator already handles path
-     params mechanically in buildPathParameters
+   * No. The key is a path parameter (/secret/:key), not a body/query parameter.
+   * The generator already handles path params mechanically in buildPathParameters
    * */
   /** Passphrase if the secret is protected */
   passphrase: z.string().optional(),

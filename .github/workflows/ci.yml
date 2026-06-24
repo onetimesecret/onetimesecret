@@ -132,6 +132,7 @@ jobs:
             frontend:
               - 'src/**'
               - 'public/**'
+              - 'scripts/branding/**'
               - 'package.json'
               - 'pnpm-lock.yaml'
               - 'vite.config.ts'
@@ -260,6 +261,13 @@ jobs:
 
       - name: Setup Node.js environment
         uses: ./.github/actions/setup-node-env
+
+      # Guard against branding asset drift: the committed neutral favicon/icon
+      # text assets must match scripts/branding/mark.mjs (the single source of
+      # truth). Node-only, no sharp install required. See
+      # docs/customization/branding-favicon.md.
+      - name: Verify branding assets are in sync
+        run: pnpm run gen:favicons:check
 
       - name: Build assets
         run: pnpm run build
@@ -511,6 +519,17 @@ jobs:
           auth-mode: simple
           rabbitmq-url: 'amqp://guest:guest@localhost:5672'
           results-file: 'rspec_simple_results.json'
+
+      # API contract specs (spec/api/) — a different axis than auth mode.
+      # Non-blocking so the lane is RUN on every PR (preventing the silent
+      # re-orphaning these specs already suffered) while a subset is red
+      # against the membership-based entitlement contract (#3225 / ADR-012
+      # Stage 3). Remove continue-on-error once #3225 greens the lane.
+      - name: Run API contract specs (spec/api, non-blocking)
+        continue-on-error: true
+        env:
+          REDIS_URL: 'redis://127.0.0.1:2121/0'
+        run: bundle exec rake spec:api
 
   ruby-integration-full:
     name: 'T3 · Ruby Integration (Full, ${{ matrix.name }})'

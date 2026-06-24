@@ -476,7 +476,7 @@
     "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Узнайте, как интегрировать Onetime Secret в свои приложения",
+    "text": "Узнайте, как интегрировать {product_name} в свои приложения",
     "source_hash": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {

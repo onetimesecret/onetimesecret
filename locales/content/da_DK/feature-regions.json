@@ -152,7 +152,7 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Hvis din fakturerings-e-mail er forskellig fra din Onetime Secret konto-e-mail, brug fakturerings-e-mailen til den nye regionskonto for at bevare dine abonnementsfordele.",
+    "text": "Hvis din fakturerings-e-mail er forskellig fra din {product_name} konto-e-mail, brug fakturerings-e-mailen til den nye regionskonto for at bevare dine abonnementsfordele.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {

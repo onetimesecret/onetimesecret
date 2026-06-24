@@ -154,6 +154,10 @@ entitlements:
     category: advanced
     description: Single sign-on configuration and management
 
+  custom_signin_config:
+    category: advanced
+    description: Per-domain sign-in configuration (allowed methods, SSO provider settings)
+
   custom_signup_validation:
     category: advanced
     description: Per-domain signup validation strategy (passthrough, allowlist, MX, SMTP)
@@ -227,6 +231,7 @@ plans:
       - custom_domains
       - custom_mail_sender
       - custom_privacy_defaults
+      - custom_signin_config
       - extended_default_expiration
       - homepage_secrets
       - incoming_secrets
@@ -287,6 +292,7 @@ plans:
   #     - homepage_secrets
   #     - incoming_secrets
   #     - custom_mail_sender
+  #     - custom_signin_config
   #     - flexible_from_domain
   #     - extended_default_expiration
   #     - manage_teams
