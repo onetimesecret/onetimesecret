@@ -167,7 +167,10 @@ async function getInvitationToken(page: Page, email: string): Promise<string | n
 // -----------------------------------------------------------------------------
 
 test.describe('INV-001: New User Atomic Signup Flow', () => {
-  test('new user can signup and join organization atomically', async ({ page, context }) => {
+  // fixme: needs a brand-new second account to accept the seeded invite (+ a
+  // mail interceptor for verification); CI provisions only the single owner
+  // account, so the accept-invitation UI never renders. See #3421.
+  test.fixme('new user can signup and join organization atomically', async ({ page, context }) => {
     // Setup: create an invitation for a new email (storageState session is the org owner)
     const invitedEmail = generateTestEmail('new-user-signup');
     const testPassword = 'TestPassword123!';

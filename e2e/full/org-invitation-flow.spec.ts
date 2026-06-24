@@ -484,7 +484,10 @@ test.describe('INV-007a: Authenticated Decline Flow', () => {
 });
 
 test.describe('INV-007b: Unauthenticated Decline Flow', () => {
-  test('Unauthenticated user can decline invitation without signing in', async ({
+  // fixme: needs a real pending invitation seeded for an unauthenticated
+  // decline; CI cannot seed that invitation relationship, so the decline lands
+  // on an unexpected URL. See #3421.
+  test.fixme('Unauthenticated user can decline invitation without signing in', async ({
     page,
     context,
   }) => {

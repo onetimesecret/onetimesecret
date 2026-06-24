@@ -33,7 +33,21 @@
 
 import { expect, Page, test } from '@playwright/test';
 
+import { env, gateReason } from '../support/env';
+
 const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD);
+
+// HOLDING ACTION — not coverage (E2E remediation plan Phase 2.4 / PR 5).
+// Every test drives the custom-domain incoming-secrets pages
+// (/org/:id/domains/:extid/incoming), which require a custom domain on the test
+// account — optional deployment config, so env-gate rather than fixme (issue
+// #3420). No CI lane sets E2E_CUSTOM_DOMAINS, so this suite is DORMANT in CI:
+// gating in a top-level beforeEach skips before the org/domain DOM helpers run,
+// so CI no longer times out here (these were among the container-e2e failures).
+// Matches the sibling domain-* suites already listed in e2e/QUARANTINE.md.
+test.beforeEach(() => {
+  test.skip(!env.hasCustomDomains, gateReason.customDomains);
+});
 
 // -----------------------------------------------------------------------------
 // Types

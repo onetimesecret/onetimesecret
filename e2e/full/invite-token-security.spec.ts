@@ -270,7 +270,10 @@ test.describe('SEC-INV-002: Garbage invite_token does NOT suppress verification'
 // -----------------------------------------------------------------------------
 
 test.describe('SEC-INV-003: Valid invite_token auto-login works', () => {
-  test('signup with valid invite_token auto-logs-in and auto-verifies the user', async ({
+  // fixme: needs a seeded invite_token consumed by a fresh signup; CI has no
+  // second account / mail interceptor, so the invite-direct-accept UI never
+  // renders. See #3421.
+  test.fixme('signup with valid invite_token auto-logs-in and auto-verifies the user', async ({
     page,
     context,
   }) => {
