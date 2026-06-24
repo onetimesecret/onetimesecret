@@ -221,21 +221,15 @@ jobs:
           echo "::add-mask::$TEST_USER_PASSWORD"
           export TEST_USER_PASSWORD
 
-          # Run 'all/' (credential-free) and 'full/' (authenticated via the
-          # setup project + storageState; see e2e/playwright.config.ts).
-          # 'full-billing/' additionally requires billing to be enabled on
-          # the container, which CI does not configure yet. The trailing
-          # slashes matter: CLI filters are partial-path matches, so a bare
-          # 'e2e/full' would also pull in 'e2e/full-billing/'.
-          #
-          # --max-failures=20: the full/ suite is newly enabled and still
-          # being triaged (e2e/docs/e2e-remediation-plan.md, Phase 2). At 5,
-          # one failure class aborts the run and hides everything behind it
-          # ("272 did not run" on the first #3412 run); 20 keeps the
-          # circuit-breaker for catastrophic runs while surfacing whole
-          # failure classes per CI cycle. Tighten again once triage is done.
-          pnpm test:playwright e2e/all/ e2e/full/ \
-            --max-failures=20
+          # BLOCKING GATE = 'all/' only (credential-free, curated, green).
+          # The 'full/' suite is mid-remediation (e2e/docs/e2e-remediation-plan.md,
+          # Phase 2.4/3) and asserts states the CI container does not provision
+          # (>=2 orgs, full-auth-mode settings sections, seeded invitations), so
+          # it runs as a NON-BLOCKING, informational step below until the Phase 3
+          # fixtures + configured lanes land. 'full-billing/' additionally needs
+          # billing enabled, which CI does not configure yet. Trailing slash:
+          # CLI filters are partial-path matches.
+          pnpm test:playwright e2e/all/
         env:
           PLAYWRIGHT_BASE_URL: ${{ env.TEST_BASE_URL }}
 
@@ -264,6 +258,28 @@ jobs:
           fi
 
           echo "✅ No flaky (retry-only) passes detected."
+
+      - name: Run Playwright 'full/' suite (informational, non-blocking)
+        # The full/ suite is mid-remediation and not yet a coverage gate (see
+        # e2e/docs/e2e-remediation-plan.md + e2e/QUARANTINE.md). Run it for
+        # visibility — the whole failure tail, no --max-failures cap — but do
+        # NOT block the promote on it. continue-on-error keeps the job green
+        # while still showing this step red when the tail fails. Make it
+        # blocking again in Phase 3, once the fixtures + configured lanes
+        # (full-auth mode, multi-org seeding) exist.
+        continue-on-error: true
+        if: ${{ !cancelled() }}
+        run: |
+          echo "🎭 Running Playwright 'full/' suite (informational, non-blocking)..."
+          export PLAYWRIGHT_BASE_URL=${{ env.TEST_BASE_URL }}
+          export CI=true
+          export TEST_USER_EMAIL="e2e-$(openssl rand -hex 8)@example.com"
+          TEST_USER_PASSWORD="$(openssl rand -base64 24)"
+          echo "::add-mask::$TEST_USER_PASSWORD"
+          export TEST_USER_PASSWORD
+          pnpm test:playwright e2e/full/
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ env.TEST_BASE_URL }}
 
       - name: Upload Playwright Report
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
