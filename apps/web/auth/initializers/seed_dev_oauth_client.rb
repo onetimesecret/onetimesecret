@@ -85,7 +85,11 @@ module Auth
             redirect_uri: ENV.fetch('OAUTH_SP_DEV_REDIRECT_URI', self.class.default_redirect_uri),
             client_id: DEV_CLIENT_ID,
             client_secret: BCrypt::Password.create(secret),
-            scopes: 'openid email profile',
+            # offline_access is required for refresh tokens: rodauth-oauth
+            # intersects the granted scopes against this per-application column,
+            # so omitting it here strips offline_access even when the server
+            # allow-list (oauth_application_scopes) permits it.
+            scopes: 'openid email profile offline_access',
             subject_type: 'public',
             id_token_signed_response_alg: 'RS256',
             token_endpoint_auth_method: 'client_secret_basic',
