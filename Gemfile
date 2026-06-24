@@ -164,6 +164,7 @@ group :test do
   gem 'rack-test', require: false
   gem 'rspec', git: 'https://github.com/rspec/rspec'
   gem 'simplecov', require: false
+  gem 'simplecov-cobertura', '~> 3.2', require: false # Cobertura XML output for GitHub Code Quality
   gem 'timecop', '~> 0.9'
   gem 'tryouts', '~> 3.7.1', require: false
   gem 'vcr', '~> 6.0'

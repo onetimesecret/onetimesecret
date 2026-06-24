@@ -1,0 +1,3 @@
+# locales/db/.gitignore
+
+*.db*

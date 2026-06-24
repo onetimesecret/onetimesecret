@@ -282,6 +282,16 @@ module Onetime
             }
           builder.use Otto::Security::Middleware::IPPrivacyMiddleware, ip_privacy_config
 
+          # IPPrivacyMiddleware scrubs these headers by assigning nil ("even if
+          # nil, to clear original sensitive data"), leaving a present-but-nil
+          # CGI key. That violates the Rack spec (CGI keys must be Strings) and
+          # trips Rack::Lint in development (Core::Middleware::ViteProxy). Drop
+          # the scrubbed keys so an absent header reads as never-sent. (otto
+          # should delete rather than nil; until it does, we clean up here.)
+          builder.use Rack::Config do |env|
+            %w[HTTP_REFERER HTTP_USER_AGENT].each { |k| env.delete(k) if env[k].nil? }
+          end
+
           # IP Ban middleware - blocks banned IPs (after IP privacy)
           logger.debug 'Setting up IP Ban middleware'
           builder.use Onetime::Middleware::IPBan
