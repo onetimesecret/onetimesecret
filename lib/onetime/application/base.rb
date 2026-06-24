@@ -52,9 +52,13 @@ module Onetime
     #     def build_router
     #       router = Otto.new(routes_path)
     #       configure_otto_request_hook(router)  # from OttoHooks
-    #       router.enable_full_ip_privacy!
     #       router
     #     end
+    #
+    # NOTE: IP privacy (including private/localhost masking) is configured once
+    # on the universal IPPrivacyMiddleware mount in MiddlewareStack via
+    # ip_privacy_security_config. Apps no longer call enable_full_ip_privacy! in
+    # build_router.
     #   end
     #
     # @example Roda-based application

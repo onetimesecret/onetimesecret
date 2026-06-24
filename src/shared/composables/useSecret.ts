@@ -32,8 +32,19 @@ export function useSecret(secretIdentifier: string, options?: SecretOptions) {
   const state = reactive({
     isLoading: false,
     error: '',
+    // HTTP status / error code of the last failure, so consumers can tell a
+    // terminal "not found" (404 — consumed/expired) apart from a transient or
+    // schema-parse failure. Without this, every error rendered as the misleading
+    // "this secret has been viewed or expired" view (#3424).
+    errorCode: null as string | number | null,
     success: '',
   });
+
+  // Pull the caller's onError out so we can compose it instead of letting the
+  // `...restOptions` spread replace ours. If a caller-supplied onError clobbered
+  // the default, `state.errorCode` would never be set and `isNotFound` would be
+  // permanently false — silently reverting the #3424 404-vs-error disambiguation.
+  const { onError: callerOnError, ...restOptions } = options ?? {};
 
   const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
     notify: (message, severity) => {
@@ -44,19 +55,27 @@ export function useSecret(secretIdentifier: string, options?: SecretOptions) {
       }
     },
     setLoading: (loading) => (state.isLoading = loading),
-    onError: () => (state.success = ''),
-    ...options,
+    onError: (err) => {
+      state.success = '';
+      state.errorCode = err.code ?? null;
+      callerOnError?.(err);
+    },
+    ...restOptions,
   };
 
   const { wrap } = useAsyncHandler(defaultAsyncHandlerOptions);
 
   const load = () =>
     wrap(async () => {
+      state.error = '';
+      state.errorCode = null;
       await store.fetch(secretIdentifier);
     });
 
   const reveal = (passphrase: string) =>
     wrap(async () => {
+      state.error = '';
+      state.errorCode = null;
       await store.reveal(secretIdentifier, passphrase);
     });
 

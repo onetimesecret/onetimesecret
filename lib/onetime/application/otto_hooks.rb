@@ -49,7 +49,8 @@ module Onetime
 
         not_found_handler = ->(error, req) {
           Onetime::Application::ErrorResolver.resolve!(error, req)
-          error.respond_to?(:to_h) ? error.to_h : { message: error.message || 'Not Found' }
+          body = error.respond_to?(:to_h) ? error.to_h : { message: error.message || 'Not Found' }
+          with_error_correlation(body, req, error)
         }
         router.register_error_handler(Onetime::RecordNotFound, status: 404, log_level: :info, &not_found_handler)
         router.register_error_handler(Onetime::MissingSecret, status: 404, log_level: :info, &not_found_handler)
@@ -57,7 +58,7 @@ module Onetime
         # Form errors return 422 with error type and field info
         router.register_error_handler(Onetime::FormError, status: 422, log_level: :info) do |error, req|
           Onetime::Application::ErrorResolver.resolve!(error, req)
-          error.to_h
+          with_error_correlation(error.to_h, req, error)
         end
 
         # Forbidden errors return 403. Resolver localizes when error_key is
@@ -65,25 +66,26 @@ module Onetime
         # from the pre-resolved message untouched.
         router.register_error_handler(Onetime::Forbidden, status: 403, log_level: :warn) do |error, req|
           Onetime::Application::ErrorResolver.resolve!(error, req)
-          error.respond_to?(:to_h) ? error.to_h : { message: error.message }
+          body = error.respond_to?(:to_h) ? error.to_h : { message: error.message }
+          with_error_correlation(body, req, error)
         end
 
         # Rate limit exceeded errors return 429 with retry info
         router.register_error_handler(Onetime::LimitExceeded, status: 429, log_level: :warn) do |error, req|
           Onetime::Application::ErrorResolver.resolve!(error, req)
-          error.to_h
+          with_error_correlation(error.to_h, req, error)
         end
 
         # Entitlement errors return 403 with upgrade path info
         # NOTE: Otto handles Content-Type header automatically; handler returns body hash only
-        router.register_error_handler(Onetime::EntitlementRequired, status: 403, log_level: :info) do |error, _req|
-          error.to_h
+        router.register_error_handler(Onetime::EntitlementRequired, status: 403, log_level: :info) do |error, req|
+          with_error_correlation(error.to_h, req, error)
         end
 
         # Guest routes disabled errors return 403 with error code
         router.register_error_handler(Onetime::GuestRoutesDisabled, status: 403, log_level: :info) do |error, req|
           Onetime::Application::ErrorResolver.resolve!(error, req)
-          error.to_h
+          with_error_correlation(error.to_h, req, error)
         end
 
         # Unauthorized errors return 401. Onetime::Unauthorized is a marker
@@ -91,8 +93,8 @@ module Onetime
         # non-sensitive across call sites ('Invalid credentials',
         # 'Not authorized to update this receipt'). Symmetric with
         # Auth::ErrorTranslator so the Roda and Otto layers agree.
-        router.register_error_handler(Onetime::Unauthorized, status: 401, log_level: :warn) do |error, _req|
-          { error: error.message, error_type: 'Unauthorized' }
+        router.register_error_handler(Onetime::Unauthorized, status: 401, log_level: :warn) do |error, req|
+          with_error_correlation({ error: error.message, error_type: 'Unauthorized' }, req, error)
         end
 
         # Plan-catalog cache misses (Billing::PlanCacheMissError) are a known,
@@ -110,11 +112,15 @@ module Onetime
         # builds where the billing app — and thus Billing::PlanCacheMissError —
         # is never loaded (the error can't be raised there). log_level :error
         # keeps the fail-closed design's ops visibility intact.
-        router.register_error_handler('Billing::PlanCacheMissError', status: 503, log_level: :error) do |_error, _req|
-          {
-            error: 'Plan catalog is temporarily unavailable. Please try again shortly.',
-            error_type: 'PlanCatalogUnavailable',
-          }
+        router.register_error_handler('Billing::PlanCacheMissError', status: 503, log_level: :error) do |error, req|
+          with_error_correlation(
+            {
+              error: 'Plan catalog is temporarily unavailable. Please try again shortly.',
+              error_type: 'PlanCatalogUnavailable',
+            },
+            req,
+            error,
+          )
         end
 
         # Stripe circuit breaker open (Billing::CircuitOpenError) is the sibling
@@ -139,20 +145,14 @@ module Onetime
         # miss which signals an operator-actionable config/sync problem. Registered
         # by string name per Otto's lazy-loading form (harmless when billing is not
         # loaded — the error can't be raised there).
-        router.register_error_handler('Billing::CircuitOpenError', status: 503, log_level: :warn) do |error, _req|
+        router.register_error_handler('Billing::CircuitOpenError', status: 503, log_level: :warn) do |error, req|
           body               = {
             error: 'The billing service is temporarily unavailable. Please try again shortly.',
             error_type: 'BillingServiceUnavailable',
           }
           body[:retry_after] = error.retry_after if error.retry_after
-          body
+          with_error_correlation(body, req, error)
         end
-
-        # Give the router the same trusted-proxy list as the outer IP-privacy
-        # middleware. Done here (not in each build_router) so no Otto app can
-        # land with an inconsistent trust list. Placed before the debug-only
-        # request-logging hook below so it runs in production too.
-        configure_otto_trusted_proxies(router)
 
         return unless Onetime.debug?
 
@@ -179,28 +179,47 @@ module Onetime
         end
       end
 
-      # Mirror the trusted-proxy list onto the Otto router's own security
-      # config so req.client_ipaddress and req.secure? agree with Rack's
-      # request.ip about which hops to trust. No-op unless
-      # site.network.trusted_proxy is enabled (same gate as the outer
-      # IPPrivacyMiddleware via MiddlewareStack.ip_privacy_security_config).
-      #
-      # Defense-in-depth, not the primary path: the outer middleware runs
-      # first and has already rewritten REMOTE_ADDR to the resolved (masked)
-      # client by the time the router sees a request. For public clients that
-      # masked address is not a trusted proxy, so this list does not fire and
-      # they still depend on the outer rewrite — this list keeps resolution
-      # correct if that middleware is ever reordered or removed. It does change
-      # the private-origin requests the outer middleware exempts from masking
-      # (REMOTE_ADDR left private): the router now walks X-Forwarded-For and
-      # honors X-Forwarded-Proto for those, instead of returning the proxy hop.
-      #
-      # @param router [Otto] The Otto router instance to configure
-      # @return [void]
-      def configure_otto_trusted_proxies(router)
-        return unless Onetime::Application::MiddlewareStack.trusted_proxy_enabled?
+      private
 
-        router.add_trusted_proxy(Onetime::Application::MiddlewareStack::PRIVATE_PROXY_RANGES)
+      # Decorate a JSON error body for log correlation, and record the error
+      # type so the request log can name what failed.
+      #
+      # ## Why this exists
+      #
+      # Otto mints its own per-error id (Otto::Core::ErrorHandler, SecureRandom.hex),
+      # but that id is a poor support handle: it is only added to the response body
+      # in development, and it is logged on the separate 'Otto' logger whose context
+      # carries no request_id. So in production an API consumer's error payload holds
+      # no id that appears in our request log, and even in development there is no
+      # single log line linking the error to the request_id.
+      #
+      # The request_id (env['HTTP_X_REQUEST_ID'], set by Rack::RequestId and returned
+      # in the x-request-id response header) is logged by RequestLogger for every
+      # request. Echoing it into the error body gives consumers one correlation id we
+      # can grep straight out of the request log. We also stash the error_type into
+      # env so RequestLogger can record *what* failed next to the status, keyed to
+      # that same id.
+      #
+      # Nil-safe: the error-handler unit specs invoke these blocks with req == nil.
+      #
+      # @param body [Hash] The JSON error body the handler is about to return
+      # @param req [Rack::Request, Otto::Request, nil] The current request
+      # @param error [Exception, nil] The error being handled; used only as the
+      #   fallback source for error_type when the body omits it
+      # @return [Hash] The body, with :request_id merged in when available
+      def with_error_correlation(body, req, error = nil)
+        return body unless req.respond_to?(:env) && req.env
+
+        # Prefer the body's class-specific error_type; fall back to the exception
+        # class name so the request log still names the failure for errors whose
+        # to_h compacts error_type away (e.g. a FormError raised without one).
+        # The body is left untouched — this fallback only feeds the request log.
+        error_type                 = body[:error_type]
+        error_type               ||= error.class.name.to_s.split('::').last if error
+        req.env['otto.error_type'] = error_type if error_type
+
+        request_id = req.env['HTTP_X_REQUEST_ID']
+        request_id ? body.merge(request_id: request_id) : body
       end
     end
   end

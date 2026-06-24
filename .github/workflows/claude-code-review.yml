@@ -13,6 +13,16 @@ on:
       - 'main'
     types: [opened, synchronize, labeled]
   workflow_dispatch:
+    inputs:
+      model:
+        description: "Claude model for this run (overrides the CLAUDE_MODEL repo variable)"
+        type: choice
+        required: false
+        default: claude-sonnet-4-6
+        options:
+          - claude-sonnet-4-6
+          - claude-opus-4-6
+          - claude-haiku-4-5-20251001
 
 jobs:
   claude-review:
@@ -65,9 +75,12 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
-          # Pin an explicit model: the action's default (claude-sonnet-4-20250514)
-          # is retired and returns a 404. Bump as newer models ship.
-          model: "claude-sonnet-4-6"
+          # Primary model precedence: the workflow_dispatch "model" input (manual
+          # runs) -> the CLAUDE_MODEL repo variable -> this built-in default. The
+          # action's frozen default (claude-sonnet-4-20250514) is retired and
+          # 404s. Fall back to Sonnet on overload.
+          model: "${{ inputs.model || vars.CLAUDE_MODEL || 'claude-sonnet-4-6' }}"
+          fallback_model: "${{ vars.CLAUDE_FALLBACK_MODEL || 'claude-sonnet-4-6' }}"
 
           # Direct prompt for automated review (no @claude mention needed)
           direct_prompt: |
@@ -100,7 +113,7 @@ jobs:
       - name: Remove claude-review label
         # Remove label whether success or failure - prevents getting stuck
         if: always() && github.event.action != 'opened'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             try {

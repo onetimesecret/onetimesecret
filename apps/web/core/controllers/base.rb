@@ -3,7 +3,6 @@
 # frozen_string_literal: true
 
 require_relative '../views'
-require 'onetime/helpers/client_ip_helpers'
 require 'onetime/helpers/session_helpers'
 require 'onetime/helpers/homepage_mode_helpers'
 require 'onetime/controllers/organization_context'

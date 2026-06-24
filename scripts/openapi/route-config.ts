@@ -21,23 +21,26 @@ export interface SpecTarget {
 /**
  * Shared error response content schema.
  *
- * Matches the server's actual error shape across all API versions:
- *   V1:  FormError#to_h  → { error, message, field }
- *   V2+: error rescue    → { error, message, error_id }
- *
- * Only `message` is required — other fields are version/context dependent.
+ * Error shapes vary across API versions, so no single field is universally
+ * present — `required` is intentionally omitted to avoid rejecting valid
+ * responses:
+ *   V1 (frozen):  FormError#to_h → { error, message, field } (message is the text)
+ *   V2+ (ADR-013): typed handlers → { error, error_type, request_id, ... }
+ *                  (error is the user-facing text; no `message`)
+ * See ADR-013 (API 4xx/5xx Error Response Wire Format).
  */
 const errorContent = {
   'application/json': {
     schema: {
       type: 'object',
       properties: {
-        error: { type: 'string', description: 'Error type identifier (e.g., "FormError")' },
-        message: { type: 'string', description: 'Human-readable error message' },
+        error: { type: 'string', description: 'ADR-013: user-facing message (V2+). On frozen V1 this is the error type identifier.' },
+        error_type: { type: 'string', description: 'Machine-readable error class the client branches on (ADR-013, e.g., "RecordNotFound")' },
+        message: { type: 'string', description: 'Human-readable error message (legacy/V1 shape)' },
         field: { type: 'string', description: 'Field that caused the error, if applicable' },
         error_id: { type: 'string', description: 'Unique error tracking identifier' },
+        request_id: { type: 'string', description: 'Request correlation id; mirrors the x-request-id response header and appears in the server request log. Quote this when reporting an error.' },
       },
-      required: ['message'],
     },
   },
 };

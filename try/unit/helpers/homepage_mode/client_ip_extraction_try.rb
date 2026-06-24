@@ -22,9 +22,13 @@ class TestHomepageController
   public :extract_client_ip_for_homepage
 end
 
-# extract_client_ip_for_homepage delegates to Rack::Request#ip, which
-# ConfigureTrustedProxy configures globally from site.network.trusted_proxy.
-# Homepage mode no longer does its own proxy-depth extraction.
+# extract_client_ip_for_homepage delegates to req.ip. In production req is an
+# Otto::Request, whose #ip reads the canonical env['otto.client_ip'] resolved
+# once by the universal IPPrivacyMiddleware mount (configured from
+# site.network.trusted_proxy via MiddlewareStack.ip_privacy_security_config).
+# This tryout uses a plain Rack::Request to exercise the delegation itself; the
+# cases below are ones where Rack's native #ip and the canonical resolution
+# agree. Homepage mode does no proxy resolution of its own.
 
 ## Extract Client IP - Direct connection uses REMOTE_ADDR
 env = { 'REMOTE_ADDR' => '203.0.113.10' }
