@@ -218,11 +218,13 @@ module Onetime
             }
           builder.use Otto::Security::Middleware::IPPrivacyMiddleware, ip_privacy_config
 
-          # Restore Rack-spec compliance immediately after IP privacy. The
-          # privacy middleware clears HTTP_REFERER/HTTP_USER_AGENT by assigning
-          # nil ("even if nil, to clear original sensitive data"), which leaves
-          # a nil-valued CGI key in the env. That trips Rack::Lint in
-          # development (Core::Middleware::ViteProxy). See NormalizeEnv.
+          # Finish the privacy redaction immediately after IP privacy. The
+          # privacy middleware scrubs HTTP_REFERER/HTTP_USER_AGENT by assigning
+          # nil ("even if nil, to clear original sensitive data"), leaving a
+          # present-but-nil CGI key. Deleting it is strictly privacy-preserving
+          # (an absent header is indistinguishable from one never sent) and, as
+          # a side benefit, keeps the env Rack-spec compliant so Rack::Lint in
+          # development (Core::Middleware::ViteProxy) does not reject it.
           builder.use Onetime::Middleware::NormalizeEnv
 
           # IP Ban middleware - blocks banned IPs (after IP privacy)

@@ -6,29 +6,33 @@ module Onetime
   module Middleware
     # NormalizeEnv
     #
-    # Restores Rack-spec compliance to the request env after upstream
-    # middleware redacts sensitive request headers.
+    # Completes the upstream privacy redaction by dropping request-header keys
+    # the privacy middleware scrubbed to nil. This does NOT restore any value
+    # — by the time it runs, the original headers are already gone.
     #
-    # Otto's IPPrivacyMiddleware clears privacy-sensitive request headers
-    # (HTTP_REFERER, HTTP_USER_AGENT) by assigning the anonymized value even
-    # when that value is nil — its own comment is "Always replace, even if
-    # nil, to clear original sensitive data":
+    # Otto's IPPrivacyMiddleware redacts privacy-sensitive request headers
+    # (HTTP_REFERER, HTTP_USER_AGENT) by *overwriting* them in place with the
+    # anonymized value, even when that value is nil — its own comment is
+    # "Always replace, even if nil, to clear original sensitive data":
     #
     #     env['HTTP_REFERER']    = fingerprint.referer       # nil when absent
     #     env['HTTP_USER_AGENT'] = fingerprint.anonymized_ua # nil when absent
     #
-    # The Rack SPEC requires every CGI-style env key (one without a period)
-    # to have a String value. A nil value is silently harmless in production
-    # — readers treat a missing key and a nil-valued key identically — but it
-    # violates the spec, and Rack::Lint (enabled in development by
+    # That leaves a present-but-nil key. Deleting it is strictly privacy-
+    # preserving: to every downstream reader env['HTTP_REFERER'] is nil either
+    # way, and an absent key is indistinguishable from a request that never
+    # carried the header — whereas a nil-valued key can hint that one was
+    # scrubbed. So this finishes the redaction; it never reverses it.
+    #
+    # The side benefit is Rack-spec compliance. The SPEC requires every
+    # CGI-style env key (one without a period) to hold a String value. The
+    # nil is harmless in production, but Rack::Lint (enabled in development by
     # Core::Middleware::ViteProxy) rejects the whole request with:
     #
     #     Rack::Lint::LintError: env variable HTTP_REFERER has non-string value nil
     #
-    # Deleting a nil-valued CGI key is the spec-compliant equivalent of the
-    # clear the upstream middleware intended, and keeps Rack::Lint useful for
-    # catching genuine middleware bugs. This must run immediately after
-    # IPPrivacyMiddleware so the rest of the stack sees a compliant env.
+    # Wire this immediately after IPPrivacyMiddleware so the rest of the stack
+    # only ever sees fully-redacted, spec-compliant headers.
     class NormalizeEnv
       def initialize(app)
         @app = app
