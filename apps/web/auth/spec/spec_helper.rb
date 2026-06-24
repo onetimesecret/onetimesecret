@@ -2,6 +2,10 @@
 #
 # frozen_string_literal: true
 
+# Start code coverage before any application code loads (see .simplecov).
+# Enabled only when COVERAGE=true.
+require 'simplecov' if ENV['COVERAGE'] == 'true'
+
 # Rodauth Feature Configuration Tests
 #
 # These tests verify that Rodauth features are correctly enabled/disabled
