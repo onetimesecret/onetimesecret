@@ -78,9 +78,11 @@ jobs:
           # Primary model precedence: the workflow_dispatch "model" input (manual
           # runs) -> the CLAUDE_MODEL repo variable -> this built-in default. The
           # action's frozen default (claude-sonnet-4-20250514) is retired and
-          # 404s. Fall back to Sonnet on overload.
+          # 404s. Fall back to Haiku on overload. The fallback default MUST differ
+          # from the primary default: the action errors with "Fallback model
+          # cannot be the same as the main model" when they resolve to the same id.
           model: "${{ inputs.model || vars.CLAUDE_MODEL || 'claude-sonnet-4-6' }}"
-          fallback_model: "${{ vars.CLAUDE_FALLBACK_MODEL || 'claude-sonnet-4-6' }}"
+          fallback_model: "${{ vars.CLAUDE_FALLBACK_MODEL || 'claude-haiku-4-5-20251001' }}"
 
           # Direct prompt for automated review (no @claude mention needed)
           direct_prompt: |
