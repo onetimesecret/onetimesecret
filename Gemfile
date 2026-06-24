@@ -18,7 +18,7 @@ source 'https://rubygems.org/'
 # Core Application Framework
 # ====================================
 
-gem 'otto', '~> 2.2'
+gem 'otto', '~> 2.3'
 gem 'rhales', '~> 0.6.2'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'
@@ -174,6 +174,7 @@ group :test do
   gem 'rack-test', require: false
   gem 'rspec', git: 'https://github.com/rspec/rspec'
   gem 'simplecov', require: false
+  gem 'simplecov-cobertura', '~> 3.2', require: false # Cobertura XML output for GitHub Code Quality
   gem 'timecop', '~> 0.9'
   gem 'tryouts', '~> 3.7.1', require: false
   gem 'vcr', '~> 6.0'

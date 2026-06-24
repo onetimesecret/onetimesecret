@@ -130,7 +130,7 @@ module Core
                 domain_strategy: domain_strategy,
                 path: req.path,
                 query_string: req.query_string,
-                referrer: req.env['HTTP_REFERER'],
+                referrer: sanitized_referrer,
               },
             )
           end
@@ -208,6 +208,18 @@ module Core
                 exception: ex,
               }
             raise_form_error('An unexpected error occurred')
+      end
+
+      private
+
+      # The Referer header is user-controlled and may carry tokens or PII in its
+      # query string / fragment (and can be arbitrarily long), so strip both and
+      # cap the length before the value is sent to Sentry telemetry.
+      def sanitized_referrer
+        referrer = req.env['HTTP_REFERER'].to_s
+        return if referrer.empty?
+
+        referrer.split(/[?#]/, 2).first.to_s[0, 256]
       end
     end
   end

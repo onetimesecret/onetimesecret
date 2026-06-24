@@ -2,6 +2,10 @@
 #
 # frozen_string_literal: true
 
+# Start code coverage before any application code loads (see .simplecov).
+# Enabled only when COVERAGE=true.
+require 'simplecov' if ENV['COVERAGE'] == 'true'
+
 # Invite API Test Helper
 #
 # Run all invite API tests:

@@ -176,6 +176,32 @@ change without brand config; it is deterministic, not random.
 | 8 | Environment coupling | Brand tests assert against "whatever the default container serves" | Behavior changes (#3381) silently break tests; no known brand state pinned. |
 | 9 | Serial + slow | `workers: 1`, `fullyParallel: false` → 2.8 min for 28 tests | One hung test blocks all; slow feedback discourages local runs. |
 
+### Invitation/`full/` suites: test-side defect classes already corrected
+
+Switching `full/` on (Phase 2.1+2.2) unmasked a stack of **test-side** defects in
+the invitation suites — corrected across successive rounds (#3448, #3490, and the
+`#SLEXY5` series). Catalogued here so a re-failure is matched against a known class
+before it is mistaken for a product regression. What remains *after* these are the
+fixture-dependent cases in [`QUARANTINE.md`](../QUARANTINE.md) (#3419/#3421) — those
+are a **coverage gap that never ran in CI, not a regression**.
+
+| Class | Fixed in | What was wrong |
+|-------|----------|----------------|
+| A · storageState session leakage | `9148f41`, `335d6c3` | `full`/`newContext()` inherit the owner session; the auth guard redirects authenticated visitors off `/signin`, so "anonymous" flows never saw the form. Fix: `clearCookies()` / explicit empty `storageState`. |
+| B · strict-mode / ambiguous locators | `dd038eb`, `9148f41`, `5ac72c6`, #3490 | Generic CSS (`.rounded-md`) matched ancestor+leaf+~60 rows; broad `getByText`/`getByRole`/`getByLabel` matched many/zero. Fix: stable `data-testid` (`org-invitation-row`), `.first()` scoping, test IDs over CSS/role. |
+| C · wrong API endpoint paths | `033fe95`, `335d6c3` | Non-existent routes (`/api/v2/org/:extid/invitations`, `/api/v2/bootstrap/authenticated`) → real ones (`/api/organizations/:extid/invitations`, `/bootstrap/me`). |
+| D · response-shape / vacuous assertions | `033fe95`, `335d6c3` | Checked `data.message` vs `FormError.to_h` `{error}` (ADR-013); read `record.email` from a 404 body; invited email is a readonly input (`toHaveValue`). |
+| E · signin form-variant coupling | `033fe95`, `335d6c3`, `00ef816` | Specs assumed a password-*tab* variant; CI serves password-only. Fix: dual-variant `loginUser` from `global.setup.ts`. |
+| F · wrong flow model (signup not atomic) | `335d6c3` | Signup establishes a session, *then* the state machine shows `direct_accept` confirmed via an explicit Accept button. INV-001/SEC-INV-003 rewritten to that flow. |
+| G · decline-control state dependence | `9148f41`, `5ac72c6` | Unauthenticated invitee lands in `signup_required`/`signin_required` where decline is `invite-signup-decline`/`invite-signin-decline`, not `decline-invitation-btn`. |
+| H · flaky waits | Phase 1 + 2.3 | `networkidle`/`waitForTimeout` → app-readiness signal + web-first assertions. |
+
+> **Latent, currently masked:** the `getFirstOrganization` org-name read
+> (`span.truncate, .font-medium, h3, h4` → `textContent()`) is byte-identical
+> across the `domain-*` specs and is what timed out before the `E2E_CUSTOM_DOMAINS`
+> gate hid it. PR 6's custom-domains lane will hit it the moment those suites run
+> for real — harden the helper there rather than rediscover it.
+
 ---
 
 ## Phase 0 — Unblock CI (the mask-icon failure)

@@ -2,22 +2,23 @@
 # scripts/ip_privacy_trusted_proxy_repro.rb
 #
 # Reference reproduction for #3427 — "IP privacy middleware hides the real
-# client IP when running behind a proxy" — kept for the trusted-proxy
-# harmonization follow-up.
+# client IP when running behind a proxy" — kept as the historical model for the
+# trusted-proxy harmonization (#3436).
 #
-# Models the two Otto IPPrivacyMiddleware instances onetime stacks in series:
-#   - outer: onetime's universal MiddlewareStack mount (today: no security config)
-#   - inner: the Otto router's own middleware (mask_private_ips via
-#            enable_full_ip_privacy!, empty trusted-proxy list)
+# HISTORICAL: this script models the OLD two-mount topology onetime stacked in
+# series (outer MiddlewareStack mount + inner per-router enable_full_ip_privacy!
+# mount). As of #3436 there is ONE mount: the universal IPPrivacyMiddleware
+# configured from MiddlewareStack.ip_privacy_security_config (mask_private_ips
+# true + the trusted-proxy list). For the live single-mount behaviour see the
+# rspec parity regression spec/unit/onetime/application/ip_privacy_parity_spec.rb.
 #
 # Shows the broken behaviour (private ingress hop masked to .0, real client
-# destroyed) vs the PR #3429 fix (real client resolved first, then masked to
-# its own /24).
+# destroyed) vs the fix (real client resolved first, then masked to its own /24).
 #
-# Run:  ruby scripts/ip_privacy_trusted_proxy_repro.rb   (requires otto 2.2.0)
+# Run:  ruby scripts/ip_privacy_trusted_proxy_repro.rb   (requires otto 2.3.0)
 #
 # Caveats: it reaches into @ip_privacy_config to mimic enable_full_ip_privacy!
-# without booting a full router, and models the two middlewares directly rather
+# without booting a full router, and models the middlewares directly rather
 # than the real Rack builder — a faithful model of the otto code path, not a
 # full onetime integration test.
 

@@ -709,7 +709,9 @@ test.describe('MBR-INVMGMT: Invitation Management', () => {
     page.setDefaultTimeout(15000);
   });
 
-  test('MBR-INVMGMT-001: Owner can resend pending invitation', async ({ page }) => {
+  // fixme: needs a seeded pending invitation in the org; CI has no such fixture,
+  // so the invitation row never renders. See #3419.
+  test.fixme('MBR-INVMGMT-001: Owner can resend pending invitation', async ({ page }) => {
     try {
       await navigateToOrgTeam(page);
     } catch {
@@ -736,7 +738,9 @@ test.describe('MBR-INVMGMT: Invitation Management', () => {
     await expect(page.getByText(testEmail)).toBeVisible();
   });
 
-  test('MBR-INVMGMT-002: Owner can revoke pending invitation', async ({ page }) => {
+  // fixme: needs a seeded pending invitation in the org; CI has no such fixture,
+  // so the invitation row never renders. See #3419.
+  test.fixme('MBR-INVMGMT-002: Owner can revoke pending invitation', async ({ page }) => {
     try {
       await navigateToOrgTeam(page);
     } catch {
@@ -773,7 +777,9 @@ test.describe('MBR-INVMGMT: Invitation Management', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('MBR-ACCEPT: Accept Invitation Flow', () => {
-  test('MBR-ACCEPT-001: Valid invitation token shows invitation details', async ({
+  // fixme: needs a valid seeded invitation token to render the details view;
+  // CI cannot seed the invitation relationship. See #3419.
+  test.fixme('MBR-ACCEPT-001: Valid invitation token shows invitation details', async ({
     page,
     context,
   }) => {
@@ -806,7 +812,9 @@ test.describe('MBR-ACCEPT: Accept Invitation Flow', () => {
     await expect(page.getByText(/invited/i)).toBeVisible();
   });
 
-  test('MBR-ACCEPT-002: Unauthenticated user sees sign-in form (signin_required state)', async ({
+  // fixme: needs a valid seeded invitation token to reach the signin_required
+  // state; CI cannot seed the invitation relationship. See #3419.
+  test.fixme('MBR-ACCEPT-002: Unauthenticated user sees sign-in form (signin_required state)', async ({
     page,
     context,
   }) => {

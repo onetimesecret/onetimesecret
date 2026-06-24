@@ -4,12 +4,12 @@
 
 # Unit tests for Onetime::Application::AuthStrategies::Helpers#build_metadata
 #
-# Locks down the IP-resolution contract for the metadata hash that
-# auth strategies emit. The key behavior under test: `metadata[:ip]`
-# must flow through `Rack::Request#ip` so that the trusted-proxy
-# initializer (lib/onetime/initializers/configure_trusted_proxy.rb)
-# can influence it. Without trusted-proxy enabled, it falls back to
-# `REMOTE_ADDR` (no regression for default deployments).
+# Locks down the IP-resolution contract for the metadata hash that auth
+# strategies emit. Post-#3436, client-IP / trusted-proxy resolution lives in
+# Otto (the universal IPPrivacyMiddleware mount resolves the client once into
+# env['otto.client_ip']). build_metadata therefore reads that canonical key,
+# falling back to Otto::Utils.resolve_client_ip when the middleware has not run
+# (e.g. this unit context with no full stack).
 #
 # Run:
 #   pnpm run test:rspec apps/web/auth/spec/integration/full/helpers_spec.rb
@@ -17,8 +17,8 @@
 require_relative '../../spec_helper'
 
 require 'rack/request'
+require 'otto'
 require 'onetime/application/auth_strategies/helpers'
-require 'onetime/initializers/configure_trusted_proxy'
 
 RSpec.describe Onetime::Application::AuthStrategies::Helpers do
   # Anonymous host that mixes in the module so we can call its instance methods.
@@ -28,88 +28,72 @@ RSpec.describe Onetime::Application::AuthStrategies::Helpers do
     end.new
   end
 
-  # ---------------------------------------------------------------------------
-  # GLOBAL STATE PROTECTION
-  # ---------------------------------------------------------------------------
-  # The trusted-proxy initializer mutates Rack::Request globally
-  # (forwarded_priority, ip_filter, and class_eval'd #ip). Capture & restore
-  # around each spec so test order can't leak state into unrelated suites.
-  # Mirrors the pattern used in
-  # spec/unit/onetime/initializers/configure_trusted_proxy_spec.rb.
-  # ---------------------------------------------------------------------------
-  before do
-    @saved_forwarded_priority = Rack::Request.forwarded_priority
-    @saved_ip_filter          = Rack::Request.ip_filter
-    @saved_ip_method          = Rack::Request.instance_method(:ip)
-  end
-
-  after do
-    Rack::Request.forwarded_priority = @saved_forwarded_priority
-    Rack::Request.ip_filter          = @saved_ip_filter
-    original_method = @saved_ip_method
-    Rack::Request.class_eval do
-      define_method(:ip, original_method)
-    end
-  end
-
-  # Apply the trusted-proxy initializer with the supplied config hash.
-  # Stubs OT.conf so we don't need a real config file or app boot.
-  def apply_trusted_proxy_config(trusted_proxy_config)
-    instance = Onetime::Initializers::ConfigureTrustedProxy.new
-    logger   = double('logger', debug: nil, info: nil, warn: nil)
-    allow(instance).to receive(:app_logger).and_return(logger)
-    allow(OT).to receive(:conf).and_return(
-      'site' => { 'network' => { 'trusted_proxy' => trusted_proxy_config } }
-    )
-    instance.execute({})
+  # Build an Otto security config trusting the given proxies, as the universal
+  # IPPrivacyMiddleware mount would (MiddlewareStack.ip_privacy_security_config).
+  # Placed in env['otto.security_config'] so build_metadata's no-middleware
+  # fallback (Otto::Utils.resolve_client_ip) sees the same trust list.
+  def trusted_proxy_config(*proxies)
+    cfg = Otto::Security::Config.new
+    proxies.each { |p| cfg.add_trusted_proxy(p) }
+    cfg
   end
 
   describe '#build_metadata' do
     # -----------------------------------------------------------------
-    # 1) Default / no proxy config: REMOTE_ADDR is preserved.
+    # 1) Canonical key present: build_metadata reads env['otto.client_ip'].
     # -----------------------------------------------------------------
-    context 'with no trusted-proxy configuration and no XFF header' do
+    context "when the middleware has resolved env['otto.client_ip']" do
       let(:env) do
         {
-          'REMOTE_ADDR'     => '198.51.100.7',
-          'HTTP_USER_AGENT' => 'Mozilla/5.0 (Test)',
+          # REMOTE_ADDR is the (masked) value the middleware leaves behind; the
+          # canonical key is what build_metadata must read.
+          'REMOTE_ADDR'        => '203.0.113.0',
+          'otto.client_ip'     => '203.0.113.45',
+          'HTTP_USER_AGENT'    => 'curl/8.4.0',
           'onetime.domain_strategy' => :canonical,
           'onetime.display_domain'  => 'example.com',
         }
       end
 
-      it 'sets metadata[:ip] to REMOTE_ADDR (backwards compatible)' do
-        expect(host.build_metadata(env)[:ip]).to eq('198.51.100.7')
+      it 'sets metadata[:ip] to the canonical resolved client IP' do
+        expect(host.build_metadata(env)[:ip]).to eq('203.0.113.45')
       end
 
       it 'populates user_agent, domain_strategy, and display_domain' do
         metadata = host.build_metadata(env)
-        expect(metadata[:user_agent]).to eq('Mozilla/5.0 (Test)')
+        expect(metadata[:user_agent]).to eq('curl/8.4.0')
         expect(metadata[:domain_strategy]).to eq(:canonical)
         expect(metadata[:display_domain]).to eq('example.com')
       end
     end
 
     # -----------------------------------------------------------------
-    # 2) Trusted-proxy filter mode honors XFF (the actual bug fix).
+    # 2) No canonical key, no proxy config: REMOTE_ADDR is preserved.
     # -----------------------------------------------------------------
-    context 'when trusted_proxy is enabled in filter mode and XFF carries the client IP' do
-      before do
-        # RFC1918 peer with a CDN-style public proxy as the immediate hop
-        # is trusted out-of-the-box via Rack's default ip_filter, but we
-        # also add a custom CIDR for explicitness.
-        apply_trusted_proxy_config(
-          'enabled' => true,
-          'mode'    => 'filter',
-          'cidrs'   => ['10.0.0.0/8'],
-        )
-      end
-
+    context 'with no canonical IP and no trusted-proxy configuration' do
       let(:env) do
         {
-          'REMOTE_ADDR'          => '10.0.0.5',                # trusted (RFC1918 + custom CIDR)
-          'HTTP_X_FORWARDED_FOR' => '203.0.113.45, 10.0.0.5',  # real client first
-          'HTTP_USER_AGENT'      => 'curl/8.4.0',
+          'REMOTE_ADDR'     => '198.51.100.7',
+          'HTTP_USER_AGENT' => 'Mozilla/5.0 (Test)',
+        }
+      end
+
+      it 'sets metadata[:ip] to REMOTE_ADDR (backwards compatible)' do
+        expect(host.build_metadata(env)[:ip]).to eq('198.51.100.7')
+      end
+    end
+
+    # -----------------------------------------------------------------
+    # 3) No canonical key, trusted-proxy config present: the fallback
+    #    resolver honors XFF (the trusted-proxy contract still holds).
+    # -----------------------------------------------------------------
+    context 'when no canonical IP but a trusted-proxy config resolves XFF' do
+      let(:env) do
+        {
+          'REMOTE_ADDR'             => '10.0.0.5',                # trusted peer
+          'HTTP_X_FORWARDED_FOR'    => '203.0.113.45, 10.0.0.5',  # real client first
+          'HTTP_USER_AGENT'         => 'curl/8.4.0',
+          'otto.security_config'    => trusted_proxy_config('10.0.0.0/8'),
         }
       end
 
@@ -123,21 +107,17 @@ RSpec.describe Onetime::Application::AuthStrategies::Helpers do
     end
 
     # -----------------------------------------------------------------
-    # 3) Trusted-proxy disabled: XFF must NOT be trusted (anti-spoof).
+    # 4) Untrusted peer cannot spoof via XFF (anti-spoof).
     # -----------------------------------------------------------------
-    context 'when trusted_proxy is disabled and an attacker sends a spoofed XFF' do
-      before do
-        apply_trusted_proxy_config('enabled' => false)
-      end
-
+    context 'when an untrusted public peer sends a spoofed XFF' do
       let(:env) do
         {
-          # Real peer is a public IP — Rack defaults would only walk XFF
-          # if REMOTE_ADDR were trusted. With a public peer, Rack returns
-          # REMOTE_ADDR regardless of XFF, so spoofing is blocked.
+          # Public peer is not in the trusted list, so the forwarded chain is
+          # not walked and REMOTE_ADDR wins.
           'REMOTE_ADDR'          => '198.51.100.7',
           'HTTP_X_FORWARDED_FOR' => '1.2.3.4',  # spoofed
           'HTTP_USER_AGENT'      => 'evil/1.0',
+          'otto.security_config' => trusted_proxy_config('10.0.0.0/8'),
         }
       end
 
@@ -151,7 +131,31 @@ RSpec.describe Onetime::Application::AuthStrategies::Helpers do
     end
 
     # -----------------------------------------------------------------
-    # 4) `additional` overrides built-in keys (preserves merge contract).
+    # 4b) Resolver error: the rescue logs before falling back (no longer
+    #     silent), so an unexpected otto failure is detectable.
+    # -----------------------------------------------------------------
+    context 'when the fallback resolver raises unexpectedly' do
+      let(:env) do
+        {
+          'REMOTE_ADDR'          => '198.51.100.7',
+          'HTTP_USER_AGENT'      => 'curl/8.4.0',
+          'otto.security_config' => trusted_proxy_config('10.0.0.0/8'),
+        }
+      end
+
+      before do
+        allow(Otto::Utils).to receive(:resolve_client_ip)
+          .and_raise(StandardError, 'boom')
+      end
+
+      it 'logs the failure and falls back to the bare Rack IP' do
+        expect(OT).to receive(:le).with(/\[client_ip\] resolve_client_ip failed/)
+        expect(host.build_metadata(env)[:ip]).to eq('198.51.100.7')
+      end
+    end
+
+    # -----------------------------------------------------------------
+    # 5) `additional` overrides built-in keys (preserves merge contract).
     # -----------------------------------------------------------------
     context 'when additional metadata overrides built-in keys' do
       let(:env) do

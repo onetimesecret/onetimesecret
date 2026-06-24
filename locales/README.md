@@ -69,6 +69,37 @@ pnpm run type-check                # Check TypeScript types
 pnpm run i18n:generate-types       # Regenerate type definitions
 ```
 
+## Branch-per-Locale Workflow
+
+After exporting translations, create isolated branches for review:
+
+```bash
+# Preview what would be created (default: dry-run)
+locales/scripts/branch-per-locale.sh --changed
+
+# Actually create branches
+locales/scripts/branch-per-locale.sh --changed --execute
+
+# Specific locales only
+locales/scripts/branch-per-locale.sh ar bg ca_ES --execute
+```
+
+This creates one `i18n/update-{locale}` branch per locale off develop, each containing only that locale's content changes. Branches can be reviewed independently and merged separately.
+
+### Reviewing Branches
+
+Run `/d:review-locale-branches` to:
+1. Validate variables across all branches (automated)
+2. Launch parallel code-reviewer agents by language family
+3. Consolidate findings for triage
+
+#### Review vs Retrospective
+
+Review = raw observation. Prose, no schema, human/agent-authored, lives in BASE_REVIEW_PATH/reviews/<date>-<time>/LOCALE.md. Answers "what did we see?". Can be per locale or cross-locale (e.g. GROUP_NAME.md, with the locales listed in the content). Cross-locale groups are arbitrary but can be by language family (in linguistic terms).
+
+Retrospective = the decision a finding drives. Schema'd frontmatter, lifecycle-tracked (pending→applied), lives in BASE_RETRO_PATH/retrospectives/. Answers "what rule changes because of it, and is it done?"
+
+
 ## Translation Workflow
 
 Prep (once, after English source changes)

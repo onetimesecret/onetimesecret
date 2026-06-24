@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'rack/request'
+require 'otto'
 
 #
 # Shared helper methods for authentication strategies.
@@ -42,11 +43,39 @@ module Onetime
         # @return [Hash] Metadata hash
         def build_metadata(env, additional = {})
           {
-            ip: Rack::Request.new(env).ip,
+            ip: client_ip(env),
             user_agent: env['HTTP_USER_AGENT'],
             domain_strategy: env['onetime.domain_strategy'],
             display_domain: env['onetime.display_domain'],
           }.merge(additional)
+        end
+
+        private
+
+        # Resolve the client IP for auth metadata.
+        #
+        # Prefers env['otto.client_ip'], the value resolved once by the universal
+        # IPPrivacyMiddleware mount (trusted-proxy / depth resolution from
+        # site.network.trusted_proxy, then privacy masking). Falls back to
+        # Otto::Utils.resolve_client_ip when the middleware has not run (e.g. a
+        # standalone auth strategy invocation in a unit test), so the trusted-proxy
+        # contract holds even without the full stack. Bare Rack::Request#ip is the
+        # last resort.
+        #
+        # @param env [Hash] Rack environment
+        # @return [String, nil] resolved client IP
+        def client_ip(env)
+          canonical = env['otto.client_ip']
+          return canonical if canonical && !canonical.empty?
+
+          Otto::Utils.resolve_client_ip(env, env['otto.security_config'])
+        rescue StandardError => ex
+          # Unreachable in production (the middleware always sets
+          # otto.client_ip); if it ever fires, the bare Rack fallback has no
+          # trusted-proxy awareness and may return the ingress hop, so make the
+          # failure visible rather than silently mis-attributing the IP.
+          OT.le "[client_ip] resolve_client_ip failed, falling back to Rack::Request#ip: #{ex.message}"
+          Rack::Request.new(env).ip
         end
       end
     end

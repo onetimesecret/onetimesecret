@@ -52,6 +52,13 @@ that does not exist yet; the fixtures are Phase 3 / PR 6 work.
 | `full/org-invitation-flow.spec.ts` › INV-012 Gmail alias normalization | delano | [#3421](https://github.com/onetimesecret/onetimesecret/issues/3421) | 2026-06-10 | Needs real Gmail accounts + captured invite email. (`normalizeEmail()` is unit-tested.) |
 | `full/org-invitation-flow.spec.ts` › INV-017 full invitation acceptance | delano | [#3421](https://github.com/onetimesecret/onetimesecret/issues/3421) | 2026-06-10 | Needs a second account to sign up with the invited email + Mailpit. |
 | `full-billing/pending-plan-intent.spec.ts` › Post-Verification Redirect | delano | [#3421](https://github.com/onetimesecret/onetimesecret/issues/3421) | 2026-06-10 | Needs a mail interceptor; CI runs `AUTH_AUTOVERIFY=true` and can't exercise the verification redirect. |
+| `full/invite-flow-states.spec.ts` › INV-001 new user atomic signup | delano | [#3421](https://github.com/onetimesecret/onetimesecret/issues/3421) | 2026-06-24 | Needs a second account to accept the seeded invite + a mail interceptor; CI provisions only the owner account, so the accept-invitation UI never renders. Was a container-e2e failure on #3525. |
+| `full/invite-token-security.spec.ts` › SEC-INV-003 valid invite_token auto-login | delano | [#3421](https://github.com/onetimesecret/onetimesecret/issues/3421) | 2026-06-24 | Needs a seeded invite_token consumed by a fresh signup (second account + mail); CI cannot seed it, so invite-direct-accept never renders. |
+| `full/org-invitation-flow.spec.ts` › INV-007b unauthenticated decline | delano | [#3421](https://github.com/onetimesecret/onetimesecret/issues/3421) | 2026-06-24 | Needs a real pending invitation to decline unauthenticated; CI cannot seed the invitation, so the decline lands on an unexpected URL. |
+| `full/organization-members.spec.ts` › MBR-INVMGMT-001 resend pending invitation | delano | [#3419](https://github.com/onetimesecret/onetimesecret/issues/3419) | 2026-06-24 | Needs a seeded pending invitation in the org; no fixture in CI, so the invitation row never renders. |
+| `full/organization-members.spec.ts` › MBR-INVMGMT-002 revoke pending invitation | delano | [#3419](https://github.com/onetimesecret/onetimesecret/issues/3419) | 2026-06-24 | Needs a seeded pending invitation in the org; no fixture in CI, so the invitation row never renders. |
+| `full/organization-members.spec.ts` › MBR-ACCEPT-001 valid token shows details | delano | [#3419](https://github.com/onetimesecret/onetimesecret/issues/3419) | 2026-06-24 | Needs a valid seeded invitation token; CI cannot seed the relationship, so invitation-details never renders. |
+| `full/organization-members.spec.ts` › MBR-ACCEPT-002 unauthenticated sign-in form | delano | [#3419](https://github.com/onetimesecret/onetimesecret/issues/3419) | 2026-06-24 | Needs a valid seeded invitation token to reach the signin_required state; CI cannot seed it. |
 
 > **Still owed (deferred to a CI-verified follow-up, not in this PR):** the
 > `organization-members` role/remove tests (issue
@@ -82,6 +89,7 @@ not coverage** until a lane sets the flag.
 | `full/domain-config-consistency.spec.ts` | `E2E_CUSTOM_DOMAINS` | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
 | `full/domain-email-config.spec.ts` | `E2E_CUSTOM_DOMAINS` | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
 | `full/domain-navigation.spec.ts` | `E2E_CUSTOM_DOMAINS` | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
+| `full/domain-incoming-entitlement.spec.ts` | `E2E_CUSTOM_DOMAINS` | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
 | `full/domain-sso-config.spec.ts` | `E2E_CUSTOM_DOMAINS` + `E2E_SSO_UI` | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
 | `full/domain-sso-multi-provider.spec.ts` | `E2E_CUSTOM_DOMAINS` + `E2E_SSO_UI` | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
 | `auth/sso-csrf.spec.ts` | `E2E_SSO_UI` | [#2798](https://github.com/onetimesecret/onetimesecret/issues/2798) |

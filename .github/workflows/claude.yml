@@ -54,9 +54,14 @@ jobs:
           additional_permissions: |
             actions: read
 
-          # Pin an explicit model: the action's default (claude-sonnet-4-20250514)
-          # is retired and returns a 404. Bump as newer models ship.
-          model: "claude-sonnet-4-6"
+          # Primary model: set the CLAUDE_MODEL repo variable to override without
+          # editing this file. Pinning a current id avoids the action's frozen
+          # default (claude-sonnet-4-20250514), which is retired and 404s. Fall
+          # back to Haiku if the primary is unavailable or overloaded. The fallback
+          # default MUST differ from the primary default: the action errors with
+          # "Fallback model cannot be the same as the main model" otherwise.
+          model: "${{ vars.CLAUDE_MODEL || 'claude-sonnet-4-6' }}"
+          fallback_model: "${{ vars.CLAUDE_FALLBACK_MODEL || 'claude-haiku-4-5-20251001' }}"
 
           # Optional: Customize the trigger phrase (default: @claude)
           # trigger_phrase: "/claude"

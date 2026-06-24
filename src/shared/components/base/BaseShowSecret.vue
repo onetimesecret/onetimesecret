@@ -20,7 +20,7 @@
   import SecretSkeleton from '@/shared/components/closet/SecretSkeleton.vue';
   import { useSecret } from '@/shared/composables/useSecret';
   import { useSecretContext } from '@/shared/composables/useSecretContext';
-  import { onMounted } from 'vue';
+  import { computed, onMounted } from 'vue';
   import { onBeforeRouteUpdate } from 'vue-router';
 
   const { t } = useI18n();
@@ -37,6 +37,15 @@
   const props = defineProps<Props>();
 
   const { record, details, state, load, reveal } = useSecret(props.secretIdentifier);
+
+  // #3424: distinguish a terminal "not found" (404 — consumed/expired/missing),
+  // which legitimately renders the "viewed or expired" UnknownSecret view, from a
+  // load/parse/network failure, which must NOT masquerade as it. The latter shows
+  // the (previously dead) `error` slot with neutral, retryable copy.
+  const isNotFound = computed(() => state.errorCode === 404 || state.errorCode === '404');
+  const showLoadError = computed(
+    () => !state.isLoading && !record.value && !!state.error && !isNotFound.value
+  );
 
   // Actor-based UI configuration derived from auth state and ownership
   const { uiConfig, actorRole } = useSecretContext({
@@ -88,6 +97,23 @@
         class="animate-pulse motion-reduce:animate-none space-y-6 p-4">
         <SecretSkeleton />
       </div>
+
+      <!-- Load / parse / network error — kept DISTINCT from the terminal
+           "viewed or expired" view so a transient or schema failure isn't
+           reported to the recipient as a consumed secret (#3424). -->
+      <template v-else-if="showLoadError">
+        <slot
+          name="error"
+          :error="state.error"
+          :retry="load">
+          <div
+            role="alert"
+            class="rounded-lg border-l-4 border-red-500 bg-red-50 p-4 text-red-700
+              dark:bg-red-900/20 dark:text-red-200">
+            {{ state.error || t('web.COMMON.unexpected_error') }}
+          </div>
+        </slot>
+      </template>
 
       <!-- Unknown Secret State -->
       <template v-else-if="!record">

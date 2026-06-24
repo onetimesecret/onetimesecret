@@ -23,7 +23,11 @@ module Auth
   class Router < Roda
     include Onetime::LoggerMethods
 
-    use Otto::Security::Middleware::IPPrivacyMiddleware
+    # IP privacy is mounted once in the universal MiddlewareStack
+    # (lib/onetime/application/middleware_stack.rb), which resolves the
+    # canonical env['otto.client_ip'] before this Roda app runs. No per-router
+    # IPPrivacyMiddleware mount here — it would be a no-op behind otto's
+    # idempotency guard.
 
     # Include session validation helpers
     # TODO: Implement these modules

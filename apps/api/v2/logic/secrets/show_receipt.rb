@@ -251,8 +251,13 @@ module V2::Logic
           {
             secret_state: secret_state, # can be nil (e.g. if secret is consumed)
             natural_expiration: natural_expiration,
+            # expiration is nil for a consumed/expired secret (no live secret to
+            # expire); the V3 contract allows null. expiration_in_seconds is the
+            # raw secret_ttl, which bypasses the receipt safe_dump cast — coerce
+            # it here so a string-typed value can't trip the strict z.number()
+            # contract and null the whole receipt (#3424).
             expiration: expiration,
-            expiration_in_seconds: expiration_in_seconds,
+            expiration_in_seconds: expiration_in_seconds.to_i,
             share_path: share_path,
             burn_path: burn_path,
             receipt_path: receipt_path,
