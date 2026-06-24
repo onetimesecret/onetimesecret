@@ -130,6 +130,7 @@ module Core
                 domain_strategy: domain_strategy,
                 path: req.path,
                 query_string: req.query_string,
+                referrer: req.env['HTTP_REFERER'],
               },
             )
           end
