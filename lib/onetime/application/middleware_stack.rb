@@ -13,7 +13,6 @@ require_relative '../middleware/ip_ban'
 require_relative '../middleware/health_access_control'
 require_relative '../middleware/csrf_response_header'
 require_relative '../middleware/normalize_content_type'
-require_relative '../middleware/normalize_env'
 require 'otto'
 
 module Onetime
@@ -218,14 +217,15 @@ module Onetime
             }
           builder.use Otto::Security::Middleware::IPPrivacyMiddleware, ip_privacy_config
 
-          # Finish the privacy redaction immediately after IP privacy. The
-          # privacy middleware scrubs HTTP_REFERER/HTTP_USER_AGENT by assigning
-          # nil ("even if nil, to clear original sensitive data"), leaving a
-          # present-but-nil CGI key. Deleting it is strictly privacy-preserving
-          # (an absent header is indistinguishable from one never sent) and, as
-          # a side benefit, keeps the env Rack-spec compliant so Rack::Lint in
-          # development (Core::Middleware::ViteProxy) does not reject it.
-          builder.use Onetime::Middleware::NormalizeEnv
+          # IPPrivacyMiddleware scrubs these headers by assigning nil ("even if
+          # nil, to clear original sensitive data"), leaving a present-but-nil
+          # CGI key. That violates the Rack spec (CGI keys must be Strings) and
+          # trips Rack::Lint in development (Core::Middleware::ViteProxy). Drop
+          # the scrubbed keys so an absent header reads as never-sent. (otto
+          # should delete rather than nil; until it does, we clean up here.)
+          builder.use Rack::Config do |env|
+            %w[HTTP_REFERER HTTP_USER_AGENT].each { |k| env.delete(k) if env[k].nil? }
+          end
 
           # IP Ban middleware - blocks banned IPs (after IP privacy)
           logger.debug 'Setting up IP Ban middleware'
