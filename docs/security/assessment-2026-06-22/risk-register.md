@@ -8,13 +8,13 @@ Status: ✅ confirmed (source) · 🧪 runtime-PoC · 🔎 needs-validation.
 | ID | Finding | Sev | Exploit | Bus. impact | Default? | Status | Evidence |
 |----|---------|-----|---------|-------------|----------|--------|----------|
 | A1 | SSO email-match account takeover (no `email_verified`) | **Critical** | Moderate | High | No (SSO) | ✅ | 01; `config/hooks/omniauth.rb:27-30` |
-| C1 | TOCTOU race — one-time guarantee broken | **High** | Moderate¹ | High | **Yes** | 🧪 | 03 F1; `secret_state_management.rb:60`; PoC `poc/`, `evidence/race_poc_output.txt` |
+| C1 | TOCTOU race — one-time guarantee broken | **High** | Moderate¹ | High | **Yes** | 🧪 | 03 F1; `secret_state_management.rb:60`; PoC `poc/`, `evidence/race_poc_output.md` |
 | A2 | SSO + local MFA — add opt-in 2nd factor after SSO (default unchanged, reclassified after industry research: SSO-as-authenticated is the norm) | Low–Med | n/a² | Med | No (SSO+MFA) | ✅ | 01; `hooks/login.rb:128-133` |
 | A3 | Host-header poisoning of reset/magic/verify links | **High** | Moderate | High | No (auth) | ✅ | 01/04; `detect_host.rb:156-194` |
 | A4 | SSO domain allowlist not enforced on linking path | **High** | Moderate | High | No (SSO) | ✅ | 01; `hooks/omniauth.rb:133-180` |
 | P1 | CSRF bypass for cookie-auth `/api/*` mutations | **High** | Moderate | High | No (login) | ✅ | 04; `security.rb:142` |
-| S1 | CSP disabled by default | **High** | Moderate | Med | **Yes** | 🧪 | 05; `config.defaults.yaml:351`; `evidence/headers_output.txt` |
-| S2 | Clickjacking/HSTS/headers off by default | **High** | Moderate | Med | **Yes** | 🧪 | 05/04; `config.defaults.yaml:314-338`; `evidence/headers_output.txt` |
+| S1 | CSP disabled by default | **High** | Moderate | Med | **Yes** | 🧪 | 05; `config.defaults.yaml:351`; `evidence/headers_output.md` |
+| S2 | Clickjacking/HSTS/headers off by default | **High** | Moderate | Med | **Yes** | 🧪 | 05/04; `config.defaults.yaml:314-338`; `evidence/headers_output.md` |
 | D1 | `oauth2` 2.0.18 bearer-token leak CVE | **High** | Moderate | High | No (SSO) | ✅ | 06; `Gemfile.lock:265` |
 | C2 | Encryption HKDF salt = shared lib default | Medium | Hard | Med | Yes | ✅ | 03 F2; `configure_familia.rb:57-72` |
 | C3 | V1 reveal: no passphrase rate limiting | Medium | Moderate | Med | Yes³ | ✅ | 03 F3; `v1/.../show_secret.rb:26-31` |

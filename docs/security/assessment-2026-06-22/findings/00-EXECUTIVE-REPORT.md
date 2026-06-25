@@ -106,7 +106,7 @@ precondition. IDs map to the per-area files.
   `familia/lib/familia/horreum/persistence.rb:558` + `database_commands.rb:252,242`.
   **Live PoC:** `../poc/race_reveal_model.rb` (deterministic 10/10) and multi-process workers
   (`../poc/_reveal_worker.rb`) → **12/12 independent processes obtained the same secret's plaintext**
-  (`../evidence/race_poc_output.txt`). *(Detail: 03 F1)*
+  (`../evidence/race_poc_output.md`). *(Detail: 03 F1)*
   **Applicability:** default config (anonymous sharing); impact = single-use/tamper-evidence broken.
 
 - **[A2] SSO bypasses MFA unconditionally.** `via_omniauth: true` short-circuits the MFA requirement
@@ -133,7 +133,7 @@ precondition. IDs map to the per-area files.
 
 - **[S1] CSP disabled by default.** `CSP_ENABLED` defaults false; the policy is only emitted when
   enabled (the policy itself, when on, is strong: nonce-based, no `unsafe-inline`).
-  Evidence (live-confirmed, header ABSENT on `/api/v2/status`, `../evidence/headers_output.txt`):
+  Evidence (live-confirmed, header ABSENT on `/api/v2/status`, `../evidence/headers_output.md`):
   `etc/defaults/config.defaults.yaml:351-353`; `apps/api/v1/controllers/helpers.rb:171-208`. *(05)*
 
 - **[S2] Clickjacking / HSTS / security headers off by default.** `frame_options`, `strict_transport`,

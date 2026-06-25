@@ -14,7 +14,7 @@
 **false**. With CSP also off (S1), a default install ships **neither** `X-Frame-Options` **nor**
 `frame-ancestors` → it is framable/clickjackable, and has **no HSTS** → vulnerable to TLS-stripping/SSL
 downgrade. Confirmed live: `X-Frame-Options` and `Strict-Transport-Security` **absent** on
-`/api/v2/status` (`../evidence/headers_output.txt`). (`X-Content-Type-Options: nosniff`,
+`/api/v2/status` (`../evidence/headers_output.md`). (`X-Content-Type-Options: nosniff`,
 `X-XSS-Protection`, and `Referrer-Policy` *are* present.)
 
 ## Root cause
@@ -50,7 +50,7 @@ All of these are one-line default changes in `config.defaults.yaml` plus the HST
 ## Test / verification
 
 - Default boot → `X-Frame-Options`, `Strict-Transport-Security` (under HTTPS), origin checks present;
-  re-run `../poc/headers_check.rb` and confirm in `headers_output.txt`.
+  re-run `../poc/headers_check.rb` and confirm in `headers_output.md`.
 - Clickjacking probe: framing the app in a cross-origin iframe is blocked.
 - Dev (HTTP) boot → no HSTS emitted (no dev breakage).
 

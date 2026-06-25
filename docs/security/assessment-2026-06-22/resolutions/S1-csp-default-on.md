@@ -10,7 +10,7 @@
 ## Problem (recap)
 
 CSP is only emitted when `CSP_ENABLED=true`, which defaults to **false**. Confirmed live: `GET
-/api/v2/status` returns **no `Content-Security-Policy`** header (`../evidence/headers_output.txt`). For a
+/api/v2/status` returns **no `Content-Security-Policy`** header (`../evidence/headers_output.md`). For a
 product whose job is to display secrets, the default install ships without the single strongest
 anti-XSS / data-exfiltration control.
 
@@ -47,7 +47,7 @@ that every default deployment is unprotected.
 
 ## Test / verification
 
-- Default boot (no `CSP_ENABLED`) → response carries the strong CSP; `evidence/headers_output.txt`
+- Default boot (no `CSP_ENABLED`) → response carries the strong CSP; `evidence/headers_output.md`
   re-run shows it present.
 - SPA smoke test (Playwright) loads/reveals a secret with CSP enforcing and **zero** console CSP
   violations.

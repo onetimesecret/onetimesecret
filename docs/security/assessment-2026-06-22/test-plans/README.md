@@ -56,7 +56,7 @@ expected result · case type** (regression / negative / concurrency / edge). Eac
 
 - Resolutions: `../resolutions/{C1,S1,S2,A1,A2,A4}-*.md`
 - PoC harness: `../poc/{_setup_secret.rb,_reveal_worker.rb,race_reveal.sh,race_reveal_model.rb,headers_check.rb}`
-- Evidence: `../evidence/{race_poc_output.txt,headers_output.txt}`
+- Evidence: `../evidence/{race_poc_output.md,headers_output.md}`
 - Mirrored specs: `apps/api/v2/spec/logic/secrets/burn_secret_spec.rb`,
   `apps/web/auth/spec/integration/full/omniauth_missing_email_spec.rb`,
   `apps/web/auth/spec/config/features/mfa_spec.rb`,

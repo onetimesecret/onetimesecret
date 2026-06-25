@@ -36,7 +36,7 @@
 - `race_reveal_inproc.rb` — full-stack HTTP race via `Rack::MockRequest` (otto→logic→model).
 - `headers_check.rb` — dumps live response security headers on default config (CSP/XFO/HSTS ABSENT).
 - `race_reveal.sh` / `boot_app.sh` — curl-based + puma boot variants (puma needs `LC_ALL=C.UTF-8`).
-- Evidence captured in `../evidence/race_poc_output.txt` and `../evidence/headers_output.txt`.
+- Evidence captured in `../evidence/race_poc_output.md` and `../evidence/headers_output.md`.
 
 Run pattern (Ruby 3.4.9):
 ```

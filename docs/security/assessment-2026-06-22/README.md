@@ -16,7 +16,7 @@ Authorized internal security review of OneTimeSecret and its supporting librarie
 - `findings/01`–`06` — detailed per-area reports with `file:line` evidence.
 - `poc/` — reproduction scripts (the `race_reveal_*` and `_reveal_worker` scripts demonstrate the
   one-time-reveal race; `headers_check.rb` dumps live security headers).
-- `evidence/` — captured PoC output (`race_poc_output.txt`, `headers_output.txt`).
+- `evidence/` — captured PoC output (`race_poc_output.md`, `headers_output.md`).
 - `notes/tooling.md` — environment, tooling, and reproduction notes.
 
 ## Headline

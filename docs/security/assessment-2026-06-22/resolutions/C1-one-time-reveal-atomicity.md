@@ -4,7 +4,7 @@
 - **Status:** Proposed fix
 - **Affects default config?** **Yes** (anonymous secret sharing)
 - **Related:** finding 03 F1; reproduction in `../poc/race_reveal_model.rb`, `../poc/_reveal_worker.rb`,
-  evidence `../evidence/race_poc_output.txt`
+  evidence `../evidence/race_poc_output.md`
 - **Primary files:** `lib/onetime/models/secret/features/secret_state_management.rb`,
   `apps/api/v2/logic/secrets/reveal_secret.rb`, `apps/api/v1/logic/secrets/show_secret.rb`,
   `apps/api/v2/logic/secrets/burn_secret.rb`, `familia/lib/familia/horreum/{persistence,database_commands}.rb`
