@@ -99,20 +99,6 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', type: :integration, sqlite_data
       require 'auth/initializers/seed_dev_oauth_client'
       Auth::Initializers::SeedDevOAuthClient.new.execute(nil)
     end
-
-    # FINDING (seed bug): apps/web/auth/initializers/seed_dev_oauth_client.rb:92
-    # sets the dev SP's grant_types column to 'authorization_code' only — no
-    # 'refresh_token'. supported_grant_type? (oauth_base.rb:706-717) prefers
-    # the application's grant_types column over oauth_grant_types_supported
-    # (which DOES include refresh_token per features/oauth.rb:212). End
-    # result: /token rejects every refresh_token grant with invalid_request
-    # for this SP, regardless of scope or config.
-    #
-    # Widen here so the refresh-token examples can exercise their target
-    # protocol path. Flagged in the commit body as a real seed fix needed.
-    auth_db[:oauth_applications]
-      .where(client_id: 'onetimesecret-sp-dev')
-      .update(grant_types: 'authorization_code refresh_token')
   end
 
   let(:created_account_ids) { [] }

@@ -100,7 +100,14 @@ module Auth::Config::Features
       auth.oauth_refresh_token_protection_policy 'rotation'
 
       # ─── Scopes ────────────────────────────────────────────────────────
-      auth.oauth_application_scopes %w[openid profile email]
+      # `offline_access` must be present here (the server-level allow-list) or
+      # rodauth-oauth strips it from the request before the grant row is
+      # written. With :oidc enabled, oidc.rb only issues a refresh_token when
+      # `offline_access` survives into the granted scopes, so dropping it here
+      # silently breaks refresh tokens for every client (the SP in omniauth.rb
+      # requests it). The seeded SP's per-application `scopes` column must list
+      # it too — see seed_dev_oauth_client.rb.
+      auth.oauth_application_scopes %w[openid profile email offline_access]
 
       # ─── PKCE enforcement ──────────────────────────────────────────────
       # :oauth_pkce (enabled above) makes PKCE *available* but not *mandatory*:
