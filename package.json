@@ -156,7 +156,7 @@
     "@vueuse/core": "^14.3.0",
     "@vueuse/integrations": "^14.3.0",
     "axios": "^1.16.0",
-    "brace-expansion": "1.1.13",
+    "brace-expansion": "1.1.15",
     "codemirror": "^6.0.2",
     "date-fns": "^4.1.0",
     "dompurify": "^3.4.0",
