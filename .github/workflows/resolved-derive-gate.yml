@@ -52,7 +52,9 @@ jobs:
           locales: all
           emit: md,json
           lint: 'true'
-          emit-dir: generated/derived
+          # Holds .resolved/<locale>.json + guides/for-translators/<locale>.md
+          # derived from translation-rules; ignored, regenerated each run.
+          emit-dir: generated/i18n
 
       - name: Assert the derive ran at the canonical pin
         env:
