@@ -1,7 +1,7 @@
 # A5 — Recovery codes stored in plaintext in SQL
 
 - **Severity:** Medium (high impact: recovery codes are a full MFA-bypass credential)
-- **Status:** Proposed fix
+- **Status:** Proposed fix — **superseded by re-verification correction (2026-06-24) below**
 - **Affects default config?** No — gated on auth being enabled (Rodauth full-auth mode) **and** MFA
   (`otp`/`recovery_codes`) enrolled by the user. Recovery codes only exist once a user sets up TOTP/WebAuthn.
 - **Related:** A13 (64-bit recovery-code entropy — fix alongside), finding 01 §5/§13. MFA config in
@@ -11,6 +11,23 @@
   - fork `rodauth/lib/rodauth/features/recovery_codes.rb` (stores/compares verbatim — root cause)
   - fork `rodauth/lib/rodauth/features/base.rb` (`compute_hmac`, `timing_safe_eql?`, `random_key` helpers)
   - DB migration for `account_recovery_codes` (new, under the app's auth migrations dir)
+
+> **⚠️ Re-verification correction (2026-06-24 blind pass — `RE-VERIFICATION-2026-06-24-independent.md` §3f/§5).**
+> The prescribed fix below is **incomplete and kills recovery codes on the primary OTS flow** (double-HMAC).
+> It overrides `add_recovery_code` (store HMAC) and `recovery_code_match?` (compare HMAC) and stashes the
+> cleartext "for the add-recovery-codes response only" — but it never rewires the OTS `after_otp_setup`
+> auto-add path (`mfa.rb`), which reads codes back through the `auth_cached_method` `recovery_codes`
+> (fork `recovery_codes.rb:49`) and emits the now-HMAC'd values to the user. The user submits an HMAC, it is
+> HMAC'd again, no match is found → recovery codes are dead for every account that enrolled MFA via OTP setup
+> (the common path, since `auto_add_recovery_codes? true`).
+>
+> **Two corrections to the steps below:**
+> 1. Route **all** cleartext display through the request-scoped stash — including the `after_otp_setup`
+>    auto-add response, not only the manual add-recovery-codes response (step 2 currently scopes the stash
+>    too narrowly). Keep stored values HMAC'd.
+> 2. The migration (step 3) rewrites `code`, which is half the composite primary key `[:id, :code]`
+>    (`001_initial.rb:197`). An in-place `UPDATE ... SET code = HMAC(code)` mutates a PK component —
+>    **delete and re-insert each row** instead.
 
 ## Problem (recap)
 

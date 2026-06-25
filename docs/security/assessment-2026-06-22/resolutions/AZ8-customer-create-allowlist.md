@@ -1,13 +1,31 @@
 # AZ8 — Customer.create! has no allowlist (role/verified mass-assignable at the model layer)
 
 - **Severity:** Low — **NEEDS-VALIDATION** (safe today; all signup paths hardcode `role`)
-- **Status:** Proposed fix
+- **Status:** Proposed fix — **superseded by re-verification correction (2026-06-24) below**
 - **Affects default config?** Yes (account creation), but **not exploitable today**
 - **Related:** finding 02 F8; AZ3 (identical defect in `Organization.create!`); colonel role model (§4, F11)
 - **Primary files:** `lib/onetime/models/customer.rb:271-313` (`create!`),
   `lib/onetime/models/customer/features/status.rb` (`role`/`verified`/`verified_by` fields),
   callers: `apps/api/account/logic/account/create_account.rb:94,100-104`,
   `apps/web/auth/operations/create_customer.rb`, `sync_session.rb`
+
+> **⚠️ Re-verification correction (2026-06-24 blind pass — `RE-VERIFICATION-2026-06-24-independent.md` §3c/§6).**
+> The name-based fix below (`CREATE_FORBIDDEN_ATTRS` raising on `role`/`verified`/`verified_by`) **breaks
+> every legitimate caller**, and there are **7** of them — not the 3 the "Primary files" line above implies —
+> across 5 files: `apps/web/auth/operations/create_customer.rb:62`, `sync_session.rb:175`,
+> `apitoken_command.rb:168` **and `:190`**, `customers/create_command.rb:97` **and `:121`**, and
+> `dev_basic_auth_strategy.rb:182`. (`create_account.rb` is **not** among the 7 — it passes `email:` only and
+> assigns role/verified *after* create, the safe pattern; the Primary-files list overstates its role here.)
+>
+> A name-based raise cannot work at all: at the model boundary a hardcoded `role: 'customer'` and an
+> attacker-forwarded `role: 'customer'` are byte-identical, so there is no way to special-case the safe
+> literals.
+>
+> **Corrected fix (opt-in gate):** in `Customer.create!`, `kwargs.delete(:allow_privileged)`; **unless** that
+> flag was set, raise if any of `role`/`verified`/`verified_by` is present. Add `allow_privileged: true` to
+> the 7 legitimate callers. A future `create!(**raw_params)` carries no flag, so an attacker's
+> `role: 'colonel'` raises. (`allow_privileged` goes on exactly the 7 callsites above — not on every
+> `create!` caller.)
 
 ## Problem (recap)
 

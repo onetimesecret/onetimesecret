@@ -1,12 +1,35 @@
 # AZ2 — Organization safe_dump leaks internal IDs, owner custid, and contact/billing PII
 
-- **Severity:** Medium — **CONFIRMED**
-- **Status:** Proposed fix
+- **Severity:** Medium — **CONFIRMED** (but see correction: `owner_id` in the title is already stripped)
+- **Status:** Proposed fix — **superseded by re-verification correction (2026-06-24) below**
 - **Affects default config?** Yes (any active org member can read the org via `get_organization`)
 - **Related:** finding 02 F2; AZ5 (extid derivable once objid leaks); AZ6 (same class for Receipt)
 - **Primary files:** `lib/onetime/models/organization/features/safe_dump_fields.rb`,
   `apps/api/organizations/logic/organizations/get_organization.rb`,
   `lib/onetime/models/organization.rb` (opaque-ID doc, `:10-30`)
+
+> **⚠️ Re-verification correction (2026-06-24 blind pass — `RE-VERIFICATION-2026-06-24-independent.md` §3b/§6).**
+> **Wrong sink.** The prescription below edits `safe_dump_fields.rb` and a `get_organization.rb#success_data`
+> method — but the member-facing serialization actually happens in `serialize_organization` at
+> `apps/api/organizations/logic/base.rb:61-80`, and the depicted `success_data` method does not exist.
+> Editing `safe_dump_fields.rb` alone will not remove the leak.
+>
+> **Headline overstates.** `owner_id` (in the doc title) is **already stripped**: `serialize_organization`
+> substitutes `owner_extid` (`:72`) then `record.delete(:owner_id)` (`:74`). The residual member-visible leak
+> rides `created_by`, `contact_email`, `billing_email` (none stripped) plus the objid alias
+> (`record[:id] = record[:objid]`, `:66`).
+>
+> **Corrected fix — edit `serialize_organization` (`apps/api/organizations/logic/base.rb:61-80`):**
+> - delete `:identifier` and `:created_by` from the member baseline;
+> - keep the existing `owner_id` deletion (`:74`);
+> - **defer `:objid` removal** behind a coordinated migration — `record[:id] = objid` (`:66`) is a hard
+>   runtime dependency (frontend zod contract + the `O-Organization-ID` interceptor), so it cannot be dropped
+>   unilaterally;
+> - **nil-out (do not delete)** `contact_email`/`billing_email` for non-admins — the contract requires the
+>   key to be present;
+> - author the missing non-raising `entitlement_in?` helper (the body references it; it does not yet exist);
+> - gate the `members[]` array — `get_organization.rb:54-60` emits `member.objid` + email, a second leak the
+>   body does not address.
 
 ## Problem (recap)
 

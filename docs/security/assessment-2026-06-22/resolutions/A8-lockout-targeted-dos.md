@@ -1,7 +1,7 @@
 # A8 — Per-account lockout enables targeted victim DoS (~1-day window)
 
 - **Severity:** Medium
-- **Status:** Proposed fix
+- **Status:** Proposed fix — **superseded by re-verification correction (2026-06-24) below**
 - **Affects default config?** No — gated on auth being enabled (Rodauth full-auth mode). Lockout is on
   in full mode (`AUTH_LOCKOUT_ENABLED`, default enabled, `lockout.rb:7`).
 - **Related:** Finding 01 §9. Login timing oracle §15, rate-limiting posture generally. Interacts with
@@ -9,6 +9,21 @@
 - **Primary files:**
   - `apps/web/auth/config/features/lockout.rb:15-16` (OTS lockout config — the fix point)
   - fork `rodauth/lib/rodauth/features/lockout.rb:33,42,178-217,263-268` (lockout mechanism)
+
+> **⚠️ Re-verification correction (2026-06-24 blind pass — `RE-VERIFICATION-2026-06-24-independent.md` §3e/§5).**
+> The prescribed fix below — overriding `account_lockouts_deadline_interval` — is a **no-op on SQLite
+> (the default DB) and PostgreSQL**. Hand-verified against rodauth 2.42.0: the interval is written into the
+> `account_lockouts.deadline` column **only** when `set_deadline_values?` is true, and that method is
+> `db.database_type == :mysql` (`base.rb:750-752`; written at `base.rb:920-926`). On non-MySQL backends the
+> deadline comes from the column default `now + 1 day` (migration `001_initial.rb:47-53`), so the interval
+> override — and the exponential-backoff block in step 1 — change nothing. This is distinct from, and in
+> addition to, the dead-method-name bug in root cause #2 below.
+>
+> **Corrected fix:** make the interval authoritative on every backend by overriding `set_deadline_values?`
+> to return `true` (single source of truth), **or** pair a column-default migration with the interval
+> (keeping the MySQL-only writer). The backoff logic is otherwise sound once the deadline is actually driven
+> by the interval. (This control lives on the full-mode-only `web/auth` surface, so it remains not
+> default-reachable.)
 
 ## Problem (recap)
 

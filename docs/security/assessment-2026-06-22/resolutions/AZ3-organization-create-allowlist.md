@@ -1,12 +1,14 @@
 # AZ3 — Organization.create! open `**` splat enables mass assignment
 
-- **Severity:** Medium — **NEEDS-VALIDATION** (latent; sole current caller passes fixed args)
-- **Status:** Proposed fix
+- **Severity:** Medium — **NEEDS-VALIDATION** (latent; multiple callers pass `is_default:` via the splat)
+- **Status:** Proposed fix — **corrected 2026-06-24** (allowlist now includes `is_default`; `planid`
+  citation fixed; see `RE-VERIFICATION-2026-06-24-independent.md` §4/§6)
 - **Affects default config?** Yes (organizations are created on every signup), but **not exploitable today**
 - **Related:** finding 02 F3; AZ8 (same class of defect in `Customer.create!`); AZ4 (model-layer hardening)
 - **Primary files:** `lib/onetime/models/organization.rb` (`create!`, `:421-437`; sensitive fields `:65-72`
   and `with_organization_billing.rb`),
-  `apps/api/organizations/logic/organizations/create_organization.rb` (sole caller)
+  `apps/api/organizations/logic/organizations/create_organization.rb` (primary caller; other splat callers
+  pass `is_default:` — see Problem)
 
 ## Problem (recap)
 
@@ -28,15 +30,19 @@ def create!(display_name, owner_customer, contact_email = nil, **)
 `owner_id`/`created_by` are pinned from the trusted `owner_customer` positional arg, so those are safe. The
 risk is the bare `**`: Familia's `initialize_with_keyword_args` sets **any declared field** from kwargs with
 no field-level allowlist (assessment §5, `familia/.../horreum.rb:446`). The Organization declares sensitive
-plain fields — `planid` (`:87`, billing tier), `is_default` (`:70`), `archived_at`/`archived_comment`
-(`:71-72`), plus the billing fields from `with_organization_billing` (`stripe_customer_id`,
-`stripe_subscription_id`, `subscription_status`, `complimentary`). If **any** caller ever forwards
-request params into that splat, an attacker could set their own plan tier, mark an org `complimentary`, or
-inject a Stripe id.
+plain fields — `archived_at`/`archived_comment` (`:71-72`), plus the billing fields from
+`with_organization_billing` — `planid` (`with_organization_billing.rb:34`, billing tier; **not**
+`organization.rb:87`, which is only the init default), `stripe_customer_id`, `stripe_subscription_id`,
+`subscription_status`, `complimentary`. If **any** caller ever forwards request params into that splat, an
+attacker could set their own plan tier, mark an org `complimentary`, or inject a Stripe id.
+(`is_default` is also splat-settable but is a benign workspace flag legitimate callers set at create time —
+see the allowlist below.)
 
-*Confirm first:* the only production caller today is `create_organization.rb`, which passes a fixed
-positional set (no raw params forwarded), so this is currently a latent over-posting surface, not a live
-vulnerability. Validate there is no other `Organization.create!(...**params)` sink before sizing the work as
+*Confirm first:* no production caller forwards a **raw request-params hash** into the splat, so this is a
+latent over-posting surface, not a live vulnerability. (Re-verification found multiple callers — 3 production
++ 6 spec — that do pass `is_default: true` via the splat, e.g. `lazy_organization_creation_spec.rb`; those
+pass fixed literals, not request params, and are the reason `is_default` is allowlisted below.) Validate
+there is no `Organization.create!(...**params)` sink forwarding untrusted input before sizing the work as
 exploitable.
 
 ## Root cause
@@ -59,10 +65,12 @@ code paths (billing webhook, standalone materialization), never by create-time k
 
    ```ruby
    # lib/onetime/models/organization.rb
-   # Attributes a caller may set at creation. Everything else (planid, is_default,
-   # Stripe ids, complimentary, subscription_status, archived_*) is owned by
-   # trusted internal flows, NOT create-time input.
-   CREATE_ALLOWED_ATTRS = %i[display_name description].freeze
+   # Attributes a caller may set at creation. is_default is a benign workspace flag
+   # (delete-protection / same-customer domain-SSO) that legitimate splat callers set
+   # at create time, so it is allowlisted. Everything else (planid, Stripe ids,
+   # complimentary, subscription_status, archived_*) is owned by trusted internal
+   # flows, NOT create-time input.
+   CREATE_ALLOWED_ATTRS = %i[display_name description is_default].freeze
 
    def create!(display_name, owner_customer, contact_email = nil, **extra)
      raise Onetime::Problem, 'Owner required' if owner_customer.nil?
@@ -96,10 +104,12 @@ code paths (billing webhook, standalone materialization), never by create-time k
    `materialize_standalone_entitlements!` / the billing webhook assign the real plan. Creation input must not
    set it.
 
-2. Confirm the sole caller still works: `create_organization.rb` passes a fixed positional set, so it lands
-   on the empty/allowlisted path unchanged.
+2. Confirm the callers still work: `create_organization.rb` and the other splat callers that pass
+   `display_name`/`description`/`is_default: true` now land on the allowlisted path unchanged. Because the
+   filter is fail-closed, any caller passing `is_default` would have raised had it been left off the
+   allowlist — hence its inclusion.
 
-3. **Defense-in-depth at the field level (optional but recommended):** mark `planid`, `is_default`, the
+3. **Defense-in-depth at the field level (optional but recommended):** mark `planid`, the
    Stripe fields, `complimentary`, and `subscription_status` as not-externally-assignable so even a future
    bulk setter cannot reach them. If Familia supports a per-field guard, register these; otherwise document
    them in the model header as "internal-only — set via billing/materialization paths only," mirroring the
@@ -121,7 +131,7 @@ Add to the Organization model spec:
    if you chose drop-silently, the created org has `planid == 'free_v1'`).
 2. **Billing fields blocked:** `complimentary: true`, `stripe_customer_id: 'cus_x'`,
    `subscription_status: 'active'` are all rejected/ignored.
-3. **Allowed attrs pass:** `description:` is accepted and persisted.
+3. **Allowed attrs pass:** `description:` and `is_default: true` are accepted and persisted.
 4. **Caller regression:** existing `create_organization_spec.rb` continues to pass unchanged (no behavior
    change for the legitimate path).
 
