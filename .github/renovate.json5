@@ -71,14 +71,15 @@
     },
   ],
 
-  // Track the pinned translation-rules commit in BOTH derive gates, bumping
-  // each to the latest vX.Y.Z release tag and keeping their PINNED_RULES_REF in
-  // lockstep:
+  // Bump the translation-rules DATA ref (TRANSLATION_RULES_REF) in both derive
+  // gates to the latest vX.Y.Z release tag:
   //   - resolved-derive-gate.yml (authority freshness/integrity)
   //   - validate-register.yml    (cross-locale content register lint)
-  // The regex matches the `<sha> # vX.Y.Z` release form both gates now use. The
-  // `uses:` action digest is handled by the built-in github-actions manager
-  // (helpers:pinGitHubActionDigests).
+  // This is the human-readable tag the derive action resolves at run time — a
+  // bare tag string, not a digest. The separate `uses:` action digest (the code
+  // that runs) is pinned to a SHA and bumped by the built-in github-actions
+  // manager (helpers:pinGitHubActionDigests). Two independent axes that normally
+  // land on the same release.
   customManagers: [
     {
       customType: 'regex',
@@ -86,7 +87,7 @@
         '^\\.github/workflows/(resolved-derive-gate|validate-register)\\.yml$',
       ],
       matchStrings: [
-        'PINNED_RULES_REF:\\s+(?<currentDigest>[a-f0-9]{40})\\s+#\\s+(?<currentValue>v\\d+\\.\\d+\\.\\d+)',
+        'TRANSLATION_RULES_REF:\\s+(?<currentValue>v\\d+\\.\\d+\\.\\d+)',
       ],
       depNameTemplate: 'onetimesecret/translation-rules',
       datasourceTemplate: 'github-tags',
