@@ -16,7 +16,8 @@ glossary pass are separate human steps — do not run them.
 
 Each translating/auditing agent follows `locales/AGENT_TRANSLATION_PROTOCOL.md`
 exactly and reads its per-locale governance from
-`locales/.resolved/{LOCALE}.json`. Concurrency is owned by the CLI (every
+`generated/i18n/.resolved/{LOCALE}.json` (derived on demand — see Phase 0).
+Concurrency is owned by the CLI (every
 connection opens WAL with a 30s busy timeout), so there is no WAL/lock setup or
 retry handling here.
 
@@ -46,12 +47,17 @@ Discover, do not assume. Run these yourself in the main loop first:
    filter on `pending` yet — a fresh or just-imported DB has no task rows, so an
    eligible untranslated locale would read `pending == 0` and be dropped before
    its queue is ever built.)
-3. **Eligibility gate.** A locale is eligible for automated drain **only if**
-   `locales/.resolved/<loc>.json` exists with a populated `register` and a
-   populated `glossary` (its governance has been back-ported upstream). For each
-   candidate, check this and **SKIP + warn** for any locale that lacks it:
+3. **Derive governance, then check eligibility.** Governance is derived on demand
+   (no-vendor) into the gitignored `generated/i18n/` cache — run it first:
    ```bash
-   jq -e '((.register // {}) | length > 0) and ((.glossary // {}) | length > 0)' "locales/.resolved/$loc.json" >/dev/null 2>&1 || echo "SKIP (no resolved governance): $loc"
+   locales/scripts/derive-governance.sh   # writes generated/i18n/.resolved/<loc>.json at the canonical pin
+   ```
+   A locale is eligible for automated drain **only if**
+   `generated/i18n/.resolved/<loc>.json` exists with a populated `register` and a
+   populated `glossary` (it is governed upstream at the pin). For each candidate,
+   check this and **SKIP + warn** for any locale that lacks it:
+   ```bash
+   jq -e '((.register // {}) | length > 0) and ((.glossary // {}) | length > 0)' "generated/i18n/.resolved/$loc.json" >/dev/null 2>&1 || echo "SKIP (not governed at pin): $loc"
    ```
 4. **Refresh each eligible target's queue, THEN filter on pending.** Build the
    queue before checking pending. Use `--missing-only` so an existing locale
@@ -79,7 +85,7 @@ Use the `Workflow` tool. Shape:
 
 The agents own the per-task cycle, the temp-file/`--validate` handling, the audit,
 and all governance — those are defined in `locales/AGENT_TRANSLATION_PROTOCOL.md`
-and `locales/.resolved/<loc>.json`. Keep the per-locale agent prompt short and
+and `generated/i18n/.resolved/<loc>.json`. Keep the per-locale agent prompt short and
 point it at those files; do not re-derive the cycle here.
 
 The glossary pass (step 7 of the manual protocol) is **NOT** part of this drain.
@@ -102,7 +108,7 @@ const results = await pipeline(
     `Drain translation tasks for locale "${loc}". ` +
     `Follow locales/AGENT_TRANSLATION_PROTOCOL.md exactly. ` +
     `Per-locale governance (register, glossary, binding rules, declined decisions): ` +
-    `locales/.resolved/${loc}.json. ` +
+    `generated/i18n/.resolved/${loc}.json. ` +
     `Preserve all interpolation/markup tokens; brand names stay English. ` +
     `Loop until 0 pending; do not export or commit. Return final pending/completed counts.`,
     { label: `drain:${loc}`, phase: 'Drain', agentType: 'saas-translator' }
@@ -110,7 +116,7 @@ const results = await pipeline(
   (_drained, loc) => agent(
     `Audit completed translation rows for locale "${loc}" per ` +
     `locales/AGENT_TRANSLATION_PROTOCOL.md (key-set match vs source, token preservation, ` +
-    `untranslated-English leakage), using governance in locales/.resolved/${loc}.json. ` +
+    `untranslated-English leakage), using governance in generated/i18n/.resolved/${loc}.json. ` +
     `Fix any problems in place. Do NOT export or commit. ` +
     `Return: rows audited, rows fixed, and final \`tasks next ${loc} --stats\` pending count.`,
     { label: `audit:${loc}`, phase: 'Audit', agentType: 'saas-translator' }
