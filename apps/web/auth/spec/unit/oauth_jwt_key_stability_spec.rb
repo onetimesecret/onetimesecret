@@ -86,4 +86,23 @@ RSpec.describe 'OAuth JWT key stability across boots' do
         .to raise_error(OpenSSL::PKey::RSAError)
     end
   end
+
+  describe 'public-key-only material is distinguishable from a private key' do
+    # OpenSSL::PKey::RSA.new parses a PUBLIC-key PEM without raising, so the
+    # loader can't rely on a parse error to catch an operator who pasted the
+    # public half — signing would then fail at /token instead of at boot.
+    # features/oauth.rb guards on `private_key.private?`; pin that discriminator
+    # so the guard can't silently regress.
+    let(:public_pem) { OpenSSL::PKey::RSA.new(pem).public_key.to_pem }
+
+    it 'parses a public-only PEM but reports private? == false (must be rejected)' do
+      key = OpenSSL::PKey::RSA.new(public_pem)
+      expect(key).to be_a(OpenSSL::PKey::RSA)
+      expect(key.private?).to be(false)
+    end
+
+    it 'reports private? == true for the full keypair (accepted)' do
+      expect(OpenSSL::PKey::RSA.new(pem).private?).to be(true)
+    end
+  end
 end

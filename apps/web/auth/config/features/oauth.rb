@@ -294,6 +294,17 @@ module Auth::Config::Features
               'Regenerate with: bin/generate_oauth_keys (or `openssl genrsa 2048`), ' \
               'and ensure the full PEM — including the BEGIN/END lines — is present.'
       end
+
+      # OpenSSL::PKey::RSA.new also parses a PUBLIC-key PEM without error, so an
+      # operator who pastes the public half boots clean and only fails later at
+      # /token (signing needs the private exponent — RSA#sign raises without it).
+      # Fail fast at boot with the same actionable error instead.
+      unless private_key.private?
+        raise 'OAUTH_JWT_RSA_PRIVATE_KEY contains an RSA public key, not a private key. ' \
+              'Provide the full private-key PEM (the block beginning ' \
+              '`-----BEGIN [RSA] PRIVATE KEY-----`); regenerate with: ' \
+              'bin/generate_oauth_keys (or `openssl genrsa 2048`).'
+      end
       auth.oauth_jwt_keys('RS256' => private_key)
       auth.oauth_jwt_public_keys('RS256' => private_key.public_key)
     end
