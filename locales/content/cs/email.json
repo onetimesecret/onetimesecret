@@ -730,7 +730,7 @@
     "source_hash": "7e677ab8"
   },
   "email.payment_receipt.body": {
-    "text": "Děkujeme za vaši platbu. Zde jsou podrobnosti o platbě:",
+    "text": "Děkujeme za tvou platbu. Zde jsou podrobnosti o platbě:",
     "renderer": "erb",
     "source_hash": "a1fb6502"
   },
