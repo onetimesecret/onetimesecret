@@ -304,7 +304,7 @@
     "source_hash": "ae2c8dd9"
   },
   "web.colonel.testModeDescription": {
-    "text": "Otestujte svou aplikaci s různými oprávněními plánu. Změny jsou dočasné a ovlivní pouze vaši relaci.",
+    "text": "Otestujte svou aplikaci s různými oprávněními plánu. Změny jsou dočasné a ovlivní pouze tvou relaci.",
     "source_hash": "be03a409"
   },
   "web.colonel.warningTestMode": {

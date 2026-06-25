@@ -139,7 +139,7 @@
     "source_hash": "98657c0b"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "Žádné heslo není potřeba — stačí kliknout na odkaz ve vašem e-mailu",
+    "text": "Žádné heslo není potřeba — stačí kliknout na odkaz ve tvém e-mailu",
     "source_hash": "5f539b97"
   },
   "web.auth.magicLink.networkError": {

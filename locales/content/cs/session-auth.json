@@ -187,7 +187,7 @@
     "source_hash": "e0b448ac"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "Pro ověření účtu prosím použij ověřovací odkaz odeslaný na vaši e-mailovou adresu.",
+    "text": "Pro ověření účtu prosím použij ověřovací odkaz odeslaný na tvou e-mailovou adresu.",
     "source_hash": "b1a8cfc6"
   },
   "web.auth.verify.create_new_account": {

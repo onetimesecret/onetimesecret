@@ -4,7 +4,7 @@
     "source_hash": "1e6287f1"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "Tvoje data se nacházejí výhradně ve vámi zvoleném regionu a nikdy nejsou přenášena mezi regiony",
+    "text": "Tvoje data se nacházejí výhradně v tebou zvoleném regionu a nikdy nejsou přenášena mezi regiony",
     "source_hash": "5e904993"
   },
   "web.regions.separate_environments_explanation": {
@@ -52,7 +52,7 @@
     "source_hash": "d13d2931"
   },
   "web.regions.privacy_description": {
-    "text": "Zajistěte, aby se s vašimi osobními údaji zacházelo podle zákonů a předpisů o soukromí tvojí země, čímž se zabrání neoprávněnému přístupu nebo zneužití.",
+    "text": "Zajistěte, aby se s tvými osobními údaji zacházelo podle zákonů a předpisů o soukromí tvojí země, čímž se zabrání neoprávněnému přístupu nebo zneužití.",
     "source_hash": "28d9d42e"
   },
   "web.regions.compliance_title": {

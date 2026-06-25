@@ -220,7 +220,7 @@
     "source_hash": "dc9ff9ec"
   },
   "web.domains.add_your_domain": {
-    "text": "Přidat vaši doménu",
+    "text": "Přidat svou doménu",
     "source_hash": "6b95c91c"
   },
   "web.domains.get_started_by_adding_a_custom_domain": {
@@ -264,7 +264,7 @@
     "source_hash": "09a4b0ca"
   },
   "web.domains.verify_your_domain": {
-    "text": "Ověřit vaši doménu",
+    "text": "Ověřit svou doménu",
     "source_hash": "afa10517"
   },
   "web.domains.secrets_example_dot_com": {

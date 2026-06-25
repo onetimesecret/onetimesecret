@@ -100,7 +100,7 @@
     "source_hash": "c02130fa"
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
-    "text": "Bekijk hoe ontvangers uw berichten zullen zien door de knop \"Bericht bekijken\" te testen",
+    "text": "Bekijk hoe ontvangers je berichten zullen zien door de knop \"Bericht bekijken\" te testen",
     "source_hash": "3b58a297"
   },
   "web.branding.eye_icon": {
@@ -108,7 +108,7 @@
     "source_hash": "7f605d3c"
   },
   "web.branding.click_the_preview_image_below_to_update_your_logo": {
-    "text": "Klik op de voorbeeldafbeelding hieronder om uw logo bij te werken (minimaal 128x128 pixels aanbevolen, 1MB max)",
+    "text": "Klik op de voorbeeldafbeelding hieronder om je logo bij te werken (minimaal 128x128 pixels aanbevolen, 1MB max)",
     "source_hash": "77a19049"
   },
   "web.branding.image_icon": {
@@ -124,7 +124,7 @@
     "source_hash": "bde04d31"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
-    "text": "U heeft niet-opgeslagen wijzigingen. Weet u het zeker?",
+    "text": "Je hebt niet-opgeslagen wijzigingen. Weet je het zeker?",
     "source_hash": "184b6a83"
   },
   "web.branding.failed_to_load_brand_settings": {
@@ -136,7 +136,7 @@
     "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
-    "text": "Dit is een interactief voorbeeld van hoe ontvangers uw beveiligde berichten zullen zien. U kunt: - Kleuren en lettertypen aanpassen met de besturingselementen hierboven - Een logo uploaden (minimaal 128x128 pixels aanbevolen, 1MB max) - Het voorbeeld testen met de knop \"Bericht bekijken\"",
+    "text": "Dit is een interactief voorbeeld van hoe ontvangers je beveiligde berichten zullen zien. Je kunt: - Kleuren en lettertypen aanpassen met de besturingselementen hierboven - Een logo uploaden (minimaal 128x128 pixels aanbevolen, 1MB max) - Het voorbeeld testen met de knop \"Bericht bekijken\"",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {

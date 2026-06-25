@@ -61,6 +61,22 @@ The sync script merges all content files for each locale into a single nested JS
 
 Security messages require special handling - see `guides/SECURITY-TRANSLATION-GUIDE.md`.
 
+## Register check (run locally)
+
+Catch politeness-level violations (e.g. formal forms in an informal-locked
+locale) before review — same engine as the `validate-register` CI gate.
+
+```bash
+# 1. derive the resolved registers at the canonical pin (writes generated/i18n/)
+locales/scripts/derive-governance.sh
+
+# 2. check one locale's content (exit 0 = clean; 1 = lists each hit)
+python3 .translation-rules/lib/resolver/lint_content.py \
+  --resolved generated/i18n/.resolved/<locale>.json \
+  --content-root . \
+  "locales/content/<locale>/*.json"
+```
+
 ## Testing
 
 ```bash
