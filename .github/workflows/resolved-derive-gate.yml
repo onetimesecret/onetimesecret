@@ -1,0 +1,67 @@
+# Regenerate-in-CI freshness / integrity gate. Replaces the retired SPEC §2.4
+# byte-hash gate (resolved-freshness.yml) per translation-rules ADR-005 and
+# issue #36.
+#
+# Under the no-vendor model there is no committed .resolved corpus to hash — the
+# old gate's guarantee ("generated governance is the authority's output, never a
+# hand edit") is preserved instead by DERIVING from scratch at the pin in CI and
+# linting it. Output goes to an ignored cache (.derived/) and is thrown away;
+# nothing is committed. If the pin points at a translation-rules commit whose
+# governance does not lint clean, this fails — so the app can never pin to a
+# broken authority commit.
+#
+# The single canonical translation-rules pin is PINNED_RULES_REF below, kept in
+# lockstep with the `uses:` action ref (a literal SHA is required there). Bump
+# deliberately; #38 wires Renovate to bump it automatically against
+# translation-rules' v0.0.* release tags.
+
+name: resolved-derive-gate
+
+on:
+  pull_request:
+    paths:
+      - 'locales/content/**'
+      - '.github/workflows/resolved-derive-gate.yml'
+  push:
+    branches: [main, develop]
+    paths:
+      - 'locales/content/**'
+      - '.github/workflows/resolved-derive-gate.yml'
+  # Allow manual verification on any branch (e.g. before this lands on main).
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+env:
+  # Canonical translation-rules pin. Keep in lockstep with the `uses:` ref below.
+  PINNED_RULES_REF: e0cb65293012b41989149030f215c3b88708f2ed
+
+jobs:
+  resolved-derive-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout app repo
+        uses: actions/checkout@v4
+
+      - name: Derive + lint all governed locales at the pin
+        id: derive
+        uses: onetimesecret/translation-rules/.github/actions/derive@e0cb65293012b41989149030f215c3b88708f2ed
+        with:
+          ref: ${{ env.PINNED_RULES_REF }}
+          locales: all
+          emit: md,json
+          lint: 'true'
+          emit-dir: .derived
+
+      - name: Assert the derive ran at the canonical pin
+        env:
+          GOT: ${{ steps.derive.outputs.source-commit }}
+          WANT: ${{ env.PINNED_RULES_REF }}
+        run: |
+          set -euo pipefail
+          if [ "$GOT" != "$WANT" ]; then
+            echo "::error::derive ran at ${GOT}, expected canonical pin ${WANT}"
+            exit 1
+          fi
+          echo "resolved-derive-gate: derived + linted at canonical pin ${GOT}"
