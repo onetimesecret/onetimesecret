@@ -5,7 +5,8 @@ Fixed
 
 - Czech and Dutch UI copy that had drifted out of each locale's locked
   informal register is corrected: Czech now uses the informal ``ty``
-  possessives/pronouns throughout (13 strings), and Dutch core product UI
-  (errors, branding, dashboard, layout) uses informal ``je``/``jouw`` (21
-  strings). Surfaced by the resolver-engine register gate. Dutch B2B/legal
-  marketing copy keeps its formal ``u``/``uw`` carve-out. (#3530)
+  possessives/pronouns throughout (13 strings), and Dutch now uses informal
+  ``je``/``jouw`` across all flagged copy — product UI, plus the
+  legal/marketing strings that had used formal ``u``/``uw`` (34 strings total).
+  Surfaced by the resolver-engine register gate; both locales now scan clean.
+  (#3530)
