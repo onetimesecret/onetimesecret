@@ -188,8 +188,14 @@ RSpec.describe 'OAuth/OIDC IdP endpoints', type: :integration, sqlite_database: 
       expect(body['id_token_signing_alg_values_supported']).to include('RS256')
     end
 
-    it 'advertises openid, email, and profile in scopes_supported' do
-      expect(body['scopes_supported']).to include('openid', 'email', 'profile')
+    it 'advertises openid, email, profile, and offline_access in scopes_supported' do
+      # offline_access must be advertised here (it derives from
+      # oauth_application_scopes): without it the /authorize scope intersection
+      # strips offline_access before the grant is written, so the :oidc layer
+      # never issues a refresh token. This is the discovery-level regression
+      # guard for the server allow-list; the seeded SP's per-application scopes
+      # column is covered by seed_dev_oauth_client_idempotency_spec.
+      expect(body['scopes_supported']).to include('openid', 'email', 'profile', 'offline_access')
     end
 
     it 'advertises token_endpoint_auth_methods_supported' do

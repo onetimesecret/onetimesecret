@@ -37,7 +37,7 @@ module Auth
       # rodauth-oauth intersects granted scopes against this per-application
       # column, so omitting it strips offline_access even when the server
       # allow-list (oauth_application_scopes) permits it.
-      DEV_CLIENT_SCOPES      = 'openid email profile offline_access'
+      DEV_CLIENT_SCOPES      = 'openid profile email offline_access'
       DEV_CLIENT_GRANT_TYPES = 'authorization_code refresh_token'
 
       # The redirect_uri stored on the seeded row MUST match the SP-side
