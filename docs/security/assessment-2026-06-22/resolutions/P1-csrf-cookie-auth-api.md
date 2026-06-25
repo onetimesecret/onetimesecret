@@ -1,11 +1,29 @@
 # P1 — CSRF protection bypassed for cookie-authenticated API mutations
 
-- **Severity:** High (any logged-in/cookie session using API-backed actions)
-- **Status:** Proposed fix
+- **Severity:** High (any logged-in/cookie session using API-backed actions) — recalibrated to **Medium** by 2026-06-24 re-verification (§7)
+- **Status:** Proposed fix — **superseded by re-verification correction (2026-06-24) below**
 - **Affects default config?** Conditional — applies once accounts/sessions are used
 - **Related:** S2 (HttpOrigin off by default). Finding 04 #2.
 - **Primary files:** `lib/onetime/middleware/security.rb:142` (blanket `/api/` CSRF exemption),
   `apps/api/*/auth_strategies.rb` (per-route `auth=sessionauth,...`)
+
+> **⚠️ Re-verification correction (2026-06-24 blind pass — `RE-VERIFICATION-2026-06-24-independent.md` §5).**
+> The prescribed fix below is **unsound** against rack-protection 4.2.1 — it will not run as written.
+> Three independent failures: (1) `:except_when` is **not a recognized option** — the gem only honours
+> `:allow_if` (`rack/protection/authenticity_token.rb:103,120`); (2) **wrong lambda arity** — the gem calls
+> `options[:allow_if]&.call(env)` single-arg (`:120`), the sketch passes `->(req, env)`; (3)
+> `env['otts.auth_method']` is **never populated** (0 writes in `lib`/`apps`) and is unreadable at middleware
+> time anyway — the Security middleware runs *before* post-routing auth resolves.
+>
+> Reachability also corrected **false → partial** (hand-verified §3a): `sessionauth` is registered by default
+> (mode-independent; `auth_strategies.rb:49-54` gates on `authentication.enabled` alone), so cookie-auth
+> `/api` mutation endpoints exist out of the box — but the session cookie defaults to `SameSite=Lax`
+> (`boot.rb:80-85`), which blocks the headline cross-site POST, leaving only same-site-subdomain / legacy-browser
+> residuals. **Severity recalibrated High → Medium (§7).**
+>
+> **Correction:** discriminate **inside** the existing single-arg `:allow_if` lambda — exempt only requests
+> with no `onetime.session` cookie **or** an explicit `Authorization` header; enforce `X-CSRF-Token` otherwise
+> (the SPA already sends it). Do not rely on a custom env key or a two-arg lambda.
 
 ## Problem (recap)
 

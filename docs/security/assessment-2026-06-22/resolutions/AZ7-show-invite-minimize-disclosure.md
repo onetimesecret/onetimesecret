@@ -1,11 +1,24 @@
 # AZ7 — show_invite discloses inviter email and an account-exists oracle
 
 - **Severity:** Low — **CONFIRMED**
-- **Status:** Proposed fix (product decision required on inviter-email exposure)
+- **Status:** Proposed fix — **superseded by re-verification correction (2026-06-24) below** (product decision still required on inviter-email exposure)
 - **Affects default config?** Yes (the noauth `GET /api/invite/:token` endpoint)
 - **Related:** finding 02 F7; F10 (invite token rate limiter)
 - **Primary files:** `apps/api/invite/logic/base.rb:51-64` (`serialize_invitation_public`),
   `apps/api/invite/logic/invites/show_invite.rb:65-99` (`success_data`, `account_exists?`)
+
+> **⚠️ Re-verification correction (2026-06-24 blind pass — `RE-VERIFICATION-2026-06-24-independent.md` §5).**
+> Escalated to **incomplete_regresses**: the prescribed **backend-only** minimization breaks invite acceptance
+> in the frontend. `AcceptInvite.vue:134` runs `showInviteResponseSchema.parse(response.data.record)`, and that
+> schema requires both fields non-optionally — `invited_by_email: z.string().nullable()`
+> (`src/schemas/api/invite/responses/show-invite.ts:80`) and `account_exists: z.boolean()` (`:83`). Dropping
+> either from the backend response throws a zod parse error before the screen renders. `account_exists` also
+> drives the signin-vs-signup branch at `AcceptInvite.vue:97`, and `invited_by_email` is rendered in the
+> template (`AcceptInvite.vue:430-431`, +492/577/653).
+> **Correction:** ship the frontend change in lockstep with the backend minimization — relax the zod schema
+> (`show-invite.ts:80,83`) to make the fields optional/removed, rederive the signin/signup branch (`:97`) from
+> client auth state, and drop the inviter-email template bindings. Do **not** land the backend edit alone.
+> Severity unchanged (Low).
 
 ## Problem (recap)
 

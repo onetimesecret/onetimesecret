@@ -1,13 +1,35 @@
 # AZ5 — Organization extid uses plain SHA-256, not a keyed HMAC
 
-- **Severity:** Medium — **NEEDS-VALIDATION** (defense-in-depth; compounded by AZ2 leaking objid)
-- **Status:** Proposed fix
+- **Severity:** Medium — **NEEDS-VALIDATION** (defense-in-depth; compounded by AZ2 leaking objid) — recalibrated to Low by 2026-06-24 re-verification (§7)
+- **Status:** Proposed fix — **superseded by re-verification correction (2026-06-24) below**
 - **Affects default config?** Yes (every org has an extid; no `secret:` is configured)
 - **Related:** finding 02 F5; AZ2 (objid leak removes the "objid is secret" assumption);
   the verifiable-id approach used for secrets (F12)
 - **Primary files:** `lib/onetime/models/organization.rb:46` (`feature :external_identifier`),
   `familia/lib/familia/features/external_identifier.rb:300-346` (derivation),
   `familia/lib/familia/verifiable_identifier.rb:45-94` (the keyed-secret pattern to mirror)
+
+> **⚠️ Re-verification correction (2026-06-24 blind pass — `RE-VERIFICATION-2026-06-24-independent.md` §5).**
+> The prescribed `secret: -> { ENV.fetch('EXTID_HMAC_SECRET') }` ships an **always-on deploy hazard**:
+> `EXTID_HMAC_SECRET` is never bridged into Familia. The boot bridge maps only the verifiable-id secret
+> (`configure_familia.rb:55` sets `VERIFIABLE_ID_HMAC_SECRET` from `IDENTIFIER_SECRET`), nothing wires
+> `EXTID_HMAC_SECRET`. Yet `Organization.create!` runs on **every** signup (default workspace, not orgs-gated)
+> via `CreateDefaultWorkspace#create_default_organization` (`create_default_workspace.rb:80`), and its
+> signup-hook callers wrap it in `ErrorHandler.safe_execute` (`account.rb:230`, `omniauth.rb:266`), which
+> catches `StandardError`, logs it, and **returns nil** (`error_handler.rb:43-64`). So on an unprovisioned
+> deploy the lazy `ENV.fetch` raises
+> `KeyError` at first derivation, gets swallowed to nil, and default-workspace creation silently fails — the
+> user lands with no workspace and no error surfaced to the request. (Logged, not raised; not a literal inline
+> `rescue => nil`, but the same swallow-to-nil effect.)
+>
+> **Corrections:**
+> 1. Add the `EXTID_HMAC_SECRET` env bridge alongside line 55 **and** a deploy-ordering / boot guard so a
+>    missing secret fails loudly at boot, not silently at first signup. Do not rely on the lazy callable to
+>    surface the error — the `safe_execute` swallow defeats it.
+> 2. **Scope is incomplete.** `Customer` and `CustomDomain` share the same unkeyed external-id pattern; an
+>    org-only fix leaves those derivable. Apply the keyed secret across all three id domains.
+>
+> **Severity recalibrated Medium → Low** (§7, AZ1/AZ3/AZ4/AZ5 row): latent, default-off, no reachable sink.
 
 ## Problem (recap)
 

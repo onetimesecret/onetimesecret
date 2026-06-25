@@ -1,13 +1,26 @@
 # C4 — Passphrase rate-limit check/record gap + test-cost Argon2 selectable by RACK_ENV
 
 - **Severity:** Low/Medium — **CONFIRMED** in source (bounded over-shoot; config-dependent weak hash)
-- **Status:** Proposed fix
+- **Status:** Proposed fix — **corrected 2026-06-24 (snippet defect fixed in place; see callout)**
 - **Affects default config?** Partially — the non-atomic gate affects the default reveal flow under
   concurrency; the Argon2 test-cost only bites a misconfigured `RACK_ENV=test` in production
 - **Related:** finding 03 F4; C3 (shared limiter); C1 (the broader non-atomic-consume theme)
 - **Primary files:** `lib/onetime/security/passphrase_rate_limiter.rb`,
   `lib/onetime/models/features/passphrase_hashing.rb`,
   `apps/api/v2/logic/secrets/reveal_secret.rb`, `lib/onetime/boot.rb`
+
+> **⚠️ Re-verification correction (2026-06-24 blind pass — `RE-VERIFICATION-2026-06-24-independent.md` §5 (compile-level defects)).**
+> The C4b boot guard below is **incomplete (compile-level defect)**: it keys the test-harness
+> signal off `defined?(RSpec)`. This project runs **two** test runners — RSpec **and** Tryouts v3
+> (`try/`) — and Tryouts does not load RSpec. Under the Tryouts suite `defined?(RSpec)` is `nil`,
+> so `running_under_test_harness?` returns false while `RACK_ENV=test`, and the guard **raises
+> `Onetime::Problem` at boot → the entire Tryouts suite dies before any test runs.**
+>
+> **Correction:** do not gate on `defined?(RSpec)` at boot. Detect test/low-cost mode via a signal
+> both runners can set — prefer an explicit env var the harness exports (e.g. `OT_TEST=1`), or a
+> runtime check that is true under RSpec *and* Tryouts. The guard's intent (only the real suite gets
+> the cheap Argon2 cost) is unchanged; only the harness-detection predicate must be runner-agnostic.
+> The snippet at `boot.rb:158-161` is corrected in place below.
 
 ## Problem (recap)
 
@@ -155,10 +168,23 @@ if ENV['RACK_ENV'] == 'test' && !running_under_test_harness?
 end
 ```
 
-`running_under_test_harness?` should be a positive signal that the test runner is in control (e.g.
-RSpec/`defined?(RSpec)` loaded, or an explicit `OT_TEST=1` the harness sets), **not** merely
-`RACK_ENV=test` — otherwise the guard would tautologically pass. The goal is: only the real test
-suite gets the cheap cost; everything else fails loudly.
+`running_under_test_harness?` should be a positive signal that the test runner is in control, **not**
+merely `RACK_ENV=test` — otherwise the guard would tautologically pass. The goal is: only the real
+test suite gets the cheap cost; everything else fails loudly.
+
+```ruby
+def running_under_test_harness?
+  # corrected 2026-06-24: must be true under BOTH runners. This project uses RSpec AND
+  # Tryouts v3 (try/); `defined?(RSpec)` is nil under Tryouts, so a sole RSpec check would
+  # false-negative and the boot guard above would kill the whole Tryouts suite at boot.
+  # Use an explicit env signal the harness exports, recognised by either runner.
+  ENV['OT_TEST'] == '1' || defined?(RSpec) || defined?(Tryouts)
+end
+```
+
+The harness (RSpec `spec_helper` and the Tryouts runner) sets `OT_TEST=1`; the `defined?` checks are
+belt-and-suspenders for either runner being loaded. The key fix is that the predicate is **not**
+keyed on RSpec alone.
 
 Optionally, also raise `t_cost` for production from 2 toward 3–4 if a quick benchmark on target
 hardware keeps per-verify latency acceptable; this is a tuning improvement, not required for the

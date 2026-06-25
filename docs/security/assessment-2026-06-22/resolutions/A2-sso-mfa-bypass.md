@@ -1,12 +1,28 @@
 # A2 — SSO and local MFA (opt-in second factor after SSO)
 
 - **Severity:** Low–Medium — **revised after industry research** (was High). SSO-treated-as-fully-
-  authenticated is the *industry-default* posture, not a defect. Gated on SSO + MFA both enabled.
-- **Status:** Proposed fix — **additive/opt-in** (does NOT reverse the default)
+  authenticated is the *industry-default* posture, not a defect. Gated on SSO + MFA both enabled. — recalibrated to Low–Medium by 2026-06-24 re-verification (§7)
+- **Status:** Proposed fix — **superseded by re-verification correction (2026-06-24) below** (was additive/opt-in; does NOT reverse the default)
 - **Affects default config?** No (SSO off by default; and the default SSO behaviour is unchanged)
 - **Related:** A1, A4; **#3114** (intentionally introduced the SSO-skips-MFA behaviour); #3499. Finding 01.
 - **Primary files:** `apps/web/auth/config/hooks/login.rb:128-133`,
   `apps/web/auth/operations/detect_mfa_requirement.rb:151-156`
+
+> **⚠️ Re-verification correction (2026-06-24 blind pass — `RE-VERIFICATION-2026-06-24-independent.md` §5).**
+> Verdict: **scope-incomplete** — fix is `sound_with_caveats`, but one aggravating sub-claim is **FALSE**
+> and the prescribed sketch breaks the operation's pure-function contract. Severity holds at **Low–Medium**.
+> The "SSO silently overrides `mfa_policy == :required`" framing is **dead code**: `mfa_policy` is never
+> populated in production. The lone caller (`apps/web/auth/config/hooks/login.rb:128-133`) omits the
+> `mfa_policy:` kwarg, so it defaults to `nil` and the `@mfa_policy == :required` branch
+> (`detect_mfa_requirement.rb:159`) is never reached. The `:required`-override is not a live aggravator.
+>
+> **Correction:**
+> 1. Drop the `:required`-policy-override framing. The real, valid issue is the MFA bypass for
+>    **already-enrolled** accounts on the SSO path — keep that fix.
+> 2. Rework the fix to respect the operation's documented **pure-function contract**
+>    (`detect_mfa_requirement.rb:8-15`: no side effects, no I/O, immutable frozen result). Push any
+>    config lookup (`omniauth_require_local_mfa?`) and IdP-token reads (`idp_asserted_mfa?`) to the
+>    caller, passing the resolved primitives in — the operation must stay a pure decision over primitives.
 
 ## Problem (recap) + research correction
 

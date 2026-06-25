@@ -1,7 +1,7 @@
 # P3 — Rate-limiting gaps on auth/login and secret creation
 
 - **Severity:** Medium
-- **Status:** Proposed fix
+- **Status:** Proposed fix — **superseded by re-verification correction (2026-06-24) below**
 - **Affects default config?** Yes — anonymous secret creation (`/api/v3/guest/*`, `/api/v2/secret/conceal`) and login are reachable in the default deployment
 - **Related:** A3/P2 (trusted-proxy / host-header trust — the IP key must use the otto-resolved client IP). Findings 04 #4, §3, §9.4.
 - **Primary files:** `apps/api/v1/controllers/base.rb:145-171` (fail-open, auth-exempt V1 limiter),
@@ -9,6 +9,19 @@
   `apps/web/auth/config/features/lockout.rb` (Rodauth account lockout — present but not IP-keyed),
   `lib/onetime/security/feedback_rate_limiter.rb` / `invite_token_rate_limiter.rb` (the well-built pattern to reuse),
   `lib/onetime/application/auth_strategies/helpers.rb:67-79` (canonical IP resolution)
+
+> **⚠️ Re-verification correction (2026-06-24 blind pass — `RE-VERIFICATION-2026-06-24-independent.md` §5).**
+> The prescribed fix below **under-counts** — it records the limiter budget only on *successful* creation,
+> so failed/abusive attempts cost an attacker nothing and they flood freely under the limit.
+> Step 3's `process` calls `record_secret_creation!(...) if greenlighted` (`base_secret_action.rb:104` in the
+> sketch), and `greenlighted` is only true when the secret actually stores
+> (`@greenlighted = receipt.valid? && secret.valid?`, `apps/api/v2/logic/secrets/base_secret_action.rb:334`).
+> A request that fails validation, or is deliberately malformed, burns no quota.
+>
+> **Correction:** count at **attempt time**, not on success. Record the attempt *before* the success branch —
+> e.g. call `record_secret_creation!(strategy_result.metadata[:ip])` in `raise_concerns` alongside (right
+> after) `check_secret_creation_rate_limit!`, or at the top of `process` unconditionally — so every attempt,
+> including rejected ones, consumes the budget. Drop the `if greenlighted` guard on the limiter record.
 
 ## Problem (recap)
 

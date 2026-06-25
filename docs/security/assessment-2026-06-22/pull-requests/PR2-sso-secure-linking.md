@@ -18,6 +18,15 @@ fail-safe). On a hit: clear `@account`, flash, and redirect to `/signin?auth_err
 ("sign in and connect this provider from settings"). Pure-SSO accounts (no password) still link by
 verified email.
 
+> **⚠️ Re-verification correction (2026-06-24) — this A1 section is incomplete as written.**
+> `account_has_independent_credentials? = !get_password_hash.nil?` is **false for a pure-SSO account**, so
+> "Pure-SSO accounts still link by verified email" leaves a **cross-provider takeover**: an attacker
+> controlling a *different* IdP that asserts a pure-SSO victim's verified email is silently adopted into the
+> victim's account. Refuse silent adoption of **any** account not already linked to the **exact
+> `(provider, uid)`** authenticating (returning users match earlier via `account_identities`); route every
+> other collision — password **and** different-provider pure-SSO — to the explicit link flow. See
+> `../resolutions/A1-sso-account-linking.md` (corrected layer 2) and add the pure-SSO takeover regression.
+
 ### A4 — domain allowlist on the linking path
 The SSO domain policy (previously only on account creation) is now also enforced on linking via
 `Onetime::SignupValidation.valid_signup_email?(email, display_domain:)`.

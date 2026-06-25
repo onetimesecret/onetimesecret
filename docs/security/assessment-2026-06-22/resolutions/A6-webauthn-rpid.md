@@ -1,7 +1,7 @@
 # A6 — WebAuthn RP-ID and origin derived from attacker-controllable Host header
 
 - **Severity:** Medium (NEEDS-VALIDATION — net impact depends on edge `Host` enforcement)
-- **Status:** Proposed fix — follow-on to A3/P2; lands with the canonical-host work
+- **Status:** Proposed fix — **corrected 2026-06-24 (snippet defect fixed in place; see callout)** — follow-on to A3/P2; lands with the canonical-host work
 - **Affects default config?** No — gated on auth being enabled **and** WebAuthn enrolled
   (`:webauthn`/`:webauthn_login`). WebAuthn is conditionally enabled (`webauthn.rb:9-11`).
 - **Related:** **A3/P2 host-header-trust** (shared root cause and shared canonical-host fix — see
@@ -11,6 +11,19 @@
   - `apps/web/auth/config/features/webauthn.rb:14-22` (RP-ID/origin derivation — the fix point)
   - `lib/onetime/middleware/domain_strategy.rb:137,191-193,398-402` (validated host + canonical host)
   - fork `rodauth/lib/rodauth/features/webauthn.rb` (consumes `webauthn_rp_id`/`webauthn_origin`)
+
+> **⚠️ Re-verification correction (2026-06-24 blind pass — `RE-VERIFICATION-2026-06-24-independent.md` §5 (compile-level defects)).**
+> Verdict: **scope-incomplete** — the resolution direction is sound (`sound_with_caveats`, severity unchanged
+> **Medium**, §9 matrix), but the step-2 origin snippet **does not compile or run as written**. Two defects:
+> 1. It reads a bare `env['onetime.display_domain']` (line 92), but `env` is not in scope inside a Rodauth
+>    config block → **NameError**. The in-scope accessor is `request.env` (Rodauth exposes `request`; cf. the
+>    existing `request.host` usage at `webauthn.rb:14-22`).
+> 2. It calls `allowed_webauthn_host?(host)` (line 93), which **does not exist** — `rg "allowed_webauthn_host"
+>    lib apps` returns no definition. Either define the helper (step 3 only describes it) or inline the host check.
+>
+> **Correction:** source the host via `request.env['onetime.display_domain']` and inline the allowlist test
+> until the step-3 helper is actually authored, so the block compiles and runs. The snippet below is corrected
+> in place.
 
 ## Problem (recap)
 
@@ -89,8 +102,11 @@ domains) explicitly rather than by trusting the request.
      scheme    = Onetime.conf.dig('site', 'ssl') ? 'https' : 'http'
      # Prefer the validated display domain when it is an allowed first-party host;
      # otherwise pin to the canonical origin.
-     host = env['onetime.display_domain']
-     host = canonical unless allowed_webauthn_host?(host)   # see step 3
+     # corrected 2026-06-24: `env` is not in scope in a Rodauth config block — read via
+     # `request.env`; and `allowed_webauthn_host?` has no definition (see step 3), so the
+     # allowlist test is inlined here until that helper is authored.
+     host = request.env['onetime.display_domain']
+     host = canonical unless host && host == canonical   # inline allowlist; broaden in step 3
      "#{scheme}://#{host}"
    end
    ```

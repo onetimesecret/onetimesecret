@@ -1,11 +1,23 @@
 # S1 — Content-Security-Policy disabled by default
 
-- **Severity:** High
-- **Status:** Proposed fix
+- **Severity:** High — recalibrated to Medium by 2026-06-24 re-verification (§7)
+- **Status:** Proposed fix — **superseded by re-verification correction (2026-06-24) below**
 - **Affects default config?** **Yes**
 - **Related:** S2 (other security headers), P1. Findings 05, 04 #1.
 - **Primary files:** `etc/defaults/config.defaults.yaml:351-353` (`CSP_ENABLED` default false),
   `apps/api/v1/controllers/helpers.rb:171-208` (policy construction), `lib/onetime/middleware/security.rb`
+
+> **⚠️ Re-verification correction (2026-06-24 blind pass — `RE-VERIFICATION-2026-06-24-independent.md` §5).**
+> The prescribed fix below is **scope-incomplete**: flipping `CSP_ENABLED` only makes the **API v1 JSON app**
+> emit CSP. `apps/api/v1/controllers/helpers.rb:212` is the **sole** CSP writer (confirmed: no
+> `send_csp_headers` call exists anywhere in `lib`/`apps`). The **secret-display HTML pages** — `/secret/*`
+> and `/` → `Core::Controllers::Page#index` — have **no CSP write path**, so the flag flip does **not** cover
+> the very page that renders the secret. The doc's own stated goal is therefore not met by step 1 alone.
+>
+> **Correction:** add a CSP write path on the HTML secret-display routes (emit the same nonce-based policy
+> from the page-render path), not only flip the API flag. Severity **recalibrated High → Medium** (§7):
+> defense-in-depth, no demonstrated XSS sink, nonce infra is already wired — and the flag-flip does not even
+> reach the secret pages.
 
 ## Problem (recap)
 

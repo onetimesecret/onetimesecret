@@ -1,12 +1,27 @@
 # S2 — Clickjacking / HSTS / security headers off by default
 
 - **Severity:** High
-- **Status:** Proposed fix
+- **Status:** Proposed fix — **superseded by re-verification correction (2026-06-24) below**
 - **Affects default config?** **Yes**
 - **Related:** S1 (CSP), P1 (HttpOrigin/CSRF). Findings 05, 04 #1.
 - **Primary files:** `etc/defaults/config.defaults.yaml:314-338`
   (`http_origin`, `xss_header`, `frame_options`, `strict_transport` all default false),
   `lib/onetime/middleware/security.rb:76`
+
+> **⚠️ Re-verification correction (2026-06-24 blind pass — `RE-VERIFICATION-2026-06-24-independent.md` §5).**
+> Verdict: **invalid-evidence** (the code-analysis vuln stands; the "Confirmed live" proof does not exist).
+> The cited `../evidence/headers_output.md` has **no valid HTML-200 capture**: the only `200` is
+> `GET /api/v2/status` (JSON — `X-Frame-Options` never fires on a JSON response even after a fix), and the
+> only HTML-path request, `GET /`, returned **500** from a harness bug
+> (`Rack::Lint::LintError: env variable HTTP_USER_AGENT has non-string value nil`, `headers_output.md:19`).
+> Same file is also the cited S1/S2 evidence, so neither has a live HTML capture.
+>
+> **Corrections:**
+> 1. Re-capture a real HTML `200` (set `HTTP_USER_AGENT` in the probe) before claiming live confirmation.
+> 2. Step 2 (HSTS): the flag-flip as written emits `Strict-Transport-Security` even on plain HTTP — gate
+>    HSTS emission on TLS so it stays inert in HTTP dev.
+> 3. Step 3 (`http_origin`): the flip as written **`:deny`s legitimate cross-origin POSTs** — do not deny
+>    legit cross-origin traffic; allow-list expected origins / coordinate with P1 instead.
 
 ## Problem (recap)
 

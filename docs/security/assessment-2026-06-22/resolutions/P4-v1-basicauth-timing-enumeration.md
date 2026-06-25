@@ -1,12 +1,26 @@
 # P4 — V1 Basic Auth timing-distinguishable username enumeration
 
 - **Severity:** Low/Medium
-- **Status:** Proposed fix
+- **Status:** Proposed fix — **superseded by re-verification correction (2026-06-24) below**
 - **Affects default config?** Conditional — only when API v1 + Basic Auth (`session_auth_enforced?`) is enabled
 - **Related:** P5 (log injection on the same code path). Findings 04 #5, §8 "Enumeration — V1 exception".
 - **Primary files:** `apps/api/v1/controllers/base.rb:68-71` (the timing-distinguishable path),
   `lib/onetime/application/auth_strategies/basic_auth_strategy.rb:42-91` (the V2/V3 constant-time
   reference to mirror), `lib/onetime/models/customer.rb` (`Onetime::Customer.dummy`, `apitoken?`)
+
+> **⚠️ Re-verification correction (2026-06-24 blind pass — `RE-VERIFICATION-2026-06-24-independent.md` §4 table row P4).**
+> The prescribed fix below is **unsound** — swapping in `Customer.dummy` does not close the timing oracle.
+> `Customer.dummy` (`customer.rb:331-341`) sets a dummy `passphrase` but assigns **no `apitoken`**, so
+> `apitoken?` short-circuits at `customer.rb:263` (`return false if apitoken.to_s.empty? || value.to_s.empty?`)
+> and `secure_compare` is **never reached** for the dummy — the missing-user path stays fast, exactly the
+> oracle the fix targets. The "expensive BCrypt comparison" premise is also wrong: `apitoken?` uses
+> `Rack::Utils.secure_compare` (`customer.rb:265`, sub-microsecond), not BCrypt.
+>
+> **Correction:** give the dummy a real token so a wrong guess actually reaches `secure_compare` and the
+> compare time is constant. In `Customer.dummy` assign `dummy_cust.apitoken = SecureRandom.hex(32)` before
+> `freeze`; then the V1 `target_cust.apitoken?(apitoken)` call runs the constant-time `secure_compare` whether
+> or not the user exists. Residual (optional, defense-in-depth): `load_by_extid_or_email` still deserializes on
+> a hit vs returns `nil` on a miss — a noise-dominated difference, not the dominant signal.
 
 ## Problem (recap)
 

@@ -1,7 +1,7 @@
 # D3 — Production source maps emitted and served at `/dist`
 
 - **Severity:** Medium
-- **Status:** Proposed fix
+- **Status:** Proposed fix — **superseded by re-verification correction (2026-06-24) below**
 - **Affects default config?** **Yes** — static-file serving is on by default
   (`MIDDLEWARE_STATIC_FILES != 'false'`, `config.defaults.yaml:302`), and the build emits maps unconditionally.
 - **Related:** Finding 06 #3; D4 (Caddy variant re-copies the same `public/web` tree, so the maps leak
@@ -10,6 +10,21 @@
   `lib/onetime/middleware/static_files.rb:66-75` (serves `/dist` with no extension filter),
   `fly.toml:96-98` (`[[statics]] guest_path = '/app/public/web/dist'` → `url_prefix = '/dist'`),
   `docker/variants/caddy.dockerfile:114` (`COPY ./public/web ${PUBLIC_DIR}`).
+
+> **⚠️ Re-verification correction (2026-06-24 blind pass — `RE-VERIFICATION-2026-06-24-independent.md` §5).**
+> Step 2 below (host-side `find public/web/dist -name '*.map' -delete` in CI) is **non-implementable as
+> written** — the prescribed window does not exist. In `.github/workflows/build-and-publish-oci-images.yml`
+> the **Build and push with Bake** step (`:243`, `push:` `:256`) runs **before** the **Upload frontend
+> sourcemaps to Sentry** step (`:285`): the image is already built and pushed by the time Sentry runs, so
+> there is no "after Sentry upload, before packaging" moment to delete maps in. The targeted
+> `public/web/dist/` is also **gitignored** (`.gitignore:53`) and is produced *inside* the Docker Bake
+> build stages, not on the host runner — so the host-side `find` operates on an absent/empty tree.
+>
+> **Correction:** strip the source maps **inside the Dockerfile build stage** — either delete `*.map`
+> after the bundler emits them within the build, or (cleaner) never `COPY` them from the build stage into
+> the final stage. Steps 1 (`sourcemap: 'hidden'`) and 3 (static-layer `.map` 404 guard) stand unchanged.
+> Note Sentry symbolication does not depend on a host strip: the upload reads the build artifact, and with
+> `'hidden'` the maps still exist in the build stage for upload before the final-stage strip.
 
 ## Problem (recap)
 

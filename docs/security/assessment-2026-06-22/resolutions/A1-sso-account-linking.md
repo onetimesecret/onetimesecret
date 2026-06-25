@@ -1,11 +1,41 @@
 # A1 — SSO email-match account takeover (secure account linking)
 
 - **Severity:** Critical (gated on SSO/OmniAuth being enabled; not yet in production)
-- **Status:** Proposed fix — **design into issue #3499**, not a standalone patch
+- **Status:** Proposed fix — **design into issue #3499**, not a standalone patch · **design gap flagged by
+  re-verification (2026-06-24) — see callout below; pure-SSO victim path not yet closed as written**
 - **Affects default config?** No (SSO is off by default)
 - **Related:** #3499 (Support SSO accounts when IdP omits the email claim), #3478, #3482; findings A2, A4
 - **Primary files:** `apps/web/auth/config/hooks/omniauth.rb`, `apps/web/auth/config/features/omniauth.rb`,
   fork `rodauth-omniauth/lib/rodauth/features/omniauth.rb`
+
+> **⚠️ Re-verification correction (2026-06-24 blind pass — `RE-VERIFICATION-2026-06-24-independent.md` §4
+> "A1 pure-SSO gap", §9 matrix).** The three-layer design below is **sound but incomplete as written** — it
+> does not close cross-provider takeover of a **pure-SSO victim**. Severity stays **Critical**.
+>
+> Two gaps, both source-confirmed:
+> 1. **Prerequisite not yet in the tree.** `resolve_omniauth_email` (and `email_claim_verified?`) **do not
+>    exist** — `rg resolve_omniauth_email` over `lib/`+`apps/` returns **0 hits** (only docs). Layers 1 and 3
+>    presuppose #3499 Phase 1; A1 is genuinely *not* implementable standalone. Land **PR-1 (#3499 Phase 1)
+>    first**, then A1 on top (`PR2-sso-secure-linking.md`).
+> 2. **Layer-2 guard is too narrow.** It refuses silent linking only when
+>    `account_has_other_authenticators?(account)` is **true** (a password hash or a TOTP/WebAuthn factor
+>    exists). For a **pure-SSO account** — one with no password and no second factor, linked only to provider
+>    A via `(provider, uid)` — that predicate returns **false**, so the guard falls through and the existing
+>    account is silently adopted. An attacker who controls a *different* IdP (provider B: a self-service OIDC
+>    connection, or any provider that does not prove mailbox ownership) and asserts the victim's verified
+>    email therefore takes over the pure-SSO account on the unauthenticated callback. (Both
+>    `account_has_other_authenticators?` and `resolve_omniauth_email` are proposed-only: **0 hits** in source.)
+>
+> **Correction to layer 2.** Do not key the refusal on "has other authenticators." Refuse silent adoption of
+> **any** existing account that is **not already linked to the exact `(provider, uid)` currently
+> authenticating** — pure-SSO-with-a-different-provider included. The only safe silent path is the returning
+> user (same `provider`+`uid`), which `rodauth-omniauth` resolves via `account_identities` *before* this hook
+> runs; every other email collision (password account **or** different-provider SSO account) must route to the
+> explicit, authenticated, opt-in link flow from Account settings. Concretely, replace the
+> `account_has_other_authenticators?` branch with "an account exists for this email **and** it is not the
+> identity-keyed returning user → `set_omniauth_error :requires_explicit_link; next nil`." Add a takeover
+> regression for the pure-SSO victim (provider A account, provider-B callback asserting the same verified
+> email → no login, no link) alongside the existing password-account case in the test plan below.
 
 ## Problem (recap)
 

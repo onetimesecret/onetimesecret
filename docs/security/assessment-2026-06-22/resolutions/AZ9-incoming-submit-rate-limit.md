@@ -1,7 +1,7 @@
 # AZ9 — No in-logic rate limit on anonymous incoming /secret and /validate (mail-flood / Redis-flood abuse)
 
 - **Severity:** Low–Medium — **NEEDS-VALIDATION** (Medium absent any upstream limiter; Low if one exists)
-- **Status:** Proposed fix
+- **Status:** Proposed fix — **corrected 2026-06-24 (snippet defect fixed in place; see callout)**
 - **Affects default config?** Only when the **incoming** feature is enabled for a deployment/domain (it is
   off unless configured), but anonymous-by-design when on
 - **Related:** finding 02 F9; F10 (invite limiter IP resolution); existing limiters
@@ -9,6 +9,16 @@
 - **Primary files:** `apps/api/incoming/logic/create_incoming_secret.rb:67-99,216-239`,
   `apps/api/incoming/logic/validate_recipient.rb`, `apps/api/incoming/routes.txt:22-24`,
   `lib/onetime/security/feedback_rate_limiter.rb` (pattern to mirror)
+
+> **⚠️ Re-verification correction (2026-06-24 blind pass — `RE-VERIFICATION-2026-06-24-independent.md` §5 (compile-level defects)).**
+> Verdict: **unsound as written** — the fix snippet does not compile/run. `client_ip` and `domain_key` are
+> local variables defined in `raise_concerns` (step 2, `:98-99`) but referenced again inside `process`
+> (`:112`), where they are out of scope → `record_incoming_submission!(domain_key, client_ip)` raises
+> `NameError` on every successful submission.
+> **Correction:** compute `client_ip`/`domain_key` within the same scope where they are used, or thread them
+> as method arguments (e.g. a private `incoming_rate_limit_keys` helper that both `raise_concerns` and
+> `process` call, or set `@client_ip`/`@domain_key` in `raise_concerns` and read the ivars in `process`). The
+> `record!` call must see the same values the `check!` call bucketed on. Severity unchanged (Low).
 
 ## Problem (recap)
 
@@ -95,9 +105,10 @@ not affect others.
    include Onetime::Security::IncomingRateLimiter
 
    def raise_concerns
-     client_ip  = @strategy_result&.metadata&.dig(:ip) || @strategy_result&.metadata&.dig('ip')
-     domain_key = display_domain.to_s.empty? ? 'canonical' : display_domain
-     check_incoming_rate_limit!(domain_key, client_ip)   # fail-closed on abuse
+     # corrected 2026-06-24: stash on ivars so `process` can reuse the same keys (locals were out of scope)
+     @client_ip  = @strategy_result&.metadata&.dig(:ip) || @strategy_result&.metadata&.dig('ip')
+     @domain_key = display_domain.to_s.empty? ? 'canonical' : display_domain
+     check_incoming_rate_limit!(@domain_key, @client_ip)   # fail-closed on abuse
 
      resolver.require_domain_entitlement!('incoming_secrets')
      # ... existing validation ...
@@ -109,7 +120,8 @@ not affect others.
      raise_form_error 'Failed to create secret' unless @greenlighted
      update_customer_stats
      send_recipient_notification          # the rate-limited side effect
-     record_incoming_submission!(domain_key, client_ip)   # count successful sends
+     # corrected 2026-06-24: read ivars set in `raise_concerns` (bare locals raised NameError here)
+     record_incoming_submission!(@domain_key, @client_ip)   # count successful sends
      success_data
    end
    ```
