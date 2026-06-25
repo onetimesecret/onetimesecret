@@ -13,7 +13,7 @@
 # The single canonical translation-rules pin is PINNED_RULES_REF below, kept in
 # lockstep with the `uses:` action ref (a literal SHA is required there). Bump
 # deliberately; #38 wires Renovate to bump it automatically against
-# translation-rules' v0.0.* release tags.
+# translation-rules' vX.Y.Z release tags.
 
 name: resolved-derive-gate
 
@@ -35,9 +35,9 @@ permissions:
 
 env:
   # Canonical translation-rules pin. Keep in lockstep with the `uses:` ref below;
-  # Renovate bumps both to the latest v0.0.* release (renovate.json5 customManager
+  # Renovate bumps both to the latest vX.Y.Z release (renovate.json5 customManager
   # for this line; built-in github-actions manager for the `uses:` digest).
-  PINNED_RULES_REF: 62f822ddde9ab59c5f91362481c328e0e1652719 # v0.0.123
+  PINNED_RULES_REF: 658c4109b629ffb7d1926a7c8c00e2c08076228a # v0.1.1
 
 jobs:
   resolved-derive-gate:
@@ -48,7 +48,7 @@ jobs:
 
       - name: Derive + lint all governed locales at the pin
         id: derive
-        uses: onetimesecret/translation-rules/.github/actions/derive@62f822ddde9ab59c5f91362481c328e0e1652719 # v0.0.123
+        uses: onetimesecret/translation-rules/.github/actions/derive@658c4109b629ffb7d1926a7c8c00e2c08076228a # v0.1.1
         with:
           ref: ${{ env.PINNED_RULES_REF }}
           locales: all

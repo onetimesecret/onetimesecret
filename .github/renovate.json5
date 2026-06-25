@@ -72,7 +72,7 @@
   ],
 
   // Track the pinned translation-rules commit in BOTH derive gates, bumping
-  // each to the latest v0.0.* release tag and keeping their PINNED_RULES_REF in
+  // each to the latest vX.Y.Z release tag and keeping their PINNED_RULES_REF in
   // lockstep:
   //   - resolved-derive-gate.yml (authority freshness/integrity)
   //   - validate-register.yml    (cross-locale content register lint)

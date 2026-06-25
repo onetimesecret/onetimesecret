@@ -65,8 +65,8 @@ env:
   # Canonical translation-rules pin, kept in lockstep with the `uses:` ref below
   # (a literal SHA is required there) and with resolved-derive-gate.yml. The
   # `<sha> # vX.Y.Z` form is what Renovate's customManager (renovate.json5)
-  # tracks, bumping both gates to the latest v0.0.* release (#38).
-  PINNED_RULES_REF: 62f822ddde9ab59c5f91362481c328e0e1652719 # v0.0.123
+  # tracks, bumping both gates to the latest vX.Y.Z release (#38).
+  PINNED_RULES_REF: 658c4109b629ffb7d1926a7c8c00e2c08076228a # v0.1.1
 
 jobs:
   validate-register:
@@ -81,7 +81,7 @@ jobs:
 
       - name: Derive resolved registers for all governed locales at the pin
         id: derive
-        uses: onetimesecret/translation-rules/.github/actions/derive@62f822ddde9ab59c5f91362481c328e0e1652719 # v0.0.123
+        uses: onetimesecret/translation-rules/.github/actions/derive@658c4109b629ffb7d1926a7c8c00e2c08076228a # v0.1.1
         with:
           ref: ${{ env.PINNED_RULES_REF }}
           locales: all
