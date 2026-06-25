@@ -10,10 +10,12 @@
 # governance does not lint clean, this fails — so the app can never pin to a
 # broken authority commit.
 #
-# The single canonical translation-rules pin is PINNED_RULES_REF below, kept in
-# lockstep with the `uses:` action ref (a literal SHA is required there). Bump
-# deliberately; #38 wires Renovate to bump it automatically against
-# translation-rules' vX.Y.Z release tags.
+# Two separate axes, not one pin: the derive ACTION pin (`uses:` digest — the
+# tool that runs, a literal SHA is required there) and the translation-rules REF
+# (TRANSLATION_RULES_REF below — the rules/engine data it derives). Both live in
+# the translation-rules repo and Renovate normally bumps each to the same vX.Y.Z
+# tag (#38), but they are tracked independently and the ref can be overridden
+# per-run (repo variable / dispatch input) without moving the action pin.
 
 name: resolved-derive-gate
 
@@ -27,17 +29,34 @@ on:
     paths:
       - 'locales/content/**'
       - '.github/workflows/resolved-derive-gate.yml'
-  # Allow manual verification on any branch (e.g. before this lands on main).
-  workflow_dispatch: {}
+  # Allow manual verification on any branch (e.g. before this lands on main),
+  # optionally against a candidate translation-rules ref before pinning it.
+  workflow_dispatch:
+    inputs:
+      rules_ref:
+        description: >-
+          Override the translation-rules ref (40-hex SHA or vX.Y.Z) for this run
+          only. Blank → repo variable TRANSLATION_RULES_REF → the in-file
+          default. Does NOT change the derive action pin in `uses:`.
+        required: false
+        type: string
 
 permissions:
   contents: read
 
 env:
-  # Canonical translation-rules pin. Keep in lockstep with the `uses:` ref below;
-  # Renovate bumps both to the latest vX.Y.Z release (renovate.json5 customManager
-  # for this line; built-in github-actions manager for the `uses:` digest).
-  PINNED_RULES_REF: 658c4109b629ffb7d1926a7c8c00e2c08076228a # v0.1.1
+  # The translation-rules VERSION (rules + resolver engine) this gate derives and
+  # lints. Distinct from the derive ACTION pin in `uses:` below (the tool that
+  # runs, a literal SHA is required there). Renovate normally bumps both to the
+  # same vX.Y.Z release — customManager for this line, built-in github-actions
+  # manager for the `uses:` digest — but they are independent axes, and this ref
+  # can be overridden per-run via the TRANSLATION_RULES_REF repo variable or the
+  # rules_ref dispatch input.
+  #
+  # A human-readable vX.Y.Z tag (not a digest): the derive action resolves it to
+  # a commit at run time. The supply-chain pin is the `uses:` digest; this is the
+  # readable, first-party data version. Renovate's customManager bumps the tag.
+  TRANSLATION_RULES_REF: v0.1.1
 
 jobs:
   resolved-derive-gate:
@@ -46,11 +65,34 @@ jobs:
       - name: Checkout app repo
         uses: actions/checkout@v4
 
-      - name: Derive + lint all governed locales at the pin
+      - name: Resolve translation-rules ref
+        # Precedence: dispatch input → repo variable → in-file default. Each
+        # candidate is passed through an env var (never interpolated into the
+        # shell) and the winner is shape-checked to a 40-hex SHA or vX.Y.Z tag
+        # before use. This only selects the data/engine ref; the derive action
+        # pin in the next step's `uses:` is a separate, fixed literal.
+        env:
+          DISPATCH_REF: ${{ github.event.inputs.rules_ref }}
+          VAR_REF: ${{ vars.TRANSLATION_RULES_REF }}
+          DEFAULT_REF: ${{ env.TRANSLATION_RULES_REF }}
+        run: |
+          set -euo pipefail
+          if   [ -n "${DISPATCH_REF}" ]; then ref="${DISPATCH_REF}"; src="dispatch input"
+          elif [ -n "${VAR_REF}" ];      then ref="${VAR_REF}";      src="repo variable"
+          else                                ref="${DEFAULT_REF}";  src="in-file default"
+          fi
+          if ! printf '%s' "${ref}" | grep -Eq '^([0-9a-f]{40}|v[0-9]+\.[0-9]+\.[0-9]+)$'; then
+            echo "::error::invalid translation-rules ref '${ref}' (want 40-hex SHA or vX.Y.Z)"
+            exit 1
+          fi
+          echo "::notice::translation-rules ref = ${ref} (source: ${src})"
+          echo "EFFECTIVE_RULES_REF=${ref}" >> "$GITHUB_ENV"
+
+      - name: Derive + lint all governed locales at the resolved ref
         id: derive
         uses: onetimesecret/translation-rules/.github/actions/derive@658c4109b629ffb7d1926a7c8c00e2c08076228a # v0.1.1
         with:
-          ref: ${{ env.PINNED_RULES_REF }}
+          ref: ${{ env.EFFECTIVE_RULES_REF }}
           locales: all
           emit: md,json
           lint: 'true'
@@ -58,14 +100,18 @@ jobs:
           # derived from translation-rules; ignored, regenerated each run.
           emit-dir: generated/i18n
 
-      - name: Assert the derive ran at the canonical pin
+      - name: Assert the derive resolved the requested ref to a commit
+        # source-commit is the requested ref (tag or SHA) resolved to a concrete
+        # commit by the action. A non-empty 40-hex SHA proves the derive ran and
+        # resolved our ref; the logged `ref → commit` mapping records exactly
+        # which translation-rules commit this run was evaluated against.
         env:
           GOT: ${{ steps.derive.outputs.source-commit }}
-          WANT: ${{ env.PINNED_RULES_REF }}
+          REF: ${{ env.EFFECTIVE_RULES_REF }}
         run: |
           set -euo pipefail
-          if [ "$GOT" != "$WANT" ]; then
-            echo "::error::derive ran at ${GOT}, expected canonical pin ${WANT}"
+          if ! printf '%s' "${GOT}" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "::error::derive did not resolve ${REF} to a commit (source-commit='${GOT}')"
             exit 1
           fi
-          echo "resolved-derive-gate: derived + linted at canonical pin ${GOT}"
+          echo "resolved-derive-gate: derived + linted at translation-rules ${REF} → ${GOT}"
