@@ -30,29 +30,14 @@ module Auth::Config::Hooks
       end
 
       # ========================================================================
-      # JSON Mode Override for OmniAuth
+      # JSON Mode Override for OmniAuth — now centralized
       # ========================================================================
       #
-      # Disable JSON-only mode for OmniAuth routes. OmniAuth flow uses browser
-      # redirects from the identity provider, not JSON API responses. When IdP
-      # redirects back to /auth/sso/oidc/callback, we need:
-      # - Real HTTP redirects (302) instead of JSON responses
-      # - Flash messages stored in session for Core app to display
-      #
-      # Without this override, Rodauth's JSON feature intercepts set_redirect_error_flash
-      # and stores the message in json_response[:error] which is lost on redirect.
-      #
-      # NOTE: request.path returns the full path (e.g., /auth/sso/oidc), but
-      # omniauth_prefix is relative to Rodauth routes (e.g., /sso). We must
-      # combine the Auth app's mount path with omniauth_prefix for comparison.
-      #
-      auth.only_json? do
-        full_sso_prefix = "#{Auth::Application.uri_prefix}#{omniauth_prefix}"
-        # Use trailing slash to avoid matching unrelated paths like /auth/sso-admin.
-        # Also handle exact match for /auth/sso (the SSO index/landing, if any).
-        is_sso_route    = request.path.start_with?("#{full_sso_prefix}/") || request.path == full_sso_prefix
-        !is_sso_route
-      end
+      # OmniAuth's `omniauth_prefix` paths are exempted from `only_json? true`
+      # by Auth::Config::JsonMode (apps/web/auth/config/json_mode.rb). It is
+      # the single owner of the only_json? setter because rodauth's
+      # def_auth_value_method REPLACES rather than chains, so any per-hook
+      # `only_json?` block here would silently clobber others (e.g., OAuth's).
 
       # ========================================================================
       # ⚠️  CRITICAL: CSRF Bypass for OmniAuth Routes - DO NOT REMOVE

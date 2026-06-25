@@ -21,7 +21,9 @@ RSpec.describe 'API V3 Secret TTL Entitlement Gate', type: :integration, billing
   FREE_TTL = Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
 
   def mock_organization(planid:, entitlements:, secret_lifetime: FREE_TTL)
-    org = double('Organization', planid: planid, objid: "org_#{SecureRandom.hex(4)}")
+    org_id = "org_#{SecureRandom.hex(4)}"
+    org = double('Organization', planid: planid, objid: org_id, extid: org_id)
+    allow(org).to receive(:entitlements).and_return(entitlements)
     allow(org).to receive(:can?) do |entitlement|
       entitlements.include?(entitlement.to_s)
     end
@@ -54,19 +56,37 @@ RSpec.describe 'API V3 Secret TTL Entitlement Gate', type: :integration, billing
     customer ||= mock_customer(anonymous: org.nil?)
     session = mock_session
 
+    # Create membership mock for entitlement checks
+    membership = nil
+    if org
+      membership = double('OrganizationMembership')
+      allow(membership).to receive(:active?).and_return(true)
+      allow(membership).to receive(:can?) do |entitlement|
+        org.entitlements.include?(entitlement.to_s)
+      end
+
+      # Stub the class-level lookup BEFORE construction so auth_membership
+      # finds the mock during process_params
+      allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+        .with(org.objid, customer.objid)
+        .and_return(membership)
+    end
+
+    # StrategyResult metadata uses organization_context nested structure
+    org_context = { organization: org, organization_id: org&.objid }
+
     strategy_result = double('StrategyResult')
     allow(strategy_result).to receive(:session).and_return(session)
     allow(strategy_result).to receive(:user).and_return(customer)
     allow(strategy_result).to receive(:metadata).and_return(
-      organization_context: { organization: org },
+      organization_context: org_context,
     )
     allow(strategy_result).to receive(:auth_method).and_return(auth_method)
 
     logic = logic_class.new(strategy_result, params)
-    allow(logic).to receive(:org).and_return(org)
+
     allow(logic).to receive(:cust).and_return(customer)
     allow(logic).to receive(:sess).and_return(session)
-    allow(logic).to receive(:auth_org).and_return(org)
     logic
   end
 
@@ -125,16 +145,20 @@ RSpec.describe 'API V3 Secret TTL Entitlement Gate', type: :integration, billing
       let(:org) { mock_organization(planid: 'free_v1', entitlements: %w[create_secrets api_access], secret_lifetime: FREE_TTL) }
 
       it 'raises EntitlementRequired with extended_default_expiration' do
-        logic = create_logic(logic_class, params: conceal_params(2_592_000), org: org)
-        expect { logic.process_params }.to raise_error(Onetime::EntitlementRequired) do |error|
+        # process_params runs in constructor, so error is raised during create_logic
+        expect {
+          create_logic(logic_class, params: conceal_params(2_592_000), org: org)
+        }.to raise_error(Onetime::EntitlementRequired) do |error|
           expect(error.entitlement).to eq('extended_default_expiration')
           expect(error.current_plan).to eq('free_v1')
         end
       end
 
       it 'fires BEFORE clamping (inherited V2 contract)' do
-        logic = create_logic(logic_class, params: conceal_params(FREE_TTL + 1), org: org)
-        expect { logic.process_params }.to raise_error(Onetime::EntitlementRequired)
+        # process_params runs in constructor, so error is raised during create_logic
+        expect {
+          create_logic(logic_class, params: conceal_params(FREE_TTL + 1), org: org)
+        }.to raise_error(Onetime::EntitlementRequired)
       end
     end
 

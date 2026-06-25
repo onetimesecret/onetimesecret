@@ -25,9 +25,10 @@
 #   └── all/        # Runs in ALL modes (infrastructure validation)
 #
 #   apps/web/auth/spec/integration/
-#   └── full/           # Full-mode specs (Rodauth, OmniAuth, SSO)
-#       ├── basicauth/  # BasicAuth contract tests
-#       └── migrations/ # DB migration tests
+#   ├── full/           # Full-mode specs (Rodauth, OmniAuth, SSO)
+#   │   ├── basicauth/  # BasicAuth contract tests
+#   │   └── migrations/ # DB migration tests
+#   └── strategies/     # Redis-only auth strategy specs (isolated process; see #3468)
 #
 # The "all/" specs run three times (once per mode). This is intentional: they
 # validate that infrastructure (Puma forking, RabbitMQ, routing) works correctly
@@ -166,9 +167,47 @@ namespace :spec do
       sh env, "bundle exec rspec #{patterns.join(' ')} --tag postgres_database #{rspec_format_options}"
     end
 
+    # OAuth/OIDC IdP specs run under full mode but live in integration/oauth/
+    # (not integration/full/) on purpose: the path-keyed MockAuthConfig that
+    # spec/spec_helper.rb installs for /integration/full/ does not expose
+    # oauth_enabled?, which would turn the IdP feature off at boot. They also
+    # write AUTH_OAUTH_ENABLED process-wide, so they get an isolated invocation
+    # to avoid leaking the IdP feature into other full-mode specs.
+    desc 'Run OAuth/OIDC IdP integration specs (full mode, isolated process)'
+    task :oauth do
+      env = {
+        'RACK_ENV' => 'test',
+        'AUTHENTICATION_MODE' => 'full',
+        'AUTH_OAUTH_ENABLED' => 'true',
+        'AUTH_DATABASE_URL' => ENV.fetch('AUTH_DATABASE_URL', 'sqlite::memory:'),
+      }
+      sh env, "bundle exec rspec apps/web/auth/spec/integration/oauth --tag ~postgres_database #{rspec_format_options}"
+    end
+
+    # Redis-only auth strategy specs (NoAuth/BasicAuth/Session) resolve an
+    # Onetime::Customer from Redis/session and never issue SQL, so they don't
+    # belong in the full-mode DB matrix. They also cannot share the combined
+    # spec:integration:full process: a RabbitMQ/fork spec under
+    # spec/integration/all corrupts the process-wide Familia/Redis connection,
+    # after which Customer lookups return nil and every success-path strategy
+    # example fails with a spurious CREDENTIALS_INVALID (see #3468). Give them
+    # their own isolated process with just Redis. Full mode + in-memory SQLite
+    # mirrors the environment they were verified green under; DB/route-matrix
+    # variation is irrelevant since they touch no SQL.
+    desc 'Run Redis-only auth strategy specs (isolated process; see #3468)'
+    task :strategies do
+      env = {
+        'RACK_ENV' => 'test',
+        'AUTHENTICATION_MODE' => 'full',
+        'AUTH_DATABASE_URL' => (ENV['AUTH_DATABASE_URL'].to_s.empty? ? 'sqlite::memory:' : ENV.fetch('AUTH_DATABASE_URL', nil)),
+        'ORGS_SSO_ENABLED' => 'true',
+      }
+      sh env, "bundle exec rspec apps/web/auth/spec/integration/strategies --tag ~postgres_database #{rspec_format_options}"
+    end
+
     desc 'Run DB-agnostic full mode specs against PostgreSQL'
     task 'full:agnostic_on_pg' do
-      env = {
+      env                                 = {
         'RACK_ENV' => 'test',
         'AUTHENTICATION_MODE' => 'full',
         'AUTH_DATABASE_URL' => PG_TEST_DATABASE_URL,
@@ -191,7 +230,7 @@ namespace :spec do
     end
 
     desc 'Run all integration tests (all modes, isolated processes)'
-    task all: INTEGRATION_MODES
+    task all: INTEGRATION_MODES + %w[oauth strategies]
 
     desc 'Run all integration tests including Postgres'
     task 'all:with_postgres': INTEGRATION_MODES + ['full:postgres']

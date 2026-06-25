@@ -6,6 +6,7 @@ require 'timeout'
 
 require_relative 'helpers'
 require 'onetime/security/input_sanitizers'
+require 'onetime/application/authorization_policies'
 
 module V1
   module Logic
@@ -15,6 +16,21 @@ module V1
       include Onetime::LoggerMethods
       include V1::Logic::UriHelpers
       include Onetime::Security::InputSanitizers
+
+      # AuthorizationPolicies supplies the shared authorization/entitlement
+      # predicates (anonymous_user?, has_system_role?, verify_*!) mixed into
+      # every other API logic base (Onetime::Logic::Base, colonel/, organizations/,
+      # domains/). It is included here as forward-looking foundation for ADR-012
+      # Stage 3 entitlement enforcement in V1.
+      #
+      # NOTE (currently dormant in V1): these helpers are not yet called from V1
+      # logic. require_entitlement! lives in Onetime::Logic::Base — NOT in this
+      # module — and V1::Logic::Base does not inherit from it, so V1's only
+      # entitlement gate (Secrets::BaseSecretAction) is guarded behind
+      # `respond_to?(:auth_org) && auth_org`, which is never true until V1 gains
+      # OrganizationContext. Keep the include so V1 stays aligned with the other
+      # logic bases; remove it only if the ADR-012 V1 rollout is abandoned.
+      include Onetime::Application::AuthorizationPolicies
 
       attr_reader :sess, :cust, :params, :locale, :processed_params
       attr_reader :site, :authentication, :domains_enabled

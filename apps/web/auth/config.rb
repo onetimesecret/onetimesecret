@@ -36,6 +36,7 @@ module Auth
     require_relative 'config/email'
     require_relative 'config/features'
     require_relative 'config/hooks'
+    require_relative 'config/json_mode'
     require_relative 'config/rodauth_overrides'
 
     configure do
@@ -136,10 +137,25 @@ module Auth
         Hooks::OmniAuthTenant.configure(self)
       end
 
+      # OAuth2/OIDC Identity Provider: this OTS instance acts as an IdP.
+      # Hooks (key loading, scope/claim mapping) and seeded clients land in
+      # tasks 5 and 6 of issue #3104. Configuring the feature now is safe:
+      # without keys, the runtime endpoints raise, but boot is unaffected.
+      if Onetime.auth_config.oauth_enabled?
+        Features::OAuth.configure(self)
+        Hooks::OAuth.configure(self)
+      end
+
       # Billing: plan selection carry-through for checkout flow
       if Onetime.billing_config.enabled?
         Hooks::Billing.configure(self)
       end
+
+      # Single owner of only_json?. Must run AFTER all hooks so the
+      # consolidated exemption logic can consult Hooks::OAuth::OAUTH_EXEMPT_PATHS
+      # and omniauth_prefix. See apps/web/auth/config/json_mode.rb for the
+      # rationale (def_auth_value_method replaces previous definitions).
+      ::Auth::JsonMode.configure(self)
 
       # Mark configuration complete
       Auth::Config.configured = true

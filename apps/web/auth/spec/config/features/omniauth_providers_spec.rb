@@ -35,6 +35,7 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
       module ::OT
         def self.li(*args); end
         def self.le(*args); end
+        def self.ld(*args); end
       end
     end
 
@@ -55,6 +56,7 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
   before do
     allow(OT).to receive(:le) { |msg| log_messages << [:error, msg] }
     allow(OT).to receive(:li) { |msg| log_messages << [:info, msg] }
+    allow(OT).to receive(:ld) { |msg| log_messages << [:debug, msg] }
 
     auth_config_stub = double('auth_config', orgs_sso_enabled?: orgs_sso_enabled)
     allow(Onetime).to receive(:auth_config).and_return(auth_config_stub)
@@ -74,7 +76,7 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
             client_id: 'test-entra-client',
             client_secret: 'test-entra-secret',
             tenant_id: 'test-tenant',
-          )
+          ),
         )
 
         ClimateControl.modify(
@@ -90,7 +92,7 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
       it 'uses custom route name when ENTRA_ROUTE_NAME is set' do
         expect(auth).to receive(:omniauth_provider).with(
           :entra_id,
-          hash_including(name: :microsoft)
+          hash_including(name: :microsoft),
         )
 
         ClimateControl.modify(
@@ -218,7 +220,7 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
             client_id: 'gh-client-id',
             client_secret: 'gh-client-secret',
             scope: 'user:email',
-          )
+          ),
         )
 
         ClimateControl.modify(
@@ -233,7 +235,7 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
       it 'uses custom route name when GITHUB_ROUTE_NAME is set' do
         expect(auth).to receive(:omniauth_provider).with(
           :github,
-          hash_including(name: :gh)
+          hash_including(name: :gh),
         )
 
         ClimateControl.modify(
@@ -322,7 +324,7 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
             client_id: 'google-client-id',
             client_secret: 'google-client-secret',
             scope: 'openid,email,profile',
-          )
+          ),
         )
 
         ClimateControl.modify(
@@ -337,7 +339,7 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
       it 'uses custom route name when GOOGLE_ROUTE_NAME is set' do
         expect(auth).to receive(:omniauth_provider).with(
           :google_oauth2,
-          hash_including(name: :goog)
+          hash_including(name: :goog),
         )
 
         ClimateControl.modify(
@@ -539,7 +541,7 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
     it 'Entra defaults route_name to "entra" and display_name to "Microsoft"' do
       expect(auth).to receive(:omniauth_provider).with(
         :entra_id,
-        hash_including(name: :entra)
+        hash_including(name: :entra),
       )
 
       ClimateControl.modify(
@@ -556,7 +558,7 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
     it 'GitHub defaults route_name to "github" and display_name to "GitHub"' do
       expect(auth).to receive(:omniauth_provider).with(
         :github,
-        hash_including(name: :github)
+        hash_including(name: :github),
       )
 
       ClimateControl.modify(
@@ -572,7 +574,7 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
     it 'Google defaults route_name to "google" and display_name to "Google"' do
       expect(auth).to receive(:omniauth_provider).with(
         :google_oauth2,
-        hash_including(name: :google)
+        hash_including(name: :google),
       )
 
       ClimateControl.modify(
@@ -583,6 +585,102 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
       end
 
       expect(log_messages.last[1]).to include('Google')
+    end
+  end
+
+  # ================================================================
+  # Local IdP Provider (issue #3104, dev/test loopback)
+  # ================================================================
+
+  describe '.configure_local_idp_provider' do
+    context 'when the IdP feature is disabled' do
+      before { allow(Onetime.auth_config).to receive(:oauth_enabled?).and_return(false) }
+
+      it 'returns early without registering' do
+        expect(auth).not_to receive(:omniauth_provider)
+
+        ClimateControl.modify(OAUTH_SP_DEV_CLIENT_SECRET: 'super-secret') do
+          Auth::Config::Features::OmniAuth.configure_local_idp_provider(auth)
+        end
+      end
+    end
+
+    context 'when the IdP feature is enabled' do
+      before { allow(Onetime.auth_config).to receive(:oauth_enabled?).and_return(true) }
+
+      it 'skips when OAUTH_SP_DEV_CLIENT_SECRET is missing' do
+        expect(auth).not_to receive(:omniauth_provider)
+
+        # Explicitly unset (not just modify {}) so this test is independent of
+        # whether an earlier spec in the rspec invocation left the var set in
+        # the outer process. ClimateControl.modify({}) is a no-op when the
+        # outer env already has the key.
+        ClimateControl.modify(OAUTH_SP_DEV_CLIENT_SECRET: nil) do
+          Auth::Config::Features::OmniAuth.configure_local_idp_provider(auth)
+        end
+
+        expect(log_messages.last[1]).to match(/OAUTH_SP_DEV_CLIENT_SECRET not set/)
+      end
+
+      it 'registers :openid_connect with PKCE + discovery and bundled client opts' do
+        expect(auth).to receive(:omniauth_provider).with(
+          :openid_connect,
+          hash_including(
+            name: :local,
+            scope: [:openid, :email, :profile, :offline_access],
+            response_type: :code,
+            issuer: 'http://localhost:3000/auth',
+            client_options: {
+              identifier: 'onetimesecret-sp-dev',
+              secret: 'sup3r-secret',
+              redirect_uri: 'http://localhost:3000/auth/sso/local/callback',
+            },
+            discovery: true,
+            pkce: true,
+          ),
+        )
+
+        ClimateControl.modify(OAUTH_SP_DEV_CLIENT_SECRET: 'sup3r-secret') do
+          Auth::Config::Features::OmniAuth.configure_local_idp_provider(auth)
+        end
+      end
+
+      it 'honors OAUTH_SP_DEV_ROUTE_NAME, OAUTH_SP_DEV_CLIENT_ID, and OAUTH_SP_DEV_ISSUER overrides' do
+        expect(auth).to receive(:omniauth_provider).with(
+          :openid_connect,
+          hash_including(
+            name: :otsself,
+            issuer: 'https://idp.example.com/auth',
+            client_options: hash_including(
+              identifier: 'overridden-client',
+              redirect_uri: 'http://localhost:3000/auth/sso/otsself/callback',
+            ),
+          ),
+        )
+
+        ClimateControl.modify(
+          OAUTH_SP_DEV_CLIENT_SECRET: 'sup3r-secret',
+          OAUTH_SP_DEV_CLIENT_ID: 'overridden-client',
+          OAUTH_SP_DEV_ROUTE_NAME: 'otsself',
+          OAUTH_SP_DEV_ISSUER: 'https://idp.example.com/auth',
+        ) do
+          Auth::Config::Features::OmniAuth.configure_local_idp_provider(auth)
+        end
+      end
+
+      it 'falls back to OAUTH_ISSUER when OAUTH_SP_DEV_ISSUER is unset' do
+        expect(auth).to receive(:omniauth_provider).with(
+          :openid_connect,
+          hash_including(issuer: 'https://idp.example.com/auth'),
+        )
+
+        ClimateControl.modify(
+          OAUTH_SP_DEV_CLIENT_SECRET: 'sup3r-secret',
+          OAUTH_ISSUER: 'https://idp.example.com/auth',
+        ) do
+          Auth::Config::Features::OmniAuth.configure_local_idp_provider(auth)
+        end
+      end
     end
   end
 end

@@ -1,4 +1,13 @@
 GIT
+  remote: https://github.com/onetimesecret/rodauth-oauth.git
+  revision: 6e91089d5ee598a5ee6e78a5992d9e778ba7ccad
+  ref: 6e91089d5ee598a5ee6e78a5992d9e778ba7ccad
+  specs:
+    rodauth-oauth (1.6.5)
+      base64
+      rodauth (~> 2.28)
+
+GIT
   remote: https://github.com/rspec/rspec
   revision: 1559574cba6d7cb49bdeadacb20ba008390e2981
   specs:
@@ -226,7 +235,6 @@ GEM
       net-pop
       net-smtp
     mini_mime (1.1.5)
-    mini_portile2 (2.8.9)
     minitest (5.27.0)
     multi_xml (0.8.1)
       bigdecimal (>= 3.1, < 5)
@@ -243,9 +251,6 @@ GEM
     net-smtp (0.5.1)
       net-protocol
     nio4r (2.7.5)
-    nokogiri (1.19.4)
-      mini_portile2 (~> 2.8.2)
-      racc (~> 1.4)
     nokogiri (1.19.4-aarch64-linux-gnu)
       racc (~> 1.4)
     nokogiri (1.19.4-aarch64-linux-musl)
@@ -517,8 +522,6 @@ GEM
       yard-solargraph (~> 0.1)
     sorted_set (1.1.0)
       rbtree
-    sqlite3 (2.9.2)
-      mini_portile2 (~> 2.8.0)
     sqlite3 (2.9.2-aarch64-linux-gnu)
     sqlite3 (2.9.2-aarch64-linux-musl)
     sqlite3 (2.9.2-arm-linux-gnu)
@@ -601,7 +604,6 @@ PLATFORMS
   arm-linux-gnu
   arm-linux-musl
   arm64-darwin
-  ruby
   x86_64-darwin
   x86_64-linux
   x86_64-linux-gnu
@@ -659,6 +661,7 @@ DEPENDENCIES
   rhales (~> 0.6.2)
   roda (~> 3.0)
   rodauth (~> 2.0)
+  rodauth-oauth (~> 1.6)!
   rodauth-omniauth (~> 0.4)
   rodauth-tools (~> 0.3.1)
   rotp (~> 6.2)
