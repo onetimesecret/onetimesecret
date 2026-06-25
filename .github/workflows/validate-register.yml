@@ -1,21 +1,34 @@
-# Phase 0 cross-repo prevention gate. Blocks any PR touching locale content
-# that introduces a forbidden register token (e.g. informal "du" in formal
-# de_AT). This is the load-bearing gate from translation-rules SPEC.md §1/§2.4
-# — the single mechanism that would have blocked the 2026-04-12 de_AT
-# regression. It needs neither base.yaml nor the resolver: just the authority's
-# existing bin/lint-register + the per-locale register.yaml token lists.
+# Cross-locale content register gate (translation-rules#42, ADR-008).
 #
-# Source of truth is the translation-rules repo, checked out read-only at a
-# pinned ref. Coverage grows automatically: every locale that has a
-# register.yaml upstream gets scanned. Today that is de_AT only. Verified
-# clean against current app content 2026-05-30 (20 files, 10 tokens, exit 0),
-# so activation will not fail unrelated PRs.
+# Blocks any PR that introduces a forbidden register token into shipped locale
+# content — the formal-in-informal / informal-in-formal flip the
+# translation-rules project exists to prevent (translation-rules#2). It is the
+# single mechanism that would have blocked the 2026-04-12 de_AT regression.
 #
-# Decision recorded: read-only checkout at a pinned ref, not a submodule. The
-# submodule is the eventual full-P1-4b form (it also carries .resolved JSON +
-# source_commit equality, which this slice does not). Pinning `ref:` to a SHA
-# or tag — not a moving `main` — is what makes the gate reproducible; bump it
-# deliberately the same way the yq pin is bumped.
+# WHAT CHANGED (was: de_AT-only). The previous gate ran the authority's
+# Phase-0 LC_ALL=C byte-grep (bin/lint-register), which only works for de_AT:
+# it hard-errors on the CJK `substring` rules (ja/ko/zh) and floods false
+# positives elsewhere (291 on vi `bà`-in-`bài`, 59/57 on fr `te`-in-`Hôte`), so
+# the other ~28 governed locales shipped UNCHECKED. This gate instead derives
+# each locale's resolved register and scans content with the resolver's own
+# Unicode-correct, substring-capable, exception-honouring matcher
+# (translation-rules lib/resolver/lint_content.py). One engine, every locale.
+#
+# BLOCKING, ALL LOCALES (ADR-008). This fails on a forbidden token in ANY
+# governed locale's content, not just de_AT. There is live, known
+# contamination today — 49 hits in cs (13) / ja (2) / nl (34), listed for
+# native review in issue #3530 — so until those are remediated this gate is
+# expected to fail on content touching those locales:
+#   * cs, ja — clear regressions; fix to the locked register (native review).
+#   * nl     — overlaps the register's noted formal B2B/marketing carve-out;
+#              encode that carve-out as register `exceptions` upstream in
+#              translation-rules so the engine stops flagging the intended copy,
+#              then fix any genuine remainder.
+#
+# Source of truth is translation-rules, checked out read-only at a pinned ref
+# via the shared derive action (translation-rules ADR-006). Coverage grows
+# automatically: every locale with a register.yaml upstream that also has app
+# content gets scanned.
 
 name: validate-register
 
@@ -23,9 +36,8 @@ on:
   pull_request:
     paths:
       - 'locales/content/**/*.json'
-      # The gate must also run when its own pins (translation-rules ref, yq)
-      # are bumped — otherwise a bump that makes existing content
-      # non-compliant merges unvalidated and fails the next unrelated PR.
+      # Re-run when the gate's own pins change, so a bump that makes existing
+      # content non-compliant is caught on the bumping PR, not the next one.
       - '.github/workflows/validate-register.yml'
   push:
     branches: [main, develop]
@@ -36,6 +48,14 @@ on:
 permissions:
   contents: read
 
+env:
+  # Canonical translation-rules pin. Kept in lockstep with the `uses:` ref
+  # below (a literal SHA is required there). This is currently AHEAD of the
+  # resolved-derive-gate pin (v0.0.119) because lint_content.py + ADR-008 are
+  # not yet in a cut release; converge both pins on the next translation-rules
+  # release that carries lint_content, via the same Renovate rule (#38).
+  PINNED_RULES_REF: 9adbdcbf17adf2eea21eb8e6dec9634f200fb0c5
+
 jobs:
   validate-register:
     runs-on: ubuntu-latest
@@ -43,41 +63,46 @@ jobs:
       - name: Checkout app repo
         uses: actions/checkout@v4
 
-      - name: Checkout translation-rules (authority, read-only)
-        uses: actions/checkout@v4
+      - name: Derive resolved registers for all governed locales at the pin
+        id: derive
+        uses: onetimesecret/translation-rules/.github/actions/derive@9adbdcbf17adf2eea21eb8e6dec9634f200fb0c5 # ahead of v0.0.119; see PINNED_RULES_REF
         with:
-          repository: onetimesecret/translation-rules
-          # translation-rules main as of 2026-06-11 (merge of PR #20; re-verified
-          # clean against app content at this SHA: 20 files, 10 tokens, exit 0).
-          # Bumping this pin is how the app repo adopts new rules — deliberately,
-          # as a reviewable diff, same as the yq pin below.
-          ref: 374f5c38639a4a4183e523614d212cc9d2e5ee21
-          path: .translation-rules
+          ref: ${{ env.PINNED_RULES_REF }}
+          locales: all
+          # Only the .resolved/<locale>.json registers are needed here. The
+          # authority-model lint (examples + embedded docs) is a separate
+          # concern owned by resolved-derive-gate.yml, so leave it off — this
+          # gate must fail only on CONSUMER-content violations.
+          emit: json
+          lint: 'false'
+          # Same ignored cache the resolved-derive-gate uses (.gitignore:
+          # generated/i18n/) — never committed, regenerated each run (ADR-005).
+          emit-dir: generated/i18n
+          checkout-path: .translation-rules
 
-      - name: Install yq (pinned + checksum-verified)
+      - name: Assert the derive ran at the canonical pin
         env:
-          # Kept in lockstep with translation-rules .github/workflows/lint-register.yml.
-          # Bump deliberately, not via `latest`.
-          YQ_VERSION: v4.53.2
-          YQ_SHA256: d56bf5c6819e8e696340c312bd70f849dc1678a7cda9c2ad63eebd906371d56b
+          GOT: ${{ steps.derive.outputs.source-commit }}
+          WANT: ${{ env.PINNED_RULES_REF }}
         run: |
           set -euo pipefail
-          tmpdir="$(mktemp -d)"
-          curl -fsSL -o "${tmpdir}/yq" \
-            "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
-          echo "${YQ_SHA256}  ${tmpdir}/yq" | sha256sum -c -
-          sudo install -m 0755 "${tmpdir}/yq" /usr/local/bin/yq
-          rm -rf "${tmpdir}"
-          yq --version
+          if [ "$GOT" != "$WANT" ]; then
+            echo "::error::derive ran at ${GOT}, expected canonical pin ${WANT}"
+            exit 1
+          fi
+          echo "validate-register: derived resolved registers at canonical pin ${GOT}"
 
-      - name: Lint each governed locale's content
+      - name: Lint shipped content against each locale's resolved register
+        env:
+          EMIT_DIR: ${{ steps.derive.outputs.emit-dir }}
         run: |
           set -euo pipefail
           shopt -s nullglob
           rules=.translation-rules
+          resolved="${EMIT_DIR}/.resolved"
           fail=0
           scanned=0
-          for d in "$rules"/locales/*/; do
+          for d in "$rules"/rules/locales/*/; do
             locale="$(basename "$d")"
             [ -f "${d}register.yaml" ] || continue
             content_dir="locales/content/${locale}"
@@ -85,14 +110,23 @@ jobs:
               echo "::notice::no app content for governed locale ${locale}; skipping"
               continue
             fi
+            model="${resolved}/${locale}.json"
+            if [ ! -f "$model" ]; then
+              echo "::error::no resolved model for governed locale ${locale} at ${model} — derive incomplete?"
+              fail=1
+              continue
+            fi
             scanned=$((scanned + 1))
             echo "::group::lint ${locale}"
-            # The authority's own linter. It resolves register.yaml relative to
-            # its own location (.translation-rules/locales/<locale>/) and the
-            # content glob relative to this job's CWD (the app repo root).
-            # Non-zero from lint-register — forbidden token (1), config (2), or
-            # empty glob (3) — fails the gate.
-            if ! "$rules"/bin/lint-register "$locale" "${content_dir}/*.json"; then
+            # lint_content.py is pure stdlib (no pip install): reads the resolved
+            # register from <model>, scans rendered content strings, emits GitHub
+            # ::error:: annotations, and exits non-zero on any forbidden-token hit
+            # (1), config error (2), or empty glob (3) — any of which fails the gate.
+            if ! python3 "$rules"/lib/resolver/lint_content.py \
+                 --resolved "$model" \
+                 --content-root . \
+                 --format github \
+                 "${content_dir}/*.json"; then
               echo "::error::forbidden register token (or scan error) in ${locale} content"
               fail=1
             fi
