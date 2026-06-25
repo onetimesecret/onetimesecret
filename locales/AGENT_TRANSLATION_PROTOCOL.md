@@ -23,20 +23,28 @@ branches, or record glossary decisions — those are human steps in
 Run everything from the repo root. The scripts need no environment setup (the
 project uses direnv via `.envrc`; there is no `source .env.sh`).
 
-## Precondition: resolved governance artifact required
+## Precondition: resolved governance derived on demand
 
-A locale is in the agent-drain set **only once** `locales/.resolved/<LOCALE>.json`
-exists with a populated `register` and a populated `glossary`. That file is the
-resolved governance artifact — the single source of per-locale guidance for
-automated drain. If it is missing or those fields are empty, the locale is **out
-of scope** for automated drain until the governance is back-ported upstream;
-skip it.
+Per-locale governance is **derived on demand, not vendored** (no-vendor model;
+translation-rules ADR-005). Before draining, the orchestrator runs
+`locales/scripts/derive-governance.sh`, which derives every governed locale from
+translation-rules at the canonical pin into the gitignored cache
+`generated/i18n/.resolved/<LOCALE>.json`. Nothing is committed.
 
-Agents read guidance from `locales/.resolved/<LOCALE>.json` and **only** from
-there. Do **not** read `locales/guides/for-translators/*.md` — those are human
-guides, not the resolved artifact.
+A locale is in the agent-drain set **only once**
+`generated/i18n/.resolved/<LOCALE>.json` exists with a populated `register` and a
+populated `glossary`. That file is the resolved governance artifact — the single
+source of per-locale guidance for automated drain. If it is missing (the locale
+is not governed upstream at the pin) or those fields are empty, the locale is
+**out of scope** for automated drain until its governance is added in
+translation-rules and the pin is bumped; skip it.
 
-`locales/.resolved/<LOCALE>.json` carries:
+Agents read guidance from `generated/i18n/.resolved/<LOCALE>.json` and **only**
+from there. Do **not** treat the derived human guides
+(`generated/i18n/guides/for-translators/*.md`, curated upstream in
+translation-rules) as the resolved artifact.
+
+`generated/i18n/.resolved/<LOCALE>.json` carries:
 
 - **`register`** — form/pronoun choice, formality, and `forbidden_tokens` the
   locale must never emit.
@@ -59,7 +67,7 @@ Loop this until the queue is dry:
    do **not** use `--claim`.
 
 2. **Translate every value** in the task using the guidance from
-   `locales/.resolved/<LOCALE>.json`.
+   `generated/i18n/.resolved/<LOCALE>.json`.
 
 3. **Write the result object** — a flat `{"key": "translation"}` map whose key
    set is the **EXACT source key set** (none added, none dropped) — to a

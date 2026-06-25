@@ -95,6 +95,9 @@ generated/docs/
 # Derived i18n governance cache — .resolved/ JSON + for-translators guides
 # (translation-rules ADR-005): never committed; regenerated on demand at the pin.
 generated/i18n/
+# On-demand authority checkout used by locales/scripts/derive-governance.sh
+# (read-only translation-rules clone at the canonical pin); never committed.
+/.translation-rules/
 
 scripts/api-validation/captures
 scripts/api-validation/diffs
