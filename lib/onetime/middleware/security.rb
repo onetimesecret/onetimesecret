@@ -159,12 +159,22 @@ Onetime::Middleware::Security.middleware_components = {
         # would let a malicious page silently issue authorization codes to
         # an attacker-controlled client. Pure-API SP clients call /authorize
         # via redirect, not POST, so CSRF is irrelevant for them.
-        path = req.path.chomp('/')
-        return true if path == '/auth/token'
-        return true if path == '/auth/userinfo'
-        return true if path == '/auth/revoke'
-        return true if path == '/auth/jwks'
-        return true if req.path.start_with?('/auth/.well-known/')
+        #
+        # Gated on oauth_enabled?: these exemptions are only safe because the
+        # IdP owns these exact paths. When AUTH_OAUTH_ENABLED is off the OAuth
+        # routes are not mounted, so the only thing the bypass could do is hand
+        # an unrelated future route at one of these paths a silent CSRF
+        # exemption. Scoping to oauth_enabled? keeps the exemption tracking the
+        # feature that justifies it (#3239 review). The check is cheap —
+        # feature_enabled? short-circuits to false unless auth runs in full mode.
+        if Onetime.auth_config&.oauth_enabled?
+          path = req.path.chomp('/')
+          return true if path == '/auth/token'
+          return true if path == '/auth/userinfo'
+          return true if path == '/auth/revoke'
+          return true if path == '/auth/jwks'
+          return true if req.path.start_with?('/auth/.well-known/')
+        end
 
         false
       },

@@ -289,6 +289,59 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
       end
     end
 
+    describe 'OAuth/OIDC IdP endpoints bypass CSRF only when the IdP is enabled' do
+      # The exemptions for /auth/token, /userinfo, /revoke, /jwks and
+      # /.well-known/* are gated on Onetime.auth_config.oauth_enabled? so a
+      # future unrelated route sharing one of those paths can't inherit a CSRF
+      # bypass while the IdP is off (#3239 review). Drive the proc directly,
+      # stubbing the flag, rather than depending on ambient test config.
+      let(:allow_if) do
+        Onetime::Middleware::Security.middleware_components['AuthenticityToken'][:options][:allow_if]
+      end
+
+      # Programmatic IdP endpoints reached by SP clients, not the browser.
+      exempt_paths = %w[
+        /auth/token
+        /auth/userinfo
+        /auth/revoke
+        /auth/jwks
+        /auth/.well-known/openid-configuration
+        /auth/.well-known/oauth-authorization-server
+      ]
+
+      context 'when the IdP is enabled' do
+        before { allow(Onetime.auth_config).to receive(:oauth_enabled?).and_return(true) }
+
+        exempt_paths.each do |p|
+          it "bypasses CSRF for #{p}" do
+            env = { 'PATH_INFO' => p, 'REQUEST_METHOD' => 'POST' }
+            expect(allow_if.call(env)).to be true
+          end
+        end
+
+        it 'normalizes a trailing slash on exact-match paths (/auth/token/)' do
+          env = { 'PATH_INFO' => '/auth/token/', 'REQUEST_METHOD' => 'POST' }
+          expect(allow_if.call(env)).to be true
+        end
+
+        it 'does NOT bypass CSRF for /auth/authorize (browser-driven consent POST)' do
+          env = { 'PATH_INFO' => '/auth/authorize', 'REQUEST_METHOD' => 'POST' }
+          expect(allow_if.call(env)).to be false
+        end
+      end
+
+      context 'when the IdP is disabled' do
+        before { allow(Onetime.auth_config).to receive(:oauth_enabled?).and_return(false) }
+
+        exempt_paths.each do |p|
+          it "enforces CSRF for #{p} (no silent bypass for an unrelated route)" do
+            env = { 'PATH_INFO' => p, 'REQUEST_METHOD' => 'POST' }
+            expect(allow_if.call(env)).to be false
+          end
+        end
+      end
+    end
+
     describe 'non-API web routes enforce CSRF' do
       it 'POST to /feedback API route bypasses CSRF' do
         response = @mock_request.post('/api/v2/feedback', {
