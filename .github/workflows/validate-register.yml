@@ -14,11 +14,18 @@
 # Unicode-correct, substring-capable, exception-honouring matcher
 # (translation-rules lib/resolver/lint_content.py). One engine, every locale.
 #
-# BLOCKING, ALL LOCALES (ADR-008). This fails on a forbidden token in ANY
-# governed locale's content, not just de_AT. There is live, known
-# contamination today — 49 hits in cs (13) / ja (2) / nl (34), listed for
-# native review in issue #3530 — so until those are remediated this gate is
-# expected to fail on content touching those locales:
+# SCOPE (blocks new contamination without punishing unrelated work).
+#   * On a PR: scan only the governed locales whose content changed vs the base.
+#     A PR that edits only a clean locale (e.g. vi, de_AT) is NOT failed by the
+#     pre-existing hits in other locales; a PR that touches cs/ja/nl must leave
+#     that locale clean. The gate file changing forces a full scan (a pin/logic
+#     bump must be validated against the whole corpus).
+#   * On push to main/develop, on a weekly schedule, and on manual dispatch:
+#     scan EVERY governed locale (drift detection + the full burndown signal).
+#
+# KNOWN DEBT. There is live contamination today — 49 hits in cs (13) / ja (2) /
+# nl (34), listed for native review in issue #3530. Full scans (and any PR
+# touching those locales) fail until they are remediated:
 #   * cs, ja — clear regressions; fix to the locked register (native review).
 #   * nl     — overlaps the register's noted formal B2B/marketing carve-out;
 #              encode that carve-out as register `exceptions` upstream in
@@ -38,12 +45,18 @@ on:
       - 'locales/content/**/*.json'
       # Re-run when the gate's own pins change, so a bump that makes existing
       # content non-compliant is caught on the bumping PR, not the next one.
+      # A change here also forces a full scan (see the scope step).
       - '.github/workflows/validate-register.yml'
   push:
     branches: [main, develop]
     paths:
       - 'locales/content/**/*.json'
       - '.github/workflows/validate-register.yml'
+  # Weekly full-corpus drift check (independent of any PR), and an on-demand
+  # full scan for verifying the burndown.
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch: {}
 
 permissions:
   contents: read
@@ -61,6 +74,10 @@ jobs:
     steps:
       - name: Checkout app repo
         uses: actions/checkout@v4
+        with:
+          # Full history so a PR run can diff against its base SHA to find the
+          # changed locales (the scope step below).
+          fetch-depth: 0
 
       - name: Derive resolved registers for all governed locales at the pin
         id: derive
@@ -94,16 +111,46 @@ jobs:
       - name: Lint shipped content against each locale's resolved register
         env:
           EMIT_DIR: ${{ steps.derive.outputs.emit-dir }}
+          EVENT_NAME: ${{ github.event_name }}
+          # Empty for non-PR events; only read when EVENT_NAME is pull_request.
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           set -euo pipefail
           shopt -s nullglob
           rules=.translation-rules
           resolved="${EMIT_DIR}/.resolved"
+
+          # --- decide scan scope -------------------------------------------
+          # Full scan on push/schedule/dispatch. On a PR, scan only the
+          # governed locales whose content changed vs the base — unless the
+          # gate file itself changed, which forces a full scan.
+          full_scan=1
+          declare -A want=()
+          if [ "${EVENT_NAME}" = "pull_request" ]; then
+            gate_changed="$(git diff --name-only "${BASE_SHA}...HEAD" \
+              -- '.github/workflows/validate-register.yml')"
+            if [ -n "${gate_changed}" ]; then
+              echo "::notice::gate file changed — running a full-corpus scan"
+            else
+              full_scan=0
+              changed="$(git diff --name-only "${BASE_SHA}...HEAD" \
+                -- 'locales/content/' \
+                | sed -nE 's#^locales/content/([^/]+)/.*#\1#p' | sort -u)"
+              for l in ${changed}; do want["$l"]=1; done
+              echo "::notice::PR scope — changed content locales: ${changed:-<none>}"
+            fi
+          fi
+
+          # --- scan ---------------------------------------------------------
           fail=0
           scanned=0
           for d in "$rules"/rules/locales/*/; do
             locale="$(basename "$d")"
             [ -f "${d}register.yaml" ] || continue
+            # PR scope: skip governed locales this PR did not touch.
+            if [ "$full_scan" -eq 0 ] && [ -z "${want[$locale]:-}" ]; then
+              continue
+            fi
             content_dir="locales/content/${locale}"
             if [ ! -d "$content_dir" ]; then
               echo "::notice::no app content for governed locale ${locale}; skipping"
@@ -131,9 +178,19 @@ jobs:
             fi
             echo "::endgroup::"
           done
+
+          # --- empty-scan handling -----------------------------------------
+          # A full scan that matched nothing is a misconfiguration (wrong path
+          # or ref). A PR scan can legitimately match nothing — e.g. the PR only
+          # touched a non-governed locale like `en` — which is a clean pass.
           if [ "$scanned" -eq 0 ]; then
-            echo "::error::no governed locale matched app content — gate scanned nothing (misconfigured path or ref?)"
-            exit 1
+            if [ "$full_scan" -eq 1 ]; then
+              echo "::error::no governed locale matched app content — gate scanned nothing (misconfigured path or ref?)"
+              exit 1
+            fi
+            echo "::notice::no changed governed locale to lint; nothing to enforce on this PR"
+            exit 0
           fi
-          echo "validate-register: scanned ${scanned} governed locale(s)"
+          mode="$([ "$full_scan" -eq 1 ] && echo full || echo changed-only)"
+          echo "validate-register: scanned ${scanned} governed locale(s) (mode: ${mode})"
           exit "$fail"
