@@ -71,14 +71,24 @@
     },
   ],
 
-  // Track the pinned translation-rules commit in the derive gate, bumping it to
-  // the latest v0.0.* release tag. The `uses:` action digest is already handled
-  // by the built-in github-actions manager (helpers:pinGitHubActionDigests);
-  // this customManager keeps the PINNED_RULES_REF env value in lockstep.
+  // Track the pinned translation-rules commit in the derive gates, bumping it to
+  // the latest v0.0.* release tag. Covers BOTH derive gates so their
+  // PINNED_RULES_REF stay in lockstep:
+  //   - resolved-derive-gate.yml (authority freshness/integrity)
+  //   - validate-register.yml    (cross-locale content register lint)
+  // The regex requires an inline `<sha> # vX.Y.Z`, so a gate is only managed
+  // once its pin is in release form. validate-register currently pins AHEAD of
+  // any release (it needs lint_content.py, not yet tagged), so its line has no
+  // `# vX.Y.Z` and this manager is inert for it until that release lands and the
+  // pin is moved to the release form — then it is picked up with no further edit
+  // here. The `uses:` action digest is handled by the built-in github-actions
+  // manager (helpers:pinGitHubActionDigests).
   customManagers: [
     {
       customType: 'regex',
-      fileMatch: ['^\\.github/workflows/resolved-derive-gate\\.yml$'],
+      fileMatch: [
+        '^\\.github/workflows/(resolved-derive-gate|validate-register)\\.yml$',
+      ],
       matchStrings: [
         'PINNED_RULES_REF:\\s+(?<currentDigest>[a-f0-9]{40})\\s+#\\s+(?<currentValue>v\\d+\\.\\d+\\.\\d+)',
       ],
