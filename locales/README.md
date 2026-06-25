@@ -65,7 +65,6 @@ Security messages require special handling - see `guides/SECURITY-TRANSLATION-GU
 
 Catch politeness-level violations (e.g. formal forms in an informal-locked
 locale) before review — same engine as the `validate-register` CI gate.
-Needs the canonical rules pin to include `lint_content.py` (translation-rules#45).
 
 ```bash
 # 1. derive the resolved registers at the canonical pin (writes generated/i18n/)

@@ -37,7 +37,7 @@ env:
   # Canonical translation-rules pin. Keep in lockstep with the `uses:` ref below;
   # Renovate bumps both to the latest v0.0.* release (renovate.json5 customManager
   # for this line; built-in github-actions manager for the `uses:` digest).
-  PINNED_RULES_REF: f0345aa1f2e3e01f34e4102ae8442f0efa8c9307 # v0.0.119
+  PINNED_RULES_REF: 62f822ddde9ab59c5f91362481c328e0e1652719 # v0.0.123
 
 jobs:
   resolved-derive-gate:
@@ -48,7 +48,7 @@ jobs:
 
       - name: Derive + lint all governed locales at the pin
         id: derive
-        uses: onetimesecret/translation-rules/.github/actions/derive@f0345aa1f2e3e01f34e4102ae8442f0efa8c9307 # v0.0.119
+        uses: onetimesecret/translation-rules/.github/actions/derive@62f822ddde9ab59c5f91362481c328e0e1652719 # v0.0.123
         with:
           ref: ${{ env.PINNED_RULES_REF }}
           locales: all
