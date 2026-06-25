@@ -35,7 +35,7 @@ permissions:
 
 env:
   # Canonical translation-rules pin. Keep in lockstep with the `uses:` ref below.
-  PINNED_RULES_REF: e0cb65293012b41989149030f215c3b88708f2ed
+  PINNED_RULES_REF: 12d48f36692e1da7ab62cf5495839130d69477a5
 
 jobs:
   resolved-derive-gate:
@@ -46,13 +46,13 @@ jobs:
 
       - name: Derive + lint all governed locales at the pin
         id: derive
-        uses: onetimesecret/translation-rules/.github/actions/derive@e0cb65293012b41989149030f215c3b88708f2ed
+        uses: onetimesecret/translation-rules/.github/actions/derive@12d48f36692e1da7ab62cf5495839130d69477a5
         with:
           ref: ${{ env.PINNED_RULES_REF }}
           locales: all
           emit: md,json
           lint: 'true'
-          emit-dir: .derived
+          emit-dir: generated/derived
 
       - name: Assert the derive ran at the canonical pin
         env:

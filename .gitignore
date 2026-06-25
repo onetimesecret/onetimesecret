@@ -92,10 +92,9 @@ generated/types/*.d.ts
 generated/openapi/*.json
 generated/outputs
 generated/docs/
-
 # Derived translation governance cache (translation-rules ADR-005): never
 # committed; regenerated on demand at the pin via the shared derive action.
-.derived/
+generated/derived/
 
 scripts/api-validation/captures
 scripts/api-validation/diffs
