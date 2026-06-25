@@ -278,7 +278,9 @@ module Auth::Config::Features
       private_pem = ENV.fetch('OAUTH_JWT_RSA_PRIVATE_KEY') do
         raise 'OAUTH_JWT_RSA_PRIVATE_KEY must be set when AUTH_OAUTH_ENABLED=true. ' \
               'Generate with: bin/generate_oauth_keys (or `openssl genrsa 2048`).'
-      end.gsub('\n', "\n")
+      end.gsub('\n', "\n") # unescape the single-line .env form back into a
+      # multi-line PEM (mirrors the gsub("\n", '\n') in bin/generate_oauth_keys);
+      # a no-op for raw multi-line values from Docker/K8s secrets.
       private_key = OpenSSL::PKey::RSA.new(private_pem)
       auth.oauth_jwt_keys('RS256' => private_key)
       auth.oauth_jwt_public_keys('RS256' => private_key.public_key)
