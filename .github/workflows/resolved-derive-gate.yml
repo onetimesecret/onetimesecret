@@ -34,9 +34,10 @@ permissions:
   contents: read
 
 env:
-  # Canonical translation-rules pin (released tag v0.0.119). Keep in lockstep
-  # with the `uses:` ref below; Renovate bumps both (#38).
-  PINNED_RULES_REF: f0345aa1f2e3e01f34e4102ae8442f0efa8c9307
+  # Canonical translation-rules pin. Keep in lockstep with the `uses:` ref below;
+  # Renovate bumps both to the latest v0.0.* release (renovate.json5 customManager
+  # for this line; built-in github-actions manager for the `uses:` digest).
+  PINNED_RULES_REF: f0345aa1f2e3e01f34e4102ae8442f0efa8c9307 # v0.0.119
 
 jobs:
   resolved-derive-gate:
