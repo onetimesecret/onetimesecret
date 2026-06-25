@@ -275,13 +275,36 @@ module Auth::Config::Features
       #
       # The public key is derived from the private key — no separate env
       # var. JWKS exposes the public modulus + exponent.
+      #
+      # `gsub('\n', "\n")` reverses the escaping bin/generate_oauth_keys applies
+      # (pem.gsub("\n", '\n')) so the key fits on one line in a .env file. A raw
+      # multi-line PEM — e.g. a Docker/K8s secret — is unaffected: it contains no
+      # literal backslash-n, so both the escaped single-line and the unescaped
+      # multi-line forms load.
       private_pem = ENV.fetch('OAUTH_JWT_RSA_PRIVATE_KEY') do
         raise 'OAUTH_JWT_RSA_PRIVATE_KEY must be set when AUTH_OAUTH_ENABLED=true. ' \
               'Generate with: bin/generate_oauth_keys (or `openssl genrsa 2048`).'
-      end.gsub('\n', "\n") # unescape the single-line .env form back into a
-      # multi-line PEM (mirrors the gsub("\n", '\n') in bin/generate_oauth_keys);
-      # a no-op for raw multi-line values from Docker/K8s secrets.
-      private_key = OpenSSL::PKey::RSA.new(private_pem)
+      end.gsub('\n', "\n")
+      private_key = begin
+        OpenSSL::PKey::RSA.new(private_pem)
+      rescue OpenSSL::PKey::RSAError => ex
+        # A bare OpenSSL "Neither PUB key nor PRIV key" message at boot is
+        # opaque to an operator. Name the env var and the fix instead.
+        raise "OAUTH_JWT_RSA_PRIVATE_KEY is not a valid RSA private key (#{ex.message}). " \
+              'Regenerate with: bin/generate_oauth_keys (or `openssl genrsa 2048`), ' \
+              'and ensure the full PEM — including the BEGIN/END lines — is present.'
+      end
+
+      # OpenSSL::PKey::RSA.new also parses a PUBLIC-key PEM without error, so an
+      # operator who pastes the public half boots clean and only fails later at
+      # /token (signing needs the private exponent — RSA#sign raises without it).
+      # Fail fast at boot with the same actionable error instead.
+      unless private_key.private?
+        raise 'OAUTH_JWT_RSA_PRIVATE_KEY contains an RSA public key, not a private key. ' \
+              'Provide the full private-key PEM (the block beginning ' \
+              '`-----BEGIN [RSA] PRIVATE KEY-----`); regenerate with: ' \
+              'bin/generate_oauth_keys (or `openssl genrsa 2048`).'
+      end
       auth.oauth_jwt_keys('RS256' => private_key)
       auth.oauth_jwt_public_keys('RS256' => private_key.public_key)
     end
