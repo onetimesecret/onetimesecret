@@ -34,8 +34,9 @@ permissions:
   contents: read
 
 env:
-  # Canonical translation-rules pin. Keep in lockstep with the `uses:` ref below.
-  PINNED_RULES_REF: 12d48f36692e1da7ab62cf5495839130d69477a5
+  # Canonical translation-rules pin (released tag v0.0.119). Keep in lockstep
+  # with the `uses:` ref below; Renovate bumps both (#38).
+  PINNED_RULES_REF: f0345aa1f2e3e01f34e4102ae8442f0efa8c9307
 
 jobs:
   resolved-derive-gate:
@@ -46,7 +47,7 @@ jobs:
 
       - name: Derive + lint all governed locales at the pin
         id: derive
-        uses: onetimesecret/translation-rules/.github/actions/derive@12d48f36692e1da7ab62cf5495839130d69477a5
+        uses: onetimesecret/translation-rules/.github/actions/derive@f0345aa1f2e3e01f34e4102ae8442f0efa8c9307 # v0.0.119
         with:
           ref: ${{ env.PINNED_RULES_REF }}
           locales: all
