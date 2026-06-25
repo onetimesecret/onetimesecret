@@ -136,6 +136,33 @@ RSpec.describe Auth::Initializers::SeedDevOAuthClient, type: :unit do
     expect(rows.length).to eq(1)
   end
 
+  it 'reconciles scopes and grant_types on a stale pre-existing row' do
+    # Simulate a dev DB seeded before offline_access / refresh_token landed.
+    # A plain skip-if-exists seeder would leave these stale, silently breaking
+    # refresh-token issuance (the per-application scope intersection strips
+    # offline_access). The seeder reconciles them on the next boot instead.
+    stale_secret_hash = BCrypt::Password.create('idempotency-spec-secret')
+    db[:oauth_applications].insert(
+      name: 'OneTimeSecret SP (development)',
+      redirect_uri: 'http://localhost:3000/auth/sso/local/callback',
+      client_id: 'onetimesecret-sp-dev',
+      client_secret: stale_secret_hash,
+      scopes: 'openid email profile',
+      grant_types: 'authorization_code',
+    )
+
+    described_class.new.run({})
+
+    rows = db[:oauth_applications].where(client_id: 'onetimesecret-sp-dev').all
+    expect(rows.length).to eq(1)
+    row = rows.first
+    expect(row[:scopes].split).to include('offline_access')
+    expect(row[:grant_types].split).to include('refresh_token')
+    # Reconcile is targeted: it must not disturb the existing secret hash
+    # (BCrypt::Password.create re-salts, so a re-insert would change this).
+    expect(row[:client_secret]).to eq(stale_secret_hash)
+  end
+
   it 'stores a bcrypt-hashed secret that matches the plaintext' do
     described_class.new.run({})
     row = db[:oauth_applications].where(client_id: 'onetimesecret-sp-dev').first

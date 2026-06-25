@@ -12,8 +12,11 @@ module Auth
     # is reserved for local development — real production SP clients are
     # provisioned through a separate (manual or admin-tooled) path.
     #
-    # Idempotent: checks for an existing row by client_id and skips the insert
-    # if found. Safe to run on every boot.
+    # Idempotent: looks up the row by client_id. If it already exists, the
+    # drift-prone columns (scopes, grant_types) are reconciled to the current
+    # desired values so an environment seeded before a config change self-heals
+    # on the next boot; otherwise a fresh row is inserted. Safe to run on every
+    # boot.
     #
     # The plaintext client secret lives in OAUTH_SP_DEV_CLIENT_SECRET. The
     # column stores its bcrypt hash (rodauth-oauth's `secret_hash` default,
@@ -27,6 +30,15 @@ module Auth
       @optional   = true
 
       DEV_CLIENT_ID = 'onetimesecret-sp-dev'
+
+      # Columns most likely to drift when the IdP config changes in code. Kept
+      # as constants so the insert and the reconcile-on-exists path share one
+      # source of truth. offline_access is required for refresh tokens:
+      # rodauth-oauth intersects granted scopes against this per-application
+      # column, so omitting it strips offline_access even when the server
+      # allow-list (oauth_application_scopes) permits it.
+      DEV_CLIENT_SCOPES      = 'openid email profile offline_access'
+      DEV_CLIENT_GRANT_TYPES = 'authorization_code refresh_token'
 
       # The redirect_uri stored on the seeded row MUST match the SP-side
       # provider's callback URL exactly (rodauth-oauth requires exact-match
@@ -68,15 +80,26 @@ module Auth
         db           = Auth::Database.connection
         applications = db[:oauth_applications]
 
-        if applications.where(client_id: DEV_CLIENT_ID).any?
-          Onetime.auth_logger.debug "[SeedDevOAuthClient] #{DEV_CLIENT_ID} already exists — skipping"
+        # Reconcile an existing row instead of skipping it: a DB seeded before a
+        # scope/grant_types change would otherwise silently keep the stale value
+        # (e.g. missing offline_access → the per-application scope intersection
+        # strips it and refresh-token issuance fails locally). update returns the
+        # affected row count; a non-zero result means the row existed and is now
+        # current, so we're done. Reconciling to identical values is harmless, so
+        # concurrent boots converging here is fine.
+        reconciled = applications
+          .where(client_id: DEV_CLIENT_ID)
+          .update(scopes: DEV_CLIENT_SCOPES, grant_types: DEV_CLIENT_GRANT_TYPES)
+        if reconciled.positive?
+          Onetime.auth_logger.debug "[SeedDevOAuthClient] #{DEV_CLIENT_ID} exists — reconciled scopes/grant_types"
           return
         end
 
-        # The where/insert pair above is NOT atomic; under concurrent boot
-        # (two workers seeding at once) both can pass the check_and_then.
-        # The unique index on client_id is the actual safety net, so we
-        # treat the race-loser's UniqueConstraintViolation as success.
+        # The reconcile/insert pair above is NOT atomic; under concurrent boot
+        # (two workers seeding at once) both can see zero reconciled rows and
+        # fall through to insert. The unique index on client_id is the actual
+        # safety net, so we treat the race-loser's UniqueConstraintViolation as
+        # success.
         begin
           applications.insert(
             account_id: nil, # system-owned
@@ -85,15 +108,11 @@ module Auth
             redirect_uri: ENV.fetch('OAUTH_SP_DEV_REDIRECT_URI', self.class.default_redirect_uri),
             client_id: DEV_CLIENT_ID,
             client_secret: BCrypt::Password.create(secret),
-            # offline_access is required for refresh tokens: rodauth-oauth
-            # intersects the granted scopes against this per-application column,
-            # so omitting it here strips offline_access even when the server
-            # allow-list (oauth_application_scopes) permits it.
-            scopes: 'openid email profile offline_access',
+            scopes: DEV_CLIENT_SCOPES,
             subject_type: 'public',
             id_token_signed_response_alg: 'RS256',
             token_endpoint_auth_method: 'client_secret_basic',
-            grant_types: 'authorization_code refresh_token',
+            grant_types: DEV_CLIENT_GRANT_TYPES,
             response_types: 'code',
           )
           Onetime.auth_logger.info "[SeedDevOAuthClient] inserted dev SP client: #{DEV_CLIENT_ID}"
