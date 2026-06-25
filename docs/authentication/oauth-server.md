@@ -204,12 +204,17 @@ The env var accepts a single-line PEM with literal `\n` escapes (`bin/generate_o
 
 ### URI Scheme Restriction
 
+The default depends on the environment: **production defaults to `https` only**; development and test default to `http https` so localhost callbacks work. `OAUTH_VALID_URI_SCHEMES` (a space-separated list) overrides the default in any environment:
+
 ```bash
-# Production: restrict redirect URIs to https
+# Allow http callbacks in a non-production deployment (e.g. staging on http)
+export OAUTH_VALID_URI_SCHEMES="http https"
+
+# Force https-only even outside production
 export OAUTH_VALID_URI_SCHEMES=https
 ```
 
-Default is `"http https"` so localhost callbacks work in development. Tighten in production to block plaintext callbacks from registered clients.
+An `http://` redirect URI is interceptable, letting an attacker steal the authorization code before PKCE verification — which is why production refuses it by default.
 
 ### Revoking a Client
 
@@ -228,9 +233,49 @@ WHERE oauth_application_id = (
 
 ### CSRF Bypass for Programmatic Endpoints
 
-The endpoints in `OAUTH_NO_CSRF_PATHS` (`/token`, `/userinfo`, `/revoke`, `/jwks`) bypass rodauth's CSRF check because they are reached programmatically without a browser session. PKCE, client authentication on `/token`, and Bearer authentication on `/userinfo` provide protocol-level equivalents. `/authorize` is **not** in this set — it is browser-driven and keeps CSRF protection.
+The programmatic IdP endpoints — `/auth/token`, `/auth/userinfo`, `/auth/revoke`, `/auth/jwks`, and `/auth/.well-known/*` — are exempt from OTS's Rack-level CSRF check (`Rack::Protection::AuthenticityToken`) because SP clients reach them without a browser session. PKCE, client authentication on `/token`, and Bearer authentication on `/userinfo` provide protocol-level equivalents. `/authorize` is **not** exempt — it is browser-driven (the resource owner POSTs the consent form) and keeps CSRF protection.
 
-See `apps/web/auth/config/features/oauth.rb:200-209` for the override; the prefix-mismatch reason this override exists is documented in [rodauth-prefix-mismatch.md](../../apps/web/auth/docs/rodauth-prefix-mismatch.md).
+The exemption is **gated on `AUTH_OAUTH_ENABLED`**: when the IdP is off these paths are not mounted and receive no bypass, so an unrelated future route at one of those paths cannot silently inherit a CSRF exemption. See the `allow_if` block in `lib/onetime/middleware/security.rb`.
+
+At the rodauth layer only `/revoke` needs an explicit `check_csrf?` override — the gem inverts RFC 7009 and would otherwise enforce CSRF on the form-encoded revoke call; see `apps/web/auth/config/features/oauth.rb`. The mount-prefix reason the gem's own per-endpoint exemptions line up with the browser-absolute path is documented in [rodauth-prefix-mismatch.md](../../apps/web/auth/docs/rodauth-prefix-mismatch.md).
+
+## Troubleshooting
+
+### `OAUTH_JWT_RSA_PRIVATE_KEY is not a valid RSA private key` at boot
+
+The env var is set but does not contain a parseable RSA PEM. Common causes: the value was truncated, the `-----BEGIN/END-----` lines are missing, or a public key (not a private key) was pasted. Both forms are accepted — a raw multi-line PEM, or the escaped single-line form (`...\n...`) that `bin/generate_oauth_keys` emits — so you do not need to convert between them. Regenerate and re-paste the full block:
+
+```bash
+bin/generate_oauth_keys >> .env
+```
+
+### `OAUTH_JWT_RSA_PRIVATE_KEY must be set when AUTH_OAUTH_ENABLED=true`
+
+The feature flag is on but no signing key is present. Generate one (above). The key is required — without it the IdP cannot sign ID tokens or JWT access tokens.
+
+### Discovery `issuer` is wrong / SP rejects the ID token issuer
+
+By default the `issuer` is derived as `base_url` + the auth mount prefix (e.g. `https://example.com/auth`). Behind a proxy or with a non-default external URL it can resolve to the wrong host, and SP-side issuer validation will then fail. Pin it explicitly:
+
+```bash
+export OAUTH_ISSUER=https://id.example.com/auth
+```
+
+### Refresh token is never issued
+
+`offline_access` must survive the scope intersection. It has to be present in **all three** places: the client's `/authorize` request, the server allow-list (`oauth_application_scopes`), and the client's own `scopes` column in `oauth_applications`. Missing from any one of them and rodauth-oauth strips it, and with `:oidc` enabled no refresh token is issued.
+
+### `/authorize` rejects a client with `invalid_request` (no PKCE)
+
+PKCE is mandatory (`oauth_require_pkce true`): every client must send a `code_challenge` using `S256`. The `plain` method is rejected outright by migration `010`'s CHECK constraint.
+
+### CSRF `403` on `/token`, `/userinfo`, `/revoke`, or `/jwks`
+
+The CSRF exemption for these endpoints is gated on `AUTH_OAUTH_ENABLED`. If you see a `403` from the Rack CSRF layer, confirm the flag is actually `true` in the running process — when it is off the bypass is intentionally inactive.
+
+### Migrations `008`/`009`/`010` fail to apply
+
+They must run in order against the auth database (`010` adds a CHECK constraint to the table `009` creates). Confirm the auth DB URL is reachable and that earlier auth migrations (`001`+) already applied. See the migration files under `apps/web/auth/migrations/`.
 
 ## Local Development
 
