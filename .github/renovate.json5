@@ -87,7 +87,10 @@
         '^\\.github/workflows/(resolved-derive-gate|validate-register)\\.yml$',
       ],
       matchStrings: [
-        'TRANSLATION_RULES_REF:\\s+(?<currentValue>v\\d+\\.\\d+\\.\\d+)',
+        // Optional quotes tolerated: the workflows emit the bare form
+        // (TRANSLATION_RULES_REF: v0.1.1), but a quoted value ('v0.1.1' or
+        // "v0.1.1") must still match so auto-bumps don't silently stop.
+        'TRANSLATION_RULES_REF:\\s+["\']?(?<currentValue>v\\d+\\.\\d+\\.\\d+)["\']?',
       ],
       depNameTemplate: 'onetimesecret/translation-rules',
       datasourceTemplate: 'github-tags',
