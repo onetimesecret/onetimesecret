@@ -234,7 +234,7 @@ jobs:
       - *checkout-step
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.14'
 
@@ -335,7 +335,7 @@ jobs:
         uses: ./.github/actions/setup-ruby-test-env
 
       - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.14'
 
@@ -370,7 +370,7 @@ jobs:
       # Skipped on forked PRs, which cannot write Code Quality data.
       - name: Upload coverage report
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-        uses: actions/upload-code-coverage@v1
+        uses: actions/upload-code-coverage@82c7aee3fb2ad768e00b00a0a8d749c5815085b6 # v1
         with:
           file: coverage/coverage.xml
           language: Ruby
@@ -401,7 +401,7 @@ jobs:
         uses: ./.github/actions/setup-node-env
 
       - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.14'
 
@@ -415,7 +415,7 @@ jobs:
       # Skipped on forked PRs, which cannot write Code Quality data.
       - name: Upload coverage report
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-        uses: actions/upload-code-coverage@v1
+        uses: actions/upload-code-coverage@82c7aee3fb2ad768e00b00a0a8d749c5815085b6 # v1
         with:
           file: coverage/cobertura-coverage.xml
           language: TypeScript
@@ -452,7 +452,7 @@ jobs:
         uses: ./.github/actions/setup-ruby-test-env
 
       - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.14'
 
@@ -497,7 +497,7 @@ jobs:
         uses: ./.github/actions/setup-ruby-test-env
 
       - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.14'
 
@@ -610,7 +610,7 @@ jobs:
         uses: ./.github/actions/setup-ruby-test-env
 
       - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.14'
 
@@ -663,7 +663,7 @@ jobs:
         uses: ./.github/actions/setup-ruby-test-env
 
       - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.14'
 
@@ -884,7 +884,7 @@ jobs:
       # Post CI metrics summary as PR comment (PRs only, skip forks - no write access)
       - name: Post metrics to PR
         if: github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           github-token: ${{ github.token }}
           script: |
