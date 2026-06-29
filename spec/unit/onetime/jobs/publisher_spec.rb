@@ -235,6 +235,42 @@ RSpec.describe Onetime::Jobs::Publisher do
 
         expect(Onetime::Mail).to have_received(:deliver).with(:welcome, { email: 'test@example.com' }, sender_config: nil)
       end
+
+      # Regression for #3486: a :sync delivery failure (e.g. unreachable SMTP)
+      # must not raise out of the publisher. The caller has already persisted
+      # its record, so blocking-and-delivering should degrade gracefully rather
+      # than 500 the request. Contrast with :raise, which propagates.
+      context 'when synchronous delivery fails' do
+        let(:delivery_error) do
+          Onetime::Mail::DeliveryError.new('SMTP unreachable', transient: true)
+        end
+
+        before do
+          allow(Onetime::Mail).to receive(:deliver).and_raise(delivery_error)
+        end
+
+        it 'does not raise to the caller' do
+          expect {
+            publisher.enqueue_email(:welcome, { email: 'test@example.com' }, fallback: :sync)
+          }.not_to raise_error
+        end
+
+        it 'returns false (fallback used, not queued)' do
+          result = publisher.enqueue_email(:welcome, { email: 'test@example.com' }, fallback: :sync)
+
+          expect(result).to be false
+        end
+
+        it 'routes the failure to out-of-band reporting (log + Sentry)' do
+          # Stubbed as a no-op so the assertion is independent of Sentry/logger
+          # state in the test env; the helper's contents are exercised separately.
+          allow(publisher).to receive(:report_delivery_failure)
+
+          publisher.enqueue_email(:welcome, { email: 'test@example.com' }, fallback: :sync)
+
+          expect(publisher).to have_received(:report_delivery_failure).with(delivery_error, :templated, :sync)
+        end
+      end
     end
 
     context 'with fallback: :async_thread (default)' do
@@ -295,6 +331,19 @@ RSpec.describe Onetime::Jobs::Publisher do
         publisher.enqueue_email_raw(raw_email, fallback: :sync)
 
         expect(Onetime::Mail).to have_received(:deliver_raw).with(raw_email, sender_config: nil)
+      end
+
+      # Regression for #3486: the Rodauth delivery hook uses enqueue_email_raw
+      # with fallback: :sync. An unreachable SMTP host must not surface as a 500.
+      it 'does not raise when synchronous raw delivery fails' do
+        allow(Onetime::Mail).to receive(:deliver_raw)
+          .and_raise(Onetime::Mail::DeliveryError.new('SMTP unreachable', transient: true))
+
+        result = nil
+        expect {
+          result = publisher.enqueue_email_raw(raw_email, fallback: :sync)
+        }.not_to raise_error
+        expect(result).to be false
       end
     end
   end
@@ -478,6 +527,19 @@ RSpec.describe Onetime::Jobs::Publisher do
 
           expect(result).to be false
           expect(Onetime::Mail).to have_received(:deliver)
+        end
+
+        # Regression for #3486: even when RabbitMQ is unavailable AND the sync
+        # fallback delivery itself fails, :sync must not raise to the caller.
+        it 'does not raise when the sync fallback delivery also fails' do
+          allow(Onetime::Mail).to receive(:deliver)
+            .and_raise(Onetime::Mail::DeliveryError.new('SMTP unreachable', transient: true))
+
+          result = nil
+          expect {
+            result = publisher.enqueue_email(:welcome, { email: 'test@example.com' }, fallback: :sync)
+          }.not_to raise_error
+          expect(result).to be false
         end
       end
     end

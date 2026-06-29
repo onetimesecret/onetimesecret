@@ -12,12 +12,21 @@ module Onetime
     # Thread-safe RabbitMQ publisher with configurable fallback behavior
     #
     # Uses connection pool for thread safety in multi-threaded environments
-    # like Puma. Fallback behavior is configurable per-call:
+    # like Puma. When a message cannot be enqueued (jobs disabled or RabbitMQ
+    # unavailable), the fallback strategy decides what happens. Configurable
+    # per-call:
     #
-    #   - :async_thread - Spawn a thread to deliver (non-blocking, default)
-    #   - :sync         - Block and deliver synchronously
-    #   - :raise        - Raise an error on failure
-    #   - :none         - Log and return false silently
+    #   - :async_thread - Deliver in a background thread (non-blocking,
+    #                     default). Delivery failures are logged/reported,
+    #                     never raised.
+    #   - :sync         - Block and deliver synchronously. Delivery failures
+    #                     are logged/reported but NOT raised: the record the
+    #                     caller already persisted stands and a resend path
+    #                     exists, so the request should not 500. Use :raise
+    #                     when the caller must surface delivery failures.
+    #   - :raise        - Do not attempt fallback delivery; raise a
+    #                     DeliveryError so the caller can surface/propagate it.
+    #   - :none         - Do not deliver; log and return false silently.
     #
     # Example:
     #   # Default: async thread fallback (best for Puma)
@@ -430,16 +439,25 @@ module Onetime
         Thread.new do
           deliver_email(email_type, template: template, data: data, raw_email: raw_email, domain_id: domain_id)
         rescue StandardError => ex
-          # Log but don't crash - this is fire-and-forget
-          logger.error 'Async thread delivery failed', error: ex.message, backtrace: ex.backtrace.first(5)
+          # Log/report but don't crash - this is fire-and-forget
+          report_delivery_failure(ex, email_type, :async_thread)
         end
         # rubocop:enable ThreadSafety/NewThread
         #
         logger.info 'Spawned thread for email delivery', email_type: email_type
       end
 
-      # Blocking synchronous delivery
+      # Blocking synchronous delivery.
+      #
+      # Contract: :sync blocks and delivers, but does NOT raise on a delivery
+      # failure. The triggering operation (invitation, email change, password
+      # reset, etc.) has already persisted its record before the email step,
+      # and a resend path exists, so a delivery error is logged/reported rather
+      # than propagated as an HTTP 500. Callers that need the failure to
+      # propagate should use fallback: :raise instead.
+      #
       # @param email_type [Symbol] :templated or :raw
+      # @return [Boolean] true if delivered, false if delivery failed
       def send_synchronously(email_type)
         template  = @pending_template
         data      = @pending_data
@@ -450,6 +468,34 @@ module Onetime
 
         deliver_email(email_type, template: template, data: data, raw_email: raw_email, domain_id: domain_id)
         logger.info 'Sent email synchronously', email_type: email_type
+        true
+      rescue StandardError => ex
+        report_delivery_failure(ex, email_type, :sync)
+        false
+      end
+
+      # Log and report a best-effort fallback delivery failure without
+      # propagating it. Shared by the :sync and :async_thread strategies, which
+      # both deliver best-effort: the triggering operation has already
+      # completed, so the failure is recorded (log + Sentry) rather than
+      # raised. Use fallback: :raise when the caller must see the error.
+      #
+      # @param ex [Exception] The delivery error
+      # @param email_type [Symbol] :templated or :raw
+      # @param mode [Symbol] The fallback strategy that was in effect
+      def report_delivery_failure(ex, email_type, mode)
+        logger.error 'Fallback email delivery failed',
+          mode: mode,
+          email_type: email_type,
+          error: ex.message,
+          backtrace: ex.backtrace&.first(5)
+
+        return unless defined?(Sentry) && Sentry.initialized?
+
+        Sentry.capture_exception(ex) do |scope|
+          scope.set_tags(component: 'jobs.publisher', fallback: mode)
+          scope.set_context('email_delivery', { email_type: email_type })
+        end
       end
 
       # Actually deliver the email
