@@ -62,40 +62,29 @@ module AccountAPI::Logic
             token: token&.slice(0, 8), # Only log first 8 chars for debugging
           }
 
-        begin
-          # Critical auth flow: use sync fallback to ensure email is sent
-          # User is waiting for password reset, blocking is acceptable
-          Onetime::Jobs::Publisher.enqueue_email(
-            :password_request,
-            {
-              email_address: cust.email,
-              secret: secret,
-              locale: locale || cust.locale || OT.default_locale,
-            },
-            fallback: :sync,
-          )
-        rescue StandardError => ex
-          errmsg = "Couldn't send the notification email. Let know below."
-          auth_logger.error 'Password reset email delivery failed',
-            {
-              customer_id: cust.extid,
-              email: cust.obscure_email,
-              error: ex.message,
-              session_id: safe_session_id,
-            }
+        # Best-effort delivery (issue #3486). With background jobs enabled the
+        # email is queued; with jobs disabled (the default) it is delivered
+        # synchronously. Either way the publisher logs/reports a delivery failure
+        # (Sentry) rather than raising — the reset secret is already persisted,
+        # the user can request another, and we return a generic response
+        # regardless to avoid leaking account existence or delivery status.
+        Onetime::Jobs::Publisher.enqueue_email(
+          :password_request,
+          {
+            email_address: cust.email,
+            secret: secret,
+            locale: locale || cust.locale || OT.default_locale,
+          },
+          fallback: :sync,
+        )
 
-          set_error_message(errmsg)
-        else
-          auth_logger.info 'Password reset email sent',
-            {
-              customer_id: cust.extid,
-              email: cust.obscure_email,
-              session_id: safe_session_id,
-              secret_identifier: secret.identifier,
-            }
-
-          set_info_message "We sent instructions to #{cust.objid}"
-        end
+        auth_logger.info 'Password reset email dispatched',
+          {
+            customer_id: cust.extid,
+            email: cust.obscure_email,
+            session_id: safe_session_id,
+            secret_identifier: secret.identifier,
+          }
 
         success_data
       end
