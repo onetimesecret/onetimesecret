@@ -14,8 +14,11 @@
 # to a concrete commit, so local and CI output match byte-for-byte.
 #
 # Usage:
-#   locales/scripts/derive-governance.sh [RULES_DIR]
+#   locales/scripts/derive-governance.sh [--print-ref] [RULES_DIR]
 #
+#   --print-ref  Print the canonical translation-rules ref this run would derive
+#                at (from the gate, or RULES_REF) and exit — no clone, no derive.
+#                A cheap, offline pin-readability check for CI and humans.
 #   RULES_DIR  A translation-rules checkout used READ-ONLY as the authority
 #              (default: .translation-rules, gitignored). Cloned if absent;
 #              fetched + checked out (detached) to the pin if present. Treat it as
@@ -28,6 +31,8 @@ ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$ROOT"
 
 GATE=.github/workflows/resolved-derive-gate.yml
+PRINT_REF=0
+if [ "${1:-}" = "--print-ref" ]; then PRINT_REF=1; shift; fi
 RULES_DIR="${1:-.translation-rules}"
 RULES_REPO="${RULES_REPO:-https://github.com/onetimesecret/translation-rules.git}"
 EMIT_DIR="$ROOT/generated/i18n"
@@ -51,7 +56,10 @@ fi
 # Shape-check before use, mirroring the gate's resolve step: 40-hex SHA or vX.Y.Z.
 [[ "$PIN" =~ ^([0-9a-fA-F]{40}|v[0-9]+\.[0-9]+\.[0-9]+)$ ]] \
   || { echo "error: invalid translation-rules ref '$PIN' (want 40-hex SHA or vX.Y.Z)" >&2; exit 1; }
-echo "derive-governance: canonical ref = $PIN (${RULES_REF:+RULES_REF override}${RULES_REF:-from $GATE})"
+if [ -n "${RULES_REF:-}" ]; then PIN_SRC="RULES_REF override"; else PIN_SRC="$GATE"; fi
+# --print-ref: emit just the resolved ref on stdout and stop before any network.
+if [ "$PRINT_REF" = 1 ]; then echo "$PIN"; exit 0; fi
+echo "derive-governance: canonical ref = $PIN (from $PIN_SRC)"
 
 # --- ensure a translation-rules authority checkout at the pin ----------------
 if [ ! -e "$RULES_DIR/.git" ]; then
