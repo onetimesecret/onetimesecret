@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'date' # ensure Date/Time constants resolve for permitted_classes
 require_relative 'utils/config_resolver'
 require_relative 'utils/enumerables'
 
@@ -271,11 +272,14 @@ module Onetime
       parsed_template = ERB.new(File.read(path))
       # Use safe_load so a malicious config file cannot instantiate arbitrary
       # Ruby objects (!ruby/object). Symbol is permitted because config keys
-      # and values use symbols; dates must be quoted (loaded as strings),
-      # consistent with the rest of the codebase's YAML loaders. aliases: true
-      # keeps anchors/aliases working, matching the config validator
-      # (operations/config/validate.rb) so a config that validates also boots.
-      YAML.safe_load(parsed_template.result, permitted_classes: [Symbol], aliases: true) || {}
+      # and values use symbols. Date and Time are permitted so an unquoted
+      # date/time in a deployment's config (e.g. `expires: 2026-01-02`) loads
+      # as a Date/Time instance rather than raising Psych::DisallowedClass and
+      # breaking boot (per issue #3498's recommendation). aliases: true keeps
+      # anchors/aliases working, matching the config validator
+      # (operations/config/validate.rb) so a config that validates also boots;
+      # the validator's permitted_classes are kept in sync with this list.
+      YAML.safe_load(parsed_template.result, permitted_classes: [Symbol, Date, Time], aliases: true) || {}
     end
     private :load_yaml_with_erb
 

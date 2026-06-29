@@ -164,11 +164,15 @@ module V1
       # Set the Content-Type header if it's not already set by the application
       res.headers['content-type'] ||= content_type
 
-      # Skip the Content-Security-Policy header if it's already set
-      return if res.headers['content-security-policy']
-
-      # Skip the CSP header unless it's enabled in site.security settings
+      # The Content-Security-Policy block is opt-in (gated on
+      # site.security.csp.enabled == true). When DISABLED, return early and leave
+      # any pre-existing/upstream CSP header untouched.
       return if OT.conf.dig('site', 'security', 'csp', 'enabled') != true
+
+      # When CSP is ENABLED, the app's hardened nonce-based policy is
+      # AUTHORITATIVE: it overrides any weaker pre-existing/upstream policy so a
+      # CSP Level 1 agent can't be downgraded around the nonce. We compute the
+      # policy below and assign it unconditionally further down.
 
       # Skip the Content-Security-Policy header if the front is running in
       # development mode. We need to allow inline scripts and styles for
@@ -209,7 +213,18 @@ module V1
 
       OT.ld "[CSP] #{csp.join(' ')}" if OT.debug?
 
-      res.headers['content-security-policy'] = csp.join(' ')
+      hardened = csp.join(' ')
+
+      # If a DIFFERENT CSP header is already present (e.g. set by upstream
+      # middleware), log it for visibility before the hardened policy overrides it.
+      existing = res.headers['content-security-policy']
+      if existing && existing != hardened
+        OT.lw "[CSP] overriding pre-existing content-security-policy with hardened policy"
+      end
+
+      # Hardened policy is authoritative when CSP is enabled: override any
+      # pre-existing header.
+      res.headers['content-security-policy'] = hardened
     end
 
     # Collectes request details in a single string for logging purposes.

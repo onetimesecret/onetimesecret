@@ -46,6 +46,7 @@ RSpec.describe V1::ControllerHelpers, '#add_response_headers (CSP hardening)' do
   before do
     allow(OT).to receive(:conf).and_return(conf)
     allow(OT).to receive(:ld)
+    allow(OT).to receive(:lw)
     allow(OT).to receive(:debug?).and_return(false)
   end
 
@@ -143,17 +144,30 @@ RSpec.describe V1::ControllerHelpers, '#add_response_headers (CSP hardening)' do
     end
   end
 
-  context 'early-return contracts' do
-    it 'does not overwrite a pre-existing content-security-policy header' do
+  context 'authoritative-override contracts' do
+    it 'OVERRIDES a pre-existing weaker policy when CSP is ENABLED' do
       stub_conf(csp_enabled: true, development_enabled: false)
-      headers['content-security-policy'] = "script-src 'unsafe-inline';"
+      # Pre-seed a weak upstream policy.
+      headers['content-security-policy'] = 'default-src *;'
 
       host.add_response_headers('text/html; charset=utf-8', nonce)
 
-      # The guard at L168 returns early; the pre-set header is left untouched
-      # and crucially the hardened nonce policy is NOT applied. We pin current
-      # behavior so a regression here is visible.
-      expect(headers['content-security-policy']).to eq("script-src 'unsafe-inline';")
+      # The hardened nonce-based policy is authoritative when enabled: the weak
+      # pre-existing directive is replaced entirely.
+      csp = headers['content-security-policy']
+      expect(csp).to include("script-src 'nonce-#{nonce}';")
+      expect(csp).to include("default-src 'none';")
+      expect(csp).not_to include('default-src *;')
+    end
+
+    it 'leaves a pre-existing content-security-policy header UNTOUCHED when CSP is DISABLED' do
+      stub_conf(csp_enabled: false)
+      headers['content-security-policy'] = 'default-src *;'
+
+      host.add_response_headers('text/html; charset=utf-8', nonce)
+
+      # Disabled path never touches a pre-existing header.
+      expect(headers['content-security-policy']).to eq('default-src *;')
     end
 
     it 'defaults content-type when absent' do

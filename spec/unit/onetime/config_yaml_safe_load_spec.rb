@@ -13,11 +13,22 @@
 #   config (string/symbol keys, nested hashes, anchors/aliases) must still
 #   load and clone correctly.
 #
+# Follow-up to #3498: the loaders permit_classes are [Symbol, Date, Time] (the
+# issue's own recommendation), so an unquoted date/time no longer raises
+# Psych::DisallowedClass and breaks boot. Arbitrary Ruby objects (!ruby/object)
+# stay rejected. The runtime loader and the config validator
+# (operations/config/validate.rb) keep this list symmetric so a config that
+# validates also boots.
+#
 # These tests drive the REAL production loaders and FAIL if production reverts
 # any of them back to bare YAML.load / YAML.unsafe_load:
 #   - lib/onetime/config.rb#load_yaml_with_erb (L278)
 #   - lib/onetime/utils/enumerables.rb#deep_clone (L111)
 #   - lib/onetime/initializers/setup_loggers.rb#load_logging_config (L105, safe_load at L114/L120)
+#   - lib/onetime/operations/config/validate.rb#load_config (the config
+#     validator's loader — the 4th YAML.safe_load site the #3498 follow-up
+#     widened to [Symbol, Date, Time]; it RESCUES Psych::DisallowedClass and
+#     returns nil rather than raising)
 #
 # Each of these is invoked through its own public/private production entry point
 # (via #send for private methods), NOT via a local mirror or a direct
@@ -28,6 +39,7 @@
 require 'spec_helper'
 require 'tempfile'
 require 'onetime/initializers/setup_loggers'
+require 'onetime/operations/config/validate'
 
 RSpec.describe 'Issue #3498 item 4: YAML safe loading hardening' do
   # Helper: write +content+ to a temp .yaml file, yield its path, clean up.
@@ -51,18 +63,19 @@ RSpec.describe 'Issue #3498 item 4: YAML safe loading hardening' do
     # (lib/onetime/initializers/setup_loggers.rb:105), NOT a local mirror and
     # NOT a direct YAML.safe_load call. It reads file paths via
     # Onetime::Utils::ConfigResolver, runs each file through ERB, then
-    # YAML.safe_load(..., permitted_classes: [Symbol], aliases: true).
+    # YAML.safe_load(..., permitted_classes: [Symbol, Date, Time], aliases: true).
     #
     # We stub ConfigResolver so the loader reads our controlled payload, then
     # invoke the private instance method on a real instance.
     #
     # Regression-sensitivity (verified against scratch reverts of the real
     # method, without touching the production file — Ruby 3.4.9 / Psych 5.2.6):
-    #   * Revert to bare YAML.load  (permitted_classes: [Symbol], aliases:FALSE):
-    #     the anchor/alias POSITIVE case below raises Psych::AliasesNotEnabled,
-    #     so 'loads to a Hash' FAILS. (This is the MUST-FIX scenario: on this
-    #     Psych, YAML.load == safe_load with [Symbol] and aliases:false, so the
-    #     alias positive case — not the object payload — is what pins the revert.)
+    #   * Revert to bare YAML.load  (permitted_classes: [Symbol, Date, Time],
+    #     aliases:FALSE): the anchor/alias POSITIVE case below raises
+    #     Psych::AliasesNotEnabled, so 'loads to a Hash' FAILS. (This is the
+    #     MUST-FIX scenario: on this Psych, YAML.load == safe_load with
+    #     [Symbol, Date, Time] and aliases:false, so the alias positive case —
+    #     not the object payload — is what pins the revert.)
     #   * Revert to YAML.unsafe_load: the malicious !ruby/object payload below
     #     is materialized into a Gem::Requirement instead of raising, so the
     #     NEGATIVE case FAILS.
@@ -161,7 +174,7 @@ RSpec.describe 'Issue #3498 item 4: YAML safe loading hardening' do
       end
     end
 
-    it 'permits Symbol values (permitted_classes: [Symbol])' do
+    it 'permits Symbol values (permitted_classes: [Symbol, Date, Time])' do
       content = "key: :sym_value\n"
       with_yaml_file(content) do |path|
         result = Onetime::Config.send(:load_yaml_with_erb, path)
@@ -178,12 +191,29 @@ RSpec.describe 'Issue #3498 item 4: YAML safe loading hardening' do
       end
     end
 
-    it 'rejects an unquoted Date value under permitted_classes: [Symbol] (regression pin)' do
-      # The hardened loader only permits Symbol, so an unquoted date string that
-      # bare YAML.load would have parsed into a Date object now raises. Pin this
-      # so anyone re-adding Date awareness updates the test deliberately.
-      content = "d: 2020-01-01\n"
+    it 'loads an unquoted Date value as a Date instance (permitted_classes includes Date)' do
+      # Follow-up to #3498: the loader permits Symbol, Date and Time so an
+      # unquoted date/time no longer raises Psych::DisallowedClass and breaks
+      # boot. (This INVERTS the earlier [Symbol]-only rejection pin.)
+      content = "expires: 2026-01-02\n"
       with_yaml_file(content) do |path|
+        result = Onetime::Config.send(:load_yaml_with_erb, path)
+        expect(result['expires']).to be_a(Date)
+        expect(result['expires']).to eq(Date.new(2026, 1, 2))
+      end
+    end
+
+    it 'loads an unquoted timestamp as a Time instance (permitted_classes includes Time)' do
+      content = "at: 2026-01-02 03:04:05\n"
+      with_yaml_file(content) do |path|
+        result = Onetime::Config.send(:load_yaml_with_erb, path)
+        expect(result['at']).to be_a(Time)
+      end
+    end
+
+    it 'STILL rejects a !ruby/object:Gem::Requirement tag (arbitrary objects stay denied)' do
+      # Widening to Date/Time must NOT widen to arbitrary Ruby objects.
+      with_yaml_file(MALICIOUS_YAML) do |path|
         expect {
           Onetime::Config.send(:load_yaml_with_erb, path)
         }.to raise_error(Psych::DisallowedClass)
@@ -217,13 +247,38 @@ RSpec.describe 'Issue #3498 item 4: YAML safe loading hardening' do
       expect(clone[:a].keys).to include(:b)
     end
 
+    it 'round-trips Date and Time values (permitted_classes includes Date/Time)' do
+      # Follow-up to #3498: deep_clone's safe_load permits Date and Time so a
+      # config carrying date/time values survives the YAML.dump/safe_load clone
+      # round-trip instead of raising Psych::DisallowedClass.
+      date = Date.new(2026, 1, 2)
+      time = Time.utc(2026, 1, 2, 3, 4, 5)
+      orig = { 'expires' => date, 'at' => time, sym: :value }
+      clone = Onetime::Utils::Enumerables.deep_clone(orig)
+
+      expect(clone['expires']).to be_a(Date)
+      expect(clone['expires']).to eq(date)
+      expect(clone['at']).to be_a(Time)
+      expect(clone['at']).to eq(time)
+      expect(clone[:sym]).to eq(:value)
+    end
+
+    it 'STILL rejects a non-serializable native object (Proc) as OT::Problem' do
+      # Arbitrary Ruby objects remain denied even after widening to Date/Time:
+      # the Proc tag is not permitted, so safe_load raises Psych::DisallowedClass
+      # which deep_clone re-raises as OT::Problem.
+      expect {
+        Onetime::Utils::Enumerables.deep_clone({ bad: -> { 1 } })
+      }.to raise_error(OT::Problem)
+    end
+
     it 'wraps a serialization failure as OT::Problem (the rescue path)' do
       # On this Ruby/Psych (3.4.9 / 5.2.6), YAML.dump does NOT raise for a Proc:
       # it succeeds and emits `!ruby/object:Proc {}`. The OT::Problem instead
-      # originates on the LOAD side — YAML.safe_load(permitted_classes: [Symbol])
-      # raises Psych::DisallowedClass for the Proc tag, which deep_clone rescues
-      # and re-raises as OT::Problem. (So this exercises the safe_load guard, not
-      # a YAML.dump TypeError.)
+      # originates on the LOAD side — YAML.safe_load(permitted_classes:
+      # [Symbol, Date, Time]) raises Psych::DisallowedClass for the Proc tag,
+      # which deep_clone rescues and re-raises as OT::Problem. (So this
+      # exercises the safe_load guard, not a YAML.dump TypeError.)
       #
       # Note: deep_clone's safe_load only ever loads its OWN YAML.dump output, so
       # a genuinely attacker-controlled malicious-payload case is structurally
@@ -248,6 +303,50 @@ RSpec.describe 'Issue #3498 item 4: YAML safe loading hardening' do
       result = Onetime::Config.send(:deep_clone, big)
       expect(result).to eq(big)
       expect(result).not_to equal(big)
+    end
+  end
+
+  describe 'Onetime::Operations::Config::Validate#load_config (REAL production loader)' do
+    # This block drives the genuine private method
+    # Onetime::Operations::Config::Validate#load_config
+    # (lib/onetime/operations/config/validate.rb:104) — the 4th YAML.safe_load
+    # site the #3498 follow-up widened to [Symbol, Date, Time]. Unlike the other
+    # three loaders, load_config RESCUES Psych::DisallowedClass and returns nil
+    # (it does NOT raise out), so the assertions key off the return value:
+    #   * an unquoted Date loads as a Date instance (proves Date is permitted; if
+    #     the site reverted to [Symbol] this case would be DisallowedClass —
+    #     rescued — and return nil, so it is regression-sensitive);
+    #   * a !ruby/object payload returns nil (rejected/not materialized — proves
+    #     no dangerous widening to arbitrary Ruby objects).
+    #
+    # load_config only uses the path argument it is handed, so we build a real
+    # instance with placeholder paths and invoke the private method via #send.
+    def load_config_via_production(yaml_content)
+      validator = Onetime::Operations::Config::Validate.new(
+        config_path: '/nonexistent/placeholder-config.yaml',
+        schema_path: '/nonexistent/placeholder-schema.json',
+        progress: nil,
+      )
+      with_yaml_file(yaml_content) do |path|
+        validator.send(:load_config, path)
+      end
+    end
+
+    it 'loads an unquoted Date value as a Date instance (permitted_classes includes Date)' do
+      # Regression pin: on a revert to [Symbol] this would be a rescued
+      # Psych::DisallowedClass and load_config would return nil instead.
+      result = load_config_via_production("some_date: 2026-01-02\n")
+      expect(result).to be_a(Hash)
+      expect(result['some_date']).to be_a(Date)
+      expect(result['some_date']).to eq(Date.new(2026, 1, 2))
+    end
+
+    it 'returns nil (rejected, not materialized) for a !ruby/object:Gem::Requirement payload' do
+      # Widening to Date/Time must NOT widen to arbitrary Ruby objects: the tag
+      # raises Psych::DisallowedClass, which load_config rescues to nil. Under a
+      # YAML.unsafe_load revert this would instead be a Gem::Requirement instance.
+      result = load_config_via_production(MALICIOUS_YAML)
+      expect(result).to be_nil
     end
   end
 
