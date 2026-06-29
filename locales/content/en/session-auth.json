@@ -227,6 +227,18 @@
     "text": "Create New Account",
     "content_hash": "0e24ec84"
   },
+  "web.auth.verify.resend_help_text": {
+    "text": "Didn't receive the verification email? Enter your email to resend it.",
+    "content_hash": "e0df48bb"
+  },
+  "web.auth.verify.resend_button": {
+    "text": "Resend Verification Email",
+    "content_hash": "5173cc04"
+  },
+  "web.auth.verify.resend_sent": {
+    "text": "If an account needs verification, a new email has been sent. Please check your inbox and spam folder.",
+    "content_hash": "6f838ffb"
+  },
   "web.auth.change_password.title": {
     "text": "Change Password",
     "content_hash": "a949f462"

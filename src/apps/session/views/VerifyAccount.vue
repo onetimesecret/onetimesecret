@@ -1,15 +1,15 @@
 <!-- src/apps/session/views/VerifyAccount.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
   import { useAuth } from '@/shared/composables/useAuth';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { computed, onMounted, ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
   import { useRoute } from 'vue-router';
 
   const route = useRoute();
   const { t } = useI18n();
-  const { verifyAccount, isLoading, error } = useAuth();
+  const { verifyAccount, resendVerificationEmail, isLoading, error } = useAuth();
   const bootstrapStore = useBootstrapStore();
   const { authentication } = bootstrapStore;
   const signupEnabled = computed(
@@ -22,6 +22,22 @@
   const verificationKey = ref<string>('');
   const verificationComplete = ref(false);
   const verificationSuccess = ref(false);
+
+  // Self-service resend of the verification email (unauthenticated recovery).
+  const resendEmail = ref<string>('');
+  const resendSubmitted = ref(false);
+
+  /**
+   * Requests a fresh verification email for the entered address.
+   *
+   * Anti-enumeration: always shows the same neutral confirmation regardless of
+   * the outcome, mirroring the backend's uniform { sent: true } response.
+   */
+  async function onResend() {
+    if (!resendEmail.value) return;
+    await resendVerificationEmail(resendEmail.value);
+    resendSubmitted.value = true;
+  }
 
   // Computed property to determine if key is missing
   const isMissingKey = computed(() => !verificationKey.value && !isLoading.value);
@@ -91,7 +107,7 @@
         <div class="flex">
           <div class="shrink-0">
             <svg
-              class="size-5 animate-spin motion-reduce:animate-none text-blue-400"
+              class="size-5 animate-spin text-blue-400 motion-reduce:animate-none"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -210,6 +226,38 @@
           </div>
         </div>
 
+        <!-- Resend verification email (self-service recovery) -->
+        <div class="space-y-3 rounded-md bg-gray-50 p-4 dark:bg-gray-800/50">
+          <p class="text-sm text-gray-600 dark:text-gray-300">
+            {{ t('web.auth.verify.resend_help_text') }}
+          </p>
+          <template v-if="!resendSubmitted">
+            <input
+              v-model="resendEmail"
+              type="email"
+              name="resendEmail"
+              autocomplete="email"
+              :disabled="isLoading"
+              :placeholder="t('web.COMMON.email_placeholder')"
+              class="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-300"
+              data-testid="resend-verification-email-input" />
+            <button
+              type="button"
+              :disabled="isLoading || !resendEmail"
+              class="focus:shadow-outline w-full rounded bg-brand-500 px-4 py-2 font-bold text-white transition duration-300 hover:bg-brand-700 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-800"
+              data-testid="resend-verification-email-submit"
+              @click="onResend">
+              {{ t('web.auth.verify.resend_button') }}
+            </button>
+          </template>
+          <p
+            v-else
+            class="text-sm text-green-700 dark:text-green-300"
+            data-testid="resend-verification-email-confirmation">
+            {{ t('web.auth.verify.resend_sent') }}
+          </p>
+        </div>
+
         <!-- Action buttons -->
         <div class="space-y-4">
           <div class="flex flex-col gap-3 sm:flex-row sm:justify-center">
@@ -222,7 +270,7 @@
             <router-link
               v-if="signupEnabled"
               to="/signup"
-              class="inline-flex justify-center rounded-md bg-white px-4 py-2 font-brand text-lg  text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-white dark:ring-gray-700 dark:hover:bg-gray-700">
+              class="inline-flex justify-center rounded-md bg-white px-4 py-2 font-brand text-lg  text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 dark:bg-gray-800 dark:text-white dark:ring-gray-700 dark:hover:bg-gray-700">
               {{ t('web.auth.verify.create_new_account') }}
             </router-link>
           </div>
