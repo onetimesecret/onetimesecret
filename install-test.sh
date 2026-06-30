@@ -248,9 +248,10 @@ echo "---"
 if [[ -n "$pg_superuser_url" ]] && command -v psql &>/dev/null; then
     echo "Provisioning PostgreSQL test database (integration tests)..."
 
-    # Extract connection parts from the superuser URL.
-    # Parse: postgresql://user[:pass]@host[:port]/dbname
-    pg_db=$(echo "$pg_superuser_url" | sed -E 's|.*://[^/]*/||')
+    # Extract the database name from the superuser URL.
+    # Parse: postgresql://user[:pass]@host[:port]/dbname[?query]
+    # (URI parsing so query params like ?sslmode=require don't leak into the name)
+    pg_db=$(ruby -ruri -e 'puts URI(ARGV.fetch(0)).path.sub(%r{\A/}, "")' "$pg_superuser_url")
 
     # Create the database if it doesn't exist (createdb is idempotent-ish)
     if psql "$pg_superuser_url" -c "SELECT 1" &>/dev/null; then
