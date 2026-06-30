@@ -344,14 +344,22 @@ RSpec.describe 'Authentication Security Attack Vectors', type: :integration do
         expect { reset_request_logic.raise_concerns }.to raise_error(OT::FormError, /Invalid email address/)
       end
 
-      it 'protects against email enumeration through error messages' do
+      it 'does not reveal account existence for a valid, unregistered email (CWE-204)' do
         params = { login: 'nonexistent@example.com' }
         reset_request_logic = AccountAPI::Logic::Authentication::ResetPasswordRequest.new(strategy_result, params)
         allow(reset_request_logic).to receive(:valid_email?).and_return(true)
-        allow(Onetime::Customer).to receive(:exists?).and_return(false)
+        allow(Onetime::Customer).to receive(:find_by_email).and_return(nil)
 
-        # Uses the same generic error for non-existent accounts to prevent enumeration
-        expect { reset_request_logic.raise_concerns }.to raise_error(OT::FormError, /Invalid email address/)
+        # A well-formed but unregistered address must be indistinguishable from a
+        # registered one. raise_concerns validates only the format (no raise here
+        # for non-existence — that would leak account existence), and process
+        # returns the same generic success an existing account gets, with no
+        # secret created and no email sent.
+        expect { reset_request_logic.raise_concerns }.not_to raise_error
+
+        expect(Onetime::Secret).not_to receive(:create!)
+        expect(Onetime::Jobs::Publisher).not_to receive(:enqueue_email)
+        expect(reset_request_logic.process).to include(sent: true)
       end
     end
   end
