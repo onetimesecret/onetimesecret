@@ -1,14 +1,6 @@
 // src/shared/composables/useAuth.ts
 
 import {
-  useAsyncHandler,
-  createError,
-  type AsyncHandlerOptions,
-} from '@/shared/composables/useAsyncHandler';
-import { loggingService } from '@/services/logging.service';
-import { isValidInternalPath } from '@/utils/redirect';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import {
   isAuthError,
   requiresMfa,
   hasBillingRedirect,
@@ -23,6 +15,7 @@ import {
   type EmailChangeRequestResponse,
   type EmailChangeConfirmResponse,
   type EmailChangeResendResponse,
+  type ResendVerificationEmailResponse,
   type BillingRedirect,
 } from '@/schemas/api/auth/responses/auth';
 import {
@@ -37,17 +30,25 @@ import {
   emailChangeRequestResponseSchema,
   emailChangeConfirmResponseSchema,
   emailChangeResendResponseSchema,
+  resendVerificationEmailResponseSchema,
 } from '@/schemas/api/auth/responses/auth';
+import { loggingService } from '@/services/logging.service';
+import { useApi } from '@/shared/composables/useApi';
+import {
+  useAsyncHandler,
+  createError,
+  type AsyncHandlerOptions,
+} from '@/shared/composables/useAsyncHandler';
 import { useAuthStore } from '@/shared/stores/authStore';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { LockoutStatus } from '@/types/auth';
+import { isValidInternalPath } from '@/utils/redirect';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
-
-import { useApi } from '@/shared/composables/useApi';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -805,6 +806,44 @@ export function useAuth() {
     return result ?? false;
   }
 
+  /**
+   * Resends the account verification email for an unverified account.
+   *
+   * Anti-enumeration: the backend returns an identical { sent: true } for all
+   * cases, so this resolves true whenever the request was well-formed and
+   * accepted — it does NOT reveal whether the email exists or was actually sent.
+   *
+   * @param email - the login/email to (re)send verification to
+   * @returns true if the request was accepted
+   */
+  async function resendVerificationEmail(email: string): Promise<boolean> {
+    clearErrors();
+
+    const result = await wrap(async () => {
+      const response = await $api.post<ResendVerificationEmailResponse>(
+        '/api/account/resend-verification-email',
+        {
+          login: email,
+          shrimp: csrfStore.shrimp,
+          locale: locale.value,
+        }
+      );
+
+      const validated =
+        resendVerificationEmailResponseSchema.parse(response.data);
+
+      if (isAuthError(validated)) {
+        throw createError(validated.error, 'human', 'error', {
+          'field-error': validated['field-error'],
+        });
+      }
+
+      return true;
+    });
+
+    return result ?? false;
+  }
+
   return {
     // State
     isLoading,
@@ -824,6 +863,7 @@ export function useAuth() {
     requestEmailChange,
     confirmEmailChange,
     resendEmailChangeConfirmation,
+    resendVerificationEmail,
     clearErrors,
   };
 }
