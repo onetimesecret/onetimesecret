@@ -165,6 +165,7 @@ export function isAuthError(
     | EmailChangeRequestResponse
     | EmailChangeConfirmResponse
     | EmailChangeResendResponse
+    | ResendVerificationEmailResponse
 ): response is z.infer<typeof authErrorSchema> {
   return 'error' in response;
 }
@@ -361,3 +362,16 @@ export const emailChangeResendResponseSchema = z.union([
 ]);
 export type EmailChangeResendResponse =
   z.infer<typeof emailChangeResendResponseSchema>;
+
+// Resend verification email response.
+// ANTI-ENUMERATION: backend returns an identical { sent: true } for every
+// account state (sent / throttled / verified / nonexistent). No resend_count.
+const resendVerificationEmailSuccessSchema = z.object({
+  sent: z.boolean(),
+});
+export const resendVerificationEmailResponseSchema = z.union([
+  resendVerificationEmailSuccessSchema,
+  authErrorSchema,
+]);
+export type ResendVerificationEmailResponse =
+  z.infer<typeof resendVerificationEmailResponseSchema>;
