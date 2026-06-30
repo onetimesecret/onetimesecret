@@ -7,7 +7,7 @@ fork to the gem maintainer once we're ready to drop the fork.
 
 - **Fork:** `onetimesecret/rodauth-oauth` (GitHub) · branch `claude/rodauth-oauth-urlmap-prefix-gczunl` · PR onetimesecret/rodauth-oauth#13
 - **Upstream:** `os85/rodauth-oauth` (GitLab, maintainer: Tiago Cardoso / honeyryderchuck), default branch `master`
-- **Status:** not yet submitted upstream. This is a third-party project; submit only with explicit sign-off.
+- **Status:** not yet submitted upstream. This is a third-party project; submit only with explicit sign-off from the OTS maintainer who owns the `onetimesecret/rodauth-oauth` fork (currently @delano).
 
 ## The fix in one paragraph
 
@@ -33,7 +33,7 @@ Include the gem change only:
 - `lib/rodauth/features/oauth_application_management.rb`, `oauth_grant_management.rb` — helpers prepend the prefix
 - `test/oauth/mount_prefix_test.rb`, plus the `*_with_mount_prefix` cases in `test/oauth/metadata_test.rb` and `test/oidc/metadata_test.rb`
 - `doc/release_notes/1_6_5.md` (renumber to upstream's next version), `doc/oauth_base.rdoc`
-- optionally `doc/mount_prefix_fix.svg`
+- `doc/mount_prefix_fix.svg` — optional: the prose description above is self-contained, so include it only if the maintainer finds the diagram useful for review
 
 Exclude / adjust:
 
@@ -81,16 +81,22 @@ is a strict no-op — behavior is identical for root-mounted or `prefix`-based d
 ## Git steps (once approved)
 
 ```sh
-# from a checkout of the fork, build a clean topic branch off upstream master
-git remote add upstream git@gitlab.com:os85/rodauth-oauth.git
+# from a checkout of the fork, build a clean topic branch off upstream master.
+# (idempotent: don't fail if the upstream remote is already configured)
+git remote get-url upstream >/dev/null 2>&1 || \
+  git remote add upstream git@gitlab.com:os85/rodauth-oauth.git
 git fetch upstream
 git checkout -b fix/oauth-mount-prefix upstream/master
 
-# bring over the gem change. The oauth_mount_prefix base work + the PR #13 commits,
-# minus the PoC and the rendered PNG:
-#   include: the oauth_mount_prefix feature commits, management-helper fix, tests, docs
-#   exclude: the mount_prefix_poc.rb commit and the PNG commit
-# (cherry-pick the relevant commits, or diff the fork branch and re-apply the lib/test/doc hunks)
+# identify the commits to bring over (the gem change), then cherry-pick them:
+git log --oneline origin/main..origin/claude/rodauth-oauth-urlmap-prefix-gczunl
+#   include (subjects): "Add oauth_mount_prefix to decouple mount point ...",
+#     "Make registration_client_uri honor oauth_mount_prefix ...",
+#     "Honor oauth_mount_prefix in the management-feature path helpers",
+#     "Harden oauth_mount_prefix ...", and the two test-coverage commits + the docs.
+#   exclude: "Add standalone proof-of-concept ..." (mount_prefix_poc.rb) and
+#     "Add rendered PNG ..." (doc/mount_prefix_fix.png) — developer artifacts.
+# git cherry-pick <sha> <sha> ...   (or diff the fork branch and re-apply lib/test/doc hunks)
 
 # resolve the release-note renumber + OTS-reference rewording, run the suite, then:
 git push <your-gitlab-fork> fix/oauth-mount-prefix
