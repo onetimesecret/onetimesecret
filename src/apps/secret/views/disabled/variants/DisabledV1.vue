@@ -34,11 +34,12 @@
   const hasUsableLogo = computed(() => !!props.logoUri && !logoError.value);
 
   const monogramStyle = computed(() => ({ backgroundColor: props.primaryColor }));
-  // Always emit the dot's accent color from primaryColor so branded mode
-  // uses the workspace color and unbranded falls back to OTS orange. Avoids
-  // the stale hard-coded shadow color in the static class fallback.
+  // The dot's accent color always comes from primaryColor. In branded mode that
+  // is the workspace color; when unbranded, identityStore has already resolved
+  // primaryColor to the neutral default (#3B82F6) — never OTS orange. Hardcoding
+  // a brand hex here would leak OTS branding into private-label deployments.
   const dotStyle = computed(() => {
-    const color = props.isBranded ? props.primaryColor : '#dc4a22';
+    const color = props.primaryColor;
     return { backgroundColor: color, boxShadow: `0 0 8px ${color}` };
   });
 </script>

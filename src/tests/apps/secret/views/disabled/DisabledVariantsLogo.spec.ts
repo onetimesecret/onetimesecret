@@ -87,3 +87,28 @@ describe.each([
     expect(wrapper.find('[data-testid="maruhi-mark"]').exists()).toBe(false);
   });
 });
+
+describe('DisabledV1 eyebrow dot color', () => {
+  // The dot accent must follow primaryColor (which identityStore already
+  // resolves to the neutral default when unbranded) and never the old
+  // hardcoded OTS orange (#dc4a22 = rgb(220, 74, 34)).
+  const findDot = (wrapper: ReturnType<typeof mountVariant>) =>
+    wrapper.findAll('span').find((s) => (s.attributes('style') || '').includes('box-shadow'));
+
+  it('uses primaryColor for the dot when unbranded (not hardcoded orange)', () => {
+    const wrapper = mountVariant(DisabledV1, { isBranded: false, primaryColor: '#10b981' });
+    const dot = findDot(wrapper);
+
+    expect(dot).toBeDefined();
+    // jsdom normalizes hex to rgb in inline styles.
+    expect((dot!.element as HTMLElement).style.backgroundColor).toBe('rgb(16, 185, 129)');
+    expect(dot!.attributes('style')).not.toContain('220, 74, 34');
+  });
+
+  it('uses the workspace primaryColor for the dot when branded', () => {
+    const wrapper = mountVariant(DisabledV1, { isBranded: true, primaryColor: '#7c3aed' });
+    const dot = findDot(wrapper);
+
+    expect((dot!.element as HTMLElement).style.backgroundColor).toBe('rgb(124, 58, 237)');
+  });
+});
