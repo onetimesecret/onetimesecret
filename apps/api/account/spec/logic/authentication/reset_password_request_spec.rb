@@ -2,11 +2,16 @@
 #
 # frozen_string_literal: true
 #
-# Unit tests for ResetPasswordRequest, focused on the email-delivery contract
-# after issue #3486: a fallback: :sync delivery failure must not 500 the
-# request. Once the account is validated (in raise_concerns), the flow returns
-# the same generic success response whether or not delivery succeeds, so the
-# result never reveals delivery status.
+# Unit tests for ResetPasswordRequest, covering two security/robustness
+# properties (issue #3486 and PR #3545 review):
+#
+#  1. Email enumeration prevention (CWE-204): raise_concerns validates only the
+#     email format, and #process returns the same generic success response
+#     whether or not the account exists — no secret created and no email sent
+#     for an unregistered address.
+#  2. A fallback: :sync delivery failure must not 500 the request; the response
+#     is identical whether or not delivery succeeds, so it never reveals
+#     delivery status.
 #
 # Run with:
 #   source .env.test && bundle exec rspec apps/api/account/spec/logic/authentication/reset_password_request_spec.rb
@@ -51,8 +56,8 @@ RSpec.describe AccountAPI::Logic::Authentication::ResetPasswordRequest do
       'features' => {},
     })
 
-    # Customer lookup, taking the non-pending (normal reset) path
-    allow(Onetime::Customer).to receive(:load).with(email).and_return(customer)
+    # Customer lookup: default to an existing, non-pending (normal reset) account
+    allow(Onetime::Customer).to receive(:find_by_email).with(email).and_return(customer)
     allow(customer).to receive(:pending?).and_return(false)
     allow(customer).to receive(:reset_secret=)
 
@@ -64,6 +69,46 @@ RSpec.describe AccountAPI::Logic::Authentication::ResetPasswordRequest do
 
     # Quiet the auth logger
     allow(logic).to receive(:auth_logger).and_return(double('auth_logger').as_null_object)
+  end
+
+  describe '#raise_concerns (CWE-204 enumeration prevention)' do
+    it 'does not raise for a well-formed but unregistered email' do
+      allow(logic).to receive(:valid_email?).and_return(true)
+
+      expect { logic.raise_concerns }.not_to raise_error
+    end
+
+    it 'raises only on an invalid email format' do
+      allow(logic).to receive(:valid_email?).and_return(false)
+
+      expect { logic.raise_concerns }.to raise_error(OT::FormError, /Invalid email address/)
+    end
+
+    it 'never checks account existence in the validation layer' do
+      allow(logic).to receive(:valid_email?).and_return(true)
+
+      expect(Onetime::Customer).not_to receive(:find_by_email)
+      expect(Onetime::Customer).not_to receive(:exists?)
+
+      logic.raise_concerns
+    end
+  end
+
+  describe '#process for an unregistered email (CWE-204 enumeration prevention)' do
+    before do
+      allow(Onetime::Customer).to receive(:find_by_email).with(email).and_return(nil)
+    end
+
+    it 'returns the same generic success response as a registered account' do
+      expect(logic.process).to include(sent: true)
+    end
+
+    it 'creates no reset secret and sends no email' do
+      expect(Onetime::Secret).not_to receive(:create!)
+      expect(Onetime::Jobs::Publisher).not_to receive(:enqueue_email)
+
+      logic.process
+    end
   end
 
   describe '#process email delivery (issue #3486)' do

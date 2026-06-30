@@ -20,10 +20,15 @@ module AccountAPI::Logic
       end
 
       def raise_concerns
-        return if valid_email?(@login_or_email) && Onetime::Customer.exists?(@login_or_email)
+        # Security (CWE-204): email enumeration prevention. Validate only the
+        # email FORMAT here — do NOT check account existence in the validation
+        # layer. Existence is handled in #process, which returns the same generic
+        # response whether or not the account exists, so a non-existent address
+        # is indistinguishable from a registered one (mirrors CreateAccount). A
+        # malformed address is a fact the caller already knows, so rejecting it
+        # leaks nothing.
+        return if valid_email?(@login_or_email)
 
-        # A generic error is raised for either an invalid email format or a non-existent
-        # account. This is to prevent attackers from enumerating valid accounts.
         raise_form_error 'Invalid email address', field: 'email', error_type: 'invalid'
       end
 
@@ -32,7 +37,22 @@ module AccountAPI::Logic
         # which obviously makes it available to other methods and potentially
         # leaks data. This reset password request logic is sensitive and not
         # authenticated, so be careful about what is returned or logged.
-        cust = Onetime::Customer.load @login_or_email
+        #
+        # Security (CWE-204): raise_concerns validated only the email format, so
+        # a well-formed address for a non-existent account reaches here. We
+        # perform side effects only for a real account and return the same
+        # generic response in every case, so the result never reveals whether the
+        # account exists. (Response timing still differs and is a weaker residual
+        # channel not addressed here.)
+        cust = Onetime::Customer.find_by_email(@login_or_email)
+
+        if cust.nil?
+          # Unregistered address: do nothing observable, return the same generic
+          # response a real account would get.
+          auth_logger.info 'Password reset requested for unregistered email',
+            { session_id: safe_session_id }
+          return success_data
+        end
 
         if cust.pending?
           auth_logger.info 'Resending verification email for pending customer',
@@ -43,8 +63,7 @@ module AccountAPI::Logic
             }
 
           send_verification_email
-          msg = "#{I18n.t('web.COMMON.verification_sent_to', locale: @locale)} #{cust.objid}."
-          return set_info_message(msg)
+          return success_data
         end
 
         secret                    = Onetime::Secret.create! @login_or_email, [@login_or_email]
