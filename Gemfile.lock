@@ -1,45 +1,3 @@
-GIT
-  remote: https://github.com/rspec/rspec
-  revision: 1559574cba6d7cb49bdeadacb20ba008390e2981
-  specs:
-    rspec (4.0.0.beta1)
-      rspec-core (= 4.0.0.beta1)
-      rspec-expectations (= 4.0.0.beta1)
-      rspec-mocks (= 4.0.0.beta1)
-
-GIT
-  remote: https://github.com/rspec/rspec
-  revision: 1559574cba6d7cb49bdeadacb20ba008390e2981
-  glob: rspec-core/rspec-core.gemspec
-  specs:
-    rspec-core (4.0.0.beta1)
-      rspec-support (= 4.0.0.beta1)
-
-GIT
-  remote: https://github.com/rspec/rspec
-  revision: 1559574cba6d7cb49bdeadacb20ba008390e2981
-  glob: rspec-expectations/rspec-expectations.gemspec
-  specs:
-    rspec-expectations (4.0.0.beta1)
-      diff-lcs (>= 1.6.0, < 3.0)
-      rspec-support (= 4.0.0.beta1)
-
-GIT
-  remote: https://github.com/rspec/rspec
-  revision: 1559574cba6d7cb49bdeadacb20ba008390e2981
-  glob: rspec-mocks/rspec-mocks.gemspec
-  specs:
-    rspec-mocks (4.0.0.beta1)
-      diff-lcs (>= 1.6.0, < 3.0)
-      rspec-support (= 4.0.0.beta1)
-
-GIT
-  remote: https://github.com/rspec/rspec
-  revision: 1559574cba6d7cb49bdeadacb20ba008390e2981
-  glob: rspec-support/rspec-support.gemspec
-  specs:
-    rspec-support (4.0.0.beta1)
-
 GEM
   remote: https://rubygems.org/
   specs:
@@ -422,6 +380,19 @@ GEM
       chunky_png (~> 1.0)
       rqrcode_core (~> 2.0)
     rqrcode_core (2.1.0)
+    rspec (4.0.0.beta1)
+      rspec-core (= 4.0.0.beta1)
+      rspec-expectations (= 4.0.0.beta1)
+      rspec-mocks (= 4.0.0.beta1)
+    rspec-core (4.0.0.beta1)
+      rspec-support (= 4.0.0.beta1)
+    rspec-expectations (4.0.0.beta1)
+      diff-lcs (>= 1.6.0, < 3.0)
+      rspec-support (= 4.0.0.beta1)
+    rspec-mocks (4.0.0.beta1)
+      diff-lcs (>= 1.6.0, < 3.0)
+      rspec-support (= 4.0.0.beta1)
+    rspec-support (4.0.0.beta1)
     rubocop (1.86.2)
       json (~> 2.3)
       language_server-protocol (~> 3.17.0.2)
@@ -663,11 +634,11 @@ DEPENDENCIES
   rodauth-tools (~> 0.3.1)
   rotp (~> 6.2)
   rqrcode (~> 3.1)
-  rspec!
-  rspec-core!
-  rspec-expectations!
-  rspec-mocks!
-  rspec-support!
+  rspec (= 4.0.0.beta1)
+  rspec-core (= 4.0.0.beta1)
+  rspec-expectations (= 4.0.0.beta1)
+  rspec-mocks (= 4.0.0.beta1)
+  rspec-support (= 4.0.0.beta1)
   rubocop (~> 1.86.0)
   rubocop-performance
   rubocop-rspec
