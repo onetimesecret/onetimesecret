@@ -89,18 +89,17 @@ with_brand_conf({ 'product_name' => 'Acme Vault' }) do
 end
 #=> 'vault.acme.test'
 
+# GLOBAL_DEFAULTS[:product_name] is nil per #3049, so this exercises the
+# shipped config.defaults.yaml site.interface.ui.header.branding.site_name
+# default rather than a brand-layer value.
 ## page_title falls through to the legacy site_name when brand absent
-## (GLOBAL_DEFAULTS[:product_name] is nil per #3049, so this exercises the
-## shipped config.defaults.yaml site.interface.ui.header.branding.site_name
-## default rather than a brand-layer value)
 with_brand_conf(nil) do
   vars = @host.initialize_view_vars(Rack::Request.new(build_env))
   vars['page_title']
 end
 #=> 'One-Time Secret'
 
-## page_title falls through to GLOBAL_DEFAULTS[:product_name] (nil) when both
-## brand config and the legacy site_name are absent
+## page_title falls through to GLOBAL_DEFAULTS[:product_name] (nil) when brand and legacy site_name are both absent
 with_brand_conf(nil) do
   saved = YAML.load(YAML.dump(OT.conf))
   begin

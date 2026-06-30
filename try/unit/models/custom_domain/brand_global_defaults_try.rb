@@ -45,8 +45,7 @@ support.nil? || support != 'support@onetimesecret.com'
 @constants::GLOBAL_DEFAULTS[:support_email] != 'support@onetimesecret.com'
 #=> true
 
-## [forward] GLOBAL_DEFAULTS[:product_name] is nil — frontend NEUTRAL_BRAND_DEFAULTS
-## ('My App') and the legacy site_name fallback own the neutral default instead
+## [forward] GLOBAL_DEFAULTS[:product_name] is nil (frontend 'My App' / legacy site_name own the default)
 @constants::GLOBAL_DEFAULTS[:product_name]
 #=> nil
 
