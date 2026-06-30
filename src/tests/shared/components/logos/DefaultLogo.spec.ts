@@ -5,10 +5,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createTestI18n } from '@tests/setup';
 import DefaultLogo from '@/shared/components/logos/DefaultLogo.vue';
 
-// Mock MonotoneJapaneseSecretButton icon component
-vi.mock('@/shared/components/icons/MonotoneJapaneseSecretButtonIcon.vue', () => ({
+// Mock KeyholeIcon component (the neutral default mark; the maruhi 秘 mark is
+// OTS-company-only and must not be the default — see DefaultLogo.vue).
+vi.mock('@/shared/components/icons/KeyholeIcon.vue', () => ({
   default: {
-    name: 'MonotoneJapaneseSecretButton',
+    name: 'KeyholeIcon',
     template: '<svg class="logo-icon" :width="size" :height="size" :aria-label="ariaLabel" :title="title" />',
     props: ['size', 'ariaLabel', 'title', 'class'],
   },
@@ -187,7 +188,7 @@ describe('DefaultLogo', () => {
   });
 
   describe('Colonel Area Overlay', () => {
-    it('shows "Colonels Only" overlay when isColonelArea is true', () => {
+    it('shows colonel-only overlay (i18n key) when isColonelArea is true', () => {
       wrapper = mountComponent({
         showSiteName: true,
         siteName: 'Test',
@@ -196,7 +197,9 @@ describe('DefaultLogo', () => {
 
       const overlay = wrapper.find('.pointer-events-none');
       expect(overlay.exists()).toBe(true);
-      expect(overlay.text()).toContain('Colonels Only');
+      // Test i18n returns the key for missing messages, so assert on the key
+      // rather than the resolved "Colonels Only" string.
+      expect(overlay.text()).toContain('web.layout.colonels_only_badge');
     });
 
     it('hides overlay when isColonelArea is false', () => {

@@ -1,0 +1,89 @@
+// src/tests/apps/secret/views/disabled/DisabledVariantsLogo.spec.ts
+//
+// Guards the centred-mark fallback chain for the branding-aware disabled
+// homepage variants (V1 + Minimal):
+//   configured custom-domain logo -> branded monogram -> NEUTRAL keyhole mark
+//
+// The neutral fallback must be the keyhole (KeyholeIcon) and NOT the maruhi
+// (MonotoneJapaneseSecretButtonIcon, the 秘 mark), which is OTS-company-only
+// branding and must never leak into unbranded/private-label contexts.
+
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, vi } from 'vitest';
+import { createTestI18n } from '@tests/setup';
+import DisabledMinimal from '@/apps/secret/views/disabled/variants/DisabledMinimal.vue';
+import DisabledV1 from '@/apps/secret/views/disabled/variants/DisabledV1.vue';
+
+// Render the two candidate marks as identifiable stubs so we can assert which
+// one the fallback picked.
+vi.mock('@/shared/components/icons/KeyholeIcon.vue', () => ({
+  default: { name: 'KeyholeIcon', template: '<svg data-testid="keyhole-mark" />' },
+}));
+vi.mock('@/shared/components/icons/MonotoneJapaneseSecretButtonIcon.vue', () => ({
+  default: { name: 'MonotoneMaruhi', template: '<svg data-testid="maruhi-mark" />' },
+}));
+
+const baseProps = {
+  isBranded: false,
+  workspaceName: 'Acme',
+  monogramInitial: 'A',
+  primaryColor: '#3B82F6',
+  logoUri: null as string | null,
+  displayDomain: 'acme.example',
+  showSignin: true,
+  showWhatIsThis: false,
+  whatIsThisHref: null,
+  showPromo: false,
+  promoHref: null,
+  ssoOneClick: false,
+  ssoProviderName: null,
+  onSsoLogin: () => {},
+};
+
+const mountVariant = (
+  Component: typeof DisabledMinimal | typeof DisabledV1,
+  overrides: Partial<typeof baseProps> = {}
+) =>
+  mount(Component, {
+    props: { ...baseProps, ...overrides },
+    global: {
+      plugins: [createTestI18n()],
+      stubs: {
+        'router-link': { template: '<a><slot /></a>' },
+        OIcon: { template: '<i />' },
+      },
+    },
+  });
+
+describe.each([
+  ['DisabledMinimal', DisabledMinimal],
+  ['DisabledV1', DisabledV1],
+])('%s centred-mark fallback', (_name, Component) => {
+  it('renders the neutral keyhole mark (not the maruhi) when unbranded with no logo', () => {
+    const wrapper = mountVariant(Component, { isBranded: false, logoUri: null });
+
+    expect(wrapper.find('[data-testid="keyhole-mark"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="maruhi-mark"]').exists()).toBe(false);
+  });
+
+  it('renders the uploaded custom-domain logo when logoUri is set', () => {
+    const wrapper = mountVariant(Component, { logoUri: '/imagine/cd123/logo.png' });
+
+    const img = wrapper.find('img');
+    expect(img.exists()).toBe(true);
+    expect(img.attributes('src')).toBe('/imagine/cd123/logo.png');
+    expect(wrapper.find('[data-testid="keyhole-mark"]').exists()).toBe(false);
+  });
+
+  it('renders the branded monogram when branded with no logo', () => {
+    const wrapper = mountVariant(Component, {
+      isBranded: true,
+      logoUri: null,
+      monogramInitial: 'A',
+    });
+
+    expect(wrapper.text()).toContain('A');
+    expect(wrapper.find('[data-testid="keyhole-mark"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="maruhi-mark"]').exists()).toBe(false);
+  });
+});

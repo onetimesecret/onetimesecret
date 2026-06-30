@@ -1,7 +1,7 @@
 <!-- src/apps/secret/views/disabled/variants/DisabledV1.vue -->
 
 <script setup lang="ts">
-  import MonotoneJapaneseSecretButtonIcon from '@/shared/components/icons/MonotoneJapaneseSecretButtonIcon.vue';
+  import KeyholeIcon from '@/shared/components/icons/KeyholeIcon.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import type { DisabledHomepageProps } from '../useDisabledConfig';
   import { computed, ref, watch } from 'vue';
@@ -45,7 +45,7 @@
 
 <template>
   <div class="relative mx-auto flex w-full max-w-2xl flex-col items-center px-4 pb-12 pt-16 text-center sm:pt-24">
-    <!-- Mark — priority: configured custom-domain logo → branded monogram → OTS mark -->
+    <!-- Mark — priority: configured custom-domain logo → branded monogram → neutral keyhole mark -->
     <div class="mb-8 flex items-center justify-center">
       <img
         v-if="hasUsableLogo"
@@ -64,7 +64,7 @@
         v-else
         class="flex size-28 items-center justify-center rounded-3xl bg-brand-500 text-white shadow-sm dark:bg-brand-600"
         aria-hidden="true">
-        <MonotoneJapaneseSecretButtonIcon
+        <KeyholeIcon
           :size="76"
           class="text-white" />
       </div>
