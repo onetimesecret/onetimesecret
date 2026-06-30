@@ -271,6 +271,18 @@ RSpec.describe Onetime::Jobs::Publisher do
           expect(publisher).to have_received(:report_delivery_failure).with(delivery_error, :templated, :sync)
         end
       end
+
+      # Narrowed rescue (PR #3545 review): only Onetime::Mail::DeliveryError is
+      # swallowed. A non-delivery error (e.g. a template bug) is a programming
+      # fault and must propagate so it surfaces in dev/test/CI instead of the
+      # request silently "succeeding".
+      it 'propagates a non-delivery error instead of swallowing it' do
+        allow(Onetime::Mail).to receive(:deliver).and_raise(NoMethodError.new("undefined method 'foo'"))
+
+        expect {
+          publisher.enqueue_email(:welcome, { email: 'test@example.com' }, fallback: :sync)
+        }.to raise_error(NoMethodError)
+      end
     end
 
     context 'with fallback: :async_thread (default)' do
@@ -344,6 +356,69 @@ RSpec.describe Onetime::Jobs::Publisher do
           result = publisher.enqueue_email_raw(raw_email, fallback: :sync)
         }.not_to raise_error
         expect(result).to be false
+      end
+    end
+  end
+
+  # ==========================================================================
+  # Fallback Delivery Reporting Tests
+  # ==========================================================================
+  # report_delivery_failure is the shared log + Sentry sink for the best-effort
+  # :sync and :async_thread strategies. It must record the failure without
+  # raising, and only touch Sentry when it is initialized.
+  # ==========================================================================
+
+  describe '#report_delivery_failure' do
+    subject(:publisher) { described_class.new }
+
+    let(:error) { Onetime::Mail::DeliveryError.new('SMTP unreachable', transient: true) }
+    let(:logger_double) { double('logger', error: nil) }
+
+    before do
+      allow(publisher).to receive(:logger).and_return(logger_double)
+      # Sentry is require: false; ensure a constant exists with the methods we
+      # stub (self-methods so verify_partial_doubles is satisfied). Default to
+      # not-initialized for determinism across environments.
+      stub_const('Sentry', Module.new do
+        def self.initialized?; end
+
+        def self.capture_exception(_exception); end
+      end)
+      allow(Sentry).to receive(:initialized?).and_return(false)
+      allow(Sentry).to receive(:capture_exception)
+    end
+
+    it 'logs the failure at error level and does not raise' do
+      expect {
+        publisher.send(:report_delivery_failure, error, :templated, :sync)
+      }.not_to raise_error
+
+      expect(logger_double).to have_received(:error).with(
+        'Fallback email delivery failed',
+        hash_including(mode: :sync, email_type: :templated, error: 'SMTP unreachable')
+      )
+    end
+
+    it 'does not capture to Sentry when it is not initialized' do
+      publisher.send(:report_delivery_failure, error, :templated, :sync)
+
+      expect(Sentry).not_to have_received(:capture_exception)
+    end
+
+    context 'when Sentry is initialized' do
+      let(:scope) { double('Sentry::Scope', set_tags: nil, set_context: nil) }
+
+      before do
+        allow(Sentry).to receive(:initialized?).and_return(true)
+        allow(Sentry).to receive(:capture_exception).and_yield(scope)
+      end
+
+      it 'captures the exception with component tags and email context' do
+        publisher.send(:report_delivery_failure, error, :raw, :async_thread)
+
+        expect(Sentry).to have_received(:capture_exception).with(error)
+        expect(scope).to have_received(:set_tags).with(component: 'jobs.publisher', fallback: :async_thread)
+        expect(scope).to have_received(:set_context).with('email_delivery', { email_type: :raw })
       end
     end
   end

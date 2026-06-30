@@ -4,8 +4,9 @@
 #
 # Unit tests for ResetPasswordRequest, focused on the email-delivery contract
 # after issue #3486: a fallback: :sync delivery failure must not 500 the
-# request, and the flow returns a generic success response regardless (so it
-# never leaks account existence or delivery status).
+# request. Once the account is validated (in raise_concerns), the flow returns
+# the same generic success response whether or not delivery succeeds, so the
+# result never reveals delivery status.
 #
 # Run with:
 #   source .env.test && bundle exec rspec apps/api/account/spec/logic/authentication/reset_password_request_spec.rb

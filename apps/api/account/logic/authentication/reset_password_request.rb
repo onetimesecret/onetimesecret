@@ -65,10 +65,11 @@ module AccountAPI::Logic
         # Best-effort delivery (issue #3486). With background jobs enabled the
         # email is queued; with jobs disabled (the default) it is delivered
         # synchronously. Either way the publisher logs/reports a delivery failure
-        # (Sentry) rather than raising — the reset secret is already persisted,
-        # the user can request another, and we return a generic response
-        # regardless to avoid leaking account existence or delivery status.
-        Onetime::Jobs::Publisher.enqueue_email(
+        # (Sentry) rather than raising — the reset secret is already persisted
+        # and the user can request another. We return the same generic response
+        # whether or not delivery succeeds, so the result never reveals delivery
+        # status.
+        queued = Onetime::Jobs::Publisher.enqueue_email(
           :password_request,
           {
             email_address: cust.email,
@@ -78,12 +79,17 @@ module AccountAPI::Logic
           fallback: :sync,
         )
 
-        auth_logger.info 'Password reset email dispatched',
+        # `queued` is true when handed to RabbitMQ, false when the publisher fell
+        # back to best-effort delivery (sync/thread). A synchronous delivery
+        # failure is reported by the publisher, not here, so this records the
+        # attempt without asserting the message was actually delivered.
+        auth_logger.info 'Password reset email dispatch requested',
           {
             customer_id: cust.extid,
             email: cust.obscure_email,
             session_id: safe_session_id,
             secret_identifier: secret.identifier,
+            queued: queued,
           }
 
         success_data

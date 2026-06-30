@@ -439,22 +439,29 @@ module Onetime
         Thread.new do
           deliver_email(email_type, template: template, data: data, raw_email: raw_email, domain_id: domain_id)
         rescue StandardError => ex
-          # Log/report but don't crash - this is fire-and-forget
+          # Fire-and-forget: catch broadly here (unlike :sync) because an
+          # uncaught error would die with the thread and lose the report —
+          # and there is no caller to surface a programming fault to anyway.
           report_delivery_failure(ex, email_type, :async_thread)
         end
         # rubocop:enable ThreadSafety/NewThread
-        #
         logger.info 'Spawned thread for email delivery', email_type: email_type
       end
 
       # Blocking synchronous delivery.
       #
-      # Contract: :sync blocks and delivers, but does NOT raise on a delivery
+      # Contract: :sync blocks and delivers, but does NOT raise on a *delivery*
       # failure. The triggering operation (invitation, email change, password
       # reset, etc.) has already persisted its record before the email step,
-      # and a resend path exists, so a delivery error is logged/reported rather
-      # than propagated as an HTTP 500. Callers that need the failure to
+      # and a resend path exists, so a delivery failure is logged/reported
+      # rather than propagated as an HTTP 500. Callers that need the failure to
       # propagate should use fallback: :raise instead.
+      #
+      # Only Onetime::Mail::DeliveryError is swallowed — that is the type the
+      # mail layer raises for transport/provider failures (SMTP unreachable,
+      # etc.). Any other error is a programming/config fault rather than a
+      # delivery failure, so it propagates and surfaces in dev/test/CI instead
+      # of silently "succeeding".
       #
       # @param email_type [Symbol] :templated or :raw
       # @return [Boolean] true if delivered, false if delivery failed
@@ -469,7 +476,7 @@ module Onetime
         deliver_email(email_type, template: template, data: data, raw_email: raw_email, domain_id: domain_id)
         logger.info 'Sent email synchronously', email_type: email_type
         true
-      rescue StandardError => ex
+      rescue Onetime::Mail::DeliveryError => ex
         report_delivery_failure(ex, email_type, :sync)
         false
       end
