@@ -13,7 +13,7 @@
 #   - logo_url resolves brand conf -> nil (NOT the OTS logo path)
 #   - support_email resolves brand conf -> GLOBAL_DEFAULTS (NOT the OTS address)
 #   - logo_alt delegates to product_name
-#   - site_product_name resolves brand -> site_name -> 'OTS'
+#   - site_product_name resolves brand -> site_name -> nil (GLOBAL_DEFAULTS[:product_name], #3049)
 #   - The 12 shipped HTML templates contain no #dc4a22 or onetime-logo-v3-xl.svg
 #     (regression guard against re-introduction).
 #
@@ -274,7 +274,7 @@ ensure
 end
 #=> 'LegacySiteName'
 
-## site_product_name falls through to GLOBAL_DEFAULTS[:product_name] (= 'OTS')
+## site_product_name falls through to GLOBAL_DEFAULTS[:product_name] (= nil)
 saved = YAML.load(YAML.dump(OT.conf))
 begin
   conf_copy = YAML.load(YAML.dump(saved))
@@ -289,11 +289,11 @@ begin
 ensure
   OT.send(:conf=, saved) rescue nil
 end
-#=> 'OTS'
+#=> nil
 
-## [regression guard] GLOBAL_DEFAULTS[:product_name] is 'OTS', not 'Onetime Secret'
+## [regression guard] GLOBAL_DEFAULTS[:product_name] is nil, not 'OTS' or 'Onetime Secret'
 @constants::GLOBAL_DEFAULTS[:product_name]
-#=> 'OTS'
+#=> nil
 
 # ============================================================================
 # Carried-forward helpers — verify they still work post-port
@@ -494,7 +494,7 @@ ensure
 end
 #=> nil
 
-## OT.conf=nil — site_product_name falls through to GLOBAL_DEFAULTS ('OTS')
+## OT.conf=nil — site_product_name falls through to GLOBAL_DEFAULTS (nil)
 @_saved_for_nil4 = OT.instance_variable_get(:@conf)
 begin
   OT.instance_variable_set(:@conf, nil)
@@ -503,7 +503,7 @@ begin
 ensure
   OT.instance_variable_set(:@conf, @_saved_for_nil4)
 end
-#=> 'OTS'
+#=> nil
 
 ## OT.conf=nil — signature_name degrades to nil without raising
 @_saved_for_nil_sig = OT.instance_variable_get(:@conf)
