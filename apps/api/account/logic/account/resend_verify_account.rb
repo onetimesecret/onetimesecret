@@ -52,33 +52,45 @@ module AccountAPI::Logic
       end
 
       def raise_concerns
-        require_non_sso_only!
-
-        # The ONLY non-uniform failure: a structurally invalid request.
-        # A blank email is a client error, not an enumeration signal.
+        # NOTE: deliberately NOT calling require_non_sso_only! here. That helper
+        # raises Forbidden (403), which would make this anti-enumeration endpoint
+        # return a non-uniform response in SSO-only deployments and thereby leak
+        # the deployment's auth configuration to an unauthenticated probe. SSO-only
+        # mode is instead handled as a uniform no-op in #process (returns
+        # { sent: true }), exactly like the verify_account-disabled and
+        # non-full-mode cases.
+        #
+        # The ONLY non-uniform (non-200) response is a structurally malformed
+        # request (blank login) — a client error that reveals neither account
+        # existence nor deployment configuration.
         raise_form_error('Email is required', error_type: :invalid) if @login.to_s.empty?
       end
 
       def process
         obscured = OT::Utils.obscure_email(@login)
 
-        # full mode only; in non-full modes there is no rodauth verification flow.
+        # Uniform no-op for any deployment where there is no rodauth
+        # email-verification flow to resend through:
+        #   - non-full auth mode (rodauth is not loaded at all)
+        #   - verify_account feature disabled
+        #   - SSO-only mode (password/verify-account management is disabled)
+        # Returning the uniform { sent: true } keeps the endpoint both
+        # enumeration-safe AND configuration-opaque across every deployment.
         #
         # IMPORTANT: in non-full modes the auth boot chain
         # (apps/web/auth/config.rb) is NOT loaded — the Application Registry
         # rejects `web/auth/` files unless full_enabled? (see
-        # lib/onetime/application/registry.rb). That means `Auth::Logging` is
-        # UNDEFINED here, so this branch must NOT reference it (doing so raises
-        # NameError -> Otto 500, breaking the uniform-200 contract on the
-        # default 'simple' deployment). Use auth_logger, which is always loaded
-        # via Onetime::LoggerMethods, with a distinct/greppable message.
-        unless Onetime.auth_config.full_enabled? &&
-               Onetime.auth_config.verify_account_enabled?
+        # lib/onetime/application/registry.rb). That means `Auth::Logging` and
+        # `Auth::Config` are UNDEFINED here, so this branch must NOT reference
+        # them (doing so raises NameError -> Otto 500, breaking the uniform-200
+        # contract on the default 'simple' deployment). log_resend_event guards
+        # Auth::Logging with defined?; we never touch Auth::Config in this branch.
+        unless verify_account_resend_available?
           log_resend_event(
             :verify_account_resend_noop,
             level: :debug,
             email: obscured,
-            reason: 'verify_account_disabled',
+            reason: resend_unavailable_reason,
           )
           return success_data
         end
@@ -127,6 +139,26 @@ module AccountAPI::Logic
       end
 
       private
+
+      # True only when there is a live rodauth verify_account flow to resend
+      # through. Folding the SSO-only check in here (rather than raising via
+      # require_non_sso_only!) keeps the endpoint's response uniform across every
+      # deployment configuration — an unauthenticated probe can never tell full
+      # vs simple vs SSO-only vs verify-account-disabled apart.
+      def verify_account_resend_available?
+        Onetime.auth_config.full_enabled? &&
+          Onetime.auth_config.verify_account_enabled? &&
+          !Onetime.auth_config.sso_only_enabled?
+      end
+
+      # Human-readable reason for the uniform no-op (server-side audit only;
+      # never surfaced to the client).
+      def resend_unavailable_reason
+        return 'sso_only_mode' if Onetime.auth_config.sso_only_enabled?
+        return 'full_mode_disabled' unless Onetime.auth_config.full_enabled?
+
+        'verify_account_disabled'
+      end
 
       # Emit a differentiated, server-side-only audit event.
       #

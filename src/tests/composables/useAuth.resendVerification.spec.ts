@@ -16,8 +16,10 @@
  *     states; the only observable difference is server-side logging. So the
  *     composable must resolve `true` for any accepted, well-formed request and
  *     must NOT reveal whether the email exists or was actually sent.
- *   - ONLY malformed requests (blank/missing login, bad CSRF) may be non-200,
- *     surfaced to the client as an auth-error body { error: '...' }.
+ *   - A malformed request (blank/missing login) is the only non-200: the backend
+ *     raises a FormError -> HTTP 422 with an { error: '...' } body, axios rejects,
+ *     and the composable resolves false. (/api/ paths are CSRF-exempt, so a
+ *     missing CSRF token is NOT a rejection here.)
  *
  * These tests verify that resendVerificationEmail():
  * 1. Makes the correct API call to the agreed endpoint path.
@@ -127,9 +129,22 @@ describe('useAuth - resendVerificationEmail', () => {
     expect(error.value).toBeNull();
   });
 
-  it('returns false and sets error on an auth-error body', async () => {
-    // Only malformed requests (blank/missing login, bad CSRF) may surface an
-    // error body. The endpoint still replies 200 with { error: '...' }.
+  it('returns false on the real 422 malformed-request response', async () => {
+    // The backend raises FormError -> HTTP 422 for a blank/malformed login
+    // (see otto_hooks.rb). axios rejects, wrap() catches it, and the composable
+    // resolves false. This is the realistic malformed-request path.
+    axiosMock.onPost(ENDPOINT).reply(422, { error: 'Email is required' });
+
+    const { resendVerificationEmail } = useAuth();
+    const result = await resendVerificationEmail('');
+
+    expect(result).toBe(false);
+  });
+
+  it('treats an auth-error body as a failure (defensive) and surfaces the message', async () => {
+    // Defensive: this endpoint never returns 200-with-error-body (errors are
+    // 422), but the shared composable still routes any { error } body through
+    // isAuthError() -> failure, mirroring the other useAuth methods.
     axiosMock.onPost(ENDPOINT).reply(200, { error: 'Email is required' });
 
     const { resendVerificationEmail, error } = useAuth();

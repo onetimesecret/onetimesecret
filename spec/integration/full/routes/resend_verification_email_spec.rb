@@ -296,6 +296,27 @@ RSpec.describe 'POST /api/account/resend-verification-email', type: :integration
   end
 
   # ===========================================================================
+  # SCENARIO 10: SSO-only mode -> uniform 200 no-op (NOT a 403).
+  #
+  # In SSO-only deployments, password/verify-account management is disabled.
+  # The endpoint must NOT raise Forbidden (403) via require_non_sso_only! —
+  # that would make this anti-enumeration endpoint leak the deployment's auth
+  # configuration to an unauthenticated probe. Instead it folds SSO-only into
+  # the uniform { sent: true } no-op. (Regression guard for PR #3552 review:
+  # "SSO-Only Mode Breaks Uniformity".)
+  # ===========================================================================
+  describe 'SSO-only mode' do
+    it 'returns the uniform 200 no-op instead of a 403 (no config leak)' do
+      allow(Onetime.auth_config).to receive(:sso_only_enabled?).and_return(true)
+
+      post_json ENDPOINT, { login: 'sso-user@example.com', locale: 'en' }
+
+      expect(last_response.status).to eq(200)
+      expect(json_response).to eq('sent' => true)
+    end
+  end
+
+  # ===========================================================================
   # SCENARIO 9: Audit-log differentiation (server-side ONLY).
   #
   # >>> BACKEND-LOGGING-COUPLED ASSERTION <<<
