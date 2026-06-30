@@ -184,8 +184,9 @@ module DomainsAPI
           # Skip if no change (both false, or both true)
           return if was_enabled == is_enabled
 
-          # Log when sender config is enabled (new config or was disabled)
-          if is_enabled && (was_enabled.nil? || was_enabled == false)
+          # Log when sender config is enabled (new config or was disabled).
+          # !was_enabled covers both nil (new config) and false (was disabled).
+          if is_enabled && !was_enabled
             log_sender_audit_event(
               event: :domain_sender_config_enabled,
               domain: @custom_domain,

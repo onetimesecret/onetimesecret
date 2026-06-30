@@ -128,6 +128,18 @@ describe('useBranding', () => {
       await nextTick();
       expect(brandSettings.value.button_text_light).toBe(DEFAULT_BUTTON_TEXT_LIGHT);
     });
+
+    it('handles a partial hex value mid-keystroke without throwing', async () => {
+      const { brandSettings, isInitialized } = useBranding('domain-1');
+      isInitialized.value = true;
+      await nextTick();
+
+      // The watcher fires on every keystroke; a half-typed "#f" must resolve to
+      // the graceful default (false) rather than throwing on NaN luminance.
+      brandSettings.value = { ...brandSettings.value, primary_color: '#f' };
+      await nextTick();
+      expect(brandSettings.value.button_text_light).toBe(false);
+    });
   });
 
   describe.skip('UI helpers', () => {

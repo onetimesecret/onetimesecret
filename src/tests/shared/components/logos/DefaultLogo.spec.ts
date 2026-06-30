@@ -253,5 +253,15 @@ describe('DefaultLogo', () => {
       const icon = wrapper.find('.logo-icon');
       expect(icon.attributes('aria-label')).toBe('Custom Icon Label');
     });
+
+    it('does not duplicate aria-label on the non-interactive wrapper div', () => {
+      // The accessible name comes from the icon inside the <a>; labelling the
+      // outer layout <div> too would announce the name twice (#3553 review).
+      wrapper = mountComponent({ ariaLabel: 'Custom Label' });
+
+      expect(wrapper.attributes('aria-label')).toBeUndefined();
+      // The label still reaches the icon, so the link is still named.
+      expect(wrapper.find('.logo-icon').attributes('aria-label')).toBe('Custom Label');
+    });
   });
 });

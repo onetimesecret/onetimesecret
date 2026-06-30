@@ -47,9 +47,10 @@
 </script>
 
 <template>
-  <div
-    class="flex items-center gap-3"
-    :aria-label="ariaLabel">
+  <!-- The wrapping <div> is a non-interactive layout container, so it carries no
+       aria-label: the accessible name comes from the KeyholeIcon inside the <a>.
+       Labelling both would announce the name twice (#3553 review). -->
+  <div class="flex items-center gap-3">
     <a
       :href="props.href"
       class="flex items-center gap-3">
