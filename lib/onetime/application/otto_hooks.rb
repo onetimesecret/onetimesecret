@@ -12,6 +12,7 @@
 require_relative '../logger_methods'
 require_relative 'request_helpers'
 require_relative 'error_resolver'
+require_relative 'error_correlation'
 require_relative 'middleware_stack'
 
 module Onetime
@@ -181,26 +182,14 @@ module Onetime
 
       private
 
-      # Decorate a JSON error body for log correlation, and record the error
-      # type so the request log can name what failed.
+      # Adapt the Otto request to the shared correlation primitive.
       #
-      # ## Why this exists
-      #
-      # Otto mints its own per-error id (Otto::Core::ErrorHandler, SecureRandom.hex),
-      # but that id is a poor support handle: it is only added to the response body
-      # in development, and it is logged on the separate 'Otto' logger whose context
-      # carries no request_id. So in production an API consumer's error payload holds
-      # no id that appears in our request log, and even in development there is no
-      # single log line linking the error to the request_id.
-      #
-      # The request_id (env['HTTP_X_REQUEST_ID'], set by Rack::RequestId and returned
-      # in the x-request-id response header) is logged by RequestLogger for every
-      # request. Echoing it into the error body gives consumers one correlation id we
-      # can grep straight out of the request log. We also stash the error_type into
-      # env so RequestLogger can record *what* failed next to the status, keyed to
-      # that same id.
-      #
-      # Nil-safe: the error-handler unit specs invoke these blocks with req == nil.
+      # The Otto error-handler blocks above pass their `req` (and the handler
+      # unit specs pass nil); Onetime::Application::ErrorCorrelation works on the
+      # Rack env, so this extracts it — preserving the original nil-/duck-typing
+      # safety — and delegates. The actual "echo request_id into the body, stash
+      # error_type into env" logic, and the rationale for it, live in that shared
+      # module, which the Roda /auth surface calls too.
       #
       # @param body [Hash] The JSON error body the handler is about to return
       # @param req [Rack::Request, Otto::Request, nil] The current request
@@ -208,18 +197,8 @@ module Onetime
       #   fallback source for error_type when the body omits it
       # @return [Hash] The body, with :request_id merged in when available
       def with_error_correlation(body, req, error = nil)
-        return body unless req.respond_to?(:env) && req.env
-
-        # Prefer the body's class-specific error_type; fall back to the exception
-        # class name so the request log still names the failure for errors whose
-        # to_h compacts error_type away (e.g. a FormError raised without one).
-        # The body is left untouched — this fallback only feeds the request log.
-        error_type                 = body[:error_type]
-        error_type               ||= error.class.name.to_s.split('::').last if error
-        req.env['otto.error_type'] = error_type if error_type
-
-        request_id = req.env['HTTP_X_REQUEST_ID']
-        request_id ? body.merge(request_id: request_id) : body
+        env = req.respond_to?(:env) ? req.env : nil
+        Onetime::Application::ErrorCorrelation.apply(body, env, error)
       end
     end
   end
