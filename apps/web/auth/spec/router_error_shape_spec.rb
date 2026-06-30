@@ -33,9 +33,52 @@ require_relative 'spec_helper'
 require 'rack/test'
 require 'roda'
 require 'json'
+require 'onetime/application/error_correlation'
 require_relative '../error_translator'
 
 RSpec.describe 'Auth Router ADR-013 error shape' do
+  # Stub Roda app mirroring the production Auth::Router error-handling wiring.
+  # Shared by the plugin-wiring describe (status/body assertions) and the
+  # request_id-correlation describe (#3520) so both exercise the same handler
+  # rather than two drifting copies.
+  #
+  # Mirror Auth::Router's plugin order EXACTLY:
+  #   plugin :json, parser: true     <- loaded first
+  #   plugin :error_handler          <- loaded after :json
+  # The error_handler block explicitly .to_json's the body so that the wire
+  # shape is invariant under future Roda plugin-order changes. If someone
+  # removes the manual encoding believing :json will wrap the error_handler
+  # return value, the production app may silently break under a Roda upgrade —
+  # this spec proves the current contract works with the actual plugin layering.
+  #
+  # The Onetime::Application::ErrorCorrelation.apply call mirrors production
+  # (apps/web/auth/router.rb): it echoes request_id into the body and stashes
+  # otto.error_type into request.env. With no x-request-id header (the
+  # status/body wiring tests) it is a no-op on the body, so those assertions
+  # are unaffected.
+  let(:stub_app_class) do
+    Class.new(Roda) do
+      plugin :json, parser: true
+      plugin :error_handler do |e|
+        status, body = Auth::ErrorTranslator.translate(e)
+        body         = Onetime::Application::ErrorCorrelation.apply(body, request.env, e)
+        response.status           = status
+        response['content-type']  = 'application/json'
+        body.to_json
+      end
+
+      route do |r|
+        r.get('record-not-found') { raise Onetime::RecordNotFound, 'missing' }
+        r.get('form-error') do
+          raise Onetime::FormError.new('bad email', field: 'email', error_type: 'FormError')
+        end
+        r.get('forbidden')   { raise Onetime::Forbidden, 'denied' }
+        r.get('rate-limit')  { raise Onetime::LimitExceeded.new('slow', retry_after: 60) }
+        r.get('unknown')     { raise StandardError, 'leaky internal' }
+      end
+    end
+  end
+
   # ---------------------------------------------------------------------------
   # ErrorTranslator unit tests
   # ---------------------------------------------------------------------------
@@ -173,36 +216,7 @@ RSpec.describe 'Auth Router ADR-013 error shape' do
   describe 'Roda :error_handler plugin wiring' do
     include Rack::Test::Methods
 
-    let(:app) do
-      # Mirror Auth::Router's plugin order EXACTLY:
-      #   plugin :json, parser: true     <- loaded first
-      #   plugin :error_handler          <- loaded after :json
-      # The error_handler block explicitly .to_json's the body so that the
-      # wire shape is invariant under future Roda plugin-order changes. If
-      # someone removes the manual encoding believing :json will wrap the
-      # error_handler return value, the production app may silently break
-      # under a Roda upgrade — this spec proves the current contract works
-      # with the actual plugin layering.
-      Class.new(Roda) do
-        plugin :json, parser: true
-        plugin :error_handler do |e|
-          status, body = Auth::ErrorTranslator.translate(e)
-          response.status           = status
-          response['content-type']  = 'application/json'
-          body.to_json
-        end
-
-        route do |r|
-          r.get('record-not-found') { raise Onetime::RecordNotFound, 'missing' }
-          r.get('form-error') do
-            raise Onetime::FormError.new('bad email', field: 'email', error_type: 'FormError')
-          end
-          r.get('forbidden')   { raise Onetime::Forbidden, 'denied' }
-          r.get('rate-limit')  { raise Onetime::LimitExceeded.new('slow', retry_after: 60) }
-          r.get('unknown')     { raise StandardError, 'leaky internal' }
-        end
-      end
-    end
+    let(:app) { stub_app_class }
 
     it 'returns 404 ADR-013 shape for a route raising RecordNotFound' do
       get '/record-not-found'
@@ -240,6 +254,70 @@ RSpec.describe 'Auth Router ADR-013 error shape' do
       expect(last_response.status).to eq(500)
       body = JSON.parse(last_response.body)
       expect(body).to eq('error' => 'Internal Server Error', 'error_type' => 'ServerError')
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # request_id correlation through the shared request env (#3520)
+  #
+  # Production mounts RequestLogger one frame above the Roda app and, on error
+  # responses, logs env['otto.error_type'] beside request_id (proven
+  # app-agnostically in spec/unit/onetime/application/request_logger_spec.rb).
+  # Here a tiny capture frame stands in for RequestLogger: it reads env at the
+  # SAME point — after the app returns, on the SAME env hash — so asserting on
+  # it proves what the real RequestLogger would log, without booting the full
+  # MiddlewareStack.
+  # ---------------------------------------------------------------------------
+  describe 'request_id correlation through the request env' do
+    include Rack::Test::Methods
+
+    let(:captured) { {} }
+
+    # Stand-in for the RequestLogger frame: call down, then read the shared env
+    # exactly where RequestLogger reads request.env after @app.call returns.
+    let(:app) do
+      inner = stub_app_class
+      sink  = captured
+      lambda do |env|
+        status, headers, body = inner.call(env)
+        sink[:otto_error_type] = env['otto.error_type']
+        sink[:request_id]      = env['HTTP_X_REQUEST_ID']
+        [status, headers, body]
+      end
+    end
+
+    # The 422 body's error/error_type/field shape is pinned by the plugin-wiring
+    # describe above; here we assert only the correlation additions.
+    it 'echoes request_id into a 422 FormError body and stashes error_type in env' do
+      get '/form-error', {}, 'HTTP_X_REQUEST_ID' => 'req-auth-123'
+
+      expect(last_response.status).to eq(422)
+      body = JSON.parse(last_response.body)
+      expect(body['request_id']).to eq('req-auth-123')
+      expect(body['error_type']).to eq('FormError')
+      # What the real RequestLogger reads from the shared env, one frame up:
+      expect(captured[:otto_error_type]).to eq('FormError')
+      expect(captured[:request_id]).to eq('req-auth-123')
+    end
+
+    it 'stashes error_type for the log even when the body omits request_id' do
+      # No x-request-id header: the body must NOT gain request_id, but the log
+      # still names what failed via env['otto.error_type'].
+      get '/forbidden'
+
+      expect(last_response.status).to eq(403)
+      body = JSON.parse(last_response.body)
+      expect(body).not_to have_key('request_id')
+      expect(captured[:otto_error_type]).to eq('Forbidden')
+    end
+
+    it 'stashes ServerError and echoes request_id on an unknown 500' do
+      get '/unknown', {}, 'HTTP_X_REQUEST_ID' => 'req-500-9'
+
+      expect(last_response.status).to eq(500)
+      body = JSON.parse(last_response.body)
+      expect(body).to include('error_type' => 'ServerError', 'request_id' => 'req-500-9')
+      expect(captured[:otto_error_type]).to eq('ServerError')
     end
   end
 
