@@ -30,10 +30,17 @@ module Onetime
       # @param development [Boolean] truthy when running in development mode
       #   (OT.conf.dig('development','enabled')); selects the permissive
       #   connect-src needed for hot module replacement.
+      # @param report_uri [String, nil] OPTIONAL path/URL to a CSP violation
+      #   report receiver. When provided, a "report-uri <path>;" directive (and a
+      #   "report-to csp-endpoint;" directive for the modern Reporting API) is
+      #   appended so the browser knows where to POST violation reports. When nil
+      #   (the default), NO reporting directive is emitted and the output is
+      #   byte-identical to the historical policy — see
+      #   spec/unit/api/v1/csp_header_spec.rb.
       # @return [String] the full policy string, directives space-joined in a
       #   stable order. Byte-identical to the policy previously inlined in the V1
-      #   API helper.
-      def policy(nonce:, development:)
+      #   API helper when report_uri is omitted.
+      def policy(nonce:, development:, report_uri: nil)
         directives =
           if development
             [
@@ -68,6 +75,17 @@ module Onetime
               "worker-src 'self';",
             ]
           end
+
+        # OPTIONAL reporting directives. Appended only when a report_uri is
+        # supplied so the default (no report_uri) output stays byte-identical.
+        # report-uri is the legacy directive (widely supported); report-to is the
+        # modern Reporting API directive whose endpoint name ('csp-endpoint') is
+        # defined by a separate Reporting-Endpoints response header emitted at the
+        # web layer.
+        unless report_uri.nil? || report_uri.to_s.empty?
+          directives << "report-uri #{report_uri};"
+          directives << 'report-to csp-endpoint;'
+        end
 
         directives.join(' ')
       end

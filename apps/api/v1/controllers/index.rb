@@ -4,6 +4,8 @@
 
 require 'v1/refinements'
 
+require 'onetime/security/csp_report'
+
 require_relative 'base'
 require_relative 'settings'
 
@@ -207,8 +209,108 @@ module V1
         end
       end
 
+      # Receive browser-posted Content-Security-Policy violation reports.
+      #
+      # This endpoint is the destination of the report-only CSP emitted by the
+      # Core web app (apps/web/core/middleware/request_setup.rb). It is mounted
+      # under /api/ so the AuthenticityToken middleware auto-bypasses CSRF
+      # (lib/onetime/middleware/security.rb), which is correct: browsers POST CSP
+      # reports unauthenticated and without a CSRF token. It is intentionally
+      # ANONYMOUS and PUBLIC.
+      #
+      # Behavior (all mandatory):
+      # - STRICT size cap: bodies larger than CspReport::MAX_BODY_BYTES are
+      #   skipped without parsing (cheap defense against abuse of a public,
+      #   unauthenticated endpoint).
+      # - Parses BOTH wire formats: legacy application/csp-report and the
+      #   Reporting API application/reports+json. Malformed/empty JSON is
+      #   tolerated (logged at debug).
+      # - REDACTS every URL-ish field BEFORE logging. This is a secret-sharing
+      #   app: document-uri/blocked-uri/referrer/source-file can contain a secret
+      #   link (https://host/secret/<KEY>?...). Onetime::Security::CspReport
+      #   strips query strings and collapses paths so a secret key can never reach
+      #   a log line or Sentry.
+      # - NEVER writes to the database and NEVER raises to the client. Always
+      #   responds 204 No Content (browsers ignore the response body).
+      #
+      # Rate limiting: kept deliberately cheap (size cap + no DB + no heavy work)
+      # so it is safe to leave unauthenticated. A dedicated per-IP limiter (like
+      # check_rate_limit! used elsewhere in this controller) can be layered on as
+      # a follow-up if report volume warrants it; infrastructure-layer limiting
+      # already fronts the app.
+      def csp_report
+        body         = read_capped_body
+        content_type = req.env['CONTENT_TYPE'] || req.env['HTTP_CONTENT_TYPE']
+
+        summaries = Onetime::Security::CspReport.parse(body, content_type)
+        if summaries.empty?
+          OT.ld '[csp-report] no parseable violation reports (empty/malformed/oversized)'
+        else
+          summaries.each { |summary| log_csp_violation(summary) }
+        end
+      rescue StandardError => ex
+        # A violation-report receiver must never surface errors to the browser.
+        OT.le "[csp-report] #{ex.class}: #{ex.message}"
+      ensure
+        res.status = 204
+        res.headers.delete('content-type') if res.headers.respond_to?(:delete)
+        res.body   = []
+      end
+
       require_relative 'class_methods'
       extend V1::Controllers::ClassMethods
+
+      private
+
+      # Read at most CspReport::MAX_BODY_BYTES + 1 from the request body so an
+      # oversized body is detected (and skipped) without ever materializing more
+      # than the cap in memory. Returns nil when there is no readable body.
+      def read_capped_body
+        input = req.env['rack.input'] || req.body
+        return nil if input.nil?
+
+        cap   = Onetime::Security::CspReport::MAX_BODY_BYTES
+        chunk = input.read(cap + 1)
+        input.rewind if input.respond_to?(:rewind)
+        chunk
+      rescue StandardError => ex
+        OT.ld "[csp-report] body read failed: #{ex.class}: #{ex.message}"
+        nil
+      end
+
+      # Emit ONE redacted, structured log line for a single violation summary.
+      # Every value here has already passed through Onetime::Security::CspReport
+      # redaction, so no field can carry a secret token. Optionally mirrors the
+      # SAME redacted summary to Sentry when available (never raw data).
+      def log_csp_violation(summary)
+        OT.lw('[csp-report] violation', **csp_log_payload(summary))
+
+        # Optionally mirror the SAME redacted summary to Sentry. Mirrors the
+        # sentry_available? guard in lib/onetime/error_handler.rb (that method is
+        # private, so we inline the identical check). Never forwards raw data.
+        return unless OT.d9s_enabled && defined?(Sentry) && Sentry.initialized?
+
+        Sentry.capture_message('CSP violation report', level: :info) do |scope|
+          scope.set_context('csp_report', summary)
+        end
+      rescue StandardError => ex
+        OT.le "[csp-report] logging failed: #{ex.class}: #{ex.message}"
+      end
+
+      # Map the redacted summary to a symbol-keyed payload for the structured
+      # logger. Only safe fields are included.
+      def csp_log_payload(summary)
+        {
+          violated_directive: summary['violated-directive'],
+          effective_directive: summary['effective-directive'],
+          disposition: summary['disposition'],
+          document_uri: summary['document-uri'],
+          blocked_uri: summary['blocked-uri'],
+          source_file: summary['source-file'],
+          line_number: summary['line-number'],
+          column_number: summary['column-number'],
+        }.compact
+      end
     end
   end
 end

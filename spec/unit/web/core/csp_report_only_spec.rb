@@ -26,6 +26,8 @@ require_relative '../../../../apps/web/core/middleware/request_setup'
 RSpec.describe Core::Middleware::RequestSetup, '#finalize_response (CSP report-only)' do
   RO_HEADER  = 'content-security-policy-report-only'
   ENF_HEADER = 'content-security-policy'
+  REPORTING_ENDPOINTS_HEADER = 'reporting-endpoints'
+  REPORT_PATH = '/api/v1/csp-report'
 
   let(:conf) { double('OT.conf') }
 
@@ -77,6 +79,22 @@ RSpec.describe Core::Middleware::RequestSetup, '#finalize_response (CSP report-o
       _status, headers, _body = run
       expect(headers[RO_HEADER]).to include("connect-src 'self' wss: https:;")
     end
+
+    it 'points the report-only policy at the V1 CSP report receiver' do
+      _status, headers, _body = run
+      csp = headers[RO_HEADER]
+
+      # Legacy report-uri directive points at the /api/ receiver.
+      expect(csp).to include("report-uri #{REPORT_PATH};")
+      # Modern Reporting API directive references the named endpoint group.
+      expect(csp).to include('report-to csp-endpoint;')
+    end
+
+    it 'defines the csp-endpoint group via a Reporting-Endpoints header' do
+      _status, headers, _body = run
+      expect(headers[REPORTING_ENDPOINTS_HEADER])
+        .to eq(%(csp-endpoint="#{REPORT_PATH}"))
+    end
   end
 
   context 'when CSP is enabled and development.enabled is true' do
@@ -95,6 +113,7 @@ RSpec.describe Core::Middleware::RequestSetup, '#finalize_response (CSP report-o
 
       expect(headers[RO_HEADER]).to be_nil
       expect(headers[ENF_HEADER]).to be_nil
+      expect(headers[REPORTING_ENDPOINTS_HEADER]).to be_nil
     end
 
     it 'treats a truthy-but-not-true value as disabled (strict ==)' do

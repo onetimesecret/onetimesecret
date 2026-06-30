@@ -33,6 +33,16 @@ module Core
       CSP_REPORT_ONLY_HEADER = 'content-security-policy-report-only'
       CSP_ENFORCING_HEADER   = 'content-security-policy'
 
+      # Absolute path of the V1 API CSP violation report receiver
+      # (V1::Controllers::Index#csp_report, mounted at /api/v1). The report-only
+      # policy points the browser here via report-uri/report-to so violations are
+      # actually collected; without it report-only mode gathers no data.
+      CSP_REPORT_PATH = '/api/v1/csp-report'
+
+      # Reporting API endpoint group name, matched by the 'report-to
+      # csp-endpoint;' directive in the policy and defined by this header.
+      CSP_REPORTING_ENDPOINTS_HEADER = 'reporting-endpoints'
+
       def call(env)
         setup_request(env)
         status, headers, body = @app.call(env)
@@ -95,7 +105,13 @@ module Core
       headers[CSP_REPORT_ONLY_HEADER] = Onetime::Security::Csp.policy(
         nonce: nonce,
         development: OT.conf.dig('development', 'enabled'),
+        report_uri: CSP_REPORT_PATH,
       )
+
+      # Define the 'csp-endpoint' group referenced by the policy's
+      # 'report-to csp-endpoint;' directive (modern Reporting API). Browsers that
+      # only understand the legacy 'report-uri' directive ignore this header.
+      headers[CSP_REPORTING_ENDPOINTS_HEADER] ||= "csp-endpoint=\"#{CSP_REPORT_PATH}\""
     end
     end
   end

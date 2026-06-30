@@ -22,6 +22,12 @@ POST   /create                               V1::Controllers::Index#create      
 
 POST   /secret/:key                          V1::Controllers::Index#show_secret openapi_auth=basic,anonymous content=form response=default sensitive=true
 
+# CSP violation report receiver. Anonymous + public: browsers POST here
+# unauthenticated and without a CSRF token (CSRF is auto-bypassed for /api/*).
+# Reads a size-capped body, redacts secret-bearing URLs, logs a summary, and
+# always responds 204. Never writes to the database. See Index#csp_report.
+POST   /csp-report                           V1::Controllers::Index#csp_report  openapi_auth=anonymous response=default
+
 # Canonical receipt paths
 # NOTE: Specific sub-paths (burn) must precede the :key wildcard so
 # Otto's first-match-wins dynamic routing resolves them correctly.
