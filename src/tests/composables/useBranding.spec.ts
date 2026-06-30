@@ -5,7 +5,9 @@ import {
   mockDefaultBranding,
 } from '@/tests/fixtures/domainBranding.fixture';
 import { useBranding } from '@/shared/composables/useBranding';
+import { DEFAULT_BUTTON_TEXT_LIGHT } from '@/shared/constants/brand';
 import { createPinia, setActivePinia } from 'pinia';
+import { nextTick } from 'vue';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockBrandStore = vi.fn(() => ({
@@ -105,6 +107,26 @@ describe('useBranding', () => {
           expect(brandSettings.value).toEqual(mockDefaultBranding);
         });
       });
+    });
+  });
+
+  describe('button_text_light auto-contrast watcher', () => {
+    it('recomputes on color change and resets to the default when the color is cleared', async () => {
+      const { brandSettings, isInitialized } = useBranding('domain-1');
+      // primaryColor only tracks brand settings once initialized.
+      isInitialized.value = true;
+      await nextTick();
+
+      // A light primary color implies dark button text.
+      brandSettings.value = { ...brandSettings.value, primary_color: '#ffffff' };
+      await nextTick();
+      expect(brandSettings.value.button_text_light).toBe(false);
+
+      // Clearing the color must reset to the default rather than leaving the
+      // stale "dark text" decision from the previous color.
+      brandSettings.value = { ...brandSettings.value, primary_color: '' };
+      await nextTick();
+      expect(brandSettings.value.button_text_light).toBe(DEFAULT_BUTTON_TEXT_LIGHT);
     });
   });
 

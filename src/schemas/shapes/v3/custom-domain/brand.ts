@@ -50,7 +50,11 @@ export const brandSettingsSchema = brandSettingsCanonical.extend({
   // were retired from BrandSettings in #3026; consume HomepageConfig.enabled
   // and ApiConfig.enabled (e.g. via the identity store / homepage_config
   // response field) instead.
-  button_text_light: z.boolean().default(false),
+  // Default true to match the canonical contract (brand-config.ts) and
+  // NEUTRAL_BRAND_DEFAULTS. A false default here silently shadowed the
+  // identityStore fallback (`brand?.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT`),
+  // so unbranded domains rendered dark button text instead of the intended light.
+  button_text_light: z.boolean().default(true),
   passphrase_required: z.boolean().default(false),
   notify_enabled: z.boolean().default(false),
 });
