@@ -50,8 +50,9 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::PutSenderConfig do
     double('StrategyResult', session: session, user: owner, authenticated?: true, metadata: {})
   end
 
+  # The route is /:extid/email-config, so the logic reads params['extid'].
   let(:params) do
-    { 'domain_id' => 'ext-domain123', 'from_name' => 'Acme', 'from_address' => from_address, 'enabled' => true }
+    { 'extid' => 'ext-domain123', 'from_name' => 'Acme', 'from_address' => from_address, 'enabled' => true }
   end
   let(:logic) { described_class.new(strategy_result, params) }
 
@@ -71,10 +72,8 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::PutSenderConfig do
 
     # Keep the test hermetic: we are asserting ordering, not Truemail/MX checks.
     allow(logic).to receive(:valid_email?).and_return(true)
-
-    # Lifecycle: process_params populates @from_address/@from_name from params
-    # before raise_concerns runs (initialize does not call it).
-    logic.process_params
+    # process_params runs from Logic::Base#initialize, so @from_address/@domain_id
+    # are already populated from params by the time raise_concerns is called.
   end
 
   context 'without the flexible_from_domain entitlement' do
