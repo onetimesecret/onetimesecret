@@ -7,7 +7,8 @@
 #
 # Critical assertions:
 #   - GLOBAL_DEFAULTS[:support_email] is neutral or nil (NOT 'support@onetimesecret.com')
-#   - GLOBAL_DEFAULTS[:product_name] is 'OTS' (acceptable neutral abbreviation per issue)
+#   - GLOBAL_DEFAULTS[:product_name] is nil (the #3049 stamp picked 'My App' as the
+#     neutral product name, not 'OTS' — each consumer owns its own neutral fallback)
 #
 # These tests are the regression guard against #dc4a22-style OTS-branding
 # leaking into the shipped neutral defaults.
@@ -44,12 +45,16 @@ support.nil? || support != 'support@onetimesecret.com'
 @constants::GLOBAL_DEFAULTS[:support_email] != 'support@onetimesecret.com'
 #=> true
 
-## [forward] GLOBAL_DEFAULTS[:product_name] is 'OTS' (acceptable neutral abbreviation)
+## [forward] GLOBAL_DEFAULTS[:product_name] is nil (frontend 'My App' / legacy site_name own the default)
 @constants::GLOBAL_DEFAULTS[:product_name]
-#=> 'OTS'
+#=> nil
 
 ## [forward / regression guard] GLOBAL_DEFAULTS[:product_name] is NOT 'Onetime Secret'
 @constants::GLOBAL_DEFAULTS[:product_name] != 'Onetime Secret'
+#=> true
+
+## [forward / regression guard] GLOBAL_DEFAULTS[:product_name] is NOT 'OTS'
+@constants::GLOBAL_DEFAULTS[:product_name] != 'OTS'
 #=> true
 
 ## [forward] runtime global_defaults reader exists on BrandSettingsConstants
@@ -60,9 +65,9 @@ support.nil? || support != 'support@onetimesecret.com'
 @constants.global_defaults.is_a?(Hash)
 #=> true
 
-## [forward] runtime global_defaults product_name resolves to 'OTS' by default
+## [forward] runtime global_defaults product_name resolves to nil by default
 @constants.global_defaults[:product_name]
-#=> 'OTS'
+#=> nil
 
 ## [forward / regression guard] runtime global_defaults support_email is neutral or nil
 support = @constants.global_defaults[:support_email]
