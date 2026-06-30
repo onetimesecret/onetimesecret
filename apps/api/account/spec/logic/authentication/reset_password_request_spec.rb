@@ -111,6 +111,35 @@ RSpec.describe AccountAPI::Logic::Authentication::ResetPasswordRequest do
     end
   end
 
+  describe '#process for a pending (unverified) account (PR #3545: nil-customer fix)' do
+    before do
+      allow(customer).to receive(:pending?).and_return(true)
+    end
+
+    it 'returns the same generic success response' do
+      allow(logic).to receive(:send_verification_email)
+
+      expect(logic.process).to include(sent: true)
+    end
+
+    it 'resends verification to the looked-up customer, not the nil request-context cust' do
+      # Regression for the P1: send_verification_email defaults to the
+      # request-context cust (nil here), so the reset flow must pass the
+      # looked-up customer explicitly or it 500s.
+      expect(logic).to receive(:send_verification_email).with(customer: customer)
+
+      logic.process
+    end
+
+    it 'does not create a password-reset secret or send a reset email' do
+      allow(logic).to receive(:send_verification_email)
+      expect(Onetime::Secret).not_to receive(:create!)
+      expect(Onetime::Jobs::Publisher).not_to receive(:enqueue_email)
+
+      logic.process
+    end
+  end
+
   describe '#process email delivery (issue #3486)' do
     it 'enqueues the reset email with fallback: :sync' do
       expect(Onetime::Jobs::Publisher).to receive(:enqueue_email).with(

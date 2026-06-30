@@ -62,7 +62,12 @@ module AccountAPI::Logic
               status: :pending,
             }
 
-          send_verification_email
+          # send_verification_email defaults to the request-context cust, which
+          # is nil in this unauthenticated flow. Pass the looked-up customer
+          # explicitly so the verification secret binds to the right account
+          # (PR #3545 review) — otherwise this 500s instead of returning the
+          # intended generic success.
+          send_verification_email(customer: cust)
           return success_data
         end
 
