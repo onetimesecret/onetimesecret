@@ -121,11 +121,13 @@ fi
 
 echo "---"
 echo "Generating merged locale files..."
-if command -v python3 &>/dev/null; then
-    python3 locales/scripts/i18n content compile --all --merged
+# Delegate to the canonical pnpm entry point (python3 i18n content compile --all)
+# so this stays in step with the project rather than re-spelling the CLI flags.
+if pnpm run locales:sync; then
     echo "OK:   Locales generated in generated/locales/"
 else
-    echo "Skip: python3 not found — skipping locale generation"
+    echo "Warning: locale generation failed (pnpm run locales:sync) — continuing."
+    echo "  Some i18n-dependent tests may fail until locales are generated."
 fi
 
 # --- Test datastore on port 2121 -------------------------------------
@@ -204,8 +206,17 @@ ENVRC
     touch .test-mode
     direnv allow .
 else
-    echo "Skip: direnv not installed — tests run without it."
-    echo "  (RACK_ENV=test is forced by spec_helper; the test config is self-contained.)"
+    echo "Skip: direnv not installed — the test suite runs fine without it"
+    echo "      (spec_helper forces RACK_ENV=test and the test config is self-contained)."
+    echo ""
+    echo "Recommended: install direnv to manage environment variables for everyday"
+    echo "  development. It auto-loads .env when you cd into the checkout (dev mode)"
+    echo "  and is the intended way to run the app, the console, and bin/ots:"
+    echo "    - dev setup:  ./install-dev.sh"
+    echo "    - dev server: bin/dev   (or bundle exec puma -C etc/puma.rb)"
+    echo "    - console:    bin/console"
+    echo "    - CLI:        bin/ots <command>"
+    echo "  Install direnv: https://direnv.net/docs/installation.html"
 fi
 
 # --- Optional: .env.test for integration tests -----------------------
