@@ -695,13 +695,19 @@ describe('MastHead', () => {
     /**
      * Priority chain in getShowSiteName():
      *   1. props.logo.showSiteName            (caller-site override)
-     *   2. domain_logo.value                  (multi-tenant: always hide)
+     *   2. !identity.showPlatformIdentity     (resolver base guard: any custom
+     *                                          domain OR a per-tenant logo hides
+     *                                          the platform wordmark)
      *   3. headerConfig.branding.logo.show_name  (LOGO_SHOW_NAME explicit)
      *   4. isCustomStaticLogo.value           (heuristic: non-default LOGO_URL)
      *   5. !!site_name                        (default tied to SITE_NAME)
      *
      * #3160: in v0.25.3 step 4 ran ahead of step 3, so operators setting
      * LOGO_URL + LOGO_SHOW_NAME=true silently lost their wordmark.
+     *
+     * The tests below all use the canonical strategy with no domain_logo, so
+     * showPlatformIdentity is true and rung 2 falls through — exercising the
+     * operator/config rungs unchanged by the resolver consolidation.
      */
     const mountWithBranding = (
       branding: {
@@ -1010,14 +1016,17 @@ describe('MastHead', () => {
       expect(img.attributes('alt')).toBe(NEUTRAL_BRAND_DEFAULTS.product_name);
     });
 
-    it('passes empty string through (nullish coalescing does not catch it)', async () => {
+    it('falls back to NEUTRAL_BRAND_DEFAULTS.product_name for an empty string', async () => {
       wrapper = mountWithBrand('');
       await nextTick();
 
       const img = wrapper.find('img#logo');
       expect(img.exists()).toBe(true);
-      // ?? does not trigger on empty string — only on null/undefined
-      expect(img.attributes('alt')).toBe('');
+      // Consolidation routes the alt text through identityStore.productName,
+      // which uses `||` (not `??`): a blank product-name config degrades to the
+      // neutral 'Secure Links' instead of rendering an empty alt — matching
+      // DefaultLogo and usePageTitle.
+      expect(img.attributes('alt')).toBe(NEUTRAL_BRAND_DEFAULTS.product_name);
     });
   });
 });

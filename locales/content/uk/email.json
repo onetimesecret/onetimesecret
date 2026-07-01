@@ -409,11 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "Електронну адресу для Вашого облікового запису %{product_name} було змінено на %{new_email_masked}.",
-    "renderer": "erb",
-    "source_hash": "6f3419d1"
-  },
   "email.email_changed.security_notice": {
     "text": "Якщо Ви не робили цієї зміни, будь ласка, негайно зверніться до служби підтримки, оскільки Ваш обліковий запис може бути скомпрометовано.",
     "renderer": "erb",

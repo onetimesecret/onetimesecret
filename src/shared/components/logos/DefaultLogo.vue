@@ -3,8 +3,8 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import KeyholeIcon from '@/shared/components/icons/KeyholeIcon.vue';
+  import { resolveProductName } from '@/shared/constants/brand';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-  import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
   import { type LogoConfig } from '@/types/ui/layouts';
   import { computed } from 'vue';
 
@@ -24,13 +24,20 @@
   const bootstrapStore = useBootstrapStore();
 
   /**
-   * Brand-aware aria-label. Falls back to NEUTRAL_BRAND_DEFAULTS.product_name
-   * (a generic "My App") when bootstrap config has not provided a brand name.
-   * Never defaults to OTS branding — keeps private-label deployments neutral
-   * (#3048 / #3049).
+   * Brand-aware aria-label. Falls back to the neutral-safe product name
+   * (a generic "Secure Links") via the shared `resolveProductName` helper when
+   * bootstrap config has not provided a brand name. Never defaults to OTS
+   * branding — keeps private-label deployments neutral (#3048 / #3049).
+   *
+   * Resolves through the shared helper directly rather than
+   * `identityStore.productName` so this app-wide fallback mark stays
+   * lightweight: it needs only the product-name string, not the identity
+   * store's watchers / i18n init. (Same reasoning as `usePageTitle`, which also
+   * resolves via the helper.) The helper is still the single source of truth for
+   * the fallback, so this cannot drift from the other surfaces.
    */
   const ariaLabel = computed(
-    () => props.ariaLabel || bootstrapStore.brand_product_name || NEUTRAL_BRAND_DEFAULTS.product_name
+    () => props.ariaLabel || resolveProductName(bootstrapStore.brand_product_name)
   );
 
   const svgSize = computed(() =>

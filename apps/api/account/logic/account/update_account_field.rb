@@ -84,8 +84,14 @@ module AccountAPI::Logic
         raise NotImplemented
       end
 
+      # cust is nil for anonymous callers on noauth routes. UpdateLocale (the
+      # only current noauth field updater) overrides this with an
+      # anonymous-aware variant, but guard the base too so any future noauth
+      # subclass that forgets to override it degrades to an empty cid/role
+      # rather than raising NoMethodError — the #3516 failure mode. Authenticated
+      # callers are unaffected: their cust is always present.
       def log_update
-        OT.info "[update-account] #{field_name.to_s.capitalize} updated cid/#{cust.objid} r/#{cust.role}"
+        OT.info "[update-account] #{field_name.to_s.capitalize} updated cid/#{cust&.objid} r/#{cust&.role}"
       end
     end
   end

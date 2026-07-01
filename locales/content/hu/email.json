@@ -409,11 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "A %{product_name} fiókjához tartozó e-mail cím megváltozott erre: %{new_email_masked}.",
-    "renderer": "erb",
-    "source_hash": "6f3419d1"
-  },
   "email.email_changed.security_notice": {
     "text": "Ha nem Ön kezdeményezte ezt a módosítást, kérjük, azonnal lépjen kapcsolatba az ügyfélszolgálattal, mert fiókja veszélybe kerülhetett.",
     "renderer": "erb",

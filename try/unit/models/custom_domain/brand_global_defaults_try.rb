@@ -7,7 +7,7 @@
 #
 # Critical assertions:
 #   - GLOBAL_DEFAULTS[:support_email] is neutral or nil (NOT 'support@onetimesecret.com')
-#   - GLOBAL_DEFAULTS[:product_name] is nil (the #3049 stamp picked 'My App' as the
+#   - GLOBAL_DEFAULTS[:product_name] is nil (the #3049 stamp picked 'Secure Links' as the
 #     neutral product name, not 'OTS' — each consumer owns its own neutral fallback)
 #
 # These tests are the regression guard against #dc4a22-style OTS-branding
@@ -45,7 +45,7 @@ support.nil? || support != 'support@onetimesecret.com'
 @constants::GLOBAL_DEFAULTS[:support_email] != 'support@onetimesecret.com'
 #=> true
 
-## [forward] GLOBAL_DEFAULTS[:product_name] is nil (frontend 'My App' / legacy site_name own the default)
+## [forward] GLOBAL_DEFAULTS[:product_name] is nil (frontend 'Secure Links' / legacy site_name own the default)
 @constants::GLOBAL_DEFAULTS[:product_name]
 #=> nil
 

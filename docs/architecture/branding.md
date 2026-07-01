@@ -31,7 +31,7 @@ Ruby resolvers (#3049), and an absent section falls through to step 3.
 **Step 3 — neutral fallback.** When no brand data is present (the common
 self-hosted case), the frontend uses `NEUTRAL_BRAND_DEFAULTS`
 (`src/shared/constants/brand.ts`): neutral blue `#3B82F6`, product name
-`"My App"`. The deprecated `DEFAULT_BRAND_HEX` (`#dc4a22`, OTS orange) is **not**
+`"Secure Links"`. The deprecated `DEFAULT_BRAND_HEX` (`#dc4a22`, OTS orange) is **not**
 the fallback — it is retained only where OTS-orange is specifically intended
 (e.g. palette-generator tests).
 
@@ -129,7 +129,7 @@ in that file.
 ## Private-label checklist
 
 - [ ] `BRAND_PRIMARY_COLOR`, `BRAND_PRODUCT_NAME` (required to override neutral
-      blue / `"My App"`)
+      blue / `"Secure Links"`)
 - [ ] `BRAND_SUPPORT_EMAIL`, `BRAND_LOGO_URL` (or per-domain logo via the
       CustomDomain API)
 - [ ] Clear `BRAND_*` → verify neutral theme appears (fallback works)

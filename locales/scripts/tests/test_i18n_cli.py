@@ -227,7 +227,9 @@ class ContentHashesTest(I18nCliTestCase):
             json.dumps(doc, ensure_ascii=False, indent=2), "utf-8"
         )
 
-        self.assertOk(self.run_cli("content", "hashes"), "hashes (first)")
+        self.assertOk(
+            self.run_cli("content", "hashes", "--apply"), "hashes (first)"
+        )
         first = _dir_bytes(self.content / "en")
         # The new key must have been populated with a content_hash.
         self.assertIn(
@@ -236,7 +238,9 @@ class ContentHashesTest(I18nCliTestCase):
             "hashes did not populate content_hash for the new key",
         )
 
-        self.assertOk(self.run_cli("content", "hashes"), "hashes (second)")
+        self.assertOk(
+            self.run_cli("content", "hashes", "--apply"), "hashes (second)"
+        )
         self.assertEqual(
             first,
             _dir_bytes(self.content / "en"),
