@@ -855,39 +855,60 @@
     "source_hash": "1cd0194a"
   },
   "email.common.secret_link_label": {
-    "text": "Lien du secret"
+    "text": "Lien du secret",
+    "renderer": "erb",
+    "source_hash": "18ddf44f"
   },
   "email.common.automated_notice": {
-    "text": "Ceci est un message automatique de %{product_name}."
+    "text": "Ceci est un message automatique de %{product_name}.",
+    "renderer": "erb",
+    "source_hash": "8fbabfba"
   },
   "email.common.support_label": {
     "text": "Support"
   },
   "email.expiration_warning.signature": {
-    "text": "L'équipe d'assistance"
+    "text": "L'équipe d'assistance",
+    "renderer": "erb"
   },
   "email.expiration_warning.footer_note": {
-    "text": "Vous avez reçu ce message parce qu'un secret que vous avez créé sur %{product_name} est sur le point d'expirer."
+    "text": "Vous avez reçu ce message parce qu'un secret que vous avez créé sur %{product_name} est sur le point d'expirer.",
+    "renderer": "erb",
+    "source_hash": "920779e4"
   },
   "email.feedback_email.user_id_label": {
-    "text": "Utilisateur :"
+    "text": "Utilisateur :",
+    "renderer": "erb",
+    "source_hash": "93d6b3e9"
   },
   "email.feedback_email.timezone_label": {
-    "text": "Fuseau horaire :"
+    "text": "Fuseau horaire :",
+    "renderer": "erb",
+    "source_hash": "39651ebf"
   },
   "email.feedback_email.version_label": {
-    "text": "Version :"
+    "text": "Version :",
+    "renderer": "erb",
+    "source_hash": "4c5726ee"
   },
   "email.incoming_secret.footer_note": {
-    "text": "Vous avez reçu ce message parce que quelqu'un a utilisé %{product_name} pour vous envoyer un secret. Si vous ne l'attendiez pas, vous pouvez ignorer cet e-mail en toute sécurité."
+    "text": "Vous avez reçu ce message parce que quelqu'un a utilisé %{product_name} pour vous envoyer un secret. Si vous ne l'attendiez pas, vous pouvez ignorer cet e-mail en toute sécurité.",
+    "renderer": "erb",
+    "source_hash": "91ee6e8d"
   },
   "email.secret_link.passphrase_label": {
-    "text": "Phrase secrète requise :"
+    "text": "Phrase secrète requise :",
+    "renderer": "erb",
+    "source_hash": "1ab9a20f"
   },
   "email.secret_link.passphrase_required": {
-    "text": "Ce secret est protégé par une phrase secrète. L'expéditeur doit vous la communiquer séparément."
+    "text": "Ce secret est protégé par une phrase secrète. L'expéditeur doit vous la communiquer séparément.",
+    "renderer": "erb",
+    "source_hash": "1e49826b"
   },
   "email.secret_link.footer_note": {
-    "text": "Vous avez reçu ce message parce que %{sender_email} a utilisé %{product_name} pour partager un secret avec vous. Si vous ne l'attendiez pas, vous pouvez ignorer cet e-mail en toute sécurité."
+    "text": "Vous avez reçu ce message parce que %{sender_email} a utilisé %{product_name} pour partager un secret avec vous. Si vous ne l'attendiez pas, vous pouvez ignorer cet e-mail en toute sécurité.",
+    "renderer": "erb",
+    "source_hash": "2d544dad"
   }
 }
