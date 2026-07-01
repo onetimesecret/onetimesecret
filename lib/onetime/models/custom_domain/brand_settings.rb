@@ -50,7 +50,7 @@ module Onetime
       # defaults) — including product_name. Operators set BRAND_PRODUCT_NAME /
       # BRAND_SUPPORT_EMAIL / BRAND_LOGO_URL to populate; an unconfigured
       # install falls through to each consumer's own neutral default
-      # (frontend: NEUTRAL_BRAND_DEFAULTS.product_name = 'My App'; mail/page
+      # (frontend: NEUTRAL_BRAND_DEFAULTS.product_name = 'Secure Links'; mail/page
       # title: the legacy site.interface.ui.header.branding.site_name value).
       #
       # totp_issuer is the one deliberate exception, kept as 'OTS' rather

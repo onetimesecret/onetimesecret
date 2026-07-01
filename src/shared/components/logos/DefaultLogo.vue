@@ -25,7 +25,7 @@
 
   /**
    * Brand-aware aria-label. Falls back to the neutral-safe product name
-   * (a generic "My App") via the shared `resolveProductName` helper when
+   * (a generic "Secure Links") via the shared `resolveProductName` helper when
    * bootstrap config has not provided a brand name. Never defaults to OTS
    * branding — keeps private-label deployments neutral (#3048 / #3049).
    *

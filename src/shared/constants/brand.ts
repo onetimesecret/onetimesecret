@@ -10,7 +10,7 @@
 //   3. NEUTRAL_BRAND_DEFAULTS  - Generic neutral theme when bootstrap is absent
 //
 // Philosophy: step 3 must NEVER show OTS branding. If bootstrap fails to
-// provide brand data, the UI degrades to a neutral "My App" blue, not
+// provide brand data, the UI degrades to a neutral "Secure Links" blue, not
 // accidentally advertising OTS. This supports private-label deployments.
 //
 // See identityStore.ts for the implementation of this fallback chain.
@@ -41,7 +41,7 @@ export const DEFAULT_CORNER_CLASS = 'rounded-lg';
  * brand values.
  *
  * - `primary_color: '#3B82F6'` — generic blue, avoids OTS orange
- * - `product_name: 'My App'` — neutral placeholder for customization
+ * - `product_name: 'Secure Links'` — neutral placeholder for customization
  *
  * Values for enum-typed fields are derived from the schema enums to
  * prevent drift between constants and schema definitions.
@@ -50,7 +50,7 @@ export const DEFAULT_CORNER_CLASS = 'rounded-lg';
  */
 export const NEUTRAL_BRAND_DEFAULTS = {
   primary_color: '#3B82F6',
-  product_name: 'My App',
+  product_name: 'Secure Links',
   button_text_light: DEFAULT_BUTTON_TEXT_LIGHT,
   corner_style: CornerStyle.ROUNDED,
   font_family: FontFamily.SANS,
@@ -63,7 +63,7 @@ export type NeutralBrandDefaults = typeof NEUTRAL_BRAND_DEFAULTS;
  *
  * Applies step 2 → step 3 of the fallback chain for the product name:
  * the per-installation `brand_product_name` (from OT.conf) when set, otherwise
- * the neutral `NEUTRAL_BRAND_DEFAULTS.product_name` ('My App'). Per the
+ * the neutral `NEUTRAL_BRAND_DEFAULTS.product_name` ('Secure Links'). Per the
  * philosophy above it MUST NEVER emit OTS branding — an unbranded install
  * degrades to the neutral default, never a hardcoded "Onetime Secret".
  *

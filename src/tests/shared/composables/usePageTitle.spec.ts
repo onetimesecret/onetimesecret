@@ -3,7 +3,7 @@
 // A4 fix: the page-title composable must never leak OTS branding into the
 // document <title>, og:title or twitter:title. When no display domain is
 // available it falls back to the configured brand product name, and finally to
-// the neutral default ('My App') — never the hardcoded "Onetime Secret".
+// the neutral default ('Secure Links') — never the hardcoded "Onetime Secret".
 //
 // The product-name fallback goes through the shared resolveProductName helper
 // (the same one identityStore.productName uses) rather than the store itself,
@@ -80,7 +80,7 @@ describe('usePageTitle — brand fallback (A4 branding leak)', () => {
 
       const title = formatTitle('Dashboard');
       expect(title).toBe(`Dashboard - ${NEUTRAL_BRAND_DEFAULTS.product_name}`);
-      expect(title).toContain('My App');
+      expect(title).toContain('Secure Links');
       // The core A4 guarantee: never emit OTS branding.
       expect(title).not.toContain('Onetime Secret');
     });

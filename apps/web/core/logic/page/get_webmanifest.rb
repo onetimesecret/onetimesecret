@@ -19,7 +19,7 @@ module Core
       #
       # When no brand config is present the neutral file is served unchanged, so
       # a vanilla self-hosted install still gets a valid, brand-agnostic manifest
-      # ("My App"). Icons are left as the on-disk paths (override by replacing the
+      # ("Secure Links"). Icons are left as the on-disk paths (override by replacing the
       # files). This mirrors the favicon precedence: per-deployment brand config
       # over neutral defaults, without OTS branding ever shipping as the default.
       class GetWebmanifest < Core::Logic::Base
@@ -29,8 +29,8 @@ module Core
 
         # Minimal neutral fallback if the on-disk manifest is missing/corrupt.
         NEUTRAL_FALLBACK = {
-          'name' => 'My App',
-          'short_name' => 'My App',
+          'name' => 'Secure Links',
+          'short_name' => 'Secure Links',
           'icons' => [
             { 'src' => '/icon-192.png', 'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'any' },
             { 'src' => '/icon-512.png', 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'any' },

@@ -54,7 +54,7 @@ export function usePageTitle() {
    * twitter:title, following the neutral brand fallback chain:
    *   1. display_domain     - the active (custom) domain, when set
    *   2. brand_product_name - the per-installation product name from OT.conf
-   *   3. neutral default    - 'My App' via resolveProductName
+   *   3. neutral default    - 'Secure Links' via resolveProductName
    *
    * This must NEVER emit OTS branding. Mirroring constants/brand.ts, when
    * neither a domain nor a configured product name is available the title

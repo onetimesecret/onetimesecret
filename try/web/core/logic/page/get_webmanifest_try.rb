@@ -10,7 +10,7 @@
 # a self-hosted install never ships OTS branding in its manifest.
 #
 # Behaviours covered:
-# 1. Neutral default name ("My App") + neutral theme colour when brand absent.
+# 1. Neutral default name ("Secure Links") + neutral theme colour when brand absent.
 # 2. brand.product_name overrides name and short_name.
 # 3. brand.primary_color overrides theme_color.
 # 4. content_type is application/manifest+json.
@@ -42,12 +42,12 @@ def build_logic
   logic
 end
 
-## Neutral default: name is the bundled "My App", theme is neutral blue, correct content-type
+## Neutral default: name is the bundled "Secure Links", theme is neutral blue, correct content-type
 OT.conf['brand'] = {}
 logic = build_logic
 m = JSON.parse(logic.manifest_json)
 [m['name'], m['theme_color'], logic.content_type]
-#=> ['My App', '#3B82F6', 'application/manifest+json']
+#=> ['Secure Links', '#3B82F6', 'application/manifest+json']
 
 ## brand.product_name overrides name and short_name
 OT.conf['brand'] = { 'product_name' => 'Acme Vault' }
@@ -64,7 +64,7 @@ JSON.parse(build_logic.manifest_json)['theme_color']
 OT.conf['brand'] = { 'product_name' => '', 'primary_color' => '  ' }
 m = JSON.parse(build_logic.manifest_json)
 [m['name'], m['theme_color']]
-#=> ['My App', '#3B82F6']
+#=> ['Secure Links', '#3B82F6']
 
 ## [regression guard] neutral default manifest name is never OTS-branded
 OT.conf['brand'] = {}

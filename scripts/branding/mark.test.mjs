@@ -87,7 +87,7 @@ test('ogImageSvg: fixed 1200x630 card with a two-stop gradient', () => {
 
 test('webmanifest: valid JSON with neutral defaults', () => {
   const m = JSON.parse(webmanifest());
-  assert.equal(m.name, 'My App');
+  assert.equal(m.name, 'Secure Links');
   assert.equal(m.theme_color, PRIMARY_COLOUR);
   assert.equal(m.icons.length, 3);
 });

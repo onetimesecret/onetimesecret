@@ -335,7 +335,7 @@ describe('identityStore primaryColor resolution', () => {
 //
 // The store is the single source of truth for the product-name fallback that
 // MastHead and DefaultLogo previously re-derived by hand. It must degrade to
-// the neutral default ('My App'), never a hardcoded "Onetime Secret", and must
+// the neutral default ('Secure Links'), never a hardcoded "Onetime Secret", and must
 // treat an empty string as unset (|| not ??).
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -378,7 +378,7 @@ describe('identityStore productName resolution', () => {
 
     const identity = useProductIdentity();
 
-    // `||` (not `??`) — a blank product-name config degrades to 'My App'
+    // `||` (not `??`) — a blank product-name config degrades to 'Secure Links'
     // rather than rendering an empty name.
     expect(identity.productName).toBe(NEUTRAL_BRAND_DEFAULTS.product_name);
   });
