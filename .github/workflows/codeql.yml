@@ -36,6 +36,11 @@ on:
       - opened
       - synchronize
       - ready_for_review
+    # Locale content is data, not code — nothing for CodeQL to analyze. Skip
+    # pure-translation PRs (a mixed code+locale PR still runs: paths-ignore
+    # only skips when *every* changed file matches).
+    paths-ignore:
+      - 'locales/content/**'
 
   schedule:
     - cron: '26 17 * * 2'
