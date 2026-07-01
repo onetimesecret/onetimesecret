@@ -1,0 +1,13 @@
+.. A new scriv changelog fragment.
+
+Fixed
+-----
+
+- A ``fallback: :sync`` email delivery failure (for example, an unreachable SMTP
+  host while background jobs are disabled) no longer returns HTTP 500 after the
+  underlying record was already persisted. Synchronous fallback delivery now
+  honours its documented contract — it blocks and delivers, logging/reporting a
+  failure instead of raising — so organization invitations, email-change
+  requests, password resets, and Rodauth auth emails degrade gracefully and stay
+  resendable. Use ``fallback: :raise`` when a caller must surface the failure.
+  (#3486)

@@ -84,6 +84,22 @@ describe('SplitButton Keyboard Shortcuts', () => {
     });
   };
 
+  describe('Brand shadow color fallback', () => {
+    it('uses the primaryColor for --button-shadow-color when provided', () => {
+      wrapper = mountComponent({ primaryColor: '#abcdef' });
+      const button = wrapper.find('button').element as HTMLElement;
+      expect(button.style.getPropertyValue('--button-shadow-color')).toBe('#abcdef');
+    });
+
+    it('falls back to the brand CSS variable (not a hardcoded rgb literal) when primaryColor is empty', () => {
+      wrapper = mountComponent({ primaryColor: '' });
+      const button = wrapper.find('button').element as HTMLElement;
+      // Must be the themeable token so runtime brand overrides apply — never the
+      // old hardcoded rgb(59, 130, 246) literal.
+      expect(button.style.getPropertyValue('--button-shadow-color')).toBe('var(--color-brand-500)');
+    });
+  });
+
   describe('Keyboard Hint Visibility', () => {
     it('shows keyboard hint when showKeyboardHint is true', () => {
       wrapper = mountComponent({

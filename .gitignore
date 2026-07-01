@@ -107,6 +107,7 @@ scripts/api-validation/diffs
 .test-mode
 !.env.example
 !.env.reference
+!.env.test.example
 
 
 # Playwright paths
