@@ -482,8 +482,9 @@ describe('identityStore showPlatformIdentity', () => {
 // logoSource — resolved tenant-or-neutral logo image (Phase 4 consolidation)
 //
 // The tenant's uploaded logo when present, else the neutral DefaultLogo
-// component sentinel. Never null, so the masthead can stop reading raw
-// bootstrapStore.domain_logo and route the logo image through the resolver too.
+// component sentinel. Never null or empty (uses ||, so '' is treated as
+// absent), so the masthead can stop reading raw bootstrapStore.domain_logo and
+// route the logo image through the resolver too.
 // ═══════════════════════════════════════════════════════════════════════════
 
 describe('identityStore logoSource', () => {
@@ -503,6 +504,19 @@ describe('identityStore logoSource', () => {
   it('falls back to the neutral DefaultLogo component when no tenant logo', () => {
     const bootstrap = useBootstrapStore();
     bootstrap.$patch({ domain_logo: null });
+
+    const identity = useProductIdentity();
+
+    expect(identity.logoSource).toBe(DEFAULT_LOGO_COMPONENT);
+  });
+
+  it('treats an empty-string tenant logo as absent (falls back to the sentinel)', () => {
+    // domain_logo is schema-allowed to be '' and is read as a truthy/falsy
+    // signal elsewhere (e.g. !!domain_logo in router guards). Using `||`, an
+    // empty logo degrades to the neutral sentinel rather than surfacing '' as a
+    // broken logo URL through the masthead's terminal fallback.
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ domain_logo: '' });
 
     const identity = useProductIdentity();
 

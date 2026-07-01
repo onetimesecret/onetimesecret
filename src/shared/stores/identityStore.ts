@@ -213,15 +213,21 @@ export const useProductIdentity = defineStore('productIdentity', () => {
 
   /**
    * Resolved logo source on the identity axis: the tenant's uploaded logo when
-   * present, otherwise the neutral `DefaultLogo` component sentinel. Never null,
-   * so a consumer can render a lockup without its own "no logo" fallback.
+   * present, otherwise the neutral `DefaultLogo` component sentinel. Never null
+   * or empty, so a consumer can render a lockup without its own "no logo"
+   * fallback.
+   *
+   * Uses `||` (not `??`): an empty-string `domain_logo` is treated as absent and
+   * falls through to the neutral sentinel, matching how the rest of the codebase
+   * reads the logo as a truthy/falsy signal (e.g. `!!domain_logo` in the router
+   * guards) and preserving the masthead's prior terminal fallback for `''`.
    *
    * This is the identity contribution only; the masthead still layers its own
    * caller/operator rungs (props.logo.url, LOGO_URL) around it — a per-tenant
    * logo must win over an operator-wide LOGO_URL, and LOGO_URL over the neutral
    * default.
    */
-  const logoSource = computed(() => logoUri.value ?? DEFAULT_LOGO_COMPONENT);
+  const logoSource = computed(() => logoUri.value || DEFAULT_LOGO_COMPONENT);
 
   const cornerClass = computed(() =>
     state.brand?.corner_style
