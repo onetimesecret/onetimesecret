@@ -10,7 +10,7 @@
 #   normal maintenance until: TBD
 #   end of life: 2028-03 (est)
 #
-ruby '>= 3.4.7'
+ruby '>= 3.3.6'
 
 source 'https://rubygems.org/'
 
@@ -18,7 +18,7 @@ source 'https://rubygems.org/'
 # Core Application Framework
 # ====================================
 
-gem 'otto', '~> 2.3'
+gem 'otto', '~> 2.4'
 gem 'rhales', '~> 0.6.2'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'

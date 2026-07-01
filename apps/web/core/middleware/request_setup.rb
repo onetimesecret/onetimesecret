@@ -43,11 +43,53 @@ module Core
       http_logger.debug 'Request setup complete', { nonce: nonce[0, 8] } if OT.debug?
     end
 
-    def finalize_response(status, headers, body, _env)
+    def finalize_response(status, headers, body, env)
       # Set default Content-Type if not already set
       headers['content-type'] ||= @default_content_type
 
+      emit_csp_header(headers, env)
+
       [status, headers, body]
+    end
+
+    # Emit the Content-Security-Policy header for HTML responses.
+    #
+    # The policy itself is delegated to Otto (the single policy source): its
+    # security config owns the directive set, and we hand it the per-request
+    # nonce generated in #setup_request — the same nonce the views stamp onto
+    # <script>/<link> tags, so what they emit matches the policy. We set the
+    # header here rather than via Otto::Response#send_csp_headers because this
+    # Rack chokepoint works with a raw response tuple, not a Response object;
+    # #generate_nonce_csp is the config-level primitive that helper wraps.
+    #
+    # Header keys are matched lowercase on purpose: this middleware wraps only
+    # the Core app (mounted at '/'), whose responses use Rack 3's lowercased
+    # response-header keys throughout (see the lowercase 'content-type' defaults
+    # in application.rb and the sibling ||= on line 48). The apps that set a
+    # canonically-cased 'Content-Type' (auth, billing) mount at their own
+    # prefixes with separate stacks and never pass through here.
+    #
+    # Guards (any short-circuits to a no-op):
+    # - OFF only when site.security.csp.enabled is false; it now defaults on
+    #   (CSP_ENABLED != 'false'), so CSP is emitted for HTML unless disabled.
+    # - HTML responses only (JSON/redirects/static are left untouched).
+    # - Never clobbers a Content-Security-Policy a downstream layer already set.
+    # - Requires Otto nonce-CSP support and a present nonce.
+    def emit_csp_header(headers, env)
+      return unless OT.conf.dig('site', 'security', 'csp', 'enabled')
+      return unless headers['content-type']&.start_with?('text/html')
+      return if headers['content-security-policy']
+
+      security_config = env['otto.security_config']
+      return unless security_config&.csp_nonce_enabled?
+
+      nonce = env['onetime.nonce']
+      return if nonce.nil? || nonce.empty?
+
+      headers['content-security-policy'] = security_config.generate_nonce_csp(
+        nonce,
+        development_mode: OT.conf.dig('development', 'enabled') ? true : false,
+      )
     end
     end
   end

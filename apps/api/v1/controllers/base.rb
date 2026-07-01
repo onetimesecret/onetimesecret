@@ -28,13 +28,6 @@ module V1
       req
     end
 
-    def publically
-      carefully do
-        check_locale!
-        yield
-      end
-    end
-
     # Authorize API v1 requests using Basic Auth or anonymous access only.
     #
     # Session/cookie authentication is NOT supported for API v1 routes.
@@ -46,7 +39,7 @@ module V1
     #
     # @param allow_anonymous [Boolean] Whether to allow unauthenticated requests
     def authorized(allow_anonymous = false)
-      carefully(nil, 'application/json', app: :api) do
+      carefully('application/json') do
         check_locale!
 
         req.env['otto.auth'] ||= Rack::Auth::Basic::Request.new(req.env)

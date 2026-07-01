@@ -1,5 +1,11 @@
 // src/main.ts
 
+// Put Zod in jitless mode before any schema module loads. Zod v4's object parser
+// probes for `new Function` support (its JIT fast path); under our CSP that probe
+// trips a `script-src` violation. This side-effect import must stay first so the
+// config is applied before any z.object() is constructed. See configureZod.ts.
+import './plugins/core/configureZod';
+
 // Ensures modulepreload works in all browsers, improving
 // performance by preloading modules.
 import { createApp } from 'vue';
