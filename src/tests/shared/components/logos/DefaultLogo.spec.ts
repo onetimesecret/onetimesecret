@@ -268,15 +268,17 @@ describe('DefaultLogo', () => {
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // Brand-aware aria-label via identityStore.productName (A1 consolidation)
+  // Brand-aware aria-label via the shared resolveProductName helper (A1)
   //
-  // The aria-label fallback now resolves through identityStore.productName
-  // instead of reading bootstrapStore.brand_product_name directly, so DefaultLogo
-  // shares the neutral-safe product-name source of truth with every other
-  // surface. (These rely on the global testing Pinia from setup-stores.ts.)
+  // The aria-label fallback resolves through the shared resolveProductName
+  // helper (the single source of truth for the neutral product-name fallback),
+  // so DefaultLogo stays neutral-safe and in lockstep with every other surface
+  // while remaining lightweight — the app-wide fallback mark does not pull in
+  // the identity store. (These rely on the global testing Pinia from
+  // setup-stores.ts.)
   // ═══════════════════════════════════════════════════════════════════════════
 
-  describe('productName fallback via identityStore', () => {
+  describe('productName fallback via resolveProductName', () => {
     it('uses the configured brand_product_name when no ariaLabel prop is given', () => {
       const bootstrap = useBootstrapStore();
       bootstrap.$patch({ brand_product_name: 'Acme Vault' });
@@ -298,7 +300,7 @@ describe('DefaultLogo', () => {
       ).toBe(true);
     });
 
-    it('an explicit ariaLabel prop still wins over the resolver', () => {
+    it('an explicit ariaLabel prop still wins over the resolved fallback', () => {
       const bootstrap = useBootstrapStore();
       bootstrap.$patch({ brand_product_name: 'Acme Vault' });
 

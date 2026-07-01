@@ -13,8 +13,8 @@ Fixed
 Changed
 -------
 
-- The masthead, default logo and page-title composable now consume
-  ``identityStore.productName`` / ``showPlatformIdentity`` (and a shared
-  ``resolveProductName`` helper) rather than each re-implementing the
+- The masthead now consumes ``identityStore.productName`` /
+  ``showPlatformIdentity``, while the default logo and page-title composable use
+  the shared ``resolveProductName`` helper directly — none re-implement the
   ``brand_product_name`` → neutral-default fallback, making private-label
   branding leaks structurally hard rather than caught surface-by-surface.

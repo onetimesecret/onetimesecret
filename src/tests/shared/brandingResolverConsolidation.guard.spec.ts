@@ -58,23 +58,24 @@ describe('branding resolver consolidation guardrail', () => {
     });
   });
 
-  describe('DefaultLogo routes the product-name fallback through identityStore', () => {
+  describe('DefaultLogo resolves the product-name fallback through the shared helper', () => {
+    // DefaultLogo is the app-wide fallback mark, so it stays lightweight and
+    // uses resolveProductName directly rather than pulling in the identity
+    // store. Reading the raw brand_product_name to feed the helper is fine —
+    // what we forbid is re-implementing the fallback or hardcoding the literal.
     const raw = read(DEFAULT_LOGO);
     const code = stripComments(raw);
 
-    it('does not read brand_product_name or the neutral constant directly', () => {
-      expect(code).not.toContain('brand_product_name');
+    it('does not re-derive the neutral fallback by hand', () => {
       expect(code).not.toContain('NEUTRAL_BRAND_DEFAULTS');
-      expect(code).not.toContain('useBootstrapStore');
     });
 
     it('does not hardcode the OTS platform name', () => {
       expect(code).not.toContain('Onetime Secret');
     });
 
-    it('consumes identityStore.productName', () => {
-      expect(raw).toContain('useProductIdentity');
-      expect(raw).toContain('identity.productName');
+    it('resolves the product name through the shared resolveProductName helper', () => {
+      expect(raw).toContain('resolveProductName');
     });
   });
 
@@ -90,5 +91,48 @@ describe('branding resolver consolidation guardrail', () => {
     it('resolves the product name through the shared resolveProductName helper', () => {
       expect(raw).toContain('resolveProductName');
     });
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// stripComments self-test
+//
+// The guardrail above is deliberately source-text based, so its correctness
+// hinges entirely on stripComments: it must remove documentation that names the
+// forbidden tokens while preserving real code — crucially, a `//` inside a
+// `://` URL is NOT a comment. These cases protect the regexes from a future
+// edit that would silently make the guard pass (stripping real code) or fail
+// (leaving a comment behind).
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe('stripComments (guard helper)', () => {
+  it('strips a line comment but keeps the code before it', () => {
+    const out = stripComments("const x = 1; // brand_product_name in a comment");
+    expect(out).toContain('const x = 1;');
+    expect(out).not.toContain('brand_product_name');
+  });
+
+  it('strips a block comment', () => {
+    const out = stripComments('const a = 1; /* NEUTRAL_BRAND_DEFAULTS */ const b = 2;');
+    expect(out).not.toContain('NEUTRAL_BRAND_DEFAULTS');
+    expect(out).toContain('const a = 1;');
+    expect(out).toContain('const b = 2;');
+  });
+
+  it('strips an SFC/HTML comment', () => {
+    const out = stripComments('<!-- Onetime Secret --><div id="logo" />');
+    expect(out).not.toContain('Onetime Secret');
+    expect(out).toContain('<div id="logo" />');
+  });
+
+  it('preserves a `://` URL literal (the // is not a comment)', () => {
+    const out = stripComments("const u = 'https://cdn.example.com/logo.png';");
+    expect(out).toContain('https://cdn.example.com/logo.png');
+  });
+
+  it('strips a trailing line comment without eating a preceding URL', () => {
+    const out = stripComments("const u = 'https://cdn.example.com'; // domain_logo note");
+    expect(out).toContain('https://cdn.example.com');
+    expect(out).not.toContain('domain_logo');
   });
 });
