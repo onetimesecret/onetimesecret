@@ -1299,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "请确认您访问的是 {product_name} 官方网站。不法分子有时会创建与 {product_name} 外观完全相同的虚假网站来窃取您的信息。为避免钓鱼攻击，请在创建新链接前核实域名。",
+    "text": "请始终确认您访问的是 {product_name} 官方网站。诈骗者有时会创建与 {product_name} 完全相同的虚假网站，以窃取您的机密内容。为避免网络钓鱼攻击，请在创建新链接前核对区域域名。",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1383,5 +1383,110 @@
     "text": "升级以解锁更多功能",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "需要身份验证"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "此操作在仅 SSO 模式下不可用"
+  },
+  "web.COMMON.configure": {
+    "text": "配置"
+  },
+  "web.COMMON.copy_to_clipboard": {
+    "text": "复制"
+  },
+  "web.COMMON.add": {
+    "text": "添加"
+  },
+  "web.COMMON.enabled": {
+    "text": "已启用"
+  },
+  "web.COMMON.disabled": {
+    "text": "已禁用"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "是的，删除"
+  },
+  "web.COMMON.error_code": {
+    "text": "错误代码"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTP 状态"
+  },
+  "web.COMMON.details": {
+    "text": "详细信息"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "确认密码"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "密码必须匹配"
+  },
+  "web.COMMON.and": {
+    "text": "和"
+  },
+  "web.COMMON.or": {
+    "text": "或"
+  },
+  "web.COMMON.copied": {
+    "text": "已复制"
+  },
+  "web.COMMON.copy": {
+    "text": "复制"
+  },
+  "web.COMMON.copy_email": {
+    "text": "复制邮箱地址"
+  },
+  "web.COMMON.copy_id": {
+    "text": "复制账户 ID"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "您组织的唯一标识符"
+  },
+  "web.COMMON.success": {
+    "text": "成功"
+  },
+  "web.COMMON.need_help": {
+    "text": "需要帮助"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "打开帮助对话框"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "焦点现在位于主文本区域"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "显示口令"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "隐藏口令"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "复制图标"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "已复制图标"
+  },
+  "web.STATUS.unverified": {
+    "text": "未验证"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "域名设置"
+  },
+  "web.TITLES.domain_signin": {
+    "text": "登录配置"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "域名 SSO"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "域名注册验证"
+  },
+  "web.TITLES.domain_email": {
+    "text": "邮件配置"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "接收的内容"
   }
 }

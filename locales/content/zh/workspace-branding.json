@@ -178,5 +178,11 @@
   "web.branding.upgrade_to_customize": {
     "text": "升级方案以自定义此域名的品牌。",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "品牌设置已成功保存"
+  },
+  "web.branding.keyhole_logo_icon": {
+    "text": "代表安全私密分享的钥匙孔图标"
   }
 }

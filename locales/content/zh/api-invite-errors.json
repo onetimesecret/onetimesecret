@@ -1,0 +1,23 @@
+{
+  "api.invite.errors.invitation_not_found_or_expired": {
+    "text": "邀请未找到或已过期"
+  },
+  "api.invite.errors.token_required": {
+    "text": "需要令牌"
+  },
+  "api.invite.errors.organization_no_longer_exists": {
+    "text": "组织已不存在"
+  },
+  "api.invite.errors.invitation_already_processed": {
+    "text": "邀请已被%{status}"
+  },
+  "api.invite.errors.invitation_expired": {
+    "text": "邀请已过期"
+  },
+  "api.invite.errors.email_mismatch": {
+    "text": "您的邮箱地址与邀请不匹配"
+  },
+  "api.invite.errors.already_member": {
+    "text": "您已是该组织的成员"
+  }
+}
