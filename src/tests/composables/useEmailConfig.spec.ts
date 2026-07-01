@@ -1115,6 +1115,17 @@ describe('buildDomainEmailDefaults', () => {
     expect(buildDomainEmailDefaults('acme.example', '').fromName).toBe('acme.example');
   });
 
+  it('treats a whitespace-only sender name as empty and falls back to the domain', () => {
+    // Regression: without trimming before the fallback, "   " survives as the
+    // from_name and is later trimmed to '' by createDefaultFormState, blanking
+    // the pre-filled name even though a domain is present.
+    expect(buildDomainEmailDefaults('acme.example', '   ').fromName).toBe('acme.example');
+  });
+
+  it('trims surrounding whitespace from a real sender name', () => {
+    expect(buildDomainEmailDefaults('acme.example', '  Acme Inc  ').fromName).toBe('Acme Inc');
+  });
+
   it('leaves the address blank when the domain is unknown', () => {
     // No domain → nothing to anchor `no-reply@` to; a bare local part is not a
     // valid sender address, so the form stays (correctly) unsaveable.

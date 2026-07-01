@@ -74,17 +74,22 @@ const FROM_NAME_MAX_LENGTH = 100;
  *   absent the address is left blank — there is nothing to anchor `no-reply@`
  *   to, and a bare local part is not a valid sender address.
  * @param senderName - Preferred display name (e.g. the organization name);
- *   falls back to the domain, then to empty. Capped at 100 chars to match the
- *   from_name input's maxlength and the server-side limit.
+ *   falls back to the domain, then to empty. A whitespace-only name counts as
+ *   empty (it is free-text user input) so the fallback still applies. Capped at
+ *   100 chars to match the from_name input's maxlength and the server-side limit.
  */
 export function buildDomainEmailDefaults(
   displayDomain?: string,
   senderName?: string
 ): EmailConfigDefaults {
   const domain = displayDomain ?? '';
+  // Trim before the fallback: a whitespace-only sender name would otherwise be
+  // truthy here, survive as the from_name, and then get trimmed away by
+  // createDefaultFormState — leaving a blank name even when a domain is present.
+  const name = senderName?.trim() || domain;
   return {
     fromAddress: domain ? `${NO_REPLY_LOCAL_PART}@${domain}` : '',
-    fromName: (senderName || domain).slice(0, FROM_NAME_MAX_LENGTH),
+    fromName: name.slice(0, FROM_NAME_MAX_LENGTH),
   };
 }
 
