@@ -58,5 +58,14 @@
   "web.feedback.reason_email_change_unauthorized": {
     "text": "Ŝajnas, ke vi raportas neaŭtorizitan retpoŝtan ŝanĝon en via konto. Bonvolu priskribi kio okazis kaj ni esploros tuj.",
     "source_hash": "00e56551"
+  },
+  "web.feedback.anonymous_no_reply": {
+    "text": "Noto: se vi ŝatus respondon, bonvolu subskribi aŭ inkluzivi retpoŝtadreson en la mesaĝo."
+  },
+  "web.feedback.characters_remaining": {
+    "text": "{count} signoj restantaj"
+  },
+  "web.feedback.character_limit_reached": {
+    "text": "Limo de signoj atingita"
   }
 }

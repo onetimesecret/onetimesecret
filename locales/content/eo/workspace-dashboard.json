@@ -22,5 +22,14 @@
   "web.dashboard.fetch_error_description": {
     "text": "Estis problemo ŝargante viajn datumojn. Bonvolu reprovi.",
     "source_hash": "ff0d904e"
+  },
+  "web.teams.create_first_team_title": {
+    "text": "Kreu vian unuan teamon"
+  },
+  "web.teams.create_first_team_description": {
+    "text": "Teamoj ebligas al vi kunlabori kun aliaj en komuna laborspaco."
+  },
+  "web.teams.create_team": {
+    "text": "Krei teamon"
   }
 }

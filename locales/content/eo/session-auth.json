@@ -398,5 +398,32 @@
   },
   "web.auth.verify._guidance.context": {
     "text": "Retpoŝta konfirmfluo post registriĝo"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "SSO-konto"
+  },
+  "web.help.reset_password_link": {
+    "text": "Restarigi pasvorton"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "Unuopa ensaluto estas disponebla por ĉi tiu domajno"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "La organiza administranto povas ŝalti SSO por permesi al teamanoj ensaluti ĉi tie. Kontaktu la administranton por aliro."
+  },
+  "web.login.signin_disabled_heading": {
+    "text": "Ensaluto ne estas disponebla"
+  },
+  "web.login.signin_disabled_message": {
+    "text": "Ensaluto nuntempe ne estas disponebla en ĉi tiu domajno."
+  },
+  "web.login.errors.sso_not_configured": {
+    "text": "Unuopa ensaluto ne estas agordita por ĉi tiu domajno. Bonvolu kontakti vian administranton."
+  },
+  "web.login.errors.invalid_email": {
+    "text": "La retpoŝtadreso de via identeca provizanto estas nevalida. Bonvolu kontakti vian administranton."
+  },
+  "web.login.errors.domain_not_allowed": {
+    "text": "Via retpoŝta domajno ne estas rajtigita por SSO-registriĝo. Bonvolu kontakti vian administranton."
   }
 }

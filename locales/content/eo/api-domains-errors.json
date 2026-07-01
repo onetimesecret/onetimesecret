@@ -1,0 +1,29 @@
+{
+  "api.domains.errors.domain_id_required": {
+    "text": "Domajna ID necesas"
+  },
+  "api.domains.errors.domain_not_found": {
+    "text": "Domajno ne trovita: %{extid}"
+  },
+  "api.domains.errors.organization_not_found": {
+    "text": "Organizo ne trovita por domajno: %{domain}"
+  },
+  "api.domains.errors.incoming_secrets_disabled": {
+    "text": "Envenantaj sekretoj ne estas ebligitaj sur ĉi tiu instanco"
+  },
+  "api.domains.errors.incoming_secrets_entitlement_required": {
+    "text": "Administrado de envenantaj sekretoj postulas la rajtigon incoming_secrets. Bonvolu altniveligi vian planon."
+  },
+  "api.domains.errors.incoming_config_not_found": {
+    "text": "Envenanta agordo ne trovita por domajno: %{extid}"
+  },
+  "api.domains.errors.recipients_max_exceeded": {
+    "text": "Maksimume %{max} ricevantoj permesataj"
+  },
+  "api.domains.errors.recipients_invalid_email": {
+    "text": "Nevalida retpoŝtadreso: %{email}"
+  },
+  "api.domains.errors.recipients_duplicate": {
+    "text": "Duobligitaj retpoŝtadresoj de ricevantoj ne permesataj"
+  }
+}
