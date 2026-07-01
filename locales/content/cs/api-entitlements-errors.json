@@ -1,0 +1,71 @@
+{
+  "api.entitlements.errors.context_unavailable": {
+    "text": "Nelze ověřit oprávnění (kontext organizace není dostupný)"
+  },
+  "api.entitlements.errors.api_access_required": {
+    "text": "Přístup k API vyžaduje přechod na vyšší plán"
+  },
+  "api.entitlements.errors.custom_privacy_defaults_required": {
+    "text": "Vlastní výchozí nastavení soukromí vyžaduje přechod na vyšší plán"
+  },
+  "api.entitlements.errors.extended_default_expiration_required": {
+    "text": "Prodloužené výchozí vypršení vyžaduje přechod na vyšší plán"
+  },
+  "api.entitlements.errors.custom_domains_required": {
+    "text": "Vlastní domény vyžadují přechod na vyšší plán"
+  },
+  "api.entitlements.errors.custom_branding_required": {
+    "text": "Vlastní branding vyžaduje přechod na vyšší plán"
+  },
+  "api.entitlements.errors.homepage_secrets_required": {
+    "text": "Tajemství na domovské stránce vyžadují přechod na vyšší plán"
+  },
+  "api.entitlements.errors.incoming_secrets_required": {
+    "text": "Příchozí tajemství vyžadují přechod na vyšší plán"
+  },
+  "api.entitlements.errors.custom_mail_sender_required": {
+    "text": "Vlastní odesílatel e-mailů vyžaduje přechod na vyšší plán"
+  },
+  "api.entitlements.errors.flexible_from_domain_required": {
+    "text": "Flexibilní doména odesílatele vyžaduje přechod na vyšší plán"
+  },
+  "api.entitlements.errors.manage_org_required": {
+    "text": "Správa organizace vyžaduje přechod na vyšší plán"
+  },
+  "api.entitlements.errors.manage_teams_required": {
+    "text": "Správa týmů vyžaduje přechod na vyšší plán"
+  },
+  "api.entitlements.errors.manage_members_required": {
+    "text": "Správa členů vyžaduje přechod na vyšší plán"
+  },
+  "api.entitlements.errors.manage_sso_required": {
+    "text": "Správa SSO vyžaduje přechod na vyšší plán"
+  },
+  "api.entitlements.errors.audit_logs_required": {
+    "text": "Protokoly auditu vyžadují přechod na vyšší plán"
+  },
+  "api.entitlements.errors.custom_signup_validation_required": {
+    "text": "Vlastní ověření registrace vyžaduje přechod na vyšší plán"
+  },
+  "api.entitlements.errors.create_secrets_required": {
+    "text": "Vytváření tajemství vyžaduje přechod na vyšší plán"
+  },
+  "api.entitlements.errors.view_receipt_required": {
+    "text": "Zobrazení potvrzení vyžaduje přechod na vyšší plán"
+  },
+  "api.entitlements.errors.notifications_required": {
+    "text": "Oznámení vyžadují přechod na vyšší plán"
+  },
+  "api.entitlements.errors.workspace_branding_required": {
+    "text": "Branding pracovního prostoru vyžaduje přechod na vyšší plán"
+  },
+  "api.entitlements.errors.ip_access_rules_required": {
+    "text": "Pravidla přístupu podle IP vyžadují přechod na vyšší plán"
+  },
+  "api.entitlements.errors.manage_billing_required": {
+    "text": "Správa fakturace vyžaduje přechod na vyšší plán"
+  },
+  "api.entitlements.errors.custom_signin_config_required": {
+    "text": "Vlastní konfigurace přihlášení vyžaduje přechod na vyšší plán"
+  }
+}

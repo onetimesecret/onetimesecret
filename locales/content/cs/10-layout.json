@@ -148,7 +148,7 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Zobrazujete zabezpečenou zprávu, která s tebou byla sdílena prostřednictvím {product_name}. Tento obsah se zobrazí pouze jednou a poté je trvale smazán z našich serverů.",
+    "text": "Prohlížíš si zabezpečenou zprávu, která ti byla sdílena prostřednictvím {product_name}. Tento obsah se zobrazí pouze jednou a poté je trvale smazán z našich serverů.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -264,7 +264,7 @@
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Navštívit domovskou stránku {product_name}",
+    "text": "Přejít na domovskou stránku {product_name}",
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {
@@ -338,5 +338,11 @@
   "web.layout.workspace_context": {
     "text": "Kontext pracovního prostoru",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Pracovní prostor"
+  },
+  "web.help.default_content": {
+    "text": "Pro pomoc kontaktujte podporu"
   }
 }
