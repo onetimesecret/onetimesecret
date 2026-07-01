@@ -504,11 +504,11 @@
     "source_hash": "8e37953d"
   },
   "web.domains.email.dns_optional_label": {
-    "text": "Recommended",
+    "text": "Recomendado",
     "source_hash": "d70604e8"
   },
   "web.domains.email.dns_optional_hint": {
-    "text": "This record is recommended but not required for verification. A DMARC policy at your organizational domain may already cover this subdomain.",
+    "text": "Este registro es recomendado pero no obligatorio para la verificación. Una política DMARC en tu dominio organizacional ya podría cubrir este subdominio.",
     "source_hash": "58e1a12b"
   },
   "web.domains.email.copy": {
@@ -1022,7 +1022,7 @@
     "text": "WebAuthn / claves de acceso"
   },
   "web.domains.signin.method_sso": {
-    "text": "Single Sign-On"
+    "text": "Inicio de sesión único (SSO)"
   },
   "web.domains.signin.method_overrides_label": {
     "text": "Anulaciones de método"
@@ -1094,7 +1094,7 @@
     "text": "Permitir la autenticación por correo electrónico sin contraseña en este dominio"
   },
   "web.domains.signin.sso_enabled_label": {
-    "text": "Single Sign-On"
+    "text": "Inicio de sesión único (SSO)"
   },
   "web.domains.signin.sso_enabled_hint": {
     "text": "Permitir la autenticación SSO en este dominio"
