@@ -51,6 +51,16 @@ RSpec.describe Onetime::Config do
         expect(normalized({ 'brand' => {} }, 'BRAND_BUTTON_TEXT_LIGHT' => 'false')['button_text_light']).to be(false)
       end
 
+      it 'strips surrounding whitespace before the explicit-false comparison' do
+        # ' false ' must still disable it — the comparison strips first, matching
+        # every other field. Without stripping this silently returned true.
+        expect(normalized({ 'brand' => {} }, 'BRAND_BUTTON_TEXT_LIGHT' => '  false  ')['button_text_light']).to be(false)
+      end
+
+      it 'is nil for a whitespace-only env value' do
+        expect(normalized({ 'brand' => {} }, 'BRAND_BUTTON_TEXT_LIGHT' => '   ')['button_text_light']).to be_nil
+      end
+
       it 'is true for any other set value' do
         expect(normalized({ 'brand' => {} }, 'BRAND_BUTTON_TEXT_LIGHT' => 'true')['button_text_light']).to be(true)
         expect(normalized({ 'brand' => {} }, 'BRAND_BUTTON_TEXT_LIGHT' => 'light')['button_text_light']).to be(true)

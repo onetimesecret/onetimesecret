@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'date' # ensure Date/Time constants resolve for permitted_classes
+require 'json' # String#to_json for YAML-safe BRAND_* interpolation (see brand block)
 require_relative 'utils/config_resolver'
 require_relative 'utils/enumerables'
 
@@ -540,7 +541,7 @@ module Onetime
       elsif raw.strip.empty?
         nil
       else
-        raw != 'false'
+        raw.strip != 'false'
       end
     end
 

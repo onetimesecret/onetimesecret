@@ -414,31 +414,32 @@ site:
       # than depth: 0; the master switch falls back to REMOTE_ADDR.
       depth: <%= ENV['TRUSTED_PROXY_DEPTH']&.to_i || 1 %>
 
-# Brand block. These pass the BRAND_* env vars through verbatim; the
-# authoritative parsing (empty -> nil, quote/escape safety, boolean coercion)
-# lives in Onetime::Config#normalize_brand, which re-reads the env vars in Ruby
-# during after_load. Plain interpolation here is deliberate: a value containing
-# YAML-significant characters (most notably the leading '#' in primary_color
-# hex) would mis-parse from this layer, but normalize_brand overrides any
-# env-set field, so the parsed YAML value is only a fallback for operators who
-# set brand keys directly in YAML without an env var.
+# Brand block. Each BRAND_* env var is interpolated as a JSON-quoted scalar
+# (`&.to_json`) so the value survives the YAML layer intact. Without quoting, an
+# operator value with YAML-significant characters — a leading '#' (hex color),
+# a leading '&'/'*'/'!', an embedded ': ' or a newline — is silently dropped to
+# nil or, worse, aborts the whole document at parse time (boot failure) before
+# Ruby ever sees it. An unset var interpolates to nothing, which YAML reads as
+# nil. Onetime::Config#normalize_brand (run in after_load) stays the authority:
+# it re-reads the env vars, trims blanks to nil, and coerces button_text_light
+# to a real boolean; an env-set field always wins over a YAML-supplied one.
 brand:
-  primary_color: <%= ENV['BRAND_PRIMARY_COLOR'] %>
-  product_name: <%= ENV['BRAND_PRODUCT_NAME'] %>
-  product_domain: <%= ENV['BRAND_PRODUCT_DOMAIN'] %>
-  support_email: <%= ENV['BRAND_SUPPORT_EMAIL'] %>
-  corner_style: <%= ENV['BRAND_CORNER_STYLE'] %>
-  font_family: <%= ENV['BRAND_FONT_FAMILY'] %>
-  button_text_light: <%= ENV['BRAND_BUTTON_TEXT_LIGHT'] %>
-  logo_url: <%= ENV['BRAND_LOGO_URL'] %>
-  favicon_url: <%= ENV['BRAND_FAVICON_URL'] %>
+  primary_color: <%= ENV['BRAND_PRIMARY_COLOR']&.to_json %>
+  product_name: <%= ENV['BRAND_PRODUCT_NAME']&.to_json %>
+  product_domain: <%= ENV['BRAND_PRODUCT_DOMAIN']&.to_json %>
+  support_email: <%= ENV['BRAND_SUPPORT_EMAIL']&.to_json %>
+  corner_style: <%= ENV['BRAND_CORNER_STYLE']&.to_json %>
+  font_family: <%= ENV['BRAND_FONT_FAMILY']&.to_json %>
+  button_text_light: <%= ENV['BRAND_BUTTON_TEXT_LIGHT']&.to_json %>
+  logo_url: <%= ENV['BRAND_LOGO_URL']&.to_json %>
+  favicon_url: <%= ENV['BRAND_FAVICON_URL']&.to_json %>
   # URL overrides for the mobile/social variety pack served in the HTML head.
   # When unset, neutral bundled defaults (public/web) are used; replacing the
   # files via the brand directory is the alternative to these URL overrides.
-  apple_touch_icon_url: <%= ENV['BRAND_APPLE_TOUCH_ICON_URL'] %>
-  og_image_url: <%= ENV['BRAND_OG_IMAGE_URL'] %>
-  totp_issuer: <%= ENV['BRAND_TOTP_ISSUER'] %>
-  signature_name: <%= ENV['BRAND_SIGNATURE_NAME'] %>
+  apple_touch_icon_url: <%= ENV['BRAND_APPLE_TOUCH_ICON_URL']&.to_json %>
+  og_image_url: <%= ENV['BRAND_OG_IMAGE_URL']&.to_json %>
+  totp_issuer: <%= ENV['BRAND_TOTP_ISSUER']&.to_json %>
+  signature_name: <%= ENV['BRAND_SIGNATURE_NAME']&.to_json %>
 
 features:
   regions:

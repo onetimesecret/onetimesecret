@@ -111,6 +111,39 @@ RSpec.describe Onetime::Config do
         expect { described_class.load(invalid_erb_path) }.to raise_error(OT::ConfigError)
       end
     end
+
+    context 'when a BRAND_* value contains YAML-significant characters' do
+      # Regression: the brand block interpolates each BRAND_* var as a
+      # JSON-quoted scalar (`&.to_json`), so an operator value like "& Co: *x"
+      # parses cleanly instead of aborting the whole document the way a bare
+      # `site: *undefined_alias` does above. See the brand block in
+      # etc/defaults/config.defaults.yaml.
+      let(:brand_config_path) { File.join(temp_dir, 'brand.yaml') }
+      let(:brand_yaml) do
+        <<~YAML
+          ---
+          brand:
+            product_name: <%= ENV['BRAND_PRODUCT_NAME']&.to_json %>
+        YAML
+      end
+
+      around do |example|
+        original = ENV.fetch('BRAND_PRODUCT_NAME', nil)
+        example.run
+      ensure
+        original.nil? ? ENV.delete('BRAND_PRODUCT_NAME') : (ENV['BRAND_PRODUCT_NAME'] = original)
+      end
+
+      before { File.write(brand_config_path, brand_yaml) }
+
+      it 'parses instead of aborting the document' do
+        ENV['BRAND_PRODUCT_NAME'] = '& Co: "special" *value'
+
+        expect { described_class.load(brand_config_path) }.not_to raise_error
+        config = described_class.load(brand_config_path)
+        expect(config.dig('brand', 'product_name')).to eq('& Co: "special" *value')
+      end
+    end
   end
 
   describe '.path' do
