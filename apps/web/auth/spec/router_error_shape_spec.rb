@@ -280,8 +280,8 @@ RSpec.describe 'Auth Router ADR-013 error shape' do
       sink  = captured
       lambda do |env|
         status, headers, body = inner.call(env)
-        sink[:otto_error_type] = env['otto.error_type']
-        sink[:request_id]      = env['HTTP_X_REQUEST_ID']
+        sink[:otto_error_type] = env[Onetime::Application::ErrorCorrelation::ENV_ERROR_TYPE]
+        sink[:request_id]      = env[Onetime::Application::ErrorCorrelation::ENV_REQUEST_ID]
         [status, headers, body]
       end
     end
