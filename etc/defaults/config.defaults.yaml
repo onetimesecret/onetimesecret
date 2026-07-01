@@ -414,23 +414,31 @@ site:
       # than depth: 0; the master switch falls back to REMOTE_ADDR.
       depth: <%= ENV['TRUSTED_PROXY_DEPTH']&.to_i || 1 %>
 
+# Brand block. These pass the BRAND_* env vars through verbatim; the
+# authoritative parsing (empty -> nil, quote/escape safety, boolean coercion)
+# lives in Onetime::Config#normalize_brand, which re-reads the env vars in Ruby
+# during after_load. Plain interpolation here is deliberate: a value containing
+# YAML-significant characters (most notably the leading '#' in primary_color
+# hex) would mis-parse from this layer, but normalize_brand overrides any
+# env-set field, so the parsed YAML value is only a fallback for operators who
+# set brand keys directly in YAML without an env var.
 brand:
-  primary_color: <%= ENV['BRAND_PRIMARY_COLOR'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_PRIMARY_COLOR'].gsub("'", "''")}'} %>
-  product_name: <%= ENV['BRAND_PRODUCT_NAME'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_PRODUCT_NAME'].gsub("'", "''")}'} %>
-  product_domain: <%= ENV['BRAND_PRODUCT_DOMAIN'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_PRODUCT_DOMAIN'].gsub("'", "''")}'} %>
-  support_email: <%= ENV['BRAND_SUPPORT_EMAIL'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_SUPPORT_EMAIL'].gsub("'", "''")}'} %>
-  corner_style: <%= ENV['BRAND_CORNER_STYLE'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_CORNER_STYLE'].gsub("'", "''")}'} %>
-  font_family: <%= ENV['BRAND_FONT_FAMILY'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_FONT_FAMILY'].gsub("'", "''")}'} %>
-  button_text_light: <%= ENV['BRAND_BUTTON_TEXT_LIGHT'].to_s.empty? ? 'null' : ENV['BRAND_BUTTON_TEXT_LIGHT'] != 'false' %>
-  logo_url: <%= ENV['BRAND_LOGO_URL'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_LOGO_URL'].gsub("'", "''")}'} %>
-  favicon_url: <%= ENV['BRAND_FAVICON_URL'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_FAVICON_URL'].gsub("'", "''")}'} %>
+  primary_color: <%= ENV['BRAND_PRIMARY_COLOR'] %>
+  product_name: <%= ENV['BRAND_PRODUCT_NAME'] %>
+  product_domain: <%= ENV['BRAND_PRODUCT_DOMAIN'] %>
+  support_email: <%= ENV['BRAND_SUPPORT_EMAIL'] %>
+  corner_style: <%= ENV['BRAND_CORNER_STYLE'] %>
+  font_family: <%= ENV['BRAND_FONT_FAMILY'] %>
+  button_text_light: <%= ENV['BRAND_BUTTON_TEXT_LIGHT'] %>
+  logo_url: <%= ENV['BRAND_LOGO_URL'] %>
+  favicon_url: <%= ENV['BRAND_FAVICON_URL'] %>
   # URL overrides for the mobile/social variety pack served in the HTML head.
   # When unset, neutral bundled defaults (public/web) are used; replacing the
   # files via the brand directory is the alternative to these URL overrides.
-  apple_touch_icon_url: <%= ENV['BRAND_APPLE_TOUCH_ICON_URL'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_APPLE_TOUCH_ICON_URL'].gsub("'", "''")}'} %>
-  og_image_url: <%= ENV['BRAND_OG_IMAGE_URL'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_OG_IMAGE_URL'].gsub("'", "''")}'} %>
-  totp_issuer: <%= ENV['BRAND_TOTP_ISSUER'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_TOTP_ISSUER'].gsub("'", "''")}'} %>
-  signature_name: <%= ENV['BRAND_SIGNATURE_NAME'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_SIGNATURE_NAME'].gsub("'", "''")}'} %>
+  apple_touch_icon_url: <%= ENV['BRAND_APPLE_TOUCH_ICON_URL'] %>
+  og_image_url: <%= ENV['BRAND_OG_IMAGE_URL'] %>
+  totp_issuer: <%= ENV['BRAND_TOTP_ISSUER'] %>
+  signature_name: <%= ENV['BRAND_SIGNATURE_NAME'] %>
 
 features:
   regions:
