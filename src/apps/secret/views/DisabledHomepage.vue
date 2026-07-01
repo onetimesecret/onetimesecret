@@ -51,12 +51,7 @@
     of each variant). The disabled-homepage routes hide the layout
     masthead so this area is genuinely free.
   -->
-  <!--
-    Super-light-grey surface (light mode only) so a variant's white sign-in
-    CTA reads as a raised control. Scoped to the gated homepage — not app-wide;
-    dark mode is left untouched.
-  -->
-  <div class="flex w-full flex-1 flex-col bg-gray-50 dark:bg-transparent">
+  <div class="flex w-full flex-1 flex-col">
     <component
       :is="ActiveVariant"
       v-bind="props" />

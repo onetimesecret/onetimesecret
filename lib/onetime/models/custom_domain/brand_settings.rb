@@ -47,16 +47,23 @@ module Onetime
       # views, and initializers.
       #
       # All values default to nil per #3049 (no OTS branding leaks into shipped
-      # defaults). Operators set BRAND_SUPPORT_EMAIL / BRAND_LOGO_URL /
-      # BRAND_TOTP_ISSUER to populate. 'OTS' is acceptable as a neutral
-      # abbreviation per the issue body.
+      # defaults) — including product_name. Operators set BRAND_PRODUCT_NAME /
+      # BRAND_SUPPORT_EMAIL / BRAND_LOGO_URL to populate; an unconfigured
+      # install falls through to each consumer's own neutral default
+      # (frontend: NEUTRAL_BRAND_DEFAULTS.product_name = 'My App'; mail/page
+      # title: the legacy site.interface.ui.header.branding.site_name value).
+      #
+      # totp_issuer is the one deliberate exception, kept as 'OTS' rather
+      # than nil: it's baked into already-provisioned authenticator-app
+      # entries (otpauth:// issuer label, see mfa.rb / totp.rb), so changing
+      # the unconfigured default risks confusing existing MFA enrollments.
       # signature_name defaults to nil: when unset, the email sign-off falls
       # through to the neutral i18n default (email.*.signature, "Support Team")
       # rather than a hardcoded person's name. Operators set
       # BRAND_SIGNATURE_NAME to sign mail with their own name or team.
       GLOBAL_DEFAULTS = {
         support_email: nil,
-        product_name: 'OTS',
+        product_name: nil,
         totp_issuer: 'OTS',
         logo_url: nil,
         favicon_url: nil,

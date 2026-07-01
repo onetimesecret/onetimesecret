@@ -89,12 +89,30 @@ with_brand_conf({ 'product_name' => 'Acme Vault' }) do
 end
 #=> 'vault.acme.test'
 
-## page_title falls through to GLOBAL_DEFAULTS[:product_name] when brand absent
+# GLOBAL_DEFAULTS[:product_name] is nil per #3049, so this exercises the
+# shipped config.defaults.yaml site.interface.ui.header.branding.site_name
+# default rather than a brand-layer value.
+## page_title falls through to the legacy site_name when brand absent
 with_brand_conf(nil) do
   vars = @host.initialize_view_vars(Rack::Request.new(build_env))
   vars['page_title']
 end
-#=> 'OTS'
+#=> 'One-Time Secret'
+
+## page_title falls through to GLOBAL_DEFAULTS[:product_name] (nil) when brand and legacy site_name are both absent
+with_brand_conf(nil) do
+  saved = YAML.load(YAML.dump(OT.conf))
+  begin
+    conf_copy = YAML.load(YAML.dump(OT.conf))
+    conf_copy.dig('site', 'interface', 'ui', 'header', 'branding')&.delete('site_name')
+    OT.send(:conf=, conf_copy)
+    vars = @host.initialize_view_vars(Rack::Request.new(build_env))
+    vars['page_title']
+  ensure
+    OT.send(:conf=, saved) rescue nil
+  end
+end
+#=> nil
 
 ## [regression guard] page_title NEVER returns hardcoded 'Onetime Secret' when brand absent
 with_brand_conf(nil) do
@@ -103,9 +121,9 @@ with_brand_conf(nil) do
 end
 #=> true
 
-## [regression guard] GLOBAL_DEFAULTS[:product_name] is 'OTS', not 'Onetime Secret'
+## [regression guard] GLOBAL_DEFAULTS[:product_name] is nil, not 'OTS' or 'Onetime Secret'
 Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:product_name]
-#=> 'OTS'
+#=> nil
 
 # ============================================================================
 # 9 brand_* / brand-adjacent view var keys exist
@@ -135,9 +153,16 @@ vars = @host.initialize_view_vars(Rack::Request.new(build_env))
 vars.key?('brand_product_name')
 #=> true
 
-## brand_product_name is a String
+## brand_product_name is nil when unset — frontend NEUTRAL_BRAND_DEFAULTS owns the default (#3049)
 vars = @host.initialize_view_vars(Rack::Request.new(build_env))
-vars['brand_product_name'].is_a?(String)
+vars['brand_product_name']
+#=> nil
+
+## brand_product_name is a String once BRAND_PRODUCT_NAME / brand.product_name is configured
+with_brand_conf({ 'product_name' => 'Acme Vault' }) do
+  vars = @host.initialize_view_vars(Rack::Request.new(build_env))
+  vars['brand_product_name'].is_a?(String)
+end
 #=> true
 
 ## initialize_view_vars exposes 'brand_corner_style'

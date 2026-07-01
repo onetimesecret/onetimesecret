@@ -207,6 +207,10 @@
     "text": "Brand logo",
     "content_hash": "e458e2b5"
   },
+  "web.layout.colonels_only_badge": {
+    "text": "Colonels Only",
+    "content_hash": "3f1e2dbd"
+  },
   "web.layout.dashboard_navigation": {
     "text": "Dashboard Navigation",
     "content_hash": "da5c1c43"
