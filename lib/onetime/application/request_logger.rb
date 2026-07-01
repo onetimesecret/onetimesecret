@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative 'error_correlation'
+
 module Onetime
   module Application
     class RequestLogger
@@ -91,15 +93,16 @@ module Onetime
           payload[:headers] = request.env.select { |k, _| k.start_with?('HTTP_') }
         end
 
-        # Error classification stashed by the Otto error handlers
-        # (OttoHooks#with_error_correlation). Recorded regardless of capture
-        # mode because it only appears on error responses and is high-signal:
-        # the same line names *what* failed (e.g. RecordNotFound). The
-        # correlation id must ride the same line, so on error responses pull in
-        # request_id even under :minimal capture (which normally omits it) —
-        # otherwise the id the client received in the x-request-id header and
-        # the JSON error body would have nothing to grep against here.
-        if (error_type = request.env['otto.error_type'])
+        # Error classification stashed by the typed-error edges via
+        # Onetime::Application::ErrorCorrelation (the Otto apps and the Roda
+        # /auth surface). Recorded regardless of capture mode because it only
+        # appears on error responses and is high-signal: the same line names
+        # *what* failed (e.g. RecordNotFound). The correlation id must ride the
+        # same line, so on error responses pull in request_id even under
+        # :minimal capture (which normally omits it) — otherwise the id the
+        # client received in the x-request-id header and the JSON error body
+        # would have nothing to grep against here.
+        if (error_type = request.env[ErrorCorrelation::ENV_ERROR_TYPE])
           payload[:error_type]   = error_type
           payload[:request_id] ||= request.env['HTTP_X_REQUEST_ID']
         end
