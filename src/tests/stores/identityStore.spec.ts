@@ -18,7 +18,7 @@ import {
 } from 'vitest';
 import { nextTick } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
-import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
+import { DEFAULT_LOGO_COMPONENT, NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
@@ -475,5 +475,64 @@ describe('identityStore showPlatformIdentity', () => {
     await nextTick();
 
     expect(identity.showPlatformIdentity).toBe(false);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// logoSource — resolved tenant-or-neutral logo image (Phase 4 consolidation)
+//
+// The tenant's uploaded logo when present, else the neutral DefaultLogo
+// component sentinel. Never null or empty (uses ||, so '' is treated as
+// absent), so the masthead can stop reading raw bootstrapStore.domain_logo and
+// route the logo image through the resolver too.
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe('identityStore logoSource', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+  });
+
+  it('returns the tenant logo URL when an uploaded logo is present', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ domain_logo: 'https://cdn.example.com/acme.png' });
+
+    const identity = useProductIdentity();
+
+    expect(identity.logoSource).toBe('https://cdn.example.com/acme.png');
+  });
+
+  it('falls back to the neutral DefaultLogo component when no tenant logo', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ domain_logo: null });
+
+    const identity = useProductIdentity();
+
+    expect(identity.logoSource).toBe(DEFAULT_LOGO_COMPONENT);
+  });
+
+  it('treats an empty-string tenant logo as absent (falls back to the sentinel)', () => {
+    // domain_logo is schema-allowed to be '' and is read as a truthy/falsy
+    // signal elsewhere (e.g. !!domain_logo in router guards). Using `||`, an
+    // empty logo degrades to the neutral sentinel rather than surfacing '' as a
+    // broken logo URL through the masthead's terminal fallback.
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ domain_logo: '' });
+
+    const identity = useProductIdentity();
+
+    expect(identity.logoSource).toBe(DEFAULT_LOGO_COMPONENT);
+  });
+
+  it('reacts to a tenant logo being uploaded', async () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ domain_logo: null });
+
+    const identity = useProductIdentity();
+    expect(identity.logoSource).toBe(DEFAULT_LOGO_COMPONENT);
+
+    bootstrap.$patch({ domain_logo: 'https://cdn.example.com/acme.png' });
+    await nextTick();
+
+    expect(identity.logoSource).toBe('https://cdn.example.com/acme.png');
   });
 });
