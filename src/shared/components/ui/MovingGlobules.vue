@@ -48,8 +48,11 @@ export interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  fromColour: '#655b5f',
-  toColour: '#23b5dd',
+  // Brand-token defaults so the decorative gradient follows the active brand
+  // palette (and stays neutral on private-label deployments) instead of
+  // hardcoding OTS colors. CSS vars resolve inside the inline linear-gradient.
+  fromColour: 'var(--color-brand-400)',
+  toColour: 'var(--color-brand-600)',
   speed: '6s',
   interval: 2000,
   scale: 1,

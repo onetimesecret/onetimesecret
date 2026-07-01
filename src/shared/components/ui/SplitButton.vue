@@ -162,7 +162,7 @@
         borderColor: `${primaryColor}`,
         '--tw-ring-color': ringColorStyle,
         '--tw-ring-opacity': '0.2',
-        '--button-shadow-color': primaryColor || 'rgb(59, 130, 246)',
+        '--button-shadow-color': primaryColor || 'var(--color-brand-500)',
       }"
       :disabled="isMainButtonDisabled"
       :aria-label="buttonLabel">
@@ -237,7 +237,7 @@ ry="2" />
         borderColor: `${primaryColor}`,
         '--tw-ring-color': ringColorStyle,
         '--tw-ring-opacity': '0.2',
-        '--button-shadow-color': primaryColor || 'rgb(59, 130, 246)',
+        '--button-shadow-color': primaryColor || 'var(--color-brand-500)',
       }"
       @click="handleDropdownToggle"
       data-testid="split-button-dropdown-toggle"

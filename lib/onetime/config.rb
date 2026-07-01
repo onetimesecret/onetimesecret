@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'date' # ensure Date/Time constants resolve for permitted_classes
 require_relative 'utils/config_resolver'
 require_relative 'utils/enumerables'
 
@@ -271,13 +272,34 @@ module Onetime
       parsed_template = ERB.new(File.read(path))
       # Use safe_load so a malicious config file cannot instantiate arbitrary
       # Ruby objects (!ruby/object). Symbol is permitted because config keys
-      # and values use symbols; dates must be quoted (loaded as strings),
-      # consistent with the rest of the codebase's YAML loaders. aliases: true
-      # keeps anchors/aliases working, matching the config validator
-      # (operations/config/validate.rb) so a config that validates also boots.
-      YAML.safe_load(parsed_template.result, permitted_classes: [Symbol], aliases: true) || {}
+      # and values use symbols. Date and Time are permitted so an unquoted
+      # date/time in a deployment's config (e.g. `expires: 2026-01-02`) loads
+      # as a Date/Time instance rather than raising Psych::DisallowedClass and
+      # breaking boot (per issue #3498's recommendation). aliases: true keeps
+      # anchors/aliases working, matching the config validator
+      # (operations/config/validate.rb) so a config that validates also boots;
+      # the validator's permitted_classes are kept in sync with this list.
+      YAML.safe_load(parsed_template.result, permitted_classes: [Symbol, Date, Time], aliases: true) || {}
     end
     private :load_yaml_with_erb
+
+    # Coerce a TTL config value to Integer seconds, failing loud on a date/time.
+    # safe_load permits Date/Time (#3498) so unquoted dates in *other* fields
+    # don't break boot, but a date/time in a numeric TTL field is a quoting
+    # mistake: Date#to_i raises NoMethodError, and Time#to_i silently yields a
+    # ~56yr TTL. Reject both with an actionable error; String/Float still coerce.
+    def coerce_ttl_seconds(value, field)
+      return value if value.is_a?(Integer)
+
+      if value.is_a?(Date) || value.is_a?(Time)
+        raise OT::ConfigError,
+          "#{field} must be a number of seconds, not a date/time (#{value.inspect}); " \
+          'quote the value or use integer seconds'
+      end
+
+      value.to_i
+    end
+    private :coerce_ttl_seconds
 
     # After loading the configuration, this method processes and validates the
     # configuration, setting defaults and ensuring required elements are present.
@@ -354,11 +376,14 @@ module Onetime
         conf['site']['secret_options']['ttl_options'] = ttl_options.map(&:to_i)
       end
 
-      # Coerce to Integer for any non-Integer value, not just String. YAML loads
-      # a bare `604800.0` as Float and ERB returns String when an env var is set;
-      # both must become Integer seconds before reaching spawn_pair (#3299).
-      if !default_ttl.nil? && !default_ttl.is_a?(Integer)
-        conf['site']['secret_options']['default_ttl'] = default_ttl.to_i
+      # Coerce to Integer seconds. YAML loads a bare `604800.0` as Float and ERB
+      # returns String when an env var is set; both must become Integer seconds
+      # before reaching spawn_pair (#3299). safe_load also permits Date/Time
+      # (#3498), so coerce_ttl_seconds rejects a date/time literal here rather
+      # than crashing (Date#to_i) or silently minting a ~56yr TTL (Time#to_i).
+      unless default_ttl.nil?
+        conf['site']['secret_options']['default_ttl'] =
+          coerce_ttl_seconds(default_ttl, 'site.secret_options.default_ttl')
       end
 
       # Confirmed leak path (#3299): features.incoming.default_ttl is set from
@@ -366,8 +391,9 @@ module Onetime
       # that flows uncoerced through recipient_resolver -> create_incoming_secret
       # -> spawn_pair. Normalize it the same way as the site default.
       incoming_ttl = conf.dig('features', 'incoming', 'default_ttl')
-      if !incoming_ttl.nil? && !incoming_ttl.is_a?(Integer)
-        conf['features']['incoming']['default_ttl'] = incoming_ttl.to_i
+      unless incoming_ttl.nil?
+        conf['features']['incoming']['default_ttl'] =
+          coerce_ttl_seconds(incoming_ttl, 'features.incoming.default_ttl')
       end
 
       # Process passphrase configuration

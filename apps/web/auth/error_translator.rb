@@ -23,7 +23,9 @@ module Auth
   #
   # This module is pure: input is an Exception, output is a [status, body_hash]
   # pair. It performs no logging, no i18n resolution, and no IO. The caller is
-  # responsible for any auth-layer logging.
+  # responsible for any auth-layer logging and for request/log correlation
+  # (apps/web/auth/router.rb runs the translated body through the shared
+  # Onetime::Application::ErrorCorrelation, exactly as the Otto hooks do).
   module ErrorTranslator
     # HTTP status codes for typed Onetime exceptions. Lookup is exact-class
     # first, then ancestor walk for subclasses not directly registered.

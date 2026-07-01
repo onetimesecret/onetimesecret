@@ -162,7 +162,7 @@ group :test do
   gem 'bunny-mock', '~> 1.7', require: false  # Mock RabbitMQ for testing
   gem 'climate_control'
   gem 'rack-test', require: false
-  gem 'rspec', git: 'https://github.com/rspec/rspec'
+  gem 'rspec', '4.0.0.beta1'
   gem 'simplecov', require: false
   gem 'simplecov-cobertura', '~> 3.2', require: false # Cobertura XML output for GitHub Code Quality
   gem 'timecop', '~> 0.9'
@@ -170,8 +170,8 @@ group :test do
   gem 'vcr', '~> 6.0'
   gem 'webmock', '~> 3.0'
 
-  # RSpec components
+  # RSpec components, pinned to match the rspec 4.0.0.beta1 release on rubygems.
   %w[rspec-core rspec-expectations rspec-mocks rspec-support].each do |lib|
-    gem lib, git: 'https://github.com/rspec/rspec', glob: "#{lib}/#{lib}.gemspec"
+    gem lib, '4.0.0.beta1'
   end
 end

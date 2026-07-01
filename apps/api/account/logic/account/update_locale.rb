@@ -10,7 +10,12 @@ module AccountAPI::Logic
       def process_params
         OT.ld "[UpdateLocale#process_params] param keys: #{params.keys.sort}"
         @new_locale = params[field_name] # i.e. :locale
-        @old_locale = cust.locale
+        # process_params runs for every request via Onetime::Logic::Base#initialize,
+        # including anonymous (noauth) ones where cust is nil. Anonymous users have
+        # no Customer record, so their "old" locale lives on the session (the same
+        # place perform_update writes it). Guard the cust.locale read to avoid a
+        # NoMethodError on nil cust. (#3516)
+        @old_locale = anonymous_user? ? sess['locale'] : cust.locale
       end
 
       def raise_concerns

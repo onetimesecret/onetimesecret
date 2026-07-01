@@ -3,6 +3,7 @@
 import { createI18nInstance } from '@/i18n';
 import { ApplicationError } from '@/schemas';
 import { type BrandSettings, type ImageProps } from '@/schemas/shapes/v3';
+import { DEFAULT_BUTTON_TEXT_LIGHT } from '@/shared/constants/brand';
 import { useNotificationsStore } from '@/shared/stores';
 import { useBrandStore } from '@/shared/stores/brandStore';
 import { useDomainsStore } from '@/shared/stores/domainsStore';
@@ -147,9 +148,12 @@ export function useBranding(domainId?: string) {
   watch(
     () => primaryColor.value,
     (newColor) => {
-      if (newColor) {
-        brandSettings.value.button_text_light = shouldUseLightText(newColor);
-      }
+      // Recompute on every change, including clears: when the color is removed
+      // (null/empty), fall back to the default so a stale contrast decision from
+      // a previous color doesn't linger.
+      brandSettings.value.button_text_light = newColor
+        ? shouldUseLightText(newColor)
+        : DEFAULT_BUTTON_TEXT_LIGHT;
     }
   );
 

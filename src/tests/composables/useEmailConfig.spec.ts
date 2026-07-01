@@ -210,6 +210,91 @@ describe('useEmailConfig', () => {
   });
 
   // ─────────────────────────────────────────────────────────────────────────
+  // initialize with sender defaults (no-reply@<domain>)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  describe('initialize with sender defaults', () => {
+    it('pre-fills formState with no-reply@<domain> defaults when unconfigured', async () => {
+      mockGetEmailConfig.mockResolvedValue(null);
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize({
+        fromAddress: 'no-reply@acme.example',
+        fromName: 'Acme',
+      });
+
+      expect(composable.formState.value).toEqual({
+        from_name: 'Acme',
+        from_address: 'no-reply@acme.example',
+        reply_to: '',
+        enabled: false,
+      });
+    });
+
+    it('leaves hasUnsavedChanges false right after pre-fill (toggle drives save-ability)', async () => {
+      mockGetEmailConfig.mockResolvedValue(null);
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize({
+        fromAddress: 'no-reply@acme.example',
+        fromName: 'Acme',
+      });
+
+      // Defaults are the saved snapshot, so nothing is "unsaved" yet...
+      expect(composable.hasUnsavedChanges.value).toBe(false);
+
+      // ...flipping the enabled toggle is the only change the operator must make.
+      composable.formState.value = { ...composable.formState.value, enabled: true };
+      expect(composable.hasUnsavedChanges.value).toBe(true);
+    });
+
+    it('ignores defaults when an existing config is present', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize({
+        fromAddress: 'no-reply@acme.example',
+        fromName: 'Acme',
+      });
+
+      expect(composable.formState.value.from_address).toBe('noreply@example.com');
+      expect(composable.formState.value.from_name).toBe('Acme Corp');
+    });
+
+    it('trims blank defaults back to empty strings', async () => {
+      mockGetEmailConfig.mockResolvedValue(null);
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize({ fromAddress: '   ', fromName: '' });
+
+      expect(composable.formState.value.from_address).toBe('');
+      expect(composable.formState.value.from_name).toBe('');
+    });
+
+    it('restores the no-reply defaults after deleteConfig', async () => {
+      // Start configured, then delete: the form should return to the
+      // pre-filled defaults (not blank) so re-enabling stays one click away.
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize({
+        fromAddress: 'no-reply@acme.example',
+        fromName: 'Acme',
+      });
+
+      await composable.deleteConfig();
+
+      expect(composable.formState.value).toEqual({
+        from_name: 'Acme',
+        from_address: 'no-reply@acme.example',
+        reply_to: '',
+        enabled: false,
+      });
+      expect(composable.hasUnsavedChanges.value).toBe(false);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
   // saveConfig
   // ─────────────────────────────────────────────────────────────────────────
 
