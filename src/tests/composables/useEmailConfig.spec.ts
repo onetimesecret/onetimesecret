@@ -10,12 +10,17 @@
 // 7. reply_to always included in payload (bug fix coverage)
 // 8. validateDomain: triggers DNS record verification
 
-import { useEmailConfig } from '@/shared/composables/useEmailConfig';
+import {
+  buildDomainEmailDefaults,
+  NO_REPLY_LOCAL_PART,
+  useEmailConfig,
+} from '@/shared/composables/useEmailConfig';
 import { createPinia, setActivePinia } from 'pinia';
 import { flushPromises } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { CustomDomainEmailConfig } from '@/schemas/shapes/domains/email-config';
+import enWorkspaceDomains from '@locales/content/en/workspace-domains.json';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mock Setup
@@ -1080,5 +1085,75 @@ describe('useEmailConfig', () => {
       const composable = useEmailConfig('dm-ext-123');
       expect(composable.emailConfig.value).toBeNull();
     });
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// buildDomainEmailDefaults — pure default-derivation helper
+//
+// This is the logic that used to live inline in DomainEmail.vue's `emailDefaults`
+// computed (untestable without mounting the whole page). Extracting it makes the
+// no-reply@<domain> / display-name rules directly assertable.
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('buildDomainEmailDefaults', () => {
+  it('pre-fills no-reply@<domain> and prefers the sender name', () => {
+    expect(buildDomainEmailDefaults('acme.example', 'Acme Inc')).toEqual({
+      fromAddress: 'no-reply@acme.example',
+      fromName: 'Acme Inc',
+    });
+  });
+
+  it('falls back to the domain as the display name when no sender name is given', () => {
+    expect(buildDomainEmailDefaults('acme.example')).toEqual({
+      fromAddress: 'no-reply@acme.example',
+      fromName: 'acme.example',
+    });
+  });
+
+  it('falls back to the domain when the sender name is an empty string', () => {
+    expect(buildDomainEmailDefaults('acme.example', '').fromName).toBe('acme.example');
+  });
+
+  it('leaves the address blank when the domain is unknown', () => {
+    // No domain → nothing to anchor `no-reply@` to; a bare local part is not a
+    // valid sender address, so the form stays (correctly) unsaveable.
+    expect(buildDomainEmailDefaults(undefined, 'Acme Inc')).toEqual({
+      fromAddress: '',
+      fromName: 'Acme Inc',
+    });
+  });
+
+  it('returns fully blank defaults when neither domain nor name is known', () => {
+    expect(buildDomainEmailDefaults()).toEqual({ fromAddress: '', fromName: '' });
+  });
+
+  it('caps the display name at 100 characters to match the server-side limit', () => {
+    expect(buildDomainEmailDefaults('acme.example', 'x'.repeat(150)).fromName).toBe(
+      'x'.repeat(100)
+    );
+  });
+
+  it('derives the address local part from NO_REPLY_LOCAL_PART', () => {
+    expect(buildDomainEmailDefaults('acme.example', 'Acme').fromAddress).toBe(
+      `${NO_REPLY_LOCAL_PART}@acme.example`
+    );
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Canonical no-reply local part — single source of truth
+//
+// "no-reply" is expressed twice: as the pre-filled default (NO_REPLY_LOCAL_PART,
+// via buildDomainEmailDefaults) and as the split-input placeholder's i18n text.
+// This test binds the two so a change to one without the other fails CI.
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('no-reply canonical local part', () => {
+  it('the split-input placeholder i18n text matches NO_REPLY_LOCAL_PART', () => {
+    const entry = (enWorkspaceDomains as Record<string, { text: string }>)[
+      'web.domains.email.from_address_local_placeholder'
+    ];
+    expect(entry?.text).toBe(NO_REPLY_LOCAL_PART);
   });
 });

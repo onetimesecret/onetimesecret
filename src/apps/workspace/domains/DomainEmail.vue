@@ -20,7 +20,7 @@ import DomainEmailDnsRecords from '@/apps/workspace/components/domains/DomainEma
 import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
 import { useDomain } from '@/shared/composables/useDomain';
 
-import { useEmailConfig } from '@/shared/composables/useEmailConfig';
+import { useEmailConfig, buildDomainEmailDefaults } from '@/shared/composables/useEmailConfig';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { ENTITLEMENTS } from '@/types/organization';
@@ -61,21 +61,13 @@ const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
 const displayDomain = computed(() => customDomainRecord.value?.display_domain);
 
 /**
- * Sender defaults for a domain that has no saved email config yet. Pre-filling
- * `no-reply@<domain>` and a display name lets the operator enable the custom
- * sender by flipping the toggle and saving — without first having to choose an
- * address. They can still override either field before saving.
+ * Sender defaults for a domain that has no saved email config yet, derived by
+ * the shared `buildDomainEmailDefaults` helper (pre-fills `no-reply@<domain>`
+ * and the organization name). Both fields remain editable before saving.
  */
-const emailDefaults = computed(() => {
-  const domain = displayDomain.value;
-  // from_name is capped at 100 chars server-side; the input's maxlength only
-  // bounds typed values, so truncate the programmatic default to match.
-  const fromName = (organization.value?.display_name || domain || '').slice(0, 100);
-  return {
-    fromAddress: domain ? `no-reply@${domain}` : '',
-    fromName,
-  };
-});
+const emailDefaults = computed(() =>
+  buildDomainEmailDefaults(displayDomain.value, organization.value?.display_name)
+);
 
 // ---------------------------------------------------------------------------
 // Email config composable
