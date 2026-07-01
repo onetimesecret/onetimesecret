@@ -108,7 +108,9 @@ re-skin the committed neutral defaults.
 
 A custom `MARK_*` run still writes to `public/web`/`src/assets/branding` by
 default, which would dirty the protected neutral files. Redirect it with
-`MARK_OUT_PUBLIC_DIR` / `MARK_OUT_SRC_DIR` (paths relative to the repo root):
+`MARK_OUT_PUBLIC_DIR` / `MARK_OUT_SRC_DIR` — each is resolved against the repo
+root when relative, or used as-is when absolute (handy for a throwaway or CI
+directory outside the tree). The generator prints the resolved destination:
 
 ```bash
 MARK_OUT_PUBLIC_DIR=docker/public MARK_OUT_SRC_DIR=/tmp/mark-src \
@@ -119,8 +121,10 @@ MARK_OUT_PUBLIC_DIR=docker/public MARK_OUT_SRC_DIR=/tmp/mark-src \
 
 A **preset** is a named bundle of `MARK_*` overrides — a data file, not a fork
 of the generator — at `scripts/branding/presets/<name>.mjs`. Select one with
-`MARK_PRESET=<name>`; the generator applies its values as env defaults (anything
-you set explicitly still wins), so a single code path produces every pack.
+`--preset <name>` (or the `MARK_PRESET=<name>` env var); the generator applies
+its values as env defaults (anything you set explicitly still wins), so a single
+code path produces every pack. Unknown keys in a preset (e.g. a misspelled
+`MARK_*`) are reported and skipped rather than silently ignored.
 
 `onetimesecret.com` itself (and anyone who wants it) can generate a pack styled
 after the current Onetime Secret logo (`OnetimeSecretIcon.vue` /
@@ -128,7 +132,7 @@ after the current Onetime Secret logo (`OnetimeSecretIcon.vue` /
 colloquially "maruhi", instead of the neutral keyhole. It ships as a preset:
 
 ```bash
-pnpm run gen:favicons:maruhi     # = MARK_PRESET=maruhi … generate-favicons.mjs
+pnpm run gen:favicons:maruhi     # = generate-favicons.mjs --preset maruhi
 ```
 
 This is company branding, not the OSS default. The preset points its output at
@@ -139,9 +143,17 @@ files), so it never touches `public/web/`. `gen:favicons:check` guards only the
 neutral defaults, so a preset can never trip it. Override any value inline, e.g.
 `MARK_PRIMARY_COLOR='#DC4A22' pnpm run gen:favicons:maruhi`.
 
+**Attribution.** The maruhi glyph is derived from
+[EmojiTwo](https://github.com/EmojiTwo/emojitwo) (originally EmojiOne 2.2),
+licensed **CC-BY-4.0**. The preset carries this credit in `MARK_ATTRIBUTION`, so
+every generated SVG (including the committed sources under
+`src/assets/branding/maruhi/`) embeds it as a comment and the attribution
+travels with the redistributed asset.
+
 To add your own pack, drop a `presets/<name>.mjs` that default-exports a
 `{ MARK_*: value }` object (copy `maruhi.mjs` as a template), then run
-`MARK_PRESET=<name> pnpm run gen:favicons`.
+`pnpm run gen:favicons --preset <name>`. A dependency-free test suite covers the
+generator's pure logic — run it with `pnpm run gen:favicons:test`.
 
 Known limitation: the 秘 kanji has fine brush-stroke detail that stops being
 legible below ~24px (a true 16px browser tab favicon renders as a soft white

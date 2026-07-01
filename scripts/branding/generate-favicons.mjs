@@ -44,12 +44,14 @@
 //
 //   - A named bundle: drop the overrides in scripts/branding/presets/<name>.mjs
 //     (default-exporting a plain { MARK_*: value } object) and select it with
-//     MARK_PRESET=<name>. The OTS "maruhi" mark ships as one — see
-//     `pnpm run gen:favicons:maruhi`.
+//     `--preset <name>` (or MARK_PRESET=<name>). The OTS "maruhi" mark ships as
+//     one — see `pnpm run gen:favicons:maruhi`.
 //
 // A custom/preset run writes to public/web + src/assets/branding by default,
 // which would overwrite the committed neutral defaults. Point it elsewhere with
-// MARK_OUT_PUBLIC_DIR / MARK_OUT_SRC_DIR (a preset typically sets these itself).
+// MARK_OUT_PUBLIC_DIR / MARK_OUT_SRC_DIR — each is resolved against the repo root
+// when relative, or used as-is when absolute (handy for a throwaway/CI dir). A
+// preset typically sets these itself.
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -58,32 +60,36 @@ import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import pngToIco from 'png-to-ico';
 
+import { applyPreset } from './preset-loader.mjs';
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, '..', '..');
 
-// A preset is just a named bag of MARK_* overrides (presets/<name>.mjs,
-// default-exporting a plain object). Apply each value as a *default* in
-// process.env BEFORE importing mark.mjs, whose exported constants read env at
-// module-eval time. Precedence: explicit env var > preset > mark.mjs neutral
-// default. One generator serves every pack; a preset carries data, not code.
-async function applyPreset(name) {
-  if (!name) return;
-  let preset;
-  try {
-    ({ default: preset } = await import(`./presets/${name}.mjs`));
-  } catch (err) {
-    console.error(
-      `Unknown branding preset '${name}' (expected scripts/branding/presets/${name}.mjs): ${err.message}`
-    );
-    process.exit(1);
-  }
-  for (const [key, value] of Object.entries(preset)) {
-    if (process.env[key] === undefined) process.env[key] = String(value);
-  }
-  console.log(`Applied branding preset '${name}'.`);
+// A preset is a named bag of MARK_* overrides (presets/<name>.mjs, see
+// preset-loader.mjs). Select it with `--preset <name>` — shell-portable, so it
+// works where inline `MARK_PRESET=… node …` env syntax doesn't (e.g. Windows
+// cmd) — or with the MARK_PRESET env var. Its values are applied to process.env
+// BEFORE importing mark.mjs, whose exported constants read env at module-eval
+// time. Precedence: explicit env var > preset > mark.mjs neutral default.
+function presetFromArgv(argv) {
+  const i = argv.indexOf('--preset');
+  if (i !== -1) return argv[i + 1];
+  return process.env.MARK_PRESET;
 }
 
-await applyPreset(process.env.MARK_PRESET);
+const presetName = presetFromArgv(process.argv.slice(2));
+if (presetName) {
+  try {
+    const { applied, skipped } = await applyPreset(presetName);
+    console.log(`Applied preset '${presetName}' (${applied.length} value(s)).`);
+    if (skipped.length) {
+      console.warn(`  ⚠ ignored unknown preset key(s): ${skipped.join(', ')}`);
+    }
+  } catch (err) {
+    console.error(err.message);
+    process.exit(1);
+  }
+}
 
 // Resolved after the preset, so a preset can target its own output dirs. A
 // custom/preset run must NOT overwrite the committed neutral defaults — redirect

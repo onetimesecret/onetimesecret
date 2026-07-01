@@ -38,6 +38,10 @@ export default {
   MARK_BACKGROUND_COLOR: '#FEFEFE',
   MARK_OG_GRADIENT_DARK: '#7A2410', // a darker shade of the tile colour
   MARK_PRODUCT_NAME: 'Onetime Secret',
+  // Travels into every generated SVG as a comment, so the committed sources
+  // under src/assets/branding/maruhi/ carry their license with them.
+  MARK_ATTRIBUTION:
+    'Maruhi mark derived from EmojiTwo (EmojiOne 2.2), CC-BY-4.0 — https://github.com/EmojiTwo/emojitwo',
   // The square glyph fills more of the canvas than the tall keyhole's defaults.
   MARK_COVERAGE: 0.7,
   MARK_MASK_COVERAGE: 0.82,

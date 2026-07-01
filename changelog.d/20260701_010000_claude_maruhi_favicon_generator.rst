@@ -7,10 +7,14 @@ Added
   parameterized tool. The glyph (``MARK_PATH`` + ``MARK_NATIVE_WIDTH`` /
   ``MARK_NATIVE_HEIGHT``), palette (``MARK_PRIMARY_COLOR``,
   ``MARK_BACKGROUND_COLOR``, ``MARK_OG_GRADIENT_DARK``), manifest name
-  (``MARK_PRODUCT_NAME`` / ``MARK_SHORT_NAME``), and glyph sizing
-  (``MARK_COVERAGE`` and friends) are all overridable without editing the
-  source. Named override bundles live as presets in
-  ``scripts/branding/presets/`` and are selected with ``MARK_PRESET=<name>``.
+  (``MARK_PRODUCT_NAME`` / ``MARK_SHORT_NAME``), glyph sizing (``MARK_COVERAGE``
+  and friends), and an optional license credit (``MARK_ATTRIBUTION``, embedded as
+  an SVG comment) are all overridable without editing the source. Named override
+  bundles live as presets in ``scripts/branding/presets/`` and are selected with
+  ``--preset <name>`` (shell-portable) or the ``MARK_PRESET`` env var. Preset
+  names are validated against path traversal and unknown keys are reported, and a
+  dependency-free test suite (``pnpm run gen:favicons:test``) covers the pure
+  logic.
 
 - Optional Onetime Secret company-brand favicon pack, ``pnpm run
   gen:favicons:maruhi``, ships as the first preset: it renders the "maruhi" mark

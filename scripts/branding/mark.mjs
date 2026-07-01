@@ -64,19 +64,37 @@ const OG_GRADIENT_DARK = process.env.MARK_OG_GRADIENT_DARK || '#1E3A8A';
 const PRODUCT_NAME = process.env.MARK_PRODUCT_NAME || 'My App';
 const SHORT_NAME = process.env.MARK_SHORT_NAME || PRODUCT_NAME;
 
+// Optional licensing/credit line for a swapped-in glyph. When set, it is emitted
+// as an SVG comment in every generated SVG, so attribution travels with the
+// redistributable source (e.g. the CC-BY maruhi mark). Empty by default, so the
+// neutral pack's SVGs are byte-for-byte unchanged. `--` is collapsed because it
+// can't appear inside an XML comment.
+const ATTRIBUTION = (process.env.MARK_ATTRIBUTION || '').replace(/-{2,}/g, '-').trim();
+const svgAttribution = ATTRIBUTION ? `<!-- ${ATTRIBUTION} -->\n` : '';
+
+// Reads a numeric env var, allowing an explicit 0 but falling back to `def` for
+// unset / empty / non-numeric values. (Plain `Number(x) || def` can't represent
+// 0 and silently treats "" as 0.)
+export function numEnv(name, def) {
+  const raw = process.env[name];
+  if (raw === undefined || raw === '') return def;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : def;
+}
+
 // Native bounding box of KEYHOLE_PATH's geometry. Defaults match the keyhole
 // (tall: 512 wide x 1024 high); a swapped-in MARK_PATH with a different native
 // size must override both, or markTransform below will scale/center it as if
 // it were keyhole-shaped.
-export const NATIVE_WIDTH = Number(process.env.MARK_NATIVE_WIDTH) || 512;
-export const NATIVE_HEIGHT = Number(process.env.MARK_NATIVE_HEIGHT) || 1024;
+export const NATIVE_WIDTH = numEnv('MARK_NATIVE_WIDTH', 512);
+export const NATIVE_HEIGHT = numEnv('MARK_NATIVE_HEIGHT', 1024);
 
 // How much of each canvas's height the glyph fills. The keyhole is tall, so its
 // defaults leave generous padding; a squarer glyph usually wants a larger ratio
 // (set these via MARK_COVERAGE / MARK_MASK_COVERAGE / MARK_OG_COVERAGE).
-const COVERAGE = Number(process.env.MARK_COVERAGE) || 0.58;
-const MASK_COVERAGE = Number(process.env.MARK_MASK_COVERAGE) || 0.7;
-const OG_COVERAGE = Number(process.env.MARK_OG_COVERAGE) || 0.78;
+const COVERAGE = numEnv('MARK_COVERAGE', 0.58);
+const MASK_COVERAGE = numEnv('MARK_MASK_COVERAGE', 0.7);
+const OG_COVERAGE = numEnv('MARK_OG_COVERAGE', 0.78);
 
 // Centers the native-size glyph inside a `size`x`size` canvas, scaled so it
 // occupies ~`coverage` of the height, leaving even padding.
@@ -93,7 +111,7 @@ export function markTransform(size, coverage = COVERAGE) {
 export function squareIconSvg(size = 512) {
   const radius = Math.round(size * 0.1875); // ~iOS superellipse-ish corner
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="App icon">
+${svgAttribution}<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="App icon">
   <rect width="${size}" height="${size}" rx="${radius}" ry="${radius}" fill="${PRIMARY_COLOUR}"/>
   <path transform="${markTransform(size)}" fill="${BACKGROUND_COLOUR}" d="${KEYHOLE_PATH}"/>
 </svg>
@@ -104,7 +122,7 @@ export function squareIconSvg(size = 512) {
 // Safari recolors it via the `color` attribute on the <link rel="mask-icon">.
 export function maskIconSvg(size = 512) {
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="App icon (monochrome)">
+${svgAttribution}<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="App icon (monochrome)">
   <path transform="${markTransform(size, MASK_COVERAGE)}" fill="#000000" d="${KEYHOLE_PATH}"/>
 </svg>
 `;
@@ -119,7 +137,7 @@ export function ogImageSvg() {
   const tx = (w - markSize) / 2;
   const ty = (h - markSize) / 2;
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="Social preview">
+${svgAttribution}<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="Social preview">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="${OG_GRADIENT_DARK}"/>
