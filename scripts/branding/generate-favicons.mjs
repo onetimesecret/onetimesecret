@@ -30,6 +30,16 @@
 // This folder is intentionally isolated from the root pnpm workspace so the
 // heavy native `sharp` dependency never enters the application bundle or the
 // project lockfile.
+//
+// CUSTOM PACKS
+// ------------
+// A MARK_*-customized run (see mark.mjs) writes to these same two directories
+// by default, which would overwrite the committed neutral defaults. Redirect
+// a custom run with MARK_OUT_PUBLIC_DIR / MARK_OUT_SRC_DIR (paths relative to
+// the repo root) so it never touches the protected files, e.g.:
+//
+//   MARK_OUT_PUBLIC_DIR=docker/public MARK_OUT_SRC_DIR=/tmp/mark-src \
+//     MARK_PRIMARY_COLOR='#DC4A22' pnpm run gen:favicons
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -42,8 +52,12 @@ import { squareIconSvg, maskIconSvg, ogImageSvg, webmanifest } from './mark.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, '..', '..');
-const PUBLIC_WEB = resolve(REPO_ROOT, 'public', 'web');
-const SRC_BRANDING = resolve(REPO_ROOT, 'src', 'assets', 'branding');
+const PUBLIC_WEB = process.env.MARK_OUT_PUBLIC_DIR
+  ? resolve(REPO_ROOT, process.env.MARK_OUT_PUBLIC_DIR)
+  : resolve(REPO_ROOT, 'public', 'web');
+const SRC_BRANDING = process.env.MARK_OUT_SRC_DIR
+  ? resolve(REPO_ROOT, process.env.MARK_OUT_SRC_DIR)
+  : resolve(REPO_ROOT, 'src', 'assets', 'branding');
 
 function write(path, contents) {
   mkdirSync(dirname(path), { recursive: true });

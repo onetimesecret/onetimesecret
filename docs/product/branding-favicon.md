@@ -103,3 +103,39 @@ Drop the output into `docker/public/` to bake it in (Option B). Generator deps
 `pnpm run gen:favicons:check` (node-only) and fails if the committed text assets
 diverge from `mark.mjs`, so use env overrides to produce *your own* pack, not to
 re-skin the committed neutral defaults.
+
+A custom `MARK_*` run still writes to `public/web`/`src/assets/branding` by
+default, which would dirty the protected neutral files. Redirect it with
+`MARK_OUT_PUBLIC_DIR` / `MARK_OUT_SRC_DIR` (paths relative to the repo root):
+
+```bash
+MARK_OUT_PUBLIC_DIR=docker/public MARK_OUT_SRC_DIR=/tmp/mark-src \
+  MARK_PRIMARY_COLOR='#DC4A22' pnpm run gen:favicons
+```
+
+## The OTS-brand ("maruhi") pack
+
+`onetimesecret.com` itself (and anyone else who wants it) can generate a
+second, separate pack styled after the current Onetime Secret logo
+(`OnetimeSecretIcon.vue` / `onetime-logo-v3`, `#DC4A22` orange + white): the
+circled 秘 ("secret") mark, colloquially "maruhi", instead of the neutral
+keyhole. This is company branding, not the OSS default — it lives in its own
+sibling files (`scripts/branding/maruhi-mark.mjs`,
+`scripts/branding/generate-maruhi-favicons.mjs`) so it can never be produced
+by `pnpm run gen:favicons` or drift-checked by `gen:favicons:check`.
+
+```bash
+pnpm run gen:favicons:maruhi
+```
+
+Writes the full rasterized pack straight to `docker/public/` (already the
+build-time brand-overlay directory — see Option B above; gitignored, never
+committed) and a reviewable source-SVG copy to `src/assets/branding/maruhi/`
+(committed, like the neutral pack's `*-source.svg` files). It never touches
+`public/web/`. Override the palette the same way as the neutral pack, via
+`MARUHI_PRIMARY_COLOR` / `MARUHI_BACKGROUND_COLOR`.
+
+Known limitation: the 秘 kanji has fine brush-stroke detail that stops being
+legible below ~24px (a true 16px browser tab favicon renders as a soft white
+blob on orange, not readable text) — inherent to the glyph, not a generator
+bug. It reads clearly from the 32px `.ico` size up through the social card.

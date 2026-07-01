@@ -14,11 +14,17 @@
 //   pnpm run gen:favicons          # from repo root; installs isolated deps, rasterizes
 //
 // Generate a custom-coloured pack without editing this file, by overriding the
-// three constants below via env vars:
+// constants below via env vars:
 //
 //   MARK_PRIMARY_COLOR='#3B82F6' pnpm run gen:favicons        # re-tint the mark
 //   MARK_BACKGROUND_COLOR='#0B1020' pnpm run gen:favicons     # dark tile/keyhole
 //   MARK_PATH='m...' pnpm run gen:favicons                    # swap the glyph
+//
+// A swapped-in glyph is rarely drawn on the keyhole's own native canvas (512
+// wide x 1024 tall), so pair MARK_PATH with its real dimensions or the
+// transform below will scale/center it as if it were keyhole-shaped:
+//
+//   MARK_NATIVE_WIDTH=64 MARK_NATIVE_HEIGHT=64 MARK_PATH='m...' pnpm run gen:favicons
 //
 // These are deliberately MARK_*-prefixed, NOT the runtime BRAND_* vars: a dev or
 // CI shell often has BRAND_PRIMARY_COLOR set, and reusing it would silently
@@ -41,12 +47,19 @@ export const KEYHOLE_PATH =
 export const PRIMARY_COLOUR = process.env.MARK_PRIMARY_COLOR || '#3B82F6'; // a neutral blue
 export const BACKGROUND_COLOUR = process.env.MARK_BACKGROUND_COLOR || '#FFFFFF';
 
-// Centers the native 512x1024 keyhole inside a `size`x`size` canvas, scaled so
-// the glyph occupies ~`coverage` of the height, leaving even padding.
-export function keyholeTransform(size, coverage = 0.58) {
+// Native bounding box of KEYHOLE_PATH's geometry. Defaults match the keyhole
+// (tall: 512 wide x 1024 high); a swapped-in MARK_PATH with a different native
+// size must override both, or markTransform below will scale/center it as if
+// it were keyhole-shaped.
+export const NATIVE_WIDTH = Number(process.env.MARK_NATIVE_WIDTH) || 512;
+export const NATIVE_HEIGHT = Number(process.env.MARK_NATIVE_HEIGHT) || 1024;
+
+// Centers the native-size glyph inside a `size`x`size` canvas, scaled so it
+// occupies ~`coverage` of the height, leaving even padding.
+export function markTransform(size, coverage = 0.58) {
   const targetHeight = size * coverage;
-  const scale = targetHeight / 1024;
-  const width = 512 * scale;
+  const scale = targetHeight / NATIVE_HEIGHT;
+  const width = NATIVE_WIDTH * scale;
   const tx = (size - width) / 2;
   const ty = (size - targetHeight) / 2;
   return `translate(${tx.toFixed(2)} ${ty.toFixed(2)}) scale(${scale.toFixed(5)})`;
@@ -58,7 +71,7 @@ export function squareIconSvg(size = 512) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="App icon">
   <rect width="${size}" height="${size}" rx="${radius}" ry="${radius}" fill="${PRIMARY_COLOUR}"/>
-  <path transform="${keyholeTransform(size)}" fill="${BACKGROUND_COLOUR}" d="${KEYHOLE_PATH}"/>
+  <path transform="${markTransform(size)}" fill="${BACKGROUND_COLOUR}" d="${KEYHOLE_PATH}"/>
 </svg>
 `;
 }
@@ -68,7 +81,7 @@ export function squareIconSvg(size = 512) {
 export function maskIconSvg(size = 512) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="App icon (monochrome)">
-  <path transform="${keyholeTransform(size, 0.7)}" fill="#000000" d="${KEYHOLE_PATH}"/>
+  <path transform="${markTransform(size, 0.7)}" fill="#000000" d="${KEYHOLE_PATH}"/>
 </svg>
 `;
 }
@@ -91,7 +104,7 @@ export function ogImageSvg() {
   </defs>
   <rect width="${w}" height="${h}" fill="url(#bg)"/>
   <g transform="translate(${tx} ${ty})">
-    <path transform="${keyholeTransform(markSize, 0.78)}" fill="${BACKGROUND_COLOUR}" d="${KEYHOLE_PATH}"/>
+    <path transform="${markTransform(markSize, 0.78)}" fill="${BACKGROUND_COLOUR}" d="${KEYHOLE_PATH}"/>
   </g>
 </svg>
 `;

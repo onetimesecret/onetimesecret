@@ -14,6 +14,7 @@
     "clean": "rimraf public/web/dist",
     "gen:favicons": "npm --prefix scripts/branding install && node scripts/branding/generate-favicons.mjs",
     "gen:favicons:check": "node scripts/branding/check.mjs",
+    "gen:favicons:maruhi": "npm --prefix scripts/branding install && node scripts/branding/generate-maruhi-favicons.mjs",
     "i18n:generate-types": "pnpm run locales:sync && tsx --tsconfig scripts/tsconfig.json scripts/generate-i18n-types.ts",
     "locales:generate": "python3 locales/scripts/i18n content compile --all ",
     "locales:generate:verbose": "python3 locales/scripts/i18n content compile --all -v",
