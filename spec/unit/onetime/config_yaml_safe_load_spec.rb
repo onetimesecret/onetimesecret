@@ -350,6 +350,53 @@ RSpec.describe 'Issue #3498 item 4: YAML safe loading hardening' do
     end
   end
 
+  describe 'Onetime::Config#coerce_ttl_seconds (private) — TTL fields reject Date/Time' do
+    # #3561 review follow-up to #3498: safe_load now permits Date/Time so an
+    # unquoted date in *other* config fields doesn't break boot. But a date/time
+    # in a NUMERIC TTL field is a quoting mistake with a security edge:
+    #   * Date#to_i raises NoMethodError (crash), and
+    #   * Time#to_i silently yields ~56yr (a decades-long secret TTL).
+    # coerce_ttl_seconds converts both into an actionable OT::ConfigError while
+    # leaving legitimate Integer/Float/String values coercing to seconds. This is
+    # the guard after_load routes site.secret_options.default_ttl and
+    # features.incoming.default_ttl through.
+    def coerce(value, field = 'site.secret_options.default_ttl')
+      Onetime::Config.send(:coerce_ttl_seconds, value, field)
+    end
+
+    it 'rejects a bare Date with an actionable OT::ConfigError (not NoMethodError)' do
+      expect {
+        coerce(Date.new(2026, 1, 2))
+      }.to raise_error(OT::ConfigError, /must be a number of seconds/)
+    end
+
+    it 'rejects a bare Time with OT::ConfigError (not a silent ~56yr TTL)' do
+      # The real regression this PR closes: Time#to_i would otherwise succeed
+      # silently and mint a decades-long TTL.
+      expect {
+        coerce(Time.utc(2026, 1, 2, 3, 4, 5))
+      }.to raise_error(OT::ConfigError, /not a date\/time/)
+    end
+
+    it 'names the offending field in the error message' do
+      expect {
+        coerce(Date.new(2026, 1, 2), 'features.incoming.default_ttl')
+      }.to raise_error(OT::ConfigError, /features\.incoming\.default_ttl/)
+    end
+
+    it 'leaves a legitimate Integer TTL untouched' do
+      expect(coerce(604_800)).to eq(604_800)
+    end
+
+    it 'coerces a Float TTL to Integer seconds' do
+      expect(coerce(604_800.0)).to eq(604_800)
+    end
+
+    it 'coerces a numeric String TTL (ERB env-var form) to Integer seconds' do
+      expect(coerce('604800')).to eq(604_800)
+    end
+  end
+
   describe 'YAML.safe_load stdlib sanity check (NOT a production regression test)' do
     # IMPORTANT: this block calls YAML.safe_load DIRECTLY (Ruby stdlib). It does
     # NOT exercise any production code path and therefore CANNOT fail if a

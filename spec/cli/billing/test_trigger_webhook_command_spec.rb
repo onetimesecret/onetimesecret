@@ -29,6 +29,13 @@
 #   apps/web/billing/cli/test_trigger_webhook_command.rb#call  (L42-57)
 
 require_relative '../cli_spec_helper'
+# stripe is `require: false` (Gemfile) and, in this command's own path, is loaded
+# lazily by stripe_configured? (billing/cli/helpers.rb) — which this spec stubs
+# (below). Today the full-app boot still pulls stripe in transitively (billing
+# controllers/models require it), so `allow(Stripe)` resolves; but that's an
+# incidental boot-order dependency. Require it explicitly so the stub target is
+# guaranteed to exist regardless of what else the boot happens to load.
+require 'stripe'
 require_relative '../../../apps/web/billing/cli/test_trigger_webhook_command'
 
 RSpec.describe Onetime::CLI::BillingTestTriggerWebhookCommand, type: :cli do
