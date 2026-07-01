@@ -76,7 +76,10 @@ module Onetime
       end
 
       # @param exception [Exception]
-      # @return [String] the exception's class name without its namespace
+      # @return [String, nil] the exception's class name without its namespace,
+      #   or nil for an anonymous class (Class#name is nil → '' → split.last is
+      #   nil). apply's `env[...] = error_type if error_type` guard drops that
+      #   nil, so no bare/anonymous error_type is ever stashed.
       def short_class_name(exception)
         exception.class.name.to_s.split('::').last
       end

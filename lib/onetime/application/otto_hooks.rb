@@ -184,12 +184,14 @@ module Onetime
 
       # Adapt the Otto request to the shared correlation primitive.
       #
-      # The Otto error-handler blocks above pass their `req` (and the handler
-      # unit specs pass nil); Onetime::Application::ErrorCorrelation works on the
-      # Rack env, so this extracts it — preserving the original nil-/duck-typing
-      # safety — and delegates. The actual "echo request_id into the body, stash
-      # error_type into env" logic, and the rationale for it, live in that shared
-      # module, which the Roda /auth surface calls too.
+      # The Otto error-handler blocks above pass their `req`; the handler unit
+      # specs pass nil, and a defensive non-nil object without #env is possible
+      # too. `req.respond_to?(:env) ? req.env : nil` covers both — a plain
+      # `req&.env` would guard the nil but still NoMethodError on the latter —
+      # then delegates to Onetime::Application::ErrorCorrelation, which works on
+      # the Rack env. The actual "echo request_id into the body, stash
+      # error_type into env" logic, and the rationale for it, live in that
+      # shared module, which the Roda /auth surface calls too.
       #
       # @param body [Hash] The JSON error body the handler is about to return
       # @param req [Rack::Request, Otto::Request, nil] The current request
