@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'yaml'
+require 'date' # ensure Date/Time constants resolve for permitted_classes
 require 'semantic_logger'
 require_relative '../utils/config_resolver'
 require_relative '../utils/enumerables'
@@ -108,16 +109,19 @@ module Onetime
 
         # safe_load prevents a malicious logger config from instantiating
         # arbitrary Ruby objects; Symbol is permitted because log levels and
-        # category keys are symbols. aliases: true keeps YAML anchors working
-        # for shared formatter/appender settings.
+        # category keys are symbols. Date and Time are permitted so an
+        # unquoted date/time in a logging config loads as a Date/Time instance
+        # rather than raising Psych::DisallowedClass and breaking boot (per
+        # issue #3498). aliases: true keeps YAML anchors working for shared
+        # formatter/appender settings.
         base_config = if defaults_file
-          YAML.safe_load(ERB.new(File.read(defaults_file)).result, permitted_classes: [Symbol], aliases: true) || {}
+          YAML.safe_load(ERB.new(File.read(defaults_file)).result, permitted_classes: [Symbol, Date, Time], aliases: true) || {}
         else
           {}
         end
 
         env_config = if override_file && override_file != defaults_file
-          YAML.safe_load(ERB.new(File.read(override_file)).result, permitted_classes: [Symbol], aliases: true) || {}
+          YAML.safe_load(ERB.new(File.read(override_file)).result, permitted_classes: [Symbol, Date, Time], aliases: true) || {}
         else
           {}
         end

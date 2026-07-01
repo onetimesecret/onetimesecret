@@ -79,6 +79,13 @@ module Onetime
         end
         # If @cust is already a Onetime::Customer instance, use it as-is
 
+        # process_params runs on EVERY request and fires here in the
+        # constructor — BEFORE raise_concerns, so no auth/validation gating has
+        # happened yet. On auth=noauth routes cust is nil for anonymous callers
+        # (authenticated-only routes are rejected at the Otto auth layer, so
+        # their cust is always present). Subclasses reachable via noauth routes
+        # must therefore guard cust access in process_params. See #3516.
+        #
         # Won't run if params aren't passed in
         process_params if respond_to?(:process_params) && @params
       end

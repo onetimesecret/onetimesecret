@@ -258,7 +258,8 @@ if [[ -n "$pg_superuser_url" ]] && command -v psql &>/dev/null; then
         echo "OK:   Database '$pg_db' exists"
     else
         # Connect to 'postgres' maintenance DB to create the test DB
-        pg_maintenance_url=$(echo "$pg_superuser_url" | sed -E "s|/[^/]*$|/postgres|")
+        # (URI parsing so query params like ?sslmode=require are preserved)
+        pg_maintenance_url=$(ruby -ruri -e 'uri = URI(ARGV.fetch(0)); uri.path = "/postgres"; puts uri.to_s' "$pg_superuser_url")
         createdb_output=$(psql "$pg_maintenance_url" -c "CREATE DATABASE \"$pg_db\"" 2>&1) || {
             if echo "$createdb_output" | grep -q "already exists"; then
                 echo "OK:   Database '$pg_db' already exists"
