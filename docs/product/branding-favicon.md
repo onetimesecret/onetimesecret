@@ -85,10 +85,12 @@ The pack derives from a single keyhole glyph + neutral palette in
 pnpm run gen:favicons    # installs isolated deps, regenerates the pack
 ```
 
-To generate a **custom-coloured** pack without editing the source, override the
-`PRIMARY_COLOUR`, `BACKGROUND_COLOUR`, and `KEYHOLE_PATH` constants via env vars
-(`MARK_PRIMARY_COLOR`, `MARK_BACKGROUND_COLOR`, `MARK_PATH`) — see the Usage
-block in `scripts/branding/mark.mjs`:
+To generate a **custom** pack without editing the source, override the glyph
+(`MARK_PATH` + its `MARK_NATIVE_WIDTH`/`MARK_NATIVE_HEIGHT`), palette
+(`MARK_PRIMARY_COLOR`, `MARK_BACKGROUND_COLOR`, `MARK_OG_GRADIENT_DARK`),
+manifest name (`MARK_PRODUCT_NAME`, `MARK_SHORT_NAME`), or glyph sizing
+(`MARK_COVERAGE`, `MARK_MASK_COVERAGE`, `MARK_OG_COVERAGE`) via env vars — the
+full list is in the Usage block of `scripts/branding/mark.mjs`:
 
 ```bash
 MARK_PRIMARY_COLOR='#DC4A22' pnpm run gen:favicons
@@ -113,27 +115,33 @@ MARK_OUT_PUBLIC_DIR=docker/public MARK_OUT_SRC_DIR=/tmp/mark-src \
   MARK_PRIMARY_COLOR='#DC4A22' pnpm run gen:favicons
 ```
 
-## The OTS-brand ("maruhi") pack
+## Presets: the OTS-brand ("maruhi") pack
 
-`onetimesecret.com` itself (and anyone else who wants it) can generate a
-second, separate pack styled after the current Onetime Secret logo
-(`OnetimeSecretIcon.vue` / `onetime-logo-v3`, `#DC4A22` orange + white): the
-circled 秘 ("secret") mark, colloquially "maruhi", instead of the neutral
-keyhole. This is company branding, not the OSS default — it lives in its own
-sibling files (`scripts/branding/maruhi-mark.mjs`,
-`scripts/branding/generate-maruhi-favicons.mjs`) so it can never be produced
-by `pnpm run gen:favicons` or drift-checked by `gen:favicons:check`.
+A **preset** is a named bundle of `MARK_*` overrides — a data file, not a fork
+of the generator — at `scripts/branding/presets/<name>.mjs`. Select one with
+`MARK_PRESET=<name>`; the generator applies its values as env defaults (anything
+you set explicitly still wins), so a single code path produces every pack.
+
+`onetimesecret.com` itself (and anyone who wants it) can generate a pack styled
+after the current Onetime Secret logo (`OnetimeSecretIcon.vue` /
+`onetime-logo-v3`, `#DC4A22` orange + white): the circled 秘 ("secret") mark,
+colloquially "maruhi", instead of the neutral keyhole. It ships as a preset:
 
 ```bash
-pnpm run gen:favicons:maruhi
+pnpm run gen:favicons:maruhi     # = MARK_PRESET=maruhi … generate-favicons.mjs
 ```
 
-Writes the full rasterized pack straight to `docker/public/` (already the
-build-time brand-overlay directory — see Option B above; gitignored, never
-committed) and a reviewable source-SVG copy to `src/assets/branding/maruhi/`
-(committed, like the neutral pack's `*-source.svg` files). It never touches
-`public/web/`. Override the palette the same way as the neutral pack, via
-`MARUHI_PRIMARY_COLOR` / `MARUHI_BACKGROUND_COLOR`.
+This is company branding, not the OSS default. The preset points its output at
+`docker/public/` (the build-time brand-overlay directory — see Option B above;
+gitignored, never committed) and a reviewable source-SVG copy at
+`src/assets/branding/maruhi/` (committed, like the neutral pack's `*-source.svg`
+files), so it never touches `public/web/`. `gen:favicons:check` guards only the
+neutral defaults, so a preset can never trip it. Override any value inline, e.g.
+`MARK_PRIMARY_COLOR='#DC4A22' pnpm run gen:favicons:maruhi`.
+
+To add your own pack, drop a `presets/<name>.mjs` that default-exports a
+`{ MARK_*: value }` object (copy `maruhi.mjs` as a template), then run
+`MARK_PRESET=<name> pnpm run gen:favicons`.
 
 Known limitation: the 秘 kanji has fine brush-stroke detail that stops being
 legible below ~24px (a true 16px browser tab favicon renders as a soft white

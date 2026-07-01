@@ -1,6 +1,6 @@
 // scripts/branding/generate-favicons.mjs
 //
-// Neutral favicon + mobile/social variety-pack generator.
+// Favicon + mobile/social variety-pack generator.
 //
 // WHY THIS EXISTS
 // ---------------
@@ -16,10 +16,10 @@
 //
 // SINGLE SOURCE OF TRUTH
 // ----------------------
-// The mark geometry, neutral palette, and text assets live in ./mark.mjs.
-// Every emitted asset derives from them, so re-skinning the OSS default is a
-// one-line change there followed by a re-run. `check.mjs` verifies the
-// committed text assets still match mark.mjs (a CI drift guard).
+// The mark geometry, palette, and text assets live in ./mark.mjs. Every emitted
+// asset derives from them, so re-skinning the OSS default is a one-line change
+// there followed by a re-run. `check.mjs` verifies the committed text assets
+// still match mark.mjs (a CI drift guard).
 //
 // USAGE
 // -----
@@ -33,13 +33,23 @@
 //
 // CUSTOM PACKS
 // ------------
-// A MARK_*-customized run (see mark.mjs) writes to these same two directories
-// by default, which would overwrite the committed neutral defaults. Redirect
-// a custom run with MARK_OUT_PUBLIC_DIR / MARK_OUT_SRC_DIR (paths relative to
-// the repo root) so it never touches the protected files, e.g.:
+// This is a reusable generator, not a single-mark tool. Every knob mark.mjs
+// exposes (glyph path, native size, palette, social gradient, product name,
+// glyph coverage) is overridable via MARK_* env vars — so a differently-branded
+// pack is a set of overrides, never a forked copy of this file.
 //
-//   MARK_OUT_PUBLIC_DIR=docker/public MARK_OUT_SRC_DIR=/tmp/mark-src \
-//     MARK_PRIMARY_COLOR='#DC4A22' pnpm run gen:favicons
+//   - One-off overrides: set MARK_* inline, e.g.
+//       MARK_PRIMARY_COLOR='#DC4A22' MARK_PATH='M32 2C…' \
+//         MARK_NATIVE_WIDTH=64 MARK_NATIVE_HEIGHT=64 pnpm run gen:favicons
+//
+//   - A named bundle: drop the overrides in scripts/branding/presets/<name>.mjs
+//     (default-exporting a plain { MARK_*: value } object) and select it with
+//     MARK_PRESET=<name>. The OTS "maruhi" mark ships as one — see
+//     `pnpm run gen:favicons:maruhi`.
+//
+// A custom/preset run writes to public/web + src/assets/branding by default,
+// which would overwrite the committed neutral defaults. Point it elsewhere with
+// MARK_OUT_PUBLIC_DIR / MARK_OUT_SRC_DIR (a preset typically sets these itself).
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -48,16 +58,45 @@ import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import pngToIco from 'png-to-ico';
 
-import { squareIconSvg, maskIconSvg, ogImageSvg, webmanifest } from './mark.mjs';
-
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, '..', '..');
+
+// A preset is just a named bag of MARK_* overrides (presets/<name>.mjs,
+// default-exporting a plain object). Apply each value as a *default* in
+// process.env BEFORE importing mark.mjs, whose exported constants read env at
+// module-eval time. Precedence: explicit env var > preset > mark.mjs neutral
+// default. One generator serves every pack; a preset carries data, not code.
+async function applyPreset(name) {
+  if (!name) return;
+  let preset;
+  try {
+    ({ default: preset } = await import(`./presets/${name}.mjs`));
+  } catch (err) {
+    console.error(
+      `Unknown branding preset '${name}' (expected scripts/branding/presets/${name}.mjs): ${err.message}`
+    );
+    process.exit(1);
+  }
+  for (const [key, value] of Object.entries(preset)) {
+    if (process.env[key] === undefined) process.env[key] = String(value);
+  }
+  console.log(`Applied branding preset '${name}'.`);
+}
+
+await applyPreset(process.env.MARK_PRESET);
+
+// Resolved after the preset, so a preset can target its own output dirs. A
+// custom/preset run must NOT overwrite the committed neutral defaults — redirect
+// it with MARK_OUT_PUBLIC_DIR / MARK_OUT_SRC_DIR (paths relative to the repo root).
 const PUBLIC_WEB = process.env.MARK_OUT_PUBLIC_DIR
   ? resolve(REPO_ROOT, process.env.MARK_OUT_PUBLIC_DIR)
   : resolve(REPO_ROOT, 'public', 'web');
 const SRC_BRANDING = process.env.MARK_OUT_SRC_DIR
   ? resolve(REPO_ROOT, process.env.MARK_OUT_SRC_DIR)
   : resolve(REPO_ROOT, 'src', 'assets', 'branding');
+
+// Dynamic import: must come AFTER applyPreset so mark.mjs reads the preset's env.
+const { squareIconSvg, maskIconSvg, ogImageSvg, webmanifest } = await import('./mark.mjs');
 
 function write(path, contents) {
   mkdirSync(dirname(path), { recursive: true });
@@ -75,7 +114,7 @@ async function pngFromSvg(svg, size) {
 }
 
 async function main() {
-  console.log('Generating neutral favicon + variety pack…');
+  console.log('Generating favicon + variety pack…');
 
   const faviconSvg = squareIconSvg(512);
   const maskSvg = maskIconSvg(512);
@@ -111,6 +150,8 @@ async function main() {
   write(resolve(PUBLIC_WEB, 'site.webmanifest'), webmanifest());
 
   console.log('Done.');
+  console.log(`  Pack:   ${PUBLIC_WEB}`);
+  console.log(`  Source: ${SRC_BRANDING}`);
 }
 
 main().catch((err) => {
