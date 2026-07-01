@@ -348,7 +348,7 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
       expect(defaultLogo.exists()).toBe(true);
     });
 
-    it('shows OTS site name when custom domain has no logo', async () => {
+    it('suppresses the OTS site name when custom domain has no logo', async () => {
       wrapper = mountComponent(
         {},
         {
@@ -360,11 +360,12 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
       );
 
       await nextTick();
-      // Without domain_logo, the site name logic does NOT suppress the name
-      // This means the OTS site name "Onetime Secret" appears on a custom domain
+      // A3 fix (via identityStore.showPlatformIdentity): on a custom domain the
+      // DefaultLogo neutral mark still renders, but the platform site name
+      // "Onetime Secret" must NOT leak next to it.
       const logo = wrapper.find('.default-logo');
       expect(logo.exists()).toBe(true);
-      expect(logo.attributes('data-show-site-name')).toBe('true');
+      expect(logo.attributes('data-show-site-name')).toBe('false');
     });
 
     it('uses standard sizing (not 80px) when no custom logo is set', async () => {
@@ -492,12 +493,18 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // BUG DOCUMENTATION: Default logo leaks on custom domains
+  // A3 FIX: Default logo no longer leaks the platform name on custom domains
   //
-  // MastHead's logo logic is driven by `domain_logo` (URL or null), not
-  // `domain_strategy`. When domain_strategy='custom' but domain_logo is null
-  // (e.g., customer hasn't uploaded a logo), MastHead renders the OTS default
-  // logo with "Onetime Secret" branding — which is wrong for custom domains.
+  // Previously MastHead's site-name logic was driven only by `domain_logo`
+  // (URL or null), not the domain strategy. When the strategy was 'custom' but
+  // domain_logo was null (customer hasn't uploaded a logo), MastHead fell back
+  // to the DefaultLogo AND still rendered the platform "Onetime Secret" site
+  // name — leaking our identity onto another company's custom domain.
+  //
+  // The consolidation routes the base decision through
+  // identityStore.showPlatformIdentity (`!isCustom && !logoUri`), so any custom
+  // domain — logo or not — suppresses the wordmark while the neutral mark
+  // still renders. The caller/operator override rungs are untouched.
   //
   // Leak routes: /incoming, /feedback, /help, /pricing — these use
   // TransactionalHeader → MastHead directly, with no domain-aware switching.
@@ -506,10 +513,10 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
   // masthead entirely), receipt (beforeEnter guard patches props).
   // ═══════════════════════════════════════════════════════════════════════════
 
-  describe('Bug: MastHead ignores domain_strategy when domain_logo is null', () => {
-    it('shows OTS default logo on custom domain when no logo uploaded (current behavior)', async () => {
-      // This documents the bug: a customer on secrets.acme.com sees the
-      // Onetime Secret logo because MastHead only checks domain_logo, not domain_strategy
+  describe('A3 fix: MastHead is domain-strategy-aware when domain_logo is null', () => {
+    it('shows the neutral DefaultLogo mark but no OTS site name on a custom domain with no logo', async () => {
+      // A customer on secrets.acme.com falls back to the neutral DefaultLogo
+      // mark, but the platform "Onetime Secret" site name must not leak.
       wrapper = mountComponent(
         {},
         {
@@ -523,12 +530,12 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
 
       await nextTick();
 
-      // BUG: DefaultLogo renders even though we're on a custom domain
+      // The neutral DefaultLogo mark still renders (brand-agnostic KeyholeIcon).
       const defaultLogo = wrapper.find('.default-logo');
       expect(defaultLogo.exists()).toBe(true);
 
-      // BUG: "Onetime Secret" site name shows on another company's domain
-      expect(defaultLogo.attributes('data-show-site-name')).toBe('true');
+      // FIXED: "Onetime Secret" site name is suppressed on another company's domain
+      expect(defaultLogo.attributes('data-show-site-name')).toBe('false');
     });
 
     it('does not suppress auth navigation on custom domain (correct: auth nav should remain)', async () => {
@@ -551,18 +558,101 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // EXPECTED BEHAVIOR AFTER FIX (these should pass once the fix lands)
+  // A3 REGRESSION GUARDS: MastHead is domain-strategy-aware via the resolver
+  //
+  // identityStore.showPlatformIdentity makes MastHead:
+  // 1. If domain_logo is set → show the custom logo (unchanged).
+  // 2. If domain_logo is null on a custom domain → render the neutral
+  //    DefaultLogo mark WITHOUT the platform "Onetime Secret" site name.
+  // Canonical domains are unaffected — the site name still shows there.
   // ═══════════════════════════════════════════════════════════════════════════
 
-  describe.todo('Expected: MastHead should be domain_strategy-aware', () => {
-    // Once fixed, MastHead should check domain_strategy='custom' and:
-    // 1. If domain_logo is set → show custom logo (already works)
-    // 2. If domain_logo is null → hide logo entirely or show a neutral placeholder
-    //    (NOT the OTS default logo with "Onetime Secret" branding)
-    //
-    // Test stubs for when the fix is implemented:
-    // it('hides DefaultLogo when domain_strategy=custom and no domain_logo', ...)
-    // it('does not show "Onetime Secret" site name on custom domain', ...)
-    // it('shows neutral placeholder when custom domain has no logo', ...)
+  describe('A3 regression: MastHead is domain-strategy-aware', () => {
+    it('does not leak the "Onetime Secret" site name when custom domain has no logo', async () => {
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          domain_strategy: 'custom',
+          domain_logo: null,
+          display_domain: 'secrets.acme.com',
+          domain_id: 'cd_acme',
+        }
+      );
+
+      await nextTick();
+
+      const logo = wrapper.find('.default-logo');
+      expect(logo.exists()).toBe(true);
+      // Site name is suppressed...
+      expect(logo.attributes('data-show-site-name')).toBe('false');
+      // ...and the DefaultLogo mock only renders the site-name span when
+      // showSiteName is true, so "Onetime Secret" must be absent from the DOM.
+      const siteName = wrapper.find('.default-logo .site-name');
+      expect(siteName.exists()).toBe(false);
+      expect(wrapper.text()).not.toContain('Onetime Secret');
+    });
+
+    it('still renders the neutral DefaultLogo mark on a custom domain with no logo', async () => {
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          domain_strategy: 'custom',
+          domain_logo: null,
+          display_domain: 'secrets.acme.com',
+          domain_id: 'cd_acme',
+        }
+      );
+
+      await nextTick();
+
+      // We suppress the wordmark, not the whole lockup — the mark itself is safe.
+      const defaultLogo = wrapper.find('.default-logo');
+      expect(defaultLogo.exists()).toBe(true);
+      const logoIcon = wrapper.find('.default-logo .logo-icon');
+      expect(logoIcon.exists()).toBe(true);
+    });
+
+    it('sanity: still shows the site name on a canonical domain (fix scoped to custom/tenant)', async () => {
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          domain_strategy: 'canonical',
+          domain_logo: null,
+        }
+      );
+
+      await nextTick();
+
+      const logo = wrapper.find('.default-logo');
+      expect(logo.exists()).toBe(true);
+      // Canonical domains are unaffected: the platform site name still shows.
+      expect(logo.attributes('data-show-site-name')).toBe('true');
+    });
+
+    it('leaves custom-domain-WITH-logo behavior unchanged (img renders, no site name)', async () => {
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          domain_strategy: 'custom',
+          domain_logo: 'https://cdn.example.com/logos/acme-logo.png',
+          display_domain: 'secrets.acme.com',
+          domain_id: 'cd_acme',
+        }
+      );
+
+      await nextTick();
+
+      // Custom logo renders as an <img>, not the DefaultLogo component.
+      const img = wrapper.find('img#logo');
+      expect(img.exists()).toBe(true);
+      expect(img.attributes('src')).toBe('https://cdn.example.com/logos/acme-logo.png');
+      // And the site name text mark is not rendered next to it.
+      const siteName = wrapper.find('span.font-brand.text-lg');
+      expect(siteName.exists()).toBe(false);
+    });
   });
 });

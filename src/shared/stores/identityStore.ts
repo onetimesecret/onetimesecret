@@ -4,7 +4,11 @@ import {
   brandSettingsSchema,
   type BrandSettings,
 } from '@/schemas/shapes/v3/custom-domain';
-import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
+import {
+  DEFAULT_LOGO_COMPONENT,
+  NEUTRAL_BRAND_DEFAULTS,
+  resolveProductName,
+} from '@/shared/constants/brand';
 import { cornerStyleClasses, fontFamilyClasses } from '@/shared/utils/brand-helpers';
 import { gracefulParse } from '@/utils/schemaValidation';
 import { defineStore, storeToRefs } from 'pinia';
@@ -67,6 +71,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     domain_id,
     domain_branding,
     domain_logo,
+    brand_product_name,
     homepage_config,
   } = storeToRefs(bootstrapStore);
 
@@ -171,6 +176,18 @@ export const useProductIdentity = defineStore('productIdentity', () => {
   /** Display name for current domain context */
   const displayName = computed(() => state.brand?.description || state.displayDomain);
 
+  /**
+   * Install product name, neutral-safe. Never the hardcoded OTS literal.
+   *
+   * Centralizes the `brand_product_name || NEUTRAL_BRAND_DEFAULTS.product_name`
+   * fallback that surfaces (MastHead, DefaultLogo) previously each re-derived by
+   * hand — so a new name-rendering surface has one safe source of truth instead
+   * of another chance to leak "Onetime Secret". Shares `resolveProductName` with
+   * `usePageTitle`, which cannot depend on this store (it runs in router guards,
+   * outside the i18n context this store initializes with).
+   */
+  const productName = computed(() => resolveProductName(brand_product_name?.value));
+
   /** Logo URL for custom domain, pre-computed by backend with correct extid */
   const logoUri = computed(() =>
     // Backend provides the correct logo URL using extid (external ID).
@@ -179,6 +196,38 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     // the internal domainId, not the public extid needed for the /imagine route.
     domain_logo.value
   );
+
+  /**
+   * Whether a surface may show the platform's own name / wordmark.
+   *
+   * False on a custom domain — with or without an uploaded logo — and whenever a
+   * per-tenant logo is present: rendering the install's identity there would
+   * leak it onto another company's domain (the A3 masthead leak). Canonical and
+   * subdomain contexts are permitted to show it, subject to the consumer's own
+   * config (a `subdomain` IS the platform, so its name legitimately shows).
+   *
+   * This encodes only the base identity-leak guard; consumers keep their own
+   * override ladder (caller props, operator LOGO_SHOW_NAME, etc.) on top.
+   */
+  const showPlatformIdentity = computed(() => !isCustom.value && !logoUri.value);
+
+  /**
+   * Resolved logo source on the identity axis: the tenant's uploaded logo when
+   * present, otherwise the neutral `DefaultLogo` component sentinel. Never null
+   * or empty, so a consumer can render a lockup without its own "no logo"
+   * fallback.
+   *
+   * Uses `||` (not `??`): an empty-string `domain_logo` is treated as absent and
+   * falls through to the neutral sentinel, matching how the rest of the codebase
+   * reads the logo as a truthy/falsy signal (e.g. `!!domain_logo` in the router
+   * guards) and preserving the masthead's prior terminal fallback for `''`.
+   *
+   * This is the identity contribution only; the masthead still layers its own
+   * caller/operator rungs (props.logo.url, LOGO_URL) around it — a per-tenant
+   * logo must win over an operator-wide LOGO_URL, and LOGO_URL over the neutral
+   * default.
+   */
+  const logoSource = computed(() => logoUri.value || DEFAULT_LOGO_COMPONENT);
 
   const cornerClass = computed(() =>
     state.brand?.corner_style
@@ -217,6 +266,9 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     isCustom,
     isSubdomain,
     displayName,
+    productName,
+    showPlatformIdentity,
+    logoSource,
     $reset,
 
     ...toRefs(state),

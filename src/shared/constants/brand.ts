@@ -57,3 +57,35 @@ export const NEUTRAL_BRAND_DEFAULTS = {
 } as const;
 
 export type NeutralBrandDefaults = typeof NEUTRAL_BRAND_DEFAULTS;
+
+/**
+ * Resolves the display product name, neutral-safe.
+ *
+ * Applies step 2 → step 3 of the fallback chain for the product name:
+ * the per-installation `brand_product_name` (from OT.conf) when set, otherwise
+ * the neutral `NEUTRAL_BRAND_DEFAULTS.product_name` ('My App'). Per the
+ * philosophy above it MUST NEVER emit OTS branding — an unbranded install
+ * degrades to the neutral default, never a hardcoded "Onetime Secret".
+ *
+ * An empty string is treated as unset (`||`, not `??`) so a blank product-name
+ * config falls through to the neutral default instead of rendering an empty
+ * name. This is the single source of truth for the product-name fallback that
+ * `identityStore.productName` (component surfaces) and `usePageTitle`
+ * (router-guard context, i18n-free) both build on.
+ */
+export function resolveProductName(
+  brandProductName: string | null | undefined
+): string {
+  return brandProductName || NEUTRAL_BRAND_DEFAULTS.product_name;
+}
+
+/**
+ * Sentinel for the neutral, brand-agnostic default logo component.
+ *
+ * The masthead's logo loader treats a `.vue` URL as a component to dynamically
+ * import; this value points at the bundled neutral `DefaultLogo.vue` (the
+ * keyhole mark — the OTS-company maruhi 秘 mark is never the default). Centralized
+ * here so the resolver (`identityStore.logoSource`) and its consumers agree on
+ * one sentinel rather than each hardcoding the string.
+ */
+export const DEFAULT_LOGO_COMPONENT = 'DefaultLogo.vue';

@@ -18,7 +18,7 @@ import {
 } from 'vitest';
 import { nextTick } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
-import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
+import { DEFAULT_LOGO_COMPONENT, NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
@@ -327,5 +327,212 @@ describe('identityStore primaryColor resolution', () => {
       expect(match).not.toBeNull();
       expect(match![1].toUpperCase()).toBe(CANONICAL);
     });
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// productName — neutral-safe install product name (A1 consolidation)
+//
+// The store is the single source of truth for the product-name fallback that
+// MastHead and DefaultLogo previously re-derived by hand. It must degrade to
+// the neutral default ('My App'), never a hardcoded "Onetime Secret", and must
+// treat an empty string as unset (|| not ??).
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe('identityStore productName resolution', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+  });
+
+  it('uses brand_product_name when set', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ brand_product_name: 'Acme Vault' });
+
+    const identity = useProductIdentity();
+
+    expect(identity.productName).toBe('Acme Vault');
+  });
+
+  it('falls back to the neutral default when undefined', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ brand_product_name: undefined });
+
+    const identity = useProductIdentity();
+
+    expect(identity.productName).toBe(NEUTRAL_BRAND_DEFAULTS.product_name);
+    expect(identity.productName).not.toBe('Onetime Secret');
+  });
+
+  it('falls back to the neutral default when null', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ brand_product_name: null });
+
+    const identity = useProductIdentity();
+
+    expect(identity.productName).toBe(NEUTRAL_BRAND_DEFAULTS.product_name);
+  });
+
+  it('treats an empty string as unset and falls back to the neutral default', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ brand_product_name: '' });
+
+    const identity = useProductIdentity();
+
+    // `||` (not `??`) — a blank product-name config degrades to 'My App'
+    // rather than rendering an empty name.
+    expect(identity.productName).toBe(NEUTRAL_BRAND_DEFAULTS.product_name);
+  });
+
+  it('reacts to brand_product_name changes', async () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ brand_product_name: undefined });
+
+    const identity = useProductIdentity();
+    expect(identity.productName).toBe(NEUTRAL_BRAND_DEFAULTS.product_name);
+
+    bootstrap.$patch({ brand_product_name: 'Acme Vault' });
+    await nextTick();
+
+    expect(identity.productName).toBe('Acme Vault');
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// showPlatformIdentity — base "may we show the platform wordmark?" guard (A3)
+//
+// False on any custom domain and whenever a per-tenant logo is present, so a
+// consumer can suppress the platform name/wordmark without re-deriving the
+// leak rule. Canonical + subdomain contexts return true (subject to the
+// consumer's own config).
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe('identityStore showPlatformIdentity', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+  });
+
+  it('is true on the canonical domain with no logo', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ domain_strategy: 'canonical', domain_logo: null });
+
+    const identity = useProductIdentity();
+
+    expect(identity.showPlatformIdentity).toBe(true);
+  });
+
+  it('is true on a subdomain (the subdomain IS the platform)', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ domain_strategy: 'subdomain', domain_logo: null });
+
+    const identity = useProductIdentity();
+
+    expect(identity.showPlatformIdentity).toBe(true);
+  });
+
+  it('is false on a custom domain with no uploaded logo (A3 leak guard)', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ domain_strategy: 'custom', domain_logo: null });
+
+    const identity = useProductIdentity();
+
+    expect(identity.showPlatformIdentity).toBe(false);
+  });
+
+  it('is false on a custom domain that has an uploaded logo', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({
+      domain_strategy: 'custom',
+      domain_logo: 'https://cdn.example.com/acme.png',
+    });
+
+    const identity = useProductIdentity();
+
+    expect(identity.showPlatformIdentity).toBe(false);
+  });
+
+  it('is false whenever a per-tenant logo is present, independent of strategy', () => {
+    // Defensive: a logo implies a tenant surface — never show the platform name
+    // beside it even if the strategy field says otherwise.
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({
+      domain_strategy: 'canonical',
+      domain_logo: 'https://cdn.example.com/acme.png',
+    });
+
+    const identity = useProductIdentity();
+
+    expect(identity.showPlatformIdentity).toBe(false);
+  });
+
+  it('reacts to domain_strategy changing to custom', async () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ domain_strategy: 'canonical', domain_logo: null });
+
+    const identity = useProductIdentity();
+    expect(identity.showPlatformIdentity).toBe(true);
+
+    bootstrap.$patch({ domain_strategy: 'custom' });
+    await nextTick();
+
+    expect(identity.showPlatformIdentity).toBe(false);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// logoSource — resolved tenant-or-neutral logo image (Phase 4 consolidation)
+//
+// The tenant's uploaded logo when present, else the neutral DefaultLogo
+// component sentinel. Never null or empty (uses ||, so '' is treated as
+// absent), so the masthead can stop reading raw bootstrapStore.domain_logo and
+// route the logo image through the resolver too.
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe('identityStore logoSource', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+  });
+
+  it('returns the tenant logo URL when an uploaded logo is present', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ domain_logo: 'https://cdn.example.com/acme.png' });
+
+    const identity = useProductIdentity();
+
+    expect(identity.logoSource).toBe('https://cdn.example.com/acme.png');
+  });
+
+  it('falls back to the neutral DefaultLogo component when no tenant logo', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ domain_logo: null });
+
+    const identity = useProductIdentity();
+
+    expect(identity.logoSource).toBe(DEFAULT_LOGO_COMPONENT);
+  });
+
+  it('treats an empty-string tenant logo as absent (falls back to the sentinel)', () => {
+    // domain_logo is schema-allowed to be '' and is read as a truthy/falsy
+    // signal elsewhere (e.g. !!domain_logo in router guards). Using `||`, an
+    // empty logo degrades to the neutral sentinel rather than surfacing '' as a
+    // broken logo URL through the masthead's terminal fallback.
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ domain_logo: '' });
+
+    const identity = useProductIdentity();
+
+    expect(identity.logoSource).toBe(DEFAULT_LOGO_COMPONENT);
+  });
+
+  it('reacts to a tenant logo being uploaded', async () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ domain_logo: null });
+
+    const identity = useProductIdentity();
+    expect(identity.logoSource).toBe(DEFAULT_LOGO_COMPONENT);
+
+    bootstrap.$patch({ domain_logo: 'https://cdn.example.com/acme.png' });
+    await nextTick();
+
+    expect(identity.logoSource).toBe('https://cdn.example.com/acme.png');
   });
 });
