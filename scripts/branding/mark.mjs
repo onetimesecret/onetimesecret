@@ -13,18 +13,34 @@
 //
 //   pnpm run gen:favicons          # from repo root; installs isolated deps, rasterizes
 //
-// Generate a custom-coloured pack without editing this file, by overriding the
-// three constants below via env vars:
+// Generate a custom pack without editing this file by overriding the constants
+// below via env vars (all optional; unset = the neutral defaults above):
 //
-//   MARK_PRIMARY_COLOR='#3B82F6' pnpm run gen:favicons        # re-tint the mark
-//   MARK_BACKGROUND_COLOR='#0B1020' pnpm run gen:favicons     # dark tile/keyhole
-//   MARK_PATH='m...' pnpm run gen:favicons                    # swap the glyph
+//   MARK_PATH                 glyph path data              (default: keyhole)
+//   MARK_NATIVE_WIDTH/HEIGHT  native px bounds of that path (default: 512x1024)
+//   MARK_PRIMARY_COLOR        tile / gradient colour       (default: #3B82F6)
+//   MARK_BACKGROUND_COLOR     mark colour                  (default: #FFFFFF)
+//   MARK_OG_GRADIENT_DARK     social-card top gradient stop (default: #1E3A8A)
+//   MARK_PRODUCT_NAME         webmanifest name             (default: My App)
+//   MARK_SHORT_NAME           webmanifest short_name       (default: product name)
+//   MARK_COVERAGE             icon glyph height ratio       (default: 0.58)
+//   MARK_MASK_COVERAGE        pinned-tab glyph height ratio (default: 0.70)
+//   MARK_OG_COVERAGE          social-card glyph height ratio (default: 0.78)
+//
+// e.g. swap the glyph, remembering its real native bounds — a square emoji is
+// not the keyhole's tall 512x1024, so the transform would otherwise mis-scale
+// and mis-center it:
+//
+//   MARK_NATIVE_WIDTH=64 MARK_NATIVE_HEIGHT=64 MARK_PATH='M32 2C…' pnpm run gen:favicons
+//
+// A named bundle of these overrides (e.g. the OTS "maruhi" mark) lives as a
+// preset in scripts/branding/presets/<name>.mjs; run it with MARK_PRESET=<name>
+// (see generate-favicons.mjs). Custom runs should also set MARK_OUT_PUBLIC_DIR /
+// MARK_OUT_SRC_DIR so they don't overwrite the committed neutral files.
 //
 // These are deliberately MARK_*-prefixed, NOT the runtime BRAND_* vars: a dev or
 // CI shell often has BRAND_PRIMARY_COLOR set, and reusing it would silently
-// regenerate non-neutral defaults and trip the drift check. Overrides here are
-// explicit opt-in for producing your own pack. Drop the output into
-// `docker/public/` (build-time overlay) to bake it into the image. CI runs
+// regenerate non-neutral defaults and trip the drift check. CI runs
 // `pnpm run gen:favicons:check` (with no MARK_* set) to guard the committed
 // neutral defaults. See docs/architecture/branding.md.
 
@@ -40,13 +56,52 @@ export const KEYHOLE_PATH =
 // See src/shared/constants/brand.ts.
 export const PRIMARY_COLOUR = process.env.MARK_PRIMARY_COLOR || '#3B82F6'; // a neutral blue
 export const BACKGROUND_COLOUR = process.env.MARK_BACKGROUND_COLOR || '#FFFFFF';
+// Top stop of the social-card gradient (bottom stop is PRIMARY_COLOUR).
+const OG_GRADIENT_DARK = process.env.MARK_OG_GRADIENT_DARK || '#1E3A8A';
 
-// Centers the native 512x1024 keyhole inside a `size`x`size` canvas, scaled so
-// the glyph occupies ~`coverage` of the height, leaving even padding.
-export function keyholeTransform(size, coverage = 0.58) {
+// Web manifest text. Neutral defaults are deliberately generic (the runtime
+// /site.webmanifest route overlays the real brand.product_name when configured).
+const PRODUCT_NAME = process.env.MARK_PRODUCT_NAME || 'My App';
+const SHORT_NAME = process.env.MARK_SHORT_NAME || PRODUCT_NAME;
+
+// Optional licensing/credit line for a swapped-in glyph. When set, it is emitted
+// as an SVG comment in every generated SVG, so attribution travels with the
+// redistributable source (e.g. the CC-BY maruhi mark). Empty by default, so the
+// neutral pack's SVGs are byte-for-byte unchanged. `--` is collapsed because it
+// can't appear inside an XML comment.
+const ATTRIBUTION = (process.env.MARK_ATTRIBUTION || '').replace(/-{2,}/g, '-').trim();
+const svgAttribution = ATTRIBUTION ? `<!-- ${ATTRIBUTION} -->\n` : '';
+
+// Reads a numeric env var, allowing an explicit 0 but falling back to `def` for
+// unset / empty / non-numeric values. (Plain `Number(x) || def` can't represent
+// 0 and silently treats "" as 0.)
+export function numEnv(name, def) {
+  const raw = process.env[name];
+  if (raw === undefined || raw === '') return def;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : def;
+}
+
+// Native bounding box of KEYHOLE_PATH's geometry. Defaults match the keyhole
+// (tall: 512 wide x 1024 high); a swapped-in MARK_PATH with a different native
+// size must override both, or markTransform below will scale/center it as if
+// it were keyhole-shaped.
+export const NATIVE_WIDTH = numEnv('MARK_NATIVE_WIDTH', 512);
+export const NATIVE_HEIGHT = numEnv('MARK_NATIVE_HEIGHT', 1024);
+
+// How much of each canvas's height the glyph fills. The keyhole is tall, so its
+// defaults leave generous padding; a squarer glyph usually wants a larger ratio
+// (set these via MARK_COVERAGE / MARK_MASK_COVERAGE / MARK_OG_COVERAGE).
+const COVERAGE = numEnv('MARK_COVERAGE', 0.58);
+const MASK_COVERAGE = numEnv('MARK_MASK_COVERAGE', 0.7);
+const OG_COVERAGE = numEnv('MARK_OG_COVERAGE', 0.78);
+
+// Centers the native-size glyph inside a `size`x`size` canvas, scaled so it
+// occupies ~`coverage` of the height, leaving even padding.
+export function markTransform(size, coverage = COVERAGE) {
   const targetHeight = size * coverage;
-  const scale = targetHeight / 1024;
-  const width = 512 * scale;
+  const scale = targetHeight / NATIVE_HEIGHT;
+  const width = NATIVE_WIDTH * scale;
   const tx = (size - width) / 2;
   const ty = (size - targetHeight) / 2;
   return `translate(${tx.toFixed(2)} ${ty.toFixed(2)}) scale(${scale.toFixed(5)})`;
@@ -56,9 +111,9 @@ export function keyholeTransform(size, coverage = 0.58) {
 export function squareIconSvg(size = 512) {
   const radius = Math.round(size * 0.1875); // ~iOS superellipse-ish corner
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="App icon">
+${svgAttribution}<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="App icon">
   <rect width="${size}" height="${size}" rx="${radius}" ry="${radius}" fill="${PRIMARY_COLOUR}"/>
-  <path transform="${keyholeTransform(size)}" fill="${BACKGROUND_COLOUR}" d="${KEYHOLE_PATH}"/>
+  <path transform="${markTransform(size)}" fill="${BACKGROUND_COLOUR}" d="${KEYHOLE_PATH}"/>
 </svg>
 `;
 }
@@ -67,8 +122,8 @@ export function squareIconSvg(size = 512) {
 // Safari recolors it via the `color` attribute on the <link rel="mask-icon">.
 export function maskIconSvg(size = 512) {
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="App icon (monochrome)">
-  <path transform="${keyholeTransform(size, 0.7)}" fill="#000000" d="${KEYHOLE_PATH}"/>
+${svgAttribution}<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="App icon (monochrome)">
+  <path transform="${markTransform(size, MASK_COVERAGE)}" fill="#000000" d="${KEYHOLE_PATH}"/>
 </svg>
 `;
 }
@@ -82,16 +137,16 @@ export function ogImageSvg() {
   const tx = (w - markSize) / 2;
   const ty = (h - markSize) / 2;
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="Social preview">
+${svgAttribution}<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="Social preview">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#1E3A8A"/>
+      <stop offset="0" stop-color="${OG_GRADIENT_DARK}"/>
       <stop offset="1" stop-color="${PRIMARY_COLOUR}"/>
     </linearGradient>
   </defs>
   <rect width="${w}" height="${h}" fill="url(#bg)"/>
   <g transform="translate(${tx} ${ty})">
-    <path transform="${keyholeTransform(markSize, 0.78)}" fill="${BACKGROUND_COLOUR}" d="${KEYHOLE_PATH}"/>
+    <path transform="${markTransform(markSize, OG_COVERAGE)}" fill="${BACKGROUND_COLOUR}" d="${KEYHOLE_PATH}"/>
   </g>
 </svg>
 `;
@@ -105,8 +160,8 @@ export function webmanifest() {
   return (
     JSON.stringify(
       {
-        name: 'My App',
-        short_name: 'My App',
+        name: PRODUCT_NAME,
+        short_name: SHORT_NAME,
         icons: [
           { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
           { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },

@@ -3,6 +3,8 @@
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createTestI18n } from '@tests/setup';
+import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import DefaultLogo from '@/shared/components/logos/DefaultLogo.vue';
 
 // Mock KeyholeIcon component (the neutral default mark; the maruhi 秘 mark is
@@ -262,6 +264,49 @@ describe('DefaultLogo', () => {
       expect(wrapper.attributes('aria-label')).toBeUndefined();
       // The label still reaches the icon, so the link is still named.
       expect(wrapper.find('.logo-icon').attributes('aria-label')).toBe('Custom Label');
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Brand-aware aria-label via the shared resolveProductName helper (A1)
+  //
+  // The aria-label fallback resolves through the shared resolveProductName
+  // helper (the single source of truth for the neutral product-name fallback),
+  // so DefaultLogo stays neutral-safe and in lockstep with every other surface
+  // while remaining lightweight — the app-wide fallback mark does not pull in
+  // the identity store. (These rely on the global testing Pinia from
+  // setup-stores.ts.)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  describe('productName fallback via resolveProductName', () => {
+    it('uses the configured brand_product_name when no ariaLabel prop is given', () => {
+      const bootstrap = useBootstrapStore();
+      bootstrap.$patch({ brand_product_name: 'Acme Vault' });
+
+      wrapper = mountComponent({});
+
+      expect(wrapper.find('[aria-label="Acme Vault"]').exists()).toBe(true);
+    });
+
+    it('never leaks OTS branding when unbranded — degrades to the neutral default', () => {
+      const bootstrap = useBootstrapStore();
+      bootstrap.$patch({ brand_product_name: null });
+
+      wrapper = mountComponent({});
+
+      expect(wrapper.find('[aria-label="Onetime Secret"]').exists()).toBe(false);
+      expect(
+        wrapper.find(`[aria-label="${NEUTRAL_BRAND_DEFAULTS.product_name}"]`).exists()
+      ).toBe(true);
+    });
+
+    it('an explicit ariaLabel prop still wins over the resolved fallback', () => {
+      const bootstrap = useBootstrapStore();
+      bootstrap.$patch({ brand_product_name: 'Acme Vault' });
+
+      wrapper = mountComponent({ ariaLabel: 'Explicit Label' });
+
+      expect(wrapper.find('[aria-label="Explicit Label"]').exists()).toBe(true);
     });
   });
 });

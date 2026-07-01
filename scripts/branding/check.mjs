@@ -47,7 +47,7 @@ for (const [name, want] of Object.entries(expected)) {
 if (drift.length) {
   console.error('Branding asset drift detected:');
   for (const d of drift) console.error(`  - ${d}`);
-  console.error('\nRe-run `npm --prefix scripts/branding install && npm --prefix scripts/branding run generate` and commit the result.');
+  console.error('\nRe-run `pnpm run gen:favicons` (from the repo root) and commit the result.');
   process.exit(1);
 }
 
