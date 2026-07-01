@@ -904,7 +904,7 @@
     "text": "Aby zmienić dostawcę, najpierw usuń tę konfigurację"
   },
   "web.organizations.sso.status_not_configured": {
-    "text": "Nieskonfigurowano"
+    "text": "Nie skonfigurowano"
   },
   "web.organizations.sso.no_domains": {
     "text": "Brak zweryfikowanych domen"

@@ -658,7 +658,7 @@
     "text": "Dostarczono przez {provider}"
   },
   "web.domains.email.badge_not_configured": {
-    "text": "Nieskonfigurowano"
+    "text": "Nie skonfigurowano"
   },
   "web.domains.email.badge_default_sender": {
     "text": "Używa domyślnego nadawcy"
@@ -778,7 +778,7 @@
     "text": "{count} odbiorca | {count} odbiorców"
   },
   "web.domains.incoming.badge_not_configured": {
-    "text": "Nieskonfigurowano"
+    "text": "Nie skonfigurowano"
   },
   "web.domains.incoming.badge_configured": {
     "text": "Skonfigurowano"
