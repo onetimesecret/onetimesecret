@@ -152,7 +152,7 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Si votre courriel de contact de facturation diffère de votre courriel de compte {product_name}, utilisez le courriel de contact de facturation pour le nouveau compte régional afin de conserver vos avantages d'abonnement.",
+    "text": "Si votre courriel de contact de facturation diffère du courriel de votre compte {product_name}, utilisez le courriel de contact de facturation du compte de la nouvelle région pour conserver les avantages de votre abonnement.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
@@ -186,5 +186,8 @@
   "web.regions.jurisdictions.apac.name": {
     "text": "Asia-Pacific",
     "source_hash": "7a757670"
+  },
+  "web.regions.no_region_configured": {
+    "text": "Aucune information de région n'est actuellement disponible pour votre compte."
   }
 }

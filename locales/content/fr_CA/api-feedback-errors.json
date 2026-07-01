@@ -1,0 +1,5 @@
+{
+  "api.feedback.errors.rate_limit_exceeded": {
+    "text": "Trop de soumissions de retour d'information. Veuillez réessayer plus tard."
+  }
+}
