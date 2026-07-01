@@ -5,7 +5,7 @@
   "type": "module",
   "packageManager": "pnpm@11.8.0",
   "scripts": {
-    "prebuild": "pnpm run locales:sync",
+    "prebuild": "pnpm run locales:sync && pnpm run schemas:json:generate",
     "build": "vite build --config vite.config.ts",
     "build:local": "vite build --config vite.config.local.ts",
     "schemas:rhales:generate": "bundle exec rake rhales:schema:generate TEMPLATES_DIR=./apps/web/core/templates OUTPUT_DIR=./public/schemas",

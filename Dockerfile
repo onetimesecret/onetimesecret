@@ -106,6 +106,11 @@ WORKDIR ${APP_DIR}
 COPY public ./public
 COPY src ./src
 COPY locales ./locales
+# scripts/ is needed at build time: the `prebuild` step runs
+# `schemas:json:generate` (tsx scripts/json-schema/generate.ts) to emit
+# generated/schemas/**, which is later COPYied into the runtime image and
+# read by the config schema validator.
+COPY scripts ./scripts
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json vite.config.ts \
      eslint.config.ts ./
 
