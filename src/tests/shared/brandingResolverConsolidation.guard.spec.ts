@@ -26,22 +26,34 @@ const read = (relPath: string): string =>
  * code, not at documentation that legitimately names the very things we forbid
  * in code (e.g. a comment explaining the A4 "Onetime Secret" leak).
  *
- * Delimited comments (SFC/HTML `<!-- -->` and C-style block) are removed to a
- * fixpoint — re-applied until the source stops changing — so a nested or
- * adjacent pair can never leave a dangling comment opener that a single pass
- * would miss (CodeQL js/incomplete-multi-character-sanitization). Line comments
- * are stripped last and preserve `://` so URL literals survive.
+ * Implemented as a single left-to-right scan rather than regex search-and-
+ * replace: it removes every comment region in one pass with no residue, and it
+ * sidesteps CodeQL's incomplete-multi-character-sanitization heuristic, which
+ * fires on `String.replace`-based comment strippers regardless of any surrounding
+ * fixpoint loop. (This helper only ever reads our own trusted source files, so
+ * there is no real injection surface either way — the scan just keeps the guard
+ * correct and the finding clear.) A `//` immediately preceded by `:` is treated
+ * as part of a `://` URL, not a line comment, so URL literals survive.
  */
 function stripComments(src: string): string {
-  let out = src;
-  let prev: string;
-  do {
-    prev = out;
-    out = out
-      .replace(/<!--[\s\S]*?-->/g, '') // SFC HTML comments
-      .replace(/\/\*[\s\S]*?\*\//g, ''); // block comments
-  } while (out !== prev);
-  return out.replace(/(^|[^:])\/\/[^\n]*/g, '$1'); // line comments (preserve `://`)
+  let out = '';
+  let i = 0;
+  while (i < src.length) {
+    if (src.startsWith('<!--', i)) {
+      const end = src.indexOf('-->', i + 4);
+      i = end === -1 ? src.length : end + 3;
+    } else if (src.startsWith('/*', i)) {
+      const end = src.indexOf('*/', i + 2);
+      i = end === -1 ? src.length : end + 2;
+    } else if (src.startsWith('//', i) && src[i - 1] !== ':') {
+      const nl = src.indexOf('\n', i);
+      i = nl === -1 ? src.length : nl; // keep the newline itself
+    } else {
+      out += src[i];
+      i += 1;
+    }
+  }
+  return out;
 }
 
 const MASTHEAD = 'src/shared/components/layout/MastHead.vue';
@@ -155,8 +167,8 @@ describe('stripComments (guard helper)', () => {
     expect(out).not.toContain('domain_logo');
   });
 
-  // Invariant guarded by the fixpoint loop: however comments nest, no forbidden
-  // token and no dangling comment opener may survive.
+  // Invariant guarded by the comment scanner: however comments nest, no
+  // forbidden token and no dangling comment opener may survive.
   it('removes nested HTML comments, leaving no forbidden token or `<!--` opener', () => {
     const out = stripComments('<!--<!-- brand_product_name -->--> keep');
     expect(out).not.toContain('brand_product_name');
