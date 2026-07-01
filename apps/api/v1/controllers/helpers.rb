@@ -14,25 +14,15 @@ module V1
   module ControllerHelpers
     include Onetime::Helpers::SessionHelpers
 
-    # `carefully` is a wrapper around the main web application logic. We
-    # handle errors, redirects, and other exceptions here to ensure that
-    # we respond consistently to all requests. That's why we integrate
-    # Sentry here rather than app specific logic.
-    def carefully(redirect = nil, content_type = nil, app: :web) # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
-      redirect     ||= req.request_path unless app == :api
-      content_type ||= 'text/html; charset=utf-8'
+    # `carefully` wraps a v1 API action: it handles errors and exceptions so we
+    # respond consistently — and integrate Sentry here — across all requests.
+    # v1 is a legacy JSON-only API that renders no HTML, so responses default to
+    # JSON and there is no web/redirect handling.
+    def carefully(content_type = 'application/json') # rubocop:disable Metrics/MethodLength
+      # cust may be nil for anonymous requests.
 
-      # cust may be nil for anonymous requests
-
-      # Prevent infinite redirect loops by checking if the request is a GET request.
-      # Pages redirecting from a POST request can use the same page once.
-      if req.get? && redirect.to_s == req.request_path
-        redirect = '/500'
-      end
-
-      # v1 serves JSON only (never executed by a browser): set just the
-      # content-type default. No CSP and no nonce — CSP is owned by Otto's
-      # response layer, and there is no HTML to protect here.
+      # Set the default content-type. v1 emits no CSP or nonce: it serves JSON
+      # only and is never executed by a browser; CSP is owned by Otto.
       add_response_headers(content_type)
 
       return_value = yield
@@ -53,7 +43,7 @@ module V1
       OT.info ex.message
       not_authorized_error
     rescue OT::FormError => ex
-      OT.ld "[carefully] FormError: #{ex.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
+      OT.ld "[carefully] FormError: #{ex.message} (#{req.path})"
 
       # Track form errors in Sentry. They can indicate bugs that would
       # not surface any other way. We track as messages though since
@@ -61,11 +51,7 @@ module V1
       # the message and not fields to limit the amount of data sent.
       capture_message ex.message, :error
 
-      if redirect
-        handle_form_error ex, redirect
-      else
-        handle_form_error ex
-      end
+      handle_form_error ex
 
     # NOTE: It's important to handle MissingSecret before RecordNotFound since
     #       MissingSecret is a subclass of RecordNotFound. If we don't, we'll
@@ -73,7 +59,7 @@ module V1
     rescue OT::MissingSecret
       secret_not_found_response
     rescue OT::RecordNotFound => ex
-      OT.ld "[carefully] RecordNotFound: #{ex.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
+      OT.ld "[carefully] RecordNotFound: #{ex.message} (#{req.path})"
       not_found_response ex.message
     rescue Familia::FieldTypeError => ex
       # session may be a Hash fallback when no session middleware is available
@@ -106,7 +92,7 @@ module V1
       # session may be a Hash fallback when no session middleware is available
       session_id       = (session.respond_to?(:id) && session.id&.to_s) || req.cookies['onetime.session'] || 'unknown'
       short_session_id = session_id.length <= 10 ? session_id : session_id[0, 10] + '...'
-      OT.le "#{ex.class}: #{ex.message} -- #{req.current_absolute_uri} -- #{req.client_ipaddress} #{custid} #{short_session_id} #{locale} #{content_type} #{redirect} "
+      OT.le "#{ex.class}: #{ex.message} -- #{req.current_absolute_uri} -- #{req.client_ipaddress} #{custid} #{short_session_id} #{locale} #{content_type}"
       OT.le ex.backtrace.join("\n")
 
       # Track the unexected errors
