@@ -398,5 +398,725 @@
   "web.domains.dns_widget_description": {
     "text": "Használja az alábbi eszközt a DNS szolgáltatója automatikus felismeréséhez és lépésről lépésre útmutatások megjelenítéséhez a doménje konfigurálásához.",
     "source_hash": "91c1af2e"
+  },
+  "api.domains.errors.add_admin_required": {
+    "text": "Csak a szervezeti tulajdonosok és adminisztrátorok adhatnak hozzá egyéni doméneket"
+  },
+  "web.domains.public_homepage": {
+    "text": "Nyilvános kezdőlap"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "A domén ellenőrizve és aktív"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "A DNS nincs beállítva — kattintson a javításhoz"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "A domén nincs ellenőrizve — kattintson az ellenőrzéshez"
+  },
+  "web.domains.status_tooltip_unverified": {
+    "text": "A domén állapota nincs ellenőrizve — kattintson a frissítéshez"
+  },
+  "web.domains.last_check_failed": {
+    "text": "Az utolsó ellenőrzés sikertelen volt"
+  },
+  "web.domains.last_check_failed_ago": {
+    "text": "az utolsó ellenőrzés sikertelen volt: {0}"
+  },
+  "web.domains.verify_now": {
+    "text": "Ellenőrzés most"
+  },
+  "web.domains.click_to_verify": {
+    "text": "kattintson az ellenőrzéshez"
+  },
+  "web.domains.remove_domain_description": {
+    "text": "A domén és minden konfigurációjának végleges eltávolítása."
+  },
+  "web.domains.add_access_denied": {
+    "text": "Hozzáférés megtagadva"
+  },
+  "web.domains.add_access_denied_description": {
+    "text": "Nincs jogosultsága domének hozzáadásához ehhez a szervezethez. Forduljon a szervezet adminisztrátorához."
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "A DNS-widget betöltése sikertelen"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "A DNS-widget nem érhető el"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "A DNS-widget inicializálása sikertelen"
+  },
+  "web.domains.verified": {
+    "text": "Ellenőrizve"
+  },
+  "web.domains.pending_verification": {
+    "text": "Ellenőrzésre vár"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Nem mentett módosításai vannak. Biztosan el szeretné hagyni az oldalt?"
+  },
+  "web.domains.entitlement_required_owner": {
+    "text": "Ez a funkció csomagfrissítést igényel."
+  },
+  "web.domains.entitlement_required_member": {
+    "text": "Ez a funkció nem érhető el a jelenlegi csomagjában. Forduljon a szervezet tulajdonosához."
+  },
+  "web.domains.detail.manage": {
+    "text": "Kezelés"
+  },
+  "web.domains.detail.features": {
+    "text": "Funkciók"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Kezdőlapi titkok"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Nyilvános hozzáférés engedélyezése titkok létrehozásához a domén kezdőlapján"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logó, színek és egyéni márkajelzés"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Egyszeri bejelentkezési szolgáltató beállításai"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Egyéni e-mail-feladó konfigurációja"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Bejövő titkok címzettjeinek beállításai"
+  },
+  "web.domains.detail.signup_description": {
+    "text": "Doménenkénti regisztrációs ellenőrzési stratégia"
+  },
+  "web.domains.detail.signin_description": {
+    "text": "Doménenkénti bejelentkezési mód konfigurációja"
+  },
+  "web.domains.email.title": {
+    "text": "E-mail-küldés"
+  },
+  "web.domains.email.config_title": {
+    "text": "E-mail-konfiguráció"
+  },
+  "web.domains.email.config_description": {
+    "text": "E-mail-küldés beállítása ehhez a doménhez"
+  },
+  "web.domains.email.provider_label": {
+    "text": "E-mail-szolgáltató"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "Válasszon e-mail-szolgáltatót"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "Feladó neve"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "pl. Acme Security"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "Feladó címe"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "pl. secrets{'@'}example.com"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Válaszcím"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "pl. support{'@'}example.com"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Módosítások mentése"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Módosítások elvetése"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Fiók alapértelmezéseinek használata"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "Doménellenőrzést igényel DKIM- és SPF-rekordokkal"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Doménhitelesítés beállítását igényli"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Doménellenőrzést igényel"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "A fiók alapértelmezett e-mail-küldési konfigurációját használja"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "DNS-rekordok"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "Adja hozzá a következő DNS-rekordokat, hogy ellenőrizze a doménjét az e-mail-küldéshez."
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Típus"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Név"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Érték"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Szolgáltató"
+  },
+  "web.domains.email.dns_optional_label": {
+    "text": "Ajánlott"
+  },
+  "web.domains.email.dns_optional_hint": {
+    "text": "Ez a rekord ajánlott, de nem kötelező az ellenőrzéshez. Előfordulhat, hogy a szervezeti doménjén lévő DMARC-házirend már lefedi ezt az aldomént."
+  },
+  "web.domains.email.copy": {
+    "text": "Másolás"
+  },
+  "web.domains.email.copied": {
+    "text": "Másolva"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Ellenőrizve"
+  },
+  "web.domains.email.status_pending": {
+    "text": "Függőben"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Sikertelen"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Újraérvényesítés"
+  },
+  "web.domains.email.validating": {
+    "text": "Érvényesítés folyamatban..."
+  },
+  "web.domains.email.domain_verified": {
+    "text": "A domén ellenőrizve"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "Az érvényesítés sikertelen"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Utoljára érvényesítve"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Frissítse a csomagját az e-mail-küldés beállításához ehhez a doménhez."
+  },
+  "web.domains.email.configure_email": {
+    "text": "E-mail beállítása"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Hozzáférés megtagadva"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "Nincs jogosultsága a domén e-mail-beállításainak kezeléséhez. Forduljon a szervezet adminisztrátorához."
+  },
+  "web.domains.email.update_success": {
+    "text": "Az e-mail-konfiguráció sikeresen mentve"
+  },
+  "web.domains.email.delete_success": {
+    "text": "Az e-mail-konfiguráció sikeresen eltávolítva"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "Az ehhez a doménhez tartozó e-maileket jelenleg a globális feladó küldi. Fejezze be az e-mail-konfigurációt a saját feladói azonosságának használatához."
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "Az egyéni e-mail-küldés jelenleg le van tiltva. Az e-maileket a globális feladó küldi. Engedélyezze az alábbi funkciót a saját feladói azonosságának használatához."
+  },
+  "web.domains.email.test_email_title": {
+    "text": "E-mail-kézbesítés tesztelése"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Küldjön magának egy teszt e-mailt a mentett konfigurációval. Akkor is működik, ha a funkció még nincs engedélyezve."
+  },
+  "web.domains.email.send_test": {
+    "text": "Teszt küldése"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "A teszt e-mail sikeresen elküldve"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Nem sikerült elküldeni a teszt e-mailt"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Elküldve a következő címre: {email}"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Kézbesítve a következővel: {provider}"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "Nincs beállítva"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "Alapértelmezett feladó használata"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Ellenőrizve"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Ellenőrzésre vár"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Letiltva"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "Nincs beállítva e-mail-feladó — az e-maileket a platform alapértelmezett feladója küldi"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "Az e-mail-feladó konfigurációja ellenőrzésre vár — az e-maileket a platform alapértelmezett feladója küldi"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "Az e-mail-feladó le van tiltva — az e-maileket a platform alapértelmezett feladója küldi"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "Az e-mail-feladó ellenőrizve — az e-maileket erről a doménről küldjük"
+  },
+  "web.domains.incoming.title": {
+    "text": "Bejövő titkok"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Bejövő titkok konfigurációja"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Engedélyezze, hogy külső felhasználók titkokat küldjenek közvetlenül a kijelölt címzetteknek ezen a doménen"
+  },
+  "web.domains.incoming.feature_disabled": {
+    "text": "A bejövő titkok nem érhetők el"
+  },
+  "web.domains.incoming.feature_disabled_description": {
+    "text": "A bejövő titkok funkció nincs engedélyezve ezen a példányon. Forduljon az adminisztrátorához."
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Hozzáférés megtagadva"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "Nincs jogosultsága a domén bejövő titkok beállításainak kezeléséhez. Forduljon a szervezet adminisztrátorához."
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Frissítse a csomagját a bejövő titkok beállításához ehhez a doménhez."
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Bejövő titkok beállítása"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "A bejövő titkok nincsenek beállítva ehhez a doménhez. Adjon hozzá címzetteket, hogy a külső felhasználók titkokat küldhessenek a csapatának."
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "A bejövő titkok jelenleg le vannak tiltva. A külső felhasználók nem küldhetnek titkokat a domén címzettjeinek. Engedélyezze az alábbi funkciót a bejövő titkok engedélyezéséhez."
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Címzettek"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Határozza meg, ki kaphat bejövő titkokat ezen a doménen. A címzettek e-mail-értesítést kapnak, amikor titkot küldenek nekik."
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Címzett hozzáadása"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Eltávolítás"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "E-mail-cím"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "recipient{'@'}example.com"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Megjelenített név"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "pl. Security Team"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "Nincsenek beállított címzettek"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Adjon hozzá címzetteket, hogy a külső felhasználók titkokat küldhessenek a csapatának."
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Érvénytelen e-mail-cím"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "Ez az e-mail-cím már hozzá van adva"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "Legfeljebb {max} címzett engedélyezett"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "A megjelenített név megadása kötelező"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "Az e-mail-cím megadása kötelező"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Módosítások mentése"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Módosítások elvetése"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "A bejövő titkok konfigurációja sikeresen mentve"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "A bejövő titkok konfigurációja sikeresen eltávolítva"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} címzett | {count} címzett"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "Nincs beállítva"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Beállítva"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Letiltva"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "A bejövő titkok nincsenek beállítva - a külső felhasználók nem küldhetnek titkokat erre a doménre"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "A bejövő titkok engedélyezve, {count} címzettel"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "A bejövő titkok funkció le van tiltva ehhez a doménhez"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Bejövő titkok engedélyezése"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Engedélyezze, hogy külső felhasználók titkokat küldjenek a domén címzettjeinek"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "Nyilvános URL"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Ossza meg ezt az URL-t külső felhasználókkal, hogy titkokat küldhessenek"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "URL másolása"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "URL a vágólapra másolva"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Biztosan eltávolít minden címzettet? A külső felhasználók többé nem küldhetnek titkokat erre a doménre."
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Elérte a címzettek maximális számát"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "Ez az e-mail-cím már hozzá lett adva"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "A mentés az összes meglévő címzettet lecseréli a függőben lévő módosításaira. Biztos benne?"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Az összes címzett törlése"
+  },
+  "web.domains.signin.title": {
+    "text": "Bejelentkezési konfiguráció"
+  },
+  "web.domains.signin.configure_signin": {
+    "text": "Bejelentkezés beállítása"
+  },
+  "web.domains.signin.config_description": {
+    "text": "Bejelentkezési hitelesítési módok beállítása ehhez a doménhez"
+  },
+  "web.domains.signin.access_denied": {
+    "text": "Hozzáférés megtagadva"
+  },
+  "web.domains.signin.upgrade_to_configure": {
+    "text": "Frissítse a csomagját a bejelentkezési módok beállításához ehhez a doménhez."
+  },
+  "web.domains.signin.not_configured_notice": {
+    "text": "A bejelentkezési konfiguráció még nincs beállítva ehhez a doménhez. Állítson be felülbírálásokat annak szabályozására, hogy mely hitelesítési módok érhetők el ennek a doménnek a bejelentkezési oldalán."
+  },
+  "web.domains.signin.signin_enabled_label": {
+    "text": "Bejelentkezés engedélyezve"
+  },
+  "web.domains.signin.header_toggle_label": {
+    "text": "Bejelentkezés"
+  },
+  "web.domains.signin.signin_enabled_hint": {
+    "text": "Hogy a felhasználók bejelentkezhetnek-e ezen a doménen"
+  },
+  "web.domains.signin.restrict_to_label": {
+    "text": "Bejelentkezési mód korlátozása"
+  },
+  "web.domains.signin.restrict_to_hint": {
+    "text": "Korlátozza ezt a domént egyetlen hitelesítési módra. Beállítás esetén csak a kiválasztott mód jelenik meg a bejelentkezési oldalon."
+  },
+  "web.domains.signin.all_methods": {
+    "text": "Minden mód"
+  },
+  "web.domains.signin.all_methods_description": {
+    "text": "Az összes engedélyezett hitelesítési mód megjelenítése a bejelentkezési oldalon"
+  },
+  "web.domains.signin.method_password": {
+    "text": "Jelszó"
+  },
+  "web.domains.signin.method_email_auth": {
+    "text": "E-mailes hitelesítés"
+  },
+  "web.domains.signin.method_webauthn": {
+    "text": "WebAuthn / Hozzáférési kulcsok"
+  },
+  "web.domains.signin.method_sso": {
+    "text": "Egyszeri bejelentkezés"
+  },
+  "web.domains.signin.method_overrides_label": {
+    "text": "Mód felülbírálásai"
+  },
+  "web.domains.signin.method_overrides_hint": {
+    "text": "Egyes hitelesítési módok engedélyezése vagy letiltása ehhez a doménhez"
+  },
+  "web.domains.signin.mode_question": {
+    "text": "Hogyan jelentkezhetnek be a felhasználók?"
+  },
+  "web.domains.signin.mode_any": {
+    "text": "Bármely elérhető mód"
+  },
+  "web.domains.signin.mode_any_hint": {
+    "text": "Az ezen a doménen elérhető összes mód megjelenítése. Az egyes módokat alább szűkítheti."
+  },
+  "web.domains.signin.mode_one": {
+    "text": "Egy adott mód"
+  },
+  "web.domains.signin.mode_one_hint": {
+    "text": "Korlátozza a bejelentkezési oldalt egyetlen módra. Csak az ezen a doménen elérhető módok szerepelnek a listában."
+  },
+  "web.domains.signin.mode_disabled": {
+    "text": "Bejelentkezés letiltva"
+  },
+  "web.domains.signin.mode_disabled_hint": {
+    "text": "A felhasználók nem jelentkezhetnek be ezen a doménen."
+  },
+  "web.domains.signin.mode_disabled_notice": {
+    "text": "Ennek a doménnek a bejelentkezési oldalára látogatók egy értesítést látnak, hogy a bejelentkezés nem érhető el, a kezdőlapra visszamutató hivatkozással. A korábbi módbeállításai megmaradnak, és a bejelentkezés újbóli engedélyezésekor visszaállnak."
+  },
+  "web.domains.signin.methods_list_label": {
+    "text": "A bejelentkezési oldalon megjelenő módok"
+  },
+  "web.domains.signin.restrict_picker_hint": {
+    "text": "Csak az ezen a doménen elérhető módok szerepelnek a listában."
+  },
+  "web.domains.signin.availability_always": {
+    "text": "Mindig elérhető"
+  },
+  "web.domains.signin.availability_global_on": {
+    "text": "Globális szabályzatot követi · Be"
+  },
+  "web.domains.signin.availability_global_off": {
+    "text": "Nem érhető el"
+  },
+  "web.domains.signin.availability_unavailable": {
+    "text": "Webhelyszerte nem érhető el"
+  },
+  "web.domains.signin.allow_on_domain": {
+    "text": "Engedélyezés ezen a doménen"
+  },
+  "web.domains.signin.method_password_blurb": {
+    "text": "Csak jelszó"
+  },
+  "web.domains.signin.method_email_auth_blurb": {
+    "text": "Jelszó nélküli bejelentkezés varázshivatkozással"
+  },
+  "web.domains.signin.method_webauthn_blurb": {
+    "text": "Biometria és biztonsági kulcsok"
+  },
+  "web.domains.signin.method_sso_blurb": {
+    "text": "Külső identitásszolgáltató"
+  },
+  "web.domains.signin.email_auth_label": {
+    "text": "E-mailes hitelesítés"
+  },
+  "web.domains.signin.email_auth_hint": {
+    "text": "Jelszó nélküli e-mailes hitelesítés engedélyezése ezen a doménen"
+  },
+  "web.domains.signin.sso_enabled_label": {
+    "text": "Egyszeri bejelentkezés"
+  },
+  "web.domains.signin.sso_enabled_hint": {
+    "text": "SSO-hitelesítés engedélyezése ezen a doménen"
+  },
+  "web.domains.signin.enabled_label": {
+    "text": "Bejelentkezési konfiguráció engedélyezése"
+  },
+  "web.domains.signin.enabled_hint": {
+    "text": "Ha engedélyezve van, ez a domén a fent beállított bejelentkezési beállításokat használja"
+  },
+  "web.domains.signin.save_config": {
+    "text": "Konfiguráció mentése"
+  },
+  "web.domains.signin.update_success": {
+    "text": "A bejelentkezési konfiguráció sikeresen frissítve"
+  },
+  "web.domains.signin.reset_to_defaults": {
+    "text": "Visszaállítás az alapértelmezésekre"
+  },
+  "web.domains.signin.reset_confirm": {
+    "text": "Visszaállítja a bejelentkezést a globális alapértelmezésekre?"
+  },
+  "web.domains.signin.reset_keeps_sso": {
+    "text": "Az SSO-hitelesítő adatai megmaradnak. Ezeket külön távolítsa el az SSO-konfigurációs képernyőn."
+  },
+  "web.domains.signin.reset_action": {
+    "text": "Igen, visszaállítás"
+  },
+  "web.domains.signin.reset_success": {
+    "text": "A bejelentkezési beállítások visszaállítva a globális alapértelmezésekre"
+  },
+  "web.domains.signup.title": {
+    "text": "Regisztrációs ellenőrzés"
+  },
+  "web.domains.signup.config_description": {
+    "text": "Regisztrációs ellenőrzés beállítása ehhez a doménhez"
+  },
+  "web.domains.signup.access_denied": {
+    "text": "Hozzáférés megtagadva"
+  },
+  "web.domains.signup.upgrade_to_configure": {
+    "text": "Frissítse a csomagját a doménenkénti regisztrációs ellenőrzés beállításához."
+  },
+  "web.domains.signup.configure_signup": {
+    "text": "Regisztráció beállítása"
+  },
+  "web.domains.signup.not_configured_notice": {
+    "text": "A regisztrációs ellenőrzés még nincs beállítva ehhez a doménhez. Állítson be egy stratégiát annak szabályozására, hogy ki regisztrálhat ezen a doménen keresztül."
+  },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "A regisztrációk jelenleg le vannak tiltva a webhely szintjén. Ez a doménenkénti szabályzat be van állítva, de nem szabályoz semmilyen forgalmat, amíg a webhelyszintű regisztrációk nincsenek engedélyezve."
+  },
+  "web.domains.signup.strategy_label": {
+    "text": "Ellenőrzési stratégia"
+  },
+  "web.domains.signup.strategy_description": {
+    "text": "Válassza ki, hogyan ellenőrizzük az e-mail-címeket, amikor a felhasználók regisztrálnak ezen a doménen."
+  },
+  "web.domains.signup.network_validation_warning": {
+    "text": "Ez a stratégia hálózati hívásokat végez a regisztráció során, ami késleltetést okozhat, vagy egyes szolgáltatók blokkolhatják."
+  },
+  "web.domains.signup.allowed_domains_label": {
+    "text": "Engedélyezett regisztrációs domének"
+  },
+  "web.domains.signup.allowed_domains_hint": {
+    "text": "Csak ezek az e-mail-domének regisztrálhatnak. Bejegyzésenként egy domént adjon meg."
+  },
+  "web.domains.signup.domain_placeholder": {
+    "text": "example.com"
+  },
+  "web.domains.signup.invalid_domain": {
+    "text": "Adjon meg egy érvényes domént (pl. example.com)"
+  },
+  "web.domains.signup.domain_exists": {
+    "text": "Ez a domén már szerepel a listában"
+  },
+  "web.domains.signup.remove_domain": {
+    "text": "{domain} eltávolítása"
+  },
+  "web.domains.signup.enabled_label": {
+    "text": "Doménenkénti ellenőrzés engedélyezése"
+  },
+  "web.domains.signup.enabled_hint": {
+    "text": "Ha engedélyezve van, az ezen a doménen történő regisztrációk a globális szabályzat helyett a fenti stratégiát használják."
+  },
+  "web.domains.signup.delete_config": {
+    "text": "Konfiguráció törlése"
+  },
+  "web.domains.signup.delete_confirm": {
+    "text": "Törli a regisztrációs ellenőrzés konfigurációját? A regisztrációk visszatérnek a globális szabályzathoz."
+  },
+  "web.domains.signup.save_config": {
+    "text": "Konfiguráció mentése"
+  },
+  "web.domains.signup.update_success": {
+    "text": "A regisztrációs ellenőrzés sikeresen frissítve"
+  },
+  "web.domains.signup.delete_success": {
+    "text": "A regisztrációs ellenőrzés konfigurációja sikeresen eltávolítva"
+  },
+  "web.domains.signup.domain_overrides_label": {
+    "text": "Domén felülbírálásai"
+  },
+  "web.domains.signup.domain_overrides_hint": {
+    "text": "A globális regisztrációs beállítások felülbírálása ehhez a doménhez"
+  },
+  "web.domains.signup.signup_enabled_label": {
+    "text": "Regisztráció engedélyezve"
+  },
+  "web.domains.signup.signup_enabled_hint": {
+    "text": "Felülbírálja, hogy a regisztráció engedélyezve van-e ehhez a doménhez"
+  },
+  "web.domains.signup.autoverify_label": {
+    "text": "Fiókok automatikus ellenőrzése"
+  },
+  "web.domains.signup.autoverify_hint": {
+    "text": "Felülbírálja, hogy az új fiókok automatikusan ellenőrizve legyenek-e ezen a doménen"
+  },
+  "web.domains.sso.title": {
+    "text": "Egyszeri bejelentkezés"
+  },
+  "web.domains.sso.config_title": {
+    "text": "SSO-konfiguráció"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Egyszeri bejelentkezéses hitelesítés beállítása ehhez a doménhez"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Hozzáférés megtagadva"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "Nincs jogosultsága a domén SSO-beállításainak kezeléséhez. Forduljon a szervezet adminisztrátorához."
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Frissítse a csomagját az egyszeri bejelentkezés beállításához ehhez a doménhez."
+  },
+  "web.domains.sso.create_success": {
+    "text": "Az SSO-konfiguráció sikeresen létrehozva"
+  },
+  "web.domains.sso.update_success": {
+    "text": "Az SSO-konfiguráció sikeresen frissítve"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "Az SSO-konfiguráció sikeresen eltávolítva"
+  },
+  "web.domains.sso.test_success": {
+    "text": "A kapcsolatteszt sikeres — a szolgáltató helyesen válaszolt"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "A kapcsolatteszt sikertelen"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "Ha minden bejelentkezéshez SSO-t szeretne megkövetelni ezen a doménen, állítsa be a domén bejelentkezési beállításaiban. A csak SSO mód a bejelentkezési oldalt az itt beállított SSO-szolgáltatóra korlátozza."
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "SSO beállítása"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "Az SSO még nincs beállítva ehhez a doménhez. Engedélyezze az egyszeri bejelentkezést, hogy a csapattagok a szervezete identitásszolgáltatójával hitelesíthessék magukat."
+  },
+  "web.domains.sso.edit_credentials": {
+    "text": "Hitelesítő adatok szerkesztése"
+  },
+  "web.domains.sso.configure_button": {
+    "text": "Beállítás"
+  },
+  "web.domains.sso.upgrade_required": {
+    "text": "Frissítés a beállításhoz"
   }
 }

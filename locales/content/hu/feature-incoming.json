@@ -130,5 +130,26 @@
   "incoming.receipt_link_text": {
     "text": "visszaigazolás",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Csomagfrissítés szükséges"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Ez a funkció csomagfrissítést igényel. A bejövő titkok engedélyezéséhez kérjük, vegye fel a kapcsolatot a fiók tulajdonosával."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "A jegyzet legfeljebb {max} karakter lehet"
+  },
+  "incoming.validation_secret_required": {
+    "text": "A titok tartalma kötelező"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Kérjük, válasszon ki egy címzettet"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "A bejövő titkok funkció nincs engedélyezve"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Kérjük, ellenőrizze az űrlapot a hibák miatt"
   }
 }

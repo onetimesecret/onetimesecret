@@ -1,0 +1,107 @@
+{
+  "api.organizations.errors.domain_scoped_forbidden": {
+    "text": "A doménre korlátozott tagok nem hajthatják végre ezt a műveletet"
+  },
+  "api.organizations.errors.organization_not_found": {
+    "text": "A szervezet nem található: %{extid}"
+  },
+  "api.organizations.errors.organization_owner_required": {
+    "text": "Ezt a műveletet csak a szervezet tulajdonosa hajthatja végre"
+  },
+  "api.organizations.errors.organization_member_required": {
+    "text": "A művelet végrehajtásához a szervezet tagjának kell lennie"
+  },
+  "api.organizations.errors.organization_admin_required": {
+    "text": "Ezt a műveletet csak a szervezet tulajdonosai és adminisztrátorai hajthatják végre"
+  },
+  "api.organizations.errors.extid_required": {
+    "text": "Szervezetazonosító szükséges"
+  },
+  "api.organizations.errors.display_name_required": {
+    "text": "A szervezet neve kötelező"
+  },
+  "api.organizations.errors.display_name_too_long": {
+    "text": "A szervezet nevének rövidebbnek kell lennie %{max} karakternél"
+  },
+  "api.organizations.errors.description_too_long": {
+    "text": "A leírásnak rövidebbnek kell lennie %{max} karakternél"
+  },
+  "api.organizations.errors.contact_email_exists": {
+    "text": "Már létezik szervezet ezzel a kapcsolattartási e-mail-címmel"
+  },
+  "api.organizations.errors.creation_in_progress": {
+    "text": "A szervezet létrehozása folyamatban van. Kérjük, próbálja meg újra."
+  },
+  "api.organizations.errors.organization_limit_reached": {
+    "text": "Elérte a szervezetek korlátját. Frissítse a csomagját további szervezetek létrehozásához."
+  },
+  "api.organizations.invitations.errors.invitation_not_found": {
+    "text": "A meghívás nem található"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "Az e-mail-cím kötelező"
+  },
+  "api.organizations.invitations.errors.invalid_email_format": {
+    "text": "Érvénytelen e-mail-formátum"
+  },
+  "api.organizations.invitations.errors.invalid_role": {
+    "text": "A szerepkörnek tagnak vagy adminisztrátornak kell lennie"
+  },
+  "api.organizations.invitations.errors.cannot_invite_as_owner": {
+    "text": "Nem lehet tulajdonosként meghívni"
+  },
+  "api.organizations.invitations.errors.user_already_member": {
+    "text": "A felhasználó már tagja ennek a szervezetnek"
+  },
+  "api.organizations.invitations.errors.invitation_already_pending": {
+    "text": "Már van függőben lévő meghívás ehhez az e-mail-címhez"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Elérte a tagok korlátját. Frissítse a csomagját további tagok meghívásához."
+  },
+  "api.organizations.invitations.errors.resend_only_pending": {
+    "text": "Csak függőben lévő meghívások küldhetők újra"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Elérte az újraküldés maximális korlátját (%{max})"
+  },
+  "api.organizations.invitations.errors.revoke_only_pending": {
+    "text": "Csak függőben lévő meghívások vonhatók vissza"
+  },
+  "api.organizations.members.errors.member_not_found": {
+    "text": "A tag nem található: %{extid}"
+  },
+  "api.organizations.members.errors.member_not_in_organization": {
+    "text": "A tag nem található ebben a szervezetben"
+  },
+  "api.organizations.members.errors.member_not_active": {
+    "text": "A tag nem aktív"
+  },
+  "api.organizations.members.errors.invalid_role_value": {
+    "text": "Érvénytelen szerepkör. A következők egyike lehet: %{roles}"
+  },
+  "api.organizations.members.errors.cannot_change_owner_role": {
+    "text": "A tulajdonos szerepköre nem módosítható. Helyette használja a tulajdonjog átruházását."
+  },
+  "api.organizations.members.errors.member_already_has_role": {
+    "text": "A tag már rendelkezik a következő szerepkörrel: %{role}"
+  },
+  "api.organizations.members.errors.cannot_promote_to_owner": {
+    "text": "Nem léptethető elő tulajdonossá. Helyette használja a tulajdonjog átruházását."
+  },
+  "api.organizations.members.errors.must_be_member": {
+    "text": "Tagja kell lennie ennek a szervezetnek"
+  },
+  "api.organizations.members.errors.cannot_remove_owner": {
+    "text": "A szervezet tulajdonosa nem távolítható el. Először ruházza át a tulajdonjogot."
+  },
+  "api.organizations.members.errors.cannot_remove_self": {
+    "text": "Saját magát nem távolíthatja el. Helyette használja a szervezet elhagyása lehetőséget."
+  },
+  "api.organizations.members.errors.admin_cannot_remove_admin": {
+    "text": "Az adminisztrátorok nem távolíthatnak el más adminisztrátorokat. Erre csak a tulajdonosok jogosultak."
+  },
+  "api.organizations.members.errors.no_permission_to_remove": {
+    "text": "Nincs jogosultsága tagok eltávolítására"
+  }
+}
