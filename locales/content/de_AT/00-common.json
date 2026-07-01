@@ -1299,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Vergewissern Sie sich immer, dass Sie sich auf der offiziellen {product_name}-Website befinden. Betrüger erstellen mitunter gefälschte Websites, die genau wie {product_name} aussehen, um Ihre Geheimnisse zu stehlen. Um Phishing-Angriffe zu vermeiden, überprüfen Sie den Regionen-Bereich, bevor Sie neue Links erstellen.",
+    "text": "Vergewissern Sie sich immer, dass Sie sich auf der offiziellen {product_name}-Website befinden. Betrüger erstellen mitunter gefälschte Websites, die genau wie {product_name} aussehen, um Ihre Geheimnisse zu stehlen. Um Phishing-Angriffe zu vermeiden, überprüfen Sie die Domain der Region, bevor Sie neue Links erstellen.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
