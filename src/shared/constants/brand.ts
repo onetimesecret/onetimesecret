@@ -78,3 +78,14 @@ export function resolveProductName(
 ): string {
   return brandProductName || NEUTRAL_BRAND_DEFAULTS.product_name;
 }
+
+/**
+ * Sentinel for the neutral, brand-agnostic default logo component.
+ *
+ * The masthead's logo loader treats a `.vue` URL as a component to dynamically
+ * import; this value points at the bundled neutral `DefaultLogo.vue` (the
+ * keyhole mark — the OTS-company maruhi 秘 mark is never the default). Centralized
+ * here so the resolver (`identityStore.logoSource`) and its consumers agree on
+ * one sentinel rather than each hardcoding the string.
+ */
+export const DEFAULT_LOGO_COMPONENT = 'DefaultLogo.vue';

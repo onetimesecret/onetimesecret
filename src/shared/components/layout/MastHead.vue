@@ -5,6 +5,7 @@
   import DefaultLogo from '@/shared/components/logos/DefaultLogo.vue';
   import UserMenu from '@/shared/components/navigation/UserMenu.vue';
   import { useHeaderEnabled } from '@/shared/composables/useHeaderEnabled';
+  import { DEFAULT_LOGO_COMPONENT } from '@/shared/constants/brand';
   import { useAuthStore } from '@/shared/stores/authStore';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useProductIdentity } from '@/shared/stores/identityStore';
@@ -20,16 +21,18 @@
     email,
     cust,
     ui,
-    domain_logo,
   } = storeToRefs(bootstrapStore);
 
   // Brand identity resolves through the central resolver so the masthead shares
-  // one neutral-safe source of truth with every other surface. `productName`
-  // replaces the hand-rolled `brand_product_name ?? NEUTRAL` snippet;
-  // `showPlatformIdentity` is the base "may we show the platform wordmark?"
-  // decision (custom domains / per-tenant logos suppress it — the A3 leak).
+  // one neutral-safe source of truth with every other surface — the header reads
+  // no raw brand/identity bootstrap fields directly. `productName` replaces the
+  // hand-rolled `brand_product_name ?? NEUTRAL` snippet; `showPlatformIdentity`
+  // is the base "may we show the platform wordmark?" decision (custom domains /
+  // per-tenant logos suppress it — the A3 leak); `logoUri`/`logoSource` supply
+  // the tenant-or-neutral logo image (replacing the raw `domain_logo` read).
   const identityStore = useProductIdentity();
-  const { productName, showPlatformIdentity } = storeToRefs(identityStore);
+  const { productName, showPlatformIdentity, logoUri, logoSource } =
+    storeToRefs(identityStore);
 
   const props = withDefaults(defineProps<LayoutProps>(), {
     displayMasthead: true,
@@ -50,17 +53,22 @@
   // Header configuration
   const headerConfig = computed(() => ui.value?.header);
 
-  // Default logo component for fallback
-  const DEFAULT_LOGO = 'DefaultLogo.vue';
+  // Default logo component for fallback (shared sentinel, also used by the
+  // resolver's logoSource so the dynamic-import comparisons below stay in sync).
+  const DEFAULT_LOGO = DEFAULT_LOGO_COMPONENT;
 
-  // Helper functions for logo configuration
-  // Priority: props > custom domain logo > static config > default
-  const getLogoUrl = () => props.logo?.url || domain_logo.value || headerConfig.value?.branding?.logo?.url || DEFAULT_LOGO;
+  // Helper functions for logo configuration.
+  // Priority: props.logo.url (caller) > tenant logo (identity.logoUri) >
+  //           operator LOGO_URL (headerConfig) > neutral default (logoSource).
+  // A per-tenant uploaded logo wins over an operator-wide LOGO_URL; logoSource
+  // supplies the neutral DefaultLogo terminal (== DEFAULT_LOGO when no tenant
+  // logo, since the tenant rung already short-circuited).
+  const getLogoUrl = () => props.logo?.url || logoUri.value || headerConfig.value?.branding?.logo?.url || logoSource.value;
   const getLogoAlt = () => props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('web.homepage.one_time_secret_literal', { product_name: productName.value });
   const getLogoHref = () => props.logo?.href || headerConfig.value?.branding?.logo?.link_to || '/';
 
   // Static-config custom logo: operator set LOGO_URL to anything other than the
-  // bundled DefaultLogo.vue. Distinct from domain_logo (per-tenant runtime signal),
+  // bundled DefaultLogo.vue. Distinct from the tenant logo (identity.logoUri),
   // because the two have different override semantics for the site name.
   const isCustomStaticLogo = computed(() =>
     !!headerConfig.value?.branding?.logo?.url

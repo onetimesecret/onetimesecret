@@ -47,14 +47,22 @@ describe('branding resolver consolidation guardrail', () => {
       expect(code).not.toContain('NEUTRAL_BRAND_DEFAULTS');
     });
 
+    it('does not read the raw domain_logo bootstrap field (routes via the resolver)', () => {
+      // The header must not reach into raw identity fields — the tenant logo
+      // comes from identity.logoUri / identity.logoSource, not domain_logo.
+      expect(code).not.toContain('domain_logo');
+    });
+
     it('does not hardcode the OTS platform name', () => {
       expect(code).not.toContain('Onetime Secret');
     });
 
-    it('consumes the resolver (useProductIdentity + productName + showPlatformIdentity)', () => {
+    it('consumes the resolver (identity signals, not raw bootstrap identity)', () => {
       expect(raw).toContain('useProductIdentity');
       expect(raw).toContain('productName');
       expect(raw).toContain('showPlatformIdentity');
+      expect(raw).toContain('logoUri');
+      expect(raw).toContain('logoSource');
     });
   });
 
