@@ -1,0 +1,71 @@
+{
+  "api.entitlements.errors.context_unavailable": {
+    "text": "Berechtigungen können nicht überprüft werden (Organisationskontext nicht verfügbar)"
+  },
+  "api.entitlements.errors.api_access_required": {
+    "text": "Der API-Zugang erfordert ein Tarif-Upgrade"
+  },
+  "api.entitlements.errors.custom_privacy_defaults_required": {
+    "text": "Benutzerdefinierte Datenschutz-Voreinstellungen erfordern ein Tarif-Upgrade"
+  },
+  "api.entitlements.errors.extended_default_expiration_required": {
+    "text": "Eine verlängerte Standard-Ablaufzeit erfordert ein Tarif-Upgrade"
+  },
+  "api.entitlements.errors.custom_domains_required": {
+    "text": "Benutzerdefinierte Domains erfordern ein Tarif-Upgrade"
+  },
+  "api.entitlements.errors.custom_branding_required": {
+    "text": "Eigenes Branding erfordert ein Tarif-Upgrade"
+  },
+  "api.entitlements.errors.homepage_secrets_required": {
+    "text": "Nachrichten auf der Startseite erfordern ein Tarif-Upgrade"
+  },
+  "api.entitlements.errors.incoming_secrets_required": {
+    "text": "Eingehende Nachrichten erfordern ein Tarif-Upgrade"
+  },
+  "api.entitlements.errors.custom_mail_sender_required": {
+    "text": "Ein benutzerdefinierter Mail-Absender erfordert ein Tarif-Upgrade"
+  },
+  "api.entitlements.errors.flexible_from_domain_required": {
+    "text": "Eine flexible Absender-Domain erfordert ein Tarif-Upgrade"
+  },
+  "api.entitlements.errors.manage_org_required": {
+    "text": "Die Organisationsverwaltung erfordert ein Tarif-Upgrade"
+  },
+  "api.entitlements.errors.manage_teams_required": {
+    "text": "Die Teamverwaltung erfordert ein Tarif-Upgrade"
+  },
+  "api.entitlements.errors.manage_members_required": {
+    "text": "Die Mitgliederverwaltung erfordert ein Tarif-Upgrade"
+  },
+  "api.entitlements.errors.manage_sso_required": {
+    "text": "Die SSO-Verwaltung erfordert ein Tarif-Upgrade"
+  },
+  "api.entitlements.errors.audit_logs_required": {
+    "text": "Audit-Protokolle erfordern ein Tarif-Upgrade"
+  },
+  "api.entitlements.errors.custom_signup_validation_required": {
+    "text": "Eine benutzerdefinierte Registrierungsvalidierung erfordert ein Tarif-Upgrade"
+  },
+  "api.entitlements.errors.create_secrets_required": {
+    "text": "Das Erstellen von Nachrichten erfordert ein Tarif-Upgrade"
+  },
+  "api.entitlements.errors.view_receipt_required": {
+    "text": "Das Anzeigen von Belegen erfordert ein Tarif-Upgrade"
+  },
+  "api.entitlements.errors.notifications_required": {
+    "text": "Benachrichtigungen erfordern ein Tarif-Upgrade"
+  },
+  "api.entitlements.errors.workspace_branding_required": {
+    "text": "Arbeitsbereich-Branding erfordert ein Tarif-Upgrade"
+  },
+  "api.entitlements.errors.ip_access_rules_required": {
+    "text": "IP-Zugriffsregeln erfordern ein Tarif-Upgrade"
+  },
+  "api.entitlements.errors.manage_billing_required": {
+    "text": "Die Abrechnungsverwaltung erfordert ein Tarif-Upgrade"
+  },
+  "api.entitlements.errors.custom_signin_config_required": {
+    "text": "Eine benutzerdefinierte Anmeldekonfiguration erfordert ein Tarif-Upgrade"
+  }
+}

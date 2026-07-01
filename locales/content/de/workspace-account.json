@@ -682,5 +682,14 @@
   "web.settings.profile.didnt_receive_email": {
     "text": "E-Mail nicht erhalten?",
     "source_hash": "fe3ac3ad"
+  },
+  "web.settings.api.api_disabled_notice": {
+    "text": "Die API ist für diese Instanz deaktiviert."
+  },
+  "web.settings.security.sso_managed_title": {
+    "text": "Sicherheit über SSO verwaltet"
+  },
+  "web.settings.security.sso_managed_description": {
+    "text": "Dein Konto wird über den Single-Sign-On-Anbieter deiner Organisation authentifiziert. Passwort, Multi-Faktor-Authentifizierung und Wiederherstellungscodes werden von deinem Identitätsanbieter verwaltet."
   }
 }
