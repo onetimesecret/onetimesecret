@@ -840,7 +840,28 @@ def _hashes_init_missing_in_locales(
             print(f"{locale}: {action} {updates} missing hashes")
 
 
+_HASHES_GUIDANCE = """\
+=============================  READ BEFORE COMMITTING  =========================
+  `content hashes` rewrites hash values across the WHOLE locale tree in 1 pass.
+  Afterwards, run `git diff --stat` and confirm the churn is proportional to the
+  keys you actually added:
+
+    - Added a handful of new source keys? Expect hash changes only for those new
+      entries (plus their propagation into each locale file).
+    - Hashes changing for hundreds of pre-existing keys you never touched? Red
+      flag -- usually the base picked up unrelated drift (the ~2000-hash
+      tree-wide rewrite that happens on integration/develop-merge bases).
+
+  If the scope of changed hashes is wildly larger than the keys you added, STOP
+  and find out why rather than bundling a tree-wide hash rewrite into a small
+  change.
+================================================================================
+"""
+
+
 def _hashes_handler(args) -> int:
+    print(_HASHES_GUIDANCE, file=sys.stderr)
+
     print(f"Source locale: {SOURCE_LOCALE}")
     print(f"Content dir: {CONTENT_DIR}\n")
 
