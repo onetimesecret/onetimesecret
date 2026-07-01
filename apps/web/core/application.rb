@@ -117,13 +117,7 @@ module Core
       # enable_full_ip_privacy! call was removed to keep a single trust/privacy
       # source; the mount's idempotency makes a second pass here redundant.
 
-      # Enable CSP nonce support for enhanced security.
-      #
-      # NOTE: this only sets an Otto flag (csp_nonce_enabled?) — it emits NO
-      # Content-Security-Policy header on its own. The actual CSP header is
-      # emitted by Core::Middleware::RequestSetup#finalize_response (report-only,
-      # gated on site.security.csp.enabled). Leave this call in place so the flag
-      # stays available to anything querying csp_nonce_enabled?.
+      # Enable CSP nonce support for enhanced security
       router.enable_csp_with_nonce!(debug: OT.debug?)
 
       # Register authentication strategies for Web Core

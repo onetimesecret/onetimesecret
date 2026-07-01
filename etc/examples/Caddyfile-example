@@ -187,12 +187,8 @@
 	header {
 		# Security headers
 		#
-		# CSP: Handled by the application server. The Core web app emits its
-		# nonce-based Content-Security-Policy from
-		# apps/web/core/middleware/request_setup.rb (opt-in via
-		# site.security.csp.enabled), and the V1 API from
-		# apps/api/v1/controllers/helpers.rb. This keeps policy management
-		# centralized in the app rather than the proxy.
+		# CSP: Handled by application server (apps/web/core/middleware/security_headers.rb)
+		# to maintain centralized policy management.
 		#
 		# HSTS: Configured per-domain in main server block below for flexibility.
 		#

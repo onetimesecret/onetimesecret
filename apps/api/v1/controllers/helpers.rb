@@ -3,7 +3,6 @@
 # frozen_string_literal: true
 
 require_relative '../../../../lib/onetime/helpers/session_helpers'
-require_relative '../../../../lib/onetime/security/csp'
 
 module V1
   unless defined?(V1::BADAGENTS)
@@ -165,39 +164,52 @@ module V1
       # Set the Content-Type header if it's not already set by the application
       res.headers['content-type'] ||= content_type
 
-      # The Content-Security-Policy block is opt-in (gated on
-      # site.security.csp.enabled == true). When DISABLED, return early and leave
-      # any pre-existing/upstream CSP header untouched.
+      # Skip the Content-Security-Policy header if it's already set
+      return if res.headers['content-security-policy']
+
+      # Skip the CSP header unless it's enabled in site.security settings
       return if OT.conf.dig('site', 'security', 'csp', 'enabled') != true
 
-      # When CSP is ENABLED, the app's hardened nonce-based policy is
-      # AUTHORITATIVE: it overrides any weaker pre-existing/upstream policy so a
-      # CSP Level 1 agent can't be downgraded around the nonce. We compute the
-      # policy below and assign it unconditionally further down.
-
-      # Build the hardened nonce-based policy from the shared, single-source-of-
-      # truth builder (Onetime::Security::Csp). The Core web app emits the SAME
-      # policy via apps/web/core/middleware/request_setup.rb; keeping the directive
-      # lists in one place prevents the web/API drift that previously left the
-      # user-facing HTML pages with no CSP. The development branch allows inline
-      # scripts/styles connections for hot reloading.
-      hardened = Onetime::Security::Csp.policy(
-        nonce: nonce,
-        development: OT.conf.dig('development', 'enabled'),
-      )
-
-      OT.ld "[CSP] #{hardened}" if OT.debug?
-
-      # If a DIFFERENT CSP header is already present (e.g. set by upstream
-      # middleware), log it for visibility before the hardened policy overrides it.
-      existing = res.headers['content-security-policy']
-      if existing && existing != hardened
-        OT.lw '[CSP] overriding pre-existing content-security-policy with hardened policy'
+      # Skip the Content-Security-Policy header if the front is running in
+      # development mode. We need to allow inline scripts and styles for
+      # hot reloading to work.
+      csp = if OT.conf.dig('development', 'enabled')
+        [
+          "default-src 'none';",                               # Restrict to same origin by default
+          "script-src 'nonce-#{nonce}';",                      # Nonce-only: omit 'unsafe-inline' so CSP Level 1 agents can't bypass the nonce
+          "style-src 'self' 'unsafe-inline';",                 # Enable Vite's dynamic style injection
+          "connect-src 'self' ws: wss: http: https:;",         # Allow WebSocket connections for hot module replacement
+          "img-src 'self' data:;",                             # Allow images from same origin only
+          "font-src 'self';",                                  # Allow fonts from same origin only
+          "object-src 'none';",                                # Block <object>, <embed>, and <applet> elements
+          "base-uri 'self';",                                  # Restrict <base> tag targets to same origin
+          "form-action 'self';",                               # Restrict form submissions to same origin
+          "frame-ancestors 'none';",                           # Prevent site from being embedded in frames
+          "manifest-src 'self';",
+          # "require-trusted-types-for 'script';",
+          "worker-src 'self';",                                # Allow Workers from same origin only
+        ]
+      else
+        [
+          "default-src 'none';",
+          "script-src 'nonce-#{nonce}';",                      # Nonce-only: omit 'unsafe-inline' so CSP Level 1 agents can't bypass the nonce
+          "style-src 'self' 'unsafe-inline';",
+          "connect-src 'self' wss: https:;",                   # Only HTTPS and secure WebSockets
+          "img-src 'self' data:;",
+          "font-src 'self';",
+          "object-src 'none';",
+          "base-uri 'self';",
+          "form-action 'self';",
+          "frame-ancestors 'none';",
+          "manifest-src 'self';",
+          # "require-trusted-types-for 'script';",
+          "worker-src 'self';",
+        ]
       end
 
-      # Hardened policy is authoritative when CSP is enabled: override any
-      # pre-existing header.
-      res.headers['content-security-policy'] = hardened
+      OT.ld "[CSP] #{csp.join(' ')}" if OT.debug?
+
+      res.headers['content-security-policy'] = csp.join(' ')
     end
 
     # Collectes request details in a single string for logging purposes.
