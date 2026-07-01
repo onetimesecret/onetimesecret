@@ -7,6 +7,22 @@ require_relative 'utils/config_resolver'
 require_relative 'utils/enumerables'
 
 module Onetime
+  # Loads, merges, and normalizes the YAML/ENV configuration.
+  #
+  # ## Changing the config surface
+  #
+  # The config shape is mirrored in several places that drift silently. When you
+  # add, rename, or remove a config key or its backing BRAND_*/ENV var, update
+  # all four in the same change:
+  #
+  #   1. etc/defaults/config.defaults.yaml — the shipped default and its ENV wiring.
+  #   2. Zod contracts under src/schemas/contracts/config/ (and the flattened
+  #      bootstrap payload in src/schemas/contracts/bootstrap.ts) so the frontend
+  #      validates the new shape.
+  #   3. DEPRECATIONS (below) — add an entry when a key or ENV var is removed or
+  #      relocated, so boot warns/raises per compatibility.deprecated_config_mode.
+  #   4. docs/architecture/*.md and .env.reference — keep the operator-facing docs
+  #      and the ENV reference in sync.
   module Config
     extend self
 
