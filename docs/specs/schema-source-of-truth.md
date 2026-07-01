@@ -176,7 +176,7 @@ MVP closing #3424: Phases 0, 2 (pre-response), 3 (`state`), 4.
   `src/services/diagnostics.service.ts`,
   `src/shared/components/base/BaseShowSecret.vue`,
   `src/apps/secret/reveal/UnknownSecret.vue`.
-- Generation: `scripts/json-schema/generate.ts`, `src/schemas/registry.ts`,
+- Generation: `src/schemas/scripts/generate.ts`, `src/schemas/registry.ts`,
   `generated/schemas/`.
 - Familia: `lib/familia/horreum/serialization.rb`,
   `lib/familia/features/safe_dump.rb`,
