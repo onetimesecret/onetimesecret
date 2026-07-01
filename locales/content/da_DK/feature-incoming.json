@@ -130,5 +130,26 @@
   "incoming.receipt_link_text": {
     "text": "kvittering",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Opgradering kræves"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Denne funktion kræver en planopgradering. Kontakt venligst kontoens ejer for at aktivere indkommende beskeder."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Memo skal være på {max} tegn eller mindre"
+  },
+  "incoming.validation_secret_required": {
+    "text": "Beskedindhold kræves"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Vælg venligst en modtager"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "Funktionen for indkommende beskeder er ikke aktiveret"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Tjek venligst formularen for fejl"
   }
 }

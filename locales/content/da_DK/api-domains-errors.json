@@ -1,0 +1,29 @@
+{
+  "api.domains.errors.domain_id_required": {
+    "text": "Domæne-id kræves"
+  },
+  "api.domains.errors.domain_not_found": {
+    "text": "Domæne ikke fundet: %{extid}"
+  },
+  "api.domains.errors.organization_not_found": {
+    "text": "Organisation ikke fundet for domæne: %{domain}"
+  },
+  "api.domains.errors.incoming_secrets_disabled": {
+    "text": "Indkommende beskeder er ikke aktiveret på denne instans"
+  },
+  "api.domains.errors.incoming_secrets_entitlement_required": {
+    "text": "Administration af indkommende beskeder kræver rettigheden incoming_secrets. Opgrader din plan."
+  },
+  "api.domains.errors.incoming_config_not_found": {
+    "text": "Indkommende konfiguration ikke fundet for domæne: %{extid}"
+  },
+  "api.domains.errors.recipients_max_exceeded": {
+    "text": "Maksimalt %{max} modtagere tilladt"
+  },
+  "api.domains.errors.recipients_invalid_email": {
+    "text": "Ugyldig e-mail: %{email}"
+  },
+  "api.domains.errors.recipients_duplicate": {
+    "text": "Dublerede modtager-e-mails er ikke tilladt"
+  }
+}

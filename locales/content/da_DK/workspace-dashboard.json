@@ -22,5 +22,14 @@
   "web.dashboard.fetch_error_description": {
     "text": "Der opstod et problem med at indlæse dine data. Prøv venligst igen.",
     "source_hash": "ff0d904e"
+  },
+  "web.teams.create_first_team_title": {
+    "text": "Opret dit første team"
+  },
+  "web.teams.create_first_team_description": {
+    "text": "Med teams kan du samarbejde med andre i et fælles workspace."
+  },
+  "web.teams.create_team": {
+    "text": "Opret team"
   }
 }

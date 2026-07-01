@@ -578,5 +578,344 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Udløber snart",
     "source_hash": "a5dcfef9"
+  },
+  "api.organizations.errors.not_found": {
+    "text": "Organisation ikke fundet: %{extid}"
+  },
+  "api.organizations.errors.owner_required": {
+    "text": "Kun organisationsejeren kan udføre denne handling"
+  },
+  "api.organizations.errors.admin_required": {
+    "text": "Kun organisationsejere og administratorer kan udføre denne handling"
+  },
+  "api.organizations.errors.member_required": {
+    "text": "Du skal være medlem af organisationen for at udføre denne handling"
+  },
+  "api.organizations.invitations.errors.create_admin_required": {
+    "text": "Kun organisationsejere og administratorer kan oprette invitationer"
+  },
+  "api.organizations.invitations.errors.resend_admin_required": {
+    "text": "Kun organisationsejere og administratorer kan gensende invitationer"
+  },
+  "api.organizations.invitations.errors.view_admin_required": {
+    "text": "Kun organisationsejere og administratorer kan se invitationer"
+  },
+  "api.organizations.invitations.errors.revoke_admin_required": {
+    "text": "Kun organisationsejere og administratorer kan tilbagekalde invitationer"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "E-mail er påkrævet"
+  },
+  "api.organizations.invitations.errors.email_invalid": {
+    "text": "Ugyldigt e-mailformat"
+  },
+  "api.organizations.invitations.errors.role_invalid": {
+    "text": "Rollen skal være medlem eller administrator"
+  },
+  "api.organizations.invitations.errors.cannot_invite_owner": {
+    "text": "Kan ikke invitere som ejer"
+  },
+  "api.organizations.invitations.errors.already_member": {
+    "text": "Brugeren er allerede medlem af denne organisation"
+  },
+  "api.organizations.invitations.errors.already_pending": {
+    "text": "Der afventer allerede en invitation for denne e-mail"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Medlemsgrænsen er nået. Opgrader din plan for at invitere flere medlemmer."
+  },
+  "api.organizations.invitations.errors.not_found": {
+    "text": "Invitation ikke fundet"
+  },
+  "api.organizations.invitations.errors.cannot_resend_non_pending": {
+    "text": "Kan kun gensende afventende invitationer"
+  },
+  "api.organizations.invitations.errors.cannot_revoke_non_pending": {
+    "text": "Kan kun tilbagekalde afventende invitationer"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Den maksimale grænse for gensendelse (%{max}) er nået"
+  },
+  "api.organizations.invitations.errors.accept_token_required": {
+    "text": "Token er påkrævet"
+  },
+  "api.organizations.invitations.errors.accept_organization_gone": {
+    "text": "Organisationen findes ikke længere"
+  },
+  "api.organizations.invitations.errors.accept_already_acted": {
+    "text": "Invitationen er allerede blevet %{status}"
+  },
+  "api.organizations.invitations.errors.accept_expired": {
+    "text": "Invitationen er udløbet"
+  },
+  "api.organizations.invitations.errors.accept_email_mismatch": {
+    "text": "Din e-mailadresse stemmer ikke overens med invitationen"
+  },
+  "api.organizations.invitations.errors.accept_already_member": {
+    "text": "Du er allerede medlem af denne organisation"
+  },
+  "web.organizations.entitlements_title": {
+    "text": "Organisationsrettigheder"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Se og konfigurer dine workspaces"
+  },
+  "web.organizations.delete_organization_remove_domains_first": {
+    "text": "Fjern alle brugerdefinerede domæner, før du sletter denne organisation."
+  },
+  "web.organizations.default_org_delete_notice_title": {
+    "text": "Sletning af denne organisation"
+  },
+  "web.organizations.default_org_delete_notice_before": {
+    "text": "Dette er din standardorganisation, og den kan ikke fjernes fra oversigten. For at slette den skal du kontakte os via"
+  },
+  "web.organizations.default_org_delete_notice_link": {
+    "text": "feedbackformularen"
+  },
+  "web.organizations.default_org_delete_notice_after": {
+    "text": "."
+  },
+  "web.organizations.leave_organization": {
+    "text": "Forlad denne organisation"
+  },
+  "web.organizations.leave_organization_warning": {
+    "text": "Du vil miste adgang til denne organisation og dens ressourcer."
+  },
+  "web.organizations.leave_organization_confirm_title": {
+    "text": "Forlad organisation"
+  },
+  "web.organizations.leave_organization_confirm_message": {
+    "text": "Er du sikker på, at du vil forlade {name}? Du skal bruge en ny invitation for at deltage igen."
+  },
+  "web.organizations.leave_organization_success": {
+    "text": "Du har forladt organisationen."
+  },
+  "web.organizations.leave_error": {
+    "text": "Kunne ikke forlade organisationen"
+  },
+  "web.organizations.organizations": {
+    "text": "Organisationer"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "af {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "som {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Tilbage til forsiden"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Denne invitation blev sendt til denne e-mailadresse"
+  },
+  "web.organizations.invitations.signup_continue": {
+    "text": "Fortsæt"
+  },
+  "web.organizations.invitations.signin_continue": {
+    "text": "Log ind"
+  },
+  "web.organizations.invitations.confirm_join_below": {
+    "text": "Næsten færdig — bekræft nedenfor for at deltage i organisationen."
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Gå til Organisationer"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Du er allerede medlem af denne organisation"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Deltag i {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Log ind for at deltage i {orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Afvis"
+  },
+  "web.organizations.members.member_quota": {
+    "text": "{used} af {limit} medlemmer"
+  },
+  "web.organizations.members.pending_suffix": {
+    "text": "({count} afventer)"
+  },
+  "web.organizations.members.limit_reached_hint": {
+    "text": "Medlemsgrænsen er nået."
+  },
+  "web.organizations.sso.title": {
+    "text": "Single Sign-On (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "Konfigurer SSO for at lade medlemmer logge ind med din organisations identitetsudbyder"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Udbydertype"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Vælg din organisations identitetsudbyder"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Visningsnavn"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "Et brugervenligt navn, der vises til brugerne, når de logger ind"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "f.eks. Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "Client ID"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "Dit OAuth-client-ID"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Client Secret"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "Din OAuth-client-secret"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Lad feltet stå tomt for at beholde den eksisterende secret"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "Tenant ID"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "Dit Azure AD / Entra ID-tenant-id"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "f.eks. 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "Issuer-URL"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "OIDC-discovery-URL'en for din identitetsudbyder"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "f.eks. https://login.example.com"
+  },
+  "web.organizations.sso.view_discovery_document": {
+    "text": "Vis discovery-dokument"
+  },
+  "web.organizations.sso.callback_url": {
+    "text": "Callback-URL"
+  },
+  "web.organizations.sso.callback_url_hint": {
+    "text": "Tilføj denne URL til din identitetsudbyders tilladte redirect-URI'er"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "Tilladte e-maildomæner"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Kun brugere med e-mailadresser fra disse domæner kan logge ind. Lad feltet stå tomt for at tillade alle domæner."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "f.eks. acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Indtast et gyldigt domæne (f.eks. example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Dette domæne er allerede på listen"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "Fjern {domain}"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "Aktivér SSO"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "Når den er aktiveret, kan organisationsmedlemmer logge ind med denne SSO-udbyder"
+  },
+  "web.organizations.sso.enforce_sso_only": {
+    "text": "Gennemtving kun SSO"
+  },
+  "web.organizations.sso.enforce_sso_only_hint": {
+    "text": "Kræv SSO for alle logins på dette domæne. Når den er aktiveret, deaktiveres adgangskodebaseret godkendelse."
+  },
+  "web.organizations.sso.grant_org_scope": {
+    "text": "Giv adgang på tværs af organisationen"
+  },
+  "web.organizations.sso.grant_org_scope_hint": {
+    "text": "Nye medlemmer, der tilslutter sig via dette domænes SSO, får adgang til alle organisationens domæner. Eksisterende medlemmer påvirkes ikke. Når den er deaktiveret (standard), kan nye medlemmer kun få adgang til dette domæne."
+  },
+  "web.organizations.sso.save_config": {
+    "text": "Gem SSO-konfiguration"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Slet konfiguration"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "Er du sikker? Dette deaktiverer SSO for din organisation."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "Kunne ikke indlæse SSO-konfiguration"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "Kunne ikke gemme SSO-konfiguration"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "SSO-konfiguration oprettet"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "SSO-konfiguration opdateret"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "SSO-konfiguration slettet"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "Kunne ikke slette SSO-konfiguration"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Test forbindelse"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Bekræft, at identitetsudbyderen kan nås (validerer ikke legitimationsoplysninger)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Test forbindelse"
+  },
+  "web.organizations.sso.testing": {
+    "text": "Tester..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "Kunne ikke teste forbindelsen"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Autorisationsendepunkt"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Manglende felter"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Aktiveret"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Konfigureret"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "Domæne-SSO"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Konfigurer SSO for hvert bekræftet domæne"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "For at ændre udbyder skal du først slette denne konfiguration"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Ikke konfigureret"
+  },
+  "web.organizations.sso.no_domains": {
+    "text": "Ingen bekræftede domæner"
+  },
+  "web.organizations.sso.no_domains_description": {
+    "text": "Tilføj og bekræft et domæne, før du konfigurerer SSO for det."
+  },
+  "web.organizations.tabs.team": {
+    "text": "Team"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

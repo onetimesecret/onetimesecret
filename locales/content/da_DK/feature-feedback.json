@@ -58,5 +58,14 @@
   "web.feedback.reason_email_change_unauthorized": {
     "text": "Det ser ud til, at du rapporterer en uautoriseret ændring af e-mail på din konto. Beskriv venligst hvad der skete, så undersøger vi det med det samme.",
     "source_hash": "00e56551"
+  },
+  "web.feedback.anonymous_no_reply": {
+    "text": "Bemærk: hvis du ønsker et svar, så underskriv eller medtag en e-mailadresse i beskeden."
+  },
+  "web.feedback.characters_remaining": {
+    "text": "{count} tegn tilbage"
+  },
+  "web.feedback.character_limit_reached": {
+    "text": "Tegngrænsen er nået"
   }
 }

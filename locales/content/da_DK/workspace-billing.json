@@ -988,5 +988,47 @@
     "text": "Kun tilgængelig i din oprindelige abonnementsregion",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Du abonnerer allerede på denne plan."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Genaktivér abonnement"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "Dit abonnement er blevet genaktiveret. Du vil fortsat blive faktureret som normalt."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "Kunne ikke genaktivere abonnementet. Prøv igen, eller kontakt support."
+  },
+  "web.billing.features.manage_orgs": {
+    "text": "Organisationsadministration"
+  },
+  "web.billing.features.flexible_from_domain": {
+    "text": "Fleksibelt afsenderdomæne for e-mail"
+  },
+  "web.billing.features.unlimited_admins": {
+    "text": "Ubegrænset antal administratorer"
+  },
+  "web.billing.features.manage_sso": {
+    "text": "SSO"
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Fleksibelt afsenderdomæne for e-mail"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "Administrer organisationer"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Single Sign-On (SSO)"
+  },
+  "web.billing.overview.entitlements.manage_billing": {
+    "text": "Administrer fakturering"
+  },
+  "web.billing.overview.entitlements.custom_signup_validation": {
+    "text": "Brugerdefineret tilmeldingsvalidering"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Genaktivér"
   }
 }
