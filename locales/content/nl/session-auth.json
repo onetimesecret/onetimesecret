@@ -398,5 +398,32 @@
   },
   "web.auth.verify._guidance.context": {
     "text": "E-mailverificatieproces na aanmelden"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "SSO-account"
+  },
+  "web.help.reset_password_link": {
+    "text": "Wachtwoord opnieuw instellen"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "Single sign-on is beschikbaar voor dit domein"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "De beheerder van de organisatie kan SSO inschakelen zodat teamleden hier kunnen inloggen. Neem contact op met de beheerder voor toegang."
+  },
+  "web.login.signin_disabled_heading": {
+    "text": "Inloggen is niet beschikbaar"
+  },
+  "web.login.signin_disabled_message": {
+    "text": "Inloggen is momenteel niet beschikbaar op dit domein."
+  },
+  "web.login.errors.sso_not_configured": {
+    "text": "Single sign-on is niet geconfigureerd voor dit domein. Neem contact op met je beheerder."
+  },
+  "web.login.errors.invalid_email": {
+    "text": "Het e-mailadres van je identity provider is ongeldig. Neem contact op met je beheerder."
+  },
+  "web.login.errors.domain_not_allowed": {
+    "text": "Je e-maildomein is niet geautoriseerd voor SSO-aanmelding. Neem contact op met je beheerder."
   }
 }

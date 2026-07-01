@@ -1,0 +1,107 @@
+{
+  "api.organizations.errors.domain_scoped_forbidden": {
+    "text": "Domeingebonden leden kunnen deze actie niet uitvoeren"
+  },
+  "api.organizations.errors.organization_not_found": {
+    "text": "Organisatie niet gevonden: %{extid}"
+  },
+  "api.organizations.errors.organization_owner_required": {
+    "text": "Alleen de eigenaar van de organisatie kan deze actie uitvoeren"
+  },
+  "api.organizations.errors.organization_member_required": {
+    "text": "Je moet lid van de organisatie zijn om deze actie uit te voeren"
+  },
+  "api.organizations.errors.organization_admin_required": {
+    "text": "Alleen eigenaren en beheerders van de organisatie kunnen deze actie uitvoeren"
+  },
+  "api.organizations.errors.extid_required": {
+    "text": "Organisatie-ID vereist"
+  },
+  "api.organizations.errors.display_name_required": {
+    "text": "Organisatienaam is vereist"
+  },
+  "api.organizations.errors.display_name_too_long": {
+    "text": "Organisatienaam moet minder dan %{max} tekens bevatten"
+  },
+  "api.organizations.errors.description_too_long": {
+    "text": "Beschrijving moet minder dan %{max} tekens bevatten"
+  },
+  "api.organizations.errors.contact_email_exists": {
+    "text": "Er bestaat al een organisatie met dit contact-e-mailadres"
+  },
+  "api.organizations.errors.creation_in_progress": {
+    "text": "Organisatie wordt aangemaakt. Probeer het opnieuw."
+  },
+  "api.organizations.errors.organization_limit_reached": {
+    "text": "Organisatielimiet bereikt. Upgrade je plan om meer organisaties aan te maken."
+  },
+  "api.organizations.invitations.errors.invitation_not_found": {
+    "text": "Uitnodiging niet gevonden"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "E-mailadres is vereist"
+  },
+  "api.organizations.invitations.errors.invalid_email_format": {
+    "text": "Ongeldig e-mailformaat"
+  },
+  "api.organizations.invitations.errors.invalid_role": {
+    "text": "Rol moet lid of beheerder zijn"
+  },
+  "api.organizations.invitations.errors.cannot_invite_as_owner": {
+    "text": "Kan niet uitnodigen als eigenaar"
+  },
+  "api.organizations.invitations.errors.user_already_member": {
+    "text": "Gebruiker is al lid van deze organisatie"
+  },
+  "api.organizations.invitations.errors.invitation_already_pending": {
+    "text": "Er is al een uitnodiging in behandeling voor dit e-mailadres"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Ledenlimiet bereikt. Upgrade je plan om meer leden uit te nodigen."
+  },
+  "api.organizations.invitations.errors.resend_only_pending": {
+    "text": "Alleen uitnodigingen in behandeling kunnen opnieuw worden verzonden"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Maximale limiet voor opnieuw verzenden (%{max}) bereikt"
+  },
+  "api.organizations.invitations.errors.revoke_only_pending": {
+    "text": "Alleen uitnodigingen in behandeling kunnen worden ingetrokken"
+  },
+  "api.organizations.members.errors.member_not_found": {
+    "text": "Lid niet gevonden: %{extid}"
+  },
+  "api.organizations.members.errors.member_not_in_organization": {
+    "text": "Lid niet gevonden in deze organisatie"
+  },
+  "api.organizations.members.errors.member_not_active": {
+    "text": "Lid is niet actief"
+  },
+  "api.organizations.members.errors.invalid_role_value": {
+    "text": "Ongeldige rol. Moet een van de volgende zijn: %{roles}"
+  },
+  "api.organizations.members.errors.cannot_change_owner_role": {
+    "text": "Kan de rol van eigenaar niet wijzigen. Gebruik in plaats daarvan eigendomsoverdracht."
+  },
+  "api.organizations.members.errors.member_already_has_role": {
+    "text": "Lid heeft de rol al: %{role}"
+  },
+  "api.organizations.members.errors.cannot_promote_to_owner": {
+    "text": "Kan niet promoveren tot eigenaar. Gebruik in plaats daarvan eigendomsoverdracht."
+  },
+  "api.organizations.members.errors.must_be_member": {
+    "text": "Je moet lid van deze organisatie zijn"
+  },
+  "api.organizations.members.errors.cannot_remove_owner": {
+    "text": "Kan de eigenaar van de organisatie niet verwijderen. Draag eerst het eigendom over."
+  },
+  "api.organizations.members.errors.cannot_remove_self": {
+    "text": "Kan jezelf niet verwijderen. Verlaat in plaats daarvan de organisatie."
+  },
+  "api.organizations.members.errors.admin_cannot_remove_admin": {
+    "text": "Beheerders kunnen geen andere beheerders verwijderen. Alleen eigenaren kunnen dat."
+  },
+  "api.organizations.members.errors.no_permission_to_remove": {
+    "text": "Je hebt geen toestemming om leden te verwijderen"
+  }
+}

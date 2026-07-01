@@ -716,5 +716,20 @@
   },
   "web.auth.sessions._guidance.context": {
     "text": "Beheerpagina voor ingelogde apparaten/browsers van de gebruiker"
+  },
+  "web.auth.google": {
+    "text": "Google"
+  },
+  "web.auth.mfa.alternative_auth_options": {
+    "text": "Alternatieve authenticatieopties"
+  },
+  "web.auth.remember.enabled": {
+    "text": "Ingelogd blijven"
+  },
+  "web.auth.sessions.session_singular": {
+    "text": "sessie"
+  },
+  "web.auth.sessions.session_plural": {
+    "text": "sessies"
   }
 }
