@@ -769,10 +769,10 @@
     "text": "معرّف عميل OAuth الخاص بك"
   },
   "web.organizations.sso.client_secret": {
-    "text": "السر السري للعميل (Client Secret)"
+    "text": "سر العميل (Client Secret)"
   },
   "web.organizations.sso.client_secret_placeholder": {
-    "text": "السر السري لعميل OAuth الخاص بك"
+    "text": "سر عميل OAuth الخاص بك"
   },
   "web.organizations.sso.client_secret_update_hint": {
     "text": "اتركه فارغاً للاحتفاظ بالسر الحالي"
