@@ -264,7 +264,7 @@
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Відвідати домашню сторінку {product_name}",
+    "text": "Відвідати головну сторінку {product_name}",
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {
@@ -338,5 +338,11 @@
   "web.layout.workspace_context": {
     "text": "Контекст робочої області",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Робоча область"
+  },
+  "web.help.default_content": {
+    "text": "Будь ласка, зверніться до служби підтримки по допомогу"
   }
 }

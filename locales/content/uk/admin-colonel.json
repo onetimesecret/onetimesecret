@@ -634,5 +634,152 @@
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
     "text": "Коли Ви надішлете відгук, ми побачимо:",
     "source_hash": "fe77172e"
+  },
+  "web.colonel.previewPlanMode": {
+    "text": "Режим попереднього перегляду тарифного плану"
+  },
+  "web.colonel.previewModeDescription": {
+    "text": "Перегляньте застосунок таким, яким його бачать клієнти на іншому тарифному плані. Це впливає лише на ваш вигляд і не змінює фактичний тарифний план жодної організації."
+  },
+  "web.colonel.previewModeActive": {
+    "text": "Попередній перегляд активний"
+  },
+  "web.colonel.bannedIps.empty": {
+    "text": "Немає заблокованих IP-адрес"
+  },
+  "web.colonel.bannedIps.currentIp": {
+    "text": "Ваша поточна IP-адреса"
+  },
+  "web.colonel.bannedIps.confirmUnban": {
+    "text": "Розблокувати {ip}?"
+  },
+  "web.colonel.bannedIps.actions.ban": {
+    "text": "Заблокувати IP"
+  },
+  "web.colonel.bannedIps.actions.quickBan": {
+    "text": "Швидке блокування"
+  },
+  "web.colonel.bannedIps.actions.unban": {
+    "text": "Розблокувати"
+  },
+  "web.colonel.bannedIps.actions.cancel": {
+    "text": "Скасувати"
+  },
+  "web.colonel.bannedIps.columns.ipAddress": {
+    "text": "IP-адреса"
+  },
+  "web.colonel.bannedIps.columns.reason": {
+    "text": "Причина"
+  },
+  "web.colonel.bannedIps.columns.bannedAt": {
+    "text": "Заблоковано"
+  },
+  "web.colonel.bannedIps.columns.bannedBy": {
+    "text": "Заблокував"
+  },
+  "web.colonel.bannedIps.error.banFailed": {
+    "text": "Не вдалося заблокувати IP-адресу"
+  },
+  "web.colonel.bannedIps.error.unbanFailed": {
+    "text": "Не вдалося розблокувати IP-адресу"
+  },
+  "web.colonel.bannedIps.form.title": {
+    "text": "Заблокувати IP-адресу"
+  },
+  "web.colonel.bannedIps.form.ipLabel": {
+    "text": "IP-адреса"
+  },
+  "web.colonel.bannedIps.form.reasonLabel": {
+    "text": "Причина"
+  },
+  "web.colonel.bannedIps.form.reasonPlaceholder": {
+    "text": "Необов'язкова причина"
+  },
+  "web.colonel.bannedIps.success.banned": {
+    "text": "IP-адресу {ip} заблоковано"
+  },
+  "web.colonel.bannedIps.success.unbanned": {
+    "text": "IP-адресу {ip} розблоковано"
+  },
+  "web.colonel.customDomains.empty": {
+    "text": "Користувацькі домени не налаштовано"
+  },
+  "web.colonel.customDomains.noLogo": {
+    "text": "Без логотипа"
+  },
+  "web.colonel.customDomains.labels.organization": {
+    "text": "Організація"
+  },
+  "web.colonel.customDomains.labels.externalId": {
+    "text": "Зовнішній ідентифікатор"
+  },
+  "web.colonel.customDomains.labels.created": {
+    "text": "Створено"
+  },
+  "web.colonel.customDomains.labels.updated": {
+    "text": "Оновлено"
+  },
+  "web.colonel.customDomains.labels.favicon": {
+    "text": "Favicon"
+  },
+  "web.colonel.customDomains.status.verified": {
+    "text": "Перевірено"
+  },
+  "web.colonel.customDomains.status.resolving": {
+    "text": "Визначення"
+  },
+  "web.colonel.customDomains.status.ready": {
+    "text": "Готово"
+  },
+  "web.colonel.customDomains.status.publicHomepage": {
+    "text": "Публічна головна сторінка"
+  },
+  "web.colonel.customDomains.status.publicApi": {
+    "text": "Публічний API"
+  },
+  "web.colonel.customDomains.status.pending": {
+    "text": "Очікування"
+  },
+  "web.colonel.pagination.showing": {
+    "text": "Показано {start}–{end} із {total}"
+  },
+  "web.colonel.pagination.itemsPerPage": {
+    "text": "Елементів на сторінці"
+  },
+  "web.colonel.pagination.perPage": {
+    "text": "{count} на сторінці"
+  },
+  "web.colonel.pagination.pageOf": {
+    "text": "Сторінка {current} із {total}"
+  },
+  "web.colonel.secrets.empty": {
+    "text": "Таємниць не знайдено"
+  },
+  "web.colonel.secrets.never": {
+    "text": "Ніколи"
+  },
+  "web.colonel.secrets.columns.shortId": {
+    "text": "Короткий ідентифікатор"
+  },
+  "web.colonel.secrets.columns.state": {
+    "text": "Стан"
+  },
+  "web.colonel.secrets.columns.created": {
+    "text": "Створено"
+  },
+  "web.colonel.secrets.columns.expiration": {
+    "text": "Термін дії"
+  },
+  "web.colonel.secrets.columns.age": {
+    "text": "Вік (днів)"
+  },
+  "web.colonel.secrets.state.new": {
+    "text": "Нова"
+  },
+  "web.colonel.secrets.state.received": {
+    "text": "Отримано"
+  },
+  "web.colonel.secrets.state.viewed": {
+    "text": "Переглянуто"
   }
 }
