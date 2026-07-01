@@ -476,7 +476,7 @@
     "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "تعرف على كيفية دمج {product_name} في تطبيقاتك",
+    "text": "تعرّف على كيفية دمج {product_name} في تطبيقاتك",
     "source_hash": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {
@@ -682,5 +682,14 @@
   "web.settings.profile.didnt_receive_email": {
     "text": "لم تتلقَّ البريد الإلكتروني؟",
     "source_hash": "fe3ac3ad"
+  },
+  "web.settings.api.api_disabled_notice": {
+    "text": "واجهة API معطّلة لهذه النسخة."
+  },
+  "web.settings.security.sso_managed_title": {
+    "text": "الأمان مُدار عبر تسجيل الدخول الموحّد (SSO)"
+  },
+  "web.settings.security.sso_managed_description": {
+    "text": "تتم مصادقة حسابك عبر موفّر تسجيل الدخول الموحّد الخاص بمؤسستك. تتم إدارة كلمة المرور والمصادقة متعددة العوامل ورموز الاسترداد بواسطة موفّر الهوية الخاص بك."
   }
 }

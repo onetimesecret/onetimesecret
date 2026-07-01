@@ -1,0 +1,71 @@
+{
+  "api.entitlements.errors.context_unavailable": {
+    "text": "تعذّر التحقق من الاستحقاقات (سياق المؤسسة غير متاح)"
+  },
+  "api.entitlements.errors.api_access_required": {
+    "text": "يتطلب الوصول إلى API ترقية الخطة"
+  },
+  "api.entitlements.errors.custom_privacy_defaults_required": {
+    "text": "تتطلب إعدادات الخصوصية الافتراضية المخصّصة ترقية الخطة"
+  },
+  "api.entitlements.errors.extended_default_expiration_required": {
+    "text": "تتطلب مدة انتهاء الصلاحية الافتراضية الممتدة ترقية الخطة"
+  },
+  "api.entitlements.errors.custom_domains_required": {
+    "text": "تتطلب النطاقات المخصّصة ترقية الخطة"
+  },
+  "api.entitlements.errors.custom_branding_required": {
+    "text": "تتطلب العلامة التجارية المخصّصة ترقية الخطة"
+  },
+  "api.entitlements.errors.homepage_secrets_required": {
+    "text": "تتطلب أسرار الصفحة الرئيسية ترقية الخطة"
+  },
+  "api.entitlements.errors.incoming_secrets_required": {
+    "text": "تتطلب الأسرار الواردة ترقية الخطة"
+  },
+  "api.entitlements.errors.custom_mail_sender_required": {
+    "text": "يتطلب مُرسِل البريد المخصّص ترقية الخطة"
+  },
+  "api.entitlements.errors.flexible_from_domain_required": {
+    "text": "يتطلب نطاق المُرسِل المرن ترقية الخطة"
+  },
+  "api.entitlements.errors.manage_org_required": {
+    "text": "تتطلب إدارة المؤسسة ترقية الخطة"
+  },
+  "api.entitlements.errors.manage_teams_required": {
+    "text": "تتطلب إدارة الفِرق ترقية الخطة"
+  },
+  "api.entitlements.errors.manage_members_required": {
+    "text": "تتطلب إدارة الأعضاء ترقية الخطة"
+  },
+  "api.entitlements.errors.manage_sso_required": {
+    "text": "تتطلب إدارة SSO ترقية الخطة"
+  },
+  "api.entitlements.errors.audit_logs_required": {
+    "text": "تتطلب سجلات التدقيق ترقية الخطة"
+  },
+  "api.entitlements.errors.custom_signup_validation_required": {
+    "text": "يتطلب التحقق المخصّص من التسجيل ترقية الخطة"
+  },
+  "api.entitlements.errors.create_secrets_required": {
+    "text": "يتطلب إنشاء الأسرار ترقية الخطة"
+  },
+  "api.entitlements.errors.view_receipt_required": {
+    "text": "يتطلب عرض الإيصالات ترقية الخطة"
+  },
+  "api.entitlements.errors.notifications_required": {
+    "text": "تتطلب الإشعارات ترقية الخطة"
+  },
+  "api.entitlements.errors.workspace_branding_required": {
+    "text": "تتطلب العلامة التجارية لمساحة العمل ترقية الخطة"
+  },
+  "api.entitlements.errors.ip_access_rules_required": {
+    "text": "تتطلب قواعد الوصول عبر IP ترقية الخطة"
+  },
+  "api.entitlements.errors.manage_billing_required": {
+    "text": "تتطلب إدارة الفوترة ترقية الخطة"
+  },
+  "api.entitlements.errors.custom_signin_config_required": {
+    "text": "يتطلب إعداد تسجيل الدخول المخصّص ترقية الخطة"
+  }
+}
