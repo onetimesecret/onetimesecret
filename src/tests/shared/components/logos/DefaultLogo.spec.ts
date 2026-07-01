@@ -243,8 +243,8 @@ describe('DefaultLogo', () => {
     it('falls back to neutral brand aria-label when no prop', () => {
       wrapper = mountComponent({});
 
-      // Falls back to NEUTRAL_BRAND_DEFAULTS.product_name ("My App")
-      const container = wrapper.find('[aria-label="My App"]');
+      // Falls back to NEUTRAL_BRAND_DEFAULTS.product_name ("Secure Links")
+      const container = wrapper.find('[aria-label="Secure Links"]');
       expect(container.exists()).toBe(true);
     });
 

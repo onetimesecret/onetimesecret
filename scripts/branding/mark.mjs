@@ -21,7 +21,7 @@
 //   MARK_PRIMARY_COLOR        tile / gradient colour       (default: #3B82F6)
 //   MARK_BACKGROUND_COLOR     mark colour                  (default: #FFFFFF)
 //   MARK_OG_GRADIENT_DARK     social-card top gradient stop (default: #1E3A8A)
-//   MARK_PRODUCT_NAME         webmanifest name             (default: My App)
+//   MARK_PRODUCT_NAME         webmanifest name             (default: Secure Links)
 //   MARK_SHORT_NAME           webmanifest short_name       (default: product name)
 //   MARK_COVERAGE             icon glyph height ratio       (default: 0.58)
 //   MARK_MASK_COVERAGE        pinned-tab glyph height ratio (default: 0.70)
@@ -61,7 +61,7 @@ const OG_GRADIENT_DARK = process.env.MARK_OG_GRADIENT_DARK || '#1E3A8A';
 
 // Web manifest text. Neutral defaults are deliberately generic (the runtime
 // /site.webmanifest route overlays the real brand.product_name when configured).
-const PRODUCT_NAME = process.env.MARK_PRODUCT_NAME || 'My App';
+const PRODUCT_NAME = process.env.MARK_PRODUCT_NAME || 'Secure Links';
 const SHORT_NAME = process.env.MARK_SHORT_NAME || PRODUCT_NAME;
 
 // Optional licensing/credit line for a swapped-in glyph. When set, it is emitted

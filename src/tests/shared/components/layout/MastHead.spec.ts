@@ -1024,7 +1024,7 @@ describe('MastHead', () => {
       expect(img.exists()).toBe(true);
       // Consolidation routes the alt text through identityStore.productName,
       // which uses `||` (not `??`): a blank product-name config degrades to the
-      // neutral 'My App' instead of rendering an empty alt — matching
+      // neutral 'Secure Links' instead of rendering an empty alt — matching
       // DefaultLogo and usePageTitle.
       expect(img.attributes('alt')).toBe(NEUTRAL_BRAND_DEFAULTS.product_name);
     });
