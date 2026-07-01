@@ -129,8 +129,11 @@ jobs:
               - '.nvmrc'
               - '.node-version'
               - 'tests/**'
-              # i18n tooling tests (the i18n-validate job) live here; trigger on
-              # the scripts and on the pin-bearing derive workflows they guard.
+              # The i18n-validate job runs the locales/scripts tests; trigger it
+              # on changes to those scripts. Edits to the pin-bearing derive
+              # workflows are covered separately — any .github/** change forces
+              # every path-filter output true (see compute-path-filter-outputs.sh),
+              # so a gate pin rename always runs this job.
               - 'locales/scripts/**'
             frontend:
               - 'src/**'

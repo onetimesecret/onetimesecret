@@ -47,10 +47,12 @@ EMIT_DIR="$ROOT/generated/i18n"
 [ -f "$GATE" ] || { echo "error: $GATE not found (run from the app repo)" >&2; exit 1; }
 PIN="${RULES_REF:-}"
 if [ -z "$PIN" ]; then
-  # Tolerate optional quotes (matches the Renovate customManager); take the value
-  # token only, accepting a vX.Y.Z tag or a 40-hex SHA.
-  PIN="$(grep -oE "TRANSLATION_RULES_REF:[[:space:]]*[\"']?(v[0-9]+\.[0-9]+\.[0-9]+|[0-9a-f]{40})" "$GATE" \
-        | grep -oE '(v[0-9]+\.[0-9]+\.[0-9]+|[0-9a-f]{40})' | head -n1 || true)"
+  # Read the first real (non-comment) assignment: anchoring at line start with
+  # only leading whitespace skips commented-out examples (# TRANSLATION_RULES_REF:
+  # ...); optional quotes match the Renovate customManager; the value is a vX.Y.Z
+  # tag or a 40-hex SHA (either case, mirroring the shape-check below).
+  PIN="$(grep -oE "^[[:space:]]*TRANSLATION_RULES_REF:[[:space:]]*[\"']?(v[0-9]+\.[0-9]+\.[0-9]+|[0-9a-fA-F]{40})" "$GATE" \
+        | grep -oE "(v[0-9]+\.[0-9]+\.[0-9]+|[0-9a-fA-F]{40})" | head -n1 || true)"
 fi
 [ -n "$PIN" ] || { echo "error: could not read TRANSLATION_RULES_REF from $GATE (set RULES_REF to override)" >&2; exit 1; }
 # Shape-check before use, mirroring the gate's resolve step: 40-hex SHA or vX.Y.Z.

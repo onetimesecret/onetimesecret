@@ -41,8 +41,12 @@ GATES = (
 REF_SHAPE = re.compile(r"^([0-9a-fA-F]{40}|v[0-9]+\.[0-9]+\.[0-9]+)$")
 # Optional surrounding quotes tolerated, matching the Renovate customManager that
 # bumps this field (.github/renovate.json5).
+# Anchored at line start (MULTILINE, leading blanks only) so a commented-out
+# example (`# TRANSLATION_RULES_REF: ...`) is skipped, and the hex SHA is
+# case-insensitive to match the script's validator ([0-9a-fA-F]).
 FIELD_RE = re.compile(
-    r"""TRANSLATION_RULES_REF:\s*["']?(v[0-9]+\.[0-9]+\.[0-9]+|[0-9a-f]{40})"""
+    r"""^[ \t]*TRANSLATION_RULES_REF:[ \t]*["']?(v[0-9]+\.[0-9]+\.[0-9]+|[0-9a-fA-F]{40})""",
+    re.MULTILINE,
 )
 
 
@@ -78,16 +82,34 @@ class DeriveGovernanceContract(unittest.TestCase):
             msg=f"derive gates must share one canonical pin (#38); got {refs}",
         )
 
+    def test_field_re_skips_comments_and_accepts_uppercase(self) -> None:
+        # A commented example before the real assignment must not win, and an
+        # uppercase SHA (accepted by the script's validator) must be read, not
+        # reported as missing.
+        sample = (
+            "env:\n"
+            "  # TRANSLATION_RULES_REF: v0.0.0   # retired example\n"
+            "  TRANSLATION_RULES_REF: v9.9.9\n"
+        )
+        self.assertEqual(FIELD_RE.search(sample).group(1), "v9.9.9")
+        upper = "  TRANSLATION_RULES_REF: " + "A" * 40 + "\n"
+        self.assertEqual(FIELD_RE.search(upper).group(1), "A" * 40)
+
     def test_script_reads_the_gate_pin(self) -> None:
         # Drives the REAL script, offline: --print-ref reads + shape-validates the
         # pin from the gate and exits before any clone/derive. This is the check
-        # that would have failed when the pin field was renamed.
+        # that would have failed when the pin field was renamed. Compared against
+        # GATES[0]; test_single_canonical_pin_across_gates guarantees the other
+        # gate matches. Strip any ambient RULES_REF so we read the gate value,
+        # not an inherited override.
+        env = {k: v for k, v in os.environ.items() if k != "RULES_REF"}
         proc = subprocess.run(
             ["bash", str(SCRIPT), "--print-ref"],
             cwd=ROOT,
             capture_output=True,
             text=True,
             timeout=30,
+            env=env,
         )
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertEqual(proc.stdout.strip(), _ref_in(GATES[0]))
