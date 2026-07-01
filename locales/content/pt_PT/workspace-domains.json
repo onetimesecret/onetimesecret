@@ -790,7 +790,7 @@
     "text": "Mensagens confidenciais recebidas não configuradas - os utilizadores externos não podem enviar mensagens confidenciais para este domínio"
   },
   "web.domains.incoming.tooltip_configured": {
-    "text": "Mensagens confidenciais recebidas ativadas com {count} destinatário(s)"
+    "text": "Mensagens confidenciais recebidas ativadas com {count} destinatário | Mensagens confidenciais recebidas ativadas com {count} destinatários"
   },
   "web.domains.incoming.tooltip_disabled": {
     "text": "A funcionalidade de mensagens confidenciais recebidas está desativada para este domínio"
