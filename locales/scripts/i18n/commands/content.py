@@ -170,7 +170,9 @@ def _register_hashes(gsub) -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     c.add_argument(
-        "--dry-run", "-n", action="store_true", help="Show what would be done"
+        "--apply",
+        action="store_true",
+        help="Write the changes. Without it the run is a dry run (preview only).",
     )
     c.add_argument(
         "--max-rewrites",
@@ -768,18 +770,21 @@ def _hashes_compute_hash(text: str) -> str:
 
 def _hashes_add_to_source(
     dry_run: bool = False,
-) -> tuple[dict[str, dict[str, str]], dict[str, int]]:
+) -> tuple[dict[str, dict[str, str]], dict[str, int], list[str]]:
     """Add content_hash to all source locale files.
 
-    Returns ``(all_hashes, totals)`` where ``totals`` breaks the run into
-    ``added`` (keys that had no content_hash -- new source keys), ``changed``
-    (keys whose stored content_hash differed from the recompute -- the source
-    text moved) and ``unchanged``. ``changed`` is the red-flag signal: a drifted
-    base recomputes it into the thousands.
+    Returns ``(all_hashes, totals, changed_keys)`` where ``totals`` breaks the
+    run into ``added`` (keys that had no content_hash -- new source keys),
+    ``changed`` (keys whose stored content_hash differed from the recompute --
+    the source text moved) and ``unchanged``. ``changed_keys`` is the list of
+    ``file: key.path`` for every changed key, so the caller can show exactly
+    which pre-existing strings moved. ``changed`` is the red-flag signal: a
+    drifted base recomputes it into the thousands.
     """
     source_dir = CONTENT_DIR / SOURCE_LOCALE
     all_hashes: dict[str, dict[str, str]] = {}
     totals = {"added": 0, "changed": 0, "unchanged": 0}
+    changed_keys: list[str] = []
 
     for json_file in sorted(source_dir.glob("*.json")):
         with open(json_file, encoding="utf-8") as f:
@@ -806,6 +811,7 @@ def _hashes_add_to_source(
                 entry["content_hash"] = new_hash
                 if old_hash:
                     changed += 1  # existing hash rewritten -- source text moved
+                    changed_keys.append(f"{json_file.name}: {key_path}")
                 else:
                     added += 1  # brand-new source key
 
@@ -827,7 +833,7 @@ def _hashes_add_to_source(
         else:
             print(f"{json_file.name}: {len(file_hashes)} hashes (no changes)")
 
-    return all_hashes, totals
+    return all_hashes, totals, changed_keys
 
 
 def _hashes_init_missing_in_locales(
@@ -879,7 +885,8 @@ def _hashes_init_missing_in_locales(
 _HASHES_GUIDANCE = """\
 ==============================  CONTENT WARNING   ==============================
   `content hashes` rewrites hash values across the WHOLE locale tree in 1 pass,
-  harmonizing both source content_hash and source_hash values.
+  harmonizing both source content_hash and source_hash values. It is a DRY RUN
+  by default -- preview the counts below, then re-run with --apply to write.
 
   A content_hash = sha256(text), so it only changes when source text changes.
 
@@ -917,14 +924,18 @@ _HASHES_DEFAULT_MAX_REWRITES = 50
 def _hashes_handler(args) -> int:
     print(_HASHES_GUIDANCE, file=sys.stderr)
 
+    dry_run = not args.apply
+    if dry_run:
+        print("DRY RUN -- no files written. Re-run with --apply to write.\n")
+
     print(f"Source locale: {SOURCE_LOCALE}")
     print(f"Content dir: {CONTENT_DIR}\n")
 
     print("=== Adding content_hash to source ===")
-    source_hashes, totals = _hashes_add_to_source(dry_run=args.dry_run)
+    source_hashes, totals, changed_keys = _hashes_add_to_source(dry_run=dry_run)
 
     print("\n=== Initializing missing source_hash in locales ===")
-    _hashes_init_missing_in_locales(source_hashes, dry_run=args.dry_run)
+    _hashes_init_missing_in_locales(source_hashes, dry_run=dry_run)
 
     added, changed, unchanged = (
         totals["added"],
@@ -936,14 +947,20 @@ def _hashes_handler(args) -> int:
         f"{unchanged} unchanged."
     )
 
+    if changed_keys:
+        print("\nChanged keys (existing content_hash rewritten -- source moved):")
+        for item in changed_keys:
+            print(f"  {item}")
+
     if changed > args.max_rewrites:
         print(
             f"\nERROR: {changed} existing content hashes were rewritten, over the "
             f"--max-rewrites limit of {args.max_rewrites}.\n"
             "  A large rewrite of PRE-EXISTING hashes usually means the base picked "
-            "up unrelated\n  drift, not the keys you added. Inspect `git diff --stat "
-            "locales/content` before\n  committing. If this edit legitimately touched "
-            "that many source strings, re-run\n  with a higher --max-rewrites.",
+            "up unrelated\n  drift, not the keys you added. The changed keys are "
+            "listed above; inspect them\n  and `git diff --stat locales/content` "
+            "before committing. If this edit legitimately\n  touched that many "
+            "source strings, re-run with a higher --max-rewrites.",
             file=sys.stderr,
         )
         return 1
