@@ -60,6 +60,23 @@ const hasFlexibleFromDomain = computed(() => can(ENTITLEMENTS.FLEXIBLE_FROM_DOMA
 const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
 const displayDomain = computed(() => customDomainRecord.value?.display_domain);
 
+/**
+ * Sender defaults for a domain that has no saved email config yet. Pre-filling
+ * `no-reply@<domain>` and a display name lets the operator enable the custom
+ * sender by flipping the toggle and saving — without first having to choose an
+ * address. They can still override either field before saving.
+ */
+const emailDefaults = computed(() => {
+  const domain = displayDomain.value;
+  // from_name is capped at 100 chars server-side; the input's maxlength only
+  // bounds typed values, so truncate the programmatic default to match.
+  const fromName = (organization.value?.display_name || domain || '').slice(0, 100);
+  return {
+    fromAddress: domain ? `no-reply@${domain}` : '',
+    fromName,
+  };
+});
+
 // ---------------------------------------------------------------------------
 // Email config composable
 // ---------------------------------------------------------------------------
@@ -130,7 +147,7 @@ onMounted(async () => {
 
   // Initialize email config if entitlement is already available
   if (hasEntitlement.value) {
-    await initializeEmailConfig();
+    await initializeEmailConfig(emailDefaults.value);
   }
 });
 
@@ -138,7 +155,7 @@ onMounted(async () => {
 // Watch for entitlement to become true and initialize if needed.
 watch(hasEntitlement, async (entitled) => {
   if (entitled && !isInitialized.value) {
-    await initializeEmailConfig();
+    await initializeEmailConfig(emailDefaults.value);
   }
 });
 </script>

@@ -67,7 +67,7 @@ import { type LogoConfig } from '@/types/ui/layouts';
           <span
             class="-rotate-6 transform-gpu rounded-lg bg-brand-500 px-2 py-1 text-sm font-bold tracking-widest text-white shadow-lg dark:bg-brand-600/90"
             style="transform-origin: center;">
-            Colonels Only
+            {{ t('web.layout.colonels_only_badge') }}
           </span>
         </div>
         <!-- Tagline -->

@@ -20,10 +20,15 @@ module AccountAPI::Logic
       end
 
       def raise_concerns
-        return if valid_email?(@login_or_email) && Onetime::Customer.exists?(@login_or_email)
+        # Security (CWE-204): email enumeration prevention. Validate only the
+        # email FORMAT here — do NOT check account existence in the validation
+        # layer. Existence is handled in #process, which returns the same generic
+        # response whether or not the account exists, so a non-existent address
+        # is indistinguishable from a registered one (mirrors CreateAccount). A
+        # malformed address is a fact the caller already knows, so rejecting it
+        # leaks nothing.
+        return if valid_email?(@login_or_email)
 
-        # A generic error is raised for either an invalid email format or a non-existent
-        # account. This is to prevent attackers from enumerating valid accounts.
         raise_form_error 'Invalid email address', field: 'email', error_type: 'invalid'
       end
 
@@ -32,7 +37,22 @@ module AccountAPI::Logic
         # which obviously makes it available to other methods and potentially
         # leaks data. This reset password request logic is sensitive and not
         # authenticated, so be careful about what is returned or logged.
-        cust = Onetime::Customer.load @login_or_email
+        #
+        # Security (CWE-204): raise_concerns validated only the email format, so
+        # a well-formed address for a non-existent account reaches here. We
+        # perform side effects only for a real account and return the same
+        # generic response in every case, so the result never reveals whether the
+        # account exists. (Response timing still differs and is a weaker residual
+        # channel not addressed here.)
+        cust = Onetime::Customer.find_by_email(@login_or_email)
+
+        if cust.nil?
+          # Unregistered address: do nothing observable, return the same generic
+          # response a real account would get.
+          auth_logger.info 'Password reset requested for unregistered email',
+            { session_id: safe_session_id }
+          return success_data
+        end
 
         if cust.pending?
           auth_logger.info 'Resending verification email for pending customer',
@@ -42,9 +62,13 @@ module AccountAPI::Logic
               status: :pending,
             }
 
-          send_verification_email
-          msg = "#{I18n.t('web.COMMON.verification_sent_to', locale: @locale)} #{cust.objid}."
-          return set_info_message(msg)
+          # send_verification_email defaults to the request-context cust, which
+          # is nil in this unauthenticated flow. Pass the looked-up customer
+          # explicitly so the verification secret binds to the right account
+          # (PR #3545 review) — otherwise this 500s instead of returning the
+          # intended generic success.
+          send_verification_email(customer: cust)
+          return success_data
         end
 
         secret                    = Onetime::Secret.create! @login_or_email, [@login_or_email]
@@ -62,40 +86,35 @@ module AccountAPI::Logic
             token: token&.slice(0, 8), # Only log first 8 chars for debugging
           }
 
-        begin
-          # Critical auth flow: use sync fallback to ensure email is sent
-          # User is waiting for password reset, blocking is acceptable
-          Onetime::Jobs::Publisher.enqueue_email(
-            :password_request,
-            {
-              email_address: cust.email,
-              secret: secret,
-              locale: locale || cust.locale || OT.default_locale,
-            },
-            fallback: :sync,
-          )
-        rescue StandardError => ex
-          errmsg = "Couldn't send the notification email. Let know below."
-          auth_logger.error 'Password reset email delivery failed',
-            {
-              customer_id: cust.extid,
-              email: cust.obscure_email,
-              error: ex.message,
-              session_id: safe_session_id,
-            }
+        # Best-effort delivery (issue #3486). With background jobs enabled the
+        # email is queued; with jobs disabled (the default) it is delivered
+        # synchronously. Either way the publisher logs/reports a delivery failure
+        # (Sentry) rather than raising — the reset secret is already persisted
+        # and the user can request another. We return the same generic response
+        # whether or not delivery succeeds, so the result never reveals delivery
+        # status.
+        queued = Onetime::Jobs::Publisher.enqueue_email(
+          :password_request,
+          {
+            email_address: cust.email,
+            secret: secret,
+            locale: locale || cust.locale || OT.default_locale,
+          },
+          fallback: :sync,
+        )
 
-          set_error_message(errmsg)
-        else
-          auth_logger.info 'Password reset email sent',
-            {
-              customer_id: cust.extid,
-              email: cust.obscure_email,
-              session_id: safe_session_id,
-              secret_identifier: secret.identifier,
-            }
-
-          set_info_message "We sent instructions to #{cust.objid}"
-        end
+        # `queued` is true when handed to RabbitMQ, false when the publisher fell
+        # back to best-effort delivery (sync/thread). A synchronous delivery
+        # failure is reported by the publisher, not here, so this records the
+        # attempt without asserting the message was actually delivered.
+        auth_logger.info 'Password reset email dispatch requested',
+          {
+            customer_id: cust.extid,
+            email: cust.obscure_email,
+            session_id: safe_session_id,
+            secret_identifier: secret.identifier,
+            queued: queued,
+          }
 
         success_data
       end

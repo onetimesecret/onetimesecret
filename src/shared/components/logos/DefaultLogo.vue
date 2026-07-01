@@ -2,7 +2,7 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-    import MonotoneJapaneseSecretButton from '@/shared/components/icons/MonotoneJapaneseSecretButtonIcon.vue';
+  import KeyholeIcon from '@/shared/components/icons/KeyholeIcon.vue';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
   import { type LogoConfig } from '@/types/ui/layouts';
@@ -47,17 +47,19 @@
 </script>
 
 <template>
-  <div
-    class="flex items-center gap-3"
-    :aria-label="ariaLabel">
+  <!-- The wrapping <div> is a non-interactive layout container, so it carries no
+       aria-label: the accessible name comes from the KeyholeIcon inside the <a>.
+       Labelling both would announce the name twice (#3553 review). -->
+  <div class="flex items-center gap-3">
     <a
       :href="props.href"
       class="flex items-center gap-3">
-      <!-- Logo Mark -->
-      <MonotoneJapaneseSecretButton
+      <!-- Logo Mark: neutral keyhole (matches the favicon generator's
+           brand-neutral default; the maruhi 秘 mark is OTS-company-only). -->
+      <KeyholeIcon
         :size="svgSize"
         :aria-label="ariaLabel"
-        :title="t('web.branding.default_logo_icon')"
+        :title="t('web.branding.keyhole_logo_icon', 'Keyhole secure sharing icon')"
         class="shrink-0 text-brand-500 dark:text-white" />
       <!-- Text Mark -->
       <!-- Company Name -->
@@ -74,7 +76,7 @@
           <span
             class="-rotate-6 transform-gpu rounded-lg bg-brand-500 px-2 py-1 text-sm font-bold tracking-widest text-white shadow-lg dark:bg-brand-600/90"
             style="transform-origin: center;">
-            Colonels Only
+            {{ t('web.layout.colonels_only_badge') }}
           </span>
         </div>
         <!-- Tagline -->

@@ -19,6 +19,17 @@ describe('shouldUseLightText', () => {
     expect(shouldUseLightText('#123')).toBe(false); // Invalid length
   });
 
+  it('returns the default (false) for partial hex typed mid-keystroke', () => {
+    // The branding contrast watcher (useBranding.ts) calls this on every
+    // keystroke as an operator types a hex color, so incomplete values must
+    // not throw — they resolve to NaN luminance and fall back to false.
+    expect(shouldUseLightText('')).toBe(false);
+    expect(shouldUseLightText('#')).toBe(false);
+    expect(shouldUseLightText('#f')).toBe(false);
+    expect(shouldUseLightText('#ff')).toBe(false);
+    expect(shouldUseLightText('#fff0')).toBe(false);
+  });
+
   it('should handle boundary cases correctly', () => {
     expect(shouldUseLightText('#808080')).toBe(false); // Gray (boundary case)
   });
