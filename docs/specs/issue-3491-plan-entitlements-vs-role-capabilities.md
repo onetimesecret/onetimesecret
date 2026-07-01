@@ -17,8 +17,13 @@ status: preparation / design research
 > adversarially-verified entitlement taxonomy and coupling audit, and an
 > independent manual re-verification of every load-bearing claim against source.
 > **Code is authoritative; ADR-012 is `proposed` and stale (see §4 H7).** No
-> behavior was changed in producing this document. All `file:line` references are
-> to the `claude/entitlements-role-capabilities-6dy9eb` branch at preparation time.
+> behavior was changed in producing this document. **On `file:line` citations:**
+> line numbers are best-effort snapshots taken while preparing this document and
+> **will drift** as the tree changes — treat the **file path + symbol name**
+> (constant, method, or comment) as the durable anchor and the line number as a
+> hint. To relocate a citation, `grep` for the named symbol rather than jumping to
+> the line. Where a symbol is stable, this doc prefers naming it; the numbers are
+> retained only as a convenience for the tree at preparation time.
 
 
 ---
@@ -115,13 +120,15 @@ with_plan_entitlements.rb:177-221                         │
 | 6 | `lib/onetime/logic/base.rb:241, 303` | `require_entitlement!` / `require_entitlement_in!` take an opaque string and call `membership.can?`; a role check and a plan check have identical signatures and code paths. |
 | 7 | `lib/onetime/errors.rb:160-182` | One `EntitlementRequired(entitlement, current_plan, upgrade_to)` for every denial — bakes plan-upgrade framing into role-capability denials. |
 
-> **Note on `materialize_for_role!` doc/code drift:** the doc comment at `with_materialized_entitlements.rb:60-61` claims it intersects `org.materialized_entitlements`, but the code at line 100 uses `org.entitlements`. Verified drift; fix as part of any touch to this method.
+> **Note on `materialize_for_role!` doc/code drift:** the module-header `Materialization formula:` comment in membership `with_materialized_entitlements.rb` (the `= org.materialized_entitlements ∩ ROLE_ENTITLEMENTS[role]` line, near the top of the file) claims the intersection is against `org.materialized_entitlements`, but the `materialize_for_role!` method body uses `org.entitlements` (the `(org_entitlements & role_template)` line inside the method). Cited by symbol because these line numbers drift; verified drift, fix as part of any touch to this method.
 
 ---
 
 ## 3. Authoritative taxonomy table
 
-Counts (verified): **18 plan_feature, 6 role_capability** (4 with a live role home + 2 orphaned), **10 limit**. Backend `ROLE_ENTITLEMENTS` = 21 distinct strings (MEMBER 5 + ADMIN 7 + OWNER 9). Catalog = 24. `STANDALONE` = 22. `FREE_TIER` = 6. Frontend `ENTITLEMENTS` = 23 keys (excludes `manage_billing`). Frontend `KNOWN_ENTITLEMENTS` = 23 (includes `manage_billing`, excludes via different membership).
+Counts (re-verified against source at preparation; see the count-verification note below): **17 plan_feature + 6 role_capability = 23 feature/capability strings**, which matches the **23** billing-catalog `entitlements:` definitions exactly; role capabilities break down as 4 with a live role home + 2 orphaned. Plus **9 limit** keys. Backend `ROLE_ENTITLEMENTS` = 21 distinct strings (MEMBER 5 + ADMIN 7 + OWNER 9). Catalog `entitlements:` = **23** definitions. `STANDALONE_ENTITLEMENTS` = 22. `FREE_TIER_ENTITLEMENTS` = 6. Frontend `ENTITLEMENTS` runtime const = **22** keys (excludes `manage_billing`). Frontend `KNOWN_ENTITLEMENTS` = **23** (= the 22 runtime keys + `manage_billing`).
+
+> **Count-verification note (raised in review).** An earlier draft stated Catalog = 24 and `ENTITLEMENTS` = 23; the current source has **23** catalog definitions (`etc/examples/billing.example.yaml`) and **22** `ENTITLEMENTS` keys (`src/types/organization.ts`). These totals are descriptive only — the Stage A CI assertion (§6, Appendix B) must recompute partitions from source at build time and must **not** hard-code these numbers, precisely so catalog edits can't silently invalidate them.
 
 ### 3.1 Plan features (subscription-granted, org-level)
 
@@ -235,7 +242,7 @@ Counts (verified): **18 plan_feature, 6 role_capability** (4 with a live role ho
 **Action:** fix the citation.
 
 **M8 — Three enumerations of "the full set" disagree.**
-`contracts:124-148` (23) vs `wpe.rb:48-56` (22) vs `billing.example.yaml:72-163` (24). No generated source; all hand-maintained.
+`KNOWN_ENTITLEMENTS` (23) vs `STANDALONE_ENTITLEMENTS` (22) vs the billing-catalog `entitlements:` block (23). No generated source; all hand-maintained, which is exactly why the counts drifted between drafts.
 **Action:** establish one generated source (or a single manifest with `kind`) and reconcile.
 
 **M9 — `custom_domains` is both a boolean feature and a numeric limit key.**
@@ -256,7 +263,7 @@ Counts (verified): **18 plan_feature, 6 role_capability** (4 with a live role ho
 
 ### LOW
 
-**L1 — `audit_logs` and `api_access` are genuinely dual-natured.** Whether the org *has* the feature is a plan question; whether a role may *view/use* it is a capability question — collapsed to one string. (`membership.rb:81,75`; `entitlement_check.rb:62`; `base.rb`.) **Action:** per-token product decision — each may need to exist in both registries (plan availability + role permission).
+**L1 — `audit_logs` and `api_access` are genuinely dual-natured.** Whether the org *has* the feature is a plan question; whether a role may *view/use* it is a capability question — collapsed to one string. (`membership.rb:81,75`; `entitlement_check.rb:62`; `base.rb`.) **Action:** per-token product decision — each may need to exist in both registries (plan availability + role permission). **Recommended default pattern** (for turning this into tickets): keep a plan-feature flag for "the org has purchased X" (org-scoped, billing gate) *and* add a distinct role-capability for "this role may access/use X" (member-scoped, role gate); the gate then reads `org.has_feature?(:audit_logs) && membership.has_capability?(:view_audit_logs)`. Only split tokens where both questions are real — do not mint a capability for features every member may use once the org has them (e.g. `create_secrets`).
 
 **L2 — `extended_default_expiration` boolean duplicates `secret_lifetime.max`.** `membership.rb:76`; `wpe.rb:121`; `apps/api/v2/logic/secrets/base_secret_action.rb:122-123`. **Action:** convert to the numeric limit; drop the boolean stand-in.
 
@@ -277,6 +284,9 @@ Split `Onetime::OrganizationMembership::ROLE_ENTITLEMENTS` (`organization_member
 MEMBER_CAPABILITIES = Set[].freeze                     # members: no management caps
 ADMIN_CAPABILITIES  = Set['manage_members'].freeze
 OWNER_CAPABILITIES  = Set['manage_org', 'manage_sso', 'manage_billing'].freeze  # + manage_teams if shipped
+# NOTE: OWNER_CAPABILITIES holds only owner-EXCLUSIVE caps. Owners inherit
+# manage_members transitively via the ROLE_CAPABILITIES union below (owner ⊇
+# admin ⊇ member), so it is intentionally NOT re-listed here.
 ROLE_CAPABILITIES = {
   owner:  OWNER_CAPABILITIES | ADMIN_CAPABILITIES | MEMBER_CAPABILITIES,
   admin:  ADMIN_CAPABILITIES | MEMBER_CAPABILITIES,
@@ -421,7 +431,7 @@ Split materialization into `materialized_features` and `materialized_capabilitie
 
 **Backward-compat for materialized Redis sets.** Keep the legacy `materialized_entitlements` set written (mirrored from features+capabilities) through Stages B and C until all readers move to the two new sets; a flag (e.g. `materialized_entitlements_at`'s content hash, `with_materialized_entitlements.rb:46-57`) detects staleness for re-materialization.
 
-**Backward-compat for the wire contract.** Ship `plan_entitlements` + `role_capabilities` alongside the legacy `entitlements` array for at least one release; FE reads the new fields when present, falls back to the legacy array. Remove the legacy field only after FE consumers are confirmed migrated (grep `src/` stores for `.entitlements` on membership/permissions payloads first).
+**Backward-compat for the wire contract.** Ship `plan_entitlements` + `role_capabilities` alongside the legacy `entitlements` array for at least one release; FE reads the new fields when present, falls back to the legacy array. **Conflict rule (partial deploy):** when both the new fields and the legacy `entitlements` array are present and disagree (e.g. a partially-rolled-out backend), the **new fields are authoritative and the legacy array is ignored** — never union or intersect the two. FE presence-checks the new fields first and only reads the legacy array when the new fields are entirely absent. Remove the legacy field only after FE consumers are confirmed migrated (grep `src/` stores for `.entitlements` on membership/permissions payloads first).
 
 **Data migration for already-materialized memberships.** A one-shot backfill (model on `materialize_standalone_entitlements` / `ensure_member_through_models` chores, `organization.rb:315-339`) iterates active memberships and writes `materialized_capabilities = ROLE_CAPABILITIES[role] + capability_grants − capability_revokes` and `materialized_features` from the org plan set, idempotently, with targeted retry. Because capabilities are now derived purely from role, the backfill is deterministic and re-runnable; legacy `materialized_entitlements` is left intact until the wire/readers cut over.
 
@@ -433,7 +443,7 @@ These assert the merged model and **must change** under Option C:
 
 - `try/unit/models/organization_membership_entitlements_try.rb:36-214` — pins the `ROLE_ENTITLEMENTS` hierarchy and that a member `can?('api_access')` and an owner `can?('manage_billing')` via the same `can?`; operator grant of `manage_members` to a member. Split into plan-vs-capability calls.
 - `spec/unit/onetime/models/organization_membership/with_materialized_entitlements_spec.rb:29-310` — asserts `ROLE_ENTITLEMENTS` structure (admin includes `custom_domains` AND `manage_members` at 77-85) and one materialized set checked by one `can?`. Move feature assertions to the plan layer; capability assertions target the capability interface.
-- `spec/unit/onetime/locales/entitlement_keys_spec.rb:23-57` + `locales/content/en/api-entitlements-errors.json:52-110` — forces a `<name>_required … plan upgrade` key for every `STANDALONE` entry incl. capabilities. Split into plan-feature `_required (upgrade)` keys and a new capability vocabulary; derive each from its own constant, not `STANDALONE`.
+- `spec/unit/onetime/locales/entitlement_keys_spec.rb:23-57` + `locales/content/en/api-entitlements-errors.json:52-110` — forces a `<name>_required … plan upgrade` key for every `STANDALONE` entry incl. capabilities. **The concrete change is the spec's derivation source:** today it iterates `STANDALONE_ENTITLEMENTS` and asserts one plan-upgrade key per string; after separation it must iterate **two** constants — `PLAN_FEATURES` (asserting `_required` upgrade keys) and `ROLE_CAPABILITIES` (asserting the new "insufficient role / ask an admin" vocabulary) — which operationalizes the §6 Stage B "split locale namespaces" step. Not a copy tweak: the loop's source-of-truth constant changes.
 - `spec/api/account/get_permissions_spec.rb:254-358, 557-576` — encodes "member lacks `custom_domains` → cannot view domain" (a plan feature gating a per-member capability through one `can?`). Recompute from two predicates `(org has feature) AND (role permits)`.
 - `try/integration/api/colonel/manage_entitlement_override_try.rb:122-244` — operator grant/revoke treats every string uniformly via one effective-entitlements list. Needs a feature-vs-capability target or split endpoints.
 - `with_plan_entitlements_standalone_spec.rb` / `organization_entitlements_try.rb` — drop capability strings from the standalone/plan set once capabilities are role-derived.
@@ -448,9 +458,9 @@ New tests required: `require_capability!` raises `CapabilityRequired` (no upgrad
 
 - **Dual-natured tokens (`audit_logs`, `api_access`).** Product decision required: does each need to exist in **both** a plan-feature registry (availability) and a capability registry (who may view/use)? (L1) This is not a mechanical split.
 - **`manage_orgs` as a third axis.** It is account-scoped ("manage organizations on your account"), not org-scoped. Option C may need an **account-role** dimension distinct from both org-plan and org-role. (H4)
-- **`manage_org` = owner-only vs owner∥admin.** Code says OWNER; route guards/`useOrgPermissions` say owner∥admin. The separation must pick one; admins currently pass route guards but would fail `can(MANAGE_ORG)`. (M3)
-- **Per-member plan-feature overrides.** ADR-012 routed plan-feature checks through membership so a per-member revoke could disable a feature for one user. If features become org-only, that capability is lost — confirm it is unwanted before dropping the membership round-trip.
-- **Does `/billing/api/entitlements/:extid` return raw org plan entitlements or the role-intersected set?** If already role-intersected, `org.entitlements` is silently member-scoped today and the schema "org-level" framing is wrong — determines whether a new membership endpoint is needed or just a re-label.
+- **`manage_org` = owner-only vs owner∥admin.** Code says OWNER; route guards/`useOrgPermissions` say owner∥admin. The separation must pick one; admins currently pass route guards but would fail `can(MANAGE_ORG)`. (M3) *Intentionally deferred to the superseding ADR, but with a recommended non-binding default:* keep `manage_org` **owner-exclusive** for org-lifecycle actions (rename, delete, billing, SSO) and introduce a distinct **admin+** capability (e.g. `manage_domains`) for the domain-config surface that route guards already grant admins today. That aligns the capability model with the shipped route-guard reality instead of forcing one side to change, and resolves M3 without widening `manage_org`.
+- **Per-member plan-feature overrides.** ADR-012 routed plan-feature checks through membership so a per-member revoke could disable a feature for one user. If features become org-only, that capability is lost — confirm it is unwanted before dropping the membership round-trip. *Recommended default:* treat per-member **feature** overrides as **unsupported** (features are a property of the org's subscription, not the member) unless a concrete operator use case surfaces; retain per-member **capability** overrides (the existing colonel grant/revoke path) since those are inherently member-scoped. No current spec or CLI path exercises a per-member *feature* revoke, so dropping it simplifies Stage C — but confirm with the operator/colonel workflows before removing.
+- **RESOLVED — `/billing/entitlements/:extid` returns org-level plan entitlements, not the role-intersected set.** `Billing::Controllers::Entitlements#show` returns `entitlements: org.entitlements_for_request(session)` (org plan entitlements + colonel preview overrides), **not** any membership set. So the frontend's `org.entitlements` is genuinely org-level plan data with **no role filter** — the schema's "org-level" framing is correct, and the fix is a **re-label** (`org.entitlements` → `org.plan_entitlements`) plus a **new membership/permissions field** for `role_capabilities`, not a re-scope of the existing endpoint. (Verified in `apps/web/billing/controllers/entitlements.rb#show`.)
 - **Standalone capability grant path.** Today `STANDALONE` carries capabilities so the intersection survives. After separation, what grants capabilities in self-hosted mode — every member gets all, or role is honored (per ADR-012's claim)? Must be honored to fix M4.
 - **`extended_default_expiration` → limit conversion** (L2) changes the gate at `base_secret_action.rb:122-123` and `update_domain_brand.rb`; verify no behavior regression around the free TTL ceiling.
 - **No re-materialization trigger exists for `ROLE_CAPABILITIES` table changes** (a code constant). A deploy that changes the table must trigger a backfill; today only webhooks/role-changes re-materialize.
@@ -540,8 +550,11 @@ Stage 0 (docs) + the highest-signal, lowest-risk slice of Stage A:
    the two partitions are disjoint and exhaustive over `ROLE_ENTITLEMENTS ∪
    STANDALONE_ENTITLEMENTS` — this freezes the taxonomy and prevents new drift.
 3. Fix the two free, unambiguous drifts: the stale `lib/onetime/billing/catalog.rb`
-   citation (`src/types/organization.ts:41`) and the `materialize_for_role!`
-   doc/code comment mismatch (`with_materialized_entitlements.rb:13-18` vs `:100`).
+   citation (present in **both** `src/types/organization.ts` near the `ENTITLEMENTS`
+   const header and `src/schemas/contracts/organization.ts` above `KNOWN_ENTITLEMENTS`)
+   and the `materialize_for_role!` doc/code comment mismatch (the module-header
+   `Materialization formula:` comment says `org.materialized_entitlements` but the
+   method body uses `org.entitlements` — see the §2.2 note).
 4. Add `manage_billing` to the frontend capability constant (M6).
 
 None of these change runtime behavior; together they make the taxonomy
