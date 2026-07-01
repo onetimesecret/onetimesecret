@@ -130,5 +130,26 @@
   "incoming.receipt_link_text": {
     "text": "ricevuta",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Upgrade richiesto"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Questa funzionalità richiede l'upgrade del piano. Contatta il proprietario dell'account per abilitare i segreti in arrivo."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "La nota deve contenere al massimo {max} caratteri"
+  },
+  "incoming.validation_secret_required": {
+    "text": "Il contenuto del segreto è obbligatorio"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Seleziona un destinatario"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "La funzionalità dei segreti in arrivo non è abilitata"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Controlla il modulo per individuare gli errori"
   }
 }

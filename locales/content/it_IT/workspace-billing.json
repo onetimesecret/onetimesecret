@@ -988,5 +988,47 @@
     "text": "Disponibile solo nella regione dell'abbonamento originale",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Sei già abbonato a questo piano."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Riattiva abbonamento"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "Il tuo abbonamento è stato riattivato. Continuerai a essere addebitato come di consueto."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "Riattivazione dell'abbonamento non riuscita. Riprova o contatta l'assistenza."
+  },
+  "web.billing.features.manage_orgs": {
+    "text": "Gestione dell'organizzazione"
+  },
+  "web.billing.features.flexible_from_domain": {
+    "text": "Dominio mittente email flessibile"
+  },
+  "web.billing.features.unlimited_admins": {
+    "text": "Amministratori illimitati"
+  },
+  "web.billing.features.manage_sso": {
+    "text": "SSO"
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Dominio mittente email flessibile"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "Gestisci organizzazioni"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Single Sign-On (SSO)"
+  },
+  "web.billing.overview.entitlements.manage_billing": {
+    "text": "Gestisci fatturazione"
+  },
+  "web.billing.overview.entitlements.custom_signup_validation": {
+    "text": "Convalida della registrazione personalizzata"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Riattiva"
   }
 }
