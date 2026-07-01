@@ -85,7 +85,13 @@ RSpec.describe 'POST /api/account/update-locale', type: :integration do
     it 'returns a 4xx form error, never a 500' do
       # The original bug crashed BEFORE validation, so even an invalid locale
       # 500'd. It must now be rejected cleanly by the locale allowlist.
-      post_locale(locale: 'nl') # not in the test config's supported locales
+      #
+      # Use a structurally invalid code, not a real-but-unconfigured one: the
+      # supported set comes from the boot config's internationalization.locales
+      # (see LoadLocales), so a real code like 'nl' is only "invalid" as long as
+      # the config happens to omit it. 'not-a-locale' can never be in any
+      # allowlist, matching the unit spec.
+      post_locale(locale: 'not-a-locale')
 
       expect(last_response.status).to eq(422)
       expect(last_response.status).to be < 500
