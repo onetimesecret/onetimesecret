@@ -21,6 +21,7 @@
     cust,
     ui,
     domain_logo,
+    domain_strategy,
     brand_product_name,
   } = storeToRefs(bootstrapStore);
 
@@ -76,13 +77,23 @@
   // Priority:
   //   1. props.logo.showSiteName            (caller-site override)
   //   2. domain_logo.value                  (per-tenant: always hide platform name)
-  //   3. headerConfig.branding.logo.show_name  (LOGO_SHOW_NAME explicit config)
-  //   4. isCustomStaticLogo.value           (heuristic: custom LOGO_URL usually
+  //   3. domain_strategy === 'custom'       (custom domain, no uploaded logo:
+  //                                          never leak the platform site name)
+  //   4. headerConfig.branding.logo.show_name  (LOGO_SHOW_NAME explicit config)
+  //   5. isCustomStaticLogo.value           (heuristic: custom LOGO_URL usually
   //                                          embeds its own wordmark)
-  //   5. !!site_name                        (default visibility tied to SITE_NAME)
+  //   6. !!site_name                        (default visibility tied to SITE_NAME)
   const getShowSiteName = () => {
     if (props.logo?.showSiteName != null) return props.logo.showSiteName;
     if (domain_logo.value) return false;
+
+    // A3 custom-domain branding leak: on a custom domain with no uploaded
+    // domain_logo we fall back to DefaultLogo's neutral mark. Rendering the
+    // platform SITE_NAME next to it would leak our identity onto another
+    // company's domain (transactional routes reach here via
+    // TransactionalHeader → MastHead with no domain-aware switching), so
+    // suppress the site name entirely.
+    if (domain_strategy.value === 'custom') return false;
 
     const showName = headerConfig.value?.branding?.logo?.show_name;
     if (showName != null) return showName;

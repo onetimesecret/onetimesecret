@@ -1,6 +1,7 @@
 // src/shared/composables/usePageTitle.ts
 
 import { globalComposer } from '@/i18n';
+import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { storeToRefs } from 'pinia';
 import { computed, watch } from 'vue';
@@ -33,7 +34,6 @@ import { computed, watch } from 'vue';
  * });
  */
 
-const APP_NAME = 'Onetime Secret';
 const TITLE_SEPARATOR = ' - ';
 
 export function usePageTitle() {
@@ -43,16 +43,30 @@ export function usePageTitle() {
   const { t, te } = globalComposer;
 
   const bootstrapStore = useBootstrapStore();
-  const { display_domain } = storeToRefs(bootstrapStore);
+  const { display_domain, brand_product_name } = storeToRefs(bootstrapStore);
 
   // Cache DOM elements to avoid repeated queries
   let ogTitleMeta: HTMLMetaElement | null | undefined;
   let twitterTitleMeta: HTMLMetaElement | null | undefined;
 
   /**
-   * Gets the branded app name from domain settings or defaults to APP_NAME
+   * Resolves the app name used in the document title, og:title and
+   * twitter:title, following the neutral brand fallback chain:
+   *   1. display_domain        - the active (custom) domain, when set
+   *   2. brand_product_name    - the per-installation product name from OT.conf
+   *   3. NEUTRAL_BRAND_DEFAULTS.product_name - the neutral 'My App' default
+   *
+   * This must NEVER emit OTS branding. Mirroring the philosophy in
+   * constants/brand.ts, when neither a domain nor a configured product name is
+   * available the title degrades to the neutral default rather than leaking
+   * "Onetime Secret" into browser tabs or social-share previews. This supports
+   * private-label deployments.
+   *
+   * Reads `.value` on each call so the resolved name stays reactive to store
+   * changes (do not hoist the raw values out of the refs).
    */
-  const getAppName = (): string => display_domain.value || APP_NAME;
+  const getAppName = (): string =>
+    display_domain.value || brand_product_name.value || NEUTRAL_BRAND_DEFAULTS.product_name;
 
   /**
    * Translates a title if it's an i18n key, otherwise returns the raw string
