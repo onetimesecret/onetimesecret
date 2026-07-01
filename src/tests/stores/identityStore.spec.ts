@@ -329,3 +329,151 @@ describe('identityStore primaryColor resolution', () => {
     });
   });
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// productName — neutral-safe install product name (A1 consolidation)
+//
+// The store is the single source of truth for the product-name fallback that
+// MastHead and DefaultLogo previously re-derived by hand. It must degrade to
+// the neutral default ('My App'), never a hardcoded "Onetime Secret", and must
+// treat an empty string as unset (|| not ??).
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe('identityStore productName resolution', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+  });
+
+  it('uses brand_product_name when set', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ brand_product_name: 'Acme Vault' });
+
+    const identity = useProductIdentity();
+
+    expect(identity.productName).toBe('Acme Vault');
+  });
+
+  it('falls back to the neutral default when undefined', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ brand_product_name: undefined });
+
+    const identity = useProductIdentity();
+
+    expect(identity.productName).toBe(NEUTRAL_BRAND_DEFAULTS.product_name);
+    expect(identity.productName).not.toBe('Onetime Secret');
+  });
+
+  it('falls back to the neutral default when null', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ brand_product_name: null });
+
+    const identity = useProductIdentity();
+
+    expect(identity.productName).toBe(NEUTRAL_BRAND_DEFAULTS.product_name);
+  });
+
+  it('treats an empty string as unset and falls back to the neutral default', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ brand_product_name: '' });
+
+    const identity = useProductIdentity();
+
+    // `||` (not `??`) — a blank product-name config degrades to 'My App'
+    // rather than rendering an empty name.
+    expect(identity.productName).toBe(NEUTRAL_BRAND_DEFAULTS.product_name);
+  });
+
+  it('reacts to brand_product_name changes', async () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ brand_product_name: undefined });
+
+    const identity = useProductIdentity();
+    expect(identity.productName).toBe(NEUTRAL_BRAND_DEFAULTS.product_name);
+
+    bootstrap.$patch({ brand_product_name: 'Acme Vault' });
+    await nextTick();
+
+    expect(identity.productName).toBe('Acme Vault');
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// showPlatformIdentity — base "may we show the platform wordmark?" guard (A3)
+//
+// False on any custom domain and whenever a per-tenant logo is present, so a
+// consumer can suppress the platform name/wordmark without re-deriving the
+// leak rule. Canonical + subdomain contexts return true (subject to the
+// consumer's own config).
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe('identityStore showPlatformIdentity', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+  });
+
+  it('is true on the canonical domain with no logo', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ domain_strategy: 'canonical', domain_logo: null });
+
+    const identity = useProductIdentity();
+
+    expect(identity.showPlatformIdentity).toBe(true);
+  });
+
+  it('is true on a subdomain (the subdomain IS the platform)', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ domain_strategy: 'subdomain', domain_logo: null });
+
+    const identity = useProductIdentity();
+
+    expect(identity.showPlatformIdentity).toBe(true);
+  });
+
+  it('is false on a custom domain with no uploaded logo (A3 leak guard)', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ domain_strategy: 'custom', domain_logo: null });
+
+    const identity = useProductIdentity();
+
+    expect(identity.showPlatformIdentity).toBe(false);
+  });
+
+  it('is false on a custom domain that has an uploaded logo', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({
+      domain_strategy: 'custom',
+      domain_logo: 'https://cdn.example.com/acme.png',
+    });
+
+    const identity = useProductIdentity();
+
+    expect(identity.showPlatformIdentity).toBe(false);
+  });
+
+  it('is false whenever a per-tenant logo is present, independent of strategy', () => {
+    // Defensive: a logo implies a tenant surface — never show the platform name
+    // beside it even if the strategy field says otherwise.
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({
+      domain_strategy: 'canonical',
+      domain_logo: 'https://cdn.example.com/acme.png',
+    });
+
+    const identity = useProductIdentity();
+
+    expect(identity.showPlatformIdentity).toBe(false);
+  });
+
+  it('reacts to domain_strategy changing to custom', async () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ domain_strategy: 'canonical', domain_logo: null });
+
+    const identity = useProductIdentity();
+    expect(identity.showPlatformIdentity).toBe(true);
+
+    bootstrap.$patch({ domain_strategy: 'custom' });
+    await nextTick();
+
+    expect(identity.showPlatformIdentity).toBe(false);
+  });
+});

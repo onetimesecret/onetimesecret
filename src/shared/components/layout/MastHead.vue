@@ -5,9 +5,9 @@
   import DefaultLogo from '@/shared/components/logos/DefaultLogo.vue';
   import UserMenu from '@/shared/components/navigation/UserMenu.vue';
   import { useHeaderEnabled } from '@/shared/composables/useHeaderEnabled';
-  import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
   import { useAuthStore } from '@/shared/stores/authStore';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { useProductIdentity } from '@/shared/stores/identityStore';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { storeToRefs } from 'pinia';
   import { computed, watch, type Component, onMounted, shallowRef } from 'vue';
@@ -21,8 +21,15 @@
     cust,
     ui,
     domain_logo,
-    brand_product_name,
   } = storeToRefs(bootstrapStore);
+
+  // Brand identity resolves through the central resolver so the masthead shares
+  // one neutral-safe source of truth with every other surface. `productName`
+  // replaces the hand-rolled `brand_product_name ?? NEUTRAL` snippet;
+  // `showPlatformIdentity` is the base "may we show the platform wordmark?"
+  // decision (custom domains / per-tenant logos suppress it — the A3 leak).
+  const identityStore = useProductIdentity();
+  const { productName, showPlatformIdentity } = storeToRefs(identityStore);
 
   const props = withDefaults(defineProps<LayoutProps>(), {
     displayMasthead: true,
@@ -49,7 +56,7 @@
   // Helper functions for logo configuration
   // Priority: props > custom domain logo > static config > default
   const getLogoUrl = () => props.logo?.url || domain_logo.value || headerConfig.value?.branding?.logo?.url || DEFAULT_LOGO;
-  const getLogoAlt = () => props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('web.homepage.one_time_secret_literal', { product_name: brand_product_name?.value ?? NEUTRAL_BRAND_DEFAULTS.product_name });
+  const getLogoAlt = () => props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('web.homepage.one_time_secret_literal', { product_name: productName.value });
   const getLogoHref = () => props.logo?.href || headerConfig.value?.branding?.logo?.link_to || '/';
 
   // Static-config custom logo: operator set LOGO_URL to anything other than the
@@ -75,14 +82,21 @@
   };
   // Priority:
   //   1. props.logo.showSiteName            (caller-site override)
-  //   2. domain_logo.value                  (per-tenant: always hide platform name)
+  //   2. !identity.showPlatformIdentity     (resolver base guard: a per-tenant
+  //                                          logo or any custom domain suppresses
+  //                                          the platform wordmark — the A3 leak)
   //   3. headerConfig.branding.logo.show_name  (LOGO_SHOW_NAME explicit config)
   //   4. isCustomStaticLogo.value           (heuristic: custom LOGO_URL usually
   //                                          embeds its own wordmark)
   //   5. !!site_name                        (default visibility tied to SITE_NAME)
+  //
+  // Rung 2 replaces the former `domain_logo` check: showPlatformIdentity is
+  // `!isCustom && !logoUri`, so `!showPlatformIdentity` is `isCustom || logoUri`
+  // — the same per-tenant-logo suppression, now also covering custom domains
+  // with no uploaded logo. The caller/operator override rungs are unchanged.
   const getShowSiteName = () => {
     if (props.logo?.showSiteName != null) return props.logo.showSiteName;
-    if (domain_logo.value) return false;
+    if (!showPlatformIdentity.value) return false;
 
     const showName = headerConfig.value?.branding?.logo?.show_name;
     if (showName != null) return showName;
@@ -90,7 +104,7 @@
     if (isCustomStaticLogo.value) return false;
     return !!headerConfig.value?.branding?.site_name;
   };
-  const getSiteName = () => props.logo?.siteName || headerConfig.value?.branding?.site_name || t('web.homepage.one_time_secret_literal', { product_name: brand_product_name?.value ?? NEUTRAL_BRAND_DEFAULTS.product_name });
+  const getSiteName = () => props.logo?.siteName || headerConfig.value?.branding?.site_name || t('web.homepage.one_time_secret_literal', { product_name: productName.value });
   const getAriaLabel = () => props.logo?.ariaLabel;
   const getIsColonelArea = () => props.logo?.isColonelArea ?? props.colonel;
 
@@ -270,7 +284,7 @@
             <router-link
               v-if="authentication?.signin"
               to="/signin"
-              :title="t('web.homepage.log_in_to_onetime_secret', { product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name })"
+              :title="t('web.homepage.log_in_to_onetime_secret', { product_name: productName })"
               data-testid="header-signin-link"
               class="text-gray-600 transition-colors duration-200
                 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">

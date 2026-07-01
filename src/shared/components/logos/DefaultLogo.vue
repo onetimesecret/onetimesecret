@@ -3,8 +3,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import KeyholeIcon from '@/shared/components/icons/KeyholeIcon.vue';
-  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-  import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
+  import { useProductIdentity } from '@/shared/stores/identityStore';
   import { type LogoConfig } from '@/types/ui/layouts';
   import { computed } from 'vue';
 
@@ -21,17 +20,17 @@
   );
 
   const { t } = useI18n();
-  const bootstrapStore = useBootstrapStore();
+  const identity = useProductIdentity();
 
   /**
-   * Brand-aware aria-label. Falls back to NEUTRAL_BRAND_DEFAULTS.product_name
-   * (a generic "My App") when bootstrap config has not provided a brand name.
-   * Never defaults to OTS branding — keeps private-label deployments neutral
-   * (#3048 / #3049).
+   * Brand-aware aria-label. Falls back to the resolver's neutral-safe
+   * `productName` (a generic "My App") when bootstrap config has not provided a
+   * brand name. Never defaults to OTS branding — keeps private-label
+   * deployments neutral (#3048 / #3049). Resolving the fallback through
+   * `identityStore.productName` keeps this in lockstep with every other
+   * name-rendering surface instead of re-deriving the chain here.
    */
-  const ariaLabel = computed(
-    () => props.ariaLabel || bootstrapStore.brand_product_name || NEUTRAL_BRAND_DEFAULTS.product_name
-  );
+  const ariaLabel = computed(() => props.ariaLabel || identity.productName);
 
   const svgSize = computed(() =>
     typeof props.size === 'number' && props.size > 0 ? props.size : 64
