@@ -23,7 +23,7 @@
 </script>
 
 <template>
-  <div class="container mx-auto min-w-[320px] max-w-2xl py-4">
+  <div class="container mx-auto max-w-2xl min-w-[320px] py-4">
     <HomepageTaglines
       v-if="!authenticated"
       class="mb-6" />

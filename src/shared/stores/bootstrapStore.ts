@@ -1,6 +1,5 @@
 // src/shared/stores/bootstrapStore.ts
 
-import { getBootstrapSnapshot, updateBootstrapSnapshot } from '@/services/bootstrap.service';
 import {
   bootstrapSchema,
   type ApiGuestRoutes,
@@ -10,6 +9,7 @@ import {
   type HeaderConfig,
   type UiCapabilities,
 } from '@/schemas/contracts/bootstrap';
+import { getBootstrapSnapshot, updateBootstrapSnapshot } from '@/services/bootstrap.service';
 import { defineStore } from 'pinia';
 
 /**

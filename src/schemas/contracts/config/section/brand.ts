@@ -8,16 +8,18 @@
  * The bootstrap payload flattens these into `brand_*` fields — see
  * `bootstrapSchema` for the runtime contract.
  *
- * Per #3049 the shipped defaults are intentionally neutral: no `brand:`
- * block ships in `etc/defaults/config.defaults.yaml`. Operators set
- * `BRAND_*` ENV vars to populate this section. When absent, the frontend
- * falls back to `NEUTRAL_BRAND_DEFAULTS`.
+ * Per #3049 the shipped defaults are intentionally neutral: the `brand:`
+ * block in `etc/defaults/config.defaults.yaml` wires each key to a `BRAND_*`
+ * ENV var and defaults to `nil`, so no OTS values ship. `Config#normalize_brand`
+ * parses that block after load. When a field is absent, the frontend falls
+ * back to `NEUTRAL_BRAND_DEFAULTS`.
  *
  * @see src/shared/constants/brand.ts — frontend neutral fallback
  * @see src/schemas/contracts/bootstrap.ts — flattened bootstrap payload
  */
 
 import { z } from 'zod';
+
 import { cornerStyleValues, fontFamilyValues } from '../../custom-domain/brand-config';
 import { nullableString } from '../shared/primitives';
 
@@ -41,9 +43,12 @@ const brandSchema = z.object({
   apple_touch_icon_url: nullableString,
   og_image_url: nullableString,
   totp_issuer: nullableString,
-  corner_style: z.enum(cornerStyleValues).optional(),
-  font_family: z.enum(fontFamilyValues).optional(),
-  button_text_light: z.boolean().optional(),
+  // Nullable + optional to match the sibling string fields and the docstring
+  // above: Config#normalize_brand emits `nil` for any unset BRAND_* var, so the
+  // parsed value is `boolean | null` (or the key may be absent entirely).
+  corner_style: z.enum(cornerStyleValues).nullable().optional(),
+  font_family: z.enum(fontFamilyValues).nullable().optional(),
+  button_text_light: z.boolean().nullable().optional(),
 });
 
 export type BrandConfig = z.infer<typeof brandSchema>;
