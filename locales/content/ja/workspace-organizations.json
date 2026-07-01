@@ -770,5 +770,200 @@
   "web.organizations.sso.status_not_configured": {
     "text": "未設定",
     "source_hash": "bbea960e"
+  },
+  "api.organizations.errors.not_found": {
+    "text": "組織が見つかりません: %{extid}"
+  },
+  "api.organizations.errors.owner_required": {
+    "text": "この操作を実行できるのは、組織のオーナーのみです"
+  },
+  "api.organizations.errors.admin_required": {
+    "text": "この操作を実行できるのは、組織のオーナーと管理者のみです"
+  },
+  "api.organizations.errors.member_required": {
+    "text": "この操作を実行するには、組織のメンバーである必要があります"
+  },
+  "api.organizations.invitations.errors.create_admin_required": {
+    "text": "招待を作成できるのは、組織のオーナーと管理者のみです"
+  },
+  "api.organizations.invitations.errors.resend_admin_required": {
+    "text": "招待を再送信できるのは、組織のオーナーと管理者のみです"
+  },
+  "api.organizations.invitations.errors.view_admin_required": {
+    "text": "招待を表示できるのは、組織のオーナーと管理者のみです"
+  },
+  "api.organizations.invitations.errors.revoke_admin_required": {
+    "text": "招待を取り消せるのは、組織のオーナーと管理者のみです"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "メールアドレスは必須です"
+  },
+  "api.organizations.invitations.errors.email_invalid": {
+    "text": "メールアドレスの形式が無効です"
+  },
+  "api.organizations.invitations.errors.role_invalid": {
+    "text": "役割はメンバーまたは管理者のいずれかである必要があります"
+  },
+  "api.organizations.invitations.errors.cannot_invite_owner": {
+    "text": "オーナーとして招待することはできません"
+  },
+  "api.organizations.invitations.errors.already_member": {
+    "text": "ユーザーはすでにこの組織のメンバーです"
+  },
+  "api.organizations.invitations.errors.already_pending": {
+    "text": "このメールアドレスへの招待はすでに保留中です"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "メンバー数の上限に達しました。さらにメンバーを招待するには、プランをアップグレードしてください。"
+  },
+  "api.organizations.invitations.errors.not_found": {
+    "text": "招待が見つかりません"
+  },
+  "api.organizations.invitations.errors.cannot_resend_non_pending": {
+    "text": "再送信できるのは保留中の招待のみです"
+  },
+  "api.organizations.invitations.errors.cannot_revoke_non_pending": {
+    "text": "取り消せるのは保留中の招待のみです"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "再送信の上限回数 (%{max}) に達しました"
+  },
+  "api.organizations.invitations.errors.accept_token_required": {
+    "text": "トークンは必須です"
+  },
+  "api.organizations.invitations.errors.accept_organization_gone": {
+    "text": "組織はすでに存在しません"
+  },
+  "api.organizations.invitations.errors.accept_already_acted": {
+    "text": "この招待はすでに処理されています(%{status})"
+  },
+  "api.organizations.invitations.errors.accept_expired": {
+    "text": "招待の有効期限が切れています"
+  },
+  "api.organizations.invitations.errors.accept_email_mismatch": {
+    "text": "お使いのメールアドレスが招待と一致しません"
+  },
+  "api.organizations.invitations.errors.accept_already_member": {
+    "text": "あなたはすでにこの組織のメンバーです"
+  },
+  "web.organizations.entitlements_title": {
+    "text": "組織のエンタイトルメント"
+  },
+  "web.organizations.page_description_short": {
+    "text": "ワークスペースの表示と設定"
+  },
+  "web.organizations.delete_organization_remove_domains_first": {
+    "text": "この組織を削除する前に、すべてのカスタムドメインを削除してください。"
+  },
+  "web.organizations.default_org_delete_notice_title": {
+    "text": "この組織の削除"
+  },
+  "web.organizations.default_org_delete_notice_before": {
+    "text": "これはデフォルトの組織であり、ダッシュボードから削除することはできません。削除するには、"
+  },
+  "web.organizations.default_org_delete_notice_link": {
+    "text": "フィードバックフォーム"
+  },
+  "web.organizations.default_org_delete_notice_after": {
+    "text": "からご連絡ください。"
+  },
+  "web.organizations.leave_organization": {
+    "text": "この組織から退出"
+  },
+  "web.organizations.leave_organization_warning": {
+    "text": "この組織とそのリソースへのアクセス権を失います。"
+  },
+  "web.organizations.leave_organization_confirm_title": {
+    "text": "組織から退出"
+  },
+  "web.organizations.leave_organization_confirm_message": {
+    "text": "{name}から退出してもよろしいですか? 再参加するには新しい招待が必要になります。"
+  },
+  "web.organizations.leave_organization_success": {
+    "text": "組織から退出しました。"
+  },
+  "web.organizations.leave_error": {
+    "text": "組織からの退出に失敗しました"
+  },
+  "web.organizations.organizations": {
+    "text": "組織"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "{email}より"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "{role}として"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "ホームに戻る"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "この招待はこのメールアドレス宛てに送信されました"
+  },
+  "web.organizations.invitations.signup_continue": {
+    "text": "続ける"
+  },
+  "web.organizations.invitations.signin_continue": {
+    "text": "ログイン"
+  },
+  "web.organizations.invitations.confirm_join_below": {
+    "text": "あと少しです — 以下で確認して組織に参加してください。"
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "組織へ移動"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "あなたはすでにこの組織のメンバーです"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "{orgName}に参加"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "ログインして{orgName}に参加"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "辞退"
+  },
+  "web.organizations.members.member_quota": {
+    "text": "{limit}人中{used}人のメンバー"
+  },
+  "web.organizations.members.pending_suffix": {
+    "text": "({count}件保留中)"
+  },
+  "web.organizations.members.limit_reached_hint": {
+    "text": "メンバー数の上限に達しました。"
+  },
+  "web.organizations.sso.view_discovery_document": {
+    "text": "ディスカバリードキュメントを表示"
+  },
+  "web.organizations.sso.callback_url": {
+    "text": "コールバックURL"
+  },
+  "web.organizations.sso.callback_url_hint": {
+    "text": "このURLをIDプロバイダーの許可されたリダイレクトURIに追加してください"
+  },
+  "web.organizations.sso.enforce_sso_only": {
+    "text": "SSOのみを強制"
+  },
+  "web.organizations.sso.enforce_sso_only_hint": {
+    "text": "このドメインのすべてのログインでSSOを必須にします。有効にすると、パスワードによる認証は無効になります。"
+  },
+  "web.organizations.sso.grant_org_scope": {
+    "text": "組織全体へのアクセスを付与"
+  },
+  "web.organizations.sso.grant_org_scope_hint": {
+    "text": "このドメインのSSO経由で参加した新規メンバーには、すべての組織ドメインへのアクセス権が付与されます。既存のメンバーには影響しません。無効にした場合(デフォルト)、新規メンバーはこのドメインにのみアクセスできます。"
+  },
+  "web.organizations.sso.no_domains": {
+    "text": "検証済みのドメインがありません"
+  },
+  "web.organizations.sso.no_domains_description": {
+    "text": "SSOを設定する前に、ドメインを追加して検証してください。"
+  },
+  "web.organizations.tabs.team": {
+    "text": "チーム"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

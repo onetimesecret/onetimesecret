@@ -1,0 +1,8 @@
+{
+  "api.account.errors.invalid_email": {
+    "text": "有効なメールアドレスを入力してください"
+  },
+  "api.account.errors.password_too_short": {
+    "text": "パスワードが短すぎます"
+  }
+}

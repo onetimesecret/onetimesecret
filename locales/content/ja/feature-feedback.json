@@ -58,5 +58,14 @@
   "web.feedback.reason_email_change_unauthorized": {
     "text": "アカウントでの不正なメールアドレス変更を報告されているようです。何が起きたかをご説明ください。すぐに調査いたします。",
     "source_hash": "00e56551"
+  },
+  "web.feedback.anonymous_no_reply": {
+    "text": "注意: 返信をご希望の場合は、メッセージに署名するか、メールアドレスを記載してください。"
+  },
+  "web.feedback.characters_remaining": {
+    "text": "残り{count}文字"
+  },
+  "web.feedback.character_limit_reached": {
+    "text": "文字数の上限に達しました"
   }
 }

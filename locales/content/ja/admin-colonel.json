@@ -634,5 +634,152 @@
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
     "text": "フィードバックを送信すると、以下の情報が送信されます:",
     "source_hash": "fe77172e"
+  },
+  "web.colonel.previewPlanMode": {
+    "text": "プランプレビューモード"
+  },
+  "web.colonel.previewModeDescription": {
+    "text": "別のプランの顧客に表示されるアプリケーションをプレビューします。これはあなたの表示にのみ影響し、組織の実際のプランは変更されません。"
+  },
+  "web.colonel.previewModeActive": {
+    "text": "プレビュー有効"
+  },
+  "web.colonel.bannedIps.empty": {
+    "text": "禁止されたIPはありません"
+  },
+  "web.colonel.bannedIps.currentIp": {
+    "text": "現在のIPアドレス"
+  },
+  "web.colonel.bannedIps.confirmUnban": {
+    "text": "{ip}の禁止を解除しますか？"
+  },
+  "web.colonel.bannedIps.actions.ban": {
+    "text": "IPを禁止"
+  },
+  "web.colonel.bannedIps.actions.quickBan": {
+    "text": "クイック禁止"
+  },
+  "web.colonel.bannedIps.actions.unban": {
+    "text": "禁止を解除"
+  },
+  "web.colonel.bannedIps.actions.cancel": {
+    "text": "キャンセル"
+  },
+  "web.colonel.bannedIps.columns.ipAddress": {
+    "text": "IPアドレス"
+  },
+  "web.colonel.bannedIps.columns.reason": {
+    "text": "理由"
+  },
+  "web.colonel.bannedIps.columns.bannedAt": {
+    "text": "禁止日時"
+  },
+  "web.colonel.bannedIps.columns.bannedBy": {
+    "text": "禁止者"
+  },
+  "web.colonel.bannedIps.error.banFailed": {
+    "text": "IPアドレスの禁止に失敗しました"
+  },
+  "web.colonel.bannedIps.error.unbanFailed": {
+    "text": "IPアドレスの禁止解除に失敗しました"
+  },
+  "web.colonel.bannedIps.form.title": {
+    "text": "IPアドレスを禁止"
+  },
+  "web.colonel.bannedIps.form.ipLabel": {
+    "text": "IPアドレス"
+  },
+  "web.colonel.bannedIps.form.reasonLabel": {
+    "text": "理由"
+  },
+  "web.colonel.bannedIps.form.reasonPlaceholder": {
+    "text": "理由（任意）"
+  },
+  "web.colonel.bannedIps.success.banned": {
+    "text": "IPアドレス {ip} を禁止しました"
+  },
+  "web.colonel.bannedIps.success.unbanned": {
+    "text": "IPアドレス {ip} の禁止を解除しました"
+  },
+  "web.colonel.customDomains.empty": {
+    "text": "カスタムドメインが設定されていません"
+  },
+  "web.colonel.customDomains.noLogo": {
+    "text": "ロゴなし"
+  },
+  "web.colonel.customDomains.labels.organization": {
+    "text": "組織"
+  },
+  "web.colonel.customDomains.labels.externalId": {
+    "text": "外部ID"
+  },
+  "web.colonel.customDomains.labels.created": {
+    "text": "作成日"
+  },
+  "web.colonel.customDomains.labels.updated": {
+    "text": "更新日"
+  },
+  "web.colonel.customDomains.labels.favicon": {
+    "text": "ファビコン"
+  },
+  "web.colonel.customDomains.status.verified": {
+    "text": "検証済み"
+  },
+  "web.colonel.customDomains.status.resolving": {
+    "text": "解決中"
+  },
+  "web.colonel.customDomains.status.ready": {
+    "text": "準備完了"
+  },
+  "web.colonel.customDomains.status.publicHomepage": {
+    "text": "公開ホームページ"
+  },
+  "web.colonel.customDomains.status.publicApi": {
+    "text": "公開API"
+  },
+  "web.colonel.customDomains.status.pending": {
+    "text": "保留中"
+  },
+  "web.colonel.pagination.showing": {
+    "text": "{total}件中 {start}–{end}件を表示"
+  },
+  "web.colonel.pagination.itemsPerPage": {
+    "text": "1ページあたりの件数"
+  },
+  "web.colonel.pagination.perPage": {
+    "text": "1ページあたり{count}件"
+  },
+  "web.colonel.pagination.pageOf": {
+    "text": "{total}ページ中{current}ページ"
+  },
+  "web.colonel.secrets.empty": {
+    "text": "シークレットが見つかりません"
+  },
+  "web.colonel.secrets.never": {
+    "text": "なし"
+  },
+  "web.colonel.secrets.columns.shortId": {
+    "text": "短縮ID"
+  },
+  "web.colonel.secrets.columns.state": {
+    "text": "状態"
+  },
+  "web.colonel.secrets.columns.created": {
+    "text": "作成日"
+  },
+  "web.colonel.secrets.columns.expiration": {
+    "text": "有効期限"
+  },
+  "web.colonel.secrets.columns.age": {
+    "text": "経過日数（日）"
+  },
+  "web.colonel.secrets.state.new": {
+    "text": "新規"
+  },
+  "web.colonel.secrets.state.received": {
+    "text": "受信済み"
+  },
+  "web.colonel.secrets.state.viewed": {
+    "text": "閲覧済み"
   }
 }

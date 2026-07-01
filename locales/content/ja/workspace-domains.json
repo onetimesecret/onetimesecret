@@ -846,5 +846,389 @@
   "web.domains.sso.not_configured_notice": {
     "text": "このドメインではSSOがまだ設定されていません。シングルサインオンを有効にして、チームメンバーが組織のIDプロバイダーを使用して認証できるようにしましょう。",
     "source_hash": "c439214b"
+  },
+  "api.domains.errors.add_admin_required": {
+    "text": "カスタムドメインを追加できるのは、組織のオーナーと管理者のみです"
+  },
+  "web.domains.public_homepage": {
+    "text": "公開ホームページ"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "ドメインは検証済みで有効です"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNSが設定されていません — クリックして修正"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "ドメインが未検証です — クリックして検証"
+  },
+  "web.domains.status_tooltip_unverified": {
+    "text": "ドメインの状態が未確認です — クリックして更新"
+  },
+  "web.domains.last_check_failed": {
+    "text": "前回の検証チェックに失敗しました"
+  },
+  "web.domains.last_check_failed_ago": {
+    "text": "前回のチェックに失敗しました {0}"
+  },
+  "web.domains.verify_now": {
+    "text": "今すぐ検証"
+  },
+  "web.domains.click_to_verify": {
+    "text": "クリックして検証"
+  },
+  "web.domains.remove_domain_description": {
+    "text": "このドメインとそのすべての設定を完全に削除します。"
+  },
+  "web.domains.add_access_denied": {
+    "text": "アクセスが拒否されました"
+  },
+  "web.domains.add_access_denied_description": {
+    "text": "この組織にドメインを追加する権限がありません。組織の管理者にお問い合わせください。"
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "DNSウィジェットの読み込みに失敗しました"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "DNSウィジェットを利用できません"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "DNSウィジェットの初期化に失敗しました"
+  },
+  "web.domains.verified": {
+    "text": "検証済み"
+  },
+  "web.domains.pending_verification": {
+    "text": "検証待ち"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "保存されていない変更があります。このページから移動してもよろしいですか?"
+  },
+  "web.domains.entitlement_required_owner": {
+    "text": "この機能にはプランのアップグレードが必要です。"
+  },
+  "web.domains.entitlement_required_member": {
+    "text": "この機能は現在のプランではご利用いただけません。組織のオーナーにお問い合わせください。"
+  },
+  "web.domains.detail.manage": {
+    "text": "管理"
+  },
+  "web.domains.detail.features": {
+    "text": "機能"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "ホームページシークレット"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "ドメインのホームページでのシークレット作成を一般公開で許可します"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "ロゴ、配色、カスタムブランディング"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "シングルサインオンプロバイダーの設定"
+  },
+  "web.domains.detail.email_description": {
+    "text": "カスタムメール送信元の設定"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "受信シークレットの受信者設定"
+  },
+  "web.domains.detail.signup_description": {
+    "text": "ドメインごとの登録検証の方式"
+  },
+  "web.domains.detail.signin_description": {
+    "text": "ドメインごとのログイン方法の設定"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "プロバイダー"
+  },
+  "web.domains.email.test_email_title": {
+    "text": "メール配信のテスト"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "保存された設定を使用して、自分宛てにテストメールを送信します。機能がまだ有効になっていない場合でも動作します。"
+  },
+  "web.domains.email.send_test": {
+    "text": "テスト送信"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "テストメールが正常に送信されました"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "テストメールの送信に失敗しました"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "{email}に送信しました"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "{provider}経由で配信されました"
+  },
+  "web.domains.incoming.feature_disabled": {
+    "text": "受信シークレットは利用できません"
+  },
+  "web.domains.incoming.feature_disabled_description": {
+    "text": "このインスタンスでは受信シークレットが有効になっていません。管理者にお問い合わせください。"
+  },
+  "web.domains.signin.title": {
+    "text": "ログイン設定"
+  },
+  "web.domains.signin.configure_signin": {
+    "text": "ログインを設定"
+  },
+  "web.domains.signin.config_description": {
+    "text": "このドメインのログイン認証方法を設定します"
+  },
+  "web.domains.signin.access_denied": {
+    "text": "アクセスが拒否されました"
+  },
+  "web.domains.signin.upgrade_to_configure": {
+    "text": "このドメインのログイン方法を設定するには、プランをアップグレードしてください。"
+  },
+  "web.domains.signin.not_configured_notice": {
+    "text": "このドメインのログイン設定はまだ行われていません。上書き設定を構成して、このドメインのログインページで利用できる認証方法を制御してください。"
+  },
+  "web.domains.signin.signin_enabled_label": {
+    "text": "ログインを有効化"
+  },
+  "web.domains.signin.header_toggle_label": {
+    "text": "ログイン"
+  },
+  "web.domains.signin.signin_enabled_hint": {
+    "text": "このドメインでユーザーがログインできるかどうか"
+  },
+  "web.domains.signin.restrict_to_label": {
+    "text": "ログイン方法を制限"
+  },
+  "web.domains.signin.restrict_to_hint": {
+    "text": "このドメインを単一の認証方法に制限します。設定すると、選択した方法のみがログインページに表示されます。"
+  },
+  "web.domains.signin.all_methods": {
+    "text": "すべての方法"
+  },
+  "web.domains.signin.all_methods_description": {
+    "text": "有効なすべての認証方法をログインページに表示します"
+  },
+  "web.domains.signin.method_password": {
+    "text": "パスワード"
+  },
+  "web.domains.signin.method_email_auth": {
+    "text": "メール認証"
+  },
+  "web.domains.signin.method_webauthn": {
+    "text": "WebAuthn / パスキー"
+  },
+  "web.domains.signin.method_sso": {
+    "text": "シングルサインオン"
+  },
+  "web.domains.signin.method_overrides_label": {
+    "text": "方法の上書き設定"
+  },
+  "web.domains.signin.method_overrides_hint": {
+    "text": "このドメインの個々の認証方法を有効または無効にします"
+  },
+  "web.domains.signin.mode_question": {
+    "text": "ユーザーはどのようにログインできますか?"
+  },
+  "web.domains.signin.mode_any": {
+    "text": "利用可能な任意の方法"
+  },
+  "web.domains.signin.mode_any_hint": {
+    "text": "このドメインで利用可能なすべての方法を表示します。個々の方法は以下で絞り込めます。"
+  },
+  "web.domains.signin.mode_one": {
+    "text": "特定の1つの方法"
+  },
+  "web.domains.signin.mode_one_hint": {
+    "text": "ログインページを単一の方法に制限します。このドメインで利用可能な方法のみが表示されます。"
+  },
+  "web.domains.signin.mode_disabled": {
+    "text": "ログインを無効化"
+  },
+  "web.domains.signin.mode_disabled_hint": {
+    "text": "このドメインではユーザーはログインできません。"
+  },
+  "web.domains.signin.mode_disabled_notice": {
+    "text": "このドメインのログインページへの訪問者には、ログインが利用できない旨の通知と、ホームページに戻るリンクが表示されます。以前の方法の設定は保持され、ログインを再度有効にすると復元されます。"
+  },
+  "web.domains.signin.methods_list_label": {
+    "text": "ログインページに表示される方法"
+  },
+  "web.domains.signin.restrict_picker_hint": {
+    "text": "このドメインで利用可能な方法のみが表示されます。"
+  },
+  "web.domains.signin.availability_always": {
+    "text": "常に利用可能"
+  },
+  "web.domains.signin.availability_global_on": {
+    "text": "グローバルポリシーに従う · オン"
+  },
+  "web.domains.signin.availability_global_off": {
+    "text": "利用不可"
+  },
+  "web.domains.signin.availability_unavailable": {
+    "text": "サイト全体で利用不可"
+  },
+  "web.domains.signin.allow_on_domain": {
+    "text": "このドメインで許可"
+  },
+  "web.domains.signin.method_password_blurb": {
+    "text": "パスワードのみ"
+  },
+  "web.domains.signin.method_email_auth_blurb": {
+    "text": "パスワードなしのマジックリンクログイン"
+  },
+  "web.domains.signin.method_webauthn_blurb": {
+    "text": "生体認証とセキュリティキー"
+  },
+  "web.domains.signin.method_sso_blurb": {
+    "text": "外部IDプロバイダー"
+  },
+  "web.domains.signin.email_auth_label": {
+    "text": "メール認証"
+  },
+  "web.domains.signin.email_auth_hint": {
+    "text": "このドメインでパスワードなしのメール認証を許可します"
+  },
+  "web.domains.signin.sso_enabled_label": {
+    "text": "シングルサインオン"
+  },
+  "web.domains.signin.sso_enabled_hint": {
+    "text": "このドメインでSSO認証を許可します"
+  },
+  "web.domains.signin.enabled_label": {
+    "text": "ログイン設定を有効化"
+  },
+  "web.domains.signin.enabled_hint": {
+    "text": "有効にすると、このドメインは上記で構成したログイン設定を使用します"
+  },
+  "web.domains.signin.save_config": {
+    "text": "設定を保存"
+  },
+  "web.domains.signin.update_success": {
+    "text": "ログイン設定が正常に更新されました"
+  },
+  "web.domains.signin.reset_to_defaults": {
+    "text": "デフォルトにリセット"
+  },
+  "web.domains.signin.reset_confirm": {
+    "text": "ログインをグローバルのデフォルトにリセットしますか?"
+  },
+  "web.domains.signin.reset_keeps_sso": {
+    "text": "SSO認証情報は保持されます。削除する場合は、SSO設定画面で個別に行ってください。"
+  },
+  "web.domains.signin.reset_action": {
+    "text": "はい、リセットします"
+  },
+  "web.domains.signin.reset_success": {
+    "text": "ログイン設定がグローバルのデフォルトにリセットされました"
+  },
+  "web.domains.signup.title": {
+    "text": "登録検証"
+  },
+  "web.domains.signup.config_description": {
+    "text": "このドメインの登録検証を設定します"
+  },
+  "web.domains.signup.access_denied": {
+    "text": "アクセスが拒否されました"
+  },
+  "web.domains.signup.upgrade_to_configure": {
+    "text": "ドメインごとの登録検証を設定するには、プランをアップグレードしてください。"
+  },
+  "web.domains.signup.configure_signup": {
+    "text": "登録を設定"
+  },
+  "web.domains.signup.not_configured_notice": {
+    "text": "このドメインの登録検証はまだ設定されていません。方式を構成して、このドメイン経由で登録できるユーザーを制御してください。"
+  },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "現在、サイトレベルで登録が無効になっています。このドメインごとのポリシーは構成されていますが、サイトの登録が有効になるまでトラフィックを制御しません。"
+  },
+  "web.domains.signup.strategy_label": {
+    "text": "検証方式"
+  },
+  "web.domains.signup.strategy_description": {
+    "text": "このドメインでユーザーが登録する際に、メールアドレスをどのように検証するかを選択します。"
+  },
+  "web.domains.signup.network_validation_warning": {
+    "text": "この方式は登録時にネットワーク通信を行うため、遅延が発生したり、一部のプロバイダーによってブロックされたりする場合があります。"
+  },
+  "web.domains.signup.allowed_domains_label": {
+    "text": "登録を許可するドメイン"
+  },
+  "web.domains.signup.allowed_domains_hint": {
+    "text": "これらのメールドメインのみが登録を許可されます。1行につき1つのドメインを追加してください。"
+  },
+  "web.domains.signup.domain_placeholder": {
+    "text": "example.com"
+  },
+  "web.domains.signup.invalid_domain": {
+    "text": "有効なドメインを入力してください (例: example.com)"
+  },
+  "web.domains.signup.domain_exists": {
+    "text": "このドメインはすでにリストに含まれています"
+  },
+  "web.domains.signup.remove_domain": {
+    "text": "{domain}を削除"
+  },
+  "web.domains.signup.enabled_label": {
+    "text": "ドメインごとの検証を有効化"
+  },
+  "web.domains.signup.enabled_hint": {
+    "text": "有効にすると、このドメインの登録はグローバルポリシーではなく上記の方式を使用します。"
+  },
+  "web.domains.signup.delete_config": {
+    "text": "設定を削除"
+  },
+  "web.domains.signup.delete_confirm": {
+    "text": "登録検証の設定を削除しますか? 登録はグローバルポリシーに戻ります。"
+  },
+  "web.domains.signup.save_config": {
+    "text": "設定を保存"
+  },
+  "web.domains.signup.update_success": {
+    "text": "登録検証が正常に更新されました"
+  },
+  "web.domains.signup.delete_success": {
+    "text": "登録検証の設定が正常に削除されました"
+  },
+  "web.domains.signup.domain_overrides_label": {
+    "text": "ドメインの上書き設定"
+  },
+  "web.domains.signup.domain_overrides_hint": {
+    "text": "このドメインのグローバル登録設定を上書きします"
+  },
+  "web.domains.signup.signup_enabled_label": {
+    "text": "登録を有効化"
+  },
+  "web.domains.signup.signup_enabled_hint": {
+    "text": "このドメインで登録を有効にするかどうかを上書きします"
+  },
+  "web.domains.signup.autoverify_label": {
+    "text": "アカウントの自動検証"
+  },
+  "web.domains.signup.autoverify_hint": {
+    "text": "このドメインで新規アカウントを自動的に検証するかどうかを上書きします"
+  },
+  "web.domains.sso.test_success": {
+    "text": "接続テストに成功しました — プロバイダーが正しく応答しました"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "接続テストに失敗しました"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "このドメインのすべてのログインでSSOを必須にするには、ドメインのログイン設定で構成してください。SSO専用モードでは、ログインページがここで構成したSSOプロバイダーに制限されます。"
+  },
+  "web.domains.sso.edit_credentials": {
+    "text": "認証情報を編集"
+  },
+  "web.domains.sso.configure_button": {
+    "text": "設定"
+  },
+  "web.domains.sso.upgrade_required": {
+    "text": "アップグレードして設定"
   }
 }

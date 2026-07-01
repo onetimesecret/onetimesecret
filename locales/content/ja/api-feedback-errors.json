@@ -1,0 +1,5 @@
+{
+  "api.feedback.errors.rate_limit_exceeded": {
+    "text": "フィードバックの送信回数が多すぎます。しばらくしてからもう一度お試しください。"
+  }
+}
