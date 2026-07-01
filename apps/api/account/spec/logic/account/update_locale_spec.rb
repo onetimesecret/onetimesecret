@@ -56,6 +56,11 @@ RSpec.describe AccountAPI::Logic::Account::UpdateLocale do
       result = logic.process
       expect(result).to include(new_locale: 'fr_FR', old_locale: 'en')
     end
+
+    it 'rejects an unsupported locale (same allowlist as the anonymous path)' do
+      invalid = described_class.new(strategy_result, { locale: 'not-a-locale' })
+      expect { invalid.raise_concerns }.to raise_error(Onetime::FormError, /Invalid locale/)
+    end
   end
 
   # Regression coverage for #3516: anonymous (noauth) requests have a nil
