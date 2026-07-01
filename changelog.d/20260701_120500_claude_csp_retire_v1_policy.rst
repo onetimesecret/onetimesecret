@@ -3,7 +3,7 @@
 Removed
 -------
 
-- The deprecated v1 API no longer defines its own hand-rolled
-  Content-Security-Policy. CSP is now owned solely by Otto's response layer
-  (the single policy source), so the parallel policy definition in the v1
-  helpers has been removed.
+- The deprecated v1 API no longer emits browser-security machinery. Its
+  hand-rolled Content-Security-Policy and the per-request nonce it generated
+  are removed: v1 serves JSON only (never executed by a browser), and CSP is
+  now owned solely by Otto's response layer (the single policy source).

@@ -30,12 +30,10 @@ module V1
         redirect = '/500'
       end
 
-      # Set default response headers (content type). CSP is emitted by Otto.
+      # v1 serves JSON only (never executed by a browser): set just the
+      # content-type default. No CSP and no nonce — CSP is owned by Otto's
+      # response layer, and there is no HTML to protect here.
       add_response_headers(content_type)
-
-      # Generate a unique nonce and make it available to the view.
-      nonce = SecureRandom.base64(16)
-      req.env['onetime.nonce'] = nonce
 
       return_value = yield
 
