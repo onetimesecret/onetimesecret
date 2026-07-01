@@ -682,9 +682,11 @@ def _decompile_handler(args) -> int:
         parser.error("Cannot specify both LOCALE and --all")
 
     if args.all:
-        locale_dirs = sorted(
-            p.stem for p in GENERATED_DIR.glob("*.json")
-        ) if GENERATED_DIR.exists() else []
+        locale_dirs = (
+            sorted(p.stem for p in GENERATED_DIR.glob("*.json"))
+            if GENERATED_DIR.exists()
+            else []
+        )
         if not locale_dirs:
             print(f"No generated locale files found in {GENERATED_DIR}")
             return 1
@@ -875,20 +877,36 @@ def _hashes_init_missing_in_locales(
 
 
 _HASHES_GUIDANCE = """\
-=============================  READ BEFORE COMMITTING  =========================
-  `content hashes` rewrites hash values across the WHOLE locale tree in 1 pass.
-  Afterwards, run `git diff --stat` and confirm the churn is proportional to the
-  keys you actually added:
+==============================  CONTENT WARNING   ==============================
+  `content hashes` rewrites hash values across the WHOLE locale tree in 1 pass,
+  harmonizing both source content_hash and source_hash values.
 
-    - Added a handful of new source keys? Expect hash changes only for those new
-      entries (plus their propagation into each locale file).
-    - Hashes changing for hundreds of pre-existing keys you never touched? Red
-      flag -- usually the base picked up unrelated drift (the ~2000-hash
-      tree-wide rewrite that happens on integration/develop-merge bases).
+  A content_hash = sha256(text), so it only changes when source text changes.
 
-  If the scope of changed hashes is wildly larger than the keys you added, STOP
-  and find out why rather than bundling a tree-wide hash rewrite into a small
-  change.
+          new: a key that had no content_hash at all (a brand-new source
+               string); expected.
+    unchanged: the recomputed hash matched what was stored; no-op.
+      changed: the source text changed; hmm.
+
+  An individual change signals:
+    - Punctuation, spelling or grammar
+    - Replacing individual words
+    - A complete rewrite
+
+  Many changes together can signal something you did NOT intend:
+    - Wrong base: branched off an integration/develop-merge that already
+      carries the ~2000-hash tree-wide rewrite.
+    - The normalization or hashing rule changed, re-stamping every key.
+    - A bulk find/replace swept the source tree.
+
+  If the number of changed hashes is wildly larger than the keys you added,
+  STOP -- don't stop-drop-and-roll -- run `git diff --stat` and decide whether
+  it's expected.
+
+  Valid ameliorations:
+    - Raise --max-rewrites for this run (or its default), "nothing to see here".
+    - Carve the changed keys out from the new keys into separate PRs.
+    - Restore the changed keys so you can merge just the new keys.
 ================================================================================
 """
 
