@@ -850,7 +850,7 @@
     "text": "Organisatie-entitlements"
   },
   "web.organizations.page_description_short": {
-    "text": "Bekijk en configureer je workspaces"
+    "text": "Bekijk en configureer je werkruimtes"
   },
   "web.organizations.delete_organization_remove_domains_first": {
     "text": "Verwijder alle aangepaste domeinen voordat je deze organisatie verwijdert."
