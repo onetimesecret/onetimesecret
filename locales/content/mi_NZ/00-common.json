@@ -1299,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Me manatoko koe kei runga koe i te paetukutuku mana o {product_name}. I ētahi wā ka hangaia e ngā kaihangarau ngā paetukutuku teka e rite ana ki a {product_name} ki te tāhae i ō karere huna. Kia karo i ngā whakaekehanga tīpako, tirohia te rohe i mua i te hanga hononga hou.",
+    "text": "Me manatoko tonu koe kei runga koe i te paetukutuku mana o {product_name}. He wā tā ngā tāhae e waihanga ana i ngā paetukutuku tinihanga e tino rite ana ki {product_name} hei tāhae i āu karere huna. Hei karo i ngā whakaeke phishing, tirohia te rohe ā-takiwā i mua i te waihanga hononga hou.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1383,5 +1383,110 @@
     "text": "Whakapikinga hei whakatuwhera āhuatanga anō",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "E hiahiatia ana te motuhēhēnga"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "Kāore tēnei mahi e wātea i te aratau SSO-anake"
+  },
+  "web.COMMON.configure": {
+    "text": "Whirihora"
+  },
+  "web.COMMON.copy_to_clipboard": {
+    "text": "Tāruatia ki te papatopenga"
+  },
+  "web.COMMON.add": {
+    "text": "Tāpiri"
+  },
+  "web.COMMON.enabled": {
+    "text": "Kua whakahohea"
+  },
+  "web.COMMON.disabled": {
+    "text": "Kua monokia"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Āe, mukua"
+  },
+  "web.COMMON.error_code": {
+    "text": "Waehere Hapa"
+  },
+  "web.COMMON.http_status": {
+    "text": "Tūnga HTTP"
+  },
+  "web.COMMON.details": {
+    "text": "Ngā taipitopito"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Whakaū Kupuhipa"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Me ōrite ngā kupuhipa"
+  },
+  "web.COMMON.and": {
+    "text": "me"
+  },
+  "web.COMMON.or": {
+    "text": "rānei"
+  },
+  "web.COMMON.copied": {
+    "text": "Kua tāruatia"
+  },
+  "web.COMMON.copy": {
+    "text": "Tāruatia"
+  },
+  "web.COMMON.copy_email": {
+    "text": "Tāruatia te wāhitau īmēra"
+  },
+  "web.COMMON.copy_id": {
+    "text": "Tāruatia te ID pūkete"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "Te tautohu ahurei o tō whakahaere"
+  },
+  "web.COMMON.success": {
+    "text": "Angitu"
+  },
+  "web.COMMON.need_help": {
+    "text": "E hiahia āwhina ana"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "Huakina te kōrerorero āwhina"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "Kei te wāhi tuhinga matua te aronga ināianei"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Whakaatu kupu karapa"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Hunaia te kupu karapa"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "Ata tārua"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "Ata kua tāruatia"
+  },
+  "web.STATUS.unverified": {
+    "text": "Kāore anō kia manatokona"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Ngā Tautuhinga Rohe"
+  },
+  "web.TITLES.domain_signin": {
+    "text": "Whirihoranga Takiuru"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "SSO Rohe"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "Whakamana Rēhitatanga Rohe"
+  },
+  "web.TITLES.domain_email": {
+    "text": "Whirihoranga Īmēra"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Ngā Karere Huna Taemai"
   }
 }

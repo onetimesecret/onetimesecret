@@ -144,7 +144,7 @@
     "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Nā {product_name} te mana",
+    "text": "Whakahohea e {product_name}",
     "source_hash": "d8e9f0a1"
   },
   "web.branding.low_contrast_warning": {
@@ -178,5 +178,11 @@
   "web.branding.upgrade_to_customize": {
     "text": "Whakapikia tō mahere hei whakariterite i te waitohu mō tēnei rohe.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "Kua tiakina ngā tautuhinga waitohu"
+  },
+  "web.branding.keyhole_logo_icon": {
+    "text": "Ata pūwhare e tohu ana i te tohatoha haumaru, tūmataiti"
   }
 }

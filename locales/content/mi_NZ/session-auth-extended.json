@@ -710,5 +710,26 @@
   "web.auth.recovery_codes.link_title": {
     "text": "Ngā Waehere Whakaora",
     "source_hash": "579c7f4e"
+  },
+  "web.auth.google": {
+    "text": "Google"
+  },
+  "web.auth.mfa.alternative_auth_options": {
+    "text": "Ngā kōwhiringa motuhēhēnga kē"
+  },
+  "web.auth.remember.enabled": {
+    "text": "Noho takiuru tonu"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions.session_singular": {
+    "text": "wātū"
+  },
+  "web.auth.sessions.session_plural": {
+    "text": "ngā wātū"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "User's logged-in devices/browsers management page"
   }
 }

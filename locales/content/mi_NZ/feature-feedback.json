@@ -58,5 +58,14 @@
   "web.feedback.reason_email_change_unauthorized": {
     "text": "Te āhua nei e pūrongo ana koe mō te huringa īmēra kāore i whakaaetia i tō pūkete. Whakamāramatia mai he aha i puta ai, ā ka āta tirotiro mātou.",
     "source_hash": "00e56551"
+  },
+  "web.feedback.anonymous_no_reply": {
+    "text": "Tuhipoka: mēnā e hiahia ana koe ki tētahi whakautu, tēnā hainahia, whakauruhia rānei tētahi wāhitau īmēra ki te karere."
+  },
+  "web.feedback.characters_remaining": {
+    "text": "{count} pūāhua e toe ana"
+  },
+  "web.feedback.character_limit_reached": {
+    "text": "Kua eke ki te tepe pūāhua"
   }
 }

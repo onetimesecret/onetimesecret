@@ -988,5 +988,47 @@
     "text": "Ka wātea i tō rohe ohaurunga taketake anake",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Kua ohauru kē koe ki tēnei mahere."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Whakahohe Anō i te Ohaurunga"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "Kua whakahohea anō tō ohaurunga. Ka namahia tonu koe i te āhua noa."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "I rahua te whakahohe anō i te ohaurunga. Tēnā whakamātauria anō, whakapā atu rānei ki te tautoko."
+  },
+  "web.billing.features.manage_orgs": {
+    "text": "Whakahaere i ngā Whakahaere"
+  },
+  "web.billing.features.flexible_from_domain": {
+    "text": "Rohe Kaituku Īmēra Ngāwari"
+  },
+  "web.billing.features.unlimited_admins": {
+    "text": "Ngā Kaiwhakahaere Kore-mutunga"
+  },
+  "web.billing.features.manage_sso": {
+    "text": "SSO"
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Rohe Kaituku Īmēra Ngāwari"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "Whakahaere ngā Whakahaere"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Takiuru Kotahi (SSO)"
+  },
+  "web.billing.overview.entitlements.manage_billing": {
+    "text": "Whakahaere Pire"
+  },
+  "web.billing.overview.entitlements.custom_signup_validation": {
+    "text": "Whakamana Rēhitatanga Ritenga"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Whakahohe Anō"
   }
 }
