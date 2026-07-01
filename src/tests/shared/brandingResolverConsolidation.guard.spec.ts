@@ -25,12 +25,23 @@ const read = (relPath: string): string =>
  * Strips comments so the "no re-derivation" assertions look only at executable
  * code, not at documentation that legitimately names the very things we forbid
  * in code (e.g. a comment explaining the A4 "Onetime Secret" leak).
+ *
+ * Delimited comments (SFC/HTML `<!-- -->` and C-style block) are removed to a
+ * fixpoint — re-applied until the source stops changing — so a nested or
+ * adjacent pair can never leave a dangling comment opener that a single pass
+ * would miss (CodeQL js/incomplete-multi-character-sanitization). Line comments
+ * are stripped last and preserve `://` so URL literals survive.
  */
 function stripComments(src: string): string {
-  return src
-    .replace(/<!--[\s\S]*?-->/g, '') // SFC HTML comments
-    .replace(/\/\*[\s\S]*?\*\//g, '') // block comments
-    .replace(/(^|[^:])\/\/[^\n]*/g, '$1'); // line comments (preserve `://`)
+  let out = src;
+  let prev: string;
+  do {
+    prev = out;
+    out = out
+      .replace(/<!--[\s\S]*?-->/g, '') // SFC HTML comments
+      .replace(/\/\*[\s\S]*?\*\//g, ''); // block comments
+  } while (out !== prev);
+  return out.replace(/(^|[^:])\/\/[^\n]*/g, '$1'); // line comments (preserve `://`)
 }
 
 const MASTHEAD = 'src/shared/components/layout/MastHead.vue';
@@ -142,5 +153,22 @@ describe('stripComments (guard helper)', () => {
     const out = stripComments("const u = 'https://cdn.example.com'; // domain_logo note");
     expect(out).toContain('https://cdn.example.com');
     expect(out).not.toContain('domain_logo');
+  });
+
+  // Invariant guarded by the fixpoint loop: however comments nest, no forbidden
+  // token and no dangling comment opener may survive.
+  it('removes nested HTML comments, leaving no forbidden token or `<!--` opener', () => {
+    const out = stripComments('<!--<!-- brand_product_name -->--> keep');
+    expect(out).not.toContain('brand_product_name');
+    expect(out).not.toContain('<!--');
+    expect(out).toContain('keep');
+  });
+
+  it('removes nested block comments, leaving no forbidden token or `/*` opener', () => {
+    const out = stripComments('a /* /* NEUTRAL_BRAND_DEFAULTS */ */ b');
+    expect(out).not.toContain('NEUTRAL_BRAND_DEFAULTS');
+    expect(out).not.toContain('/*');
+    expect(out).toContain('a');
+    expect(out).toContain('b');
   });
 });
