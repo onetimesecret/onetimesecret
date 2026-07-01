@@ -1299,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Verifiera alltid att du är på den officiella {product_name}-webbplatsen. Bedragare skapar ibland falska webbplatser som ser exakt ut som {product_name} för att stjäla dina hemligheter. För att undvika nätfiskeattacker, kontrollera regiondomänen innan du skapar nya länkar.",
+    "text": "Verifiera alltid att du befinner dig på den officiella {product_name}-webbplatsen. Bedragare skapar ibland falska webbplatser som ser exakt ut som {product_name} för att stjäla dina hemligheter. Kontrollera regiondomänen innan du skapar nya länkar för att undvika nätfiskeattacker.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1383,5 +1383,110 @@
     "text": "Uppgradera för att låsa upp fler funktioner",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "Autentisering krävs"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "Den här åtgärden är inte tillgänglig i läget med endast SSO"
+  },
+  "web.COMMON.configure": {
+    "text": "Konfigurera"
+  },
+  "web.COMMON.copy_to_clipboard": {
+    "text": "Kopiera till urklipp"
+  },
+  "web.COMMON.add": {
+    "text": "Lägg till"
+  },
+  "web.COMMON.enabled": {
+    "text": "Aktiverad"
+  },
+  "web.COMMON.disabled": {
+    "text": "Inaktiverad"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Ja, ta bort"
+  },
+  "web.COMMON.error_code": {
+    "text": "Felkod"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTP-status"
+  },
+  "web.COMMON.details": {
+    "text": "Detaljer"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Bekräfta lösenord"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Lösenorden måste matcha"
+  },
+  "web.COMMON.and": {
+    "text": "och"
+  },
+  "web.COMMON.or": {
+    "text": "eller"
+  },
+  "web.COMMON.copied": {
+    "text": "Kopierad"
+  },
+  "web.COMMON.copy": {
+    "text": "Kopiera"
+  },
+  "web.COMMON.copy_email": {
+    "text": "Kopiera e-postadress"
+  },
+  "web.COMMON.copy_id": {
+    "text": "Kopiera konto-ID"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "Din organisations unika identifierare"
+  },
+  "web.COMMON.success": {
+    "text": "Lyckades"
+  },
+  "web.COMMON.need_help": {
+    "text": "Behöver du hjälp"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "Öppna hjälpdialogruta"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "Fokus är nu i huvudtextområdet"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Visa lösenfras"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Dölj lösenfras"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "Kopiera-ikon"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "Kopierad-ikon"
+  },
+  "web.STATUS.unverified": {
+    "text": "Overifierad"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Domäninställningar"
+  },
+  "web.TITLES.domain_signin": {
+    "text": "Inloggningskonfiguration"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "Domän-SSO"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "Validering av domänregistrering"
+  },
+  "web.TITLES.domain_email": {
+    "text": "E-postkonfiguration"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Inkommande hemligheter"
   }
 }
