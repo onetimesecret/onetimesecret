@@ -988,5 +988,47 @@
     "text": "Nur in Ihrer ursprünglichen Abonnementregion verfügbar",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Sie haben diesen Tarif bereits abonniert."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Abonnement reaktivieren"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "Ihr Abonnement wurde reaktiviert. Die Abrechnung erfolgt weiterhin wie gewohnt."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "Reaktivierung des Abonnements fehlgeschlagen. Bitte versuchen Sie es erneut oder wenden Sie sich an den Support."
+  },
+  "web.billing.features.manage_orgs": {
+    "text": "Organisationsverwaltung"
+  },
+  "web.billing.features.flexible_from_domain": {
+    "text": "Flexible Absender-Domäne für E-Mails"
+  },
+  "web.billing.features.unlimited_admins": {
+    "text": "Unbegrenzte Administratoren"
+  },
+  "web.billing.features.manage_sso": {
+    "text": "SSO"
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Flexible Absender-Domäne für E-Mails"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "Organisationen verwalten"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Single Sign-On (SSO)"
+  },
+  "web.billing.overview.entitlements.manage_billing": {
+    "text": "Abrechnung verwalten"
+  },
+  "web.billing.overview.entitlements.custom_signup_validation": {
+    "text": "Benutzerdefinierte Registrierungsvalidierung"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Reaktivieren"
   }
 }

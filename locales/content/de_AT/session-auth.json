@@ -395,5 +395,35 @@
   "web.help.contact_support": {
     "text": "Support kontaktieren",
     "source_hash": "f8d47b82"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "SSO-Konto"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Email verification flow after signup"
+  },
+  "web.help.reset_password_link": {
+    "text": "Passwort zurücksetzen"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "Single Sign-On ist für diesen Bereich verfügbar"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "Der Organisationsadministrator kann SSO aktivieren, damit sich Teammitglieder hier eintragen können. Wenden Sie sich für den Zugriff an den Administrator."
+  },
+  "web.login.signin_disabled_heading": {
+    "text": "Anmeldung nicht verfügbar"
+  },
+  "web.login.signin_disabled_message": {
+    "text": "Die Anmeldung ist auf diesem Bereich derzeit nicht verfügbar."
+  },
+  "web.login.errors.sso_not_configured": {
+    "text": "Single Sign-On ist für diesen Bereich nicht konfiguriert. Bitte wenden Sie sich an Ihren Administrator."
+  },
+  "web.login.errors.invalid_email": {
+    "text": "Die E-Mail-Adresse von Ihrem Identitätsanbieter ist ungültig. Bitte wenden Sie sich an Ihren Administrator."
+  },
+  "web.login.errors.domain_not_allowed": {
+    "text": "Ihr E-Mail-Bereich ist nicht für die SSO-Registrierung autorisiert. Bitte wenden Sie sich an Ihren Administrator."
   }
 }

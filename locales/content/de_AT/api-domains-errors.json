@@ -1,0 +1,29 @@
+{
+  "api.domains.errors.domain_id_required": {
+    "text": "Bereichs-ID erforderlich"
+  },
+  "api.domains.errors.domain_not_found": {
+    "text": "Bereich nicht gefunden: %{extid}"
+  },
+  "api.domains.errors.organization_not_found": {
+    "text": "Keine Organisation für Bereich gefunden: %{domain}"
+  },
+  "api.domains.errors.incoming_secrets_disabled": {
+    "text": "Eingehende Nachrichten sind auf dieser Instanz nicht aktiviert"
+  },
+  "api.domains.errors.incoming_secrets_entitlement_required": {
+    "text": "Die Verwaltung eingehender Nachrichten erfordert die Berechtigung incoming_secrets. Bitte führen Sie ein Upgrade Ihres Tarifs durch."
+  },
+  "api.domains.errors.incoming_config_not_found": {
+    "text": "Konfiguration für eingehende Nachrichten nicht gefunden für Bereich: %{extid}"
+  },
+  "api.domains.errors.recipients_max_exceeded": {
+    "text": "Maximal %{max} Empfänger erlaubt"
+  },
+  "api.domains.errors.recipients_invalid_email": {
+    "text": "Ungültige E-Mail-Adresse: %{email}"
+  },
+  "api.domains.errors.recipients_duplicate": {
+    "text": "Doppelte Empfänger-E-Mail-Adressen sind nicht erlaubt"
+  }
+}

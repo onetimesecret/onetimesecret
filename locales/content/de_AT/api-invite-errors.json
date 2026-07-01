@@ -1,0 +1,23 @@
+{
+  "api.invite.errors.invitation_not_found_or_expired": {
+    "text": "Einladung nicht gefunden oder abgelaufen"
+  },
+  "api.invite.errors.token_required": {
+    "text": "Token ist erforderlich"
+  },
+  "api.invite.errors.organization_no_longer_exists": {
+    "text": "Organisation existiert nicht mehr"
+  },
+  "api.invite.errors.invitation_already_processed": {
+    "text": "Die Einladung wurde bereits %{status}"
+  },
+  "api.invite.errors.invitation_expired": {
+    "text": "Die Einladung ist abgelaufen"
+  },
+  "api.invite.errors.email_mismatch": {
+    "text": "Ihre E-Mail-Adresse stimmt nicht mit der Einladung überein"
+  },
+  "api.invite.errors.already_member": {
+    "text": "Sie sind bereits Mitglied dieser Organisation"
+  }
+}
