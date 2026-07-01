@@ -376,6 +376,31 @@ const canConfigure     = computed(() => hasMailFeature.value && canManageOrg.val
 // template: !hasMailFeature → "upgrade plan"; hasMailFeature && !canManageOrg → "insufficient permissions"; else → form
 ```
 
+### 5.8 Feature ↔ capability relationship (two composing axes, not a hierarchy)
+
+The two registries are **orthogonal axes that compose at a gate**, not a tree of
+capabilities nested under features. The relationship between them is many-valued
+in one direction and partial in both:
+
+- **One plan feature → 1..N role capabilities.** A feature answers "is this
+  available at all"; the capabilities answer "which role may *view / use /
+  manage* it." This is already latent in the code: the `custom_domains` feature
+  yields `can_view`/`can_edit` for any member but `can_delete`/`can_manage_settings`
+  only with `manage_org` (`apps/api/account/logic/account/get_permissions.rb:221-241`).
+  After separation this becomes explicit: a gate reads
+  `org.has_feature?(:custom_domains)` **AND** `membership.has_capability?(:manage_domain)`.
+- **Not total in either direction.** Some capabilities have **no owning feature**
+  — `manage_members`, `manage_org` are pure role concerns, gated by role alone
+  regardless of plan. Some features need **no capability split** — a boolean
+  like `notifications` is fully answered by the plan axis. So do not force every
+  capability under a feature (or vice-versa); model them as two independent
+  registries whose gates `AND` together only where both apply.
+- **Design consequence.** `require_plan_feature!` and `require_capability!` stay
+  separate calls; a two-gate endpoint invokes both (§5.6). The "feature owns
+  capabilities" intuition is a useful *documentation* grouping (which verbs a
+  feature exposes) but must **not** be encoded as storage nesting — that would
+  reintroduce the coupling this refactor removes.
+
 ---
 
 ## 6. Migration & sequencing plan
@@ -450,6 +475,40 @@ New tests required: `require_capability!` raises `CapabilityRequired` (no upgrad
 | Orphans resolved | §4 H4/H5; §3.2 | Wire or remove `manage_teams` and `manage_orgs` (decide account-role axis) |
 | Limits remain correctly attributed | §3.3; §1 | Limits stay in `WithMaterializedLimits`; `role_*_per_org` documented as plan limits ON roles (third axis); reconcile free-tier drift (M10) |
 
+---
+
+## 10. Forward compatibility — object-level (per-resource) permissions
+
+Separation is the **prerequisite** for object-level permissions, not a detour
+from them. Once role capabilities are their own billing-independent axis, the
+capability check is a `(subject, verb)` pair — `membership.has_capability?(:manage_org)`
+— which extends naturally to a `(subject, verb, object)` triple:
+`membership.has_capability?(:manage_domain, on: domain)`. The **plan-feature axis
+stays org-wide** (a subscription is never scoped per object); only the
+**capability axis** gains object granularity. This is the RBAC → object-scoped
+(ReBAC/ABAC) path.
+
+The groundwork already exists and should be treated as the seam to build on:
+
+- **`domain_scope_id` / `can_access_domain?`** (`lib/onetime/models/organization_membership.rb:280-290`)
+  is effectively a first object-level capability gate today — a membership whose
+  access is restricted to one domain. Generalize this from a single scope field
+  to a `(capability, object)` grant.
+- **Per-membership `entitlements_grants` / `entitlements_revokes`**
+  (`with_materialized_entitlements.rb:173-204`) are already per-subject overrides.
+  Extending the stored key from `capability` to `capability@object` yields
+  per-resource grants/revokes with no new machinery.
+- **`require_capability!(cap)`** evolves to `require_capability!(cap, on: object)`;
+  callers with no object argument default to the org scope (backward-compatible).
+
+Why keeping the two fused would block this: a plan feature **cannot** be
+sensibly scoped to an object (you don't buy `incoming_secrets` per domain), so an
+object dimension only makes sense on the capability axis. As long as both live in
+one namespace and one `can?()`, there is nowhere to attach the object without it
+leaking into the plan concern. Separating first gives object-level permissions a
+clean axis to hang from. **Non-goal for this issue** — listed only so Stage C's
+storage shape (per-capability grants/revokes, no plan intersection) is chosen to
+not foreclose it.
 
 ---
 
