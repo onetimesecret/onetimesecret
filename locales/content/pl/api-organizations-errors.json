@@ -1,0 +1,107 @@
+{
+  "api.organizations.errors.domain_scoped_forbidden": {
+    "text": "Członkowie ograniczeni do domeny nie mogą wykonać tej akcji"
+  },
+  "api.organizations.errors.organization_not_found": {
+    "text": "Nie znaleziono organizacji: %{extid}"
+  },
+  "api.organizations.errors.organization_owner_required": {
+    "text": "Tylko właściciel organizacji może wykonać tę akcję"
+  },
+  "api.organizations.errors.organization_member_required": {
+    "text": "Aby wykonać tę akcję, musisz być członkiem organizacji"
+  },
+  "api.organizations.errors.organization_admin_required": {
+    "text": "Tylko właściciele i administratorzy organizacji mogą wykonać tę akcję"
+  },
+  "api.organizations.errors.extid_required": {
+    "text": "Wymagany jest identyfikator organizacji"
+  },
+  "api.organizations.errors.display_name_required": {
+    "text": "Nazwa organizacji jest wymagana"
+  },
+  "api.organizations.errors.display_name_too_long": {
+    "text": "Nazwa organizacji musi mieć mniej niż %{max} znaków"
+  },
+  "api.organizations.errors.description_too_long": {
+    "text": "Opis musi mieć mniej niż %{max} znaków"
+  },
+  "api.organizations.errors.contact_email_exists": {
+    "text": "Organizacja z tym kontaktowym adresem e-mail już istnieje"
+  },
+  "api.organizations.errors.creation_in_progress": {
+    "text": "Trwa tworzenie organizacji. Spróbuj ponownie."
+  },
+  "api.organizations.errors.organization_limit_reached": {
+    "text": "Osiągnięto limit organizacji. Ulepsz swój plan, aby utworzyć więcej organizacji."
+  },
+  "api.organizations.invitations.errors.invitation_not_found": {
+    "text": "Nie znaleziono zaproszenia"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "Adres e-mail jest wymagany"
+  },
+  "api.organizations.invitations.errors.invalid_email_format": {
+    "text": "Nieprawidłowy format adresu e-mail"
+  },
+  "api.organizations.invitations.errors.invalid_role": {
+    "text": "Rola musi być członek lub administrator"
+  },
+  "api.organizations.invitations.errors.cannot_invite_as_owner": {
+    "text": "Nie można zaprosić jako właściciel"
+  },
+  "api.organizations.invitations.errors.user_already_member": {
+    "text": "Użytkownik jest już członkiem tej organizacji"
+  },
+  "api.organizations.invitations.errors.invitation_already_pending": {
+    "text": "Zaproszenie dla tego adresu e-mail już oczekuje"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Osiągnięto limit członków. Ulepsz swój plan, aby zaprosić więcej członków."
+  },
+  "api.organizations.invitations.errors.resend_only_pending": {
+    "text": "Można ponownie wysłać tylko oczekujące zaproszenia"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Osiągnięto maksymalny limit ponownych wysyłek (%{max})"
+  },
+  "api.organizations.invitations.errors.revoke_only_pending": {
+    "text": "Można cofnąć tylko oczekujące zaproszenia"
+  },
+  "api.organizations.members.errors.member_not_found": {
+    "text": "Nie znaleziono członka: %{extid}"
+  },
+  "api.organizations.members.errors.member_not_in_organization": {
+    "text": "Nie znaleziono członka w tej organizacji"
+  },
+  "api.organizations.members.errors.member_not_active": {
+    "text": "Członek nie jest aktywny"
+  },
+  "api.organizations.members.errors.invalid_role_value": {
+    "text": "Nieprawidłowa rola. Musi być jedną z: %{roles}"
+  },
+  "api.organizations.members.errors.cannot_change_owner_role": {
+    "text": "Nie można zmienić roli właściciela. Zamiast tego użyj przeniesienia własności."
+  },
+  "api.organizations.members.errors.member_already_has_role": {
+    "text": "Członek ma już rolę: %{role}"
+  },
+  "api.organizations.members.errors.cannot_promote_to_owner": {
+    "text": "Nie można awansować do roli właściciela. Zamiast tego użyj przeniesienia własności."
+  },
+  "api.organizations.members.errors.must_be_member": {
+    "text": "Musisz być członkiem tej organizacji"
+  },
+  "api.organizations.members.errors.cannot_remove_owner": {
+    "text": "Nie można usunąć właściciela organizacji. Najpierw przenieś własność."
+  },
+  "api.organizations.members.errors.cannot_remove_self": {
+    "text": "Nie możesz usunąć samego siebie. Zamiast tego opuść organizację."
+  },
+  "api.organizations.members.errors.admin_cannot_remove_admin": {
+    "text": "Administratorzy nie mogą usuwać innych administratorów. Mogą to robić tylko właściciele."
+  },
+  "api.organizations.members.errors.no_permission_to_remove": {
+    "text": "Nie masz uprawnień do usuwania członków"
+  }
+}

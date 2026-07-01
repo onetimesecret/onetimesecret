@@ -130,5 +130,26 @@
   "incoming.receipt_link_text": {
     "text": "potwierdzenie",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Wymagane ulepszenie planu"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Ta funkcja wymaga ulepszenia planu. Skontaktuj się z właścicielem konta, aby włączyć przychodzące sekrety."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Notatka musi mieć maksymalnie {max} znaków"
+  },
+  "incoming.validation_secret_required": {
+    "text": "Treść sekretu jest wymagana"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Wybierz odbiorcę"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "Funkcja przychodzących sekretów nie jest włączona"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Sprawdź formularz pod kątem błędów"
   }
 }

@@ -1383,5 +1383,110 @@
     "text": "Ulepsz plan, aby odblokować więcej funkcji",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "Wymagane uwierzytelnienie"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "Ta akcja nie jest dostępna w trybie wyłącznie SSO"
+  },
+  "web.COMMON.configure": {
+    "text": "Konfiguruj"
+  },
+  "web.COMMON.copy_to_clipboard": {
+    "text": "Kopiuj do schowka"
+  },
+  "web.COMMON.add": {
+    "text": "Dodaj"
+  },
+  "web.COMMON.enabled": {
+    "text": "Włączone"
+  },
+  "web.COMMON.disabled": {
+    "text": "Wyłączone"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Tak, usuń"
+  },
+  "web.COMMON.error_code": {
+    "text": "Kod błędu"
+  },
+  "web.COMMON.http_status": {
+    "text": "Status HTTP"
+  },
+  "web.COMMON.details": {
+    "text": "Szczegóły"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Potwierdź hasło"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Hasła muszą być takie same"
+  },
+  "web.COMMON.and": {
+    "text": "i"
+  },
+  "web.COMMON.or": {
+    "text": "lub"
+  },
+  "web.COMMON.copied": {
+    "text": "Skopiowano"
+  },
+  "web.COMMON.copy": {
+    "text": "Kopiuj"
+  },
+  "web.COMMON.copy_email": {
+    "text": "Kopiuj adres e-mail"
+  },
+  "web.COMMON.copy_id": {
+    "text": "Kopiuj identyfikator konta"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "Unikalny identyfikator Twojej organizacji"
+  },
+  "web.COMMON.success": {
+    "text": "Sukces"
+  },
+  "web.COMMON.need_help": {
+    "text": "Potrzebujesz pomocy"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "Otwórz okno pomocy"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "Fokus znajduje się teraz w głównym obszarze tekstowym"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Pokaż frazę dostępową"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Ukryj frazę dostępową"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "Ikona kopiowania"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "Ikona skopiowania"
+  },
+  "web.STATUS.unverified": {
+    "text": "Niezweryfikowany"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Ustawienia domeny"
+  },
+  "web.TITLES.domain_signin": {
+    "text": "Konfiguracja logowania"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "SSO domeny"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "Walidacja rejestracji w domenie"
+  },
+  "web.TITLES.domain_email": {
+    "text": "Konfiguracja e-mail"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Przychodzące sekrety"
   }
 }
