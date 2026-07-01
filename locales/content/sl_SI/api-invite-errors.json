@@ -1,0 +1,23 @@
+{
+  "api.invite.errors.invitation_not_found_or_expired": {
+    "text": "Povabilo ni najdeno ali je poteklo"
+  },
+  "api.invite.errors.token_required": {
+    "text": "Žeton je obvezen"
+  },
+  "api.invite.errors.organization_no_longer_exists": {
+    "text": "Organizacija ne obstaja več"
+  },
+  "api.invite.errors.invitation_already_processed": {
+    "text": "Povabilo je bilo že %{status}"
+  },
+  "api.invite.errors.invitation_expired": {
+    "text": "Povabilo je poteklo"
+  },
+  "api.invite.errors.email_mismatch": {
+    "text": "Vaš e-poštni naslov se ne ujema s povabilom"
+  },
+  "api.invite.errors.already_member": {
+    "text": "Ste že član te organizacije"
+  }
+}

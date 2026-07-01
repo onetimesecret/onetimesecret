@@ -476,7 +476,7 @@
     "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Naučite se, kako integrirati {product_name} v svoje aplikacije",
+    "text": "Nauči se, kako integrirati {product_name} v svoje aplikacije",
     "source_hash": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {
@@ -682,5 +682,14 @@
   "web.settings.profile.didnt_receive_email": {
     "text": "Niste prejeli e-sporočila?",
     "source_hash": "fe3ac3ad"
+  },
+  "web.settings.api.api_disabled_notice": {
+    "text": "API je onemogočen za to instanco."
+  },
+  "web.settings.security.sso_managed_title": {
+    "text": "Varnost upravlja SSO"
+  },
+  "web.settings.security.sso_managed_description": {
+    "text": "Vaš račun je overjen prek ponudnika enotne prijave (SSO) vaše organizacije. Geslo, večstopenjsko avtentikacijo in obnovitvene kode upravlja vaš ponudnik identitete."
   }
 }

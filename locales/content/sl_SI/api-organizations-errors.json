@@ -1,0 +1,107 @@
+{
+  "api.organizations.errors.domain_scoped_forbidden": {
+    "text": "Člani, omejeni na domeno, ne morejo izvesti tega dejanja"
+  },
+  "api.organizations.errors.organization_not_found": {
+    "text": "Organizacija ni najdena: %{extid}"
+  },
+  "api.organizations.errors.organization_owner_required": {
+    "text": "To dejanje lahko izvede samo lastnik organizacije"
+  },
+  "api.organizations.errors.organization_member_required": {
+    "text": "Za izvedbo tega dejanja morate biti član organizacije"
+  },
+  "api.organizations.errors.organization_admin_required": {
+    "text": "To dejanje lahko izvedejo samo lastniki in skrbniki organizacije"
+  },
+  "api.organizations.errors.extid_required": {
+    "text": "Zahtevan je ID organizacije"
+  },
+  "api.organizations.errors.display_name_required": {
+    "text": "Ime organizacije je obvezno"
+  },
+  "api.organizations.errors.display_name_too_long": {
+    "text": "Ime organizacije mora vsebovati manj kot %{max} znakov"
+  },
+  "api.organizations.errors.description_too_long": {
+    "text": "Opis mora vsebovati manj kot %{max} znakov"
+  },
+  "api.organizations.errors.contact_email_exists": {
+    "text": "Organizacija s tem kontaktnim e-poštnim naslovom že obstaja"
+  },
+  "api.organizations.errors.creation_in_progress": {
+    "text": "Ustvarjanje organizacije je v teku. Poskusite znova."
+  },
+  "api.organizations.errors.organization_limit_reached": {
+    "text": "Dosežena je omejitev števila organizacij. Nadgradite svoj paket za ustvarjanje več organizacij."
+  },
+  "api.organizations.invitations.errors.invitation_not_found": {
+    "text": "Povabilo ni najdeno"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "E-poštni naslov je obvezen"
+  },
+  "api.organizations.invitations.errors.invalid_email_format": {
+    "text": "Neveljavna oblika e-poštnega naslova"
+  },
+  "api.organizations.invitations.errors.invalid_role": {
+    "text": "Vloga mora biti član ali skrbnik"
+  },
+  "api.organizations.invitations.errors.cannot_invite_as_owner": {
+    "text": "Povabilo z vlogo lastnika ni mogoče"
+  },
+  "api.organizations.invitations.errors.user_already_member": {
+    "text": "Uporabnik je že član te organizacije"
+  },
+  "api.organizations.invitations.errors.invitation_already_pending": {
+    "text": "Za ta e-poštni naslov že obstaja čakajoče povabilo"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Dosežena je omejitev števila članov. Nadgradite svoj paket za povabilo več članov."
+  },
+  "api.organizations.invitations.errors.resend_only_pending": {
+    "text": "Znova je mogoče poslati samo čakajoča povabila"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Dosežena je največja omejitev ponovnih pošiljanj (%{max})"
+  },
+  "api.organizations.invitations.errors.revoke_only_pending": {
+    "text": "Preklicati je mogoče samo čakajoča povabila"
+  },
+  "api.organizations.members.errors.member_not_found": {
+    "text": "Član ni najden: %{extid}"
+  },
+  "api.organizations.members.errors.member_not_in_organization": {
+    "text": "Član v tej organizaciji ni najden"
+  },
+  "api.organizations.members.errors.member_not_active": {
+    "text": "Član ni aktiven"
+  },
+  "api.organizations.members.errors.invalid_role_value": {
+    "text": "Neveljavna vloga. Mora biti ena od: %{roles}"
+  },
+  "api.organizations.members.errors.cannot_change_owner_role": {
+    "text": "Vloge lastnika ni mogoče spremeniti. Namesto tega uporabite prenos lastništva."
+  },
+  "api.organizations.members.errors.member_already_has_role": {
+    "text": "Član že ima vlogo: %{role}"
+  },
+  "api.organizations.members.errors.cannot_promote_to_owner": {
+    "text": "Povišanje v lastnika ni mogoče. Namesto tega uporabite prenos lastništva."
+  },
+  "api.organizations.members.errors.must_be_member": {
+    "text": "Biti morate član te organizacije"
+  },
+  "api.organizations.members.errors.cannot_remove_owner": {
+    "text": "Lastnika organizacije ni mogoče odstraniti. Najprej prenesite lastništvo."
+  },
+  "api.organizations.members.errors.cannot_remove_self": {
+    "text": "Sebe ne morete odstraniti. Namesto tega zapustite organizacijo."
+  },
+  "api.organizations.members.errors.admin_cannot_remove_admin": {
+    "text": "Skrbniki ne morejo odstraniti drugih skrbnikov. To lahko storijo samo lastniki."
+  },
+  "api.organizations.members.errors.no_permission_to_remove": {
+    "text": "Nimate dovoljenja za odstranjevanje članov"
+  }
+}
