@@ -409,11 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "E-mailová adresa tvého účtu %{product_name} byla změněna na %{new_email_masked}.",
-    "renderer": "erb",
-    "source_hash": "6f3419d1"
-  },
   "email.email_changed.security_notice": {
     "text": "Pokud jsi tuto změnu neprovedli, kontaktuj okamžitě podporu, protože tvůj účet může být kompromitován.",
     "renderer": "erb",

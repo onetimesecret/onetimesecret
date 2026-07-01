@@ -453,11 +453,6 @@
     "renderer": "erb",
     "content_hash": "db70f965"
   },
-  "email.email_changed.body": {
-    "text": "The email address for your %{product_name} account has been changed to %{new_email_masked}.",
-    "renderer": "erb",
-    "content_hash": "aadf015b"
-  },
   "email.email_changed.security_notice": {
     "text": "If you did not make this change, please contact support immediately as your account may be compromised.",
     "renderer": "erb",

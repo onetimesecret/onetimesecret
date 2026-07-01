@@ -409,11 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "La dirección de correo de tu cuenta de %{product_name} fue cambiada a %{new_email_masked} el %{date}.",
-    "renderer": "erb",
-    "source_hash": "6f3419d1"
-  },
   "email.email_changed.security_notice": {
     "text": "Si no realizaste este cambio, contacta con soporte inmediatamente ya que tu cuenta puede estar comprometida.",
     "renderer": "erb",

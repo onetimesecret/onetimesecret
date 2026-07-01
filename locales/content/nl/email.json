@@ -409,11 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "Het e-mailadres voor je %{product_name}-account is gewijzigd naar %{new_email_masked} op %{date}.",
-    "renderer": "erb",
-    "source_hash": "6f3419d1"
-  },
   "email.email_changed.security_notice": {
     "text": "Als je deze wijziging niet hebt aangebracht, neem dan onmiddellijk contact op met de ondersteuning, omdat je account mogelijk is gehackt.",
     "renderer": "erb",

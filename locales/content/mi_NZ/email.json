@@ -409,11 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "Kua hurihia te wāhitau īmēra mō tō pūkete %{product_name} ki %{new_email_masked}.",
-    "renderer": "erb",
-    "source_hash": "6f3419d1"
-  },
   "email.email_changed.security_notice": {
     "text": "Mēnā ehara i a koe i huri i tēnei, tēnā whakapā tere ki te tautoko nā te mea tērā pea kua whakaekea tō pūkete.",
     "renderer": "erb",

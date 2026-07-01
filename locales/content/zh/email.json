@@ -409,11 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "您 %{product_name} 账户的邮箱地址已于 %{date} 更改为 %{new_email_masked}。",
-    "renderer": "erb",
-    "source_hash": "6f3419d1"
-  },
   "email.email_changed.security_notice": {
     "text": "如果这不是您本人操作，请立即联系支持团队，您的账户可能已被盗用。",
     "renderer": "erb",

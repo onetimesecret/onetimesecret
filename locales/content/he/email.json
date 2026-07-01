@@ -409,11 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "כתובת הדוא״ל עבור חשבון %{product_name} שלך שונתה ל-%{new_email_masked}.",
-    "renderer": "erb",
-    "source_hash": "6f3419d1"
-  },
   "email.email_changed.security_notice": {
     "text": "אם לא ביצעת שינוי זה, אנא צור קשר עם התמיכה מיד מכיוון שהחשבון שלך עשוי להיות פרוץ.",
     "renderer": "erb",

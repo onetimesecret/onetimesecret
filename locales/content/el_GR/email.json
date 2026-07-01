@@ -409,11 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "Η διεύθυνση email του λογαριασμού σας στο %{product_name} άλλαξε σε %{new_email_masked}.",
-    "renderer": "erb",
-    "source_hash": "6f3419d1"
-  },
   "email.email_changed.security_notice": {
     "text": "Εάν δεν κάνατε εσείς αυτήν την αλλαγή, επικοινωνήστε αμέσως με την υποστήριξη καθώς ο λογαριασμός σας μπορεί να έχει παραβιαστεί.",
     "renderer": "erb",
