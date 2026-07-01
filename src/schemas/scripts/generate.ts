@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-// scripts/json-schema/generate.ts
+// src/schemas/scripts/generate.ts
 
 /**
  * JSON Schema Generator
@@ -19,10 +19,11 @@
  * will serialize to their underlying type. The preprocessing logic is runtime-only.
  */
 
-import { writeFileSync, mkdirSync, existsSync } from 'fs';
-import { join, dirname } from 'path';
+import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import { dirname, join } from 'path';
 import { z } from 'zod';
-import { schemaRegistry, getSchemasByCategory, type SchemaKey } from '@/schemas/registry';
+
+import { getSchemasByCategory, schemaRegistry, type SchemaKey } from '../registry';
 
 // =============================================================================
 // Configuration
@@ -190,15 +191,12 @@ function printSummary(results: GenerationResult[]): void {
   const successful = results.filter((r) => r.success).length;
   const failed = results.filter((r) => !r.success).length;
 
-  console.log('📊 Summary:');
-  console.log('─────────────────────');
-  console.log(`Total schemas: ${results.length}`);
-  console.log(`Successful: ${successful}`);
-  if (failed > 0) {
-    console.log(`Failed: ${failed}`);
-  }
-  console.log(`Output: ${OUTPUT_DIR}/`);
-  console.log('');
+  const failedLine = failed > 0 ? `\nFailed: ${failed}` : '';
+  console.log(
+    `📊 Summary:\n─────────────────────\n` +
+      `Total schemas: ${results.length}\nSuccessful: ${successful}${failedLine}\n` +
+      `Output: ${OUTPUT_DIR}/\n`
+  );
 
   if (failed > 0) {
     console.log('⚠️  Some schemas failed to generate. Check errors above.');
