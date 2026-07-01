@@ -1,0 +1,8 @@
+{
+  "api.account.errors.invalid_email": {
+    "text": "Это действительный адрес электронной почты?"
+  },
+  "api.account.errors.password_too_short": {
+    "text": "Пароль слишком короткий"
+  }
+}

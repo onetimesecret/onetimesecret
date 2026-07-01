@@ -988,5 +988,47 @@
     "text": "Доступно только в регионе Вашей исходной подписки",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Вы уже подписаны на этот план."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Возобновить подписку"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "Ваша подписка возобновлена. Списание средств продолжится в обычном режиме."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "Не удалось возобновить подписку. Пожалуйста, попробуйте ещё раз или обратитесь в службу поддержки."
+  },
+  "web.billing.features.manage_orgs": {
+    "text": "Управление организациями"
+  },
+  "web.billing.features.flexible_from_domain": {
+    "text": "Гибкий домен отправителя писем"
+  },
+  "web.billing.features.unlimited_admins": {
+    "text": "Неограниченное число администраторов"
+  },
+  "web.billing.features.manage_sso": {
+    "text": "SSO"
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Гибкий домен отправителя писем"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "Управление организациями"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Единый вход (SSO)"
+  },
+  "web.billing.overview.entitlements.manage_billing": {
+    "text": "Управление оплатой"
+  },
+  "web.billing.overview.entitlements.custom_signup_validation": {
+    "text": "Настраиваемая проверка при регистрации"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Возобновить"
   }
 }

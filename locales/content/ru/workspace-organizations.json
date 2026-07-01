@@ -770,5 +770,200 @@
   "web.organizations.sso.status_not_configured": {
     "text": "Не настроено",
     "source_hash": "bbea960e"
+  },
+  "api.organizations.errors.not_found": {
+    "text": "Организация не найдена: %{extid}"
+  },
+  "api.organizations.errors.owner_required": {
+    "text": "Только владелец организации может выполнить это действие"
+  },
+  "api.organizations.errors.admin_required": {
+    "text": "Только владельцы и администраторы организации могут выполнить это действие"
+  },
+  "api.organizations.errors.member_required": {
+    "text": "Вы должны быть участником организации, чтобы выполнить это действие"
+  },
+  "api.organizations.invitations.errors.create_admin_required": {
+    "text": "Создавать приглашения могут только владельцы и администраторы организации"
+  },
+  "api.organizations.invitations.errors.resend_admin_required": {
+    "text": "Повторно отправлять приглашения могут только владельцы и администраторы организации"
+  },
+  "api.organizations.invitations.errors.view_admin_required": {
+    "text": "Просматривать приглашения могут только владельцы и администраторы организации"
+  },
+  "api.organizations.invitations.errors.revoke_admin_required": {
+    "text": "Отзывать приглашения могут только владельцы и администраторы организации"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "Требуется адрес электронной почты"
+  },
+  "api.organizations.invitations.errors.email_invalid": {
+    "text": "Неверный формат адреса электронной почты"
+  },
+  "api.organizations.invitations.errors.role_invalid": {
+    "text": "Роль должна быть «участник» или «администратор»"
+  },
+  "api.organizations.invitations.errors.cannot_invite_owner": {
+    "text": "Нельзя пригласить в роли владельца"
+  },
+  "api.organizations.invitations.errors.already_member": {
+    "text": "Пользователь уже является участником этой организации"
+  },
+  "api.organizations.invitations.errors.already_pending": {
+    "text": "Приглашение для этого адреса электронной почты уже ожидает обработки"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Достигнут лимит участников. Перейдите на более высокий план, чтобы пригласить больше участников."
+  },
+  "api.organizations.invitations.errors.not_found": {
+    "text": "Приглашение не найдено"
+  },
+  "api.organizations.invitations.errors.cannot_resend_non_pending": {
+    "text": "Повторно отправить можно только ожидающие приглашения"
+  },
+  "api.organizations.invitations.errors.cannot_revoke_non_pending": {
+    "text": "Отозвать можно только ожидающие приглашения"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Достигнут максимальный лимит повторных отправок (%{max})"
+  },
+  "api.organizations.invitations.errors.accept_token_required": {
+    "text": "Требуется токен"
+  },
+  "api.organizations.invitations.errors.accept_organization_gone": {
+    "text": "Организация больше не существует"
+  },
+  "api.organizations.invitations.errors.accept_already_acted": {
+    "text": "Приглашение уже обработано: %{status}"
+  },
+  "api.organizations.invitations.errors.accept_expired": {
+    "text": "Срок действия приглашения истёк"
+  },
+  "api.organizations.invitations.errors.accept_email_mismatch": {
+    "text": "Ваш адрес электронной почты не совпадает с приглашением"
+  },
+  "api.organizations.invitations.errors.accept_already_member": {
+    "text": "Вы уже являетесь участником этой организации"
+  },
+  "web.organizations.entitlements_title": {
+    "text": "Права доступа организации"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Просматривайте и настраивайте свои рабочие пространства"
+  },
+  "web.organizations.delete_organization_remove_domains_first": {
+    "text": "Перед удалением этой организации удалите все пользовательские домены."
+  },
+  "web.organizations.default_org_delete_notice_title": {
+    "text": "Удаление этой организации"
+  },
+  "web.organizations.default_org_delete_notice_before": {
+    "text": "Это ваша организация по умолчанию, её нельзя удалить из панели управления. Чтобы удалить её, пожалуйста, обратитесь через"
+  },
+  "web.organizations.default_org_delete_notice_link": {
+    "text": "форму обратной связи"
+  },
+  "web.organizations.default_org_delete_notice_after": {
+    "text": "."
+  },
+  "web.organizations.leave_organization": {
+    "text": "Покинуть эту организацию"
+  },
+  "web.organizations.leave_organization_warning": {
+    "text": "Вы потеряете доступ к этой организации и её ресурсам."
+  },
+  "web.organizations.leave_organization_confirm_title": {
+    "text": "Покинуть организацию"
+  },
+  "web.organizations.leave_organization_confirm_message": {
+    "text": "Вы уверены, что хотите покинуть {name}? Для повторного присоединения вам потребуется новое приглашение."
+  },
+  "web.organizations.leave_organization_success": {
+    "text": "Вы покинули организацию."
+  },
+  "web.organizations.leave_error": {
+    "text": "Не удалось покинуть организацию"
+  },
+  "web.organizations.organizations": {
+    "text": "Организации"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "от {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "в роли {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "На главную"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Это приглашение было отправлено на данный адрес электронной почты"
+  },
+  "web.organizations.invitations.signup_continue": {
+    "text": "Продолжить"
+  },
+  "web.organizations.invitations.signin_continue": {
+    "text": "Войти"
+  },
+  "web.organizations.invitations.confirm_join_below": {
+    "text": "Почти готово — подтвердите ниже, чтобы присоединиться к организации."
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Перейти к организациям"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Вы уже являетесь участником этой организации"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Присоединиться к {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Войдите, чтобы присоединиться к {orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Отклонить"
+  },
+  "web.organizations.members.member_quota": {
+    "text": "Участников: {used} из {limit}"
+  },
+  "web.organizations.members.pending_suffix": {
+    "text": "(ожидает: {count})"
+  },
+  "web.organizations.members.limit_reached_hint": {
+    "text": "Достигнут лимит участников."
+  },
+  "web.organizations.sso.view_discovery_document": {
+    "text": "Просмотреть документ обнаружения"
+  },
+  "web.organizations.sso.callback_url": {
+    "text": "URL обратного вызова"
+  },
+  "web.organizations.sso.callback_url_hint": {
+    "text": "Добавьте этот URL в список разрешённых URI перенаправления у вашего поставщика идентификации"
+  },
+  "web.organizations.sso.enforce_sso_only": {
+    "text": "Принудительно использовать только SSO"
+  },
+  "web.organizations.sso.enforce_sso_only_hint": {
+    "text": "Требовать SSO для всех входов в этом домене. Когда включено, аутентификация по паролю отключается."
+  },
+  "web.organizations.sso.grant_org_scope": {
+    "text": "Предоставить доступ ко всей организации"
+  },
+  "web.organizations.sso.grant_org_scope_hint": {
+    "text": "Новым участникам, присоединяющимся через SSO этого домена, будет предоставлен доступ ко всем доменам организации. На существующих участников это не влияет. Когда отключено (по умолчанию), новые участники могут получить доступ только к этому домену."
+  },
+  "web.organizations.sso.no_domains": {
+    "text": "Нет подтверждённых доменов"
+  },
+  "web.organizations.sso.no_domains_description": {
+    "text": "Добавьте и подтвердите домен, прежде чем настраивать для него SSO."
+  },
+  "web.organizations.tabs.team": {
+    "text": "Команда"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }
