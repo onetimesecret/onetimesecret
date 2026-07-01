@@ -398,5 +398,725 @@
   "web.domains.dns_widget_description": {
     "text": "Use a ferramenta abaixo para detetar automaticamente o seu fornecedor de DNS e obter instruções passo a passo para configurar o seu domínio.",
     "source_hash": "91c1af2e"
+  },
+  "api.domains.errors.add_admin_required": {
+    "text": "Apenas os proprietários e administradores da organização podem adicionar domínios personalizados"
+  },
+  "web.domains.public_homepage": {
+    "text": "Página inicial pública"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Domínio verificado e ativo"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS não configurado — clica para corrigir"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Domínio não verificado — clica para verificar"
+  },
+  "web.domains.status_tooltip_unverified": {
+    "text": "Estado do domínio não verificado — clica para atualizar"
+  },
+  "web.domains.last_check_failed": {
+    "text": "A última verificação falhou"
+  },
+  "web.domains.last_check_failed_ago": {
+    "text": "última verificação falhou {0}"
+  },
+  "web.domains.verify_now": {
+    "text": "Verificar agora"
+  },
+  "web.domains.click_to_verify": {
+    "text": "clica para verificar"
+  },
+  "web.domains.remove_domain_description": {
+    "text": "Remover permanentemente este domínio e toda a sua configuração."
+  },
+  "web.domains.add_access_denied": {
+    "text": "Acesso negado"
+  },
+  "web.domains.add_access_denied_description": {
+    "text": "Não tens permissão para adicionar domínios a esta organização. Contacta o administrador da tua organização."
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "Falha ao carregar o widget de DNS"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "Widget de DNS não disponível"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "Falha ao inicializar o widget de DNS"
+  },
+  "web.domains.verified": {
+    "text": "Verificado"
+  },
+  "web.domains.pending_verification": {
+    "text": "Verificação pendente"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Tens alterações não guardadas. Tens a certeza de que queres sair?"
+  },
+  "web.domains.entitlement_required_owner": {
+    "text": "Esta funcionalidade requer um upgrade do plano."
+  },
+  "web.domains.entitlement_required_member": {
+    "text": "Esta funcionalidade não está disponível no teu plano atual. Contacta o proprietário da tua organização."
+  },
+  "web.domains.detail.manage": {
+    "text": "Gerir"
+  },
+  "web.domains.detail.features": {
+    "text": "Funcionalidades"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Mensagens Confidenciais na Página Inicial"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Permitir o acesso público para criar mensagens confidenciais na página inicial do teu domínio"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logótipo, cores e personalização da marca"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Definições do fornecedor de início de sessão único"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Configuração personalizada do remetente de e-mail"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Definições do destinatário de mensagens confidenciais recebidas"
+  },
+  "web.domains.detail.signup_description": {
+    "text": "Estratégia de validação de registo por domínio"
+  },
+  "web.domains.detail.signin_description": {
+    "text": "Configuração do método de início de sessão por domínio"
+  },
+  "web.domains.email.title": {
+    "text": "Envio de e-mail"
+  },
+  "web.domains.email.config_title": {
+    "text": "Configuração de e-mail"
+  },
+  "web.domains.email.config_description": {
+    "text": "Configurar o envio de e-mail para este domínio"
+  },
+  "web.domains.email.provider_label": {
+    "text": "Fornecedor de e-mail"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "Seleciona um fornecedor de e-mail"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "Nome do remetente"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "p. ex. Acme Security"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "Endereço do remetente"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "p. ex. secrets{'@'}exemplo.com"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Endereço de resposta"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "p. ex. support{'@'}exemplo.com"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Guardar alterações"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Descartar alterações"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Usar predefinições da conta"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "Requer a verificação do domínio através de registos DKIM e SPF"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Requer a configuração da autenticação do domínio"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Requer a verificação do domínio"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "Usa a configuração de envio de e-mail predefinida da tua conta"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "Registos DNS"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "Adiciona os seguintes registos DNS para verificar o teu domínio para o envio de e-mail."
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Tipo"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Nome"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Valor"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Fornecedor"
+  },
+  "web.domains.email.dns_optional_label": {
+    "text": "Recomendado"
+  },
+  "web.domains.email.dns_optional_hint": {
+    "text": "Este registo é recomendado mas não é obrigatório para a verificação. Uma política DMARC no domínio da tua organização pode já abranger este subdomínio."
+  },
+  "web.domains.email.copy": {
+    "text": "Copiar"
+  },
+  "web.domains.email.copied": {
+    "text": "Copiado"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Verificado"
+  },
+  "web.domains.email.status_pending": {
+    "text": "Pendente"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Falhou"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Revalidar"
+  },
+  "web.domains.email.validating": {
+    "text": "A validar..."
+  },
+  "web.domains.email.domain_verified": {
+    "text": "Domínio verificado"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "A validação falhou"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Última validação"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Faz upgrade do teu plano para configurar o envio de e-mail para este domínio."
+  },
+  "web.domains.email.configure_email": {
+    "text": "Configurar e-mail"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Acesso negado"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "Não tens permissão para gerir as definições de e-mail deste domínio. Contacta o administrador da tua organização."
+  },
+  "web.domains.email.update_success": {
+    "text": "Configuração de e-mail guardada com sucesso"
+  },
+  "web.domains.email.delete_success": {
+    "text": "Configuração de e-mail removida com sucesso"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "Os e-mails para este domínio são atualmente enviados a partir do remetente global. Conclui a configuração de e-mail para usar a tua própria identidade de remetente."
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "O envio de e-mail personalizado está atualmente desativado. Os e-mails serão enviados a partir do remetente global. Ativa a funcionalidade abaixo para usar a tua identidade de remetente personalizada."
+  },
+  "web.domains.email.test_email_title": {
+    "text": "Testar a entrega de e-mail"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Envia um e-mail de teste para ti próprio usando a configuração guardada. Funciona mesmo quando a funcionalidade ainda não está ativada."
+  },
+  "web.domains.email.send_test": {
+    "text": "Enviar teste"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "E-mail de teste enviado com sucesso"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Falha ao enviar o e-mail de teste"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Enviado para {email}"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Entregue através de {provider}"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "Não configurado"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "A usar o remetente predefinido"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Verificado"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Verificação pendente"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Desativado"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "Nenhum remetente de e-mail configurado — os e-mails usam o remetente predefinido da plataforma"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "A configuração do remetente de e-mail está pendente de verificação — os e-mails usam o remetente predefinido da plataforma"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "O remetente de e-mail está desativado — os e-mails usam o remetente predefinido da plataforma"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "Remetente de e-mail verificado — os e-mails são enviados a partir deste domínio"
+  },
+  "web.domains.incoming.title": {
+    "text": "Mensagens Confidenciais Recebidas"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Configuração de Mensagens Confidenciais Recebidas"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Permitir que utilizadores externos enviem mensagens confidenciais diretamente para destinatários designados neste domínio"
+  },
+  "web.domains.incoming.feature_disabled": {
+    "text": "Mensagens Confidenciais Recebidas Indisponíveis"
+  },
+  "web.domains.incoming.feature_disabled_description": {
+    "text": "As mensagens confidenciais recebidas não estão ativadas nesta instância. Contacta o teu administrador."
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Acesso negado"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "Não tens permissão para gerir as definições de mensagens confidenciais recebidas deste domínio. Contacta o administrador da tua organização."
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Faz upgrade do teu plano para configurar as mensagens confidenciais recebidas neste domínio."
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Configurar Mensagens Confidenciais Recebidas"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "As mensagens confidenciais recebidas não estão configuradas para este domínio. Adiciona destinatários para permitir que utilizadores externos enviem mensagens confidenciais à tua equipa."
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "As mensagens confidenciais recebidas estão atualmente desativadas. Os utilizadores externos não podem enviar mensagens confidenciais para destinatários neste domínio. Ativa a funcionalidade abaixo para permitir mensagens confidenciais recebidas."
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Destinatários"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Define quem pode receber mensagens confidenciais recebidas neste domínio. Os destinatários receberão notificações por e-mail quando lhes for enviada uma mensagem confidencial."
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Adicionar destinatário"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Remover"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "Endereço de e-mail"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "destinatario{'@'}exemplo.com"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Nome a apresentar"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "p. ex. Equipa de Segurança"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "Nenhum destinatário configurado"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Adiciona destinatários para permitir que utilizadores externos enviem mensagens confidenciais à tua equipa."
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Endereço de e-mail inválido"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "Este endereço de e-mail já foi adicionado"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "Máximo de {max} destinatários permitidos"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "O nome a apresentar é obrigatório"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "O endereço de e-mail é obrigatório"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Guardar alterações"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Descartar alterações"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "Configuração de mensagens confidenciais recebidas guardada com sucesso"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "Configuração de mensagens confidenciais recebidas removida com sucesso"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} destinatário | {count} destinatários"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "Não configurado"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Configurado"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Desativado"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "Mensagens confidenciais recebidas não configuradas - os utilizadores externos não podem enviar mensagens confidenciais para este domínio"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "Mensagens confidenciais recebidas ativadas com {count} destinatário | Mensagens confidenciais recebidas ativadas com {count} destinatários"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "A funcionalidade de mensagens confidenciais recebidas está desativada para este domínio"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Ativar Mensagens Confidenciais Recebidas"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Permitir que utilizadores externos enviem mensagens confidenciais para destinatários neste domínio"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "URL pública"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Partilha esta URL com utilizadores externos para lhes permitir enviar mensagens confidenciais"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "Copiar URL"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "URL copiada para a área de transferência"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Tens a certeza de que queres remover todos os destinatários? Os utilizadores externos deixarão de poder enviar mensagens confidenciais para este domínio."
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Número máximo de destinatários atingido"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "Este endereço de e-mail já foi adicionado"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "Ao guardar, todos os destinatários existentes serão substituídos pelas tuas alterações pendentes. Tens a certeza?"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Eliminar Todos os Destinatários"
+  },
+  "web.domains.signin.title": {
+    "text": "Configuração de Início de Sessão"
+  },
+  "web.domains.signin.configure_signin": {
+    "text": "Configurar Início de Sessão"
+  },
+  "web.domains.signin.config_description": {
+    "text": "Configurar os métodos de autenticação de início de sessão para este domínio"
+  },
+  "web.domains.signin.access_denied": {
+    "text": "Acesso negado"
+  },
+  "web.domains.signin.upgrade_to_configure": {
+    "text": "Faz upgrade do teu plano para configurar os métodos de início de sessão para este domínio."
+  },
+  "web.domains.signin.not_configured_notice": {
+    "text": "A configuração de início de sessão ainda não está definida para este domínio. Configura substituições para controlar que métodos de autenticação estão disponíveis na página de início de sessão deste domínio."
+  },
+  "web.domains.signin.signin_enabled_label": {
+    "text": "Início de sessão ativado"
+  },
+  "web.domains.signin.header_toggle_label": {
+    "text": "Início de sessão"
+  },
+  "web.domains.signin.signin_enabled_hint": {
+    "text": "Se os utilizadores podem iniciar sessão neste domínio"
+  },
+  "web.domains.signin.restrict_to_label": {
+    "text": "Restringir o método de início de sessão"
+  },
+  "web.domains.signin.restrict_to_hint": {
+    "text": "Restringe este domínio a um único método de autenticação. Quando definido, apenas o método escolhido é apresentado na página de início de sessão."
+  },
+  "web.domains.signin.all_methods": {
+    "text": "Todos os métodos"
+  },
+  "web.domains.signin.all_methods_description": {
+    "text": "Apresentar todos os métodos de autenticação ativados na página de início de sessão"
+  },
+  "web.domains.signin.method_password": {
+    "text": "Palavra-passe"
+  },
+  "web.domains.signin.method_email_auth": {
+    "text": "Autenticação por e-mail"
+  },
+  "web.domains.signin.method_webauthn": {
+    "text": "WebAuthn / Chaves de acesso"
+  },
+  "web.domains.signin.method_sso": {
+    "text": "Single Sign-On"
+  },
+  "web.domains.signin.method_overrides_label": {
+    "text": "Substituições de método"
+  },
+  "web.domains.signin.method_overrides_hint": {
+    "text": "Ativar ou desativar métodos de autenticação individuais para este domínio"
+  },
+  "web.domains.signin.mode_question": {
+    "text": "Como podem os utilizadores iniciar sessão?"
+  },
+  "web.domains.signin.mode_any": {
+    "text": "Qualquer método disponível"
+  },
+  "web.domains.signin.mode_any_hint": {
+    "text": "Apresentar todos os métodos disponíveis neste domínio. Restringe métodos individuais abaixo."
+  },
+  "web.domains.signin.mode_one": {
+    "text": "Um método específico"
+  },
+  "web.domains.signin.mode_one_hint": {
+    "text": "Restringir a página de início de sessão a um único método. Apenas os métodos disponíveis neste domínio são listados."
+  },
+  "web.domains.signin.mode_disabled": {
+    "text": "Início de sessão desativado"
+  },
+  "web.domains.signin.mode_disabled_hint": {
+    "text": "Os utilizadores não podem iniciar sessão neste domínio."
+  },
+  "web.domains.signin.mode_disabled_notice": {
+    "text": "Os visitantes da página de início de sessão deste domínio veem um aviso de que o início de sessão não está disponível, com uma ligação de regresso à página inicial. As tuas definições de método anteriores são mantidas e restauradas quando reativares o início de sessão."
+  },
+  "web.domains.signin.methods_list_label": {
+    "text": "Métodos apresentados na página de início de sessão"
+  },
+  "web.domains.signin.restrict_picker_hint": {
+    "text": "Apenas os métodos disponíveis neste domínio são listados."
+  },
+  "web.domains.signin.availability_always": {
+    "text": "Sempre disponível"
+  },
+  "web.domains.signin.availability_global_on": {
+    "text": "Segue a política global · Ativo"
+  },
+  "web.domains.signin.availability_global_off": {
+    "text": "Não disponível"
+  },
+  "web.domains.signin.availability_unavailable": {
+    "text": "Indisponível em todo o site"
+  },
+  "web.domains.signin.allow_on_domain": {
+    "text": "Permitir neste domínio"
+  },
+  "web.domains.signin.method_password_blurb": {
+    "text": "Apenas palavra-passe"
+  },
+  "web.domains.signin.method_email_auth_blurb": {
+    "text": "Início de sessão sem palavra-passe por link mágico"
+  },
+  "web.domains.signin.method_webauthn_blurb": {
+    "text": "Biometria e chaves de segurança"
+  },
+  "web.domains.signin.method_sso_blurb": {
+    "text": "Fornecedor de identidade externo"
+  },
+  "web.domains.signin.email_auth_label": {
+    "text": "Autenticação por e-mail"
+  },
+  "web.domains.signin.email_auth_hint": {
+    "text": "Permitir a autenticação por e-mail sem palavra-passe neste domínio"
+  },
+  "web.domains.signin.sso_enabled_label": {
+    "text": "Single Sign-On"
+  },
+  "web.domains.signin.sso_enabled_hint": {
+    "text": "Permitir a autenticação SSO neste domínio"
+  },
+  "web.domains.signin.enabled_label": {
+    "text": "Ativar a configuração de início de sessão"
+  },
+  "web.domains.signin.enabled_hint": {
+    "text": "Quando ativado, este domínio usa as definições de início de sessão configuradas acima"
+  },
+  "web.domains.signin.save_config": {
+    "text": "Guardar configuração"
+  },
+  "web.domains.signin.update_success": {
+    "text": "Configuração de início de sessão atualizada com sucesso"
+  },
+  "web.domains.signin.reset_to_defaults": {
+    "text": "Repor predefinições"
+  },
+  "web.domains.signin.reset_confirm": {
+    "text": "Repor o início de sessão para as predefinições globais?"
+  },
+  "web.domains.signin.reset_keeps_sso": {
+    "text": "As tuas credenciais SSO são mantidas. Remove-as separadamente no ecrã de configuração do SSO."
+  },
+  "web.domains.signin.reset_action": {
+    "text": "Sim, repor"
+  },
+  "web.domains.signin.reset_success": {
+    "text": "Definições de início de sessão repostas para as predefinições globais"
+  },
+  "web.domains.signup.title": {
+    "text": "Validação de Registo"
+  },
+  "web.domains.signup.config_description": {
+    "text": "Configurar a validação de registo para este domínio"
+  },
+  "web.domains.signup.access_denied": {
+    "text": "Acesso negado"
+  },
+  "web.domains.signup.upgrade_to_configure": {
+    "text": "Faz upgrade do teu plano para configurar a validação de registo por domínio."
+  },
+  "web.domains.signup.configure_signup": {
+    "text": "Configurar Registo"
+  },
+  "web.domains.signup.not_configured_notice": {
+    "text": "A validação de registo ainda não está configurada para este domínio. Configura uma estratégia para controlar quem se pode registar através deste domínio."
+  },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "Os registos estão atualmente desativados ao nível do site. Esta política por domínio está configurada, mas não filtrará qualquer tráfego até os registos do site serem ativados."
+  },
+  "web.domains.signup.strategy_label": {
+    "text": "Estratégia de validação"
+  },
+  "web.domains.signup.strategy_description": {
+    "text": "Escolhe como os endereços de e-mail são validados quando os utilizadores se registam neste domínio."
+  },
+  "web.domains.signup.network_validation_warning": {
+    "text": "Esta estratégia realiza chamadas de rede durante o registo, o que pode aumentar a latência ou ser bloqueado por alguns fornecedores."
+  },
+  "web.domains.signup.allowed_domains_label": {
+    "text": "Domínios de registo permitidos"
+  },
+  "web.domains.signup.allowed_domains_hint": {
+    "text": "Apenas estes domínios de e-mail terão permissão para se registar. Adiciona um domínio por entrada."
+  },
+  "web.domains.signup.domain_placeholder": {
+    "text": "example.com"
+  },
+  "web.domains.signup.invalid_domain": {
+    "text": "Introduz um domínio válido (p. ex. example.com)"
+  },
+  "web.domains.signup.domain_exists": {
+    "text": "Este domínio já está na lista"
+  },
+  "web.domains.signup.remove_domain": {
+    "text": "Remover {domain}"
+  },
+  "web.domains.signup.enabled_label": {
+    "text": "Ativar a validação por domínio"
+  },
+  "web.domains.signup.enabled_hint": {
+    "text": "Quando ativado, os registos neste domínio usam a estratégia acima em vez da política global."
+  },
+  "web.domains.signup.delete_config": {
+    "text": "Eliminar configuração"
+  },
+  "web.domains.signup.delete_confirm": {
+    "text": "Eliminar a configuração de validação de registo? Os registos passarão a usar a política global."
+  },
+  "web.domains.signup.save_config": {
+    "text": "Guardar configuração"
+  },
+  "web.domains.signup.update_success": {
+    "text": "Validação de registo atualizada com sucesso"
+  },
+  "web.domains.signup.delete_success": {
+    "text": "Configuração de validação de registo removida com sucesso"
+  },
+  "web.domains.signup.domain_overrides_label": {
+    "text": "Substituições do domínio"
+  },
+  "web.domains.signup.domain_overrides_hint": {
+    "text": "Substituir as definições de registo globais para este domínio"
+  },
+  "web.domains.signup.signup_enabled_label": {
+    "text": "Registo ativado"
+  },
+  "web.domains.signup.signup_enabled_hint": {
+    "text": "Substituir se o registo está ativado para este domínio"
+  },
+  "web.domains.signup.autoverify_label": {
+    "text": "Verificar contas automaticamente"
+  },
+  "web.domains.signup.autoverify_hint": {
+    "text": "Substituir se as novas contas são automaticamente verificadas neste domínio"
+  },
+  "web.domains.sso.title": {
+    "text": "Single Sign-On"
+  },
+  "web.domains.sso.config_title": {
+    "text": "Configuração de SSO"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Configurar a autenticação de início de sessão único para este domínio"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Acesso negado"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "Não tens permissão para gerir as definições de SSO deste domínio. Contacta o administrador da tua organização."
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Faz upgrade do teu plano para configurar o início de sessão único para este domínio."
+  },
+  "web.domains.sso.create_success": {
+    "text": "Configuração de SSO criada com sucesso"
+  },
+  "web.domains.sso.update_success": {
+    "text": "Configuração de SSO atualizada com sucesso"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "Configuração de SSO removida com sucesso"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Teste de ligação bem-sucedido — o fornecedor respondeu corretamente"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "O teste de ligação falhou"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "Para exigir SSO em todos os inícios de sessão neste domínio, configura-o nas definições de início de sessão do domínio. O modo exclusivo de SSO restringe a página de início de sessão ao fornecedor de SSO configurado aqui."
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "Configurar SSO"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "O SSO ainda não está configurado para este domínio. Ativa o início de sessão único para permitir que os membros da equipa se autentiquem usando o fornecedor de identidade da tua organização."
+  },
+  "web.domains.sso.edit_credentials": {
+    "text": "Editar credenciais"
+  },
+  "web.domains.sso.configure_button": {
+    "text": "Configurar"
+  },
+  "web.domains.sso.upgrade_required": {
+    "text": "Faz upgrade para configurar"
   }
 }
