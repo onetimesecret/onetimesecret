@@ -1,0 +1,8 @@
+{
+  "api.account.errors.invalid_email": {
+    "text": "Đó có phải là địa chỉ email hợp lệ không?"
+  },
+  "api.account.errors.password_too_short": {
+    "text": "Mật khẩu quá ngắn"
+  }
+}

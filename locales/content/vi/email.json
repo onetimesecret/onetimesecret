@@ -853,5 +853,41 @@
     "text": "Onetime Secret",
     "renderer": "erb",
     "source_hash": "1cd0194a"
+  },
+  "email.common.secret_link_label": {
+    "text": "Liên kết bí mật"
+  },
+  "email.common.automated_notice": {
+    "text": "Đây là tin nhắn tự động từ %{product_name}."
+  },
+  "email.common.support_label": {
+    "text": "Hỗ trợ"
+  },
+  "email.expiration_warning.signature": {
+    "text": "Delano"
+  },
+  "email.expiration_warning.footer_note": {
+    "text": "Bạn nhận được email này vì một bí mật bạn đã tạo trên %{product_name} sắp hết hạn."
+  },
+  "email.feedback_email.user_id_label": {
+    "text": "Người dùng:"
+  },
+  "email.feedback_email.timezone_label": {
+    "text": "Múi giờ:"
+  },
+  "email.feedback_email.version_label": {
+    "text": "Phiên bản:"
+  },
+  "email.incoming_secret.footer_note": {
+    "text": "Bạn nhận được email này vì có người đã sử dụng %{product_name} để gửi cho bạn một bí mật. Nếu bạn không mong đợi điều này, bạn có thể yên tâm bỏ qua email này."
+  },
+  "email.secret_link.passphrase_label": {
+    "text": "Cần có cụm mật khẩu:"
+  },
+  "email.secret_link.passphrase_required": {
+    "text": "Bí mật này được bảo vệ bằng cụm mật khẩu. Người gửi sẽ cung cấp cụm mật khẩu cho bạn một cách riêng biệt."
+  },
+  "email.secret_link.footer_note": {
+    "text": "Bạn nhận được email này vì %{sender_email} đã sử dụng %{product_name} để chia sẻ một bí mật với bạn. Nếu bạn không mong đợi điều này, bạn có thể yên tâm bỏ qua email này."
   }
 }

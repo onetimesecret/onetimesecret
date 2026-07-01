@@ -1299,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Luôn xác minh bạn đang ở trên trang web chính thức của {product_name}. Kẻ lừa đảo đôi khi tạo các trang web giả trông giống hệt {product_name} để đánh cắp bí mật của bạn. Để tránh các cuộc tấn công lừa đảo, hãy kiểm tra tên miền trước khi tạo liên kết mới.",
+    "text": "Luôn xác minh rằng bạn đang ở trên trang web chính thức của {product_name}. Kẻ gian đôi khi tạo ra các trang web giả mạo trông giống hệt {product_name} để đánh cắp bí mật của bạn. Để tránh các cuộc tấn công lừa đảo (phishing), hãy kiểm tra tên miền khu vực trước khi tạo liên kết mới.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1383,5 +1383,110 @@
     "text": "Nâng cấp để mở khóa thêm tính năng",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "Yêu cầu xác thực"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "Hành động này không khả dụng ở chế độ chỉ SSO"
+  },
+  "web.COMMON.configure": {
+    "text": "Cấu hình"
+  },
+  "web.COMMON.copy_to_clipboard": {
+    "text": "Sao chép vào clipboard"
+  },
+  "web.COMMON.add": {
+    "text": "Thêm"
+  },
+  "web.COMMON.enabled": {
+    "text": "Đã bật"
+  },
+  "web.COMMON.disabled": {
+    "text": "Đã tắt"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Có, xóa"
+  },
+  "web.COMMON.error_code": {
+    "text": "Mã lỗi"
+  },
+  "web.COMMON.http_status": {
+    "text": "Trạng thái HTTP"
+  },
+  "web.COMMON.details": {
+    "text": "Chi tiết"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Xác nhận mật khẩu"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Mật khẩu phải khớp nhau"
+  },
+  "web.COMMON.and": {
+    "text": "và"
+  },
+  "web.COMMON.or": {
+    "text": "hoặc"
+  },
+  "web.COMMON.copied": {
+    "text": "Đã sao chép"
+  },
+  "web.COMMON.copy": {
+    "text": "Sao chép"
+  },
+  "web.COMMON.copy_email": {
+    "text": "Sao chép địa chỉ email"
+  },
+  "web.COMMON.copy_id": {
+    "text": "Sao chép ID tài khoản"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "Mã định danh duy nhất của tổ chức bạn"
+  },
+  "web.COMMON.success": {
+    "text": "Thành công"
+  },
+  "web.COMMON.need_help": {
+    "text": "Cần trợ giúp"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "Mở hộp thoại trợ giúp"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "Con trỏ hiện đang ở vùng văn bản chính"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Hiển thị cụm mật khẩu"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Ẩn cụm mật khẩu"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "Biểu tượng sao chép"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "Biểu tượng đã sao chép"
+  },
+  "web.STATUS.unverified": {
+    "text": "Chưa xác minh"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Cài đặt tên miền"
+  },
+  "web.TITLES.domain_signin": {
+    "text": "Cấu hình đăng nhập"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "SSO tên miền"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "Xác thực đăng ký tên miền"
+  },
+  "web.TITLES.domain_email": {
+    "text": "Cấu hình email"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Bí mật đến"
   }
 }
