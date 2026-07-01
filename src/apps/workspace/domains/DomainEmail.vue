@@ -8,22 +8,25 @@
  * form component, and DNS records display. Follows the DomainSso page
  * structure: header -> entitlement gate -> fallback notice -> form -> DNS.
  */
-import { useI18n } from 'vue-i18n';
-import { computed, onMounted, watch } from 'vue';
-import { useRouter } from 'vue-router';
-import { storeToRefs } from 'pinia';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
 import DomainEmailConfigForm from '@/apps/workspace/components/domains/DomainEmailConfigForm.vue';
 import DomainEmailDnsRecords from '@/apps/workspace/components/domains/DomainEmailDnsRecords.vue';
 import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
+import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
+import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useDomain } from '@/shared/composables/useDomain';
-
-import { useEmailConfig, buildDomainEmailDefaults } from '@/shared/composables/useEmailConfig';
+import {
+  useEmailConfig,
+  buildDomainEmailDefaults,
+  type EmailConfigFormState,
+} from '@/shared/composables/useEmailConfig';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { ENTITLEMENTS } from '@/types/organization';
+import { storeToRefs } from 'pinia';
+import { computed, onMounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 import { onBeforeRouteLeave } from 'vue-router';
 
 const { t } = useI18n();
@@ -104,8 +107,6 @@ const {
 // ---------------------------------------------------------------------------
 // Form state handler
 // ---------------------------------------------------------------------------
-
-import type { EmailConfigFormState } from '@/shared/composables/useEmailConfig';
 
 const handleFormStateUpdate = (state: EmailConfigFormState) => {
   formState.value = state;
@@ -242,14 +243,13 @@ watch(hasEntitlement, async (entitled) => {
             </div>
           </div>
 
-          <div class="p-6 space-y-8">
+          <div class="space-y-8 p-6">
             <!-- Email config loading -->
             <SettingsSkeleton
               v-if="emailLoading && !isInitialized"
               :heading="false" />
 
             <template v-else>
-
               <!-- Email Configuration Form -->
               <DomainEmailConfigForm
                 :form-state="formState"

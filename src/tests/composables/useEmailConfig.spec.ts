@@ -1162,9 +1162,11 @@ describe('buildDomainEmailDefaults', () => {
 
 describe('no-reply canonical local part', () => {
   it('the split-input placeholder i18n text matches NO_REPLY_LOCAL_PART', () => {
-    const entry = (enWorkspaceDomains as Record<string, { text: string }>)[
-      'web.domains.email.from_address_local_placeholder'
-    ];
-    expect(entry?.text).toBe(NO_REPLY_LOCAL_PART);
+    const key = 'web.domains.email.from_address_local_placeholder';
+    const entry = (enWorkspaceDomains as Record<string, { text?: string }>)[key];
+    // Assert the entry (and its `text` shape) exists first, so a renamed key or
+    // changed JSON format fails with a clear message instead of `undefined`.
+    expect(entry, `Missing i18n entry "${key}" in en/workspace-domains.json`).toBeDefined();
+    expect(entry.text).toBe(NO_REPLY_LOCAL_PART);
   });
 });
