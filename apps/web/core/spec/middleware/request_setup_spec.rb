@@ -62,6 +62,10 @@ RSpec.describe Core::Middleware::RequestSetup do
       expect(emit({ 'content-type' => 'application/json; charset=utf-8' })).to be_nil
     end
 
+    it 'skips when no content-type header is present' do
+      expect(emit({})).to be_nil
+    end
+
     it 'never clobbers a Content-Security-Policy already set downstream' do
       expect(emit({ 'content-type' => 'text/html', 'content-security-policy' => 'PRESET' }))
         .to eq('PRESET')

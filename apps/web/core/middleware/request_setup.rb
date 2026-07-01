@@ -63,8 +63,8 @@ module Core
     # #generate_nonce_csp is the config-level primitive that helper wraps.
     #
     # Guards (any short-circuits to a no-op):
-    # - OFF unless site.security.csp.enabled is true (default false), so this is
-    #   inert until deliberately enabled and validated against the SPA.
+    # - OFF only when site.security.csp.enabled is false; it now defaults on
+    #   (CSP_ENABLED != 'false'), so CSP is emitted for HTML unless disabled.
     # - HTML responses only (JSON/redirects/static are left untouched).
     # - Never clobbers a Content-Security-Policy a downstream layer already set.
     # - Requires Otto nonce-CSP support and a present nonce.
@@ -79,9 +79,10 @@ module Core
       nonce = env['onetime.nonce']
       return if nonce.nil? || nonce.empty?
 
-      development_mode = OT.conf.dig('development', 'enabled') ? true : false
-      headers['content-security-policy'] =
-        security_config.generate_nonce_csp(nonce, development_mode: development_mode)
+      headers['content-security-policy'] = security_config.generate_nonce_csp(
+        nonce,
+        development_mode: OT.conf.dig('development', 'enabled') ? true : false,
+      )
     end
     end
   end
