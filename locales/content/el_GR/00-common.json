@@ -1299,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Επαληθεύετε πάντα ότι βρίσκεστε στον επίσημο ιστότοπο του {product_name}. Οι απατεώνες μερικές φορές δημιουργούν ψεύτικους ιστότοπους που μοιάζουν ακριβώς με το {product_name} για να κλέψουν τα μυστικά σας. Για να αποφύγετε επιθέσεις phishing, ελέγξτε τον τομέα πριν δημιουργήσετε νέους συνδέσμους.",
+    "text": "Επαληθεύετε πάντα ότι βρίσκεστε στον επίσημο ιστότοπο του {product_name}. Οι απατεώνες δημιουργούν ορισμένες φορές ψεύτικους ιστότοπους που μοιάζουν ακριβώς με το {product_name} για να κλέψουν τα μυστικά σας. Για να αποφύγετε επιθέσεις phishing, ελέγχετε τον τομέα πριν δημιουργήσετε νέους συνδέσμους.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1383,5 +1383,110 @@
     "text": "Αναβαθμίστε για να ξεκλειδώσετε περισσότερες δυνατότητες",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "Απαιτείται έλεγχος ταυτότητας"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "Αυτή η ενέργεια δεν είναι διαθέσιμη σε λειτουργία μόνο SSO"
+  },
+  "web.COMMON.configure": {
+    "text": "Διαμόρφωση"
+  },
+  "web.COMMON.copy_to_clipboard": {
+    "text": "Αντιγραφή στο πρόχειρο"
+  },
+  "web.COMMON.add": {
+    "text": "Προσθήκη"
+  },
+  "web.COMMON.enabled": {
+    "text": "Ενεργοποιημένο"
+  },
+  "web.COMMON.disabled": {
+    "text": "Απενεργοποιημένο"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Ναι, διαγραφή"
+  },
+  "web.COMMON.error_code": {
+    "text": "Κωδικός σφάλματος"
+  },
+  "web.COMMON.http_status": {
+    "text": "Κατάσταση HTTP"
+  },
+  "web.COMMON.details": {
+    "text": "Λεπτομέρειες"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Επιβεβαίωση κωδικού πρόσβασης"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Οι κωδικοί πρόσβασης πρέπει να ταιριάζουν"
+  },
+  "web.COMMON.and": {
+    "text": "και"
+  },
+  "web.COMMON.or": {
+    "text": "ή"
+  },
+  "web.COMMON.copied": {
+    "text": "Αντιγράφηκε"
+  },
+  "web.COMMON.copy": {
+    "text": "Αντιγραφή"
+  },
+  "web.COMMON.copy_email": {
+    "text": "Αντιγραφή διεύθυνσης email"
+  },
+  "web.COMMON.copy_id": {
+    "text": "Αντιγραφή αναγνωριστικού λογαριασμού"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "Το μοναδικό αναγνωριστικό του οργανισμού σας"
+  },
+  "web.COMMON.success": {
+    "text": "Επιτυχία"
+  },
+  "web.COMMON.need_help": {
+    "text": "Χρειάζεστε βοήθεια"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "Άνοιγμα παραθύρου βοήθειας"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "Η εστίαση βρίσκεται τώρα στην κύρια περιοχή κειμένου"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Εμφάνιση φράσης πρόσβασης"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Απόκρυψη φράσης πρόσβασης"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "Εικονίδιο αντιγραφής"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "Εικονίδιο «αντιγράφηκε»"
+  },
+  "web.STATUS.unverified": {
+    "text": "Μη επαληθευμένο"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Ρυθμίσεις τομέα"
+  },
+  "web.TITLES.domain_signin": {
+    "text": "Διαμόρφωση σύνδεσης"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "SSO τομέα"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "Επικύρωση εγγραφής τομέα"
+  },
+  "web.TITLES.domain_email": {
+    "text": "Διαμόρφωση email"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Εισερχόμενα μυστικά"
   }
 }

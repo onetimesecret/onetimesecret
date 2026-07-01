@@ -1,0 +1,29 @@
+{
+  "api.domains.errors.domain_id_required": {
+    "text": "Απαιτείται ID τομέα"
+  },
+  "api.domains.errors.domain_not_found": {
+    "text": "Ο τομέας δεν βρέθηκε: %{extid}"
+  },
+  "api.domains.errors.organization_not_found": {
+    "text": "Δεν βρέθηκε οργανισμός για τον τομέα: %{domain}"
+  },
+  "api.domains.errors.incoming_secrets_disabled": {
+    "text": "Τα εισερχόμενα μυστικά δεν είναι ενεργοποιημένα σε αυτήν την εγκατάσταση"
+  },
+  "api.domains.errors.incoming_secrets_entitlement_required": {
+    "text": "Η διαχείριση εισερχόμενων μυστικών απαιτεί το δικαίωμα incoming_secrets. Αναβαθμίστε το πρόγραμμά σας."
+  },
+  "api.domains.errors.incoming_config_not_found": {
+    "text": "Δεν βρέθηκε διαμόρφωση εισερχομένων για τον τομέα: %{extid}"
+  },
+  "api.domains.errors.recipients_max_exceeded": {
+    "text": "Επιτρέπονται το πολύ %{max} παραλήπτες"
+  },
+  "api.domains.errors.recipients_invalid_email": {
+    "text": "Μη έγκυρο email: %{email}"
+  },
+  "api.domains.errors.recipients_duplicate": {
+    "text": "Δεν επιτρέπονται διπλότυπες διευθύνσεις email παραληπτών"
+  }
+}

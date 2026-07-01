@@ -130,5 +130,26 @@
   "incoming.receipt_link_text": {
     "text": "απόδειξη",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Απαιτείται αναβάθμιση"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Αυτή η λειτουργία απαιτεί αναβάθμιση προγράμματος. Επικοινωνήστε με τον κάτοχο του λογαριασμού για να ενεργοποιήσετε τα εισερχόμενα μυστικά."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Το σημείωμα πρέπει να έχει {max} χαρακτήρες ή λιγότερους"
+  },
+  "incoming.validation_secret_required": {
+    "text": "Το περιεχόμενο του μυστικού είναι υποχρεωτικό"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Επιλέξτε έναν παραλήπτη"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "Η λειτουργία εισερχόμενων μυστικών δεν είναι ενεργοποιημένη"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Ελέγξτε τη φόρμα για σφάλματα"
   }
 }

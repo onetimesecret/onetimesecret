@@ -634,5 +634,152 @@
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
     "text": "Όταν υποβάλετε σχόλια, θα δούμε:",
     "source_hash": "fe77172e"
+  },
+  "web.colonel.previewPlanMode": {
+    "text": "Λειτουργία προεπισκόπησης προγράμματος"
+  },
+  "web.colonel.previewModeDescription": {
+    "text": "Κάντε προεπισκόπηση της εφαρμογής όπως εμφανίζεται στους πελάτες με διαφορετικό πρόγραμμα. Αυτό επηρεάζει μόνο την προβολή σας και δεν αλλάζει το πραγματικό πρόγραμμα κανενός οργανισμού."
+  },
+  "web.colonel.previewModeActive": {
+    "text": "Προεπισκόπηση ενεργή"
+  },
+  "web.colonel.bannedIps.empty": {
+    "text": "Δεν υπάρχουν αποκλεισμένες IP"
+  },
+  "web.colonel.bannedIps.currentIp": {
+    "text": "Η τρέχουσα διεύθυνση IP σας"
+  },
+  "web.colonel.bannedIps.confirmUnban": {
+    "text": "Άρση αποκλεισμού της {ip};"
+  },
+  "web.colonel.bannedIps.actions.ban": {
+    "text": "Αποκλεισμός IP"
+  },
+  "web.colonel.bannedIps.actions.quickBan": {
+    "text": "Γρήγορος αποκλεισμός"
+  },
+  "web.colonel.bannedIps.actions.unban": {
+    "text": "Άρση αποκλεισμού"
+  },
+  "web.colonel.bannedIps.actions.cancel": {
+    "text": "Ακύρωση"
+  },
+  "web.colonel.bannedIps.columns.ipAddress": {
+    "text": "Διεύθυνση IP"
+  },
+  "web.colonel.bannedIps.columns.reason": {
+    "text": "Αιτία"
+  },
+  "web.colonel.bannedIps.columns.bannedAt": {
+    "text": "Αποκλεισμός στις"
+  },
+  "web.colonel.bannedIps.columns.bannedBy": {
+    "text": "Αποκλεισμός από"
+  },
+  "web.colonel.bannedIps.error.banFailed": {
+    "text": "Αποτυχία αποκλεισμού της διεύθυνσης IP"
+  },
+  "web.colonel.bannedIps.error.unbanFailed": {
+    "text": "Αποτυχία άρσης αποκλεισμού της διεύθυνσης IP"
+  },
+  "web.colonel.bannedIps.form.title": {
+    "text": "Αποκλεισμός διεύθυνσης IP"
+  },
+  "web.colonel.bannedIps.form.ipLabel": {
+    "text": "Διεύθυνση IP"
+  },
+  "web.colonel.bannedIps.form.reasonLabel": {
+    "text": "Αιτία"
+  },
+  "web.colonel.bannedIps.form.reasonPlaceholder": {
+    "text": "Προαιρετική αιτία"
+  },
+  "web.colonel.bannedIps.success.banned": {
+    "text": "Η διεύθυνση IP {ip} αποκλείστηκε"
+  },
+  "web.colonel.bannedIps.success.unbanned": {
+    "text": "Έγινε άρση αποκλεισμού της διεύθυνσης IP {ip}"
+  },
+  "web.colonel.customDomains.empty": {
+    "text": "Δεν έχουν διαμορφωθεί προσαρμοσμένοι τομείς"
+  },
+  "web.colonel.customDomains.noLogo": {
+    "text": "Χωρίς λογότυπο"
+  },
+  "web.colonel.customDomains.labels.organization": {
+    "text": "Οργανισμός"
+  },
+  "web.colonel.customDomains.labels.externalId": {
+    "text": "Εξωτερικό ID"
+  },
+  "web.colonel.customDomains.labels.created": {
+    "text": "Δημιουργήθηκε"
+  },
+  "web.colonel.customDomains.labels.updated": {
+    "text": "Ενημερώθηκε"
+  },
+  "web.colonel.customDomains.labels.favicon": {
+    "text": "Favicon"
+  },
+  "web.colonel.customDomains.status.verified": {
+    "text": "Επαληθευμένος"
+  },
+  "web.colonel.customDomains.status.resolving": {
+    "text": "Ανάλυση σε εξέλιξη"
+  },
+  "web.colonel.customDomains.status.ready": {
+    "text": "Έτοιμος"
+  },
+  "web.colonel.customDomains.status.publicHomepage": {
+    "text": "Δημόσια αρχική σελίδα"
+  },
+  "web.colonel.customDomains.status.publicApi": {
+    "text": "Δημόσιο API"
+  },
+  "web.colonel.customDomains.status.pending": {
+    "text": "Σε εκκρεμότητα"
+  },
+  "web.colonel.pagination.showing": {
+    "text": "Εμφάνιση {start}–{end} από {total}"
+  },
+  "web.colonel.pagination.itemsPerPage": {
+    "text": "Στοιχεία ανά σελίδα"
+  },
+  "web.colonel.pagination.perPage": {
+    "text": "{count} ανά σελίδα"
+  },
+  "web.colonel.pagination.pageOf": {
+    "text": "Σελίδα {current} από {total}"
+  },
+  "web.colonel.secrets.empty": {
+    "text": "Δεν βρέθηκαν μυστικά"
+  },
+  "web.colonel.secrets.never": {
+    "text": "Ποτέ"
+  },
+  "web.colonel.secrets.columns.shortId": {
+    "text": "Σύντομο ID"
+  },
+  "web.colonel.secrets.columns.state": {
+    "text": "Κατάσταση"
+  },
+  "web.colonel.secrets.columns.created": {
+    "text": "Δημιουργήθηκε"
+  },
+  "web.colonel.secrets.columns.expiration": {
+    "text": "Λήξη"
+  },
+  "web.colonel.secrets.columns.age": {
+    "text": "Ηλικία (ημέρες)"
+  },
+  "web.colonel.secrets.state.new": {
+    "text": "Νέο"
+  },
+  "web.colonel.secrets.state.received": {
+    "text": "Παραλήφθηκε"
+  },
+  "web.colonel.secrets.state.viewed": {
+    "text": "Προβλήθηκε"
   }
 }
