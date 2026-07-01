@@ -28,6 +28,17 @@ Delivered to the frontend as `domain_branding` in the bootstrap payload.
 defaults to `nil`, so no OTS values ship in YAML — neutralization lives in the
 Ruby resolvers (#3049), and an absent section falls through to step 3.
 
+The YAML block interpolates each `BRAND_*` var as a JSON-quoted scalar
+(`&.to_json`) so values with YAML-significant characters parse cleanly instead
+of being mangled or aborting the document at boot — a leading `#` (hex
+`primary_color`) would otherwise be read as a comment and dropped to `nil`, and a
+leading `&`/`*`/`!`, an embedded `: `, or a newline would fail the whole config
+load. `Config#normalize_brand` (run in `after_load`) is the authoritative parser:
+it re-reads the env vars in Ruby, normalizes blanks to `nil`, and coerces
+`button_text_light` to a real boolean (only an explicit `false`, whitespace
+tolerant, disables it). An env-set field always wins; when a var is unset, any
+value set directly in a YAML config file is left intact.
+
 **Step 3 — neutral fallback.** When no brand data is present (the common
 self-hosted case), the frontend uses `NEUTRAL_BRAND_DEFAULTS`
 (`src/shared/constants/brand.ts`): neutral blue `#3B82F6`, product name

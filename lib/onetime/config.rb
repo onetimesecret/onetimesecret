@@ -3,10 +3,27 @@
 # frozen_string_literal: true
 
 require 'date' # ensure Date/Time constants resolve for permitted_classes
+require 'json' # String#to_json for YAML-safe BRAND_* interpolation (see brand block)
 require_relative 'utils/config_resolver'
 require_relative 'utils/enumerables'
 
 module Onetime
+  # Loads, merges, and normalizes the YAML/ENV configuration.
+  #
+  # ## Changing the config surface
+  #
+  # The config shape is mirrored in several places that drift silently. When you
+  # add, rename, or remove a config key or its backing BRAND_*/ENV var, update
+  # all four in the same change:
+  #
+  #   1. etc/defaults/config.defaults.yaml — the shipped default and its ENV wiring.
+  #   2. Zod contracts under src/schemas/contracts/config/ (and the flattened
+  #      bootstrap payload in src/schemas/contracts/bootstrap.ts) so the frontend
+  #      validates the new shape.
+  #   3. DEPRECATIONS (below) — add an entry when a key or ENV var is removed or
+  #      relocated, so boot warns/raises per compatibility.deprecated_config_mode.
+  #   4. docs/architecture/*.md and .env.reference — keep the operator-facing docs
+  #      and the ENV reference in sync.
   module Config
     extend self
 
@@ -422,6 +439,11 @@ module Onetime
         conf['site']['secret_options']['password_generation']['length_options'] = length_options.map(&:to_i)
       end
 
+      # Normalize the brand block from BRAND_* env vars. Done here (in Ruby)
+      # rather than via ERB/YAML interpolation so values with YAML-significant
+      # characters — notably the leading '#' in primary_color hex — survive.
+      normalize_brand(conf)
+
       # Ensure array jurisdiction entries have display_name_i18n_key
       # (String format already converted to Array above, before check_deprecations)
       jurisdictions = conf.dig('features', 'regions', 'jurisdictions')
@@ -465,6 +487,62 @@ module Onetime
       # See also: boot.rb line 133 which guards the raw_conf freeze.
       deep_freeze(conf) unless OT.testing?
       conf
+    end
+
+    # Maps each brand config key to its backing env var. String fields are
+    # trimmed (empty -> nil); button_text_light is coerced to a real boolean.
+    BRAND_ENV = {
+      'primary_color' => 'BRAND_PRIMARY_COLOR',
+      'product_name' => 'BRAND_PRODUCT_NAME',
+      'product_domain' => 'BRAND_PRODUCT_DOMAIN',
+      'support_email' => 'BRAND_SUPPORT_EMAIL',
+      'signature_name' => 'BRAND_SIGNATURE_NAME',
+      'corner_style' => 'BRAND_CORNER_STYLE',
+      'font_family' => 'BRAND_FONT_FAMILY',
+      'logo_url' => 'BRAND_LOGO_URL',
+      'favicon_url' => 'BRAND_FAVICON_URL',
+      'apple_touch_icon_url' => 'BRAND_APPLE_TOUCH_ICON_URL',
+      'og_image_url' => 'BRAND_OG_IMAGE_URL',
+      'totp_issuer' => 'BRAND_TOTP_ISSUER',
+    }.freeze
+
+    # Normalize the brand block, reading BRAND_* env vars directly so values
+    # containing YAML-significant characters (e.g. the '#' of a hex color)
+    # are not mangled by the ERB/YAML layer. An env var that is set always
+    # wins; when unset, the value already present from YAML is left intact so
+    # operators can still set brand keys directly in their config file.
+    #
+    # @param conf [Hash] the merged configuration (mutated in place)
+    # @return [void]
+    def normalize_brand(conf)
+      brand = (conf['brand'] ||= {})
+
+      BRAND_ENV.each do |key, env|
+        raw = ENV.fetch(env, nil)
+        if raw.nil?
+          # Env not set: keep any YAML-supplied value, normalizing blanks to nil.
+          existing   = brand[key]
+          brand[key] = nil if existing.is_a?(String) && existing.strip.empty?
+        else
+          value      = raw.strip
+          brand[key] = value.empty? ? nil : value
+        end
+      end
+
+      # button_text_light: light text on brand-colored buttons. Default-on;
+      # only an explicit 'false' (env or YAML) disables it. nil when unset.
+      raw                        = ENV.fetch('BRAND_BUTTON_TEXT_LIGHT', nil)
+      brand['button_text_light'] = if raw.nil?
+        case brand['button_text_light']
+        when nil then nil
+        when true, false then brand['button_text_light']
+        else brand['button_text_light'].to_s != 'false'
+        end
+      elsif raw.strip.empty?
+        nil
+      else
+        raw.strip != 'false'
+      end
     end
 
     def raise_concerns(conf)

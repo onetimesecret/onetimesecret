@@ -1,6 +1,5 @@
 // src/shared/stores/bootstrapStore.ts
 
-import { getBootstrapSnapshot, updateBootstrapSnapshot } from '@/services/bootstrap.service';
 import {
   bootstrapSchema,
   type ApiGuestRoutes,
@@ -10,6 +9,7 @@ import {
   type HeaderConfig,
   type UiCapabilities,
 } from '@/schemas/contracts/bootstrap';
+import { getBootstrapSnapshot, updateBootstrapSnapshot } from '@/services/bootstrap.service';
 import { defineStore } from 'pinia';
 
 /**
@@ -138,8 +138,12 @@ export const useBootstrapStore = defineStore('bootstrap', {
   // STATE - Single object spreading schema defaults
   // ═══════════════════════════════════════════════════════════════════════════
 
+  // structuredClone, not a shallow spread: DEFAULTS contains nested objects
+  // (e.g. ui.header) and a shallow copy would share those references across
+  // every store instance, letting one instance's $patch bleed into the next
+  // (notably across createTestingPinia instances in tests).
   state: (): BootstrapState => ({
-    ...DEFAULTS,
+    ...structuredClone(DEFAULTS),
     _initialized: false,
   }),
 
