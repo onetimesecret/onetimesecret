@@ -409,11 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "%{product_name} hesabınızın e-posta adresi %{new_email_masked} olarak değiştirildi.",
-    "renderer": "erb",
-    "source_hash": "6f3419d1"
-  },
   "email.email_changed.security_notice": {
     "text": "Bu değişikliği siz yapmadıysanız, hesabınız tehlikede olabileceğinden lütfen derhal destekle iletişime geçin.",
     "renderer": "erb",

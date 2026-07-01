@@ -347,7 +347,16 @@ process_locale() {
       echo "[$locale] review did not complete (exit $rc); PR body will note it"
       review_md="_Automated review did not complete (exit $rc). Review this locale manually._"
     else
-      review_md="$raw"
+      # Strip any agent preamble/reasoning that leaked ahead of the structured
+      # review (some agent profiles emit a "thinking out loud" line first). The
+      # prompt mandates the output begin with "**Verdict:**", so drop everything
+      # before the first line containing that marker. If the marker is absent
+      # (unexpected format), keep the raw output untouched.
+      if grep -q '\*\*Verdict:\*\*' <<<"$raw"; then
+        review_md="$(awk 'seen || /\*\*Verdict:\*\*/ { seen=1; print }' <<<"$raw")"
+      else
+        review_md="$raw"
+      fi
     fi
     # Persist the review artifact (matches locales/reviews/<date>/<locale>.md).
     { echo "# $locale review — $(basename "$RESULTS_DIR")"; echo; echo "$review_md"; } >"$review_file"

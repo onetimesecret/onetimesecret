@@ -409,11 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "E-mailadressen for din %{product_name}-konto blev ændret til %{new_email_masked}.",
-    "renderer": "erb",
-    "source_hash": "6f3419d1"
-  },
   "email.email_changed.security_notice": {
     "text": "Hvis du ikke har foretaget denne ændring, kontakt venligst support med det samme, da din konto kan være kompromitteret.",
     "renderer": "erb",
