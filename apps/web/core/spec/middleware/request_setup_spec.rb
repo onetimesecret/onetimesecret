@@ -44,7 +44,7 @@ RSpec.describe Core::Middleware::RequestSetup do
   end
 
   describe '#emit_csp_header' do
-    it 'is a no-op when site.security.csp.enabled is false (default)' do
+    it 'is a no-op when site.security.csp.enabled is explicitly false (opt-out)' do
       expect(emit({ 'content-type' => 'text/html; charset=utf-8' }, csp_enabled: false)).to be_nil
     end
 

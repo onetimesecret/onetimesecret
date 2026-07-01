@@ -62,6 +62,13 @@ module Core
     # Rack chokepoint works with a raw response tuple, not a Response object;
     # #generate_nonce_csp is the config-level primitive that helper wraps.
     #
+    # Header keys are matched lowercase on purpose: this middleware wraps only
+    # the Core app (mounted at '/'), whose responses use Rack 3's lowercased
+    # response-header keys throughout (see the lowercase 'content-type' defaults
+    # in application.rb and the sibling ||= on line 48). The apps that set a
+    # canonically-cased 'Content-Type' (auth, billing) mount at their own
+    # prefixes with separate stacks and never pass through here.
+    #
     # Guards (any short-circuits to a no-op):
     # - OFF only when site.security.csp.enabled is false; it now defaults on
     #   (CSP_ENABLED != 'false'), so CSP is emitted for HTML unless disabled.
