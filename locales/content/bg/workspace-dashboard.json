@@ -22,5 +22,14 @@
   "web.dashboard.fetch_error_description": {
     "text": "Възникна проблем при зареждане на данните. Моля, опитайте отново.",
     "source_hash": "ff0d904e"
+  },
+  "web.teams.create_first_team_title": {
+    "text": "Създайте първия си екип"
+  },
+  "web.teams.create_first_team_description": {
+    "text": "Екипите ви позволяват да си сътрудничите с други в споделена работна област."
+  },
+  "web.teams.create_team": {
+    "text": "Създаване на екип"
   }
 }

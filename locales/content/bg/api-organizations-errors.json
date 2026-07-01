@@ -1,0 +1,107 @@
+{
+  "api.organizations.errors.domain_scoped_forbidden": {
+    "text": "Членовете с обхват на домейна не могат да изпълнят това действие"
+  },
+  "api.organizations.errors.organization_not_found": {
+    "text": "Организацията не е намерена: %{extid}"
+  },
+  "api.organizations.errors.organization_owner_required": {
+    "text": "Само собственикът на организацията може да изпълни това действие"
+  },
+  "api.organizations.errors.organization_member_required": {
+    "text": "Трябва да сте член на организацията, за да изпълните това действие"
+  },
+  "api.organizations.errors.organization_admin_required": {
+    "text": "Само собствениците и администраторите на организацията могат да изпълнят това действие"
+  },
+  "api.organizations.errors.extid_required": {
+    "text": "Изисква се ИД на организацията"
+  },
+  "api.organizations.errors.display_name_required": {
+    "text": "Името на организацията е задължително"
+  },
+  "api.organizations.errors.display_name_too_long": {
+    "text": "Името на организацията трябва да е по-малко от %{max} знака"
+  },
+  "api.organizations.errors.description_too_long": {
+    "text": "Описанието трябва да е по-малко от %{max} знака"
+  },
+  "api.organizations.errors.contact_email_exists": {
+    "text": "Вече съществува организация с този имейл за контакт"
+  },
+  "api.organizations.errors.creation_in_progress": {
+    "text": "Създаването на организация е в ход. Моля, опитайте отново."
+  },
+  "api.organizations.errors.organization_limit_reached": {
+    "text": "Достигнат е лимитът за организации. Надстройте плана си, за да създавате повече организации."
+  },
+  "api.organizations.invitations.errors.invitation_not_found": {
+    "text": "Поканата не е намерена"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "Имейлът е задължителен"
+  },
+  "api.organizations.invitations.errors.invalid_email_format": {
+    "text": "Невалиден формат на имейл"
+  },
+  "api.organizations.invitations.errors.invalid_role": {
+    "text": "Ролята трябва да е член или администратор"
+  },
+  "api.organizations.invitations.errors.cannot_invite_as_owner": {
+    "text": "Не може да се покани като собственик"
+  },
+  "api.organizations.invitations.errors.user_already_member": {
+    "text": "Потребителят вече е член на тази организация"
+  },
+  "api.organizations.invitations.errors.invitation_already_pending": {
+    "text": "Вече има чакаща покана за този имейл"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Достигнат е лимитът за членове. Надстройте плана си, за да каните повече членове."
+  },
+  "api.organizations.invitations.errors.resend_only_pending": {
+    "text": "Могат да се изпращат повторно само чакащи покани"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Достигнат е максималният лимит за повторно изпращане (%{max})"
+  },
+  "api.organizations.invitations.errors.revoke_only_pending": {
+    "text": "Могат да се отменят само чакащи покани"
+  },
+  "api.organizations.members.errors.member_not_found": {
+    "text": "Членът не е намерен: %{extid}"
+  },
+  "api.organizations.members.errors.member_not_in_organization": {
+    "text": "Членът не е намерен в тази организация"
+  },
+  "api.organizations.members.errors.member_not_active": {
+    "text": "Членът не е активен"
+  },
+  "api.organizations.members.errors.invalid_role_value": {
+    "text": "Невалидна роля. Трябва да е една от: %{roles}"
+  },
+  "api.organizations.members.errors.cannot_change_owner_role": {
+    "text": "Ролята на собственика не може да се променя. Вместо това използвайте прехвърляне на собствеността."
+  },
+  "api.organizations.members.errors.member_already_has_role": {
+    "text": "Членът вече има роля: %{role}"
+  },
+  "api.organizations.members.errors.cannot_promote_to_owner": {
+    "text": "Не може да се повиши до собственик. Вместо това използвайте прехвърляне на собствеността."
+  },
+  "api.organizations.members.errors.must_be_member": {
+    "text": "Трябва да сте член на тази организация"
+  },
+  "api.organizations.members.errors.cannot_remove_owner": {
+    "text": "Собственикът на организацията не може да бъде премахнат. Първо прехвърлете собствеността."
+  },
+  "api.organizations.members.errors.cannot_remove_self": {
+    "text": "Не можете да премахнете себе си. Вместо това използвайте напускане на организацията."
+  },
+  "api.organizations.members.errors.admin_cannot_remove_admin": {
+    "text": "Администраторите не могат да премахват други администратори. Само собствениците могат."
+  },
+  "api.organizations.members.errors.no_permission_to_remove": {
+    "text": "Нямате права да премахвате членове"
+  }
+}

@@ -1299,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Винаги проверявайте дали сте на официалния уебсайт на {product_name}. Измамниците понякога създават фалшиви уебсайтове, които изглеждат точно като {product_name}, за да откраднат тайните ви. За да избегнете фишинг атаки, проверете домейна преди да създавате нови връзки.",
+    "text": "Винаги проверявайте дали се намирате на официалния уебсайт на {product_name}. Измамници понякога създават фалшиви уебсайтове, които изглеждат точно като {product_name}, за да откраднат вашите тайни. За да избегнете фишинг атаки, проверявайте регионалния домейн, преди да създавате нови връзки.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1383,5 +1383,110 @@
     "text": "Надградете, за да отключите повече функции",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "Изисква се удостоверяване"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "Това действие не е налично в режим само за SSO"
+  },
+  "web.COMMON.configure": {
+    "text": "Конфигуриране"
+  },
+  "web.COMMON.copy_to_clipboard": {
+    "text": "Копиране в клипборда"
+  },
+  "web.COMMON.add": {
+    "text": "Добавяне"
+  },
+  "web.COMMON.enabled": {
+    "text": "Активирано"
+  },
+  "web.COMMON.disabled": {
+    "text": "Деактивирано"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Да, изтрий"
+  },
+  "web.COMMON.error_code": {
+    "text": "Код на грешка"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTP статус"
+  },
+  "web.COMMON.details": {
+    "text": "Подробности"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Потвърдете паролата"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Паролите трябва да съвпадат"
+  },
+  "web.COMMON.and": {
+    "text": "и"
+  },
+  "web.COMMON.or": {
+    "text": "или"
+  },
+  "web.COMMON.copied": {
+    "text": "Копирано"
+  },
+  "web.COMMON.copy": {
+    "text": "Копиране"
+  },
+  "web.COMMON.copy_email": {
+    "text": "Копиране на имейл адреса"
+  },
+  "web.COMMON.copy_id": {
+    "text": "Копиране на ИД на акаунта"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "Уникалният идентификатор на вашата организация"
+  },
+  "web.COMMON.success": {
+    "text": "Успех"
+  },
+  "web.COMMON.need_help": {
+    "text": "Нуждаете се от помощ"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "Отваряне на диалога за помощ"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "Фокусът вече е в основното текстово поле"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Показване на ключовата фраза"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Скриване на ключовата фраза"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "Икона за копиране"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "Икона за копирано"
+  },
+  "web.STATUS.unverified": {
+    "text": "Непроверено"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Настройки на домейна"
+  },
+  "web.TITLES.domain_signin": {
+    "text": "Конфигурация на влизането"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "SSO на домейна"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "Валидиране на регистрацията за домейна"
+  },
+  "web.TITLES.domain_email": {
+    "text": "Конфигурация на имейла"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Входящи тайни"
   }
 }

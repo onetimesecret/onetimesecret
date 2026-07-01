@@ -130,5 +130,26 @@
   "incoming.receipt_link_text": {
     "text": "разписка",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Изисква се надстройка"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Тази функция изисква надстройка на плана. Моля, свържете се със собственика на акаунта, за да активирате входящите тайни."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Бележката трябва да е {max} знака или по-малко"
+  },
+  "incoming.validation_secret_required": {
+    "text": "Съдържанието на тайната е задължително"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Моля, изберете получател"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "Функцията за входящи тайни не е активирана"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Моля, проверете формуляра за грешки"
   }
 }

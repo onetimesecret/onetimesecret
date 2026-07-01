@@ -1,0 +1,71 @@
+{
+  "api.entitlements.errors.context_unavailable": {
+    "text": "Не може да се проверят правата (контекстът на организацията е недостъпен)"
+  },
+  "api.entitlements.errors.api_access_required": {
+    "text": "Достъпът до API изисква надстройка на плана"
+  },
+  "api.entitlements.errors.custom_privacy_defaults_required": {
+    "text": "Потребителските настройки за поверителност по подразбиране изискват надстройка на плана"
+  },
+  "api.entitlements.errors.extended_default_expiration_required": {
+    "text": "Удълженото изтичане по подразбиране изисква надстройка на плана"
+  },
+  "api.entitlements.errors.custom_domains_required": {
+    "text": "Потребителските домейни изискват надстройка на плана"
+  },
+  "api.entitlements.errors.custom_branding_required": {
+    "text": "Персонализираната марка изисква надстройка на плана"
+  },
+  "api.entitlements.errors.homepage_secrets_required": {
+    "text": "Тайните на началната страница изискват надстройка на плана"
+  },
+  "api.entitlements.errors.incoming_secrets_required": {
+    "text": "Входящите тайни изискват надстройка на плана"
+  },
+  "api.entitlements.errors.custom_mail_sender_required": {
+    "text": "Потребителският подател на поща изисква надстройка на плана"
+  },
+  "api.entitlements.errors.flexible_from_domain_required": {
+    "text": "Гъвкавият домейн на подателя изисква надстройка на плана"
+  },
+  "api.entitlements.errors.manage_org_required": {
+    "text": "Управлението на организацията изисква надстройка на плана"
+  },
+  "api.entitlements.errors.manage_teams_required": {
+    "text": "Управлението на екипи изисква надстройка на плана"
+  },
+  "api.entitlements.errors.manage_members_required": {
+    "text": "Управлението на членове изисква надстройка на плана"
+  },
+  "api.entitlements.errors.manage_sso_required": {
+    "text": "Управлението на SSO изисква надстройка на плана"
+  },
+  "api.entitlements.errors.audit_logs_required": {
+    "text": "Одитните журнали изискват надстройка на плана"
+  },
+  "api.entitlements.errors.custom_signup_validation_required": {
+    "text": "Потребителското валидиране на регистрацията изисква надстройка на плана"
+  },
+  "api.entitlements.errors.create_secrets_required": {
+    "text": "Създаването на тайни изисква надстройка на плана"
+  },
+  "api.entitlements.errors.view_receipt_required": {
+    "text": "Преглеждането на разписки изисква надстройка на плана"
+  },
+  "api.entitlements.errors.notifications_required": {
+    "text": "Известията изискват надстройка на плана"
+  },
+  "api.entitlements.errors.workspace_branding_required": {
+    "text": "Брандирането на работната област изисква надстройка на плана"
+  },
+  "api.entitlements.errors.ip_access_rules_required": {
+    "text": "Правилата за достъп по IP изискват надстройка на плана"
+  },
+  "api.entitlements.errors.manage_billing_required": {
+    "text": "Управлението на фактурирането изисква надстройка на плана"
+  },
+  "api.entitlements.errors.custom_signin_config_required": {
+    "text": "Потребителската конфигурация на влизането изисква надстройка на плана"
+  }
+}

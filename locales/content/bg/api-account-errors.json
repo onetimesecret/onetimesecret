@@ -1,0 +1,8 @@
+{
+  "api.account.errors.invalid_email": {
+    "text": "Това валиден имейл адрес ли е?"
+  },
+  "api.account.errors.password_too_short": {
+    "text": "Паролата е твърде кратка"
+  }
+}
