@@ -96,6 +96,10 @@ function restoreFavicons(): void {
  */
 export function useBrandTheme(): void {
   if (activated) return;
+  // SSR/prerender guard: this bridge manipulates the DOM (palette CSS vars on
+  // <html> and <link rel="icon"> hrefs). No-op without a DOM, matching the
+  // window guards used elsewhere (e.g. useTheme.ts).
+  if (typeof window === 'undefined') return;
   activated = true;
 
   const identityStore = useProductIdentity();

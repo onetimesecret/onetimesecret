@@ -44,7 +44,18 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
         'host' => 'localhost:7143',
         'domain' => 'localhost',
         'ssl' => false,
-        'secret' => 'test-secret-for-rhales-migration-spec'
+        'secret' => 'test-secret-for-rhales-migration-spec',
+        # page_title falls through display_domain -> brand_product_name ->
+        # this legacy site_name when no domain/brand context is present
+        # (GLOBAL_DEFAULTS[:product_name] is nil per #3049, so this tier is
+        # what production's config.defaults.yaml actually supplies).
+        'interface' => {
+          'ui' => {
+            'header' => {
+              'branding' => { 'site_name' => 'One-Time Secret' }
+            }
+          }
+        }
       },
       'development' => { 'enabled' => false },
       'diagnostics' => {},

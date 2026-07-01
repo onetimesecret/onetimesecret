@@ -37,10 +37,23 @@ export interface EmailConfigFormState {
   enabled: boolean;
 }
 
-function createDefaultFormState(): EmailConfigFormState {
+/**
+ * Sender defaults applied to the form when a domain has no saved email config
+ * yet. Lets an operator enable the custom sender without hand-typing an
+ * address — the caller supplies `no-reply@<domain>` and a display name so the
+ * form starts valid and only needs the "enabled" toggle flipped + Save.
+ */
+export interface EmailConfigDefaults {
+  /** Default sender display name (e.g. the organization/workspace name). */
+  fromName?: string;
+  /** Default sender address (e.g. `no-reply@<domain>`). */
+  fromAddress?: string;
+}
+
+function createDefaultFormState(defaults: EmailConfigDefaults = {}): EmailConfigFormState {
   return {
-    from_name: '',
-    from_address: '',
+    from_name: defaults.fromName?.trim() || '',
+    from_address: defaults.fromAddress?.trim() || '',
     reply_to: '',
     enabled: false,
   };
@@ -102,6 +115,10 @@ export function useEmailConfig(domainExtId: string) {
 
   /** Snapshot of form state at last save/load. Used for unsaved-changes detection. */
   const savedFormState = ref<EmailConfigFormState | null>(null);
+
+  /** Sender defaults for an unconfigured domain (captured on initialize, reused
+   *  after delete so the form returns to the `no-reply@<domain>` starting point). */
+  const senderDefaults = ref<EmailConfigDefaults>({});
 
   const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
     notify: (message, severity) => notifications.show(message, severity, 'top'),
@@ -180,15 +197,16 @@ export function useEmailConfig(domainExtId: string) {
    * Load the current email config for this domain.
    * 404 is treated as "unconfigured" (emailConfig = null), not an error.
    */
-  const initialize = () =>
+  const initialize = (defaults: EmailConfigDefaults = {}) =>
     wrap(async () => {
+      senderDefaults.value = defaults;
       const config = await domainsStore.getEmailConfig(domainExtId);
       emailConfig.value = config;
 
       if (config) {
         formState.value = configToFormState(config);
       } else {
-        formState.value = createDefaultFormState();
+        formState.value = createDefaultFormState(defaults);
       }
       savedFormState.value = { ...formState.value };
       isInitialized.value = true;
@@ -241,7 +259,7 @@ export function useEmailConfig(domainExtId: string) {
       await wrapAction(async () => {
         await domainsStore.deleteEmailConfig(domainExtId);
         emailConfig.value = null;
-        formState.value = createDefaultFormState();
+        formState.value = createDefaultFormState(senderDefaults.value);
         savedFormState.value = { ...formState.value };
         notifications.show(t('web.domains.email.delete_success'), 'success', 'top');
       });

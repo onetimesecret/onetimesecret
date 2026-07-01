@@ -50,8 +50,10 @@ RSpec.describe Core::Views::BaseView do
     it 'sets basic template variables' do
       expect(subject.view_vars['description']).to eq('Test Description')
       expect(subject.view_vars['keywords']).to eq('test,keywords')
-      # page_title defaults to BrandSettingsConstants::GLOBAL_DEFAULTS[:product_name]
-      expect(subject.view_vars['page_title']).to eq('OTS')
+      # page_title falls through display_domain -> brand_product_name -> site_name;
+      # the test config stubs none of them, and GLOBAL_DEFAULTS[:product_name] is
+      # nil per #3049, so it resolves to nil here (not 'OTS').
+      expect(subject.view_vars['page_title']).to be_nil
     end
 
     it 'initializes JavaScript variables' do

@@ -202,7 +202,7 @@ const providerDisplayName = computed(() => {
             type="text"
             required
             autocomplete="off"
-            placeholder="noreply"
+            placeholder="no-reply"
             class="block w-full min-w-0 flex-1 rounded-l-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm"
             @input="fromAddressLocalPart = ($event.target as HTMLInputElement).value" />
           <span
