@@ -499,7 +499,7 @@
     "text": "E-Mail-Konfiguration"
   },
   "web.domains.email.config_description": {
-    "text": "E-Mail-Versand für diese Domäne konfigurieren"
+    "text": "E-Mail-Versand für diesen Bereich konfigurieren"
   },
   "web.domains.email.provider_label": {
     "text": "E-Mail-Anbieter"
@@ -544,13 +544,13 @@
     "text": "Kontostandards verwenden"
   },
   "web.domains.email.provider_ses_description": {
-    "text": "Erfordert Domänenverifizierung über DKIM- und SPF-Einträge"
+    "text": "Erfordert Bereichsverifizierung über DKIM- und SPF-Einträge"
   },
   "web.domains.email.provider_sendgrid_description": {
-    "text": "Erfordert Einrichtung der Domänenauthentifizierung"
+    "text": "Erfordert Einrichtung der Bereichsauthentifizierung"
   },
   "web.domains.email.provider_lettermint_description": {
-    "text": "Erfordert Domänenverifizierung"
+    "text": "Erfordert Bereichsverifizierung"
   },
   "web.domains.email.provider_inherit_description": {
     "text": "Verwendet die Standardkonfiguration für den E-Mail-Versand Ihres Kontos"
@@ -559,7 +559,7 @@
     "text": "DNS-Einträge"
   },
   "web.domains.email.dns_records_description": {
-    "text": "Fügen Sie die folgenden DNS-Einträge hinzu, um Ihre Domäne für den E-Mail-Versand zu verifizieren."
+    "text": "Fügen Sie die folgenden DNS-Einträge hinzu, um Ihren Bereich für den E-Mail-Versand zu verifizieren."
   },
   "web.domains.email.dns_column_type": {
     "text": "Typ"
@@ -604,7 +604,7 @@
     "text": "Wird validiert..."
   },
   "web.domains.email.domain_verified": {
-    "text": "Domäne verifiziert"
+    "text": "Bereich verifiziert"
   },
   "web.domains.email.validation_failed": {
     "text": "Validierung fehlgeschlagen"
@@ -613,7 +613,7 @@
     "text": "Zuletzt validiert"
   },
   "web.domains.email.upgrade_to_configure": {
-    "text": "Führen Sie ein Upgrade Ihres Tarifs durch, um den E-Mail-Versand für diese Domäne zu konfigurieren."
+    "text": "Führen Sie ein Upgrade Ihres Tarifs durch, um den E-Mail-Versand für diesen Bereich zu konfigurieren."
   },
   "web.domains.email.configure_email": {
     "text": "E-Mail konfigurieren"
@@ -622,7 +622,7 @@
     "text": "Zugriff verweigert"
   },
   "web.domains.email.access_denied_description": {
-    "text": "Sie haben keine Berechtigung, die E-Mail-Einstellungen für diese Domäne zu verwalten. Wenden Sie sich an Ihren Organisationsadministrator."
+    "text": "Sie haben keine Berechtigung, die E-Mail-Einstellungen für diesen Bereich zu verwalten. Wenden Sie sich an Ihren Organisationsadministrator."
   },
   "web.domains.email.update_success": {
     "text": "E-Mail-Konfiguration erfolgreich gespeichert"
@@ -631,7 +631,7 @@
     "text": "E-Mail-Konfiguration erfolgreich entfernt"
   },
   "web.domains.email.default_sender_notice": {
-    "text": "E-Mails für diese Domäne werden derzeit vom globalen Absender gesendet. Schließen Sie die E-Mail-Konfiguration ab, um Ihre eigene Absenderidentität zu verwenden."
+    "text": "E-Mails für diesen Bereich werden derzeit vom globalen Absender gesendet. Schließen Sie die E-Mail-Konfiguration ab, um Ihre eigene Absenderidentität zu verwenden."
   },
   "web.domains.email.disabled_notice": {
     "text": "Der benutzerdefinierte E-Mail-Versand ist derzeit deaktiviert. E-Mails werden vom globalen Absender gesendet. Aktivieren Sie die Funktion unten, um Ihre benutzerdefinierte Absenderidentität zu verwenden."
@@ -682,7 +682,7 @@
     "text": "E-Mail-Absender ist deaktiviert — E-Mails verwenden den Standardabsender der Plattform"
   },
   "web.domains.email.tooltip_verified": {
-    "text": "E-Mail-Absender verifiziert — E-Mails werden von dieser Domäne gesendet"
+    "text": "E-Mail-Absender verifiziert — E-Mails werden von diesem Bereich gesendet"
   },
   "web.domains.incoming.title": {
     "text": "Eingehende Nachrichten"
@@ -1051,7 +1051,7 @@
     "text": "Konfiguration der Registrierungsvalidierung erfolgreich entfernt"
   },
   "web.domains.signup.domain_overrides_label": {
-    "text": "Bereich-Überschreibungen"
+    "text": "Bereichs-Überschreibungen"
   },
   "web.domains.signup.domain_overrides_hint": {
     "text": "Globale Registrierungseinstellungen für diesen Bereich überschreiben"
