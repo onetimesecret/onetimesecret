@@ -655,6 +655,10 @@
     "text": "e.g. secrets{'@'}example.com",
     "content_hash": "a09b3928"
   },
+  "web.domains.email.from_address_local_placeholder": {
+    "text": "no-reply",
+    "context": "Placeholder for the local part (before the @) of the sender email address. 'no-reply' is a reserved technical mailbox name (RFC 2142) — keep it as-is, do not translate."
+  },
   "web.domains.email.reply_to_label": {
     "text": "Reply-To Address",
     "content_hash": "4538ea9c"
