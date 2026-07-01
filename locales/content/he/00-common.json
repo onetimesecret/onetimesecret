@@ -173,7 +173,7 @@
     "source_hash": "77322879"
   },
   "web.COMMON.click_to_continue": {
-    "text": "לחץ לחשיפה →",
+    "text": "← לחץ לחשיפה",
     "source_hash": "41658f99"
   },
   "web.COMMON.click_to_verify": {
@@ -1299,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "תמיד ודא שאתה באתר הרשמי של {product_name}. נוכלים לפעמים יוצרים אתרים מזויפים שנראים בדיוק כמו {product_name} כדי לגנוב את הסודות שלך. כדי להימנע מהתקפות פישינג, בדוק את הדומיין לפני יצירת קישורים חדשים.",
+    "text": "ודא תמיד שאתה נמצא באתר הרשמי של {product_name}. רמאים יוצרים לעיתים אתרים מזויפים שנראים בדיוק כמו {product_name} כדי לגנוב את הסודות שלך. כדי להימנע מהתקפות דיוג, בדוק את דומיין האזור לפני יצירת קישורים חדשים.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1383,5 +1383,110 @@
     "text": "שדרג כדי לפתוח תכונות נוספות",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "נדרש אימות"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "פעולה זו אינה זמינה במצב SSO בלבד"
+  },
+  "web.COMMON.configure": {
+    "text": "הגדרה"
+  },
+  "web.COMMON.copy_to_clipboard": {
+    "text": "העתקה ללוח"
+  },
+  "web.COMMON.add": {
+    "text": "הוספה"
+  },
+  "web.COMMON.enabled": {
+    "text": "מופעל"
+  },
+  "web.COMMON.disabled": {
+    "text": "מושבת"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "כן, מחק"
+  },
+  "web.COMMON.error_code": {
+    "text": "קוד שגיאה"
+  },
+  "web.COMMON.http_status": {
+    "text": "סטטוס HTTP"
+  },
+  "web.COMMON.details": {
+    "text": "פרטים"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "אישור סיסמה"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "הסיסמאות חייבות להיות זהות"
+  },
+  "web.COMMON.and": {
+    "text": "וגם"
+  },
+  "web.COMMON.or": {
+    "text": "או"
+  },
+  "web.COMMON.copied": {
+    "text": "הועתק"
+  },
+  "web.COMMON.copy": {
+    "text": "העתקה"
+  },
+  "web.COMMON.copy_email": {
+    "text": "העתק כתובת דוא״ל"
+  },
+  "web.COMMON.copy_id": {
+    "text": "העתק מזהה חשבון"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "המזהה הייחודי של הארגון שלך"
+  },
+  "web.COMMON.success": {
+    "text": "הצלחה"
+  },
+  "web.COMMON.need_help": {
+    "text": "צריך עזרה"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "פתח את חלון העזרה"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "המיקוד נמצא כעת באזור הטקסט הראשי"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "הצג ביטוי סיסמה"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "הסתר ביטוי סיסמה"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "סמל העתקה"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "סמל הועתק"
+  },
+  "web.STATUS.unverified": {
+    "text": "לא מאומת"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "הגדרות דומיין"
+  },
+  "web.TITLES.domain_signin": {
+    "text": "הגדרת התחברות"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "SSO לדומיין"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "אימות הרשמה לדומיין"
+  },
+  "web.TITLES.domain_email": {
+    "text": "הגדרת דוא״ל"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "סודות נכנסים"
   }
 }

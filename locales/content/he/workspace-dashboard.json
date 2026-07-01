@@ -22,5 +22,14 @@
   "web.dashboard.fetch_error_description": {
     "text": "אירעה בעיה בטעינת הנתונים שלך. אנא נסה שוב.",
     "source_hash": "ff0d904e"
+  },
+  "web.teams.create_first_team_title": {
+    "text": "צור את הצוות הראשון שלך"
+  },
+  "web.teams.create_first_team_description": {
+    "text": "צוותים מאפשרים לך לשתף פעולה עם אחרים במרחב עבודה משותף."
+  },
+  "web.teams.create_team": {
+    "text": "צור צוות"
   }
 }

@@ -395,5 +395,35 @@
   "web.help.contact_support": {
     "text": "צור קשר עם התמיכה",
     "source_hash": "f8d47b82"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "חשבון SSO"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Email verification flow after signup"
+  },
+  "web.help.reset_password_link": {
+    "text": "איפוס סיסמה"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "כניסה יחידה (SSO) זמינה עבור דומיין זה"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "מנהל הארגון יכול להפעיל SSO כדי לאפשר לחברי הצוות להתחבר כאן. פנה למנהל לקבלת גישה."
+  },
+  "web.login.signin_disabled_heading": {
+    "text": "ההתחברות אינה זמינה"
+  },
+  "web.login.signin_disabled_message": {
+    "text": "ההתחברות אינה זמינה כעת בדומיין זה."
+  },
+  "web.login.errors.sso_not_configured": {
+    "text": "כניסה יחידה (SSO) אינה מוגדרת עבור דומיין זה. אנא פנה למנהל המערכת שלך."
+  },
+  "web.login.errors.invalid_email": {
+    "text": "כתובת הדוא״ל מספק הזהויות שלך אינה תקינה. אנא פנה למנהל המערכת שלך."
+  },
+  "web.login.errors.domain_not_allowed": {
+    "text": "דומיין הדוא״ל שלך אינו מורשה להרשמה באמצעות SSO. אנא פנה למנהל המערכת שלך."
   }
 }
