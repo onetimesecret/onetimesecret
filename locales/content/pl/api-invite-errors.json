@@ -9,7 +9,7 @@
     "text": "Organizacja już nie istnieje"
   },
   "api.invite.errors.invitation_already_processed": {
-    "text": "Zaproszenie zostało już %{status}"
+    "text": "Zaproszenie zostało już obsłużone: %{status}"
   },
   "api.invite.errors.invitation_expired": {
     "text": "Zaproszenie wygasło"
