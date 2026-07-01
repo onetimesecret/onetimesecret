@@ -578,5 +578,344 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Yakında sona erecek",
     "source_hash": "a5dcfef9"
+  },
+  "api.organizations.errors.not_found": {
+    "text": "Kuruluş bulunamadı: %{extid}"
+  },
+  "api.organizations.errors.owner_required": {
+    "text": "Bu işlemi yalnızca kuruluş sahibi gerçekleştirebilir"
+  },
+  "api.organizations.errors.admin_required": {
+    "text": "Bu işlemi yalnızca kuruluş sahipleri ve yöneticileri gerçekleştirebilir"
+  },
+  "api.organizations.errors.member_required": {
+    "text": "Bu işlemi gerçekleştirmek için bir kuruluş üyesi olmalısınız"
+  },
+  "api.organizations.invitations.errors.create_admin_required": {
+    "text": "Davetleri yalnızca kuruluş sahipleri ve yöneticileri oluşturabilir"
+  },
+  "api.organizations.invitations.errors.resend_admin_required": {
+    "text": "Davetleri yalnızca kuruluş sahipleri ve yöneticileri yeniden gönderebilir"
+  },
+  "api.organizations.invitations.errors.view_admin_required": {
+    "text": "Davetleri yalnızca kuruluş sahipleri ve yöneticileri görüntüleyebilir"
+  },
+  "api.organizations.invitations.errors.revoke_admin_required": {
+    "text": "Davetleri yalnızca kuruluş sahipleri ve yöneticileri iptal edebilir"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "E-posta gereklidir"
+  },
+  "api.organizations.invitations.errors.email_invalid": {
+    "text": "Geçersiz e-posta biçimi"
+  },
+  "api.organizations.invitations.errors.role_invalid": {
+    "text": "Rol üye veya yönetici olmalıdır"
+  },
+  "api.organizations.invitations.errors.cannot_invite_owner": {
+    "text": "Sahip olarak davet edilemez"
+  },
+  "api.organizations.invitations.errors.already_member": {
+    "text": "Kullanıcı zaten bu kuruluşun üyesi"
+  },
+  "api.organizations.invitations.errors.already_pending": {
+    "text": "Bu e-posta için zaten bekleyen bir davet var"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Üye sınırına ulaşıldı. Daha fazla üye davet etmek için planınızı yükseltin."
+  },
+  "api.organizations.invitations.errors.not_found": {
+    "text": "Davet bulunamadı"
+  },
+  "api.organizations.invitations.errors.cannot_resend_non_pending": {
+    "text": "Yalnızca bekleyen davetler yeniden gönderilebilir"
+  },
+  "api.organizations.invitations.errors.cannot_revoke_non_pending": {
+    "text": "Yalnızca bekleyen davetler iptal edilebilir"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Maksimum yeniden gönderme sınırına (%{max}) ulaşıldı"
+  },
+  "api.organizations.invitations.errors.accept_token_required": {
+    "text": "Token gereklidir"
+  },
+  "api.organizations.invitations.errors.accept_organization_gone": {
+    "text": "Kuruluş artık mevcut değil"
+  },
+  "api.organizations.invitations.errors.accept_already_acted": {
+    "text": "Davet zaten %{status}"
+  },
+  "api.organizations.invitations.errors.accept_expired": {
+    "text": "Davetin süresi doldu"
+  },
+  "api.organizations.invitations.errors.accept_email_mismatch": {
+    "text": "E-posta adresiniz davetle eşleşmiyor"
+  },
+  "api.organizations.invitations.errors.accept_already_member": {
+    "text": "Zaten bu kuruluşun üyesisiniz"
+  },
+  "web.organizations.entitlements_title": {
+    "text": "Kuruluş Yetkilendirmeleri"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Çalışma alanlarınızı görüntüleyin ve yapılandırın"
+  },
+  "web.organizations.delete_organization_remove_domains_first": {
+    "text": "Bu kuruluşu silmeden önce tüm özel alan adlarını kaldırın."
+  },
+  "web.organizations.default_org_delete_notice_title": {
+    "text": "Bu kuruluşu silme"
+  },
+  "web.organizations.default_org_delete_notice_before": {
+    "text": "Bu, varsayılan kuruluşunuzdur ve kontrol panelinden kaldırılamaz. Silmek için lütfen şu yoldan bize ulaşın:"
+  },
+  "web.organizations.default_org_delete_notice_link": {
+    "text": "geri bildirim formu"
+  },
+  "web.organizations.default_org_delete_notice_after": {
+    "text": "."
+  },
+  "web.organizations.leave_organization": {
+    "text": "Bu kuruluştan ayrıl"
+  },
+  "web.organizations.leave_organization_warning": {
+    "text": "Bu kuruluşa ve kaynaklarına erişiminizi kaybedeceksiniz."
+  },
+  "web.organizations.leave_organization_confirm_title": {
+    "text": "Kuruluştan Ayrıl"
+  },
+  "web.organizations.leave_organization_confirm_message": {
+    "text": "{name} kuruluşundan ayrılmak istediğinizden emin misiniz? Yeniden katılmak için yeni bir davete ihtiyacınız olacak."
+  },
+  "web.organizations.leave_organization_success": {
+    "text": "Kuruluştan ayrıldınız."
+  },
+  "web.organizations.leave_error": {
+    "text": "Kuruluştan ayrılınamadı"
+  },
+  "web.organizations.organizations": {
+    "text": "Kuruluşlar"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "{email} tarafından"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "{role} olarak"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Ana sayfaya dön"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Bu davet bu e-posta adresine gönderildi"
+  },
+  "web.organizations.invitations.signup_continue": {
+    "text": "Devam et"
+  },
+  "web.organizations.invitations.signin_continue": {
+    "text": "Giriş yap"
+  },
+  "web.organizations.invitations.confirm_join_below": {
+    "text": "Neredeyse tamam — kuruluşa katılmak için aşağıdan onaylayın."
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Kuruluşlara git"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Zaten bu kuruluşun üyesisiniz"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "{orgName} kuruluşuna katıl"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "{orgName} kuruluşuna katılmak için giriş yapın"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Reddet"
+  },
+  "web.organizations.members.member_quota": {
+    "text": "{limit} üyeden {used} tanesi"
+  },
+  "web.organizations.members.pending_suffix": {
+    "text": "({count} bekliyor)"
+  },
+  "web.organizations.members.limit_reached_hint": {
+    "text": "Üye sınırına ulaşıldı."
+  },
+  "web.organizations.sso.title": {
+    "text": "Tek Oturum Açma (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "Üyelerin kuruluşunuzun kimlik sağlayıcısıyla giriş yapmasına izin vermek için SSO'yu yapılandırın"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Sağlayıcı Türü"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Kuruluşunuzun kimlik sağlayıcısını seçin"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Görünen Ad"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "Giriş yaparken kullanıcılara gösterilen kullanıcı dostu bir ad"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "örn. Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "Client ID"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "OAuth client ID'niz"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Client Secret"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "OAuth client secret'ınız"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Mevcut secret'ı korumak için boş bırakın"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "Tenant ID"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "Azure AD / Entra ID tenant tanımlayıcınız"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "örn. 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "Issuer URL"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "Kimlik sağlayıcınız için OIDC keşif URL'si"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "örn. https://login.example.com"
+  },
+  "web.organizations.sso.view_discovery_document": {
+    "text": "Keşif belgesini görüntüle"
+  },
+  "web.organizations.sso.callback_url": {
+    "text": "Callback URL"
+  },
+  "web.organizations.sso.callback_url_hint": {
+    "text": "Bu URL'yi kimlik sağlayıcınızın izin verilen yönlendirme URI'lerine ekleyin"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "İzin Verilen E-posta Alan Adları"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Yalnızca bu alan adlarından e-posta adresine sahip kullanıcılar giriş yapabilir. Tüm alan adlarına izin vermek için boş bırakın."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "örn. acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Lütfen geçerli bir alan adı girin (örn. example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Bu alan adı zaten listede"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "{domain} adresini kaldır"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "SSO'yu Etkinleştir"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "Etkinleştirildiğinde, kuruluş üyeleri bu SSO sağlayıcısını kullanarak giriş yapabilir"
+  },
+  "web.organizations.sso.enforce_sso_only": {
+    "text": "Yalnızca SSO'yu zorunlu kıl"
+  },
+  "web.organizations.sso.enforce_sso_only_hint": {
+    "text": "Bu alan adındaki tüm girişler için SSO'yu zorunlu kılın. Etkinleştirildiğinde, parola tabanlı kimlik doğrulama devre dışı bırakılır."
+  },
+  "web.organizations.sso.grant_org_scope": {
+    "text": "Kuruluş genelinde erişim ver"
+  },
+  "web.organizations.sso.grant_org_scope_hint": {
+    "text": "Bu alan adının SSO'su aracılığıyla katılan yeni üyelere tüm kuruluş alan adlarına erişim verilir. Mevcut üyeler etkilenmez. Devre dışı bırakıldığında (varsayılan), yeni üyeler yalnızca bu alan adına erişebilir."
+  },
+  "web.organizations.sso.save_config": {
+    "text": "SSO Yapılandırmasını Kaydet"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Yapılandırmayı Sil"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "Emin misiniz? Bu, kuruluşunuz için SSO'yu devre dışı bırakacak."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "SSO yapılandırması yüklenemedi"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "SSO yapılandırması kaydedilemedi"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "SSO yapılandırması başarıyla oluşturuldu"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "SSO yapılandırması başarıyla güncellendi"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "SSO yapılandırması başarıyla silindi"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "SSO yapılandırması silinemedi"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Bağlantıyı Test Et"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Kimlik sağlayıcısının erişilebilir olduğunu doğrulayın (kimlik bilgilerini doğrulamaz)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Bağlantıyı Test Et"
+  },
+  "web.organizations.sso.testing": {
+    "text": "Test ediliyor..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "Bağlantı test edilemedi"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Yetkilendirme Uç Noktası"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Eksik Alanlar"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Etkin"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Yapılandırılmış"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "Alan Adı SSO'su"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Her doğrulanmış alan adı için SSO'yu yapılandırın"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "Sağlayıcıyı değiştirmek için önce bu yapılandırmayı silin"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Yapılandırılmamış"
+  },
+  "web.organizations.sso.no_domains": {
+    "text": "Doğrulanmış alan adı yok"
+  },
+  "web.organizations.sso.no_domains_description": {
+    "text": "SSO'yu yapılandırmadan önce bir alan adı ekleyin ve doğrulayın."
+  },
+  "web.organizations.tabs.team": {
+    "text": "Ekip"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

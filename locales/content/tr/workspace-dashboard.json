@@ -22,5 +22,14 @@
   "web.dashboard.fetch_error_description": {
     "text": "Verileriniz yüklenirken bir sorun oluştu. Lütfen tekrar deneyin.",
     "source_hash": "ff0d904e"
+  },
+  "web.teams.create_first_team_title": {
+    "text": "İlk ekibinizi oluşturun"
+  },
+  "web.teams.create_first_team_description": {
+    "text": "Ekipler, paylaşılan bir çalışma alanında başkalarıyla iş birliği yapmanızı sağlar."
+  },
+  "web.teams.create_team": {
+    "text": "Ekip oluştur"
   }
 }

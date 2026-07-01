@@ -1,0 +1,29 @@
+{
+  "api.domains.errors.domain_id_required": {
+    "text": "Alan adı kimliği gerekli"
+  },
+  "api.domains.errors.domain_not_found": {
+    "text": "Alan adı bulunamadı: %{extid}"
+  },
+  "api.domains.errors.organization_not_found": {
+    "text": "Şu alan adı için kuruluş bulunamadı: %{domain}"
+  },
+  "api.domains.errors.incoming_secrets_disabled": {
+    "text": "Gelen gizli mesajlar bu sunucuda etkin değil"
+  },
+  "api.domains.errors.incoming_secrets_entitlement_required": {
+    "text": "Gelen gizli mesaj yönetimi, incoming_secrets yetkisini gerektirir. Lütfen planınızı yükseltin."
+  },
+  "api.domains.errors.incoming_config_not_found": {
+    "text": "Şu alan adı için gelen yapılandırma bulunamadı: %{extid}"
+  },
+  "api.domains.errors.recipients_max_exceeded": {
+    "text": "En fazla %{max} alıcıya izin verilir"
+  },
+  "api.domains.errors.recipients_invalid_email": {
+    "text": "Geçersiz e-posta: %{email}"
+  },
+  "api.domains.errors.recipients_duplicate": {
+    "text": "Yinelenen alıcı e-postalarına izin verilmez"
+  }
+}

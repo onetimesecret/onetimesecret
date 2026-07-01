@@ -395,5 +395,35 @@
   "web.help.contact_support": {
     "text": "Destekle İletişime Geç",
     "source_hash": "f8d47b82"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "SSO Hesabı"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Email verification flow after signup"
+  },
+  "web.help.reset_password_link": {
+    "text": "Parolayı sıfırla"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "Bu alan adı için tek oturum açma (SSO) kullanılabilir"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "Kuruluş yöneticisi, ekip üyelerinin buradan giriş yapabilmesi için SSO'yu etkinleştirebilir. Erişim için yöneticiyle iletişime geçin."
+  },
+  "web.login.signin_disabled_heading": {
+    "text": "Giriş yapılamıyor"
+  },
+  "web.login.signin_disabled_message": {
+    "text": "Bu alan adında şu anda giriş yapılamıyor."
+  },
+  "web.login.errors.sso_not_configured": {
+    "text": "Bu alan adı için tek oturum açma (SSO) yapılandırılmamış. Lütfen yöneticinizle iletişime geçin."
+  },
+  "web.login.errors.invalid_email": {
+    "text": "Kimlik sağlayıcınızdan gelen e-posta adresi geçersiz. Lütfen yöneticinizle iletişime geçin."
+  },
+  "web.login.errors.domain_not_allowed": {
+    "text": "E-posta alan adınız SSO ile kayıt için yetkili değil. Lütfen yöneticinizle iletişime geçin."
   }
 }
