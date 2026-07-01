@@ -29,6 +29,13 @@
 #   --base BRANCH        PR base branch (default: main).
 #   --model MODEL        Model for the review agent (default: claude-sonnet-5).
 #                        Use --model claude-opus-4-8 for a deeper review.
+#   --agent-profile NAME Run each review as a named `claude` agent definition
+#                        (passed through as `claude --agent NAME`), e.g. a
+#                        translation-reviewer or code-reviewer agent from
+#                        .claude/agents or a plugin. The agent supplies the
+#                        reviewer persona/tools; this script still supplies the
+#                        per-locale task prompt, the diff, and --model. Unset by
+#                        default (inline review prompt only).
 #   --no-review          Skip the claude review (PR body carries stats only).
 #   --update             If an open PR already exists for the branch, refresh its
 #                        body instead of skipping it.
@@ -56,6 +63,7 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 BASE_BRANCH=main
 MODEL=claude-sonnet-5
+AGENT_PROFILE=""
 EXECUTE=false
 DO_REVIEW=true
 UPDATE_EXISTING=false
@@ -75,6 +83,8 @@ while [[ $# -gt 0 ]]; do
     --base=*)         BASE_BRANCH="${1#*=}" ;;
     --model)          MODEL="${2:?--model needs a value}"; shift ;;
     --model=*)        MODEL="${1#*=}" ;;
+    --agent-profile)  AGENT_PROFILE="${2:?--agent-profile needs an agent name}"; shift ;;
+    --agent-profile=*) AGENT_PROFILE="${1#*=}" ;;
     --no-review)      DO_REVIEW=false ;;
     --update)         UPDATE_EXISTING=true ;;
     --results-dir)    RESULTS_DIR="${2:?--results-dir needs a path}"; shift ;;
@@ -164,7 +174,7 @@ fi
 
 echo "Base branch : $BASE_BRANCH ($BASE_REF)"
 echo "Locales     : ${LOCALES[*]}"
-echo "Review      : $($DO_REVIEW && echo "claude ($MODEL), reads $PROTOCOL" || echo "disabled")"
+echo "Review      : $($DO_REVIEW && echo "claude ($MODEL${AGENT_PROFILE:+, agent=$AGENT_PROFILE}), reads $PROTOCOL" || echo "disabled")"
 echo "Mode        : $($EXECUTE && echo EXECUTE || echo 'DRY RUN (no PRs created)')"
 echo "Artifacts   : $RESULTS_DIR"
 echo
@@ -321,10 +331,16 @@ process_locale() {
   # ---- The fresh, isolated review agent for THIS locale -------------------
   local review_md=""
   if $DO_REVIEW; then
-    echo "[$locale] running fresh claude review ($MODEL)..."
+    echo "[$locale] running fresh claude review ($MODEL${AGENT_PROFILE:+, agent=$AGENT_PROFILE})..."
     local raw rc=0
+    # Optional named agent profile -> `claude --agent NAME`. Expanded with the
+    # ${arr[@]+"${arr[@]}"} guard so an unset profile adds no argument even under
+    # `set -u`.
+    local -a agent_args=()
+    [[ -n "$AGENT_PROFILE" ]] && agent_args=(--agent "$AGENT_PROFILE")
     raw="$(timeout "$REVIEW_TIMEOUT" claude -p "$(build_review_prompt "$locale")" \
              --model "$MODEL" \
+             ${agent_args[@]+"${agent_args[@]}"} \
              --allowedTools "Read" \
              --output-format text <"$ctx" 2>/dev/null)" || rc=$?
     if [[ $rc -ne 0 || -z "$raw" ]]; then
@@ -360,7 +376,7 @@ process_locale() {
     echo "### Local quality review"
     echo
     if $DO_REVIEW; then
-      echo "> Produced by a fresh, isolated \`claude\` review agent (model \`$MODEL\`) that read"
+      echo "> Produced by a fresh, isolated \`claude\` review agent (model \`$MODEL\`${AGENT_PROFILE:+, agent \`$AGENT_PROFILE\`}) that read"
       echo "> \`$PROTOCOL\` and inspected this branch's diff before the PR was opened."
       echo
     fi
