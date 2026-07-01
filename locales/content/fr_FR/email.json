@@ -409,11 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "L'adresse e-mail de votre compte %{product_name} a été modifiée en %{new_email_masked} le %{date}.",
-    "renderer": "erb",
-    "source_hash": "6f3419d1"
-  },
   "email.email_changed.security_notice": {
     "text": "Si vous n'avez pas effectué cette modification, veuillez contacter immédiatement le support car votre compte pourrait être compromis.",
     "renderer": "erb",

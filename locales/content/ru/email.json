@@ -409,11 +409,6 @@
     "renderer": "erb",
     "source_hash": "62b07299"
   },
-  "email.email_changed.body": {
-    "text": "Адрес электронной почты Вашего аккаунта %{product_name} был изменён на %{new_email_masked} %{date}.",
-    "renderer": "erb",
-    "source_hash": "6f3419d1"
-  },
   "email.email_changed.security_notice": {
     "text": "Если Вы не вносили это изменение, немедленно свяжитесь со службой поддержки, так как Ваш аккаунт может быть скомпрометирован.",
     "renderer": "erb",
