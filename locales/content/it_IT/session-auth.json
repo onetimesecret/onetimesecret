@@ -399,9 +399,6 @@
   "web.auth.account.sso_linked": {
     "text": "Account SSO"
   },
-  "web.auth.verify._guidance.context": {
-    "text": "Email verification flow after signup"
-  },
   "web.help.reset_password_link": {
     "text": "Reimposta password"
   },

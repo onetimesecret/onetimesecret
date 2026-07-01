@@ -720,16 +720,10 @@
   "web.auth.remember.enabled": {
     "text": "Resta connesso"
   },
-  "web.auth.security._guidance.context": {
-    "text": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
-  },
   "web.auth.sessions.session_singular": {
     "text": "sessione"
   },
   "web.auth.sessions.session_plural": {
     "text": "sessioni"
-  },
-  "web.auth.sessions._guidance.context": {
-    "text": "User's logged-in devices/browsers management page"
   }
 }
