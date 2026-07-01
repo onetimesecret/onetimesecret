@@ -716,5 +716,20 @@
   },
   "web.auth.sessions._guidance.context": {
     "text": "Page de gestion des appareils/navigateurs connectés de l'utilisateur"
+  },
+  "web.auth.google": {
+    "text": "Google"
+  },
+  "web.auth.mfa.alternative_auth_options": {
+    "text": "Autres options d'authentification"
+  },
+  "web.auth.remember.enabled": {
+    "text": "Rester connecté"
+  },
+  "web.auth.sessions.session_singular": {
+    "text": "session"
+  },
+  "web.auth.sessions.session_plural": {
+    "text": "sessions"
   }
 }
