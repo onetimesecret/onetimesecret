@@ -129,6 +129,12 @@ jobs:
               - '.nvmrc'
               - '.node-version'
               - 'tests/**'
+              # The i18n-validate job runs the locales/scripts tests; trigger it
+              # on changes to those scripts. Edits to the pin-bearing derive
+              # workflows are covered separately — any .github/** change forces
+              # every path-filter output true (see compute-path-filter-outputs.sh),
+              # so a gate pin rename always runs this job.
+              - 'locales/scripts/**'
             frontend:
               - 'src/**'
               - 'public/**'
@@ -249,6 +255,13 @@ jobs:
           fi
           # Don't fail build - report only (remove 'exit 0' to enforce)
           exit 0
+
+      # Executable invariants for the i18n CLI and the on-demand governance
+      # derive (no-vendor model, ADR-005). The derive-governance pin-contract
+      # tests guard the gate<->script link that silently broke once
+      # (PINNED_RULES_REF -> TRANSLATION_RULES_REF). Zero third-party deps.
+      - name: Run i18n script tests
+        run: python3 -m unittest discover -s locales/scripts/tests -v
 
   build-assets:
     name: T1 · Build Frontend Assets
