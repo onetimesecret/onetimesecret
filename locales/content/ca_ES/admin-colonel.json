@@ -634,5 +634,152 @@
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
     "text": "Quan enviïs comentaris, veurem:",
     "source_hash": "fe77172e"
+  },
+  "web.colonel.previewPlanMode": {
+    "text": "Mode de previsualització del pla"
+  },
+  "web.colonel.previewModeDescription": {
+    "text": "Previsualitza l'aplicació tal com la veuen els clients amb un pla diferent. Això només afecta la teva vista i no canvia el pla real de cap organització."
+  },
+  "web.colonel.previewModeActive": {
+    "text": "Previsualització activa"
+  },
+  "web.colonel.bannedIps.empty": {
+    "text": "No hi ha cap IP bloquejada"
+  },
+  "web.colonel.bannedIps.currentIp": {
+    "text": "La teva adreça IP actual"
+  },
+  "web.colonel.bannedIps.confirmUnban": {
+    "text": "Vols desbloquejar {ip}?"
+  },
+  "web.colonel.bannedIps.actions.ban": {
+    "text": "Bloqueja la IP"
+  },
+  "web.colonel.bannedIps.actions.quickBan": {
+    "text": "Bloqueig ràpid"
+  },
+  "web.colonel.bannedIps.actions.unban": {
+    "text": "Desbloqueja"
+  },
+  "web.colonel.bannedIps.actions.cancel": {
+    "text": "Cancel·la"
+  },
+  "web.colonel.bannedIps.columns.ipAddress": {
+    "text": "Adreça IP"
+  },
+  "web.colonel.bannedIps.columns.reason": {
+    "text": "Motiu"
+  },
+  "web.colonel.bannedIps.columns.bannedAt": {
+    "text": "Bloquejada el"
+  },
+  "web.colonel.bannedIps.columns.bannedBy": {
+    "text": "Bloquejada per"
+  },
+  "web.colonel.bannedIps.error.banFailed": {
+    "text": "No s'ha pogut bloquejar l'adreça IP"
+  },
+  "web.colonel.bannedIps.error.unbanFailed": {
+    "text": "No s'ha pogut desbloquejar l'adreça IP"
+  },
+  "web.colonel.bannedIps.form.title": {
+    "text": "Bloqueja l'adreça IP"
+  },
+  "web.colonel.bannedIps.form.ipLabel": {
+    "text": "Adreça IP"
+  },
+  "web.colonel.bannedIps.form.reasonLabel": {
+    "text": "Motiu"
+  },
+  "web.colonel.bannedIps.form.reasonPlaceholder": {
+    "text": "Motiu opcional"
+  },
+  "web.colonel.bannedIps.success.banned": {
+    "text": "L'adreça IP {ip} s'ha bloquejat"
+  },
+  "web.colonel.bannedIps.success.unbanned": {
+    "text": "L'adreça IP {ip} s'ha desbloquejat"
+  },
+  "web.colonel.customDomains.empty": {
+    "text": "No hi ha cap domini personalitzat configurat"
+  },
+  "web.colonel.customDomains.noLogo": {
+    "text": "Sense logotip"
+  },
+  "web.colonel.customDomains.labels.organization": {
+    "text": "Organització"
+  },
+  "web.colonel.customDomains.labels.externalId": {
+    "text": "ID extern"
+  },
+  "web.colonel.customDomains.labels.created": {
+    "text": "Creat"
+  },
+  "web.colonel.customDomains.labels.updated": {
+    "text": "Actualitzat"
+  },
+  "web.colonel.customDomains.labels.favicon": {
+    "text": "Favicon"
+  },
+  "web.colonel.customDomains.status.verified": {
+    "text": "Verificat"
+  },
+  "web.colonel.customDomains.status.resolving": {
+    "text": "Resolent"
+  },
+  "web.colonel.customDomains.status.ready": {
+    "text": "A punt"
+  },
+  "web.colonel.customDomains.status.publicHomepage": {
+    "text": "Pàgina d'inici pública"
+  },
+  "web.colonel.customDomains.status.publicApi": {
+    "text": "API pública"
+  },
+  "web.colonel.customDomains.status.pending": {
+    "text": "Pendent"
+  },
+  "web.colonel.pagination.showing": {
+    "text": "Es mostren {start}–{end} de {total}"
+  },
+  "web.colonel.pagination.itemsPerPage": {
+    "text": "Elements per pàgina"
+  },
+  "web.colonel.pagination.perPage": {
+    "text": "{count} per pàgina"
+  },
+  "web.colonel.pagination.pageOf": {
+    "text": "Pàgina {current} de {total}"
+  },
+  "web.colonel.secrets.empty": {
+    "text": "No s'ha trobat cap secret"
+  },
+  "web.colonel.secrets.never": {
+    "text": "Mai"
+  },
+  "web.colonel.secrets.columns.shortId": {
+    "text": "ID curt"
+  },
+  "web.colonel.secrets.columns.state": {
+    "text": "Estat"
+  },
+  "web.colonel.secrets.columns.created": {
+    "text": "Creat"
+  },
+  "web.colonel.secrets.columns.expiration": {
+    "text": "Caducitat"
+  },
+  "web.colonel.secrets.columns.age": {
+    "text": "Antiguitat (dies)"
+  },
+  "web.colonel.secrets.state.new": {
+    "text": "Nou"
+  },
+  "web.colonel.secrets.state.received": {
+    "text": "Rebut"
+  },
+  "web.colonel.secrets.state.viewed": {
+    "text": "Vist"
   }
 }

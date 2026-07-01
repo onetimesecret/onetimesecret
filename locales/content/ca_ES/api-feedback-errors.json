@@ -1,0 +1,5 @@
+{
+  "api.feedback.errors.rate_limit_exceeded": {
+    "text": "Hi ha hagut massa enviaments de comentaris. Si us plau, torna-ho a provar més tard."
+  }
+}

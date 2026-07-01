@@ -988,5 +988,47 @@
     "text": "Disponible només a la teva regió de subscripció original",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Ja estàs subscrit a aquest pla."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Reactiva la subscripció"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "S'ha reactivat la teva subscripció. Se't continuarà facturant amb normalitat."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "No s'ha pogut reactivar la subscripció. Si us plau, torna-ho a provar o contacta amb el suport."
+  },
+  "web.billing.features.manage_orgs": {
+    "text": "Gestió d'organitzacions"
+  },
+  "web.billing.features.flexible_from_domain": {
+    "text": "Domini remitent de correu flexible"
+  },
+  "web.billing.features.unlimited_admins": {
+    "text": "Administradors il·limitats"
+  },
+  "web.billing.features.manage_sso": {
+    "text": "SSO"
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Domini remitent de correu flexible"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "Gestionar organitzacions"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Inici de sessió únic (SSO)"
+  },
+  "web.billing.overview.entitlements.manage_billing": {
+    "text": "Gestionar facturació"
+  },
+  "web.billing.overview.entitlements.custom_signup_validation": {
+    "text": "Validació de registre personalitzada"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Reactiva"
   }
 }

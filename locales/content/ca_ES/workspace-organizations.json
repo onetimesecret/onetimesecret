@@ -578,5 +578,344 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Caduca aviat",
     "source_hash": "a5dcfef9"
+  },
+  "api.organizations.errors.not_found": {
+    "text": "No s'ha trobat l'organització: %{extid}"
+  },
+  "api.organizations.errors.owner_required": {
+    "text": "Només el propietari de l'organització pot dur a terme aquesta acció"
+  },
+  "api.organizations.errors.admin_required": {
+    "text": "Només els propietaris i administradors de l'organització poden dur a terme aquesta acció"
+  },
+  "api.organizations.errors.member_required": {
+    "text": "Has de ser membre de l'organització per dur a terme aquesta acció"
+  },
+  "api.organizations.invitations.errors.create_admin_required": {
+    "text": "Només els propietaris i administradors de l'organització poden crear invitacions"
+  },
+  "api.organizations.invitations.errors.resend_admin_required": {
+    "text": "Només els propietaris i administradors de l'organització poden reenviar invitacions"
+  },
+  "api.organizations.invitations.errors.view_admin_required": {
+    "text": "Només els propietaris i administradors de l'organització poden veure les invitacions"
+  },
+  "api.organizations.invitations.errors.revoke_admin_required": {
+    "text": "Només els propietaris i administradors de l'organització poden revocar invitacions"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "El correu és obligatori"
+  },
+  "api.organizations.invitations.errors.email_invalid": {
+    "text": "Format de correu no vàlid"
+  },
+  "api.organizations.invitations.errors.role_invalid": {
+    "text": "El rol ha de ser membre o administrador"
+  },
+  "api.organizations.invitations.errors.cannot_invite_owner": {
+    "text": "No es pot convidar com a propietari"
+  },
+  "api.organizations.invitations.errors.already_member": {
+    "text": "L'usuari ja és membre d'aquesta organització"
+  },
+  "api.organizations.invitations.errors.already_pending": {
+    "text": "Ja hi ha una invitació pendent per a aquest correu"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "S'ha assolit el límit de membres. Millora el teu pla per convidar més membres."
+  },
+  "api.organizations.invitations.errors.not_found": {
+    "text": "No s'ha trobat la invitació"
+  },
+  "api.organizations.invitations.errors.cannot_resend_non_pending": {
+    "text": "Només es poden reenviar invitacions pendents"
+  },
+  "api.organizations.invitations.errors.cannot_revoke_non_pending": {
+    "text": "Només es poden revocar invitacions pendents"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "S'ha assolit el límit màxim de reenviaments (%{max})"
+  },
+  "api.organizations.invitations.errors.accept_token_required": {
+    "text": "El testimoni és obligatori"
+  },
+  "api.organizations.invitations.errors.accept_organization_gone": {
+    "text": "L'organització ja no existeix"
+  },
+  "api.organizations.invitations.errors.accept_already_acted": {
+    "text": "La invitació ja consta com a %{status}"
+  },
+  "api.organizations.invitations.errors.accept_expired": {
+    "text": "La invitació ha caducat"
+  },
+  "api.organizations.invitations.errors.accept_email_mismatch": {
+    "text": "La teva adreça de correu no coincideix amb la invitació"
+  },
+  "api.organizations.invitations.errors.accept_already_member": {
+    "text": "Ja ets membre d'aquesta organització"
+  },
+  "web.organizations.entitlements_title": {
+    "text": "Drets de l'organització"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Visualitza i configura els teus espais de treball"
+  },
+  "web.organizations.delete_organization_remove_domains_first": {
+    "text": "Elimina tots els dominis personalitzats abans de suprimir aquesta organització."
+  },
+  "web.organizations.default_org_delete_notice_title": {
+    "text": "Suprimir aquesta organització"
+  },
+  "web.organizations.default_org_delete_notice_before": {
+    "text": "Aquesta és la teva organització per defecte i no es pot eliminar des del tauler de control. Per suprimir-la, posa't en contacte a través del"
+  },
+  "web.organizations.default_org_delete_notice_link": {
+    "text": "formulari de comentaris"
+  },
+  "web.organizations.default_org_delete_notice_after": {
+    "text": "."
+  },
+  "web.organizations.leave_organization": {
+    "text": "Abandona aquesta organització"
+  },
+  "web.organizations.leave_organization_warning": {
+    "text": "Perdràs l'accés a aquesta organització i als seus recursos."
+  },
+  "web.organizations.leave_organization_confirm_title": {
+    "text": "Abandonar l'organització"
+  },
+  "web.organizations.leave_organization_confirm_message": {
+    "text": "Segur que vols abandonar «{name}»? Necessitaràs una nova invitació per tornar a unir-t'hi."
+  },
+  "web.organizations.leave_organization_success": {
+    "text": "Has abandonat l'organització."
+  },
+  "web.organizations.leave_error": {
+    "text": "No s'ha pogut abandonar l'organització"
+  },
+  "web.organizations.organizations": {
+    "text": "Organitzacions"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "per {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "com a {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Torna a l'inici"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Aquesta invitació es va enviar a aquesta adreça de correu"
+  },
+  "web.organizations.invitations.signup_continue": {
+    "text": "Continua"
+  },
+  "web.organizations.invitations.signin_continue": {
+    "text": "Inicia la sessió"
+  },
+  "web.organizations.invitations.confirm_join_below": {
+    "text": "Gairebé fet — confirma a sota per unir-te a l'organització."
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Vés a Organitzacions"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Ja ets membre d'aquesta organització"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Uneix-te a «{orgName}»"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Inicia la sessió per unir-te a «{orgName}»"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Rebutja"
+  },
+  "web.organizations.members.member_quota": {
+    "text": "{used} de {limit} membres"
+  },
+  "web.organizations.members.pending_suffix": {
+    "text": "({count} pendents)"
+  },
+  "web.organizations.members.limit_reached_hint": {
+    "text": "S'ha assolit el límit de membres."
+  },
+  "web.organizations.sso.title": {
+    "text": "Inici de sessió únic (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "Configura l'SSO per permetre que els membres iniciïn la sessió amb el proveïdor d'identitat de la teva organització"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Tipus de proveïdor"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Selecciona el proveïdor d'identitat de la teva organització"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Nom visible"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "Un nom amigable que es mostra als usuaris en iniciar la sessió"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "p. ex. Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "Client ID"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "El teu Client ID d'OAuth"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Client Secret"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "El teu Client Secret d'OAuth"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Deixa-ho en blanc per conservar el secret existent"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "Tenant ID"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "L'identificador de tenant d'Azure AD / Entra ID"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "p. ex. 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "URL de l'emissor"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "L'URL de descobriment OIDC del teu proveïdor d'identitat"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "p. ex. https://login.example.com"
+  },
+  "web.organizations.sso.view_discovery_document": {
+    "text": "Mostra el document de descobriment"
+  },
+  "web.organizations.sso.callback_url": {
+    "text": "URL de retorn"
+  },
+  "web.organizations.sso.callback_url_hint": {
+    "text": "Afegeix aquesta URL als URI de redirecció permesos del teu proveïdor d'identitat"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "Dominis de correu permesos"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Només els usuaris amb adreces de correu d'aquests dominis poden iniciar la sessió. Deixa-ho buit per permetre tots els dominis."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "p. ex. acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Si us plau, introdueix un domini vàlid (p. ex. example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Aquest domini ja és a la llista"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "Elimina {domain}"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "Activa l'SSO"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "Quan està activat, els membres de l'organització poden iniciar la sessió amb aquest proveïdor d'SSO"
+  },
+  "web.organizations.sso.enforce_sso_only": {
+    "text": "Exigeix només SSO"
+  },
+  "web.organizations.sso.enforce_sso_only_hint": {
+    "text": "Exigeix l'SSO per a tots els inicis de sessió en aquest domini. Quan està activat, l'autenticació basada en contrasenya queda desactivada."
+  },
+  "web.organizations.sso.grant_org_scope": {
+    "text": "Concedeix accés a tota l'organització"
+  },
+  "web.organizations.sso.grant_org_scope_hint": {
+    "text": "Els membres nous que s'uneixin mitjançant l'SSO d'aquest domini rebran accés a tots els dominis de l'organització. Els membres existents no es veuen afectats. Quan està desactivat (per defecte), els membres nous només poden accedir a aquest domini."
+  },
+  "web.organizations.sso.save_config": {
+    "text": "Desa la configuració de l'SSO"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Elimina la configuració"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "Segur que vols continuar? Això desactivarà l'SSO de la teva organització."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "No s'ha pogut carregar la configuració de l'SSO"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "No s'ha pogut desar la configuració de l'SSO"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "La configuració de l'SSO s'ha creat correctament"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "La configuració de l'SSO s'ha actualitzat correctament"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "La configuració de l'SSO s'ha eliminat correctament"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "No s'ha pogut eliminar la configuració de l'SSO"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Prova la connexió"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Verifica que el proveïdor d'identitat és accessible (no valida les credencials)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Prova la connexió"
+  },
+  "web.organizations.sso.testing": {
+    "text": "S'està provant..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "No s'ha pogut provar la connexió"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Punt de connexió d'autorització"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Camps que falten"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Activat"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Configurat"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "SSO de domini"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Configura l'SSO per a cada domini verificat"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "Per canviar de proveïdor, elimina primer aquesta configuració"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Sense configurar"
+  },
+  "web.organizations.sso.no_domains": {
+    "text": "No hi ha dominis verificats"
+  },
+  "web.organizations.sso.no_domains_description": {
+    "text": "Afegeix i verifica un domini abans de configurar-hi l'SSO."
+  },
+  "web.organizations.tabs.team": {
+    "text": "Equip"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

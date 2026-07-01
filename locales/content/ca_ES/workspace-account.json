@@ -682,5 +682,14 @@
   "web.settings.profile.didnt_receive_email": {
     "text": "No has rebut el correu electrònic?",
     "source_hash": "fe3ac3ad"
+  },
+  "web.settings.api.api_disabled_notice": {
+    "text": "L'API està desactivada per a aquesta instància."
+  },
+  "web.settings.security.sso_managed_title": {
+    "text": "Seguretat gestionada per SSO"
+  },
+  "web.settings.security.sso_managed_description": {
+    "text": "El teu compte s'autentica mitjançant el proveïdor d'inici de sessió únic de la teva organització. La contrasenya, l'autenticació multifactor i els codis de recuperació els gestiona el teu proveïdor d'identitat."
   }
 }
