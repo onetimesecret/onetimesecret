@@ -1,0 +1,29 @@
+{
+  "api.domains.errors.domain_id_required": {
+    "text": "ID do domínio obrigatório"
+  },
+  "api.domains.errors.domain_not_found": {
+    "text": "Domínio não encontrado: %{extid}"
+  },
+  "api.domains.errors.organization_not_found": {
+    "text": "Organização não encontrada para o domínio: %{domain}"
+  },
+  "api.domains.errors.incoming_secrets_disabled": {
+    "text": "O recebimento de mensagens confidenciais não está habilitado nesta instância"
+  },
+  "api.domains.errors.incoming_secrets_entitlement_required": {
+    "text": "O gerenciamento de mensagens confidenciais recebidas requer o entitlement incoming_secrets. Faça upgrade do seu plano."
+  },
+  "api.domains.errors.incoming_config_not_found": {
+    "text": "Configuração de recebimento não encontrada para o domínio: %{extid}"
+  },
+  "api.domains.errors.recipients_max_exceeded": {
+    "text": "Máximo de %{max} destinatários permitidos"
+  },
+  "api.domains.errors.recipients_invalid_email": {
+    "text": "E-mail inválido: %{email}"
+  },
+  "api.domains.errors.recipients_duplicate": {
+    "text": "Não são permitidos e-mails de destinatários duplicados"
+  }
+}

@@ -634,5 +634,152 @@
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
     "text": "Quando você enviar seu feedback, veremos:",
     "source_hash": "fe77172e"
+  },
+  "web.colonel.previewPlanMode": {
+    "text": "Modo de visualização de plano"
+  },
+  "web.colonel.previewModeDescription": {
+    "text": "Visualize o aplicativo como ele aparece para os clientes em um plano diferente. Isso afeta apenas a sua visualização e não altera o plano real de nenhuma organização."
+  },
+  "web.colonel.previewModeActive": {
+    "text": "Visualização ativa"
+  },
+  "web.colonel.bannedIps.empty": {
+    "text": "Nenhum IP banido"
+  },
+  "web.colonel.bannedIps.currentIp": {
+    "text": "Seu endereço IP atual"
+  },
+  "web.colonel.bannedIps.confirmUnban": {
+    "text": "Desbanir {ip}?"
+  },
+  "web.colonel.bannedIps.actions.ban": {
+    "text": "Banir IP"
+  },
+  "web.colonel.bannedIps.actions.quickBan": {
+    "text": "Banimento rápido"
+  },
+  "web.colonel.bannedIps.actions.unban": {
+    "text": "Desbanir"
+  },
+  "web.colonel.bannedIps.actions.cancel": {
+    "text": "Cancelar"
+  },
+  "web.colonel.bannedIps.columns.ipAddress": {
+    "text": "Endereço IP"
+  },
+  "web.colonel.bannedIps.columns.reason": {
+    "text": "Motivo"
+  },
+  "web.colonel.bannedIps.columns.bannedAt": {
+    "text": "Banido em"
+  },
+  "web.colonel.bannedIps.columns.bannedBy": {
+    "text": "Banido por"
+  },
+  "web.colonel.bannedIps.error.banFailed": {
+    "text": "Falha ao banir o endereço IP"
+  },
+  "web.colonel.bannedIps.error.unbanFailed": {
+    "text": "Falha ao desbanir o endereço IP"
+  },
+  "web.colonel.bannedIps.form.title": {
+    "text": "Banir endereço IP"
+  },
+  "web.colonel.bannedIps.form.ipLabel": {
+    "text": "Endereço IP"
+  },
+  "web.colonel.bannedIps.form.reasonLabel": {
+    "text": "Motivo"
+  },
+  "web.colonel.bannedIps.form.reasonPlaceholder": {
+    "text": "Motivo opcional"
+  },
+  "web.colonel.bannedIps.success.banned": {
+    "text": "O endereço IP {ip} foi banido"
+  },
+  "web.colonel.bannedIps.success.unbanned": {
+    "text": "O endereço IP {ip} foi desbanido"
+  },
+  "web.colonel.customDomains.empty": {
+    "text": "Nenhum domínio personalizado configurado"
+  },
+  "web.colonel.customDomains.noLogo": {
+    "text": "Sem logotipo"
+  },
+  "web.colonel.customDomains.labels.organization": {
+    "text": "Organização"
+  },
+  "web.colonel.customDomains.labels.externalId": {
+    "text": "ID externo"
+  },
+  "web.colonel.customDomains.labels.created": {
+    "text": "Criado"
+  },
+  "web.colonel.customDomains.labels.updated": {
+    "text": "Atualizado"
+  },
+  "web.colonel.customDomains.labels.favicon": {
+    "text": "Favicon"
+  },
+  "web.colonel.customDomains.status.verified": {
+    "text": "Verificado"
+  },
+  "web.colonel.customDomains.status.resolving": {
+    "text": "Resolvendo"
+  },
+  "web.colonel.customDomains.status.ready": {
+    "text": "Pronto"
+  },
+  "web.colonel.customDomains.status.publicHomepage": {
+    "text": "Página inicial pública"
+  },
+  "web.colonel.customDomains.status.publicApi": {
+    "text": "API pública"
+  },
+  "web.colonel.customDomains.status.pending": {
+    "text": "Pendente"
+  },
+  "web.colonel.pagination.showing": {
+    "text": "Exibindo {start}–{end} de {total}"
+  },
+  "web.colonel.pagination.itemsPerPage": {
+    "text": "Itens por página"
+  },
+  "web.colonel.pagination.perPage": {
+    "text": "{count} por página"
+  },
+  "web.colonel.pagination.pageOf": {
+    "text": "Página {current} de {total}"
+  },
+  "web.colonel.secrets.empty": {
+    "text": "Nenhuma mensagem confidencial encontrada"
+  },
+  "web.colonel.secrets.never": {
+    "text": "Nunca"
+  },
+  "web.colonel.secrets.columns.shortId": {
+    "text": "ID curto"
+  },
+  "web.colonel.secrets.columns.state": {
+    "text": "Estado"
+  },
+  "web.colonel.secrets.columns.created": {
+    "text": "Criado"
+  },
+  "web.colonel.secrets.columns.expiration": {
+    "text": "Expiração"
+  },
+  "web.colonel.secrets.columns.age": {
+    "text": "Idade (dias)"
+  },
+  "web.colonel.secrets.state.new": {
+    "text": "Novo"
+  },
+  "web.colonel.secrets.state.received": {
+    "text": "Recebido"
+  },
+  "web.colonel.secrets.state.viewed": {
+    "text": "Visualizado"
   }
 }

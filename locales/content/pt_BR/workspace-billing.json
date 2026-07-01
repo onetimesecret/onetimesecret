@@ -988,5 +988,47 @@
     "text": "Disponível apenas na sua região de assinatura original",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Você já assinou este plano."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Reativar assinatura"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "Sua assinatura foi reativada. Você continuará sendo cobrado normalmente."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "Falha ao reativar a assinatura. Tente novamente ou entre em contato com o suporte."
+  },
+  "web.billing.features.manage_orgs": {
+    "text": "Gerenciamento de Organizações"
+  },
+  "web.billing.features.flexible_from_domain": {
+    "text": "Domínio Flexível de Remetente de E-mail"
+  },
+  "web.billing.features.unlimited_admins": {
+    "text": "Administradores Ilimitados"
+  },
+  "web.billing.features.manage_sso": {
+    "text": "SSO"
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Domínio Flexível de Remetente de E-mail"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "Gerenciar Organizações"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Início de sessão único (SSO)"
+  },
+  "web.billing.overview.entitlements.manage_billing": {
+    "text": "Gerenciar Cobrança"
+  },
+  "web.billing.overview.entitlements.custom_signup_validation": {
+    "text": "Validação Personalizada de Cadastro"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Reativar"
   }
 }
