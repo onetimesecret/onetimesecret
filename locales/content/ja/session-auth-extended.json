@@ -716,5 +716,25 @@
   },
   "web.auth.sessions._guidance.context": {
     "text": "ユーザーのログイン済みデバイス/ブラウザ管理ページ"
+  },
+  "web.auth.google": {
+    "text": "Google",
+    "source_hash": "ce770667"
+  },
+  "web.auth.mfa.alternative_auth_options": {
+    "text": "別の認証方法",
+    "source_hash": "5ddea736"
+  },
+  "web.auth.remember.enabled": {
+    "text": "ログイン状態を保持する",
+    "source_hash": "b0a1ca80"
+  },
+  "web.auth.sessions.session_singular": {
+    "text": "セッション",
+    "source_hash": "3f3af1ec"
+  },
+  "web.auth.sessions.session_plural": {
+    "text": "セッション",
+    "source_hash": "1225ae6c"
   }
 }

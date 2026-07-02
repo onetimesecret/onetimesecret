@@ -1,0 +1,10 @@
+{
+  "api.account.errors.invalid_email": {
+    "text": "האם זו כתובת דוא״ל תקינה?",
+    "source_hash": "21d55b60"
+  },
+  "api.account.errors.password_too_short": {
+    "text": "הסיסמה קצרה מדי",
+    "source_hash": "0d829600"
+  }
+}

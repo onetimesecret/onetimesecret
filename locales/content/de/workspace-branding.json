@@ -178,5 +178,13 @@
   "web.branding.upgrade_to_customize": {
     "text": "Upgrade deinen Tarif, um das Branding für diese Domain anzupassen.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "Branding-Einstellungen erfolgreich gespeichert",
+    "source_hash": "9960c252"
+  },
+  "web.branding.keyhole_logo_icon": {
+    "text": "Schlüssellochsymbol, das für sicheres, privates Teilen steht",
+    "source_hash": "c868ac60"
   }
 }

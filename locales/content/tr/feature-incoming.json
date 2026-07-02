@@ -130,5 +130,33 @@
   "incoming.receipt_link_text": {
     "text": "makbuz",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Yükseltme Gerekli",
+    "source_hash": "16487236"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Bu özellik için planınızı yükseltmeniz gerekir. Gelen gizli mesajları etkinleştirmek için lütfen hesap sahibiyle iletişime geçin.",
+    "source_hash": "5df7f715"
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Not en fazla {max} karakter olmalıdır",
+    "source_hash": "5727f2d3"
+  },
+  "incoming.validation_secret_required": {
+    "text": "Gizli mesaj içeriği gerekli",
+    "source_hash": "699783c9"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Lütfen bir alıcı seçin",
+    "source_hash": "67bb4666"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "Gelen gizli mesajlar özelliği etkin değil",
+    "source_hash": "0616d3f4"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Lütfen formu hatalara karşı kontrol edin",
+    "source_hash": "9056e064"
   }
 }

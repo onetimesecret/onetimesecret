@@ -1,0 +1,10 @@
+{
+  "api.account.errors.invalid_email": {
+    "text": "He wāhitau īmēra whaimana tēnā?",
+    "source_hash": "21d55b60"
+  },
+  "api.account.errors.password_too_short": {
+    "text": "He poto rawa te kupuhipa",
+    "source_hash": "0d829600"
+  }
+}

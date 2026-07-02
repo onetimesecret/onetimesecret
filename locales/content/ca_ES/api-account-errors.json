@@ -1,0 +1,10 @@
+{
+  "api.account.errors.invalid_email": {
+    "text": "És una adreça de correu electrònic vàlida?",
+    "source_hash": "21d55b60"
+  },
+  "api.account.errors.password_too_short": {
+    "text": "La contrasenya és massa curta",
+    "source_hash": "0d829600"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "api.account.errors.invalid_email": {
+    "text": "有効なメールアドレスを入力してください",
+    "source_hash": "21d55b60"
+  },
+  "api.account.errors.password_too_short": {
+    "text": "パスワードが短すぎます",
+    "source_hash": "0d829600"
+  }
+}

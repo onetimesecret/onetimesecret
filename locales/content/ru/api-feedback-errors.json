@@ -1,0 +1,6 @@
+{
+  "api.feedback.errors.rate_limit_exceeded": {
+    "text": "Слишком много отправок обратной связи. Пожалуйста, повторите попытку позже.",
+    "source_hash": "3a890eb2"
+  }
+}

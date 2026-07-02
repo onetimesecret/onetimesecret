@@ -1,0 +1,142 @@
+{
+  "api.organizations.errors.domain_scoped_forbidden": {
+    "text": "Členové omezení na doménu nemohou tuto akci provést",
+    "source_hash": "0a06a035"
+  },
+  "api.organizations.errors.organization_not_found": {
+    "text": "Organizace nenalezena: %{extid}",
+    "source_hash": "c8d058eb"
+  },
+  "api.organizations.errors.organization_owner_required": {
+    "text": "Tuto akci může provést pouze vlastník organizace",
+    "source_hash": "5a729e94"
+  },
+  "api.organizations.errors.organization_member_required": {
+    "text": "Pro provedení této akce musíš být členem organizace",
+    "source_hash": "f66f4a60"
+  },
+  "api.organizations.errors.organization_admin_required": {
+    "text": "Tuto akci mohou provést pouze vlastníci a správci organizace",
+    "source_hash": "cd9e8c0e"
+  },
+  "api.organizations.errors.extid_required": {
+    "text": "Je vyžadováno ID organizace",
+    "source_hash": "02fbe301"
+  },
+  "api.organizations.errors.display_name_required": {
+    "text": "Název organizace je povinný",
+    "source_hash": "c3f6e9af"
+  },
+  "api.organizations.errors.display_name_too_long": {
+    "text": "Název organizace musí být kratší než %{max} znaků",
+    "source_hash": "5866973d"
+  },
+  "api.organizations.errors.description_too_long": {
+    "text": "Popis musí být kratší než %{max} znaků",
+    "source_hash": "562b7250"
+  },
+  "api.organizations.errors.contact_email_exists": {
+    "text": "Organizace s tímto kontaktním e-mailem již existuje",
+    "source_hash": "e9fdce56"
+  },
+  "api.organizations.errors.creation_in_progress": {
+    "text": "Probíhá vytváření organizace. Zkus to prosím znovu.",
+    "source_hash": "ef68bc2d"
+  },
+  "api.organizations.errors.organization_limit_reached": {
+    "text": "Byl dosažen limit organizací. Pro vytvoření dalších organizací přejdi na vyšší plán.",
+    "source_hash": "69e2e61b"
+  },
+  "api.organizations.invitations.errors.invitation_not_found": {
+    "text": "Pozvánka nebyla nalezena",
+    "source_hash": "775ba9eb"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "E-mail je povinný",
+    "source_hash": "aae92911"
+  },
+  "api.organizations.invitations.errors.invalid_email_format": {
+    "text": "Neplatný formát e-mailu",
+    "source_hash": "0bcecf66"
+  },
+  "api.organizations.invitations.errors.invalid_role": {
+    "text": "Role musí být člen nebo správce",
+    "source_hash": "650ea5f6"
+  },
+  "api.organizations.invitations.errors.cannot_invite_as_owner": {
+    "text": "Nelze pozvat jako vlastníka",
+    "source_hash": "e6581025"
+  },
+  "api.organizations.invitations.errors.user_already_member": {
+    "text": "Uživatel je již členem této organizace",
+    "source_hash": "8eb45780"
+  },
+  "api.organizations.invitations.errors.invitation_already_pending": {
+    "text": "Pro tento e-mail již existuje nevyřízená pozvánka",
+    "source_hash": "7f5e3093"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Byl dosažen limit členů. Pro pozvání dalších členů přejdi na vyšší plán.",
+    "source_hash": "b8f316e8"
+  },
+  "api.organizations.invitations.errors.resend_only_pending": {
+    "text": "Znovu odeslat lze pouze nevyřízené pozvánky",
+    "source_hash": "b7578b3e"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Byl dosažen maximální limit opětovných odeslání (%{max})",
+    "source_hash": "8dc96729"
+  },
+  "api.organizations.invitations.errors.revoke_only_pending": {
+    "text": "Zrušit lze pouze nevyřízené pozvánky",
+    "source_hash": "732b78a6"
+  },
+  "api.organizations.members.errors.member_not_found": {
+    "text": "Člen nenalezen: %{extid}",
+    "source_hash": "57654771"
+  },
+  "api.organizations.members.errors.member_not_in_organization": {
+    "text": "Člen nebyl v této organizaci nalezen",
+    "source_hash": "dcab71ff"
+  },
+  "api.organizations.members.errors.member_not_active": {
+    "text": "Člen není aktivní",
+    "source_hash": "a51b8760"
+  },
+  "api.organizations.members.errors.invalid_role_value": {
+    "text": "Neplatná role. Musí být jedna z: %{roles}",
+    "source_hash": "c3331aa0"
+  },
+  "api.organizations.members.errors.cannot_change_owner_role": {
+    "text": "Roli vlastníka nelze změnit. Použij místo toho převod vlastnictví.",
+    "source_hash": "76015424"
+  },
+  "api.organizations.members.errors.member_already_has_role": {
+    "text": "Člen již má roli: %{role}",
+    "source_hash": "6771166a"
+  },
+  "api.organizations.members.errors.cannot_promote_to_owner": {
+    "text": "Nelze povýšit na vlastníka. Použij místo toho převod vlastnictví.",
+    "source_hash": "cd574007"
+  },
+  "api.organizations.members.errors.must_be_member": {
+    "text": "Musíš být členem této organizace",
+    "source_hash": "de1c77b8"
+  },
+  "api.organizations.members.errors.cannot_remove_owner": {
+    "text": "Vlastníka organizace nelze odebrat. Nejprve převeď vlastnictví.",
+    "source_hash": "d4f33003"
+  },
+  "api.organizations.members.errors.cannot_remove_self": {
+    "text": "Sám sebe nemůžeš odebrat. Použij místo toho možnost opustit organizaci.",
+    "source_hash": "d64cec91"
+  },
+  "api.organizations.members.errors.admin_cannot_remove_admin": {
+    "text": "Správci nemohou odebírat jiné správce. Mohou to pouze vlastníci.",
+    "source_hash": "2b3e6e30"
+  },
+  "api.organizations.members.errors.no_permission_to_remove": {
+    "text": "Nemáš oprávnění odebírat členy",
+    "source_hash": "b0ac7287"
+  }
+}

@@ -1299,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Vergewissern Sie sich immer, dass Sie sich auf der offiziellen {product_name}-Website befinden. Betrüger erstellen manchmal gefälschte Websites, die genauso aussehen wie {product_name}, um Ihre Geheimnisse zu stehlen. Um Phishing-Angriffe zu vermeiden, überprüfen Sie die Domain, bevor Sie neue Links erstellen.",
+    "text": "Vergewissern Sie sich immer, dass Sie sich auf der offiziellen {product_name}-Website befinden. Betrüger erstellen mitunter gefälschte Websites, die genau wie {product_name} aussehen, um Ihre Geheimnisse zu stehlen. Um Phishing-Angriffe zu vermeiden, überprüfen Sie die Domain der Region, bevor Sie neue Links erstellen.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1383,5 +1383,145 @@
     "text": "Upgraden Sie, um weitere Funktionen freizuschalten",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "Authentifizierung erforderlich",
+    "source_hash": "0fcfb12d"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "Diese Aktion ist im reinen SSO-Modus nicht verfügbar",
+    "source_hash": "9bc26394"
+  },
+  "web.COMMON.configure": {
+    "text": "Konfigurieren",
+    "source_hash": "6defafa2"
+  },
+  "web.COMMON.copy_to_clipboard": {
+    "text": "In die Zwischenablage kopieren",
+    "source_hash": "b749e205"
+  },
+  "web.COMMON.add": {
+    "text": "Hinzufügen",
+    "source_hash": "9fd728c6"
+  },
+  "web.COMMON.enabled": {
+    "text": "Aktiviert",
+    "source_hash": "92c1cdfd"
+  },
+  "web.COMMON.disabled": {
+    "text": "Deaktiviert",
+    "source_hash": "75081b59"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Ja, löschen",
+    "source_hash": "7b05a8e3"
+  },
+  "web.COMMON.error_code": {
+    "text": "Fehlercode",
+    "source_hash": "46832415"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTP-Status",
+    "source_hash": "b2a629f2"
+  },
+  "web.COMMON.details": {
+    "text": "Details",
+    "source_hash": "45989de4"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Passwort bestätigen",
+    "source_hash": "c292210c"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Die Passwörter müssen übereinstimmen",
+    "source_hash": "0c060bd4"
+  },
+  "web.COMMON.and": {
+    "text": "und",
+    "source_hash": "6201111b"
+  },
+  "web.COMMON.or": {
+    "text": "oder",
+    "source_hash": "7175517a"
+  },
+  "web.COMMON.copied": {
+    "text": "Kopiert",
+    "source_hash": "8d525e5f"
+  },
+  "web.COMMON.copy": {
+    "text": "Kopieren",
+    "source_hash": "e21f935f"
+  },
+  "web.COMMON.copy_email": {
+    "text": "E-Mail-Adresse kopieren",
+    "source_hash": "61b94846"
+  },
+  "web.COMMON.copy_id": {
+    "text": "Konto-ID kopieren",
+    "source_hash": "fd493ffd"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "Die eindeutige Kennung Ihrer Organisation",
+    "source_hash": "c8c08d29"
+  },
+  "web.COMMON.success": {
+    "text": "Erfolg",
+    "source_hash": "c88a0b90"
+  },
+  "web.COMMON.need_help": {
+    "text": "Brauchen Sie Hilfe",
+    "source_hash": "4ca0ca38"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "Hilfe-Dialog öffnen",
+    "source_hash": "55cd1515"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "Der Fokus befindet sich jetzt im Haupttextbereich",
+    "source_hash": "e00dd260"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Sicherheitsphrase anzeigen",
+    "source_hash": "76880d38"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Sicherheitsphrase verbergen",
+    "source_hash": "8ecdc98c"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "Symbol zum Kopieren",
+    "source_hash": "d1a5fc0c"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "Symbol für kopiert",
+    "source_hash": "90a4b4f1"
+  },
+  "web.STATUS.unverified": {
+    "text": "Nicht verifiziert",
+    "source_hash": "33c8e8de"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Bereichseinstellungen",
+    "source_hash": "e24f338d"
+  },
+  "web.TITLES.domain_signin": {
+    "text": "Anmeldekonfiguration",
+    "source_hash": "2da38c03"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "Bereichs-SSO",
+    "source_hash": "13161464"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "Bereichs-Registrierungsvalidierung",
+    "source_hash": "c8ce809a"
+  },
+  "web.TITLES.domain_email": {
+    "text": "E-Mail-Konfiguration",
+    "source_hash": "6f38aa51"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Eingehende Nachrichten",
+    "source_hash": "883dbca9"
   }
 }

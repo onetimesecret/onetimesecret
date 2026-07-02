@@ -148,7 +148,7 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "E tiro ana koe i tētahi karere haumaru i tohatohaina ki a koe mā {product_name}. Kotahi noa te wā e whakaatuhia ai tēnei ihirangi, kātahi ka mukua pūmau mai i ā mātou tūmau.",
+    "text": "Kei te tiro koe i tētahi karere haumaru i tohatohaina ki a koe mā {product_name}. Ka whakaaturia tēnei ihirangi kotahi anake, kātahi ka murua rawatia i ā mātou tūmau.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -264,7 +264,7 @@
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Toro atu ki te whārangi kāinga o {product_name}",
+    "text": "Toro ki te whārangi kāinga o {product_name}",
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {
@@ -338,5 +338,13 @@
   "web.layout.workspace_context": {
     "text": "Horopaki wāhi mahi",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Wāhi Mahi",
+    "source_hash": "87bb59ba"
+  },
+  "web.help.default_content": {
+    "text": "Tēnā whakapā atu ki te tautoko mō te āwhina",
+    "source_hash": "752bca14"
   }
 }

@@ -1,0 +1,142 @@
+{
+  "api.organizations.errors.domain_scoped_forbidden": {
+    "text": "Τα μέλη που περιορίζονται σε τομέα δεν μπορούν να εκτελέσουν αυτήν την ενέργεια",
+    "source_hash": "0a06a035"
+  },
+  "api.organizations.errors.organization_not_found": {
+    "text": "Ο οργανισμός δεν βρέθηκε: %{extid}",
+    "source_hash": "c8d058eb"
+  },
+  "api.organizations.errors.organization_owner_required": {
+    "text": "Μόνο ο κάτοχος του οργανισμού μπορεί να εκτελέσει αυτήν την ενέργεια",
+    "source_hash": "5a729e94"
+  },
+  "api.organizations.errors.organization_member_required": {
+    "text": "Πρέπει να είστε μέλος του οργανισμού για να εκτελέσετε αυτήν την ενέργεια",
+    "source_hash": "f66f4a60"
+  },
+  "api.organizations.errors.organization_admin_required": {
+    "text": "Μόνο οι κάτοχοι και οι διαχειριστές του οργανισμού μπορούν να εκτελέσουν αυτήν την ενέργεια",
+    "source_hash": "cd9e8c0e"
+  },
+  "api.organizations.errors.extid_required": {
+    "text": "Απαιτείται ID οργανισμού",
+    "source_hash": "02fbe301"
+  },
+  "api.organizations.errors.display_name_required": {
+    "text": "Το όνομα του οργανισμού είναι υποχρεωτικό",
+    "source_hash": "c3f6e9af"
+  },
+  "api.organizations.errors.display_name_too_long": {
+    "text": "Το όνομα του οργανισμού πρέπει να έχει λιγότερους από %{max} χαρακτήρες",
+    "source_hash": "5866973d"
+  },
+  "api.organizations.errors.description_too_long": {
+    "text": "Η περιγραφή πρέπει να έχει λιγότερους από %{max} χαρακτήρες",
+    "source_hash": "562b7250"
+  },
+  "api.organizations.errors.contact_email_exists": {
+    "text": "Υπάρχει ήδη οργανισμός με αυτό το email επικοινωνίας",
+    "source_hash": "e9fdce56"
+  },
+  "api.organizations.errors.creation_in_progress": {
+    "text": "Η δημιουργία του οργανισμού βρίσκεται σε εξέλιξη. Δοκιμάστε ξανά.",
+    "source_hash": "ef68bc2d"
+  },
+  "api.organizations.errors.organization_limit_reached": {
+    "text": "Συμπληρώθηκε το όριο οργανισμών. Αναβαθμίστε το πρόγραμμά σας για να δημιουργήσετε περισσότερους οργανισμούς.",
+    "source_hash": "69e2e61b"
+  },
+  "api.organizations.invitations.errors.invitation_not_found": {
+    "text": "Η πρόσκληση δεν βρέθηκε",
+    "source_hash": "775ba9eb"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "Το email είναι υποχρεωτικό",
+    "source_hash": "aae92911"
+  },
+  "api.organizations.invitations.errors.invalid_email_format": {
+    "text": "Μη έγκυρη μορφή email",
+    "source_hash": "0bcecf66"
+  },
+  "api.organizations.invitations.errors.invalid_role": {
+    "text": "Ο ρόλος πρέπει να είναι μέλος ή διαχειριστής",
+    "source_hash": "650ea5f6"
+  },
+  "api.organizations.invitations.errors.cannot_invite_as_owner": {
+    "text": "Δεν είναι δυνατή η πρόσκληση ως κάτοχος",
+    "source_hash": "e6581025"
+  },
+  "api.organizations.invitations.errors.user_already_member": {
+    "text": "Ο χρήστης είναι ήδη μέλος αυτού του οργανισμού",
+    "source_hash": "8eb45780"
+  },
+  "api.organizations.invitations.errors.invitation_already_pending": {
+    "text": "Υπάρχει ήδη πρόσκληση σε εκκρεμότητα για αυτό το email",
+    "source_hash": "7f5e3093"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Συμπληρώθηκε το όριο μελών. Αναβαθμίστε το πρόγραμμά σας για να προσκαλέσετε περισσότερα μέλη.",
+    "source_hash": "b8f316e8"
+  },
+  "api.organizations.invitations.errors.resend_only_pending": {
+    "text": "Είναι δυνατή μόνο η επαναποστολή προσκλήσεων σε εκκρεμότητα",
+    "source_hash": "b7578b3e"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Συμπληρώθηκε το μέγιστο όριο επαναποστολών (%{max})",
+    "source_hash": "8dc96729"
+  },
+  "api.organizations.invitations.errors.revoke_only_pending": {
+    "text": "Είναι δυνατή μόνο η ανάκληση προσκλήσεων σε εκκρεμότητα",
+    "source_hash": "732b78a6"
+  },
+  "api.organizations.members.errors.member_not_found": {
+    "text": "Το μέλος δεν βρέθηκε: %{extid}",
+    "source_hash": "57654771"
+  },
+  "api.organizations.members.errors.member_not_in_organization": {
+    "text": "Το μέλος δεν βρέθηκε σε αυτόν τον οργανισμό",
+    "source_hash": "dcab71ff"
+  },
+  "api.organizations.members.errors.member_not_active": {
+    "text": "Το μέλος δεν είναι ενεργό",
+    "source_hash": "a51b8760"
+  },
+  "api.organizations.members.errors.invalid_role_value": {
+    "text": "Μη έγκυρος ρόλος. Πρέπει να είναι ένας από τους εξής: %{roles}",
+    "source_hash": "c3331aa0"
+  },
+  "api.organizations.members.errors.cannot_change_owner_role": {
+    "text": "Δεν είναι δυνατή η αλλαγή του ρόλου του κατόχου. Χρησιμοποιήστε τη μεταβίβαση κυριότητας.",
+    "source_hash": "76015424"
+  },
+  "api.organizations.members.errors.member_already_has_role": {
+    "text": "Το μέλος έχει ήδη τον ρόλο: %{role}",
+    "source_hash": "6771166a"
+  },
+  "api.organizations.members.errors.cannot_promote_to_owner": {
+    "text": "Δεν είναι δυνατή η προαγωγή σε κάτοχο. Χρησιμοποιήστε τη μεταβίβαση κυριότητας.",
+    "source_hash": "cd574007"
+  },
+  "api.organizations.members.errors.must_be_member": {
+    "text": "Πρέπει να είστε μέλος αυτού του οργανισμού",
+    "source_hash": "de1c77b8"
+  },
+  "api.organizations.members.errors.cannot_remove_owner": {
+    "text": "Δεν είναι δυνατή η αφαίρεση του κατόχου του οργανισμού. Μεταβιβάστε πρώτα την κυριότητα.",
+    "source_hash": "d4f33003"
+  },
+  "api.organizations.members.errors.cannot_remove_self": {
+    "text": "Δεν μπορείτε να αφαιρέσετε τον εαυτό σας. Χρησιμοποιήστε την αποχώρηση από τον οργανισμό.",
+    "source_hash": "d64cec91"
+  },
+  "api.organizations.members.errors.admin_cannot_remove_admin": {
+    "text": "Οι διαχειριστές δεν μπορούν να αφαιρέσουν άλλους διαχειριστές. Μόνο οι κάτοχοι μπορούν.",
+    "source_hash": "2b3e6e30"
+  },
+  "api.organizations.members.errors.no_permission_to_remove": {
+    "text": "Δεν έχετε δικαίωμα αφαίρεσης μελών",
+    "source_hash": "b0ac7287"
+  }
+}

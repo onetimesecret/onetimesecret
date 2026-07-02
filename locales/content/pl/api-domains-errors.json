@@ -1,0 +1,38 @@
+{
+  "api.domains.errors.domain_id_required": {
+    "text": "Wymagany identyfikator domeny",
+    "source_hash": "6837426b"
+  },
+  "api.domains.errors.domain_not_found": {
+    "text": "Nie znaleziono domeny: %{extid}",
+    "source_hash": "a0fd1025"
+  },
+  "api.domains.errors.organization_not_found": {
+    "text": "Nie znaleziono organizacji dla domeny: %{domain}",
+    "source_hash": "632afc93"
+  },
+  "api.domains.errors.incoming_secrets_disabled": {
+    "text": "Przychodzące sekrety nie są włączone w tej instancji",
+    "source_hash": "45c0b5c4"
+  },
+  "api.domains.errors.incoming_secrets_entitlement_required": {
+    "text": "Zarządzanie przychodzącymi sekretami wymaga uprawnienia incoming_secrets. Ulepsz swój plan.",
+    "source_hash": "1af54ec2"
+  },
+  "api.domains.errors.incoming_config_not_found": {
+    "text": "Nie znaleziono konfiguracji przychodzącej dla domeny: %{extid}",
+    "source_hash": "491644a8"
+  },
+  "api.domains.errors.recipients_max_exceeded": {
+    "text": "Maksymalna liczba dozwolonych odbiorców: %{max}",
+    "source_hash": "159842ad"
+  },
+  "api.domains.errors.recipients_invalid_email": {
+    "text": "Nieprawidłowy adres e-mail: %{email}",
+    "source_hash": "e9c729c7"
+  },
+  "api.domains.errors.recipients_duplicate": {
+    "text": "Zduplikowane adresy e-mail odbiorców są niedozwolone",
+    "source_hash": "6de22182"
+  }
+}

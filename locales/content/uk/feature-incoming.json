@@ -130,5 +130,33 @@
   "incoming.receipt_link_text": {
     "text": "квитанція",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Потрібне оновлення тарифного плану",
+    "source_hash": "16487236"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Ця функція потребує оновлення тарифного плану. Будь ласка, зверніться до власника облікового запису, щоб увімкнути вхідні таємниці.",
+    "source_hash": "5df7f715"
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Нагадування має містити {max} символів або менше",
+    "source_hash": "5727f2d3"
+  },
+  "incoming.validation_secret_required": {
+    "text": "Таємна інформація є обов'язковою",
+    "source_hash": "699783c9"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Будь ласка, виберіть одержувача",
+    "source_hash": "67bb4666"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "Функцію вхідних таємниць не ввімкнено",
+    "source_hash": "0616d3f4"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Будь ласка, перевірте форму на наявність помилок",
+    "source_hash": "9056e064"
   }
 }

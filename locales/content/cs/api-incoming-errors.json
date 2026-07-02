@@ -1,0 +1,6 @@
+{
+  "api.incoming.errors.custom_domain_unresolved": {
+    "text": "Organizaci vlastní domény se nepodařilo přeložit",
+    "source_hash": "b30d65d2"
+  }
+}

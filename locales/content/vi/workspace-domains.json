@@ -398,5 +398,965 @@
   "web.domains.dns_widget_description": {
     "text": "Sử dụng công cụ bên dưới để tự động phát hiện nhà cung cấp DNS và nhận hướng dẫn từng bước để cấu hình tên miền.",
     "source_hash": "91c1af2e"
+  },
+  "api.domains.errors.add_admin_required": {
+    "text": "Chỉ chủ sở hữu và quản trị viên của tổ chức mới có thể thêm tên miền tùy chỉnh",
+    "source_hash": "3324aabe"
+  },
+  "web.domains.public_homepage": {
+    "text": "Trang chủ công khai",
+    "source_hash": "2ae3ccba"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Tên miền đã xác minh và đang hoạt động",
+    "source_hash": "e4b6a6e1"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "Chưa cấu hình DNS — nhấp để khắc phục",
+    "source_hash": "892cb2cb"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Tên miền chưa được xác minh — nhấp để xác minh",
+    "source_hash": "a9806710"
+  },
+  "web.domains.status_tooltip_unverified": {
+    "text": "Trạng thái tên miền chưa được xác minh — nhấp để làm mới",
+    "source_hash": "a45aa76d"
+  },
+  "web.domains.last_check_failed": {
+    "text": "Lần kiểm tra xác minh gần nhất đã thất bại",
+    "source_hash": "88b594b8"
+  },
+  "web.domains.last_check_failed_ago": {
+    "text": "lần kiểm tra gần nhất thất bại {0}",
+    "source_hash": "ddfb6412"
+  },
+  "web.domains.verify_now": {
+    "text": "Xác minh ngay",
+    "source_hash": "db383efb"
+  },
+  "web.domains.click_to_verify": {
+    "text": "nhấp để xác minh",
+    "source_hash": "6eae7d9c"
+  },
+  "web.domains.remove_domain_description": {
+    "text": "Xóa vĩnh viễn tên miền này và toàn bộ cấu hình của nó.",
+    "source_hash": "73946b9e"
+  },
+  "web.domains.add_access_denied": {
+    "text": "Truy cập bị từ chối",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.add_access_denied_description": {
+    "text": "Bạn không có quyền thêm tên miền vào tổ chức này. Vui lòng liên hệ quản trị viên tổ chức của bạn.",
+    "source_hash": "25e035c6"
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "Không thể tải tiện ích DNS",
+    "source_hash": "5a1d8ab5"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "Tiện ích DNS không khả dụng",
+    "source_hash": "4eed448b"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "Không thể khởi tạo tiện ích DNS",
+    "source_hash": "de477585"
+  },
+  "web.domains.verified": {
+    "text": "Đã xác minh",
+    "source_hash": "4f783840"
+  },
+  "web.domains.pending_verification": {
+    "text": "Đang chờ xác minh",
+    "source_hash": "77e07795"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Bạn có các thay đổi chưa được lưu. Bạn có chắc chắn muốn rời đi không?",
+    "source_hash": "322380c1"
+  },
+  "web.domains.entitlement_required_owner": {
+    "text": "Tính năng này yêu cầu nâng cấp gói.",
+    "source_hash": "6de1f752"
+  },
+  "web.domains.entitlement_required_member": {
+    "text": "Tính năng này không khả dụng trên gói hiện tại của bạn. Vui lòng liên hệ chủ sở hữu tổ chức của bạn.",
+    "source_hash": "8f1688b2"
+  },
+  "web.domains.detail.manage": {
+    "text": "Quản lý",
+    "source_hash": "5a234448"
+  },
+  "web.domains.detail.features": {
+    "text": "Tính năng",
+    "source_hash": "5697d03d"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Bí mật trang chủ",
+    "source_hash": "6360f7ec"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Cho phép truy cập công khai để tạo bí mật trên trang chủ tên miền của bạn",
+    "source_hash": "209b3ded"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logo, màu sắc và thương hiệu tùy chỉnh",
+    "source_hash": "69f7a9e8"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Cài đặt nhà cung cấp đăng nhập một lần",
+    "source_hash": "234e6150"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Cấu hình người gửi email tùy chỉnh",
+    "source_hash": "7fcde01b"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Cài đặt người nhận bí mật đến",
+    "source_hash": "37c1fd6d"
+  },
+  "web.domains.detail.signup_description": {
+    "text": "Chiến lược xác thực đăng ký theo từng tên miền",
+    "source_hash": "3c5a511f"
+  },
+  "web.domains.detail.signin_description": {
+    "text": "Cấu hình phương thức đăng nhập theo từng tên miền",
+    "source_hash": "73e01e36"
+  },
+  "web.domains.email.title": {
+    "text": "Gửi email",
+    "source_hash": "6c428e5f"
+  },
+  "web.domains.email.config_title": {
+    "text": "Cấu hình email",
+    "source_hash": "6f38aa51"
+  },
+  "web.domains.email.config_description": {
+    "text": "Cấu hình việc gửi email cho tên miền này",
+    "source_hash": "1c275ff0"
+  },
+  "web.domains.email.provider_label": {
+    "text": "Nhà cung cấp email",
+    "source_hash": "a7ed3f4e"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "Chọn một nhà cung cấp email",
+    "source_hash": "63c8080c"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "Tên người gửi",
+    "source_hash": "2f13b589"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "ví dụ: Acme Security",
+    "source_hash": "03c0f138"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "Địa chỉ người gửi",
+    "source_hash": "60643eae"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "ví dụ: secrets{'@'}example.com",
+    "source_hash": "a09b3928"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Địa chỉ trả lời (Reply-To)",
+    "source_hash": "4538ea9c"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "ví dụ: support{'@'}example.com",
+    "source_hash": "fa3e5f0b"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Lưu thay đổi",
+    "source_hash": "35322b5b"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Hủy thay đổi",
+    "source_hash": "e07e053c"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES",
+    "source_hash": "15de4969"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid",
+    "source_hash": "b889d002"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint",
+    "source_hash": "ec994dad"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Dùng mặc định của tài khoản",
+    "source_hash": "f6fa84e7"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "Yêu cầu xác minh tên miền qua bản ghi DKIM và SPF",
+    "source_hash": "4df5aa60"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Yêu cầu thiết lập xác thực tên miền",
+    "source_hash": "71b53242"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Yêu cầu xác minh tên miền",
+    "source_hash": "87073c93"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "Sử dụng cấu hình gửi email mặc định của tài khoản bạn",
+    "source_hash": "3f798263"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "Bản ghi DNS",
+    "source_hash": "34d2c307"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "Thêm các bản ghi DNS sau để xác minh tên miền của bạn cho việc gửi email.",
+    "source_hash": "9fa85863"
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Loại",
+    "source_hash": "baaddf70"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Tên",
+    "source_hash": "dcd1d522"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Giá trị",
+    "source_hash": "8e37953d"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS",
+    "source_hash": "020965a2"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Nhà cung cấp",
+    "source_hash": "472590ae"
+  },
+  "web.domains.email.dns_optional_label": {
+    "text": "Khuyến nghị",
+    "source_hash": "d70604e8"
+  },
+  "web.domains.email.dns_optional_hint": {
+    "text": "Bản ghi này được khuyến nghị nhưng không bắt buộc để xác minh. Một chính sách DMARC tại tên miền tổ chức của bạn có thể đã bao gồm tên miền phụ này.",
+    "source_hash": "58e1a12b"
+  },
+  "web.domains.email.copy": {
+    "text": "Sao chép",
+    "source_hash": "e21f935f"
+  },
+  "web.domains.email.copied": {
+    "text": "Đã sao chép",
+    "source_hash": "8d525e5f"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Đã xác minh",
+    "source_hash": "4f783840"
+  },
+  "web.domains.email.status_pending": {
+    "text": "Đang chờ",
+    "source_hash": "331551b0"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Thất bại",
+    "source_hash": "031a8f0f"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Xác thực lại",
+    "source_hash": "4918da12"
+  },
+  "web.domains.email.validating": {
+    "text": "Đang xác thực...",
+    "source_hash": "b28b48d5"
+  },
+  "web.domains.email.domain_verified": {
+    "text": "Tên miền đã được xác minh",
+    "source_hash": "08e0df67"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "Xác thực thất bại",
+    "source_hash": "23a86f5a"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Lần xác thực gần nhất",
+    "source_hash": "887dd486"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Nâng cấp gói của bạn để cấu hình việc gửi email cho tên miền này.",
+    "source_hash": "16a876f7"
+  },
+  "web.domains.email.configure_email": {
+    "text": "Cấu hình email",
+    "source_hash": "a48c0d40"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Truy cập bị từ chối",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "Bạn không có quyền quản lý cài đặt email cho tên miền này. Vui lòng liên hệ quản trị viên tổ chức của bạn.",
+    "source_hash": "32049ff0"
+  },
+  "web.domains.email.update_success": {
+    "text": "Đã lưu cấu hình email thành công",
+    "source_hash": "dd3607fc"
+  },
+  "web.domains.email.delete_success": {
+    "text": "Đã xóa cấu hình email thành công",
+    "source_hash": "2ba99a91"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "Email cho tên miền này hiện đang được gửi từ người gửi toàn cục. Hoàn tất cấu hình email để sử dụng danh tính người gửi của riêng bạn.",
+    "source_hash": "ffcf39fb"
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "Việc gửi email tùy chỉnh hiện đang bị vô hiệu hóa. Email sẽ được gửi từ người gửi toàn cục. Bật tính năng bên dưới để sử dụng danh tính người gửi tùy chỉnh của bạn.",
+    "source_hash": "60a26f5b"
+  },
+  "web.domains.email.test_email_title": {
+    "text": "Kiểm tra việc gửi email",
+    "source_hash": "c1b3dee2"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Gửi một email kiểm tra cho chính bạn bằng cấu hình đã lưu. Hoạt động ngay cả khi tính năng chưa được bật.",
+    "source_hash": "33e876ad"
+  },
+  "web.domains.email.send_test": {
+    "text": "Gửi thử",
+    "source_hash": "22d7b11d"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Đã gửi email kiểm tra thành công",
+    "source_hash": "561617fd"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Không thể gửi email kiểm tra",
+    "source_hash": "95ce63bc"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Đã gửi đến {email}",
+    "source_hash": "8ceb9588"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Được gửi qua {provider}",
+    "source_hash": "f741959b"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "Chưa cấu hình",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "Đang dùng người gửi mặc định",
+    "source_hash": "e1afb18f"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Đã xác minh",
+    "source_hash": "4f783840"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Đang chờ xác minh",
+    "source_hash": "417a6b7e"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Đã vô hiệu hóa",
+    "source_hash": "75081b59"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "Chưa cấu hình người gửi email — email sử dụng người gửi mặc định của nền tảng",
+    "source_hash": "360083bb"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "Cấu hình người gửi email đang chờ xác minh — email sử dụng người gửi mặc định của nền tảng",
+    "source_hash": "c8c2449c"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "Người gửi email đã bị vô hiệu hóa — email sử dụng người gửi mặc định của nền tảng",
+    "source_hash": "64e84955"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "Người gửi email đã được xác minh — email được gửi từ tên miền này",
+    "source_hash": "0e9a005c"
+  },
+  "web.domains.incoming.title": {
+    "text": "Bí mật đến",
+    "source_hash": "883dbca9"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Cấu hình bí mật đến",
+    "source_hash": "b3fef15b"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Cho phép người dùng bên ngoài gửi bí mật trực tiếp đến những người nhận được chỉ định trên tên miền này",
+    "source_hash": "452ab4fe"
+  },
+  "web.domains.incoming.feature_disabled": {
+    "text": "Bí mật đến không khả dụng",
+    "source_hash": "0f96c5ec"
+  },
+  "web.domains.incoming.feature_disabled_description": {
+    "text": "Bí mật đến chưa được bật trên phiên bản này. Vui lòng liên hệ quản trị viên của bạn.",
+    "source_hash": "dce981e0"
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Truy cập bị từ chối",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "Bạn không có quyền quản lý cài đặt bí mật đến cho tên miền này. Vui lòng liên hệ quản trị viên tổ chức của bạn.",
+    "source_hash": "3e9d8adc"
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Nâng cấp gói của bạn để cấu hình bí mật đến cho tên miền này.",
+    "source_hash": "9dfdfeb5"
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Cấu hình bí mật đến",
+    "source_hash": "eab52939"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "Bí mật đến chưa được cấu hình cho tên miền này. Thêm người nhận để cho phép người dùng bên ngoài gửi bí mật đến nhóm của bạn.",
+    "source_hash": "dbc443a6"
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "Bí mật đến hiện đang bị vô hiệu hóa. Người dùng bên ngoài không thể gửi bí mật đến những người nhận trên tên miền này. Bật tính năng bên dưới để cho phép bí mật đến.",
+    "source_hash": "d1f8dafb"
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Người nhận",
+    "source_hash": "1e8568a8"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Xác định ai có thể nhận bí mật đến trên tên miền này. Người nhận sẽ nhận được thông báo qua email khi một bí mật được gửi đến họ.",
+    "source_hash": "026f9d9d"
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Thêm người nhận",
+    "source_hash": "25f93c13"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Xóa",
+    "source_hash": "c3812fc4"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "Địa chỉ email",
+    "source_hash": "09bf25ef"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "recipient{'@'}example.com",
+    "source_hash": "55d1508e"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Tên hiển thị",
+    "source_hash": "18d67c99"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "ví dụ: Security Team",
+    "source_hash": "0c52400c"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "Chưa cấu hình người nhận",
+    "source_hash": "bc8c2058"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Thêm người nhận để cho phép người dùng bên ngoài gửi bí mật đến nhóm của bạn.",
+    "source_hash": "2a647a40"
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Địa chỉ email không hợp lệ",
+    "source_hash": "4eaf1d80"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "Địa chỉ email này đã được thêm",
+    "source_hash": "f89de141"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "Cho phép tối đa {max} người nhận",
+    "source_hash": "e2585847"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "Tên hiển thị là bắt buộc",
+    "source_hash": "c6892c89"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "Địa chỉ email là bắt buộc",
+    "source_hash": "41381ba2"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Lưu thay đổi",
+    "source_hash": "35322b5b"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Hủy thay đổi",
+    "source_hash": "e07e053c"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "Đã lưu cấu hình bí mật đến thành công",
+    "source_hash": "9317e02d"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "Đã xóa cấu hình bí mật đến thành công",
+    "source_hash": "4c4a33ae"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} người nhận | {count} người nhận",
+    "source_hash": "0e4f5985"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "Chưa cấu hình",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Đã cấu hình",
+    "source_hash": "84aebc69"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Đã vô hiệu hóa",
+    "source_hash": "75081b59"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "Bí mật đến chưa được cấu hình - người dùng bên ngoài không thể gửi bí mật đến tên miền này",
+    "source_hash": "79786d5c"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "Bí mật đến đã được bật với {count} người nhận",
+    "source_hash": "c205cc54"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "Tính năng bí mật đến đã bị vô hiệu hóa cho tên miền này",
+    "source_hash": "0413f96b"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Bật bí mật đến",
+    "source_hash": "c0b25980"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Cho phép người dùng bên ngoài gửi bí mật đến những người nhận trên tên miền này",
+    "source_hash": "24aadd31"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "URL công khai",
+    "source_hash": "f7b60b04"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Chia sẻ URL này với người dùng bên ngoài để cho phép họ gửi bí mật",
+    "source_hash": "df47a894"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "Sao chép URL",
+    "source_hash": "b26d1037"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "Đã sao chép URL vào clipboard",
+    "source_hash": "2f396c3e"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Bạn có chắc chắn muốn xóa tất cả người nhận không? Người dùng bên ngoài sẽ không còn có thể gửi bí mật đến tên miền này.",
+    "source_hash": "06f9e551"
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Đã đạt số lượng người nhận tối đa",
+    "source_hash": "ba659e54"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "Địa chỉ email này đã được thêm",
+    "source_hash": "ca598f6d"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "Việc lưu sẽ thay thế tất cả người nhận hiện có bằng các thay đổi đang chờ của bạn. Bạn có chắc chắn không?",
+    "source_hash": "f497862e"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Xóa tất cả người nhận",
+    "source_hash": "207d0dbe"
+  },
+  "web.domains.signin.title": {
+    "text": "Cấu hình đăng nhập",
+    "source_hash": "2da38c03"
+  },
+  "web.domains.signin.configure_signin": {
+    "text": "Cấu hình đăng nhập",
+    "source_hash": "f72b58b5"
+  },
+  "web.domains.signin.config_description": {
+    "text": "Cấu hình các phương thức xác thực đăng nhập cho tên miền này",
+    "source_hash": "8efce428"
+  },
+  "web.domains.signin.access_denied": {
+    "text": "Truy cập bị từ chối",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.signin.upgrade_to_configure": {
+    "text": "Nâng cấp gói của bạn để cấu hình các phương thức đăng nhập cho tên miền này.",
+    "source_hash": "e242bb74"
+  },
+  "web.domains.signin.not_configured_notice": {
+    "text": "Cấu hình đăng nhập chưa được thiết lập cho tên miền này. Cấu hình các tùy chỉnh để kiểm soát những phương thức xác thực nào khả dụng trên trang đăng nhập của tên miền này.",
+    "source_hash": "cb788a2d"
+  },
+  "web.domains.signin.signin_enabled_label": {
+    "text": "Đã bật đăng nhập",
+    "source_hash": "cabe4898"
+  },
+  "web.domains.signin.header_toggle_label": {
+    "text": "Đăng nhập",
+    "source_hash": "5bbbe531"
+  },
+  "web.domains.signin.signin_enabled_hint": {
+    "text": "Người dùng có thể đăng nhập trên tên miền này hay không",
+    "source_hash": "57a92aee"
+  },
+  "web.domains.signin.restrict_to_label": {
+    "text": "Giới hạn phương thức đăng nhập",
+    "source_hash": "edbec83f"
+  },
+  "web.domains.signin.restrict_to_hint": {
+    "text": "Giới hạn tên miền này ở một phương thức xác thực duy nhất. Khi được thiết lập, chỉ phương thức đã chọn được hiển thị trên trang đăng nhập.",
+    "source_hash": "682bc4c5"
+  },
+  "web.domains.signin.all_methods": {
+    "text": "Tất cả phương thức",
+    "source_hash": "e601c19e"
+  },
+  "web.domains.signin.all_methods_description": {
+    "text": "Hiển thị tất cả các phương thức xác thực đã bật trên trang đăng nhập",
+    "source_hash": "62723340"
+  },
+  "web.domains.signin.method_password": {
+    "text": "Mật khẩu",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.domains.signin.method_email_auth": {
+    "text": "Xác thực qua email",
+    "source_hash": "68c38f94"
+  },
+  "web.domains.signin.method_webauthn": {
+    "text": "WebAuthn / Passkeys",
+    "source_hash": "c40224ce"
+  },
+  "web.domains.signin.method_sso": {
+    "text": "Đăng nhập một lần",
+    "source_hash": "cf7cd744"
+  },
+  "web.domains.signin.method_overrides_label": {
+    "text": "Tùy chỉnh phương thức",
+    "source_hash": "5496cba6"
+  },
+  "web.domains.signin.method_overrides_hint": {
+    "text": "Bật hoặc tắt từng phương thức xác thực riêng lẻ cho tên miền này",
+    "source_hash": "394e3878"
+  },
+  "web.domains.signin.mode_question": {
+    "text": "Người dùng có thể đăng nhập như thế nào?",
+    "source_hash": "3694eb23"
+  },
+  "web.domains.signin.mode_any": {
+    "text": "Bất kỳ phương thức khả dụng nào",
+    "source_hash": "23665425"
+  },
+  "web.domains.signin.mode_any_hint": {
+    "text": "Hiển thị mọi phương thức khả dụng trên tên miền này. Thu hẹp từng phương thức riêng lẻ bên dưới.",
+    "source_hash": "2f3dcba6"
+  },
+  "web.domains.signin.mode_one": {
+    "text": "Một phương thức cụ thể",
+    "source_hash": "601f5768"
+  },
+  "web.domains.signin.mode_one_hint": {
+    "text": "Giới hạn trang đăng nhập ở một phương thức duy nhất. Chỉ những phương thức khả dụng trên tên miền này được liệt kê.",
+    "source_hash": "58bde6d5"
+  },
+  "web.domains.signin.mode_disabled": {
+    "text": "Đã tắt đăng nhập",
+    "source_hash": "bb807607"
+  },
+  "web.domains.signin.mode_disabled_hint": {
+    "text": "Người dùng không thể đăng nhập trên tên miền này.",
+    "source_hash": "8938f098"
+  },
+  "web.domains.signin.mode_disabled_notice": {
+    "text": "Khách truy cập trang đăng nhập của tên miền này sẽ thấy thông báo rằng đăng nhập không khả dụng, kèm theo một liên kết quay lại trang chủ. Cài đặt phương thức trước đó của bạn được giữ lại và khôi phục khi bạn bật lại đăng nhập.",
+    "source_hash": "1a04de18"
+  },
+  "web.domains.signin.methods_list_label": {
+    "text": "Các phương thức hiển thị trên trang đăng nhập",
+    "source_hash": "66fd133b"
+  },
+  "web.domains.signin.restrict_picker_hint": {
+    "text": "Chỉ những phương thức khả dụng trên tên miền này được liệt kê.",
+    "source_hash": "c7a56f44"
+  },
+  "web.domains.signin.availability_always": {
+    "text": "Luôn khả dụng",
+    "source_hash": "0fda3772"
+  },
+  "web.domains.signin.availability_global_on": {
+    "text": "Tuân theo chính sách toàn cục · Bật",
+    "source_hash": "3844e6f7"
+  },
+  "web.domains.signin.availability_global_off": {
+    "text": "Không khả dụng",
+    "source_hash": "67a926f7"
+  },
+  "web.domains.signin.availability_unavailable": {
+    "text": "Không khả dụng trên toàn trang",
+    "source_hash": "da29c1be"
+  },
+  "web.domains.signin.allow_on_domain": {
+    "text": "Cho phép trên tên miền này",
+    "source_hash": "760b578e"
+  },
+  "web.domains.signin.method_password_blurb": {
+    "text": "Chỉ mật khẩu",
+    "source_hash": "ed1a02fd"
+  },
+  "web.domains.signin.method_email_auth_blurb": {
+    "text": "Đăng nhập bằng liên kết không cần mật khẩu",
+    "source_hash": "7f776a85"
+  },
+  "web.domains.signin.method_webauthn_blurb": {
+    "text": "Sinh trắc học và khóa bảo mật",
+    "source_hash": "7d6a7bd5"
+  },
+  "web.domains.signin.method_sso_blurb": {
+    "text": "Nhà cung cấp danh tính bên ngoài",
+    "source_hash": "a3442088"
+  },
+  "web.domains.signin.email_auth_label": {
+    "text": "Xác thực qua email",
+    "source_hash": "68c38f94"
+  },
+  "web.domains.signin.email_auth_hint": {
+    "text": "Cho phép xác thực qua email không cần mật khẩu trên tên miền này",
+    "source_hash": "6ad82127"
+  },
+  "web.domains.signin.sso_enabled_label": {
+    "text": "Đăng nhập một lần",
+    "source_hash": "cf7cd744"
+  },
+  "web.domains.signin.sso_enabled_hint": {
+    "text": "Cho phép xác thực SSO trên tên miền này",
+    "source_hash": "22d78ad5"
+  },
+  "web.domains.signin.enabled_label": {
+    "text": "Bật cấu hình đăng nhập",
+    "source_hash": "dbd8e11c"
+  },
+  "web.domains.signin.enabled_hint": {
+    "text": "Khi được bật, tên miền này sử dụng các cài đặt đăng nhập đã cấu hình ở trên",
+    "source_hash": "6259f8a2"
+  },
+  "web.domains.signin.save_config": {
+    "text": "Lưu cấu hình",
+    "source_hash": "b2b158f2"
+  },
+  "web.domains.signin.update_success": {
+    "text": "Đã cập nhật cấu hình đăng nhập thành công",
+    "source_hash": "10ea50d8"
+  },
+  "web.domains.signin.reset_to_defaults": {
+    "text": "Đặt lại về mặc định",
+    "source_hash": "e240e635"
+  },
+  "web.domains.signin.reset_confirm": {
+    "text": "Đặt lại đăng nhập về mặc định toàn cục?",
+    "source_hash": "2c6bbc32"
+  },
+  "web.domains.signin.reset_keeps_sso": {
+    "text": "Thông tin xác thực SSO của bạn được giữ lại. Hãy xóa chúng riêng trên màn hình cấu hình SSO.",
+    "source_hash": "edc0c756"
+  },
+  "web.domains.signin.reset_action": {
+    "text": "Có, đặt lại",
+    "source_hash": "4bb21d8b"
+  },
+  "web.domains.signin.reset_success": {
+    "text": "Đã đặt lại cài đặt đăng nhập về mặc định toàn cục",
+    "source_hash": "0c364d89"
+  },
+  "web.domains.signup.title": {
+    "text": "Xác thực đăng ký",
+    "source_hash": "2c34ac0a"
+  },
+  "web.domains.signup.config_description": {
+    "text": "Cấu hình xác thực đăng ký cho tên miền này",
+    "source_hash": "e9c81e8a"
+  },
+  "web.domains.signup.access_denied": {
+    "text": "Truy cập bị từ chối",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.signup.upgrade_to_configure": {
+    "text": "Nâng cấp gói của bạn để cấu hình xác thực đăng ký theo từng tên miền.",
+    "source_hash": "d87d6614"
+  },
+  "web.domains.signup.configure_signup": {
+    "text": "Cấu hình đăng ký",
+    "source_hash": "e2697662"
+  },
+  "web.domains.signup.not_configured_notice": {
+    "text": "Xác thực đăng ký chưa được cấu hình cho tên miền này. Cấu hình một chiến lược để kiểm soát ai có thể đăng ký qua tên miền này.",
+    "source_hash": "fc6c6eb8"
+  },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "Việc đăng ký hiện đang bị tắt ở cấp độ trang. Chính sách theo từng tên miền này đã được cấu hình nhưng sẽ không kiểm soát lưu lượng nào cho đến khi việc đăng ký trên trang được bật.",
+    "source_hash": "c0e59f86"
+  },
+  "web.domains.signup.strategy_label": {
+    "text": "Chiến lược xác thực",
+    "source_hash": "a2e95531"
+  },
+  "web.domains.signup.strategy_description": {
+    "text": "Chọn cách các địa chỉ email được xác thực khi người dùng đăng ký trên tên miền này.",
+    "source_hash": "8e232b03"
+  },
+  "web.domains.signup.network_validation_warning": {
+    "text": "Chiến lược này thực hiện các lệnh gọi mạng trong quá trình đăng ký, điều này có thể làm tăng độ trễ hoặc bị một số nhà cung cấp chặn.",
+    "source_hash": "53d4c266"
+  },
+  "web.domains.signup.allowed_domains_label": {
+    "text": "Các tên miền đăng ký được phép",
+    "source_hash": "9b5bb5b1"
+  },
+  "web.domains.signup.allowed_domains_hint": {
+    "text": "Chỉ những tên miền email này mới được phép đăng ký. Thêm một tên miền cho mỗi mục.",
+    "source_hash": "c082414d"
+  },
+  "web.domains.signup.domain_placeholder": {
+    "text": "example.com",
+    "source_hash": "a379a6f6"
+  },
+  "web.domains.signup.invalid_domain": {
+    "text": "Vui lòng nhập một tên miền hợp lệ (ví dụ: example.com)",
+    "source_hash": "16807983"
+  },
+  "web.domains.signup.domain_exists": {
+    "text": "Tên miền này đã có trong danh sách",
+    "source_hash": "3fccb721"
+  },
+  "web.domains.signup.remove_domain": {
+    "text": "Xóa {domain}",
+    "source_hash": "ae708a1d"
+  },
+  "web.domains.signup.enabled_label": {
+    "text": "Bật xác thực theo từng tên miền",
+    "source_hash": "db103925"
+  },
+  "web.domains.signup.enabled_hint": {
+    "text": "Khi được bật, việc đăng ký trên tên miền này sử dụng chiến lược ở trên thay vì chính sách toàn cục.",
+    "source_hash": "99de2008"
+  },
+  "web.domains.signup.delete_config": {
+    "text": "Xóa cấu hình",
+    "source_hash": "a9a30c7f"
+  },
+  "web.domains.signup.delete_confirm": {
+    "text": "Xóa cấu hình xác thực đăng ký? Việc đăng ký sẽ quay về chính sách toàn cục.",
+    "source_hash": "a8c9086e"
+  },
+  "web.domains.signup.save_config": {
+    "text": "Lưu cấu hình",
+    "source_hash": "b2b158f2"
+  },
+  "web.domains.signup.update_success": {
+    "text": "Đã cập nhật xác thực đăng ký thành công",
+    "source_hash": "57a529ac"
+  },
+  "web.domains.signup.delete_success": {
+    "text": "Đã xóa cấu hình xác thực đăng ký thành công",
+    "source_hash": "eb6add4d"
+  },
+  "web.domains.signup.domain_overrides_label": {
+    "text": "Tùy chỉnh tên miền",
+    "source_hash": "d25da3cd"
+  },
+  "web.domains.signup.domain_overrides_hint": {
+    "text": "Ghi đè cài đặt đăng ký toàn cục cho tên miền này",
+    "source_hash": "53101057"
+  },
+  "web.domains.signup.signup_enabled_label": {
+    "text": "Đã bật đăng ký",
+    "source_hash": "296ac66d"
+  },
+  "web.domains.signup.signup_enabled_hint": {
+    "text": "Ghi đè việc đăng ký có được bật cho tên miền này hay không",
+    "source_hash": "2ee146b6"
+  },
+  "web.domains.signup.autoverify_label": {
+    "text": "Tự động xác minh tài khoản",
+    "source_hash": "4b103cd5"
+  },
+  "web.domains.signup.autoverify_hint": {
+    "text": "Ghi đè việc các tài khoản mới có được tự động xác minh trên tên miền này hay không",
+    "source_hash": "63866ecd"
+  },
+  "web.domains.sso.title": {
+    "text": "Đăng nhập một lần",
+    "source_hash": "cf7cd744"
+  },
+  "web.domains.sso.config_title": {
+    "text": "Cấu hình SSO",
+    "source_hash": "afd5751e"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Cấu hình xác thực đăng nhập một lần cho tên miền này",
+    "source_hash": "f37a0b47"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Truy cập bị từ chối",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "Bạn không có quyền quản lý cài đặt SSO cho tên miền này. Vui lòng liên hệ quản trị viên tổ chức của bạn.",
+    "source_hash": "db7fcfeb"
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Nâng cấp gói của bạn để cấu hình đăng nhập một lần cho tên miền này.",
+    "source_hash": "71fc0069"
+  },
+  "web.domains.sso.create_success": {
+    "text": "Đã tạo cấu hình SSO thành công",
+    "source_hash": "531c7d92"
+  },
+  "web.domains.sso.update_success": {
+    "text": "Đã cập nhật cấu hình SSO thành công",
+    "source_hash": "d98d8e83"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "Đã xóa cấu hình SSO thành công",
+    "source_hash": "2e924798"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Kiểm tra kết nối thành công — nhà cung cấp đã phản hồi chính xác",
+    "source_hash": "1570ddb0"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Kiểm tra kết nối thất bại",
+    "source_hash": "a45a37dd"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "Để yêu cầu SSO cho mọi lần đăng nhập trên tên miền này, hãy cấu hình nó trong cài đặt đăng nhập của tên miền. Chế độ chỉ SSO giới hạn trang đăng nhập ở nhà cung cấp SSO được cấu hình tại đây.",
+    "source_hash": "d26627a5"
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "Cấu hình SSO",
+    "source_hash": "80d3a144"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "SSO chưa được cấu hình cho tên miền này. Bật đăng nhập một lần để cho phép các thành viên nhóm xác thực bằng nhà cung cấp danh tính của tổ chức bạn.",
+    "source_hash": "c439214b"
+  },
+  "web.domains.sso.edit_credentials": {
+    "text": "Chỉnh sửa thông tin xác thực",
+    "source_hash": "5a6622b6"
+  },
+  "web.domains.sso.configure_button": {
+    "text": "Cấu hình",
+    "source_hash": "6defafa2"
+  },
+  "web.domains.sso.upgrade_required": {
+    "text": "Nâng cấp để cấu hình",
+    "source_hash": "571cfa98"
   }
 }

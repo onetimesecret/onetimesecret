@@ -1,6 +1,6 @@
 {
   "web.translations.welcomes_contributors_for_both_existing_and_new_": {
-    "text": "",
+    "text": "bonvenigas kontribuantojn por ekzistantaj kaj novaj lingvoj.",
     "source_hash": "87abcdeb"
   },
   "web.translations.our_github_project": {
@@ -12,7 +12,7 @@
     "source_hash": "10056bff"
   },
   "web.translations.whove_helped_with_translations_as_we_continue_to": {
-    "text": "",
+    "text": "kiuj helpis pri tradukoj dum ni daŭre disvolvas novajn funkciojn.",
     "source_hash": "d629cc71"
   },
   "web.translations.25_contributors": {
@@ -24,11 +24,11 @@
     "source_hash": "cf446287"
   },
   "web.translations.as_we_add_new_features_our_translations_graduall": {
-    "text": "",
+    "text": "Dum ni aldonas novajn funkciojn, niaj tradukoj iom post iom bezonas ĝisdatigojn por resti aktualaj. Ĉi tio influas kaj onetimesecret.com kaj milojn da memgastigitaj instalaĵoj tutmonde.",
     "source_hash": "c6fb1cf5"
   },
   "web.translations.remember_to_include_your_email_if_youre_not_logg": {
-    "text": "",
+    "text": "- memoru inkluzivi vian retpoŝtadreson se vi ne estas ensalutinta. Ĉiu traduko helpas pli da homoj komuniki sekure.",
     "source_hash": "1a8ccc7d"
   },
   "web.translations.reach_out_to_us": {
@@ -52,11 +52,11 @@
     "source_hash": "b963b7e9"
   },
   "web.translations.update_a_language_directly_through_our_github_pr": {
-    "text": "",
+    "text": "Ĝisdatigu lingvon rekte tra nia GitHub-projekto",
     "source_hash": "449cde87"
   },
   "web.translations.review_existing_translations_using_the_language_": {
-    "text": "",
+    "text": "Reviziu ekzistantajn tradukojn uzante la lingvoelektilon supre",
     "source_hash": "74ea57e9"
   },
   "web.translations.ready_to_help_some_ways_to_contribute": {
@@ -64,7 +64,7 @@
     "source_hash": "13131e36"
   },
   "web.translations.the_following_people_have_donated_their_time_to_": {
-    "text": "",
+    "text": "La jenaj homoj donacis sian tempon por helpi vastigi la atingon de {product_name}:",
     "source_hash": "85a766af"
   },
   "web.translations.translations": {
@@ -76,15 +76,15 @@
     "source_hash": "bb60a45d"
   },
   "web.translations.your_language_skills_can_help_expand_access_to_s": {
-    "text": "",
+    "text": "Viaj lingvaj kapabloj povas helpi vastigi aliron al sekura komunikado.",
     "source_hash": "ad22076b"
   },
   "web.translations.thanks_to_our_community_we_support_over_20_langu": {
-    "text": "",
+    "text": "Danke al nia komunumo, ni subtenas pli ol 20 lingvojn hodiaŭ. Tamen, pro nia rapida disvolva ritmo, multaj tradukoj bezonas ĝisdatigojn por resti aktualaj. Ĉi tio influas kaj onetimesecret.com kaj la milojn da memgastigitaj instalaĵoj tutmonde.",
     "source_hash": "ba5c4395"
   },
   "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
-    "text": "",
+    "text": "Ekde 2012, {product_name} provizis sekuran manieron kunhavigi sentemajn informojn tutmonde. Kun uzantoj tra regionoj kie la angla ne estas la ĉefa lingvo, precizaj tradukoj estas esencaj por fari sekuran komunikadon alirebla por ĉiuj.",
     "source_hash": "87a6e9af"
   },
   "web.translations.help_secure_communication_go_global": {

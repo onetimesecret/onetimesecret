@@ -148,7 +148,7 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Du ser en sikker besked der blev delt med dig gennem {product_name}. Dette indhold vises kun én gang og slettes derefter permanent fra vores servere.",
+    "text": "Du ser en sikker besked, der blev delt med dig via {product_name}. Dette indhold vises kun én gang og bliver derefter permanent slettet fra vores servere.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -264,7 +264,7 @@
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Besøg {product_name}-forsiden",
+    "text": "Besøg {product_name}-hjemmesiden",
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {
@@ -338,5 +338,13 @@
   "web.layout.workspace_context": {
     "text": "Arbejdsområdekontekst",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Workspace",
+    "source_hash": "87bb59ba"
+  },
+  "web.help.default_content": {
+    "text": "Kontakt venligst support for at få hjælp",
+    "source_hash": "752bca14"
   }
 }

@@ -1,0 +1,142 @@
+{
+  "api.organizations.errors.domain_scoped_forbidden": {
+    "text": "لا يمكن للأعضاء المقيّدين بالنطاق تنفيذ هذا الإجراء",
+    "source_hash": "0a06a035"
+  },
+  "api.organizations.errors.organization_not_found": {
+    "text": "لم يتم العثور على المؤسسة: %{extid}",
+    "source_hash": "c8d058eb"
+  },
+  "api.organizations.errors.organization_owner_required": {
+    "text": "يمكن لمالك المؤسسة فقط تنفيذ هذا الإجراء",
+    "source_hash": "5a729e94"
+  },
+  "api.organizations.errors.organization_member_required": {
+    "text": "يجب أن تكون عضواً في المؤسسة لتنفيذ هذا الإجراء",
+    "source_hash": "f66f4a60"
+  },
+  "api.organizations.errors.organization_admin_required": {
+    "text": "يمكن لمالكي ومسؤولي المؤسسة فقط تنفيذ هذا الإجراء",
+    "source_hash": "cd9e8c0e"
+  },
+  "api.organizations.errors.extid_required": {
+    "text": "معرّف المؤسسة مطلوب",
+    "source_hash": "02fbe301"
+  },
+  "api.organizations.errors.display_name_required": {
+    "text": "اسم المؤسسة مطلوب",
+    "source_hash": "c3f6e9af"
+  },
+  "api.organizations.errors.display_name_too_long": {
+    "text": "يجب أن يكون اسم المؤسسة أقل من %{max} حرفاً",
+    "source_hash": "5866973d"
+  },
+  "api.organizations.errors.description_too_long": {
+    "text": "يجب أن يكون الوصف أقل من %{max} حرفاً",
+    "source_hash": "562b7250"
+  },
+  "api.organizations.errors.contact_email_exists": {
+    "text": "توجد بالفعل مؤسسة بعنوان بريد التواصل هذا",
+    "source_hash": "e9fdce56"
+  },
+  "api.organizations.errors.creation_in_progress": {
+    "text": "جارٍ إنشاء المؤسسة. يُرجى المحاولة مرة أخرى.",
+    "source_hash": "ef68bc2d"
+  },
+  "api.organizations.errors.organization_limit_reached": {
+    "text": "تم بلوغ الحد الأقصى لعدد المؤسسات. قم بترقية خطتك لإنشاء المزيد من المؤسسات.",
+    "source_hash": "69e2e61b"
+  },
+  "api.organizations.invitations.errors.invitation_not_found": {
+    "text": "الدعوة غير موجودة",
+    "source_hash": "775ba9eb"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "البريد الإلكتروني مطلوب",
+    "source_hash": "aae92911"
+  },
+  "api.organizations.invitations.errors.invalid_email_format": {
+    "text": "تنسيق البريد الإلكتروني غير صالح",
+    "source_hash": "0bcecf66"
+  },
+  "api.organizations.invitations.errors.invalid_role": {
+    "text": "يجب أن يكون الدور عضواً أو مسؤولاً",
+    "source_hash": "650ea5f6"
+  },
+  "api.organizations.invitations.errors.cannot_invite_as_owner": {
+    "text": "لا يمكن الدعوة بصفة مالك",
+    "source_hash": "e6581025"
+  },
+  "api.organizations.invitations.errors.user_already_member": {
+    "text": "المستخدم عضو بالفعل في هذه المؤسسة",
+    "source_hash": "8eb45780"
+  },
+  "api.organizations.invitations.errors.invitation_already_pending": {
+    "text": "توجد بالفعل دعوة معلّقة لهذا البريد الإلكتروني",
+    "source_hash": "7f5e3093"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "تم بلوغ الحد الأقصى لعدد الأعضاء. قم بترقية خطتك لدعوة المزيد من الأعضاء.",
+    "source_hash": "b8f316e8"
+  },
+  "api.organizations.invitations.errors.resend_only_pending": {
+    "text": "يمكن إعادة إرسال الدعوات المعلّقة فقط",
+    "source_hash": "b7578b3e"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "تم بلوغ الحد الأقصى لإعادة الإرسال (%{max})",
+    "source_hash": "8dc96729"
+  },
+  "api.organizations.invitations.errors.revoke_only_pending": {
+    "text": "يمكن إلغاء الدعوات المعلّقة فقط",
+    "source_hash": "732b78a6"
+  },
+  "api.organizations.members.errors.member_not_found": {
+    "text": "لم يتم العثور على العضو: %{extid}",
+    "source_hash": "57654771"
+  },
+  "api.organizations.members.errors.member_not_in_organization": {
+    "text": "لم يتم العثور على العضو في هذه المؤسسة",
+    "source_hash": "dcab71ff"
+  },
+  "api.organizations.members.errors.member_not_active": {
+    "text": "العضو غير نشط",
+    "source_hash": "a51b8760"
+  },
+  "api.organizations.members.errors.invalid_role_value": {
+    "text": "دور غير صالح. يجب أن يكون أحد: %{roles}",
+    "source_hash": "c3331aa0"
+  },
+  "api.organizations.members.errors.cannot_change_owner_role": {
+    "text": "لا يمكن تغيير دور المالك. استخدم نقل الملكية بدلاً من ذلك.",
+    "source_hash": "76015424"
+  },
+  "api.organizations.members.errors.member_already_has_role": {
+    "text": "العضو لديه بالفعل الدور: %{role}",
+    "source_hash": "6771166a"
+  },
+  "api.organizations.members.errors.cannot_promote_to_owner": {
+    "text": "لا يمكن الترقية إلى مالك. استخدم نقل الملكية بدلاً من ذلك.",
+    "source_hash": "cd574007"
+  },
+  "api.organizations.members.errors.must_be_member": {
+    "text": "يجب أن تكون عضواً في هذه المؤسسة",
+    "source_hash": "de1c77b8"
+  },
+  "api.organizations.members.errors.cannot_remove_owner": {
+    "text": "لا يمكن إزالة مالك المؤسسة. انقل الملكية أولاً.",
+    "source_hash": "d4f33003"
+  },
+  "api.organizations.members.errors.cannot_remove_self": {
+    "text": "لا يمكنك إزالة نفسك. استخدم مغادرة المؤسسة بدلاً من ذلك.",
+    "source_hash": "d64cec91"
+  },
+  "api.organizations.members.errors.admin_cannot_remove_admin": {
+    "text": "لا يمكن للمسؤولين إزالة مسؤولين آخرين. المالكون فقط يمكنهم ذلك.",
+    "source_hash": "2b3e6e30"
+  },
+  "api.organizations.members.errors.no_permission_to_remove": {
+    "text": "ليس لديك إذن لإزالة الأعضاء",
+    "source_hash": "b0ac7287"
+  }
+}

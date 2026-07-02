@@ -1299,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Sempre verifique se você está no site oficial do {product_name}. Fraudadores às vezes criam sites falsos que parecem exatamente com o {product_name} para roubar suas informações confidenciais. Para evitar ataques de phishing, verifique o domínio da região antes de criar novos links.",
+    "text": "Sempre verifique se você está no site oficial do {product_name}. Fraudadores às vezes criam sites falsos idênticos ao {product_name} para roubar suas mensagens confidenciais. Para evitar ataques de phishing, confira o domínio da região antes de criar novos links.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1383,5 +1383,145 @@
     "text": "Faça upgrade para desbloquear mais recursos",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "Autenticação necessária",
+    "source_hash": "0fcfb12d"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "Esta ação não está disponível no modo somente SSO",
+    "source_hash": "9bc26394"
+  },
+  "web.COMMON.configure": {
+    "text": "Configurar",
+    "source_hash": "6defafa2"
+  },
+  "web.COMMON.copy_to_clipboard": {
+    "text": "Copiar para a área de transferência",
+    "source_hash": "b749e205"
+  },
+  "web.COMMON.add": {
+    "text": "Adicionar",
+    "source_hash": "9fd728c6"
+  },
+  "web.COMMON.enabled": {
+    "text": "Ativado",
+    "source_hash": "92c1cdfd"
+  },
+  "web.COMMON.disabled": {
+    "text": "Desativado",
+    "source_hash": "75081b59"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Sim, excluir",
+    "source_hash": "7b05a8e3"
+  },
+  "web.COMMON.error_code": {
+    "text": "Código de erro",
+    "source_hash": "46832415"
+  },
+  "web.COMMON.http_status": {
+    "text": "Status HTTP",
+    "source_hash": "b2a629f2"
+  },
+  "web.COMMON.details": {
+    "text": "Detalhes",
+    "source_hash": "45989de4"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Confirmar senha",
+    "source_hash": "c292210c"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "As senhas devem coincidir",
+    "source_hash": "0c060bd4"
+  },
+  "web.COMMON.and": {
+    "text": "e",
+    "source_hash": "6201111b"
+  },
+  "web.COMMON.or": {
+    "text": "ou",
+    "source_hash": "7175517a"
+  },
+  "web.COMMON.copied": {
+    "text": "Copiado",
+    "source_hash": "8d525e5f"
+  },
+  "web.COMMON.copy": {
+    "text": "Copiar",
+    "source_hash": "e21f935f"
+  },
+  "web.COMMON.copy_email": {
+    "text": "Copiar endereço de e-mail",
+    "source_hash": "61b94846"
+  },
+  "web.COMMON.copy_id": {
+    "text": "Copiar ID da conta",
+    "source_hash": "fd493ffd"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "O identificador exclusivo da sua organização",
+    "source_hash": "c8c08d29"
+  },
+  "web.COMMON.success": {
+    "text": "Sucesso",
+    "source_hash": "c88a0b90"
+  },
+  "web.COMMON.need_help": {
+    "text": "Precisa de ajuda",
+    "source_hash": "4ca0ca38"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "Abrir caixa de diálogo de ajuda",
+    "source_hash": "55cd1515"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "O foco está agora na área de texto principal",
+    "source_hash": "e00dd260"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Mostrar frase secreta",
+    "source_hash": "76880d38"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Ocultar frase secreta",
+    "source_hash": "8ecdc98c"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "Ícone de copiar",
+    "source_hash": "d1a5fc0c"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "Ícone de copiado",
+    "source_hash": "90a4b4f1"
+  },
+  "web.STATUS.unverified": {
+    "text": "Não verificado",
+    "source_hash": "33c8e8de"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Configurações de domínio",
+    "source_hash": "e24f338d"
+  },
+  "web.TITLES.domain_signin": {
+    "text": "Configuração de entrada",
+    "source_hash": "2da38c03"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "SSO do domínio",
+    "source_hash": "13161464"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "Validação de cadastro do domínio",
+    "source_hash": "c8ce809a"
+  },
+  "web.TITLES.domain_email": {
+    "text": "Configuração de e-mail",
+    "source_hash": "6f38aa51"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Mensagens confidenciais recebidas",
+    "source_hash": "883dbca9"
   }
 }

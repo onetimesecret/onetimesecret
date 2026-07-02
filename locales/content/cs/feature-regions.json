@@ -152,7 +152,7 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Pokud se tvůj fakturační kontaktní e-mail liší od e-mailu tvého účtu {product_name}, použij fakturační kontaktní e-mail pro účet v novém regionu, aby se zachovaly výhody tvého předplatného.",
+    "text": "Pokud se tvůj fakturační kontaktní e-mail liší od e-mailu tvého účtu {product_name}, použij pro účet v novém regionu fakturační kontaktní e-mail, aby zůstaly zachovány výhody tvého předplatného.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
@@ -186,5 +186,9 @@
   "web.regions.jurisdictions.apac.name": {
     "text": "Asia-Pacific",
     "source_hash": "7a757670"
+  },
+  "web.regions.no_region_configured": {
+    "text": "Pro tvůj účet nejsou momentálně k dispozici žádné informace o regionu.",
+    "source_hash": "bbfe2a32"
   }
 }

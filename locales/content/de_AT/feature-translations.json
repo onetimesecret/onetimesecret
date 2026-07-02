@@ -64,7 +64,7 @@
     "source_hash": "13131e36"
   },
   "web.translations.the_following_people_have_donated_their_time_to_": {
-    "text": "Die folgenden Personen haben ihre Zeit gespendet, um die Reichweite von {product_name} zu vergrößern:",
+    "text": "Die folgenden Personen haben ihre Zeit gespendet, um die Reichweite von {product_name} zu erweitern:",
     "source_hash": "85a766af"
   },
   "web.translations.translations": {
@@ -84,7 +84,7 @@
     "source_hash": "ba5c4395"
   },
   "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
-    "text": "Seit 2012 bietet {product_name} eine sichere Möglichkeit, sensible Informationen weltweit auszutauschen. Mit Nutzern in Regionen, in denen Englisch nicht die Hauptsprache ist, sind genaue Übersetzungen unerlässlich, um sichere Kommunikation für alle zugänglich zu machen.",
+    "text": "Seit 2012 bietet {product_name} eine sichere Möglichkeit, vertrauliche Informationen weltweit zu teilen. Da es Benutzer in Regionen gibt, in denen Englisch nicht die primäre Sprache ist, sind genaue Übersetzungen unerlässlich, um sichere Kommunikation für alle zugänglich zu machen.",
     "source_hash": "87a6e9af"
   },
   "web.translations.help_secure_communication_go_global": {

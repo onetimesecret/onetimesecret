@@ -212,7 +212,7 @@
     "source_hash": "2ff0853c"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
-    "text": "",
+    "text": "Hesap ayarlarınızı ve tercihlerinizi yönetin",
     "source_hash": "2ff0853c"
   },
   "web.settings.back_to_dashboard": {
@@ -404,7 +404,7 @@
     "source_hash": "6beda528"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
-    "text": "",
+    "text": "Yedek olarak kurtarma kodları oluşturun",
     "source_hash": "eb5f3ebd"
   },
   "web.settings.security.configured": {
@@ -476,7 +476,7 @@
     "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "{product_name}'ı uygulamalarınıza nasıl entegre edeceğinizi öğrenin",
+    "text": "{product_name} ürününü uygulamalarınıza nasıl entegre edeceğinizi öğrenin",
     "source_hash": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {
@@ -682,5 +682,17 @@
   "web.settings.profile.didnt_receive_email": {
     "text": "E-postayı almadınız mı?",
     "source_hash": "fe3ac3ad"
+  },
+  "web.settings.api.api_disabled_notice": {
+    "text": "Bu örnek için API devre dışı bırakılmıştır.",
+    "source_hash": "66d12d6b"
+  },
+  "web.settings.security.sso_managed_title": {
+    "text": "Güvenlik SSO tarafından yönetiliyor",
+    "source_hash": "1f6c9472"
+  },
+  "web.settings.security.sso_managed_description": {
+    "text": "Hesabınız, kuruluşunuzun tek oturum açma (SSO) sağlayıcısı aracılığıyla doğrulanır. Parola, çok faktörlü kimlik doğrulama ve kurtarma kodları kimlik sağlayıcınız tarafından yönetilir.",
+    "source_hash": "cd0cf39f"
   }
 }

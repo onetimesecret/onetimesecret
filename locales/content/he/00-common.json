@@ -173,7 +173,7 @@
     "source_hash": "77322879"
   },
   "web.COMMON.click_to_continue": {
-    "text": "לחץ לחשיפה →",
+    "text": "← לחץ לחשיפה",
     "source_hash": "41658f99"
   },
   "web.COMMON.click_to_verify": {
@@ -1299,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "תמיד ודא שאתה באתר הרשמי של {product_name}. נוכלים לפעמים יוצרים אתרים מזויפים שנראים בדיוק כמו {product_name} כדי לגנוב את הסודות שלך. כדי להימנע מהתקפות פישינג, בדוק את הדומיין לפני יצירת קישורים חדשים.",
+    "text": "ודא תמיד שאתה נמצא באתר הרשמי של {product_name}. רמאים יוצרים לעיתים אתרים מזויפים שנראים בדיוק כמו {product_name} כדי לגנוב את הסודות שלך. כדי להימנע מהתקפות דיוג, בדוק את דומיין האזור לפני יצירת קישורים חדשים.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1383,5 +1383,145 @@
     "text": "שדרג כדי לפתוח תכונות נוספות",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "נדרש אימות",
+    "source_hash": "0fcfb12d"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "פעולה זו אינה זמינה במצב SSO בלבד",
+    "source_hash": "9bc26394"
+  },
+  "web.COMMON.configure": {
+    "text": "הגדרה",
+    "source_hash": "6defafa2"
+  },
+  "web.COMMON.copy_to_clipboard": {
+    "text": "העתקה ללוח",
+    "source_hash": "b749e205"
+  },
+  "web.COMMON.add": {
+    "text": "הוספה",
+    "source_hash": "9fd728c6"
+  },
+  "web.COMMON.enabled": {
+    "text": "מופעל",
+    "source_hash": "92c1cdfd"
+  },
+  "web.COMMON.disabled": {
+    "text": "מושבת",
+    "source_hash": "75081b59"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "כן, מחק",
+    "source_hash": "7b05a8e3"
+  },
+  "web.COMMON.error_code": {
+    "text": "קוד שגיאה",
+    "source_hash": "46832415"
+  },
+  "web.COMMON.http_status": {
+    "text": "סטטוס HTTP",
+    "source_hash": "b2a629f2"
+  },
+  "web.COMMON.details": {
+    "text": "פרטים",
+    "source_hash": "45989de4"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "אישור סיסמה",
+    "source_hash": "c292210c"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "הסיסמאות חייבות להיות זהות",
+    "source_hash": "0c060bd4"
+  },
+  "web.COMMON.and": {
+    "text": "וגם",
+    "source_hash": "6201111b"
+  },
+  "web.COMMON.or": {
+    "text": "או",
+    "source_hash": "7175517a"
+  },
+  "web.COMMON.copied": {
+    "text": "הועתק",
+    "source_hash": "8d525e5f"
+  },
+  "web.COMMON.copy": {
+    "text": "העתקה",
+    "source_hash": "e21f935f"
+  },
+  "web.COMMON.copy_email": {
+    "text": "העתק כתובת דוא״ל",
+    "source_hash": "61b94846"
+  },
+  "web.COMMON.copy_id": {
+    "text": "העתק מזהה חשבון",
+    "source_hash": "fd493ffd"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "המזהה הייחודי של הארגון שלך",
+    "source_hash": "c8c08d29"
+  },
+  "web.COMMON.success": {
+    "text": "הצלחה",
+    "source_hash": "c88a0b90"
+  },
+  "web.COMMON.need_help": {
+    "text": "צריך עזרה",
+    "source_hash": "4ca0ca38"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "פתח את חלון העזרה",
+    "source_hash": "55cd1515"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "המיקוד נמצא כעת באזור הטקסט הראשי",
+    "source_hash": "e00dd260"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "הצג ביטוי סיסמה",
+    "source_hash": "76880d38"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "הסתר ביטוי סיסמה",
+    "source_hash": "8ecdc98c"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "סמל העתקה",
+    "source_hash": "d1a5fc0c"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "סמל הועתק",
+    "source_hash": "90a4b4f1"
+  },
+  "web.STATUS.unverified": {
+    "text": "לא מאומת",
+    "source_hash": "33c8e8de"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "הגדרות דומיין",
+    "source_hash": "e24f338d"
+  },
+  "web.TITLES.domain_signin": {
+    "text": "הגדרת התחברות",
+    "source_hash": "2da38c03"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "SSO לדומיין",
+    "source_hash": "13161464"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "אימות הרשמה לדומיין",
+    "source_hash": "c8ce809a"
+  },
+  "web.TITLES.domain_email": {
+    "text": "הגדרת דוא״ל",
+    "source_hash": "6f38aa51"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "סודות נכנסים",
+    "source_hash": "883dbca9"
   }
 }

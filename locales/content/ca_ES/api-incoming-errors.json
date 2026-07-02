@@ -1,0 +1,6 @@
+{
+  "api.incoming.errors.custom_domain_unresolved": {
+    "text": "No s'ha pogut resoldre l'organització del domini personalitzat",
+    "source_hash": "b30d65d2"
+  }
+}

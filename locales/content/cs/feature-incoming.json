@@ -130,5 +130,33 @@
   "incoming.receipt_link_text": {
     "text": "potvrzení",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Vyžadován přechod na vyšší plán",
+    "source_hash": "16487236"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Tato funkce vyžaduje přechod na vyšší plán. Pro povolení příchozích tajemství kontaktuj prosím vlastníka účtu.",
+    "source_hash": "5df7f715"
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Poznámka musí mít {max} znaků nebo méně",
+    "source_hash": "5727f2d3"
+  },
+  "incoming.validation_secret_required": {
+    "text": "Obsah tajemství je povinný",
+    "source_hash": "699783c9"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Vyber prosím příjemce",
+    "source_hash": "67bb4666"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "Funkce příchozích tajemství není povolena",
+    "source_hash": "0616d3f4"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Zkontroluj prosím formulář kvůli chybám",
+    "source_hash": "9056e064"
   }
 }
