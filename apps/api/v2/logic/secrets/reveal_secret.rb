@@ -130,7 +130,7 @@ module V2::Logic
               # In any case, we logged it as an error but mark the secret as
               # having been revealed (which updates the receipt record and then
               # expunges the secret record) and allows the user to carry on.
-              secret.revealed!
+              @revealed = secret.revealed!
 
             elsif owner && (cust&.anonymous? || (cust&.custid == owner.custid && !owner.verified?))
               secret_logger.info 'Owner verification successful',
@@ -146,7 +146,7 @@ module V2::Logic
               owner.reset_secret.delete!
               # Skip for stateless auth (BasicAuth provides empty session)
               sess.clear unless sess.empty?
-              secret.revealed!
+              @revealed         = secret.revealed!
 
             else
               secret_logger.error 'Invalid verification - user already logged in',
@@ -186,7 +186,16 @@ module V2::Logic
             # happens in success_data). This is a feature, not a
             # bug but it means that all return values need to be
             # pluck out of the secret object before this is called.
-            secret.revealed!
+            @revealed = secret.revealed!
+          end
+
+          # revealed! performs an atomic claim: it returns true only for the
+          # single caller that won the burn-after-reading race. If a concurrent
+          # request beat us to it, we must NOT disclose the plaintext -- suppress
+          # it so success_data omits secret_value. Prevents a double-reveal.
+          unless @revealed
+            @show_secret  = false
+            @secret_value = nil
           end
 
         elsif secret.has_passphrase? && !correct_passphrase

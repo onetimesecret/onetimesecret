@@ -47,7 +47,7 @@ module V1::Logic
               owner.verified! "true"
               # Skip for stateless auth (BasicAuth provides empty session)
               sess.clear unless sess.empty?
-              secret.revealed!
+              @revealed = secret.revealed!
             else
               raise_form_error "You can't verify an account when you're already logged in."
             end
@@ -68,8 +68,17 @@ module V1::Logic
             # happens in success_data). This is a feature, not a
             # bug but it means that all return values need to be
             # pluck out of the secret object before this is called.
-            secret.revealed!
+            @revealed = secret.revealed!
 
+          end
+
+          # revealed! performs an atomic claim: it returns true only for the
+          # single caller that won the burn-after-reading race. If a concurrent
+          # request beat us to it, we must NOT disclose the plaintext -- suppress
+          # it so success_data omits secret_value. Prevents a double-reveal.
+          unless @revealed
+            @show_secret  = false
+            @secret_value = nil
           end
 
         elsif continue && secret.has_passphrase? && !correct_passphrase

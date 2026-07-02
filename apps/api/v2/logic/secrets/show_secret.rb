@@ -74,10 +74,20 @@ module V2::Logic
           @secret_value = secret.decrypted_secret_value(passphrase_input: passphrase)
           owner         = secret.load_owner
 
-          if verification
-            verify_owner(owner)
-          else
-            reveal_secret(owner)
+          # verify_owner/reveal_secret return the value of secret.revealed!,
+          # whose atomic claim yields true only for the single caller that won
+          # the burn-after-reading race.
+          @revealed = if verification
+                        verify_owner(owner)
+                      else
+                        reveal_secret(owner)
+                      end
+
+          # If a concurrent request beat us to the reveal, we must NOT disclose
+          # the plaintext -- suppress it so success_data omits secret_value.
+          unless @revealed
+            @show_secret  = false
+            @secret_value = nil
           end
         end
 
