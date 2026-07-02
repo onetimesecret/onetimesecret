@@ -1,0 +1,6 @@
+{
+  "api.incoming.errors.custom_domain_unresolved": {
+    "text": "Не удалось определить организацию для пользовательского домена",
+    "source_hash": "b30d65d2"
+  }
+}

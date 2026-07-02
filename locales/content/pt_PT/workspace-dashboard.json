@@ -22,5 +22,17 @@
   "web.dashboard.fetch_error_description": {
     "text": "Ocorreu um problema ao carregar os seus dados. Por favor, tente novamente.",
     "source_hash": "ff0d904e"
+  },
+  "web.teams.create_first_team_title": {
+    "text": "Cria a tua primeira equipa",
+    "source_hash": "54693f14"
+  },
+  "web.teams.create_first_team_description": {
+    "text": "As equipas permitem-te colaborar com outras pessoas num espaço de trabalho partilhado.",
+    "source_hash": "d61b86b5"
+  },
+  "web.teams.create_team": {
+    "text": "Criar equipa",
+    "source_hash": "284ff194"
   }
 }

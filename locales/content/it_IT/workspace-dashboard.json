@@ -22,5 +22,17 @@
   "web.dashboard.fetch_error_description": {
     "text": "Si è verificato un problema nel caricamento dei dati. Riprova.",
     "source_hash": "ff0d904e"
+  },
+  "web.teams.create_first_team_title": {
+    "text": "Crea il tuo primo team",
+    "source_hash": "54693f14"
+  },
+  "web.teams.create_first_team_description": {
+    "text": "I team ti permettono di collaborare con altri in un Workspace condiviso.",
+    "source_hash": "d61b86b5"
+  },
+  "web.teams.create_team": {
+    "text": "Crea team",
+    "source_hash": "284ff194"
   }
 }

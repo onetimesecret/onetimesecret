@@ -148,7 +148,7 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Vous consultez un message sécurisé qui vous a été partagé via {product_name}. Ce contenu n'est affiché qu'une seule fois puis est définitivement supprimé de nos serveurs.",
+    "text": "Vous consultez un message sécurisé qui vous a été partagé via {product_name}. Ce contenu n'est affiché qu'une seule fois, puis définitivement supprimé de nos serveurs.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -338,5 +338,13 @@
   "web.layout.workspace_context": {
     "text": "Contexte de l'espace de travail",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Espace de travail",
+    "source_hash": "87bb59ba"
+  },
+  "web.help.default_content": {
+    "text": "Veuillez contacter le support pour obtenir de l'aide",
+    "source_hash": "752bca14"
   }
 }

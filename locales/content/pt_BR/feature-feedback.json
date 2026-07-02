@@ -58,5 +58,17 @@
   "web.feedback.reason_email_change_unauthorized": {
     "text": "Parece que você está relatando uma alteração de e-mail não autorizada na sua conta. Descreva o que aconteceu e investigaremos imediatamente.",
     "source_hash": "00e56551"
+  },
+  "web.feedback.anonymous_no_reply": {
+    "text": "Observação: se você quiser uma resposta, assine ou inclua um endereço de e-mail na mensagem.",
+    "source_hash": "c984f705"
+  },
+  "web.feedback.characters_remaining": {
+    "text": "{count} caracteres restantes",
+    "source_hash": "8d796f40"
+  },
+  "web.feedback.character_limit_reached": {
+    "text": "Limite de caracteres atingido",
+    "source_hash": "031e9310"
   }
 }

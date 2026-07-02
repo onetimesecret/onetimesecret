@@ -130,5 +130,33 @@
   "incoming.receipt_link_text": {
     "text": "recibo",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Se requiere mejorar el plan",
+    "source_hash": "16487236"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Esta función requiere mejorar el plan. Ponte en contacto con el propietario de la cuenta para habilitar los secretos entrantes.",
+    "source_hash": "5df7f715"
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "La nota debe tener {max} caracteres o menos",
+    "source_hash": "5727f2d3"
+  },
+  "incoming.validation_secret_required": {
+    "text": "El contenido del secreto es obligatorio",
+    "source_hash": "699783c9"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Selecciona un destinatario",
+    "source_hash": "67bb4666"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "La función de secretos entrantes no está habilitada",
+    "source_hash": "0616d3f4"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Revisa el formulario en busca de errores",
+    "source_hash": "9056e064"
   }
 }

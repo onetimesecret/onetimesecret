@@ -148,7 +148,7 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Βλέπετε ένα ασφαλές μήνυμα που μοιράστηκε μαζί σας μέσω του {product_name}. Αυτό το περιεχόμενο εμφανίζεται μόνο μία φορά και στη συνέχεια διαγράφεται οριστικά από τους διακομιστές μας.",
+    "text": "Βλέπετε ένα ασφαλές μήνυμα που σας κοινοποιήθηκε μέσω του {product_name}. Αυτό το περιεχόμενο εμφανίζεται μόνο μία φορά και στη συνέχεια διαγράφεται οριστικά από τους διακομιστές μας.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -338,5 +338,13 @@
   "web.layout.workspace_context": {
     "text": "Πλαίσιο χώρου εργασίας",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Χώρος εργασίας",
+    "source_hash": "87bb59ba"
+  },
+  "web.help.default_content": {
+    "text": "Επικοινωνήστε με την υποστήριξη για βοήθεια",
+    "source_hash": "752bca14"
   }
 }

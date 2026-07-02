@@ -846,5 +846,517 @@
   "web.domains.sso.not_configured_notice": {
     "text": "SSO n'est pas encore configuré pour ce domaine. Activez l'authentification unique pour permettre aux membres de l'équipe de s'authentifier en utilisant le fournisseur d'identité de votre organisation.",
     "source_hash": "c439214b"
+  },
+  "api.domains.errors.add_admin_required": {
+    "text": "Seuls les propriétaires et les administrateurs de l'organisation peuvent ajouter des domaines personnalisés",
+    "source_hash": "3324aabe"
+  },
+  "web.domains.public_homepage": {
+    "text": "Page d'accueil publique",
+    "source_hash": "2ae3ccba"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Domaine vérifié et actif",
+    "source_hash": "e4b6a6e1"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS non configuré — cliquez pour corriger",
+    "source_hash": "892cb2cb"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Domaine non vérifié — cliquez pour vérifier",
+    "source_hash": "a9806710"
+  },
+  "web.domains.status_tooltip_unverified": {
+    "text": "Statut du domaine non vérifié — cliquez pour actualiser",
+    "source_hash": "a45aa76d"
+  },
+  "web.domains.last_check_failed": {
+    "text": "Échec de la dernière vérification",
+    "source_hash": "88b594b8"
+  },
+  "web.domains.last_check_failed_ago": {
+    "text": "échec de la dernière vérification {0}",
+    "source_hash": "ddfb6412"
+  },
+  "web.domains.verify_now": {
+    "text": "Vérifier maintenant",
+    "source_hash": "db383efb"
+  },
+  "web.domains.click_to_verify": {
+    "text": "cliquez pour vérifier",
+    "source_hash": "6eae7d9c"
+  },
+  "web.domains.remove_domain_description": {
+    "text": "Supprimer définitivement ce domaine et toute sa configuration.",
+    "source_hash": "73946b9e"
+  },
+  "web.domains.add_access_denied": {
+    "text": "Accès refusé",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.add_access_denied_description": {
+    "text": "Vous n'avez pas la permission d'ajouter des domaines à cette organisation. Contactez l'administrateur de votre organisation.",
+    "source_hash": "25e035c6"
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "Échec du chargement du widget DNS",
+    "source_hash": "5a1d8ab5"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "Widget DNS non disponible",
+    "source_hash": "4eed448b"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "Échec de l'initialisation du widget DNS",
+    "source_hash": "de477585"
+  },
+  "web.domains.verified": {
+    "text": "Vérifié",
+    "source_hash": "4f783840"
+  },
+  "web.domains.pending_verification": {
+    "text": "Vérification en attente",
+    "source_hash": "77e07795"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Vous avez des modifications non enregistrées. Êtes-vous sûr de vouloir quitter ?",
+    "source_hash": "322380c1"
+  },
+  "web.domains.entitlement_required_owner": {
+    "text": "Cette fonctionnalité nécessite une mise à niveau du forfait.",
+    "source_hash": "6de1f752"
+  },
+  "web.domains.entitlement_required_member": {
+    "text": "Cette fonctionnalité n'est pas disponible avec votre forfait actuel. Contactez le propriétaire de votre organisation.",
+    "source_hash": "8f1688b2"
+  },
+  "web.domains.detail.manage": {
+    "text": "Gestion",
+    "source_hash": "5a234448"
+  },
+  "web.domains.detail.features": {
+    "text": "Fonctionnalités",
+    "source_hash": "5697d03d"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Secrets de la page d'accueil",
+    "source_hash": "6360f7ec"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Autoriser l'accès public pour créer des secrets sur la page d'accueil de votre domaine",
+    "source_hash": "209b3ded"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logo, couleurs et image de marque personnalisée",
+    "source_hash": "69f7a9e8"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Paramètres du fournisseur d'authentification unique",
+    "source_hash": "234e6150"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Configuration de l'expéditeur de courriels personnalisé",
+    "source_hash": "7fcde01b"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Paramètres des destinataires de secrets entrants",
+    "source_hash": "37c1fd6d"
+  },
+  "web.domains.detail.signup_description": {
+    "text": "Stratégie de validation des inscriptions par domaine",
+    "source_hash": "3c5a511f"
+  },
+  "web.domains.detail.signin_description": {
+    "text": "Configuration de la méthode de connexion par domaine",
+    "source_hash": "73e01e36"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS",
+    "source_hash": "020965a2"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Fournisseur",
+    "source_hash": "472590ae"
+  },
+  "web.domains.email.test_email_title": {
+    "text": "Tester la distribution des courriels",
+    "source_hash": "c1b3dee2"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Envoyez-vous un courriel de test en utilisant la configuration enregistrée. Fonctionne même lorsque la fonctionnalité n'est pas encore activée.",
+    "source_hash": "33e876ad"
+  },
+  "web.domains.email.send_test": {
+    "text": "Envoyer un test",
+    "source_hash": "22d7b11d"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Courriel de test envoyé avec succès",
+    "source_hash": "561617fd"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Échec de l'envoi du courriel de test",
+    "source_hash": "95ce63bc"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Envoyé à {email}",
+    "source_hash": "8ceb9588"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Distribué via {provider}",
+    "source_hash": "f741959b"
+  },
+  "web.domains.incoming.feature_disabled": {
+    "text": "Secrets entrants non disponibles",
+    "source_hash": "0f96c5ec"
+  },
+  "web.domains.incoming.feature_disabled_description": {
+    "text": "Les secrets entrants ne sont pas activés sur cette instance. Contactez votre administrateur.",
+    "source_hash": "dce981e0"
+  },
+  "web.domains.signin.title": {
+    "text": "Configuration de la connexion",
+    "source_hash": "2da38c03"
+  },
+  "web.domains.signin.configure_signin": {
+    "text": "Configurer la connexion",
+    "source_hash": "f72b58b5"
+  },
+  "web.domains.signin.config_description": {
+    "text": "Configurer les méthodes d'authentification pour la connexion à ce domaine",
+    "source_hash": "8efce428"
+  },
+  "web.domains.signin.access_denied": {
+    "text": "Accès refusé",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.signin.upgrade_to_configure": {
+    "text": "Mettez à niveau votre forfait pour configurer les méthodes de connexion pour ce domaine.",
+    "source_hash": "e242bb74"
+  },
+  "web.domains.signin.not_configured_notice": {
+    "text": "La configuration de la connexion n'est pas encore définie pour ce domaine. Configurez des dérogations pour contrôler quelles méthodes d'authentification sont disponibles sur la page de connexion de ce domaine.",
+    "source_hash": "cb788a2d"
+  },
+  "web.domains.signin.signin_enabled_label": {
+    "text": "Connexion activée",
+    "source_hash": "cabe4898"
+  },
+  "web.domains.signin.header_toggle_label": {
+    "text": "Connexion",
+    "source_hash": "5bbbe531"
+  },
+  "web.domains.signin.signin_enabled_hint": {
+    "text": "Indique si les utilisateurs peuvent se connecter sur ce domaine",
+    "source_hash": "57a92aee"
+  },
+  "web.domains.signin.restrict_to_label": {
+    "text": "Restreindre la méthode de connexion",
+    "source_hash": "edbec83f"
+  },
+  "web.domains.signin.restrict_to_hint": {
+    "text": "Restreindre ce domaine à une seule méthode d'authentification. Lorsqu'elle est définie, seule la méthode choisie est affichée sur la page de connexion.",
+    "source_hash": "682bc4c5"
+  },
+  "web.domains.signin.all_methods": {
+    "text": "Toutes les méthodes",
+    "source_hash": "e601c19e"
+  },
+  "web.domains.signin.all_methods_description": {
+    "text": "Afficher toutes les méthodes d'authentification activées sur la page de connexion",
+    "source_hash": "62723340"
+  },
+  "web.domains.signin.method_password": {
+    "text": "Mot de passe",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.domains.signin.method_email_auth": {
+    "text": "Authentification par courriel",
+    "source_hash": "68c38f94"
+  },
+  "web.domains.signin.method_webauthn": {
+    "text": "WebAuthn / Passkeys",
+    "source_hash": "c40224ce"
+  },
+  "web.domains.signin.method_sso": {
+    "text": "Authentification unique",
+    "source_hash": "cf7cd744"
+  },
+  "web.domains.signin.method_overrides_label": {
+    "text": "Dérogations de méthode",
+    "source_hash": "5496cba6"
+  },
+  "web.domains.signin.method_overrides_hint": {
+    "text": "Activer ou désactiver des méthodes d'authentification individuelles pour ce domaine",
+    "source_hash": "394e3878"
+  },
+  "web.domains.signin.mode_question": {
+    "text": "Comment les utilisateurs peuvent-ils se connecter ?",
+    "source_hash": "3694eb23"
+  },
+  "web.domains.signin.mode_any": {
+    "text": "N'importe quelle méthode disponible",
+    "source_hash": "23665425"
+  },
+  "web.domains.signin.mode_any_hint": {
+    "text": "Afficher toutes les méthodes disponibles sur ce domaine. Restreignez les méthodes individuelles ci-dessous.",
+    "source_hash": "2f3dcba6"
+  },
+  "web.domains.signin.mode_one": {
+    "text": "Une méthode spécifique",
+    "source_hash": "601f5768"
+  },
+  "web.domains.signin.mode_one_hint": {
+    "text": "Restreindre la page de connexion à une seule méthode. Seules les méthodes disponibles sur ce domaine sont listées.",
+    "source_hash": "58bde6d5"
+  },
+  "web.domains.signin.mode_disabled": {
+    "text": "Connexion désactivée",
+    "source_hash": "bb807607"
+  },
+  "web.domains.signin.mode_disabled_hint": {
+    "text": "Les utilisateurs ne peuvent pas se connecter sur ce domaine.",
+    "source_hash": "8938f098"
+  },
+  "web.domains.signin.mode_disabled_notice": {
+    "text": "Les visiteurs de la page de connexion de ce domaine voient un avis indiquant que la connexion n'est pas disponible, avec un lien de retour vers la page d'accueil. Vos paramètres de méthode précédents sont conservés et restaurés lorsque vous réactivez la connexion.",
+    "source_hash": "1a04de18"
+  },
+  "web.domains.signin.methods_list_label": {
+    "text": "Méthodes affichées sur la page de connexion",
+    "source_hash": "66fd133b"
+  },
+  "web.domains.signin.restrict_picker_hint": {
+    "text": "Seules les méthodes disponibles sur ce domaine sont listées.",
+    "source_hash": "c7a56f44"
+  },
+  "web.domains.signin.availability_always": {
+    "text": "Toujours disponible",
+    "source_hash": "0fda3772"
+  },
+  "web.domains.signin.availability_global_on": {
+    "text": "Suit la politique globale · Activé",
+    "source_hash": "3844e6f7"
+  },
+  "web.domains.signin.availability_global_off": {
+    "text": "Non disponible",
+    "source_hash": "67a926f7"
+  },
+  "web.domains.signin.availability_unavailable": {
+    "text": "Indisponible sur tout le site",
+    "source_hash": "da29c1be"
+  },
+  "web.domains.signin.allow_on_domain": {
+    "text": "Autoriser sur ce domaine",
+    "source_hash": "760b578e"
+  },
+  "web.domains.signin.method_password_blurb": {
+    "text": "Mot de passe seulement",
+    "source_hash": "ed1a02fd"
+  },
+  "web.domains.signin.method_email_auth_blurb": {
+    "text": "Connexion sans mot de passe par lien magique",
+    "source_hash": "7f776a85"
+  },
+  "web.domains.signin.method_webauthn_blurb": {
+    "text": "Données biométriques et clés de sécurité",
+    "source_hash": "7d6a7bd5"
+  },
+  "web.domains.signin.method_sso_blurb": {
+    "text": "Fournisseur d'identité externe",
+    "source_hash": "a3442088"
+  },
+  "web.domains.signin.email_auth_label": {
+    "text": "Authentification par courriel",
+    "source_hash": "68c38f94"
+  },
+  "web.domains.signin.email_auth_hint": {
+    "text": "Autoriser l'authentification par courriel sans mot de passe sur ce domaine",
+    "source_hash": "6ad82127"
+  },
+  "web.domains.signin.sso_enabled_label": {
+    "text": "Authentification unique",
+    "source_hash": "cf7cd744"
+  },
+  "web.domains.signin.sso_enabled_hint": {
+    "text": "Autoriser l'authentification SSO sur ce domaine",
+    "source_hash": "22d78ad5"
+  },
+  "web.domains.signin.enabled_label": {
+    "text": "Activer la configuration de la connexion",
+    "source_hash": "dbd8e11c"
+  },
+  "web.domains.signin.enabled_hint": {
+    "text": "Lorsqu'elle est activée, ce domaine utilise les paramètres de connexion configurés ci-dessus",
+    "source_hash": "6259f8a2"
+  },
+  "web.domains.signin.save_config": {
+    "text": "Enregistrer la configuration",
+    "source_hash": "b2b158f2"
+  },
+  "web.domains.signin.update_success": {
+    "text": "Configuration de la connexion mise à jour avec succès",
+    "source_hash": "10ea50d8"
+  },
+  "web.domains.signin.reset_to_defaults": {
+    "text": "Réinitialiser aux valeurs par défaut",
+    "source_hash": "e240e635"
+  },
+  "web.domains.signin.reset_confirm": {
+    "text": "Réinitialiser la connexion aux valeurs par défaut globales ?",
+    "source_hash": "2c6bbc32"
+  },
+  "web.domains.signin.reset_keeps_sso": {
+    "text": "Vos identifiants SSO sont conservés. Supprimez-les séparément sur l'écran de configuration SSO.",
+    "source_hash": "edc0c756"
+  },
+  "web.domains.signin.reset_action": {
+    "text": "Oui, réinitialiser",
+    "source_hash": "4bb21d8b"
+  },
+  "web.domains.signin.reset_success": {
+    "text": "Paramètres de connexion réinitialisés aux valeurs par défaut globales",
+    "source_hash": "0c364d89"
+  },
+  "web.domains.signup.title": {
+    "text": "Validation des inscriptions",
+    "source_hash": "2c34ac0a"
+  },
+  "web.domains.signup.config_description": {
+    "text": "Configurer la validation des inscriptions pour ce domaine",
+    "source_hash": "e9c81e8a"
+  },
+  "web.domains.signup.access_denied": {
+    "text": "Accès refusé",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.signup.upgrade_to_configure": {
+    "text": "Mettez à niveau votre forfait pour configurer la validation des inscriptions par domaine.",
+    "source_hash": "d87d6614"
+  },
+  "web.domains.signup.configure_signup": {
+    "text": "Configurer les inscriptions",
+    "source_hash": "e2697662"
+  },
+  "web.domains.signup.not_configured_notice": {
+    "text": "La validation des inscriptions n'est pas encore configurée pour ce domaine. Configurez une stratégie pour contrôler qui peut s'inscrire via ce domaine.",
+    "source_hash": "fc6c6eb8"
+  },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "Les inscriptions sont actuellement désactivées au niveau du site. Cette politique par domaine est configurée, mais ne filtrera aucun trafic tant que les inscriptions au niveau du site ne sont pas activées.",
+    "source_hash": "c0e59f86"
+  },
+  "web.domains.signup.strategy_label": {
+    "text": "Stratégie de validation",
+    "source_hash": "a2e95531"
+  },
+  "web.domains.signup.strategy_description": {
+    "text": "Choisissez comment les adresses courriel sont validées lorsque les utilisateurs s'inscrivent sur ce domaine.",
+    "source_hash": "8e232b03"
+  },
+  "web.domains.signup.network_validation_warning": {
+    "text": "Cette stratégie effectue des appels réseau pendant l'inscription, ce qui peut ajouter de la latence ou être bloqué par certains fournisseurs.",
+    "source_hash": "53d4c266"
+  },
+  "web.domains.signup.allowed_domains_label": {
+    "text": "Domaines d'inscription autorisés",
+    "source_hash": "9b5bb5b1"
+  },
+  "web.domains.signup.allowed_domains_hint": {
+    "text": "Seuls ces domaines de courriel seront autorisés à s'inscrire. Ajoutez un domaine par entrée.",
+    "source_hash": "c082414d"
+  },
+  "web.domains.signup.domain_placeholder": {
+    "text": "example.com",
+    "source_hash": "a379a6f6"
+  },
+  "web.domains.signup.invalid_domain": {
+    "text": "Veuillez saisir un domaine valide (p. ex. example.com)",
+    "source_hash": "16807983"
+  },
+  "web.domains.signup.domain_exists": {
+    "text": "Ce domaine est déjà dans la liste",
+    "source_hash": "3fccb721"
+  },
+  "web.domains.signup.remove_domain": {
+    "text": "Supprimer {domain}",
+    "source_hash": "ae708a1d"
+  },
+  "web.domains.signup.enabled_label": {
+    "text": "Activer la validation par domaine",
+    "source_hash": "db103925"
+  },
+  "web.domains.signup.enabled_hint": {
+    "text": "Lorsqu'elle est activée, les inscriptions sur ce domaine utilisent la stratégie ci-dessus au lieu de la politique globale.",
+    "source_hash": "99de2008"
+  },
+  "web.domains.signup.delete_config": {
+    "text": "Supprimer la configuration",
+    "source_hash": "a9a30c7f"
+  },
+  "web.domains.signup.delete_confirm": {
+    "text": "Supprimer la configuration de validation des inscriptions ? Les inscriptions reviendront à la politique globale.",
+    "source_hash": "a8c9086e"
+  },
+  "web.domains.signup.save_config": {
+    "text": "Enregistrer la configuration",
+    "source_hash": "b2b158f2"
+  },
+  "web.domains.signup.update_success": {
+    "text": "Validation des inscriptions mise à jour avec succès",
+    "source_hash": "57a529ac"
+  },
+  "web.domains.signup.delete_success": {
+    "text": "Configuration de validation des inscriptions supprimée avec succès",
+    "source_hash": "eb6add4d"
+  },
+  "web.domains.signup.domain_overrides_label": {
+    "text": "Dérogations de domaine",
+    "source_hash": "d25da3cd"
+  },
+  "web.domains.signup.domain_overrides_hint": {
+    "text": "Remplacer les paramètres d'inscription globaux pour ce domaine",
+    "source_hash": "53101057"
+  },
+  "web.domains.signup.signup_enabled_label": {
+    "text": "Inscription activée",
+    "source_hash": "296ac66d"
+  },
+  "web.domains.signup.signup_enabled_hint": {
+    "text": "Remplacer l'activation de l'inscription pour ce domaine",
+    "source_hash": "2ee146b6"
+  },
+  "web.domains.signup.autoverify_label": {
+    "text": "Vérifier automatiquement les comptes",
+    "source_hash": "4b103cd5"
+  },
+  "web.domains.signup.autoverify_hint": {
+    "text": "Remplacer la vérification automatique des nouveaux comptes sur ce domaine",
+    "source_hash": "63866ecd"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Test de connexion réussi — le fournisseur a répondu correctement",
+    "source_hash": "1570ddb0"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Échec du test de connexion",
+    "source_hash": "a45a37dd"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "Pour exiger l'authentification unique pour toutes les connexions sur ce domaine, configurez-la dans les paramètres de connexion du domaine. Le mode SSO uniquement restreint la page de connexion au fournisseur SSO configuré ici.",
+    "source_hash": "d26627a5"
+  },
+  "web.domains.sso.edit_credentials": {
+    "text": "Modifier les identifiants",
+    "source_hash": "5a6622b6"
+  },
+  "web.domains.sso.configure_button": {
+    "text": "Configurer",
+    "source_hash": "6defafa2"
+  },
+  "web.domains.sso.upgrade_required": {
+    "text": "Mettre à niveau pour configurer",
+    "source_hash": "571cfa98"
   }
 }

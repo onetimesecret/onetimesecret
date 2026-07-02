@@ -1299,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "请确认您访问的是 {product_name} 官方网站。不法分子有时会创建与 {product_name} 外观完全相同的虚假网站来窃取您的信息。为避免钓鱼攻击，请在创建新链接前核实域名。",
+    "text": "请始终确认您访问的是 {product_name} 官方网站。诈骗者有时会创建与 {product_name} 完全相同的虚假网站，以窃取您的机密内容。为避免网络钓鱼攻击，请在创建新链接前核对区域域名。",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1383,5 +1383,145 @@
     "text": "升级以解锁更多功能",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "需要身份验证",
+    "source_hash": "0fcfb12d"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "此操作在仅 SSO 模式下不可用",
+    "source_hash": "9bc26394"
+  },
+  "web.COMMON.configure": {
+    "text": "配置",
+    "source_hash": "6defafa2"
+  },
+  "web.COMMON.copy_to_clipboard": {
+    "text": "复制",
+    "source_hash": "b749e205"
+  },
+  "web.COMMON.add": {
+    "text": "添加",
+    "source_hash": "9fd728c6"
+  },
+  "web.COMMON.enabled": {
+    "text": "已启用",
+    "source_hash": "92c1cdfd"
+  },
+  "web.COMMON.disabled": {
+    "text": "已禁用",
+    "source_hash": "75081b59"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "是的，删除",
+    "source_hash": "7b05a8e3"
+  },
+  "web.COMMON.error_code": {
+    "text": "错误代码",
+    "source_hash": "46832415"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTP 状态",
+    "source_hash": "b2a629f2"
+  },
+  "web.COMMON.details": {
+    "text": "详细信息",
+    "source_hash": "45989de4"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "确认密码",
+    "source_hash": "c292210c"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "密码必须匹配",
+    "source_hash": "0c060bd4"
+  },
+  "web.COMMON.and": {
+    "text": "和",
+    "source_hash": "6201111b"
+  },
+  "web.COMMON.or": {
+    "text": "或",
+    "source_hash": "7175517a"
+  },
+  "web.COMMON.copied": {
+    "text": "已复制",
+    "source_hash": "8d525e5f"
+  },
+  "web.COMMON.copy": {
+    "text": "复制",
+    "source_hash": "e21f935f"
+  },
+  "web.COMMON.copy_email": {
+    "text": "复制邮箱地址",
+    "source_hash": "61b94846"
+  },
+  "web.COMMON.copy_id": {
+    "text": "复制账户 ID",
+    "source_hash": "fd493ffd"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "您组织的唯一标识符",
+    "source_hash": "c8c08d29"
+  },
+  "web.COMMON.success": {
+    "text": "成功",
+    "source_hash": "c88a0b90"
+  },
+  "web.COMMON.need_help": {
+    "text": "需要帮助",
+    "source_hash": "4ca0ca38"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "打开帮助对话框",
+    "source_hash": "55cd1515"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "焦点现在位于主文本区域",
+    "source_hash": "e00dd260"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "显示口令",
+    "source_hash": "76880d38"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "隐藏口令",
+    "source_hash": "8ecdc98c"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "复制图标",
+    "source_hash": "d1a5fc0c"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "已复制图标",
+    "source_hash": "90a4b4f1"
+  },
+  "web.STATUS.unverified": {
+    "text": "未验证",
+    "source_hash": "33c8e8de"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "域名设置",
+    "source_hash": "e24f338d"
+  },
+  "web.TITLES.domain_signin": {
+    "text": "登录配置",
+    "source_hash": "2da38c03"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "域名 SSO",
+    "source_hash": "13161464"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "域名注册验证",
+    "source_hash": "c8ce809a"
+  },
+  "web.TITLES.domain_email": {
+    "text": "邮件配置",
+    "source_hash": "6f38aa51"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "接收的内容",
+    "source_hash": "883dbca9"
   }
 }

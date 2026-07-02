@@ -348,6 +348,7 @@
     "content_hash": "dc6fa4f5"
   },
   "web.help.default_content": {
-    "text": "Please contact support for assistance"
+    "text": "Please contact support for assistance",
+    "content_hash": "752bca14"
   }
 }

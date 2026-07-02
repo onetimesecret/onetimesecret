@@ -846,5 +846,517 @@
   "web.domains.sso.not_configured_notice": {
     "text": "SSO is nog niet geconfigureerd voor dit domein. Schakel single sign-on in om teamleden te laten authenticeren via de identiteitsprovider van je organisatie.",
     "source_hash": "c439214b"
+  },
+  "api.domains.errors.add_admin_required": {
+    "text": "Alleen eigenaren en beheerders van de organisatie kunnen aangepaste domeinen toevoegen",
+    "source_hash": "3324aabe"
+  },
+  "web.domains.public_homepage": {
+    "text": "Openbare homepage",
+    "source_hash": "2ae3ccba"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Domein geverifieerd en actief",
+    "source_hash": "e4b6a6e1"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS niet geconfigureerd — klik om te herstellen",
+    "source_hash": "892cb2cb"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Domein niet geverifieerd — klik om te verifiëren",
+    "source_hash": "a9806710"
+  },
+  "web.domains.status_tooltip_unverified": {
+    "text": "Domeinstatus niet geverifieerd — klik om te vernieuwen",
+    "source_hash": "a45aa76d"
+  },
+  "web.domains.last_check_failed": {
+    "text": "Laatste verificatiecontrole mislukt",
+    "source_hash": "88b594b8"
+  },
+  "web.domains.last_check_failed_ago": {
+    "text": "laatste controle mislukt {0}",
+    "source_hash": "ddfb6412"
+  },
+  "web.domains.verify_now": {
+    "text": "Nu verifiëren",
+    "source_hash": "db383efb"
+  },
+  "web.domains.click_to_verify": {
+    "text": "klik om te verifiëren",
+    "source_hash": "6eae7d9c"
+  },
+  "web.domains.remove_domain_description": {
+    "text": "Verwijder dit domein en alle bijbehorende configuratie permanent.",
+    "source_hash": "73946b9e"
+  },
+  "web.domains.add_access_denied": {
+    "text": "Toegang geweigerd",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.add_access_denied_description": {
+    "text": "Je hebt geen toestemming om domeinen aan deze organisatie toe te voegen. Neem contact op met de beheerder van je organisatie.",
+    "source_hash": "25e035c6"
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "Laden van DNS-widget mislukt",
+    "source_hash": "5a1d8ab5"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "DNS-widget niet beschikbaar",
+    "source_hash": "4eed448b"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "Initialiseren van DNS-widget mislukt",
+    "source_hash": "de477585"
+  },
+  "web.domains.verified": {
+    "text": "Geverifieerd",
+    "source_hash": "4f783840"
+  },
+  "web.domains.pending_verification": {
+    "text": "Verificatie in behandeling",
+    "source_hash": "77e07795"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Je hebt niet-opgeslagen wijzigingen. Weet je zeker dat je wilt vertrekken?",
+    "source_hash": "322380c1"
+  },
+  "web.domains.entitlement_required_owner": {
+    "text": "Deze functie vereist een planupgrade.",
+    "source_hash": "6de1f752"
+  },
+  "web.domains.entitlement_required_member": {
+    "text": "Deze functie is niet beschikbaar in je huidige plan. Neem contact op met de eigenaar van je organisatie.",
+    "source_hash": "8f1688b2"
+  },
+  "web.domains.detail.manage": {
+    "text": "Beheren",
+    "source_hash": "5a234448"
+  },
+  "web.domains.detail.features": {
+    "text": "Functies",
+    "source_hash": "5697d03d"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Homepageberichten",
+    "source_hash": "6360f7ec"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Sta openbare toegang toe om berichten aan te maken op de homepage van je domein",
+    "source_hash": "209b3ded"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logo, kleuren en aangepaste branding",
+    "source_hash": "69f7a9e8"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Instellingen voor single sign-on-provider",
+    "source_hash": "234e6150"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Configuratie voor aangepaste e-mailafzender",
+    "source_hash": "7fcde01b"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Instellingen voor ontvangers van inkomende berichten",
+    "source_hash": "37c1fd6d"
+  },
+  "web.domains.detail.signup_description": {
+    "text": "Aanmeldingsvalidatiestrategie per domein",
+    "source_hash": "3c5a511f"
+  },
+  "web.domains.detail.signin_description": {
+    "text": "Configuratie van inlogmethode per domein",
+    "source_hash": "73e01e36"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS",
+    "source_hash": "020965a2"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Provider",
+    "source_hash": "472590ae"
+  },
+  "web.domains.email.test_email_title": {
+    "text": "E-mailbezorging testen",
+    "source_hash": "c1b3dee2"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Stuur jezelf een test-e-mail met de opgeslagen configuratie. Werkt zelfs wanneer de functie nog niet is ingeschakeld.",
+    "source_hash": "33e876ad"
+  },
+  "web.domains.email.send_test": {
+    "text": "Test versturen",
+    "source_hash": "22d7b11d"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Test-e-mail succesvol verstuurd",
+    "source_hash": "561617fd"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Versturen van test-e-mail mislukt",
+    "source_hash": "95ce63bc"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Verstuurd naar {email}",
+    "source_hash": "8ceb9588"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Bezorgd via {provider}",
+    "source_hash": "f741959b"
+  },
+  "web.domains.incoming.feature_disabled": {
+    "text": "Inkomende berichten niet beschikbaar",
+    "source_hash": "0f96c5ec"
+  },
+  "web.domains.incoming.feature_disabled_description": {
+    "text": "Inkomende berichten is niet ingeschakeld op deze instance. Neem contact op met je beheerder.",
+    "source_hash": "dce981e0"
+  },
+  "web.domains.signin.title": {
+    "text": "Inlogconfiguratie",
+    "source_hash": "2da38c03"
+  },
+  "web.domains.signin.configure_signin": {
+    "text": "Inloggen configureren",
+    "source_hash": "f72b58b5"
+  },
+  "web.domains.signin.config_description": {
+    "text": "Configureer authenticatiemethoden voor inloggen op dit domein",
+    "source_hash": "8efce428"
+  },
+  "web.domains.signin.access_denied": {
+    "text": "Toegang geweigerd",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.signin.upgrade_to_configure": {
+    "text": "Upgrade je plan om inlogmethoden voor dit domein te configureren.",
+    "source_hash": "e242bb74"
+  },
+  "web.domains.signin.not_configured_notice": {
+    "text": "De inlogconfiguratie is nog niet ingesteld voor dit domein. Configureer overrides om te bepalen welke authenticatiemethoden beschikbaar zijn op de inlogpagina van dit domein.",
+    "source_hash": "cb788a2d"
+  },
+  "web.domains.signin.signin_enabled_label": {
+    "text": "Inloggen ingeschakeld",
+    "source_hash": "cabe4898"
+  },
+  "web.domains.signin.header_toggle_label": {
+    "text": "Inloggen",
+    "source_hash": "5bbbe531"
+  },
+  "web.domains.signin.signin_enabled_hint": {
+    "text": "Of gebruikers kunnen inloggen op dit domein",
+    "source_hash": "57a92aee"
+  },
+  "web.domains.signin.restrict_to_label": {
+    "text": "Inlogmethode beperken",
+    "source_hash": "edbec83f"
+  },
+  "web.domains.signin.restrict_to_hint": {
+    "text": "Beperk dit domein tot één authenticatiemethode. Wanneer ingesteld, wordt alleen de gekozen methode op de inlogpagina getoond.",
+    "source_hash": "682bc4c5"
+  },
+  "web.domains.signin.all_methods": {
+    "text": "Alle methoden",
+    "source_hash": "e601c19e"
+  },
+  "web.domains.signin.all_methods_description": {
+    "text": "Toon alle ingeschakelde authenticatiemethoden op de inlogpagina",
+    "source_hash": "62723340"
+  },
+  "web.domains.signin.method_password": {
+    "text": "Wachtwoord",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.domains.signin.method_email_auth": {
+    "text": "E-mailauthenticatie",
+    "source_hash": "68c38f94"
+  },
+  "web.domains.signin.method_webauthn": {
+    "text": "WebAuthn / Passkeys",
+    "source_hash": "c40224ce"
+  },
+  "web.domains.signin.method_sso": {
+    "text": "Single sign-on",
+    "source_hash": "cf7cd744"
+  },
+  "web.domains.signin.method_overrides_label": {
+    "text": "Methode-overrides",
+    "source_hash": "5496cba6"
+  },
+  "web.domains.signin.method_overrides_hint": {
+    "text": "Schakel individuele authenticatiemethoden voor dit domein in of uit",
+    "source_hash": "394e3878"
+  },
+  "web.domains.signin.mode_question": {
+    "text": "Hoe kunnen gebruikers inloggen?",
+    "source_hash": "3694eb23"
+  },
+  "web.domains.signin.mode_any": {
+    "text": "Elke beschikbare methode",
+    "source_hash": "23665425"
+  },
+  "web.domains.signin.mode_any_hint": {
+    "text": "Toon elke methode die op dit domein beschikbaar is. Beperk individuele methoden hieronder.",
+    "source_hash": "2f3dcba6"
+  },
+  "web.domains.signin.mode_one": {
+    "text": "Eén specifieke methode",
+    "source_hash": "601f5768"
+  },
+  "web.domains.signin.mode_one_hint": {
+    "text": "Beperk de inlogpagina tot één methode. Alleen methoden die op dit domein beschikbaar zijn, worden vermeld.",
+    "source_hash": "58bde6d5"
+  },
+  "web.domains.signin.mode_disabled": {
+    "text": "Inloggen uitgeschakeld",
+    "source_hash": "bb807607"
+  },
+  "web.domains.signin.mode_disabled_hint": {
+    "text": "Gebruikers kunnen niet inloggen op dit domein.",
+    "source_hash": "8938f098"
+  },
+  "web.domains.signin.mode_disabled_notice": {
+    "text": "Bezoekers van de inlogpagina van dit domein zien een melding dat inloggen niet beschikbaar is, met een link terug naar de homepage. Je vorige methode-instellingen worden bewaard en hersteld wanneer je inloggen opnieuw inschakelt.",
+    "source_hash": "1a04de18"
+  },
+  "web.domains.signin.methods_list_label": {
+    "text": "Methoden getoond op de inlogpagina",
+    "source_hash": "66fd133b"
+  },
+  "web.domains.signin.restrict_picker_hint": {
+    "text": "Alleen methoden die op dit domein beschikbaar zijn, worden vermeld.",
+    "source_hash": "c7a56f44"
+  },
+  "web.domains.signin.availability_always": {
+    "text": "Altijd beschikbaar",
+    "source_hash": "0fda3772"
+  },
+  "web.domains.signin.availability_global_on": {
+    "text": "Volgt globaal beleid · Aan",
+    "source_hash": "3844e6f7"
+  },
+  "web.domains.signin.availability_global_off": {
+    "text": "Niet beschikbaar",
+    "source_hash": "67a926f7"
+  },
+  "web.domains.signin.availability_unavailable": {
+    "text": "Niet beschikbaar voor de hele site",
+    "source_hash": "da29c1be"
+  },
+  "web.domains.signin.allow_on_domain": {
+    "text": "Toestaan op dit domein",
+    "source_hash": "760b578e"
+  },
+  "web.domains.signin.method_password_blurb": {
+    "text": "Alleen wachtwoord",
+    "source_hash": "ed1a02fd"
+  },
+  "web.domains.signin.method_email_auth_blurb": {
+    "text": "Wachtwoordloos inloggen met magic link",
+    "source_hash": "7f776a85"
+  },
+  "web.domains.signin.method_webauthn_blurb": {
+    "text": "Biometrie en beveiligingssleutels",
+    "source_hash": "7d6a7bd5"
+  },
+  "web.domains.signin.method_sso_blurb": {
+    "text": "Externe identity provider",
+    "source_hash": "a3442088"
+  },
+  "web.domains.signin.email_auth_label": {
+    "text": "E-mailauthenticatie",
+    "source_hash": "68c38f94"
+  },
+  "web.domains.signin.email_auth_hint": {
+    "text": "Sta wachtwoordloze e-mailauthenticatie toe op dit domein",
+    "source_hash": "6ad82127"
+  },
+  "web.domains.signin.sso_enabled_label": {
+    "text": "Single sign-on",
+    "source_hash": "cf7cd744"
+  },
+  "web.domains.signin.sso_enabled_hint": {
+    "text": "Sta SSO-authenticatie toe op dit domein",
+    "source_hash": "22d78ad5"
+  },
+  "web.domains.signin.enabled_label": {
+    "text": "Inlogconfiguratie inschakelen",
+    "source_hash": "dbd8e11c"
+  },
+  "web.domains.signin.enabled_hint": {
+    "text": "Wanneer ingeschakeld, gebruikt dit domein de hierboven geconfigureerde inloginstellingen",
+    "source_hash": "6259f8a2"
+  },
+  "web.domains.signin.save_config": {
+    "text": "Configuratie opslaan",
+    "source_hash": "b2b158f2"
+  },
+  "web.domains.signin.update_success": {
+    "text": "Inlogconfiguratie succesvol bijgewerkt",
+    "source_hash": "10ea50d8"
+  },
+  "web.domains.signin.reset_to_defaults": {
+    "text": "Terugzetten naar standaardwaarden",
+    "source_hash": "e240e635"
+  },
+  "web.domains.signin.reset_confirm": {
+    "text": "Inloggen terugzetten naar de globale standaardwaarden?",
+    "source_hash": "2c6bbc32"
+  },
+  "web.domains.signin.reset_keeps_sso": {
+    "text": "Je SSO-inloggegevens worden bewaard. Verwijder ze apart op het SSO-configuratiescherm.",
+    "source_hash": "edc0c756"
+  },
+  "web.domains.signin.reset_action": {
+    "text": "Ja, terugzetten",
+    "source_hash": "4bb21d8b"
+  },
+  "web.domains.signin.reset_success": {
+    "text": "Inloginstellingen teruggezet naar de globale standaardwaarden",
+    "source_hash": "0c364d89"
+  },
+  "web.domains.signup.title": {
+    "text": "Aanmeldingsvalidatie",
+    "source_hash": "2c34ac0a"
+  },
+  "web.domains.signup.config_description": {
+    "text": "Configureer aanmeldingsvalidatie voor dit domein",
+    "source_hash": "e9c81e8a"
+  },
+  "web.domains.signup.access_denied": {
+    "text": "Toegang geweigerd",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.signup.upgrade_to_configure": {
+    "text": "Upgrade je plan om aanmeldingsvalidatie per domein te configureren.",
+    "source_hash": "d87d6614"
+  },
+  "web.domains.signup.configure_signup": {
+    "text": "Aanmelding configureren",
+    "source_hash": "e2697662"
+  },
+  "web.domains.signup.not_configured_notice": {
+    "text": "Aanmeldingsvalidatie is nog niet geconfigureerd voor dit domein. Configureer een strategie om te bepalen wie zich via dit domein kan aanmelden.",
+    "source_hash": "fc6c6eb8"
+  },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "Aanmeldingen zijn momenteel uitgeschakeld op siteniveau. Dit beleid per domein is geconfigureerd, maar zal geen verkeer beperken totdat aanmeldingen op de site zijn ingeschakeld.",
+    "source_hash": "c0e59f86"
+  },
+  "web.domains.signup.strategy_label": {
+    "text": "Validatiestrategie",
+    "source_hash": "a2e95531"
+  },
+  "web.domains.signup.strategy_description": {
+    "text": "Kies hoe e-mailadressen worden gevalideerd wanneer gebruikers zich op dit domein aanmelden.",
+    "source_hash": "8e232b03"
+  },
+  "web.domains.signup.network_validation_warning": {
+    "text": "Deze strategie voert netwerkaanroepen uit tijdens de aanmelding, wat extra latentie kan veroorzaken of door sommige providers kan worden geblokkeerd.",
+    "source_hash": "53d4c266"
+  },
+  "web.domains.signup.allowed_domains_label": {
+    "text": "Toegestane aanmeldingsdomeinen",
+    "source_hash": "9b5bb5b1"
+  },
+  "web.domains.signup.allowed_domains_hint": {
+    "text": "Alleen deze e-maildomeinen mogen zich aanmelden. Voeg één domein per item toe.",
+    "source_hash": "c082414d"
+  },
+  "web.domains.signup.domain_placeholder": {
+    "text": "example.com",
+    "source_hash": "a379a6f6"
+  },
+  "web.domains.signup.invalid_domain": {
+    "text": "Voer een geldig domein in (bijv. example.com)",
+    "source_hash": "16807983"
+  },
+  "web.domains.signup.domain_exists": {
+    "text": "Dit domein staat al in de lijst",
+    "source_hash": "3fccb721"
+  },
+  "web.domains.signup.remove_domain": {
+    "text": "{domain} verwijderen",
+    "source_hash": "ae708a1d"
+  },
+  "web.domains.signup.enabled_label": {
+    "text": "Validatie per domein inschakelen",
+    "source_hash": "db103925"
+  },
+  "web.domains.signup.enabled_hint": {
+    "text": "Wanneer ingeschakeld, gebruiken aanmeldingen op dit domein de bovenstaande strategie in plaats van het globale beleid.",
+    "source_hash": "99de2008"
+  },
+  "web.domains.signup.delete_config": {
+    "text": "Configuratie verwijderen",
+    "source_hash": "a9a30c7f"
+  },
+  "web.domains.signup.delete_confirm": {
+    "text": "Configuratie voor aanmeldingsvalidatie verwijderen? Aanmeldingen vallen terug op het globale beleid.",
+    "source_hash": "a8c9086e"
+  },
+  "web.domains.signup.save_config": {
+    "text": "Configuratie opslaan",
+    "source_hash": "b2b158f2"
+  },
+  "web.domains.signup.update_success": {
+    "text": "Aanmeldingsvalidatie succesvol bijgewerkt",
+    "source_hash": "57a529ac"
+  },
+  "web.domains.signup.delete_success": {
+    "text": "Configuratie voor aanmeldingsvalidatie succesvol verwijderd",
+    "source_hash": "eb6add4d"
+  },
+  "web.domains.signup.domain_overrides_label": {
+    "text": "Domein-overrides",
+    "source_hash": "d25da3cd"
+  },
+  "web.domains.signup.domain_overrides_hint": {
+    "text": "Overschrijf globale aanmeldingsinstellingen voor dit domein",
+    "source_hash": "53101057"
+  },
+  "web.domains.signup.signup_enabled_label": {
+    "text": "Aanmelding ingeschakeld",
+    "source_hash": "296ac66d"
+  },
+  "web.domains.signup.signup_enabled_hint": {
+    "text": "Overschrijf of aanmelding is ingeschakeld voor dit domein",
+    "source_hash": "2ee146b6"
+  },
+  "web.domains.signup.autoverify_label": {
+    "text": "Accounts automatisch verifiëren",
+    "source_hash": "4b103cd5"
+  },
+  "web.domains.signup.autoverify_hint": {
+    "text": "Overschrijf of nieuwe accounts automatisch worden geverifieerd op dit domein",
+    "source_hash": "63866ecd"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Verbindingstest geslaagd — provider reageerde correct",
+    "source_hash": "1570ddb0"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Verbindingstest mislukt",
+    "source_hash": "a45a37dd"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "Om SSO te vereisen voor alle inlogpogingen op dit domein, configureer je dit in de inloginstellingen van het domein. De SSO-only-modus beperkt de inlogpagina tot de hier geconfigureerde SSO-provider.",
+    "source_hash": "d26627a5"
+  },
+  "web.domains.sso.edit_credentials": {
+    "text": "Inloggegevens bewerken",
+    "source_hash": "5a6622b6"
+  },
+  "web.domains.sso.configure_button": {
+    "text": "Configureren",
+    "source_hash": "6defafa2"
+  },
+  "web.domains.sso.upgrade_required": {
+    "text": "Upgrade om te configureren",
+    "source_hash": "571cfa98"
   }
 }

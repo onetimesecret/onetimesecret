@@ -395,5 +395,44 @@
   "web.help.contact_support": {
     "text": "Свържете се с поддръжката",
     "source_hash": "f8d47b82"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "SSO акаунт",
+    "source_hash": "b8f4c728"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Email verification flow after signup"
+  },
+  "web.help.reset_password_link": {
+    "text": "Нулиране на паролата",
+    "source_hash": "e0edfeb3"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "Единно влизане е налично за този домейн",
+    "source_hash": "af87d51e"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "Администраторът на организацията може да активира SSO, за да позволи на членовете на екипа да влизат тук. Свържете се с администратора за достъп.",
+    "source_hash": "f3726509"
+  },
+  "web.login.signin_disabled_heading": {
+    "text": "Влизането не е налично",
+    "source_hash": "6b435c76"
+  },
+  "web.login.signin_disabled_message": {
+    "text": "Влизането в момента не е налично на този домейн.",
+    "source_hash": "b681c35d"
+  },
+  "web.login.errors.sso_not_configured": {
+    "text": "Единно влизане не е конфигурирано за този домейн. Моля, свържете се с вашия администратор.",
+    "source_hash": "b39ef93e"
+  },
+  "web.login.errors.invalid_email": {
+    "text": "Имейл адресът от вашия доставчик на идентичност е невалиден. Моля, свържете се с вашия администратор.",
+    "source_hash": "10c12029"
+  },
+  "web.login.errors.domain_not_allowed": {
+    "text": "Вашият имейл домейн не е оторизиран за регистрация чрез SSO. Моля, свържете се с вашия администратор.",
+    "source_hash": "87603782"
   }
 }

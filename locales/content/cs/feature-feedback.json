@@ -58,5 +58,17 @@
   "web.feedback.reason_email_change_unauthorized": {
     "text": "Vypadá to, že hlásíš neoprávněnou změnu e-mailu na tvém účtu. Popiš prosím, co se stalo, a hned to prošetříme.",
     "source_hash": "00e56551"
+  },
+  "web.feedback.anonymous_no_reply": {
+    "text": "Poznámka: pokud chceš odpověď, podepiš se prosím nebo do zprávy uveď e-mailovou adresu.",
+    "source_hash": "c984f705"
+  },
+  "web.feedback.characters_remaining": {
+    "text": "Zbývající znaky: {count}",
+    "source_hash": "8d796f40"
+  },
+  "web.feedback.character_limit_reached": {
+    "text": "Byl dosažen limit znaků",
+    "source_hash": "031e9310"
   }
 }

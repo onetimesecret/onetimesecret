@@ -152,7 +152,7 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "如果您的账单联系邮箱与 {product_name} 账户邮箱不同，请使用账单联系邮箱创建新区域账户，以保留您的订阅权益。",
+    "text": "如果您的账单联系邮箱与 {product_name} 账户邮箱不同，请使用账单联系邮箱在新地区创建账户，以保留您的订阅权益。",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
@@ -186,5 +186,9 @@
   "web.regions.jurisdictions.apac.name": {
     "text": "Asia-Pacific",
     "source_hash": "7a757670"
+  },
+  "web.regions.no_region_configured": {
+    "text": "您的账户目前没有可用的地区信息。",
+    "source_hash": "bbfe2a32"
   }
 }

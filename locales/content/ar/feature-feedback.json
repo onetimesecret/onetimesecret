@@ -58,5 +58,17 @@
   "web.feedback.reason_email_change_unauthorized": {
     "text": "يبدو أنك تبلغ عن تغيير غير مصرح به للبريد الإلكتروني في حسابك. يرجى وصف ما حدث وسنحقق في الأمر فوراً.",
     "source_hash": "00e56551"
+  },
+  "web.feedback.anonymous_no_reply": {
+    "text": "ملاحظة: إذا كنت ترغب في الحصول على رد، يُرجى التوقيع أو تضمين عنوان بريد إلكتروني في الرسالة.",
+    "source_hash": "c984f705"
+  },
+  "web.feedback.characters_remaining": {
+    "text": "{count} حرف متبقٍ",
+    "source_hash": "8d796f40"
+  },
+  "web.feedback.character_limit_reached": {
+    "text": "تم بلوغ الحد الأقصى للأحرف",
+    "source_hash": "031e9310"
   }
 }

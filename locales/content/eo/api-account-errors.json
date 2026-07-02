@@ -1,0 +1,10 @@
+{
+  "api.account.errors.invalid_email": {
+    "text": "Ĉu tio estas valida retpoŝtadreso?",
+    "source_hash": "21d55b60"
+  },
+  "api.account.errors.password_too_short": {
+    "text": "La pasvorto estas tro mallonga",
+    "source_hash": "0d829600"
+  }
+}

@@ -148,7 +148,7 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Gledate varno sporočilo, ki vam je bilo posredovano prek {product_name}. Ta vsebina se prikaže samo enkrat in je nato trajno izbrisana z naših strežnikov.",
+    "text": "Ogledujete si varno sporočilo, ki je bilo z vami deljeno prek storitve {product_name}. Ta vsebina je prikazana samo enkrat in nato trajno izbrisana z naših strežnikov.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -338,5 +338,13 @@
   "web.layout.workspace_context": {
     "text": "Kontekst delovnega prostora",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Delovni prostor",
+    "source_hash": "87bb59ba"
+  },
+  "web.help.default_content": {
+    "text": "Za pomoč se obrnite na podporo",
+    "source_hash": "752bca14"
   }
 }

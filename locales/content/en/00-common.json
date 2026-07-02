@@ -337,7 +337,8 @@
     "content_hash": "c46e6204"
   },
   "web.COMMON.copy_to_clipboard": {
-    "text": "Copy to clipboard"
+    "text": "Copy to clipboard",
+    "content_hash": "b749e205"
   },
   "web.COMMON.copied_to_clipboard": {
     "text": "Copied to clipboard",
@@ -472,10 +473,12 @@
     "content_hash": "9fd728c6"
   },
   "web.COMMON.enabled": {
-    "text": "Enabled"
+    "text": "Enabled",
+    "content_hash": "92c1cdfd"
   },
   "web.COMMON.disabled": {
-    "text": "Disabled"
+    "text": "Disabled",
+    "content_hash": "75081b59"
   },
   "web.COMMON.yes_delete": {
     "text": "Yes, delete",
@@ -1324,7 +1327,8 @@
     "content_hash": "cc1d9e61"
   },
   "web.TITLES.domain_signin": {
-    "text": "Sign-In Configuration"
+    "text": "Sign-In Configuration",
+    "content_hash": "2da38c03"
   },
   "web.TITLES.domain_sso": {
     "text": "Domain SSO",
@@ -1508,21 +1512,27 @@
     "content_hash": "c8c08d29"
   },
   "web.COMMON.success": {
-    "text": "Success"
+    "text": "Success",
+    "content_hash": "c88a0b90"
   },
   "web.COMMON.need_help": {
-    "text": "Need help"
+    "text": "Need help",
+    "content_hash": "4ca0ca38"
   },
   "web.COMMON.open_help_dialog": {
-    "text": "Open help dialog"
+    "text": "Open help dialog",
+    "content_hash": "55cd1515"
   },
   "web.COMMON.focus_is_now_in_the_main_text_area": {
-    "text": "Focus is now in the main text area"
+    "text": "Focus is now in the main text area",
+    "content_hash": "e00dd260"
   },
   "web.LABELS.copy_icon": {
-    "text": "Copy icon"
+    "text": "Copy icon",
+    "content_hash": "d1a5fc0c"
   },
   "web.LABELS.copied_icon": {
-    "text": "Copied icon"
+    "text": "Copied icon",
+    "content_hash": "90a4b4f1"
   }
 }

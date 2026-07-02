@@ -24,12 +24,15 @@
     "content_hash": "ff0d904e"
   },
   "web.teams.create_first_team_title": {
-    "text": "Create your first team"
+    "text": "Create your first team",
+    "content_hash": "54693f14"
   },
   "web.teams.create_first_team_description": {
-    "text": "Teams let you collaborate with others in a shared workspace."
+    "text": "Teams let you collaborate with others in a shared workspace.",
+    "content_hash": "d61b86b5"
   },
   "web.teams.create_team": {
-    "text": "Create team"
+    "text": "Create team",
+    "content_hash": "284ff194"
   }
 }

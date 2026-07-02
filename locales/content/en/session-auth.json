@@ -130,11 +130,13 @@
   },
   "web.login.signin_disabled_heading": {
     "text": "Sign-in is not available",
-    "context": "Page heading on /signin when sign-in is disabled for the current domain (per-domain SigninConfig)."
+    "context": "Page heading on /signin when sign-in is disabled for the current domain (per-domain SigninConfig).",
+    "content_hash": "6b435c76"
   },
   "web.login.signin_disabled_message": {
     "text": "Sign-in is currently not available on this domain.",
-    "context": "Body text of the notice shown instead of the auth form when sign-in is disabled for the current domain. A return-to-homepage link is shown below it."
+    "context": "Body text of the notice shown instead of the auth form when sign-in is disabled for the current domain. A return-to-homepage link is shown below it.",
+    "content_hash": "b681c35d"
   },
   "web.signup.create_your_account": {
     "text": "Create Your Account",

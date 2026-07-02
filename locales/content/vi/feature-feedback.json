@@ -58,5 +58,17 @@
   "web.feedback.reason_email_change_unauthorized": {
     "text": "Có vẻ như bạn đang báo cáo một thay đổi email trái phép trên tài khoản của bạn. Vui lòng mô tả những gì đã xảy ra và chúng tôi sẽ điều tra ngay.",
     "source_hash": "00e56551"
+  },
+  "web.feedback.anonymous_no_reply": {
+    "text": "Lưu ý: nếu bạn muốn nhận phản hồi, vui lòng ký tên hoặc đưa địa chỉ email vào tin nhắn.",
+    "source_hash": "c984f705"
+  },
+  "web.feedback.characters_remaining": {
+    "text": "Còn lại {count} ký tự",
+    "source_hash": "8d796f40"
+  },
+  "web.feedback.character_limit_reached": {
+    "text": "Đã đạt giới hạn ký tự",
+    "source_hash": "031e9310"
   }
 }

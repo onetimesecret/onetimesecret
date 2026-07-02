@@ -58,5 +58,17 @@
   "web.feedback.reason_email_change_unauthorized": {
     "text": "Videti je, da prijavljate nepooblaščeno spremembo e-pošte na vašem računu. Prosimo, opišite, kaj se je zgodilo, in takoj bomo preiskali zadevo.",
     "source_hash": "00e56551"
+  },
+  "web.feedback.anonymous_no_reply": {
+    "text": "Opomba: če želite odgovor, se podpišite ali v sporočilo dodajte e-poštni naslov.",
+    "source_hash": "c984f705"
+  },
+  "web.feedback.characters_remaining": {
+    "text": "Preostalo znakov: {count}",
+    "source_hash": "8d796f40"
+  },
+  "web.feedback.character_limit_reached": {
+    "text": "Dosežena je omejitev znakov",
+    "source_hash": "031e9310"
   }
 }

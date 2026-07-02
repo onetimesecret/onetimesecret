@@ -398,5 +398,41 @@
   },
   "web.auth.verify._guidance.context": {
     "text": "注册后的邮箱验证流程"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "SSO 账户",
+    "source_hash": "b8f4c728"
+  },
+  "web.help.reset_password_link": {
+    "text": "重置密码",
+    "source_hash": "e0edfeb3"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "此域名可使用单点登录",
+    "source_hash": "af87d51e"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "组织管理员可启用 SSO，以允许团队成员在此登录。请联系管理员获取访问权限。",
+    "source_hash": "f3726509"
+  },
+  "web.login.signin_disabled_heading": {
+    "text": "登录不可用",
+    "source_hash": "6b435c76"
+  },
+  "web.login.signin_disabled_message": {
+    "text": "此域名当前不可登录。",
+    "source_hash": "b681c35d"
+  },
+  "web.login.errors.sso_not_configured": {
+    "text": "此域名尚未配置单点登录。请联系您的管理员。",
+    "source_hash": "b39ef93e"
+  },
+  "web.login.errors.invalid_email": {
+    "text": "来自您身份提供商的邮箱地址无效。请联系您的管理员。",
+    "source_hash": "10c12029"
+  },
+  "web.login.errors.domain_not_allowed": {
+    "text": "您的邮箱域名未获授权使用 SSO 注册。请联系您的管理员。",
+    "source_hash": "87603782"
   }
 }

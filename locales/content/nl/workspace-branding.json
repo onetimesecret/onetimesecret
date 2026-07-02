@@ -178,5 +178,13 @@
   "web.branding.upgrade_to_customize": {
     "text": "Upgrade je plan om de branding voor dit domein aan te passen.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "Brandinginstellingen succesvol opgeslagen",
+    "source_hash": "9960c252"
+  },
+  "web.branding.keyhole_logo_icon": {
+    "text": "Sleutelgatpictogram dat beveiligd, privé delen voorstelt",
+    "source_hash": "c868ac60"
   }
 }

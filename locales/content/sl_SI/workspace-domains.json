@@ -398,5 +398,965 @@
   "web.domains.dns_widget_description": {
     "text": "Uporabite spodnje orodje za samodejno zaznavo vašega ponudnika DNS in pridobite navodila po korakih za konfiguracijo vaše domene.",
     "source_hash": "91c1af2e"
+  },
+  "api.domains.errors.add_admin_required": {
+    "text": "Samo lastniki in skrbniki organizacije lahko dodajo domene po meri",
+    "source_hash": "3324aabe"
+  },
+  "web.domains.public_homepage": {
+    "text": "Javna domača stran",
+    "source_hash": "2ae3ccba"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Domena preverjena in aktivna",
+    "source_hash": "e4b6a6e1"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS ni konfiguriran — kliknite za popravilo",
+    "source_hash": "892cb2cb"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Domena ni preverjena — kliknite za preverjanje",
+    "source_hash": "a9806710"
+  },
+  "web.domains.status_tooltip_unverified": {
+    "text": "Stanje domene ni preverjeno — kliknite za osvežitev",
+    "source_hash": "a45aa76d"
+  },
+  "web.domains.last_check_failed": {
+    "text": "Zadnje preverjanje ni uspelo",
+    "source_hash": "88b594b8"
+  },
+  "web.domains.last_check_failed_ago": {
+    "text": "zadnje preverjanje ni uspelo {0}",
+    "source_hash": "ddfb6412"
+  },
+  "web.domains.verify_now": {
+    "text": "Preveri zdaj",
+    "source_hash": "db383efb"
+  },
+  "web.domains.click_to_verify": {
+    "text": "kliknite za preverjanje",
+    "source_hash": "6eae7d9c"
+  },
+  "web.domains.remove_domain_description": {
+    "text": "Trajno odstranite to domeno in vso njeno konfiguracijo.",
+    "source_hash": "73946b9e"
+  },
+  "web.domains.add_access_denied": {
+    "text": "Dostop zavrnjen",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.add_access_denied_description": {
+    "text": "Nimate dovoljenja za dodajanje domen v to organizacijo. Obrnite se na skrbnika svoje organizacije.",
+    "source_hash": "25e035c6"
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "Orodja DNS ni bilo mogoče naložiti",
+    "source_hash": "5a1d8ab5"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "Orodje DNS ni na voljo",
+    "source_hash": "4eed448b"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "Orodja DNS ni bilo mogoče inicializirati",
+    "source_hash": "de477585"
+  },
+  "web.domains.verified": {
+    "text": "Preverjeno",
+    "source_hash": "4f783840"
+  },
+  "web.domains.pending_verification": {
+    "text": "Čaka na preverjanje",
+    "source_hash": "77e07795"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Imate neshranjene spremembe. Ali ste prepričani, da želite zapustiti stran?",
+    "source_hash": "322380c1"
+  },
+  "web.domains.entitlement_required_owner": {
+    "text": "Ta funkcija zahteva nadgradnjo paketa.",
+    "source_hash": "6de1f752"
+  },
+  "web.domains.entitlement_required_member": {
+    "text": "Ta funkcija ni na voljo v vašem trenutnem paketu. Obrnite se na lastnika svoje organizacije.",
+    "source_hash": "8f1688b2"
+  },
+  "web.domains.detail.manage": {
+    "text": "Upravljanje",
+    "source_hash": "5a234448"
+  },
+  "web.domains.detail.features": {
+    "text": "Funkcije",
+    "source_hash": "5697d03d"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Skrivnosti na domači strani",
+    "source_hash": "6360f7ec"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Dovolite javni dostop za ustvarjanje skrivnosti na domači strani vaše domene",
+    "source_hash": "209b3ded"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logotip, barve in lastna blagovna znamka",
+    "source_hash": "69f7a9e8"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Nastavitve ponudnika enotne prijave (SSO)",
+    "source_hash": "234e6150"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Konfiguracija pošiljatelja e-pošte po meri",
+    "source_hash": "7fcde01b"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Nastavitve prejemnika dohodnih skrivnosti",
+    "source_hash": "37c1fd6d"
+  },
+  "web.domains.detail.signup_description": {
+    "text": "Strategija preverjanja registracije za posamezno domeno",
+    "source_hash": "3c5a511f"
+  },
+  "web.domains.detail.signin_description": {
+    "text": "Konfiguracija načina prijave za posamezno domeno",
+    "source_hash": "73e01e36"
+  },
+  "web.domains.email.title": {
+    "text": "Pošiljanje e-pošte",
+    "source_hash": "6c428e5f"
+  },
+  "web.domains.email.config_title": {
+    "text": "Konfiguracija e-pošte",
+    "source_hash": "6f38aa51"
+  },
+  "web.domains.email.config_description": {
+    "text": "Konfigurirajte pošiljanje e-pošte za to domeno",
+    "source_hash": "1c275ff0"
+  },
+  "web.domains.email.provider_label": {
+    "text": "Ponudnik e-pošte",
+    "source_hash": "a7ed3f4e"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "Izberite ponudnika e-pošte",
+    "source_hash": "63c8080c"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "Ime pošiljatelja",
+    "source_hash": "2f13b589"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "npr. Acme Security",
+    "source_hash": "03c0f138"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "Naslov pošiljatelja",
+    "source_hash": "60643eae"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "npr. secrets{'@'}example.com",
+    "source_hash": "a09b3928"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Naslov za odgovor",
+    "source_hash": "4538ea9c"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "npr. support{'@'}example.com",
+    "source_hash": "fa3e5f0b"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Shrani spremembe",
+    "source_hash": "35322b5b"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Zavrzi spremembe",
+    "source_hash": "e07e053c"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES",
+    "source_hash": "15de4969"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid",
+    "source_hash": "b889d002"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint",
+    "source_hash": "ec994dad"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Uporabi privzete nastavitve računa",
+    "source_hash": "f6fa84e7"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "Zahteva preverjanje domene prek zapisov DKIM in SPF",
+    "source_hash": "4df5aa60"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Zahteva nastavitev avtentikacije domene",
+    "source_hash": "71b53242"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Zahteva preverjanje domene",
+    "source_hash": "87073c93"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "Uporablja privzeto konfiguracijo pošiljanja e-pošte vašega računa",
+    "source_hash": "3f798263"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "Zapisi DNS",
+    "source_hash": "34d2c307"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "Dodajte naslednje zapise DNS za preverjanje svoje domene za pošiljanje e-pošte.",
+    "source_hash": "9fa85863"
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Tip",
+    "source_hash": "baaddf70"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Ime",
+    "source_hash": "dcd1d522"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Vrednost",
+    "source_hash": "8e37953d"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS",
+    "source_hash": "020965a2"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Ponudnik",
+    "source_hash": "472590ae"
+  },
+  "web.domains.email.dns_optional_label": {
+    "text": "Priporočeno",
+    "source_hash": "d70604e8"
+  },
+  "web.domains.email.dns_optional_hint": {
+    "text": "Ta zapis je priporočen, vendar ni obvezen za preverjanje. Pravilnik DMARC pri vaši organizacijski domeni morda že pokriva to poddomeno.",
+    "source_hash": "58e1a12b"
+  },
+  "web.domains.email.copy": {
+    "text": "Kopiraj",
+    "source_hash": "e21f935f"
+  },
+  "web.domains.email.copied": {
+    "text": "Kopirano",
+    "source_hash": "8d525e5f"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Preverjeno",
+    "source_hash": "4f783840"
+  },
+  "web.domains.email.status_pending": {
+    "text": "V obdelavi",
+    "source_hash": "331551b0"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Neuspešno",
+    "source_hash": "031a8f0f"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Ponovno preveri",
+    "source_hash": "4918da12"
+  },
+  "web.domains.email.validating": {
+    "text": "Preverjanje ...",
+    "source_hash": "b28b48d5"
+  },
+  "web.domains.email.domain_verified": {
+    "text": "Domena preverjena",
+    "source_hash": "08e0df67"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "Preverjanje ni uspelo",
+    "source_hash": "23a86f5a"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Zadnjič preverjeno",
+    "source_hash": "887dd486"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Nadgradite svoj paket za konfiguracijo pošiljanja e-pošte za to domeno.",
+    "source_hash": "16a876f7"
+  },
+  "web.domains.email.configure_email": {
+    "text": "Konfiguriraj e-pošto",
+    "source_hash": "a48c0d40"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Dostop zavrnjen",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "Nimate dovoljenja za upravljanje nastavitev e-pošte za to domeno. Obrnite se na skrbnika svoje organizacije.",
+    "source_hash": "32049ff0"
+  },
+  "web.domains.email.update_success": {
+    "text": "Konfiguracija e-pošte uspešno shranjena",
+    "source_hash": "dd3607fc"
+  },
+  "web.domains.email.delete_success": {
+    "text": "Konfiguracija e-pošte uspešno odstranjena",
+    "source_hash": "2ba99a91"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "E-poštna sporočila za to domeno se trenutno pošiljajo z globalnega pošiljatelja. Dokončajte konfiguracijo e-pošte, da uporabite lastno identiteto pošiljatelja.",
+    "source_hash": "ffcf39fb"
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "Pošiljanje e-pošte po meri je trenutno onemogočeno. E-poštna sporočila bodo poslana z globalnega pošiljatelja. Omogočite spodnjo funkcijo, da uporabite svojo lastno identiteto pošiljatelja.",
+    "source_hash": "60a26f5b"
+  },
+  "web.domains.email.test_email_title": {
+    "text": "Preizkus dostave e-pošte",
+    "source_hash": "c1b3dee2"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Pošljite si preizkusno e-poštno sporočilo z uporabo shranjene konfiguracije. Deluje tudi, ko funkcija še ni omogočena.",
+    "source_hash": "33e876ad"
+  },
+  "web.domains.email.send_test": {
+    "text": "Pošlji preizkus",
+    "source_hash": "22d7b11d"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Preizkusno e-poštno sporočilo uspešno poslano",
+    "source_hash": "561617fd"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Preizkusnega e-poštnega sporočila ni bilo mogoče poslati",
+    "source_hash": "95ce63bc"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Poslano na {email}",
+    "source_hash": "8ceb9588"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Dostavljeno prek {provider}",
+    "source_hash": "f741959b"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "Ni konfigurirano",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "Uporablja privzetega pošiljatelja",
+    "source_hash": "e1afb18f"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Preverjeno",
+    "source_hash": "4f783840"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Čaka na preverjanje",
+    "source_hash": "417a6b7e"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Onemogočeno",
+    "source_hash": "75081b59"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "Pošiljatelj e-pošte ni konfiguriran — e-poštna sporočila uporabljajo privzetega pošiljatelja platforme",
+    "source_hash": "360083bb"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "Konfiguracija pošiljatelja e-pošte čaka na preverjanje — e-poštna sporočila uporabljajo privzetega pošiljatelja platforme",
+    "source_hash": "c8c2449c"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "Pošiljatelj e-pošte je onemogočen — e-poštna sporočila uporabljajo privzetega pošiljatelja platforme",
+    "source_hash": "64e84955"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "Pošiljatelj e-pošte je preverjen — e-poštna sporočila se pošiljajo s te domene",
+    "source_hash": "0e9a005c"
+  },
+  "web.domains.incoming.title": {
+    "text": "Dohodne skrivnosti",
+    "source_hash": "883dbca9"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Konfiguracija dohodnih skrivnosti",
+    "source_hash": "b3fef15b"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Zunanjim uporabnikom omogočite, da pošljejo skrivnosti neposredno določenim prejemnikom na tej domeni",
+    "source_hash": "452ab4fe"
+  },
+  "web.domains.incoming.feature_disabled": {
+    "text": "Dohodne skrivnosti niso na voljo",
+    "source_hash": "0f96c5ec"
+  },
+  "web.domains.incoming.feature_disabled_description": {
+    "text": "Dohodne skrivnosti na tej instanci niso omogočene. Obrnite se na svojega skrbnika.",
+    "source_hash": "dce981e0"
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Dostop zavrnjen",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "Nimate dovoljenja za upravljanje nastavitev dohodnih skrivnosti za to domeno. Obrnite se na skrbnika svoje organizacije.",
+    "source_hash": "3e9d8adc"
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Nadgradite paket, da boste lahko konfigurirali dohodne skrivnosti za to domeno.",
+    "source_hash": "9dfdfeb5"
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Konfiguriraj dohodne skrivnosti",
+    "source_hash": "eab52939"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "Dohodne skrivnosti za to domeno niso konfigurirane. Dodajte prejemnike, da boste zunanjim uporabnikom omogočili pošiljanje skrivnosti vaši ekipi.",
+    "source_hash": "dbc443a6"
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "Dohodne skrivnosti so trenutno onemogočene. Zunanji uporabniki ne morejo pošiljati skrivnosti prejemnikom na tej domeni. Spodaj omogočite funkcijo, da dovolite dohodne skrivnosti.",
+    "source_hash": "d1f8dafb"
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Prejemniki",
+    "source_hash": "1e8568a8"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Določite, kdo lahko prejema dohodne skrivnosti na tej domeni. Prejemniki bodo prejeli e-poštno obvestilo, ko jim bo poslana skrivnost.",
+    "source_hash": "026f9d9d"
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Dodaj prejemnika",
+    "source_hash": "25f93c13"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Odstrani",
+    "source_hash": "c3812fc4"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "E-poštni naslov",
+    "source_hash": "09bf25ef"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "recipient{'@'}example.com",
+    "source_hash": "55d1508e"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Prikazno ime",
+    "source_hash": "18d67c99"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "npr. Varnostna ekipa",
+    "source_hash": "0c52400c"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "Ni konfiguriranih prejemnikov",
+    "source_hash": "bc8c2058"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Dodajte prejemnike, da boste zunanjim uporabnikom omogočili pošiljanje skrivnosti vaši ekipi.",
+    "source_hash": "2a647a40"
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Neveljaven e-poštni naslov",
+    "source_hash": "4eaf1d80"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "Ta e-poštni naslov je že dodan",
+    "source_hash": "f89de141"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "Dovoljenih je največ {max} prejemnikov",
+    "source_hash": "e2585847"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "Prikazno ime je obvezno",
+    "source_hash": "c6892c89"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "E-poštni naslov je obvezen",
+    "source_hash": "41381ba2"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Shrani spremembe",
+    "source_hash": "35322b5b"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Zavrzi spremembe",
+    "source_hash": "e07e053c"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "Konfiguracija dohodnih skrivnosti je bila uspešno shranjena",
+    "source_hash": "9317e02d"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "Konfiguracija dohodnih skrivnosti je bila uspešno odstranjena",
+    "source_hash": "4c4a33ae"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} prejemnik | {count} prejemnikov",
+    "source_hash": "0e4f5985"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "Ni konfigurirano",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Konfigurirano",
+    "source_hash": "84aebc69"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Onemogočeno",
+    "source_hash": "75081b59"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "Dohodne skrivnosti niso konfigurirane – zunanji uporabniki ne morejo pošiljati skrivnosti na to domeno",
+    "source_hash": "79786d5c"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "Dohodne skrivnosti so omogočene z {count} prejemniki",
+    "source_hash": "c205cc54"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "Funkcija dohodnih skrivnosti je za to domeno onemogočena",
+    "source_hash": "0413f96b"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Omogoči dohodne skrivnosti",
+    "source_hash": "c0b25980"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Zunanjim uporabnikom omogočite pošiljanje skrivnosti prejemnikom na tej domeni",
+    "source_hash": "24aadd31"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "Javni URL",
+    "source_hash": "f7b60b04"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Ta URL delite z zunanjimi uporabniki, da jim omogočite pošiljanje skrivnosti",
+    "source_hash": "df47a894"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "Kopiraj URL",
+    "source_hash": "b26d1037"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "URL kopiran v odložišče",
+    "source_hash": "2f396c3e"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Ali ste prepričani, da želite odstraniti vse prejemnike? Zunanji uporabniki ne bodo več mogli pošiljati skrivnosti na to domeno.",
+    "source_hash": "06f9e551"
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Doseženo je največje število prejemnikov",
+    "source_hash": "ba659e54"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "Ta e-poštni naslov je že dodan",
+    "source_hash": "ca598f6d"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "S shranjevanjem boste vse obstoječe prejemnike zamenjali s svojimi neshranjenimi spremembami. Ali ste prepričani?",
+    "source_hash": "f497862e"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Izbriši vse prejemnike",
+    "source_hash": "207d0dbe"
+  },
+  "web.domains.signin.title": {
+    "text": "Konfiguracija prijave",
+    "source_hash": "2da38c03"
+  },
+  "web.domains.signin.configure_signin": {
+    "text": "Konfiguriraj prijavo",
+    "source_hash": "f72b58b5"
+  },
+  "web.domains.signin.config_description": {
+    "text": "Konfigurirajte metode avtentikacije za prijavo na tej domeni",
+    "source_hash": "8efce428"
+  },
+  "web.domains.signin.access_denied": {
+    "text": "Dostop zavrnjen",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.signin.upgrade_to_configure": {
+    "text": "Nadgradite paket, da boste lahko konfigurirali metode prijave za to domeno.",
+    "source_hash": "e242bb74"
+  },
+  "web.domains.signin.not_configured_notice": {
+    "text": "Konfiguracija prijave za to domeno še ni nastavljena. Konfigurirajte preglasitve, da nadzorujete, katere metode avtentikacije so na voljo na prijavni strani te domene.",
+    "source_hash": "cb788a2d"
+  },
+  "web.domains.signin.signin_enabled_label": {
+    "text": "Prijava omogočena",
+    "source_hash": "cabe4898"
+  },
+  "web.domains.signin.header_toggle_label": {
+    "text": "Prijava",
+    "source_hash": "5bbbe531"
+  },
+  "web.domains.signin.signin_enabled_hint": {
+    "text": "Ali se lahko uporabniki prijavijo na tej domeni",
+    "source_hash": "57a92aee"
+  },
+  "web.domains.signin.restrict_to_label": {
+    "text": "Omeji metodo prijave",
+    "source_hash": "edbec83f"
+  },
+  "web.domains.signin.restrict_to_hint": {
+    "text": "Omejite to domeno na eno samo metodo avtentikacije. Ko je nastavljena, je na prijavni strani prikazana samo izbrana metoda.",
+    "source_hash": "682bc4c5"
+  },
+  "web.domains.signin.all_methods": {
+    "text": "Vse metode",
+    "source_hash": "e601c19e"
+  },
+  "web.domains.signin.all_methods_description": {
+    "text": "Na prijavni strani prikaži vse omogočene metode avtentikacije",
+    "source_hash": "62723340"
+  },
+  "web.domains.signin.method_password": {
+    "text": "Geslo",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.domains.signin.method_email_auth": {
+    "text": "Avtentikacija po e-pošti",
+    "source_hash": "68c38f94"
+  },
+  "web.domains.signin.method_webauthn": {
+    "text": "WebAuthn / Ključi za dostop",
+    "source_hash": "c40224ce"
+  },
+  "web.domains.signin.method_sso": {
+    "text": "Enotna prijava (SSO)",
+    "source_hash": "cf7cd744"
+  },
+  "web.domains.signin.method_overrides_label": {
+    "text": "Preglasitve metod",
+    "source_hash": "5496cba6"
+  },
+  "web.domains.signin.method_overrides_hint": {
+    "text": "Omogočite ali onemogočite posamezne metode avtentikacije za to domeno",
+    "source_hash": "394e3878"
+  },
+  "web.domains.signin.mode_question": {
+    "text": "Kako se lahko uporabniki prijavijo?",
+    "source_hash": "3694eb23"
+  },
+  "web.domains.signin.mode_any": {
+    "text": "Katera koli razpoložljiva metoda",
+    "source_hash": "23665425"
+  },
+  "web.domains.signin.mode_any_hint": {
+    "text": "Prikaži vsako metodo, ki je na voljo na tej domeni. Spodaj omejite posamezne metode.",
+    "source_hash": "2f3dcba6"
+  },
+  "web.domains.signin.mode_one": {
+    "text": "Ena določena metoda",
+    "source_hash": "601f5768"
+  },
+  "web.domains.signin.mode_one_hint": {
+    "text": "Omejite prijavno stran na eno samo metodo. Naštete so samo metode, ki so na voljo na tej domeni.",
+    "source_hash": "58bde6d5"
+  },
+  "web.domains.signin.mode_disabled": {
+    "text": "Prijava onemogočena",
+    "source_hash": "bb807607"
+  },
+  "web.domains.signin.mode_disabled_hint": {
+    "text": "Uporabniki se na tej domeni ne morejo prijaviti.",
+    "source_hash": "8938f098"
+  },
+  "web.domains.signin.mode_disabled_notice": {
+    "text": "Obiskovalci prijavne strani te domene vidijo obvestilo, da prijava ni na voljo, s povezavo nazaj na domačo stran. Vaše prejšnje nastavitve metod se ohranijo in obnovijo, ko ponovno omogočite prijavo.",
+    "source_hash": "1a04de18"
+  },
+  "web.domains.signin.methods_list_label": {
+    "text": "Metode, prikazane na prijavni strani",
+    "source_hash": "66fd133b"
+  },
+  "web.domains.signin.restrict_picker_hint": {
+    "text": "Naštete so samo metode, ki so na voljo na tej domeni.",
+    "source_hash": "c7a56f44"
+  },
+  "web.domains.signin.availability_always": {
+    "text": "Vedno na voljo",
+    "source_hash": "0fda3772"
+  },
+  "web.domains.signin.availability_global_on": {
+    "text": "Sledi globalnemu pravilniku · Vklopljeno",
+    "source_hash": "3844e6f7"
+  },
+  "web.domains.signin.availability_global_off": {
+    "text": "Ni na voljo",
+    "source_hash": "67a926f7"
+  },
+  "web.domains.signin.availability_unavailable": {
+    "text": "Ni na voljo na celotnem spletnem mestu",
+    "source_hash": "da29c1be"
+  },
+  "web.domains.signin.allow_on_domain": {
+    "text": "Dovoli na tej domeni",
+    "source_hash": "760b578e"
+  },
+  "web.domains.signin.method_password_blurb": {
+    "text": "Samo geslo",
+    "source_hash": "ed1a02fd"
+  },
+  "web.domains.signin.method_email_auth_blurb": {
+    "text": "Prijava brez gesla z magično povezavo",
+    "source_hash": "7f776a85"
+  },
+  "web.domains.signin.method_webauthn_blurb": {
+    "text": "Biometrija in varnostni ključi",
+    "source_hash": "7d6a7bd5"
+  },
+  "web.domains.signin.method_sso_blurb": {
+    "text": "Zunanji ponudnik identitete",
+    "source_hash": "a3442088"
+  },
+  "web.domains.signin.email_auth_label": {
+    "text": "Avtentikacija po e-pošti",
+    "source_hash": "68c38f94"
+  },
+  "web.domains.signin.email_auth_hint": {
+    "text": "Dovoli avtentikacijo po e-pošti brez gesla na tej domeni",
+    "source_hash": "6ad82127"
+  },
+  "web.domains.signin.sso_enabled_label": {
+    "text": "Enotna prijava (SSO)",
+    "source_hash": "cf7cd744"
+  },
+  "web.domains.signin.sso_enabled_hint": {
+    "text": "Dovoli avtentikacijo SSO na tej domeni",
+    "source_hash": "22d78ad5"
+  },
+  "web.domains.signin.enabled_label": {
+    "text": "Omogoči konfiguracijo prijave",
+    "source_hash": "dbd8e11c"
+  },
+  "web.domains.signin.enabled_hint": {
+    "text": "Ko je omogočeno, ta domena uporablja zgoraj konfigurirane nastavitve prijave",
+    "source_hash": "6259f8a2"
+  },
+  "web.domains.signin.save_config": {
+    "text": "Shrani konfiguracijo",
+    "source_hash": "b2b158f2"
+  },
+  "web.domains.signin.update_success": {
+    "text": "Konfiguracija prijave je bila uspešno posodobljena",
+    "source_hash": "10ea50d8"
+  },
+  "web.domains.signin.reset_to_defaults": {
+    "text": "Ponastavi na privzete vrednosti",
+    "source_hash": "e240e635"
+  },
+  "web.domains.signin.reset_confirm": {
+    "text": "Ponastavi prijavo na globalne privzete vrednosti?",
+    "source_hash": "2c6bbc32"
+  },
+  "web.domains.signin.reset_keeps_sso": {
+    "text": "Vaše poverilnice SSO se ohranijo. Odstranite jih ločeno na zaslonu za konfiguracijo SSO.",
+    "source_hash": "edc0c756"
+  },
+  "web.domains.signin.reset_action": {
+    "text": "Da, ponastavi",
+    "source_hash": "4bb21d8b"
+  },
+  "web.domains.signin.reset_success": {
+    "text": "Nastavitve prijave so bile ponastavljene na globalne privzete vrednosti",
+    "source_hash": "0c364d89"
+  },
+  "web.domains.signup.title": {
+    "text": "Preverjanje registracije",
+    "source_hash": "2c34ac0a"
+  },
+  "web.domains.signup.config_description": {
+    "text": "Konfigurirajte preverjanje registracije za to domeno",
+    "source_hash": "e9c81e8a"
+  },
+  "web.domains.signup.access_denied": {
+    "text": "Dostop zavrnjen",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.signup.upgrade_to_configure": {
+    "text": "Nadgradite paket, da boste lahko konfigurirali preverjanje registracije za posamezno domeno.",
+    "source_hash": "d87d6614"
+  },
+  "web.domains.signup.configure_signup": {
+    "text": "Konfiguriraj registracijo",
+    "source_hash": "e2697662"
+  },
+  "web.domains.signup.not_configured_notice": {
+    "text": "Preverjanje registracije za to domeno še ni konfigurirano. Konfigurirajte strategijo, da nadzorujete, kdo se lahko registrira prek te domene.",
+    "source_hash": "fc6c6eb8"
+  },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "Registracije so trenutno onemogočene na ravni spletnega mesta. Ta pravilnik za posamezno domeno je konfiguriran, vendar ne bo omejeval nobenega prometa, dokler registracije spletnega mesta niso omogočene.",
+    "source_hash": "c0e59f86"
+  },
+  "web.domains.signup.strategy_label": {
+    "text": "Strategija preverjanja",
+    "source_hash": "a2e95531"
+  },
+  "web.domains.signup.strategy_description": {
+    "text": "Izberite, kako se e-poštni naslovi preverjajo, ko se uporabniki registrirajo na tej domeni.",
+    "source_hash": "8e232b03"
+  },
+  "web.domains.signup.network_validation_warning": {
+    "text": "Ta strategija med registracijo izvaja omrežne klice, kar lahko poveča zakasnitev ali ga nekateri ponudniki blokirajo.",
+    "source_hash": "53d4c266"
+  },
+  "web.domains.signup.allowed_domains_label": {
+    "text": "Dovoljene domene za registracijo",
+    "source_hash": "9b5bb5b1"
+  },
+  "web.domains.signup.allowed_domains_hint": {
+    "text": "Registracija bo dovoljena samo s teh e-poštnih domen. Dodajte eno domeno na vnos.",
+    "source_hash": "c082414d"
+  },
+  "web.domains.signup.domain_placeholder": {
+    "text": "example.com",
+    "source_hash": "a379a6f6"
+  },
+  "web.domains.signup.invalid_domain": {
+    "text": "Vnesite veljavno domeno (npr. example.com)",
+    "source_hash": "16807983"
+  },
+  "web.domains.signup.domain_exists": {
+    "text": "Ta domena je že na seznamu",
+    "source_hash": "3fccb721"
+  },
+  "web.domains.signup.remove_domain": {
+    "text": "Odstrani {domain}",
+    "source_hash": "ae708a1d"
+  },
+  "web.domains.signup.enabled_label": {
+    "text": "Omogoči preverjanje za posamezno domeno",
+    "source_hash": "db103925"
+  },
+  "web.domains.signup.enabled_hint": {
+    "text": "Ko je omogočeno, registracije na tej domeni namesto globalnega pravilnika uporabljajo zgornjo strategijo.",
+    "source_hash": "99de2008"
+  },
+  "web.domains.signup.delete_config": {
+    "text": "Izbriši konfiguracijo",
+    "source_hash": "a9a30c7f"
+  },
+  "web.domains.signup.delete_confirm": {
+    "text": "Izbriši konfiguracijo preverjanja registracije? Registracije se bodo vrnile na globalni pravilnik.",
+    "source_hash": "a8c9086e"
+  },
+  "web.domains.signup.save_config": {
+    "text": "Shrani konfiguracijo",
+    "source_hash": "b2b158f2"
+  },
+  "web.domains.signup.update_success": {
+    "text": "Preverjanje registracije je bilo uspešno posodobljeno",
+    "source_hash": "57a529ac"
+  },
+  "web.domains.signup.delete_success": {
+    "text": "Konfiguracija preverjanja registracije je bila uspešno odstranjena",
+    "source_hash": "eb6add4d"
+  },
+  "web.domains.signup.domain_overrides_label": {
+    "text": "Preglasitve domene",
+    "source_hash": "d25da3cd"
+  },
+  "web.domains.signup.domain_overrides_hint": {
+    "text": "Preglasi globalne nastavitve registracije za to domeno",
+    "source_hash": "53101057"
+  },
+  "web.domains.signup.signup_enabled_label": {
+    "text": "Registracija omogočena",
+    "source_hash": "296ac66d"
+  },
+  "web.domains.signup.signup_enabled_hint": {
+    "text": "Preglasi, ali je registracija omogočena za to domeno",
+    "source_hash": "2ee146b6"
+  },
+  "web.domains.signup.autoverify_label": {
+    "text": "Samodejno preveri račune",
+    "source_hash": "4b103cd5"
+  },
+  "web.domains.signup.autoverify_hint": {
+    "text": "Preglasi, ali se novi računi na tej domeni samodejno preverijo",
+    "source_hash": "63866ecd"
+  },
+  "web.domains.sso.title": {
+    "text": "Enotna prijava (SSO)",
+    "source_hash": "cf7cd744"
+  },
+  "web.domains.sso.config_title": {
+    "text": "Konfiguracija SSO",
+    "source_hash": "afd5751e"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Konfigurirajte avtentikacijo z enotno prijavo (SSO) za to domeno",
+    "source_hash": "f37a0b47"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Dostop zavrnjen",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "Nimate dovoljenja za upravljanje nastavitev SSO za to domeno. Obrnite se na skrbnika svoje organizacije.",
+    "source_hash": "db7fcfeb"
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Nadgradite paket, da boste lahko konfigurirali enotno prijavo (SSO) za to domeno.",
+    "source_hash": "71fc0069"
+  },
+  "web.domains.sso.create_success": {
+    "text": "Konfiguracija SSO je bila uspešno ustvarjena",
+    "source_hash": "531c7d92"
+  },
+  "web.domains.sso.update_success": {
+    "text": "Konfiguracija SSO je bila uspešno posodobljena",
+    "source_hash": "d98d8e83"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "Konfiguracija SSO je bila uspešno odstranjena",
+    "source_hash": "2e924798"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Preizkus povezave je uspel — ponudnik se je pravilno odzval",
+    "source_hash": "1570ddb0"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Preizkus povezave ni uspel",
+    "source_hash": "a45a37dd"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "Če želite zahtevati SSO za vse prijave na tej domeni, ga konfigurirajte v nastavitvah prijave za domeno. Način samo SSO omeji prijavno stran na ponudnika SSO, konfiguriranega tukaj.",
+    "source_hash": "d26627a5"
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "Konfiguriraj SSO",
+    "source_hash": "80d3a144"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "SSO za to domeno še ni konfiguriran. Omogočite enotno prijavo (SSO), da članom ekipe omogočite avtentikacijo prek ponudnika identitete vaše organizacije.",
+    "source_hash": "c439214b"
+  },
+  "web.domains.sso.edit_credentials": {
+    "text": "Uredi poverilnice",
+    "source_hash": "5a6622b6"
+  },
+  "web.domains.sso.configure_button": {
+    "text": "Konfiguriraj",
+    "source_hash": "6defafa2"
+  },
+  "web.domains.sso.upgrade_required": {
+    "text": "Nadgradi za konfiguracijo",
+    "source_hash": "571cfa98"
   }
 }

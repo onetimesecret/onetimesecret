@@ -1,0 +1,30 @@
+{
+  "api.invite.errors.invitation_not_found_or_expired": {
+    "text": "الدعوة غير موجودة أو منتهية الصلاحية",
+    "source_hash": "63657979"
+  },
+  "api.invite.errors.token_required": {
+    "text": "الرمز مطلوب",
+    "source_hash": "6c718161"
+  },
+  "api.invite.errors.organization_no_longer_exists": {
+    "text": "لم تعد المؤسسة موجودة",
+    "source_hash": "a5df7d22"
+  },
+  "api.invite.errors.invitation_already_processed": {
+    "text": "تمت معالجة الدعوة بالفعل: %{status}",
+    "source_hash": "130c87e0"
+  },
+  "api.invite.errors.invitation_expired": {
+    "text": "انتهت صلاحية الدعوة",
+    "source_hash": "7186297b"
+  },
+  "api.invite.errors.email_mismatch": {
+    "text": "عنوان بريدك الإلكتروني لا يطابق الدعوة",
+    "source_hash": "11026f46"
+  },
+  "api.invite.errors.already_member": {
+    "text": "أنت بالفعل عضو في هذه المؤسسة",
+    "source_hash": "f56ad547"
+  }
+}

@@ -58,5 +58,17 @@
   "web.feedback.reason_email_change_unauthorized": {
     "text": "Изглежда, че съобщавате за неоторизирана промяна на имейла на вашия акаунт. Моля, опишете какво се е случило и ние ще проучим незабавно.",
     "source_hash": "00e56551"
+  },
+  "web.feedback.anonymous_no_reply": {
+    "text": "Забележка: ако желаете отговор, моля, подпишете се или включете имейл адрес в съобщението.",
+    "source_hash": "c984f705"
+  },
+  "web.feedback.characters_remaining": {
+    "text": "Остават {count} знака",
+    "source_hash": "8d796f40"
+  },
+  "web.feedback.character_limit_reached": {
+    "text": "Достигнат е лимитът на знаците",
+    "source_hash": "031e9310"
   }
 }

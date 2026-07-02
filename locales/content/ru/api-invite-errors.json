@@ -1,0 +1,30 @@
+{
+  "api.invite.errors.invitation_not_found_or_expired": {
+    "text": "Приглашение не найдено или истекло",
+    "source_hash": "63657979"
+  },
+  "api.invite.errors.token_required": {
+    "text": "Требуется токен",
+    "source_hash": "6c718161"
+  },
+  "api.invite.errors.organization_no_longer_exists": {
+    "text": "Организация больше не существует",
+    "source_hash": "a5df7d22"
+  },
+  "api.invite.errors.invitation_already_processed": {
+    "text": "Приглашение уже обработано: %{status}",
+    "source_hash": "130c87e0"
+  },
+  "api.invite.errors.invitation_expired": {
+    "text": "Срок действия приглашения истёк",
+    "source_hash": "7186297b"
+  },
+  "api.invite.errors.email_mismatch": {
+    "text": "Ваш адрес электронной почты не соответствует приглашению",
+    "source_hash": "11026f46"
+  },
+  "api.invite.errors.already_member": {
+    "text": "Вы уже являетесь участником этой организации",
+    "source_hash": "f56ad547"
+  }
+}

@@ -148,7 +148,7 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "أنت تشاهد رسالة آمنة تمت مشاركتها معك عبر {product_name}. يتم عرض هذا المحتوى مرة واحدة فقط ثم يُحذف نهائياً من خوادمنا.",
+    "text": "أنت تعرض رسالة آمنة تمت مشاركتها معك عبر {product_name}. يُعرض هذا المحتوى مرة واحدة فقط ثم يُحذف نهائياً من خوادمنا.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -338,5 +338,13 @@
   "web.layout.workspace_context": {
     "text": "سياق مساحة العمل",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "مساحة العمل",
+    "source_hash": "87bb59ba"
+  },
+  "web.help.default_content": {
+    "text": "يرجى التواصل مع الدعم للحصول على المساعدة",
+    "source_hash": "752bca14"
   }
 }

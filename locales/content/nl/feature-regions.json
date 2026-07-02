@@ -152,7 +152,7 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Als je factuurcontact-e-mailadres verschilt van je {product_name}-account-e-mailadres, gebruik dan het factuurcontact-e-mailadres voor het nieuwe regio-account om je abonnementsvoordelen te behouden.",
+    "text": "Als je e-mailadres voor facturatie afwijkt van het e-mailadres van je {product_name}-account, gebruik dan het e-mailadres voor facturatie voor het account in de nieuwe regio om de voordelen van je abonnement te behouden.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
@@ -186,5 +186,9 @@
   "web.regions.jurisdictions.apac.name": {
     "text": "Asia-Pacific",
     "source_hash": "7a757670"
+  },
+  "web.regions.no_region_configured": {
+    "text": "Er is momenteel geen regio-informatie beschikbaar voor je account.",
+    "source_hash": "bbfe2a32"
   }
 }

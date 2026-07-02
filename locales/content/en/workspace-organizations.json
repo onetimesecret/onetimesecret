@@ -140,7 +140,8 @@
     "content_hash": "de322f87"
   },
   "web.organizations.entitlements_title": {
-    "text": "Organization Entitlements"
+    "text": "Organization Entitlements",
+    "content_hash": "36054d4f"
   },
   "web.organizations.billing_settings": {
     "text": "Billing & Subscription",
@@ -1064,6 +1065,7 @@
     "content_hash": "f56ad547"
   },
   "web.organizations.organizations": {
-    "text": "Organizations"
+    "text": "Organizations",
+    "content_hash": "2730183d"
   }
 }

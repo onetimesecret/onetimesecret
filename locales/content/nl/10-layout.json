@@ -148,7 +148,7 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Je bekijkt een beveiligd bericht dat met je is gedeeld via {product_name}. Deze inhoud wordt slechts één keer getoond en daarna permanent van onze servers verwijderd.",
+    "text": "Je bekijkt een beveiligd bericht dat via {product_name} met je is gedeeld. Deze inhoud wordt slechts één keer weergegeven en daarna permanent van onze servers verwijderd.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -264,7 +264,7 @@
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Bezoek de {product_name}-homepage",
+    "text": "Bezoek de homepage van {product_name}",
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {
@@ -338,5 +338,13 @@
   "web.layout.workspace_context": {
     "text": "Werkruimtecontext",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Werkruimte",
+    "source_hash": "87bb59ba"
+  },
+  "web.help.default_content": {
+    "text": "Neem contact op met support voor hulp",
+    "source_hash": "752bca14"
   }
 }

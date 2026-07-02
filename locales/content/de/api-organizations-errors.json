@@ -1,0 +1,142 @@
+{
+  "api.organizations.errors.domain_scoped_forbidden": {
+    "text": "Domain-gebundene Mitglieder können diese Aktion nicht ausführen",
+    "source_hash": "0a06a035"
+  },
+  "api.organizations.errors.organization_not_found": {
+    "text": "Organisation nicht gefunden: %{extid}",
+    "source_hash": "c8d058eb"
+  },
+  "api.organizations.errors.organization_owner_required": {
+    "text": "Nur der Inhaber der Organisation kann diese Aktion ausführen",
+    "source_hash": "5a729e94"
+  },
+  "api.organizations.errors.organization_member_required": {
+    "text": "Du musst Mitglied der Organisation sein, um diese Aktion auszuführen",
+    "source_hash": "f66f4a60"
+  },
+  "api.organizations.errors.organization_admin_required": {
+    "text": "Nur Inhaber und Admins der Organisation können diese Aktion ausführen",
+    "source_hash": "cd9e8c0e"
+  },
+  "api.organizations.errors.extid_required": {
+    "text": "Organisations-ID erforderlich",
+    "source_hash": "02fbe301"
+  },
+  "api.organizations.errors.display_name_required": {
+    "text": "Der Name der Organisation ist erforderlich",
+    "source_hash": "c3f6e9af"
+  },
+  "api.organizations.errors.display_name_too_long": {
+    "text": "Der Name der Organisation muss kürzer als %{max} Zeichen sein",
+    "source_hash": "5866973d"
+  },
+  "api.organizations.errors.description_too_long": {
+    "text": "Die Beschreibung muss kürzer als %{max} Zeichen sein",
+    "source_hash": "562b7250"
+  },
+  "api.organizations.errors.contact_email_exists": {
+    "text": "Eine Organisation mit dieser Kontakt-E-Mail-Adresse existiert bereits",
+    "source_hash": "e9fdce56"
+  },
+  "api.organizations.errors.creation_in_progress": {
+    "text": "Die Organisation wird gerade erstellt. Bitte versuche es erneut.",
+    "source_hash": "ef68bc2d"
+  },
+  "api.organizations.errors.organization_limit_reached": {
+    "text": "Das Limit für Organisationen ist erreicht. Führe ein Upgrade deines Tarifs durch, um weitere Organisationen zu erstellen.",
+    "source_hash": "69e2e61b"
+  },
+  "api.organizations.invitations.errors.invitation_not_found": {
+    "text": "Einladung nicht gefunden",
+    "source_hash": "775ba9eb"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "E-Mail-Adresse ist erforderlich",
+    "source_hash": "aae92911"
+  },
+  "api.organizations.invitations.errors.invalid_email_format": {
+    "text": "Ungültiges E-Mail-Format",
+    "source_hash": "0bcecf66"
+  },
+  "api.organizations.invitations.errors.invalid_role": {
+    "text": "Die Rolle muss Mitglied oder Admin sein",
+    "source_hash": "650ea5f6"
+  },
+  "api.organizations.invitations.errors.cannot_invite_as_owner": {
+    "text": "Einladung als Inhaber nicht möglich",
+    "source_hash": "e6581025"
+  },
+  "api.organizations.invitations.errors.user_already_member": {
+    "text": "Der Benutzer ist bereits Mitglied dieser Organisation",
+    "source_hash": "8eb45780"
+  },
+  "api.organizations.invitations.errors.invitation_already_pending": {
+    "text": "Für diese E-Mail-Adresse liegt bereits eine ausstehende Einladung vor",
+    "source_hash": "7f5e3093"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Das Mitgliederlimit ist erreicht. Führe ein Upgrade deines Tarifs durch, um weitere Mitglieder einzuladen.",
+    "source_hash": "b8f316e8"
+  },
+  "api.organizations.invitations.errors.resend_only_pending": {
+    "text": "Nur ausstehende Einladungen können erneut gesendet werden",
+    "source_hash": "b7578b3e"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Maximales Limit für erneutes Senden (%{max}) erreicht",
+    "source_hash": "8dc96729"
+  },
+  "api.organizations.invitations.errors.revoke_only_pending": {
+    "text": "Nur ausstehende Einladungen können widerrufen werden",
+    "source_hash": "732b78a6"
+  },
+  "api.organizations.members.errors.member_not_found": {
+    "text": "Mitglied nicht gefunden: %{extid}",
+    "source_hash": "57654771"
+  },
+  "api.organizations.members.errors.member_not_in_organization": {
+    "text": "Mitglied in dieser Organisation nicht gefunden",
+    "source_hash": "dcab71ff"
+  },
+  "api.organizations.members.errors.member_not_active": {
+    "text": "Das Mitglied ist nicht aktiv",
+    "source_hash": "a51b8760"
+  },
+  "api.organizations.members.errors.invalid_role_value": {
+    "text": "Ungültige Rolle. Muss eine der folgenden sein: %{roles}",
+    "source_hash": "c3331aa0"
+  },
+  "api.organizations.members.errors.cannot_change_owner_role": {
+    "text": "Die Inhaberrolle kann nicht geändert werden. Verwende stattdessen die Eigentumsübertragung.",
+    "source_hash": "76015424"
+  },
+  "api.organizations.members.errors.member_already_has_role": {
+    "text": "Das Mitglied hat bereits die Rolle: %{role}",
+    "source_hash": "6771166a"
+  },
+  "api.organizations.members.errors.cannot_promote_to_owner": {
+    "text": "Eine Beförderung zum Inhaber ist nicht möglich. Verwende stattdessen die Eigentumsübertragung.",
+    "source_hash": "cd574007"
+  },
+  "api.organizations.members.errors.must_be_member": {
+    "text": "Du musst Mitglied dieser Organisation sein",
+    "source_hash": "de1c77b8"
+  },
+  "api.organizations.members.errors.cannot_remove_owner": {
+    "text": "Der Inhaber der Organisation kann nicht entfernt werden. Übertrage zuerst das Eigentum.",
+    "source_hash": "d4f33003"
+  },
+  "api.organizations.members.errors.cannot_remove_self": {
+    "text": "Du kannst dich nicht selbst entfernen. Verlasse stattdessen die Organisation.",
+    "source_hash": "d64cec91"
+  },
+  "api.organizations.members.errors.admin_cannot_remove_admin": {
+    "text": "Admins können keine anderen Admins entfernen. Nur Inhaber können das.",
+    "source_hash": "2b3e6e30"
+  },
+  "api.organizations.members.errors.no_permission_to_remove": {
+    "text": "Du hast keine Berechtigung, Mitglieder zu entfernen",
+    "source_hash": "b0ac7287"
+  }
+}

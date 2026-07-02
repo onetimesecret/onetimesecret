@@ -1,0 +1,38 @@
+{
+  "api.domains.errors.domain_id_required": {
+    "text": "Domæne-id kræves",
+    "source_hash": "6837426b"
+  },
+  "api.domains.errors.domain_not_found": {
+    "text": "Domæne ikke fundet: %{extid}",
+    "source_hash": "a0fd1025"
+  },
+  "api.domains.errors.organization_not_found": {
+    "text": "Organisation ikke fundet for domæne: %{domain}",
+    "source_hash": "632afc93"
+  },
+  "api.domains.errors.incoming_secrets_disabled": {
+    "text": "Indkommende beskeder er ikke aktiveret på denne instans",
+    "source_hash": "45c0b5c4"
+  },
+  "api.domains.errors.incoming_secrets_entitlement_required": {
+    "text": "Administration af indkommende beskeder kræver rettigheden incoming_secrets. Opgrader din plan.",
+    "source_hash": "1af54ec2"
+  },
+  "api.domains.errors.incoming_config_not_found": {
+    "text": "Indkommende konfiguration ikke fundet for domæne: %{extid}",
+    "source_hash": "491644a8"
+  },
+  "api.domains.errors.recipients_max_exceeded": {
+    "text": "Maksimalt %{max} modtagere tilladt",
+    "source_hash": "159842ad"
+  },
+  "api.domains.errors.recipients_invalid_email": {
+    "text": "Ugyldig e-mail: %{email}",
+    "source_hash": "e9c729c7"
+  },
+  "api.domains.errors.recipients_duplicate": {
+    "text": "Dublerede modtager-e-mails er ikke tilladt",
+    "source_hash": "6de22182"
+  }
+}

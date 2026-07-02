@@ -338,5 +338,13 @@
   "web.layout.workspace_context": {
     "text": "Kontekst przestrzeni roboczej",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Obszar roboczy",
+    "source_hash": "87bb59ba"
+  },
+  "web.help.default_content": {
+    "text": "Skontaktuj się z pomocą techniczną, aby uzyskać wsparcie",
+    "source_hash": "752bca14"
   }
 }

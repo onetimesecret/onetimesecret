@@ -578,5 +578,457 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Caduca aviat",
     "source_hash": "a5dcfef9"
+  },
+  "api.organizations.errors.not_found": {
+    "text": "No s'ha trobat l'organització: %{extid}",
+    "source_hash": "c8d058eb"
+  },
+  "api.organizations.errors.owner_required": {
+    "text": "Només el propietari de l'organització pot dur a terme aquesta acció",
+    "source_hash": "5a729e94"
+  },
+  "api.organizations.errors.admin_required": {
+    "text": "Només els propietaris i administradors de l'organització poden dur a terme aquesta acció",
+    "source_hash": "cd9e8c0e"
+  },
+  "api.organizations.errors.member_required": {
+    "text": "Has de ser membre de l'organització per dur a terme aquesta acció",
+    "source_hash": "f66f4a60"
+  },
+  "api.organizations.invitations.errors.create_admin_required": {
+    "text": "Només els propietaris i administradors de l'organització poden crear invitacions",
+    "source_hash": "777d150d"
+  },
+  "api.organizations.invitations.errors.resend_admin_required": {
+    "text": "Només els propietaris i administradors de l'organització poden reenviar invitacions",
+    "source_hash": "6a857d59"
+  },
+  "api.organizations.invitations.errors.view_admin_required": {
+    "text": "Només els propietaris i administradors de l'organització poden veure les invitacions",
+    "source_hash": "42f5878b"
+  },
+  "api.organizations.invitations.errors.revoke_admin_required": {
+    "text": "Només els propietaris i administradors de l'organització poden revocar invitacions",
+    "source_hash": "52f73c8a"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "El correu és obligatori",
+    "source_hash": "aae92911"
+  },
+  "api.organizations.invitations.errors.email_invalid": {
+    "text": "Format de correu no vàlid",
+    "source_hash": "0bcecf66"
+  },
+  "api.organizations.invitations.errors.role_invalid": {
+    "text": "El rol ha de ser membre o administrador",
+    "source_hash": "650ea5f6"
+  },
+  "api.organizations.invitations.errors.cannot_invite_owner": {
+    "text": "No es pot convidar com a propietari",
+    "source_hash": "e6581025"
+  },
+  "api.organizations.invitations.errors.already_member": {
+    "text": "L'usuari ja és membre d'aquesta organització",
+    "source_hash": "8eb45780"
+  },
+  "api.organizations.invitations.errors.already_pending": {
+    "text": "Ja hi ha una invitació pendent per a aquest correu",
+    "source_hash": "7f5e3093"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "S'ha assolit el límit de membres. Millora el teu pla per convidar més membres.",
+    "source_hash": "b8f316e8"
+  },
+  "api.organizations.invitations.errors.not_found": {
+    "text": "No s'ha trobat la invitació",
+    "source_hash": "775ba9eb"
+  },
+  "api.organizations.invitations.errors.cannot_resend_non_pending": {
+    "text": "Només es poden reenviar invitacions pendents",
+    "source_hash": "b7578b3e"
+  },
+  "api.organizations.invitations.errors.cannot_revoke_non_pending": {
+    "text": "Només es poden revocar invitacions pendents",
+    "source_hash": "732b78a6"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "S'ha assolit el límit màxim de reenviaments (%{max})",
+    "source_hash": "8dc96729"
+  },
+  "api.organizations.invitations.errors.accept_token_required": {
+    "text": "El testimoni és obligatori",
+    "source_hash": "6c718161"
+  },
+  "api.organizations.invitations.errors.accept_organization_gone": {
+    "text": "L'organització ja no existeix",
+    "source_hash": "a5df7d22"
+  },
+  "api.organizations.invitations.errors.accept_already_acted": {
+    "text": "La invitació ja consta com a %{status}",
+    "source_hash": "130c87e0"
+  },
+  "api.organizations.invitations.errors.accept_expired": {
+    "text": "La invitació ha caducat",
+    "source_hash": "7186297b"
+  },
+  "api.organizations.invitations.errors.accept_email_mismatch": {
+    "text": "La teva adreça de correu no coincideix amb la invitació",
+    "source_hash": "11026f46"
+  },
+  "api.organizations.invitations.errors.accept_already_member": {
+    "text": "Ja ets membre d'aquesta organització",
+    "source_hash": "f56ad547"
+  },
+  "web.organizations.entitlements_title": {
+    "text": "Drets de l'organització",
+    "source_hash": "36054d4f"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Visualitza i configura els teus espais de treball",
+    "source_hash": "524fcb9a"
+  },
+  "web.organizations.delete_organization_remove_domains_first": {
+    "text": "Elimina tots els dominis personalitzats abans de suprimir aquesta organització.",
+    "source_hash": "44678715"
+  },
+  "web.organizations.default_org_delete_notice_title": {
+    "text": "Suprimir aquesta organització",
+    "source_hash": "9191d915"
+  },
+  "web.organizations.default_org_delete_notice_before": {
+    "text": "Aquesta és la teva organització per defecte i no es pot eliminar des del tauler de control. Per suprimir-la, posa't en contacte a través del",
+    "source_hash": "e203607d"
+  },
+  "web.organizations.default_org_delete_notice_link": {
+    "text": "formulari de comentaris",
+    "source_hash": "94645a9e"
+  },
+  "web.organizations.default_org_delete_notice_after": {
+    "text": ".",
+    "source_hash": "cdb4ee2a"
+  },
+  "web.organizations.leave_organization": {
+    "text": "Abandona aquesta organització",
+    "source_hash": "d534cff9"
+  },
+  "web.organizations.leave_organization_warning": {
+    "text": "Perdràs l'accés a aquesta organització i als seus recursos.",
+    "source_hash": "e9daab07"
+  },
+  "web.organizations.leave_organization_confirm_title": {
+    "text": "Abandonar l'organització",
+    "source_hash": "ec8314da"
+  },
+  "web.organizations.leave_organization_confirm_message": {
+    "text": "Segur que vols abandonar «{name}»? Necessitaràs una nova invitació per tornar a unir-t'hi.",
+    "source_hash": "e21c5fec"
+  },
+  "web.organizations.leave_organization_success": {
+    "text": "Has abandonat l'organització.",
+    "source_hash": "fc803eb3"
+  },
+  "web.organizations.leave_error": {
+    "text": "No s'ha pogut abandonar l'organització",
+    "source_hash": "6cb6af43"
+  },
+  "web.organizations.organizations": {
+    "text": "Organitzacions",
+    "source_hash": "2730183d"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "per {email}",
+    "source_hash": "969a7050"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "com a {role}",
+    "source_hash": "ff9e9b18"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Torna a l'inici",
+    "source_hash": "76c5505f"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Aquesta invitació es va enviar a aquesta adreça de correu",
+    "source_hash": "2cff7075"
+  },
+  "web.organizations.invitations.signup_continue": {
+    "text": "Continua",
+    "source_hash": "31fbef16"
+  },
+  "web.organizations.invitations.signin_continue": {
+    "text": "Inicia la sessió",
+    "source_hash": "bcc0bcc9"
+  },
+  "web.organizations.invitations.confirm_join_below": {
+    "text": "Gairebé fet — confirma a sota per unir-te a l'organització.",
+    "source_hash": "2d14f9b0"
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Vés a Organitzacions",
+    "source_hash": "2afa38a3"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Ja ets membre d'aquesta organització",
+    "source_hash": "f56ad547"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Uneix-te a «{orgName}»",
+    "source_hash": "1aea9194"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Inicia la sessió per unir-te a «{orgName}»",
+    "source_hash": "f94ed8b4"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Rebutja",
+    "source_hash": "a2d285b3"
+  },
+  "web.organizations.members.member_quota": {
+    "text": "{used} de {limit} membres",
+    "source_hash": "51183b79"
+  },
+  "web.organizations.members.pending_suffix": {
+    "text": "({count} pendents)",
+    "source_hash": "c13f787f"
+  },
+  "web.organizations.members.limit_reached_hint": {
+    "text": "S'ha assolit el límit de membres.",
+    "source_hash": "26cdb6b8"
+  },
+  "web.organizations.sso.title": {
+    "text": "Inici de sessió únic (SSO)",
+    "source_hash": "5db5c812"
+  },
+  "web.organizations.sso.description": {
+    "text": "Configura l'SSO per permetre que els membres iniciïn la sessió amb el proveïdor d'identitat de la teva organització",
+    "source_hash": "464f0a8b"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Tipus de proveïdor",
+    "source_hash": "bdfbb1ec"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Selecciona el proveïdor d'identitat de la teva organització",
+    "source_hash": "e81325a6"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Nom visible",
+    "source_hash": "18d67c99"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "Un nom amigable que es mostra als usuaris en iniciar la sessió",
+    "source_hash": "a83f1fba"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "p. ex. Acme Corp SSO",
+    "source_hash": "43c655c5"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "Client ID",
+    "source_hash": "8726db01"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "El teu Client ID d'OAuth",
+    "source_hash": "830723da"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Client Secret",
+    "source_hash": "ae21cf6d"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "El teu Client Secret d'OAuth",
+    "source_hash": "14e4a8c8"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Deixa-ho en blanc per conservar el secret existent",
+    "source_hash": "98bc3b40"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "Tenant ID",
+    "source_hash": "de1f5fff"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "L'identificador de tenant d'Azure AD / Entra ID",
+    "source_hash": "3c5b707a"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "p. ex. 12345678-1234-1234-1234-123456789abc",
+    "source_hash": "1a166316"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "URL de l'emissor",
+    "source_hash": "4d03ba8a"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "L'URL de descobriment OIDC del teu proveïdor d'identitat",
+    "source_hash": "6102d81b"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "p. ex. https://login.example.com",
+    "source_hash": "9a638e9c"
+  },
+  "web.organizations.sso.view_discovery_document": {
+    "text": "Mostra el document de descobriment",
+    "source_hash": "513bda60"
+  },
+  "web.organizations.sso.callback_url": {
+    "text": "URL de retorn",
+    "source_hash": "dc297ae9"
+  },
+  "web.organizations.sso.callback_url_hint": {
+    "text": "Afegeix aquesta URL als URI de redirecció permesos del teu proveïdor d'identitat",
+    "source_hash": "65d55683"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "Dominis de correu permesos",
+    "source_hash": "0295ad71"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Només els usuaris amb adreces de correu d'aquests dominis poden iniciar la sessió. Deixa-ho buit per permetre tots els dominis.",
+    "source_hash": "1775e874"
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "p. ex. acme.com",
+    "source_hash": "e4420764"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Si us plau, introdueix un domini vàlid (p. ex. example.com)",
+    "source_hash": "16807983"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Aquest domini ja és a la llista",
+    "source_hash": "3fccb721"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "Elimina {domain}",
+    "source_hash": "ae708a1d"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "Activa l'SSO",
+    "source_hash": "d10d0801"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "Quan està activat, els membres de l'organització poden iniciar la sessió amb aquest proveïdor d'SSO",
+    "source_hash": "d7da2fa2"
+  },
+  "web.organizations.sso.enforce_sso_only": {
+    "text": "Exigeix només SSO",
+    "source_hash": "b3a3f694"
+  },
+  "web.organizations.sso.enforce_sso_only_hint": {
+    "text": "Exigeix l'SSO per a tots els inicis de sessió en aquest domini. Quan està activat, l'autenticació basada en contrasenya queda desactivada.",
+    "source_hash": "19432210"
+  },
+  "web.organizations.sso.grant_org_scope": {
+    "text": "Concedeix accés a tota l'organització",
+    "source_hash": "2070cef2"
+  },
+  "web.organizations.sso.grant_org_scope_hint": {
+    "text": "Els membres nous que s'uneixin mitjançant l'SSO d'aquest domini rebran accés a tots els dominis de l'organització. Els membres existents no es veuen afectats. Quan està desactivat (per defecte), els membres nous només poden accedir a aquest domini.",
+    "source_hash": "2ac9f345"
+  },
+  "web.organizations.sso.save_config": {
+    "text": "Desa la configuració de l'SSO",
+    "source_hash": "70853769"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Elimina la configuració",
+    "source_hash": "9ac1ac7b"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "Segur que vols continuar? Això desactivarà l'SSO de la teva organització.",
+    "source_hash": "5b3f5b9d"
+  },
+  "web.organizations.sso.load_error": {
+    "text": "No s'ha pogut carregar la configuració de l'SSO",
+    "source_hash": "75cb73f6"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "No s'ha pogut desar la configuració de l'SSO",
+    "source_hash": "99ef145b"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "La configuració de l'SSO s'ha creat correctament",
+    "source_hash": "531c7d92"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "La configuració de l'SSO s'ha actualitzat correctament",
+    "source_hash": "d98d8e83"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "La configuració de l'SSO s'ha eliminat correctament",
+    "source_hash": "55f5d4f5"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "No s'ha pogut eliminar la configuració de l'SSO",
+    "source_hash": "4a960fe4"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Prova la connexió",
+    "source_hash": "c02977b0"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Verifica que el proveïdor d'identitat és accessible (no valida les credencials)",
+    "source_hash": "22a23b68"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Prova la connexió",
+    "source_hash": "c02977b0"
+  },
+  "web.organizations.sso.testing": {
+    "text": "S'està provant...",
+    "source_hash": "6c02a284"
+  },
+  "web.organizations.sso.test_error": {
+    "text": "No s'ha pogut provar la connexió",
+    "source_hash": "c1d1f310"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Punt de connexió d'autorització",
+    "source_hash": "b42b956f"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Camps que falten",
+    "source_hash": "757df777"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Activat",
+    "source_hash": "92c1cdfd"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Configurat",
+    "source_hash": "84aebc69"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "SSO de domini",
+    "source_hash": "13161464"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Configura l'SSO per a cada domini verificat",
+    "source_hash": "af5b799e"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "Per canviar de proveïdor, elimina primer aquesta configuració",
+    "source_hash": "0a1027ff"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Sense configurar",
+    "source_hash": "bbea960e"
+  },
+  "web.organizations.sso.no_domains": {
+    "text": "No hi ha dominis verificats",
+    "source_hash": "8a7fbb76"
+  },
+  "web.organizations.sso.no_domains_description": {
+    "text": "Afegeix i verifica un domini abans de configurar-hi l'SSO.",
+    "source_hash": "e825d13a"
+  },
+  "web.organizations.tabs.team": {
+    "text": "Equip",
+    "source_hash": "5985039f"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO",
+    "source_hash": "5ba3ac9f"
   }
 }

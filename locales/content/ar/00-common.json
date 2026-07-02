@@ -1299,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "تحقق دائماً من أنك على موقع {product_name} الرسمي. يقوم المحتالون أحياناً بإنشاء مواقع مزيفة تبدو تماماً مثل {product_name} لسرقة أسرارك. لتجنب هجمات التصيد الاحتيالي، تحقق من نطاق المنطقة قبل إنشاء روابط جديدة.",
+    "text": "تأكد دائماً من أنك على الموقع الرسمي لـ {product_name}. ينشئ المحتالون أحياناً مواقع مزيّفة تبدو مطابقة تماماً لـ {product_name} لسرقة أسرارك. لتفادي هجمات التصيّد الاحتيالي، تحقق من نطاق المنطقة قبل إنشاء روابط جديدة.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1383,5 +1383,145 @@
     "text": "قم بالترقية لفتح المزيد من الميزات",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "المصادقة مطلوبة",
+    "source_hash": "0fcfb12d"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "هذا الإجراء غير متاح في وضع SSO فقط",
+    "source_hash": "9bc26394"
+  },
+  "web.COMMON.configure": {
+    "text": "تكوين",
+    "source_hash": "6defafa2"
+  },
+  "web.COMMON.copy_to_clipboard": {
+    "text": "نسخ إلى الحافظة",
+    "source_hash": "b749e205"
+  },
+  "web.COMMON.add": {
+    "text": "إضافة",
+    "source_hash": "9fd728c6"
+  },
+  "web.COMMON.enabled": {
+    "text": "مُفعّل",
+    "source_hash": "92c1cdfd"
+  },
+  "web.COMMON.disabled": {
+    "text": "معطّل",
+    "source_hash": "75081b59"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "نعم، احذف",
+    "source_hash": "7b05a8e3"
+  },
+  "web.COMMON.error_code": {
+    "text": "رمز الخطأ",
+    "source_hash": "46832415"
+  },
+  "web.COMMON.http_status": {
+    "text": "حالة HTTP",
+    "source_hash": "b2a629f2"
+  },
+  "web.COMMON.details": {
+    "text": "التفاصيل",
+    "source_hash": "45989de4"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "تأكيد كلمة المرور",
+    "source_hash": "c292210c"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "يجب أن تتطابق كلمتا المرور",
+    "source_hash": "0c060bd4"
+  },
+  "web.COMMON.and": {
+    "text": "و",
+    "source_hash": "6201111b"
+  },
+  "web.COMMON.or": {
+    "text": "أو",
+    "source_hash": "7175517a"
+  },
+  "web.COMMON.copied": {
+    "text": "تم النسخ",
+    "source_hash": "8d525e5f"
+  },
+  "web.COMMON.copy": {
+    "text": "نسخ",
+    "source_hash": "e21f935f"
+  },
+  "web.COMMON.copy_email": {
+    "text": "نسخ عنوان البريد الإلكتروني",
+    "source_hash": "61b94846"
+  },
+  "web.COMMON.copy_id": {
+    "text": "نسخ معرّف الحساب",
+    "source_hash": "fd493ffd"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "المعرّف الفريد لمؤسستك",
+    "source_hash": "c8c08d29"
+  },
+  "web.COMMON.success": {
+    "text": "نجاح",
+    "source_hash": "c88a0b90"
+  },
+  "web.COMMON.need_help": {
+    "text": "تحتاج إلى مساعدة",
+    "source_hash": "4ca0ca38"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "فتح مربع حوار المساعدة",
+    "source_hash": "55cd1515"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "التركيز الآن في منطقة النص الرئيسية",
+    "source_hash": "e00dd260"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "إظهار عبارة المرور",
+    "source_hash": "76880d38"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "إخفاء عبارة المرور",
+    "source_hash": "8ecdc98c"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "أيقونة النسخ",
+    "source_hash": "d1a5fc0c"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "أيقونة تم النسخ",
+    "source_hash": "90a4b4f1"
+  },
+  "web.STATUS.unverified": {
+    "text": "لم يتم التحقق",
+    "source_hash": "33c8e8de"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "إعدادات النطاق",
+    "source_hash": "e24f338d"
+  },
+  "web.TITLES.domain_signin": {
+    "text": "تكوين تسجيل الدخول",
+    "source_hash": "2da38c03"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "SSO للنطاق",
+    "source_hash": "13161464"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "التحقق من التسجيل للنطاق",
+    "source_hash": "c8ce809a"
+  },
+  "web.TITLES.domain_email": {
+    "text": "تكوين البريد الإلكتروني",
+    "source_hash": "6f38aa51"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "الأسرار الواردة",
+    "source_hash": "883dbca9"
   }
 }

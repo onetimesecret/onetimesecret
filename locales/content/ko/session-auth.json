@@ -398,5 +398,41 @@
   },
   "web.auth.verify._guidance.context": {
     "text": "가입 후 이메일 인증 흐름"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "SSO 계정",
+    "source_hash": "b8f4c728"
+  },
+  "web.help.reset_password_link": {
+    "text": "비밀번호 재설정",
+    "source_hash": "e0edfeb3"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "이 도메인에서 Single Sign-On을 사용할 수 있습니다",
+    "source_hash": "af87d51e"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "조직 관리자는 팀원이 이곳에서 로그인할 수 있도록 SSO를 활성화할 수 있습니다. 접근 권한은 관리자에게 문의하세요.",
+    "source_hash": "f3726509"
+  },
+  "web.login.signin_disabled_heading": {
+    "text": "로그인을 사용할 수 없습니다",
+    "source_hash": "6b435c76"
+  },
+  "web.login.signin_disabled_message": {
+    "text": "현재 이 도메인에서는 로그인을 사용할 수 없습니다.",
+    "source_hash": "b681c35d"
+  },
+  "web.login.errors.sso_not_configured": {
+    "text": "이 도메인에는 Single Sign-On이 설정되어 있지 않습니다. 관리자에게 문의하세요.",
+    "source_hash": "b39ef93e"
+  },
+  "web.login.errors.invalid_email": {
+    "text": "ID 공급자에서 제공한 이메일 주소가 유효하지 않습니다. 관리자에게 문의하세요.",
+    "source_hash": "10c12029"
+  },
+  "web.login.errors.domain_not_allowed": {
+    "text": "회원님의 이메일 도메인은 SSO 가입이 허용되지 않습니다. 관리자에게 문의하세요.",
+    "source_hash": "87603782"
   }
 }
