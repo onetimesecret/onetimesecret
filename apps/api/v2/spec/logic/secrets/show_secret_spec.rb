@@ -64,12 +64,17 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
       logic = build_logic('identifier' => secret.identifier, 'continue' => 'true')
       logic.process_params # loads this request's own :new instance
 
+      # Hold viewable? true so process takes the reveal path and it is
+      # secret.reveal! (not the viewable? guard) that withholds the plaintext by
+      # losing the atomic claim to the concurrent winner. See reveal_secret_spec.
+      allow(logic.secret).to receive(:viewable?).and_return(true)
       winner = Onetime::Secret.load(secret.identifier)
       expect(winner.revealed!).to be true
 
       logic.process
 
       expect(logic.show_secret).to be false
+      expect(logic.secret_value).to be_nil
       expect(logic.success_data[:record]).not_to have_key(:secret_value)
     end
   end

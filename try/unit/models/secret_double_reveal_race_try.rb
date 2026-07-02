@@ -115,3 +115,28 @@ Onetime::Secret.load(secret.identifier).previewed!       # persisted advances to
 stale.previewed!                                          # must be a no-op (persisted != new)
 Onetime::Secret.load(secret.identifier).state
 #=> 'previewed'
+
+# ----------------------------------------------------------------
+# reveal! couples the atomic claim with decryption: only the winner gets the
+# plaintext, so a caller cannot obtain it without winning the one-shot reveal.
+# ----------------------------------------------------------------
+
+## reveal! returns the decrypted plaintext to the sole winner and destroys it.
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'top secret value'
+s = Onetime::Secret.load(secret.identifier)
+[s.reveal!, s.exists?]
+#=> ['top secret value', false]
+
+## concurrent reveal!: exactly one instance gets the plaintext, the other nil.
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'top secret value'
+s1 = Onetime::Secret.load(secret.identifier)
+s2 = Onetime::Secret.load(secret.identifier)
+values = [s1.reveal!, s2.reveal!]
+[values.count('top secret value'), values.count(nil)]
+#=> [1, 1]
+
+## reveal! on an already-consumed secret returns nil (no second disclosure).
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'top secret value'
+Onetime::Secret.load(secret.identifier).reveal!    # first (winning) reveal
+Onetime::Secret.load(secret.identifier)&.reveal!
+#=> nil

@@ -70,15 +70,18 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
       logic.process_params # loads this request's own :new instance
 
       # A concurrent request wins the atomic claim and consumes the secret
-      # between our load and our reveal.
+      # AFTER this request has already passed its viewability check but BEFORE
+      # it reveals -- the exact race window. Hold viewable? true so process
+      # takes the reveal path and it is secret.reveal! (not the viewable? guard)
+      # that must withhold the plaintext by losing the atomic claim.
+      allow(logic.secret).to receive(:viewable?).and_return(true)
       winner = Onetime::Secret.load(secret.identifier)
       expect(winner.revealed!).to be true
 
       logic.process
 
-      # The losing request must withhold the plaintext, even though it had
-      # already decrypted its in-memory ciphertext before the reveal.
       expect(logic.show_secret).to be false
+      expect(logic.secret_value).to be_nil
       expect(logic.success_data[:record]).not_to have_key(:secret_value)
     end
   end

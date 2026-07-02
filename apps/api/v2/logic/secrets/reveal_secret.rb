@@ -90,9 +90,9 @@ module V2::Logic
           # Clear any rate limit state on successful passphrase entry
           clear_passphrase_rate_limit!(secret.identifier) if secret.has_passphrase?
 
-          # If we can't decrypt that's great! We just set secret_value to
-          # the encrypted string.
-          @secret_value = secret.decrypted_secret_value(passphrase_input: @passphrase)
+          # Decryption is deferred to secret.reveal! below: it decrypts ONLY on
+          # the caller that wins the atomic reveal claim, so a request that lost
+          # the burn-after-reading race never even computes the plaintext.
 
           if verification
 
@@ -127,10 +127,11 @@ module V2::Logic
               # multiple verification secrets? Or who sent a verification secret
               # even though the account was already verified?
               #
-              # In any case, we logged it as an error but mark the secret as
-              # having been revealed (which updates the receipt record and then
-              # expunges the secret record) and allows the user to carry on.
-              @revealed = secret.revealed!
+              # In any case, we logged it as an error but reveal the secret
+              # (which updates the receipt record and then expunges the secret
+              # record) and allow the user to carry on. reveal! returns the
+              # plaintext only if this caller won the one-shot claim.
+              @secret_value = secret.reveal!(passphrase_input: @passphrase)
 
             elsif owner && (cust&.anonymous? || (cust&.custid == owner.custid && !owner.verified?))
               secret_logger.info 'Owner verification successful',
@@ -146,7 +147,7 @@ module V2::Logic
               owner.reset_secret.delete!
               # Skip for stateless auth (BasicAuth provides empty session)
               sess.clear unless sess.empty?
-              @revealed         = secret.revealed!
+              @secret_value     = secret.reveal!(passphrase_input: @passphrase)
 
             else
               secret_logger.error 'Invalid verification - user already logged in',
@@ -163,40 +164,36 @@ module V2::Logic
               )
             end
           else
-            secret_logger.info 'Secret revealed successfully',
-              {
-                secret_identifier: secret.shortid,
-                owner_id: owner&.objid,
-                action: 'reveal',
-                result: :success,
-              }
-
-            owner.increment_field :secrets_shared if !owner.nil? && !owner.anonymous?
-
-            Onetime::Customer.secrets_shared.increment
-
-            # Immediately mark the secret as revealed, so that it
-            # can't be shown again. If there's a network failure
-            # that prevents the client from receiving the response,
-            # we're not able to show it again. This is a feature
-            # not a bug.
+            # Reveal-and-consume the secret so it can't be shown again. If a
+            # network failure prevents the client from receiving the response,
+            # we deliberately cannot show it again -- a feature, not a bug.
+            # reveal! is destructive and runs before the response is generated,
+            # so every returned value must be plucked from the secret first.
             #
-            # NOTE: This destructive action is called before the
-            # response is returned or even fully generated (which
-            # happens in success_data). This is a feature, not a
-            # bug but it means that all return values need to be
-            # pluck out of the secret object before this is called.
-            @revealed = secret.revealed!
+            # reveal! returns the plaintext ONLY to the caller that won the
+            # atomic claim; a request that lost the burn-after-reading race gets
+            # nil. The success log and the shared-secret counters are therefore
+            # gated on winning, so a losing request neither claims success nor
+            # inflates the metrics.
+            @secret_value = secret.reveal!(passphrase_input: @passphrase)
+
+            if @secret_value
+              secret_logger.info 'Secret revealed successfully',
+                {
+                  secret_identifier: secret.shortid,
+                  owner_id: owner&.objid,
+                  action: 'reveal',
+                  result: :success,
+                }
+
+              owner.increment_field :secrets_shared if !owner.nil? && !owner.anonymous?
+              Onetime::Customer.secrets_shared.increment
+            end
           end
 
-          # revealed! performs an atomic claim: it returns true only for the
-          # single caller that won the burn-after-reading race. If a concurrent
-          # request beat us to it, we must NOT disclose the plaintext -- suppress
-          # it so success_data omits secret_value. Prevents a double-reveal.
-          unless @revealed
-            @show_secret  = false
-            @secret_value = nil
-          end
+          # No plaintext means we did not win the reveal (a concurrent request
+          # already consumed the secret): do not present it as viewable.
+          @show_secret = false if @secret_value.nil?
 
         elsif secret.has_passphrase? && !correct_passphrase
           # Record failed attempt for rate limiting

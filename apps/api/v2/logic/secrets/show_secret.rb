@@ -71,24 +71,21 @@ module V2::Logic
         end
 
         if show_secret
-          @secret_value = secret.decrypted_secret_value(passphrase_input: passphrase)
-          owner         = secret.load_owner
+          owner = secret.load_owner
 
-          # verify_owner/reveal_secret return the value of secret.revealed!,
-          # whose atomic claim yields true only for the single caller that won
-          # the burn-after-reading race.
-          @revealed = if verification
-                        verify_owner(owner)
-                      else
-                        reveal_secret(owner)
-                      end
+          # verify_owner/reveal_secret return secret.reveal!, which decrypts and
+          # returns the plaintext ONLY to the single caller that won the atomic
+          # burn-after-reading claim; a losing request gets nil and never
+          # computes the plaintext at all.
+          @secret_value = if verification
+                            verify_owner(owner)
+                          else
+                            reveal_secret(owner)
+                          end
 
-          # If a concurrent request beat us to the reveal, we must NOT disclose
-          # the plaintext -- suppress it so success_data omits secret_value.
-          unless @revealed
-            @show_secret  = false
-            @secret_value = nil
-          end
+          # No plaintext means we did not win the reveal (a concurrent request
+          # already consumed the secret): do not present it as viewable.
+          @show_secret = false if @secret_value.nil?
         end
 
         resolve_share_domain
@@ -141,27 +138,28 @@ module V2::Logic
           # which exposes no public destroy method. clear is the correct call.
           # Skip for stateless auth (BasicAuth provides empty session)
           sess.clear unless sess.empty?
-          secret.received!
+          secret.reveal!(passphrase_input: passphrase)
         else
           raise_form_error "You can't verify an account when you're already logged in."
         end
       end
 
-      # Immediately mark the secret as viewed, so that it
-      # can't be shown again. If there's a network failure
-      # that prevents the client from receiving the response,
-      # we're not able to show it again. This is a feature
-      # not a bug.
+      # Reveal-and-consume the secret so it can't be shown again. If a network
+      # failure prevents the client from receiving the response, we deliberately
+      # cannot show it again -- a feature, not a bug.
       #
-      # NOTE: This destructive action is called before the
-      # response is returned or even fully generated (which
-      # happens in success_data). This is a feature, not a
-      # bug but it means that all return values need to be
-      # plucked out of the secret object before this is called.
+      # NOTE: reveal! is destructive and runs before the response is generated,
+      # so every returned value must be plucked from the secret before this
+      # point. It returns the plaintext ONLY to the caller that won the atomic
+      # reveal claim; a request that lost the race gets nil, so the shared-secret
+      # counters are gated on winning to avoid inflating them on a lost race.
       def reveal_secret(owner)
+        plaintext = secret.reveal!(passphrase_input: passphrase)
+        return plaintext if plaintext.nil?
+
         owner&.increment_field :secrets_shared unless owner&.anonymous?
         Onetime::Customer.secrets_shared.increment
-        secret.revealed!
+        plaintext
       end
 
       def resolve_share_domain

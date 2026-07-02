@@ -82,40 +82,44 @@ module Onetime::Secret::Features
       # return value). The in-memory check is kept as a cheap fast-path that
       # short-circuits an already-terminal instance before touching Redis.
       #
+      # Consume the secret WITHOUT returning its plaintext. For callers that
+      # only need to mark the secret revealed and expunge it -- e.g. account
+      # verification, or the legacy v1 flow which decrypts separately and then
+      # gates its own output. Read controllers that must hand back the plaintext
+      # should prefer {#reveal!}, which cannot be decoupled from the claim.
+      #
       # @return [Boolean] true if THIS caller performed the reveal, false if a
       #   concurrent caller won the race or the secret was already terminal.
       def revealed!
-        # A guard to allow only a fresh, new secret to be revealed. Also ensures that
-        # we don't support going from :previewed back to something else.
-        return false unless state?(:new) || state?(:previewed)
+        return false unless win_reveal_claim!
 
-        # Atomic gate: only the caller that wins the compare-and-set proceeds.
-        unless compare_and_set_state!(:revealed, [:new, :previewed])
-          # Lost the race: a concurrent caller already terminalized this
-          # secret. Mark THIS in-memory instance terminal so its viewable? and
-          # safe_dump reflect reality; the plaintext is withheld by returning
-          # false, which the reveal controllers gate on. (previewed! is itself
-          # non-resurrecting now, so this is about presenting accurate loser
-          # state, not the sole guard against re-creating the destroyed key.)
-          @state      = 'revealed'
-          @ciphertext = nil
-          return false
-        end
-
-        md               = load_receipt
-        md.revealed! unless md.nil?
-        # It's important for the state to change here, even though we're about to
-        # destroy the secret. This is because the state is used to determine if
-        # the secret is viewable. If we don't change the state here, the secret
-        # will still be viewable b/c (state?(:new) || state?(:previewed) == true).
-        @state           = 'revealed'
-        # Clear ciphertext so the payload is not recoverable from this
-        # instance. We don't clear arbitrary fields because safe_dump
-        # and success_data still read state, lifespan, etc.
-        @ciphertext      = nil
-        @passphrase_temp = nil
-        destroy!
+        consume_after_reveal!
         true
+      end
+
+      # Reveal-and-fetch: atomically claim the one-shot reveal and, ONLY on
+      # winning, decrypt and return the plaintext; then cascade the receipt and
+      # destroy the record. A losing (or already-terminal) caller gets +nil+.
+      #
+      # This is the plaintext-returning sibling of {#revealed!} and the
+      # preferred entry point for read controllers: because decryption happens
+      # inside the won-claim branch, a caller cannot obtain the plaintext
+      # without also winning the single permitted reveal. There is no separate
+      # "decrypt" step for a controller to forget to gate -- the burn-after-
+      # reading invariant is enforced here by construction rather than by each
+      # call site remembering to check a boolean.
+      #
+      # @param passphrase_input [String, nil] passphrase supplied by the caller,
+      #   forwarded to decryption.
+      # @return [String, nil] the decrypted plaintext for the single winning
+      #   caller; nil for a loser or an already-terminal secret.
+      def reveal!(passphrase_input: nil)
+        return unless win_reveal_claim!
+
+        # Decrypt from the still-in-memory ciphertext BEFORE consume clears it.
+        plaintext = decrypted_secret_value(passphrase_input: passphrase_input)
+        consume_after_reveal!
+        plaintext
       end
 
       # @return [Boolean] true if THIS caller performed the burn, false if a
@@ -160,6 +164,46 @@ module Onetime::Secret::Features
       LUA
 
       private
+
+      # Atomic claim shared by {#revealed!} and {#reveal!}. Returns true iff
+      # THIS caller won the one-and-only reveal. On loss (a concurrent caller
+      # already terminalized the secret) it marks the in-memory instance
+      # terminal so its viewable?/safe_dump reflect reality and its plaintext
+      # stays withheld; the in-memory check above is a cheap fast-path before
+      # touching Redis. (previewed! is itself non-resurrecting, so marking
+      # state here is about presenting accurate loser state, not the sole guard
+      # against re-creating the destroyed key.)
+      #
+      # @return [Boolean] true iff this caller performed the state transition.
+      def win_reveal_claim!
+        return false unless state?(:new) || state?(:previewed)
+        return true if compare_and_set_state!(:revealed, [:new, :previewed])
+
+        @state      = 'revealed'
+        @ciphertext = nil
+        false
+      end
+
+      # Post-claim consumption shared by {#revealed!} and {#reveal!}: cascade
+      # the receipt to revealed and destroy the record. Assumes the caller has
+      # already won the claim via {#win_reveal_claim!}.
+      #
+      # The in-memory state is set to 'revealed' even though the record is about
+      # to be destroyed: state drives viewable?, so leaving it revealable would
+      # keep a just-consumed instance readable. Ciphertext is cleared so the
+      # payload is not recoverable from this instance; other fields (state,
+      # lifespan, ...) remain for safe_dump / success_data.
+      #
+      # @return [void]
+      def consume_after_reveal!
+        md = load_receipt
+        md.revealed! unless md.nil?
+
+        @state           = 'revealed'
+        @ciphertext      = nil
+        @passphrase_temp = nil
+        destroy!
+      end
 
       # Atomically transition the persisted +state+ field from one of
       # +from_states+ to +to_state+, returning whether THIS caller performed
