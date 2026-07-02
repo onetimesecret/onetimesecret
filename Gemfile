@@ -91,6 +91,14 @@ gem 'uri-valkey', '~> 1.4.0'
 gem 'argon2', '~> 2.3'
 gem 'bcrypt', '~> 3.1'
 gem 'passforge', '~> 1.1'
+# libsodium bindings. With rbnacl present, Familia's encrypted fields write
+# XChaCha20-Poly1305 for new data (provider priority) while existing
+# AES-256-GCM envelopes remain readable (algorithm recorded per envelope).
+# Requires the libsodium shared library at runtime (see Dockerfile).
+# MUST stay top-level: the production image sets
+# BUNDLE_WITHOUT="development:test:optional", which would silently exclude
+# it from any of those groups and quietly fall back to AES-256-GCM.
+gem 'rbnacl', '~> 7.1', '>= 7.1.1'
 gem 'rotp', '~> 6.2'
 gem 'rqrcode', '~> 3.1'
 gem 'webauthn', '~> 3.0'
