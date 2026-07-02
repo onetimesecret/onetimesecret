@@ -23,6 +23,7 @@ pnpm-debug.log*
 .devcontainer
 .gemini*
 .history
+.interface-design
 .hypothesis/
 .pnpm/
 .pnpm-store/
