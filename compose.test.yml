@@ -60,7 +60,7 @@ services:
       retries: 5
 
   rabbitmq:
-    image: rabbitmq:4.2@sha256:0ea64c69ef2ced52e7188c6db826152d42f78e448433ed8b4e570170c427a437
+    image: rabbitmq:4.2@sha256:71f4eee6f423bbde503400b12442be672043e88e28076ad92c4b98b2db2f135f
     ports:
       - '127.0.0.1:2172:5672'
     healthcheck:
