@@ -42,16 +42,27 @@ module Onetime::Secret::Features
       # MIGRATION NOTE: This method replaces the legacy `viewed!` method.
       # Existing data with state='viewed' should be migrated to state='previewed'.
       # The `viewed` timestamp field maps to the new `previewed` field.
+      #
+      # Records that the secret link was accessed (but not yet consumed) by
+      # flipping state :new -> :previewed with an atomic, NON-creating CAS.
+      # Unlike the former save_fields(:state) -- an unconditional HSET that
+      # recreates the key if absent -- this transition:
+      #   * cannot resurrect a secret a concurrent reveal/burn already
+      #     destroyed (HGET on a missing key matches nothing), and
+      #   * cannot revert a secret that has already reached a terminal state
+      #     (it fires only from :new); the old unconditional write could briefly
+      #     revert a revealed-but-not-yet-destroyed record to :previewed and
+      #     re-open viewability while its ciphertext still existed.
+      # It also no longer resets the secret's TTL on preview: a merely-viewed
+      # link must not extend a burn-after-reading secret's lifetime -- which is
+      # both safer and what this method's comment always claimed to do.
       def previewed!
-        # A guard to prevent regressing (e.g. from :burned back to :previewed)
+        # Fast-path guard on in-memory state; the CAS below is the authority.
         return unless state?(:new)
 
-        # The secret link has been accessed but the secret has not been consumed yet
+        return unless compare_and_set_state!(:previewed, [:new])
+
         @state = 'previewed'
-        # Only save the state field — a full save would re-serialize encrypted
-        # fields (ciphertext), corrupting them via double-encryption. Using
-        # save_fields also avoids resetting the TTL.
-        save_fields(:state)
       end
 
       # MIGRATION NOTE: This method replaces the legacy `received!` method.
@@ -64,7 +75,7 @@ module Onetime::Secret::Features
       # and -- without an atomic guard -- both pass the check below, both
       # decrypt, and both destroy, handing the plaintext to two clients.
       #
-      # {#claim_terminal_transition!} closes that race with an atomic
+      # {#compare_and_set_state!} closes that race with an atomic
       # compare-and-set in Redis: of any number of racing callers, exactly one
       # wins the claim and is permitted to reveal; the rest get +false+ and
       # must not emit the plaintext (the reveal controllers gate on this
@@ -79,14 +90,13 @@ module Onetime::Secret::Features
         return false unless state?(:new) || state?(:previewed)
 
         # Atomic gate: only the caller that wins the compare-and-set proceeds.
-        unless claim_terminal_transition!(:revealed)
-          # Lost the race: a concurrent caller already terminalized (and is
-          # destroying) this secret. Mark THIS in-memory instance terminal so
-          # (a) it is no longer viewable? and (b) a downstream
-          # `previewed! if state?(:new)` cannot fire -- that would HSET the
-          # `state` field and resurrect the key the winner just destroyed.
-          # The pre-atomic code left every caller with state='revealed' for
-          # the same reason; we preserve that invariant on the losing path.
+        unless compare_and_set_state!(:revealed, [:new, :previewed])
+          # Lost the race: a concurrent caller already terminalized this
+          # secret. Mark THIS in-memory instance terminal so its viewable? and
+          # safe_dump reflect reality; the plaintext is withheld by returning
+          # false, which the reveal controllers gate on. (previewed! is itself
+          # non-resurrecting now, so this is about presenting accurate loser
+          # state, not the sole guard against re-creating the destroyed key.)
           @state      = 'revealed'
           @ciphertext = nil
           return false
@@ -118,7 +128,7 @@ module Onetime::Secret::Features
         # Atomic gate: see revealed!. A double-burn is not a plaintext leak,
         # but the CAS still guarantees the receipt cascade and any caller-side
         # bookkeeping (e.g. secrets_burned counters) happen exactly once.
-        return false unless claim_terminal_transition!(:burned)
+        return false unless compare_and_set_state!(:burned, [:new, :previewed])
 
         md               = load_receipt
         md.burned! unless md.nil?
@@ -131,60 +141,55 @@ module Onetime::Secret::Features
       alias viewed! previewed!
       alias received! revealed!
 
-      # Lua compare-and-set, executed atomically by Redis. Returns 1 to the
-      # single caller that moves +state+ out of a revealable value, 0 to
-      # everyone else (including when the key or field is already gone, where
-      # HGET returns a Lua false that matches neither revealable marker).
-      CLAIM_TERMINAL_TRANSITION_SCRIPT = <<~LUA
+      # Lua compare-and-set on the +state+ field, run atomically by Redis (its
+      # command loop is single-threaded). Sets state to ARGV[1] iff the current
+      # value equals one of ARGV[2..]. Returns 1 to the single caller that
+      # performs the flip, 0 to everyone else -- including when the key/field is
+      # gone (HGET yields a Lua false that matches nothing, so a destroyed
+      # record is never resurrected) and when the state has already advanced
+      # (so a terminal state is never reverted).
+      STATE_CAS_SCRIPT = <<~LUA
         local current = redis.call('HGET', KEYS[1], 'state')
-        if current == ARGV[1] or current == ARGV[2] then
-          redis.call('HSET', KEYS[1], 'state', ARGV[3])
-          return 1
+        for i = 2, #ARGV do
+          if current == ARGV[i] then
+            redis.call('HSET', KEYS[1], 'state', ARGV[1])
+            return 1
+          end
         end
         return 0
       LUA
 
       private
 
-      # Atomically claims the one-and-only terminal transition for this
-      # secret, guarding against the double-reveal / double-burn race.
+      # Atomically transition the persisted +state+ field from one of
+      # +from_states+ to +to_state+, returning whether THIS caller performed
+      # the flip. This is the single concurrency primitive behind every state
+      # transition on a Secret; each caller documents what its own transition
+      # guards against.
       #
-      # Redis runs the Lua script atomically (its command loop is
-      # single-threaded), so of any number of concurrent callers exactly one
-      # can observe the persisted +state+ field as still revealable
-      # (:new / :previewed) and flip it to the terminal marker. Every other
-      # caller -- including one that arrives after the key has already been
-      # destroyed, where HGET yields no value -- sees a non-revealable state
-      # and loses. This is the same compare-and-set idiom Familia's
+      # Because Redis executes the Lua script atomically, of any number of
+      # racing callers exactly one observes an allowed +from+ value and flips
+      # it. This is the same compare-and-set idiom Familia's
       # {Familia::Lock#release} uses, reached through the connection resolver
-      # via +dbclient+.
+      # via +dbclient+ -- but on the record's own +state+ field rather than a
+      # separate lock key, so there is no second key, no TTL, and no expiry
+      # window where a slow critical section outlives the lock and a second
+      # caller slips in. It fails closed: a missing key (destroyed) or an
+      # already-advanced state simply loses, so the transition can neither
+      # resurrect nor revert a record.
       #
-      # A CAS on +state+ rather than a Familia::Lock because the +state+ field
-      # is its own winner token: no second key, no TTL, and no expiry window
-      # where a slow reveal outlives the lock and a second caller slips in.
-      # Once flipped, +state+ can never read as revealable again -- the guard
-      # fails closed, as a one-shot security transition must. A mutex would
-      # only serialize callers; it would still need this exact check inside it.
+      # Operands are produced with #serialize_value so they match how +state+
+      # is encoded at rest (Familia JSON-encodes scalar fields for type
+      # preservation), rather than hard-coding the on-disk representation here.
       #
-      # The comparison operands are produced with #serialize_value so they
-      # match exactly how the +state+ field is encoded at rest (Familia
-      # JSON-encodes scalar fields for type preservation), rather than
-      # hard-coding the on-disk representation here.
-      #
-      # @param claimed_state [Symbol, String] terminal marker to set
-      #   (:revealed / :burned).
-      # @return [Boolean] true if this caller won the claim, false otherwise.
-      def claim_terminal_transition!(claimed_state)
-        new_enc       = serialize_value('new')
-        previewed_enc = serialize_value('previewed')
-        claimed_enc   = serialize_value(claimed_state.to_s)
+      # @param to_state [Symbol, String] state to set on success.
+      # @param from_states [Array<Symbol, String>] states the flip may fire from.
+      # @return [Boolean] true iff this caller performed the transition.
+      def compare_and_set_state!(to_state, from_states)
+        argv = [serialize_value(to_state.to_s)]
+        from_states.each { |state| argv << serialize_value(state.to_s) }
 
-        outcome = dbclient.eval(
-          CLAIM_TERMINAL_TRANSITION_SCRIPT,
-          [dbkey],
-          [new_enc, previewed_enc, claimed_enc],
-        )
-        outcome.to_i == 1
+        dbclient.eval(STATE_CAS_SCRIPT, [dbkey], argv).to_i == 1
       end
     end
   end

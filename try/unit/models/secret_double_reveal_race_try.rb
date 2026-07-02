@@ -91,3 +91,27 @@ instances = Array.new(8) { Onetime::Secret.load(secret.identifier) }
 outcomes  = instances.map { |s| Thread.new { s.revealed! } }.map(&:value)
 [outcomes.count(true), instances.first.exists?]
 #=> [1, false]
+
+# ----------------------------------------------------------------
+# previewed! is a non-creating, non-reverting CAS (see the method's docs).
+# The former save_fields(:state) was an unconditional HSET that could
+# resurrect a destroyed key or revert a terminal state.
+# ----------------------------------------------------------------
+
+## previewed! will not resurrect a secret a concurrent reveal already
+## destroyed: a stale in-memory :new instance whose key is gone stays gone.
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'race secret'
+stale = Onetime::Secret.load(secret.identifier)    # loads with @state == 'new'
+Onetime::Secret.load(secret.identifier).revealed!  # a concurrent reveal destroys the key
+stale.previewed!                                   # stale still believes it is :new
+stale.exists?
+#=> false
+
+## previewed! reads the PERSISTED state, not just memory: a stale :new instance
+## cannot re-fire or downgrade a secret that has already advanced past :new.
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'race secret'
+stale = Onetime::Secret.load(secret.identifier)          # stale @state == 'new'
+Onetime::Secret.load(secret.identifier).previewed!       # persisted advances to 'previewed'
+stale.previewed!                                          # must be a no-op (persisted != new)
+Onetime::Secret.load(secret.identifier).state
+#=> 'previewed'
