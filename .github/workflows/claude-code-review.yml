@@ -12,6 +12,10 @@ on:
       - 'develop'
       - 'main'
     types: [opened, synchronize, labeled]
+    # Don't burn an LLM review on bulk translation diffs. A mixed code+locale
+    # PR still triggers (paths-ignore skips only when every file matches).
+    paths-ignore:
+      - 'locales/content/**'
   workflow_dispatch:
     inputs:
       model:

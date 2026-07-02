@@ -247,9 +247,15 @@ jobs:
       - name: Run variable audit
         run: |
           echo "## i18n Variable Audit" >> $GITHUB_STEP_SUMMARY
-          python3 src/scripts/locales/audit/audit-variables.py --summary | tee -a $GITHUB_STEP_SUMMARY
-          ISSUES=$?
-          if [ $ISSUES -gt 0 ]; then
+          # Report-only: the handler exits with the discrepancy count (capped at
+          # 100). `|| true` would mask that count behind true's 0, so instead
+          # disable errexit around the pipeline and read PIPESTATUS[0] — the
+          # python exit, not tee's — to keep the summary accurate under pipefail.
+          set +e
+          python3 locales/scripts/i18n validate variables --summary | tee -a $GITHUB_STEP_SUMMARY
+          ISSUES=${PIPESTATUS[0]}
+          set -e
+          if [ "$ISSUES" -gt 0 ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "⚠️ Found $ISSUES variable discrepancies across locales" >> $GITHUB_STEP_SUMMARY
           fi
