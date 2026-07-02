@@ -159,6 +159,13 @@ module Onetime::Secret::Features
       # {Familia::Lock#release} uses, reached through the connection resolver
       # via +dbclient+.
       #
+      # A CAS on +state+ rather than a Familia::Lock because the +state+ field
+      # is its own winner token: no second key, no TTL, and no expiry window
+      # where a slow reveal outlives the lock and a second caller slips in.
+      # Once flipped, +state+ can never read as revealable again -- the guard
+      # fails closed, as a one-shot security transition must. A mutex would
+      # only serialize callers; it would still need this exact check inside it.
+      #
       # The comparison operands are produced with #serialize_value so they
       # match exactly how the +state+ field is encoded at rest (Familia
       # JSON-encodes scalar fields for type preservation), rather than
