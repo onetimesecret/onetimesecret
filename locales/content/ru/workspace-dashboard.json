@@ -22,5 +22,14 @@
   "web.dashboard.fetch_error_description": {
     "text": "Возникла проблема при загрузке данных. Попробуйте ещё раз.",
     "source_hash": "ff0d904e"
+  },
+  "web.teams.create_first_team_title": {
+    "text": "Создайте свою первую команду"
+  },
+  "web.teams.create_first_team_description": {
+    "text": "Команды позволяют сотрудничать с другими в общем рабочем пространстве."
+  },
+  "web.teams.create_team": {
+    "text": "Создать команду"
   }
 }

@@ -1,0 +1,23 @@
+{
+  "api.invite.errors.invitation_not_found_or_expired": {
+    "text": "초대를 찾을 수 없거나 만료되었습니다"
+  },
+  "api.invite.errors.token_required": {
+    "text": "토큰이 필요합니다"
+  },
+  "api.invite.errors.organization_no_longer_exists": {
+    "text": "조직이 더 이상 존재하지 않습니다"
+  },
+  "api.invite.errors.invitation_already_processed": {
+    "text": "이 초대는 이미 %{status} 상태입니다"
+  },
+  "api.invite.errors.invitation_expired": {
+    "text": "초대가 만료되었습니다"
+  },
+  "api.invite.errors.email_mismatch": {
+    "text": "이메일 주소가 초대와 일치하지 않습니다"
+  },
+  "api.invite.errors.already_member": {
+    "text": "이미 이 조직의 멤버입니다"
+  }
+}

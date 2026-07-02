@@ -1,0 +1,71 @@
+{
+  "api.entitlements.errors.context_unavailable": {
+    "text": "A jogosultságok nem ellenőrizhetők (a szervezet kontextusa nem érhető el)"
+  },
+  "api.entitlements.errors.api_access_required": {
+    "text": "Az API-hozzáférés csomagfrissítést igényel"
+  },
+  "api.entitlements.errors.custom_privacy_defaults_required": {
+    "text": "Az egyéni adatvédelmi alapértékek csomagfrissítést igényelnek"
+  },
+  "api.entitlements.errors.extended_default_expiration_required": {
+    "text": "A kibővített alapértelmezett lejárat csomagfrissítést igényel"
+  },
+  "api.entitlements.errors.custom_domains_required": {
+    "text": "Az egyéni domének csomagfrissítést igényelnek"
+  },
+  "api.entitlements.errors.custom_branding_required": {
+    "text": "Az egyéni arculat csomagfrissítést igényel"
+  },
+  "api.entitlements.errors.homepage_secrets_required": {
+    "text": "A kezdőlapi titkok csomagfrissítést igényelnek"
+  },
+  "api.entitlements.errors.incoming_secrets_required": {
+    "text": "A bejövő titkok csomagfrissítést igényelnek"
+  },
+  "api.entitlements.errors.custom_mail_sender_required": {
+    "text": "Az egyéni levélküldő csomagfrissítést igényel"
+  },
+  "api.entitlements.errors.flexible_from_domain_required": {
+    "text": "A rugalmas feladódomén csomagfrissítést igényel"
+  },
+  "api.entitlements.errors.manage_org_required": {
+    "text": "A szervezetkezelés csomagfrissítést igényel"
+  },
+  "api.entitlements.errors.manage_teams_required": {
+    "text": "A csapatkezelés csomagfrissítést igényel"
+  },
+  "api.entitlements.errors.manage_members_required": {
+    "text": "A tagkezelés csomagfrissítést igényel"
+  },
+  "api.entitlements.errors.manage_sso_required": {
+    "text": "Az SSO-kezelés csomagfrissítést igényel"
+  },
+  "api.entitlements.errors.audit_logs_required": {
+    "text": "Az auditnaplók csomagfrissítést igényelnek"
+  },
+  "api.entitlements.errors.custom_signup_validation_required": {
+    "text": "Az egyéni regisztrációs ellenőrzés csomagfrissítést igényel"
+  },
+  "api.entitlements.errors.create_secrets_required": {
+    "text": "A titkok létrehozása csomagfrissítést igényel"
+  },
+  "api.entitlements.errors.view_receipt_required": {
+    "text": "A nyugták megtekintése csomagfrissítést igényel"
+  },
+  "api.entitlements.errors.notifications_required": {
+    "text": "Az értesítések csomagfrissítést igényelnek"
+  },
+  "api.entitlements.errors.workspace_branding_required": {
+    "text": "A munkaterület arculata csomagfrissítést igényel"
+  },
+  "api.entitlements.errors.ip_access_rules_required": {
+    "text": "Az IP-hozzáférési szabályok csomagfrissítést igényelnek"
+  },
+  "api.entitlements.errors.manage_billing_required": {
+    "text": "A számlázáskezelés csomagfrissítést igényel"
+  },
+  "api.entitlements.errors.custom_signin_config_required": {
+    "text": "Az egyéni bejelentkezési konfiguráció csomagfrissítést igényel"
+  }
+}

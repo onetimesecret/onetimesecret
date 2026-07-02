@@ -1,0 +1,5 @@
+{
+  "api.feedback.errors.rate_limit_exceeded": {
+    "text": "反馈提交次数过多。请稍后重试。"
+  }
+}

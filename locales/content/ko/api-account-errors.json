@@ -1,0 +1,8 @@
+{
+  "api.account.errors.invalid_email": {
+    "text": "유효한 이메일 주소가 맞나요?"
+  },
+  "api.account.errors.password_too_short": {
+    "text": "비밀번호가 너무 짧습니다"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "api.domains.errors.domain_id_required": {
+    "text": "ID dominio obbligatorio"
+  },
+  "api.domains.errors.domain_not_found": {
+    "text": "Dominio non trovato: %{extid}"
+  },
+  "api.domains.errors.organization_not_found": {
+    "text": "Organizzazione non trovata per il dominio: %{domain}"
+  },
+  "api.domains.errors.incoming_secrets_disabled": {
+    "text": "I segreti in arrivo non sono abilitati su questa istanza"
+  },
+  "api.domains.errors.incoming_secrets_entitlement_required": {
+    "text": "La gestione dei segreti in arrivo richiede il diritto incoming_secrets. Esegui l'upgrade del tuo piano."
+  },
+  "api.domains.errors.incoming_config_not_found": {
+    "text": "Configurazione dei segreti in arrivo non trovata per il dominio: %{extid}"
+  },
+  "api.domains.errors.recipients_max_exceeded": {
+    "text": "Sono consentiti al massimo %{max} destinatari"
+  },
+  "api.domains.errors.recipients_invalid_email": {
+    "text": "Email non valida: %{email}"
+  },
+  "api.domains.errors.recipients_duplicate": {
+    "text": "Non sono consentiti indirizzi email destinatari duplicati"
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "api.entitlements.errors.context_unavailable": {
+    "text": "エンタイトルメントを検証できません（組織のコンテキストが利用できません）"
+  },
+  "api.entitlements.errors.api_access_required": {
+    "text": "APIアクセスにはプランのアップグレードが必要です"
+  },
+  "api.entitlements.errors.custom_privacy_defaults_required": {
+    "text": "カスタムプライバシーのデフォルト設定にはプランのアップグレードが必要です"
+  },
+  "api.entitlements.errors.extended_default_expiration_required": {
+    "text": "デフォルト有効期限の延長にはプランのアップグレードが必要です"
+  },
+  "api.entitlements.errors.custom_domains_required": {
+    "text": "カスタムドメインにはプランのアップグレードが必要です"
+  },
+  "api.entitlements.errors.custom_branding_required": {
+    "text": "カスタムブランディングにはプランのアップグレードが必要です"
+  },
+  "api.entitlements.errors.homepage_secrets_required": {
+    "text": "ホームページシークレットにはプランのアップグレードが必要です"
+  },
+  "api.entitlements.errors.incoming_secrets_required": {
+    "text": "受信シークレットにはプランのアップグレードが必要です"
+  },
+  "api.entitlements.errors.custom_mail_sender_required": {
+    "text": "カスタムメール送信者にはプランのアップグレードが必要です"
+  },
+  "api.entitlements.errors.flexible_from_domain_required": {
+    "text": "柔軟な送信元ドメインにはプランのアップグレードが必要です"
+  },
+  "api.entitlements.errors.manage_org_required": {
+    "text": "組織の管理にはプランのアップグレードが必要です"
+  },
+  "api.entitlements.errors.manage_teams_required": {
+    "text": "チームの管理にはプランのアップグレードが必要です"
+  },
+  "api.entitlements.errors.manage_members_required": {
+    "text": "メンバーの管理にはプランのアップグレードが必要です"
+  },
+  "api.entitlements.errors.manage_sso_required": {
+    "text": "シングルサインオン (SSO) の管理にはプランのアップグレードが必要です"
+  },
+  "api.entitlements.errors.audit_logs_required": {
+    "text": "監査ログにはプランのアップグレードが必要です"
+  },
+  "api.entitlements.errors.custom_signup_validation_required": {
+    "text": "カスタムサインアップ検証にはプランのアップグレードが必要です"
+  },
+  "api.entitlements.errors.create_secrets_required": {
+    "text": "シークレットの作成にはプランのアップグレードが必要です"
+  },
+  "api.entitlements.errors.view_receipt_required": {
+    "text": "受信確認の表示にはプランのアップグレードが必要です"
+  },
+  "api.entitlements.errors.notifications_required": {
+    "text": "通知にはプランのアップグレードが必要です"
+  },
+  "api.entitlements.errors.workspace_branding_required": {
+    "text": "ワークスペースブランディングにはプランのアップグレードが必要です"
+  },
+  "api.entitlements.errors.ip_access_rules_required": {
+    "text": "IPアクセスルールにはプランのアップグレードが必要です"
+  },
+  "api.entitlements.errors.manage_billing_required": {
+    "text": "請求の管理にはプランのアップグレードが必要です"
+  },
+  "api.entitlements.errors.custom_signin_config_required": {
+    "text": "カスタムサインイン設定にはプランのアップグレードが必要です"
+  }
+}

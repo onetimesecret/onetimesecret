@@ -1,0 +1,29 @@
+{
+  "api.domains.errors.domain_id_required": {
+    "text": "Требуется ID домена"
+  },
+  "api.domains.errors.domain_not_found": {
+    "text": "Домен не найден: %{extid}"
+  },
+  "api.domains.errors.organization_not_found": {
+    "text": "Организация для домена не найдена: %{domain}"
+  },
+  "api.domains.errors.incoming_secrets_disabled": {
+    "text": "Входящие секреты не включены на этом экземпляре"
+  },
+  "api.domains.errors.incoming_secrets_entitlement_required": {
+    "text": "Для управления входящими секретами требуется право incoming_secrets. Пожалуйста, перейдите на более высокий план."
+  },
+  "api.domains.errors.incoming_config_not_found": {
+    "text": "Конфигурация для входящих секретов не найдена для домена: %{extid}"
+  },
+  "api.domains.errors.recipients_max_exceeded": {
+    "text": "Разрешено не более %{max} получателей"
+  },
+  "api.domains.errors.recipients_invalid_email": {
+    "text": "Недействительный адрес электронной почты: %{email}"
+  },
+  "api.domains.errors.recipients_duplicate": {
+    "text": "Дублирующиеся адреса получателей не допускаются"
+  }
+}

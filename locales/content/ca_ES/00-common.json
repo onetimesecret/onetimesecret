@@ -1299,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Verifica sempre que estàs al lloc web oficial d'{product_name}. Els estafadors de vegades creen llocs web falsos que semblen exactament {product_name} per robar els teus secrets. Per evitar atacs de phishing, comprova el domini de la regió abans de crear nous enllaços.",
+    "text": "Verifica sempre que estàs al lloc web oficial de {product_name}. De vegades, els estafadors creen llocs web falsos que semblen exactament {product_name} per robar-te els secrets. Per evitar atacs de pesca de credencials, comprova el domini de la regió abans de crear nous enllaços.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1383,5 +1383,110 @@
     "text": "Actualitza per desbloquejar més funcions",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "Cal autenticació"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "Aquesta acció no està disponible en mode només SSO"
+  },
+  "web.COMMON.configure": {
+    "text": "Configura"
+  },
+  "web.COMMON.copy_to_clipboard": {
+    "text": "Copia al porta-retalls"
+  },
+  "web.COMMON.add": {
+    "text": "Afegeix"
+  },
+  "web.COMMON.enabled": {
+    "text": "Activat"
+  },
+  "web.COMMON.disabled": {
+    "text": "Desactivat"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Sí, elimina"
+  },
+  "web.COMMON.error_code": {
+    "text": "Codi d'error"
+  },
+  "web.COMMON.http_status": {
+    "text": "Estat HTTP"
+  },
+  "web.COMMON.details": {
+    "text": "Detalls"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Confirma la contrasenya"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Les contrasenyes han de coincidir"
+  },
+  "web.COMMON.and": {
+    "text": "i"
+  },
+  "web.COMMON.or": {
+    "text": "o"
+  },
+  "web.COMMON.copied": {
+    "text": "Copiat"
+  },
+  "web.COMMON.copy": {
+    "text": "Copia"
+  },
+  "web.COMMON.copy_email": {
+    "text": "Copia l'adreça de correu electrònic"
+  },
+  "web.COMMON.copy_id": {
+    "text": "Copia l'identificador del compte"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "L'identificador únic de la teva organització"
+  },
+  "web.COMMON.success": {
+    "text": "Èxit"
+  },
+  "web.COMMON.need_help": {
+    "text": "Necessites ajuda"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "Obre el diàleg d'ajuda"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "El focus ara és a l'àrea de text principal"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Mostra la frase de contrasenya"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Amaga la frase de contrasenya"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "Icona de copiar"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "Icona de copiat"
+  },
+  "web.STATUS.unverified": {
+    "text": "No verificat"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Configuració del domini"
+  },
+  "web.TITLES.domain_signin": {
+    "text": "Configuració de l'inici de sessió"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "SSO del domini"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "Validació del registre del domini"
+  },
+  "web.TITLES.domain_email": {
+    "text": "Configuració del correu electrònic"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Secrets entrants"
   }
 }

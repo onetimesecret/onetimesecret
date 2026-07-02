@@ -1,0 +1,29 @@
+{
+  "api.domains.errors.domain_id_required": {
+    "text": "需要域名 ID"
+  },
+  "api.domains.errors.domain_not_found": {
+    "text": "未找到域名：%{extid}"
+  },
+  "api.domains.errors.organization_not_found": {
+    "text": "未找到该域名对应的组织：%{domain}"
+  },
+  "api.domains.errors.incoming_secrets_disabled": {
+    "text": "此实例未启用接收内容功能"
+  },
+  "api.domains.errors.incoming_secrets_entitlement_required": {
+    "text": "接收内容管理需要 incoming_secrets 权益。请升级方案。"
+  },
+  "api.domains.errors.incoming_config_not_found": {
+    "text": "未找到该域名的接收配置：%{extid}"
+  },
+  "api.domains.errors.recipients_max_exceeded": {
+    "text": "最多允许 %{max} 个收件人"
+  },
+  "api.domains.errors.recipients_invalid_email": {
+    "text": "无效的邮箱地址：%{email}"
+  },
+  "api.domains.errors.recipients_duplicate": {
+    "text": "不允许重复的收件人邮箱地址"
+  }
+}

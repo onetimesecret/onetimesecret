@@ -770,5 +770,200 @@
   "web.organizations.sso.status_not_configured": {
     "text": "Niet geconfigureerd",
     "source_hash": "bbea960e"
+  },
+  "api.organizations.errors.not_found": {
+    "text": "Organisatie niet gevonden: %{extid}"
+  },
+  "api.organizations.errors.owner_required": {
+    "text": "Alleen de eigenaar van de organisatie kan deze actie uitvoeren"
+  },
+  "api.organizations.errors.admin_required": {
+    "text": "Alleen eigenaren en beheerders van de organisatie kunnen deze actie uitvoeren"
+  },
+  "api.organizations.errors.member_required": {
+    "text": "Je moet lid zijn van de organisatie om deze actie uit te voeren"
+  },
+  "api.organizations.invitations.errors.create_admin_required": {
+    "text": "Alleen eigenaren en beheerders van de organisatie kunnen uitnodigingen aanmaken"
+  },
+  "api.organizations.invitations.errors.resend_admin_required": {
+    "text": "Alleen eigenaren en beheerders van de organisatie kunnen uitnodigingen opnieuw versturen"
+  },
+  "api.organizations.invitations.errors.view_admin_required": {
+    "text": "Alleen eigenaren en beheerders van de organisatie kunnen uitnodigingen bekijken"
+  },
+  "api.organizations.invitations.errors.revoke_admin_required": {
+    "text": "Alleen eigenaren en beheerders van de organisatie kunnen uitnodigingen intrekken"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "E-mail is verplicht"
+  },
+  "api.organizations.invitations.errors.email_invalid": {
+    "text": "Ongeldige e-mailindeling"
+  },
+  "api.organizations.invitations.errors.role_invalid": {
+    "text": "Rol moet lid of beheerder zijn"
+  },
+  "api.organizations.invitations.errors.cannot_invite_owner": {
+    "text": "Kan niet uitnodigen als eigenaar"
+  },
+  "api.organizations.invitations.errors.already_member": {
+    "text": "Gebruiker is al lid van deze organisatie"
+  },
+  "api.organizations.invitations.errors.already_pending": {
+    "text": "Er is al een uitnodiging in behandeling voor dit e-mailadres"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Ledenlimiet bereikt. Upgrade je plan om meer leden uit te nodigen."
+  },
+  "api.organizations.invitations.errors.not_found": {
+    "text": "Uitnodiging niet gevonden"
+  },
+  "api.organizations.invitations.errors.cannot_resend_non_pending": {
+    "text": "Alleen uitnodigingen in behandeling kunnen opnieuw worden verstuurd"
+  },
+  "api.organizations.invitations.errors.cannot_revoke_non_pending": {
+    "text": "Alleen uitnodigingen in behandeling kunnen worden ingetrokken"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Maximale limiet voor opnieuw versturen (%{max}) bereikt"
+  },
+  "api.organizations.invitations.errors.accept_token_required": {
+    "text": "Token is verplicht"
+  },
+  "api.organizations.invitations.errors.accept_organization_gone": {
+    "text": "Organisatie bestaat niet meer"
+  },
+  "api.organizations.invitations.errors.accept_already_acted": {
+    "text": "Uitnodiging is al %{status}"
+  },
+  "api.organizations.invitations.errors.accept_expired": {
+    "text": "Uitnodiging is verlopen"
+  },
+  "api.organizations.invitations.errors.accept_email_mismatch": {
+    "text": "Je e-mailadres komt niet overeen met de uitnodiging"
+  },
+  "api.organizations.invitations.errors.accept_already_member": {
+    "text": "Je bent al lid van deze organisatie"
+  },
+  "web.organizations.entitlements_title": {
+    "text": "Organisatie-entitlements"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Bekijk en configureer je werkruimtes"
+  },
+  "web.organizations.delete_organization_remove_domains_first": {
+    "text": "Verwijder alle aangepaste domeinen voordat je deze organisatie verwijdert."
+  },
+  "web.organizations.default_org_delete_notice_title": {
+    "text": "Deze organisatie verwijderen"
+  },
+  "web.organizations.default_org_delete_notice_before": {
+    "text": "Dit is je standaardorganisatie en kan niet vanuit het dashboard worden verwijderd. Neem voor het verwijderen contact op via het"
+  },
+  "web.organizations.default_org_delete_notice_link": {
+    "text": "feedbackformulier"
+  },
+  "web.organizations.default_org_delete_notice_after": {
+    "text": "."
+  },
+  "web.organizations.leave_organization": {
+    "text": "Deze organisatie verlaten"
+  },
+  "web.organizations.leave_organization_warning": {
+    "text": "Je verliest de toegang tot deze organisatie en haar resources."
+  },
+  "web.organizations.leave_organization_confirm_title": {
+    "text": "Organisatie verlaten"
+  },
+  "web.organizations.leave_organization_confirm_message": {
+    "text": "Weet je zeker dat je {name} wilt verlaten? Je hebt een nieuwe uitnodiging nodig om opnieuw lid te worden."
+  },
+  "web.organizations.leave_organization_success": {
+    "text": "Je hebt de organisatie verlaten."
+  },
+  "web.organizations.leave_error": {
+    "text": "Organisatie verlaten is mislukt"
+  },
+  "web.organizations.organizations": {
+    "text": "Organisaties"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "door {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "als {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Terug naar home"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Deze uitnodiging is naar dit e-mailadres verzonden"
+  },
+  "web.organizations.invitations.signup_continue": {
+    "text": "Doorgaan"
+  },
+  "web.organizations.invitations.signin_continue": {
+    "text": "Inloggen"
+  },
+  "web.organizations.invitations.confirm_join_below": {
+    "text": "Bijna klaar — bevestig hieronder om lid te worden van de organisatie."
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Naar Organisaties"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Je bent al lid van deze organisatie"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Lid worden van {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Log in om lid te worden van {orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Afwijzen"
+  },
+  "web.organizations.members.member_quota": {
+    "text": "{used} van {limit} leden"
+  },
+  "web.organizations.members.pending_suffix": {
+    "text": "({count} in behandeling)"
+  },
+  "web.organizations.members.limit_reached_hint": {
+    "text": "Ledenlimiet bereikt."
+  },
+  "web.organizations.sso.view_discovery_document": {
+    "text": "Discovery-document bekijken"
+  },
+  "web.organizations.sso.callback_url": {
+    "text": "Callback URL"
+  },
+  "web.organizations.sso.callback_url_hint": {
+    "text": "Voeg deze URL toe aan de toegestane redirect-URI's van je identity provider"
+  },
+  "web.organizations.sso.enforce_sso_only": {
+    "text": "Alleen SSO afdwingen"
+  },
+  "web.organizations.sso.enforce_sso_only_hint": {
+    "text": "Vereis SSO voor alle aanmeldingen op dit domein. Wanneer ingeschakeld, wordt authenticatie met wachtwoord uitgeschakeld."
+  },
+  "web.organizations.sso.grant_org_scope": {
+    "text": "Organisatiebrede toegang verlenen"
+  },
+  "web.organizations.sso.grant_org_scope_hint": {
+    "text": "Nieuwe leden die via de SSO van dit domein lid worden, krijgen toegang tot alle domeinen van de organisatie. Bestaande leden worden niet beïnvloed. Wanneer uitgeschakeld (standaard), hebben nieuwe leden alleen toegang tot dit domein."
+  },
+  "web.organizations.sso.no_domains": {
+    "text": "Geen geverifieerde domeinen"
+  },
+  "web.organizations.sso.no_domains_description": {
+    "text": "Voeg een domein toe en verifieer het voordat je er SSO voor configureert."
+  },
+  "web.organizations.tabs.team": {
+    "text": "Team"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

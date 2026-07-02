@@ -1299,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Vždy si ověř, že jsi na oficiálních stránkách {product_name}. Podvodníci někdy vytvářejí falešné weby, které vypadají přesně jako {product_name}, aby ukradli tvoje tajemství. Abys předešel/a phishingovým útokům, zkontroluj doménu před vytvořením nových odkazů.",
+    "text": "Vždy si ověř, že jsi na oficiálním webu {product_name}. Podvodníci někdy vytvářejí falešné weby, které vypadají úplně stejně jako {product_name}, aby ti ukradli tajemství. Abys předešel phishingovým útokům, před vytvořením nových odkazů zkontroluj doménu regionu.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1383,5 +1383,110 @@
     "text": "Upgraduj pro odemknutí dalších funkcí",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "Je vyžadováno ověření"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "Tato akce není v režimu pouze SSO dostupná"
+  },
+  "web.COMMON.configure": {
+    "text": "Konfigurovat"
+  },
+  "web.COMMON.copy_to_clipboard": {
+    "text": "Zkopírovat do schránky"
+  },
+  "web.COMMON.add": {
+    "text": "Přidat"
+  },
+  "web.COMMON.enabled": {
+    "text": "Povoleno"
+  },
+  "web.COMMON.disabled": {
+    "text": "Zakázáno"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Ano, smazat"
+  },
+  "web.COMMON.error_code": {
+    "text": "Kód chyby"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTP status"
+  },
+  "web.COMMON.details": {
+    "text": "Podrobnosti"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Potvrdit heslo"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Hesla se musí shodovat"
+  },
+  "web.COMMON.and": {
+    "text": "a"
+  },
+  "web.COMMON.or": {
+    "text": "nebo"
+  },
+  "web.COMMON.copied": {
+    "text": "Zkopírováno"
+  },
+  "web.COMMON.copy": {
+    "text": "Kopírovat"
+  },
+  "web.COMMON.copy_email": {
+    "text": "Zkopírovat e-mailovou adresu"
+  },
+  "web.COMMON.copy_id": {
+    "text": "Zkopírovat ID účtu"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "Jedinečný identifikátor tvé organizace"
+  },
+  "web.COMMON.success": {
+    "text": "Úspěch"
+  },
+  "web.COMMON.need_help": {
+    "text": "Potřebujete pomoc"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "Otevřít dialog nápovědy"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "Zaměření je nyní v hlavní textové oblasti"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Zobrazit přístupovou frázi"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Skrýt přístupovou frázi"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "Ikona kopírování"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "Ikona zkopírováno"
+  },
+  "web.STATUS.unverified": {
+    "text": "Neověřeno"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Nastavení domény"
+  },
+  "web.TITLES.domain_signin": {
+    "text": "Konfigurace přihlášení"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "SSO domény"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "Ověření registrace domény"
+  },
+  "web.TITLES.domain_email": {
+    "text": "Konfigurace e-mailu"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Příchozí tajemství"
   }
 }

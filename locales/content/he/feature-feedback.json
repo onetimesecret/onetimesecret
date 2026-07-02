@@ -58,5 +58,14 @@
   "web.feedback.reason_email_change_unauthorized": {
     "text": "נראה שאתה מדווח על שינוי דואר אלקטרוני בלתי מורשה בחשבונך. תאר מה קרה ואנחנו נחקור מיד.",
     "source_hash": "00e56551"
+  },
+  "web.feedback.anonymous_no_reply": {
+    "text": "הערה: אם ברצונך לקבל תגובה, אנא חתום או כלול כתובת דוא״ל בהודעה."
+  },
+  "web.feedback.characters_remaining": {
+    "text": "נותרו {count} תווים"
+  },
+  "web.feedback.character_limit_reached": {
+    "text": "הגעת למגבלת התווים"
   }
 }

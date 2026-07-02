@@ -1,0 +1,23 @@
+{
+  "api.invite.errors.invitation_not_found_or_expired": {
+    "text": "Invitation introuvable ou expirée"
+  },
+  "api.invite.errors.token_required": {
+    "text": "Le jeton est requis"
+  },
+  "api.invite.errors.organization_no_longer_exists": {
+    "text": "L'organisation n'existe plus"
+  },
+  "api.invite.errors.invitation_already_processed": {
+    "text": "L'invitation a déjà été %{status}"
+  },
+  "api.invite.errors.invitation_expired": {
+    "text": "L'invitation a expiré"
+  },
+  "api.invite.errors.email_mismatch": {
+    "text": "Votre adresse courriel ne correspond pas à l'invitation"
+  },
+  "api.invite.errors.already_member": {
+    "text": "Vous êtes déjà membre de cette organisation"
+  }
+}

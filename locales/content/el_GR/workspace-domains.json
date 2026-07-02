@@ -398,5 +398,725 @@
   "web.domains.dns_widget_description": {
     "text": "Χρησιμοποιήστε το εργαλείο παρακάτω για αυτόματη ανίχνευση του παρόχου DNS σας και λάβετε οδηγίες βήμα προς βήμα για τη διαμόρφωση του τομέα σας.",
     "source_hash": "91c1af2e"
+  },
+  "api.domains.errors.add_admin_required": {
+    "text": "Μόνο οι κάτοχοι και οι διαχειριστές του οργανισμού μπορούν να προσθέσουν προσαρμοσμένους τομείς"
+  },
+  "web.domains.public_homepage": {
+    "text": "Δημόσια αρχική σελίδα"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Ο τομέας επαληθεύτηκε και είναι ενεργός"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "Το DNS δεν έχει διαμορφωθεί — κάντε κλικ για διόρθωση"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Ο τομέας δεν επαληθεύτηκε — κάντε κλικ για επαλήθευση"
+  },
+  "web.domains.status_tooltip_unverified": {
+    "text": "Η κατάσταση του τομέα δεν έχει επαληθευτεί — κάντε κλικ για ανανέωση"
+  },
+  "web.domains.last_check_failed": {
+    "text": "Ο τελευταίος έλεγχος επαλήθευσης απέτυχε"
+  },
+  "web.domains.last_check_failed_ago": {
+    "text": "ο τελευταίος έλεγχος απέτυχε {0}"
+  },
+  "web.domains.verify_now": {
+    "text": "Επαλήθευση τώρα"
+  },
+  "web.domains.click_to_verify": {
+    "text": "κάντε κλικ για επαλήθευση"
+  },
+  "web.domains.remove_domain_description": {
+    "text": "Καταργήστε οριστικά αυτόν τον τομέα και όλη τη διαμόρφωσή του."
+  },
+  "web.domains.add_access_denied": {
+    "text": "Άρνηση πρόσβασης"
+  },
+  "web.domains.add_access_denied_description": {
+    "text": "Δεν έχετε δικαίωμα να προσθέσετε τομείς σε αυτόν τον οργανισμό. Επικοινωνήστε με τον διαχειριστή του οργανισμού σας."
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "Αποτυχία φόρτωσης του widget DNS"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "Το widget DNS δεν είναι διαθέσιμο"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "Αποτυχία αρχικοποίησης του widget DNS"
+  },
+  "web.domains.verified": {
+    "text": "Επαληθευμένος"
+  },
+  "web.domains.pending_verification": {
+    "text": "Εκκρεμεί επαλήθευση"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Έχετε μη αποθηκευμένες αλλαγές. Είστε βέβαιοι ότι θέλετε να αποχωρήσετε;"
+  },
+  "web.domains.entitlement_required_owner": {
+    "text": "Αυτή η λειτουργία απαιτεί αναβάθμιση προγράμματος."
+  },
+  "web.domains.entitlement_required_member": {
+    "text": "Αυτή η λειτουργία δεν είναι διαθέσιμη στο τρέχον πρόγραμμά σας. Επικοινωνήστε με τον κάτοχο του οργανισμού σας."
+  },
+  "web.domains.detail.manage": {
+    "text": "Διαχείριση"
+  },
+  "web.domains.detail.features": {
+    "text": "Λειτουργίες"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Μυστικά αρχικής σελίδας"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Επιτρέψτε τη δημόσια πρόσβαση για τη δημιουργία μυστικών στην αρχική σελίδα του τομέα σας"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Λογότυπο, χρώματα και προσαρμοσμένη επωνυμία"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Ρυθμίσεις παρόχου ενιαίας σύνδεσης (SSO)"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Διαμόρφωση προσαρμοσμένου αποστολέα email"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Ρυθμίσεις παραλήπτη εισερχόμενων μυστικών"
+  },
+  "web.domains.detail.signup_description": {
+    "text": "Στρατηγική επικύρωσης εγγραφής ανά τομέα"
+  },
+  "web.domains.detail.signin_description": {
+    "text": "Διαμόρφωση μεθόδου σύνδεσης ανά τομέα"
+  },
+  "web.domains.email.title": {
+    "text": "Αποστολή email"
+  },
+  "web.domains.email.config_title": {
+    "text": "Διαμόρφωση email"
+  },
+  "web.domains.email.config_description": {
+    "text": "Διαμορφώστε την αποστολή email για αυτόν τον τομέα"
+  },
+  "web.domains.email.provider_label": {
+    "text": "Πάροχος email"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "Επιλέξτε έναν πάροχο email"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "Όνομα αποστολέα"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "π.χ. Acme Security"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "Διεύθυνση αποστολέα"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "π.χ. secrets{'@'}example.com"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Διεύθυνση απάντησης"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "π.χ. support{'@'}example.com"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Αποθήκευση αλλαγών"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Απόρριψη αλλαγών"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Χρήση προεπιλογών λογαριασμού"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "Απαιτεί επαλήθευση τομέα μέσω εγγραφών DKIM και SPF"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Απαιτεί ρύθμιση ελέγχου ταυτότητας τομέα"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Απαιτεί επαλήθευση τομέα"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "Χρησιμοποιεί την προεπιλεγμένη διαμόρφωση αποστολής email του λογαριασμού σας"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "Εγγραφές DNS"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "Προσθέστε τις ακόλουθες εγγραφές DNS για να επαληθεύσετε τον τομέα σας για αποστολή email."
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Τύπος"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Όνομα"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Τιμή"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Πάροχος"
+  },
+  "web.domains.email.dns_optional_label": {
+    "text": "Συνιστάται"
+  },
+  "web.domains.email.dns_optional_hint": {
+    "text": "Αυτή η εγγραφή συνιστάται αλλά δεν απαιτείται για την επαλήθευση. Μια πολιτική DMARC στον τομέα του οργανισμού σας ενδέχεται να καλύπτει ήδη αυτόν τον υποτομέα."
+  },
+  "web.domains.email.copy": {
+    "text": "Αντιγραφή"
+  },
+  "web.domains.email.copied": {
+    "text": "Αντιγράφηκε"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Επαληθευμένο"
+  },
+  "web.domains.email.status_pending": {
+    "text": "Σε εκκρεμότητα"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Απέτυχε"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Επανεπικύρωση"
+  },
+  "web.domains.email.validating": {
+    "text": "Επικύρωση..."
+  },
+  "web.domains.email.domain_verified": {
+    "text": "Ο τομέας επαληθεύτηκε"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "Η επικύρωση απέτυχε"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Τελευταία επικύρωση"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Αναβαθμίστε το πρόγραμμά σας για να διαμορφώσετε την αποστολή email για αυτόν τον τομέα."
+  },
+  "web.domains.email.configure_email": {
+    "text": "Διαμόρφωση email"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Άρνηση πρόσβασης"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "Δεν έχετε δικαίωμα να διαχειριστείτε τις ρυθμίσεις email για αυτόν τον τομέα. Επικοινωνήστε με τον διαχειριστή του οργανισμού σας."
+  },
+  "web.domains.email.update_success": {
+    "text": "Η διαμόρφωση email αποθηκεύτηκε με επιτυχία"
+  },
+  "web.domains.email.delete_success": {
+    "text": "Η διαμόρφωση email καταργήθηκε με επιτυχία"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "Τα email για αυτόν τον τομέα αποστέλλονται προς το παρόν από τον καθολικό αποστολέα. Ολοκληρώστε τη διαμόρφωση email για να χρησιμοποιήσετε τη δική σας ταυτότητα αποστολέα."
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "Η προσαρμοσμένη αποστολή email είναι προς το παρόν απενεργοποιημένη. Τα email θα αποστέλλονται από τον καθολικό αποστολέα. Ενεργοποιήστε τη λειτουργία παρακάτω για να χρησιμοποιήσετε την προσαρμοσμένη ταυτότητα αποστολέα σας."
+  },
+  "web.domains.email.test_email_title": {
+    "text": "Δοκιμή παράδοσης email"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Στείλτε ένα δοκιμαστικό email στον εαυτό σας χρησιμοποιώντας την αποθηκευμένη διαμόρφωση. Λειτουργεί ακόμη και όταν η λειτουργία δεν έχει ενεργοποιηθεί ακόμα."
+  },
+  "web.domains.email.send_test": {
+    "text": "Αποστολή δοκιμής"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Το δοκιμαστικό email στάλθηκε με επιτυχία"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Αποτυχία αποστολής δοκιμαστικού email"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Στάλθηκε σε {email}"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Παραδόθηκε μέσω {provider}"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "Μη διαμορφωμένο"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "Χρήση προεπιλεγμένου αποστολέα"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Επαληθευμένο"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Εκκρεμεί επαλήθευση"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Απενεργοποιημένο"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "Δεν έχει διαμορφωθεί αποστολέας email — τα email χρησιμοποιούν τον προεπιλεγμένο αποστολέα της πλατφόρμας"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "Η διαμόρφωση αποστολέα email εκκρεμεί επαλήθευση — τα email χρησιμοποιούν τον προεπιλεγμένο αποστολέα της πλατφόρμας"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "Ο αποστολέας email είναι απενεργοποιημένος — τα email χρησιμοποιούν τον προεπιλεγμένο αποστολέα της πλατφόρμας"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "Ο αποστολέας email επαληθεύτηκε — τα email αποστέλλονται από αυτόν τον τομέα"
+  },
+  "web.domains.incoming.title": {
+    "text": "Εισερχόμενα μυστικά"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Διαμόρφωση εισερχόμενων μυστικών"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Επιτρέψτε σε εξωτερικούς χρήστες να στέλνουν μυστικά απευθείας σε καθορισμένους παραλήπτες σε αυτόν τον τομέα"
+  },
+  "web.domains.incoming.feature_disabled": {
+    "text": "Τα εισερχόμενα μυστικά δεν είναι διαθέσιμα"
+  },
+  "web.domains.incoming.feature_disabled_description": {
+    "text": "Τα εισερχόμενα μυστικά δεν είναι ενεργοποιημένα σε αυτήν την εγκατάσταση. Επικοινωνήστε με τον διαχειριστή σας."
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Άρνηση πρόσβασης"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "Δεν έχετε δικαίωμα να διαχειριστείτε τις ρυθμίσεις εισερχόμενων μυστικών για αυτόν τον τομέα. Επικοινωνήστε με τον διαχειριστή του οργανισμού σας."
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Αναβαθμίστε το πρόγραμμά σας για να διαμορφώσετε τα εισερχόμενα μυστικά για αυτόν τον τομέα."
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Διαμόρφωση εισερχόμενων μυστικών"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "Τα εισερχόμενα μυστικά δεν έχουν διαμορφωθεί για αυτόν τον τομέα. Προσθέστε παραλήπτες για να επιτρέψετε σε εξωτερικούς χρήστες να στέλνουν μυστικά στην ομάδα σας."
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "Τα εισερχόμενα μυστικά είναι προς το παρόν απενεργοποιημένα. Οι εξωτερικοί χρήστες δεν μπορούν να στείλουν μυστικά σε παραλήπτες σε αυτόν τον τομέα. Ενεργοποιήστε τη λειτουργία παρακάτω για να επιτρέψετε τα εισερχόμενα μυστικά."
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Παραλήπτες"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Καθορίστε ποιος μπορεί να λαμβάνει εισερχόμενα μυστικά σε αυτόν τον τομέα. Οι παραλήπτες θα λαμβάνουν ειδοποιήσεις email όταν τους αποστέλλεται ένα μυστικό."
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Προσθήκη παραλήπτη"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Κατάργηση"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "Διεύθυνση email"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "recipient{'@'}example.com"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Εμφανιζόμενο όνομα"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "π.χ. Security Team"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "Δεν έχουν διαμορφωθεί παραλήπτες"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Προσθέστε παραλήπτες για να επιτρέψετε σε εξωτερικούς χρήστες να στέλνουν μυστικά στην ομάδα σας."
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Μη έγκυρη διεύθυνση email"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "Αυτή η διεύθυνση email έχει ήδη προστεθεί"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "Επιτρέπονται το πολύ {max} παραλήπτες"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "Το εμφανιζόμενο όνομα είναι υποχρεωτικό"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "Η διεύθυνση email είναι υποχρεωτική"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Αποθήκευση αλλαγών"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Απόρριψη αλλαγών"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "Η διαμόρφωση εισερχόμενων μυστικών αποθηκεύτηκε με επιτυχία"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "Η διαμόρφωση εισερχόμενων μυστικών καταργήθηκε με επιτυχία"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} παραλήπτης | {count} παραλήπτες"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "Μη διαμορφωμένο"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Διαμορφωμένο"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Απενεργοποιημένο"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "Τα εισερχόμενα μυστικά δεν έχουν διαμορφωθεί - οι εξωτερικοί χρήστες δεν μπορούν να στείλουν μυστικά σε αυτόν τον τομέα"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "Τα εισερχόμενα μυστικά είναι ενεργοποιημένα με {count} παραλήπτη/ες"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "Η λειτουργία εισερχόμενων μυστικών είναι απενεργοποιημένη για αυτόν τον τομέα"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Ενεργοποίηση εισερχόμενων μυστικών"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Επιτρέψτε σε εξωτερικούς χρήστες να στέλνουν μυστικά σε παραλήπτες σε αυτόν τον τομέα"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "Δημόσιο URL"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Μοιραστείτε αυτό το URL με εξωτερικούς χρήστες για να τους επιτρέψετε να στέλνουν μυστικά"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "Αντιγραφή URL"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "Το URL αντιγράφηκε στο πρόχειρο"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Είστε βέβαιοι ότι θέλετε να καταργήσετε όλους τους παραλήπτες; Οι εξωτερικοί χρήστες δεν θα μπορούν πλέον να στέλνουν μυστικά σε αυτόν τον τομέα."
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Συμπληρώθηκε ο μέγιστος αριθμός παραληπτών"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "Αυτή η διεύθυνση email έχει ήδη προστεθεί"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "Η αποθήκευση θα αντικαταστήσει όλους τους υπάρχοντες παραλήπτες με τις εκκρεμείς αλλαγές σας. Είστε βέβαιοι;"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Διαγραφή όλων των παραληπτών"
+  },
+  "web.domains.signin.title": {
+    "text": "Διαμόρφωση σύνδεσης"
+  },
+  "web.domains.signin.configure_signin": {
+    "text": "Διαμόρφωση σύνδεσης"
+  },
+  "web.domains.signin.config_description": {
+    "text": "Διαμορφώστε τις μεθόδους ελέγχου ταυτότητας σύνδεσης για αυτόν τον τομέα"
+  },
+  "web.domains.signin.access_denied": {
+    "text": "Άρνηση πρόσβασης"
+  },
+  "web.domains.signin.upgrade_to_configure": {
+    "text": "Αναβαθμίστε το πρόγραμμά σας για να διαμορφώσετε τις μεθόδους σύνδεσης για αυτόν τον τομέα."
+  },
+  "web.domains.signin.not_configured_notice": {
+    "text": "Η διαμόρφωση σύνδεσης δεν έχει οριστεί ακόμα για αυτόν τον τομέα. Διαμορφώστε παρακάμψεις για να ελέγξετε ποιες μέθοδοι ελέγχου ταυτότητας είναι διαθέσιμες στη σελίδα σύνδεσης αυτού του τομέα."
+  },
+  "web.domains.signin.signin_enabled_label": {
+    "text": "Η σύνδεση ενεργοποιήθηκε"
+  },
+  "web.domains.signin.header_toggle_label": {
+    "text": "Σύνδεση"
+  },
+  "web.domains.signin.signin_enabled_hint": {
+    "text": "Αν οι χρήστες μπορούν να συνδεθούν σε αυτόν τον τομέα"
+  },
+  "web.domains.signin.restrict_to_label": {
+    "text": "Περιορισμός μεθόδου σύνδεσης"
+  },
+  "web.domains.signin.restrict_to_hint": {
+    "text": "Περιορίστε αυτόν τον τομέα σε μία μόνο μέθοδο ελέγχου ταυτότητας. Όταν οριστεί, μόνο η επιλεγμένη μέθοδος εμφανίζεται στη σελίδα σύνδεσης."
+  },
+  "web.domains.signin.all_methods": {
+    "text": "Όλες οι μέθοδοι"
+  },
+  "web.domains.signin.all_methods_description": {
+    "text": "Εμφάνιση όλων των ενεργοποιημένων μεθόδων ελέγχου ταυτότητας στη σελίδα σύνδεσης"
+  },
+  "web.domains.signin.method_password": {
+    "text": "Κωδικός πρόσβασης"
+  },
+  "web.domains.signin.method_email_auth": {
+    "text": "Έλεγχος ταυτότητας μέσω email"
+  },
+  "web.domains.signin.method_webauthn": {
+    "text": "WebAuthn / Κλειδιά πρόσβασης"
+  },
+  "web.domains.signin.method_sso": {
+    "text": "Ενιαία σύνδεση (SSO)"
+  },
+  "web.domains.signin.method_overrides_label": {
+    "text": "Παρακάμψεις μεθόδων"
+  },
+  "web.domains.signin.method_overrides_hint": {
+    "text": "Ενεργοποιήστε ή απενεργοποιήστε μεμονωμένες μεθόδους ελέγχου ταυτότητας για αυτόν τον τομέα"
+  },
+  "web.domains.signin.mode_question": {
+    "text": "Πώς μπορούν να συνδεθούν οι χρήστες;"
+  },
+  "web.domains.signin.mode_any": {
+    "text": "Οποιαδήποτε διαθέσιμη μέθοδος"
+  },
+  "web.domains.signin.mode_any_hint": {
+    "text": "Εμφάνιση κάθε διαθέσιμης μεθόδου σε αυτόν τον τομέα. Περιορίστε μεμονωμένες μεθόδους παρακάτω."
+  },
+  "web.domains.signin.mode_one": {
+    "text": "Μία συγκεκριμένη μέθοδος"
+  },
+  "web.domains.signin.mode_one_hint": {
+    "text": "Περιορίστε τη σελίδα σύνδεσης σε μία μόνο μέθοδο. Εμφανίζονται μόνο οι μέθοδοι που είναι διαθέσιμες σε αυτόν τον τομέα."
+  },
+  "web.domains.signin.mode_disabled": {
+    "text": "Η σύνδεση απενεργοποιήθηκε"
+  },
+  "web.domains.signin.mode_disabled_hint": {
+    "text": "Οι χρήστες δεν μπορούν να συνδεθούν σε αυτόν τον τομέα."
+  },
+  "web.domains.signin.mode_disabled_notice": {
+    "text": "Οι επισκέπτες της σελίδας σύνδεσης αυτού του τομέα βλέπουν μια ειδοποίηση ότι η σύνδεση δεν είναι διαθέσιμη, με έναν σύνδεσμο επιστροφής στην αρχική σελίδα. Οι προηγούμενες ρυθμίσεις μεθόδων σας διατηρούνται και επαναφέρονται όταν ενεργοποιήσετε ξανά τη σύνδεση."
+  },
+  "web.domains.signin.methods_list_label": {
+    "text": "Μέθοδοι που εμφανίζονται στη σελίδα σύνδεσης"
+  },
+  "web.domains.signin.restrict_picker_hint": {
+    "text": "Εμφανίζονται μόνο οι μέθοδοι που είναι διαθέσιμες σε αυτόν τον τομέα."
+  },
+  "web.domains.signin.availability_always": {
+    "text": "Πάντα διαθέσιμη"
+  },
+  "web.domains.signin.availability_global_on": {
+    "text": "Ακολουθεί την καθολική πολιτική · Ενεργό"
+  },
+  "web.domains.signin.availability_global_off": {
+    "text": "Μη διαθέσιμη"
+  },
+  "web.domains.signin.availability_unavailable": {
+    "text": "Μη διαθέσιμη σε ολόκληρο τον ιστότοπο"
+  },
+  "web.domains.signin.allow_on_domain": {
+    "text": "Να επιτρέπεται σε αυτόν τον τομέα"
+  },
+  "web.domains.signin.method_password_blurb": {
+    "text": "Μόνο κωδικός πρόσβασης"
+  },
+  "web.domains.signin.method_email_auth_blurb": {
+    "text": "Σύνδεση με μαγικό σύνδεσμο χωρίς κωδικό πρόσβασης"
+  },
+  "web.domains.signin.method_webauthn_blurb": {
+    "text": "Βιομετρικά στοιχεία και κλειδιά ασφαλείας"
+  },
+  "web.domains.signin.method_sso_blurb": {
+    "text": "Εξωτερικός πάροχος ταυτότητας"
+  },
+  "web.domains.signin.email_auth_label": {
+    "text": "Έλεγχος ταυτότητας μέσω email"
+  },
+  "web.domains.signin.email_auth_hint": {
+    "text": "Επιτρέψτε τον έλεγχο ταυτότητας μέσω email χωρίς κωδικό πρόσβασης σε αυτόν τον τομέα"
+  },
+  "web.domains.signin.sso_enabled_label": {
+    "text": "Ενιαία σύνδεση (SSO)"
+  },
+  "web.domains.signin.sso_enabled_hint": {
+    "text": "Επιτρέψτε τον έλεγχο ταυτότητας SSO σε αυτόν τον τομέα"
+  },
+  "web.domains.signin.enabled_label": {
+    "text": "Ενεργοποίηση διαμόρφωσης σύνδεσης"
+  },
+  "web.domains.signin.enabled_hint": {
+    "text": "Όταν είναι ενεργοποιημένο, αυτός ο τομέας χρησιμοποιεί τις ρυθμίσεις σύνδεσης που διαμορφώθηκαν παραπάνω"
+  },
+  "web.domains.signin.save_config": {
+    "text": "Αποθήκευση διαμόρφωσης"
+  },
+  "web.domains.signin.update_success": {
+    "text": "Η διαμόρφωση σύνδεσης ενημερώθηκε με επιτυχία"
+  },
+  "web.domains.signin.reset_to_defaults": {
+    "text": "Επαναφορά στις προεπιλογές"
+  },
+  "web.domains.signin.reset_confirm": {
+    "text": "Επαναφορά της σύνδεσης στις καθολικές προεπιλογές;"
+  },
+  "web.domains.signin.reset_keeps_sso": {
+    "text": "Τα διαπιστευτήρια SSO σας διατηρούνται. Καταργήστε τα ξεχωριστά στην οθόνη διαμόρφωσης SSO."
+  },
+  "web.domains.signin.reset_action": {
+    "text": "Ναι, επαναφορά"
+  },
+  "web.domains.signin.reset_success": {
+    "text": "Οι ρυθμίσεις σύνδεσης επανήλθαν στις καθολικές προεπιλογές"
+  },
+  "web.domains.signup.title": {
+    "text": "Επικύρωση εγγραφής"
+  },
+  "web.domains.signup.config_description": {
+    "text": "Διαμορφώστε την επικύρωση εγγραφής για αυτόν τον τομέα"
+  },
+  "web.domains.signup.access_denied": {
+    "text": "Άρνηση πρόσβασης"
+  },
+  "web.domains.signup.upgrade_to_configure": {
+    "text": "Αναβαθμίστε το πρόγραμμά σας για να διαμορφώσετε την επικύρωση εγγραφής ανά τομέα."
+  },
+  "web.domains.signup.configure_signup": {
+    "text": "Διαμόρφωση εγγραφής"
+  },
+  "web.domains.signup.not_configured_notice": {
+    "text": "Η επικύρωση εγγραφής δεν έχει διαμορφωθεί ακόμα για αυτόν τον τομέα. Διαμορφώστε μια στρατηγική για να ελέγξετε ποιος μπορεί να εγγραφεί μέσω αυτού του τομέα."
+  },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "Οι εγγραφές είναι προς το παρόν απενεργοποιημένες σε επίπεδο ιστότοπου. Αυτή η πολιτική ανά τομέα έχει διαμορφωθεί αλλά δεν θα ελέγχει καμία κίνηση μέχρι να ενεργοποιηθούν οι εγγραφές του ιστότοπου."
+  },
+  "web.domains.signup.strategy_label": {
+    "text": "Στρατηγική επικύρωσης"
+  },
+  "web.domains.signup.strategy_description": {
+    "text": "Επιλέξτε πώς επικυρώνονται οι διευθύνσεις email όταν οι χρήστες εγγράφονται σε αυτόν τον τομέα."
+  },
+  "web.domains.signup.network_validation_warning": {
+    "text": "Αυτή η στρατηγική εκτελεί κλήσεις δικτύου κατά την εγγραφή, οι οποίες ενδέχεται να προσθέσουν καθυστέρηση ή να αποκλειστούν από ορισμένους παρόχους."
+  },
+  "web.domains.signup.allowed_domains_label": {
+    "text": "Επιτρεπόμενοι τομείς εγγραφής"
+  },
+  "web.domains.signup.allowed_domains_hint": {
+    "text": "Μόνο αυτοί οι τομείς email θα επιτρέπεται να εγγραφούν. Προσθέστε έναν τομέα ανά καταχώριση."
+  },
+  "web.domains.signup.domain_placeholder": {
+    "text": "example.com"
+  },
+  "web.domains.signup.invalid_domain": {
+    "text": "Εισαγάγετε έναν έγκυρο τομέα (π.χ. example.com)"
+  },
+  "web.domains.signup.domain_exists": {
+    "text": "Αυτός ο τομέας υπάρχει ήδη στη λίστα"
+  },
+  "web.domains.signup.remove_domain": {
+    "text": "Κατάργηση {domain}"
+  },
+  "web.domains.signup.enabled_label": {
+    "text": "Ενεργοποίηση επικύρωσης ανά τομέα"
+  },
+  "web.domains.signup.enabled_hint": {
+    "text": "Όταν είναι ενεργοποιημένο, οι εγγραφές σε αυτόν τον τομέα χρησιμοποιούν την παραπάνω στρατηγική αντί για την καθολική πολιτική."
+  },
+  "web.domains.signup.delete_config": {
+    "text": "Διαγραφή διαμόρφωσης"
+  },
+  "web.domains.signup.delete_confirm": {
+    "text": "Διαγραφή διαμόρφωσης επικύρωσης εγγραφής; Οι εγγραφές θα επανέλθουν στην καθολική πολιτική."
+  },
+  "web.domains.signup.save_config": {
+    "text": "Αποθήκευση διαμόρφωσης"
+  },
+  "web.domains.signup.update_success": {
+    "text": "Η επικύρωση εγγραφής ενημερώθηκε με επιτυχία"
+  },
+  "web.domains.signup.delete_success": {
+    "text": "Η διαμόρφωση επικύρωσης εγγραφής καταργήθηκε με επιτυχία"
+  },
+  "web.domains.signup.domain_overrides_label": {
+    "text": "Παρακάμψεις τομέα"
+  },
+  "web.domains.signup.domain_overrides_hint": {
+    "text": "Παρακάμψτε τις καθολικές ρυθμίσεις εγγραφής για αυτόν τον τομέα"
+  },
+  "web.domains.signup.signup_enabled_label": {
+    "text": "Η εγγραφή ενεργοποιήθηκε"
+  },
+  "web.domains.signup.signup_enabled_hint": {
+    "text": "Παρακάμψτε αν η εγγραφή είναι ενεργοποιημένη για αυτόν τον τομέα"
+  },
+  "web.domains.signup.autoverify_label": {
+    "text": "Αυτόματη επαλήθευση λογαριασμών"
+  },
+  "web.domains.signup.autoverify_hint": {
+    "text": "Παρακάμψτε αν οι νέοι λογαριασμοί επαληθεύονται αυτόματα σε αυτόν τον τομέα"
+  },
+  "web.domains.sso.title": {
+    "text": "Ενιαία σύνδεση (SSO)"
+  },
+  "web.domains.sso.config_title": {
+    "text": "Διαμόρφωση SSO"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Διαμορφώστε τον έλεγχο ταυτότητας ενιαίας σύνδεσης (SSO) για αυτόν τον τομέα"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Άρνηση πρόσβασης"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "Δεν έχετε δικαίωμα να διαχειριστείτε τις ρυθμίσεις SSO για αυτόν τον τομέα. Επικοινωνήστε με τον διαχειριστή του οργανισμού σας."
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Αναβαθμίστε το πρόγραμμά σας για να διαμορφώσετε την ενιαία σύνδεση (SSO) για αυτόν τον τομέα."
+  },
+  "web.domains.sso.create_success": {
+    "text": "Η διαμόρφωση SSO δημιουργήθηκε με επιτυχία"
+  },
+  "web.domains.sso.update_success": {
+    "text": "Η διαμόρφωση SSO ενημερώθηκε με επιτυχία"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "Η διαμόρφωση SSO καταργήθηκε με επιτυχία"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Η δοκιμή σύνδεσης ήταν επιτυχής — ο πάροχος απάντησε σωστά"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Η δοκιμή σύνδεσης απέτυχε"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "Για να απαιτείται SSO για όλες τις συνδέσεις σε αυτόν τον τομέα, διαμορφώστε το στις ρυθμίσεις σύνδεσης του τομέα. Η λειτουργία μόνο SSO περιορίζει τη σελίδα σύνδεσης στον πάροχο SSO που έχει διαμορφωθεί εδώ."
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "Διαμόρφωση SSO"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "Το SSO δεν έχει διαμορφωθεί ακόμα για αυτόν τον τομέα. Ενεργοποιήστε την ενιαία σύνδεση (SSO) για να επιτρέψετε στα μέλη της ομάδας να ελέγχουν την ταυτότητά τους χρησιμοποιώντας τον πάροχο ταυτότητας του οργανισμού σας."
+  },
+  "web.domains.sso.edit_credentials": {
+    "text": "Επεξεργασία διαπιστευτηρίων"
+  },
+  "web.domains.sso.configure_button": {
+    "text": "Διαμόρφωση"
+  },
+  "web.domains.sso.upgrade_required": {
+    "text": "Αναβάθμιση για διαμόρφωση"
   }
 }

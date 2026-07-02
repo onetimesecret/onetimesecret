@@ -398,5 +398,725 @@
   "web.domains.dns_widget_description": {
     "text": "DNS sağlayıcınızı otomatik olarak algılamak ve alan adınızı yapılandırmak için adım adım talimatlar almak üzere aşağıdaki aracı kullanın.",
     "source_hash": "91c1af2e"
+  },
+  "api.domains.errors.add_admin_required": {
+    "text": "Yalnızca kuruluş sahipleri ve yöneticileri özel alan adı ekleyebilir"
+  },
+  "web.domains.public_homepage": {
+    "text": "Genel Ana Sayfa"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Alan adı doğrulandı ve aktif"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS yapılandırılmamış — düzeltmek için tıklayın"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Alan adı doğrulanmadı — doğrulamak için tıklayın"
+  },
+  "web.domains.status_tooltip_unverified": {
+    "text": "Alan adı durumu doğrulanmamış — yenilemek için tıklayın"
+  },
+  "web.domains.last_check_failed": {
+    "text": "Son doğrulama kontrolü başarısız oldu"
+  },
+  "web.domains.last_check_failed_ago": {
+    "text": "son kontrol {0} başarısız oldu"
+  },
+  "web.domains.verify_now": {
+    "text": "Şimdi doğrula"
+  },
+  "web.domains.click_to_verify": {
+    "text": "doğrulamak için tıklayın"
+  },
+  "web.domains.remove_domain_description": {
+    "text": "Bu alan adını ve tüm yapılandırmasını kalıcı olarak kaldırın."
+  },
+  "web.domains.add_access_denied": {
+    "text": "Erişim Reddedildi"
+  },
+  "web.domains.add_access_denied_description": {
+    "text": "Bu kuruluşa alan adı ekleme izniniz yok. Kuruluş yöneticinizle iletişime geçin."
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "DNS bileşeni yüklenemedi"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "DNS bileşeni kullanılamıyor"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "DNS bileşeni başlatılamadı"
+  },
+  "web.domains.verified": {
+    "text": "Doğrulandı"
+  },
+  "web.domains.pending_verification": {
+    "text": "Doğrulama Bekliyor"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Kaydedilmemiş değişiklikleriniz var. Ayrılmak istediğinizden emin misiniz?"
+  },
+  "web.domains.entitlement_required_owner": {
+    "text": "Bu özellik bir plan yükseltmesi gerektirir."
+  },
+  "web.domains.entitlement_required_member": {
+    "text": "Bu özellik mevcut planınızda kullanılamıyor. Kuruluş sahibinizle iletişime geçin."
+  },
+  "web.domains.detail.manage": {
+    "text": "Yönet"
+  },
+  "web.domains.detail.features": {
+    "text": "Özellikler"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Ana Sayfa Gizli Mesajları"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Alan adı ana sayfanızda gizli mesaj oluşturmaya genel erişime izin verin"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logo, renkler ve özel markalama"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Tek oturum açma (SSO) sağlayıcı ayarları"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Özel e-posta gönderen yapılandırması"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Gelen gizli mesaj alıcı ayarları"
+  },
+  "web.domains.detail.signup_description": {
+    "text": "Alan adına özel kayıt doğrulama stratejisi"
+  },
+  "web.domains.detail.signin_description": {
+    "text": "Alan adına özel giriş yöntemi yapılandırması"
+  },
+  "web.domains.email.title": {
+    "text": "E-posta Gönderme"
+  },
+  "web.domains.email.config_title": {
+    "text": "E-posta Yapılandırması"
+  },
+  "web.domains.email.config_description": {
+    "text": "Bu alan adı için e-posta göndermeyi yapılandırın"
+  },
+  "web.domains.email.provider_label": {
+    "text": "E-posta Sağlayıcısı"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "Bir e-posta sağlayıcısı seçin"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "Gönderen Adı"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "örn. Acme Security"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "Gönderen Adresi"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "örn. secrets{'@'}example.com"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Yanıt Adresi"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "örn. support{'@'}example.com"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Değişiklikleri Kaydet"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Değişiklikleri At"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Hesap varsayılanlarını kullan"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "DKIM ve SPF kayıtları aracılığıyla alan adı doğrulaması gerektirir"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Alan adı kimlik doğrulaması kurulumu gerektirir"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Alan adı doğrulaması gerektirir"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "Hesabınızın varsayılan e-posta gönderme yapılandırmasını kullanır"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "DNS Kayıtları"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "E-posta göndermek için alan adınızı doğrulamak üzere aşağıdaki DNS kayıtlarını ekleyin."
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Tür"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Ad"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Değer"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Sağlayıcı"
+  },
+  "web.domains.email.dns_optional_label": {
+    "text": "Önerilen"
+  },
+  "web.domains.email.dns_optional_hint": {
+    "text": "Bu kayıt önerilir ancak doğrulama için gerekli değildir. Kuruluş alan adınızdaki bir DMARC politikası bu alt alan adını zaten kapsıyor olabilir."
+  },
+  "web.domains.email.copy": {
+    "text": "Kopyala"
+  },
+  "web.domains.email.copied": {
+    "text": "Kopyalandı"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Doğrulandı"
+  },
+  "web.domains.email.status_pending": {
+    "text": "Beklemede"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Başarısız"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Yeniden doğrula"
+  },
+  "web.domains.email.validating": {
+    "text": "Doğrulanıyor..."
+  },
+  "web.domains.email.domain_verified": {
+    "text": "Alan adı doğrulandı"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "Doğrulama başarısız oldu"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Son doğrulama"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Bu alan adı için e-posta göndermeyi yapılandırmak üzere planınızı yükseltin."
+  },
+  "web.domains.email.configure_email": {
+    "text": "E-postayı Yapılandır"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Erişim Reddedildi"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "Bu alan adının e-posta ayarlarını yönetme izniniz yok. Kuruluş yöneticinizle iletişime geçin."
+  },
+  "web.domains.email.update_success": {
+    "text": "E-posta yapılandırması başarıyla kaydedildi"
+  },
+  "web.domains.email.delete_success": {
+    "text": "E-posta yapılandırması başarıyla kaldırıldı"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "Bu alan adı için e-postalar şu anda genel göndericiden gönderiliyor. Kendi gönderici kimliğinizi kullanmak için e-posta yapılandırmasını tamamlayın."
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "Özel e-posta gönderme şu anda devre dışı. E-postalar genel göndericiden gönderilecek. Kendi gönderici kimliğinizi kullanmak için aşağıdaki özelliği etkinleştirin."
+  },
+  "web.domains.email.test_email_title": {
+    "text": "E-posta teslimatını test edin"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Kaydedilen yapılandırmayı kullanarak kendinize bir test e-postası gönderin. Özellik henüz etkinleştirilmemiş olsa bile çalışır."
+  },
+  "web.domains.email.send_test": {
+    "text": "Test gönder"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Test e-postası başarıyla gönderildi"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Test e-postası gönderilemedi"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "{email} adresine gönderildi"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "{provider} aracılığıyla teslim edildi"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "Yapılandırılmamış"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "Varsayılan gönderici kullanılıyor"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Doğrulandı"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Doğrulama bekliyor"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Devre dışı"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "Yapılandırılmış e-posta göndericisi yok — e-postalar platformun varsayılan göndericisini kullanır"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "E-posta göndericisi yapılandırması doğrulama bekliyor — e-postalar platformun varsayılan göndericisini kullanır"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "E-posta göndericisi devre dışı — e-postalar platformun varsayılan göndericisini kullanır"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "E-posta göndericisi doğrulandı — e-postalar bu alan adından gönderilir"
+  },
+  "web.domains.incoming.title": {
+    "text": "Gelen Gizli Mesajlar"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Gelen Gizli Mesajlar Yapılandırması"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Harici kullanıcıların bu alan adındaki belirlenen alıcılara doğrudan gizli mesaj göndermesine izin verin"
+  },
+  "web.domains.incoming.feature_disabled": {
+    "text": "Gelen Gizli Mesajlar Kullanılamıyor"
+  },
+  "web.domains.incoming.feature_disabled_description": {
+    "text": "Bu örnekte gelen gizli mesajlar etkinleştirilmemiş. Yöneticinizle iletişime geçin."
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Erişim Reddedildi"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "Bu alan adının gelen gizli mesaj ayarlarını yönetme izniniz yok. Kuruluş yöneticinizle iletişime geçin."
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Bu alan adı için gelen gizli mesajları yapılandırmak üzere planınızı yükseltin."
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Gelen Gizli Mesajları Yapılandır"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "Bu alan adı için gelen gizli mesajlar yapılandırılmamış. Harici kullanıcıların ekibinize gizli mesaj göndermesine izin vermek için alıcılar ekleyin."
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "Gelen gizli mesajlar şu anda devre dışı. Harici kullanıcılar bu alan adındaki alıcılara gizli mesaj gönderemez. Gelen gizli mesajlara izin vermek için aşağıdaki özelliği etkinleştirin."
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Alıcılar"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Bu alan adında kimlerin gelen gizli mesaj alabileceğini belirleyin. Kendilerine bir gizli mesaj gönderildiğinde alıcılar e-posta bildirimleri alır."
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Alıcı Ekle"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Kaldır"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "E-posta Adresi"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "recipient{'@'}example.com"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Görünen Ad"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "örn. Security Team"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "Yapılandırılmış alıcı yok"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Harici kullanıcıların ekibinize gizli mesaj göndermesine izin vermek için alıcılar ekleyin."
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Geçersiz e-posta adresi"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "Bu e-posta adresi zaten eklenmiş"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "En fazla {max} alıcıya izin verilir"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "Görünen ad gereklidir"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "E-posta adresi gereklidir"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Değişiklikleri Kaydet"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Değişiklikleri At"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "Gelen gizli mesajlar yapılandırması başarıyla kaydedildi"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "Gelen gizli mesajlar yapılandırması başarıyla kaldırıldı"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} alıcı | {count} alıcı"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "Yapılandırılmamış"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Yapılandırılmış"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Devre dışı"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "Gelen gizli mesajlar yapılandırılmamış - harici kullanıcılar bu alan adına gizli mesaj gönderemez"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "Gelen gizli mesajlar {count} alıcı ile etkinleştirildi"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "Gelen gizli mesajlar özelliği bu alan adı için devre dışı"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Gelen Gizli Mesajları Etkinleştir"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Harici kullanıcıların bu alan adındaki alıcılara gizli mesaj göndermesine izin verin"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "Genel URL"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Harici kullanıcıların gizli mesaj göndermesine izin vermek için bu URL'yi onlarla paylaşın"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "URL'yi Kopyala"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "URL panoya kopyalandı"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Tüm alıcıları kaldırmak istediğinizden emin misiniz? Harici kullanıcılar artık bu alan adına gizli mesaj gönderemeyecek."
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Maksimum alıcı sayısına ulaşıldı"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "Bu e-posta adresi zaten eklenmiş"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "Kaydetmek, mevcut tüm alıcıları bekleyen değişikliklerinizle değiştirecek. Emin misiniz?"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Tüm Alıcıları Sil"
+  },
+  "web.domains.signin.title": {
+    "text": "Giriş Yapılandırması"
+  },
+  "web.domains.signin.configure_signin": {
+    "text": "Girişi Yapılandır"
+  },
+  "web.domains.signin.config_description": {
+    "text": "Bu alan adı için giriş kimlik doğrulama yöntemlerini yapılandırın"
+  },
+  "web.domains.signin.access_denied": {
+    "text": "Erişim Reddedildi"
+  },
+  "web.domains.signin.upgrade_to_configure": {
+    "text": "Bu alan adı için giriş yöntemlerini yapılandırmak üzere planınızı yükseltin."
+  },
+  "web.domains.signin.not_configured_notice": {
+    "text": "Bu alan adı için giriş yapılandırması henüz ayarlanmamış. Bu alan adının giriş sayfasında hangi kimlik doğrulama yöntemlerinin kullanılabilir olduğunu denetlemek için geçersiz kılmaları yapılandırın."
+  },
+  "web.domains.signin.signin_enabled_label": {
+    "text": "Giriş etkin"
+  },
+  "web.domains.signin.header_toggle_label": {
+    "text": "Giriş"
+  },
+  "web.domains.signin.signin_enabled_hint": {
+    "text": "Kullanıcıların bu alan adında giriş yapıp yapamayacağı"
+  },
+  "web.domains.signin.restrict_to_label": {
+    "text": "Giriş yöntemini kısıtla"
+  },
+  "web.domains.signin.restrict_to_hint": {
+    "text": "Bu alan adını tek bir kimlik doğrulama yöntemiyle kısıtlayın. Ayarlandığında, giriş sayfasında yalnızca seçilen yöntem gösterilir."
+  },
+  "web.domains.signin.all_methods": {
+    "text": "Tüm yöntemler"
+  },
+  "web.domains.signin.all_methods_description": {
+    "text": "Giriş sayfasında etkinleştirilmiş tüm kimlik doğrulama yöntemlerini göster"
+  },
+  "web.domains.signin.method_password": {
+    "text": "Parola"
+  },
+  "web.domains.signin.method_email_auth": {
+    "text": "E-posta ile kimlik doğrulama"
+  },
+  "web.domains.signin.method_webauthn": {
+    "text": "WebAuthn / Passkeys"
+  },
+  "web.domains.signin.method_sso": {
+    "text": "Tek Oturum Açma (SSO)"
+  },
+  "web.domains.signin.method_overrides_label": {
+    "text": "Yöntem geçersiz kılmaları"
+  },
+  "web.domains.signin.method_overrides_hint": {
+    "text": "Bu alan adı için tek tek kimlik doğrulama yöntemlerini etkinleştirin veya devre dışı bırakın"
+  },
+  "web.domains.signin.mode_question": {
+    "text": "Kullanıcılar nasıl giriş yapabilir?"
+  },
+  "web.domains.signin.mode_any": {
+    "text": "Kullanılabilir herhangi bir yöntem"
+  },
+  "web.domains.signin.mode_any_hint": {
+    "text": "Bu alan adında kullanılabilen her yöntemi göster. Aşağıdan tek tek yöntemleri daraltın."
+  },
+  "web.domains.signin.mode_one": {
+    "text": "Belirli bir yöntem"
+  },
+  "web.domains.signin.mode_one_hint": {
+    "text": "Giriş sayfasını tek bir yöntemle kısıtlayın. Yalnızca bu alan adında kullanılabilen yöntemler listelenir."
+  },
+  "web.domains.signin.mode_disabled": {
+    "text": "Giriş devre dışı"
+  },
+  "web.domains.signin.mode_disabled_hint": {
+    "text": "Kullanıcılar bu alan adında giriş yapamaz."
+  },
+  "web.domains.signin.mode_disabled_notice": {
+    "text": "Bu alan adının giriş sayfasını ziyaret edenler, ana sayfaya geri dönen bir bağlantıyla birlikte girişin kullanılamadığına dair bir bildirim görür. Önceki yöntem ayarlarınız saklanır ve girişi yeniden etkinleştirdiğinizde geri yüklenir."
+  },
+  "web.domains.signin.methods_list_label": {
+    "text": "Giriş sayfasında gösterilen yöntemler"
+  },
+  "web.domains.signin.restrict_picker_hint": {
+    "text": "Yalnızca bu alan adında kullanılabilen yöntemler listelenir."
+  },
+  "web.domains.signin.availability_always": {
+    "text": "Her zaman kullanılabilir"
+  },
+  "web.domains.signin.availability_global_on": {
+    "text": "Genel politikayı izler · Açık"
+  },
+  "web.domains.signin.availability_global_off": {
+    "text": "Kullanılamıyor"
+  },
+  "web.domains.signin.availability_unavailable": {
+    "text": "Site genelinde kullanılamıyor"
+  },
+  "web.domains.signin.allow_on_domain": {
+    "text": "Bu alan adında izin ver"
+  },
+  "web.domains.signin.method_password_blurb": {
+    "text": "Yalnızca parola"
+  },
+  "web.domains.signin.method_email_auth_blurb": {
+    "text": "Parolasız sihirli bağlantı ile giriş"
+  },
+  "web.domains.signin.method_webauthn_blurb": {
+    "text": "Biyometri ve güvenlik anahtarları"
+  },
+  "web.domains.signin.method_sso_blurb": {
+    "text": "Harici kimlik sağlayıcı"
+  },
+  "web.domains.signin.email_auth_label": {
+    "text": "E-posta ile kimlik doğrulama"
+  },
+  "web.domains.signin.email_auth_hint": {
+    "text": "Bu alan adında parolasız e-posta kimlik doğrulamasına izin verin"
+  },
+  "web.domains.signin.sso_enabled_label": {
+    "text": "Tek Oturum Açma (SSO)"
+  },
+  "web.domains.signin.sso_enabled_hint": {
+    "text": "Bu alan adında SSO kimlik doğrulamasına izin verin"
+  },
+  "web.domains.signin.enabled_label": {
+    "text": "Giriş yapılandırmasını etkinleştir"
+  },
+  "web.domains.signin.enabled_hint": {
+    "text": "Etkinleştirildiğinde, bu alan adı yukarıda yapılandırılan giriş ayarlarını kullanır"
+  },
+  "web.domains.signin.save_config": {
+    "text": "Yapılandırmayı kaydet"
+  },
+  "web.domains.signin.update_success": {
+    "text": "Giriş yapılandırması başarıyla güncellendi"
+  },
+  "web.domains.signin.reset_to_defaults": {
+    "text": "Varsayılanlara sıfırla"
+  },
+  "web.domains.signin.reset_confirm": {
+    "text": "Giriş genel varsayılanlara sıfırlansın mı?"
+  },
+  "web.domains.signin.reset_keeps_sso": {
+    "text": "SSO kimlik bilgileriniz saklanır. Bunları SSO yapılandırma ekranında ayrıca kaldırın."
+  },
+  "web.domains.signin.reset_action": {
+    "text": "Evet, sıfırla"
+  },
+  "web.domains.signin.reset_success": {
+    "text": "Giriş ayarları genel varsayılanlara sıfırlandı"
+  },
+  "web.domains.signup.title": {
+    "text": "Kayıt Doğrulaması"
+  },
+  "web.domains.signup.config_description": {
+    "text": "Bu alan adı için kayıt doğrulamasını yapılandırın"
+  },
+  "web.domains.signup.access_denied": {
+    "text": "Erişim Reddedildi"
+  },
+  "web.domains.signup.upgrade_to_configure": {
+    "text": "Alan adına özel kayıt doğrulamasını yapılandırmak üzere planınızı yükseltin."
+  },
+  "web.domains.signup.configure_signup": {
+    "text": "Kaydı Yapılandır"
+  },
+  "web.domains.signup.not_configured_notice": {
+    "text": "Bu alan adı için kayıt doğrulaması henüz yapılandırılmamış. Bu alan adı üzerinden kimlerin kaydolabileceğini denetlemek için bir strateji yapılandırın."
+  },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "Kayıtlar şu anda site düzeyinde devre dışı. Bu alan adına özel politika yapılandırılmış ancak site kayıtları etkinleştirilene kadar herhangi bir trafiği denetlemeyecek."
+  },
+  "web.domains.signup.strategy_label": {
+    "text": "Doğrulama stratejisi"
+  },
+  "web.domains.signup.strategy_description": {
+    "text": "Kullanıcılar bu alan adında kaydolurken e-posta adreslerinin nasıl doğrulanacağını seçin."
+  },
+  "web.domains.signup.network_validation_warning": {
+    "text": "Bu strateji, kayıt sırasında ağ çağrıları gerçekleştirir; bu da gecikme ekleyebilir veya bazı sağlayıcılar tarafından engellenebilir."
+  },
+  "web.domains.signup.allowed_domains_label": {
+    "text": "İzin verilen kayıt alan adları"
+  },
+  "web.domains.signup.allowed_domains_hint": {
+    "text": "Yalnızca bu e-posta alan adlarının kaydolmasına izin verilir. Her giriş için bir alan adı ekleyin."
+  },
+  "web.domains.signup.domain_placeholder": {
+    "text": "example.com"
+  },
+  "web.domains.signup.invalid_domain": {
+    "text": "Lütfen geçerli bir alan adı girin (örn. example.com)"
+  },
+  "web.domains.signup.domain_exists": {
+    "text": "Bu alan adı zaten listede"
+  },
+  "web.domains.signup.remove_domain": {
+    "text": "{domain} adresini kaldır"
+  },
+  "web.domains.signup.enabled_label": {
+    "text": "Alan adına özel doğrulamayı etkinleştir"
+  },
+  "web.domains.signup.enabled_hint": {
+    "text": "Etkinleştirildiğinde, bu alan adındaki kayıtlar genel politika yerine yukarıdaki stratejiyi kullanır."
+  },
+  "web.domains.signup.delete_config": {
+    "text": "Yapılandırmayı sil"
+  },
+  "web.domains.signup.delete_confirm": {
+    "text": "Kayıt doğrulama yapılandırması silinsin mi? Kayıtlar genel politikaya geri dönecek."
+  },
+  "web.domains.signup.save_config": {
+    "text": "Yapılandırmayı kaydet"
+  },
+  "web.domains.signup.update_success": {
+    "text": "Kayıt doğrulaması başarıyla güncellendi"
+  },
+  "web.domains.signup.delete_success": {
+    "text": "Kayıt doğrulama yapılandırması başarıyla kaldırıldı"
+  },
+  "web.domains.signup.domain_overrides_label": {
+    "text": "Alan adı geçersiz kılmaları"
+  },
+  "web.domains.signup.domain_overrides_hint": {
+    "text": "Bu alan adı için genel kayıt ayarlarını geçersiz kılın"
+  },
+  "web.domains.signup.signup_enabled_label": {
+    "text": "Kayıt etkin"
+  },
+  "web.domains.signup.signup_enabled_hint": {
+    "text": "Bu alan adı için kaydın etkin olup olmadığını geçersiz kılın"
+  },
+  "web.domains.signup.autoverify_label": {
+    "text": "Hesapları otomatik doğrula"
+  },
+  "web.domains.signup.autoverify_hint": {
+    "text": "Bu alan adında yeni hesapların otomatik olarak doğrulanıp doğrulanmayacağını geçersiz kılın"
+  },
+  "web.domains.sso.title": {
+    "text": "Tek Oturum Açma (SSO)"
+  },
+  "web.domains.sso.config_title": {
+    "text": "SSO Yapılandırması"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Bu alan adı için tek oturum açma kimlik doğrulamasını yapılandırın"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Erişim Reddedildi"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "Bu alan adının SSO ayarlarını yönetme izniniz yok. Kuruluş yöneticinizle iletişime geçin."
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Bu alan adı için tek oturum açmayı yapılandırmak üzere planınızı yükseltin."
+  },
+  "web.domains.sso.create_success": {
+    "text": "SSO yapılandırması başarıyla oluşturuldu"
+  },
+  "web.domains.sso.update_success": {
+    "text": "SSO yapılandırması başarıyla güncellendi"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "SSO yapılandırması başarıyla kaldırıldı"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Bağlantı testi başarılı — sağlayıcı doğru yanıt verdi"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Bağlantı testi başarısız oldu"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "Bu alan adındaki tüm girişler için SSO'yu zorunlu kılmak istiyorsanız bunu alan adının giriş ayarlarında yapılandırın. Yalnızca SSO modu, giriş sayfasını burada yapılandırılan SSO sağlayıcısıyla kısıtlar."
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "SSO'yu Yapılandır"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "Bu alan adı için SSO henüz yapılandırılmamış. Ekip üyelerinin kuruluşunuzun kimlik sağlayıcısını kullanarak kimlik doğrulaması yapmasına izin vermek için tek oturum açmayı etkinleştirin."
+  },
+  "web.domains.sso.edit_credentials": {
+    "text": "Kimlik bilgilerini düzenle"
+  },
+  "web.domains.sso.configure_button": {
+    "text": "Yapılandır"
+  },
+  "web.domains.sso.upgrade_required": {
+    "text": "Yapılandırmak için yükseltin"
   }
 }

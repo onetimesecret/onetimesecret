@@ -395,5 +395,35 @@
   "web.help.contact_support": {
     "text": "Зв'язатися з підтримкою",
     "source_hash": "f8d47b82"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "Обліковий запис SSO"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Email verification flow after signup"
+  },
+  "web.help.reset_password_link": {
+    "text": "Скинути пароль"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "Єдиний вхід (SSO) доступний для цього домену"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "Адміністратор організації може ввімкнути SSO, щоб учасники команди могли входити тут. Зверніться до адміністратора для отримання доступу."
+  },
+  "web.login.signin_disabled_heading": {
+    "text": "Вхід недоступний"
+  },
+  "web.login.signin_disabled_message": {
+    "text": "Наразі вхід на цьому домені недоступний."
+  },
+  "web.login.errors.sso_not_configured": {
+    "text": "Єдиний вхід (SSO) не налаштовано для цього домену. Будь ласка, зверніться до Вашого адміністратора."
+  },
+  "web.login.errors.invalid_email": {
+    "text": "Електронна адреса від Вашого провайдера ідентифікації недійсна. Будь ласка, зверніться до Вашого адміністратора."
+  },
+  "web.login.errors.domain_not_allowed": {
+    "text": "Ваш домен електронної пошти не авторизований для реєстрації через SSO. Будь ласка, зверніться до Вашого адміністратора."
   }
 }

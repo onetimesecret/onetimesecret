@@ -1,0 +1,29 @@
+{
+  "api.domains.errors.domain_id_required": {
+    "text": "ID de domaine requis"
+  },
+  "api.domains.errors.domain_not_found": {
+    "text": "Domaine introuvable : %{extid}"
+  },
+  "api.domains.errors.organization_not_found": {
+    "text": "Organisation introuvable pour le domaine : %{domain}"
+  },
+  "api.domains.errors.incoming_secrets_disabled": {
+    "text": "Les secrets entrants ne sont pas activés sur cette instance"
+  },
+  "api.domains.errors.incoming_secrets_entitlement_required": {
+    "text": "La gestion des secrets entrants nécessite le droit incoming_secrets. Veuillez mettre à niveau votre forfait."
+  },
+  "api.domains.errors.incoming_config_not_found": {
+    "text": "Configuration entrante introuvable pour le domaine : %{extid}"
+  },
+  "api.domains.errors.recipients_max_exceeded": {
+    "text": "Maximum de %{max} destinataires autorisés"
+  },
+  "api.domains.errors.recipients_invalid_email": {
+    "text": "E-mail invalide : %{email}"
+  },
+  "api.domains.errors.recipients_duplicate": {
+    "text": "Les adresses e-mail de destinataires en double ne sont pas autorisées"
+  }
+}

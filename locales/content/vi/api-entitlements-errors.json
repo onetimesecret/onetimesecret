@@ -1,0 +1,71 @@
+{
+  "api.entitlements.errors.context_unavailable": {
+    "text": "Không thể xác minh quyền lợi (ngữ cảnh tổ chức không khả dụng)"
+  },
+  "api.entitlements.errors.api_access_required": {
+    "text": "Truy cập API yêu cầu nâng cấp gói"
+  },
+  "api.entitlements.errors.custom_privacy_defaults_required": {
+    "text": "Mặc định quyền riêng tư tùy chỉnh yêu cầu nâng cấp gói"
+  },
+  "api.entitlements.errors.extended_default_expiration_required": {
+    "text": "Thời gian hết hạn mặc định mở rộng yêu cầu nâng cấp gói"
+  },
+  "api.entitlements.errors.custom_domains_required": {
+    "text": "Tên miền tùy chỉnh yêu cầu nâng cấp gói"
+  },
+  "api.entitlements.errors.custom_branding_required": {
+    "text": "Thương hiệu tùy chỉnh yêu cầu nâng cấp gói"
+  },
+  "api.entitlements.errors.homepage_secrets_required": {
+    "text": "Bí mật trên trang chủ yêu cầu nâng cấp gói"
+  },
+  "api.entitlements.errors.incoming_secrets_required": {
+    "text": "Bí mật đến yêu cầu nâng cấp gói"
+  },
+  "api.entitlements.errors.custom_mail_sender_required": {
+    "text": "Người gửi thư tùy chỉnh yêu cầu nâng cấp gói"
+  },
+  "api.entitlements.errors.flexible_from_domain_required": {
+    "text": "Tên miền gửi linh hoạt yêu cầu nâng cấp gói"
+  },
+  "api.entitlements.errors.manage_org_required": {
+    "text": "Quản lý tổ chức yêu cầu nâng cấp gói"
+  },
+  "api.entitlements.errors.manage_teams_required": {
+    "text": "Quản lý nhóm yêu cầu nâng cấp gói"
+  },
+  "api.entitlements.errors.manage_members_required": {
+    "text": "Quản lý thành viên yêu cầu nâng cấp gói"
+  },
+  "api.entitlements.errors.manage_sso_required": {
+    "text": "Quản lý SSO yêu cầu nâng cấp gói"
+  },
+  "api.entitlements.errors.audit_logs_required": {
+    "text": "Nhật ký kiểm tra yêu cầu nâng cấp gói"
+  },
+  "api.entitlements.errors.custom_signup_validation_required": {
+    "text": "Xác thực đăng ký tùy chỉnh yêu cầu nâng cấp gói"
+  },
+  "api.entitlements.errors.create_secrets_required": {
+    "text": "Tạo bí mật yêu cầu nâng cấp gói"
+  },
+  "api.entitlements.errors.view_receipt_required": {
+    "text": "Xem biên nhận yêu cầu nâng cấp gói"
+  },
+  "api.entitlements.errors.notifications_required": {
+    "text": "Thông báo yêu cầu nâng cấp gói"
+  },
+  "api.entitlements.errors.workspace_branding_required": {
+    "text": "Thương hiệu không gian làm việc yêu cầu nâng cấp gói"
+  },
+  "api.entitlements.errors.ip_access_rules_required": {
+    "text": "Quy tắc truy cập IP yêu cầu nâng cấp gói"
+  },
+  "api.entitlements.errors.manage_billing_required": {
+    "text": "Quản lý thanh toán yêu cầu nâng cấp gói"
+  },
+  "api.entitlements.errors.custom_signin_config_required": {
+    "text": "Cấu hình đăng nhập tùy chỉnh yêu cầu nâng cấp gói"
+  }
+}

@@ -988,5 +988,47 @@
     "text": "Na voljo samo v regiji vaše prvotne naročnine",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Na ta paket ste že naročeni."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Ponovno aktiviraj naročnino"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "Vaša naročnina je bila ponovno aktivirana. Obračunavanje se bo nadaljevalo kot običajno."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "Ponovna aktivacija naročnine ni uspela. Poskusite znova ali se obrnite na podporo."
+  },
+  "web.billing.features.manage_orgs": {
+    "text": "Upravljanje organizacij"
+  },
+  "web.billing.features.flexible_from_domain": {
+    "text": "Prilagodljiva domena pošiljatelja e-pošte"
+  },
+  "web.billing.features.unlimited_admins": {
+    "text": "Neomejeno skrbnikov"
+  },
+  "web.billing.features.manage_sso": {
+    "text": "Enotna prijava (SSO)"
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Prilagodljiva domena pošiljatelja e-pošte"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "Upravljanje organizacij"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Enotna prijava (SSO)"
+  },
+  "web.billing.overview.entitlements.manage_billing": {
+    "text": "Upravljanje obračunavanja"
+  },
+  "web.billing.overview.entitlements.custom_signup_validation": {
+    "text": "Preverjanje registracije po meri"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Ponovno aktiviraj"
   }
 }

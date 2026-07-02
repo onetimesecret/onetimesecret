@@ -988,5 +988,47 @@
     "text": "Disponebla nur en via origina abona regiono",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Vi jam estas abonita al ĉi tiu plano."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Reaktivigi Abonon"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "Via abono estis reaktivigita. Vi daŭre estos fakturita kiel normale."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "Malsukcesis reaktivigi abonon. Bonvolu reprovi aŭ kontakti subtenon."
+  },
+  "web.billing.features.manage_orgs": {
+    "text": "Organiz-administrado"
+  },
+  "web.billing.features.flexible_from_domain": {
+    "text": "Fleksebla retpoŝta sendint-domajno"
+  },
+  "web.billing.features.unlimited_admins": {
+    "text": "Senlimaj administrantoj"
+  },
+  "web.billing.features.manage_sso": {
+    "text": "SSO"
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Fleksebla retpoŝta sendint-domajno"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "Administri organizojn"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Unuopa Ensaluto (SSO)"
+  },
+  "web.billing.overview.entitlements.manage_billing": {
+    "text": "Administri fakturadon"
+  },
+  "web.billing.overview.entitlements.custom_signup_validation": {
+    "text": "Propra registriĝa validigo"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Reaktivigi"
   }
 }

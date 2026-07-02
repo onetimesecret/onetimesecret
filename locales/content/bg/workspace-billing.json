@@ -988,5 +988,47 @@
     "text": "Налично само в оригиналния регион на абонамента ви",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Вече сте абонирани за този план."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Подновяване на абонамента"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "Абонаментът ви беше подновен. Ще продължите да бъдете таксувани както обикновено."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "Подновяването на абонамента беше неуспешно. Моля, опитайте отново или се свържете с поддръжката."
+  },
+  "web.billing.features.manage_orgs": {
+    "text": "Управление на организации"
+  },
+  "web.billing.features.flexible_from_domain": {
+    "text": "Гъвкав домейн на подателя на имейли"
+  },
+  "web.billing.features.unlimited_admins": {
+    "text": "Неограничени администратори"
+  },
+  "web.billing.features.manage_sso": {
+    "text": "SSO"
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Гъвкав домейн на подателя на имейли"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "Управление на организации"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Единен вход (SSO)"
+  },
+  "web.billing.overview.entitlements.manage_billing": {
+    "text": "Управление на фактурирането"
+  },
+  "web.billing.overview.entitlements.custom_signup_validation": {
+    "text": "Персонализирана валидация на регистрацията"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Подновяване"
   }
 }

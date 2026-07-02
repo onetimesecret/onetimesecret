@@ -846,5 +846,389 @@
   "web.domains.sso.not_configured_notice": {
     "text": "SSO ankoraŭ ne estas agordita por ĉi tiu domajno. Ebligu unuopan ensaluton por permesi al teamanoj aŭtentikiĝi uzante la identecan provizanton de via organizo.",
     "source_hash": "c439214b"
+  },
+  "api.domains.errors.add_admin_required": {
+    "text": "Nur posedantoj kaj administrantoj de la organizo povas aldoni proprajn domajnojn"
+  },
+  "web.domains.public_homepage": {
+    "text": "Publika Hejmpaĝo"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Domajno kontrolita kaj aktiva"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS ne agordita — klaku por ripari"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Domajno ne kontrolita — klaku por kontroli"
+  },
+  "web.domains.status_tooltip_unverified": {
+    "text": "Domajna stato nekontrolita — klaku por refreŝigi"
+  },
+  "web.domains.last_check_failed": {
+    "text": "Lasta kontrolo malsukcesis"
+  },
+  "web.domains.last_check_failed_ago": {
+    "text": "lasta kontrolo malsukcesis {0}"
+  },
+  "web.domains.verify_now": {
+    "text": "Kontroli nun"
+  },
+  "web.domains.click_to_verify": {
+    "text": "klaku por kontroli"
+  },
+  "web.domains.remove_domain_description": {
+    "text": "Por ĉiam forigi ĉi tiun domajnon kaj ĝian tutan agordon."
+  },
+  "web.domains.add_access_denied": {
+    "text": "Aliro Rifuzita"
+  },
+  "web.domains.add_access_denied_description": {
+    "text": "Vi ne havas permeson aldoni domajnojn al ĉi tiu organizo. Kontaktu vian administranton de la organizo."
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "Malsukcesis ŝargi la DNS-ilon"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "DNS-ilo ne disponebla"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "Malsukcesis pravalorizi la DNS-ilon"
+  },
+  "web.domains.verified": {
+    "text": "Kontrolita"
+  },
+  "web.domains.pending_verification": {
+    "text": "Atendanta Kontrolon"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Vi havas nekonservitajn ŝanĝojn. Ĉu vi certas, ke vi volas foriri?"
+  },
+  "web.domains.entitlement_required_owner": {
+    "text": "Ĉi tiu funkcio postulas plibonigon de la plano."
+  },
+  "web.domains.entitlement_required_member": {
+    "text": "Ĉi tiu funkcio ne disponeblas en via nuna plano. Kontaktu la posedanton de via organizo."
+  },
+  "web.domains.detail.manage": {
+    "text": "Administri"
+  },
+  "web.domains.detail.features": {
+    "text": "Funkcioj"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Hejmpaĝaj Sekretoj"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Permesi publikan aliron por krei sekretojn sur la hejmpaĝo de via domajno"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Emblemo, koloroj kaj propra marko"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Agordoj de la unuopa-ensaluta provizanto"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Agordo de propra retpoŝta sendilo"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Agordoj de ricevanto de envenantaj sekretoj"
+  },
+  "web.domains.detail.signup_description": {
+    "text": "Strategio de registriĝa validigo por la domajno"
+  },
+  "web.domains.detail.signin_description": {
+    "text": "Agordo de ensalutmetodo por la domajno"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Provizanto"
+  },
+  "web.domains.email.test_email_title": {
+    "text": "Testi retpoŝtan liveradon"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Sendu testan retmesaĝon al vi mem uzante la konservitan agordon. Funkcias eĉ kiam la funkcio ankoraŭ ne estas ŝaltita."
+  },
+  "web.domains.email.send_test": {
+    "text": "Sendi teston"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Testa retmesaĝo sendita sukcese"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Malsukcesis sendi testan retmesaĝon"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Sendita al {email}"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Liverita per {provider}"
+  },
+  "web.domains.incoming.feature_disabled": {
+    "text": "Envenantaj Sekretoj Nedisponeblaj"
+  },
+  "web.domains.incoming.feature_disabled_description": {
+    "text": "Envenantaj sekretoj ne estas ŝaltitaj sur ĉi tiu instanco. Kontaktu vian administranton."
+  },
+  "web.domains.signin.title": {
+    "text": "Agordo de Ensaluto"
+  },
+  "web.domains.signin.configure_signin": {
+    "text": "Agordi Ensaluton"
+  },
+  "web.domains.signin.config_description": {
+    "text": "Agordi ensalutajn aŭtentikigmetodojn por ĉi tiu domajno"
+  },
+  "web.domains.signin.access_denied": {
+    "text": "Aliro Rifuzita"
+  },
+  "web.domains.signin.upgrade_to_configure": {
+    "text": "Altniveligu vian planon por agordi ensalutmetodojn por ĉi tiu domajno."
+  },
+  "web.domains.signin.not_configured_notice": {
+    "text": "Ensaluta agordo ankoraŭ ne estas fiksita por ĉi tiu domajno. Agordu superregojn por regi kiuj aŭtentikigmetodoj disponeblas sur la ensaluta paĝo de ĉi tiu domajno."
+  },
+  "web.domains.signin.signin_enabled_label": {
+    "text": "Ensaluto ŝaltita"
+  },
+  "web.domains.signin.header_toggle_label": {
+    "text": "Ensaluto"
+  },
+  "web.domains.signin.signin_enabled_hint": {
+    "text": "Ĉu uzantoj povas ensaluti sur ĉi tiu domajno"
+  },
+  "web.domains.signin.restrict_to_label": {
+    "text": "Limigi ensalutmetodon"
+  },
+  "web.domains.signin.restrict_to_hint": {
+    "text": "Limigi ĉi tiun domajnon al unu sola aŭtentikigmetodo. Kiam fiksita, nur la elektita metodo montriĝas sur la ensaluta paĝo."
+  },
+  "web.domains.signin.all_methods": {
+    "text": "Ĉiuj metodoj"
+  },
+  "web.domains.signin.all_methods_description": {
+    "text": "Montri ĉiujn ŝaltitajn aŭtentikigmetodojn sur la ensaluta paĝo"
+  },
+  "web.domains.signin.method_password": {
+    "text": "Pasvorto"
+  },
+  "web.domains.signin.method_email_auth": {
+    "text": "Retpoŝta aŭtentikigo"
+  },
+  "web.domains.signin.method_webauthn": {
+    "text": "WebAuthn / Pasŝlosiloj"
+  },
+  "web.domains.signin.method_sso": {
+    "text": "Unuopa Ensaluto (SSO)"
+  },
+  "web.domains.signin.method_overrides_label": {
+    "text": "Metodaj superregoj"
+  },
+  "web.domains.signin.method_overrides_hint": {
+    "text": "Ŝalti aŭ malŝalti individuajn aŭtentikigmetodojn por ĉi tiu domajno"
+  },
+  "web.domains.signin.mode_question": {
+    "text": "Kiel uzantoj povas ensaluti?"
+  },
+  "web.domains.signin.mode_any": {
+    "text": "Iu ajn disponebla metodo"
+  },
+  "web.domains.signin.mode_any_hint": {
+    "text": "Montri ĉiun metodon disponeblan sur ĉi tiu domajno. Limigu individuajn metodojn sube."
+  },
+  "web.domains.signin.mode_one": {
+    "text": "Unu specifa metodo"
+  },
+  "web.domains.signin.mode_one_hint": {
+    "text": "Limigi la ensalutan paĝon al unu sola metodo. Nur metodoj disponeblaj sur ĉi tiu domajno estas listigitaj."
+  },
+  "web.domains.signin.mode_disabled": {
+    "text": "Ensaluto malŝaltita"
+  },
+  "web.domains.signin.mode_disabled_hint": {
+    "text": "Uzantoj ne povas ensaluti sur ĉi tiu domajno."
+  },
+  "web.domains.signin.mode_disabled_notice": {
+    "text": "Vizitantoj de la ensaluta paĝo de ĉi tiu domajno vidas sciigon, ke ensaluto ne disponeblas, kun ligilo reen al la hejmpaĝo. Viaj antaŭaj metodaj agordoj estas konservitaj kaj restarigitaj kiam vi reŝaltas ensaluton."
+  },
+  "web.domains.signin.methods_list_label": {
+    "text": "Metodoj montritaj sur la ensaluta paĝo"
+  },
+  "web.domains.signin.restrict_picker_hint": {
+    "text": "Nur metodoj disponeblaj sur ĉi tiu domajno estas listigitaj."
+  },
+  "web.domains.signin.availability_always": {
+    "text": "Ĉiam disponebla"
+  },
+  "web.domains.signin.availability_global_on": {
+    "text": "Sekvas tutmondan politikon · Ŝaltita"
+  },
+  "web.domains.signin.availability_global_off": {
+    "text": "Nedisponebla"
+  },
+  "web.domains.signin.availability_unavailable": {
+    "text": "Nedisponebla en la tuta retejo"
+  },
+  "web.domains.signin.allow_on_domain": {
+    "text": "Permesi sur ĉi tiu domajno"
+  },
+  "web.domains.signin.method_password_blurb": {
+    "text": "Nur pasvorto"
+  },
+  "web.domains.signin.method_email_auth_blurb": {
+    "text": "Senpasvorta ensaluto per magia ligilo"
+  },
+  "web.domains.signin.method_webauthn_blurb": {
+    "text": "Biometrio kaj sekurecaj ŝlosiloj"
+  },
+  "web.domains.signin.method_sso_blurb": {
+    "text": "Ekstera identeca provizanto"
+  },
+  "web.domains.signin.email_auth_label": {
+    "text": "Retpoŝta aŭtentikigo"
+  },
+  "web.domains.signin.email_auth_hint": {
+    "text": "Permesi senpasvortan retpoŝtan aŭtentikigon sur ĉi tiu domajno"
+  },
+  "web.domains.signin.sso_enabled_label": {
+    "text": "Unuopa Ensaluto (SSO)"
+  },
+  "web.domains.signin.sso_enabled_hint": {
+    "text": "Permesi SSO-aŭtentikigon sur ĉi tiu domajno"
+  },
+  "web.domains.signin.enabled_label": {
+    "text": "Ŝalti ensalutan agordon"
+  },
+  "web.domains.signin.enabled_hint": {
+    "text": "Kiam ŝaltita, ĉi tiu domajno uzas la ensalutajn agordojn agorditajn supre"
+  },
+  "web.domains.signin.save_config": {
+    "text": "Konservi agordon"
+  },
+  "web.domains.signin.update_success": {
+    "text": "Ensaluta agordo ĝisdatigita sukcese"
+  },
+  "web.domains.signin.reset_to_defaults": {
+    "text": "Restarigi al defaŭltoj"
+  },
+  "web.domains.signin.reset_confirm": {
+    "text": "Ĉu restarigi ensaluton al la tutmondaj defaŭltoj?"
+  },
+  "web.domains.signin.reset_keeps_sso": {
+    "text": "Viaj SSO-akreditaĵoj estas konservitaj. Forigu ilin aparte sur la ekrano de SSO-agordo."
+  },
+  "web.domains.signin.reset_action": {
+    "text": "Jes, restarigi"
+  },
+  "web.domains.signin.reset_success": {
+    "text": "Ensalutaj agordoj restarigitaj al la tutmondaj defaŭltoj"
+  },
+  "web.domains.signup.title": {
+    "text": "Registriĝa Validigo"
+  },
+  "web.domains.signup.config_description": {
+    "text": "Agordi registriĝan validigon por ĉi tiu domajno"
+  },
+  "web.domains.signup.access_denied": {
+    "text": "Aliro Rifuzita"
+  },
+  "web.domains.signup.upgrade_to_configure": {
+    "text": "Altniveligu vian planon por agordi registriĝan validigon laŭ domajno."
+  },
+  "web.domains.signup.configure_signup": {
+    "text": "Agordi Registriĝon"
+  },
+  "web.domains.signup.not_configured_notice": {
+    "text": "Registriĝa validigo ankoraŭ ne estas agordita por ĉi tiu domajno. Agordu strategion por regi kiu povas registriĝi per ĉi tiu domajno."
+  },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "Registriĝoj estas nuntempe malŝaltitaj je la nivelo de la retejo. Ĉi tiu laŭdomajna politiko estas agordita, sed ĝi ne limigos ajnan trafikon ĝis registriĝoj de la retejo estos ŝaltitaj."
+  },
+  "web.domains.signup.strategy_label": {
+    "text": "Validig-strategio"
+  },
+  "web.domains.signup.strategy_description": {
+    "text": "Elektu kiel retpoŝtadresoj estas validigataj kiam uzantoj registriĝas sur ĉi tiu domajno."
+  },
+  "web.domains.signup.network_validation_warning": {
+    "text": "Ĉi tiu strategio faras retajn vokojn dum registriĝo, kio povas aldoni latentecon aŭ esti blokita de kelkaj provizantoj."
+  },
+  "web.domains.signup.allowed_domains_label": {
+    "text": "Permesataj registriĝaj domajnoj"
+  },
+  "web.domains.signup.allowed_domains_hint": {
+    "text": "Nur ĉi tiuj retpoŝtaj domajnoj estos permesataj registriĝi. Aldonu unu domajnon por ĉiu enskribo."
+  },
+  "web.domains.signup.domain_placeholder": {
+    "text": "example.com"
+  },
+  "web.domains.signup.invalid_domain": {
+    "text": "Bonvolu enigi validan domajnon (ekz. example.com)"
+  },
+  "web.domains.signup.domain_exists": {
+    "text": "Ĉi tiu domajno jam estas en la listo"
+  },
+  "web.domains.signup.remove_domain": {
+    "text": "Forigi {domain}"
+  },
+  "web.domains.signup.enabled_label": {
+    "text": "Ŝalti laŭdomajnan validigon"
+  },
+  "web.domains.signup.enabled_hint": {
+    "text": "Kiam ŝaltita, registriĝoj sur ĉi tiu domajno uzas la supran strategion anstataŭ la tutmonda politiko."
+  },
+  "web.domains.signup.delete_config": {
+    "text": "Forigi agordon"
+  },
+  "web.domains.signup.delete_confirm": {
+    "text": "Ĉu forigi la registriĝan validig-agordon? Registriĝoj retroiros al la tutmonda politiko."
+  },
+  "web.domains.signup.save_config": {
+    "text": "Konservi agordon"
+  },
+  "web.domains.signup.update_success": {
+    "text": "Registriĝa validigo ĝisdatigita sukcese"
+  },
+  "web.domains.signup.delete_success": {
+    "text": "Registriĝa validig-agordo forigita sukcese"
+  },
+  "web.domains.signup.domain_overrides_label": {
+    "text": "Domajnaj superregoj"
+  },
+  "web.domains.signup.domain_overrides_hint": {
+    "text": "Superregi tutmondajn registriĝajn agordojn por ĉi tiu domajno"
+  },
+  "web.domains.signup.signup_enabled_label": {
+    "text": "Registriĝo ŝaltita"
+  },
+  "web.domains.signup.signup_enabled_hint": {
+    "text": "Superregi ĉu registriĝo estas ŝaltita por ĉi tiu domajno"
+  },
+  "web.domains.signup.autoverify_label": {
+    "text": "Aŭtomate konfirmi kontojn"
+  },
+  "web.domains.signup.autoverify_hint": {
+    "text": "Superregi ĉu novaj kontoj estas aŭtomate konfirmataj sur ĉi tiu domajno"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Konektotesto sukcesa — la provizanto respondis ĝuste"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Konektotesto malsukcesis"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "Por postuli SSO por ĉiuj ensalutoj sur ĉi tiu domajno, agordu ĝin en la ensalutaj agordoj de la domajno. Nur-SSO reĝimo limigas la ensalutan paĝon al la SSO-provizanto agordita ĉi tie."
+  },
+  "web.domains.sso.edit_credentials": {
+    "text": "Redakti akreditaĵojn"
+  },
+  "web.domains.sso.configure_button": {
+    "text": "Agordi"
+  },
+  "web.domains.sso.upgrade_required": {
+    "text": "Altniveligu por agordi"
   }
 }

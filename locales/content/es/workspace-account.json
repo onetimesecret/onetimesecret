@@ -682,5 +682,14 @@
   "web.settings.profile.didnt_receive_email": {
     "text": "¿No recibiste el correo electrónico?",
     "source_hash": "fe3ac3ad"
+  },
+  "web.settings.api.api_disabled_notice": {
+    "text": "La API está deshabilitada para esta instancia."
+  },
+  "web.settings.security.sso_managed_title": {
+    "text": "Seguridad gestionada por SSO"
+  },
+  "web.settings.security.sso_managed_description": {
+    "text": "Tu cuenta se autentica a través del proveedor de inicio de sesión único (SSO) de tu organización. La contraseña, la autenticación multifactor y los códigos de recuperación los gestiona tu proveedor de identidad."
   }
 }

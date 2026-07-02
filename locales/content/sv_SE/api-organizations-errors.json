@@ -1,0 +1,107 @@
+{
+  "api.organizations.errors.domain_scoped_forbidden": {
+    "text": "Domänbegränsade medlemmar kan inte utföra den här åtgärden"
+  },
+  "api.organizations.errors.organization_not_found": {
+    "text": "Organisationen hittades inte: %{extid}"
+  },
+  "api.organizations.errors.organization_owner_required": {
+    "text": "Endast organisationens ägare kan utföra den här åtgärden"
+  },
+  "api.organizations.errors.organization_member_required": {
+    "text": "Du måste vara medlem i organisationen för att utföra den här åtgärden"
+  },
+  "api.organizations.errors.organization_admin_required": {
+    "text": "Endast organisationens ägare och administratörer kan utföra den här åtgärden"
+  },
+  "api.organizations.errors.extid_required": {
+    "text": "Organisations-ID krävs"
+  },
+  "api.organizations.errors.display_name_required": {
+    "text": "Organisationsnamn krävs"
+  },
+  "api.organizations.errors.display_name_too_long": {
+    "text": "Organisationsnamnet får vara högst %{max} tecken"
+  },
+  "api.organizations.errors.description_too_long": {
+    "text": "Beskrivningen får vara högst %{max} tecken"
+  },
+  "api.organizations.errors.contact_email_exists": {
+    "text": "En organisation med denna kontakt-e-postadress finns redan"
+  },
+  "api.organizations.errors.creation_in_progress": {
+    "text": "Skapande av organisation pågår. Försök igen."
+  },
+  "api.organizations.errors.organization_limit_reached": {
+    "text": "Organisationsgränsen har nåtts. Uppgradera din plan för att skapa fler organisationer."
+  },
+  "api.organizations.invitations.errors.invitation_not_found": {
+    "text": "Inbjudan hittades inte"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "E-postadress krävs"
+  },
+  "api.organizations.invitations.errors.invalid_email_format": {
+    "text": "Ogiltigt e-postformat"
+  },
+  "api.organizations.invitations.errors.invalid_role": {
+    "text": "Rollen måste vara medlem eller administratör"
+  },
+  "api.organizations.invitations.errors.cannot_invite_as_owner": {
+    "text": "Det går inte att bjuda in som ägare"
+  },
+  "api.organizations.invitations.errors.user_already_member": {
+    "text": "Användaren är redan medlem i den här organisationen"
+  },
+  "api.organizations.invitations.errors.invitation_already_pending": {
+    "text": "En inbjudan väntar redan för den här e-postadressen"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Medlemsgränsen har nåtts. Uppgradera din plan för att bjuda in fler medlemmar."
+  },
+  "api.organizations.invitations.errors.resend_only_pending": {
+    "text": "Endast väntande inbjudningar kan skickas igen"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Maxgränsen för att skicka igen (%{max}) har nåtts"
+  },
+  "api.organizations.invitations.errors.revoke_only_pending": {
+    "text": "Endast väntande inbjudningar kan återkallas"
+  },
+  "api.organizations.members.errors.member_not_found": {
+    "text": "Medlemmen hittades inte: %{extid}"
+  },
+  "api.organizations.members.errors.member_not_in_organization": {
+    "text": "Medlemmen hittades inte i den här organisationen"
+  },
+  "api.organizations.members.errors.member_not_active": {
+    "text": "Medlemmen är inte aktiv"
+  },
+  "api.organizations.members.errors.invalid_role_value": {
+    "text": "Ogiltig roll. Måste vara en av: %{roles}"
+  },
+  "api.organizations.members.errors.cannot_change_owner_role": {
+    "text": "Det går inte att ändra ägarrollen. Använd ägarskapsöverföring i stället."
+  },
+  "api.organizations.members.errors.member_already_has_role": {
+    "text": "Medlemmen har redan rollen: %{role}"
+  },
+  "api.organizations.members.errors.cannot_promote_to_owner": {
+    "text": "Det går inte att befordra till ägare. Använd ägarskapsöverföring i stället."
+  },
+  "api.organizations.members.errors.must_be_member": {
+    "text": "Du måste vara medlem i den här organisationen"
+  },
+  "api.organizations.members.errors.cannot_remove_owner": {
+    "text": "Det går inte att ta bort organisationens ägare. Överför ägarskapet först."
+  },
+  "api.organizations.members.errors.cannot_remove_self": {
+    "text": "Du kan inte ta bort dig själv. Använd lämna organisation i stället."
+  },
+  "api.organizations.members.errors.admin_cannot_remove_admin": {
+    "text": "Administratörer kan inte ta bort andra administratörer. Endast ägare kan."
+  },
+  "api.organizations.members.errors.no_permission_to_remove": {
+    "text": "Du har inte behörighet att ta bort medlemmar"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "api.invite.errors.invitation_not_found_or_expired": {
+    "text": "No s'ha trobat la invitació o ha caducat"
+  },
+  "api.invite.errors.token_required": {
+    "text": "Es requereix el testimoni"
+  },
+  "api.invite.errors.organization_no_longer_exists": {
+    "text": "L'organització ja no existeix"
+  },
+  "api.invite.errors.invitation_already_processed": {
+    "text": "La invitació ja consta com a %{status}"
+  },
+  "api.invite.errors.invitation_expired": {
+    "text": "La invitació ha caducat"
+  },
+  "api.invite.errors.email_mismatch": {
+    "text": "La teva adreça de correu electrònic no coincideix amb la invitació"
+  },
+  "api.invite.errors.already_member": {
+    "text": "Ja ets membre d'aquesta organització"
+  }
+}

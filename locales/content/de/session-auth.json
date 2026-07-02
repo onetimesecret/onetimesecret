@@ -398,5 +398,32 @@
   },
   "web.auth.verify._guidance.context": {
     "text": "E-Mail-Verifizierungsablauf nach der Registrierung"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "SSO-Konto"
+  },
+  "web.help.reset_password_link": {
+    "text": "Passwort zurücksetzen"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "Single Sign-On ist für diese Domain verfügbar"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "Der Administrator der Organisation kann SSO aktivieren, damit sich Teammitglieder hier anmelden können. Wende dich für den Zugang an den Admin."
+  },
+  "web.login.signin_disabled_heading": {
+    "text": "Anmeldung ist nicht verfügbar"
+  },
+  "web.login.signin_disabled_message": {
+    "text": "Die Anmeldung ist auf dieser Domain derzeit nicht verfügbar."
+  },
+  "web.login.errors.sso_not_configured": {
+    "text": "Single Sign-On ist für diese Domain nicht konfiguriert. Bitte wende dich an deinen Administrator."
+  },
+  "web.login.errors.invalid_email": {
+    "text": "Die E-Mail-Adresse von deinem Identitätsanbieter ist ungültig. Bitte wende dich an deinen Administrator."
+  },
+  "web.login.errors.domain_not_allowed": {
+    "text": "Deine E-Mail-Domain ist nicht für die SSO-Registrierung autorisiert. Bitte wende dich an deinen Administrator."
   }
 }

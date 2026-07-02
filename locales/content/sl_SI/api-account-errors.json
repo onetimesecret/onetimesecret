@@ -1,0 +1,8 @@
+{
+  "api.account.errors.invalid_email": {
+    "text": "Je to veljaven e-poštni naslov?"
+  },
+  "api.account.errors.password_too_short": {
+    "text": "Geslo je prekratko"
+  }
+}

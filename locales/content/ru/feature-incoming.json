@@ -130,5 +130,26 @@
   "incoming.receipt_link_text": {
     "text": "квитанция",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Требуется переход на более высокий план"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Для этой функции требуется переход на более высокий план. Пожалуйста, свяжитесь с владельцем аккаунта, чтобы включить входящие секреты."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Заметка должна содержать не более {max} символов"
+  },
+  "incoming.validation_secret_required": {
+    "text": "Необходимо указать содержимое секрета"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Пожалуйста, выберите получателя"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "Функция входящих секретов не включена"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Пожалуйста, проверьте форму на наличие ошибок"
   }
 }

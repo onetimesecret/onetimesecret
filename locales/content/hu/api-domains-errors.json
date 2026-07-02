@@ -1,0 +1,29 @@
+{
+  "api.domains.errors.domain_id_required": {
+    "text": "Doménazonosító szükséges"
+  },
+  "api.domains.errors.domain_not_found": {
+    "text": "A domén nem található: %{extid}"
+  },
+  "api.domains.errors.organization_not_found": {
+    "text": "Nem található szervezet a doménhez: %{domain}"
+  },
+  "api.domains.errors.incoming_secrets_disabled": {
+    "text": "A bejövő titkok nincsenek engedélyezve ezen a példányon"
+  },
+  "api.domains.errors.incoming_secrets_entitlement_required": {
+    "text": "A bejövő titkok kezeléséhez az incoming_secrets jogosultság szükséges. Kérjük, frissítse a csomagját."
+  },
+  "api.domains.errors.incoming_config_not_found": {
+    "text": "Nem található bejövő konfiguráció a doménhez: %{extid}"
+  },
+  "api.domains.errors.recipients_max_exceeded": {
+    "text": "Legfeljebb %{max} címzett engedélyezett"
+  },
+  "api.domains.errors.recipients_invalid_email": {
+    "text": "Érvénytelen e-mail-cím: %{email}"
+  },
+  "api.domains.errors.recipients_duplicate": {
+    "text": "Ismétlődő címzett e-mail-címek nem engedélyezettek"
+  }
+}

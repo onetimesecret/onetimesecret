@@ -1383,5 +1383,110 @@
     "text": "Оновіть план, щоб отримати більше можливостей",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "Потрібна автентифікація"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "Ця дія недоступна в режимі лише SSO"
+  },
+  "web.COMMON.configure": {
+    "text": "Налаштувати"
+  },
+  "web.COMMON.copy_to_clipboard": {
+    "text": "Скопіювати в буфер обміну"
+  },
+  "web.COMMON.add": {
+    "text": "Додати"
+  },
+  "web.COMMON.enabled": {
+    "text": "Увімкнено"
+  },
+  "web.COMMON.disabled": {
+    "text": "Вимкнено"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Так, видалити"
+  },
+  "web.COMMON.error_code": {
+    "text": "Код помилки"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTP-статус"
+  },
+  "web.COMMON.details": {
+    "text": "Подробиці"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Підтвердьте пароль"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Паролі мають збігатися"
+  },
+  "web.COMMON.and": {
+    "text": "та"
+  },
+  "web.COMMON.or": {
+    "text": "або"
+  },
+  "web.COMMON.copied": {
+    "text": "Скопійовано"
+  },
+  "web.COMMON.copy": {
+    "text": "Скопіювати"
+  },
+  "web.COMMON.copy_email": {
+    "text": "Скопіювати адресу електронної пошти"
+  },
+  "web.COMMON.copy_id": {
+    "text": "Скопіювати ідентифікатор облікового запису"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "Унікальний ідентифікатор вашої організації"
+  },
+  "web.COMMON.success": {
+    "text": "Успішно"
+  },
+  "web.COMMON.need_help": {
+    "text": "Потрібна допомога"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "Відкрити вікно довідки"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "Фокус тепер у головному текстовому полі"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Показати парольну фразу"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Сховати парольну фразу"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "Значок копіювання"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "Значок «Скопійовано»"
+  },
+  "web.STATUS.unverified": {
+    "text": "Неперевірено"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Налаштування домену"
+  },
+  "web.TITLES.domain_signin": {
+    "text": "Конфігурація входу"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "SSO домену"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "Перевірка реєстрації для домену"
+  },
+  "web.TITLES.domain_email": {
+    "text": "Конфігурація електронної пошти"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Вхідні таємниці"
   }
 }

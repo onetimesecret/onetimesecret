@@ -710,5 +710,20 @@
   "web.auth.recovery_codes.link_title": {
     "text": "Codici di recupero",
     "source_hash": "579c7f4e"
+  },
+  "web.auth.google": {
+    "text": "Google"
+  },
+  "web.auth.mfa.alternative_auth_options": {
+    "text": "Opzioni di autenticazione alternative"
+  },
+  "web.auth.remember.enabled": {
+    "text": "Resta connesso"
+  },
+  "web.auth.sessions.session_singular": {
+    "text": "sessione"
+  },
+  "web.auth.sessions.session_plural": {
+    "text": "sessioni"
   }
 }

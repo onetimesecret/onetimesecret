@@ -4,7 +4,7 @@
     "source_hash": "3086ef43"
   },
   "web.billing.subscription_synced_description": {
-    "text": "Переваги вашої підписки синхронізовано з іншого регіону.",
+    "text": "Переваги Вашої підписки синхронізовано з іншого регіону.",
     "source_hash": "a99b7a98"
   },
   "web.billing.upgrade.required": {
@@ -96,7 +96,7 @@
     "source_hash": "f37cd0d9"
   },
   "web.billing.plans.legacy_plan_warning": {
-    "text": "Зміна плану призведе до втрати вашої збереженої ціни. Цю дію неможливо скасувати.",
+    "text": "Зміна плану призведе до втрати Вашої збереженої ціни. Цю дію неможливо скасувати.",
     "source_hash": "eda13d64"
   },
   "web.billing.overview.no_payment_method": {
@@ -892,7 +892,7 @@
     "source_hash": "2cd800c5"
   },
   "web.billing.currency_migration.description": {
-    "text": "Ваша поточна підписка використовує {from}. Обраний план оплачується у {to}. Для цього потрібно перевести вашу підписку на нову валюту.",
+    "text": "Ваша поточна підписка використовує {from}. Обраний план оплачується у {to}. Для цього потрібно перевести Вашу підписку на нову валюту.",
     "source_hash": "f0cdf727"
   },
   "web.billing.currency_migration.current_plan": {
@@ -988,5 +988,47 @@
     "text": "Доступно лише у вашому початковому регіоні підписки",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Ви вже підписані на цей тарифний план."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Відновити підписку"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "Вашу підписку відновлено. Плата стягуватиметься у звичайному режимі."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "Не вдалося відновити підписку. Будь ласка, спробуйте ще раз або зверніться до служби підтримки."
+  },
+  "web.billing.features.manage_orgs": {
+    "text": "Керування організаціями"
+  },
+  "web.billing.features.flexible_from_domain": {
+    "text": "Гнучкий домен відправника електронної пошти"
+  },
+  "web.billing.features.unlimited_admins": {
+    "text": "Необмежена кількість адміністраторів"
+  },
+  "web.billing.features.manage_sso": {
+    "text": "SSO"
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Гнучкий домен відправника електронної пошти"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "Керування організаціями"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Єдиний вхід (SSO)"
+  },
+  "web.billing.overview.entitlements.manage_billing": {
+    "text": "Керування оплатою"
+  },
+  "web.billing.overview.entitlements.custom_signup_validation": {
+    "text": "Користувацька перевірка реєстрації"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Відновити"
   }
 }

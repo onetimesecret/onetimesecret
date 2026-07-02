@@ -682,5 +682,14 @@
   "web.settings.profile.didnt_receive_email": {
     "text": "Vous n'avez pas reçu l'e-mail ?",
     "source_hash": "fe3ac3ad"
+  },
+  "web.settings.api.api_disabled_notice": {
+    "text": "L'API est désactivée pour cette instance."
+  },
+  "web.settings.security.sso_managed_title": {
+    "text": "Sécurité gérée par le SSO"
+  },
+  "web.settings.security.sso_managed_description": {
+    "text": "Votre compte est authentifié via le fournisseur d'authentification unique de votre organisation. Le mot de passe, l'authentification multifacteur et les codes de récupération sont gérés par votre fournisseur d'identité."
   }
 }

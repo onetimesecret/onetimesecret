@@ -988,5 +988,47 @@
     "text": "זמין באזור המנוי המקורי שלך בלבד",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "אתה כבר מנוי על תוכנית זו."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "הפעלת מנוי מחדש"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "המנוי שלך הופעל מחדש. החיוב יימשך כרגיל."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "הפעלת המנוי מחדש נכשלה. נסה שוב או פנה לתמיכה."
+  },
+  "web.billing.features.manage_orgs": {
+    "text": "ניהול ארגונים"
+  },
+  "web.billing.features.flexible_from_domain": {
+    "text": "דומיין שולח גמיש לדואר אלקטרוני"
+  },
+  "web.billing.features.unlimited_admins": {
+    "text": "מנהלים ללא הגבלה"
+  },
+  "web.billing.features.manage_sso": {
+    "text": "SSO"
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "דומיין שולח גמיש לדואר אלקטרוני"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "ניהול ארגונים"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "כניסה יחידה (SSO)"
+  },
+  "web.billing.overview.entitlements.manage_billing": {
+    "text": "ניהול חיוב"
+  },
+  "web.billing.overview.entitlements.custom_signup_validation": {
+    "text": "אימות הרשמה מותאם אישית"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "הפעל מחדש"
   }
 }

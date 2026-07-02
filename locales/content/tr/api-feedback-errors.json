@@ -1,0 +1,5 @@
+{
+  "api.feedback.errors.rate_limit_exceeded": {
+    "text": "Çok fazla geri bildirim gönderildi. Lütfen daha sonra tekrar deneyin."
+  }
+}

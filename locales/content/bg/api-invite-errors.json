@@ -1,0 +1,23 @@
+{
+  "api.invite.errors.invitation_not_found_or_expired": {
+    "text": "Поканата не е намерена или е изтекла"
+  },
+  "api.invite.errors.token_required": {
+    "text": "Изисква се токен"
+  },
+  "api.invite.errors.organization_no_longer_exists": {
+    "text": "Организацията вече не съществува"
+  },
+  "api.invite.errors.invitation_already_processed": {
+    "text": "Поканата вече е %{status}"
+  },
+  "api.invite.errors.invitation_expired": {
+    "text": "Поканата е изтекла"
+  },
+  "api.invite.errors.email_mismatch": {
+    "text": "Вашият имейл адрес не съвпада с поканата"
+  },
+  "api.invite.errors.already_member": {
+    "text": "Вече сте член на тази организация"
+  }
+}

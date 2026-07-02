@@ -634,5 +634,152 @@
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
     "text": "A visszajelzés beküldésekor a következőket látjuk:",
     "source_hash": "fe77172e"
+  },
+  "web.colonel.previewPlanMode": {
+    "text": "Csomag-előnézeti mód"
+  },
+  "web.colonel.previewModeDescription": {
+    "text": "Megtekintheti az alkalmazást úgy, ahogyan az egy másik csomagon lévő ügyfelek számára megjelenik. Ez csak az Ön nézetét érinti, és nem módosítja egyetlen szervezet tényleges csomagját sem."
+  },
+  "web.colonel.previewModeActive": {
+    "text": "Előnézet aktív"
+  },
+  "web.colonel.bannedIps.empty": {
+    "text": "Nincsenek letiltott IP-címek"
+  },
+  "web.colonel.bannedIps.currentIp": {
+    "text": "Az Ön jelenlegi IP-címe"
+  },
+  "web.colonel.bannedIps.confirmUnban": {
+    "text": "Feloldja a letiltást a következőhöz: {ip}?"
+  },
+  "web.colonel.bannedIps.actions.ban": {
+    "text": "IP-cím letiltása"
+  },
+  "web.colonel.bannedIps.actions.quickBan": {
+    "text": "Gyors letiltás"
+  },
+  "web.colonel.bannedIps.actions.unban": {
+    "text": "Letiltás feloldása"
+  },
+  "web.colonel.bannedIps.actions.cancel": {
+    "text": "Mégse"
+  },
+  "web.colonel.bannedIps.columns.ipAddress": {
+    "text": "IP-cím"
+  },
+  "web.colonel.bannedIps.columns.reason": {
+    "text": "Indok"
+  },
+  "web.colonel.bannedIps.columns.bannedAt": {
+    "text": "Letiltva ekkor"
+  },
+  "web.colonel.bannedIps.columns.bannedBy": {
+    "text": "Letiltotta"
+  },
+  "web.colonel.bannedIps.error.banFailed": {
+    "text": "Nem sikerült letiltani az IP-címet"
+  },
+  "web.colonel.bannedIps.error.unbanFailed": {
+    "text": "Nem sikerült feloldani az IP-cím letiltását"
+  },
+  "web.colonel.bannedIps.form.title": {
+    "text": "IP-cím letiltása"
+  },
+  "web.colonel.bannedIps.form.ipLabel": {
+    "text": "IP-cím"
+  },
+  "web.colonel.bannedIps.form.reasonLabel": {
+    "text": "Indok"
+  },
+  "web.colonel.bannedIps.form.reasonPlaceholder": {
+    "text": "Nem kötelező indok"
+  },
+  "web.colonel.bannedIps.success.banned": {
+    "text": "Az {ip} IP-cím le lett tiltva"
+  },
+  "web.colonel.bannedIps.success.unbanned": {
+    "text": "Az {ip} IP-cím letiltása fel lett oldva"
+  },
+  "web.colonel.customDomains.empty": {
+    "text": "Nincsenek beállított egyéni domének"
+  },
+  "web.colonel.customDomains.noLogo": {
+    "text": "Nincs logó"
+  },
+  "web.colonel.customDomains.labels.organization": {
+    "text": "Szervezet"
+  },
+  "web.colonel.customDomains.labels.externalId": {
+    "text": "Külső azonosító"
+  },
+  "web.colonel.customDomains.labels.created": {
+    "text": "Létrehozva"
+  },
+  "web.colonel.customDomains.labels.updated": {
+    "text": "Frissítve"
+  },
+  "web.colonel.customDomains.labels.favicon": {
+    "text": "Favicon"
+  },
+  "web.colonel.customDomains.status.verified": {
+    "text": "Ellenőrizve"
+  },
+  "web.colonel.customDomains.status.resolving": {
+    "text": "Feloldás folyamatban"
+  },
+  "web.colonel.customDomains.status.ready": {
+    "text": "Kész"
+  },
+  "web.colonel.customDomains.status.publicHomepage": {
+    "text": "Nyilvános kezdőlap"
+  },
+  "web.colonel.customDomains.status.publicApi": {
+    "text": "Nyilvános API"
+  },
+  "web.colonel.customDomains.status.pending": {
+    "text": "Függőben"
+  },
+  "web.colonel.pagination.showing": {
+    "text": "{start}–{end} megjelenítése, összesen {total}"
+  },
+  "web.colonel.pagination.itemsPerPage": {
+    "text": "Elemek oldalanként"
+  },
+  "web.colonel.pagination.perPage": {
+    "text": "{count} oldalanként"
+  },
+  "web.colonel.pagination.pageOf": {
+    "text": "{current}. oldal, összesen {total}"
+  },
+  "web.colonel.secrets.empty": {
+    "text": "Nem található titok"
+  },
+  "web.colonel.secrets.never": {
+    "text": "Soha"
+  },
+  "web.colonel.secrets.columns.shortId": {
+    "text": "Rövid azonosító"
+  },
+  "web.colonel.secrets.columns.state": {
+    "text": "Állapot"
+  },
+  "web.colonel.secrets.columns.created": {
+    "text": "Létrehozva"
+  },
+  "web.colonel.secrets.columns.expiration": {
+    "text": "Lejárat"
+  },
+  "web.colonel.secrets.columns.age": {
+    "text": "Életkor (napokban)"
+  },
+  "web.colonel.secrets.state.new": {
+    "text": "Új"
+  },
+  "web.colonel.secrets.state.received": {
+    "text": "Megkapva"
+  },
+  "web.colonel.secrets.state.viewed": {
+    "text": "Megtekintve"
   }
 }

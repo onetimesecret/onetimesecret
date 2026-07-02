@@ -1299,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Bekræft altid at du er på den officielle {product_name}-hjemmeside. Svindlere opretter nogle gange falske hjemmesider der ligner {product_name} for at stjæle dine beskeder. For at undgå phishing-angreb, tjek regiondomænet før du opretter nye links.",
+    "text": "Bekræft altid, at du er på det officielle {product_name}-websted. Bedragere opretter undertiden falske websteder, der ligner {product_name} fuldstændig, for at stjæle dine beskeder. For at undgå phishingangreb skal du tjekke regionsdomænet, før du opretter nye links.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1383,5 +1383,110 @@
     "text": "Opgrader for at låse op for flere funktioner",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "Godkendelse kræves"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "Denne handling er ikke tilgængelig i kun-SSO-tilstand"
+  },
+  "web.COMMON.configure": {
+    "text": "Konfigurér"
+  },
+  "web.COMMON.copy_to_clipboard": {
+    "text": "Kopier til udklipsholder"
+  },
+  "web.COMMON.add": {
+    "text": "Tilføj"
+  },
+  "web.COMMON.enabled": {
+    "text": "Aktiveret"
+  },
+  "web.COMMON.disabled": {
+    "text": "Deaktiveret"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Ja, slet"
+  },
+  "web.COMMON.error_code": {
+    "text": "Fejlkode"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTP-status"
+  },
+  "web.COMMON.details": {
+    "text": "Detaljer"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Bekræft adgangskode"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Adgangskoderne skal være ens"
+  },
+  "web.COMMON.and": {
+    "text": "og"
+  },
+  "web.COMMON.or": {
+    "text": "eller"
+  },
+  "web.COMMON.copied": {
+    "text": "Kopieret"
+  },
+  "web.COMMON.copy": {
+    "text": "Kopier"
+  },
+  "web.COMMON.copy_email": {
+    "text": "Kopier e-mailadresse"
+  },
+  "web.COMMON.copy_id": {
+    "text": "Kopier konto-id"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "Din organisations unikke identifikator"
+  },
+  "web.COMMON.success": {
+    "text": "Succes"
+  },
+  "web.COMMON.need_help": {
+    "text": "Brug for hjælp"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "Åbn hjælpedialog"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "Fokus er nu i hovedtekstområdet"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Vis adgangssætning"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Skjul adgangssætning"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "Kopiér-ikon"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "Kopieret-ikon"
+  },
+  "web.STATUS.unverified": {
+    "text": "Ikke bekræftet"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Domæneindstillinger"
+  },
+  "web.TITLES.domain_signin": {
+    "text": "Login-konfiguration"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "Domæne-SSO"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "Validering af domænetilmelding"
+  },
+  "web.TITLES.domain_email": {
+    "text": "E-mailkonfiguration"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Indkommende beskeder"
   }
 }

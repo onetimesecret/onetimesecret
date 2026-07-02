@@ -1299,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Controleer altijd of je op de officiële {product_name}-website bent. Fraudeurs maken soms nepwebsites die er precies uitzien als {product_name} om je berichten te stelen. Om phishing-aanvallen te voorkomen, controleer het domein voordat je nieuwe links aanmaakt.",
+    "text": "Controleer altijd of je je op de officiële website van {product_name} bevindt. Fraudeurs maken soms nepwebsites die er precies uitzien als {product_name} om je berichten te stelen. Controleer het regiodomein voordat je nieuwe links aanmaakt om phishingaanvallen te voorkomen.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1383,5 +1383,110 @@
     "text": "Upgrade om meer functies te ontgrendelen",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "Authenticatie vereist"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "Deze actie is niet beschikbaar in SSO-only-modus"
+  },
+  "web.COMMON.configure": {
+    "text": "Configureren"
+  },
+  "web.COMMON.copy_to_clipboard": {
+    "text": "Kopiëren naar klembord"
+  },
+  "web.COMMON.add": {
+    "text": "Toevoegen"
+  },
+  "web.COMMON.enabled": {
+    "text": "Ingeschakeld"
+  },
+  "web.COMMON.disabled": {
+    "text": "Uitgeschakeld"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Ja, verwijderen"
+  },
+  "web.COMMON.error_code": {
+    "text": "Foutcode"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTP-status"
+  },
+  "web.COMMON.details": {
+    "text": "Details"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Wachtwoord bevestigen"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Wachtwoorden moeten overeenkomen"
+  },
+  "web.COMMON.and": {
+    "text": "en"
+  },
+  "web.COMMON.or": {
+    "text": "of"
+  },
+  "web.COMMON.copied": {
+    "text": "Gekopieerd"
+  },
+  "web.COMMON.copy": {
+    "text": "Kopiëren"
+  },
+  "web.COMMON.copy_email": {
+    "text": "E-mailadres kopiëren"
+  },
+  "web.COMMON.copy_id": {
+    "text": "Account-ID kopiëren"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "De unieke identificatie van je organisatie"
+  },
+  "web.COMMON.success": {
+    "text": "Gelukt"
+  },
+  "web.COMMON.need_help": {
+    "text": "Hulp nodig"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "Hulpvenster openen"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "De focus ligt nu in het hoofdtekstvak"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Wachtwoordzin tonen"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Wachtwoordzin verbergen"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "Kopieerpictogram"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "Gekopieerd-pictogram"
+  },
+  "web.STATUS.unverified": {
+    "text": "Niet geverifieerd"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Domeininstellingen"
+  },
+  "web.TITLES.domain_signin": {
+    "text": "Inlogconfiguratie"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "Domein-SSO"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "Validatie van domeinaanmelding"
+  },
+  "web.TITLES.domain_email": {
+    "text": "E-mailconfiguratie"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Inkomende berichten"
   }
 }

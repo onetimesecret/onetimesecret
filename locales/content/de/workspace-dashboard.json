@@ -22,5 +22,14 @@
   "web.dashboard.fetch_error_description": {
     "text": "Beim Laden deiner Daten ist ein Problem aufgetreten. Bitte versuche es erneut.",
     "source_hash": "ff0d904e"
+  },
+  "web.teams.create_first_team_title": {
+    "text": "Erstelle dein erstes Team"
+  },
+  "web.teams.create_first_team_description": {
+    "text": "Mit Teams kannst du gemeinsam mit anderen in einem geteilten Arbeitsbereich zusammenarbeiten."
+  },
+  "web.teams.create_team": {
+    "text": "Team erstellen"
   }
 }

@@ -1,0 +1,23 @@
+{
+  "api.invite.errors.invitation_not_found_or_expired": {
+    "text": "Η πρόσκληση δεν βρέθηκε ή έχει λήξει"
+  },
+  "api.invite.errors.token_required": {
+    "text": "Απαιτείται διακριτικό"
+  },
+  "api.invite.errors.organization_no_longer_exists": {
+    "text": "Ο οργανισμός δεν υπάρχει πλέον"
+  },
+  "api.invite.errors.invitation_already_processed": {
+    "text": "Η πρόσκληση είναι ήδη %{status}"
+  },
+  "api.invite.errors.invitation_expired": {
+    "text": "Η πρόσκληση έχει λήξει"
+  },
+  "api.invite.errors.email_mismatch": {
+    "text": "Η διεύθυνση email σας δεν αντιστοιχεί στην πρόσκληση"
+  },
+  "api.invite.errors.already_member": {
+    "text": "Είστε ήδη μέλος αυτού του οργανισμού"
+  }
+}

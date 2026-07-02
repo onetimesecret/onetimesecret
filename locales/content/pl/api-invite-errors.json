@@ -1,0 +1,23 @@
+{
+  "api.invite.errors.invitation_not_found_or_expired": {
+    "text": "Nie znaleziono zaproszenia lub wygasło"
+  },
+  "api.invite.errors.token_required": {
+    "text": "Token jest wymagany"
+  },
+  "api.invite.errors.organization_no_longer_exists": {
+    "text": "Organizacja już nie istnieje"
+  },
+  "api.invite.errors.invitation_already_processed": {
+    "text": "Zaproszenie zostało już obsłużone: %{status}"
+  },
+  "api.invite.errors.invitation_expired": {
+    "text": "Zaproszenie wygasło"
+  },
+  "api.invite.errors.email_mismatch": {
+    "text": "Twój adres e-mail nie pasuje do zaproszenia"
+  },
+  "api.invite.errors.already_member": {
+    "text": "Jesteś już członkiem tej organizacji"
+  }
+}

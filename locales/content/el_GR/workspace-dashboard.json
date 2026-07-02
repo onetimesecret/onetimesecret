@@ -22,5 +22,14 @@
   "web.dashboard.fetch_error_description": {
     "text": "Παρουσιάστηκε πρόβλημα κατά τη φόρτωση των δεδομένων σας. Παρακαλώ δοκιμάστε ξανά.",
     "source_hash": "ff0d904e"
+  },
+  "web.teams.create_first_team_title": {
+    "text": "Δημιουργήστε την πρώτη σας ομάδα"
+  },
+  "web.teams.create_first_team_description": {
+    "text": "Οι ομάδες σάς επιτρέπουν να συνεργάζεστε με άλλους σε έναν κοινόχρηστο χώρο εργασίας."
+  },
+  "web.teams.create_team": {
+    "text": "Δημιουργία ομάδας"
   }
 }

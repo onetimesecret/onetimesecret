@@ -398,5 +398,32 @@
   },
   "web.auth.verify._guidance.context": {
     "text": "注册后的邮箱验证流程"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "SSO 账户"
+  },
+  "web.help.reset_password_link": {
+    "text": "重置密码"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "此域名可使用单点登录"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "组织管理员可启用 SSO，以允许团队成员在此登录。请联系管理员获取访问权限。"
+  },
+  "web.login.signin_disabled_heading": {
+    "text": "登录不可用"
+  },
+  "web.login.signin_disabled_message": {
+    "text": "此域名当前不可登录。"
+  },
+  "web.login.errors.sso_not_configured": {
+    "text": "此域名尚未配置单点登录。请联系您的管理员。"
+  },
+  "web.login.errors.invalid_email": {
+    "text": "来自您身份提供商的邮箱地址无效。请联系您的管理员。"
+  },
+  "web.login.errors.domain_not_allowed": {
+    "text": "您的邮箱域名未获授权使用 SSO 注册。请联系您的管理员。"
   }
 }

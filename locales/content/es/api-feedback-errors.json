@@ -1,0 +1,5 @@
+{
+  "api.feedback.errors.rate_limit_exceeded": {
+    "text": "Demasiados envíos de comentarios. Vuelve a intentarlo más tarde."
+  }
+}

@@ -988,5 +988,47 @@
     "text": "Yalnızca orijinal abonelik bölgenizde kullanılabilir",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Bu plana zaten abonesiniz."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Aboneliği yeniden etkinleştir"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "Aboneliğiniz yeniden etkinleştirildi. Normal şekilde ücretlendirilmeye devam edeceksiniz."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "Abonelik yeniden etkinleştirilemedi. Lütfen tekrar deneyin veya destek ekibiyle iletişime geçin."
+  },
+  "web.billing.features.manage_orgs": {
+    "text": "Kuruluş Yönetimi"
+  },
+  "web.billing.features.flexible_from_domain": {
+    "text": "Esnek E-posta Gönderen Alan Adı"
+  },
+  "web.billing.features.unlimited_admins": {
+    "text": "Sınırsız Yönetici"
+  },
+  "web.billing.features.manage_sso": {
+    "text": "SSO"
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Esnek E-posta Gönderen Alan Adı"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "Kuruluşları Yönet"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Tek Oturum Açma (SSO)"
+  },
+  "web.billing.overview.entitlements.manage_billing": {
+    "text": "Faturalandırmayı Yönet"
+  },
+  "web.billing.overview.entitlements.custom_signup_validation": {
+    "text": "Özel Kayıt Doğrulaması"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Yeniden etkinleştir"
   }
 }

@@ -1,0 +1,29 @@
+{
+  "api.domains.errors.domain_id_required": {
+    "text": "معرّف النطاق مطلوب"
+  },
+  "api.domains.errors.domain_not_found": {
+    "text": "لم يتم العثور على النطاق: %{extid}"
+  },
+  "api.domains.errors.organization_not_found": {
+    "text": "لم يتم العثور على مؤسسة لهذا النطاق: %{domain}"
+  },
+  "api.domains.errors.incoming_secrets_disabled": {
+    "text": "الأسرار الواردة غير مُفعّلة على هذه النسخة"
+  },
+  "api.domains.errors.incoming_secrets_entitlement_required": {
+    "text": "تتطلب إدارة الأسرار الواردة استحقاق incoming_secrets. يُرجى ترقية خطتك."
+  },
+  "api.domains.errors.incoming_config_not_found": {
+    "text": "لم يتم العثور على إعدادات الوارد لهذا النطاق: %{extid}"
+  },
+  "api.domains.errors.recipients_max_exceeded": {
+    "text": "الحد الأقصى المسموح به هو %{max} مستلِم"
+  },
+  "api.domains.errors.recipients_invalid_email": {
+    "text": "بريد إلكتروني غير صالح: %{email}"
+  },
+  "api.domains.errors.recipients_duplicate": {
+    "text": "لا يُسمح بتكرار عناوين بريد المستلِمين"
+  }
+}

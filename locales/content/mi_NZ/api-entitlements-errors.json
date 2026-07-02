@@ -1,0 +1,71 @@
+{
+  "api.entitlements.errors.context_unavailable": {
+    "text": "Kāore e taea te manatoko i ngā whakaaetanga (kāore te horopaki whakahaere e wātea)"
+  },
+  "api.entitlements.errors.api_access_required": {
+    "text": "Me whakapiki mahere mō te urunga API"
+  },
+  "api.entitlements.errors.custom_privacy_defaults_required": {
+    "text": "Me whakapiki mahere mō ngā taunoa tūmataiti ritenga"
+  },
+  "api.entitlements.errors.extended_default_expiration_required": {
+    "text": "Me whakapiki mahere mō te paunga taunoa roa ake"
+  },
+  "api.entitlements.errors.custom_domains_required": {
+    "text": "Me whakapiki mahere mō ngā rohe ritenga"
+  },
+  "api.entitlements.errors.custom_branding_required": {
+    "text": "Me whakapiki mahere mō te waitohu ritenga"
+  },
+  "api.entitlements.errors.homepage_secrets_required": {
+    "text": "Me whakapiki mahere mō ngā karere huna whārangi kāinga"
+  },
+  "api.entitlements.errors.incoming_secrets_required": {
+    "text": "Me whakapiki mahere mō ngā karere huna taemai"
+  },
+  "api.entitlements.errors.custom_mail_sender_required": {
+    "text": "Me whakapiki mahere mō te kaituku mēra ritenga"
+  },
+  "api.entitlements.errors.flexible_from_domain_required": {
+    "text": "Me whakapiki mahere mō te rohe-mai ngāwari"
+  },
+  "api.entitlements.errors.manage_org_required": {
+    "text": "Me whakapiki mahere mō te whakahaere rōpū"
+  },
+  "api.entitlements.errors.manage_teams_required": {
+    "text": "Me whakapiki mahere mō te whakahaere tīma"
+  },
+  "api.entitlements.errors.manage_members_required": {
+    "text": "Me whakapiki mahere mō te whakahaere mema"
+  },
+  "api.entitlements.errors.manage_sso_required": {
+    "text": "Me whakapiki mahere mō te whakahaere SSO"
+  },
+  "api.entitlements.errors.audit_logs_required": {
+    "text": "Me whakapiki mahere mō ngā rangitaki arotake"
+  },
+  "api.entitlements.errors.custom_signup_validation_required": {
+    "text": "Me whakapiki mahere mō te whakamana rēhitatanga ritenga"
+  },
+  "api.entitlements.errors.create_secrets_required": {
+    "text": "Me whakapiki mahere mō te waihanga karere huna"
+  },
+  "api.entitlements.errors.view_receipt_required": {
+    "text": "Me whakapiki mahere mō te tiro rīhiti"
+  },
+  "api.entitlements.errors.notifications_required": {
+    "text": "Me whakapiki mahere mō ngā whakamōhiotanga"
+  },
+  "api.entitlements.errors.workspace_branding_required": {
+    "text": "Me whakapiki mahere mō te waitohu wāhi mahi"
+  },
+  "api.entitlements.errors.ip_access_rules_required": {
+    "text": "Me whakapiki mahere mō ngā ture urunga IP"
+  },
+  "api.entitlements.errors.manage_billing_required": {
+    "text": "Me whakapiki mahere mō te whakahaere nama"
+  },
+  "api.entitlements.errors.custom_signin_config_required": {
+    "text": "Me whakapiki mahere mō te whirihoranga takiuru ritenga"
+  }
+}

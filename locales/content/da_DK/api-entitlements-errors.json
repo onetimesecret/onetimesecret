@@ -1,0 +1,71 @@
+{
+  "api.entitlements.errors.context_unavailable": {
+    "text": "Kunne ikke verificere rettigheder (organisationskontekst ikke tilgængelig)"
+  },
+  "api.entitlements.errors.api_access_required": {
+    "text": "API-adgang kræver en planopgradering"
+  },
+  "api.entitlements.errors.custom_privacy_defaults_required": {
+    "text": "Brugerdefinerede standardindstillinger for privatliv kræver en planopgradering"
+  },
+  "api.entitlements.errors.extended_default_expiration_required": {
+    "text": "Udvidet standardudløb kræver en planopgradering"
+  },
+  "api.entitlements.errors.custom_domains_required": {
+    "text": "Brugerdefinerede domæner kræver en planopgradering"
+  },
+  "api.entitlements.errors.custom_branding_required": {
+    "text": "Brugerdefineret branding kræver en planopgradering"
+  },
+  "api.entitlements.errors.homepage_secrets_required": {
+    "text": "Beskeder på hjemmesiden kræver en planopgradering"
+  },
+  "api.entitlements.errors.incoming_secrets_required": {
+    "text": "Indkommende beskeder kræver en planopgradering"
+  },
+  "api.entitlements.errors.custom_mail_sender_required": {
+    "text": "Brugerdefineret mailafsender kræver en planopgradering"
+  },
+  "api.entitlements.errors.flexible_from_domain_required": {
+    "text": "Fleksibelt afsenderdomæne kræver en planopgradering"
+  },
+  "api.entitlements.errors.manage_org_required": {
+    "text": "Organisationsadministration kræver en planopgradering"
+  },
+  "api.entitlements.errors.manage_teams_required": {
+    "text": "Teamadministration kræver en planopgradering"
+  },
+  "api.entitlements.errors.manage_members_required": {
+    "text": "Medlemsadministration kræver en planopgradering"
+  },
+  "api.entitlements.errors.manage_sso_required": {
+    "text": "SSO-administration kræver en planopgradering"
+  },
+  "api.entitlements.errors.audit_logs_required": {
+    "text": "Revisionslogfiler kræver en planopgradering"
+  },
+  "api.entitlements.errors.custom_signup_validation_required": {
+    "text": "Brugerdefineret tilmeldingsvalidering kræver en planopgradering"
+  },
+  "api.entitlements.errors.create_secrets_required": {
+    "text": "Oprettelse af beskeder kræver en planopgradering"
+  },
+  "api.entitlements.errors.view_receipt_required": {
+    "text": "Visning af kvitteringer kræver en planopgradering"
+  },
+  "api.entitlements.errors.notifications_required": {
+    "text": "Notifikationer kræver en planopgradering"
+  },
+  "api.entitlements.errors.workspace_branding_required": {
+    "text": "Workspace-branding kræver en planopgradering"
+  },
+  "api.entitlements.errors.ip_access_rules_required": {
+    "text": "IP-adgangsregler kræver en planopgradering"
+  },
+  "api.entitlements.errors.manage_billing_required": {
+    "text": "Faktureringsadministration kræver en planopgradering"
+  },
+  "api.entitlements.errors.custom_signin_config_required": {
+    "text": "Brugerdefineret login-konfiguration kræver en planopgradering"
+  }
+}

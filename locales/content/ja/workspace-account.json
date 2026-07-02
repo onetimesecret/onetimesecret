@@ -682,5 +682,14 @@
   "web.settings.profile.didnt_receive_email": {
     "text": "メールが届きませんか？",
     "source_hash": "fe3ac3ad"
+  },
+  "web.settings.api.api_disabled_notice": {
+    "text": "このインスタンスではAPIが無効になっています。"
+  },
+  "web.settings.security.sso_managed_title": {
+    "text": "SSOによって管理されるセキュリティ"
+  },
+  "web.settings.security.sso_managed_description": {
+    "text": "お使いのアカウントは、組織のシングルサインオンプロバイダーを通じて認証されます。パスワード、多要素認証、リカバリーコードはIDプロバイダーによって管理されます。"
   }
 }

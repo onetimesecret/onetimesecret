@@ -130,5 +130,26 @@
   "incoming.receipt_link_text": {
     "text": "الإيصال",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "الترقية مطلوبة"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "تتطلب هذه الميزة ترقية الخطة. يُرجى التواصل مع مالك الحساب لتفعيل الأسرار الواردة."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "يجب أن تكون المذكرة بطول {max} حرفاً أو أقل"
+  },
+  "incoming.validation_secret_required": {
+    "text": "محتوى السر مطلوب"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "يُرجى اختيار مستلِم"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "ميزة الأسرار الواردة غير مُفعّلة"
+  },
+  "incoming.validation_form_errors": {
+    "text": "يُرجى التحقق من النموذج بحثاً عن الأخطاء"
   }
 }

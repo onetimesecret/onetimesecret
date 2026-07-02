@@ -1,0 +1,5 @@
+{
+  "api.incoming.errors.custom_domain_unresolved": {
+    "text": "无法解析自定义域名所属的组织"
+  }
+}

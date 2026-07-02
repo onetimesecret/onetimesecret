@@ -476,7 +476,7 @@
     "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Научете как да интегрирате {product_name} във вашите приложения",
+    "text": "Научете как да интегрирате {product_name} в приложенията си",
     "source_hash": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {
@@ -682,5 +682,14 @@
   "web.settings.profile.didnt_receive_email": {
     "text": "Не получихте имейла?",
     "source_hash": "fe3ac3ad"
+  },
+  "web.settings.api.api_disabled_notice": {
+    "text": "API е деактивиран за този екземпляр."
+  },
+  "web.settings.security.sso_managed_title": {
+    "text": "Сигурността се управлява от SSO"
+  },
+  "web.settings.security.sso_managed_description": {
+    "text": "Вашият акаунт се удостоверява чрез доставчика на единно влизане на вашата организация. Паролата, многофакторното удостоверяване и кодовете за възстановяване се управляват от вашия доставчик на идентичност."
   }
 }

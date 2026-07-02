@@ -1,0 +1,107 @@
+{
+  "api.organizations.errors.domain_scoped_forbidden": {
+    "text": "도메인 범위 멤버는 이 작업을 수행할 수 없습니다"
+  },
+  "api.organizations.errors.organization_not_found": {
+    "text": "조직을 찾을 수 없습니다: %{extid}"
+  },
+  "api.organizations.errors.organization_owner_required": {
+    "text": "조직 소유자만 이 작업을 수행할 수 있습니다"
+  },
+  "api.organizations.errors.organization_member_required": {
+    "text": "이 작업을 수행하려면 조직 멤버여야 합니다"
+  },
+  "api.organizations.errors.organization_admin_required": {
+    "text": "조직 소유자와 관리자만 이 작업을 수행할 수 있습니다"
+  },
+  "api.organizations.errors.extid_required": {
+    "text": "조직 ID가 필요합니다"
+  },
+  "api.organizations.errors.display_name_required": {
+    "text": "조직 이름은 필수입니다"
+  },
+  "api.organizations.errors.display_name_too_long": {
+    "text": "조직 이름은 %{max}자 미만이어야 합니다"
+  },
+  "api.organizations.errors.description_too_long": {
+    "text": "설명은 %{max}자 미만이어야 합니다"
+  },
+  "api.organizations.errors.contact_email_exists": {
+    "text": "이 연락처 이메일을 사용하는 조직이 이미 존재합니다"
+  },
+  "api.organizations.errors.creation_in_progress": {
+    "text": "조직 생성이 진행 중입니다. 다시 시도해 주세요."
+  },
+  "api.organizations.errors.organization_limit_reached": {
+    "text": "조직 한도에 도달했습니다. 조직을 더 만들려면 요금제를 업그레이드하세요."
+  },
+  "api.organizations.invitations.errors.invitation_not_found": {
+    "text": "초대를 찾을 수 없습니다"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "이메일은 필수입니다"
+  },
+  "api.organizations.invitations.errors.invalid_email_format": {
+    "text": "유효하지 않은 이메일 형식입니다"
+  },
+  "api.organizations.invitations.errors.invalid_role": {
+    "text": "역할은 멤버 또는 관리자여야 합니다"
+  },
+  "api.organizations.invitations.errors.cannot_invite_as_owner": {
+    "text": "소유자로 초대할 수 없습니다"
+  },
+  "api.organizations.invitations.errors.user_already_member": {
+    "text": "사용자가 이미 이 조직의 멤버입니다"
+  },
+  "api.organizations.invitations.errors.invitation_already_pending": {
+    "text": "이 이메일에 대한 초대가 이미 대기 중입니다"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "멤버 한도에 도달했습니다. 더 많은 멤버를 초대하려면 요금제를 업그레이드하세요."
+  },
+  "api.organizations.invitations.errors.resend_only_pending": {
+    "text": "대기 중인 초대만 다시 보낼 수 있습니다"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "최대 재전송 한도(%{max})에 도달했습니다"
+  },
+  "api.organizations.invitations.errors.revoke_only_pending": {
+    "text": "대기 중인 초대만 철회할 수 있습니다"
+  },
+  "api.organizations.members.errors.member_not_found": {
+    "text": "멤버를 찾을 수 없습니다: %{extid}"
+  },
+  "api.organizations.members.errors.member_not_in_organization": {
+    "text": "이 조직에서 멤버를 찾을 수 없습니다"
+  },
+  "api.organizations.members.errors.member_not_active": {
+    "text": "멤버가 활성 상태가 아닙니다"
+  },
+  "api.organizations.members.errors.invalid_role_value": {
+    "text": "유효하지 않은 역할입니다. 다음 중 하나여야 합니다: %{roles}"
+  },
+  "api.organizations.members.errors.cannot_change_owner_role": {
+    "text": "소유자 역할은 변경할 수 없습니다. 대신 소유권 이전을 사용하세요."
+  },
+  "api.organizations.members.errors.member_already_has_role": {
+    "text": "멤버에게 이미 다음 역할이 있습니다: %{role}"
+  },
+  "api.organizations.members.errors.cannot_promote_to_owner": {
+    "text": "소유자로 승격할 수 없습니다. 대신 소유권 이전을 사용하세요."
+  },
+  "api.organizations.members.errors.must_be_member": {
+    "text": "이 조직의 멤버여야 합니다"
+  },
+  "api.organizations.members.errors.cannot_remove_owner": {
+    "text": "조직 소유자는 제거할 수 없습니다. 먼저 소유권을 이전하세요."
+  },
+  "api.organizations.members.errors.cannot_remove_self": {
+    "text": "본인은 제거할 수 없습니다. 대신 조직 나가기를 사용하세요."
+  },
+  "api.organizations.members.errors.admin_cannot_remove_admin": {
+    "text": "관리자는 다른 관리자를 제거할 수 없습니다. 소유자만 가능합니다."
+  },
+  "api.organizations.members.errors.no_permission_to_remove": {
+    "text": "멤버를 제거할 권한이 없습니다"
+  }
+}

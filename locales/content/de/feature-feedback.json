@@ -58,5 +58,14 @@
   "web.feedback.reason_email_change_unauthorized": {
     "text": "Es sieht so aus, als würdest du eine unautorisierte E-Mail-Änderung an deinem Konto melden. Bitte beschreibe, was passiert ist, und wir werden es sofort untersuchen.",
     "source_hash": "00e56551"
+  },
+  "web.feedback.anonymous_no_reply": {
+    "text": "Hinweis: Wenn du eine Antwort möchtest, gib bitte deinen Namen oder eine E-Mail-Adresse in der Nachricht an."
+  },
+  "web.feedback.characters_remaining": {
+    "text": "{count} Zeichen übrig"
+  },
+  "web.feedback.character_limit_reached": {
+    "text": "Zeichenlimit erreicht"
   }
 }

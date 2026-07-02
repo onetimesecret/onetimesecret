@@ -634,5 +634,152 @@
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
     "text": "כאשר תשלח משוב, נראה:",
     "source_hash": "fe77172e"
+  },
+  "web.colonel.previewPlanMode": {
+    "text": "מצב תצוגה מקדימה של תוכנית"
+  },
+  "web.colonel.previewModeDescription": {
+    "text": "הצג תצוגה מקדימה של האפליקציה כפי שהיא מופיעה ללקוחות בתוכנית אחרת. הדבר משפיע על התצוגה שלך בלבד ואינו משנה את התוכנית בפועל של אף ארגון."
+  },
+  "web.colonel.previewModeActive": {
+    "text": "תצוגה מקדימה פעילה"
+  },
+  "web.colonel.bannedIps.empty": {
+    "text": "אין כתובות IP חסומות"
+  },
+  "web.colonel.bannedIps.currentIp": {
+    "text": "כתובת ה-IP הנוכחית שלך"
+  },
+  "web.colonel.bannedIps.confirmUnban": {
+    "text": "לבטל את החסימה של {ip}?"
+  },
+  "web.colonel.bannedIps.actions.ban": {
+    "text": "חסום IP"
+  },
+  "web.colonel.bannedIps.actions.quickBan": {
+    "text": "חסימה מהירה"
+  },
+  "web.colonel.bannedIps.actions.unban": {
+    "text": "בטל חסימה"
+  },
+  "web.colonel.bannedIps.actions.cancel": {
+    "text": "ביטול"
+  },
+  "web.colonel.bannedIps.columns.ipAddress": {
+    "text": "כתובת IP"
+  },
+  "web.colonel.bannedIps.columns.reason": {
+    "text": "סיבה"
+  },
+  "web.colonel.bannedIps.columns.bannedAt": {
+    "text": "נחסם בתאריך"
+  },
+  "web.colonel.bannedIps.columns.bannedBy": {
+    "text": "נחסם על ידי"
+  },
+  "web.colonel.bannedIps.error.banFailed": {
+    "text": "חסימת כתובת ה-IP נכשלה"
+  },
+  "web.colonel.bannedIps.error.unbanFailed": {
+    "text": "ביטול חסימת כתובת ה-IP נכשל"
+  },
+  "web.colonel.bannedIps.form.title": {
+    "text": "חסימת כתובת IP"
+  },
+  "web.colonel.bannedIps.form.ipLabel": {
+    "text": "כתובת IP"
+  },
+  "web.colonel.bannedIps.form.reasonLabel": {
+    "text": "סיבה"
+  },
+  "web.colonel.bannedIps.form.reasonPlaceholder": {
+    "text": "סיבה (אופציונלי)"
+  },
+  "web.colonel.bannedIps.success.banned": {
+    "text": "כתובת ה-IP {ip} נחסמה"
+  },
+  "web.colonel.bannedIps.success.unbanned": {
+    "text": "חסימת כתובת ה-IP {ip} בוטלה"
+  },
+  "web.colonel.customDomains.empty": {
+    "text": "לא הוגדרו דומיינים מותאמים אישית"
+  },
+  "web.colonel.customDomains.noLogo": {
+    "text": "אין לוגו"
+  },
+  "web.colonel.customDomains.labels.organization": {
+    "text": "ארגון"
+  },
+  "web.colonel.customDomains.labels.externalId": {
+    "text": "מזהה חיצוני"
+  },
+  "web.colonel.customDomains.labels.created": {
+    "text": "נוצר"
+  },
+  "web.colonel.customDomains.labels.updated": {
+    "text": "עודכן"
+  },
+  "web.colonel.customDomains.labels.favicon": {
+    "text": "Favicon"
+  },
+  "web.colonel.customDomains.status.verified": {
+    "text": "מאומת"
+  },
+  "web.colonel.customDomains.status.resolving": {
+    "text": "בתהליך פתרון"
+  },
+  "web.colonel.customDomains.status.ready": {
+    "text": "מוכן"
+  },
+  "web.colonel.customDomains.status.publicHomepage": {
+    "text": "דף בית ציבורי"
+  },
+  "web.colonel.customDomains.status.publicApi": {
+    "text": "API ציבורי"
+  },
+  "web.colonel.customDomains.status.pending": {
+    "text": "ממתין"
+  },
+  "web.colonel.pagination.showing": {
+    "text": "מציג {start}–{end} מתוך {total}"
+  },
+  "web.colonel.pagination.itemsPerPage": {
+    "text": "פריטים לעמוד"
+  },
+  "web.colonel.pagination.perPage": {
+    "text": "{count} לעמוד"
+  },
+  "web.colonel.pagination.pageOf": {
+    "text": "עמוד {current} מתוך {total}"
+  },
+  "web.colonel.secrets.empty": {
+    "text": "לא נמצאו סודות"
+  },
+  "web.colonel.secrets.never": {
+    "text": "אף פעם"
+  },
+  "web.colonel.secrets.columns.shortId": {
+    "text": "מזהה קצר"
+  },
+  "web.colonel.secrets.columns.state": {
+    "text": "מצב"
+  },
+  "web.colonel.secrets.columns.created": {
+    "text": "נוצר"
+  },
+  "web.colonel.secrets.columns.expiration": {
+    "text": "תפוגה"
+  },
+  "web.colonel.secrets.columns.age": {
+    "text": "גיל (ימים)"
+  },
+  "web.colonel.secrets.state.new": {
+    "text": "חדש"
+  },
+  "web.colonel.secrets.state.received": {
+    "text": "התקבל"
+  },
+  "web.colonel.secrets.state.viewed": {
+    "text": "נצפה"
   }
 }

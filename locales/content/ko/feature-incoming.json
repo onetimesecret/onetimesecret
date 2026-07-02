@@ -130,5 +130,26 @@
   "incoming.receipt_link_text": {
     "text": "수신확인",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "업그레이드 필요"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "이 기능을 사용하려면 요금제 업그레이드가 필요합니다. 수신 비밀 메시지를 활성화하려면 계정 소유자에게 문의하세요."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "메모는 {max}자 이하여야 합니다"
+  },
+  "incoming.validation_secret_required": {
+    "text": "비밀 메시지 내용을 입력해야 합니다"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "받는 사람을 선택해 주세요"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "수신 비밀 메시지 기능이 활성화되어 있지 않습니다"
+  },
+  "incoming.validation_form_errors": {
+    "text": "양식에 오류가 없는지 확인해 주세요"
   }
 }

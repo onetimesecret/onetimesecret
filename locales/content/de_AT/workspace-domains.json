@@ -398,5 +398,725 @@
   "web.domains.dns_widget_description": {
     "text": "Verwenden Sie das Tool unten, um Ihren DNS-Anbieter automatisch zu erkennen und Schritt-für-Schritt-Anleitungen zur Konfiguration Ihrer Domain zu erhalten.",
     "source_hash": "91c1af2e"
+  },
+  "api.domains.errors.add_admin_required": {
+    "text": "Nur Organisationsinhaber und Administratoren können benutzerdefinierte Bereiche hinzufügen"
+  },
+  "web.domains.public_homepage": {
+    "text": "Öffentliche Startseite"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Bereich verifiziert und aktiv"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS nicht konfiguriert — zum Beheben klicken"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Bereich nicht verifiziert — zum Verifizieren klicken"
+  },
+  "web.domains.status_tooltip_unverified": {
+    "text": "Bereichsstatus nicht verifiziert — zum Aktualisieren klicken"
+  },
+  "web.domains.last_check_failed": {
+    "text": "Letzte Verifizierungsprüfung fehlgeschlagen"
+  },
+  "web.domains.last_check_failed_ago": {
+    "text": "letzte Prüfung fehlgeschlagen {0}"
+  },
+  "web.domains.verify_now": {
+    "text": "Jetzt verifizieren"
+  },
+  "web.domains.click_to_verify": {
+    "text": "zum Verifizieren klicken"
+  },
+  "web.domains.remove_domain_description": {
+    "text": "Diesen Bereich und seine gesamte Konfiguration dauerhaft entfernen."
+  },
+  "web.domains.add_access_denied": {
+    "text": "Zugriff verweigert"
+  },
+  "web.domains.add_access_denied_description": {
+    "text": "Sie haben keine Berechtigung, Bereiche zu dieser Organisation hinzuzufügen. Wenden Sie sich an Ihren Organisationsadministrator."
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "DNS-Widget konnte nicht geladen werden"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "DNS-Widget nicht verfügbar"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "DNS-Widget konnte nicht initialisiert werden"
+  },
+  "web.domains.verified": {
+    "text": "Verifiziert"
+  },
+  "web.domains.pending_verification": {
+    "text": "Verifizierung ausstehend"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Sie haben nicht gespeicherte Änderungen. Möchten Sie die Seite wirklich verlassen?"
+  },
+  "web.domains.entitlement_required_owner": {
+    "text": "Diese Funktion erfordert ein Upgrade Ihres Tarifs."
+  },
+  "web.domains.entitlement_required_member": {
+    "text": "Diese Funktion ist in Ihrem aktuellen Tarif nicht verfügbar. Wenden Sie sich an Ihren Organisationsinhaber."
+  },
+  "web.domains.detail.manage": {
+    "text": "Verwalten"
+  },
+  "web.domains.detail.features": {
+    "text": "Funktionen"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Nachrichten auf der Startseite"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Öffentlichen Zugriff erlauben, um Nachrichten auf der Startseite Ihres Bereichs zu erstellen"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logo, Farben und benutzerdefiniertes Branding"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Einstellungen des Single-Sign-On-Anbieters"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Konfiguration des benutzerdefinierten E-Mail-Absenders"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Empfängereinstellungen für eingehende Nachrichten"
+  },
+  "web.domains.detail.signup_description": {
+    "text": "Strategie zur Registrierungsvalidierung pro Bereich"
+  },
+  "web.domains.detail.signin_description": {
+    "text": "Konfiguration der Anmeldemethode pro Bereich"
+  },
+  "web.domains.email.title": {
+    "text": "E-Mail-Versand"
+  },
+  "web.domains.email.config_title": {
+    "text": "E-Mail-Konfiguration"
+  },
+  "web.domains.email.config_description": {
+    "text": "E-Mail-Versand für diesen Bereich konfigurieren"
+  },
+  "web.domains.email.provider_label": {
+    "text": "E-Mail-Anbieter"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "Wählen Sie einen E-Mail-Anbieter"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "Absendername"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "z. B. Acme Security"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "Absenderadresse"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "z. B. secrets{'@'}example.com"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Antwort-an-Adresse"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "z. B. support{'@'}example.com"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Änderungen speichern"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Änderungen verwerfen"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Kontostandards verwenden"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "Erfordert Bereichsverifizierung über DKIM- und SPF-Einträge"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Erfordert Einrichtung der Bereichsauthentifizierung"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Erfordert Bereichsverifizierung"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "Verwendet die Standardkonfiguration für den E-Mail-Versand Ihres Kontos"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "DNS-Einträge"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "Fügen Sie die folgenden DNS-Einträge hinzu, um Ihren Bereich für den E-Mail-Versand zu verifizieren."
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Typ"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Name"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Wert"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Anbieter"
+  },
+  "web.domains.email.dns_optional_label": {
+    "text": "Empfohlen"
+  },
+  "web.domains.email.dns_optional_hint": {
+    "text": "Dieser Eintrag wird empfohlen, ist aber für die Verifizierung nicht erforderlich. Eine DMARC-Richtlinie auf Ihrer Organisationsdomäne deckt diese Subdomäne möglicherweise bereits ab."
+  },
+  "web.domains.email.copy": {
+    "text": "Kopieren"
+  },
+  "web.domains.email.copied": {
+    "text": "Kopiert"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Verifiziert"
+  },
+  "web.domains.email.status_pending": {
+    "text": "Ausstehend"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Fehlgeschlagen"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Erneut validieren"
+  },
+  "web.domains.email.validating": {
+    "text": "Wird validiert..."
+  },
+  "web.domains.email.domain_verified": {
+    "text": "Bereich verifiziert"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "Validierung fehlgeschlagen"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Zuletzt validiert"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Führen Sie ein Upgrade Ihres Tarifs durch, um den E-Mail-Versand für diesen Bereich zu konfigurieren."
+  },
+  "web.domains.email.configure_email": {
+    "text": "E-Mail konfigurieren"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Zugriff verweigert"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "Sie haben keine Berechtigung, die E-Mail-Einstellungen für diesen Bereich zu verwalten. Wenden Sie sich an Ihren Organisationsadministrator."
+  },
+  "web.domains.email.update_success": {
+    "text": "E-Mail-Konfiguration erfolgreich gespeichert"
+  },
+  "web.domains.email.delete_success": {
+    "text": "E-Mail-Konfiguration erfolgreich entfernt"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "E-Mails für diesen Bereich werden derzeit vom globalen Absender gesendet. Schließen Sie die E-Mail-Konfiguration ab, um Ihre eigene Absenderidentität zu verwenden."
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "Der benutzerdefinierte E-Mail-Versand ist derzeit deaktiviert. E-Mails werden vom globalen Absender gesendet. Aktivieren Sie die Funktion unten, um Ihre benutzerdefinierte Absenderidentität zu verwenden."
+  },
+  "web.domains.email.test_email_title": {
+    "text": "E-Mail-Zustellung testen"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Senden Sie sich selbst eine Test-E-Mail mit der gespeicherten Konfiguration. Funktioniert auch, wenn die Funktion noch nicht aktiviert ist."
+  },
+  "web.domains.email.send_test": {
+    "text": "Test senden"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Test-E-Mail erfolgreich gesendet"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Test-E-Mail konnte nicht gesendet werden"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Gesendet an {email}"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Zugestellt über {provider}"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "Nicht konfiguriert"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "Standardabsender wird verwendet"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Verifiziert"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Verifizierung ausstehend"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Deaktiviert"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "Kein E-Mail-Absender konfiguriert — E-Mails verwenden den Standardabsender der Plattform"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "Die Konfiguration des E-Mail-Absenders wartet auf Verifizierung — E-Mails verwenden den Standardabsender der Plattform"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "E-Mail-Absender ist deaktiviert — E-Mails verwenden den Standardabsender der Plattform"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "E-Mail-Absender verifiziert — E-Mails werden von diesem Bereich gesendet"
+  },
+  "web.domains.incoming.title": {
+    "text": "Eingehende Nachrichten"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Konfiguration für eingehende Nachrichten"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Externen Benutzern erlauben, Nachrichten direkt an festgelegte Empfänger in diesem Bereich zu senden"
+  },
+  "web.domains.incoming.feature_disabled": {
+    "text": "Eingehende Nachrichten nicht verfügbar"
+  },
+  "web.domains.incoming.feature_disabled_description": {
+    "text": "Eingehende Nachrichten sind auf dieser Instanz nicht aktiviert. Wenden Sie sich an Ihren Administrator."
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Zugriff verweigert"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "Sie haben keine Berechtigung, die Einstellungen für eingehende Nachrichten in diesem Bereich zu verwalten. Wenden Sie sich an Ihren Organisationsadministrator."
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Führen Sie ein Upgrade Ihres Tarifs durch, um eingehende Nachrichten für diesen Bereich zu konfigurieren."
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Eingehende Nachrichten konfigurieren"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "Eingehende Nachrichten sind für diesen Bereich nicht konfiguriert. Fügen Sie Empfänger hinzu, damit externe Benutzer Nachrichten an Ihr Team senden können."
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "Eingehende Nachrichten sind derzeit deaktiviert. Externe Benutzer können keine Nachrichten an Empfänger in diesem Bereich senden. Aktivieren Sie die Funktion unten, um eingehende Nachrichten zu erlauben."
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Empfänger"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Legen Sie fest, wer in diesem Bereich eingehende Nachrichten empfangen kann. Empfänger erhalten E-Mail-Benachrichtigungen, wenn ihnen eine Nachricht gesendet wird."
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Empfänger hinzufügen"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Entfernen"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "E-Mail-Adresse"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "recipient{'@'}example.com"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Anzeigename"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "z. B. Security Team"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "Keine Empfänger konfiguriert"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Fügen Sie Empfänger hinzu, damit externe Benutzer Nachrichten an Ihr Team senden können."
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Ungültige E-Mail-Adresse"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "Diese E-Mail-Adresse wurde bereits hinzugefügt"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "Maximal {max} Empfänger erlaubt"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "Anzeigename ist erforderlich"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "E-Mail-Adresse ist erforderlich"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Änderungen speichern"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Änderungen verwerfen"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "Konfiguration für eingehende Nachrichten erfolgreich gespeichert"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "Konfiguration für eingehende Nachrichten erfolgreich entfernt"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} Empfänger | {count} Empfänger"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "Nicht konfiguriert"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Konfiguriert"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Deaktiviert"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "Eingehende Nachrichten nicht konfiguriert - externe Benutzer können keine Nachrichten an diesen Bereich senden"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "Eingehende Nachrichten mit {count} Empfänger(n) aktiviert"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "Die Funktion für eingehende Nachrichten ist für diesen Bereich deaktiviert"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Eingehende Nachrichten aktivieren"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Externen Benutzern erlauben, Nachrichten an Empfänger in diesem Bereich zu senden"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "Öffentliche URL"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Teilen Sie diese URL mit externen Benutzern, damit sie Nachrichten senden können"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "URL kopieren"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "URL in die Zwischenablage kopiert"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Möchten Sie wirklich alle Empfänger entfernen? Externe Benutzer können dann keine Nachrichten mehr an diesen Bereich senden."
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Maximale Anzahl an Empfängern erreicht"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "Diese E-Mail-Adresse wurde bereits hinzugefügt"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "Beim Speichern werden alle vorhandenen Empfänger durch Ihre ausstehenden Änderungen ersetzt. Sind Sie sicher?"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Alle Empfänger löschen"
+  },
+  "web.domains.signin.title": {
+    "text": "Anmeldekonfiguration"
+  },
+  "web.domains.signin.configure_signin": {
+    "text": "Anmeldung konfigurieren"
+  },
+  "web.domains.signin.config_description": {
+    "text": "Anmelde-Authentifizierungsmethoden für diesen Bereich konfigurieren"
+  },
+  "web.domains.signin.access_denied": {
+    "text": "Zugriff verweigert"
+  },
+  "web.domains.signin.upgrade_to_configure": {
+    "text": "Führen Sie ein Upgrade Ihres Tarifs durch, um Anmeldemethoden für diesen Bereich zu konfigurieren."
+  },
+  "web.domains.signin.not_configured_notice": {
+    "text": "Die Anmeldekonfiguration ist für diesen Bereich noch nicht festgelegt. Konfigurieren Sie Überschreibungen, um zu steuern, welche Authentifizierungsmethoden auf der Anmeldeseite dieses Bereichs verfügbar sind."
+  },
+  "web.domains.signin.signin_enabled_label": {
+    "text": "Anmeldung aktiviert"
+  },
+  "web.domains.signin.header_toggle_label": {
+    "text": "Anmeldung"
+  },
+  "web.domains.signin.signin_enabled_hint": {
+    "text": "Ob sich Benutzer in diesem Bereich eintragen können"
+  },
+  "web.domains.signin.restrict_to_label": {
+    "text": "Anmeldemethode einschränken"
+  },
+  "web.domains.signin.restrict_to_hint": {
+    "text": "Diesen Bereich auf eine einzige Authentifizierungsmethode einschränken. Wenn festgelegt, wird auf der Anmeldeseite nur die gewählte Methode angezeigt."
+  },
+  "web.domains.signin.all_methods": {
+    "text": "Alle Methoden"
+  },
+  "web.domains.signin.all_methods_description": {
+    "text": "Alle aktivierten Authentifizierungsmethoden auf der Anmeldeseite anzeigen"
+  },
+  "web.domains.signin.method_password": {
+    "text": "Passwort"
+  },
+  "web.domains.signin.method_email_auth": {
+    "text": "E-Mail-Authentifizierung"
+  },
+  "web.domains.signin.method_webauthn": {
+    "text": "WebAuthn / Passkeys"
+  },
+  "web.domains.signin.method_sso": {
+    "text": "Single Sign-On"
+  },
+  "web.domains.signin.method_overrides_label": {
+    "text": "Methoden-Überschreibungen"
+  },
+  "web.domains.signin.method_overrides_hint": {
+    "text": "Einzelne Authentifizierungsmethoden für diesen Bereich aktivieren oder deaktivieren"
+  },
+  "web.domains.signin.mode_question": {
+    "text": "Wie können sich Benutzer eintragen?"
+  },
+  "web.domains.signin.mode_any": {
+    "text": "Jede verfügbare Methode"
+  },
+  "web.domains.signin.mode_any_hint": {
+    "text": "Jede in diesem Bereich verfügbare Methode anzeigen. Schränken Sie einzelne Methoden unten ein."
+  },
+  "web.domains.signin.mode_one": {
+    "text": "Eine bestimmte Methode"
+  },
+  "web.domains.signin.mode_one_hint": {
+    "text": "Die Anmeldeseite auf eine einzige Methode einschränken. Es werden nur die in diesem Bereich verfügbaren Methoden aufgeführt."
+  },
+  "web.domains.signin.mode_disabled": {
+    "text": "Anmeldung deaktiviert"
+  },
+  "web.domains.signin.mode_disabled_hint": {
+    "text": "Benutzer können sich in diesem Bereich nicht eintragen."
+  },
+  "web.domains.signin.mode_disabled_notice": {
+    "text": "Besucher der Anmeldeseite dieses Bereichs sehen einen Hinweis, dass die Anmeldung nicht verfügbar ist, mit einem Link zurück zur Startseite. Ihre vorherigen Methodeneinstellungen werden beibehalten und wiederhergestellt, wenn Sie die Anmeldung wieder aktivieren."
+  },
+  "web.domains.signin.methods_list_label": {
+    "text": "Auf der Anmeldeseite angezeigte Methoden"
+  },
+  "web.domains.signin.restrict_picker_hint": {
+    "text": "Es werden nur die in diesem Bereich verfügbaren Methoden aufgeführt."
+  },
+  "web.domains.signin.availability_always": {
+    "text": "Immer verfügbar"
+  },
+  "web.domains.signin.availability_global_on": {
+    "text": "Folgt globaler Richtlinie · Ein"
+  },
+  "web.domains.signin.availability_global_off": {
+    "text": "Nicht verfügbar"
+  },
+  "web.domains.signin.availability_unavailable": {
+    "text": "Standortweit nicht verfügbar"
+  },
+  "web.domains.signin.allow_on_domain": {
+    "text": "In diesem Bereich erlauben"
+  },
+  "web.domains.signin.method_password_blurb": {
+    "text": "Nur Passwort"
+  },
+  "web.domains.signin.method_email_auth_blurb": {
+    "text": "Passwortlose Anmeldung per Magic Link"
+  },
+  "web.domains.signin.method_webauthn_blurb": {
+    "text": "Biometrie und Sicherheitsschlüssel"
+  },
+  "web.domains.signin.method_sso_blurb": {
+    "text": "Externer Identitätsanbieter"
+  },
+  "web.domains.signin.email_auth_label": {
+    "text": "E-Mail-Authentifizierung"
+  },
+  "web.domains.signin.email_auth_hint": {
+    "text": "Passwortlose E-Mail-Authentifizierung in diesem Bereich erlauben"
+  },
+  "web.domains.signin.sso_enabled_label": {
+    "text": "Single Sign-On"
+  },
+  "web.domains.signin.sso_enabled_hint": {
+    "text": "SSO-Authentifizierung in diesem Bereich erlauben"
+  },
+  "web.domains.signin.enabled_label": {
+    "text": "Anmeldekonfiguration aktivieren"
+  },
+  "web.domains.signin.enabled_hint": {
+    "text": "Wenn aktiviert, verwendet dieser Bereich die oben konfigurierten Anmeldeeinstellungen"
+  },
+  "web.domains.signin.save_config": {
+    "text": "Konfiguration speichern"
+  },
+  "web.domains.signin.update_success": {
+    "text": "Anmeldekonfiguration erfolgreich aktualisiert"
+  },
+  "web.domains.signin.reset_to_defaults": {
+    "text": "Auf Standardeinstellungen zurücksetzen"
+  },
+  "web.domains.signin.reset_confirm": {
+    "text": "Anmeldung auf die globalen Standardeinstellungen zurücksetzen?"
+  },
+  "web.domains.signin.reset_keeps_sso": {
+    "text": "Ihre SSO-Anmeldedaten werden beibehalten. Entfernen Sie diese separat auf dem SSO-Konfigurationsbildschirm."
+  },
+  "web.domains.signin.reset_action": {
+    "text": "Ja, zurücksetzen"
+  },
+  "web.domains.signin.reset_success": {
+    "text": "Anmeldeeinstellungen auf die globalen Standardeinstellungen zurückgesetzt"
+  },
+  "web.domains.signup.title": {
+    "text": "Registrierungsvalidierung"
+  },
+  "web.domains.signup.config_description": {
+    "text": "Registrierungsvalidierung für diesen Bereich konfigurieren"
+  },
+  "web.domains.signup.access_denied": {
+    "text": "Zugriff verweigert"
+  },
+  "web.domains.signup.upgrade_to_configure": {
+    "text": "Führen Sie ein Upgrade Ihres Tarifs durch, um die Registrierungsvalidierung pro Bereich zu konfigurieren."
+  },
+  "web.domains.signup.configure_signup": {
+    "text": "Registrierung konfigurieren"
+  },
+  "web.domains.signup.not_configured_notice": {
+    "text": "Die Registrierungsvalidierung ist für diesen Bereich noch nicht konfiguriert. Konfigurieren Sie eine Strategie, um zu steuern, wer sich über diesen Bereich registrieren kann."
+  },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "Registrierungen sind derzeit auf Standortebene deaktiviert. Diese Richtlinie pro Bereich ist konfiguriert, wird den Datenverkehr aber erst regulieren, wenn die Standort-Registrierungen aktiviert sind."
+  },
+  "web.domains.signup.strategy_label": {
+    "text": "Validierungsstrategie"
+  },
+  "web.domains.signup.strategy_description": {
+    "text": "Wählen Sie, wie E-Mail-Adressen validiert werden, wenn sich Benutzer in diesem Bereich registrieren."
+  },
+  "web.domains.signup.network_validation_warning": {
+    "text": "Diese Strategie führt während der Registrierung Netzwerkaufrufe durch, was zu Verzögerungen führen oder von einigen Anbietern blockiert werden kann."
+  },
+  "web.domains.signup.allowed_domains_label": {
+    "text": "Erlaubte Bereiche für die Registrierung"
+  },
+  "web.domains.signup.allowed_domains_hint": {
+    "text": "Nur diese E-Mail-Bereiche dürfen sich registrieren. Fügen Sie einen Bereich pro Eintrag hinzu."
+  },
+  "web.domains.signup.domain_placeholder": {
+    "text": "example.com"
+  },
+  "web.domains.signup.invalid_domain": {
+    "text": "Bitte geben Sie einen gültigen Bereich ein (z. B. example.com)"
+  },
+  "web.domains.signup.domain_exists": {
+    "text": "Dieser Bereich ist bereits in der Liste"
+  },
+  "web.domains.signup.remove_domain": {
+    "text": "{domain} entfernen"
+  },
+  "web.domains.signup.enabled_label": {
+    "text": "Validierung pro Bereich aktivieren"
+  },
+  "web.domains.signup.enabled_hint": {
+    "text": "Wenn aktiviert, verwenden Registrierungen in diesem Bereich die obige Strategie anstelle der globalen Richtlinie."
+  },
+  "web.domains.signup.delete_config": {
+    "text": "Konfiguration löschen"
+  },
+  "web.domains.signup.delete_confirm": {
+    "text": "Konfiguration der Registrierungsvalidierung löschen? Registrierungen greifen dann auf die globale Richtlinie zurück."
+  },
+  "web.domains.signup.save_config": {
+    "text": "Konfiguration speichern"
+  },
+  "web.domains.signup.update_success": {
+    "text": "Registrierungsvalidierung erfolgreich aktualisiert"
+  },
+  "web.domains.signup.delete_success": {
+    "text": "Konfiguration der Registrierungsvalidierung erfolgreich entfernt"
+  },
+  "web.domains.signup.domain_overrides_label": {
+    "text": "Bereichs-Überschreibungen"
+  },
+  "web.domains.signup.domain_overrides_hint": {
+    "text": "Globale Registrierungseinstellungen für diesen Bereich überschreiben"
+  },
+  "web.domains.signup.signup_enabled_label": {
+    "text": "Registrierung aktiviert"
+  },
+  "web.domains.signup.signup_enabled_hint": {
+    "text": "Überschreiben, ob die Registrierung für diesen Bereich aktiviert ist"
+  },
+  "web.domains.signup.autoverify_label": {
+    "text": "Konten automatisch verifizieren"
+  },
+  "web.domains.signup.autoverify_hint": {
+    "text": "Überschreiben, ob neue Konten in diesem Bereich automatisch verifiziert werden"
+  },
+  "web.domains.sso.title": {
+    "text": "Single Sign-On"
+  },
+  "web.domains.sso.config_title": {
+    "text": "SSO-Konfiguration"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Single-Sign-On-Authentifizierung für diesen Bereich konfigurieren"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Zugriff verweigert"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "Sie haben keine Berechtigung, die SSO-Einstellungen für diesen Bereich zu verwalten. Wenden Sie sich an Ihren Organisationsadministrator."
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Führen Sie ein Upgrade Ihres Tarifs durch, um Single Sign-On für diesen Bereich zu konfigurieren."
+  },
+  "web.domains.sso.create_success": {
+    "text": "SSO-Konfiguration erfolgreich erstellt"
+  },
+  "web.domains.sso.update_success": {
+    "text": "SSO-Konfiguration erfolgreich aktualisiert"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "SSO-Konfiguration erfolgreich entfernt"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Verbindungstest erfolgreich — Anbieter hat korrekt geantwortet"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Verbindungstest fehlgeschlagen"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "Um SSO für alle Anmeldungen in diesem Bereich vorzuschreiben, konfigurieren Sie es in den Anmeldeeinstellungen des Bereichs. Der reine SSO-Modus beschränkt die Anmeldeseite auf den hier konfigurierten SSO-Anbieter."
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "SSO konfigurieren"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "SSO ist für diesen Bereich noch nicht konfiguriert. Aktivieren Sie Single Sign-On, damit sich Teammitglieder über den Identitätsanbieter Ihrer Organisation authentifizieren können."
+  },
+  "web.domains.sso.edit_credentials": {
+    "text": "Anmeldedaten bearbeiten"
+  },
+  "web.domains.sso.configure_button": {
+    "text": "Konfigurieren"
+  },
+  "web.domains.sso.upgrade_required": {
+    "text": "Upgrade zum Konfigurieren"
   }
 }

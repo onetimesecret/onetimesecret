@@ -1,0 +1,29 @@
+{
+  "api.domains.errors.domain_id_required": {
+    "text": "Изисква се ИД на домейна"
+  },
+  "api.domains.errors.domain_not_found": {
+    "text": "Домейнът не е намерен: %{extid}"
+  },
+  "api.domains.errors.organization_not_found": {
+    "text": "Не е намерена организация за домейна: %{domain}"
+  },
+  "api.domains.errors.incoming_secrets_disabled": {
+    "text": "Входящите тайни не са активирани на този екземпляр"
+  },
+  "api.domains.errors.incoming_secrets_entitlement_required": {
+    "text": "Управлението на входящи тайни изисква правото incoming_secrets. Моля, надстройте плана си."
+  },
+  "api.domains.errors.incoming_config_not_found": {
+    "text": "Не е намерена конфигурация за входящи за домейна: %{extid}"
+  },
+  "api.domains.errors.recipients_max_exceeded": {
+    "text": "Разрешени са максимум %{max} получатели"
+  },
+  "api.domains.errors.recipients_invalid_email": {
+    "text": "Невалиден имейл: %{email}"
+  },
+  "api.domains.errors.recipients_duplicate": {
+    "text": "Не са разрешени дублирани имейли на получатели"
+  }
+}

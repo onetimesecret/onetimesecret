@@ -1,0 +1,8 @@
+{
+  "api.account.errors.invalid_email": {
+    "text": "Bu geçerli bir e-posta adresi mi?"
+  },
+  "api.account.errors.password_too_short": {
+    "text": "Parola çok kısa"
+  }
+}

@@ -398,5 +398,725 @@
   "web.domains.dns_widget_description": {
     "text": "Brug værktøjet nedenfor til automatisk at registrere din DNS-udbyder og få trinvise instruktioner til konfiguration af dit domæne.",
     "source_hash": "91c1af2e"
+  },
+  "api.domains.errors.add_admin_required": {
+    "text": "Kun organisationsejere og administratorer kan tilføje brugerdefinerede domæner"
+  },
+  "web.domains.public_homepage": {
+    "text": "Offentlig hjemmeside"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Domæne bekræftet og aktivt"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS ikke konfigureret — klik for at rette"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Domæne ikke bekræftet — klik for at bekræfte"
+  },
+  "web.domains.status_tooltip_unverified": {
+    "text": "Domænestatus ikke bekræftet — klik for at opdatere"
+  },
+  "web.domains.last_check_failed": {
+    "text": "Sidste bekræftelseskontrol mislykkedes"
+  },
+  "web.domains.last_check_failed_ago": {
+    "text": "sidste kontrol mislykkedes {0}"
+  },
+  "web.domains.verify_now": {
+    "text": "Bekræft nu"
+  },
+  "web.domains.click_to_verify": {
+    "text": "klik for at bekræfte"
+  },
+  "web.domains.remove_domain_description": {
+    "text": "Fjern dette domæne og hele dets konfiguration permanent."
+  },
+  "web.domains.add_access_denied": {
+    "text": "Adgang nægtet"
+  },
+  "web.domains.add_access_denied_description": {
+    "text": "Du har ikke tilladelse til at tilføje domæner til denne organisation. Kontakt din organisationsadministrator."
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "Kunne ikke indlæse DNS-widget"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "DNS-widget ikke tilgængelig"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "Kunne ikke initialisere DNS-widget"
+  },
+  "web.domains.verified": {
+    "text": "Bekræftet"
+  },
+  "web.domains.pending_verification": {
+    "text": "Afventer bekræftelse"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Du har ugemte ændringer. Er du sikker på, at du vil forlade siden?"
+  },
+  "web.domains.entitlement_required_owner": {
+    "text": "Denne funktion kræver en planopgradering."
+  },
+  "web.domains.entitlement_required_member": {
+    "text": "Denne funktion er ikke tilgængelig på din nuværende plan. Kontakt din organisationsejer."
+  },
+  "web.domains.detail.manage": {
+    "text": "Administrer"
+  },
+  "web.domains.detail.features": {
+    "text": "Funktioner"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Hjemmesidebeskeder"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Tillad offentlig adgang til at oprette beskeder på dit domænes hjemmeside"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logo, farver og brugerdefineret branding"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Indstillinger for single sign-on-udbyder"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Konfiguration af brugerdefineret e-mailafsender"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Indstillinger for modtager af indgående beskeder"
+  },
+  "web.domains.detail.signup_description": {
+    "text": "Strategi for tilmeldingsvalidering pr. domæne"
+  },
+  "web.domains.detail.signin_description": {
+    "text": "Konfiguration af loginmetode pr. domæne"
+  },
+  "web.domains.email.title": {
+    "text": "E-mailafsendelse"
+  },
+  "web.domains.email.config_title": {
+    "text": "E-mailkonfiguration"
+  },
+  "web.domains.email.config_description": {
+    "text": "Konfigurer e-mailafsendelse for dette domæne"
+  },
+  "web.domains.email.provider_label": {
+    "text": "E-mailudbyder"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "Vælg en e-mailudbyder"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "Afsendernavn"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "f.eks. Acme Security"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "Afsenderadresse"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "f.eks. secrets{'@'}example.com"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Svar til-adresse"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "f.eks. support{'@'}example.com"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Gem ændringer"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Kassér ændringer"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Brug kontoens standardindstillinger"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "Kræver domænebekræftelse via DKIM- og SPF-poster"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Kræver opsætning af domænegodkendelse"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Kræver domænebekræftelse"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "Bruger din kontos standardkonfiguration for e-mailafsendelse"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "DNS-poster"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "Tilføj følgende DNS-poster for at bekræfte dit domæne til e-mailafsendelse."
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Type"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Navn"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Værdi"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Udbyder"
+  },
+  "web.domains.email.dns_optional_label": {
+    "text": "Anbefalet"
+  },
+  "web.domains.email.dns_optional_hint": {
+    "text": "Denne post anbefales, men er ikke påkrævet til bekræftelse. En DMARC-politik på dit organisationsdomæne dækker muligvis allerede dette underdomæne."
+  },
+  "web.domains.email.copy": {
+    "text": "Kopier"
+  },
+  "web.domains.email.copied": {
+    "text": "Kopieret"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Bekræftet"
+  },
+  "web.domains.email.status_pending": {
+    "text": "Afventer"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Mislykkedes"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Valider igen"
+  },
+  "web.domains.email.validating": {
+    "text": "Validerer..."
+  },
+  "web.domains.email.domain_verified": {
+    "text": "Domæne bekræftet"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "Validering mislykkedes"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Sidst valideret"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Opgrader din plan for at konfigurere e-mailafsendelse for dette domæne."
+  },
+  "web.domains.email.configure_email": {
+    "text": "Konfigurer e-mail"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Adgang nægtet"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "Du har ikke tilladelse til at administrere e-mailindstillinger for dette domæne. Kontakt din organisationsadministrator."
+  },
+  "web.domains.email.update_success": {
+    "text": "E-mailkonfiguration gemt"
+  },
+  "web.domains.email.delete_success": {
+    "text": "E-mailkonfiguration fjernet"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "E-mails for dette domæne sendes i øjeblikket fra den globale afsender. Færdiggør e-mailkonfigurationen for at bruge din egen afsenderidentitet."
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "Brugerdefineret e-mailafsendelse er i øjeblikket deaktiveret. E-mails vil blive sendt fra den globale afsender. Aktivér funktionen nedenfor for at bruge din brugerdefinerede afsenderidentitet."
+  },
+  "web.domains.email.test_email_title": {
+    "text": "Test e-maillevering"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Send en test-e-mail til dig selv med den gemte konfiguration. Virker, selv når funktionen endnu ikke er aktiveret."
+  },
+  "web.domains.email.send_test": {
+    "text": "Send test"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Test-e-mail sendt"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Kunne ikke sende test-e-mail"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Sendt til {email}"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Leveret via {provider}"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "Ikke konfigureret"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "Bruger standardafsender"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Bekræftet"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Afventer bekræftelse"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Deaktiveret"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "Ingen e-mailafsender konfigureret — e-mails bruger platformens standardafsender"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "E-mailafsenderkonfiguration afventer bekræftelse — e-mails bruger platformens standardafsender"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "E-mailafsender er deaktiveret — e-mails bruger platformens standardafsender"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "E-mailafsender bekræftet — e-mails sendes fra dette domæne"
+  },
+  "web.domains.incoming.title": {
+    "text": "Indgående beskeder"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Konfiguration af indgående beskeder"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Tillad eksterne brugere at sende beskeder direkte til udpegede modtagere på dette domæne"
+  },
+  "web.domains.incoming.feature_disabled": {
+    "text": "Indgående beskeder utilgængelig"
+  },
+  "web.domains.incoming.feature_disabled_description": {
+    "text": "Indgående beskeder er ikke aktiveret på denne instans. Kontakt din administrator."
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Adgang nægtet"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "Du har ikke tilladelse til at administrere indstillinger for indgående beskeder for dette domæne. Kontakt din organisationsadministrator."
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Opgrader din plan for at konfigurere indgående beskeder for dette domæne."
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Konfigurer indgående beskeder"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "Indgående beskeder er ikke konfigureret for dette domæne. Tilføj modtagere for at lade eksterne brugere sende beskeder til dit team."
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "Indgående beskeder er i øjeblikket deaktiveret. Eksterne brugere kan ikke sende beskeder til modtagere på dette domæne. Aktivér funktionen nedenfor for at tillade indgående beskeder."
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Modtagere"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Definer, hvem der kan modtage indgående beskeder på dette domæne. Modtagere får en e-mailnotifikation, når der sendes en besked til dem."
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Tilføj modtager"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Fjern"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "E-mailadresse"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "recipient{'@'}example.com"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Visningsnavn"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "f.eks. Security Team"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "Ingen modtagere konfigureret"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Tilføj modtagere for at lade eksterne brugere sende beskeder til dit team."
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Ugyldig e-mailadresse"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "Denne e-mailadresse er allerede tilføjet"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "Maksimalt {max} modtagere tilladt"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "Visningsnavn er påkrævet"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "E-mailadresse er påkrævet"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Gem ændringer"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Kassér ændringer"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "Konfiguration af indgående beskeder gemt"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "Konfiguration af indgående beskeder fjernet"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} modtager | {count} modtagere"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "Ikke konfigureret"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Konfigureret"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Deaktiveret"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "Indgående beskeder ikke konfigureret - eksterne brugere kan ikke sende beskeder til dette domæne"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "Indgående beskeder aktiveret med {count} modtager(e)"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "Funktionen for indgående beskeder er deaktiveret for dette domæne"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Aktivér indgående beskeder"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Tillad eksterne brugere at sende beskeder til modtagere på dette domæne"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "Offentlig URL"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Del denne URL med eksterne brugere for at lade dem sende beskeder"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "Kopier URL"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "URL kopieret til udklipsholder"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Er du sikker på, at du vil fjerne alle modtagere? Eksterne brugere vil ikke længere kunne sende beskeder til dette domæne."
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Det maksimale antal modtagere er nået"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "Denne e-mailadresse er allerede tilføjet"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "Hvis du gemmer, erstattes alle eksisterende modtagere med dine afventende ændringer. Er du sikker?"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Slet alle modtagere"
+  },
+  "web.domains.signin.title": {
+    "text": "Loginkonfiguration"
+  },
+  "web.domains.signin.configure_signin": {
+    "text": "Konfigurer login"
+  },
+  "web.domains.signin.config_description": {
+    "text": "Konfigurer godkendelsesmetoder for login på dette domæne"
+  },
+  "web.domains.signin.access_denied": {
+    "text": "Adgang nægtet"
+  },
+  "web.domains.signin.upgrade_to_configure": {
+    "text": "Opgrader din plan for at konfigurere loginmetoder for dette domæne."
+  },
+  "web.domains.signin.not_configured_notice": {
+    "text": "Loginkonfiguration er endnu ikke angivet for dette domæne. Konfigurer tilsidesættelser for at styre, hvilke godkendelsesmetoder der er tilgængelige på dette domænes loginside."
+  },
+  "web.domains.signin.signin_enabled_label": {
+    "text": "Login aktiveret"
+  },
+  "web.domains.signin.header_toggle_label": {
+    "text": "Login"
+  },
+  "web.domains.signin.signin_enabled_hint": {
+    "text": "Om brugere kan logge ind på dette domæne"
+  },
+  "web.domains.signin.restrict_to_label": {
+    "text": "Begræns loginmetode"
+  },
+  "web.domains.signin.restrict_to_hint": {
+    "text": "Begræns dette domæne til en enkelt godkendelsesmetode. Når den er angivet, vises kun den valgte metode på loginsiden."
+  },
+  "web.domains.signin.all_methods": {
+    "text": "Alle metoder"
+  },
+  "web.domains.signin.all_methods_description": {
+    "text": "Vis alle aktiverede godkendelsesmetoder på loginsiden"
+  },
+  "web.domains.signin.method_password": {
+    "text": "Adgangskode"
+  },
+  "web.domains.signin.method_email_auth": {
+    "text": "E-mailgodkendelse"
+  },
+  "web.domains.signin.method_webauthn": {
+    "text": "WebAuthn / Adgangsnøgler"
+  },
+  "web.domains.signin.method_sso": {
+    "text": "Single Sign-On"
+  },
+  "web.domains.signin.method_overrides_label": {
+    "text": "Metodetilsidesættelser"
+  },
+  "web.domains.signin.method_overrides_hint": {
+    "text": "Aktivér eller deaktiver individuelle godkendelsesmetoder for dette domæne"
+  },
+  "web.domains.signin.mode_question": {
+    "text": "Hvordan kan brugere logge ind?"
+  },
+  "web.domains.signin.mode_any": {
+    "text": "Enhver tilgængelig metode"
+  },
+  "web.domains.signin.mode_any_hint": {
+    "text": "Vis alle metoder, der er tilgængelige på dette domæne. Indsnævr individuelle metoder nedenfor."
+  },
+  "web.domains.signin.mode_one": {
+    "text": "Én bestemt metode"
+  },
+  "web.domains.signin.mode_one_hint": {
+    "text": "Begræns loginsiden til en enkelt metode. Kun metoder, der er tilgængelige på dette domæne, vises."
+  },
+  "web.domains.signin.mode_disabled": {
+    "text": "Login deaktiveret"
+  },
+  "web.domains.signin.mode_disabled_hint": {
+    "text": "Brugere kan ikke logge ind på dette domæne."
+  },
+  "web.domains.signin.mode_disabled_notice": {
+    "text": "Besøgende på dette domænes loginside ser en meddelelse om, at login ikke er tilgængeligt, med et link tilbage til hjemmesiden. Dine tidligere metodeindstillinger bevares og gendannes, når du genaktiverer login."
+  },
+  "web.domains.signin.methods_list_label": {
+    "text": "Metoder vist på loginsiden"
+  },
+  "web.domains.signin.restrict_picker_hint": {
+    "text": "Kun metoder, der er tilgængelige på dette domæne, vises."
+  },
+  "web.domains.signin.availability_always": {
+    "text": "Altid tilgængelig"
+  },
+  "web.domains.signin.availability_global_on": {
+    "text": "Følger global politik · Til"
+  },
+  "web.domains.signin.availability_global_off": {
+    "text": "Ikke tilgængelig"
+  },
+  "web.domains.signin.availability_unavailable": {
+    "text": "Utilgængelig på hele webstedet"
+  },
+  "web.domains.signin.allow_on_domain": {
+    "text": "Tillad på dette domæne"
+  },
+  "web.domains.signin.method_password_blurb": {
+    "text": "Kun adgangskode"
+  },
+  "web.domains.signin.method_email_auth_blurb": {
+    "text": "Adgangskodefrit login med magisk link"
+  },
+  "web.domains.signin.method_webauthn_blurb": {
+    "text": "Biometri og sikkerhedsnøgler"
+  },
+  "web.domains.signin.method_sso_blurb": {
+    "text": "Ekstern identitetsudbyder"
+  },
+  "web.domains.signin.email_auth_label": {
+    "text": "E-mailgodkendelse"
+  },
+  "web.domains.signin.email_auth_hint": {
+    "text": "Tillad adgangskodefri e-mailgodkendelse på dette domæne"
+  },
+  "web.domains.signin.sso_enabled_label": {
+    "text": "Single Sign-On"
+  },
+  "web.domains.signin.sso_enabled_hint": {
+    "text": "Tillad SSO-godkendelse på dette domæne"
+  },
+  "web.domains.signin.enabled_label": {
+    "text": "Aktivér loginkonfiguration"
+  },
+  "web.domains.signin.enabled_hint": {
+    "text": "Når den er aktiveret, bruger dette domæne de loginindstillinger, der er konfigureret ovenfor"
+  },
+  "web.domains.signin.save_config": {
+    "text": "Gem konfiguration"
+  },
+  "web.domains.signin.update_success": {
+    "text": "Loginkonfiguration opdateret"
+  },
+  "web.domains.signin.reset_to_defaults": {
+    "text": "Nulstil til standardindstillinger"
+  },
+  "web.domains.signin.reset_confirm": {
+    "text": "Nulstil login til de globale standardindstillinger?"
+  },
+  "web.domains.signin.reset_keeps_sso": {
+    "text": "Dine SSO-legitimationsoplysninger bevares. Fjern dem separat på SSO-konfigurationsskærmen."
+  },
+  "web.domains.signin.reset_action": {
+    "text": "Ja, nulstil"
+  },
+  "web.domains.signin.reset_success": {
+    "text": "Loginindstillinger nulstillet til de globale standardindstillinger"
+  },
+  "web.domains.signup.title": {
+    "text": "Tilmeldingsvalidering"
+  },
+  "web.domains.signup.config_description": {
+    "text": "Konfigurer tilmeldingsvalidering for dette domæne"
+  },
+  "web.domains.signup.access_denied": {
+    "text": "Adgang nægtet"
+  },
+  "web.domains.signup.upgrade_to_configure": {
+    "text": "Opgrader din plan for at konfigurere tilmeldingsvalidering pr. domæne."
+  },
+  "web.domains.signup.configure_signup": {
+    "text": "Konfigurer tilmelding"
+  },
+  "web.domains.signup.not_configured_notice": {
+    "text": "Tilmeldingsvalidering er endnu ikke konfigureret for dette domæne. Konfigurer en strategi for at styre, hvem der kan tilmelde sig via dette domæne."
+  },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "Tilmeldinger er i øjeblikket deaktiveret på webstedsniveau. Denne politik pr. domæne er konfigureret, men vil ikke begrænse nogen trafik, før webstedstilmeldinger er aktiveret."
+  },
+  "web.domains.signup.strategy_label": {
+    "text": "Valideringsstrategi"
+  },
+  "web.domains.signup.strategy_description": {
+    "text": "Vælg, hvordan e-mailadresser valideres, når brugere tilmelder sig på dette domæne."
+  },
+  "web.domains.signup.network_validation_warning": {
+    "text": "Denne strategi foretager netværkskald under tilmelding, hvilket kan øge ventetiden eller blive blokeret af nogle udbydere."
+  },
+  "web.domains.signup.allowed_domains_label": {
+    "text": "Tilladte tilmeldingsdomæner"
+  },
+  "web.domains.signup.allowed_domains_hint": {
+    "text": "Kun disse e-maildomæner vil få lov til at tilmelde sig. Tilføj ét domæne pr. post."
+  },
+  "web.domains.signup.domain_placeholder": {
+    "text": "example.com"
+  },
+  "web.domains.signup.invalid_domain": {
+    "text": "Indtast et gyldigt domæne (f.eks. example.com)"
+  },
+  "web.domains.signup.domain_exists": {
+    "text": "Dette domæne er allerede på listen"
+  },
+  "web.domains.signup.remove_domain": {
+    "text": "Fjern {domain}"
+  },
+  "web.domains.signup.enabled_label": {
+    "text": "Aktivér validering pr. domæne"
+  },
+  "web.domains.signup.enabled_hint": {
+    "text": "Når den er aktiveret, bruger tilmeldinger på dette domæne strategien ovenfor i stedet for den globale politik."
+  },
+  "web.domains.signup.delete_config": {
+    "text": "Slet konfiguration"
+  },
+  "web.domains.signup.delete_confirm": {
+    "text": "Slet konfiguration for tilmeldingsvalidering? Tilmeldinger falder tilbage til den globale politik."
+  },
+  "web.domains.signup.save_config": {
+    "text": "Gem konfiguration"
+  },
+  "web.domains.signup.update_success": {
+    "text": "Tilmeldingsvalidering opdateret"
+  },
+  "web.domains.signup.delete_success": {
+    "text": "Konfiguration for tilmeldingsvalidering fjernet"
+  },
+  "web.domains.signup.domain_overrides_label": {
+    "text": "Domænetilsidesættelser"
+  },
+  "web.domains.signup.domain_overrides_hint": {
+    "text": "Tilsidesæt globale tilmeldingsindstillinger for dette domæne"
+  },
+  "web.domains.signup.signup_enabled_label": {
+    "text": "Tilmelding aktiveret"
+  },
+  "web.domains.signup.signup_enabled_hint": {
+    "text": "Tilsidesæt, om tilmelding er aktiveret for dette domæne"
+  },
+  "web.domains.signup.autoverify_label": {
+    "text": "Bekræft konti automatisk"
+  },
+  "web.domains.signup.autoverify_hint": {
+    "text": "Tilsidesæt, om nye konti automatisk bekræftes på dette domæne"
+  },
+  "web.domains.sso.title": {
+    "text": "Single Sign-On"
+  },
+  "web.domains.sso.config_title": {
+    "text": "SSO-konfiguration"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Konfigurer single sign-on-godkendelse for dette domæne"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Adgang nægtet"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "Du har ikke tilladelse til at administrere SSO-indstillinger for dette domæne. Kontakt din organisationsadministrator."
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Opgrader din plan for at konfigurere single sign-on for dette domæne."
+  },
+  "web.domains.sso.create_success": {
+    "text": "SSO-konfiguration oprettet"
+  },
+  "web.domains.sso.update_success": {
+    "text": "SSO-konfiguration opdateret"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "SSO-konfiguration fjernet"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Forbindelsestest lykkedes — udbyderen svarede korrekt"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Forbindelsestest mislykkedes"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "For at kræve SSO for alle logins på dette domæne skal du konfigurere det i domænets loginindstillinger. Kun-SSO-tilstand begrænser loginsiden til den SSO-udbyder, der er konfigureret her."
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "Konfigurer SSO"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "SSO er endnu ikke konfigureret for dette domæne. Aktivér single sign-on for at lade teammedlemmer godkende sig med din organisations identitetsudbyder."
+  },
+  "web.domains.sso.edit_credentials": {
+    "text": "Rediger legitimationsoplysninger"
+  },
+  "web.domains.sso.configure_button": {
+    "text": "Konfigurer"
+  },
+  "web.domains.sso.upgrade_required": {
+    "text": "Opgrader for at konfigurere"
   }
 }

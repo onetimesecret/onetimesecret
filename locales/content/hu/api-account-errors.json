@@ -1,0 +1,8 @@
+{
+  "api.account.errors.invalid_email": {
+    "text": "Érvényes ez az e-mail-cím?"
+  },
+  "api.account.errors.password_too_short": {
+    "text": "A jelszó túl rövid"
+  }
+}

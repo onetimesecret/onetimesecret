@@ -22,5 +22,14 @@
   "web.dashboard.fetch_error_description": {
     "text": "Hubo un problema al cargar tus datos. Por favor, inténtalo de nuevo.",
     "source_hash": "ff0d904e"
+  },
+  "web.teams.create_first_team_title": {
+    "text": "Crea tu primer equipo"
+  },
+  "web.teams.create_first_team_description": {
+    "text": "Los equipos te permiten colaborar con otras personas en un espacio de trabajo compartido."
+  },
+  "web.teams.create_team": {
+    "text": "Crear equipo"
   }
 }

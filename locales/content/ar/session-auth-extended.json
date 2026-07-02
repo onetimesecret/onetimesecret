@@ -699,5 +699,26 @@
   "web.auth.recovery_codes.link_title": {
     "text": "رموز الاسترداد",
     "source_hash": "579c7f4e"
+  },
+  "web.auth.google": {
+    "text": "Google"
+  },
+  "web.auth.mfa.alternative_auth_options": {
+    "text": "خيارات مصادقة بديلة"
+  },
+  "web.auth.remember.enabled": {
+    "text": "ابقَ مسجّلاً للدخول"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions.session_singular": {
+    "text": "جلسة"
+  },
+  "web.auth.sessions.session_plural": {
+    "text": "جلسات"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "User's logged-in devices/browsers management page"
   }
 }

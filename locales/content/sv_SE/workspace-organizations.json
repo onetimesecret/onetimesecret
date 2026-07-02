@@ -578,5 +578,344 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Går snart ut",
     "source_hash": "a5dcfef9"
+  },
+  "api.organizations.errors.not_found": {
+    "text": "Organisationen hittades inte: %{extid}"
+  },
+  "api.organizations.errors.owner_required": {
+    "text": "Endast organisationens ägare kan utföra denna åtgärd"
+  },
+  "api.organizations.errors.admin_required": {
+    "text": "Endast organisationens ägare och administratörer kan utföra denna åtgärd"
+  },
+  "api.organizations.errors.member_required": {
+    "text": "Du måste vara medlem i organisationen för att utföra denna åtgärd"
+  },
+  "api.organizations.invitations.errors.create_admin_required": {
+    "text": "Endast organisationens ägare och administratörer kan skapa inbjudningar"
+  },
+  "api.organizations.invitations.errors.resend_admin_required": {
+    "text": "Endast organisationens ägare och administratörer kan skicka inbjudningar igen"
+  },
+  "api.organizations.invitations.errors.view_admin_required": {
+    "text": "Endast organisationens ägare och administratörer kan visa inbjudningar"
+  },
+  "api.organizations.invitations.errors.revoke_admin_required": {
+    "text": "Endast organisationens ägare och administratörer kan återkalla inbjudningar"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "E-post krävs"
+  },
+  "api.organizations.invitations.errors.email_invalid": {
+    "text": "Ogiltigt e-postformat"
+  },
+  "api.organizations.invitations.errors.role_invalid": {
+    "text": "Rollen måste vara medlem eller administratör"
+  },
+  "api.organizations.invitations.errors.cannot_invite_owner": {
+    "text": "Det går inte att bjuda in som ägare"
+  },
+  "api.organizations.invitations.errors.already_member": {
+    "text": "Användaren är redan medlem i denna organisation"
+  },
+  "api.organizations.invitations.errors.already_pending": {
+    "text": "En inbjudan väntar redan för den här e-postadressen"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Medlemsgränsen har nåtts. Uppgradera din plan för att bjuda in fler medlemmar."
+  },
+  "api.organizations.invitations.errors.not_found": {
+    "text": "Inbjudan hittades inte"
+  },
+  "api.organizations.invitations.errors.cannot_resend_non_pending": {
+    "text": "Det går bara att skicka väntande inbjudningar igen"
+  },
+  "api.organizations.invitations.errors.cannot_revoke_non_pending": {
+    "text": "Det går bara att återkalla väntande inbjudningar"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Maxgränsen för att skicka igen (%{max}) har nåtts"
+  },
+  "api.organizations.invitations.errors.accept_token_required": {
+    "text": "Token krävs"
+  },
+  "api.organizations.invitations.errors.accept_organization_gone": {
+    "text": "Organisationen finns inte längre"
+  },
+  "api.organizations.invitations.errors.accept_already_acted": {
+    "text": "Inbjudan har redan blivit %{status}"
+  },
+  "api.organizations.invitations.errors.accept_expired": {
+    "text": "Inbjudan har gått ut"
+  },
+  "api.organizations.invitations.errors.accept_email_mismatch": {
+    "text": "Din e-postadress matchar inte inbjudan"
+  },
+  "api.organizations.invitations.errors.accept_already_member": {
+    "text": "Du är redan medlem i denna organisation"
+  },
+  "web.organizations.entitlements_title": {
+    "text": "Organisationsbehörigheter"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Visa och konfigurera dina arbetsytor"
+  },
+  "web.organizations.delete_organization_remove_domains_first": {
+    "text": "Ta bort alla anpassade domäner innan du tar bort denna organisation."
+  },
+  "web.organizations.default_org_delete_notice_title": {
+    "text": "Ta bort denna organisation"
+  },
+  "web.organizations.default_org_delete_notice_before": {
+    "text": "Detta är din standardorganisation och kan inte tas bort från instrumentpanelen. För att ta bort den, kontakta oss via"
+  },
+  "web.organizations.default_org_delete_notice_link": {
+    "text": "återkopplingsformuläret"
+  },
+  "web.organizations.default_org_delete_notice_after": {
+    "text": "."
+  },
+  "web.organizations.leave_organization": {
+    "text": "Lämna denna organisation"
+  },
+  "web.organizations.leave_organization_warning": {
+    "text": "Du förlorar åtkomst till denna organisation och dess resurser."
+  },
+  "web.organizations.leave_organization_confirm_title": {
+    "text": "Lämna organisationen"
+  },
+  "web.organizations.leave_organization_confirm_message": {
+    "text": "Är du säker på att du vill lämna {name}? Du behöver en ny inbjudan för att gå med igen."
+  },
+  "web.organizations.leave_organization_success": {
+    "text": "Du har lämnat organisationen."
+  },
+  "web.organizations.leave_error": {
+    "text": "Det gick inte att lämna organisationen"
+  },
+  "web.organizations.organizations": {
+    "text": "Organisationer"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "av {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "som {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Tillbaka till startsidan"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Den här inbjudan skickades till denna e-postadress"
+  },
+  "web.organizations.invitations.signup_continue": {
+    "text": "Fortsätt"
+  },
+  "web.organizations.invitations.signin_continue": {
+    "text": "Logga in"
+  },
+  "web.organizations.invitations.confirm_join_below": {
+    "text": "Nästan klart – bekräfta nedan för att gå med i organisationen."
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Gå till organisationer"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Du är redan medlem i denna organisation"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Gå med i {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Logga in för att gå med i {orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Avböj"
+  },
+  "web.organizations.members.member_quota": {
+    "text": "{used} av {limit} medlemmar"
+  },
+  "web.organizations.members.pending_suffix": {
+    "text": "({count} väntande)"
+  },
+  "web.organizations.members.limit_reached_hint": {
+    "text": "Medlemsgränsen har nåtts."
+  },
+  "web.organizations.sso.title": {
+    "text": "Enkel inloggning (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "Konfigurera SSO för att låta medlemmar logga in med din organisations identitetsleverantör"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Leverantörstyp"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Välj din organisations identitetsleverantör"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Visningsnamn"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "Ett vänligt namn som visas för användare vid inloggning"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "t.ex. Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "Client ID"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "Ditt OAuth-client-ID"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Client Secret"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "Din OAuth-client-secret"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Lämna tomt för att behålla den befintliga hemligheten"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "Tenant ID"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "Din identifierare för Azure AD / Entra ID-tenant"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "t.ex. 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "Issuer-URL"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "OIDC-discovery-URL för din identitetsleverantör"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "t.ex. https://login.example.com"
+  },
+  "web.organizations.sso.view_discovery_document": {
+    "text": "Visa discovery-dokument"
+  },
+  "web.organizations.sso.callback_url": {
+    "text": "Callback-URL"
+  },
+  "web.organizations.sso.callback_url_hint": {
+    "text": "Lägg till denna URL bland din identitetsleverantörs tillåtna omdirigerings-URI:er"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "Tillåtna e-postdomäner"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Endast användare med e-postadresser från dessa domäner kan logga in. Lämna tomt för att tillåta alla domäner."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "t.ex. acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Ange en giltig domän (t.ex. example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Den här domänen finns redan i listan"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "Ta bort {domain}"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "Aktivera SSO"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "När detta är aktiverat kan organisationens medlemmar logga in med denna SSO-leverantör"
+  },
+  "web.organizations.sso.enforce_sso_only": {
+    "text": "Tvinga endast SSO"
+  },
+  "web.organizations.sso.enforce_sso_only_hint": {
+    "text": "Kräv SSO för alla inloggningar på denna domän. När detta är aktiverat inaktiveras lösenordsbaserad autentisering."
+  },
+  "web.organizations.sso.grant_org_scope": {
+    "text": "Bevilja åtkomst till hela organisationen"
+  },
+  "web.organizations.sso.grant_org_scope_hint": {
+    "text": "Nya medlemmar som går med via denna domäns SSO får åtkomst till alla organisationens domäner. Befintliga medlemmar påverkas inte. När detta är inaktiverat (standard) får nya medlemmar endast åtkomst till denna domän."
+  },
+  "web.organizations.sso.save_config": {
+    "text": "Spara SSO-konfiguration"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Ta bort konfiguration"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "Är du säker? Detta inaktiverar SSO för din organisation."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "Det gick inte att läsa in SSO-konfigurationen"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "Det gick inte att spara SSO-konfigurationen"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "SSO-konfigurationen skapades"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "SSO-konfigurationen uppdaterades"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "SSO-konfigurationen togs bort"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "Det gick inte att ta bort SSO-konfigurationen"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Testa anslutning"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Verifiera att identitetsleverantören är nåbar (validerar inte autentiseringsuppgifter)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Testa anslutning"
+  },
+  "web.organizations.sso.testing": {
+    "text": "Testar ..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "Det gick inte att testa anslutningen"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Auktoriseringsslutpunkt"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Saknade fält"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Aktiverad"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Konfigurerad"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "Domän-SSO"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Konfigurera SSO för varje verifierad domän"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "För att byta leverantör måste du först ta bort denna konfiguration"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Inte konfigurerad"
+  },
+  "web.organizations.sso.no_domains": {
+    "text": "Inga verifierade domäner"
+  },
+  "web.organizations.sso.no_domains_description": {
+    "text": "Lägg till och verifiera en domän innan du konfigurerar SSO för den."
+  },
+  "web.organizations.tabs.team": {
+    "text": "Team"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

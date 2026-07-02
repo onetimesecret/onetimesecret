@@ -1,0 +1,29 @@
+{
+  "api.domains.errors.domain_id_required": {
+    "text": "נדרש מזהה דומיין"
+  },
+  "api.domains.errors.domain_not_found": {
+    "text": "הדומיין לא נמצא: %{extid}"
+  },
+  "api.domains.errors.organization_not_found": {
+    "text": "הארגון לא נמצא עבור הדומיין: %{domain}"
+  },
+  "api.domains.errors.incoming_secrets_disabled": {
+    "text": "סודות נכנסים אינם מופעלים במופע זה"
+  },
+  "api.domains.errors.incoming_secrets_entitlement_required": {
+    "text": "ניהול סודות נכנסים מחייב את הזכאות incoming_secrets. אנא שדרג את התוכנית שלך."
+  },
+  "api.domains.errors.incoming_config_not_found": {
+    "text": "תצורת סודות נכנסים לא נמצאה עבור הדומיין: %{extid}"
+  },
+  "api.domains.errors.recipients_max_exceeded": {
+    "text": "מותרים %{max} נמענים לכל היותר"
+  },
+  "api.domains.errors.recipients_invalid_email": {
+    "text": "כתובת דוא״ל לא תקינה: %{email}"
+  },
+  "api.domains.errors.recipients_duplicate": {
+    "text": "לא ניתן להזין כתובות דוא״ל כפולות של נמענים"
+  }
+}

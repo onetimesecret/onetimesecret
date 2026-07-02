@@ -1299,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Всегда проверяйте, что находитесь на официальном сайте {product_name}. Мошенники иногда создают поддельные сайты, которые выглядят точно как {product_name}, чтобы похитить Ваши секреты. Чтобы избежать фишинговых атак, проверяйте домен перед созданием новых ссылок.",
+    "text": "Всегда проверяйте, что находитесь на официальном сайте {product_name}. Мошенники иногда создают поддельные сайты, которые выглядят в точности как {product_name}, чтобы похитить ваши секреты. Чтобы избежать фишинговых атак, проверяйте региональный домен перед созданием новых ссылок.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1383,5 +1383,110 @@
     "text": "Обновите план, чтобы разблокировать больше функций",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "Требуется аутентификация"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "Это действие недоступно в режиме «только SSO»"
+  },
+  "web.COMMON.configure": {
+    "text": "Настроить"
+  },
+  "web.COMMON.copy_to_clipboard": {
+    "text": "Копировать в буфер обмена"
+  },
+  "web.COMMON.add": {
+    "text": "Добавить"
+  },
+  "web.COMMON.enabled": {
+    "text": "Включено"
+  },
+  "web.COMMON.disabled": {
+    "text": "Выключено"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Да, удалить"
+  },
+  "web.COMMON.error_code": {
+    "text": "Код ошибки"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTP-статус"
+  },
+  "web.COMMON.details": {
+    "text": "Подробности"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Подтвердите пароль"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Пароли должны совпадать"
+  },
+  "web.COMMON.and": {
+    "text": "и"
+  },
+  "web.COMMON.or": {
+    "text": "или"
+  },
+  "web.COMMON.copied": {
+    "text": "Скопировано"
+  },
+  "web.COMMON.copy": {
+    "text": "Копировать"
+  },
+  "web.COMMON.copy_email": {
+    "text": "Копировать адрес электронной почты"
+  },
+  "web.COMMON.copy_id": {
+    "text": "Копировать ID аккаунта"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "Уникальный идентификатор вашей организации"
+  },
+  "web.COMMON.success": {
+    "text": "Успешно"
+  },
+  "web.COMMON.need_help": {
+    "text": "Нужна помощь"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "Открыть окно справки"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "Фокус теперь находится в основном текстовом поле"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Показать кодовую фразу"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Скрыть кодовую фразу"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "Значок копирования"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "Значок «Скопировано»"
+  },
+  "web.STATUS.unverified": {
+    "text": "Не подтверждён"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Настройки домена"
+  },
+  "web.TITLES.domain_signin": {
+    "text": "Настройка входа"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "SSO домена"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "Проверка регистрации для домена"
+  },
+  "web.TITLES.domain_email": {
+    "text": "Настройка электронной почты"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Входящие секреты"
   }
 }

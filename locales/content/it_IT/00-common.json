@@ -1299,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Verifica sempre di essere sul sito ufficiale di {product_name}. I truffatori a volte creano siti falsi che sembrano identici a {product_name} per rubare i tuoi segreti. Per evitare attacchi di phishing, controlla il dominio prima di creare nuovi link.",
+    "text": "Verifica sempre di trovarti sul sito ufficiale di {product_name}. A volte i truffatori creano siti web falsi identici a {product_name} per rubare i tuoi segreti. Per evitare gli attacchi di phishing, controlla il dominio della regione prima di creare nuovi link.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1383,5 +1383,110 @@
     "text": "Effettua l'upgrade per sbloccare più funzionalità",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "Autenticazione richiesta"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "Questa azione non è disponibile in modalità solo SSO"
+  },
+  "web.COMMON.configure": {
+    "text": "Configura"
+  },
+  "web.COMMON.copy_to_clipboard": {
+    "text": "Copia negli appunti"
+  },
+  "web.COMMON.add": {
+    "text": "Aggiungi"
+  },
+  "web.COMMON.enabled": {
+    "text": "Abilitato"
+  },
+  "web.COMMON.disabled": {
+    "text": "Disabilitato"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Sì, elimina"
+  },
+  "web.COMMON.error_code": {
+    "text": "Codice errore"
+  },
+  "web.COMMON.http_status": {
+    "text": "Stato HTTP"
+  },
+  "web.COMMON.details": {
+    "text": "Dettagli"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Conferma password"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Le password devono corrispondere"
+  },
+  "web.COMMON.and": {
+    "text": "e"
+  },
+  "web.COMMON.or": {
+    "text": "o"
+  },
+  "web.COMMON.copied": {
+    "text": "Copiato"
+  },
+  "web.COMMON.copy": {
+    "text": "Copia"
+  },
+  "web.COMMON.copy_email": {
+    "text": "Copia indirizzo email"
+  },
+  "web.COMMON.copy_id": {
+    "text": "Copia ID account"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "Identificatore univoco della tua organizzazione"
+  },
+  "web.COMMON.success": {
+    "text": "Operazione completata"
+  },
+  "web.COMMON.need_help": {
+    "text": "Hai bisogno di aiuto"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "Apri finestra di aiuto"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "Il focus è ora nell'area di testo principale"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Mostra frase di sicurezza"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Nascondi frase di sicurezza"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "Icona copia"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "Icona copiato"
+  },
+  "web.STATUS.unverified": {
+    "text": "Non verificato"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Impostazioni dominio"
+  },
+  "web.TITLES.domain_signin": {
+    "text": "Configurazione accesso"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "SSO dominio"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "Convalida della registrazione del dominio"
+  },
+  "web.TITLES.domain_email": {
+    "text": "Configurazione email"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Segreti in arrivo"
   }
 }

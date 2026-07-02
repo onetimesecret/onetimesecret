@@ -476,7 +476,7 @@
     "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Lär dig integrera {product_name} i dina applikationer",
+    "text": "Lär dig hur du integrerar {product_name} i dina applikationer",
     "source_hash": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {
@@ -682,5 +682,14 @@
   "web.settings.profile.didnt_receive_email": {
     "text": "Fick du inte e-postmeddelandet?",
     "source_hash": "fe3ac3ad"
+  },
+  "web.settings.api.api_disabled_notice": {
+    "text": "API:et är inaktiverat för den här instansen."
+  },
+  "web.settings.security.sso_managed_title": {
+    "text": "Säkerhet hanteras av SSO"
+  },
+  "web.settings.security.sso_managed_description": {
+    "text": "Ditt konto autentiseras via din organisations single sign-on-leverantör. Lösenord, flerfaktorsautentisering och återställningskoder hanteras av din identitetsleverantör."
   }
 }

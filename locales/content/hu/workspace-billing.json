@@ -988,5 +988,47 @@
     "text": "Csak az eredeti előfizetési régiójában érhető el",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Ön már előfizetett erre a csomagra."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Előfizetés újraaktiválása"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "Az előfizetését újraaktiválták. A számlázás a szokásos módon folytatódik."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "Nem sikerült újraaktiválni az előfizetést. Kérjük, próbálja újra, vagy forduljon a támogatáshoz."
+  },
+  "web.billing.features.manage_orgs": {
+    "text": "Szervezetkezelés"
+  },
+  "web.billing.features.flexible_from_domain": {
+    "text": "Rugalmas e-mail-feladó domén"
+  },
+  "web.billing.features.unlimited_admins": {
+    "text": "Korlátlan számú adminisztrátor"
+  },
+  "web.billing.features.manage_sso": {
+    "text": "SSO"
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Rugalmas e-mail-feladó domén"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "Szervezetek kezelése"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Egyszeri bejelentkezés (SSO)"
+  },
+  "web.billing.overview.entitlements.manage_billing": {
+    "text": "Számlázás kezelése"
+  },
+  "web.billing.overview.entitlements.custom_signup_validation": {
+    "text": "Egyéni regisztrációs ellenőrzés"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Újraaktiválás"
   }
 }

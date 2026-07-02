@@ -1,0 +1,8 @@
+{
+  "api.account.errors.invalid_email": {
+    "text": "És una adreça de correu electrònic vàlida?"
+  },
+  "api.account.errors.password_too_short": {
+    "text": "La contrasenya és massa curta"
+  }
+}

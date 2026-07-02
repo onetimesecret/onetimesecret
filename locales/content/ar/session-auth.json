@@ -395,5 +395,35 @@
   "web.help.contact_support": {
     "text": "الاتصال بالدعم",
     "source_hash": "f8d47b82"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "حساب تسجيل الدخول الموحّد (SSO)"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Email verification flow after signup"
+  },
+  "web.help.reset_password_link": {
+    "text": "إعادة تعيين كلمة المرور"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "تسجيل الدخول الموحّد (SSO) متاح لهذا النطاق"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "يمكن لمسؤول المؤسسة تفعيل تسجيل الدخول الموحّد (SSO) للسماح لأعضاء الفريق بتسجيل الدخول هنا. تواصل مع المسؤول للحصول على صلاحية الوصول."
+  },
+  "web.login.signin_disabled_heading": {
+    "text": "تسجيل الدخول غير متاح"
+  },
+  "web.login.signin_disabled_message": {
+    "text": "تسجيل الدخول غير متاح حالياً على هذا النطاق."
+  },
+  "web.login.errors.sso_not_configured": {
+    "text": "تسجيل الدخول الموحّد (SSO) غير مُعدّ لهذا النطاق. يرجى التواصل مع المسؤول."
+  },
+  "web.login.errors.invalid_email": {
+    "text": "عنوان البريد الإلكتروني الوارد من موفّر الهوية غير صالح. يرجى التواصل مع المسؤول."
+  },
+  "web.login.errors.domain_not_allowed": {
+    "text": "نطاق بريدك الإلكتروني غير مصرّح له بالتسجيل عبر تسجيل الدخول الموحّد (SSO). يرجى التواصل مع المسؤول."
   }
 }
