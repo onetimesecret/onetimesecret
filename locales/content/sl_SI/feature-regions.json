@@ -152,7 +152,7 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Če se tvoj e-poštni naslov za obračunavanje razlikuje od e-poštnega naslova računa {product_name}, uporabi e-poštni naslov za obračunavanje za novi regijski račun, da ohranite ugodnosti naročnine.",
+    "text": "Če se vaš e-poštni naslov za obračunavanje razlikuje od e-poštnega naslova računa {product_name}, uporabite e-poštni naslov za obračunavanje za novi regijski račun, da ohranite ugodnosti naročnine.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
@@ -188,6 +188,6 @@
     "source_hash": "7a757670"
   },
   "web.regions.no_region_configured": {
-    "text": "Za tvoj račun trenutno ni na voljo nobenih informacij o regiji."
+    "text": "Za vaš račun trenutno ni na voljo nobenih informacij o regiji."
   }
 }
