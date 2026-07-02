@@ -636,150 +636,199 @@
     "source_hash": "fe77172e"
   },
   "web.colonel.previewPlanMode": {
-    "text": "Tryb podglądu planu"
+    "text": "Tryb podglądu planu",
+    "source_hash": "cf53f19d"
   },
   "web.colonel.previewModeDescription": {
-    "text": "Podejrzyj aplikację w takiej postaci, w jakiej widzą ją klienci korzystający z innego planu. Wpływa to wyłącznie na Twój widok i nie zmienia rzeczywistego planu żadnej organizacji."
+    "text": "Podejrzyj aplikację w takiej postaci, w jakiej widzą ją klienci korzystający z innego planu. Wpływa to wyłącznie na Twój widok i nie zmienia rzeczywistego planu żadnej organizacji.",
+    "source_hash": "6fe23f23"
   },
   "web.colonel.previewModeActive": {
-    "text": "Podgląd aktywny"
+    "text": "Podgląd aktywny",
+    "source_hash": "a558d603"
   },
   "web.colonel.bannedIps.empty": {
-    "text": "Brak zablokowanych adresów IP"
+    "text": "Brak zablokowanych adresów IP",
+    "source_hash": "bd101143"
   },
   "web.colonel.bannedIps.currentIp": {
-    "text": "Twój bieżący adres IP"
+    "text": "Twój bieżący adres IP",
+    "source_hash": "72f9fefe"
   },
   "web.colonel.bannedIps.confirmUnban": {
-    "text": "Odblokować {ip}?"
+    "text": "Odblokować {ip}?",
+    "source_hash": "ff009b1c"
   },
   "web.colonel.bannedIps.actions.ban": {
-    "text": "Zablokuj IP"
+    "text": "Zablokuj IP",
+    "source_hash": "f91a5285"
   },
   "web.colonel.bannedIps.actions.quickBan": {
-    "text": "Szybka blokada"
+    "text": "Szybka blokada",
+    "source_hash": "c32d0943"
   },
   "web.colonel.bannedIps.actions.unban": {
-    "text": "Odblokuj"
+    "text": "Odblokuj",
+    "source_hash": "25fb5989"
   },
   "web.colonel.bannedIps.actions.cancel": {
-    "text": "Anuluj"
+    "text": "Anuluj",
+    "source_hash": "19766ed6"
   },
   "web.colonel.bannedIps.columns.ipAddress": {
-    "text": "Adres IP"
+    "text": "Adres IP",
+    "source_hash": "3c3de0c9"
   },
   "web.colonel.bannedIps.columns.reason": {
-    "text": "Powód"
+    "text": "Powód",
+    "source_hash": "f81ab834"
   },
   "web.colonel.bannedIps.columns.bannedAt": {
-    "text": "Zablokowano"
+    "text": "Zablokowano",
+    "source_hash": "dfbd120e"
   },
   "web.colonel.bannedIps.columns.bannedBy": {
-    "text": "Zablokowane przez"
+    "text": "Zablokowane przez",
+    "source_hash": "9f47db0e"
   },
   "web.colonel.bannedIps.error.banFailed": {
-    "text": "Nie udało się zablokować adresu IP"
+    "text": "Nie udało się zablokować adresu IP",
+    "source_hash": "24e94d9b"
   },
   "web.colonel.bannedIps.error.unbanFailed": {
-    "text": "Nie udało się odblokować adresu IP"
+    "text": "Nie udało się odblokować adresu IP",
+    "source_hash": "66bbac9a"
   },
   "web.colonel.bannedIps.form.title": {
-    "text": "Zablokuj adres IP"
+    "text": "Zablokuj adres IP",
+    "source_hash": "3f5b3dfa"
   },
   "web.colonel.bannedIps.form.ipLabel": {
-    "text": "Adres IP"
+    "text": "Adres IP",
+    "source_hash": "3c3de0c9"
   },
   "web.colonel.bannedIps.form.reasonLabel": {
-    "text": "Powód"
+    "text": "Powód",
+    "source_hash": "f81ab834"
   },
   "web.colonel.bannedIps.form.reasonPlaceholder": {
-    "text": "Opcjonalny powód"
+    "text": "Opcjonalny powód",
+    "source_hash": "956688a5"
   },
   "web.colonel.bannedIps.success.banned": {
-    "text": "Adres IP {ip} został zablokowany"
+    "text": "Adres IP {ip} został zablokowany",
+    "source_hash": "b6f861d5"
   },
   "web.colonel.bannedIps.success.unbanned": {
-    "text": "Adres IP {ip} został odblokowany"
+    "text": "Adres IP {ip} został odblokowany",
+    "source_hash": "dbe93550"
   },
   "web.colonel.customDomains.empty": {
-    "text": "Nie skonfigurowano żadnych domen niestandardowych"
+    "text": "Nie skonfigurowano żadnych domen niestandardowych",
+    "source_hash": "e10b39f7"
   },
   "web.colonel.customDomains.noLogo": {
-    "text": "Brak logo"
+    "text": "Brak logo",
+    "source_hash": "ee5e36ff"
   },
   "web.colonel.customDomains.labels.organization": {
-    "text": "Organizacja"
+    "text": "Organizacja",
+    "source_hash": "d764d425"
   },
   "web.colonel.customDomains.labels.externalId": {
-    "text": "Identyfikator zewnętrzny"
+    "text": "Identyfikator zewnętrzny",
+    "source_hash": "69da56ba"
   },
   "web.colonel.customDomains.labels.created": {
-    "text": "Utworzono"
+    "text": "Utworzono",
+    "source_hash": "d70b9e24"
   },
   "web.colonel.customDomains.labels.updated": {
-    "text": "Zaktualizowano"
+    "text": "Zaktualizowano",
+    "source_hash": "3a5ecca1"
   },
   "web.colonel.customDomains.labels.favicon": {
-    "text": "Favicon"
+    "text": "Favicon",
+    "source_hash": "42955289"
   },
   "web.colonel.customDomains.status.verified": {
-    "text": "Zweryfikowano"
+    "text": "Zweryfikowano",
+    "source_hash": "4f783840"
   },
   "web.colonel.customDomains.status.resolving": {
-    "text": "Rozwiązywanie"
+    "text": "Rozwiązywanie",
+    "source_hash": "3287a034"
   },
   "web.colonel.customDomains.status.ready": {
-    "text": "Gotowe"
+    "text": "Gotowe",
+    "source_hash": "5fa7aac5"
   },
   "web.colonel.customDomains.status.publicHomepage": {
-    "text": "Publiczna strona główna"
+    "text": "Publiczna strona główna",
+    "source_hash": "2ae3ccba"
   },
   "web.colonel.customDomains.status.publicApi": {
-    "text": "Publiczne API"
+    "text": "Publiczne API",
+    "source_hash": "ab3aa426"
   },
   "web.colonel.customDomains.status.pending": {
-    "text": "Oczekuje"
+    "text": "Oczekuje",
+    "source_hash": "331551b0"
   },
   "web.colonel.pagination.showing": {
-    "text": "Wyświetlanie {start}–{end} z {total}"
+    "text": "Wyświetlanie {start}–{end} z {total}",
+    "source_hash": "64af6de2"
   },
   "web.colonel.pagination.itemsPerPage": {
-    "text": "Elementów na stronę"
+    "text": "Elementów na stronę",
+    "source_hash": "766a02e0"
   },
   "web.colonel.pagination.perPage": {
-    "text": "{count} na stronę"
+    "text": "{count} na stronę",
+    "source_hash": "34671d42"
   },
   "web.colonel.pagination.pageOf": {
-    "text": "Strona {current} z {total}"
+    "text": "Strona {current} z {total}",
+    "source_hash": "f0df6412"
   },
   "web.colonel.secrets.empty": {
-    "text": "Nie znaleziono żadnych sekretów"
+    "text": "Nie znaleziono żadnych sekretów",
+    "source_hash": "28647b3b"
   },
   "web.colonel.secrets.never": {
-    "text": "Nigdy"
+    "text": "Nigdy",
+    "source_hash": "6300ef80"
   },
   "web.colonel.secrets.columns.shortId": {
-    "text": "Krótki identyfikator"
+    "text": "Krótki identyfikator",
+    "source_hash": "7eaeb4a7"
   },
   "web.colonel.secrets.columns.state": {
-    "text": "Stan"
+    "text": "Stan",
+    "source_hash": "a3b50c47"
   },
   "web.colonel.secrets.columns.created": {
-    "text": "Utworzono"
+    "text": "Utworzono",
+    "source_hash": "d70b9e24"
   },
   "web.colonel.secrets.columns.expiration": {
-    "text": "Wygaśnięcie"
+    "text": "Wygaśnięcie",
+    "source_hash": "f38d6e0e"
   },
   "web.colonel.secrets.columns.age": {
-    "text": "Wiek (dni)"
+    "text": "Wiek (dni)",
+    "source_hash": "52ae64c6"
   },
   "web.colonel.secrets.state.new": {
-    "text": "Nowy"
+    "text": "Nowy",
+    "source_hash": "18fdd549"
   },
   "web.colonel.secrets.state.received": {
-    "text": "Otrzymany"
+    "text": "Otrzymany",
+    "source_hash": "49f19bee"
   },
   "web.colonel.secrets.state.viewed": {
-    "text": "Wyświetlony"
+    "text": "Wyświetlony",
+    "source_hash": "1b28d178"
   }
 }

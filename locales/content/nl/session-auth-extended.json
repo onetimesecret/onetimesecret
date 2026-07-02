@@ -718,18 +718,23 @@
     "text": "Beheerpagina voor ingelogde apparaten/browsers van de gebruiker"
   },
   "web.auth.google": {
-    "text": "Google"
+    "text": "Google",
+    "source_hash": "ce770667"
   },
   "web.auth.mfa.alternative_auth_options": {
-    "text": "Alternatieve authenticatieopties"
+    "text": "Alternatieve authenticatieopties",
+    "source_hash": "5ddea736"
   },
   "web.auth.remember.enabled": {
-    "text": "Ingelogd blijven"
+    "text": "Ingelogd blijven",
+    "source_hash": "b0a1ca80"
   },
   "web.auth.sessions.session_singular": {
-    "text": "sessie"
+    "text": "sessie",
+    "source_hash": "3f3af1ec"
   },
   "web.auth.sessions.session_plural": {
-    "text": "sessies"
+    "text": "sessies",
+    "source_hash": "1225ae6c"
   }
 }

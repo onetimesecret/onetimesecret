@@ -580,342 +580,455 @@
     "source_hash": "a5dcfef9"
   },
   "api.organizations.errors.not_found": {
-    "text": "Організацію не знайдено: %{extid}"
+    "text": "Організацію не знайдено: %{extid}",
+    "source_hash": "c8d058eb"
   },
   "api.organizations.errors.owner_required": {
-    "text": "Лише власник організації може виконати цю дію"
+    "text": "Лише власник організації може виконати цю дію",
+    "source_hash": "5a729e94"
   },
   "api.organizations.errors.admin_required": {
-    "text": "Лише власники та адміністратори організації можуть виконати цю дію"
+    "text": "Лише власники та адміністратори організації можуть виконати цю дію",
+    "source_hash": "cd9e8c0e"
   },
   "api.organizations.errors.member_required": {
-    "text": "Ви повинні бути учасником організації, щоб виконати цю дію"
+    "text": "Ви повинні бути учасником організації, щоб виконати цю дію",
+    "source_hash": "f66f4a60"
   },
   "api.organizations.invitations.errors.create_admin_required": {
-    "text": "Лише власники та адміністратори організації можуть створювати запрошення"
+    "text": "Лише власники та адміністратори організації можуть створювати запрошення",
+    "source_hash": "777d150d"
   },
   "api.organizations.invitations.errors.resend_admin_required": {
-    "text": "Лише власники та адміністратори організації можуть повторно надсилати запрошення"
+    "text": "Лише власники та адміністратори організації можуть повторно надсилати запрошення",
+    "source_hash": "6a857d59"
   },
   "api.organizations.invitations.errors.view_admin_required": {
-    "text": "Лише власники та адміністратори організації можуть переглядати запрошення"
+    "text": "Лише власники та адміністратори організації можуть переглядати запрошення",
+    "source_hash": "42f5878b"
   },
   "api.organizations.invitations.errors.revoke_admin_required": {
-    "text": "Лише власники та адміністратори організації можуть відкликати запрошення"
+    "text": "Лише власники та адміністратори організації можуть відкликати запрошення",
+    "source_hash": "52f73c8a"
   },
   "api.organizations.invitations.errors.email_required": {
-    "text": "Адреса електронної пошти є обов'язковою"
+    "text": "Адреса електронної пошти є обов'язковою",
+    "source_hash": "aae92911"
   },
   "api.organizations.invitations.errors.email_invalid": {
-    "text": "Недійсний формат електронної пошти"
+    "text": "Недійсний формат електронної пошти",
+    "source_hash": "0bcecf66"
   },
   "api.organizations.invitations.errors.role_invalid": {
-    "text": "Роль повинна бути «учасник» або «адміністратор»"
+    "text": "Роль повинна бути «учасник» або «адміністратор»",
+    "source_hash": "650ea5f6"
   },
   "api.organizations.invitations.errors.cannot_invite_owner": {
-    "text": "Неможливо запросити як власника"
+    "text": "Неможливо запросити як власника",
+    "source_hash": "e6581025"
   },
   "api.organizations.invitations.errors.already_member": {
-    "text": "Користувач вже є учасником цієї організації"
+    "text": "Користувач вже є учасником цієї організації",
+    "source_hash": "8eb45780"
   },
   "api.organizations.invitations.errors.already_pending": {
-    "text": "Для цієї адреси електронної пошти вже є запрошення в очікуванні"
+    "text": "Для цієї адреси електронної пошти вже є запрошення в очікуванні",
+    "source_hash": "7f5e3093"
   },
   "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Досягнуто ліміту учасників. Оновіть свій тарифний план, щоб запросити більше учасників."
+    "text": "Досягнуто ліміту учасників. Оновіть свій тарифний план, щоб запросити більше учасників.",
+    "source_hash": "b8f316e8"
   },
   "api.organizations.invitations.errors.not_found": {
-    "text": "Запрошення не знайдено"
+    "text": "Запрошення не знайдено",
+    "source_hash": "775ba9eb"
   },
   "api.organizations.invitations.errors.cannot_resend_non_pending": {
-    "text": "Повторно надсилати можна лише запрошення в очікуванні"
+    "text": "Повторно надсилати можна лише запрошення в очікуванні",
+    "source_hash": "b7578b3e"
   },
   "api.organizations.invitations.errors.cannot_revoke_non_pending": {
-    "text": "Відкликати можна лише запрошення в очікуванні"
+    "text": "Відкликати можна лише запрошення в очікуванні",
+    "source_hash": "732b78a6"
   },
   "api.organizations.invitations.errors.resend_limit_reached": {
-    "text": "Досягнуто максимального ліміту повторних надсилань (%{max})"
+    "text": "Досягнуто максимального ліміту повторних надсилань (%{max})",
+    "source_hash": "8dc96729"
   },
   "api.organizations.invitations.errors.accept_token_required": {
-    "text": "Токен є обов'язковим"
+    "text": "Токен є обов'язковим",
+    "source_hash": "6c718161"
   },
   "api.organizations.invitations.errors.accept_organization_gone": {
-    "text": "Організація більше не існує"
+    "text": "Організація більше не існує",
+    "source_hash": "a5df7d22"
   },
   "api.organizations.invitations.errors.accept_already_acted": {
-    "text": "Запрошення вже %{status}"
+    "text": "Запрошення вже %{status}",
+    "source_hash": "130c87e0"
   },
   "api.organizations.invitations.errors.accept_expired": {
-    "text": "Термін дії запрошення закінчився"
+    "text": "Термін дії запрошення закінчився",
+    "source_hash": "7186297b"
   },
   "api.organizations.invitations.errors.accept_email_mismatch": {
-    "text": "Ваша адреса електронної пошти не відповідає запрошенню"
+    "text": "Ваша адреса електронної пошти не відповідає запрошенню",
+    "source_hash": "11026f46"
   },
   "api.organizations.invitations.errors.accept_already_member": {
-    "text": "Ви вже є учасником цієї організації"
+    "text": "Ви вже є учасником цієї організації",
+    "source_hash": "f56ad547"
   },
   "web.organizations.entitlements_title": {
-    "text": "Права організації"
+    "text": "Права організації",
+    "source_hash": "36054d4f"
   },
   "web.organizations.page_description_short": {
-    "text": "Переглядайте та налаштовуйте свої робочі області"
+    "text": "Переглядайте та налаштовуйте свої робочі області",
+    "source_hash": "524fcb9a"
   },
   "web.organizations.delete_organization_remove_domains_first": {
-    "text": "Видаліть усі власні домени перед видаленням цієї організації."
+    "text": "Видаліть усі власні домени перед видаленням цієї організації.",
+    "source_hash": "44678715"
   },
   "web.organizations.default_org_delete_notice_title": {
-    "text": "Видалення цієї організації"
+    "text": "Видалення цієї організації",
+    "source_hash": "9191d915"
   },
   "web.organizations.default_org_delete_notice_before": {
-    "text": "Це Ваша організація за замовчуванням, і її не можна видалити з панелі керування. Щоб видалити її, будь ласка, зверніться через"
+    "text": "Це Ваша організація за замовчуванням, і її не можна видалити з панелі керування. Щоб видалити її, будь ласка, зверніться через",
+    "source_hash": "e203607d"
   },
   "web.organizations.default_org_delete_notice_link": {
-    "text": "форму зворотного зв'язку"
+    "text": "форму зворотного зв'язку",
+    "source_hash": "94645a9e"
   },
   "web.organizations.default_org_delete_notice_after": {
-    "text": "."
+    "text": ".",
+    "source_hash": "cdb4ee2a"
   },
   "web.organizations.leave_organization": {
-    "text": "Вийти з цієї організації"
+    "text": "Вийти з цієї організації",
+    "source_hash": "d534cff9"
   },
   "web.organizations.leave_organization_warning": {
-    "text": "Ви втратите доступ до цієї організації та її ресурсів."
+    "text": "Ви втратите доступ до цієї організації та її ресурсів.",
+    "source_hash": "e9daab07"
   },
   "web.organizations.leave_organization_confirm_title": {
-    "text": "Вийти з організації"
+    "text": "Вийти з організації",
+    "source_hash": "ec8314da"
   },
   "web.organizations.leave_organization_confirm_message": {
-    "text": "Ви впевнені, що хочете вийти з {name}? Вам знадобиться нове запрошення, щоб приєднатися знову."
+    "text": "Ви впевнені, що хочете вийти з {name}? Вам знадобиться нове запрошення, щоб приєднатися знову.",
+    "source_hash": "e21c5fec"
   },
   "web.organizations.leave_organization_success": {
-    "text": "Ви вийшли з організації."
+    "text": "Ви вийшли з організації.",
+    "source_hash": "fc803eb3"
   },
   "web.organizations.leave_error": {
-    "text": "Не вдалося вийти з організації"
+    "text": "Не вдалося вийти з організації",
+    "source_hash": "6cb6af43"
   },
   "web.organizations.organizations": {
-    "text": "Організації"
+    "text": "Організації",
+    "source_hash": "2730183d"
   },
   "web.organizations.invitations.invited_by_inline": {
-    "text": "від {email}"
+    "text": "від {email}",
+    "source_hash": "969a7050"
   },
   "web.organizations.invitations.invited_as_inline": {
-    "text": "як {role}"
+    "text": "як {role}",
+    "source_hash": "ff9e9b18"
   },
   "web.organizations.invitations.back_to_home": {
-    "text": "Назад на головну"
+    "text": "Назад на головну",
+    "source_hash": "76c5505f"
   },
   "web.organizations.invitations.email_locked_hint": {
-    "text": "Це запрошення було надіслано на цю адресу електронної пошти"
+    "text": "Це запрошення було надіслано на цю адресу електронної пошти",
+    "source_hash": "2cff7075"
   },
   "web.organizations.invitations.signup_continue": {
-    "text": "Продовжити"
+    "text": "Продовжити",
+    "source_hash": "31fbef16"
   },
   "web.organizations.invitations.signin_continue": {
-    "text": "Увійти"
+    "text": "Увійти",
+    "source_hash": "bcc0bcc9"
   },
   "web.organizations.invitations.confirm_join_below": {
-    "text": "Майже готово — підтвердьте нижче, щоб приєднатися до організації."
+    "text": "Майже готово — підтвердьте нижче, щоб приєднатися до організації.",
+    "source_hash": "2d14f9b0"
   },
   "web.organizations.invitations.go_to_organizations": {
-    "text": "Перейти до організацій"
+    "text": "Перейти до організацій",
+    "source_hash": "2afa38a3"
   },
   "web.organizations.invitations.already_member": {
-    "text": "Ви вже є учасником цієї організації"
+    "text": "Ви вже є учасником цієї організації",
+    "source_hash": "f56ad547"
   },
   "web.organizations.invitations.join_organization": {
-    "text": "Приєднатися до {orgName}"
+    "text": "Приєднатися до {orgName}",
+    "source_hash": "1aea9194"
   },
   "web.organizations.invitations.sign_in_to_join": {
-    "text": "Увійдіть, щоб приєднатися до {orgName}"
+    "text": "Увійдіть, щоб приєднатися до {orgName}",
+    "source_hash": "f94ed8b4"
   },
   "web.organizations.invitations.decline": {
-    "text": "Відхилити"
+    "text": "Відхилити",
+    "source_hash": "a2d285b3"
   },
   "web.organizations.members.member_quota": {
-    "text": "{used} із {limit} учасників"
+    "text": "{used} із {limit} учасників",
+    "source_hash": "51183b79"
   },
   "web.organizations.members.pending_suffix": {
-    "text": "({count} в очікуванні)"
+    "text": "({count} в очікуванні)",
+    "source_hash": "c13f787f"
   },
   "web.organizations.members.limit_reached_hint": {
-    "text": "Досягнуто ліміту учасників."
+    "text": "Досягнуто ліміту учасників.",
+    "source_hash": "26cdb6b8"
   },
   "web.organizations.sso.title": {
-    "text": "Єдиний вхід (SSO)"
+    "text": "Єдиний вхід (SSO)",
+    "source_hash": "5db5c812"
   },
   "web.organizations.sso.description": {
-    "text": "Налаштуйте SSO, щоб дозволити учасникам входити за допомогою провайдера ідентифікації Вашої організації"
+    "text": "Налаштуйте SSO, щоб дозволити учасникам входити за допомогою провайдера ідентифікації Вашої організації",
+    "source_hash": "464f0a8b"
   },
   "web.organizations.sso.provider_type": {
-    "text": "Тип провайдера"
+    "text": "Тип провайдера",
+    "source_hash": "bdfbb1ec"
   },
   "web.organizations.sso.provider_type_description": {
-    "text": "Виберіть провайдера ідентифікації Вашої організації"
+    "text": "Виберіть провайдера ідентифікації Вашої організації",
+    "source_hash": "e81325a6"
   },
   "web.organizations.sso.display_name": {
-    "text": "Відображуване ім'я"
+    "text": "Відображуване ім'я",
+    "source_hash": "18d67c99"
   },
   "web.organizations.sso.display_name_hint": {
-    "text": "Зрозуміла назва, що показується користувачам під час входу"
+    "text": "Зрозуміла назва, що показується користувачам під час входу",
+    "source_hash": "a83f1fba"
   },
   "web.organizations.sso.display_name_placeholder": {
-    "text": "напр. Acme Corp SSO"
+    "text": "напр. Acme Corp SSO",
+    "source_hash": "43c655c5"
   },
   "web.organizations.sso.client_id": {
-    "text": "Client ID"
+    "text": "Client ID",
+    "source_hash": "8726db01"
   },
   "web.organizations.sso.client_id_placeholder": {
-    "text": "Ваш Client ID для OAuth"
+    "text": "Ваш Client ID для OAuth",
+    "source_hash": "830723da"
   },
   "web.organizations.sso.client_secret": {
-    "text": "Client Secret"
+    "text": "Client Secret",
+    "source_hash": "ae21cf6d"
   },
   "web.organizations.sso.client_secret_placeholder": {
-    "text": "Ваш Client Secret для OAuth"
+    "text": "Ваш Client Secret для OAuth",
+    "source_hash": "14e4a8c8"
   },
   "web.organizations.sso.client_secret_update_hint": {
-    "text": "Залиште порожнім, щоб зберегти наявний секрет"
+    "text": "Залиште порожнім, щоб зберегти наявний секрет",
+    "source_hash": "98bc3b40"
   },
   "web.organizations.sso.tenant_id": {
-    "text": "Tenant ID"
+    "text": "Tenant ID",
+    "source_hash": "de1f5fff"
   },
   "web.organizations.sso.tenant_id_hint": {
-    "text": "Ідентифікатор клієнта Вашого Azure AD / Entra ID"
+    "text": "Ідентифікатор клієнта Вашого Azure AD / Entra ID",
+    "source_hash": "3c5b707a"
   },
   "web.organizations.sso.tenant_id_placeholder": {
-    "text": "напр. 12345678-1234-1234-1234-123456789abc"
+    "text": "напр. 12345678-1234-1234-1234-123456789abc",
+    "source_hash": "1a166316"
   },
   "web.organizations.sso.issuer": {
-    "text": "URL-адреса видавця (Issuer)"
+    "text": "URL-адреса видавця (Issuer)",
+    "source_hash": "4d03ba8a"
   },
   "web.organizations.sso.issuer_hint": {
-    "text": "URL-адреса виявлення OIDC для Вашого провайдера ідентифікації"
+    "text": "URL-адреса виявлення OIDC для Вашого провайдера ідентифікації",
+    "source_hash": "6102d81b"
   },
   "web.organizations.sso.issuer_placeholder": {
-    "text": "напр. https://login.example.com"
+    "text": "напр. https://login.example.com",
+    "source_hash": "9a638e9c"
   },
   "web.organizations.sso.view_discovery_document": {
-    "text": "Переглянути документ виявлення"
+    "text": "Переглянути документ виявлення",
+    "source_hash": "513bda60"
   },
   "web.organizations.sso.callback_url": {
-    "text": "URL-адреса зворотного виклику"
+    "text": "URL-адреса зворотного виклику",
+    "source_hash": "dc297ae9"
   },
   "web.organizations.sso.callback_url_hint": {
-    "text": "Додайте цю URL-адресу до дозволених URI перенаправлення Вашого провайдера ідентифікації"
+    "text": "Додайте цю URL-адресу до дозволених URI перенаправлення Вашого провайдера ідентифікації",
+    "source_hash": "65d55683"
   },
   "web.organizations.sso.allowed_domains": {
-    "text": "Дозволені домени електронної пошти"
+    "text": "Дозволені домени електронної пошти",
+    "source_hash": "0295ad71"
   },
   "web.organizations.sso.allowed_domains_hint": {
-    "text": "Входити можуть лише користувачі з адресами електронної пошти з цих доменів. Залиште порожнім, щоб дозволити всі домени."
+    "text": "Входити можуть лише користувачі з адресами електронної пошти з цих доменів. Залиште порожнім, щоб дозволити всі домени.",
+    "source_hash": "1775e874"
   },
   "web.organizations.sso.domain_placeholder": {
-    "text": "напр. acme.com"
+    "text": "напр. acme.com",
+    "source_hash": "e4420764"
   },
   "web.organizations.sso.invalid_domain": {
-    "text": "Будь ласка, введіть дійсний домен (напр. example.com)"
+    "text": "Будь ласка, введіть дійсний домен (напр. example.com)",
+    "source_hash": "16807983"
   },
   "web.organizations.sso.domain_exists": {
-    "text": "Цей домен вже є у списку"
+    "text": "Цей домен вже є у списку",
+    "source_hash": "3fccb721"
   },
   "web.organizations.sso.remove_domain": {
-    "text": "Видалити {domain}"
+    "text": "Видалити {domain}",
+    "source_hash": "ae708a1d"
   },
   "web.organizations.sso.enabled": {
-    "text": "Увімкнути SSO"
+    "text": "Увімкнути SSO",
+    "source_hash": "d10d0801"
   },
   "web.organizations.sso.enabled_hint": {
-    "text": "Коли ввімкнено, учасники організації можуть входити за допомогою цього провайдера SSO"
+    "text": "Коли ввімкнено, учасники організації можуть входити за допомогою цього провайдера SSO",
+    "source_hash": "d7da2fa2"
   },
   "web.organizations.sso.enforce_sso_only": {
-    "text": "Застосовувати лише SSO"
+    "text": "Застосовувати лише SSO",
+    "source_hash": "b3a3f694"
   },
   "web.organizations.sso.enforce_sso_only_hint": {
-    "text": "Вимагати SSO для всіх входів на цьому домені. Коли ввімкнено, автентифікацію за паролем вимкнено."
+    "text": "Вимагати SSO для всіх входів на цьому домені. Коли ввімкнено, автентифікацію за паролем вимкнено.",
+    "source_hash": "19432210"
   },
   "web.organizations.sso.grant_org_scope": {
-    "text": "Надати доступ на рівні всієї організації"
+    "text": "Надати доступ на рівні всієї організації",
+    "source_hash": "2070cef2"
   },
   "web.organizations.sso.grant_org_scope_hint": {
-    "text": "Нові учасники, які приєднуються через SSO цього домену, отримуватимуть доступ до всіх доменів організації. Це не впливає на наявних учасників. Коли вимкнено (за замовчуванням), нові учасники можуть отримати доступ лише до цього домену."
+    "text": "Нові учасники, які приєднуються через SSO цього домену, отримуватимуть доступ до всіх доменів організації. Це не впливає на наявних учасників. Коли вимкнено (за замовчуванням), нові учасники можуть отримати доступ лише до цього домену.",
+    "source_hash": "2ac9f345"
   },
   "web.organizations.sso.save_config": {
-    "text": "Зберегти налаштування SSO"
+    "text": "Зберегти налаштування SSO",
+    "source_hash": "70853769"
   },
   "web.organizations.sso.delete_config": {
-    "text": "Видалити налаштування"
+    "text": "Видалити налаштування",
+    "source_hash": "9ac1ac7b"
   },
   "web.organizations.sso.delete_confirm": {
-    "text": "Ви впевнені? Це вимкне SSO для Вашої організації."
+    "text": "Ви впевнені? Це вимкне SSO для Вашої організації.",
+    "source_hash": "5b3f5b9d"
   },
   "web.organizations.sso.load_error": {
-    "text": "Не вдалося завантажити налаштування SSO"
+    "text": "Не вдалося завантажити налаштування SSO",
+    "source_hash": "75cb73f6"
   },
   "web.organizations.sso.save_error": {
-    "text": "Не вдалося зберегти налаштування SSO"
+    "text": "Не вдалося зберегти налаштування SSO",
+    "source_hash": "99ef145b"
   },
   "web.organizations.sso.create_success": {
-    "text": "Налаштування SSO успішно створено"
+    "text": "Налаштування SSO успішно створено",
+    "source_hash": "531c7d92"
   },
   "web.organizations.sso.update_success": {
-    "text": "Налаштування SSO успішно оновлено"
+    "text": "Налаштування SSO успішно оновлено",
+    "source_hash": "d98d8e83"
   },
   "web.organizations.sso.delete_success": {
-    "text": "Налаштування SSO успішно видалено"
+    "text": "Налаштування SSO успішно видалено",
+    "source_hash": "55f5d4f5"
   },
   "web.organizations.sso.delete_error": {
-    "text": "Не вдалося видалити налаштування SSO"
+    "text": "Не вдалося видалити налаштування SSO",
+    "source_hash": "4a960fe4"
   },
   "web.organizations.sso.test_connection": {
-    "text": "Перевірити з'єднання"
+    "text": "Перевірити з'єднання",
+    "source_hash": "c02977b0"
   },
   "web.organizations.sso.test_connection_hint": {
-    "text": "Перевірте, чи доступний провайдер ідентифікації (не перевіряє облікові дані)"
+    "text": "Перевірте, чи доступний провайдер ідентифікації (не перевіряє облікові дані)",
+    "source_hash": "22a23b68"
   },
   "web.organizations.sso.test_button": {
-    "text": "Перевірити з'єднання"
+    "text": "Перевірити з'єднання",
+    "source_hash": "c02977b0"
   },
   "web.organizations.sso.testing": {
-    "text": "Перевірка..."
+    "text": "Перевірка...",
+    "source_hash": "6c02a284"
   },
   "web.organizations.sso.test_error": {
-    "text": "Не вдалося перевірити з'єднання"
+    "text": "Не вдалося перевірити з'єднання",
+    "source_hash": "c1d1f310"
   },
   "web.organizations.sso.auth_endpoint": {
-    "text": "Кінцева точка авторизації"
+    "text": "Кінцева точка авторизації",
+    "source_hash": "b42b956f"
   },
   "web.organizations.sso.missing_fields": {
-    "text": "Відсутні поля"
+    "text": "Відсутні поля",
+    "source_hash": "757df777"
   },
   "web.organizations.sso.status_enabled": {
-    "text": "Увімкнено"
+    "text": "Увімкнено",
+    "source_hash": "92c1cdfd"
   },
   "web.organizations.sso.status_configured": {
-    "text": "Налаштовано"
+    "text": "Налаштовано",
+    "source_hash": "84aebc69"
   },
   "web.organizations.sso.domain_sso_title": {
-    "text": "SSO домену"
+    "text": "SSO домену",
+    "source_hash": "13161464"
   },
   "web.organizations.sso.domain_sso_description": {
-    "text": "Налаштуйте SSO для кожного підтвердженого домену"
+    "text": "Налаштуйте SSO для кожного підтвердженого домену",
+    "source_hash": "af5b799e"
   },
   "web.organizations.sso.provider_type_locked_hint": {
-    "text": "Щоб змінити провайдера, спочатку видаліть це налаштування"
+    "text": "Щоб змінити провайдера, спочатку видаліть це налаштування",
+    "source_hash": "0a1027ff"
   },
   "web.organizations.sso.status_not_configured": {
-    "text": "Не налаштовано"
+    "text": "Не налаштовано",
+    "source_hash": "bbea960e"
   },
   "web.organizations.sso.no_domains": {
-    "text": "Немає підтверджених доменів"
+    "text": "Немає підтверджених доменів",
+    "source_hash": "8a7fbb76"
   },
   "web.organizations.sso.no_domains_description": {
-    "text": "Додайте та підтвердьте домен, перш ніж налаштовувати для нього SSO."
+    "text": "Додайте та підтвердьте домен, перш ніж налаштовувати для нього SSO.",
+    "source_hash": "e825d13a"
   },
   "web.organizations.tabs.team": {
-    "text": "Команда"
+    "text": "Команда",
+    "source_hash": "5985039f"
   },
   "web.organizations.tabs.sso": {
-    "text": "SSO"
+    "text": "SSO",
+    "source_hash": "5ba3ac9f"
   }
 }

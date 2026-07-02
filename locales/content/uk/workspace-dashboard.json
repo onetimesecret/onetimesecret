@@ -24,12 +24,15 @@
     "source_hash": "ff0d904e"
   },
   "web.teams.create_first_team_title": {
-    "text": "Створіть Вашу першу команду"
+    "text": "Створіть Вашу першу команду",
+    "source_hash": "54693f14"
   },
   "web.teams.create_first_team_description": {
-    "text": "Команди дозволяють Вам співпрацювати з іншими у спільній робочій області."
+    "text": "Команди дозволяють Вам співпрацювати з іншими у спільній робочій області.",
+    "source_hash": "d61b86b5"
   },
   "web.teams.create_team": {
-    "text": "Створити команду"
+    "text": "Створити команду",
+    "source_hash": "284ff194"
   }
 }

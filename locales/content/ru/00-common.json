@@ -1385,108 +1385,143 @@
     "source_hash": "783f174c"
   },
   "api.errors.authentication_required": {
-    "text": "Требуется аутентификация"
+    "text": "Требуется аутентификация",
+    "source_hash": "0fcfb12d"
   },
   "api.errors.sso_only_action_blocked": {
-    "text": "Это действие недоступно в режиме «только SSO»"
+    "text": "Это действие недоступно в режиме «только SSO»",
+    "source_hash": "9bc26394"
   },
   "web.COMMON.configure": {
-    "text": "Настроить"
+    "text": "Настроить",
+    "source_hash": "6defafa2"
   },
   "web.COMMON.copy_to_clipboard": {
-    "text": "Копировать в буфер обмена"
+    "text": "Копировать в буфер обмена",
+    "source_hash": "b749e205"
   },
   "web.COMMON.add": {
-    "text": "Добавить"
+    "text": "Добавить",
+    "source_hash": "9fd728c6"
   },
   "web.COMMON.enabled": {
-    "text": "Включено"
+    "text": "Включено",
+    "source_hash": "92c1cdfd"
   },
   "web.COMMON.disabled": {
-    "text": "Выключено"
+    "text": "Выключено",
+    "source_hash": "75081b59"
   },
   "web.COMMON.yes_delete": {
-    "text": "Да, удалить"
+    "text": "Да, удалить",
+    "source_hash": "7b05a8e3"
   },
   "web.COMMON.error_code": {
-    "text": "Код ошибки"
+    "text": "Код ошибки",
+    "source_hash": "46832415"
   },
   "web.COMMON.http_status": {
-    "text": "HTTP-статус"
+    "text": "HTTP-статус",
+    "source_hash": "b2a629f2"
   },
   "web.COMMON.details": {
-    "text": "Подробности"
+    "text": "Подробности",
+    "source_hash": "45989de4"
   },
   "web.COMMON.field_confirm_password": {
-    "text": "Подтвердите пароль"
+    "text": "Подтвердите пароль",
+    "source_hash": "c292210c"
   },
   "web.COMMON.passwords_must_match": {
-    "text": "Пароли должны совпадать"
+    "text": "Пароли должны совпадать",
+    "source_hash": "0c060bd4"
   },
   "web.COMMON.and": {
-    "text": "и"
+    "text": "и",
+    "source_hash": "6201111b"
   },
   "web.COMMON.or": {
-    "text": "или"
+    "text": "или",
+    "source_hash": "7175517a"
   },
   "web.COMMON.copied": {
-    "text": "Скопировано"
+    "text": "Скопировано",
+    "source_hash": "8d525e5f"
   },
   "web.COMMON.copy": {
-    "text": "Копировать"
+    "text": "Копировать",
+    "source_hash": "e21f935f"
   },
   "web.COMMON.copy_email": {
-    "text": "Копировать адрес электронной почты"
+    "text": "Копировать адрес электронной почты",
+    "source_hash": "61b94846"
   },
   "web.COMMON.copy_id": {
-    "text": "Копировать ID аккаунта"
+    "text": "Копировать ID аккаунта",
+    "source_hash": "fd493ffd"
   },
   "web.COMMON.org_id_tooltip": {
-    "text": "Уникальный идентификатор вашей организации"
+    "text": "Уникальный идентификатор вашей организации",
+    "source_hash": "c8c08d29"
   },
   "web.COMMON.success": {
-    "text": "Успешно"
+    "text": "Успешно",
+    "source_hash": "c88a0b90"
   },
   "web.COMMON.need_help": {
-    "text": "Нужна помощь"
+    "text": "Нужна помощь",
+    "source_hash": "4ca0ca38"
   },
   "web.COMMON.open_help_dialog": {
-    "text": "Открыть окно справки"
+    "text": "Открыть окно справки",
+    "source_hash": "55cd1515"
   },
   "web.COMMON.focus_is_now_in_the_main_text_area": {
-    "text": "Фокус теперь находится в основном текстовом поле"
+    "text": "Фокус теперь находится в основном текстовом поле",
+    "source_hash": "e00dd260"
   },
   "web.LABELS.show_passphrase": {
-    "text": "Показать кодовую фразу"
+    "text": "Показать кодовую фразу",
+    "source_hash": "76880d38"
   },
   "web.LABELS.hide_passphrase": {
-    "text": "Скрыть кодовую фразу"
+    "text": "Скрыть кодовую фразу",
+    "source_hash": "8ecdc98c"
   },
   "web.LABELS.copy_icon": {
-    "text": "Значок копирования"
+    "text": "Значок копирования",
+    "source_hash": "d1a5fc0c"
   },
   "web.LABELS.copied_icon": {
-    "text": "Значок «Скопировано»"
+    "text": "Значок «Скопировано»",
+    "source_hash": "90a4b4f1"
   },
   "web.STATUS.unverified": {
-    "text": "Не подтверждён"
+    "text": "Не подтверждён",
+    "source_hash": "33c8e8de"
   },
   "web.TITLES.domain_detail": {
-    "text": "Настройки домена"
+    "text": "Настройки домена",
+    "source_hash": "e24f338d"
   },
   "web.TITLES.domain_signin": {
-    "text": "Настройка входа"
+    "text": "Настройка входа",
+    "source_hash": "2da38c03"
   },
   "web.TITLES.domain_sso": {
-    "text": "SSO домена"
+    "text": "SSO домена",
+    "source_hash": "13161464"
   },
   "web.TITLES.domain_signup": {
-    "text": "Проверка регистрации для домена"
+    "text": "Проверка регистрации для домена",
+    "source_hash": "c8ce809a"
   },
   "web.TITLES.domain_email": {
-    "text": "Настройка электронной почты"
+    "text": "Настройка электронной почты",
+    "source_hash": "6f38aa51"
   },
   "web.TITLES.domain_incoming": {
-    "text": "Входящие секреты"
+    "text": "Входящие секреты",
+    "source_hash": "883dbca9"
   }
 }

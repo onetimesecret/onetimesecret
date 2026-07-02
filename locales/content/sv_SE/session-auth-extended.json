@@ -712,22 +712,27 @@
     "source_hash": "579c7f4e"
   },
   "web.auth.google": {
-    "text": "Google"
+    "text": "Google",
+    "source_hash": "ce770667"
   },
   "web.auth.mfa.alternative_auth_options": {
-    "text": "Andra autentiseringsalternativ"
+    "text": "Andra autentiseringsalternativ",
+    "source_hash": "5ddea736"
   },
   "web.auth.remember.enabled": {
-    "text": "Förbli inloggad"
+    "text": "Förbli inloggad",
+    "source_hash": "b0a1ca80"
   },
   "web.auth.security._guidance.context": {
     "text": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
   },
   "web.auth.sessions.session_singular": {
-    "text": "session"
+    "text": "session",
+    "source_hash": "3f3af1ec"
   },
   "web.auth.sessions.session_plural": {
-    "text": "sessioner"
+    "text": "sessioner",
+    "source_hash": "1225ae6c"
   },
   "web.auth.sessions._guidance.context": {
     "text": "User's logged-in devices/browsers management page"

@@ -848,387 +848,515 @@
     "source_hash": "c439214b"
   },
   "api.domains.errors.add_admin_required": {
-    "text": "Solo los propietarios y administradores de la organización pueden añadir dominios personalizados"
+    "text": "Solo los propietarios y administradores de la organización pueden añadir dominios personalizados",
+    "source_hash": "3324aabe"
   },
   "web.domains.public_homepage": {
-    "text": "Página de inicio pública"
+    "text": "Página de inicio pública",
+    "source_hash": "2ae3ccba"
   },
   "web.domains.status_tooltip_active": {
-    "text": "Dominio verificado y activo"
+    "text": "Dominio verificado y activo",
+    "source_hash": "e4b6a6e1"
   },
   "web.domains.status_tooltip_dns_incorrect": {
-    "text": "DNS no configurado — haz clic para corregir"
+    "text": "DNS no configurado — haz clic para corregir",
+    "source_hash": "892cb2cb"
   },
   "web.domains.status_tooltip_not_verified": {
-    "text": "Dominio no verificado — haz clic para verificar"
+    "text": "Dominio no verificado — haz clic para verificar",
+    "source_hash": "a9806710"
   },
   "web.domains.status_tooltip_unverified": {
-    "text": "Estado del dominio sin verificar — haz clic para actualizar"
+    "text": "Estado del dominio sin verificar — haz clic para actualizar",
+    "source_hash": "a45aa76d"
   },
   "web.domains.last_check_failed": {
-    "text": "La última comprobación de verificación falló"
+    "text": "La última comprobación de verificación falló",
+    "source_hash": "88b594b8"
   },
   "web.domains.last_check_failed_ago": {
-    "text": "última comprobación fallida {0}"
+    "text": "última comprobación fallida {0}",
+    "source_hash": "ddfb6412"
   },
   "web.domains.verify_now": {
-    "text": "Verificar ahora"
+    "text": "Verificar ahora",
+    "source_hash": "db383efb"
   },
   "web.domains.click_to_verify": {
-    "text": "haz clic para verificar"
+    "text": "haz clic para verificar",
+    "source_hash": "6eae7d9c"
   },
   "web.domains.remove_domain_description": {
-    "text": "Elimina permanentemente este dominio y toda su configuración."
+    "text": "Elimina permanentemente este dominio y toda su configuración.",
+    "source_hash": "73946b9e"
   },
   "web.domains.add_access_denied": {
-    "text": "Acceso denegado"
+    "text": "Acceso denegado",
+    "source_hash": "d134ca02"
   },
   "web.domains.add_access_denied_description": {
-    "text": "No tienes permiso para añadir dominios a esta organización. Contacta con el administrador de tu organización."
+    "text": "No tienes permiso para añadir dominios a esta organización. Contacta con el administrador de tu organización.",
+    "source_hash": "25e035c6"
   },
   "web.domains.dns_widget_load_failed": {
-    "text": "No se pudo cargar el widget de DNS"
+    "text": "No se pudo cargar el widget de DNS",
+    "source_hash": "5a1d8ab5"
   },
   "web.domains.dns_widget_not_available": {
-    "text": "El widget de DNS no está disponible"
+    "text": "El widget de DNS no está disponible",
+    "source_hash": "4eed448b"
   },
   "web.domains.dns_widget_init_failed": {
-    "text": "No se pudo inicializar el widget de DNS"
+    "text": "No se pudo inicializar el widget de DNS",
+    "source_hash": "de477585"
   },
   "web.domains.verified": {
-    "text": "Verificado"
+    "text": "Verificado",
+    "source_hash": "4f783840"
   },
   "web.domains.pending_verification": {
-    "text": "Pendiente de verificación"
+    "text": "Pendiente de verificación",
+    "source_hash": "77e07795"
   },
   "web.domains.unsaved_changes_confirmation": {
-    "text": "Tienes cambios sin guardar. ¿Seguro que quieres salir?"
+    "text": "Tienes cambios sin guardar. ¿Seguro que quieres salir?",
+    "source_hash": "322380c1"
   },
   "web.domains.entitlement_required_owner": {
-    "text": "Esta función requiere mejorar el plan."
+    "text": "Esta función requiere mejorar el plan.",
+    "source_hash": "6de1f752"
   },
   "web.domains.entitlement_required_member": {
-    "text": "Esta función no está disponible en tu plan actual. Contacta con el propietario de tu organización."
+    "text": "Esta función no está disponible en tu plan actual. Contacta con el propietario de tu organización.",
+    "source_hash": "8f1688b2"
   },
   "web.domains.detail.manage": {
-    "text": "Gestionar"
+    "text": "Gestionar",
+    "source_hash": "5a234448"
   },
   "web.domains.detail.features": {
-    "text": "Funciones"
+    "text": "Funciones",
+    "source_hash": "5697d03d"
   },
   "web.domains.detail.homepage_title": {
-    "text": "Secretos en la página de inicio"
+    "text": "Secretos en la página de inicio",
+    "source_hash": "6360f7ec"
   },
   "web.domains.detail.homepage_description": {
-    "text": "Permite el acceso público para crear secretos en la página de inicio de tu dominio"
+    "text": "Permite el acceso público para crear secretos en la página de inicio de tu dominio",
+    "source_hash": "209b3ded"
   },
   "web.domains.detail.brand_description": {
-    "text": "Logotipo, colores y marca personalizada"
+    "text": "Logotipo, colores y marca personalizada",
+    "source_hash": "69f7a9e8"
   },
   "web.domains.detail.sso_description": {
-    "text": "Configuración del proveedor de inicio de sesión único (SSO)"
+    "text": "Configuración del proveedor de inicio de sesión único (SSO)",
+    "source_hash": "234e6150"
   },
   "web.domains.detail.email_description": {
-    "text": "Configuración personalizada del remitente de correo electrónico"
+    "text": "Configuración personalizada del remitente de correo electrónico",
+    "source_hash": "7fcde01b"
   },
   "web.domains.detail.incoming_description": {
-    "text": "Configuración de destinatarios de secretos entrantes"
+    "text": "Configuración de destinatarios de secretos entrantes",
+    "source_hash": "37c1fd6d"
   },
   "web.domains.detail.signup_description": {
-    "text": "Estrategia de validación de registro por dominio"
+    "text": "Estrategia de validación de registro por dominio",
+    "source_hash": "3c5a511f"
   },
   "web.domains.detail.signin_description": {
-    "text": "Configuración del método de inicio de sesión por dominio"
+    "text": "Configuración del método de inicio de sesión por dominio",
+    "source_hash": "73e01e36"
   },
   "web.domains.email.dns_check_label": {
-    "text": "DNS"
+    "text": "DNS",
+    "source_hash": "020965a2"
   },
   "web.domains.email.provider_check_label": {
-    "text": "Proveedor"
+    "text": "Proveedor",
+    "source_hash": "472590ae"
   },
   "web.domains.email.test_email_title": {
-    "text": "Probar la entrega de correo"
+    "text": "Probar la entrega de correo",
+    "source_hash": "c1b3dee2"
   },
   "web.domains.email.test_email_hint": {
-    "text": "Envíate un correo de prueba a ti mismo con la configuración guardada. Funciona incluso cuando la función aún no está habilitada."
+    "text": "Envíate un correo de prueba a ti mismo con la configuración guardada. Funciona incluso cuando la función aún no está habilitada.",
+    "source_hash": "33e876ad"
   },
   "web.domains.email.send_test": {
-    "text": "Enviar prueba"
+    "text": "Enviar prueba",
+    "source_hash": "22d7b11d"
   },
   "web.domains.email.test_email_sent": {
-    "text": "Correo de prueba enviado correctamente"
+    "text": "Correo de prueba enviado correctamente",
+    "source_hash": "561617fd"
   },
   "web.domains.email.test_email_failed": {
-    "text": "No se pudo enviar el correo de prueba"
+    "text": "No se pudo enviar el correo de prueba",
+    "source_hash": "95ce63bc"
   },
   "web.domains.email.test_email_sent_to": {
-    "text": "Enviado a {email}"
+    "text": "Enviado a {email}",
+    "source_hash": "8ceb9588"
   },
   "web.domains.email.delivered_via": {
-    "text": "Entregado mediante {provider}"
+    "text": "Entregado mediante {provider}",
+    "source_hash": "f741959b"
   },
   "web.domains.incoming.feature_disabled": {
-    "text": "Secretos entrantes no disponibles"
+    "text": "Secretos entrantes no disponibles",
+    "source_hash": "0f96c5ec"
   },
   "web.domains.incoming.feature_disabled_description": {
-    "text": "Los secretos entrantes no están habilitados en esta instancia. Contacta con tu administrador."
+    "text": "Los secretos entrantes no están habilitados en esta instancia. Contacta con tu administrador.",
+    "source_hash": "dce981e0"
   },
   "web.domains.signin.title": {
-    "text": "Configuración de inicio de sesión"
+    "text": "Configuración de inicio de sesión",
+    "source_hash": "2da38c03"
   },
   "web.domains.signin.configure_signin": {
-    "text": "Configurar inicio de sesión"
+    "text": "Configurar inicio de sesión",
+    "source_hash": "f72b58b5"
   },
   "web.domains.signin.config_description": {
-    "text": "Configura los métodos de autenticación para iniciar sesión en este dominio"
+    "text": "Configura los métodos de autenticación para iniciar sesión en este dominio",
+    "source_hash": "8efce428"
   },
   "web.domains.signin.access_denied": {
-    "text": "Acceso denegado"
+    "text": "Acceso denegado",
+    "source_hash": "d134ca02"
   },
   "web.domains.signin.upgrade_to_configure": {
-    "text": "Mejora tu plan para configurar los métodos de inicio de sesión de este dominio."
+    "text": "Mejora tu plan para configurar los métodos de inicio de sesión de este dominio.",
+    "source_hash": "e242bb74"
   },
   "web.domains.signin.not_configured_notice": {
-    "text": "Todavía no se ha establecido la configuración de inicio de sesión para este dominio. Configura las anulaciones para controlar qué métodos de autenticación están disponibles en la página de inicio de sesión de este dominio."
+    "text": "Todavía no se ha establecido la configuración de inicio de sesión para este dominio. Configura las anulaciones para controlar qué métodos de autenticación están disponibles en la página de inicio de sesión de este dominio.",
+    "source_hash": "cb788a2d"
   },
   "web.domains.signin.signin_enabled_label": {
-    "text": "Inicio de sesión habilitado"
+    "text": "Inicio de sesión habilitado",
+    "source_hash": "cabe4898"
   },
   "web.domains.signin.header_toggle_label": {
-    "text": "Inicio de sesión"
+    "text": "Inicio de sesión",
+    "source_hash": "5bbbe531"
   },
   "web.domains.signin.signin_enabled_hint": {
-    "text": "Si los usuarios pueden iniciar sesión en este dominio"
+    "text": "Si los usuarios pueden iniciar sesión en este dominio",
+    "source_hash": "57a92aee"
   },
   "web.domains.signin.restrict_to_label": {
-    "text": "Restringir el método de inicio de sesión"
+    "text": "Restringir el método de inicio de sesión",
+    "source_hash": "edbec83f"
   },
   "web.domains.signin.restrict_to_hint": {
-    "text": "Restringe este dominio a un único método de autenticación. Cuando se establece, solo se muestra el método elegido en la página de inicio de sesión."
+    "text": "Restringe este dominio a un único método de autenticación. Cuando se establece, solo se muestra el método elegido en la página de inicio de sesión.",
+    "source_hash": "682bc4c5"
   },
   "web.domains.signin.all_methods": {
-    "text": "Todos los métodos"
+    "text": "Todos los métodos",
+    "source_hash": "e601c19e"
   },
   "web.domains.signin.all_methods_description": {
-    "text": "Mostrar todos los métodos de autenticación habilitados en la página de inicio de sesión"
+    "text": "Mostrar todos los métodos de autenticación habilitados en la página de inicio de sesión",
+    "source_hash": "62723340"
   },
   "web.domains.signin.method_password": {
-    "text": "Contraseña"
+    "text": "Contraseña",
+    "source_hash": "e7cf3ef4"
   },
   "web.domains.signin.method_email_auth": {
-    "text": "Autenticación por correo electrónico"
+    "text": "Autenticación por correo electrónico",
+    "source_hash": "68c38f94"
   },
   "web.domains.signin.method_webauthn": {
-    "text": "WebAuthn / claves de acceso"
+    "text": "WebAuthn / claves de acceso",
+    "source_hash": "c40224ce"
   },
   "web.domains.signin.method_sso": {
-    "text": "Inicio de sesión único (SSO)"
+    "text": "Inicio de sesión único (SSO)",
+    "source_hash": "cf7cd744"
   },
   "web.domains.signin.method_overrides_label": {
-    "text": "Anulaciones de método"
+    "text": "Anulaciones de método",
+    "source_hash": "5496cba6"
   },
   "web.domains.signin.method_overrides_hint": {
-    "text": "Habilita o deshabilita métodos de autenticación individuales para este dominio"
+    "text": "Habilita o deshabilita métodos de autenticación individuales para este dominio",
+    "source_hash": "394e3878"
   },
   "web.domains.signin.mode_question": {
-    "text": "¿Cómo pueden iniciar sesión los usuarios?"
+    "text": "¿Cómo pueden iniciar sesión los usuarios?",
+    "source_hash": "3694eb23"
   },
   "web.domains.signin.mode_any": {
-    "text": "Cualquier método disponible"
+    "text": "Cualquier método disponible",
+    "source_hash": "23665425"
   },
   "web.domains.signin.mode_any_hint": {
-    "text": "Muestra todos los métodos disponibles en este dominio. Limita los métodos individuales a continuación."
+    "text": "Muestra todos los métodos disponibles en este dominio. Limita los métodos individuales a continuación.",
+    "source_hash": "2f3dcba6"
   },
   "web.domains.signin.mode_one": {
-    "text": "Un método específico"
+    "text": "Un método específico",
+    "source_hash": "601f5768"
   },
   "web.domains.signin.mode_one_hint": {
-    "text": "Restringe la página de inicio de sesión a un único método. Solo se enumeran los métodos disponibles en este dominio."
+    "text": "Restringe la página de inicio de sesión a un único método. Solo se enumeran los métodos disponibles en este dominio.",
+    "source_hash": "58bde6d5"
   },
   "web.domains.signin.mode_disabled": {
-    "text": "Inicio de sesión deshabilitado"
+    "text": "Inicio de sesión deshabilitado",
+    "source_hash": "bb807607"
   },
   "web.domains.signin.mode_disabled_hint": {
-    "text": "Los usuarios no pueden iniciar sesión en este dominio."
+    "text": "Los usuarios no pueden iniciar sesión en este dominio.",
+    "source_hash": "8938f098"
   },
   "web.domains.signin.mode_disabled_notice": {
-    "text": "Los visitantes de la página de inicio de sesión de este dominio ven un aviso de que el inicio de sesión no está disponible, con un enlace de vuelta a la página de inicio. Tu configuración de métodos anterior se conserva y se restaura cuando vuelves a habilitar el inicio de sesión."
+    "text": "Los visitantes de la página de inicio de sesión de este dominio ven un aviso de que el inicio de sesión no está disponible, con un enlace de vuelta a la página de inicio. Tu configuración de métodos anterior se conserva y se restaura cuando vuelves a habilitar el inicio de sesión.",
+    "source_hash": "1a04de18"
   },
   "web.domains.signin.methods_list_label": {
-    "text": "Métodos que se muestran en la página de inicio de sesión"
+    "text": "Métodos que se muestran en la página de inicio de sesión",
+    "source_hash": "66fd133b"
   },
   "web.domains.signin.restrict_picker_hint": {
-    "text": "Solo se enumeran los métodos disponibles en este dominio."
+    "text": "Solo se enumeran los métodos disponibles en este dominio.",
+    "source_hash": "c7a56f44"
   },
   "web.domains.signin.availability_always": {
-    "text": "Siempre disponible"
+    "text": "Siempre disponible",
+    "source_hash": "0fda3772"
   },
   "web.domains.signin.availability_global_on": {
-    "text": "Sigue la política global · Activado"
+    "text": "Sigue la política global · Activado",
+    "source_hash": "3844e6f7"
   },
   "web.domains.signin.availability_global_off": {
-    "text": "No disponible"
+    "text": "No disponible",
+    "source_hash": "67a926f7"
   },
   "web.domains.signin.availability_unavailable": {
-    "text": "No disponible en todo el sitio"
+    "text": "No disponible en todo el sitio",
+    "source_hash": "da29c1be"
   },
   "web.domains.signin.allow_on_domain": {
-    "text": "Permitir en este dominio"
+    "text": "Permitir en este dominio",
+    "source_hash": "760b578e"
   },
   "web.domains.signin.method_password_blurb": {
-    "text": "Solo contraseña"
+    "text": "Solo contraseña",
+    "source_hash": "ed1a02fd"
   },
   "web.domains.signin.method_email_auth_blurb": {
-    "text": "Inicio de sesión con enlace mágico sin contraseña"
+    "text": "Inicio de sesión con enlace mágico sin contraseña",
+    "source_hash": "7f776a85"
   },
   "web.domains.signin.method_webauthn_blurb": {
-    "text": "Datos biométricos y llaves de seguridad"
+    "text": "Datos biométricos y llaves de seguridad",
+    "source_hash": "7d6a7bd5"
   },
   "web.domains.signin.method_sso_blurb": {
-    "text": "Proveedor de identidad externo"
+    "text": "Proveedor de identidad externo",
+    "source_hash": "a3442088"
   },
   "web.domains.signin.email_auth_label": {
-    "text": "Autenticación por correo electrónico"
+    "text": "Autenticación por correo electrónico",
+    "source_hash": "68c38f94"
   },
   "web.domains.signin.email_auth_hint": {
-    "text": "Permitir la autenticación por correo electrónico sin contraseña en este dominio"
+    "text": "Permitir la autenticación por correo electrónico sin contraseña en este dominio",
+    "source_hash": "6ad82127"
   },
   "web.domains.signin.sso_enabled_label": {
-    "text": "Inicio de sesión único (SSO)"
+    "text": "Inicio de sesión único (SSO)",
+    "source_hash": "cf7cd744"
   },
   "web.domains.signin.sso_enabled_hint": {
-    "text": "Permitir la autenticación SSO en este dominio"
+    "text": "Permitir la autenticación SSO en este dominio",
+    "source_hash": "22d78ad5"
   },
   "web.domains.signin.enabled_label": {
-    "text": "Habilitar la configuración de inicio de sesión"
+    "text": "Habilitar la configuración de inicio de sesión",
+    "source_hash": "dbd8e11c"
   },
   "web.domains.signin.enabled_hint": {
-    "text": "Cuando está habilitada, este dominio utiliza la configuración de inicio de sesión definida arriba"
+    "text": "Cuando está habilitada, este dominio utiliza la configuración de inicio de sesión definida arriba",
+    "source_hash": "6259f8a2"
   },
   "web.domains.signin.save_config": {
-    "text": "Guardar configuración"
+    "text": "Guardar configuración",
+    "source_hash": "b2b158f2"
   },
   "web.domains.signin.update_success": {
-    "text": "La configuración de inicio de sesión se actualizó correctamente"
+    "text": "La configuración de inicio de sesión se actualizó correctamente",
+    "source_hash": "10ea50d8"
   },
   "web.domains.signin.reset_to_defaults": {
-    "text": "Restablecer los valores predeterminados"
+    "text": "Restablecer los valores predeterminados",
+    "source_hash": "e240e635"
   },
   "web.domains.signin.reset_confirm": {
-    "text": "¿Restablecer el inicio de sesión a los valores predeterminados globales?"
+    "text": "¿Restablecer el inicio de sesión a los valores predeterminados globales?",
+    "source_hash": "2c6bbc32"
   },
   "web.domains.signin.reset_keeps_sso": {
-    "text": "Tus credenciales de SSO se conservan. Elimínalas por separado en la pantalla de configuración de SSO."
+    "text": "Tus credenciales de SSO se conservan. Elimínalas por separado en la pantalla de configuración de SSO.",
+    "source_hash": "edc0c756"
   },
   "web.domains.signin.reset_action": {
-    "text": "Sí, restablecer"
+    "text": "Sí, restablecer",
+    "source_hash": "4bb21d8b"
   },
   "web.domains.signin.reset_success": {
-    "text": "La configuración de inicio de sesión se restableció a los valores predeterminados globales"
+    "text": "La configuración de inicio de sesión se restableció a los valores predeterminados globales",
+    "source_hash": "0c364d89"
   },
   "web.domains.signup.title": {
-    "text": "Validación de registro"
+    "text": "Validación de registro",
+    "source_hash": "2c34ac0a"
   },
   "web.domains.signup.config_description": {
-    "text": "Configura la validación de registro para este dominio"
+    "text": "Configura la validación de registro para este dominio",
+    "source_hash": "e9c81e8a"
   },
   "web.domains.signup.access_denied": {
-    "text": "Acceso denegado"
+    "text": "Acceso denegado",
+    "source_hash": "d134ca02"
   },
   "web.domains.signup.upgrade_to_configure": {
-    "text": "Mejora tu plan para configurar la validación de registro por dominio."
+    "text": "Mejora tu plan para configurar la validación de registro por dominio.",
+    "source_hash": "d87d6614"
   },
   "web.domains.signup.configure_signup": {
-    "text": "Configurar registro"
+    "text": "Configurar registro",
+    "source_hash": "e2697662"
   },
   "web.domains.signup.not_configured_notice": {
-    "text": "La validación de registro aún no está configurada para este dominio. Configura una estrategia para controlar quién puede registrarse a través de este dominio."
+    "text": "La validación de registro aún no está configurada para este dominio. Configura una estrategia para controlar quién puede registrarse a través de este dominio.",
+    "source_hash": "fc6c6eb8"
   },
   "web.domains.signup.site_signups_disabled_warning": {
-    "text": "Los registros están actualmente deshabilitados a nivel de sitio. Esta política por dominio está configurada, pero no controlará ningún tráfico hasta que se habiliten los registros del sitio."
+    "text": "Los registros están actualmente deshabilitados a nivel de sitio. Esta política por dominio está configurada, pero no controlará ningún tráfico hasta que se habiliten los registros del sitio.",
+    "source_hash": "c0e59f86"
   },
   "web.domains.signup.strategy_label": {
-    "text": "Estrategia de validación"
+    "text": "Estrategia de validación",
+    "source_hash": "a2e95531"
   },
   "web.domains.signup.strategy_description": {
-    "text": "Elige cómo se validan las direcciones de correo electrónico cuando los usuarios se registran en este dominio."
+    "text": "Elige cómo se validan las direcciones de correo electrónico cuando los usuarios se registran en este dominio.",
+    "source_hash": "8e232b03"
   },
   "web.domains.signup.network_validation_warning": {
-    "text": "Esta estrategia realiza llamadas de red durante el registro, lo que puede añadir latencia o ser bloqueado por algunos proveedores."
+    "text": "Esta estrategia realiza llamadas de red durante el registro, lo que puede añadir latencia o ser bloqueado por algunos proveedores.",
+    "source_hash": "53d4c266"
   },
   "web.domains.signup.allowed_domains_label": {
-    "text": "Dominios de registro permitidos"
+    "text": "Dominios de registro permitidos",
+    "source_hash": "9b5bb5b1"
   },
   "web.domains.signup.allowed_domains_hint": {
-    "text": "Solo estos dominios de correo electrónico podrán registrarse. Añade un dominio por entrada."
+    "text": "Solo estos dominios de correo electrónico podrán registrarse. Añade un dominio por entrada.",
+    "source_hash": "c082414d"
   },
   "web.domains.signup.domain_placeholder": {
-    "text": "example.com"
+    "text": "example.com",
+    "source_hash": "a379a6f6"
   },
   "web.domains.signup.invalid_domain": {
-    "text": "Introduce un dominio válido (p. ej. example.com)"
+    "text": "Introduce un dominio válido (p. ej. example.com)",
+    "source_hash": "16807983"
   },
   "web.domains.signup.domain_exists": {
-    "text": "Este dominio ya está en la lista"
+    "text": "Este dominio ya está en la lista",
+    "source_hash": "3fccb721"
   },
   "web.domains.signup.remove_domain": {
-    "text": "Eliminar {domain}"
+    "text": "Eliminar {domain}",
+    "source_hash": "ae708a1d"
   },
   "web.domains.signup.enabled_label": {
-    "text": "Habilitar la validación por dominio"
+    "text": "Habilitar la validación por dominio",
+    "source_hash": "db103925"
   },
   "web.domains.signup.enabled_hint": {
-    "text": "Cuando está habilitada, los registros en este dominio utilizan la estrategia de arriba en lugar de la política global."
+    "text": "Cuando está habilitada, los registros en este dominio utilizan la estrategia de arriba en lugar de la política global.",
+    "source_hash": "99de2008"
   },
   "web.domains.signup.delete_config": {
-    "text": "Eliminar configuración"
+    "text": "Eliminar configuración",
+    "source_hash": "a9a30c7f"
   },
   "web.domains.signup.delete_confirm": {
-    "text": "¿Eliminar la configuración de validación de registro? Los registros volverán a usar la política global."
+    "text": "¿Eliminar la configuración de validación de registro? Los registros volverán a usar la política global.",
+    "source_hash": "a8c9086e"
   },
   "web.domains.signup.save_config": {
-    "text": "Guardar configuración"
+    "text": "Guardar configuración",
+    "source_hash": "b2b158f2"
   },
   "web.domains.signup.update_success": {
-    "text": "La validación de registro se actualizó correctamente"
+    "text": "La validación de registro se actualizó correctamente",
+    "source_hash": "57a529ac"
   },
   "web.domains.signup.delete_success": {
-    "text": "La configuración de validación de registro se eliminó correctamente"
+    "text": "La configuración de validación de registro se eliminó correctamente",
+    "source_hash": "eb6add4d"
   },
   "web.domains.signup.domain_overrides_label": {
-    "text": "Anulaciones de dominio"
+    "text": "Anulaciones de dominio",
+    "source_hash": "d25da3cd"
   },
   "web.domains.signup.domain_overrides_hint": {
-    "text": "Anula la configuración de registro global para este dominio"
+    "text": "Anula la configuración de registro global para este dominio",
+    "source_hash": "53101057"
   },
   "web.domains.signup.signup_enabled_label": {
-    "text": "Registro habilitado"
+    "text": "Registro habilitado",
+    "source_hash": "296ac66d"
   },
   "web.domains.signup.signup_enabled_hint": {
-    "text": "Anula si el registro está habilitado para este dominio"
+    "text": "Anula si el registro está habilitado para este dominio",
+    "source_hash": "2ee146b6"
   },
   "web.domains.signup.autoverify_label": {
-    "text": "Verificar cuentas automáticamente"
+    "text": "Verificar cuentas automáticamente",
+    "source_hash": "4b103cd5"
   },
   "web.domains.signup.autoverify_hint": {
-    "text": "Anula si las cuentas nuevas se verifican automáticamente en este dominio"
+    "text": "Anula si las cuentas nuevas se verifican automáticamente en este dominio",
+    "source_hash": "63866ecd"
   },
   "web.domains.sso.test_success": {
-    "text": "Prueba de conexión correcta — el proveedor respondió correctamente"
+    "text": "Prueba de conexión correcta — el proveedor respondió correctamente",
+    "source_hash": "1570ddb0"
   },
   "web.domains.sso.test_failed": {
-    "text": "La prueba de conexión falló"
+    "text": "La prueba de conexión falló",
+    "source_hash": "a45a37dd"
   },
   "web.domains.sso.enforce_moved_notice": {
-    "text": "Para exigir SSO en todos los inicios de sesión de este dominio, configúralo en los ajustes de inicio de sesión del dominio. El modo solo SSO restringe la página de inicio de sesión al proveedor de SSO configurado aquí."
+    "text": "Para exigir SSO en todos los inicios de sesión de este dominio, configúralo en los ajustes de inicio de sesión del dominio. El modo solo SSO restringe la página de inicio de sesión al proveedor de SSO configurado aquí.",
+    "source_hash": "d26627a5"
   },
   "web.domains.sso.edit_credentials": {
-    "text": "Editar credenciales"
+    "text": "Editar credenciales",
+    "source_hash": "5a6622b6"
   },
   "web.domains.sso.configure_button": {
-    "text": "Configurar"
+    "text": "Configurar",
+    "source_hash": "6defafa2"
   },
   "web.domains.sso.upgrade_required": {
-    "text": "Mejora tu plan para configurar"
+    "text": "Mejora tu plan para configurar",
+    "source_hash": "571cfa98"
   }
 }

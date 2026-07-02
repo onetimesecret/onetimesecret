@@ -1,23 +1,30 @@
 {
   "api.invite.errors.invitation_not_found_or_expired": {
-    "text": "Nie znaleziono zaproszenia lub wygasło"
+    "text": "Nie znaleziono zaproszenia lub wygasło",
+    "source_hash": "63657979"
   },
   "api.invite.errors.token_required": {
-    "text": "Token jest wymagany"
+    "text": "Token jest wymagany",
+    "source_hash": "6c718161"
   },
   "api.invite.errors.organization_no_longer_exists": {
-    "text": "Organizacja już nie istnieje"
+    "text": "Organizacja już nie istnieje",
+    "source_hash": "a5df7d22"
   },
   "api.invite.errors.invitation_already_processed": {
-    "text": "Zaproszenie zostało już obsłużone: %{status}"
+    "text": "Zaproszenie zostało już obsłużone: %{status}",
+    "source_hash": "130c87e0"
   },
   "api.invite.errors.invitation_expired": {
-    "text": "Zaproszenie wygasło"
+    "text": "Zaproszenie wygasło",
+    "source_hash": "7186297b"
   },
   "api.invite.errors.email_mismatch": {
-    "text": "Twój adres e-mail nie pasuje do zaproszenia"
+    "text": "Twój adres e-mail nie pasuje do zaproszenia",
+    "source_hash": "11026f46"
   },
   "api.invite.errors.already_member": {
-    "text": "Jesteś już członkiem tej organizacji"
+    "text": "Jesteś już członkiem tej organizacji",
+    "source_hash": "f56ad547"
   }
 }

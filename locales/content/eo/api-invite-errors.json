@@ -1,23 +1,30 @@
 {
   "api.invite.errors.invitation_not_found_or_expired": {
-    "text": "Invito ne trovita aŭ eksvalidiĝinta"
+    "text": "Invito ne trovita aŭ eksvalidiĝinta",
+    "source_hash": "63657979"
   },
   "api.invite.errors.token_required": {
-    "text": "Ĵetono necesas"
+    "text": "Ĵetono necesas",
+    "source_hash": "6c718161"
   },
   "api.invite.errors.organization_no_longer_exists": {
-    "text": "La organizo ne plu ekzistas"
+    "text": "La organizo ne plu ekzistas",
+    "source_hash": "a5df7d22"
   },
   "api.invite.errors.invitation_already_processed": {
-    "text": "La invito jam estis %{status}"
+    "text": "La invito jam estis %{status}",
+    "source_hash": "130c87e0"
   },
   "api.invite.errors.invitation_expired": {
-    "text": "La invito eksvalidiĝis"
+    "text": "La invito eksvalidiĝis",
+    "source_hash": "7186297b"
   },
   "api.invite.errors.email_mismatch": {
-    "text": "Via retpoŝtadreso ne kongruas kun la invito"
+    "text": "Via retpoŝtadreso ne kongruas kun la invito",
+    "source_hash": "11026f46"
   },
   "api.invite.errors.already_member": {
-    "text": "Vi jam estas membro de ĉi tiu organizo"
+    "text": "Vi jam estas membro de ĉi tiu organizo",
+    "source_hash": "f56ad547"
   }
 }

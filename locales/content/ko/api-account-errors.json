@@ -1,8 +1,10 @@
 {
   "api.account.errors.invalid_email": {
-    "text": "유효한 이메일 주소가 맞나요?"
+    "text": "유효한 이메일 주소가 맞나요?",
+    "source_hash": "21d55b60"
   },
   "api.account.errors.password_too_short": {
-    "text": "비밀번호가 너무 짧습니다"
+    "text": "비밀번호가 너무 짧습니다",
+    "source_hash": "0d829600"
   }
 }

@@ -132,24 +132,31 @@
     "source_hash": "6f328609"
   },
   "incoming.upgrade_required_title": {
-    "text": "Upgrade necessário"
+    "text": "Upgrade necessário",
+    "source_hash": "16487236"
   },
   "incoming.upgrade_required_description": {
-    "text": "Esta funcionalidade requer um upgrade do plano. Por favor contacta o proprietário da conta para ativar as mensagens confidenciais recebidas."
+    "text": "Esta funcionalidade requer um upgrade do plano. Por favor contacta o proprietário da conta para ativar as mensagens confidenciais recebidas.",
+    "source_hash": "5df7f715"
   },
   "incoming.validation_memo_too_long": {
-    "text": "A nota deve ter {max} caracteres ou menos"
+    "text": "A nota deve ter {max} caracteres ou menos",
+    "source_hash": "5727f2d3"
   },
   "incoming.validation_secret_required": {
-    "text": "O conteúdo confidencial é obrigatório"
+    "text": "O conteúdo confidencial é obrigatório",
+    "source_hash": "699783c9"
   },
   "incoming.validation_recipient_required": {
-    "text": "Por favor seleciona um destinatário"
+    "text": "Por favor seleciona um destinatário",
+    "source_hash": "67bb4666"
   },
   "incoming.validation_feature_disabled": {
-    "text": "A funcionalidade de mensagens confidenciais recebidas não está ativada"
+    "text": "A funcionalidade de mensagens confidenciais recebidas não está ativada",
+    "source_hash": "0616d3f4"
   },
   "incoming.validation_form_errors": {
-    "text": "Por favor verifica se o formulário tem erros"
+    "text": "Por favor verifica se o formulário tem erros",
+    "source_hash": "9056e064"
   }
 }

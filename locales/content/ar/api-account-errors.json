@@ -1,8 +1,10 @@
 {
   "api.account.errors.invalid_email": {
-    "text": "هل هذا عنوان بريد إلكتروني صالح؟"
+    "text": "هل هذا عنوان بريد إلكتروني صالح؟",
+    "source_hash": "21d55b60"
   },
   "api.account.errors.password_too_short": {
-    "text": "كلمة المرور قصيرة جداً"
+    "text": "كلمة المرور قصيرة جداً",
+    "source_hash": "0d829600"
   }
 }

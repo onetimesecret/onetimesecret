@@ -855,39 +855,51 @@
     "source_hash": "1cd0194a"
   },
   "email.common.secret_link_label": {
-    "text": "Таємне посилання"
+    "text": "Таємне посилання",
+    "source_hash": "18ddf44f"
   },
   "email.common.automated_notice": {
-    "text": "Це автоматичне повідомлення від %{product_name}."
+    "text": "Це автоматичне повідомлення від %{product_name}.",
+    "source_hash": "8fbabfba"
   },
   "email.common.support_label": {
-    "text": "Підтримка"
+    "text": "Підтримка",
+    "source_hash": "be91940b"
   },
   "email.expiration_warning.signature": {
-    "text": "Служба підтримки"
+    "text": "Служба підтримки",
+    "source_hash": "dc75bf9f"
   },
   "email.expiration_warning.footer_note": {
-    "text": "Ви отримали цей лист, оскільки термін дії таємниці, яку Ви створили на %{product_name}, незабаром закінчиться."
+    "text": "Ви отримали цей лист, оскільки термін дії таємниці, яку Ви створили на %{product_name}, незабаром закінчиться.",
+    "source_hash": "920779e4"
   },
   "email.feedback_email.user_id_label": {
-    "text": "Користувач:"
+    "text": "Користувач:",
+    "source_hash": "93d6b3e9"
   },
   "email.feedback_email.timezone_label": {
-    "text": "Часовий пояс:"
+    "text": "Часовий пояс:",
+    "source_hash": "39651ebf"
   },
   "email.feedback_email.version_label": {
-    "text": "Версія:"
+    "text": "Версія:",
+    "source_hash": "4c5726ee"
   },
   "email.incoming_secret.footer_note": {
-    "text": "Ви отримали цей лист, оскільки хтось скористався %{product_name}, щоб надіслати Вам таємницю. Якщо Ви цього не очікували, Ви можете спокійно проігнорувати цей лист."
+    "text": "Ви отримали цей лист, оскільки хтось скористався %{product_name}, щоб надіслати Вам таємницю. Якщо Ви цього не очікували, Ви можете спокійно проігнорувати цей лист.",
+    "source_hash": "91ee6e8d"
   },
   "email.secret_link.passphrase_label": {
-    "text": "Потрібна парольна фраза:"
+    "text": "Потрібна парольна фраза:",
+    "source_hash": "1ab9a20f"
   },
   "email.secret_link.passphrase_required": {
-    "text": "Ця таємниця захищена парольною фразою. Відправник повинен надати її вам окремо."
+    "text": "Ця таємниця захищена парольною фразою. Відправник повинен надати її вам окремо.",
+    "source_hash": "1e49826b"
   },
   "email.secret_link.footer_note": {
-    "text": "Ви отримали цей лист, оскільки %{sender_email} скористався %{product_name}, щоб поділитися з Вами таємницею. Якщо Ви цього не очікували, Ви можете спокійно проігнорувати цей лист."
+    "text": "Ви отримали цей лист, оскільки %{sender_email} скористався %{product_name}, щоб поділитися з Вами таємницею. Якщо Ви цього не очікували, Ви можете спокійно проігнорувати цей лист.",
+    "source_hash": "2d544dad"
   }
 }

@@ -24,12 +24,15 @@
     "source_hash": "ff0d904e"
   },
   "web.teams.create_first_team_title": {
-    "text": "Tạo nhóm đầu tiên của bạn"
+    "text": "Tạo nhóm đầu tiên của bạn",
+    "source_hash": "54693f14"
   },
   "web.teams.create_first_team_description": {
-    "text": "Nhóm cho phép bạn cộng tác với những người khác trong một không gian làm việc chung."
+    "text": "Nhóm cho phép bạn cộng tác với những người khác trong một không gian làm việc chung.",
+    "source_hash": "d61b86b5"
   },
   "web.teams.create_team": {
-    "text": "Tạo nhóm"
+    "text": "Tạo nhóm",
+    "source_hash": "284ff194"
   }
 }

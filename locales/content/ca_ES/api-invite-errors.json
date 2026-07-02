@@ -1,23 +1,30 @@
 {
   "api.invite.errors.invitation_not_found_or_expired": {
-    "text": "No s'ha trobat la invitació o ha caducat"
+    "text": "No s'ha trobat la invitació o ha caducat",
+    "source_hash": "63657979"
   },
   "api.invite.errors.token_required": {
-    "text": "Es requereix el testimoni"
+    "text": "Es requereix el testimoni",
+    "source_hash": "6c718161"
   },
   "api.invite.errors.organization_no_longer_exists": {
-    "text": "L'organització ja no existeix"
+    "text": "L'organització ja no existeix",
+    "source_hash": "a5df7d22"
   },
   "api.invite.errors.invitation_already_processed": {
-    "text": "La invitació ja consta com a %{status}"
+    "text": "La invitació ja consta com a %{status}",
+    "source_hash": "130c87e0"
   },
   "api.invite.errors.invitation_expired": {
-    "text": "La invitació ha caducat"
+    "text": "La invitació ha caducat",
+    "source_hash": "7186297b"
   },
   "api.invite.errors.email_mismatch": {
-    "text": "La teva adreça de correu electrònic no coincideix amb la invitació"
+    "text": "La teva adreça de correu electrònic no coincideix amb la invitació",
+    "source_hash": "11026f46"
   },
   "api.invite.errors.already_member": {
-    "text": "Ja ets membre d'aquesta organització"
+    "text": "Ja ets membre d'aquesta organització",
+    "source_hash": "f56ad547"
   }
 }

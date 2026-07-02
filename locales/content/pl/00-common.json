@@ -1385,108 +1385,143 @@
     "source_hash": "783f174c"
   },
   "api.errors.authentication_required": {
-    "text": "Wymagane uwierzytelnienie"
+    "text": "Wymagane uwierzytelnienie",
+    "source_hash": "0fcfb12d"
   },
   "api.errors.sso_only_action_blocked": {
-    "text": "Ta akcja nie jest dostępna w trybie wyłącznie SSO"
+    "text": "Ta akcja nie jest dostępna w trybie wyłącznie SSO",
+    "source_hash": "9bc26394"
   },
   "web.COMMON.configure": {
-    "text": "Konfiguruj"
+    "text": "Konfiguruj",
+    "source_hash": "6defafa2"
   },
   "web.COMMON.copy_to_clipboard": {
-    "text": "Kopiuj do schowka"
+    "text": "Kopiuj do schowka",
+    "source_hash": "b749e205"
   },
   "web.COMMON.add": {
-    "text": "Dodaj"
+    "text": "Dodaj",
+    "source_hash": "9fd728c6"
   },
   "web.COMMON.enabled": {
-    "text": "Włączone"
+    "text": "Włączone",
+    "source_hash": "92c1cdfd"
   },
   "web.COMMON.disabled": {
-    "text": "Wyłączone"
+    "text": "Wyłączone",
+    "source_hash": "75081b59"
   },
   "web.COMMON.yes_delete": {
-    "text": "Tak, usuń"
+    "text": "Tak, usuń",
+    "source_hash": "7b05a8e3"
   },
   "web.COMMON.error_code": {
-    "text": "Kod błędu"
+    "text": "Kod błędu",
+    "source_hash": "46832415"
   },
   "web.COMMON.http_status": {
-    "text": "Status HTTP"
+    "text": "Status HTTP",
+    "source_hash": "b2a629f2"
   },
   "web.COMMON.details": {
-    "text": "Szczegóły"
+    "text": "Szczegóły",
+    "source_hash": "45989de4"
   },
   "web.COMMON.field_confirm_password": {
-    "text": "Potwierdź hasło"
+    "text": "Potwierdź hasło",
+    "source_hash": "c292210c"
   },
   "web.COMMON.passwords_must_match": {
-    "text": "Hasła muszą być takie same"
+    "text": "Hasła muszą być takie same",
+    "source_hash": "0c060bd4"
   },
   "web.COMMON.and": {
-    "text": "i"
+    "text": "i",
+    "source_hash": "6201111b"
   },
   "web.COMMON.or": {
-    "text": "lub"
+    "text": "lub",
+    "source_hash": "7175517a"
   },
   "web.COMMON.copied": {
-    "text": "Skopiowano"
+    "text": "Skopiowano",
+    "source_hash": "8d525e5f"
   },
   "web.COMMON.copy": {
-    "text": "Kopiuj"
+    "text": "Kopiuj",
+    "source_hash": "e21f935f"
   },
   "web.COMMON.copy_email": {
-    "text": "Kopiuj adres e-mail"
+    "text": "Kopiuj adres e-mail",
+    "source_hash": "61b94846"
   },
   "web.COMMON.copy_id": {
-    "text": "Kopiuj identyfikator konta"
+    "text": "Kopiuj identyfikator konta",
+    "source_hash": "fd493ffd"
   },
   "web.COMMON.org_id_tooltip": {
-    "text": "Unikalny identyfikator Twojej organizacji"
+    "text": "Unikalny identyfikator Twojej organizacji",
+    "source_hash": "c8c08d29"
   },
   "web.COMMON.success": {
-    "text": "Sukces"
+    "text": "Sukces",
+    "source_hash": "c88a0b90"
   },
   "web.COMMON.need_help": {
-    "text": "Potrzebujesz pomocy"
+    "text": "Potrzebujesz pomocy",
+    "source_hash": "4ca0ca38"
   },
   "web.COMMON.open_help_dialog": {
-    "text": "Otwórz okno pomocy"
+    "text": "Otwórz okno pomocy",
+    "source_hash": "55cd1515"
   },
   "web.COMMON.focus_is_now_in_the_main_text_area": {
-    "text": "Fokus znajduje się teraz w głównym obszarze tekstowym"
+    "text": "Fokus znajduje się teraz w głównym obszarze tekstowym",
+    "source_hash": "e00dd260"
   },
   "web.LABELS.show_passphrase": {
-    "text": "Pokaż frazę dostępową"
+    "text": "Pokaż frazę dostępową",
+    "source_hash": "76880d38"
   },
   "web.LABELS.hide_passphrase": {
-    "text": "Ukryj frazę dostępową"
+    "text": "Ukryj frazę dostępową",
+    "source_hash": "8ecdc98c"
   },
   "web.LABELS.copy_icon": {
-    "text": "Ikona kopiowania"
+    "text": "Ikona kopiowania",
+    "source_hash": "d1a5fc0c"
   },
   "web.LABELS.copied_icon": {
-    "text": "Ikona skopiowania"
+    "text": "Ikona skopiowania",
+    "source_hash": "90a4b4f1"
   },
   "web.STATUS.unverified": {
-    "text": "Niezweryfikowany"
+    "text": "Niezweryfikowany",
+    "source_hash": "33c8e8de"
   },
   "web.TITLES.domain_detail": {
-    "text": "Ustawienia domeny"
+    "text": "Ustawienia domeny",
+    "source_hash": "e24f338d"
   },
   "web.TITLES.domain_signin": {
-    "text": "Konfiguracja logowania"
+    "text": "Konfiguracja logowania",
+    "source_hash": "2da38c03"
   },
   "web.TITLES.domain_sso": {
-    "text": "SSO domeny"
+    "text": "SSO domeny",
+    "source_hash": "13161464"
   },
   "web.TITLES.domain_signup": {
-    "text": "Walidacja rejestracji w domenie"
+    "text": "Walidacja rejestracji w domenie",
+    "source_hash": "c8ce809a"
   },
   "web.TITLES.domain_email": {
-    "text": "Konfiguracja e-mail"
+    "text": "Konfiguracja e-mail",
+    "source_hash": "6f38aa51"
   },
   "web.TITLES.domain_incoming": {
-    "text": "Przychodzące sekrety"
+    "text": "Przychodzące sekrety",
+    "source_hash": "883dbca9"
   }
 }

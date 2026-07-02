@@ -132,24 +132,31 @@
     "source_hash": "6f328609"
   },
   "incoming.upgrade_required_title": {
-    "text": "Yêu cầu nâng cấp"
+    "text": "Yêu cầu nâng cấp",
+    "source_hash": "16487236"
   },
   "incoming.upgrade_required_description": {
-    "text": "Tính năng này yêu cầu nâng cấp gói. Vui lòng liên hệ chủ sở hữu tài khoản để bật tính năng bí mật đến."
+    "text": "Tính năng này yêu cầu nâng cấp gói. Vui lòng liên hệ chủ sở hữu tài khoản để bật tính năng bí mật đến.",
+    "source_hash": "5df7f715"
   },
   "incoming.validation_memo_too_long": {
-    "text": "Ghi chú phải có {max} ký tự hoặc ít hơn"
+    "text": "Ghi chú phải có {max} ký tự hoặc ít hơn",
+    "source_hash": "5727f2d3"
   },
   "incoming.validation_secret_required": {
-    "text": "Nội dung bí mật là bắt buộc"
+    "text": "Nội dung bí mật là bắt buộc",
+    "source_hash": "699783c9"
   },
   "incoming.validation_recipient_required": {
-    "text": "Vui lòng chọn người nhận"
+    "text": "Vui lòng chọn người nhận",
+    "source_hash": "67bb4666"
   },
   "incoming.validation_feature_disabled": {
-    "text": "Tính năng bí mật đến chưa được bật"
+    "text": "Tính năng bí mật đến chưa được bật",
+    "source_hash": "0616d3f4"
   },
   "incoming.validation_form_errors": {
-    "text": "Vui lòng kiểm tra biểu mẫu để tìm lỗi"
+    "text": "Vui lòng kiểm tra biểu mẫu để tìm lỗi",
+    "source_hash": "9056e064"
   }
 }

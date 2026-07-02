@@ -1,107 +1,142 @@
 {
   "api.organizations.errors.domain_scoped_forbidden": {
-    "text": "Учасники, обмежені доменом, не можуть виконати цю дію"
+    "text": "Учасники, обмежені доменом, не можуть виконати цю дію",
+    "source_hash": "0a06a035"
   },
   "api.organizations.errors.organization_not_found": {
-    "text": "Організацію не знайдено: %{extid}"
+    "text": "Організацію не знайдено: %{extid}",
+    "source_hash": "c8d058eb"
   },
   "api.organizations.errors.organization_owner_required": {
-    "text": "Лише власник організації може виконати цю дію"
+    "text": "Лише власник організації може виконати цю дію",
+    "source_hash": "5a729e94"
   },
   "api.organizations.errors.organization_member_required": {
-    "text": "Ви маєте бути учасником організації, щоб виконати цю дію"
+    "text": "Ви маєте бути учасником організації, щоб виконати цю дію",
+    "source_hash": "f66f4a60"
   },
   "api.organizations.errors.organization_admin_required": {
-    "text": "Лише власники та адміністратори організації можуть виконати цю дію"
+    "text": "Лише власники та адміністратори організації можуть виконати цю дію",
+    "source_hash": "cd9e8c0e"
   },
   "api.organizations.errors.extid_required": {
-    "text": "Потрібен ID організації"
+    "text": "Потрібен ID організації",
+    "source_hash": "02fbe301"
   },
   "api.organizations.errors.display_name_required": {
-    "text": "Назва організації є обов'язковою"
+    "text": "Назва організації є обов'язковою",
+    "source_hash": "c3f6e9af"
   },
   "api.organizations.errors.display_name_too_long": {
-    "text": "Назва організації має містити менше ніж %{max} символів"
+    "text": "Назва організації має містити менше ніж %{max} символів",
+    "source_hash": "5866973d"
   },
   "api.organizations.errors.description_too_long": {
-    "text": "Опис має містити менше ніж %{max} символів"
+    "text": "Опис має містити менше ніж %{max} символів",
+    "source_hash": "562b7250"
   },
   "api.organizations.errors.contact_email_exists": {
-    "text": "Організація з цією контактною електронною адресою вже існує"
+    "text": "Організація з цією контактною електронною адресою вже існує",
+    "source_hash": "e9fdce56"
   },
   "api.organizations.errors.creation_in_progress": {
-    "text": "Триває створення організації. Будь ласка, спробуйте ще раз."
+    "text": "Триває створення організації. Будь ласка, спробуйте ще раз.",
+    "source_hash": "ef68bc2d"
   },
   "api.organizations.errors.organization_limit_reached": {
-    "text": "Досягнуто ліміту організацій. Оновіть свій тарифний план, щоб створити більше організацій."
+    "text": "Досягнуто ліміту організацій. Оновіть свій тарифний план, щоб створити більше організацій.",
+    "source_hash": "69e2e61b"
   },
   "api.organizations.invitations.errors.invitation_not_found": {
-    "text": "Запрошення не знайдено"
+    "text": "Запрошення не знайдено",
+    "source_hash": "775ba9eb"
   },
   "api.organizations.invitations.errors.email_required": {
-    "text": "Електронна адреса є обов'язковою"
+    "text": "Електронна адреса є обов'язковою",
+    "source_hash": "aae92911"
   },
   "api.organizations.invitations.errors.invalid_email_format": {
-    "text": "Недійсний формат електронної адреси"
+    "text": "Недійсний формат електронної адреси",
+    "source_hash": "0bcecf66"
   },
   "api.organizations.invitations.errors.invalid_role": {
-    "text": "Роль має бути «учасник» або «адміністратор»"
+    "text": "Роль має бути «учасник» або «адміністратор»",
+    "source_hash": "650ea5f6"
   },
   "api.organizations.invitations.errors.cannot_invite_as_owner": {
-    "text": "Неможливо запросити як власника"
+    "text": "Неможливо запросити як власника",
+    "source_hash": "e6581025"
   },
   "api.organizations.invitations.errors.user_already_member": {
-    "text": "Користувач уже є учасником цієї організації"
+    "text": "Користувач уже є учасником цієї організації",
+    "source_hash": "8eb45780"
   },
   "api.organizations.invitations.errors.invitation_already_pending": {
-    "text": "Для цієї електронної адреси вже є запрошення, що очікує на розгляд"
+    "text": "Для цієї електронної адреси вже є запрошення, що очікує на розгляд",
+    "source_hash": "7f5e3093"
   },
   "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Досягнуто ліміту учасників. Оновіть свій тарифний план, щоб запросити більше учасників."
+    "text": "Досягнуто ліміту учасників. Оновіть свій тарифний план, щоб запросити більше учасників.",
+    "source_hash": "b8f316e8"
   },
   "api.organizations.invitations.errors.resend_only_pending": {
-    "text": "Повторно надіслати можна лише запрошення, що очікують на розгляд"
+    "text": "Повторно надіслати можна лише запрошення, що очікують на розгляд",
+    "source_hash": "b7578b3e"
   },
   "api.organizations.invitations.errors.resend_limit_reached": {
-    "text": "Досягнуто максимального ліміту повторних надсилань (%{max})"
+    "text": "Досягнуто максимального ліміту повторних надсилань (%{max})",
+    "source_hash": "8dc96729"
   },
   "api.organizations.invitations.errors.revoke_only_pending": {
-    "text": "Відкликати можна лише запрошення, що очікують на розгляд"
+    "text": "Відкликати можна лише запрошення, що очікують на розгляд",
+    "source_hash": "732b78a6"
   },
   "api.organizations.members.errors.member_not_found": {
-    "text": "Учасника не знайдено: %{extid}"
+    "text": "Учасника не знайдено: %{extid}",
+    "source_hash": "57654771"
   },
   "api.organizations.members.errors.member_not_in_organization": {
-    "text": "Учасника не знайдено в цій організації"
+    "text": "Учасника не знайдено в цій організації",
+    "source_hash": "dcab71ff"
   },
   "api.organizations.members.errors.member_not_active": {
-    "text": "Учасник неактивний"
+    "text": "Учасник неактивний",
+    "source_hash": "a51b8760"
   },
   "api.organizations.members.errors.invalid_role_value": {
-    "text": "Недійсна роль. Має бути однією з: %{roles}"
+    "text": "Недійсна роль. Має бути однією з: %{roles}",
+    "source_hash": "c3331aa0"
   },
   "api.organizations.members.errors.cannot_change_owner_role": {
-    "text": "Неможливо змінити роль власника. Натомість скористайтеся передачею права власності."
+    "text": "Неможливо змінити роль власника. Натомість скористайтеся передачею права власності.",
+    "source_hash": "76015424"
   },
   "api.organizations.members.errors.member_already_has_role": {
-    "text": "Учасник уже має роль: %{role}"
+    "text": "Учасник уже має роль: %{role}",
+    "source_hash": "6771166a"
   },
   "api.organizations.members.errors.cannot_promote_to_owner": {
-    "text": "Неможливо підвищити до власника. Натомість скористайтеся передачею права власності."
+    "text": "Неможливо підвищити до власника. Натомість скористайтеся передачею права власності.",
+    "source_hash": "cd574007"
   },
   "api.organizations.members.errors.must_be_member": {
-    "text": "Ви маєте бути учасником цієї організації"
+    "text": "Ви маєте бути учасником цієї організації",
+    "source_hash": "de1c77b8"
   },
   "api.organizations.members.errors.cannot_remove_owner": {
-    "text": "Неможливо видалити власника організації. Спочатку передайте право власності."
+    "text": "Неможливо видалити власника організації. Спочатку передайте право власності.",
+    "source_hash": "d4f33003"
   },
   "api.organizations.members.errors.cannot_remove_self": {
-    "text": "Неможливо видалити самого себе. Натомість скористайтеся виходом з організації."
+    "text": "Неможливо видалити самого себе. Натомість скористайтеся виходом з організації.",
+    "source_hash": "d64cec91"
   },
   "api.organizations.members.errors.admin_cannot_remove_admin": {
-    "text": "Адміністратори не можуть видаляти інших адміністраторів. Це можуть робити лише власники."
+    "text": "Адміністратори не можуть видаляти інших адміністраторів. Це можуть робити лише власники.",
+    "source_hash": "2b3e6e30"
   },
   "api.organizations.members.errors.no_permission_to_remove": {
-    "text": "У Вас немає дозволу видаляти учасників"
+    "text": "У Вас немає дозволу видаляти учасників",
+    "source_hash": "b0ac7287"
   }
 }

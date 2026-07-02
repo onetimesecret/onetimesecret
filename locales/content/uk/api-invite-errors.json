@@ -1,23 +1,30 @@
 {
   "api.invite.errors.invitation_not_found_or_expired": {
-    "text": "Запрошення не знайдено або термін його дії закінчився"
+    "text": "Запрошення не знайдено або термін його дії закінчився",
+    "source_hash": "63657979"
   },
   "api.invite.errors.token_required": {
-    "text": "Потрібен токен"
+    "text": "Потрібен токен",
+    "source_hash": "6c718161"
   },
   "api.invite.errors.organization_no_longer_exists": {
-    "text": "Організація більше не існує"
+    "text": "Організація більше не існує",
+    "source_hash": "a5df7d22"
   },
   "api.invite.errors.invitation_already_processed": {
-    "text": "Запрошення вже %{status}"
+    "text": "Запрошення вже %{status}",
+    "source_hash": "130c87e0"
   },
   "api.invite.errors.invitation_expired": {
-    "text": "Термін дії запрошення закінчився"
+    "text": "Термін дії запрошення закінчився",
+    "source_hash": "7186297b"
   },
   "api.invite.errors.email_mismatch": {
-    "text": "Ваша електронна адреса не збігається із запрошенням"
+    "text": "Ваша електронна адреса не збігається із запрошенням",
+    "source_hash": "11026f46"
   },
   "api.invite.errors.already_member": {
-    "text": "Ви вже є учасником цієї організації"
+    "text": "Ви вже є учасником цієї організації",
+    "source_hash": "f56ad547"
   }
 }

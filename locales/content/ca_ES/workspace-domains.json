@@ -400,723 +400,963 @@
     "source_hash": "91c1af2e"
   },
   "api.domains.errors.add_admin_required": {
-    "text": "Només els propietaris i els administradors de l'organització poden afegir dominis personalitzats"
+    "text": "Només els propietaris i els administradors de l'organització poden afegir dominis personalitzats",
+    "source_hash": "3324aabe"
   },
   "web.domains.public_homepage": {
-    "text": "Pàgina d'inici pública"
+    "text": "Pàgina d'inici pública",
+    "source_hash": "2ae3ccba"
   },
   "web.domains.status_tooltip_active": {
-    "text": "Domini verificat i actiu"
+    "text": "Domini verificat i actiu",
+    "source_hash": "e4b6a6e1"
   },
   "web.domains.status_tooltip_dns_incorrect": {
-    "text": "DNS no configurat — fes clic per corregir-ho"
+    "text": "DNS no configurat — fes clic per corregir-ho",
+    "source_hash": "892cb2cb"
   },
   "web.domains.status_tooltip_not_verified": {
-    "text": "Domini no verificat — fes clic per verificar-lo"
+    "text": "Domini no verificat — fes clic per verificar-lo",
+    "source_hash": "a9806710"
   },
   "web.domains.status_tooltip_unverified": {
-    "text": "Estat del domini no verificat — fes clic per actualitzar"
+    "text": "Estat del domini no verificat — fes clic per actualitzar",
+    "source_hash": "a45aa76d"
   },
   "web.domains.last_check_failed": {
-    "text": "La darrera comprovació de verificació ha fallat"
+    "text": "La darrera comprovació de verificació ha fallat",
+    "source_hash": "88b594b8"
   },
   "web.domains.last_check_failed_ago": {
-    "text": "darrera comprovació fallida {0}"
+    "text": "darrera comprovació fallida {0}",
+    "source_hash": "ddfb6412"
   },
   "web.domains.verify_now": {
-    "text": "Verifica ara"
+    "text": "Verifica ara",
+    "source_hash": "db383efb"
   },
   "web.domains.click_to_verify": {
-    "text": "fes clic per verificar"
+    "text": "fes clic per verificar",
+    "source_hash": "6eae7d9c"
   },
   "web.domains.remove_domain_description": {
-    "text": "Elimina permanentment aquest domini i tota la seva configuració."
+    "text": "Elimina permanentment aquest domini i tota la seva configuració.",
+    "source_hash": "73946b9e"
   },
   "web.domains.add_access_denied": {
-    "text": "Accés denegat"
+    "text": "Accés denegat",
+    "source_hash": "d134ca02"
   },
   "web.domains.add_access_denied_description": {
-    "text": "No tens permís per afegir dominis a aquesta organització. Contacta amb l'administrador de la teva organització."
+    "text": "No tens permís per afegir dominis a aquesta organització. Contacta amb l'administrador de la teva organització.",
+    "source_hash": "25e035c6"
   },
   "web.domains.dns_widget_load_failed": {
-    "text": "No s'ha pogut carregar el giny de DNS"
+    "text": "No s'ha pogut carregar el giny de DNS",
+    "source_hash": "5a1d8ab5"
   },
   "web.domains.dns_widget_not_available": {
-    "text": "El giny de DNS no està disponible"
+    "text": "El giny de DNS no està disponible",
+    "source_hash": "4eed448b"
   },
   "web.domains.dns_widget_init_failed": {
-    "text": "No s'ha pogut inicialitzar el giny de DNS"
+    "text": "No s'ha pogut inicialitzar el giny de DNS",
+    "source_hash": "de477585"
   },
   "web.domains.verified": {
-    "text": "Verificat"
+    "text": "Verificat",
+    "source_hash": "4f783840"
   },
   "web.domains.pending_verification": {
-    "text": "Pendent de verificació"
+    "text": "Pendent de verificació",
+    "source_hash": "77e07795"
   },
   "web.domains.unsaved_changes_confirmation": {
-    "text": "Tens canvis sense desar. Segur que vols sortir?"
+    "text": "Tens canvis sense desar. Segur que vols sortir?",
+    "source_hash": "322380c1"
   },
   "web.domains.entitlement_required_owner": {
-    "text": "Aquesta funció requereix una millora del pla."
+    "text": "Aquesta funció requereix una millora del pla.",
+    "source_hash": "6de1f752"
   },
   "web.domains.entitlement_required_member": {
-    "text": "Aquesta funció no està disponible en el teu pla actual. Contacta amb el propietari de la teva organització."
+    "text": "Aquesta funció no està disponible en el teu pla actual. Contacta amb el propietari de la teva organització.",
+    "source_hash": "8f1688b2"
   },
   "web.domains.detail.manage": {
-    "text": "Gestiona"
+    "text": "Gestiona",
+    "source_hash": "5a234448"
   },
   "web.domains.detail.features": {
-    "text": "Funcions"
+    "text": "Funcions",
+    "source_hash": "5697d03d"
   },
   "web.domains.detail.homepage_title": {
-    "text": "Secrets a la pàgina d'inici"
+    "text": "Secrets a la pàgina d'inici",
+    "source_hash": "6360f7ec"
   },
   "web.domains.detail.homepage_description": {
-    "text": "Permet l'accés públic per crear secrets a la pàgina d'inici del teu domini"
+    "text": "Permet l'accés públic per crear secrets a la pàgina d'inici del teu domini",
+    "source_hash": "209b3ded"
   },
   "web.domains.detail.brand_description": {
-    "text": "Logotip, colors i marca personalitzada"
+    "text": "Logotip, colors i marca personalitzada",
+    "source_hash": "69f7a9e8"
   },
   "web.domains.detail.sso_description": {
-    "text": "Configuració del proveïdor d'inici de sessió únic"
+    "text": "Configuració del proveïdor d'inici de sessió únic",
+    "source_hash": "234e6150"
   },
   "web.domains.detail.email_description": {
-    "text": "Configuració personalitzada del remitent de correu"
+    "text": "Configuració personalitzada del remitent de correu",
+    "source_hash": "7fcde01b"
   },
   "web.domains.detail.incoming_description": {
-    "text": "Configuració del destinatari de secrets entrants"
+    "text": "Configuració del destinatari de secrets entrants",
+    "source_hash": "37c1fd6d"
   },
   "web.domains.detail.signup_description": {
-    "text": "Estratègia de validació de registre per domini"
+    "text": "Estratègia de validació de registre per domini",
+    "source_hash": "3c5a511f"
   },
   "web.domains.detail.signin_description": {
-    "text": "Configuració del mètode d'inici de sessió per domini"
+    "text": "Configuració del mètode d'inici de sessió per domini",
+    "source_hash": "73e01e36"
   },
   "web.domains.email.title": {
-    "text": "Enviament de correu"
+    "text": "Enviament de correu",
+    "source_hash": "6c428e5f"
   },
   "web.domains.email.config_title": {
-    "text": "Configuració del correu"
+    "text": "Configuració del correu",
+    "source_hash": "6f38aa51"
   },
   "web.domains.email.config_description": {
-    "text": "Configura l'enviament de correu per a aquest domini"
+    "text": "Configura l'enviament de correu per a aquest domini",
+    "source_hash": "1c275ff0"
   },
   "web.domains.email.provider_label": {
-    "text": "Proveïdor de correu"
+    "text": "Proveïdor de correu",
+    "source_hash": "a7ed3f4e"
   },
   "web.domains.email.provider_placeholder": {
-    "text": "Selecciona un proveïdor de correu"
+    "text": "Selecciona un proveïdor de correu",
+    "source_hash": "63c8080c"
   },
   "web.domains.email.from_name_label": {
-    "text": "Nom del remitent"
+    "text": "Nom del remitent",
+    "source_hash": "2f13b589"
   },
   "web.domains.email.from_name_placeholder": {
-    "text": "p. ex. Acme Security"
+    "text": "p. ex. Acme Security",
+    "source_hash": "03c0f138"
   },
   "web.domains.email.from_address_label": {
-    "text": "Adreça del remitent"
+    "text": "Adreça del remitent",
+    "source_hash": "60643eae"
   },
   "web.domains.email.from_address_placeholder": {
-    "text": "p. ex. secrets{'@'}example.com"
+    "text": "p. ex. secrets{'@'}example.com",
+    "source_hash": "a09b3928"
   },
   "web.domains.email.reply_to_label": {
-    "text": "Adreça de resposta"
+    "text": "Adreça de resposta",
+    "source_hash": "4538ea9c"
   },
   "web.domains.email.reply_to_placeholder": {
-    "text": "p. ex. support{'@'}example.com"
+    "text": "p. ex. support{'@'}example.com",
+    "source_hash": "fa3e5f0b"
   },
   "web.domains.email.save_changes": {
-    "text": "Desa els canvis"
+    "text": "Desa els canvis",
+    "source_hash": "35322b5b"
   },
   "web.domains.email.discard_changes": {
-    "text": "Descarta els canvis"
+    "text": "Descarta els canvis",
+    "source_hash": "e07e053c"
   },
   "web.domains.email.provider_ses": {
-    "text": "Amazon SES"
+    "text": "Amazon SES",
+    "source_hash": "15de4969"
   },
   "web.domains.email.provider_sendgrid": {
-    "text": "SendGrid"
+    "text": "SendGrid",
+    "source_hash": "b889d002"
   },
   "web.domains.email.provider_lettermint": {
-    "text": "Lettermint"
+    "text": "Lettermint",
+    "source_hash": "ec994dad"
   },
   "web.domains.email.provider_inherit": {
-    "text": "Usa els valors per defecte del compte"
+    "text": "Usa els valors per defecte del compte",
+    "source_hash": "f6fa84e7"
   },
   "web.domains.email.provider_ses_description": {
-    "text": "Requereix la verificació del domini mitjançant registres DKIM i SPF"
+    "text": "Requereix la verificació del domini mitjançant registres DKIM i SPF",
+    "source_hash": "4df5aa60"
   },
   "web.domains.email.provider_sendgrid_description": {
-    "text": "Requereix la configuració de l'autenticació del domini"
+    "text": "Requereix la configuració de l'autenticació del domini",
+    "source_hash": "71b53242"
   },
   "web.domains.email.provider_lettermint_description": {
-    "text": "Requereix la verificació del domini"
+    "text": "Requereix la verificació del domini",
+    "source_hash": "87073c93"
   },
   "web.domains.email.provider_inherit_description": {
-    "text": "Usa la configuració d'enviament de correu per defecte del teu compte"
+    "text": "Usa la configuració d'enviament de correu per defecte del teu compte",
+    "source_hash": "3f798263"
   },
   "web.domains.email.dns_records_title": {
-    "text": "Registres DNS"
+    "text": "Registres DNS",
+    "source_hash": "34d2c307"
   },
   "web.domains.email.dns_records_description": {
-    "text": "Afegeix els registres DNS següents per verificar el teu domini per a l'enviament de correu."
+    "text": "Afegeix els registres DNS següents per verificar el teu domini per a l'enviament de correu.",
+    "source_hash": "9fa85863"
   },
   "web.domains.email.dns_column_type": {
-    "text": "Tipus"
+    "text": "Tipus",
+    "source_hash": "baaddf70"
   },
   "web.domains.email.dns_column_name": {
-    "text": "Nom"
+    "text": "Nom",
+    "source_hash": "dcd1d522"
   },
   "web.domains.email.dns_column_value": {
-    "text": "Valor"
+    "text": "Valor",
+    "source_hash": "8e37953d"
   },
   "web.domains.email.dns_check_label": {
-    "text": "DNS"
+    "text": "DNS",
+    "source_hash": "020965a2"
   },
   "web.domains.email.provider_check_label": {
-    "text": "Proveïdor"
+    "text": "Proveïdor",
+    "source_hash": "472590ae"
   },
   "web.domains.email.dns_optional_label": {
-    "text": "Recomanat"
+    "text": "Recomanat",
+    "source_hash": "d70604e8"
   },
   "web.domains.email.dns_optional_hint": {
-    "text": "Aquest registre és recomanat però no obligatori per a la verificació. Una política DMARC al teu domini organitzatiu pot cobrir ja aquest subdomini."
+    "text": "Aquest registre és recomanat però no obligatori per a la verificació. Una política DMARC al teu domini organitzatiu pot cobrir ja aquest subdomini.",
+    "source_hash": "58e1a12b"
   },
   "web.domains.email.copy": {
-    "text": "Copia"
+    "text": "Copia",
+    "source_hash": "e21f935f"
   },
   "web.domains.email.copied": {
-    "text": "Copiat"
+    "text": "Copiat",
+    "source_hash": "8d525e5f"
   },
   "web.domains.email.status_verified": {
-    "text": "Verificat"
+    "text": "Verificat",
+    "source_hash": "4f783840"
   },
   "web.domains.email.status_pending": {
-    "text": "Pendent"
+    "text": "Pendent",
+    "source_hash": "331551b0"
   },
   "web.domains.email.status_failed": {
-    "text": "Fallit"
+    "text": "Fallit",
+    "source_hash": "031a8f0f"
   },
   "web.domains.email.revalidate": {
-    "text": "Torna a validar"
+    "text": "Torna a validar",
+    "source_hash": "4918da12"
   },
   "web.domains.email.validating": {
-    "text": "S'està validant..."
+    "text": "S'està validant...",
+    "source_hash": "b28b48d5"
   },
   "web.domains.email.domain_verified": {
-    "text": "Domini verificat"
+    "text": "Domini verificat",
+    "source_hash": "08e0df67"
   },
   "web.domains.email.validation_failed": {
-    "text": "La validació ha fallat"
+    "text": "La validació ha fallat",
+    "source_hash": "23a86f5a"
   },
   "web.domains.email.last_validated": {
-    "text": "Darrera validació"
+    "text": "Darrera validació",
+    "source_hash": "887dd486"
   },
   "web.domains.email.upgrade_to_configure": {
-    "text": "Millora el teu pla per configurar l'enviament de correu per a aquest domini."
+    "text": "Millora el teu pla per configurar l'enviament de correu per a aquest domini.",
+    "source_hash": "16a876f7"
   },
   "web.domains.email.configure_email": {
-    "text": "Configura el correu"
+    "text": "Configura el correu",
+    "source_hash": "a48c0d40"
   },
   "web.domains.email.access_denied": {
-    "text": "Accés denegat"
+    "text": "Accés denegat",
+    "source_hash": "d134ca02"
   },
   "web.domains.email.access_denied_description": {
-    "text": "No tens permís per gestionar la configuració de correu d'aquest domini. Contacta amb l'administrador de la teva organització."
+    "text": "No tens permís per gestionar la configuració de correu d'aquest domini. Contacta amb l'administrador de la teva organització.",
+    "source_hash": "32049ff0"
   },
   "web.domains.email.update_success": {
-    "text": "La configuració del correu s'ha desat correctament"
+    "text": "La configuració del correu s'ha desat correctament",
+    "source_hash": "dd3607fc"
   },
   "web.domains.email.delete_success": {
-    "text": "La configuració del correu s'ha eliminat correctament"
+    "text": "La configuració del correu s'ha eliminat correctament",
+    "source_hash": "2ba99a91"
   },
   "web.domains.email.default_sender_notice": {
-    "text": "Els correus d'aquest domini s'envien actualment des del remitent global. Completa la configuració del correu per usar la teva pròpia identitat de remitent."
+    "text": "Els correus d'aquest domini s'envien actualment des del remitent global. Completa la configuració del correu per usar la teva pròpia identitat de remitent.",
+    "source_hash": "ffcf39fb"
   },
   "web.domains.email.disabled_notice": {
-    "text": "L'enviament de correu personalitzat està desactivat actualment. Els correus s'enviaran des del remitent global. Activa la funció de sota per usar la teva identitat de remitent personalitzada."
+    "text": "L'enviament de correu personalitzat està desactivat actualment. Els correus s'enviaran des del remitent global. Activa la funció de sota per usar la teva identitat de remitent personalitzada.",
+    "source_hash": "60a26f5b"
   },
   "web.domains.email.test_email_title": {
-    "text": "Prova el lliurament de correu"
+    "text": "Prova el lliurament de correu",
+    "source_hash": "c1b3dee2"
   },
   "web.domains.email.test_email_hint": {
-    "text": "Envia't un correu de prova a tu mateix usant la configuració desada. Funciona fins i tot quan la funció encara no està activada."
+    "text": "Envia't un correu de prova a tu mateix usant la configuració desada. Funciona fins i tot quan la funció encara no està activada.",
+    "source_hash": "33e876ad"
   },
   "web.domains.email.send_test": {
-    "text": "Envia una prova"
+    "text": "Envia una prova",
+    "source_hash": "22d7b11d"
   },
   "web.domains.email.test_email_sent": {
-    "text": "El correu de prova s'ha enviat correctament"
+    "text": "El correu de prova s'ha enviat correctament",
+    "source_hash": "561617fd"
   },
   "web.domains.email.test_email_failed": {
-    "text": "No s'ha pogut enviar el correu de prova"
+    "text": "No s'ha pogut enviar el correu de prova",
+    "source_hash": "95ce63bc"
   },
   "web.domains.email.test_email_sent_to": {
-    "text": "Enviat a {email}"
+    "text": "Enviat a {email}",
+    "source_hash": "8ceb9588"
   },
   "web.domains.email.delivered_via": {
-    "text": "Lliurat mitjançant {provider}"
+    "text": "Lliurat mitjançant {provider}",
+    "source_hash": "f741959b"
   },
   "web.domains.email.badge_not_configured": {
-    "text": "Sense configurar"
+    "text": "Sense configurar",
+    "source_hash": "dd1841d2"
   },
   "web.domains.email.badge_default_sender": {
-    "text": "S'usa el remitent per defecte"
+    "text": "S'usa el remitent per defecte",
+    "source_hash": "e1afb18f"
   },
   "web.domains.email.badge_verified": {
-    "text": "Verificat"
+    "text": "Verificat",
+    "source_hash": "4f783840"
   },
   "web.domains.email.badge_pending": {
-    "text": "Verificació pendent"
+    "text": "Verificació pendent",
+    "source_hash": "417a6b7e"
   },
   "web.domains.email.badge_disabled": {
-    "text": "Desactivat"
+    "text": "Desactivat",
+    "source_hash": "75081b59"
   },
   "web.domains.email.tooltip_not_configured": {
-    "text": "No hi ha cap remitent de correu configurat — els correus usen el remitent per defecte de la plataforma"
+    "text": "No hi ha cap remitent de correu configurat — els correus usen el remitent per defecte de la plataforma",
+    "source_hash": "360083bb"
   },
   "web.domains.email.tooltip_pending": {
-    "text": "La configuració del remitent de correu està pendent de verificació — els correus usen el remitent per defecte de la plataforma"
+    "text": "La configuració del remitent de correu està pendent de verificació — els correus usen el remitent per defecte de la plataforma",
+    "source_hash": "c8c2449c"
   },
   "web.domains.email.tooltip_disabled": {
-    "text": "El remitent de correu està desactivat — els correus usen el remitent per defecte de la plataforma"
+    "text": "El remitent de correu està desactivat — els correus usen el remitent per defecte de la plataforma",
+    "source_hash": "64e84955"
   },
   "web.domains.email.tooltip_verified": {
-    "text": "El remitent de correu està verificat — els correus s'envien des d'aquest domini"
+    "text": "El remitent de correu està verificat — els correus s'envien des d'aquest domini",
+    "source_hash": "0e9a005c"
   },
   "web.domains.incoming.title": {
-    "text": "Secrets entrants"
+    "text": "Secrets entrants",
+    "source_hash": "883dbca9"
   },
   "web.domains.incoming.config_title": {
-    "text": "Configuració dels secrets entrants"
+    "text": "Configuració dels secrets entrants",
+    "source_hash": "b3fef15b"
   },
   "web.domains.incoming.config_description": {
-    "text": "Permet que usuaris externs enviïn secrets directament a destinataris designats en aquest domini"
+    "text": "Permet que usuaris externs enviïn secrets directament a destinataris designats en aquest domini",
+    "source_hash": "452ab4fe"
   },
   "web.domains.incoming.feature_disabled": {
-    "text": "Secrets entrants no disponibles"
+    "text": "Secrets entrants no disponibles",
+    "source_hash": "0f96c5ec"
   },
   "web.domains.incoming.feature_disabled_description": {
-    "text": "Els secrets entrants no estan activats en aquesta instància. Contacta amb el teu administrador."
+    "text": "Els secrets entrants no estan activats en aquesta instància. Contacta amb el teu administrador.",
+    "source_hash": "dce981e0"
   },
   "web.domains.incoming.access_denied": {
-    "text": "Accés denegat"
+    "text": "Accés denegat",
+    "source_hash": "d134ca02"
   },
   "web.domains.incoming.access_denied_description": {
-    "text": "No tens permís per gestionar la configuració dels secrets entrants d'aquest domini. Contacta amb l'administrador de la teva organització."
+    "text": "No tens permís per gestionar la configuració dels secrets entrants d'aquest domini. Contacta amb l'administrador de la teva organització.",
+    "source_hash": "3e9d8adc"
   },
   "web.domains.incoming.upgrade_to_configure": {
-    "text": "Millora el teu pla per configurar els secrets entrants per a aquest domini."
+    "text": "Millora el teu pla per configurar els secrets entrants per a aquest domini.",
+    "source_hash": "9dfdfeb5"
   },
   "web.domains.incoming.configure_incoming": {
-    "text": "Configura els secrets entrants"
+    "text": "Configura els secrets entrants",
+    "source_hash": "eab52939"
   },
   "web.domains.incoming.not_configured_notice": {
-    "text": "Els secrets entrants no estan configurats per a aquest domini. Afegeix destinataris per permetre que usuaris externs enviïn secrets al teu equip."
+    "text": "Els secrets entrants no estan configurats per a aquest domini. Afegeix destinataris per permetre que usuaris externs enviïn secrets al teu equip.",
+    "source_hash": "dbc443a6"
   },
   "web.domains.incoming.disabled_notice": {
-    "text": "Els secrets entrants estan desactivats actualment. Els usuaris externs no poden enviar secrets a destinataris d'aquest domini. Activa la funció de sota per permetre els secrets entrants."
+    "text": "Els secrets entrants estan desactivats actualment. Els usuaris externs no poden enviar secrets a destinataris d'aquest domini. Activa la funció de sota per permetre els secrets entrants.",
+    "source_hash": "d1f8dafb"
   },
   "web.domains.incoming.recipients_title": {
-    "text": "Destinataris"
+    "text": "Destinataris",
+    "source_hash": "1e8568a8"
   },
   "web.domains.incoming.recipients_description": {
-    "text": "Defineix qui pot rebre secrets entrants en aquest domini. Els destinataris rebran notificacions per correu quan se'ls enviï un secret."
+    "text": "Defineix qui pot rebre secrets entrants en aquest domini. Els destinataris rebran notificacions per correu quan se'ls enviï un secret.",
+    "source_hash": "026f9d9d"
   },
   "web.domains.incoming.add_recipient": {
-    "text": "Afegeix un destinatari"
+    "text": "Afegeix un destinatari",
+    "source_hash": "25f93c13"
   },
   "web.domains.incoming.remove_recipient": {
-    "text": "Elimina"
+    "text": "Elimina",
+    "source_hash": "c3812fc4"
   },
   "web.domains.incoming.email_label": {
-    "text": "Adreça de correu"
+    "text": "Adreça de correu",
+    "source_hash": "09bf25ef"
   },
   "web.domains.incoming.email_placeholder": {
-    "text": "recipient{'@'}example.com"
+    "text": "recipient{'@'}example.com",
+    "source_hash": "55d1508e"
   },
   "web.domains.incoming.name_label": {
-    "text": "Nom visible"
+    "text": "Nom visible",
+    "source_hash": "18d67c99"
   },
   "web.domains.incoming.name_placeholder": {
-    "text": "p. ex. Security Team"
+    "text": "p. ex. Security Team",
+    "source_hash": "0c52400c"
   },
   "web.domains.incoming.empty_state": {
-    "text": "No hi ha cap destinatari configurat"
+    "text": "No hi ha cap destinatari configurat",
+    "source_hash": "bc8c2058"
   },
   "web.domains.incoming.empty_state_description": {
-    "text": "Afegeix destinataris per permetre que usuaris externs enviïn secrets al teu equip."
+    "text": "Afegeix destinataris per permetre que usuaris externs enviïn secrets al teu equip.",
+    "source_hash": "2a647a40"
   },
   "web.domains.incoming.validation_invalid_email": {
-    "text": "Adreça de correu no vàlida"
+    "text": "Adreça de correu no vàlida",
+    "source_hash": "4eaf1d80"
   },
   "web.domains.incoming.validation_duplicate_email": {
-    "text": "Aquesta adreça de correu ja s'ha afegit"
+    "text": "Aquesta adreça de correu ja s'ha afegit",
+    "source_hash": "f89de141"
   },
   "web.domains.incoming.validation_max_recipients": {
-    "text": "Es permeten {max} destinataris com a màxim"
+    "text": "Es permeten {max} destinataris com a màxim",
+    "source_hash": "e2585847"
   },
   "web.domains.incoming.validation_name_required": {
-    "text": "El nom visible és obligatori"
+    "text": "El nom visible és obligatori",
+    "source_hash": "c6892c89"
   },
   "web.domains.incoming.validation_email_required": {
-    "text": "L'adreça de correu és obligatòria"
+    "text": "L'adreça de correu és obligatòria",
+    "source_hash": "41381ba2"
   },
   "web.domains.incoming.save_changes": {
-    "text": "Desa els canvis"
+    "text": "Desa els canvis",
+    "source_hash": "35322b5b"
   },
   "web.domains.incoming.discard_changes": {
-    "text": "Descarta els canvis"
+    "text": "Descarta els canvis",
+    "source_hash": "e07e053c"
   },
   "web.domains.incoming.update_success": {
-    "text": "La configuració dels secrets entrants s'ha desat correctament"
+    "text": "La configuració dels secrets entrants s'ha desat correctament",
+    "source_hash": "9317e02d"
   },
   "web.domains.incoming.delete_success": {
-    "text": "La configuració dels secrets entrants s'ha eliminat correctament"
+    "text": "La configuració dels secrets entrants s'ha eliminat correctament",
+    "source_hash": "4c4a33ae"
   },
   "web.domains.incoming.recipient_count": {
-    "text": "{count} destinatari | {count} destinataris"
+    "text": "{count} destinatari | {count} destinataris",
+    "source_hash": "0e4f5985"
   },
   "web.domains.incoming.badge_not_configured": {
-    "text": "Sense configurar"
+    "text": "Sense configurar",
+    "source_hash": "dd1841d2"
   },
   "web.domains.incoming.badge_configured": {
-    "text": "Configurat"
+    "text": "Configurat",
+    "source_hash": "84aebc69"
   },
   "web.domains.incoming.badge_disabled": {
-    "text": "Desactivat"
+    "text": "Desactivat",
+    "source_hash": "75081b59"
   },
   "web.domains.incoming.tooltip_not_configured": {
-    "text": "Secrets entrants sense configurar - els usuaris externs no poden enviar secrets a aquest domini"
+    "text": "Secrets entrants sense configurar - els usuaris externs no poden enviar secrets a aquest domini",
+    "source_hash": "79786d5c"
   },
   "web.domains.incoming.tooltip_configured": {
-    "text": "Secrets entrants activats amb {count} destinatari(s)"
+    "text": "Secrets entrants activats amb {count} destinatari(s)",
+    "source_hash": "c205cc54"
   },
   "web.domains.incoming.tooltip_disabled": {
-    "text": "La funció de secrets entrants està desactivada per a aquest domini"
+    "text": "La funció de secrets entrants està desactivada per a aquest domini",
+    "source_hash": "0413f96b"
   },
   "web.domains.incoming.enabled_label": {
-    "text": "Activa els secrets entrants"
+    "text": "Activa els secrets entrants",
+    "source_hash": "c0b25980"
   },
   "web.domains.incoming.enabled_hint": {
-    "text": "Permet que usuaris externs enviïn secrets a destinataris d'aquest domini"
+    "text": "Permet que usuaris externs enviïn secrets a destinataris d'aquest domini",
+    "source_hash": "24aadd31"
   },
   "web.domains.incoming.public_url_label": {
-    "text": "URL pública"
+    "text": "URL pública",
+    "source_hash": "f7b60b04"
   },
   "web.domains.incoming.public_url_description": {
-    "text": "Comparteix aquesta URL amb usuaris externs perquè puguin enviar secrets"
+    "text": "Comparteix aquesta URL amb usuaris externs perquè puguin enviar secrets",
+    "source_hash": "df47a894"
   },
   "web.domains.incoming.copy_url": {
-    "text": "Copia l'URL"
+    "text": "Copia l'URL",
+    "source_hash": "b26d1037"
   },
   "web.domains.incoming.url_copied": {
-    "text": "URL copiada al porta-retalls"
+    "text": "URL copiada al porta-retalls",
+    "source_hash": "2f396c3e"
   },
   "web.domains.incoming.remove_all_confirmation": {
-    "text": "Segur que vols eliminar tots els destinataris? Els usuaris externs ja no podran enviar secrets a aquest domini."
+    "text": "Segur que vols eliminar tots els destinataris? Els usuaris externs ja no podran enviar secrets a aquest domini.",
+    "source_hash": "06f9e551"
   },
   "web.domains.incoming.max_recipients_reached": {
-    "text": "S'ha assolit el nombre màxim de destinataris"
+    "text": "S'ha assolit el nombre màxim de destinataris",
+    "source_hash": "ba659e54"
   },
   "web.domains.incoming.duplicate_recipient": {
-    "text": "Aquesta adreça de correu ja s'ha afegit"
+    "text": "Aquesta adreça de correu ja s'ha afegit",
+    "source_hash": "ca598f6d"
   },
   "web.domains.incoming.save_will_replace_confirmation": {
-    "text": "En desar es reemplaçaran tots els destinataris existents pels teus canvis pendents. Segur que vols continuar?"
+    "text": "En desar es reemplaçaran tots els destinataris existents pels teus canvis pendents. Segur que vols continuar?",
+    "source_hash": "f497862e"
   },
   "web.domains.incoming.delete_all_recipients": {
-    "text": "Elimina tots els destinataris"
+    "text": "Elimina tots els destinataris",
+    "source_hash": "207d0dbe"
   },
   "web.domains.signin.title": {
-    "text": "Configuració de l'inici de sessió"
+    "text": "Configuració de l'inici de sessió",
+    "source_hash": "2da38c03"
   },
   "web.domains.signin.configure_signin": {
-    "text": "Configura l'inici de sessió"
+    "text": "Configura l'inici de sessió",
+    "source_hash": "f72b58b5"
   },
   "web.domains.signin.config_description": {
-    "text": "Configura els mètodes d'autenticació per iniciar la sessió en aquest domini"
+    "text": "Configura els mètodes d'autenticació per iniciar la sessió en aquest domini",
+    "source_hash": "8efce428"
   },
   "web.domains.signin.access_denied": {
-    "text": "Accés denegat"
+    "text": "Accés denegat",
+    "source_hash": "d134ca02"
   },
   "web.domains.signin.upgrade_to_configure": {
-    "text": "Millora el teu pla per configurar els mètodes d'inici de sessió per a aquest domini."
+    "text": "Millora el teu pla per configurar els mètodes d'inici de sessió per a aquest domini.",
+    "source_hash": "e242bb74"
   },
   "web.domains.signin.not_configured_notice": {
-    "text": "Encara no s'ha definit la configuració de l'inici de sessió per a aquest domini. Configura les substitucions per controlar quins mètodes d'autenticació estan disponibles a la pàgina d'inici de sessió d'aquest domini."
+    "text": "Encara no s'ha definit la configuració de l'inici de sessió per a aquest domini. Configura les substitucions per controlar quins mètodes d'autenticació estan disponibles a la pàgina d'inici de sessió d'aquest domini.",
+    "source_hash": "cb788a2d"
   },
   "web.domains.signin.signin_enabled_label": {
-    "text": "Inici de sessió activat"
+    "text": "Inici de sessió activat",
+    "source_hash": "cabe4898"
   },
   "web.domains.signin.header_toggle_label": {
-    "text": "Inici de sessió"
+    "text": "Inici de sessió",
+    "source_hash": "5bbbe531"
   },
   "web.domains.signin.signin_enabled_hint": {
-    "text": "Si els usuaris poden iniciar la sessió en aquest domini"
+    "text": "Si els usuaris poden iniciar la sessió en aquest domini",
+    "source_hash": "57a92aee"
   },
   "web.domains.signin.restrict_to_label": {
-    "text": "Restringeix el mètode d'inici de sessió"
+    "text": "Restringeix el mètode d'inici de sessió",
+    "source_hash": "edbec83f"
   },
   "web.domains.signin.restrict_to_hint": {
-    "text": "Restringeix aquest domini a un únic mètode d'autenticació. Quan s'estableix, només es mostra el mètode escollit a la pàgina d'inici de sessió."
+    "text": "Restringeix aquest domini a un únic mètode d'autenticació. Quan s'estableix, només es mostra el mètode escollit a la pàgina d'inici de sessió.",
+    "source_hash": "682bc4c5"
   },
   "web.domains.signin.all_methods": {
-    "text": "Tots els mètodes"
+    "text": "Tots els mètodes",
+    "source_hash": "e601c19e"
   },
   "web.domains.signin.all_methods_description": {
-    "text": "Mostra tots els mètodes d'autenticació activats a la pàgina d'inici de sessió"
+    "text": "Mostra tots els mètodes d'autenticació activats a la pàgina d'inici de sessió",
+    "source_hash": "62723340"
   },
   "web.domains.signin.method_password": {
-    "text": "Contrasenya"
+    "text": "Contrasenya",
+    "source_hash": "e7cf3ef4"
   },
   "web.domains.signin.method_email_auth": {
-    "text": "Autenticació per correu"
+    "text": "Autenticació per correu",
+    "source_hash": "68c38f94"
   },
   "web.domains.signin.method_webauthn": {
-    "text": "WebAuthn / Claus d'accés"
+    "text": "WebAuthn / Claus d'accés",
+    "source_hash": "c40224ce"
   },
   "web.domains.signin.method_sso": {
-    "text": "Inici de sessió únic"
+    "text": "Inici de sessió únic",
+    "source_hash": "cf7cd744"
   },
   "web.domains.signin.method_overrides_label": {
-    "text": "Substitucions de mètode"
+    "text": "Substitucions de mètode",
+    "source_hash": "5496cba6"
   },
   "web.domains.signin.method_overrides_hint": {
-    "text": "Activa o desactiva mètodes d'autenticació individuals per a aquest domini"
+    "text": "Activa o desactiva mètodes d'autenticació individuals per a aquest domini",
+    "source_hash": "394e3878"
   },
   "web.domains.signin.mode_question": {
-    "text": "Com poden iniciar la sessió els usuaris?"
+    "text": "Com poden iniciar la sessió els usuaris?",
+    "source_hash": "3694eb23"
   },
   "web.domains.signin.mode_any": {
-    "text": "Qualsevol mètode disponible"
+    "text": "Qualsevol mètode disponible",
+    "source_hash": "23665425"
   },
   "web.domains.signin.mode_any_hint": {
-    "text": "Mostra tots els mètodes disponibles en aquest domini. Restringeix mètodes individuals a sota."
+    "text": "Mostra tots els mètodes disponibles en aquest domini. Restringeix mètodes individuals a sota.",
+    "source_hash": "2f3dcba6"
   },
   "web.domains.signin.mode_one": {
-    "text": "Un mètode específic"
+    "text": "Un mètode específic",
+    "source_hash": "601f5768"
   },
   "web.domains.signin.mode_one_hint": {
-    "text": "Restringeix la pàgina d'inici de sessió a un únic mètode. Només es llisten els mètodes disponibles en aquest domini."
+    "text": "Restringeix la pàgina d'inici de sessió a un únic mètode. Només es llisten els mètodes disponibles en aquest domini.",
+    "source_hash": "58bde6d5"
   },
   "web.domains.signin.mode_disabled": {
-    "text": "Inici de sessió desactivat"
+    "text": "Inici de sessió desactivat",
+    "source_hash": "bb807607"
   },
   "web.domains.signin.mode_disabled_hint": {
-    "text": "Els usuaris no poden iniciar la sessió en aquest domini."
+    "text": "Els usuaris no poden iniciar la sessió en aquest domini.",
+    "source_hash": "8938f098"
   },
   "web.domains.signin.mode_disabled_notice": {
-    "text": "Els visitants de la pàgina d'inici de sessió d'aquest domini veuen un avís que l'inici de sessió no està disponible, amb un enllaç de tornada a la pàgina d'inici. La teva configuració de mètodes anterior es conserva i es restaura quan tornes a activar l'inici de sessió."
+    "text": "Els visitants de la pàgina d'inici de sessió d'aquest domini veuen un avís que l'inici de sessió no està disponible, amb un enllaç de tornada a la pàgina d'inici. La teva configuració de mètodes anterior es conserva i es restaura quan tornes a activar l'inici de sessió.",
+    "source_hash": "1a04de18"
   },
   "web.domains.signin.methods_list_label": {
-    "text": "Mètodes mostrats a la pàgina d'inici de sessió"
+    "text": "Mètodes mostrats a la pàgina d'inici de sessió",
+    "source_hash": "66fd133b"
   },
   "web.domains.signin.restrict_picker_hint": {
-    "text": "Només es llisten els mètodes disponibles en aquest domini."
+    "text": "Només es llisten els mètodes disponibles en aquest domini.",
+    "source_hash": "c7a56f44"
   },
   "web.domains.signin.availability_always": {
-    "text": "Sempre disponible"
+    "text": "Sempre disponible",
+    "source_hash": "0fda3772"
   },
   "web.domains.signin.availability_global_on": {
-    "text": "Segueix la política global · Activat"
+    "text": "Segueix la política global · Activat",
+    "source_hash": "3844e6f7"
   },
   "web.domains.signin.availability_global_off": {
-    "text": "No disponible"
+    "text": "No disponible",
+    "source_hash": "67a926f7"
   },
   "web.domains.signin.availability_unavailable": {
-    "text": "No disponible a tot el lloc"
+    "text": "No disponible a tot el lloc",
+    "source_hash": "da29c1be"
   },
   "web.domains.signin.allow_on_domain": {
-    "text": "Permet en aquest domini"
+    "text": "Permet en aquest domini",
+    "source_hash": "760b578e"
   },
   "web.domains.signin.method_password_blurb": {
-    "text": "Només contrasenya"
+    "text": "Només contrasenya",
+    "source_hash": "ed1a02fd"
   },
   "web.domains.signin.method_email_auth_blurb": {
-    "text": "Inici de sessió sense contrasenya amb enllaç màgic"
+    "text": "Inici de sessió sense contrasenya amb enllaç màgic",
+    "source_hash": "7f776a85"
   },
   "web.domains.signin.method_webauthn_blurb": {
-    "text": "Biometria i claus de seguretat"
+    "text": "Biometria i claus de seguretat",
+    "source_hash": "7d6a7bd5"
   },
   "web.domains.signin.method_sso_blurb": {
-    "text": "Proveïdor d'identitat extern"
+    "text": "Proveïdor d'identitat extern",
+    "source_hash": "a3442088"
   },
   "web.domains.signin.email_auth_label": {
-    "text": "Autenticació per correu"
+    "text": "Autenticació per correu",
+    "source_hash": "68c38f94"
   },
   "web.domains.signin.email_auth_hint": {
-    "text": "Permet l'autenticació per correu sense contrasenya en aquest domini"
+    "text": "Permet l'autenticació per correu sense contrasenya en aquest domini",
+    "source_hash": "6ad82127"
   },
   "web.domains.signin.sso_enabled_label": {
-    "text": "Inici de sessió únic"
+    "text": "Inici de sessió únic",
+    "source_hash": "cf7cd744"
   },
   "web.domains.signin.sso_enabled_hint": {
-    "text": "Permet l'autenticació per SSO en aquest domini"
+    "text": "Permet l'autenticació per SSO en aquest domini",
+    "source_hash": "22d78ad5"
   },
   "web.domains.signin.enabled_label": {
-    "text": "Activa la configuració de l'inici de sessió"
+    "text": "Activa la configuració de l'inici de sessió",
+    "source_hash": "dbd8e11c"
   },
   "web.domains.signin.enabled_hint": {
-    "text": "Quan està activat, aquest domini usa la configuració d'inici de sessió definida més amunt"
+    "text": "Quan està activat, aquest domini usa la configuració d'inici de sessió definida més amunt",
+    "source_hash": "6259f8a2"
   },
   "web.domains.signin.save_config": {
-    "text": "Desa la configuració"
+    "text": "Desa la configuració",
+    "source_hash": "b2b158f2"
   },
   "web.domains.signin.update_success": {
-    "text": "La configuració de l'inici de sessió s'ha actualitzat correctament"
+    "text": "La configuració de l'inici de sessió s'ha actualitzat correctament",
+    "source_hash": "10ea50d8"
   },
   "web.domains.signin.reset_to_defaults": {
-    "text": "Restableix els valors per defecte"
+    "text": "Restableix els valors per defecte",
+    "source_hash": "e240e635"
   },
   "web.domains.signin.reset_confirm": {
-    "text": "Vols restablir l'inici de sessió als valors per defecte globals?"
+    "text": "Vols restablir l'inici de sessió als valors per defecte globals?",
+    "source_hash": "2c6bbc32"
   },
   "web.domains.signin.reset_keeps_sso": {
-    "text": "Les teves credencials d'SSO es conserven. Elimina-les per separat a la pantalla de configuració de l'SSO."
+    "text": "Les teves credencials d'SSO es conserven. Elimina-les per separat a la pantalla de configuració de l'SSO.",
+    "source_hash": "edc0c756"
   },
   "web.domains.signin.reset_action": {
-    "text": "Sí, restableix"
+    "text": "Sí, restableix",
+    "source_hash": "4bb21d8b"
   },
   "web.domains.signin.reset_success": {
-    "text": "La configuració de l'inici de sessió s'ha restablert als valors per defecte globals"
+    "text": "La configuració de l'inici de sessió s'ha restablert als valors per defecte globals",
+    "source_hash": "0c364d89"
   },
   "web.domains.signup.title": {
-    "text": "Validació del registre"
+    "text": "Validació del registre",
+    "source_hash": "2c34ac0a"
   },
   "web.domains.signup.config_description": {
-    "text": "Configura la validació del registre per a aquest domini"
+    "text": "Configura la validació del registre per a aquest domini",
+    "source_hash": "e9c81e8a"
   },
   "web.domains.signup.access_denied": {
-    "text": "Accés denegat"
+    "text": "Accés denegat",
+    "source_hash": "d134ca02"
   },
   "web.domains.signup.upgrade_to_configure": {
-    "text": "Millora el teu pla per configurar la validació del registre per domini."
+    "text": "Millora el teu pla per configurar la validació del registre per domini.",
+    "source_hash": "d87d6614"
   },
   "web.domains.signup.configure_signup": {
-    "text": "Configura el registre"
+    "text": "Configura el registre",
+    "source_hash": "e2697662"
   },
   "web.domains.signup.not_configured_notice": {
-    "text": "Encara no s'ha configurat la validació del registre per a aquest domini. Configura una estratègia per controlar qui es pot registrar mitjançant aquest domini."
+    "text": "Encara no s'ha configurat la validació del registre per a aquest domini. Configura una estratègia per controlar qui es pot registrar mitjançant aquest domini.",
+    "source_hash": "fc6c6eb8"
   },
   "web.domains.signup.site_signups_disabled_warning": {
-    "text": "Els registres estan desactivats actualment a escala de lloc. Aquesta política per domini està configurada però no filtrarà cap trànsit fins que s'activin els registres del lloc."
+    "text": "Els registres estan desactivats actualment a escala de lloc. Aquesta política per domini està configurada però no filtrarà cap trànsit fins que s'activin els registres del lloc.",
+    "source_hash": "c0e59f86"
   },
   "web.domains.signup.strategy_label": {
-    "text": "Estratègia de validació"
+    "text": "Estratègia de validació",
+    "source_hash": "a2e95531"
   },
   "web.domains.signup.strategy_description": {
-    "text": "Tria com es validen les adreces de correu quan els usuaris es registren en aquest domini."
+    "text": "Tria com es validen les adreces de correu quan els usuaris es registren en aquest domini.",
+    "source_hash": "8e232b03"
   },
   "web.domains.signup.network_validation_warning": {
-    "text": "Aquesta estratègia fa crides de xarxa durant el registre, cosa que pot afegir latència o ser bloquejada per alguns proveïdors."
+    "text": "Aquesta estratègia fa crides de xarxa durant el registre, cosa que pot afegir latència o ser bloquejada per alguns proveïdors.",
+    "source_hash": "53d4c266"
   },
   "web.domains.signup.allowed_domains_label": {
-    "text": "Dominis de registre permesos"
+    "text": "Dominis de registre permesos",
+    "source_hash": "9b5bb5b1"
   },
   "web.domains.signup.allowed_domains_hint": {
-    "text": "Només aquests dominis de correu podran registrar-se. Afegeix un domini per entrada."
+    "text": "Només aquests dominis de correu podran registrar-se. Afegeix un domini per entrada.",
+    "source_hash": "c082414d"
   },
   "web.domains.signup.domain_placeholder": {
-    "text": "example.com"
+    "text": "example.com",
+    "source_hash": "a379a6f6"
   },
   "web.domains.signup.invalid_domain": {
-    "text": "Si us plau, introdueix un domini vàlid (p. ex. example.com)"
+    "text": "Si us plau, introdueix un domini vàlid (p. ex. example.com)",
+    "source_hash": "16807983"
   },
   "web.domains.signup.domain_exists": {
-    "text": "Aquest domini ja és a la llista"
+    "text": "Aquest domini ja és a la llista",
+    "source_hash": "3fccb721"
   },
   "web.domains.signup.remove_domain": {
-    "text": "Elimina {domain}"
+    "text": "Elimina {domain}",
+    "source_hash": "ae708a1d"
   },
   "web.domains.signup.enabled_label": {
-    "text": "Activa la validació per domini"
+    "text": "Activa la validació per domini",
+    "source_hash": "db103925"
   },
   "web.domains.signup.enabled_hint": {
-    "text": "Quan està activada, els registres en aquest domini usen l'estratègia anterior en lloc de la política global."
+    "text": "Quan està activada, els registres en aquest domini usen l'estratègia anterior en lloc de la política global.",
+    "source_hash": "99de2008"
   },
   "web.domains.signup.delete_config": {
-    "text": "Elimina la configuració"
+    "text": "Elimina la configuració",
+    "source_hash": "a9a30c7f"
   },
   "web.domains.signup.delete_confirm": {
-    "text": "Vols eliminar la configuració de validació del registre? Els registres tornaran a la política global."
+    "text": "Vols eliminar la configuració de validació del registre? Els registres tornaran a la política global.",
+    "source_hash": "a8c9086e"
   },
   "web.domains.signup.save_config": {
-    "text": "Desa la configuració"
+    "text": "Desa la configuració",
+    "source_hash": "b2b158f2"
   },
   "web.domains.signup.update_success": {
-    "text": "La validació del registre s'ha actualitzat correctament"
+    "text": "La validació del registre s'ha actualitzat correctament",
+    "source_hash": "57a529ac"
   },
   "web.domains.signup.delete_success": {
-    "text": "La configuració de validació del registre s'ha eliminat correctament"
+    "text": "La configuració de validació del registre s'ha eliminat correctament",
+    "source_hash": "eb6add4d"
   },
   "web.domains.signup.domain_overrides_label": {
-    "text": "Substitucions de domini"
+    "text": "Substitucions de domini",
+    "source_hash": "d25da3cd"
   },
   "web.domains.signup.domain_overrides_hint": {
-    "text": "Substitueix la configuració global de registre per a aquest domini"
+    "text": "Substitueix la configuració global de registre per a aquest domini",
+    "source_hash": "53101057"
   },
   "web.domains.signup.signup_enabled_label": {
-    "text": "Registre activat"
+    "text": "Registre activat",
+    "source_hash": "296ac66d"
   },
   "web.domains.signup.signup_enabled_hint": {
-    "text": "Substitueix si el registre està activat per a aquest domini"
+    "text": "Substitueix si el registre està activat per a aquest domini",
+    "source_hash": "2ee146b6"
   },
   "web.domains.signup.autoverify_label": {
-    "text": "Verifica els comptes automàticament"
+    "text": "Verifica els comptes automàticament",
+    "source_hash": "4b103cd5"
   },
   "web.domains.signup.autoverify_hint": {
-    "text": "Substitueix si els comptes nous es verifiquen automàticament en aquest domini"
+    "text": "Substitueix si els comptes nous es verifiquen automàticament en aquest domini",
+    "source_hash": "63866ecd"
   },
   "web.domains.sso.title": {
-    "text": "Inici de sessió únic"
+    "text": "Inici de sessió únic",
+    "source_hash": "cf7cd744"
   },
   "web.domains.sso.config_title": {
-    "text": "Configuració de l'SSO"
+    "text": "Configuració de l'SSO",
+    "source_hash": "afd5751e"
   },
   "web.domains.sso.config_description": {
-    "text": "Configura l'autenticació amb inici de sessió únic per a aquest domini"
+    "text": "Configura l'autenticació amb inici de sessió únic per a aquest domini",
+    "source_hash": "f37a0b47"
   },
   "web.domains.sso.access_denied": {
-    "text": "Accés denegat"
+    "text": "Accés denegat",
+    "source_hash": "d134ca02"
   },
   "web.domains.sso.access_denied_description": {
-    "text": "No tens permís per gestionar la configuració de l'SSO d'aquest domini. Contacta amb l'administrador de la teva organització."
+    "text": "No tens permís per gestionar la configuració de l'SSO d'aquest domini. Contacta amb l'administrador de la teva organització.",
+    "source_hash": "db7fcfeb"
   },
   "web.domains.sso.upgrade_to_configure": {
-    "text": "Millora el teu pla per configurar l'inici de sessió únic per a aquest domini."
+    "text": "Millora el teu pla per configurar l'inici de sessió únic per a aquest domini.",
+    "source_hash": "71fc0069"
   },
   "web.domains.sso.create_success": {
-    "text": "La configuració de l'SSO s'ha creat correctament"
+    "text": "La configuració de l'SSO s'ha creat correctament",
+    "source_hash": "531c7d92"
   },
   "web.domains.sso.update_success": {
-    "text": "La configuració de l'SSO s'ha actualitzat correctament"
+    "text": "La configuració de l'SSO s'ha actualitzat correctament",
+    "source_hash": "d98d8e83"
   },
   "web.domains.sso.delete_success": {
-    "text": "La configuració de l'SSO s'ha eliminat correctament"
+    "text": "La configuració de l'SSO s'ha eliminat correctament",
+    "source_hash": "2e924798"
   },
   "web.domains.sso.test_success": {
-    "text": "Prova de connexió correcta — el proveïdor ha respost correctament"
+    "text": "Prova de connexió correcta — el proveïdor ha respost correctament",
+    "source_hash": "1570ddb0"
   },
   "web.domains.sso.test_failed": {
-    "text": "La prova de connexió ha fallat"
+    "text": "La prova de connexió ha fallat",
+    "source_hash": "a45a37dd"
   },
   "web.domains.sso.enforce_moved_notice": {
-    "text": "Per exigir l'SSO a tots els inicis de sessió d'aquest domini, configura-ho a la configuració d'inici de sessió del domini. El mode només SSO restringeix la pàgina d'inici de sessió al proveïdor d'SSO configurat aquí."
+    "text": "Per exigir l'SSO a tots els inicis de sessió d'aquest domini, configura-ho a la configuració d'inici de sessió del domini. El mode només SSO restringeix la pàgina d'inici de sessió al proveïdor d'SSO configurat aquí.",
+    "source_hash": "d26627a5"
   },
   "web.domains.sso.configure_sso": {
-    "text": "Configura l'SSO"
+    "text": "Configura l'SSO",
+    "source_hash": "80d3a144"
   },
   "web.domains.sso.not_configured_notice": {
-    "text": "L'SSO encara no està configurat per a aquest domini. Activa l'inici de sessió únic per permetre que els membres de l'equip s'autentiquin amb el proveïdor d'identitat de la teva organització."
+    "text": "L'SSO encara no està configurat per a aquest domini. Activa l'inici de sessió únic per permetre que els membres de l'equip s'autentiquin amb el proveïdor d'identitat de la teva organització.",
+    "source_hash": "c439214b"
   },
   "web.domains.sso.edit_credentials": {
-    "text": "Edita les credencials"
+    "text": "Edita les credencials",
+    "source_hash": "5a6622b6"
   },
   "web.domains.sso.configure_button": {
-    "text": "Configura"
+    "text": "Configura",
+    "source_hash": "6defafa2"
   },
   "web.domains.sso.upgrade_required": {
-    "text": "Millora el pla per configurar"
+    "text": "Millora el pla per configurar",
+    "source_hash": "571cfa98"
   }
 }

@@ -1385,108 +1385,143 @@
     "source_hash": "783f174c"
   },
   "api.errors.authentication_required": {
-    "text": "Hitelesítés szükséges"
+    "text": "Hitelesítés szükséges",
+    "source_hash": "0fcfb12d"
   },
   "api.errors.sso_only_action_blocked": {
-    "text": "Ez a művelet nem érhető el csak SSO módban"
+    "text": "Ez a művelet nem érhető el csak SSO módban",
+    "source_hash": "9bc26394"
   },
   "web.COMMON.configure": {
-    "text": "Beállítás"
+    "text": "Beállítás",
+    "source_hash": "6defafa2"
   },
   "web.COMMON.copy_to_clipboard": {
-    "text": "Másolás vágólapra"
+    "text": "Másolás vágólapra",
+    "source_hash": "b749e205"
   },
   "web.COMMON.add": {
-    "text": "Hozzáadás"
+    "text": "Hozzáadás",
+    "source_hash": "9fd728c6"
   },
   "web.COMMON.enabled": {
-    "text": "Engedélyezve"
+    "text": "Engedélyezve",
+    "source_hash": "92c1cdfd"
   },
   "web.COMMON.disabled": {
-    "text": "Letiltva"
+    "text": "Letiltva",
+    "source_hash": "75081b59"
   },
   "web.COMMON.yes_delete": {
-    "text": "Igen, törlés"
+    "text": "Igen, törlés",
+    "source_hash": "7b05a8e3"
   },
   "web.COMMON.error_code": {
-    "text": "Hibakód"
+    "text": "Hibakód",
+    "source_hash": "46832415"
   },
   "web.COMMON.http_status": {
-    "text": "HTTP-állapot"
+    "text": "HTTP-állapot",
+    "source_hash": "b2a629f2"
   },
   "web.COMMON.details": {
-    "text": "Részletek"
+    "text": "Részletek",
+    "source_hash": "45989de4"
   },
   "web.COMMON.field_confirm_password": {
-    "text": "Jelszó megerősítése"
+    "text": "Jelszó megerősítése",
+    "source_hash": "c292210c"
   },
   "web.COMMON.passwords_must_match": {
-    "text": "A jelszavaknak egyezniük kell"
+    "text": "A jelszavaknak egyezniük kell",
+    "source_hash": "0c060bd4"
   },
   "web.COMMON.and": {
-    "text": "és"
+    "text": "és",
+    "source_hash": "6201111b"
   },
   "web.COMMON.or": {
-    "text": "vagy"
+    "text": "vagy",
+    "source_hash": "7175517a"
   },
   "web.COMMON.copied": {
-    "text": "Másolva"
+    "text": "Másolva",
+    "source_hash": "8d525e5f"
   },
   "web.COMMON.copy": {
-    "text": "Másolás"
+    "text": "Másolás",
+    "source_hash": "e21f935f"
   },
   "web.COMMON.copy_email": {
-    "text": "E-mail-cím másolása"
+    "text": "E-mail-cím másolása",
+    "source_hash": "61b94846"
   },
   "web.COMMON.copy_id": {
-    "text": "Fiókazonosító másolása"
+    "text": "Fiókazonosító másolása",
+    "source_hash": "fd493ffd"
   },
   "web.COMMON.org_id_tooltip": {
-    "text": "A szervezet egyedi azonosítója"
+    "text": "A szervezet egyedi azonosítója",
+    "source_hash": "c8c08d29"
   },
   "web.COMMON.success": {
-    "text": "Sikeres"
+    "text": "Sikeres",
+    "source_hash": "c88a0b90"
   },
   "web.COMMON.need_help": {
-    "text": "Segítségre van szüksége"
+    "text": "Segítségre van szüksége",
+    "source_hash": "4ca0ca38"
   },
   "web.COMMON.open_help_dialog": {
-    "text": "Súgóablak megnyitása"
+    "text": "Súgóablak megnyitása",
+    "source_hash": "55cd1515"
   },
   "web.COMMON.focus_is_now_in_the_main_text_area": {
-    "text": "A fókusz most a fő szövegmezőn van"
+    "text": "A fókusz most a fő szövegmezőn van",
+    "source_hash": "e00dd260"
   },
   "web.LABELS.show_passphrase": {
-    "text": "Hozzáférési mondat megjelenítése"
+    "text": "Hozzáférési mondat megjelenítése",
+    "source_hash": "76880d38"
   },
   "web.LABELS.hide_passphrase": {
-    "text": "Hozzáférési mondat elrejtése"
+    "text": "Hozzáférési mondat elrejtése",
+    "source_hash": "8ecdc98c"
   },
   "web.LABELS.copy_icon": {
-    "text": "Másolás ikon"
+    "text": "Másolás ikon",
+    "source_hash": "d1a5fc0c"
   },
   "web.LABELS.copied_icon": {
-    "text": "Másolva ikon"
+    "text": "Másolva ikon",
+    "source_hash": "90a4b4f1"
   },
   "web.STATUS.unverified": {
-    "text": "Nem ellenőrzött"
+    "text": "Nem ellenőrzött",
+    "source_hash": "33c8e8de"
   },
   "web.TITLES.domain_detail": {
-    "text": "Doménbeállítások"
+    "text": "Doménbeállítások",
+    "source_hash": "e24f338d"
   },
   "web.TITLES.domain_signin": {
-    "text": "Bejelentkezési konfiguráció"
+    "text": "Bejelentkezési konfiguráció",
+    "source_hash": "2da38c03"
   },
   "web.TITLES.domain_sso": {
-    "text": "Domén SSO"
+    "text": "Domén SSO",
+    "source_hash": "13161464"
   },
   "web.TITLES.domain_signup": {
-    "text": "Domén regisztrációs ellenőrzés"
+    "text": "Domén regisztrációs ellenőrzés",
+    "source_hash": "c8ce809a"
   },
   "web.TITLES.domain_email": {
-    "text": "E-mail-konfiguráció"
+    "text": "E-mail-konfiguráció",
+    "source_hash": "6f38aa51"
   },
   "web.TITLES.domain_incoming": {
-    "text": "Bejövő titkok"
+    "text": "Bejövő titkok",
+    "source_hash": "883dbca9"
   }
 }

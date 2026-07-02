@@ -400,723 +400,963 @@
     "source_hash": "91c1af2e"
   },
   "api.domains.errors.add_admin_required": {
-    "text": "Само собствениците и администраторите на организацията могат да добавят персонализирани домейни"
+    "text": "Само собствениците и администраторите на организацията могат да добавят персонализирани домейни",
+    "source_hash": "3324aabe"
   },
   "web.domains.public_homepage": {
-    "text": "Публична начална страница"
+    "text": "Публична начална страница",
+    "source_hash": "2ae3ccba"
   },
   "web.domains.status_tooltip_active": {
-    "text": "Домейнът е потвърден и активен"
+    "text": "Домейнът е потвърден и активен",
+    "source_hash": "e4b6a6e1"
   },
   "web.domains.status_tooltip_dns_incorrect": {
-    "text": "DNS не е конфигуриран — щракнете, за да поправите"
+    "text": "DNS не е конфигуриран — щракнете, за да поправите",
+    "source_hash": "892cb2cb"
   },
   "web.domains.status_tooltip_not_verified": {
-    "text": "Домейнът не е потвърден — щракнете, за да потвърдите"
+    "text": "Домейнът не е потвърден — щракнете, за да потвърдите",
+    "source_hash": "a9806710"
   },
   "web.domains.status_tooltip_unverified": {
-    "text": "Статусът на домейна е непотвърден — щракнете, за да опресните"
+    "text": "Статусът на домейна е непотвърден — щракнете, за да опресните",
+    "source_hash": "a45aa76d"
   },
   "web.domains.last_check_failed": {
-    "text": "Последната проверка за потвърждение беше неуспешна"
+    "text": "Последната проверка за потвърждение беше неуспешна",
+    "source_hash": "88b594b8"
   },
   "web.domains.last_check_failed_ago": {
-    "text": "последната проверка беше неуспешна {0}"
+    "text": "последната проверка беше неуспешна {0}",
+    "source_hash": "ddfb6412"
   },
   "web.domains.verify_now": {
-    "text": "Потвърди сега"
+    "text": "Потвърди сега",
+    "source_hash": "db383efb"
   },
   "web.domains.click_to_verify": {
-    "text": "щракнете, за да потвърдите"
+    "text": "щракнете, за да потвърдите",
+    "source_hash": "6eae7d9c"
   },
   "web.domains.remove_domain_description": {
-    "text": "Перманентно премахване на този домейн и цялата му конфигурация."
+    "text": "Перманентно премахване на този домейн и цялата му конфигурация.",
+    "source_hash": "73946b9e"
   },
   "web.domains.add_access_denied": {
-    "text": "Достъпът е отказан"
+    "text": "Достъпът е отказан",
+    "source_hash": "d134ca02"
   },
   "web.domains.add_access_denied_description": {
-    "text": "Нямате разрешение да добавяте домейни към тази организация. Свържете се с администратора на вашата организация."
+    "text": "Нямате разрешение да добавяте домейни към тази организация. Свържете се с администратора на вашата организация.",
+    "source_hash": "25e035c6"
   },
   "web.domains.dns_widget_load_failed": {
-    "text": "Неуспешно зареждане на DNS приспособлението"
+    "text": "Неуспешно зареждане на DNS приспособлението",
+    "source_hash": "5a1d8ab5"
   },
   "web.domains.dns_widget_not_available": {
-    "text": "DNS приспособлението не е налично"
+    "text": "DNS приспособлението не е налично",
+    "source_hash": "4eed448b"
   },
   "web.domains.dns_widget_init_failed": {
-    "text": "Неуспешно инициализиране на DNS приспособлението"
+    "text": "Неуспешно инициализиране на DNS приспособлението",
+    "source_hash": "de477585"
   },
   "web.domains.verified": {
-    "text": "Потвърден"
+    "text": "Потвърден",
+    "source_hash": "4f783840"
   },
   "web.domains.pending_verification": {
-    "text": "Изчаква потвърждение"
+    "text": "Изчаква потвърждение",
+    "source_hash": "77e07795"
   },
   "web.domains.unsaved_changes_confirmation": {
-    "text": "Имате незапазени промени. Сигурни ли сте, че искате да напуснете?"
+    "text": "Имате незапазени промени. Сигурни ли сте, че искате да напуснете?",
+    "source_hash": "322380c1"
   },
   "web.domains.entitlement_required_owner": {
-    "text": "Тази функция изисква надстройка на плана."
+    "text": "Тази функция изисква надстройка на плана.",
+    "source_hash": "6de1f752"
   },
   "web.domains.entitlement_required_member": {
-    "text": "Тази функция не е налична във вашия текущ план. Свържете се със собственика на вашата организация."
+    "text": "Тази функция не е налична във вашия текущ план. Свържете се със собственика на вашата организация.",
+    "source_hash": "8f1688b2"
   },
   "web.domains.detail.manage": {
-    "text": "Управление"
+    "text": "Управление",
+    "source_hash": "5a234448"
   },
   "web.domains.detail.features": {
-    "text": "Функции"
+    "text": "Функции",
+    "source_hash": "5697d03d"
   },
   "web.domains.detail.homepage_title": {
-    "text": "Тайни от началната страница"
+    "text": "Тайни от началната страница",
+    "source_hash": "6360f7ec"
   },
   "web.domains.detail.homepage_description": {
-    "text": "Разрешете публичен достъп за създаване на тайни на началната страница на вашия домейн"
+    "text": "Разрешете публичен достъп за създаване на тайни на началната страница на вашия домейн",
+    "source_hash": "209b3ded"
   },
   "web.domains.detail.brand_description": {
-    "text": "Лого, цветове и персонализирана марка"
+    "text": "Лого, цветове и персонализирана марка",
+    "source_hash": "69f7a9e8"
   },
   "web.domains.detail.sso_description": {
-    "text": "Настройки на доставчика на единно влизане"
+    "text": "Настройки на доставчика на единно влизане",
+    "source_hash": "234e6150"
   },
   "web.domains.detail.email_description": {
-    "text": "Конфигурация на персонализиран подател на имейли"
+    "text": "Конфигурация на персонализиран подател на имейли",
+    "source_hash": "7fcde01b"
   },
   "web.domains.detail.incoming_description": {
-    "text": "Настройки на получателя на входящи тайни"
+    "text": "Настройки на получателя на входящи тайни",
+    "source_hash": "37c1fd6d"
   },
   "web.domains.detail.signup_description": {
-    "text": "Стратегия за валидиране на регистрацията за всеки домейн"
+    "text": "Стратегия за валидиране на регистрацията за всеки домейн",
+    "source_hash": "3c5a511f"
   },
   "web.domains.detail.signin_description": {
-    "text": "Конфигурация на метода за влизане за всеки домейн"
+    "text": "Конфигурация на метода за влизане за всеки домейн",
+    "source_hash": "73e01e36"
   },
   "web.domains.email.title": {
-    "text": "Изпращане на имейли"
+    "text": "Изпращане на имейли",
+    "source_hash": "6c428e5f"
   },
   "web.domains.email.config_title": {
-    "text": "Конфигурация на имейлите"
+    "text": "Конфигурация на имейлите",
+    "source_hash": "6f38aa51"
   },
   "web.domains.email.config_description": {
-    "text": "Конфигурирайте изпращането на имейли за този домейн"
+    "text": "Конфигурирайте изпращането на имейли за този домейн",
+    "source_hash": "1c275ff0"
   },
   "web.domains.email.provider_label": {
-    "text": "Доставчик на имейли"
+    "text": "Доставчик на имейли",
+    "source_hash": "a7ed3f4e"
   },
   "web.domains.email.provider_placeholder": {
-    "text": "Изберете доставчик на имейли"
+    "text": "Изберете доставчик на имейли",
+    "source_hash": "63c8080c"
   },
   "web.domains.email.from_name_label": {
-    "text": "Име на подателя"
+    "text": "Име на подателя",
+    "source_hash": "2f13b589"
   },
   "web.domains.email.from_name_placeholder": {
-    "text": "напр. Acme Security"
+    "text": "напр. Acme Security",
+    "source_hash": "03c0f138"
   },
   "web.domains.email.from_address_label": {
-    "text": "Адрес на подателя"
+    "text": "Адрес на подателя",
+    "source_hash": "60643eae"
   },
   "web.domains.email.from_address_placeholder": {
-    "text": "напр. secrets{'@'}example.com"
+    "text": "напр. secrets{'@'}example.com",
+    "source_hash": "a09b3928"
   },
   "web.domains.email.reply_to_label": {
-    "text": "Адрес за отговор"
+    "text": "Адрес за отговор",
+    "source_hash": "4538ea9c"
   },
   "web.domains.email.reply_to_placeholder": {
-    "text": "напр. support{'@'}example.com"
+    "text": "напр. support{'@'}example.com",
+    "source_hash": "fa3e5f0b"
   },
   "web.domains.email.save_changes": {
-    "text": "Запазване на промените"
+    "text": "Запазване на промените",
+    "source_hash": "35322b5b"
   },
   "web.domains.email.discard_changes": {
-    "text": "Отхвърляне на промените"
+    "text": "Отхвърляне на промените",
+    "source_hash": "e07e053c"
   },
   "web.domains.email.provider_ses": {
-    "text": "Amazon SES"
+    "text": "Amazon SES",
+    "source_hash": "15de4969"
   },
   "web.domains.email.provider_sendgrid": {
-    "text": "SendGrid"
+    "text": "SendGrid",
+    "source_hash": "b889d002"
   },
   "web.domains.email.provider_lettermint": {
-    "text": "Lettermint"
+    "text": "Lettermint",
+    "source_hash": "ec994dad"
   },
   "web.domains.email.provider_inherit": {
-    "text": "Използвай настройките по подразбиране на акаунта"
+    "text": "Използвай настройките по подразбиране на акаунта",
+    "source_hash": "f6fa84e7"
   },
   "web.domains.email.provider_ses_description": {
-    "text": "Изисква потвърждение на домейна чрез DKIM и SPF записи"
+    "text": "Изисква потвърждение на домейна чрез DKIM и SPF записи",
+    "source_hash": "4df5aa60"
   },
   "web.domains.email.provider_sendgrid_description": {
-    "text": "Изисква настройка на удостоверяване на домейна"
+    "text": "Изисква настройка на удостоверяване на домейна",
+    "source_hash": "71b53242"
   },
   "web.domains.email.provider_lettermint_description": {
-    "text": "Изисква потвърждение на домейна"
+    "text": "Изисква потвърждение на домейна",
+    "source_hash": "87073c93"
   },
   "web.domains.email.provider_inherit_description": {
-    "text": "Използва конфигурацията за изпращане на имейли по подразбиране на вашия акаунт"
+    "text": "Използва конфигурацията за изпращане на имейли по подразбиране на вашия акаунт",
+    "source_hash": "3f798263"
   },
   "web.domains.email.dns_records_title": {
-    "text": "DNS записи"
+    "text": "DNS записи",
+    "source_hash": "34d2c307"
   },
   "web.domains.email.dns_records_description": {
-    "text": "Добавете следните DNS записи, за да потвърдите вашия домейн за изпращане на имейли."
+    "text": "Добавете следните DNS записи, за да потвърдите вашия домейн за изпращане на имейли.",
+    "source_hash": "9fa85863"
   },
   "web.domains.email.dns_column_type": {
-    "text": "Тип"
+    "text": "Тип",
+    "source_hash": "baaddf70"
   },
   "web.domains.email.dns_column_name": {
-    "text": "Име"
+    "text": "Име",
+    "source_hash": "dcd1d522"
   },
   "web.domains.email.dns_column_value": {
-    "text": "Стойност"
+    "text": "Стойност",
+    "source_hash": "8e37953d"
   },
   "web.domains.email.dns_check_label": {
-    "text": "DNS"
+    "text": "DNS",
+    "source_hash": "020965a2"
   },
   "web.domains.email.provider_check_label": {
-    "text": "Доставчик"
+    "text": "Доставчик",
+    "source_hash": "472590ae"
   },
   "web.domains.email.dns_optional_label": {
-    "text": "Препоръчително"
+    "text": "Препоръчително",
+    "source_hash": "d70604e8"
   },
   "web.domains.email.dns_optional_hint": {
-    "text": "Този запис е препоръчителен, но не е задължителен за потвърждение. DMARC политика на вашия организационен домейн може вече да покрива този поддомейн."
+    "text": "Този запис е препоръчителен, но не е задължителен за потвърждение. DMARC политика на вашия организационен домейн може вече да покрива този поддомейн.",
+    "source_hash": "58e1a12b"
   },
   "web.domains.email.copy": {
-    "text": "Копиране"
+    "text": "Копиране",
+    "source_hash": "e21f935f"
   },
   "web.domains.email.copied": {
-    "text": "Копирано"
+    "text": "Копирано",
+    "source_hash": "8d525e5f"
   },
   "web.domains.email.status_verified": {
-    "text": "Потвърден"
+    "text": "Потвърден",
+    "source_hash": "4f783840"
   },
   "web.domains.email.status_pending": {
-    "text": "В очакване"
+    "text": "В очакване",
+    "source_hash": "331551b0"
   },
   "web.domains.email.status_failed": {
-    "text": "Неуспешен"
+    "text": "Неуспешен",
+    "source_hash": "031a8f0f"
   },
   "web.domains.email.revalidate": {
-    "text": "Повторно валидиране"
+    "text": "Повторно валидиране",
+    "source_hash": "4918da12"
   },
   "web.domains.email.validating": {
-    "text": "Валидиране..."
+    "text": "Валидиране...",
+    "source_hash": "b28b48d5"
   },
   "web.domains.email.domain_verified": {
-    "text": "Домейнът е потвърден"
+    "text": "Домейнът е потвърден",
+    "source_hash": "08e0df67"
   },
   "web.domains.email.validation_failed": {
-    "text": "Валидирането беше неуспешно"
+    "text": "Валидирането беше неуспешно",
+    "source_hash": "23a86f5a"
   },
   "web.domains.email.last_validated": {
-    "text": "Последно валидиране"
+    "text": "Последно валидиране",
+    "source_hash": "887dd486"
   },
   "web.domains.email.upgrade_to_configure": {
-    "text": "Надстройте плана си, за да конфигурирате изпращането на имейли за този домейн."
+    "text": "Надстройте плана си, за да конфигурирате изпращането на имейли за този домейн.",
+    "source_hash": "16a876f7"
   },
   "web.domains.email.configure_email": {
-    "text": "Конфигуриране на имейл"
+    "text": "Конфигуриране на имейл",
+    "source_hash": "a48c0d40"
   },
   "web.domains.email.access_denied": {
-    "text": "Достъпът е отказан"
+    "text": "Достъпът е отказан",
+    "source_hash": "d134ca02"
   },
   "web.domains.email.access_denied_description": {
-    "text": "Нямате разрешение да управлявате настройките за имейли за този домейн. Свържете се с администратора на вашата организация."
+    "text": "Нямате разрешение да управлявате настройките за имейли за този домейн. Свържете се с администратора на вашата организация.",
+    "source_hash": "32049ff0"
   },
   "web.domains.email.update_success": {
-    "text": "Конфигурацията на имейлите е запазена успешно"
+    "text": "Конфигурацията на имейлите е запазена успешно",
+    "source_hash": "dd3607fc"
   },
   "web.domains.email.delete_success": {
-    "text": "Конфигурацията на имейлите е премахната успешно"
+    "text": "Конфигурацията на имейлите е премахната успешно",
+    "source_hash": "2ba99a91"
   },
   "web.domains.email.default_sender_notice": {
-    "text": "Имейлите за този домейн в момента се изпращат от глобалния подател. Завършете конфигурацията на имейлите, за да използвате собствена идентичност на подателя."
+    "text": "Имейлите за този домейн в момента се изпращат от глобалния подател. Завършете конфигурацията на имейлите, за да използвате собствена идентичност на подателя.",
+    "source_hash": "ffcf39fb"
   },
   "web.domains.email.disabled_notice": {
-    "text": "Персонализираното изпращане на имейли в момента е деактивирано. Имейлите ще се изпращат от глобалния подател. Активирайте функцията по-долу, за да използвате вашата персонализирана идентичност на подателя."
+    "text": "Персонализираното изпращане на имейли в момента е деактивирано. Имейлите ще се изпращат от глобалния подател. Активирайте функцията по-долу, за да използвате вашата персонализирана идентичност на подателя.",
+    "source_hash": "60a26f5b"
   },
   "web.domains.email.test_email_title": {
-    "text": "Тест на доставянето на имейли"
+    "text": "Тест на доставянето на имейли",
+    "source_hash": "c1b3dee2"
   },
   "web.domains.email.test_email_hint": {
-    "text": "Изпратете тестов имейл до себе си, използвайки запазената конфигурация. Работи дори когато функцията все още не е активирана."
+    "text": "Изпратете тестов имейл до себе си, използвайки запазената конфигурация. Работи дори когато функцията все още не е активирана.",
+    "source_hash": "33e876ad"
   },
   "web.domains.email.send_test": {
-    "text": "Изпращане на тест"
+    "text": "Изпращане на тест",
+    "source_hash": "22d7b11d"
   },
   "web.domains.email.test_email_sent": {
-    "text": "Тестовият имейл е изпратен успешно"
+    "text": "Тестовият имейл е изпратен успешно",
+    "source_hash": "561617fd"
   },
   "web.domains.email.test_email_failed": {
-    "text": "Изпращането на тестовия имейл беше неуспешно"
+    "text": "Изпращането на тестовия имейл беше неуспешно",
+    "source_hash": "95ce63bc"
   },
   "web.domains.email.test_email_sent_to": {
-    "text": "Изпратено до {email}"
+    "text": "Изпратено до {email}",
+    "source_hash": "8ceb9588"
   },
   "web.domains.email.delivered_via": {
-    "text": "Доставено чрез {provider}"
+    "text": "Доставено чрез {provider}",
+    "source_hash": "f741959b"
   },
   "web.domains.email.badge_not_configured": {
-    "text": "Не е конфигуриран"
+    "text": "Не е конфигуриран",
+    "source_hash": "dd1841d2"
   },
   "web.domains.email.badge_default_sender": {
-    "text": "Използва подател по подразбиране"
+    "text": "Използва подател по подразбиране",
+    "source_hash": "e1afb18f"
   },
   "web.domains.email.badge_verified": {
-    "text": "Потвърден"
+    "text": "Потвърден",
+    "source_hash": "4f783840"
   },
   "web.domains.email.badge_pending": {
-    "text": "Изчаква потвърждение"
+    "text": "Изчаква потвърждение",
+    "source_hash": "417a6b7e"
   },
   "web.domains.email.badge_disabled": {
-    "text": "Деактивиран"
+    "text": "Деактивиран",
+    "source_hash": "75081b59"
   },
   "web.domains.email.tooltip_not_configured": {
-    "text": "Няма конфигуриран подател на имейли — имейлите използват подателя по подразбиране на платформата"
+    "text": "Няма конфигуриран подател на имейли — имейлите използват подателя по подразбиране на платформата",
+    "source_hash": "360083bb"
   },
   "web.domains.email.tooltip_pending": {
-    "text": "Конфигурацията на подателя на имейли изчаква потвърждение — имейлите използват подателя по подразбиране на платформата"
+    "text": "Конфигурацията на подателя на имейли изчаква потвърждение — имейлите използват подателя по подразбиране на платформата",
+    "source_hash": "c8c2449c"
   },
   "web.domains.email.tooltip_disabled": {
-    "text": "Подателят на имейли е деактивиран — имейлите използват подателя по подразбиране на платформата"
+    "text": "Подателят на имейли е деактивиран — имейлите използват подателя по подразбиране на платформата",
+    "source_hash": "64e84955"
   },
   "web.domains.email.tooltip_verified": {
-    "text": "Подателят на имейли е потвърден — имейлите се изпращат от този домейн"
+    "text": "Подателят на имейли е потвърден — имейлите се изпращат от този домейн",
+    "source_hash": "0e9a005c"
   },
   "web.domains.incoming.title": {
-    "text": "Входящи тайни"
+    "text": "Входящи тайни",
+    "source_hash": "883dbca9"
   },
   "web.domains.incoming.config_title": {
-    "text": "Конфигурация на входящите тайни"
+    "text": "Конфигурация на входящите тайни",
+    "source_hash": "b3fef15b"
   },
   "web.domains.incoming.config_description": {
-    "text": "Разрешете на външни потребители да изпращат тайни директно до определени получатели на този домейн"
+    "text": "Разрешете на външни потребители да изпращат тайни директно до определени получатели на този домейн",
+    "source_hash": "452ab4fe"
   },
   "web.domains.incoming.feature_disabled": {
-    "text": "Входящите тайни не са налични"
+    "text": "Входящите тайни не са налични",
+    "source_hash": "0f96c5ec"
   },
   "web.domains.incoming.feature_disabled_description": {
-    "text": "Входящите тайни не са активирани на този екземпляр. Свържете се с вашия администратор."
+    "text": "Входящите тайни не са активирани на този екземпляр. Свържете се с вашия администратор.",
+    "source_hash": "dce981e0"
   },
   "web.domains.incoming.access_denied": {
-    "text": "Достъпът е отказан"
+    "text": "Достъпът е отказан",
+    "source_hash": "d134ca02"
   },
   "web.domains.incoming.access_denied_description": {
-    "text": "Нямате разрешение да управлявате настройките за входящи тайни за този домейн. Свържете се с администратора на вашата организация."
+    "text": "Нямате разрешение да управлявате настройките за входящи тайни за този домейн. Свържете се с администратора на вашата организация.",
+    "source_hash": "3e9d8adc"
   },
   "web.domains.incoming.upgrade_to_configure": {
-    "text": "Надстройте плана си, за да конфигурирате входящите тайни за този домейн."
+    "text": "Надстройте плана си, за да конфигурирате входящите тайни за този домейн.",
+    "source_hash": "9dfdfeb5"
   },
   "web.domains.incoming.configure_incoming": {
-    "text": "Конфигуриране на входящи тайни"
+    "text": "Конфигуриране на входящи тайни",
+    "source_hash": "eab52939"
   },
   "web.domains.incoming.not_configured_notice": {
-    "text": "Входящите тайни не са конфигурирани за този домейн. Добавете получатели, за да разрешите на външни потребители да изпращат тайни до вашия екип."
+    "text": "Входящите тайни не са конфигурирани за този домейн. Добавете получатели, за да разрешите на външни потребители да изпращат тайни до вашия екип.",
+    "source_hash": "dbc443a6"
   },
   "web.domains.incoming.disabled_notice": {
-    "text": "Входящите тайни в момента са деактивирани. Външни потребители не могат да изпращат тайни до получатели на този домейн. Активирайте функцията по-долу, за да разрешите входящи тайни."
+    "text": "Входящите тайни в момента са деактивирани. Външни потребители не могат да изпращат тайни до получатели на този домейн. Активирайте функцията по-долу, за да разрешите входящи тайни.",
+    "source_hash": "d1f8dafb"
   },
   "web.domains.incoming.recipients_title": {
-    "text": "Получатели"
+    "text": "Получатели",
+    "source_hash": "1e8568a8"
   },
   "web.domains.incoming.recipients_description": {
-    "text": "Определете кой може да получава входящи тайни на този домейн. Получателите ще получават имейл известия, когато им бъде изпратена тайна."
+    "text": "Определете кой може да получава входящи тайни на този домейн. Получателите ще получават имейл известия, когато им бъде изпратена тайна.",
+    "source_hash": "026f9d9d"
   },
   "web.domains.incoming.add_recipient": {
-    "text": "Добавяне на получател"
+    "text": "Добавяне на получател",
+    "source_hash": "25f93c13"
   },
   "web.domains.incoming.remove_recipient": {
-    "text": "Премахване"
+    "text": "Премахване",
+    "source_hash": "c3812fc4"
   },
   "web.domains.incoming.email_label": {
-    "text": "Имейл адрес"
+    "text": "Имейл адрес",
+    "source_hash": "09bf25ef"
   },
   "web.domains.incoming.email_placeholder": {
-    "text": "recipient{'@'}example.com"
+    "text": "recipient{'@'}example.com",
+    "source_hash": "55d1508e"
   },
   "web.domains.incoming.name_label": {
-    "text": "Показвано име"
+    "text": "Показвано име",
+    "source_hash": "18d67c99"
   },
   "web.domains.incoming.name_placeholder": {
-    "text": "напр. Security Team"
+    "text": "напр. Security Team",
+    "source_hash": "0c52400c"
   },
   "web.domains.incoming.empty_state": {
-    "text": "Няма конфигурирани получатели"
+    "text": "Няма конфигурирани получатели",
+    "source_hash": "bc8c2058"
   },
   "web.domains.incoming.empty_state_description": {
-    "text": "Добавете получатели, за да разрешите на външни потребители да изпращат тайни до вашия екип."
+    "text": "Добавете получатели, за да разрешите на външни потребители да изпращат тайни до вашия екип.",
+    "source_hash": "2a647a40"
   },
   "web.domains.incoming.validation_invalid_email": {
-    "text": "Невалиден имейл адрес"
+    "text": "Невалиден имейл адрес",
+    "source_hash": "4eaf1d80"
   },
   "web.domains.incoming.validation_duplicate_email": {
-    "text": "Този имейл адрес вече е добавен"
+    "text": "Този имейл адрес вече е добавен",
+    "source_hash": "f89de141"
   },
   "web.domains.incoming.validation_max_recipients": {
-    "text": "Разрешени са максимум {max} получатели"
+    "text": "Разрешени са максимум {max} получатели",
+    "source_hash": "e2585847"
   },
   "web.domains.incoming.validation_name_required": {
-    "text": "Показваното име е задължително"
+    "text": "Показваното име е задължително",
+    "source_hash": "c6892c89"
   },
   "web.domains.incoming.validation_email_required": {
-    "text": "Имейл адресът е задължителен"
+    "text": "Имейл адресът е задължителен",
+    "source_hash": "41381ba2"
   },
   "web.domains.incoming.save_changes": {
-    "text": "Запазване на промените"
+    "text": "Запазване на промените",
+    "source_hash": "35322b5b"
   },
   "web.domains.incoming.discard_changes": {
-    "text": "Отхвърляне на промените"
+    "text": "Отхвърляне на промените",
+    "source_hash": "e07e053c"
   },
   "web.domains.incoming.update_success": {
-    "text": "Конфигурацията на входящите тайни е запазена успешно"
+    "text": "Конфигурацията на входящите тайни е запазена успешно",
+    "source_hash": "9317e02d"
   },
   "web.domains.incoming.delete_success": {
-    "text": "Конфигурацията на входящите тайни е премахната успешно"
+    "text": "Конфигурацията на входящите тайни е премахната успешно",
+    "source_hash": "4c4a33ae"
   },
   "web.domains.incoming.recipient_count": {
-    "text": "{count} получател | {count} получатели"
+    "text": "{count} получател | {count} получатели",
+    "source_hash": "0e4f5985"
   },
   "web.domains.incoming.badge_not_configured": {
-    "text": "Не е конфигуриран"
+    "text": "Не е конфигуриран",
+    "source_hash": "dd1841d2"
   },
   "web.domains.incoming.badge_configured": {
-    "text": "Конфигуриран"
+    "text": "Конфигуриран",
+    "source_hash": "84aebc69"
   },
   "web.domains.incoming.badge_disabled": {
-    "text": "Деактивиран"
+    "text": "Деактивиран",
+    "source_hash": "75081b59"
   },
   "web.domains.incoming.tooltip_not_configured": {
-    "text": "Входящите тайни не са конфигурирани - външни потребители не могат да изпращат тайни до този домейн"
+    "text": "Входящите тайни не са конфигурирани - външни потребители не могат да изпращат тайни до този домейн",
+    "source_hash": "79786d5c"
   },
   "web.domains.incoming.tooltip_configured": {
-    "text": "Входящите тайни са активирани с {count} получател(и)"
+    "text": "Входящите тайни са активирани с {count} получател(и)",
+    "source_hash": "c205cc54"
   },
   "web.domains.incoming.tooltip_disabled": {
-    "text": "Функцията за входящи тайни е деактивирана за този домейн"
+    "text": "Функцията за входящи тайни е деактивирана за този домейн",
+    "source_hash": "0413f96b"
   },
   "web.domains.incoming.enabled_label": {
-    "text": "Активиране на входящи тайни"
+    "text": "Активиране на входящи тайни",
+    "source_hash": "c0b25980"
   },
   "web.domains.incoming.enabled_hint": {
-    "text": "Разрешете на външни потребители да изпращат тайни до получатели на този домейн"
+    "text": "Разрешете на външни потребители да изпращат тайни до получатели на този домейн",
+    "source_hash": "24aadd31"
   },
   "web.domains.incoming.public_url_label": {
-    "text": "Публичен URL"
+    "text": "Публичен URL",
+    "source_hash": "f7b60b04"
   },
   "web.domains.incoming.public_url_description": {
-    "text": "Споделете този URL с външни потребители, за да им позволите да изпращат тайни"
+    "text": "Споделете този URL с външни потребители, за да им позволите да изпращат тайни",
+    "source_hash": "df47a894"
   },
   "web.domains.incoming.copy_url": {
-    "text": "Копиране на URL"
+    "text": "Копиране на URL",
+    "source_hash": "b26d1037"
   },
   "web.domains.incoming.url_copied": {
-    "text": "URL е копиран в клипборда"
+    "text": "URL е копиран в клипборда",
+    "source_hash": "2f396c3e"
   },
   "web.domains.incoming.remove_all_confirmation": {
-    "text": "Сигурни ли сте, че искате да премахнете всички получатели? Външни потребители вече няма да могат да изпращат тайни до този домейн."
+    "text": "Сигурни ли сте, че искате да премахнете всички получатели? Външни потребители вече няма да могат да изпращат тайни до този домейн.",
+    "source_hash": "06f9e551"
   },
   "web.domains.incoming.max_recipients_reached": {
-    "text": "Достигнат е максималният брой получатели"
+    "text": "Достигнат е максималният брой получатели",
+    "source_hash": "ba659e54"
   },
   "web.domains.incoming.duplicate_recipient": {
-    "text": "Този имейл адрес вече е добавен"
+    "text": "Този имейл адрес вече е добавен",
+    "source_hash": "ca598f6d"
   },
   "web.domains.incoming.save_will_replace_confirmation": {
-    "text": "Запазването ще замени всички съществуващи получатели с вашите чакащи промени. Сигурни ли сте?"
+    "text": "Запазването ще замени всички съществуващи получатели с вашите чакащи промени. Сигурни ли сте?",
+    "source_hash": "f497862e"
   },
   "web.domains.incoming.delete_all_recipients": {
-    "text": "Изтриване на всички получатели"
+    "text": "Изтриване на всички получатели",
+    "source_hash": "207d0dbe"
   },
   "web.domains.signin.title": {
-    "text": "Конфигурация на влизането"
+    "text": "Конфигурация на влизането",
+    "source_hash": "2da38c03"
   },
   "web.domains.signin.configure_signin": {
-    "text": "Конфигуриране на влизането"
+    "text": "Конфигуриране на влизането",
+    "source_hash": "f72b58b5"
   },
   "web.domains.signin.config_description": {
-    "text": "Конфигурирайте методите за удостоверяване при влизане за този домейн"
+    "text": "Конфигурирайте методите за удостоверяване при влизане за този домейн",
+    "source_hash": "8efce428"
   },
   "web.domains.signin.access_denied": {
-    "text": "Достъпът е отказан"
+    "text": "Достъпът е отказан",
+    "source_hash": "d134ca02"
   },
   "web.domains.signin.upgrade_to_configure": {
-    "text": "Надстройте плана си, за да конфигурирате методите за влизане за този домейн."
+    "text": "Надстройте плана си, за да конфигурирате методите за влизане за този домейн.",
+    "source_hash": "e242bb74"
   },
   "web.domains.signin.not_configured_notice": {
-    "text": "Конфигурацията на влизането все още не е зададена за този домейн. Конфигурирайте замествания, за да контролирате кои методи за удостоверяване са налични на страницата за влизане на този домейн."
+    "text": "Конфигурацията на влизането все още не е зададена за този домейн. Конфигурирайте замествания, за да контролирате кои методи за удостоверяване са налични на страницата за влизане на този домейн.",
+    "source_hash": "cb788a2d"
   },
   "web.domains.signin.signin_enabled_label": {
-    "text": "Влизането е активирано"
+    "text": "Влизането е активирано",
+    "source_hash": "cabe4898"
   },
   "web.domains.signin.header_toggle_label": {
-    "text": "Влизане"
+    "text": "Влизане",
+    "source_hash": "5bbbe531"
   },
   "web.domains.signin.signin_enabled_hint": {
-    "text": "Дали потребителите могат да влизат на този домейн"
+    "text": "Дали потребителите могат да влизат на този домейн",
+    "source_hash": "57a92aee"
   },
   "web.domains.signin.restrict_to_label": {
-    "text": "Ограничаване на метода за влизане"
+    "text": "Ограничаване на метода за влизане",
+    "source_hash": "edbec83f"
   },
   "web.domains.signin.restrict_to_hint": {
-    "text": "Ограничете този домейн до един метод за удостоверяване. Когато е зададено, на страницата за влизане се показва само избраният метод."
+    "text": "Ограничете този домейн до един метод за удостоверяване. Когато е зададено, на страницата за влизане се показва само избраният метод.",
+    "source_hash": "682bc4c5"
   },
   "web.domains.signin.all_methods": {
-    "text": "Всички методи"
+    "text": "Всички методи",
+    "source_hash": "e601c19e"
   },
   "web.domains.signin.all_methods_description": {
-    "text": "Показвай всички активирани методи за удостоверяване на страницата за влизане"
+    "text": "Показвай всички активирани методи за удостоверяване на страницата за влизане",
+    "source_hash": "62723340"
   },
   "web.domains.signin.method_password": {
-    "text": "Парола"
+    "text": "Парола",
+    "source_hash": "e7cf3ef4"
   },
   "web.domains.signin.method_email_auth": {
-    "text": "Удостоверяване чрез имейл"
+    "text": "Удостоверяване чрез имейл",
+    "source_hash": "68c38f94"
   },
   "web.domains.signin.method_webauthn": {
-    "text": "WebAuthn / Passkeys"
+    "text": "WebAuthn / Passkeys",
+    "source_hash": "c40224ce"
   },
   "web.domains.signin.method_sso": {
-    "text": "Единно влизане"
+    "text": "Единно влизане",
+    "source_hash": "cf7cd744"
   },
   "web.domains.signin.method_overrides_label": {
-    "text": "Замествания на методите"
+    "text": "Замествания на методите",
+    "source_hash": "5496cba6"
   },
   "web.domains.signin.method_overrides_hint": {
-    "text": "Активирайте или деактивирайте отделни методи за удостоверяване за този домейн"
+    "text": "Активирайте или деактивирайте отделни методи за удостоверяване за този домейн",
+    "source_hash": "394e3878"
   },
   "web.domains.signin.mode_question": {
-    "text": "Как могат да влизат потребителите?"
+    "text": "Как могат да влизат потребителите?",
+    "source_hash": "3694eb23"
   },
   "web.domains.signin.mode_any": {
-    "text": "Всеки наличен метод"
+    "text": "Всеки наличен метод",
+    "source_hash": "23665425"
   },
   "web.domains.signin.mode_any_hint": {
-    "text": "Показвай всеки метод, наличен на този домейн. Стеснете отделните методи по-долу."
+    "text": "Показвай всеки метод, наличен на този домейн. Стеснете отделните методи по-долу.",
+    "source_hash": "2f3dcba6"
   },
   "web.domains.signin.mode_one": {
-    "text": "Един конкретен метод"
+    "text": "Един конкретен метод",
+    "source_hash": "601f5768"
   },
   "web.domains.signin.mode_one_hint": {
-    "text": "Ограничете страницата за влизане до един метод. Изброени са само методите, налични на този домейн."
+    "text": "Ограничете страницата за влизане до един метод. Изброени са само методите, налични на този домейн.",
+    "source_hash": "58bde6d5"
   },
   "web.domains.signin.mode_disabled": {
-    "text": "Влизането е деактивирано"
+    "text": "Влизането е деактивирано",
+    "source_hash": "bb807607"
   },
   "web.domains.signin.mode_disabled_hint": {
-    "text": "Потребителите не могат да влизат на този домейн."
+    "text": "Потребителите не могат да влизат на този домейн.",
+    "source_hash": "8938f098"
   },
   "web.domains.signin.mode_disabled_notice": {
-    "text": "Посетителите на страницата за влизане на този домейн виждат известие, че влизането не е налично, с връзка обратно към началната страница. Предишните ви настройки на методите се запазват и възстановяват, когато активирате влизането отново."
+    "text": "Посетителите на страницата за влизане на този домейн виждат известие, че влизането не е налично, с връзка обратно към началната страница. Предишните ви настройки на методите се запазват и възстановяват, когато активирате влизането отново.",
+    "source_hash": "1a04de18"
   },
   "web.domains.signin.methods_list_label": {
-    "text": "Методи, показвани на страницата за влизане"
+    "text": "Методи, показвани на страницата за влизане",
+    "source_hash": "66fd133b"
   },
   "web.domains.signin.restrict_picker_hint": {
-    "text": "Изброени са само методите, налични на този домейн."
+    "text": "Изброени са само методите, налични на този домейн.",
+    "source_hash": "c7a56f44"
   },
   "web.domains.signin.availability_always": {
-    "text": "Винаги наличен"
+    "text": "Винаги наличен",
+    "source_hash": "0fda3772"
   },
   "web.domains.signin.availability_global_on": {
-    "text": "Следва глобалната политика · Вкл."
+    "text": "Следва глобалната политика · Вкл.",
+    "source_hash": "3844e6f7"
   },
   "web.domains.signin.availability_global_off": {
-    "text": "Не е наличен"
+    "text": "Не е наличен",
+    "source_hash": "67a926f7"
   },
   "web.domains.signin.availability_unavailable": {
-    "text": "Не е наличен в целия сайт"
+    "text": "Не е наличен в целия сайт",
+    "source_hash": "da29c1be"
   },
   "web.domains.signin.allow_on_domain": {
-    "text": "Разреши на този домейн"
+    "text": "Разреши на този домейн",
+    "source_hash": "760b578e"
   },
   "web.domains.signin.method_password_blurb": {
-    "text": "Само парола"
+    "text": "Само парола",
+    "source_hash": "ed1a02fd"
   },
   "web.domains.signin.method_email_auth_blurb": {
-    "text": "Влизане без парола чрез магическа връзка"
+    "text": "Влизане без парола чрез магическа връзка",
+    "source_hash": "7f776a85"
   },
   "web.domains.signin.method_webauthn_blurb": {
-    "text": "Биометрия и ключове за сигурност"
+    "text": "Биометрия и ключове за сигурност",
+    "source_hash": "7d6a7bd5"
   },
   "web.domains.signin.method_sso_blurb": {
-    "text": "Външен доставчик на идентичност"
+    "text": "Външен доставчик на идентичност",
+    "source_hash": "a3442088"
   },
   "web.domains.signin.email_auth_label": {
-    "text": "Удостоверяване чрез имейл"
+    "text": "Удостоверяване чрез имейл",
+    "source_hash": "68c38f94"
   },
   "web.domains.signin.email_auth_hint": {
-    "text": "Разреши удостоверяване чрез имейл без парола на този домейн"
+    "text": "Разреши удостоверяване чрез имейл без парола на този домейн",
+    "source_hash": "6ad82127"
   },
   "web.domains.signin.sso_enabled_label": {
-    "text": "Единно влизане"
+    "text": "Единно влизане",
+    "source_hash": "cf7cd744"
   },
   "web.domains.signin.sso_enabled_hint": {
-    "text": "Разреши удостоверяване чрез SSO на този домейн"
+    "text": "Разреши удостоверяване чрез SSO на този домейн",
+    "source_hash": "22d78ad5"
   },
   "web.domains.signin.enabled_label": {
-    "text": "Активиране на конфигурацията на влизането"
+    "text": "Активиране на конфигурацията на влизането",
+    "source_hash": "dbd8e11c"
   },
   "web.domains.signin.enabled_hint": {
-    "text": "Когато е активирана, този домейн използва настройките за влизане, конфигурирани по-горе"
+    "text": "Когато е активирана, този домейн използва настройките за влизане, конфигурирани по-горе",
+    "source_hash": "6259f8a2"
   },
   "web.domains.signin.save_config": {
-    "text": "Запазване на конфигурацията"
+    "text": "Запазване на конфигурацията",
+    "source_hash": "b2b158f2"
   },
   "web.domains.signin.update_success": {
-    "text": "Конфигурацията на влизането е актуализирана успешно"
+    "text": "Конфигурацията на влизането е актуализирана успешно",
+    "source_hash": "10ea50d8"
   },
   "web.domains.signin.reset_to_defaults": {
-    "text": "Връщане към настройките по подразбиране"
+    "text": "Връщане към настройките по подразбиране",
+    "source_hash": "e240e635"
   },
   "web.domains.signin.reset_confirm": {
-    "text": "Да се върне ли влизането към глобалните настройки по подразбиране?"
+    "text": "Да се върне ли влизането към глобалните настройки по подразбиране?",
+    "source_hash": "2c6bbc32"
   },
   "web.domains.signin.reset_keeps_sso": {
-    "text": "Вашите SSO идентификационни данни се запазват. Премахнете ги отделно на екрана за конфигурация на SSO."
+    "text": "Вашите SSO идентификационни данни се запазват. Премахнете ги отделно на екрана за конфигурация на SSO.",
+    "source_hash": "edc0c756"
   },
   "web.domains.signin.reset_action": {
-    "text": "Да, върни"
+    "text": "Да, върни",
+    "source_hash": "4bb21d8b"
   },
   "web.domains.signin.reset_success": {
-    "text": "Настройките за влизане са върнати към глобалните настройки по подразбиране"
+    "text": "Настройките за влизане са върнати към глобалните настройки по подразбиране",
+    "source_hash": "0c364d89"
   },
   "web.domains.signup.title": {
-    "text": "Валидиране на регистрацията"
+    "text": "Валидиране на регистрацията",
+    "source_hash": "2c34ac0a"
   },
   "web.domains.signup.config_description": {
-    "text": "Конфигурирайте валидирането на регистрацията за този домейн"
+    "text": "Конфигурирайте валидирането на регистрацията за този домейн",
+    "source_hash": "e9c81e8a"
   },
   "web.domains.signup.access_denied": {
-    "text": "Достъпът е отказан"
+    "text": "Достъпът е отказан",
+    "source_hash": "d134ca02"
   },
   "web.domains.signup.upgrade_to_configure": {
-    "text": "Надстройте плана си, за да конфигурирате валидирането на регистрацията за всеки домейн."
+    "text": "Надстройте плана си, за да конфигурирате валидирането на регистрацията за всеки домейн.",
+    "source_hash": "d87d6614"
   },
   "web.domains.signup.configure_signup": {
-    "text": "Конфигуриране на регистрацията"
+    "text": "Конфигуриране на регистрацията",
+    "source_hash": "e2697662"
   },
   "web.domains.signup.not_configured_notice": {
-    "text": "Валидирането на регистрацията все още не е конфигурирано за този домейн. Конфигурирайте стратегия, за да контролирате кой може да се регистрира чрез този домейн."
+    "text": "Валидирането на регистрацията все още не е конфигурирано за този домейн. Конфигурирайте стратегия, за да контролирате кой може да се регистрира чрез този домейн.",
+    "source_hash": "fc6c6eb8"
   },
   "web.domains.signup.site_signups_disabled_warning": {
-    "text": "Регистрациите в момента са деактивирани на ниво сайт. Тази политика за всеки домейн е конфигурирана, но няма да ограничава трафик, докато регистрациите на сайта не бъдат активирани."
+    "text": "Регистрациите в момента са деактивирани на ниво сайт. Тази политика за всеки домейн е конфигурирана, но няма да ограничава трафик, докато регистрациите на сайта не бъдат активирани.",
+    "source_hash": "c0e59f86"
   },
   "web.domains.signup.strategy_label": {
-    "text": "Стратегия за валидиране"
+    "text": "Стратегия за валидиране",
+    "source_hash": "a2e95531"
   },
   "web.domains.signup.strategy_description": {
-    "text": "Изберете как се валидират имейл адресите, когато потребителите се регистрират на този домейн."
+    "text": "Изберете как се валидират имейл адресите, когато потребителите се регистрират на този домейн.",
+    "source_hash": "8e232b03"
   },
   "web.domains.signup.network_validation_warning": {
-    "text": "Тази стратегия извършва мрежови заявки по време на регистрацията, което може да добави забавяне или да бъде блокирано от някои доставчици."
+    "text": "Тази стратегия извършва мрежови заявки по време на регистрацията, което може да добави забавяне или да бъде блокирано от някои доставчици.",
+    "source_hash": "53d4c266"
   },
   "web.domains.signup.allowed_domains_label": {
-    "text": "Разрешени домейни за регистрация"
+    "text": "Разрешени домейни за регистрация",
+    "source_hash": "9b5bb5b1"
   },
   "web.domains.signup.allowed_domains_hint": {
-    "text": "Само на тези имейл домейни ще бъде разрешено да се регистрират. Добавяйте по един домейн на запис."
+    "text": "Само на тези имейл домейни ще бъде разрешено да се регистрират. Добавяйте по един домейн на запис.",
+    "source_hash": "c082414d"
   },
   "web.domains.signup.domain_placeholder": {
-    "text": "example.com"
+    "text": "example.com",
+    "source_hash": "a379a6f6"
   },
   "web.domains.signup.invalid_domain": {
-    "text": "Моля, въведете валиден домейн (напр. example.com)"
+    "text": "Моля, въведете валиден домейн (напр. example.com)",
+    "source_hash": "16807983"
   },
   "web.domains.signup.domain_exists": {
-    "text": "Този домейн вече е в списъка"
+    "text": "Този домейн вече е в списъка",
+    "source_hash": "3fccb721"
   },
   "web.domains.signup.remove_domain": {
-    "text": "Премахване на {domain}"
+    "text": "Премахване на {domain}",
+    "source_hash": "ae708a1d"
   },
   "web.domains.signup.enabled_label": {
-    "text": "Активиране на валидирането за всеки домейн"
+    "text": "Активиране на валидирането за всеки домейн",
+    "source_hash": "db103925"
   },
   "web.domains.signup.enabled_hint": {
-    "text": "Когато е активирано, регистрациите на този домейн използват стратегията по-горе вместо глобалната политика."
+    "text": "Когато е активирано, регистрациите на този домейн използват стратегията по-горе вместо глобалната политика.",
+    "source_hash": "99de2008"
   },
   "web.domains.signup.delete_config": {
-    "text": "Изтриване на конфигурацията"
+    "text": "Изтриване на конфигурацията",
+    "source_hash": "a9a30c7f"
   },
   "web.domains.signup.delete_confirm": {
-    "text": "Да се изтрие ли конфигурацията за валидиране на регистрацията? Регистрациите ще се върнат към глобалната политика."
+    "text": "Да се изтрие ли конфигурацията за валидиране на регистрацията? Регистрациите ще се върнат към глобалната политика.",
+    "source_hash": "a8c9086e"
   },
   "web.domains.signup.save_config": {
-    "text": "Запазване на конфигурацията"
+    "text": "Запазване на конфигурацията",
+    "source_hash": "b2b158f2"
   },
   "web.domains.signup.update_success": {
-    "text": "Валидирането на регистрацията е актуализирано успешно"
+    "text": "Валидирането на регистрацията е актуализирано успешно",
+    "source_hash": "57a529ac"
   },
   "web.domains.signup.delete_success": {
-    "text": "Конфигурацията за валидиране на регистрацията е премахната успешно"
+    "text": "Конфигурацията за валидиране на регистрацията е премахната успешно",
+    "source_hash": "eb6add4d"
   },
   "web.domains.signup.domain_overrides_label": {
-    "text": "Замествания за домейна"
+    "text": "Замествания за домейна",
+    "source_hash": "d25da3cd"
   },
   "web.domains.signup.domain_overrides_hint": {
-    "text": "Заместете глобалните настройки за регистрация за този домейн"
+    "text": "Заместете глобалните настройки за регистрация за този домейн",
+    "source_hash": "53101057"
   },
   "web.domains.signup.signup_enabled_label": {
-    "text": "Регистрацията е активирана"
+    "text": "Регистрацията е активирана",
+    "source_hash": "296ac66d"
   },
   "web.domains.signup.signup_enabled_hint": {
-    "text": "Заместете дали регистрацията е активирана за този домейн"
+    "text": "Заместете дали регистрацията е активирана за този домейн",
+    "source_hash": "2ee146b6"
   },
   "web.domains.signup.autoverify_label": {
-    "text": "Автоматично потвърждаване на акаунти"
+    "text": "Автоматично потвърждаване на акаунти",
+    "source_hash": "4b103cd5"
   },
   "web.domains.signup.autoverify_hint": {
-    "text": "Заместете дали новите акаунти се потвърждават автоматично на този домейн"
+    "text": "Заместете дали новите акаунти се потвърждават автоматично на този домейн",
+    "source_hash": "63866ecd"
   },
   "web.domains.sso.title": {
-    "text": "Единно влизане"
+    "text": "Единно влизане",
+    "source_hash": "cf7cd744"
   },
   "web.domains.sso.config_title": {
-    "text": "Конфигурация на SSO"
+    "text": "Конфигурация на SSO",
+    "source_hash": "afd5751e"
   },
   "web.domains.sso.config_description": {
-    "text": "Конфигурирайте удостоверяване чрез единно влизане за този домейн"
+    "text": "Конфигурирайте удостоверяване чрез единно влизане за този домейн",
+    "source_hash": "f37a0b47"
   },
   "web.domains.sso.access_denied": {
-    "text": "Достъпът е отказан"
+    "text": "Достъпът е отказан",
+    "source_hash": "d134ca02"
   },
   "web.domains.sso.access_denied_description": {
-    "text": "Нямате разрешение да управлявате настройките за SSO за този домейн. Свържете се с администратора на вашата организация."
+    "text": "Нямате разрешение да управлявате настройките за SSO за този домейн. Свържете се с администратора на вашата организация.",
+    "source_hash": "db7fcfeb"
   },
   "web.domains.sso.upgrade_to_configure": {
-    "text": "Надстройте плана си, за да конфигурирате единно влизане за този домейн."
+    "text": "Надстройте плана си, за да конфигурирате единно влизане за този домейн.",
+    "source_hash": "71fc0069"
   },
   "web.domains.sso.create_success": {
-    "text": "Конфигурацията на SSO е създадена успешно"
+    "text": "Конфигурацията на SSO е създадена успешно",
+    "source_hash": "531c7d92"
   },
   "web.domains.sso.update_success": {
-    "text": "Конфигурацията на SSO е актуализирана успешно"
+    "text": "Конфигурацията на SSO е актуализирана успешно",
+    "source_hash": "d98d8e83"
   },
   "web.domains.sso.delete_success": {
-    "text": "Конфигурацията на SSO е премахната успешно"
+    "text": "Конфигурацията на SSO е премахната успешно",
+    "source_hash": "2e924798"
   },
   "web.domains.sso.test_success": {
-    "text": "Тестът на връзката е успешен — доставчикът отговори правилно"
+    "text": "Тестът на връзката е успешен — доставчикът отговори правилно",
+    "source_hash": "1570ddb0"
   },
   "web.domains.sso.test_failed": {
-    "text": "Тестът на връзката беше неуспешен"
+    "text": "Тестът на връзката беше неуспешен",
+    "source_hash": "a45a37dd"
   },
   "web.domains.sso.enforce_moved_notice": {
-    "text": "За да изисквате SSO за всички влизания на този домейн, конфигурирайте го в настройките за влизане на домейна. Режимът само за SSO ограничава страницата за вход до доставчика на SSO, конфигуриран тук."
+    "text": "За да изисквате SSO за всички влизания на този домейн, конфигурирайте го в настройките за влизане на домейна. Режимът само за SSO ограничава страницата за вход до доставчика на SSO, конфигуриран тук.",
+    "source_hash": "d26627a5"
   },
   "web.domains.sso.configure_sso": {
-    "text": "Конфигуриране на SSO"
+    "text": "Конфигуриране на SSO",
+    "source_hash": "80d3a144"
   },
   "web.domains.sso.not_configured_notice": {
-    "text": "SSO все още не е конфигуриран за този домейн. Активирайте единното влизане, за да позволите на членовете на екипа да се удостоверяват чрез доставчика на идентичност на вашата организация."
+    "text": "SSO все още не е конфигуриран за този домейн. Активирайте единното влизане, за да позволите на членовете на екипа да се удостоверяват чрез доставчика на идентичност на вашата организация.",
+    "source_hash": "c439214b"
   },
   "web.domains.sso.edit_credentials": {
-    "text": "Редактиране на идентификационните данни"
+    "text": "Редактиране на идентификационните данни",
+    "source_hash": "5a6622b6"
   },
   "web.domains.sso.configure_button": {
-    "text": "Конфигуриране"
+    "text": "Конфигуриране",
+    "source_hash": "6defafa2"
   },
   "web.domains.sso.upgrade_required": {
-    "text": "Надстройте, за да конфигурирате"
+    "text": "Надстройте, за да конфигурирате",
+    "source_hash": "571cfa98"
   }
 }

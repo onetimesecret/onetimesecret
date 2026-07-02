@@ -24,12 +24,15 @@
     "source_hash": "ff0d904e"
   },
   "web.teams.create_first_team_title": {
-    "text": "Créez votre première équipe"
+    "text": "Créez votre première équipe",
+    "source_hash": "54693f14"
   },
   "web.teams.create_first_team_description": {
-    "text": "Les équipes vous permettent de collaborer avec d'autres personnes dans un espace de travail partagé."
+    "text": "Les équipes vous permettent de collaborer avec d'autres personnes dans un espace de travail partagé.",
+    "source_hash": "d61b86b5"
   },
   "web.teams.create_team": {
-    "text": "Créer une équipe"
+    "text": "Créer une équipe",
+    "source_hash": "284ff194"
   }
 }

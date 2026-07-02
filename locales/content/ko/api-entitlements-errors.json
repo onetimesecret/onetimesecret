@@ -1,71 +1,94 @@
 {
   "api.entitlements.errors.context_unavailable": {
-    "text": "권한을 확인할 수 없습니다 (조직 컨텍스트를 사용할 수 없음)"
+    "text": "권한을 확인할 수 없습니다 (조직 컨텍스트를 사용할 수 없음)",
+    "source_hash": "704dc629"
   },
   "api.entitlements.errors.api_access_required": {
-    "text": "API 액세스에는 요금제 업그레이드가 필요합니다"
+    "text": "API 액세스에는 요금제 업그레이드가 필요합니다",
+    "source_hash": "844d294b"
   },
   "api.entitlements.errors.custom_privacy_defaults_required": {
-    "text": "사용자 정의 개인정보 기본값에는 요금제 업그레이드가 필요합니다"
+    "text": "사용자 정의 개인정보 기본값에는 요금제 업그레이드가 필요합니다",
+    "source_hash": "4e71274d"
   },
   "api.entitlements.errors.extended_default_expiration_required": {
-    "text": "기본 만료 시간 연장에는 요금제 업그레이드가 필요합니다"
+    "text": "기본 만료 시간 연장에는 요금제 업그레이드가 필요합니다",
+    "source_hash": "efa702e7"
   },
   "api.entitlements.errors.custom_domains_required": {
-    "text": "사용자 정의 도메인에는 요금제 업그레이드가 필요합니다"
+    "text": "사용자 정의 도메인에는 요금제 업그레이드가 필요합니다",
+    "source_hash": "a23e2184"
   },
   "api.entitlements.errors.custom_branding_required": {
-    "text": "맞춤형 브랜딩에는 요금제 업그레이드가 필요합니다"
+    "text": "맞춤형 브랜딩에는 요금제 업그레이드가 필요합니다",
+    "source_hash": "a4c40a3a"
   },
   "api.entitlements.errors.homepage_secrets_required": {
-    "text": "홈페이지 비밀 메시지에는 요금제 업그레이드가 필요합니다"
+    "text": "홈페이지 비밀 메시지에는 요금제 업그레이드가 필요합니다",
+    "source_hash": "650eeca8"
   },
   "api.entitlements.errors.incoming_secrets_required": {
-    "text": "수신 비밀 메시지에는 요금제 업그레이드가 필요합니다"
+    "text": "수신 비밀 메시지에는 요금제 업그레이드가 필요합니다",
+    "source_hash": "ce1d47ef"
   },
   "api.entitlements.errors.custom_mail_sender_required": {
-    "text": "사용자 정의 메일 발신자에는 요금제 업그레이드가 필요합니다"
+    "text": "사용자 정의 메일 발신자에는 요금제 업그레이드가 필요합니다",
+    "source_hash": "e058da13"
   },
   "api.entitlements.errors.flexible_from_domain_required": {
-    "text": "유연한 발신 도메인에는 요금제 업그레이드가 필요합니다"
+    "text": "유연한 발신 도메인에는 요금제 업그레이드가 필요합니다",
+    "source_hash": "4931dc05"
   },
   "api.entitlements.errors.manage_org_required": {
-    "text": "조직 관리에는 요금제 업그레이드가 필요합니다"
+    "text": "조직 관리에는 요금제 업그레이드가 필요합니다",
+    "source_hash": "66a2cd10"
   },
   "api.entitlements.errors.manage_teams_required": {
-    "text": "팀 관리에는 요금제 업그레이드가 필요합니다"
+    "text": "팀 관리에는 요금제 업그레이드가 필요합니다",
+    "source_hash": "f7f4062f"
   },
   "api.entitlements.errors.manage_members_required": {
-    "text": "멤버 관리에는 요금제 업그레이드가 필요합니다"
+    "text": "멤버 관리에는 요금제 업그레이드가 필요합니다",
+    "source_hash": "f73b80db"
   },
   "api.entitlements.errors.manage_sso_required": {
-    "text": "SSO 관리에는 요금제 업그레이드가 필요합니다"
+    "text": "SSO 관리에는 요금제 업그레이드가 필요합니다",
+    "source_hash": "4e5da22d"
   },
   "api.entitlements.errors.audit_logs_required": {
-    "text": "감사 로그에는 요금제 업그레이드가 필요합니다"
+    "text": "감사 로그에는 요금제 업그레이드가 필요합니다",
+    "source_hash": "1ff748bc"
   },
   "api.entitlements.errors.custom_signup_validation_required": {
-    "text": "사용자 정의 가입 검증에는 요금제 업그레이드가 필요합니다"
+    "text": "사용자 정의 가입 검증에는 요금제 업그레이드가 필요합니다",
+    "source_hash": "93c9befa"
   },
   "api.entitlements.errors.create_secrets_required": {
-    "text": "비밀 메시지 생성에는 요금제 업그레이드가 필요합니다"
+    "text": "비밀 메시지 생성에는 요금제 업그레이드가 필요합니다",
+    "source_hash": "01091fed"
   },
   "api.entitlements.errors.view_receipt_required": {
-    "text": "수신확인 보기에는 요금제 업그레이드가 필요합니다"
+    "text": "수신확인 보기에는 요금제 업그레이드가 필요합니다",
+    "source_hash": "e6370d8c"
   },
   "api.entitlements.errors.notifications_required": {
-    "text": "알림에는 요금제 업그레이드가 필요합니다"
+    "text": "알림에는 요금제 업그레이드가 필요합니다",
+    "source_hash": "82353ba6"
   },
   "api.entitlements.errors.workspace_branding_required": {
-    "text": "워크스페이스 브랜딩에는 요금제 업그레이드가 필요합니다"
+    "text": "워크스페이스 브랜딩에는 요금제 업그레이드가 필요합니다",
+    "source_hash": "79ac8099"
   },
   "api.entitlements.errors.ip_access_rules_required": {
-    "text": "IP 액세스 규칙에는 요금제 업그레이드가 필요합니다"
+    "text": "IP 액세스 규칙에는 요금제 업그레이드가 필요합니다",
+    "source_hash": "3e1d276e"
   },
   "api.entitlements.errors.manage_billing_required": {
-    "text": "결제 관리에는 요금제 업그레이드가 필요합니다"
+    "text": "결제 관리에는 요금제 업그레이드가 필요합니다",
+    "source_hash": "dec5d6aa"
   },
   "api.entitlements.errors.custom_signin_config_required": {
-    "text": "사용자 정의 로그인 구성에는 요금제 업그레이드가 필요합니다"
+    "text": "사용자 정의 로그인 구성에는 요금제 업그레이드가 필요합니다",
+    "source_hash": "acb1be52"
   }
 }

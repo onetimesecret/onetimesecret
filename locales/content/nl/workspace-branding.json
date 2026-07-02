@@ -180,9 +180,11 @@
     "source_hash": "9077bf79"
   },
   "web.branding.saved_successfully": {
-    "text": "Brandinginstellingen succesvol opgeslagen"
+    "text": "Brandinginstellingen succesvol opgeslagen",
+    "source_hash": "9960c252"
   },
   "web.branding.keyhole_logo_icon": {
-    "text": "Sleutelgatpictogram dat beveiligd, privé delen voorstelt"
+    "text": "Sleutelgatpictogram dat beveiligd, privé delen voorstelt",
+    "source_hash": "c868ac60"
   }
 }

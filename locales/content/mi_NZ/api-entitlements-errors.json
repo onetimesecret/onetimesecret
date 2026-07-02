@@ -1,71 +1,94 @@
 {
   "api.entitlements.errors.context_unavailable": {
-    "text": "Kāore e taea te manatoko i ngā whakaaetanga (kāore te horopaki whakahaere e wātea)"
+    "text": "Kāore e taea te manatoko i ngā whakaaetanga (kāore te horopaki whakahaere e wātea)",
+    "source_hash": "704dc629"
   },
   "api.entitlements.errors.api_access_required": {
-    "text": "Me whakapiki mahere mō te urunga API"
+    "text": "Me whakapiki mahere mō te urunga API",
+    "source_hash": "844d294b"
   },
   "api.entitlements.errors.custom_privacy_defaults_required": {
-    "text": "Me whakapiki mahere mō ngā taunoa tūmataiti ritenga"
+    "text": "Me whakapiki mahere mō ngā taunoa tūmataiti ritenga",
+    "source_hash": "4e71274d"
   },
   "api.entitlements.errors.extended_default_expiration_required": {
-    "text": "Me whakapiki mahere mō te paunga taunoa roa ake"
+    "text": "Me whakapiki mahere mō te paunga taunoa roa ake",
+    "source_hash": "efa702e7"
   },
   "api.entitlements.errors.custom_domains_required": {
-    "text": "Me whakapiki mahere mō ngā rohe ritenga"
+    "text": "Me whakapiki mahere mō ngā rohe ritenga",
+    "source_hash": "a23e2184"
   },
   "api.entitlements.errors.custom_branding_required": {
-    "text": "Me whakapiki mahere mō te waitohu ritenga"
+    "text": "Me whakapiki mahere mō te waitohu ritenga",
+    "source_hash": "a4c40a3a"
   },
   "api.entitlements.errors.homepage_secrets_required": {
-    "text": "Me whakapiki mahere mō ngā karere huna whārangi kāinga"
+    "text": "Me whakapiki mahere mō ngā karere huna whārangi kāinga",
+    "source_hash": "650eeca8"
   },
   "api.entitlements.errors.incoming_secrets_required": {
-    "text": "Me whakapiki mahere mō ngā karere huna taemai"
+    "text": "Me whakapiki mahere mō ngā karere huna taemai",
+    "source_hash": "ce1d47ef"
   },
   "api.entitlements.errors.custom_mail_sender_required": {
-    "text": "Me whakapiki mahere mō te kaituku mēra ritenga"
+    "text": "Me whakapiki mahere mō te kaituku mēra ritenga",
+    "source_hash": "e058da13"
   },
   "api.entitlements.errors.flexible_from_domain_required": {
-    "text": "Me whakapiki mahere mō te rohe-mai ngāwari"
+    "text": "Me whakapiki mahere mō te rohe-mai ngāwari",
+    "source_hash": "4931dc05"
   },
   "api.entitlements.errors.manage_org_required": {
-    "text": "Me whakapiki mahere mō te whakahaere rōpū"
+    "text": "Me whakapiki mahere mō te whakahaere rōpū",
+    "source_hash": "66a2cd10"
   },
   "api.entitlements.errors.manage_teams_required": {
-    "text": "Me whakapiki mahere mō te whakahaere tīma"
+    "text": "Me whakapiki mahere mō te whakahaere tīma",
+    "source_hash": "f7f4062f"
   },
   "api.entitlements.errors.manage_members_required": {
-    "text": "Me whakapiki mahere mō te whakahaere mema"
+    "text": "Me whakapiki mahere mō te whakahaere mema",
+    "source_hash": "f73b80db"
   },
   "api.entitlements.errors.manage_sso_required": {
-    "text": "Me whakapiki mahere mō te whakahaere SSO"
+    "text": "Me whakapiki mahere mō te whakahaere SSO",
+    "source_hash": "4e5da22d"
   },
   "api.entitlements.errors.audit_logs_required": {
-    "text": "Me whakapiki mahere mō ngā rangitaki arotake"
+    "text": "Me whakapiki mahere mō ngā rangitaki arotake",
+    "source_hash": "1ff748bc"
   },
   "api.entitlements.errors.custom_signup_validation_required": {
-    "text": "Me whakapiki mahere mō te whakamana rēhitatanga ritenga"
+    "text": "Me whakapiki mahere mō te whakamana rēhitatanga ritenga",
+    "source_hash": "93c9befa"
   },
   "api.entitlements.errors.create_secrets_required": {
-    "text": "Me whakapiki mahere mō te waihanga karere huna"
+    "text": "Me whakapiki mahere mō te waihanga karere huna",
+    "source_hash": "01091fed"
   },
   "api.entitlements.errors.view_receipt_required": {
-    "text": "Me whakapiki mahere mō te tiro rīhiti"
+    "text": "Me whakapiki mahere mō te tiro rīhiti",
+    "source_hash": "e6370d8c"
   },
   "api.entitlements.errors.notifications_required": {
-    "text": "Me whakapiki mahere mō ngā whakamōhiotanga"
+    "text": "Me whakapiki mahere mō ngā whakamōhiotanga",
+    "source_hash": "82353ba6"
   },
   "api.entitlements.errors.workspace_branding_required": {
-    "text": "Me whakapiki mahere mō te waitohu wāhi mahi"
+    "text": "Me whakapiki mahere mō te waitohu wāhi mahi",
+    "source_hash": "79ac8099"
   },
   "api.entitlements.errors.ip_access_rules_required": {
-    "text": "Me whakapiki mahere mō ngā ture urunga IP"
+    "text": "Me whakapiki mahere mō ngā ture urunga IP",
+    "source_hash": "3e1d276e"
   },
   "api.entitlements.errors.manage_billing_required": {
-    "text": "Me whakapiki mahere mō te whakahaere nama"
+    "text": "Me whakapiki mahere mō te whakahaere nama",
+    "source_hash": "dec5d6aa"
   },
   "api.entitlements.errors.custom_signin_config_required": {
-    "text": "Me whakapiki mahere mō te whirihoranga takiuru ritenga"
+    "text": "Me whakapiki mahere mō te whirihoranga takiuru ritenga",
+    "source_hash": "acb1be52"
   }
 }

@@ -397,33 +397,42 @@
     "source_hash": "f8d47b82"
   },
   "web.auth.account.sso_linked": {
-    "text": "Račun SSO"
+    "text": "Račun SSO",
+    "source_hash": "b8f4c728"
   },
   "web.auth.verify._guidance.context": {
     "text": "Email verification flow after signup"
   },
   "web.help.reset_password_link": {
-    "text": "Ponastavi geslo"
+    "text": "Ponastavi geslo",
+    "source_hash": "e0edfeb3"
   },
   "web.login.custom_domain_sso_title": {
-    "text": "Enotna prijava (SSO) je na voljo za to domeno"
+    "text": "Enotna prijava (SSO) je na voljo za to domeno",
+    "source_hash": "af87d51e"
   },
   "web.login.custom_domain_sso_description": {
-    "text": "Skrbnik organizacije lahko omogoči SSO, da se člani ekipe lahko prijavijo tukaj. Za dostop se obrnite na skrbnika."
+    "text": "Skrbnik organizacije lahko omogoči SSO, da se člani ekipe lahko prijavijo tukaj. Za dostop se obrnite na skrbnika.",
+    "source_hash": "f3726509"
   },
   "web.login.signin_disabled_heading": {
-    "text": "Prijava ni na voljo"
+    "text": "Prijava ni na voljo",
+    "source_hash": "6b435c76"
   },
   "web.login.signin_disabled_message": {
-    "text": "Prijava trenutno ni na voljo na tej domeni."
+    "text": "Prijava trenutno ni na voljo na tej domeni.",
+    "source_hash": "b681c35d"
   },
   "web.login.errors.sso_not_configured": {
-    "text": "Enotna prijava (SSO) za to domeno ni nastavljena. Obrnite se na svojega skrbnika."
+    "text": "Enotna prijava (SSO) za to domeno ni nastavljena. Obrnite se na svojega skrbnika.",
+    "source_hash": "b39ef93e"
   },
   "web.login.errors.invalid_email": {
-    "text": "E-poštni naslov vašega ponudnika identitete ni veljaven. Obrnite se na svojega skrbnika."
+    "text": "E-poštni naslov vašega ponudnika identitete ni veljaven. Obrnite se na svojega skrbnika.",
+    "source_hash": "10c12029"
   },
   "web.login.errors.domain_not_allowed": {
-    "text": "Vaša e-poštna domena ni pooblaščena za registracijo prek SSO. Obrnite se na svojega skrbnika."
+    "text": "Vaša e-poštna domena ni pooblaščena za registracijo prek SSO. Obrnite se na svojega skrbnika.",
+    "source_hash": "87603782"
   }
 }

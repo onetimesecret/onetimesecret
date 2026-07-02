@@ -60,12 +60,15 @@
     "source_hash": "00e56551"
   },
   "web.feedback.anonymous_no_reply": {
-    "text": "Bemærk: hvis du ønsker et svar, så underskriv eller medtag en e-mailadresse i beskeden."
+    "text": "Bemærk: hvis du ønsker et svar, så underskriv eller medtag en e-mailadresse i beskeden.",
+    "source_hash": "c984f705"
   },
   "web.feedback.characters_remaining": {
-    "text": "{count} tegn tilbage"
+    "text": "{count} tegn tilbage",
+    "source_hash": "8d796f40"
   },
   "web.feedback.character_limit_reached": {
-    "text": "Tegngrænsen er nået"
+    "text": "Tegngrænsen er nået",
+    "source_hash": "031e9310"
   }
 }

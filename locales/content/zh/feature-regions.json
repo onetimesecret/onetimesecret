@@ -188,6 +188,7 @@
     "source_hash": "7a757670"
   },
   "web.regions.no_region_configured": {
-    "text": "您的账户目前没有可用的地区信息。"
+    "text": "您的账户目前没有可用的地区信息。",
+    "source_hash": "bbfe2a32"
   }
 }

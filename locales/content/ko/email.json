@@ -855,39 +855,51 @@
     "source_hash": "1cd0194a"
   },
   "email.common.secret_link_label": {
-    "text": "비밀 링크"
+    "text": "비밀 링크",
+    "source_hash": "18ddf44f"
   },
   "email.common.automated_notice": {
-    "text": "이것은 %{product_name}에서 자동으로 발송된 메시지입니다."
+    "text": "이것은 %{product_name}에서 자동으로 발송된 메시지입니다.",
+    "source_hash": "8fbabfba"
   },
   "email.common.support_label": {
-    "text": "지원"
+    "text": "지원",
+    "source_hash": "be91940b"
   },
   "email.expiration_warning.signature": {
-    "text": "지원팀"
+    "text": "지원팀",
+    "source_hash": "dc75bf9f"
   },
   "email.expiration_warning.footer_note": {
-    "text": "%{product_name}에서 생성하신 비밀 메시지가 곧 만료되기 때문에 이 메시지를 받으셨습니다."
+    "text": "%{product_name}에서 생성하신 비밀 메시지가 곧 만료되기 때문에 이 메시지를 받으셨습니다.",
+    "source_hash": "920779e4"
   },
   "email.feedback_email.user_id_label": {
-    "text": "사용자:"
+    "text": "사용자:",
+    "source_hash": "93d6b3e9"
   },
   "email.feedback_email.timezone_label": {
-    "text": "시간대:"
+    "text": "시간대:",
+    "source_hash": "39651ebf"
   },
   "email.feedback_email.version_label": {
-    "text": "버전:"
+    "text": "버전:",
+    "source_hash": "4c5726ee"
   },
   "email.incoming_secret.footer_note": {
-    "text": "누군가 %{product_name}을(를) 사용하여 비밀 메시지를 보냈기 때문에 이 메시지를 받으셨습니다. 예상하지 못한 메시지라면 이 이메일을 무시하셔도 안전합니다."
+    "text": "누군가 %{product_name}을(를) 사용하여 비밀 메시지를 보냈기 때문에 이 메시지를 받으셨습니다. 예상하지 못한 메시지라면 이 이메일을 무시하셔도 안전합니다.",
+    "source_hash": "91ee6e8d"
   },
   "email.secret_link.passphrase_label": {
-    "text": "접근 문구 필요:"
+    "text": "접근 문구 필요:",
+    "source_hash": "1ab9a20f"
   },
   "email.secret_link.passphrase_required": {
-    "text": "이 비밀 메시지는 접근 문구로 보호되어 있습니다. 보낸 사람이 접근 문구를 별도로 알려드릴 것입니다."
+    "text": "이 비밀 메시지는 접근 문구로 보호되어 있습니다. 보낸 사람이 접근 문구를 별도로 알려드릴 것입니다.",
+    "source_hash": "1e49826b"
   },
   "email.secret_link.footer_note": {
-    "text": "%{sender_email}님이 %{product_name}을(를) 사용하여 비밀 메시지를 공유했기 때문에 이 메시지를 받으셨습니다. 예상하지 못한 메시지라면 이 이메일을 무시하셔도 안전합니다."
+    "text": "%{sender_email}님이 %{product_name}을(를) 사용하여 비밀 메시지를 공유했기 때문에 이 메시지를 받으셨습니다. 예상하지 못한 메시지라면 이 이메일을 무시하셔도 안전합니다.",
+    "source_hash": "2d544dad"
   }
 }

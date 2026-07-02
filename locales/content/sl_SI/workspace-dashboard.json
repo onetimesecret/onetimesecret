@@ -24,12 +24,15 @@
     "source_hash": "ff0d904e"
   },
   "web.teams.create_first_team_title": {
-    "text": "Ustvarite svojo prvo ekipo"
+    "text": "Ustvarite svojo prvo ekipo",
+    "source_hash": "54693f14"
   },
   "web.teams.create_first_team_description": {
-    "text": "Ekipe vam omogočajo sodelovanje z drugimi v skupnem delovnem prostoru."
+    "text": "Ekipe vam omogočajo sodelovanje z drugimi v skupnem delovnem prostoru.",
+    "source_hash": "d61b86b5"
   },
   "web.teams.create_team": {
-    "text": "Ustvari ekipo"
+    "text": "Ustvari ekipo",
+    "source_hash": "284ff194"
   }
 }

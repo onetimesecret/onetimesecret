@@ -1,5 +1,6 @@
 {
   "api.feedback.errors.rate_limit_exceeded": {
-    "text": "Troppi invii di feedback. Riprova più tardi."
+    "text": "Troppi invii di feedback. Riprova più tardi.",
+    "source_hash": "3a890eb2"
   }
 }

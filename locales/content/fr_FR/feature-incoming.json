@@ -132,24 +132,31 @@
     "source_hash": "6f328609"
   },
   "incoming.upgrade_required_title": {
-    "text": "Mise à niveau requise"
+    "text": "Mise à niveau requise",
+    "source_hash": "16487236"
   },
   "incoming.upgrade_required_description": {
-    "text": "Cette fonctionnalité nécessite une mise à niveau du forfait. Veuillez contacter le propriétaire du compte pour activer les secrets entrants."
+    "text": "Cette fonctionnalité nécessite une mise à niveau du forfait. Veuillez contacter le propriétaire du compte pour activer les secrets entrants.",
+    "source_hash": "5df7f715"
   },
   "incoming.validation_memo_too_long": {
-    "text": "Le mémo doit comporter au maximum {max} caractères"
+    "text": "Le mémo doit comporter au maximum {max} caractères",
+    "source_hash": "5727f2d3"
   },
   "incoming.validation_secret_required": {
-    "text": "Le contenu du secret est requis"
+    "text": "Le contenu du secret est requis",
+    "source_hash": "699783c9"
   },
   "incoming.validation_recipient_required": {
-    "text": "Veuillez sélectionner un destinataire"
+    "text": "Veuillez sélectionner un destinataire",
+    "source_hash": "67bb4666"
   },
   "incoming.validation_feature_disabled": {
-    "text": "La fonctionnalité de secrets entrants n'est pas activée"
+    "text": "La fonctionnalité de secrets entrants n'est pas activée",
+    "source_hash": "0616d3f4"
   },
   "incoming.validation_form_errors": {
-    "text": "Veuillez vérifier les erreurs dans le formulaire"
+    "text": "Veuillez vérifier les erreurs dans le formulaire",
+    "source_hash": "9056e064"
   }
 }

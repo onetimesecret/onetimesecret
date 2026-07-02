@@ -400,723 +400,963 @@
     "source_hash": "91c1af2e"
   },
   "api.domains.errors.add_admin_required": {
-    "text": "Vlastní domény mohou přidávat pouze vlastníci a správci organizace"
+    "text": "Vlastní domény mohou přidávat pouze vlastníci a správci organizace",
+    "source_hash": "3324aabe"
   },
   "web.domains.public_homepage": {
-    "text": "Veřejná domovská stránka"
+    "text": "Veřejná domovská stránka",
+    "source_hash": "2ae3ccba"
   },
   "web.domains.status_tooltip_active": {
-    "text": "Doména ověřena a aktivní"
+    "text": "Doména ověřena a aktivní",
+    "source_hash": "e4b6a6e1"
   },
   "web.domains.status_tooltip_dns_incorrect": {
-    "text": "DNS není nakonfigurováno — klikni pro opravu"
+    "text": "DNS není nakonfigurováno — klikni pro opravu",
+    "source_hash": "892cb2cb"
   },
   "web.domains.status_tooltip_not_verified": {
-    "text": "Doména není ověřena — klikni pro ověření"
+    "text": "Doména není ověřena — klikni pro ověření",
+    "source_hash": "a9806710"
   },
   "web.domains.status_tooltip_unverified": {
-    "text": "Stav domény není ověřen — klikni pro obnovení"
+    "text": "Stav domény není ověřen — klikni pro obnovení",
+    "source_hash": "a45aa76d"
   },
   "web.domains.last_check_failed": {
-    "text": "Poslední kontrola ověření se nezdařila"
+    "text": "Poslední kontrola ověření se nezdařila",
+    "source_hash": "88b594b8"
   },
   "web.domains.last_check_failed_ago": {
-    "text": "poslední kontrola se nezdařila {0}"
+    "text": "poslední kontrola se nezdařila {0}",
+    "source_hash": "ddfb6412"
   },
   "web.domains.verify_now": {
-    "text": "Ověřit nyní"
+    "text": "Ověřit nyní",
+    "source_hash": "db383efb"
   },
   "web.domains.click_to_verify": {
-    "text": "klikni pro ověření"
+    "text": "klikni pro ověření",
+    "source_hash": "6eae7d9c"
   },
   "web.domains.remove_domain_description": {
-    "text": "Trvale odeber tuto doménu a veškerou její konfiguraci."
+    "text": "Trvale odeber tuto doménu a veškerou její konfiguraci.",
+    "source_hash": "73946b9e"
   },
   "web.domains.add_access_denied": {
-    "text": "Přístup odepřen"
+    "text": "Přístup odepřen",
+    "source_hash": "d134ca02"
   },
   "web.domains.add_access_denied_description": {
-    "text": "Nemáš oprávnění přidávat domény do této organizace. Kontaktuj správce své organizace."
+    "text": "Nemáš oprávnění přidávat domény do této organizace. Kontaktuj správce své organizace.",
+    "source_hash": "25e035c6"
   },
   "web.domains.dns_widget_load_failed": {
-    "text": "Načtení DNS widgetu se nezdařilo"
+    "text": "Načtení DNS widgetu se nezdařilo",
+    "source_hash": "5a1d8ab5"
   },
   "web.domains.dns_widget_not_available": {
-    "text": "DNS widget není k dispozici"
+    "text": "DNS widget není k dispozici",
+    "source_hash": "4eed448b"
   },
   "web.domains.dns_widget_init_failed": {
-    "text": "Inicializace DNS widgetu se nezdařila"
+    "text": "Inicializace DNS widgetu se nezdařila",
+    "source_hash": "de477585"
   },
   "web.domains.verified": {
-    "text": "Ověřeno"
+    "text": "Ověřeno",
+    "source_hash": "4f783840"
   },
   "web.domains.pending_verification": {
-    "text": "Čeká na ověření"
+    "text": "Čeká na ověření",
+    "source_hash": "77e07795"
   },
   "web.domains.unsaved_changes_confirmation": {
-    "text": "Máš neuložené změny. Opravdu chceš odejít?"
+    "text": "Máš neuložené změny. Opravdu chceš odejít?",
+    "source_hash": "322380c1"
   },
   "web.domains.entitlement_required_owner": {
-    "text": "Tato funkce vyžaduje přechod na vyšší plán."
+    "text": "Tato funkce vyžaduje přechod na vyšší plán.",
+    "source_hash": "6de1f752"
   },
   "web.domains.entitlement_required_member": {
-    "text": "Tato funkce není ve tvém aktuálním plánu k dispozici. Kontaktuj vlastníka své organizace."
+    "text": "Tato funkce není ve tvém aktuálním plánu k dispozici. Kontaktuj vlastníka své organizace.",
+    "source_hash": "8f1688b2"
   },
   "web.domains.detail.manage": {
-    "text": "Spravovat"
+    "text": "Spravovat",
+    "source_hash": "5a234448"
   },
   "web.domains.detail.features": {
-    "text": "Funkce"
+    "text": "Funkce",
+    "source_hash": "5697d03d"
   },
   "web.domains.detail.homepage_title": {
-    "text": "Tajemství na domovské stránce"
+    "text": "Tajemství na domovské stránce",
+    "source_hash": "6360f7ec"
   },
   "web.domains.detail.homepage_description": {
-    "text": "Povolit veřejný přístup k vytváření tajemství na domovské stránce tvé domény"
+    "text": "Povolit veřejný přístup k vytváření tajemství na domovské stránce tvé domény",
+    "source_hash": "209b3ded"
   },
   "web.domains.detail.brand_description": {
-    "text": "Logo, barvy a vlastní branding"
+    "text": "Logo, barvy a vlastní branding",
+    "source_hash": "69f7a9e8"
   },
   "web.domains.detail.sso_description": {
-    "text": "Nastavení poskytovatele jednotného přihlášení"
+    "text": "Nastavení poskytovatele jednotného přihlášení",
+    "source_hash": "234e6150"
   },
   "web.domains.detail.email_description": {
-    "text": "Konfigurace vlastního odesílatele e-mailů"
+    "text": "Konfigurace vlastního odesílatele e-mailů",
+    "source_hash": "7fcde01b"
   },
   "web.domains.detail.incoming_description": {
-    "text": "Nastavení příjemců příchozích tajemství"
+    "text": "Nastavení příjemců příchozích tajemství",
+    "source_hash": "37c1fd6d"
   },
   "web.domains.detail.signup_description": {
-    "text": "Strategie ověření registrace pro jednotlivé domény"
+    "text": "Strategie ověření registrace pro jednotlivé domény",
+    "source_hash": "3c5a511f"
   },
   "web.domains.detail.signin_description": {
-    "text": "Konfigurace metody přihlášení pro jednotlivé domény"
+    "text": "Konfigurace metody přihlášení pro jednotlivé domény",
+    "source_hash": "73e01e36"
   },
   "web.domains.email.title": {
-    "text": "Odesílání e-mailů"
+    "text": "Odesílání e-mailů",
+    "source_hash": "6c428e5f"
   },
   "web.domains.email.config_title": {
-    "text": "Konfigurace e-mailu"
+    "text": "Konfigurace e-mailu",
+    "source_hash": "6f38aa51"
   },
   "web.domains.email.config_description": {
-    "text": "Nakonfiguruj odesílání e-mailů pro tuto doménu"
+    "text": "Nakonfiguruj odesílání e-mailů pro tuto doménu",
+    "source_hash": "1c275ff0"
   },
   "web.domains.email.provider_label": {
-    "text": "Poskytovatel e-mailu"
+    "text": "Poskytovatel e-mailu",
+    "source_hash": "a7ed3f4e"
   },
   "web.domains.email.provider_placeholder": {
-    "text": "Vyber poskytovatele e-mailu"
+    "text": "Vyber poskytovatele e-mailu",
+    "source_hash": "63c8080c"
   },
   "web.domains.email.from_name_label": {
-    "text": "Jméno odesílatele"
+    "text": "Jméno odesílatele",
+    "source_hash": "2f13b589"
   },
   "web.domains.email.from_name_placeholder": {
-    "text": "např. Acme Security"
+    "text": "např. Acme Security",
+    "source_hash": "03c0f138"
   },
   "web.domains.email.from_address_label": {
-    "text": "Adresa odesílatele"
+    "text": "Adresa odesílatele",
+    "source_hash": "60643eae"
   },
   "web.domains.email.from_address_placeholder": {
-    "text": "např. secrets{'@'}example.com"
+    "text": "např. secrets{'@'}example.com",
+    "source_hash": "a09b3928"
   },
   "web.domains.email.reply_to_label": {
-    "text": "Adresa pro odpověď"
+    "text": "Adresa pro odpověď",
+    "source_hash": "4538ea9c"
   },
   "web.domains.email.reply_to_placeholder": {
-    "text": "např. support{'@'}example.com"
+    "text": "např. support{'@'}example.com",
+    "source_hash": "fa3e5f0b"
   },
   "web.domains.email.save_changes": {
-    "text": "Uložit změny"
+    "text": "Uložit změny",
+    "source_hash": "35322b5b"
   },
   "web.domains.email.discard_changes": {
-    "text": "Zahodit změny"
+    "text": "Zahodit změny",
+    "source_hash": "e07e053c"
   },
   "web.domains.email.provider_ses": {
-    "text": "Amazon SES"
+    "text": "Amazon SES",
+    "source_hash": "15de4969"
   },
   "web.domains.email.provider_sendgrid": {
-    "text": "SendGrid"
+    "text": "SendGrid",
+    "source_hash": "b889d002"
   },
   "web.domains.email.provider_lettermint": {
-    "text": "Lettermint"
+    "text": "Lettermint",
+    "source_hash": "ec994dad"
   },
   "web.domains.email.provider_inherit": {
-    "text": "Použít výchozí nastavení účtu"
+    "text": "Použít výchozí nastavení účtu",
+    "source_hash": "f6fa84e7"
   },
   "web.domains.email.provider_ses_description": {
-    "text": "Vyžaduje ověření domény pomocí záznamů DKIM a SPF"
+    "text": "Vyžaduje ověření domény pomocí záznamů DKIM a SPF",
+    "source_hash": "4df5aa60"
   },
   "web.domains.email.provider_sendgrid_description": {
-    "text": "Vyžaduje nastavení autentizace domény"
+    "text": "Vyžaduje nastavení autentizace domény",
+    "source_hash": "71b53242"
   },
   "web.domains.email.provider_lettermint_description": {
-    "text": "Vyžaduje ověření domény"
+    "text": "Vyžaduje ověření domény",
+    "source_hash": "87073c93"
   },
   "web.domains.email.provider_inherit_description": {
-    "text": "Použije výchozí konfiguraci odesílání e-mailů tvého účtu"
+    "text": "Použije výchozí konfiguraci odesílání e-mailů tvého účtu",
+    "source_hash": "3f798263"
   },
   "web.domains.email.dns_records_title": {
-    "text": "DNS záznamy"
+    "text": "DNS záznamy",
+    "source_hash": "34d2c307"
   },
   "web.domains.email.dns_records_description": {
-    "text": "Přidej následující DNS záznamy pro ověření tvé domény pro odesílání e-mailů."
+    "text": "Přidej následující DNS záznamy pro ověření tvé domény pro odesílání e-mailů.",
+    "source_hash": "9fa85863"
   },
   "web.domains.email.dns_column_type": {
-    "text": "Typ"
+    "text": "Typ",
+    "source_hash": "baaddf70"
   },
   "web.domains.email.dns_column_name": {
-    "text": "Název"
+    "text": "Název",
+    "source_hash": "dcd1d522"
   },
   "web.domains.email.dns_column_value": {
-    "text": "Hodnota"
+    "text": "Hodnota",
+    "source_hash": "8e37953d"
   },
   "web.domains.email.dns_check_label": {
-    "text": "DNS"
+    "text": "DNS",
+    "source_hash": "020965a2"
   },
   "web.domains.email.provider_check_label": {
-    "text": "Poskytovatel"
+    "text": "Poskytovatel",
+    "source_hash": "472590ae"
   },
   "web.domains.email.dns_optional_label": {
-    "text": "Doporučeno"
+    "text": "Doporučeno",
+    "source_hash": "d70604e8"
   },
   "web.domains.email.dns_optional_hint": {
-    "text": "Tento záznam je doporučený, ale není pro ověření vyžadován. Zásady DMARC na tvé organizační doméně mohou tuto subdoménu již pokrývat."
+    "text": "Tento záznam je doporučený, ale není pro ověření vyžadován. Zásady DMARC na tvé organizační doméně mohou tuto subdoménu již pokrývat.",
+    "source_hash": "58e1a12b"
   },
   "web.domains.email.copy": {
-    "text": "Kopírovat"
+    "text": "Kopírovat",
+    "source_hash": "e21f935f"
   },
   "web.domains.email.copied": {
-    "text": "Zkopírováno"
+    "text": "Zkopírováno",
+    "source_hash": "8d525e5f"
   },
   "web.domains.email.status_verified": {
-    "text": "Ověřeno"
+    "text": "Ověřeno",
+    "source_hash": "4f783840"
   },
   "web.domains.email.status_pending": {
-    "text": "Nevyřízeno"
+    "text": "Nevyřízeno",
+    "source_hash": "331551b0"
   },
   "web.domains.email.status_failed": {
-    "text": "Selhalo"
+    "text": "Selhalo",
+    "source_hash": "031a8f0f"
   },
   "web.domains.email.revalidate": {
-    "text": "Znovu ověřit"
+    "text": "Znovu ověřit",
+    "source_hash": "4918da12"
   },
   "web.domains.email.validating": {
-    "text": "Probíhá ověřování..."
+    "text": "Probíhá ověřování...",
+    "source_hash": "b28b48d5"
   },
   "web.domains.email.domain_verified": {
-    "text": "Doména ověřena"
+    "text": "Doména ověřena",
+    "source_hash": "08e0df67"
   },
   "web.domains.email.validation_failed": {
-    "text": "Ověření se nezdařilo"
+    "text": "Ověření se nezdařilo",
+    "source_hash": "23a86f5a"
   },
   "web.domains.email.last_validated": {
-    "text": "Naposledy ověřeno"
+    "text": "Naposledy ověřeno",
+    "source_hash": "887dd486"
   },
   "web.domains.email.upgrade_to_configure": {
-    "text": "Pro konfiguraci odesílání e-mailů pro tuto doménu přejdi na vyšší plán."
+    "text": "Pro konfiguraci odesílání e-mailů pro tuto doménu přejdi na vyšší plán.",
+    "source_hash": "16a876f7"
   },
   "web.domains.email.configure_email": {
-    "text": "Nakonfigurovat e-mail"
+    "text": "Nakonfigurovat e-mail",
+    "source_hash": "a48c0d40"
   },
   "web.domains.email.access_denied": {
-    "text": "Přístup odepřen"
+    "text": "Přístup odepřen",
+    "source_hash": "d134ca02"
   },
   "web.domains.email.access_denied_description": {
-    "text": "Nemáš oprávnění spravovat nastavení e-mailů pro tuto doménu. Kontaktuj správce své organizace."
+    "text": "Nemáš oprávnění spravovat nastavení e-mailů pro tuto doménu. Kontaktuj správce své organizace.",
+    "source_hash": "32049ff0"
   },
   "web.domains.email.update_success": {
-    "text": "Konfigurace e-mailu byla úspěšně uložena"
+    "text": "Konfigurace e-mailu byla úspěšně uložena",
+    "source_hash": "dd3607fc"
   },
   "web.domains.email.delete_success": {
-    "text": "Konfigurace e-mailu byla úspěšně odebrána"
+    "text": "Konfigurace e-mailu byla úspěšně odebrána",
+    "source_hash": "2ba99a91"
   },
   "web.domains.email.default_sender_notice": {
-    "text": "E-maily pro tuto doménu se aktuálně odesílají z globálního odesílatele. Dokonči konfiguraci e-mailu, abys mohl používat vlastní identitu odesílatele."
+    "text": "E-maily pro tuto doménu se aktuálně odesílají z globálního odesílatele. Dokonči konfiguraci e-mailu, abys mohl používat vlastní identitu odesílatele.",
+    "source_hash": "ffcf39fb"
   },
   "web.domains.email.disabled_notice": {
-    "text": "Vlastní odesílání e-mailů je momentálně zakázáno. E-maily budou odesílány z globálního odesílatele. Povol níže tuto funkci, abys mohl používat vlastní identitu odesílatele."
+    "text": "Vlastní odesílání e-mailů je momentálně zakázáno. E-maily budou odesílány z globálního odesílatele. Povol níže tuto funkci, abys mohl používat vlastní identitu odesílatele.",
+    "source_hash": "60a26f5b"
   },
   "web.domains.email.test_email_title": {
-    "text": "Otestovat doručení e-mailu"
+    "text": "Otestovat doručení e-mailu",
+    "source_hash": "c1b3dee2"
   },
   "web.domains.email.test_email_hint": {
-    "text": "Odešli si testovací e-mail s uloženou konfigurací. Funguje, i když funkce ještě není povolena."
+    "text": "Odešli si testovací e-mail s uloženou konfigurací. Funguje, i když funkce ještě není povolena.",
+    "source_hash": "33e876ad"
   },
   "web.domains.email.send_test": {
-    "text": "Odeslat test"
+    "text": "Odeslat test",
+    "source_hash": "22d7b11d"
   },
   "web.domains.email.test_email_sent": {
-    "text": "Testovací e-mail byl úspěšně odeslán"
+    "text": "Testovací e-mail byl úspěšně odeslán",
+    "source_hash": "561617fd"
   },
   "web.domains.email.test_email_failed": {
-    "text": "Odeslání testovacího e-mailu se nezdařilo"
+    "text": "Odeslání testovacího e-mailu se nezdařilo",
+    "source_hash": "95ce63bc"
   },
   "web.domains.email.test_email_sent_to": {
-    "text": "Odesláno na {email}"
+    "text": "Odesláno na {email}",
+    "source_hash": "8ceb9588"
   },
   "web.domains.email.delivered_via": {
-    "text": "Doručeno přes {provider}"
+    "text": "Doručeno přes {provider}",
+    "source_hash": "f741959b"
   },
   "web.domains.email.badge_not_configured": {
-    "text": "Nenakonfigurováno"
+    "text": "Nenakonfigurováno",
+    "source_hash": "dd1841d2"
   },
   "web.domains.email.badge_default_sender": {
-    "text": "Používá se výchozí odesílatel"
+    "text": "Používá se výchozí odesílatel",
+    "source_hash": "e1afb18f"
   },
   "web.domains.email.badge_verified": {
-    "text": "Ověřeno"
+    "text": "Ověřeno",
+    "source_hash": "4f783840"
   },
   "web.domains.email.badge_pending": {
-    "text": "Čeká na ověření"
+    "text": "Čeká na ověření",
+    "source_hash": "417a6b7e"
   },
   "web.domains.email.badge_disabled": {
-    "text": "Zakázáno"
+    "text": "Zakázáno",
+    "source_hash": "75081b59"
   },
   "web.domains.email.tooltip_not_configured": {
-    "text": "Není nakonfigurován žádný odesílatel e-mailů — e-maily používají výchozího odesílatele platformy"
+    "text": "Není nakonfigurován žádný odesílatel e-mailů — e-maily používají výchozího odesílatele platformy",
+    "source_hash": "360083bb"
   },
   "web.domains.email.tooltip_pending": {
-    "text": "Konfigurace odesílatele e-mailů čeká na ověření — e-maily používají výchozího odesílatele platformy"
+    "text": "Konfigurace odesílatele e-mailů čeká na ověření — e-maily používají výchozího odesílatele platformy",
+    "source_hash": "c8c2449c"
   },
   "web.domains.email.tooltip_disabled": {
-    "text": "Odesílatel e-mailů je zakázán — e-maily používají výchozího odesílatele platformy"
+    "text": "Odesílatel e-mailů je zakázán — e-maily používají výchozího odesílatele platformy",
+    "source_hash": "64e84955"
   },
   "web.domains.email.tooltip_verified": {
-    "text": "Odesílatel e-mailů ověřen — e-maily se odesílají z této domény"
+    "text": "Odesílatel e-mailů ověřen — e-maily se odesílají z této domény",
+    "source_hash": "0e9a005c"
   },
   "web.domains.incoming.title": {
-    "text": "Příchozí tajemství"
+    "text": "Příchozí tajemství",
+    "source_hash": "883dbca9"
   },
   "web.domains.incoming.config_title": {
-    "text": "Konfigurace příchozích tajemství"
+    "text": "Konfigurace příchozích tajemství",
+    "source_hash": "b3fef15b"
   },
   "web.domains.incoming.config_description": {
-    "text": "Umožni externím uživatelům posílat tajemství přímo určeným příjemcům na této doméně"
+    "text": "Umožni externím uživatelům posílat tajemství přímo určeným příjemcům na této doméně",
+    "source_hash": "452ab4fe"
   },
   "web.domains.incoming.feature_disabled": {
-    "text": "Příchozí tajemství nejsou k dispozici"
+    "text": "Příchozí tajemství nejsou k dispozici",
+    "source_hash": "0f96c5ec"
   },
   "web.domains.incoming.feature_disabled_description": {
-    "text": "Příchozí tajemství nejsou na této instanci povolena. Kontaktuj svého správce."
+    "text": "Příchozí tajemství nejsou na této instanci povolena. Kontaktuj svého správce.",
+    "source_hash": "dce981e0"
   },
   "web.domains.incoming.access_denied": {
-    "text": "Přístup odepřen"
+    "text": "Přístup odepřen",
+    "source_hash": "d134ca02"
   },
   "web.domains.incoming.access_denied_description": {
-    "text": "Nemáš oprávnění spravovat nastavení příchozích tajemství pro tuto doménu. Kontaktuj správce své organizace."
+    "text": "Nemáš oprávnění spravovat nastavení příchozích tajemství pro tuto doménu. Kontaktuj správce své organizace.",
+    "source_hash": "3e9d8adc"
   },
   "web.domains.incoming.upgrade_to_configure": {
-    "text": "Pro konfiguraci příchozích tajemství pro tuto doménu přejdi na vyšší plán."
+    "text": "Pro konfiguraci příchozích tajemství pro tuto doménu přejdi na vyšší plán.",
+    "source_hash": "9dfdfeb5"
   },
   "web.domains.incoming.configure_incoming": {
-    "text": "Nakonfigurovat příchozí tajemství"
+    "text": "Nakonfigurovat příchozí tajemství",
+    "source_hash": "eab52939"
   },
   "web.domains.incoming.not_configured_notice": {
-    "text": "Příchozí tajemství nejsou pro tuto doménu nakonfigurována. Přidej příjemce, aby externí uživatelé mohli posílat tajemství tvému týmu."
+    "text": "Příchozí tajemství nejsou pro tuto doménu nakonfigurována. Přidej příjemce, aby externí uživatelé mohli posílat tajemství tvému týmu.",
+    "source_hash": "dbc443a6"
   },
   "web.domains.incoming.disabled_notice": {
-    "text": "Příchozí tajemství jsou momentálně zakázána. Externí uživatelé nemohou posílat tajemství příjemcům na této doméně. Povol níže tuto funkci, abys umožnil příchozí tajemství."
+    "text": "Příchozí tajemství jsou momentálně zakázána. Externí uživatelé nemohou posílat tajemství příjemcům na této doméně. Povol níže tuto funkci, abys umožnil příchozí tajemství.",
+    "source_hash": "d1f8dafb"
   },
   "web.domains.incoming.recipients_title": {
-    "text": "Příjemci"
+    "text": "Příjemci",
+    "source_hash": "1e8568a8"
   },
   "web.domains.incoming.recipients_description": {
-    "text": "Urči, kdo může na této doméně přijímat příchozí tajemství. Příjemci obdrží e-mailová oznámení, když jim bude odesláno tajemství."
+    "text": "Urči, kdo může na této doméně přijímat příchozí tajemství. Příjemci obdrží e-mailová oznámení, když jim bude odesláno tajemství.",
+    "source_hash": "026f9d9d"
   },
   "web.domains.incoming.add_recipient": {
-    "text": "Přidat příjemce"
+    "text": "Přidat příjemce",
+    "source_hash": "25f93c13"
   },
   "web.domains.incoming.remove_recipient": {
-    "text": "Odebrat"
+    "text": "Odebrat",
+    "source_hash": "c3812fc4"
   },
   "web.domains.incoming.email_label": {
-    "text": "E-mailová adresa"
+    "text": "E-mailová adresa",
+    "source_hash": "09bf25ef"
   },
   "web.domains.incoming.email_placeholder": {
-    "text": "recipient{'@'}example.com"
+    "text": "recipient{'@'}example.com",
+    "source_hash": "55d1508e"
   },
   "web.domains.incoming.name_label": {
-    "text": "Zobrazované jméno"
+    "text": "Zobrazované jméno",
+    "source_hash": "18d67c99"
   },
   "web.domains.incoming.name_placeholder": {
-    "text": "např. Security Team"
+    "text": "např. Security Team",
+    "source_hash": "0c52400c"
   },
   "web.domains.incoming.empty_state": {
-    "text": "Nejsou nakonfigurováni žádní příjemci"
+    "text": "Nejsou nakonfigurováni žádní příjemci",
+    "source_hash": "bc8c2058"
   },
   "web.domains.incoming.empty_state_description": {
-    "text": "Přidej příjemce, aby externí uživatelé mohli posílat tajemství tvému týmu."
+    "text": "Přidej příjemce, aby externí uživatelé mohli posílat tajemství tvému týmu.",
+    "source_hash": "2a647a40"
   },
   "web.domains.incoming.validation_invalid_email": {
-    "text": "Neplatná e-mailová adresa"
+    "text": "Neplatná e-mailová adresa",
+    "source_hash": "4eaf1d80"
   },
   "web.domains.incoming.validation_duplicate_email": {
-    "text": "Tato e-mailová adresa už byla přidána"
+    "text": "Tato e-mailová adresa už byla přidána",
+    "source_hash": "f89de141"
   },
   "web.domains.incoming.validation_max_recipients": {
-    "text": "Maximální povolený počet příjemců je {max}"
+    "text": "Maximální povolený počet příjemců je {max}",
+    "source_hash": "e2585847"
   },
   "web.domains.incoming.validation_name_required": {
-    "text": "Zobrazované jméno je povinné"
+    "text": "Zobrazované jméno je povinné",
+    "source_hash": "c6892c89"
   },
   "web.domains.incoming.validation_email_required": {
-    "text": "E-mailová adresa je povinná"
+    "text": "E-mailová adresa je povinná",
+    "source_hash": "41381ba2"
   },
   "web.domains.incoming.save_changes": {
-    "text": "Uložit změny"
+    "text": "Uložit změny",
+    "source_hash": "35322b5b"
   },
   "web.domains.incoming.discard_changes": {
-    "text": "Zahodit změny"
+    "text": "Zahodit změny",
+    "source_hash": "e07e053c"
   },
   "web.domains.incoming.update_success": {
-    "text": "Konfigurace příchozích tajemství byla úspěšně uložena"
+    "text": "Konfigurace příchozích tajemství byla úspěšně uložena",
+    "source_hash": "9317e02d"
   },
   "web.domains.incoming.delete_success": {
-    "text": "Konfigurace příchozích tajemství byla úspěšně odebrána"
+    "text": "Konfigurace příchozích tajemství byla úspěšně odebrána",
+    "source_hash": "4c4a33ae"
   },
   "web.domains.incoming.recipient_count": {
-    "text": "{count} příjemce | {count} příjemci"
+    "text": "{count} příjemce | {count} příjemci",
+    "source_hash": "0e4f5985"
   },
   "web.domains.incoming.badge_not_configured": {
-    "text": "Nenakonfigurováno"
+    "text": "Nenakonfigurováno",
+    "source_hash": "dd1841d2"
   },
   "web.domains.incoming.badge_configured": {
-    "text": "Nakonfigurováno"
+    "text": "Nakonfigurováno",
+    "source_hash": "84aebc69"
   },
   "web.domains.incoming.badge_disabled": {
-    "text": "Zakázáno"
+    "text": "Zakázáno",
+    "source_hash": "75081b59"
   },
   "web.domains.incoming.tooltip_not_configured": {
-    "text": "Příchozí tajemství nejsou nakonfigurována – externí uživatelé nemohou na tuto doménu posílat tajemství"
+    "text": "Příchozí tajemství nejsou nakonfigurována – externí uživatelé nemohou na tuto doménu posílat tajemství",
+    "source_hash": "79786d5c"
   },
   "web.domains.incoming.tooltip_configured": {
-    "text": "Příchozí tajemství povolena s {count} příjemci"
+    "text": "Příchozí tajemství povolena s {count} příjemci",
+    "source_hash": "c205cc54"
   },
   "web.domains.incoming.tooltip_disabled": {
-    "text": "Funkce příchozích tajemství je pro tuto doménu zakázána"
+    "text": "Funkce příchozích tajemství je pro tuto doménu zakázána",
+    "source_hash": "0413f96b"
   },
   "web.domains.incoming.enabled_label": {
-    "text": "Povolit příchozí tajemství"
+    "text": "Povolit příchozí tajemství",
+    "source_hash": "c0b25980"
   },
   "web.domains.incoming.enabled_hint": {
-    "text": "Umožni externím uživatelům posílat tajemství příjemcům na této doméně"
+    "text": "Umožni externím uživatelům posílat tajemství příjemcům na této doméně",
+    "source_hash": "24aadd31"
   },
   "web.domains.incoming.public_url_label": {
-    "text": "Veřejná URL"
+    "text": "Veřejná URL",
+    "source_hash": "f7b60b04"
   },
   "web.domains.incoming.public_url_description": {
-    "text": "Sdílej tuto URL s externími uživateli, aby mohli posílat tajemství"
+    "text": "Sdílej tuto URL s externími uživateli, aby mohli posílat tajemství",
+    "source_hash": "df47a894"
   },
   "web.domains.incoming.copy_url": {
-    "text": "Zkopírovat URL"
+    "text": "Zkopírovat URL",
+    "source_hash": "b26d1037"
   },
   "web.domains.incoming.url_copied": {
-    "text": "URL zkopírována do schránky"
+    "text": "URL zkopírována do schránky",
+    "source_hash": "2f396c3e"
   },
   "web.domains.incoming.remove_all_confirmation": {
-    "text": "Opravdu chceš odebrat všechny příjemce? Externí uživatelé pak již nebudou moci posílat tajemství na tuto doménu."
+    "text": "Opravdu chceš odebrat všechny příjemce? Externí uživatelé pak již nebudou moci posílat tajemství na tuto doménu.",
+    "source_hash": "06f9e551"
   },
   "web.domains.incoming.max_recipients_reached": {
-    "text": "Byl dosažen maximální počet příjemců"
+    "text": "Byl dosažen maximální počet příjemců",
+    "source_hash": "ba659e54"
   },
   "web.domains.incoming.duplicate_recipient": {
-    "text": "Tato e-mailová adresa už byla přidána"
+    "text": "Tato e-mailová adresa už byla přidána",
+    "source_hash": "ca598f6d"
   },
   "web.domains.incoming.save_will_replace_confirmation": {
-    "text": "Uložením nahradíš všechny stávající příjemce svými nevyřízenými změnami. Jsi si jistý?"
+    "text": "Uložením nahradíš všechny stávající příjemce svými nevyřízenými změnami. Jsi si jistý?",
+    "source_hash": "f497862e"
   },
   "web.domains.incoming.delete_all_recipients": {
-    "text": "Smazat všechny příjemce"
+    "text": "Smazat všechny příjemce",
+    "source_hash": "207d0dbe"
   },
   "web.domains.signin.title": {
-    "text": "Konfigurace přihlášení"
+    "text": "Konfigurace přihlášení",
+    "source_hash": "2da38c03"
   },
   "web.domains.signin.configure_signin": {
-    "text": "Nakonfigurovat přihlášení"
+    "text": "Nakonfigurovat přihlášení",
+    "source_hash": "f72b58b5"
   },
   "web.domains.signin.config_description": {
-    "text": "Nakonfiguruj metody ověření přihlášení pro tuto doménu"
+    "text": "Nakonfiguruj metody ověření přihlášení pro tuto doménu",
+    "source_hash": "8efce428"
   },
   "web.domains.signin.access_denied": {
-    "text": "Přístup odepřen"
+    "text": "Přístup odepřen",
+    "source_hash": "d134ca02"
   },
   "web.domains.signin.upgrade_to_configure": {
-    "text": "Pro konfiguraci metod přihlášení pro tuto doménu přejdi na vyšší plán."
+    "text": "Pro konfiguraci metod přihlášení pro tuto doménu přejdi na vyšší plán.",
+    "source_hash": "e242bb74"
   },
   "web.domains.signin.not_configured_notice": {
-    "text": "Konfigurace přihlášení pro tuto doménu zatím není nastavena. Nakonfiguruj přepsání, abys určil, které metody ověření jsou na přihlašovací stránce této domény k dispozici."
+    "text": "Konfigurace přihlášení pro tuto doménu zatím není nastavena. Nakonfiguruj přepsání, abys určil, které metody ověření jsou na přihlašovací stránce této domény k dispozici.",
+    "source_hash": "cb788a2d"
   },
   "web.domains.signin.signin_enabled_label": {
-    "text": "Přihlášení povoleno"
+    "text": "Přihlášení povoleno",
+    "source_hash": "cabe4898"
   },
   "web.domains.signin.header_toggle_label": {
-    "text": "Přihlášení"
+    "text": "Přihlášení",
+    "source_hash": "5bbbe531"
   },
   "web.domains.signin.signin_enabled_hint": {
-    "text": "Zda se uživatelé mohou na této doméně přihlásit"
+    "text": "Zda se uživatelé mohou na této doméně přihlásit",
+    "source_hash": "57a92aee"
   },
   "web.domains.signin.restrict_to_label": {
-    "text": "Omezit metodu přihlášení"
+    "text": "Omezit metodu přihlášení",
+    "source_hash": "edbec83f"
   },
   "web.domains.signin.restrict_to_hint": {
-    "text": "Omez tuto doménu na jedinou metodu ověření. Po nastavení se na přihlašovací stránce zobrazí pouze zvolená metoda."
+    "text": "Omez tuto doménu na jedinou metodu ověření. Po nastavení se na přihlašovací stránce zobrazí pouze zvolená metoda.",
+    "source_hash": "682bc4c5"
   },
   "web.domains.signin.all_methods": {
-    "text": "Všechny metody"
+    "text": "Všechny metody",
+    "source_hash": "e601c19e"
   },
   "web.domains.signin.all_methods_description": {
-    "text": "Zobrazit na přihlašovací stránce všechny povolené metody ověření"
+    "text": "Zobrazit na přihlašovací stránce všechny povolené metody ověření",
+    "source_hash": "62723340"
   },
   "web.domains.signin.method_password": {
-    "text": "Heslo"
+    "text": "Heslo",
+    "source_hash": "e7cf3ef4"
   },
   "web.domains.signin.method_email_auth": {
-    "text": "Ověření e-mailem"
+    "text": "Ověření e-mailem",
+    "source_hash": "68c38f94"
   },
   "web.domains.signin.method_webauthn": {
-    "text": "WebAuthn / Passkeys"
+    "text": "WebAuthn / Passkeys",
+    "source_hash": "c40224ce"
   },
   "web.domains.signin.method_sso": {
-    "text": "Jednotné přihlášení"
+    "text": "Jednotné přihlášení",
+    "source_hash": "cf7cd744"
   },
   "web.domains.signin.method_overrides_label": {
-    "text": "Přepsání metod"
+    "text": "Přepsání metod",
+    "source_hash": "5496cba6"
   },
   "web.domains.signin.method_overrides_hint": {
-    "text": "Povol nebo zakaž jednotlivé metody ověření pro tuto doménu"
+    "text": "Povol nebo zakaž jednotlivé metody ověření pro tuto doménu",
+    "source_hash": "394e3878"
   },
   "web.domains.signin.mode_question": {
-    "text": "Jak se mohou uživatelé přihlásit?"
+    "text": "Jak se mohou uživatelé přihlásit?",
+    "source_hash": "3694eb23"
   },
   "web.domains.signin.mode_any": {
-    "text": "Jakákoli dostupná metoda"
+    "text": "Jakákoli dostupná metoda",
+    "source_hash": "23665425"
   },
   "web.domains.signin.mode_any_hint": {
-    "text": "Zobrazit každou metodu dostupnou na této doméně. Jednotlivé metody upřesni níže."
+    "text": "Zobrazit každou metodu dostupnou na této doméně. Jednotlivé metody upřesni níže.",
+    "source_hash": "2f3dcba6"
   },
   "web.domains.signin.mode_one": {
-    "text": "Jedna konkrétní metoda"
+    "text": "Jedna konkrétní metoda",
+    "source_hash": "601f5768"
   },
   "web.domains.signin.mode_one_hint": {
-    "text": "Omez přihlašovací stránku na jedinou metodu. Uvedeny jsou pouze metody dostupné na této doméně."
+    "text": "Omez přihlašovací stránku na jedinou metodu. Uvedeny jsou pouze metody dostupné na této doméně.",
+    "source_hash": "58bde6d5"
   },
   "web.domains.signin.mode_disabled": {
-    "text": "Přihlášení zakázáno"
+    "text": "Přihlášení zakázáno",
+    "source_hash": "bb807607"
   },
   "web.domains.signin.mode_disabled_hint": {
-    "text": "Uživatelé se na této doméně nemohou přihlásit."
+    "text": "Uživatelé se na této doméně nemohou přihlásit.",
+    "source_hash": "8938f098"
   },
   "web.domains.signin.mode_disabled_notice": {
-    "text": "Návštěvníci přihlašovací stránky této domény uvidí upozornění, že přihlášení není k dispozici, s odkazem zpět na domovskou stránku. Tvá předchozí nastavení metod jsou uchována a obnovena, jakmile přihlášení znovu povolíš."
+    "text": "Návštěvníci přihlašovací stránky této domény uvidí upozornění, že přihlášení není k dispozici, s odkazem zpět na domovskou stránku. Tvá předchozí nastavení metod jsou uchována a obnovena, jakmile přihlášení znovu povolíš.",
+    "source_hash": "1a04de18"
   },
   "web.domains.signin.methods_list_label": {
-    "text": "Metody zobrazené na přihlašovací stránce"
+    "text": "Metody zobrazené na přihlašovací stránce",
+    "source_hash": "66fd133b"
   },
   "web.domains.signin.restrict_picker_hint": {
-    "text": "Uvedeny jsou pouze metody dostupné na této doméně."
+    "text": "Uvedeny jsou pouze metody dostupné na této doméně.",
+    "source_hash": "c7a56f44"
   },
   "web.domains.signin.availability_always": {
-    "text": "Vždy dostupné"
+    "text": "Vždy dostupné",
+    "source_hash": "0fda3772"
   },
   "web.domains.signin.availability_global_on": {
-    "text": "Řídí se globálními zásadami · Zapnuto"
+    "text": "Řídí se globálními zásadami · Zapnuto",
+    "source_hash": "3844e6f7"
   },
   "web.domains.signin.availability_global_off": {
-    "text": "Není dostupné"
+    "text": "Není dostupné",
+    "source_hash": "67a926f7"
   },
   "web.domains.signin.availability_unavailable": {
-    "text": "Nedostupné v celém webu"
+    "text": "Nedostupné v celém webu",
+    "source_hash": "da29c1be"
   },
   "web.domains.signin.allow_on_domain": {
-    "text": "Povolit na této doméně"
+    "text": "Povolit na této doméně",
+    "source_hash": "760b578e"
   },
   "web.domains.signin.method_password_blurb": {
-    "text": "Pouze heslo"
+    "text": "Pouze heslo",
+    "source_hash": "ed1a02fd"
   },
   "web.domains.signin.method_email_auth_blurb": {
-    "text": "Přihlášení magickým odkazem bez hesla"
+    "text": "Přihlášení magickým odkazem bez hesla",
+    "source_hash": "7f776a85"
   },
   "web.domains.signin.method_webauthn_blurb": {
-    "text": "Biometrie a bezpečnostní klíče"
+    "text": "Biometrie a bezpečnostní klíče",
+    "source_hash": "7d6a7bd5"
   },
   "web.domains.signin.method_sso_blurb": {
-    "text": "Externí poskytovatel identity"
+    "text": "Externí poskytovatel identity",
+    "source_hash": "a3442088"
   },
   "web.domains.signin.email_auth_label": {
-    "text": "Ověření e-mailem"
+    "text": "Ověření e-mailem",
+    "source_hash": "68c38f94"
   },
   "web.domains.signin.email_auth_hint": {
-    "text": "Povolit na této doméně ověření e-mailem bez hesla"
+    "text": "Povolit na této doméně ověření e-mailem bez hesla",
+    "source_hash": "6ad82127"
   },
   "web.domains.signin.sso_enabled_label": {
-    "text": "Jednotné přihlášení"
+    "text": "Jednotné přihlášení",
+    "source_hash": "cf7cd744"
   },
   "web.domains.signin.sso_enabled_hint": {
-    "text": "Povolit na této doméně ověření přes SSO"
+    "text": "Povolit na této doméně ověření přes SSO",
+    "source_hash": "22d78ad5"
   },
   "web.domains.signin.enabled_label": {
-    "text": "Povolit konfiguraci přihlášení"
+    "text": "Povolit konfiguraci přihlášení",
+    "source_hash": "dbd8e11c"
   },
   "web.domains.signin.enabled_hint": {
-    "text": "Pokud je povoleno, tato doména používá výše nakonfigurovaná nastavení přihlášení"
+    "text": "Pokud je povoleno, tato doména používá výše nakonfigurovaná nastavení přihlášení",
+    "source_hash": "6259f8a2"
   },
   "web.domains.signin.save_config": {
-    "text": "Uložit konfiguraci"
+    "text": "Uložit konfiguraci",
+    "source_hash": "b2b158f2"
   },
   "web.domains.signin.update_success": {
-    "text": "Konfigurace přihlášení byla úspěšně aktualizována"
+    "text": "Konfigurace přihlášení byla úspěšně aktualizována",
+    "source_hash": "10ea50d8"
   },
   "web.domains.signin.reset_to_defaults": {
-    "text": "Obnovit výchozí nastavení"
+    "text": "Obnovit výchozí nastavení",
+    "source_hash": "e240e635"
   },
   "web.domains.signin.reset_confirm": {
-    "text": "Obnovit přihlášení na globální výchozí nastavení?"
+    "text": "Obnovit přihlášení na globální výchozí nastavení?",
+    "source_hash": "2c6bbc32"
   },
   "web.domains.signin.reset_keeps_sso": {
-    "text": "Tvé přihlašovací údaje SSO jsou uchovány. Odeber je samostatně na obrazovce konfigurace SSO."
+    "text": "Tvé přihlašovací údaje SSO jsou uchovány. Odeber je samostatně na obrazovce konfigurace SSO.",
+    "source_hash": "edc0c756"
   },
   "web.domains.signin.reset_action": {
-    "text": "Ano, obnovit"
+    "text": "Ano, obnovit",
+    "source_hash": "4bb21d8b"
   },
   "web.domains.signin.reset_success": {
-    "text": "Nastavení přihlášení obnoveno na globální výchozí hodnoty"
+    "text": "Nastavení přihlášení obnoveno na globální výchozí hodnoty",
+    "source_hash": "0c364d89"
   },
   "web.domains.signup.title": {
-    "text": "Ověření registrace"
+    "text": "Ověření registrace",
+    "source_hash": "2c34ac0a"
   },
   "web.domains.signup.config_description": {
-    "text": "Nakonfiguruj ověření registrace pro tuto doménu"
+    "text": "Nakonfiguruj ověření registrace pro tuto doménu",
+    "source_hash": "e9c81e8a"
   },
   "web.domains.signup.access_denied": {
-    "text": "Přístup odepřen"
+    "text": "Přístup odepřen",
+    "source_hash": "d134ca02"
   },
   "web.domains.signup.upgrade_to_configure": {
-    "text": "Pro konfiguraci ověření registrace pro jednotlivé domény přejdi na vyšší plán."
+    "text": "Pro konfiguraci ověření registrace pro jednotlivé domény přejdi na vyšší plán.",
+    "source_hash": "d87d6614"
   },
   "web.domains.signup.configure_signup": {
-    "text": "Nakonfigurovat registraci"
+    "text": "Nakonfigurovat registraci",
+    "source_hash": "e2697662"
   },
   "web.domains.signup.not_configured_notice": {
-    "text": "Ověření registrace pro tuto doménu zatím není nakonfigurováno. Nakonfiguruj strategii, abys určil, kdo se může prostřednictvím této domény zaregistrovat."
+    "text": "Ověření registrace pro tuto doménu zatím není nakonfigurováno. Nakonfiguruj strategii, abys určil, kdo se může prostřednictvím této domény zaregistrovat.",
+    "source_hash": "fc6c6eb8"
   },
   "web.domains.signup.site_signups_disabled_warning": {
-    "text": "Registrace jsou momentálně zakázány na úrovni webu. Tyto zásady pro jednotlivou doménu jsou nakonfigurovány, ale nebudou žádný provoz omezovat, dokud nebudou registrace na webu povoleny."
+    "text": "Registrace jsou momentálně zakázány na úrovni webu. Tyto zásady pro jednotlivou doménu jsou nakonfigurovány, ale nebudou žádný provoz omezovat, dokud nebudou registrace na webu povoleny.",
+    "source_hash": "c0e59f86"
   },
   "web.domains.signup.strategy_label": {
-    "text": "Strategie ověření"
+    "text": "Strategie ověření",
+    "source_hash": "a2e95531"
   },
   "web.domains.signup.strategy_description": {
-    "text": "Zvol, jak se ověřují e-mailové adresy, když se uživatelé na této doméně registrují."
+    "text": "Zvol, jak se ověřují e-mailové adresy, když se uživatelé na této doméně registrují.",
+    "source_hash": "8e232b03"
   },
   "web.domains.signup.network_validation_warning": {
-    "text": "Tato strategie během registrace provádí síťová volání, což může přidat latenci nebo může být některými poskytovateli blokováno."
+    "text": "Tato strategie během registrace provádí síťová volání, což může přidat latenci nebo může být některými poskytovateli blokováno.",
+    "source_hash": "53d4c266"
   },
   "web.domains.signup.allowed_domains_label": {
-    "text": "Povolené domény pro registraci"
+    "text": "Povolené domény pro registraci",
+    "source_hash": "9b5bb5b1"
   },
   "web.domains.signup.allowed_domains_hint": {
-    "text": "Zaregistrovat se budou moci pouze tyto e-mailové domény. Přidej jednu doménu na položku."
+    "text": "Zaregistrovat se budou moci pouze tyto e-mailové domény. Přidej jednu doménu na položku.",
+    "source_hash": "c082414d"
   },
   "web.domains.signup.domain_placeholder": {
-    "text": "example.com"
+    "text": "example.com",
+    "source_hash": "a379a6f6"
   },
   "web.domains.signup.invalid_domain": {
-    "text": "Zadej prosím platnou doménu (např. example.com)"
+    "text": "Zadej prosím platnou doménu (např. example.com)",
+    "source_hash": "16807983"
   },
   "web.domains.signup.domain_exists": {
-    "text": "Tato doména už je v seznamu"
+    "text": "Tato doména už je v seznamu",
+    "source_hash": "3fccb721"
   },
   "web.domains.signup.remove_domain": {
-    "text": "Odebrat {domain}"
+    "text": "Odebrat {domain}",
+    "source_hash": "ae708a1d"
   },
   "web.domains.signup.enabled_label": {
-    "text": "Povolit ověření pro jednotlivé domény"
+    "text": "Povolit ověření pro jednotlivé domény",
+    "source_hash": "db103925"
   },
   "web.domains.signup.enabled_hint": {
-    "text": "Pokud je povoleno, registrace na této doméně používají výše uvedenou strategii místo globálních zásad."
+    "text": "Pokud je povoleno, registrace na této doméně používají výše uvedenou strategii místo globálních zásad.",
+    "source_hash": "99de2008"
   },
   "web.domains.signup.delete_config": {
-    "text": "Smazat konfiguraci"
+    "text": "Smazat konfiguraci",
+    "source_hash": "a9a30c7f"
   },
   "web.domains.signup.delete_confirm": {
-    "text": "Smazat konfiguraci ověření registrace? Registrace se vrátí ke globálním zásadám."
+    "text": "Smazat konfiguraci ověření registrace? Registrace se vrátí ke globálním zásadám.",
+    "source_hash": "a8c9086e"
   },
   "web.domains.signup.save_config": {
-    "text": "Uložit konfiguraci"
+    "text": "Uložit konfiguraci",
+    "source_hash": "b2b158f2"
   },
   "web.domains.signup.update_success": {
-    "text": "Ověření registrace bylo úspěšně aktualizováno"
+    "text": "Ověření registrace bylo úspěšně aktualizováno",
+    "source_hash": "57a529ac"
   },
   "web.domains.signup.delete_success": {
-    "text": "Konfigurace ověření registrace byla úspěšně odebrána"
+    "text": "Konfigurace ověření registrace byla úspěšně odebrána",
+    "source_hash": "eb6add4d"
   },
   "web.domains.signup.domain_overrides_label": {
-    "text": "Přepsání domény"
+    "text": "Přepsání domény",
+    "source_hash": "d25da3cd"
   },
   "web.domains.signup.domain_overrides_hint": {
-    "text": "Přepsat globální nastavení registrace pro tuto doménu"
+    "text": "Přepsat globální nastavení registrace pro tuto doménu",
+    "source_hash": "53101057"
   },
   "web.domains.signup.signup_enabled_label": {
-    "text": "Registrace povolena"
+    "text": "Registrace povolena",
+    "source_hash": "296ac66d"
   },
   "web.domains.signup.signup_enabled_hint": {
-    "text": "Přepsat, zda je pro tuto doménu povolena registrace"
+    "text": "Přepsat, zda je pro tuto doménu povolena registrace",
+    "source_hash": "2ee146b6"
   },
   "web.domains.signup.autoverify_label": {
-    "text": "Automaticky ověřovat účty"
+    "text": "Automaticky ověřovat účty",
+    "source_hash": "4b103cd5"
   },
   "web.domains.signup.autoverify_hint": {
-    "text": "Přepsat, zda jsou nové účty na této doméně automaticky ověřovány"
+    "text": "Přepsat, zda jsou nové účty na této doméně automaticky ověřovány",
+    "source_hash": "63866ecd"
   },
   "web.domains.sso.title": {
-    "text": "Jednotné přihlášení"
+    "text": "Jednotné přihlášení",
+    "source_hash": "cf7cd744"
   },
   "web.domains.sso.config_title": {
-    "text": "Konfigurace SSO"
+    "text": "Konfigurace SSO",
+    "source_hash": "afd5751e"
   },
   "web.domains.sso.config_description": {
-    "text": "Nakonfiguruj ověření jednotným přihlášením pro tuto doménu"
+    "text": "Nakonfiguruj ověření jednotným přihlášením pro tuto doménu",
+    "source_hash": "f37a0b47"
   },
   "web.domains.sso.access_denied": {
-    "text": "Přístup odepřen"
+    "text": "Přístup odepřen",
+    "source_hash": "d134ca02"
   },
   "web.domains.sso.access_denied_description": {
-    "text": "Nemáš oprávnění spravovat nastavení SSO pro tuto doménu. Kontaktuj správce své organizace."
+    "text": "Nemáš oprávnění spravovat nastavení SSO pro tuto doménu. Kontaktuj správce své organizace.",
+    "source_hash": "db7fcfeb"
   },
   "web.domains.sso.upgrade_to_configure": {
-    "text": "Pro konfiguraci jednotného přihlášení pro tuto doménu přejdi na vyšší plán."
+    "text": "Pro konfiguraci jednotného přihlášení pro tuto doménu přejdi na vyšší plán.",
+    "source_hash": "71fc0069"
   },
   "web.domains.sso.create_success": {
-    "text": "Konfigurace SSO byla úspěšně vytvořena"
+    "text": "Konfigurace SSO byla úspěšně vytvořena",
+    "source_hash": "531c7d92"
   },
   "web.domains.sso.update_success": {
-    "text": "Konfigurace SSO byla úspěšně aktualizována"
+    "text": "Konfigurace SSO byla úspěšně aktualizována",
+    "source_hash": "d98d8e83"
   },
   "web.domains.sso.delete_success": {
-    "text": "Konfigurace SSO byla úspěšně odebrána"
+    "text": "Konfigurace SSO byla úspěšně odebrána",
+    "source_hash": "2e924798"
   },
   "web.domains.sso.test_success": {
-    "text": "Test připojení byl úspěšný — poskytovatel odpověděl správně"
+    "text": "Test připojení byl úspěšný — poskytovatel odpověděl správně",
+    "source_hash": "1570ddb0"
   },
   "web.domains.sso.test_failed": {
-    "text": "Test připojení se nezdařil"
+    "text": "Test připojení se nezdařil",
+    "source_hash": "a45a37dd"
   },
   "web.domains.sso.enforce_moved_notice": {
-    "text": "Chceš-li vyžadovat SSO pro všechna přihlášení na této doméně, nakonfiguruj to v nastavení přihlášení dané domény. Režim pouze SSO omezuje přihlašovací stránku na poskytovatele SSO nakonfigurovaného zde."
+    "text": "Chceš-li vyžadovat SSO pro všechna přihlášení na této doméně, nakonfiguruj to v nastavení přihlášení dané domény. Režim pouze SSO omezuje přihlašovací stránku na poskytovatele SSO nakonfigurovaného zde.",
+    "source_hash": "d26627a5"
   },
   "web.domains.sso.configure_sso": {
-    "text": "Nakonfigurovat SSO"
+    "text": "Nakonfigurovat SSO",
+    "source_hash": "80d3a144"
   },
   "web.domains.sso.not_configured_notice": {
-    "text": "SSO pro tuto doménu zatím není nakonfigurováno. Povol jednotné přihlášení, aby se členové týmu mohli ověřovat pomocí poskytovatele identity tvé organizace."
+    "text": "SSO pro tuto doménu zatím není nakonfigurováno. Povol jednotné přihlášení, aby se členové týmu mohli ověřovat pomocí poskytovatele identity tvé organizace.",
+    "source_hash": "c439214b"
   },
   "web.domains.sso.edit_credentials": {
-    "text": "Upravit přihlašovací údaje"
+    "text": "Upravit přihlašovací údaje",
+    "source_hash": "5a6622b6"
   },
   "web.domains.sso.configure_button": {
-    "text": "Nakonfigurovat"
+    "text": "Nakonfigurovat",
+    "source_hash": "6defafa2"
   },
   "web.domains.sso.upgrade_required": {
-    "text": "Pro konfiguraci přejdi na vyšší plán"
+    "text": "Pro konfiguraci přejdi na vyšší plán",
+    "source_hash": "571cfa98"
   }
 }

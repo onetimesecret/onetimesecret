@@ -855,39 +855,51 @@
     "source_hash": "1cd0194a"
   },
   "email.common.secret_link_label": {
-    "text": "一次性链接"
+    "text": "一次性链接",
+    "source_hash": "18ddf44f"
   },
   "email.common.automated_notice": {
-    "text": "这是来自 %{product_name} 的自动消息。"
+    "text": "这是来自 %{product_name} 的自动消息。",
+    "source_hash": "8fbabfba"
   },
   "email.common.support_label": {
-    "text": "支持"
+    "text": "支持",
+    "source_hash": "be91940b"
   },
   "email.expiration_warning.signature": {
-    "text": "支持团队"
+    "text": "支持团队",
+    "source_hash": "dc75bf9f"
   },
   "email.expiration_warning.footer_note": {
-    "text": "您收到此消息是因为您在 %{product_name} 上创建的机密内容即将过期。"
+    "text": "您收到此消息是因为您在 %{product_name} 上创建的机密内容即将过期。",
+    "source_hash": "920779e4"
   },
   "email.feedback_email.user_id_label": {
-    "text": "用户："
+    "text": "用户：",
+    "source_hash": "93d6b3e9"
   },
   "email.feedback_email.timezone_label": {
-    "text": "时区："
+    "text": "时区：",
+    "source_hash": "39651ebf"
   },
   "email.feedback_email.version_label": {
-    "text": "版本："
+    "text": "版本：",
+    "source_hash": "4c5726ee"
   },
   "email.incoming_secret.footer_note": {
-    "text": "您收到此消息是因为有人使用 %{product_name} 向您发送了机密内容。如果这不是您所预期的，您可以放心忽略此邮件。"
+    "text": "您收到此消息是因为有人使用 %{product_name} 向您发送了机密内容。如果这不是您所预期的，您可以放心忽略此邮件。",
+    "source_hash": "91ee6e8d"
   },
   "email.secret_link.passphrase_label": {
-    "text": "需要口令："
+    "text": "需要口令：",
+    "source_hash": "1ab9a20f"
   },
   "email.secret_link.passphrase_required": {
-    "text": "此机密内容受口令保护。发送者应另行向您提供口令。"
+    "text": "此机密内容受口令保护。发送者应另行向您提供口令。",
+    "source_hash": "1e49826b"
   },
   "email.secret_link.footer_note": {
-    "text": "您收到此消息是因为 %{sender_email} 使用 %{product_name} 向您分享了机密内容。如果这不是您所预期的，您可以放心忽略此邮件。"
+    "text": "您收到此消息是因为 %{sender_email} 使用 %{product_name} 向您分享了机密内容。如果这不是您所预期的，您可以放心忽略此邮件。",
+    "source_hash": "2d544dad"
   }
 }

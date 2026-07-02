@@ -1,5 +1,6 @@
 {
   "api.incoming.errors.custom_domain_unresolved": {
-    "text": "Nie można ustalić organizacji dla domeny niestandardowej"
+    "text": "Nie można ustalić organizacji dla domeny niestandardowej",
+    "source_hash": "b30d65d2"
   }
 }

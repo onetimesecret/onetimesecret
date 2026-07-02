@@ -1,5 +1,6 @@
 {
   "api.feedback.errors.rate_limit_exceeded": {
-    "text": "反馈提交次数过多。请稍后重试。"
+    "text": "反馈提交次数过多。请稍后重试。",
+    "source_hash": "3a890eb2"
   }
 }

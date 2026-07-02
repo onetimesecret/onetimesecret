@@ -188,6 +188,7 @@
     "source_hash": "7a757670"
   },
   "web.regions.no_region_configured": {
-    "text": "Hiện không có thông tin khu vực cho tài khoản của bạn."
+    "text": "Hiện không có thông tin khu vực cho tài khoản của bạn.",
+    "source_hash": "bbfe2a32"
   }
 }

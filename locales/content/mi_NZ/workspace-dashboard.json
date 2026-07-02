@@ -24,12 +24,15 @@
     "source_hash": "ff0d904e"
   },
   "web.teams.create_first_team_title": {
-    "text": "Waihanga i tō rōpū tuatahi"
+    "text": "Waihanga i tō rōpū tuatahi",
+    "source_hash": "54693f14"
   },
   "web.teams.create_first_team_description": {
-    "text": "Mā ngā rōpū koe e āhei ai ki te mahi tahi me ētahi atu i tētahi wāhi mahi tohatohahia."
+    "text": "Mā ngā rōpū koe e āhei ai ki te mahi tahi me ētahi atu i tētahi wāhi mahi tohatohahia.",
+    "source_hash": "d61b86b5"
   },
   "web.teams.create_team": {
-    "text": "Waihanga rōpū"
+    "text": "Waihanga rōpū",
+    "source_hash": "284ff194"
   }
 }

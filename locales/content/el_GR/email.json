@@ -855,39 +855,51 @@
     "source_hash": "1cd0194a"
   },
   "email.common.secret_link_label": {
-    "text": "Σύνδεσμος μυστικού"
+    "text": "Σύνδεσμος μυστικού",
+    "source_hash": "18ddf44f"
   },
   "email.common.automated_notice": {
-    "text": "Αυτό είναι ένα αυτοματοποιημένο μήνυμα από το %{product_name}."
+    "text": "Αυτό είναι ένα αυτοματοποιημένο μήνυμα από το %{product_name}.",
+    "source_hash": "8fbabfba"
   },
   "email.common.support_label": {
-    "text": "Υποστήριξη"
+    "text": "Υποστήριξη",
+    "source_hash": "be91940b"
   },
   "email.expiration_warning.signature": {
-    "text": "Ομάδα υποστήριξης"
+    "text": "Ομάδα υποστήριξης",
+    "source_hash": "dc75bf9f"
   },
   "email.expiration_warning.footer_note": {
-    "text": "Λάβατε αυτό το μήνυμα επειδή ένα μυστικό που δημιουργήσατε στο %{product_name} πρόκειται να λήξει."
+    "text": "Λάβατε αυτό το μήνυμα επειδή ένα μυστικό που δημιουργήσατε στο %{product_name} πρόκειται να λήξει.",
+    "source_hash": "920779e4"
   },
   "email.feedback_email.user_id_label": {
-    "text": "Χρήστης:"
+    "text": "Χρήστης:",
+    "source_hash": "93d6b3e9"
   },
   "email.feedback_email.timezone_label": {
-    "text": "Ζώνη ώρας:"
+    "text": "Ζώνη ώρας:",
+    "source_hash": "39651ebf"
   },
   "email.feedback_email.version_label": {
-    "text": "Έκδοση:"
+    "text": "Έκδοση:",
+    "source_hash": "4c5726ee"
   },
   "email.incoming_secret.footer_note": {
-    "text": "Λάβατε αυτό το μήνυμα επειδή κάποιος χρησιμοποίησε το %{product_name} για να σας στείλει ένα μυστικό. Αν δεν το περιμένατε, μπορείτε να αγνοήσετε με ασφάλεια αυτό το email."
+    "text": "Λάβατε αυτό το μήνυμα επειδή κάποιος χρησιμοποίησε το %{product_name} για να σας στείλει ένα μυστικό. Αν δεν το περιμένατε, μπορείτε να αγνοήσετε με ασφάλεια αυτό το email.",
+    "source_hash": "91ee6e8d"
   },
   "email.secret_link.passphrase_label": {
-    "text": "Απαιτείται φράση πρόσβασης:"
+    "text": "Απαιτείται φράση πρόσβασης:",
+    "source_hash": "1ab9a20f"
   },
   "email.secret_link.passphrase_required": {
-    "text": "Αυτό το μυστικό προστατεύεται με φράση πρόσβασης. Ο αποστολέας θα πρέπει να σας τη δώσει ξεχωριστά."
+    "text": "Αυτό το μυστικό προστατεύεται με φράση πρόσβασης. Ο αποστολέας θα πρέπει να σας τη δώσει ξεχωριστά.",
+    "source_hash": "1e49826b"
   },
   "email.secret_link.footer_note": {
-    "text": "Λάβατε αυτό το μήνυμα επειδή ο %{sender_email} χρησιμοποίησε το %{product_name} για να μοιραστεί ένα μυστικό μαζί σας. Αν δεν το περιμένατε, μπορείτε να αγνοήσετε με ασφάλεια αυτό το email."
+    "text": "Λάβατε αυτό το μήνυμα επειδή ο %{sender_email} χρησιμοποίησε το %{product_name} για να μοιραστεί ένα μυστικό μαζί σας. Αν δεν το περιμένατε, μπορείτε να αγνοήσετε με ασφάλεια αυτό το email.",
+    "source_hash": "2d544dad"
   }
 }

@@ -636,150 +636,199 @@
     "source_hash": "fe77172e"
   },
   "web.colonel.previewPlanMode": {
-    "text": "Режим предпросмотра плана"
+    "text": "Режим предпросмотра плана",
+    "source_hash": "cf53f19d"
   },
   "web.colonel.previewModeDescription": {
-    "text": "Просмотрите приложение так, как оно отображается для клиентов на другом плане. Это влияет только на ваш просмотр и не изменяет фактический план какой-либо организации."
+    "text": "Просмотрите приложение так, как оно отображается для клиентов на другом плане. Это влияет только на ваш просмотр и не изменяет фактический план какой-либо организации.",
+    "source_hash": "6fe23f23"
   },
   "web.colonel.previewModeActive": {
-    "text": "Предпросмотр активен"
+    "text": "Предпросмотр активен",
+    "source_hash": "a558d603"
   },
   "web.colonel.bannedIps.empty": {
-    "text": "Нет заблокированных IP-адресов"
+    "text": "Нет заблокированных IP-адресов",
+    "source_hash": "bd101143"
   },
   "web.colonel.bannedIps.currentIp": {
-    "text": "Ваш текущий IP-адрес"
+    "text": "Ваш текущий IP-адрес",
+    "source_hash": "72f9fefe"
   },
   "web.colonel.bannedIps.confirmUnban": {
-    "text": "Разблокировать {ip}?"
+    "text": "Разблокировать {ip}?",
+    "source_hash": "ff009b1c"
   },
   "web.colonel.bannedIps.actions.ban": {
-    "text": "Заблокировать IP"
+    "text": "Заблокировать IP",
+    "source_hash": "f91a5285"
   },
   "web.colonel.bannedIps.actions.quickBan": {
-    "text": "Быстрая блокировка"
+    "text": "Быстрая блокировка",
+    "source_hash": "c32d0943"
   },
   "web.colonel.bannedIps.actions.unban": {
-    "text": "Разблокировать"
+    "text": "Разблокировать",
+    "source_hash": "25fb5989"
   },
   "web.colonel.bannedIps.actions.cancel": {
-    "text": "Отмена"
+    "text": "Отмена",
+    "source_hash": "19766ed6"
   },
   "web.colonel.bannedIps.columns.ipAddress": {
-    "text": "IP-адрес"
+    "text": "IP-адрес",
+    "source_hash": "3c3de0c9"
   },
   "web.colonel.bannedIps.columns.reason": {
-    "text": "Причина"
+    "text": "Причина",
+    "source_hash": "f81ab834"
   },
   "web.colonel.bannedIps.columns.bannedAt": {
-    "text": "Заблокирован"
+    "text": "Заблокирован",
+    "source_hash": "dfbd120e"
   },
   "web.colonel.bannedIps.columns.bannedBy": {
-    "text": "Кем заблокирован"
+    "text": "Кем заблокирован",
+    "source_hash": "9f47db0e"
   },
   "web.colonel.bannedIps.error.banFailed": {
-    "text": "Не удалось заблокировать IP-адрес"
+    "text": "Не удалось заблокировать IP-адрес",
+    "source_hash": "24e94d9b"
   },
   "web.colonel.bannedIps.error.unbanFailed": {
-    "text": "Не удалось разблокировать IP-адрес"
+    "text": "Не удалось разблокировать IP-адрес",
+    "source_hash": "66bbac9a"
   },
   "web.colonel.bannedIps.form.title": {
-    "text": "Заблокировать IP-адрес"
+    "text": "Заблокировать IP-адрес",
+    "source_hash": "3f5b3dfa"
   },
   "web.colonel.bannedIps.form.ipLabel": {
-    "text": "IP-адрес"
+    "text": "IP-адрес",
+    "source_hash": "3c3de0c9"
   },
   "web.colonel.bannedIps.form.reasonLabel": {
-    "text": "Причина"
+    "text": "Причина",
+    "source_hash": "f81ab834"
   },
   "web.colonel.bannedIps.form.reasonPlaceholder": {
-    "text": "Необязательная причина"
+    "text": "Необязательная причина",
+    "source_hash": "956688a5"
   },
   "web.colonel.bannedIps.success.banned": {
-    "text": "IP-адрес {ip} заблокирован"
+    "text": "IP-адрес {ip} заблокирован",
+    "source_hash": "b6f861d5"
   },
   "web.colonel.bannedIps.success.unbanned": {
-    "text": "IP-адрес {ip} разблокирован"
+    "text": "IP-адрес {ip} разблокирован",
+    "source_hash": "dbe93550"
   },
   "web.colonel.customDomains.empty": {
-    "text": "Пользовательские домены не настроены"
+    "text": "Пользовательские домены не настроены",
+    "source_hash": "e10b39f7"
   },
   "web.colonel.customDomains.noLogo": {
-    "text": "Нет логотипа"
+    "text": "Нет логотипа",
+    "source_hash": "ee5e36ff"
   },
   "web.colonel.customDomains.labels.organization": {
-    "text": "Организация"
+    "text": "Организация",
+    "source_hash": "d764d425"
   },
   "web.colonel.customDomains.labels.externalId": {
-    "text": "Внешний ID"
+    "text": "Внешний ID",
+    "source_hash": "69da56ba"
   },
   "web.colonel.customDomains.labels.created": {
-    "text": "Создано"
+    "text": "Создано",
+    "source_hash": "d70b9e24"
   },
   "web.colonel.customDomains.labels.updated": {
-    "text": "Обновлено"
+    "text": "Обновлено",
+    "source_hash": "3a5ecca1"
   },
   "web.colonel.customDomains.labels.favicon": {
-    "text": "Favicon"
+    "text": "Favicon",
+    "source_hash": "42955289"
   },
   "web.colonel.customDomains.status.verified": {
-    "text": "Подтверждён"
+    "text": "Подтверждён",
+    "source_hash": "4f783840"
   },
   "web.colonel.customDomains.status.resolving": {
-    "text": "Разрешение DNS"
+    "text": "Разрешение DNS",
+    "source_hash": "3287a034"
   },
   "web.colonel.customDomains.status.ready": {
-    "text": "Готов"
+    "text": "Готов",
+    "source_hash": "5fa7aac5"
   },
   "web.colonel.customDomains.status.publicHomepage": {
-    "text": "Публичная главная страница"
+    "text": "Публичная главная страница",
+    "source_hash": "2ae3ccba"
   },
   "web.colonel.customDomains.status.publicApi": {
-    "text": "Публичный API"
+    "text": "Публичный API",
+    "source_hash": "ab3aa426"
   },
   "web.colonel.customDomains.status.pending": {
-    "text": "Ожидание"
+    "text": "Ожидание",
+    "source_hash": "331551b0"
   },
   "web.colonel.pagination.showing": {
-    "text": "Показано {start}–{end} из {total}"
+    "text": "Показано {start}–{end} из {total}",
+    "source_hash": "64af6de2"
   },
   "web.colonel.pagination.itemsPerPage": {
-    "text": "Элементов на странице"
+    "text": "Элементов на странице",
+    "source_hash": "766a02e0"
   },
   "web.colonel.pagination.perPage": {
-    "text": "{count} на странице"
+    "text": "{count} на странице",
+    "source_hash": "34671d42"
   },
   "web.colonel.pagination.pageOf": {
-    "text": "Страница {current} из {total}"
+    "text": "Страница {current} из {total}",
+    "source_hash": "f0df6412"
   },
   "web.colonel.secrets.empty": {
-    "text": "Секреты не найдены"
+    "text": "Секреты не найдены",
+    "source_hash": "28647b3b"
   },
   "web.colonel.secrets.never": {
-    "text": "Никогда"
+    "text": "Никогда",
+    "source_hash": "6300ef80"
   },
   "web.colonel.secrets.columns.shortId": {
-    "text": "Короткий ID"
+    "text": "Короткий ID",
+    "source_hash": "7eaeb4a7"
   },
   "web.colonel.secrets.columns.state": {
-    "text": "Состояние"
+    "text": "Состояние",
+    "source_hash": "a3b50c47"
   },
   "web.colonel.secrets.columns.created": {
-    "text": "Создан"
+    "text": "Создан",
+    "source_hash": "d70b9e24"
   },
   "web.colonel.secrets.columns.expiration": {
-    "text": "Срок действия"
+    "text": "Срок действия",
+    "source_hash": "f38d6e0e"
   },
   "web.colonel.secrets.columns.age": {
-    "text": "Возраст (дней)"
+    "text": "Возраст (дней)",
+    "source_hash": "52ae64c6"
   },
   "web.colonel.secrets.state.new": {
-    "text": "Новый"
+    "text": "Новый",
+    "source_hash": "18fdd549"
   },
   "web.colonel.secrets.state.received": {
-    "text": "Получен"
+    "text": "Получен",
+    "source_hash": "49f19bee"
   },
   "web.colonel.secrets.state.viewed": {
-    "text": "Просмотрен"
+    "text": "Просмотрен",
+    "source_hash": "1b28d178"
   }
 }

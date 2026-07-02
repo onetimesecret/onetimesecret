@@ -1,71 +1,94 @@
 {
   "api.entitlements.errors.context_unavailable": {
-    "text": "Berechtigungen können nicht überprüft werden (Organisationskontext nicht verfügbar)"
+    "text": "Berechtigungen können nicht überprüft werden (Organisationskontext nicht verfügbar)",
+    "source_hash": "704dc629"
   },
   "api.entitlements.errors.api_access_required": {
-    "text": "API-Zugriff erfordert ein Upgrade Ihres Tarifs"
+    "text": "API-Zugriff erfordert ein Upgrade Ihres Tarifs",
+    "source_hash": "844d294b"
   },
   "api.entitlements.errors.custom_privacy_defaults_required": {
-    "text": "Benutzerdefinierte Datenschutz-Voreinstellungen erfordern ein Upgrade Ihres Tarifs"
+    "text": "Benutzerdefinierte Datenschutz-Voreinstellungen erfordern ein Upgrade Ihres Tarifs",
+    "source_hash": "4e71274d"
   },
   "api.entitlements.errors.extended_default_expiration_required": {
-    "text": "Eine erweiterte Standard-Ablaufzeit erfordert ein Upgrade Ihres Tarifs"
+    "text": "Eine erweiterte Standard-Ablaufzeit erfordert ein Upgrade Ihres Tarifs",
+    "source_hash": "efa702e7"
   },
   "api.entitlements.errors.custom_domains_required": {
-    "text": "Benutzerdefinierte Bereiche erfordern ein Upgrade Ihres Tarifs"
+    "text": "Benutzerdefinierte Bereiche erfordern ein Upgrade Ihres Tarifs",
+    "source_hash": "a23e2184"
   },
   "api.entitlements.errors.custom_branding_required": {
-    "text": "Benutzerdefiniertes Branding erfordert ein Upgrade Ihres Tarifs"
+    "text": "Benutzerdefiniertes Branding erfordert ein Upgrade Ihres Tarifs",
+    "source_hash": "a4c40a3a"
   },
   "api.entitlements.errors.homepage_secrets_required": {
-    "text": "Nachrichten auf der Startseite erfordern ein Upgrade Ihres Tarifs"
+    "text": "Nachrichten auf der Startseite erfordern ein Upgrade Ihres Tarifs",
+    "source_hash": "650eeca8"
   },
   "api.entitlements.errors.incoming_secrets_required": {
-    "text": "Eingehende Nachrichten erfordern ein Upgrade Ihres Tarifs"
+    "text": "Eingehende Nachrichten erfordern ein Upgrade Ihres Tarifs",
+    "source_hash": "ce1d47ef"
   },
   "api.entitlements.errors.custom_mail_sender_required": {
-    "text": "Ein benutzerdefinierter E-Mail-Absender erfordert ein Upgrade Ihres Tarifs"
+    "text": "Ein benutzerdefinierter E-Mail-Absender erfordert ein Upgrade Ihres Tarifs",
+    "source_hash": "e058da13"
   },
   "api.entitlements.errors.flexible_from_domain_required": {
-    "text": "Eine flexible Absender-Domäne erfordert ein Upgrade Ihres Tarifs"
+    "text": "Eine flexible Absender-Domäne erfordert ein Upgrade Ihres Tarifs",
+    "source_hash": "4931dc05"
   },
   "api.entitlements.errors.manage_org_required": {
-    "text": "Die Organisationsverwaltung erfordert ein Upgrade Ihres Tarifs"
+    "text": "Die Organisationsverwaltung erfordert ein Upgrade Ihres Tarifs",
+    "source_hash": "66a2cd10"
   },
   "api.entitlements.errors.manage_teams_required": {
-    "text": "Die Teamverwaltung erfordert ein Upgrade Ihres Tarifs"
+    "text": "Die Teamverwaltung erfordert ein Upgrade Ihres Tarifs",
+    "source_hash": "f7f4062f"
   },
   "api.entitlements.errors.manage_members_required": {
-    "text": "Die Mitgliederverwaltung erfordert ein Upgrade Ihres Tarifs"
+    "text": "Die Mitgliederverwaltung erfordert ein Upgrade Ihres Tarifs",
+    "source_hash": "f73b80db"
   },
   "api.entitlements.errors.manage_sso_required": {
-    "text": "Die SSO-Verwaltung erfordert ein Upgrade Ihres Tarifs"
+    "text": "Die SSO-Verwaltung erfordert ein Upgrade Ihres Tarifs",
+    "source_hash": "4e5da22d"
   },
   "api.entitlements.errors.audit_logs_required": {
-    "text": "Audit-Logs erfordern ein Upgrade Ihres Tarifs"
+    "text": "Audit-Logs erfordern ein Upgrade Ihres Tarifs",
+    "source_hash": "1ff748bc"
   },
   "api.entitlements.errors.custom_signup_validation_required": {
-    "text": "Eine benutzerdefinierte Registrierungsvalidierung erfordert ein Upgrade Ihres Tarifs"
+    "text": "Eine benutzerdefinierte Registrierungsvalidierung erfordert ein Upgrade Ihres Tarifs",
+    "source_hash": "93c9befa"
   },
   "api.entitlements.errors.create_secrets_required": {
-    "text": "Das Erstellen von Nachrichten erfordert ein Upgrade Ihres Tarifs"
+    "text": "Das Erstellen von Nachrichten erfordert ein Upgrade Ihres Tarifs",
+    "source_hash": "01091fed"
   },
   "api.entitlements.errors.view_receipt_required": {
-    "text": "Das Anzeigen von Belegen erfordert ein Upgrade Ihres Tarifs"
+    "text": "Das Anzeigen von Belegen erfordert ein Upgrade Ihres Tarifs",
+    "source_hash": "e6370d8c"
   },
   "api.entitlements.errors.notifications_required": {
-    "text": "Benachrichtigungen erfordern ein Upgrade Ihres Tarifs"
+    "text": "Benachrichtigungen erfordern ein Upgrade Ihres Tarifs",
+    "source_hash": "82353ba6"
   },
   "api.entitlements.errors.workspace_branding_required": {
-    "text": "Workspace-Branding erfordert ein Upgrade Ihres Tarifs"
+    "text": "Workspace-Branding erfordert ein Upgrade Ihres Tarifs",
+    "source_hash": "79ac8099"
   },
   "api.entitlements.errors.ip_access_rules_required": {
-    "text": "IP-Zugriffsregeln erfordern ein Upgrade Ihres Tarifs"
+    "text": "IP-Zugriffsregeln erfordern ein Upgrade Ihres Tarifs",
+    "source_hash": "3e1d276e"
   },
   "api.entitlements.errors.manage_billing_required": {
-    "text": "Die Abrechnungsverwaltung erfordert ein Upgrade Ihres Tarifs"
+    "text": "Die Abrechnungsverwaltung erfordert ein Upgrade Ihres Tarifs",
+    "source_hash": "dec5d6aa"
   },
   "api.entitlements.errors.custom_signin_config_required": {
-    "text": "Eine benutzerdefinierte Anmeldekonfiguration erfordert ein Upgrade Ihres Tarifs"
+    "text": "Eine benutzerdefinierte Anmeldekonfiguration erfordert ein Upgrade Ihres Tarifs",
+    "source_hash": "acb1be52"
   }
 }

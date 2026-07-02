@@ -1,71 +1,94 @@
 {
   "api.entitlements.errors.context_unavailable": {
-    "text": "Kunne ikke verificere rettigheder (organisationskontekst ikke tilgængelig)"
+    "text": "Kunne ikke verificere rettigheder (organisationskontekst ikke tilgængelig)",
+    "source_hash": "704dc629"
   },
   "api.entitlements.errors.api_access_required": {
-    "text": "API-adgang kræver en planopgradering"
+    "text": "API-adgang kræver en planopgradering",
+    "source_hash": "844d294b"
   },
   "api.entitlements.errors.custom_privacy_defaults_required": {
-    "text": "Brugerdefinerede standardindstillinger for privatliv kræver en planopgradering"
+    "text": "Brugerdefinerede standardindstillinger for privatliv kræver en planopgradering",
+    "source_hash": "4e71274d"
   },
   "api.entitlements.errors.extended_default_expiration_required": {
-    "text": "Udvidet standardudløb kræver en planopgradering"
+    "text": "Udvidet standardudløb kræver en planopgradering",
+    "source_hash": "efa702e7"
   },
   "api.entitlements.errors.custom_domains_required": {
-    "text": "Brugerdefinerede domæner kræver en planopgradering"
+    "text": "Brugerdefinerede domæner kræver en planopgradering",
+    "source_hash": "a23e2184"
   },
   "api.entitlements.errors.custom_branding_required": {
-    "text": "Brugerdefineret branding kræver en planopgradering"
+    "text": "Brugerdefineret branding kræver en planopgradering",
+    "source_hash": "a4c40a3a"
   },
   "api.entitlements.errors.homepage_secrets_required": {
-    "text": "Beskeder på hjemmesiden kræver en planopgradering"
+    "text": "Beskeder på hjemmesiden kræver en planopgradering",
+    "source_hash": "650eeca8"
   },
   "api.entitlements.errors.incoming_secrets_required": {
-    "text": "Indkommende beskeder kræver en planopgradering"
+    "text": "Indkommende beskeder kræver en planopgradering",
+    "source_hash": "ce1d47ef"
   },
   "api.entitlements.errors.custom_mail_sender_required": {
-    "text": "Brugerdefineret mailafsender kræver en planopgradering"
+    "text": "Brugerdefineret mailafsender kræver en planopgradering",
+    "source_hash": "e058da13"
   },
   "api.entitlements.errors.flexible_from_domain_required": {
-    "text": "Fleksibelt afsenderdomæne kræver en planopgradering"
+    "text": "Fleksibelt afsenderdomæne kræver en planopgradering",
+    "source_hash": "4931dc05"
   },
   "api.entitlements.errors.manage_org_required": {
-    "text": "Organisationsadministration kræver en planopgradering"
+    "text": "Organisationsadministration kræver en planopgradering",
+    "source_hash": "66a2cd10"
   },
   "api.entitlements.errors.manage_teams_required": {
-    "text": "Teamadministration kræver en planopgradering"
+    "text": "Teamadministration kræver en planopgradering",
+    "source_hash": "f7f4062f"
   },
   "api.entitlements.errors.manage_members_required": {
-    "text": "Medlemsadministration kræver en planopgradering"
+    "text": "Medlemsadministration kræver en planopgradering",
+    "source_hash": "f73b80db"
   },
   "api.entitlements.errors.manage_sso_required": {
-    "text": "SSO-administration kræver en planopgradering"
+    "text": "SSO-administration kræver en planopgradering",
+    "source_hash": "4e5da22d"
   },
   "api.entitlements.errors.audit_logs_required": {
-    "text": "Revisionslogfiler kræver en planopgradering"
+    "text": "Revisionslogfiler kræver en planopgradering",
+    "source_hash": "1ff748bc"
   },
   "api.entitlements.errors.custom_signup_validation_required": {
-    "text": "Brugerdefineret tilmeldingsvalidering kræver en planopgradering"
+    "text": "Brugerdefineret tilmeldingsvalidering kræver en planopgradering",
+    "source_hash": "93c9befa"
   },
   "api.entitlements.errors.create_secrets_required": {
-    "text": "Oprettelse af beskeder kræver en planopgradering"
+    "text": "Oprettelse af beskeder kræver en planopgradering",
+    "source_hash": "01091fed"
   },
   "api.entitlements.errors.view_receipt_required": {
-    "text": "Visning af kvitteringer kræver en planopgradering"
+    "text": "Visning af kvitteringer kræver en planopgradering",
+    "source_hash": "e6370d8c"
   },
   "api.entitlements.errors.notifications_required": {
-    "text": "Notifikationer kræver en planopgradering"
+    "text": "Notifikationer kræver en planopgradering",
+    "source_hash": "82353ba6"
   },
   "api.entitlements.errors.workspace_branding_required": {
-    "text": "Workspace-branding kræver en planopgradering"
+    "text": "Workspace-branding kræver en planopgradering",
+    "source_hash": "79ac8099"
   },
   "api.entitlements.errors.ip_access_rules_required": {
-    "text": "IP-adgangsregler kræver en planopgradering"
+    "text": "IP-adgangsregler kræver en planopgradering",
+    "source_hash": "3e1d276e"
   },
   "api.entitlements.errors.manage_billing_required": {
-    "text": "Faktureringsadministration kræver en planopgradering"
+    "text": "Faktureringsadministration kræver en planopgradering",
+    "source_hash": "dec5d6aa"
   },
   "api.entitlements.errors.custom_signin_config_required": {
-    "text": "Brugerdefineret login-konfiguration kræver en planopgradering"
+    "text": "Brugerdefineret login-konfiguration kræver en planopgradering",
+    "source_hash": "acb1be52"
   }
 }

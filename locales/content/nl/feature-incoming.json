@@ -132,24 +132,31 @@
     "source_hash": "6f328609"
   },
   "incoming.upgrade_required_title": {
-    "text": "Upgrade vereist"
+    "text": "Upgrade vereist",
+    "source_hash": "16487236"
   },
   "incoming.upgrade_required_description": {
-    "text": "Deze functie vereist een planupgrade. Neem contact op met de accounteigenaar om inkomende berichten in te schakelen."
+    "text": "Deze functie vereist een planupgrade. Neem contact op met de accounteigenaar om inkomende berichten in te schakelen.",
+    "source_hash": "5df7f715"
   },
   "incoming.validation_memo_too_long": {
-    "text": "Memo mag maximaal {max} tekens bevatten"
+    "text": "Memo mag maximaal {max} tekens bevatten",
+    "source_hash": "5727f2d3"
   },
   "incoming.validation_secret_required": {
-    "text": "Berichtinhoud is vereist"
+    "text": "Berichtinhoud is vereist",
+    "source_hash": "699783c9"
   },
   "incoming.validation_recipient_required": {
-    "text": "Selecteer een ontvanger"
+    "text": "Selecteer een ontvanger",
+    "source_hash": "67bb4666"
   },
   "incoming.validation_feature_disabled": {
-    "text": "Functie voor inkomende berichten is niet ingeschakeld"
+    "text": "Functie voor inkomende berichten is niet ingeschakeld",
+    "source_hash": "0616d3f4"
   },
   "incoming.validation_form_errors": {
-    "text": "Controleer het formulier op fouten"
+    "text": "Controleer het formulier op fouten",
+    "source_hash": "9056e064"
   }
 }

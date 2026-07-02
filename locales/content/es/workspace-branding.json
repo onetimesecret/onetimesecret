@@ -180,9 +180,11 @@
     "source_hash": "9077bf79"
   },
   "web.branding.saved_successfully": {
-    "text": "Configuración de marca guardada correctamente"
+    "text": "Configuración de marca guardada correctamente",
+    "source_hash": "9960c252"
   },
   "web.branding.keyhole_logo_icon": {
-    "text": "Icono de ojo de cerradura que representa el uso compartido seguro y privado"
+    "text": "Icono de ojo de cerradura que representa el uso compartido seguro y privado",
+    "source_hash": "c868ac60"
   }
 }

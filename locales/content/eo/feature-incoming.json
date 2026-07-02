@@ -132,24 +132,31 @@
     "source_hash": "6f328609"
   },
   "incoming.upgrade_required_title": {
-    "text": "Plibonigo bezonata"
+    "text": "Plibonigo bezonata",
+    "source_hash": "16487236"
   },
   "incoming.upgrade_required_description": {
-    "text": "Ĉi tiu funkcio postulas plibonigon de la plano. Bonvolu kontakti la posedanton de la konto por ebligi envenantajn sekretojn."
+    "text": "Ĉi tiu funkcio postulas plibonigon de la plano. Bonvolu kontakti la posedanton de la konto por ebligi envenantajn sekretojn.",
+    "source_hash": "5df7f715"
   },
   "incoming.validation_memo_too_long": {
-    "text": "Memorando devas esti {max} signoj aŭ malpli"
+    "text": "Memorando devas esti {max} signoj aŭ malpli",
+    "source_hash": "5727f2d3"
   },
   "incoming.validation_secret_required": {
-    "text": "Sekreta enhavo necesas"
+    "text": "Sekreta enhavo necesas",
+    "source_hash": "699783c9"
   },
   "incoming.validation_recipient_required": {
-    "text": "Bonvolu elekti ricevanton"
+    "text": "Bonvolu elekti ricevanton",
+    "source_hash": "67bb4666"
   },
   "incoming.validation_feature_disabled": {
-    "text": "Funkcio de envenantaj sekretoj ne estas ebligita"
+    "text": "Funkcio de envenantaj sekretoj ne estas ebligita",
+    "source_hash": "0616d3f4"
   },
   "incoming.validation_form_errors": {
-    "text": "Bonvolu kontroli la formularon pri eraroj"
+    "text": "Bonvolu kontroli la formularon pri eraroj",
+    "source_hash": "9056e064"
   }
 }

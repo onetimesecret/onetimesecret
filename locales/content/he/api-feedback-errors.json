@@ -1,5 +1,6 @@
 {
   "api.feedback.errors.rate_limit_exceeded": {
-    "text": "יותר מדי הגשות משוב. אנא נסה שוב מאוחר יותר."
+    "text": "יותר מדי הגשות משוב. אנא נסה שוב מאוחר יותר.",
+    "source_hash": "3a890eb2"
   }
 }

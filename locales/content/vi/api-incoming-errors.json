@@ -1,5 +1,6 @@
 {
   "api.incoming.errors.custom_domain_unresolved": {
-    "text": "Không thể phân giải tổ chức của tên miền tùy chỉnh"
+    "text": "Không thể phân giải tổ chức của tên miền tùy chỉnh",
+    "source_hash": "b30d65d2"
   }
 }

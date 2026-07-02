@@ -684,12 +684,15 @@
     "source_hash": "fe3ac3ad"
   },
   "web.settings.security.sso_managed_title": {
-    "text": "Haumaru e whakahaerea ana e te SSO"
+    "text": "Haumaru e whakahaerea ana e te SSO",
+    "source_hash": "1f6c9472"
   },
   "web.settings.security.sso_managed_description": {
-    "text": "Ka whakamanatia tō pūkete mā te kaiwhakarato takiuru kotahi (SSO) o tō whakahaere. Ko te kupuhipa, te whakamotuhēhētanga āhuatanga-maha, me ngā waehere whakaora ka whakahaerea e tō kaiwhakarato tuakiri."
+    "text": "Ka whakamanatia tō pūkete mā te kaiwhakarato takiuru kotahi (SSO) o tō whakahaere. Ko te kupuhipa, te whakamotuhēhētanga āhuatanga-maha, me ngā waehere whakaora ka whakahaerea e tō kaiwhakarato tuakiri.",
+    "source_hash": "cd0cf39f"
   },
   "web.settings.api.api_disabled_notice": {
-    "text": "Kua monokia te API mō tēnei taupānga."
+    "text": "Kua monokia te API mō tēnei taupānga.",
+    "source_hash": "66d12d6b"
   }
 }

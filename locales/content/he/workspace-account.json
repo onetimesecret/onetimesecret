@@ -684,12 +684,15 @@
     "source_hash": "fe3ac3ad"
   },
   "web.settings.api.api_disabled_notice": {
-    "text": "ה-API מושבת עבור מופע זה."
+    "text": "ה-API מושבת עבור מופע זה.",
+    "source_hash": "66d12d6b"
   },
   "web.settings.security.sso_managed_title": {
-    "text": "האבטחה מנוהלת באמצעות SSO"
+    "text": "האבטחה מנוהלת באמצעות SSO",
+    "source_hash": "1f6c9472"
   },
   "web.settings.security.sso_managed_description": {
-    "text": "החשבון שלך מאומת באמצעות ספק הכניסה היחידה (SSO) של הארגון שלך. סיסמה, אימות רב-שלבי וקודי שחזור מנוהלים על ידי ספק הזהויות שלך."
+    "text": "החשבון שלך מאומת באמצעות ספק הכניסה היחידה (SSO) של הארגון שלך. סיסמה, אימות רב-שלבי וקודי שחזור מנוהלים על ידי ספק הזהויות שלך.",
+    "source_hash": "cd0cf39f"
   }
 }

@@ -1,5 +1,6 @@
 {
   "api.incoming.errors.custom_domain_unresolved": {
-    "text": "Organisationen for det brugerdefinerede domæne kunne ikke slås op"
+    "text": "Organisationen for det brugerdefinerede domæne kunne ikke slås op",
+    "source_hash": "b30d65d2"
   }
 }

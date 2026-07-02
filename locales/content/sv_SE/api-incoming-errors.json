@@ -1,5 +1,6 @@
 {
   "api.incoming.errors.custom_domain_unresolved": {
-    "text": "Organisationen för den anpassade domänen kunde inte fastställas"
+    "text": "Organisationen för den anpassade domänen kunde inte fastställas",
+    "source_hash": "b30d65d2"
   }
 }

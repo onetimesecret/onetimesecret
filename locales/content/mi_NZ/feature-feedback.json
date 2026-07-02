@@ -60,12 +60,15 @@
     "source_hash": "00e56551"
   },
   "web.feedback.anonymous_no_reply": {
-    "text": "Tuhipoka: mēnā e hiahia ana koe ki tētahi whakautu, tēnā hainahia, whakauruhia rānei tētahi wāhitau īmēra ki te karere."
+    "text": "Tuhipoka: mēnā e hiahia ana koe ki tētahi whakautu, tēnā hainahia, whakauruhia rānei tētahi wāhitau īmēra ki te karere.",
+    "source_hash": "c984f705"
   },
   "web.feedback.characters_remaining": {
-    "text": "{count} pūāhua e toe ana"
+    "text": "{count} pūāhua e toe ana",
+    "source_hash": "8d796f40"
   },
   "web.feedback.character_limit_reached": {
-    "text": "Kua eke ki te tepe pūāhua"
+    "text": "Kua eke ki te tepe pūāhua",
+    "source_hash": "031e9310"
   }
 }

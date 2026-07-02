@@ -855,39 +855,51 @@
     "source_hash": "1cd0194a"
   },
   "email.common.secret_link_label": {
-    "text": "Povezava do skrivnosti"
+    "text": "Povezava do skrivnosti",
+    "source_hash": "18ddf44f"
   },
   "email.common.automated_notice": {
-    "text": "To je samodejno sporočilo storitve %{product_name}."
+    "text": "To je samodejno sporočilo storitve %{product_name}.",
+    "source_hash": "8fbabfba"
   },
   "email.common.support_label": {
-    "text": "Podpora"
+    "text": "Podpora",
+    "source_hash": "be91940b"
   },
   "email.expiration_warning.signature": {
-    "text": "Ekipa za podporo"
+    "text": "Ekipa za podporo",
+    "source_hash": "dc75bf9f"
   },
   "email.expiration_warning.footer_note": {
-    "text": "To sporočilo ste prejeli, ker bo skrivnost, ki ste jo ustvarili v storitvi %{product_name}, kmalu potekla."
+    "text": "To sporočilo ste prejeli, ker bo skrivnost, ki ste jo ustvarili v storitvi %{product_name}, kmalu potekla.",
+    "source_hash": "920779e4"
   },
   "email.feedback_email.user_id_label": {
-    "text": "Uporabnik:"
+    "text": "Uporabnik:",
+    "source_hash": "93d6b3e9"
   },
   "email.feedback_email.timezone_label": {
-    "text": "Časovni pas:"
+    "text": "Časovni pas:",
+    "source_hash": "39651ebf"
   },
   "email.feedback_email.version_label": {
-    "text": "Različica:"
+    "text": "Različica:",
+    "source_hash": "4c5726ee"
   },
   "email.incoming_secret.footer_note": {
-    "text": "To sporočilo ste prejeli, ker je nekdo prek storitve %{product_name} poslal skrivnost vam. Če tega niste pričakovali, lahko to e-poštno sporočilo mirno prezrete."
+    "text": "To sporočilo ste prejeli, ker je nekdo prek storitve %{product_name} poslal skrivnost vam. Če tega niste pričakovali, lahko to e-poštno sporočilo mirno prezrete.",
+    "source_hash": "91ee6e8d"
   },
   "email.secret_link.passphrase_label": {
-    "text": "Zahtevana je pristopna fraza:"
+    "text": "Zahtevana je pristopna fraza:",
+    "source_hash": "1ab9a20f"
   },
   "email.secret_link.passphrase_required": {
-    "text": "Ta skrivnost je zaščitena s pristopno frazo. Pošiljatelj naj vam jo posreduje ločeno."
+    "text": "Ta skrivnost je zaščitena s pristopno frazo. Pošiljatelj naj vam jo posreduje ločeno.",
+    "source_hash": "1e49826b"
   },
   "email.secret_link.footer_note": {
-    "text": "To sporočilo ste prejeli, ker je %{sender_email} prek storitve %{product_name} z vami delil skrivnost. Če tega niste pričakovali, lahko to e-poštno sporočilo mirno prezrete."
+    "text": "To sporočilo ste prejeli, ker je %{sender_email} prek storitve %{product_name} z vami delil skrivnost. Če tega niste pričakovali, lahko to e-poštno sporočilo mirno prezrete.",
+    "source_hash": "2d544dad"
   }
 }

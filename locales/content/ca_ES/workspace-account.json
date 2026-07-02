@@ -684,12 +684,15 @@
     "source_hash": "fe3ac3ad"
   },
   "web.settings.api.api_disabled_notice": {
-    "text": "L'API està desactivada per a aquesta instància."
+    "text": "L'API està desactivada per a aquesta instància.",
+    "source_hash": "66d12d6b"
   },
   "web.settings.security.sso_managed_title": {
-    "text": "Seguretat gestionada per SSO"
+    "text": "Seguretat gestionada per SSO",
+    "source_hash": "1f6c9472"
   },
   "web.settings.security.sso_managed_description": {
-    "text": "El teu compte s'autentica mitjançant el proveïdor d'inici de sessió únic de la teva organització. La contrasenya, l'autenticació multifactor i els codis de recuperació els gestiona el teu proveïdor d'identitat."
+    "text": "El teu compte s'autentica mitjançant el proveïdor d'inici de sessió únic de la teva organització. La contrasenya, l'autenticació multifactor i els codis de recuperació els gestiona el teu proveïdor d'identitat.",
+    "source_hash": "cd0cf39f"
   }
 }

@@ -400,723 +400,963 @@
     "source_hash": "91c1af2e"
   },
   "api.domains.errors.add_admin_required": {
-    "text": "يمكن لمالكي المؤسسة والمسؤولين فقط إضافة النطاقات المخصّصة"
+    "text": "يمكن لمالكي المؤسسة والمسؤولين فقط إضافة النطاقات المخصّصة",
+    "source_hash": "3324aabe"
   },
   "web.domains.public_homepage": {
-    "text": "الصفحة الرئيسية العامة"
+    "text": "الصفحة الرئيسية العامة",
+    "source_hash": "2ae3ccba"
   },
   "web.domains.status_tooltip_active": {
-    "text": "تم التحقق من النطاق وهو نشط"
+    "text": "تم التحقق من النطاق وهو نشط",
+    "source_hash": "e4b6a6e1"
   },
   "web.domains.status_tooltip_dns_incorrect": {
-    "text": "DNS غير مُعدّ — انقر للإصلاح"
+    "text": "DNS غير مُعدّ — انقر للإصلاح",
+    "source_hash": "892cb2cb"
   },
   "web.domains.status_tooltip_not_verified": {
-    "text": "لم يتم التحقق من النطاق — انقر للتحقق"
+    "text": "لم يتم التحقق من النطاق — انقر للتحقق",
+    "source_hash": "a9806710"
   },
   "web.domains.status_tooltip_unverified": {
-    "text": "حالة النطاق غير مُتحقَّق منها — انقر للتحديث"
+    "text": "حالة النطاق غير مُتحقَّق منها — انقر للتحديث",
+    "source_hash": "a45aa76d"
   },
   "web.domains.last_check_failed": {
-    "text": "فشل آخر فحص للتحقق"
+    "text": "فشل آخر فحص للتحقق",
+    "source_hash": "88b594b8"
   },
   "web.domains.last_check_failed_ago": {
-    "text": "فشل آخر فحص {0}"
+    "text": "فشل آخر فحص {0}",
+    "source_hash": "ddfb6412"
   },
   "web.domains.verify_now": {
-    "text": "تحقق الآن"
+    "text": "تحقق الآن",
+    "source_hash": "db383efb"
   },
   "web.domains.click_to_verify": {
-    "text": "انقر للتحقق"
+    "text": "انقر للتحقق",
+    "source_hash": "6eae7d9c"
   },
   "web.domains.remove_domain_description": {
-    "text": "إزالة هذا النطاق وكل إعداداته نهائياً."
+    "text": "إزالة هذا النطاق وكل إعداداته نهائياً.",
+    "source_hash": "73946b9e"
   },
   "web.domains.add_access_denied": {
-    "text": "تم رفض الوصول"
+    "text": "تم رفض الوصول",
+    "source_hash": "d134ca02"
   },
   "web.domains.add_access_denied_description": {
-    "text": "ليس لديك إذن لإضافة نطاقات إلى هذه المؤسسة. تواصل مع مسؤول مؤسستك."
+    "text": "ليس لديك إذن لإضافة نطاقات إلى هذه المؤسسة. تواصل مع مسؤول مؤسستك.",
+    "source_hash": "25e035c6"
   },
   "web.domains.dns_widget_load_failed": {
-    "text": "فشل تحميل أداة DNS"
+    "text": "فشل تحميل أداة DNS",
+    "source_hash": "5a1d8ab5"
   },
   "web.domains.dns_widget_not_available": {
-    "text": "أداة DNS غير متاحة"
+    "text": "أداة DNS غير متاحة",
+    "source_hash": "4eed448b"
   },
   "web.domains.dns_widget_init_failed": {
-    "text": "فشل تهيئة أداة DNS"
+    "text": "فشل تهيئة أداة DNS",
+    "source_hash": "de477585"
   },
   "web.domains.verified": {
-    "text": "تم التحقق"
+    "text": "تم التحقق",
+    "source_hash": "4f783840"
   },
   "web.domains.pending_verification": {
-    "text": "بانتظار التحقق"
+    "text": "بانتظار التحقق",
+    "source_hash": "77e07795"
   },
   "web.domains.unsaved_changes_confirmation": {
-    "text": "لديك تغييرات غير محفوظة. هل أنت متأكد من أنك تريد المغادرة؟"
+    "text": "لديك تغييرات غير محفوظة. هل أنت متأكد من أنك تريد المغادرة؟",
+    "source_hash": "322380c1"
   },
   "web.domains.entitlement_required_owner": {
-    "text": "تتطلب هذه الميزة ترقية الخطة."
+    "text": "تتطلب هذه الميزة ترقية الخطة.",
+    "source_hash": "6de1f752"
   },
   "web.domains.entitlement_required_member": {
-    "text": "هذه الميزة غير متاحة في خطتك الحالية. تواصل مع مالك مؤسستك."
+    "text": "هذه الميزة غير متاحة في خطتك الحالية. تواصل مع مالك مؤسستك.",
+    "source_hash": "8f1688b2"
   },
   "web.domains.detail.manage": {
-    "text": "إدارة"
+    "text": "إدارة",
+    "source_hash": "5a234448"
   },
   "web.domains.detail.features": {
-    "text": "الميزات"
+    "text": "الميزات",
+    "source_hash": "5697d03d"
   },
   "web.domains.detail.homepage_title": {
-    "text": "أسرار الصفحة الرئيسية"
+    "text": "أسرار الصفحة الرئيسية",
+    "source_hash": "6360f7ec"
   },
   "web.domains.detail.homepage_description": {
-    "text": "السماح بالوصول العام لإنشاء الأسرار على الصفحة الرئيسية لنطاقك"
+    "text": "السماح بالوصول العام لإنشاء الأسرار على الصفحة الرئيسية لنطاقك",
+    "source_hash": "209b3ded"
   },
   "web.domains.detail.brand_description": {
-    "text": "الشعار والألوان والعلامة التجارية المخصّصة"
+    "text": "الشعار والألوان والعلامة التجارية المخصّصة",
+    "source_hash": "69f7a9e8"
   },
   "web.domains.detail.sso_description": {
-    "text": "إعدادات موفّر تسجيل الدخول الموحّد"
+    "text": "إعدادات موفّر تسجيل الدخول الموحّد",
+    "source_hash": "234e6150"
   },
   "web.domains.detail.email_description": {
-    "text": "إعداد مرسِل بريد إلكتروني مخصّص"
+    "text": "إعداد مرسِل بريد إلكتروني مخصّص",
+    "source_hash": "7fcde01b"
   },
   "web.domains.detail.incoming_description": {
-    "text": "إعدادات مستلِم الأسرار الواردة"
+    "text": "إعدادات مستلِم الأسرار الواردة",
+    "source_hash": "37c1fd6d"
   },
   "web.domains.detail.signup_description": {
-    "text": "استراتيجية التحقق من التسجيل لكل نطاق"
+    "text": "استراتيجية التحقق من التسجيل لكل نطاق",
+    "source_hash": "3c5a511f"
   },
   "web.domains.detail.signin_description": {
-    "text": "إعداد طريقة تسجيل الدخول لكل نطاق"
+    "text": "إعداد طريقة تسجيل الدخول لكل نطاق",
+    "source_hash": "73e01e36"
   },
   "web.domains.email.title": {
-    "text": "إرسال البريد الإلكتروني"
+    "text": "إرسال البريد الإلكتروني",
+    "source_hash": "6c428e5f"
   },
   "web.domains.email.config_title": {
-    "text": "إعداد البريد الإلكتروني"
+    "text": "إعداد البريد الإلكتروني",
+    "source_hash": "6f38aa51"
   },
   "web.domains.email.config_description": {
-    "text": "قم بإعداد إرسال البريد الإلكتروني لهذا النطاق"
+    "text": "قم بإعداد إرسال البريد الإلكتروني لهذا النطاق",
+    "source_hash": "1c275ff0"
   },
   "web.domains.email.provider_label": {
-    "text": "موفّر البريد الإلكتروني"
+    "text": "موفّر البريد الإلكتروني",
+    "source_hash": "a7ed3f4e"
   },
   "web.domains.email.provider_placeholder": {
-    "text": "اختر موفّر بريد إلكتروني"
+    "text": "اختر موفّر بريد إلكتروني",
+    "source_hash": "63c8080c"
   },
   "web.domains.email.from_name_label": {
-    "text": "اسم المُرسِل"
+    "text": "اسم المُرسِل",
+    "source_hash": "2f13b589"
   },
   "web.domains.email.from_name_placeholder": {
-    "text": "مثال: Acme Security"
+    "text": "مثال: Acme Security",
+    "source_hash": "03c0f138"
   },
   "web.domains.email.from_address_label": {
-    "text": "عنوان المُرسِل"
+    "text": "عنوان المُرسِل",
+    "source_hash": "60643eae"
   },
   "web.domains.email.from_address_placeholder": {
-    "text": "مثال: secrets{'@'}example.com"
+    "text": "مثال: secrets{'@'}example.com",
+    "source_hash": "a09b3928"
   },
   "web.domains.email.reply_to_label": {
-    "text": "عنوان الرد"
+    "text": "عنوان الرد",
+    "source_hash": "4538ea9c"
   },
   "web.domains.email.reply_to_placeholder": {
-    "text": "مثال: support{'@'}example.com"
+    "text": "مثال: support{'@'}example.com",
+    "source_hash": "fa3e5f0b"
   },
   "web.domains.email.save_changes": {
-    "text": "حفظ التغييرات"
+    "text": "حفظ التغييرات",
+    "source_hash": "35322b5b"
   },
   "web.domains.email.discard_changes": {
-    "text": "تجاهل التغييرات"
+    "text": "تجاهل التغييرات",
+    "source_hash": "e07e053c"
   },
   "web.domains.email.provider_ses": {
-    "text": "Amazon SES"
+    "text": "Amazon SES",
+    "source_hash": "15de4969"
   },
   "web.domains.email.provider_sendgrid": {
-    "text": "SendGrid"
+    "text": "SendGrid",
+    "source_hash": "b889d002"
   },
   "web.domains.email.provider_lettermint": {
-    "text": "Lettermint"
+    "text": "Lettermint",
+    "source_hash": "ec994dad"
   },
   "web.domains.email.provider_inherit": {
-    "text": "استخدام الإعدادات الافتراضية للحساب"
+    "text": "استخدام الإعدادات الافتراضية للحساب",
+    "source_hash": "f6fa84e7"
   },
   "web.domains.email.provider_ses_description": {
-    "text": "يتطلب التحقق من النطاق عبر سجلات DKIM وSPF"
+    "text": "يتطلب التحقق من النطاق عبر سجلات DKIM وSPF",
+    "source_hash": "4df5aa60"
   },
   "web.domains.email.provider_sendgrid_description": {
-    "text": "يتطلب إعداد مصادقة النطاق"
+    "text": "يتطلب إعداد مصادقة النطاق",
+    "source_hash": "71b53242"
   },
   "web.domains.email.provider_lettermint_description": {
-    "text": "يتطلب التحقق من النطاق"
+    "text": "يتطلب التحقق من النطاق",
+    "source_hash": "87073c93"
   },
   "web.domains.email.provider_inherit_description": {
-    "text": "يستخدم الإعدادات الافتراضية لإرسال البريد الإلكتروني في حسابك"
+    "text": "يستخدم الإعدادات الافتراضية لإرسال البريد الإلكتروني في حسابك",
+    "source_hash": "3f798263"
   },
   "web.domains.email.dns_records_title": {
-    "text": "سجلات DNS"
+    "text": "سجلات DNS",
+    "source_hash": "34d2c307"
   },
   "web.domains.email.dns_records_description": {
-    "text": "أضف سجلات DNS التالية للتحقق من نطاقك لإرسال البريد الإلكتروني."
+    "text": "أضف سجلات DNS التالية للتحقق من نطاقك لإرسال البريد الإلكتروني.",
+    "source_hash": "9fa85863"
   },
   "web.domains.email.dns_column_type": {
-    "text": "النوع"
+    "text": "النوع",
+    "source_hash": "baaddf70"
   },
   "web.domains.email.dns_column_name": {
-    "text": "الاسم"
+    "text": "الاسم",
+    "source_hash": "dcd1d522"
   },
   "web.domains.email.dns_column_value": {
-    "text": "القيمة"
+    "text": "القيمة",
+    "source_hash": "8e37953d"
   },
   "web.domains.email.dns_check_label": {
-    "text": "DNS"
+    "text": "DNS",
+    "source_hash": "020965a2"
   },
   "web.domains.email.provider_check_label": {
-    "text": "الموفّر"
+    "text": "الموفّر",
+    "source_hash": "472590ae"
   },
   "web.domains.email.dns_optional_label": {
-    "text": "موصى به"
+    "text": "موصى به",
+    "source_hash": "d70604e8"
   },
   "web.domains.email.dns_optional_hint": {
-    "text": "يُوصى بهذا السجل لكنه ليس مطلوباً للتحقق. قد تكون سياسة DMARC في نطاق مؤسستك تغطي هذا النطاق الفرعي بالفعل."
+    "text": "يُوصى بهذا السجل لكنه ليس مطلوباً للتحقق. قد تكون سياسة DMARC في نطاق مؤسستك تغطي هذا النطاق الفرعي بالفعل.",
+    "source_hash": "58e1a12b"
   },
   "web.domains.email.copy": {
-    "text": "نسخ"
+    "text": "نسخ",
+    "source_hash": "e21f935f"
   },
   "web.domains.email.copied": {
-    "text": "تم النسخ"
+    "text": "تم النسخ",
+    "source_hash": "8d525e5f"
   },
   "web.domains.email.status_verified": {
-    "text": "تم التحقق"
+    "text": "تم التحقق",
+    "source_hash": "4f783840"
   },
   "web.domains.email.status_pending": {
-    "text": "معلق"
+    "text": "معلق",
+    "source_hash": "331551b0"
   },
   "web.domains.email.status_failed": {
-    "text": "فشل"
+    "text": "فشل",
+    "source_hash": "031a8f0f"
   },
   "web.domains.email.revalidate": {
-    "text": "إعادة التحقق"
+    "text": "إعادة التحقق",
+    "source_hash": "4918da12"
   },
   "web.domains.email.validating": {
-    "text": "جارٍ التحقق..."
+    "text": "جارٍ التحقق...",
+    "source_hash": "b28b48d5"
   },
   "web.domains.email.domain_verified": {
-    "text": "تم التحقق من النطاق"
+    "text": "تم التحقق من النطاق",
+    "source_hash": "08e0df67"
   },
   "web.domains.email.validation_failed": {
-    "text": "فشل التحقق"
+    "text": "فشل التحقق",
+    "source_hash": "23a86f5a"
   },
   "web.domains.email.last_validated": {
-    "text": "آخر تحقق"
+    "text": "آخر تحقق",
+    "source_hash": "887dd486"
   },
   "web.domains.email.upgrade_to_configure": {
-    "text": "قم بترقية خطتك لإعداد إرسال البريد الإلكتروني لهذا النطاق."
+    "text": "قم بترقية خطتك لإعداد إرسال البريد الإلكتروني لهذا النطاق.",
+    "source_hash": "16a876f7"
   },
   "web.domains.email.configure_email": {
-    "text": "إعداد البريد الإلكتروني"
+    "text": "إعداد البريد الإلكتروني",
+    "source_hash": "a48c0d40"
   },
   "web.domains.email.access_denied": {
-    "text": "تم رفض الوصول"
+    "text": "تم رفض الوصول",
+    "source_hash": "d134ca02"
   },
   "web.domains.email.access_denied_description": {
-    "text": "ليس لديك إذن لإدارة إعدادات البريد الإلكتروني لهذا النطاق. تواصل مع مسؤول مؤسستك."
+    "text": "ليس لديك إذن لإدارة إعدادات البريد الإلكتروني لهذا النطاق. تواصل مع مسؤول مؤسستك.",
+    "source_hash": "32049ff0"
   },
   "web.domains.email.update_success": {
-    "text": "تم حفظ إعداد البريد الإلكتروني بنجاح"
+    "text": "تم حفظ إعداد البريد الإلكتروني بنجاح",
+    "source_hash": "dd3607fc"
   },
   "web.domains.email.delete_success": {
-    "text": "تمت إزالة إعداد البريد الإلكتروني بنجاح"
+    "text": "تمت إزالة إعداد البريد الإلكتروني بنجاح",
+    "source_hash": "2ba99a91"
   },
   "web.domains.email.default_sender_notice": {
-    "text": "يتم حالياً إرسال رسائل البريد الإلكتروني لهذا النطاق من المُرسِل العام. أكمل إعداد البريد الإلكتروني لاستخدام هوية المُرسِل الخاصة بك."
+    "text": "يتم حالياً إرسال رسائل البريد الإلكتروني لهذا النطاق من المُرسِل العام. أكمل إعداد البريد الإلكتروني لاستخدام هوية المُرسِل الخاصة بك.",
+    "source_hash": "ffcf39fb"
   },
   "web.domains.email.disabled_notice": {
-    "text": "إرسال البريد الإلكتروني المخصّص معطّل حالياً. سيتم إرسال رسائل البريد الإلكتروني من المُرسِل العام. فعّل الميزة أدناه لاستخدام هوية المُرسِل المخصّصة بك."
+    "text": "إرسال البريد الإلكتروني المخصّص معطّل حالياً. سيتم إرسال رسائل البريد الإلكتروني من المُرسِل العام. فعّل الميزة أدناه لاستخدام هوية المُرسِل المخصّصة بك.",
+    "source_hash": "60a26f5b"
   },
   "web.domains.email.test_email_title": {
-    "text": "اختبار تسليم البريد الإلكتروني"
+    "text": "اختبار تسليم البريد الإلكتروني",
+    "source_hash": "c1b3dee2"
   },
   "web.domains.email.test_email_hint": {
-    "text": "أرسل رسالة اختبار إلى نفسك باستخدام الإعداد المحفوظ. تعمل حتى عندما لا تكون الميزة مفعّلة بعد."
+    "text": "أرسل رسالة اختبار إلى نفسك باستخدام الإعداد المحفوظ. تعمل حتى عندما لا تكون الميزة مفعّلة بعد.",
+    "source_hash": "33e876ad"
   },
   "web.domains.email.send_test": {
-    "text": "إرسال اختبار"
+    "text": "إرسال اختبار",
+    "source_hash": "22d7b11d"
   },
   "web.domains.email.test_email_sent": {
-    "text": "تم إرسال رسالة الاختبار بنجاح"
+    "text": "تم إرسال رسالة الاختبار بنجاح",
+    "source_hash": "561617fd"
   },
   "web.domains.email.test_email_failed": {
-    "text": "فشل إرسال رسالة الاختبار"
+    "text": "فشل إرسال رسالة الاختبار",
+    "source_hash": "95ce63bc"
   },
   "web.domains.email.test_email_sent_to": {
-    "text": "تم الإرسال إلى {email}"
+    "text": "تم الإرسال إلى {email}",
+    "source_hash": "8ceb9588"
   },
   "web.domains.email.delivered_via": {
-    "text": "تم التسليم عبر {provider}"
+    "text": "تم التسليم عبر {provider}",
+    "source_hash": "f741959b"
   },
   "web.domains.email.badge_not_configured": {
-    "text": "غير معدّ"
+    "text": "غير معدّ",
+    "source_hash": "dd1841d2"
   },
   "web.domains.email.badge_default_sender": {
-    "text": "يستخدم المُرسِل الافتراضي"
+    "text": "يستخدم المُرسِل الافتراضي",
+    "source_hash": "e1afb18f"
   },
   "web.domains.email.badge_verified": {
-    "text": "تم التحقق"
+    "text": "تم التحقق",
+    "source_hash": "4f783840"
   },
   "web.domains.email.badge_pending": {
-    "text": "بانتظار التحقق"
+    "text": "بانتظار التحقق",
+    "source_hash": "417a6b7e"
   },
   "web.domains.email.badge_disabled": {
-    "text": "معطّل"
+    "text": "معطّل",
+    "source_hash": "75081b59"
   },
   "web.domains.email.tooltip_not_configured": {
-    "text": "لا يوجد مُرسِل بريد إلكتروني معدّ — يستخدم البريد الإلكتروني المُرسِل الافتراضي للمنصة"
+    "text": "لا يوجد مُرسِل بريد إلكتروني معدّ — يستخدم البريد الإلكتروني المُرسِل الافتراضي للمنصة",
+    "source_hash": "360083bb"
   },
   "web.domains.email.tooltip_pending": {
-    "text": "إعداد مُرسِل البريد الإلكتروني بانتظار التحقق — يستخدم البريد الإلكتروني المُرسِل الافتراضي للمنصة"
+    "text": "إعداد مُرسِل البريد الإلكتروني بانتظار التحقق — يستخدم البريد الإلكتروني المُرسِل الافتراضي للمنصة",
+    "source_hash": "c8c2449c"
   },
   "web.domains.email.tooltip_disabled": {
-    "text": "مُرسِل البريد الإلكتروني معطّل — يستخدم البريد الإلكتروني المُرسِل الافتراضي للمنصة"
+    "text": "مُرسِل البريد الإلكتروني معطّل — يستخدم البريد الإلكتروني المُرسِل الافتراضي للمنصة",
+    "source_hash": "64e84955"
   },
   "web.domains.email.tooltip_verified": {
-    "text": "تم التحقق من مُرسِل البريد الإلكتروني — يتم إرسال رسائل البريد الإلكتروني من هذا النطاق"
+    "text": "تم التحقق من مُرسِل البريد الإلكتروني — يتم إرسال رسائل البريد الإلكتروني من هذا النطاق",
+    "source_hash": "0e9a005c"
   },
   "web.domains.incoming.title": {
-    "text": "الأسرار الواردة"
+    "text": "الأسرار الواردة",
+    "source_hash": "883dbca9"
   },
   "web.domains.incoming.config_title": {
-    "text": "إعداد الأسرار الواردة"
+    "text": "إعداد الأسرار الواردة",
+    "source_hash": "b3fef15b"
   },
   "web.domains.incoming.config_description": {
-    "text": "اسمح للمستخدمين الخارجيين بإرسال الأسرار مباشرةً إلى مستلِمين محدّدين على هذا النطاق"
+    "text": "اسمح للمستخدمين الخارجيين بإرسال الأسرار مباشرةً إلى مستلِمين محدّدين على هذا النطاق",
+    "source_hash": "452ab4fe"
   },
   "web.domains.incoming.feature_disabled": {
-    "text": "الأسرار الواردة غير متاحة"
+    "text": "الأسرار الواردة غير متاحة",
+    "source_hash": "0f96c5ec"
   },
   "web.domains.incoming.feature_disabled_description": {
-    "text": "الأسرار الواردة غير مفعّلة في هذه النسخة. تواصل مع المسؤول لديك."
+    "text": "الأسرار الواردة غير مفعّلة في هذه النسخة. تواصل مع المسؤول لديك.",
+    "source_hash": "dce981e0"
   },
   "web.domains.incoming.access_denied": {
-    "text": "تم رفض الوصول"
+    "text": "تم رفض الوصول",
+    "source_hash": "d134ca02"
   },
   "web.domains.incoming.access_denied_description": {
-    "text": "ليس لديك إذن لإدارة إعدادات الأسرار الواردة لهذا النطاق. تواصل مع مسؤول مؤسستك."
+    "text": "ليس لديك إذن لإدارة إعدادات الأسرار الواردة لهذا النطاق. تواصل مع مسؤول مؤسستك.",
+    "source_hash": "3e9d8adc"
   },
   "web.domains.incoming.upgrade_to_configure": {
-    "text": "قم بترقية خطتك لإعداد الأسرار الواردة لهذا النطاق."
+    "text": "قم بترقية خطتك لإعداد الأسرار الواردة لهذا النطاق.",
+    "source_hash": "9dfdfeb5"
   },
   "web.domains.incoming.configure_incoming": {
-    "text": "إعداد الأسرار الواردة"
+    "text": "إعداد الأسرار الواردة",
+    "source_hash": "eab52939"
   },
   "web.domains.incoming.not_configured_notice": {
-    "text": "الأسرار الواردة غير معدّة لهذا النطاق. أضف مستلِمين للسماح للمستخدمين الخارجيين بإرسال الأسرار إلى فريقك."
+    "text": "الأسرار الواردة غير معدّة لهذا النطاق. أضف مستلِمين للسماح للمستخدمين الخارجيين بإرسال الأسرار إلى فريقك.",
+    "source_hash": "dbc443a6"
   },
   "web.domains.incoming.disabled_notice": {
-    "text": "الأسرار الواردة معطّلة حالياً. لا يمكن للمستخدمين الخارجيين إرسال الأسرار إلى مستلِمين على هذا النطاق. فعّل الميزة أدناه للسماح بالأسرار الواردة."
+    "text": "الأسرار الواردة معطّلة حالياً. لا يمكن للمستخدمين الخارجيين إرسال الأسرار إلى مستلِمين على هذا النطاق. فعّل الميزة أدناه للسماح بالأسرار الواردة.",
+    "source_hash": "d1f8dafb"
   },
   "web.domains.incoming.recipients_title": {
-    "text": "المستلِمون"
+    "text": "المستلِمون",
+    "source_hash": "1e8568a8"
   },
   "web.domains.incoming.recipients_description": {
-    "text": "حدّد من يمكنه استلام الأسرار الواردة على هذا النطاق. سيتلقى المستلِمون إشعارات بالبريد الإلكتروني عند إرسال سر إليهم."
+    "text": "حدّد من يمكنه استلام الأسرار الواردة على هذا النطاق. سيتلقى المستلِمون إشعارات بالبريد الإلكتروني عند إرسال سر إليهم.",
+    "source_hash": "026f9d9d"
   },
   "web.domains.incoming.add_recipient": {
-    "text": "إضافة مستلِم"
+    "text": "إضافة مستلِم",
+    "source_hash": "25f93c13"
   },
   "web.domains.incoming.remove_recipient": {
-    "text": "إزالة"
+    "text": "إزالة",
+    "source_hash": "c3812fc4"
   },
   "web.domains.incoming.email_label": {
-    "text": "عنوان البريد الإلكتروني"
+    "text": "عنوان البريد الإلكتروني",
+    "source_hash": "09bf25ef"
   },
   "web.domains.incoming.email_placeholder": {
-    "text": "recipient{'@'}example.com"
+    "text": "recipient{'@'}example.com",
+    "source_hash": "55d1508e"
   },
   "web.domains.incoming.name_label": {
-    "text": "الاسم المعروض"
+    "text": "الاسم المعروض",
+    "source_hash": "18d67c99"
   },
   "web.domains.incoming.name_placeholder": {
-    "text": "مثال: Security Team"
+    "text": "مثال: Security Team",
+    "source_hash": "0c52400c"
   },
   "web.domains.incoming.empty_state": {
-    "text": "لا يوجد مستلِمون معدّون"
+    "text": "لا يوجد مستلِمون معدّون",
+    "source_hash": "bc8c2058"
   },
   "web.domains.incoming.empty_state_description": {
-    "text": "أضف مستلِمين للسماح للمستخدمين الخارجيين بإرسال الأسرار إلى فريقك."
+    "text": "أضف مستلِمين للسماح للمستخدمين الخارجيين بإرسال الأسرار إلى فريقك.",
+    "source_hash": "2a647a40"
   },
   "web.domains.incoming.validation_invalid_email": {
-    "text": "عنوان بريد إلكتروني غير صالح"
+    "text": "عنوان بريد إلكتروني غير صالح",
+    "source_hash": "4eaf1d80"
   },
   "web.domains.incoming.validation_duplicate_email": {
-    "text": "عنوان البريد الإلكتروني هذا مُضاف بالفعل"
+    "text": "عنوان البريد الإلكتروني هذا مُضاف بالفعل",
+    "source_hash": "f89de141"
   },
   "web.domains.incoming.validation_max_recipients": {
-    "text": "الحد الأقصى المسموح به هو {max} مستلِم"
+    "text": "الحد الأقصى المسموح به هو {max} مستلِم",
+    "source_hash": "e2585847"
   },
   "web.domains.incoming.validation_name_required": {
-    "text": "الاسم المعروض مطلوب"
+    "text": "الاسم المعروض مطلوب",
+    "source_hash": "c6892c89"
   },
   "web.domains.incoming.validation_email_required": {
-    "text": "عنوان البريد الإلكتروني مطلوب"
+    "text": "عنوان البريد الإلكتروني مطلوب",
+    "source_hash": "41381ba2"
   },
   "web.domains.incoming.save_changes": {
-    "text": "حفظ التغييرات"
+    "text": "حفظ التغييرات",
+    "source_hash": "35322b5b"
   },
   "web.domains.incoming.discard_changes": {
-    "text": "تجاهل التغييرات"
+    "text": "تجاهل التغييرات",
+    "source_hash": "e07e053c"
   },
   "web.domains.incoming.update_success": {
-    "text": "تم حفظ إعداد الأسرار الواردة بنجاح"
+    "text": "تم حفظ إعداد الأسرار الواردة بنجاح",
+    "source_hash": "9317e02d"
   },
   "web.domains.incoming.delete_success": {
-    "text": "تمت إزالة إعداد الأسرار الواردة بنجاح"
+    "text": "تمت إزالة إعداد الأسرار الواردة بنجاح",
+    "source_hash": "4c4a33ae"
   },
   "web.domains.incoming.recipient_count": {
-    "text": "{count} مستلِم | {count} مستلِمين"
+    "text": "{count} مستلِم | {count} مستلِمين",
+    "source_hash": "0e4f5985"
   },
   "web.domains.incoming.badge_not_configured": {
-    "text": "غير معدّ"
+    "text": "غير معدّ",
+    "source_hash": "dd1841d2"
   },
   "web.domains.incoming.badge_configured": {
-    "text": "تم الإعداد"
+    "text": "تم الإعداد",
+    "source_hash": "84aebc69"
   },
   "web.domains.incoming.badge_disabled": {
-    "text": "معطّل"
+    "text": "معطّل",
+    "source_hash": "75081b59"
   },
   "web.domains.incoming.tooltip_not_configured": {
-    "text": "الأسرار الواردة غير معدّة — لا يمكن للمستخدمين الخارجيين إرسال الأسرار إلى هذا النطاق"
+    "text": "الأسرار الواردة غير معدّة — لا يمكن للمستخدمين الخارجيين إرسال الأسرار إلى هذا النطاق",
+    "source_hash": "79786d5c"
   },
   "web.domains.incoming.tooltip_configured": {
-    "text": "الأسرار الواردة مفعّلة مع {count} مستلِم/مستلِمين"
+    "text": "الأسرار الواردة مفعّلة مع {count} مستلِم/مستلِمين",
+    "source_hash": "c205cc54"
   },
   "web.domains.incoming.tooltip_disabled": {
-    "text": "ميزة الأسرار الواردة معطّلة لهذا النطاق"
+    "text": "ميزة الأسرار الواردة معطّلة لهذا النطاق",
+    "source_hash": "0413f96b"
   },
   "web.domains.incoming.enabled_label": {
-    "text": "تفعيل الأسرار الواردة"
+    "text": "تفعيل الأسرار الواردة",
+    "source_hash": "c0b25980"
   },
   "web.domains.incoming.enabled_hint": {
-    "text": "اسمح للمستخدمين الخارجيين بإرسال الأسرار إلى مستلِمين على هذا النطاق"
+    "text": "اسمح للمستخدمين الخارجيين بإرسال الأسرار إلى مستلِمين على هذا النطاق",
+    "source_hash": "24aadd31"
   },
   "web.domains.incoming.public_url_label": {
-    "text": "الرابط العام"
+    "text": "الرابط العام",
+    "source_hash": "f7b60b04"
   },
   "web.domains.incoming.public_url_description": {
-    "text": "شارك هذا الرابط مع المستخدمين الخارجيين للسماح لهم بإرسال الأسرار"
+    "text": "شارك هذا الرابط مع المستخدمين الخارجيين للسماح لهم بإرسال الأسرار",
+    "source_hash": "df47a894"
   },
   "web.domains.incoming.copy_url": {
-    "text": "نسخ الرابط"
+    "text": "نسخ الرابط",
+    "source_hash": "b26d1037"
   },
   "web.domains.incoming.url_copied": {
-    "text": "تم نسخ الرابط إلى الحافظة"
+    "text": "تم نسخ الرابط إلى الحافظة",
+    "source_hash": "2f396c3e"
   },
   "web.domains.incoming.remove_all_confirmation": {
-    "text": "هل أنت متأكد من رغبتك في إزالة جميع المستلِمين؟ لن يتمكن المستخدمون الخارجيون بعد الآن من إرسال الأسرار إلى هذا النطاق."
+    "text": "هل أنت متأكد من رغبتك في إزالة جميع المستلِمين؟ لن يتمكن المستخدمون الخارجيون بعد الآن من إرسال الأسرار إلى هذا النطاق.",
+    "source_hash": "06f9e551"
   },
   "web.domains.incoming.max_recipients_reached": {
-    "text": "تم بلوغ الحد الأقصى لعدد المستلِمين"
+    "text": "تم بلوغ الحد الأقصى لعدد المستلِمين",
+    "source_hash": "ba659e54"
   },
   "web.domains.incoming.duplicate_recipient": {
-    "text": "تمت إضافة عنوان البريد الإلكتروني هذا بالفعل"
+    "text": "تمت إضافة عنوان البريد الإلكتروني هذا بالفعل",
+    "source_hash": "ca598f6d"
   },
   "web.domains.incoming.save_will_replace_confirmation": {
-    "text": "سيؤدي الحفظ إلى استبدال جميع المستلِمين الحاليين بتغييراتك المعلقة. هل أنت متأكد؟"
+    "text": "سيؤدي الحفظ إلى استبدال جميع المستلِمين الحاليين بتغييراتك المعلقة. هل أنت متأكد؟",
+    "source_hash": "f497862e"
   },
   "web.domains.incoming.delete_all_recipients": {
-    "text": "حذف جميع المستلِمين"
+    "text": "حذف جميع المستلِمين",
+    "source_hash": "207d0dbe"
   },
   "web.domains.signin.title": {
-    "text": "إعداد تسجيل الدخول"
+    "text": "إعداد تسجيل الدخول",
+    "source_hash": "2da38c03"
   },
   "web.domains.signin.configure_signin": {
-    "text": "إعداد تسجيل الدخول"
+    "text": "إعداد تسجيل الدخول",
+    "source_hash": "f72b58b5"
   },
   "web.domains.signin.config_description": {
-    "text": "قم بإعداد طرق مصادقة تسجيل الدخول لهذا النطاق"
+    "text": "قم بإعداد طرق مصادقة تسجيل الدخول لهذا النطاق",
+    "source_hash": "8efce428"
   },
   "web.domains.signin.access_denied": {
-    "text": "تم رفض الوصول"
+    "text": "تم رفض الوصول",
+    "source_hash": "d134ca02"
   },
   "web.domains.signin.upgrade_to_configure": {
-    "text": "قم بترقية خطتك لإعداد طرق تسجيل الدخول لهذا النطاق."
+    "text": "قم بترقية خطتك لإعداد طرق تسجيل الدخول لهذا النطاق.",
+    "source_hash": "e242bb74"
   },
   "web.domains.signin.not_configured_notice": {
-    "text": "لم يتم بعد ضبط إعداد تسجيل الدخول لهذا النطاق. قم بإعداد التجاوزات للتحكم في طرق المصادقة المتاحة على صفحة تسجيل الدخول لهذا النطاق."
+    "text": "لم يتم بعد ضبط إعداد تسجيل الدخول لهذا النطاق. قم بإعداد التجاوزات للتحكم في طرق المصادقة المتاحة على صفحة تسجيل الدخول لهذا النطاق.",
+    "source_hash": "cb788a2d"
   },
   "web.domains.signin.signin_enabled_label": {
-    "text": "تسجيل الدخول مفعّل"
+    "text": "تسجيل الدخول مفعّل",
+    "source_hash": "cabe4898"
   },
   "web.domains.signin.header_toggle_label": {
-    "text": "تسجيل الدخول"
+    "text": "تسجيل الدخول",
+    "source_hash": "5bbbe531"
   },
   "web.domains.signin.signin_enabled_hint": {
-    "text": "ما إذا كان بإمكان المستخدمين تسجيل الدخول على هذا النطاق"
+    "text": "ما إذا كان بإمكان المستخدمين تسجيل الدخول على هذا النطاق",
+    "source_hash": "57a92aee"
   },
   "web.domains.signin.restrict_to_label": {
-    "text": "تقييد طريقة تسجيل الدخول"
+    "text": "تقييد طريقة تسجيل الدخول",
+    "source_hash": "edbec83f"
   },
   "web.domains.signin.restrict_to_hint": {
-    "text": "قيّد هذا النطاق بطريقة مصادقة واحدة. عند الضبط، تُعرض الطريقة المختارة فقط على صفحة تسجيل الدخول."
+    "text": "قيّد هذا النطاق بطريقة مصادقة واحدة. عند الضبط، تُعرض الطريقة المختارة فقط على صفحة تسجيل الدخول.",
+    "source_hash": "682bc4c5"
   },
   "web.domains.signin.all_methods": {
-    "text": "جميع الطرق"
+    "text": "جميع الطرق",
+    "source_hash": "e601c19e"
   },
   "web.domains.signin.all_methods_description": {
-    "text": "عرض جميع طرق المصادقة المفعّلة على صفحة تسجيل الدخول"
+    "text": "عرض جميع طرق المصادقة المفعّلة على صفحة تسجيل الدخول",
+    "source_hash": "62723340"
   },
   "web.domains.signin.method_password": {
-    "text": "كلمة المرور"
+    "text": "كلمة المرور",
+    "source_hash": "e7cf3ef4"
   },
   "web.domains.signin.method_email_auth": {
-    "text": "المصادقة عبر البريد الإلكتروني"
+    "text": "المصادقة عبر البريد الإلكتروني",
+    "source_hash": "68c38f94"
   },
   "web.domains.signin.method_webauthn": {
-    "text": "WebAuthn / Passkeys"
+    "text": "WebAuthn / Passkeys",
+    "source_hash": "c40224ce"
   },
   "web.domains.signin.method_sso": {
-    "text": "تسجيل الدخول الموحّد"
+    "text": "تسجيل الدخول الموحّد",
+    "source_hash": "cf7cd744"
   },
   "web.domains.signin.method_overrides_label": {
-    "text": "تجاوزات الطرق"
+    "text": "تجاوزات الطرق",
+    "source_hash": "5496cba6"
   },
   "web.domains.signin.method_overrides_hint": {
-    "text": "فعّل أو عطّل طرق مصادقة فردية لهذا النطاق"
+    "text": "فعّل أو عطّل طرق مصادقة فردية لهذا النطاق",
+    "source_hash": "394e3878"
   },
   "web.domains.signin.mode_question": {
-    "text": "كيف يمكن للمستخدمين تسجيل الدخول؟"
+    "text": "كيف يمكن للمستخدمين تسجيل الدخول؟",
+    "source_hash": "3694eb23"
   },
   "web.domains.signin.mode_any": {
-    "text": "أي طريقة متاحة"
+    "text": "أي طريقة متاحة",
+    "source_hash": "23665425"
   },
   "web.domains.signin.mode_any_hint": {
-    "text": "عرض كل طريقة متاحة على هذا النطاق. ضيّق نطاق الطرق الفردية أدناه."
+    "text": "عرض كل طريقة متاحة على هذا النطاق. ضيّق نطاق الطرق الفردية أدناه.",
+    "source_hash": "2f3dcba6"
   },
   "web.domains.signin.mode_one": {
-    "text": "طريقة واحدة محدّدة"
+    "text": "طريقة واحدة محدّدة",
+    "source_hash": "601f5768"
   },
   "web.domains.signin.mode_one_hint": {
-    "text": "قيّد صفحة تسجيل الدخول بطريقة واحدة. تُدرج فقط الطرق المتاحة على هذا النطاق."
+    "text": "قيّد صفحة تسجيل الدخول بطريقة واحدة. تُدرج فقط الطرق المتاحة على هذا النطاق.",
+    "source_hash": "58bde6d5"
   },
   "web.domains.signin.mode_disabled": {
-    "text": "تسجيل الدخول معطّل"
+    "text": "تسجيل الدخول معطّل",
+    "source_hash": "bb807607"
   },
   "web.domains.signin.mode_disabled_hint": {
-    "text": "لا يمكن للمستخدمين تسجيل الدخول على هذا النطاق."
+    "text": "لا يمكن للمستخدمين تسجيل الدخول على هذا النطاق.",
+    "source_hash": "8938f098"
   },
   "web.domains.signin.mode_disabled_notice": {
-    "text": "يرى زوار صفحة تسجيل الدخول لهذا النطاق إشعاراً بأن تسجيل الدخول غير متاح، مع رابط للعودة إلى الصفحة الرئيسية. يتم الاحتفاظ بإعدادات الطرق السابقة واستعادتها عند إعادة تفعيل تسجيل الدخول."
+    "text": "يرى زوار صفحة تسجيل الدخول لهذا النطاق إشعاراً بأن تسجيل الدخول غير متاح، مع رابط للعودة إلى الصفحة الرئيسية. يتم الاحتفاظ بإعدادات الطرق السابقة واستعادتها عند إعادة تفعيل تسجيل الدخول.",
+    "source_hash": "1a04de18"
   },
   "web.domains.signin.methods_list_label": {
-    "text": "الطرق المعروضة على صفحة تسجيل الدخول"
+    "text": "الطرق المعروضة على صفحة تسجيل الدخول",
+    "source_hash": "66fd133b"
   },
   "web.domains.signin.restrict_picker_hint": {
-    "text": "تُدرج فقط الطرق المتاحة على هذا النطاق."
+    "text": "تُدرج فقط الطرق المتاحة على هذا النطاق.",
+    "source_hash": "c7a56f44"
   },
   "web.domains.signin.availability_always": {
-    "text": "متاح دائماً"
+    "text": "متاح دائماً",
+    "source_hash": "0fda3772"
   },
   "web.domains.signin.availability_global_on": {
-    "text": "يتبع السياسة العامة · مفعّل"
+    "text": "يتبع السياسة العامة · مفعّل",
+    "source_hash": "3844e6f7"
   },
   "web.domains.signin.availability_global_off": {
-    "text": "غير متاح"
+    "text": "غير متاح",
+    "source_hash": "67a926f7"
   },
   "web.domains.signin.availability_unavailable": {
-    "text": "غير متاح على مستوى الموقع"
+    "text": "غير متاح على مستوى الموقع",
+    "source_hash": "da29c1be"
   },
   "web.domains.signin.allow_on_domain": {
-    "text": "السماح على هذا النطاق"
+    "text": "السماح على هذا النطاق",
+    "source_hash": "760b578e"
   },
   "web.domains.signin.method_password_blurb": {
-    "text": "كلمة المرور فقط"
+    "text": "كلمة المرور فقط",
+    "source_hash": "ed1a02fd"
   },
   "web.domains.signin.method_email_auth_blurb": {
-    "text": "تسجيل دخول بالرابط السحري بدون كلمة مرور"
+    "text": "تسجيل دخول بالرابط السحري بدون كلمة مرور",
+    "source_hash": "7f776a85"
   },
   "web.domains.signin.method_webauthn_blurb": {
-    "text": "القياسات الحيوية ومفاتيح الأمان"
+    "text": "القياسات الحيوية ومفاتيح الأمان",
+    "source_hash": "7d6a7bd5"
   },
   "web.domains.signin.method_sso_blurb": {
-    "text": "موفّر هوية خارجي"
+    "text": "موفّر هوية خارجي",
+    "source_hash": "a3442088"
   },
   "web.domains.signin.email_auth_label": {
-    "text": "المصادقة عبر البريد الإلكتروني"
+    "text": "المصادقة عبر البريد الإلكتروني",
+    "source_hash": "68c38f94"
   },
   "web.domains.signin.email_auth_hint": {
-    "text": "السماح بالمصادقة عبر البريد الإلكتروني بدون كلمة مرور على هذا النطاق"
+    "text": "السماح بالمصادقة عبر البريد الإلكتروني بدون كلمة مرور على هذا النطاق",
+    "source_hash": "6ad82127"
   },
   "web.domains.signin.sso_enabled_label": {
-    "text": "تسجيل الدخول الموحّد"
+    "text": "تسجيل الدخول الموحّد",
+    "source_hash": "cf7cd744"
   },
   "web.domains.signin.sso_enabled_hint": {
-    "text": "السماح بمصادقة تسجيل الدخول الموحّد (SSO) على هذا النطاق"
+    "text": "السماح بمصادقة تسجيل الدخول الموحّد (SSO) على هذا النطاق",
+    "source_hash": "22d78ad5"
   },
   "web.domains.signin.enabled_label": {
-    "text": "تفعيل إعداد تسجيل الدخول"
+    "text": "تفعيل إعداد تسجيل الدخول",
+    "source_hash": "dbd8e11c"
   },
   "web.domains.signin.enabled_hint": {
-    "text": "عند التفعيل، يستخدم هذا النطاق إعدادات تسجيل الدخول المضبوطة أعلاه"
+    "text": "عند التفعيل، يستخدم هذا النطاق إعدادات تسجيل الدخول المضبوطة أعلاه",
+    "source_hash": "6259f8a2"
   },
   "web.domains.signin.save_config": {
-    "text": "حفظ الإعداد"
+    "text": "حفظ الإعداد",
+    "source_hash": "b2b158f2"
   },
   "web.domains.signin.update_success": {
-    "text": "تم تحديث إعداد تسجيل الدخول بنجاح"
+    "text": "تم تحديث إعداد تسجيل الدخول بنجاح",
+    "source_hash": "10ea50d8"
   },
   "web.domains.signin.reset_to_defaults": {
-    "text": "إعادة التعيين إلى الإعدادات الافتراضية"
+    "text": "إعادة التعيين إلى الإعدادات الافتراضية",
+    "source_hash": "e240e635"
   },
   "web.domains.signin.reset_confirm": {
-    "text": "إعادة تعيين تسجيل الدخول إلى الإعدادات الافتراضية العامة؟"
+    "text": "إعادة تعيين تسجيل الدخول إلى الإعدادات الافتراضية العامة؟",
+    "source_hash": "2c6bbc32"
   },
   "web.domains.signin.reset_keeps_sso": {
-    "text": "يتم الاحتفاظ ببيانات اعتماد تسجيل الدخول الموحّد (SSO) الخاصة بك. أزلها بشكل منفصل من شاشة إعداد تسجيل الدخول الموحّد (SSO)."
+    "text": "يتم الاحتفاظ ببيانات اعتماد تسجيل الدخول الموحّد (SSO) الخاصة بك. أزلها بشكل منفصل من شاشة إعداد تسجيل الدخول الموحّد (SSO).",
+    "source_hash": "edc0c756"
   },
   "web.domains.signin.reset_action": {
-    "text": "نعم، إعادة التعيين"
+    "text": "نعم، إعادة التعيين",
+    "source_hash": "4bb21d8b"
   },
   "web.domains.signin.reset_success": {
-    "text": "تمت إعادة تعيين إعدادات تسجيل الدخول إلى الإعدادات الافتراضية العامة"
+    "text": "تمت إعادة تعيين إعدادات تسجيل الدخول إلى الإعدادات الافتراضية العامة",
+    "source_hash": "0c364d89"
   },
   "web.domains.signup.title": {
-    "text": "التحقق من التسجيل"
+    "text": "التحقق من التسجيل",
+    "source_hash": "2c34ac0a"
   },
   "web.domains.signup.config_description": {
-    "text": "قم بإعداد التحقق من التسجيل لهذا النطاق"
+    "text": "قم بإعداد التحقق من التسجيل لهذا النطاق",
+    "source_hash": "e9c81e8a"
   },
   "web.domains.signup.access_denied": {
-    "text": "تم رفض الوصول"
+    "text": "تم رفض الوصول",
+    "source_hash": "d134ca02"
   },
   "web.domains.signup.upgrade_to_configure": {
-    "text": "قم بترقية خطتك لإعداد التحقق من التسجيل لكل نطاق."
+    "text": "قم بترقية خطتك لإعداد التحقق من التسجيل لكل نطاق.",
+    "source_hash": "d87d6614"
   },
   "web.domains.signup.configure_signup": {
-    "text": "إعداد التسجيل"
+    "text": "إعداد التسجيل",
+    "source_hash": "e2697662"
   },
   "web.domains.signup.not_configured_notice": {
-    "text": "لم يتم بعد إعداد التحقق من التسجيل لهذا النطاق. قم بإعداد استراتيجية للتحكم فيمن يمكنه التسجيل عبر هذا النطاق."
+    "text": "لم يتم بعد إعداد التحقق من التسجيل لهذا النطاق. قم بإعداد استراتيجية للتحكم فيمن يمكنه التسجيل عبر هذا النطاق.",
+    "source_hash": "fc6c6eb8"
   },
   "web.domains.signup.site_signups_disabled_warning": {
-    "text": "التسجيلات معطّلة حالياً على مستوى الموقع. هذه السياسة الخاصة بالنطاق معدّة لكنها لن تتحكم في أي حركة مرور حتى يتم تفعيل التسجيلات على مستوى الموقع."
+    "text": "التسجيلات معطّلة حالياً على مستوى الموقع. هذه السياسة الخاصة بالنطاق معدّة لكنها لن تتحكم في أي حركة مرور حتى يتم تفعيل التسجيلات على مستوى الموقع.",
+    "source_hash": "c0e59f86"
   },
   "web.domains.signup.strategy_label": {
-    "text": "استراتيجية التحقق"
+    "text": "استراتيجية التحقق",
+    "source_hash": "a2e95531"
   },
   "web.domains.signup.strategy_description": {
-    "text": "اختر كيفية التحقق من عناوين البريد الإلكتروني عند تسجيل المستخدمين على هذا النطاق."
+    "text": "اختر كيفية التحقق من عناوين البريد الإلكتروني عند تسجيل المستخدمين على هذا النطاق.",
+    "source_hash": "8e232b03"
   },
   "web.domains.signup.network_validation_warning": {
-    "text": "تجري هذه الاستراتيجية اتصالات شبكية أثناء التسجيل، مما قد يضيف زمن استجابة أو يتم حظره من قبل بعض الموفّرين."
+    "text": "تجري هذه الاستراتيجية اتصالات شبكية أثناء التسجيل، مما قد يضيف زمن استجابة أو يتم حظره من قبل بعض الموفّرين.",
+    "source_hash": "53d4c266"
   },
   "web.domains.signup.allowed_domains_label": {
-    "text": "نطاقات التسجيل المسموح بها"
+    "text": "نطاقات التسجيل المسموح بها",
+    "source_hash": "9b5bb5b1"
   },
   "web.domains.signup.allowed_domains_hint": {
-    "text": "سيُسمح بالتسجيل فقط من نطاقات البريد الإلكتروني هذه. أضف نطاقاً واحداً لكل إدخال."
+    "text": "سيُسمح بالتسجيل فقط من نطاقات البريد الإلكتروني هذه. أضف نطاقاً واحداً لكل إدخال.",
+    "source_hash": "c082414d"
   },
   "web.domains.signup.domain_placeholder": {
-    "text": "example.com"
+    "text": "example.com",
+    "source_hash": "a379a6f6"
   },
   "web.domains.signup.invalid_domain": {
-    "text": "يرجى إدخال نطاق صالح (مثال: example.com)"
+    "text": "يرجى إدخال نطاق صالح (مثال: example.com)",
+    "source_hash": "16807983"
   },
   "web.domains.signup.domain_exists": {
-    "text": "هذا النطاق موجود بالفعل في القائمة"
+    "text": "هذا النطاق موجود بالفعل في القائمة",
+    "source_hash": "3fccb721"
   },
   "web.domains.signup.remove_domain": {
-    "text": "إزالة {domain}"
+    "text": "إزالة {domain}",
+    "source_hash": "ae708a1d"
   },
   "web.domains.signup.enabled_label": {
-    "text": "تفعيل التحقق لكل نطاق"
+    "text": "تفعيل التحقق لكل نطاق",
+    "source_hash": "db103925"
   },
   "web.domains.signup.enabled_hint": {
-    "text": "عند التفعيل، تستخدم التسجيلات على هذا النطاق الاستراتيجية أعلاه بدلاً من السياسة العامة."
+    "text": "عند التفعيل، تستخدم التسجيلات على هذا النطاق الاستراتيجية أعلاه بدلاً من السياسة العامة.",
+    "source_hash": "99de2008"
   },
   "web.domains.signup.delete_config": {
-    "text": "حذف الإعداد"
+    "text": "حذف الإعداد",
+    "source_hash": "a9a30c7f"
   },
   "web.domains.signup.delete_confirm": {
-    "text": "حذف إعداد التحقق من التسجيل؟ ستعود التسجيلات إلى السياسة العامة."
+    "text": "حذف إعداد التحقق من التسجيل؟ ستعود التسجيلات إلى السياسة العامة.",
+    "source_hash": "a8c9086e"
   },
   "web.domains.signup.save_config": {
-    "text": "حفظ الإعداد"
+    "text": "حفظ الإعداد",
+    "source_hash": "b2b158f2"
   },
   "web.domains.signup.update_success": {
-    "text": "تم تحديث التحقق من التسجيل بنجاح"
+    "text": "تم تحديث التحقق من التسجيل بنجاح",
+    "source_hash": "57a529ac"
   },
   "web.domains.signup.delete_success": {
-    "text": "تمت إزالة إعداد التحقق من التسجيل بنجاح"
+    "text": "تمت إزالة إعداد التحقق من التسجيل بنجاح",
+    "source_hash": "eb6add4d"
   },
   "web.domains.signup.domain_overrides_label": {
-    "text": "تجاوزات النطاق"
+    "text": "تجاوزات النطاق",
+    "source_hash": "d25da3cd"
   },
   "web.domains.signup.domain_overrides_hint": {
-    "text": "تجاوز إعدادات التسجيل العامة لهذا النطاق"
+    "text": "تجاوز إعدادات التسجيل العامة لهذا النطاق",
+    "source_hash": "53101057"
   },
   "web.domains.signup.signup_enabled_label": {
-    "text": "التسجيل مفعّل"
+    "text": "التسجيل مفعّل",
+    "source_hash": "296ac66d"
   },
   "web.domains.signup.signup_enabled_hint": {
-    "text": "تجاوز ما إذا كان التسجيل مفعّلاً لهذا النطاق"
+    "text": "تجاوز ما إذا كان التسجيل مفعّلاً لهذا النطاق",
+    "source_hash": "2ee146b6"
   },
   "web.domains.signup.autoverify_label": {
-    "text": "التحقق التلقائي من الحسابات"
+    "text": "التحقق التلقائي من الحسابات",
+    "source_hash": "4b103cd5"
   },
   "web.domains.signup.autoverify_hint": {
-    "text": "تجاوز ما إذا كان يتم التحقق من الحسابات الجديدة تلقائياً على هذا النطاق"
+    "text": "تجاوز ما إذا كان يتم التحقق من الحسابات الجديدة تلقائياً على هذا النطاق",
+    "source_hash": "63866ecd"
   },
   "web.domains.sso.title": {
-    "text": "تسجيل الدخول الموحّد"
+    "text": "تسجيل الدخول الموحّد",
+    "source_hash": "cf7cd744"
   },
   "web.domains.sso.config_title": {
-    "text": "إعداد تسجيل الدخول الموحّد (SSO)"
+    "text": "إعداد تسجيل الدخول الموحّد (SSO)",
+    "source_hash": "afd5751e"
   },
   "web.domains.sso.config_description": {
-    "text": "قم بإعداد مصادقة تسجيل الدخول الموحّد لهذا النطاق"
+    "text": "قم بإعداد مصادقة تسجيل الدخول الموحّد لهذا النطاق",
+    "source_hash": "f37a0b47"
   },
   "web.domains.sso.access_denied": {
-    "text": "تم رفض الوصول"
+    "text": "تم رفض الوصول",
+    "source_hash": "d134ca02"
   },
   "web.domains.sso.access_denied_description": {
-    "text": "ليس لديك إذن لإدارة إعدادات تسجيل الدخول الموحّد (SSO) لهذا النطاق. تواصل مع مسؤول مؤسستك."
+    "text": "ليس لديك إذن لإدارة إعدادات تسجيل الدخول الموحّد (SSO) لهذا النطاق. تواصل مع مسؤول مؤسستك.",
+    "source_hash": "db7fcfeb"
   },
   "web.domains.sso.upgrade_to_configure": {
-    "text": "قم بترقية خطتك لإعداد تسجيل الدخول الموحّد لهذا النطاق."
+    "text": "قم بترقية خطتك لإعداد تسجيل الدخول الموحّد لهذا النطاق.",
+    "source_hash": "71fc0069"
   },
   "web.domains.sso.create_success": {
-    "text": "تم إنشاء إعداد تسجيل الدخول الموحّد (SSO) بنجاح"
+    "text": "تم إنشاء إعداد تسجيل الدخول الموحّد (SSO) بنجاح",
+    "source_hash": "531c7d92"
   },
   "web.domains.sso.update_success": {
-    "text": "تم تحديث إعداد تسجيل الدخول الموحّد (SSO) بنجاح"
+    "text": "تم تحديث إعداد تسجيل الدخول الموحّد (SSO) بنجاح",
+    "source_hash": "d98d8e83"
   },
   "web.domains.sso.delete_success": {
-    "text": "تمت إزالة إعداد تسجيل الدخول الموحّد (SSO) بنجاح"
+    "text": "تمت إزالة إعداد تسجيل الدخول الموحّد (SSO) بنجاح",
+    "source_hash": "2e924798"
   },
   "web.domains.sso.test_success": {
-    "text": "نجح اختبار الاتصال — استجاب الموفّر بشكل صحيح"
+    "text": "نجح اختبار الاتصال — استجاب الموفّر بشكل صحيح",
+    "source_hash": "1570ddb0"
   },
   "web.domains.sso.test_failed": {
-    "text": "فشل اختبار الاتصال"
+    "text": "فشل اختبار الاتصال",
+    "source_hash": "a45a37dd"
   },
   "web.domains.sso.enforce_moved_notice": {
-    "text": "لتطلّب تسجيل الدخول الموحّد (SSO) لجميع عمليات تسجيل الدخول على هذا النطاق، قم بإعداده في إعدادات تسجيل الدخول الخاصة بالنطاق. يقيّد وضع تسجيل الدخول الموحّد (SSO) فقط صفحة تسجيل الدخول بموفّر تسجيل الدخول الموحّد (SSO) المعدّ هنا."
+    "text": "لتطلّب تسجيل الدخول الموحّد (SSO) لجميع عمليات تسجيل الدخول على هذا النطاق، قم بإعداده في إعدادات تسجيل الدخول الخاصة بالنطاق. يقيّد وضع تسجيل الدخول الموحّد (SSO) فقط صفحة تسجيل الدخول بموفّر تسجيل الدخول الموحّد (SSO) المعدّ هنا.",
+    "source_hash": "d26627a5"
   },
   "web.domains.sso.configure_sso": {
-    "text": "إعداد تسجيل الدخول الموحّد (SSO)"
+    "text": "إعداد تسجيل الدخول الموحّد (SSO)",
+    "source_hash": "80d3a144"
   },
   "web.domains.sso.not_configured_notice": {
-    "text": "لم يتم بعد إعداد تسجيل الدخول الموحّد (SSO) لهذا النطاق. فعّل تسجيل الدخول الموحّد للسماح لأعضاء الفريق بالمصادقة باستخدام موفّر الهوية الخاص بمؤسستك."
+    "text": "لم يتم بعد إعداد تسجيل الدخول الموحّد (SSO) لهذا النطاق. فعّل تسجيل الدخول الموحّد للسماح لأعضاء الفريق بالمصادقة باستخدام موفّر الهوية الخاص بمؤسستك.",
+    "source_hash": "c439214b"
   },
   "web.domains.sso.edit_credentials": {
-    "text": "تعديل بيانات الاعتماد"
+    "text": "تعديل بيانات الاعتماد",
+    "source_hash": "5a6622b6"
   },
   "web.domains.sso.configure_button": {
-    "text": "إعداد"
+    "text": "إعداد",
+    "source_hash": "6defafa2"
   },
   "web.domains.sso.upgrade_required": {
-    "text": "قم بالترقية للإعداد"
+    "text": "قم بالترقية للإعداد",
+    "source_hash": "571cfa98"
   }
 }

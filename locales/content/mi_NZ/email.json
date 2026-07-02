@@ -855,39 +855,51 @@
     "source_hash": "1cd0194a"
   },
   "email.common.secret_link_label": {
-    "text": "Hononga karere huna"
+    "text": "Hononga karere huna",
+    "source_hash": "18ddf44f"
   },
   "email.common.automated_notice": {
-    "text": "He karere aunoa tēnei nā %{product_name}."
+    "text": "He karere aunoa tēnei nā %{product_name}.",
+    "source_hash": "8fbabfba"
   },
   "email.common.support_label": {
-    "text": "Tautoko"
+    "text": "Tautoko",
+    "source_hash": "be91940b"
   },
   "email.expiration_warning.signature": {
-    "text": "Te Kapa Tautoko"
+    "text": "Te Kapa Tautoko",
+    "source_hash": "dc75bf9f"
   },
   "email.expiration_warning.footer_note": {
-    "text": "I whiwhi koe i tēnei nā te mea ka tata pau tētahi karere huna i hangaia e koe i runga i %{product_name}."
+    "text": "I whiwhi koe i tēnei nā te mea ka tata pau tētahi karere huna i hangaia e koe i runga i %{product_name}.",
+    "source_hash": "920779e4"
   },
   "email.feedback_email.user_id_label": {
-    "text": "Kaiwhakamahi:"
+    "text": "Kaiwhakamahi:",
+    "source_hash": "93d6b3e9"
   },
   "email.feedback_email.timezone_label": {
-    "text": "Rohe wā:"
+    "text": "Rohe wā:",
+    "source_hash": "39651ebf"
   },
   "email.feedback_email.version_label": {
-    "text": "Putanga:"
+    "text": "Putanga:",
+    "source_hash": "4c5726ee"
   },
   "email.incoming_secret.footer_note": {
-    "text": "I whiwhi koe i tēnei nā te mea i whakamahi tētahi i %{product_name} ki te tuku karere huna ki a koe. Ki te kore koe i te tatari ki tēnei, ka taea e koe te waiho noa i tēnei īmēra."
+    "text": "I whiwhi koe i tēnei nā te mea i whakamahi tētahi i %{product_name} ki te tuku karere huna ki a koe. Ki te kore koe i te tatari ki tēnei, ka taea e koe te waiho noa i tēnei īmēra.",
+    "source_hash": "91ee6e8d"
   },
   "email.secret_link.passphrase_label": {
-    "text": "E hiahiatia ana te kupu karapa:"
+    "text": "E hiahiatia ana te kupu karapa:",
+    "source_hash": "1ab9a20f"
   },
   "email.secret_link.passphrase_required": {
-    "text": "Kua tiakina tēnei karere huna ki tētahi kupu karapa. Me hoatu e te kaituku ki a koe i tētahi ara motuhake."
+    "text": "Kua tiakina tēnei karere huna ki tētahi kupu karapa. Me hoatu e te kaituku ki a koe i tētahi ara motuhake.",
+    "source_hash": "1e49826b"
   },
   "email.secret_link.footer_note": {
-    "text": "I whiwhi koe i tēnei nā te mea i whakamahi a %{sender_email} i %{product_name} ki te tiri karere huna ki a koe. Ki te kore koe i te tatari ki tēnei, ka taea e koe te waiho noa i tēnei īmēra."
+    "text": "I whiwhi koe i tēnei nā te mea i whakamahi a %{sender_email} i %{product_name} ki te tiri karere huna ki a koe. Ki te kore koe i te tatari ki tēnei, ka taea e koe te waiho noa i tēnei īmēra.",
+    "source_hash": "2d544dad"
   }
 }

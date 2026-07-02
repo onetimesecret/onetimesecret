@@ -1,23 +1,30 @@
 {
   "api.invite.errors.invitation_not_found_or_expired": {
-    "text": "Inbjudan hittades inte eller har gått ut"
+    "text": "Inbjudan hittades inte eller har gått ut",
+    "source_hash": "63657979"
   },
   "api.invite.errors.token_required": {
-    "text": "Token krävs"
+    "text": "Token krävs",
+    "source_hash": "6c718161"
   },
   "api.invite.errors.organization_no_longer_exists": {
-    "text": "Organisationen finns inte längre"
+    "text": "Organisationen finns inte längre",
+    "source_hash": "a5df7d22"
   },
   "api.invite.errors.invitation_already_processed": {
-    "text": "Inbjudan har redan %{status}"
+    "text": "Inbjudan har redan %{status}",
+    "source_hash": "130c87e0"
   },
   "api.invite.errors.invitation_expired": {
-    "text": "Inbjudan har gått ut"
+    "text": "Inbjudan har gått ut",
+    "source_hash": "7186297b"
   },
   "api.invite.errors.email_mismatch": {
-    "text": "Din e-postadress matchar inte inbjudan"
+    "text": "Din e-postadress matchar inte inbjudan",
+    "source_hash": "11026f46"
   },
   "api.invite.errors.already_member": {
-    "text": "Du är redan medlem i den här organisationen"
+    "text": "Du är redan medlem i den här organisationen",
+    "source_hash": "f56ad547"
   }
 }

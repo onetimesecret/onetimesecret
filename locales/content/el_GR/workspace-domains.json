@@ -400,723 +400,963 @@
     "source_hash": "91c1af2e"
   },
   "api.domains.errors.add_admin_required": {
-    "text": "Μόνο οι κάτοχοι και οι διαχειριστές του οργανισμού μπορούν να προσθέσουν προσαρμοσμένους τομείς"
+    "text": "Μόνο οι κάτοχοι και οι διαχειριστές του οργανισμού μπορούν να προσθέσουν προσαρμοσμένους τομείς",
+    "source_hash": "3324aabe"
   },
   "web.domains.public_homepage": {
-    "text": "Δημόσια αρχική σελίδα"
+    "text": "Δημόσια αρχική σελίδα",
+    "source_hash": "2ae3ccba"
   },
   "web.domains.status_tooltip_active": {
-    "text": "Ο τομέας επαληθεύτηκε και είναι ενεργός"
+    "text": "Ο τομέας επαληθεύτηκε και είναι ενεργός",
+    "source_hash": "e4b6a6e1"
   },
   "web.domains.status_tooltip_dns_incorrect": {
-    "text": "Το DNS δεν έχει διαμορφωθεί — κάντε κλικ για διόρθωση"
+    "text": "Το DNS δεν έχει διαμορφωθεί — κάντε κλικ για διόρθωση",
+    "source_hash": "892cb2cb"
   },
   "web.domains.status_tooltip_not_verified": {
-    "text": "Ο τομέας δεν επαληθεύτηκε — κάντε κλικ για επαλήθευση"
+    "text": "Ο τομέας δεν επαληθεύτηκε — κάντε κλικ για επαλήθευση",
+    "source_hash": "a9806710"
   },
   "web.domains.status_tooltip_unverified": {
-    "text": "Η κατάσταση του τομέα δεν έχει επαληθευτεί — κάντε κλικ για ανανέωση"
+    "text": "Η κατάσταση του τομέα δεν έχει επαληθευτεί — κάντε κλικ για ανανέωση",
+    "source_hash": "a45aa76d"
   },
   "web.domains.last_check_failed": {
-    "text": "Ο τελευταίος έλεγχος επαλήθευσης απέτυχε"
+    "text": "Ο τελευταίος έλεγχος επαλήθευσης απέτυχε",
+    "source_hash": "88b594b8"
   },
   "web.domains.last_check_failed_ago": {
-    "text": "ο τελευταίος έλεγχος απέτυχε {0}"
+    "text": "ο τελευταίος έλεγχος απέτυχε {0}",
+    "source_hash": "ddfb6412"
   },
   "web.domains.verify_now": {
-    "text": "Επαλήθευση τώρα"
+    "text": "Επαλήθευση τώρα",
+    "source_hash": "db383efb"
   },
   "web.domains.click_to_verify": {
-    "text": "κάντε κλικ για επαλήθευση"
+    "text": "κάντε κλικ για επαλήθευση",
+    "source_hash": "6eae7d9c"
   },
   "web.domains.remove_domain_description": {
-    "text": "Καταργήστε οριστικά αυτόν τον τομέα και όλη τη διαμόρφωσή του."
+    "text": "Καταργήστε οριστικά αυτόν τον τομέα και όλη τη διαμόρφωσή του.",
+    "source_hash": "73946b9e"
   },
   "web.domains.add_access_denied": {
-    "text": "Άρνηση πρόσβασης"
+    "text": "Άρνηση πρόσβασης",
+    "source_hash": "d134ca02"
   },
   "web.domains.add_access_denied_description": {
-    "text": "Δεν έχετε δικαίωμα να προσθέσετε τομείς σε αυτόν τον οργανισμό. Επικοινωνήστε με τον διαχειριστή του οργανισμού σας."
+    "text": "Δεν έχετε δικαίωμα να προσθέσετε τομείς σε αυτόν τον οργανισμό. Επικοινωνήστε με τον διαχειριστή του οργανισμού σας.",
+    "source_hash": "25e035c6"
   },
   "web.domains.dns_widget_load_failed": {
-    "text": "Αποτυχία φόρτωσης του widget DNS"
+    "text": "Αποτυχία φόρτωσης του widget DNS",
+    "source_hash": "5a1d8ab5"
   },
   "web.domains.dns_widget_not_available": {
-    "text": "Το widget DNS δεν είναι διαθέσιμο"
+    "text": "Το widget DNS δεν είναι διαθέσιμο",
+    "source_hash": "4eed448b"
   },
   "web.domains.dns_widget_init_failed": {
-    "text": "Αποτυχία αρχικοποίησης του widget DNS"
+    "text": "Αποτυχία αρχικοποίησης του widget DNS",
+    "source_hash": "de477585"
   },
   "web.domains.verified": {
-    "text": "Επαληθευμένος"
+    "text": "Επαληθευμένος",
+    "source_hash": "4f783840"
   },
   "web.domains.pending_verification": {
-    "text": "Εκκρεμεί επαλήθευση"
+    "text": "Εκκρεμεί επαλήθευση",
+    "source_hash": "77e07795"
   },
   "web.domains.unsaved_changes_confirmation": {
-    "text": "Έχετε μη αποθηκευμένες αλλαγές. Είστε βέβαιοι ότι θέλετε να αποχωρήσετε;"
+    "text": "Έχετε μη αποθηκευμένες αλλαγές. Είστε βέβαιοι ότι θέλετε να αποχωρήσετε;",
+    "source_hash": "322380c1"
   },
   "web.domains.entitlement_required_owner": {
-    "text": "Αυτή η λειτουργία απαιτεί αναβάθμιση προγράμματος."
+    "text": "Αυτή η λειτουργία απαιτεί αναβάθμιση προγράμματος.",
+    "source_hash": "6de1f752"
   },
   "web.domains.entitlement_required_member": {
-    "text": "Αυτή η λειτουργία δεν είναι διαθέσιμη στο τρέχον πρόγραμμά σας. Επικοινωνήστε με τον κάτοχο του οργανισμού σας."
+    "text": "Αυτή η λειτουργία δεν είναι διαθέσιμη στο τρέχον πρόγραμμά σας. Επικοινωνήστε με τον κάτοχο του οργανισμού σας.",
+    "source_hash": "8f1688b2"
   },
   "web.domains.detail.manage": {
-    "text": "Διαχείριση"
+    "text": "Διαχείριση",
+    "source_hash": "5a234448"
   },
   "web.domains.detail.features": {
-    "text": "Λειτουργίες"
+    "text": "Λειτουργίες",
+    "source_hash": "5697d03d"
   },
   "web.domains.detail.homepage_title": {
-    "text": "Μυστικά αρχικής σελίδας"
+    "text": "Μυστικά αρχικής σελίδας",
+    "source_hash": "6360f7ec"
   },
   "web.domains.detail.homepage_description": {
-    "text": "Επιτρέψτε τη δημόσια πρόσβαση για τη δημιουργία μυστικών στην αρχική σελίδα του τομέα σας"
+    "text": "Επιτρέψτε τη δημόσια πρόσβαση για τη δημιουργία μυστικών στην αρχική σελίδα του τομέα σας",
+    "source_hash": "209b3ded"
   },
   "web.domains.detail.brand_description": {
-    "text": "Λογότυπο, χρώματα και προσαρμοσμένη επωνυμία"
+    "text": "Λογότυπο, χρώματα και προσαρμοσμένη επωνυμία",
+    "source_hash": "69f7a9e8"
   },
   "web.domains.detail.sso_description": {
-    "text": "Ρυθμίσεις παρόχου ενιαίας σύνδεσης (SSO)"
+    "text": "Ρυθμίσεις παρόχου ενιαίας σύνδεσης (SSO)",
+    "source_hash": "234e6150"
   },
   "web.domains.detail.email_description": {
-    "text": "Διαμόρφωση προσαρμοσμένου αποστολέα email"
+    "text": "Διαμόρφωση προσαρμοσμένου αποστολέα email",
+    "source_hash": "7fcde01b"
   },
   "web.domains.detail.incoming_description": {
-    "text": "Ρυθμίσεις παραλήπτη εισερχόμενων μυστικών"
+    "text": "Ρυθμίσεις παραλήπτη εισερχόμενων μυστικών",
+    "source_hash": "37c1fd6d"
   },
   "web.domains.detail.signup_description": {
-    "text": "Στρατηγική επικύρωσης εγγραφής ανά τομέα"
+    "text": "Στρατηγική επικύρωσης εγγραφής ανά τομέα",
+    "source_hash": "3c5a511f"
   },
   "web.domains.detail.signin_description": {
-    "text": "Διαμόρφωση μεθόδου σύνδεσης ανά τομέα"
+    "text": "Διαμόρφωση μεθόδου σύνδεσης ανά τομέα",
+    "source_hash": "73e01e36"
   },
   "web.domains.email.title": {
-    "text": "Αποστολή email"
+    "text": "Αποστολή email",
+    "source_hash": "6c428e5f"
   },
   "web.domains.email.config_title": {
-    "text": "Διαμόρφωση email"
+    "text": "Διαμόρφωση email",
+    "source_hash": "6f38aa51"
   },
   "web.domains.email.config_description": {
-    "text": "Διαμορφώστε την αποστολή email για αυτόν τον τομέα"
+    "text": "Διαμορφώστε την αποστολή email για αυτόν τον τομέα",
+    "source_hash": "1c275ff0"
   },
   "web.domains.email.provider_label": {
-    "text": "Πάροχος email"
+    "text": "Πάροχος email",
+    "source_hash": "a7ed3f4e"
   },
   "web.domains.email.provider_placeholder": {
-    "text": "Επιλέξτε έναν πάροχο email"
+    "text": "Επιλέξτε έναν πάροχο email",
+    "source_hash": "63c8080c"
   },
   "web.domains.email.from_name_label": {
-    "text": "Όνομα αποστολέα"
+    "text": "Όνομα αποστολέα",
+    "source_hash": "2f13b589"
   },
   "web.domains.email.from_name_placeholder": {
-    "text": "π.χ. Acme Security"
+    "text": "π.χ. Acme Security",
+    "source_hash": "03c0f138"
   },
   "web.domains.email.from_address_label": {
-    "text": "Διεύθυνση αποστολέα"
+    "text": "Διεύθυνση αποστολέα",
+    "source_hash": "60643eae"
   },
   "web.domains.email.from_address_placeholder": {
-    "text": "π.χ. secrets{'@'}example.com"
+    "text": "π.χ. secrets{'@'}example.com",
+    "source_hash": "a09b3928"
   },
   "web.domains.email.reply_to_label": {
-    "text": "Διεύθυνση απάντησης"
+    "text": "Διεύθυνση απάντησης",
+    "source_hash": "4538ea9c"
   },
   "web.domains.email.reply_to_placeholder": {
-    "text": "π.χ. support{'@'}example.com"
+    "text": "π.χ. support{'@'}example.com",
+    "source_hash": "fa3e5f0b"
   },
   "web.domains.email.save_changes": {
-    "text": "Αποθήκευση αλλαγών"
+    "text": "Αποθήκευση αλλαγών",
+    "source_hash": "35322b5b"
   },
   "web.domains.email.discard_changes": {
-    "text": "Απόρριψη αλλαγών"
+    "text": "Απόρριψη αλλαγών",
+    "source_hash": "e07e053c"
   },
   "web.domains.email.provider_ses": {
-    "text": "Amazon SES"
+    "text": "Amazon SES",
+    "source_hash": "15de4969"
   },
   "web.domains.email.provider_sendgrid": {
-    "text": "SendGrid"
+    "text": "SendGrid",
+    "source_hash": "b889d002"
   },
   "web.domains.email.provider_lettermint": {
-    "text": "Lettermint"
+    "text": "Lettermint",
+    "source_hash": "ec994dad"
   },
   "web.domains.email.provider_inherit": {
-    "text": "Χρήση προεπιλογών λογαριασμού"
+    "text": "Χρήση προεπιλογών λογαριασμού",
+    "source_hash": "f6fa84e7"
   },
   "web.domains.email.provider_ses_description": {
-    "text": "Απαιτεί επαλήθευση τομέα μέσω εγγραφών DKIM και SPF"
+    "text": "Απαιτεί επαλήθευση τομέα μέσω εγγραφών DKIM και SPF",
+    "source_hash": "4df5aa60"
   },
   "web.domains.email.provider_sendgrid_description": {
-    "text": "Απαιτεί ρύθμιση ελέγχου ταυτότητας τομέα"
+    "text": "Απαιτεί ρύθμιση ελέγχου ταυτότητας τομέα",
+    "source_hash": "71b53242"
   },
   "web.domains.email.provider_lettermint_description": {
-    "text": "Απαιτεί επαλήθευση τομέα"
+    "text": "Απαιτεί επαλήθευση τομέα",
+    "source_hash": "87073c93"
   },
   "web.domains.email.provider_inherit_description": {
-    "text": "Χρησιμοποιεί την προεπιλεγμένη διαμόρφωση αποστολής email του λογαριασμού σας"
+    "text": "Χρησιμοποιεί την προεπιλεγμένη διαμόρφωση αποστολής email του λογαριασμού σας",
+    "source_hash": "3f798263"
   },
   "web.domains.email.dns_records_title": {
-    "text": "Εγγραφές DNS"
+    "text": "Εγγραφές DNS",
+    "source_hash": "34d2c307"
   },
   "web.domains.email.dns_records_description": {
-    "text": "Προσθέστε τις ακόλουθες εγγραφές DNS για να επαληθεύσετε τον τομέα σας για αποστολή email."
+    "text": "Προσθέστε τις ακόλουθες εγγραφές DNS για να επαληθεύσετε τον τομέα σας για αποστολή email.",
+    "source_hash": "9fa85863"
   },
   "web.domains.email.dns_column_type": {
-    "text": "Τύπος"
+    "text": "Τύπος",
+    "source_hash": "baaddf70"
   },
   "web.domains.email.dns_column_name": {
-    "text": "Όνομα"
+    "text": "Όνομα",
+    "source_hash": "dcd1d522"
   },
   "web.domains.email.dns_column_value": {
-    "text": "Τιμή"
+    "text": "Τιμή",
+    "source_hash": "8e37953d"
   },
   "web.domains.email.dns_check_label": {
-    "text": "DNS"
+    "text": "DNS",
+    "source_hash": "020965a2"
   },
   "web.domains.email.provider_check_label": {
-    "text": "Πάροχος"
+    "text": "Πάροχος",
+    "source_hash": "472590ae"
   },
   "web.domains.email.dns_optional_label": {
-    "text": "Συνιστάται"
+    "text": "Συνιστάται",
+    "source_hash": "d70604e8"
   },
   "web.domains.email.dns_optional_hint": {
-    "text": "Αυτή η εγγραφή συνιστάται αλλά δεν απαιτείται για την επαλήθευση. Μια πολιτική DMARC στον τομέα του οργανισμού σας ενδέχεται να καλύπτει ήδη αυτόν τον υποτομέα."
+    "text": "Αυτή η εγγραφή συνιστάται αλλά δεν απαιτείται για την επαλήθευση. Μια πολιτική DMARC στον τομέα του οργανισμού σας ενδέχεται να καλύπτει ήδη αυτόν τον υποτομέα.",
+    "source_hash": "58e1a12b"
   },
   "web.domains.email.copy": {
-    "text": "Αντιγραφή"
+    "text": "Αντιγραφή",
+    "source_hash": "e21f935f"
   },
   "web.domains.email.copied": {
-    "text": "Αντιγράφηκε"
+    "text": "Αντιγράφηκε",
+    "source_hash": "8d525e5f"
   },
   "web.domains.email.status_verified": {
-    "text": "Επαληθευμένο"
+    "text": "Επαληθευμένο",
+    "source_hash": "4f783840"
   },
   "web.domains.email.status_pending": {
-    "text": "Σε εκκρεμότητα"
+    "text": "Σε εκκρεμότητα",
+    "source_hash": "331551b0"
   },
   "web.domains.email.status_failed": {
-    "text": "Απέτυχε"
+    "text": "Απέτυχε",
+    "source_hash": "031a8f0f"
   },
   "web.domains.email.revalidate": {
-    "text": "Επανεπικύρωση"
+    "text": "Επανεπικύρωση",
+    "source_hash": "4918da12"
   },
   "web.domains.email.validating": {
-    "text": "Επικύρωση..."
+    "text": "Επικύρωση...",
+    "source_hash": "b28b48d5"
   },
   "web.domains.email.domain_verified": {
-    "text": "Ο τομέας επαληθεύτηκε"
+    "text": "Ο τομέας επαληθεύτηκε",
+    "source_hash": "08e0df67"
   },
   "web.domains.email.validation_failed": {
-    "text": "Η επικύρωση απέτυχε"
+    "text": "Η επικύρωση απέτυχε",
+    "source_hash": "23a86f5a"
   },
   "web.domains.email.last_validated": {
-    "text": "Τελευταία επικύρωση"
+    "text": "Τελευταία επικύρωση",
+    "source_hash": "887dd486"
   },
   "web.domains.email.upgrade_to_configure": {
-    "text": "Αναβαθμίστε το πρόγραμμά σας για να διαμορφώσετε την αποστολή email για αυτόν τον τομέα."
+    "text": "Αναβαθμίστε το πρόγραμμά σας για να διαμορφώσετε την αποστολή email για αυτόν τον τομέα.",
+    "source_hash": "16a876f7"
   },
   "web.domains.email.configure_email": {
-    "text": "Διαμόρφωση email"
+    "text": "Διαμόρφωση email",
+    "source_hash": "a48c0d40"
   },
   "web.domains.email.access_denied": {
-    "text": "Άρνηση πρόσβασης"
+    "text": "Άρνηση πρόσβασης",
+    "source_hash": "d134ca02"
   },
   "web.domains.email.access_denied_description": {
-    "text": "Δεν έχετε δικαίωμα να διαχειριστείτε τις ρυθμίσεις email για αυτόν τον τομέα. Επικοινωνήστε με τον διαχειριστή του οργανισμού σας."
+    "text": "Δεν έχετε δικαίωμα να διαχειριστείτε τις ρυθμίσεις email για αυτόν τον τομέα. Επικοινωνήστε με τον διαχειριστή του οργανισμού σας.",
+    "source_hash": "32049ff0"
   },
   "web.domains.email.update_success": {
-    "text": "Η διαμόρφωση email αποθηκεύτηκε με επιτυχία"
+    "text": "Η διαμόρφωση email αποθηκεύτηκε με επιτυχία",
+    "source_hash": "dd3607fc"
   },
   "web.domains.email.delete_success": {
-    "text": "Η διαμόρφωση email καταργήθηκε με επιτυχία"
+    "text": "Η διαμόρφωση email καταργήθηκε με επιτυχία",
+    "source_hash": "2ba99a91"
   },
   "web.domains.email.default_sender_notice": {
-    "text": "Τα email για αυτόν τον τομέα αποστέλλονται προς το παρόν από τον καθολικό αποστολέα. Ολοκληρώστε τη διαμόρφωση email για να χρησιμοποιήσετε τη δική σας ταυτότητα αποστολέα."
+    "text": "Τα email για αυτόν τον τομέα αποστέλλονται προς το παρόν από τον καθολικό αποστολέα. Ολοκληρώστε τη διαμόρφωση email για να χρησιμοποιήσετε τη δική σας ταυτότητα αποστολέα.",
+    "source_hash": "ffcf39fb"
   },
   "web.domains.email.disabled_notice": {
-    "text": "Η προσαρμοσμένη αποστολή email είναι προς το παρόν απενεργοποιημένη. Τα email θα αποστέλλονται από τον καθολικό αποστολέα. Ενεργοποιήστε τη λειτουργία παρακάτω για να χρησιμοποιήσετε την προσαρμοσμένη ταυτότητα αποστολέα σας."
+    "text": "Η προσαρμοσμένη αποστολή email είναι προς το παρόν απενεργοποιημένη. Τα email θα αποστέλλονται από τον καθολικό αποστολέα. Ενεργοποιήστε τη λειτουργία παρακάτω για να χρησιμοποιήσετε την προσαρμοσμένη ταυτότητα αποστολέα σας.",
+    "source_hash": "60a26f5b"
   },
   "web.domains.email.test_email_title": {
-    "text": "Δοκιμή παράδοσης email"
+    "text": "Δοκιμή παράδοσης email",
+    "source_hash": "c1b3dee2"
   },
   "web.domains.email.test_email_hint": {
-    "text": "Στείλτε ένα δοκιμαστικό email στον εαυτό σας χρησιμοποιώντας την αποθηκευμένη διαμόρφωση. Λειτουργεί ακόμη και όταν η λειτουργία δεν έχει ενεργοποιηθεί ακόμα."
+    "text": "Στείλτε ένα δοκιμαστικό email στον εαυτό σας χρησιμοποιώντας την αποθηκευμένη διαμόρφωση. Λειτουργεί ακόμη και όταν η λειτουργία δεν έχει ενεργοποιηθεί ακόμα.",
+    "source_hash": "33e876ad"
   },
   "web.domains.email.send_test": {
-    "text": "Αποστολή δοκιμής"
+    "text": "Αποστολή δοκιμής",
+    "source_hash": "22d7b11d"
   },
   "web.domains.email.test_email_sent": {
-    "text": "Το δοκιμαστικό email στάλθηκε με επιτυχία"
+    "text": "Το δοκιμαστικό email στάλθηκε με επιτυχία",
+    "source_hash": "561617fd"
   },
   "web.domains.email.test_email_failed": {
-    "text": "Αποτυχία αποστολής δοκιμαστικού email"
+    "text": "Αποτυχία αποστολής δοκιμαστικού email",
+    "source_hash": "95ce63bc"
   },
   "web.domains.email.test_email_sent_to": {
-    "text": "Στάλθηκε σε {email}"
+    "text": "Στάλθηκε σε {email}",
+    "source_hash": "8ceb9588"
   },
   "web.domains.email.delivered_via": {
-    "text": "Παραδόθηκε μέσω {provider}"
+    "text": "Παραδόθηκε μέσω {provider}",
+    "source_hash": "f741959b"
   },
   "web.domains.email.badge_not_configured": {
-    "text": "Μη διαμορφωμένο"
+    "text": "Μη διαμορφωμένο",
+    "source_hash": "dd1841d2"
   },
   "web.domains.email.badge_default_sender": {
-    "text": "Χρήση προεπιλεγμένου αποστολέα"
+    "text": "Χρήση προεπιλεγμένου αποστολέα",
+    "source_hash": "e1afb18f"
   },
   "web.domains.email.badge_verified": {
-    "text": "Επαληθευμένο"
+    "text": "Επαληθευμένο",
+    "source_hash": "4f783840"
   },
   "web.domains.email.badge_pending": {
-    "text": "Εκκρεμεί επαλήθευση"
+    "text": "Εκκρεμεί επαλήθευση",
+    "source_hash": "417a6b7e"
   },
   "web.domains.email.badge_disabled": {
-    "text": "Απενεργοποιημένο"
+    "text": "Απενεργοποιημένο",
+    "source_hash": "75081b59"
   },
   "web.domains.email.tooltip_not_configured": {
-    "text": "Δεν έχει διαμορφωθεί αποστολέας email — τα email χρησιμοποιούν τον προεπιλεγμένο αποστολέα της πλατφόρμας"
+    "text": "Δεν έχει διαμορφωθεί αποστολέας email — τα email χρησιμοποιούν τον προεπιλεγμένο αποστολέα της πλατφόρμας",
+    "source_hash": "360083bb"
   },
   "web.domains.email.tooltip_pending": {
-    "text": "Η διαμόρφωση αποστολέα email εκκρεμεί επαλήθευση — τα email χρησιμοποιούν τον προεπιλεγμένο αποστολέα της πλατφόρμας"
+    "text": "Η διαμόρφωση αποστολέα email εκκρεμεί επαλήθευση — τα email χρησιμοποιούν τον προεπιλεγμένο αποστολέα της πλατφόρμας",
+    "source_hash": "c8c2449c"
   },
   "web.domains.email.tooltip_disabled": {
-    "text": "Ο αποστολέας email είναι απενεργοποιημένος — τα email χρησιμοποιούν τον προεπιλεγμένο αποστολέα της πλατφόρμας"
+    "text": "Ο αποστολέας email είναι απενεργοποιημένος — τα email χρησιμοποιούν τον προεπιλεγμένο αποστολέα της πλατφόρμας",
+    "source_hash": "64e84955"
   },
   "web.domains.email.tooltip_verified": {
-    "text": "Ο αποστολέας email επαληθεύτηκε — τα email αποστέλλονται από αυτόν τον τομέα"
+    "text": "Ο αποστολέας email επαληθεύτηκε — τα email αποστέλλονται από αυτόν τον τομέα",
+    "source_hash": "0e9a005c"
   },
   "web.domains.incoming.title": {
-    "text": "Εισερχόμενα μυστικά"
+    "text": "Εισερχόμενα μυστικά",
+    "source_hash": "883dbca9"
   },
   "web.domains.incoming.config_title": {
-    "text": "Διαμόρφωση εισερχόμενων μυστικών"
+    "text": "Διαμόρφωση εισερχόμενων μυστικών",
+    "source_hash": "b3fef15b"
   },
   "web.domains.incoming.config_description": {
-    "text": "Επιτρέψτε σε εξωτερικούς χρήστες να στέλνουν μυστικά απευθείας σε καθορισμένους παραλήπτες σε αυτόν τον τομέα"
+    "text": "Επιτρέψτε σε εξωτερικούς χρήστες να στέλνουν μυστικά απευθείας σε καθορισμένους παραλήπτες σε αυτόν τον τομέα",
+    "source_hash": "452ab4fe"
   },
   "web.domains.incoming.feature_disabled": {
-    "text": "Τα εισερχόμενα μυστικά δεν είναι διαθέσιμα"
+    "text": "Τα εισερχόμενα μυστικά δεν είναι διαθέσιμα",
+    "source_hash": "0f96c5ec"
   },
   "web.domains.incoming.feature_disabled_description": {
-    "text": "Τα εισερχόμενα μυστικά δεν είναι ενεργοποιημένα σε αυτήν την εγκατάσταση. Επικοινωνήστε με τον διαχειριστή σας."
+    "text": "Τα εισερχόμενα μυστικά δεν είναι ενεργοποιημένα σε αυτήν την εγκατάσταση. Επικοινωνήστε με τον διαχειριστή σας.",
+    "source_hash": "dce981e0"
   },
   "web.domains.incoming.access_denied": {
-    "text": "Άρνηση πρόσβασης"
+    "text": "Άρνηση πρόσβασης",
+    "source_hash": "d134ca02"
   },
   "web.domains.incoming.access_denied_description": {
-    "text": "Δεν έχετε δικαίωμα να διαχειριστείτε τις ρυθμίσεις εισερχόμενων μυστικών για αυτόν τον τομέα. Επικοινωνήστε με τον διαχειριστή του οργανισμού σας."
+    "text": "Δεν έχετε δικαίωμα να διαχειριστείτε τις ρυθμίσεις εισερχόμενων μυστικών για αυτόν τον τομέα. Επικοινωνήστε με τον διαχειριστή του οργανισμού σας.",
+    "source_hash": "3e9d8adc"
   },
   "web.domains.incoming.upgrade_to_configure": {
-    "text": "Αναβαθμίστε το πρόγραμμά σας για να διαμορφώσετε τα εισερχόμενα μυστικά για αυτόν τον τομέα."
+    "text": "Αναβαθμίστε το πρόγραμμά σας για να διαμορφώσετε τα εισερχόμενα μυστικά για αυτόν τον τομέα.",
+    "source_hash": "9dfdfeb5"
   },
   "web.domains.incoming.configure_incoming": {
-    "text": "Διαμόρφωση εισερχόμενων μυστικών"
+    "text": "Διαμόρφωση εισερχόμενων μυστικών",
+    "source_hash": "eab52939"
   },
   "web.domains.incoming.not_configured_notice": {
-    "text": "Τα εισερχόμενα μυστικά δεν έχουν διαμορφωθεί για αυτόν τον τομέα. Προσθέστε παραλήπτες για να επιτρέψετε σε εξωτερικούς χρήστες να στέλνουν μυστικά στην ομάδα σας."
+    "text": "Τα εισερχόμενα μυστικά δεν έχουν διαμορφωθεί για αυτόν τον τομέα. Προσθέστε παραλήπτες για να επιτρέψετε σε εξωτερικούς χρήστες να στέλνουν μυστικά στην ομάδα σας.",
+    "source_hash": "dbc443a6"
   },
   "web.domains.incoming.disabled_notice": {
-    "text": "Τα εισερχόμενα μυστικά είναι προς το παρόν απενεργοποιημένα. Οι εξωτερικοί χρήστες δεν μπορούν να στείλουν μυστικά σε παραλήπτες σε αυτόν τον τομέα. Ενεργοποιήστε τη λειτουργία παρακάτω για να επιτρέψετε τα εισερχόμενα μυστικά."
+    "text": "Τα εισερχόμενα μυστικά είναι προς το παρόν απενεργοποιημένα. Οι εξωτερικοί χρήστες δεν μπορούν να στείλουν μυστικά σε παραλήπτες σε αυτόν τον τομέα. Ενεργοποιήστε τη λειτουργία παρακάτω για να επιτρέψετε τα εισερχόμενα μυστικά.",
+    "source_hash": "d1f8dafb"
   },
   "web.domains.incoming.recipients_title": {
-    "text": "Παραλήπτες"
+    "text": "Παραλήπτες",
+    "source_hash": "1e8568a8"
   },
   "web.domains.incoming.recipients_description": {
-    "text": "Καθορίστε ποιος μπορεί να λαμβάνει εισερχόμενα μυστικά σε αυτόν τον τομέα. Οι παραλήπτες θα λαμβάνουν ειδοποιήσεις email όταν τους αποστέλλεται ένα μυστικό."
+    "text": "Καθορίστε ποιος μπορεί να λαμβάνει εισερχόμενα μυστικά σε αυτόν τον τομέα. Οι παραλήπτες θα λαμβάνουν ειδοποιήσεις email όταν τους αποστέλλεται ένα μυστικό.",
+    "source_hash": "026f9d9d"
   },
   "web.domains.incoming.add_recipient": {
-    "text": "Προσθήκη παραλήπτη"
+    "text": "Προσθήκη παραλήπτη",
+    "source_hash": "25f93c13"
   },
   "web.domains.incoming.remove_recipient": {
-    "text": "Κατάργηση"
+    "text": "Κατάργηση",
+    "source_hash": "c3812fc4"
   },
   "web.domains.incoming.email_label": {
-    "text": "Διεύθυνση email"
+    "text": "Διεύθυνση email",
+    "source_hash": "09bf25ef"
   },
   "web.domains.incoming.email_placeholder": {
-    "text": "recipient{'@'}example.com"
+    "text": "recipient{'@'}example.com",
+    "source_hash": "55d1508e"
   },
   "web.domains.incoming.name_label": {
-    "text": "Εμφανιζόμενο όνομα"
+    "text": "Εμφανιζόμενο όνομα",
+    "source_hash": "18d67c99"
   },
   "web.domains.incoming.name_placeholder": {
-    "text": "π.χ. Security Team"
+    "text": "π.χ. Security Team",
+    "source_hash": "0c52400c"
   },
   "web.domains.incoming.empty_state": {
-    "text": "Δεν έχουν διαμορφωθεί παραλήπτες"
+    "text": "Δεν έχουν διαμορφωθεί παραλήπτες",
+    "source_hash": "bc8c2058"
   },
   "web.domains.incoming.empty_state_description": {
-    "text": "Προσθέστε παραλήπτες για να επιτρέψετε σε εξωτερικούς χρήστες να στέλνουν μυστικά στην ομάδα σας."
+    "text": "Προσθέστε παραλήπτες για να επιτρέψετε σε εξωτερικούς χρήστες να στέλνουν μυστικά στην ομάδα σας.",
+    "source_hash": "2a647a40"
   },
   "web.domains.incoming.validation_invalid_email": {
-    "text": "Μη έγκυρη διεύθυνση email"
+    "text": "Μη έγκυρη διεύθυνση email",
+    "source_hash": "4eaf1d80"
   },
   "web.domains.incoming.validation_duplicate_email": {
-    "text": "Αυτή η διεύθυνση email έχει ήδη προστεθεί"
+    "text": "Αυτή η διεύθυνση email έχει ήδη προστεθεί",
+    "source_hash": "f89de141"
   },
   "web.domains.incoming.validation_max_recipients": {
-    "text": "Επιτρέπονται το πολύ {max} παραλήπτες"
+    "text": "Επιτρέπονται το πολύ {max} παραλήπτες",
+    "source_hash": "e2585847"
   },
   "web.domains.incoming.validation_name_required": {
-    "text": "Το εμφανιζόμενο όνομα είναι υποχρεωτικό"
+    "text": "Το εμφανιζόμενο όνομα είναι υποχρεωτικό",
+    "source_hash": "c6892c89"
   },
   "web.domains.incoming.validation_email_required": {
-    "text": "Η διεύθυνση email είναι υποχρεωτική"
+    "text": "Η διεύθυνση email είναι υποχρεωτική",
+    "source_hash": "41381ba2"
   },
   "web.domains.incoming.save_changes": {
-    "text": "Αποθήκευση αλλαγών"
+    "text": "Αποθήκευση αλλαγών",
+    "source_hash": "35322b5b"
   },
   "web.domains.incoming.discard_changes": {
-    "text": "Απόρριψη αλλαγών"
+    "text": "Απόρριψη αλλαγών",
+    "source_hash": "e07e053c"
   },
   "web.domains.incoming.update_success": {
-    "text": "Η διαμόρφωση εισερχόμενων μυστικών αποθηκεύτηκε με επιτυχία"
+    "text": "Η διαμόρφωση εισερχόμενων μυστικών αποθηκεύτηκε με επιτυχία",
+    "source_hash": "9317e02d"
   },
   "web.domains.incoming.delete_success": {
-    "text": "Η διαμόρφωση εισερχόμενων μυστικών καταργήθηκε με επιτυχία"
+    "text": "Η διαμόρφωση εισερχόμενων μυστικών καταργήθηκε με επιτυχία",
+    "source_hash": "4c4a33ae"
   },
   "web.domains.incoming.recipient_count": {
-    "text": "{count} παραλήπτης | {count} παραλήπτες"
+    "text": "{count} παραλήπτης | {count} παραλήπτες",
+    "source_hash": "0e4f5985"
   },
   "web.domains.incoming.badge_not_configured": {
-    "text": "Μη διαμορφωμένο"
+    "text": "Μη διαμορφωμένο",
+    "source_hash": "dd1841d2"
   },
   "web.domains.incoming.badge_configured": {
-    "text": "Διαμορφωμένο"
+    "text": "Διαμορφωμένο",
+    "source_hash": "84aebc69"
   },
   "web.domains.incoming.badge_disabled": {
-    "text": "Απενεργοποιημένο"
+    "text": "Απενεργοποιημένο",
+    "source_hash": "75081b59"
   },
   "web.domains.incoming.tooltip_not_configured": {
-    "text": "Τα εισερχόμενα μυστικά δεν έχουν διαμορφωθεί - οι εξωτερικοί χρήστες δεν μπορούν να στείλουν μυστικά σε αυτόν τον τομέα"
+    "text": "Τα εισερχόμενα μυστικά δεν έχουν διαμορφωθεί - οι εξωτερικοί χρήστες δεν μπορούν να στείλουν μυστικά σε αυτόν τον τομέα",
+    "source_hash": "79786d5c"
   },
   "web.domains.incoming.tooltip_configured": {
-    "text": "Τα εισερχόμενα μυστικά είναι ενεργοποιημένα με {count} παραλήπτη/ες"
+    "text": "Τα εισερχόμενα μυστικά είναι ενεργοποιημένα με {count} παραλήπτη/ες",
+    "source_hash": "c205cc54"
   },
   "web.domains.incoming.tooltip_disabled": {
-    "text": "Η λειτουργία εισερχόμενων μυστικών είναι απενεργοποιημένη για αυτόν τον τομέα"
+    "text": "Η λειτουργία εισερχόμενων μυστικών είναι απενεργοποιημένη για αυτόν τον τομέα",
+    "source_hash": "0413f96b"
   },
   "web.domains.incoming.enabled_label": {
-    "text": "Ενεργοποίηση εισερχόμενων μυστικών"
+    "text": "Ενεργοποίηση εισερχόμενων μυστικών",
+    "source_hash": "c0b25980"
   },
   "web.domains.incoming.enabled_hint": {
-    "text": "Επιτρέψτε σε εξωτερικούς χρήστες να στέλνουν μυστικά σε παραλήπτες σε αυτόν τον τομέα"
+    "text": "Επιτρέψτε σε εξωτερικούς χρήστες να στέλνουν μυστικά σε παραλήπτες σε αυτόν τον τομέα",
+    "source_hash": "24aadd31"
   },
   "web.domains.incoming.public_url_label": {
-    "text": "Δημόσιο URL"
+    "text": "Δημόσιο URL",
+    "source_hash": "f7b60b04"
   },
   "web.domains.incoming.public_url_description": {
-    "text": "Μοιραστείτε αυτό το URL με εξωτερικούς χρήστες για να τους επιτρέψετε να στέλνουν μυστικά"
+    "text": "Μοιραστείτε αυτό το URL με εξωτερικούς χρήστες για να τους επιτρέψετε να στέλνουν μυστικά",
+    "source_hash": "df47a894"
   },
   "web.domains.incoming.copy_url": {
-    "text": "Αντιγραφή URL"
+    "text": "Αντιγραφή URL",
+    "source_hash": "b26d1037"
   },
   "web.domains.incoming.url_copied": {
-    "text": "Το URL αντιγράφηκε στο πρόχειρο"
+    "text": "Το URL αντιγράφηκε στο πρόχειρο",
+    "source_hash": "2f396c3e"
   },
   "web.domains.incoming.remove_all_confirmation": {
-    "text": "Είστε βέβαιοι ότι θέλετε να καταργήσετε όλους τους παραλήπτες; Οι εξωτερικοί χρήστες δεν θα μπορούν πλέον να στέλνουν μυστικά σε αυτόν τον τομέα."
+    "text": "Είστε βέβαιοι ότι θέλετε να καταργήσετε όλους τους παραλήπτες; Οι εξωτερικοί χρήστες δεν θα μπορούν πλέον να στέλνουν μυστικά σε αυτόν τον τομέα.",
+    "source_hash": "06f9e551"
   },
   "web.domains.incoming.max_recipients_reached": {
-    "text": "Συμπληρώθηκε ο μέγιστος αριθμός παραληπτών"
+    "text": "Συμπληρώθηκε ο μέγιστος αριθμός παραληπτών",
+    "source_hash": "ba659e54"
   },
   "web.domains.incoming.duplicate_recipient": {
-    "text": "Αυτή η διεύθυνση email έχει ήδη προστεθεί"
+    "text": "Αυτή η διεύθυνση email έχει ήδη προστεθεί",
+    "source_hash": "ca598f6d"
   },
   "web.domains.incoming.save_will_replace_confirmation": {
-    "text": "Η αποθήκευση θα αντικαταστήσει όλους τους υπάρχοντες παραλήπτες με τις εκκρεμείς αλλαγές σας. Είστε βέβαιοι;"
+    "text": "Η αποθήκευση θα αντικαταστήσει όλους τους υπάρχοντες παραλήπτες με τις εκκρεμείς αλλαγές σας. Είστε βέβαιοι;",
+    "source_hash": "f497862e"
   },
   "web.domains.incoming.delete_all_recipients": {
-    "text": "Διαγραφή όλων των παραληπτών"
+    "text": "Διαγραφή όλων των παραληπτών",
+    "source_hash": "207d0dbe"
   },
   "web.domains.signin.title": {
-    "text": "Διαμόρφωση σύνδεσης"
+    "text": "Διαμόρφωση σύνδεσης",
+    "source_hash": "2da38c03"
   },
   "web.domains.signin.configure_signin": {
-    "text": "Διαμόρφωση σύνδεσης"
+    "text": "Διαμόρφωση σύνδεσης",
+    "source_hash": "f72b58b5"
   },
   "web.domains.signin.config_description": {
-    "text": "Διαμορφώστε τις μεθόδους ελέγχου ταυτότητας σύνδεσης για αυτόν τον τομέα"
+    "text": "Διαμορφώστε τις μεθόδους ελέγχου ταυτότητας σύνδεσης για αυτόν τον τομέα",
+    "source_hash": "8efce428"
   },
   "web.domains.signin.access_denied": {
-    "text": "Άρνηση πρόσβασης"
+    "text": "Άρνηση πρόσβασης",
+    "source_hash": "d134ca02"
   },
   "web.domains.signin.upgrade_to_configure": {
-    "text": "Αναβαθμίστε το πρόγραμμά σας για να διαμορφώσετε τις μεθόδους σύνδεσης για αυτόν τον τομέα."
+    "text": "Αναβαθμίστε το πρόγραμμά σας για να διαμορφώσετε τις μεθόδους σύνδεσης για αυτόν τον τομέα.",
+    "source_hash": "e242bb74"
   },
   "web.domains.signin.not_configured_notice": {
-    "text": "Η διαμόρφωση σύνδεσης δεν έχει οριστεί ακόμα για αυτόν τον τομέα. Διαμορφώστε παρακάμψεις για να ελέγξετε ποιες μέθοδοι ελέγχου ταυτότητας είναι διαθέσιμες στη σελίδα σύνδεσης αυτού του τομέα."
+    "text": "Η διαμόρφωση σύνδεσης δεν έχει οριστεί ακόμα για αυτόν τον τομέα. Διαμορφώστε παρακάμψεις για να ελέγξετε ποιες μέθοδοι ελέγχου ταυτότητας είναι διαθέσιμες στη σελίδα σύνδεσης αυτού του τομέα.",
+    "source_hash": "cb788a2d"
   },
   "web.domains.signin.signin_enabled_label": {
-    "text": "Η σύνδεση ενεργοποιήθηκε"
+    "text": "Η σύνδεση ενεργοποιήθηκε",
+    "source_hash": "cabe4898"
   },
   "web.domains.signin.header_toggle_label": {
-    "text": "Σύνδεση"
+    "text": "Σύνδεση",
+    "source_hash": "5bbbe531"
   },
   "web.domains.signin.signin_enabled_hint": {
-    "text": "Αν οι χρήστες μπορούν να συνδεθούν σε αυτόν τον τομέα"
+    "text": "Αν οι χρήστες μπορούν να συνδεθούν σε αυτόν τον τομέα",
+    "source_hash": "57a92aee"
   },
   "web.domains.signin.restrict_to_label": {
-    "text": "Περιορισμός μεθόδου σύνδεσης"
+    "text": "Περιορισμός μεθόδου σύνδεσης",
+    "source_hash": "edbec83f"
   },
   "web.domains.signin.restrict_to_hint": {
-    "text": "Περιορίστε αυτόν τον τομέα σε μία μόνο μέθοδο ελέγχου ταυτότητας. Όταν οριστεί, μόνο η επιλεγμένη μέθοδος εμφανίζεται στη σελίδα σύνδεσης."
+    "text": "Περιορίστε αυτόν τον τομέα σε μία μόνο μέθοδο ελέγχου ταυτότητας. Όταν οριστεί, μόνο η επιλεγμένη μέθοδος εμφανίζεται στη σελίδα σύνδεσης.",
+    "source_hash": "682bc4c5"
   },
   "web.domains.signin.all_methods": {
-    "text": "Όλες οι μέθοδοι"
+    "text": "Όλες οι μέθοδοι",
+    "source_hash": "e601c19e"
   },
   "web.domains.signin.all_methods_description": {
-    "text": "Εμφάνιση όλων των ενεργοποιημένων μεθόδων ελέγχου ταυτότητας στη σελίδα σύνδεσης"
+    "text": "Εμφάνιση όλων των ενεργοποιημένων μεθόδων ελέγχου ταυτότητας στη σελίδα σύνδεσης",
+    "source_hash": "62723340"
   },
   "web.domains.signin.method_password": {
-    "text": "Κωδικός πρόσβασης"
+    "text": "Κωδικός πρόσβασης",
+    "source_hash": "e7cf3ef4"
   },
   "web.domains.signin.method_email_auth": {
-    "text": "Έλεγχος ταυτότητας μέσω email"
+    "text": "Έλεγχος ταυτότητας μέσω email",
+    "source_hash": "68c38f94"
   },
   "web.domains.signin.method_webauthn": {
-    "text": "WebAuthn / Κλειδιά πρόσβασης"
+    "text": "WebAuthn / Κλειδιά πρόσβασης",
+    "source_hash": "c40224ce"
   },
   "web.domains.signin.method_sso": {
-    "text": "Ενιαία σύνδεση (SSO)"
+    "text": "Ενιαία σύνδεση (SSO)",
+    "source_hash": "cf7cd744"
   },
   "web.domains.signin.method_overrides_label": {
-    "text": "Παρακάμψεις μεθόδων"
+    "text": "Παρακάμψεις μεθόδων",
+    "source_hash": "5496cba6"
   },
   "web.domains.signin.method_overrides_hint": {
-    "text": "Ενεργοποιήστε ή απενεργοποιήστε μεμονωμένες μεθόδους ελέγχου ταυτότητας για αυτόν τον τομέα"
+    "text": "Ενεργοποιήστε ή απενεργοποιήστε μεμονωμένες μεθόδους ελέγχου ταυτότητας για αυτόν τον τομέα",
+    "source_hash": "394e3878"
   },
   "web.domains.signin.mode_question": {
-    "text": "Πώς μπορούν να συνδεθούν οι χρήστες;"
+    "text": "Πώς μπορούν να συνδεθούν οι χρήστες;",
+    "source_hash": "3694eb23"
   },
   "web.domains.signin.mode_any": {
-    "text": "Οποιαδήποτε διαθέσιμη μέθοδος"
+    "text": "Οποιαδήποτε διαθέσιμη μέθοδος",
+    "source_hash": "23665425"
   },
   "web.domains.signin.mode_any_hint": {
-    "text": "Εμφάνιση κάθε διαθέσιμης μεθόδου σε αυτόν τον τομέα. Περιορίστε μεμονωμένες μεθόδους παρακάτω."
+    "text": "Εμφάνιση κάθε διαθέσιμης μεθόδου σε αυτόν τον τομέα. Περιορίστε μεμονωμένες μεθόδους παρακάτω.",
+    "source_hash": "2f3dcba6"
   },
   "web.domains.signin.mode_one": {
-    "text": "Μία συγκεκριμένη μέθοδος"
+    "text": "Μία συγκεκριμένη μέθοδος",
+    "source_hash": "601f5768"
   },
   "web.domains.signin.mode_one_hint": {
-    "text": "Περιορίστε τη σελίδα σύνδεσης σε μία μόνο μέθοδο. Εμφανίζονται μόνο οι μέθοδοι που είναι διαθέσιμες σε αυτόν τον τομέα."
+    "text": "Περιορίστε τη σελίδα σύνδεσης σε μία μόνο μέθοδο. Εμφανίζονται μόνο οι μέθοδοι που είναι διαθέσιμες σε αυτόν τον τομέα.",
+    "source_hash": "58bde6d5"
   },
   "web.domains.signin.mode_disabled": {
-    "text": "Η σύνδεση απενεργοποιήθηκε"
+    "text": "Η σύνδεση απενεργοποιήθηκε",
+    "source_hash": "bb807607"
   },
   "web.domains.signin.mode_disabled_hint": {
-    "text": "Οι χρήστες δεν μπορούν να συνδεθούν σε αυτόν τον τομέα."
+    "text": "Οι χρήστες δεν μπορούν να συνδεθούν σε αυτόν τον τομέα.",
+    "source_hash": "8938f098"
   },
   "web.domains.signin.mode_disabled_notice": {
-    "text": "Οι επισκέπτες της σελίδας σύνδεσης αυτού του τομέα βλέπουν μια ειδοποίηση ότι η σύνδεση δεν είναι διαθέσιμη, με έναν σύνδεσμο επιστροφής στην αρχική σελίδα. Οι προηγούμενες ρυθμίσεις μεθόδων σας διατηρούνται και επαναφέρονται όταν ενεργοποιήσετε ξανά τη σύνδεση."
+    "text": "Οι επισκέπτες της σελίδας σύνδεσης αυτού του τομέα βλέπουν μια ειδοποίηση ότι η σύνδεση δεν είναι διαθέσιμη, με έναν σύνδεσμο επιστροφής στην αρχική σελίδα. Οι προηγούμενες ρυθμίσεις μεθόδων σας διατηρούνται και επαναφέρονται όταν ενεργοποιήσετε ξανά τη σύνδεση.",
+    "source_hash": "1a04de18"
   },
   "web.domains.signin.methods_list_label": {
-    "text": "Μέθοδοι που εμφανίζονται στη σελίδα σύνδεσης"
+    "text": "Μέθοδοι που εμφανίζονται στη σελίδα σύνδεσης",
+    "source_hash": "66fd133b"
   },
   "web.domains.signin.restrict_picker_hint": {
-    "text": "Εμφανίζονται μόνο οι μέθοδοι που είναι διαθέσιμες σε αυτόν τον τομέα."
+    "text": "Εμφανίζονται μόνο οι μέθοδοι που είναι διαθέσιμες σε αυτόν τον τομέα.",
+    "source_hash": "c7a56f44"
   },
   "web.domains.signin.availability_always": {
-    "text": "Πάντα διαθέσιμη"
+    "text": "Πάντα διαθέσιμη",
+    "source_hash": "0fda3772"
   },
   "web.domains.signin.availability_global_on": {
-    "text": "Ακολουθεί την καθολική πολιτική · Ενεργό"
+    "text": "Ακολουθεί την καθολική πολιτική · Ενεργό",
+    "source_hash": "3844e6f7"
   },
   "web.domains.signin.availability_global_off": {
-    "text": "Μη διαθέσιμη"
+    "text": "Μη διαθέσιμη",
+    "source_hash": "67a926f7"
   },
   "web.domains.signin.availability_unavailable": {
-    "text": "Μη διαθέσιμη σε ολόκληρο τον ιστότοπο"
+    "text": "Μη διαθέσιμη σε ολόκληρο τον ιστότοπο",
+    "source_hash": "da29c1be"
   },
   "web.domains.signin.allow_on_domain": {
-    "text": "Να επιτρέπεται σε αυτόν τον τομέα"
+    "text": "Να επιτρέπεται σε αυτόν τον τομέα",
+    "source_hash": "760b578e"
   },
   "web.domains.signin.method_password_blurb": {
-    "text": "Μόνο κωδικός πρόσβασης"
+    "text": "Μόνο κωδικός πρόσβασης",
+    "source_hash": "ed1a02fd"
   },
   "web.domains.signin.method_email_auth_blurb": {
-    "text": "Σύνδεση με μαγικό σύνδεσμο χωρίς κωδικό πρόσβασης"
+    "text": "Σύνδεση με μαγικό σύνδεσμο χωρίς κωδικό πρόσβασης",
+    "source_hash": "7f776a85"
   },
   "web.domains.signin.method_webauthn_blurb": {
-    "text": "Βιομετρικά στοιχεία και κλειδιά ασφαλείας"
+    "text": "Βιομετρικά στοιχεία και κλειδιά ασφαλείας",
+    "source_hash": "7d6a7bd5"
   },
   "web.domains.signin.method_sso_blurb": {
-    "text": "Εξωτερικός πάροχος ταυτότητας"
+    "text": "Εξωτερικός πάροχος ταυτότητας",
+    "source_hash": "a3442088"
   },
   "web.domains.signin.email_auth_label": {
-    "text": "Έλεγχος ταυτότητας μέσω email"
+    "text": "Έλεγχος ταυτότητας μέσω email",
+    "source_hash": "68c38f94"
   },
   "web.domains.signin.email_auth_hint": {
-    "text": "Επιτρέψτε τον έλεγχο ταυτότητας μέσω email χωρίς κωδικό πρόσβασης σε αυτόν τον τομέα"
+    "text": "Επιτρέψτε τον έλεγχο ταυτότητας μέσω email χωρίς κωδικό πρόσβασης σε αυτόν τον τομέα",
+    "source_hash": "6ad82127"
   },
   "web.domains.signin.sso_enabled_label": {
-    "text": "Ενιαία σύνδεση (SSO)"
+    "text": "Ενιαία σύνδεση (SSO)",
+    "source_hash": "cf7cd744"
   },
   "web.domains.signin.sso_enabled_hint": {
-    "text": "Επιτρέψτε τον έλεγχο ταυτότητας SSO σε αυτόν τον τομέα"
+    "text": "Επιτρέψτε τον έλεγχο ταυτότητας SSO σε αυτόν τον τομέα",
+    "source_hash": "22d78ad5"
   },
   "web.domains.signin.enabled_label": {
-    "text": "Ενεργοποίηση διαμόρφωσης σύνδεσης"
+    "text": "Ενεργοποίηση διαμόρφωσης σύνδεσης",
+    "source_hash": "dbd8e11c"
   },
   "web.domains.signin.enabled_hint": {
-    "text": "Όταν είναι ενεργοποιημένο, αυτός ο τομέας χρησιμοποιεί τις ρυθμίσεις σύνδεσης που διαμορφώθηκαν παραπάνω"
+    "text": "Όταν είναι ενεργοποιημένο, αυτός ο τομέας χρησιμοποιεί τις ρυθμίσεις σύνδεσης που διαμορφώθηκαν παραπάνω",
+    "source_hash": "6259f8a2"
   },
   "web.domains.signin.save_config": {
-    "text": "Αποθήκευση διαμόρφωσης"
+    "text": "Αποθήκευση διαμόρφωσης",
+    "source_hash": "b2b158f2"
   },
   "web.domains.signin.update_success": {
-    "text": "Η διαμόρφωση σύνδεσης ενημερώθηκε με επιτυχία"
+    "text": "Η διαμόρφωση σύνδεσης ενημερώθηκε με επιτυχία",
+    "source_hash": "10ea50d8"
   },
   "web.domains.signin.reset_to_defaults": {
-    "text": "Επαναφορά στις προεπιλογές"
+    "text": "Επαναφορά στις προεπιλογές",
+    "source_hash": "e240e635"
   },
   "web.domains.signin.reset_confirm": {
-    "text": "Επαναφορά της σύνδεσης στις καθολικές προεπιλογές;"
+    "text": "Επαναφορά της σύνδεσης στις καθολικές προεπιλογές;",
+    "source_hash": "2c6bbc32"
   },
   "web.domains.signin.reset_keeps_sso": {
-    "text": "Τα διαπιστευτήρια SSO σας διατηρούνται. Καταργήστε τα ξεχωριστά στην οθόνη διαμόρφωσης SSO."
+    "text": "Τα διαπιστευτήρια SSO σας διατηρούνται. Καταργήστε τα ξεχωριστά στην οθόνη διαμόρφωσης SSO.",
+    "source_hash": "edc0c756"
   },
   "web.domains.signin.reset_action": {
-    "text": "Ναι, επαναφορά"
+    "text": "Ναι, επαναφορά",
+    "source_hash": "4bb21d8b"
   },
   "web.domains.signin.reset_success": {
-    "text": "Οι ρυθμίσεις σύνδεσης επανήλθαν στις καθολικές προεπιλογές"
+    "text": "Οι ρυθμίσεις σύνδεσης επανήλθαν στις καθολικές προεπιλογές",
+    "source_hash": "0c364d89"
   },
   "web.domains.signup.title": {
-    "text": "Επικύρωση εγγραφής"
+    "text": "Επικύρωση εγγραφής",
+    "source_hash": "2c34ac0a"
   },
   "web.domains.signup.config_description": {
-    "text": "Διαμορφώστε την επικύρωση εγγραφής για αυτόν τον τομέα"
+    "text": "Διαμορφώστε την επικύρωση εγγραφής για αυτόν τον τομέα",
+    "source_hash": "e9c81e8a"
   },
   "web.domains.signup.access_denied": {
-    "text": "Άρνηση πρόσβασης"
+    "text": "Άρνηση πρόσβασης",
+    "source_hash": "d134ca02"
   },
   "web.domains.signup.upgrade_to_configure": {
-    "text": "Αναβαθμίστε το πρόγραμμά σας για να διαμορφώσετε την επικύρωση εγγραφής ανά τομέα."
+    "text": "Αναβαθμίστε το πρόγραμμά σας για να διαμορφώσετε την επικύρωση εγγραφής ανά τομέα.",
+    "source_hash": "d87d6614"
   },
   "web.domains.signup.configure_signup": {
-    "text": "Διαμόρφωση εγγραφής"
+    "text": "Διαμόρφωση εγγραφής",
+    "source_hash": "e2697662"
   },
   "web.domains.signup.not_configured_notice": {
-    "text": "Η επικύρωση εγγραφής δεν έχει διαμορφωθεί ακόμα για αυτόν τον τομέα. Διαμορφώστε μια στρατηγική για να ελέγξετε ποιος μπορεί να εγγραφεί μέσω αυτού του τομέα."
+    "text": "Η επικύρωση εγγραφής δεν έχει διαμορφωθεί ακόμα για αυτόν τον τομέα. Διαμορφώστε μια στρατηγική για να ελέγξετε ποιος μπορεί να εγγραφεί μέσω αυτού του τομέα.",
+    "source_hash": "fc6c6eb8"
   },
   "web.domains.signup.site_signups_disabled_warning": {
-    "text": "Οι εγγραφές είναι προς το παρόν απενεργοποιημένες σε επίπεδο ιστότοπου. Αυτή η πολιτική ανά τομέα έχει διαμορφωθεί αλλά δεν θα ελέγχει καμία κίνηση μέχρι να ενεργοποιηθούν οι εγγραφές του ιστότοπου."
+    "text": "Οι εγγραφές είναι προς το παρόν απενεργοποιημένες σε επίπεδο ιστότοπου. Αυτή η πολιτική ανά τομέα έχει διαμορφωθεί αλλά δεν θα ελέγχει καμία κίνηση μέχρι να ενεργοποιηθούν οι εγγραφές του ιστότοπου.",
+    "source_hash": "c0e59f86"
   },
   "web.domains.signup.strategy_label": {
-    "text": "Στρατηγική επικύρωσης"
+    "text": "Στρατηγική επικύρωσης",
+    "source_hash": "a2e95531"
   },
   "web.domains.signup.strategy_description": {
-    "text": "Επιλέξτε πώς επικυρώνονται οι διευθύνσεις email όταν οι χρήστες εγγράφονται σε αυτόν τον τομέα."
+    "text": "Επιλέξτε πώς επικυρώνονται οι διευθύνσεις email όταν οι χρήστες εγγράφονται σε αυτόν τον τομέα.",
+    "source_hash": "8e232b03"
   },
   "web.domains.signup.network_validation_warning": {
-    "text": "Αυτή η στρατηγική εκτελεί κλήσεις δικτύου κατά την εγγραφή, οι οποίες ενδέχεται να προσθέσουν καθυστέρηση ή να αποκλειστούν από ορισμένους παρόχους."
+    "text": "Αυτή η στρατηγική εκτελεί κλήσεις δικτύου κατά την εγγραφή, οι οποίες ενδέχεται να προσθέσουν καθυστέρηση ή να αποκλειστούν από ορισμένους παρόχους.",
+    "source_hash": "53d4c266"
   },
   "web.domains.signup.allowed_domains_label": {
-    "text": "Επιτρεπόμενοι τομείς εγγραφής"
+    "text": "Επιτρεπόμενοι τομείς εγγραφής",
+    "source_hash": "9b5bb5b1"
   },
   "web.domains.signup.allowed_domains_hint": {
-    "text": "Μόνο αυτοί οι τομείς email θα επιτρέπεται να εγγραφούν. Προσθέστε έναν τομέα ανά καταχώριση."
+    "text": "Μόνο αυτοί οι τομείς email θα επιτρέπεται να εγγραφούν. Προσθέστε έναν τομέα ανά καταχώριση.",
+    "source_hash": "c082414d"
   },
   "web.domains.signup.domain_placeholder": {
-    "text": "example.com"
+    "text": "example.com",
+    "source_hash": "a379a6f6"
   },
   "web.domains.signup.invalid_domain": {
-    "text": "Εισαγάγετε έναν έγκυρο τομέα (π.χ. example.com)"
+    "text": "Εισαγάγετε έναν έγκυρο τομέα (π.χ. example.com)",
+    "source_hash": "16807983"
   },
   "web.domains.signup.domain_exists": {
-    "text": "Αυτός ο τομέας υπάρχει ήδη στη λίστα"
+    "text": "Αυτός ο τομέας υπάρχει ήδη στη λίστα",
+    "source_hash": "3fccb721"
   },
   "web.domains.signup.remove_domain": {
-    "text": "Κατάργηση {domain}"
+    "text": "Κατάργηση {domain}",
+    "source_hash": "ae708a1d"
   },
   "web.domains.signup.enabled_label": {
-    "text": "Ενεργοποίηση επικύρωσης ανά τομέα"
+    "text": "Ενεργοποίηση επικύρωσης ανά τομέα",
+    "source_hash": "db103925"
   },
   "web.domains.signup.enabled_hint": {
-    "text": "Όταν είναι ενεργοποιημένο, οι εγγραφές σε αυτόν τον τομέα χρησιμοποιούν την παραπάνω στρατηγική αντί για την καθολική πολιτική."
+    "text": "Όταν είναι ενεργοποιημένο, οι εγγραφές σε αυτόν τον τομέα χρησιμοποιούν την παραπάνω στρατηγική αντί για την καθολική πολιτική.",
+    "source_hash": "99de2008"
   },
   "web.domains.signup.delete_config": {
-    "text": "Διαγραφή διαμόρφωσης"
+    "text": "Διαγραφή διαμόρφωσης",
+    "source_hash": "a9a30c7f"
   },
   "web.domains.signup.delete_confirm": {
-    "text": "Διαγραφή διαμόρφωσης επικύρωσης εγγραφής; Οι εγγραφές θα επανέλθουν στην καθολική πολιτική."
+    "text": "Διαγραφή διαμόρφωσης επικύρωσης εγγραφής; Οι εγγραφές θα επανέλθουν στην καθολική πολιτική.",
+    "source_hash": "a8c9086e"
   },
   "web.domains.signup.save_config": {
-    "text": "Αποθήκευση διαμόρφωσης"
+    "text": "Αποθήκευση διαμόρφωσης",
+    "source_hash": "b2b158f2"
   },
   "web.domains.signup.update_success": {
-    "text": "Η επικύρωση εγγραφής ενημερώθηκε με επιτυχία"
+    "text": "Η επικύρωση εγγραφής ενημερώθηκε με επιτυχία",
+    "source_hash": "57a529ac"
   },
   "web.domains.signup.delete_success": {
-    "text": "Η διαμόρφωση επικύρωσης εγγραφής καταργήθηκε με επιτυχία"
+    "text": "Η διαμόρφωση επικύρωσης εγγραφής καταργήθηκε με επιτυχία",
+    "source_hash": "eb6add4d"
   },
   "web.domains.signup.domain_overrides_label": {
-    "text": "Παρακάμψεις τομέα"
+    "text": "Παρακάμψεις τομέα",
+    "source_hash": "d25da3cd"
   },
   "web.domains.signup.domain_overrides_hint": {
-    "text": "Παρακάμψτε τις καθολικές ρυθμίσεις εγγραφής για αυτόν τον τομέα"
+    "text": "Παρακάμψτε τις καθολικές ρυθμίσεις εγγραφής για αυτόν τον τομέα",
+    "source_hash": "53101057"
   },
   "web.domains.signup.signup_enabled_label": {
-    "text": "Η εγγραφή ενεργοποιήθηκε"
+    "text": "Η εγγραφή ενεργοποιήθηκε",
+    "source_hash": "296ac66d"
   },
   "web.domains.signup.signup_enabled_hint": {
-    "text": "Παρακάμψτε αν η εγγραφή είναι ενεργοποιημένη για αυτόν τον τομέα"
+    "text": "Παρακάμψτε αν η εγγραφή είναι ενεργοποιημένη για αυτόν τον τομέα",
+    "source_hash": "2ee146b6"
   },
   "web.domains.signup.autoverify_label": {
-    "text": "Αυτόματη επαλήθευση λογαριασμών"
+    "text": "Αυτόματη επαλήθευση λογαριασμών",
+    "source_hash": "4b103cd5"
   },
   "web.domains.signup.autoverify_hint": {
-    "text": "Παρακάμψτε αν οι νέοι λογαριασμοί επαληθεύονται αυτόματα σε αυτόν τον τομέα"
+    "text": "Παρακάμψτε αν οι νέοι λογαριασμοί επαληθεύονται αυτόματα σε αυτόν τον τομέα",
+    "source_hash": "63866ecd"
   },
   "web.domains.sso.title": {
-    "text": "Ενιαία σύνδεση (SSO)"
+    "text": "Ενιαία σύνδεση (SSO)",
+    "source_hash": "cf7cd744"
   },
   "web.domains.sso.config_title": {
-    "text": "Διαμόρφωση SSO"
+    "text": "Διαμόρφωση SSO",
+    "source_hash": "afd5751e"
   },
   "web.domains.sso.config_description": {
-    "text": "Διαμορφώστε τον έλεγχο ταυτότητας ενιαίας σύνδεσης (SSO) για αυτόν τον τομέα"
+    "text": "Διαμορφώστε τον έλεγχο ταυτότητας ενιαίας σύνδεσης (SSO) για αυτόν τον τομέα",
+    "source_hash": "f37a0b47"
   },
   "web.domains.sso.access_denied": {
-    "text": "Άρνηση πρόσβασης"
+    "text": "Άρνηση πρόσβασης",
+    "source_hash": "d134ca02"
   },
   "web.domains.sso.access_denied_description": {
-    "text": "Δεν έχετε δικαίωμα να διαχειριστείτε τις ρυθμίσεις SSO για αυτόν τον τομέα. Επικοινωνήστε με τον διαχειριστή του οργανισμού σας."
+    "text": "Δεν έχετε δικαίωμα να διαχειριστείτε τις ρυθμίσεις SSO για αυτόν τον τομέα. Επικοινωνήστε με τον διαχειριστή του οργανισμού σας.",
+    "source_hash": "db7fcfeb"
   },
   "web.domains.sso.upgrade_to_configure": {
-    "text": "Αναβαθμίστε το πρόγραμμά σας για να διαμορφώσετε την ενιαία σύνδεση (SSO) για αυτόν τον τομέα."
+    "text": "Αναβαθμίστε το πρόγραμμά σας για να διαμορφώσετε την ενιαία σύνδεση (SSO) για αυτόν τον τομέα.",
+    "source_hash": "71fc0069"
   },
   "web.domains.sso.create_success": {
-    "text": "Η διαμόρφωση SSO δημιουργήθηκε με επιτυχία"
+    "text": "Η διαμόρφωση SSO δημιουργήθηκε με επιτυχία",
+    "source_hash": "531c7d92"
   },
   "web.domains.sso.update_success": {
-    "text": "Η διαμόρφωση SSO ενημερώθηκε με επιτυχία"
+    "text": "Η διαμόρφωση SSO ενημερώθηκε με επιτυχία",
+    "source_hash": "d98d8e83"
   },
   "web.domains.sso.delete_success": {
-    "text": "Η διαμόρφωση SSO καταργήθηκε με επιτυχία"
+    "text": "Η διαμόρφωση SSO καταργήθηκε με επιτυχία",
+    "source_hash": "2e924798"
   },
   "web.domains.sso.test_success": {
-    "text": "Η δοκιμή σύνδεσης ήταν επιτυχής — ο πάροχος απάντησε σωστά"
+    "text": "Η δοκιμή σύνδεσης ήταν επιτυχής — ο πάροχος απάντησε σωστά",
+    "source_hash": "1570ddb0"
   },
   "web.domains.sso.test_failed": {
-    "text": "Η δοκιμή σύνδεσης απέτυχε"
+    "text": "Η δοκιμή σύνδεσης απέτυχε",
+    "source_hash": "a45a37dd"
   },
   "web.domains.sso.enforce_moved_notice": {
-    "text": "Για να απαιτείται SSO για όλες τις συνδέσεις σε αυτόν τον τομέα, διαμορφώστε το στις ρυθμίσεις σύνδεσης του τομέα. Η λειτουργία μόνο SSO περιορίζει τη σελίδα σύνδεσης στον πάροχο SSO που έχει διαμορφωθεί εδώ."
+    "text": "Για να απαιτείται SSO για όλες τις συνδέσεις σε αυτόν τον τομέα, διαμορφώστε το στις ρυθμίσεις σύνδεσης του τομέα. Η λειτουργία μόνο SSO περιορίζει τη σελίδα σύνδεσης στον πάροχο SSO που έχει διαμορφωθεί εδώ.",
+    "source_hash": "d26627a5"
   },
   "web.domains.sso.configure_sso": {
-    "text": "Διαμόρφωση SSO"
+    "text": "Διαμόρφωση SSO",
+    "source_hash": "80d3a144"
   },
   "web.domains.sso.not_configured_notice": {
-    "text": "Το SSO δεν έχει διαμορφωθεί ακόμα για αυτόν τον τομέα. Ενεργοποιήστε την ενιαία σύνδεση (SSO) για να επιτρέψετε στα μέλη της ομάδας να ελέγχουν την ταυτότητά τους χρησιμοποιώντας τον πάροχο ταυτότητας του οργανισμού σας."
+    "text": "Το SSO δεν έχει διαμορφωθεί ακόμα για αυτόν τον τομέα. Ενεργοποιήστε την ενιαία σύνδεση (SSO) για να επιτρέψετε στα μέλη της ομάδας να ελέγχουν την ταυτότητά τους χρησιμοποιώντας τον πάροχο ταυτότητας του οργανισμού σας.",
+    "source_hash": "c439214b"
   },
   "web.domains.sso.edit_credentials": {
-    "text": "Επεξεργασία διαπιστευτηρίων"
+    "text": "Επεξεργασία διαπιστευτηρίων",
+    "source_hash": "5a6622b6"
   },
   "web.domains.sso.configure_button": {
-    "text": "Διαμόρφωση"
+    "text": "Διαμόρφωση",
+    "source_hash": "6defafa2"
   },
   "web.domains.sso.upgrade_required": {
-    "text": "Αναβάθμιση για διαμόρφωση"
+    "text": "Αναβάθμιση για διαμόρφωση",
+    "source_hash": "571cfa98"
   }
 }

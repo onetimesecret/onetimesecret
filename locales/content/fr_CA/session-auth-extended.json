@@ -718,18 +718,23 @@
     "text": "Page de gestion des appareils/navigateurs connectés de l'utilisateur"
   },
   "web.auth.google": {
-    "text": "Google"
+    "text": "Google",
+    "source_hash": "ce770667"
   },
   "web.auth.mfa.alternative_auth_options": {
-    "text": "Autres options d'authentification"
+    "text": "Autres options d'authentification",
+    "source_hash": "5ddea736"
   },
   "web.auth.remember.enabled": {
-    "text": "Rester connecté"
+    "text": "Rester connecté",
+    "source_hash": "b0a1ca80"
   },
   "web.auth.sessions.session_singular": {
-    "text": "session"
+    "text": "session",
+    "source_hash": "3f3af1ec"
   },
   "web.auth.sessions.session_plural": {
-    "text": "sessions"
+    "text": "sessions",
+    "source_hash": "1225ae6c"
   }
 }

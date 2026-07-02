@@ -855,39 +855,51 @@
     "source_hash": "1cd0194a"
   },
   "email.common.secret_link_label": {
-    "text": "Beveiligde link"
+    "text": "Beveiligde link",
+    "source_hash": "18ddf44f"
   },
   "email.common.automated_notice": {
-    "text": "Dit is een geautomatiseerd bericht van %{product_name}."
+    "text": "Dit is een geautomatiseerd bericht van %{product_name}.",
+    "source_hash": "8fbabfba"
   },
   "email.common.support_label": {
-    "text": "Support"
+    "text": "Support",
+    "source_hash": "be91940b"
   },
   "email.expiration_warning.signature": {
-    "text": "Supportteam"
+    "text": "Supportteam",
+    "source_hash": "dc75bf9f"
   },
   "email.expiration_warning.footer_note": {
-    "text": "Je hebt dit ontvangen omdat een bericht dat je op %{product_name} hebt aangemaakt binnenkort verloopt."
+    "text": "Je hebt dit ontvangen omdat een bericht dat je op %{product_name} hebt aangemaakt binnenkort verloopt.",
+    "source_hash": "920779e4"
   },
   "email.feedback_email.user_id_label": {
-    "text": "Gebruiker:"
+    "text": "Gebruiker:",
+    "source_hash": "93d6b3e9"
   },
   "email.feedback_email.timezone_label": {
-    "text": "Tijdzone:"
+    "text": "Tijdzone:",
+    "source_hash": "39651ebf"
   },
   "email.feedback_email.version_label": {
-    "text": "Versie:"
+    "text": "Versie:",
+    "source_hash": "4c5726ee"
   },
   "email.incoming_secret.footer_note": {
-    "text": "Je hebt dit ontvangen omdat iemand %{product_name} heeft gebruikt om je een bericht te sturen. Als je dit niet verwachtte, kun je deze e-mail veilig negeren."
+    "text": "Je hebt dit ontvangen omdat iemand %{product_name} heeft gebruikt om je een bericht te sturen. Als je dit niet verwachtte, kun je deze e-mail veilig negeren.",
+    "source_hash": "91ee6e8d"
   },
   "email.secret_link.passphrase_label": {
-    "text": "Wachtwoordzin vereist:"
+    "text": "Wachtwoordzin vereist:",
+    "source_hash": "1ab9a20f"
   },
   "email.secret_link.passphrase_required": {
-    "text": "Dit bericht is beveiligd met een wachtwoordzin. De afzender hoort deze apart aan je te verstrekken."
+    "text": "Dit bericht is beveiligd met een wachtwoordzin. De afzender hoort deze apart aan je te verstrekken.",
+    "source_hash": "1e49826b"
   },
   "email.secret_link.footer_note": {
-    "text": "Je hebt dit ontvangen omdat %{sender_email} %{product_name} heeft gebruikt om een bericht met je te delen. Als je dit niet verwachtte, kun je deze e-mail veilig negeren."
+    "text": "Je hebt dit ontvangen omdat %{sender_email} %{product_name} heeft gebruikt om een bericht met je te delen. Als je dit niet verwachtte, kun je deze e-mail veilig negeren.",
+    "source_hash": "2d544dad"
   }
 }

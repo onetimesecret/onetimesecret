@@ -718,18 +718,23 @@
     "text": "Página de gestión de dispositivos/navegadores con sesión iniciada"
   },
   "web.auth.google": {
-    "text": "Google"
+    "text": "Google",
+    "source_hash": "ce770667"
   },
   "web.auth.mfa.alternative_auth_options": {
-    "text": "Opciones de autenticación alternativas"
+    "text": "Opciones de autenticación alternativas",
+    "source_hash": "5ddea736"
   },
   "web.auth.remember.enabled": {
-    "text": "Mantener la sesión iniciada"
+    "text": "Mantener la sesión iniciada",
+    "source_hash": "b0a1ca80"
   },
   "web.auth.sessions.session_singular": {
-    "text": "sesión"
+    "text": "sesión",
+    "source_hash": "3f3af1ec"
   },
   "web.auth.sessions.session_plural": {
-    "text": "sesiones"
+    "text": "sesiones",
+    "source_hash": "1225ae6c"
   }
 }

@@ -718,18 +718,23 @@
     "text": "Страница управления устройствами/браузерами пользователя"
   },
   "web.auth.google": {
-    "text": "Google"
+    "text": "Google",
+    "source_hash": "ce770667"
   },
   "web.auth.mfa.alternative_auth_options": {
-    "text": "Альтернативные способы аутентификации"
+    "text": "Альтернативные способы аутентификации",
+    "source_hash": "5ddea736"
   },
   "web.auth.remember.enabled": {
-    "text": "Оставаться в системе"
+    "text": "Оставаться в системе",
+    "source_hash": "b0a1ca80"
   },
   "web.auth.sessions.session_singular": {
-    "text": "сессия"
+    "text": "сессия",
+    "source_hash": "3f3af1ec"
   },
   "web.auth.sessions.session_plural": {
-    "text": "сессии"
+    "text": "сессии",
+    "source_hash": "1225ae6c"
   }
 }

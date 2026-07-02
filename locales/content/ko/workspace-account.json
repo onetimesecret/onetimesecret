@@ -684,12 +684,15 @@
     "source_hash": "fe3ac3ad"
   },
   "web.settings.api.api_disabled_notice": {
-    "text": "이 인스턴스에서 API가 비활성화되어 있습니다."
+    "text": "이 인스턴스에서 API가 비활성화되어 있습니다.",
+    "source_hash": "66d12d6b"
   },
   "web.settings.security.sso_managed_title": {
-    "text": "SSO로 관리되는 보안"
+    "text": "SSO로 관리되는 보안",
+    "source_hash": "1f6c9472"
   },
   "web.settings.security.sso_managed_description": {
-    "text": "회원님의 계정은 조직의 Single Sign-On 공급자를 통해 인증됩니다. 비밀번호, 다단계 인증, 복구 코드는 ID 공급자가 관리합니다."
+    "text": "회원님의 계정은 조직의 Single Sign-On 공급자를 통해 인증됩니다. 비밀번호, 다단계 인증, 복구 코드는 ID 공급자가 관리합니다.",
+    "source_hash": "cd0cf39f"
   }
 }

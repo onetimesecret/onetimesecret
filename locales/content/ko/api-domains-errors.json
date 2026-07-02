@@ -1,29 +1,38 @@
 {
   "api.domains.errors.domain_id_required": {
-    "text": "도메인 ID가 필요합니다"
+    "text": "도메인 ID가 필요합니다",
+    "source_hash": "6837426b"
   },
   "api.domains.errors.domain_not_found": {
-    "text": "도메인을 찾을 수 없습니다: %{extid}"
+    "text": "도메인을 찾을 수 없습니다: %{extid}",
+    "source_hash": "a0fd1025"
   },
   "api.domains.errors.organization_not_found": {
-    "text": "해당 도메인의 조직을 찾을 수 없습니다: %{domain}"
+    "text": "해당 도메인의 조직을 찾을 수 없습니다: %{domain}",
+    "source_hash": "632afc93"
   },
   "api.domains.errors.incoming_secrets_disabled": {
-    "text": "이 인스턴스에서는 수신 비밀 메시지가 활성화되어 있지 않습니다"
+    "text": "이 인스턴스에서는 수신 비밀 메시지가 활성화되어 있지 않습니다",
+    "source_hash": "45c0b5c4"
   },
   "api.domains.errors.incoming_secrets_entitlement_required": {
-    "text": "수신 비밀 메시지 관리에는 incoming_secrets 권한이 필요합니다. 요금제를 업그레이드해 주세요."
+    "text": "수신 비밀 메시지 관리에는 incoming_secrets 권한이 필요합니다. 요금제를 업그레이드해 주세요.",
+    "source_hash": "1af54ec2"
   },
   "api.domains.errors.incoming_config_not_found": {
-    "text": "해당 도메인의 수신 구성을 찾을 수 없습니다: %{extid}"
+    "text": "해당 도메인의 수신 구성을 찾을 수 없습니다: %{extid}",
+    "source_hash": "491644a8"
   },
   "api.domains.errors.recipients_max_exceeded": {
-    "text": "최대 %{max}명의 수신자만 허용됩니다"
+    "text": "최대 %{max}명의 수신자만 허용됩니다",
+    "source_hash": "159842ad"
   },
   "api.domains.errors.recipients_invalid_email": {
-    "text": "유효하지 않은 이메일: %{email}"
+    "text": "유효하지 않은 이메일: %{email}",
+    "source_hash": "e9c729c7"
   },
   "api.domains.errors.recipients_duplicate": {
-    "text": "중복된 수신자 이메일은 허용되지 않습니다"
+    "text": "중복된 수신자 이메일은 허용되지 않습니다",
+    "source_hash": "6de22182"
   }
 }

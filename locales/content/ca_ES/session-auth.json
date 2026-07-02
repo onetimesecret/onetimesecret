@@ -397,33 +397,42 @@
     "source_hash": "f8d47b82"
   },
   "web.auth.account.sso_linked": {
-    "text": "Compte SSO"
+    "text": "Compte SSO",
+    "source_hash": "b8f4c728"
   },
   "web.auth.verify._guidance.context": {
     "text": "Email verification flow after signup"
   },
   "web.help.reset_password_link": {
-    "text": "Restableix la contrasenya"
+    "text": "Restableix la contrasenya",
+    "source_hash": "e0edfeb3"
   },
   "web.login.custom_domain_sso_title": {
-    "text": "L'inici de sessió únic està disponible per a aquest domini"
+    "text": "L'inici de sessió únic està disponible per a aquest domini",
+    "source_hash": "af87d51e"
   },
   "web.login.custom_domain_sso_description": {
-    "text": "L'administrador de l'organització pot activar l'SSO per permetre que els membres de l'equip iniciïn la sessió aquí. Contacta amb l'administrador per obtenir accés."
+    "text": "L'administrador de l'organització pot activar l'SSO per permetre que els membres de l'equip iniciïn la sessió aquí. Contacta amb l'administrador per obtenir accés.",
+    "source_hash": "f3726509"
   },
   "web.login.signin_disabled_heading": {
-    "text": "L'inici de sessió no està disponible"
+    "text": "L'inici de sessió no està disponible",
+    "source_hash": "6b435c76"
   },
   "web.login.signin_disabled_message": {
-    "text": "Actualment, l'inici de sessió no està disponible en aquest domini."
+    "text": "Actualment, l'inici de sessió no està disponible en aquest domini.",
+    "source_hash": "b681c35d"
   },
   "web.login.errors.sso_not_configured": {
-    "text": "L'inici de sessió únic no està configurat per a aquest domini. Si us plau, contacta amb el teu administrador."
+    "text": "L'inici de sessió únic no està configurat per a aquest domini. Si us plau, contacta amb el teu administrador.",
+    "source_hash": "b39ef93e"
   },
   "web.login.errors.invalid_email": {
-    "text": "L'adreça de correu electrònic del teu proveïdor d'identitat no és vàlida. Si us plau, contacta amb el teu administrador."
+    "text": "L'adreça de correu electrònic del teu proveïdor d'identitat no és vàlida. Si us plau, contacta amb el teu administrador.",
+    "source_hash": "10c12029"
   },
   "web.login.errors.domain_not_allowed": {
-    "text": "El domini del teu correu electrònic no està autoritzat per al registre amb SSO. Si us plau, contacta amb el teu administrador."
+    "text": "El domini del teu correu electrònic no està autoritzat per al registre amb SSO. Si us plau, contacta amb el teu administrador.",
+    "source_hash": "87603782"
   }
 }

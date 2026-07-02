@@ -848,387 +848,515 @@
     "source_hash": "c439214b"
   },
   "api.domains.errors.add_admin_required": {
-    "text": "Только владельцы и администраторы организации могут добавлять пользовательские домены"
+    "text": "Только владельцы и администраторы организации могут добавлять пользовательские домены",
+    "source_hash": "3324aabe"
   },
   "web.domains.public_homepage": {
-    "text": "Публичная домашняя страница"
+    "text": "Публичная домашняя страница",
+    "source_hash": "2ae3ccba"
   },
   "web.domains.status_tooltip_active": {
-    "text": "Домен подтверждён и активен"
+    "text": "Домен подтверждён и активен",
+    "source_hash": "e4b6a6e1"
   },
   "web.domains.status_tooltip_dns_incorrect": {
-    "text": "DNS не настроен — нажмите, чтобы исправить"
+    "text": "DNS не настроен — нажмите, чтобы исправить",
+    "source_hash": "892cb2cb"
   },
   "web.domains.status_tooltip_not_verified": {
-    "text": "Домен не подтверждён — нажмите, чтобы подтвердить"
+    "text": "Домен не подтверждён — нажмите, чтобы подтвердить",
+    "source_hash": "a9806710"
   },
   "web.domains.status_tooltip_unverified": {
-    "text": "Статус домена не подтверждён — нажмите, чтобы обновить"
+    "text": "Статус домена не подтверждён — нажмите, чтобы обновить",
+    "source_hash": "a45aa76d"
   },
   "web.domains.last_check_failed": {
-    "text": "Последняя проверка не удалась"
+    "text": "Последняя проверка не удалась",
+    "source_hash": "88b594b8"
   },
   "web.domains.last_check_failed_ago": {
-    "text": "последняя проверка не удалась {0}"
+    "text": "последняя проверка не удалась {0}",
+    "source_hash": "ddfb6412"
   },
   "web.domains.verify_now": {
-    "text": "Подтвердить сейчас"
+    "text": "Подтвердить сейчас",
+    "source_hash": "db383efb"
   },
   "web.domains.click_to_verify": {
-    "text": "нажмите, чтобы подтвердить"
+    "text": "нажмите, чтобы подтвердить",
+    "source_hash": "6eae7d9c"
   },
   "web.domains.remove_domain_description": {
-    "text": "Безвозвратно удалить этот домен и всю его конфигурацию."
+    "text": "Безвозвратно удалить этот домен и всю его конфигурацию.",
+    "source_hash": "73946b9e"
   },
   "web.domains.add_access_denied": {
-    "text": "Доступ запрещён"
+    "text": "Доступ запрещён",
+    "source_hash": "d134ca02"
   },
   "web.domains.add_access_denied_description": {
-    "text": "У вас нет разрешения на добавление доменов в эту организацию. Обратитесь к администратору вашей организации."
+    "text": "У вас нет разрешения на добавление доменов в эту организацию. Обратитесь к администратору вашей организации.",
+    "source_hash": "25e035c6"
   },
   "web.domains.dns_widget_load_failed": {
-    "text": "Не удалось загрузить виджет DNS"
+    "text": "Не удалось загрузить виджет DNS",
+    "source_hash": "5a1d8ab5"
   },
   "web.domains.dns_widget_not_available": {
-    "text": "Виджет DNS недоступен"
+    "text": "Виджет DNS недоступен",
+    "source_hash": "4eed448b"
   },
   "web.domains.dns_widget_init_failed": {
-    "text": "Не удалось инициализировать виджет DNS"
+    "text": "Не удалось инициализировать виджет DNS",
+    "source_hash": "de477585"
   },
   "web.domains.verified": {
-    "text": "Подтверждён"
+    "text": "Подтверждён",
+    "source_hash": "4f783840"
   },
   "web.domains.pending_verification": {
-    "text": "Ожидает подтверждения"
+    "text": "Ожидает подтверждения",
+    "source_hash": "77e07795"
   },
   "web.domains.unsaved_changes_confirmation": {
-    "text": "У вас есть несохранённые изменения. Вы уверены, что хотите выйти?"
+    "text": "У вас есть несохранённые изменения. Вы уверены, что хотите выйти?",
+    "source_hash": "322380c1"
   },
   "web.domains.entitlement_required_owner": {
-    "text": "Для этой функции требуется переход на более высокий план."
+    "text": "Для этой функции требуется переход на более высокий план.",
+    "source_hash": "6de1f752"
   },
   "web.domains.entitlement_required_member": {
-    "text": "Эта функция недоступна на вашем текущем плане. Обратитесь к владельцу вашей организации."
+    "text": "Эта функция недоступна на вашем текущем плане. Обратитесь к владельцу вашей организации.",
+    "source_hash": "8f1688b2"
   },
   "web.domains.detail.manage": {
-    "text": "Управление"
+    "text": "Управление",
+    "source_hash": "5a234448"
   },
   "web.domains.detail.features": {
-    "text": "Функции"
+    "text": "Функции",
+    "source_hash": "5697d03d"
   },
   "web.domains.detail.homepage_title": {
-    "text": "Секреты на домашней странице"
+    "text": "Секреты на домашней странице",
+    "source_hash": "6360f7ec"
   },
   "web.domains.detail.homepage_description": {
-    "text": "Разрешить публичный доступ для создания секретов на домашней странице вашего домена"
+    "text": "Разрешить публичный доступ для создания секретов на домашней странице вашего домена",
+    "source_hash": "209b3ded"
   },
   "web.domains.detail.brand_description": {
-    "text": "Логотип, цвета и персонализированный брендинг"
+    "text": "Логотип, цвета и персонализированный брендинг",
+    "source_hash": "69f7a9e8"
   },
   "web.domains.detail.sso_description": {
-    "text": "Настройки поставщика единого входа (SSO)"
+    "text": "Настройки поставщика единого входа (SSO)",
+    "source_hash": "234e6150"
   },
   "web.domains.detail.email_description": {
-    "text": "Настройка пользовательского отправителя писем"
+    "text": "Настройка пользовательского отправителя писем",
+    "source_hash": "7fcde01b"
   },
   "web.domains.detail.incoming_description": {
-    "text": "Настройки получателя входящих секретов"
+    "text": "Настройки получателя входящих секретов",
+    "source_hash": "37c1fd6d"
   },
   "web.domains.detail.signup_description": {
-    "text": "Стратегия проверки регистрации для каждого домена"
+    "text": "Стратегия проверки регистрации для каждого домена",
+    "source_hash": "3c5a511f"
   },
   "web.domains.detail.signin_description": {
-    "text": "Настройка способа входа для каждого домена"
+    "text": "Настройка способа входа для каждого домена",
+    "source_hash": "73e01e36"
   },
   "web.domains.email.dns_check_label": {
-    "text": "DNS"
+    "text": "DNS",
+    "source_hash": "020965a2"
   },
   "web.domains.email.provider_check_label": {
-    "text": "Поставщик"
+    "text": "Поставщик",
+    "source_hash": "472590ae"
   },
   "web.domains.email.test_email_title": {
-    "text": "Проверка доставки писем"
+    "text": "Проверка доставки писем",
+    "source_hash": "c1b3dee2"
   },
   "web.domains.email.test_email_hint": {
-    "text": "Отправьте себе тестовое письмо, используя сохранённую конфигурацию. Работает, даже если функция ещё не включена."
+    "text": "Отправьте себе тестовое письмо, используя сохранённую конфигурацию. Работает, даже если функция ещё не включена.",
+    "source_hash": "33e876ad"
   },
   "web.domains.email.send_test": {
-    "text": "Отправить тест"
+    "text": "Отправить тест",
+    "source_hash": "22d7b11d"
   },
   "web.domains.email.test_email_sent": {
-    "text": "Тестовое письмо успешно отправлено"
+    "text": "Тестовое письмо успешно отправлено",
+    "source_hash": "561617fd"
   },
   "web.domains.email.test_email_failed": {
-    "text": "Не удалось отправить тестовое письмо"
+    "text": "Не удалось отправить тестовое письмо",
+    "source_hash": "95ce63bc"
   },
   "web.domains.email.test_email_sent_to": {
-    "text": "Отправлено на {email}"
+    "text": "Отправлено на {email}",
+    "source_hash": "8ceb9588"
   },
   "web.domains.email.delivered_via": {
-    "text": "Доставлено через {provider}"
+    "text": "Доставлено через {provider}",
+    "source_hash": "f741959b"
   },
   "web.domains.incoming.feature_disabled": {
-    "text": "Входящие секреты недоступны"
+    "text": "Входящие секреты недоступны",
+    "source_hash": "0f96c5ec"
   },
   "web.domains.incoming.feature_disabled_description": {
-    "text": "Входящие секреты не включены для этого экземпляра. Обратитесь к администратору."
+    "text": "Входящие секреты не включены для этого экземпляра. Обратитесь к администратору.",
+    "source_hash": "dce981e0"
   },
   "web.domains.signin.title": {
-    "text": "Настройка входа"
+    "text": "Настройка входа",
+    "source_hash": "2da38c03"
   },
   "web.domains.signin.configure_signin": {
-    "text": "Настроить вход"
+    "text": "Настроить вход",
+    "source_hash": "f72b58b5"
   },
   "web.domains.signin.config_description": {
-    "text": "Настройте способы аутентификации при входе для этого домена"
+    "text": "Настройте способы аутентификации при входе для этого домена",
+    "source_hash": "8efce428"
   },
   "web.domains.signin.access_denied": {
-    "text": "Доступ запрещён"
+    "text": "Доступ запрещён",
+    "source_hash": "d134ca02"
   },
   "web.domains.signin.upgrade_to_configure": {
-    "text": "Перейдите на более высокий план, чтобы настроить способы входа для этого домена."
+    "text": "Перейдите на более высокий план, чтобы настроить способы входа для этого домена.",
+    "source_hash": "e242bb74"
   },
   "web.domains.signin.not_configured_notice": {
-    "text": "Настройка входа для этого домена ещё не задана. Настройте переопределения, чтобы управлять тем, какие способы аутентификации доступны на странице входа этого домена."
+    "text": "Настройка входа для этого домена ещё не задана. Настройте переопределения, чтобы управлять тем, какие способы аутентификации доступны на странице входа этого домена.",
+    "source_hash": "cb788a2d"
   },
   "web.domains.signin.signin_enabled_label": {
-    "text": "Вход включён"
+    "text": "Вход включён",
+    "source_hash": "cabe4898"
   },
   "web.domains.signin.header_toggle_label": {
-    "text": "Вход"
+    "text": "Вход",
+    "source_hash": "5bbbe531"
   },
   "web.domains.signin.signin_enabled_hint": {
-    "text": "Могут ли пользователи входить на этом домене"
+    "text": "Могут ли пользователи входить на этом домене",
+    "source_hash": "57a92aee"
   },
   "web.domains.signin.restrict_to_label": {
-    "text": "Ограничить способ входа"
+    "text": "Ограничить способ входа",
+    "source_hash": "edbec83f"
   },
   "web.domains.signin.restrict_to_hint": {
-    "text": "Ограничьте этот домен одним способом аутентификации. Если задано, на странице входа показывается только выбранный способ."
+    "text": "Ограничьте этот домен одним способом аутентификации. Если задано, на странице входа показывается только выбранный способ.",
+    "source_hash": "682bc4c5"
   },
   "web.domains.signin.all_methods": {
-    "text": "Все способы"
+    "text": "Все способы",
+    "source_hash": "e601c19e"
   },
   "web.domains.signin.all_methods_description": {
-    "text": "Показывать на странице входа все включённые способы аутентификации"
+    "text": "Показывать на странице входа все включённые способы аутентификации",
+    "source_hash": "62723340"
   },
   "web.domains.signin.method_password": {
-    "text": "Пароль"
+    "text": "Пароль",
+    "source_hash": "e7cf3ef4"
   },
   "web.domains.signin.method_email_auth": {
-    "text": "Аутентификация по электронной почте"
+    "text": "Аутентификация по электронной почте",
+    "source_hash": "68c38f94"
   },
   "web.domains.signin.method_webauthn": {
-    "text": "WebAuthn / Ключи доступа"
+    "text": "WebAuthn / Ключи доступа",
+    "source_hash": "c40224ce"
   },
   "web.domains.signin.method_sso": {
-    "text": "Единый вход (SSO)"
+    "text": "Единый вход (SSO)",
+    "source_hash": "cf7cd744"
   },
   "web.domains.signin.method_overrides_label": {
-    "text": "Переопределения способов"
+    "text": "Переопределения способов",
+    "source_hash": "5496cba6"
   },
   "web.domains.signin.method_overrides_hint": {
-    "text": "Включайте или отключайте отдельные способы аутентификации для этого домена"
+    "text": "Включайте или отключайте отдельные способы аутентификации для этого домена",
+    "source_hash": "394e3878"
   },
   "web.domains.signin.mode_question": {
-    "text": "Как пользователи могут входить?"
+    "text": "Как пользователи могут входить?",
+    "source_hash": "3694eb23"
   },
   "web.domains.signin.mode_any": {
-    "text": "Любой доступный способ"
+    "text": "Любой доступный способ",
+    "source_hash": "23665425"
   },
   "web.domains.signin.mode_any_hint": {
-    "text": "Показывать все способы, доступные на этом домене. Ограничьте отдельные способы ниже."
+    "text": "Показывать все способы, доступные на этом домене. Ограничьте отдельные способы ниже.",
+    "source_hash": "2f3dcba6"
   },
   "web.domains.signin.mode_one": {
-    "text": "Один определённый способ"
+    "text": "Один определённый способ",
+    "source_hash": "601f5768"
   },
   "web.domains.signin.mode_one_hint": {
-    "text": "Ограничьте страницу входа одним способом. Перечислены только способы, доступные на этом домене."
+    "text": "Ограничьте страницу входа одним способом. Перечислены только способы, доступные на этом домене.",
+    "source_hash": "58bde6d5"
   },
   "web.domains.signin.mode_disabled": {
-    "text": "Вход отключён"
+    "text": "Вход отключён",
+    "source_hash": "bb807607"
   },
   "web.domains.signin.mode_disabled_hint": {
-    "text": "Пользователи не могут входить на этом домене."
+    "text": "Пользователи не могут входить на этом домене.",
+    "source_hash": "8938f098"
   },
   "web.domains.signin.mode_disabled_notice": {
-    "text": "Посетители страницы входа этого домена видят уведомление о том, что вход недоступен, со ссылкой обратно на домашнюю страницу. Ваши предыдущие настройки способов сохраняются и восстанавливаются при повторном включении входа."
+    "text": "Посетители страницы входа этого домена видят уведомление о том, что вход недоступен, со ссылкой обратно на домашнюю страницу. Ваши предыдущие настройки способов сохраняются и восстанавливаются при повторном включении входа.",
+    "source_hash": "1a04de18"
   },
   "web.domains.signin.methods_list_label": {
-    "text": "Способы, показываемые на странице входа"
+    "text": "Способы, показываемые на странице входа",
+    "source_hash": "66fd133b"
   },
   "web.domains.signin.restrict_picker_hint": {
-    "text": "Перечислены только способы, доступные на этом домене."
+    "text": "Перечислены только способы, доступные на этом домене.",
+    "source_hash": "c7a56f44"
   },
   "web.domains.signin.availability_always": {
-    "text": "Всегда доступно"
+    "text": "Всегда доступно",
+    "source_hash": "0fda3772"
   },
   "web.domains.signin.availability_global_on": {
-    "text": "Следует глобальной политике · Включено"
+    "text": "Следует глобальной политике · Включено",
+    "source_hash": "3844e6f7"
   },
   "web.domains.signin.availability_global_off": {
-    "text": "Недоступно"
+    "text": "Недоступно",
+    "source_hash": "67a926f7"
   },
   "web.domains.signin.availability_unavailable": {
-    "text": "Недоступно на всём сайте"
+    "text": "Недоступно на всём сайте",
+    "source_hash": "da29c1be"
   },
   "web.domains.signin.allow_on_domain": {
-    "text": "Разрешить на этом домене"
+    "text": "Разрешить на этом домене",
+    "source_hash": "760b578e"
   },
   "web.domains.signin.method_password_blurb": {
-    "text": "Только пароль"
+    "text": "Только пароль",
+    "source_hash": "ed1a02fd"
   },
   "web.domains.signin.method_email_auth_blurb": {
-    "text": "Вход без пароля по волшебной ссылке"
+    "text": "Вход без пароля по волшебной ссылке",
+    "source_hash": "7f776a85"
   },
   "web.domains.signin.method_webauthn_blurb": {
-    "text": "Биометрия и ключи безопасности"
+    "text": "Биометрия и ключи безопасности",
+    "source_hash": "7d6a7bd5"
   },
   "web.domains.signin.method_sso_blurb": {
-    "text": "Внешний поставщик идентификации"
+    "text": "Внешний поставщик идентификации",
+    "source_hash": "a3442088"
   },
   "web.domains.signin.email_auth_label": {
-    "text": "Аутентификация по электронной почте"
+    "text": "Аутентификация по электронной почте",
+    "source_hash": "68c38f94"
   },
   "web.domains.signin.email_auth_hint": {
-    "text": "Разрешить аутентификацию по электронной почте без пароля на этом домене"
+    "text": "Разрешить аутентификацию по электронной почте без пароля на этом домене",
+    "source_hash": "6ad82127"
   },
   "web.domains.signin.sso_enabled_label": {
-    "text": "Единый вход (SSO)"
+    "text": "Единый вход (SSO)",
+    "source_hash": "cf7cd744"
   },
   "web.domains.signin.sso_enabled_hint": {
-    "text": "Разрешить аутентификацию через SSO на этом домене"
+    "text": "Разрешить аутентификацию через SSO на этом домене",
+    "source_hash": "22d78ad5"
   },
   "web.domains.signin.enabled_label": {
-    "text": "Включить настройку входа"
+    "text": "Включить настройку входа",
+    "source_hash": "dbd8e11c"
   },
   "web.domains.signin.enabled_hint": {
-    "text": "Если включено, этот домен использует настройки входа, заданные выше"
+    "text": "Если включено, этот домен использует настройки входа, заданные выше",
+    "source_hash": "6259f8a2"
   },
   "web.domains.signin.save_config": {
-    "text": "Сохранить конфигурацию"
+    "text": "Сохранить конфигурацию",
+    "source_hash": "b2b158f2"
   },
   "web.domains.signin.update_success": {
-    "text": "Настройка входа успешно обновлена"
+    "text": "Настройка входа успешно обновлена",
+    "source_hash": "10ea50d8"
   },
   "web.domains.signin.reset_to_defaults": {
-    "text": "Сбросить к значениям по умолчанию"
+    "text": "Сбросить к значениям по умолчанию",
+    "source_hash": "e240e635"
   },
   "web.domains.signin.reset_confirm": {
-    "text": "Сбросить вход к глобальным значениям по умолчанию?"
+    "text": "Сбросить вход к глобальным значениям по умолчанию?",
+    "source_hash": "2c6bbc32"
   },
   "web.domains.signin.reset_keeps_sso": {
-    "text": "Ваши учётные данные SSO сохраняются. Удалите их отдельно на экране настройки SSO."
+    "text": "Ваши учётные данные SSO сохраняются. Удалите их отдельно на экране настройки SSO.",
+    "source_hash": "edc0c756"
   },
   "web.domains.signin.reset_action": {
-    "text": "Да, сбросить"
+    "text": "Да, сбросить",
+    "source_hash": "4bb21d8b"
   },
   "web.domains.signin.reset_success": {
-    "text": "Настройки входа сброшены к глобальным значениям по умолчанию"
+    "text": "Настройки входа сброшены к глобальным значениям по умолчанию",
+    "source_hash": "0c364d89"
   },
   "web.domains.signup.title": {
-    "text": "Проверка регистрации"
+    "text": "Проверка регистрации",
+    "source_hash": "2c34ac0a"
   },
   "web.domains.signup.config_description": {
-    "text": "Настройте проверку регистрации для этого домена"
+    "text": "Настройте проверку регистрации для этого домена",
+    "source_hash": "e9c81e8a"
   },
   "web.domains.signup.access_denied": {
-    "text": "Доступ запрещён"
+    "text": "Доступ запрещён",
+    "source_hash": "d134ca02"
   },
   "web.domains.signup.upgrade_to_configure": {
-    "text": "Перейдите на более высокий план, чтобы настроить проверку регистрации для каждого домена."
+    "text": "Перейдите на более высокий план, чтобы настроить проверку регистрации для каждого домена.",
+    "source_hash": "d87d6614"
   },
   "web.domains.signup.configure_signup": {
-    "text": "Настроить регистрацию"
+    "text": "Настроить регистрацию",
+    "source_hash": "e2697662"
   },
   "web.domains.signup.not_configured_notice": {
-    "text": "Проверка регистрации для этого домена ещё не настроена. Настройте стратегию, чтобы управлять тем, кто может регистрироваться через этот домен."
+    "text": "Проверка регистрации для этого домена ещё не настроена. Настройте стратегию, чтобы управлять тем, кто может регистрироваться через этот домен.",
+    "source_hash": "fc6c6eb8"
   },
   "web.domains.signup.site_signups_disabled_warning": {
-    "text": "Регистрация в настоящее время отключена на уровне сайта. Эта политика для отдельного домена настроена, но не будет ограничивать трафик, пока регистрация на сайте не будет включена."
+    "text": "Регистрация в настоящее время отключена на уровне сайта. Эта политика для отдельного домена настроена, но не будет ограничивать трафик, пока регистрация на сайте не будет включена.",
+    "source_hash": "c0e59f86"
   },
   "web.domains.signup.strategy_label": {
-    "text": "Стратегия проверки"
+    "text": "Стратегия проверки",
+    "source_hash": "a2e95531"
   },
   "web.domains.signup.strategy_description": {
-    "text": "Выберите, как проверяются адреса электронной почты при регистрации пользователей на этом домене."
+    "text": "Выберите, как проверяются адреса электронной почты при регистрации пользователей на этом домене.",
+    "source_hash": "8e232b03"
   },
   "web.domains.signup.network_validation_warning": {
-    "text": "Эта стратегия выполняет сетевые запросы во время регистрации, что может увеличить задержку или быть заблокировано некоторыми поставщиками."
+    "text": "Эта стратегия выполняет сетевые запросы во время регистрации, что может увеличить задержку или быть заблокировано некоторыми поставщиками.",
+    "source_hash": "53d4c266"
   },
   "web.domains.signup.allowed_domains_label": {
-    "text": "Разрешённые домены для регистрации"
+    "text": "Разрешённые домены для регистрации",
+    "source_hash": "9b5bb5b1"
   },
   "web.domains.signup.allowed_domains_hint": {
-    "text": "Регистрироваться смогут только эти домены электронной почты. Добавляйте по одному домену в каждой записи."
+    "text": "Регистрироваться смогут только эти домены электронной почты. Добавляйте по одному домену в каждой записи.",
+    "source_hash": "c082414d"
   },
   "web.domains.signup.domain_placeholder": {
-    "text": "example.com"
+    "text": "example.com",
+    "source_hash": "a379a6f6"
   },
   "web.domains.signup.invalid_domain": {
-    "text": "Пожалуйста, введите действительный домен (например, example.com)"
+    "text": "Пожалуйста, введите действительный домен (например, example.com)",
+    "source_hash": "16807983"
   },
   "web.domains.signup.domain_exists": {
-    "text": "Этот домен уже есть в списке"
+    "text": "Этот домен уже есть в списке",
+    "source_hash": "3fccb721"
   },
   "web.domains.signup.remove_domain": {
-    "text": "Удалить {domain}"
+    "text": "Удалить {domain}",
+    "source_hash": "ae708a1d"
   },
   "web.domains.signup.enabled_label": {
-    "text": "Включить проверку для каждого домена"
+    "text": "Включить проверку для каждого домена",
+    "source_hash": "db103925"
   },
   "web.domains.signup.enabled_hint": {
-    "text": "Если включено, регистрация на этом домене использует указанную выше стратегию вместо глобальной политики."
+    "text": "Если включено, регистрация на этом домене использует указанную выше стратегию вместо глобальной политики.",
+    "source_hash": "99de2008"
   },
   "web.domains.signup.delete_config": {
-    "text": "Удалить конфигурацию"
+    "text": "Удалить конфигурацию",
+    "source_hash": "a9a30c7f"
   },
   "web.domains.signup.delete_confirm": {
-    "text": "Удалить конфигурацию проверки регистрации? Регистрация вернётся к глобальной политике."
+    "text": "Удалить конфигурацию проверки регистрации? Регистрация вернётся к глобальной политике.",
+    "source_hash": "a8c9086e"
   },
   "web.domains.signup.save_config": {
-    "text": "Сохранить конфигурацию"
+    "text": "Сохранить конфигурацию",
+    "source_hash": "b2b158f2"
   },
   "web.domains.signup.update_success": {
-    "text": "Проверка регистрации успешно обновлена"
+    "text": "Проверка регистрации успешно обновлена",
+    "source_hash": "57a529ac"
   },
   "web.domains.signup.delete_success": {
-    "text": "Конфигурация проверки регистрации успешно удалена"
+    "text": "Конфигурация проверки регистрации успешно удалена",
+    "source_hash": "eb6add4d"
   },
   "web.domains.signup.domain_overrides_label": {
-    "text": "Переопределения домена"
+    "text": "Переопределения домена",
+    "source_hash": "d25da3cd"
   },
   "web.domains.signup.domain_overrides_hint": {
-    "text": "Переопределить глобальные настройки регистрации для этого домена"
+    "text": "Переопределить глобальные настройки регистрации для этого домена",
+    "source_hash": "53101057"
   },
   "web.domains.signup.signup_enabled_label": {
-    "text": "Регистрация включена"
+    "text": "Регистрация включена",
+    "source_hash": "296ac66d"
   },
   "web.domains.signup.signup_enabled_hint": {
-    "text": "Переопределить, включена ли регистрация для этого домена"
+    "text": "Переопределить, включена ли регистрация для этого домена",
+    "source_hash": "2ee146b6"
   },
   "web.domains.signup.autoverify_label": {
-    "text": "Автоматически подтверждать аккаунты"
+    "text": "Автоматически подтверждать аккаунты",
+    "source_hash": "4b103cd5"
   },
   "web.domains.signup.autoverify_hint": {
-    "text": "Переопределить, подтверждаются ли новые аккаунты автоматически на этом домене"
+    "text": "Переопределить, подтверждаются ли новые аккаунты автоматически на этом домене",
+    "source_hash": "63866ecd"
   },
   "web.domains.sso.test_success": {
-    "text": "Проверка подключения прошла успешно — поставщик ответил корректно"
+    "text": "Проверка подключения прошла успешно — поставщик ответил корректно",
+    "source_hash": "1570ddb0"
   },
   "web.domains.sso.test_failed": {
-    "text": "Проверка подключения не удалась"
+    "text": "Проверка подключения не удалась",
+    "source_hash": "a45a37dd"
   },
   "web.domains.sso.enforce_moved_notice": {
-    "text": "Чтобы требовать SSO для всех входов на этом домене, настройте это в настройках входа домена. Режим «только SSO» ограничивает страницу входа поставщиком SSO, настроенным здесь."
+    "text": "Чтобы требовать SSO для всех входов на этом домене, настройте это в настройках входа домена. Режим «только SSO» ограничивает страницу входа поставщиком SSO, настроенным здесь.",
+    "source_hash": "d26627a5"
   },
   "web.domains.sso.edit_credentials": {
-    "text": "Редактировать учётные данные"
+    "text": "Редактировать учётные данные",
+    "source_hash": "5a6622b6"
   },
   "web.domains.sso.configure_button": {
-    "text": "Настроить"
+    "text": "Настроить",
+    "source_hash": "6defafa2"
   },
   "web.domains.sso.upgrade_required": {
-    "text": "Перейдите на более высокий план для настройки"
+    "text": "Перейдите на более высокий план для настройки",
+    "source_hash": "571cfa98"
   }
 }

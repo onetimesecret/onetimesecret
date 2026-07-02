@@ -132,24 +132,31 @@
     "source_hash": "6f328609"
   },
   "incoming.upgrade_required_title": {
-    "text": "נדרש שדרוג"
+    "text": "נדרש שדרוג",
+    "source_hash": "16487236"
   },
   "incoming.upgrade_required_description": {
-    "text": "תכונה זו מחייבת שדרוג תוכנית. אנא פנה לבעל החשבון כדי להפעיל סודות נכנסים."
+    "text": "תכונה זו מחייבת שדרוג תוכנית. אנא פנה לבעל החשבון כדי להפעיל סודות נכנסים.",
+    "source_hash": "5df7f715"
   },
   "incoming.validation_memo_too_long": {
-    "text": "התזכיר חייב להכיל {max} תווים או פחות"
+    "text": "התזכיר חייב להכיל {max} תווים או פחות",
+    "source_hash": "5727f2d3"
   },
   "incoming.validation_secret_required": {
-    "text": "נדרש תוכן סוד"
+    "text": "נדרש תוכן סוד",
+    "source_hash": "699783c9"
   },
   "incoming.validation_recipient_required": {
-    "text": "אנא בחר נמען"
+    "text": "אנא בחר נמען",
+    "source_hash": "67bb4666"
   },
   "incoming.validation_feature_disabled": {
-    "text": "תכונת הסודות הנכנסים אינה מופעלת"
+    "text": "תכונת הסודות הנכנסים אינה מופעלת",
+    "source_hash": "0616d3f4"
   },
   "incoming.validation_form_errors": {
-    "text": "אנא בדוק את הטופס לאיתור שגיאות"
+    "text": "אנא בדוק את הטופס לאיתור שגיאות",
+    "source_hash": "9056e064"
   }
 }

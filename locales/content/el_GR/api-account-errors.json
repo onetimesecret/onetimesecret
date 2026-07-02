@@ -1,8 +1,10 @@
 {
   "api.account.errors.invalid_email": {
-    "text": "Είναι αυτή έγκυρη διεύθυνση email;"
+    "text": "Είναι αυτή έγκυρη διεύθυνση email;",
+    "source_hash": "21d55b60"
   },
   "api.account.errors.password_too_short": {
-    "text": "Ο κωδικός πρόσβασης είναι πολύ σύντομος"
+    "text": "Ο κωδικός πρόσβασης είναι πολύ σύντομος",
+    "source_hash": "0d829600"
   }
 }

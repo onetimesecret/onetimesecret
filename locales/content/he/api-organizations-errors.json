@@ -1,107 +1,142 @@
 {
   "api.organizations.errors.domain_scoped_forbidden": {
-    "text": "חברים המוגבלים לדומיין אינם יכולים לבצע פעולה זו"
+    "text": "חברים המוגבלים לדומיין אינם יכולים לבצע פעולה זו",
+    "source_hash": "0a06a035"
   },
   "api.organizations.errors.organization_not_found": {
-    "text": "הארגון לא נמצא: %{extid}"
+    "text": "הארגון לא נמצא: %{extid}",
+    "source_hash": "c8d058eb"
   },
   "api.organizations.errors.organization_owner_required": {
-    "text": "רק בעל הארגון יכול לבצע פעולה זו"
+    "text": "רק בעל הארגון יכול לבצע פעולה זו",
+    "source_hash": "5a729e94"
   },
   "api.organizations.errors.organization_member_required": {
-    "text": "עליך להיות חבר בארגון כדי לבצע פעולה זו"
+    "text": "עליך להיות חבר בארגון כדי לבצע פעולה זו",
+    "source_hash": "f66f4a60"
   },
   "api.organizations.errors.organization_admin_required": {
-    "text": "רק בעלי הארגון ומנהליו יכולים לבצע פעולה זו"
+    "text": "רק בעלי הארגון ומנהליו יכולים לבצע פעולה זו",
+    "source_hash": "cd9e8c0e"
   },
   "api.organizations.errors.extid_required": {
-    "text": "נדרש מזהה ארגון"
+    "text": "נדרש מזהה ארגון",
+    "source_hash": "02fbe301"
   },
   "api.organizations.errors.display_name_required": {
-    "text": "נדרש שם ארגון"
+    "text": "נדרש שם ארגון",
+    "source_hash": "c3f6e9af"
   },
   "api.organizations.errors.display_name_too_long": {
-    "text": "שם הארגון חייב להיות קצר מ-%{max} תווים"
+    "text": "שם הארגון חייב להיות קצר מ-%{max} תווים",
+    "source_hash": "5866973d"
   },
   "api.organizations.errors.description_too_long": {
-    "text": "התיאור חייב להיות קצר מ-%{max} תווים"
+    "text": "התיאור חייב להיות קצר מ-%{max} תווים",
+    "source_hash": "562b7250"
   },
   "api.organizations.errors.contact_email_exists": {
-    "text": "כבר קיים ארגון עם כתובת דוא״ל ליצירת קשר זו"
+    "text": "כבר קיים ארגון עם כתובת דוא״ל ליצירת קשר זו",
+    "source_hash": "e9fdce56"
   },
   "api.organizations.errors.creation_in_progress": {
-    "text": "יצירת הארגון מתבצעת. אנא נסה שוב."
+    "text": "יצירת הארגון מתבצעת. אנא נסה שוב.",
+    "source_hash": "ef68bc2d"
   },
   "api.organizations.errors.organization_limit_reached": {
-    "text": "הגעת למגבלת הארגונים. שדרג את התוכנית שלך כדי ליצור ארגונים נוספים."
+    "text": "הגעת למגבלת הארגונים. שדרג את התוכנית שלך כדי ליצור ארגונים נוספים.",
+    "source_hash": "69e2e61b"
   },
   "api.organizations.invitations.errors.invitation_not_found": {
-    "text": "ההזמנה לא נמצאה"
+    "text": "ההזמנה לא נמצאה",
+    "source_hash": "775ba9eb"
   },
   "api.organizations.invitations.errors.email_required": {
-    "text": "נדרש דוא״ל"
+    "text": "נדרש דוא״ל",
+    "source_hash": "aae92911"
   },
   "api.organizations.invitations.errors.invalid_email_format": {
-    "text": "פורמט דוא״ל לא תקין"
+    "text": "פורמט דוא״ל לא תקין",
+    "source_hash": "0bcecf66"
   },
   "api.organizations.invitations.errors.invalid_role": {
-    "text": "התפקיד חייב להיות חבר או מנהל"
+    "text": "התפקיד חייב להיות חבר או מנהל",
+    "source_hash": "650ea5f6"
   },
   "api.organizations.invitations.errors.cannot_invite_as_owner": {
-    "text": "לא ניתן להזמין בתפקיד בעלים"
+    "text": "לא ניתן להזמין בתפקיד בעלים",
+    "source_hash": "e6581025"
   },
   "api.organizations.invitations.errors.user_already_member": {
-    "text": "המשתמש כבר חבר בארגון זה"
+    "text": "המשתמש כבר חבר בארגון זה",
+    "source_hash": "8eb45780"
   },
   "api.organizations.invitations.errors.invitation_already_pending": {
-    "text": "כבר קיימת הזמנה ממתינה לכתובת דוא״ל זו"
+    "text": "כבר קיימת הזמנה ממתינה לכתובת דוא״ל זו",
+    "source_hash": "7f5e3093"
   },
   "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "הגעת למגבלת החברים. שדרג את התוכנית שלך כדי להזמין חברים נוספים."
+    "text": "הגעת למגבלת החברים. שדרג את התוכנית שלך כדי להזמין חברים נוספים.",
+    "source_hash": "b8f316e8"
   },
   "api.organizations.invitations.errors.resend_only_pending": {
-    "text": "ניתן לשלוח מחדש רק הזמנות ממתינות"
+    "text": "ניתן לשלוח מחדש רק הזמנות ממתינות",
+    "source_hash": "b7578b3e"
   },
   "api.organizations.invitations.errors.resend_limit_reached": {
-    "text": "הגעת למגבלת השליחה מחדש המרבית (%{max})"
+    "text": "הגעת למגבלת השליחה מחדש המרבית (%{max})",
+    "source_hash": "8dc96729"
   },
   "api.organizations.invitations.errors.revoke_only_pending": {
-    "text": "ניתן לבטל רק הזמנות ממתינות"
+    "text": "ניתן לבטל רק הזמנות ממתינות",
+    "source_hash": "732b78a6"
   },
   "api.organizations.members.errors.member_not_found": {
-    "text": "החבר לא נמצא: %{extid}"
+    "text": "החבר לא נמצא: %{extid}",
+    "source_hash": "57654771"
   },
   "api.organizations.members.errors.member_not_in_organization": {
-    "text": "החבר לא נמצא בארגון זה"
+    "text": "החבר לא נמצא בארגון זה",
+    "source_hash": "dcab71ff"
   },
   "api.organizations.members.errors.member_not_active": {
-    "text": "החבר אינו פעיל"
+    "text": "החבר אינו פעיל",
+    "source_hash": "a51b8760"
   },
   "api.organizations.members.errors.invalid_role_value": {
-    "text": "תפקיד לא תקין. חייב להיות אחד מ: %{roles}"
+    "text": "תפקיד לא תקין. חייב להיות אחד מ: %{roles}",
+    "source_hash": "c3331aa0"
   },
   "api.organizations.members.errors.cannot_change_owner_role": {
-    "text": "לא ניתן לשנות את תפקיד הבעלים. השתמש בהעברת בעלות במקום."
+    "text": "לא ניתן לשנות את תפקיד הבעלים. השתמש בהעברת בעלות במקום.",
+    "source_hash": "76015424"
   },
   "api.organizations.members.errors.member_already_has_role": {
-    "text": "לחבר כבר יש את התפקיד: %{role}"
+    "text": "לחבר כבר יש את התפקיד: %{role}",
+    "source_hash": "6771166a"
   },
   "api.organizations.members.errors.cannot_promote_to_owner": {
-    "text": "לא ניתן לקדם לתפקיד בעלים. השתמש בהעברת בעלות במקום."
+    "text": "לא ניתן לקדם לתפקיד בעלים. השתמש בהעברת בעלות במקום.",
+    "source_hash": "cd574007"
   },
   "api.organizations.members.errors.must_be_member": {
-    "text": "עליך להיות חבר בארגון זה"
+    "text": "עליך להיות חבר בארגון זה",
+    "source_hash": "de1c77b8"
   },
   "api.organizations.members.errors.cannot_remove_owner": {
-    "text": "לא ניתן להסיר את בעל הארגון. העבר תחילה את הבעלות."
+    "text": "לא ניתן להסיר את בעל הארגון. העבר תחילה את הבעלות.",
+    "source_hash": "d4f33003"
   },
   "api.organizations.members.errors.cannot_remove_self": {
-    "text": "לא ניתן להסיר את עצמך. השתמש ביציאה מהארגון במקום."
+    "text": "לא ניתן להסיר את עצמך. השתמש ביציאה מהארגון במקום.",
+    "source_hash": "d64cec91"
   },
   "api.organizations.members.errors.admin_cannot_remove_admin": {
-    "text": "מנהלים אינם יכולים להסיר מנהלים אחרים. רק בעלים יכולים."
+    "text": "מנהלים אינם יכולים להסיר מנהלים אחרים. רק בעלים יכולים.",
+    "source_hash": "2b3e6e30"
   },
   "api.organizations.members.errors.no_permission_to_remove": {
-    "text": "אין לך הרשאה להסיר חברים"
+    "text": "אין לך הרשאה להסיר חברים",
+    "source_hash": "b0ac7287"
   }
 }

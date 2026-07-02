@@ -718,18 +718,23 @@
     "text": "사용자의 로그인된 기기/브라우저 관리 페이지"
   },
   "web.auth.google": {
-    "text": "Google"
+    "text": "Google",
+    "source_hash": "ce770667"
   },
   "web.auth.mfa.alternative_auth_options": {
-    "text": "대체 인증 옵션"
+    "text": "대체 인증 옵션",
+    "source_hash": "5ddea736"
   },
   "web.auth.remember.enabled": {
-    "text": "로그인 상태 유지"
+    "text": "로그인 상태 유지",
+    "source_hash": "b0a1ca80"
   },
   "web.auth.sessions.session_singular": {
-    "text": "세션"
+    "text": "세션",
+    "source_hash": "3f3af1ec"
   },
   "web.auth.sessions.session_plural": {
-    "text": "세션"
+    "text": "세션",
+    "source_hash": "1225ae6c"
   }
 }

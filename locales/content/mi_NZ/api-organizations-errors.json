@@ -1,107 +1,142 @@
 {
   "api.organizations.errors.domain_scoped_forbidden": {
-    "text": "Kāore e taea e ngā mema kua herea ki te rohe te mahi i tēnei"
+    "text": "Kāore e taea e ngā mema kua herea ki te rohe te mahi i tēnei",
+    "source_hash": "0a06a035"
   },
   "api.organizations.errors.organization_not_found": {
-    "text": "Kāore i kitea te whakahaere: %{extid}"
+    "text": "Kāore i kitea te whakahaere: %{extid}",
+    "source_hash": "c8d058eb"
   },
   "api.organizations.errors.organization_owner_required": {
-    "text": "Ko te rangatira whakahaere anake e taea ai te mahi i tēnei"
+    "text": "Ko te rangatira whakahaere anake e taea ai te mahi i tēnei",
+    "source_hash": "5a729e94"
   },
   "api.organizations.errors.organization_member_required": {
-    "text": "Me noho koe hei mema whakahaere kia taea ai te mahi i tēnei"
+    "text": "Me noho koe hei mema whakahaere kia taea ai te mahi i tēnei",
+    "source_hash": "f66f4a60"
   },
   "api.organizations.errors.organization_admin_required": {
-    "text": "Ko ngā rangatira me ngā kaiwhakahaere whakahaere anake e taea ai te mahi i tēnei"
+    "text": "Ko ngā rangatira me ngā kaiwhakahaere whakahaere anake e taea ai te mahi i tēnei",
+    "source_hash": "cd9e8c0e"
   },
   "api.organizations.errors.extid_required": {
-    "text": "E hiahiatia ana te ID whakahaere"
+    "text": "E hiahiatia ana te ID whakahaere",
+    "source_hash": "02fbe301"
   },
   "api.organizations.errors.display_name_required": {
-    "text": "E hiahiatia ana te ingoa whakahaere"
+    "text": "E hiahiatia ana te ingoa whakahaere",
+    "source_hash": "c3f6e9af"
   },
   "api.organizations.errors.display_name_too_long": {
-    "text": "Me iti iho te ingoa whakahaere i te %{max} pūāhua"
+    "text": "Me iti iho te ingoa whakahaere i te %{max} pūāhua",
+    "source_hash": "5866973d"
   },
   "api.organizations.errors.description_too_long": {
-    "text": "Me iti iho te whakaahuatanga i te %{max} pūāhua"
+    "text": "Me iti iho te whakaahuatanga i te %{max} pūāhua",
+    "source_hash": "562b7250"
   },
   "api.organizations.errors.contact_email_exists": {
-    "text": "Kei te ora kē tētahi whakahaere me tēnei īmēra whakapā"
+    "text": "Kei te ora kē tētahi whakahaere me tēnei īmēra whakapā",
+    "source_hash": "e9fdce56"
   },
   "api.organizations.errors.creation_in_progress": {
-    "text": "Kei te haere tonu te waihanga whakahaere. Tēnā ngana anō."
+    "text": "Kei te haere tonu te waihanga whakahaere. Tēnā ngana anō.",
+    "source_hash": "ef68bc2d"
   },
   "api.organizations.errors.organization_limit_reached": {
-    "text": "Kua eke ki te tepe whakahaere. Whakapikihia tō mahere ki te waihanga whakahaere anō."
+    "text": "Kua eke ki te tepe whakahaere. Whakapikihia tō mahere ki te waihanga whakahaere anō.",
+    "source_hash": "69e2e61b"
   },
   "api.organizations.invitations.errors.invitation_not_found": {
-    "text": "Kāore i kitea te tono"
+    "text": "Kāore i kitea te tono",
+    "source_hash": "775ba9eb"
   },
   "api.organizations.invitations.errors.email_required": {
-    "text": "E hiahiatia ana te īmēra"
+    "text": "E hiahiatia ana te īmēra",
+    "source_hash": "aae92911"
   },
   "api.organizations.invitations.errors.invalid_email_format": {
-    "text": "Hōputu īmēra muhu"
+    "text": "Hōputu īmēra muhu",
+    "source_hash": "0bcecf66"
   },
   "api.organizations.invitations.errors.invalid_role": {
-    "text": "Me noho te tūranga hei mema, hei kaiwhakahaere rānei"
+    "text": "Me noho te tūranga hei mema, hei kaiwhakahaere rānei",
+    "source_hash": "650ea5f6"
   },
   "api.organizations.invitations.errors.cannot_invite_as_owner": {
-    "text": "Kāore e taea te tono hei rangatira"
+    "text": "Kāore e taea te tono hei rangatira",
+    "source_hash": "e6581025"
   },
   "api.organizations.invitations.errors.user_already_member": {
-    "text": "He mema kē te kaiwhakamahi nō tēnei whakahaere"
+    "text": "He mema kē te kaiwhakamahi nō tēnei whakahaere",
+    "source_hash": "8eb45780"
   },
   "api.organizations.invitations.errors.invitation_already_pending": {
-    "text": "Kei te tārewa kē tētahi tono mō tēnei īmēra"
+    "text": "Kei te tārewa kē tētahi tono mō tēnei īmēra",
+    "source_hash": "7f5e3093"
   },
   "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Kua eke ki te tepe mema. Whakapikihia tō mahere ki te tono mema anō."
+    "text": "Kua eke ki te tepe mema. Whakapikihia tō mahere ki te tono mema anō.",
+    "source_hash": "b8f316e8"
   },
   "api.organizations.invitations.errors.resend_only_pending": {
-    "text": "Ka taea anake te tuku anō i ngā tono tārewa"
+    "text": "Ka taea anake te tuku anō i ngā tono tārewa",
+    "source_hash": "b7578b3e"
   },
   "api.organizations.invitations.errors.resend_limit_reached": {
-    "text": "Kua eke ki te tepe tuku-anō mōrahi (%{max})"
+    "text": "Kua eke ki te tepe tuku-anō mōrahi (%{max})",
+    "source_hash": "8dc96729"
   },
   "api.organizations.invitations.errors.revoke_only_pending": {
-    "text": "Ka taea anake te whakakore i ngā tono tārewa"
+    "text": "Ka taea anake te whakakore i ngā tono tārewa",
+    "source_hash": "732b78a6"
   },
   "api.organizations.members.errors.member_not_found": {
-    "text": "Kāore i kitea te mema: %{extid}"
+    "text": "Kāore i kitea te mema: %{extid}",
+    "source_hash": "57654771"
   },
   "api.organizations.members.errors.member_not_in_organization": {
-    "text": "Kāore i kitea te mema i tēnei whakahaere"
+    "text": "Kāore i kitea te mema i tēnei whakahaere",
+    "source_hash": "dcab71ff"
   },
   "api.organizations.members.errors.member_not_active": {
-    "text": "Kāore te mema e kaha"
+    "text": "Kāore te mema e kaha",
+    "source_hash": "a51b8760"
   },
   "api.organizations.members.errors.invalid_role_value": {
-    "text": "Tūranga muhu. Me noho ko tētahi o: %{roles}"
+    "text": "Tūranga muhu. Me noho ko tētahi o: %{roles}",
+    "source_hash": "c3331aa0"
   },
   "api.organizations.members.errors.cannot_change_owner_role": {
-    "text": "Kāore e taea te huri i te tūranga rangatira. Whakamahia te whakawhiti rangatiratanga."
+    "text": "Kāore e taea te huri i te tūranga rangatira. Whakamahia te whakawhiti rangatiratanga.",
+    "source_hash": "76015424"
   },
   "api.organizations.members.errors.member_already_has_role": {
-    "text": "Kei te mema kē te tūranga: %{role}"
+    "text": "Kei te mema kē te tūranga: %{role}",
+    "source_hash": "6771166a"
   },
   "api.organizations.members.errors.cannot_promote_to_owner": {
-    "text": "Kāore e taea te whakatairanga ki te rangatira. Whakamahia te whakawhiti rangatiratanga."
+    "text": "Kāore e taea te whakatairanga ki te rangatira. Whakamahia te whakawhiti rangatiratanga.",
+    "source_hash": "cd574007"
   },
   "api.organizations.members.errors.must_be_member": {
-    "text": "Me noho koe hei mema o tēnei whakahaere"
+    "text": "Me noho koe hei mema o tēnei whakahaere",
+    "source_hash": "de1c77b8"
   },
   "api.organizations.members.errors.cannot_remove_owner": {
-    "text": "Kāore e taea te tango i te rangatira whakahaere. Whakawhitihia te rangatiratanga i te tuatahi."
+    "text": "Kāore e taea te tango i te rangatira whakahaere. Whakawhitihia te rangatiratanga i te tuatahi.",
+    "source_hash": "d4f33003"
   },
   "api.organizations.members.errors.cannot_remove_self": {
-    "text": "Kāore e taea te tango i a koe anō. Whakamahia te wehe whakahaere."
+    "text": "Kāore e taea te tango i a koe anō. Whakamahia te wehe whakahaere.",
+    "source_hash": "d64cec91"
   },
   "api.organizations.members.errors.admin_cannot_remove_admin": {
-    "text": "Kāore e taea e ngā kaiwhakahaere te tango i ētahi atu kaiwhakahaere. Ko ngā rangatira anake."
+    "text": "Kāore e taea e ngā kaiwhakahaere te tango i ētahi atu kaiwhakahaere. Ko ngā rangatira anake.",
+    "source_hash": "2b3e6e30"
   },
   "api.organizations.members.errors.no_permission_to_remove": {
-    "text": "Kāore ōu whaimana ki te tango mema"
+    "text": "Kāore ōu whaimana ki te tango mema",
+    "source_hash": "b0ac7287"
   }
 }

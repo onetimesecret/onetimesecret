@@ -1,8 +1,10 @@
 {
   "api.account.errors.invalid_email": {
-    "text": "Bu geçerli bir e-posta adresi mi?"
+    "text": "Bu geçerli bir e-posta adresi mi?",
+    "source_hash": "21d55b60"
   },
   "api.account.errors.password_too_short": {
-    "text": "Parola çok kısa"
+    "text": "Parola çok kısa",
+    "source_hash": "0d829600"
   }
 }

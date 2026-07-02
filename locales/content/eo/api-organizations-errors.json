@@ -1,107 +1,142 @@
 {
   "api.organizations.errors.domain_scoped_forbidden": {
-    "text": "Membroj limigitaj al domajno ne povas plenumi ĉi tiun agon"
+    "text": "Membroj limigitaj al domajno ne povas plenumi ĉi tiun agon",
+    "source_hash": "0a06a035"
   },
   "api.organizations.errors.organization_not_found": {
-    "text": "Organizo ne trovita: %{extid}"
+    "text": "Organizo ne trovita: %{extid}",
+    "source_hash": "c8d058eb"
   },
   "api.organizations.errors.organization_owner_required": {
-    "text": "Nur la posedanto de la organizo povas plenumi ĉi tiun agon"
+    "text": "Nur la posedanto de la organizo povas plenumi ĉi tiun agon",
+    "source_hash": "5a729e94"
   },
   "api.organizations.errors.organization_member_required": {
-    "text": "Vi devas esti membro de la organizo por plenumi ĉi tiun agon"
+    "text": "Vi devas esti membro de la organizo por plenumi ĉi tiun agon",
+    "source_hash": "f66f4a60"
   },
   "api.organizations.errors.organization_admin_required": {
-    "text": "Nur posedantoj kaj administrantoj de la organizo povas plenumi ĉi tiun agon"
+    "text": "Nur posedantoj kaj administrantoj de la organizo povas plenumi ĉi tiun agon",
+    "source_hash": "cd9e8c0e"
   },
   "api.organizations.errors.extid_required": {
-    "text": "Organiza ID necesas"
+    "text": "Organiza ID necesas",
+    "source_hash": "02fbe301"
   },
   "api.organizations.errors.display_name_required": {
-    "text": "Organiznomo necesas"
+    "text": "Organiznomo necesas",
+    "source_hash": "c3f6e9af"
   },
   "api.organizations.errors.display_name_too_long": {
-    "text": "Organiznomo devas esti malpli ol %{max} signoj"
+    "text": "Organiznomo devas esti malpli ol %{max} signoj",
+    "source_hash": "5866973d"
   },
   "api.organizations.errors.description_too_long": {
-    "text": "Priskribo devas esti malpli ol %{max} signoj"
+    "text": "Priskribo devas esti malpli ol %{max} signoj",
+    "source_hash": "562b7250"
   },
   "api.organizations.errors.contact_email_exists": {
-    "text": "Organizo kun ĉi tiu kontakta retpoŝtadreso jam ekzistas"
+    "text": "Organizo kun ĉi tiu kontakta retpoŝtadreso jam ekzistas",
+    "source_hash": "e9fdce56"
   },
   "api.organizations.errors.creation_in_progress": {
-    "text": "Kreado de organizo en progreso. Bonvolu reprovi."
+    "text": "Kreado de organizo en progreso. Bonvolu reprovi.",
+    "source_hash": "ef68bc2d"
   },
   "api.organizations.errors.organization_limit_reached": {
-    "text": "Limo de organizoj atingita. Altniveligu vian planon por krei pli da organizoj."
+    "text": "Limo de organizoj atingita. Altniveligu vian planon por krei pli da organizoj.",
+    "source_hash": "69e2e61b"
   },
   "api.organizations.invitations.errors.invitation_not_found": {
-    "text": "Invito ne trovita"
+    "text": "Invito ne trovita",
+    "source_hash": "775ba9eb"
   },
   "api.organizations.invitations.errors.email_required": {
-    "text": "Retpoŝtadreso necesas"
+    "text": "Retpoŝtadreso necesas",
+    "source_hash": "aae92911"
   },
   "api.organizations.invitations.errors.invalid_email_format": {
-    "text": "Nevalida formato de retpoŝtadreso"
+    "text": "Nevalida formato de retpoŝtadreso",
+    "source_hash": "0bcecf66"
   },
   "api.organizations.invitations.errors.invalid_role": {
-    "text": "Rolo devas esti membro aŭ administranto"
+    "text": "Rolo devas esti membro aŭ administranto",
+    "source_hash": "650ea5f6"
   },
   "api.organizations.invitations.errors.cannot_invite_as_owner": {
-    "text": "Ne eblas inviti kiel posedanto"
+    "text": "Ne eblas inviti kiel posedanto",
+    "source_hash": "e6581025"
   },
   "api.organizations.invitations.errors.user_already_member": {
-    "text": "La uzanto jam estas membro de ĉi tiu organizo"
+    "text": "La uzanto jam estas membro de ĉi tiu organizo",
+    "source_hash": "8eb45780"
   },
   "api.organizations.invitations.errors.invitation_already_pending": {
-    "text": "Invito jam atendanta por ĉi tiu retpoŝtadreso"
+    "text": "Invito jam atendanta por ĉi tiu retpoŝtadreso",
+    "source_hash": "7f5e3093"
   },
   "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Limo de membroj atingita. Altniveligu vian planon por inviti pli da membroj."
+    "text": "Limo de membroj atingita. Altniveligu vian planon por inviti pli da membroj.",
+    "source_hash": "b8f316e8"
   },
   "api.organizations.invitations.errors.resend_only_pending": {
-    "text": "Eblas resendi nur atendantajn invitojn"
+    "text": "Eblas resendi nur atendantajn invitojn",
+    "source_hash": "b7578b3e"
   },
   "api.organizations.invitations.errors.resend_limit_reached": {
-    "text": "Maksimuma limo de resendoj (%{max}) atingita"
+    "text": "Maksimuma limo de resendoj (%{max}) atingita",
+    "source_hash": "8dc96729"
   },
   "api.organizations.invitations.errors.revoke_only_pending": {
-    "text": "Eblas revoki nur atendantajn invitojn"
+    "text": "Eblas revoki nur atendantajn invitojn",
+    "source_hash": "732b78a6"
   },
   "api.organizations.members.errors.member_not_found": {
-    "text": "Membro ne trovita: %{extid}"
+    "text": "Membro ne trovita: %{extid}",
+    "source_hash": "57654771"
   },
   "api.organizations.members.errors.member_not_in_organization": {
-    "text": "Membro ne trovita en ĉi tiu organizo"
+    "text": "Membro ne trovita en ĉi tiu organizo",
+    "source_hash": "dcab71ff"
   },
   "api.organizations.members.errors.member_not_active": {
-    "text": "La membro ne estas aktiva"
+    "text": "La membro ne estas aktiva",
+    "source_hash": "a51b8760"
   },
   "api.organizations.members.errors.invalid_role_value": {
-    "text": "Nevalida rolo. Devas esti unu el: %{roles}"
+    "text": "Nevalida rolo. Devas esti unu el: %{roles}",
+    "source_hash": "c3331aa0"
   },
   "api.organizations.members.errors.cannot_change_owner_role": {
-    "text": "Ne eblas ŝanĝi la rolon de posedanto. Anstataŭe uzu transdonon de posedo."
+    "text": "Ne eblas ŝanĝi la rolon de posedanto. Anstataŭe uzu transdonon de posedo.",
+    "source_hash": "76015424"
   },
   "api.organizations.members.errors.member_already_has_role": {
-    "text": "La membro jam havas la rolon: %{role}"
+    "text": "La membro jam havas la rolon: %{role}",
+    "source_hash": "6771166a"
   },
   "api.organizations.members.errors.cannot_promote_to_owner": {
-    "text": "Ne eblas promocii al posedanto. Anstataŭe uzu transdonon de posedo."
+    "text": "Ne eblas promocii al posedanto. Anstataŭe uzu transdonon de posedo.",
+    "source_hash": "cd574007"
   },
   "api.organizations.members.errors.must_be_member": {
-    "text": "Vi devas esti membro de ĉi tiu organizo"
+    "text": "Vi devas esti membro de ĉi tiu organizo",
+    "source_hash": "de1c77b8"
   },
   "api.organizations.members.errors.cannot_remove_owner": {
-    "text": "Ne eblas forigi la posedanton de la organizo. Unue transdonu la posedon."
+    "text": "Ne eblas forigi la posedanton de la organizo. Unue transdonu la posedon.",
+    "source_hash": "d4f33003"
   },
   "api.organizations.members.errors.cannot_remove_self": {
-    "text": "Ne eblas forigi vin mem. Anstataŭe uzu forlasi la organizon."
+    "text": "Ne eblas forigi vin mem. Anstataŭe uzu forlasi la organizon.",
+    "source_hash": "d64cec91"
   },
   "api.organizations.members.errors.admin_cannot_remove_admin": {
-    "text": "Administrantoj ne povas forigi aliajn administrantojn. Nur posedantoj povas."
+    "text": "Administrantoj ne povas forigi aliajn administrantojn. Nur posedantoj povas.",
+    "source_hash": "2b3e6e30"
   },
   "api.organizations.members.errors.no_permission_to_remove": {
-    "text": "Vi ne havas permeson forigi membrojn"
+    "text": "Vi ne havas permeson forigi membrojn",
+    "source_hash": "b0ac7287"
   }
 }

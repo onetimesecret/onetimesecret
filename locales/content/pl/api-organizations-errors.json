@@ -1,107 +1,142 @@
 {
   "api.organizations.errors.domain_scoped_forbidden": {
-    "text": "Członkowie ograniczeni do domeny nie mogą wykonać tej akcji"
+    "text": "Członkowie ograniczeni do domeny nie mogą wykonać tej akcji",
+    "source_hash": "0a06a035"
   },
   "api.organizations.errors.organization_not_found": {
-    "text": "Nie znaleziono organizacji: %{extid}"
+    "text": "Nie znaleziono organizacji: %{extid}",
+    "source_hash": "c8d058eb"
   },
   "api.organizations.errors.organization_owner_required": {
-    "text": "Tylko właściciel organizacji może wykonać tę akcję"
+    "text": "Tylko właściciel organizacji może wykonać tę akcję",
+    "source_hash": "5a729e94"
   },
   "api.organizations.errors.organization_member_required": {
-    "text": "Aby wykonać tę akcję, musisz być członkiem organizacji"
+    "text": "Aby wykonać tę akcję, musisz być członkiem organizacji",
+    "source_hash": "f66f4a60"
   },
   "api.organizations.errors.organization_admin_required": {
-    "text": "Tylko właściciele i administratorzy organizacji mogą wykonać tę akcję"
+    "text": "Tylko właściciele i administratorzy organizacji mogą wykonać tę akcję",
+    "source_hash": "cd9e8c0e"
   },
   "api.organizations.errors.extid_required": {
-    "text": "Wymagany jest identyfikator organizacji"
+    "text": "Wymagany jest identyfikator organizacji",
+    "source_hash": "02fbe301"
   },
   "api.organizations.errors.display_name_required": {
-    "text": "Nazwa organizacji jest wymagana"
+    "text": "Nazwa organizacji jest wymagana",
+    "source_hash": "c3f6e9af"
   },
   "api.organizations.errors.display_name_too_long": {
-    "text": "Nazwa organizacji musi mieć mniej niż %{max} znaków"
+    "text": "Nazwa organizacji musi mieć mniej niż %{max} znaków",
+    "source_hash": "5866973d"
   },
   "api.organizations.errors.description_too_long": {
-    "text": "Opis musi mieć mniej niż %{max} znaków"
+    "text": "Opis musi mieć mniej niż %{max} znaków",
+    "source_hash": "562b7250"
   },
   "api.organizations.errors.contact_email_exists": {
-    "text": "Organizacja z tym kontaktowym adresem e-mail już istnieje"
+    "text": "Organizacja z tym kontaktowym adresem e-mail już istnieje",
+    "source_hash": "e9fdce56"
   },
   "api.organizations.errors.creation_in_progress": {
-    "text": "Trwa tworzenie organizacji. Spróbuj ponownie."
+    "text": "Trwa tworzenie organizacji. Spróbuj ponownie.",
+    "source_hash": "ef68bc2d"
   },
   "api.organizations.errors.organization_limit_reached": {
-    "text": "Osiągnięto limit organizacji. Ulepsz swój plan, aby utworzyć więcej organizacji."
+    "text": "Osiągnięto limit organizacji. Ulepsz swój plan, aby utworzyć więcej organizacji.",
+    "source_hash": "69e2e61b"
   },
   "api.organizations.invitations.errors.invitation_not_found": {
-    "text": "Nie znaleziono zaproszenia"
+    "text": "Nie znaleziono zaproszenia",
+    "source_hash": "775ba9eb"
   },
   "api.organizations.invitations.errors.email_required": {
-    "text": "Adres e-mail jest wymagany"
+    "text": "Adres e-mail jest wymagany",
+    "source_hash": "aae92911"
   },
   "api.organizations.invitations.errors.invalid_email_format": {
-    "text": "Nieprawidłowy format adresu e-mail"
+    "text": "Nieprawidłowy format adresu e-mail",
+    "source_hash": "0bcecf66"
   },
   "api.organizations.invitations.errors.invalid_role": {
-    "text": "Rola musi być członek lub administrator"
+    "text": "Rola musi być członek lub administrator",
+    "source_hash": "650ea5f6"
   },
   "api.organizations.invitations.errors.cannot_invite_as_owner": {
-    "text": "Nie można zaprosić jako właściciel"
+    "text": "Nie można zaprosić jako właściciel",
+    "source_hash": "e6581025"
   },
   "api.organizations.invitations.errors.user_already_member": {
-    "text": "Użytkownik jest już członkiem tej organizacji"
+    "text": "Użytkownik jest już członkiem tej organizacji",
+    "source_hash": "8eb45780"
   },
   "api.organizations.invitations.errors.invitation_already_pending": {
-    "text": "Zaproszenie dla tego adresu e-mail już oczekuje"
+    "text": "Zaproszenie dla tego adresu e-mail już oczekuje",
+    "source_hash": "7f5e3093"
   },
   "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Osiągnięto limit członków. Ulepsz swój plan, aby zaprosić więcej członków."
+    "text": "Osiągnięto limit członków. Ulepsz swój plan, aby zaprosić więcej członków.",
+    "source_hash": "b8f316e8"
   },
   "api.organizations.invitations.errors.resend_only_pending": {
-    "text": "Można ponownie wysłać tylko oczekujące zaproszenia"
+    "text": "Można ponownie wysłać tylko oczekujące zaproszenia",
+    "source_hash": "b7578b3e"
   },
   "api.organizations.invitations.errors.resend_limit_reached": {
-    "text": "Osiągnięto maksymalny limit ponownych wysyłek (%{max})"
+    "text": "Osiągnięto maksymalny limit ponownych wysyłek (%{max})",
+    "source_hash": "8dc96729"
   },
   "api.organizations.invitations.errors.revoke_only_pending": {
-    "text": "Można cofnąć tylko oczekujące zaproszenia"
+    "text": "Można cofnąć tylko oczekujące zaproszenia",
+    "source_hash": "732b78a6"
   },
   "api.organizations.members.errors.member_not_found": {
-    "text": "Nie znaleziono członka: %{extid}"
+    "text": "Nie znaleziono członka: %{extid}",
+    "source_hash": "57654771"
   },
   "api.organizations.members.errors.member_not_in_organization": {
-    "text": "Nie znaleziono członka w tej organizacji"
+    "text": "Nie znaleziono członka w tej organizacji",
+    "source_hash": "dcab71ff"
   },
   "api.organizations.members.errors.member_not_active": {
-    "text": "Członek nie jest aktywny"
+    "text": "Członek nie jest aktywny",
+    "source_hash": "a51b8760"
   },
   "api.organizations.members.errors.invalid_role_value": {
-    "text": "Nieprawidłowa rola. Musi być jedną z: %{roles}"
+    "text": "Nieprawidłowa rola. Musi być jedną z: %{roles}",
+    "source_hash": "c3331aa0"
   },
   "api.organizations.members.errors.cannot_change_owner_role": {
-    "text": "Nie można zmienić roli właściciela. Zamiast tego użyj przeniesienia własności."
+    "text": "Nie można zmienić roli właściciela. Zamiast tego użyj przeniesienia własności.",
+    "source_hash": "76015424"
   },
   "api.organizations.members.errors.member_already_has_role": {
-    "text": "Członek ma już rolę: %{role}"
+    "text": "Członek ma już rolę: %{role}",
+    "source_hash": "6771166a"
   },
   "api.organizations.members.errors.cannot_promote_to_owner": {
-    "text": "Nie można awansować do roli właściciela. Zamiast tego użyj przeniesienia własności."
+    "text": "Nie można awansować do roli właściciela. Zamiast tego użyj przeniesienia własności.",
+    "source_hash": "cd574007"
   },
   "api.organizations.members.errors.must_be_member": {
-    "text": "Musisz być członkiem tej organizacji"
+    "text": "Musisz być członkiem tej organizacji",
+    "source_hash": "de1c77b8"
   },
   "api.organizations.members.errors.cannot_remove_owner": {
-    "text": "Nie można usunąć właściciela organizacji. Najpierw przenieś własność."
+    "text": "Nie można usunąć właściciela organizacji. Najpierw przenieś własność.",
+    "source_hash": "d4f33003"
   },
   "api.organizations.members.errors.cannot_remove_self": {
-    "text": "Nie możesz usunąć samego siebie. Zamiast tego opuść organizację."
+    "text": "Nie możesz usunąć samego siebie. Zamiast tego opuść organizację.",
+    "source_hash": "d64cec91"
   },
   "api.organizations.members.errors.admin_cannot_remove_admin": {
-    "text": "Administratorzy nie mogą usuwać innych administratorów. Mogą to robić tylko właściciele."
+    "text": "Administratorzy nie mogą usuwać innych administratorów. Mogą to robić tylko właściciele.",
+    "source_hash": "2b3e6e30"
   },
   "api.organizations.members.errors.no_permission_to_remove": {
-    "text": "Nie masz uprawnień do usuwania członków"
+    "text": "Nie masz uprawnień do usuwania członków",
+    "source_hash": "b0ac7287"
   }
 }

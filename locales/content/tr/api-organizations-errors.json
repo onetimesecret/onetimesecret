@@ -1,107 +1,142 @@
 {
   "api.organizations.errors.domain_scoped_forbidden": {
-    "text": "Alan adı kapsamlı üyeler bu işlemi gerçekleştiremez"
+    "text": "Alan adı kapsamlı üyeler bu işlemi gerçekleştiremez",
+    "source_hash": "0a06a035"
   },
   "api.organizations.errors.organization_not_found": {
-    "text": "Kuruluş bulunamadı: %{extid}"
+    "text": "Kuruluş bulunamadı: %{extid}",
+    "source_hash": "c8d058eb"
   },
   "api.organizations.errors.organization_owner_required": {
-    "text": "Bu işlemi yalnızca kuruluş sahibi gerçekleştirebilir"
+    "text": "Bu işlemi yalnızca kuruluş sahibi gerçekleştirebilir",
+    "source_hash": "5a729e94"
   },
   "api.organizations.errors.organization_member_required": {
-    "text": "Bu işlemi gerçekleştirmek için bir kuruluş üyesi olmalısınız"
+    "text": "Bu işlemi gerçekleştirmek için bir kuruluş üyesi olmalısınız",
+    "source_hash": "f66f4a60"
   },
   "api.organizations.errors.organization_admin_required": {
-    "text": "Bu işlemi yalnızca kuruluş sahipleri ve yöneticiler gerçekleştirebilir"
+    "text": "Bu işlemi yalnızca kuruluş sahipleri ve yöneticiler gerçekleştirebilir",
+    "source_hash": "cd9e8c0e"
   },
   "api.organizations.errors.extid_required": {
-    "text": "Kuruluş kimliği gerekli"
+    "text": "Kuruluş kimliği gerekli",
+    "source_hash": "02fbe301"
   },
   "api.organizations.errors.display_name_required": {
-    "text": "Kuruluş adı gerekli"
+    "text": "Kuruluş adı gerekli",
+    "source_hash": "c3f6e9af"
   },
   "api.organizations.errors.display_name_too_long": {
-    "text": "Kuruluş adı %{max} karakterden kısa olmalıdır"
+    "text": "Kuruluş adı %{max} karakterden kısa olmalıdır",
+    "source_hash": "5866973d"
   },
   "api.organizations.errors.description_too_long": {
-    "text": "Açıklama %{max} karakterden kısa olmalıdır"
+    "text": "Açıklama %{max} karakterden kısa olmalıdır",
+    "source_hash": "562b7250"
   },
   "api.organizations.errors.contact_email_exists": {
-    "text": "Bu iletişim e-postasına sahip bir kuruluş zaten mevcut"
+    "text": "Bu iletişim e-postasına sahip bir kuruluş zaten mevcut",
+    "source_hash": "e9fdce56"
   },
   "api.organizations.errors.creation_in_progress": {
-    "text": "Kuruluş oluşturma işlemi sürüyor. Lütfen tekrar deneyin."
+    "text": "Kuruluş oluşturma işlemi sürüyor. Lütfen tekrar deneyin.",
+    "source_hash": "ef68bc2d"
   },
   "api.organizations.errors.organization_limit_reached": {
-    "text": "Kuruluş sınırına ulaşıldı. Daha fazla kuruluş oluşturmak için planınızı yükseltin."
+    "text": "Kuruluş sınırına ulaşıldı. Daha fazla kuruluş oluşturmak için planınızı yükseltin.",
+    "source_hash": "69e2e61b"
   },
   "api.organizations.invitations.errors.invitation_not_found": {
-    "text": "Davet bulunamadı"
+    "text": "Davet bulunamadı",
+    "source_hash": "775ba9eb"
   },
   "api.organizations.invitations.errors.email_required": {
-    "text": "E-posta gerekli"
+    "text": "E-posta gerekli",
+    "source_hash": "aae92911"
   },
   "api.organizations.invitations.errors.invalid_email_format": {
-    "text": "Geçersiz e-posta biçimi"
+    "text": "Geçersiz e-posta biçimi",
+    "source_hash": "0bcecf66"
   },
   "api.organizations.invitations.errors.invalid_role": {
-    "text": "Rol üye veya yönetici olmalıdır"
+    "text": "Rol üye veya yönetici olmalıdır",
+    "source_hash": "650ea5f6"
   },
   "api.organizations.invitations.errors.cannot_invite_as_owner": {
-    "text": "Sahip olarak davet edilemez"
+    "text": "Sahip olarak davet edilemez",
+    "source_hash": "e6581025"
   },
   "api.organizations.invitations.errors.user_already_member": {
-    "text": "Kullanıcı zaten bu kuruluşun üyesi"
+    "text": "Kullanıcı zaten bu kuruluşun üyesi",
+    "source_hash": "8eb45780"
   },
   "api.organizations.invitations.errors.invitation_already_pending": {
-    "text": "Bu e-posta için zaten bekleyen bir davet var"
+    "text": "Bu e-posta için zaten bekleyen bir davet var",
+    "source_hash": "7f5e3093"
   },
   "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Üye sınırına ulaşıldı. Daha fazla üye davet etmek için planınızı yükseltin."
+    "text": "Üye sınırına ulaşıldı. Daha fazla üye davet etmek için planınızı yükseltin.",
+    "source_hash": "b8f316e8"
   },
   "api.organizations.invitations.errors.resend_only_pending": {
-    "text": "Yalnızca bekleyen davetler yeniden gönderilebilir"
+    "text": "Yalnızca bekleyen davetler yeniden gönderilebilir",
+    "source_hash": "b7578b3e"
   },
   "api.organizations.invitations.errors.resend_limit_reached": {
-    "text": "En fazla yeniden gönderme sınırına (%{max}) ulaşıldı"
+    "text": "En fazla yeniden gönderme sınırına (%{max}) ulaşıldı",
+    "source_hash": "8dc96729"
   },
   "api.organizations.invitations.errors.revoke_only_pending": {
-    "text": "Yalnızca bekleyen davetler iptal edilebilir"
+    "text": "Yalnızca bekleyen davetler iptal edilebilir",
+    "source_hash": "732b78a6"
   },
   "api.organizations.members.errors.member_not_found": {
-    "text": "Üye bulunamadı: %{extid}"
+    "text": "Üye bulunamadı: %{extid}",
+    "source_hash": "57654771"
   },
   "api.organizations.members.errors.member_not_in_organization": {
-    "text": "Bu kuruluşta üye bulunamadı"
+    "text": "Bu kuruluşta üye bulunamadı",
+    "source_hash": "dcab71ff"
   },
   "api.organizations.members.errors.member_not_active": {
-    "text": "Üye aktif değil"
+    "text": "Üye aktif değil",
+    "source_hash": "a51b8760"
   },
   "api.organizations.members.errors.invalid_role_value": {
-    "text": "Geçersiz rol. Şunlardan biri olmalıdır: %{roles}"
+    "text": "Geçersiz rol. Şunlardan biri olmalıdır: %{roles}",
+    "source_hash": "c3331aa0"
   },
   "api.organizations.members.errors.cannot_change_owner_role": {
-    "text": "Sahip rolü değiştirilemez. Bunun yerine sahiplik aktarımını kullanın."
+    "text": "Sahip rolü değiştirilemez. Bunun yerine sahiplik aktarımını kullanın.",
+    "source_hash": "76015424"
   },
   "api.organizations.members.errors.member_already_has_role": {
-    "text": "Üye zaten şu role sahip: %{role}"
+    "text": "Üye zaten şu role sahip: %{role}",
+    "source_hash": "6771166a"
   },
   "api.organizations.members.errors.cannot_promote_to_owner": {
-    "text": "Sahip olarak yükseltilemez. Bunun yerine sahiplik aktarımını kullanın."
+    "text": "Sahip olarak yükseltilemez. Bunun yerine sahiplik aktarımını kullanın.",
+    "source_hash": "cd574007"
   },
   "api.organizations.members.errors.must_be_member": {
-    "text": "Bu kuruluşun bir üyesi olmalısınız"
+    "text": "Bu kuruluşun bir üyesi olmalısınız",
+    "source_hash": "de1c77b8"
   },
   "api.organizations.members.errors.cannot_remove_owner": {
-    "text": "Kuruluş sahibi kaldırılamaz. Önce sahipliği aktarın."
+    "text": "Kuruluş sahibi kaldırılamaz. Önce sahipliği aktarın.",
+    "source_hash": "d4f33003"
   },
   "api.organizations.members.errors.cannot_remove_self": {
-    "text": "Kendinizi kaldıramazsınız. Bunun yerine kuruluştan ayrılma seçeneğini kullanın."
+    "text": "Kendinizi kaldıramazsınız. Bunun yerine kuruluştan ayrılma seçeneğini kullanın.",
+    "source_hash": "d64cec91"
   },
   "api.organizations.members.errors.admin_cannot_remove_admin": {
-    "text": "Yöneticiler diğer yöneticileri kaldıramaz. Yalnızca sahipler kaldırabilir."
+    "text": "Yöneticiler diğer yöneticileri kaldıramaz. Yalnızca sahipler kaldırabilir.",
+    "source_hash": "2b3e6e30"
   },
   "api.organizations.members.errors.no_permission_to_remove": {
-    "text": "Üyeleri kaldırma izniniz yok"
+    "text": "Üyeleri kaldırma izniniz yok",
+    "source_hash": "b0ac7287"
   }
 }

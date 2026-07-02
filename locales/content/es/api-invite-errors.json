@@ -1,23 +1,30 @@
 {
   "api.invite.errors.invitation_not_found_or_expired": {
-    "text": "Invitación no encontrada o expirada"
+    "text": "Invitación no encontrada o expirada",
+    "source_hash": "63657979"
   },
   "api.invite.errors.token_required": {
-    "text": "Se requiere el token"
+    "text": "Se requiere el token",
+    "source_hash": "6c718161"
   },
   "api.invite.errors.organization_no_longer_exists": {
-    "text": "La organización ya no existe"
+    "text": "La organización ya no existe",
+    "source_hash": "a5df7d22"
   },
   "api.invite.errors.invitation_already_processed": {
-    "text": "La invitación ya se ha %{status}"
+    "text": "La invitación ya se ha %{status}",
+    "source_hash": "130c87e0"
   },
   "api.invite.errors.invitation_expired": {
-    "text": "La invitación ha expirado"
+    "text": "La invitación ha expirado",
+    "source_hash": "7186297b"
   },
   "api.invite.errors.email_mismatch": {
-    "text": "Tu dirección de correo electrónico no coincide con la invitación"
+    "text": "Tu dirección de correo electrónico no coincide con la invitación",
+    "source_hash": "11026f46"
   },
   "api.invite.errors.already_member": {
-    "text": "Ya eres miembro de esta organización"
+    "text": "Ya eres miembro de esta organización",
+    "source_hash": "f56ad547"
   }
 }

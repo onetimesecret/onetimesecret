@@ -24,12 +24,15 @@
     "source_hash": "ff0d904e"
   },
   "web.teams.create_first_team_title": {
-    "text": "Maak je eerste team aan"
+    "text": "Maak je eerste team aan",
+    "source_hash": "54693f14"
   },
   "web.teams.create_first_team_description": {
-    "text": "Met teams kun je samenwerken met anderen in een gedeelde werkruimte."
+    "text": "Met teams kun je samenwerken met anderen in een gedeelde werkruimte.",
+    "source_hash": "d61b86b5"
   },
   "web.teams.create_team": {
-    "text": "Team aanmaken"
+    "text": "Team aanmaken",
+    "source_hash": "284ff194"
   }
 }

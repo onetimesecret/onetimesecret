@@ -772,198 +772,263 @@
     "source_hash": "bbea960e"
   },
   "api.organizations.errors.not_found": {
-    "text": "조직을 찾을 수 없습니다: %{extid}"
+    "text": "조직을 찾을 수 없습니다: %{extid}",
+    "source_hash": "c8d058eb"
   },
   "api.organizations.errors.owner_required": {
-    "text": "조직 소유자만 이 작업을 수행할 수 있습니다"
+    "text": "조직 소유자만 이 작업을 수행할 수 있습니다",
+    "source_hash": "5a729e94"
   },
   "api.organizations.errors.admin_required": {
-    "text": "조직 소유자와 관리자만 이 작업을 수행할 수 있습니다"
+    "text": "조직 소유자와 관리자만 이 작업을 수행할 수 있습니다",
+    "source_hash": "cd9e8c0e"
   },
   "api.organizations.errors.member_required": {
-    "text": "이 작업을 수행하려면 조직 멤버여야 합니다"
+    "text": "이 작업을 수행하려면 조직 멤버여야 합니다",
+    "source_hash": "f66f4a60"
   },
   "api.organizations.invitations.errors.create_admin_required": {
-    "text": "조직 소유자와 관리자만 초대를 생성할 수 있습니다"
+    "text": "조직 소유자와 관리자만 초대를 생성할 수 있습니다",
+    "source_hash": "777d150d"
   },
   "api.organizations.invitations.errors.resend_admin_required": {
-    "text": "조직 소유자와 관리자만 초대를 다시 보낼 수 있습니다"
+    "text": "조직 소유자와 관리자만 초대를 다시 보낼 수 있습니다",
+    "source_hash": "6a857d59"
   },
   "api.organizations.invitations.errors.view_admin_required": {
-    "text": "조직 소유자와 관리자만 초대를 볼 수 있습니다"
+    "text": "조직 소유자와 관리자만 초대를 볼 수 있습니다",
+    "source_hash": "42f5878b"
   },
   "api.organizations.invitations.errors.revoke_admin_required": {
-    "text": "조직 소유자와 관리자만 초대를 취소할 수 있습니다"
+    "text": "조직 소유자와 관리자만 초대를 취소할 수 있습니다",
+    "source_hash": "52f73c8a"
   },
   "api.organizations.invitations.errors.email_required": {
-    "text": "이메일이 필요합니다"
+    "text": "이메일이 필요합니다",
+    "source_hash": "aae92911"
   },
   "api.organizations.invitations.errors.email_invalid": {
-    "text": "잘못된 이메일 형식입니다"
+    "text": "잘못된 이메일 형식입니다",
+    "source_hash": "0bcecf66"
   },
   "api.organizations.invitations.errors.role_invalid": {
-    "text": "역할은 멤버 또는 관리자여야 합니다"
+    "text": "역할은 멤버 또는 관리자여야 합니다",
+    "source_hash": "650ea5f6"
   },
   "api.organizations.invitations.errors.cannot_invite_owner": {
-    "text": "소유자로 초대할 수 없습니다"
+    "text": "소유자로 초대할 수 없습니다",
+    "source_hash": "e6581025"
   },
   "api.organizations.invitations.errors.already_member": {
-    "text": "사용자는 이미 이 조직의 멤버입니다"
+    "text": "사용자는 이미 이 조직의 멤버입니다",
+    "source_hash": "8eb45780"
   },
   "api.organizations.invitations.errors.already_pending": {
-    "text": "이 이메일에 대한 초대가 이미 대기 중입니다"
+    "text": "이 이메일에 대한 초대가 이미 대기 중입니다",
+    "source_hash": "7f5e3093"
   },
   "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "멤버 한도에 도달했습니다. 더 많은 멤버를 초대하려면 요금제를 업그레이드하세요."
+    "text": "멤버 한도에 도달했습니다. 더 많은 멤버를 초대하려면 요금제를 업그레이드하세요.",
+    "source_hash": "b8f316e8"
   },
   "api.organizations.invitations.errors.not_found": {
-    "text": "초대를 찾을 수 없습니다"
+    "text": "초대를 찾을 수 없습니다",
+    "source_hash": "775ba9eb"
   },
   "api.organizations.invitations.errors.cannot_resend_non_pending": {
-    "text": "대기 중인 초대만 다시 보낼 수 있습니다"
+    "text": "대기 중인 초대만 다시 보낼 수 있습니다",
+    "source_hash": "b7578b3e"
   },
   "api.organizations.invitations.errors.cannot_revoke_non_pending": {
-    "text": "대기 중인 초대만 취소할 수 있습니다"
+    "text": "대기 중인 초대만 취소할 수 있습니다",
+    "source_hash": "732b78a6"
   },
   "api.organizations.invitations.errors.resend_limit_reached": {
-    "text": "최대 재전송 한도(%{max})에 도달했습니다"
+    "text": "최대 재전송 한도(%{max})에 도달했습니다",
+    "source_hash": "8dc96729"
   },
   "api.organizations.invitations.errors.accept_token_required": {
-    "text": "토큰이 필요합니다"
+    "text": "토큰이 필요합니다",
+    "source_hash": "6c718161"
   },
   "api.organizations.invitations.errors.accept_organization_gone": {
-    "text": "조직이 더 이상 존재하지 않습니다"
+    "text": "조직이 더 이상 존재하지 않습니다",
+    "source_hash": "a5df7d22"
   },
   "api.organizations.invitations.errors.accept_already_acted": {
-    "text": "이 초대는 이미 %{status} 상태입니다"
+    "text": "이 초대는 이미 %{status} 상태입니다",
+    "source_hash": "130c87e0"
   },
   "api.organizations.invitations.errors.accept_expired": {
-    "text": "초대가 만료되었습니다"
+    "text": "초대가 만료되었습니다",
+    "source_hash": "7186297b"
   },
   "api.organizations.invitations.errors.accept_email_mismatch": {
-    "text": "이메일 주소가 초대와 일치하지 않습니다"
+    "text": "이메일 주소가 초대와 일치하지 않습니다",
+    "source_hash": "11026f46"
   },
   "api.organizations.invitations.errors.accept_already_member": {
-    "text": "이미 이 조직의 멤버입니다"
+    "text": "이미 이 조직의 멤버입니다",
+    "source_hash": "f56ad547"
   },
   "web.organizations.entitlements_title": {
-    "text": "조직 권한"
+    "text": "조직 권한",
+    "source_hash": "36054d4f"
   },
   "web.organizations.page_description_short": {
-    "text": "워크스페이스를 보고 구성하세요"
+    "text": "워크스페이스를 보고 구성하세요",
+    "source_hash": "524fcb9a"
   },
   "web.organizations.delete_organization_remove_domains_first": {
-    "text": "이 조직을 삭제하기 전에 모든 사용자 정의 도메인을 제거하세요."
+    "text": "이 조직을 삭제하기 전에 모든 사용자 정의 도메인을 제거하세요.",
+    "source_hash": "44678715"
   },
   "web.organizations.default_org_delete_notice_title": {
-    "text": "이 조직 삭제"
+    "text": "이 조직 삭제",
+    "source_hash": "9191d915"
   },
   "web.organizations.default_org_delete_notice_before": {
-    "text": "이것은 기본 조직이며 대시보드에서 제거할 수 없습니다. 삭제하려면 다음을 통해 문의해 주세요:"
+    "text": "이것은 기본 조직이며 대시보드에서 제거할 수 없습니다. 삭제하려면 다음을 통해 문의해 주세요:",
+    "source_hash": "e203607d"
   },
   "web.organizations.default_org_delete_notice_link": {
-    "text": "피드백 양식"
+    "text": "피드백 양식",
+    "source_hash": "94645a9e"
   },
   "web.organizations.default_org_delete_notice_after": {
-    "text": "."
+    "text": ".",
+    "source_hash": "cdb4ee2a"
   },
   "web.organizations.leave_organization": {
-    "text": "이 조직 나가기"
+    "text": "이 조직 나가기",
+    "source_hash": "d534cff9"
   },
   "web.organizations.leave_organization_warning": {
-    "text": "이 조직과 해당 리소스에 대한 접근 권한을 잃게 됩니다."
+    "text": "이 조직과 해당 리소스에 대한 접근 권한을 잃게 됩니다.",
+    "source_hash": "e9daab07"
   },
   "web.organizations.leave_organization_confirm_title": {
-    "text": "조직 나가기"
+    "text": "조직 나가기",
+    "source_hash": "ec8314da"
   },
   "web.organizations.leave_organization_confirm_message": {
-    "text": "정말 {name}에서 나가시겠습니까? 다시 참여하려면 새 초대가 필요합니다."
+    "text": "정말 {name}에서 나가시겠습니까? 다시 참여하려면 새 초대가 필요합니다.",
+    "source_hash": "e21c5fec"
   },
   "web.organizations.leave_organization_success": {
-    "text": "조직에서 나갔습니다."
+    "text": "조직에서 나갔습니다.",
+    "source_hash": "fc803eb3"
   },
   "web.organizations.leave_error": {
-    "text": "조직 나가기에 실패했습니다"
+    "text": "조직 나가기에 실패했습니다",
+    "source_hash": "6cb6af43"
   },
   "web.organizations.organizations": {
-    "text": "조직"
+    "text": "조직",
+    "source_hash": "2730183d"
   },
   "web.organizations.invitations.invited_by_inline": {
-    "text": "{email}님이"
+    "text": "{email}님이",
+    "source_hash": "969a7050"
   },
   "web.organizations.invitations.invited_as_inline": {
-    "text": "{role} 역할로"
+    "text": "{role} 역할로",
+    "source_hash": "ff9e9b18"
   },
   "web.organizations.invitations.back_to_home": {
-    "text": "홈으로 돌아가기"
+    "text": "홈으로 돌아가기",
+    "source_hash": "76c5505f"
   },
   "web.organizations.invitations.email_locked_hint": {
-    "text": "이 초대는 이 이메일 주소로 전송되었습니다"
+    "text": "이 초대는 이 이메일 주소로 전송되었습니다",
+    "source_hash": "2cff7075"
   },
   "web.organizations.invitations.signup_continue": {
-    "text": "계속"
+    "text": "계속",
+    "source_hash": "31fbef16"
   },
   "web.organizations.invitations.signin_continue": {
-    "text": "로그인"
+    "text": "로그인",
+    "source_hash": "bcc0bcc9"
   },
   "web.organizations.invitations.confirm_join_below": {
-    "text": "거의 다 됐습니다 — 아래에서 확인하여 조직에 참여하세요."
+    "text": "거의 다 됐습니다 — 아래에서 확인하여 조직에 참여하세요.",
+    "source_hash": "2d14f9b0"
   },
   "web.organizations.invitations.go_to_organizations": {
-    "text": "조직으로 이동"
+    "text": "조직으로 이동",
+    "source_hash": "2afa38a3"
   },
   "web.organizations.invitations.already_member": {
-    "text": "이미 이 조직의 멤버입니다"
+    "text": "이미 이 조직의 멤버입니다",
+    "source_hash": "f56ad547"
   },
   "web.organizations.invitations.join_organization": {
-    "text": "{orgName} 참여"
+    "text": "{orgName} 참여",
+    "source_hash": "1aea9194"
   },
   "web.organizations.invitations.sign_in_to_join": {
-    "text": "{orgName}에 참여하려면 로그인"
+    "text": "{orgName}에 참여하려면 로그인",
+    "source_hash": "f94ed8b4"
   },
   "web.organizations.invitations.decline": {
-    "text": "거절"
+    "text": "거절",
+    "source_hash": "a2d285b3"
   },
   "web.organizations.members.member_quota": {
-    "text": "멤버 {limit}명 중 {used}명"
+    "text": "멤버 {limit}명 중 {used}명",
+    "source_hash": "51183b79"
   },
   "web.organizations.members.pending_suffix": {
-    "text": "(대기 중 {count}명)"
+    "text": "(대기 중 {count}명)",
+    "source_hash": "c13f787f"
   },
   "web.organizations.members.limit_reached_hint": {
-    "text": "멤버 한도에 도달했습니다."
+    "text": "멤버 한도에 도달했습니다.",
+    "source_hash": "26cdb6b8"
   },
   "web.organizations.sso.view_discovery_document": {
-    "text": "디스커버리 문서 보기"
+    "text": "디스커버리 문서 보기",
+    "source_hash": "513bda60"
   },
   "web.organizations.sso.callback_url": {
-    "text": "콜백 URL"
+    "text": "콜백 URL",
+    "source_hash": "dc297ae9"
   },
   "web.organizations.sso.callback_url_hint": {
-    "text": "이 URL을 ID 공급자의 허용된 리디렉션 URI에 추가하세요"
+    "text": "이 URL을 ID 공급자의 허용된 리디렉션 URI에 추가하세요",
+    "source_hash": "65d55683"
   },
   "web.organizations.sso.enforce_sso_only": {
-    "text": "SSO 전용 적용"
+    "text": "SSO 전용 적용",
+    "source_hash": "b3a3f694"
   },
   "web.organizations.sso.enforce_sso_only_hint": {
-    "text": "이 도메인의 모든 로그인에 SSO를 요구합니다. 활성화하면 비밀번호 기반 인증이 비활성화됩니다."
+    "text": "이 도메인의 모든 로그인에 SSO를 요구합니다. 활성화하면 비밀번호 기반 인증이 비활성화됩니다.",
+    "source_hash": "19432210"
   },
   "web.organizations.sso.grant_org_scope": {
-    "text": "조직 전체 접근 권한 부여"
+    "text": "조직 전체 접근 권한 부여",
+    "source_hash": "2070cef2"
   },
   "web.organizations.sso.grant_org_scope_hint": {
-    "text": "이 도메인의 SSO를 통해 참여하는 신규 멤버에게 모든 조직 도메인에 대한 접근 권한이 부여됩니다. 기존 멤버는 영향을 받지 않습니다. 비활성화(기본값)하면 신규 멤버는 이 도메인에만 접근할 수 있습니다."
+    "text": "이 도메인의 SSO를 통해 참여하는 신규 멤버에게 모든 조직 도메인에 대한 접근 권한이 부여됩니다. 기존 멤버는 영향을 받지 않습니다. 비활성화(기본값)하면 신규 멤버는 이 도메인에만 접근할 수 있습니다.",
+    "source_hash": "2ac9f345"
   },
   "web.organizations.sso.no_domains": {
-    "text": "확인된 도메인 없음"
+    "text": "확인된 도메인 없음",
+    "source_hash": "8a7fbb76"
   },
   "web.organizations.sso.no_domains_description": {
-    "text": "SSO를 구성하기 전에 도메인을 추가하고 확인하세요."
+    "text": "SSO를 구성하기 전에 도메인을 추가하고 확인하세요.",
+    "source_hash": "e825d13a"
   },
   "web.organizations.tabs.team": {
-    "text": "팀"
+    "text": "팀",
+    "source_hash": "5985039f"
   },
   "web.organizations.tabs.sso": {
-    "text": "SSO"
+    "text": "SSO",
+    "source_hash": "5ba3ac9f"
   }
 }

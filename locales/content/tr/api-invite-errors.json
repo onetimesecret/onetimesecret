@@ -1,23 +1,30 @@
 {
   "api.invite.errors.invitation_not_found_or_expired": {
-    "text": "Davet bulunamadı veya süresi doldu"
+    "text": "Davet bulunamadı veya süresi doldu",
+    "source_hash": "63657979"
   },
   "api.invite.errors.token_required": {
-    "text": "Belirteç gerekli"
+    "text": "Belirteç gerekli",
+    "source_hash": "6c718161"
   },
   "api.invite.errors.organization_no_longer_exists": {
-    "text": "Kuruluş artık mevcut değil"
+    "text": "Kuruluş artık mevcut değil",
+    "source_hash": "a5df7d22"
   },
   "api.invite.errors.invitation_already_processed": {
-    "text": "Davet zaten %{status} durumunda"
+    "text": "Davet zaten %{status} durumunda",
+    "source_hash": "130c87e0"
   },
   "api.invite.errors.invitation_expired": {
-    "text": "Davetin süresi doldu"
+    "text": "Davetin süresi doldu",
+    "source_hash": "7186297b"
   },
   "api.invite.errors.email_mismatch": {
-    "text": "E-posta adresiniz davetle eşleşmiyor"
+    "text": "E-posta adresiniz davetle eşleşmiyor",
+    "source_hash": "11026f46"
   },
   "api.invite.errors.already_member": {
-    "text": "Zaten bu kuruluşun üyesisiniz"
+    "text": "Zaten bu kuruluşun üyesisiniz",
+    "source_hash": "f56ad547"
   }
 }

@@ -1,107 +1,142 @@
 {
   "api.organizations.errors.domain_scoped_forbidden": {
-    "text": "Thành viên trong phạm vi tên miền không thể thực hiện hành động này"
+    "text": "Thành viên trong phạm vi tên miền không thể thực hiện hành động này",
+    "source_hash": "0a06a035"
   },
   "api.organizations.errors.organization_not_found": {
-    "text": "Không tìm thấy tổ chức: %{extid}"
+    "text": "Không tìm thấy tổ chức: %{extid}",
+    "source_hash": "c8d058eb"
   },
   "api.organizations.errors.organization_owner_required": {
-    "text": "Chỉ chủ sở hữu tổ chức mới có thể thực hiện hành động này"
+    "text": "Chỉ chủ sở hữu tổ chức mới có thể thực hiện hành động này",
+    "source_hash": "5a729e94"
   },
   "api.organizations.errors.organization_member_required": {
-    "text": "Bạn phải là thành viên của tổ chức để thực hiện hành động này"
+    "text": "Bạn phải là thành viên của tổ chức để thực hiện hành động này",
+    "source_hash": "f66f4a60"
   },
   "api.organizations.errors.organization_admin_required": {
-    "text": "Chỉ chủ sở hữu và quản trị viên tổ chức mới có thể thực hiện hành động này"
+    "text": "Chỉ chủ sở hữu và quản trị viên tổ chức mới có thể thực hiện hành động này",
+    "source_hash": "cd9e8c0e"
   },
   "api.organizations.errors.extid_required": {
-    "text": "Cần có ID tổ chức"
+    "text": "Cần có ID tổ chức",
+    "source_hash": "02fbe301"
   },
   "api.organizations.errors.display_name_required": {
-    "text": "Tên tổ chức là bắt buộc"
+    "text": "Tên tổ chức là bắt buộc",
+    "source_hash": "c3f6e9af"
   },
   "api.organizations.errors.display_name_too_long": {
-    "text": "Tên tổ chức phải ít hơn %{max} ký tự"
+    "text": "Tên tổ chức phải ít hơn %{max} ký tự",
+    "source_hash": "5866973d"
   },
   "api.organizations.errors.description_too_long": {
-    "text": "Mô tả phải ít hơn %{max} ký tự"
+    "text": "Mô tả phải ít hơn %{max} ký tự",
+    "source_hash": "562b7250"
   },
   "api.organizations.errors.contact_email_exists": {
-    "text": "Đã tồn tại một tổ chức với email liên hệ này"
+    "text": "Đã tồn tại một tổ chức với email liên hệ này",
+    "source_hash": "e9fdce56"
   },
   "api.organizations.errors.creation_in_progress": {
-    "text": "Đang tạo tổ chức. Vui lòng thử lại."
+    "text": "Đang tạo tổ chức. Vui lòng thử lại.",
+    "source_hash": "ef68bc2d"
   },
   "api.organizations.errors.organization_limit_reached": {
-    "text": "Đã đạt giới hạn tổ chức. Nâng cấp gói của bạn để tạo thêm tổ chức."
+    "text": "Đã đạt giới hạn tổ chức. Nâng cấp gói của bạn để tạo thêm tổ chức.",
+    "source_hash": "69e2e61b"
   },
   "api.organizations.invitations.errors.invitation_not_found": {
-    "text": "Không tìm thấy lời mời"
+    "text": "Không tìm thấy lời mời",
+    "source_hash": "775ba9eb"
   },
   "api.organizations.invitations.errors.email_required": {
-    "text": "Email là bắt buộc"
+    "text": "Email là bắt buộc",
+    "source_hash": "aae92911"
   },
   "api.organizations.invitations.errors.invalid_email_format": {
-    "text": "Định dạng email không hợp lệ"
+    "text": "Định dạng email không hợp lệ",
+    "source_hash": "0bcecf66"
   },
   "api.organizations.invitations.errors.invalid_role": {
-    "text": "Vai trò phải là thành viên hoặc quản trị viên"
+    "text": "Vai trò phải là thành viên hoặc quản trị viên",
+    "source_hash": "650ea5f6"
   },
   "api.organizations.invitations.errors.cannot_invite_as_owner": {
-    "text": "Không thể mời với vai trò chủ sở hữu"
+    "text": "Không thể mời với vai trò chủ sở hữu",
+    "source_hash": "e6581025"
   },
   "api.organizations.invitations.errors.user_already_member": {
-    "text": "Người dùng đã là thành viên của tổ chức này"
+    "text": "Người dùng đã là thành viên của tổ chức này",
+    "source_hash": "8eb45780"
   },
   "api.organizations.invitations.errors.invitation_already_pending": {
-    "text": "Đã có lời mời đang chờ xử lý cho email này"
+    "text": "Đã có lời mời đang chờ xử lý cho email này",
+    "source_hash": "7f5e3093"
   },
   "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Đã đạt giới hạn thành viên. Nâng cấp gói của bạn để mời thêm thành viên."
+    "text": "Đã đạt giới hạn thành viên. Nâng cấp gói của bạn để mời thêm thành viên.",
+    "source_hash": "b8f316e8"
   },
   "api.organizations.invitations.errors.resend_only_pending": {
-    "text": "Chỉ có thể gửi lại các lời mời đang chờ xử lý"
+    "text": "Chỉ có thể gửi lại các lời mời đang chờ xử lý",
+    "source_hash": "b7578b3e"
   },
   "api.organizations.invitations.errors.resend_limit_reached": {
-    "text": "Đã đạt giới hạn gửi lại tối đa (%{max})"
+    "text": "Đã đạt giới hạn gửi lại tối đa (%{max})",
+    "source_hash": "8dc96729"
   },
   "api.organizations.invitations.errors.revoke_only_pending": {
-    "text": "Chỉ có thể thu hồi các lời mời đang chờ xử lý"
+    "text": "Chỉ có thể thu hồi các lời mời đang chờ xử lý",
+    "source_hash": "732b78a6"
   },
   "api.organizations.members.errors.member_not_found": {
-    "text": "Không tìm thấy thành viên: %{extid}"
+    "text": "Không tìm thấy thành viên: %{extid}",
+    "source_hash": "57654771"
   },
   "api.organizations.members.errors.member_not_in_organization": {
-    "text": "Không tìm thấy thành viên trong tổ chức này"
+    "text": "Không tìm thấy thành viên trong tổ chức này",
+    "source_hash": "dcab71ff"
   },
   "api.organizations.members.errors.member_not_active": {
-    "text": "Thành viên không hoạt động"
+    "text": "Thành viên không hoạt động",
+    "source_hash": "a51b8760"
   },
   "api.organizations.members.errors.invalid_role_value": {
-    "text": "Vai trò không hợp lệ. Phải là một trong: %{roles}"
+    "text": "Vai trò không hợp lệ. Phải là một trong: %{roles}",
+    "source_hash": "c3331aa0"
   },
   "api.organizations.members.errors.cannot_change_owner_role": {
-    "text": "Không thể thay đổi vai trò chủ sở hữu. Thay vào đó hãy chuyển quyền sở hữu."
+    "text": "Không thể thay đổi vai trò chủ sở hữu. Thay vào đó hãy chuyển quyền sở hữu.",
+    "source_hash": "76015424"
   },
   "api.organizations.members.errors.member_already_has_role": {
-    "text": "Thành viên đã có vai trò: %{role}"
+    "text": "Thành viên đã có vai trò: %{role}",
+    "source_hash": "6771166a"
   },
   "api.organizations.members.errors.cannot_promote_to_owner": {
-    "text": "Không thể thăng cấp thành chủ sở hữu. Thay vào đó hãy chuyển quyền sở hữu."
+    "text": "Không thể thăng cấp thành chủ sở hữu. Thay vào đó hãy chuyển quyền sở hữu.",
+    "source_hash": "cd574007"
   },
   "api.organizations.members.errors.must_be_member": {
-    "text": "Bạn phải là thành viên của tổ chức này"
+    "text": "Bạn phải là thành viên của tổ chức này",
+    "source_hash": "de1c77b8"
   },
   "api.organizations.members.errors.cannot_remove_owner": {
-    "text": "Không thể xóa chủ sở hữu tổ chức. Hãy chuyển quyền sở hữu trước."
+    "text": "Không thể xóa chủ sở hữu tổ chức. Hãy chuyển quyền sở hữu trước.",
+    "source_hash": "d4f33003"
   },
   "api.organizations.members.errors.cannot_remove_self": {
-    "text": "Không thể tự xóa chính mình. Thay vào đó hãy rời khỏi tổ chức."
+    "text": "Không thể tự xóa chính mình. Thay vào đó hãy rời khỏi tổ chức.",
+    "source_hash": "d64cec91"
   },
   "api.organizations.members.errors.admin_cannot_remove_admin": {
-    "text": "Quản trị viên không thể xóa quản trị viên khác. Chỉ chủ sở hữu mới có thể."
+    "text": "Quản trị viên không thể xóa quản trị viên khác. Chỉ chủ sở hữu mới có thể.",
+    "source_hash": "2b3e6e30"
   },
   "api.organizations.members.errors.no_permission_to_remove": {
-    "text": "Bạn không có quyền xóa thành viên"
+    "text": "Bạn không có quyền xóa thành viên",
+    "source_hash": "b0ac7287"
   }
 }

@@ -855,39 +855,51 @@
     "source_hash": "1cd0194a"
   },
   "email.common.secret_link_label": {
-    "text": "Sekreta ligilo"
+    "text": "Sekreta ligilo",
+    "source_hash": "18ddf44f"
   },
   "email.common.automated_notice": {
-    "text": "Ĉi tio estas aŭtomata mesaĝo de %{product_name}."
+    "text": "Ĉi tio estas aŭtomata mesaĝo de %{product_name}.",
+    "source_hash": "8fbabfba"
   },
   "email.common.support_label": {
-    "text": "Subteno"
+    "text": "Subteno",
+    "source_hash": "be91940b"
   },
   "email.expiration_warning.signature": {
-    "text": "Subtena teamo"
+    "text": "Subtena teamo",
+    "source_hash": "dc75bf9f"
   },
   "email.expiration_warning.footer_note": {
-    "text": "Vi ricevis ĉi tion ĉar sekreto kiun vi kreis sur %{product_name} baldaŭ eksvalidiĝos."
+    "text": "Vi ricevis ĉi tion ĉar sekreto kiun vi kreis sur %{product_name} baldaŭ eksvalidiĝos.",
+    "source_hash": "920779e4"
   },
   "email.feedback_email.user_id_label": {
-    "text": "Uzanto:"
+    "text": "Uzanto:",
+    "source_hash": "93d6b3e9"
   },
   "email.feedback_email.timezone_label": {
-    "text": "Horzono:"
+    "text": "Horzono:",
+    "source_hash": "39651ebf"
   },
   "email.feedback_email.version_label": {
-    "text": "Versio:"
+    "text": "Versio:",
+    "source_hash": "4c5726ee"
   },
   "email.incoming_secret.footer_note": {
-    "text": "Vi ricevis ĉi tion ĉar iu uzis %{product_name} por sendi al vi sekreton. Se vi ne atendis ĝin, vi povas sekure ignori ĉi tiun retmesaĝon."
+    "text": "Vi ricevis ĉi tion ĉar iu uzis %{product_name} por sendi al vi sekreton. Se vi ne atendis ĝin, vi povas sekure ignori ĉi tiun retmesaĝon.",
+    "source_hash": "91ee6e8d"
   },
   "email.secret_link.passphrase_label": {
-    "text": "Sekreta frazo necesa:"
+    "text": "Sekreta frazo necesa:",
+    "source_hash": "1ab9a20f"
   },
   "email.secret_link.passphrase_required": {
-    "text": "Ĉi tiu sekreto estas protektita per sekreta frazo. La sendinto devus provizi ĝin al vi aparte."
+    "text": "Ĉi tiu sekreto estas protektita per sekreta frazo. La sendinto devus provizi ĝin al vi aparte.",
+    "source_hash": "1e49826b"
   },
   "email.secret_link.footer_note": {
-    "text": "Vi ricevis ĉi tion ĉar %{sender_email} uzis %{product_name} por kunhavigi sekreton kun vi. Se vi ne atendis ĝin, vi povas sekure ignori ĉi tiun retmesaĝon."
+    "text": "Vi ricevis ĉi tion ĉar %{sender_email} uzis %{product_name} por kunhavigi sekreton kun vi. Se vi ne atendis ĝin, vi povas sekure ignori ĉi tiun retmesaĝon.",
+    "source_hash": "2d544dad"
   }
 }

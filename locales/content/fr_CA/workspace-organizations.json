@@ -772,198 +772,263 @@
     "source_hash": "bbea960e"
   },
   "api.organizations.errors.not_found": {
-    "text": "Organisation introuvable : %{extid}"
+    "text": "Organisation introuvable : %{extid}",
+    "source_hash": "c8d058eb"
   },
   "api.organizations.errors.owner_required": {
-    "text": "Seul le propriétaire de l'organisation peut effectuer cette action"
+    "text": "Seul le propriétaire de l'organisation peut effectuer cette action",
+    "source_hash": "5a729e94"
   },
   "api.organizations.errors.admin_required": {
-    "text": "Seuls les propriétaires et les administrateurs de l'organisation peuvent effectuer cette action"
+    "text": "Seuls les propriétaires et les administrateurs de l'organisation peuvent effectuer cette action",
+    "source_hash": "cd9e8c0e"
   },
   "api.organizations.errors.member_required": {
-    "text": "Vous devez être membre de l'organisation pour effectuer cette action"
+    "text": "Vous devez être membre de l'organisation pour effectuer cette action",
+    "source_hash": "f66f4a60"
   },
   "api.organizations.invitations.errors.create_admin_required": {
-    "text": "Seuls les propriétaires et les administrateurs de l'organisation peuvent créer des invitations"
+    "text": "Seuls les propriétaires et les administrateurs de l'organisation peuvent créer des invitations",
+    "source_hash": "777d150d"
   },
   "api.organizations.invitations.errors.resend_admin_required": {
-    "text": "Seuls les propriétaires et les administrateurs de l'organisation peuvent renvoyer des invitations"
+    "text": "Seuls les propriétaires et les administrateurs de l'organisation peuvent renvoyer des invitations",
+    "source_hash": "6a857d59"
   },
   "api.organizations.invitations.errors.view_admin_required": {
-    "text": "Seuls les propriétaires et les administrateurs de l'organisation peuvent consulter les invitations"
+    "text": "Seuls les propriétaires et les administrateurs de l'organisation peuvent consulter les invitations",
+    "source_hash": "42f5878b"
   },
   "api.organizations.invitations.errors.revoke_admin_required": {
-    "text": "Seuls les propriétaires et les administrateurs de l'organisation peuvent révoquer des invitations"
+    "text": "Seuls les propriétaires et les administrateurs de l'organisation peuvent révoquer des invitations",
+    "source_hash": "52f73c8a"
   },
   "api.organizations.invitations.errors.email_required": {
-    "text": "Le courriel est requis"
+    "text": "Le courriel est requis",
+    "source_hash": "aae92911"
   },
   "api.organizations.invitations.errors.email_invalid": {
-    "text": "Format de courriel invalide"
+    "text": "Format de courriel invalide",
+    "source_hash": "0bcecf66"
   },
   "api.organizations.invitations.errors.role_invalid": {
-    "text": "Le rôle doit être membre ou administrateur"
+    "text": "Le rôle doit être membre ou administrateur",
+    "source_hash": "650ea5f6"
   },
   "api.organizations.invitations.errors.cannot_invite_owner": {
-    "text": "Impossible d'inviter en tant que propriétaire"
+    "text": "Impossible d'inviter en tant que propriétaire",
+    "source_hash": "e6581025"
   },
   "api.organizations.invitations.errors.already_member": {
-    "text": "L'utilisateur est déjà membre de cette organisation"
+    "text": "L'utilisateur est déjà membre de cette organisation",
+    "source_hash": "8eb45780"
   },
   "api.organizations.invitations.errors.already_pending": {
-    "text": "Une invitation est déjà en attente pour ce courriel"
+    "text": "Une invitation est déjà en attente pour ce courriel",
+    "source_hash": "7f5e3093"
   },
   "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Limite de membres atteinte. Mettez à niveau votre forfait pour inviter plus de membres."
+    "text": "Limite de membres atteinte. Mettez à niveau votre forfait pour inviter plus de membres.",
+    "source_hash": "b8f316e8"
   },
   "api.organizations.invitations.errors.not_found": {
-    "text": "Invitation introuvable"
+    "text": "Invitation introuvable",
+    "source_hash": "775ba9eb"
   },
   "api.organizations.invitations.errors.cannot_resend_non_pending": {
-    "text": "Seules les invitations en attente peuvent être renvoyées"
+    "text": "Seules les invitations en attente peuvent être renvoyées",
+    "source_hash": "b7578b3e"
   },
   "api.organizations.invitations.errors.cannot_revoke_non_pending": {
-    "text": "Seules les invitations en attente peuvent être révoquées"
+    "text": "Seules les invitations en attente peuvent être révoquées",
+    "source_hash": "732b78a6"
   },
   "api.organizations.invitations.errors.resend_limit_reached": {
-    "text": "Limite maximale de renvois (%{max}) atteinte"
+    "text": "Limite maximale de renvois (%{max}) atteinte",
+    "source_hash": "8dc96729"
   },
   "api.organizations.invitations.errors.accept_token_required": {
-    "text": "Le jeton est requis"
+    "text": "Le jeton est requis",
+    "source_hash": "6c718161"
   },
   "api.organizations.invitations.errors.accept_organization_gone": {
-    "text": "L'organisation n'existe plus"
+    "text": "L'organisation n'existe plus",
+    "source_hash": "a5df7d22"
   },
   "api.organizations.invitations.errors.accept_already_acted": {
-    "text": "L'invitation a déjà été %{status}"
+    "text": "L'invitation a déjà été %{status}",
+    "source_hash": "130c87e0"
   },
   "api.organizations.invitations.errors.accept_expired": {
-    "text": "L'invitation a expiré"
+    "text": "L'invitation a expiré",
+    "source_hash": "7186297b"
   },
   "api.organizations.invitations.errors.accept_email_mismatch": {
-    "text": "Votre adresse courriel ne correspond pas à l'invitation"
+    "text": "Votre adresse courriel ne correspond pas à l'invitation",
+    "source_hash": "11026f46"
   },
   "api.organizations.invitations.errors.accept_already_member": {
-    "text": "Vous êtes déjà membre de cette organisation"
+    "text": "Vous êtes déjà membre de cette organisation",
+    "source_hash": "f56ad547"
   },
   "web.organizations.entitlements_title": {
-    "text": "Fonctionnalités de l'organisation"
+    "text": "Fonctionnalités de l'organisation",
+    "source_hash": "36054d4f"
   },
   "web.organizations.page_description_short": {
-    "text": "Consulter et configurer vos espaces de travail"
+    "text": "Consulter et configurer vos espaces de travail",
+    "source_hash": "524fcb9a"
   },
   "web.organizations.delete_organization_remove_domains_first": {
-    "text": "Supprimez tous les domaines personnalisés avant de supprimer cette organisation."
+    "text": "Supprimez tous les domaines personnalisés avant de supprimer cette organisation.",
+    "source_hash": "44678715"
   },
   "web.organizations.default_org_delete_notice_title": {
-    "text": "Suppression de cette organisation"
+    "text": "Suppression de cette organisation",
+    "source_hash": "9191d915"
   },
   "web.organizations.default_org_delete_notice_before": {
-    "text": "Il s'agit de votre organisation par défaut et elle ne peut pas être supprimée depuis le compte. Pour la supprimer, veuillez nous contacter via le"
+    "text": "Il s'agit de votre organisation par défaut et elle ne peut pas être supprimée depuis le compte. Pour la supprimer, veuillez nous contacter via le",
+    "source_hash": "e203607d"
   },
   "web.organizations.default_org_delete_notice_link": {
-    "text": "formulaire de commentaires"
+    "text": "formulaire de commentaires",
+    "source_hash": "94645a9e"
   },
   "web.organizations.default_org_delete_notice_after": {
-    "text": "."
+    "text": ".",
+    "source_hash": "cdb4ee2a"
   },
   "web.organizations.leave_organization": {
-    "text": "Quitter cette organisation"
+    "text": "Quitter cette organisation",
+    "source_hash": "d534cff9"
   },
   "web.organizations.leave_organization_warning": {
-    "text": "Vous perdrez l'accès à cette organisation et à ses ressources."
+    "text": "Vous perdrez l'accès à cette organisation et à ses ressources.",
+    "source_hash": "e9daab07"
   },
   "web.organizations.leave_organization_confirm_title": {
-    "text": "Quitter l'organisation"
+    "text": "Quitter l'organisation",
+    "source_hash": "ec8314da"
   },
   "web.organizations.leave_organization_confirm_message": {
-    "text": "Êtes-vous sûr de vouloir quitter {name} ? Vous aurez besoin d'une nouvelle invitation pour la rejoindre."
+    "text": "Êtes-vous sûr de vouloir quitter {name} ? Vous aurez besoin d'une nouvelle invitation pour la rejoindre.",
+    "source_hash": "e21c5fec"
   },
   "web.organizations.leave_organization_success": {
-    "text": "Vous avez quitté l'organisation."
+    "text": "Vous avez quitté l'organisation.",
+    "source_hash": "fc803eb3"
   },
   "web.organizations.leave_error": {
-    "text": "Échec du départ de l'organisation"
+    "text": "Échec du départ de l'organisation",
+    "source_hash": "6cb6af43"
   },
   "web.organizations.organizations": {
-    "text": "Organisations"
+    "text": "Organisations",
+    "source_hash": "2730183d"
   },
   "web.organizations.invitations.invited_by_inline": {
-    "text": "par {email}"
+    "text": "par {email}",
+    "source_hash": "969a7050"
   },
   "web.organizations.invitations.invited_as_inline": {
-    "text": "en tant que {role}"
+    "text": "en tant que {role}",
+    "source_hash": "ff9e9b18"
   },
   "web.organizations.invitations.back_to_home": {
-    "text": "Retour à l'accueil"
+    "text": "Retour à l'accueil",
+    "source_hash": "76c5505f"
   },
   "web.organizations.invitations.email_locked_hint": {
-    "text": "Cette invitation a été envoyée à cette adresse courriel"
+    "text": "Cette invitation a été envoyée à cette adresse courriel",
+    "source_hash": "2cff7075"
   },
   "web.organizations.invitations.signup_continue": {
-    "text": "Continuer"
+    "text": "Continuer",
+    "source_hash": "31fbef16"
   },
   "web.organizations.invitations.signin_continue": {
-    "text": "Se connecter"
+    "text": "Se connecter",
+    "source_hash": "bcc0bcc9"
   },
   "web.organizations.invitations.confirm_join_below": {
-    "text": "Presque terminé — confirmez ci-dessous pour rejoindre l'organisation."
+    "text": "Presque terminé — confirmez ci-dessous pour rejoindre l'organisation.",
+    "source_hash": "2d14f9b0"
   },
   "web.organizations.invitations.go_to_organizations": {
-    "text": "Aller aux organisations"
+    "text": "Aller aux organisations",
+    "source_hash": "2afa38a3"
   },
   "web.organizations.invitations.already_member": {
-    "text": "Vous êtes déjà membre de cette organisation"
+    "text": "Vous êtes déjà membre de cette organisation",
+    "source_hash": "f56ad547"
   },
   "web.organizations.invitations.join_organization": {
-    "text": "Rejoindre {orgName}"
+    "text": "Rejoindre {orgName}",
+    "source_hash": "1aea9194"
   },
   "web.organizations.invitations.sign_in_to_join": {
-    "text": "Connectez-vous pour rejoindre {orgName}"
+    "text": "Connectez-vous pour rejoindre {orgName}",
+    "source_hash": "f94ed8b4"
   },
   "web.organizations.invitations.decline": {
-    "text": "Refuser"
+    "text": "Refuser",
+    "source_hash": "a2d285b3"
   },
   "web.organizations.members.member_quota": {
-    "text": "{used} membres sur {limit}"
+    "text": "{used} membres sur {limit}",
+    "source_hash": "51183b79"
   },
   "web.organizations.members.pending_suffix": {
-    "text": "({count} en attente)"
+    "text": "({count} en attente)",
+    "source_hash": "c13f787f"
   },
   "web.organizations.members.limit_reached_hint": {
-    "text": "Limite de membres atteinte."
+    "text": "Limite de membres atteinte.",
+    "source_hash": "26cdb6b8"
   },
   "web.organizations.sso.view_discovery_document": {
-    "text": "Consulter le document de découverte"
+    "text": "Consulter le document de découverte",
+    "source_hash": "513bda60"
   },
   "web.organizations.sso.callback_url": {
-    "text": "URL de rappel"
+    "text": "URL de rappel",
+    "source_hash": "dc297ae9"
   },
   "web.organizations.sso.callback_url_hint": {
-    "text": "Ajoutez cette URL aux URI de redirection autorisés de votre fournisseur d'identité"
+    "text": "Ajoutez cette URL aux URI de redirection autorisés de votre fournisseur d'identité",
+    "source_hash": "65d55683"
   },
   "web.organizations.sso.enforce_sso_only": {
-    "text": "Imposer SSO uniquement"
+    "text": "Imposer SSO uniquement",
+    "source_hash": "b3a3f694"
   },
   "web.organizations.sso.enforce_sso_only_hint": {
-    "text": "Exiger l'authentification unique pour toutes les connexions sur ce domaine. Lorsqu'elle est activée, l'authentification par mot de passe est désactivée."
+    "text": "Exiger l'authentification unique pour toutes les connexions sur ce domaine. Lorsqu'elle est activée, l'authentification par mot de passe est désactivée.",
+    "source_hash": "19432210"
   },
   "web.organizations.sso.grant_org_scope": {
-    "text": "Accorder l'accès à toute l'organisation"
+    "text": "Accorder l'accès à toute l'organisation",
+    "source_hash": "2070cef2"
   },
   "web.organizations.sso.grant_org_scope_hint": {
-    "text": "Les nouveaux membres qui rejoignent via le SSO de ce domaine se verront accorder l'accès à tous les domaines de l'organisation. Les membres existants ne sont pas affectés. Lorsqu'il est désactivé (par défaut), les nouveaux membres ne peuvent accéder qu'à ce domaine."
+    "text": "Les nouveaux membres qui rejoignent via le SSO de ce domaine se verront accorder l'accès à tous les domaines de l'organisation. Les membres existants ne sont pas affectés. Lorsqu'il est désactivé (par défaut), les nouveaux membres ne peuvent accéder qu'à ce domaine.",
+    "source_hash": "2ac9f345"
   },
   "web.organizations.sso.no_domains": {
-    "text": "Aucun domaine vérifié"
+    "text": "Aucun domaine vérifié",
+    "source_hash": "8a7fbb76"
   },
   "web.organizations.sso.no_domains_description": {
-    "text": "Ajoutez et vérifiez un domaine avant de configurer le SSO pour celui-ci."
+    "text": "Ajoutez et vérifiez un domaine avant de configurer le SSO pour celui-ci.",
+    "source_hash": "e825d13a"
   },
   "web.organizations.tabs.team": {
-    "text": "Équipe"
+    "text": "Équipe",
+    "source_hash": "5985039f"
   },
   "web.organizations.tabs.sso": {
-    "text": "SSO"
+    "text": "SSO",
+    "source_hash": "5ba3ac9f"
   }
 }

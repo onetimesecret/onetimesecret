@@ -990,45 +990,59 @@
     "source_hash": "10de32e5"
   },
   "web.billing.already_subscribed": {
-    "text": "Ja estàs subscrit a aquest pla."
+    "text": "Ja estàs subscrit a aquest pla.",
+    "source_hash": "2b02438b"
   },
   "web.billing.cancel.reactivate_button": {
-    "text": "Reactiva la subscripció"
+    "text": "Reactiva la subscripció",
+    "source_hash": "aa036442"
   },
   "web.billing.cancel.reactivate_success": {
-    "text": "S'ha reactivat la teva subscripció. Se't continuarà facturant amb normalitat."
+    "text": "S'ha reactivat la teva subscripció. Se't continuarà facturant amb normalitat.",
+    "source_hash": "523bf7bf"
   },
   "web.billing.cancel.reactivate_error": {
-    "text": "No s'ha pogut reactivar la subscripció. Si us plau, torna-ho a provar o contacta amb el suport."
+    "text": "No s'ha pogut reactivar la subscripció. Si us plau, torna-ho a provar o contacta amb el suport.",
+    "source_hash": "d0c79bd4"
   },
   "web.billing.features.manage_orgs": {
-    "text": "Gestió d'organitzacions"
+    "text": "Gestió d'organitzacions",
+    "source_hash": "780ad17c"
   },
   "web.billing.features.flexible_from_domain": {
-    "text": "Domini remitent de correu flexible"
+    "text": "Domini remitent de correu flexible",
+    "source_hash": "607572c3"
   },
   "web.billing.features.unlimited_admins": {
-    "text": "Administradors il·limitats"
+    "text": "Administradors il·limitats",
+    "source_hash": "5871a536"
   },
   "web.billing.features.manage_sso": {
-    "text": "SSO"
+    "text": "SSO",
+    "source_hash": "5ba3ac9f"
   },
   "web.billing.overview.entitlements.flexible_from_domain": {
-    "text": "Domini remitent de correu flexible"
+    "text": "Domini remitent de correu flexible",
+    "source_hash": "607572c3"
   },
   "web.billing.overview.entitlements.manage_orgs": {
-    "text": "Gestionar organitzacions"
+    "text": "Gestionar organitzacions",
+    "source_hash": "be0fe4c3"
   },
   "web.billing.overview.entitlements.manage_sso": {
-    "text": "Inici de sessió únic (SSO)"
+    "text": "Inici de sessió únic (SSO)",
+    "source_hash": "5db5c812"
   },
   "web.billing.overview.entitlements.manage_billing": {
-    "text": "Gestionar facturació"
+    "text": "Gestionar facturació",
+    "source_hash": "6d3a16f5"
   },
   "web.billing.overview.entitlements.custom_signup_validation": {
-    "text": "Validació de registre personalitzada"
+    "text": "Validació de registre personalitzada",
+    "source_hash": "0ff55bfa"
   },
   "web.billing.plans.reactivate": {
-    "text": "Reactiva"
+    "text": "Reactiva",
+    "source_hash": "2dc7478f"
   }
 }

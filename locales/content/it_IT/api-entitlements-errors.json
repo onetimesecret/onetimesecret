@@ -1,71 +1,94 @@
 {
   "api.entitlements.errors.context_unavailable": {
-    "text": "Impossibile verificare i diritti (contesto dell'organizzazione non disponibile)"
+    "text": "Impossibile verificare i diritti (contesto dell'organizzazione non disponibile)",
+    "source_hash": "704dc629"
   },
   "api.entitlements.errors.api_access_required": {
-    "text": "L'accesso API richiede l'upgrade del piano"
+    "text": "L'accesso API richiede l'upgrade del piano",
+    "source_hash": "844d294b"
   },
   "api.entitlements.errors.custom_privacy_defaults_required": {
-    "text": "Le impostazioni predefinite di privacy personalizzate richiedono l'upgrade del piano"
+    "text": "Le impostazioni predefinite di privacy personalizzate richiedono l'upgrade del piano",
+    "source_hash": "4e71274d"
   },
   "api.entitlements.errors.extended_default_expiration_required": {
-    "text": "La scadenza predefinita estesa richiede l'upgrade del piano"
+    "text": "La scadenza predefinita estesa richiede l'upgrade del piano",
+    "source_hash": "efa702e7"
   },
   "api.entitlements.errors.custom_domains_required": {
-    "text": "I domini personalizzati richiedono l'upgrade del piano"
+    "text": "I domini personalizzati richiedono l'upgrade del piano",
+    "source_hash": "a23e2184"
   },
   "api.entitlements.errors.custom_branding_required": {
-    "text": "Il branding personalizzato richiede l'upgrade del piano"
+    "text": "Il branding personalizzato richiede l'upgrade del piano",
+    "source_hash": "a4c40a3a"
   },
   "api.entitlements.errors.homepage_secrets_required": {
-    "text": "I segreti nella homepage richiedono l'upgrade del piano"
+    "text": "I segreti nella homepage richiedono l'upgrade del piano",
+    "source_hash": "650eeca8"
   },
   "api.entitlements.errors.incoming_secrets_required": {
-    "text": "I segreti in arrivo richiedono l'upgrade del piano"
+    "text": "I segreti in arrivo richiedono l'upgrade del piano",
+    "source_hash": "ce1d47ef"
   },
   "api.entitlements.errors.custom_mail_sender_required": {
-    "text": "Il mittente email personalizzato richiede l'upgrade del piano"
+    "text": "Il mittente email personalizzato richiede l'upgrade del piano",
+    "source_hash": "e058da13"
   },
   "api.entitlements.errors.flexible_from_domain_required": {
-    "text": "Il dominio mittente flessibile richiede l'upgrade del piano"
+    "text": "Il dominio mittente flessibile richiede l'upgrade del piano",
+    "source_hash": "4931dc05"
   },
   "api.entitlements.errors.manage_org_required": {
-    "text": "La gestione dell'organizzazione richiede l'upgrade del piano"
+    "text": "La gestione dell'organizzazione richiede l'upgrade del piano",
+    "source_hash": "66a2cd10"
   },
   "api.entitlements.errors.manage_teams_required": {
-    "text": "La gestione dei team richiede l'upgrade del piano"
+    "text": "La gestione dei team richiede l'upgrade del piano",
+    "source_hash": "f7f4062f"
   },
   "api.entitlements.errors.manage_members_required": {
-    "text": "La gestione dei membri richiede l'upgrade del piano"
+    "text": "La gestione dei membri richiede l'upgrade del piano",
+    "source_hash": "f73b80db"
   },
   "api.entitlements.errors.manage_sso_required": {
-    "text": "La gestione SSO richiede l'upgrade del piano"
+    "text": "La gestione SSO richiede l'upgrade del piano",
+    "source_hash": "4e5da22d"
   },
   "api.entitlements.errors.audit_logs_required": {
-    "text": "I log di audit richiedono l'upgrade del piano"
+    "text": "I log di audit richiedono l'upgrade del piano",
+    "source_hash": "1ff748bc"
   },
   "api.entitlements.errors.custom_signup_validation_required": {
-    "text": "La convalida della registrazione personalizzata richiede l'upgrade del piano"
+    "text": "La convalida della registrazione personalizzata richiede l'upgrade del piano",
+    "source_hash": "93c9befa"
   },
   "api.entitlements.errors.create_secrets_required": {
-    "text": "La creazione di segreti richiede l'upgrade del piano"
+    "text": "La creazione di segreti richiede l'upgrade del piano",
+    "source_hash": "01091fed"
   },
   "api.entitlements.errors.view_receipt_required": {
-    "text": "La visualizzazione delle ricevute richiede l'upgrade del piano"
+    "text": "La visualizzazione delle ricevute richiede l'upgrade del piano",
+    "source_hash": "e6370d8c"
   },
   "api.entitlements.errors.notifications_required": {
-    "text": "Le notifiche richiedono l'upgrade del piano"
+    "text": "Le notifiche richiedono l'upgrade del piano",
+    "source_hash": "82353ba6"
   },
   "api.entitlements.errors.workspace_branding_required": {
-    "text": "Il branding del Workspace richiede l'upgrade del piano"
+    "text": "Il branding del Workspace richiede l'upgrade del piano",
+    "source_hash": "79ac8099"
   },
   "api.entitlements.errors.ip_access_rules_required": {
-    "text": "Le regole di accesso IP richiedono l'upgrade del piano"
+    "text": "Le regole di accesso IP richiedono l'upgrade del piano",
+    "source_hash": "3e1d276e"
   },
   "api.entitlements.errors.manage_billing_required": {
-    "text": "La gestione della fatturazione richiede l'upgrade del piano"
+    "text": "La gestione della fatturazione richiede l'upgrade del piano",
+    "source_hash": "dec5d6aa"
   },
   "api.entitlements.errors.custom_signin_config_required": {
-    "text": "La configurazione di accesso personalizzata richiede l'upgrade del piano"
+    "text": "La configurazione di accesso personalizzata richiede l'upgrade del piano",
+    "source_hash": "acb1be52"
   }
 }

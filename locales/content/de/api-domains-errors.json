@@ -1,29 +1,38 @@
 {
   "api.domains.errors.domain_id_required": {
-    "text": "Domain-ID erforderlich"
+    "text": "Domain-ID erforderlich",
+    "source_hash": "6837426b"
   },
   "api.domains.errors.domain_not_found": {
-    "text": "Domain nicht gefunden: %{extid}"
+    "text": "Domain nicht gefunden: %{extid}",
+    "source_hash": "a0fd1025"
   },
   "api.domains.errors.organization_not_found": {
-    "text": "Keine Organisation für die Domain gefunden: %{domain}"
+    "text": "Keine Organisation für die Domain gefunden: %{domain}",
+    "source_hash": "632afc93"
   },
   "api.domains.errors.incoming_secrets_disabled": {
-    "text": "Eingehende Nachrichten sind auf dieser Instanz nicht aktiviert"
+    "text": "Eingehende Nachrichten sind auf dieser Instanz nicht aktiviert",
+    "source_hash": "45c0b5c4"
   },
   "api.domains.errors.incoming_secrets_entitlement_required": {
-    "text": "Die Verwaltung eingehender Nachrichten erfordert die Berechtigung „incoming_secrets“. Bitte führe ein Upgrade deines Tarifs durch."
+    "text": "Die Verwaltung eingehender Nachrichten erfordert die Berechtigung „incoming_secrets“. Bitte führe ein Upgrade deines Tarifs durch.",
+    "source_hash": "1af54ec2"
   },
   "api.domains.errors.incoming_config_not_found": {
-    "text": "Keine Konfiguration für eingehende Nachrichten für die Domain gefunden: %{extid}"
+    "text": "Keine Konfiguration für eingehende Nachrichten für die Domain gefunden: %{extid}",
+    "source_hash": "491644a8"
   },
   "api.domains.errors.recipients_max_exceeded": {
-    "text": "Maximal %{max} Empfänger erlaubt"
+    "text": "Maximal %{max} Empfänger erlaubt",
+    "source_hash": "159842ad"
   },
   "api.domains.errors.recipients_invalid_email": {
-    "text": "Ungültige E-Mail-Adresse: %{email}"
+    "text": "Ungültige E-Mail-Adresse: %{email}",
+    "source_hash": "e9c729c7"
   },
   "api.domains.errors.recipients_duplicate": {
-    "text": "Doppelte Empfänger-E-Mail-Adressen sind nicht erlaubt"
+    "text": "Doppelte Empfänger-E-Mail-Adressen sind nicht erlaubt",
+    "source_hash": "6de22182"
   }
 }

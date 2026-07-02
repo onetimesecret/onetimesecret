@@ -684,12 +684,15 @@
     "source_hash": "fe3ac3ad"
   },
   "web.settings.api.api_disabled_notice": {
-    "text": "A API está desativada para esta instância."
+    "text": "A API está desativada para esta instância.",
+    "source_hash": "66d12d6b"
   },
   "web.settings.security.sso_managed_title": {
-    "text": "Segurança gerenciada pelo SSO"
+    "text": "Segurança gerenciada pelo SSO",
+    "source_hash": "1f6c9472"
   },
   "web.settings.security.sso_managed_description": {
-    "text": "Sua conta é autenticada pelo provedor de single sign-on (SSO) da sua organização. A senha, a autenticação multifator e os códigos de recuperação são gerenciados pelo seu provedor de identidade."
+    "text": "Sua conta é autenticada pelo provedor de single sign-on (SSO) da sua organização. A senha, a autenticação multifator e os códigos de recuperação são gerenciados pelo seu provedor de identidade.",
+    "source_hash": "cd0cf39f"
   }
 }

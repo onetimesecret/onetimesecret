@@ -855,39 +855,51 @@
     "source_hash": "1cd0194a"
   },
   "email.common.secret_link_label": {
-    "text": "シークレットリンク"
+    "text": "シークレットリンク",
+    "source_hash": "18ddf44f"
   },
   "email.common.automated_notice": {
-    "text": "これは%{product_name}からの自動送信メッセージです。"
+    "text": "これは%{product_name}からの自動送信メッセージです。",
+    "source_hash": "8fbabfba"
   },
   "email.common.support_label": {
-    "text": "サポート"
+    "text": "サポート",
+    "source_hash": "be91940b"
   },
   "email.expiration_warning.signature": {
-    "text": "サポートチーム"
+    "text": "サポートチーム",
+    "source_hash": "dc75bf9f"
   },
   "email.expiration_warning.footer_note": {
-    "text": "%{product_name}で作成したシークレットの有効期限が近づいているため、このメールが送信されました。"
+    "text": "%{product_name}で作成したシークレットの有効期限が近づいているため、このメールが送信されました。",
+    "source_hash": "920779e4"
   },
   "email.feedback_email.user_id_label": {
-    "text": "ユーザー:"
+    "text": "ユーザー:",
+    "source_hash": "93d6b3e9"
   },
   "email.feedback_email.timezone_label": {
-    "text": "タイムゾーン:"
+    "text": "タイムゾーン:",
+    "source_hash": "39651ebf"
   },
   "email.feedback_email.version_label": {
-    "text": "バージョン:"
+    "text": "バージョン:",
+    "source_hash": "4c5726ee"
   },
   "email.incoming_secret.footer_note": {
-    "text": "誰かが%{product_name}を使用してシークレットを送信したため、このメールが送信されました。心当たりがない場合は、このメールを無視していただいて問題ありません。"
+    "text": "誰かが%{product_name}を使用してシークレットを送信したため、このメールが送信されました。心当たりがない場合は、このメールを無視していただいて問題ありません。",
+    "source_hash": "91ee6e8d"
   },
   "email.secret_link.passphrase_label": {
-    "text": "パスフレーズが必要です:"
+    "text": "パスフレーズが必要です:",
+    "source_hash": "1ab9a20f"
   },
   "email.secret_link.passphrase_required": {
-    "text": "このシークレットはパスフレーズで保護されています。送信者から別途お知らせがあるはずです。"
+    "text": "このシークレットはパスフレーズで保護されています。送信者から別途お知らせがあるはずです。",
+    "source_hash": "1e49826b"
   },
   "email.secret_link.footer_note": {
-    "text": "%{sender_email}が%{product_name}を使用してシークレットを共有したため、このメールが送信されました。心当たりがない場合は、このメールを無視していただいて問題ありません。"
+    "text": "%{sender_email}が%{product_name}を使用してシークレットを共有したため、このメールが送信されました。心当たりがない場合は、このメールを無視していただいて問題ありません。",
+    "source_hash": "2d544dad"
   }
 }

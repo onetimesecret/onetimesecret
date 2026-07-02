@@ -684,12 +684,15 @@
     "source_hash": "fe3ac3ad"
   },
   "web.settings.api.api_disabled_notice": {
-    "text": "API'en er deaktiveret for denne instans."
+    "text": "API'en er deaktiveret for denne instans.",
+    "source_hash": "66d12d6b"
   },
   "web.settings.security.sso_managed_title": {
-    "text": "Sikkerhed administreres af SSO"
+    "text": "Sikkerhed administreres af SSO",
+    "source_hash": "1f6c9472"
   },
   "web.settings.security.sso_managed_description": {
-    "text": "Din konto godkendes via din organisations single sign-on-udbyder. Adgangskode, multifaktorgodkendelse og gendannelseskoder administreres af din identitetsudbyder."
+    "text": "Din konto godkendes via din organisations single sign-on-udbyder. Adgangskode, multifaktorgodkendelse og gendannelseskoder administreres af din identitetsudbyder.",
+    "source_hash": "cd0cf39f"
   }
 }

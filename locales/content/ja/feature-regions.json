@@ -188,6 +188,7 @@
     "source_hash": "7a757670"
   },
   "web.regions.no_region_configured": {
-    "text": "現在、お客様のアカウントで利用可能なリージョン情報はありません。"
+    "text": "現在、お客様のアカウントで利用可能なリージョン情報はありません。",
+    "source_hash": "bbfe2a32"
   }
 }

@@ -1385,108 +1385,143 @@
     "source_hash": "783f174c"
   },
   "api.errors.authentication_required": {
-    "text": "認証が必要です"
+    "text": "認証が必要です",
+    "source_hash": "0fcfb12d"
   },
   "api.errors.sso_only_action_blocked": {
-    "text": "このアクションはSSO専用モードでは利用できません"
+    "text": "このアクションはSSO専用モードでは利用できません",
+    "source_hash": "9bc26394"
   },
   "web.COMMON.configure": {
-    "text": "設定"
+    "text": "設定",
+    "source_hash": "6defafa2"
   },
   "web.COMMON.copy_to_clipboard": {
-    "text": "クリップボードにコピー"
+    "text": "クリップボードにコピー",
+    "source_hash": "b749e205"
   },
   "web.COMMON.add": {
-    "text": "追加"
+    "text": "追加",
+    "source_hash": "9fd728c6"
   },
   "web.COMMON.enabled": {
-    "text": "有効"
+    "text": "有効",
+    "source_hash": "92c1cdfd"
   },
   "web.COMMON.disabled": {
-    "text": "無効"
+    "text": "無効",
+    "source_hash": "75081b59"
   },
   "web.COMMON.yes_delete": {
-    "text": "はい、削除します"
+    "text": "はい、削除します",
+    "source_hash": "7b05a8e3"
   },
   "web.COMMON.error_code": {
-    "text": "エラーコード"
+    "text": "エラーコード",
+    "source_hash": "46832415"
   },
   "web.COMMON.http_status": {
-    "text": "HTTPステータス"
+    "text": "HTTPステータス",
+    "source_hash": "b2a629f2"
   },
   "web.COMMON.details": {
-    "text": "詳細"
+    "text": "詳細",
+    "source_hash": "45989de4"
   },
   "web.COMMON.field_confirm_password": {
-    "text": "パスワードの確認"
+    "text": "パスワードの確認",
+    "source_hash": "c292210c"
   },
   "web.COMMON.passwords_must_match": {
-    "text": "パスワードが一致している必要があります"
+    "text": "パスワードが一致している必要があります",
+    "source_hash": "0c060bd4"
   },
   "web.COMMON.and": {
-    "text": "および"
+    "text": "および",
+    "source_hash": "6201111b"
   },
   "web.COMMON.or": {
-    "text": "または"
+    "text": "または",
+    "source_hash": "7175517a"
   },
   "web.COMMON.copied": {
-    "text": "コピーしました"
+    "text": "コピーしました",
+    "source_hash": "8d525e5f"
   },
   "web.COMMON.copy": {
-    "text": "コピー"
+    "text": "コピー",
+    "source_hash": "e21f935f"
   },
   "web.COMMON.copy_email": {
-    "text": "メールアドレスをコピー"
+    "text": "メールアドレスをコピー",
+    "source_hash": "61b94846"
   },
   "web.COMMON.copy_id": {
-    "text": "アカウントIDをコピー"
+    "text": "アカウントIDをコピー",
+    "source_hash": "fd493ffd"
   },
   "web.COMMON.org_id_tooltip": {
-    "text": "組織の一意の識別子"
+    "text": "組織の一意の識別子",
+    "source_hash": "c8c08d29"
   },
   "web.COMMON.success": {
-    "text": "成功"
+    "text": "成功",
+    "source_hash": "c88a0b90"
   },
   "web.COMMON.need_help": {
-    "text": "サポートが必要ですか"
+    "text": "サポートが必要ですか",
+    "source_hash": "4ca0ca38"
   },
   "web.COMMON.open_help_dialog": {
-    "text": "ヘルプダイアログを開く"
+    "text": "ヘルプダイアログを開く",
+    "source_hash": "55cd1515"
   },
   "web.COMMON.focus_is_now_in_the_main_text_area": {
-    "text": "フォーカスがメインのテキストエリアに移動しました"
+    "text": "フォーカスがメインのテキストエリアに移動しました",
+    "source_hash": "e00dd260"
   },
   "web.LABELS.show_passphrase": {
-    "text": "パスフレーズを表示"
+    "text": "パスフレーズを表示",
+    "source_hash": "76880d38"
   },
   "web.LABELS.hide_passphrase": {
-    "text": "パスフレーズを非表示"
+    "text": "パスフレーズを非表示",
+    "source_hash": "8ecdc98c"
   },
   "web.LABELS.copy_icon": {
-    "text": "コピーアイコン"
+    "text": "コピーアイコン",
+    "source_hash": "d1a5fc0c"
   },
   "web.LABELS.copied_icon": {
-    "text": "コピー済みアイコン"
+    "text": "コピー済みアイコン",
+    "source_hash": "90a4b4f1"
   },
   "web.STATUS.unverified": {
-    "text": "未検証"
+    "text": "未検証",
+    "source_hash": "33c8e8de"
   },
   "web.TITLES.domain_detail": {
-    "text": "ドメイン設定"
+    "text": "ドメイン設定",
+    "source_hash": "e24f338d"
   },
   "web.TITLES.domain_signin": {
-    "text": "サインイン設定"
+    "text": "サインイン設定",
+    "source_hash": "2da38c03"
   },
   "web.TITLES.domain_sso": {
-    "text": "ドメインSSO"
+    "text": "ドメインSSO",
+    "source_hash": "13161464"
   },
   "web.TITLES.domain_signup": {
-    "text": "ドメインサインアップ検証"
+    "text": "ドメインサインアップ検証",
+    "source_hash": "c8ce809a"
   },
   "web.TITLES.domain_email": {
-    "text": "メール設定"
+    "text": "メール設定",
+    "source_hash": "6f38aa51"
   },
   "web.TITLES.domain_incoming": {
-    "text": "受信シークレット"
+    "text": "受信シークレット",
+    "source_hash": "883dbca9"
   }
 }

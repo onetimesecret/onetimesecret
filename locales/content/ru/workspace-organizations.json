@@ -772,198 +772,263 @@
     "source_hash": "bbea960e"
   },
   "api.organizations.errors.not_found": {
-    "text": "Организация не найдена: %{extid}"
+    "text": "Организация не найдена: %{extid}",
+    "source_hash": "c8d058eb"
   },
   "api.organizations.errors.owner_required": {
-    "text": "Только владелец организации может выполнить это действие"
+    "text": "Только владелец организации может выполнить это действие",
+    "source_hash": "5a729e94"
   },
   "api.organizations.errors.admin_required": {
-    "text": "Только владельцы и администраторы организации могут выполнить это действие"
+    "text": "Только владельцы и администраторы организации могут выполнить это действие",
+    "source_hash": "cd9e8c0e"
   },
   "api.organizations.errors.member_required": {
-    "text": "Вы должны быть участником организации, чтобы выполнить это действие"
+    "text": "Вы должны быть участником организации, чтобы выполнить это действие",
+    "source_hash": "f66f4a60"
   },
   "api.organizations.invitations.errors.create_admin_required": {
-    "text": "Создавать приглашения могут только владельцы и администраторы организации"
+    "text": "Создавать приглашения могут только владельцы и администраторы организации",
+    "source_hash": "777d150d"
   },
   "api.organizations.invitations.errors.resend_admin_required": {
-    "text": "Повторно отправлять приглашения могут только владельцы и администраторы организации"
+    "text": "Повторно отправлять приглашения могут только владельцы и администраторы организации",
+    "source_hash": "6a857d59"
   },
   "api.organizations.invitations.errors.view_admin_required": {
-    "text": "Просматривать приглашения могут только владельцы и администраторы организации"
+    "text": "Просматривать приглашения могут только владельцы и администраторы организации",
+    "source_hash": "42f5878b"
   },
   "api.organizations.invitations.errors.revoke_admin_required": {
-    "text": "Отзывать приглашения могут только владельцы и администраторы организации"
+    "text": "Отзывать приглашения могут только владельцы и администраторы организации",
+    "source_hash": "52f73c8a"
   },
   "api.organizations.invitations.errors.email_required": {
-    "text": "Требуется адрес электронной почты"
+    "text": "Требуется адрес электронной почты",
+    "source_hash": "aae92911"
   },
   "api.organizations.invitations.errors.email_invalid": {
-    "text": "Неверный формат адреса электронной почты"
+    "text": "Неверный формат адреса электронной почты",
+    "source_hash": "0bcecf66"
   },
   "api.organizations.invitations.errors.role_invalid": {
-    "text": "Роль должна быть «участник» или «администратор»"
+    "text": "Роль должна быть «участник» или «администратор»",
+    "source_hash": "650ea5f6"
   },
   "api.organizations.invitations.errors.cannot_invite_owner": {
-    "text": "Нельзя пригласить в роли владельца"
+    "text": "Нельзя пригласить в роли владельца",
+    "source_hash": "e6581025"
   },
   "api.organizations.invitations.errors.already_member": {
-    "text": "Пользователь уже является участником этой организации"
+    "text": "Пользователь уже является участником этой организации",
+    "source_hash": "8eb45780"
   },
   "api.organizations.invitations.errors.already_pending": {
-    "text": "Приглашение для этого адреса электронной почты уже ожидает обработки"
+    "text": "Приглашение для этого адреса электронной почты уже ожидает обработки",
+    "source_hash": "7f5e3093"
   },
   "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Достигнут лимит участников. Перейдите на более высокий план, чтобы пригласить больше участников."
+    "text": "Достигнут лимит участников. Перейдите на более высокий план, чтобы пригласить больше участников.",
+    "source_hash": "b8f316e8"
   },
   "api.organizations.invitations.errors.not_found": {
-    "text": "Приглашение не найдено"
+    "text": "Приглашение не найдено",
+    "source_hash": "775ba9eb"
   },
   "api.organizations.invitations.errors.cannot_resend_non_pending": {
-    "text": "Повторно отправить можно только ожидающие приглашения"
+    "text": "Повторно отправить можно только ожидающие приглашения",
+    "source_hash": "b7578b3e"
   },
   "api.organizations.invitations.errors.cannot_revoke_non_pending": {
-    "text": "Отозвать можно только ожидающие приглашения"
+    "text": "Отозвать можно только ожидающие приглашения",
+    "source_hash": "732b78a6"
   },
   "api.organizations.invitations.errors.resend_limit_reached": {
-    "text": "Достигнут максимальный лимит повторных отправок (%{max})"
+    "text": "Достигнут максимальный лимит повторных отправок (%{max})",
+    "source_hash": "8dc96729"
   },
   "api.organizations.invitations.errors.accept_token_required": {
-    "text": "Требуется токен"
+    "text": "Требуется токен",
+    "source_hash": "6c718161"
   },
   "api.organizations.invitations.errors.accept_organization_gone": {
-    "text": "Организация больше не существует"
+    "text": "Организация больше не существует",
+    "source_hash": "a5df7d22"
   },
   "api.organizations.invitations.errors.accept_already_acted": {
-    "text": "Приглашение уже обработано: %{status}"
+    "text": "Приглашение уже обработано: %{status}",
+    "source_hash": "130c87e0"
   },
   "api.organizations.invitations.errors.accept_expired": {
-    "text": "Срок действия приглашения истёк"
+    "text": "Срок действия приглашения истёк",
+    "source_hash": "7186297b"
   },
   "api.organizations.invitations.errors.accept_email_mismatch": {
-    "text": "Ваш адрес электронной почты не совпадает с приглашением"
+    "text": "Ваш адрес электронной почты не совпадает с приглашением",
+    "source_hash": "11026f46"
   },
   "api.organizations.invitations.errors.accept_already_member": {
-    "text": "Вы уже являетесь участником этой организации"
+    "text": "Вы уже являетесь участником этой организации",
+    "source_hash": "f56ad547"
   },
   "web.organizations.entitlements_title": {
-    "text": "Права доступа организации"
+    "text": "Права доступа организации",
+    "source_hash": "36054d4f"
   },
   "web.organizations.page_description_short": {
-    "text": "Просматривайте и настраивайте свои рабочие пространства"
+    "text": "Просматривайте и настраивайте свои рабочие пространства",
+    "source_hash": "524fcb9a"
   },
   "web.organizations.delete_organization_remove_domains_first": {
-    "text": "Перед удалением этой организации удалите все пользовательские домены."
+    "text": "Перед удалением этой организации удалите все пользовательские домены.",
+    "source_hash": "44678715"
   },
   "web.organizations.default_org_delete_notice_title": {
-    "text": "Удаление этой организации"
+    "text": "Удаление этой организации",
+    "source_hash": "9191d915"
   },
   "web.organizations.default_org_delete_notice_before": {
-    "text": "Это ваша организация по умолчанию, её нельзя удалить из панели управления. Чтобы удалить её, пожалуйста, обратитесь через"
+    "text": "Это ваша организация по умолчанию, её нельзя удалить из панели управления. Чтобы удалить её, пожалуйста, обратитесь через",
+    "source_hash": "e203607d"
   },
   "web.organizations.default_org_delete_notice_link": {
-    "text": "форму обратной связи"
+    "text": "форму обратной связи",
+    "source_hash": "94645a9e"
   },
   "web.organizations.default_org_delete_notice_after": {
-    "text": "."
+    "text": ".",
+    "source_hash": "cdb4ee2a"
   },
   "web.organizations.leave_organization": {
-    "text": "Покинуть эту организацию"
+    "text": "Покинуть эту организацию",
+    "source_hash": "d534cff9"
   },
   "web.organizations.leave_organization_warning": {
-    "text": "Вы потеряете доступ к этой организации и её ресурсам."
+    "text": "Вы потеряете доступ к этой организации и её ресурсам.",
+    "source_hash": "e9daab07"
   },
   "web.organizations.leave_organization_confirm_title": {
-    "text": "Покинуть организацию"
+    "text": "Покинуть организацию",
+    "source_hash": "ec8314da"
   },
   "web.organizations.leave_organization_confirm_message": {
-    "text": "Вы уверены, что хотите покинуть {name}? Для повторного присоединения вам потребуется новое приглашение."
+    "text": "Вы уверены, что хотите покинуть {name}? Для повторного присоединения вам потребуется новое приглашение.",
+    "source_hash": "e21c5fec"
   },
   "web.organizations.leave_organization_success": {
-    "text": "Вы покинули организацию."
+    "text": "Вы покинули организацию.",
+    "source_hash": "fc803eb3"
   },
   "web.organizations.leave_error": {
-    "text": "Не удалось покинуть организацию"
+    "text": "Не удалось покинуть организацию",
+    "source_hash": "6cb6af43"
   },
   "web.organizations.organizations": {
-    "text": "Организации"
+    "text": "Организации",
+    "source_hash": "2730183d"
   },
   "web.organizations.invitations.invited_by_inline": {
-    "text": "от {email}"
+    "text": "от {email}",
+    "source_hash": "969a7050"
   },
   "web.organizations.invitations.invited_as_inline": {
-    "text": "в роли {role}"
+    "text": "в роли {role}",
+    "source_hash": "ff9e9b18"
   },
   "web.organizations.invitations.back_to_home": {
-    "text": "На главную"
+    "text": "На главную",
+    "source_hash": "76c5505f"
   },
   "web.organizations.invitations.email_locked_hint": {
-    "text": "Это приглашение было отправлено на данный адрес электронной почты"
+    "text": "Это приглашение было отправлено на данный адрес электронной почты",
+    "source_hash": "2cff7075"
   },
   "web.organizations.invitations.signup_continue": {
-    "text": "Продолжить"
+    "text": "Продолжить",
+    "source_hash": "31fbef16"
   },
   "web.organizations.invitations.signin_continue": {
-    "text": "Войти"
+    "text": "Войти",
+    "source_hash": "bcc0bcc9"
   },
   "web.organizations.invitations.confirm_join_below": {
-    "text": "Почти готово — подтвердите ниже, чтобы присоединиться к организации."
+    "text": "Почти готово — подтвердите ниже, чтобы присоединиться к организации.",
+    "source_hash": "2d14f9b0"
   },
   "web.organizations.invitations.go_to_organizations": {
-    "text": "Перейти к организациям"
+    "text": "Перейти к организациям",
+    "source_hash": "2afa38a3"
   },
   "web.organizations.invitations.already_member": {
-    "text": "Вы уже являетесь участником этой организации"
+    "text": "Вы уже являетесь участником этой организации",
+    "source_hash": "f56ad547"
   },
   "web.organizations.invitations.join_organization": {
-    "text": "Присоединиться к {orgName}"
+    "text": "Присоединиться к {orgName}",
+    "source_hash": "1aea9194"
   },
   "web.organizations.invitations.sign_in_to_join": {
-    "text": "Войдите, чтобы присоединиться к {orgName}"
+    "text": "Войдите, чтобы присоединиться к {orgName}",
+    "source_hash": "f94ed8b4"
   },
   "web.organizations.invitations.decline": {
-    "text": "Отклонить"
+    "text": "Отклонить",
+    "source_hash": "a2d285b3"
   },
   "web.organizations.members.member_quota": {
-    "text": "Участников: {used} из {limit}"
+    "text": "Участников: {used} из {limit}",
+    "source_hash": "51183b79"
   },
   "web.organizations.members.pending_suffix": {
-    "text": "(ожидает: {count})"
+    "text": "(ожидает: {count})",
+    "source_hash": "c13f787f"
   },
   "web.organizations.members.limit_reached_hint": {
-    "text": "Достигнут лимит участников."
+    "text": "Достигнут лимит участников.",
+    "source_hash": "26cdb6b8"
   },
   "web.organizations.sso.view_discovery_document": {
-    "text": "Просмотреть документ обнаружения"
+    "text": "Просмотреть документ обнаружения",
+    "source_hash": "513bda60"
   },
   "web.organizations.sso.callback_url": {
-    "text": "URL обратного вызова"
+    "text": "URL обратного вызова",
+    "source_hash": "dc297ae9"
   },
   "web.organizations.sso.callback_url_hint": {
-    "text": "Добавьте этот URL в список разрешённых URI перенаправления у вашего поставщика идентификации"
+    "text": "Добавьте этот URL в список разрешённых URI перенаправления у вашего поставщика идентификации",
+    "source_hash": "65d55683"
   },
   "web.organizations.sso.enforce_sso_only": {
-    "text": "Принудительно использовать только SSO"
+    "text": "Принудительно использовать только SSO",
+    "source_hash": "b3a3f694"
   },
   "web.organizations.sso.enforce_sso_only_hint": {
-    "text": "Требовать SSO для всех входов в этом домене. Когда включено, аутентификация по паролю отключается."
+    "text": "Требовать SSO для всех входов в этом домене. Когда включено, аутентификация по паролю отключается.",
+    "source_hash": "19432210"
   },
   "web.organizations.sso.grant_org_scope": {
-    "text": "Предоставить доступ ко всей организации"
+    "text": "Предоставить доступ ко всей организации",
+    "source_hash": "2070cef2"
   },
   "web.organizations.sso.grant_org_scope_hint": {
-    "text": "Новым участникам, присоединяющимся через SSO этого домена, будет предоставлен доступ ко всем доменам организации. На существующих участников это не влияет. Когда отключено (по умолчанию), новые участники могут получить доступ только к этому домену."
+    "text": "Новым участникам, присоединяющимся через SSO этого домена, будет предоставлен доступ ко всем доменам организации. На существующих участников это не влияет. Когда отключено (по умолчанию), новые участники могут получить доступ только к этому домену.",
+    "source_hash": "2ac9f345"
   },
   "web.organizations.sso.no_domains": {
-    "text": "Нет подтверждённых доменов"
+    "text": "Нет подтверждённых доменов",
+    "source_hash": "8a7fbb76"
   },
   "web.organizations.sso.no_domains_description": {
-    "text": "Добавьте и подтвердите домен, прежде чем настраивать для него SSO."
+    "text": "Добавьте и подтвердите домен, прежде чем настраивать для него SSO.",
+    "source_hash": "e825d13a"
   },
   "web.organizations.tabs.team": {
-    "text": "Команда"
+    "text": "Команда",
+    "source_hash": "5985039f"
   },
   "web.organizations.tabs.sso": {
-    "text": "SSO"
+    "text": "SSO",
+    "source_hash": "5ba3ac9f"
   }
 }

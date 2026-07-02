@@ -1,23 +1,30 @@
 {
   "api.invite.errors.invitation_not_found_or_expired": {
-    "text": "Pozvánka nebyla nalezena nebo vypršela"
+    "text": "Pozvánka nebyla nalezena nebo vypršela",
+    "source_hash": "63657979"
   },
   "api.invite.errors.token_required": {
-    "text": "Je vyžadován token"
+    "text": "Je vyžadován token",
+    "source_hash": "6c718161"
   },
   "api.invite.errors.organization_no_longer_exists": {
-    "text": "Organizace již neexistuje"
+    "text": "Organizace již neexistuje",
+    "source_hash": "a5df7d22"
   },
   "api.invite.errors.invitation_already_processed": {
-    "text": "Pozvánka již má stav: %{status}"
+    "text": "Pozvánka již má stav: %{status}",
+    "source_hash": "130c87e0"
   },
   "api.invite.errors.invitation_expired": {
-    "text": "Platnost pozvánky vypršela"
+    "text": "Platnost pozvánky vypršela",
+    "source_hash": "7186297b"
   },
   "api.invite.errors.email_mismatch": {
-    "text": "Tvoje e-mailová adresa neodpovídá pozvánce"
+    "text": "Tvoje e-mailová adresa neodpovídá pozvánce",
+    "source_hash": "11026f46"
   },
   "api.invite.errors.already_member": {
-    "text": "Již jsi členem této organizace"
+    "text": "Již jsi členem této organizace",
+    "source_hash": "f56ad547"
   }
 }

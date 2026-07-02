@@ -1385,108 +1385,143 @@
     "source_hash": "783f174c"
   },
   "api.errors.authentication_required": {
-    "text": "Cal autenticació"
+    "text": "Cal autenticació",
+    "source_hash": "0fcfb12d"
   },
   "api.errors.sso_only_action_blocked": {
-    "text": "Aquesta acció no està disponible en mode només SSO"
+    "text": "Aquesta acció no està disponible en mode només SSO",
+    "source_hash": "9bc26394"
   },
   "web.COMMON.configure": {
-    "text": "Configura"
+    "text": "Configura",
+    "source_hash": "6defafa2"
   },
   "web.COMMON.copy_to_clipboard": {
-    "text": "Copia al porta-retalls"
+    "text": "Copia al porta-retalls",
+    "source_hash": "b749e205"
   },
   "web.COMMON.add": {
-    "text": "Afegeix"
+    "text": "Afegeix",
+    "source_hash": "9fd728c6"
   },
   "web.COMMON.enabled": {
-    "text": "Activat"
+    "text": "Activat",
+    "source_hash": "92c1cdfd"
   },
   "web.COMMON.disabled": {
-    "text": "Desactivat"
+    "text": "Desactivat",
+    "source_hash": "75081b59"
   },
   "web.COMMON.yes_delete": {
-    "text": "Sí, elimina"
+    "text": "Sí, elimina",
+    "source_hash": "7b05a8e3"
   },
   "web.COMMON.error_code": {
-    "text": "Codi d'error"
+    "text": "Codi d'error",
+    "source_hash": "46832415"
   },
   "web.COMMON.http_status": {
-    "text": "Estat HTTP"
+    "text": "Estat HTTP",
+    "source_hash": "b2a629f2"
   },
   "web.COMMON.details": {
-    "text": "Detalls"
+    "text": "Detalls",
+    "source_hash": "45989de4"
   },
   "web.COMMON.field_confirm_password": {
-    "text": "Confirma la contrasenya"
+    "text": "Confirma la contrasenya",
+    "source_hash": "c292210c"
   },
   "web.COMMON.passwords_must_match": {
-    "text": "Les contrasenyes han de coincidir"
+    "text": "Les contrasenyes han de coincidir",
+    "source_hash": "0c060bd4"
   },
   "web.COMMON.and": {
-    "text": "i"
+    "text": "i",
+    "source_hash": "6201111b"
   },
   "web.COMMON.or": {
-    "text": "o"
+    "text": "o",
+    "source_hash": "7175517a"
   },
   "web.COMMON.copied": {
-    "text": "Copiat"
+    "text": "Copiat",
+    "source_hash": "8d525e5f"
   },
   "web.COMMON.copy": {
-    "text": "Copia"
+    "text": "Copia",
+    "source_hash": "e21f935f"
   },
   "web.COMMON.copy_email": {
-    "text": "Copia l'adreça de correu electrònic"
+    "text": "Copia l'adreça de correu electrònic",
+    "source_hash": "61b94846"
   },
   "web.COMMON.copy_id": {
-    "text": "Copia l'identificador del compte"
+    "text": "Copia l'identificador del compte",
+    "source_hash": "fd493ffd"
   },
   "web.COMMON.org_id_tooltip": {
-    "text": "L'identificador únic de la teva organització"
+    "text": "L'identificador únic de la teva organització",
+    "source_hash": "c8c08d29"
   },
   "web.COMMON.success": {
-    "text": "Èxit"
+    "text": "Èxit",
+    "source_hash": "c88a0b90"
   },
   "web.COMMON.need_help": {
-    "text": "Necessites ajuda"
+    "text": "Necessites ajuda",
+    "source_hash": "4ca0ca38"
   },
   "web.COMMON.open_help_dialog": {
-    "text": "Obre el diàleg d'ajuda"
+    "text": "Obre el diàleg d'ajuda",
+    "source_hash": "55cd1515"
   },
   "web.COMMON.focus_is_now_in_the_main_text_area": {
-    "text": "El focus ara és a l'àrea de text principal"
+    "text": "El focus ara és a l'àrea de text principal",
+    "source_hash": "e00dd260"
   },
   "web.LABELS.show_passphrase": {
-    "text": "Mostra la frase de contrasenya"
+    "text": "Mostra la frase de contrasenya",
+    "source_hash": "76880d38"
   },
   "web.LABELS.hide_passphrase": {
-    "text": "Amaga la frase de contrasenya"
+    "text": "Amaga la frase de contrasenya",
+    "source_hash": "8ecdc98c"
   },
   "web.LABELS.copy_icon": {
-    "text": "Icona de copiar"
+    "text": "Icona de copiar",
+    "source_hash": "d1a5fc0c"
   },
   "web.LABELS.copied_icon": {
-    "text": "Icona de copiat"
+    "text": "Icona de copiat",
+    "source_hash": "90a4b4f1"
   },
   "web.STATUS.unverified": {
-    "text": "No verificat"
+    "text": "No verificat",
+    "source_hash": "33c8e8de"
   },
   "web.TITLES.domain_detail": {
-    "text": "Configuració del domini"
+    "text": "Configuració del domini",
+    "source_hash": "e24f338d"
   },
   "web.TITLES.domain_signin": {
-    "text": "Configuració de l'inici de sessió"
+    "text": "Configuració de l'inici de sessió",
+    "source_hash": "2da38c03"
   },
   "web.TITLES.domain_sso": {
-    "text": "SSO del domini"
+    "text": "SSO del domini",
+    "source_hash": "13161464"
   },
   "web.TITLES.domain_signup": {
-    "text": "Validació del registre del domini"
+    "text": "Validació del registre del domini",
+    "source_hash": "c8ce809a"
   },
   "web.TITLES.domain_email": {
-    "text": "Configuració del correu electrònic"
+    "text": "Configuració del correu electrònic",
+    "source_hash": "6f38aa51"
   },
   "web.TITLES.domain_incoming": {
-    "text": "Secrets entrants"
+    "text": "Secrets entrants",
+    "source_hash": "883dbca9"
   }
 }

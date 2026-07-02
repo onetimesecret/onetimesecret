@@ -1385,108 +1385,143 @@
     "source_hash": "783f174c"
   },
   "api.errors.authentication_required": {
-    "text": "Потрібна автентифікація"
+    "text": "Потрібна автентифікація",
+    "source_hash": "0fcfb12d"
   },
   "api.errors.sso_only_action_blocked": {
-    "text": "Ця дія недоступна в режимі лише SSO"
+    "text": "Ця дія недоступна в режимі лише SSO",
+    "source_hash": "9bc26394"
   },
   "web.COMMON.configure": {
-    "text": "Налаштувати"
+    "text": "Налаштувати",
+    "source_hash": "6defafa2"
   },
   "web.COMMON.copy_to_clipboard": {
-    "text": "Скопіювати в буфер обміну"
+    "text": "Скопіювати в буфер обміну",
+    "source_hash": "b749e205"
   },
   "web.COMMON.add": {
-    "text": "Додати"
+    "text": "Додати",
+    "source_hash": "9fd728c6"
   },
   "web.COMMON.enabled": {
-    "text": "Увімкнено"
+    "text": "Увімкнено",
+    "source_hash": "92c1cdfd"
   },
   "web.COMMON.disabled": {
-    "text": "Вимкнено"
+    "text": "Вимкнено",
+    "source_hash": "75081b59"
   },
   "web.COMMON.yes_delete": {
-    "text": "Так, видалити"
+    "text": "Так, видалити",
+    "source_hash": "7b05a8e3"
   },
   "web.COMMON.error_code": {
-    "text": "Код помилки"
+    "text": "Код помилки",
+    "source_hash": "46832415"
   },
   "web.COMMON.http_status": {
-    "text": "HTTP-статус"
+    "text": "HTTP-статус",
+    "source_hash": "b2a629f2"
   },
   "web.COMMON.details": {
-    "text": "Подробиці"
+    "text": "Подробиці",
+    "source_hash": "45989de4"
   },
   "web.COMMON.field_confirm_password": {
-    "text": "Підтвердьте пароль"
+    "text": "Підтвердьте пароль",
+    "source_hash": "c292210c"
   },
   "web.COMMON.passwords_must_match": {
-    "text": "Паролі мають збігатися"
+    "text": "Паролі мають збігатися",
+    "source_hash": "0c060bd4"
   },
   "web.COMMON.and": {
-    "text": "та"
+    "text": "та",
+    "source_hash": "6201111b"
   },
   "web.COMMON.or": {
-    "text": "або"
+    "text": "або",
+    "source_hash": "7175517a"
   },
   "web.COMMON.copied": {
-    "text": "Скопійовано"
+    "text": "Скопійовано",
+    "source_hash": "8d525e5f"
   },
   "web.COMMON.copy": {
-    "text": "Скопіювати"
+    "text": "Скопіювати",
+    "source_hash": "e21f935f"
   },
   "web.COMMON.copy_email": {
-    "text": "Скопіювати адресу електронної пошти"
+    "text": "Скопіювати адресу електронної пошти",
+    "source_hash": "61b94846"
   },
   "web.COMMON.copy_id": {
-    "text": "Скопіювати ідентифікатор облікового запису"
+    "text": "Скопіювати ідентифікатор облікового запису",
+    "source_hash": "fd493ffd"
   },
   "web.COMMON.org_id_tooltip": {
-    "text": "Унікальний ідентифікатор вашої організації"
+    "text": "Унікальний ідентифікатор вашої організації",
+    "source_hash": "c8c08d29"
   },
   "web.COMMON.success": {
-    "text": "Успішно"
+    "text": "Успішно",
+    "source_hash": "c88a0b90"
   },
   "web.COMMON.need_help": {
-    "text": "Потрібна допомога"
+    "text": "Потрібна допомога",
+    "source_hash": "4ca0ca38"
   },
   "web.COMMON.open_help_dialog": {
-    "text": "Відкрити вікно довідки"
+    "text": "Відкрити вікно довідки",
+    "source_hash": "55cd1515"
   },
   "web.COMMON.focus_is_now_in_the_main_text_area": {
-    "text": "Фокус тепер у головному текстовому полі"
+    "text": "Фокус тепер у головному текстовому полі",
+    "source_hash": "e00dd260"
   },
   "web.LABELS.show_passphrase": {
-    "text": "Показати парольну фразу"
+    "text": "Показати парольну фразу",
+    "source_hash": "76880d38"
   },
   "web.LABELS.hide_passphrase": {
-    "text": "Сховати парольну фразу"
+    "text": "Сховати парольну фразу",
+    "source_hash": "8ecdc98c"
   },
   "web.LABELS.copy_icon": {
-    "text": "Значок копіювання"
+    "text": "Значок копіювання",
+    "source_hash": "d1a5fc0c"
   },
   "web.LABELS.copied_icon": {
-    "text": "Значок «Скопійовано»"
+    "text": "Значок «Скопійовано»",
+    "source_hash": "90a4b4f1"
   },
   "web.STATUS.unverified": {
-    "text": "Неперевірено"
+    "text": "Неперевірено",
+    "source_hash": "33c8e8de"
   },
   "web.TITLES.domain_detail": {
-    "text": "Налаштування домену"
+    "text": "Налаштування домену",
+    "source_hash": "e24f338d"
   },
   "web.TITLES.domain_signin": {
-    "text": "Конфігурація входу"
+    "text": "Конфігурація входу",
+    "source_hash": "2da38c03"
   },
   "web.TITLES.domain_sso": {
-    "text": "SSO домену"
+    "text": "SSO домену",
+    "source_hash": "13161464"
   },
   "web.TITLES.domain_signup": {
-    "text": "Перевірка реєстрації для домену"
+    "text": "Перевірка реєстрації для домену",
+    "source_hash": "c8ce809a"
   },
   "web.TITLES.domain_email": {
-    "text": "Конфігурація електронної пошти"
+    "text": "Конфігурація електронної пошти",
+    "source_hash": "6f38aa51"
   },
   "web.TITLES.domain_incoming": {
-    "text": "Вхідні таємниці"
+    "text": "Вхідні таємниці",
+    "source_hash": "883dbca9"
   }
 }

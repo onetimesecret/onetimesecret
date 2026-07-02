@@ -180,9 +180,11 @@
     "source_hash": "9077bf79"
   },
   "web.branding.saved_successfully": {
-    "text": "Kua tiakina ngā tautuhinga waitohu"
+    "text": "Kua tiakina ngā tautuhinga waitohu",
+    "source_hash": "9960c252"
   },
   "web.branding.keyhole_logo_icon": {
-    "text": "Ata pūwhare e tohu ana i te tohatoha haumaru, tūmataiti"
+    "text": "Ata pūwhare e tohu ana i te tohatoha haumaru, tūmataiti",
+    "source_hash": "c868ac60"
   }
 }

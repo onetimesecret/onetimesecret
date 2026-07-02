@@ -1,29 +1,38 @@
 {
   "api.domains.errors.domain_id_required": {
-    "text": "Требуется ID домена"
+    "text": "Требуется ID домена",
+    "source_hash": "6837426b"
   },
   "api.domains.errors.domain_not_found": {
-    "text": "Домен не найден: %{extid}"
+    "text": "Домен не найден: %{extid}",
+    "source_hash": "a0fd1025"
   },
   "api.domains.errors.organization_not_found": {
-    "text": "Организация для домена не найдена: %{domain}"
+    "text": "Организация для домена не найдена: %{domain}",
+    "source_hash": "632afc93"
   },
   "api.domains.errors.incoming_secrets_disabled": {
-    "text": "Входящие секреты не включены на этом экземпляре"
+    "text": "Входящие секреты не включены на этом экземпляре",
+    "source_hash": "45c0b5c4"
   },
   "api.domains.errors.incoming_secrets_entitlement_required": {
-    "text": "Для управления входящими секретами требуется право incoming_secrets. Пожалуйста, перейдите на более высокий план."
+    "text": "Для управления входящими секретами требуется право incoming_secrets. Пожалуйста, перейдите на более высокий план.",
+    "source_hash": "1af54ec2"
   },
   "api.domains.errors.incoming_config_not_found": {
-    "text": "Конфигурация для входящих секретов не найдена для домена: %{extid}"
+    "text": "Конфигурация для входящих секретов не найдена для домена: %{extid}",
+    "source_hash": "491644a8"
   },
   "api.domains.errors.recipients_max_exceeded": {
-    "text": "Разрешено не более %{max} получателей"
+    "text": "Разрешено не более %{max} получателей",
+    "source_hash": "159842ad"
   },
   "api.domains.errors.recipients_invalid_email": {
-    "text": "Недействительный адрес электронной почты: %{email}"
+    "text": "Недействительный адрес электронной почты: %{email}",
+    "source_hash": "e9c729c7"
   },
   "api.domains.errors.recipients_duplicate": {
-    "text": "Дублирующиеся адреса получателей не допускаются"
+    "text": "Дублирующиеся адреса получателей не допускаются",
+    "source_hash": "6de22182"
   }
 }

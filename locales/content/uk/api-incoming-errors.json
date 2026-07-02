@@ -1,5 +1,6 @@
 {
   "api.incoming.errors.custom_domain_unresolved": {
-    "text": "Не вдалося визначити організацію власного домену"
+    "text": "Не вдалося визначити організацію власного домену",
+    "source_hash": "b30d65d2"
   }
 }

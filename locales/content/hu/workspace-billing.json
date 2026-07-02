@@ -990,45 +990,59 @@
     "source_hash": "10de32e5"
   },
   "web.billing.already_subscribed": {
-    "text": "Ön már előfizetett erre a csomagra."
+    "text": "Ön már előfizetett erre a csomagra.",
+    "source_hash": "2b02438b"
   },
   "web.billing.cancel.reactivate_button": {
-    "text": "Előfizetés újraaktiválása"
+    "text": "Előfizetés újraaktiválása",
+    "source_hash": "aa036442"
   },
   "web.billing.cancel.reactivate_success": {
-    "text": "Az előfizetését újraaktiválták. A számlázás a szokásos módon folytatódik."
+    "text": "Az előfizetését újraaktiválták. A számlázás a szokásos módon folytatódik.",
+    "source_hash": "523bf7bf"
   },
   "web.billing.cancel.reactivate_error": {
-    "text": "Nem sikerült újraaktiválni az előfizetést. Kérjük, próbálja újra, vagy forduljon a támogatáshoz."
+    "text": "Nem sikerült újraaktiválni az előfizetést. Kérjük, próbálja újra, vagy forduljon a támogatáshoz.",
+    "source_hash": "d0c79bd4"
   },
   "web.billing.features.manage_orgs": {
-    "text": "Szervezetkezelés"
+    "text": "Szervezetkezelés",
+    "source_hash": "780ad17c"
   },
   "web.billing.features.flexible_from_domain": {
-    "text": "Rugalmas e-mail-feladó domén"
+    "text": "Rugalmas e-mail-feladó domén",
+    "source_hash": "607572c3"
   },
   "web.billing.features.unlimited_admins": {
-    "text": "Korlátlan számú adminisztrátor"
+    "text": "Korlátlan számú adminisztrátor",
+    "source_hash": "5871a536"
   },
   "web.billing.features.manage_sso": {
-    "text": "SSO"
+    "text": "SSO",
+    "source_hash": "5ba3ac9f"
   },
   "web.billing.overview.entitlements.flexible_from_domain": {
-    "text": "Rugalmas e-mail-feladó domén"
+    "text": "Rugalmas e-mail-feladó domén",
+    "source_hash": "607572c3"
   },
   "web.billing.overview.entitlements.manage_orgs": {
-    "text": "Szervezetek kezelése"
+    "text": "Szervezetek kezelése",
+    "source_hash": "be0fe4c3"
   },
   "web.billing.overview.entitlements.manage_sso": {
-    "text": "Egyszeri bejelentkezés (SSO)"
+    "text": "Egyszeri bejelentkezés (SSO)",
+    "source_hash": "5db5c812"
   },
   "web.billing.overview.entitlements.manage_billing": {
-    "text": "Számlázás kezelése"
+    "text": "Számlázás kezelése",
+    "source_hash": "6d3a16f5"
   },
   "web.billing.overview.entitlements.custom_signup_validation": {
-    "text": "Egyéni regisztrációs ellenőrzés"
+    "text": "Egyéni regisztrációs ellenőrzés",
+    "source_hash": "0ff55bfa"
   },
   "web.billing.plans.reactivate": {
-    "text": "Újraaktiválás"
+    "text": "Újraaktiválás",
+    "source_hash": "2dc7478f"
   }
 }

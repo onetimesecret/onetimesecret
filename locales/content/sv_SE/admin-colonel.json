@@ -636,150 +636,199 @@
     "source_hash": "fe77172e"
   },
   "web.colonel.previewPlanMode": {
-    "text": "Förhandsgranska planläge"
+    "text": "Förhandsgranska planläge",
+    "source_hash": "cf53f19d"
   },
   "web.colonel.previewModeDescription": {
-    "text": "Förhandsgranska applikationen så som den visas för kunder på en annan plan. Detta påverkar endast din vy och ändrar inte någon organisations faktiska plan."
+    "text": "Förhandsgranska applikationen så som den visas för kunder på en annan plan. Detta påverkar endast din vy och ändrar inte någon organisations faktiska plan.",
+    "source_hash": "6fe23f23"
   },
   "web.colonel.previewModeActive": {
-    "text": "Förhandsgranskning aktiv"
+    "text": "Förhandsgranskning aktiv",
+    "source_hash": "a558d603"
   },
   "web.colonel.bannedIps.empty": {
-    "text": "Inga blockerade IP-adresser"
+    "text": "Inga blockerade IP-adresser",
+    "source_hash": "bd101143"
   },
   "web.colonel.bannedIps.currentIp": {
-    "text": "Din aktuella IP-adress"
+    "text": "Din aktuella IP-adress",
+    "source_hash": "72f9fefe"
   },
   "web.colonel.bannedIps.confirmUnban": {
-    "text": "Ta bort blockering av {ip}?"
+    "text": "Ta bort blockering av {ip}?",
+    "source_hash": "ff009b1c"
   },
   "web.colonel.bannedIps.actions.ban": {
-    "text": "Blockera IP"
+    "text": "Blockera IP",
+    "source_hash": "f91a5285"
   },
   "web.colonel.bannedIps.actions.quickBan": {
-    "text": "Snabblockering"
+    "text": "Snabblockering",
+    "source_hash": "c32d0943"
   },
   "web.colonel.bannedIps.actions.unban": {
-    "text": "Ta bort blockering"
+    "text": "Ta bort blockering",
+    "source_hash": "25fb5989"
   },
   "web.colonel.bannedIps.actions.cancel": {
-    "text": "Avbryt"
+    "text": "Avbryt",
+    "source_hash": "19766ed6"
   },
   "web.colonel.bannedIps.columns.ipAddress": {
-    "text": "IP-adress"
+    "text": "IP-adress",
+    "source_hash": "3c3de0c9"
   },
   "web.colonel.bannedIps.columns.reason": {
-    "text": "Orsak"
+    "text": "Orsak",
+    "source_hash": "f81ab834"
   },
   "web.colonel.bannedIps.columns.bannedAt": {
-    "text": "Blockerad den"
+    "text": "Blockerad den",
+    "source_hash": "dfbd120e"
   },
   "web.colonel.bannedIps.columns.bannedBy": {
-    "text": "Blockerad av"
+    "text": "Blockerad av",
+    "source_hash": "9f47db0e"
   },
   "web.colonel.bannedIps.error.banFailed": {
-    "text": "Det gick inte att blockera IP-adressen"
+    "text": "Det gick inte att blockera IP-adressen",
+    "source_hash": "24e94d9b"
   },
   "web.colonel.bannedIps.error.unbanFailed": {
-    "text": "Det gick inte att ta bort blockeringen av IP-adressen"
+    "text": "Det gick inte att ta bort blockeringen av IP-adressen",
+    "source_hash": "66bbac9a"
   },
   "web.colonel.bannedIps.form.title": {
-    "text": "Blockera IP-adress"
+    "text": "Blockera IP-adress",
+    "source_hash": "3f5b3dfa"
   },
   "web.colonel.bannedIps.form.ipLabel": {
-    "text": "IP-adress"
+    "text": "IP-adress",
+    "source_hash": "3c3de0c9"
   },
   "web.colonel.bannedIps.form.reasonLabel": {
-    "text": "Orsak"
+    "text": "Orsak",
+    "source_hash": "f81ab834"
   },
   "web.colonel.bannedIps.form.reasonPlaceholder": {
-    "text": "Valfri orsak"
+    "text": "Valfri orsak",
+    "source_hash": "956688a5"
   },
   "web.colonel.bannedIps.success.banned": {
-    "text": "IP-adressen {ip} har blockerats"
+    "text": "IP-adressen {ip} har blockerats",
+    "source_hash": "b6f861d5"
   },
   "web.colonel.bannedIps.success.unbanned": {
-    "text": "Blockeringen av IP-adressen {ip} har tagits bort"
+    "text": "Blockeringen av IP-adressen {ip} har tagits bort",
+    "source_hash": "dbe93550"
   },
   "web.colonel.customDomains.empty": {
-    "text": "Inga anpassade domäner konfigurerade"
+    "text": "Inga anpassade domäner konfigurerade",
+    "source_hash": "e10b39f7"
   },
   "web.colonel.customDomains.noLogo": {
-    "text": "Ingen logotyp"
+    "text": "Ingen logotyp",
+    "source_hash": "ee5e36ff"
   },
   "web.colonel.customDomains.labels.organization": {
-    "text": "Organisation"
+    "text": "Organisation",
+    "source_hash": "d764d425"
   },
   "web.colonel.customDomains.labels.externalId": {
-    "text": "Externt ID"
+    "text": "Externt ID",
+    "source_hash": "69da56ba"
   },
   "web.colonel.customDomains.labels.created": {
-    "text": "Skapad"
+    "text": "Skapad",
+    "source_hash": "d70b9e24"
   },
   "web.colonel.customDomains.labels.updated": {
-    "text": "Uppdaterad"
+    "text": "Uppdaterad",
+    "source_hash": "3a5ecca1"
   },
   "web.colonel.customDomains.labels.favicon": {
-    "text": "Favicon"
+    "text": "Favicon",
+    "source_hash": "42955289"
   },
   "web.colonel.customDomains.status.verified": {
-    "text": "Verifierad"
+    "text": "Verifierad",
+    "source_hash": "4f783840"
   },
   "web.colonel.customDomains.status.resolving": {
-    "text": "Slår upp"
+    "text": "Slår upp",
+    "source_hash": "3287a034"
   },
   "web.colonel.customDomains.status.ready": {
-    "text": "Redo"
+    "text": "Redo",
+    "source_hash": "5fa7aac5"
   },
   "web.colonel.customDomains.status.publicHomepage": {
-    "text": "Offentlig startsida"
+    "text": "Offentlig startsida",
+    "source_hash": "2ae3ccba"
   },
   "web.colonel.customDomains.status.publicApi": {
-    "text": "Offentligt API"
+    "text": "Offentligt API",
+    "source_hash": "ab3aa426"
   },
   "web.colonel.customDomains.status.pending": {
-    "text": "Väntar"
+    "text": "Väntar",
+    "source_hash": "331551b0"
   },
   "web.colonel.pagination.showing": {
-    "text": "Visar {start}–{end} av {total}"
+    "text": "Visar {start}–{end} av {total}",
+    "source_hash": "64af6de2"
   },
   "web.colonel.pagination.itemsPerPage": {
-    "text": "Objekt per sida"
+    "text": "Objekt per sida",
+    "source_hash": "766a02e0"
   },
   "web.colonel.pagination.perPage": {
-    "text": "{count} per sida"
+    "text": "{count} per sida",
+    "source_hash": "34671d42"
   },
   "web.colonel.pagination.pageOf": {
-    "text": "Sida {current} av {total}"
+    "text": "Sida {current} av {total}",
+    "source_hash": "f0df6412"
   },
   "web.colonel.secrets.empty": {
-    "text": "Inga hemligheter hittades"
+    "text": "Inga hemligheter hittades",
+    "source_hash": "28647b3b"
   },
   "web.colonel.secrets.never": {
-    "text": "Aldrig"
+    "text": "Aldrig",
+    "source_hash": "6300ef80"
   },
   "web.colonel.secrets.columns.shortId": {
-    "text": "Kort ID"
+    "text": "Kort ID",
+    "source_hash": "7eaeb4a7"
   },
   "web.colonel.secrets.columns.state": {
-    "text": "Tillstånd"
+    "text": "Tillstånd",
+    "source_hash": "a3b50c47"
   },
   "web.colonel.secrets.columns.created": {
-    "text": "Skapad"
+    "text": "Skapad",
+    "source_hash": "d70b9e24"
   },
   "web.colonel.secrets.columns.expiration": {
-    "text": "Utgång"
+    "text": "Utgång",
+    "source_hash": "f38d6e0e"
   },
   "web.colonel.secrets.columns.age": {
-    "text": "Ålder (dagar)"
+    "text": "Ålder (dagar)",
+    "source_hash": "52ae64c6"
   },
   "web.colonel.secrets.state.new": {
-    "text": "Ny"
+    "text": "Ny",
+    "source_hash": "18fdd549"
   },
   "web.colonel.secrets.state.received": {
-    "text": "Mottagen"
+    "text": "Mottagen",
+    "source_hash": "49f19bee"
   },
   "web.colonel.secrets.state.viewed": {
-    "text": "Visad"
+    "text": "Visad",
+    "source_hash": "1b28d178"
   }
 }

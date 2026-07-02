@@ -684,12 +684,15 @@
     "source_hash": "fe3ac3ad"
   },
   "web.settings.api.api_disabled_notice": {
-    "text": "Az API le van tiltva ehhez a példányhoz."
+    "text": "Az API le van tiltva ehhez a példányhoz.",
+    "source_hash": "66d12d6b"
   },
   "web.settings.security.sso_managed_title": {
-    "text": "A biztonságot az SSO kezeli"
+    "text": "A biztonságot az SSO kezeli",
+    "source_hash": "1f6c9472"
   },
   "web.settings.security.sso_managed_description": {
-    "text": "Az Ön fiókját a szervezete egyszeri bejelentkezési szolgáltatóján keresztül hitelesítik. A jelszót, a többfaktoros hitelesítést és a helyreállítási kódokat az identitásszolgáltató kezeli."
+    "text": "Az Ön fiókját a szervezete egyszeri bejelentkezési szolgáltatóján keresztül hitelesítik. A jelszót, a többfaktoros hitelesítést és a helyreállítási kódokat az identitásszolgáltató kezeli.",
+    "source_hash": "cd0cf39f"
   }
 }

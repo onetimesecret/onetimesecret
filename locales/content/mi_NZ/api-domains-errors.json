@@ -1,29 +1,38 @@
 {
   "api.domains.errors.domain_id_required": {
-    "text": "E hiahiatia ana te ID rohe"
+    "text": "E hiahiatia ana te ID rohe",
+    "source_hash": "6837426b"
   },
   "api.domains.errors.domain_not_found": {
-    "text": "Kāore i kitea te rohe: %{extid}"
+    "text": "Kāore i kitea te rohe: %{extid}",
+    "source_hash": "a0fd1025"
   },
   "api.domains.errors.organization_not_found": {
-    "text": "Kāore i kitea te whakahaere mō te rohe: %{domain}"
+    "text": "Kāore i kitea te whakahaere mō te rohe: %{domain}",
+    "source_hash": "632afc93"
   },
   "api.domains.errors.incoming_secrets_disabled": {
-    "text": "Kāore ngā karere huna taemai i te whakahohea i runga i tēnei taupānga"
+    "text": "Kāore ngā karere huna taemai i te whakahohea i runga i tēnei taupānga",
+    "source_hash": "45c0b5c4"
   },
   "api.domains.errors.incoming_secrets_entitlement_required": {
-    "text": "Me whai i te whakaaetanga incoming_secrets te whakahaere i ngā karere huna taemai. Tēnā whakapikihia tō mahere."
+    "text": "Me whai i te whakaaetanga incoming_secrets te whakahaere i ngā karere huna taemai. Tēnā whakapikihia tō mahere.",
+    "source_hash": "1af54ec2"
   },
   "api.domains.errors.incoming_config_not_found": {
-    "text": "Kāore i kitea te whirihoranga taemai mō te rohe: %{extid}"
+    "text": "Kāore i kitea te whirihoranga taemai mō te rohe: %{extid}",
+    "source_hash": "491644a8"
   },
   "api.domains.errors.recipients_max_exceeded": {
-    "text": "%{max} kaiwhiwhi te mōrahi e whakaaetia ana"
+    "text": "%{max} kaiwhiwhi te mōrahi e whakaaetia ana",
+    "source_hash": "159842ad"
   },
   "api.domains.errors.recipients_invalid_email": {
-    "text": "Īmēra muhu: %{email}"
+    "text": "Īmēra muhu: %{email}",
+    "source_hash": "e9c729c7"
   },
   "api.domains.errors.recipients_duplicate": {
-    "text": "Kāore e whakaaetia ngā īmēra kaiwhiwhi tārua"
+    "text": "Kāore e whakaaetia ngā īmēra kaiwhiwhi tārua",
+    "source_hash": "6de22182"
   }
 }

@@ -684,12 +684,15 @@
     "source_hash": "fe3ac3ad"
   },
   "web.settings.api.api_disabled_notice": {
-    "text": "La API estas malŝaltita por ĉi tiu instanco."
+    "text": "La API estas malŝaltita por ĉi tiu instanco.",
+    "source_hash": "66d12d6b"
   },
   "web.settings.security.sso_managed_title": {
-    "text": "Sekureco administrata de SSO"
+    "text": "Sekureco administrata de SSO",
+    "source_hash": "1f6c9472"
   },
   "web.settings.security.sso_managed_description": {
-    "text": "Via konto estas aŭtentikigita tra la unuopa ensaluta provizanto de via organizo. Pasvorto, plurfaktora aŭtentikigo kaj restaŭraj kodoj estas administrataj de via identeca provizanto."
+    "text": "Via konto estas aŭtentikigita tra la unuopa ensaluta provizanto de via organizo. Pasvorto, plurfaktora aŭtentikigo kaj restaŭraj kodoj estas administrataj de via identeca provizanto.",
+    "source_hash": "cd0cf39f"
   }
 }

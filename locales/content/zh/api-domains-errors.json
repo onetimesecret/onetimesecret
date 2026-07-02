@@ -1,29 +1,38 @@
 {
   "api.domains.errors.domain_id_required": {
-    "text": "需要域名 ID"
+    "text": "需要域名 ID",
+    "source_hash": "6837426b"
   },
   "api.domains.errors.domain_not_found": {
-    "text": "未找到域名：%{extid}"
+    "text": "未找到域名：%{extid}",
+    "source_hash": "a0fd1025"
   },
   "api.domains.errors.organization_not_found": {
-    "text": "未找到该域名对应的组织：%{domain}"
+    "text": "未找到该域名对应的组织：%{domain}",
+    "source_hash": "632afc93"
   },
   "api.domains.errors.incoming_secrets_disabled": {
-    "text": "此实例未启用接收内容功能"
+    "text": "此实例未启用接收内容功能",
+    "source_hash": "45c0b5c4"
   },
   "api.domains.errors.incoming_secrets_entitlement_required": {
-    "text": "接收内容管理需要 incoming_secrets 权益。请升级方案。"
+    "text": "接收内容管理需要 incoming_secrets 权益。请升级方案。",
+    "source_hash": "1af54ec2"
   },
   "api.domains.errors.incoming_config_not_found": {
-    "text": "未找到该域名的接收配置：%{extid}"
+    "text": "未找到该域名的接收配置：%{extid}",
+    "source_hash": "491644a8"
   },
   "api.domains.errors.recipients_max_exceeded": {
-    "text": "最多允许 %{max} 个收件人"
+    "text": "最多允许 %{max} 个收件人",
+    "source_hash": "159842ad"
   },
   "api.domains.errors.recipients_invalid_email": {
-    "text": "无效的邮箱地址：%{email}"
+    "text": "无效的邮箱地址：%{email}",
+    "source_hash": "e9c729c7"
   },
   "api.domains.errors.recipients_duplicate": {
-    "text": "不允许重复的收件人邮箱地址"
+    "text": "不允许重复的收件人邮箱地址",
+    "source_hash": "6de22182"
   }
 }

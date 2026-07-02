@@ -724,9 +724,11 @@
     "content_hash": "579c7f4e"
   },
   "web.auth.google": {
-    "text": "Google"
+    "text": "Google",
+    "content_hash": "ce770667"
   },
   "web.auth.remember.enabled": {
-    "text": "Stay signed in"
+    "text": "Stay signed in",
+    "content_hash": "b0a1ca80"
   }
 }

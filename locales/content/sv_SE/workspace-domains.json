@@ -400,723 +400,963 @@
     "source_hash": "91c1af2e"
   },
   "api.domains.errors.add_admin_required": {
-    "text": "Endast organisationsägare och administratörer kan lägga till anpassade domäner"
+    "text": "Endast organisationsägare och administratörer kan lägga till anpassade domäner",
+    "source_hash": "3324aabe"
   },
   "web.domains.public_homepage": {
-    "text": "Offentlig startsida"
+    "text": "Offentlig startsida",
+    "source_hash": "2ae3ccba"
   },
   "web.domains.status_tooltip_active": {
-    "text": "Domänen verifierad och aktiv"
+    "text": "Domänen verifierad och aktiv",
+    "source_hash": "e4b6a6e1"
   },
   "web.domains.status_tooltip_dns_incorrect": {
-    "text": "DNS inte konfigurerat – klicka för att åtgärda"
+    "text": "DNS inte konfigurerat – klicka för att åtgärda",
+    "source_hash": "892cb2cb"
   },
   "web.domains.status_tooltip_not_verified": {
-    "text": "Domänen inte verifierad – klicka för att verifiera"
+    "text": "Domänen inte verifierad – klicka för att verifiera",
+    "source_hash": "a9806710"
   },
   "web.domains.status_tooltip_unverified": {
-    "text": "Domänstatus overifierad – klicka för att uppdatera"
+    "text": "Domänstatus overifierad – klicka för att uppdatera",
+    "source_hash": "a45aa76d"
   },
   "web.domains.last_check_failed": {
-    "text": "Den senaste verifieringskontrollen misslyckades"
+    "text": "Den senaste verifieringskontrollen misslyckades",
+    "source_hash": "88b594b8"
   },
   "web.domains.last_check_failed_ago": {
-    "text": "senaste kontrollen misslyckades {0}"
+    "text": "senaste kontrollen misslyckades {0}",
+    "source_hash": "ddfb6412"
   },
   "web.domains.verify_now": {
-    "text": "Verifiera nu"
+    "text": "Verifiera nu",
+    "source_hash": "db383efb"
   },
   "web.domains.click_to_verify": {
-    "text": "klicka för att verifiera"
+    "text": "klicka för att verifiera",
+    "source_hash": "6eae7d9c"
   },
   "web.domains.remove_domain_description": {
-    "text": "Ta bort den här domänen och hela dess konfiguration permanent."
+    "text": "Ta bort den här domänen och hela dess konfiguration permanent.",
+    "source_hash": "73946b9e"
   },
   "web.domains.add_access_denied": {
-    "text": "Åtkomst nekad"
+    "text": "Åtkomst nekad",
+    "source_hash": "d134ca02"
   },
   "web.domains.add_access_denied_description": {
-    "text": "Du har inte behörighet att lägga till domäner i den här organisationen. Kontakta din organisationsadministratör."
+    "text": "Du har inte behörighet att lägga till domäner i den här organisationen. Kontakta din organisationsadministratör.",
+    "source_hash": "25e035c6"
   },
   "web.domains.dns_widget_load_failed": {
-    "text": "Det gick inte att läsa in DNS-widgeten"
+    "text": "Det gick inte att läsa in DNS-widgeten",
+    "source_hash": "5a1d8ab5"
   },
   "web.domains.dns_widget_not_available": {
-    "text": "DNS-widgeten är inte tillgänglig"
+    "text": "DNS-widgeten är inte tillgänglig",
+    "source_hash": "4eed448b"
   },
   "web.domains.dns_widget_init_failed": {
-    "text": "Det gick inte att initiera DNS-widgeten"
+    "text": "Det gick inte att initiera DNS-widgeten",
+    "source_hash": "de477585"
   },
   "web.domains.verified": {
-    "text": "Verifierad"
+    "text": "Verifierad",
+    "source_hash": "4f783840"
   },
   "web.domains.pending_verification": {
-    "text": "Väntar på verifiering"
+    "text": "Väntar på verifiering",
+    "source_hash": "77e07795"
   },
   "web.domains.unsaved_changes_confirmation": {
-    "text": "Du har osparade ändringar. Är du säker på att du vill lämna sidan?"
+    "text": "Du har osparade ändringar. Är du säker på att du vill lämna sidan?",
+    "source_hash": "322380c1"
   },
   "web.domains.entitlement_required_owner": {
-    "text": "Den här funktionen kräver en uppgradering av planen."
+    "text": "Den här funktionen kräver en uppgradering av planen.",
+    "source_hash": "6de1f752"
   },
   "web.domains.entitlement_required_member": {
-    "text": "Den här funktionen är inte tillgänglig i din nuvarande plan. Kontakta din organisationsägare."
+    "text": "Den här funktionen är inte tillgänglig i din nuvarande plan. Kontakta din organisationsägare.",
+    "source_hash": "8f1688b2"
   },
   "web.domains.detail.manage": {
-    "text": "Hantera"
+    "text": "Hantera",
+    "source_hash": "5a234448"
   },
   "web.domains.detail.features": {
-    "text": "Funktioner"
+    "text": "Funktioner",
+    "source_hash": "5697d03d"
   },
   "web.domains.detail.homepage_title": {
-    "text": "Hemligheter på startsidan"
+    "text": "Hemligheter på startsidan",
+    "source_hash": "6360f7ec"
   },
   "web.domains.detail.homepage_description": {
-    "text": "Tillåt offentlig åtkomst för att skapa hemligheter på din domäns startsida"
+    "text": "Tillåt offentlig åtkomst för att skapa hemligheter på din domäns startsida",
+    "source_hash": "209b3ded"
   },
   "web.domains.detail.brand_description": {
-    "text": "Logotyp, färger och anpassad varumärkesprofilering"
+    "text": "Logotyp, färger och anpassad varumärkesprofilering",
+    "source_hash": "69f7a9e8"
   },
   "web.domains.detail.sso_description": {
-    "text": "Inställningar för single sign-on-leverantör"
+    "text": "Inställningar för single sign-on-leverantör",
+    "source_hash": "234e6150"
   },
   "web.domains.detail.email_description": {
-    "text": "Konfiguration av anpassad e-postavsändare"
+    "text": "Konfiguration av anpassad e-postavsändare",
+    "source_hash": "7fcde01b"
   },
   "web.domains.detail.incoming_description": {
-    "text": "Inställningar för mottagare av inkommande hemligheter"
+    "text": "Inställningar för mottagare av inkommande hemligheter",
+    "source_hash": "37c1fd6d"
   },
   "web.domains.detail.signup_description": {
-    "text": "Strategi för registreringsvalidering per domän"
+    "text": "Strategi för registreringsvalidering per domän",
+    "source_hash": "3c5a511f"
   },
   "web.domains.detail.signin_description": {
-    "text": "Konfiguration av inloggningsmetod per domän"
+    "text": "Konfiguration av inloggningsmetod per domän",
+    "source_hash": "73e01e36"
   },
   "web.domains.email.title": {
-    "text": "E-postutskick"
+    "text": "E-postutskick",
+    "source_hash": "6c428e5f"
   },
   "web.domains.email.config_title": {
-    "text": "E-postkonfiguration"
+    "text": "E-postkonfiguration",
+    "source_hash": "6f38aa51"
   },
   "web.domains.email.config_description": {
-    "text": "Konfigurera e-postutskick för den här domänen"
+    "text": "Konfigurera e-postutskick för den här domänen",
+    "source_hash": "1c275ff0"
   },
   "web.domains.email.provider_label": {
-    "text": "E-postleverantör"
+    "text": "E-postleverantör",
+    "source_hash": "a7ed3f4e"
   },
   "web.domains.email.provider_placeholder": {
-    "text": "Välj en e-postleverantör"
+    "text": "Välj en e-postleverantör",
+    "source_hash": "63c8080c"
   },
   "web.domains.email.from_name_label": {
-    "text": "Från-namn"
+    "text": "Från-namn",
+    "source_hash": "2f13b589"
   },
   "web.domains.email.from_name_placeholder": {
-    "text": "t.ex. Acme Security"
+    "text": "t.ex. Acme Security",
+    "source_hash": "03c0f138"
   },
   "web.domains.email.from_address_label": {
-    "text": "Från-adress"
+    "text": "Från-adress",
+    "source_hash": "60643eae"
   },
   "web.domains.email.from_address_placeholder": {
-    "text": "t.ex. secrets{'@'}example.com"
+    "text": "t.ex. secrets{'@'}example.com",
+    "source_hash": "a09b3928"
   },
   "web.domains.email.reply_to_label": {
-    "text": "Reply-To-adress"
+    "text": "Reply-To-adress",
+    "source_hash": "4538ea9c"
   },
   "web.domains.email.reply_to_placeholder": {
-    "text": "t.ex. support{'@'}example.com"
+    "text": "t.ex. support{'@'}example.com",
+    "source_hash": "fa3e5f0b"
   },
   "web.domains.email.save_changes": {
-    "text": "Spara ändringar"
+    "text": "Spara ändringar",
+    "source_hash": "35322b5b"
   },
   "web.domains.email.discard_changes": {
-    "text": "Ångra ändringar"
+    "text": "Ångra ändringar",
+    "source_hash": "e07e053c"
   },
   "web.domains.email.provider_ses": {
-    "text": "Amazon SES"
+    "text": "Amazon SES",
+    "source_hash": "15de4969"
   },
   "web.domains.email.provider_sendgrid": {
-    "text": "SendGrid"
+    "text": "SendGrid",
+    "source_hash": "b889d002"
   },
   "web.domains.email.provider_lettermint": {
-    "text": "Lettermint"
+    "text": "Lettermint",
+    "source_hash": "ec994dad"
   },
   "web.domains.email.provider_inherit": {
-    "text": "Använd kontots standardinställningar"
+    "text": "Använd kontots standardinställningar",
+    "source_hash": "f6fa84e7"
   },
   "web.domains.email.provider_ses_description": {
-    "text": "Kräver domänverifiering via DKIM- och SPF-poster"
+    "text": "Kräver domänverifiering via DKIM- och SPF-poster",
+    "source_hash": "4df5aa60"
   },
   "web.domains.email.provider_sendgrid_description": {
-    "text": "Kräver konfiguration av domänautentisering"
+    "text": "Kräver konfiguration av domänautentisering",
+    "source_hash": "71b53242"
   },
   "web.domains.email.provider_lettermint_description": {
-    "text": "Kräver domänverifiering"
+    "text": "Kräver domänverifiering",
+    "source_hash": "87073c93"
   },
   "web.domains.email.provider_inherit_description": {
-    "text": "Använder ditt kontos standardkonfiguration för e-postutskick"
+    "text": "Använder ditt kontos standardkonfiguration för e-postutskick",
+    "source_hash": "3f798263"
   },
   "web.domains.email.dns_records_title": {
-    "text": "DNS-poster"
+    "text": "DNS-poster",
+    "source_hash": "34d2c307"
   },
   "web.domains.email.dns_records_description": {
-    "text": "Lägg till följande DNS-poster för att verifiera din domän för e-postutskick."
+    "text": "Lägg till följande DNS-poster för att verifiera din domän för e-postutskick.",
+    "source_hash": "9fa85863"
   },
   "web.domains.email.dns_column_type": {
-    "text": "Typ"
+    "text": "Typ",
+    "source_hash": "baaddf70"
   },
   "web.domains.email.dns_column_name": {
-    "text": "Namn"
+    "text": "Namn",
+    "source_hash": "dcd1d522"
   },
   "web.domains.email.dns_column_value": {
-    "text": "Värde"
+    "text": "Värde",
+    "source_hash": "8e37953d"
   },
   "web.domains.email.dns_check_label": {
-    "text": "DNS"
+    "text": "DNS",
+    "source_hash": "020965a2"
   },
   "web.domains.email.provider_check_label": {
-    "text": "Leverantör"
+    "text": "Leverantör",
+    "source_hash": "472590ae"
   },
   "web.domains.email.dns_optional_label": {
-    "text": "Rekommenderas"
+    "text": "Rekommenderas",
+    "source_hash": "d70604e8"
   },
   "web.domains.email.dns_optional_hint": {
-    "text": "Den här posten rekommenderas men krävs inte för verifiering. En DMARC-policy på din organisationsdomän kan redan täcka den här underdomänen."
+    "text": "Den här posten rekommenderas men krävs inte för verifiering. En DMARC-policy på din organisationsdomän kan redan täcka den här underdomänen.",
+    "source_hash": "58e1a12b"
   },
   "web.domains.email.copy": {
-    "text": "Kopiera"
+    "text": "Kopiera",
+    "source_hash": "e21f935f"
   },
   "web.domains.email.copied": {
-    "text": "Kopierad"
+    "text": "Kopierad",
+    "source_hash": "8d525e5f"
   },
   "web.domains.email.status_verified": {
-    "text": "Verifierad"
+    "text": "Verifierad",
+    "source_hash": "4f783840"
   },
   "web.domains.email.status_pending": {
-    "text": "Väntar"
+    "text": "Väntar",
+    "source_hash": "331551b0"
   },
   "web.domains.email.status_failed": {
-    "text": "Misslyckades"
+    "text": "Misslyckades",
+    "source_hash": "031a8f0f"
   },
   "web.domains.email.revalidate": {
-    "text": "Validera igen"
+    "text": "Validera igen",
+    "source_hash": "4918da12"
   },
   "web.domains.email.validating": {
-    "text": "Validerar..."
+    "text": "Validerar...",
+    "source_hash": "b28b48d5"
   },
   "web.domains.email.domain_verified": {
-    "text": "Domänen verifierad"
+    "text": "Domänen verifierad",
+    "source_hash": "08e0df67"
   },
   "web.domains.email.validation_failed": {
-    "text": "Valideringen misslyckades"
+    "text": "Valideringen misslyckades",
+    "source_hash": "23a86f5a"
   },
   "web.domains.email.last_validated": {
-    "text": "Senast validerad"
+    "text": "Senast validerad",
+    "source_hash": "887dd486"
   },
   "web.domains.email.upgrade_to_configure": {
-    "text": "Uppgradera din plan för att konfigurera e-postutskick för den här domänen."
+    "text": "Uppgradera din plan för att konfigurera e-postutskick för den här domänen.",
+    "source_hash": "16a876f7"
   },
   "web.domains.email.configure_email": {
-    "text": "Konfigurera e-post"
+    "text": "Konfigurera e-post",
+    "source_hash": "a48c0d40"
   },
   "web.domains.email.access_denied": {
-    "text": "Åtkomst nekad"
+    "text": "Åtkomst nekad",
+    "source_hash": "d134ca02"
   },
   "web.domains.email.access_denied_description": {
-    "text": "Du har inte behörighet att hantera e-postinställningar för den här domänen. Kontakta din organisationsadministratör."
+    "text": "Du har inte behörighet att hantera e-postinställningar för den här domänen. Kontakta din organisationsadministratör.",
+    "source_hash": "32049ff0"
   },
   "web.domains.email.update_success": {
-    "text": "E-postkonfigurationen har sparats"
+    "text": "E-postkonfigurationen har sparats",
+    "source_hash": "dd3607fc"
   },
   "web.domains.email.delete_success": {
-    "text": "E-postkonfigurationen har tagits bort"
+    "text": "E-postkonfigurationen har tagits bort",
+    "source_hash": "2ba99a91"
   },
   "web.domains.email.default_sender_notice": {
-    "text": "E-post för den här domänen skickas för närvarande från den globala avsändaren. Slutför e-postkonfigurationen för att använda din egen avsändaridentitet."
+    "text": "E-post för den här domänen skickas för närvarande från den globala avsändaren. Slutför e-postkonfigurationen för att använda din egen avsändaridentitet.",
+    "source_hash": "ffcf39fb"
   },
   "web.domains.email.disabled_notice": {
-    "text": "Anpassat e-postutskick är för närvarande inaktiverat. E-post skickas från den globala avsändaren. Aktivera funktionen nedan för att använda din anpassade avsändaridentitet."
+    "text": "Anpassat e-postutskick är för närvarande inaktiverat. E-post skickas från den globala avsändaren. Aktivera funktionen nedan för att använda din anpassade avsändaridentitet.",
+    "source_hash": "60a26f5b"
   },
   "web.domains.email.test_email_title": {
-    "text": "Testa e-postleverans"
+    "text": "Testa e-postleverans",
+    "source_hash": "c1b3dee2"
   },
   "web.domains.email.test_email_hint": {
-    "text": "Skicka ett test-e-postmeddelande till dig själv med den sparade konfigurationen. Fungerar även när funktionen ännu inte är aktiverad."
+    "text": "Skicka ett test-e-postmeddelande till dig själv med den sparade konfigurationen. Fungerar även när funktionen ännu inte är aktiverad.",
+    "source_hash": "33e876ad"
   },
   "web.domains.email.send_test": {
-    "text": "Skicka test"
+    "text": "Skicka test",
+    "source_hash": "22d7b11d"
   },
   "web.domains.email.test_email_sent": {
-    "text": "Test-e-postmeddelandet har skickats"
+    "text": "Test-e-postmeddelandet har skickats",
+    "source_hash": "561617fd"
   },
   "web.domains.email.test_email_failed": {
-    "text": "Det gick inte att skicka test-e-postmeddelandet"
+    "text": "Det gick inte att skicka test-e-postmeddelandet",
+    "source_hash": "95ce63bc"
   },
   "web.domains.email.test_email_sent_to": {
-    "text": "Skickat till {email}"
+    "text": "Skickat till {email}",
+    "source_hash": "8ceb9588"
   },
   "web.domains.email.delivered_via": {
-    "text": "Levererat via {provider}"
+    "text": "Levererat via {provider}",
+    "source_hash": "f741959b"
   },
   "web.domains.email.badge_not_configured": {
-    "text": "Inte konfigurerad"
+    "text": "Inte konfigurerad",
+    "source_hash": "dd1841d2"
   },
   "web.domains.email.badge_default_sender": {
-    "text": "Använder standardavsändare"
+    "text": "Använder standardavsändare",
+    "source_hash": "e1afb18f"
   },
   "web.domains.email.badge_verified": {
-    "text": "Verifierad"
+    "text": "Verifierad",
+    "source_hash": "4f783840"
   },
   "web.domains.email.badge_pending": {
-    "text": "Väntar på verifiering"
+    "text": "Väntar på verifiering",
+    "source_hash": "417a6b7e"
   },
   "web.domains.email.badge_disabled": {
-    "text": "Inaktiverad"
+    "text": "Inaktiverad",
+    "source_hash": "75081b59"
   },
   "web.domains.email.tooltip_not_configured": {
-    "text": "Ingen e-postavsändare konfigurerad – e-post använder plattformens standardavsändare"
+    "text": "Ingen e-postavsändare konfigurerad – e-post använder plattformens standardavsändare",
+    "source_hash": "360083bb"
   },
   "web.domains.email.tooltip_pending": {
-    "text": "E-postavsändarens konfiguration väntar på verifiering – e-post använder plattformens standardavsändare"
+    "text": "E-postavsändarens konfiguration väntar på verifiering – e-post använder plattformens standardavsändare",
+    "source_hash": "c8c2449c"
   },
   "web.domains.email.tooltip_disabled": {
-    "text": "E-postavsändaren är inaktiverad – e-post använder plattformens standardavsändare"
+    "text": "E-postavsändaren är inaktiverad – e-post använder plattformens standardavsändare",
+    "source_hash": "64e84955"
   },
   "web.domains.email.tooltip_verified": {
-    "text": "E-postavsändaren verifierad – e-post skickas från den här domänen"
+    "text": "E-postavsändaren verifierad – e-post skickas från den här domänen",
+    "source_hash": "0e9a005c"
   },
   "web.domains.incoming.title": {
-    "text": "Inkommande hemligheter"
+    "text": "Inkommande hemligheter",
+    "source_hash": "883dbca9"
   },
   "web.domains.incoming.config_title": {
-    "text": "Konfiguration av inkommande hemligheter"
+    "text": "Konfiguration av inkommande hemligheter",
+    "source_hash": "b3fef15b"
   },
   "web.domains.incoming.config_description": {
-    "text": "Tillåt externa användare att skicka hemligheter direkt till angivna mottagare på den här domänen"
+    "text": "Tillåt externa användare att skicka hemligheter direkt till angivna mottagare på den här domänen",
+    "source_hash": "452ab4fe"
   },
   "web.domains.incoming.feature_disabled": {
-    "text": "Inkommande hemligheter är inte tillgängligt"
+    "text": "Inkommande hemligheter är inte tillgängligt",
+    "source_hash": "0f96c5ec"
   },
   "web.domains.incoming.feature_disabled_description": {
-    "text": "Inkommande hemligheter är inte aktiverat på den här instansen. Kontakta din administratör."
+    "text": "Inkommande hemligheter är inte aktiverat på den här instansen. Kontakta din administratör.",
+    "source_hash": "dce981e0"
   },
   "web.domains.incoming.access_denied": {
-    "text": "Åtkomst nekad"
+    "text": "Åtkomst nekad",
+    "source_hash": "d134ca02"
   },
   "web.domains.incoming.access_denied_description": {
-    "text": "Du har inte behörighet att hantera inställningar för inkommande hemligheter för den här domänen. Kontakta din organisationsadministratör."
+    "text": "Du har inte behörighet att hantera inställningar för inkommande hemligheter för den här domänen. Kontakta din organisationsadministratör.",
+    "source_hash": "3e9d8adc"
   },
   "web.domains.incoming.upgrade_to_configure": {
-    "text": "Uppgradera din plan för att konfigurera inkommande hemligheter för den här domänen."
+    "text": "Uppgradera din plan för att konfigurera inkommande hemligheter för den här domänen.",
+    "source_hash": "9dfdfeb5"
   },
   "web.domains.incoming.configure_incoming": {
-    "text": "Konfigurera inkommande hemligheter"
+    "text": "Konfigurera inkommande hemligheter",
+    "source_hash": "eab52939"
   },
   "web.domains.incoming.not_configured_notice": {
-    "text": "Inkommande hemligheter är inte konfigurerat för den här domänen. Lägg till mottagare för att tillåta externa användare att skicka hemligheter till ditt team."
+    "text": "Inkommande hemligheter är inte konfigurerat för den här domänen. Lägg till mottagare för att tillåta externa användare att skicka hemligheter till ditt team.",
+    "source_hash": "dbc443a6"
   },
   "web.domains.incoming.disabled_notice": {
-    "text": "Inkommande hemligheter är för närvarande inaktiverat. Externa användare kan inte skicka hemligheter till mottagare på den här domänen. Aktivera funktionen nedan för att tillåta inkommande hemligheter."
+    "text": "Inkommande hemligheter är för närvarande inaktiverat. Externa användare kan inte skicka hemligheter till mottagare på den här domänen. Aktivera funktionen nedan för att tillåta inkommande hemligheter.",
+    "source_hash": "d1f8dafb"
   },
   "web.domains.incoming.recipients_title": {
-    "text": "Mottagare"
+    "text": "Mottagare",
+    "source_hash": "1e8568a8"
   },
   "web.domains.incoming.recipients_description": {
-    "text": "Ange vem som kan ta emot inkommande hemligheter på den här domänen. Mottagare får e-postaviseringar när en hemlighet skickas till dem."
+    "text": "Ange vem som kan ta emot inkommande hemligheter på den här domänen. Mottagare får e-postaviseringar när en hemlighet skickas till dem.",
+    "source_hash": "026f9d9d"
   },
   "web.domains.incoming.add_recipient": {
-    "text": "Lägg till mottagare"
+    "text": "Lägg till mottagare",
+    "source_hash": "25f93c13"
   },
   "web.domains.incoming.remove_recipient": {
-    "text": "Ta bort"
+    "text": "Ta bort",
+    "source_hash": "c3812fc4"
   },
   "web.domains.incoming.email_label": {
-    "text": "E-postadress"
+    "text": "E-postadress",
+    "source_hash": "09bf25ef"
   },
   "web.domains.incoming.email_placeholder": {
-    "text": "recipient{'@'}example.com"
+    "text": "recipient{'@'}example.com",
+    "source_hash": "55d1508e"
   },
   "web.domains.incoming.name_label": {
-    "text": "Visningsnamn"
+    "text": "Visningsnamn",
+    "source_hash": "18d67c99"
   },
   "web.domains.incoming.name_placeholder": {
-    "text": "t.ex. Security Team"
+    "text": "t.ex. Security Team",
+    "source_hash": "0c52400c"
   },
   "web.domains.incoming.empty_state": {
-    "text": "Inga mottagare konfigurerade"
+    "text": "Inga mottagare konfigurerade",
+    "source_hash": "bc8c2058"
   },
   "web.domains.incoming.empty_state_description": {
-    "text": "Lägg till mottagare för att tillåta externa användare att skicka hemligheter till ditt team."
+    "text": "Lägg till mottagare för att tillåta externa användare att skicka hemligheter till ditt team.",
+    "source_hash": "2a647a40"
   },
   "web.domains.incoming.validation_invalid_email": {
-    "text": "Ogiltig e-postadress"
+    "text": "Ogiltig e-postadress",
+    "source_hash": "4eaf1d80"
   },
   "web.domains.incoming.validation_duplicate_email": {
-    "text": "Den här e-postadressen är redan tillagd"
+    "text": "Den här e-postadressen är redan tillagd",
+    "source_hash": "f89de141"
   },
   "web.domains.incoming.validation_max_recipients": {
-    "text": "Högst {max} mottagare tillåtna"
+    "text": "Högst {max} mottagare tillåtna",
+    "source_hash": "e2585847"
   },
   "web.domains.incoming.validation_name_required": {
-    "text": "Visningsnamn krävs"
+    "text": "Visningsnamn krävs",
+    "source_hash": "c6892c89"
   },
   "web.domains.incoming.validation_email_required": {
-    "text": "E-postadress krävs"
+    "text": "E-postadress krävs",
+    "source_hash": "41381ba2"
   },
   "web.domains.incoming.save_changes": {
-    "text": "Spara ändringar"
+    "text": "Spara ändringar",
+    "source_hash": "35322b5b"
   },
   "web.domains.incoming.discard_changes": {
-    "text": "Ångra ändringar"
+    "text": "Ångra ändringar",
+    "source_hash": "e07e053c"
   },
   "web.domains.incoming.update_success": {
-    "text": "Konfigurationen för inkommande hemligheter har sparats"
+    "text": "Konfigurationen för inkommande hemligheter har sparats",
+    "source_hash": "9317e02d"
   },
   "web.domains.incoming.delete_success": {
-    "text": "Konfigurationen för inkommande hemligheter har tagits bort"
+    "text": "Konfigurationen för inkommande hemligheter har tagits bort",
+    "source_hash": "4c4a33ae"
   },
   "web.domains.incoming.recipient_count": {
-    "text": "{count} mottagare | {count} mottagare"
+    "text": "{count} mottagare | {count} mottagare",
+    "source_hash": "0e4f5985"
   },
   "web.domains.incoming.badge_not_configured": {
-    "text": "Inte konfigurerad"
+    "text": "Inte konfigurerad",
+    "source_hash": "dd1841d2"
   },
   "web.domains.incoming.badge_configured": {
-    "text": "Konfigurerad"
+    "text": "Konfigurerad",
+    "source_hash": "84aebc69"
   },
   "web.domains.incoming.badge_disabled": {
-    "text": "Inaktiverad"
+    "text": "Inaktiverad",
+    "source_hash": "75081b59"
   },
   "web.domains.incoming.tooltip_not_configured": {
-    "text": "Inkommande hemligheter inte konfigurerat – externa användare kan inte skicka hemligheter till den här domänen"
+    "text": "Inkommande hemligheter inte konfigurerat – externa användare kan inte skicka hemligheter till den här domänen",
+    "source_hash": "79786d5c"
   },
   "web.domains.incoming.tooltip_configured": {
-    "text": "Inkommande hemligheter aktiverat med {count} mottagare"
+    "text": "Inkommande hemligheter aktiverat med {count} mottagare",
+    "source_hash": "c205cc54"
   },
   "web.domains.incoming.tooltip_disabled": {
-    "text": "Funktionen för inkommande hemligheter är inaktiverad för den här domänen"
+    "text": "Funktionen för inkommande hemligheter är inaktiverad för den här domänen",
+    "source_hash": "0413f96b"
   },
   "web.domains.incoming.enabled_label": {
-    "text": "Aktivera inkommande hemligheter"
+    "text": "Aktivera inkommande hemligheter",
+    "source_hash": "c0b25980"
   },
   "web.domains.incoming.enabled_hint": {
-    "text": "Tillåt externa användare att skicka hemligheter till mottagare på den här domänen"
+    "text": "Tillåt externa användare att skicka hemligheter till mottagare på den här domänen",
+    "source_hash": "24aadd31"
   },
   "web.domains.incoming.public_url_label": {
-    "text": "Offentlig URL"
+    "text": "Offentlig URL",
+    "source_hash": "f7b60b04"
   },
   "web.domains.incoming.public_url_description": {
-    "text": "Dela den här URL:en med externa användare så att de kan skicka hemligheter"
+    "text": "Dela den här URL:en med externa användare så att de kan skicka hemligheter",
+    "source_hash": "df47a894"
   },
   "web.domains.incoming.copy_url": {
-    "text": "Kopiera URL"
+    "text": "Kopiera URL",
+    "source_hash": "b26d1037"
   },
   "web.domains.incoming.url_copied": {
-    "text": "URL kopierad till urklipp"
+    "text": "URL kopierad till urklipp",
+    "source_hash": "2f396c3e"
   },
   "web.domains.incoming.remove_all_confirmation": {
-    "text": "Är du säker på att du vill ta bort alla mottagare? Externa användare kommer inte längre att kunna skicka hemligheter till den här domänen."
+    "text": "Är du säker på att du vill ta bort alla mottagare? Externa användare kommer inte längre att kunna skicka hemligheter till den här domänen.",
+    "source_hash": "06f9e551"
   },
   "web.domains.incoming.max_recipients_reached": {
-    "text": "Det maximala antalet mottagare har nåtts"
+    "text": "Det maximala antalet mottagare har nåtts",
+    "source_hash": "ba659e54"
   },
   "web.domains.incoming.duplicate_recipient": {
-    "text": "Den här e-postadressen har redan lagts till"
+    "text": "Den här e-postadressen har redan lagts till",
+    "source_hash": "ca598f6d"
   },
   "web.domains.incoming.save_will_replace_confirmation": {
-    "text": "Om du sparar ersätts alla befintliga mottagare med dina väntande ändringar. Är du säker?"
+    "text": "Om du sparar ersätts alla befintliga mottagare med dina väntande ändringar. Är du säker?",
+    "source_hash": "f497862e"
   },
   "web.domains.incoming.delete_all_recipients": {
-    "text": "Ta bort alla mottagare"
+    "text": "Ta bort alla mottagare",
+    "source_hash": "207d0dbe"
   },
   "web.domains.signin.title": {
-    "text": "Inloggningskonfiguration"
+    "text": "Inloggningskonfiguration",
+    "source_hash": "2da38c03"
   },
   "web.domains.signin.configure_signin": {
-    "text": "Konfigurera inloggning"
+    "text": "Konfigurera inloggning",
+    "source_hash": "f72b58b5"
   },
   "web.domains.signin.config_description": {
-    "text": "Konfigurera autentiseringsmetoder för inloggning på den här domänen"
+    "text": "Konfigurera autentiseringsmetoder för inloggning på den här domänen",
+    "source_hash": "8efce428"
   },
   "web.domains.signin.access_denied": {
-    "text": "Åtkomst nekad"
+    "text": "Åtkomst nekad",
+    "source_hash": "d134ca02"
   },
   "web.domains.signin.upgrade_to_configure": {
-    "text": "Uppgradera din plan för att konfigurera inloggningsmetoder för den här domänen."
+    "text": "Uppgradera din plan för att konfigurera inloggningsmetoder för den här domänen.",
+    "source_hash": "e242bb74"
   },
   "web.domains.signin.not_configured_notice": {
-    "text": "Inloggningskonfiguration har ännu inte angetts för den här domänen. Konfigurera åsidosättningar för att styra vilka autentiseringsmetoder som är tillgängliga på den här domänens inloggningssida."
+    "text": "Inloggningskonfiguration har ännu inte angetts för den här domänen. Konfigurera åsidosättningar för att styra vilka autentiseringsmetoder som är tillgängliga på den här domänens inloggningssida.",
+    "source_hash": "cb788a2d"
   },
   "web.domains.signin.signin_enabled_label": {
-    "text": "Inloggning aktiverad"
+    "text": "Inloggning aktiverad",
+    "source_hash": "cabe4898"
   },
   "web.domains.signin.header_toggle_label": {
-    "text": "Inloggning"
+    "text": "Inloggning",
+    "source_hash": "5bbbe531"
   },
   "web.domains.signin.signin_enabled_hint": {
-    "text": "Om användare kan logga in på den här domänen"
+    "text": "Om användare kan logga in på den här domänen",
+    "source_hash": "57a92aee"
   },
   "web.domains.signin.restrict_to_label": {
-    "text": "Begränsa inloggningsmetod"
+    "text": "Begränsa inloggningsmetod",
+    "source_hash": "edbec83f"
   },
   "web.domains.signin.restrict_to_hint": {
-    "text": "Begränsa den här domänen till en enda autentiseringsmetod. När detta är angivet visas endast den valda metoden på inloggningssidan."
+    "text": "Begränsa den här domänen till en enda autentiseringsmetod. När detta är angivet visas endast den valda metoden på inloggningssidan.",
+    "source_hash": "682bc4c5"
   },
   "web.domains.signin.all_methods": {
-    "text": "Alla metoder"
+    "text": "Alla metoder",
+    "source_hash": "e601c19e"
   },
   "web.domains.signin.all_methods_description": {
-    "text": "Visa alla aktiverade autentiseringsmetoder på inloggningssidan"
+    "text": "Visa alla aktiverade autentiseringsmetoder på inloggningssidan",
+    "source_hash": "62723340"
   },
   "web.domains.signin.method_password": {
-    "text": "Lösenord"
+    "text": "Lösenord",
+    "source_hash": "e7cf3ef4"
   },
   "web.domains.signin.method_email_auth": {
-    "text": "E-postautentisering"
+    "text": "E-postautentisering",
+    "source_hash": "68c38f94"
   },
   "web.domains.signin.method_webauthn": {
-    "text": "WebAuthn / Lösenordsnycklar"
+    "text": "WebAuthn / Lösenordsnycklar",
+    "source_hash": "c40224ce"
   },
   "web.domains.signin.method_sso": {
-    "text": "Enkel inloggning"
+    "text": "Enkel inloggning",
+    "source_hash": "cf7cd744"
   },
   "web.domains.signin.method_overrides_label": {
-    "text": "Metodåsidosättningar"
+    "text": "Metodåsidosättningar",
+    "source_hash": "5496cba6"
   },
   "web.domains.signin.method_overrides_hint": {
-    "text": "Aktivera eller inaktivera enskilda autentiseringsmetoder för den här domänen"
+    "text": "Aktivera eller inaktivera enskilda autentiseringsmetoder för den här domänen",
+    "source_hash": "394e3878"
   },
   "web.domains.signin.mode_question": {
-    "text": "Hur kan användare logga in?"
+    "text": "Hur kan användare logga in?",
+    "source_hash": "3694eb23"
   },
   "web.domains.signin.mode_any": {
-    "text": "Valfri tillgänglig metod"
+    "text": "Valfri tillgänglig metod",
+    "source_hash": "23665425"
   },
   "web.domains.signin.mode_any_hint": {
-    "text": "Visa alla metoder som är tillgängliga på den här domänen. Begränsa enskilda metoder nedan."
+    "text": "Visa alla metoder som är tillgängliga på den här domänen. Begränsa enskilda metoder nedan.",
+    "source_hash": "2f3dcba6"
   },
   "web.domains.signin.mode_one": {
-    "text": "En specifik metod"
+    "text": "En specifik metod",
+    "source_hash": "601f5768"
   },
   "web.domains.signin.mode_one_hint": {
-    "text": "Begränsa inloggningssidan till en enda metod. Endast metoder som är tillgängliga på den här domänen listas."
+    "text": "Begränsa inloggningssidan till en enda metod. Endast metoder som är tillgängliga på den här domänen listas.",
+    "source_hash": "58bde6d5"
   },
   "web.domains.signin.mode_disabled": {
-    "text": "Inloggning inaktiverad"
+    "text": "Inloggning inaktiverad",
+    "source_hash": "bb807607"
   },
   "web.domains.signin.mode_disabled_hint": {
-    "text": "Användare kan inte logga in på den här domänen."
+    "text": "Användare kan inte logga in på den här domänen.",
+    "source_hash": "8938f098"
   },
   "web.domains.signin.mode_disabled_notice": {
-    "text": "Besökare på den här domänens inloggningssida ser ett meddelande om att inloggning inte är tillgänglig, med en länk tillbaka till startsidan. Dina tidigare metodinställningar behålls och återställs när du återaktiverar inloggning."
+    "text": "Besökare på den här domänens inloggningssida ser ett meddelande om att inloggning inte är tillgänglig, med en länk tillbaka till startsidan. Dina tidigare metodinställningar behålls och återställs när du återaktiverar inloggning.",
+    "source_hash": "1a04de18"
   },
   "web.domains.signin.methods_list_label": {
-    "text": "Metoder som visas på inloggningssidan"
+    "text": "Metoder som visas på inloggningssidan",
+    "source_hash": "66fd133b"
   },
   "web.domains.signin.restrict_picker_hint": {
-    "text": "Endast metoder som är tillgängliga på den här domänen listas."
+    "text": "Endast metoder som är tillgängliga på den här domänen listas.",
+    "source_hash": "c7a56f44"
   },
   "web.domains.signin.availability_always": {
-    "text": "Alltid tillgänglig"
+    "text": "Alltid tillgänglig",
+    "source_hash": "0fda3772"
   },
   "web.domains.signin.availability_global_on": {
-    "text": "Följer global policy · På"
+    "text": "Följer global policy · På",
+    "source_hash": "3844e6f7"
   },
   "web.domains.signin.availability_global_off": {
-    "text": "Inte tillgänglig"
+    "text": "Inte tillgänglig",
+    "source_hash": "67a926f7"
   },
   "web.domains.signin.availability_unavailable": {
-    "text": "Inte tillgänglig på hela webbplatsen"
+    "text": "Inte tillgänglig på hela webbplatsen",
+    "source_hash": "da29c1be"
   },
   "web.domains.signin.allow_on_domain": {
-    "text": "Tillåt på den här domänen"
+    "text": "Tillåt på den här domänen",
+    "source_hash": "760b578e"
   },
   "web.domains.signin.method_password_blurb": {
-    "text": "Endast lösenord"
+    "text": "Endast lösenord",
+    "source_hash": "ed1a02fd"
   },
   "web.domains.signin.method_email_auth_blurb": {
-    "text": "Lösenordslös inloggning med magisk länk"
+    "text": "Lösenordslös inloggning med magisk länk",
+    "source_hash": "7f776a85"
   },
   "web.domains.signin.method_webauthn_blurb": {
-    "text": "Biometri och säkerhetsnycklar"
+    "text": "Biometri och säkerhetsnycklar",
+    "source_hash": "7d6a7bd5"
   },
   "web.domains.signin.method_sso_blurb": {
-    "text": "Extern identitetsleverantör"
+    "text": "Extern identitetsleverantör",
+    "source_hash": "a3442088"
   },
   "web.domains.signin.email_auth_label": {
-    "text": "E-postautentisering"
+    "text": "E-postautentisering",
+    "source_hash": "68c38f94"
   },
   "web.domains.signin.email_auth_hint": {
-    "text": "Tillåt lösenordslös e-postautentisering på den här domänen"
+    "text": "Tillåt lösenordslös e-postautentisering på den här domänen",
+    "source_hash": "6ad82127"
   },
   "web.domains.signin.sso_enabled_label": {
-    "text": "Enkel inloggning"
+    "text": "Enkel inloggning",
+    "source_hash": "cf7cd744"
   },
   "web.domains.signin.sso_enabled_hint": {
-    "text": "Tillåt SSO-autentisering på den här domänen"
+    "text": "Tillåt SSO-autentisering på den här domänen",
+    "source_hash": "22d78ad5"
   },
   "web.domains.signin.enabled_label": {
-    "text": "Aktivera inloggningskonfiguration"
+    "text": "Aktivera inloggningskonfiguration",
+    "source_hash": "dbd8e11c"
   },
   "web.domains.signin.enabled_hint": {
-    "text": "När detta är aktiverat använder den här domänen inloggningsinställningarna som konfigurerats ovan"
+    "text": "När detta är aktiverat använder den här domänen inloggningsinställningarna som konfigurerats ovan",
+    "source_hash": "6259f8a2"
   },
   "web.domains.signin.save_config": {
-    "text": "Spara konfiguration"
+    "text": "Spara konfiguration",
+    "source_hash": "b2b158f2"
   },
   "web.domains.signin.update_success": {
-    "text": "Inloggningskonfigurationen har uppdaterats"
+    "text": "Inloggningskonfigurationen har uppdaterats",
+    "source_hash": "10ea50d8"
   },
   "web.domains.signin.reset_to_defaults": {
-    "text": "Återställ till standardinställningar"
+    "text": "Återställ till standardinställningar",
+    "source_hash": "e240e635"
   },
   "web.domains.signin.reset_confirm": {
-    "text": "Återställ inloggning till de globala standardinställningarna?"
+    "text": "Återställ inloggning till de globala standardinställningarna?",
+    "source_hash": "2c6bbc32"
   },
   "web.domains.signin.reset_keeps_sso": {
-    "text": "Dina SSO-uppgifter behålls. Ta bort dem separat på skärmen för SSO-konfiguration."
+    "text": "Dina SSO-uppgifter behålls. Ta bort dem separat på skärmen för SSO-konfiguration.",
+    "source_hash": "edc0c756"
   },
   "web.domains.signin.reset_action": {
-    "text": "Ja, återställ"
+    "text": "Ja, återställ",
+    "source_hash": "4bb21d8b"
   },
   "web.domains.signin.reset_success": {
-    "text": "Inloggningsinställningarna har återställts till de globala standardinställningarna"
+    "text": "Inloggningsinställningarna har återställts till de globala standardinställningarna",
+    "source_hash": "0c364d89"
   },
   "web.domains.signup.title": {
-    "text": "Registreringsvalidering"
+    "text": "Registreringsvalidering",
+    "source_hash": "2c34ac0a"
   },
   "web.domains.signup.config_description": {
-    "text": "Konfigurera registreringsvalidering för denna domän"
+    "text": "Konfigurera registreringsvalidering för denna domän",
+    "source_hash": "e9c81e8a"
   },
   "web.domains.signup.access_denied": {
-    "text": "Åtkomst nekad"
+    "text": "Åtkomst nekad",
+    "source_hash": "d134ca02"
   },
   "web.domains.signup.upgrade_to_configure": {
-    "text": "Uppgradera din plan för att konfigurera registreringsvalidering per domän."
+    "text": "Uppgradera din plan för att konfigurera registreringsvalidering per domän.",
+    "source_hash": "d87d6614"
   },
   "web.domains.signup.configure_signup": {
-    "text": "Konfigurera registrering"
+    "text": "Konfigurera registrering",
+    "source_hash": "e2697662"
   },
   "web.domains.signup.not_configured_notice": {
-    "text": "Registreringsvalidering är ännu inte konfigurerad för denna domän. Konfigurera en strategi för att styra vem som kan registrera sig via denna domän."
+    "text": "Registreringsvalidering är ännu inte konfigurerad för denna domän. Konfigurera en strategi för att styra vem som kan registrera sig via denna domän.",
+    "source_hash": "fc6c6eb8"
   },
   "web.domains.signup.site_signups_disabled_warning": {
-    "text": "Registreringar är för närvarande inaktiverade på webbplatsnivå. Den här policyn per domän är konfigurerad men kommer inte att filtrera någon trafik förrän registreringar på webbplatsen aktiveras."
+    "text": "Registreringar är för närvarande inaktiverade på webbplatsnivå. Den här policyn per domän är konfigurerad men kommer inte att filtrera någon trafik förrän registreringar på webbplatsen aktiveras.",
+    "source_hash": "c0e59f86"
   },
   "web.domains.signup.strategy_label": {
-    "text": "Valideringsstrategi"
+    "text": "Valideringsstrategi",
+    "source_hash": "a2e95531"
   },
   "web.domains.signup.strategy_description": {
-    "text": "Välj hur e-postadresser valideras när användare registrerar sig på denna domän."
+    "text": "Välj hur e-postadresser valideras när användare registrerar sig på denna domän.",
+    "source_hash": "8e232b03"
   },
   "web.domains.signup.network_validation_warning": {
-    "text": "Den här strategin gör nätverksanrop under registreringen, vilket kan öka fördröjningen eller blockeras av vissa leverantörer."
+    "text": "Den här strategin gör nätverksanrop under registreringen, vilket kan öka fördröjningen eller blockeras av vissa leverantörer.",
+    "source_hash": "53d4c266"
   },
   "web.domains.signup.allowed_domains_label": {
-    "text": "Tillåtna registreringsdomäner"
+    "text": "Tillåtna registreringsdomäner",
+    "source_hash": "9b5bb5b1"
   },
   "web.domains.signup.allowed_domains_hint": {
-    "text": "Endast dessa e-postdomäner tillåts att registrera sig. Lägg till en domän per post."
+    "text": "Endast dessa e-postdomäner tillåts att registrera sig. Lägg till en domän per post.",
+    "source_hash": "c082414d"
   },
   "web.domains.signup.domain_placeholder": {
-    "text": "example.com"
+    "text": "example.com",
+    "source_hash": "a379a6f6"
   },
   "web.domains.signup.invalid_domain": {
-    "text": "Ange en giltig domän (t.ex. example.com)"
+    "text": "Ange en giltig domän (t.ex. example.com)",
+    "source_hash": "16807983"
   },
   "web.domains.signup.domain_exists": {
-    "text": "Den här domänen finns redan i listan"
+    "text": "Den här domänen finns redan i listan",
+    "source_hash": "3fccb721"
   },
   "web.domains.signup.remove_domain": {
-    "text": "Ta bort {domain}"
+    "text": "Ta bort {domain}",
+    "source_hash": "ae708a1d"
   },
   "web.domains.signup.enabled_label": {
-    "text": "Aktivera validering per domän"
+    "text": "Aktivera validering per domän",
+    "source_hash": "db103925"
   },
   "web.domains.signup.enabled_hint": {
-    "text": "När detta är aktiverat använder registreringar på denna domän strategin ovan i stället för den globala policyn."
+    "text": "När detta är aktiverat använder registreringar på denna domän strategin ovan i stället för den globala policyn.",
+    "source_hash": "99de2008"
   },
   "web.domains.signup.delete_config": {
-    "text": "Ta bort konfiguration"
+    "text": "Ta bort konfiguration",
+    "source_hash": "a9a30c7f"
   },
   "web.domains.signup.delete_confirm": {
-    "text": "Ta bort konfigurationen för registreringsvalidering? Registreringar återgår till den globala policyn."
+    "text": "Ta bort konfigurationen för registreringsvalidering? Registreringar återgår till den globala policyn.",
+    "source_hash": "a8c9086e"
   },
   "web.domains.signup.save_config": {
-    "text": "Spara konfiguration"
+    "text": "Spara konfiguration",
+    "source_hash": "b2b158f2"
   },
   "web.domains.signup.update_success": {
-    "text": "Registreringsvalideringen uppdaterades"
+    "text": "Registreringsvalideringen uppdaterades",
+    "source_hash": "57a529ac"
   },
   "web.domains.signup.delete_success": {
-    "text": "Konfigurationen för registreringsvalidering togs bort"
+    "text": "Konfigurationen för registreringsvalidering togs bort",
+    "source_hash": "eb6add4d"
   },
   "web.domains.signup.domain_overrides_label": {
-    "text": "Domänåsidosättningar"
+    "text": "Domänåsidosättningar",
+    "source_hash": "d25da3cd"
   },
   "web.domains.signup.domain_overrides_hint": {
-    "text": "Åsidosätt globala registreringsinställningar för denna domän"
+    "text": "Åsidosätt globala registreringsinställningar för denna domän",
+    "source_hash": "53101057"
   },
   "web.domains.signup.signup_enabled_label": {
-    "text": "Registrering aktiverad"
+    "text": "Registrering aktiverad",
+    "source_hash": "296ac66d"
   },
   "web.domains.signup.signup_enabled_hint": {
-    "text": "Åsidosätt om registrering är aktiverad för denna domän"
+    "text": "Åsidosätt om registrering är aktiverad för denna domän",
+    "source_hash": "2ee146b6"
   },
   "web.domains.signup.autoverify_label": {
-    "text": "Verifiera konton automatiskt"
+    "text": "Verifiera konton automatiskt",
+    "source_hash": "4b103cd5"
   },
   "web.domains.signup.autoverify_hint": {
-    "text": "Åsidosätt om nya konton verifieras automatiskt på denna domän"
+    "text": "Åsidosätt om nya konton verifieras automatiskt på denna domän",
+    "source_hash": "63866ecd"
   },
   "web.domains.sso.title": {
-    "text": "Enkel inloggning"
+    "text": "Enkel inloggning",
+    "source_hash": "cf7cd744"
   },
   "web.domains.sso.config_title": {
-    "text": "SSO-konfiguration"
+    "text": "SSO-konfiguration",
+    "source_hash": "afd5751e"
   },
   "web.domains.sso.config_description": {
-    "text": "Konfigurera autentisering med single sign-on för denna domän"
+    "text": "Konfigurera autentisering med single sign-on för denna domän",
+    "source_hash": "f37a0b47"
   },
   "web.domains.sso.access_denied": {
-    "text": "Åtkomst nekad"
+    "text": "Åtkomst nekad",
+    "source_hash": "d134ca02"
   },
   "web.domains.sso.access_denied_description": {
-    "text": "Du har inte behörighet att hantera SSO-inställningar för denna domän. Kontakta din organisationsadministratör."
+    "text": "Du har inte behörighet att hantera SSO-inställningar för denna domän. Kontakta din organisationsadministratör.",
+    "source_hash": "db7fcfeb"
   },
   "web.domains.sso.upgrade_to_configure": {
-    "text": "Uppgradera din plan för att konfigurera single sign-on för denna domän."
+    "text": "Uppgradera din plan för att konfigurera single sign-on för denna domän.",
+    "source_hash": "71fc0069"
   },
   "web.domains.sso.create_success": {
-    "text": "SSO-konfigurationen skapades"
+    "text": "SSO-konfigurationen skapades",
+    "source_hash": "531c7d92"
   },
   "web.domains.sso.update_success": {
-    "text": "SSO-konfigurationen uppdaterades"
+    "text": "SSO-konfigurationen uppdaterades",
+    "source_hash": "d98d8e83"
   },
   "web.domains.sso.delete_success": {
-    "text": "SSO-konfigurationen togs bort"
+    "text": "SSO-konfigurationen togs bort",
+    "source_hash": "2e924798"
   },
   "web.domains.sso.test_success": {
-    "text": "Anslutningstestet lyckades – leverantören svarade korrekt"
+    "text": "Anslutningstestet lyckades – leverantören svarade korrekt",
+    "source_hash": "1570ddb0"
   },
   "web.domains.sso.test_failed": {
-    "text": "Anslutningstestet misslyckades"
+    "text": "Anslutningstestet misslyckades",
+    "source_hash": "a45a37dd"
   },
   "web.domains.sso.enforce_moved_notice": {
-    "text": "För att kräva SSO för alla inloggningar på denna domän konfigurerar du det i domänens inloggningsinställningar. Läget med enbart SSO begränsar inloggningssidan till den SSO-leverantör som konfigurerats här."
+    "text": "För att kräva SSO för alla inloggningar på denna domän konfigurerar du det i domänens inloggningsinställningar. Läget med enbart SSO begränsar inloggningssidan till den SSO-leverantör som konfigurerats här.",
+    "source_hash": "d26627a5"
   },
   "web.domains.sso.configure_sso": {
-    "text": "Konfigurera SSO"
+    "text": "Konfigurera SSO",
+    "source_hash": "80d3a144"
   },
   "web.domains.sso.not_configured_notice": {
-    "text": "SSO är ännu inte konfigurerat för denna domän. Aktivera single sign-on för att låta teammedlemmar autentisera sig med din organisations identitetsleverantör."
+    "text": "SSO är ännu inte konfigurerat för denna domän. Aktivera single sign-on för att låta teammedlemmar autentisera sig med din organisations identitetsleverantör.",
+    "source_hash": "c439214b"
   },
   "web.domains.sso.edit_credentials": {
-    "text": "Redigera autentiseringsuppgifter"
+    "text": "Redigera autentiseringsuppgifter",
+    "source_hash": "5a6622b6"
   },
   "web.domains.sso.configure_button": {
-    "text": "Konfigurera"
+    "text": "Konfigurera",
+    "source_hash": "6defafa2"
   },
   "web.domains.sso.upgrade_required": {
-    "text": "Uppgradera för att konfigurera"
+    "text": "Uppgradera för att konfigurera",
+    "source_hash": "571cfa98"
   }
 }

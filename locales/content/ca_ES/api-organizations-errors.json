@@ -1,107 +1,142 @@
 {
   "api.organizations.errors.domain_scoped_forbidden": {
-    "text": "Els membres limitats al domini no poden dur a terme aquesta acció"
+    "text": "Els membres limitats al domini no poden dur a terme aquesta acció",
+    "source_hash": "0a06a035"
   },
   "api.organizations.errors.organization_not_found": {
-    "text": "No s'ha trobat l'organització: %{extid}"
+    "text": "No s'ha trobat l'organització: %{extid}",
+    "source_hash": "c8d058eb"
   },
   "api.organizations.errors.organization_owner_required": {
-    "text": "Només el propietari de l'organització pot dur a terme aquesta acció"
+    "text": "Només el propietari de l'organització pot dur a terme aquesta acció",
+    "source_hash": "5a729e94"
   },
   "api.organizations.errors.organization_member_required": {
-    "text": "Has de ser membre de l'organització per dur a terme aquesta acció"
+    "text": "Has de ser membre de l'organització per dur a terme aquesta acció",
+    "source_hash": "f66f4a60"
   },
   "api.organizations.errors.organization_admin_required": {
-    "text": "Només els propietaris i administradors de l'organització poden dur a terme aquesta acció"
+    "text": "Només els propietaris i administradors de l'organització poden dur a terme aquesta acció",
+    "source_hash": "cd9e8c0e"
   },
   "api.organizations.errors.extid_required": {
-    "text": "Es requereix l'ID de l'organització"
+    "text": "Es requereix l'ID de l'organització",
+    "source_hash": "02fbe301"
   },
   "api.organizations.errors.display_name_required": {
-    "text": "El nom de l'organització és obligatori"
+    "text": "El nom de l'organització és obligatori",
+    "source_hash": "c3f6e9af"
   },
   "api.organizations.errors.display_name_too_long": {
-    "text": "El nom de l'organització ha de tenir menys de %{max} caràcters"
+    "text": "El nom de l'organització ha de tenir menys de %{max} caràcters",
+    "source_hash": "5866973d"
   },
   "api.organizations.errors.description_too_long": {
-    "text": "La descripció ha de tenir menys de %{max} caràcters"
+    "text": "La descripció ha de tenir menys de %{max} caràcters",
+    "source_hash": "562b7250"
   },
   "api.organizations.errors.contact_email_exists": {
-    "text": "Ja existeix una organització amb aquest correu electrònic de contacte"
+    "text": "Ja existeix una organització amb aquest correu electrònic de contacte",
+    "source_hash": "e9fdce56"
   },
   "api.organizations.errors.creation_in_progress": {
-    "text": "Creació de l'organització en curs. Si us plau, torna-ho a provar."
+    "text": "Creació de l'organització en curs. Si us plau, torna-ho a provar.",
+    "source_hash": "ef68bc2d"
   },
   "api.organizations.errors.organization_limit_reached": {
-    "text": "S'ha assolit el límit d'organitzacions. Millora el teu pla per crear-ne més."
+    "text": "S'ha assolit el límit d'organitzacions. Millora el teu pla per crear-ne més.",
+    "source_hash": "69e2e61b"
   },
   "api.organizations.invitations.errors.invitation_not_found": {
-    "text": "No s'ha trobat la invitació"
+    "text": "No s'ha trobat la invitació",
+    "source_hash": "775ba9eb"
   },
   "api.organizations.invitations.errors.email_required": {
-    "text": "Es requereix el correu electrònic"
+    "text": "Es requereix el correu electrònic",
+    "source_hash": "aae92911"
   },
   "api.organizations.invitations.errors.invalid_email_format": {
-    "text": "Format de correu electrònic no vàlid"
+    "text": "Format de correu electrònic no vàlid",
+    "source_hash": "0bcecf66"
   },
   "api.organizations.invitations.errors.invalid_role": {
-    "text": "El rol ha de ser membre o administrador"
+    "text": "El rol ha de ser membre o administrador",
+    "source_hash": "650ea5f6"
   },
   "api.organizations.invitations.errors.cannot_invite_as_owner": {
-    "text": "No es pot convidar com a propietari"
+    "text": "No es pot convidar com a propietari",
+    "source_hash": "e6581025"
   },
   "api.organizations.invitations.errors.user_already_member": {
-    "text": "L'usuari ja és membre d'aquesta organització"
+    "text": "L'usuari ja és membre d'aquesta organització",
+    "source_hash": "8eb45780"
   },
   "api.organizations.invitations.errors.invitation_already_pending": {
-    "text": "Ja hi ha una invitació pendent per a aquest correu electrònic"
+    "text": "Ja hi ha una invitació pendent per a aquest correu electrònic",
+    "source_hash": "7f5e3093"
   },
   "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "S'ha assolit el límit de membres. Millora el teu pla per convidar-ne més."
+    "text": "S'ha assolit el límit de membres. Millora el teu pla per convidar-ne més.",
+    "source_hash": "b8f316e8"
   },
   "api.organizations.invitations.errors.resend_only_pending": {
-    "text": "Només es poden reenviar les invitacions pendents"
+    "text": "Només es poden reenviar les invitacions pendents",
+    "source_hash": "b7578b3e"
   },
   "api.organizations.invitations.errors.resend_limit_reached": {
-    "text": "S'ha assolit el límit màxim de reenviaments (%{max})"
+    "text": "S'ha assolit el límit màxim de reenviaments (%{max})",
+    "source_hash": "8dc96729"
   },
   "api.organizations.invitations.errors.revoke_only_pending": {
-    "text": "Només es poden revocar les invitacions pendents"
+    "text": "Només es poden revocar les invitacions pendents",
+    "source_hash": "732b78a6"
   },
   "api.organizations.members.errors.member_not_found": {
-    "text": "No s'ha trobat el membre: %{extid}"
+    "text": "No s'ha trobat el membre: %{extid}",
+    "source_hash": "57654771"
   },
   "api.organizations.members.errors.member_not_in_organization": {
-    "text": "No s'ha trobat el membre en aquesta organització"
+    "text": "No s'ha trobat el membre en aquesta organització",
+    "source_hash": "dcab71ff"
   },
   "api.organizations.members.errors.member_not_active": {
-    "text": "El membre no està actiu"
+    "text": "El membre no està actiu",
+    "source_hash": "a51b8760"
   },
   "api.organizations.members.errors.invalid_role_value": {
-    "text": "Rol no vàlid. Ha de ser un dels següents: %{roles}"
+    "text": "Rol no vàlid. Ha de ser un dels següents: %{roles}",
+    "source_hash": "c3331aa0"
   },
   "api.organizations.members.errors.cannot_change_owner_role": {
-    "text": "No es pot canviar el rol del propietari. Fes servir la transferència de propietat."
+    "text": "No es pot canviar el rol del propietari. Fes servir la transferència de propietat.",
+    "source_hash": "76015424"
   },
   "api.organizations.members.errors.member_already_has_role": {
-    "text": "El membre ja té el rol: %{role}"
+    "text": "El membre ja té el rol: %{role}",
+    "source_hash": "6771166a"
   },
   "api.organizations.members.errors.cannot_promote_to_owner": {
-    "text": "No es pot promoure a propietari. Fes servir la transferència de propietat."
+    "text": "No es pot promoure a propietari. Fes servir la transferència de propietat.",
+    "source_hash": "cd574007"
   },
   "api.organizations.members.errors.must_be_member": {
-    "text": "Has de ser membre d'aquesta organització"
+    "text": "Has de ser membre d'aquesta organització",
+    "source_hash": "de1c77b8"
   },
   "api.organizations.members.errors.cannot_remove_owner": {
-    "text": "No es pot eliminar el propietari de l'organització. Primer transfereix la propietat."
+    "text": "No es pot eliminar el propietari de l'organització. Primer transfereix la propietat.",
+    "source_hash": "d4f33003"
   },
   "api.organizations.members.errors.cannot_remove_self": {
-    "text": "No et pots eliminar a tu mateix. Fes servir abandonar l'organització."
+    "text": "No et pots eliminar a tu mateix. Fes servir abandonar l'organització.",
+    "source_hash": "d64cec91"
   },
   "api.organizations.members.errors.admin_cannot_remove_admin": {
-    "text": "Els administradors no poden eliminar altres administradors. Només els propietaris poden fer-ho."
+    "text": "Els administradors no poden eliminar altres administradors. Només els propietaris poden fer-ho.",
+    "source_hash": "2b3e6e30"
   },
   "api.organizations.members.errors.no_permission_to_remove": {
-    "text": "No tens permís per eliminar membres"
+    "text": "No tens permís per eliminar membres",
+    "source_hash": "b0ac7287"
   }
 }

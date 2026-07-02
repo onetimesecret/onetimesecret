@@ -855,39 +855,51 @@
     "source_hash": "1cd0194a"
   },
   "email.common.secret_link_label": {
-    "text": "Ссылка на секрет"
+    "text": "Ссылка на секрет",
+    "source_hash": "18ddf44f"
   },
   "email.common.automated_notice": {
-    "text": "Это автоматическое сообщение от %{product_name}."
+    "text": "Это автоматическое сообщение от %{product_name}.",
+    "source_hash": "8fbabfba"
   },
   "email.common.support_label": {
-    "text": "Поддержка"
+    "text": "Поддержка",
+    "source_hash": "be91940b"
   },
   "email.expiration_warning.signature": {
-    "text": "Команда поддержки"
+    "text": "Команда поддержки",
+    "source_hash": "dc75bf9f"
   },
   "email.expiration_warning.footer_note": {
-    "text": "Вы получили это письмо, потому что срок действия созданного Вами секрета на %{product_name} скоро истечёт."
+    "text": "Вы получили это письмо, потому что срок действия созданного Вами секрета на %{product_name} скоро истечёт.",
+    "source_hash": "920779e4"
   },
   "email.feedback_email.user_id_label": {
-    "text": "Пользователь:"
+    "text": "Пользователь:",
+    "source_hash": "93d6b3e9"
   },
   "email.feedback_email.timezone_label": {
-    "text": "Часовой пояс:"
+    "text": "Часовой пояс:",
+    "source_hash": "39651ebf"
   },
   "email.feedback_email.version_label": {
-    "text": "Версия:"
+    "text": "Версия:",
+    "source_hash": "4c5726ee"
   },
   "email.incoming_secret.footer_note": {
-    "text": "Вы получили это письмо, потому что кто-то воспользовался %{product_name}, чтобы отправить Вам секрет. Если Вы этого не ожидали, можете спокойно проигнорировать это письмо."
+    "text": "Вы получили это письмо, потому что кто-то воспользовался %{product_name}, чтобы отправить Вам секрет. Если Вы этого не ожидали, можете спокойно проигнорировать это письмо.",
+    "source_hash": "91ee6e8d"
   },
   "email.secret_link.passphrase_label": {
-    "text": "Требуется кодовая фраза:"
+    "text": "Требуется кодовая фраза:",
+    "source_hash": "1ab9a20f"
   },
   "email.secret_link.passphrase_required": {
-    "text": "Этот секрет защищён кодовой фразой. Отправитель должен предоставить её Вам отдельно."
+    "text": "Этот секрет защищён кодовой фразой. Отправитель должен предоставить её Вам отдельно.",
+    "source_hash": "1e49826b"
   },
   "email.secret_link.footer_note": {
-    "text": "Вы получили это письмо, потому что %{sender_email} воспользовался %{product_name}, чтобы поделиться с Вами секретом. Если Вы этого не ожидали, можете спокойно проигнорировать это письмо."
+    "text": "Вы получили это письмо, потому что %{sender_email} воспользовался %{product_name}, чтобы поделиться с Вами секретом. Если Вы этого не ожидали, можете спокойно проигнорировать это письмо.",
+    "source_hash": "2d544dad"
   }
 }

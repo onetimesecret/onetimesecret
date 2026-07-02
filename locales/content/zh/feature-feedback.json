@@ -60,12 +60,15 @@
     "source_hash": "00e56551"
   },
   "web.feedback.anonymous_no_reply": {
-    "text": "注意：如果您希望得到回复，请在消息中署名或附上邮箱地址。"
+    "text": "注意：如果您希望得到回复，请在消息中署名或附上邮箱地址。",
+    "source_hash": "c984f705"
   },
   "web.feedback.characters_remaining": {
-    "text": "还剩 {count} 个字符"
+    "text": "还剩 {count} 个字符",
+    "source_hash": "8d796f40"
   },
   "web.feedback.character_limit_reached": {
-    "text": "已达到字符上限"
+    "text": "已达到字符上限",
+    "source_hash": "031e9310"
   }
 }

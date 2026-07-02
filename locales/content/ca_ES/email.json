@@ -855,39 +855,51 @@
     "source_hash": "1cd0194a"
   },
   "email.common.secret_link_label": {
-    "text": "Enllaç secret"
+    "text": "Enllaç secret",
+    "source_hash": "18ddf44f"
   },
   "email.common.automated_notice": {
-    "text": "Aquest és un missatge automatitzat de %{product_name}."
+    "text": "Aquest és un missatge automatitzat de %{product_name}.",
+    "source_hash": "8fbabfba"
   },
   "email.common.support_label": {
-    "text": "Suport"
+    "text": "Suport",
+    "source_hash": "be91940b"
   },
   "email.expiration_warning.signature": {
-    "text": "Equip de suport"
+    "text": "Equip de suport",
+    "source_hash": "dc75bf9f"
   },
   "email.expiration_warning.footer_note": {
-    "text": "Has rebut això perquè un secret que has creat a %{product_name} està a punt de caducar."
+    "text": "Has rebut això perquè un secret que has creat a %{product_name} està a punt de caducar.",
+    "source_hash": "920779e4"
   },
   "email.feedback_email.user_id_label": {
-    "text": "Usuari:"
+    "text": "Usuari:",
+    "source_hash": "93d6b3e9"
   },
   "email.feedback_email.timezone_label": {
-    "text": "Zona horària:"
+    "text": "Zona horària:",
+    "source_hash": "39651ebf"
   },
   "email.feedback_email.version_label": {
-    "text": "Versió:"
+    "text": "Versió:",
+    "source_hash": "4c5726ee"
   },
   "email.incoming_secret.footer_note": {
-    "text": "Has rebut això perquè algú ha utilitzat %{product_name} per enviar-te un secret. Si no l'esperaves, pots ignorar aquest correu electrònic amb tota tranquil·litat."
+    "text": "Has rebut això perquè algú ha utilitzat %{product_name} per enviar-te un secret. Si no l'esperaves, pots ignorar aquest correu electrònic amb tota tranquil·litat.",
+    "source_hash": "91ee6e8d"
   },
   "email.secret_link.passphrase_label": {
-    "text": "Cal una frase de contrasenya:"
+    "text": "Cal una frase de contrasenya:",
+    "source_hash": "1ab9a20f"
   },
   "email.secret_link.passphrase_required": {
-    "text": "Aquest secret està protegit amb una frase de contrasenya. El remitent te l'hauria de proporcionar per separat."
+    "text": "Aquest secret està protegit amb una frase de contrasenya. El remitent te l'hauria de proporcionar per separat.",
+    "source_hash": "1e49826b"
   },
   "email.secret_link.footer_note": {
-    "text": "Has rebut això perquè %{sender_email} ha utilitzat %{product_name} per compartir un secret amb tu. Si no l'esperaves, pots ignorar aquest correu electrònic amb tota tranquil·litat."
+    "text": "Has rebut això perquè %{sender_email} ha utilitzat %{product_name} per compartir un secret amb tu. Si no l'esperaves, pots ignorar aquest correu electrònic amb tota tranquil·litat.",
+    "source_hash": "2d544dad"
   }
 }

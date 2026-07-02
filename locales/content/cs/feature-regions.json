@@ -188,6 +188,7 @@
     "source_hash": "7a757670"
   },
   "web.regions.no_region_configured": {
-    "text": "Pro tvůj účet nejsou momentálně k dispozici žádné informace o regionu."
+    "text": "Pro tvůj účet nejsou momentálně k dispozici žádné informace o regionu.",
+    "source_hash": "bbfe2a32"
   }
 }

@@ -132,24 +132,31 @@
     "source_hash": "6f328609"
   },
   "incoming.upgrade_required_title": {
-    "text": "Upgrade richiesto"
+    "text": "Upgrade richiesto",
+    "source_hash": "16487236"
   },
   "incoming.upgrade_required_description": {
-    "text": "Questa funzionalità richiede l'upgrade del piano. Contatta il proprietario dell'account per abilitare i segreti in arrivo."
+    "text": "Questa funzionalità richiede l'upgrade del piano. Contatta il proprietario dell'account per abilitare i segreti in arrivo.",
+    "source_hash": "5df7f715"
   },
   "incoming.validation_memo_too_long": {
-    "text": "La nota deve contenere al massimo {max} caratteri"
+    "text": "La nota deve contenere al massimo {max} caratteri",
+    "source_hash": "5727f2d3"
   },
   "incoming.validation_secret_required": {
-    "text": "Il contenuto del segreto è obbligatorio"
+    "text": "Il contenuto del segreto è obbligatorio",
+    "source_hash": "699783c9"
   },
   "incoming.validation_recipient_required": {
-    "text": "Seleziona un destinatario"
+    "text": "Seleziona un destinatario",
+    "source_hash": "67bb4666"
   },
   "incoming.validation_feature_disabled": {
-    "text": "La funzionalità dei segreti in arrivo non è abilitata"
+    "text": "La funzionalità dei segreti in arrivo non è abilitata",
+    "source_hash": "0616d3f4"
   },
   "incoming.validation_form_errors": {
-    "text": "Controlla il modulo per individuare gli errori"
+    "text": "Controlla il modulo per individuare gli errori",
+    "source_hash": "9056e064"
   }
 }

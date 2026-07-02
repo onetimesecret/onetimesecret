@@ -855,39 +855,51 @@
     "source_hash": "1cd0194a"
   },
   "email.common.secret_link_label": {
-    "text": "Nachrichten-Link"
+    "text": "Nachrichten-Link",
+    "source_hash": "18ddf44f"
   },
   "email.common.automated_notice": {
-    "text": "Dies ist eine automatisierte Nachricht von %{product_name}."
+    "text": "Dies ist eine automatisierte Nachricht von %{product_name}.",
+    "source_hash": "8fbabfba"
   },
   "email.common.support_label": {
-    "text": "Support"
+    "text": "Support",
+    "source_hash": "be91940b"
   },
   "email.expiration_warning.signature": {
-    "text": "Support-Team"
+    "text": "Support-Team",
+    "source_hash": "dc75bf9f"
   },
   "email.expiration_warning.footer_note": {
-    "text": "Sie haben diese Nachricht erhalten, weil eine von Ihnen auf %{product_name} erstellte Nachricht bald abläuft."
+    "text": "Sie haben diese Nachricht erhalten, weil eine von Ihnen auf %{product_name} erstellte Nachricht bald abläuft.",
+    "source_hash": "920779e4"
   },
   "email.feedback_email.user_id_label": {
-    "text": "Benutzer:"
+    "text": "Benutzer:",
+    "source_hash": "93d6b3e9"
   },
   "email.feedback_email.timezone_label": {
-    "text": "Zeitzone:"
+    "text": "Zeitzone:",
+    "source_hash": "39651ebf"
   },
   "email.feedback_email.version_label": {
-    "text": "Version:"
+    "text": "Version:",
+    "source_hash": "4c5726ee"
   },
   "email.incoming_secret.footer_note": {
-    "text": "Sie haben diese Nachricht erhalten, weil jemand %{product_name} verwendet hat, um Ihnen eine Nachricht zu senden. Falls Sie sie nicht erwartet haben, können Sie diese E-Mail bedenkenlos ignorieren."
+    "text": "Sie haben diese Nachricht erhalten, weil jemand %{product_name} verwendet hat, um Ihnen eine Nachricht zu senden. Falls Sie sie nicht erwartet haben, können Sie diese E-Mail bedenkenlos ignorieren.",
+    "source_hash": "91ee6e8d"
   },
   "email.secret_link.passphrase_label": {
-    "text": "Sicherheitsphrase erforderlich:"
+    "text": "Sicherheitsphrase erforderlich:",
+    "source_hash": "1ab9a20f"
   },
   "email.secret_link.passphrase_required": {
-    "text": "Diese Nachricht ist mit einer Sicherheitsphrase geschützt. Der Absender sollte sie Ihnen separat mitteilen."
+    "text": "Diese Nachricht ist mit einer Sicherheitsphrase geschützt. Der Absender sollte sie Ihnen separat mitteilen.",
+    "source_hash": "1e49826b"
   },
   "email.secret_link.footer_note": {
-    "text": "Sie haben diese Nachricht erhalten, weil %{sender_email} %{product_name} verwendet hat, um eine Nachricht mit Ihnen zu teilen. Falls Sie sie nicht erwartet haben, können Sie diese E-Mail bedenkenlos ignorieren."
+    "text": "Sie haben diese Nachricht erhalten, weil %{sender_email} %{product_name} verwendet hat, um eine Nachricht mit Ihnen zu teilen. Falls Sie sie nicht erwartet haben, können Sie diese E-Mail bedenkenlos ignorieren.",
+    "source_hash": "2d544dad"
   }
 }

@@ -340,9 +340,11 @@
     "source_hash": "dc6fa4f5"
   },
   "web.footer.workspace": {
-    "text": "Wāhi Mahi"
+    "text": "Wāhi Mahi",
+    "source_hash": "87bb59ba"
   },
   "web.help.default_content": {
-    "text": "Tēnā whakapā atu ki te tautoko mō te āwhina"
+    "text": "Tēnā whakapā atu ki te tautoko mō te āwhina",
+    "source_hash": "752bca14"
   }
 }

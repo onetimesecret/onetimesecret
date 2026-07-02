@@ -24,12 +24,15 @@
     "source_hash": "ff0d904e"
   },
   "web.teams.create_first_team_title": {
-    "text": "Създайте първия си екип"
+    "text": "Създайте първия си екип",
+    "source_hash": "54693f14"
   },
   "web.teams.create_first_team_description": {
-    "text": "Екипите ви позволяват да си сътрудничите с други в споделена работна област."
+    "text": "Екипите ви позволяват да си сътрудничите с други в споделена работна област.",
+    "source_hash": "d61b86b5"
   },
   "web.teams.create_team": {
-    "text": "Създаване на екип"
+    "text": "Създаване на екип",
+    "source_hash": "284ff194"
   }
 }

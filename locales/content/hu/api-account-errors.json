@@ -1,8 +1,10 @@
 {
   "api.account.errors.invalid_email": {
-    "text": "Érvényes ez az e-mail-cím?"
+    "text": "Érvényes ez az e-mail-cím?",
+    "source_hash": "21d55b60"
   },
   "api.account.errors.password_too_short": {
-    "text": "A jelszó túl rövid"
+    "text": "A jelszó túl rövid",
+    "source_hash": "0d829600"
   }
 }

@@ -188,6 +188,7 @@
     "source_hash": "7a757670"
   },
   "web.regions.no_region_configured": {
-    "text": "현재 계정에 대한 지역 정보가 없습니다."
+    "text": "현재 계정에 대한 지역 정보가 없습니다.",
+    "source_hash": "bbfe2a32"
   }
 }

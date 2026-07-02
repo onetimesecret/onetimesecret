@@ -24,12 +24,15 @@
     "source_hash": "ff0d904e"
   },
   "web.teams.create_first_team_title": {
-    "text": "צור את הצוות הראשון שלך"
+    "text": "צור את הצוות הראשון שלך",
+    "source_hash": "54693f14"
   },
   "web.teams.create_first_team_description": {
-    "text": "צוותים מאפשרים לך לשתף פעולה עם אחרים במרחב עבודה משותף."
+    "text": "צוותים מאפשרים לך לשתף פעולה עם אחרים במרחב עבודה משותף.",
+    "source_hash": "d61b86b5"
   },
   "web.teams.create_team": {
-    "text": "צור צוות"
+    "text": "צור צוות",
+    "source_hash": "284ff194"
   }
 }

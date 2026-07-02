@@ -718,18 +718,23 @@
     "text": "用户已登录设备/浏览器管理页面"
   },
   "web.auth.google": {
-    "text": "Google"
+    "text": "Google",
+    "source_hash": "ce770667"
   },
   "web.auth.mfa.alternative_auth_options": {
-    "text": "其他身份验证方式"
+    "text": "其他身份验证方式",
+    "source_hash": "5ddea736"
   },
   "web.auth.remember.enabled": {
-    "text": "保持登录状态"
+    "text": "保持登录状态",
+    "source_hash": "b0a1ca80"
   },
   "web.auth.sessions.session_singular": {
-    "text": "会话"
+    "text": "会话",
+    "source_hash": "3f3af1ec"
   },
   "web.auth.sessions.session_plural": {
-    "text": "会话"
+    "text": "会话",
+    "source_hash": "1225ae6c"
   }
 }

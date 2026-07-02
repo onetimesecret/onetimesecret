@@ -188,6 +188,7 @@
     "source_hash": "7a757670"
   },
   "web.regions.no_region_configured": {
-    "text": "Hesabınız için şu anda bölge bilgisi mevcut değil."
+    "text": "Hesabınız için şu anda bölge bilgisi mevcut değil.",
+    "source_hash": "bbfe2a32"
   }
 }

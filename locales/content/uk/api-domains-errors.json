@@ -1,29 +1,38 @@
 {
   "api.domains.errors.domain_id_required": {
-    "text": "Потрібен ID домену"
+    "text": "Потрібен ID домену",
+    "source_hash": "6837426b"
   },
   "api.domains.errors.domain_not_found": {
-    "text": "Домен не знайдено: %{extid}"
+    "text": "Домен не знайдено: %{extid}",
+    "source_hash": "a0fd1025"
   },
   "api.domains.errors.organization_not_found": {
-    "text": "Організацію не знайдено для домену: %{domain}"
+    "text": "Організацію не знайдено для домену: %{domain}",
+    "source_hash": "632afc93"
   },
   "api.domains.errors.incoming_secrets_disabled": {
-    "text": "Вхідні таємниці не ввімкнено на цьому екземплярі"
+    "text": "Вхідні таємниці не ввімкнено на цьому екземплярі",
+    "source_hash": "45c0b5c4"
   },
   "api.domains.errors.incoming_secrets_entitlement_required": {
-    "text": "Керування вхідними таємницями потребує права incoming_secrets. Будь ласка, оновіть свій тарифний план."
+    "text": "Керування вхідними таємницями потребує права incoming_secrets. Будь ласка, оновіть свій тарифний план.",
+    "source_hash": "1af54ec2"
   },
   "api.domains.errors.incoming_config_not_found": {
-    "text": "Конфігурацію вхідних не знайдено для домену: %{extid}"
+    "text": "Конфігурацію вхідних не знайдено для домену: %{extid}",
+    "source_hash": "491644a8"
   },
   "api.domains.errors.recipients_max_exceeded": {
-    "text": "Дозволено щонайбільше %{max} одержувачів"
+    "text": "Дозволено щонайбільше %{max} одержувачів",
+    "source_hash": "159842ad"
   },
   "api.domains.errors.recipients_invalid_email": {
-    "text": "Недійсна електронна адреса: %{email}"
+    "text": "Недійсна електронна адреса: %{email}",
+    "source_hash": "e9c729c7"
   },
   "api.domains.errors.recipients_duplicate": {
-    "text": "Повторювані електронні адреси одержувачів не дозволені"
+    "text": "Повторювані електронні адреси одержувачів не дозволені",
+    "source_hash": "6de22182"
   }
 }

@@ -1,107 +1,142 @@
 {
   "api.organizations.errors.domain_scoped_forbidden": {
-    "text": "Domæneafgrænsede medlemmer kan ikke udføre denne handling"
+    "text": "Domæneafgrænsede medlemmer kan ikke udføre denne handling",
+    "source_hash": "0a06a035"
   },
   "api.organizations.errors.organization_not_found": {
-    "text": "Organisation ikke fundet: %{extid}"
+    "text": "Organisation ikke fundet: %{extid}",
+    "source_hash": "c8d058eb"
   },
   "api.organizations.errors.organization_owner_required": {
-    "text": "Kun organisationens ejer kan udføre denne handling"
+    "text": "Kun organisationens ejer kan udføre denne handling",
+    "source_hash": "5a729e94"
   },
   "api.organizations.errors.organization_member_required": {
-    "text": "Du skal være medlem af organisationen for at udføre denne handling"
+    "text": "Du skal være medlem af organisationen for at udføre denne handling",
+    "source_hash": "f66f4a60"
   },
   "api.organizations.errors.organization_admin_required": {
-    "text": "Kun organisationens ejere og administratorer kan udføre denne handling"
+    "text": "Kun organisationens ejere og administratorer kan udføre denne handling",
+    "source_hash": "cd9e8c0e"
   },
   "api.organizations.errors.extid_required": {
-    "text": "Organisations-id kræves"
+    "text": "Organisations-id kræves",
+    "source_hash": "02fbe301"
   },
   "api.organizations.errors.display_name_required": {
-    "text": "Organisationsnavn kræves"
+    "text": "Organisationsnavn kræves",
+    "source_hash": "c3f6e9af"
   },
   "api.organizations.errors.display_name_too_long": {
-    "text": "Organisationsnavnet skal være på mindre end %{max} tegn"
+    "text": "Organisationsnavnet skal være på mindre end %{max} tegn",
+    "source_hash": "5866973d"
   },
   "api.organizations.errors.description_too_long": {
-    "text": "Beskrivelsen skal være på mindre end %{max} tegn"
+    "text": "Beskrivelsen skal være på mindre end %{max} tegn",
+    "source_hash": "562b7250"
   },
   "api.organizations.errors.contact_email_exists": {
-    "text": "Der findes allerede en organisation med denne kontakt-e-mail"
+    "text": "Der findes allerede en organisation med denne kontakt-e-mail",
+    "source_hash": "e9fdce56"
   },
   "api.organizations.errors.creation_in_progress": {
-    "text": "Oprettelse af organisation er i gang. Prøv venligst igen."
+    "text": "Oprettelse af organisation er i gang. Prøv venligst igen.",
+    "source_hash": "ef68bc2d"
   },
   "api.organizations.errors.organization_limit_reached": {
-    "text": "Grænsen for organisationer er nået. Opgrader din plan for at oprette flere organisationer."
+    "text": "Grænsen for organisationer er nået. Opgrader din plan for at oprette flere organisationer.",
+    "source_hash": "69e2e61b"
   },
   "api.organizations.invitations.errors.invitation_not_found": {
-    "text": "Invitation ikke fundet"
+    "text": "Invitation ikke fundet",
+    "source_hash": "775ba9eb"
   },
   "api.organizations.invitations.errors.email_required": {
-    "text": "E-mail kræves"
+    "text": "E-mail kræves",
+    "source_hash": "aae92911"
   },
   "api.organizations.invitations.errors.invalid_email_format": {
-    "text": "Ugyldigt e-mailformat"
+    "text": "Ugyldigt e-mailformat",
+    "source_hash": "0bcecf66"
   },
   "api.organizations.invitations.errors.invalid_role": {
-    "text": "Rollen skal være medlem eller administrator"
+    "text": "Rollen skal være medlem eller administrator",
+    "source_hash": "650ea5f6"
   },
   "api.organizations.invitations.errors.cannot_invite_as_owner": {
-    "text": "Kan ikke invitere som ejer"
+    "text": "Kan ikke invitere som ejer",
+    "source_hash": "e6581025"
   },
   "api.organizations.invitations.errors.user_already_member": {
-    "text": "Brugeren er allerede medlem af denne organisation"
+    "text": "Brugeren er allerede medlem af denne organisation",
+    "source_hash": "8eb45780"
   },
   "api.organizations.invitations.errors.invitation_already_pending": {
-    "text": "Der afventer allerede en invitation til denne e-mail"
+    "text": "Der afventer allerede en invitation til denne e-mail",
+    "source_hash": "7f5e3093"
   },
   "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Grænsen for medlemmer er nået. Opgrader din plan for at invitere flere medlemmer."
+    "text": "Grænsen for medlemmer er nået. Opgrader din plan for at invitere flere medlemmer.",
+    "source_hash": "b8f316e8"
   },
   "api.organizations.invitations.errors.resend_only_pending": {
-    "text": "Kun afventende invitationer kan sendes igen"
+    "text": "Kun afventende invitationer kan sendes igen",
+    "source_hash": "b7578b3e"
   },
   "api.organizations.invitations.errors.resend_limit_reached": {
-    "text": "Den maksimale grænse for gensendelse (%{max}) er nået"
+    "text": "Den maksimale grænse for gensendelse (%{max}) er nået",
+    "source_hash": "8dc96729"
   },
   "api.organizations.invitations.errors.revoke_only_pending": {
-    "text": "Kun afventende invitationer kan tilbagekaldes"
+    "text": "Kun afventende invitationer kan tilbagekaldes",
+    "source_hash": "732b78a6"
   },
   "api.organizations.members.errors.member_not_found": {
-    "text": "Medlem ikke fundet: %{extid}"
+    "text": "Medlem ikke fundet: %{extid}",
+    "source_hash": "57654771"
   },
   "api.organizations.members.errors.member_not_in_organization": {
-    "text": "Medlem ikke fundet i denne organisation"
+    "text": "Medlem ikke fundet i denne organisation",
+    "source_hash": "dcab71ff"
   },
   "api.organizations.members.errors.member_not_active": {
-    "text": "Medlemmet er ikke aktivt"
+    "text": "Medlemmet er ikke aktivt",
+    "source_hash": "a51b8760"
   },
   "api.organizations.members.errors.invalid_role_value": {
-    "text": "Ugyldig rolle. Skal være en af: %{roles}"
+    "text": "Ugyldig rolle. Skal være en af: %{roles}",
+    "source_hash": "c3331aa0"
   },
   "api.organizations.members.errors.cannot_change_owner_role": {
-    "text": "Ejerrollen kan ikke ændres. Brug ejerskabsoverdragelse i stedet."
+    "text": "Ejerrollen kan ikke ændres. Brug ejerskabsoverdragelse i stedet.",
+    "source_hash": "76015424"
   },
   "api.organizations.members.errors.member_already_has_role": {
-    "text": "Medlemmet har allerede rollen: %{role}"
+    "text": "Medlemmet har allerede rollen: %{role}",
+    "source_hash": "6771166a"
   },
   "api.organizations.members.errors.cannot_promote_to_owner": {
-    "text": "Kan ikke forfremmes til ejer. Brug ejerskabsoverdragelse i stedet."
+    "text": "Kan ikke forfremmes til ejer. Brug ejerskabsoverdragelse i stedet.",
+    "source_hash": "cd574007"
   },
   "api.organizations.members.errors.must_be_member": {
-    "text": "Du skal være medlem af denne organisation"
+    "text": "Du skal være medlem af denne organisation",
+    "source_hash": "de1c77b8"
   },
   "api.organizations.members.errors.cannot_remove_owner": {
-    "text": "Organisationens ejer kan ikke fjernes. Overdrag ejerskabet først."
+    "text": "Organisationens ejer kan ikke fjernes. Overdrag ejerskabet først.",
+    "source_hash": "d4f33003"
   },
   "api.organizations.members.errors.cannot_remove_self": {
-    "text": "Du kan ikke fjerne dig selv. Brug forlad organisation i stedet."
+    "text": "Du kan ikke fjerne dig selv. Brug forlad organisation i stedet.",
+    "source_hash": "d64cec91"
   },
   "api.organizations.members.errors.admin_cannot_remove_admin": {
-    "text": "Administratorer kan ikke fjerne andre administratorer. Det kan kun ejere."
+    "text": "Administratorer kan ikke fjerne andre administratorer. Det kan kun ejere.",
+    "source_hash": "2b3e6e30"
   },
   "api.organizations.members.errors.no_permission_to_remove": {
-    "text": "Du har ikke tilladelse til at fjerne medlemmer"
+    "text": "Du har ikke tilladelse til at fjerne medlemmer",
+    "source_hash": "b0ac7287"
   }
 }

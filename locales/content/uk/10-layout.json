@@ -340,9 +340,11 @@
     "source_hash": "dc6fa4f5"
   },
   "web.footer.workspace": {
-    "text": "Робоча область"
+    "text": "Робоча область",
+    "source_hash": "87bb59ba"
   },
   "web.help.default_content": {
-    "text": "Будь ласка, зверніться до служби підтримки по допомогу"
+    "text": "Будь ласка, зверніться до служби підтримки по допомогу",
+    "source_hash": "752bca14"
   }
 }

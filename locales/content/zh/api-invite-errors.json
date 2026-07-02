@@ -1,23 +1,30 @@
 {
   "api.invite.errors.invitation_not_found_or_expired": {
-    "text": "邀请未找到或已过期"
+    "text": "邀请未找到或已过期",
+    "source_hash": "63657979"
   },
   "api.invite.errors.token_required": {
-    "text": "需要令牌"
+    "text": "需要令牌",
+    "source_hash": "6c718161"
   },
   "api.invite.errors.organization_no_longer_exists": {
-    "text": "组织已不存在"
+    "text": "组织已不存在",
+    "source_hash": "a5df7d22"
   },
   "api.invite.errors.invitation_already_processed": {
-    "text": "邀请已被%{status}"
+    "text": "邀请已被%{status}",
+    "source_hash": "130c87e0"
   },
   "api.invite.errors.invitation_expired": {
-    "text": "邀请已过期"
+    "text": "邀请已过期",
+    "source_hash": "7186297b"
   },
   "api.invite.errors.email_mismatch": {
-    "text": "您的邮箱地址与邀请不匹配"
+    "text": "您的邮箱地址与邀请不匹配",
+    "source_hash": "11026f46"
   },
   "api.invite.errors.already_member": {
-    "text": "您已是该组织的成员"
+    "text": "您已是该组织的成员",
+    "source_hash": "f56ad547"
   }
 }

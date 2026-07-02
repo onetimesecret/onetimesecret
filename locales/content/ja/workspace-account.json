@@ -684,12 +684,15 @@
     "source_hash": "fe3ac3ad"
   },
   "web.settings.api.api_disabled_notice": {
-    "text": "このインスタンスではAPIが無効になっています。"
+    "text": "このインスタンスではAPIが無効になっています。",
+    "source_hash": "66d12d6b"
   },
   "web.settings.security.sso_managed_title": {
-    "text": "SSOによって管理されるセキュリティ"
+    "text": "SSOによって管理されるセキュリティ",
+    "source_hash": "1f6c9472"
   },
   "web.settings.security.sso_managed_description": {
-    "text": "お使いのアカウントは、組織のシングルサインオンプロバイダーを通じて認証されます。パスワード、多要素認証、リカバリーコードはIDプロバイダーによって管理されます。"
+    "text": "お使いのアカウントは、組織のシングルサインオンプロバイダーを通じて認証されます。パスワード、多要素認証、リカバリーコードはIDプロバイダーによって管理されます。",
+    "source_hash": "cd0cf39f"
   }
 }

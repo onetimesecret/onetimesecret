@@ -580,342 +580,455 @@
     "source_hash": "a5dcfef9"
   },
   "api.organizations.errors.not_found": {
-    "text": "Organizacija ni najdena: %{extid}"
+    "text": "Organizacija ni najdena: %{extid}",
+    "source_hash": "c8d058eb"
   },
   "api.organizations.errors.owner_required": {
-    "text": "To dejanje lahko izvede samo lastnik organizacije"
+    "text": "To dejanje lahko izvede samo lastnik organizacije",
+    "source_hash": "5a729e94"
   },
   "api.organizations.errors.admin_required": {
-    "text": "To dejanje lahko izvedejo samo lastniki in skrbniki organizacije"
+    "text": "To dejanje lahko izvedejo samo lastniki in skrbniki organizacije",
+    "source_hash": "cd9e8c0e"
   },
   "api.organizations.errors.member_required": {
-    "text": "Za izvedbo tega dejanja morate biti član organizacije"
+    "text": "Za izvedbo tega dejanja morate biti član organizacije",
+    "source_hash": "f66f4a60"
   },
   "api.organizations.invitations.errors.create_admin_required": {
-    "text": "Povabila lahko ustvarjajo samo lastniki in skrbniki organizacije"
+    "text": "Povabila lahko ustvarjajo samo lastniki in skrbniki organizacije",
+    "source_hash": "777d150d"
   },
   "api.organizations.invitations.errors.resend_admin_required": {
-    "text": "Povabila lahko ponovno pošljejo samo lastniki in skrbniki organizacije"
+    "text": "Povabila lahko ponovno pošljejo samo lastniki in skrbniki organizacije",
+    "source_hash": "6a857d59"
   },
   "api.organizations.invitations.errors.view_admin_required": {
-    "text": "Povabila si lahko ogledajo samo lastniki in skrbniki organizacije"
+    "text": "Povabila si lahko ogledajo samo lastniki in skrbniki organizacije",
+    "source_hash": "42f5878b"
   },
   "api.organizations.invitations.errors.revoke_admin_required": {
-    "text": "Povabila lahko prekličejo samo lastniki in skrbniki organizacije"
+    "text": "Povabila lahko prekličejo samo lastniki in skrbniki organizacije",
+    "source_hash": "52f73c8a"
   },
   "api.organizations.invitations.errors.email_required": {
-    "text": "E-pošta je obvezna"
+    "text": "E-pošta je obvezna",
+    "source_hash": "aae92911"
   },
   "api.organizations.invitations.errors.email_invalid": {
-    "text": "Neveljavna oblika e-pošte"
+    "text": "Neveljavna oblika e-pošte",
+    "source_hash": "0bcecf66"
   },
   "api.organizations.invitations.errors.role_invalid": {
-    "text": "Vloga mora biti član ali skrbnik"
+    "text": "Vloga mora biti član ali skrbnik",
+    "source_hash": "650ea5f6"
   },
   "api.organizations.invitations.errors.cannot_invite_owner": {
-    "text": "Povabilo z vlogo lastnika ni mogoče"
+    "text": "Povabilo z vlogo lastnika ni mogoče",
+    "source_hash": "e6581025"
   },
   "api.organizations.invitations.errors.already_member": {
-    "text": "Uporabnik je že član te organizacije"
+    "text": "Uporabnik je že član te organizacije",
+    "source_hash": "8eb45780"
   },
   "api.organizations.invitations.errors.already_pending": {
-    "text": "Povabilo za ta e-poštni naslov že čaka na obravnavo"
+    "text": "Povabilo za ta e-poštni naslov že čaka na obravnavo",
+    "source_hash": "7f5e3093"
   },
   "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Dosežena je omejitev števila članov. Nadgradite paket, da povabite več članov."
+    "text": "Dosežena je omejitev števila članov. Nadgradite paket, da povabite več članov.",
+    "source_hash": "b8f316e8"
   },
   "api.organizations.invitations.errors.not_found": {
-    "text": "Povabilo ni najdeno"
+    "text": "Povabilo ni najdeno",
+    "source_hash": "775ba9eb"
   },
   "api.organizations.invitations.errors.cannot_resend_non_pending": {
-    "text": "Ponovno je mogoče poslati samo povabila, ki čakajo na obravnavo"
+    "text": "Ponovno je mogoče poslati samo povabila, ki čakajo na obravnavo",
+    "source_hash": "b7578b3e"
   },
   "api.organizations.invitations.errors.cannot_revoke_non_pending": {
-    "text": "Preklicati je mogoče samo povabila, ki čakajo na obravnavo"
+    "text": "Preklicati je mogoče samo povabila, ki čakajo na obravnavo",
+    "source_hash": "732b78a6"
   },
   "api.organizations.invitations.errors.resend_limit_reached": {
-    "text": "Dosežena je največja omejitev ponovnih pošiljanj (%{max})"
+    "text": "Dosežena je največja omejitev ponovnih pošiljanj (%{max})",
+    "source_hash": "8dc96729"
   },
   "api.organizations.invitations.errors.accept_token_required": {
-    "text": "Žeton je obvezen"
+    "text": "Žeton je obvezen",
+    "source_hash": "6c718161"
   },
   "api.organizations.invitations.errors.accept_organization_gone": {
-    "text": "Organizacija ne obstaja več"
+    "text": "Organizacija ne obstaja več",
+    "source_hash": "a5df7d22"
   },
   "api.organizations.invitations.errors.accept_already_acted": {
-    "text": "Povabilo je bilo že %{status}"
+    "text": "Povabilo je bilo že %{status}",
+    "source_hash": "130c87e0"
   },
   "api.organizations.invitations.errors.accept_expired": {
-    "text": "Povabilo je poteklo"
+    "text": "Povabilo je poteklo",
+    "source_hash": "7186297b"
   },
   "api.organizations.invitations.errors.accept_email_mismatch": {
-    "text": "Vaš e-poštni naslov se ne ujema s povabilom"
+    "text": "Vaš e-poštni naslov se ne ujema s povabilom",
+    "source_hash": "11026f46"
   },
   "api.organizations.invitations.errors.accept_already_member": {
-    "text": "Ste že član te organizacije"
+    "text": "Ste že član te organizacije",
+    "source_hash": "f56ad547"
   },
   "web.organizations.entitlements_title": {
-    "text": "Upravičenja organizacije"
+    "text": "Upravičenja organizacije",
+    "source_hash": "36054d4f"
   },
   "web.organizations.page_description_short": {
-    "text": "Ogled in konfiguracija vaših delovnih prostorov"
+    "text": "Ogled in konfiguracija vaših delovnih prostorov",
+    "source_hash": "524fcb9a"
   },
   "web.organizations.delete_organization_remove_domains_first": {
-    "text": "Pred izbrisom te organizacije odstranite vse domene po meri."
+    "text": "Pred izbrisom te organizacije odstranite vse domene po meri.",
+    "source_hash": "44678715"
   },
   "web.organizations.default_org_delete_notice_title": {
-    "text": "Brisanje te organizacije"
+    "text": "Brisanje te organizacije",
+    "source_hash": "9191d915"
   },
   "web.organizations.default_org_delete_notice_before": {
-    "text": "To je vaša privzeta organizacija in je ni mogoče odstraniti z nadzorne plošče. Če jo želite izbrisati, se obrnite prek"
+    "text": "To je vaša privzeta organizacija in je ni mogoče odstraniti z nadzorne plošče. Če jo želite izbrisati, se obrnite prek",
+    "source_hash": "e203607d"
   },
   "web.organizations.default_org_delete_notice_link": {
-    "text": "obrazca za povratne informacije"
+    "text": "obrazca za povratne informacije",
+    "source_hash": "94645a9e"
   },
   "web.organizations.default_org_delete_notice_after": {
-    "text": "."
+    "text": ".",
+    "source_hash": "cdb4ee2a"
   },
   "web.organizations.leave_organization": {
-    "text": "Zapusti to organizacijo"
+    "text": "Zapusti to organizacijo",
+    "source_hash": "d534cff9"
   },
   "web.organizations.leave_organization_warning": {
-    "text": "Izgubili boste dostop do te organizacije in njenih virov."
+    "text": "Izgubili boste dostop do te organizacije in njenih virov.",
+    "source_hash": "e9daab07"
   },
   "web.organizations.leave_organization_confirm_title": {
-    "text": "Zapusti organizacijo"
+    "text": "Zapusti organizacijo",
+    "source_hash": "ec8314da"
   },
   "web.organizations.leave_organization_confirm_message": {
-    "text": "Ali ste prepričani, da želite zapustiti {name}? Za ponovno pridružitev boste potrebovali novo povabilo."
+    "text": "Ali ste prepričani, da želite zapustiti {name}? Za ponovno pridružitev boste potrebovali novo povabilo.",
+    "source_hash": "e21c5fec"
   },
   "web.organizations.leave_organization_success": {
-    "text": "Zapustili ste organizacijo."
+    "text": "Zapustili ste organizacijo.",
+    "source_hash": "fc803eb3"
   },
   "web.organizations.leave_error": {
-    "text": "Organizacije ni bilo mogoče zapustiti"
+    "text": "Organizacije ni bilo mogoče zapustiti",
+    "source_hash": "6cb6af43"
   },
   "web.organizations.organizations": {
-    "text": "Organizacije"
+    "text": "Organizacije",
+    "source_hash": "2730183d"
   },
   "web.organizations.invitations.invited_by_inline": {
-    "text": "od {email}"
+    "text": "od {email}",
+    "source_hash": "969a7050"
   },
   "web.organizations.invitations.invited_as_inline": {
-    "text": "kot {role}"
+    "text": "kot {role}",
+    "source_hash": "ff9e9b18"
   },
   "web.organizations.invitations.back_to_home": {
-    "text": "Nazaj na domačo stran"
+    "text": "Nazaj na domačo stran",
+    "source_hash": "76c5505f"
   },
   "web.organizations.invitations.email_locked_hint": {
-    "text": "To povabilo je bilo poslano na ta e-poštni naslov"
+    "text": "To povabilo je bilo poslano na ta e-poštni naslov",
+    "source_hash": "2cff7075"
   },
   "web.organizations.invitations.signup_continue": {
-    "text": "Nadaljuj"
+    "text": "Nadaljuj",
+    "source_hash": "31fbef16"
   },
   "web.organizations.invitations.signin_continue": {
-    "text": "Prijava"
+    "text": "Prijava",
+    "source_hash": "bcc0bcc9"
   },
   "web.organizations.invitations.confirm_join_below": {
-    "text": "Skoraj končano — spodaj potrdite, da se pridružite organizaciji."
+    "text": "Skoraj končano — spodaj potrdite, da se pridružite organizaciji.",
+    "source_hash": "2d14f9b0"
   },
   "web.organizations.invitations.go_to_organizations": {
-    "text": "Pojdi na Organizacije"
+    "text": "Pojdi na Organizacije",
+    "source_hash": "2afa38a3"
   },
   "web.organizations.invitations.already_member": {
-    "text": "Ste že član te organizacije"
+    "text": "Ste že član te organizacije",
+    "source_hash": "f56ad547"
   },
   "web.organizations.invitations.join_organization": {
-    "text": "Pridruži se {orgName}"
+    "text": "Pridruži se {orgName}",
+    "source_hash": "1aea9194"
   },
   "web.organizations.invitations.sign_in_to_join": {
-    "text": "Prijavite se, da se pridružite {orgName}"
+    "text": "Prijavite se, da se pridružite {orgName}",
+    "source_hash": "f94ed8b4"
   },
   "web.organizations.invitations.decline": {
-    "text": "Zavrni"
+    "text": "Zavrni",
+    "source_hash": "a2d285b3"
   },
   "web.organizations.members.member_quota": {
-    "text": "{used} od {limit} članov"
+    "text": "{used} od {limit} članov",
+    "source_hash": "51183b79"
   },
   "web.organizations.members.pending_suffix": {
-    "text": "({count} v obravnavi)"
+    "text": "({count} v obravnavi)",
+    "source_hash": "c13f787f"
   },
   "web.organizations.members.limit_reached_hint": {
-    "text": "Dosežena je omejitev števila članov."
+    "text": "Dosežena je omejitev števila članov.",
+    "source_hash": "26cdb6b8"
   },
   "web.organizations.sso.title": {
-    "text": "Enotna prijava (SSO)"
+    "text": "Enotna prijava (SSO)",
+    "source_hash": "5db5c812"
   },
   "web.organizations.sso.description": {
-    "text": "Konfigurirajte SSO, da članom omogočite prijavo prek ponudnika identitete vaše organizacije"
+    "text": "Konfigurirajte SSO, da članom omogočite prijavo prek ponudnika identitete vaše organizacije",
+    "source_hash": "464f0a8b"
   },
   "web.organizations.sso.provider_type": {
-    "text": "Vrsta ponudnika"
+    "text": "Vrsta ponudnika",
+    "source_hash": "bdfbb1ec"
   },
   "web.organizations.sso.provider_type_description": {
-    "text": "Izberite ponudnika identitete vaše organizacije"
+    "text": "Izberite ponudnika identitete vaše organizacije",
+    "source_hash": "e81325a6"
   },
   "web.organizations.sso.display_name": {
-    "text": "Prikazno ime"
+    "text": "Prikazno ime",
+    "source_hash": "18d67c99"
   },
   "web.organizations.sso.display_name_hint": {
-    "text": "Prijazno ime, prikazano uporabnikom ob prijavi"
+    "text": "Prijazno ime, prikazano uporabnikom ob prijavi",
+    "source_hash": "a83f1fba"
   },
   "web.organizations.sso.display_name_placeholder": {
-    "text": "npr. Acme Corp SSO"
+    "text": "npr. Acme Corp SSO",
+    "source_hash": "43c655c5"
   },
   "web.organizations.sso.client_id": {
-    "text": "ID odjemalca"
+    "text": "ID odjemalca",
+    "source_hash": "8726db01"
   },
   "web.organizations.sso.client_id_placeholder": {
-    "text": "Vaš ID odjemalca OAuth"
+    "text": "Vaš ID odjemalca OAuth",
+    "source_hash": "830723da"
   },
   "web.organizations.sso.client_secret": {
-    "text": "Skrivni ključ odjemalca"
+    "text": "Skrivni ključ odjemalca",
+    "source_hash": "ae21cf6d"
   },
   "web.organizations.sso.client_secret_placeholder": {
-    "text": "Vaš skrivni ključ odjemalca OAuth"
+    "text": "Vaš skrivni ključ odjemalca OAuth",
+    "source_hash": "14e4a8c8"
   },
   "web.organizations.sso.client_secret_update_hint": {
-    "text": "Pustite prazno, da obdržite obstoječi skrivni ključ"
+    "text": "Pustite prazno, da obdržite obstoječi skrivni ključ",
+    "source_hash": "98bc3b40"
   },
   "web.organizations.sso.tenant_id": {
-    "text": "ID najemnika"
+    "text": "ID najemnika",
+    "source_hash": "de1f5fff"
   },
   "web.organizations.sso.tenant_id_hint": {
-    "text": "Identifikator najemnika Azure AD / Entra ID"
+    "text": "Identifikator najemnika Azure AD / Entra ID",
+    "source_hash": "3c5b707a"
   },
   "web.organizations.sso.tenant_id_placeholder": {
-    "text": "npr. 12345678-1234-1234-1234-123456789abc"
+    "text": "npr. 12345678-1234-1234-1234-123456789abc",
+    "source_hash": "1a166316"
   },
   "web.organizations.sso.issuer": {
-    "text": "Issuer URL"
+    "text": "Issuer URL",
+    "source_hash": "4d03ba8a"
   },
   "web.organizations.sso.issuer_hint": {
-    "text": "Odkrivni URL OIDC za vašega ponudnika identitete"
+    "text": "Odkrivni URL OIDC za vašega ponudnika identitete",
+    "source_hash": "6102d81b"
   },
   "web.organizations.sso.issuer_placeholder": {
-    "text": "npr. https://login.example.com"
+    "text": "npr. https://login.example.com",
+    "source_hash": "9a638e9c"
   },
   "web.organizations.sso.view_discovery_document": {
-    "text": "Ogled odkrivnega dokumenta"
+    "text": "Ogled odkrivnega dokumenta",
+    "source_hash": "513bda60"
   },
   "web.organizations.sso.callback_url": {
-    "text": "Callback URL"
+    "text": "Callback URL",
+    "source_hash": "dc297ae9"
   },
   "web.organizations.sso.callback_url_hint": {
-    "text": "Dodajte ta URL med dovoljene preusmeritvene URI-je vašega ponudnika identitete"
+    "text": "Dodajte ta URL med dovoljene preusmeritvene URI-je vašega ponudnika identitete",
+    "source_hash": "65d55683"
   },
   "web.organizations.sso.allowed_domains": {
-    "text": "Dovoljene e-poštne domene"
+    "text": "Dovoljene e-poštne domene",
+    "source_hash": "0295ad71"
   },
   "web.organizations.sso.allowed_domains_hint": {
-    "text": "Prijavijo se lahko samo uporabniki z e-poštnimi naslovi s teh domen. Pustite prazno, da dovolite vse domene."
+    "text": "Prijavijo se lahko samo uporabniki z e-poštnimi naslovi s teh domen. Pustite prazno, da dovolite vse domene.",
+    "source_hash": "1775e874"
   },
   "web.organizations.sso.domain_placeholder": {
-    "text": "npr. acme.com"
+    "text": "npr. acme.com",
+    "source_hash": "e4420764"
   },
   "web.organizations.sso.invalid_domain": {
-    "text": "Vnesite veljavno domeno (npr. example.com)"
+    "text": "Vnesite veljavno domeno (npr. example.com)",
+    "source_hash": "16807983"
   },
   "web.organizations.sso.domain_exists": {
-    "text": "Ta domena je že na seznamu"
+    "text": "Ta domena je že na seznamu",
+    "source_hash": "3fccb721"
   },
   "web.organizations.sso.remove_domain": {
-    "text": "Odstrani {domain}"
+    "text": "Odstrani {domain}",
+    "source_hash": "ae708a1d"
   },
   "web.organizations.sso.enabled": {
-    "text": "Omogoči SSO"
+    "text": "Omogoči SSO",
+    "source_hash": "d10d0801"
   },
   "web.organizations.sso.enabled_hint": {
-    "text": "Ko je omogočeno, se lahko člani organizacije prijavijo s tem ponudnikom SSO"
+    "text": "Ko je omogočeno, se lahko člani organizacije prijavijo s tem ponudnikom SSO",
+    "source_hash": "d7da2fa2"
   },
   "web.organizations.sso.enforce_sso_only": {
-    "text": "Vsili samo SSO"
+    "text": "Vsili samo SSO",
+    "source_hash": "b3a3f694"
   },
   "web.organizations.sso.enforce_sso_only_hint": {
-    "text": "Zahtevajte SSO za vse prijave na tej domeni. Ko je omogočeno, je avtentikacija z geslom onemogočena."
+    "text": "Zahtevajte SSO za vse prijave na tej domeni. Ko je omogočeno, je avtentikacija z geslom onemogočena.",
+    "source_hash": "19432210"
   },
   "web.organizations.sso.grant_org_scope": {
-    "text": "Dodeli dostop za celotno organizacijo"
+    "text": "Dodeli dostop za celotno organizacijo",
+    "source_hash": "2070cef2"
   },
   "web.organizations.sso.grant_org_scope_hint": {
-    "text": "Novi člani, ki se pridružijo prek SSO te domene, bodo dobili dostop do vseh domen organizacije. To ne vpliva na obstoječe člane. Ko je onemogočeno (privzeto), lahko novi člani dostopajo samo do te domene."
+    "text": "Novi člani, ki se pridružijo prek SSO te domene, bodo dobili dostop do vseh domen organizacije. To ne vpliva na obstoječe člane. Ko je onemogočeno (privzeto), lahko novi člani dostopajo samo do te domene.",
+    "source_hash": "2ac9f345"
   },
   "web.organizations.sso.save_config": {
-    "text": "Shrani konfiguracijo SSO"
+    "text": "Shrani konfiguracijo SSO",
+    "source_hash": "70853769"
   },
   "web.organizations.sso.delete_config": {
-    "text": "Izbriši konfiguracijo"
+    "text": "Izbriši konfiguracijo",
+    "source_hash": "9ac1ac7b"
   },
   "web.organizations.sso.delete_confirm": {
-    "text": "Ali ste prepričani? S tem boste onemogočili SSO za svojo organizacijo."
+    "text": "Ali ste prepričani? S tem boste onemogočili SSO za svojo organizacijo.",
+    "source_hash": "5b3f5b9d"
   },
   "web.organizations.sso.load_error": {
-    "text": "Konfiguracije SSO ni bilo mogoče naložiti"
+    "text": "Konfiguracije SSO ni bilo mogoče naložiti",
+    "source_hash": "75cb73f6"
   },
   "web.organizations.sso.save_error": {
-    "text": "Konfiguracije SSO ni bilo mogoče shraniti"
+    "text": "Konfiguracije SSO ni bilo mogoče shraniti",
+    "source_hash": "99ef145b"
   },
   "web.organizations.sso.create_success": {
-    "text": "Konfiguracija SSO je bila uspešno ustvarjena"
+    "text": "Konfiguracija SSO je bila uspešno ustvarjena",
+    "source_hash": "531c7d92"
   },
   "web.organizations.sso.update_success": {
-    "text": "Konfiguracija SSO je bila uspešno posodobljena"
+    "text": "Konfiguracija SSO je bila uspešno posodobljena",
+    "source_hash": "d98d8e83"
   },
   "web.organizations.sso.delete_success": {
-    "text": "Konfiguracija SSO je bila uspešno izbrisana"
+    "text": "Konfiguracija SSO je bila uspešno izbrisana",
+    "source_hash": "55f5d4f5"
   },
   "web.organizations.sso.delete_error": {
-    "text": "Konfiguracije SSO ni bilo mogoče izbrisati"
+    "text": "Konfiguracije SSO ni bilo mogoče izbrisati",
+    "source_hash": "4a960fe4"
   },
   "web.organizations.sso.test_connection": {
-    "text": "Preizkusi povezavo"
+    "text": "Preizkusi povezavo",
+    "source_hash": "c02977b0"
   },
   "web.organizations.sso.test_connection_hint": {
-    "text": "Preverite, ali je ponudnik identitete dosegljiv (ne preverja poverilnic)"
+    "text": "Preverite, ali je ponudnik identitete dosegljiv (ne preverja poverilnic)",
+    "source_hash": "22a23b68"
   },
   "web.organizations.sso.test_button": {
-    "text": "Preizkusi povezavo"
+    "text": "Preizkusi povezavo",
+    "source_hash": "c02977b0"
   },
   "web.organizations.sso.testing": {
-    "text": "Preizkušanje ..."
+    "text": "Preizkušanje ...",
+    "source_hash": "6c02a284"
   },
   "web.organizations.sso.test_error": {
-    "text": "Povezave ni bilo mogoče preizkusiti"
+    "text": "Povezave ni bilo mogoče preizkusiti",
+    "source_hash": "c1d1f310"
   },
   "web.organizations.sso.auth_endpoint": {
-    "text": "Authorization Endpoint"
+    "text": "Authorization Endpoint",
+    "source_hash": "b42b956f"
   },
   "web.organizations.sso.missing_fields": {
-    "text": "Manjkajoča polja"
+    "text": "Manjkajoča polja",
+    "source_hash": "757df777"
   },
   "web.organizations.sso.status_enabled": {
-    "text": "Omogočeno"
+    "text": "Omogočeno",
+    "source_hash": "92c1cdfd"
   },
   "web.organizations.sso.status_configured": {
-    "text": "Konfigurirano"
+    "text": "Konfigurirano",
+    "source_hash": "84aebc69"
   },
   "web.organizations.sso.domain_sso_title": {
-    "text": "SSO domene"
+    "text": "SSO domene",
+    "source_hash": "13161464"
   },
   "web.organizations.sso.domain_sso_description": {
-    "text": "Konfigurirajte SSO za vsako preverjeno domeno"
+    "text": "Konfigurirajte SSO za vsako preverjeno domeno",
+    "source_hash": "af5b799e"
   },
   "web.organizations.sso.provider_type_locked_hint": {
-    "text": "Če želite zamenjati ponudnika, najprej izbrišite to konfiguracijo"
+    "text": "Če želite zamenjati ponudnika, najprej izbrišite to konfiguracijo",
+    "source_hash": "0a1027ff"
   },
   "web.organizations.sso.status_not_configured": {
-    "text": "Ni konfigurirano"
+    "text": "Ni konfigurirano",
+    "source_hash": "bbea960e"
   },
   "web.organizations.sso.no_domains": {
-    "text": "Ni preverjenih domen"
+    "text": "Ni preverjenih domen",
+    "source_hash": "8a7fbb76"
   },
   "web.organizations.sso.no_domains_description": {
-    "text": "Pred konfiguracijo SSO dodajte in preverite domeno."
+    "text": "Pred konfiguracijo SSO dodajte in preverite domeno.",
+    "source_hash": "e825d13a"
   },
   "web.organizations.tabs.team": {
-    "text": "Ekipa"
+    "text": "Ekipa",
+    "source_hash": "5985039f"
   },
   "web.organizations.tabs.sso": {
-    "text": "SSO"
+    "text": "SSO",
+    "source_hash": "5ba3ac9f"
   }
 }

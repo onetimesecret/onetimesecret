@@ -1,8 +1,10 @@
 {
   "api.account.errors.invalid_email": {
-    "text": "Ist das eine gültige E-Mail-Adresse?"
+    "text": "Ist das eine gültige E-Mail-Adresse?",
+    "source_hash": "21d55b60"
   },
   "api.account.errors.password_too_short": {
-    "text": "Das Passwort ist zu kurz"
+    "text": "Das Passwort ist zu kurz",
+    "source_hash": "0d829600"
   }
 }

@@ -718,18 +718,23 @@
     "text": "Administra paĝo por ensalutitaj aparatoj/folumiloj de uzanto"
   },
   "web.auth.google": {
-    "text": "Google"
+    "text": "Google",
+    "source_hash": "ce770667"
   },
   "web.auth.mfa.alternative_auth_options": {
-    "text": "Alternativaj aŭtentikigaj opcioj"
+    "text": "Alternativaj aŭtentikigaj opcioj",
+    "source_hash": "5ddea736"
   },
   "web.auth.remember.enabled": {
-    "text": "Resti ensalutinta"
+    "text": "Resti ensalutinta",
+    "source_hash": "b0a1ca80"
   },
   "web.auth.sessions.session_singular": {
-    "text": "seanco"
+    "text": "seanco",
+    "source_hash": "3f3af1ec"
   },
   "web.auth.sessions.session_plural": {
-    "text": "seancoj"
+    "text": "seancoj",
+    "source_hash": "1225ae6c"
   }
 }

@@ -400,30 +400,39 @@
     "text": "サインアップ後のメール認証フロー"
   },
   "web.auth.account.sso_linked": {
-    "text": "SSOアカウント"
+    "text": "SSOアカウント",
+    "source_hash": "b8f4c728"
   },
   "web.help.reset_password_link": {
-    "text": "パスワードをリセット"
+    "text": "パスワードをリセット",
+    "source_hash": "e0edfeb3"
   },
   "web.login.custom_domain_sso_title": {
-    "text": "このドメインではシングルサインオンを利用できます"
+    "text": "このドメインではシングルサインオンを利用できます",
+    "source_hash": "af87d51e"
   },
   "web.login.custom_domain_sso_description": {
-    "text": "組織の管理者がSSOを有効にすると、チームメンバーはここからログインできるようになります。アクセスについては管理者にお問い合わせください。"
+    "text": "組織の管理者がSSOを有効にすると、チームメンバーはここからログインできるようになります。アクセスについては管理者にお問い合わせください。",
+    "source_hash": "f3726509"
   },
   "web.login.signin_disabled_heading": {
-    "text": "ログインは利用できません"
+    "text": "ログインは利用できません",
+    "source_hash": "6b435c76"
   },
   "web.login.signin_disabled_message": {
-    "text": "このドメインでは現在ログインを利用できません。"
+    "text": "このドメインでは現在ログインを利用できません。",
+    "source_hash": "b681c35d"
   },
   "web.login.errors.sso_not_configured": {
-    "text": "このドメインではシングルサインオンが設定されていません。管理者にお問い合わせください。"
+    "text": "このドメインではシングルサインオンが設定されていません。管理者にお問い合わせください。",
+    "source_hash": "b39ef93e"
   },
   "web.login.errors.invalid_email": {
-    "text": "IDプロバイダーから取得したメールアドレスが無効です。管理者にお問い合わせください。"
+    "text": "IDプロバイダーから取得したメールアドレスが無効です。管理者にお問い合わせください。",
+    "source_hash": "10c12029"
   },
   "web.login.errors.domain_not_allowed": {
-    "text": "お使いのメールドメインはSSO登録の対象として許可されていません。管理者にお問い合わせください。"
+    "text": "お使いのメールドメインはSSO登録の対象として許可されていません。管理者にお問い合わせください。",
+    "source_hash": "87603782"
   }
 }

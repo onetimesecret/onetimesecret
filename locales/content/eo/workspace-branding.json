@@ -180,9 +180,11 @@
     "source_hash": "9077bf79"
   },
   "web.branding.saved_successfully": {
-    "text": "Markaj agordoj sukcese konservitaj"
+    "text": "Markaj agordoj sukcese konservitaj",
+    "source_hash": "9960c252"
   },
   "web.branding.keyhole_logo_icon": {
-    "text": "Ŝlosiltrua piktogramo reprezentanta sekuran, privatan kunhavigon"
+    "text": "Ŝlosiltrua piktogramo reprezentanta sekuran, privatan kunhavigon",
+    "source_hash": "c868ac60"
   }
 }

@@ -188,6 +188,7 @@
     "source_hash": "7a757670"
   },
   "web.regions.no_region_configured": {
-    "text": "Neniu regiona informo estas nuntempe disponebla por via konto."
+    "text": "Neniu regiona informo estas nuntempe disponebla por via konto.",
+    "source_hash": "bbfe2a32"
   }
 }

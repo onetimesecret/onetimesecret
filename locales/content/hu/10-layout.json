@@ -340,9 +340,11 @@
     "source_hash": "dc6fa4f5"
   },
   "web.footer.workspace": {
-    "text": "Munkaterület"
+    "text": "Munkaterület",
+    "source_hash": "87bb59ba"
   },
   "web.help.default_content": {
-    "text": "Segítségért kérjük, vegye fel a kapcsolatot az ügyfélszolgálattal"
+    "text": "Segítségért kérjük, vegye fel a kapcsolatot az ügyfélszolgálattal",
+    "source_hash": "752bca14"
   }
 }

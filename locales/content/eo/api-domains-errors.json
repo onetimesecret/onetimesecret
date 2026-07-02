@@ -1,29 +1,38 @@
 {
   "api.domains.errors.domain_id_required": {
-    "text": "Domajna ID necesas"
+    "text": "Domajna ID necesas",
+    "source_hash": "6837426b"
   },
   "api.domains.errors.domain_not_found": {
-    "text": "Domajno ne trovita: %{extid}"
+    "text": "Domajno ne trovita: %{extid}",
+    "source_hash": "a0fd1025"
   },
   "api.domains.errors.organization_not_found": {
-    "text": "Organizo ne trovita por domajno: %{domain}"
+    "text": "Organizo ne trovita por domajno: %{domain}",
+    "source_hash": "632afc93"
   },
   "api.domains.errors.incoming_secrets_disabled": {
-    "text": "Envenantaj sekretoj ne estas ebligitaj sur ĉi tiu instanco"
+    "text": "Envenantaj sekretoj ne estas ebligitaj sur ĉi tiu instanco",
+    "source_hash": "45c0b5c4"
   },
   "api.domains.errors.incoming_secrets_entitlement_required": {
-    "text": "Administrado de envenantaj sekretoj postulas la rajtigon incoming_secrets. Bonvolu altniveligi vian planon."
+    "text": "Administrado de envenantaj sekretoj postulas la rajtigon incoming_secrets. Bonvolu altniveligi vian planon.",
+    "source_hash": "1af54ec2"
   },
   "api.domains.errors.incoming_config_not_found": {
-    "text": "Envenanta agordo ne trovita por domajno: %{extid}"
+    "text": "Envenanta agordo ne trovita por domajno: %{extid}",
+    "source_hash": "491644a8"
   },
   "api.domains.errors.recipients_max_exceeded": {
-    "text": "Maksimume %{max} ricevantoj permesataj"
+    "text": "Maksimume %{max} ricevantoj permesataj",
+    "source_hash": "159842ad"
   },
   "api.domains.errors.recipients_invalid_email": {
-    "text": "Nevalida retpoŝtadreso: %{email}"
+    "text": "Nevalida retpoŝtadreso: %{email}",
+    "source_hash": "e9c729c7"
   },
   "api.domains.errors.recipients_duplicate": {
-    "text": "Duobligitaj retpoŝtadresoj de ricevantoj ne permesataj"
+    "text": "Duobligitaj retpoŝtadresoj de ricevantoj ne permesataj",
+    "source_hash": "6de22182"
   }
 }

@@ -1,5 +1,6 @@
 {
   "api.incoming.errors.custom_domain_unresolved": {
-    "text": "Organizacije lastne domene ni bilo mogoče razrešiti"
+    "text": "Organizacije lastne domene ni bilo mogoče razrešiti",
+    "source_hash": "b30d65d2"
   }
 }

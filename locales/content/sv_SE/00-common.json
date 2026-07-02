@@ -1385,108 +1385,143 @@
     "source_hash": "783f174c"
   },
   "api.errors.authentication_required": {
-    "text": "Autentisering krävs"
+    "text": "Autentisering krävs",
+    "source_hash": "0fcfb12d"
   },
   "api.errors.sso_only_action_blocked": {
-    "text": "Den här åtgärden är inte tillgänglig i läget med endast SSO"
+    "text": "Den här åtgärden är inte tillgänglig i läget med endast SSO",
+    "source_hash": "9bc26394"
   },
   "web.COMMON.configure": {
-    "text": "Konfigurera"
+    "text": "Konfigurera",
+    "source_hash": "6defafa2"
   },
   "web.COMMON.copy_to_clipboard": {
-    "text": "Kopiera till urklipp"
+    "text": "Kopiera till urklipp",
+    "source_hash": "b749e205"
   },
   "web.COMMON.add": {
-    "text": "Lägg till"
+    "text": "Lägg till",
+    "source_hash": "9fd728c6"
   },
   "web.COMMON.enabled": {
-    "text": "Aktiverad"
+    "text": "Aktiverad",
+    "source_hash": "92c1cdfd"
   },
   "web.COMMON.disabled": {
-    "text": "Inaktiverad"
+    "text": "Inaktiverad",
+    "source_hash": "75081b59"
   },
   "web.COMMON.yes_delete": {
-    "text": "Ja, ta bort"
+    "text": "Ja, ta bort",
+    "source_hash": "7b05a8e3"
   },
   "web.COMMON.error_code": {
-    "text": "Felkod"
+    "text": "Felkod",
+    "source_hash": "46832415"
   },
   "web.COMMON.http_status": {
-    "text": "HTTP-status"
+    "text": "HTTP-status",
+    "source_hash": "b2a629f2"
   },
   "web.COMMON.details": {
-    "text": "Detaljer"
+    "text": "Detaljer",
+    "source_hash": "45989de4"
   },
   "web.COMMON.field_confirm_password": {
-    "text": "Bekräfta lösenord"
+    "text": "Bekräfta lösenord",
+    "source_hash": "c292210c"
   },
   "web.COMMON.passwords_must_match": {
-    "text": "Lösenorden måste matcha"
+    "text": "Lösenorden måste matcha",
+    "source_hash": "0c060bd4"
   },
   "web.COMMON.and": {
-    "text": "och"
+    "text": "och",
+    "source_hash": "6201111b"
   },
   "web.COMMON.or": {
-    "text": "eller"
+    "text": "eller",
+    "source_hash": "7175517a"
   },
   "web.COMMON.copied": {
-    "text": "Kopierad"
+    "text": "Kopierad",
+    "source_hash": "8d525e5f"
   },
   "web.COMMON.copy": {
-    "text": "Kopiera"
+    "text": "Kopiera",
+    "source_hash": "e21f935f"
   },
   "web.COMMON.copy_email": {
-    "text": "Kopiera e-postadress"
+    "text": "Kopiera e-postadress",
+    "source_hash": "61b94846"
   },
   "web.COMMON.copy_id": {
-    "text": "Kopiera konto-ID"
+    "text": "Kopiera konto-ID",
+    "source_hash": "fd493ffd"
   },
   "web.COMMON.org_id_tooltip": {
-    "text": "Din organisations unika identifierare"
+    "text": "Din organisations unika identifierare",
+    "source_hash": "c8c08d29"
   },
   "web.COMMON.success": {
-    "text": "Lyckades"
+    "text": "Lyckades",
+    "source_hash": "c88a0b90"
   },
   "web.COMMON.need_help": {
-    "text": "Behöver du hjälp"
+    "text": "Behöver du hjälp",
+    "source_hash": "4ca0ca38"
   },
   "web.COMMON.open_help_dialog": {
-    "text": "Öppna hjälpdialogruta"
+    "text": "Öppna hjälpdialogruta",
+    "source_hash": "55cd1515"
   },
   "web.COMMON.focus_is_now_in_the_main_text_area": {
-    "text": "Fokus är nu i huvudtextområdet"
+    "text": "Fokus är nu i huvudtextområdet",
+    "source_hash": "e00dd260"
   },
   "web.LABELS.show_passphrase": {
-    "text": "Visa lösenfras"
+    "text": "Visa lösenfras",
+    "source_hash": "76880d38"
   },
   "web.LABELS.hide_passphrase": {
-    "text": "Dölj lösenfras"
+    "text": "Dölj lösenfras",
+    "source_hash": "8ecdc98c"
   },
   "web.LABELS.copy_icon": {
-    "text": "Kopiera-ikon"
+    "text": "Kopiera-ikon",
+    "source_hash": "d1a5fc0c"
   },
   "web.LABELS.copied_icon": {
-    "text": "Kopierad-ikon"
+    "text": "Kopierad-ikon",
+    "source_hash": "90a4b4f1"
   },
   "web.STATUS.unverified": {
-    "text": "Overifierad"
+    "text": "Overifierad",
+    "source_hash": "33c8e8de"
   },
   "web.TITLES.domain_detail": {
-    "text": "Domäninställningar"
+    "text": "Domäninställningar",
+    "source_hash": "e24f338d"
   },
   "web.TITLES.domain_signin": {
-    "text": "Inloggningskonfiguration"
+    "text": "Inloggningskonfiguration",
+    "source_hash": "2da38c03"
   },
   "web.TITLES.domain_sso": {
-    "text": "Domän-SSO"
+    "text": "Domän-SSO",
+    "source_hash": "13161464"
   },
   "web.TITLES.domain_signup": {
-    "text": "Validering av domänregistrering"
+    "text": "Validering av domänregistrering",
+    "source_hash": "c8ce809a"
   },
   "web.TITLES.domain_email": {
-    "text": "E-postkonfiguration"
+    "text": "E-postkonfiguration",
+    "source_hash": "6f38aa51"
   },
   "web.TITLES.domain_incoming": {
-    "text": "Inkommande hemligheter"
+    "text": "Inkommande hemligheter",
+    "source_hash": "883dbca9"
   }
 }

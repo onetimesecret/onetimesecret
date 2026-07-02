@@ -60,12 +60,15 @@
     "source_hash": "00e56551"
   },
   "web.feedback.anonymous_no_reply": {
-    "text": "注意: 返信をご希望の場合は、メッセージに署名するか、メールアドレスを記載してください。"
+    "text": "注意: 返信をご希望の場合は、メッセージに署名するか、メールアドレスを記載してください。",
+    "source_hash": "c984f705"
   },
   "web.feedback.characters_remaining": {
-    "text": "残り{count}文字"
+    "text": "残り{count}文字",
+    "source_hash": "8d796f40"
   },
   "web.feedback.character_limit_reached": {
-    "text": "文字数の上限に達しました"
+    "text": "文字数の上限に達しました",
+    "source_hash": "031e9310"
   }
 }

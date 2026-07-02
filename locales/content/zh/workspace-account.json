@@ -684,12 +684,15 @@
     "source_hash": "fe3ac3ad"
   },
   "web.settings.api.api_disabled_notice": {
-    "text": "此实例已禁用 API。"
+    "text": "此实例已禁用 API。",
+    "source_hash": "66d12d6b"
   },
   "web.settings.security.sso_managed_title": {
-    "text": "安全设置由 SSO 管理"
+    "text": "安全设置由 SSO 管理",
+    "source_hash": "1f6c9472"
   },
   "web.settings.security.sso_managed_description": {
-    "text": "您的账户通过组织的单点登录提供商进行身份验证。密码、多重身份验证和恢复代码由您的身份提供商管理。"
+    "text": "您的账户通过组织的单点登录提供商进行身份验证。密码、多重身份验证和恢复代码由您的身份提供商管理。",
+    "source_hash": "cd0cf39f"
   }
 }

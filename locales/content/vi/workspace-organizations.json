@@ -580,342 +580,455 @@
     "source_hash": "a5dcfef9"
   },
   "api.organizations.errors.not_found": {
-    "text": "Không tìm thấy tổ chức: %{extid}"
+    "text": "Không tìm thấy tổ chức: %{extid}",
+    "source_hash": "c8d058eb"
   },
   "api.organizations.errors.owner_required": {
-    "text": "Chỉ chủ sở hữu tổ chức mới có thể thực hiện hành động này"
+    "text": "Chỉ chủ sở hữu tổ chức mới có thể thực hiện hành động này",
+    "source_hash": "5a729e94"
   },
   "api.organizations.errors.admin_required": {
-    "text": "Chỉ chủ sở hữu và quản trị viên của tổ chức mới có thể thực hiện hành động này"
+    "text": "Chỉ chủ sở hữu và quản trị viên của tổ chức mới có thể thực hiện hành động này",
+    "source_hash": "cd9e8c0e"
   },
   "api.organizations.errors.member_required": {
-    "text": "Bạn phải là thành viên của tổ chức để thực hiện hành động này"
+    "text": "Bạn phải là thành viên của tổ chức để thực hiện hành động này",
+    "source_hash": "f66f4a60"
   },
   "api.organizations.invitations.errors.create_admin_required": {
-    "text": "Chỉ chủ sở hữu và quản trị viên của tổ chức mới có thể tạo lời mời"
+    "text": "Chỉ chủ sở hữu và quản trị viên của tổ chức mới có thể tạo lời mời",
+    "source_hash": "777d150d"
   },
   "api.organizations.invitations.errors.resend_admin_required": {
-    "text": "Chỉ chủ sở hữu và quản trị viên của tổ chức mới có thể gửi lại lời mời"
+    "text": "Chỉ chủ sở hữu và quản trị viên của tổ chức mới có thể gửi lại lời mời",
+    "source_hash": "6a857d59"
   },
   "api.organizations.invitations.errors.view_admin_required": {
-    "text": "Chỉ chủ sở hữu và quản trị viên của tổ chức mới có thể xem lời mời"
+    "text": "Chỉ chủ sở hữu và quản trị viên của tổ chức mới có thể xem lời mời",
+    "source_hash": "42f5878b"
   },
   "api.organizations.invitations.errors.revoke_admin_required": {
-    "text": "Chỉ chủ sở hữu và quản trị viên của tổ chức mới có thể thu hồi lời mời"
+    "text": "Chỉ chủ sở hữu và quản trị viên của tổ chức mới có thể thu hồi lời mời",
+    "source_hash": "52f73c8a"
   },
   "api.organizations.invitations.errors.email_required": {
-    "text": "Email là bắt buộc"
+    "text": "Email là bắt buộc",
+    "source_hash": "aae92911"
   },
   "api.organizations.invitations.errors.email_invalid": {
-    "text": "Định dạng email không hợp lệ"
+    "text": "Định dạng email không hợp lệ",
+    "source_hash": "0bcecf66"
   },
   "api.organizations.invitations.errors.role_invalid": {
-    "text": "Vai trò phải là thành viên hoặc quản trị viên"
+    "text": "Vai trò phải là thành viên hoặc quản trị viên",
+    "source_hash": "650ea5f6"
   },
   "api.organizations.invitations.errors.cannot_invite_owner": {
-    "text": "Không thể mời với vai trò chủ sở hữu"
+    "text": "Không thể mời với vai trò chủ sở hữu",
+    "source_hash": "e6581025"
   },
   "api.organizations.invitations.errors.already_member": {
-    "text": "Người dùng đã là thành viên của tổ chức này"
+    "text": "Người dùng đã là thành viên của tổ chức này",
+    "source_hash": "8eb45780"
   },
   "api.organizations.invitations.errors.already_pending": {
-    "text": "Đã có lời mời đang chờ cho email này"
+    "text": "Đã có lời mời đang chờ cho email này",
+    "source_hash": "7f5e3093"
   },
   "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Đã đạt giới hạn thành viên. Nâng cấp gói của bạn để mời thêm thành viên."
+    "text": "Đã đạt giới hạn thành viên. Nâng cấp gói của bạn để mời thêm thành viên.",
+    "source_hash": "b8f316e8"
   },
   "api.organizations.invitations.errors.not_found": {
-    "text": "Không tìm thấy lời mời"
+    "text": "Không tìm thấy lời mời",
+    "source_hash": "775ba9eb"
   },
   "api.organizations.invitations.errors.cannot_resend_non_pending": {
-    "text": "Chỉ có thể gửi lại các lời mời đang chờ"
+    "text": "Chỉ có thể gửi lại các lời mời đang chờ",
+    "source_hash": "b7578b3e"
   },
   "api.organizations.invitations.errors.cannot_revoke_non_pending": {
-    "text": "Chỉ có thể thu hồi các lời mời đang chờ"
+    "text": "Chỉ có thể thu hồi các lời mời đang chờ",
+    "source_hash": "732b78a6"
   },
   "api.organizations.invitations.errors.resend_limit_reached": {
-    "text": "Đã đạt giới hạn gửi lại tối đa (%{max})"
+    "text": "Đã đạt giới hạn gửi lại tối đa (%{max})",
+    "source_hash": "8dc96729"
   },
   "api.organizations.invitations.errors.accept_token_required": {
-    "text": "Token là bắt buộc"
+    "text": "Token là bắt buộc",
+    "source_hash": "6c718161"
   },
   "api.organizations.invitations.errors.accept_organization_gone": {
-    "text": "Tổ chức không còn tồn tại"
+    "text": "Tổ chức không còn tồn tại",
+    "source_hash": "a5df7d22"
   },
   "api.organizations.invitations.errors.accept_already_acted": {
-    "text": "Lời mời đã được %{status}"
+    "text": "Lời mời đã được %{status}",
+    "source_hash": "130c87e0"
   },
   "api.organizations.invitations.errors.accept_expired": {
-    "text": "Lời mời đã hết hạn"
+    "text": "Lời mời đã hết hạn",
+    "source_hash": "7186297b"
   },
   "api.organizations.invitations.errors.accept_email_mismatch": {
-    "text": "Địa chỉ email của bạn không khớp với lời mời"
+    "text": "Địa chỉ email của bạn không khớp với lời mời",
+    "source_hash": "11026f46"
   },
   "api.organizations.invitations.errors.accept_already_member": {
-    "text": "Bạn đã là thành viên của tổ chức này"
+    "text": "Bạn đã là thành viên của tổ chức này",
+    "source_hash": "f56ad547"
   },
   "web.organizations.entitlements_title": {
-    "text": "Quyền lợi của tổ chức"
+    "text": "Quyền lợi của tổ chức",
+    "source_hash": "36054d4f"
   },
   "web.organizations.page_description_short": {
-    "text": "Xem và cấu hình các không gian làm việc của bạn"
+    "text": "Xem và cấu hình các không gian làm việc của bạn",
+    "source_hash": "524fcb9a"
   },
   "web.organizations.delete_organization_remove_domains_first": {
-    "text": "Xóa tất cả các tên miền tùy chỉnh trước khi xóa tổ chức này."
+    "text": "Xóa tất cả các tên miền tùy chỉnh trước khi xóa tổ chức này.",
+    "source_hash": "44678715"
   },
   "web.organizations.default_org_delete_notice_title": {
-    "text": "Xóa tổ chức này"
+    "text": "Xóa tổ chức này",
+    "source_hash": "9191d915"
   },
   "web.organizations.default_org_delete_notice_before": {
-    "text": "Đây là tổ chức mặc định của bạn và không thể bị xóa khỏi bảng điều khiển. Để xóa nó, vui lòng liên hệ qua"
+    "text": "Đây là tổ chức mặc định của bạn và không thể bị xóa khỏi bảng điều khiển. Để xóa nó, vui lòng liên hệ qua",
+    "source_hash": "e203607d"
   },
   "web.organizations.default_org_delete_notice_link": {
-    "text": "biểu mẫu phản hồi"
+    "text": "biểu mẫu phản hồi",
+    "source_hash": "94645a9e"
   },
   "web.organizations.default_org_delete_notice_after": {
-    "text": "."
+    "text": ".",
+    "source_hash": "cdb4ee2a"
   },
   "web.organizations.leave_organization": {
-    "text": "Rời khỏi tổ chức này"
+    "text": "Rời khỏi tổ chức này",
+    "source_hash": "d534cff9"
   },
   "web.organizations.leave_organization_warning": {
-    "text": "Bạn sẽ mất quyền truy cập vào tổ chức này và các tài nguyên của nó."
+    "text": "Bạn sẽ mất quyền truy cập vào tổ chức này và các tài nguyên của nó.",
+    "source_hash": "e9daab07"
   },
   "web.organizations.leave_organization_confirm_title": {
-    "text": "Rời khỏi tổ chức"
+    "text": "Rời khỏi tổ chức",
+    "source_hash": "ec8314da"
   },
   "web.organizations.leave_organization_confirm_message": {
-    "text": "Bạn có chắc chắn muốn rời khỏi {name} không? Bạn sẽ cần một lời mời mới để tham gia lại."
+    "text": "Bạn có chắc chắn muốn rời khỏi {name} không? Bạn sẽ cần một lời mời mới để tham gia lại.",
+    "source_hash": "e21c5fec"
   },
   "web.organizations.leave_organization_success": {
-    "text": "Bạn đã rời khỏi tổ chức."
+    "text": "Bạn đã rời khỏi tổ chức.",
+    "source_hash": "fc803eb3"
   },
   "web.organizations.leave_error": {
-    "text": "Không thể rời khỏi tổ chức"
+    "text": "Không thể rời khỏi tổ chức",
+    "source_hash": "6cb6af43"
   },
   "web.organizations.organizations": {
-    "text": "Tổ chức"
+    "text": "Tổ chức",
+    "source_hash": "2730183d"
   },
   "web.organizations.invitations.invited_by_inline": {
-    "text": "bởi {email}"
+    "text": "bởi {email}",
+    "source_hash": "969a7050"
   },
   "web.organizations.invitations.invited_as_inline": {
-    "text": "với vai trò {role}"
+    "text": "với vai trò {role}",
+    "source_hash": "ff9e9b18"
   },
   "web.organizations.invitations.back_to_home": {
-    "text": "Quay lại trang chủ"
+    "text": "Quay lại trang chủ",
+    "source_hash": "76c5505f"
   },
   "web.organizations.invitations.email_locked_hint": {
-    "text": "Lời mời này đã được gửi đến địa chỉ email này"
+    "text": "Lời mời này đã được gửi đến địa chỉ email này",
+    "source_hash": "2cff7075"
   },
   "web.organizations.invitations.signup_continue": {
-    "text": "Tiếp tục"
+    "text": "Tiếp tục",
+    "source_hash": "31fbef16"
   },
   "web.organizations.invitations.signin_continue": {
-    "text": "Đăng nhập"
+    "text": "Đăng nhập",
+    "source_hash": "bcc0bcc9"
   },
   "web.organizations.invitations.confirm_join_below": {
-    "text": "Sắp hoàn tất — xác nhận bên dưới để tham gia tổ chức."
+    "text": "Sắp hoàn tất — xác nhận bên dưới để tham gia tổ chức.",
+    "source_hash": "2d14f9b0"
   },
   "web.organizations.invitations.go_to_organizations": {
-    "text": "Đi đến Tổ chức"
+    "text": "Đi đến Tổ chức",
+    "source_hash": "2afa38a3"
   },
   "web.organizations.invitations.already_member": {
-    "text": "Bạn đã là thành viên của tổ chức này"
+    "text": "Bạn đã là thành viên của tổ chức này",
+    "source_hash": "f56ad547"
   },
   "web.organizations.invitations.join_organization": {
-    "text": "Tham gia {orgName}"
+    "text": "Tham gia {orgName}",
+    "source_hash": "1aea9194"
   },
   "web.organizations.invitations.sign_in_to_join": {
-    "text": "Đăng nhập để tham gia {orgName}"
+    "text": "Đăng nhập để tham gia {orgName}",
+    "source_hash": "f94ed8b4"
   },
   "web.organizations.invitations.decline": {
-    "text": "Từ chối"
+    "text": "Từ chối",
+    "source_hash": "a2d285b3"
   },
   "web.organizations.members.member_quota": {
-    "text": "{used} trên {limit} thành viên"
+    "text": "{used} trên {limit} thành viên",
+    "source_hash": "51183b79"
   },
   "web.organizations.members.pending_suffix": {
-    "text": "({count} đang chờ)"
+    "text": "({count} đang chờ)",
+    "source_hash": "c13f787f"
   },
   "web.organizations.members.limit_reached_hint": {
-    "text": "Đã đạt giới hạn thành viên."
+    "text": "Đã đạt giới hạn thành viên.",
+    "source_hash": "26cdb6b8"
   },
   "web.organizations.sso.title": {
-    "text": "Đăng nhập một lần (SSO)"
+    "text": "Đăng nhập một lần (SSO)",
+    "source_hash": "5db5c812"
   },
   "web.organizations.sso.description": {
-    "text": "Cấu hình SSO để cho phép các thành viên đăng nhập bằng nhà cung cấp danh tính của tổ chức bạn"
+    "text": "Cấu hình SSO để cho phép các thành viên đăng nhập bằng nhà cung cấp danh tính của tổ chức bạn",
+    "source_hash": "464f0a8b"
   },
   "web.organizations.sso.provider_type": {
-    "text": "Loại nhà cung cấp"
+    "text": "Loại nhà cung cấp",
+    "source_hash": "bdfbb1ec"
   },
   "web.organizations.sso.provider_type_description": {
-    "text": "Chọn nhà cung cấp danh tính của tổ chức bạn"
+    "text": "Chọn nhà cung cấp danh tính của tổ chức bạn",
+    "source_hash": "e81325a6"
   },
   "web.organizations.sso.display_name": {
-    "text": "Tên hiển thị"
+    "text": "Tên hiển thị",
+    "source_hash": "18d67c99"
   },
   "web.organizations.sso.display_name_hint": {
-    "text": "Một tên thân thiện được hiển thị cho người dùng khi đăng nhập"
+    "text": "Một tên thân thiện được hiển thị cho người dùng khi đăng nhập",
+    "source_hash": "a83f1fba"
   },
   "web.organizations.sso.display_name_placeholder": {
-    "text": "ví dụ: Acme Corp SSO"
+    "text": "ví dụ: Acme Corp SSO",
+    "source_hash": "43c655c5"
   },
   "web.organizations.sso.client_id": {
-    "text": "Client ID"
+    "text": "Client ID",
+    "source_hash": "8726db01"
   },
   "web.organizations.sso.client_id_placeholder": {
-    "text": "Client ID OAuth của bạn"
+    "text": "Client ID OAuth của bạn",
+    "source_hash": "830723da"
   },
   "web.organizations.sso.client_secret": {
-    "text": "Client Secret"
+    "text": "Client Secret",
+    "source_hash": "ae21cf6d"
   },
   "web.organizations.sso.client_secret_placeholder": {
-    "text": "Client Secret OAuth của bạn"
+    "text": "Client Secret OAuth của bạn",
+    "source_hash": "14e4a8c8"
   },
   "web.organizations.sso.client_secret_update_hint": {
-    "text": "Để trống để giữ lại secret hiện có"
+    "text": "Để trống để giữ lại secret hiện có",
+    "source_hash": "98bc3b40"
   },
   "web.organizations.sso.tenant_id": {
-    "text": "Tenant ID"
+    "text": "Tenant ID",
+    "source_hash": "de1f5fff"
   },
   "web.organizations.sso.tenant_id_hint": {
-    "text": "Định danh tenant Azure AD / Entra ID của bạn"
+    "text": "Định danh tenant Azure AD / Entra ID của bạn",
+    "source_hash": "3c5b707a"
   },
   "web.organizations.sso.tenant_id_placeholder": {
-    "text": "ví dụ: 12345678-1234-1234-1234-123456789abc"
+    "text": "ví dụ: 12345678-1234-1234-1234-123456789abc",
+    "source_hash": "1a166316"
   },
   "web.organizations.sso.issuer": {
-    "text": "Issuer URL"
+    "text": "Issuer URL",
+    "source_hash": "4d03ba8a"
   },
   "web.organizations.sso.issuer_hint": {
-    "text": "URL khám phá OIDC cho nhà cung cấp danh tính của bạn"
+    "text": "URL khám phá OIDC cho nhà cung cấp danh tính của bạn",
+    "source_hash": "6102d81b"
   },
   "web.organizations.sso.issuer_placeholder": {
-    "text": "ví dụ: https://login.example.com"
+    "text": "ví dụ: https://login.example.com",
+    "source_hash": "9a638e9c"
   },
   "web.organizations.sso.view_discovery_document": {
-    "text": "Xem tài liệu khám phá"
+    "text": "Xem tài liệu khám phá",
+    "source_hash": "513bda60"
   },
   "web.organizations.sso.callback_url": {
-    "text": "Callback URL"
+    "text": "Callback URL",
+    "source_hash": "dc297ae9"
   },
   "web.organizations.sso.callback_url_hint": {
-    "text": "Thêm URL này vào các URI chuyển hướng được phép của nhà cung cấp danh tính của bạn"
+    "text": "Thêm URL này vào các URI chuyển hướng được phép của nhà cung cấp danh tính của bạn",
+    "source_hash": "65d55683"
   },
   "web.organizations.sso.allowed_domains": {
-    "text": "Các tên miền email được phép"
+    "text": "Các tên miền email được phép",
+    "source_hash": "0295ad71"
   },
   "web.organizations.sso.allowed_domains_hint": {
-    "text": "Chỉ những người dùng có địa chỉ email từ các tên miền này mới có thể đăng nhập. Để trống để cho phép tất cả các tên miền."
+    "text": "Chỉ những người dùng có địa chỉ email từ các tên miền này mới có thể đăng nhập. Để trống để cho phép tất cả các tên miền.",
+    "source_hash": "1775e874"
   },
   "web.organizations.sso.domain_placeholder": {
-    "text": "ví dụ: acme.com"
+    "text": "ví dụ: acme.com",
+    "source_hash": "e4420764"
   },
   "web.organizations.sso.invalid_domain": {
-    "text": "Vui lòng nhập một tên miền hợp lệ (ví dụ: example.com)"
+    "text": "Vui lòng nhập một tên miền hợp lệ (ví dụ: example.com)",
+    "source_hash": "16807983"
   },
   "web.organizations.sso.domain_exists": {
-    "text": "Tên miền này đã có trong danh sách"
+    "text": "Tên miền này đã có trong danh sách",
+    "source_hash": "3fccb721"
   },
   "web.organizations.sso.remove_domain": {
-    "text": "Xóa {domain}"
+    "text": "Xóa {domain}",
+    "source_hash": "ae708a1d"
   },
   "web.organizations.sso.enabled": {
-    "text": "Bật SSO"
+    "text": "Bật SSO",
+    "source_hash": "d10d0801"
   },
   "web.organizations.sso.enabled_hint": {
-    "text": "Khi được bật, các thành viên tổ chức có thể đăng nhập bằng nhà cung cấp SSO này"
+    "text": "Khi được bật, các thành viên tổ chức có thể đăng nhập bằng nhà cung cấp SSO này",
+    "source_hash": "d7da2fa2"
   },
   "web.organizations.sso.enforce_sso_only": {
-    "text": "Bắt buộc chỉ SSO"
+    "text": "Bắt buộc chỉ SSO",
+    "source_hash": "b3a3f694"
   },
   "web.organizations.sso.enforce_sso_only_hint": {
-    "text": "Yêu cầu SSO cho mọi lần đăng nhập trên tên miền này. Khi được bật, xác thực dựa trên mật khẩu sẽ bị vô hiệu hóa."
+    "text": "Yêu cầu SSO cho mọi lần đăng nhập trên tên miền này. Khi được bật, xác thực dựa trên mật khẩu sẽ bị vô hiệu hóa.",
+    "source_hash": "19432210"
   },
   "web.organizations.sso.grant_org_scope": {
-    "text": "Cấp quyền truy cập toàn tổ chức"
+    "text": "Cấp quyền truy cập toàn tổ chức",
+    "source_hash": "2070cef2"
   },
   "web.organizations.sso.grant_org_scope_hint": {
-    "text": "Các thành viên mới tham gia qua SSO của tên miền này sẽ được cấp quyền truy cập vào tất cả các tên miền của tổ chức. Các thành viên hiện có không bị ảnh hưởng. Khi bị tắt (mặc định), các thành viên mới chỉ có thể truy cập tên miền này."
+    "text": "Các thành viên mới tham gia qua SSO của tên miền này sẽ được cấp quyền truy cập vào tất cả các tên miền của tổ chức. Các thành viên hiện có không bị ảnh hưởng. Khi bị tắt (mặc định), các thành viên mới chỉ có thể truy cập tên miền này.",
+    "source_hash": "2ac9f345"
   },
   "web.organizations.sso.save_config": {
-    "text": "Lưu cấu hình SSO"
+    "text": "Lưu cấu hình SSO",
+    "source_hash": "70853769"
   },
   "web.organizations.sso.delete_config": {
-    "text": "Xóa cấu hình"
+    "text": "Xóa cấu hình",
+    "source_hash": "9ac1ac7b"
   },
   "web.organizations.sso.delete_confirm": {
-    "text": "Bạn có chắc chắn không? Điều này sẽ vô hiệu hóa SSO cho tổ chức của bạn."
+    "text": "Bạn có chắc chắn không? Điều này sẽ vô hiệu hóa SSO cho tổ chức của bạn.",
+    "source_hash": "5b3f5b9d"
   },
   "web.organizations.sso.load_error": {
-    "text": "Không thể tải cấu hình SSO"
+    "text": "Không thể tải cấu hình SSO",
+    "source_hash": "75cb73f6"
   },
   "web.organizations.sso.save_error": {
-    "text": "Không thể lưu cấu hình SSO"
+    "text": "Không thể lưu cấu hình SSO",
+    "source_hash": "99ef145b"
   },
   "web.organizations.sso.create_success": {
-    "text": "Đã tạo cấu hình SSO thành công"
+    "text": "Đã tạo cấu hình SSO thành công",
+    "source_hash": "531c7d92"
   },
   "web.organizations.sso.update_success": {
-    "text": "Đã cập nhật cấu hình SSO thành công"
+    "text": "Đã cập nhật cấu hình SSO thành công",
+    "source_hash": "d98d8e83"
   },
   "web.organizations.sso.delete_success": {
-    "text": "Đã xóa cấu hình SSO thành công"
+    "text": "Đã xóa cấu hình SSO thành công",
+    "source_hash": "55f5d4f5"
   },
   "web.organizations.sso.delete_error": {
-    "text": "Không thể xóa cấu hình SSO"
+    "text": "Không thể xóa cấu hình SSO",
+    "source_hash": "4a960fe4"
   },
   "web.organizations.sso.test_connection": {
-    "text": "Kiểm tra kết nối"
+    "text": "Kiểm tra kết nối",
+    "source_hash": "c02977b0"
   },
   "web.organizations.sso.test_connection_hint": {
-    "text": "Xác minh rằng nhà cung cấp danh tính có thể truy cập được (không xác thực thông tin xác thực)"
+    "text": "Xác minh rằng nhà cung cấp danh tính có thể truy cập được (không xác thực thông tin xác thực)",
+    "source_hash": "22a23b68"
   },
   "web.organizations.sso.test_button": {
-    "text": "Kiểm tra kết nối"
+    "text": "Kiểm tra kết nối",
+    "source_hash": "c02977b0"
   },
   "web.organizations.sso.testing": {
-    "text": "Đang kiểm tra..."
+    "text": "Đang kiểm tra...",
+    "source_hash": "6c02a284"
   },
   "web.organizations.sso.test_error": {
-    "text": "Không thể kiểm tra kết nối"
+    "text": "Không thể kiểm tra kết nối",
+    "source_hash": "c1d1f310"
   },
   "web.organizations.sso.auth_endpoint": {
-    "text": "Điểm cuối ủy quyền"
+    "text": "Điểm cuối ủy quyền",
+    "source_hash": "b42b956f"
   },
   "web.organizations.sso.missing_fields": {
-    "text": "Thiếu trường"
+    "text": "Thiếu trường",
+    "source_hash": "757df777"
   },
   "web.organizations.sso.status_enabled": {
-    "text": "Đã bật"
+    "text": "Đã bật",
+    "source_hash": "92c1cdfd"
   },
   "web.organizations.sso.status_configured": {
-    "text": "Đã cấu hình"
+    "text": "Đã cấu hình",
+    "source_hash": "84aebc69"
   },
   "web.organizations.sso.domain_sso_title": {
-    "text": "SSO tên miền"
+    "text": "SSO tên miền",
+    "source_hash": "13161464"
   },
   "web.organizations.sso.domain_sso_description": {
-    "text": "Cấu hình SSO cho từng tên miền đã xác minh"
+    "text": "Cấu hình SSO cho từng tên miền đã xác minh",
+    "source_hash": "af5b799e"
   },
   "web.organizations.sso.provider_type_locked_hint": {
-    "text": "Để thay đổi nhà cung cấp, hãy xóa cấu hình này trước"
+    "text": "Để thay đổi nhà cung cấp, hãy xóa cấu hình này trước",
+    "source_hash": "0a1027ff"
   },
   "web.organizations.sso.status_not_configured": {
-    "text": "Chưa cấu hình"
+    "text": "Chưa cấu hình",
+    "source_hash": "bbea960e"
   },
   "web.organizations.sso.no_domains": {
-    "text": "Không có tên miền đã xác minh"
+    "text": "Không có tên miền đã xác minh",
+    "source_hash": "8a7fbb76"
   },
   "web.organizations.sso.no_domains_description": {
-    "text": "Thêm và xác minh một tên miền trước khi cấu hình SSO cho nó."
+    "text": "Thêm và xác minh một tên miền trước khi cấu hình SSO cho nó.",
+    "source_hash": "e825d13a"
   },
   "web.organizations.tabs.team": {
-    "text": "Nhóm"
+    "text": "Nhóm",
+    "source_hash": "5985039f"
   },
   "web.organizations.tabs.sso": {
-    "text": "SSO"
+    "text": "SSO",
+    "source_hash": "5ba3ac9f"
   }
 }

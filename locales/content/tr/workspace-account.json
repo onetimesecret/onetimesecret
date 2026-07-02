@@ -684,12 +684,15 @@
     "source_hash": "fe3ac3ad"
   },
   "web.settings.api.api_disabled_notice": {
-    "text": "Bu örnek için API devre dışı bırakılmıştır."
+    "text": "Bu örnek için API devre dışı bırakılmıştır.",
+    "source_hash": "66d12d6b"
   },
   "web.settings.security.sso_managed_title": {
-    "text": "Güvenlik SSO tarafından yönetiliyor"
+    "text": "Güvenlik SSO tarafından yönetiliyor",
+    "source_hash": "1f6c9472"
   },
   "web.settings.security.sso_managed_description": {
-    "text": "Hesabınız, kuruluşunuzun tek oturum açma (SSO) sağlayıcısı aracılığıyla doğrulanır. Parola, çok faktörlü kimlik doğrulama ve kurtarma kodları kimlik sağlayıcınız tarafından yönetilir."
+    "text": "Hesabınız, kuruluşunuzun tek oturum açma (SSO) sağlayıcısı aracılığıyla doğrulanır. Parola, çok faktörlü kimlik doğrulama ve kurtarma kodları kimlik sağlayıcınız tarafından yönetilir.",
+    "source_hash": "cd0cf39f"
   }
 }

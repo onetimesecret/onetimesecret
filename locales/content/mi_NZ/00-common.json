@@ -1385,108 +1385,143 @@
     "source_hash": "783f174c"
   },
   "api.errors.authentication_required": {
-    "text": "E hiahiatia ana te motuhēhēnga"
+    "text": "E hiahiatia ana te motuhēhēnga",
+    "source_hash": "0fcfb12d"
   },
   "api.errors.sso_only_action_blocked": {
-    "text": "Kāore tēnei mahi e wātea i te aratau SSO-anake"
+    "text": "Kāore tēnei mahi e wātea i te aratau SSO-anake",
+    "source_hash": "9bc26394"
   },
   "web.COMMON.configure": {
-    "text": "Whirihora"
+    "text": "Whirihora",
+    "source_hash": "6defafa2"
   },
   "web.COMMON.copy_to_clipboard": {
-    "text": "Tāruatia ki te papatopenga"
+    "text": "Tāruatia ki te papatopenga",
+    "source_hash": "b749e205"
   },
   "web.COMMON.add": {
-    "text": "Tāpiri"
+    "text": "Tāpiri",
+    "source_hash": "9fd728c6"
   },
   "web.COMMON.enabled": {
-    "text": "Kua whakahohea"
+    "text": "Kua whakahohea",
+    "source_hash": "92c1cdfd"
   },
   "web.COMMON.disabled": {
-    "text": "Kua monokia"
+    "text": "Kua monokia",
+    "source_hash": "75081b59"
   },
   "web.COMMON.yes_delete": {
-    "text": "Āe, mukua"
+    "text": "Āe, mukua",
+    "source_hash": "7b05a8e3"
   },
   "web.COMMON.error_code": {
-    "text": "Waehere Hapa"
+    "text": "Waehere Hapa",
+    "source_hash": "46832415"
   },
   "web.COMMON.http_status": {
-    "text": "Tūnga HTTP"
+    "text": "Tūnga HTTP",
+    "source_hash": "b2a629f2"
   },
   "web.COMMON.details": {
-    "text": "Ngā taipitopito"
+    "text": "Ngā taipitopito",
+    "source_hash": "45989de4"
   },
   "web.COMMON.field_confirm_password": {
-    "text": "Whakaū Kupuhipa"
+    "text": "Whakaū Kupuhipa",
+    "source_hash": "c292210c"
   },
   "web.COMMON.passwords_must_match": {
-    "text": "Me ōrite ngā kupuhipa"
+    "text": "Me ōrite ngā kupuhipa",
+    "source_hash": "0c060bd4"
   },
   "web.COMMON.and": {
-    "text": "me"
+    "text": "me",
+    "source_hash": "6201111b"
   },
   "web.COMMON.or": {
-    "text": "rānei"
+    "text": "rānei",
+    "source_hash": "7175517a"
   },
   "web.COMMON.copied": {
-    "text": "Kua tāruatia"
+    "text": "Kua tāruatia",
+    "source_hash": "8d525e5f"
   },
   "web.COMMON.copy": {
-    "text": "Tāruatia"
+    "text": "Tāruatia",
+    "source_hash": "e21f935f"
   },
   "web.COMMON.copy_email": {
-    "text": "Tāruatia te wāhitau īmēra"
+    "text": "Tāruatia te wāhitau īmēra",
+    "source_hash": "61b94846"
   },
   "web.COMMON.copy_id": {
-    "text": "Tāruatia te ID pūkete"
+    "text": "Tāruatia te ID pūkete",
+    "source_hash": "fd493ffd"
   },
   "web.COMMON.org_id_tooltip": {
-    "text": "Te tautohu ahurei o tō whakahaere"
+    "text": "Te tautohu ahurei o tō whakahaere",
+    "source_hash": "c8c08d29"
   },
   "web.COMMON.success": {
-    "text": "Angitu"
+    "text": "Angitu",
+    "source_hash": "c88a0b90"
   },
   "web.COMMON.need_help": {
-    "text": "E hiahia āwhina ana"
+    "text": "E hiahia āwhina ana",
+    "source_hash": "4ca0ca38"
   },
   "web.COMMON.open_help_dialog": {
-    "text": "Huakina te kōrerorero āwhina"
+    "text": "Huakina te kōrerorero āwhina",
+    "source_hash": "55cd1515"
   },
   "web.COMMON.focus_is_now_in_the_main_text_area": {
-    "text": "Kei te wāhi tuhinga matua te aronga ināianei"
+    "text": "Kei te wāhi tuhinga matua te aronga ināianei",
+    "source_hash": "e00dd260"
   },
   "web.LABELS.show_passphrase": {
-    "text": "Whakaatu kupu karapa"
+    "text": "Whakaatu kupu karapa",
+    "source_hash": "76880d38"
   },
   "web.LABELS.hide_passphrase": {
-    "text": "Hunaia te kupu karapa"
+    "text": "Hunaia te kupu karapa",
+    "source_hash": "8ecdc98c"
   },
   "web.LABELS.copy_icon": {
-    "text": "Ata tārua"
+    "text": "Ata tārua",
+    "source_hash": "d1a5fc0c"
   },
   "web.LABELS.copied_icon": {
-    "text": "Ata kua tāruatia"
+    "text": "Ata kua tāruatia",
+    "source_hash": "90a4b4f1"
   },
   "web.STATUS.unverified": {
-    "text": "Kāore anō kia manatokona"
+    "text": "Kāore anō kia manatokona",
+    "source_hash": "33c8e8de"
   },
   "web.TITLES.domain_detail": {
-    "text": "Ngā Tautuhinga Rohe"
+    "text": "Ngā Tautuhinga Rohe",
+    "source_hash": "e24f338d"
   },
   "web.TITLES.domain_signin": {
-    "text": "Whirihoranga Takiuru"
+    "text": "Whirihoranga Takiuru",
+    "source_hash": "2da38c03"
   },
   "web.TITLES.domain_sso": {
-    "text": "SSO Rohe"
+    "text": "SSO Rohe",
+    "source_hash": "13161464"
   },
   "web.TITLES.domain_signup": {
-    "text": "Whakamana Rēhitatanga Rohe"
+    "text": "Whakamana Rēhitatanga Rohe",
+    "source_hash": "c8ce809a"
   },
   "web.TITLES.domain_email": {
-    "text": "Whirihoranga Īmēra"
+    "text": "Whirihoranga Īmēra",
+    "source_hash": "6f38aa51"
   },
   "web.TITLES.domain_incoming": {
-    "text": "Ngā Karere Huna Taemai"
+    "text": "Ngā Karere Huna Taemai",
+    "source_hash": "883dbca9"
   }
 }

@@ -24,12 +24,15 @@
     "source_hash": "ff0d904e"
   },
   "web.teams.create_first_team_title": {
-    "text": "最初のチームを作成"
+    "text": "最初のチームを作成",
+    "source_hash": "54693f14"
   },
   "web.teams.create_first_team_description": {
-    "text": "チームを使うと、共有ワークスペースで他のメンバーと共同作業ができます。"
+    "text": "チームを使うと、共有ワークスペースで他のメンバーと共同作業ができます。",
+    "source_hash": "d61b86b5"
   },
   "web.teams.create_team": {
-    "text": "チームを作成"
+    "text": "チームを作成",
+    "source_hash": "284ff194"
   }
 }

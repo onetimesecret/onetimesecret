@@ -1385,108 +1385,143 @@
     "source_hash": "783f174c"
   },
   "api.errors.authentication_required": {
-    "text": "Απαιτείται έλεγχος ταυτότητας"
+    "text": "Απαιτείται έλεγχος ταυτότητας",
+    "source_hash": "0fcfb12d"
   },
   "api.errors.sso_only_action_blocked": {
-    "text": "Αυτή η ενέργεια δεν είναι διαθέσιμη σε λειτουργία μόνο SSO"
+    "text": "Αυτή η ενέργεια δεν είναι διαθέσιμη σε λειτουργία μόνο SSO",
+    "source_hash": "9bc26394"
   },
   "web.COMMON.configure": {
-    "text": "Διαμόρφωση"
+    "text": "Διαμόρφωση",
+    "source_hash": "6defafa2"
   },
   "web.COMMON.copy_to_clipboard": {
-    "text": "Αντιγραφή στο πρόχειρο"
+    "text": "Αντιγραφή στο πρόχειρο",
+    "source_hash": "b749e205"
   },
   "web.COMMON.add": {
-    "text": "Προσθήκη"
+    "text": "Προσθήκη",
+    "source_hash": "9fd728c6"
   },
   "web.COMMON.enabled": {
-    "text": "Ενεργοποιημένο"
+    "text": "Ενεργοποιημένο",
+    "source_hash": "92c1cdfd"
   },
   "web.COMMON.disabled": {
-    "text": "Απενεργοποιημένο"
+    "text": "Απενεργοποιημένο",
+    "source_hash": "75081b59"
   },
   "web.COMMON.yes_delete": {
-    "text": "Ναι, διαγραφή"
+    "text": "Ναι, διαγραφή",
+    "source_hash": "7b05a8e3"
   },
   "web.COMMON.error_code": {
-    "text": "Κωδικός σφάλματος"
+    "text": "Κωδικός σφάλματος",
+    "source_hash": "46832415"
   },
   "web.COMMON.http_status": {
-    "text": "Κατάσταση HTTP"
+    "text": "Κατάσταση HTTP",
+    "source_hash": "b2a629f2"
   },
   "web.COMMON.details": {
-    "text": "Λεπτομέρειες"
+    "text": "Λεπτομέρειες",
+    "source_hash": "45989de4"
   },
   "web.COMMON.field_confirm_password": {
-    "text": "Επιβεβαίωση κωδικού πρόσβασης"
+    "text": "Επιβεβαίωση κωδικού πρόσβασης",
+    "source_hash": "c292210c"
   },
   "web.COMMON.passwords_must_match": {
-    "text": "Οι κωδικοί πρόσβασης πρέπει να ταιριάζουν"
+    "text": "Οι κωδικοί πρόσβασης πρέπει να ταιριάζουν",
+    "source_hash": "0c060bd4"
   },
   "web.COMMON.and": {
-    "text": "και"
+    "text": "και",
+    "source_hash": "6201111b"
   },
   "web.COMMON.or": {
-    "text": "ή"
+    "text": "ή",
+    "source_hash": "7175517a"
   },
   "web.COMMON.copied": {
-    "text": "Αντιγράφηκε"
+    "text": "Αντιγράφηκε",
+    "source_hash": "8d525e5f"
   },
   "web.COMMON.copy": {
-    "text": "Αντιγραφή"
+    "text": "Αντιγραφή",
+    "source_hash": "e21f935f"
   },
   "web.COMMON.copy_email": {
-    "text": "Αντιγραφή διεύθυνσης email"
+    "text": "Αντιγραφή διεύθυνσης email",
+    "source_hash": "61b94846"
   },
   "web.COMMON.copy_id": {
-    "text": "Αντιγραφή αναγνωριστικού λογαριασμού"
+    "text": "Αντιγραφή αναγνωριστικού λογαριασμού",
+    "source_hash": "fd493ffd"
   },
   "web.COMMON.org_id_tooltip": {
-    "text": "Το μοναδικό αναγνωριστικό του οργανισμού σας"
+    "text": "Το μοναδικό αναγνωριστικό του οργανισμού σας",
+    "source_hash": "c8c08d29"
   },
   "web.COMMON.success": {
-    "text": "Επιτυχία"
+    "text": "Επιτυχία",
+    "source_hash": "c88a0b90"
   },
   "web.COMMON.need_help": {
-    "text": "Χρειάζεστε βοήθεια"
+    "text": "Χρειάζεστε βοήθεια",
+    "source_hash": "4ca0ca38"
   },
   "web.COMMON.open_help_dialog": {
-    "text": "Άνοιγμα παραθύρου βοήθειας"
+    "text": "Άνοιγμα παραθύρου βοήθειας",
+    "source_hash": "55cd1515"
   },
   "web.COMMON.focus_is_now_in_the_main_text_area": {
-    "text": "Η εστίαση βρίσκεται τώρα στην κύρια περιοχή κειμένου"
+    "text": "Η εστίαση βρίσκεται τώρα στην κύρια περιοχή κειμένου",
+    "source_hash": "e00dd260"
   },
   "web.LABELS.show_passphrase": {
-    "text": "Εμφάνιση φράσης πρόσβασης"
+    "text": "Εμφάνιση φράσης πρόσβασης",
+    "source_hash": "76880d38"
   },
   "web.LABELS.hide_passphrase": {
-    "text": "Απόκρυψη φράσης πρόσβασης"
+    "text": "Απόκρυψη φράσης πρόσβασης",
+    "source_hash": "8ecdc98c"
   },
   "web.LABELS.copy_icon": {
-    "text": "Εικονίδιο αντιγραφής"
+    "text": "Εικονίδιο αντιγραφής",
+    "source_hash": "d1a5fc0c"
   },
   "web.LABELS.copied_icon": {
-    "text": "Εικονίδιο «αντιγράφηκε»"
+    "text": "Εικονίδιο «αντιγράφηκε»",
+    "source_hash": "90a4b4f1"
   },
   "web.STATUS.unverified": {
-    "text": "Μη επαληθευμένο"
+    "text": "Μη επαληθευμένο",
+    "source_hash": "33c8e8de"
   },
   "web.TITLES.domain_detail": {
-    "text": "Ρυθμίσεις τομέα"
+    "text": "Ρυθμίσεις τομέα",
+    "source_hash": "e24f338d"
   },
   "web.TITLES.domain_signin": {
-    "text": "Διαμόρφωση σύνδεσης"
+    "text": "Διαμόρφωση σύνδεσης",
+    "source_hash": "2da38c03"
   },
   "web.TITLES.domain_sso": {
-    "text": "SSO τομέα"
+    "text": "SSO τομέα",
+    "source_hash": "13161464"
   },
   "web.TITLES.domain_signup": {
-    "text": "Επικύρωση εγγραφής τομέα"
+    "text": "Επικύρωση εγγραφής τομέα",
+    "source_hash": "c8ce809a"
   },
   "web.TITLES.domain_email": {
-    "text": "Διαμόρφωση email"
+    "text": "Διαμόρφωση email",
+    "source_hash": "6f38aa51"
   },
   "web.TITLES.domain_incoming": {
-    "text": "Εισερχόμενα μυστικά"
+    "text": "Εισερχόμενα μυστικά",
+    "source_hash": "883dbca9"
   }
 }

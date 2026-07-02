@@ -1385,108 +1385,143 @@
     "source_hash": "783f174c"
   },
   "api.errors.authentication_required": {
-    "text": "Yêu cầu xác thực"
+    "text": "Yêu cầu xác thực",
+    "source_hash": "0fcfb12d"
   },
   "api.errors.sso_only_action_blocked": {
-    "text": "Hành động này không khả dụng ở chế độ chỉ SSO"
+    "text": "Hành động này không khả dụng ở chế độ chỉ SSO",
+    "source_hash": "9bc26394"
   },
   "web.COMMON.configure": {
-    "text": "Cấu hình"
+    "text": "Cấu hình",
+    "source_hash": "6defafa2"
   },
   "web.COMMON.copy_to_clipboard": {
-    "text": "Sao chép vào clipboard"
+    "text": "Sao chép vào clipboard",
+    "source_hash": "b749e205"
   },
   "web.COMMON.add": {
-    "text": "Thêm"
+    "text": "Thêm",
+    "source_hash": "9fd728c6"
   },
   "web.COMMON.enabled": {
-    "text": "Đã bật"
+    "text": "Đã bật",
+    "source_hash": "92c1cdfd"
   },
   "web.COMMON.disabled": {
-    "text": "Đã tắt"
+    "text": "Đã tắt",
+    "source_hash": "75081b59"
   },
   "web.COMMON.yes_delete": {
-    "text": "Có, xóa"
+    "text": "Có, xóa",
+    "source_hash": "7b05a8e3"
   },
   "web.COMMON.error_code": {
-    "text": "Mã lỗi"
+    "text": "Mã lỗi",
+    "source_hash": "46832415"
   },
   "web.COMMON.http_status": {
-    "text": "Trạng thái HTTP"
+    "text": "Trạng thái HTTP",
+    "source_hash": "b2a629f2"
   },
   "web.COMMON.details": {
-    "text": "Chi tiết"
+    "text": "Chi tiết",
+    "source_hash": "45989de4"
   },
   "web.COMMON.field_confirm_password": {
-    "text": "Xác nhận mật khẩu"
+    "text": "Xác nhận mật khẩu",
+    "source_hash": "c292210c"
   },
   "web.COMMON.passwords_must_match": {
-    "text": "Mật khẩu phải khớp nhau"
+    "text": "Mật khẩu phải khớp nhau",
+    "source_hash": "0c060bd4"
   },
   "web.COMMON.and": {
-    "text": "và"
+    "text": "và",
+    "source_hash": "6201111b"
   },
   "web.COMMON.or": {
-    "text": "hoặc"
+    "text": "hoặc",
+    "source_hash": "7175517a"
   },
   "web.COMMON.copied": {
-    "text": "Đã sao chép"
+    "text": "Đã sao chép",
+    "source_hash": "8d525e5f"
   },
   "web.COMMON.copy": {
-    "text": "Sao chép"
+    "text": "Sao chép",
+    "source_hash": "e21f935f"
   },
   "web.COMMON.copy_email": {
-    "text": "Sao chép địa chỉ email"
+    "text": "Sao chép địa chỉ email",
+    "source_hash": "61b94846"
   },
   "web.COMMON.copy_id": {
-    "text": "Sao chép ID tài khoản"
+    "text": "Sao chép ID tài khoản",
+    "source_hash": "fd493ffd"
   },
   "web.COMMON.org_id_tooltip": {
-    "text": "Mã định danh duy nhất của tổ chức bạn"
+    "text": "Mã định danh duy nhất của tổ chức bạn",
+    "source_hash": "c8c08d29"
   },
   "web.COMMON.success": {
-    "text": "Thành công"
+    "text": "Thành công",
+    "source_hash": "c88a0b90"
   },
   "web.COMMON.need_help": {
-    "text": "Cần trợ giúp"
+    "text": "Cần trợ giúp",
+    "source_hash": "4ca0ca38"
   },
   "web.COMMON.open_help_dialog": {
-    "text": "Mở hộp thoại trợ giúp"
+    "text": "Mở hộp thoại trợ giúp",
+    "source_hash": "55cd1515"
   },
   "web.COMMON.focus_is_now_in_the_main_text_area": {
-    "text": "Con trỏ hiện đang ở vùng văn bản chính"
+    "text": "Con trỏ hiện đang ở vùng văn bản chính",
+    "source_hash": "e00dd260"
   },
   "web.LABELS.show_passphrase": {
-    "text": "Hiển thị cụm mật khẩu"
+    "text": "Hiển thị cụm mật khẩu",
+    "source_hash": "76880d38"
   },
   "web.LABELS.hide_passphrase": {
-    "text": "Ẩn cụm mật khẩu"
+    "text": "Ẩn cụm mật khẩu",
+    "source_hash": "8ecdc98c"
   },
   "web.LABELS.copy_icon": {
-    "text": "Biểu tượng sao chép"
+    "text": "Biểu tượng sao chép",
+    "source_hash": "d1a5fc0c"
   },
   "web.LABELS.copied_icon": {
-    "text": "Biểu tượng đã sao chép"
+    "text": "Biểu tượng đã sao chép",
+    "source_hash": "90a4b4f1"
   },
   "web.STATUS.unverified": {
-    "text": "Chưa xác minh"
+    "text": "Chưa xác minh",
+    "source_hash": "33c8e8de"
   },
   "web.TITLES.domain_detail": {
-    "text": "Cài đặt tên miền"
+    "text": "Cài đặt tên miền",
+    "source_hash": "e24f338d"
   },
   "web.TITLES.domain_signin": {
-    "text": "Cấu hình đăng nhập"
+    "text": "Cấu hình đăng nhập",
+    "source_hash": "2da38c03"
   },
   "web.TITLES.domain_sso": {
-    "text": "SSO tên miền"
+    "text": "SSO tên miền",
+    "source_hash": "13161464"
   },
   "web.TITLES.domain_signup": {
-    "text": "Xác thực đăng ký tên miền"
+    "text": "Xác thực đăng ký tên miền",
+    "source_hash": "c8ce809a"
   },
   "web.TITLES.domain_email": {
-    "text": "Cấu hình email"
+    "text": "Cấu hình email",
+    "source_hash": "6f38aa51"
   },
   "web.TITLES.domain_incoming": {
-    "text": "Bí mật đến"
+    "text": "Bí mật đến",
+    "source_hash": "883dbca9"
   }
 }

@@ -1,5 +1,6 @@
 {
   "api.incoming.errors.custom_domain_unresolved": {
-    "text": "לא ניתן היה לפתור את ארגון הדומיין המותאם אישית"
+    "text": "לא ניתן היה לפתור את ארגון הדומיין המותאם אישית",
+    "source_hash": "b30d65d2"
   }
 }

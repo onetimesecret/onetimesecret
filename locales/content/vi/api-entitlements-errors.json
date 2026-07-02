@@ -1,71 +1,94 @@
 {
   "api.entitlements.errors.context_unavailable": {
-    "text": "Không thể xác minh quyền lợi (ngữ cảnh tổ chức không khả dụng)"
+    "text": "Không thể xác minh quyền lợi (ngữ cảnh tổ chức không khả dụng)",
+    "source_hash": "704dc629"
   },
   "api.entitlements.errors.api_access_required": {
-    "text": "Truy cập API yêu cầu nâng cấp gói"
+    "text": "Truy cập API yêu cầu nâng cấp gói",
+    "source_hash": "844d294b"
   },
   "api.entitlements.errors.custom_privacy_defaults_required": {
-    "text": "Mặc định quyền riêng tư tùy chỉnh yêu cầu nâng cấp gói"
+    "text": "Mặc định quyền riêng tư tùy chỉnh yêu cầu nâng cấp gói",
+    "source_hash": "4e71274d"
   },
   "api.entitlements.errors.extended_default_expiration_required": {
-    "text": "Thời gian hết hạn mặc định mở rộng yêu cầu nâng cấp gói"
+    "text": "Thời gian hết hạn mặc định mở rộng yêu cầu nâng cấp gói",
+    "source_hash": "efa702e7"
   },
   "api.entitlements.errors.custom_domains_required": {
-    "text": "Tên miền tùy chỉnh yêu cầu nâng cấp gói"
+    "text": "Tên miền tùy chỉnh yêu cầu nâng cấp gói",
+    "source_hash": "a23e2184"
   },
   "api.entitlements.errors.custom_branding_required": {
-    "text": "Thương hiệu tùy chỉnh yêu cầu nâng cấp gói"
+    "text": "Thương hiệu tùy chỉnh yêu cầu nâng cấp gói",
+    "source_hash": "a4c40a3a"
   },
   "api.entitlements.errors.homepage_secrets_required": {
-    "text": "Bí mật trên trang chủ yêu cầu nâng cấp gói"
+    "text": "Bí mật trên trang chủ yêu cầu nâng cấp gói",
+    "source_hash": "650eeca8"
   },
   "api.entitlements.errors.incoming_secrets_required": {
-    "text": "Bí mật đến yêu cầu nâng cấp gói"
+    "text": "Bí mật đến yêu cầu nâng cấp gói",
+    "source_hash": "ce1d47ef"
   },
   "api.entitlements.errors.custom_mail_sender_required": {
-    "text": "Người gửi thư tùy chỉnh yêu cầu nâng cấp gói"
+    "text": "Người gửi thư tùy chỉnh yêu cầu nâng cấp gói",
+    "source_hash": "e058da13"
   },
   "api.entitlements.errors.flexible_from_domain_required": {
-    "text": "Tên miền gửi linh hoạt yêu cầu nâng cấp gói"
+    "text": "Tên miền gửi linh hoạt yêu cầu nâng cấp gói",
+    "source_hash": "4931dc05"
   },
   "api.entitlements.errors.manage_org_required": {
-    "text": "Quản lý tổ chức yêu cầu nâng cấp gói"
+    "text": "Quản lý tổ chức yêu cầu nâng cấp gói",
+    "source_hash": "66a2cd10"
   },
   "api.entitlements.errors.manage_teams_required": {
-    "text": "Quản lý nhóm yêu cầu nâng cấp gói"
+    "text": "Quản lý nhóm yêu cầu nâng cấp gói",
+    "source_hash": "f7f4062f"
   },
   "api.entitlements.errors.manage_members_required": {
-    "text": "Quản lý thành viên yêu cầu nâng cấp gói"
+    "text": "Quản lý thành viên yêu cầu nâng cấp gói",
+    "source_hash": "f73b80db"
   },
   "api.entitlements.errors.manage_sso_required": {
-    "text": "Quản lý SSO yêu cầu nâng cấp gói"
+    "text": "Quản lý SSO yêu cầu nâng cấp gói",
+    "source_hash": "4e5da22d"
   },
   "api.entitlements.errors.audit_logs_required": {
-    "text": "Nhật ký kiểm tra yêu cầu nâng cấp gói"
+    "text": "Nhật ký kiểm tra yêu cầu nâng cấp gói",
+    "source_hash": "1ff748bc"
   },
   "api.entitlements.errors.custom_signup_validation_required": {
-    "text": "Xác thực đăng ký tùy chỉnh yêu cầu nâng cấp gói"
+    "text": "Xác thực đăng ký tùy chỉnh yêu cầu nâng cấp gói",
+    "source_hash": "93c9befa"
   },
   "api.entitlements.errors.create_secrets_required": {
-    "text": "Tạo bí mật yêu cầu nâng cấp gói"
+    "text": "Tạo bí mật yêu cầu nâng cấp gói",
+    "source_hash": "01091fed"
   },
   "api.entitlements.errors.view_receipt_required": {
-    "text": "Xem biên nhận yêu cầu nâng cấp gói"
+    "text": "Xem biên nhận yêu cầu nâng cấp gói",
+    "source_hash": "e6370d8c"
   },
   "api.entitlements.errors.notifications_required": {
-    "text": "Thông báo yêu cầu nâng cấp gói"
+    "text": "Thông báo yêu cầu nâng cấp gói",
+    "source_hash": "82353ba6"
   },
   "api.entitlements.errors.workspace_branding_required": {
-    "text": "Thương hiệu không gian làm việc yêu cầu nâng cấp gói"
+    "text": "Thương hiệu không gian làm việc yêu cầu nâng cấp gói",
+    "source_hash": "79ac8099"
   },
   "api.entitlements.errors.ip_access_rules_required": {
-    "text": "Quy tắc truy cập IP yêu cầu nâng cấp gói"
+    "text": "Quy tắc truy cập IP yêu cầu nâng cấp gói",
+    "source_hash": "3e1d276e"
   },
   "api.entitlements.errors.manage_billing_required": {
-    "text": "Quản lý thanh toán yêu cầu nâng cấp gói"
+    "text": "Quản lý thanh toán yêu cầu nâng cấp gói",
+    "source_hash": "dec5d6aa"
   },
   "api.entitlements.errors.custom_signin_config_required": {
-    "text": "Cấu hình đăng nhập tùy chỉnh yêu cầu nâng cấp gói"
+    "text": "Cấu hình đăng nhập tùy chỉnh yêu cầu nâng cấp gói",
+    "source_hash": "acb1be52"
   }
 }

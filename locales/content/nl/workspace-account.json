@@ -684,12 +684,15 @@
     "source_hash": "fe3ac3ad"
   },
   "web.settings.api.api_disabled_notice": {
-    "text": "De API is uitgeschakeld voor deze instance."
+    "text": "De API is uitgeschakeld voor deze instance.",
+    "source_hash": "66d12d6b"
   },
   "web.settings.security.sso_managed_title": {
-    "text": "Beveiliging beheerd door SSO"
+    "text": "Beveiliging beheerd door SSO",
+    "source_hash": "1f6c9472"
   },
   "web.settings.security.sso_managed_description": {
-    "text": "Je account wordt geverifieerd via de single sign-on-provider van je organisatie. Wachtwoord, multifactorauthenticatie en herstelcodes worden beheerd door je identity provider."
+    "text": "Je account wordt geverifieerd via de single sign-on-provider van je organisatie. Wachtwoord, multifactorauthenticatie en herstelcodes worden beheerd door je identity provider.",
+    "source_hash": "cd0cf39f"
   }
 }

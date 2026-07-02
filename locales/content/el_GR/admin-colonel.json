@@ -636,150 +636,199 @@
     "source_hash": "fe77172e"
   },
   "web.colonel.previewPlanMode": {
-    "text": "Λειτουργία προεπισκόπησης προγράμματος"
+    "text": "Λειτουργία προεπισκόπησης προγράμματος",
+    "source_hash": "cf53f19d"
   },
   "web.colonel.previewModeDescription": {
-    "text": "Κάντε προεπισκόπηση της εφαρμογής όπως εμφανίζεται στους πελάτες με διαφορετικό πρόγραμμα. Αυτό επηρεάζει μόνο την προβολή σας και δεν αλλάζει το πραγματικό πρόγραμμα κανενός οργανισμού."
+    "text": "Κάντε προεπισκόπηση της εφαρμογής όπως εμφανίζεται στους πελάτες με διαφορετικό πρόγραμμα. Αυτό επηρεάζει μόνο την προβολή σας και δεν αλλάζει το πραγματικό πρόγραμμα κανενός οργανισμού.",
+    "source_hash": "6fe23f23"
   },
   "web.colonel.previewModeActive": {
-    "text": "Προεπισκόπηση ενεργή"
+    "text": "Προεπισκόπηση ενεργή",
+    "source_hash": "a558d603"
   },
   "web.colonel.bannedIps.empty": {
-    "text": "Δεν υπάρχουν αποκλεισμένες IP"
+    "text": "Δεν υπάρχουν αποκλεισμένες IP",
+    "source_hash": "bd101143"
   },
   "web.colonel.bannedIps.currentIp": {
-    "text": "Η τρέχουσα διεύθυνση IP σας"
+    "text": "Η τρέχουσα διεύθυνση IP σας",
+    "source_hash": "72f9fefe"
   },
   "web.colonel.bannedIps.confirmUnban": {
-    "text": "Άρση αποκλεισμού της {ip};"
+    "text": "Άρση αποκλεισμού της {ip};",
+    "source_hash": "ff009b1c"
   },
   "web.colonel.bannedIps.actions.ban": {
-    "text": "Αποκλεισμός IP"
+    "text": "Αποκλεισμός IP",
+    "source_hash": "f91a5285"
   },
   "web.colonel.bannedIps.actions.quickBan": {
-    "text": "Γρήγορος αποκλεισμός"
+    "text": "Γρήγορος αποκλεισμός",
+    "source_hash": "c32d0943"
   },
   "web.colonel.bannedIps.actions.unban": {
-    "text": "Άρση αποκλεισμού"
+    "text": "Άρση αποκλεισμού",
+    "source_hash": "25fb5989"
   },
   "web.colonel.bannedIps.actions.cancel": {
-    "text": "Ακύρωση"
+    "text": "Ακύρωση",
+    "source_hash": "19766ed6"
   },
   "web.colonel.bannedIps.columns.ipAddress": {
-    "text": "Διεύθυνση IP"
+    "text": "Διεύθυνση IP",
+    "source_hash": "3c3de0c9"
   },
   "web.colonel.bannedIps.columns.reason": {
-    "text": "Αιτία"
+    "text": "Αιτία",
+    "source_hash": "f81ab834"
   },
   "web.colonel.bannedIps.columns.bannedAt": {
-    "text": "Αποκλεισμός στις"
+    "text": "Αποκλεισμός στις",
+    "source_hash": "dfbd120e"
   },
   "web.colonel.bannedIps.columns.bannedBy": {
-    "text": "Αποκλεισμός από"
+    "text": "Αποκλεισμός από",
+    "source_hash": "9f47db0e"
   },
   "web.colonel.bannedIps.error.banFailed": {
-    "text": "Αποτυχία αποκλεισμού της διεύθυνσης IP"
+    "text": "Αποτυχία αποκλεισμού της διεύθυνσης IP",
+    "source_hash": "24e94d9b"
   },
   "web.colonel.bannedIps.error.unbanFailed": {
-    "text": "Αποτυχία άρσης αποκλεισμού της διεύθυνσης IP"
+    "text": "Αποτυχία άρσης αποκλεισμού της διεύθυνσης IP",
+    "source_hash": "66bbac9a"
   },
   "web.colonel.bannedIps.form.title": {
-    "text": "Αποκλεισμός διεύθυνσης IP"
+    "text": "Αποκλεισμός διεύθυνσης IP",
+    "source_hash": "3f5b3dfa"
   },
   "web.colonel.bannedIps.form.ipLabel": {
-    "text": "Διεύθυνση IP"
+    "text": "Διεύθυνση IP",
+    "source_hash": "3c3de0c9"
   },
   "web.colonel.bannedIps.form.reasonLabel": {
-    "text": "Αιτία"
+    "text": "Αιτία",
+    "source_hash": "f81ab834"
   },
   "web.colonel.bannedIps.form.reasonPlaceholder": {
-    "text": "Προαιρετική αιτία"
+    "text": "Προαιρετική αιτία",
+    "source_hash": "956688a5"
   },
   "web.colonel.bannedIps.success.banned": {
-    "text": "Η διεύθυνση IP {ip} αποκλείστηκε"
+    "text": "Η διεύθυνση IP {ip} αποκλείστηκε",
+    "source_hash": "b6f861d5"
   },
   "web.colonel.bannedIps.success.unbanned": {
-    "text": "Έγινε άρση αποκλεισμού της διεύθυνσης IP {ip}"
+    "text": "Έγινε άρση αποκλεισμού της διεύθυνσης IP {ip}",
+    "source_hash": "dbe93550"
   },
   "web.colonel.customDomains.empty": {
-    "text": "Δεν έχουν διαμορφωθεί προσαρμοσμένοι τομείς"
+    "text": "Δεν έχουν διαμορφωθεί προσαρμοσμένοι τομείς",
+    "source_hash": "e10b39f7"
   },
   "web.colonel.customDomains.noLogo": {
-    "text": "Χωρίς λογότυπο"
+    "text": "Χωρίς λογότυπο",
+    "source_hash": "ee5e36ff"
   },
   "web.colonel.customDomains.labels.organization": {
-    "text": "Οργανισμός"
+    "text": "Οργανισμός",
+    "source_hash": "d764d425"
   },
   "web.colonel.customDomains.labels.externalId": {
-    "text": "Εξωτερικό ID"
+    "text": "Εξωτερικό ID",
+    "source_hash": "69da56ba"
   },
   "web.colonel.customDomains.labels.created": {
-    "text": "Δημιουργήθηκε"
+    "text": "Δημιουργήθηκε",
+    "source_hash": "d70b9e24"
   },
   "web.colonel.customDomains.labels.updated": {
-    "text": "Ενημερώθηκε"
+    "text": "Ενημερώθηκε",
+    "source_hash": "3a5ecca1"
   },
   "web.colonel.customDomains.labels.favicon": {
-    "text": "Favicon"
+    "text": "Favicon",
+    "source_hash": "42955289"
   },
   "web.colonel.customDomains.status.verified": {
-    "text": "Επαληθευμένος"
+    "text": "Επαληθευμένος",
+    "source_hash": "4f783840"
   },
   "web.colonel.customDomains.status.resolving": {
-    "text": "Ανάλυση σε εξέλιξη"
+    "text": "Ανάλυση σε εξέλιξη",
+    "source_hash": "3287a034"
   },
   "web.colonel.customDomains.status.ready": {
-    "text": "Έτοιμος"
+    "text": "Έτοιμος",
+    "source_hash": "5fa7aac5"
   },
   "web.colonel.customDomains.status.publicHomepage": {
-    "text": "Δημόσια αρχική σελίδα"
+    "text": "Δημόσια αρχική σελίδα",
+    "source_hash": "2ae3ccba"
   },
   "web.colonel.customDomains.status.publicApi": {
-    "text": "Δημόσιο API"
+    "text": "Δημόσιο API",
+    "source_hash": "ab3aa426"
   },
   "web.colonel.customDomains.status.pending": {
-    "text": "Σε εκκρεμότητα"
+    "text": "Σε εκκρεμότητα",
+    "source_hash": "331551b0"
   },
   "web.colonel.pagination.showing": {
-    "text": "Εμφάνιση {start}–{end} από {total}"
+    "text": "Εμφάνιση {start}–{end} από {total}",
+    "source_hash": "64af6de2"
   },
   "web.colonel.pagination.itemsPerPage": {
-    "text": "Στοιχεία ανά σελίδα"
+    "text": "Στοιχεία ανά σελίδα",
+    "source_hash": "766a02e0"
   },
   "web.colonel.pagination.perPage": {
-    "text": "{count} ανά σελίδα"
+    "text": "{count} ανά σελίδα",
+    "source_hash": "34671d42"
   },
   "web.colonel.pagination.pageOf": {
-    "text": "Σελίδα {current} από {total}"
+    "text": "Σελίδα {current} από {total}",
+    "source_hash": "f0df6412"
   },
   "web.colonel.secrets.empty": {
-    "text": "Δεν βρέθηκαν μυστικά"
+    "text": "Δεν βρέθηκαν μυστικά",
+    "source_hash": "28647b3b"
   },
   "web.colonel.secrets.never": {
-    "text": "Ποτέ"
+    "text": "Ποτέ",
+    "source_hash": "6300ef80"
   },
   "web.colonel.secrets.columns.shortId": {
-    "text": "Σύντομο ID"
+    "text": "Σύντομο ID",
+    "source_hash": "7eaeb4a7"
   },
   "web.colonel.secrets.columns.state": {
-    "text": "Κατάσταση"
+    "text": "Κατάσταση",
+    "source_hash": "a3b50c47"
   },
   "web.colonel.secrets.columns.created": {
-    "text": "Δημιουργήθηκε"
+    "text": "Δημιουργήθηκε",
+    "source_hash": "d70b9e24"
   },
   "web.colonel.secrets.columns.expiration": {
-    "text": "Λήξη"
+    "text": "Λήξη",
+    "source_hash": "f38d6e0e"
   },
   "web.colonel.secrets.columns.age": {
-    "text": "Ηλικία (ημέρες)"
+    "text": "Ηλικία (ημέρες)",
+    "source_hash": "52ae64c6"
   },
   "web.colonel.secrets.state.new": {
-    "text": "Νέο"
+    "text": "Νέο",
+    "source_hash": "18fdd549"
   },
   "web.colonel.secrets.state.received": {
-    "text": "Παραλήφθηκε"
+    "text": "Παραλήφθηκε",
+    "source_hash": "49f19bee"
   },
   "web.colonel.secrets.state.viewed": {
-    "text": "Προβλήθηκε"
+    "text": "Προβλήθηκε",
+    "source_hash": "1b28d178"
   }
 }

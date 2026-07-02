@@ -24,12 +24,15 @@
     "source_hash": "ff0d904e"
   },
   "web.teams.create_first_team_title": {
-    "text": "创建您的第一个团队"
+    "text": "创建您的第一个团队",
+    "source_hash": "54693f14"
   },
   "web.teams.create_first_team_description": {
-    "text": "团队让您在共享工作区中与他人协作。"
+    "text": "团队让您在共享工作区中与他人协作。",
+    "source_hash": "d61b86b5"
   },
   "web.teams.create_team": {
-    "text": "创建团队"
+    "text": "创建团队",
+    "source_hash": "284ff194"
   }
 }

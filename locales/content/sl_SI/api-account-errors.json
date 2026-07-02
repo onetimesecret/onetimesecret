@@ -1,8 +1,10 @@
 {
   "api.account.errors.invalid_email": {
-    "text": "Je to veljaven e-poštni naslov?"
+    "text": "Je to veljaven e-poštni naslov?",
+    "source_hash": "21d55b60"
   },
   "api.account.errors.password_too_short": {
-    "text": "Geslo je prekratko"
+    "text": "Geslo je prekratko",
+    "source_hash": "0d829600"
   }
 }

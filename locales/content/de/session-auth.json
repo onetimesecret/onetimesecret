@@ -400,30 +400,39 @@
     "text": "E-Mail-Verifizierungsablauf nach der Registrierung"
   },
   "web.auth.account.sso_linked": {
-    "text": "SSO-Konto"
+    "text": "SSO-Konto",
+    "source_hash": "b8f4c728"
   },
   "web.help.reset_password_link": {
-    "text": "Passwort zurücksetzen"
+    "text": "Passwort zurücksetzen",
+    "source_hash": "e0edfeb3"
   },
   "web.login.custom_domain_sso_title": {
-    "text": "Single Sign-On ist für diese Domain verfügbar"
+    "text": "Single Sign-On ist für diese Domain verfügbar",
+    "source_hash": "af87d51e"
   },
   "web.login.custom_domain_sso_description": {
-    "text": "Der Administrator der Organisation kann SSO aktivieren, damit sich Teammitglieder hier anmelden können. Wende dich für den Zugang an den Admin."
+    "text": "Der Administrator der Organisation kann SSO aktivieren, damit sich Teammitglieder hier anmelden können. Wende dich für den Zugang an den Admin.",
+    "source_hash": "f3726509"
   },
   "web.login.signin_disabled_heading": {
-    "text": "Anmeldung ist nicht verfügbar"
+    "text": "Anmeldung ist nicht verfügbar",
+    "source_hash": "6b435c76"
   },
   "web.login.signin_disabled_message": {
-    "text": "Die Anmeldung ist auf dieser Domain derzeit nicht verfügbar."
+    "text": "Die Anmeldung ist auf dieser Domain derzeit nicht verfügbar.",
+    "source_hash": "b681c35d"
   },
   "web.login.errors.sso_not_configured": {
-    "text": "Single Sign-On ist für diese Domain nicht konfiguriert. Bitte wende dich an deinen Administrator."
+    "text": "Single Sign-On ist für diese Domain nicht konfiguriert. Bitte wende dich an deinen Administrator.",
+    "source_hash": "b39ef93e"
   },
   "web.login.errors.invalid_email": {
-    "text": "Die E-Mail-Adresse von deinem Identitätsanbieter ist ungültig. Bitte wende dich an deinen Administrator."
+    "text": "Die E-Mail-Adresse von deinem Identitätsanbieter ist ungültig. Bitte wende dich an deinen Administrator.",
+    "source_hash": "10c12029"
   },
   "web.login.errors.domain_not_allowed": {
-    "text": "Deine E-Mail-Domain ist nicht für die SSO-Registrierung autorisiert. Bitte wende dich an deinen Administrator."
+    "text": "Deine E-Mail-Domain ist nicht für die SSO-Registrierung autorisiert. Bitte wende dich an deinen Administrator.",
+    "source_hash": "87603782"
   }
 }

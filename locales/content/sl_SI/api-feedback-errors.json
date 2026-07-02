@@ -1,5 +1,6 @@
 {
   "api.feedback.errors.rate_limit_exceeded": {
-    "text": "Preveč oddanih povratnih informacij. Poskusite znova pozneje."
+    "text": "Preveč oddanih povratnih informacij. Poskusite znova pozneje.",
+    "source_hash": "3a890eb2"
   }
 }

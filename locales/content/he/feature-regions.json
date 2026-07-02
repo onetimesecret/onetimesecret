@@ -188,6 +188,7 @@
     "source_hash": "7a757670"
   },
   "web.regions.no_region_configured": {
-    "text": "כרגע אין מידע על אזורים זמין עבור החשבון שלך."
+    "text": "כרגע אין מידע על אזורים זמין עבור החשבון שלך.",
+    "source_hash": "bbfe2a32"
   }
 }

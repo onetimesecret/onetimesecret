@@ -24,12 +24,15 @@
     "source_hash": "ff0d904e"
   },
   "web.teams.create_first_team_title": {
-    "text": "첫 번째 팀 만들기"
+    "text": "첫 번째 팀 만들기",
+    "source_hash": "54693f14"
   },
   "web.teams.create_first_team_description": {
-    "text": "팀을 통해 공유 워크스페이스에서 다른 사람들과 협업할 수 있습니다."
+    "text": "팀을 통해 공유 워크스페이스에서 다른 사람들과 협업할 수 있습니다.",
+    "source_hash": "d61b86b5"
   },
   "web.teams.create_team": {
-    "text": "팀 만들기"
+    "text": "팀 만들기",
+    "source_hash": "284ff194"
   }
 }

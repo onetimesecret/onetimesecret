@@ -855,39 +855,51 @@
     "source_hash": "1cd0194a"
   },
   "email.common.secret_link_label": {
-    "text": "Link segreto"
+    "text": "Link segreto",
+    "source_hash": "18ddf44f"
   },
   "email.common.automated_notice": {
-    "text": "Questo è un messaggio automatico da %{product_name}."
+    "text": "Questo è un messaggio automatico da %{product_name}.",
+    "source_hash": "8fbabfba"
   },
   "email.common.support_label": {
-    "text": "Supporto"
+    "text": "Supporto",
+    "source_hash": "be91940b"
   },
   "email.expiration_warning.signature": {
-    "text": "Team di supporto"
+    "text": "Team di supporto",
+    "source_hash": "dc75bf9f"
   },
   "email.expiration_warning.footer_note": {
-    "text": "Hai ricevuto questo messaggio perché un segreto che hai creato su %{product_name} sta per scadere."
+    "text": "Hai ricevuto questo messaggio perché un segreto che hai creato su %{product_name} sta per scadere.",
+    "source_hash": "920779e4"
   },
   "email.feedback_email.user_id_label": {
-    "text": "Utente:"
+    "text": "Utente:",
+    "source_hash": "93d6b3e9"
   },
   "email.feedback_email.timezone_label": {
-    "text": "Fuso orario:"
+    "text": "Fuso orario:",
+    "source_hash": "39651ebf"
   },
   "email.feedback_email.version_label": {
-    "text": "Versione:"
+    "text": "Versione:",
+    "source_hash": "4c5726ee"
   },
   "email.incoming_secret.footer_note": {
-    "text": "Hai ricevuto questo messaggio perché qualcuno ha usato %{product_name} per inviarti un segreto. Se non te lo aspettavi, puoi ignorare questa email senza problemi."
+    "text": "Hai ricevuto questo messaggio perché qualcuno ha usato %{product_name} per inviarti un segreto. Se non te lo aspettavi, puoi ignorare questa email senza problemi.",
+    "source_hash": "91ee6e8d"
   },
   "email.secret_link.passphrase_label": {
-    "text": "Frase di sicurezza richiesta:"
+    "text": "Frase di sicurezza richiesta:",
+    "source_hash": "1ab9a20f"
   },
   "email.secret_link.passphrase_required": {
-    "text": "Questo segreto è protetto da una frase di sicurezza. Il mittente dovrebbe fornirtela separatamente."
+    "text": "Questo segreto è protetto da una frase di sicurezza. Il mittente dovrebbe fornirtela separatamente.",
+    "source_hash": "1e49826b"
   },
   "email.secret_link.footer_note": {
-    "text": "Hai ricevuto questo messaggio perché %{sender_email} ha usato %{product_name} per condividere un segreto con te. Se non te lo aspettavi, puoi ignorare questa email senza problemi."
+    "text": "Hai ricevuto questo messaggio perché %{sender_email} ha usato %{product_name} per condividere un segreto con te. Se non te lo aspettavi, puoi ignorare questa email senza problemi.",
+    "source_hash": "2d544dad"
   }
 }

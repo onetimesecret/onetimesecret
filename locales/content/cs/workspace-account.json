@@ -684,12 +684,15 @@
     "source_hash": "fe3ac3ad"
   },
   "web.settings.api.api_disabled_notice": {
-    "text": "Rozhraní API je pro tuto instanci zakázáno."
+    "text": "Rozhraní API je pro tuto instanci zakázáno.",
+    "source_hash": "66d12d6b"
   },
   "web.settings.security.sso_managed_title": {
-    "text": "Zabezpečení spravované přes SSO"
+    "text": "Zabezpečení spravované přes SSO",
+    "source_hash": "1f6c9472"
   },
   "web.settings.security.sso_managed_description": {
-    "text": "Tvůj účet je ověřován prostřednictvím poskytovatele jednotného přihlášení tvé organizace. Heslo, vícefaktorové ověření a obnovovací kódy spravuje tvůj poskytovatel identity."
+    "text": "Tvůj účet je ověřován prostřednictvím poskytovatele jednotného přihlášení tvé organizace. Heslo, vícefaktorové ověření a obnovovací kódy spravuje tvůj poskytovatel identity.",
+    "source_hash": "cd0cf39f"
   }
 }

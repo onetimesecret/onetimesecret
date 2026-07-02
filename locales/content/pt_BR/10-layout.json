@@ -340,9 +340,11 @@
     "source_hash": "dc6fa4f5"
   },
   "web.footer.workspace": {
-    "text": "Workspace"
+    "text": "Workspace",
+    "source_hash": "87bb59ba"
   },
   "web.help.default_content": {
-    "text": "Entre em contato com o suporte para obter ajuda"
+    "text": "Entre em contato com o suporte para obter ajuda",
+    "source_hash": "752bca14"
   }
 }

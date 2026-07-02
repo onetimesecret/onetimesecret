@@ -1385,108 +1385,143 @@
     "source_hash": "783f174c"
   },
   "api.errors.authentication_required": {
-    "text": "Изисква се удостоверяване"
+    "text": "Изисква се удостоверяване",
+    "source_hash": "0fcfb12d"
   },
   "api.errors.sso_only_action_blocked": {
-    "text": "Това действие не е налично в режим само за SSO"
+    "text": "Това действие не е налично в режим само за SSO",
+    "source_hash": "9bc26394"
   },
   "web.COMMON.configure": {
-    "text": "Конфигуриране"
+    "text": "Конфигуриране",
+    "source_hash": "6defafa2"
   },
   "web.COMMON.copy_to_clipboard": {
-    "text": "Копиране в клипборда"
+    "text": "Копиране в клипборда",
+    "source_hash": "b749e205"
   },
   "web.COMMON.add": {
-    "text": "Добавяне"
+    "text": "Добавяне",
+    "source_hash": "9fd728c6"
   },
   "web.COMMON.enabled": {
-    "text": "Активирано"
+    "text": "Активирано",
+    "source_hash": "92c1cdfd"
   },
   "web.COMMON.disabled": {
-    "text": "Деактивирано"
+    "text": "Деактивирано",
+    "source_hash": "75081b59"
   },
   "web.COMMON.yes_delete": {
-    "text": "Да, изтрий"
+    "text": "Да, изтрий",
+    "source_hash": "7b05a8e3"
   },
   "web.COMMON.error_code": {
-    "text": "Код на грешка"
+    "text": "Код на грешка",
+    "source_hash": "46832415"
   },
   "web.COMMON.http_status": {
-    "text": "HTTP статус"
+    "text": "HTTP статус",
+    "source_hash": "b2a629f2"
   },
   "web.COMMON.details": {
-    "text": "Подробности"
+    "text": "Подробности",
+    "source_hash": "45989de4"
   },
   "web.COMMON.field_confirm_password": {
-    "text": "Потвърдете паролата"
+    "text": "Потвърдете паролата",
+    "source_hash": "c292210c"
   },
   "web.COMMON.passwords_must_match": {
-    "text": "Паролите трябва да съвпадат"
+    "text": "Паролите трябва да съвпадат",
+    "source_hash": "0c060bd4"
   },
   "web.COMMON.and": {
-    "text": "и"
+    "text": "и",
+    "source_hash": "6201111b"
   },
   "web.COMMON.or": {
-    "text": "или"
+    "text": "или",
+    "source_hash": "7175517a"
   },
   "web.COMMON.copied": {
-    "text": "Копирано"
+    "text": "Копирано",
+    "source_hash": "8d525e5f"
   },
   "web.COMMON.copy": {
-    "text": "Копиране"
+    "text": "Копиране",
+    "source_hash": "e21f935f"
   },
   "web.COMMON.copy_email": {
-    "text": "Копиране на имейл адреса"
+    "text": "Копиране на имейл адреса",
+    "source_hash": "61b94846"
   },
   "web.COMMON.copy_id": {
-    "text": "Копиране на ИД на акаунта"
+    "text": "Копиране на ИД на акаунта",
+    "source_hash": "fd493ffd"
   },
   "web.COMMON.org_id_tooltip": {
-    "text": "Уникалният идентификатор на вашата организация"
+    "text": "Уникалният идентификатор на вашата организация",
+    "source_hash": "c8c08d29"
   },
   "web.COMMON.success": {
-    "text": "Успех"
+    "text": "Успех",
+    "source_hash": "c88a0b90"
   },
   "web.COMMON.need_help": {
-    "text": "Нуждаете се от помощ"
+    "text": "Нуждаете се от помощ",
+    "source_hash": "4ca0ca38"
   },
   "web.COMMON.open_help_dialog": {
-    "text": "Отваряне на диалога за помощ"
+    "text": "Отваряне на диалога за помощ",
+    "source_hash": "55cd1515"
   },
   "web.COMMON.focus_is_now_in_the_main_text_area": {
-    "text": "Фокусът вече е в основното текстово поле"
+    "text": "Фокусът вече е в основното текстово поле",
+    "source_hash": "e00dd260"
   },
   "web.LABELS.show_passphrase": {
-    "text": "Показване на ключовата фраза"
+    "text": "Показване на ключовата фраза",
+    "source_hash": "76880d38"
   },
   "web.LABELS.hide_passphrase": {
-    "text": "Скриване на ключовата фраза"
+    "text": "Скриване на ключовата фраза",
+    "source_hash": "8ecdc98c"
   },
   "web.LABELS.copy_icon": {
-    "text": "Икона за копиране"
+    "text": "Икона за копиране",
+    "source_hash": "d1a5fc0c"
   },
   "web.LABELS.copied_icon": {
-    "text": "Икона за копирано"
+    "text": "Икона за копирано",
+    "source_hash": "90a4b4f1"
   },
   "web.STATUS.unverified": {
-    "text": "Непроверено"
+    "text": "Непроверено",
+    "source_hash": "33c8e8de"
   },
   "web.TITLES.domain_detail": {
-    "text": "Настройки на домейна"
+    "text": "Настройки на домейна",
+    "source_hash": "e24f338d"
   },
   "web.TITLES.domain_signin": {
-    "text": "Конфигурация на влизането"
+    "text": "Конфигурация на влизането",
+    "source_hash": "2da38c03"
   },
   "web.TITLES.domain_sso": {
-    "text": "SSO на домейна"
+    "text": "SSO на домейна",
+    "source_hash": "13161464"
   },
   "web.TITLES.domain_signup": {
-    "text": "Валидиране на регистрацията за домейна"
+    "text": "Валидиране на регистрацията за домейна",
+    "source_hash": "c8ce809a"
   },
   "web.TITLES.domain_email": {
-    "text": "Конфигурация на имейла"
+    "text": "Конфигурация на имейла",
+    "source_hash": "6f38aa51"
   },
   "web.TITLES.domain_incoming": {
-    "text": "Входящи тайни"
+    "text": "Входящи тайни",
+    "source_hash": "883dbca9"
   }
 }

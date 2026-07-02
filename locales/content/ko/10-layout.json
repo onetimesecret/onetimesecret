@@ -340,9 +340,11 @@
     "source_hash": "dc6fa4f5"
   },
   "web.footer.workspace": {
-    "text": "워크스페이스"
+    "text": "워크스페이스",
+    "source_hash": "87bb59ba"
   },
   "web.help.default_content": {
-    "text": "도움이 필요하시면 지원팀에 문의해 주세요"
+    "text": "도움이 필요하시면 지원팀에 문의해 주세요",
+    "source_hash": "752bca14"
   }
 }

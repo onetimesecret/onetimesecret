@@ -1,5 +1,6 @@
 {
   "api.incoming.errors.custom_domain_unresolved": {
-    "text": "Az egyéni domén szervezete nem volt feloldható"
+    "text": "Az egyéni domén szervezete nem volt feloldható",
+    "source_hash": "b30d65d2"
   }
 }

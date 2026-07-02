@@ -580,342 +580,455 @@
     "source_hash": "a5dcfef9"
   },
   "api.organizations.errors.not_found": {
-    "text": "Organisation ikke fundet: %{extid}"
+    "text": "Organisation ikke fundet: %{extid}",
+    "source_hash": "c8d058eb"
   },
   "api.organizations.errors.owner_required": {
-    "text": "Kun organisationsejeren kan udføre denne handling"
+    "text": "Kun organisationsejeren kan udføre denne handling",
+    "source_hash": "5a729e94"
   },
   "api.organizations.errors.admin_required": {
-    "text": "Kun organisationsejere og administratorer kan udføre denne handling"
+    "text": "Kun organisationsejere og administratorer kan udføre denne handling",
+    "source_hash": "cd9e8c0e"
   },
   "api.organizations.errors.member_required": {
-    "text": "Du skal være medlem af organisationen for at udføre denne handling"
+    "text": "Du skal være medlem af organisationen for at udføre denne handling",
+    "source_hash": "f66f4a60"
   },
   "api.organizations.invitations.errors.create_admin_required": {
-    "text": "Kun organisationsejere og administratorer kan oprette invitationer"
+    "text": "Kun organisationsejere og administratorer kan oprette invitationer",
+    "source_hash": "777d150d"
   },
   "api.organizations.invitations.errors.resend_admin_required": {
-    "text": "Kun organisationsejere og administratorer kan gensende invitationer"
+    "text": "Kun organisationsejere og administratorer kan gensende invitationer",
+    "source_hash": "6a857d59"
   },
   "api.organizations.invitations.errors.view_admin_required": {
-    "text": "Kun organisationsejere og administratorer kan se invitationer"
+    "text": "Kun organisationsejere og administratorer kan se invitationer",
+    "source_hash": "42f5878b"
   },
   "api.organizations.invitations.errors.revoke_admin_required": {
-    "text": "Kun organisationsejere og administratorer kan tilbagekalde invitationer"
+    "text": "Kun organisationsejere og administratorer kan tilbagekalde invitationer",
+    "source_hash": "52f73c8a"
   },
   "api.organizations.invitations.errors.email_required": {
-    "text": "E-mail er påkrævet"
+    "text": "E-mail er påkrævet",
+    "source_hash": "aae92911"
   },
   "api.organizations.invitations.errors.email_invalid": {
-    "text": "Ugyldigt e-mailformat"
+    "text": "Ugyldigt e-mailformat",
+    "source_hash": "0bcecf66"
   },
   "api.organizations.invitations.errors.role_invalid": {
-    "text": "Rollen skal være medlem eller administrator"
+    "text": "Rollen skal være medlem eller administrator",
+    "source_hash": "650ea5f6"
   },
   "api.organizations.invitations.errors.cannot_invite_owner": {
-    "text": "Kan ikke invitere som ejer"
+    "text": "Kan ikke invitere som ejer",
+    "source_hash": "e6581025"
   },
   "api.organizations.invitations.errors.already_member": {
-    "text": "Brugeren er allerede medlem af denne organisation"
+    "text": "Brugeren er allerede medlem af denne organisation",
+    "source_hash": "8eb45780"
   },
   "api.organizations.invitations.errors.already_pending": {
-    "text": "Der afventer allerede en invitation for denne e-mail"
+    "text": "Der afventer allerede en invitation for denne e-mail",
+    "source_hash": "7f5e3093"
   },
   "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Medlemsgrænsen er nået. Opgrader din plan for at invitere flere medlemmer."
+    "text": "Medlemsgrænsen er nået. Opgrader din plan for at invitere flere medlemmer.",
+    "source_hash": "b8f316e8"
   },
   "api.organizations.invitations.errors.not_found": {
-    "text": "Invitation ikke fundet"
+    "text": "Invitation ikke fundet",
+    "source_hash": "775ba9eb"
   },
   "api.organizations.invitations.errors.cannot_resend_non_pending": {
-    "text": "Kan kun gensende afventende invitationer"
+    "text": "Kan kun gensende afventende invitationer",
+    "source_hash": "b7578b3e"
   },
   "api.organizations.invitations.errors.cannot_revoke_non_pending": {
-    "text": "Kan kun tilbagekalde afventende invitationer"
+    "text": "Kan kun tilbagekalde afventende invitationer",
+    "source_hash": "732b78a6"
   },
   "api.organizations.invitations.errors.resend_limit_reached": {
-    "text": "Den maksimale grænse for gensendelse (%{max}) er nået"
+    "text": "Den maksimale grænse for gensendelse (%{max}) er nået",
+    "source_hash": "8dc96729"
   },
   "api.organizations.invitations.errors.accept_token_required": {
-    "text": "Token er påkrævet"
+    "text": "Token er påkrævet",
+    "source_hash": "6c718161"
   },
   "api.organizations.invitations.errors.accept_organization_gone": {
-    "text": "Organisationen findes ikke længere"
+    "text": "Organisationen findes ikke længere",
+    "source_hash": "a5df7d22"
   },
   "api.organizations.invitations.errors.accept_already_acted": {
-    "text": "Invitationen er allerede blevet %{status}"
+    "text": "Invitationen er allerede blevet %{status}",
+    "source_hash": "130c87e0"
   },
   "api.organizations.invitations.errors.accept_expired": {
-    "text": "Invitationen er udløbet"
+    "text": "Invitationen er udløbet",
+    "source_hash": "7186297b"
   },
   "api.organizations.invitations.errors.accept_email_mismatch": {
-    "text": "Din e-mailadresse stemmer ikke overens med invitationen"
+    "text": "Din e-mailadresse stemmer ikke overens med invitationen",
+    "source_hash": "11026f46"
   },
   "api.organizations.invitations.errors.accept_already_member": {
-    "text": "Du er allerede medlem af denne organisation"
+    "text": "Du er allerede medlem af denne organisation",
+    "source_hash": "f56ad547"
   },
   "web.organizations.entitlements_title": {
-    "text": "Organisationsrettigheder"
+    "text": "Organisationsrettigheder",
+    "source_hash": "36054d4f"
   },
   "web.organizations.page_description_short": {
-    "text": "Se og konfigurer dine workspaces"
+    "text": "Se og konfigurer dine workspaces",
+    "source_hash": "524fcb9a"
   },
   "web.organizations.delete_organization_remove_domains_first": {
-    "text": "Fjern alle brugerdefinerede domæner, før du sletter denne organisation."
+    "text": "Fjern alle brugerdefinerede domæner, før du sletter denne organisation.",
+    "source_hash": "44678715"
   },
   "web.organizations.default_org_delete_notice_title": {
-    "text": "Sletning af denne organisation"
+    "text": "Sletning af denne organisation",
+    "source_hash": "9191d915"
   },
   "web.organizations.default_org_delete_notice_before": {
-    "text": "Dette er din standardorganisation, og den kan ikke fjernes fra oversigten. For at slette den skal du kontakte os via"
+    "text": "Dette er din standardorganisation, og den kan ikke fjernes fra oversigten. For at slette den skal du kontakte os via",
+    "source_hash": "e203607d"
   },
   "web.organizations.default_org_delete_notice_link": {
-    "text": "feedbackformularen"
+    "text": "feedbackformularen",
+    "source_hash": "94645a9e"
   },
   "web.organizations.default_org_delete_notice_after": {
-    "text": "."
+    "text": ".",
+    "source_hash": "cdb4ee2a"
   },
   "web.organizations.leave_organization": {
-    "text": "Forlad denne organisation"
+    "text": "Forlad denne organisation",
+    "source_hash": "d534cff9"
   },
   "web.organizations.leave_organization_warning": {
-    "text": "Du vil miste adgang til denne organisation og dens ressourcer."
+    "text": "Du vil miste adgang til denne organisation og dens ressourcer.",
+    "source_hash": "e9daab07"
   },
   "web.organizations.leave_organization_confirm_title": {
-    "text": "Forlad organisation"
+    "text": "Forlad organisation",
+    "source_hash": "ec8314da"
   },
   "web.organizations.leave_organization_confirm_message": {
-    "text": "Er du sikker på, at du vil forlade {name}? Du skal bruge en ny invitation for at deltage igen."
+    "text": "Er du sikker på, at du vil forlade {name}? Du skal bruge en ny invitation for at deltage igen.",
+    "source_hash": "e21c5fec"
   },
   "web.organizations.leave_organization_success": {
-    "text": "Du har forladt organisationen."
+    "text": "Du har forladt organisationen.",
+    "source_hash": "fc803eb3"
   },
   "web.organizations.leave_error": {
-    "text": "Kunne ikke forlade organisationen"
+    "text": "Kunne ikke forlade organisationen",
+    "source_hash": "6cb6af43"
   },
   "web.organizations.organizations": {
-    "text": "Organisationer"
+    "text": "Organisationer",
+    "source_hash": "2730183d"
   },
   "web.organizations.invitations.invited_by_inline": {
-    "text": "af {email}"
+    "text": "af {email}",
+    "source_hash": "969a7050"
   },
   "web.organizations.invitations.invited_as_inline": {
-    "text": "som {role}"
+    "text": "som {role}",
+    "source_hash": "ff9e9b18"
   },
   "web.organizations.invitations.back_to_home": {
-    "text": "Tilbage til forsiden"
+    "text": "Tilbage til forsiden",
+    "source_hash": "76c5505f"
   },
   "web.organizations.invitations.email_locked_hint": {
-    "text": "Denne invitation blev sendt til denne e-mailadresse"
+    "text": "Denne invitation blev sendt til denne e-mailadresse",
+    "source_hash": "2cff7075"
   },
   "web.organizations.invitations.signup_continue": {
-    "text": "Fortsæt"
+    "text": "Fortsæt",
+    "source_hash": "31fbef16"
   },
   "web.organizations.invitations.signin_continue": {
-    "text": "Log ind"
+    "text": "Log ind",
+    "source_hash": "bcc0bcc9"
   },
   "web.organizations.invitations.confirm_join_below": {
-    "text": "Næsten færdig — bekræft nedenfor for at deltage i organisationen."
+    "text": "Næsten færdig — bekræft nedenfor for at deltage i organisationen.",
+    "source_hash": "2d14f9b0"
   },
   "web.organizations.invitations.go_to_organizations": {
-    "text": "Gå til Organisationer"
+    "text": "Gå til Organisationer",
+    "source_hash": "2afa38a3"
   },
   "web.organizations.invitations.already_member": {
-    "text": "Du er allerede medlem af denne organisation"
+    "text": "Du er allerede medlem af denne organisation",
+    "source_hash": "f56ad547"
   },
   "web.organizations.invitations.join_organization": {
-    "text": "Deltag i {orgName}"
+    "text": "Deltag i {orgName}",
+    "source_hash": "1aea9194"
   },
   "web.organizations.invitations.sign_in_to_join": {
-    "text": "Log ind for at deltage i {orgName}"
+    "text": "Log ind for at deltage i {orgName}",
+    "source_hash": "f94ed8b4"
   },
   "web.organizations.invitations.decline": {
-    "text": "Afvis"
+    "text": "Afvis",
+    "source_hash": "a2d285b3"
   },
   "web.organizations.members.member_quota": {
-    "text": "{used} af {limit} medlemmer"
+    "text": "{used} af {limit} medlemmer",
+    "source_hash": "51183b79"
   },
   "web.organizations.members.pending_suffix": {
-    "text": "({count} afventer)"
+    "text": "({count} afventer)",
+    "source_hash": "c13f787f"
   },
   "web.organizations.members.limit_reached_hint": {
-    "text": "Medlemsgrænsen er nået."
+    "text": "Medlemsgrænsen er nået.",
+    "source_hash": "26cdb6b8"
   },
   "web.organizations.sso.title": {
-    "text": "Single Sign-On (SSO)"
+    "text": "Single Sign-On (SSO)",
+    "source_hash": "5db5c812"
   },
   "web.organizations.sso.description": {
-    "text": "Konfigurer SSO for at lade medlemmer logge ind med din organisations identitetsudbyder"
+    "text": "Konfigurer SSO for at lade medlemmer logge ind med din organisations identitetsudbyder",
+    "source_hash": "464f0a8b"
   },
   "web.organizations.sso.provider_type": {
-    "text": "Udbydertype"
+    "text": "Udbydertype",
+    "source_hash": "bdfbb1ec"
   },
   "web.organizations.sso.provider_type_description": {
-    "text": "Vælg din organisations identitetsudbyder"
+    "text": "Vælg din organisations identitetsudbyder",
+    "source_hash": "e81325a6"
   },
   "web.organizations.sso.display_name": {
-    "text": "Visningsnavn"
+    "text": "Visningsnavn",
+    "source_hash": "18d67c99"
   },
   "web.organizations.sso.display_name_hint": {
-    "text": "Et brugervenligt navn, der vises til brugerne, når de logger ind"
+    "text": "Et brugervenligt navn, der vises til brugerne, når de logger ind",
+    "source_hash": "a83f1fba"
   },
   "web.organizations.sso.display_name_placeholder": {
-    "text": "f.eks. Acme Corp SSO"
+    "text": "f.eks. Acme Corp SSO",
+    "source_hash": "43c655c5"
   },
   "web.organizations.sso.client_id": {
-    "text": "Client ID"
+    "text": "Client ID",
+    "source_hash": "8726db01"
   },
   "web.organizations.sso.client_id_placeholder": {
-    "text": "Dit OAuth-client-ID"
+    "text": "Dit OAuth-client-ID",
+    "source_hash": "830723da"
   },
   "web.organizations.sso.client_secret": {
-    "text": "Client Secret"
+    "text": "Client Secret",
+    "source_hash": "ae21cf6d"
   },
   "web.organizations.sso.client_secret_placeholder": {
-    "text": "Din OAuth-client-secret"
+    "text": "Din OAuth-client-secret",
+    "source_hash": "14e4a8c8"
   },
   "web.organizations.sso.client_secret_update_hint": {
-    "text": "Lad feltet stå tomt for at beholde den eksisterende secret"
+    "text": "Lad feltet stå tomt for at beholde den eksisterende secret",
+    "source_hash": "98bc3b40"
   },
   "web.organizations.sso.tenant_id": {
-    "text": "Tenant ID"
+    "text": "Tenant ID",
+    "source_hash": "de1f5fff"
   },
   "web.organizations.sso.tenant_id_hint": {
-    "text": "Dit Azure AD / Entra ID-tenant-id"
+    "text": "Dit Azure AD / Entra ID-tenant-id",
+    "source_hash": "3c5b707a"
   },
   "web.organizations.sso.tenant_id_placeholder": {
-    "text": "f.eks. 12345678-1234-1234-1234-123456789abc"
+    "text": "f.eks. 12345678-1234-1234-1234-123456789abc",
+    "source_hash": "1a166316"
   },
   "web.organizations.sso.issuer": {
-    "text": "Issuer-URL"
+    "text": "Issuer-URL",
+    "source_hash": "4d03ba8a"
   },
   "web.organizations.sso.issuer_hint": {
-    "text": "OIDC-discovery-URL'en for din identitetsudbyder"
+    "text": "OIDC-discovery-URL'en for din identitetsudbyder",
+    "source_hash": "6102d81b"
   },
   "web.organizations.sso.issuer_placeholder": {
-    "text": "f.eks. https://login.example.com"
+    "text": "f.eks. https://login.example.com",
+    "source_hash": "9a638e9c"
   },
   "web.organizations.sso.view_discovery_document": {
-    "text": "Vis discovery-dokument"
+    "text": "Vis discovery-dokument",
+    "source_hash": "513bda60"
   },
   "web.organizations.sso.callback_url": {
-    "text": "Callback-URL"
+    "text": "Callback-URL",
+    "source_hash": "dc297ae9"
   },
   "web.organizations.sso.callback_url_hint": {
-    "text": "Tilføj denne URL til din identitetsudbyders tilladte redirect-URI'er"
+    "text": "Tilføj denne URL til din identitetsudbyders tilladte redirect-URI'er",
+    "source_hash": "65d55683"
   },
   "web.organizations.sso.allowed_domains": {
-    "text": "Tilladte e-maildomæner"
+    "text": "Tilladte e-maildomæner",
+    "source_hash": "0295ad71"
   },
   "web.organizations.sso.allowed_domains_hint": {
-    "text": "Kun brugere med e-mailadresser fra disse domæner kan logge ind. Lad feltet stå tomt for at tillade alle domæner."
+    "text": "Kun brugere med e-mailadresser fra disse domæner kan logge ind. Lad feltet stå tomt for at tillade alle domæner.",
+    "source_hash": "1775e874"
   },
   "web.organizations.sso.domain_placeholder": {
-    "text": "f.eks. acme.com"
+    "text": "f.eks. acme.com",
+    "source_hash": "e4420764"
   },
   "web.organizations.sso.invalid_domain": {
-    "text": "Indtast et gyldigt domæne (f.eks. example.com)"
+    "text": "Indtast et gyldigt domæne (f.eks. example.com)",
+    "source_hash": "16807983"
   },
   "web.organizations.sso.domain_exists": {
-    "text": "Dette domæne er allerede på listen"
+    "text": "Dette domæne er allerede på listen",
+    "source_hash": "3fccb721"
   },
   "web.organizations.sso.remove_domain": {
-    "text": "Fjern {domain}"
+    "text": "Fjern {domain}",
+    "source_hash": "ae708a1d"
   },
   "web.organizations.sso.enabled": {
-    "text": "Aktivér SSO"
+    "text": "Aktivér SSO",
+    "source_hash": "d10d0801"
   },
   "web.organizations.sso.enabled_hint": {
-    "text": "Når den er aktiveret, kan organisationsmedlemmer logge ind med denne SSO-udbyder"
+    "text": "Når den er aktiveret, kan organisationsmedlemmer logge ind med denne SSO-udbyder",
+    "source_hash": "d7da2fa2"
   },
   "web.organizations.sso.enforce_sso_only": {
-    "text": "Gennemtving kun SSO"
+    "text": "Gennemtving kun SSO",
+    "source_hash": "b3a3f694"
   },
   "web.organizations.sso.enforce_sso_only_hint": {
-    "text": "Kræv SSO for alle logins på dette domæne. Når den er aktiveret, deaktiveres adgangskodebaseret godkendelse."
+    "text": "Kræv SSO for alle logins på dette domæne. Når den er aktiveret, deaktiveres adgangskodebaseret godkendelse.",
+    "source_hash": "19432210"
   },
   "web.organizations.sso.grant_org_scope": {
-    "text": "Giv adgang på tværs af organisationen"
+    "text": "Giv adgang på tværs af organisationen",
+    "source_hash": "2070cef2"
   },
   "web.organizations.sso.grant_org_scope_hint": {
-    "text": "Nye medlemmer, der tilslutter sig via dette domænes SSO, får adgang til alle organisationens domæner. Eksisterende medlemmer påvirkes ikke. Når den er deaktiveret (standard), kan nye medlemmer kun få adgang til dette domæne."
+    "text": "Nye medlemmer, der tilslutter sig via dette domænes SSO, får adgang til alle organisationens domæner. Eksisterende medlemmer påvirkes ikke. Når den er deaktiveret (standard), kan nye medlemmer kun få adgang til dette domæne.",
+    "source_hash": "2ac9f345"
   },
   "web.organizations.sso.save_config": {
-    "text": "Gem SSO-konfiguration"
+    "text": "Gem SSO-konfiguration",
+    "source_hash": "70853769"
   },
   "web.organizations.sso.delete_config": {
-    "text": "Slet konfiguration"
+    "text": "Slet konfiguration",
+    "source_hash": "9ac1ac7b"
   },
   "web.organizations.sso.delete_confirm": {
-    "text": "Er du sikker? Dette deaktiverer SSO for din organisation."
+    "text": "Er du sikker? Dette deaktiverer SSO for din organisation.",
+    "source_hash": "5b3f5b9d"
   },
   "web.organizations.sso.load_error": {
-    "text": "Kunne ikke indlæse SSO-konfiguration"
+    "text": "Kunne ikke indlæse SSO-konfiguration",
+    "source_hash": "75cb73f6"
   },
   "web.organizations.sso.save_error": {
-    "text": "Kunne ikke gemme SSO-konfiguration"
+    "text": "Kunne ikke gemme SSO-konfiguration",
+    "source_hash": "99ef145b"
   },
   "web.organizations.sso.create_success": {
-    "text": "SSO-konfiguration oprettet"
+    "text": "SSO-konfiguration oprettet",
+    "source_hash": "531c7d92"
   },
   "web.organizations.sso.update_success": {
-    "text": "SSO-konfiguration opdateret"
+    "text": "SSO-konfiguration opdateret",
+    "source_hash": "d98d8e83"
   },
   "web.organizations.sso.delete_success": {
-    "text": "SSO-konfiguration slettet"
+    "text": "SSO-konfiguration slettet",
+    "source_hash": "55f5d4f5"
   },
   "web.organizations.sso.delete_error": {
-    "text": "Kunne ikke slette SSO-konfiguration"
+    "text": "Kunne ikke slette SSO-konfiguration",
+    "source_hash": "4a960fe4"
   },
   "web.organizations.sso.test_connection": {
-    "text": "Test forbindelse"
+    "text": "Test forbindelse",
+    "source_hash": "c02977b0"
   },
   "web.organizations.sso.test_connection_hint": {
-    "text": "Bekræft, at identitetsudbyderen kan nås (validerer ikke legitimationsoplysninger)"
+    "text": "Bekræft, at identitetsudbyderen kan nås (validerer ikke legitimationsoplysninger)",
+    "source_hash": "22a23b68"
   },
   "web.organizations.sso.test_button": {
-    "text": "Test forbindelse"
+    "text": "Test forbindelse",
+    "source_hash": "c02977b0"
   },
   "web.organizations.sso.testing": {
-    "text": "Tester..."
+    "text": "Tester...",
+    "source_hash": "6c02a284"
   },
   "web.organizations.sso.test_error": {
-    "text": "Kunne ikke teste forbindelsen"
+    "text": "Kunne ikke teste forbindelsen",
+    "source_hash": "c1d1f310"
   },
   "web.organizations.sso.auth_endpoint": {
-    "text": "Autorisationsendepunkt"
+    "text": "Autorisationsendepunkt",
+    "source_hash": "b42b956f"
   },
   "web.organizations.sso.missing_fields": {
-    "text": "Manglende felter"
+    "text": "Manglende felter",
+    "source_hash": "757df777"
   },
   "web.organizations.sso.status_enabled": {
-    "text": "Aktiveret"
+    "text": "Aktiveret",
+    "source_hash": "92c1cdfd"
   },
   "web.organizations.sso.status_configured": {
-    "text": "Konfigureret"
+    "text": "Konfigureret",
+    "source_hash": "84aebc69"
   },
   "web.organizations.sso.domain_sso_title": {
-    "text": "Domæne-SSO"
+    "text": "Domæne-SSO",
+    "source_hash": "13161464"
   },
   "web.organizations.sso.domain_sso_description": {
-    "text": "Konfigurer SSO for hvert bekræftet domæne"
+    "text": "Konfigurer SSO for hvert bekræftet domæne",
+    "source_hash": "af5b799e"
   },
   "web.organizations.sso.provider_type_locked_hint": {
-    "text": "For at ændre udbyder skal du først slette denne konfiguration"
+    "text": "For at ændre udbyder skal du først slette denne konfiguration",
+    "source_hash": "0a1027ff"
   },
   "web.organizations.sso.status_not_configured": {
-    "text": "Ikke konfigureret"
+    "text": "Ikke konfigureret",
+    "source_hash": "bbea960e"
   },
   "web.organizations.sso.no_domains": {
-    "text": "Ingen bekræftede domæner"
+    "text": "Ingen bekræftede domæner",
+    "source_hash": "8a7fbb76"
   },
   "web.organizations.sso.no_domains_description": {
-    "text": "Tilføj og bekræft et domæne, før du konfigurerer SSO for det."
+    "text": "Tilføj og bekræft et domæne, før du konfigurerer SSO for det.",
+    "source_hash": "e825d13a"
   },
   "web.organizations.tabs.team": {
-    "text": "Team"
+    "text": "Team",
+    "source_hash": "5985039f"
   },
   "web.organizations.tabs.sso": {
-    "text": "SSO"
+    "text": "SSO",
+    "source_hash": "5ba3ac9f"
   }
 }

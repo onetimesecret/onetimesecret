@@ -636,150 +636,199 @@
     "source_hash": "fe77172e"
   },
   "web.colonel.previewPlanMode": {
-    "text": "Mode de previsualització del pla"
+    "text": "Mode de previsualització del pla",
+    "source_hash": "cf53f19d"
   },
   "web.colonel.previewModeDescription": {
-    "text": "Previsualitza l'aplicació tal com la veuen els clients amb un pla diferent. Això només afecta la teva vista i no canvia el pla real de cap organització."
+    "text": "Previsualitza l'aplicació tal com la veuen els clients amb un pla diferent. Això només afecta la teva vista i no canvia el pla real de cap organització.",
+    "source_hash": "6fe23f23"
   },
   "web.colonel.previewModeActive": {
-    "text": "Previsualització activa"
+    "text": "Previsualització activa",
+    "source_hash": "a558d603"
   },
   "web.colonel.bannedIps.empty": {
-    "text": "No hi ha cap IP bloquejada"
+    "text": "No hi ha cap IP bloquejada",
+    "source_hash": "bd101143"
   },
   "web.colonel.bannedIps.currentIp": {
-    "text": "La teva adreça IP actual"
+    "text": "La teva adreça IP actual",
+    "source_hash": "72f9fefe"
   },
   "web.colonel.bannedIps.confirmUnban": {
-    "text": "Vols desbloquejar {ip}?"
+    "text": "Vols desbloquejar {ip}?",
+    "source_hash": "ff009b1c"
   },
   "web.colonel.bannedIps.actions.ban": {
-    "text": "Bloqueja la IP"
+    "text": "Bloqueja la IP",
+    "source_hash": "f91a5285"
   },
   "web.colonel.bannedIps.actions.quickBan": {
-    "text": "Bloqueig ràpid"
+    "text": "Bloqueig ràpid",
+    "source_hash": "c32d0943"
   },
   "web.colonel.bannedIps.actions.unban": {
-    "text": "Desbloqueja"
+    "text": "Desbloqueja",
+    "source_hash": "25fb5989"
   },
   "web.colonel.bannedIps.actions.cancel": {
-    "text": "Cancel·la"
+    "text": "Cancel·la",
+    "source_hash": "19766ed6"
   },
   "web.colonel.bannedIps.columns.ipAddress": {
-    "text": "Adreça IP"
+    "text": "Adreça IP",
+    "source_hash": "3c3de0c9"
   },
   "web.colonel.bannedIps.columns.reason": {
-    "text": "Motiu"
+    "text": "Motiu",
+    "source_hash": "f81ab834"
   },
   "web.colonel.bannedIps.columns.bannedAt": {
-    "text": "Bloquejada el"
+    "text": "Bloquejada el",
+    "source_hash": "dfbd120e"
   },
   "web.colonel.bannedIps.columns.bannedBy": {
-    "text": "Bloquejada per"
+    "text": "Bloquejada per",
+    "source_hash": "9f47db0e"
   },
   "web.colonel.bannedIps.error.banFailed": {
-    "text": "No s'ha pogut bloquejar l'adreça IP"
+    "text": "No s'ha pogut bloquejar l'adreça IP",
+    "source_hash": "24e94d9b"
   },
   "web.colonel.bannedIps.error.unbanFailed": {
-    "text": "No s'ha pogut desbloquejar l'adreça IP"
+    "text": "No s'ha pogut desbloquejar l'adreça IP",
+    "source_hash": "66bbac9a"
   },
   "web.colonel.bannedIps.form.title": {
-    "text": "Bloqueja l'adreça IP"
+    "text": "Bloqueja l'adreça IP",
+    "source_hash": "3f5b3dfa"
   },
   "web.colonel.bannedIps.form.ipLabel": {
-    "text": "Adreça IP"
+    "text": "Adreça IP",
+    "source_hash": "3c3de0c9"
   },
   "web.colonel.bannedIps.form.reasonLabel": {
-    "text": "Motiu"
+    "text": "Motiu",
+    "source_hash": "f81ab834"
   },
   "web.colonel.bannedIps.form.reasonPlaceholder": {
-    "text": "Motiu opcional"
+    "text": "Motiu opcional",
+    "source_hash": "956688a5"
   },
   "web.colonel.bannedIps.success.banned": {
-    "text": "L'adreça IP {ip} s'ha bloquejat"
+    "text": "L'adreça IP {ip} s'ha bloquejat",
+    "source_hash": "b6f861d5"
   },
   "web.colonel.bannedIps.success.unbanned": {
-    "text": "L'adreça IP {ip} s'ha desbloquejat"
+    "text": "L'adreça IP {ip} s'ha desbloquejat",
+    "source_hash": "dbe93550"
   },
   "web.colonel.customDomains.empty": {
-    "text": "No hi ha cap domini personalitzat configurat"
+    "text": "No hi ha cap domini personalitzat configurat",
+    "source_hash": "e10b39f7"
   },
   "web.colonel.customDomains.noLogo": {
-    "text": "Sense logotip"
+    "text": "Sense logotip",
+    "source_hash": "ee5e36ff"
   },
   "web.colonel.customDomains.labels.organization": {
-    "text": "Organització"
+    "text": "Organització",
+    "source_hash": "d764d425"
   },
   "web.colonel.customDomains.labels.externalId": {
-    "text": "ID extern"
+    "text": "ID extern",
+    "source_hash": "69da56ba"
   },
   "web.colonel.customDomains.labels.created": {
-    "text": "Creat"
+    "text": "Creat",
+    "source_hash": "d70b9e24"
   },
   "web.colonel.customDomains.labels.updated": {
-    "text": "Actualitzat"
+    "text": "Actualitzat",
+    "source_hash": "3a5ecca1"
   },
   "web.colonel.customDomains.labels.favicon": {
-    "text": "Favicon"
+    "text": "Favicon",
+    "source_hash": "42955289"
   },
   "web.colonel.customDomains.status.verified": {
-    "text": "Verificat"
+    "text": "Verificat",
+    "source_hash": "4f783840"
   },
   "web.colonel.customDomains.status.resolving": {
-    "text": "Resolent"
+    "text": "Resolent",
+    "source_hash": "3287a034"
   },
   "web.colonel.customDomains.status.ready": {
-    "text": "A punt"
+    "text": "A punt",
+    "source_hash": "5fa7aac5"
   },
   "web.colonel.customDomains.status.publicHomepage": {
-    "text": "Pàgina d'inici pública"
+    "text": "Pàgina d'inici pública",
+    "source_hash": "2ae3ccba"
   },
   "web.colonel.customDomains.status.publicApi": {
-    "text": "API pública"
+    "text": "API pública",
+    "source_hash": "ab3aa426"
   },
   "web.colonel.customDomains.status.pending": {
-    "text": "Pendent"
+    "text": "Pendent",
+    "source_hash": "331551b0"
   },
   "web.colonel.pagination.showing": {
-    "text": "Es mostren {start}–{end} de {total}"
+    "text": "Es mostren {start}–{end} de {total}",
+    "source_hash": "64af6de2"
   },
   "web.colonel.pagination.itemsPerPage": {
-    "text": "Elements per pàgina"
+    "text": "Elements per pàgina",
+    "source_hash": "766a02e0"
   },
   "web.colonel.pagination.perPage": {
-    "text": "{count} per pàgina"
+    "text": "{count} per pàgina",
+    "source_hash": "34671d42"
   },
   "web.colonel.pagination.pageOf": {
-    "text": "Pàgina {current} de {total}"
+    "text": "Pàgina {current} de {total}",
+    "source_hash": "f0df6412"
   },
   "web.colonel.secrets.empty": {
-    "text": "No s'ha trobat cap secret"
+    "text": "No s'ha trobat cap secret",
+    "source_hash": "28647b3b"
   },
   "web.colonel.secrets.never": {
-    "text": "Mai"
+    "text": "Mai",
+    "source_hash": "6300ef80"
   },
   "web.colonel.secrets.columns.shortId": {
-    "text": "ID curt"
+    "text": "ID curt",
+    "source_hash": "7eaeb4a7"
   },
   "web.colonel.secrets.columns.state": {
-    "text": "Estat"
+    "text": "Estat",
+    "source_hash": "a3b50c47"
   },
   "web.colonel.secrets.columns.created": {
-    "text": "Creat"
+    "text": "Creat",
+    "source_hash": "d70b9e24"
   },
   "web.colonel.secrets.columns.expiration": {
-    "text": "Caducitat"
+    "text": "Caducitat",
+    "source_hash": "f38d6e0e"
   },
   "web.colonel.secrets.columns.age": {
-    "text": "Antiguitat (dies)"
+    "text": "Antiguitat (dies)",
+    "source_hash": "52ae64c6"
   },
   "web.colonel.secrets.state.new": {
-    "text": "Nou"
+    "text": "Nou",
+    "source_hash": "18fdd549"
   },
   "web.colonel.secrets.state.received": {
-    "text": "Rebut"
+    "text": "Rebut",
+    "source_hash": "49f19bee"
   },
   "web.colonel.secrets.state.viewed": {
-    "text": "Vist"
+    "text": "Vist",
+    "source_hash": "1b28d178"
   }
 }

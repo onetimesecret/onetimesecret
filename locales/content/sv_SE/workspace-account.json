@@ -684,12 +684,15 @@
     "source_hash": "fe3ac3ad"
   },
   "web.settings.api.api_disabled_notice": {
-    "text": "API:et är inaktiverat för den här instansen."
+    "text": "API:et är inaktiverat för den här instansen.",
+    "source_hash": "66d12d6b"
   },
   "web.settings.security.sso_managed_title": {
-    "text": "Säkerhet hanteras av SSO"
+    "text": "Säkerhet hanteras av SSO",
+    "source_hash": "1f6c9472"
   },
   "web.settings.security.sso_managed_description": {
-    "text": "Ditt konto autentiseras via din organisations single sign-on-leverantör. Lösenord, flerfaktorsautentisering och återställningskoder hanteras av din identitetsleverantör."
+    "text": "Ditt konto autentiseras via din organisations single sign-on-leverantör. Lösenord, flerfaktorsautentisering och återställningskoder hanteras av din identitetsleverantör.",
+    "source_hash": "cd0cf39f"
   }
 }

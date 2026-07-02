@@ -340,9 +340,11 @@
     "source_hash": "dc6fa4f5"
   },
   "web.footer.workspace": {
-    "text": "Không gian làm việc"
+    "text": "Không gian làm việc",
+    "source_hash": "87bb59ba"
   },
   "web.help.default_content": {
-    "text": "Vui lòng liên hệ bộ phận hỗ trợ để được trợ giúp"
+    "text": "Vui lòng liên hệ bộ phận hỗ trợ để được trợ giúp",
+    "source_hash": "752bca14"
   }
 }

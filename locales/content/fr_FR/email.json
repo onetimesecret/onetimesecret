@@ -865,11 +865,13 @@
     "source_hash": "8fbabfba"
   },
   "email.common.support_label": {
-    "text": "Support"
+    "text": "Support",
+    "source_hash": "be91940b"
   },
   "email.expiration_warning.signature": {
     "text": "L'équipe d'assistance",
-    "renderer": "erb"
+    "renderer": "erb",
+    "source_hash": "dc75bf9f"
   },
   "email.expiration_warning.footer_note": {
     "text": "Vous avez reçu ce message parce qu'un secret que vous avez créé sur %{product_name} est sur le point d'expirer.",

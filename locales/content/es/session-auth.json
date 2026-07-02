@@ -400,30 +400,39 @@
     "text": "Flujo de verificación de correo electrónico después del registro"
   },
   "web.auth.account.sso_linked": {
-    "text": "Cuenta SSO"
+    "text": "Cuenta SSO",
+    "source_hash": "b8f4c728"
   },
   "web.help.reset_password_link": {
-    "text": "Restablecer contraseña"
+    "text": "Restablecer contraseña",
+    "source_hash": "e0edfeb3"
   },
   "web.login.custom_domain_sso_title": {
-    "text": "El inicio de sesión único (SSO) está disponible para este dominio"
+    "text": "El inicio de sesión único (SSO) está disponible para este dominio",
+    "source_hash": "af87d51e"
   },
   "web.login.custom_domain_sso_description": {
-    "text": "El administrador de la organización puede habilitar el SSO para permitir que los miembros del equipo inicien sesión aquí. Contacta con el administrador para obtener acceso."
+    "text": "El administrador de la organización puede habilitar el SSO para permitir que los miembros del equipo inicien sesión aquí. Contacta con el administrador para obtener acceso.",
+    "source_hash": "f3726509"
   },
   "web.login.signin_disabled_heading": {
-    "text": "El inicio de sesión no está disponible"
+    "text": "El inicio de sesión no está disponible",
+    "source_hash": "6b435c76"
   },
   "web.login.signin_disabled_message": {
-    "text": "Actualmente, el inicio de sesión no está disponible en este dominio."
+    "text": "Actualmente, el inicio de sesión no está disponible en este dominio.",
+    "source_hash": "b681c35d"
   },
   "web.login.errors.sso_not_configured": {
-    "text": "El inicio de sesión único (SSO) no está configurado para este dominio. Contacta con tu administrador."
+    "text": "El inicio de sesión único (SSO) no está configurado para este dominio. Contacta con tu administrador.",
+    "source_hash": "b39ef93e"
   },
   "web.login.errors.invalid_email": {
-    "text": "La dirección de correo electrónico de tu proveedor de identidad no es válida. Contacta con tu administrador."
+    "text": "La dirección de correo electrónico de tu proveedor de identidad no es válida. Contacta con tu administrador.",
+    "source_hash": "10c12029"
   },
   "web.login.errors.domain_not_allowed": {
-    "text": "Tu dominio de correo electrónico no está autorizado para registrarse mediante SSO. Contacta con tu administrador."
+    "text": "Tu dominio de correo electrónico no está autorizado para registrarse mediante SSO. Contacta con tu administrador.",
+    "source_hash": "87603782"
   }
 }

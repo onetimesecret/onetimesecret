@@ -60,12 +60,15 @@
     "source_hash": "00e56551"
   },
   "web.feedback.anonymous_no_reply": {
-    "text": "Nota: si vols rebre una resposta, signa o inclou una adreça de correu electrònic al missatge."
+    "text": "Nota: si vols rebre una resposta, signa o inclou una adreça de correu electrònic al missatge.",
+    "source_hash": "c984f705"
   },
   "web.feedback.characters_remaining": {
-    "text": "{count} caràcters restants"
+    "text": "{count} caràcters restants",
+    "source_hash": "8d796f40"
   },
   "web.feedback.character_limit_reached": {
-    "text": "S'ha assolit el límit de caràcters"
+    "text": "S'ha assolit el límit de caràcters",
+    "source_hash": "031e9310"
   }
 }

@@ -188,6 +188,7 @@
     "source_hash": "7a757670"
   },
   "web.regions.no_region_configured": {
-    "text": "Jelenleg nem áll rendelkezésre régióinformáció az Ön fiókjához."
+    "text": "Jelenleg nem áll rendelkezésre régióinformáció az Ön fiókjához.",
+    "source_hash": "bbfe2a32"
   }
 }

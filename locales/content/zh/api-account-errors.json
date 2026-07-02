@@ -1,8 +1,10 @@
 {
   "api.account.errors.invalid_email": {
-    "text": "这是有效的邮箱地址吗？"
+    "text": "这是有效的邮箱地址吗？",
+    "source_hash": "21d55b60"
   },
   "api.account.errors.password_too_short": {
-    "text": "密码太短"
+    "text": "密码太短",
+    "source_hash": "0d829600"
   }
 }

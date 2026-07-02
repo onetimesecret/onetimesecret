@@ -400,30 +400,39 @@
     "text": "Fluxo de verificação de e-mail após o cadastro"
   },
   "web.auth.account.sso_linked": {
-    "text": "Conta SSO"
+    "text": "Conta SSO",
+    "source_hash": "b8f4c728"
   },
   "web.help.reset_password_link": {
-    "text": "Redefinir senha"
+    "text": "Redefinir senha",
+    "source_hash": "e0edfeb3"
   },
   "web.login.custom_domain_sso_title": {
-    "text": "O single sign-on (SSO) está disponível para este domínio"
+    "text": "O single sign-on (SSO) está disponível para este domínio",
+    "source_hash": "af87d51e"
   },
   "web.login.custom_domain_sso_description": {
-    "text": "O administrador da organização pode habilitar o SSO para permitir que os membros da equipe entrem aqui. Entre em contato com o administrador para obter acesso."
+    "text": "O administrador da organização pode habilitar o SSO para permitir que os membros da equipe entrem aqui. Entre em contato com o administrador para obter acesso.",
+    "source_hash": "f3726509"
   },
   "web.login.signin_disabled_heading": {
-    "text": "O início de sessão não está disponível"
+    "text": "O início de sessão não está disponível",
+    "source_hash": "6b435c76"
   },
   "web.login.signin_disabled_message": {
-    "text": "No momento, o início de sessão não está disponível neste domínio."
+    "text": "No momento, o início de sessão não está disponível neste domínio.",
+    "source_hash": "b681c35d"
   },
   "web.login.errors.sso_not_configured": {
-    "text": "O single sign-on (SSO) não está configurado para este domínio. Entre em contato com o seu administrador."
+    "text": "O single sign-on (SSO) não está configurado para este domínio. Entre em contato com o seu administrador.",
+    "source_hash": "b39ef93e"
   },
   "web.login.errors.invalid_email": {
-    "text": "O endereço de e-mail do seu provedor de identidade é inválido. Entre em contato com o seu administrador."
+    "text": "O endereço de e-mail do seu provedor de identidade é inválido. Entre em contato com o seu administrador.",
+    "source_hash": "10c12029"
   },
   "web.login.errors.domain_not_allowed": {
-    "text": "O domínio do seu e-mail não está autorizado para cadastro via SSO. Entre em contato com o seu administrador."
+    "text": "O domínio do seu e-mail não está autorizado para cadastro via SSO. Entre em contato com o seu administrador.",
+    "source_hash": "87603782"
   }
 }

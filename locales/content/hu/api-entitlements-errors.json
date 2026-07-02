@@ -1,71 +1,94 @@
 {
   "api.entitlements.errors.context_unavailable": {
-    "text": "A jogosultságok nem ellenőrizhetők (a szervezet kontextusa nem érhető el)"
+    "text": "A jogosultságok nem ellenőrizhetők (a szervezet kontextusa nem érhető el)",
+    "source_hash": "704dc629"
   },
   "api.entitlements.errors.api_access_required": {
-    "text": "Az API-hozzáférés csomagfrissítést igényel"
+    "text": "Az API-hozzáférés csomagfrissítést igényel",
+    "source_hash": "844d294b"
   },
   "api.entitlements.errors.custom_privacy_defaults_required": {
-    "text": "Az egyéni adatvédelmi alapértékek csomagfrissítést igényelnek"
+    "text": "Az egyéni adatvédelmi alapértékek csomagfrissítést igényelnek",
+    "source_hash": "4e71274d"
   },
   "api.entitlements.errors.extended_default_expiration_required": {
-    "text": "A kibővített alapértelmezett lejárat csomagfrissítést igényel"
+    "text": "A kibővített alapértelmezett lejárat csomagfrissítést igényel",
+    "source_hash": "efa702e7"
   },
   "api.entitlements.errors.custom_domains_required": {
-    "text": "Az egyéni domének csomagfrissítést igényelnek"
+    "text": "Az egyéni domének csomagfrissítést igényelnek",
+    "source_hash": "a23e2184"
   },
   "api.entitlements.errors.custom_branding_required": {
-    "text": "Az egyéni arculat csomagfrissítést igényel"
+    "text": "Az egyéni arculat csomagfrissítést igényel",
+    "source_hash": "a4c40a3a"
   },
   "api.entitlements.errors.homepage_secrets_required": {
-    "text": "A kezdőlapi titkok csomagfrissítést igényelnek"
+    "text": "A kezdőlapi titkok csomagfrissítést igényelnek",
+    "source_hash": "650eeca8"
   },
   "api.entitlements.errors.incoming_secrets_required": {
-    "text": "A bejövő titkok csomagfrissítést igényelnek"
+    "text": "A bejövő titkok csomagfrissítést igényelnek",
+    "source_hash": "ce1d47ef"
   },
   "api.entitlements.errors.custom_mail_sender_required": {
-    "text": "Az egyéni levélküldő csomagfrissítést igényel"
+    "text": "Az egyéni levélküldő csomagfrissítést igényel",
+    "source_hash": "e058da13"
   },
   "api.entitlements.errors.flexible_from_domain_required": {
-    "text": "A rugalmas feladódomén csomagfrissítést igényel"
+    "text": "A rugalmas feladódomén csomagfrissítést igényel",
+    "source_hash": "4931dc05"
   },
   "api.entitlements.errors.manage_org_required": {
-    "text": "A szervezetkezelés csomagfrissítést igényel"
+    "text": "A szervezetkezelés csomagfrissítést igényel",
+    "source_hash": "66a2cd10"
   },
   "api.entitlements.errors.manage_teams_required": {
-    "text": "A csapatkezelés csomagfrissítést igényel"
+    "text": "A csapatkezelés csomagfrissítést igényel",
+    "source_hash": "f7f4062f"
   },
   "api.entitlements.errors.manage_members_required": {
-    "text": "A tagkezelés csomagfrissítést igényel"
+    "text": "A tagkezelés csomagfrissítést igényel",
+    "source_hash": "f73b80db"
   },
   "api.entitlements.errors.manage_sso_required": {
-    "text": "Az SSO-kezelés csomagfrissítést igényel"
+    "text": "Az SSO-kezelés csomagfrissítést igényel",
+    "source_hash": "4e5da22d"
   },
   "api.entitlements.errors.audit_logs_required": {
-    "text": "Az auditnaplók csomagfrissítést igényelnek"
+    "text": "Az auditnaplók csomagfrissítést igényelnek",
+    "source_hash": "1ff748bc"
   },
   "api.entitlements.errors.custom_signup_validation_required": {
-    "text": "Az egyéni regisztrációs ellenőrzés csomagfrissítést igényel"
+    "text": "Az egyéni regisztrációs ellenőrzés csomagfrissítést igényel",
+    "source_hash": "93c9befa"
   },
   "api.entitlements.errors.create_secrets_required": {
-    "text": "A titkok létrehozása csomagfrissítést igényel"
+    "text": "A titkok létrehozása csomagfrissítést igényel",
+    "source_hash": "01091fed"
   },
   "api.entitlements.errors.view_receipt_required": {
-    "text": "A nyugták megtekintése csomagfrissítést igényel"
+    "text": "A nyugták megtekintése csomagfrissítést igényel",
+    "source_hash": "e6370d8c"
   },
   "api.entitlements.errors.notifications_required": {
-    "text": "Az értesítések csomagfrissítést igényelnek"
+    "text": "Az értesítések csomagfrissítést igényelnek",
+    "source_hash": "82353ba6"
   },
   "api.entitlements.errors.workspace_branding_required": {
-    "text": "A munkaterület arculata csomagfrissítést igényel"
+    "text": "A munkaterület arculata csomagfrissítést igényel",
+    "source_hash": "79ac8099"
   },
   "api.entitlements.errors.ip_access_rules_required": {
-    "text": "Az IP-hozzáférési szabályok csomagfrissítést igényelnek"
+    "text": "Az IP-hozzáférési szabályok csomagfrissítést igényelnek",
+    "source_hash": "3e1d276e"
   },
   "api.entitlements.errors.manage_billing_required": {
-    "text": "A számlázáskezelés csomagfrissítést igényel"
+    "text": "A számlázáskezelés csomagfrissítést igényel",
+    "source_hash": "dec5d6aa"
   },
   "api.entitlements.errors.custom_signin_config_required": {
-    "text": "Az egyéni bejelentkezési konfiguráció csomagfrissítést igényel"
+    "text": "Az egyéni bejelentkezési konfiguráció csomagfrissítést igényel",
+    "source_hash": "acb1be52"
   }
 }

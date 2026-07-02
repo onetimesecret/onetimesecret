@@ -24,12 +24,15 @@
     "source_hash": "ff0d904e"
   },
   "web.teams.create_first_team_title": {
-    "text": "أنشئ فريقك الأول"
+    "text": "أنشئ فريقك الأول",
+    "source_hash": "54693f14"
   },
   "web.teams.create_first_team_description": {
-    "text": "تتيح لك الفِرق التعاون مع الآخرين في مساحة عمل مشتركة."
+    "text": "تتيح لك الفِرق التعاون مع الآخرين في مساحة عمل مشتركة.",
+    "source_hash": "d61b86b5"
   },
   "web.teams.create_team": {
-    "text": "إنشاء فريق"
+    "text": "إنشاء فريق",
+    "source_hash": "284ff194"
   }
 }

@@ -60,12 +60,15 @@
     "source_hash": "00e56551"
   },
   "web.feedback.anonymous_no_reply": {
-    "text": "Noto: se vi ŝatus respondon, bonvolu subskribi aŭ inkluzivi retpoŝtadreson en la mesaĝo."
+    "text": "Noto: se vi ŝatus respondon, bonvolu subskribi aŭ inkluzivi retpoŝtadreson en la mesaĝo.",
+    "source_hash": "c984f705"
   },
   "web.feedback.characters_remaining": {
-    "text": "{count} signoj restantaj"
+    "text": "{count} signoj restantaj",
+    "source_hash": "8d796f40"
   },
   "web.feedback.character_limit_reached": {
-    "text": "Limo de signoj atingita"
+    "text": "Limo de signoj atingita",
+    "source_hash": "031e9310"
   }
 }

@@ -24,12 +24,15 @@
     "source_hash": "ff0d904e"
   },
   "web.teams.create_first_team_title": {
-    "text": "Utwórz swój pierwszy zespół"
+    "text": "Utwórz swój pierwszy zespół",
+    "source_hash": "54693f14"
   },
   "web.teams.create_first_team_description": {
-    "text": "Zespoły umożliwiają współpracę z innymi we wspólnym obszarze roboczym."
+    "text": "Zespoły umożliwiają współpracę z innymi we wspólnym obszarze roboczym.",
+    "source_hash": "d61b86b5"
   },
   "web.teams.create_team": {
-    "text": "Utwórz zespół"
+    "text": "Utwórz zespół",
+    "source_hash": "284ff194"
   }
 }

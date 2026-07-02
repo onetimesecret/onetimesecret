@@ -636,150 +636,199 @@
     "source_hash": "fe77172e"
   },
   "web.colonel.previewPlanMode": {
-    "text": "وضع معاينة الخطة"
+    "text": "وضع معاينة الخطة",
+    "source_hash": "cf53f19d"
   },
   "web.colonel.previewModeDescription": {
-    "text": "عاين التطبيق كما يظهر للعملاء على خطة مختلفة. يؤثر هذا على طريقة عرضك فقط ولا يغيّر الخطة الفعلية لأي مؤسسة."
+    "text": "عاين التطبيق كما يظهر للعملاء على خطة مختلفة. يؤثر هذا على طريقة عرضك فقط ولا يغيّر الخطة الفعلية لأي مؤسسة.",
+    "source_hash": "6fe23f23"
   },
   "web.colonel.previewModeActive": {
-    "text": "المعاينة نشطة"
+    "text": "المعاينة نشطة",
+    "source_hash": "a558d603"
   },
   "web.colonel.bannedIps.empty": {
-    "text": "لا توجد عناوين IP محظورة"
+    "text": "لا توجد عناوين IP محظورة",
+    "source_hash": "bd101143"
   },
   "web.colonel.bannedIps.currentIp": {
-    "text": "عنوان IP الحالي الخاص بك"
+    "text": "عنوان IP الحالي الخاص بك",
+    "source_hash": "72f9fefe"
   },
   "web.colonel.bannedIps.confirmUnban": {
-    "text": "إلغاء حظر {ip}؟"
+    "text": "إلغاء حظر {ip}؟",
+    "source_hash": "ff009b1c"
   },
   "web.colonel.bannedIps.actions.ban": {
-    "text": "حظر IP"
+    "text": "حظر IP",
+    "source_hash": "f91a5285"
   },
   "web.colonel.bannedIps.actions.quickBan": {
-    "text": "حظر سريع"
+    "text": "حظر سريع",
+    "source_hash": "c32d0943"
   },
   "web.colonel.bannedIps.actions.unban": {
-    "text": "إلغاء الحظر"
+    "text": "إلغاء الحظر",
+    "source_hash": "25fb5989"
   },
   "web.colonel.bannedIps.actions.cancel": {
-    "text": "إلغاء"
+    "text": "إلغاء",
+    "source_hash": "19766ed6"
   },
   "web.colonel.bannedIps.columns.ipAddress": {
-    "text": "عنوان IP"
+    "text": "عنوان IP",
+    "source_hash": "3c3de0c9"
   },
   "web.colonel.bannedIps.columns.reason": {
-    "text": "السبب"
+    "text": "السبب",
+    "source_hash": "f81ab834"
   },
   "web.colonel.bannedIps.columns.bannedAt": {
-    "text": "تاريخ الحظر"
+    "text": "تاريخ الحظر",
+    "source_hash": "dfbd120e"
   },
   "web.colonel.bannedIps.columns.bannedBy": {
-    "text": "تم الحظر بواسطة"
+    "text": "تم الحظر بواسطة",
+    "source_hash": "9f47db0e"
   },
   "web.colonel.bannedIps.error.banFailed": {
-    "text": "فشل حظر عنوان IP"
+    "text": "فشل حظر عنوان IP",
+    "source_hash": "24e94d9b"
   },
   "web.colonel.bannedIps.error.unbanFailed": {
-    "text": "فشل إلغاء حظر عنوان IP"
+    "text": "فشل إلغاء حظر عنوان IP",
+    "source_hash": "66bbac9a"
   },
   "web.colonel.bannedIps.form.title": {
-    "text": "حظر عنوان IP"
+    "text": "حظر عنوان IP",
+    "source_hash": "3f5b3dfa"
   },
   "web.colonel.bannedIps.form.ipLabel": {
-    "text": "عنوان IP"
+    "text": "عنوان IP",
+    "source_hash": "3c3de0c9"
   },
   "web.colonel.bannedIps.form.reasonLabel": {
-    "text": "السبب"
+    "text": "السبب",
+    "source_hash": "f81ab834"
   },
   "web.colonel.bannedIps.form.reasonPlaceholder": {
-    "text": "سبب اختياري"
+    "text": "سبب اختياري",
+    "source_hash": "956688a5"
   },
   "web.colonel.bannedIps.success.banned": {
-    "text": "تم حظر عنوان IP {ip}"
+    "text": "تم حظر عنوان IP {ip}",
+    "source_hash": "b6f861d5"
   },
   "web.colonel.bannedIps.success.unbanned": {
-    "text": "تم إلغاء حظر عنوان IP {ip}"
+    "text": "تم إلغاء حظر عنوان IP {ip}",
+    "source_hash": "dbe93550"
   },
   "web.colonel.customDomains.empty": {
-    "text": "لم يتم إعداد أي نطاقات مخصّصة"
+    "text": "لم يتم إعداد أي نطاقات مخصّصة",
+    "source_hash": "e10b39f7"
   },
   "web.colonel.customDomains.noLogo": {
-    "text": "بدون شعار"
+    "text": "بدون شعار",
+    "source_hash": "ee5e36ff"
   },
   "web.colonel.customDomains.labels.organization": {
-    "text": "المؤسسة"
+    "text": "المؤسسة",
+    "source_hash": "d764d425"
   },
   "web.colonel.customDomains.labels.externalId": {
-    "text": "المعرّف الخارجي"
+    "text": "المعرّف الخارجي",
+    "source_hash": "69da56ba"
   },
   "web.colonel.customDomains.labels.created": {
-    "text": "تاريخ الإنشاء"
+    "text": "تاريخ الإنشاء",
+    "source_hash": "d70b9e24"
   },
   "web.colonel.customDomains.labels.updated": {
-    "text": "تاريخ التحديث"
+    "text": "تاريخ التحديث",
+    "source_hash": "3a5ecca1"
   },
   "web.colonel.customDomains.labels.favicon": {
-    "text": "Favicon"
+    "text": "Favicon",
+    "source_hash": "42955289"
   },
   "web.colonel.customDomains.status.verified": {
-    "text": "تم التحقق"
+    "text": "تم التحقق",
+    "source_hash": "4f783840"
   },
   "web.colonel.customDomains.status.resolving": {
-    "text": "قيد التحليل"
+    "text": "قيد التحليل",
+    "source_hash": "3287a034"
   },
   "web.colonel.customDomains.status.ready": {
-    "text": "جاهز"
+    "text": "جاهز",
+    "source_hash": "5fa7aac5"
   },
   "web.colonel.customDomains.status.publicHomepage": {
-    "text": "الصفحة الرئيسية العامة"
+    "text": "الصفحة الرئيسية العامة",
+    "source_hash": "2ae3ccba"
   },
   "web.colonel.customDomains.status.publicApi": {
-    "text": "API عام"
+    "text": "API عام",
+    "source_hash": "ab3aa426"
   },
   "web.colonel.customDomains.status.pending": {
-    "text": "معلّق"
+    "text": "معلّق",
+    "source_hash": "331551b0"
   },
   "web.colonel.pagination.showing": {
-    "text": "عرض {start}–{end} من {total}"
+    "text": "عرض {start}–{end} من {total}",
+    "source_hash": "64af6de2"
   },
   "web.colonel.pagination.itemsPerPage": {
-    "text": "العناصر في كل صفحة"
+    "text": "العناصر في كل صفحة",
+    "source_hash": "766a02e0"
   },
   "web.colonel.pagination.perPage": {
-    "text": "{count} في كل صفحة"
+    "text": "{count} في كل صفحة",
+    "source_hash": "34671d42"
   },
   "web.colonel.pagination.pageOf": {
-    "text": "الصفحة {current} من {total}"
+    "text": "الصفحة {current} من {total}",
+    "source_hash": "f0df6412"
   },
   "web.colonel.secrets.empty": {
-    "text": "لم يتم العثور على أسرار"
+    "text": "لم يتم العثور على أسرار",
+    "source_hash": "28647b3b"
   },
   "web.colonel.secrets.never": {
-    "text": "أبداً"
+    "text": "أبداً",
+    "source_hash": "6300ef80"
   },
   "web.colonel.secrets.columns.shortId": {
-    "text": "المعرّف المختصر"
+    "text": "المعرّف المختصر",
+    "source_hash": "7eaeb4a7"
   },
   "web.colonel.secrets.columns.state": {
-    "text": "الحالة"
+    "text": "الحالة",
+    "source_hash": "a3b50c47"
   },
   "web.colonel.secrets.columns.created": {
-    "text": "تاريخ الإنشاء"
+    "text": "تاريخ الإنشاء",
+    "source_hash": "d70b9e24"
   },
   "web.colonel.secrets.columns.expiration": {
-    "text": "انتهاء الصلاحية"
+    "text": "انتهاء الصلاحية",
+    "source_hash": "f38d6e0e"
   },
   "web.colonel.secrets.columns.age": {
-    "text": "العمر (بالأيام)"
+    "text": "العمر (بالأيام)",
+    "source_hash": "52ae64c6"
   },
   "web.colonel.secrets.state.new": {
-    "text": "جديد"
+    "text": "جديد",
+    "source_hash": "18fdd549"
   },
   "web.colonel.secrets.state.received": {
-    "text": "تم الاستلام"
+    "text": "تم الاستلام",
+    "source_hash": "49f19bee"
   },
   "web.colonel.secrets.state.viewed": {
-    "text": "تمت المشاهدة"
+    "text": "تمت المشاهدة",
+    "source_hash": "1b28d178"
   }
 }

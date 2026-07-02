@@ -1,5 +1,6 @@
 {
   "api.incoming.errors.custom_domain_unresolved": {
-    "text": "Não foi possível resolver a organização do domínio personalizado"
+    "text": "Não foi possível resolver a organização do domínio personalizado",
+    "source_hash": "b30d65d2"
   }
 }

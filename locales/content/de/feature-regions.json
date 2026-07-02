@@ -188,6 +188,7 @@
     "source_hash": "7a757670"
   },
   "web.regions.no_region_configured": {
-    "text": "Für dein Konto sind derzeit keine Regionsinformationen verfügbar."
+    "text": "Für dein Konto sind derzeit keine Regionsinformationen verfügbar.",
+    "source_hash": "bbfe2a32"
   }
 }

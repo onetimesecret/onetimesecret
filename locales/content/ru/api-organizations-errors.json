@@ -1,107 +1,142 @@
 {
   "api.organizations.errors.domain_scoped_forbidden": {
-    "text": "Участники с ограничением по домену не могут выполнить это действие"
+    "text": "Участники с ограничением по домену не могут выполнить это действие",
+    "source_hash": "0a06a035"
   },
   "api.organizations.errors.organization_not_found": {
-    "text": "Организация не найдена: %{extid}"
+    "text": "Организация не найдена: %{extid}",
+    "source_hash": "c8d058eb"
   },
   "api.organizations.errors.organization_owner_required": {
-    "text": "Только владелец организации может выполнить это действие"
+    "text": "Только владелец организации может выполнить это действие",
+    "source_hash": "5a729e94"
   },
   "api.organizations.errors.organization_member_required": {
-    "text": "Чтобы выполнить это действие, Вы должны быть участником организации"
+    "text": "Чтобы выполнить это действие, Вы должны быть участником организации",
+    "source_hash": "f66f4a60"
   },
   "api.organizations.errors.organization_admin_required": {
-    "text": "Только владельцы и администраторы организации могут выполнить это действие"
+    "text": "Только владельцы и администраторы организации могут выполнить это действие",
+    "source_hash": "cd9e8c0e"
   },
   "api.organizations.errors.extid_required": {
-    "text": "Требуется ID организации"
+    "text": "Требуется ID организации",
+    "source_hash": "02fbe301"
   },
   "api.organizations.errors.display_name_required": {
-    "text": "Название организации обязательно"
+    "text": "Название организации обязательно",
+    "source_hash": "c3f6e9af"
   },
   "api.organizations.errors.display_name_too_long": {
-    "text": "Название организации должно содержать менее %{max} символов"
+    "text": "Название организации должно содержать менее %{max} символов",
+    "source_hash": "5866973d"
   },
   "api.organizations.errors.description_too_long": {
-    "text": "Описание должно содержать менее %{max} символов"
+    "text": "Описание должно содержать менее %{max} символов",
+    "source_hash": "562b7250"
   },
   "api.organizations.errors.contact_email_exists": {
-    "text": "Организация с таким контактным адресом электронной почты уже существует"
+    "text": "Организация с таким контактным адресом электронной почты уже существует",
+    "source_hash": "e9fdce56"
   },
   "api.organizations.errors.creation_in_progress": {
-    "text": "Создание организации выполняется. Пожалуйста, повторите попытку."
+    "text": "Создание организации выполняется. Пожалуйста, повторите попытку.",
+    "source_hash": "ef68bc2d"
   },
   "api.organizations.errors.organization_limit_reached": {
-    "text": "Достигнут лимит организаций. Перейдите на более высокий план, чтобы создавать больше организаций."
+    "text": "Достигнут лимит организаций. Перейдите на более высокий план, чтобы создавать больше организаций.",
+    "source_hash": "69e2e61b"
   },
   "api.organizations.invitations.errors.invitation_not_found": {
-    "text": "Приглашение не найдено"
+    "text": "Приглашение не найдено",
+    "source_hash": "775ba9eb"
   },
   "api.organizations.invitations.errors.email_required": {
-    "text": "Требуется адрес электронной почты"
+    "text": "Требуется адрес электронной почты",
+    "source_hash": "aae92911"
   },
   "api.organizations.invitations.errors.invalid_email_format": {
-    "text": "Недействительный формат адреса электронной почты"
+    "text": "Недействительный формат адреса электронной почты",
+    "source_hash": "0bcecf66"
   },
   "api.organizations.invitations.errors.invalid_role": {
-    "text": "Роль должна быть «участник» или «администратор»"
+    "text": "Роль должна быть «участник» или «администратор»",
+    "source_hash": "650ea5f6"
   },
   "api.organizations.invitations.errors.cannot_invite_as_owner": {
-    "text": "Невозможно пригласить в роли владельца"
+    "text": "Невозможно пригласить в роли владельца",
+    "source_hash": "e6581025"
   },
   "api.organizations.invitations.errors.user_already_member": {
-    "text": "Пользователь уже является участником этой организации"
+    "text": "Пользователь уже является участником этой организации",
+    "source_hash": "8eb45780"
   },
   "api.organizations.invitations.errors.invitation_already_pending": {
-    "text": "Приглашение для этого адреса электронной почты уже ожидает обработки"
+    "text": "Приглашение для этого адреса электронной почты уже ожидает обработки",
+    "source_hash": "7f5e3093"
   },
   "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Достигнут лимит участников. Перейдите на более высокий план, чтобы приглашать больше участников."
+    "text": "Достигнут лимит участников. Перейдите на более высокий план, чтобы приглашать больше участников.",
+    "source_hash": "b8f316e8"
   },
   "api.organizations.invitations.errors.resend_only_pending": {
-    "text": "Повторно отправить можно только ожидающие приглашения"
+    "text": "Повторно отправить можно только ожидающие приглашения",
+    "source_hash": "b7578b3e"
   },
   "api.organizations.invitations.errors.resend_limit_reached": {
-    "text": "Достигнут максимальный лимит повторных отправок (%{max})"
+    "text": "Достигнут максимальный лимит повторных отправок (%{max})",
+    "source_hash": "8dc96729"
   },
   "api.organizations.invitations.errors.revoke_only_pending": {
-    "text": "Отозвать можно только ожидающие приглашения"
+    "text": "Отозвать можно только ожидающие приглашения",
+    "source_hash": "732b78a6"
   },
   "api.organizations.members.errors.member_not_found": {
-    "text": "Участник не найден: %{extid}"
+    "text": "Участник не найден: %{extid}",
+    "source_hash": "57654771"
   },
   "api.organizations.members.errors.member_not_in_organization": {
-    "text": "Участник не найден в этой организации"
+    "text": "Участник не найден в этой организации",
+    "source_hash": "dcab71ff"
   },
   "api.organizations.members.errors.member_not_active": {
-    "text": "Участник неактивен"
+    "text": "Участник неактивен",
+    "source_hash": "a51b8760"
   },
   "api.organizations.members.errors.invalid_role_value": {
-    "text": "Недействительная роль. Должна быть одной из: %{roles}"
+    "text": "Недействительная роль. Должна быть одной из: %{roles}",
+    "source_hash": "c3331aa0"
   },
   "api.organizations.members.errors.cannot_change_owner_role": {
-    "text": "Невозможно изменить роль владельца. Вместо этого используйте передачу прав владения."
+    "text": "Невозможно изменить роль владельца. Вместо этого используйте передачу прав владения.",
+    "source_hash": "76015424"
   },
   "api.organizations.members.errors.member_already_has_role": {
-    "text": "У участника уже есть роль: %{role}"
+    "text": "У участника уже есть роль: %{role}",
+    "source_hash": "6771166a"
   },
   "api.organizations.members.errors.cannot_promote_to_owner": {
-    "text": "Невозможно повысить до владельца. Вместо этого используйте передачу прав владения."
+    "text": "Невозможно повысить до владельца. Вместо этого используйте передачу прав владения.",
+    "source_hash": "cd574007"
   },
   "api.organizations.members.errors.must_be_member": {
-    "text": "Вы должны быть участником этой организации"
+    "text": "Вы должны быть участником этой организации",
+    "source_hash": "de1c77b8"
   },
   "api.organizations.members.errors.cannot_remove_owner": {
-    "text": "Невозможно удалить владельца организации. Сначала передайте права владения."
+    "text": "Невозможно удалить владельца организации. Сначала передайте права владения.",
+    "source_hash": "d4f33003"
   },
   "api.organizations.members.errors.cannot_remove_self": {
-    "text": "Невозможно удалить самого себя. Вместо этого используйте выход из организации."
+    "text": "Невозможно удалить самого себя. Вместо этого используйте выход из организации.",
+    "source_hash": "d64cec91"
   },
   "api.organizations.members.errors.admin_cannot_remove_admin": {
-    "text": "Администраторы не могут удалять других администраторов. Это могут делать только владельцы."
+    "text": "Администраторы не могут удалять других администраторов. Это могут делать только владельцы.",
+    "source_hash": "2b3e6e30"
   },
   "api.organizations.members.errors.no_permission_to_remove": {
-    "text": "У Вас нет прав для удаления участников"
+    "text": "У Вас нет прав для удаления участников",
+    "source_hash": "b0ac7287"
   }
 }

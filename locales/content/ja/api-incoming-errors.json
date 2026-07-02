@@ -1,5 +1,6 @@
 {
   "api.incoming.errors.custom_domain_unresolved": {
-    "text": "カスタムドメインの組織を解決できませんでした"
+    "text": "カスタムドメインの組織を解決できませんでした",
+    "source_hash": "b30d65d2"
   }
 }

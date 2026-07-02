@@ -684,12 +684,15 @@
     "source_hash": "fe3ac3ad"
   },
   "web.settings.api.api_disabled_notice": {
-    "text": "L'API est désactivée pour cette instance."
+    "text": "L'API est désactivée pour cette instance.",
+    "source_hash": "66d12d6b"
   },
   "web.settings.security.sso_managed_title": {
-    "text": "Sécurité gérée par SSO"
+    "text": "Sécurité gérée par SSO",
+    "source_hash": "1f6c9472"
   },
   "web.settings.security.sso_managed_description": {
-    "text": "Votre compte est authentifié par le fournisseur d'authentification unique de votre organisation. Le mot de passe, l'authentification multifacteur et les codes de récupération sont gérés par votre fournisseur d'identité."
+    "text": "Votre compte est authentifié par le fournisseur d'authentification unique de votre organisation. Le mot de passe, l'authentification multifacteur et les codes de récupération sont gérés par votre fournisseur d'identité.",
+    "source_hash": "cd0cf39f"
   }
 }

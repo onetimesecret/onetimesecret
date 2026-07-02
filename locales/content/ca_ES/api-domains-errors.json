@@ -1,29 +1,38 @@
 {
   "api.domains.errors.domain_id_required": {
-    "text": "Es requereix l'ID del domini"
+    "text": "Es requereix l'ID del domini",
+    "source_hash": "6837426b"
   },
   "api.domains.errors.domain_not_found": {
-    "text": "No s'ha trobat el domini: %{extid}"
+    "text": "No s'ha trobat el domini: %{extid}",
+    "source_hash": "a0fd1025"
   },
   "api.domains.errors.organization_not_found": {
-    "text": "No s'ha trobat cap organització per al domini: %{domain}"
+    "text": "No s'ha trobat cap organització per al domini: %{domain}",
+    "source_hash": "632afc93"
   },
   "api.domains.errors.incoming_secrets_disabled": {
-    "text": "Els secrets entrants no estan habilitats en aquesta instància"
+    "text": "Els secrets entrants no estan habilitats en aquesta instància",
+    "source_hash": "45c0b5c4"
   },
   "api.domains.errors.incoming_secrets_entitlement_required": {
-    "text": "La gestió de secrets entrants requereix el dret incoming_secrets. Si us plau, millora el teu pla."
+    "text": "La gestió de secrets entrants requereix el dret incoming_secrets. Si us plau, millora el teu pla.",
+    "source_hash": "1af54ec2"
   },
   "api.domains.errors.incoming_config_not_found": {
-    "text": "No s'ha trobat la configuració de secrets entrants per al domini: %{extid}"
+    "text": "No s'ha trobat la configuració de secrets entrants per al domini: %{extid}",
+    "source_hash": "491644a8"
   },
   "api.domains.errors.recipients_max_exceeded": {
-    "text": "Es permeten un màxim de %{max} destinataris"
+    "text": "Es permeten un màxim de %{max} destinataris",
+    "source_hash": "159842ad"
   },
   "api.domains.errors.recipients_invalid_email": {
-    "text": "Correu electrònic no vàlid: %{email}"
+    "text": "Correu electrònic no vàlid: %{email}",
+    "source_hash": "e9c729c7"
   },
   "api.domains.errors.recipients_duplicate": {
-    "text": "No es permeten adreces de correu electrònic de destinataris duplicades"
+    "text": "No es permeten adreces de correu electrònic de destinataris duplicades",
+    "source_hash": "6de22182"
   }
 }

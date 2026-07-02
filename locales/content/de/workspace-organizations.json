@@ -772,198 +772,263 @@
     "source_hash": "bbea960e"
   },
   "api.organizations.errors.not_found": {
-    "text": "Organisation nicht gefunden: %{extid}"
+    "text": "Organisation nicht gefunden: %{extid}",
+    "source_hash": "c8d058eb"
   },
   "api.organizations.errors.owner_required": {
-    "text": "Nur der Inhaber der Organisation kann diese Aktion ausführen"
+    "text": "Nur der Inhaber der Organisation kann diese Aktion ausführen",
+    "source_hash": "5a729e94"
   },
   "api.organizations.errors.admin_required": {
-    "text": "Nur Inhaber und Admins der Organisation können diese Aktion ausführen"
+    "text": "Nur Inhaber und Admins der Organisation können diese Aktion ausführen",
+    "source_hash": "cd9e8c0e"
   },
   "api.organizations.errors.member_required": {
-    "text": "Du musst Mitglied der Organisation sein, um diese Aktion auszuführen"
+    "text": "Du musst Mitglied der Organisation sein, um diese Aktion auszuführen",
+    "source_hash": "f66f4a60"
   },
   "api.organizations.invitations.errors.create_admin_required": {
-    "text": "Nur Inhaber und Admins der Organisation können Einladungen erstellen"
+    "text": "Nur Inhaber und Admins der Organisation können Einladungen erstellen",
+    "source_hash": "777d150d"
   },
   "api.organizations.invitations.errors.resend_admin_required": {
-    "text": "Nur Inhaber und Admins der Organisation können Einladungen erneut senden"
+    "text": "Nur Inhaber und Admins der Organisation können Einladungen erneut senden",
+    "source_hash": "6a857d59"
   },
   "api.organizations.invitations.errors.view_admin_required": {
-    "text": "Nur Inhaber und Admins der Organisation können Einladungen anzeigen"
+    "text": "Nur Inhaber und Admins der Organisation können Einladungen anzeigen",
+    "source_hash": "42f5878b"
   },
   "api.organizations.invitations.errors.revoke_admin_required": {
-    "text": "Nur Inhaber und Admins der Organisation können Einladungen widerrufen"
+    "text": "Nur Inhaber und Admins der Organisation können Einladungen widerrufen",
+    "source_hash": "52f73c8a"
   },
   "api.organizations.invitations.errors.email_required": {
-    "text": "E-Mail ist erforderlich"
+    "text": "E-Mail ist erforderlich",
+    "source_hash": "aae92911"
   },
   "api.organizations.invitations.errors.email_invalid": {
-    "text": "Ungültiges E-Mail-Format"
+    "text": "Ungültiges E-Mail-Format",
+    "source_hash": "0bcecf66"
   },
   "api.organizations.invitations.errors.role_invalid": {
-    "text": "Die Rolle muss Mitglied oder Admin sein"
+    "text": "Die Rolle muss Mitglied oder Admin sein",
+    "source_hash": "650ea5f6"
   },
   "api.organizations.invitations.errors.cannot_invite_owner": {
-    "text": "Einladung als Inhaber nicht möglich"
+    "text": "Einladung als Inhaber nicht möglich",
+    "source_hash": "e6581025"
   },
   "api.organizations.invitations.errors.already_member": {
-    "text": "Der Benutzer ist bereits Mitglied dieser Organisation"
+    "text": "Der Benutzer ist bereits Mitglied dieser Organisation",
+    "source_hash": "8eb45780"
   },
   "api.organizations.invitations.errors.already_pending": {
-    "text": "Für diese E-Mail steht bereits eine Einladung aus"
+    "text": "Für diese E-Mail steht bereits eine Einladung aus",
+    "source_hash": "7f5e3093"
   },
   "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Mitgliederlimit erreicht. Führe ein Upgrade deines Tarifs durch, um weitere Mitglieder einzuladen."
+    "text": "Mitgliederlimit erreicht. Führe ein Upgrade deines Tarifs durch, um weitere Mitglieder einzuladen.",
+    "source_hash": "b8f316e8"
   },
   "api.organizations.invitations.errors.not_found": {
-    "text": "Einladung nicht gefunden"
+    "text": "Einladung nicht gefunden",
+    "source_hash": "775ba9eb"
   },
   "api.organizations.invitations.errors.cannot_resend_non_pending": {
-    "text": "Es können nur ausstehende Einladungen erneut gesendet werden"
+    "text": "Es können nur ausstehende Einladungen erneut gesendet werden",
+    "source_hash": "b7578b3e"
   },
   "api.organizations.invitations.errors.cannot_revoke_non_pending": {
-    "text": "Es können nur ausstehende Einladungen widerrufen werden"
+    "text": "Es können nur ausstehende Einladungen widerrufen werden",
+    "source_hash": "732b78a6"
   },
   "api.organizations.invitations.errors.resend_limit_reached": {
-    "text": "Maximales Limit für erneutes Senden (%{max}) erreicht"
+    "text": "Maximales Limit für erneutes Senden (%{max}) erreicht",
+    "source_hash": "8dc96729"
   },
   "api.organizations.invitations.errors.accept_token_required": {
-    "text": "Token ist erforderlich"
+    "text": "Token ist erforderlich",
+    "source_hash": "6c718161"
   },
   "api.organizations.invitations.errors.accept_organization_gone": {
-    "text": "Die Organisation existiert nicht mehr"
+    "text": "Die Organisation existiert nicht mehr",
+    "source_hash": "a5df7d22"
   },
   "api.organizations.invitations.errors.accept_already_acted": {
-    "text": "Die Einladung wurde bereits %{status}"
+    "text": "Die Einladung wurde bereits %{status}",
+    "source_hash": "130c87e0"
   },
   "api.organizations.invitations.errors.accept_expired": {
-    "text": "Die Einladung ist abgelaufen"
+    "text": "Die Einladung ist abgelaufen",
+    "source_hash": "7186297b"
   },
   "api.organizations.invitations.errors.accept_email_mismatch": {
-    "text": "Deine E-Mail-Adresse stimmt nicht mit der Einladung überein"
+    "text": "Deine E-Mail-Adresse stimmt nicht mit der Einladung überein",
+    "source_hash": "11026f46"
   },
   "api.organizations.invitations.errors.accept_already_member": {
-    "text": "Du bist bereits Mitglied dieser Organisation"
+    "text": "Du bist bereits Mitglied dieser Organisation",
+    "source_hash": "f56ad547"
   },
   "web.organizations.entitlements_title": {
-    "text": "Organisationsberechtigungen"
+    "text": "Organisationsberechtigungen",
+    "source_hash": "36054d4f"
   },
   "web.organizations.page_description_short": {
-    "text": "Deine Arbeitsbereiche anzeigen und konfigurieren"
+    "text": "Deine Arbeitsbereiche anzeigen und konfigurieren",
+    "source_hash": "524fcb9a"
   },
   "web.organizations.delete_organization_remove_domains_first": {
-    "text": "Entferne alle benutzerdefinierten Domains, bevor du diese Organisation löschst."
+    "text": "Entferne alle benutzerdefinierten Domains, bevor du diese Organisation löschst.",
+    "source_hash": "44678715"
   },
   "web.organizations.default_org_delete_notice_title": {
-    "text": "Diese Organisation löschen"
+    "text": "Diese Organisation löschen",
+    "source_hash": "9191d915"
   },
   "web.organizations.default_org_delete_notice_before": {
-    "text": "Dies ist deine Standardorganisation und kann nicht über das Dashboard entfernt werden. Um sie zu löschen, wende dich bitte über das"
+    "text": "Dies ist deine Standardorganisation und kann nicht über das Dashboard entfernt werden. Um sie zu löschen, wende dich bitte über das",
+    "source_hash": "e203607d"
   },
   "web.organizations.default_org_delete_notice_link": {
-    "text": "Feedback-Formular"
+    "text": "Feedback-Formular",
+    "source_hash": "94645a9e"
   },
   "web.organizations.default_org_delete_notice_after": {
-    "text": "an uns."
+    "text": "an uns.",
+    "source_hash": "cdb4ee2a"
   },
   "web.organizations.leave_organization": {
-    "text": "Diese Organisation verlassen"
+    "text": "Diese Organisation verlassen",
+    "source_hash": "d534cff9"
   },
   "web.organizations.leave_organization_warning": {
-    "text": "Du verlierst den Zugriff auf diese Organisation und ihre Ressourcen."
+    "text": "Du verlierst den Zugriff auf diese Organisation und ihre Ressourcen.",
+    "source_hash": "e9daab07"
   },
   "web.organizations.leave_organization_confirm_title": {
-    "text": "Organisation verlassen"
+    "text": "Organisation verlassen",
+    "source_hash": "ec8314da"
   },
   "web.organizations.leave_organization_confirm_message": {
-    "text": "Möchtest du {name} wirklich verlassen? Du benötigst eine neue Einladung, um wieder beizutreten."
+    "text": "Möchtest du {name} wirklich verlassen? Du benötigst eine neue Einladung, um wieder beizutreten.",
+    "source_hash": "e21c5fec"
   },
   "web.organizations.leave_organization_success": {
-    "text": "Du hast die Organisation verlassen."
+    "text": "Du hast die Organisation verlassen.",
+    "source_hash": "fc803eb3"
   },
   "web.organizations.leave_error": {
-    "text": "Verlassen der Organisation fehlgeschlagen"
+    "text": "Verlassen der Organisation fehlgeschlagen",
+    "source_hash": "6cb6af43"
   },
   "web.organizations.organizations": {
-    "text": "Organisationen"
+    "text": "Organisationen",
+    "source_hash": "2730183d"
   },
   "web.organizations.invitations.invited_by_inline": {
-    "text": "von {email}"
+    "text": "von {email}",
+    "source_hash": "969a7050"
   },
   "web.organizations.invitations.invited_as_inline": {
-    "text": "als {role}"
+    "text": "als {role}",
+    "source_hash": "ff9e9b18"
   },
   "web.organizations.invitations.back_to_home": {
-    "text": "Zurück zur Startseite"
+    "text": "Zurück zur Startseite",
+    "source_hash": "76c5505f"
   },
   "web.organizations.invitations.email_locked_hint": {
-    "text": "Diese Einladung wurde an diese E-Mail-Adresse gesendet"
+    "text": "Diese Einladung wurde an diese E-Mail-Adresse gesendet",
+    "source_hash": "2cff7075"
   },
   "web.organizations.invitations.signup_continue": {
-    "text": "Fortfahren"
+    "text": "Fortfahren",
+    "source_hash": "31fbef16"
   },
   "web.organizations.invitations.signin_continue": {
-    "text": "Anmelden"
+    "text": "Anmelden",
+    "source_hash": "bcc0bcc9"
   },
   "web.organizations.invitations.confirm_join_below": {
-    "text": "Fast geschafft — bestätige unten, um der Organisation beizutreten."
+    "text": "Fast geschafft — bestätige unten, um der Organisation beizutreten.",
+    "source_hash": "2d14f9b0"
   },
   "web.organizations.invitations.go_to_organizations": {
-    "text": "Zu den Organisationen"
+    "text": "Zu den Organisationen",
+    "source_hash": "2afa38a3"
   },
   "web.organizations.invitations.already_member": {
-    "text": "Du bist bereits Mitglied dieser Organisation"
+    "text": "Du bist bereits Mitglied dieser Organisation",
+    "source_hash": "f56ad547"
   },
   "web.organizations.invitations.join_organization": {
-    "text": "{orgName} beitreten"
+    "text": "{orgName} beitreten",
+    "source_hash": "1aea9194"
   },
   "web.organizations.invitations.sign_in_to_join": {
-    "text": "Melde dich an, um {orgName} beizutreten"
+    "text": "Melde dich an, um {orgName} beizutreten",
+    "source_hash": "f94ed8b4"
   },
   "web.organizations.invitations.decline": {
-    "text": "Ablehnen"
+    "text": "Ablehnen",
+    "source_hash": "a2d285b3"
   },
   "web.organizations.members.member_quota": {
-    "text": "{used} von {limit} Mitgliedern"
+    "text": "{used} von {limit} Mitgliedern",
+    "source_hash": "51183b79"
   },
   "web.organizations.members.pending_suffix": {
-    "text": "({count} ausstehend)"
+    "text": "({count} ausstehend)",
+    "source_hash": "c13f787f"
   },
   "web.organizations.members.limit_reached_hint": {
-    "text": "Mitgliederlimit erreicht."
+    "text": "Mitgliederlimit erreicht.",
+    "source_hash": "26cdb6b8"
   },
   "web.organizations.sso.view_discovery_document": {
-    "text": "Discovery-Dokument anzeigen"
+    "text": "Discovery-Dokument anzeigen",
+    "source_hash": "513bda60"
   },
   "web.organizations.sso.callback_url": {
-    "text": "Callback-URL"
+    "text": "Callback-URL",
+    "source_hash": "dc297ae9"
   },
   "web.organizations.sso.callback_url_hint": {
-    "text": "Füge diese URL zu den erlaubten Weiterleitungs-URIs deines Identitätsanbieters hinzu"
+    "text": "Füge diese URL zu den erlaubten Weiterleitungs-URIs deines Identitätsanbieters hinzu",
+    "source_hash": "65d55683"
   },
   "web.organizations.sso.enforce_sso_only": {
-    "text": "Nur SSO erzwingen"
+    "text": "Nur SSO erzwingen",
+    "source_hash": "b3a3f694"
   },
   "web.organizations.sso.enforce_sso_only_hint": {
-    "text": "SSO für alle Anmeldungen auf dieser Domain erzwingen. Wenn aktiviert, ist die passwortbasierte Authentifizierung deaktiviert."
+    "text": "SSO für alle Anmeldungen auf dieser Domain erzwingen. Wenn aktiviert, ist die passwortbasierte Authentifizierung deaktiviert.",
+    "source_hash": "19432210"
   },
   "web.organizations.sso.grant_org_scope": {
-    "text": "Organisationsweiten Zugriff gewähren"
+    "text": "Organisationsweiten Zugriff gewähren",
+    "source_hash": "2070cef2"
   },
   "web.organizations.sso.grant_org_scope_hint": {
-    "text": "Neue Mitglieder, die über das SSO dieser Domain beitreten, erhalten Zugriff auf alle Domains der Organisation. Bestehende Mitglieder sind davon nicht betroffen. Wenn deaktiviert (Standard), können neue Mitglieder nur auf diese Domain zugreifen."
+    "text": "Neue Mitglieder, die über das SSO dieser Domain beitreten, erhalten Zugriff auf alle Domains der Organisation. Bestehende Mitglieder sind davon nicht betroffen. Wenn deaktiviert (Standard), können neue Mitglieder nur auf diese Domain zugreifen.",
+    "source_hash": "2ac9f345"
   },
   "web.organizations.sso.no_domains": {
-    "text": "Keine verifizierten Domains"
+    "text": "Keine verifizierten Domains",
+    "source_hash": "8a7fbb76"
   },
   "web.organizations.sso.no_domains_description": {
-    "text": "Füge eine Domain hinzu und verifiziere sie, bevor du SSO dafür konfigurierst."
+    "text": "Füge eine Domain hinzu und verifiziere sie, bevor du SSO dafür konfigurierst.",
+    "source_hash": "e825d13a"
   },
   "web.organizations.tabs.team": {
-    "text": "Team"
+    "text": "Team",
+    "source_hash": "5985039f"
   },
   "web.organizations.tabs.sso": {
-    "text": "SSO"
+    "text": "SSO",
+    "source_hash": "5ba3ac9f"
   }
 }

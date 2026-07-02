@@ -77,7 +77,7 @@
   "email.welcome.signature": {
     "text": "Support Team",
     "renderer": "erb",
-    "content_hash": "f58154f7"
+    "content_hash": "dc75bf9f"
   },
   "email.welcome.postscript": {
     "text": "P.S. This email was sent to %{email_address}. If you did not create an account, you can safely ignore this message.",
@@ -117,7 +117,7 @@
   "email.password_request.signature": {
     "text": "Support Team",
     "renderer": "erb",
-    "content_hash": "f58154f7"
+    "content_hash": "dc75bf9f"
   },
   "email.password_request.postscript": {
     "text": "P.S. This email was sent to %{email_address}.",
@@ -162,7 +162,7 @@
   "email.magic_link.signature": {
     "text": "Support Team",
     "renderer": "erb",
-    "content_hash": "f58154f7"
+    "content_hash": "dc75bf9f"
   },
   "email.magic_link.postscript": {
     "text": "P.S. This email was sent to %{email_address}.",
@@ -252,7 +252,7 @@
   "email.secret_revealed.signature": {
     "text": "Support Team",
     "renderer": "erb",
-    "content_hash": "f58154f7"
+    "content_hash": "dc75bf9f"
   },
   "email.secret_revealed.manage_preferences": {
     "text": "Manage notification preferences",
@@ -306,7 +306,8 @@
   },
   "email.expiration_warning.signature": {
     "text": "Support Team",
-    "renderer": "erb"
+    "renderer": "erb",
+    "content_hash": "dc75bf9f"
   },
   "email.expiration_warning.footer_note": {
     "text": "You received this because a secret you created on %{product_name} is about to expire.",
@@ -401,7 +402,7 @@
   "email.organization_invitation.signature": {
     "text": "Support Team",
     "renderer": "erb",
-    "content_hash": "f58154f7"
+    "content_hash": "dc75bf9f"
   },
   "email.organization_invitation.postscript": {
     "text": "P.S. This email was sent to %{invited_email}. If you weren't expecting this invitation, you can safely ignore this message.",
@@ -441,7 +442,7 @@
   "email.password_changed.signature": {
     "text": "Support Team",
     "renderer": "erb",
-    "content_hash": "f58154f7"
+    "content_hash": "dc75bf9f"
   },
   "email.email_changed.subject": {
     "text": "Your email address has been changed (%{display_domain})",
@@ -491,7 +492,7 @@
   "email.email_changed.signature": {
     "text": "Support Team",
     "renderer": "erb",
-    "content_hash": "f58154f7"
+    "content_hash": "dc75bf9f"
   },
   "email.email_changed.postscript": {
     "text": "P.S. This email was sent to %{email_address} to notify you of an email address change.",
@@ -541,7 +542,7 @@
   "email.email_change_requested.signature": {
     "text": "Support Team",
     "renderer": "erb",
-    "content_hash": "f58154f7"
+    "content_hash": "dc75bf9f"
   },
   "email.email_change_requested.postscript": {
     "text": "P.S. This email was sent to %{email_address} because an email change was requested for your account.",
@@ -596,7 +597,7 @@
   "email.email_change_confirmation.signature": {
     "text": "Support Team",
     "renderer": "erb",
-    "content_hash": "f58154f7"
+    "content_hash": "dc75bf9f"
   },
   "email.email_change_confirmation.postscript": {
     "text": "P.S. This email was sent to %{email_address} to confirm an email address change.",
@@ -626,7 +627,7 @@
   "email.mfa_enabled.signature": {
     "text": "Support Team",
     "renderer": "erb",
-    "content_hash": "f58154f7"
+    "content_hash": "dc75bf9f"
   },
   "email.mfa_disabled.subject": {
     "text": "Two-factor authentication disabled (%{display_domain})",
@@ -651,7 +652,7 @@
   "email.mfa_disabled.signature": {
     "text": "Support Team",
     "renderer": "erb",
-    "content_hash": "f58154f7"
+    "content_hash": "dc75bf9f"
   },
   "email.new_login_alert.subject": {
     "text": "New sign-in to your account (%{display_domain})",
@@ -696,7 +697,7 @@
   "email.new_login_alert.signature": {
     "text": "Support Team",
     "renderer": "erb",
-    "content_hash": "f58154f7"
+    "content_hash": "dc75bf9f"
   },
   "email.member_removed.subject": {
     "text": "You've been removed from %{organization_name}",
@@ -716,7 +717,7 @@
   "email.member_removed.signature": {
     "text": "Support Team",
     "renderer": "erb",
-    "content_hash": "f58154f7"
+    "content_hash": "dc75bf9f"
   },
   "email.role_changed.subject": {
     "text": "Your role was changed in %{organization_name}",
@@ -736,7 +737,7 @@
   "email.role_changed.signature": {
     "text": "Support Team",
     "renderer": "erb",
-    "content_hash": "f58154f7"
+    "content_hash": "dc75bf9f"
   },
   "email.organization_deleted.subject": {
     "text": "Organization \"%{organization_name}\" was deleted",
@@ -756,7 +757,7 @@
   "email.organization_deleted.signature": {
     "text": "Support Team",
     "renderer": "erb",
-    "content_hash": "f58154f7"
+    "content_hash": "dc75bf9f"
   },
   "email.payment_receipt.subject": {
     "text": "Payment receipt for %{product_name}",
@@ -796,7 +797,7 @@
   "email.payment_receipt.signature": {
     "text": "Support Team",
     "renderer": "erb",
-    "content_hash": "f58154f7"
+    "content_hash": "dc75bf9f"
   },
   "email.payment_failed.subject": {
     "text": "Payment failed for %{product_name}",
@@ -821,7 +822,7 @@
   "email.payment_failed.signature": {
     "text": "Support Team",
     "renderer": "erb",
-    "content_hash": "f58154f7"
+    "content_hash": "dc75bf9f"
   },
   "email.trial_expiring.subject": {
     "text": "Your %{product_name} trial expires in %{days_remaining} days",
@@ -846,7 +847,7 @@
   "email.trial_expiring.signature": {
     "text": "Support Team",
     "renderer": "erb",
-    "content_hash": "f58154f7"
+    "content_hash": "dc75bf9f"
   },
   "email.subscription_changed.subject": {
     "text": "Your %{product_name} subscription was changed",
@@ -871,7 +872,7 @@
   "email.subscription_changed.signature": {
     "text": "Support Team",
     "renderer": "erb",
-    "content_hash": "f58154f7"
+    "content_hash": "dc75bf9f"
   },
   "email.common.greeting": {
     "text": "Hello,",
@@ -909,6 +910,7 @@
     "content_hash": "8fbabfba"
   },
   "email.common.support_label": {
-    "text": "Support"
+    "text": "Support",
+    "content_hash": "be91940b"
   }
 }

@@ -1,107 +1,142 @@
 {
   "api.organizations.errors.domain_scoped_forbidden": {
-    "text": "域名范围内的成员无法执行此操作"
+    "text": "域名范围内的成员无法执行此操作",
+    "source_hash": "0a06a035"
   },
   "api.organizations.errors.organization_not_found": {
-    "text": "未找到组织：%{extid}"
+    "text": "未找到组织：%{extid}",
+    "source_hash": "c8d058eb"
   },
   "api.organizations.errors.organization_owner_required": {
-    "text": "只有组织所有者才能执行此操作"
+    "text": "只有组织所有者才能执行此操作",
+    "source_hash": "5a729e94"
   },
   "api.organizations.errors.organization_member_required": {
-    "text": "您必须是组织成员才能执行此操作"
+    "text": "您必须是组织成员才能执行此操作",
+    "source_hash": "f66f4a60"
   },
   "api.organizations.errors.organization_admin_required": {
-    "text": "只有组织所有者和管理员才能执行此操作"
+    "text": "只有组织所有者和管理员才能执行此操作",
+    "source_hash": "cd9e8c0e"
   },
   "api.organizations.errors.extid_required": {
-    "text": "需要组织 ID"
+    "text": "需要组织 ID",
+    "source_hash": "02fbe301"
   },
   "api.organizations.errors.display_name_required": {
-    "text": "组织名称为必填项"
+    "text": "组织名称为必填项",
+    "source_hash": "c3f6e9af"
   },
   "api.organizations.errors.display_name_too_long": {
-    "text": "组织名称必须少于 %{max} 个字符"
+    "text": "组织名称必须少于 %{max} 个字符",
+    "source_hash": "5866973d"
   },
   "api.organizations.errors.description_too_long": {
-    "text": "描述必须少于 %{max} 个字符"
+    "text": "描述必须少于 %{max} 个字符",
+    "source_hash": "562b7250"
   },
   "api.organizations.errors.contact_email_exists": {
-    "text": "已存在使用此联系邮箱的组织"
+    "text": "已存在使用此联系邮箱的组织",
+    "source_hash": "e9fdce56"
   },
   "api.organizations.errors.creation_in_progress": {
-    "text": "正在创建组织。请重试。"
+    "text": "正在创建组织。请重试。",
+    "source_hash": "ef68bc2d"
   },
   "api.organizations.errors.organization_limit_reached": {
-    "text": "已达到组织数量上限。升级方案以创建更多组织。"
+    "text": "已达到组织数量上限。升级方案以创建更多组织。",
+    "source_hash": "69e2e61b"
   },
   "api.organizations.invitations.errors.invitation_not_found": {
-    "text": "未找到邀请"
+    "text": "未找到邀请",
+    "source_hash": "775ba9eb"
   },
   "api.organizations.invitations.errors.email_required": {
-    "text": "邮箱地址为必填项"
+    "text": "邮箱地址为必填项",
+    "source_hash": "aae92911"
   },
   "api.organizations.invitations.errors.invalid_email_format": {
-    "text": "邮箱地址格式无效"
+    "text": "邮箱地址格式无效",
+    "source_hash": "0bcecf66"
   },
   "api.organizations.invitations.errors.invalid_role": {
-    "text": "角色必须是成员或管理员"
+    "text": "角色必须是成员或管理员",
+    "source_hash": "650ea5f6"
   },
   "api.organizations.invitations.errors.cannot_invite_as_owner": {
-    "text": "无法以所有者身份邀请"
+    "text": "无法以所有者身份邀请",
+    "source_hash": "e6581025"
   },
   "api.organizations.invitations.errors.user_already_member": {
-    "text": "用户已是该组织的成员"
+    "text": "用户已是该组织的成员",
+    "source_hash": "8eb45780"
   },
   "api.organizations.invitations.errors.invitation_already_pending": {
-    "text": "已存在针对此邮箱的待处理邀请"
+    "text": "已存在针对此邮箱的待处理邀请",
+    "source_hash": "7f5e3093"
   },
   "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "已达到成员数量上限。升级方案以邀请更多成员。"
+    "text": "已达到成员数量上限。升级方案以邀请更多成员。",
+    "source_hash": "b8f316e8"
   },
   "api.organizations.invitations.errors.resend_only_pending": {
-    "text": "只能重新发送待处理的邀请"
+    "text": "只能重新发送待处理的邀请",
+    "source_hash": "b7578b3e"
   },
   "api.organizations.invitations.errors.resend_limit_reached": {
-    "text": "已达到重新发送次数上限（%{max}）"
+    "text": "已达到重新发送次数上限（%{max}）",
+    "source_hash": "8dc96729"
   },
   "api.organizations.invitations.errors.revoke_only_pending": {
-    "text": "只能撤销待处理的邀请"
+    "text": "只能撤销待处理的邀请",
+    "source_hash": "732b78a6"
   },
   "api.organizations.members.errors.member_not_found": {
-    "text": "未找到成员：%{extid}"
+    "text": "未找到成员：%{extid}",
+    "source_hash": "57654771"
   },
   "api.organizations.members.errors.member_not_in_organization": {
-    "text": "在此组织中未找到该成员"
+    "text": "在此组织中未找到该成员",
+    "source_hash": "dcab71ff"
   },
   "api.organizations.members.errors.member_not_active": {
-    "text": "成员未处于活跃状态"
+    "text": "成员未处于活跃状态",
+    "source_hash": "a51b8760"
   },
   "api.organizations.members.errors.invalid_role_value": {
-    "text": "无效的角色。必须是以下之一：%{roles}"
+    "text": "无效的角色。必须是以下之一：%{roles}",
+    "source_hash": "c3331aa0"
   },
   "api.organizations.members.errors.cannot_change_owner_role": {
-    "text": "无法更改所有者角色。请改用所有权转移。"
+    "text": "无法更改所有者角色。请改用所有权转移。",
+    "source_hash": "76015424"
   },
   "api.organizations.members.errors.member_already_has_role": {
-    "text": "成员已拥有角色：%{role}"
+    "text": "成员已拥有角色：%{role}",
+    "source_hash": "6771166a"
   },
   "api.organizations.members.errors.cannot_promote_to_owner": {
-    "text": "无法提升为所有者。请改用所有权转移。"
+    "text": "无法提升为所有者。请改用所有权转移。",
+    "source_hash": "cd574007"
   },
   "api.organizations.members.errors.must_be_member": {
-    "text": "您必须是该组织的成员"
+    "text": "您必须是该组织的成员",
+    "source_hash": "de1c77b8"
   },
   "api.organizations.members.errors.cannot_remove_owner": {
-    "text": "无法移除组织所有者。请先转移所有权。"
+    "text": "无法移除组织所有者。请先转移所有权。",
+    "source_hash": "d4f33003"
   },
   "api.organizations.members.errors.cannot_remove_self": {
-    "text": "无法移除您自己。请改用退出组织。"
+    "text": "无法移除您自己。请改用退出组织。",
+    "source_hash": "d64cec91"
   },
   "api.organizations.members.errors.admin_cannot_remove_admin": {
-    "text": "管理员无法移除其他管理员。只有所有者才能移除。"
+    "text": "管理员无法移除其他管理员。只有所有者才能移除。",
+    "source_hash": "2b3e6e30"
   },
   "api.organizations.members.errors.no_permission_to_remove": {
-    "text": "您没有移除成员的权限"
+    "text": "您没有移除成员的权限",
+    "source_hash": "b0ac7287"
   }
 }

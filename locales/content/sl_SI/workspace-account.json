@@ -684,12 +684,15 @@
     "source_hash": "fe3ac3ad"
   },
   "web.settings.api.api_disabled_notice": {
-    "text": "API je onemogočen za to instanco."
+    "text": "API je onemogočen za to instanco.",
+    "source_hash": "66d12d6b"
   },
   "web.settings.security.sso_managed_title": {
-    "text": "Varnost upravlja SSO"
+    "text": "Varnost upravlja SSO",
+    "source_hash": "1f6c9472"
   },
   "web.settings.security.sso_managed_description": {
-    "text": "Vaš račun je overjen prek ponudnika enotne prijave (SSO) vaše organizacije. Geslo, večstopenjsko avtentikacijo in obnovitvene kode upravlja vaš ponudnik identitete."
+    "text": "Vaš račun je overjen prek ponudnika enotne prijave (SSO) vaše organizacije. Geslo, večstopenjsko avtentikacijo in obnovitvene kode upravlja vaš ponudnik identitete.",
+    "source_hash": "cd0cf39f"
   }
 }

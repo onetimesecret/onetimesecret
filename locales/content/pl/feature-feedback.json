@@ -60,12 +60,15 @@
     "source_hash": "00e56551"
   },
   "web.feedback.anonymous_no_reply": {
-    "text": "Uwaga: jeśli chcesz otrzymać odpowiedź, podpisz się lub podaj adres e-mail w wiadomości."
+    "text": "Uwaga: jeśli chcesz otrzymać odpowiedź, podpisz się lub podaj adres e-mail w wiadomości.",
+    "source_hash": "c984f705"
   },
   "web.feedback.characters_remaining": {
-    "text": "Pozostało znaków: {count}"
+    "text": "Pozostało znaków: {count}",
+    "source_hash": "8d796f40"
   },
   "web.feedback.character_limit_reached": {
-    "text": "Osiągnięto limit znaków"
+    "text": "Osiągnięto limit znaków",
+    "source_hash": "031e9310"
   }
 }

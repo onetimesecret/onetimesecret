@@ -1,107 +1,142 @@
 {
   "api.organizations.errors.domain_scoped_forbidden": {
-    "text": "A doménre korlátozott tagok nem hajthatják végre ezt a műveletet"
+    "text": "A doménre korlátozott tagok nem hajthatják végre ezt a műveletet",
+    "source_hash": "0a06a035"
   },
   "api.organizations.errors.organization_not_found": {
-    "text": "A szervezet nem található: %{extid}"
+    "text": "A szervezet nem található: %{extid}",
+    "source_hash": "c8d058eb"
   },
   "api.organizations.errors.organization_owner_required": {
-    "text": "Ezt a műveletet csak a szervezet tulajdonosa hajthatja végre"
+    "text": "Ezt a műveletet csak a szervezet tulajdonosa hajthatja végre",
+    "source_hash": "5a729e94"
   },
   "api.organizations.errors.organization_member_required": {
-    "text": "A művelet végrehajtásához a szervezet tagjának kell lennie"
+    "text": "A művelet végrehajtásához a szervezet tagjának kell lennie",
+    "source_hash": "f66f4a60"
   },
   "api.organizations.errors.organization_admin_required": {
-    "text": "Ezt a műveletet csak a szervezet tulajdonosai és adminisztrátorai hajthatják végre"
+    "text": "Ezt a műveletet csak a szervezet tulajdonosai és adminisztrátorai hajthatják végre",
+    "source_hash": "cd9e8c0e"
   },
   "api.organizations.errors.extid_required": {
-    "text": "Szervezetazonosító szükséges"
+    "text": "Szervezetazonosító szükséges",
+    "source_hash": "02fbe301"
   },
   "api.organizations.errors.display_name_required": {
-    "text": "A szervezet neve kötelező"
+    "text": "A szervezet neve kötelező",
+    "source_hash": "c3f6e9af"
   },
   "api.organizations.errors.display_name_too_long": {
-    "text": "A szervezet nevének rövidebbnek kell lennie %{max} karakternél"
+    "text": "A szervezet nevének rövidebbnek kell lennie %{max} karakternél",
+    "source_hash": "5866973d"
   },
   "api.organizations.errors.description_too_long": {
-    "text": "A leírásnak rövidebbnek kell lennie %{max} karakternél"
+    "text": "A leírásnak rövidebbnek kell lennie %{max} karakternél",
+    "source_hash": "562b7250"
   },
   "api.organizations.errors.contact_email_exists": {
-    "text": "Már létezik szervezet ezzel a kapcsolattartási e-mail-címmel"
+    "text": "Már létezik szervezet ezzel a kapcsolattartási e-mail-címmel",
+    "source_hash": "e9fdce56"
   },
   "api.organizations.errors.creation_in_progress": {
-    "text": "A szervezet létrehozása folyamatban van. Kérjük, próbálja meg újra."
+    "text": "A szervezet létrehozása folyamatban van. Kérjük, próbálja meg újra.",
+    "source_hash": "ef68bc2d"
   },
   "api.organizations.errors.organization_limit_reached": {
-    "text": "Elérte a szervezetek korlátját. Frissítse a csomagját további szervezetek létrehozásához."
+    "text": "Elérte a szervezetek korlátját. Frissítse a csomagját további szervezetek létrehozásához.",
+    "source_hash": "69e2e61b"
   },
   "api.organizations.invitations.errors.invitation_not_found": {
-    "text": "A meghívás nem található"
+    "text": "A meghívás nem található",
+    "source_hash": "775ba9eb"
   },
   "api.organizations.invitations.errors.email_required": {
-    "text": "Az e-mail-cím kötelező"
+    "text": "Az e-mail-cím kötelező",
+    "source_hash": "aae92911"
   },
   "api.organizations.invitations.errors.invalid_email_format": {
-    "text": "Érvénytelen e-mail-formátum"
+    "text": "Érvénytelen e-mail-formátum",
+    "source_hash": "0bcecf66"
   },
   "api.organizations.invitations.errors.invalid_role": {
-    "text": "A szerepkörnek tagnak vagy adminisztrátornak kell lennie"
+    "text": "A szerepkörnek tagnak vagy adminisztrátornak kell lennie",
+    "source_hash": "650ea5f6"
   },
   "api.organizations.invitations.errors.cannot_invite_as_owner": {
-    "text": "Nem lehet tulajdonosként meghívni"
+    "text": "Nem lehet tulajdonosként meghívni",
+    "source_hash": "e6581025"
   },
   "api.organizations.invitations.errors.user_already_member": {
-    "text": "A felhasználó már tagja ennek a szervezetnek"
+    "text": "A felhasználó már tagja ennek a szervezetnek",
+    "source_hash": "8eb45780"
   },
   "api.organizations.invitations.errors.invitation_already_pending": {
-    "text": "Már van függőben lévő meghívás ehhez az e-mail-címhez"
+    "text": "Már van függőben lévő meghívás ehhez az e-mail-címhez",
+    "source_hash": "7f5e3093"
   },
   "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Elérte a tagok korlátját. Frissítse a csomagját további tagok meghívásához."
+    "text": "Elérte a tagok korlátját. Frissítse a csomagját további tagok meghívásához.",
+    "source_hash": "b8f316e8"
   },
   "api.organizations.invitations.errors.resend_only_pending": {
-    "text": "Csak függőben lévő meghívások küldhetők újra"
+    "text": "Csak függőben lévő meghívások küldhetők újra",
+    "source_hash": "b7578b3e"
   },
   "api.organizations.invitations.errors.resend_limit_reached": {
-    "text": "Elérte az újraküldés maximális korlátját (%{max})"
+    "text": "Elérte az újraküldés maximális korlátját (%{max})",
+    "source_hash": "8dc96729"
   },
   "api.organizations.invitations.errors.revoke_only_pending": {
-    "text": "Csak függőben lévő meghívások vonhatók vissza"
+    "text": "Csak függőben lévő meghívások vonhatók vissza",
+    "source_hash": "732b78a6"
   },
   "api.organizations.members.errors.member_not_found": {
-    "text": "A tag nem található: %{extid}"
+    "text": "A tag nem található: %{extid}",
+    "source_hash": "57654771"
   },
   "api.organizations.members.errors.member_not_in_organization": {
-    "text": "A tag nem található ebben a szervezetben"
+    "text": "A tag nem található ebben a szervezetben",
+    "source_hash": "dcab71ff"
   },
   "api.organizations.members.errors.member_not_active": {
-    "text": "A tag nem aktív"
+    "text": "A tag nem aktív",
+    "source_hash": "a51b8760"
   },
   "api.organizations.members.errors.invalid_role_value": {
-    "text": "Érvénytelen szerepkör. A következők egyike lehet: %{roles}"
+    "text": "Érvénytelen szerepkör. A következők egyike lehet: %{roles}",
+    "source_hash": "c3331aa0"
   },
   "api.organizations.members.errors.cannot_change_owner_role": {
-    "text": "A tulajdonos szerepköre nem módosítható. Helyette használja a tulajdonjog átruházását."
+    "text": "A tulajdonos szerepköre nem módosítható. Helyette használja a tulajdonjog átruházását.",
+    "source_hash": "76015424"
   },
   "api.organizations.members.errors.member_already_has_role": {
-    "text": "A tag már rendelkezik a következő szerepkörrel: %{role}"
+    "text": "A tag már rendelkezik a következő szerepkörrel: %{role}",
+    "source_hash": "6771166a"
   },
   "api.organizations.members.errors.cannot_promote_to_owner": {
-    "text": "Nem léptethető elő tulajdonossá. Helyette használja a tulajdonjog átruházását."
+    "text": "Nem léptethető elő tulajdonossá. Helyette használja a tulajdonjog átruházását.",
+    "source_hash": "cd574007"
   },
   "api.organizations.members.errors.must_be_member": {
-    "text": "Tagja kell lennie ennek a szervezetnek"
+    "text": "Tagja kell lennie ennek a szervezetnek",
+    "source_hash": "de1c77b8"
   },
   "api.organizations.members.errors.cannot_remove_owner": {
-    "text": "A szervezet tulajdonosa nem távolítható el. Először ruházza át a tulajdonjogot."
+    "text": "A szervezet tulajdonosa nem távolítható el. Először ruházza át a tulajdonjogot.",
+    "source_hash": "d4f33003"
   },
   "api.organizations.members.errors.cannot_remove_self": {
-    "text": "Saját magát nem távolíthatja el. Helyette használja a szervezet elhagyása lehetőséget."
+    "text": "Saját magát nem távolíthatja el. Helyette használja a szervezet elhagyása lehetőséget.",
+    "source_hash": "d64cec91"
   },
   "api.organizations.members.errors.admin_cannot_remove_admin": {
-    "text": "Az adminisztrátorok nem távolíthatnak el más adminisztrátorokat. Erre csak a tulajdonosok jogosultak."
+    "text": "Az adminisztrátorok nem távolíthatnak el más adminisztrátorokat. Erre csak a tulajdonosok jogosultak.",
+    "source_hash": "2b3e6e30"
   },
   "api.organizations.members.errors.no_permission_to_remove": {
-    "text": "Nincs jogosultsága tagok eltávolítására"
+    "text": "Nincs jogosultsága tagok eltávolítására",
+    "source_hash": "b0ac7287"
   }
 }

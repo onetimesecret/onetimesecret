@@ -24,12 +24,15 @@
     "source_hash": "ff0d904e"
   },
   "web.teams.create_first_team_title": {
-    "text": "Crea el teu primer equip"
+    "text": "Crea el teu primer equip",
+    "source_hash": "54693f14"
   },
   "web.teams.create_first_team_description": {
-    "text": "Els equips et permeten col·laborar amb altres persones en un espai de treball compartit."
+    "text": "Els equips et permeten col·laborar amb altres persones en un espai de treball compartit.",
+    "source_hash": "d61b86b5"
   },
   "web.teams.create_team": {
-    "text": "Crea un equip"
+    "text": "Crea un equip",
+    "source_hash": "284ff194"
   }
 }

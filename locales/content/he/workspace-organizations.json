@@ -580,342 +580,455 @@
     "source_hash": "a5dcfef9"
   },
   "api.organizations.errors.not_found": {
-    "text": "הארגון לא נמצא: %{extid}"
+    "text": "הארגון לא נמצא: %{extid}",
+    "source_hash": "c8d058eb"
   },
   "api.organizations.errors.owner_required": {
-    "text": "רק בעל הארגון יכול לבצע פעולה זו"
+    "text": "רק בעל הארגון יכול לבצע פעולה זו",
+    "source_hash": "5a729e94"
   },
   "api.organizations.errors.admin_required": {
-    "text": "רק בעלי ארגון ומנהלים יכולים לבצע פעולה זו"
+    "text": "רק בעלי ארגון ומנהלים יכולים לבצע פעולה זו",
+    "source_hash": "cd9e8c0e"
   },
   "api.organizations.errors.member_required": {
-    "text": "עליך להיות חבר בארגון כדי לבצע פעולה זו"
+    "text": "עליך להיות חבר בארגון כדי לבצע פעולה זו",
+    "source_hash": "f66f4a60"
   },
   "api.organizations.invitations.errors.create_admin_required": {
-    "text": "רק בעלי ארגון ומנהלים יכולים ליצור הזמנות"
+    "text": "רק בעלי ארגון ומנהלים יכולים ליצור הזמנות",
+    "source_hash": "777d150d"
   },
   "api.organizations.invitations.errors.resend_admin_required": {
-    "text": "רק בעלי ארגון ומנהלים יכולים לשלוח הזמנות מחדש"
+    "text": "רק בעלי ארגון ומנהלים יכולים לשלוח הזמנות מחדש",
+    "source_hash": "6a857d59"
   },
   "api.organizations.invitations.errors.view_admin_required": {
-    "text": "רק בעלי ארגון ומנהלים יכולים לצפות בהזמנות"
+    "text": "רק בעלי ארגון ומנהלים יכולים לצפות בהזמנות",
+    "source_hash": "42f5878b"
   },
   "api.organizations.invitations.errors.revoke_admin_required": {
-    "text": "רק בעלי ארגון ומנהלים יכולים לבטל הזמנות"
+    "text": "רק בעלי ארגון ומנהלים יכולים לבטל הזמנות",
+    "source_hash": "52f73c8a"
   },
   "api.organizations.invitations.errors.email_required": {
-    "text": "דואר אלקטרוני הוא שדה חובה"
+    "text": "דואר אלקטרוני הוא שדה חובה",
+    "source_hash": "aae92911"
   },
   "api.organizations.invitations.errors.email_invalid": {
-    "text": "תבנית דואר אלקטרוני לא תקינה"
+    "text": "תבנית דואר אלקטרוני לא תקינה",
+    "source_hash": "0bcecf66"
   },
   "api.organizations.invitations.errors.role_invalid": {
-    "text": "התפקיד חייב להיות חבר או מנהל"
+    "text": "התפקיד חייב להיות חבר או מנהל",
+    "source_hash": "650ea5f6"
   },
   "api.organizations.invitations.errors.cannot_invite_owner": {
-    "text": "לא ניתן להזמין כבעלים"
+    "text": "לא ניתן להזמין כבעלים",
+    "source_hash": "e6581025"
   },
   "api.organizations.invitations.errors.already_member": {
-    "text": "המשתמש כבר חבר בארגון זה"
+    "text": "המשתמש כבר חבר בארגון זה",
+    "source_hash": "8eb45780"
   },
   "api.organizations.invitations.errors.already_pending": {
-    "text": "כבר קיימת הזמנה ממתינה עבור כתובת דואר אלקטרוני זו"
+    "text": "כבר קיימת הזמנה ממתינה עבור כתובת דואר אלקטרוני זו",
+    "source_hash": "7f5e3093"
   },
   "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "הגעת למגבלת החברים. שדרג את התוכנית שלך כדי להזמין חברים נוספים."
+    "text": "הגעת למגבלת החברים. שדרג את התוכנית שלך כדי להזמין חברים נוספים.",
+    "source_hash": "b8f316e8"
   },
   "api.organizations.invitations.errors.not_found": {
-    "text": "ההזמנה לא נמצאה"
+    "text": "ההזמנה לא נמצאה",
+    "source_hash": "775ba9eb"
   },
   "api.organizations.invitations.errors.cannot_resend_non_pending": {
-    "text": "ניתן לשלוח מחדש רק הזמנות ממתינות"
+    "text": "ניתן לשלוח מחדש רק הזמנות ממתינות",
+    "source_hash": "b7578b3e"
   },
   "api.organizations.invitations.errors.cannot_revoke_non_pending": {
-    "text": "ניתן לבטל רק הזמנות ממתינות"
+    "text": "ניתן לבטל רק הזמנות ממתינות",
+    "source_hash": "732b78a6"
   },
   "api.organizations.invitations.errors.resend_limit_reached": {
-    "text": "הגעת למגבלת השליחה המרבית מחדש (%{max})"
+    "text": "הגעת למגבלת השליחה המרבית מחדש (%{max})",
+    "source_hash": "8dc96729"
   },
   "api.organizations.invitations.errors.accept_token_required": {
-    "text": "אסימון הוא שדה חובה"
+    "text": "אסימון הוא שדה חובה",
+    "source_hash": "6c718161"
   },
   "api.organizations.invitations.errors.accept_organization_gone": {
-    "text": "הארגון כבר אינו קיים"
+    "text": "הארגון כבר אינו קיים",
+    "source_hash": "a5df7d22"
   },
   "api.organizations.invitations.errors.accept_already_acted": {
-    "text": "ההזמנה כבר %{status}"
+    "text": "ההזמנה כבר %{status}",
+    "source_hash": "130c87e0"
   },
   "api.organizations.invitations.errors.accept_expired": {
-    "text": "תוקף ההזמנה פג"
+    "text": "תוקף ההזמנה פג",
+    "source_hash": "7186297b"
   },
   "api.organizations.invitations.errors.accept_email_mismatch": {
-    "text": "כתובת הדואר האלקטרוני שלך אינה תואמת להזמנה"
+    "text": "כתובת הדואר האלקטרוני שלך אינה תואמת להזמנה",
+    "source_hash": "11026f46"
   },
   "api.organizations.invitations.errors.accept_already_member": {
-    "text": "אתה כבר חבר בארגון זה"
+    "text": "אתה כבר חבר בארגון זה",
+    "source_hash": "f56ad547"
   },
   "web.organizations.entitlements_title": {
-    "text": "הרשאות הארגון"
+    "text": "הרשאות הארגון",
+    "source_hash": "36054d4f"
   },
   "web.organizations.page_description_short": {
-    "text": "צפה והגדר את מרחבי העבודה שלך"
+    "text": "צפה והגדר את מרחבי העבודה שלך",
+    "source_hash": "524fcb9a"
   },
   "web.organizations.delete_organization_remove_domains_first": {
-    "text": "הסר את כל הדומיינים המותאמים אישית לפני מחיקת ארגון זה."
+    "text": "הסר את כל הדומיינים המותאמים אישית לפני מחיקת ארגון זה.",
+    "source_hash": "44678715"
   },
   "web.organizations.default_org_delete_notice_title": {
-    "text": "מחיקת ארגון זה"
+    "text": "מחיקת ארגון זה",
+    "source_hash": "9191d915"
   },
   "web.organizations.default_org_delete_notice_before": {
-    "text": "זהו ארגון ברירת המחדל שלך ולא ניתן להסירו מלוח הבקרה. כדי למחוק אותו, פנה אלינו באמצעות"
+    "text": "זהו ארגון ברירת המחדל שלך ולא ניתן להסירו מלוח הבקרה. כדי למחוק אותו, פנה אלינו באמצעות",
+    "source_hash": "e203607d"
   },
   "web.organizations.default_org_delete_notice_link": {
-    "text": "טופס המשוב"
+    "text": "טופס המשוב",
+    "source_hash": "94645a9e"
   },
   "web.organizations.default_org_delete_notice_after": {
-    "text": "."
+    "text": ".",
+    "source_hash": "cdb4ee2a"
   },
   "web.organizations.leave_organization": {
-    "text": "עזוב ארגון זה"
+    "text": "עזוב ארגון זה",
+    "source_hash": "d534cff9"
   },
   "web.organizations.leave_organization_warning": {
-    "text": "תאבד את הגישה לארגון זה ולמשאביו."
+    "text": "תאבד את הגישה לארגון זה ולמשאביו.",
+    "source_hash": "e9daab07"
   },
   "web.organizations.leave_organization_confirm_title": {
-    "text": "עזיבת ארגון"
+    "text": "עזיבת ארגון",
+    "source_hash": "ec8314da"
   },
   "web.organizations.leave_organization_confirm_message": {
-    "text": "האם אתה בטוח שברצונך לעזוב את {name}? תזדקק להזמנה חדשה כדי להצטרף מחדש."
+    "text": "האם אתה בטוח שברצונך לעזוב את {name}? תזדקק להזמנה חדשה כדי להצטרף מחדש.",
+    "source_hash": "e21c5fec"
   },
   "web.organizations.leave_organization_success": {
-    "text": "עזבת את הארגון."
+    "text": "עזבת את הארגון.",
+    "source_hash": "fc803eb3"
   },
   "web.organizations.leave_error": {
-    "text": "עזיבת הארגון נכשלה"
+    "text": "עזיבת הארגון נכשלה",
+    "source_hash": "6cb6af43"
   },
   "web.organizations.organizations": {
-    "text": "ארגונים"
+    "text": "ארגונים",
+    "source_hash": "2730183d"
   },
   "web.organizations.invitations.invited_by_inline": {
-    "text": "על ידי {email}"
+    "text": "על ידי {email}",
+    "source_hash": "969a7050"
   },
   "web.organizations.invitations.invited_as_inline": {
-    "text": "בתפקיד {role}"
+    "text": "בתפקיד {role}",
+    "source_hash": "ff9e9b18"
   },
   "web.organizations.invitations.back_to_home": {
-    "text": "חזרה לדף הבית"
+    "text": "חזרה לדף הבית",
+    "source_hash": "76c5505f"
   },
   "web.organizations.invitations.email_locked_hint": {
-    "text": "הזמנה זו נשלחה לכתובת דואר אלקטרוני זו"
+    "text": "הזמנה זו נשלחה לכתובת דואר אלקטרוני זו",
+    "source_hash": "2cff7075"
   },
   "web.organizations.invitations.signup_continue": {
-    "text": "המשך"
+    "text": "המשך",
+    "source_hash": "31fbef16"
   },
   "web.organizations.invitations.signin_continue": {
-    "text": "התחברות"
+    "text": "התחברות",
+    "source_hash": "bcc0bcc9"
   },
   "web.organizations.invitations.confirm_join_below": {
-    "text": "כמעט סיימת — אשר למטה כדי להצטרף לארגון."
+    "text": "כמעט סיימת — אשר למטה כדי להצטרף לארגון.",
+    "source_hash": "2d14f9b0"
   },
   "web.organizations.invitations.go_to_organizations": {
-    "text": "עבור לארגונים"
+    "text": "עבור לארגונים",
+    "source_hash": "2afa38a3"
   },
   "web.organizations.invitations.already_member": {
-    "text": "אתה כבר חבר בארגון זה"
+    "text": "אתה כבר חבר בארגון זה",
+    "source_hash": "f56ad547"
   },
   "web.organizations.invitations.join_organization": {
-    "text": "הצטרף אל {orgName}"
+    "text": "הצטרף אל {orgName}",
+    "source_hash": "1aea9194"
   },
   "web.organizations.invitations.sign_in_to_join": {
-    "text": "התחבר כדי להצטרף אל {orgName}"
+    "text": "התחבר כדי להצטרף אל {orgName}",
+    "source_hash": "f94ed8b4"
   },
   "web.organizations.invitations.decline": {
-    "text": "דחה"
+    "text": "דחה",
+    "source_hash": "a2d285b3"
   },
   "web.organizations.members.member_quota": {
-    "text": "{used} מתוך {limit} חברים"
+    "text": "{used} מתוך {limit} חברים",
+    "source_hash": "51183b79"
   },
   "web.organizations.members.pending_suffix": {
-    "text": "({count} ממתינים)"
+    "text": "({count} ממתינים)",
+    "source_hash": "c13f787f"
   },
   "web.organizations.members.limit_reached_hint": {
-    "text": "הגעת למגבלת החברים."
+    "text": "הגעת למגבלת החברים.",
+    "source_hash": "26cdb6b8"
   },
   "web.organizations.sso.title": {
-    "text": "כניסה יחידה (SSO)"
+    "text": "כניסה יחידה (SSO)",
+    "source_hash": "5db5c812"
   },
   "web.organizations.sso.description": {
-    "text": "הגדר SSO כדי לאפשר לחברים להיכנס באמצעות ספק הזהויות של הארגון שלך"
+    "text": "הגדר SSO כדי לאפשר לחברים להיכנס באמצעות ספק הזהויות של הארגון שלך",
+    "source_hash": "464f0a8b"
   },
   "web.organizations.sso.provider_type": {
-    "text": "סוג ספק"
+    "text": "סוג ספק",
+    "source_hash": "bdfbb1ec"
   },
   "web.organizations.sso.provider_type_description": {
-    "text": "בחר את ספק הזהויות של הארגון שלך"
+    "text": "בחר את ספק הזהויות של הארגון שלך",
+    "source_hash": "e81325a6"
   },
   "web.organizations.sso.display_name": {
-    "text": "שם תצוגה"
+    "text": "שם תצוגה",
+    "source_hash": "18d67c99"
   },
   "web.organizations.sso.display_name_hint": {
-    "text": "שם ידידותי המוצג למשתמשים בעת הכניסה"
+    "text": "שם ידידותי המוצג למשתמשים בעת הכניסה",
+    "source_hash": "a83f1fba"
   },
   "web.organizations.sso.display_name_placeholder": {
-    "text": "לדוגמה Acme Corp SSO"
+    "text": "לדוגמה Acme Corp SSO",
+    "source_hash": "43c655c5"
   },
   "web.organizations.sso.client_id": {
-    "text": "Client ID"
+    "text": "Client ID",
+    "source_hash": "8726db01"
   },
   "web.organizations.sso.client_id_placeholder": {
-    "text": "ה-Client ID של OAuth שלך"
+    "text": "ה-Client ID של OAuth שלך",
+    "source_hash": "830723da"
   },
   "web.organizations.sso.client_secret": {
-    "text": "Client Secret"
+    "text": "Client Secret",
+    "source_hash": "ae21cf6d"
   },
   "web.organizations.sso.client_secret_placeholder": {
-    "text": "ה-Client Secret של OAuth שלך"
+    "text": "ה-Client Secret של OAuth שלך",
+    "source_hash": "14e4a8c8"
   },
   "web.organizations.sso.client_secret_update_hint": {
-    "text": "השאר ריק כדי לשמור על הסוד הקיים"
+    "text": "השאר ריק כדי לשמור על הסוד הקיים",
+    "source_hash": "98bc3b40"
   },
   "web.organizations.sso.tenant_id": {
-    "text": "Tenant ID"
+    "text": "Tenant ID",
+    "source_hash": "de1f5fff"
   },
   "web.organizations.sso.tenant_id_hint": {
-    "text": "מזהה ה-tenant של Azure AD / Entra ID שלך"
+    "text": "מזהה ה-tenant של Azure AD / Entra ID שלך",
+    "source_hash": "3c5b707a"
   },
   "web.organizations.sso.tenant_id_placeholder": {
-    "text": "לדוגמה 12345678-1234-1234-1234-123456789abc"
+    "text": "לדוגמה 12345678-1234-1234-1234-123456789abc",
+    "source_hash": "1a166316"
   },
   "web.organizations.sso.issuer": {
-    "text": "Issuer URL"
+    "text": "Issuer URL",
+    "source_hash": "4d03ba8a"
   },
   "web.organizations.sso.issuer_hint": {
-    "text": "כתובת ה-URL לגילוי OIDC של ספק הזהויות שלך"
+    "text": "כתובת ה-URL לגילוי OIDC של ספק הזהויות שלך",
+    "source_hash": "6102d81b"
   },
   "web.organizations.sso.issuer_placeholder": {
-    "text": "לדוגמה https://login.example.com"
+    "text": "לדוגמה https://login.example.com",
+    "source_hash": "9a638e9c"
   },
   "web.organizations.sso.view_discovery_document": {
-    "text": "הצג מסמך גילוי"
+    "text": "הצג מסמך גילוי",
+    "source_hash": "513bda60"
   },
   "web.organizations.sso.callback_url": {
-    "text": "Callback URL"
+    "text": "Callback URL",
+    "source_hash": "dc297ae9"
   },
   "web.organizations.sso.callback_url_hint": {
-    "text": "הוסף כתובת URL זו לכתובות ההפניה המורשות של ספק הזהויות שלך"
+    "text": "הוסף כתובת URL זו לכתובות ההפניה המורשות של ספק הזהויות שלך",
+    "source_hash": "65d55683"
   },
   "web.organizations.sso.allowed_domains": {
-    "text": "דומייני דואר אלקטרוני מורשים"
+    "text": "דומייני דואר אלקטרוני מורשים",
+    "source_hash": "0295ad71"
   },
   "web.organizations.sso.allowed_domains_hint": {
-    "text": "רק משתמשים עם כתובות דואר אלקטרוני מדומיינים אלה יכולים להיכנס. השאר ריק כדי לאפשר את כל הדומיינים."
+    "text": "רק משתמשים עם כתובות דואר אלקטרוני מדומיינים אלה יכולים להיכנס. השאר ריק כדי לאפשר את כל הדומיינים.",
+    "source_hash": "1775e874"
   },
   "web.organizations.sso.domain_placeholder": {
-    "text": "לדוגמה acme.com"
+    "text": "לדוגמה acme.com",
+    "source_hash": "e4420764"
   },
   "web.organizations.sso.invalid_domain": {
-    "text": "הזן דומיין תקין (לדוגמה example.com)"
+    "text": "הזן דומיין תקין (לדוגמה example.com)",
+    "source_hash": "16807983"
   },
   "web.organizations.sso.domain_exists": {
-    "text": "דומיין זה כבר נמצא ברשימה"
+    "text": "דומיין זה כבר נמצא ברשימה",
+    "source_hash": "3fccb721"
   },
   "web.organizations.sso.remove_domain": {
-    "text": "הסר את {domain}"
+    "text": "הסר את {domain}",
+    "source_hash": "ae708a1d"
   },
   "web.organizations.sso.enabled": {
-    "text": "הפעל SSO"
+    "text": "הפעל SSO",
+    "source_hash": "d10d0801"
   },
   "web.organizations.sso.enabled_hint": {
-    "text": "כאשר מופעל, חברי הארגון יכולים להיכנס באמצעות ספק SSO זה"
+    "text": "כאשר מופעל, חברי הארגון יכולים להיכנס באמצעות ספק SSO זה",
+    "source_hash": "d7da2fa2"
   },
   "web.organizations.sso.enforce_sso_only": {
-    "text": "אכוף SSO בלבד"
+    "text": "אכוף SSO בלבד",
+    "source_hash": "b3a3f694"
   },
   "web.organizations.sso.enforce_sso_only_hint": {
-    "text": "חייב SSO לכל הכניסות בדומיין זה. כאשר מופעל, אימות מבוסס סיסמה מושבת."
+    "text": "חייב SSO לכל הכניסות בדומיין זה. כאשר מופעל, אימות מבוסס סיסמה מושבת.",
+    "source_hash": "19432210"
   },
   "web.organizations.sso.grant_org_scope": {
-    "text": "הענק גישה לכל הארגון"
+    "text": "הענק גישה לכל הארגון",
+    "source_hash": "2070cef2"
   },
   "web.organizations.sso.grant_org_scope_hint": {
-    "text": "חברים חדשים שמצטרפים באמצעות ה-SSO של דומיין זה יקבלו גישה לכל דומייני הארגון. חברים קיימים אינם מושפעים. כאשר מושבת (ברירת מחדל), חברים חדשים יכולים לגשת רק לדומיין זה."
+    "text": "חברים חדשים שמצטרפים באמצעות ה-SSO של דומיין זה יקבלו גישה לכל דומייני הארגון. חברים קיימים אינם מושפעים. כאשר מושבת (ברירת מחדל), חברים חדשים יכולים לגשת רק לדומיין זה.",
+    "source_hash": "2ac9f345"
   },
   "web.organizations.sso.save_config": {
-    "text": "שמור תצורת SSO"
+    "text": "שמור תצורת SSO",
+    "source_hash": "70853769"
   },
   "web.organizations.sso.delete_config": {
-    "text": "מחק תצורה"
+    "text": "מחק תצורה",
+    "source_hash": "9ac1ac7b"
   },
   "web.organizations.sso.delete_confirm": {
-    "text": "האם אתה בטוח? פעולה זו תשבית את ה-SSO עבור הארגון שלך."
+    "text": "האם אתה בטוח? פעולה זו תשבית את ה-SSO עבור הארגון שלך.",
+    "source_hash": "5b3f5b9d"
   },
   "web.organizations.sso.load_error": {
-    "text": "טעינת תצורת ה-SSO נכשלה"
+    "text": "טעינת תצורת ה-SSO נכשלה",
+    "source_hash": "75cb73f6"
   },
   "web.organizations.sso.save_error": {
-    "text": "שמירת תצורת ה-SSO נכשלה"
+    "text": "שמירת תצורת ה-SSO נכשלה",
+    "source_hash": "99ef145b"
   },
   "web.organizations.sso.create_success": {
-    "text": "תצורת ה-SSO נוצרה בהצלחה"
+    "text": "תצורת ה-SSO נוצרה בהצלחה",
+    "source_hash": "531c7d92"
   },
   "web.organizations.sso.update_success": {
-    "text": "תצורת ה-SSO עודכנה בהצלחה"
+    "text": "תצורת ה-SSO עודכנה בהצלחה",
+    "source_hash": "d98d8e83"
   },
   "web.organizations.sso.delete_success": {
-    "text": "תצורת ה-SSO נמחקה בהצלחה"
+    "text": "תצורת ה-SSO נמחקה בהצלחה",
+    "source_hash": "55f5d4f5"
   },
   "web.organizations.sso.delete_error": {
-    "text": "מחיקת תצורת ה-SSO נכשלה"
+    "text": "מחיקת תצורת ה-SSO נכשלה",
+    "source_hash": "4a960fe4"
   },
   "web.organizations.sso.test_connection": {
-    "text": "בדוק חיבור"
+    "text": "בדוק חיבור",
+    "source_hash": "c02977b0"
   },
   "web.organizations.sso.test_connection_hint": {
-    "text": "ודא שספק הזהויות נגיש (אינו מאמת פרטי כניסה)"
+    "text": "ודא שספק הזהויות נגיש (אינו מאמת פרטי כניסה)",
+    "source_hash": "22a23b68"
   },
   "web.organizations.sso.test_button": {
-    "text": "בדוק חיבור"
+    "text": "בדוק חיבור",
+    "source_hash": "c02977b0"
   },
   "web.organizations.sso.testing": {
-    "text": "בודק..."
+    "text": "בודק...",
+    "source_hash": "6c02a284"
   },
   "web.organizations.sso.test_error": {
-    "text": "בדיקת החיבור נכשלה"
+    "text": "בדיקת החיבור נכשלה",
+    "source_hash": "c1d1f310"
   },
   "web.organizations.sso.auth_endpoint": {
-    "text": "נקודת קצה לאישור"
+    "text": "נקודת קצה לאישור",
+    "source_hash": "b42b956f"
   },
   "web.organizations.sso.missing_fields": {
-    "text": "שדות חסרים"
+    "text": "שדות חסרים",
+    "source_hash": "757df777"
   },
   "web.organizations.sso.status_enabled": {
-    "text": "מופעל"
+    "text": "מופעל",
+    "source_hash": "92c1cdfd"
   },
   "web.organizations.sso.status_configured": {
-    "text": "מוגדר"
+    "text": "מוגדר",
+    "source_hash": "84aebc69"
   },
   "web.organizations.sso.domain_sso_title": {
-    "text": "SSO של דומיין"
+    "text": "SSO של דומיין",
+    "source_hash": "13161464"
   },
   "web.organizations.sso.domain_sso_description": {
-    "text": "הגדר SSO עבור כל דומיין מאומת"
+    "text": "הגדר SSO עבור כל דומיין מאומת",
+    "source_hash": "af5b799e"
   },
   "web.organizations.sso.provider_type_locked_hint": {
-    "text": "כדי לשנות ספק, מחק תחילה תצורה זו"
+    "text": "כדי לשנות ספק, מחק תחילה תצורה זו",
+    "source_hash": "0a1027ff"
   },
   "web.organizations.sso.status_not_configured": {
-    "text": "לא מוגדר"
+    "text": "לא מוגדר",
+    "source_hash": "bbea960e"
   },
   "web.organizations.sso.no_domains": {
-    "text": "אין דומיינים מאומתים"
+    "text": "אין דומיינים מאומתים",
+    "source_hash": "8a7fbb76"
   },
   "web.organizations.sso.no_domains_description": {
-    "text": "הוסף ואמת דומיין לפני הגדרת SSO עבורו."
+    "text": "הוסף ואמת דומיין לפני הגדרת SSO עבורו.",
+    "source_hash": "e825d13a"
   },
   "web.organizations.tabs.team": {
-    "text": "צוות"
+    "text": "צוות",
+    "source_hash": "5985039f"
   },
   "web.organizations.tabs.sso": {
-    "text": "SSO"
+    "text": "SSO",
+    "source_hash": "5ba3ac9f"
   }
 }

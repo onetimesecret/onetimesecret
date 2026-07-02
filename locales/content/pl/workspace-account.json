@@ -684,12 +684,15 @@
     "source_hash": "fe3ac3ad"
   },
   "web.settings.api.api_disabled_notice": {
-    "text": "API jest wyłączone dla tej instancji."
+    "text": "API jest wyłączone dla tej instancji.",
+    "source_hash": "66d12d6b"
   },
   "web.settings.security.sso_managed_title": {
-    "text": "Zabezpieczenia zarządzane przez SSO"
+    "text": "Zabezpieczenia zarządzane przez SSO",
+    "source_hash": "1f6c9472"
   },
   "web.settings.security.sso_managed_description": {
-    "text": "Twoje konto jest uwierzytelniane za pośrednictwem dostawcy jednokrotnego logowania Twojej organizacji. Hasło, uwierzytelnianie wieloskładnikowe oraz kody odzyskiwania są zarządzane przez Twojego dostawcę tożsamości."
+    "text": "Twoje konto jest uwierzytelniane za pośrednictwem dostawcy jednokrotnego logowania Twojej organizacji. Hasło, uwierzytelnianie wieloskładnikowe oraz kody odzyskiwania są zarządzane przez Twojego dostawcę tożsamości.",
+    "source_hash": "cd0cf39f"
   }
 }
