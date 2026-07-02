@@ -58,8 +58,7 @@ git switch main
 
 ### Merging back into main
 
-One integration PR, not 29. Order: land CI filter PR → octopus off new main → open PR.
-Filter PR (#3611, `chore/ci-locale-path-filters`) must be on main first so the batch skips CodeQL/Claude review and runs only `validate-register`.
+One integration PR, not 29 (or however many branches you have).
 
 ```bash
 # 1. preflight — local must match origin; base must be locale-only (octopus aborts on any conflict)
