@@ -28,7 +28,7 @@ Familia.configure do |config|
     v2: Base64.strict_encode64(@key_v2),
   }
   config.current_key_version = :v1
-  config.encryption_personalization = 'CustomDomainNavTest'
+  config.encryption_personalization = 'DomainNavTest'
 end
 
 @ts = Familia.now.to_i

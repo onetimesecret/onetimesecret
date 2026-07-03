@@ -76,7 +76,7 @@ RSpec.describe 'Cross-Tenant Callback Validation', type: :integration do
         v2: Base64.strict_encode64(key_v2),
       }
       config.current_key_version = :v1
-      config.encryption_personalization = 'CallbackValidationTest'
+      config.encryption_personalization = 'CallbackValidTst'
     end
   end
 

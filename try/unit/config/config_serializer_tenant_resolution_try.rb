@@ -36,7 +36,7 @@ Familia.configure do |config|
     v2: Base64.strict_encode64(key_v2),
   }
   config.current_key_version = :v1
-  config.encryption_personalization = 'ConfigSerializerTenantTest'
+  config.encryption_personalization = 'SerializerTenant'
 end
 
 @original_features = Onetime.auth_config.features.dup

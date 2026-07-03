@@ -36,7 +36,7 @@ RSpec.describe Core::Views::ConfigSerializer do
         v2: Base64.strict_encode64(key_v2),
       }
       config.current_key_version = :v1
-      config.encryption_personalization = 'ConfigSerializerTest'
+      config.encryption_personalization = 'ConfigSerialTest'
     end
   end
 
