@@ -1,10 +1,10 @@
 # Branding verification screenshots
 
-Visual confirmation for the branding-polish branch, captured against the real
+Visual confirmation of the brand fallback system, captured against the real
 running app (Ruby backend + the built frontend) with seeded custom domains.
 
-These are **verification artifacts** for PR review and can be removed before
-merge.
+These document the centred-mark fallback behaviour end-to-end; see
+[`architecture/branding.md`](../architecture/branding.md) for the design.
 
 | File | What it shows |
 |---|---|

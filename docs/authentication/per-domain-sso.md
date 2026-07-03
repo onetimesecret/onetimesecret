@@ -239,9 +239,9 @@ install-level providers.
 
 ## See Also
 
-- [SSO Configuration Guide](omniauth-sso.md) - platform-level SSO setup and provider configuration
+- [SSO Configuration Guide](per-install-sso.md) - platform-level SSO setup and provider configuration
 - [OmniAuth Tenant Resolution](../../apps/web/auth/config/hooks/omniauth_tenant.rb) - runtime credential injection
 - [CustomDomain::SsoConfig Model](../../lib/onetime/models/custom_domain/sso_config.rb) - per-domain SSO storage
-- [Billing Catalog Management](../billing/catalog-management.md)
-- [Entitlements System](../billing/entitlements.md)
+- [Billing Catalog Management](../../apps/web/billing/docs/catalog-api-design.md)
+- [Entitlements System](../authorizations/membership-entitlements.md)
 - [STANDALONE_ENTITLEMENTS](../../lib/onetime/models/features/with_entitlements.rb)
