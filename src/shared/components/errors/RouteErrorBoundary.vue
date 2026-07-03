@@ -104,6 +104,13 @@
         d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
     </svg>
 
+    <!--
+      Fallback copy is intentionally hardcoded (not i18n-wrapped). This is a
+      last-resort render boundary: the failure it catches may itself be a
+      broken i18n/bootstrap state, so calling t() here risks throwing while
+      handling an error. Plain English keeps the panel dependency-free and
+      guaranteed to render.
+    -->
     <h1 class="mt-4 text-lg font-semibold text-gray-900 dark:text-white">Something went wrong</h1>
     <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
       This page couldn’t be displayed. Reloading usually fixes it.
@@ -126,9 +133,10 @@
       </button>
     </div>
 
-    <!-- Error detail: development only, to avoid surfacing internals in prod. -->
+    <!-- Error detail: development only, to avoid surfacing internals in prod.
+         caughtError is always truthy inside the outer v-if, so isDev alone gates this. -->
     <pre
-      v-if="isDev && caughtError"
+      v-if="isDev"
       class="mt-6 max-w-full overflow-x-auto rounded-md bg-gray-100 p-3 text-left text-xs text-red-700 dark:bg-gray-800 dark:text-red-300"
       >{{ caughtError.message }}</pre
     >
