@@ -680,6 +680,25 @@ logic.process
 logic.secret.share_domain
 #=> nil
 
+## V3 CreateIncomingSecret leaves share_domain nil for a custom strategy with a blank display_domain
+# Guards the `!display_domain.to_s.empty?` check: a misconfigured custom
+# strategy must not bind share_domain to "" (an empty string is truthy in
+# Ruby, so spawn_pair(domain: "") would otherwise slip through and the email
+# would render an empty authority). Exercises the private share_domain helper
+# directly — a blank custom domain fails the entitlement check in
+# raise_concerns, so the full process path can't reach the guard.
+blank_custom_strategy = create_v3_strategy_with_domain(@v3_cust, '', domain_strategy: :custom)
+logic = Incoming::Logic::CreateIncomingSecret.new(blank_custom_strategy, {
+  'secret' => {
+    'memo' => 'V3 blank custom domain test',
+    'secret' => 'Secret for blank custom domain',
+    'recipient' => @v3_recipient_hash
+  }
+})
+logic.process_params
+logic.send(:share_domain)
+#=> nil
+
 ## V3 CreateIncomingSecret resolves the custom domain's objid exactly once per request
 # Regression guard for the resolved_domain_id memoization: receipt persistence and
 # the notification's sender-config selection both need the CustomDomain objid, but
