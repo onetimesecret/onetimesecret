@@ -94,16 +94,20 @@ template = Onetime::Mail::Templates::IncomingSecret.new(data)
 template.has_memo?
 #=> false
 
-## IncomingSecret display_domain uses site host by default
+## IncomingSecret body links to the canonical host by default
+# The link is built in the template from brand_baseuri (a TemplateContext
+# helper), which falls back to the canonical site baseuri when the message
+# carries no share_domain.
+ctx = Onetime::Mail::Templates::Base::TemplateContext.new({}, 'en')
 template = Onetime::Mail::Templates::IncomingSecret.new(@valid_data)
-template.display_domain
-#=~> /https?:\/\/.+/
+template.render_text.include?("#{ctx.site_baseuri}/secret/incoming_key_abc")
+#=> true
 
-## IncomingSecret display_domain uses share_domain when present
+## IncomingSecret body links to the share_domain when present
 data = @valid_data.merge(share_domain: 'custom.example.com')
 template = Onetime::Mail::Templates::IncomingSecret.new(data)
-template.display_domain
-#=~> /https?:\/\/custom\.example\.com/
+template.render_text.include?('https://custom.example.com/secret/incoming_key_abc')
+#=> true
 
 ## IncomingSecret signature_link returns site baseuri
 template = Onetime::Mail::Templates::IncomingSecret.new(@valid_data)

@@ -178,6 +178,13 @@ module Onetime
           data[:recipient] || data[:email_address] || data[:to]
         end
 
+        # URL scheme ('https://' unless site.ssl is explicitly false). Shared
+        # by site_baseuri and brand_baseuri so both agree on http/https.
+        # @return [String]
+        def scheme
+          site_ssl? ? 'https://' : 'http://'
+        end
+
         # Site SSL configuration helper
         # @return [Boolean]
         def site_ssl?
@@ -197,8 +204,19 @@ module Onetime
         # Site base URI configuration helper
         # @return [String]
         def site_baseuri
-          scheme = site_ssl? ? 'https://' : 'http://'
           "#{scheme}#{site_host}"
+        end
+
+        # Full base URI for the domain this message concerns: the custom
+        # share_domain when the message carries one, otherwise the
+        # (overridable) canonical base URI. Ruby-side twin of
+        # TemplateContext#brand_baseuri — keep the two in sync.
+        # @return [String]
+        def brand_baseuri
+          host = data[:share_domain].to_s
+          return data[:baseuri] || site_baseuri if host.empty?
+
+          "#{scheme}#{host}"
         end
 
         def site_product_name
@@ -213,7 +231,11 @@ module Onetime
           data[:product_name] || site_product_name
         end
 
-        # Display domain with fallback to site host
+        # Bare host label naming the domain this message is about. Used by
+        # account/system emails (password_request, magic_link, ...) in
+        # subjects and i18n interpolations; data-driven with a canonical-host
+        # fallback. Not a link: URLs are built from brand_baseuri, which
+        # derives from share_domain rather than display_domain.
         # @return [String]
         def display_domain
           data[:display_domain] || site_host
@@ -322,10 +344,15 @@ module Onetime
             @data[:product_name] || site_product_name
           end
 
-          # Display domain helper (custom domain or canonical)
+          # Bare host label naming the domain this message is about. Prefers
+          # an explicit per-message display_domain (account/system emails
+          # inject it for subjects and body copy; feedback_email reports the
+          # domain feedback was submitted from), then falls back to
+          # brand_host so domain-bound messages label the domain they
+          # concern. Not a link: templates build URLs from brand_baseuri.
           # @return [String]
           def display_domain
-            @data[:display_domain] || @data[:share_domain] || site_host
+            @data[:display_domain] || brand_host
           end
 
           # Host the shared layout header/footer links to and displays. Prefers
