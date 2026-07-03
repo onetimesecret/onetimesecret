@@ -115,7 +115,14 @@ const onKeydown = (event: KeyboardEvent) => {
   const enabled = options.value.filter((o) => !isOptionDisabled(o.key));
   if (enabled.length === 0) return;
 
-  const currentIdx = enabled.findIndex((o) => o.key === props.modelValue);
+  // Reference point for directional movement: the selection when it is
+  // enabled, otherwise the tab-stop option (a disabled/hidden selection is
+  // not in `enabled`, and -1 index math would land both arrows on the same
+  // option).
+  const referenceKey = enabled.some((o) => o.key === props.modelValue)
+    ? props.modelValue
+    : tabStopKey.value;
+  const currentIdx = enabled.findIndex((o) => o.key === referenceKey);
   const delta = event.key === 'ArrowDown' || event.key === 'ArrowRight' ? 1 : -1;
   const nextIdx = (currentIdx + delta + enabled.length) % enabled.length;
   select(enabled[nextIdx].key);

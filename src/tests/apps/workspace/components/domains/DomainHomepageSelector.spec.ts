@@ -129,4 +129,28 @@ describe('DomainHomepageSelector', () => {
     // create -> (skip incoming) -> wraps to private
     expect(wrapper.emitted('update:modelValue')).toEqual([['private']]);
   });
+
+  it('keeps a tab stop and sane arrow movement when the stored selection is disabled', async () => {
+    // Drift state: stored mode 'incoming' while incoming became unready. The
+    // selected option renders disabled; the group must stay keyboard-usable.
+    const wrapper = mountSelector({
+      modelValue: 'incoming',
+      incomingAvailable: true,
+      incomingReady: false,
+    });
+
+    // First enabled option takes the tab stop (disabled buttons drop out of
+    // the tab order regardless of tabindex).
+    expect(
+      wrapper.find('[data-testid="homepage-option-private"]').attributes('tabindex')
+    ).toBe('0');
+    expect(
+      wrapper.find('[data-testid="homepage-option-incoming"]').attributes('tabindex')
+    ).toBe('-1');
+
+    // Arrow movement is anchored to the tab stop, not the disabled selection:
+    // private -> create.
+    await wrapper.find('[role="radiogroup"]').trigger('keydown', { key: 'ArrowDown' });
+    expect(wrapper.emitted('update:modelValue')).toEqual([['create']]);
+  });
 });
