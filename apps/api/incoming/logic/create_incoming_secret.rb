@@ -178,12 +178,19 @@ module Incoming
       end
 
       def create_and_encrypt_secret
-        # Use Receipt.spawn_pair to create linked secret and receipt
+        # Use Receipt.spawn_pair to create linked secret and receipt.
+        #
+        # Bind the pair to the custom domain (share_domain) so the secret
+        # link, receipt serialization, and notification email all render the
+        # domain the secret was submitted on rather than the canonical host.
+        # Incoming routes are anonymous, so the Host-header domain is
+        # authoritative — mirrors V2 BaseSecretAction#determine_share_domain.
         @receipt, @secret = Onetime::Receipt.spawn_pair(
           cust&.objid || 'anon',
           ttl,
           secret_value,
           passphrase: passphrase,
+          domain: share_domain,
         )
 
         # Store incoming-specific fields. Persist the raw email so the
@@ -194,12 +201,29 @@ module Incoming
         receipt.recipients     = recipient_email
         receipt.recipient_name = lookup_recipient_display_name(@recipient_hash)
 
-        # Set domain_id for custom domain requests (#2864)
-        if domain_strategy == :custom && display_domain
-          receipt.domain_id = Onetime::CustomDomain.resolve_domain_id(display_domain)
+        # Set domain_id for custom domain requests (#2864). Resolved from the
+        # same share_domain that spawn_pair persisted, keeping domain_id and
+        # share_domain consistent on the receipt.
+        if share_domain
+          receipt.domain_id = Onetime::CustomDomain.resolve_domain_id(share_domain)
         end
 
         receipt.save
+      end
+
+      # The custom domain a secret submitted via /incoming should be bound to,
+      # or nil on the canonical domain. Incoming routes are always anonymous,
+      # so the Host-header custom domain (display_domain) is authoritative;
+      # this mirrors the anonymous branch of V2
+      # BaseSecretAction#determine_share_domain. The custom domain has already
+      # been validated in raise_concerns (require_domain_entitlement! and
+      # enabled? both require a resolvable, configured domain record).
+      #
+      # @return [String, nil] Custom domain FQDN, or nil for canonical
+      def share_domain
+        return @share_domain if defined?(@share_domain)
+
+        @share_domain = (display_domain if domain_strategy == :custom && display_domain)
       end
 
       def update_customer_stats

@@ -605,6 +605,25 @@ logic.process
 logic.receipt.domain_id
 #=> @v3_custom_domain.identifier
 
+## V3 CreateIncomingSecret binds share_domain to the custom domain
+# Regression: without domain: on spawn_pair, secret.share_domain was nil and
+# the notification email rendered the canonical host for the secret link and
+# footer instead of the custom domain the secret was submitted on.
+v3_strategy = create_v3_strategy_with_domain(@v3_cust, @v3_custom_fqdn)
+logic = Incoming::Logic::CreateIncomingSecret.new(v3_strategy, {
+  'secret' => {
+    'memo' => 'V3 share_domain test',
+    'secret' => 'Secret for share_domain test',
+    'recipient' => @v3_recipient_hash
+  }
+})
+logic.process_params
+logic.raise_concerns
+logic.process
+# Both the secret and its receipt carry the custom domain FQDN
+[logic.secret.share_domain, logic.receipt.share_domain]
+#=> [@v3_custom_fqdn, @v3_custom_fqdn]
+
 ## V3 CreateIncomingSecret with canonical domain leaves receipt.domain_id as nil
 # Canonical domain uses global config - use the same recipient as global tests
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
@@ -621,6 +640,23 @@ logic.raise_concerns
 logic.process
 # Receipt should NOT have domain_id set when using canonical domain
 logic.receipt.domain_id
+#=> nil
+
+## V3 CreateIncomingSecret leaves share_domain nil on the canonical domain
+# Canonical secrets stay unbound so the email renders the canonical host.
+enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
+canonical_strategy = create_v3_strategy_with_domain(@v3_cust, '', domain_strategy: :canonical)
+logic = Incoming::Logic::CreateIncomingSecret.new(canonical_strategy, {
+  'secret' => {
+    'memo' => 'V3 canonical share_domain test',
+    'secret' => 'Secret for canonical share_domain',
+    'recipient' => @test_recipient_hash
+  }
+})
+logic.process_params
+logic.raise_concerns
+logic.process
+logic.secret.share_domain
 #=> nil
 
 ## V3 CreateIncomingSecret with unknown custom domain raises Forbidden error
