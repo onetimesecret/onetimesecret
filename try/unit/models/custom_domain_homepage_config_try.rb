@@ -231,14 +231,14 @@ Onetime::CustomDomain::HomepageConfig.delete_for_domain!(@su_domain.identifier)
 Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@su_domain.identifier)
 #=> false
 
-## upsert without signup_enabled/signin_enabled defaults signup_enabled? to true
+## upsert without signup_enabled/signin_enabled defaults signup_enabled? to false (conservative)
 @su_cfg = Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @su_domain.identifier, enabled: false)
 @su_cfg.signup_enabled?
-#=> true
+#=> false
 
-## upsert without signup_enabled/signin_enabled defaults signin_enabled? to true
+## upsert without signup_enabled/signin_enabled defaults signin_enabled? to false (conservative)
 @su_cfg.signin_enabled?
-#=> true
+#=> false
 
 # --- upsert: explicit false persists ---
 
@@ -278,24 +278,25 @@ Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @su_domain.identifier, e
 @noclobber.signin_enabled?
 #=> false
 
-# --- predicate: nil field treated as enabled ---
+# --- predicate: nil field treated as disabled (conservative default) ---
 # Familia's instantiate_from_hash uses allocate (no initialize), so init() is
 # NOT called on load. A record saved without signup_enabled/signin_enabled will
-# have those fields as nil when read back from Redis.
+# have those fields as nil when read back from Redis. Only an explicit boolean
+# true shows the link, so a nil field reads as disabled.
 # We simulate this by directly constructing an in-memory instance with nil fields.
 
-## signup_enabled? returns true when field is nil (legacy record, no field in Redis)
+## signup_enabled? returns false when field is nil (legacy record, no field in Redis)
 @legacy = Onetime::CustomDomain::HomepageConfig.new(domain_id: @su_domain.identifier)
 @legacy.signup_enabled = nil
 @legacy.signup_enabled?
-#=> true
+#=> false
 
-## signin_enabled? returns true when field is nil (legacy record)
+## signin_enabled? returns false when field is nil (legacy record)
 @legacy.signin_enabled = nil
 @legacy.signin_enabled?
-#=> true
+#=> false
 
-# --- CustomDomain.create! bootstrap includes signup/signin enabled ---
+# --- CustomDomain.create! bootstrap defaults signup/signin links off ---
 
 ## Setup: fresh domain, bootstrap record created by create!
 @boot_domain = Onetime::CustomDomain.create!("hp-cfg-boot-#{@ts}-#{@entropy}.example.com", @org.objid)
@@ -303,13 +304,13 @@ Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @su_domain.identifier, e
 @boot_cfg.nil?
 #=> false
 
-## Bootstrapped record has signup_enabled? true
+## Bootstrapped record has signup_enabled? false (links hidden until opt-in)
 @boot_cfg.signup_enabled?
-#=> true
+#=> false
 
-## Bootstrapped record has signin_enabled? true
+## Bootstrapped record has signin_enabled? false (links hidden until opt-in)
 @boot_cfg.signin_enabled?
-#=> true
+#=> false
 
 # --- find_or_create_for_domain: persists new fields; preserves existing ---
 

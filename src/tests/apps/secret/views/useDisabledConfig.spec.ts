@@ -212,6 +212,31 @@ describe('useDisabledConfig', () => {
       expect(config.variant.value).toBe('minimal');
     });
 
+    it('falls back to the default when homepage_config carries an empty-string variant', () => {
+      // A stored '' would slip past `??` (which only skips null/undefined) and
+      // reach the dispatcher as an unknown VARIANTS key → blank page. The
+      // schema validation must collapse it to the default instead.
+      const { config, bootstrap } = setup({ homepageVariant: 'v1' });
+      bootstrap.$patch({
+        homepage_config: {
+          ...bootstrap.homepage_config!,
+          disabled_homepage_variant: '' as unknown as 'closed',
+        },
+      });
+      expect(config.variant.value).toBe('closed');
+    });
+
+    it('falls back to the default when homepage_config carries an unrecognised variant', () => {
+      const { config, bootstrap } = setup({ homepageVariant: 'v1' });
+      bootstrap.$patch({
+        homepage_config: {
+          ...bootstrap.homepage_config!,
+          disabled_homepage_variant: 'legacy_v0' as unknown as 'closed',
+        },
+      });
+      expect(config.variant.value).toBe('closed');
+    });
+
     it('?variant override is read at composable-call time, not reactively', () => {
       // Intentional: a mid-session URL mutation doesn't flip the variant
       // without re-mounting. Mirrors how operators use the override —
