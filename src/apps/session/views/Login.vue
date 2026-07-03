@@ -11,7 +11,7 @@ import { useLanguageStore } from '@/shared/stores/languageStore';
 import { hasPasswordlessMethods } from '@/utils/features';
 import { storeToRefs } from 'pinia';
 import { ref, computed, onMounted, type ComponentPublicInstance } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -39,6 +39,18 @@ const signupEnabled = computed(
 // Handle auth errors passed via query params (from SSO/magic link failures)
 const authError = ref<string | null>(null);
 
+// Post-verification return: useAuth.verifyAccount() redirects here with
+// ?verified=1 after the user clicks the link in their welcome email. Read it
+// synchronously (setup) so the value survives the onMounted query cleanup and
+// is available on the first render when AuthMethodSelector mounts.
+//   - verifiedNotice: drives a persistent success banner (vs. the transient toast)
+//   - initialAuthMode: default to the password tab. Re-entering the password
+//     they just chose is less redundant than another email link and confirms it
+//     was typed correctly the first time.
+const justVerified = route.query.verified === '1';
+const verifiedNotice = ref(justVerified);
+const initialAuthMode = justVerified ? 'password' : undefined;
+
 const authErrorMessages: Record<string, string> = {
   sso_failed: 'web.login.errors.sso_failed',
   sso_not_configured: 'web.login.errors.sso_not_configured',
@@ -50,6 +62,9 @@ const authErrorMessages: Record<string, string> = {
 };
 
 onMounted(() => {
+  const cleanupQuery: LocationQueryRaw = { ...route.query };
+  let needsCleanup = false;
+
   const errorCode = route.query.auth_error;
   if (typeof errorCode === 'string' && errorCode.length > 0) {
     // Render a message for ANY auth_error code so a redirect from the auth
@@ -59,8 +74,20 @@ onMounted(() => {
     // fall back to the generic SSO failure copy instead of rendering nothing.
     const messageKey = authErrorMessages[errorCode] ?? 'web.login.errors.sso_failed';
     authError.value = t(messageKey);
-    // Clear the query param to prevent showing error on refresh
-    router.replace({ query: { ...route.query, auth_error: undefined } });
+    cleanupQuery.auth_error = undefined;
+    needsCleanup = true;
+  }
+
+  if (justVerified) {
+    // Drop the one-shot flag so a refresh doesn't re-show the banner. The
+    // captured verifiedNotice/initialAuthMode values are unaffected.
+    cleanupQuery.verified = undefined;
+    needsCleanup = true;
+  }
+
+  // Clear consumed query params to prevent re-triggering on refresh.
+  if (needsCleanup) {
+    router.replace({ query: cleanupQuery });
   }
 });
 
@@ -121,6 +148,21 @@ const handleModeChange = (_mode: AuthMode) => {
       </div>
 
       <template v-else>
+        <!-- Post-verification success: persistent confirmation that the email
+             was verified, shown until the user leaves the page. -->
+        <div
+          v-if="verifiedNotice"
+          role="status"
+          class="mb-4 flex items-center gap-2 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300"
+          data-testid="signin-verified-notice">
+          <OIcon
+            collection="heroicons"
+            name="check-circle-solid"
+            class="size-5 shrink-0 text-green-500 dark:text-green-400"
+            aria-hidden="true" />
+          <span>{{ t('web.login.verified_notice') }}</span>
+        </div>
+
         <!-- Auth error from redirects (SSO failure, invalid magic link, etc.) -->
         <div
           v-if="authError"
@@ -132,6 +174,7 @@ const handleModeChange = (_mode: AuthMode) => {
         <AuthMethodSelector
           ref="authMethodSelectorRef"
           :locale="languageStore.currentLocale ?? ''"
+          :initial-mode="initialAuthMode"
           @mode-change="handleModeChange" />
       </template>
     </template>

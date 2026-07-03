@@ -451,14 +451,18 @@ export function useAuth() {
         });
       }
 
-      // Success - account created but NOT authenticated yet
-      // User needs to either verify email or sign in
+      // Success - account created but NOT authenticated yet. The user must
+      // click the verification link in their email before they can sign in.
       notificationsStore.show(validated.success, 'success', 'top');
 
-      // Build query params for signin redirect
-      // Preserve billing params and redirect path for subsequent login
+      // Route to a dedicated "Check your email" confirmation page rather than
+      // the sign-in form. The sign-in form is unusable until the account is
+      // verified, and a transient toast is the only cue the user would get
+      // there. The confirmation page persistently echoes the email address,
+      // explains the next step, and offers a resend action.
+      // Preserve billing params and redirect path for the subsequent login.
       const redirectPath = getRedirectParam();
-      const query: Record<string, string> = {};
+      const query: Record<string, string> = { email };
 
       if (billingParams.product && billingParams.interval) {
         query.product = billingParams.product;
@@ -469,8 +473,8 @@ export function useAuth() {
       }
 
       await router.push({
-        path: '/signin',
-        query: Object.keys(query).length > 0 ? query : undefined,
+        path: '/check-email',
+        query,
       });
       return true;
     });
@@ -614,9 +618,13 @@ export function useAuth() {
         throw createError(validated.error, 'human', 'error');
       }
 
-      // Success - show notification and navigate to signin
+      // Success - show notification and navigate to signin. The `verified=1`
+      // flag lets the sign-in page render a persistent success banner and
+      // default to the password tab (see Login.vue), so the confirmation
+      // survives longer than the transient toast and the user re-enters the
+      // password they just chose during signup.
       notificationsStore.show(validated.success, 'success', 'top');
-      await router.push('/signin');
+      await router.push({ path: '/signin', query: { verified: '1' } });
       return true;
     });
 

@@ -22,10 +22,24 @@
    * are not account-state-dependent, so they leak nothing.
    */
 
+  export interface Props {
+    /**
+     * Optional address to prefill the input with. Passed by the post-signup
+     * "Check your email" page, where the email is already known — the user can
+     * hit resend without retyping it. Defaults to empty for the verify-account
+     * recovery flow, where no email is known up front.
+     */
+    email?: string;
+  }
+
+  const props = withDefaults(defineProps<Props>(), {
+    email: '',
+  });
+
   const { t } = useI18n();
   const { resendVerificationEmail, isLoading } = useAuth();
 
-  const email = ref('');
+  const email = ref(props.email);
   const submitted = ref(false);
   const failed = ref(false);
 

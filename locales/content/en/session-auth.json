@@ -138,6 +138,11 @@
     "context": "Body text of the notice shown instead of the auth form when sign-in is disabled for the current domain. A return-to-homepage link is shown below it.",
     "content_hash": "b681c35d"
   },
+  "web.login.verified_notice": {
+    "text": "Your email has been verified — you can now sign in.",
+    "context": "Persistent success banner shown on the /signin page after the user clicks the verification link in their welcome email (arrives via ?verified=1).",
+    "content_hash": "c8d4b5a8"
+  },
   "web.signup.create_your_account": {
     "text": "Create Your Account",
     "content_hash": "5f4c33d7"
@@ -244,6 +249,41 @@
   "web.auth.verify.resend_error": {
     "text": "Couldn't send the verification email. Please check your connection and try again.",
     "content_hash": "15149f46"
+  },
+  "web.auth.check_email._guidance": {
+    "context": "Confirmation page shown right after signup, telling the user a verification link was emailed and they must click it before signing in."
+  },
+  "web.auth.check_email.title": {
+    "text": "Check your email",
+    "content_hash": "77322879"
+  },
+  "web.auth.check_email.sent_to": {
+    "text": "We've sent a verification link to:",
+    "content_hash": "c844718b"
+  },
+  "web.auth.check_email.sent_to_generic": {
+    "text": "We've sent a verification link to your email address.",
+    "content_hash": "a93360d6"
+  },
+  "web.auth.check_email.instructions": {
+    "text": "Click the link in that email to activate your account, then sign in below.",
+    "content_hash": "ad00dd40"
+  },
+  "web.auth.check_email.spam_hint": {
+    "text": "Can't find it? Check your spam or junk folder — it can take a minute to arrive.",
+    "content_hash": "8cc93131"
+  },
+  "web.auth.check_email.go_to_signin": {
+    "text": "Continue to sign in",
+    "content_hash": "d398cd0a"
+  },
+  "web.auth.check_email.wrong_email": {
+    "text": "Entered the wrong address?",
+    "content_hash": "0aa863e5"
+  },
+  "web.auth.check_email.start_over": {
+    "text": "Start over",
+    "content_hash": "5eed7e9f"
   },
   "web.auth.change_password.title": {
     "text": "Change Password",

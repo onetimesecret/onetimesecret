@@ -68,6 +68,24 @@ describe('ResendVerificationForm', () => {
     expect(wrapper.text()).toContain('web.auth.verify.resend_help_text');
   });
 
+  it('prefills the input from the email prop and resends without retyping', async () => {
+    resendVerificationEmail.mockResolvedValue(true);
+    wrapper = mount(ResendVerificationForm, {
+      props: { email: 'prefilled@example.com' },
+    });
+
+    // The known address (e.g. from the post-signup check-email page) is ready
+    // to submit without the user retyping it.
+    expect((wrapper.find(sel.input).element as HTMLInputElement).value).toBe(
+      'prefilled@example.com'
+    );
+
+    await wrapper.find(sel.form).trigger('submit.prevent');
+    await flushPromises();
+
+    expect(resendVerificationEmail).toHaveBeenCalledWith('prefilled@example.com');
+  });
+
   it('calls resendVerificationEmail with the entered email on submit', async () => {
     resendVerificationEmail.mockResolvedValue(true);
     wrapper = mount(ResendVerificationForm);

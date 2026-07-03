@@ -30,7 +30,10 @@ import { createTestI18n } from '@tests/setup';
 vi.mock('@/apps/session/components/AuthMethodSelector.vue', () => ({
   default: defineComponent({
     name: 'AuthMethodSelector',
-    template: '<div data-testid="auth-method-selector">AuthMethodSelector</div>',
+    // Expose initialMode so tests can assert the password-tab default is passed.
+    props: ['locale', 'initialMode'],
+    template:
+      '<div data-testid="auth-method-selector" :data-initial-mode="initialMode">AuthMethodSelector</div>',
   }),
 }));
 
@@ -289,6 +292,54 @@ describe('Login.vue auth_error handling', () => {
 
       expect(wrapper.find('[data-testid="auth-method-selector"]').exists()).toBe(true);
       expect(wrapper.find('[data-testid="signin-disabled-panel"]').exists()).toBe(false);
+    });
+  });
+
+  // ---------------------------------------------------------------------
+  // Post-verification return (?verified=1)
+  //
+  // After clicking the link in the welcome email, useAuth.verifyAccount()
+  // redirects here with verified=1. The page shows a persistent success
+  // banner (rather than relying on the transient toast) and defaults the
+  // auth UI to the password tab so the user re-enters the password they
+  // just chose during signup.
+  // ---------------------------------------------------------------------
+
+  describe('post-verification return (verified=1)', () => {
+    it('shows the persistent verified success banner', async () => {
+      wrapper = await createWrapper({ verified: '1' });
+      await flushPromises();
+
+      const notice = wrapper.find('[data-testid="signin-verified-notice"]');
+      expect(notice.exists()).toBe(true);
+      expect(notice.text()).toContain('web.login.verified_notice');
+    });
+
+    it('defaults the auth selector to the password tab', async () => {
+      wrapper = await createWrapper({ verified: '1' });
+      await flushPromises();
+
+      const selector = wrapper.find('[data-testid="auth-method-selector"]');
+      expect(selector.attributes('data-initial-mode')).toBe('password');
+    });
+
+    it('clears the verified param from the URL after showing the banner', async () => {
+      wrapper = await createWrapper({ verified: '1' });
+      await flushPromises();
+
+      // Banner persists (captured in setup) even though the param is gone.
+      expect(wrapper.find('[data-testid="signin-verified-notice"]').exists()).toBe(true);
+      expect(router.currentRoute.value.query.verified).toBeUndefined();
+    });
+
+    it('does not show the banner or force a mode without verified=1', async () => {
+      wrapper = await createWrapper({});
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="signin-verified-notice"]').exists()).toBe(false);
+      const selector = wrapper.find('[data-testid="auth-method-selector"]');
+      // No contextual override — the selector falls back to its own default.
+      expect(selector.attributes('data-initial-mode')).toBeUndefined();
     });
   });
 });

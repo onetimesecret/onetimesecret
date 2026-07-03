@@ -741,7 +741,7 @@ describe('useAuth - Signup Flow Billing Params', () => {
     router.reset();
   });
 
-  it('should preserve billing params when redirecting to signin after signup', async () => {
+  it('should preserve billing params when redirecting to check-email after signup', async () => {
     setRouteQuery({ product: 'identity', interval: 'month' });
 
     const { signup } = useAuth();
@@ -761,14 +761,15 @@ describe('useAuth - Signup Flow Billing Params', () => {
       interval: 'month',
     });
 
-    // Should redirect to signin with billing params preserved
+    // Should redirect to the "check your email" page with the email echoed
+    // and billing params preserved for the post-verification login.
     expect(router.push).toHaveBeenCalledWith({
-      path: '/signin',
-      query: { product: 'identity', interval: 'month' },
+      path: '/check-email',
+      query: { email: 'test@example.com', product: 'identity', interval: 'month' },
     });
   });
 
-  it('should redirect to signin without params when no billing params present', async () => {
+  it('should redirect to check-email with only the email when no billing params present', async () => {
     setRouteQuery({});
 
     const { signup } = useAuth();
@@ -779,10 +780,10 @@ describe('useAuth - Signup Flow Billing Params', () => {
 
     await signup('test@example.com', 'password123');
 
-    // Should redirect to plain signin (object form with no query params)
+    // Should redirect to the check-email page carrying just the echoed address
     expect(router.push).toHaveBeenCalledWith({
-      path: '/signin',
-      query: undefined,
+      path: '/check-email',
+      query: { email: 'test@example.com' },
     });
   });
 });
