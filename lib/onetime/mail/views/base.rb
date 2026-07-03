@@ -209,14 +209,13 @@ module Onetime
 
         # Full base URI for the domain this message concerns: the custom
         # share_domain when the message carries one, otherwise the
-        # (overridable) canonical base URI. Ruby-side twin of
-        # TemplateContext#brand_baseuri — keep the two in sync.
+        # (overridable) canonical base URI. Delegates to
+        # TemplateContext#brand_baseuri — the same helper templates render
+        # with — so Ruby-side callers (e.g. ExpirationWarning#secret_uri)
+        # cannot drift from what the rendered output links to.
         # @return [String]
         def brand_baseuri
-          host = data[:share_domain].to_s
-          return data[:baseuri] || site_baseuri if host.empty?
-
-          "#{scheme}#{host}"
+          TemplateContext.new(data, locale).brand_baseuri
         end
 
         def site_product_name

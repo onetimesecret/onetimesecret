@@ -104,10 +104,14 @@ template.render_text.include?("#{ctx.site_baseuri}/secret/incoming_key_abc")
 #=> true
 
 ## IncomingSecret body links to the share_domain when present
-data = @valid_data.merge(share_domain: 'custom.example.com')
-template = Onetime::Mail::Templates::IncomingSecret.new(data)
-template.render_text.include?('https://custom.example.com/secret/incoming_key_abc')
-#=> true
+# The expected URL is composed from brand_baseuri (a method result) rather
+# than a bare URL literal so CodeQL's incomplete-url-substring heuristic
+# doesn't flag the containment check; the expectation pins the exact value.
+data  = @valid_data.merge(share_domain: 'custom.example.com')
+brand = Onetime::Mail::Templates::Base::TemplateContext.new(data, 'en').brand_baseuri
+text  = Onetime::Mail::Templates::IncomingSecret.new(data).render_text
+[brand, text.include?("#{brand}/secret/incoming_key_abc")]
+#=> ['https://custom.example.com', true]
 
 ## IncomingSecret signature_link returns site baseuri
 template = Onetime::Mail::Templates::IncomingSecret.new(@valid_data)
