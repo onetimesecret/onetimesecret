@@ -639,7 +639,9 @@ module Onetime
       # surfaces differ: the web UI resolves a relative path fine, while mail
       # rendering requires an absolute URL and silently degrades to a
       # text-only header otherwise. Tell the operator at boot rather than
-      # letting them discover it in a delivered email.
+      # letting them discover it in a delivered email. Deliberately always
+      # logged: this is an operational notice about mail rendering, not a
+      # deprecation, so compatibility.deprecated_config_mode does not apply.
       logo_url = brand['logo_url']
       if logo_url && !logo_url.match?(%r{\Ahttps?://}i)
         OT.le "CONFIG NOTICE: brand.logo_url '#{logo_url}' is not an absolute http(s) URL; " \

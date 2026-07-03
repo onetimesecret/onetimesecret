@@ -369,11 +369,15 @@ module Onetime
           end
 
           # Logo alt text helper - operator-supplied brand.logo_alt
-          # (BRAND_LOGO_ALT) when set, otherwise product_name so the logo's
-          # accessible name matches the surrounding brand identity.
+          # (BRAND_LOGO_ALT) when set, otherwise the install-level product
+          # name. Deliberately site_product_name, not product_name: the image
+          # this alt describes is always the install-wide brand.logo_url, so
+          # a per-message data[:product_name] (e.g. a tenant name) must not
+          # label the operator's logo — the same wrong-accessible-name rule
+          # the frontend applies to installLogoAlt.
           # @return [String]
           def logo_alt
-            conf_dig('brand', 'logo_alt') || product_name
+            conf_dig('brand', 'logo_alt') || site_product_name
           end
 
           # Logo URL helper - resolves from brand config; nil when no brand

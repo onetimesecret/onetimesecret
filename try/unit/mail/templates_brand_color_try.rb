@@ -13,7 +13,7 @@
 #   - logo_url resolves brand conf -> nil (NOT the OTS logo path); only
 #     absolute http(s) URLs are emitted (#3612)
 #   - support_email resolves brand conf -> GLOBAL_DEFAULTS (NOT the OTS address)
-#   - logo_alt resolves brand.logo_alt -> product_name (#3612)
+#   - logo_alt resolves brand.logo_alt -> site_product_name (#3612)
 #   - site_product_name resolves brand.product_name -> NEUTRAL_PRODUCT_NAME
 #     ('Secure Links'); the legacy header.branding.site_name tier was retired
 #     in #3612 (normalize_brand absorbs it into brand.product_name at boot)
@@ -248,32 +248,38 @@ end
 #=> nil
 
 # ============================================================================
-# logo_alt resolves brand.logo_alt -> product_name (#3612)
+# logo_alt resolves brand.logo_alt -> site_product_name (#3612). The image it
+# describes is always the install-wide brand.logo_url, so a per-message
+# data[:product_name] (e.g. a tenant name) must never label the operator's
+# logo.
 # ============================================================================
 
-## logo_alt prefers the operator-supplied brand.logo_alt over product_name
+## logo_alt prefers the operator-supplied brand.logo_alt over product name
 with_brand_conf({ 'logo_alt' => 'Acme wordmark', 'product_name' => 'Acme Secrets' }) do
   ctx = @ctx_class.new({}, 'en')
   ctx.logo_alt
 end
 #=> 'Acme wordmark'
 
-## logo_alt returns the same value as product_name when product_name is from data
-ctx = @ctx_class.new({ product_name: 'Acme Secrets' }, 'en')
-[ctx.logo_alt, ctx.product_name]
-#=> ['Acme Secrets', 'Acme Secrets']
+## logo_alt ignores a per-message data product_name — the install logo keeps
+## its install-level accessible name
+with_brand_conf({ 'product_name' => 'Install Name' }) do
+  ctx = @ctx_class.new({ product_name: 'Tenant Name' }, 'en')
+  [ctx.logo_alt, ctx.product_name]
+end
+#=> ['Install Name', 'Tenant Name']
 
-## logo_alt falls back to product_name when brand.logo_alt is unset
+## logo_alt falls back to the install product name when brand.logo_alt is unset
 with_brand_conf({ 'product_name' => 'Acme Secrets' }) do
   ctx = @ctx_class.new({}, 'en')
   ctx.logo_alt
 end
 #=> 'Acme Secrets'
 
-## logo_alt delegates to product_name when falling through to site_product_name
+## logo_alt terminal-falls to the neutral name with no brand config at all
 without_brand_conf do
   ctx = @ctx_class.new({}, 'en')
-  ctx.logo_alt == ctx.product_name
+  ctx.logo_alt == ctx.site_product_name
 end
 #=> true
 
