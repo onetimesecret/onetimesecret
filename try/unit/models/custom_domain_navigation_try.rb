@@ -22,6 +22,12 @@ OT.info "Cleaned Redis for CustomDomain navigation test run"
 @key_v1 = 'test_encryption_key_32bytes_ok!!'
 @key_v2 = 'another_test_key_for_testing_!!'
 
+# Tryouts share a single process, so global Familia config set here leaks
+# into every file that runs after this one. Capture originals for teardown.
+@original_encryption_keys = Familia.config.encryption_keys
+@original_key_version = Familia.config.current_key_version
+@original_personalization = Familia.config.encryption_personalization
+
 Familia.configure do |config|
   config.encryption_keys = {
     v1: Base64.strict_encode64(@key_v1),
@@ -113,3 +119,10 @@ end
 
 # Teardown
 Familia.dbclient.flushdb
+
+# Restore original Familia encryption config to avoid polluting other test files
+Familia.configure do |config|
+  config.encryption_keys = @original_encryption_keys if @original_encryption_keys
+  config.current_key_version = @original_key_version if @original_key_version
+  config.encryption_personalization = @original_personalization if @original_personalization
+end

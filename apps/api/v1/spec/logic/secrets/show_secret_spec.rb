@@ -180,8 +180,7 @@ RSpec.describe V1::Logic::Secrets::ShowSecret do
         can_decrypt?: true,
         truncated?: false,
         original_size: 18,
-        ciphertext: 'encrypted_blob',
-        value: nil)
+        ciphertext: 'encrypted_blob')
     end
 
     let(:params) do

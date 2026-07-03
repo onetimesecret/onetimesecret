@@ -83,9 +83,7 @@ RSpec.describe V1::Logic::Secrets::ShowReceipt do
         passphrase: '',
         can_decrypt?: true,
         truncated?: false,
-        # v2 path: ciphertext exists, value is nil
-        ciphertext: 'encrypted_blob',
-        value: nil)
+        ciphertext: 'encrypted_blob')
     end
 
     let(:receipt) do
