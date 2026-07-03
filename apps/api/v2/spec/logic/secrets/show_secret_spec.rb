@@ -29,8 +29,11 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
     session
   end
 
-  def build_logic(params)
-    customer = double('Customer', custid: 'anon', anonymous?: true, objid: nil)
+  # customer: overrides the default anonymous caller for the verification
+  # branches that depend on who is logged in. Pass params as a braced hash --
+  # the customer: kwarg would otherwise swallow a bare trailing hash.
+  def build_logic(params, customer: nil)
+    customer ||= double('Customer', custid: 'anon', anonymous?: true, objid: nil)
     org      = double('Organization', objid: "org_#{SecureRandom.hex(4)}")
     allow(org).to receive(:can?).and_return(true)
 
@@ -43,13 +46,26 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
     described_class.new(strategy_result, params)
   end
 
+  # Mark a spawned secret as a verification secret the way production does it
+  # post-creation (lib/onetime/logic/base.rb send_verification_email,
+  # apps/api/account/logic/account/request_email_change.rb:119-126). Partial
+  # write on purpose -- save_fields HSETs only :verification and never
+  # re-serializes the already-persisted ciphertext (house convention, cf.
+  # lib/onetime/models/features/passphrase_hashing.rb:23-26). Must run BEFORE
+  # build_logic: process_params fires in the Base constructor and loads its
+  # own instance from Redis.
+  def flag_as_verification!(secret)
+    secret.verification = 'true'
+    secret.save_fields(:verification)
+  end
+
   let!(:pair)   { Onetime::Receipt.spawn_pair(nil, 3600, 'a secret value') }
   let(:receipt) { pair.first }
   let(:secret)  { pair.last }
 
   context 'when this request wins the reveal (the normal case)' do
     it 'returns the decrypted plaintext' do
-      logic = build_logic('identifier' => secret.identifier, 'continue' => 'true')
+      logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
       logic.process_params
       logic.process
 
@@ -61,7 +77,7 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
 
   context 'when a concurrent request already won the reveal (this request loses)' do
     it 'does NOT emit the plaintext' do
-      logic = build_logic('identifier' => secret.identifier, 'continue' => 'true')
+      logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
       logic.process_params # loads this request's own :new instance
 
       # Hold viewable? true so process takes the reveal path and it is
@@ -76,6 +92,142 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
       expect(logic.show_secret).to be false
       expect(logic.secret_value).to be_nil
       expect(logic.success_data[:record]).not_to have_key(:secret_value)
+    end
+  end
+
+  # Verification-flow coverage (verify_owner). verify_owner has no nil/
+  # anonymous-owner guards -- it dereferences owner unconditionally -- so
+  # every ShowSecret verification spec uses a real persisted owner. The
+  # owner-nil and owner-anonymous error branches exist only in RevealSecret;
+  # see reveal_secret_spec.rb for those.
+  context 'when the secret is a verification secret' do
+    # Unverified by default. Unique email each run -- the customer email index
+    # in the shared test Redis persists across runs.
+    let(:owner) do
+      Onetime::Customer.create!(email: "show-verify-#{SecureRandom.hex(6)}@example.com")
+    end
+    let!(:pair) { Onetime::Receipt.spawn_pair(owner.objid, 3600, 'a secret value') }
+
+    before { flag_as_verification!(secret) }
+
+    context 'when an anonymous caller verifies the unverified owner' do
+      it 'verifies the owner and reveals the plaintext' do
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.show_secret).to be true
+        expect(logic.secret_value).to eq('a secret value')
+        expect(logic.success_data[:record][:secret_value]).to eq('a secret value')
+
+        # Unlike RevealSecret, verify_owner does not delete reset_secret.
+        reloaded = Onetime::Customer.load(owner.objid)
+        expect(reloaded.verified?).to be true
+        expect(reloaded.verified_by).to eq('email')
+
+        # Consumed: the won claim leaves the in-memory state 'revealed', so
+        # the trailing `previewed! if state?(:new)` cannot resurrect it.
+        expect(Onetime::Secret.load(secret.identifier)).to be_nil
+      end
+    end
+
+    context 'when logged in as the unverified owner' do
+      # Second half of verify_owner's disjunction (cust.custid == owner.custid
+      # && !owner.verified?). Covered here as well as in RevealSecret because
+      # the reveal gate is duplicated per controller by design -- ShowSecret's
+      # copy would otherwise be exercised nowhere.
+      it 'verifies the owner and reveals the plaintext' do
+        as_owner = double('Customer', custid: owner.custid, anonymous?: false, objid: owner.objid)
+        logic    = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' }, customer: as_owner)
+        logic.process_params
+        logic.process
+
+        expect(logic.show_secret).to be true
+        expect(logic.success_data[:record][:secret_value]).to eq('a secret value')
+
+        reloaded = Onetime::Customer.load(owner.objid)
+        expect(reloaded.verified?).to be true
+        expect(reloaded.verified_by).to eq('email')
+        expect(Onetime::Secret.load(secret.identifier)).to be_nil
+      end
+    end
+
+    context 'when the owner is already verified' do
+      # DIVERGENCE PIN -- current behavior, candidate for alignment:
+      # verify_owner has no already-verified guard (its condition passes on
+      # anonymous_user? alone), so an anonymous caller RE-verifies a verified
+      # owner and overwrites verified_by provenance with 'email'. RevealSecret
+      # treats the same input as an anomaly and leaves the owner untouched
+      # (reveal_secret_spec.rb pins 'stripe_payment' preserved there). If
+      # either controller changes, one of the two pins fails and forces a
+      # conscious decision instead of a silent behavior shift.
+      it 'reveals the plaintext and (unlike RevealSecret) overwrites verified_by' do
+        owner.verified    = true
+        owner.verified_by = 'stripe_payment'
+        owner.save
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.show_secret).to be true
+        expect(logic.secret_value).to eq('a secret value')
+
+        reloaded = Onetime::Customer.load(owner.objid)
+        expect(reloaded.verified?).to be true
+        expect(reloaded.verified_by).to eq('email') # provenance rewritten
+        expect(Onetime::Secret.load(secret.identifier)).to be_nil
+      end
+    end
+
+    context 'when already logged in as a different user' do
+      it 'raises a form error and neither consumes nor previews the secret' do
+        other = double('Customer', custid: 'cust_other', anonymous?: false, objid: 'objid_other')
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' }, customer: other)
+        logic.process_params
+
+        # Hardcoded message (not i18n) -- safe to match.
+        expect { logic.process }.to raise_error(Onetime::FormError, /already logged in/)
+
+        # The raise short-circuits before the trailing previewed!, so the
+        # secret stays :new and viewable.
+        reloaded = Onetime::Secret.load(secret.identifier)
+        expect(reloaded.state).to eq('new')
+        expect(reloaded.viewable?).to be true
+        expect(Onetime::Customer.load(owner.objid).verified?).to be false
+      end
+    end
+
+    context 'when a concurrent request already won the reveal (this request loses)' do
+      it 'still verifies the owner but does NOT emit the plaintext' do
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params # loads this request's own :new instance
+
+        # Hold the race window open -- same recipe as the loser spec above: it
+        # must be reveal!'s atomic claim, not the viewable? guard, that
+        # withholds the plaintext.
+        allow(logic.secret).to receive(:viewable?).and_return(true)
+        winner = Onetime::Secret.load(secret.identifier)
+        expect(winner.revealed!).to be true
+
+        logic.process
+
+        expect(logic.show_secret).to be false
+        expect(logic.secret_value).to be_nil
+        expect(logic.success_data[:record]).not_to have_key(:secret_value)
+
+        # ASYMMETRY PIN -- intentional current behavior: verify_owner mutates
+        # the owner BEFORE secret.reveal!, so a losing racer still verifies
+        # the account. Verification is idempotent bookkeeping; only the
+        # PLAINTEXT is single-winner. If that ordering ever changes, these
+        # assertions force a conscious decision instead of a silent shift.
+        reloaded = Onetime::Customer.load(owner.objid)
+        expect(reloaded.verified?).to be true
+        expect(reloaded.verified_by).to eq('email')
+
+        # The lost claim marks the loser's in-memory state 'revealed', so the
+        # trailing previewed! is skipped -- the destroyed record stays gone.
+        expect(Onetime::Secret.load(secret.identifier)).to be_nil
+      end
     end
   end
 end
