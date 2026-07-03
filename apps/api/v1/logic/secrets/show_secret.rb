@@ -36,6 +36,12 @@ module V1::Logic
         owner = secret.load_owner
 
         if show_secret
+          # Legacy v1 ordering: the plaintext is decrypted here, BEFORE the
+          # atomic revealed! claim below. A losing racer never sends it -- the
+          # claim gate suppresses @secret_value -- but it is still computed in
+          # memory. v2 avoids this by decrypting only inside the won claim
+          # (Secret#reveal!); v1 is maintenance-only, so the decoupled ordering
+          # is kept by design.
           @secret_value = secret.decrypted_secret_value(passphrase_input: passphrase)
           @is_truncated = secret.truncated?
           @original_size = secret.respond_to?(:original_size) ? secret.original_size : nil
@@ -53,10 +59,6 @@ module V1::Logic
             end
           else
 
-            owner.increment_field(:secrets_shared) if owner && !owner.anonymous?
-            # TODO:
-            # Onetime::Customer.global.increment_field :secrets_shared
-
             # Immediately mark the secret as revealed, so that it
             # can't be shown again. If there's a network failure
             # that prevents the client from receiving the response,
@@ -69,6 +71,14 @@ module V1::Logic
             # bug but it means that all return values need to be
             # pluck out of the secret object before this is called.
             @revealed = secret.revealed!
+
+            # Gate the shared-secret metric on winning the atomic claim:
+            # revealed! returns false to a request that lost the burn-after-
+            # reading race, which revealed nothing and must not inflate the
+            # owner's counter (mirrors the v2 controllers).
+            owner.increment_field(:secrets_shared) if @revealed && owner && !owner.anonymous?
+            # TODO:
+            # Onetime::Customer.global.increment_field :secrets_shared
 
           end
 

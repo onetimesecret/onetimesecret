@@ -177,11 +177,21 @@ module Onetime::Secret::Features
       # @return [Boolean] true iff this caller performed the state transition.
       def win_reveal_claim!
         return false unless state?(:new) || state?(:previewed)
-        return true if compare_and_set_state!(:revealed, [:new, :previewed])
 
-        @state      = 'revealed'
-        @ciphertext = nil
-        false
+        unless compare_and_set_state!(:revealed, [:new, :previewed])
+          # Lost the claim: mark the instance terminal so viewable?/safe_dump
+          # reflect reality and the ciphertext is withheld.
+          @state      = 'revealed'
+          @ciphertext = nil
+          return false
+        end
+
+        # Won the claim: reflect the persisted transition in memory now so a
+        # state?/viewable? read between the claim and consume_after_reveal! is
+        # accurate (no winner/loser asymmetry). Ciphertext is intentionally
+        # retained here so reveal! can still decrypt; consume clears it.
+        @state = 'revealed'
+        true
       end
 
       # Post-claim consumption shared by {#revealed!} and {#reveal!}: cascade
@@ -225,6 +235,10 @@ module Onetime::Secret::Features
       # Operands are produced with #serialize_value so they match how +state+
       # is encoded at rest (Familia JSON-encodes scalar fields for type
       # preservation), rather than hard-coding the on-disk representation here.
+      # The eval uses the keyword +keys:+/+argv:+ form (the convention used
+      # elsewhere in the codebase, e.g. error_handler and the rate limiters) so
+      # it does not depend on positional-argument compatibility across Redis
+      # client versions.
       #
       # @param to_state [Symbol, String] state to set on success.
       # @param from_states [Array<Symbol, String>] states the flip may fire from.
@@ -233,7 +247,7 @@ module Onetime::Secret::Features
         argv = [serialize_value(to_state.to_s)]
         from_states.each { |state| argv << serialize_value(state.to_s) }
 
-        dbclient.eval(STATE_CAS_SCRIPT, [dbkey], argv).to_i == 1
+        dbclient.eval(STATE_CAS_SCRIPT, keys: [dbkey], argv: argv).to_i == 1
       end
     end
   end
