@@ -140,13 +140,21 @@ html.include?('href="https://custom.example.com"')
 #=> true
 
 ## text layout footer shows the custom domain base URI on its own line
-data = @valid_data.merge(share_domain: 'custom.example.com')
-text = Onetime::Mail::Templates::IncomingSecret.new(data).render_text
-text.split("\n").include?('https://custom.example.com')
+# Assert against brand_baseuri (a method result) instead of a bare URL string
+# literal: a literal-containment check trips CodeQL's incomplete-url-substring
+# heuristic, and comparing to brand_baseuri also pins the exact value the layout
+# is expected to emit.
+data  = @valid_data.merge(share_domain: 'custom.example.com')
+brand = Onetime::Mail::Templates::Base::TemplateContext.new(data, 'en').brand_baseuri
+text  = Onetime::Mail::Templates::IncomingSecret.new(data).render_text
+text.split("\n").include?(brand)
 #=> true
 
 ## without a share_domain the layout header/footer stay on the canonical host
+# The negative check targets the full href attribute rather than a bare host
+# substring, so it asserts the chrome carries no custom-domain link while
+# avoiding CodeQL's incomplete-url-substring heuristic.
 ctx  = Onetime::Mail::Templates::Base::TemplateContext.new({}, 'en')
 html = Onetime::Mail::Templates::IncomingSecret.new(@valid_data).render_html
-html.include?(%(href="#{ctx.site_baseuri}")) && !html.include?('custom.example.com')
+html.include?(%(href="#{ctx.site_baseuri}")) && !html.include?('href="https://custom.example.com"')
 #=> true

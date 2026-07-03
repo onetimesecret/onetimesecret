@@ -624,6 +624,27 @@ logic.process
 [logic.secret.share_domain, logic.receipt.share_domain]
 #=> [@v3_custom_fqdn, @v3_custom_fqdn]
 
+## V3 CreateIncomingSecret binds share_domain when domain_strategy is a String
+# domain_strategy arrives from StrategyResult metadata and may be the String
+# 'custom' rather than the Symbol :custom. RecipientResolver normalizes it via
+# &.to_sym so entitlement/enabled? checks pass either way, but CreateIncomingSecret
+# reads the raw value: a strict `== :custom` would leave share_domain nil and
+# reintroduce the canonical-host regression. Asserts binding + domain_id for the
+# String path.
+v3_strategy = create_v3_strategy_with_domain(@v3_cust, @v3_custom_fqdn, domain_strategy: 'custom')
+logic = Incoming::Logic::CreateIncomingSecret.new(v3_strategy, {
+  'secret' => {
+    'memo' => 'V3 string strategy test',
+    'secret' => 'Secret for string strategy',
+    'recipient' => @v3_recipient_hash
+  }
+})
+logic.process_params
+logic.raise_concerns
+logic.process
+[logic.secret.share_domain, logic.receipt.domain_id]
+#=> [@v3_custom_fqdn, @v3_custom_domain.identifier]
+
 ## V3 CreateIncomingSecret with canonical domain leaves receipt.domain_id as nil
 # Canonical domain uses global config - use the same recipient as global tests
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)

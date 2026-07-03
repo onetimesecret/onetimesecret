@@ -203,10 +203,9 @@ module Incoming
 
         # Set domain_id for custom domain requests (#2864). Resolved from the
         # same share_domain that spawn_pair persisted, keeping domain_id and
-        # share_domain consistent on the receipt.
-        if share_domain
-          receipt.domain_id = Onetime::CustomDomain.resolve_domain_id(share_domain)
-        end
+        # share_domain consistent on the receipt. resolved_domain_id memoizes the
+        # datastore lookup so the notification step below reuses it.
+        receipt.domain_id = resolved_domain_id if share_domain
 
         receipt.save
       end
@@ -223,7 +222,26 @@ module Incoming
       def share_domain
         return @share_domain if defined?(@share_domain)
 
-        @share_domain = (display_domain if domain_strategy == :custom && display_domain)
+        # Use custom_domain? (domain_strategy.to_s == 'custom') rather than a
+        # strict `== :custom`: domain_strategy comes from StrategyResult metadata
+        # and may be the String 'custom' or the Symbol :custom depending on the
+        # code path (RecipientResolver normalizes it internally, but this class
+        # reads the raw value). A strict symbol compare would miss the String
+        # case and leave share_domain nil, silently reintroducing the
+        # canonical-host regression. Also guard against a blank display_domain,
+        # since an empty string is truthy in Ruby.
+        @share_domain = (display_domain if custom_domain? && !display_domain.to_s.empty?)
+      end
+
+      # The domain_id (CustomDomain objid) that share_domain resolves to, or nil
+      # on the canonical domain. Memoized because resolve_domain_id performs a
+      # datastore read and both receipt persistence and the notification's
+      # sender-config selection need the value. nil-safe: resolve_domain_id
+      # returns nil for a nil/blank fqdn.
+      def resolved_domain_id
+        return @resolved_domain_id if defined?(@resolved_domain_id)
+
+        @resolved_domain_id = Onetime::CustomDomain.resolve_domain_id(share_domain)
       end
 
       def update_customer_stats
@@ -240,8 +258,9 @@ module Incoming
       def send_recipient_notification
         return if recipient_email.nil? || recipient_email.empty?
 
-        # Resolve share_domain to domain_id for sender config (nil-safe)
-        domain_id = Onetime::CustomDomain.resolve_domain_id(secret.share_domain)
+        # Reuse the domain_id resolved during secret creation for sender-config
+        # selection (nil on the canonical domain).
+        domain_id = resolved_domain_id
 
         Onetime::Jobs::Publisher.enqueue_email(
           :incoming_secret,

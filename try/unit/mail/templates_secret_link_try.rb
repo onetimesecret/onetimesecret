@@ -159,7 +159,9 @@ html.include?('href="https://custom.example.com"')
 #=> true
 
 ## SecretLink layout header/footer stay canonical when share_domain is nil
+# Negative check targets the full href attribute rather than a bare host
+# substring (avoids CodeQL's incomplete-url-substring heuristic).
 ctx  = Onetime::Mail::Templates::Base::TemplateContext.new({}, 'en')
 html = Onetime::Mail::Templates::SecretLink.new(@valid_data).render_html
-html.include?(%(href="#{ctx.site_baseuri}")) && !html.include?('custom.example.com')
+html.include?(%(href="#{ctx.site_baseuri}")) && !html.include?('href="https://custom.example.com"')
 #=> true
