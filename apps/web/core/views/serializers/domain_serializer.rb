@@ -90,7 +90,7 @@ module Core
         # Loads homepage config from the dedicated model (authoritative source).
         def apply_homepage_config(output, custom_domain)
           homepage_config           = Onetime::CustomDomain::HomepageConfig.find_by_domain_id(custom_domain.identifier)
-          output['homepage_config'] = serialize_homepage_config(homepage_config)
+          output['homepage_config'] = serialize_homepage_config(homepage_config, custom_domain)
 
           app_logger.debug '[DomainSerializer] homepage_config loaded',
             {
@@ -100,20 +100,56 @@ module Core
             }
         end
 
-        def serialize_homepage_config(homepage_config)
+        def serialize_homepage_config(homepage_config, custom_domain)
           return nil unless homepage_config
 
-          domain_id = homepage_config.domain_id
+          domain_id    = homepage_config.domain_id
+          secrets_mode = homepage_config.secrets_mode_value
+
+          # Effective enablement: a homepage pointed at the incoming form is
+          # only interactive while incoming can actually receive secrets.
+          # When that drifts (recipients removed, incoming disabled, config
+          # deleted, feature flag turned off, entitlement lapsed), fail
+          # closed to the non-interactive trust card — never fall open to
+          # the create form the operator deliberately did not select, and
+          # never let anonymous visitors see upgrade/misconfiguration copy
+          # on the branded front door. The stored secrets_mode is preserved
+          # so re-readying incoming restores the operator's intent.
+          effective_enabled = homepage_config.enabled? &&
+                              (secrets_mode != 'incoming' || incoming_available?(custom_domain))
 
           {
             'domain_id' => domain_id,
-            'enabled' => homepage_config.enabled?,
+            'enabled' => effective_enabled,
+            'secrets_mode' => secrets_mode,
             'signup_enabled' => homepage_config.signup_enabled? && effective_signup_enabled?(domain_id),
             'signin_enabled' => homepage_config.signin_enabled? && effective_signin_enabled?(domain_id),
             'disabled_homepage_variant' => homepage_config.disabled_homepage_variant_value,
             'created_at' => homepage_config.created&.to_i,
             'updated_at' => homepage_config.updated&.to_i,
           }
+        end
+
+        # Whether the domain can actually serve the incoming form to
+        # anonymous visitors: instance feature flag on, site.secret present
+        # (RecipientResolver fails closed without it — recipient hashes
+        # cannot be computed), IncomingConfig ready (enabled with at least
+        # one recipient), and the owning org still entitled. Mirrors the
+        # PutHomepageConfig secrets_mode=incoming write gate and agrees with
+        # the runtime RecipientResolver#enabled? so bootstrap and
+        # /api/incoming/config never disagree. Only consulted when the
+        # homepage secrets_mode is 'incoming', so the common create-mode
+        # path pays no extra reads; checks run cheapest-first (in-memory
+        # config, one Redis read, org load).
+        def incoming_available?(custom_domain)
+          return false unless OT.conf.dig('features', 'incoming', 'enabled')
+          return false if OT.conf.dig('site', 'secret').to_s.strip.empty?
+
+          ready = Onetime::CustomDomain::IncomingConfig
+            .find_by_domain_id(custom_domain.identifier)&.ready? || false
+          return false unless ready
+
+          custom_domain.primary_organization&.can?('incoming_secrets') || false
         end
 
         # Backend gate: if a SignupConfig exists and disables signup, don't show the form.

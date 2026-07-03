@@ -1,7 +1,10 @@
 // src/shared/stores/domainsStore.ts
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
-import { UpdateDomainBrandRequest } from '@/schemas/api/domains/requests';
+import {
+  UpdateDomainBrandRequest,
+  type PutHomepageConfigRequest,
+} from '@/schemas/api/domains/requests';
 import type {
   PutEmailConfigRequest,
   PatchEmailConfigRequest,
@@ -347,34 +350,51 @@ export const useDomainsStore = defineStore('domains', () => {
    * Updates both the domainsStore records array and the bootstrapStore's
    * homepage_config to keep all consumers (workspace views and identity store)
    * reactive without requiring a page reload.
+   *
+   * `update.secrets_mode` is optional with merge semantics: omitted leaves
+   * the stored mode unchanged (so binary on/off callers like the domains
+   * table never clobber a domain's incoming selection).
    */
   async function putHomepageConfig(
     extid: string,
-    enabled: boolean
+    update: PutHomepageConfigRequest
   ): Promise<HomepageConfigResponse> {
-    const response = await $api.put(`/api/domains/${extid}/homepage-config`, { enabled });
+    const response = await $api.put(`/api/domains/${extid}/homepage-config`, update);
     const result = gracefulParse(homepageConfigResponseSchema, response.data, 'HomepageConfigResponse');
     if (!result.ok) {
       throw new Error('Unable to update homepage configuration. Please try again.');
     }
 
     // Update the domain record in the domainsStore to keep workspace views reactive
-    if (records.value && result.data.record) {
-      const domainIndex = records.value.findIndex((d) => d.extid === extid);
-      if (domainIndex !== -1) {
-        records.value[domainIndex] = {
-          ...records.value[domainIndex],
-          homepage_config: result.data.record,
-        };
-      }
+    const domainRecord = records.value?.find((d) => d.extid === extid);
+    if (domainRecord && result.data.record) {
+      const domainIndex = records.value!.findIndex((d) => d.extid === extid);
+      records.value![domainIndex] = {
+        ...domainRecord,
+        homepage_config: result.data.record,
+      };
     }
 
     // Update bootstrapStore so identityStore (branded header/homepage) stays in sync
-    // on custom domains without requiring a full page reload
+    // on custom domains without requiring a full page reload.
+    //
+    // The bootstrap slot carries the EFFECTIVE enabled value (the backend
+    // serializer downgrades incoming-mode homepages whose incoming config
+    // is not ready), while the PUT response carries the STORED value.
+    // Mirror the downgrade here so an admin's own session never renders an
+    // interactive homepage the next visitor wouldn't get. incoming_ready is
+    // server-computed on the domain record; missing record/field fails
+    // closed, matching the serializer.
     if (result.data.record) {
+      const record = result.data.record;
+      const effectiveEnabled =
+        record.enabled &&
+        (record.secrets_mode !== 'incoming' || (domainRecord?.incoming_ready ?? false));
       const { useBootstrapStore } = await import('./bootstrapStore');
       const bootstrapStore = useBootstrapStore();
-      bootstrapStore.$patch({ homepage_config: result.data.record });
+      bootstrapStore.$patch({
+        homepage_config: { ...record, enabled: effectiveEnabled },
+      });
     }
 
     return result.data;

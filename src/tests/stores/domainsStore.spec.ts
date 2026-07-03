@@ -478,4 +478,122 @@ describe('domainsStore', () => {
       expect(axiosMock.history.get[0].params).toEqual({});
     });
   });
+
+  describe('Homepage configuration (putHomepageConfig)', () => {
+    const extid = 'dm-hp-1';
+
+    function homepageRecord(overrides: Record<string, unknown> = {}) {
+      return {
+        domain_id: 'domain-hp-1',
+        enabled: true,
+        secrets_mode: 'create',
+        signup_enabled: false,
+        signin_enabled: false,
+        disabled_homepage_variant: null,
+        created_at: 1700000000,
+        updated_at: 1700000001,
+        ...overrides,
+      };
+    }
+
+    async function seedDomainRecord(overrides: Record<string, unknown> = {}) {
+      // Seed one domain record via the list endpoint so putHomepageConfig can
+      // read incoming_ready off it (parsed through the real schema).
+      const raw = {
+        created: 1735681545,
+        updated: 1735681545,
+        domainid: 'domain-hp-1',
+        extid,
+        custid: 'cust-123',
+        display_domain: 'hp.example.com',
+        base_domain: 'example.com',
+        subdomain: '',
+        trd: '',
+        tld: 'com',
+        sld: 'example',
+        txt_validation_host: '_validate.hp.example.com',
+        txt_validation_value: 'validate123',
+        is_apex: false,
+        verified: true,
+        brand: null,
+        vhost: {},
+        ...overrides,
+      };
+      axiosMock.onGet('/api/domains').reply(200, { records: [raw], count: 1 });
+      await store.refreshRecords({ orgId: 'org-1', force: true });
+    }
+
+    it('sends the update payload and returns the parsed record', async () => {
+      await seedDomainRecord();
+      axiosMock.onPut(`/api/domains/${extid}/homepage-config`).reply(200, {
+        user_id: 'u_1',
+        record: homepageRecord({ secrets_mode: 'incoming' }),
+      });
+
+      const result = await store.putHomepageConfig(extid, {
+        enabled: true,
+        secrets_mode: 'incoming',
+      });
+
+      expect(JSON.parse(axiosMock.history.put[0].data)).toEqual({
+        enabled: true,
+        secrets_mode: 'incoming',
+      });
+      expect(result.record?.secrets_mode).toBe('incoming');
+      // Domain record in the store is updated with the stored values.
+      expect(store.records?.[0].homepage_config?.secrets_mode).toBe('incoming');
+    });
+
+    it('patches bootstrap with effective enabled=false when incoming mode is unready', async () => {
+      await seedDomainRecord({ incoming_ready: false });
+      axiosMock.onPut(`/api/domains/${extid}/homepage-config`).reply(200, {
+        user_id: 'u_1',
+        record: homepageRecord({ enabled: true, secrets_mode: 'incoming' }),
+      });
+
+      await store.putHomepageConfig(extid, { enabled: true, secrets_mode: 'incoming' });
+
+      // The bootstrap slot carries EFFECTIVE enabled (mirrors the backend
+      // serializer downgrade) so the admin's own session renders the same
+      // trust card the next visitor gets.
+      const { useBootstrapStore } = await import('@/shared/stores/bootstrapStore');
+      const bootstrapStore = useBootstrapStore();
+      expect(bootstrapStore.homepage_config?.enabled).toBe(false);
+      expect(bootstrapStore.homepage_config?.secrets_mode).toBe('incoming');
+    });
+
+    it('patches bootstrap with enabled=true when incoming mode is ready', async () => {
+      await seedDomainRecord({
+        incoming_ready: true,
+        incoming_enabled: true,
+        incoming_configured: true,
+      });
+      axiosMock.onPut(`/api/domains/${extid}/homepage-config`).reply(200, {
+        user_id: 'u_1',
+        record: homepageRecord({ enabled: true, secrets_mode: 'incoming' }),
+      });
+
+      await store.putHomepageConfig(extid, { enabled: true, secrets_mode: 'incoming' });
+
+      const { useBootstrapStore } = await import('@/shared/stores/bootstrapStore');
+      const bootstrapStore = useBootstrapStore();
+      expect(bootstrapStore.homepage_config?.enabled).toBe(true);
+      expect(bootstrapStore.homepage_config?.secrets_mode).toBe('incoming');
+    });
+
+    it('passes create-mode enabled through without consulting incoming readiness', async () => {
+      await seedDomainRecord({ incoming_ready: false });
+      axiosMock.onPut(`/api/domains/${extid}/homepage-config`).reply(200, {
+        user_id: 'u_1',
+        record: homepageRecord({ enabled: true, secrets_mode: 'create' }),
+      });
+
+      await store.putHomepageConfig(extid, { enabled: true });
+
+      const { useBootstrapStore } = await import('@/shared/stores/bootstrapStore');
+      const bootstrapStore = useBootstrapStore();
+      expect(bootstrapStore.homepage_config?.enabled).toBe(true);
+      expect(bootstrapStore.homepage_config?.secrets_mode).toBe('create');
+    });
+  });
 });

@@ -276,6 +276,136 @@ RSpec.describe Core::Views::DomainSerializer do
         end
       end
 
+      describe 'homepage_config secrets_mode serialization' do
+        # The bootstrap payload is the read-path invariant for the homepage
+        # secrets_mode feature: a homepage pointed at the incoming form must
+        # fail CLOSED (enabled: false → trust card) whenever incoming cannot
+        # actually receive secrets — feature flag off, config missing or
+        # unready, or entitlement lapsed. It must never fall open to the
+        # create form the operator did not select. Write-time validation in
+        # PutHomepageConfig is advisory UX; this serialization is the guard.
+
+        let(:homepage_config) do
+          instance_double(
+            Onetime::CustomDomain::HomepageConfig,
+            domain_id: 'domain123',
+            enabled?: true,
+            secrets_mode_value: secrets_mode,
+            signup_enabled?: false,
+            signin_enabled?: false,
+            disabled_homepage_variant_value: nil,
+            created: 1_700_000_000,
+            updated: 1_700_000_000,
+          )
+        end
+
+        let(:organization) { instance_double(Onetime::Organization, can?: true) }
+
+        before do
+          allow(Onetime::CustomDomain::HomepageConfig).to receive(:find_by_domain_id)
+            .with('domain123')
+            .and_return(homepage_config)
+          allow(custom_domain).to receive(:primary_organization).and_return(organization)
+          allow(OT).to receive(:conf).and_return(
+            {
+              'features' => { 'incoming' => { 'enabled' => true } },
+              'site' => { 'secret' => 'test-site-secret' },
+            }
+          )
+        end
+
+        context 'when secrets_mode is create' do
+          let(:secrets_mode) { 'create' }
+
+          it 'passes enabled through and never consults IncomingConfig' do
+            expect(Onetime::CustomDomain::IncomingConfig).not_to receive(:find_by_domain_id)
+
+            result = described_class.serialize(custom_domain_view_vars)
+            expect(result['homepage_config']['enabled']).to be(true)
+            expect(result['homepage_config']['secrets_mode']).to eq('create')
+          end
+        end
+
+        context 'when secrets_mode is incoming' do
+          let(:secrets_mode) { 'incoming' }
+
+          let(:incoming_config) do
+            instance_double(Onetime::CustomDomain::IncomingConfig, ready?: true)
+          end
+
+          before do
+            allow(Onetime::CustomDomain::IncomingConfig).to receive(:find_by_domain_id)
+              .with('domain123')
+              .and_return(incoming_config)
+          end
+
+          it 'stays enabled while flag on, config ready, and org entitled' do
+            result = described_class.serialize(custom_domain_view_vars)
+            expect(result['homepage_config']['enabled']).to be(true)
+            expect(result['homepage_config']['secrets_mode']).to eq('incoming')
+          end
+
+          it 'downgrades to enabled false when the instance feature flag is off' do
+            allow(OT).to receive(:conf).and_return(
+              {
+                'features' => { 'incoming' => { 'enabled' => false } },
+                'site' => { 'secret' => 'test-site-secret' },
+              }
+            )
+
+            result = described_class.serialize(custom_domain_view_vars)
+            expect(result['homepage_config']['enabled']).to be(false)
+            expect(result['homepage_config']['secrets_mode']).to eq('incoming')
+          end
+
+          it 'downgrades to enabled false when site.secret is missing (hashes cannot be computed)' do
+            allow(OT).to receive(:conf).and_return(
+              { 'features' => { 'incoming' => { 'enabled' => true } } }
+            )
+
+            result = described_class.serialize(custom_domain_view_vars)
+            expect(result['homepage_config']['enabled']).to be(false)
+          end
+
+          it 'downgrades to enabled false when the IncomingConfig is missing' do
+            allow(Onetime::CustomDomain::IncomingConfig).to receive(:find_by_domain_id)
+              .with('domain123')
+              .and_return(nil)
+
+            result = described_class.serialize(custom_domain_view_vars)
+            expect(result['homepage_config']['enabled']).to be(false)
+          end
+
+          it 'downgrades to enabled false when the IncomingConfig is unready' do
+            allow(incoming_config).to receive(:ready?).and_return(false)
+
+            result = described_class.serialize(custom_domain_view_vars)
+            expect(result['homepage_config']['enabled']).to be(false)
+          end
+
+          it 'downgrades to enabled false when the owning org lost the entitlement' do
+            allow(organization).to receive(:can?).with('incoming_secrets').and_return(false)
+
+            result = described_class.serialize(custom_domain_view_vars)
+            expect(result['homepage_config']['enabled']).to be(false)
+          end
+
+          it 'downgrades to enabled false when no owning org can be resolved' do
+            allow(custom_domain).to receive(:primary_organization).and_return(nil)
+
+            result = described_class.serialize(custom_domain_view_vars)
+            expect(result['homepage_config']['enabled']).to be(false)
+          end
+
+          it 'preserves the stored secrets_mode through a downgrade so intent survives' do
+            allow(incoming_config).to receive(:ready?).and_return(false)
+
+            result = described_class.serialize(custom_domain_view_vars)
+            expect(result['homepage_config']['secrets_mode']).to eq('incoming')
+          end
+        end
+      end
+
       describe 'domain_branding with mixed boolean representations' do
         # Test that the coercion handles various boolean representations
 

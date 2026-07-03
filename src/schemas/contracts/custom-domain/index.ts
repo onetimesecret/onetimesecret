@@ -252,6 +252,24 @@ export const customDomainCanonical = z.object({
   email_config: customDomainEmailConfigCanonical.nullable().optional(),
 
   // ─────────────────────────────────────────────────────────────────────────
+  // Incoming config status (computed from CustomDomain::IncomingConfig lookup)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /** Whether an IncomingConfig record exists for this domain. */
+  incoming_configured: z.boolean().optional(),
+
+  /** Whether incoming secrets is enabled (record exists AND enabled flag on). */
+  incoming_enabled: z.boolean().optional(),
+
+  /**
+   * Whether incoming can actually receive secrets: enabled with at least one
+   * recipient. Server-computed (IncomingConfig#ready?) so the frontend never
+   * re-derives — and drifts from — the readiness formula that gates the
+   * homepage secrets_mode 'incoming' option.
+   */
+  incoming_ready: z.boolean().optional(),
+
+  // ─────────────────────────────────────────────────────────────────────────
   // Homepage config (computed from CustomDomain::HomepageConfig lookup)
   // ─────────────────────────────────────────────────────────────────────────
 

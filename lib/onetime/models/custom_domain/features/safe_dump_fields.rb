@@ -8,6 +8,19 @@ module Onetime::CustomDomain::Features
   module SafeDump
     Onetime::CustomDomain.add_feature self, :safe_dump_fields
 
+    # Per-object cached IncomingConfig lookup shared by the incoming_*
+    # safe_dump fields below, so dumping all three costs one Redis read
+    # (mirrors the @_sso_config_cache / @_mailer_config_cache pattern).
+    def self.cached_incoming_config(obj)
+      unless obj.instance_variable_defined?(:@_incoming_config_cache)
+        obj.instance_variable_set(
+          :@_incoming_config_cache,
+          Onetime::CustomDomain::IncomingConfig.find_by_domain_id(obj.identifier),
+        )
+      end
+      obj.instance_variable_get(:@_incoming_config_cache)
+    end
+
     def self.included(base)
       base.feature :safe_dump
 
@@ -84,12 +97,27 @@ module Onetime::CustomDomain::Features
           {
             domain_id: config.domain_id,
             enabled: config.enabled?,
+            secrets_mode: config.secrets_mode_value,
             signup_enabled: config.signup_enabled?,
             signin_enabled: config.signin_enabled?,
             created_at: config.created&.to_i,
             updated_at: config.updated&.to_i,
           }
         }
+
+      # Incoming config status fields - computed from CustomDomain::IncomingConfig
+      # lookup. Single cached lookup for all three fields (same per-object
+      # caching pattern as SSO/mailer above, via cached_incoming_config).
+      # These let the workspace UI gate the homepage secrets_mode selector on
+      # incoming readiness without an extra API round-trip per domain.
+      # incoming_ready is server-computed (IncomingConfig#ready?) so the
+      # frontend never re-derives — and drifts from — the readiness formula.
+      base.safe_dump_field :incoming_configured,
+        ->(obj) { !Onetime::CustomDomain::Features::SafeDump.cached_incoming_config(obj).nil? }
+      base.safe_dump_field :incoming_enabled,
+        ->(obj) { Onetime::CustomDomain::Features::SafeDump.cached_incoming_config(obj)&.enabled? || false }
+      base.safe_dump_field :incoming_ready,
+        ->(obj) { Onetime::CustomDomain::Features::SafeDump.cached_incoming_config(obj)&.ready? || false }
 
       # Mail config status fields - computed from CustomDomain::MailerConfig lookup
       # Single lookup for both fields to avoid N+1 pattern on domain lists

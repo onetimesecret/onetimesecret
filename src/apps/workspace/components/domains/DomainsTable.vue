@@ -83,7 +83,7 @@ const { t } = useI18n();
     const newValue = !isHomepageEnabled(domain);
     pendingToggles[domain.extid] = newValue;
     try {
-      await domainsStore.putHomepageConfig(domain.extid, newValue);
+      await domainsStore.putHomepageConfig(domain.extid, { enabled: newValue });
       emit('toggle-homepage', domain);
     } finally {
       delete pendingToggles[domain.extid];
@@ -170,6 +170,20 @@ const { t } = useI18n();
                     :enabled="isHomepageEnabled(domain)"
                     :disabled="isLoading || !canAdmin || isTogglePending(domain.extid)"
                     @update:enabled="handleHomepageToggle(domain)" />
+                  <!-- The toggle is a pure on/off master switch (merge semantics
+                       preserve the stored mode); surface an incoming-mode badge so
+                       "on" isn't misread as the create form for these domains. -->
+                  <div
+                    v-if="domain.homepage_config?.secrets_mode === 'incoming'"
+                    class="mt-1 inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400"
+                    data-testid="homepage-incoming-badge">
+                    <OIcon
+                      collection="heroicons"
+                      name="inbox-arrow-down"
+                      class="size-3.5"
+                      aria-hidden="true" />
+                    {{ t('web.domains.homepage.badge_incoming') }}
+                  </div>
                 </div>
               </td>
 

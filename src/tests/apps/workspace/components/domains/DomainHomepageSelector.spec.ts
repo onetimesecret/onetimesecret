@@ -1,0 +1,132 @@
+// src/tests/apps/workspace/components/domains/DomainHomepageSelector.spec.ts
+
+import { mount } from '@vue/test-utils';
+import { describe, it, expect, vi } from 'vitest';
+import DomainHomepageSelector from '@/apps/workspace/components/domains/DomainHomepageSelector.vue';
+
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key: string) => key,
+  }),
+}));
+
+vi.mock('@/shared/components/icons/OIcon.vue', () => ({
+  default: {
+    name: 'OIcon',
+    template: '<span class="o-icon" />',
+    props: ['collection', 'name'],
+  },
+}));
+
+const INCOMING_ROUTE = { name: 'DomainIncoming', params: { orgid: 'org_1', extid: 'cd_1' } };
+
+function mountSelector(props: Record<string, unknown> = {}) {
+  return mount(DomainHomepageSelector, {
+    props: {
+      modelValue: 'private',
+      incomingConfigRoute: INCOMING_ROUTE,
+      ...props,
+    },
+    global: {
+      stubs: {
+        RouterLink: { template: '<a><slot /></a>' },
+      },
+    },
+  });
+}
+
+describe('DomainHomepageSelector', () => {
+  it('renders private and create options; hides incoming when unavailable', () => {
+    const wrapper = mountSelector({ incomingAvailable: false });
+
+    expect(wrapper.find('[data-testid="homepage-option-private"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="homepage-option-create"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="homepage-option-incoming"]').exists()).toBe(false);
+  });
+
+  it('marks the current selection checked', () => {
+    const wrapper = mountSelector({ modelValue: 'create' });
+
+    expect(
+      wrapper.find('[data-testid="homepage-option-create"]').attributes('aria-checked')
+    ).toBe('true');
+    expect(
+      wrapper.find('[data-testid="homepage-option-private"]').attributes('aria-checked')
+    ).toBe('false');
+  });
+
+  it('emits update:modelValue when selecting an enabled option', async () => {
+    const wrapper = mountSelector({ modelValue: 'private' });
+
+    await wrapper.find('[data-testid="homepage-option-create"]').trigger('click');
+
+    expect(wrapper.emitted('update:modelValue')).toEqual([['create']]);
+  });
+
+  it('does not emit when re-selecting the current option', async () => {
+    const wrapper = mountSelector({ modelValue: 'create' });
+
+    await wrapper.find('[data-testid="homepage-option-create"]').trigger('click');
+
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined();
+  });
+
+  it('disables the incoming option and shows the recipients hint while unready', async () => {
+    const wrapper = mountSelector({
+      modelValue: 'private',
+      incomingAvailable: true,
+      incomingReady: false,
+    });
+
+    const incoming = wrapper.find('[data-testid="homepage-option-incoming"]');
+    expect(incoming.attributes('disabled')).toBeDefined();
+    expect(wrapper.find('[data-testid="homepage-incoming-unready-hint"]').exists()).toBe(true);
+
+    await incoming.trigger('click');
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined();
+  });
+
+  it('allows selecting incoming once ready', async () => {
+    const wrapper = mountSelector({
+      modelValue: 'create',
+      incomingAvailable: true,
+      incomingReady: true,
+    });
+
+    expect(wrapper.find('[data-testid="homepage-incoming-unready-hint"]').exists()).toBe(false);
+
+    await wrapper.find('[data-testid="homepage-option-incoming"]').trigger('click');
+    expect(wrapper.emitted('update:modelValue')).toEqual([['incoming']]);
+  });
+
+  it('disables every option when the group is disabled (save in flight)', async () => {
+    const wrapper = mountSelector({
+      modelValue: 'private',
+      disabled: true,
+      incomingAvailable: true,
+      incomingReady: true,
+    });
+
+    for (const key of ['private', 'create', 'incoming']) {
+      expect(
+        wrapper.find(`[data-testid="homepage-option-${key}"]`).attributes('disabled')
+      ).toBeDefined();
+    }
+
+    await wrapper.find('[data-testid="homepage-option-create"]').trigger('click');
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined();
+  });
+
+  it('moves selection between enabled options with arrow keys, skipping disabled ones', async () => {
+    const wrapper = mountSelector({
+      modelValue: 'create',
+      incomingAvailable: true,
+      incomingReady: false, // incoming disabled — arrows must skip it
+    });
+
+    await wrapper.find('[role="radiogroup"]').trigger('keydown', { key: 'ArrowDown' });
+
+    // create -> (skip incoming) -> wraps to private
+    expect(wrapper.emitted('update:modelValue')).toEqual([['private']]);
+  });
+});

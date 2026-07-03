@@ -547,7 +547,29 @@ describe('useDomainsManager', () => {
       const { toggleHomepageConfig } = mountComposable(() => useDomainsManager());
       const result = await toggleHomepageConfig('domain-ext-1', true, 'owner');
 
-      expect(mockDependencies.domainsStore.putHomepageConfig).toHaveBeenCalledWith('domain-ext-1', true);
+      // toggle delegates to updateHomepageConfig with enabled only — merge
+      // semantics leave the stored secrets_mode unchanged.
+      expect(mockDependencies.domainsStore.putHomepageConfig).toHaveBeenCalledWith('domain-ext-1', {
+        enabled: true,
+      });
+      expect(result).toEqual(apiResult);
+    });
+
+    it('sends secrets_mode when updateHomepageConfig selects an experience', async () => {
+      const apiResult = { homepage: true };
+      mockDependencies.domainsStore.putHomepageConfig.mockResolvedValueOnce(apiResult);
+
+      const { updateHomepageConfig } = mountComposable(() => useDomainsManager());
+      const result = await updateHomepageConfig(
+        'domain-ext-1',
+        { enabled: true, secrets_mode: 'incoming' },
+        'owner'
+      );
+
+      expect(mockDependencies.domainsStore.putHomepageConfig).toHaveBeenCalledWith('domain-ext-1', {
+        enabled: true,
+        secrets_mode: 'incoming',
+      });
       expect(result).toEqual(apiResult);
     });
 
