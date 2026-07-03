@@ -440,13 +440,12 @@ describe('Bootstrap realistic payload parsing', () => {
         },
         header: {
           enabled: true,
-          branding: {
-            logo: {
-              url: '/img/logo.svg',
-              alt: 'OTS',
-              link_to: '/',
-            },
-            site_name: 'One-Time Secret',
+          // #3612: header carries only layout knobs; the logo asset / alt /
+          // product name arrive via the flat brand_* bootstrap fields.
+          logo: {
+            href: '/',
+            show_name: true,
+            prominent: false,
           },
         },
         footer_links: {

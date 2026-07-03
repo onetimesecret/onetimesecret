@@ -31,17 +31,19 @@ export const homepageConfigCanonical = z.object({
 
   /**
    * Whether the Sign Up link renders on this domain's homepage.
-   * Defaults to true (link visible). The site-level authentication.signup
-   * flag remains the master switch — the frontend ANDs both layers.
+   * Defaults to false (link hidden) — operators opt in per-domain via
+   * PUT /homepage-config. The site-level authentication.signup flag
+   * remains the master switch — the frontend ANDs both layers.
    */
-  signup_enabled: z.boolean().default(true),
+  signup_enabled: z.boolean().default(false),
 
   /**
    * Whether the Sign In link renders on this domain's homepage.
-   * Defaults to true (link visible). The site-level authentication.signin
-   * flag remains the master switch — the frontend ANDs both layers.
+   * Defaults to false (link hidden) — operators opt in per-domain via
+   * PUT /homepage-config. The site-level authentication.signin flag
+   * remains the master switch — the frontend ANDs both layers.
    */
-  signin_enabled: z.boolean().default(true),
+  signin_enabled: z.boolean().default(false),
 
   /**
    * Which disabled-homepage variant this domain renders when the homepage

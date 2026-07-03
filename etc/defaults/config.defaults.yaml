@@ -82,37 +82,38 @@ site:
         receipt: <%= ENV['UI_CAPABILITIES_RECEIPT'] != 'false' %>
         recipient: <%= ENV['UI_CAPABILITIES_RECIPIENT'] != 'false' %>
       # Header configuration
-      # Controls branding and navigation in the site header
+      # Controls the site header and masthead layout. Brand identity — which
+      # logo asset renders and what the product is called — lives in the
+      # brand: block below (BRAND_LOGO_URL, BRAND_PRODUCT_NAME, BRAND_LOGO_ALT);
+      # the knobs here only control how the masthead presents it. The former
+      # header.branding nesting (LOGO_URL, LOGO_ALT, SITE_NAME) is deprecated
+      # and honored as a fallback by Config#normalize_brand (#3612).
       header:
         # Control switch to enable/disable header customization
         enabled: <%= ENV['HEADER_ENABLED'] != 'false' %>
-        # Branding configuration for the masthead logo and site identity
-        branding:
-          # Logo lockup: icon + optional text mark in the masthead
-          logo:
-            # Vue component name or image URL (e.g. DefaultLogo.vue, /img/logo.svg)
-            url: <%= ENV['LOGO_URL'] || 'DefaultLogo.vue' %>
-            alt: <%= ENV['LOGO_ALT'] || 'Share a Secret One-Time' %>
-            link_to: <%= ENV['LOGO_LINK'] || '/' %>
-            # Show the site name as a text mark next to the logo icon.
-            # Set false for icon-only display; SITE_NAME remains active
-            # in page titles, MFA labels, and emails regardless.
-            show_name: <%= ENV['LOGO_SHOW_NAME'] != 'false' %>
-            # Render the logo at a larger size in the authenticated header.
-            # Useful for rasterized brand assets (e.g. LOGO_URL=/img/brand.png)
-            # that need more visual presence alongside the org/domain switchers.
-            # The default (false) keeps the logo compact (40px) so context
-            # switchers fit on the same row. When true, custom logos render at
-            # 80px in authenticated views. Unauthenticated views (branded
-            # homepage / disabled page) always render the logo prominently.
-            prominent: <%= ENV['LOGO_PROMINENT'] == 'true' %>
-          # Product name used across the application:
-          #   - Masthead text mark (when logo.show_name is true)
-          #   - Browser page title
-          #   - MFA authenticator app issuer label
-          #   - Outbound email sender name
-          # Falls back to i18n key if not set.
-          site_name: <%= ENV['SITE_NAME'] || 'One-Time Secret' %>
+        # Masthead layout knobs (presentation only). All three treat an unset
+        # OR empty env var as "not specified" (YAML nil) so compose files with
+        # blank assignments don't accidentally pin an explicit value. href is
+        # JSON-quoted for the same reason as the brand block below: an
+        # operator URL with YAML-significant characters must survive parsing.
+        logo:
+          # Where the logo lockup links to. Unset uses '/'.
+          href: <%= (v = ENV['LOGO_LINK'].to_s).empty? ? nil : v.to_json %>
+          # Show the product name as a text mark next to the logo icon.
+          # Unset (default): shown, unless a custom brand logo is configured
+          # (custom logos usually embed their own wordmark). Set true/false
+          # to force either way. The product name itself comes from
+          # BRAND_PRODUCT_NAME and remains active in page titles, MFA labels,
+          # and emails regardless of this knob.
+          show_name: <%= (v = ENV['LOGO_SHOW_NAME'].to_s).empty? ? nil : v != 'false' %>
+          # Render the logo at a larger size in the authenticated header.
+          # Useful for rasterized brand assets (e.g. BRAND_LOGO_URL=/img/brand.png)
+          # that need more visual presence alongside the org/domain switchers.
+          # The default (unset/false) keeps the logo compact (40px) so context
+          # switchers fit on the same row. When true, custom logos render at
+          # 80px in authenticated views. Unauthenticated views (branded
+          # homepage / disabled page) always render the logo prominently.
+          prominent: <%= (v = ENV['LOGO_PROMINENT'].to_s).empty? ? nil : v == 'true' %>
         # Navigation configuration
         navigation:
           # Enable/disable header navigation entirely
@@ -432,6 +433,9 @@ brand:
   font_family: <%= ENV['BRAND_FONT_FAMILY']&.to_json %>
   button_text_light: <%= ENV['BRAND_BUTTON_TEXT_LIGHT']&.to_json %>
   logo_url: <%= ENV['BRAND_LOGO_URL']&.to_json %>
+  # Accessible name for the brand logo. Unset falls back to an i18n string
+  # derived from the product name.
+  logo_alt: <%= ENV['BRAND_LOGO_ALT']&.to_json %>
   favicon_url: <%= ENV['BRAND_FAVICON_URL']&.to_json %>
   # URL overrides for the mobile/social variety pack served in the HTML head.
   # When unset, neutral bundled defaults (public/web) are used; replacing the

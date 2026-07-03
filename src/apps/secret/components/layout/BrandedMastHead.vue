@@ -17,13 +17,15 @@
   const imageError = ref(false);
 
   /**
-   * Per-domain narrowing for the auth nav links. Defaults to enabled when
-   * no homepage_config exists for the domain. The frontend ANDs the system
+   * Per-domain gate for the auth nav links. Defaults to disabled — the links
+   * stay hidden unless the domain's homepage_config explicitly opts in
+   * (signup_enabled/signin_enabled === true). A missing homepage_config (or a
+   * missing field) reads as disabled. The frontend still ANDs the system
    * authentication flags with these domain-level toggles — the domain owner
    * can only narrow, never broaden.
    */
-  const domainSignupEnabled = computed(() => homepage_config.value?.signup_enabled !== false);
-  const domainSigninEnabled = computed(() => homepage_config.value?.signin_enabled !== false);
+  const domainSignupEnabled = computed(() => homepage_config.value?.signup_enabled === true);
+  const domainSigninEnabled = computed(() => homepage_config.value?.signin_enabled === true);
 
   /**
    * Show Sign In link when signin route is available AND the domain hasn't

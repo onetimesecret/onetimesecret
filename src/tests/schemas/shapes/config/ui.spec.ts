@@ -71,13 +71,39 @@ describe('userInterfaceHeaderShape', () => {
     expect(userInterfaceHeaderShape.parse({}).enabled).toBe(true);
   });
 
-  it('preserves branding/navigation passthrough', () => {
+  it('preserves logo layout knobs / navigation passthrough (#3612)', () => {
+    // header.branding is gone — the header carries only presentation knobs
+    // (href / show_name / prominent); brand identity lives in the brand: block.
     const result = userInterfaceHeaderShape.parse({
-      branding: { site_name: 'OTS' },
+      logo: { href: '/dashboard', show_name: true, prominent: false },
       navigation: { enabled: false },
     });
-    expect(result.branding?.site_name).toBe('OTS');
+    expect(result.logo?.href).toBe('/dashboard');
+    expect(result.logo?.show_name).toBe(true);
+    expect(result.logo?.prominent).toBe(false);
     expect(result.navigation?.enabled).toBe(false);
+  });
+
+  it('accepts null logo knobs (unset means "use the surface default")', () => {
+    const result = userInterfaceHeaderShape.parse({
+      logo: { href: null, show_name: null, prominent: null },
+    });
+    expect(result.logo?.href).toBeNull();
+    expect(result.logo?.show_name).toBeNull();
+    expect(result.logo?.prominent).toBeNull();
+  });
+
+  it('strips a legacy branding nesting from the payload (#3612)', () => {
+    // A legacy operator payload with the retired header.branding shape must
+    // not survive parsing — brand identity is not modeled on the header.
+    const result = userInterfaceHeaderShape.parse({
+      branding: {
+        logo: { url: 'DefaultLogo.vue', alt: 'x', link_to: '/' },
+        site_name: 'One-Time Secret',
+      },
+    });
+    expect(result).not.toHaveProperty('branding');
+    expect(JSON.stringify(result)).not.toContain('One-Time Secret');
   });
 });
 
@@ -89,7 +115,8 @@ describe('userInterfaceFooterLinksShape', () => {
 
 describe('UI pass-through shapes (no augmentation)', () => {
   it('logo / capabilities / help parse populated input verbatim', () => {
-    expect(userInterfaceLogoShape.parse({ url: '/img/logo.svg' }).url).toBe('/img/logo.svg');
+    expect(userInterfaceLogoShape.parse({ show_name: true }).show_name).toBe(true);
+    expect(userInterfaceLogoShape.parse({ href: '/vault' }).href).toBe('/vault');
     expect(uiCapabilitiesShape.parse({ burn: true }).burn).toBe(true);
     expect(uiHelpShape.parse({ enabled: false }).enabled).toBe(false);
   });

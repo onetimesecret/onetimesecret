@@ -155,6 +155,7 @@ RSpec.describe Core::Views::ConfigSerializer do
           'brand_font_family' => 'serif',
           'brand_button_text_light' => false,
           'brand_logo_url' => 'https://acme.test/logo.svg',
+          'brand_logo_alt' => 'Acme Vault wordmark',
           'brand_favicon_url' => 'https://acme.test/favicon.png',
           'support_email' => 'help@acme.test',
           'docs_host' => 'https://docs.acme.test/'
@@ -201,6 +202,11 @@ RSpec.describe Core::Views::ConfigSerializer do
         expect(result['brand_logo_url']).to eq('https://acme.test/logo.svg')
       end
 
+      it 'copies brand_logo_alt from view_vars to output' do
+        result = described_class.serialize(brand_view_vars)
+        expect(result['brand_logo_alt']).to eq('Acme Vault wordmark')
+      end
+
       it 'copies brand_favicon_url from view_vars to output' do
         result = described_class.serialize(brand_view_vars)
         expect(result['brand_favicon_url']).to eq('https://acme.test/favicon.png')
@@ -227,6 +233,7 @@ RSpec.describe Core::Views::ConfigSerializer do
           brand_font_family
           brand_button_text_light
           brand_logo_url
+          brand_logo_alt
           brand_favicon_url
         ].each do |key|
           expect(result[key]).to be_nil, "expected #{key} to be nil when view_vars omits it"
@@ -244,6 +251,7 @@ RSpec.describe Core::Views::ConfigSerializer do
           brand_font_family
           brand_button_text_light
           brand_logo_url
+          brand_logo_alt
           brand_favicon_url
         ].each do |key|
           expect(template_keys).to include(key), "output_template missing #{key}"
