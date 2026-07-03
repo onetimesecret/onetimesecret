@@ -289,6 +289,14 @@ describe('TransactionalHeader — Custom Domain Leak Vector', () => {
         expect(wrapper.find('[role="separator"]').exists()).toBe(false);
       });
 
+      // INVARIANT GUARD: null homepage_config must mean "show the links".
+      // TransactionalHeader renders on the canonical site too, where there is
+      // no per-domain config (null). If someone changes the component's
+      // `!== false` gate to `=== true` (to match BrandedMastHead's stricter
+      // custom-only rule), this case fails — that failure is intentional. Do
+      // not relax this expectation to make such a change pass; canonical relies
+      // on null → visible. See the comment on showDomainSignin in
+      // TransactionalHeader.vue.
       it('renders both links when homepage_config is null (canonical domain, no restriction)', async () => {
         wrapper = mountComponent(minimalNavProps, {
           domain_strategy: 'custom',
