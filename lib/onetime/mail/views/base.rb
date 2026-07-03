@@ -420,6 +420,12 @@ module Onetime
             end
           end
 
+          # Operator opt-in gate for rendering a logo <img> in mail at all.
+          # Templates require show_logo? AND a usable logo_url — an absolute
+          # brand.logo_url still renders text-only when emailer.show_logo is
+          # unset/false. The two gates are independent by design: show_logo?
+          # is the "do I trust images in mail clients" switch, logo_url is
+          # the asset (nil when unset or not absolute http(s)).
           def show_logo?
             conf_dig('emailer', 'show_logo') == true
           end

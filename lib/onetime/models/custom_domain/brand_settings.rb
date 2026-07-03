@@ -92,6 +92,11 @@ module Onetime
       # Returns global defaults resolved from brand config at runtime.
       # Falls back to GLOBAL_DEFAULTS when OT.conf is not available.
       #
+      # Call-time safety: OT.conf is only ever assigned the *result* of
+      # Config.after_load (boot.rb), so a non-nil OT.conf['brand'] has
+      # already been through normalize_brand — legacy fallbacks (e.g.
+      # SITE_NAME -> product_name) are absorbed before any reader here.
+      #
       # @return [Hash<Symbol, Object>] Global brand settings with config overrides
       def self.global_defaults
         return GLOBAL_DEFAULTS unless defined?(OT) && OT.respond_to?(:conf) && OT.conf
@@ -122,6 +127,12 @@ module Onetime
       CORNERS = %w[rounded square pill].freeze
     end
 
+    # Per-domain (tenant, Redis-stored) brand settings. Deliberately NOT a
+    # mirror of the install-wide brand: block: logo_alt, for example, is
+    # install-only (GLOBAL_DEFAULTS above) — a tenant's uploaded logo takes
+    # its accessible name from the domain's display name, so a per-domain
+    # logo_alt supplied via from_hash is intentionally dropped by the
+    # members slice below.
     BrandSettings = Data.define(
       :logo,
       :primary_color,
