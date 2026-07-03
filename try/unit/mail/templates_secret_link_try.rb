@@ -152,3 +152,14 @@ data = @valid_data.merge(share_domain: nil)
 template = Onetime::Mail::Templates::SecretLink.new(data)
 template.display_domain
 #=~> /https?:\/\/.+/
+
+## SecretLink shared layout links header/footer to the custom share_domain
+html = Onetime::Mail::Templates::SecretLink.new(@valid_data_with_domain).render_html
+html.include?('href="https://custom.example.com"')
+#=> true
+
+## SecretLink layout header/footer stay canonical when share_domain is nil
+ctx  = Onetime::Mail::Templates::Base::TemplateContext.new({}, 'en')
+html = Onetime::Mail::Templates::SecretLink.new(@valid_data).render_html
+html.include?(%(href="#{ctx.site_baseuri}")) && !html.include?('custom.example.com')
+#=> true

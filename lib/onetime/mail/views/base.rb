@@ -328,6 +328,33 @@ module Onetime
             @data[:display_domain] || @data[:share_domain] || site_host
           end
 
+          # Host the shared layout header/footer links to and displays. Prefers
+          # the custom domain the message concerns (share_domain, set on the
+          # secret_link and incoming_secret emails) so the wordmark and footer
+          # match the domain the recipient is actually visiting; falls back to
+          # the canonical site host for account/system emails that carry no
+          # domain. This is intentionally distinct from baseuri, which body
+          # templates use to build links to install-level app paths (invite
+          # acceptance, account settings, support) that live on the canonical
+          # host regardless of the sharing domain.
+          # @return [String]
+          def brand_host
+            host = @data[:share_domain].to_s
+            host.empty? ? site_host : host
+          end
+
+          # Base URI (scheme + host) for the shared layout header/footer. When
+          # the message concerns a custom share_domain, links to that domain;
+          # otherwise defers to baseuri, preserving both the @data[:baseuri]
+          # override and the canonical site fallback for account/system emails.
+          # @return [String]
+          def brand_baseuri
+            host = @data[:share_domain].to_s
+            return "#{scheme}#{host}" unless host.empty?
+
+            baseuri
+          end
+
           # Brand color helper - resolves from per-message data, brand config, or
           # the neutral default (#3B82F6) defined in BrandSettingsConstants.
           # @return [String] Hex color string
@@ -399,11 +426,7 @@ module Onetime
 
           # Get base URI from site config
           def site_baseuri
-            @site_baseuri ||= begin
-              scheme = conf_dig('site', 'ssl') == false ? 'http://' : 'https://'
-              host   = conf_dig('site', 'host') || 'localhost'
-              "#{scheme}#{host}"
-            end
+            @site_baseuri ||= "#{scheme}#{site_host}"
           end
 
           def show_logo?
@@ -411,6 +434,13 @@ module Onetime
           end
 
           private
+
+          # URL scheme ('https://' unless site.ssl is explicitly false). Shared
+          # by site_baseuri and brand_baseuri so both agree on http/https.
+          # @return [String]
+          def scheme
+            conf_dig('site', 'ssl') == false ? 'http://' : 'https://'
+          end
 
           def conf_dig(*keys)
             return nil unless defined?(OT) && OT.respond_to?(:conf) && OT.conf
