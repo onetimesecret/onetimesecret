@@ -245,6 +245,12 @@ module Onetime
       end
 
       # @api private
+      #
+      # Write-path validation for PER-DOMAIN (tenant-uploaded) settings only:
+      # https or app-relative. The install-wide brand.logo_url is a separate,
+      # more permissive surface — the mail renderer gates it to absolute
+      # http(s) at render time (Mail::Views TemplateContext#logo_url) and the
+      # web UI accepts relative paths. The two policies intentionally differ.
       def self.validate_url_fields!(normalized)
         [:logo_url, :logo_dark_url, :favicon_url].each do |url_field|
           next unless normalized.key?(url_field) && !normalized[url_field].nil?

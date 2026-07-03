@@ -664,15 +664,16 @@ module Onetime
 
     # Digs a key path out of a config hash, tolerating malformed intermediate
     # nodes: a legacy subtree where e.g. header.branding.logo is a scalar
-    # would make Hash#dig raise TypeError and abort boot — for an optional
-    # fallback source, unreadable simply means absent.
+    # would make Hash#dig raise TypeError (or NoMethodError, depending on the
+    # node) and abort boot — for an optional fallback source, unreadable
+    # simply means absent.
     #
     # @param conf [Hash] configuration hash
     # @param path [Array<String>] key path
     # @return [Object, nil]
     def dig_path(conf, path)
       conf.dig(*path)
-    rescue TypeError
+    rescue TypeError, NoMethodError
       nil
     end
 

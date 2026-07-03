@@ -66,7 +66,10 @@
   // resolver's logoSource so the dynamic-import comparisons below stay in sync).
   const DEFAULT_LOGO = DEFAULT_LOGO_COMPONENT;
 
-  // Helper functions for logo configuration.
+  // Helper functions for logo configuration. These are plain functions whose
+  // reactivity comes solely from being called inside the logoConfig computed
+  // below — they must only close over refs/computeds (props, resolver refs,
+  // headerConfig), never a captured plain value, or updates stop propagating.
   // Priority: props.logo.url (caller) > identity.logoSource, which itself
   // resolves tenant logo > operator brand.logo_url (BRAND_LOGO_URL, custom
   // domains excepted) > neutral DefaultLogo terminal. The masthead no longer

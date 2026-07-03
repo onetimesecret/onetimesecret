@@ -368,6 +368,27 @@ describe('MastHead', () => {
       expect(img.attributes('height')).toBe('48');
     });
 
+    it('does not apply BRAND_LOGO_ALT to a tenant logo that outranks the install logo', async () => {
+      // The operator's alt text describes the operator's image. When a tenant
+      // domain_logo wins the logoSource race, the rendered <img> must not
+      // carry BRAND_LOGO_ALT (wrong accessible name for the tenant's asset).
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          domain_logo: '/imagine/ext123/logo.png',
+          brand_logo_url: '/img/install-brand.svg',
+          brand_logo_alt: 'Acme Corp wordmark',
+        }
+      );
+
+      await nextTick();
+      const img = wrapper.find('img#logo');
+      expect(img.exists()).toBe(true);
+      expect(img.attributes('src')).toBe('/imagine/ext123/logo.png');
+      expect(img.attributes('alt')).not.toBe('Acme Corp wordmark');
+    });
+
     it('links the logo lockup to ui.header.logo.href (LOGO_LINK)', async () => {
       wrapper = mountComponent(
         {},

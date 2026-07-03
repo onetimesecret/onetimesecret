@@ -120,7 +120,9 @@ suppresses the warning).
 The three layout knobs are *not* deprecated — only their YAML nesting moved
 (and `link_to` was renamed `href`). `show_name` is now explicit-only: unset
 means "show the wordmark unless a custom brand logo is configured" (custom
-logos usually embed their own wordmark).
+logos usually embed their own wordmark). Previously, unset meant always-on —
+an install that set `LOGO_URL` and relied on the implicit wordmark should set
+`LOGO_SHOW_NAME=true` to keep it.
 
 ## CSS palette
 
