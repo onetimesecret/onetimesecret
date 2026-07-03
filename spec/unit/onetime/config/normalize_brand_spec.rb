@@ -221,6 +221,18 @@ RSpec.describe Onetime::Config do
         }.not_to raise_error
         expect(brand['logo_url']).to be_nil
       end
+
+      it 'logs a boot notice when the resolved logo_url is not absolute' do
+        # The web UI renders a relative path fine, but emails silently degrade
+        # to a text-only header — the operator should learn that at boot.
+        expect(OT).to receive(:le).with(/CONFIG NOTICE: brand\.logo_url/)
+        normalized({ 'brand' => {} }, 'LOGO_URL' => '/img/legacy.png')
+      end
+
+      it 'logs no notice for an absolute logo_url' do
+        expect(OT).not_to receive(:le).with(/CONFIG NOTICE: brand\.logo_url/)
+        normalized({ 'brand' => {} }, 'BRAND_LOGO_URL' => 'https://cdn.example.com/l.svg')
+      end
     end
   end
 
@@ -274,6 +286,23 @@ RSpec.describe Onetime::Config do
       conf = { 'site' => { 'interface' => { 'ui' => {} } } }
       expect { described_class.normalize_header_layout(conf) }.not_to raise_error
       expect(conf).to eq('site' => { 'interface' => { 'ui' => {} } })
+    end
+
+    it 'leaves the header untouched when no branding key exists (modern config)' do
+      conf = header_conf('enabled' => true, 'logo' => { 'href' => '/x' })
+      expect { described_class.normalize_header_layout(conf) }.not_to raise_error
+      expect(header_of(conf)).to eq('enabled' => true, 'logo' => { 'href' => '/x' })
+    end
+
+    it 'coerces a malformed non-Hash header.logo before migrating' do
+      # `logo: "oops"` in a hand-edited config must not abort boot with a
+      # String#[]= error — the migration replaces it with a proper hash.
+      conf = header_conf(
+        'logo' => 'oops',
+        'branding' => { 'logo' => { 'link_to' => '/legacy' } },
+      )
+      expect { described_class.normalize_header_layout(conf) }.not_to raise_error
+      expect(header_of(conf).dig('logo', 'href')).to eq('/legacy')
     end
 
     it 'strips a branding subtree that has no logo hash without adding one' do

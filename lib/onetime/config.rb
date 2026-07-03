@@ -635,6 +635,17 @@ module Onetime
         brand[key] = candidate if candidate
       end
 
+      # brand.logo_url is now the one install logo for every surface, but the
+      # surfaces differ: the web UI resolves a relative path fine, while mail
+      # rendering requires an absolute URL and silently degrades to a
+      # text-only header otherwise. Tell the operator at boot rather than
+      # letting them discover it in a delivered email.
+      logo_url = brand['logo_url']
+      if logo_url && !logo_url.match?(%r{\Ahttps?://}i)
+        OT.le "CONFIG NOTICE: brand.logo_url '#{logo_url}' is not an absolute http(s) URL; " \
+              'it will render in the web UI but is omitted from outbound emails.'
+      end
+
       # button_text_light: light text on brand-colored buttons. Default-on;
       # only an explicit 'false' (env or YAML) disables it. nil when unset.
       raw                        = ENV.fetch('BRAND_BUTTON_TEXT_LIGHT', nil)
@@ -698,7 +709,11 @@ module Onetime
       legacy_logo = branding.is_a?(Hash) ? branding['logo'] : nil
       return unless legacy_logo.is_a?(Hash)
 
-      logo = (header['logo'] ||= {})
+      # Coerce a malformed scalar (e.g. `logo: "oops"`) to an empty hash —
+      # this path exists to tolerate legacy/hand-edited configs, so it must
+      # not abort boot on one.
+      logo = header['logo']
+      logo = header['logo'] = {} unless logo.is_a?(Hash)
       LEGACY_HEADER_LOGO_KEYS.each do |new_key, legacy_key|
         next if legacy_logo[legacy_key].nil? || !logo[new_key].nil?
 

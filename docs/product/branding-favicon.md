@@ -65,8 +65,9 @@ BRAND_LOGO_URL=https://cdn.example.com/logo.svg
 Android install (icons still need a file).
 
 `BRAND_LOGO_URL` is not an icon-pack asset: it is the brand logo itself, shown
-in the masthead and in outbound emails (emails require an absolute `https://`
-URL). It appears above because it usually points at the same CDN. Pair it with
+in the masthead and in outbound emails (emails require an absolute `http(s)://`
+URL — https recommended; other values degrade emails to a text-only header).
+It appears above because it usually points at the same CDN. Pair it with
 `BRAND_LOGO_ALT` for the logo's alt text; unset falls back to an i18n string
 derived from the product name.
 

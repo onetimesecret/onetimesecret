@@ -230,12 +230,15 @@ export const useProductIdentity = defineStore('productIdentity', () => {
 
   /**
    * Operator-supplied alt text for the install logo (BRAND_LOGO_ALT /
-   * brand.logo_alt). Only meaningful while the install logo is the one being
-   * shown — it describes that asset — so it is null whenever installLogoUri
-   * is. Consumers fall back to their i18n productName-derived alt.
+   * brand.logo_alt). Only meaningful while the install logo is the asset
+   * actually being rendered — it describes that image — so it is null when
+   * installLogoUri is null AND when a tenant logo outranks the install logo
+   * in logoSource (labeling the tenant's image with the operator's alt text
+   * would leak the wrong accessible name). Consumers fall back to their
+   * i18n productName-derived alt.
    */
   const installLogoAlt = computed(() =>
-    installLogoUri.value ? brand_logo_alt?.value || null : null
+    installLogoUri.value && !logoUri.value ? brand_logo_alt?.value || null : null
   );
 
   /**

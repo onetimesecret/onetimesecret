@@ -627,6 +627,24 @@ describe('identityStore installLogoAlt', () => {
 
     expect(identity.installLogoAlt).toBeNull();
   });
+
+  it('is null when a tenant logo outranks the install logo in logoSource', () => {
+    // The operator's alt text describes the operator's image. When a tenant
+    // domain_logo wins the logoSource race, applying BRAND_LOGO_ALT to the
+    // tenant's image would leak the wrong accessible name.
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({
+      brand_logo_url: '/img/install-brand.svg',
+      brand_logo_alt: 'Acme Corp wordmark',
+      domain_logo: '/imagine/ext123/logo.png',
+      domain_strategy: 'canonical',
+    });
+
+    const identity = useProductIdentity();
+
+    expect(identity.logoSource).toBe('/imagine/ext123/logo.png');
+    expect(identity.installLogoAlt).toBeNull();
+  });
 });
 
 // ═══════════════════════════════════════════════════════════════════════════

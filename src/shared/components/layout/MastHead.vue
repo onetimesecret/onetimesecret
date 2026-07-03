@@ -173,7 +173,10 @@
   // branding/logo resolution.
   const { headerEnabled, navigationEnabled } = useHeaderEnabled();
 
-  // Logo component handling
+  // Logo component handling. A `.vue`-suffixed URL can only be the neutral
+  // DEFAULT_LOGO_COMPONENT sentinel from logoSource, or a caller prop —
+  // Config#normalize_brand rejects component references in brand.logo_url,
+  // so config-supplied values are always real asset URLs.
   const isVueComponent = computed(() => logoConfig.value.url.endsWith('.vue'));
   const logoComponent = shallowRef<Component | null>(
     isVueComponent.value && logoConfig.value.url === DEFAULT_LOGO
