@@ -57,6 +57,20 @@ commented-out team plan, `billing.example.yaml:274-325`) but it is the clearest
 proof that the two concerns must not share the intersection: **role capabilities
 must be billing-independent.**
 
+### 1.2 Why the fusion exists — what the split must not regress
+
+The single namespace is not entropy; it was the cure for the *previous* defect.
+ADR-012's own Context section describes the prior regime — entitlements and
+roles as two independent systems whose role guards had to be "manually paired
+with entitlement checks at every call site. Nothing forces the pairing," and
+five domain-branding endpoints shipped without it (#3225, an actual privilege
+gap). Fusing both concerns into one membership check was the deliberate fix:
+one predicate that cannot forget the role dimension. Option C's two-gate
+pattern (§5.6) structurally reintroduces that manual pairing, so the design
+must carry an explicit countermeasure — see the pairing-hazard risk in §8 and
+the Stage B countermeasure in §6. The success criterion is to regain "which
+axis denied this?" **without losing** "no endpoint can forget an axis."
+
 ---
 
 ## 2. Current architecture — end-to-end entitlement flow
@@ -120,7 +134,7 @@ with_plan_entitlements.rb:177-221                         │
 | 6 | `lib/onetime/logic/base.rb:241, 303` | `require_entitlement!` / `require_entitlement_in!` take an opaque string and call `membership.can?`; a role check and a plan check have identical signatures and code paths. |
 | 7 | `lib/onetime/errors.rb:160-182` | One `EntitlementRequired(entitlement, current_plan, upgrade_to)` for every denial — bakes plan-upgrade framing into role-capability denials. |
 
-> **Note on `materialize_for_role!` doc/code drift:** the module-header `Materialization formula:` comment in membership `with_materialized_entitlements.rb` (the `= org.materialized_entitlements ∩ ROLE_ENTITLEMENTS[role]` line, near the top of the file) claims the intersection is against `org.materialized_entitlements`, but the `materialize_for_role!` method body uses `org.entitlements` (the `(org_entitlements & role_template)` line inside the method). Cited by symbol because these line numbers drift; verified drift, fix as part of any touch to this method.
+> **Note on `materialize_for_role!` doc/code drift:** the module-header `Materialization formula:` comment in membership `with_materialized_entitlements.rb` (the `= org.materialized_entitlements ∩ ROLE_ENTITLEMENTS[role]` line, near the top of the file) claims the intersection is against `org.materialized_entitlements`, but the `materialize_for_role!` method body uses `org.entitlements` (the `(org_entitlements & role_template)` line inside the method). Cited by symbol because these line numbers drift. **The departure is deliberate and self-documented, not code rot:** an in-method comment explains that `org.entitlements` carries the plan/free-tier fallback chain while `org.materialized_entitlements` may be empty for unmaterialized orgs. ADR-012 itself contains *both* formulas (its Materialization-model section says `materialized`; its final membership section says `org.entitlements` for the fallback). The fix is therefore the stale **header comment** (and the formula in ADR-012's successor) — an implementer must **not** "correct" the method body to match the stale comment.
 
 ---
 
@@ -214,8 +228,8 @@ Counts (re-verified against source at preparation; see the count-verification no
 ### MEDIUM
 
 **M1 — Two divergent backend enforcement paths for the same string: `org.can?` (plan-only) vs `membership.can?` (plan∩role).**
-`lib/middleware/entitlement_check.rb:62`; `apps/api/domains/policies/domain_config_authorization.rb:109-110,158`; `base.rb:241,303`. The middleware enforces only the plan dimension; the logic layer enforces the merged set. The domain-config policy's own comment (97-101) admits the two checks can diverge with per-member grants/revokes.
-**Action:** re-express middleware as `require_plan_feature!`; make the domain-config two-gate intentional (`require_capability!('manage_org')` + `require_plan_feature!(config_entitlement)`); decide the rule for read-only endpoints.
+`lib/middleware/entitlement_check.rb:62`; `apps/api/domains/policies/domain_config_authorization.rb:109-110,158`; `base.rb:241,303`. The middleware enforces only the plan dimension; the logic layer enforces the merged set. The domain-config policy's own comment (97-101) admits the two checks can diverge with per-member grants/revokes. The two logic-layer gates additionally disagree on **policy**, not just dimension: `require_entitlement!` **returns true for anonymous users** (`base.rb:191`, deferring to guest route gating) while `require_entitlement_in!` raises `Forbidden` for them (`base.rb:281-286`); and `require_entitlement_in!` has a **colonel bypass** (`base.rb:278`) that `require_entitlement!` lacks.
+**Action:** re-express middleware as `require_plan_feature!`; make the domain-config two-gate intentional (`require_capability!('manage_org')` + `require_plan_feature!(config_entitlement)`); decide the rule for read-only endpoints; give each split gate an explicit colonel-bypass and anonymous-access ruling (§8).
 
 **M2 — Domain config pages enforce role inconsistently.**
 `DomainIncoming.vue:58-64` (dual gate: plan + `can(MANAGE_ORG)`) vs `DomainEmail.vue:58`, `DomainSignin.vue:62`, `DomainSignup.vue:57`, `DomainBrand.vue:71` (plan feature only, rely on route `requiresOrgRole:'admin'`). Two sources of truth (`manage_org` entitlement vs `'admin'` role string).
@@ -271,6 +285,10 @@ Counts (re-verified against source at preparation; see the count-verification no
 
 **L4 — Operator overrides target one namespace on both layers.** `apps/api/colonel/logic/colonel/manage_entitlement_override.rb`; `with_materialized_entitlements.rb:173-204`. An operator can grant `manage_org` (role) or `incoming_secrets` (plan) through the identical path. **Action (per §8 D2):** restrict org-level overrides to plan features and membership-level overrides to **capabilities only** — drop per-member *feature* overrides entirely rather than porting them; migrate existing override data.
 
+**L5 — The org∩role intersection has a second, subtly different implementation in the unmaterialized fallback.** `compute_entitlements_from_role` (`with_materialized_entitlements.rb:227-239`) re-derives `org.entitlements ∩ ROLE_ENTITLEMENTS[role]` for memberships that were never materialized — but **skips grants − revokes**. Compounding it, `grant_entitlement`/`revoke_entitlement` write `materialized_entitlements` without setting `materialized_entitlements_at`, so an operator override on a never-materialized membership is silently invisible until `materialize_for_role!` runs. Likely unreachable in practice (invite acceptance and SSO first-auth both materialize), but real at the model layer. **Action:** the split must change **both** intersection sites, not just `materialize_for_role!`; the §6 Stage C backfill closes this seam permanently — assert that in its idempotency tests (§7).
+
+**L6 — Colonel preview mode is an unassigned consumer.** `entitlements_for_request` (used by billing `#show`) layers colonel preview overrides (`apps/api/colonel/logic/colonel/set_entitlement_preview.rb`) over org entitlements. Preview exists to preview *plans*, so it belongs to the **feature axis only** — after separation it must not be able to preview-grant role capabilities. **Action:** pin preview mode to `org.plan_entitlements` during the Stage B/C wire split.
+
 ---
 
 ## 5. Target design (Option C)
@@ -316,6 +334,11 @@ FREE_TIER_FEATURES  = Set['create_secrets','view_receipt','api_access','custom_d
 | Organization | `set :entitlements_plan`, `set :materialized_entitlements`, grants/revokes (`with_materialized_entitlements.rb:66-86`) | unchanged in shape but **plan-features-only**; never write `manage_*` here |
 | Organization | — | (limits unchanged: `hashkey :limits_plan`) |
 | OrganizationMembership | `set :entitlements_plan`, `set :materialized_entitlements`, grants/revokes (`with_materialized_entitlements.rb:53-64`) | `set :materialized_features` (= org plan features, org-scoped read-through) **+** `set :materialized_capabilities` (= `ROLE_CAPABILITIES[role]`), each with own grants/revokes |
+
+> **Naming note:** the conflation extends to storage key names — the membership
+> set holding role-derived output (`org ∩ role`) is literally named
+> `entitlements_plan` (`with_materialized_entitlements.rb:54`). The Stage C
+> cutover replaces the key rather than reusing the misleading name.
 
 Materialization becomes two independent paths (no intersection):
 
@@ -424,7 +447,30 @@ Supersede ADR-012 with a new #3491 Option C ADR. Reconcile the ADR-vs-code tier 
 Introduce `kind` metadata: add `PLAN_FEATURES`/`ROLE_CAPABILITIES` Ruby constants and the FE `planFeatureSchema`/`roleCapabilitySchema` as **derived views** over the existing single namespace (no storage change yet). Add the `kind` discriminator to the catalog endpoints. Add `manage_billing` to the FE capability constant (M6). Reconcile the three enumerations into one manifest (M8). This makes the taxonomy machine-readable while `can?()` still works unchanged.
 
 **Stage B — Option B: dual interfaces (parallel, backward-compatible).**
-Add `org.has_feature?` / `membership.has_capability?` and `require_plan_feature!` / `require_capability!` that, in this stage, route to the existing merged set (so behavior is identical) but carry the correct **error semantics** (capability denials raise `CapabilityRequired` with no `current_plan`/`upgrade_to`; split locale keys — H3). Add wire fields `org.plan_entitlements` and `membership.role_capabilities` **alongside** the legacy `entitlements` arrays (do not remove yet). Add FE `useFeatures`/`usePermissions` as façades over the current `org.entitlements`. Convert domain config pages to the dual-gate shape (M2) and fix the standalone short-circuit to apply only to features (M4). Re-type call sites (`update_member_role.rb`, invitations → `require_capability!`; `add_domain.rb`, domain features → `require_plan_feature!`). At this point the two interfaces exist and produce correct UX, but storage is still merged.
+Add `org.has_feature?` / `membership.has_capability?` and `require_plan_feature!` / `require_capability!` that, in this stage, route to the existing merged set (so behavior is identical) but carry the correct **error semantics** (capability denials raise `CapabilityRequired` with no `current_plan`/`upgrade_to`; split locale keys — H3). Add wire fields `org.plan_entitlements` and `membership.role_capabilities` **alongside** the legacy `entitlements` arrays (do not remove yet). Add FE `useFeatures`/`usePermissions` as façades over the current `org.entitlements`. Convert domain config pages to the dual-gate shape (M2) and fix the standalone short-circuit to apply only to features (M4). Re-type call sites (`update_member_role.rb`, invitations → `require_capability!`; domain CRUD → `require_plan_feature!('custom_domains')` **plus** `require_capability!('manage_domains')` — see the decision list below). At this point the two interfaces exist and produce correct UX, but storage is still merged. Two work items gate this stage:
+
+- **Tier-preservation decision list (required before any re-typing ships).**
+  `ADMIN_/OWNER_ENTITLEMENTS` do not just hold capabilities — they *tier plan
+  features by role* (§3.1 "backend role set" column), and that tiering is live
+  enforcement. Verified: `add_domain.rb:63`'s **only** authorization is
+  `require_entitlement_in!(@target_organization, 'custom_domains')`; a
+  member-role user is blocked solely because `custom_domains` sits in
+  `ADMIN_ENTITLEMENTS`, so re-typing it to `require_plan_feature!` alone would
+  let any member add domains — a silent privilege relaxation. For each
+  admin/owner-tier plan feature, enumerate the call sites where the org∩role
+  intersection is the only role gate and rule each one explicitly:
+  **preserve** the tier (attach a capability — e.g. D1's `manage_domains` on
+  `add_domain`/`remove_domain`) or **relax** deliberately (feature flows to all
+  members — likely intended for domain *viewing*, `get_domain.rb:46` /
+  `list_domains.rb:47`, per §5.8). Same class: `update_domain_brand.rb:193`
+  (`custom_privacy_defaults`). Every "preserve" ruling gets a regression spec
+  (§7).
+- **Pairing countermeasure (§1.2, §8).** Add a composite
+  `require_access!(feature:, capability:)` helper — or route-level
+  authorization metadata plus a CI audit over mutating org-scoped endpoints —
+  so two-gate sites declare both dimensions in one call rather than relying on
+  every future author remembering to pair two bare gates (the exact failure
+  mode ADR-012 §Context documents as #3225).
 
 **Stage C — full separation (storage cutover).**
 Split materialization into `materialized_features` and `materialized_capabilities`; remove the org∩role intersection for capabilities (H1/H2); remove `manage_*` from `STANDALONE` and the billing catalog (H1/H6); make capabilities billing-independent. Decouple the webhook so plan events no longer recompute capabilities (M11); `change_role!` becomes the sole capability driver. Split operator overrides and **remove the per-member feature-override path** (L4, §8 D2); membership overrides become capability-only. Restrict `check_entitlement`/billing `#check` to features (M12). Remove the legacy merged `can?()`/`require_entitlement!` and the legacy wire arrays after a deprecation window.
@@ -450,12 +496,15 @@ These assert the merged model and **must change** under Option C:
 - `change_role_spec.rb` — asserts re-materialization on role change; update to drive `materialized_capabilities` only.
 - `entitlement_enforcement_spec.rb` — `org.can?('api_access')` plan gating; re-type to `require_plan_feature!` and decide the `api_access` dual-nature ruling (L1).
 
-New tests required: `require_capability!` raises `CapabilityRequired` (no upgrade fields); standalone preserves role differentiation for capabilities; webhook does **not** recompute capabilities; backfill idempotency.
+New tests required: `require_capability!` raises `CapabilityRequired` (no upgrade fields); standalone preserves role differentiation for capabilities; webhook does **not** recompute capabilities; backfill idempotency (including that the L5 unmaterialized-override seam is closed — overrides on previously-unmaterialized memberships become visible); **tier-preservation regressions** — one spec per "preserve" ruling from the §6 Stage B decision list (e.g. a member-role user still cannot `add_domain`/`remove_domain` after re-typing).
 
 ---
 
 ## 8. Risks & open questions
 
+- **Two-gate pairing hazard — a regression vector of the very defect ADR-012 fixed.** ADR-012 §Context documents why the fusion exists: separate role guards "must be manually paired with entitlement checks at every call site. Nothing forces the pairing," and five domain-branding endpoints shipped without it (#3225, an actual privilege gap). Option C's `require_plan_feature!` + `require_capability!` is structurally that same manually-paired shape. The design must ship a countermeasure — a composite `require_access!(feature:, capability:)` gate, or route-level authorization metadata plus a CI audit over mutating org-scoped endpoints — so the split regains "which axis denied this?" without losing "no endpoint can forget an axis." (§1.2; §6 Stage B.)
+- **Role-tiering of plan features is load-bearing enforcement that Option C relaxes.** "Plan features flow to all members" (H1 action) is a behavior change at every call site where an admin/owner-tier feature's intersection is the *only* role gate (verified: `add_domain.rb:63`). The §6 Stage B per-feature preserve-or-relax decision list must exist before any re-typing ships; every "preserve" ruling needs a capability and a regression spec (§7).
+- **Gate policy for the split predicates (colonel bypass, anonymous access).** Today the two gates disagree: `require_entitlement!` fails **open** for anonymous users (`base.rb:191`) where `require_entitlement_in!` fails closed; `require_entitlement_in!` has a colonel bypass (`base.rb:278`) that `require_entitlement!` lacks. Each new gate needs an explicit ruling in the superseding ADR: colonel bypass on capabilities (operator axis — plausibly yes) vs on features (bypassing a plan gate masks billing misconfiguration — plausibly no); and anonymous access (guest route gating owns anonymous today — a capability gate should never pass for an anonymous caller). (M1.)
 - **Dual-natured tokens (`audit_logs`, `api_access`).** Product decision required: does each need to exist in **both** a plan-feature registry (availability) and a capability registry (who may view/use)? (L1) This is not a mechanical split.
 - **`manage_orgs` as a third axis.** It is account-scoped ("manage organizations on your account"), not org-scoped. Option C may need an **account-role** dimension distinct from both org-plan and org-role. (H4)
 - **DECIDED (D1) — `manage_org` stays owner-exclusive; add an admin+ `manage_domains` capability.** Code makes `manage_org` OWNER-only while route guards/`useOrgPermissions` already admit owner∥admin, so admins pass route guards but would fail `can(MANAGE_ORG)` (M3). Ratified resolution: keep `manage_org` **owner-exclusive** for org-lifecycle actions (rename, delete, billing, SSO) and introduce a distinct **admin+ `manage_domains`** capability for the domain-config surface admins already reach — aligning the model with shipped route-guard behavior instead of widening `manage_org`. Reflected in §5.1 (`ADMIN_CAPABILITIES` now includes `manage_domains`) and M3.
@@ -478,7 +527,7 @@ New tests required: `require_capability!` raises `CapabilityRequired` (no upgrad
 | Role denials are not framed as plan upgrades | §4 H3; §5.3; §6 Stage B; §7 | `CapabilityRequired` (no `current_plan`/`upgrade_to`); split locale namespaces; rewrite `entitlement_keys_spec.rb`; fix `upgrade_to_invite` UX |
 | Separation reflected on the wire | §5.4; §6 (dual-field back-compat) | `org.plan_entitlements` + `membership.role_capabilities`; `kind` discriminator on catalog endpoints |
 | Separation reflected in the frontend | §5.5, §5.7; §4 M2/M4/M6/M7 | `useFeatures(org)` / `usePermissions(membership)`; split `ENTITLEMENTS` const; dual-gate all domain config pages; fix standalone short-circuit |
-| Consistent enforcement across paths | §4 M1; §5.6 | Re-express middleware and domain-config policy in the two-dimension API; remove accidental divergence |
+| Consistent enforcement across paths | §4 M1; §5.6; §1.2 | Re-express middleware and domain-config policy in the two-dimension API; remove accidental divergence; pairing countermeasure (composite gate / CI audit, §6 Stage B); explicit colonel/anonymous gate policy (§8) |
 | Billing lifecycle decoupled from authorization | §4 M11; §6 Stage C | Webhook re-materializes features only; `change_role!` is the sole capability driver |
 | Migration is low-risk and backward-compatible | §6 | Option A → B → C sequencing; Redis-set + wire back-compat; idempotent membership backfill |
 | Documentation/contract is trustworthy and current | §4 H7; §6 Stage 0 | Supersede ADR-012; reconcile tier drift; fix stale citations; one generated manifest |
@@ -554,7 +603,9 @@ Stage 0 (docs) + the highest-signal, lowest-risk slice of Stage A:
    const header and `src/schemas/contracts/organization.ts` above `KNOWN_ENTITLEMENTS`)
    and the `materialize_for_role!` doc/code comment mismatch (the module-header
    `Materialization formula:` comment says `org.materialized_entitlements` but the
-   method body uses `org.entitlements` — see the §2.2 note).
+   method body uses `org.entitlements` — see the §2.2 note; fix the **header
+   comment only**, the method body's departure is deliberate and self-documented,
+   and correct the formula in ADR-012's successor while superseding it).
 4. Add `manage_billing` to the frontend capability constant (M6).
 
 None of these change runtime behavior; together they make the taxonomy
