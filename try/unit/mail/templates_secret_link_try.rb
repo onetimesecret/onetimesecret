@@ -93,15 +93,19 @@ template = Onetime::Mail::Templates::SecretLink.new(@valid_data)
 template.custid
 #=> 'sender@example.com'
 
-## SecretLink display_domain uses site host by default
+## SecretLink body links to the canonical host when share_domain is nil
+# The link is built in the template from brand_baseuri (a TemplateContext
+# helper), which falls back to the canonical site baseuri when the message
+# carries no share_domain.
+ctx = Onetime::Mail::Templates::Base::TemplateContext.new({}, 'en')
 template = Onetime::Mail::Templates::SecretLink.new(@valid_data)
-template.display_domain
-#=~> /https?:\/\/.+/
+template.render_text.include?("#{ctx.site_baseuri}/secret/abc123def456")
+#=> true
 
-## SecretLink display_domain uses share_domain when present
+## SecretLink body links to the share_domain when present
 template = Onetime::Mail::Templates::SecretLink.new(@valid_data_with_domain)
-template.display_domain
-#=~> /https?:\/\/custom\.example\.com/
+template.render_text.include?('https://custom.example.com/secret/xyz789')
+#=> true
 
 ## SecretLink baseuri uses site config by default
 template = Onetime::Mail::Templates::SecretLink.new(@valid_data)
@@ -150,8 +154,8 @@ email[:text_body].is_a?(String) && !email[:text_body].empty?
 ## SecretLink handles nil share_domain gracefully
 data = @valid_data.merge(share_domain: nil)
 template = Onetime::Mail::Templates::SecretLink.new(data)
-template.display_domain
-#=~> /https?:\/\/.+/
+template.render_text
+#=~> /https?:\/\/.+\/secret\/abc123def456/
 
 ## SecretLink shared layout links header/footer to the custom share_domain
 html = Onetime::Mail::Templates::SecretLink.new(@valid_data_with_domain).render_html

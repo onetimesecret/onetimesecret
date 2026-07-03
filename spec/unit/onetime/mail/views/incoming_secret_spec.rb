@@ -85,36 +85,39 @@ RSpec.describe Onetime::Mail::Templates::IncomingSecret do
   end
 
   # ---------------------------------------------------------------------------
-  # display_domain
+  # Secret link domain selection (brand_baseuri via the template context)
   # ---------------------------------------------------------------------------
+  # The class no longer exposes a full-URI display_domain; the link's domain
+  # is chosen by TemplateContext#brand_baseuri at render time, so assert on
+  # the rendered secret link instead.
 
-  describe '#display_domain' do
+  describe 'secret link domain in rendered output' do
+    before do
+      allow(I18n).to receive(:t) { |key, **_opts| key.to_s }
+    end
+
     context 'when share_domain is nil' do
-      it 'falls back to the configured site host' do
-        result = template.display_domain
-        expect(result).to match(%r{\Ahttps?://})
+      it 'links to the configured site host' do
+        expect(template.render_text).to match(%r{https?://\S+/secret/abc123def456})
       end
     end
 
     context 'when share_domain is provided' do
       let(:valid_data) { super().merge(share_domain: 'secrets.example.com') }
 
-      it 'uses the share_domain in the URL' do
-        expect(template.display_domain).to include('secrets.example.com')
-      end
-
-      it 'starts with a scheme' do
-        expect(template.display_domain).to match(%r{\Ahttps?://secrets\.example\.com\z})
+      it 'builds the secret link on the share_domain, scheme included' do
+        expect(template.render_text)
+          .to match(%r{https?://secrets\.example\.com/secret/abc123def456})
       end
     end
 
     context 'when share_domain is an empty string' do
       let(:valid_data) { super().merge(share_domain: '') }
 
-      it 'falls back to the site host' do
-        result = template.display_domain
-        expect(result).to match(%r{\Ahttps?://})
-        expect(result).not_to match(%r{://\z})
+      it 'falls back to the site host rather than an empty authority' do
+        text = template.render_text
+        expect(text).to match(%r{https?://\S+/secret/abc123def456})
+        expect(text).not_to match(%r{https?:///})
       end
     end
   end

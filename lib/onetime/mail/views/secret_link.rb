@@ -44,13 +44,6 @@ module Onetime
           data[:recipient]
         end
 
-        # Computed template variables
-        def display_domain
-          scheme = site_ssl? ? 'https://' : 'http://'
-          host   = data[:share_domain].to_s.empty? ? site_host : data[:share_domain]
-          "#{scheme}#{host}"
-        end
-
         def uri_path
           "/secret/#{data[:secret_key]}"
         end
@@ -73,10 +66,11 @@ module Onetime
           data[:has_passphrase] == true
         end
 
-        # Override to include computed values in template context
+        # Override to include computed values in template context.
+        # The secret link itself is built in the template from brand_baseuri
+        # (a TemplateContext helper reading share_domain) plus uri_path.
         def template_binding
           computed_data = data.merge(
-            display_domain: display_domain,
             uri_path: uri_path,
             custid: custid,
             has_passphrase: has_passphrase?,
