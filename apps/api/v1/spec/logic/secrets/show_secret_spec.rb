@@ -144,9 +144,11 @@ RSpec.describe V1::Logic::Secrets::ShowSecret do
     end
 
     it 'does not crash when secret has ciphertext but no legacy value' do
-      # Confirm the v2 precondition: ciphertext is populated, value is not
+      # Confirm the v2 precondition: ciphertext is populated. The legacy
+      # `value` field has been removed from the Secret model entirely, so
+      # "no legacy value" is now structurally guaranteed (the field no longer
+      # exists) rather than something to assert per-record.
       expect(v2_secret.ciphertext.to_s).not_to be_empty
-      expect(v2_secret.value.to_s).to be_empty
 
       expect { subject.process }.not_to raise_error
     end
