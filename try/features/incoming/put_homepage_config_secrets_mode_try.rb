@@ -124,11 +124,12 @@ end
 
 # --- secrets_mode=incoming accepted once ready ---
 
-## Accepted when incoming is enabled with a recipient; response carries the mode
+## Accepted when incoming is enabled with a recipient; response carries the
+## mode and the server-computed effective enablement
 @incoming.enable!
 @result = run_put(@test_cust, @test_domain, { 'enabled' => true, 'secrets_mode' => 'incoming' })
-[@result[:record][:enabled], @result[:record][:secrets_mode]]
-#=> [true, 'incoming']
+[@result[:record][:enabled], @result[:record][:secrets_mode], @result[:record][:effective_enabled]]
+#=> [true, 'incoming', true]
 
 ## Stored record reflects the selection
 HomepageConfig.find_by_domain_id(@test_domain.identifier).secrets_mode_value
@@ -142,12 +143,13 @@ HomepageConfig.find_by_domain_id(@test_domain.identifier).secrets_mode_value
 #=> [false, 'incoming']
 
 ## Documented write-path bypass: re-enabling with stored mode incoming does
-## not re-validate readiness (the serializer's effective-enabled downgrade
-## is the read-path guard for the drift state)
+## not re-validate readiness — but the response's effective_enabled exposes
+## the drift (stored enabled true, effectively trust-carded), matching what
+## the bootstrap serializer will emit to visitors
 @incoming.disable!
 @result = run_put(@test_cust, @test_domain, { 'enabled' => true })
-[@result[:record][:enabled], @result[:record][:secrets_mode]]
-#=> [true, 'incoming']
+[@result[:record][:enabled], @result[:record][:secrets_mode], @result[:record][:effective_enabled]]
+#=> [true, 'incoming', false]
 
 ## Switching back to create mode always succeeds
 @result = run_put(@test_cust, @test_domain, { 'enabled' => true, 'secrets_mode' => 'create' })

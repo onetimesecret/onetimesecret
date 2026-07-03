@@ -365,35 +365,36 @@ export const useDomainsStore = defineStore('domains', () => {
       throw new Error('Unable to update homepage configuration. Please try again.');
     }
 
-    // Update the domain record in the domainsStore to keep workspace views reactive
-    const domainRecord = records.value?.find((d) => d.extid === extid);
-    if (domainRecord && result.data.record) {
-      const domainIndex = records.value!.findIndex((d) => d.extid === extid);
-      records.value![domainIndex] = {
-        ...domainRecord,
-        homepage_config: result.data.record,
-      };
-    }
-
-    // Update bootstrapStore so identityStore (branded header/homepage) stays in sync
-    // on custom domains without requiring a full page reload.
-    //
-    // The bootstrap slot carries the EFFECTIVE enabled value (the backend
-    // serializer downgrades incoming-mode homepages whose incoming config
-    // is not ready), while the PUT response carries the STORED value.
-    // Mirror the downgrade here so an admin's own session never renders an
-    // interactive homepage the next visitor wouldn't get. incoming_ready is
-    // server-computed on the domain record; missing record/field fails
-    // closed, matching the serializer.
     if (result.data.record) {
-      const record = result.data.record;
-      const effectiveEnabled =
-        record.enabled &&
-        (record.secrets_mode !== 'incoming' || (domainRecord?.incoming_ready ?? false));
+      // Split the server-computed effective flag from the stored record.
+      const { effective_enabled, ...storedRecord } = result.data.record;
+
+      // Update the domain record in the domainsStore to keep workspace views
+      // reactive (stored values — the admin UI edits truth, not effect).
+      const domainIndex = records.value?.findIndex((d) => d.extid === extid) ?? -1;
+      if (domainIndex !== -1) {
+        records.value![domainIndex] = {
+          ...records.value![domainIndex],
+          homepage_config: storedRecord,
+        };
+      }
+
+      // Update bootstrapStore so identityStore (branded header/homepage)
+      // stays in sync on custom domains without requiring a full page
+      // reload. The bootstrap slot carries the EFFECTIVE enabled value (the
+      // backend serializer downgrades incoming-mode homepages whose
+      // incoming config is unavailable); the server computes it in the PUT
+      // response so the admin's own session never renders an interactive
+      // homepage the next visitor wouldn't get. Older backends omit the
+      // field — fall back to the stored flag (they also predate incoming
+      // mode, so stored == effective there).
       const { useBootstrapStore } = await import('./bootstrapStore');
       const bootstrapStore = useBootstrapStore();
       bootstrapStore.$patch({
-        homepage_config: { ...record, enabled: effectiveEnabled },
+        homepage_config: {
+          ...storedRecord,
+          enabled: effective_enabled ?? storedRecord.enabled,
+        },
       });
     }
 

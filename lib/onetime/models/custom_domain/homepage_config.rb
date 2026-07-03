@@ -130,6 +130,46 @@ module Onetime
         secrets_mode_value == 'incoming'
       end
 
+      # Whether the homepage is EFFECTIVELY interactive for anonymous
+      # visitors right now. For create mode this is just enabled?; for
+      # incoming mode it additionally requires that incoming can actually
+      # receive secrets (see incoming_available?). This is the single
+      # source of truth consumed by both the bootstrap serializer (read
+      # path) and the homepage-config API responses, so the two can never
+      # drift: a homepage pointed at an unavailable incoming form fails
+      # closed to the non-interactive trust card.
+      #
+      # @param custom_domain [CustomDomain, nil] pass the already-loaded
+      #   domain to avoid a redundant Redis read; falls back to loading it.
+      # @return [Boolean]
+      def effectively_enabled?(custom_domain: nil)
+        return false unless enabled?
+        return true unless incoming_mode?
+
+        incoming_available?(custom_domain: custom_domain)
+      end
+
+      # Whether the domain can actually serve the incoming form to
+      # anonymous visitors: instance feature flag on, site.secret present
+      # (recipient hashes cannot be computed without it — RecipientResolver
+      # fails closed the same way), IncomingConfig ready (enabled with at
+      # least one recipient), and the owning org still entitled. Mirrors
+      # the PutHomepageConfig secrets_mode=incoming write gate. Checks run
+      # cheapest-first (in-memory config, one Redis read, org load).
+      #
+      # @param custom_domain [CustomDomain, nil] optional pre-loaded domain
+      # @return [Boolean]
+      def incoming_available?(custom_domain: nil)
+        return false unless OT.conf.dig('features', 'incoming', 'enabled')
+        return false if OT.conf.dig('site', 'secret').to_s.strip.empty?
+
+        incoming = Onetime::CustomDomain::IncomingConfig.find_by_domain_id(domain_id)
+        return false unless incoming&.ready?
+
+        domain = custom_domain || self.custom_domain
+        domain&.primary_organization&.can?('incoming_secrets') || false
+      end
+
       # Enable homepage secrets for this domain.
       # @return [void]
       def enable!

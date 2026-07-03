@@ -115,8 +115,9 @@ module Core
           # never let anonymous visitors see upgrade/misconfiguration copy
           # on the branded front door. The stored secrets_mode is preserved
           # so re-readying incoming restores the operator's intent.
-          effective_enabled = homepage_config.enabled? &&
-                              (secrets_mode != 'incoming' || incoming_available?(custom_domain))
+          # HomepageConfig#effectively_enabled? is the single source of
+          # truth, shared with the homepage-config API responses.
+          effective_enabled = homepage_config.effectively_enabled?(custom_domain: custom_domain)
 
           {
             'domain_id' => domain_id,
@@ -128,28 +129,6 @@ module Core
             'created_at' => homepage_config.created&.to_i,
             'updated_at' => homepage_config.updated&.to_i,
           }
-        end
-
-        # Whether the domain can actually serve the incoming form to
-        # anonymous visitors: instance feature flag on, site.secret present
-        # (RecipientResolver fails closed without it — recipient hashes
-        # cannot be computed), IncomingConfig ready (enabled with at least
-        # one recipient), and the owning org still entitled. Mirrors the
-        # PutHomepageConfig secrets_mode=incoming write gate and agrees with
-        # the runtime RecipientResolver#enabled? so bootstrap and
-        # /api/incoming/config never disagree. Only consulted when the
-        # homepage secrets_mode is 'incoming', so the common create-mode
-        # path pays no extra reads; checks run cheapest-first (in-memory
-        # config, one Redis read, org load).
-        def incoming_available?(custom_domain)
-          return false unless OT.conf.dig('features', 'incoming', 'enabled')
-          return false if OT.conf.dig('site', 'secret').to_s.strip.empty?
-
-          ready = Onetime::CustomDomain::IncomingConfig
-            .find_by_domain_id(custom_domain.identifier)&.ready? || false
-          return false unless ready
-
-          custom_domain.primary_organization&.can?('incoming_secrets') || false
         end
 
         # Backend gate: if a SignupConfig exists and disables signup, don't show the form.

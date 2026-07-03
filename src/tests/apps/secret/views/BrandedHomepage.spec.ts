@@ -147,6 +147,9 @@ describe('BrandedHomepage render switch', () => {
     expect(wrapper.text()).toContain(TRUST_CARD_KEY);
     // No upgrade/billing copy for anonymous visitors.
     expect(wrapper.text()).not.toContain('incoming.upgrade_required_title');
+    // Headline falls back to the neutral copy — no "Send a secret" over a
+    // members-only trust card.
+    expect(wrapper.text()).not.toContain('web.homepage.send_a_secret');
   });
 
   it('degrades to the trust card when recipients drift to empty', async () => {

@@ -96,7 +96,16 @@ const select = (key: HomepageChoice) => {
 
 // Roving tabindex: the selected option is the tab stop; arrows move
 // selection between enabled options (standard radiogroup keyboard model).
-const optionTabindex = (key: HomepageChoice) => (key === props.modelValue ? 0 : -1);
+// When the current selection is disabled or hidden (stored mode 'incoming'
+// while incoming is unready, or the option gated away entirely), the first
+// enabled option takes the tab stop so the group stays keyboard-reachable.
+const tabStopKey = computed<HomepageChoice | null>(() => {
+  const selected = options.value.find((o) => o.key === props.modelValue);
+  if (selected && !isOptionDisabled(selected.key)) return selected.key;
+  return options.value.find((o) => !isOptionDisabled(o.key))?.key ?? null;
+});
+
+const optionTabindex = (key: HomepageChoice) => (key === tabStopKey.value ? 0 : -1);
 
 const onKeydown = (event: KeyboardEvent) => {
   const keys = ['ArrowDown', 'ArrowRight', 'ArrowUp', 'ArrowLeft'];

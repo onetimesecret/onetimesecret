@@ -44,6 +44,7 @@ module DomainsAPI
                         domain_id: @homepage_config.domain_id,
                         enabled: @homepage_config.enabled?,
                         secrets_mode: @homepage_config.secrets_mode_value,
+                        effective_enabled: @homepage_config.effectively_enabled?(custom_domain: @custom_domain),
                         signup_enabled: @homepage_config.signup_enabled?,
                         signin_enabled: @homepage_config.signin_enabled?,
                         disabled_homepage_variant: @homepage_config.disabled_homepage_variant_value,

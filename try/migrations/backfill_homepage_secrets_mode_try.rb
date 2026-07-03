@@ -35,10 +35,15 @@ OT.info 'Cleaned Redis for backfill-homepage-secrets-mode migration test run'
 @org     = Onetime::Organization.create!("HpSm Test Org #{@ts}", @owner, "hp_sm_#{@ts}@test.com")
 
 # Domain LEGACY: enabled homepage whose record pre-dates the secrets_mode field.
+# Stage a fixed past `updated` (Familia JSON-encodes field values) so the
+# timestamp-preservation assertion below is deterministic rather than a
+# same-second coincidence.
+LEGACY_UPDATED_AT = 1_600_000_000
 @domain_legacy = Onetime::CustomDomain.create!("hp-sm-legacy-#{@ts}.example.com", @org.objid)
 Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @domain_legacy.identifier, enabled: true)
 @legacy_cfg = Onetime::CustomDomain::HomepageConfig.find_by_domain_id(@domain_legacy.identifier)
 Familia.dbclient.hdel(@legacy_cfg.dbkey, 'secrets_mode')
+Familia.dbclient.hset(@legacy_cfg.dbkey, 'updated', LEGACY_UPDATED_AT.to_s)
 
 # Domain STRAY: carries an unrecognised stored value (corrupt/ancient write).
 # Familia JSON-serializes hash field values, so stage a JSON-encoded string.
@@ -96,10 +101,9 @@ Onetime::CustomDomain::HomepageConfig.find_by_domain_id(@domain_legacy.identifie
 
 # --- Actual run ---
 
-## Setup: capture the legacy domain's updated timestamp before the run
-@legacy_updated_before = Onetime::CustomDomain::HomepageConfig.find_by_domain_id(@domain_legacy.identifier).updated.to_i
-@legacy_updated_before > 0
-#=> true
+## Setup: the legacy domain's staged past updated timestamp is in place
+Onetime::CustomDomain::HomepageConfig.find_by_domain_id(@domain_legacy.identifier).updated.to_i
+#=> 1600000000
 
 ## Actual run completes successfully
 @run = Onetime::Migrations::BackfillHomepageSecretsMode.new(run: true)
@@ -111,9 +115,10 @@ Onetime::CustomDomain::HomepageConfig.find_by_domain_id(@domain_legacy.identifie
 Onetime::CustomDomain::HomepageConfig.find_by_domain_id(@domain_legacy.identifier).secrets_mode
 #=> 'create'
 
-## Backfill does not advance the updated timestamp (not a semantic change)
-Onetime::CustomDomain::HomepageConfig.find_by_domain_id(@domain_legacy.identifier).updated.to_i == @legacy_updated_before
-#=> true
+## Backfill preserves the stored updated timestamp exactly (commit_fields,
+## not save — save would stamp Familia.now via prepare_for_save)
+Onetime::CustomDomain::HomepageConfig.find_by_domain_id(@domain_legacy.identifier).updated.to_i
+#=> 1600000000
 
 ## Stray value was normalised to 'create'
 Onetime::CustomDomain::HomepageConfig.find_by_domain_id(@domain_stray.identifier).secrets_mode

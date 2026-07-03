@@ -131,7 +131,12 @@ module Onetime
         end
 
         config.secrets_mode = Onetime::CustomDomain::HomepageConfig::DEFAULT_SECRETS_MODE
-        config.save
+        # commit_fields (not save): save runs prepare_for_save, which stamps
+        # `updated = Familia.now` unconditionally. Backfilling the
+        # equivalent-by-coercion default is not a semantic change, so the
+        # stored timestamp must survive; commit_fields writes the loaded
+        # fields back verbatim plus the new secrets_mode.
+        config.commit_fields
 
         track_stat(:backfilled)
         info "Backfilled secrets_mode=create for #{domain_id}"

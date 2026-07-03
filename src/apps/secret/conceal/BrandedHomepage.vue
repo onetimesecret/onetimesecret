@@ -79,13 +79,21 @@
       (incomingMode.value && !incomingLoading.value && !incomingAvailable.value)
   );
 
+  // Send-a-secret copy only while the incoming form is (or is about to be)
+  // the content below it. Once the runtime check degrades incoming to the
+  // trust card, fall back to the neutral copy the private branch has always
+  // shown — a "Send a secret" headline over a members-only notice reads as
+  // a broken page.
+  const incomingCopy = computed(
+    () => incomingMode.value && (incomingLoading.value || incomingAvailable.value)
+  );
   const headline = computed(() =>
-    incomingMode.value
+    incomingCopy.value
       ? t('web.homepage.send_a_secret')
       : t('web.homepage.create_a_secure_link')
   );
   const subline = computed(() =>
-    incomingMode.value
+    incomingCopy.value
       ? t('web.homepage.deliver_sensitive_information_directly_and_securely')
       : t('web.homepage.send_sensitive_information_that_can_only_be_viewed_once')
   );

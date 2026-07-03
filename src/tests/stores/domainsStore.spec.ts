@@ -544,33 +544,39 @@ describe('domainsStore', () => {
       expect(store.records?.[0].homepage_config?.secrets_mode).toBe('incoming');
     });
 
-    it('patches bootstrap with effective enabled=false when incoming mode is unready', async () => {
-      await seedDomainRecord({ incoming_ready: false });
+    it('patches bootstrap with the server-computed effective enabled (drift downgrade)', async () => {
+      await seedDomainRecord();
       axiosMock.onPut(`/api/domains/${extid}/homepage-config`).reply(200, {
         user_id: 'u_1',
-        record: homepageRecord({ enabled: true, secrets_mode: 'incoming' }),
+        record: homepageRecord({
+          enabled: true,
+          secrets_mode: 'incoming',
+          effective_enabled: false,
+        }),
       });
 
       await store.putHomepageConfig(extid, { enabled: true, secrets_mode: 'incoming' });
 
-      // The bootstrap slot carries EFFECTIVE enabled (mirrors the backend
-      // serializer downgrade) so the admin's own session renders the same
-      // trust card the next visitor gets.
+      // The bootstrap slot carries the server-computed EFFECTIVE enabled
+      // (mirrors the backend serializer downgrade) so the admin's own
+      // session renders the same trust card the next visitor gets, while
+      // the workspace record keeps the STORED flag for editing.
       const { useBootstrapStore } = await import('@/shared/stores/bootstrapStore');
       const bootstrapStore = useBootstrapStore();
       expect(bootstrapStore.homepage_config?.enabled).toBe(false);
       expect(bootstrapStore.homepage_config?.secrets_mode).toBe('incoming');
+      expect(store.records?.[0].homepage_config?.enabled).toBe(true);
     });
 
-    it('patches bootstrap with enabled=true when incoming mode is ready', async () => {
-      await seedDomainRecord({
-        incoming_ready: true,
-        incoming_enabled: true,
-        incoming_configured: true,
-      });
+    it('patches bootstrap with enabled=true when the server reports incoming available', async () => {
+      await seedDomainRecord();
       axiosMock.onPut(`/api/domains/${extid}/homepage-config`).reply(200, {
         user_id: 'u_1',
-        record: homepageRecord({ enabled: true, secrets_mode: 'incoming' }),
+        record: homepageRecord({
+          enabled: true,
+          secrets_mode: 'incoming',
+          effective_enabled: true,
+        }),
       });
 
       await store.putHomepageConfig(extid, { enabled: true, secrets_mode: 'incoming' });
@@ -581,8 +587,8 @@ describe('domainsStore', () => {
       expect(bootstrapStore.homepage_config?.secrets_mode).toBe('incoming');
     });
 
-    it('passes create-mode enabled through without consulting incoming readiness', async () => {
-      await seedDomainRecord({ incoming_ready: false });
+    it('falls back to the stored enabled flag when effective_enabled is absent (older backend)', async () => {
+      await seedDomainRecord();
       axiosMock.onPut(`/api/domains/${extid}/homepage-config`).reply(200, {
         user_id: 'u_1',
         record: homepageRecord({ enabled: true, secrets_mode: 'create' }),
