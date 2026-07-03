@@ -64,6 +64,12 @@ BRAND_LOGO_URL=https://cdn.example.com/logo.svg
 `BRAND_PRIMARY_COLOR` onto the neutral manifest, so those env vars also brand the
 Android install (icons still need a file).
 
+`BRAND_LOGO_URL` is not an icon-pack asset: it is the brand logo itself, shown
+in the masthead and in outbound emails (emails require an absolute `https://`
+URL). It appears above because it usually points at the same CDN. Pair it with
+`BRAND_LOGO_ALT` for the logo's alt text; unset falls back to an i18n string
+derived from the product name.
+
 **Option B — drop-in files at build.** Place replacement files in
 [`docker/public/`](../../docker/public/) before building; the `Dockerfile`
 copies them flat into `public/web/`. Empty by default. The right choice for

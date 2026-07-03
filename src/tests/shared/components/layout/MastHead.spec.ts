@@ -79,6 +79,12 @@ describe('MastHead', () => {
    * - authenticated=true && cust != null → isUserPresent=true
    * - awaiting_mfa=true && email != null → isUserPresent=true
    * - Otherwise → isUserPresent=false
+   *
+   * Brand identity is seeded through the flat `brand_*` bootstrap fields
+   * (BRAND_PRODUCT_NAME / BRAND_LOGO_URL / BRAND_LOGO_ALT); the header keeps
+   * only layout knobs at ui.header.logo (#3612 — the ui.header.branding
+   * nesting no longer exists). The defaults below model an unconfigured
+   * install: neutral DefaultLogo, no operator logo, no product name.
    */
   const mountComponent = (
     props: Record<string, unknown> = {},
@@ -88,6 +94,15 @@ describe('MastHead', () => {
       email?: string | null;
       cust?: typeof mockCustomer | null;
       domain_logo?: string | null;
+      domain_strategy?: string;
+      brand_product_name?: string | null;
+      brand_logo_url?: string | null;
+      brand_logo_alt?: string | null;
+      header_logo?: {
+        href?: string | null;
+        show_name?: boolean | null;
+        prominent?: boolean | null;
+      };
     } = {}
   ) => {
     const pinia = createTestingPinia({
@@ -100,13 +115,19 @@ describe('MastHead', () => {
           email: storeState.email ?? null,
           cust: storeState.cust ?? null,
           domain_logo: storeState.domain_logo ?? null,
+          domain_strategy: storeState.domain_strategy ?? 'canonical',
+          brand_product_name: storeState.brand_product_name ?? null,
+          brand_logo_url: storeState.brand_logo_url ?? null,
+          brand_logo_alt: storeState.brand_logo_alt ?? null,
           ui: {
             header: {
-              navigation: { enabled: true },
-              branding: {
-                logo: { url: 'DefaultLogo.vue', alt: 'Onetime Secret' },
-                site_name: 'Onetime Secret',
+              enabled: true,
+              logo: {
+                href: storeState.header_logo?.href ?? null,
+                show_name: storeState.header_logo?.show_name ?? null,
+                prominent: storeState.header_logo?.prominent ?? null,
               },
+              navigation: { enabled: true },
             },
           },
           authentication: {
@@ -319,61 +340,25 @@ describe('MastHead', () => {
     });
   });
 
-  describe('Static config logo (ui.header.branding.logo.url)', () => {
-    const mountWithStaticLogoUrl = (
-      logoUrl: string,
-      storeState: Parameters<typeof mountComponent>[1] = {}
-    ) => {
-      const pinia = createTestingPinia({
-        createSpy: vi.fn,
-        stubActions: false,
-        initialState: {
-          bootstrap: {
-            authenticated: storeState.authenticated ?? false,
-            awaiting_mfa: storeState.awaiting_mfa ?? false,
-            email: storeState.email ?? null,
-            cust: storeState.cust ?? null,
-            domain_logo: storeState.domain_logo ?? null,
-            ui: {
-              header: {
-                navigation: { enabled: true },
-                branding: {
-                  logo: { url: logoUrl, alt: 'Brand' },
-                  site_name: 'Brand',
-                },
-              },
-            },
-            authentication: { enabled: true, signin: true, signup: true },
-          },
-        },
-      });
+  describe('Install brand logo (brand_logo_url)', () => {
+    // The operator's install-wide logo now flows in through the flat
+    // brand_logo_url bootstrap field and the identity resolver
+    // (installLogoUri → logoSource) — not ui.header.branding.logo.url,
+    // which is gone (#3612).
 
-      const authStore = useAuthStore(pinia);
-      const hasAuthenticatedCustomer = storeState.authenticated && storeState.cust;
-      const hasMfaPendingEmail = storeState.awaiting_mfa && storeState.email;
-      (authStore as unknown as { isUserPresent: boolean }).isUserPresent = !!(
-        hasAuthenticatedCustomer || hasMfaPendingEmail
+    it('renders the install logo <img> from brand_logo_url with default sizing', async () => {
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          brand_logo_url: '/img/brand.svg',
+        }
       );
-
-      return mount(MastHead, {
-        props: { displayMasthead: true, displayNavigation: true },
-        global: {
-          plugins: [i18n, pinia],
-          stubs: {
-            RouterLink: { template: '<a :href="to"><slot /></a>', props: ['to'] },
-          },
-        },
-      });
-    };
-
-    it('uses default sizing for static image URL when prominent is not set', async () => {
-      wrapper = mountWithStaticLogoUrl('/img/brand.svg', {
-        authenticated: false,
-      });
 
       await nextTick();
       const img = wrapper.find('img#logo');
       expect(img.exists()).toBe(true);
+      expect(img.attributes('src')).toBe('/img/brand.svg');
       // Without prominent=true, unauthenticated users get default 48px (h-12)
       expect(img.classes()).toContain('h-12');
       expect(img.classes()).not.toContain('h-24');
@@ -383,23 +368,80 @@ describe('MastHead', () => {
       expect(img.attributes('height')).toBe('48');
     });
 
-    it('hides the site name by default for non-default static config logos', async () => {
-      // Static-config custom branding typically embeds the wordmark in the image,
-      // so the site name text mark should not appear next to it (matches the
-      // long-standing behavior for per-domain uploaded logos).
-      wrapper = mountWithStaticLogoUrl('/img/brand.svg', {
-        authenticated: false,
-      });
+    it('links the logo lockup to ui.header.logo.href (LOGO_LINK)', async () => {
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          brand_logo_url: '/img/brand.svg',
+          header_logo: { href: '/dashboard' },
+        }
+      );
 
       await nextTick();
-      // Site name span should not be rendered for a static custom image URL
+      const link = wrapper.find('[data-testid="header-logo-link"]');
+      expect(link.exists()).toBe(true);
+      expect(link.attributes('href')).toBe('/dashboard');
+    });
+
+    it('defaults the logo link to "/" when href is unset (null)', async () => {
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          brand_logo_url: '/img/brand.svg',
+        }
+      );
+
+      await nextTick();
+      const link = wrapper.find('[data-testid="header-logo-link"]');
+      expect(link.exists()).toBe(true);
+      expect(link.attributes('href')).toBe('/');
+    });
+
+    it('hides the wordmark by default next to a custom install logo (heuristic)', async () => {
+      // A custom BRAND_LOGO_URL typically embeds its own wordmark, so the
+      // site-name text mark should not appear next to it (matches the
+      // long-standing behavior for per-domain uploaded logos).
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          brand_logo_url: '/img/brand.svg',
+        }
+      );
+
+      await nextTick();
+      // Site name span should not be rendered for a custom install logo
       const siteName = wrapper.find('span.font-brand.text-lg');
       expect(siteName.exists()).toBe(false);
     });
 
-    it('does NOT treat the default DefaultLogo.vue config as a custom logo (regression)', async () => {
-      // Stock install: config.defaults.yaml ships branding.logo.url = 'DefaultLogo.vue'.
-      // This must continue to use the regular guest size (48px), not the 160px custom size.
+    it('shows the wordmark when ui.header.logo.show_name is explicitly true', async () => {
+      // LOGO_SHOW_NAME=true must beat the custom-logo heuristic (#3160 order,
+      // knob relocated from header.branding.logo to header.logo in #3612).
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          brand_logo_url: '/img/brand.svg',
+          header_logo: { show_name: true },
+        }
+      );
+
+      await nextTick();
+      const img = wrapper.find('img#logo');
+      expect(img.exists()).toBe(true);
+
+      const siteName = wrapper.find('span.font-brand.text-lg');
+      expect(siteName.exists()).toBe(true);
+    });
+
+    it('renders the neutral DefaultLogo at guest size when no install logo is configured', async () => {
+      // Unconfigured install: brand_logo_url unset means the resolver falls
+      // to the DefaultLogo sentinel — regular guest size (48px), never a
+      // "custom logo" treatment. (Sentinel exclusion happens in Ruby:
+      // brand_logo_url can never carry the DefaultLogo.vue sentinel.)
       wrapper = mountComponent(
         {},
         {
@@ -416,58 +458,20 @@ describe('MastHead', () => {
     });
   });
 
-  describe('Prominent logo config (logo.prominent)', () => {
+  describe('Prominent logo config (ui.header.logo.prominent)', () => {
+    // LOGO_PROMINENT now lives at ui.header.logo.prominent (#3612); the
+    // logo asset itself arrives via domain_logo through the resolver.
     const mountWithProminentLogo = (
       prominent: boolean,
       storeState: Parameters<typeof mountComponent>[1] = {}
-    ) => {
-      const pinia = createTestingPinia({
-        createSpy: vi.fn,
-        stubActions: false,
-        initialState: {
-          bootstrap: {
-            authenticated: storeState.authenticated ?? false,
-            awaiting_mfa: storeState.awaiting_mfa ?? false,
-            email: storeState.email ?? null,
-            cust: storeState.cust ?? null,
-            domain_logo: storeState.domain_logo ?? null,
-            ui: {
-              header: {
-                navigation: { enabled: true },
-                branding: {
-                  logo: {
-                    url: storeState.domain_logo ?? 'DefaultLogo.vue',
-                    alt: 'Brand',
-                    prominent,
-                  },
-                  site_name: 'Brand',
-                },
-              },
-            },
-            authentication: { enabled: true, signin: true, signup: true },
-          },
-        },
-      });
-
-      // Manually set isUserPresent based on bootstrap state (same as mountComponent)
-      const authStore = useAuthStore(pinia);
-      const hasAuthenticatedCustomer = storeState.authenticated && storeState.cust;
-      const hasMfaPendingEmail = storeState.awaiting_mfa && storeState.email;
-      (authStore as unknown as { isUserPresent: boolean }).isUserPresent = !!(
-        hasAuthenticatedCustomer || hasMfaPendingEmail
+    ) =>
+      mountComponent(
+        {},
+        {
+          ...storeState,
+          header_logo: { ...storeState.header_logo, prominent },
+        }
       );
-
-      return mount(MastHead, {
-        global: {
-          plugins: [pinia, i18n],
-          stubs: { Teleport: true },
-        },
-        props: {},
-        slots: {
-          'context-switchers': '<span>test-context-switchers</span>',
-        },
-      });
-    };
 
     it('uses intermediate 80px sizing for authenticated users when prominent is true', async () => {
       wrapper = mountWithProminentLogo(true, {
@@ -689,31 +693,78 @@ describe('MastHead', () => {
         expect(logo.attributes('data-show-site-name')).toBe('true');
       }
     });
+
+    it('domain_logo wins over brand_logo_url (tenant beats install)', async () => {
+      // Both logos configured on the canonical domain: the tenant's uploaded
+      // logo outranks the operator's install logo in the resolver
+      // (logoSource = logoUri || installLogoUri || sentinel, #3612).
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          domain_logo: 'https://example.com/tenant.png',
+          brand_logo_url: '/img/install.svg',
+        }
+      );
+
+      await nextTick();
+      const img = wrapper.find('img#logo');
+      expect(img.exists()).toBe(true);
+      expect(img.attributes('src')).toBe('https://example.com/tenant.png');
+    });
   });
 
-  describe('Site name visibility priority (regression #3160)', () => {
+  describe('Site name visibility priority (regression #3160, consolidated #3612)', () => {
     /**
      * Priority chain in getShowSiteName():
      *   1. props.logo.showSiteName            (caller-site override)
      *   2. !identity.showPlatformIdentity     (resolver base guard: any custom
      *                                          domain OR a per-tenant logo hides
      *                                          the platform wordmark)
-     *   3. headerConfig.branding.logo.show_name  (LOGO_SHOW_NAME explicit)
-     *   4. isCustomStaticLogo.value           (heuristic: non-default LOGO_URL)
-     *   5. !!site_name                        (default tied to SITE_NAME)
+     *   3. headerConfig.logo.show_name        (LOGO_SHOW_NAME explicit layout
+     *                                          knob; ships null when unset)
+     *   4. !isCustomStaticLogo                (heuristic: a custom BRAND_LOGO_URL
+     *                                          usually embeds its own wordmark)
      *
      * #3160: in v0.25.3 step 4 ran ahead of step 3, so operators setting
      * LOGO_URL + LOGO_SHOW_NAME=true silently lost their wordmark.
      *
-     * The tests below all use the canonical strategy with no domain_logo, so
-     * showPlatformIdentity is true and rung 2 falls through — exercising the
-     * operator/config rungs unchanged by the resolver consolidation.
+     * #3612: the wordmark text is now the resolver's productName
+     * (brand_product_name || 'Secure Links') — header.branding.site_name is
+     * gone — and the operator logo arrives via brand_logo_url, not
+     * header.branding.logo.url.
+     *
+     * The tests below all use the canonical strategy with no domain_logo
+     * unless stated, so showPlatformIdentity is true and rung 2 falls through.
      */
-    const mountWithBranding = (
-      branding: {
-        logoUrl: string;
-        showName: boolean;
-        siteName: string;
+    const nameI18n = createI18n({
+      legacy: false,
+      locale: 'en',
+      messages: {
+        en: {
+          web: {
+            homepage: {
+              one_time_secret_literal: '{product_name}',
+              signup_individual_and_business_plans: 'Sign up',
+              log_in_to_onetime_secret: 'Log in',
+            },
+            layout: {
+              main_navigation: 'Main Navigation',
+            },
+            COMMON: {
+              header_create_account: 'Create Account',
+              header_sign_in: 'Sign In',
+            },
+          },
+        },
+      },
+    });
+
+    const mountWithIdentity = (
+      identity: {
+        brandLogoUrl?: string | null;
+        showName?: boolean | null;
+        brandProductName?: string | null;
       },
       storeState: Parameters<typeof mountComponent>[1] = {},
       props: Record<string, unknown> = {}
@@ -728,17 +779,19 @@ describe('MastHead', () => {
             email: storeState.email ?? null,
             cust: storeState.cust ?? null,
             domain_logo: storeState.domain_logo ?? null,
+            domain_strategy: storeState.domain_strategy ?? 'canonical',
+            brand_product_name: identity.brandProductName ?? null,
+            brand_logo_url: identity.brandLogoUrl ?? null,
+            brand_logo_alt: null,
             ui: {
               header: {
-                navigation: { enabled: true },
-                branding: {
-                  logo: {
-                    url: branding.logoUrl,
-                    alt: 'Brand',
-                    show_name: branding.showName,
-                  },
-                  site_name: branding.siteName,
+                enabled: true,
+                logo: {
+                  href: null,
+                  show_name: identity.showName ?? null,
+                  prominent: null,
                 },
+                navigation: { enabled: true },
               },
             },
             authentication: { enabled: true, signin: true, signup: true },
@@ -756,7 +809,7 @@ describe('MastHead', () => {
       return mount(MastHead, {
         props: { displayMasthead: true, displayNavigation: true, ...props },
         global: {
-          plugins: [i18n, pinia],
+          plugins: [nameI18n, pinia],
           stubs: {
             RouterLink: { template: '<a :href="to"><slot /></a>', props: ['to'] },
           },
@@ -764,15 +817,16 @@ describe('MastHead', () => {
       });
     };
 
-    it('renders site name when LOGO_URL is custom AND show_name is true (core #3160 regression)', async () => {
+    it('renders the wordmark when BRAND_LOGO_URL is set AND show_name is true (core #3160 regression)', async () => {
       // The original bug: isCustomStaticLogo heuristic short-circuited ahead of
       // the explicit operator opt-in, so the wordmark vanished even though
-      // LOGO_SHOW_NAME=true was configured.
-      wrapper = mountWithBranding(
+      // LOGO_SHOW_NAME=true was configured. The wordmark text is the
+      // resolver's productName (brand_product_name), not a header site_name.
+      wrapper = mountWithIdentity(
         {
-          logoUrl: '/img/brand.svg',
+          brandLogoUrl: '/img/brand.svg',
           showName: true,
-          siteName: 'Acme Vault',
+          brandProductName: 'Acme Vault',
         },
         { authenticated: false }
       );
@@ -786,13 +840,13 @@ describe('MastHead', () => {
       expect(siteName.text()).toBe('Acme Vault');
     });
 
-    it('hides site name when LOGO_URL is custom AND show_name is false', async () => {
-      // Explicit operator opt-out must win over the SITE_NAME default.
-      wrapper = mountWithBranding(
+    it('hides the wordmark when BRAND_LOGO_URL is set AND show_name is false', async () => {
+      // Explicit operator opt-out must win over everything below it.
+      wrapper = mountWithIdentity(
         {
-          logoUrl: '/img/brand.svg',
+          brandLogoUrl: '/img/brand.svg',
           showName: false,
-          siteName: 'Acme Vault',
+          brandProductName: 'Acme Vault',
         },
         { authenticated: false }
       );
@@ -805,15 +859,61 @@ describe('MastHead', () => {
       expect(siteName.exists()).toBe(false);
     });
 
-    it('renders site name for the stock DefaultLogo when show_name is true', async () => {
+    it('hides the wordmark when show_name is unset and a custom install logo is present (heuristic)', async () => {
+      // Rung 4: LOGO_SHOW_NAME unset ships as null, so presence of a custom
+      // BRAND_LOGO_URL hides the wordmark (the asset embeds its own).
+      wrapper = mountWithIdentity(
+        {
+          brandLogoUrl: '/img/brand.svg',
+          showName: null,
+          brandProductName: 'Acme Vault',
+        },
+        { authenticated: false }
+      );
+
+      await nextTick();
+      const img = wrapper.find('img#logo');
+      expect(img.exists()).toBe(true);
+
+      const siteName = wrapper.find('span.font-brand.text-lg');
+      expect(siteName.exists()).toBe(false);
+    });
+
+    it('shows the neutral productName wordmark when show_name is unset and no install logo (default posture)', async () => {
+      // Unconfigured install: DefaultLogo renders with the resolver-supplied
+      // neutral product name visible — never "One-Time Secret" (#3612).
+      wrapper = mountWithIdentity(
+        { brandLogoUrl: null, showName: null, brandProductName: null },
+        { authenticated: false }
+      );
+
+      await nextTick();
+      const logo = wrapper.find('.default-logo');
+      expect(logo.exists()).toBe(true);
+      expect(logo.attributes('data-show-site-name')).toBe('true');
+      expect(logo.find('.site-name').text()).toBe(
+        NEUTRAL_BRAND_DEFAULTS.product_name
+      );
+    });
+
+    it('uses brand_product_name as the wordmark text when configured (no install logo)', async () => {
+      wrapper = mountWithIdentity(
+        { brandLogoUrl: null, showName: null, brandProductName: 'Acme Vault' },
+        { authenticated: false }
+      );
+
+      await nextTick();
+      const logo = wrapper.find('.default-logo');
+      expect(logo.exists()).toBe(true);
+      expect(logo.attributes('data-show-site-name')).toBe('true');
+      expect(logo.find('.site-name').text()).toBe('Acme Vault');
+    });
+
+    it('renders the wordmark for the stock DefaultLogo when show_name is true', async () => {
       // Default install (Vue component logo) must still honor an explicit
       // LOGO_SHOW_NAME=true; the stub exposes data-show-site-name for assertion.
-      wrapper = mountWithBranding(
-        {
-          logoUrl: 'DefaultLogo.vue',
-          showName: true,
-          siteName: 'Onetime Secret',
-        },
+      wrapper = mountWithIdentity(
+        { brandLogoUrl: null, showName: true, brandProductName: 'Acme Vault' },
         { authenticated: false }
       );
 
@@ -823,14 +923,14 @@ describe('MastHead', () => {
       expect(logo.attributes('data-show-site-name')).toBe('true');
     });
 
-    it('hides site name when domain_logo is set even if static show_name is true (multi-tenant invariant)', async () => {
+    it('hides the wordmark when domain_logo is set even if show_name is true (multi-tenant invariant)', async () => {
       // Per-tenant domain_logo (step 2) must override LOGO_SHOW_NAME (step 3):
-      // the platform-wide site name has no business appearing on a tenant page.
-      wrapper = mountWithBranding(
+      // the platform-wide wordmark has no business appearing on a tenant page.
+      wrapper = mountWithIdentity(
         {
-          logoUrl: '/img/brand.svg',
+          brandLogoUrl: '/img/brand.svg',
           showName: true,
-          siteName: 'Acme Vault',
+          brandProductName: 'Acme Vault',
         },
         {
           authenticated: false,
@@ -846,15 +946,15 @@ describe('MastHead', () => {
       expect(siteName.exists()).toBe(false);
     });
 
-    it('hides site name when props.logo.showSiteName=false even with LOGO_URL and show_name=true', async () => {
+    it('hides the wordmark when props.logo.showSiteName=false even with BRAND_LOGO_URL and show_name=true', async () => {
       // props.logo.showSiteName (step 1) is the top of the priority chain;
       // an explicit false from a caller must beat both LOGO_SHOW_NAME and the
       // custom-logo heuristic.
-      wrapper = mountWithBranding(
+      wrapper = mountWithIdentity(
         {
-          logoUrl: '/img/brand.svg',
+          brandLogoUrl: '/img/brand.svg',
           showName: true,
-          siteName: 'Acme Vault',
+          brandProductName: 'Acme Vault',
         },
         { authenticated: false },
         {
@@ -903,18 +1003,19 @@ describe('MastHead', () => {
     });
   });
 
-  describe('brand_product_name interpolation', () => {
+  describe('Logo alt text (brand_logo_alt / productName interpolation)', () => {
     /**
-     * These tests exercise the `t('...', { product_name })` interpolation
-     * path in getLogoAlt (line 51 of MastHead.vue).
+     * These tests exercise getLogoAlt():
+     *   props.logo.alt > identity.installLogoAlt (BRAND_LOGO_ALT, only while
+     *   the install logo is shown) > t('...', { product_name }).
      *
      * Key setup requirements:
      *   1. Own i18n instance with `{product_name}` placeholders — the
      *      module-level i18n uses static strings so interpolation is ignored.
-     *   2. branding.logo.alt and branding.site_name cleared — otherwise the
-     *      `||` chain in getLogoAlt/getSiteName short-circuits before t().
-     *   3. Non-.vue logo URL — so the <img :alt> branch renders (the
-     *      DefaultLogo mock doesn't expose alt).
+     *   2. brand_logo_url set to a non-.vue URL — so the <img :alt> branch
+     *      renders (the DefaultLogo mock doesn't expose alt).
+     *   3. brand_logo_alt cleared (unless under test) — otherwise the `||`
+     *      chain in getLogoAlt short-circuits before t().
      */
     const brandI18n = createI18n({
       legacy: false,
@@ -939,7 +1040,10 @@ describe('MastHead', () => {
       },
     });
 
-    const mountWithBrand = (brandProductName: string | null | undefined) => {
+    const mountWithBrand = (
+      brandProductName: string | null | undefined,
+      opts: { brandLogoAlt?: string | null } = {}
+    ) => {
       const pinia = createTestingPinia({
         createSpy: vi.fn,
         stubActions: false,
@@ -950,14 +1054,15 @@ describe('MastHead', () => {
             email: null,
             cust: null,
             domain_logo: null,
+            domain_strategy: 'canonical',
             brand_product_name: brandProductName,
+            brand_logo_url: '/static/brand.png',
+            brand_logo_alt: opts.brandLogoAlt ?? null,
             ui: {
               header: {
+                enabled: true,
+                logo: { href: null, show_name: null, prominent: null },
                 navigation: { enabled: true },
-                branding: {
-                  logo: { url: '/static/brand.png', alt: null },
-                  site_name: null,
-                },
               },
             },
             authentication: {
@@ -989,7 +1094,17 @@ describe('MastHead', () => {
       });
     };
 
-    it('interpolates brand_product_name into logo alt text', async () => {
+    it('uses brand_logo_alt when the install logo is the asset being shown', async () => {
+      wrapper = mountWithBrand('ACME', { brandLogoAlt: 'ACME Corp wordmark' });
+      await nextTick();
+
+      const img = wrapper.find('img#logo');
+      expect(img.exists()).toBe(true);
+      expect(img.attributes('src')).toBe('/static/brand.png');
+      expect(img.attributes('alt')).toBe('ACME Corp wordmark');
+    });
+
+    it('interpolates brand_product_name into logo alt text when brand_logo_alt is unset', async () => {
       wrapper = mountWithBrand('ACME');
       await nextTick();
 

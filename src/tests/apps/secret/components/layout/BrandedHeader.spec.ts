@@ -96,14 +96,17 @@ describe('BrandedHeader', () => {
           },
           homepage_config: storeOverrides.homepage_config ?? null,
           ui: {
+            // #3612: ui.header carries only layout knobs; brand identity
+            // (logo asset, product name) lives in the flat brand_* fields.
             header: storeOverrides.header ?? {
+              enabled: true,
+              logo: { href: null, show_name: null, prominent: null },
               navigation: { enabled: true },
-              branding: {
-                logo: { url: 'DefaultLogo.vue', alt: 'Onetime Secret' },
-                site_name: 'Onetime Secret',
-              },
             },
           },
+          brand_product_name: null,
+          brand_logo_url: null,
+          brand_logo_alt: null,
         },
       },
     });

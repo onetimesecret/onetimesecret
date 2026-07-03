@@ -41,7 +41,7 @@
                     or email-client level, so a broken <img> is a negative trust
                     signal. logo_url presence prevents an empty src. %>
                 <% if show_logo? && logo_url %>
-                <img alt="<%= h(product_name) %>" src="<%= logo_url %>" <%# herb:disable erb-prefer-image-tag-helper %>
+                <img alt="<%= h(logo_alt) %>" src="<%= logo_url %>" <%# herb:disable erb-prefer-image-tag-helper %>
                      style="border: 0; display: block; margin: 0 0 14px 0; height: 40px; width: 40px; background-color: <%= brand_color %>; border-radius: 8px;"
                      width="40" height="40">
                 <% end %>

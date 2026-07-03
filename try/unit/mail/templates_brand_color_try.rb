@@ -10,10 +10,13 @@
 #
 # Critical assertions:
 #   - brand_color resolves data -> brand conf -> neutral blue (#3B82F6)
-#   - logo_url resolves brand conf -> nil (NOT the OTS logo path)
+#   - logo_url resolves brand conf -> nil (NOT the OTS logo path); only
+#     absolute http(s) URLs are emitted (#3612)
 #   - support_email resolves brand conf -> GLOBAL_DEFAULTS (NOT the OTS address)
-#   - logo_alt delegates to product_name
-#   - site_product_name resolves brand -> site_name -> nil (GLOBAL_DEFAULTS[:product_name], #3049)
+#   - logo_alt resolves brand.logo_alt -> product_name (#3612)
+#   - site_product_name resolves brand.product_name -> NEUTRAL_PRODUCT_NAME
+#     ('Secure Links'); the legacy header.branding.site_name tier was retired
+#     in #3612 (normalize_brand absorbs it into brand.product_name at boot)
 #   - The 12 shipped HTML templates contain no #dc4a22 or onetime-logo-v3-xl.svg
 #     (regression guard against re-introduction).
 #
@@ -108,12 +111,28 @@ end
 # logo_url fallback chain
 # ============================================================================
 
-## logo_url returns OT.conf['brand']['logo_url'] when set
+## logo_url returns OT.conf['brand']['logo_url'] when set to an absolute URL
 with_brand_conf({ 'logo_url' => 'https://example.test/logo.svg' }) do
   ctx = @ctx_class.new({}, 'en')
   ctx.logo_url
 end
 #=> 'https://example.test/logo.svg'
+
+## logo_url accepts plain http URLs too (absolute is what matters)
+with_brand_conf({ 'logo_url' => 'http://example.test/logo.png' }) do
+  ctx = @ctx_class.new({}, 'en')
+  ctx.logo_url
+end
+#=> 'http://example.test/logo.png'
+
+## logo_url rejects relative paths — mail clients cannot resolve them, so a
+## masthead-oriented legacy LOGO_URL (e.g. /img/logo.png) degrades to the
+## text-only email header instead of a broken image (#3612)
+with_brand_conf({ 'logo_url' => '/img/logo.png' }) do
+  ctx = @ctx_class.new({}, 'en')
+  ctx.logo_url
+end
+#=> nil
 
 ## logo_url returns nil when no brand config (neutralized fallback per #3049)
 without_brand_conf do
@@ -229,13 +248,27 @@ end
 #=> nil
 
 # ============================================================================
-# logo_alt delegates to product_name
+# logo_alt resolves brand.logo_alt -> product_name (#3612)
 # ============================================================================
+
+## logo_alt prefers the operator-supplied brand.logo_alt over product_name
+with_brand_conf({ 'logo_alt' => 'Acme wordmark', 'product_name' => 'Acme Secrets' }) do
+  ctx = @ctx_class.new({}, 'en')
+  ctx.logo_alt
+end
+#=> 'Acme wordmark'
 
 ## logo_alt returns the same value as product_name when product_name is from data
 ctx = @ctx_class.new({ product_name: 'Acme Secrets' }, 'en')
 [ctx.logo_alt, ctx.product_name]
 #=> ['Acme Secrets', 'Acme Secrets']
+
+## logo_alt falls back to product_name when brand.logo_alt is unset
+with_brand_conf({ 'product_name' => 'Acme Secrets' }) do
+  ctx = @ctx_class.new({}, 'en')
+  ctx.logo_alt
+end
+#=> 'Acme Secrets'
 
 ## logo_alt delegates to product_name when falling through to site_product_name
 without_brand_conf do
@@ -255,7 +288,10 @@ with_brand_conf({ 'product_name' => 'Acme' }) do
 end
 #=> 'Acme'
 
-## site_product_name falls through to site.interface.ui.header.site_name when brand absent
+## site_product_name does NOT read the legacy header.branding.site_name tier
+## at render time — it was retired in #3612. (A legacy SITE_NAME/site_name
+## still works at boot: normalize_brand absorbs it into brand.product_name
+## before the config is frozen, so the mail layer reads brand only.)
 saved = YAML.load(YAML.dump(OT.conf))
 begin
   conf_copy = YAML.load(YAML.dump(saved))
@@ -272,24 +308,28 @@ begin
 ensure
   OT.send(:conf=, saved) rescue nil
 end
-#=> 'LegacySiteName'
+#=> 'Secure Links'
 
-## site_product_name falls through to GLOBAL_DEFAULTS[:product_name] (= nil)
-saved = YAML.load(YAML.dump(OT.conf))
-begin
-  conf_copy = YAML.load(YAML.dump(saved))
-  conf_copy.delete('brand')
-  # Make sure no site_name is present so the third tier is exercised.
-  if conf_copy.dig('site', 'interface', 'ui', 'header', 'branding')
-    conf_copy['site']['interface']['ui']['header']['branding'].delete('site_name')
-  end
-  OT.send(:conf=, conf_copy)
+## site_product_name falls through to the neutral NEUTRAL_PRODUCT_NAME when
+## brand.product_name is unset — never nil, since templates interpolate it
+## into subjects and headers (#3612)
+without_brand_conf do
   ctx = @ctx_class.new({}, 'en')
   ctx.site_product_name
-ensure
-  OT.send(:conf=, saved) rescue nil
 end
-#=> nil
+#=> 'Secure Links'
+
+## site_product_name terminal fallback matches NEUTRAL_PRODUCT_NAME exactly
+without_brand_conf do
+  ctx = @ctx_class.new({}, 'en')
+  ctx.site_product_name == @constants::NEUTRAL_PRODUCT_NAME
+end
+#=> true
+
+## [regression guard] NEUTRAL_PRODUCT_NAME is the vendor-neutral 'Secure Links'
+## (lockstep with frontend NEUTRAL_BRAND_DEFAULTS.product_name)
+@constants::NEUTRAL_PRODUCT_NAME
+#=> 'Secure Links'
 
 ## [regression guard] GLOBAL_DEFAULTS[:product_name] is nil, not 'OTS' or 'Onetime Secret'
 @constants::GLOBAL_DEFAULTS[:product_name]
@@ -494,7 +534,8 @@ ensure
 end
 #=> nil
 
-## OT.conf=nil — site_product_name falls through to GLOBAL_DEFAULTS (nil)
+## OT.conf=nil — site_product_name degrades to the neutral NEUTRAL_PRODUCT_NAME
+## (never nil, #3612)
 @_saved_for_nil4 = OT.instance_variable_get(:@conf)
 begin
   OT.instance_variable_set(:@conf, nil)
@@ -503,7 +544,7 @@ begin
 ensure
   OT.instance_variable_set(:@conf, @_saved_for_nil4)
 end
-#=> nil
+#=> 'Secure Links'
 
 ## OT.conf=nil — signature_name degrades to nil without raising
 @_saved_for_nil_sig = OT.instance_variable_get(:@conf)

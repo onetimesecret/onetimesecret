@@ -50,8 +50,9 @@ module Onetime
       # defaults) — including product_name. Operators set BRAND_PRODUCT_NAME /
       # BRAND_SUPPORT_EMAIL / BRAND_LOGO_URL to populate; an unconfigured
       # install falls through to each consumer's own neutral default
-      # (frontend: NEUTRAL_BRAND_DEFAULTS.product_name = 'Secure Links'; mail/page
-      # title: the legacy site.interface.ui.header.branding.site_name value).
+      # (frontend: NEUTRAL_BRAND_DEFAULTS.product_name; mail: NEUTRAL_PRODUCT_NAME
+      # below — the legacy site.interface.ui.header.branding.site_name tier was
+      # retired in #3612).
       #
       # totp_issuer is the one deliberate exception, kept as 'OTS' rather
       # than nil: it's baked into already-provisioned authenticator-app
@@ -66,9 +67,18 @@ module Onetime
         product_name: nil,
         totp_issuer: 'OTS',
         logo_url: nil,
+        logo_alt: nil,
         favicon_url: nil,
         signature_name: nil,
       }.freeze
+
+      # Neutral, vendor-agnostic product name used as the terminal fallback on
+      # surfaces that must render *some* name even when brand.product_name is
+      # unconfigured (email subjects/headers interpolate it into copy). Must
+      # stay in lockstep with the frontend NEUTRAL_BRAND_DEFAULTS.product_name
+      # (src/shared/constants/brand.ts) so an unbranded install reads the same
+      # everywhere — and per #3049 it must NEVER be an OTS-branded literal.
+      NEUTRAL_PRODUCT_NAME = 'Secure Links'
 
       # Returns defaults with primary_color resolved from brand config.
       # Falls back to DEFAULTS when OT.conf is not available.
@@ -90,8 +100,13 @@ module Onetime
         {
           support_email: brand_conf['support_email'] || GLOBAL_DEFAULTS[:support_email],
           product_name: brand_conf['product_name'] || GLOBAL_DEFAULTS[:product_name],
-          totp_issuer: brand_conf['totp_issuer'] || GLOBAL_DEFAULTS[:totp_issuer],
+          # A configured product name brands new MFA enrollments too (#3612) —
+          # an authenticator entry labeled with the vendor default on a renamed
+          # install reads as a leak. The unconfigured 'OTS' default is unchanged,
+          # so pre-existing installs keep issuing consistent labels.
+          totp_issuer: brand_conf['totp_issuer'] || brand_conf['product_name'] || GLOBAL_DEFAULTS[:totp_issuer],
           logo_url: brand_conf['logo_url'] || GLOBAL_DEFAULTS[:logo_url],
+          logo_alt: brand_conf['logo_alt'] || GLOBAL_DEFAULTS[:logo_alt],
           favicon_url: brand_conf['favicon_url'] || GLOBAL_DEFAULTS[:favicon_url],
           signature_name: brand_conf['signature_name'] || GLOBAL_DEFAULTS[:signature_name],
         }

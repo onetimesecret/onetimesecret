@@ -137,5 +137,5 @@ elsewhere.
 
 `/disabled` route (`PreviewDisabled.vue`) renders the dispatcher with
 the live masthead and a "preview, not real" notice. Useful for
-verifying `LOGO_URL` / `SITE_NAME` / brand color without flipping
-`auth.required` on the backend.
+verifying `BRAND_LOGO_URL` / `BRAND_PRODUCT_NAME` / brand color without
+flipping `auth.required` on the backend.

@@ -10,7 +10,7 @@ import { createTestingPinia } from '@pinia/testing';
 import MastHead from '@/shared/components/layout/MastHead.vue';
 import { nextTick } from 'vue';
 import { useAuthStore } from '@/shared/stores/authStore';
-import { createTestI18n } from '@tests/setup';
+import { createI18n } from 'vue-i18n';
 
 // Mock DefaultLogo component
 vi.mock('@/shared/components/logos/DefaultLogo.vue', () => ({
@@ -51,7 +51,27 @@ vi.mock('vue-router', () => ({
   },
 }));
 
-const i18n = createTestI18n();
+// Interpolating i18n: unlike the pass-through createTestI18n, the wordmark
+// message renders the actual product_name so the "Onetime Secret must not
+// leak" assertions below observe the real rendered name, not an i18n key.
+// Unlisted keys still echo the key (missing handler), matching the
+// pass-through assertions elsewhere in this file.
+const i18n = createI18n({
+  legacy: false,
+  locale: 'en',
+  missingWarn: false,
+  fallbackWarn: false,
+  missing: (_, key) => key,
+  messages: {
+    en: {
+      web: {
+        homepage: {
+          one_time_secret_literal: '{product_name}',
+        },
+      },
+    },
+  },
+});
 
 describe('MastHead — Custom Domain Logo Behavior', () => {
   let wrapper: VueWrapper;
@@ -83,6 +103,8 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
     domain_strategy?: string;
     display_domain?: string;
     domain_id?: string;
+    brand_logo_url?: string | null;
+    brand_logo_alt?: string | null;
   };
 
   const buildBootstrapState = (s: StoreState) => ({
@@ -94,6 +116,8 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
     domain_strategy: s.domain_strategy ?? 'canonical',
     display_domain: s.display_domain ?? 'onetimesecret.com',
     domain_id: s.domain_id ?? '',
+    brand_logo_url: s.brand_logo_url ?? null,
+    brand_logo_alt: s.brand_logo_alt ?? null,
   });
 
   const mountComponent = (props: Record<string, unknown> = {}, storeState: StoreState = {}) => {
@@ -103,13 +127,16 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
       initialState: {
         bootstrap: {
           ...buildBootstrapState(storeState),
+          // #3612: brand identity flows through the flat brand_* fields;
+          // ui.header keeps only layout knobs. The platform name below is
+          // the operator's install identity that must never leak onto a
+          // tenant's custom domain.
+          brand_product_name: 'Onetime Secret',
           ui: {
             header: {
+              enabled: true,
+              logo: { href: null, show_name: null, prominent: null },
               navigation: { enabled: true },
-              branding: {
-                logo: { url: 'DefaultLogo.vue', alt: 'Onetime Secret' },
-                site_name: 'Onetime Secret',
-              },
             },
           },
           authentication: {
@@ -342,10 +369,38 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
       );
 
       await nextTick();
-      // When domain_logo is null, MastHead falls back to the configured logo URL
-      // which defaults to 'DefaultLogo.vue' — this renders the OTS logo
+      // When domain_logo is null on a custom domain, the resolver's logoSource
+      // falls to the neutral DefaultLogo sentinel (never the operator's
+      // install logo — see the #3612 leak-fix test below).
       const defaultLogo = wrapper.find('.default-logo');
       expect(defaultLogo.exists()).toBe(true);
+    });
+
+    it('renders the neutral DefaultLogo even when brand_logo_url is set (install-logo leak fix #3612)', async () => {
+      // The operator's install-wide BRAND_LOGO_URL is the platform's own
+      // identity. On a tenant's custom domain it must NOT render — same
+      // semantics as showPlatformIdentity suppressing the wordmark. The
+      // resolver's installLogoUri nulls out on custom domains, so logoSource
+      // degrades to the neutral sentinel instead of leaking the install logo.
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          domain_strategy: 'custom',
+          domain_logo: null,
+          brand_logo_url: '/img/install-brand.svg',
+          display_domain: 'secrets.acme.com',
+          domain_id: 'cd_acme',
+        }
+      );
+
+      await nextTick();
+      // Neutral mark renders...
+      const defaultLogo = wrapper.find('.default-logo');
+      expect(defaultLogo.exists()).toBe(true);
+      // ...and the install logo <img> does not.
+      const img = wrapper.find('img#logo');
+      expect(img.exists()).toBe(false);
     });
 
     it('suppresses the OTS site name when custom domain has no logo', async () => {
@@ -390,7 +445,7 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
   // LOGO CONFIGURATION PRIORITY
   // ═══════════════════════════════════════════════════════════════════════════
 
-  describe('Logo configuration priority: props > domain_logo > config > default', () => {
+  describe('Logo configuration priority: props > domain_logo > brand_logo_url > default', () => {
     it('props override domain_logo when both are provided', async () => {
       wrapper = mountComponent(
         {
@@ -420,18 +475,23 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
       expect(img.attributes('height')).toBe('48');
     });
 
-    it('domain_logo takes priority over header config logo URL', async () => {
+    it('domain_logo takes priority over brand_logo_url', async () => {
+      // On the canonical domain the install logo is allowed to show, so this
+      // is the one context where both rungs compete on equal footing: the
+      // tenant's uploaded logo must still win. (On custom domains the install
+      // logo never shows at all — see the #3612 leak-fix test above.)
       wrapper = mountComponent(
         {},
         {
           authenticated: false,
-          domain_strategy: 'custom',
+          domain_strategy: 'canonical',
           domain_logo: 'https://cdn.example.com/domain-logo.png',
+          brand_logo_url: '/img/install-brand.svg',
         }
       );
 
       await nextTick();
-      // Should use domain_logo, not the header config default
+      // Should use domain_logo, not the operator's install logo
       const img = wrapper.find('img#logo');
       expect(img.exists()).toBe(true);
       expect(img.attributes('src')).toBe('https://cdn.example.com/domain-logo.png');
