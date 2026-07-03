@@ -121,6 +121,28 @@ const routes: Array<RouteRecordRaw> = [
     props: true,
   },
   {
+    path: '/org/:orgid/domains/:extid/dns',
+    name: 'DomainDns',
+    component: () => import('@/apps/workspace/domains/DomainDns.vue'),
+    meta: {
+      title: 'web.TITLES.domain_dns',
+      requiresAuth: true,
+      requiresOrgRole: 'admin',
+      layout: WorkspaceLayout,
+      layoutProps: {
+        displayPoweredBy: false,
+      },
+      scopesAvailable: {
+        organization: 'show',
+        domain: 'show',
+        onOrgSwitch: '/dashboard',
+        onDomainSwitch: 'same',
+      },
+      sentryScrubParams: false,
+    },
+    props: true,
+  },
+  {
     path: '/org/:orgid/domains/:extid/brand',
     name: 'DomainBrand',
     component: () => import('@/apps/workspace/domains/DomainBrand.vue'),
