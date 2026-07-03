@@ -11,6 +11,9 @@ Security
   it with an atomic compare-and-set in the datastore, so exactly one caller may
   consume it; any request that loses the race receives no secret value.
 
+- A burn request that loses the race no longer counts toward burn metrics nor
+  reports success to the caller.
+
 - Closed a related re-exposure window. Recording that a secret link had been
   viewed wrote the secret's state unconditionally, which could momentarily
   revert a just-revealed secret back to a viewable state while its ciphertext
