@@ -1,5 +1,3 @@
-# docs/specs/schema-source-of-truth.md
----
 # Schema as Single Source of Truth + Boundary Validation
 
 Design spec for [#3496](https://github.com/onetimesecret/onetimesecret/issues/3496).
