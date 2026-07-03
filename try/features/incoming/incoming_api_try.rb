@@ -624,6 +624,40 @@ logic.process
 [logic.secret.share_domain, logic.receipt.share_domain]
 #=> [@v3_custom_fqdn, @v3_custom_fqdn]
 
+## V3 CreateIncomingSecret enqueues the notification with the custom share_domain
+# The notification email is the observable output of this fix: its payload must
+# carry share_domain so the mail layout renders the custom domain. Captures the
+# enqueue_email arguments via monkey-patching to assert the payload's
+# share_domain (and the domain_id kwarg used for sender-config selection)
+# instead of only checking the secret object.
+v3_strategy = create_v3_strategy_with_domain(@v3_cust, @v3_custom_fqdn)
+@_enqueue_email_original = Onetime::Jobs::Publisher.method(:enqueue_email)
+@_enqueued_incoming = nil
+begin
+  enqueue_backup = @_enqueue_email_original
+  capture = ->(payload, domain_id) { @_enqueued_incoming = { payload: payload, domain_id: domain_id } }
+  Onetime::Jobs::Publisher.define_singleton_method(:enqueue_email) do |template, payload, **kwargs|
+    capture.call(payload, kwargs[:domain_id]) if template == :incoming_secret
+    enqueue_backup.call(template, payload, **kwargs)
+  end
+  logic = Incoming::Logic::CreateIncomingSecret.new(v3_strategy, {
+    'secret' => {
+      'memo' => 'V3 notification payload test',
+      'secret' => 'Secret for notification payload',
+      'recipient' => @v3_recipient_hash
+    }
+  })
+  logic.process_params
+  logic.raise_concerns
+  logic.process
+ensure
+  Onetime::Jobs::Publisher.define_singleton_method(:enqueue_email) do |template, payload, **kwargs|
+    enqueue_backup.call(template, payload, **kwargs)
+  end
+end
+[@_enqueued_incoming[:payload][:share_domain], @_enqueued_incoming[:domain_id]]
+#=> [@v3_custom_fqdn, @v3_custom_domain.identifier]
+
 ## V3 CreateIncomingSecret binds share_domain when domain_strategy is a String
 # domain_strategy arrives from StrategyResult metadata and may be the String
 # 'custom' rather than the Symbol :custom. RecipientResolver normalizes it via
