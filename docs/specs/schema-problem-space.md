@@ -1,7 +1,7 @@
 # Schema problem space
 
 Companion to `schema-source-of-truth.md` (the proposed cure, #3496/#3514) and
-`issue-3424-root-cause-analysis.md` (what actually fails). Neither documents the
+`unviewable-state-root-cause.md` (what actually fails). Neither documents the
 territory itself: what schema-like definitions exist, what each one is
 authoritative for, which alignments are enforced by a machine and which by
 discipline. This document is that map, against current `develop`. It proposes
@@ -218,7 +218,7 @@ break them:
 ## References
 
 - Specs: `docs/specs/schema-source-of-truth.md`,
-  `docs/specs/issue-3424-root-cause-analysis.md`
+  `docs/specs/unviewable-state-root-cause.md`
 - TS: `src/schemas/registry.ts`, `src/schemas/scripts/generate.ts`,
   `src/schemas/contracts/secret.ts`, `src/schemas/shapes/{v1,v2,v3}/secret.ts`,
   `src/schemas/transforms/index.ts`, `src/schemas/api/v3/responses/secrets.ts`

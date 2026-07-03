@@ -8,7 +8,7 @@
 // Three fixes shipped against #3424 (#3268 → #3434 → #3477) and the bug stayed
 // open, because *nobody ever captured the field that actually fails* — the
 // frontend's `gracefulParse` discards the Zod error in production (see
-// docs/specs/issue-3424-root-cause-analysis.md and src/utils/schemaValidation.ts).
+// docs/specs/unviewable-state-root-cause.md and src/utils/schemaValidation.ts).
 // Every fix so far was an inference.
 //
 // This spec ends the guessing by doing on our side what production hides: it
