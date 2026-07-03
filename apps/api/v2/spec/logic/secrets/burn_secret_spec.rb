@@ -72,4 +72,54 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
       expect(logic.greenlighted).to be true
     end
   end
+
+  # Burn must be subject to the same passphrase rate limiting as show/reveal:
+  # without it, each wrong guess is a free brute-force oracle and a correct
+  # guess destroys the secret as a side effect.
+  context 'when the secret is passphrase-protected' do
+    before do
+      secret.update_passphrase!('correct horse battery')
+    end
+
+    def attempt_burn(guess)
+      logic = build_logic(
+        'identifier' => receipt.identifier,
+        'continue'   => 'true',
+        'passphrase' => guess,
+      )
+      logic.process_params
+      logic.process
+      logic
+    end
+
+    it 'raises a form error and records the attempt on a wrong guess' do
+      expect { attempt_burn('wrong') }.to raise_error(OT::FormError)
+
+      attempts = Onetime::Secret.dbclient.get("passphrase:attempts:#{secret.identifier}")
+      expect(attempts.to_i).to eq(1)
+
+      reloaded = Onetime::Secret.load(secret.identifier)
+      expect(reloaded&.viewable?).to be true
+    end
+
+    it 'locks out after MAX_ATTEMPTS wrong guesses, even for the correct passphrase' do
+      max = Onetime::Security::PassphraseRateLimiter::MAX_ATTEMPTS
+      max.times { expect { attempt_burn('wrong') }.to raise_error(OT::FormError) }
+
+      expect { attempt_burn('correct horse battery') }.to raise_error(Onetime::LimitExceeded)
+
+      # The lockout rejected the request before the burn could happen.
+      reloaded = Onetime::Secret.load(secret.identifier)
+      expect(reloaded&.viewable?).to be true
+    end
+
+    it 'clears rate limit state and burns on the correct passphrase' do
+      expect { attempt_burn('wrong') }.to raise_error(OT::FormError)
+
+      logic = attempt_burn('correct horse battery')
+
+      expect(logic.greenlighted).to be true
+      expect(Onetime::Secret.dbclient.get("passphrase:attempts:#{secret.identifier}")).to be_nil
+    end
+  end
 end

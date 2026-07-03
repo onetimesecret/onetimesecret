@@ -114,11 +114,15 @@ note that AAD inputs must be reproducible at decrypt time — the domain
 would have to be persisted or derivable; `aad_fields` on v2 envelopes are
 self-describing, so adding it later only affects new writes.
 
-**F7 (medium, security): burn is not rate-limited.** `show`/`reveal`
-include `PassphraseRateLimiter`; v1/v2 `BurnSecret` do not, so a
-passphrase-protected secret's passphrase can be brute-forced through the
-burn endpoint (each correct guess destroys the secret; each wrong guess is
-a free oracle). Recommend including the same limiter in burn.
+**F7 (medium, security, fixed here): passphrase brute-force oracles
+without rate limiting.** v2 `show`/`reveal` include
+`PassphraseRateLimiter`, but v1/v2 `BurnSecret` and v1 `ShowSecret` did
+not, so a passphrase-protected secret's passphrase could be brute-forced
+through those endpoints (each wrong guess is a free oracle; a correct
+guess through burn destroys the secret as a side effect). All three now
+include the same limiter: 5 failed attempts per secret within 10 minutes
+triggers a 30-minute lockout, a successful entry clears the counter, and
+the empty-passphrase preview never accrues attempts.
 
 **F8 (medium, product): the one-time guarantee is not atomic.** Reveal
 does load → check `viewable?` → decrypt → `destroy!` with no WATCH/Lua/lock;

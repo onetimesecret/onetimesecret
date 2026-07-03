@@ -95,6 +95,57 @@ RSpec.describe V1::Logic::Secrets::ShowSecret do
     end
   end
 
+  # v1 show shares the passphrase rate limiter with v2 show/reveal. Wrong
+  # non-empty guesses accrue attempts; the empty-passphrase preview of a
+  # protected secret must never count toward the lockout.
+  describe 'passphrase rate limiting' do
+    let(:secret_identifier) { "showrl_#{SecureRandom.hex(6)}" }
+    let(:rl_secret) do
+      double('Onetime::Secret',
+        verification: 'false',
+        key: secret_identifier,
+        identifier: secret_identifier,
+        share_domain: '',
+        viewable?: true,
+        has_passphrase?: true,
+        truncated?: false,
+        can_decrypt?: false)
+    end
+    let(:params) do
+      { 'key' => secret_identifier, 'passphrase' => 'wrong-guess', 'continue' => 'true' }
+    end
+
+    subject { described_class.new(session, customer, params) }
+
+    before do
+      allow(Onetime::Secret).to receive(:load).with(secret_identifier).and_return(rl_secret)
+      allow(rl_secret).to receive(:load_owner).and_return(owner)
+      allow(rl_secret).to receive(:passphrase?).and_return(false)
+      allow(rl_secret).to receive(:state?).with(:new).and_return(false)
+      allow(rl_secret).to receive(:owner?).with(customer).and_return(false)
+    end
+
+    it 'records failed non-empty passphrase attempts' do
+      subject.process
+
+      attempts = Onetime::Secret.dbclient.get("passphrase:attempts:#{secret_identifier}")
+      expect(attempts.to_i).to eq(1)
+    end
+
+    it 'does not count the empty-passphrase preview as an attempt' do
+      preview = described_class.new(session, customer, params.merge('passphrase' => ''))
+      preview.process
+
+      expect(Onetime::Secret.dbclient.get("passphrase:attempts:#{secret_identifier}")).to be_nil
+    end
+
+    it 'raises LimitExceeded from raise_concerns once locked out' do
+      Onetime::Secret.dbclient.setex("passphrase:locked:#{secret_identifier}", 60, '1')
+
+      expect { subject.raise_concerns }.to raise_error(Onetime::LimitExceeded)
+    end
+  end
+
   describe '#success_data' do
     before do
       allow(secret).to receive(:safe_dump).and_return({key: 'secret123'})
