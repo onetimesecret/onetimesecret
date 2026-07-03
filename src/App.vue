@@ -5,6 +5,7 @@
   import { iconLibraryComponents } from '@/shared/components/icons/sprites';
   import CriticalSprites from '@/shared/components/icons/sprites/CriticalSprites.vue';
   import { NotificationHost } from '@/shared/components/ui/notifications';
+  import RouteErrorBoundary from '@/shared/components/errors/RouteErrorBoundary.vue';
   import QuietLayout from '@/shared/layouts/MinimalLayout.vue';
   import { useBrandTheme } from '@/shared/composables/useBrandTheme';
   import type { LayoutProps } from '@/types/ui/layouts';
@@ -126,13 +127,18 @@
     :is="layout"
     :lang="locale"
     v-bind="layoutProps">
-    <!-- Router view with forced component recreation on route changes -->
+    <!-- Router view with forced component recreation on route changes.
+         RouteErrorBoundary swaps a thrown route subtree for a visible error
+         panel so a render/setup failure never leaves a silent blank page
+         (the global errorHandler only logs). Keyed + reset on route change. -->
     <router-view
       v-slot="{ Component }"
       class="rounded-md">
-      <component
-        :is="Component"
-        :key="$route.fullPath" />
+      <RouteErrorBoundary :reset-key="$route.fullPath">
+        <component
+          :is="Component"
+          :key="$route.fullPath" />
+      </RouteErrorBoundary>
     </router-view>
 
     <NotificationHost />
