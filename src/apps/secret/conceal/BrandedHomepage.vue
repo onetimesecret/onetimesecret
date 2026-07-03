@@ -1,7 +1,7 @@
 <!-- src/apps/secret/conceal/BrandedHomepage.vue -->
 
 <script setup lang="ts">
-  import { computed, onMounted, ref } from 'vue';
+  import { computed, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { storeToRefs } from 'pinia';
   import SecretForm from '@/apps/secret/components/form/SecretForm.vue';
@@ -51,17 +51,24 @@
       incomingStore.recipients.length > 0
   );
 
-  onMounted(async () => {
-    if (!incomingMode.value) return;
-    incomingLoading.value = true;
-    try {
-      await incomingStore.loadConfig();
-    } catch {
-      // Degrade to the trust card; the store captures error state.
-    } finally {
-      incomingLoading.value = false;
-    }
-  });
+  // Load whenever incoming mode becomes active — immediate covers initial
+  // render; the watch covers an in-session mode change (an admin flipping
+  // the homepage selector from the workspace patches bootstrapStore live).
+  watch(
+    incomingMode,
+    async (active) => {
+      if (!active || incomingLoading.value) return;
+      incomingLoading.value = true;
+      try {
+        await incomingStore.loadConfig();
+      } catch {
+        // Degrade to the trust card; the store captures error state.
+      } finally {
+        incomingLoading.value = false;
+      }
+    },
+    { immediate: true }
+  );
 
   const showIncomingForm = computed(
     () => incomingMode.value && !incomingLoading.value && incomingAvailable.value
