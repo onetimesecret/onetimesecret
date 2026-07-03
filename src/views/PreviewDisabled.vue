@@ -47,9 +47,9 @@
             id="preview-disabled-details"
             class="mt-1">
             This route renders the disabled-homepage view with the live masthead so
-            operators can verify branding env vars (LOGO_URL, LOGO_SHOW_NAME,
-            SITE_NAME, LOGO_PROMINENT) without changing backend settings. The site
-            is fully operational.
+            operators can verify branding env vars (BRAND_LOGO_URL, LOGO_SHOW_NAME,
+            BRAND_PRODUCT_NAME, LOGO_PROMINENT) without changing backend settings.
+            The site is fully operational.
           </p>
         </div>
       </div>

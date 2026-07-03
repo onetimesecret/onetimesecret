@@ -72,22 +72,22 @@ export const footerLinksConfigSchema = z.object({
   groups: z.array(footerGroupSchema).default([]),
 });
 
+/**
+ * Masthead layout knobs (presentation only). Brand identity — the logo
+ * asset, its alt text, and the product name — comes from the flat
+ * `brand_*` bootstrap fields (the `brand:` config block), not the header
+ * (#3612). All knobs are nullable: unset means "use the surface default"
+ * ('/' for href; show_name falls to the custom-logo heuristic).
+ */
 export const headerLogoSchema = z.object({
-  url: z.string().default(''),
-  alt: z.string().default(''),
-  link_to: z.string().default('/'),
-  show_name: z.boolean().optional(),
+  href: z.string().nullish(),
+  show_name: z.boolean().nullish(),
   /**
    * When true, render the logo at a larger size in the authenticated header.
    * Useful for rasterized brand assets that need visual presence alongside
    * the org/domain switchers. Defaults to false (compact 40px logo).
    */
-  prominent: z.boolean().optional(),
-});
-
-export const headerBrandingSchema = z.object({
-  logo: headerLogoSchema.default(headerLogoSchema.parse({})),
-  site_name: z.string().optional(),
+  prominent: z.boolean().nullish(),
 });
 
 export const headerNavigationSchema = z.object({
@@ -96,7 +96,7 @@ export const headerNavigationSchema = z.object({
 
 export const headerConfigSchema = z.object({
   enabled: z.boolean().default(true),
-  branding: headerBrandingSchema.optional(),
+  logo: headerLogoSchema.optional(),
   navigation: headerNavigationSchema.optional(),
 });
 
@@ -108,15 +108,14 @@ export const headerConfigSchema = z.object({
  * const ui = { enabled: true };
  *
  * @example
- * // Full configuration with custom branding and footer links
+ * // Full configuration with masthead layout knobs and footer links
+ * // (brand identity — logo asset, product name — lives in the flat
+ * // brand_* bootstrap fields, not here)
  * const ui = {
  *   enabled: true,
  *   header: {
  *     enabled: true,
- *     branding: {
- *       logo: { url: '/images/logo.svg', alt: 'Company Logo', link_to: '/' },
- *       site_name: 'My Secret Sharing App',
- *     },
+ *     logo: { href: '/', show_name: true, prominent: false },
  *     navigation: { enabled: true },
  *   },
  *   footer_links: {
@@ -421,7 +420,6 @@ export type FooterGroup = z.infer<typeof footerGroupSchema>;
 export type FooterLinksConfig = z.infer<typeof footerLinksConfigSchema>;
 export type WorkspaceLinksConfig = z.infer<typeof workspaceLinksConfigSchema>;
 export type HeaderLogo = z.infer<typeof headerLogoSchema>;
-export type HeaderBranding = z.infer<typeof headerBrandingSchema>;
 export type HeaderNavigation = z.infer<typeof headerNavigationSchema>;
 export type HeaderConfig = z.infer<typeof headerConfigSchema>;
 export type UiCapabilities = z.infer<typeof uiCapabilitiesSchema>;
@@ -529,6 +527,7 @@ export const bootstrapSchema = z.object({
   brand_font_family: z.enum(fontFamilyValues).nullish(),
   brand_button_text_light: z.boolean().nullish(),
   brand_logo_url: z.string().nullish(),
+  brand_logo_alt: z.string().nullish(),
   brand_favicon_url: z.string().nullish(),
 
   // ─────────────────────────────────────────────────────────────────────────────

@@ -38,6 +38,7 @@ const brandSchema = z.object({
   signature_name: nullableString,
   footer_text: nullableString,
   logo_url: nullableString,
+  logo_alt: nullableString,
   logo_dark_url: nullableString,
   favicon_url: nullableString,
   apple_touch_icon_url: nullableString,

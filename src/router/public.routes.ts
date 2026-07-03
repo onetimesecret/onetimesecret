@@ -301,8 +301,8 @@ const routes: Array<RouteRecordRaw> = [
   // (not linked from navigation). Renders the same DisabledHomepage content the real
   // disabled-homepage mode shows, but with a prominent notice making clear the
   // site is not actually disabled. Useful for verifying branding env vars
-  // (LOGO_URL, LOGO_SHOW_NAME, SITE_NAME, LOGO_PROMINENT) without toggling
-  // UI_ENABLED or auth.required on the backend.
+  // (BRAND_LOGO_URL, LOGO_SHOW_NAME, BRAND_PRODUCT_NAME, LOGO_PROMINENT)
+  // without toggling UI_ENABLED or auth.required on the backend.
   {
     path: '/disabled',
     name: 'PreviewDisabled',

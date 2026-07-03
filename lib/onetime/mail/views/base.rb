@@ -201,10 +201,13 @@ module Onetime
           "#{scheme}#{site_host}"
         end
 
+        # Install-wide product name for mail copy. brand.product_name is the
+        # single authority (#3612); unconfigured installs fall through to the
+        # neutral NEUTRAL_PRODUCT_NAME — never nil, since templates interpolate
+        # the name into subjects and headers, and never an OTS-branded literal.
         def site_product_name
           OT.conf.dig('brand', 'product_name') ||
-            OT.conf.dig('site', 'interface', 'ui', 'header', 'branding', 'site_name') ||
-            Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:product_name]
+            Onetime::CustomDomain::BrandSettingsConstants::NEUTRAL_PRODUCT_NAME
         end
 
         # Product name with fallback to site config
@@ -365,11 +368,16 @@ module Onetime
                               conf_dig('brand', 'signature_name')
           end
 
-          # Logo alt text helper - delegates to product_name so the logo's
-          # accessible name matches the surrounding brand identity.
+          # Logo alt text helper - operator-supplied brand.logo_alt
+          # (BRAND_LOGO_ALT) when set, otherwise the install-level product
+          # name. Deliberately site_product_name, not product_name: the image
+          # this alt describes is always the install-wide brand.logo_url, so
+          # a per-message data[:product_name] (e.g. a tenant name) must not
+          # label the operator's logo — the same wrong-accessible-name rule
+          # the frontend applies to installLogoAlt.
           # @return [String]
           def logo_alt
-            product_name
+            conf_dig('brand', 'logo_alt') || site_product_name
           end
 
           # Logo URL helper - resolves from brand config; nil when no brand
@@ -377,19 +385,29 @@ module Onetime
           # "#{baseuri}/img/onetime-logo-v3-xl.svg" has been neutralized so
           # shipped/private-label instances don't leak OTS branding. Templates
           # check truthiness and render a text-only header when nil.
+          #
+          # Only absolute http(s) URLs are emitted: mail clients cannot
+          # resolve relative paths or component references, and with the
+          # legacy LOGO_URL now feeding brand.logo_url as a fallback (#3612),
+          # a masthead-oriented relative path (e.g. /img/logo.png) must not
+          # break email rendering — such values degrade to the text-only
+          # header instead.
           # @return [String, nil]
           def logo_url
             return @logo_url if defined?(@logo_url)
 
-            @logo_url = conf_dig('brand', 'logo_url') ||
+            candidate = conf_dig('brand', 'logo_url') ||
                         Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:logo_url]
+            @logo_url = candidate.to_s.match?(%r{\Ahttps?://}i) ? candidate : nil
           end
 
+          # Mirrors Templates::Base#site_product_name: brand.product_name is
+          # the single authority (#3612), with the neutral NEUTRAL_PRODUCT_NAME
+          # terminal so layout copy never interpolates nil.
           def site_product_name
             @site_product_name ||=
               conf_dig('brand', 'product_name') ||
-              conf_dig('site', 'interface', 'ui', 'header', 'branding', 'site_name') ||
-              Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:product_name]
+              Onetime::CustomDomain::BrandSettingsConstants::NEUTRAL_PRODUCT_NAME
           end
 
           # Get host from site config
@@ -406,6 +424,12 @@ module Onetime
             end
           end
 
+          # Operator opt-in gate for rendering a logo <img> in mail at all.
+          # Templates require show_logo? AND a usable logo_url — an absolute
+          # brand.logo_url still renders text-only when emailer.show_logo is
+          # unset/false. The two gates are independent by design: show_logo?
+          # is the "do I trust images in mail clients" switch, logo_url is
+          # the asset (nil when unset or not absolute http(s)).
           def show_logo?
             conf_dig('emailer', 'show_logo') == true
           end
