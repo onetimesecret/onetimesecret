@@ -19,8 +19,6 @@ module Onetime::Secret::Features
         base.field :metadata_key # do not add receipt_key; just use identifier
         base.field :truncated # boolean
         base.field :secret_key
-        base.field :value
-        base.field :value_encryption
       end
     end
 
