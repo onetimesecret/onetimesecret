@@ -39,11 +39,14 @@ module Onetime
       # Whether homepage secrets is enabled for this domain
       field :enabled
 
-      # Per-domain UI toggles for the homepage auth nav. Both default to true
-      # so existing records (no field set) render the links. The system-level
-      # site.authentication.{signup,signin} flags remain the master switch:
-      # the frontend ANDs both layers, so toggling a system flag off hides
-      # the link regardless of this domain-level value.
+      # Per-domain UI toggles for the homepage auth nav. Both default to false
+      # (conservative, mirroring SigninConfig/SignupConfig): a freshly created
+      # domain hides the Create Account / Sign In links until an operator
+      # explicitly opts in via PUT /homepage-config. A missing field (legacy
+      # records that pre-date this feature) also reads as disabled. The
+      # system-level site.authentication.{signup,signin} flags remain the
+      # master switch — the frontend ANDs both layers, so toggling a system
+      # flag off hides the link regardless of this domain-level value.
       field :signup_enabled
       field :signin_enabled
 
@@ -59,8 +62,8 @@ module Onetime
 
       def init
         self.enabled      ||= 'false'
-        self.signup_enabled = true if signup_enabled.nil?
-        self.signin_enabled = true if signin_enabled.nil?
+        self.signup_enabled = false if signup_enabled.nil?
+        self.signin_enabled = false if signin_enabled.nil?
       end
 
       # Check if homepage secrets is enabled for this domain.
@@ -71,15 +74,18 @@ module Onetime
       end
 
       # Whether the Sign Up link should render on this domain's homepage.
-      # Records pre-dating this field return nil, which we treat as enabled
-      # (only an explicit `false` hides the link).
+      # Conservative default: only an explicit boolean `true` shows the link.
+      # A missing/nil field (legacy records pre-dating this field) reads as
+      # false, so the link stays hidden until an operator opts in. A stray
+      # string value ('true'/'false') is likewise treated as disabled.
       def signup_enabled?
-        signup_enabled != false
+        signup_enabled == true
       end
 
       # Whether the Sign In link should render on this domain's homepage.
+      # Conservative default: only an explicit boolean `true` shows the link.
       def signin_enabled?
-        signin_enabled != false
+        signin_enabled == true
       end
 
       # Recognised disabled-homepage variant for this domain, or nil to fall
@@ -207,8 +213,8 @@ module Onetime
             config = new(
               domain_id: domain_id,
               enabled: enabled.to_s,
-              signup_enabled: signup_enabled.nil? || signup_enabled,
-              signin_enabled: signin_enabled.nil? || signin_enabled,
+              signup_enabled: signup_enabled.nil? ? false : signup_enabled,
+              signin_enabled: signin_enabled.nil? ? false : signin_enabled,
               disabled_homepage_variant: coerce_disabled_homepage_variant(disabled_homepage_variant),
               created: now,
               updated: now,
@@ -240,8 +246,8 @@ module Onetime
           config = new(
             domain_id: domain_id,
             enabled: enabled.to_s,
-            signup_enabled: signup_enabled.nil? || signup_enabled,
-            signin_enabled: signin_enabled.nil? || signin_enabled,
+            signup_enabled: signup_enabled.nil? ? false : signup_enabled,
+            signin_enabled: signin_enabled.nil? ? false : signin_enabled,
             created: now,
             updated: now,
           )
