@@ -680,6 +680,39 @@ logic.process
 logic.secret.share_domain
 #=> nil
 
+## V3 CreateIncomingSecret resolves the custom domain's objid exactly once per request
+# Regression guard for the resolved_domain_id memoization: receipt persistence and
+# the notification's sender-config selection both need the CustomDomain objid, but
+# resolve_domain_id hits the datastore. Counts calls via monkey-patching to confirm
+# the two call sites still share one resolved value instead of re-reading Redis.
+v3_strategy = create_v3_strategy_with_domain(@v3_cust, @v3_custom_fqdn)
+@_resolve_domain_id_original = Onetime::CustomDomain.method(:resolve_domain_id)
+@_resolve_domain_id_calls = 0
+begin
+  resolve_domain_id_backup = @_resolve_domain_id_original
+  call_counter = -> { @_resolve_domain_id_calls += 1 }
+  Onetime::CustomDomain.define_singleton_method(:resolve_domain_id) do |*args, **kwargs|
+    call_counter.call
+    resolve_domain_id_backup.call(*args, **kwargs)
+  end
+  logic = Incoming::Logic::CreateIncomingSecret.new(v3_strategy, {
+    'secret' => {
+      'memo' => 'V3 resolve_domain_id call count test',
+      'secret' => 'Secret for call count test',
+      'recipient' => @v3_recipient_hash
+    }
+  })
+  logic.process_params
+  logic.raise_concerns
+  logic.process
+ensure
+  Onetime::CustomDomain.define_singleton_method(:resolve_domain_id) do |*args, **kwargs|
+    resolve_domain_id_backup.call(*args, **kwargs)
+  end
+end
+@_resolve_domain_id_calls
+#=> 1
+
 ## V3 CreateIncomingSecret with unknown custom domain raises Forbidden error
 # Unknown custom domain should fail entitlement check before receipt creation
 unknown_domain_strategy = create_v3_strategy_with_domain(@v3_cust, 'unknown-domain.example.com', domain_strategy: :custom)
