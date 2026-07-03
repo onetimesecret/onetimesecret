@@ -31,9 +31,21 @@
   // concern); both must hold to render (see template v-if).
   const { headerEnabled } = useHeaderEnabled();
 
-  // Per-domain link toggles (custom-domain homepage). Default to enabled
-  // when no domain config exists. System-level flags remain the master
-  // switch — both layers must be true for the link to render.
+  // Per-domain link toggles. This header renders on BOTH the canonical site
+  // and custom-domain transactional pages, so the null case must mean "show":
+  // canonical has no homepage_config (null) and MUST keep its Sign Up / Sign In
+  // links. Custom domains carry an explicit record whose flags default to false
+  // (see HomepageConfig / the 20260703_01 migration), so `!== false` hides the
+  // links there while leaving canonical's null untouched.
+  //
+  // DO NOT change this to `=== true` to match BrandedMastHead. BrandedMastHead
+  // is custom-domain-only (never null), so it can fail closed; this component
+  // is not. Flipping to `=== true` would strip Sign In/Sign Up from the
+  // canonical homepage. The regression is guarded by the "homepage_config is
+  // null → both links render" case in TransactionalHeader.customDomain.spec.ts.
+  //
+  // System-level authentication flags remain the master switch — both layers
+  // must be true for the link to render.
   const showDomainSignup = computed(() => homepage_config.value?.signup_enabled !== false);
   const showDomainSignin = computed(() => homepage_config.value?.signin_enabled !== false);
 

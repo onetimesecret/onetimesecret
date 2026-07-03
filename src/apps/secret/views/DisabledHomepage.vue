@@ -40,7 +40,10 @@
   };
 
   const { variant, props } = useDisabledConfig();
-  const ActiveVariant = computed(() => VARIANTS[variant.value]);
+  // Fall back to a known variant if `variant` is ever an unmapped id, so the
+  // dispatcher can never resolve to `undefined` (which would render nothing —
+  // a blank page). useDisabledConfig already validates, this is defence in depth.
+  const ActiveVariant = computed(() => VARIANTS[variant.value] ?? DisabledClosed);
 </script>
 
 <template>
