@@ -37,6 +37,12 @@ Lint/RedundantSafeNavigation:
 Metrics/MethodLength:
   Max: 168
 
+# Offense count: 1
+# Configuration parameters: CountComments, CountAsOne.
+Metrics/ModuleLength:
+  Exclude:
+    - 'lib/onetime/config.rb'
+
 # Offense count: 14
 # Configuration parameters: AllowedMethods, AllowedPatterns, Max.
 Metrics/PerceivedComplexity:

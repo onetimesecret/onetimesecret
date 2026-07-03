@@ -9,10 +9,13 @@
 # Specifically the page_title fallback chain change: the helper must
 # resolve page_title via the brand-aware chain
 #
-#   display_domain (request) -> brand_product_name -> site_name (deprecated)
+#   display_domain (request) -> brand_product_name
 #
-# and NEVER hardcode 'Onetime Secret' so that private-label / self-hosted
-# instances don't ship OTS branding by accident.
+# The legacy site.interface.ui.header.branding.site_name tier was retired in
+# #3612 — a legacy SITE_NAME/site_name is absorbed into brand.product_name by
+# Config#normalize_brand at boot, so the view layer reads the brand block
+# only. page_title must NEVER hardcode 'Onetime Secret' so that
+# private-label / self-hosted instances don't ship OTS branding by accident.
 #
 # Also asserts the 9 brand_* / brand-adjacent view vars exposed by the
 # helper are present with expected types.
@@ -89,22 +92,22 @@ with_brand_conf({ 'product_name' => 'Acme Vault' }) do
 end
 #=> 'vault.acme.test'
 
-# GLOBAL_DEFAULTS[:product_name] is nil per #3049, so this exercises the
-# shipped config.defaults.yaml site.interface.ui.header.branding.site_name
-# default rather than a brand-layer value.
-## page_title falls through to the legacy site_name when brand absent
-with_brand_conf(nil) do
-  vars = @host.initialize_view_vars(Rack::Request.new(build_env))
-  vars['page_title']
-end
-#=> 'One-Time Secret'
-
-## page_title falls through to GLOBAL_DEFAULTS[:product_name] (nil) when brand and legacy site_name are both absent
+# The legacy site.interface.ui.header.branding.site_name tier is retired
+# (#3612): the view reads brand.product_name only. A site_name injected into
+# the (post-normalize) config must NOT reach page_title — at a real boot the
+# legacy value would have been absorbed into brand.product_name by
+# normalize_brand and the branding subtree deleted by normalize_header_layout.
+## page_title ignores a conf-level legacy site_name when brand absent (tier retired)
 with_brand_conf(nil) do
   saved = YAML.load(YAML.dump(OT.conf))
   begin
     conf_copy = YAML.load(YAML.dump(OT.conf))
-    conf_copy.dig('site', 'interface', 'ui', 'header', 'branding')&.delete('site_name')
+    conf_copy.delete('brand')
+    conf_copy['site'] ||= {}
+    conf_copy['site']['interface'] ||= {}
+    conf_copy['site']['interface']['ui'] ||= {}
+    conf_copy['site']['interface']['ui']['header'] ||= {}
+    conf_copy['site']['interface']['ui']['header']['branding'] = { 'site_name' => 'LegacySiteName' }
     OT.send(:conf=, conf_copy)
     vars = @host.initialize_view_vars(Rack::Request.new(build_env))
     vars['page_title']
@@ -112,7 +115,16 @@ with_brand_conf(nil) do
     OT.send(:conf=, saved) rescue nil
   end
 end
-#=> nil
+#=> 'Secure Links'
+
+## page_title falls through to the neutral NEUTRAL_PRODUCT_NAME terminal when
+## brand and display_domain are both absent — the server-rendered <title> and
+## og:title must never go empty (hazard 2 of #3612: default posture is neutral)
+with_brand_conf(nil) do
+  vars = @host.initialize_view_vars(Rack::Request.new(build_env))
+  vars['page_title']
+end
+#=> 'Secure Links'
 
 ## [regression guard] page_title NEVER returns hardcoded 'Onetime Secret' when brand absent
 with_brand_conf(nil) do
@@ -188,6 +200,26 @@ with_brand_conf(nil) do
   vars['brand_font_family']
 end
 #=> 'sans'
+
+## initialize_view_vars exposes 'brand_logo_alt' (#3612)
+vars = @host.initialize_view_vars(Rack::Request.new(build_env))
+vars.key?('brand_logo_alt')
+#=> true
+
+## brand_logo_alt is nil when unset — frontend derives the accessible name
+## from the product name
+with_brand_conf(nil) do
+  vars = @host.initialize_view_vars(Rack::Request.new(build_env))
+  vars['brand_logo_alt']
+end
+#=> nil
+
+## brand_logo_alt reflects OT.conf['brand']['logo_alt'] when set
+with_brand_conf({ 'logo_alt' => 'Acme wordmark' }) do
+  vars = @host.initialize_view_vars(Rack::Request.new(build_env))
+  vars['brand_logo_alt']
+end
+#=> 'Acme wordmark'
 
 ## initialize_view_vars exposes 'brand_button_text_light'
 vars = @host.initialize_view_vars(Rack::Request.new(build_env))

@@ -59,6 +59,7 @@ function stripComments(src: string): string {
 const MASTHEAD = 'src/shared/components/layout/MastHead.vue';
 const DEFAULT_LOGO = 'src/shared/components/logos/DefaultLogo.vue';
 const USE_PAGE_TITLE = 'src/shared/composables/usePageTitle.ts';
+const IDENTITY_STORE = 'src/shared/stores/identityStore.ts';
 
 describe('branding resolver consolidation guardrail', () => {
   describe('MastHead routes brand identity through identityStore', () => {
@@ -76,6 +77,15 @@ describe('branding resolver consolidation guardrail', () => {
       expect(code).not.toContain('domain_logo');
     });
 
+    it('reads the logo asset from the resolver, not header branding or the raw brand field (#3612)', () => {
+      // The operator's install logo comes from the resolver
+      // (installLogoUri/logoSource); ui.header keeps only layout knobs. Neither
+      // the removed header.branding nesting nor the raw brand_logo_url
+      // bootstrap field may reappear in masthead code.
+      expect(code).not.toContain('.branding');
+      expect(code).not.toContain('brand_logo_url');
+    });
+
     it('does not hardcode the OTS platform name', () => {
       expect(code).not.toContain('Onetime Secret');
     });
@@ -84,8 +94,30 @@ describe('branding resolver consolidation guardrail', () => {
       expect(raw).toContain('useProductIdentity');
       expect(raw).toContain('productName');
       expect(raw).toContain('showPlatformIdentity');
-      expect(raw).toContain('logoUri');
+      expect(raw).toContain('installLogoUri');
+      expect(raw).toContain('installLogoAlt');
       expect(raw).toContain('logoSource');
+    });
+  });
+
+  describe('identityStore is the one place the raw install-brand fields are read', () => {
+    // The resolver owns the raw brand_logo_url read and the custom-domain
+    // gate (installLogoUri nulls out when isCustom) — every surface above it
+    // consumes the resolved signals instead of re-deriving the leak rule.
+    const raw = read(IDENTITY_STORE);
+    const code = stripComments(raw);
+
+    it('reads the raw brand_logo_url field into installLogoUri', () => {
+      expect(raw).toContain('brand_logo_url');
+      expect(raw).toContain('installLogoUri');
+    });
+
+    it('gates the install logo on the custom-domain check (#3612 leak fix)', () => {
+      expect(raw).toContain('isCustom');
+    });
+
+    it('does not hardcode the OTS platform name', () => {
+      expect(code).not.toContain('Onetime Secret');
     });
   });
 

@@ -494,6 +494,114 @@ RSpec.describe Onetime::Config do
       end
     end
 
+    context 'soft deprecations (severity: :warn) for legacy brand config (#3612)' do
+      def stub_env(env)
+        # Strip the legacy brand env vars from the base env so ambient values
+        # (e.g. from .env) don't bleed into cases.
+        base = ENV.to_h.reject { |k, _| %w[SITE_NAME LOGO_URL LOGO_ALT].include?(k) }
+        stub_const('ENV', base.merge(env))
+      end
+
+      def build_config(mode = nil)
+        conf = {
+          'site' => { 'secret' => 'test-secret' },
+          'mail' => { 'truemail' => {} },
+        }
+        conf['compatibility'] = { 'deprecated_config_mode' => mode } if mode
+        conf
+      end
+
+      it 'logs SITE_NAME under strict mode (default) and boot continues' do
+        stub_env('SITE_NAME' => 'Legacy Brand')
+
+        expect(OT).to receive(:le).with(/CONFIG DEPRECATION:.*SITE_NAME is deprecated/)
+
+        result = nil
+        expect {
+          result = described_class.after_load(build_config)
+        }.not_to raise_error
+        # The legacy value still works: normalize_brand adopts it as fallback.
+        expect(result.dig('brand', 'product_name')).to eq('Legacy Brand')
+      end
+
+      it 'logs the header.branding path under strict mode and strips the subtree' do
+        stub_env({})
+        config = build_config
+        config['site']['interface'] = {
+          'ui' => { 'header' => { 'branding' => { 'site_name' => 'Legacy' } } },
+        }
+
+        expect(OT).to receive(:le).with(/CONFIG DEPRECATION:.*header\.branding is deprecated/)
+
+        result = described_class.after_load(config)
+        expect(result.dig('site', 'interface', 'ui', 'header')).not_to have_key('branding')
+        expect(result.dig('brand', 'product_name')).to eq('Legacy')
+      end
+
+      it 'logs LOGO_URL and LOGO_ALT under strict mode and boot continues' do
+        stub_env('LOGO_URL' => 'https://cdn.example.com/legacy.svg',
+                 'LOGO_ALT' => 'Legacy mark')
+
+        expect(OT).to receive(:le).with(/CONFIG DEPRECATION:.*LOGO_URL is deprecated/)
+        expect(OT).to receive(:le).with(/CONFIG DEPRECATION:.*LOGO_ALT is deprecated/)
+
+        result = nil
+        expect {
+          result = described_class.after_load(build_config)
+        }.not_to raise_error
+        expect(result.dig('brand', 'logo_url')).to eq('https://cdn.example.com/legacy.svg')
+        expect(result.dig('brand', 'logo_alt')).to eq('Legacy mark')
+      end
+
+      it 'still raises for removed keys (site.domains) under strict mode' do
+        stub_env({})
+        config = build_config
+        config['site']['domains'] = { 'enabled' => true }
+
+        expect {
+          described_class.after_load(config)
+        }.to raise_error(OT::ConfigError, /site\.domains is ignored/)
+      end
+
+      it 'logs soft entries even when a hard entry raises under strict mode' do
+        stub_env('SITE_NAME' => 'Legacy Brand')
+        config = build_config
+        config['site']['domains'] = { 'enabled' => true }
+
+        expect(OT).to receive(:le).with(/CONFIG DEPRECATION:.*SITE_NAME is deprecated/)
+
+        expect {
+          described_class.after_load(config)
+        }.to raise_error(OT::ConfigError, /site\.domains is ignored/)
+      end
+
+      it 'logs both soft and hard entries under warn mode without raising' do
+        stub_env('SITE_NAME' => 'Legacy Brand')
+        config = build_config('warn')
+        config['site']['domains'] = { 'enabled' => true }
+
+        expect(OT).to receive(:le).with(/CONFIG DEPRECATION:.*SITE_NAME is deprecated/)
+        expect(OT).to receive(:le).with(/CONFIG DEPRECATION:.*site\.domains is ignored/)
+
+        expect {
+          described_class.after_load(config)
+        }.not_to raise_error
+      end
+
+      it 'suppresses soft warnings under silent mode' do
+        stub_env('SITE_NAME' => 'Legacy Brand')
+
+        expect(OT).not_to receive(:le).with(/CONFIG DEPRECATION/)
+
+        result = nil
+        expect {
+          result = described_class.after_load(build_config('silent'))
+        }.not_to raise_error
+        # Silent only mutes the report; the fallback shim still applies.
+        expect(result.dig('brand', 'product_name')).to eq('Legacy Brand')
+      end
+    end
+
     context 'site configuration validation' do
       it 'uses default values when site has minimal config' do
         raw_config = {
