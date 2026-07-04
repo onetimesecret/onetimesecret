@@ -1,8 +1,9 @@
 // src/tests/apps/workspace/components/dashboard/DomainsTableActionsCell.spec.ts
 
 import { mount } from '@vue/test-utils';
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import DomainsTableActionsCell from '@/apps/workspace/components/dashboard/DomainsTableActionsCell.vue';
+import { isApproximatedDomainValidation } from '@/utils/features';
 
 // Mock vue-i18n
 vi.mock('vue-i18n', () => ({
@@ -11,6 +12,7 @@ vi.mock('vue-i18n', () => ({
       const translations: Record<string, string> = {
         'web.domains.manage_brand': 'Manage Brand',
         'web.domains.verify_domain': 'Verify Domain',
+        'web.domains.detail.dns_title': 'DNS Setup',
         'web.domains.sso.configure_sso': 'Configure SSO',
         'web.domains.email.configure_email': 'Configure Email',
         'web.domains.incoming.configure_incoming': 'Configure Incoming Secrets',
@@ -20,6 +22,15 @@ vi.mock('vue-i18n', () => ({
     },
   }),
 }));
+
+// Control the install's domain validation strategy. Default to approximated so
+// the existing menu expectations (which show "Verify Domain" → DomainVerify)
+// hold; individual tests flip it to exercise the self-hosted CNAME path.
+vi.mock('@/utils/features', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/utils/features')>()),
+  isApproximatedDomainValidation: vi.fn(() => true),
+}));
+const mockApprox = vi.mocked(isApproximatedDomainValidation);
 
 // Mock HeadlessUI MenuItem to render slot content with v-if support
 vi.mock('@headlessui/vue', () => ({
@@ -95,6 +106,11 @@ function mountComponent({
 }
 
 describe('DomainsTableActionsCell', () => {
+  beforeEach(() => {
+    // clearAllMocks() keeps mockReturnValue overrides, so re-assert the default.
+    mockApprox.mockReturnValue(true);
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
   });
@@ -274,6 +290,53 @@ describe('DomainsTableActionsCell', () => {
         name: 'DomainIncoming',
         params: { orgid: 'org_ext_123', extid: 'dm-test-extid' },
       });
+    });
+  });
+
+  describe('DNS menu item by validation strategy', () => {
+    /** Parse the `to` object off an <a data-to> link. */
+    const toOf = (link: { attributes: (name: string) => string | undefined }) =>
+      JSON.parse(link.attributes('data-to')!);
+
+    it('links to DomainVerify labelled "Verify Domain" when approximated', () => {
+      mockApprox.mockReturnValue(true);
+      const wrapper = mountComponent();
+
+      const verifyLink = wrapper
+        .findAll('a[data-to]')
+        .find((l) => toOf(l).name === 'DomainVerify');
+
+      expect(verifyLink).toBeDefined();
+      expect(verifyLink!.text()).toBe('Verify Domain');
+    });
+
+    it('links to DomainDns labelled "DNS Setup" when not approximated', () => {
+      mockApprox.mockReturnValue(false);
+      const wrapper = mountComponent();
+
+      const links = wrapper.findAll('a[data-to]');
+      const dnsLink = links.find((l) => toOf(l).name === 'DomainDns');
+
+      expect(dnsLink).toBeDefined();
+      expect(dnsLink!.text()).toBe('DNS Setup');
+      expect(toOf(dnsLink!).params).toEqual({
+        orgid: 'org_ext_123',
+        extid: 'dm-test-extid',
+      });
+
+      // The Approximated verification screen must not be linked.
+      expect(links.find((l) => toOf(l).name === 'DomainVerify')).toBeUndefined();
+    });
+
+    it('surfaces the Manage quick action on non-approximated installs even without DNS status', () => {
+      mockApprox.mockReturnValue(false);
+      const wrapper = mountComponent();
+
+      const manageLink = wrapper
+        .findAll('a[data-to]')
+        .find((l) => toOf(l).name === 'DomainDetail');
+
+      expect(manageLink).toBeDefined();
     });
   });
 

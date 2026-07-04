@@ -6,6 +6,7 @@
   import DomainVerificationInfo from '@/apps/workspace/components/domains/DomainVerificationInfo.vue';
   import type { CustomDomain } from '@/schemas/shapes/v3/custom-domain';
   import { useDomainStatus } from '@/shared/composables/useDomainStatus';
+  import { isApproximatedDomainValidation } from '@/utils/features';
   import { formatDistanceToNow } from 'date-fns';
   import { computed, toRef } from 'vue';
 
@@ -25,6 +26,12 @@ const { t } = useI18n();
   const { isWarning, isError, isStale, displayStatus } = useDomainStatus(
     toRef(() => props.domain)
   );
+
+  // The DNS verification status is driven by Approximated's per-domain check.
+  // On installs that don't use Approximated, that status is never populated,
+  // so hide it and let operators manage their own DNS. See
+  // isApproximatedDomainValidation().
+  const showVerificationStatus = computed(() => isApproximatedDomainValidation());
 
   /**
    * Route to verify the domain (shown when DNS issues exist or the cache is stale).
@@ -126,8 +133,9 @@ const { t } = useI18n();
     </div>
 
     <div class="flex items-center gap-2">
-      <!-- When DNS issues exist or the last fetch failed: show clickable status text -->
-      <template v-if="isWarning || isError || isStale">
+      <!-- When DNS issues exist or the last fetch failed: show clickable status
+           text. Only meaningful with Approximated validation. -->
+      <template v-if="showVerificationStatus && (isWarning || isError || isStale)">
         <router-link
           :to="verifyRoute"
           class="inline-flex items-center gap-1.5 text-xs font-medium text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
@@ -146,10 +154,11 @@ const { t } = useI18n();
         </router-link>
       </template>
 
-      <!-- When OK: show status icons + age -->
+      <!-- Otherwise: show status icon (Approximated only) + email badge + age -->
       <template v-else>
-        <!-- Domain verification status icon -->
+        <!-- Domain verification status icon (hidden on non-approximated installs) -->
         <DomainVerificationInfo
+          v-if="showVerificationStatus"
           mode="icon"
           :domain="domain"
           :orgid="props.orgid"
