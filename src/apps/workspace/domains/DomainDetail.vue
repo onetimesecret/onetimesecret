@@ -95,17 +95,6 @@ const homepageChoice = computed<HomepageChoice>(() => {
   return config.secrets_mode === 'incoming' ? 'incoming' : 'create';
 });
 
-const homepageStatusKey = computed(() => {
-  switch (homepageChoice.value) {
-    case 'create':
-      return 'web.domains.homepage.status_create';
-    case 'incoming':
-      return 'web.domains.homepage.status_incoming';
-    default:
-      return 'web.domains.homepage.status_private';
-  }
-});
-
 /** Incoming option offered at all: deployment flag + plan entitlement. */
 const homepageIncomingAvailable = computed(
   () => isOrgsIncomingSecretsEnabled() && canIncomingSecrets.value
@@ -115,6 +104,24 @@ const homepageIncomingAvailable = computed(
 const homepageIncomingReady = computed(
   () => customDomainRecord.value?.incoming_ready ?? false
 );
+
+// Stored choice can drift from what visitors actually see: 'incoming' stays
+// selected (preserving the operator's intent) even after recipients are
+// removed elsewhere, but the backend fails closed to the private trust card
+// at that point (HomepageConfig#effectively_enabled?). Reflect that here so
+// the status line never claims the homepage is interactive when it isn't.
+const homepageStatusKey = computed(() => {
+  switch (homepageChoice.value) {
+    case 'create':
+      return 'web.domains.homepage.status_create';
+    case 'incoming':
+      return homepageIncomingReady.value
+        ? 'web.domains.homepage.status_incoming'
+        : 'web.domains.homepage.status_incoming_unready';
+    default:
+      return 'web.domains.homepage.status_private';
+  }
+});
 
 const incomingConfigRoute = computed(() => ({
   name: 'DomainIncoming',

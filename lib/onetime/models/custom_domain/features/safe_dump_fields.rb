@@ -83,6 +83,15 @@ module Onetime::CustomDomain::Features
       # is discarded, typically at end of request) to match the SSO/mailer
       # caching pattern above and avoid a second Redis hit when
       # allow_public_homepage? runs against the same instance.
+      #
+      # `enabled` here is the STORED flag, deliberately not the effective
+      # one: this powers the admin-facing workspace domain list/detail
+      # views, which must show the operator's actual selection so editing
+      # it (e.g. re-saving 'incoming') never gets short-circuited by a
+      # temporary readiness drift. The anonymous-visitor-facing bootstrap
+      # payload (DomainSerializer#serialize_homepage_config) uses
+      # HomepageConfig#effectively_enabled? instead — the two are
+      # intentionally different views of the same record.
       base.safe_dump_field :homepage_config,
         ->(obj) {
           unless obj.instance_variable_defined?(:@_homepage_config_cache)

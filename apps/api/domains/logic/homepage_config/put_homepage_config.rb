@@ -39,7 +39,7 @@ module DomainsAPI
           @signup_enabled            = parse_boolean(params['signup_enabled']) if params.key?('signup_enabled')
           @signin_enabled            = parse_boolean(params['signin_enabled']) if params.key?('signin_enabled')
           @disabled_homepage_variant = params['disabled_homepage_variant']
-          @secrets_mode              = params['secrets_mode']&.to_s
+          @secrets_mode              = params['secrets_mode']&.to_s&.strip
         end
 
         def raise_concerns

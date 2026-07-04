@@ -364,7 +364,7 @@ module Onetime
           # the toggles never lived in BrandSettings.
           homepage_cfg             = Onetime::CustomDomain::HomepageConfig.find_by_domain_id(domain.identifier)
           output[:homepage_config] = {
-            enabled: domain.allow_public_homepage?,
+            enabled: homepage_cfg&.effectively_enabled?(custom_domain: domain) || false,
             secrets_mode: homepage_cfg&.secrets_mode_value,
           }
           output[:api_config]      = { enabled: domain.allow_public_api? }

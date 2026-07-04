@@ -174,7 +174,7 @@ const { t } = useI18n();
                        preserve the stored mode); surface an incoming-mode badge so
                        "on" isn't misread as the create form for these domains. -->
                   <div
-                    v-if="domain.homepage_config?.secrets_mode === 'incoming'"
+                    v-if="domain.homepage_config?.enabled && domain.homepage_config?.secrets_mode === 'incoming'"
                     class="mt-1 inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400"
                     data-testid="homepage-incoming-badge">
                     <OIcon

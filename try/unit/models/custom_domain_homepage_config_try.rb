@@ -555,6 +555,11 @@ Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @apsc_domain.identifier,
 [@apsc_domain.allow_public_homepage?, @apsc_domain.allow_public_secret_creation?]
 #=> [false, false]
 
+## Disabled homepage with secrets_mode='incoming' also allows neither (enabled? short-circuits)
+Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @apsc_domain.identifier, enabled: false, secrets_mode: 'incoming')
+[@apsc_domain.allow_public_homepage?, @apsc_domain.allow_public_secret_creation?]
+#=> [false, false]
+
 ## Missing HomepageConfig record fails closed for creation too
 Onetime::CustomDomain::HomepageConfig.delete_for_domain!(@apsc_domain.identifier)
 @apsc_domain.allow_public_secret_creation?
