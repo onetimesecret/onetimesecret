@@ -300,7 +300,6 @@ When enabling new Rodauth features:
 
 ## See Also
 
-- [MFA Recovery Workflow](mfa-recovery.md)
-- [Magic Link MFA Flow](magic-link-mfa-flow.md)
+- [MFA Recovery Workflow](../../apps/web/auth/docs/mfa-recovery.md)
 - Rodauth Documentation: http://rodauth.jeremyevans.net
 - Auth Configuration: `apps/web/auth/config/`

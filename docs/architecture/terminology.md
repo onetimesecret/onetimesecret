@@ -1,5 +1,3 @@
-# docs/architecture/terminology.md
----
 # Common Framework Terminology
 
 | This Codebase       | Common Term                  | Framework Examples                                     |

@@ -1,6 +1,6 @@
-# #3424 — The recipient surface as an information-flow channel (formal model)
+# The recipient surface as an information-flow channel (formal model)
 
-Formal companion to `docs/specs/issue-3424-disclosure-matrix.html`. That document
+Formal companion to `docs/specs/recipient-disclosure-matrix.html`. That document
 is the design source of truth in prose; this one captures the same
 "who-may-distinguish-what-without-it-leaking" logic in a single, established
 formalism so the policy is **machine-checkable** rather than argued case by case.
@@ -243,7 +243,7 @@ entering `C_anon`, `C_net`, or `C_rcptHolder`:
 
 - The model is **falsifiable**: any proposed change is admissible iff it preserves
   `assert NI` for `C_anon`/`C_net`, leaves `L∞(Σ ; ·)=0` on the client/URL
-  channels, and does not refine the adversary join (§6a). 
+  channels, and does not refine the adversary join (§6a).
 - It is **machine-checkable in principle**: encode each route's response as the
   coordinate tuple in §4 and assert row-equality across `{a..f}`; encode the
   receipts endpoint as `C_rcptHolder` and assert constant-time + unguessable-id;
@@ -261,4 +261,4 @@ entering `C_anon`, `C_net`, or `C_rcptHolder`:
 - Aumann, *Agreeing to Disagree*, Ann. Statist. 1976; Fagin, Halpern, Moses, Vardi, *Reasoning About Knowledge*, 1995.
 - G. Smith, *On the Foundations of Quantitative Information Flow*, FoSSaCS 2009; Alvim et al., *The Science of Quantitative Information Flow*, Springer 2020.
 - Dwork, *Differential Privacy*, ICALP 2006; Shokri et al., *Membership Inference Attacks*, IEEE S&P 2017; Sweeney, *k-anonymity*, 2002.
-- Companions: `issue-3424-root-cause-analysis.md`, `issue-3424-ux-analysis.md`, `issue-3424-disclosure-matrix.html`.
+- Companions: `unviewable-state-root-cause.md`, `terminal-screen-ux-analysis.md`, `recipient-disclosure-matrix.html`.

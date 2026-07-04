@@ -1,4 +1,3 @@
-# docs/product/secret-lifecycle.md
 ---
 title: Secret Lifecycle
 type: reference

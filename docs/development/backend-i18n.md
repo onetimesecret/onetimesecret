@@ -1,6 +1,3 @@
-# docs/development/backend-i18n.md
----
-
 # Backend i18n
 
 Localize user-facing strings in Ruby API code using `I18n.t` with keys from source locale files.

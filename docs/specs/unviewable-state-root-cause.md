@@ -1,4 +1,4 @@
-# #3424 — "secret shows 'no longer available'": root cause and failure surface
+# "secret shows 'no longer available'": root cause and failure surface
 
 Companion to the systemic design in #3496 / #3514
 (`docs/specs/schema-source-of-truth.md`). That spec proposes the cure; this one
