@@ -7,6 +7,7 @@
   import { CustomDomain } from '@/schemas/shapes/v3'
   import { MenuItem } from '@headlessui/vue';
   import { useDomainStatus } from '@/shared/composables/useDomainStatus';
+  import { isApproximatedDomainValidation } from '@/utils/features';
   import { computed, toRef } from 'vue';
 
 const { t } = useI18n();
@@ -35,14 +36,23 @@ const { t } = useI18n();
   // Domain verification status
   const { isActive } = useDomainStatus(toRef(() => props.domain));
 
+  // The DNS status only carries meaning with Approximated validation. On other
+  // installs it never populates, so it must not gate the Manage button or point
+  // the menu at the Approximated verification screen. See
+  // isApproximatedDomainValidation().
+  const showVerificationStatus = computed(() => isApproximatedDomainValidation());
+
   /**
    * Primary action to surface outside the kebab menu.
-   * Only shown when domain is verified (no issues) — when there ARE issues,
-   * the clickable status text in the domain cell already serves as the action.
+   * On Approximated installs, only shown when the domain is verified (no
+   * issues) — when there ARE issues, the clickable status text in the domain
+   * cell already serves as the action. On non-approximated installs there is no
+   * DNS status, so Manage is always surfaced.
    */
   const primaryAction = computed(() => {
-    // Don't show button when domain has issues — status text is already clickable
-    if (!isActive.value) return null;
+    // Don't show button when an Approximated domain has issues — status text is
+    // already clickable.
+    if (showVerificationStatus.value && !isActive.value) return null;
 
     return {
       label: t('web.domains.detail.manage'),
@@ -51,6 +61,16 @@ const { t } = useI18n();
       style: 'default',
     };
   });
+
+  /**
+   * DNS/verification menu entry. Approximated installs route to the verification
+   * screen; other installs route to the simpler CNAME-instructions screen.
+   */
+  const dnsMenuItem = computed(() =>
+    showVerificationStatus.value
+      ? { route: { name: 'DomainVerify', params: { orgid: props.orgid, extid: props.domain.extid } }, label: t('web.domains.verify_domain') }
+      : { route: { name: 'DomainDns', params: { orgid: props.orgid, extid: props.domain.extid } }, label: t('web.domains.detail.dns_title') }
+  );
 
   const emit = defineEmits<{
     (e: 'delete', domain: string): void
@@ -98,17 +118,14 @@ const { t } = useI18n();
         </MenuItem>
         <MenuItem v-slot="{ active }">
           <router-link
-            :to="{
-              name: 'DomainVerify',
-              params: { orgid: props.orgid, extid: domain.extid },
-            }"
+            :to="dnsMenuItem.route"
             :class="[
               active
                 ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
                 : 'text-gray-700 dark:text-gray-200',
               'block px-4 py-2 text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500',
             ]">
-            {{ t('web.domains.verify_domain') }}
+            {{ dnsMenuItem.label }}
           </router-link>
         </MenuItem>
         <MenuItem v-if="canManageSso"
