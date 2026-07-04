@@ -12,7 +12,8 @@ require 'v1/controllers'
 # The capture_error method adds request context when capturing exceptions to
 # Sentry, enabling better debugging of API errors. It sets:
 # - Tags: service='api', endpoint=<request path>
-# - Context 'request': url, method, ip
+# - Context 'request': path (never the query string), method, ip -- via
+#   Onetime::ErrorHandler.safe_request_context
 # - Context 'customer': custid (truncated), role (when authenticated)
 # - Context 'session': sessid (truncated)
 #
@@ -38,7 +39,8 @@ RSpec.describe V1::ControllerHelpers do
   let(:mock_request) do
     double(
       'Request',
-      url: 'https://example.com/api/v1/secrets',
+      url: 'https://example.com/api/v1/secrets?api_key=super-secret',
+      path: '/api/v1/secrets',
       request_method: 'POST',
       ip: '192.168.1.100',
       path_info: '/api/v1/secrets',
@@ -136,17 +138,29 @@ RSpec.describe V1::ControllerHelpers do
           controller.capture_error(test_error)
         end
 
-        it 'sets request context with url, method, and ip' do
+        it 'sets request context with path (never the query string), method, and ip' do
           expect(mock_scope).to receive(:set_context).with(
             'request',
             hash_including(
-              url: 'https://example.com/api/v1/secrets',
+              path: '/api/v1/secrets',
               method: 'POST',
               ip: '192.168.1.100'
             )
           )
 
           controller.capture_error(test_error)
+        end
+
+        it 'never leaks the query string (or the full URL) into the request context' do
+          captured_context = nil
+          allow(mock_scope).to receive(:set_context) do |key, value|
+            captured_context = value if key == 'request'
+          end
+
+          controller.capture_error(test_error)
+
+          expect(captured_context).not_to have_key(:url)
+          expect(captured_context.values).not_to include(a_string_including('api_key'))
         end
       end
 

@@ -65,7 +65,7 @@ module V1
       # session may be a Hash fallback when no session middleware is available
       session_id       = (session.respond_to?(:id) && session.id&.to_s) || req.cookies['onetime.session'] || 'unknown'
       short_session_id = session_id.length <= 10 ? session_id : session_id[0, 10] + '...'
-      OT.le "[attempt-saving-non-string-to-db] #{obscured} (#{req.client_ipaddress}): #{short_session_id} (#{req.current_absolute_uri})"
+      OT.le "[attempt-saving-non-string-to-db] #{obscured} (#{req.client_ipaddress}): #{short_session_id} (#{req.path})"
 
       # Track attempts to save non-string data to the database as a warning error
       capture_error ex, :warning
@@ -92,7 +92,7 @@ module V1
       # session may be a Hash fallback when no session middleware is available
       session_id       = (session.respond_to?(:id) && session.id&.to_s) || req.cookies['onetime.session'] || 'unknown'
       short_session_id = session_id.length <= 10 ? session_id : session_id[0, 10] + '...'
-      OT.le "#{ex.class}: #{ex.message} -- #{req.current_absolute_uri} -- #{req.client_ipaddress} #{custid} #{short_session_id} #{locale} #{content_type}"
+      OT.le "#{ex.class}: #{ex.message} -- #{req.path} -- #{req.client_ipaddress} #{custid} #{short_session_id} #{locale} #{content_type}"
       OT.le ex.backtrace.join("\n")
 
       # Track the unexected errors
@@ -153,9 +153,14 @@ module V1
 
     # Collectes request details in a single string for logging purposes.
     #
-    # This method collects the IP address, request method, path, query string,
-    # and proxy header details from the given request object and formats them
-    # into a single string. The resulting string is suitable for logging.
+    # This method collects the IP address, request method, path, and proxy
+    # header details from the given request object and formats them into a
+    # single string. The resulting string is suitable for logging. The query
+    # string is intentionally omitted -- this is called on every authenticated
+    # request via log_customer_activity, and a query string can carry the same
+    # class of sensitive value (an accidentally-appended secret/token) that
+    # Onetime::ErrorHandler.safe_request_context guards against on the error
+    # path.
     #
     # @param req [Rack::Request] The request object containing the details to be
     #   stringified.
@@ -164,14 +169,14 @@ module V1
     # @example
     #   req = Rack::Request.new(env)
     #   stringify_request_details(req)
-    #   # => "192.0.2.1; GET /path?query=string; Proxy[HTTP_X_FORWARDED_FOR=203.0.113.195 REMOTE_ADDR=192.0.2.1]"
+    #   # => "192.0.2.1; GET /path; Proxy[HTTP_X_FORWARDED_FOR=203.0.113.195 REMOTE_ADDR=192.0.2.1]"
     #
     def stringify_request_details(req)
       header_details = collect_proxy_header_details(req.env)
 
       details = [
         req.ip,
-        "#{req.request_method} #{req.path_info}?#{req.query_string}",
+        "#{req.request_method} #{req.path_info}",
         "Proxy[#{header_details}]",
       ]
 
@@ -307,16 +312,10 @@ module V1
           endpoint: (defined?(req) && req&.path_info) || 'unknown',
         )
 
-        # Add request context (URLs scrubbed by before_send hook)
-        if defined?(req) && req.respond_to?(:url)
-          scope.set_context(
-            'request',
-            {
-              url: req.url,
-              method: req.request_method,
-              ip: req.ip,
-            },
-          )
+        # Add request context: path only (never the query string) plus any
+        # explicitly allow-listed params — see Onetime::ErrorHandler.safe_request_context.
+        if defined?(req) && req.respond_to?(:path)
+          scope.set_context('request', Onetime::ErrorHandler.safe_request_context(req))
         end
 
         # Add customer/session context with truncated IDs for privacy
