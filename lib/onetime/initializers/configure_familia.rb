@@ -49,11 +49,6 @@ module Onetime
         # during legacy data detection and other pre-connection operations
         Familia.uri = uri
 
-        # Compatibility bridge: Familia v2.1 reads VERIFIABLE_ID_HMAC_SECRET
-        # at require time for its verifiable_identifier module. Bridge the
-        # renamed env var until Familia is updated to read IDENTIFIER_SECRET.
-        ENV['VERIFIABLE_ID_HMAC_SECRET'] ||= ENV['IDENTIFIER_SECRET'] if ENV['IDENTIFIER_SECRET']
-
         # Encryption keys with versioning for key rotation.
         #
         # v1: Legacy SHA-256 derivation (reads existing encrypted data)
@@ -70,6 +65,26 @@ module Onetime
           v2: v2_key,
         }
         Familia.config.current_key_version = :v2
+
+        # Identifier signing secret for Familia::VerifiableIdentifier, which HMACs
+        # Secret/Receipt objids. Familia >= 2.11 removed its committed fallback key
+        # and rejects a missing OR blank secret (delano/familia#335), raising at
+        # the first identifier mint. IDENTIFIER_SECRET is optional in our config,
+        # and the compose files inject `IDENTIFIER_SECRET=${IDENTIFIER_SECRET:-}` --
+        # an empty string whenever the outer variable is unset. So derive a stable
+        # per-deployment value from site.secret when the env var is absent or blank,
+        # using the same HKDF purpose (:identifier) that init.rake writes to .env:
+        # installs that ran init and those that did not converge on one key.
+        #
+        # Safe to set per deployment: nothing reads identifiers back through
+        # Familia::VerifiableIdentifier.verified_identifier? yet, so tags minted
+        # under any prior (committed-fallback or empty) key still resolve. Revisit
+        # if verification-on-read is ever introduced -- tracked in issue #3630.
+        identifier_secret = ENV['IDENTIFIER_SECRET'].to_s
+        if identifier_secret.empty?
+          identifier_secret = Onetime::KeyDerivation.derive_hex(secret_key, :identifier)
+        end
+        ENV['VERIFIABLE_ID_HMAC_SECRET'] ||= identifier_secret
 
         # Pin the cryptographic domain-separation inputs explicitly instead of
         # relying on Familia's library defaults, so an upstream default change
