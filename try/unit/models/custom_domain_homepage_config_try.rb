@@ -560,11 +560,14 @@ Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @apsc_domain.identifier,
 [@apsc_domain.allow_public_homepage?, @apsc_domain.allow_public_secret_creation?]
 #=> [false, false]
 
-## A corrupt stored secrets_mode fails closed on the creation gate. Written
-## via the raw field setter to bypass the coercion that upsert/create! and the
-## PUT API apply — an enabled homepage whose mode we cannot interpret stays
-## public/interactive but must NOT authorize the create form the operator
-## never selected.
+# A corrupt stored secrets_mode is written via the raw field setter to bypass
+# the coercion that upsert/create! and the PUT API apply — simulating direct
+# Redis corruption or a botched migration. The branded homepage still renders
+# (allow_public_homepage? stays true), but a mode we cannot interpret must NOT
+# authorize the anonymous create form the operator never selected; the
+# render-path gate (effectively_enabled?, checked next) fails closed too.
+
+## A corrupt stored secrets_mode fails closed on the anonymous-creation gate
 @apsc_corrupt = Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @apsc_domain.identifier, enabled: true, secrets_mode: 'create')
 @apsc_corrupt.secrets_mode = 'corrupted-value'
 @apsc_corrupt.save
