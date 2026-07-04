@@ -268,6 +268,10 @@ export const receiptDetailsCanonical = z.object({
   no_cache: z.boolean(),
   secret_realttl: z.number().nullable().optional(),
   view_count: z.number().nullable(),
+  // Access-timeline aggregates (#3633): epoch seconds of the earliest/latest
+  // recorded access of the secret link, or null when it has never been fetched.
+  first_access: z.number().nullable().optional(),
+  last_access: z.number().nullable().optional(),
   has_passphrase: z.boolean().nullable(),
   can_decrypt: z.boolean().nullable(),
   secret_value: z.string().nullable().optional(),

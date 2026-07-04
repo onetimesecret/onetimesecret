@@ -36,6 +36,8 @@ module V2::Logic
         :is_destroyed,
         :expiration,
         :view_count,
+        :first_access,
+        :last_access,
         :has_passphrase,
         :can_decrypt,
         :secret_value,
@@ -91,6 +93,14 @@ module V2::Logic
         @expiration            = receipt.secret_expiration
         @expiration_in_seconds = receipt.secret_ttl
 
+        # Access telemetry from the receipt's timeline (#3633). Derived here
+        # regardless of whether the secret still exists: the timeline outlives
+        # the secret, and "was it accessed before it was revealed/burned?" is
+        # exactly what the creator wants to know afterwards.
+        @view_count   = receipt.access_count
+        @first_access = receipt.first_access_at
+        @last_access  = receipt.last_access_at
+
         secret = receipt.load_secret
 
         if secret.nil?
@@ -121,7 +131,6 @@ module V2::Logic
         else
           @secret_state   = secret.state
           @secret_realttl = secret.current_expiration
-          @view_count     = nil
 
           if secret.viewable?
             @has_passphrase = !secret.passphrase.to_s.empty?
@@ -279,6 +288,8 @@ module V2::Logic
           no_cache: no_cache,
           secret_realttl: secret_realttl,
           view_count: view_count,
+          first_access: first_access,
+          last_access: last_access,
           has_passphrase: has_passphrase || false,
           can_decrypt: can_decrypt || false,
           secret_value: secret_value,

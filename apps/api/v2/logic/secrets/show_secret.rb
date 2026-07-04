@@ -16,6 +16,7 @@ module V2::Logic
     #   only metadata such as whether a passphrase is required. The secret can
     #   only be viewed once.
     class ShowSecret < V2::Logic::Base
+      include AccessTelemetry
       include Onetime::Logic::GuestRouteGating
       include Onetime::Security::PassphraseRateLimiter
 
@@ -94,7 +95,11 @@ module V2::Logic
         @is_owner       = secret.owner?(cust)
         @one_liner      = one_liner
 
-        secret.previewed! if secret.state?(:new)
+        # Fetching metadata must not advance the secret's lifecycle state
+        # (GET is a safe method, #3633); the access is recorded on the
+        # receipt's timeline instead. Lifecycle now only moves on a genuine
+        # reveal or burn.
+        record_access_telemetry('secret_get')
 
         success_data
       end
