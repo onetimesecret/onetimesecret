@@ -22,6 +22,7 @@ Frontend architecture and design documentation for Onetime Secret.
 | [Secret Lifecycle](secret-lifecycle.md) | FSM states for secret entities (idle → revealed → burned) |
 | [Organization Invites](organization-invites.md) | Invite lifecycle, API surface, anti-abuse posture |
 | [Context Switcher Visibility](context-switcher-visibility.md) | When the org/domain switchers and user-menu identity chip appear |
+| [Organization / Workspace Terminology](workspace-terminology.md) | Which UI surfaces say "Workspace" vs. "Organization", and why |
 | [URI Path Mapping](uri-paths-to-views-structure.md) | URL → Vue component mapping table |
 
 ## Key Concepts
