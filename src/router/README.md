@@ -155,8 +155,62 @@ src/
     ├── index.ts                   # Main router (assembles all routes)
     ├── guards.routes.ts           # Navigation guards
     ├── layout.config.ts           # Layout component config
+    ├── piiQueryGuard.ts           # Dev-only "no PII in query" warning
     ├── public.routes.ts           # Public pages (home, feedback, etc.)
     └── queryParams.handler.ts     # Query param handling
 ```
 
 The main router (`src/router/index.ts`) imports and assembles routes from all apps.
+
+## Query-string policy: no PII in the URL
+
+**Never put personally-identifiable data (email, tokens, passwords, one-time
+codes) in a URL query string.** A URL is not a private channel — it leaks out of
+the application through:
+
+- browser history and bfcache (persists on the device, may sync across browsers),
+- the `Referer` header on any outbound request or external link,
+- proxy / CDN / web-server access logs, and
+- Sentry breadcrumbs and `event.request.url`.
+
+This is finding **F6** of the disclosure matrix
+(`docs/specs/issue-3424-disclosure-matrix.html`): *"The URL is the bearer secret
+— and it leaks."*
+
+**Instead, hand PII to the next page via router history `state`:**
+
+```ts
+// ✗ Don't — email is PII and now lives in the URL, history, logs, Sentry.
+router.push({ path: '/check-email', query: { email } });
+
+// ✓ Do — state travels with the navigation but never enters the URL.
+router.push({ path: '/check-email', state: { checkEmailAddress: email } });
+```
+
+Read it back through the history object (there is no typed `route.state`):
+
+```ts
+const router = useRouter();
+const email = sanitizeDisplayEmail(
+  (router.options.history.state as Record<string, unknown>)?.checkEmailAddress
+);
+```
+
+State is absent on a hard refresh or a shared link, so design the page to
+degrade gracefully (e.g. `/check-email` falls back to generic copy). Non-PII
+context (billing `product`/`interval`, a `redirect` path) is fine in the query —
+it *should* survive refresh and sharing.
+
+This policy is enforced in depth:
+
+| Layer | Mechanism | File |
+| ----- | --------- | ---- |
+| Author time | `ots/no-pii-in-query` ESLint rule flags `query: { email }` literals | `src/build/eslint/no-pii-in-query.ts` |
+| Dev runtime | Navigation guard warns when a PII key rides in `to.query` | `src/router/piiQueryGuard.ts` |
+| Prod runtime | Diagnostics scrubber redacts query emails from Sentry on every route | `src/plugins/core/enableDiagnostics.ts` |
+
+The shared key list and the display sanitizer live in `src/utils/pii.ts`.
+
+Existing `?email=` prefill on `/signin` and `/signup` is grandfathered (it
+predates this policy and is scrubbed at the diagnostics layer); do not extend the
+pattern to new routes.

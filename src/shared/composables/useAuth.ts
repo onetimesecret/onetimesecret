@@ -39,6 +39,7 @@ import {
   createError,
   type AsyncHandlerOptions,
 } from '@/shared/composables/useAsyncHandler';
+import { CHECK_EMAIL_STATE_KEY } from '@/shared/constants/checkEmail';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
@@ -460,9 +461,15 @@ export function useAuth() {
       // verified, and a transient toast is the only cue the user would get
       // there. The confirmation page persistently echoes the email address,
       // explains the next step, and offers a resend action.
-      // Preserve billing params and redirect path for the subsequent login.
+      //
+      // The email travels in router history state, NOT the URL: it is PII, and
+      // a query string would leak it through browser history, the Referer
+      // header, proxy/CDN access logs and Sentry (disclosure F6; see
+      // src/utils/pii.ts and src/router/README.md "Query-string policy"). The
+      // billing params and redirect path are not sensitive and stay in the
+      // query so they survive a refresh or a shared link.
       const redirectPath = getRedirectParam();
-      const query: Record<string, string> = { email };
+      const query: Record<string, string> = {};
 
       if (billingParams.product && billingParams.interval) {
         query.product = billingParams.product;
@@ -474,7 +481,8 @@ export function useAuth() {
 
       await router.push({
         path: '/check-email',
-        query,
+        ...(Object.keys(query).length > 0 ? { query } : {}),
+        state: { [CHECK_EMAIL_STATE_KEY]: email },
       });
       return true;
     });

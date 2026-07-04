@@ -4,9 +4,11 @@
   import AuthView from '@/apps/session/components/AuthView.vue';
   import ResendVerificationForm from '@/apps/session/components/ResendVerificationForm.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { CHECK_EMAIL_STATE_KEY } from '@/shared/constants/checkEmail';
+  import { sanitizeDisplayEmail } from '@/utils/pii';
   import { computed } from 'vue';
   import { useI18n } from 'vue-i18n';
-  import { useRoute } from 'vue-router';
+  import { useRoute, useRouter } from 'vue-router';
 
   /**
    * Post-signup "Check your email" confirmation page.
@@ -22,20 +24,31 @@
    * field — correcting a typo is what "start over" is for, and an inline edit
    * would fork the flow and muddy the resend-vs-signup intent.
    *
-   * The email arrives as a query param (?email=...). Billing/redirect params are
-   * preserved on the "start over" link so the checkout flow survives the detour.
+   * The email arrives via router history state (not the URL): it is PII, and a
+   * query string would leak it through history, the Referer header, access logs
+   * and Sentry (see src/utils/pii.ts and src/router/README.md). It is therefore
+   * absent on a manual refresh or a shared link — we degrade to the generic
+   * copy, which is the correct fallback. Billing/redirect params are non-PII and
+   * ride in the query, so they are preserved on the "start over" link.
    */
 
   const { t } = useI18n();
   const route = useRoute();
+  const router = useRouter();
 
-  const email = computed(() => (typeof route.query.email === 'string' ? route.query.email : ''));
+  const email = computed(() => {
+    const state = router.options.history.state as Record<string, unknown> | null;
+    return sanitizeDisplayEmail(state?.[CHECK_EMAIL_STATE_KEY]);
+  });
 
-  // Preserve email + billing + redirect params on the "start over" link so the
-  // pending checkout / invitation flow continues once the user signs in.
+  // Preserve billing + redirect params on the "start over" link so the pending
+  // checkout / invitation flow continues once the user signs up again. The email
+  // is intentionally NOT forwarded: "start over" exists to correct a wrong
+  // address, so re-prefilling the mistyped one would be counterproductive — and
+  // would put PII back into a URL.
   function linkWith(path: string): string | { path: string; query: Record<string, string> } {
     const query: Record<string, string> = {};
-    for (const param of ['email', 'redirect', 'product', 'interval']) {
+    for (const param of ['redirect', 'product', 'interval']) {
       if (typeof route.query[param] === 'string') {
         query[param] = route.query[param] as string;
       }

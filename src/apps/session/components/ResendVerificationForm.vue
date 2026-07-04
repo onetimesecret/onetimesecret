@@ -49,6 +49,12 @@
   const { t } = useI18n();
   const { resendVerificationEmail, isLoading } = useAuth();
 
+  // Seeded once from the prop, then owned locally (the non-compact form binds it
+  // via v-model). The prop is set once per mount by both call sites — the
+  // check-email page keys this view by route, and the verify-account flow passes
+  // no email — so there is no live prop change to track; a watcher would be dead
+  // code. If a caller ever needs to push a new address into a mounted form, add
+  // one then.
   const email = ref(props.email);
   const submitted = ref(false);
   const failed = ref(false);

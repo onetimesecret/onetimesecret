@@ -761,11 +761,13 @@ describe('useAuth - Signup Flow Billing Params', () => {
       interval: 'month',
     });
 
-    // Should redirect to the "check your email" page with the email echoed
-    // and billing params preserved for the post-verification login.
+    // Should redirect to the "check your email" page with billing params
+    // preserved in the query, and the email handed over via router history
+    // state (PII must not ride in the URL — see src/utils/pii.ts).
     expect(router.push).toHaveBeenCalledWith({
       path: '/check-email',
-      query: { email: 'test@example.com', product: 'identity', interval: 'month' },
+      query: { product: 'identity', interval: 'month' },
+      state: { checkEmailAddress: 'test@example.com' },
     });
   });
 
@@ -780,10 +782,11 @@ describe('useAuth - Signup Flow Billing Params', () => {
 
     await signup('test@example.com', 'password123');
 
-    // Should redirect to the check-email page carrying just the echoed address
+    // With no billing params, the redirect carries no query at all — just the
+    // email, handed over via router history state (never the URL).
     expect(router.push).toHaveBeenCalledWith({
       path: '/check-email',
-      query: { email: 'test@example.com' },
+      state: { checkEmailAddress: 'test@example.com' },
     });
   });
 });
