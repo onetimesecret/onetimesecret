@@ -4,11 +4,20 @@
 
 # Tests for Core::Middleware::RequestSetup CSP emission.
 #
-# RequestSetup#finalize_response is the single web chokepoint every response
-# passes through. For HTML responses it emits a Content-Security-Policy header,
-# delegating the policy itself to Otto (the single policy source) via the Otto
-# security config's #generate_nonce_csp, using the per-request nonce shared with
-# the views. Emission is off unless site.security.csp.enabled is true.
+# RequestSetup#finalize_response is the single web chokepoint every Core response
+# passes through. For HTML responses it emits a Content-Security-Policy by
+# delegating to Otto's single apply core (Otto::Security::CSP::Writer, Otto >=
+# 2.5) in :backstop mode — the Writer owns every emission invariant (nonce-CSP
+# enabled, a present nonce, HTML-only, never clobbering an existing policy, and
+# case-insensitive Content-Type / Content-Security-Policy lookups). The one gate
+# that stays app-side is the site.security.csp.enabled toggle.
+#
+# These specs drive the private #emit_csp_header helper directly and pin the
+# delegation contract and observable behavior against the REAL Writer (not a
+# stubbed config), so the guards and the Writer's case-insensitive header reads
+# are covered. (They exercise emit_csp_header, not the sibling `content-type ||=`
+# default in #finalize_response, whose lowercase-only lookup is a separate,
+# Core-scoped concern documented in the middleware.)
 #
 # Run: pnpm run test:rspec apps/web/core/spec/middleware/request_setup_spec.rb
 
@@ -19,12 +28,11 @@ require_relative '../../middleware/request_setup'
 RSpec.describe Core::Middleware::RequestSetup do
   subject(:middleware) { described_class.new(->(_env) { [200, {}, []] }) }
 
+  # A real Otto security config with nonce-CSP turned on: the middleware hands
+  # this to Otto::Security::CSP::Writer, which reads its #csp_nonce_enabled?
+  # gate and asks it for the policy via #generate_nonce_csp.
   let(:security_config) do
-    instance_double(
-      Otto::Security::Config,
-      csp_nonce_enabled?: true,
-      generate_nonce_csp: "default-src 'none'; script-src 'nonce-N'",
-    )
+    Otto::Security::Config.new.tap { |config| config.enable_csp_with_nonce! }
   end
 
   let(:env) do
@@ -32,7 +40,8 @@ RSpec.describe Core::Middleware::RequestSetup do
   end
 
   # Drive the private chokepoint helper with a stubbed OT.conf and return the
-  # resulting Content-Security-Policy header (nil when none was emitted).
+  # resulting Content-Security-Policy header (nil when none was emitted). The
+  # Writer writes the canonical lowercase key, so we read that back.
   def emit(headers, csp_enabled: true, development: false, request_env: env)
     conf = {
       'site' => { 'security' => { 'csp' => { 'enabled' => csp_enabled } } },
@@ -48,14 +57,22 @@ RSpec.describe Core::Middleware::RequestSetup do
       expect(emit({ 'content-type' => 'text/html; charset=utf-8' }, csp_enabled: false)).to be_nil
     end
 
-    it 'emits the Otto-generated policy for HTML responses when enabled' do
-      expect(emit({ 'content-type' => 'text/html; charset=utf-8' }))
-        .to eq("default-src 'none'; script-src 'nonce-N'")
+    it 'emits an Otto nonce policy for HTML responses when enabled' do
+      expect(emit({ 'content-type' => 'text/html; charset=utf-8' })).to include("'nonce-N'")
     end
 
-    it 'delegates the policy to Otto with the request nonce and the dev flag' do
-      expect(security_config).to receive(:generate_nonce_csp).with('N', development_mode: true)
+    it 'delegates to Otto with the request nonce and the development flag' do
+      expect(security_config).to receive(:generate_nonce_csp)
+        .with('N', development_mode: true).and_call_original
       emit({ 'content-type' => 'text/html' }, development: true)
+    end
+
+    it 'reads a canonically-cased Content-Type when emitting (Writer lookup is case-insensitive)' do
+      # emit_csp_header delegates to the Writer, whose Content-Type lookup is
+      # case-insensitive, so a canonically-cased key still yields a CSP. This
+      # covers the Writer's read only — not finalize_response's lowercase-only
+      # 'content-type ||=' default, which is Core-scoped (see the middleware).
+      expect(emit({ 'Content-Type' => 'text/html; charset=utf-8' })).to include("'nonce-N'")
     end
 
     it 'skips non-HTML responses (JSON, etc.)' do
@@ -77,7 +94,7 @@ RSpec.describe Core::Middleware::RequestSetup do
     end
 
     it 'skips when Otto nonce-CSP support is not enabled' do
-      cfg = instance_double(Otto::Security::Config, csp_nonce_enabled?: false)
+      cfg = Otto::Security::Config.new # nonce-CSP left disabled
       request_env = { 'otto.security_config' => cfg, 'onetime.nonce' => 'N' }
       expect(emit({ 'content-type' => 'text/html' }, request_env: request_env)).to be_nil
     end
