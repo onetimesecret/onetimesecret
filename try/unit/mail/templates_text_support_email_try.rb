@@ -199,7 +199,7 @@ offenders
 ## layout.txt.erb contains the consolidated footer block exactly once
 home   = ENV.fetch('ONETIME_HOME')
 layout = File.read(File.join(home, 'lib/onetime/mail/templates/layout.txt.erb'))
-layout.scan("--\n<%= product_name %>\n<%= baseuri %>").size
+layout.scan("--\n<%= product_name %>\n<%= brand_baseuri %>").size
 #=> 1
 
 ## layout.txt.erb gates the support line on support_email

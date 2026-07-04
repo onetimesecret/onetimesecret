@@ -396,6 +396,36 @@ uri = ctx.site_baseuri
 uri.is_a?(String) && uri.start_with?('http')
 #=> true
 
+## brand_host uses the custom share_domain when present
+ctx = @ctx_class.new({ share_domain: 'secrets.acme.example' }, 'en')
+ctx.brand_host
+#=> 'secrets.acme.example'
+
+## brand_host falls back to site_host when no share_domain
+ctx = @ctx_class.new({}, 'en')
+ctx.brand_host == ctx.site_host
+#=> true
+
+## brand_baseuri links to the custom share_domain when present
+ctx = @ctx_class.new({ share_domain: 'secrets.acme.example' }, 'en')
+ctx.brand_baseuri
+#=> 'https://secrets.acme.example'
+
+## brand_baseuri ignores the baseuri override once a share_domain is set
+ctx = @ctx_class.new({ share_domain: 'secrets.acme.example', baseuri: 'https://canonical.test' }, 'en')
+ctx.brand_baseuri
+#=> 'https://secrets.acme.example'
+
+## brand_baseuri defers to baseuri (incl. data override) with no share_domain
+ctx = @ctx_class.new({ baseuri: 'https://canonical.test' }, 'en')
+ctx.brand_baseuri
+#=> 'https://canonical.test'
+
+## brand_baseuri falls back to site_baseuri when neither is provided
+ctx = @ctx_class.new({}, 'en')
+ctx.brand_baseuri == ctx.site_baseuri
+#=> true
+
 ## conf_dig (via send, since it's private) returns OT.conf values
 ctx = @ctx_class.new({}, 'en')
 ctx.send(:conf_dig, 'site').is_a?(Hash)

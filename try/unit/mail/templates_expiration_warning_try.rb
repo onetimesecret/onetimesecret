@@ -114,15 +114,17 @@ template = Onetime::Mail::Templates::ExpirationWarning.new(@valid_data)
 template.secret_uri
 #=~> /\/secret\/abc123def456/
 
-## ExpirationWarning display_domain uses site host by default
+## ExpirationWarning secret_uri links to the canonical host by default
+# secret_uri is built from brand_baseuri, which falls back to the canonical
+# site baseuri when the message carries no share_domain.
 template = Onetime::Mail::Templates::ExpirationWarning.new(@valid_data)
-template.display_domain
-#=~> /https?:\/\/.+/
+template.secret_uri
+#=~> /\Ahttps?:\/\/.+\/secret\/abc123def456\z/
 
-## ExpirationWarning display_domain uses share_domain when present
+## ExpirationWarning secret_uri links to the share_domain when present
 template = Onetime::Mail::Templates::ExpirationWarning.new(@valid_data_with_domain)
-template.display_domain
-#=~> /https?:\/\/custom\.example\.com/
+template.secret_uri
+#=> 'https://custom.example.com/secret/xyz789'
 
 ## ExpirationWarning baseuri uses site config by default
 template = Onetime::Mail::Templates::ExpirationWarning.new(@valid_data)
@@ -171,5 +173,5 @@ email[:text_body].is_a?(String) && !email[:text_body].empty?
 ## ExpirationWarning handles nil share_domain gracefully
 data = @valid_data.merge(share_domain: nil)
 template = Onetime::Mail::Templates::ExpirationWarning.new(data)
-template.display_domain
-#=~> /https?:\/\/.+/
+template.secret_uri
+#=~> /\Ahttps?:\/\/.+\/secret\/abc123def456\z/
