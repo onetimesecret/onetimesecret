@@ -180,8 +180,7 @@ const sections = computed<Section[]>(() => [
     descriptionKey: 'web.domains.detail.dns_description',
     available: !isApproximatedDomainValidation(),
     locked: false,
-    toggleable: false,
-    enabled: false,
+    expandable: false,
   },
   {
     key: 'brand',

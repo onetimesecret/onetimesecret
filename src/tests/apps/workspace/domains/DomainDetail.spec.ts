@@ -65,6 +65,7 @@ vi.mock('@/shared/stores/organizationStore', () => ({
 }));
 
 vi.mock('@/utils/features', () => ({
+  isApproximatedDomainValidation: () => false,
   isOrgsCustomMailEnabled: () => false,
   isOrgsIncomingSecretsEnabled: () => true,
 }));
