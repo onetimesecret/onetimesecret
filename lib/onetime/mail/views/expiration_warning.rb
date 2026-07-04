@@ -59,15 +59,14 @@ module Onetime
           end
         end
 
-        # Full URI to view the secret
-        def secret_uri
-          "#{display_domain}/secret/#{data[:secret_key]}"
+        def uri_path
+          "/secret/#{data[:secret_key]}"
         end
 
-        def display_domain
-          scheme = site_ssl? ? 'https://' : 'http://'
-          host   = data[:share_domain].to_s.empty? ? site_host : data[:share_domain]
-          "#{scheme}#{host}"
+        # Full URI to view the secret, on the domain the secret was shared
+        # from (share_domain when present, canonical host otherwise).
+        def secret_uri
+          "#{brand_baseuri}#{uri_path}"
         end
 
         def baseuri
@@ -81,7 +80,7 @@ module Onetime
           computed_data = data.merge(
             time_remaining: time_remaining,
             secret_uri: secret_uri,
-            display_domain: display_domain,
+            uri_path: uri_path,
             baseuri: baseuri,
           )
           TemplateContext.new(computed_data, locale).get_binding
