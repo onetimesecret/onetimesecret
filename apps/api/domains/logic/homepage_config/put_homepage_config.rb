@@ -48,6 +48,15 @@ module DomainsAPI
 
           authorize_domain_homepage!(@domain_id)
 
+          # `enabled` is the master switch and the only always-required field
+          # (the others are merge-semantic). Enforce its presence rather than
+          # letting a client that omits it silently DISABLE the homepage:
+          # parse_boolean(nil) is false, so an omitted field would otherwise
+          # read as "turn the homepage off". The request schema already
+          # requires it; this makes the server — the authoritative validator —
+          # reject the omission instead of trusting the caller.
+          raise_form_error('enabled is required', field: :enabled, error_type: :missing) if params['enabled'].nil?
+
           validate_secrets_mode!
         end
 
