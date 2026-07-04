@@ -34,17 +34,38 @@
   const bootstrapStore = useBootstrapStore();
   const { canonical_domain, site_host } = storeToRefs(bootstrapStore);
 
-  // The canonical host the CNAME should point at. Prefer the middleware-derived
-  // canonical domain, falling back to the configured site host.
-  const cnameTarget = computed(() => canonical_domain.value || site_host.value || '');
+  const isApex = computed(() => domain.value?.is_apex ?? false);
 
-  // Host label mirrors VerifyDomainDetails: the subdomain (trd) for a normal
-  // custom domain, or '@' for an apex domain.
-  const cnameHost = computed(() => domain.value?.trd || '@');
-  const cnameHostAppendix = computed(() =>
-    domain.value?.base_domain ? `.${domain.value.base_domain}` : ''
+  // The canonical host the record should point at. Prefer the middleware-derived
+  // canonical domain, falling back to the configured site host.
+  const recordTarget = computed(() => canonical_domain.value || site_host.value || '');
+
+  // An apex (zone-root) domain can't use a CNAME; ALIAS/ANAME (or an A record to
+  // the server IP) is required. Non-apex subdomains use a CNAME. Keep the record
+  // type, heading, and host consistent with is_apex so the page never tells the
+  // operator to create a CNAME it also says is invalid.
+  const recordType = computed(() => (isApex.value ? 'ALIAS / ANAME' : 'CNAME'));
+  const recordHeading = computed(() =>
+    isApex.value ? t('web.domains.dns.apex_heading') : t('web.domains.dns.cname_heading')
   );
 
+  // Host mirrors VerifyDomainDetails: '@' at the zone root for apex domains,
+  // otherwise the subdomain label (trd). Keyed on is_apex — not trd's
+  // truthiness — so a blank trd on a non-apex record doesn't silently read '@'.
+  const recordHost = computed(() => (isApex.value ? '@' : domain.value?.trd || '@'));
+
+  // Appendix shows the base domain for context. Apex has no leading dot
+  // ('@' + example.com), matching VerifyDomainDetails' apex record; a subdomain
+  // gets the dotted form (test + .example.com).
+  const recordHostAppendix = computed(() => {
+    const base = domain.value?.base_domain;
+    if (!base) return '';
+    return isApex.value ? base : `.${base}`;
+  });
+
+  // Always return to the domain's detail hub rather than router.back(): this
+  // page is also reachable from links (menu, hub card), where back() would be
+  // unpredictable.
   const handleBack = () => {
     router.push(`/org/${props.orgid}/domains/${props.extid}`);
   };
@@ -101,7 +122,7 @@
         v-if="domain"
         class="mx-auto max-w-2xl rounded-xl bg-white p-6 shadow-lg dark:bg-gray-800">
         <h3 class="mb-2 text-lg font-semibold text-gray-800 dark:text-white">
-          {{ t('web.domains.dns.cname_heading') }}
+          {{ recordHeading }}
         </h3>
         <p class="mb-4 text-gray-600 dark:text-gray-300">
           {{ t('web.domains.add_this_hostname_to_your_dns_configuration') }}
@@ -110,14 +131,14 @@
         <div class="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-600">
           <DetailField
             :label="t('web.COMMON.type')"
-            value="CNAME" />
+            :value="recordType" />
           <DetailField
             :label="t('web.COMMON.host')"
-            :value="cnameHost"
-            :appendix="cnameHostAppendix" />
+            :value="recordHost"
+            :appendix="recordHostAppendix" />
           <DetailField
             :label="t('web.COMMON.value')"
-            :value="cnameTarget" />
+            :value="recordTarget" />
         </div>
 
         <!-- Apex domains cannot use a CNAME at the zone root. -->

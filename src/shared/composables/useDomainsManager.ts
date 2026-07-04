@@ -115,8 +115,10 @@ export function useDomainsManager() {
   const handleDomainExistsError = async (domain: string, errorMessage: string) => {
     if (errorMessage.includes('already registered in your organization')) {
       notifications.show(t('web.domains.domain_already_in_organization'), 'warning', 'top');
-      // Best-effort: refresh and redirect to the existing domain's verify page.
-      // If fetchList fails (e.g. schema mismatch), we still show the warning above.
+      // Best-effort: refresh and redirect to the existing domain's DNS page —
+      // the Approximated verification screen, or the CNAME-setup screen on
+      // non-approximated installs. If fetchList fails (e.g. schema mismatch),
+      // we still show the warning above.
       try {
         await store.fetchList();
         const existingDomain = store.records?.find(d => d.display_domain === domain);

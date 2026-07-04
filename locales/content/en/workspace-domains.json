@@ -1120,6 +1120,10 @@
     "text": "Create a CNAME record",
     "content_hash": "11aeef5a"
   },
+  "web.domains.dns.apex_heading": {
+    "text": "Create an ALIAS or ANAME record",
+    "content_hash": "41135375"
+  },
   "web.domains.dns.apex_notice": {
     "text": "Apex (root) domains can't use a CNAME record. Use your DNS provider's ALIAS or ANAME record, or point an A record at your server's IP address, instead.",
     "content_hash": "2d1c3298"

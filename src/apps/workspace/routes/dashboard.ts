@@ -4,6 +4,7 @@ import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
 import DashboardMain from '@/apps/workspace/dashboard/DashboardMain.vue';
 import DashboardRecent from '@/apps/workspace/dashboard/DashboardRecent.vue';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
+import { isApproximatedDomainValidation } from '@/utils/features';
 import type { RouteRecordRaw } from 'vue-router';
 import { SCOPE_PRESETS } from '@/types/router';
 
@@ -102,6 +103,13 @@ const routes: Array<RouteRecordRaw> = [
     path: '/org/:orgid/domains/:extid/verify',
     name: 'DomainVerify',
     component: () => import('@/apps/workspace/domains/DomainVerify.vue'),
+    // The Approximated verification screen is only meaningful on approximated
+    // installs. On others (self-hosted/custom), a stale/bookmarked link lands
+    // on the CNAME-setup screen instead. See isApproximatedDomainValidation().
+    beforeEnter: (to) =>
+      isApproximatedDomainValidation()
+        ? true
+        : { name: 'DomainDns', params: to.params },
     meta: {
       title: 'web.TITLES.domain_verify',
       requiresAuth: true,
@@ -124,6 +132,12 @@ const routes: Array<RouteRecordRaw> = [
     path: '/org/:orgid/domains/:extid/dns',
     name: 'DomainDns',
     component: () => import('@/apps/workspace/domains/DomainDns.vue'),
+    // Mirror of DomainVerify: approximated installs use the verification screen,
+    // so a stale/bookmarked DNS link redirects there.
+    beforeEnter: (to) =>
+      isApproximatedDomainValidation()
+        ? { name: 'DomainVerify', params: to.params }
+        : true,
     meta: {
       title: 'web.TITLES.domain_dns',
       requiresAuth: true,

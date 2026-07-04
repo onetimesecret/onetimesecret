@@ -137,14 +137,31 @@ describe('DomainDns', () => {
     expect(value?.attributes('data-value')).toBe('fallback.example.com');
   });
 
-  it('uses "@" as the host for apex domains and shows the apex notice', async () => {
+  it('renders an apex-appropriate record (ALIAS/ANAME, "@" host, no leading dot) with the apex notice', async () => {
     mockDomain.value = createMockDomain({ is_apex: true, trd: null });
+
+    const wrapper = await mountComponent();
+
+    // Apex zones can't CNAME — type must not say "CNAME".
+    const type = findFieldByLabel(wrapper, i18n.global.t('web.COMMON.type'));
+    expect(type?.attributes('data-value')).toBe('ALIAS / ANAME');
+
+    const host = findFieldByLabel(wrapper, i18n.global.t('web.COMMON.host'));
+    expect(host?.attributes('data-value')).toBe('@');
+    // No leading dot at the apex: "@" + "example.com", matching VerifyDomainDetails.
+    expect(host?.attributes('data-appendix')).toBe('example.com');
+
+    expect(wrapper.text()).toContain(i18n.global.t('web.domains.dns.apex_heading'));
+    expect(wrapper.text()).toContain(i18n.global.t('web.domains.dns.apex_notice'));
+  });
+
+  it('keeps host "@" for apex even when trd is unexpectedly populated', async () => {
+    mockDomain.value = createMockDomain({ is_apex: true, trd: 'ignored' });
 
     const wrapper = await mountComponent();
 
     const host = findFieldByLabel(wrapper, i18n.global.t('web.COMMON.host'));
     expect(host?.attributes('data-value')).toBe('@');
-    expect(wrapper.text()).toContain(i18n.global.t('web.domains.dns.apex_notice'));
   });
 
   it('does not show the apex notice for non-apex domains', async () => {
