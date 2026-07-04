@@ -26,10 +26,13 @@
    *
    * The email arrives via router history state (not the URL): it is PII, and a
    * query string would leak it through history, the Referer header, access logs
-   * and Sentry (see src/utils/pii.ts and src/router/README.md). It is therefore
-   * absent on a manual refresh or a shared link — we degrade to the generic
-   * copy, which is the correct fallback. Billing/redirect params are non-PII and
-   * ride in the query, so they are preserved on the "start over" link.
+   * and Sentry (see src/utils/pii.ts and src/router/README.md). A plain reload
+   * preserves it — the History API keeps window.history.state on the entry — so
+   * the address re-appears, which is harmless because state never enters the
+   * URL. It is absent only on a genuinely fresh entry (a shared link, a new tab,
+   * a typed URL), where we degrade to the generic copy. Billing/redirect params
+   * are non-PII and ride in the query, so they survive both and are preserved on
+   * the "start over" link.
    */
 
   const { t } = useI18n();

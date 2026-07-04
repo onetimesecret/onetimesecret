@@ -59,7 +59,8 @@ describe('CheckEmail.vue', () => {
   /**
    * Mount the view with the email handed over via router history state (as
    * useAuth.signup does), and any non-PII billing/redirect params in the query.
-   * `email: undefined` simulates a hard refresh / shared link (no state).
+   * `email: undefined` simulates a fresh entry with no state (shared link, new
+   * tab, typed URL). A plain reload would instead preserve the state.
    */
   const createWrapper = async (
     opts: { email?: unknown; query?: Record<string, string> } = {}
@@ -116,7 +117,7 @@ describe('CheckEmail.vue', () => {
     expect(help.attributes('title')).toBe('web.auth.check_email.help');
   });
 
-  it('falls back to generic copy when no email is in state (refresh / shared link)', async () => {
+  it('falls back to generic copy when no email is in state (fresh entry: shared link / new tab)', async () => {
     wrapper = await createWrapper({});
 
     expect(wrapper.find('[data-testid="check-email-address"]').exists()).toBe(false);

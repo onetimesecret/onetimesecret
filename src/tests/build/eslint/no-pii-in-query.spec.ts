@@ -11,6 +11,7 @@
  */
 
 import { RuleTester } from 'eslint';
+import vueEslintParser from 'vue-eslint-parser';
 import rule from '@/build/eslint/no-pii-in-query';
 
 const ruleTester = new RuleTester({
@@ -46,6 +47,35 @@ ruleTester.run('ots/no-pii-in-query', rule, {
       // String-literal key is caught too.
       code: `router.push({ query: { 'code': c } });`,
       errors: [{ messageId: 'piiInQuery', data: { key: 'code' } }],
+    },
+  ],
+});
+
+// Template coverage: the rule must also see query objects inside Vue template
+// bindings (:to / :href), which live in a separate AST reached only via
+// defineTemplateBodyVisitor.
+const vueRuleTester = new RuleTester({
+  languageOptions: {
+    parser: vueEslintParser,
+    ecmaVersion: 'latest',
+    sourceType: 'module',
+  },
+});
+
+vueRuleTester.run('ots/no-pii-in-query (vue templates)', rule, {
+  valid: [
+    {
+      code: `<template><router-link :to="{ path: '/x', query: { product: 'identity' } }">go</router-link></template>`,
+    },
+  ],
+  invalid: [
+    {
+      code: `<template><router-link :to="{ path: '/reset', query: { email } }">go</router-link></template>`,
+      errors: [{ messageId: 'piiInQuery', data: { key: 'email' } }],
+    },
+    {
+      code: `<template><a :href="{ query: { token } }">go</a></template>`,
+      errors: [{ messageId: 'piiInQuery', data: { key: 'token' } }],
     },
   ],
 });

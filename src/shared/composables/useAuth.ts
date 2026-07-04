@@ -465,9 +465,10 @@ export function useAuth() {
       // The email travels in router history state, NOT the URL: it is PII, and
       // a query string would leak it through browser history, the Referer
       // header, proxy/CDN access logs and Sentry (disclosure F6; see
-      // src/utils/pii.ts and src/router/README.md "Query-string policy"). The
-      // billing params and redirect path are not sensitive and stay in the
-      // query so they survive a refresh or a shared link.
+      // src/utils/pii.ts and src/router/README.md "Query-string policy"). A
+      // plain reload preserves state, but a fresh entry (shared link, new tab)
+      // does not — so the billing params and redirect path ride in the query,
+      // which survives both, keeping the checkout flow intact.
       const redirectPath = getRedirectParam();
       const query: Record<string, string> = {};
 

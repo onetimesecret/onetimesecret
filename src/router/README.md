@@ -196,10 +196,14 @@ const email = sanitizeDisplayEmail(
 );
 ```
 
-State is absent on a hard refresh or a shared link, so design the page to
-degrade gracefully (e.g. `/check-email` falls back to generic copy). Non-PII
-context (billing `product`/`interval`, a `redirect` path) is fine in the query —
-it *should* survive refresh and sharing.
+A plain reload **preserves** history `state` — the browser keeps
+`window.history.state` on the current entry and vue-router restores it, so the
+email persists across a refresh (harmlessly: state never enters the URL). State
+is absent only on a genuinely fresh entry — a shared link, a new tab, or an
+address-bar navigation — so design the page to degrade gracefully there (e.g.
+`/check-email` falls back to generic copy). Non-PII context (billing
+`product`/`interval`, a `redirect` path) is fine in the query — it *should*
+survive refresh and sharing.
 
 This policy is enforced in depth:
 
