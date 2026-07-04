@@ -44,23 +44,29 @@ module Core
     end
 
     def finalize_response(status, headers, body, env)
-      # Default the Content-Type when a route left it unset.
-      #
-      # This lookup is lowercase-only, and is safe only because of how this
-      # middleware is scoped: it wraps just the Core app (mounted at '/'), whose
-      # downstream layers emit lowercase response-header keys throughout (see the
-      # lowercase 'content-type' defaults in application.rb). The apps that set a
-      # canonically-cased 'Content-Type' (auth, billing) mount at their own
-      # prefixes with separate stacks and never pass through here — so a Core
-      # response never carries a capital-cased 'Content-Type' that this ||= would
-      # fail to see and then double-write. (Writer.apply below reads Content-Type
-      # case-insensitively; this ||= does not, and leans on that Core-only
-      # scoping to stay correct.)
-      headers['content-type'] ||= @default_content_type
-
+      ensure_content_type(headers)
       emit_csp_header(headers, env)
 
       [status, headers, body]
+    end
+
+    # Default the response Content-Type when a route left it unset.
+    #
+    # The presence check is deliberately case-insensitive. Rack 3 mandates
+    # lowercase response-header keys and Core emits them throughout (see the
+    # lowercase 'content-type' defaults in application.rb), so in practice the
+    # key is already 'content-type'. But a stray capital-cased 'Content-Type'
+    # from any layer must still count as "already set": a naive
+    # `headers['content-type'] ||= ...` would miss it and write a *second*,
+    # lowercase content-type key, leaving the response with two conflicting
+    # content types — and, because Writer.apply below reads Content-Type
+    # case-insensitively, that injected text/html default could then draw a CSP
+    # onto what was really a non-HTML response. Matching any casing here closes
+    # that gap regardless of who set the header, or how.
+    def ensure_content_type(headers)
+      return if headers.any? { |key, _value| key.to_s.casecmp?('content-type') }
+
+      headers['content-type'] = @default_content_type
     end
 
     # Emit the Content-Security-Policy header for HTML responses.
@@ -79,9 +85,9 @@ module Core
     # the directive set.
     #
     # That case-insensitive reading is the Writer's own, for the headers it
-    # consults; it does not retroactively make finalize_response's lowercase-only
-    # 'content-type' default (above) casing-safe — that line stays correct under
-    # the Core-only scoping documented there.
+    # consults. The sibling Content-Type default in #finalize_response does its
+    # own case-insensitive presence check (see #ensure_content_type), so the two
+    # agree on whether a Content-Type is already set no matter how it was cased.
     #
     # mode: :backstop makes this a passive layer: it fills the CSP gap for HTML
     # responses that would otherwise ship without one, but defers to (never

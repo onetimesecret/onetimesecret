@@ -12,12 +12,12 @@
 # case-insensitive Content-Type / Content-Security-Policy lookups). The one gate
 # that stays app-side is the site.security.csp.enabled toggle.
 #
-# These specs drive the private #emit_csp_header helper directly and pin the
-# delegation contract and observable behavior against the REAL Writer (not a
-# stubbed config), so the guards and the Writer's case-insensitive header reads
-# are covered. (They exercise emit_csp_header, not the sibling `content-type ||=`
-# default in #finalize_response, whose lowercase-only lookup is a separate,
-# Core-scoped concern documented in the middleware.)
+# The #emit_csp_header specs drive that helper directly to pin the delegation
+# contract and guard behavior against the REAL Writer (not a stubbed config).
+# The #call specs then exercise the full finalize_response path so the
+# Content-Type default and CSP emission are covered together — including the
+# case-insensitive Content-Type presence check that stops a canonically-cased
+# header from being silently double-written.
 #
 # Run: pnpm run test:rspec apps/web/core/spec/middleware/request_setup_spec.rb
 
@@ -70,8 +70,8 @@ RSpec.describe Core::Middleware::RequestSetup do
     it 'reads a canonically-cased Content-Type when emitting (Writer lookup is case-insensitive)' do
       # emit_csp_header delegates to the Writer, whose Content-Type lookup is
       # case-insensitive, so a canonically-cased key still yields a CSP. This
-      # covers the Writer's read only — not finalize_response's lowercase-only
-      # 'content-type ||=' default, which is Core-scoped (see the middleware).
+      # covers the Writer's read; the sibling Content-Type default is covered by
+      # the #call specs below.
       expect(emit({ 'Content-Type' => 'text/html; charset=utf-8' })).to include("'nonce-N'")
     end
 
@@ -94,13 +94,58 @@ RSpec.describe Core::Middleware::RequestSetup do
     end
 
     it 'skips when Otto nonce-CSP support is not enabled' do
-      cfg = Otto::Security::Config.new # nonce-CSP left disabled
+      cfg         = Otto::Security::Config.new # nonce-CSP left disabled
       request_env = { 'otto.security_config' => cfg, 'onetime.nonce' => 'N' }
       expect(emit({ 'content-type' => 'text/html' }, request_env: request_env)).to be_nil
     end
 
     it 'skips when no Otto security config is present in env' do
       expect(emit({ 'content-type' => 'text/html' }, request_env: { 'onetime.nonce' => 'N' })).to be_nil
+    end
+  end
+
+  # Full-path coverage through #call/#finalize_response, so the Content-Type
+  # default and CSP emission are exercised together the way a live request hits
+  # them (rather than #emit_csp_header in isolation).
+  describe '#call' do
+    # Drive a full request through the middleware wrapped around a downstream app
+    # that returns the given headers, and return the finalized headers hash.
+    def call_with(app_headers, csp_enabled: true)
+      conf = {
+        'site' => { 'security' => { 'csp' => { 'enabled' => csp_enabled } } },
+        'development' => { 'enabled' => false },
+      }
+      allow(OT).to receive_messages(conf: conf, debug?: false)
+
+      app = ->(_env) { [200, app_headers.dup, ['body']] }
+      # #call returns the [status, headers, body] tuple; grab the finalized headers.
+      described_class.new(app).call('otto.security_config' => security_config)[1]
+    end
+
+    # Every header key that names the Content-Type, whatever its casing.
+    def content_type_keys(headers)
+      headers.keys.select { |key| key.to_s.casecmp?('content-type') }
+    end
+
+    it 'defaults a missing Content-Type to HTML and emits a CSP', :aggregate_failures do
+      headers = call_with({})
+      expect(headers['content-type']).to eq('text/html; charset=utf-8')
+      expect(headers['content-security-policy']).to include("'nonce-")
+    end
+
+    it 'does not double-write a Content-Type already set under canonical casing', :aggregate_failures do
+      # Regression lock: a naive `headers['content-type'] ||=` would miss the
+      # capital-cased key and inject a second, lowercase content-type.
+      headers = call_with({ 'Content-Type' => 'application/json' })
+      expect(content_type_keys(headers)).to contain_exactly('Content-Type')
+      expect(headers['Content-Type']).to eq('application/json')
+    end
+
+    it 'attaches no CSP to a canonically-cased non-HTML response' do
+      # With no spurious lowercase text/html default injected, the Writer sees
+      # only the real application/json media type and emits nothing.
+      headers = call_with({ 'Content-Type' => 'application/json' })
+      expect(headers).not_to have_key('content-security-policy')
     end
   end
 end
