@@ -71,7 +71,42 @@ module Onetime::Receipt::Features
         remaining = current_expiration
         access_events.update_expiration(expiration: remaining) if remaining.positive?
 
+        # Fan out to the organization's audit trail (no-op without org
+        # context). The org trail is the durable, org-wide view of the same
+        # activity; see Organization::Features::AuditTrail.
+        record_org_audit_event(kind, at: at)
+
         member
+      end
+
+      # Append this receipt's activity to its organization's audit trail
+      # (Organization::Features::AuditTrail). No-op for receipts without an
+      # organization context. Best-effort by design: the trail is
+      # observability, so a failure here must never break the calling path
+      # (state transitions, read endpoints).
+      #
+      # @param kind [String, Symbol] event kind, e.g. 'created',
+      #   'status_get', 'secret_get', 'previewed', 'revealed', 'burned',
+      #   'expired', 'orphaned'.
+      # @param at [Numeric] event time as epoch seconds; defaults to now.
+      # @param organization [Onetime::Organization, nil] pass when the
+      #   caller already holds the org to skip the extra load.
+      # @return [Hash, nil] the recorded event, or nil when skipped.
+      def record_org_audit_event(kind, at: Familia.now, organization: nil)
+        organization ||= Onetime::Organization.load(org_id) unless org_id.to_s.empty?
+        return if organization.nil?
+
+        organization.record_audit_event(
+          kind,
+          at: at,
+          # Shortids only: full identifiers are capability tokens (the
+          # secret identifier IS the link) and must not leak into the trail.
+          'receipt' => shortid,
+          'secret'  => secret_shortid.to_s,
+        )
+      rescue StandardError => ex
+        OT.le "[audit-trail] #{ex.class}: #{ex.message} (kind=#{kind}, receipt=#{shortid})"
+        nil
       end
 
       # @return [Integer] number of retained access events (saturates at

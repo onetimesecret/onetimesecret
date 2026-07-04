@@ -373,6 +373,7 @@ module V2::Logic
 
         receipt.org_id = auth_org.objid
         receipt.add_to_organization_receipts(auth_org)
+        receipt.record_org_audit_event('created', organization: auth_org)
         true
       end
 
