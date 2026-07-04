@@ -323,13 +323,15 @@ describe('Login.vue auth_error handling', () => {
       expect(selector.attributes('data-initial-mode')).toBe('password');
     });
 
-    it('clears the verified param from the URL after showing the banner', async () => {
+    it('leaves the verified param in place (App keys the view by fullPath)', async () => {
       wrapper = await createWrapper({ verified: '1' });
       await flushPromises();
 
-      // Banner persists (captured in setup) even though the param is gone.
+      // The param is intentionally NOT stripped: App.vue keys the routed
+      // component by $route.fullPath, so a router.replace to drop it would
+      // re-mount Login and discard the banner. Leaving it keeps the banner up.
       expect(wrapper.find('[data-testid="signin-verified-notice"]').exists()).toBe(true);
-      expect(router.currentRoute.value.query.verified).toBeUndefined();
+      expect(router.currentRoute.value.query.verified).toBe('1');
     });
 
     it('does not show the banner or force a mode without verified=1', async () => {

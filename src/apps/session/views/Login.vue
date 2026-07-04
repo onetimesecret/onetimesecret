@@ -11,7 +11,7 @@ import { useLanguageStore } from '@/shared/stores/languageStore';
 import { hasPasswordlessMethods } from '@/utils/features';
 import { storeToRefs } from 'pinia';
 import { ref, computed, onMounted, type ComponentPublicInstance } from 'vue';
-import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -40,13 +40,17 @@ const signupEnabled = computed(
 const authError = ref<string | null>(null);
 
 // Post-verification return: useAuth.verifyAccount() redirects here with
-// ?verified=1 after the user clicks the link in their welcome email. Read it
-// synchronously (setup) so the value survives the onMounted query cleanup and
-// is available on the first render when AuthMethodSelector mounts.
+// ?verified=1 after the user clicks the link in their welcome email.
 //   - verifiedNotice: drives a persistent success banner (vs. the transient toast)
 //   - initialAuthMode: default to the password tab. Re-entering the password
 //     they just chose is less redundant than another email link and confirms it
 //     was typed correctly the first time.
+//
+// The flag is intentionally NOT stripped from the URL afterwards: App.vue keys
+// the routed component by $route.fullPath, so a router.replace to drop the param
+// would re-mount this view and discard verifiedNotice — hiding the banner it was
+// meant to show. Leaving ?verified=1 in place is harmless; at worst a manual
+// refresh re-shows a reassuring success message.
 const justVerified = route.query.verified === '1';
 const verifiedNotice = ref(justVerified);
 const initialAuthMode = justVerified ? 'password' : undefined;
@@ -62,9 +66,6 @@ const authErrorMessages: Record<string, string> = {
 };
 
 onMounted(() => {
-  const cleanupQuery: LocationQueryRaw = { ...route.query };
-  let needsCleanup = false;
-
   const errorCode = route.query.auth_error;
   if (typeof errorCode === 'string' && errorCode.length > 0) {
     // Render a message for ANY auth_error code so a redirect from the auth
@@ -74,20 +75,8 @@ onMounted(() => {
     // fall back to the generic SSO failure copy instead of rendering nothing.
     const messageKey = authErrorMessages[errorCode] ?? 'web.login.errors.sso_failed';
     authError.value = t(messageKey);
-    cleanupQuery.auth_error = undefined;
-    needsCleanup = true;
-  }
-
-  if (justVerified) {
-    // Drop the one-shot flag so a refresh doesn't re-show the banner. The
-    // captured verifiedNotice/initialAuthMode values are unaffected.
-    cleanupQuery.verified = undefined;
-    needsCleanup = true;
-  }
-
-  // Clear consumed query params to prevent re-triggering on refresh.
-  if (needsCleanup) {
-    router.replace({ query: cleanupQuery });
+    // Clear the query param to prevent showing error on refresh
+    router.replace({ query: { ...route.query, auth_error: undefined } });
   }
 });
 

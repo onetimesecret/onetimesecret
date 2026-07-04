@@ -15,6 +15,7 @@ GET   /health/advanced                           Core::Controllers::Health#advan
 GET   /signin                                    Core::Controllers::Page#index auth=noauth
 GET   /signup                                    Core::Controllers::Page#index auth=noauth
 GET   /signup/*                                  Core::Controllers::Page#index auth=noauth
+GET   /check-email                               Core::Controllers::Page#index auth=noauth
 GET   /pricing                                   Core::Controllers::Page#index auth=noauth
 GET   /forgot                                    Core::Controllers::Page#index auth=noauth
 GET   /forgot/:key                               Core::Controllers::Page#index auth=noauth
