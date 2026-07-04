@@ -801,8 +801,7 @@ RSpec.describe 'Email Template Rendering', type: :integration do
         sender_email: 's@b.com',
         share_domain: 'custom.example.com'
       })
-      expect(template.display_domain).to include('custom.example.com')
-      expect(template.render_text).to include('custom.example.com')
+      expect(template.render_text).to match(%r{https?://custom\.example\.com/secret/abc})
     end
 
     it 'ExpirationWarning uses share_domain when provided' do
@@ -812,7 +811,7 @@ RSpec.describe 'Email Template Rendering', type: :integration do
         expires_at: Time.now.to_i + 3600,
         share_domain: 'custom.example.com'
       })
-      expect(template.display_domain).to include('custom.example.com')
+      expect(template.secret_uri).to match(%r{\Ahttps?://custom\.example\.com/secret/abc\z})
       expect(template.render_text).to include('custom.example.com')
     end
   end
