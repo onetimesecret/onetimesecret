@@ -8,7 +8,7 @@
   import { sanitizeDisplayEmail } from '@/utils/pii';
   import { computed } from 'vue';
   import { useI18n } from 'vue-i18n';
-  import { useRoute, useRouter } from 'vue-router';
+  import { useRoute } from 'vue-router';
 
   /**
    * Post-signup "Check your email" confirmation page.
@@ -24,7 +24,7 @@
    * field — correcting a typo is what "start over" is for, and an inline edit
    * would fork the flow and muddy the resend-vs-signup intent.
    *
-   * The email arrives via router history state (not the URL): it is PII, and a
+   * The email arrives via browser History state (not the URL): it is PII, and a
    * query string would leak it through history, the Referer header, access logs
    * and Sentry (see src/utils/pii.ts and src/router/README.md). A plain reload
    * preserves it — the History API keeps window.history.state on the entry — so
@@ -37,10 +37,17 @@
 
   const { t } = useI18n();
   const route = useRoute();
-  const router = useRouter();
 
   const email = computed(() => {
-    const state = router.options.history.state as Record<string, unknown> | null;
+    // Read the handed-over address straight from the browser History API. This
+    // is the standard, stable surface — the same object vue-router persists the
+    // navigation state into (verified in both createWebHistory and, via a
+    // fresh entry, its absence). We deliberately avoid router.options.history
+    // .state: RouterHistory is an @alpha interface, so window.history.state is
+    // the upgrade-proof read. `typeof window` guards a non-browser render.
+    const state = (typeof window !== 'undefined' ? window.history.state : null) as
+      | Record<string, unknown>
+      | null;
     return sanitizeDisplayEmail(state?.[CHECK_EMAIL_STATE_KEY]);
   });
 

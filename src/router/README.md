@@ -174,7 +174,7 @@ the application through:
 - Sentry breadcrumbs and `event.request.url`.
 
 This is finding **F6** of the disclosure matrix
-(`docs/specs/issue-3424-disclosure-matrix.html`): *"The URL is the bearer secret
+(`docs/specs/recipient-disclosure-matrix.html`): *"The URL is the bearer secret
 — and it leaks."*
 
 **Instead, hand PII to the next page via router history `state`:**
@@ -187,13 +187,15 @@ router.push({ path: '/check-email', query: { email } });
 router.push({ path: '/check-email', state: { checkEmailAddress: email } });
 ```
 
-Read it back through the history object (there is no typed `route.state`):
+Read it back from `window.history.state` — the browser-standard, stable surface
+that vue-router persists the navigation state into. There is no typed
+`route.state` (history state is not part of `RouteLocationNormalized`), and
+`router.options.history.state`, while it works, reaches into the `@alpha`
+`RouterHistory` interface, so prefer the plain History API:
 
 ```ts
-const router = useRouter();
-const email = sanitizeDisplayEmail(
-  (router.options.history.state as Record<string, unknown>)?.checkEmailAddress
-);
+const state = window.history.state as Record<string, unknown> | null;
+const email = sanitizeDisplayEmail(state?.checkEmailAddress);
 ```
 
 A plain reload **preserves** history `state` — the browser keeps

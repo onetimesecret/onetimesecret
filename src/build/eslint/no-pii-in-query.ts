@@ -19,11 +19,12 @@
  *
  * @see src/utils/pii.ts (the shared PII_QUERY_KEYS list)
  * @see src/router/README.md ("Query-string policy")
- * @see docs/specs/issue-3424-disclosure-matrix.html (finding F6)
+ * @see docs/specs/recipient-disclosure-matrix.html (finding F6)
  */
 
 import type { Rule } from 'eslint';
 import type { Property } from 'estree';
+
 // Single source of truth for the key list — imported (not re-declared) so the
 // rule and the runtime helpers can never drift. pii.ts is dependency-free, so
 // it resolves cleanly under the config's TS loader at lint time.

@@ -4,8 +4,9 @@
  * CheckEmail View Tests
  *
  * The post-signup "Check your email" confirmation page. Verifies that it:
- *  - reads the email address from router history state (NOT the URL query — it
- *    is PII; see src/utils/pii.ts and src/router/README.md),
+ *  - reads the email address from browser History state — window.history.state,
+ *    NOT the URL query — because it is PII (see src/utils/pii.ts and
+ *    src/router/README.md),
  *  - sanitizes that address for display and falls back to generic copy when it
  *    is absent, non-string, or implausible (tampered state),
  *  - prefills the resend form with the known address in compact mode, and
@@ -57,10 +58,17 @@ describe('CheckEmail.vue', () => {
   let wrapper: VueWrapper;
 
   /**
-   * Mount the view with the email handed over via router history state (as
-   * useAuth.signup does), and any non-PII billing/redirect params in the query.
-   * `email: undefined` simulates a fresh entry with no state (shared link, new
-   * tab, typed URL). A plain reload would instead preserve the state.
+   * Mount the view with the email handed over via browser History state (as
+   * useAuth.signup does — window.history.state, never the URL), and any non-PII
+   * billing/redirect params in the query. `email: undefined` simulates a fresh
+   * entry with no handed-over state (shared link, new tab, typed URL); a plain
+   * reload would instead preserve it.
+   *
+   * The router uses memory history (it only needs to supply route.query for the
+   * "start over" link); the address is seeded straight into window.history.state
+   * because that is exactly the surface the component reads — memory history
+   * does not touch window.history, so the two are seeded independently, and the
+   * afterEach hook clears the shared window.history.state between tests.
    */
   const createWrapper = async (
     opts: { email?: unknown; query?: Record<string, string> } = {}
@@ -73,12 +81,13 @@ describe('CheckEmail.vue', () => {
         { path: '/signup', name: 'signup', component: { template: '<div />' } },
       ],
     });
-    await router.push({
-      path: '/check-email',
-      query: opts.query ?? {},
-      ...(opts.email !== undefined ? { state: { [CHECK_EMAIL_STATE_KEY]: opts.email } } : {}),
-    });
+    await router.push({ path: '/check-email', query: opts.query ?? {} });
     await router.isReady();
+
+    window.history.replaceState(
+      opts.email !== undefined ? { [CHECK_EMAIL_STATE_KEY]: opts.email } : null,
+      ''
+    );
 
     return mount(CheckEmail, {
       global: { plugins: [router, i18n] },
@@ -87,9 +96,12 @@ describe('CheckEmail.vue', () => {
 
   afterEach(() => {
     wrapper?.unmount();
+    // window.history is shared across tests in the jsdom environment; reset the
+    // handed-over state so it never bleeds into the next case (or spec file).
+    window.history.replaceState(null, '');
   });
 
-  it('echoes the email address from router history state', async () => {
+  it('echoes the email address from browser History state', async () => {
     wrapper = await createWrapper({ email: 'tom@myspace.com' });
 
     const address = wrapper.find('[data-testid="check-email-address"]');
