@@ -75,7 +75,15 @@ gem 'truemail'
 # ORMs and database drivers
 # NOTE: We install both db drivers for the OCI images so that users can choose
 # which database to use at runtime via environment variable without rebuilding.
-gem 'familia', '~> 2.10'
+# Target floor is familia 2.11.1 (blank-secret rejection, delano/familia#335;
+# 2.11 also decouples the AES HKDF salt from the XChaCha personalization, which
+# activates the pinning in ConfigureFamilia). 2.11.1 is not yet on RubyGems, so
+# the lock resolves to the newest published 2.11.0 for now; the moment 2.11.1
+# publishes, `bundle update familia --conservative` moves the lock with no
+# Gemfile change (then optionally tighten this to '~> 2.11.1'). Do NOT jump to
+# 2.12: it lands breaking encryption personalization/salt-history changes
+# (delano/familia#333, #334) that need the migration tracked in issue #3630.
+gem 'familia', '~> 2.11.0'
 gem 'pg', '~> 1.6'
 gem 'sequel', '~> 5.0'
 gem 'sqlite3', '~> 2.0'
