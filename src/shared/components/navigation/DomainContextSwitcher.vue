@@ -398,58 +398,58 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
 
         <!-- Divider + footer call to action (owners and admins only) -->
         <template v-if="canManageDomains">
-        <div
-          class="my-1 border-t border-gray-200 dark:border-gray-700"
-          role="separator"
-          aria-hidden="true" ></div>
+          <div
+            class="my-1 border-t border-gray-200 dark:border-gray-700"
+            role="separator"
+            aria-hidden="true" ></div>
 
-        <!-- No custom domains yet: prominent "Add Domain" call to action.
-             "Manage Domains" makes no sense when there is nothing to manage. -->
-        <MenuItem
-          v-if="!hasCustomDomains"
-          v-slot="{ active }"
-          @click="navigateToAddDomain">
-          <button
-            type="button"
-            class="mx-2 w-[calc(100%-1rem)] cursor-pointer select-none rounded-md px-2 py-2 text-left transition-colors duration-150"
-            :class="active ? 'bg-gray-100 dark:bg-gray-700' : ''"
-            data-testid="domain-context-add-link">
-            <span class="flex items-center gap-2">
-              <OIcon
-                collection="heroicons"
-                name="plus-20-solid"
-                class="size-4 text-gray-500 dark:text-gray-400"
-                aria-hidden="true" />
-              <span class="text-sm text-gray-700 dark:text-gray-300">
-                {{ t('web.domains.add_domain') }}
+          <!-- No custom domains yet: prominent "Add Domain" call to action.
+               "Manage Domains" makes no sense when there is nothing to manage. -->
+          <MenuItem
+            v-if="!hasCustomDomains"
+            v-slot="{ active }"
+            @click="navigateToAddDomain">
+            <button
+              type="button"
+              class="mx-2 w-[calc(100%-1rem)] cursor-pointer select-none rounded-md px-2 py-2 text-left transition-colors duration-150"
+              :class="active ? 'bg-gray-100 dark:bg-gray-700' : ''"
+              data-testid="domain-context-add-link">
+              <span class="flex items-center gap-2">
+                <OIcon
+                  collection="heroicons"
+                  name="plus-20-solid"
+                  class="size-4 text-gray-500 dark:text-gray-400"
+                  aria-hidden="true" />
+                <span class="text-sm text-gray-700 dark:text-gray-300">
+                  {{ t('web.domains.add_domain') }}
+                </span>
               </span>
-            </span>
-          </button>
-        </MenuItem>
+            </button>
+          </MenuItem>
 
-        <!-- Has custom domains: keep the "Manage Domains" link
-             (the "Add Domain" action lives in the header [+] icon). -->
-        <MenuItem
-          v-else
-          v-slot="{ active }"
-          @click="navigateToManageDomains">
-          <button
-            type="button"
-            class="mx-2 w-[calc(100%-1rem)] cursor-pointer select-none rounded-md px-2 py-2 text-left transition-colors duration-150"
-            :class="active ? 'bg-gray-100 dark:bg-gray-700' : ''"
-            data-testid="domain-context-manage-link">
-            <span class="flex items-center gap-2">
-              <OIcon
-                collection="heroicons"
-                name="cog-6-tooth"
-                class="size-4 text-gray-500 dark:text-gray-400"
-                aria-hidden="true" />
-              <span class="text-sm text-gray-700 dark:text-gray-300">
-                {{ t('web.domains.manage_domains') }}
+          <!-- Has custom domains: keep the "Manage Domains" link
+               (the "Add Domain" action lives in the header [+] icon). -->
+          <MenuItem
+            v-else
+            v-slot="{ active }"
+            @click="navigateToManageDomains">
+            <button
+              type="button"
+              class="mx-2 w-[calc(100%-1rem)] cursor-pointer select-none rounded-md px-2 py-2 text-left transition-colors duration-150"
+              :class="active ? 'bg-gray-100 dark:bg-gray-700' : ''"
+              data-testid="domain-context-manage-link">
+              <span class="flex items-center gap-2">
+                <OIcon
+                  collection="heroicons"
+                  name="cog-6-tooth"
+                  class="size-4 text-gray-500 dark:text-gray-400"
+                  aria-hidden="true" />
+                <span class="text-sm text-gray-700 dark:text-gray-300">
+                  {{ t('web.domains.manage_domains') }}
+                </span>
               </span>
-            </span>
-          </button>
-        </MenuItem>
+            </button>
+          </MenuItem>
         </template>
       </MenuItems>
     </transition>

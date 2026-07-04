@@ -302,6 +302,7 @@ describe('useScopeSwitcherVisibility', () => {
       expect(result).toHaveProperty('lockOrgSwitcher');
       expect(result).toHaveProperty('showDomainSwitcher');
       expect(result).toHaveProperty('lockDomainSwitcher');
+      expect(result).toHaveProperty('isSoloDefaultContext');
     });
   });
 
@@ -556,6 +557,14 @@ describe('useScopeSwitcherVisibility', () => {
         { member_count: 1, is_default: true },
         { member_count: 1, is_default: false },
       ];
+
+      const { showOrgSwitcher, isSoloDefaultContext } = useScopeSwitcherVisibility();
+      expect(isSoloDefaultContext.value).toBe(false);
+      expect(showOrgSwitcher.value).toBe(true);
+    });
+
+    it('shows the switcher for a single non-default (self-created) org with only themselves', () => {
+      mockOrganizations.value = [{ member_count: 1, is_default: false }];
 
       const { showOrgSwitcher, isSoloDefaultContext } = useScopeSwitcherVisibility();
       expect(isSoloDefaultContext.value).toBe(false);
