@@ -80,6 +80,17 @@ describe('CheckEmail.vue', () => {
     expect(address.text()).toBe('tom@myspace.com');
   });
 
+  it('shows a help affordance beside the address carrying the details', async () => {
+    wrapper = await createWrapper({ email: 'tom@myspace.com' });
+
+    // The explanatory copy moved onto a help icon (title + aria-label) so the
+    // screen stays a single instruction: check this inbox.
+    const help = wrapper.find('[data-testid="check-email-help"]');
+    expect(help.exists()).toBe(true);
+    expect(help.attributes('aria-label')).toBe('web.auth.check_email.help');
+    expect(help.attributes('title')).toBe('web.auth.check_email.help');
+  });
+
   it('falls back to generic copy when no email is present', async () => {
     wrapper = await createWrapper({});
 

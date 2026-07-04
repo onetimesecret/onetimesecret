@@ -3,6 +3,7 @@
 <script setup lang="ts">
   import AuthView from '@/apps/session/components/AuthView.vue';
   import ResendVerificationForm from '@/apps/session/components/ResendVerificationForm.vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
   import { computed } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRoute } from 'vue-router';
@@ -75,25 +76,36 @@
           </div>
         </div>
 
-        <!-- Where the link went + the one thing to do next -->
-        <div class="space-y-2 text-center">
-          <template v-if="email">
-            <p class="text-sm text-gray-600 dark:text-gray-400">
-              {{ t('web.auth.check_email.sent_to') }}
-            </p>
-            <p
+        <!-- The one thing to do: check this inbox. The address is the message;
+             a help icon carries the details (what was sent, what to do next) so
+             the screen stays a single, clear instruction rather than a wall of
+             text the email itself already repeats. -->
+        <div class="text-center">
+          <div
+            v-if="email"
+            class="flex items-center justify-center gap-1.5">
+            <span
               class="text-lg font-semibold break-all text-gray-900 dark:text-white"
               data-testid="check-email-address">
               {{ email }}
-            </p>
-          </template>
+            </span>
+            <span
+              class="shrink-0 cursor-help text-gray-400 dark:text-gray-500"
+              role="img"
+              :aria-label="t('web.auth.check_email.help')"
+              :title="t('web.auth.check_email.help')"
+              data-testid="check-email-help">
+              <OIcon
+                collection="heroicons"
+                name="question-mark-circle"
+                size="5"
+                aria-hidden="true" />
+            </span>
+          </div>
           <p
             v-else
             class="text-sm text-gray-600 dark:text-gray-400">
             {{ t('web.auth.check_email.sent_to_generic') }}
-          </p>
-          <p class="pt-1 text-sm text-gray-700 dark:text-gray-300">
-            {{ t('web.auth.check_email.instructions') }}
           </p>
         </div>
 
