@@ -100,8 +100,8 @@ module Billing
       return true if plan&.exists?
 
       # Check static config as fallback
-      config_plans = Onetime.conf.dig(:billing, :plans) || {}
-      config_plans.key?(plan_id.to_sym)
+      config_plans = Onetime.conf.dig('billing', 'plans') || {}
+      config_plans.key?(plan_id.to_s)
     end
 
     # =========================================================================

@@ -21,7 +21,9 @@ pnpm-debug.log*
 .claude
 .continue/
 .devcontainer
+.gemini*
 .history
+.interface-design
 .hypothesis/
 .pnpm/
 .pnpm-store/
@@ -56,6 +58,7 @@ public/doc
 
 # Files
 .DS_Store
+AGENTS.md
 CLAUDE.md
 !.oci-build.json
 .github/*md

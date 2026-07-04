@@ -1,6 +1,3 @@
-# docs/development/testing-build-steps.md
----
-
 # Testing OCI Builds & Version Pipeline
 
 How to verify that the version flows correctly from git tag → package.json → Docker build arg → built image.

@@ -1,6 +1,6 @@
-# #3424 — UX analysis of the "no longer available" failure surface
+# UX analysis of the "no longer available" failure surface
 
-Companion to `docs/specs/issue-3424-root-cause-analysis.md`. That document
+Companion to `docs/specs/unviewable-state-root-cause.md`. That document
 establishes the *mechanism* (an out-of-enum / un-viewable `state` triggers a 404
 on the recipient path and a strict-schema parse failure on the sender path, both
 rendered as the same terminal screen). This document revisits the *user

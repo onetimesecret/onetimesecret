@@ -66,6 +66,9 @@ const httpLoggingSchema = z.object({
   capture: httpCaptureSchema.optional(),
   slow_request_ms: z.number().optional(),
   ignore_paths: z.array(z.string()).optional(),
+  // Opt-in allowlist of request param/header names allowed to appear in
+  // :debug capture mode or in error-report context. Empty by default.
+  allowed_error_fields: z.array(z.string()).optional(),
 });
 
 /**
