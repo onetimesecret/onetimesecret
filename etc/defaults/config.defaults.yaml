@@ -342,16 +342,16 @@ site:
   security:
     # Content Security Policy (CSP) Configuration
     #
-    # When enabled, adds Content-Security-Policy headers to responses.
+    # Adds Content-Security-Policy headers to web responses. On by default.
     # - Development mode: Less restrictive headers to allow hot reloading
     # - Production mode: Strict headers with nonce-based script protection
     #
     # The nonce is available via `req.env['onetime.nonce']` for custom
     # script/style assets. Backend views add it automatically.
     #
-    # ENV: CSP_ENABLED (default: false)
+    # ENV: CSP_ENABLED (default: true; set to 'false' to disable)
     csp:
-      enabled: <%= ENV['CSP_ENABLED'] == 'true' || false %>
+      enabled: <%= ENV['CSP_ENABLED'] != 'false' %>
 
   # Network Configuration
   # Settings for proxy trust, client IP resolution, and network-level behavior.

@@ -1096,6 +1096,38 @@
     "text": "Features",
     "content_hash": "5697d03d"
   },
+  "web.domains.detail.dns_title": {
+    "text": "DNS Setup",
+    "content_hash": "6c63df31"
+  },
+  "web.domains.detail.dns_description": {
+    "text": "Point your domain to this server with a CNAME record",
+    "content_hash": "080f84f0"
+  },
+  "web.domains.dns.title": {
+    "text": "DNS configuration",
+    "content_hash": "da78c35d"
+  },
+  "web.domains.dns.point_domain_intro": {
+    "text": "Point",
+    "content_hash": "2fc0c524"
+  },
+  "web.domains.dns.point_domain_outro": {
+    "text": "at this server by adding the following DNS record with your provider.",
+    "content_hash": "8d260c05"
+  },
+  "web.domains.dns.cname_heading": {
+    "text": "Create a CNAME record",
+    "content_hash": "11aeef5a"
+  },
+  "web.domains.dns.apex_heading": {
+    "text": "Create an ALIAS or ANAME record",
+    "content_hash": "41135375"
+  },
+  "web.domains.dns.apex_notice": {
+    "text": "Apex (root) domains can't use a CNAME record. Use your DNS provider's ALIAS or ANAME record, or point an A record at your server's IP address, instead.",
+    "content_hash": "2d1c3298"
+  },
   "web.domains.detail.homepage_title": {
     "text": "Homepage Secrets",
     "content_hash": "6360f7ec"

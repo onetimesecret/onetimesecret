@@ -24,6 +24,8 @@ import {
   hasPassword,
   isFullAuthModeOf,
   isFullAuthMode,
+  isApproximatedDomainValidationOf,
+  isApproximatedDomainValidation,
 } from '@/utils/features';
 import { _resetForTesting } from '@/services/bootstrap.service';
 
@@ -1130,6 +1132,51 @@ describe('features utility', () => {
     });
   });
 
+  describe('isApproximatedDomainValidationOf', () => {
+    it('returns true only for the exact "approximated" strategy', () => {
+      expect(
+        isApproximatedDomainValidationOf({ domains: { validation_strategy: 'approximated' } })
+      ).toBe(true);
+    });
+
+    it('returns false for other known strategies (passthrough, caddy_on_demand)', () => {
+      expect(
+        isApproximatedDomainValidationOf({ domains: { validation_strategy: 'passthrough' } })
+      ).toBe(false);
+      expect(
+        isApproximatedDomainValidationOf({ domains: { validation_strategy: 'caddy_on_demand' } })
+      ).toBe(false);
+    });
+
+    it('returns false when domains or validation_strategy is absent', () => {
+      // The config default is `passthrough`, so an absent key is non-approximated.
+      expect(isApproximatedDomainValidationOf({})).toBe(false);
+      expect(isApproximatedDomainValidationOf({ domains: null })).toBe(false);
+      expect(isApproximatedDomainValidationOf({ domains: {} })).toBe(false);
+    });
+  });
+
+  describe('isApproximatedDomainValidation', () => {
+    it('reads the domains bootstrap key and returns true for approximated', () => {
+      getBootstrapValueMock.mockReturnValue({ validation_strategy: 'approximated' });
+
+      expect(isApproximatedDomainValidation()).toBe(true);
+      expect(getBootstrapValueMock).toHaveBeenCalledWith('domains');
+    });
+
+    it('returns false for non-approximated strategies', () => {
+      getBootstrapValueMock.mockReturnValue({ validation_strategy: 'passthrough' });
+
+      expect(isApproximatedDomainValidation()).toBe(false);
+    });
+
+    it('returns false when the domains key is absent from bootstrap', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+
+      expect(isApproximatedDomainValidation()).toBe(false);
+    });
+  });
+
   // ── SSR safety (window undefined) ─────────────────────────────────
 
   describe('SSR safety (window undefined)', () => {
@@ -1242,6 +1289,11 @@ describe('features utility', () => {
 
     it('isFullAuthMode returns false when window is undefined', () => {
       const result = isFullAuthMode();
+      expect(result).toBe(false);
+    });
+
+    it('isApproximatedDomainValidation returns false when window is undefined', () => {
+      const result = isApproximatedDomainValidation();
       expect(result).toBe(false);
     });
   });
