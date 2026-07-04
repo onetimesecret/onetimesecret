@@ -103,6 +103,20 @@ http:
   # opt-in per field, not opt-out via a blocklist that can lag behind new
   # sensitive field names.
   #
+  # Header names must use the canonical capitalized-with-hyphens form (e.g.
+  # "User-Agent", "X-Forwarded-For") — each HTTP_ env key is normalized by
+  # capitalizing the parts between underscores, so an all-caps acronym like
+  # HTTP_CF_IPCOUNTRY normalizes to "Cf-Ipcountry", not "CF-IPCountry". If a
+  # header you add here doesn't seem to match, check the normalized form
+  # rather than what a browser or proxy sends on the wire.
+  #
+  # RequestLogger reads this list once at boot (its middleware instance is
+  # long-lived) — a change here takes effect on the next process restart,
+  # not a live config reload. Sentry's error-report context
+  # (Onetime::ErrorHandler.safe_request_context) re-reads it on every call,
+  # so the two surfaces can briefly disagree if you edit this without
+  # restarting.
+  #
   # Never add names like password, secret, token, passphrase, api_key,
   # access_token, refresh_token, Authorization, or Cookie here.
   allowed_error_fields: <%= (ENV['LOG_HTTP_ALLOWED_ERROR_FIELDS'] || '').split(',').map(&:strip).reject(&:empty?) %>

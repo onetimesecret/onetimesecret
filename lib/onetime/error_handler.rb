@@ -88,7 +88,7 @@ module Onetime
     def self.http_headers_from(env)
       return {} unless env.respond_to?(:select)
 
-      headers = env.select { |k, _v| k.start_with?('HTTP_') rescue false } # rubocop:disable Style/RescueModifier
+      headers = env.select { |k, _v| k.is_a?(String) && k.start_with?('HTTP_') }
       headers.each_with_object({}) do |(k, v), result|
         result[k] = SENSITIVE_HEADER_KEYS.include?(k) ? '[FILTERED]' : v
       end
@@ -147,7 +147,7 @@ module Onetime
       filtered         = req.params.each_with_object({}) do |(k, v), result|
         next unless allowed.include?(k.to_s)
 
-        result[k] = v.is_a?(String) || v.is_a?(Numeric) || v == true || v == false || v.nil? ? v : v.to_s
+        result[k] = loggable_scalar?(v) ? v : v.to_s
       end
       context[:params] = filtered unless filtered.empty?
       context
@@ -226,6 +226,13 @@ module Onetime
       # Check if Sentry is configured
       def sentry_available?
         defined?(Sentry) && Sentry.initialized?
+      end
+
+      # True for value types safe to attach to a log line or Sentry context
+      # as-is; anything else (Array, Hash, custom object) is coerced to a
+      # String by the caller instead of risking a non-JSON-safe value.
+      def loggable_scalar?(v)
+        v.is_a?(String) || v.is_a?(Numeric) || v == true || v == false || v.nil?
       end
     end
   end
