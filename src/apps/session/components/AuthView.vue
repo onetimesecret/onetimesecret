@@ -23,6 +23,13 @@
     withHeading?: boolean;
     withSubheading?: boolean;
     hideIcon?: boolean;
+    /**
+     * Omit the title icon/logo block entirely (v-if), reclaiming its space.
+     * Differs from `hideIcon`, which only makes the icon `invisible` to
+     * preserve vertical alignment. Used by focused status pages that want the
+     * heading at the top with no brand mark competing for attention.
+     */
+    omitIcon?: boolean;
     hideBackgroundIcon?: boolean;
     showReturnHome?: boolean;
   }
@@ -34,6 +41,7 @@
     withHeading: true,
     withSubheading: false,
     hideIcon: false,
+    omitIcon: false,
     hideBackgroundIcon: false,
     showReturnHome: true,
     featureIcon: () => ({
@@ -99,7 +107,10 @@
     <!-- Page Title -->
     <div class="relative z-10 w-full min-w-[320px] max-w-md space-y-12">
       <!-- Title Icon / Logo -->
-      <div class="flex flex-col items-center" :class="{ 'invisible': hideIcon }">
+      <div
+        v-if="!omitIcon"
+        class="flex flex-col items-center"
+        :class="{ 'invisible': hideIcon }">
         <RouterLink to="/" class="group">
           <div class="relative">
             <!-- Custom logo (for branded/custom domain pages) -->

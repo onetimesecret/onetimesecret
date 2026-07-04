@@ -16,13 +16,13 @@
    * exactly two recovery paths — resend, or start over with a different address.
    *
    * Deliberately minimal: the real next step is the link already in the user's
-   * inbox, so there is no primary button competing with it. The address is shown
-   * as static text, not an editable field — correcting a typo is what "start
-   * over" is for, and an inline edit would fork the flow and muddy the
-   * resend-vs-signup intent.
+   * inbox, so there is no primary button competing with it, and no brand icon
+   * distracting from it. The address is shown as static text, not an editable
+   * field — correcting a typo is what "start over" is for, and an inline edit
+   * would fork the flow and muddy the resend-vs-signup intent.
    *
    * The email arrives as a query param (?email=...). Billing/redirect params are
-   * preserved on the onward links so the checkout flow survives the detour.
+   * preserved on the "start over" link so the checkout flow survives the detour.
    */
 
   const { t } = useI18n();
@@ -30,7 +30,7 @@
 
   const email = computed(() => (typeof route.query.email === 'string' ? route.query.email : ''));
 
-  // Preserve email + billing + redirect params on the onward links so the
+  // Preserve email + billing + redirect params on the "start over" link so the
   // pending checkout / invitation flow continues once the user signs in.
   function linkWith(path: string): string | { path: string; query: Record<string, string> } {
     const query: Record<string, string> = {};
@@ -42,7 +42,6 @@
     return Object.keys(query).length > 0 ? { path, query } : path;
   }
 
-  const signinLink = computed(() => linkWith('/signin'));
   const signupLink = computed(() => linkWith('/signup'));
 </script>
 
@@ -52,7 +51,7 @@
     heading-id="check-email-heading"
     :with-heading="true"
     :with-subheading="false"
-    :hide-icon="false"
+    :omit-icon="true"
     :hide-background-icon="true">
     <template #form>
       <div
@@ -98,8 +97,8 @@
           </p>
         </div>
 
-        <!-- Recovery paths, deliberately de-emphasised: one-click resend, then a
-             spam nudge and a "start over" escape for a wrong address. -->
+        <!-- Recovery paths, deliberately de-emphasised: one-click resend and a
+             spam nudge. The "wrong address" escape lives in the footer. -->
         <div class="space-y-2">
           <ResendVerificationForm
             :email="email"
@@ -107,31 +106,22 @@
           <p class="text-center text-xs text-gray-500 dark:text-gray-400">
             {{ t('web.auth.check_email.spam_hint') }}
           </p>
-          <p class="text-center text-xs text-gray-500 dark:text-gray-400">
-            {{ t('web.auth.check_email.wrong_email') }}
-            {{ ' ' }}
-            <router-link
-              :to="signupLink"
-              class="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300"
-              data-testid="check-email-start-over-link">
-              {{ t('web.auth.check_email.start_over') }}
-            </router-link>
-          </p>
         </div>
       </div>
     </template>
 
-    <!-- Escape hatch for anyone who has already verified (e.g. in another tab). -->
+    <!-- Wrong-address escape: correcting a typo means starting over, not an
+         inline edit of the address. -->
     <template #footer>
       <span class="text-gray-600 dark:text-gray-400">
-        {{ t('web.auth.check_email.already_verified') }}
+        {{ t('web.auth.check_email.wrong_email') }}
       </span>
       {{ ' ' }}
       <router-link
-        :to="signinLink"
+        :to="signupLink"
         class="font-medium text-brand-600 underline transition-colors duration-200 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300"
-        data-testid="check-email-signin-link">
-        {{ t('web.auth.check_email.signin_link') }}
+        data-testid="check-email-start-over-link">
+        {{ t('web.auth.check_email.start_over') }}
       </router-link>
     </template>
   </AuthView>

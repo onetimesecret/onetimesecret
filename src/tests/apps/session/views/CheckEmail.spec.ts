@@ -105,24 +105,23 @@ describe('CheckEmail.vue', () => {
     expect(resend.attributes('data-compact')).toBe('false');
   });
 
-  it('preserves email + billing params on the onward sign-in link', async () => {
+  it('points "start over" back to signup preserving email + billing params', async () => {
     wrapper = await createWrapper({
       email: 'tom@myspace.com',
       product: 'identity',
       interval: 'month',
     });
 
-    const to = wrapper.findComponent('[data-testid="check-email-signin-link"]').props('to');
+    const to = wrapper.findComponent('[data-testid="check-email-start-over-link"]').props('to');
     expect(to).toEqual({
-      path: '/signin',
+      path: '/signup',
       query: { email: 'tom@myspace.com', product: 'identity', interval: 'month' },
     });
   });
 
-  it('points "start over" back to signup preserving the email', async () => {
+  it('does not render a sign-in link (start over is the only recovery path)', async () => {
     wrapper = await createWrapper({ email: 'tom@myspace.com' });
 
-    const to = wrapper.findComponent('[data-testid="check-email-start-over-link"]').props('to');
-    expect(to).toEqual({ path: '/signup', query: { email: 'tom@myspace.com' } });
+    expect(wrapper.find('[data-testid="check-email-signin-link"]').exists()).toBe(false);
   });
 });

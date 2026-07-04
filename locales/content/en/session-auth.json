@@ -285,14 +285,6 @@
     "text": "Start over",
     "content_hash": "5eed7e9f"
   },
-  "web.auth.check_email.already_verified": {
-    "text": "Already verified?",
-    "content_hash": "23bbbdd0"
-  },
-  "web.auth.check_email.signin_link": {
-    "text": "Sign in",
-    "content_hash": "bfd402b2"
-  },
   "web.auth.change_password.title": {
     "text": "Change Password",
     "content_hash": "a949f462"
