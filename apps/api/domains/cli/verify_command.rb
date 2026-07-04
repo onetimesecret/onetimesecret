@@ -362,7 +362,11 @@ module Onetime
           # colonel admin list and the public domain serializer (#3026); the
           # legacy `brand: { allow_public_*: ... }` nesting was removed because
           # the toggles never lived in BrandSettings.
-          output[:homepage_config] = { enabled: domain.allow_public_homepage? }
+          homepage_cfg             = Onetime::CustomDomain::HomepageConfig.find_by_domain_id(domain.identifier)
+          output[:homepage_config] = {
+            enabled: homepage_cfg&.effectively_enabled?(custom_domain: domain) || false,
+            secrets_mode: homepage_cfg&.secrets_mode_value,
+          }
           output[:api_config]      = { enabled: domain.allow_public_api? }
         end
 

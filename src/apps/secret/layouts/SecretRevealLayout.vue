@@ -35,9 +35,11 @@
       <BrandedHeader v-bind="props" />
     </template>
     <template #main>
-      <main :class="mainClasses">
-        <slot></slot>
-      </main>
+      <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <main :class="mainClasses">
+          <slot></slot>
+        </main>
+      </div>
     </template>
     <template #footer>
       <BrandedFooter v-bind="props" />

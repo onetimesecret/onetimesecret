@@ -20,6 +20,13 @@ auth strategy.
 | Anonymous | custom | off | 403 "Public sharing disabled" |
 | Anonymous | canonical (with share_domain) | n/a | 403 "You do not have permission" |
 
+**Toggle semantics:** "on" means `CustomDomain#allow_public_secret_creation?` —
+the homepage is enabled **and** its `secrets_mode` is `create`. A homepage in
+`incoming` mode is public but presents the incoming-secrets form instead; it
+does **not** authorize anonymous secret creation (those visitors submit via
+`POST /api/incoming/secret`, which has its own gating), so anonymous creation
+on an incoming-mode domain returns 403 "Public sharing disabled".
+
 ## `POST /api/v3/secret/conceal` (auth=sessionauth)
 
 The strategy layer rejects anonymous before our code runs. Only authenticated

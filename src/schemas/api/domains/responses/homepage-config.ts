@@ -15,6 +15,20 @@ import { homepageConfigCanonical } from '@/schemas/contracts/custom-domain';
 // ---------------------------------------------------------------------------
 
 /**
+ * Admin homepage-config record: the stored config plus the server-computed
+ * `effective_enabled` — what anonymous visitors actually get after the
+ * bootstrap serializer's downgrade rule (an incoming-mode homepage whose
+ * incoming config is unavailable fails closed to the trust card). The
+ * frontend mirrors this into bootstrapStore instead of re-deriving
+ * readiness from possibly-stale client state.
+ */
+export const homepageConfigAdminRecordSchema = homepageConfigCanonical.extend({
+  effective_enabled: z.boolean().optional(),
+});
+
+export type HomepageConfigAdminRecord = z.infer<typeof homepageConfigAdminRecordSchema>;
+
+/**
  * Response schema for GET and PUT /api/domains/:extid/homepage-config
  *
  * Returns `{ user_id, record }` where record matches the homepage config shape.
@@ -22,7 +36,7 @@ import { homepageConfigCanonical } from '@/schemas/contracts/custom-domain';
  */
 export const homepageConfigResponseSchema = z.object({
   user_id: z.string(),
-  record: homepageConfigCanonical.nullable(),
+  record: homepageConfigAdminRecordSchema.nullable(),
 });
 
 export type HomepageConfigResponse = z.infer<typeof homepageConfigResponseSchema>;

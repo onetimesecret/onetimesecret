@@ -11,12 +11,15 @@
 import { useI18n } from 'vue-i18n';
 import { useConfirmDialog } from '@vueuse/core';
 import OIcon from '@/shared/components/icons/OIcon.vue';
-import ToggleWithIcon from '@/shared/components/common/ToggleWithIcon.vue';
 import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
 import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
+import DomainHomepageSelector, {
+  type HomepageChoice,
+} from '@/apps/workspace/components/domains/DomainHomepageSelector.vue';
 import { useDomain } from '@/shared/composables/useDomain';
 import { useDomainsManager } from '@/shared/composables/useDomainsManager';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
+import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { ENTITLEMENTS } from '@/types/organization';
 import {
@@ -25,7 +28,7 @@ import {
   isOrgsIncomingSecretsEnabled,
 } from '@/utils/features';
 import { storeToRefs } from 'pinia';
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 const { t } = useI18n();
@@ -34,7 +37,8 @@ const router = useRouter();
 const props = defineProps<{ extid: string; orgid: string }>();
 
 const { isRevealed, reveal, confirm, cancel } = useConfirmDialog();
-const { deleteDomain, toggleHomepageConfig } = useDomainsManager();
+const { deleteDomain, updateHomepageConfig } = useDomainsManager();
+const notifications = useNotificationsStore();
 
 const handleBack = () => {
   router.push(`/org/${props.orgid}/domains`);
@@ -76,17 +80,86 @@ const canAdmin = computed(() => {
 // Removing a domain is owner-only — admins manage configuration but not lifecycle.
 const isOwner = computed(() => organization.value?.current_user_role === 'owner');
 
-const handleHomepageToggle = async () => {
+// ---------------------------------------------------------------------------
+// Homepage experience (private landing / create form / incoming form)
+//
+// One three-way choice for the operator; stored backend-side as
+// enabled + secrets_mode with merge semantics.
+// ---------------------------------------------------------------------------
+
+const homepageExpanded = ref(false);
+const homepageSaving = ref(false);
+
+const homepageChoice = computed<HomepageChoice>(() => {
+  const config = customDomainRecord.value?.homepage_config;
+  if (!config?.enabled) return 'private';
+  return config.secrets_mode === 'incoming' ? 'incoming' : 'create';
+});
+
+/** Incoming option offered at all: deployment flag + plan entitlement. */
+const homepageIncomingAvailable = computed(
+  () => isOrgsIncomingSecretsEnabled() && canIncomingSecrets.value
+);
+
+/** Incoming selectable: server-computed readiness (enabled + >= 1 recipient). */
+const homepageIncomingReady = computed(
+  () => customDomainRecord.value?.incoming_ready ?? false
+);
+
+// Stored choice can drift from what visitors actually see: 'incoming' stays
+// selected (preserving the operator's intent) even after recipients are
+// removed elsewhere, but the backend fails closed to the private trust card
+// at that point (HomepageConfig#effectively_enabled?). Reflect that here so
+// the status line never claims the homepage is interactive when it isn't.
+const homepageStatusKey = computed(() => {
+  switch (homepageChoice.value) {
+    case 'create':
+      return 'web.domains.homepage.status_create';
+    case 'incoming':
+      return homepageIncomingReady.value
+        ? 'web.domains.homepage.status_incoming'
+        : 'web.domains.homepage.status_incoming_unready';
+    default:
+      return 'web.domains.homepage.status_private';
+  }
+});
+
+const incomingConfigRoute = computed(() => ({
+  name: 'DomainIncoming',
+  params: { orgid: props.orgid, extid: props.extid },
+}));
+
+const handleHomepageSelect = async (choice: HomepageChoice) => {
   const domain = customDomainRecord.value;
-  if (!domain) return;
-  const newValue = !(domain.homepage_config?.enabled ?? false);
-  const result = await toggleHomepageConfig(
-    domain.extid,
-    newValue,
-    organization.value?.current_user_role,
-  );
-  if (result) {
-    await initializeDomain();
+  if (!domain || homepageSaving.value) return;
+
+  // 'private' sends enabled only — merge semantics preserve the stored
+  // secrets_mode, so re-enabling later restores the operator's selection.
+  const update =
+    choice === 'private'
+      ? { enabled: false }
+      : { enabled: true, secrets_mode: choice };
+
+  homepageSaving.value = true;
+  try {
+    const result = await updateHomepageConfig(
+      domain.extid,
+      update,
+      organization.value?.current_user_role,
+    );
+    if (result) {
+      // Gate the success toast on the refetch actually landing. The selector
+      // reads its value from the refreshed domain record, so if the refetch
+      // fails (initializeDomain surfaces its own error) a "saved" toast would
+      // both contradict that error and sit above a selector still showing the
+      // pre-change value.
+      const refreshed = await initializeDomain();
+      if (refreshed) {
+        notifications.show(t('web.domains.homepage.update_success'), 'success', 'top');
+      }
+    }
+  } finally {
+    homepageSaving.value = false;
   }
 };
 
@@ -98,10 +171,8 @@ interface Section {
   descriptionKey: string;
   available: boolean;
   locked: boolean;
-  /** When true, show an enable/disable toggle instead of a navigation arrow */
-  toggleable: boolean;
-  /** Current toggle state (only used when toggleable is true) */
-  enabled: boolean;
+  /** When true, the row expands in place (homepage selector) instead of navigating */
+  expandable: boolean;
 }
 
 // eslint-disable-next-line max-lines-per-function
@@ -116,8 +187,7 @@ const sections = computed<Section[]>(() => [
     descriptionKey: 'web.domains.detail.dns_description',
     available: !isApproximatedDomainValidation(),
     locked: false,
-    toggleable: false,
-    enabled: false,
+    expandable: false,
   },
   {
     key: 'brand',
@@ -127,19 +197,17 @@ const sections = computed<Section[]>(() => [
     descriptionKey: 'web.domains.detail.brand_description',
     available: true,
     locked: !canBrand.value,
-    toggleable: false,
-    enabled: false,
+    expandable: false,
   },
   {
     key: 'homepage',
     route: null,
     icon: { collection: 'heroicons', name: 'home' },
-    titleKey: 'web.domains.detail.homepage_title',
-    descriptionKey: 'web.domains.detail.homepage_description',
+    titleKey: 'web.domains.homepage.title',
+    descriptionKey: 'web.domains.homepage.description',
     available: true,
     locked: false,
-    toggleable: true,
-    enabled: customDomainRecord.value?.homepage_config?.enabled ?? false,
+    expandable: true,
   },
   {
     key: 'incoming',
@@ -149,8 +217,7 @@ const sections = computed<Section[]>(() => [
     descriptionKey: 'web.domains.detail.incoming_description',
     available: isOrgsIncomingSecretsEnabled(),
     locked: !canIncomingSecrets.value,
-    toggleable: false,
-    enabled: false,
+    expandable: false,
   },
   {
     key: 'email',
@@ -160,8 +227,7 @@ const sections = computed<Section[]>(() => [
     descriptionKey: 'web.domains.detail.email_description',
     available: isOrgsCustomMailEnabled(),
     locked: !canEmailConfig.value,
-    toggleable: false,
-    enabled: false,
+    expandable: false,
   },
   {
     key: 'signin',
@@ -171,8 +237,7 @@ const sections = computed<Section[]>(() => [
     descriptionKey: 'web.domains.detail.signin_description',
     available: true,
     locked: !canCustomSignin.value,
-    toggleable: false,
-    enabled: false,
+    expandable: false,
   },
   {
     key: 'signup',
@@ -182,8 +247,7 @@ const sections = computed<Section[]>(() => [
     descriptionKey: 'web.domains.detail.signup_description',
     available: false,
     locked: !canCustomSignup.value,
-    toggleable: false,
-    enabled: false,
+    expandable: false,
   },
 ]);
 
@@ -237,14 +301,70 @@ aria-hidden="true" />
         <template
           v-for="section in visibleSections"
           :key="section.key">
-          <!-- Unlocked: feature row with toggle or navigation -->
+          <!-- Expandable: homepage experience selector opens in place -->
+          <div v-if="section.expandable && !section.locked">
+            <button
+              type="button"
+              class="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500 dark:hover:bg-gray-700/50"
+              :aria-expanded="homepageExpanded"
+              data-testid="homepage-section-toggle"
+              @click="homepageExpanded = !homepageExpanded">
+              <div class="flex min-w-0 items-center gap-4">
+                <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-900/20">
+                  <OIcon
+                    :collection="section.icon.collection"
+                    :name="section.icon.name"
+                    class="size-5 text-brand-600 dark:text-brand-400"
+                    aria-hidden="true" />
+                </div>
+                <div class="min-w-0">
+                  <h3 class="font-brand text-sm font-semibold text-gray-900 dark:text-white">
+                    {{ t(section.titleKey) }}
+                  </h3>
+                  <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                    {{ t(section.descriptionKey) }}
+                  </p>
+                </div>
+              </div>
+              <div class="flex shrink-0 items-center gap-3">
+                <!-- Live status of the current homepage experience -->
+                <span
+                  class="hidden text-xs text-gray-500 dark:text-gray-400 sm:inline"
+                  data-testid="homepage-status">
+                  {{ t(homepageStatusKey) }}
+                </span>
+                <OIcon
+                  collection="heroicons"
+                  name="chevron-down"
+                  :class="[
+                    'size-5 text-gray-400 transition-transform dark:text-gray-500',
+                    homepageExpanded ? 'rotate-180' : '',
+                  ]"
+                  aria-hidden="true" />
+              </div>
+            </button>
+
+            <div
+              v-if="homepageExpanded"
+              class="border-t border-gray-100 px-5 py-4 dark:border-gray-700/50">
+              <DomainHomepageSelector
+                :model-value="homepageChoice"
+                :disabled="domainLoading || homepageSaving || !canAdmin"
+                :incoming-available="homepageIncomingAvailable"
+                :incoming-ready="homepageIncomingReady"
+                :incoming-config-route="incomingConfigRoute"
+                @update:model-value="handleHomepageSelect" />
+            </div>
+          </div>
+
+          <!-- Unlocked: feature row with navigation -->
           <component
             :is="section.route && !section.locked ? 'RouterLink' : 'div'"
-            v-if="!section.locked"
-            v-bind="section.route && !section.toggleable ? { to: section.route } : {}"
+            v-else-if="!section.locked"
+            v-bind="section.route ? { to: section.route } : {}"
             :class="[
               'flex items-center justify-between gap-4 px-5 py-4',
-              section.route && !section.toggleable ? 'group transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50' : '',
+              section.route ? 'group transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50' : '',
             ]">
             <div class="flex min-w-0 items-center gap-4">
               <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-900/20">
@@ -264,15 +384,8 @@ aria-hidden="true" />
               </div>
             </div>
             <div class="flex shrink-0 items-center">
-              <!-- Toggle for toggleable features (e.g. homepage) -->
-              <ToggleWithIcon
-                v-if="section.toggleable"
-                :enabled="section.enabled"
-                :disabled="domainLoading || !canAdmin"
-                @update:enabled="handleHomepageToggle" />
               <!-- Arrow for navigable features -->
               <OIcon
-                v-else
                 collection="heroicons"
                 name="chevron-right"
                 class="size-5 text-gray-400 transition-colors group-hover:text-brand-500 dark:text-gray-500 dark:group-hover:text-brand-400"

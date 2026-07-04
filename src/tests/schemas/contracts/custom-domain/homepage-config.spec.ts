@@ -1,9 +1,10 @@
 // src/tests/schemas/contracts/custom-domain/homepage-config.spec.ts
 //
 // Contract tests for per-domain homepage config — focused on the
-// forward-compat behavior of disabled_homepage_variant.
+// forward-compat behavior of disabled_homepage_variant and secrets_mode.
 
 import { homepageConfigCanonical } from '@/schemas/contracts/custom-domain/homepage-config';
+import { homepageConfigResponseSchema } from '@/schemas/api/domains/responses/homepage-config';
 import { describe, expect, it } from 'vitest';
 
 describe('homepageConfigCanonical', () => {
@@ -85,6 +86,60 @@ describe('homepageConfigCanonical', () => {
       });
       expect(result.success).toBe(true);
       expect(result.success && result.data.disabled_homepage_variant).toBeNull();
+    });
+  });
+
+  describe('secrets_mode', () => {
+    it('accepts create', () => {
+      const result = homepageConfigCanonical.safeParse({
+        ...basePayload,
+        secrets_mode: 'create',
+      });
+      expect(result.success).toBe(true);
+      expect(result.success && result.data.secrets_mode).toBe('create');
+    });
+
+    it('accepts incoming', () => {
+      const result = homepageConfigCanonical.safeParse({
+        ...basePayload,
+        secrets_mode: 'incoming',
+      });
+      expect(result.success).toBe(true);
+      expect(result.success && result.data.secrets_mode).toBe('incoming');
+    });
+
+    it('defaults a missing field to create (payloads from older backends)', () => {
+      const result = homepageConfigCanonical.safeParse(basePayload);
+      expect(result.success).toBe(true);
+      expect(result.success && result.data.secrets_mode).toBe('create');
+    });
+
+    it('degrades an unknown mode to create instead of failing parse', () => {
+      // Forward-compat: a future backend may emit a mode this frontend
+      // doesn't know about. Degrading to the historical create behavior
+      // (whose API gate independently blocks anonymous creation on
+      // incoming-mode domains) beats crashing the bootstrap parse.
+      const result = homepageConfigCanonical.safeParse({
+        ...basePayload,
+        secrets_mode: 'future_mode_v99',
+      });
+      expect(result.success).toBe(true);
+      expect(result.success && result.data.secrets_mode).toBe('create');
+    });
+
+    it('round-trips through the PUT /homepage-config response envelope', () => {
+      // domainsStore.putHomepageConfig $patches bootstrapStore with the PUT
+      // response record; if the response schema dropped secrets_mode, every
+      // save would silently rewrite the client-side mode to 'create'.
+      const result = homepageConfigResponseSchema.safeParse({
+        user_id: 'u_123',
+        record: {
+          ...basePayload,
+          secrets_mode: 'incoming',
+        },
+      });
+      expect(result.success).toBe(true);
+      expect(result.success && result.data.record?.secrets_mode).toBe('incoming');
     });
   });
 });

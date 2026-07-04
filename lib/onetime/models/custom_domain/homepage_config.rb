@@ -29,6 +29,19 @@ module Onetime
       # domain falls back to the deployment-wide / frontend default.
       VALID_DISABLED_HOMEPAGE_VARIANTS = %w[v1 minimal closed].freeze
 
+      # Recognised homepage secrets modes. When the homepage is enabled,
+      # this selects WHICH interactive experience anonymous visitors get:
+      #   'create'   - the classic secret-creation form (historical behavior)
+      #   'incoming' - the incoming-secrets form (send a secret TO the
+      #                domain's configured IncomingConfig recipients)
+      # Unset/unknown values coerce to 'create' so records that pre-date this
+      # field keep their existing behavior. Not to be confused with the
+      # site-level homepage "mode" (internal/external CIDR detection in
+      # Helpers::HomepageModeHelpers) — that gates WHO sees the interactive
+      # homepage; this selects WHAT the interactive homepage is.
+      VALID_SECRETS_MODES  = %w[create incoming].freeze
+      DEFAULT_SECRETS_MODE = 'create'
+
       prefix :custom_domain__homepage_config
 
       # domain_id is the CustomDomain's identifier (objid), used as our key.
@@ -56,6 +69,11 @@ module Onetime
       # and ultimately the frontend DEFAULT_DISABLED_HOMEPAGE_VARIANT constant.
       field :disabled_homepage_variant
 
+      # Which interactive experience the homepage offers when enabled
+      # ('create' | 'incoming'). nil/unset (legacy records) reads as 'create'
+      # via secrets_mode_value, preserving pre-existing behavior.
+      field :secrets_mode
+
       # Timestamps (Unix epoch integers)
       field :created
       field :updated
@@ -64,6 +82,10 @@ module Onetime
         self.enabled      ||= 'false'
         self.signup_enabled = false if signup_enabled.nil?
         self.signin_enabled = false if signin_enabled.nil?
+        # init runs for new objects only (Familia loads via allocate), so this
+        # makes freshly created records self-describing without masking legacy
+        # records' nil field — those still read as 'create' via secrets_mode_value.
+        self.secrets_mode ||= DEFAULT_SECRETS_MODE
       end
 
       # Check if homepage secrets is enabled for this domain.
@@ -93,6 +115,59 @@ module Onetime
       # stale values in Redis (records pre-dating this field have none).
       def disabled_homepage_variant_value
         self.class.coerce_disabled_homepage_variant(disabled_homepage_variant)
+      end
+
+      # Effective homepage secrets mode ('create' | 'incoming'). Records that
+      # pre-date the field (nil) and stray/unknown values both read as
+      # 'create' so legacy domains keep their historical behavior.
+      def secrets_mode_value
+        self.class.coerce_secrets_mode(secrets_mode)
+      end
+
+      # Whether this domain's homepage presents the incoming-secrets form
+      # (rather than the classic secret-creation form) when enabled.
+      def incoming_mode?
+        secrets_mode_value == 'incoming'
+      end
+
+      # Whether the homepage is EFFECTIVELY interactive for anonymous
+      # visitors right now. For create mode this is just enabled?; for
+      # incoming mode it additionally requires that incoming can actually
+      # receive secrets (see incoming_available?). This is the single
+      # source of truth consumed by both the bootstrap serializer (read
+      # path) and the homepage-config API responses, so the two can never
+      # drift: a homepage pointed at an unavailable incoming form fails
+      # closed to the non-interactive trust card.
+      #
+      # @param custom_domain [CustomDomain, nil] pass the already-loaded
+      #   domain to avoid a redundant Redis read; falls back to loading it.
+      # @return [Boolean]
+      def effectively_enabled?(custom_domain: nil)
+        return false unless enabled?
+        return true unless incoming_mode?
+
+        incoming_available?(custom_domain: custom_domain)
+      end
+
+      # Whether the domain can actually serve the incoming form to
+      # anonymous visitors: instance feature flag on, site.secret present
+      # (recipient hashes cannot be computed without it — RecipientResolver
+      # fails closed the same way), IncomingConfig ready (enabled with at
+      # least one recipient), and the owning org still entitled. Mirrors
+      # the PutHomepageConfig secrets_mode=incoming write gate. Checks run
+      # cheapest-first (in-memory config, one Redis read, org load).
+      #
+      # @param custom_domain [CustomDomain, nil] optional pre-loaded domain
+      # @return [Boolean]
+      def incoming_available?(custom_domain: nil)
+        return false unless OT.conf.dig('features', 'incoming', 'enabled')
+        return false if OT.conf.dig('site', 'secret').to_s.strip.empty?
+
+        incoming = Onetime::CustomDomain::IncomingConfig.find_by_domain_id(domain_id)
+        return false unless incoming&.ready?
+
+        domain = custom_domain || self.custom_domain
+        domain&.primary_organization&.can?('incoming_secrets') || false
       end
 
       # Enable homepage secrets for this domain.
@@ -140,6 +215,9 @@ module Onetime
                VALID_DISABLED_HOMEPAGE_VARIANTS.include?(disabled_homepage_variant.to_s)
           errors << "invalid disabled_homepage_variant: #{disabled_homepage_variant}"
         end
+        unless secrets_mode.to_s.empty? || VALID_SECRETS_MODES.include?(secrets_mode.to_s)
+          errors << "invalid secrets_mode: #{secrets_mode}"
+        end
         errors
       end
 
@@ -157,6 +235,14 @@ module Onetime
         def coerce_disabled_homepage_variant(value)
           v = value.to_s.strip
           VALID_DISABLED_HOMEPAGE_VARIANTS.include?(v) ? v : nil
+        end
+
+        # Normalise a homepage secrets mode to a recognised id. Blank and
+        # unknown values collapse to DEFAULT_SECRETS_MODE ('create') so
+        # legacy records and stray Redis values keep historical behavior.
+        def coerce_secrets_mode(value)
+          v = value.to_s.strip
+          VALID_SECRETS_MODES.include?(v) ? v : DEFAULT_SECRETS_MODE
         end
 
         # Find homepage config by domain ID.
@@ -190,13 +276,19 @@ module Onetime
         # once-only create semantics are needed.
         #
         # @param domain_id [String] CustomDomain identifier
-        # @param enabled [Boolean, String] Whether to enable homepage secrets
+        # @param enabled [Boolean, String] Whether to enable homepage secrets.
+        #   Required by every call site; passing nil coerces to the string
+        #   "nil", which #enabled? reads as false — the safe default, but
+        #   not a validated one, so don't rely on this to reject bad input.
         # @param disabled_homepage_variant [String, nil] Merge semantics, matching
         #   signup_enabled/signin_enabled: nil leaves the stored value unchanged;
         #   "" (or any unrecognised value) clears the override back to the default;
         #   a recognised id ('v1' | 'minimal' | 'closed') sets it.
+        # @param secrets_mode [String, nil] Merge semantics: nil leaves the stored
+        #   value unchanged; "" (or any unrecognised value) resets to 'create';
+        #   a recognised id ('create' | 'incoming') sets it.
         # @return [CustomDomain::HomepageConfig] The config (created or updated)
-        def upsert(domain_id:, enabled:, signup_enabled: nil, signin_enabled: nil, disabled_homepage_variant: nil)
+        def upsert(domain_id:, enabled:, signup_enabled: nil, signin_enabled: nil, disabled_homepage_variant: nil, secrets_mode: nil)
           raise Onetime::Problem, 'domain_id is required' if domain_id.to_s.empty?
 
           config = find_by_domain_id(domain_id)
@@ -208,6 +300,7 @@ module Onetime
             config.signup_enabled            = signup_enabled unless signup_enabled.nil?
             config.signin_enabled            = signin_enabled unless signin_enabled.nil?
             config.disabled_homepage_variant = coerce_disabled_homepage_variant(disabled_homepage_variant) unless disabled_homepage_variant.nil?
+            config.secrets_mode              = coerce_secrets_mode(secrets_mode) unless secrets_mode.nil?
             config.updated                   = now
           else
             config = new(
@@ -216,6 +309,7 @@ module Onetime
               signup_enabled: signup_enabled.nil? ? false : signup_enabled,
               signin_enabled: signin_enabled.nil? ? false : signin_enabled,
               disabled_homepage_variant: coerce_disabled_homepage_variant(disabled_homepage_variant),
+              secrets_mode: coerce_secrets_mode(secrets_mode),
               created: now,
               updated: now,
             )
@@ -248,6 +342,7 @@ module Onetime
             enabled: enabled.to_s,
             signup_enabled: signup_enabled.nil? ? false : signup_enabled,
             signin_enabled: signin_enabled.nil? ? false : signin_enabled,
+            secrets_mode: DEFAULT_SECRETS_MODE,
             created: now,
             updated: now,
           )
@@ -286,6 +381,7 @@ module Onetime
           if attrs.key?(:disabled_homepage_variant)
             config.disabled_homepage_variant = coerce_disabled_homepage_variant(attrs[:disabled_homepage_variant])
           end
+          config.secrets_mode   = coerce_secrets_mode(attrs[:secrets_mode]) if attrs.key?(:secrets_mode)
 
           now            = Familia.now.to_i
           config.created = now

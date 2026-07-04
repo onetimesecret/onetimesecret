@@ -513,6 +513,25 @@ module Onetime
       homepage_config.enabled?
     end
 
+    # Whether anonymous visitors may CREATE secrets on this domain — the
+    # capability behind the classic homepage create form and the anonymous
+    # secret-creation API gate (see base_secret_action#validate_domain_permissions).
+    #
+    # Distinct from allow_public_homepage?, which only says the homepage is
+    # interactive: a homepage in 'incoming' secrets_mode is public but must
+    # NOT authorize anonymous secret creation — visitors send secrets TO the
+    # domain's configured recipients instead, via the incoming API. Fails
+    # closed (false) when the config record is missing.
+    def allow_public_secret_creation?
+      homepage_config = HomepageConfig.find_by_domain_id(identifier)
+      unless homepage_config
+        OT.le "[CustomDomain] HomepageConfig missing for domain #{identifier}; using safe default (false). Run migration 20260417_01_backfill_homepage_config to repair."
+        return false
+      end
+
+      homepage_config.enabled? && !homepage_config.incoming_mode?
+    end
+
     def allow_public_api?
       api_config = ApiConfig.find_by_domain_id(identifier)
       unless api_config

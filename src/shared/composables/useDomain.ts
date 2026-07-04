@@ -62,13 +62,18 @@ export function useDomain(domainId?: string) {
     return !lastMonitored || currentTime - domainUpdated >= 10;
   });
 
+  // Resolves to `true` only when the refetch actually landed. `wrap` returns
+  // `undefined` (and surfaces an error notification) when getDomain throws,
+  // so callers can gate success feedback on a real refresh instead of
+  // assuming one happened.
   const initialize = () =>
     wrap(async () => {
-      if (!domainId) return;
+      if (!domainId) return false;
       const data = await store.getDomain(domainId);
       domain.value = data.record;
       details.value = data.details;
       isInitialized.value = true;
+      return true;
     });
 
   const verify = () =>

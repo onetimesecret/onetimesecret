@@ -100,6 +100,18 @@ const handleBack = () => {
   router.push(`/org/${props.orgid}/domains/${props.extid}`);
 };
 
+/**
+ * The domain's public homepage currently presents the incoming form.
+ * Surfaced as a notice because edits here can un-ready incoming (disable,
+ * remove all recipients, delete config) — the write is deliberately
+ * allowed, and the public homepage then degrades to the private landing
+ * page until incoming is ready again.
+ */
+const homepageUsesIncoming = computed(() => {
+  const config = customDomainRecord.value?.homepage_config;
+  return (config?.enabled ?? false) && config?.secrets_mode === 'incoming';
+});
+
 // Unsaved changes guard
 onBeforeRouteLeave((_to, _from, next) => {
   if (hasUnsavedChanges.value) {
@@ -261,6 +273,22 @@ watch(() => props.extid, async () => {
         </div>
 
         <div class="p-6 space-y-6">
+          <!-- Homepage coupling notice: this domain's public homepage presents
+               the incoming form, so un-readying incoming degrades it -->
+          <div
+            v-if="homepageUsesIncoming"
+            class="flex items-start gap-3 rounded-md bg-amber-50 px-4 py-3 dark:bg-amber-900/20"
+            data-testid="homepage-incoming-coupling-notice">
+            <OIcon
+              collection="heroicons"
+              name="information-circle"
+              class="mt-0.5 size-5 shrink-0 text-amber-500 dark:text-amber-400"
+              aria-hidden="true" />
+            <p class="text-sm text-amber-800 dark:text-amber-200">
+              {{ t('web.domains.homepage.homepage_uses_incoming_warning') }}
+            </p>
+          </div>
+
           <!-- Incoming config loading -->
           <SettingsSkeleton
             v-if="incomingLoading && !isInitialized"

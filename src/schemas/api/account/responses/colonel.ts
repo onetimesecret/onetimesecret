@@ -222,6 +222,8 @@ export const colonelCustomDomainSchema = z.object({
     .object({
       domain_id: z.string(),
       enabled: z.boolean(),
+      /** Which experience the enabled homepage presents ('create' | 'incoming'). */
+      secrets_mode: z.string().optional(),
       created_at: z.number().nullable(),
       updated_at: z.number().nullable(),
     })
