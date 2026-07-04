@@ -94,6 +94,10 @@ const select = (key: HomepageChoice) => {
   emit('update:modelValue', key);
 };
 
+// Shared by the tab stop and keyboard nav below so neither re-filters
+// `options` on every render/keypress.
+const enabledOptions = computed(() => options.value.filter((o) => !isOptionDisabled(o.key)));
+
 // Roving tabindex: the selected option is the tab stop; arrows move
 // selection between enabled options (standard radiogroup keyboard model).
 // When the current selection is disabled or hidden (stored mode 'incoming'
@@ -102,7 +106,7 @@ const select = (key: HomepageChoice) => {
 const tabStopKey = computed<HomepageChoice | null>(() => {
   const selected = options.value.find((o) => o.key === props.modelValue);
   if (selected && !isOptionDisabled(selected.key)) return selected.key;
-  return options.value.find((o) => !isOptionDisabled(o.key))?.key ?? null;
+  return enabledOptions.value[0]?.key ?? null;
 });
 
 const optionTabindex = (key: HomepageChoice) => (key === tabStopKey.value ? 0 : -1);
@@ -112,7 +116,7 @@ const onKeydown = (event: KeyboardEvent) => {
   if (!keys.includes(event.key)) return;
   event.preventDefault();
 
-  const enabled = options.value.filter((o) => !isOptionDisabled(o.key));
+  const enabled = enabledOptions.value;
   if (enabled.length === 0) return;
 
   // Reference point for directional movement: the selection when it is

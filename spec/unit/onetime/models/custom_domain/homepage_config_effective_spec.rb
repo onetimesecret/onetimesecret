@@ -80,6 +80,11 @@ RSpec.describe Onetime::CustomDomain::HomepageConfig do
         expect(config.effectively_enabled?(custom_domain: custom_domain)).to be(false)
       end
 
+      it 'fails closed when site.secret is present but a blank/whitespace string' do
+        conf['site']['secret'] = '   '
+        expect(config.effectively_enabled?(custom_domain: custom_domain)).to be(false)
+      end
+
       it 'fails closed when the IncomingConfig is missing' do
         allow(Onetime::CustomDomain::IncomingConfig).to receive(:find_by_domain_id)
           .with('domain123')

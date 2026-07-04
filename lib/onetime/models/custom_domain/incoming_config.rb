@@ -105,7 +105,8 @@ module Onetime
         return [] if recipients_json.to_s.empty?
 
         JSON.parse(recipients_json, symbolize_names: true)
-      rescue JSON::ParserError
+      rescue JSON::ParserError => ex
+        OT.le "[IncomingConfig] Corrupt recipients_json for domain_id=#{domain_id}: #{ex.message}"
         []
       end
 

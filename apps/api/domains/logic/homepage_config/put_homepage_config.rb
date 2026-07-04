@@ -108,9 +108,12 @@ module DomainsAPI
         # 'incoming' additionally requires the incoming_secrets entitlement
         # and a ready IncomingConfig. Readiness is only enforced when this
         # request explicitly selects incoming mode: later drift (recipients
-        # removed, incoming disabled) is handled fail-closed at read time by
-        # the bootstrap serializer, so unrelated writes (e.g. auth-link
-        # toggles) never get stuck behind an unready incoming config.
+        # removed, incoming disabled, or the org's incoming_secrets
+        # entitlement lapsing) is handled fail-closed at read time by the
+        # bootstrap serializer, so unrelated writes (e.g. auth-link toggles,
+        # or re-saving `enabled` without `secrets_mode` after a downgrade)
+        # never get stuck behind — or accidentally re-validate — a stored
+        # 'incoming' selection that's no longer available.
         def validate_secrets_mode!
           return if @secrets_mode.nil?
 

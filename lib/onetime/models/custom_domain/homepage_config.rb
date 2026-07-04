@@ -276,7 +276,10 @@ module Onetime
         # once-only create semantics are needed.
         #
         # @param domain_id [String] CustomDomain identifier
-        # @param enabled [Boolean, String] Whether to enable homepage secrets
+        # @param enabled [Boolean, String] Whether to enable homepage secrets.
+        #   Required by every call site; passing nil coerces to the string
+        #   "nil", which #enabled? reads as false — the safe default, but
+        #   not a validated one, so don't rely on this to reject bad input.
         # @param disabled_homepage_variant [String, nil] Merge semantics, matching
         #   signup_enabled/signin_enabled: nil leaves the stored value unchanged;
         #   "" (or any unrecognised value) clears the override back to the default;
