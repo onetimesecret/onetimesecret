@@ -39,10 +39,14 @@ module V1::Logic
           @greenlighted = viewable && correct_passphrase && continue
 
           if greenlighted
-            @secret = potential_secret
-            owner = secret.load_owner
-            secret.burned!
-            owner.increment_field(:secrets_burned) if owner && !owner.anonymous?
+            @secret       = potential_secret
+            owner         = secret.load_owner
+            # Gate on winning the atomic burn claim: when a concurrent reveal
+            # or burn already consumed the secret, burned! returns false and
+            # this request must not count the burn nor report success (the
+            # controller then renders its standard not-found response).
+            @greenlighted = secret.burned!
+            owner.increment_field(:secrets_burned) if greenlighted && owner && !owner.anonymous?
             # TODO:
             # Onetime::Customer.global.increment_field :secrets_burned
 
