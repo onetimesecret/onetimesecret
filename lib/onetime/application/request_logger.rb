@@ -28,6 +28,13 @@ module Onetime
           @capture = CAPTURE_MODES[:standard]
           @logger.warn "Unknown LOG_HTTP_CAPTURE mode '#{requested_mode}', falling back to :standard (valid: #{CAPTURE_MODES.keys.join(', ')})"
         end
+
+        # Read once at construction, same as @capture/@slow_threshold_μs above,
+        # rather than re-reading Onetime.logging_conf on every :debug-capture
+        # request. RequestLogger middleware instances are long-lived (built
+        # once at boot), so this follows the same "config fixed at boot"
+        # convention as the rest of this class.
+        @allowed_fields = Onetime::ErrorHandler.allowed_error_fields
       end
 
       def call(env)
@@ -140,11 +147,10 @@ module Onetime
       # default: enabling LOG_HTTP_CAPTURE=debug alone shows no param values
       # until an operator explicitly names which ones are safe.
       def allowlisted_params(params)
-        allowed = Onetime::ErrorHandler.allowed_error_fields
-        return {} if allowed.empty?
+        return {} if @allowed_fields.empty?
 
         params.each_with_object({}) do |(k, v), result|
-          result[k] = v if allowed.include?(k.to_s)
+          result[k] = v if @allowed_fields.include?(k.to_s)
         end
       end
 
@@ -154,14 +160,13 @@ module Onetime
       # capture used to dump every header verbatim, Cookie/Authorization
       # included.
       def allowlisted_headers(env)
-        allowed = Onetime::ErrorHandler.allowed_error_fields
-        return {} if allowed.empty?
+        return {} if @allowed_fields.empty?
 
         env.each_with_object({}) do |(k, v), result|
           next unless k.start_with?('HTTP_')
 
           header_name         = k.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
-          result[header_name] = v if allowed.include?(header_name)
+          result[header_name] = v if @allowed_fields.include?(header_name)
         end
       end
 

@@ -158,5 +158,22 @@ RSpec.describe Onetime::Application::RequestLogger do
         expect(payload['headers']).to eq({ 'User-Agent' => 'TestAgent/1.0' })
       end
     end
+
+    context 'with the raw Rack env key form in the allowlist (namespace mismatch)' do
+      # allowed_error_fields matches header names in their human-readable,
+      # display form ("User-Agent"), not the raw Rack env key form
+      # ("HTTP_USER_AGENT") that SENSITIVE_HEADER_KEYS elsewhere uses. Pin
+      # this so a future refactor can't silently switch allowlisted_headers
+      # to match on the raw env key and accidentally widen what's allowed.
+      let(:allowed_fields) { ['HTTP_USER_AGENT'] }
+
+      it 'does not match -- the raw env key form allows nothing' do
+        _level, payload = call_with_params(
+          params: {},
+          headers: { 'HTTP_USER_AGENT' => 'TestAgent/1.0' },
+        )
+        expect(payload['headers']).to eq({})
+      end
+    end
   end
 end

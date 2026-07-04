@@ -96,17 +96,15 @@ RSpec.describe Core::Middleware::ErrorHandling do
     before do
       # Minimal Sentry stand-in, matching the convention in
       # apps/api/v1/spec/controllers/helpers_sentry_spec.rb: only define the
-      # constant if the real sentry-ruby gem isn't already loaded.
+      # constant if the real sentry-ruby gem isn't already loaded. Method
+      # bodies are empty placeholders -- they exist only so the constant
+      # responds to these names (needed for verified doubles); the actual
+      # behavior always comes from the `allow(Sentry).to receive(...)`
+      # stubs below, which apply unconditionally either way.
       unless defined?(Sentry)
         stub_const('Sentry', Module.new do
-          def self.initialized?
-            true
-          end
-
-          def self.with_scope
-            yield
-          end
-
+          def self.initialized?; end
+          def self.with_scope; end
           def self.capture_exception(_error); end
         end)
       end
