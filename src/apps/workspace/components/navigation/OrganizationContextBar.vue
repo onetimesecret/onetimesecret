@@ -33,12 +33,17 @@ const {
   lockOrgSwitcher,
   showDomainSwitcher,
   lockDomainSwitcher,
+  isSoloDefaultContext,
 } = useScopeSwitcherVisibility();
 
+// The static org-name chip is the fallback when the switcher is hidden by role
+// (admins/members still need workspace context). It is suppressed for a solo
+// default org, where the switcher is hidden to declutter the new-user surface.
 const showStaticOrgName = computed(() =>
   isLoaded.value &&
   visibility.value.organization !== 'hide' &&
   !showOrgSwitcher.value &&
+  !isSoloDefaultContext.value &&
   isOrganizationSwitcherEnabled() &&
   organizationStore.hasOrganizations &&
   !!organizationStore.currentOrganization

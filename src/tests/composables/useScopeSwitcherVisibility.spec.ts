@@ -43,14 +43,22 @@ vi.mock('@/shared/stores/identityStore', () => ({
   }),
 }));
 
-// Mock organizationStore — composable reads currentOrganization for role + entitlements.
-// Wrap in reactive() so ref auto-unwraps when accessed as organizationStore.currentOrganization.
+// Mock organizationStore — composable reads currentOrganization for role +
+// entitlements, and the organizations list for solo-context detection.
+// Wrap in reactive() so refs auto-unwrap when accessed as store properties.
 type MockOrg = { current_user_role?: string | null; entitlements?: string[] | null } | null;
+type MockListOrg = { member_count?: number; is_default?: boolean };
 const mockCurrentOrganization = ref<MockOrg>({
   current_user_role: 'owner',
   entitlements: null,
 });
-const mockOrgStore = reactive({ currentOrganization: mockCurrentOrganization });
+// Default to a non-trivial context (single org with multiple members) so
+// existing owner-visibility tests continue to show the switcher.
+const mockOrganizations = ref<MockListOrg[]>([{ member_count: 2, is_default: true }]);
+const mockOrgStore = reactive({
+  currentOrganization: mockCurrentOrganization,
+  organizations: mockOrganizations,
+});
 vi.mock('@/shared/stores/organizationStore', () => ({
   useOrganizationStore: () => mockOrgStore,
 }));
@@ -73,6 +81,8 @@ describe('useScopeSwitcherVisibility', () => {
     mockIsOrganizationSwitcherEnabled.mockReturnValue(true);
     // Default: owner with no entitlements loaded, billing disabled (standalone)
     mockCurrentOrganization.value = { current_user_role: 'owner', entitlements: null };
+    // Default: single org with multiple members (non-trivial → switcher shows)
+    mockOrganizations.value = [{ member_count: 2, is_default: true }];
     mockBillingEnabled.value = false;
     mockIsCustomRef.value = false;
     vi.clearAllMocks();
@@ -515,6 +525,68 @@ describe('useScopeSwitcherVisibility', () => {
       await nextTick();
 
       expect(showOrgSwitcher.value).toBe(false);
+    });
+  });
+
+  describe('org switcher solo-default-context gating', () => {
+    beforeEach(() => {
+      mockRoute.meta = { scopesAvailable: { organization: 'show' } };
+      mockCurrentOrganization.value = { current_user_role: 'owner', entitlements: null };
+      mockBillingEnabled.value = false;
+    });
+
+    it('hides the switcher when the owner has a single default org with only themselves', () => {
+      mockOrganizations.value = [{ member_count: 1, is_default: true }];
+
+      const { showOrgSwitcher, isSoloDefaultContext } = useScopeSwitcherVisibility();
+      expect(isSoloDefaultContext.value).toBe(true);
+      expect(showOrgSwitcher.value).toBe(false);
+    });
+
+    it('shows the switcher when the single org has more than one member', () => {
+      mockOrganizations.value = [{ member_count: 3, is_default: true }];
+
+      const { showOrgSwitcher, isSoloDefaultContext } = useScopeSwitcherVisibility();
+      expect(isSoloDefaultContext.value).toBe(false);
+      expect(showOrgSwitcher.value).toBe(true);
+    });
+
+    it('shows the switcher when the user belongs to more than one org', () => {
+      mockOrganizations.value = [
+        { member_count: 1, is_default: true },
+        { member_count: 1, is_default: false },
+      ];
+
+      const { showOrgSwitcher, isSoloDefaultContext } = useScopeSwitcherVisibility();
+      expect(isSoloDefaultContext.value).toBe(false);
+      expect(showOrgSwitcher.value).toBe(true);
+    });
+
+    it('does not hide prematurely when member_count is unknown', () => {
+      mockOrganizations.value = [{ is_default: true }]; // list not fully loaded
+
+      const { showOrgSwitcher, isSoloDefaultContext } = useScopeSwitcherVisibility();
+      expect(isSoloDefaultContext.value).toBe(false);
+      expect(showOrgSwitcher.value).toBe(true);
+    });
+
+    it('does not hide when the organizations list is empty (still loading)', () => {
+      mockOrganizations.value = [];
+
+      const { isSoloDefaultContext } = useScopeSwitcherVisibility();
+      expect(isSoloDefaultContext.value).toBe(false);
+    });
+
+    it('reveals the switcher reactively when a second member joins the solo org', async () => {
+      mockOrganizations.value = [{ member_count: 1, is_default: true }];
+
+      const { showOrgSwitcher } = useScopeSwitcherVisibility();
+      expect(showOrgSwitcher.value).toBe(false);
+
+      mockOrganizations.value = [{ member_count: 2, is_default: true }];
+      await nextTick();
+
+      expect(showOrgSwitcher.value).toBe(true);
     });
   });
 });
