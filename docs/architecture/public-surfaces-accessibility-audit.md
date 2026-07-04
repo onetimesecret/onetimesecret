@@ -1,9 +1,13 @@
-# Accessibility Audit — Public Surfaces (2026-07-04)
+# Public Surfaces: Accessibility Audit
 
-Point-in-time automated accessibility audit of the **public (unauthenticated)
-surfaces** of the web UI. Companion to [`OVERVIEW.md`](./OVERVIEW.md), which
-describes the accessibility features and intent; this document records what an
-automated scan actually found so gaps can be tracked and fixed.
+*Audit date: 2026-07-04. Scope: the six public (unauthenticated) web surfaces
+of the app, scanned with axe-core 4.12 against WCAG 2.0/2.1 Level A + AA plus
+axe best-practice rules, on a local production build.*
+
+Companion to the accessibility
+[`OVERVIEW.md`](../development/accessibility/OVERVIEW.md), which describes the
+accessibility features and intent; this document records what an automated scan
+actually found so gaps can be tracked and fixed.
 
 ## Method
 
@@ -18,7 +22,7 @@ automated scan actually found so gaps can be tracked and fixed.
 
 Each surface returned HTTP 200 and mounted successfully before scanning.
 
-## Scope
+## 1. Scope
 
 Surfaces audited (the public routes that render a page; `/help`, `/icons`, and
 `/about` return server-side 404s and were excluded):
@@ -30,7 +34,7 @@ Surfaces audited (the public routes that render a page; `/help`, `/icons`, and
 - `/pricing` — Pricing
 - `/feedback` — Feedback
 
-## Summary
+## 2. Summary
 
 Four distinct violation rules across the six surfaces; no page was fully clean,
 but nothing rose to blocker severity. The two **serious** issues are WCAG AA and
@@ -46,9 +50,11 @@ them across every page.
 | Pricing | 2 (2) | 0 | 38 |
 | Feedback | 2 (2) | 1 | 42 |
 
-## Findings
+## 3. Findings
 
-### 1. `color-contrast` — SERIOUS — WCAG 2.1 AA (1.4.3) — all 6 pages
+Severity is axe's impact rating (serious > moderate).
+
+### F1 (serious): `color-contrast` — WCAG 2.1 AA (1.4.3) — all 6 pages
 
 Text does not meet the 4.5:1 minimum contrast ratio for normal text.
 
@@ -65,7 +71,7 @@ Text does not meet the 4.5:1 minimum contrast ratio for normal text.
   the button background (or darken the brand primary). Worth verifying because
   this brand color is reused for CTAs across the app.
 
-### 2. `link-name` — SERIOUS — WCAG 2.0 A (2.4.4, 4.1.2) — Sign In, Create Account
+### F2 (serious): `link-name` — WCAG 2.0 A (2.4.4, 4.1.2) — Sign In, Create Account
 
 The logo/home link is in the tab order but exposes **no accessible name** to
 assistive technology:
@@ -78,20 +84,20 @@ Add an accessible name — e.g. `aria-label="Onetime Secret — home"` — or en
 the inner logo text/SVG is exposed to screen readers rather than
 `aria-hidden`.
 
-### 3. `page-has-heading-one` — MODERATE — best-practice — Sign In, Create Account, Forgot Password
+### F3 (moderate): `page-has-heading-one` — best-practice — Sign In, Create Account, Forgot Password
 
 These auth pages have **no `<h1>`**. The visible page title ("Sign In",
 "Create Account", "Reset your password") should be — or contain — an `<h1>`
 so the page exposes a top-level heading landmark.
 
-### 4. `heading-order` — MODERATE — best-practice — Home, Pricing, Feedback
+### F4 (moderate): `heading-order` — best-practice — Home, Pricing, Feedback
 
 Heading levels **skip** (e.g. Home jumps to `<h3>` for the "Passphrase" field
 label; Pricing/Feedback use `<h3>` with no `<h2>`/`<h1>` above). Several of
 these `<h3>`s are really styled form labels — either demote them to a
 non-heading element or correct the hierarchy so levels increase by one.
 
-## Needs manual review
+## 4. Needs manual review
 
 axe reported these as **incomplete** (it could not decide automatically); each
 warrants a human check.
@@ -109,12 +115,13 @@ warrants a human check.
   Password could not be evaluated automatically (e.g. text over a
   gradient/background image). Confirm these manually.
 
-## Caveats
+## 5. Caveats
 
 - **Automated only.** axe surfaces roughly 30–40% of WCAG issues. This is a
   strong baseline, not a complete audit — keyboard navigation, focus
   visibility, and screen-reader spot-checks (NVDA/VoiceOver/JAWS) still require
-  manual testing (see the testing plans in `OVERVIEW.md`).
+  manual testing (see the testing plans in
+  [`OVERVIEW.md`](../development/accessibility/OVERVIEW.md)).
 - **Light mode only.** Every page has a dark variant; contrast should be
   re-run in dark mode.
 - **Static post-mount snapshot.** Opened dropdowns, modals, inline
@@ -122,11 +129,11 @@ warrants a human check.
 - Run against the environment's pre-installed Chromium (the pinned Playwright
   browser build was not fetchable) — immaterial for axe DOM analysis.
 
-## Reproducing
+## 6. Reproducing
 
 With a production build served locally (see
-[`development/testing-build-steps.md`](../testing-build-steps.md)) and a test
-datastore running:
+[`development/testing-build-steps.md`](../development/testing-build-steps.md))
+and a test datastore running:
 
 ```bash
 # 1. serve a production build (built assets in public/web/dist)
