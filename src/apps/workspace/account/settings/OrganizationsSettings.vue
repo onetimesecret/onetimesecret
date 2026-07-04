@@ -130,7 +130,7 @@
             name="plus"
             class="size-4"
             aria-hidden="true" />
-          {{ t('web.organizations.create_organization') }}
+          {{ t('web.organizations.create_workspace') }}
         </button>
       </div>
     </div>

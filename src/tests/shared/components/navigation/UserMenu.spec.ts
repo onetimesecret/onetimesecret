@@ -109,11 +109,22 @@ vi.mock('vue-router', () => ({
 const mockCurrentOrganizationRef = ref<{
   current_user_role: string | null;
   extid?: string;
+  entitlements?: string[];
 } | null>(null);
 
 vi.mock('@/shared/stores/organizationStore', () => ({
   useOrganizationStore: () => ({
     currentOrganization: mockCurrentOrganizationRef,
+  }),
+}));
+
+// Mock the scope-switcher visibility composable. UserMenu only consumes
+// isSoloDefaultContext (the same gate the org switcher uses); mocking it keeps
+// the route-aware composable out of the unit test.
+const mockIsSoloDefaultContext = ref(false);
+vi.mock('@/shared/composables/useScopeSwitcherVisibility', () => ({
+  useScopeSwitcherVisibility: () => ({
+    isSoloDefaultContext: mockIsSoloDefaultContext,
   }),
 }));
 
@@ -147,6 +158,7 @@ describe('UserMenu', () => {
     // Reset mock store states to defaults
     mockCurrentOrganizationRef.value = null;
     mockIsCustomRef.value = false;
+    mockIsSoloDefaultContext.value = false;
   });
 
   afterEach(() => {
@@ -517,6 +529,59 @@ describe('UserMenu', () => {
 
       const menuItems = wrapper.findAll('[role="menuitem"]');
       expect(menuItems.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Identity chip (role badge vs. Free plan chip)', () => {
+    const openMenu = async () => {
+      const trigger = wrapper.find('button[aria-haspopup="true"]');
+      await trigger.trigger('click');
+      await nextTick();
+    };
+
+    it('shows the Free plan chip linking to billing for a solo owner without manage_orgs when billing is enabled', async () => {
+      mockCurrentOrganizationRef.value = { current_user_role: 'owner', entitlements: [] };
+      mockIsSoloDefaultContext.value = true;
+      wrapper = mountComponent({}, { billing_enabled: true });
+      await openMenu();
+
+      const chip = wrapper.find('[data-testid="user-menu-plan-chip"]');
+      expect(chip.exists()).toBe(true);
+      expect(chip.attributes('href')).toBe('/billing');
+      expect(wrapper.find('[data-testid="user-menu-role-badge"]').exists()).toBe(false);
+    });
+
+    it('hides the identity chip entirely for a solo owner when billing is disabled', async () => {
+      mockCurrentOrganizationRef.value = { current_user_role: 'owner', entitlements: [] };
+      mockIsSoloDefaultContext.value = true;
+      wrapper = mountComponent({}, { billing_enabled: false });
+      await openMenu();
+
+      expect(wrapper.find('[data-testid="user-menu-plan-chip"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="user-menu-role-badge"]').exists()).toBe(false);
+    });
+
+    it('shows the role badge (not the Free chip) for an owner with a non-solo org context', async () => {
+      mockCurrentOrganizationRef.value = { current_user_role: 'owner', entitlements: [] };
+      mockIsSoloDefaultContext.value = false;
+      wrapper = mountComponent({}, { billing_enabled: true });
+      await openMenu();
+
+      expect(wrapper.find('[data-testid="user-menu-role-badge"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="user-menu-plan-chip"]').exists()).toBe(false);
+    });
+
+    it('shows the role badge for a solo owner that still holds the manage_orgs entitlement', async () => {
+      mockCurrentOrganizationRef.value = {
+        current_user_role: 'owner',
+        entitlements: ['manage_orgs'],
+      };
+      mockIsSoloDefaultContext.value = true;
+      wrapper = mountComponent({}, { billing_enabled: true });
+      await openMenu();
+
+      expect(wrapper.find('[data-testid="user-menu-role-badge"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="user-menu-plan-chip"]').exists()).toBe(false);
     });
   });
 

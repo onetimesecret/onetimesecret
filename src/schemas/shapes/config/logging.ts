@@ -75,6 +75,7 @@ const httpLoggingTree: AugmentTree = {
       '/assets/*',
       '/dist/*',
     ]),
+  allowed_error_fields: (a) => a.default([]),
 };
 
 const loggersShape = augment(loggersSchema, loggersTree);

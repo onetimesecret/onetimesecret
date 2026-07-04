@@ -1,5 +1,3 @@
-# docs/architecture/error-handling.md
----
 # Error Handling
 
 ## Core Concepts

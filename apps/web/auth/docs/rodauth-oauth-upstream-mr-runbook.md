@@ -1,5 +1,3 @@
-# docs/specs/issue-3465-upstream-mr.md
----
 # rodauth-oauth `oauth_mount_prefix` — upstream MR plan
 
 Runbook for upstreaming the `Rack::URLMap` mount-prefix fix (issue #3465) from our

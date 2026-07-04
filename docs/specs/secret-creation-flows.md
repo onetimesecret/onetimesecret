@@ -1,5 +1,3 @@
-# docs/specs/secret-creation-flows.md
----
 # Secret Creation Flows
 
 Behavioral specification for the post-submit navigation flows of the secret

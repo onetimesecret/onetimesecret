@@ -4,6 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useDomainStatus } from '@/shared/composables/useDomainStatus';
+  import { isApproximatedDomainValidation } from '@/utils/features';
   import { CustomDomain } from '@/schemas/shapes/v3';
   import { computed } from 'vue';
 
@@ -32,6 +33,12 @@
   const { statusIcon, statusColor, displayStatus } = useDomainStatus(
     () => props.domain
   );
+
+  // The active/inactive badge reflects Approximated's per-domain DNS check.
+  // On installs that don't use Approximated, that status is never populated
+  // (every domain would read "Inactive"), so hide the badge entirely. See #3618
+  // rationale in isApproximatedDomainValidation().
+  const showVerificationStatus = computed(() => isApproximatedDomainValidation());
 
 </script>
 
@@ -69,6 +76,7 @@
             <slot>
               <!-- prettier-ignore-attribute class -->
               <div
+                v-if="showVerificationStatus"
                 class="rounded-md bg-gray-100 px-3 py-1.5
                   dark:bg-gray-700">
                 <RouterLink
