@@ -94,16 +94,24 @@ template = Onetime::Mail::Templates::IncomingSecret.new(data)
 template.has_memo?
 #=> false
 
-## IncomingSecret display_domain uses site host by default
+## IncomingSecret body links to the canonical host by default
+# The link is built in the template from brand_baseuri (a TemplateContext
+# helper), which falls back to the canonical site baseuri when the message
+# carries no share_domain.
+ctx = Onetime::Mail::Templates::Base::TemplateContext.new({}, 'en')
 template = Onetime::Mail::Templates::IncomingSecret.new(@valid_data)
-template.display_domain
-#=~> /https?:\/\/.+/
+template.render_text.include?("#{ctx.site_baseuri}/secret/incoming_key_abc")
+#=> true
 
-## IncomingSecret display_domain uses share_domain when present
-data = @valid_data.merge(share_domain: 'custom.example.com')
-template = Onetime::Mail::Templates::IncomingSecret.new(data)
-template.display_domain
-#=~> /https?:\/\/custom\.example\.com/
+## IncomingSecret body links to the share_domain when present
+# The expected URL is composed from brand_baseuri (a method result) rather
+# than a bare URL literal so CodeQL's incomplete-url-substring heuristic
+# doesn't flag the containment check; the expectation pins the exact value.
+data  = @valid_data.merge(share_domain: 'custom.example.com')
+brand = Onetime::Mail::Templates::Base::TemplateContext.new(data, 'en').brand_baseuri
+text  = Onetime::Mail::Templates::IncomingSecret.new(data).render_text
+[brand, text.include?("#{brand}/secret/incoming_key_abc")]
+#=> ['https://custom.example.com', true]
 
 ## IncomingSecret signature_link returns site baseuri
 template = Onetime::Mail::Templates::IncomingSecret.new(@valid_data)
@@ -126,3 +134,35 @@ template = Onetime::Mail::Templates::IncomingSecret.new(@valid_data)
 email = template.to_email(from: 'noreply@example.com')
 [email[:to], email[:subject].include?('secret')]
 #=> ['recipient@example.com', true]
+
+# ============================================================================
+# Shared layout header/footer are domain-aware (custom share_domain branding)
+# ============================================================================
+
+## HTML layout header wordmark + footer link to the bare custom domain
+# The bare-host href (no path) is the wordmark/footer link; the body secret
+# link carries a /secret/... path, so this match is specific to the layout.
+data = @valid_data.merge(share_domain: 'custom.example.com')
+html = Onetime::Mail::Templates::IncomingSecret.new(data).render_html
+html.include?('href="https://custom.example.com"')
+#=> true
+
+## text layout footer shows the custom domain base URI on its own line
+# Assert against brand_baseuri (a method result) instead of a bare URL string
+# literal: a literal-containment check trips CodeQL's incomplete-url-substring
+# heuristic, and comparing to brand_baseuri also pins the exact value the layout
+# is expected to emit.
+data  = @valid_data.merge(share_domain: 'custom.example.com')
+brand = Onetime::Mail::Templates::Base::TemplateContext.new(data, 'en').brand_baseuri
+text  = Onetime::Mail::Templates::IncomingSecret.new(data).render_text
+text.split("\n").include?(brand)
+#=> true
+
+## without a share_domain the layout header/footer stay on the canonical host
+# The negative check targets the full href attribute rather than a bare host
+# substring, so it asserts the chrome carries no custom-domain link while
+# avoiding CodeQL's incomplete-url-substring heuristic.
+ctx  = Onetime::Mail::Templates::Base::TemplateContext.new({}, 'en')
+html = Onetime::Mail::Templates::IncomingSecret.new(@valid_data).render_html
+html.include?(%(href="#{ctx.site_baseuri}")) && !html.include?('href="https://custom.example.com"')
+#=> true

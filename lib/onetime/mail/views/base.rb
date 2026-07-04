@@ -178,6 +178,13 @@ module Onetime
           data[:recipient] || data[:email_address] || data[:to]
         end
 
+        # URL scheme ('https://' unless site.ssl is explicitly false). Shared
+        # by site_baseuri and brand_baseuri so both agree on http/https.
+        # @return [String]
+        def scheme
+          site_ssl? ? 'https://' : 'http://'
+        end
+
         # Site SSL configuration helper
         # @return [Boolean]
         def site_ssl?
@@ -197,8 +204,18 @@ module Onetime
         # Site base URI configuration helper
         # @return [String]
         def site_baseuri
-          scheme = site_ssl? ? 'https://' : 'http://'
           "#{scheme}#{site_host}"
+        end
+
+        # Full base URI for the domain this message concerns: the custom
+        # share_domain when the message carries one, otherwise the
+        # (overridable) canonical base URI. Delegates to
+        # TemplateContext#brand_baseuri — the same helper templates render
+        # with — so Ruby-side callers (e.g. ExpirationWarning#secret_uri)
+        # cannot drift from what the rendered output links to.
+        # @return [String]
+        def brand_baseuri
+          TemplateContext.new(data, locale).brand_baseuri
         end
 
         # Install-wide product name for mail copy. brand.product_name is the
@@ -216,7 +233,11 @@ module Onetime
           data[:product_name] || site_product_name
         end
 
-        # Display domain with fallback to site host
+        # Bare host label naming the domain this message is about. Used by
+        # account/system emails (password_request, magic_link, ...) in
+        # subjects and i18n interpolations; data-driven with a canonical-host
+        # fallback. Not a link: URLs are built from brand_baseuri, which
+        # derives from share_domain rather than display_domain.
         # @return [String]
         def display_domain
           data[:display_domain] || site_host
@@ -325,10 +346,42 @@ module Onetime
             @data[:product_name] || site_product_name
           end
 
-          # Display domain helper (custom domain or canonical)
+          # Bare host label naming the domain this message is about. Prefers
+          # an explicit per-message display_domain (account/system emails
+          # inject it for subjects and body copy; feedback_email reports the
+          # domain feedback was submitted from), then falls back to
+          # brand_host so domain-bound messages label the domain they
+          # concern. Not a link: templates build URLs from brand_baseuri.
           # @return [String]
           def display_domain
-            @data[:display_domain] || @data[:share_domain] || site_host
+            @data[:display_domain] || brand_host
+          end
+
+          # Host the shared layout header/footer links to and displays. Prefers
+          # the custom domain the message concerns (share_domain, set on the
+          # secret_link and incoming_secret emails) so the wordmark and footer
+          # match the domain the recipient is actually visiting; falls back to
+          # the canonical site host for account/system emails that carry no
+          # domain. This is intentionally distinct from baseuri, which body
+          # templates use to build links to install-level app paths (invite
+          # acceptance, account settings, support) that live on the canonical
+          # host regardless of the sharing domain.
+          # @return [String]
+          def brand_host
+            host = @data[:share_domain].to_s
+            host.empty? ? site_host : host
+          end
+
+          # Base URI (scheme + host) for the shared layout header/footer. When
+          # the message concerns a custom share_domain, links to that domain;
+          # otherwise defers to baseuri, preserving both the @data[:baseuri]
+          # override and the canonical site fallback for account/system emails.
+          # @return [String]
+          def brand_baseuri
+            host = @data[:share_domain].to_s
+            return "#{scheme}#{host}" unless host.empty?
+
+            baseuri
           end
 
           # Brand color helper - resolves from per-message data, brand config, or
@@ -417,11 +470,7 @@ module Onetime
 
           # Get base URI from site config
           def site_baseuri
-            @site_baseuri ||= begin
-              scheme = conf_dig('site', 'ssl') == false ? 'http://' : 'https://'
-              host   = conf_dig('site', 'host') || 'localhost'
-              "#{scheme}#{host}"
-            end
+            @site_baseuri ||= "#{scheme}#{site_host}"
           end
 
           # Operator opt-in gate for rendering a logo <img> in mail at all.
@@ -435,6 +484,13 @@ module Onetime
           end
 
           private
+
+          # URL scheme ('https://' unless site.ssl is explicitly false). Shared
+          # by site_baseuri and brand_baseuri so both agree on http/https.
+          # @return [String]
+          def scheme
+            conf_dig('site', 'ssl') == false ? 'http://' : 'https://'
+          end
 
           def conf_dig(*keys)
             return nil unless defined?(OT) && OT.respond_to?(:conf) && OT.conf
