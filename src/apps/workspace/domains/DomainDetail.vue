@@ -20,6 +20,7 @@ import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { ENTITLEMENTS } from '@/types/organization';
 import {
+  isApproximatedDomainValidation,
   isOrgsCustomMailEnabled,
   isOrgsIncomingSecretsEnabled,
 } from '@/utils/features';
@@ -105,6 +106,19 @@ interface Section {
 
 // eslint-disable-next-line max-lines-per-function
 const sections = computed<Section[]>(() => [
+  {
+    // DNS setup is only surfaced on non-approximated installs. Approximated
+    // installs reach DNS/verification via the header status badge instead.
+    key: 'dns',
+    route: { name: 'DomainDns', params: { orgid: props.orgid, extid: props.extid } },
+    icon: { collection: 'heroicons', name: 'globe-alt' },
+    titleKey: 'web.domains.detail.dns_title',
+    descriptionKey: 'web.domains.detail.dns_description',
+    available: !isApproximatedDomainValidation(),
+    locked: false,
+    toggleable: false,
+    enabled: false,
+  },
   {
     key: 'brand',
     route: { name: 'DomainBrand', params: { orgid: props.orgid, extid: props.extid } },
