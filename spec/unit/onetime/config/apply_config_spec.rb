@@ -17,13 +17,10 @@ RSpec.describe Onetime::Config do
               'enabled' => true,
               'header' => {
                 'enabled' => true,
-                'branding' => {
-                  'logo' => {
-                    'url' => '/img/logo.png',
-                    'alt' => 'OneTime Secret',
-                    'href' => '/',
-                  },
-                  'site_name' => 'OneTime Secret',
+                'logo' => {
+                  'href' => '/',
+                  'show_name' => nil,
+                  'prominent' => nil,
                 },
               },
             },
@@ -35,6 +32,11 @@ RSpec.describe Onetime::Config do
             'default_ttl' => 3600,
             'ttl_options' => [300, 3600, 86_400],
           },
+        },
+        'brand' => {
+          'product_name' => 'OneTime Secret',
+          'logo_url' => '/img/logo.png',
+          'logo_alt' => 'OneTime Secret',
         },
         'mail' => {
           'truemail' => {
@@ -64,8 +66,8 @@ RSpec.describe Onetime::Config do
             'ui' => {
               'enabled' => false,
               'header' => {
-                'branding' => {
-                  'site_name' => 'Custom Company',
+                'logo' => {
+                  'href' => '/custom',
                 },
               },
             },
@@ -73,6 +75,9 @@ RSpec.describe Onetime::Config do
           'secret_options' => {
             'default_ttl' => 7200,
           },
+        },
+        'brand' => {
+          'product_name' => 'Custom Company',
         },
       }
     end
@@ -95,6 +100,9 @@ RSpec.describe Onetime::Config do
                                                            'default_ttl' => 7200,
                                                          ),
                                                        ),
+                                                       'brand' => hash_including(
+                                                         'product_name' => 'Custom Company',
+                                                       ),
                                                      ))
 
         described_class.apply_config(override_config)
@@ -104,6 +112,9 @@ RSpec.describe Onetime::Config do
         expect(OT).to receive(:replace_config!) do |merged_config|
           expect(merged_config['site']['interface']['api']['enabled']).to eq(true)
           expect(merged_config['mail']['truemail']['verifier_email']).to eq('verifier@example.com')
+          # Sibling brand keys survive a partial brand override
+          expect(merged_config['brand']['logo_url']).to eq('/img/logo.png')
+          expect(merged_config['brand']['logo_alt']).to eq('OneTime Secret')
         end
 
         described_class.apply_config(override_config)

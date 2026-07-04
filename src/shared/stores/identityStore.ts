@@ -72,6 +72,8 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     domain_branding,
     domain_logo,
     brand_product_name,
+    brand_logo_url,
+    brand_logo_alt,
     homepage_config,
   } = storeToRefs(bootstrapStore);
 
@@ -212,22 +214,52 @@ export const useProductIdentity = defineStore('productIdentity', () => {
   const showPlatformIdentity = computed(() => !isCustom.value && !logoUri.value);
 
   /**
+   * Operator-configured install-wide logo asset (BRAND_LOGO_URL /
+   * brand.logo_url, flattened to `brand_logo_url` in the bootstrap payload).
+   * This is the platform's own identity, so it is suppressed on custom
+   * domains for the same reason `showPlatformIdentity` suppresses the
+   * wordmark there: a tenant's domain shows the tenant's logo or the neutral
+   * mark, never the operator's (#3612 closes the logo-asset half of the A3
+   * leak). Null when unconfigured or on a custom domain.
+   *
+   * `||` (not `??`) so an empty-string config value reads as absent.
+   */
+  const installLogoUri = computed(() =>
+    isCustom.value ? null : brand_logo_url?.value || null
+  );
+
+  /**
+   * Operator-supplied alt text for the install logo (BRAND_LOGO_ALT /
+   * brand.logo_alt). Only meaningful while the install logo is the asset
+   * actually being rendered — it describes that image — so it is null when
+   * installLogoUri is null AND when a tenant logo outranks the install logo
+   * in logoSource (labeling the tenant's image with the operator's alt text
+   * would leak the wrong accessible name). Consumers fall back to their
+   * i18n productName-derived alt.
+   */
+  const installLogoAlt = computed(() =>
+    installLogoUri.value && !logoUri.value ? brand_logo_alt?.value || null : null
+  );
+
+  /**
    * Resolved logo source on the identity axis: the tenant's uploaded logo when
-   * present, otherwise the neutral `DefaultLogo` component sentinel. Never null
-   * or empty, so a consumer can render a lockup without its own "no logo"
-   * fallback.
+   * present, then the operator's install-wide logo (custom domains excepted,
+   * see installLogoUri), then the neutral `DefaultLogo` component sentinel.
+   * Never null or empty, so a consumer can render a lockup without its own
+   * "no logo" fallback.
    *
    * Uses `||` (not `??`): an empty-string `domain_logo` is treated as absent and
-   * falls through to the neutral sentinel, matching how the rest of the codebase
-   * reads the logo as a truthy/falsy signal (e.g. `!!domain_logo` in the router
-   * guards) and preserving the masthead's prior terminal fallback for `''`.
+   * falls through, matching how the rest of the codebase reads the logo as a
+   * truthy/falsy signal (e.g. `!!domain_logo` in the router guards) and
+   * preserving the masthead's prior terminal fallback for `''`.
    *
-   * This is the identity contribution only; the masthead still layers its own
-   * caller/operator rungs (props.logo.url, LOGO_URL) around it — a per-tenant
-   * logo must win over an operator-wide LOGO_URL, and LOGO_URL over the neutral
-   * default.
+   * This completes the #3612 consolidation: the masthead's only remaining
+   * rung above this is the caller prop (props.logo.url) — the operator logo
+   * is no longer read from `ui.header.branding`.
    */
-  const logoSource = computed(() => logoUri.value || DEFAULT_LOGO_COMPONENT);
+  const logoSource = computed(
+    () => logoUri.value || installLogoUri.value || DEFAULT_LOGO_COMPONENT
+  );
 
   const cornerClass = computed(() =>
     state.brand?.corner_style
@@ -268,6 +300,8 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     displayName,
     productName,
     showPlatformIdentity,
+    installLogoUri,
+    installLogoAlt,
     logoSource,
     $reset,
 

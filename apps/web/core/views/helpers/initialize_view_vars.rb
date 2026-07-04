@@ -173,11 +173,15 @@ module Core
                                Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:product_name]
 
         # Use the display domain name for branded instances, otherwise the
-        # configured brand product name. site_name (the deprecated
-        # site.interface.ui.header.branding.site_name) is kept only as a tail
-        # fallback for instances mid-migration; remove once consumers update.
-        site_name            = site_config.dig('interface', 'ui', 'header', 'branding', 'site_name')
-        page_title           = display_domain || brand_product_name || site_name
+        # configured brand product name. The deprecated
+        # site.interface.ui.header.branding.site_name tier was retired in
+        # #3612 — a legacy SITE_NAME now reaches brand.product_name via the
+        # normalize_brand fallback, so this reads the brand block only. The
+        # neutral terminal keeps the server-rendered <title>/og:title from
+        # going empty on an unconfigured canonical install (display_domain
+        # can be nil there), matching the mail-surface fallback.
+        page_title           = display_domain || brand_product_name ||
+                               Onetime::CustomDomain::BrandSettingsConstants::NEUTRAL_PRODUCT_NAME
         no_cache             = false
         frontend_host        = development['frontend_host']
         frontend_development = development['enabled']
@@ -209,6 +213,7 @@ module Core
         brand_product_domain        = brand_config['product_domain']
         brand_support_email         = brand_config['support_email'] || brand_global_defaults[:support_email]
         brand_logo_url              = brand_config['logo_url'] || brand_global_defaults[:logo_url]
+        brand_logo_alt              = brand_config['logo_alt'] || brand_global_defaults[:logo_alt]
         brand_favicon_url           = brand_config['favicon_url'] || brand_global_defaults[:favicon_url]
         # Mobile/social variety-pack URLs used by the HTML head. Unlike the
         # fields above (which default to nil and fall through to the frontend
@@ -271,6 +276,7 @@ module Core
           'brand_product_domain' => brand_product_domain,
           'brand_support_email' => brand_support_email,
           'brand_logo_url' => brand_logo_url,
+          'brand_logo_alt' => brand_logo_alt,
           'brand_favicon_url' => brand_favicon_url,
           'brand_apple_touch_icon_url' => brand_apple_touch_icon_url,
           'brand_og_image_url' => brand_og_image_url,

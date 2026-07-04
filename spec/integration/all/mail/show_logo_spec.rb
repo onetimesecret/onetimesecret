@@ -187,6 +187,23 @@ RSpec.describe 'Email show_logo toggle', type: :integration do
       end
     end
 
+    context 'when show_logo is true but logo_url is a relative path' do
+      before do
+        conf = OT.conf.dup
+        conf['emailer'] = (conf['emailer'] || {}).merge('show_logo' => true)
+        # Mail clients cannot resolve relative paths; with legacy LOGO_URL
+        # feeding brand.logo_url as a fallback (#3612), a masthead-oriented
+        # path must degrade to the text-only header, not a broken image.
+        conf['brand'] = (conf['brand'] || {}).merge('logo_url' => '/img/logo.png')
+        OT.instance_variable_set(:@conf, conf)
+      end
+
+      it 'does not include an <img tag (absolute http(s) URLs only)' do
+        html = template.render_html
+        expect(html).not_to include('<img')
+      end
+    end
+
     # Verify the toggle across a second template to confirm the conditional
     # is wired consistently (not just in secret_link.html.erb).
     describe 'Welcome template' do

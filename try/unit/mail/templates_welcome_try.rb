@@ -54,10 +54,25 @@ template = Onetime::Mail::Templates::Welcome.new(@valid_data)
 template.class
 #=> Onetime::Mail::Templates::Welcome
 
-## Welcome subject is verification message
+## Welcome subject is verification message. With no brand.product_name
+## configured, the subject interpolates the neutral NEUTRAL_PRODUCT_NAME
+## ('Secure Links') — the legacy site_name tier was retired in #3612.
 template = Onetime::Mail::Templates::Welcome.new(@valid_data)
 template.subject
-#=> 'Welcome to One-Time Secret - Please verify your email'
+#=> 'Welcome to Secure Links - Please verify your email'
+
+## Welcome subject interpolates brand.product_name when configured
+saved = YAML.load(YAML.dump(OT.conf))
+begin
+  conf_copy = YAML.load(YAML.dump(saved))
+  conf_copy['brand'] = { 'product_name' => 'Acme Vault' }
+  OT.send(:conf=, conf_copy)
+  template = Onetime::Mail::Templates::Welcome.new(@valid_data)
+  template.subject
+ensure
+  OT.send(:conf=, saved) rescue nil
+end
+#=> 'Welcome to Acme Vault - Please verify your email'
 
 ## Welcome recipient_email returns email_address from data
 template = Onetime::Mail::Templates::Welcome.new(@valid_data)

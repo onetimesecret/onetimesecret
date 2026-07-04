@@ -134,6 +134,20 @@ function resolveSsoOneClickProvider(
   return restrictedToSso || (isCustom && enforcedForDomain) ? providers[0] : null;
 }
 
+/**
+ * Validate a resolved variant id against the enum, collapsing every invalid
+ * case (null, undefined, empty string, unknown/legacy id) to the default.
+ *
+ * `??` in the resolution chain only skips null/undefined, so an empty-string or
+ * unrecognised store value would otherwise reach the dispatcher's
+ * `VARIANTS[variant]` as an unknown key -> `<component :is=undefined>` -> a
+ * blank page. This guard prevents that.
+ */
+function coerceDisabledVariant(candidate: unknown): DisabledHomepageVariant {
+  const parsed = disabledHomepageVariantSchema.safeParse(candidate);
+  return parsed.success ? parsed.data : DEFAULT_DISABLED_HOMEPAGE_VARIANT;
+}
+
 export function useDisabledConfig(): DisabledHomepageBindings {
   const identityStore = useProductIdentity();
   const { isCustom, primaryColor, logoUri, displayName, displayDomain, brand, siteHost } =
@@ -221,12 +235,14 @@ export function useDisabledConfig(): DisabledHomepageBindings {
   // domain or site config still flips the variant. homepage_config is null on
   // the canonical site and on any custom domain that hasn't opted in.
   const urlOverride = readUrlVariantOverride();
-  const variant = computed<DisabledHomepageVariant>(
-    () =>
+  // Wrap the ?? precedence chain in coerceDisabledVariant so an invalid/empty
+  // store value falls back to the default instead of blanking the dispatcher.
+  const variant = computed<DisabledHomepageVariant>(() =>
+    coerceDisabledVariant(
       urlOverride ??
-      homepage_config.value?.disabled_homepage_variant ??
-      ui.value?.homepage?.disabled_variant ??
-      DEFAULT_DISABLED_HOMEPAGE_VARIANT
+        homepage_config.value?.disabled_homepage_variant ??
+        ui.value?.homepage?.disabled_variant
+    )
   );
 
   // Getter object: `v-bind="props"` evaluates each property on every render,

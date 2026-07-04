@@ -53,11 +53,16 @@ module Onetime
           hostname  = Socket.gethostname
           timestamp = Time.now.utc.iso8601
 
+          # Brand-aware copy: a hardcoded vendor literal would leak into a
+          # white-label install's outbound test email (#3612).
+          product_name = Onetime::CustomDomain::BrandSettingsConstants.global_defaults[:product_name] ||
+                         Onetime::CustomDomain::BrandSettingsConstants::NEUTRAL_PRODUCT_NAME
+
           email = {
             to: to,
             from: Onetime::Mail::Mailer.from_address,
-            subject: "[OTS] Email delivery test - #{timestamp}",
-            text_body: "This is a test email from Onetime Secret CLI.\n\nProvider: #{provider}\nTimestamp: #{timestamp}\nHost: #{hostname}",
+            subject: "[#{product_name}] Email delivery test - #{timestamp}",
+            text_body: "This is a test email from the #{product_name} CLI.\n\nProvider: #{provider}\nTimestamp: #{timestamp}\nHost: #{hostname}",
           }
 
           if format == 'json'

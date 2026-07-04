@@ -121,10 +121,17 @@ RSpec.describe 'Email template i18n integration' do
         let(:data) { { recipient: 'user@example.com' } }
 
         it 'returns site_product_name fallback' do
-          # Falls back to site config or 'Onetime Secret'
+          # Falls back to brand.product_name, then the neutral
+          # NEUTRAL_PRODUCT_NAME ('Secure Links') — never nil (#3612).
           result = context.product_name
           expect(result).to be_a(String)
           expect(result).not_to be_empty
+        end
+
+        it 'resolves the neutral product name when brand.product_name is unconfigured' do
+          allow(OT).to receive(:conf).and_return(OT.conf.merge('brand' => {}))
+          expect(context.product_name)
+            .to eq(Onetime::CustomDomain::BrandSettingsConstants::NEUTRAL_PRODUCT_NAME)
         end
       end
     end
@@ -242,13 +249,17 @@ RSpec.describe 'Email template i18n integration' do
 
     describe '#render_text' do
       it 'includes translated content from locale file' do
+        # Pin an unconfigured brand block so the footer exercises the neutral
+        # NEUTRAL_PRODUCT_NAME fallback ('Secure Links'). The legacy
+        # site.interface.ui.header.branding.site_name tier was retired (#3612).
+        allow(OT).to receive(:conf).and_return(OT.conf.merge('brand' => {}))
         template = described_class.new(template_data)
         text = template.render_text
 
         # Check for translated strings
         expect(text).to include('sent you a secret')
         expect(text).to include('This link will only work once')
-        expect(text).to include('One-Time Secret')
+        expect(text).to include('Secure Links')
       end
 
       it 'includes the secret URL path' do
@@ -268,13 +279,15 @@ RSpec.describe 'Email template i18n integration' do
 
     describe '#render_html' do
       it 'includes translated content from locale file' do
+        # See render_text: unconfigured brand renders the neutral product name.
+        allow(OT).to receive(:conf).and_return(OT.conf.merge('brand' => {}))
         template = described_class.new(template_data)
         html = template.render_html
 
         expect(html).to include('sent you a secret')
         expect(html).to include('Important:')
         expect(html).to include('This link will only work once')
-        expect(html).to include('One-Time Secret')
+        expect(html).to include('Secure Links')
       end
 
       it 'includes properly escaped content' do
@@ -329,7 +342,7 @@ RSpec.describe 'Email template i18n integration' do
       it 'uses default product name when not provided' do
         data = template_data.except(:product_name)
         template = described_class.new(data)
-        # Falls back to site config or 'Onetime Secret'
+        # Falls back to brand.product_name or the neutral 'Secure Links' (#3612)
         expect(template.subject).to include('Welcome to')
         expect(template.subject).to include('Please verify your email')
       end

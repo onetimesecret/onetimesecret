@@ -28,7 +28,7 @@ Companion artifacts:
 | "Implementation: Familia encrypted-fields library" | **True.** `encrypted_field :ciphertext`; zero direct `Familia::Encryption.encrypt/decrypt` calls in app code. | `lib/onetime/models/secret.rb:43` |
 | "The encryption key is not stored and must be reconstructed" | **True.** Data keys are derived per operation and best-effort wiped; only versioned master-key *inputs* exist, in app config. | familia `manager.rb` (derive + `secure_wipe` per op) |
 | "The database server does not hold the key material" | **True** for key material. Caveat for the surrounding at-rest narrative: shipped compose runs Valkey with AOF+RDB on a persistent volume, so *envelopes* of already-revealed/expired secrets persist on disk until AOF rewrite (see F12). | `docker/compose/*.yml` |
-| "passphrase ... verified as an access-control gate before decryption" | **True.** argon2id (bcrypt legacy) hash in a separate field; `show/reveal` verify before any `decrypted_secret_value` call; rate-limited (5 attempts/600s, 1800s lockout). Passphrase is not a KDF input (Secret uses no `key_material`). Caveat: **burn** is passphrase-gated but *not* rate-limited (F7). | `passphrase_hashing.rb`; `show_secret.rb`; `passphrase_rate_limiter.rb` |
+| "passphrase ... verified as an access-control gate before decryption" | **True.** argon2id (bcrypt legacy) hash in a separate field; `show`/`reveal`/`burn` (v1 and v2) all verify before any `decrypted_secret_value` call and share the same rate limiter (5 attempts/600s, 1800s lockout — see F7). Passphrase is not a KDF input (Secret uses no `key_material`). | `passphrase_hashing.rb`; `show_secret.rb`; `passphrase_rate_limiter.rb` |
 
 ## 2. Why the upgrade is safe (envelope contract)
 
@@ -124,13 +124,15 @@ include the same limiter: 5 failed attempts per secret within 10 minutes
 triggers a 30-minute lockout, a successful entry clears the counter, and
 the empty-passphrase preview never accrues attempts.
 
-**F8 (medium, product): the one-time guarantee is not atomic.** Reveal
-does load → check `viewable?` → decrypt → `destroy!` with no WATCH/Lua/lock;
-two concurrent requests inside the window can both receive plaintext.
-Milliseconds-wide and requires the link (+passphrase), but a "viewable
-exactly once" statement in legal/marketing copy should say "best-effort
-single view" or the reveal path should take an atomic claim (e.g.
-`GETDEL`-style state transition or a Lua guard) before decrypting.
+**F8 (medium, product, fixed): the one-time guarantee is not atomic.**
+Reveal used to load → check `viewable?` → decrypt → `destroy!` with no
+WATCH/Lua/lock, so two concurrent requests inside the window could both
+receive plaintext. `Secret#revealed!`/`#burned!` now perform a Lua
+compare-and-set on the `state` field (`STATE_CAS_SCRIPT` in
+`secret_state_management.rb`), and the plaintext-returning `#reveal!`
+decrypts only inside the won claim, so a losing racer never computes it.
+All read/burn controllers gate their success path and counters on the
+claim's return value.
 
 **F9 (low, hardening): `site.secret` entropy is unenforced.** Only
 nil/"CHANGEME" are rejected; a weak operator-chosen secret weakens every

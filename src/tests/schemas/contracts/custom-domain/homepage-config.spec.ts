@@ -16,6 +16,40 @@ describe('homepageConfigCanonical', () => {
     updated_at: 1700000000,
   };
 
+  describe('signup_enabled / signin_enabled defaults', () => {
+    // Both auth-link toggles default OFF: a payload that omits them parses to
+    // false so the homepage nav links stay hidden unless a domain opts in.
+    const payloadWithoutFlags = {
+      domain_id: 'd_123',
+      enabled: true,
+      created_at: 1700000000,
+      updated_at: 1700000000,
+    };
+
+    it('defaults signup_enabled to false when omitted', () => {
+      const result = homepageConfigCanonical.safeParse(payloadWithoutFlags);
+      expect(result.success).toBe(true);
+      expect(result.success && result.data.signup_enabled).toBe(false);
+    });
+
+    it('defaults signin_enabled to false when omitted', () => {
+      const result = homepageConfigCanonical.safeParse(payloadWithoutFlags);
+      expect(result.success).toBe(true);
+      expect(result.success && result.data.signin_enabled).toBe(false);
+    });
+
+    it('honours an explicit true opt-in', () => {
+      const result = homepageConfigCanonical.safeParse({
+        ...payloadWithoutFlags,
+        signup_enabled: true,
+        signin_enabled: true,
+      });
+      expect(result.success).toBe(true);
+      expect(result.success && result.data.signup_enabled).toBe(true);
+      expect(result.success && result.data.signin_enabled).toBe(true);
+    });
+  });
+
   describe('disabled_homepage_variant', () => {
     it('accepts a known variant', () => {
       const result = homepageConfigCanonical.safeParse({

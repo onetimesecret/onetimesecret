@@ -57,7 +57,7 @@ RSpec.describe V1::Logic::Secrets::BurnSecret do
   describe '#process' do
     context 'when secret is viewable and passphrase is correct' do
       before do
-        allow(secret).to receive(:burned!)
+        allow(secret).to receive(:burned!).and_return(true)
       end
 
       it 'calls load_owner on the secret to retrieve the owner' do
@@ -79,6 +79,33 @@ RSpec.describe V1::Logic::Secrets::BurnSecret do
       end
     end
 
+    # The double-reveal race, burn variant: Secret#burned! performs an atomic
+    # compare-and-set claim and returns true only to the caller that won it. A
+    # burn that loses the claim (a concurrent reveal or burn already consumed
+    # the secret) must not count the burn nor report success.
+    context 'when the burn loses the race to a concurrent reveal or burn' do
+      before do
+        allow(secret).to receive(:burned!).and_return(false)
+      end
+
+      it 'does not increment secrets_burned on the owner' do
+        subject.process
+
+        expect(secret).to have_received(:burned!)
+        expect(owner).not_to have_received(:increment_field)
+      end
+
+      it 'is not greenlighted' do
+        subject.process
+
+        expect(subject.greenlighted).to be false
+        # Proves it was the gate (burned! returning false), not the
+        # viewable?/continue guard, that withheld the greenlight -- the guard
+        # path never calls burned! at all.
+        expect(secret).to have_received(:burned!)
+      end
+    end
+
     # Regression: the greenlight must honor the parsed `continue` boolean, not
     # the raw param. The string "false" is truthy in Ruby, so the previous
     # `continue_result = params['continue']` would burn a secret even when the
@@ -87,7 +114,7 @@ RSpec.describe V1::Logic::Secrets::BurnSecret do
       subject { described_class.new(session, customer, base_params.merge('continue' => 'false')) }
 
       before do
-        allow(secret).to receive(:burned!)
+        allow(secret).to receive(:burned!).and_return(true)
       end
 
       it 'does not burn the secret' do
@@ -149,12 +176,17 @@ RSpec.describe V1::Logic::Secrets::BurnSecret do
             passphrase?: true)
         end
 
+        before do
+          allow(secret).to receive(:burned!).and_return(true)
+        end
+
         it 'clears rate limit state and burns' do
           Onetime::Secret.dbclient.set("passphrase:attempts:#{secret_identifier}", '3')
 
           subject.process
 
           expect(secret).to have_received(:burned!)
+          expect(subject.greenlighted).to be true
           expect(Onetime::Secret.dbclient.get("passphrase:attempts:#{secret_identifier}")).to be_nil
         end
       end
