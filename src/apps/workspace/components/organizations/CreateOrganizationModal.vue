@@ -133,7 +133,7 @@ const handleSubmit = async () => {
                   <DialogTitle
                     as="h3"
                     class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
-                    {{ t('web.organizations.create_organization') }}
+                    {{ t('web.organizations.create_workspace') }}
                   </DialogTitle>
                   <div class="mt-2">
                     <p class="text-sm text-gray-500 dark:text-gray-400">

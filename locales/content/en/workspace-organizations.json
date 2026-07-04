@@ -56,20 +56,20 @@
     "content_hash": "98a583b4"
   },
   "web.organizations.create_organization_description": {
-    "text": "Create a new organization",
-    "content_hash": "67cd5950"
+    "text": "Create a new workspace",
+    "content_hash": "6ac2b5fc"
   },
   "web.organizations.create": {
     "text": "Create",
     "content_hash": "4759498a"
   },
   "web.organizations.create_error": {
-    "text": "Failed to create organization",
-    "content_hash": "f2204373"
+    "text": "Failed to create workspace",
+    "content_hash": "0a8d4fd6"
   },
   "web.organizations.organization_name": {
-    "text": "Organization Name",
-    "content_hash": "4cbd9073"
+    "text": "Workspace Name",
+    "content_hash": "6fa5a5b1"
   },
   "web.organizations.organization_name_placeholder": {
     "text": "e.g. Acme Corporation",
