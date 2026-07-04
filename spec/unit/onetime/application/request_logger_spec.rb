@@ -97,4 +97,66 @@ RSpec.describe Onetime::Application::RequestLogger do
       end
     end
   end
+
+  # :debug capture is the only mode that requests :params/:headers at all.
+  # It is gated by Onetime::ErrorHandler.allowed_error_fields -- the same
+  # opt-in allowlist that governs Sentry's error-report request context --
+  # rather than a hardcoded blocklist, so enabling LOG_HTTP_CAPTURE=debug
+  # alone must never surface a secret/passphrase param or a Cookie/
+  # Authorization header.
+  context 'in :debug capture mode' do
+    let(:config) { { 'capture' => 'debug' } }
+
+    around do |example|
+      original_conf         = Onetime.logging_conf
+      Onetime.logging_conf  = { 'http' => { 'allowed_error_fields' => allowed_fields } }
+      example.run
+      Onetime.logging_conf = original_conf
+    end
+
+    def call_with_params(params:, headers: {})
+      env = Rack::MockRequest.env_for(
+        '/api/v3/secret/conceal',
+        { method: 'POST', params: params }.merge(headers),
+      )
+      middleware.call(env)
+      captured.last
+    end
+
+    context 'with an empty allowlist (the default)' do
+      let(:allowed_fields) { [] }
+
+      it 'omits param values entirely, even though :debug mode requests them' do
+        _level, payload = call_with_params(params: { 'secret' => 'hunter2', 'ttl' => '300' })
+        expect(payload['params']).to eq({})
+      end
+
+      it 'omits header values entirely -- Cookie/Authorization never appear' do
+        _level, payload = call_with_params(
+          params: {},
+          headers: { 'HTTP_COOKIE' => 'session=abc', 'HTTP_AUTHORIZATION' => 'Bearer xyz' },
+        )
+        expect(payload['headers']).to eq({})
+      end
+    end
+
+    context 'with an explicit allowlist' do
+      let(:allowed_fields) { %w[ttl User-Agent] }
+
+      it 'includes only the allow-listed param, never secret/passphrase' do
+        _level, payload = call_with_params(
+          params: { 'secret' => 'hunter2', 'passphrase' => 'p4ss', 'ttl' => '300' },
+        )
+        expect(payload['params']).to eq({ 'ttl' => '300' })
+      end
+
+      it 'includes only the allow-listed header' do
+        _level, payload = call_with_params(
+          params: {},
+          headers: { 'HTTP_USER_AGENT' => 'TestAgent/1.0', 'HTTP_COOKIE' => 'session=abc' },
+        )
+        expect(payload['headers']).to eq({ 'User-Agent' => 'TestAgent/1.0' })
+      end
+    end
+  end
 end

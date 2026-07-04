@@ -62,8 +62,7 @@ module Core
         http_logger.info 'Unauthorized access',
           {
             exception: ex,
-            url: req.url,
-            ip: req.ip,
+            **Onetime::ErrorHandler.safe_request_context(req),
           }
 
         # Serve Vue entry point - let Vue show login prompt
@@ -77,9 +76,7 @@ module Core
         http_logger.error 'Request processing failed',
           {
             exception: ex,
-            url: req.url,
-            method: req.request_method,
-            ip: req.ip,
+            **Onetime::ErrorHandler.safe_request_context(req),
             backtrace: ex.backtrace&.first(20),
           }
 
@@ -153,14 +150,7 @@ module Core
         Sentry.with_scope do |scope|
           if env
             req = build_rack_request(env)
-            scope.set_context(
-              'request',
-              {
-                url: req.url,
-                method: req.request_method,
-                ip: req.ip,
-              },
-            )
+            scope.set_context('request', Onetime::ErrorHandler.safe_request_context(req))
           end
 
           event_id = Sentry.capture_exception(error)

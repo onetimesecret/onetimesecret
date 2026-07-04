@@ -368,16 +368,10 @@ module V1
           endpoint: (defined?(req) && req&.path_info) || 'unknown',
         )
 
-        # Add request context (URLs scrubbed by before_send hook)
-        if defined?(req) && req.respond_to?(:url)
-          scope.set_context(
-            'request',
-            {
-              url: req.url,
-              method: req.request_method,
-              ip: req.ip,
-            },
-          )
+        # Add request context: path only (never the query string) plus any
+        # explicitly allow-listed params — see Onetime::ErrorHandler.safe_request_context.
+        if defined?(req) && req.respond_to?(:path)
+          scope.set_context('request', Onetime::ErrorHandler.safe_request_context(req))
         end
 
         # Add customer/session context with truncated IDs for privacy

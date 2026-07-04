@@ -333,6 +333,128 @@ env = { :symbol_key => 'ignored', 'HTTP_HOST' => 'example.com', 42 => 'also igno
 Onetime::ErrorHandler.http_headers_from(env)
 #=> {"HTTP_HOST"=>"example.com"}
 
+# -----------------------------------------------------------------------------
+# allowed_error_fields / safe_request_context (logging security hardening)
+#
+# safe_request_context is what every capture_error/capture_exception call
+# site (and RequestLogger's :debug capture mode) uses to decide what a
+# request contributes to an error log line or Sentry event. The query
+# string and request body must never appear unless an operator has
+# explicitly allow-listed a field name -- there is no blocklist here to
+# fall out of sync with new sensitive field names.
+# -----------------------------------------------------------------------------
+
+# NOTE ON THIS RUNNER'S EXECUTION MODEL: free-standing code sitting in the
+# gap *between* two testcases (after one's #=> and before the next ##) is
+# NOT reliably carried forward -- neither bare constants nor instance
+# variables assigned there persist (confirmed empirically; `try --help`'s
+# "instance variables persist across testcases" describes state set
+# *inside* a testcase body, i.e. between its ## and its own #=>, which
+# does carry forward to later testcases -- see @test_key_2 etc. above).
+# So all one-time setup below is folded into the first testcase that needs
+# it, as leading statements before that testcase's own #=> assertion.
+
+## allowed_error_fields returns an Array (empty by default -- no env override set)
+# Also stashes fixtures onto @ivars for the tests below -- set *inside* this
+# testcase (before its #=> assertion), so they carry forward to later ones.
+@fake_request_class       = Struct.new(:path, :request_method, :ip, :params)
+@no_params_request_class  = Struct.new(:path, :request_method, :ip)
+@original_allowed_fields  = Onetime.logging_conf&.dig('http', 'allowed_error_fields')
+Onetime.logging_conf['http']['allowed_error_fields'] = []
+Onetime::ErrorHandler.allowed_error_fields
+#=> []
+
+## safe_request_context returns {} for a nil request
+Onetime::ErrorHandler.safe_request_context(nil)
+#=> {}
+
+## safe_request_context with an empty allowlist: path/method/ip only, no :params key
+req = @fake_request_class.new('/api/v3/secret/conceal', 'POST', '203.0.113.7',
+  { 'secret' => 'hunter2', 'passphrase' => 'p4ss', 'ttl' => '300' })
+result = Onetime::ErrorHandler.safe_request_context(req)
+[result[:path], result[:method], result[:ip], result.key?(:params)]
+#=> ['/api/v3/secret/conceal', 'POST', '203.0.113.7', false]
+
+## safe_request_context never includes the query string -- path is bare
+# (Struct#path here stands in for Rack::Request#path, which is already
+# query-string-free; this pins that we read #path and never #url/#fullpath.)
+req = @fake_request_class.new('/api/v3/secret/conceal', 'GET', '203.0.113.7', {})
+Onetime::ErrorHandler.safe_request_context(req)[:path]
+#=> '/api/v3/secret/conceal'
+
+## With a non-empty allowlist, only the named params are included -- never secret/passphrase
+Onetime.logging_conf['http']['allowed_error_fields'] = ['ttl']
+req = @fake_request_class.new('/api/v3/secret/conceal', 'POST', '203.0.113.7',
+  { 'secret' => 'hunter2', 'passphrase' => 'p4ss', 'ttl' => '300' })
+result = Onetime::ErrorHandler.safe_request_context(req)
+result[:params]
+#=> { 'ttl' => '300' }
+
+## Allow-listed field absent from the request contributes no :params key
+Onetime.logging_conf['http']['allowed_error_fields'] = ['nonexistent_field']
+req = @fake_request_class.new('/x', 'POST', '203.0.113.7', { 'ttl' => '300' })
+Onetime::ErrorHandler.safe_request_context(req).key?(:params)
+#=> false
+
+## A request that does not respond to #params (nil params) still returns path/method/ip safely
+Onetime.logging_conf['http']['allowed_error_fields'] = []
+req = @no_params_request_class.new('/x', 'GET', '203.0.113.7')
+result = Onetime::ErrorHandler.safe_request_context(req)
+[result[:path], result.key?(:params)]
+#=> ['/x', false]
+
+# -----------------------------------------------------------------------------
+# Real Rack::Request, form-encoded body (the v1 API's actual wire format --
+# see docs/api/README.md: "v1 ... Requests are form-encoded and responses
+# are JSON"). The fake Struct requests above prove the filtering logic in
+# isolation; this proves it end-to-end against genuine Rack form-body
+# parsing, which is what apps/api/v1/controllers/index.rb's req.params
+# (and RequestLogger's request.params) actually receive on the wire --
+# Rack::Request#params auto-parses application/x-www-form-urlencoded and
+# multipart/form-data bodies natively (unlike a JSON body, which Rack does
+# not auto-parse into #params at all).
+# -----------------------------------------------------------------------------
+
+require 'rack'
+require 'rack/mock'
+
+## The v1-style form body really did parse into Rack params (sanity check on the fixture itself)
+# Also builds @form_env/@form_request for the tests below -- set *inside*
+# this testcase, so they carry forward to later ones (see note above).
+@form_env = Rack::MockRequest.env_for(
+  '/api/v1/share',
+  method: 'POST',
+  params: { 'secret' => 'hunter2', 'passphrase' => 'p4ss', 'ttl' => '300' },
+)
+@form_request = Rack::Request.new(@form_env)
+@form_request.params
+#=> { 'secret' => 'hunter2', 'passphrase' => 'p4ss', 'ttl' => '300' }
+
+## Content-Type on the fixture really is form-urlencoded, not JSON (proves we're testing v1's actual wire format)
+@form_env['CONTENT_TYPE']
+#=> 'application/x-www-form-urlencoded'
+
+## safe_request_context against a real form-encoded Rack::Request: empty allowlist -> no :params key at all
+Onetime.logging_conf['http']['allowed_error_fields'] = []
+result = Onetime::ErrorHandler.safe_request_context(@form_request)
+[result[:path], result.key?(:params)]
+#=> ['/api/v1/share', false]
+
+## safe_request_context against a real form-encoded Rack::Request: allowlist includes only ttl
+Onetime.logging_conf['http']['allowed_error_fields'] = ['ttl']
+result = Onetime::ErrorHandler.safe_request_context(@form_request)
+result[:params]
+#=> { 'ttl' => '300' }
+
+## The secret/passphrase values from the form body never appear anywhere in the result, even serialized
+Onetime.logging_conf['http']['allowed_error_fields'] = ['ttl']
+result = Onetime::ErrorHandler.safe_request_context(@form_request)
+[result.to_s.include?('hunter2'), result.to_s.include?('p4ss')]
+#=> [false, false]
+
+# Restore the real allowlist exactly as booted.
+Onetime.logging_conf['http']['allowed_error_fields'] = @original_allowed_fields
+
 # Clean up test keys
 @redis.del(@test_key)
 @redis.del(@test_key_2)
