@@ -39,6 +39,7 @@ export const CONFIG_SERIALIZER_FIELDS = [
   'brand_font_family',
   'brand_button_text_light',
   'brand_logo_url',
+  'brand_logo_alt',
   'brand_favicon_url',
   'd9s_enabled',
   'development',

@@ -479,12 +479,182 @@ describe('identityStore showPlatformIdentity', () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// logoSource — resolved tenant-or-neutral logo image (Phase 4 consolidation)
+// installLogoUri — operator install-wide logo asset (BRAND_LOGO_URL, #3612)
 //
-// The tenant's uploaded logo when present, else the neutral DefaultLogo
-// component sentinel. Never null or empty (uses ||, so '' is treated as
-// absent), so the masthead can stop reading raw bootstrapStore.domain_logo and
-// route the logo image through the resolver too.
+// The flat brand_logo_url bootstrap field, read only here. It is the
+// platform's own identity, so it is suppressed on custom domains for the
+// same reason showPlatformIdentity suppresses the wordmark there (the
+// logo-asset half of the A3 leak). Empty string reads as absent (||).
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe('identityStore installLogoUri', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+  });
+
+  it('is null when brand_logo_url is unset', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ brand_logo_url: null, domain_strategy: 'canonical' });
+
+    const identity = useProductIdentity();
+
+    expect(identity.installLogoUri).toBeNull();
+  });
+
+  it('returns brand_logo_url on the canonical domain', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({
+      brand_logo_url: '/img/install-brand.svg',
+      domain_strategy: 'canonical',
+    });
+
+    const identity = useProductIdentity();
+
+    expect(identity.installLogoUri).toBe('/img/install-brand.svg');
+  });
+
+  it('returns brand_logo_url on a subdomain (the subdomain IS the platform)', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({
+      brand_logo_url: '/img/install-brand.svg',
+      domain_strategy: 'subdomain',
+    });
+
+    const identity = useProductIdentity();
+
+    expect(identity.installLogoUri).toBe('/img/install-brand.svg');
+  });
+
+  it('is null on a custom domain even when brand_logo_url is set (leak fix #3612)', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({
+      brand_logo_url: '/img/install-brand.svg',
+      domain_strategy: 'custom',
+    });
+
+    const identity = useProductIdentity();
+
+    expect(identity.installLogoUri).toBeNull();
+  });
+
+  it('treats an empty-string brand_logo_url as unset (|| not ??)', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ brand_logo_url: '', domain_strategy: 'canonical' });
+
+    const identity = useProductIdentity();
+
+    expect(identity.installLogoUri).toBeNull();
+  });
+
+  it('reacts to the strategy flipping to custom (install logo withdraws)', async () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({
+      brand_logo_url: '/img/install-brand.svg',
+      domain_strategy: 'canonical',
+    });
+
+    const identity = useProductIdentity();
+    expect(identity.installLogoUri).toBe('/img/install-brand.svg');
+
+    bootstrap.$patch({ domain_strategy: 'custom' });
+    await nextTick();
+
+    expect(identity.installLogoUri).toBeNull();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// installLogoAlt — operator alt text for the install logo (BRAND_LOGO_ALT)
+//
+// Only meaningful while the install logo is the asset being shown: it
+// describes that asset, so it is null whenever installLogoUri is. Consumers
+// fall back to their i18n productName-derived alt.
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe('identityStore installLogoAlt', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+  });
+
+  it('returns brand_logo_alt when the install logo is present', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({
+      brand_logo_url: '/img/install-brand.svg',
+      brand_logo_alt: 'Acme Corp wordmark',
+      domain_strategy: 'canonical',
+    });
+
+    const identity = useProductIdentity();
+
+    expect(identity.installLogoAlt).toBe('Acme Corp wordmark');
+  });
+
+  it('is null when brand_logo_alt is unset even with an install logo', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({
+      brand_logo_url: '/img/install-brand.svg',
+      brand_logo_alt: null,
+      domain_strategy: 'canonical',
+    });
+
+    const identity = useProductIdentity();
+
+    expect(identity.installLogoAlt).toBeNull();
+  });
+
+  it('is null when brand_logo_alt is set but there is no install logo to describe', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({
+      brand_logo_url: null,
+      brand_logo_alt: 'Acme Corp wordmark',
+      domain_strategy: 'canonical',
+    });
+
+    const identity = useProductIdentity();
+
+    expect(identity.installLogoAlt).toBeNull();
+  });
+
+  it('is null on a custom domain even when both fields are set (follows installLogoUri)', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({
+      brand_logo_url: '/img/install-brand.svg',
+      brand_logo_alt: 'Acme Corp wordmark',
+      domain_strategy: 'custom',
+    });
+
+    const identity = useProductIdentity();
+
+    expect(identity.installLogoAlt).toBeNull();
+  });
+
+  it('is null when a tenant logo outranks the install logo in logoSource', () => {
+    // The operator's alt text describes the operator's image. When a tenant
+    // domain_logo wins the logoSource race, applying BRAND_LOGO_ALT to the
+    // tenant's image would leak the wrong accessible name.
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({
+      brand_logo_url: '/img/install-brand.svg',
+      brand_logo_alt: 'Acme Corp wordmark',
+      domain_logo: '/imagine/ext123/logo.png',
+      domain_strategy: 'canonical',
+    });
+
+    const identity = useProductIdentity();
+
+    expect(identity.logoSource).toBe('/imagine/ext123/logo.png');
+    expect(identity.installLogoAlt).toBeNull();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// logoSource — resolved logo image on the identity axis (#3612)
+//
+// Tenant's uploaded logo > operator's install-wide brand_logo_url (custom
+// domains excepted, via installLogoUri) > the neutral DefaultLogo component
+// sentinel. Never null or empty (uses ||, so '' is treated as absent), so
+// the masthead can stop reading raw bootstrapStore.domain_logo /
+// brand_logo_url and route the logo image through the resolver too.
 // ═══════════════════════════════════════════════════════════════════════════
 
 describe('identityStore logoSource', () => {
@@ -534,5 +704,44 @@ describe('identityStore logoSource', () => {
     await nextTick();
 
     expect(identity.logoSource).toBe('https://cdn.example.com/acme.png');
+  });
+
+  it('prefers the tenant logo over the install brand_logo_url', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({
+      domain_logo: 'https://cdn.example.com/acme.png',
+      brand_logo_url: '/img/install-brand.svg',
+      domain_strategy: 'canonical',
+    });
+
+    const identity = useProductIdentity();
+
+    expect(identity.logoSource).toBe('https://cdn.example.com/acme.png');
+  });
+
+  it('falls back to brand_logo_url when no tenant logo (canonical)', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({
+      domain_logo: null,
+      brand_logo_url: '/img/install-brand.svg',
+      domain_strategy: 'canonical',
+    });
+
+    const identity = useProductIdentity();
+
+    expect(identity.logoSource).toBe('/img/install-brand.svg');
+  });
+
+  it('resolves to the neutral sentinel on a custom domain without a tenant logo, even when brand_logo_url is set (leak fix #3612)', () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({
+      domain_logo: null,
+      brand_logo_url: '/img/install-brand.svg',
+      domain_strategy: 'custom',
+    });
+
+    const identity = useProductIdentity();
+
+    expect(identity.logoSource).toBe(DEFAULT_LOGO_COMPONENT);
   });
 });

@@ -140,7 +140,7 @@ module Onetime
         },
       }
 
-      # Declarative manifest of removed configuration keys.
+      # Declarative manifest of removed and deprecated configuration keys.
       #
       # Each entry maps a deprecated config path and/or the env var that
       # used to populate it to a migration message. check_deprecations
@@ -149,11 +149,16 @@ module Onetime
       # or is ignored ('silent').
       #
       # Fields:
-      #   path:    Array of keys to dig into conf (optional)
-      #   env:     Environment variable name (optional)
-      #   trigger: Proc that receives the path value; returns true to fire (optional)
-      #            When absent, any non-nil value triggers. Use for type-specific checks.
-      #   message: User-facing migration guidance
+      #   path:     Array of keys to dig into conf (optional)
+      #   env:      Environment variable name (optional)
+      #   trigger:  Proc that receives the path value; returns true to fire (optional)
+      #             When absent, any non-nil value triggers. Use for type-specific checks.
+      #   severity: :warn marks a soft deprecation — the legacy value still works
+      #             (via a fallback shim), so detection only ever logs, even under
+      #             the 'strict' policy ('silent' still suppresses it). Entries
+      #             without severity describe removed keys and follow the policy
+      #             as-is, raising under 'strict'.
+      #   message:  User-facing migration guidance
       DEPRECATIONS = [
         {
           path: %w[site interface ui homepage trusted_proxy_depth],
@@ -197,6 +202,47 @@ module Onetime
           message: <<~MSG.chomp,
             features.regions.jurisdictions array format is deprecated. Use JURISDICTIONS env var
             (format: EU:eu.example.com,CA:ca.example.com) instead.
+          MSG
+        },
+        # Brand identity consolidation (#3612): the brand: block is the single
+        # authority for brand identity. The legacy header.branding path and its
+        # unprefixed env vars still work via normalize_brand fallbacks, so these
+        # are soft (severity: :warn) — boot warns with the one-line fix but
+        # never refuses to start a working install.
+        {
+          env: 'SITE_NAME',
+          severity: :warn,
+          message: <<~MSG.chomp,
+            SITE_NAME is deprecated. Set BRAND_PRODUCT_NAME (brand.product_name) instead;
+            the SITE_NAME value is honored as a fallback for now.
+          MSG
+        },
+        {
+          env: 'LOGO_URL',
+          severity: :warn,
+          message: <<~MSG.chomp,
+            LOGO_URL is deprecated. Set BRAND_LOGO_URL (brand.logo_url) instead;
+            the LOGO_URL value is honored as a fallback for now.
+          MSG
+        },
+        {
+          env: 'LOGO_ALT',
+          severity: :warn,
+          message: <<~MSG.chomp,
+            LOGO_ALT is deprecated. Set BRAND_LOGO_ALT (brand.logo_alt) instead;
+            the LOGO_ALT value is honored as a fallback for now.
+          MSG
+        },
+        {
+          path: %w[site interface ui header branding],
+          env: nil,
+          severity: :warn,
+          message: <<~MSG.chomp,
+            site.interface.ui.header.branding is deprecated. Brand identity moved to the
+            brand: block (BRAND_PRODUCT_NAME, BRAND_LOGO_URL, BRAND_LOGO_ALT); masthead
+            layout knobs moved to site.interface.ui.header.logo (href, show_name,
+            prominent — LOGO_LINK, LOGO_SHOW_NAME, LOGO_PROMINENT are unchanged).
+            Legacy values are honored as fallbacks for now.
           MSG
         },
       ].freeze
@@ -442,7 +488,13 @@ module Onetime
       # Normalize the brand block from BRAND_* env vars. Done here (in Ruby)
       # rather than via ERB/YAML interpolation so values with YAML-significant
       # characters — notably the leading '#' in primary_color hex — survive.
+      # Runs after check_deprecations (so legacy branding config is reported
+      # before its values are absorbed) and before deep_freeze (so consumers
+      # never resolve fallbacks themselves). normalize_header_layout must
+      # follow normalize_brand: it deletes the legacy branding subtree that
+      # normalize_brand's fallbacks read.
       normalize_brand(conf)
+      normalize_header_layout(conf)
 
       # Ensure array jurisdiction entries have display_name_i18n_key
       # (String format already converted to Array above, before check_deprecations)
@@ -500,10 +552,40 @@ module Onetime
       'corner_style' => 'BRAND_CORNER_STYLE',
       'font_family' => 'BRAND_FONT_FAMILY',
       'logo_url' => 'BRAND_LOGO_URL',
+      'logo_alt' => 'BRAND_LOGO_ALT',
       'favicon_url' => 'BRAND_FAVICON_URL',
       'apple_touch_icon_url' => 'BRAND_APPLE_TOUCH_ICON_URL',
       'og_image_url' => 'BRAND_OG_IMAGE_URL',
       'totp_issuer' => 'BRAND_TOTP_ISSUER',
+    }.freeze
+
+    # Maps brand identity keys to their deprecated sources (#3612): the legacy
+    # unprefixed env var and the legacy site.interface.ui.header.branding YAML
+    # path. Consulted by normalize_brand only when the brand: authority (BRAND_*
+    # env or brand: YAML) leaves the key nil, so working installs keep working
+    # while check_deprecations names the one-line fix.
+    LEGACY_BRAND_FALLBACKS = {
+      'product_name' => {
+        env: 'SITE_NAME',
+        path: %w[site interface ui header branding site_name],
+      },
+      'logo_url' => {
+        env: 'LOGO_URL',
+        path: %w[site interface ui header branding logo url],
+      },
+      'logo_alt' => {
+        env: 'LOGO_ALT',
+        path: %w[site interface ui header branding logo alt],
+      },
+    }.freeze
+
+    # Masthead layout knobs that moved from the legacy branding nesting to
+    # site.interface.ui.header.logo (#3612). New-path key => legacy key under
+    # header.branding.logo. Booleans are honored as-is; href replaces link_to.
+    LEGACY_HEADER_LOGO_KEYS = {
+      'href' => 'link_to',
+      'show_name' => 'show_name',
+      'prominent' => 'prominent',
     }.freeze
 
     # Normalize the brand block, reading BRAND_* env vars directly so values
@@ -511,6 +593,15 @@ module Onetime
     # are not mangled by the ERB/YAML layer. An env var that is set always
     # wins; when unset, the value already present from YAML is left intact so
     # operators can still set brand keys directly in their config file.
+    #
+    # Identity keys with a legacy source (LEGACY_BRAND_FALLBACKS) fall back to
+    # the deprecated env var / header.branding path when the brand: authority
+    # leaves them nil. Sentinel component values (e.g. the legacy LOGO_URL
+    # default 'DefaultLogo.vue') are never adopted — they are frontend-only
+    # markers, not asset URLs, and would break consumers like email templates.
+    #
+    # All resolution happens here, before the config is deep-frozen, so
+    # consumers only ever read final values (never re-derive fallbacks).
     #
     # @param conf [Hash] the merged configuration (mutated in place)
     # @return [void]
@@ -529,6 +620,34 @@ module Onetime
         end
       end
 
+      # The logo asset must be an image URL: a Vue component reference (the
+      # frontend's neutral-sentinel convention) is meaningless to emails,
+      # favicon handling, and per-domain defaults, so it never enters the
+      # brand block — from any source, including an operator-set
+      # BRAND_LOGO_URL (hazard 1 of #3612).
+      brand['logo_url'] = nil if brand['logo_url'].is_a?(String) && brand['logo_url'].end_with?('.vue')
+
+      LEGACY_BRAND_FALLBACKS.each do |key, legacy|
+        next unless brand[key].nil?
+
+        candidate  = legacy_brand_value(ENV.fetch(legacy[:env], nil)) ||
+                     legacy_brand_value(dig_path(conf, legacy[:path]))
+        brand[key] = candidate if candidate
+      end
+
+      # brand.logo_url is now the one install logo for every surface, but the
+      # surfaces differ: the web UI resolves a relative path fine, while mail
+      # rendering requires an absolute URL and silently degrades to a
+      # text-only header otherwise. Tell the operator at boot rather than
+      # letting them discover it in a delivered email. Deliberately always
+      # logged: this is an operational notice about mail rendering, not a
+      # deprecation, so compatibility.deprecated_config_mode does not apply.
+      logo_url = brand['logo_url']
+      if logo_url && !logo_url.match?(%r{\Ahttps?://}i)
+        OT.le "CONFIG NOTICE: brand.logo_url '#{logo_url}' is not an absolute http(s) URL; " \
+              'it will render in the web UI but is omitted from outbound emails.'
+      end
+
       # button_text_light: light text on brand-colored buttons. Default-on;
       # only an explicit 'false' (env or YAML) disables it. nil when unset.
       raw                        = ENV.fetch('BRAND_BUTTON_TEXT_LIGHT', nil)
@@ -542,6 +661,66 @@ module Onetime
         nil
       else
         raw.strip != 'false'
+      end
+    end
+
+    # Digs a key path out of a config hash, tolerating malformed intermediate
+    # nodes: a legacy subtree where e.g. header.branding.logo is a scalar
+    # would make Hash#dig raise TypeError (or NoMethodError, depending on the
+    # node) and abort boot — for an optional fallback source, unreadable
+    # simply means absent.
+    #
+    # @param conf [Hash] configuration hash
+    # @param path [Array<String>] key path
+    # @return [Object, nil]
+    def dig_path(conf, path)
+      conf.dig(*path)
+    rescue TypeError, NoMethodError
+      nil
+    end
+
+    # Normalizes a candidate value from a legacy branding source: trims,
+    # rejects blanks and non-strings, and rejects Vue component sentinels
+    # ('*.vue') so 'DefaultLogo.vue' never enters brand.logo_url (#3612).
+    #
+    # @param value [Object] raw legacy env var or YAML value
+    # @return [String, nil] usable value or nil
+    def legacy_brand_value(value)
+      return nil unless value.is_a?(String)
+
+      value = value.strip
+      return nil if value.empty? || value.end_with?('.vue')
+
+      value
+    end
+
+    # Migrates masthead layout knobs from the deprecated header.branding.logo
+    # nesting to site.interface.ui.header.logo (#3612), then removes the
+    # branding subtree so it never reaches the frontend bootstrap payload.
+    # Legacy values only fill knobs the new path leaves nil (env vars LOGO_LINK
+    # / LOGO_SHOW_NAME / LOGO_PROMINENT feed the new path via ERB already).
+    # Identity fields under branding (logo.url/.alt, site_name) are harvested
+    # by normalize_brand, which must run first.
+    #
+    # @param conf [Hash] the merged configuration (mutated in place)
+    # @return [void]
+    def normalize_header_layout(conf)
+      header = conf.dig('site', 'interface', 'ui', 'header')
+      return unless header.is_a?(Hash)
+
+      branding    = header.delete('branding')
+      legacy_logo = branding.is_a?(Hash) ? branding['logo'] : nil
+      return unless legacy_logo.is_a?(Hash)
+
+      # Coerce a malformed scalar (e.g. `logo: "oops"`) to an empty hash —
+      # this path exists to tolerate legacy/hand-edited configs, so it must
+      # not abort boot on one.
+      logo = header['logo']
+      logo = header['logo'] = {} unless logo.is_a?(Hash)
+      LEGACY_HEADER_LOGO_KEYS.each do |new_key, legacy_key|
+        next if legacy_logo[legacy_key].nil? || !logo[new_key].nil?
+
+        logo[new_key] = legacy_logo[legacy_key]
       end
     end
 
@@ -599,17 +778,20 @@ module Onetime
     #   warn             - log each migration message and continue
     #   silent           - ignore
     #
-    # An unrecognized policy value is treated as strict.
+    # An unrecognized policy value is treated as strict. Entries marked
+    # severity: :warn are soft deprecations (the legacy value still works
+    # via a fallback shim): they log under both 'strict' and 'warn' and
+    # never raise, so a working install keeps booting.
     #
     # @param conf [Hash] The merged configuration
     # @return [void]
-    # @raise [OT::ConfigError] When a deprecated key is found under strict policy
+    # @raise [OT::ConfigError] When a removed key is found under strict policy
     def check_deprecations(conf)
       detected = DEPRECATIONS.select do |dep|
         env_set = !!(dep[:env] && !ENV[dep[:env]].to_s.empty?)
 
         # Check path, optionally with a trigger proc for type-specific detection
-        path_value = dep[:path] && conf.dig(*dep[:path])
+        path_value = dep[:path] && dig_path(conf, dep[:path])
         path_set   = if dep[:trigger] && path_value
           dep[:trigger].call(path_value)
         else
@@ -620,10 +802,14 @@ module Onetime
       end
       return if detected.empty?
 
-      policy   = (conf.dig('compatibility', 'deprecated_config_mode') || 'strict').to_s
-      messages = detected.map { |dep| dep[:message] }
+      policy = (conf.dig('compatibility', 'deprecated_config_mode') || 'strict').to_s
       return if policy == 'silent'
 
+      soft, hard = detected.partition { |dep| dep[:severity] == :warn }
+      soft.each { |dep| OT.le "CONFIG DEPRECATION: #{dep[:message]}" }
+      return if hard.empty?
+
+      messages = hard.map { |dep| dep[:message] }
       if policy == 'warn'
         messages.each { |msg| OT.le "CONFIG DEPRECATION: #{msg}" }
         return

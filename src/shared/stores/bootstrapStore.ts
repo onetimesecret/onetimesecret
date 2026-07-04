@@ -55,6 +55,7 @@ const DEFAULTS: BootstrapPayload = {
   brand_font_family: undefined,
   brand_button_text_light: undefined,
   brand_logo_url: undefined,
+  brand_logo_alt: undefined,
   brand_favicon_url: undefined,
 };
 
