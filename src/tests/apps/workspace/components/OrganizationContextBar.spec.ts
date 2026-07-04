@@ -28,14 +28,27 @@ const mockShowOrgSwitcher = ref(true);
 const mockLockOrgSwitcher = ref(false);
 const mockShowDomainSwitcher = ref(true);
 const mockLockDomainSwitcher = ref(false);
+const mockIsSoloDefaultContext = ref(false);
+const mockVisibility = ref<{ organization: string; domain: string }>({
+  organization: 'show',
+  domain: 'hide',
+});
 
 vi.mock('@/shared/composables/useScopeSwitcherVisibility', () => ({
   useScopeSwitcherVisibility: () => ({
+    visibility: mockVisibility,
     showOrgSwitcher: mockShowOrgSwitcher,
     lockOrgSwitcher: mockLockOrgSwitcher,
     showDomainSwitcher: mockShowDomainSwitcher,
     lockDomainSwitcher: mockLockDomainSwitcher,
+    isSoloDefaultContext: mockIsSoloDefaultContext,
   }),
+}));
+
+// Enable the org switcher feature flag so the static-org-name fallback path
+// (gated on isOrganizationSwitcherEnabled) can be exercised.
+vi.mock('@/utils/features', () => ({
+  isOrganizationSwitcherEnabled: () => true,
 }));
 
 // Mock axios
@@ -68,6 +81,8 @@ describe('OrganizationContextBar', () => {
     mockLockOrgSwitcher.value = false;
     mockShowDomainSwitcher.value = true;
     mockLockDomainSwitcher.value = false;
+    mockIsSoloDefaultContext.value = false;
+    mockVisibility.value = { organization: 'show', domain: 'hide' };
   });
 
   afterEach(() => {
@@ -152,6 +167,42 @@ describe('OrganizationContextBar', () => {
 
       const domainSwitcher = wrapper.find('.domain-switcher');
       expect(domainSwitcher.attributes('data-locked')).toBe('true');
+    });
+  });
+
+  describe('Solo default org context', () => {
+    it('hides the static org-name chip when isSoloDefaultContext is true', async () => {
+      mockShowOrgSwitcher.value = false;
+      mockShowDomainSwitcher.value = true;
+      mockIsSoloDefaultContext.value = true;
+
+      wrapper = mountComponent({
+        organizations: [mockOrganization],
+        currentOrganization: mockOrganization,
+        isListFetched: true,
+      });
+
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="org-context-static"]').exists()).toBe(false);
+      // The domain switcher still shows for these users.
+      expect(wrapper.find('.domain-switcher').exists()).toBe(true);
+    });
+
+    it('shows the static org-name chip when the switcher is hidden but context is not solo', async () => {
+      mockShowOrgSwitcher.value = false;
+      mockShowDomainSwitcher.value = true;
+      mockIsSoloDefaultContext.value = false;
+
+      wrapper = mountComponent({
+        organizations: [mockOrganization],
+        currentOrganization: mockOrganization,
+        isListFetched: true,
+      });
+
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="org-context-static"]').exists()).toBe(true);
     });
   });
 

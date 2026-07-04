@@ -162,6 +162,24 @@ const canManageDomains = computed(() => {
 });
 
 /**
+ * Number of custom (non-canonical) domains in the current org context.
+ * Custom domains always carry an extid; the canonical domain never does.
+ */
+const customDomainCount = computed(
+  () => availableDomains.value.filter((domain) => getExtidByDomain(domain)).length
+);
+
+/**
+ * Whether the current org context has at least one custom domain.
+ *
+ * Drives the add/manage call-to-action for owners and admins:
+ * - No custom domains  → prominent "Add Domain" link (nothing to manage yet).
+ * - Has custom domains → compact [+] icon in the dropdown header (add another),
+ *   with the existing "Manage Domains" link retained below.
+ */
+const hasCustomDomains = computed(() => customDomainCount.value > 0);
+
+/**
  * Should component be visible
  */
 const shouldShow = computed(() => isContextActive.value);
@@ -190,6 +208,18 @@ const navigateToManageDomains = (): void => {
 };
 
 /**
+ * Navigate to the add-domain page (org-qualified).
+ * Falls back to the /domains/add redirect when no org context is available.
+ */
+const navigateToAddDomain = (): void => {
+  if (currentOrgExtid.value) {
+    router.push(`/org/${currentOrgExtid.value}/domains/add`);
+  } else {
+    router.push('/domains/add');
+  }
+};
+
+/**
  * Navigate to edit a specific domain (uses org-qualified routes)
  */
 const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
@@ -208,7 +238,7 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
     as="div"
     class="relative inline-flex"
     data-testid="domain-context-switcher"
-    v-slot="{ open }">
+    v-slot="{ open, close }">
     <!-- Trigger Button -->
     <MenuButton
       class="group inline-flex h-10 items-center gap-2 rounded-lg bg-gray-100 px-3 text-sm font-medium text-gray-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:focus:ring-offset-gray-900"
@@ -266,9 +296,28 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
         class="absolute left-0 top-full z-50 mt-1 max-h-60 w-max min-w-[220px] max-w-xs overflow-auto rounded-lg bg-white py-1 text-sm shadow-lg ring-1 ring-black/5 focus:outline-none dark:bg-gray-800 dark:ring-gray-700"
         data-testid="domain-context-switcher-dropdown">
         <!-- Header -->
-        <div
-          class="px-3 py-2 font-brand text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-          {{ t('web.domains.scope_header') }}
+        <div class="flex items-center justify-between px-3 py-2">
+          <span
+            class="font-brand text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            {{ t('web.domains.scope_header') }}
+          </span>
+
+          <!-- Compact add-domain action: shown once an owner/admin already has
+               a domain, so the "Add Domain" call to action demotes to an icon. -->
+          <button
+            v-if="canManageDomains && hasCustomDomains"
+            type="button"
+            class="-my-1 -mr-1 rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-brand-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-brand-400"
+            :title="t('web.domains.add_domain')"
+            :aria-label="t('web.domains.add_domain')"
+            data-testid="domain-context-add-icon"
+            @click="() => { close?.(); navigateToAddDomain(); }">
+            <OIcon
+              collection="heroicons"
+              name="plus-20-solid"
+              class="size-4"
+              aria-hidden="true" />
+          </button>
         </div>
 
         <!-- Domain Options -->
@@ -347,31 +396,60 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
           </button>
         </MenuItem>
 
-        <!-- Divider + Manage Domains Link (owners and admins only) -->
+        <!-- Divider + footer call to action (owners and admins only) -->
         <template v-if="canManageDomains">
-        <div
-          class="my-1 border-t border-gray-200 dark:border-gray-700"
-          role="separator"
-          aria-hidden="true" ></div>
+          <div
+            class="my-1 border-t border-gray-200 dark:border-gray-700"
+            role="separator"
+            aria-hidden="true" ></div>
 
-        <MenuItem v-slot="{ active }" @click="navigateToManageDomains">
-          <button
-            type="button"
-            class="mx-2 w-[calc(100%-1rem)] cursor-pointer select-none rounded-md px-2 py-2 text-left transition-colors duration-150"
-            :class="active ? 'bg-gray-100 dark:bg-gray-700' : ''"
-            data-testid="domain-context-manage-link">
-            <span class="flex items-center gap-2">
-              <OIcon
-                collection="heroicons"
-                name="cog-6-tooth"
-                class="size-4 text-gray-500 dark:text-gray-400"
-                aria-hidden="true" />
-              <span class="text-sm text-gray-700 dark:text-gray-300">
-                {{ t('web.domains.manage_domains') }}
+          <!-- No custom domains yet: prominent "Add Domain" call to action.
+               "Manage Domains" makes no sense when there is nothing to manage. -->
+          <MenuItem
+            v-if="!hasCustomDomains"
+            v-slot="{ active }"
+            @click="navigateToAddDomain">
+            <button
+              type="button"
+              class="mx-2 w-[calc(100%-1rem)] cursor-pointer select-none rounded-md px-2 py-2 text-left transition-colors duration-150"
+              :class="active ? 'bg-gray-100 dark:bg-gray-700' : ''"
+              data-testid="domain-context-add-link">
+              <span class="flex items-center gap-2">
+                <OIcon
+                  collection="heroicons"
+                  name="plus-20-solid"
+                  class="size-4 text-gray-500 dark:text-gray-400"
+                  aria-hidden="true" />
+                <span class="text-sm text-gray-700 dark:text-gray-300">
+                  {{ t('web.domains.add_domain') }}
+                </span>
               </span>
-            </span>
-          </button>
-        </MenuItem>
+            </button>
+          </MenuItem>
+
+          <!-- Has custom domains: keep the "Manage Domains" link
+               (the "Add Domain" action lives in the header [+] icon). -->
+          <MenuItem
+            v-else
+            v-slot="{ active }"
+            @click="navigateToManageDomains">
+            <button
+              type="button"
+              class="mx-2 w-[calc(100%-1rem)] cursor-pointer select-none rounded-md px-2 py-2 text-left transition-colors duration-150"
+              :class="active ? 'bg-gray-100 dark:bg-gray-700' : ''"
+              data-testid="domain-context-manage-link">
+              <span class="flex items-center gap-2">
+                <OIcon
+                  collection="heroicons"
+                  name="cog-6-tooth"
+                  class="size-4 text-gray-500 dark:text-gray-400"
+                  aria-hidden="true" />
+                <span class="text-sm text-gray-700 dark:text-gray-300">
+                  {{ t('web.domains.manage_domains') }}
+                </span>
+              </span>
+            </button>
+          </MenuItem>
         </template>
       </MenuItems>
     </transition>

@@ -63,12 +63,36 @@ export function useScopeSwitcherVisibility() {
     return ents.includes(ENTITLEMENTS.MANAGE_ORGS);
   });
 
-  // Hide org switcher on custom domains (the domain IS the org scope)
+  /**
+   * "Trivial solo" org context: the user has exactly one organization — their
+   * auto-created default — and is its only member. There is nothing to switch
+   * between and no collaborators to manage, so both the org switcher and the
+   * static org-name fallback are suppressed for a cleaner new-user surface.
+   *
+   * Requires is_default so a user who belongs to exactly one self-created
+   * (non-default) org still sees the switcher and org chip — that org is a
+   * deliberate choice, not a trivial artifact of signup.
+   *
+   * member_count comes from the organizations list safe_dump. When the list
+   * hasn't loaded yet (length 0) or the count is unknown, this stays false so
+   * the switcher is never hidden prematurely.
+   */
+  const isSoloDefaultContext = computed(() => {
+    const orgs = organizationStore.organizations;
+    if (orgs.length !== 1) return false;
+    if (!orgs[0].is_default) return false;
+    const memberCount = orgs[0].member_count;
+    return typeof memberCount === 'number' && memberCount <= 1;
+  });
+
+  // Hide org switcher on custom domains (the domain IS the org scope), and for
+  // a brand-new self-signup user whose only org is their solo default.
   const showOrgSwitcher = computed(
     () => !isCustom.value
       && visibility.value.organization !== 'hide'
       && isOrganizationSwitcherEnabled()
       && canManageOrgs.value
+      && !isSoloDefaultContext.value
   );
   const lockOrgSwitcher = computed(() => visibility.value.organization === 'locked');
 
@@ -81,5 +105,6 @@ export function useScopeSwitcherVisibility() {
     lockOrgSwitcher,
     showDomainSwitcher,
     lockDomainSwitcher,
+    isSoloDefaultContext,
   };
 }
