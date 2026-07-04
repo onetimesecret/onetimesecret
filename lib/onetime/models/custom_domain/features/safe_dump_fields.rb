@@ -92,6 +92,11 @@ module Onetime::CustomDomain::Features
       # payload (DomainSerializer#serialize_homepage_config) uses
       # HomepageConfig#effectively_enabled? instead — the two are
       # intentionally different views of the same record.
+      #
+      # @_homepage_config_cache is never invalidated after a write. Safe
+      # today because every safe_dump call site is read-only within its
+      # request; if a future path calls HomepageConfig.upsert and then
+      # safe_dump on the same instance, this will return the pre-write copy.
       base.safe_dump_field :homepage_config,
         ->(obj) {
           unless obj.instance_variable_defined?(:@_homepage_config_cache)
