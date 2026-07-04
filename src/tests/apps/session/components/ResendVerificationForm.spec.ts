@@ -86,6 +86,28 @@ describe('ResendVerificationForm', () => {
     expect(resendVerificationEmail).toHaveBeenCalledWith('prefilled@example.com');
   });
 
+  it('compact mode: one-click resend with no editable input or help text', async () => {
+    resendVerificationEmail.mockResolvedValue(true);
+    wrapper = mount(ResendVerificationForm, {
+      props: { email: 'known@example.com', compact: true },
+    });
+
+    // No editable field (it would compete with "start over") and no help blurb.
+    expect(wrapper.find(sel.input).exists()).toBe(false);
+    expect(wrapper.text()).not.toContain('web.auth.verify.resend_help_text');
+    // Short, de-emphasised button label.
+    const button = wrapper.find(sel.submit);
+    expect(button.exists()).toBe(true);
+    expect(button.text()).toContain('web.auth.verify.resend_short');
+
+    await wrapper.find(sel.form).trigger('submit.prevent');
+    await flushPromises();
+
+    // Resends to the known address without any typing.
+    expect(resendVerificationEmail).toHaveBeenCalledWith('known@example.com');
+    expect(wrapper.find(sel.confirmation).exists()).toBe(true);
+  });
+
   it('calls resendVerificationEmail with the entered email on submit', async () => {
     resendVerificationEmail.mockResolvedValue(true);
     wrapper = mount(ResendVerificationForm);

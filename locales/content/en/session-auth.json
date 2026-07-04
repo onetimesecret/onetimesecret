@@ -250,6 +250,10 @@
     "text": "Couldn't send the verification email. Please check your connection and try again.",
     "content_hash": "15149f46"
   },
+  "web.auth.verify.resend_short": {
+    "text": "Resend email",
+    "content_hash": "4f44603e"
+  },
   "web.auth.check_email._guidance": {
     "context": "Confirmation page shown right after signup, telling the user a verification link was emailed and they must click it before signing in."
   },
@@ -258,24 +262,20 @@
     "content_hash": "77322879"
   },
   "web.auth.check_email.sent_to": {
-    "text": "We've sent a verification link to:",
-    "content_hash": "c844718b"
+    "text": "We sent a verification link to",
+    "content_hash": "e795f9b7"
   },
   "web.auth.check_email.sent_to_generic": {
-    "text": "We've sent a verification link to your email address.",
-    "content_hash": "a93360d6"
+    "text": "We sent a verification link to your email address.",
+    "content_hash": "4e5510af"
   },
   "web.auth.check_email.instructions": {
-    "text": "Click the link in that email to activate your account, then sign in below.",
-    "content_hash": "ad00dd40"
+    "text": "Click the link in the email to activate your account.",
+    "content_hash": "389221ed"
   },
   "web.auth.check_email.spam_hint": {
-    "text": "Can't find it? Check your spam or junk folder — it can take a minute to arrive.",
-    "content_hash": "8cc93131"
-  },
-  "web.auth.check_email.go_to_signin": {
-    "text": "Continue to sign in",
-    "content_hash": "d398cd0a"
+    "text": "Can't find it? Check your spam folder.",
+    "content_hash": "d166d9a4"
   },
   "web.auth.check_email.wrong_email": {
     "text": "Entered the wrong address?",
@@ -284,6 +284,14 @@
   "web.auth.check_email.start_over": {
     "text": "Start over",
     "content_hash": "5eed7e9f"
+  },
+  "web.auth.check_email.already_verified": {
+    "text": "Already verified?",
+    "content_hash": "23bbbdd0"
+  },
+  "web.auth.check_email.signin_link": {
+    "text": "Sign in",
+    "content_hash": "bfd402b2"
   },
   "web.auth.change_password.title": {
     "text": "Change Password",

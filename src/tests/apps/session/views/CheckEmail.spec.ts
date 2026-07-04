@@ -36,12 +36,12 @@ vi.mock('@/apps/session/components/AuthView.vue', () => ({
   }),
 }));
 
-// Stub the resend form but expose its `email` prop so we can assert prefill.
+// Stub the resend form but expose its props so we can assert prefill + mode.
 vi.mock('@/apps/session/components/ResendVerificationForm.vue', () => ({
   default: defineComponent({
     name: 'ResendVerificationForm',
-    props: ['email'],
-    template: '<div data-testid="resend-stub" :data-email="email" />',
+    props: ['email', 'compact'],
+    template: '<div data-testid="resend-stub" :data-email="email" :data-compact="compact" />',
   }),
 }));
 
@@ -87,12 +87,22 @@ describe('CheckEmail.vue', () => {
     expect(wrapper.text()).toContain('web.auth.check_email.sent_to_generic');
   });
 
-  it('prefills the resend form with the known address', async () => {
+  it('uses a compact one-click resend prefilled with the known address', async () => {
     wrapper = await createWrapper({ email: 'tom@myspace.com' });
 
     const resend = wrapper.find('[data-testid="resend-stub"]');
     expect(resend.exists()).toBe(true);
     expect(resend.attributes('data-email')).toBe('tom@myspace.com');
+    // Email is known → compact (no editable field competing with "start over").
+    expect(resend.attributes('data-compact')).toBe('true');
+  });
+
+  it('falls back to the full resend form when no email is known', async () => {
+    wrapper = await createWrapper({});
+
+    const resend = wrapper.find('[data-testid="resend-stub"]');
+    expect(resend.exists()).toBe(true);
+    expect(resend.attributes('data-compact')).toBe('false');
   });
 
   it('preserves email + billing params on the onward sign-in link', async () => {
