@@ -148,8 +148,15 @@ const handleHomepageSelect = async (choice: HomepageChoice) => {
       organization.value?.current_user_role,
     );
     if (result) {
-      await initializeDomain();
-      notifications.show(t('web.domains.homepage.update_success'), 'success', 'top');
+      // Gate the success toast on the refetch actually landing. The selector
+      // reads its value from the refreshed domain record, so if the refetch
+      // fails (initializeDomain surfaces its own error) a "saved" toast would
+      // both contradict that error and sit above a selector still showing the
+      // pre-change value.
+      const refreshed = await initializeDomain();
+      if (refreshed) {
+        notifications.show(t('web.domains.homepage.update_success'), 'success', 'top');
+      }
     }
   } finally {
     homepageSaving.value = false;

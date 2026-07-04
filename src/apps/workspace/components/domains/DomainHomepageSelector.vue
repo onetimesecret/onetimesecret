@@ -19,7 +19,7 @@
  * recipient) — selecting it would otherwise create a homepage with
  * nowhere to deliver. The backend enforces the same rule on write.
  */
-import { computed } from 'vue';
+import { computed, nextTick, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { RouteLocationRaw } from 'vue-router';
 import OIcon from '@/shared/components/icons/OIcon.vue';
@@ -94,6 +94,34 @@ const select = (key: HomepageChoice) => {
   emit('update:modelValue', key);
 };
 
+// Roving-tabindex focus management. A native radiogroup moves DOM focus with
+// the arrow keys; without this the selection (aria-checked + tab stop) moves
+// but focus stays put, so Space/Enter re-activates the previously focused
+// option. Selecting also triggers an async save that disables the whole
+// group and blurs the active button, so we additionally pull focus back to
+// the tab stop once the group re-enables. Mirrors DomainSigninConfigForm's
+// segmented keyboard nav.
+const optionEls = new Map<HomepageChoice, HTMLButtonElement>();
+const registerOptionEl = (key: HomepageChoice, el: unknown) => {
+  if (el) optionEls.set(key, el as HTMLButtonElement);
+  else optionEls.delete(key);
+};
+
+const focusOption = async (key: HomepageChoice) => {
+  await nextTick();
+  optionEls.get(key)?.focus();
+};
+
+// Set only when the user drives selection from the keyboard, so focus is
+// restored after the save-induced disable clears; cleared on pointer
+// interaction so a click never yanks focus back into the group.
+let restoreFocusAfterSave = false;
+
+const onOptionClick = (key: HomepageChoice) => {
+  restoreFocusAfterSave = false;
+  select(key);
+};
+
 // Shared by the tab stop and keyboard nav below so neither re-filters
 // `options` on every render/keypress.
 const enabledOptions = computed(() => options.value.filter((o) => !isOptionDisabled(o.key)));
@@ -110,6 +138,20 @@ const tabStopKey = computed<HomepageChoice | null>(() => {
 });
 
 const optionTabindex = (key: HomepageChoice) => (key === tabStopKey.value ? 0 : -1);
+
+// Selecting via keyboard kicks off a save that disables (and blurs) the
+// group; when it re-enables, return focus to the tab stop so the keyboard
+// user is not dropped onto <body> and forced to Tab back in.
+watch(
+  () => props.disabled,
+  (isDisabled, wasDisabled) => {
+    if (wasDisabled && !isDisabled && restoreFocusAfterSave) {
+      restoreFocusAfterSave = false;
+      const key = tabStopKey.value;
+      if (key) focusOption(key);
+    }
+  }
+);
 
 const onKeydown = (event: KeyboardEvent) => {
   const keys = ['ArrowDown', 'ArrowRight', 'ArrowUp', 'ArrowLeft'];
@@ -129,7 +171,16 @@ const onKeydown = (event: KeyboardEvent) => {
   const currentIdx = enabled.findIndex((o) => o.key === referenceKey);
   const delta = event.key === 'ArrowDown' || event.key === 'ArrowRight' ? 1 : -1;
   const nextIdx = (currentIdx + delta + enabled.length) % enabled.length;
-  select(enabled[nextIdx].key);
+  const nextKey = enabled[nextIdx].key;
+  const changed = nextKey !== props.modelValue;
+
+  select(nextKey);
+  // Move focus with the selection (native radiogroup behaviour). Only arm the
+  // post-save restore when the selection actually changed — a wrap onto the
+  // already-selected option fires no save, so there is no disable to recover
+  // from and the flag must not linger for an unrelated later disable.
+  if (changed) restoreFocusAfterSave = true;
+  focusOption(nextKey);
 };
 </script>
 
@@ -143,6 +194,7 @@ const onKeydown = (event: KeyboardEvent) => {
       v-for="option in options"
       :key="option.key">
       <button
+        :ref="(el) => registerOptionEl(option.key, el)"
         type="button"
         role="radio"
         :aria-checked="option.key === modelValue"
@@ -160,7 +212,7 @@ const onKeydown = (event: KeyboardEvent) => {
               ? 'hover:border-gray-300 hover:bg-gray-50 dark:hover:border-gray-600 dark:hover:bg-gray-700/30'
               : '',
         ]"
-        @click="select(option.key)">
+        @click="onOptionClick(option.key)">
         <!-- Radio indicator -->
         <span
           :class="[

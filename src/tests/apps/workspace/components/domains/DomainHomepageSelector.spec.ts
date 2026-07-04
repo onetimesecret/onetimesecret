@@ -1,6 +1,6 @@
 // src/tests/apps/workspace/components/domains/DomainHomepageSelector.spec.ts
 
-import { mount } from '@vue/test-utils';
+import { flushPromises, mount } from '@vue/test-utils';
 import { describe, it, expect, vi } from 'vitest';
 import DomainHomepageSelector from '@/apps/workspace/components/domains/DomainHomepageSelector.vue';
 
@@ -20,8 +20,9 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
 
 const INCOMING_ROUTE = { name: 'DomainIncoming', params: { orgid: 'org_1', extid: 'cd_1' } };
 
-function mountSelector(props: Record<string, unknown> = {}) {
+function mountSelector(props: Record<string, unknown> = {}, attachTo?: HTMLElement) {
   return mount(DomainHomepageSelector, {
+    attachTo,
     props: {
       modelValue: 'private',
       incomingConfigRoute: INCOMING_ROUTE,
@@ -128,6 +129,57 @@ describe('DomainHomepageSelector', () => {
 
     // create -> (skip incoming) -> wraps to private
     expect(wrapper.emitted('update:modelValue')).toEqual([['private']]);
+  });
+
+  it('moves DOM focus with the selection when navigating by keyboard', async () => {
+    // WAI-ARIA radiogroups move focus with the arrows; without it the
+    // selection moves but focus stays put, so Space/Enter re-activates the
+    // previously focused option.
+    const wrapper = mountSelector({ modelValue: 'private' }, document.body);
+
+    await wrapper.find('[role="radiogroup"]').trigger('keydown', { key: 'ArrowDown' });
+    await flushPromises();
+
+    expect(document.activeElement).toBe(
+      wrapper.find('[data-testid="homepage-option-create"]').element
+    );
+
+    wrapper.unmount();
+  });
+
+  it('restores focus to the tab stop after a save-driven disable clears', async () => {
+    // Selecting kicks off a save that disables (and blurs) the group; when it
+    // re-enables the keyboard user must not be dropped onto <body>.
+    const wrapper = mountSelector({ modelValue: 'private' }, document.body);
+
+    await wrapper.find('[role="radiogroup"]').trigger('keydown', { key: 'ArrowDown' });
+    // Save in flight: group disabled, active button blurred.
+    await wrapper.setProps({ disabled: true });
+    (document.activeElement as HTMLElement | null)?.blur();
+    // Save resolves; the selection commits and the group re-enables.
+    await wrapper.setProps({ disabled: false, modelValue: 'create' });
+    await flushPromises();
+
+    expect(document.activeElement).toBe(
+      wrapper.find('[data-testid="homepage-option-create"]').element
+    );
+
+    wrapper.unmount();
+  });
+
+  it('does not steal focus into the group when re-enabling after a pointer selection', async () => {
+    const wrapper = mountSelector({ modelValue: 'private' }, document.body);
+
+    // Pointer selection must clear any keyboard-restore intent.
+    await wrapper.find('[data-testid="homepage-option-create"]').trigger('click');
+    await wrapper.setProps({ disabled: true });
+    (document.activeElement as HTMLElement | null)?.blur();
+    await wrapper.setProps({ disabled: false, modelValue: 'create' });
+    await flushPromises();
+
+    expect(document.activeElement).toBe(document.body);
+
+    wrapper.unmount();
   });
 
   it('keeps a tab stop and sane arrow movement when the stored selection is disabled', async () => {
