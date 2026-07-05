@@ -199,10 +199,10 @@ describe('DomainContextSwitcher add/manage call-to-action', () => {
 describe('DomainContextSwitcher closes on navigation', () => {
   let wrapper: VueWrapper;
 
-  const rowButtonFor = (w: VueWrapper, domain: string) =>
-    w
-      .findAll('[role="menuitem"] > button')
-      .find((b) => b.text().includes(domain));
+  // Select a domain row by its stable test id (keyed by extid) rather than by
+  // matching rendered domain text.
+  const rowButtonFor = (w: VueWrapper, extid: string) =>
+    w.find(`[data-testid="domain-menu-item-${extid}"]`);
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -222,7 +222,7 @@ describe('DomainContextSwitcher closes on navigation', () => {
   it('closes the dropdown when a domain row is selected', async () => {
     wrapper = mount(DomainContextSwitcher);
 
-    await rowButtonFor(wrapper, 'acme.example.com')!.trigger('click');
+    await rowButtonFor(wrapper, 'cd1').trigger('click');
 
     expect(mockClose).toHaveBeenCalled();
   });

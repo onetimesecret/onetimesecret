@@ -129,12 +129,9 @@ describe('DomainContextSwitcher real-HeadlessUI close behaviour', () => {
     wrapper = mount(DomainContextSwitcher, { attachTo: document.body });
     await openMenu(wrapper);
 
-    const row = wrapper
-      .findAll('[data-testid="domain-context-switcher-dropdown"] button')
-      .find((b) => b.text().includes('acme.example.com'));
-    expect(row).toBeTruthy();
-
-    await row!.trigger('click');
+    // Select the row by its stable test id (extid 'cd1' for acme.example.com)
+    // rather than substring-matching the rendered domain text.
+    await wrapper.get('[data-testid="domain-menu-item-cd1"]').trigger('click');
     await nextTick();
     await flushPromises();
 

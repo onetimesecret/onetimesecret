@@ -346,6 +346,7 @@ const navigateToDomainSettings = (
           @click="selectDomain(domain, close)">
           <button
             type="button"
+            :data-testid="`domain-menu-item-${getExtidByDomain(domain) ?? 'canonical'}`"
             class="group/row relative w-full select-none py-2 pl-3 pr-9 text-left transition-colors duration-150"
             :class="[
               isOptionDisabled(domain)
