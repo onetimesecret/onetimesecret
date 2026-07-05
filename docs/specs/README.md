@@ -32,3 +32,9 @@ out of the canonical enum, and the disclosure policy for the terminal screens.
 - [terminal-screen-ux-analysis.md](./terminal-screen-ux-analysis.md) — UX
   analysis of the terminal-screen failure surface, with referenceable
   opportunity IDs for follow-up work.
+
+## Colonel admin rebuild
+
+- [colonel-ui/](./colonel-ui/00-epic.md) — Issue drafts for the Colonel Admin
+  Rebuild (epic #3653): phase-0 scaffold through cutover, plus backend debt.
+  The epic doc is the folder index; the live checklist lives on #3653.
