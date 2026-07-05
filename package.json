@@ -93,6 +93,10 @@
     "test:coverage": "pnpm test:base run --coverage",
     "test:playwright": "pnpm playwright test --config=e2e/playwright.config.ts",
     "test:playwright:fail-fast": "pnpm test:playwright -x",
+    "test:a11y": "pnpm playwright test --config=e2e/playwright.config.ts e2e/all/accessibility.spec.ts",
+    "test:a11y:update": "A11Y_UPDATE_BASELINE=1 pnpm test:a11y",
+    "test:a11y:full": "pnpm playwright test --config=e2e/playwright.config.ts e2e/full/accessibility.spec.ts",
+    "test:a11y:full:update": "A11Y_UPDATE_BASELINE=1 pnpm test:a11y:full",
     "test:rspec": "RACK_ENV=test bundle exec rspec",
     "test:rspec:unit": "bundle exec rake spec:unit",
     "test:rspec:cli": "bundle exec rake spec:cli",
@@ -182,6 +186,7 @@
   },
   "devDependencies": {
     "@apidevtools/swagger-parser": "^12.1.0",
+    "@axe-core/playwright": "^4.12.1",
     "@eslint/js": "^9.39.4",
     "@eslint/plugin-kit": "^0.7.0",
     "@intlify/devtools-types": "^11.3.0",
@@ -250,6 +255,7 @@
     "vite-plugin-vue-devtools": "^8.1.2",
     "vite-plugin-vue-inspector": "^5.4.0",
     "vitest": "^4.1.0",
+    "vitest-axe": "^0.1.0",
     "vue-eslint-parser": "^10.4.0",
     "vue-router-mock": "^2.0.2",
     "vue-tsc": "^3.3.2"

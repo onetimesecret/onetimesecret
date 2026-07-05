@@ -30,9 +30,9 @@ defineProps({
             aria-hidden="true" />
         </div>
         <div class="ml-3 flex-1">
-          <h3 class="text-sm font-medium text-red-800 dark:text-red-100">
+          <p class="text-sm font-medium text-red-800 dark:text-red-100">
             {{ t('web.COMMON.error') }}
-          </h3>
+          </p>
           <div class="mt-2 text-sm text-red-700 dark:text-red-200">
             <!-- Single error string -->
             <p v-if="error && typeof error === 'string'">
@@ -62,9 +62,9 @@ defineProps({
             aria-hidden="true" />
         </div>
         <div class="ml-3 flex-1">
-          <h3 class="text-sm font-medium text-green-800 dark:text-green-100">
+          <p class="text-sm font-medium text-green-800 dark:text-green-100">
             {{ t('web.STATUS.success') }}
-          </h3>
+          </p>
           <div class="mt-2 text-sm text-green-700 dark:text-green-200">
             <!-- Single success message -->
             <p v-if="typeof success === 'string'">

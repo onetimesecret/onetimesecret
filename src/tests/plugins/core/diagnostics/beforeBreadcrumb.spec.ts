@@ -235,6 +235,63 @@ describe('beforeBreadcrumb handler', () => {
       expect(result?.data?.to).toBe('/colonel/admin');
     });
 
+    // -----------------------------------------------------------------------
+    // PII pattern net on navigation breadcrumbs: an email in the query must be
+    // redacted even when the route opts out of param scrubbing or has no path
+    // params. Opt-out governs path-param VALUE scrubbing only, not the email/
+    // secret net. (Policy: no PII in the URL — src/utils/pii.ts, README.)
+    // -----------------------------------------------------------------------
+    it('scrubs an email in the query even when sentryScrubParams: false', () => {
+      (mockRouter.resolve as ReturnType<typeof vi.fn>).mockImplementation(() => ({
+        params: {},
+        meta: { sentryScrubParams: false },
+      }));
+
+      const handler = getBeforeBreadcrumb();
+      const breadcrumb: Breadcrumb = {
+        category: 'navigation',
+        data: { from: '/', to: '/check-email?email=user@example.com' },
+      };
+
+      const result = handler(breadcrumb);
+
+      expect(result?.data?.to).toBe('/check-email?email=[EMAIL_REDACTED]');
+    });
+
+    it('scrubs an email in the query on a route with no path params', () => {
+      (mockRouter.resolve as ReturnType<typeof vi.fn>).mockImplementation(() => ({
+        params: {},
+        meta: {},
+      }));
+
+      const handler = getBeforeBreadcrumb();
+      const breadcrumb: Breadcrumb = {
+        category: 'navigation',
+        data: { from: '/pricing?email=user@example.com', to: '/signin' },
+      };
+
+      const result = handler(breadcrumb);
+
+      expect(result?.data?.from).toBe('/pricing?email=[EMAIL_REDACTED]');
+    });
+
+    it('preserves benign billing params verbatim (no over-redaction)', () => {
+      (mockRouter.resolve as ReturnType<typeof vi.fn>).mockImplementation(() => ({
+        params: {},
+        meta: { sentryScrubParams: false },
+      }));
+
+      const handler = getBeforeBreadcrumb();
+      const breadcrumb: Breadcrumb = {
+        category: 'navigation',
+        data: { from: '/', to: '/check-email?product=identity&interval=month' },
+      };
+
+      const result = handler(breadcrumb);
+
+      expect(result?.data?.to).toBe('/check-email?product=identity&interval=month');
+    });
+
     it('scrubs only named params when sentryScrubParams is string[]', () => {
       (mockRouter.resolve as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
         if (path === '/user/john/token/secret123') {

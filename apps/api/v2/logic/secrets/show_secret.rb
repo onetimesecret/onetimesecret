@@ -16,6 +16,7 @@ module V2::Logic
     #   only metadata such as whether a passphrase is required. The secret can
     #   only be viewed once.
     class ShowSecret < V2::Logic::Base
+      include AccessTelemetry
       include Onetime::Logic::GuestRouteGating
       include Onetime::Security::PassphraseRateLimiter
 
@@ -94,7 +95,20 @@ module V2::Logic
         @is_owner       = secret.owner?(cust)
         @one_liner      = one_liner
 
-        secret.previewed! if secret.state?(:new)
+        # Fetching metadata must not advance the secret's lifecycle state
+        # (GET is a safe method, #3633); the access is recorded on the
+        # receipt's timeline instead. Lifecycle now only moves on a genuine
+        # reveal or burn.
+        #
+        # Skip on a winning reveal: that access is already captured as the
+        # `revealed` lifecycle event (which fans out to the org trail via
+        # receipt.revealed!), so also recording `secret_get` here would
+        # double-count the same request — one reveal would appear twice in
+        # the trail and inflate the creator's access count with the
+        # consumption itself. A metadata-only GET, a wrong passphrase, or a
+        # lost reveal race all leave show_secret false and are recorded as a
+        # genuine (non-consuming) access.
+        record_access_telemetry('secret_get') unless show_secret
 
         success_data
       end

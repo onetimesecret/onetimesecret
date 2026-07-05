@@ -9,10 +9,13 @@ module V2::Logic
     # Show Secret Status
     #
     # @api Checks whether a secret exists and returns its current state
-    #   without consuming it. Returns the secret's metadata including
-    #   expiration details, or a state of "unknown" if the secret does
-    #   not exist.
+    #   without consuming it or changing it. Returns the secret's metadata
+    #   including expiration details, or a state of "unknown" if the secret
+    #   does not exist. The access is recorded as telemetry on the secret's
+    #   receipt, visible to the secret's creator.
     class ShowSecretStatus < V2::Logic::Base
+      include AccessTelemetry
+
       SCHEMAS = { response: 'secretStatus' }.freeze
 
       attr_reader :identifier, :current_expiration, :secret, :verification
@@ -29,12 +32,12 @@ module V2::Logic
       def process
         @current_expiration = secret.current_expiration unless secret.nil?
 
-        response_data = success_data
+        # A status check reads the secret's state; it must not advance it
+        # (GET is a safe method, #3633). The fetch is recorded on the
+        # receipt's access timeline instead.
+        record_access_telemetry('status_get')
 
-        # Otherwise it'll be flagged previewed before we've even sent the response.
-        secret.previewed! unless secret.nil?
-
-        response_data
+        success_data
       end
 
       def success_data
