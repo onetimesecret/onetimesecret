@@ -35,6 +35,25 @@ export const SENTRY_KEY = Symbol('sentry');
 import { scrubSensitiveStrings, scrubUrlWithPatterns } from './diagnostics/scrubbers';
 
 /**
+ * Two-layer URL scrubbing for a single URL string:
+ *   1. Path-param VALUE scrubbing (governed by `sentryScrubParams`) — redacts
+ *      the specific resolved param values passed in `sortedValues`.
+ *   2. The always-on pattern safety-net (`scrubUrlWithPatterns`) — redacts
+ *      emails, 62-char verifiable IDs and sensitive path segments by shape.
+ *
+ * Layer 2 runs even when `sortedValues` is empty, i.e. when a route opts out of
+ * param scrubbing (`sentryScrubParams: false`) or simply has no path params.
+ * The opt-out only governs which *param values* are scrubbed (layer 1); it must
+ * never disable the PII/secret net, or an email carried in a query string
+ * (?email=...) would reach Sentry unredacted. See src/utils/pii.ts and
+ * src/router/README.md "Query-string policy".
+ */
+function scrubUrlValuesThenPatterns(url: string, sortedValues: string[]): string {
+  const valueScrubbed = sortedValues.length > 0 ? scrubUrlWithValues(url, sortedValues) : url;
+  return scrubUrlWithPatterns(valueScrubbed);
+}
+
+/**
  * Creates a Sentry beforeBreadcrumb handler that scrubs sensitive URLs at capture time.
  *
  * This handler uses a hybrid approach based on breadcrumb category:
@@ -64,33 +83,28 @@ function createBeforeBreadcrumbHandler(router: Router) {
           return path;
         }
 
+        // Layer 1 (path-param VALUE scrubbing) is opt-out-governed; layer 2 (the
+        // pattern net inside scrubUrlValuesThenPatterns) is not. Collect the
+        // param values only when the route neither opts out nor lacks params;
+        // otherwise fall through with no values and let the net still run.
+        let sortedValues: string[] = [];
         try {
           const resolved = router.resolve(path);
           const sentryScrubParams = resolved.meta.sentryScrubParams as
             | RouteMeta['sentryScrubParams']
             | undefined;
 
-          // Explicitly opted out of scrubbing
-          if (sentryScrubParams === false) {
-            return path;
+          if (sentryScrubParams !== false) {
+            const params = resolved.params as Record<string, string | string[]>;
+            if (params && Object.keys(params).length > 0) {
+              sortedValues = collectValuesToRedact(params, sentryScrubParams);
+            }
           }
-
-          const params = resolved.params as Record<string, string | string[]>;
-          if (!params || Object.keys(params).length === 0) {
-            return path;
-          }
-
-          const sortedValues = collectValuesToRedact(params, sentryScrubParams);
-          if (sortedValues.length === 0) {
-            return path;
-          }
-
-          // Use centralized utility for consistency and hostname protection
-          return scrubUrlWithValues(path, sortedValues);
         } catch {
-          // If resolution fails, apply fallback pattern scrubbing
-          return scrubUrlWithPatterns(path);
+          // Resolution failed — fall through to the always-on pattern net below.
         }
+
+        return scrubUrlValuesThenPatterns(path, sortedValues);
       };
 
       if (breadcrumb.data.to) {
@@ -153,50 +167,54 @@ function createBeforeSendHandler(router: Router) {
     // Scrub exception messages and standalone messages (regex-based)
     scrubEventMessages(event);
 
-    // Scrub sensitive route params from URLs based on route metadata
+    // Scrub sensitive route params from URLs based on route metadata.
     const currentRoute = router.currentRoute.value;
     const sentryScrubParams = currentRoute.meta.sentryScrubParams as RouteMeta['sentryScrubParams'];
 
-    // If explicitly opted out, return event without URL scrubbing
-    // (exception message scrubbing above still applies)
-    if (sentryScrubParams === false) {
-      return event;
-    }
-
-    // Get route params to scrub (all params by default)
-    const params = currentRoute.params as Record<string, string | string[]>;
-    if (!params || Object.keys(params).length === 0) {
-      return event;
-    }
-
-    // Collect values to redact once, reuse for all URL scrubbing
-    const sortedValues = collectValuesToRedact(params, sentryScrubParams);
-    if (sortedValues.length === 0) {
-      return event;
+    // Layer 1 — path-param VALUE scrubbing — is opt-out-governed: collect the
+    // resolved param values only when the route neither opts out nor lacks
+    // params. Layer 2 (the pattern net inside scrubUrlValuesThenPatterns) runs
+    // regardless, so an email in a query string is redacted even here. The
+    // exception-message scrub above already ran unconditionally.
+    let sortedValues: string[] = [];
+    if (sentryScrubParams !== false) {
+      const params = currentRoute.params as Record<string, string | string[]>;
+      if (params && Object.keys(params).length > 0) {
+        sortedValues = collectValuesToRedact(params, sentryScrubParams);
+      }
     }
 
     // Scrub event.request?.url
     if (event.request?.url) {
-      event.request.url = scrubUrlWithValues(event.request.url, sortedValues);
+      event.request.url = scrubUrlValuesThenPatterns(event.request.url, sortedValues);
     }
 
     // Scrub event.transaction
     if (event.transaction) {
-      event.transaction = scrubUrlWithValues(event.transaction, sortedValues);
+      event.transaction = scrubUrlValuesThenPatterns(event.transaction, sortedValues);
     }
 
-    // Scrub breadcrumb URLs (values already computed, just apply)
+    // Scrub breadcrumb URLs
     if (event.breadcrumbs) {
       event.breadcrumbs = event.breadcrumbs.map((breadcrumb: Breadcrumb) => {
         if (breadcrumb.data) {
           if (breadcrumb.data.url) {
-            breadcrumb.data.url = scrubUrlWithValues(breadcrumb.data.url as string, sortedValues);
+            breadcrumb.data.url = scrubUrlValuesThenPatterns(
+              breadcrumb.data.url as string,
+              sortedValues
+            );
           }
           if (breadcrumb.data.to) {
-            breadcrumb.data.to = scrubUrlWithValues(breadcrumb.data.to as string, sortedValues);
+            breadcrumb.data.to = scrubUrlValuesThenPatterns(
+              breadcrumb.data.to as string,
+              sortedValues
+            );
           }
           if (breadcrumb.data.from) {
-            breadcrumb.data.from = scrubUrlWithValues(breadcrumb.data.from as string, sortedValues);
+            breadcrumb.data.from = scrubUrlValuesThenPatterns(
+              breadcrumb.data.from as string,
+              sortedValues
+            );
           }
         }
         return breadcrumb;
