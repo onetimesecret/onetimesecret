@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/models/custom_domain/homepage_config'
 require_relative 'base'
 require_relative 'serializers'
 
@@ -127,6 +128,8 @@ module DomainsAPI
             )
           end
 
+          log_homepage_drift unless @incoming_config.ready?
+
           success_data
         end
 
@@ -135,6 +138,23 @@ module DomainsAPI
             user_id: cust.extid,
             record: serialize_incoming_config_admin(@incoming_config),
           }
+        end
+
+        private
+
+        # This write left the config unready (disabled or zero recipients)
+        # while the domain's homepage points at the incoming form.
+        # Deliberately permissive — blocking would invert the dependency and
+        # trap legitimate edits; the bootstrap serializer fails the homepage
+        # closed to the trust card — but leave an audit trail so a silently
+        # trust-carded homepage is traceable to this write.
+        def log_homepage_drift
+          homepage = Onetime::CustomDomain::HomepageConfig.find_by_domain_id(@custom_domain.identifier)
+          return unless homepage&.enabled? && homepage.incoming_mode?
+
+          OT.li "[PutIncomingConfig] domain=#{@custom_domain.identifier} homepage secrets_mode=incoming " \
+                "now unready (enabled=#{@incoming_config.enabled?} recipients=#{@incoming_config.recipients.size}) " \
+                "after update by user=#{cust.extid}; public homepage degrades to trust card"
         end
       end
     end
