@@ -205,19 +205,13 @@
         <div class="p-8">
           <!-- Secret Input Section -->
           <span v-show="selectedAction === 'create-link'">
-            <label
-              id="secretContentLabel"
-              class="sr-only">
-              <!--
-                  Using sr-only (screen-reader only) for this main content area because:
-                  1. The purpose of a large textarea in a secret-sharing context is visually self-evident
-                  2. The placeholder text provides sufficient visual context for sighted users
-                  3. Other form fields (passphrase, expiration, etc.) keep visible labels as they
-                      represent configuration options that need explicit identification
-                -->
-              {{ t('web.secrets.secret_content') || 'Secret Content' }}
-            </label>
-
+            <!--
+              The secret content textarea is labelled by its own aria-label
+              (web.secrets.enter_the_secret_content_here, set inside
+              SecretContentInputArea). A separate sr-only <label> was removed
+              because it had no associated control (invalid label semantics)
+              and would have been overridden by that aria-label anyway.
+            -->
             <SecretContentInputArea
               ref="secretContentInput"
               v-model:content="form.secret"
