@@ -25,13 +25,15 @@
 // Local sandbox runs point Chromium at a pre-installed binary via the
 // A11Y_CHROME_PATH env var (wired in e2e/playwright.config.ts).
 
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import {
   scanPage,
   loadBaseline,
   compareToBaseline,
   formatFailure,
   updateBaselineScope,
+  primeTheme,
+  assertThemeApplied,
   IS_UPDATE_BASELINE,
   FULL_BASELINE_PATH,
   type Theme,
@@ -61,53 +63,13 @@ const AUTH_SURFACES = [
 
 const THEMES: Theme[] = ['light', 'dark'];
 
-/** localStorage key read by src/shared/composables/useTheme.ts ('true' = dark). */
-const THEME_STORAGE_KEY = 'restMode';
-
 /**
- * Make a theme apply deterministically BEFORE any app script runs:
- *  - Persist the app's own preference key (useTheme reads localStorage first),
- *  - and set the OS-level color-scheme media as a belt-and-suspenders fallback.
- * useTheme.initializeTheme() then toggles `html.dark` from the stored value.
- * addInitScript runs after storageState localStorage is applied, so this wins.
+ * Readiness timeout for `html[data-app-ready]`. Authenticated surfaces hydrate
+ * more (org/account data, more components) than the public pages, so give them
+ * headroom over Playwright's default rather than risk a flaky bounce on a slow
+ * first paint.
  */
-async function primeTheme(page: Page, theme: Theme): Promise<void> {
-  const isDark = theme === 'dark';
-  await page.emulateMedia({ colorScheme: isDark ? 'dark' : 'light' });
-  await page.addInitScript(
-    ([key, value]) => {
-      try {
-        window.localStorage.setItem(key, value);
-      } catch {
-        /* localStorage may be unavailable; media emulation still applies */
-      }
-    },
-    [THEME_STORAGE_KEY, String(isDark)]
-  );
-}
-
-/**
- * Assert the requested theme genuinely took effect. A silent light-mode scan
- * mislabeled 'dark' is worse than useless, so fail loudly if `html.dark`
- * disagrees with the intended theme.
- */
-async function assertThemeApplied(page: Page, theme: Theme): Promise<void> {
-  const hasDarkClass = await page.evaluate(() =>
-    document.documentElement.classList.contains('dark')
-  );
-  if (theme === 'dark') {
-    expect(
-      hasDarkClass,
-      "Dark theme did not apply: html is missing the 'dark' class after load. " +
-        'Refusing to scan — a light-mode scan mislabeled "dark" would poison the baseline.'
-    ).toBe(true);
-  } else {
-    expect(
-      hasDarkClass,
-      "Light theme did not apply: html unexpectedly has the 'dark' class after load."
-    ).toBe(false);
-  }
-}
+const APP_READY_TIMEOUT_MS = 30_000;
 
 for (const theme of THEMES) {
   test.describe(`Accessibility (authenticated) — ${theme} theme`, () => {
@@ -116,7 +78,9 @@ for (const theme of THEMES) {
         await primeTheme(page, theme);
 
         await page.goto(route);
-        await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+        await expect(page.locator('html[data-app-ready="true"]')).toBeAttached({
+          timeout: APP_READY_TIMEOUT_MS,
+        });
 
         // Guard against a silent auth-guard bounce: an unauthenticated session
         // would redirect these requiresAuth routes to /signin, which would

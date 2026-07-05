@@ -19,7 +19,7 @@
 // callers are unaffected.
 
 import { AxeBuilder } from '@axe-core/playwright';
-import type { Page, TestInfo } from '@playwright/test';
+import { expect, type Page, type TestInfo } from '@playwright/test';
 import type { AxeResults, Result as AxeRule } from 'axe-core';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -57,6 +57,57 @@ export const AXE_TAGS = [
 ] as const;
 
 export type Theme = 'light' | 'dark';
+
+/** localStorage key read by src/shared/composables/useTheme.ts ('true' = dark). */
+export const THEME_STORAGE_KEY = 'restMode';
+
+/**
+ * Make a theme apply deterministically BEFORE any app script runs:
+ *  - Persist the app's own preference key (useTheme reads localStorage first),
+ *  - and set the OS-level color-scheme media as a belt-and-suspenders fallback.
+ * useTheme.initializeTheme() then toggles `html.dark` from the stored value.
+ * addInitScript runs after storageState localStorage is applied, so this wins.
+ *
+ * Shared by the public (e2e/all) and authenticated (e2e/full) a11y specs so a
+ * future change (e.g. to THEME_STORAGE_KEY) only happens in one place.
+ */
+export async function primeTheme(page: Page, theme: Theme): Promise<void> {
+  const isDark = theme === 'dark';
+  await page.emulateMedia({ colorScheme: isDark ? 'dark' : 'light' });
+  await page.addInitScript(
+    ([key, value]) => {
+      try {
+        window.localStorage.setItem(key, value);
+      } catch {
+        /* localStorage may be unavailable; media emulation still applies */
+      }
+    },
+    [THEME_STORAGE_KEY, String(isDark)]
+  );
+}
+
+/**
+ * Assert the requested theme genuinely took effect. A silent light-mode scan
+ * mislabeled 'dark' is worse than useless, so fail loudly if `html.dark`
+ * disagrees with the intended theme.
+ */
+export async function assertThemeApplied(page: Page, theme: Theme): Promise<void> {
+  const hasDarkClass = await page.evaluate(() =>
+    document.documentElement.classList.contains('dark')
+  );
+  if (theme === 'dark') {
+    expect(
+      hasDarkClass,
+      "Dark theme did not apply: html is missing the 'dark' class after load. " +
+        'Refusing to scan — a light-mode scan mislabeled "dark" would poison the baseline.'
+    ).toBe(true);
+  } else {
+    expect(
+      hasDarkClass,
+      "Light theme did not apply: html unexpectedly has the 'dark' class after load."
+    ).toBe(false);
+  }
+}
 
 /** A single violating DOM node, flattened to one stable-keyed record. */
 export interface FlatViolation {
@@ -145,8 +196,7 @@ export async function scanPage(
 export function loadBaseline(baselinePath: string = BASELINE_PATH): Baseline {
   try {
     const raw = fs.readFileSync(baselinePath, 'utf8');
-    const parsed = JSON.parse(raw) as Baseline;
-    return parsed ?? {};
+    return JSON.parse(raw) as Baseline;
   } catch {
     return {};
   }
