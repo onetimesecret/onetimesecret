@@ -57,13 +57,43 @@ We've implemented fundamental accessibility features and continue to improve the
 - Light and dark mode support
 - Simple, linear workflow that's easy to follow
 
-### Testing and Feedback
+### Automated Testing & Enforcement Policy
 
-While these testing initiatives are in development, we welcome community contributions through discussions and pull requests:
-- Utilizing automated accessibility checkers
-- Planning manual testing with popular screen readers (NVDA, VoiceOver, JAWS)
-- Implementing keyboard-only navigation testing
-- Engaging with users who rely on assistive technologies
+Accessibility is enforced in CI, not just aspired to. Two automated layers run
+on every pull request (engine: [axe-core](https://github.com/dequelabs/axe-core),
+Deque):
+
+- **Page-level (browser truth)** — `e2e/all/accessibility.spec.ts` scans the
+  public surfaces, and `e2e/full/accessibility.spec.ts` the authenticated
+  surfaces, in **both light and dark** themes via `@axe-core/playwright`. Run
+  locally with `pnpm test:a11y`.
+- **Component-level (shift-left)** — `src/tests/shared/a11y/*.a11y.spec.ts`
+  run axe in jsdom (via `vitest-axe`) against shared UI primitives on every
+  `pnpm test`. (Color-contrast is excluded here — jsdom has no layout — and is
+  covered by the page-level layer.)
+
+The policy the layers enforce:
+
+- **Target: WCAG 2.1 Level AA.** Rulesets: `wcag2a wcag2aa wcag21a wcag21aa`
+  plus axe `best-practice`.
+- **Ratcheting baselines** (`e2e/accessibility-baseline*.json`) hold known,
+  tracked debt. A scan fails on any violation **not** in the baseline (a
+  regression), and **hard-fails on any new `serious`/`critical`** regardless of
+  baseline. Baselines may only **shrink**: fix a violation, then regenerate
+  with `pnpm test:a11y:update`. This mirrors the `e2e/QUARANTINE.md`
+  convention — tracked, visible, and always shrinking.
+- **Ownership** sits with the author of the changed component: a red a11y check
+  is a blocking defect, not a follow-up.
+- **Brand safety.** Operator brand colors are applied by remapping the brand
+  scale (`src/utils/brand-palette.ts`); that generator computes an accessible
+  text color per primary (`checkBrandContrast`), unit-tested in
+  `src/tests/utils/brand-palette.spec.ts`, so custom-branded instances stay AA.
+
+**Still manual (automation covers ~30–40% of WCAG):** screen-reader passes
+(NVDA, VoiceOver, JAWS), keyboard-only navigation, and focus-visibility. We
+welcome community contributions on these through discussions and pull requests.
+The point-in-time findings and remediation are recorded in
+[`architecture/public-surfaces-accessibility-audit.md`](../../architecture/public-surfaces-accessibility-audit.md).
 
 #### Reporting Accessibility Issues
 To report accessibility issues or suggest improvements, you can:
