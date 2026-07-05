@@ -8,7 +8,7 @@
 
   This is NOT the production domain switcher. For the user-facing dropdown that
   switches between a user's actual custom domains, see:
-    src/shared/components/navigation/DomainContextSwitcher.vue
+    src/apps/workspace/components/navigation/DomainContextSwitcher.vue
 
   Key differences from production switcher:
   - Text input for arbitrary domains (not limited to user's domains)

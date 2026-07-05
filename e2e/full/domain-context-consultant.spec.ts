@@ -57,7 +57,7 @@ import { test, expect } from '@playwright/test';
  * - useDomainContext composable with sessionStorage persistence
  * - Domain context indicator in SecretForm
  * - Reactive context updates in form
- * - DomainContextSwitcher: src/shared/components/navigation/DomainContextSwitcher.vue
+ * - DomainContextSwitcher: src/apps/workspace/components/navigation/DomainContextSwitcher.vue
  *   (Production dropdown with HeadlessUI Menu, route-aware navigation, i18n)
  * - Colonel override tool: src/apps/colonel/components/DomainContextSwitcher.vue
  *   (Admin tool for simulating arbitrary domains - different purpose)
@@ -249,7 +249,7 @@ test.describe('Domain Context - Consultant Workflow', () => {
   test.fixme('context switcher allows changing between domains', async ({ page }) => {
     /**
      * Tests the DomainContextSwitcher dropdown interaction.
-     * Component: src/shared/components/navigation/DomainContextSwitcher.vue
+     * Component: src/apps/workspace/components/navigation/DomainContextSwitcher.vue
      *
      * SKIP REASON: Requires backend test fixtures with custom domains.
      * Component is implemented with data-testid="domain-context-switcher".
@@ -286,7 +286,7 @@ test.describe('Domain Context - Consultant Workflow', () => {
      * Validates real-time reactivity when context changes via DomainContextSwitcher.
      *
      * SKIP REASON: Requires backend test fixtures with custom domains.
-     * Component exists at src/shared/components/navigation/DomainContextSwitcher.vue
+     * Component exists at src/apps/workspace/components/navigation/DomainContextSwitcher.vue
      *
      * UNIT TEST COVERAGE: Reactivity tested in useDomainContext.spec.ts.
      * Component-level reactivity cannot be unit tested (Vitest mock limitation).

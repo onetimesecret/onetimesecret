@@ -20,68 +20,32 @@
 // pre-installed binary via the A11Y_CHROME_PATH env var (wired in
 // e2e/playwright.config.ts); CI uses the default managed browser.
 
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import {
   scanPage,
   loadBaseline,
   compareToBaseline,
   formatFailure,
   updateBaselineScope,
+  primeTheme,
+  assertThemeApplied,
+  waitForAppReady,
   IS_UPDATE_BASELINE,
   type Theme,
 } from '../support/axe';
+
+// See e2e/all/accessibility-interactive.spec.ts for the rationale: the
+// A11Y_UPDATE_BASELINE read-modify-write is only race-free when these tests run
+// serially, so pin serial execution for baseline-regeneration runs only and
+// leave assert runs parallel-friendly with independent per-test reporting.
+if (IS_UPDATE_BASELINE) {
+  test.describe.configure({ mode: 'serial' });
+}
 
 /** Public, credential-free surfaces to scan. */
 const PUBLIC_SURFACES = ['/', '/signin', '/signup', '/forgot', '/pricing', '/feedback'];
 
 const THEMES: Theme[] = ['light', 'dark'];
-
-/** localStorage key read by src/shared/composables/useTheme.ts ('true' = dark). */
-const THEME_STORAGE_KEY = 'restMode';
-
-/**
- * Make a theme apply deterministically BEFORE any app script runs:
- *  - Persist the app's own preference key (useTheme reads localStorage first),
- *  - and set the OS-level color-scheme media as a belt-and-suspenders fallback.
- * useTheme.initializeTheme() then toggles `html.dark` from the stored value.
- */
-async function primeTheme(page: Page, theme: Theme): Promise<void> {
-  const isDark = theme === 'dark';
-  await page.emulateMedia({ colorScheme: isDark ? 'dark' : 'light' });
-  await page.addInitScript(
-    ([key, value]) => {
-      try {
-        window.localStorage.setItem(key, value);
-      } catch {
-        /* localStorage may be unavailable; media emulation still applies */
-      }
-    },
-    [THEME_STORAGE_KEY, String(isDark)]
-  );
-}
-
-/**
- * Assert the requested theme genuinely took effect. A silent light-mode scan
- * mislabeled 'dark' is worse than useless, so fail loudly if `html.dark`
- * disagrees with the intended theme.
- */
-async function assertThemeApplied(page: Page, theme: Theme): Promise<void> {
-  const hasDarkClass = await page.evaluate(() =>
-    document.documentElement.classList.contains('dark')
-  );
-  if (theme === 'dark') {
-    expect(
-      hasDarkClass,
-      "Dark theme did not apply: html is missing the 'dark' class after load. " +
-        'Refusing to scan — a light-mode scan mislabeled "dark" would poison the baseline.'
-    ).toBe(true);
-  } else {
-    expect(
-      hasDarkClass,
-      "Light theme did not apply: html unexpectedly has the 'dark' class after load."
-    ).toBe(false);
-  }
-}
 
 for (const theme of THEMES) {
   test.describe(`Accessibility — ${theme} theme`, () => {
@@ -90,7 +54,7 @@ for (const theme of THEMES) {
         await primeTheme(page, theme);
 
         await page.goto(route);
-        await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+        await waitForAppReady(page);
         await assertThemeApplied(page, theme);
 
         const violations = await scanPage(page, testInfo, { theme, route });

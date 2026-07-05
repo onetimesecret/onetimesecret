@@ -403,6 +403,55 @@ describe('beforeSend handler', () => {
       expect(result.request?.url).toBe('https://example.com/about');
     });
 
+    // -----------------------------------------------------------------------
+    // PII pattern net: an email in a query string must be redacted from the
+    // event URL/transaction regardless of route metadata. Path-param VALUE
+    // scrubbing is opt-out-governed; the email/secret pattern net is not.
+    // (Policy: no PII in the URL — src/utils/pii.ts, src/router/README.md.)
+    // -----------------------------------------------------------------------
+    it('scrubs an email in the query even when sentryScrubParams: false', () => {
+      setupWithRouter({ params: {}, meta: { sentryScrubParams: false } });
+      const handler = getBeforeSend();
+
+      const event: ErrorEvent = {
+        request: { url: 'https://example.com/check-email?email=user@example.com' },
+      };
+
+      const result = handler(event) as ErrorEvent;
+
+      expect(result.request?.url).toBe('https://example.com/check-email?email=[EMAIL_REDACTED]');
+    });
+
+    it('scrubs an email in the query on a route with no path params', () => {
+      setupWithRouter({ params: {}, meta: {} });
+      const handler = getBeforeSend();
+
+      const event: ErrorEvent = {
+        request: { url: 'https://example.com/pricing?email=user@example.com' },
+        transaction: '/pricing?email=user@example.com',
+      };
+
+      const result = handler(event) as ErrorEvent;
+
+      expect(result.request?.url).toBe('https://example.com/pricing?email=[EMAIL_REDACTED]');
+      expect(result.transaction).toBe('/pricing?email=[EMAIL_REDACTED]');
+    });
+
+    it('preserves benign billing params verbatim (no over-redaction)', () => {
+      setupWithRouter({ params: {}, meta: { sentryScrubParams: false } });
+      const handler = getBeforeSend();
+
+      const event: ErrorEvent = {
+        request: { url: 'https://example.com/check-email?product=identity&interval=month' },
+      };
+
+      const result = handler(event) as ErrorEvent;
+
+      expect(result.request?.url).toBe(
+        'https://example.com/check-email?product=identity&interval=month'
+      );
+    });
+
     it('removes secret property if present on event', () => {
       setupWithRouter({
         params: {},

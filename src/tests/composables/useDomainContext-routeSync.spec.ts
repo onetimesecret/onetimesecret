@@ -9,7 +9,7 @@
  * 4. Manual setContext still works for direct domain selection
  *
  * @see src/shared/composables/useDomainContext.ts
- * @see src/shared/components/navigation/DomainContextSwitcher.vue
+ * @see src/apps/workspace/components/navigation/DomainContextSwitcher.vue
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';

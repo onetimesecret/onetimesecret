@@ -24,13 +24,17 @@ import { createTestingPinia } from '@pinia/testing';
 import { createRouter, createMemoryHistory, Router } from 'vue-router';
 import { nextTick, defineComponent } from 'vue';
 import Login from '@/apps/session/views/Login.vue';
+import { SIGNIN_VERIFIED_STATE_KEY } from '@/shared/constants/signin';
 import { createTestI18n } from '@tests/setup';
 
 // Mock child components to isolate Login view testing
 vi.mock('@/apps/session/components/AuthMethodSelector.vue', () => ({
   default: defineComponent({
     name: 'AuthMethodSelector',
-    template: '<div data-testid="auth-method-selector">AuthMethodSelector</div>',
+    // Expose initialMode so tests can assert the password-tab default is passed.
+    props: ['locale', 'initialMode'],
+    template:
+      '<div data-testid="auth-method-selector" :data-initial-mode="initialMode">AuthMethodSelector</div>',
   }),
 }));
 
@@ -75,7 +79,8 @@ describe('Login.vue auth_error handling', () => {
 
   const createWrapper = async (
     query: Record<string, string> = {},
-    initialState: Record<string, unknown> = {}
+    initialState: Record<string, unknown> = {},
+    historyState: Record<string, unknown> | null = null
   ) => {
     router = createRouter({
       history: createMemoryHistory(),
@@ -87,6 +92,14 @@ describe('Login.vue auth_error handling', () => {
 
     await router.push({ path: '/signin', query });
     await router.isReady();
+
+    // The post-verification signal arrives via browser History state (as
+    // useAuth.verifyAccount hands it over — window.history.state, never the
+    // URL). Memory history does not touch window.history, so seed it directly;
+    // the afterEach hook clears it between cases.
+    if (historyState) {
+      window.history.replaceState(historyState, '');
+    }
 
     return mount(Login, {
       global: {
@@ -108,6 +121,9 @@ describe('Login.vue auth_error handling', () => {
 
   afterEach(() => {
     wrapper?.unmount();
+    // window.history is shared across tests in the jsdom environment; reset the
+    // handed-over verified flag so it never bleeds into the next case.
+    window.history.replaceState(null, '');
   });
 
   describe('error code handling', () => {
@@ -289,6 +305,63 @@ describe('Login.vue auth_error handling', () => {
 
       expect(wrapper.find('[data-testid="auth-method-selector"]').exists()).toBe(true);
       expect(wrapper.find('[data-testid="signin-disabled-panel"]').exists()).toBe(false);
+    });
+  });
+
+  // ---------------------------------------------------------------------
+  // Post-verification return (browser History state)
+  //
+  // After clicking the link in the welcome email, useAuth.verifyAccount()
+  // sends the user here with a one-shot "verified" flag in window.history
+  // .state (SIGNIN_VERIFIED_STATE_KEY), never the URL. The page shows a
+  // persistent success banner (rather than relying on the transient toast)
+  // and defaults the auth UI to the password tab so the user re-enters the
+  // password they just chose during signup.
+  // ---------------------------------------------------------------------
+
+  describe('post-verification return (history state)', () => {
+    const verifiedState = { [SIGNIN_VERIFIED_STATE_KEY]: true };
+
+    it('shows the persistent verified success banner', async () => {
+      wrapper = await createWrapper({}, {}, verifiedState);
+      await flushPromises();
+
+      const notice = wrapper.find('[data-testid="signin-verified-notice"]');
+      expect(notice.exists()).toBe(true);
+      expect(notice.text()).toContain('web.login.verified_notice');
+    });
+
+    it('defaults the auth selector to the password tab', async () => {
+      wrapper = await createWrapper({}, {}, verifiedState);
+      await flushPromises();
+
+      const selector = wrapper.find('[data-testid="auth-method-selector"]');
+      expect(selector.attributes('data-initial-mode')).toBe('password');
+    });
+
+    it('never puts verified in the URL and clears the one-shot flag after showing the banner', async () => {
+      wrapper = await createWrapper({}, {}, verifiedState);
+      await flushPromises();
+
+      // The banner shows, but the flag never enters the URL...
+      expect(wrapper.find('[data-testid="signin-verified-notice"]').exists()).toBe(true);
+      expect(router.currentRoute.value.query.verified).toBeUndefined();
+      expect(router.currentRoute.value.fullPath).toBe('/signin');
+      // ...and it is consumed once: cleared from history state so a refresh
+      // (which re-reads window.history.state) would not re-trigger it.
+      expect(
+        (window.history.state as Record<string, unknown> | null)?.[SIGNIN_VERIFIED_STATE_KEY]
+      ).toBeUndefined();
+    });
+
+    it('does not show the banner or force a mode without the verified flag', async () => {
+      wrapper = await createWrapper({});
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="signin-verified-notice"]').exists()).toBe(false);
+      const selector = wrapper.find('[data-testid="auth-method-selector"]');
+      // No contextual override — the selector falls back to its own default.
+      expect(selector.attributes('data-initial-mode')).toBeUndefined();
     });
   });
 });

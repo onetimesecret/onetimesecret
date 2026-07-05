@@ -201,6 +201,8 @@ export default [
     rules: {
       // OWASP IDOR prevention - use .extid not .id in URLs
       'ots/no-internal-id-in-url': 'warn',
+      // Privacy - no PII (email, token, …) in URL query; use router state
+      'ots/no-pii-in-query': 'warn',
       // ...tseslint.configs.recommended.rules,
       '@typescript-eslint/no-unused-vars': [
         'error',
@@ -341,6 +343,8 @@ export default [
     rules: {
       // OWASP IDOR prevention - use .extid not .id in URLs
       'ots/no-internal-id-in-url': 'warn',
+      // Privacy - no PII (email, token, …) in URL query; use router state
+      'ots/no-pii-in-query': 'warn',
       'no-multiple-empty-lines': ['warn', { max: 1 }], // Limit empty lines to 1
 
       // Prefer camelCase over kebab-case

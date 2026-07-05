@@ -467,7 +467,7 @@ module V2::Logic
       #
       # @param domain_record [CustomDomain] The domain record to validate
       # @raise [Onetime::Forbidden] If access is not permitted
-      # @see docs/specs/domain-permissions.md for the full truth table
+      # @see docs/specs/domain-permissions/domain-permissions.md for the full truth table
       #
       # Validation Rules (issue #3073):
       # - Domain owner / org member: always permitted, regardless of toggle.

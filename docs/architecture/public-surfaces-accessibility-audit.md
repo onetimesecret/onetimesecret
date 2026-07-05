@@ -185,5 +185,15 @@ return-home link.
   component before they reach a page. Contrast is excluded here (jsdom has no
   layout) and remains the page-level layer's job.
 
+**Branded instances.** Operator branding remaps the whole brand color scale at
+runtime (`src/utils/brand-palette.ts`), so branded pages do not necessarily
+share the default theme's contrast. This is handled two ways: the palette
+generator computes an accessible text color per primary (`checkBrandContrast`,
+unit-tested in `src/tests/utils/brand-palette.spec.ts` — for the default
+`#3B82F6` it correctly recommends black text, since white is only 3.68:1), and
+CI's `container-e2e-tests` job runs the page-level suite against a **branded**
+container (`BRAND_PRIMARY_COLOR=#3B82F6`), which passed — so the empty baseline
+holds branded as well as unbranded.
+
 **Still manual (not automated):** keyboard-only navigation, focus visibility,
 and screen-reader spot-checks (NVDA/VoiceOver/JAWS) — see `OVERVIEW.md`.

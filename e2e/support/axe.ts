@@ -9,11 +9,17 @@
 //  - baseline compare logic keyed on a STABLE identity (no volatile data
 //    like exact contrast ratios) so the committed baseline is diff-friendly.
 //
-// Consumed by e2e/all/accessibility.spec.ts. The baseline file lives at
-// e2e/accessibility-baseline.json (one level up from this support/ dir).
+// Consumed by e2e/all/accessibility.spec.ts (public surfaces) and
+// e2e/full/accessibility.spec.ts (authenticated surfaces). Each spec passes
+// its OWN baseline file so the two suites never collide:
+//  - public:        e2e/accessibility-baseline.json      (default)
+//  - authenticated: e2e/accessibility-baseline.full.json (FULL_BASELINE_PATH)
+// The baseline-aware functions (loadBaseline / updateBaselineScope) take an
+// optional path that defaults to the public baseline, so existing public
+// callers are unaffected.
 
 import { AxeBuilder } from '@axe-core/playwright';
-import type { Page, TestInfo } from '@playwright/test';
+import { expect, type Page, type TestInfo } from '@playwright/test';
 import type { AxeResults, Result as AxeRule } from 'axe-core';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -23,6 +29,32 @@ const SUPPORT_DIR = path.dirname(fileURLToPath(import.meta.url));
 
 /** Committed baseline of KNOWN violations. Absolute so writer/reader agree. */
 export const BASELINE_PATH = path.join(SUPPORT_DIR, '..', 'accessibility-baseline.json');
+
+/**
+ * Separate baseline for the AUTHENTICATED (`full` project) surfaces. Kept
+ * apart from the public baseline so the two suites' keys never collide and so
+ * regenerating one doesn't touch the other.
+ */
+export const FULL_BASELINE_PATH = path.join(
+  SUPPORT_DIR,
+  '..',
+  'accessibility-baseline.full.json'
+);
+
+/**
+ * Separate baseline for the INTERACTIVE-STATE scans (dropdown open, error
+ * banners, open modals) in e2e/all/accessibility-interactive.spec.ts. The
+ * public at-rest baseline (BASELINE_PATH) is a pure "pages load clean" signal;
+ * post-interaction DOM is a conceptually distinct scope, so it gets its own
+ * file. Separate files also mean regenerating one never touches another and
+ * there is no read-modify-write contention if the a11y specs ever update in
+ * parallel.
+ */
+export const INTERACTIVE_BASELINE_PATH = path.join(
+  SUPPORT_DIR,
+  '..',
+  'accessibility-baseline.interactive.json'
+);
 
 /** True when the run should REWRITE the baseline instead of asserting. */
 export const IS_UPDATE_BASELINE = !!process.env.A11Y_UPDATE_BASELINE;
@@ -40,6 +72,68 @@ export const AXE_TAGS = [
 ] as const;
 
 export type Theme = 'light' | 'dark';
+
+/** localStorage key read by src/shared/composables/useTheme.ts ('true' = dark). */
+export const THEME_STORAGE_KEY = 'restMode';
+
+/**
+ * Make a theme apply deterministically BEFORE any app script runs:
+ *  - Persist the app's own preference key (useTheme reads localStorage first),
+ *  - and set the OS-level color-scheme media as a belt-and-suspenders fallback.
+ * useTheme.initializeTheme() then toggles `html.dark` from the stored value.
+ * addInitScript runs after storageState localStorage is applied, so this wins.
+ *
+ * Shared by the public (e2e/all) and authenticated (e2e/full) a11y specs so a
+ * future change (e.g. to THEME_STORAGE_KEY) only happens in one place.
+ */
+export async function primeTheme(page: Page, theme: Theme): Promise<void> {
+  const isDark = theme === 'dark';
+  await page.emulateMedia({ colorScheme: isDark ? 'dark' : 'light' });
+  await page.addInitScript(
+    ([key, value]) => {
+      try {
+        window.localStorage.setItem(key, value);
+      } catch {
+        /* localStorage may be unavailable; media emulation still applies */
+      }
+    },
+    [THEME_STORAGE_KEY, String(isDark)]
+  );
+}
+
+/**
+ * Assert the requested theme genuinely took effect. A silent light-mode scan
+ * mislabeled 'dark' is worse than useless, so fail loudly if `html.dark`
+ * disagrees with the intended theme.
+ */
+export async function assertThemeApplied(page: Page, theme: Theme): Promise<void> {
+  const hasDarkClass = await page.evaluate(() =>
+    document.documentElement.classList.contains('dark')
+  );
+  if (theme === 'dark') {
+    expect(
+      hasDarkClass,
+      "Dark theme did not apply: html is missing the 'dark' class after load. " +
+        'Refusing to scan — a light-mode scan mislabeled "dark" would poison the baseline.'
+    ).toBe(true);
+  } else {
+    expect(
+      hasDarkClass,
+      "Light theme did not apply: html unexpectedly has the 'dark' class after load."
+    ).toBe(false);
+  }
+}
+
+/**
+ * Wait for the SPA to signal it has finished hydrating before scanning. The app
+ * sets `html[data-app-ready="true"]` once the root component mounts; gating on
+ * it stops axe from running against a half-mounted page (which would flag
+ * transient, meaningless violations). Shared by the at-rest (e2e/all) and
+ * interactive (e2e/all) a11y specs so the readiness signal is defined once.
+ */
+export async function waitForAppReady(page: Page): Promise<void> {
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+}
 
 /** A single violating DOM node, flattened to one stable-keyed record. */
 export interface FlatViolation {
@@ -120,12 +214,15 @@ export async function scanPage(
   return flattenViolations(results, opts.theme, opts.route);
 }
 
-/** Load the committed baseline; an absent file is treated as empty. */
-export function loadBaseline(): Baseline {
+/**
+ * Load the committed baseline; an absent file is treated as empty. Pass a
+ * `baselinePath` to read a suite-specific baseline (defaults to the public
+ * one at BASELINE_PATH).
+ */
+export function loadBaseline(baselinePath: string = BASELINE_PATH): Baseline {
   try {
-    const raw = fs.readFileSync(BASELINE_PATH, 'utf8');
-    const parsed = JSON.parse(raw) as Baseline;
-    return parsed ?? {};
+    const raw = fs.readFileSync(baselinePath, 'utf8');
+    return JSON.parse(raw) as Baseline;
   } catch {
     return {};
   }
@@ -149,9 +246,10 @@ export function serializeBaseline(baseline: Baseline): string {
 export function updateBaselineScope(
   theme: Theme,
   route: string,
-  violations: FlatViolation[]
+  violations: FlatViolation[],
+  baselinePath: string = BASELINE_PATH
 ): void {
-  const baseline = loadBaseline();
+  const baseline = loadBaseline(baselinePath);
   const prefix = `${theme}|${route}|`;
   for (const k of Object.keys(baseline)) {
     if (k.startsWith(prefix)) delete baseline[k];
@@ -160,7 +258,7 @@ export function updateBaselineScope(
     const { key, ...meta } = v;
     baseline[key] = meta;
   }
-  fs.writeFileSync(BASELINE_PATH, serializeBaseline(baseline), 'utf8');
+  fs.writeFileSync(baselinePath, serializeBaseline(baseline), 'utf8');
 }
 
 export interface CompareResult {
@@ -182,8 +280,19 @@ export function compareToBaseline(
   return { regressions, seriousOrCritical };
 }
 
-/** Format regressions into a readable, report-friendly failure message. */
-export function formatFailure(cmp: CompareResult): string {
+/**
+ * Format regressions into a readable, report-friendly failure message.
+ *
+ * `updateCommand` is the exact pnpm script that regenerates the baseline for
+ * the calling suite (each suite has its own — `test:a11y:update`,
+ * `test:a11y:interactive:update`, `test:a11y:full:update`). It defaults to the
+ * public at-rest command; the interactive and authenticated specs pass their
+ * own so a failure never tells a developer to run the wrong one.
+ */
+export function formatFailure(
+  cmp: CompareResult,
+  updateCommand: string = 'pnpm test:a11y:update'
+): string {
   const lines: string[] = [];
   lines.push(
     `Found ${cmp.regressions.length} NEW accessibility violation(s) not in the baseline (a11y regression).`
@@ -206,7 +315,7 @@ export function formatFailure(cmp: CompareResult): string {
     }
   }
   lines.push(
-    'Fix the source component, or (if intentional/known) re-baseline via `pnpm test:a11y:update`.'
+    `Fix the source component, or (if intentional/known) re-baseline via \`${updateCommand}\`.`
   );
   return lines.join('\n');
 }

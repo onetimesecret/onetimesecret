@@ -1,0 +1,146 @@
+{
+  "dark|/account/settings/profile/notifications|button-name|.bg-gray-200": {
+    "theme": "dark",
+    "route": "/account/settings/profile/notifications",
+    "ruleId": "button-name",
+    "target": ".bg-gray-200",
+    "impact": "critical",
+    "help": "Buttons must have discernible text"
+  },
+  "dark|/account/settings/profile/notifications|color-contrast|.mt-3": {
+    "theme": "dark",
+    "route": "/account/settings/profile/notifications",
+    "ruleId": "color-contrast",
+    "target": ".mt-3",
+    "impact": "serious",
+    "help": "Elements must meet minimum color contrast ratio thresholds"
+  },
+  "dark|/dashboard|page-has-heading-one|html": {
+    "theme": "dark",
+    "route": "/dashboard",
+    "ruleId": "page-has-heading-one",
+    "target": "html",
+    "impact": "moderate",
+    "help": "Page should contain a level-one heading"
+  },
+  "dark|/orgs|color-contrast|.bg-brand-600": {
+    "theme": "dark",
+    "route": "/orgs",
+    "ruleId": "color-contrast",
+    "target": ".bg-brand-600",
+    "impact": "serious",
+    "help": "Elements must meet minimum color contrast ratio thresholds"
+  },
+  "dark|/orgs|heading-order|h3": {
+    "theme": "dark",
+    "route": "/orgs",
+    "ruleId": "heading-order",
+    "target": "h3",
+    "impact": "moderate",
+    "help": "Heading levels should only increase by one"
+  },
+  "dark|/recent|page-has-heading-one|html": {
+    "theme": "dark",
+    "route": "/recent",
+    "ruleId": "page-has-heading-one",
+    "target": "html",
+    "impact": "moderate",
+    "help": "Page should contain a level-one heading"
+  },
+  "light|/account/settings/api|color-contrast|a[target=\"_blank\"]": {
+    "theme": "light",
+    "route": "/account/settings/api",
+    "ruleId": "color-contrast",
+    "target": "a[target=\"_blank\"]",
+    "impact": "serious",
+    "help": "Elements must meet minimum color contrast ratio thresholds"
+  },
+  "light|/account/settings/profile/notifications|button-name|.bg-gray-200": {
+    "theme": "light",
+    "route": "/account/settings/profile/notifications",
+    "ruleId": "button-name",
+    "target": ".bg-gray-200",
+    "impact": "critical",
+    "help": "Buttons must have discernible text"
+  },
+  "light|/account/settings/profile/notifications|color-contrast|a[target=\"_blank\"]": {
+    "theme": "light",
+    "route": "/account/settings/profile/notifications",
+    "ruleId": "color-contrast",
+    "target": "a[target=\"_blank\"]",
+    "impact": "serious",
+    "help": "Elements must meet minimum color contrast ratio thresholds"
+  },
+  "light|/account/settings/profile/privacy|color-contrast|a[target=\"_blank\"]": {
+    "theme": "light",
+    "route": "/account/settings/profile/privacy",
+    "ruleId": "color-contrast",
+    "target": "a[target=\"_blank\"]",
+    "impact": "serious",
+    "help": "Elements must meet minimum color contrast ratio thresholds"
+  },
+  "light|/account/settings/security|color-contrast|a[target=\"_blank\"]": {
+    "theme": "light",
+    "route": "/account/settings/security",
+    "ruleId": "color-contrast",
+    "target": "a[target=\"_blank\"]",
+    "impact": "serious",
+    "help": "Elements must meet minimum color contrast ratio thresholds"
+  },
+  "light|/account|color-contrast|a[target=\"_blank\"]": {
+    "theme": "light",
+    "route": "/account",
+    "ruleId": "color-contrast",
+    "target": "a[target=\"_blank\"]",
+    "impact": "serious",
+    "help": "Elements must meet minimum color contrast ratio thresholds"
+  },
+  "light|/dashboard|color-contrast|a[target=\"_blank\"]": {
+    "theme": "light",
+    "route": "/dashboard",
+    "ruleId": "color-contrast",
+    "target": "a[target=\"_blank\"]",
+    "impact": "serious",
+    "help": "Elements must meet minimum color contrast ratio thresholds"
+  },
+  "light|/dashboard|page-has-heading-one|html": {
+    "theme": "light",
+    "route": "/dashboard",
+    "ruleId": "page-has-heading-one",
+    "target": "html",
+    "impact": "moderate",
+    "help": "Page should contain a level-one heading"
+  },
+  "light|/orgs|color-contrast|a[target=\"_blank\"]": {
+    "theme": "light",
+    "route": "/orgs",
+    "ruleId": "color-contrast",
+    "target": "a[target=\"_blank\"]",
+    "impact": "serious",
+    "help": "Elements must meet minimum color contrast ratio thresholds"
+  },
+  "light|/orgs|heading-order|h3": {
+    "theme": "light",
+    "route": "/orgs",
+    "ruleId": "heading-order",
+    "target": "h3",
+    "impact": "moderate",
+    "help": "Heading levels should only increase by one"
+  },
+  "light|/recent|color-contrast|a[target=\"_blank\"]": {
+    "theme": "light",
+    "route": "/recent",
+    "ruleId": "color-contrast",
+    "target": "a[target=\"_blank\"]",
+    "impact": "serious",
+    "help": "Elements must meet minimum color contrast ratio thresholds"
+  },
+  "light|/recent|page-has-heading-one|html": {
+    "theme": "light",
+    "route": "/recent",
+    "ruleId": "page-has-heading-one",
+    "target": "html",
+    "impact": "moderate",
+    "help": "Page should contain a level-one heading"
+  }
+}

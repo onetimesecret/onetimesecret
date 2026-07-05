@@ -1,6 +1,6 @@
 # The recipient surface as an information-flow channel (formal model)
 
-Formal companion to `docs/specs/recipient-disclosure-matrix.html`. That document
+Formal companion to `docs/specs/recipient-disclosure/recipient-disclosure-matrix.html`. That document
 is the design source of truth in prose; this one captures the same
 "who-may-distinguish-what-without-it-leaking" logic in a single, established
 formalism so the policy is **machine-checkable** rather than argued case by case.
@@ -205,9 +205,9 @@ and **dropped unconditionally** rather than constrained.
 
 ## 7. Gaps F1–F11 as assertion failures over `C_anon`
 
-| Gap | Breaks | Formal effect | Sev |
+| Gap | Breaks | Formal effect | Status |
 |---|---|---|---|
-| **F1** | `side_effect` | probing mutates `X` (`new→previewed`): the channel has **feedback/memory** → an adaptive 2-probe **strategy** refines `Π_anon` over time (Wittbold–Johnson *nondeducibility on strategies*, 1990) — not memoryless NI | High |
+| **F1** | `side_effect` | probing mutates `X` (`new→previewed`): the channel has **feedback/memory** → an adaptive 2-probe **strategy** refines `Π_anon` over time (Wittbold–Johnson *nondeducibility on strategies*, 1990) — not memoryless NI | **CLOSED** — #3633 (PR #3635, 2026-07-04): GET is lifecycle-safe; `side_effect: none` holds; the channel is memoryless again |
 | **F2** | `http_status` | `⊥` splits: `{a,b,c,d}` \| `f→422` \| `disabled→403` \| `lockout→429` | High |
 | **F3** | `timing_bucket` | splits `{exists + passphrase}` from `{d}`; a `429` lockout is reachable only from a real protected ID | High |
 | **F4** | `request_emitted` | the terminal screen requires a live XHR whose status carries F2; the "render-before-404" A1 variant toggles this coordinate | High |
@@ -217,11 +217,41 @@ and **dropped unconditionally** rather than constrained.
 | **F8** | channel `C_client@rest` (leaks `Σ`) | plaintext lingers in DOM / clipboard / password manager | Med-High |
 | **F9** | channel `C_rcptHolder` | `POST /guest/receipts` returns `is_revealed` etc. to a receipt-id holder → a near-discrete partition; an existence/surveillance channel if the id is guessable or link-derivable | High |
 | **F10** | `third_party_fanout` | Sentry/analytics/branded-asset fetches fire on one branch but not the other → a network observer separates the cell by *which* requests fire | Med |
-| **F11** | `side_effect` (cross-boundary) | link-preview / AV bots fetch in transit and spend the one view → F1 escalated across the email boundary | High |
+| **F11** | `side_effect` (cross-boundary) | link-preview / AV bots fetch in transit and spend the one view → F1 escalated across the email boundary | **PARTIAL** — passive fetch spends nothing since #3633; the reveal is still `GET…continue=true`, not a human-gated POST (A4) |
+
+(All other rows re-verified open against `main`, 2026-07-04. Sev unchanged:
+F2–F4, F6, F7, F9, F11 High; F5, F8, F10 Med.)
 
 Each row is a failing instance of `assert NI` (F2–F5, F10), a feedback/strategy
 violation (F1, F11), or a leak of `Σ` on a different channel (F6–F8) / a non-`anon`
 channel that must be folded under the same predicate (F9).
+
+### 7a. Closure order, and the `Π_op` preservation constraint
+
+The gaps close in dependency order, consolidated 2026-07-04 (prose version in
+the matrix's "Sequencing" section): **0** side-effects (F1 ✓) → **1** server
+row-equality (F2, F3) → **2** client coordinates (F4/F5/F6/F10) → **3** off-axis
+channels (F9, F11/A4) → **4** the `Σ` channels (F7/F8) → **5** semantics + the
+data cure. Memory first, because feedback defeats memoryless NI fixes; server
+before client, because `C_anon`'s client-side coordinates can only be as uniform
+as the row they render.
+
+The non-obvious constraint is on the **authorized** channel: the policy requires
+`Π_op` to stay **discrete** (§4 — the operator is entitled to full disclosure,
+including the defect worlds `e`, `f`). A fix that flattens `C_anon` rows without
+adding an operator-side channel also flattens `Π_op` — driving
+`I(X ; C_op | ¬viewable) → 0` for the one observer where leakage is *required*.
+That is a policy violation in the opposite direction, and operationally it makes
+defect-world MTTD unbounded. Hence the coupling rule:
+
+> **Every change that removes a coordinate from `C_anon` must, in the same
+> change, add an equivalent coordinate to `C_op`** (a logged reason sub-code, a
+> per-reality counter — including a positive counter for `b`). The two channels
+> move in lockstep, in opposite directions.
+
+`assert NI` for `C_anon` and `assert discrete(Π_op)` are therefore a **pair**;
+CI should check both, or the first will be satisfied by quietly breaking the
+second.
 
 ---
 

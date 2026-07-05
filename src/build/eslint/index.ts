@@ -21,6 +21,7 @@
  */
 
 import noInternalIdInUrl from './no-internal-id-in-url';
+import noPiiInQuery from './no-pii-in-query';
 
 const plugin = {
   meta: {
@@ -29,6 +30,7 @@ const plugin = {
   },
   rules: {
     'no-internal-id-in-url': noInternalIdInUrl,
+    'no-pii-in-query': noPiiInQuery,
   },
 };
 

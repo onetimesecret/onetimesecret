@@ -1,6 +1,6 @@
 # UX analysis of the "no longer available" failure surface
 
-Companion to `docs/specs/unviewable-state-root-cause.md`. That document
+Companion to `docs/specs/recipient-disclosure/unviewable-state-root-cause.md`. That document
 establishes the *mechanism* (an out-of-enum / un-viewable `state` triggers a 404
 on the recipient path and a strict-schema parse failure on the sender path, both
 rendered as the same terminal screen). This document revisits the *user
@@ -251,6 +251,14 @@ High emotional payoff for the non-technical cold recipient; "secret" is the sing
 **New (the shipped split this report builds on is fragile):** `BaseShowSecret.vue:45` checks `errorCode === 404 || errorCode === '404'` against `errorCode = err.code ?? null` (`useSecret.ts:60`). Normalize `err.code` to a single type at the source (e.g. coerce to number, or a typed `isNotFound` helper) and add a test, so no error path can misroute a real 404 into the retryable channel (or vice-versa). The entire honest-error split rests on this comparison. **Oracle note:** neutral — fixes routing reliability, not disclosure.
 
 ### Sequencing recommendation
+*Superseding context (2026-07-04): this section's ordering is folded into the
+consolidated six-stage path in
+`docs/specs/recipient-disclosure/recipient-disclosure-matrix.html` ("Sequencing —
+The Path to the Solution"), which adds the cross-document dependency constraint:
+observability (S1/S3/S3b) ships in the same change as response uniformity, and
+copy honesty lands only after the channel beneath it is sealed. Within that
+frame, the batch order below still applies.*
+
 Land **Q1, Q2, Q4, Q6, Q7** (recipient copy/action honesty — one locale batch, `UnknownSecret.vue`), **Q1's aria fix on `UnknownReceipt.vue`**, **S1** (the one log dimension), **S3b** (success counter), and **S12** (404 normalization) first: highest trust/observability return for least cost. Then **Q3, Q8, Q9, S2, S3, S10, S11** (iconography, alias-safe badge, classless reference id, alerting, runbook, branded receipt). Then the structural audience split **S4, S5, S6, S7**. Schedule **S8** (migration) as its own instrumented change and **S9** (the "secret" rename) as a deliberate localization wave.
 
 ---

@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 import AuthMethodSelector from '@/apps/session/components/AuthMethodSelector.vue';
 import AuthView from '@/apps/session/components/AuthView.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
+import { SIGNIN_VERIFIED_STATE_KEY } from '@/shared/constants/signin';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useProductIdentity } from '@/shared/stores/identityStore';
 import { useLanguageStore } from '@/shared/stores/languageStore';
@@ -38,6 +39,32 @@ const signupEnabled = computed(
 
 // Handle auth errors passed via query params (from SSO/magic link failures)
 const authError = ref<string | null>(null);
+
+// Post-verification return: useAuth.verifyAccount() sends the user here after
+// they click the link in their welcome email. The "just verified" signal
+// arrives via router history state (SIGNIN_VERIFIED_STATE_KEY), not the URL:
+//   - verifiedNotice: drives a persistent success banner (vs. the transient toast)
+//   - initialAuthMode: default to the password tab. Re-entering the password
+//     they just chose is less redundant than another email link and confirms it
+//     was typed correctly the first time.
+//
+// It is a one-shot flag: we clear it from history state right after reading, so a
+// manual refresh does not re-show the banner. Clearing touches only history
+// state — the route's path/query (and thus fullPath) are unchanged — so the
+// fullPath-keyed routed component in App.vue is NOT remounted and verifiedNotice
+// survives. (Stripping a ?verified=1 query param, by contrast, would change
+// fullPath, remount this view, and discard the banner it was meant to show.)
+const verifiedState = (typeof window !== 'undefined' ? window.history.state : null) as
+  | Record<string, unknown>
+  | null;
+const justVerified = verifiedState?.[SIGNIN_VERIFIED_STATE_KEY] === true;
+const verifiedNotice = ref(justVerified);
+const initialAuthMode = justVerified ? 'password' : undefined;
+if (justVerified && typeof window !== 'undefined') {
+  // Drop just our one-shot key; spread preserves vue-router's reserved state
+  // keys (back / current / forward / replaced / position / scroll).
+  window.history.replaceState({ ...window.history.state, [SIGNIN_VERIFIED_STATE_KEY]: undefined }, '');
+}
 
 const authErrorMessages: Record<string, string> = {
   sso_failed: 'web.login.errors.sso_failed',
@@ -121,6 +148,21 @@ const handleModeChange = (_mode: AuthMode) => {
       </div>
 
       <template v-else>
+        <!-- Post-verification success: persistent confirmation that the email
+             was verified, shown until the user leaves the page. -->
+        <div
+          v-if="verifiedNotice"
+          role="status"
+          class="mb-4 flex items-center gap-2 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300"
+          data-testid="signin-verified-notice">
+          <OIcon
+            collection="heroicons"
+            name="check-circle-solid"
+            class="size-5 shrink-0 text-green-500 dark:text-green-400"
+            aria-hidden="true" />
+          <span>{{ t('web.login.verified_notice') }}</span>
+        </div>
+
         <!-- Auth error from redirects (SSO failure, invalid magic link, etc.) -->
         <div
           v-if="authError"
@@ -132,6 +174,7 @@ const handleModeChange = (_mode: AuthMode) => {
         <AuthMethodSelector
           ref="authMethodSelectorRef"
           :locale="languageStore.currentLocale ?? ''"
+          :initial-mode="initialAuthMode"
           @mode-change="handleModeChange" />
       </template>
     </template>
