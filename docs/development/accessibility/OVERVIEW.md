@@ -59,15 +59,22 @@ We've implemented fundamental accessibility features and continue to improve the
 
 ### Automated Testing & Enforcement Policy
 
-Accessibility is enforced in CI, not just aspired to. Two automated layers run
-on every pull request (engine: [axe-core](https://github.com/dequelabs/axe-core),
-Deque):
+Accessibility is checked automatically in CI (engine:
+[axe-core](https://github.com/dequelabs/axe-core), Deque). Three scans run on
+every pull request, with two enforcement tiers:
 
-- **Page-level (browser truth)** — `e2e/all/accessibility.spec.ts` scans the
-  public surfaces, and `e2e/full/accessibility.spec.ts` the authenticated
-  surfaces, in **both light and dark** themes via `@axe-core/playwright`. Run
-  locally with `pnpm test:a11y`.
-- **Component-level (shift-left)** — `src/tests/shared/a11y/*.a11y.spec.ts`
+- **Page-level, public (blocking)** — `e2e/all/accessibility.spec.ts` scans the
+  public surfaces in **both light and dark** themes via `@axe-core/playwright`,
+  as part of the blocking `e2e/all/` CI gate. Run locally, credential-free,
+  with `pnpm test:a11y`.
+- **Page-level, authenticated (informational, not yet blocking)** —
+  `e2e/full/accessibility.spec.ts` scans the signed-in surfaces the same way,
+  in the `full/` CI suite. That suite is mid-remediation and currently runs
+  `continue-on-error` (see `.github/workflows/e2e.yml` and
+  `e2e/docs/e2e-remediation-plan.md`), so it reports but does not yet gate a
+  merge. It needs a signed-in session, so run it locally with test credentials:
+  `TEST_USER_EMAIL=… TEST_USER_PASSWORD=… pnpm test:a11y:full`.
+- **Component-level (shift-left, blocking)** — `src/tests/shared/a11y/*.a11y.spec.ts`
   run axe in jsdom (via `vitest-axe`) against shared UI primitives on every
   `pnpm test`. (Color-contrast is excluded here — jsdom has no layout — and is
   covered by the page-level layer.)
@@ -79,8 +86,12 @@ The policy the layers enforce:
 - **Ratcheting baselines** (`e2e/accessibility-baseline*.json`) hold known,
   tracked debt. A scan fails on any violation **not** in the baseline (a
   regression), and **hard-fails on any new `serious`/`critical`** regardless of
-  baseline. Baselines may only **shrink**: fix a violation, then regenerate
-  with `pnpm test:a11y:update`. This mirrors the `e2e/QUARANTINE.md`
+  baseline. Baselines may only **shrink**: fix a violation, then regenerate the
+  baseline for the surface you changed — `pnpm test:a11y:update` for the public
+  baseline (`e2e/accessibility-baseline.json`), or
+  `pnpm test:a11y:full:update` (with test credentials, as above) for the
+  authenticated baseline (`e2e/accessibility-baseline.full.json`). Each script
+  regenerates only its own baseline. This mirrors the `e2e/QUARANTINE.md`
   convention — tracked, visible, and always shrinking.
 - **Ownership** sits with the author of the changed component: a red a11y check
   is a blocking defect, not a follow-up.

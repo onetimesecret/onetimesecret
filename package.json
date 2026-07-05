@@ -95,6 +95,8 @@
     "test:playwright:fail-fast": "pnpm test:playwright -x",
     "test:a11y": "pnpm playwright test --config=e2e/playwright.config.ts e2e/all/accessibility.spec.ts",
     "test:a11y:update": "A11Y_UPDATE_BASELINE=1 pnpm test:a11y",
+    "test:a11y:full": "pnpm playwright test --config=e2e/playwright.config.ts e2e/full/accessibility.spec.ts",
+    "test:a11y:full:update": "A11Y_UPDATE_BASELINE=1 pnpm test:a11y:full",
     "test:rspec": "RACK_ENV=test bundle exec rspec",
     "test:rspec:unit": "bundle exec rake spec:unit",
     "test:rspec:cli": "bundle exec rake spec:cli",
