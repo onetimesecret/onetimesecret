@@ -148,7 +148,7 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "您正在查看通过 {product_name} 分享给您的安全信息。此内容仅显示一次，然后将从我们的服务器永久删除。",
+    "text": "您正在查看通过 {product_name} 与您分享的安全内容。该内容仅显示一次，随后会从我们的服务器上永久删除。",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -338,5 +338,13 @@
   "web.layout.workspace_context": {
     "text": "工作区上下文",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "工作区",
+    "source_hash": "87bb59ba"
+  },
+  "web.help.default_content": {
+    "text": "请联系支持团队寻求帮助",
+    "source_hash": "752bca14"
   }
 }

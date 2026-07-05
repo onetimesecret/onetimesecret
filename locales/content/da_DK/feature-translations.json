@@ -64,7 +64,7 @@
     "source_hash": "13131e36"
   },
   "web.translations.the_following_people_have_donated_their_time_to_": {
-    "text": "Følgende personer har doneret deres tid til at hjælpe med at udvide rækkevidden af {product_name}:",
+    "text": "Følgende personer har doneret deres tid for at hjælpe med at udbrede {product_name}:",
     "source_hash": "85a766af"
   },
   "web.translations.translations": {
@@ -84,7 +84,7 @@
     "source_hash": "ba5c4395"
   },
   "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
-    "text": "Siden 2012 har {product_name} været en sikker måde at dele følsomme oplysninger på i hele verden. Med brugere på tværs af regioner, hvor engelsk ikke er det primære sprog, er nøjagtige oversættelser afgørende for at gøre sikker kommunikation tilgængelig for alle.",
+    "text": "Siden 2012 har {product_name} tilbudt en sikker måde at dele følsomme oplysninger på verden over. Med brugere i regioner, hvor engelsk ikke er hovedsproget, er nøjagtige oversættelser afgørende for at gøre sikker kommunikation tilgængelig for alle.",
     "source_hash": "87a6e9af"
   },
   "web.translations.help_secure_communication_go_global": {

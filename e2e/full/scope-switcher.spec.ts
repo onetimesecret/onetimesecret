@@ -36,7 +36,7 @@ import { expect, Page, test } from '@playwright/test';
  *   - data-testid="org-scope-switcher-dropdown" - Dropdown menu
  *   - data-testid="org-scope-item-{orgId}"      - Individual org menu item
  *   - data-testid="org-scope-settings-{orgId}"  - Gear icon for org settings
- *   - data-testid="org-scope-manage-link"       - "Manage Organizations" link
+ *   - data-testid="org-scope-manage-link"       - "Manage Workspaces" link
  *
  * Domain Scope Switcher:
  *   - data-testid="domain-context-switcher"         - Main switcher container
@@ -67,7 +67,7 @@ const orgSwitcher = {
     ),
   dropdown: (page: Page) =>
     page.locator('[data-testid="org-scope-switcher-dropdown"], [role="menu"]').filter({
-      has: page.locator('text=/my organizations/i'),
+      has: page.locator('text=/workspaces/i'),
     }),
   menuItems: (page: Page) => page.locator('[role="menuitem"]'),
   gearIcon: (page: Page) =>
@@ -75,7 +75,7 @@ const orgSwitcher = {
       '[data-testid^="org-scope-settings"], button[aria-label*="organization settings" i]'
     ),
   manageLink: (page: Page) =>
-    page.locator('[data-testid="org-scope-manage-link"], button:has-text("Manage Organizations")'),
+    page.locator('[data-testid="org-scope-manage-link"], button:has-text("Manage Workspaces")'),
   checkmark: (page: Page) => page.locator('[class*="check"]'),
 };
 
@@ -580,7 +580,7 @@ test.describe('Scope Switcher - Switching Behavior', () => {
       }
     });
 
-    test('TC-SS-024: Manage Organizations link navigates to /orgs', async ({ page }) => {
+    test('TC-SS-024: Manage Workspaces link navigates to /orgs', async ({ page }) => {
       await page.goto('/dashboard');
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
@@ -590,7 +590,7 @@ test.describe('Scope Switcher - Switching Behavior', () => {
 
       await trigger.click();
 
-      const manageLink = page.locator('[role="menuitem"]:has-text("Manage Organizations")');
+      const manageLink = page.locator('[role="menuitem"]:has-text("Manage Workspaces")');
       const hasLink = await manageLink.isVisible().catch(() => false);
 
       if (hasLink) {
@@ -1080,7 +1080,7 @@ test.describe('Scope Switcher - Accessibility', () => {
  * | TC-SS-021  | Dropdown shows current org highlighted             | High     | Automated  |
  * | TC-SS-022  | Selecting org updates page context                 | Critical | Automated  |
  * | TC-SS-023  | Gear icon navigates to org settings                | High     | Automated  |
- * | TC-SS-024  | Manage Organizations link works                    | Medium   | Automated  |
+ * | TC-SS-024  | Manage Workspaces link works                       | Medium   | Automated  |
  * | TC-SS-030  | Domain dropdown opens on click                     | High     | Automated  |
  * | TC-SS-031  | Selecting domain updates scope                     | Critical | Automated  |
  * | TC-SS-032  | Domain scope persists to sessionStorage            | High     | Automated  |

@@ -398,5 +398,965 @@
   "web.domains.dns_widget_description": {
     "text": "Użyj narzędzia poniżej, aby automatycznie wykryć dostawcę DNS i uzyskać instrukcje krok po kroku dotyczące konfiguracji domeny.",
     "source_hash": "91c1af2e"
+  },
+  "api.domains.errors.add_admin_required": {
+    "text": "Tylko właściciele i administratorzy organizacji mogą dodawać domeny niestandardowe",
+    "source_hash": "3324aabe"
+  },
+  "web.domains.public_homepage": {
+    "text": "Publiczna strona główna",
+    "source_hash": "2ae3ccba"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Domena zweryfikowana i aktywna",
+    "source_hash": "e4b6a6e1"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS nieskonfigurowany — kliknij, aby naprawić",
+    "source_hash": "892cb2cb"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Domena niezweryfikowana — kliknij, aby zweryfikować",
+    "source_hash": "a9806710"
+  },
+  "web.domains.status_tooltip_unverified": {
+    "text": "Status domeny niezweryfikowany — kliknij, aby odświeżyć",
+    "source_hash": "a45aa76d"
+  },
+  "web.domains.last_check_failed": {
+    "text": "Ostatnia weryfikacja nie powiodła się",
+    "source_hash": "88b594b8"
+  },
+  "web.domains.last_check_failed_ago": {
+    "text": "ostatnia weryfikacja nie powiodła się {0}",
+    "source_hash": "ddfb6412"
+  },
+  "web.domains.verify_now": {
+    "text": "Zweryfikuj teraz",
+    "source_hash": "db383efb"
+  },
+  "web.domains.click_to_verify": {
+    "text": "kliknij, aby zweryfikować",
+    "source_hash": "6eae7d9c"
+  },
+  "web.domains.remove_domain_description": {
+    "text": "Trwale usuń tę domenę i całą jej konfigurację.",
+    "source_hash": "73946b9e"
+  },
+  "web.domains.add_access_denied": {
+    "text": "Odmowa dostępu",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.add_access_denied_description": {
+    "text": "Nie masz uprawnień do dodawania domen do tej organizacji. Skontaktuj się z administratorem organizacji.",
+    "source_hash": "25e035c6"
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "Nie udało się załadować widżetu DNS",
+    "source_hash": "5a1d8ab5"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "Widżet DNS jest niedostępny",
+    "source_hash": "4eed448b"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "Nie udało się zainicjować widżetu DNS",
+    "source_hash": "de477585"
+  },
+  "web.domains.verified": {
+    "text": "Zweryfikowano",
+    "source_hash": "4f783840"
+  },
+  "web.domains.pending_verification": {
+    "text": "Oczekuje na weryfikację",
+    "source_hash": "77e07795"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Masz niezapisane zmiany. Czy na pewno chcesz wyjść?",
+    "source_hash": "322380c1"
+  },
+  "web.domains.entitlement_required_owner": {
+    "text": "Ta funkcja wymaga ulepszenia planu.",
+    "source_hash": "6de1f752"
+  },
+  "web.domains.entitlement_required_member": {
+    "text": "Ta funkcja jest niedostępna w Twoim obecnym planie. Skontaktuj się z właścicielem organizacji.",
+    "source_hash": "8f1688b2"
+  },
+  "web.domains.detail.manage": {
+    "text": "Zarządzaj",
+    "source_hash": "5a234448"
+  },
+  "web.domains.detail.features": {
+    "text": "Funkcje",
+    "source_hash": "5697d03d"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Sekrety na stronie głównej",
+    "source_hash": "6360f7ec"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Zezwól na publiczny dostęp w celu tworzenia sekretów na stronie głównej Twojej domeny",
+    "source_hash": "209b3ded"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logo, kolory i niestandardowy branding",
+    "source_hash": "69f7a9e8"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Ustawienia dostawcy jednokrotnego logowania",
+    "source_hash": "234e6150"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Niestandardowa konfiguracja nadawcy e-mail",
+    "source_hash": "7fcde01b"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Ustawienia odbiorców przychodzących sekretów",
+    "source_hash": "37c1fd6d"
+  },
+  "web.domains.detail.signup_description": {
+    "text": "Strategia walidacji rejestracji dla poszczególnych domen",
+    "source_hash": "3c5a511f"
+  },
+  "web.domains.detail.signin_description": {
+    "text": "Konfiguracja metody logowania dla poszczególnych domen",
+    "source_hash": "73e01e36"
+  },
+  "web.domains.email.title": {
+    "text": "Wysyłanie e-maili",
+    "source_hash": "6c428e5f"
+  },
+  "web.domains.email.config_title": {
+    "text": "Konfiguracja e-mail",
+    "source_hash": "6f38aa51"
+  },
+  "web.domains.email.config_description": {
+    "text": "Skonfiguruj wysyłanie e-maili dla tej domeny",
+    "source_hash": "1c275ff0"
+  },
+  "web.domains.email.provider_label": {
+    "text": "Dostawca poczty e-mail",
+    "source_hash": "a7ed3f4e"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "Wybierz dostawcę poczty e-mail",
+    "source_hash": "63c8080c"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "Nazwa nadawcy",
+    "source_hash": "2f13b589"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "np. Acme Security",
+    "source_hash": "03c0f138"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "Adres nadawcy",
+    "source_hash": "60643eae"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "np. secrets{'@'}example.com",
+    "source_hash": "a09b3928"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Adres zwrotny (Reply-To)",
+    "source_hash": "4538ea9c"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "np. support{'@'}example.com",
+    "source_hash": "fa3e5f0b"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Zapisz zmiany",
+    "source_hash": "35322b5b"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Odrzuć zmiany",
+    "source_hash": "e07e053c"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES",
+    "source_hash": "15de4969"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid",
+    "source_hash": "b889d002"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint",
+    "source_hash": "ec994dad"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Użyj ustawień domyślnych konta",
+    "source_hash": "f6fa84e7"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "Wymaga weryfikacji domeny za pomocą rekordów DKIM i SPF",
+    "source_hash": "4df5aa60"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Wymaga konfiguracji uwierzytelniania domeny",
+    "source_hash": "71b53242"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Wymaga weryfikacji domeny",
+    "source_hash": "87073c93"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "Używa domyślnej konfiguracji wysyłania e-maili z Twojego konta",
+    "source_hash": "3f798263"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "Rekordy DNS",
+    "source_hash": "34d2c307"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "Dodaj poniższe rekordy DNS, aby zweryfikować swoją domenę do wysyłania e-maili.",
+    "source_hash": "9fa85863"
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Typ",
+    "source_hash": "baaddf70"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Nazwa",
+    "source_hash": "dcd1d522"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Wartość",
+    "source_hash": "8e37953d"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS",
+    "source_hash": "020965a2"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Dostawca",
+    "source_hash": "472590ae"
+  },
+  "web.domains.email.dns_optional_label": {
+    "text": "Zalecane",
+    "source_hash": "d70604e8"
+  },
+  "web.domains.email.dns_optional_hint": {
+    "text": "Ten rekord jest zalecany, ale nie jest wymagany do weryfikacji. Polityka DMARC w Twojej domenie organizacyjnej może już obejmować tę poddomenę.",
+    "source_hash": "58e1a12b"
+  },
+  "web.domains.email.copy": {
+    "text": "Kopiuj",
+    "source_hash": "e21f935f"
+  },
+  "web.domains.email.copied": {
+    "text": "Skopiowano",
+    "source_hash": "8d525e5f"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Zweryfikowano",
+    "source_hash": "4f783840"
+  },
+  "web.domains.email.status_pending": {
+    "text": "Oczekuje",
+    "source_hash": "331551b0"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Niepowodzenie",
+    "source_hash": "031a8f0f"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Zweryfikuj ponownie",
+    "source_hash": "4918da12"
+  },
+  "web.domains.email.validating": {
+    "text": "Weryfikowanie...",
+    "source_hash": "b28b48d5"
+  },
+  "web.domains.email.domain_verified": {
+    "text": "Domena zweryfikowana",
+    "source_hash": "08e0df67"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "Weryfikacja nie powiodła się",
+    "source_hash": "23a86f5a"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Ostatnio zweryfikowano",
+    "source_hash": "887dd486"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Ulepsz swój plan, aby skonfigurować wysyłanie e-maili dla tej domeny.",
+    "source_hash": "16a876f7"
+  },
+  "web.domains.email.configure_email": {
+    "text": "Konfiguruj e-mail",
+    "source_hash": "a48c0d40"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Odmowa dostępu",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "Nie masz uprawnień do zarządzania ustawieniami e-mail dla tej domeny. Skontaktuj się z administratorem swojej organizacji.",
+    "source_hash": "32049ff0"
+  },
+  "web.domains.email.update_success": {
+    "text": "Konfiguracja e-mail została pomyślnie zapisana",
+    "source_hash": "dd3607fc"
+  },
+  "web.domains.email.delete_success": {
+    "text": "Konfiguracja e-mail została pomyślnie usunięta",
+    "source_hash": "2ba99a91"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "E-maile dla tej domeny są obecnie wysyłane od globalnego nadawcy. Uzupełnij konfigurację e-mail, aby używać własnej tożsamości nadawcy.",
+    "source_hash": "ffcf39fb"
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "Niestandardowe wysyłanie e-maili jest obecnie wyłączone. E-maile będą wysyłane od globalnego nadawcy. Włącz tę funkcję poniżej, aby używać własnej tożsamości nadawcy.",
+    "source_hash": "60a26f5b"
+  },
+  "web.domains.email.test_email_title": {
+    "text": "Testuj dostarczanie e-maili",
+    "source_hash": "c1b3dee2"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Wyślij testowy e-mail do siebie, używając zapisanej konfiguracji. Działa nawet wtedy, gdy funkcja nie jest jeszcze włączona.",
+    "source_hash": "33e876ad"
+  },
+  "web.domains.email.send_test": {
+    "text": "Wyślij test",
+    "source_hash": "22d7b11d"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Testowy e-mail został pomyślnie wysłany",
+    "source_hash": "561617fd"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Nie udało się wysłać testowego e-maila",
+    "source_hash": "95ce63bc"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Wysłano do {email}",
+    "source_hash": "8ceb9588"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Dostarczono przez {provider}",
+    "source_hash": "f741959b"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "Nie skonfigurowano",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "Używa domyślnego nadawcy",
+    "source_hash": "e1afb18f"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Zweryfikowano",
+    "source_hash": "4f783840"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Oczekuje na weryfikację",
+    "source_hash": "417a6b7e"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Wyłączono",
+    "source_hash": "75081b59"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "Nie skonfigurowano nadawcy e-mail — e-maile używają domyślnego nadawcy platformy",
+    "source_hash": "360083bb"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "Konfiguracja nadawcy e-mail oczekuje na weryfikację — e-maile używają domyślnego nadawcy platformy",
+    "source_hash": "c8c2449c"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "Nadawca e-mail jest wyłączony — e-maile używają domyślnego nadawcy platformy",
+    "source_hash": "64e84955"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "Nadawca e-mail zweryfikowany — e-maile są wysyłane z tej domeny",
+    "source_hash": "0e9a005c"
+  },
+  "web.domains.incoming.title": {
+    "text": "Przychodzące sekrety",
+    "source_hash": "883dbca9"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Konfiguracja przychodzących sekretów",
+    "source_hash": "b3fef15b"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Zezwól użytkownikom zewnętrznym na wysyłanie sekretów bezpośrednio do wyznaczonych odbiorców w tej domenie",
+    "source_hash": "452ab4fe"
+  },
+  "web.domains.incoming.feature_disabled": {
+    "text": "Przychodzące sekrety niedostępne",
+    "source_hash": "0f96c5ec"
+  },
+  "web.domains.incoming.feature_disabled_description": {
+    "text": "Przychodzące sekrety nie są włączone w tej instancji. Skontaktuj się z administratorem.",
+    "source_hash": "dce981e0"
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Odmowa dostępu",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "Nie masz uprawnień do zarządzania ustawieniami przychodzących sekretów dla tej domeny. Skontaktuj się z administratorem swojej organizacji.",
+    "source_hash": "3e9d8adc"
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Ulepsz swój plan, aby skonfigurować przychodzące sekrety dla tej domeny.",
+    "source_hash": "9dfdfeb5"
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Konfiguruj przychodzące sekrety",
+    "source_hash": "eab52939"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "Przychodzące sekrety nie są skonfigurowane dla tej domeny. Dodaj odbiorców, aby umożliwić użytkownikom zewnętrznym wysyłanie sekretów do Twojego zespołu.",
+    "source_hash": "dbc443a6"
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "Przychodzące sekrety są obecnie wyłączone. Użytkownicy zewnętrzni nie mogą wysyłać sekretów do odbiorców w tej domenie. Włącz tę funkcję poniżej, aby zezwolić na przychodzące sekrety.",
+    "source_hash": "d1f8dafb"
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Odbiorcy",
+    "source_hash": "1e8568a8"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Określ, kto może otrzymywać przychodzące sekrety w tej domenie. Odbiorcy otrzymają powiadomienia e-mail, gdy zostanie do nich wysłany sekret.",
+    "source_hash": "026f9d9d"
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Dodaj odbiorcę",
+    "source_hash": "25f93c13"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Usuń",
+    "source_hash": "c3812fc4"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "Adres e-mail",
+    "source_hash": "09bf25ef"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "recipient{'@'}example.com",
+    "source_hash": "55d1508e"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Nazwa wyświetlana",
+    "source_hash": "18d67c99"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "np. Security Team",
+    "source_hash": "0c52400c"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "Nie skonfigurowano odbiorców",
+    "source_hash": "bc8c2058"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Dodaj odbiorców, aby umożliwić użytkownikom zewnętrznym wysyłanie sekretów do Twojego zespołu.",
+    "source_hash": "2a647a40"
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Nieprawidłowy adres e-mail",
+    "source_hash": "4eaf1d80"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "Ten adres e-mail został już dodany",
+    "source_hash": "f89de141"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "Maksymalna liczba dozwolonych odbiorców: {max}",
+    "source_hash": "e2585847"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "Nazwa wyświetlana jest wymagana",
+    "source_hash": "c6892c89"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "Adres e-mail jest wymagany",
+    "source_hash": "41381ba2"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Zapisz zmiany",
+    "source_hash": "35322b5b"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Odrzuć zmiany",
+    "source_hash": "e07e053c"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "Konfiguracja przychodzących sekretów została pomyślnie zapisana",
+    "source_hash": "9317e02d"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "Konfiguracja przychodzących sekretów została pomyślnie usunięta",
+    "source_hash": "4c4a33ae"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} odbiorca | {count} odbiorców",
+    "source_hash": "0e4f5985"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "Nie skonfigurowano",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Skonfigurowano",
+    "source_hash": "84aebc69"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Wyłączono",
+    "source_hash": "75081b59"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "Przychodzące sekrety nie są skonfigurowane - użytkownicy zewnętrzni nie mogą wysyłać sekretów do tej domeny",
+    "source_hash": "79786d5c"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "Przychodzące sekrety włączone, liczba odbiorców: {count}",
+    "source_hash": "c205cc54"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "Funkcja przychodzących sekretów jest wyłączona dla tej domeny",
+    "source_hash": "0413f96b"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Włącz przychodzące sekrety",
+    "source_hash": "c0b25980"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Zezwól użytkownikom zewnętrznym na wysyłanie sekretów do odbiorców w tej domenie",
+    "source_hash": "24aadd31"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "Publiczny adres URL",
+    "source_hash": "f7b60b04"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Udostępnij ten adres URL użytkownikom zewnętrznym, aby umożliwić im wysyłanie sekretów",
+    "source_hash": "df47a894"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "Kopiuj adres URL",
+    "source_hash": "b26d1037"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "Adres URL skopiowano do schowka",
+    "source_hash": "2f396c3e"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Czy na pewno chcesz usunąć wszystkich odbiorców? Użytkownicy zewnętrzni nie będą już mogli wysyłać sekretów do tej domeny.",
+    "source_hash": "06f9e551"
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Osiągnięto maksymalną liczbę odbiorców",
+    "source_hash": "ba659e54"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "Ten adres e-mail został już dodany",
+    "source_hash": "ca598f6d"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "Zapisanie zastąpi wszystkich istniejących odbiorców Twoimi oczekującymi zmianami. Czy na pewno?",
+    "source_hash": "f497862e"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Usuń wszystkich odbiorców",
+    "source_hash": "207d0dbe"
+  },
+  "web.domains.signin.title": {
+    "text": "Konfiguracja logowania",
+    "source_hash": "2da38c03"
+  },
+  "web.domains.signin.configure_signin": {
+    "text": "Konfiguruj logowanie",
+    "source_hash": "f72b58b5"
+  },
+  "web.domains.signin.config_description": {
+    "text": "Skonfiguruj metody uwierzytelniania przy logowaniu dla tej domeny",
+    "source_hash": "8efce428"
+  },
+  "web.domains.signin.access_denied": {
+    "text": "Odmowa dostępu",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.signin.upgrade_to_configure": {
+    "text": "Ulepsz swój plan, aby skonfigurować metody logowania dla tej domeny.",
+    "source_hash": "e242bb74"
+  },
+  "web.domains.signin.not_configured_notice": {
+    "text": "Konfiguracja logowania nie została jeszcze ustawiona dla tej domeny. Skonfiguruj nadpisania, aby kontrolować, które metody uwierzytelniania są dostępne na stronie logowania tej domeny.",
+    "source_hash": "cb788a2d"
+  },
+  "web.domains.signin.signin_enabled_label": {
+    "text": "Logowanie włączone",
+    "source_hash": "cabe4898"
+  },
+  "web.domains.signin.header_toggle_label": {
+    "text": "Logowanie",
+    "source_hash": "5bbbe531"
+  },
+  "web.domains.signin.signin_enabled_hint": {
+    "text": "Określa, czy użytkownicy mogą logować się w tej domenie",
+    "source_hash": "57a92aee"
+  },
+  "web.domains.signin.restrict_to_label": {
+    "text": "Ogranicz metodę logowania",
+    "source_hash": "edbec83f"
+  },
+  "web.domains.signin.restrict_to_hint": {
+    "text": "Ogranicz tę domenę do jednej metody uwierzytelniania. Po ustawieniu na stronie logowania wyświetlana jest tylko wybrana metoda.",
+    "source_hash": "682bc4c5"
+  },
+  "web.domains.signin.all_methods": {
+    "text": "Wszystkie metody",
+    "source_hash": "e601c19e"
+  },
+  "web.domains.signin.all_methods_description": {
+    "text": "Pokaż wszystkie włączone metody uwierzytelniania na stronie logowania",
+    "source_hash": "62723340"
+  },
+  "web.domains.signin.method_password": {
+    "text": "Hasło",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.domains.signin.method_email_auth": {
+    "text": "Uwierzytelnianie e-mail",
+    "source_hash": "68c38f94"
+  },
+  "web.domains.signin.method_webauthn": {
+    "text": "WebAuthn / Klucze dostępu",
+    "source_hash": "c40224ce"
+  },
+  "web.domains.signin.method_sso": {
+    "text": "Jednokrotne logowanie",
+    "source_hash": "cf7cd744"
+  },
+  "web.domains.signin.method_overrides_label": {
+    "text": "Nadpisania metod",
+    "source_hash": "5496cba6"
+  },
+  "web.domains.signin.method_overrides_hint": {
+    "text": "Włącz lub wyłącz poszczególne metody uwierzytelniania dla tej domeny",
+    "source_hash": "394e3878"
+  },
+  "web.domains.signin.mode_question": {
+    "text": "Jak użytkownicy mogą się logować?",
+    "source_hash": "3694eb23"
+  },
+  "web.domains.signin.mode_any": {
+    "text": "Dowolna dostępna metoda",
+    "source_hash": "23665425"
+  },
+  "web.domains.signin.mode_any_hint": {
+    "text": "Pokaż każdą metodę dostępną w tej domenie. Zawęź poszczególne metody poniżej.",
+    "source_hash": "2f3dcba6"
+  },
+  "web.domains.signin.mode_one": {
+    "text": "Jedna konkretna metoda",
+    "source_hash": "601f5768"
+  },
+  "web.domains.signin.mode_one_hint": {
+    "text": "Ogranicz stronę logowania do jednej metody. Wymienione są tylko metody dostępne w tej domenie.",
+    "source_hash": "58bde6d5"
+  },
+  "web.domains.signin.mode_disabled": {
+    "text": "Logowanie wyłączone",
+    "source_hash": "bb807607"
+  },
+  "web.domains.signin.mode_disabled_hint": {
+    "text": "Użytkownicy nie mogą logować się w tej domenie.",
+    "source_hash": "8938f098"
+  },
+  "web.domains.signin.mode_disabled_notice": {
+    "text": "Odwiedzający stronę logowania tej domeny widzą informację, że logowanie jest niedostępne, wraz z linkiem powrotnym do strony głównej. Twoje poprzednie ustawienia metod są zachowywane i przywracane po ponownym włączeniu logowania.",
+    "source_hash": "1a04de18"
+  },
+  "web.domains.signin.methods_list_label": {
+    "text": "Metody wyświetlane na stronie logowania",
+    "source_hash": "66fd133b"
+  },
+  "web.domains.signin.restrict_picker_hint": {
+    "text": "Wymienione są tylko metody dostępne w tej domenie.",
+    "source_hash": "c7a56f44"
+  },
+  "web.domains.signin.availability_always": {
+    "text": "Zawsze dostępne",
+    "source_hash": "0fda3772"
+  },
+  "web.domains.signin.availability_global_on": {
+    "text": "Zgodne z polityką globalną · Wł.",
+    "source_hash": "3844e6f7"
+  },
+  "web.domains.signin.availability_global_off": {
+    "text": "Niedostępne",
+    "source_hash": "67a926f7"
+  },
+  "web.domains.signin.availability_unavailable": {
+    "text": "Niedostępne w całej witrynie",
+    "source_hash": "da29c1be"
+  },
+  "web.domains.signin.allow_on_domain": {
+    "text": "Zezwól w tej domenie",
+    "source_hash": "760b578e"
+  },
+  "web.domains.signin.method_password_blurb": {
+    "text": "Tylko hasło",
+    "source_hash": "ed1a02fd"
+  },
+  "web.domains.signin.method_email_auth_blurb": {
+    "text": "Logowanie bez hasła za pomocą magicznego linku",
+    "source_hash": "7f776a85"
+  },
+  "web.domains.signin.method_webauthn_blurb": {
+    "text": "Dane biometryczne i klucze bezpieczeństwa",
+    "source_hash": "7d6a7bd5"
+  },
+  "web.domains.signin.method_sso_blurb": {
+    "text": "Zewnętrzny dostawca tożsamości",
+    "source_hash": "a3442088"
+  },
+  "web.domains.signin.email_auth_label": {
+    "text": "Uwierzytelnianie e-mail",
+    "source_hash": "68c38f94"
+  },
+  "web.domains.signin.email_auth_hint": {
+    "text": "Zezwól na uwierzytelnianie e-mail bez hasła w tej domenie",
+    "source_hash": "6ad82127"
+  },
+  "web.domains.signin.sso_enabled_label": {
+    "text": "Jednokrotne logowanie",
+    "source_hash": "cf7cd744"
+  },
+  "web.domains.signin.sso_enabled_hint": {
+    "text": "Zezwól na uwierzytelnianie SSO w tej domenie",
+    "source_hash": "22d78ad5"
+  },
+  "web.domains.signin.enabled_label": {
+    "text": "Włącz konfigurację logowania",
+    "source_hash": "dbd8e11c"
+  },
+  "web.domains.signin.enabled_hint": {
+    "text": "Po włączeniu ta domena korzysta z ustawień logowania skonfigurowanych powyżej",
+    "source_hash": "6259f8a2"
+  },
+  "web.domains.signin.save_config": {
+    "text": "Zapisz konfigurację",
+    "source_hash": "b2b158f2"
+  },
+  "web.domains.signin.update_success": {
+    "text": "Konfiguracja logowania została pomyślnie zaktualizowana",
+    "source_hash": "10ea50d8"
+  },
+  "web.domains.signin.reset_to_defaults": {
+    "text": "Przywróć ustawienia domyślne",
+    "source_hash": "e240e635"
+  },
+  "web.domains.signin.reset_confirm": {
+    "text": "Przywrócić logowanie do globalnych ustawień domyślnych?",
+    "source_hash": "2c6bbc32"
+  },
+  "web.domains.signin.reset_keeps_sso": {
+    "text": "Twoje poświadczenia SSO są zachowywane. Usuń je osobno na ekranie konfiguracji SSO.",
+    "source_hash": "edc0c756"
+  },
+  "web.domains.signin.reset_action": {
+    "text": "Tak, przywróć",
+    "source_hash": "4bb21d8b"
+  },
+  "web.domains.signin.reset_success": {
+    "text": "Ustawienia logowania przywrócono do globalnych ustawień domyślnych",
+    "source_hash": "0c364d89"
+  },
+  "web.domains.signup.title": {
+    "text": "Walidacja rejestracji",
+    "source_hash": "2c34ac0a"
+  },
+  "web.domains.signup.config_description": {
+    "text": "Skonfiguruj walidację rejestracji dla tej domeny",
+    "source_hash": "e9c81e8a"
+  },
+  "web.domains.signup.access_denied": {
+    "text": "Odmowa dostępu",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.signup.upgrade_to_configure": {
+    "text": "Ulepsz swój plan, aby skonfigurować walidację rejestracji dla poszczególnych domen.",
+    "source_hash": "d87d6614"
+  },
+  "web.domains.signup.configure_signup": {
+    "text": "Konfiguruj rejestrację",
+    "source_hash": "e2697662"
+  },
+  "web.domains.signup.not_configured_notice": {
+    "text": "Walidacja rejestracji nie jest jeszcze skonfigurowana dla tej domeny. Skonfiguruj strategię, aby kontrolować, kto może rejestrować się za pośrednictwem tej domeny.",
+    "source_hash": "fc6c6eb8"
+  },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "Rejestracje są obecnie wyłączone na poziomie witryny. Ta polityka dla poszczególnych domen jest skonfigurowana, ale nie będzie ograniczać żadnego ruchu, dopóki rejestracje w witrynie nie zostaną włączone.",
+    "source_hash": "c0e59f86"
+  },
+  "web.domains.signup.strategy_label": {
+    "text": "Strategia walidacji",
+    "source_hash": "a2e95531"
+  },
+  "web.domains.signup.strategy_description": {
+    "text": "Wybierz, w jaki sposób adresy e-mail są walidowane podczas rejestracji użytkowników w tej domenie.",
+    "source_hash": "8e232b03"
+  },
+  "web.domains.signup.network_validation_warning": {
+    "text": "Ta strategia wykonuje połączenia sieciowe podczas rejestracji, co może zwiększać opóźnienia lub być blokowane przez niektórych dostawców.",
+    "source_hash": "53d4c266"
+  },
+  "web.domains.signup.allowed_domains_label": {
+    "text": "Dozwolone domeny rejestracji",
+    "source_hash": "9b5bb5b1"
+  },
+  "web.domains.signup.allowed_domains_hint": {
+    "text": "Tylko te domeny e-mail będą mogły się rejestrować. Dodaj jedną domenę na wpis.",
+    "source_hash": "c082414d"
+  },
+  "web.domains.signup.domain_placeholder": {
+    "text": "example.com",
+    "source_hash": "a379a6f6"
+  },
+  "web.domains.signup.invalid_domain": {
+    "text": "Wprowadź prawidłową domenę (np. example.com)",
+    "source_hash": "16807983"
+  },
+  "web.domains.signup.domain_exists": {
+    "text": "Ta domena jest już na liście",
+    "source_hash": "3fccb721"
+  },
+  "web.domains.signup.remove_domain": {
+    "text": "Usuń {domain}",
+    "source_hash": "ae708a1d"
+  },
+  "web.domains.signup.enabled_label": {
+    "text": "Włącz walidację dla poszczególnych domen",
+    "source_hash": "db103925"
+  },
+  "web.domains.signup.enabled_hint": {
+    "text": "Po włączeniu rejestracje w tej domenie używają powyższej strategii zamiast polityki globalnej.",
+    "source_hash": "99de2008"
+  },
+  "web.domains.signup.delete_config": {
+    "text": "Usuń konfigurację",
+    "source_hash": "a9a30c7f"
+  },
+  "web.domains.signup.delete_confirm": {
+    "text": "Usunąć konfigurację walidacji rejestracji? Rejestracje będą korzystać z polityki globalnej.",
+    "source_hash": "a8c9086e"
+  },
+  "web.domains.signup.save_config": {
+    "text": "Zapisz konfigurację",
+    "source_hash": "b2b158f2"
+  },
+  "web.domains.signup.update_success": {
+    "text": "Walidacja rejestracji została pomyślnie zaktualizowana",
+    "source_hash": "57a529ac"
+  },
+  "web.domains.signup.delete_success": {
+    "text": "Konfiguracja walidacji rejestracji została pomyślnie usunięta",
+    "source_hash": "eb6add4d"
+  },
+  "web.domains.signup.domain_overrides_label": {
+    "text": "Nadpisania domeny",
+    "source_hash": "d25da3cd"
+  },
+  "web.domains.signup.domain_overrides_hint": {
+    "text": "Zastąp globalne ustawienia rejestracji dla tej domeny",
+    "source_hash": "53101057"
+  },
+  "web.domains.signup.signup_enabled_label": {
+    "text": "Rejestracja włączona",
+    "source_hash": "296ac66d"
+  },
+  "web.domains.signup.signup_enabled_hint": {
+    "text": "Zastąp ustawienie, czy rejestracja jest włączona dla tej domeny",
+    "source_hash": "2ee146b6"
+  },
+  "web.domains.signup.autoverify_label": {
+    "text": "Automatyczna weryfikacja kont",
+    "source_hash": "4b103cd5"
+  },
+  "web.domains.signup.autoverify_hint": {
+    "text": "Zastąp ustawienie, czy nowe konta są automatycznie weryfikowane w tej domenie",
+    "source_hash": "63866ecd"
+  },
+  "web.domains.sso.title": {
+    "text": "Jednokrotne logowanie",
+    "source_hash": "cf7cd744"
+  },
+  "web.domains.sso.config_title": {
+    "text": "Konfiguracja SSO",
+    "source_hash": "afd5751e"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Skonfiguruj uwierzytelnianie jednokrotnym logowaniem dla tej domeny",
+    "source_hash": "f37a0b47"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Odmowa dostępu",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "Nie masz uprawnień do zarządzania ustawieniami SSO dla tej domeny. Skontaktuj się z administratorem swojej organizacji.",
+    "source_hash": "db7fcfeb"
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Ulepsz swój plan, aby skonfigurować jednokrotne logowanie dla tej domeny.",
+    "source_hash": "71fc0069"
+  },
+  "web.domains.sso.create_success": {
+    "text": "Konfiguracja SSO została pomyślnie utworzona",
+    "source_hash": "531c7d92"
+  },
+  "web.domains.sso.update_success": {
+    "text": "Konfiguracja SSO została pomyślnie zaktualizowana",
+    "source_hash": "d98d8e83"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "Konfiguracja SSO została pomyślnie usunięta",
+    "source_hash": "2e924798"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Test połączenia zakończony powodzeniem — dostawca odpowiedział prawidłowo",
+    "source_hash": "1570ddb0"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Test połączenia nie powiódł się",
+    "source_hash": "a45a37dd"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "Aby wymagać SSO dla wszystkich logowań w tej domenie, skonfiguruj to w ustawieniach logowania domeny. Tryb wyłącznie SSO ogranicza stronę logowania do dostawcy SSO skonfigurowanego tutaj.",
+    "source_hash": "d26627a5"
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "Konfiguruj SSO",
+    "source_hash": "80d3a144"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "SSO nie jest jeszcze skonfigurowane dla tej domeny. Włącz jednokrotne logowanie, aby umożliwić członkom zespołu uwierzytelnianie za pomocą dostawcy tożsamości Twojej organizacji.",
+    "source_hash": "c439214b"
+  },
+  "web.domains.sso.edit_credentials": {
+    "text": "Edytuj poświadczenia",
+    "source_hash": "5a6622b6"
+  },
+  "web.domains.sso.configure_button": {
+    "text": "Konfiguruj",
+    "source_hash": "6defafa2"
+  },
+  "web.domains.sso.upgrade_required": {
+    "text": "Ulepsz, aby skonfigurować",
+    "source_hash": "571cfa98"
   }
 }

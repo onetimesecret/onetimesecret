@@ -682,5 +682,17 @@
   "web.settings.profile.didnt_receive_email": {
     "text": "Δεν λάβατε το email;",
     "source_hash": "fe3ac3ad"
+  },
+  "web.settings.api.api_disabled_notice": {
+    "text": "Το API είναι απενεργοποιημένο για αυτήν την εγκατάσταση.",
+    "source_hash": "66d12d6b"
+  },
+  "web.settings.security.sso_managed_title": {
+    "text": "Ασφάλεια που διαχειρίζεται μέσω SSO",
+    "source_hash": "1f6c9472"
+  },
+  "web.settings.security.sso_managed_description": {
+    "text": "Ο λογαριασμός σας ελέγχεται μέσω του παρόχου ενιαίας σύνδεσης (SSO) του οργανισμού σας. Ο κωδικός πρόσβασης, ο έλεγχος ταυτότητας πολλαπλών παραγόντων και οι κωδικοί ανάκτησης διαχειρίζονται από τον πάροχο ταυτότητάς σας.",
+    "source_hash": "cd0cf39f"
   }
 }

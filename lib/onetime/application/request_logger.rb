@@ -2,6 +2,9 @@
 #
 # frozen_string_literal: true
 
+require_relative 'error_correlation'
+require_relative '../error_handler'
+
 module Onetime
   module Application
     class RequestLogger
@@ -25,6 +28,13 @@ module Onetime
           @capture = CAPTURE_MODES[:standard]
           @logger.warn "Unknown LOG_HTTP_CAPTURE mode '#{requested_mode}', falling back to :standard (valid: #{CAPTURE_MODES.keys.join(', ')})"
         end
+
+        # Read once at construction, same as @capture/@slow_threshold_μs above,
+        # rather than re-reading Onetime.logging_conf on every :debug-capture
+        # request. RequestLogger middleware instances are long-lived (built
+        # once at boot), so this follows the same "config fixed at boot"
+        # convention as the rest of this class.
+        @allowed_fields = Onetime::ErrorHandler.allowed_error_fields
       end
 
       def call(env)
@@ -79,7 +89,7 @@ module Onetime
         payload[:status]     = status if capture?(:status)
         payload[:request_id] = request.env['HTTP_X_REQUEST_ID'] if capture?(:request_id)
         payload[:ip]         = request.ip if capture?(:ip)
-        payload[:params]     = redact_params(request.params) if capture?(:params)
+        payload[:params]     = allowlisted_params(request.params) if capture?(:params)
         # Rack::Session::SessionId is not JSON-serializable under strict mode;
         # prefer public_id (hex digest safe to log) and fall back to to_s.
         if capture?(:session_id) && request.session.respond_to?(:id)
@@ -87,19 +97,18 @@ module Onetime
           payload[:session_id] = sid.respond_to?(:public_id) ? sid.public_id : sid.to_s
         end
 
-        if capture?(:headers)
-          payload[:headers] = request.env.select { |k, _| k.start_with?('HTTP_') }
-        end
+        payload[:headers] = allowlisted_headers(request.env) if capture?(:headers)
 
-        # Error classification stashed by the Otto error handlers
-        # (OttoHooks#with_error_correlation). Recorded regardless of capture
-        # mode because it only appears on error responses and is high-signal:
-        # the same line names *what* failed (e.g. RecordNotFound). The
-        # correlation id must ride the same line, so on error responses pull in
-        # request_id even under :minimal capture (which normally omits it) —
-        # otherwise the id the client received in the x-request-id header and
-        # the JSON error body would have nothing to grep against here.
-        if (error_type = request.env['otto.error_type'])
+        # Error classification stashed by the typed-error edges via
+        # Onetime::Application::ErrorCorrelation (the Otto apps and the Roda
+        # /auth surface). Recorded regardless of capture mode because it only
+        # appears on error responses and is high-signal: the same line names
+        # *what* failed (e.g. RecordNotFound). The correlation id must ride the
+        # same line, so on error responses pull in request_id even under
+        # :minimal capture (which normally omits it) — otherwise the id the
+        # client received in the x-request-id header and the JSON error body
+        # would have nothing to grep against here.
+        if (error_type = request.env[ErrorCorrelation::ENV_ERROR_TYPE])
           payload[:error_type]   = error_type
           payload[:request_id] ||= request.env['HTTP_X_REQUEST_ID']
         end
@@ -131,10 +140,33 @@ module Onetime
         duration_μs > @slow_threshold_μs
       end
 
-      def redact_params(params)
-        sensitive = %w[password secret token api_key passphrase access_token refresh_token]
+      # :debug capture mode is the only capture mode that requests :params —
+      # gate it on the same opt-in allowlist as error reporting
+      # (Onetime::ErrorHandler.allowed_error_fields) rather than a blocklist,
+      # so it can never lag behind new sensitive field names. Empty by
+      # default: enabling LOG_HTTP_CAPTURE=debug alone shows no param values
+      # until an operator explicitly names which ones are safe.
+      def allowlisted_params(params)
+        return {} if @allowed_fields.empty?
+
         params.each_with_object({}) do |(k, v), result|
-          result[k] = sensitive.include?(k.to_s.downcase) ? '[REDACTED]' : v
+          result[k] = v if @allowed_fields.include?(k.to_s)
+        end
+      end
+
+      # Same allowlist as #allowlisted_params, matched against the
+      # human-readable header name (e.g. "User-Agent"), not the raw
+      # HTTP_USER_AGENT env key. Empty by default — without it, :debug
+      # capture used to dump every header verbatim, Cookie/Authorization
+      # included.
+      def allowlisted_headers(env)
+        return {} if @allowed_fields.empty?
+
+        env.each_with_object({}) do |(k, v), result|
+          next unless k.start_with?('HTTP_')
+
+          header_name         = k.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
+          result[header_name] = v if @allowed_fields.include?(header_name)
         end
       end
 

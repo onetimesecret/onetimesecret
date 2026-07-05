@@ -1,0 +1,142 @@
+{
+  "api.organizations.errors.domain_scoped_forbidden": {
+    "text": "ドメインに限定されたメンバーはこの操作を実行できません",
+    "source_hash": "0a06a035"
+  },
+  "api.organizations.errors.organization_not_found": {
+    "text": "組織が見つかりません: %{extid}",
+    "source_hash": "c8d058eb"
+  },
+  "api.organizations.errors.organization_owner_required": {
+    "text": "この操作を実行できるのは組織のオーナーのみです",
+    "source_hash": "5a729e94"
+  },
+  "api.organizations.errors.organization_member_required": {
+    "text": "この操作を実行するには組織のメンバーである必要があります",
+    "source_hash": "f66f4a60"
+  },
+  "api.organizations.errors.organization_admin_required": {
+    "text": "この操作を実行できるのは組織のオーナーと管理者のみです",
+    "source_hash": "cd9e8c0e"
+  },
+  "api.organizations.errors.extid_required": {
+    "text": "組織IDが必要です",
+    "source_hash": "02fbe301"
+  },
+  "api.organizations.errors.display_name_required": {
+    "text": "組織名は必須です",
+    "source_hash": "c3f6e9af"
+  },
+  "api.organizations.errors.display_name_too_long": {
+    "text": "組織名は%{max}文字未満である必要があります",
+    "source_hash": "5866973d"
+  },
+  "api.organizations.errors.description_too_long": {
+    "text": "説明は%{max}文字未満である必要があります",
+    "source_hash": "562b7250"
+  },
+  "api.organizations.errors.contact_email_exists": {
+    "text": "この連絡先メールアドレスの組織はすでに存在します",
+    "source_hash": "e9fdce56"
+  },
+  "api.organizations.errors.creation_in_progress": {
+    "text": "組織を作成しています。もう一度お試しください。",
+    "source_hash": "ef68bc2d"
+  },
+  "api.organizations.errors.organization_limit_reached": {
+    "text": "組織数の上限に達しました。さらに組織を作成するにはプランをアップグレードしてください。",
+    "source_hash": "69e2e61b"
+  },
+  "api.organizations.invitations.errors.invitation_not_found": {
+    "text": "招待が見つかりません",
+    "source_hash": "775ba9eb"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "メールアドレスは必須です",
+    "source_hash": "aae92911"
+  },
+  "api.organizations.invitations.errors.invalid_email_format": {
+    "text": "メールアドレスの形式が無効です",
+    "source_hash": "0bcecf66"
+  },
+  "api.organizations.invitations.errors.invalid_role": {
+    "text": "ロールはメンバーまたは管理者である必要があります",
+    "source_hash": "650ea5f6"
+  },
+  "api.organizations.invitations.errors.cannot_invite_as_owner": {
+    "text": "オーナーとして招待することはできません",
+    "source_hash": "e6581025"
+  },
+  "api.organizations.invitations.errors.user_already_member": {
+    "text": "ユーザーはすでにこの組織のメンバーです",
+    "source_hash": "8eb45780"
+  },
+  "api.organizations.invitations.errors.invitation_already_pending": {
+    "text": "このメールアドレス宛の招待はすでに保留中です",
+    "source_hash": "7f5e3093"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "メンバー数の上限に達しました。さらにメンバーを招待するにはプランをアップグレードしてください。",
+    "source_hash": "b8f316e8"
+  },
+  "api.organizations.invitations.errors.resend_only_pending": {
+    "text": "再送信できるのは保留中の招待のみです",
+    "source_hash": "b7578b3e"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "再送信回数の上限(%{max})に達しました",
+    "source_hash": "8dc96729"
+  },
+  "api.organizations.invitations.errors.revoke_only_pending": {
+    "text": "取り消せるのは保留中の招待のみです",
+    "source_hash": "732b78a6"
+  },
+  "api.organizations.members.errors.member_not_found": {
+    "text": "メンバーが見つかりません: %{extid}",
+    "source_hash": "57654771"
+  },
+  "api.organizations.members.errors.member_not_in_organization": {
+    "text": "この組織にメンバーが見つかりません",
+    "source_hash": "dcab71ff"
+  },
+  "api.organizations.members.errors.member_not_active": {
+    "text": "メンバーは有効ではありません",
+    "source_hash": "a51b8760"
+  },
+  "api.organizations.members.errors.invalid_role_value": {
+    "text": "無効なロールです。次のいずれかである必要があります: %{roles}",
+    "source_hash": "c3331aa0"
+  },
+  "api.organizations.members.errors.cannot_change_owner_role": {
+    "text": "オーナーのロールは変更できません。代わりに所有権の譲渡を使用してください。",
+    "source_hash": "76015424"
+  },
+  "api.organizations.members.errors.member_already_has_role": {
+    "text": "メンバーはすでに次のロールを持っています: %{role}",
+    "source_hash": "6771166a"
+  },
+  "api.organizations.members.errors.cannot_promote_to_owner": {
+    "text": "オーナーに昇格させることはできません。代わりに所有権の譲渡を使用してください。",
+    "source_hash": "cd574007"
+  },
+  "api.organizations.members.errors.must_be_member": {
+    "text": "この組織のメンバーである必要があります",
+    "source_hash": "de1c77b8"
+  },
+  "api.organizations.members.errors.cannot_remove_owner": {
+    "text": "組織のオーナーは削除できません。先に所有権を譲渡してください。",
+    "source_hash": "d4f33003"
+  },
+  "api.organizations.members.errors.cannot_remove_self": {
+    "text": "自分自身を削除することはできません。代わりに組織からの退出を使用してください。",
+    "source_hash": "d64cec91"
+  },
+  "api.organizations.members.errors.admin_cannot_remove_admin": {
+    "text": "管理者は他の管理者を削除できません。オーナーのみが削除できます。",
+    "source_hash": "2b3e6e30"
+  },
+  "api.organizations.members.errors.no_permission_to_remove": {
+    "text": "メンバーを削除する権限がありません",
+    "source_hash": "b0ac7287"
+  }
+}

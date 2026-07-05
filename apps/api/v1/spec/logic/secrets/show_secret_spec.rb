@@ -53,8 +53,10 @@ RSpec.describe V1::Logic::Secrets::ShowSecret do
         allow(secret).to receive(:truncated?).and_return(false)
         allow(secret).to receive(:original_size).and_return(100)
         allow(secret).to receive(:viewed!)
-        allow(secret).to receive(:received!)
-        allow(secret).to receive(:revealed!)
+        # revealed!/received! now return true for the caller that wins the
+        # atomic reveal claim; the controller gates the plaintext on that value.
+        allow(secret).to receive(:received!).and_return(true)
+        allow(secret).to receive(:revealed!).and_return(true)
         allow(secret).to receive(:previewed!)
         allow(secret).to receive(:verification).and_return('false')
         allow(secret).to receive(:state?).with(:new).and_return(true)
@@ -92,6 +94,57 @@ RSpec.describe V1::Logic::Secrets::ShowSecret do
 
         expect(subject.correct_passphrase).to be false
       end
+    end
+  end
+
+  # v1 show shares the passphrase rate limiter with v2 show/reveal. Wrong
+  # non-empty guesses accrue attempts; the empty-passphrase preview of a
+  # protected secret must never count toward the lockout.
+  describe 'passphrase rate limiting' do
+    let(:secret_identifier) { "showrl_#{SecureRandom.hex(6)}" }
+    let(:rl_secret) do
+      double('Onetime::Secret',
+        verification: 'false',
+        key: secret_identifier,
+        identifier: secret_identifier,
+        share_domain: '',
+        viewable?: true,
+        has_passphrase?: true,
+        truncated?: false,
+        can_decrypt?: false)
+    end
+    let(:params) do
+      { 'key' => secret_identifier, 'passphrase' => 'wrong-guess', 'continue' => 'true' }
+    end
+
+    subject { described_class.new(session, customer, params) }
+
+    before do
+      allow(Onetime::Secret).to receive(:load).with(secret_identifier).and_return(rl_secret)
+      allow(rl_secret).to receive(:load_owner).and_return(owner)
+      allow(rl_secret).to receive(:passphrase?).and_return(false)
+      allow(rl_secret).to receive(:state?).with(:new).and_return(false)
+      allow(rl_secret).to receive(:owner?).with(customer).and_return(false)
+    end
+
+    it 'records failed non-empty passphrase attempts' do
+      subject.process
+
+      attempts = Onetime::Secret.dbclient.get("passphrase:attempts:#{secret_identifier}")
+      expect(attempts.to_i).to eq(1)
+    end
+
+    it 'does not count the empty-passphrase preview as an attempt' do
+      preview = described_class.new(session, customer, params.merge('passphrase' => ''))
+      preview.process
+
+      expect(Onetime::Secret.dbclient.get("passphrase:attempts:#{secret_identifier}")).to be_nil
+    end
+
+    it 'raises LimitExceeded from raise_concerns once locked out' do
+      Onetime::Secret.dbclient.setex("passphrase:locked:#{secret_identifier}", 60, '1')
+
+      expect { subject.raise_concerns }.to raise_error(Onetime::LimitExceeded)
     end
   end
 
@@ -144,9 +197,11 @@ RSpec.describe V1::Logic::Secrets::ShowSecret do
     end
 
     it 'does not crash when secret has ciphertext but no legacy value' do
-      # Confirm the v2 precondition: ciphertext is populated, value is not
+      # Confirm the v2 precondition: ciphertext is populated. The legacy
+      # `value` field has been removed from the Secret model entirely, so
+      # "no legacy value" is now structurally guaranteed (the field no longer
+      # exists) rather than something to assert per-record.
       expect(v2_secret.ciphertext.to_s).not_to be_empty
-      expect(v2_secret.value.to_s).to be_empty
 
       expect { subject.process }.not_to raise_error
     end
@@ -178,8 +233,7 @@ RSpec.describe V1::Logic::Secrets::ShowSecret do
         can_decrypt?: true,
         truncated?: false,
         original_size: 18,
-        ciphertext: 'encrypted_blob',
-        value: nil)
+        ciphertext: 'encrypted_blob')
     end
 
     let(:params) do
@@ -195,7 +249,7 @@ RSpec.describe V1::Logic::Secrets::ShowSecret do
     before do
       allow(Onetime::Secret).to receive(:load).with('secret_v2').and_return(v2_secret)
       allow(v2_secret).to receive(:load_owner).and_return(owner)
-      allow(v2_secret).to receive(:revealed!)
+      allow(v2_secret).to receive(:revealed!).and_return(true)
       allow(v2_secret).to receive(:previewed!)
       allow(v2_secret).to receive(:state?).with(:new).and_return(true)
       allow(v2_secret).to receive(:owner?).with(customer).and_return(false)

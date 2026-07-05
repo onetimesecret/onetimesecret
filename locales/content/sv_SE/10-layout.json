@@ -148,7 +148,7 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Du ser ett säkert meddelande som delades med dig via {product_name}. Detta innehåll visas endast en gång och raderas sedan permanent från våra servrar.",
+    "text": "Du tittar på ett säkert meddelande som har delats med dig via {product_name}. Det här innehållet visas endast en gång och raderas sedan permanent från våra servrar.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -338,5 +338,13 @@
   "web.layout.workspace_context": {
     "text": "Arbetsytekontext",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Arbetsyta",
+    "source_hash": "87bb59ba"
+  },
+  "web.help.default_content": {
+    "text": "Kontakta supporten för hjälp",
+    "source_hash": "752bca14"
   }
 }

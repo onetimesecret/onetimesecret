@@ -398,5 +398,965 @@
   "web.domains.dns_widget_description": {
     "text": "Verwenden Sie das Tool unten, um Ihren DNS-Anbieter automatisch zu erkennen und Schritt-für-Schritt-Anleitungen zur Konfiguration Ihrer Domain zu erhalten.",
     "source_hash": "91c1af2e"
+  },
+  "api.domains.errors.add_admin_required": {
+    "text": "Nur Organisationsinhaber und Administratoren können benutzerdefinierte Bereiche hinzufügen",
+    "source_hash": "3324aabe"
+  },
+  "web.domains.public_homepage": {
+    "text": "Öffentliche Startseite",
+    "source_hash": "2ae3ccba"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Bereich verifiziert und aktiv",
+    "source_hash": "e4b6a6e1"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS nicht konfiguriert — zum Beheben klicken",
+    "source_hash": "892cb2cb"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Bereich nicht verifiziert — zum Verifizieren klicken",
+    "source_hash": "a9806710"
+  },
+  "web.domains.status_tooltip_unverified": {
+    "text": "Bereichsstatus nicht verifiziert — zum Aktualisieren klicken",
+    "source_hash": "a45aa76d"
+  },
+  "web.domains.last_check_failed": {
+    "text": "Letzte Verifizierungsprüfung fehlgeschlagen",
+    "source_hash": "88b594b8"
+  },
+  "web.domains.last_check_failed_ago": {
+    "text": "letzte Prüfung fehlgeschlagen {0}",
+    "source_hash": "ddfb6412"
+  },
+  "web.domains.verify_now": {
+    "text": "Jetzt verifizieren",
+    "source_hash": "db383efb"
+  },
+  "web.domains.click_to_verify": {
+    "text": "zum Verifizieren klicken",
+    "source_hash": "6eae7d9c"
+  },
+  "web.domains.remove_domain_description": {
+    "text": "Diesen Bereich und seine gesamte Konfiguration dauerhaft entfernen.",
+    "source_hash": "73946b9e"
+  },
+  "web.domains.add_access_denied": {
+    "text": "Zugriff verweigert",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.add_access_denied_description": {
+    "text": "Sie haben keine Berechtigung, Bereiche zu dieser Organisation hinzuzufügen. Wenden Sie sich an Ihren Organisationsadministrator.",
+    "source_hash": "25e035c6"
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "DNS-Widget konnte nicht geladen werden",
+    "source_hash": "5a1d8ab5"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "DNS-Widget nicht verfügbar",
+    "source_hash": "4eed448b"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "DNS-Widget konnte nicht initialisiert werden",
+    "source_hash": "de477585"
+  },
+  "web.domains.verified": {
+    "text": "Verifiziert",
+    "source_hash": "4f783840"
+  },
+  "web.domains.pending_verification": {
+    "text": "Verifizierung ausstehend",
+    "source_hash": "77e07795"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Sie haben nicht gespeicherte Änderungen. Möchten Sie die Seite wirklich verlassen?",
+    "source_hash": "322380c1"
+  },
+  "web.domains.entitlement_required_owner": {
+    "text": "Diese Funktion erfordert ein Upgrade Ihres Tarifs.",
+    "source_hash": "6de1f752"
+  },
+  "web.domains.entitlement_required_member": {
+    "text": "Diese Funktion ist in Ihrem aktuellen Tarif nicht verfügbar. Wenden Sie sich an Ihren Organisationsinhaber.",
+    "source_hash": "8f1688b2"
+  },
+  "web.domains.detail.manage": {
+    "text": "Verwalten",
+    "source_hash": "5a234448"
+  },
+  "web.domains.detail.features": {
+    "text": "Funktionen",
+    "source_hash": "5697d03d"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Nachrichten auf der Startseite",
+    "source_hash": "6360f7ec"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Öffentlichen Zugriff erlauben, um Nachrichten auf der Startseite Ihres Bereichs zu erstellen",
+    "source_hash": "209b3ded"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logo, Farben und benutzerdefiniertes Branding",
+    "source_hash": "69f7a9e8"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Einstellungen des Single-Sign-On-Anbieters",
+    "source_hash": "234e6150"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Konfiguration des benutzerdefinierten E-Mail-Absenders",
+    "source_hash": "7fcde01b"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Empfängereinstellungen für eingehende Nachrichten",
+    "source_hash": "37c1fd6d"
+  },
+  "web.domains.detail.signup_description": {
+    "text": "Strategie zur Registrierungsvalidierung pro Bereich",
+    "source_hash": "3c5a511f"
+  },
+  "web.domains.detail.signin_description": {
+    "text": "Konfiguration der Anmeldemethode pro Bereich",
+    "source_hash": "73e01e36"
+  },
+  "web.domains.email.title": {
+    "text": "E-Mail-Versand",
+    "source_hash": "6c428e5f"
+  },
+  "web.domains.email.config_title": {
+    "text": "E-Mail-Konfiguration",
+    "source_hash": "6f38aa51"
+  },
+  "web.domains.email.config_description": {
+    "text": "E-Mail-Versand für diesen Bereich konfigurieren",
+    "source_hash": "1c275ff0"
+  },
+  "web.domains.email.provider_label": {
+    "text": "E-Mail-Anbieter",
+    "source_hash": "a7ed3f4e"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "Wählen Sie einen E-Mail-Anbieter",
+    "source_hash": "63c8080c"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "Absendername",
+    "source_hash": "2f13b589"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "z. B. Acme Security",
+    "source_hash": "03c0f138"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "Absenderadresse",
+    "source_hash": "60643eae"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "z. B. secrets{'@'}example.com",
+    "source_hash": "a09b3928"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Antwort-an-Adresse",
+    "source_hash": "4538ea9c"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "z. B. support{'@'}example.com",
+    "source_hash": "fa3e5f0b"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Änderungen speichern",
+    "source_hash": "35322b5b"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Änderungen verwerfen",
+    "source_hash": "e07e053c"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES",
+    "source_hash": "15de4969"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid",
+    "source_hash": "b889d002"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint",
+    "source_hash": "ec994dad"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Kontostandards verwenden",
+    "source_hash": "f6fa84e7"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "Erfordert Bereichsverifizierung über DKIM- und SPF-Einträge",
+    "source_hash": "4df5aa60"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Erfordert Einrichtung der Bereichsauthentifizierung",
+    "source_hash": "71b53242"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Erfordert Bereichsverifizierung",
+    "source_hash": "87073c93"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "Verwendet die Standardkonfiguration für den E-Mail-Versand Ihres Kontos",
+    "source_hash": "3f798263"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "DNS-Einträge",
+    "source_hash": "34d2c307"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "Fügen Sie die folgenden DNS-Einträge hinzu, um Ihren Bereich für den E-Mail-Versand zu verifizieren.",
+    "source_hash": "9fa85863"
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Typ",
+    "source_hash": "baaddf70"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Name",
+    "source_hash": "dcd1d522"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Wert",
+    "source_hash": "8e37953d"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS",
+    "source_hash": "020965a2"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Anbieter",
+    "source_hash": "472590ae"
+  },
+  "web.domains.email.dns_optional_label": {
+    "text": "Empfohlen",
+    "source_hash": "d70604e8"
+  },
+  "web.domains.email.dns_optional_hint": {
+    "text": "Dieser Eintrag wird empfohlen, ist aber für die Verifizierung nicht erforderlich. Eine DMARC-Richtlinie auf Ihrer Organisationsdomäne deckt diese Subdomäne möglicherweise bereits ab.",
+    "source_hash": "58e1a12b"
+  },
+  "web.domains.email.copy": {
+    "text": "Kopieren",
+    "source_hash": "e21f935f"
+  },
+  "web.domains.email.copied": {
+    "text": "Kopiert",
+    "source_hash": "8d525e5f"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Verifiziert",
+    "source_hash": "4f783840"
+  },
+  "web.domains.email.status_pending": {
+    "text": "Ausstehend",
+    "source_hash": "331551b0"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Fehlgeschlagen",
+    "source_hash": "031a8f0f"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Erneut validieren",
+    "source_hash": "4918da12"
+  },
+  "web.domains.email.validating": {
+    "text": "Wird validiert...",
+    "source_hash": "b28b48d5"
+  },
+  "web.domains.email.domain_verified": {
+    "text": "Bereich verifiziert",
+    "source_hash": "08e0df67"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "Validierung fehlgeschlagen",
+    "source_hash": "23a86f5a"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Zuletzt validiert",
+    "source_hash": "887dd486"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Führen Sie ein Upgrade Ihres Tarifs durch, um den E-Mail-Versand für diesen Bereich zu konfigurieren.",
+    "source_hash": "16a876f7"
+  },
+  "web.domains.email.configure_email": {
+    "text": "E-Mail konfigurieren",
+    "source_hash": "a48c0d40"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Zugriff verweigert",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "Sie haben keine Berechtigung, die E-Mail-Einstellungen für diesen Bereich zu verwalten. Wenden Sie sich an Ihren Organisationsadministrator.",
+    "source_hash": "32049ff0"
+  },
+  "web.domains.email.update_success": {
+    "text": "E-Mail-Konfiguration erfolgreich gespeichert",
+    "source_hash": "dd3607fc"
+  },
+  "web.domains.email.delete_success": {
+    "text": "E-Mail-Konfiguration erfolgreich entfernt",
+    "source_hash": "2ba99a91"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "E-Mails für diesen Bereich werden derzeit vom globalen Absender gesendet. Schließen Sie die E-Mail-Konfiguration ab, um Ihre eigene Absenderidentität zu verwenden.",
+    "source_hash": "ffcf39fb"
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "Der benutzerdefinierte E-Mail-Versand ist derzeit deaktiviert. E-Mails werden vom globalen Absender gesendet. Aktivieren Sie die Funktion unten, um Ihre benutzerdefinierte Absenderidentität zu verwenden.",
+    "source_hash": "60a26f5b"
+  },
+  "web.domains.email.test_email_title": {
+    "text": "E-Mail-Zustellung testen",
+    "source_hash": "c1b3dee2"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Senden Sie sich selbst eine Test-E-Mail mit der gespeicherten Konfiguration. Funktioniert auch, wenn die Funktion noch nicht aktiviert ist.",
+    "source_hash": "33e876ad"
+  },
+  "web.domains.email.send_test": {
+    "text": "Test senden",
+    "source_hash": "22d7b11d"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Test-E-Mail erfolgreich gesendet",
+    "source_hash": "561617fd"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Test-E-Mail konnte nicht gesendet werden",
+    "source_hash": "95ce63bc"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Gesendet an {email}",
+    "source_hash": "8ceb9588"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Zugestellt über {provider}",
+    "source_hash": "f741959b"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "Nicht konfiguriert",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "Standardabsender wird verwendet",
+    "source_hash": "e1afb18f"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Verifiziert",
+    "source_hash": "4f783840"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Verifizierung ausstehend",
+    "source_hash": "417a6b7e"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Deaktiviert",
+    "source_hash": "75081b59"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "Kein E-Mail-Absender konfiguriert — E-Mails verwenden den Standardabsender der Plattform",
+    "source_hash": "360083bb"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "Die Konfiguration des E-Mail-Absenders wartet auf Verifizierung — E-Mails verwenden den Standardabsender der Plattform",
+    "source_hash": "c8c2449c"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "E-Mail-Absender ist deaktiviert — E-Mails verwenden den Standardabsender der Plattform",
+    "source_hash": "64e84955"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "E-Mail-Absender verifiziert — E-Mails werden von diesem Bereich gesendet",
+    "source_hash": "0e9a005c"
+  },
+  "web.domains.incoming.title": {
+    "text": "Eingehende Nachrichten",
+    "source_hash": "883dbca9"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Konfiguration für eingehende Nachrichten",
+    "source_hash": "b3fef15b"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Externen Benutzern erlauben, Nachrichten direkt an festgelegte Empfänger in diesem Bereich zu senden",
+    "source_hash": "452ab4fe"
+  },
+  "web.domains.incoming.feature_disabled": {
+    "text": "Eingehende Nachrichten nicht verfügbar",
+    "source_hash": "0f96c5ec"
+  },
+  "web.domains.incoming.feature_disabled_description": {
+    "text": "Eingehende Nachrichten sind auf dieser Instanz nicht aktiviert. Wenden Sie sich an Ihren Administrator.",
+    "source_hash": "dce981e0"
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Zugriff verweigert",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "Sie haben keine Berechtigung, die Einstellungen für eingehende Nachrichten in diesem Bereich zu verwalten. Wenden Sie sich an Ihren Organisationsadministrator.",
+    "source_hash": "3e9d8adc"
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Führen Sie ein Upgrade Ihres Tarifs durch, um eingehende Nachrichten für diesen Bereich zu konfigurieren.",
+    "source_hash": "9dfdfeb5"
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Eingehende Nachrichten konfigurieren",
+    "source_hash": "eab52939"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "Eingehende Nachrichten sind für diesen Bereich nicht konfiguriert. Fügen Sie Empfänger hinzu, damit externe Benutzer Nachrichten an Ihr Team senden können.",
+    "source_hash": "dbc443a6"
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "Eingehende Nachrichten sind derzeit deaktiviert. Externe Benutzer können keine Nachrichten an Empfänger in diesem Bereich senden. Aktivieren Sie die Funktion unten, um eingehende Nachrichten zu erlauben.",
+    "source_hash": "d1f8dafb"
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Empfänger",
+    "source_hash": "1e8568a8"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Legen Sie fest, wer in diesem Bereich eingehende Nachrichten empfangen kann. Empfänger erhalten E-Mail-Benachrichtigungen, wenn ihnen eine Nachricht gesendet wird.",
+    "source_hash": "026f9d9d"
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Empfänger hinzufügen",
+    "source_hash": "25f93c13"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Entfernen",
+    "source_hash": "c3812fc4"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "E-Mail-Adresse",
+    "source_hash": "09bf25ef"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "recipient{'@'}example.com",
+    "source_hash": "55d1508e"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Anzeigename",
+    "source_hash": "18d67c99"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "z. B. Security Team",
+    "source_hash": "0c52400c"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "Keine Empfänger konfiguriert",
+    "source_hash": "bc8c2058"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Fügen Sie Empfänger hinzu, damit externe Benutzer Nachrichten an Ihr Team senden können.",
+    "source_hash": "2a647a40"
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Ungültige E-Mail-Adresse",
+    "source_hash": "4eaf1d80"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "Diese E-Mail-Adresse wurde bereits hinzugefügt",
+    "source_hash": "f89de141"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "Maximal {max} Empfänger erlaubt",
+    "source_hash": "e2585847"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "Anzeigename ist erforderlich",
+    "source_hash": "c6892c89"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "E-Mail-Adresse ist erforderlich",
+    "source_hash": "41381ba2"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Änderungen speichern",
+    "source_hash": "35322b5b"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Änderungen verwerfen",
+    "source_hash": "e07e053c"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "Konfiguration für eingehende Nachrichten erfolgreich gespeichert",
+    "source_hash": "9317e02d"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "Konfiguration für eingehende Nachrichten erfolgreich entfernt",
+    "source_hash": "4c4a33ae"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} Empfänger | {count} Empfänger",
+    "source_hash": "0e4f5985"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "Nicht konfiguriert",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Konfiguriert",
+    "source_hash": "84aebc69"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Deaktiviert",
+    "source_hash": "75081b59"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "Eingehende Nachrichten nicht konfiguriert - externe Benutzer können keine Nachrichten an diesen Bereich senden",
+    "source_hash": "79786d5c"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "Eingehende Nachrichten mit {count} Empfänger(n) aktiviert",
+    "source_hash": "c205cc54"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "Die Funktion für eingehende Nachrichten ist für diesen Bereich deaktiviert",
+    "source_hash": "0413f96b"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Eingehende Nachrichten aktivieren",
+    "source_hash": "c0b25980"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Externen Benutzern erlauben, Nachrichten an Empfänger in diesem Bereich zu senden",
+    "source_hash": "24aadd31"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "Öffentliche URL",
+    "source_hash": "f7b60b04"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Teilen Sie diese URL mit externen Benutzern, damit sie Nachrichten senden können",
+    "source_hash": "df47a894"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "URL kopieren",
+    "source_hash": "b26d1037"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "URL in die Zwischenablage kopiert",
+    "source_hash": "2f396c3e"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Möchten Sie wirklich alle Empfänger entfernen? Externe Benutzer können dann keine Nachrichten mehr an diesen Bereich senden.",
+    "source_hash": "06f9e551"
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Maximale Anzahl an Empfängern erreicht",
+    "source_hash": "ba659e54"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "Diese E-Mail-Adresse wurde bereits hinzugefügt",
+    "source_hash": "ca598f6d"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "Beim Speichern werden alle vorhandenen Empfänger durch Ihre ausstehenden Änderungen ersetzt. Sind Sie sicher?",
+    "source_hash": "f497862e"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Alle Empfänger löschen",
+    "source_hash": "207d0dbe"
+  },
+  "web.domains.signin.title": {
+    "text": "Anmeldekonfiguration",
+    "source_hash": "2da38c03"
+  },
+  "web.domains.signin.configure_signin": {
+    "text": "Anmeldung konfigurieren",
+    "source_hash": "f72b58b5"
+  },
+  "web.domains.signin.config_description": {
+    "text": "Anmelde-Authentifizierungsmethoden für diesen Bereich konfigurieren",
+    "source_hash": "8efce428"
+  },
+  "web.domains.signin.access_denied": {
+    "text": "Zugriff verweigert",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.signin.upgrade_to_configure": {
+    "text": "Führen Sie ein Upgrade Ihres Tarifs durch, um Anmeldemethoden für diesen Bereich zu konfigurieren.",
+    "source_hash": "e242bb74"
+  },
+  "web.domains.signin.not_configured_notice": {
+    "text": "Die Anmeldekonfiguration ist für diesen Bereich noch nicht festgelegt. Konfigurieren Sie Überschreibungen, um zu steuern, welche Authentifizierungsmethoden auf der Anmeldeseite dieses Bereichs verfügbar sind.",
+    "source_hash": "cb788a2d"
+  },
+  "web.domains.signin.signin_enabled_label": {
+    "text": "Anmeldung aktiviert",
+    "source_hash": "cabe4898"
+  },
+  "web.domains.signin.header_toggle_label": {
+    "text": "Anmeldung",
+    "source_hash": "5bbbe531"
+  },
+  "web.domains.signin.signin_enabled_hint": {
+    "text": "Ob sich Benutzer in diesem Bereich eintragen können",
+    "source_hash": "57a92aee"
+  },
+  "web.domains.signin.restrict_to_label": {
+    "text": "Anmeldemethode einschränken",
+    "source_hash": "edbec83f"
+  },
+  "web.domains.signin.restrict_to_hint": {
+    "text": "Diesen Bereich auf eine einzige Authentifizierungsmethode einschränken. Wenn festgelegt, wird auf der Anmeldeseite nur die gewählte Methode angezeigt.",
+    "source_hash": "682bc4c5"
+  },
+  "web.domains.signin.all_methods": {
+    "text": "Alle Methoden",
+    "source_hash": "e601c19e"
+  },
+  "web.domains.signin.all_methods_description": {
+    "text": "Alle aktivierten Authentifizierungsmethoden auf der Anmeldeseite anzeigen",
+    "source_hash": "62723340"
+  },
+  "web.domains.signin.method_password": {
+    "text": "Passwort",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.domains.signin.method_email_auth": {
+    "text": "E-Mail-Authentifizierung",
+    "source_hash": "68c38f94"
+  },
+  "web.domains.signin.method_webauthn": {
+    "text": "WebAuthn / Passkeys",
+    "source_hash": "c40224ce"
+  },
+  "web.domains.signin.method_sso": {
+    "text": "Single Sign-On",
+    "source_hash": "cf7cd744"
+  },
+  "web.domains.signin.method_overrides_label": {
+    "text": "Methoden-Überschreibungen",
+    "source_hash": "5496cba6"
+  },
+  "web.domains.signin.method_overrides_hint": {
+    "text": "Einzelne Authentifizierungsmethoden für diesen Bereich aktivieren oder deaktivieren",
+    "source_hash": "394e3878"
+  },
+  "web.domains.signin.mode_question": {
+    "text": "Wie können sich Benutzer eintragen?",
+    "source_hash": "3694eb23"
+  },
+  "web.domains.signin.mode_any": {
+    "text": "Jede verfügbare Methode",
+    "source_hash": "23665425"
+  },
+  "web.domains.signin.mode_any_hint": {
+    "text": "Jede in diesem Bereich verfügbare Methode anzeigen. Schränken Sie einzelne Methoden unten ein.",
+    "source_hash": "2f3dcba6"
+  },
+  "web.domains.signin.mode_one": {
+    "text": "Eine bestimmte Methode",
+    "source_hash": "601f5768"
+  },
+  "web.domains.signin.mode_one_hint": {
+    "text": "Die Anmeldeseite auf eine einzige Methode einschränken. Es werden nur die in diesem Bereich verfügbaren Methoden aufgeführt.",
+    "source_hash": "58bde6d5"
+  },
+  "web.domains.signin.mode_disabled": {
+    "text": "Anmeldung deaktiviert",
+    "source_hash": "bb807607"
+  },
+  "web.domains.signin.mode_disabled_hint": {
+    "text": "Benutzer können sich in diesem Bereich nicht eintragen.",
+    "source_hash": "8938f098"
+  },
+  "web.domains.signin.mode_disabled_notice": {
+    "text": "Besucher der Anmeldeseite dieses Bereichs sehen einen Hinweis, dass die Anmeldung nicht verfügbar ist, mit einem Link zurück zur Startseite. Ihre vorherigen Methodeneinstellungen werden beibehalten und wiederhergestellt, wenn Sie die Anmeldung wieder aktivieren.",
+    "source_hash": "1a04de18"
+  },
+  "web.domains.signin.methods_list_label": {
+    "text": "Auf der Anmeldeseite angezeigte Methoden",
+    "source_hash": "66fd133b"
+  },
+  "web.domains.signin.restrict_picker_hint": {
+    "text": "Es werden nur die in diesem Bereich verfügbaren Methoden aufgeführt.",
+    "source_hash": "c7a56f44"
+  },
+  "web.domains.signin.availability_always": {
+    "text": "Immer verfügbar",
+    "source_hash": "0fda3772"
+  },
+  "web.domains.signin.availability_global_on": {
+    "text": "Folgt globaler Richtlinie · Ein",
+    "source_hash": "3844e6f7"
+  },
+  "web.domains.signin.availability_global_off": {
+    "text": "Nicht verfügbar",
+    "source_hash": "67a926f7"
+  },
+  "web.domains.signin.availability_unavailable": {
+    "text": "Standortweit nicht verfügbar",
+    "source_hash": "da29c1be"
+  },
+  "web.domains.signin.allow_on_domain": {
+    "text": "In diesem Bereich erlauben",
+    "source_hash": "760b578e"
+  },
+  "web.domains.signin.method_password_blurb": {
+    "text": "Nur Passwort",
+    "source_hash": "ed1a02fd"
+  },
+  "web.domains.signin.method_email_auth_blurb": {
+    "text": "Passwortlose Anmeldung per Magic Link",
+    "source_hash": "7f776a85"
+  },
+  "web.domains.signin.method_webauthn_blurb": {
+    "text": "Biometrie und Sicherheitsschlüssel",
+    "source_hash": "7d6a7bd5"
+  },
+  "web.domains.signin.method_sso_blurb": {
+    "text": "Externer Identitätsanbieter",
+    "source_hash": "a3442088"
+  },
+  "web.domains.signin.email_auth_label": {
+    "text": "E-Mail-Authentifizierung",
+    "source_hash": "68c38f94"
+  },
+  "web.domains.signin.email_auth_hint": {
+    "text": "Passwortlose E-Mail-Authentifizierung in diesem Bereich erlauben",
+    "source_hash": "6ad82127"
+  },
+  "web.domains.signin.sso_enabled_label": {
+    "text": "Single Sign-On",
+    "source_hash": "cf7cd744"
+  },
+  "web.domains.signin.sso_enabled_hint": {
+    "text": "SSO-Authentifizierung in diesem Bereich erlauben",
+    "source_hash": "22d78ad5"
+  },
+  "web.domains.signin.enabled_label": {
+    "text": "Anmeldekonfiguration aktivieren",
+    "source_hash": "dbd8e11c"
+  },
+  "web.domains.signin.enabled_hint": {
+    "text": "Wenn aktiviert, verwendet dieser Bereich die oben konfigurierten Anmeldeeinstellungen",
+    "source_hash": "6259f8a2"
+  },
+  "web.domains.signin.save_config": {
+    "text": "Konfiguration speichern",
+    "source_hash": "b2b158f2"
+  },
+  "web.domains.signin.update_success": {
+    "text": "Anmeldekonfiguration erfolgreich aktualisiert",
+    "source_hash": "10ea50d8"
+  },
+  "web.domains.signin.reset_to_defaults": {
+    "text": "Auf Standardeinstellungen zurücksetzen",
+    "source_hash": "e240e635"
+  },
+  "web.domains.signin.reset_confirm": {
+    "text": "Anmeldung auf die globalen Standardeinstellungen zurücksetzen?",
+    "source_hash": "2c6bbc32"
+  },
+  "web.domains.signin.reset_keeps_sso": {
+    "text": "Ihre SSO-Anmeldedaten werden beibehalten. Entfernen Sie diese separat auf dem SSO-Konfigurationsbildschirm.",
+    "source_hash": "edc0c756"
+  },
+  "web.domains.signin.reset_action": {
+    "text": "Ja, zurücksetzen",
+    "source_hash": "4bb21d8b"
+  },
+  "web.domains.signin.reset_success": {
+    "text": "Anmeldeeinstellungen auf die globalen Standardeinstellungen zurückgesetzt",
+    "source_hash": "0c364d89"
+  },
+  "web.domains.signup.title": {
+    "text": "Registrierungsvalidierung",
+    "source_hash": "2c34ac0a"
+  },
+  "web.domains.signup.config_description": {
+    "text": "Registrierungsvalidierung für diesen Bereich konfigurieren",
+    "source_hash": "e9c81e8a"
+  },
+  "web.domains.signup.access_denied": {
+    "text": "Zugriff verweigert",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.signup.upgrade_to_configure": {
+    "text": "Führen Sie ein Upgrade Ihres Tarifs durch, um die Registrierungsvalidierung pro Bereich zu konfigurieren.",
+    "source_hash": "d87d6614"
+  },
+  "web.domains.signup.configure_signup": {
+    "text": "Registrierung konfigurieren",
+    "source_hash": "e2697662"
+  },
+  "web.domains.signup.not_configured_notice": {
+    "text": "Die Registrierungsvalidierung ist für diesen Bereich noch nicht konfiguriert. Konfigurieren Sie eine Strategie, um zu steuern, wer sich über diesen Bereich registrieren kann.",
+    "source_hash": "fc6c6eb8"
+  },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "Registrierungen sind derzeit auf Standortebene deaktiviert. Diese Richtlinie pro Bereich ist konfiguriert, wird den Datenverkehr aber erst regulieren, wenn die Standort-Registrierungen aktiviert sind.",
+    "source_hash": "c0e59f86"
+  },
+  "web.domains.signup.strategy_label": {
+    "text": "Validierungsstrategie",
+    "source_hash": "a2e95531"
+  },
+  "web.domains.signup.strategy_description": {
+    "text": "Wählen Sie, wie E-Mail-Adressen validiert werden, wenn sich Benutzer in diesem Bereich registrieren.",
+    "source_hash": "8e232b03"
+  },
+  "web.domains.signup.network_validation_warning": {
+    "text": "Diese Strategie führt während der Registrierung Netzwerkaufrufe durch, was zu Verzögerungen führen oder von einigen Anbietern blockiert werden kann.",
+    "source_hash": "53d4c266"
+  },
+  "web.domains.signup.allowed_domains_label": {
+    "text": "Erlaubte Bereiche für die Registrierung",
+    "source_hash": "9b5bb5b1"
+  },
+  "web.domains.signup.allowed_domains_hint": {
+    "text": "Nur diese E-Mail-Bereiche dürfen sich registrieren. Fügen Sie einen Bereich pro Eintrag hinzu.",
+    "source_hash": "c082414d"
+  },
+  "web.domains.signup.domain_placeholder": {
+    "text": "example.com",
+    "source_hash": "a379a6f6"
+  },
+  "web.domains.signup.invalid_domain": {
+    "text": "Bitte geben Sie einen gültigen Bereich ein (z. B. example.com)",
+    "source_hash": "16807983"
+  },
+  "web.domains.signup.domain_exists": {
+    "text": "Dieser Bereich ist bereits in der Liste",
+    "source_hash": "3fccb721"
+  },
+  "web.domains.signup.remove_domain": {
+    "text": "{domain} entfernen",
+    "source_hash": "ae708a1d"
+  },
+  "web.domains.signup.enabled_label": {
+    "text": "Validierung pro Bereich aktivieren",
+    "source_hash": "db103925"
+  },
+  "web.domains.signup.enabled_hint": {
+    "text": "Wenn aktiviert, verwenden Registrierungen in diesem Bereich die obige Strategie anstelle der globalen Richtlinie.",
+    "source_hash": "99de2008"
+  },
+  "web.domains.signup.delete_config": {
+    "text": "Konfiguration löschen",
+    "source_hash": "a9a30c7f"
+  },
+  "web.domains.signup.delete_confirm": {
+    "text": "Konfiguration der Registrierungsvalidierung löschen? Registrierungen greifen dann auf die globale Richtlinie zurück.",
+    "source_hash": "a8c9086e"
+  },
+  "web.domains.signup.save_config": {
+    "text": "Konfiguration speichern",
+    "source_hash": "b2b158f2"
+  },
+  "web.domains.signup.update_success": {
+    "text": "Registrierungsvalidierung erfolgreich aktualisiert",
+    "source_hash": "57a529ac"
+  },
+  "web.domains.signup.delete_success": {
+    "text": "Konfiguration der Registrierungsvalidierung erfolgreich entfernt",
+    "source_hash": "eb6add4d"
+  },
+  "web.domains.signup.domain_overrides_label": {
+    "text": "Bereichs-Überschreibungen",
+    "source_hash": "d25da3cd"
+  },
+  "web.domains.signup.domain_overrides_hint": {
+    "text": "Globale Registrierungseinstellungen für diesen Bereich überschreiben",
+    "source_hash": "53101057"
+  },
+  "web.domains.signup.signup_enabled_label": {
+    "text": "Registrierung aktiviert",
+    "source_hash": "296ac66d"
+  },
+  "web.domains.signup.signup_enabled_hint": {
+    "text": "Überschreiben, ob die Registrierung für diesen Bereich aktiviert ist",
+    "source_hash": "2ee146b6"
+  },
+  "web.domains.signup.autoverify_label": {
+    "text": "Konten automatisch verifizieren",
+    "source_hash": "4b103cd5"
+  },
+  "web.domains.signup.autoverify_hint": {
+    "text": "Überschreiben, ob neue Konten in diesem Bereich automatisch verifiziert werden",
+    "source_hash": "63866ecd"
+  },
+  "web.domains.sso.title": {
+    "text": "Single Sign-On",
+    "source_hash": "cf7cd744"
+  },
+  "web.domains.sso.config_title": {
+    "text": "SSO-Konfiguration",
+    "source_hash": "afd5751e"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Single-Sign-On-Authentifizierung für diesen Bereich konfigurieren",
+    "source_hash": "f37a0b47"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Zugriff verweigert",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "Sie haben keine Berechtigung, die SSO-Einstellungen für diesen Bereich zu verwalten. Wenden Sie sich an Ihren Organisationsadministrator.",
+    "source_hash": "db7fcfeb"
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Führen Sie ein Upgrade Ihres Tarifs durch, um Single Sign-On für diesen Bereich zu konfigurieren.",
+    "source_hash": "71fc0069"
+  },
+  "web.domains.sso.create_success": {
+    "text": "SSO-Konfiguration erfolgreich erstellt",
+    "source_hash": "531c7d92"
+  },
+  "web.domains.sso.update_success": {
+    "text": "SSO-Konfiguration erfolgreich aktualisiert",
+    "source_hash": "d98d8e83"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "SSO-Konfiguration erfolgreich entfernt",
+    "source_hash": "2e924798"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Verbindungstest erfolgreich — Anbieter hat korrekt geantwortet",
+    "source_hash": "1570ddb0"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Verbindungstest fehlgeschlagen",
+    "source_hash": "a45a37dd"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "Um SSO für alle Anmeldungen in diesem Bereich vorzuschreiben, konfigurieren Sie es in den Anmeldeeinstellungen des Bereichs. Der reine SSO-Modus beschränkt die Anmeldeseite auf den hier konfigurierten SSO-Anbieter.",
+    "source_hash": "d26627a5"
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "SSO konfigurieren",
+    "source_hash": "80d3a144"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "SSO ist für diesen Bereich noch nicht konfiguriert. Aktivieren Sie Single Sign-On, damit sich Teammitglieder über den Identitätsanbieter Ihrer Organisation authentifizieren können.",
+    "source_hash": "c439214b"
+  },
+  "web.domains.sso.edit_credentials": {
+    "text": "Anmeldedaten bearbeiten",
+    "source_hash": "5a6622b6"
+  },
+  "web.domains.sso.configure_button": {
+    "text": "Konfigurieren",
+    "source_hash": "6defafa2"
+  },
+  "web.domains.sso.upgrade_required": {
+    "text": "Upgrade zum Konfigurieren",
+    "source_hash": "571cfa98"
   }
 }

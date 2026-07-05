@@ -682,5 +682,17 @@
   "web.settings.profile.didnt_receive_email": {
     "text": "Không nhận được email?",
     "source_hash": "fe3ac3ad"
+  },
+  "web.settings.api.api_disabled_notice": {
+    "text": "API đã bị vô hiệu hóa cho phiên bản này.",
+    "source_hash": "66d12d6b"
+  },
+  "web.settings.security.sso_managed_title": {
+    "text": "Bảo mật được quản lý bởi SSO",
+    "source_hash": "1f6c9472"
+  },
+  "web.settings.security.sso_managed_description": {
+    "text": "Tài khoản của bạn được xác thực thông qua nhà cung cấp đăng nhập một lần (SSO) của tổ chức. Mật khẩu, xác thực đa yếu tố và mã khôi phục được quản lý bởi nhà cung cấp danh tính của bạn.",
+    "source_hash": "cd0cf39f"
   }
 }

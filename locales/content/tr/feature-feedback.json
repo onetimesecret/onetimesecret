@@ -58,5 +58,17 @@
   "web.feedback.reason_email_change_unauthorized": {
     "text": "Hesabınızda yetkisiz bir e-posta değişikliği bildirdiğiniz anlaşılıyor. Lütfen ne olduğunu açıklayın, hemen araştıracağız.",
     "source_hash": "00e56551"
+  },
+  "web.feedback.anonymous_no_reply": {
+    "text": "Not: yanıt almak isterseniz, lütfen mesajı imzalayın veya mesaja bir e-posta adresi ekleyin.",
+    "source_hash": "c984f705"
+  },
+  "web.feedback.characters_remaining": {
+    "text": "{count} karakter kaldı",
+    "source_hash": "8d796f40"
+  },
+  "web.feedback.character_limit_reached": {
+    "text": "Karakter sınırına ulaşıldı",
+    "source_hash": "031e9310"
   }
 }

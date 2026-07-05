@@ -11,7 +11,7 @@ module Onetime
     # Must be called after config is loaded but before connect_databases.
     #
     def check_redis_url
-      redis_uri = OT.conf.dig(:redis, :uri)
+      redis_uri = OT.conf.dig('redis', 'uri')
 
       if redis_uri.nil? || redis_uri.to_s.strip.empty?
         raise OT::Problem, <<~MSG

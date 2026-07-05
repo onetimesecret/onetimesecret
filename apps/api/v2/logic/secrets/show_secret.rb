@@ -16,6 +16,7 @@ module V2::Logic
     #   only metadata such as whether a passphrase is required. The secret can
     #   only be viewed once.
     class ShowSecret < V2::Logic::Base
+      include AccessTelemetry
       include Onetime::Logic::GuestRouteGating
       include Onetime::Security::PassphraseRateLimiter
 
@@ -71,14 +72,21 @@ module V2::Logic
         end
 
         if show_secret
-          @secret_value = secret.decrypted_secret_value(passphrase_input: passphrase)
-          owner         = secret.load_owner
+          owner = secret.load_owner
 
-          if verification
-            verify_owner(owner)
-          else
-            reveal_secret(owner)
-          end
+          # verify_owner/reveal_secret return secret.reveal!, which decrypts and
+          # returns the plaintext ONLY to the single caller that won the atomic
+          # burn-after-reading claim; a losing request gets nil and never
+          # computes the plaintext at all.
+          @secret_value = if verification
+                            verify_owner(owner)
+                          else
+                            reveal_secret(owner)
+                          end
+
+          # No plaintext means we did not win the reveal (a concurrent request
+          # already consumed the secret): do not present it as viewable.
+          @show_secret = false if @secret_value.nil?
         end
 
         resolve_share_domain
@@ -87,7 +95,20 @@ module V2::Logic
         @is_owner       = secret.owner?(cust)
         @one_liner      = one_liner
 
-        secret.previewed! if secret.state?(:new)
+        # Fetching metadata must not advance the secret's lifecycle state
+        # (GET is a safe method, #3633); the access is recorded on the
+        # receipt's timeline instead. Lifecycle now only moves on a genuine
+        # reveal or burn.
+        #
+        # Skip on a winning reveal: that access is already captured as the
+        # `revealed` lifecycle event (which fans out to the org trail via
+        # receipt.revealed!), so also recording `secret_get` here would
+        # double-count the same request — one reveal would appear twice in
+        # the trail and inflate the creator's access count with the
+        # consumption itself. A metadata-only GET, a wrong passphrase, or a
+        # lost reveal race all leave show_secret false and are recorded as a
+        # genuine (non-consuming) access.
+        record_access_telemetry('secret_get') unless show_secret
 
         success_data
       end
@@ -131,27 +152,28 @@ module V2::Logic
           # which exposes no public destroy method. clear is the correct call.
           # Skip for stateless auth (BasicAuth provides empty session)
           sess.clear unless sess.empty?
-          secret.received!
+          secret.reveal!(passphrase_input: passphrase)
         else
           raise_form_error "You can't verify an account when you're already logged in."
         end
       end
 
-      # Immediately mark the secret as viewed, so that it
-      # can't be shown again. If there's a network failure
-      # that prevents the client from receiving the response,
-      # we're not able to show it again. This is a feature
-      # not a bug.
+      # Reveal-and-consume the secret so it can't be shown again. If a network
+      # failure prevents the client from receiving the response, we deliberately
+      # cannot show it again -- a feature, not a bug.
       #
-      # NOTE: This destructive action is called before the
-      # response is returned or even fully generated (which
-      # happens in success_data). This is a feature, not a
-      # bug but it means that all return values need to be
-      # plucked out of the secret object before this is called.
+      # NOTE: reveal! is destructive and runs before the response is generated,
+      # so every returned value must be plucked from the secret before this
+      # point. It returns the plaintext ONLY to the caller that won the atomic
+      # reveal claim; a request that lost the race gets nil, so the shared-secret
+      # counters are gated on winning to avoid inflating them on a lost race.
       def reveal_secret(owner)
+        plaintext = secret.reveal!(passphrase_input: passphrase)
+        return plaintext if plaintext.nil?
+
         owner&.increment_field :secrets_shared unless owner&.anonymous?
         Onetime::Customer.secrets_shared.increment
-        secret.revealed!
+        plaintext
       end
 
       def resolve_share_domain

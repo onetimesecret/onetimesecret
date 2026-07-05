@@ -634,5 +634,201 @@
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
     "text": "Коли Ви надішлете відгук, ми побачимо:",
     "source_hash": "fe77172e"
+  },
+  "web.colonel.previewPlanMode": {
+    "text": "Режим попереднього перегляду тарифного плану",
+    "source_hash": "cf53f19d"
+  },
+  "web.colonel.previewModeDescription": {
+    "text": "Перегляньте застосунок таким, яким його бачать клієнти на іншому тарифному плані. Це впливає лише на ваш вигляд і не змінює фактичний тарифний план жодної організації.",
+    "source_hash": "6fe23f23"
+  },
+  "web.colonel.previewModeActive": {
+    "text": "Попередній перегляд активний",
+    "source_hash": "a558d603"
+  },
+  "web.colonel.bannedIps.empty": {
+    "text": "Немає заблокованих IP-адрес",
+    "source_hash": "bd101143"
+  },
+  "web.colonel.bannedIps.currentIp": {
+    "text": "Ваша поточна IP-адреса",
+    "source_hash": "72f9fefe"
+  },
+  "web.colonel.bannedIps.confirmUnban": {
+    "text": "Розблокувати {ip}?",
+    "source_hash": "ff009b1c"
+  },
+  "web.colonel.bannedIps.actions.ban": {
+    "text": "Заблокувати IP",
+    "source_hash": "f91a5285"
+  },
+  "web.colonel.bannedIps.actions.quickBan": {
+    "text": "Швидке блокування",
+    "source_hash": "c32d0943"
+  },
+  "web.colonel.bannedIps.actions.unban": {
+    "text": "Розблокувати",
+    "source_hash": "25fb5989"
+  },
+  "web.colonel.bannedIps.actions.cancel": {
+    "text": "Скасувати",
+    "source_hash": "19766ed6"
+  },
+  "web.colonel.bannedIps.columns.ipAddress": {
+    "text": "IP-адреса",
+    "source_hash": "3c3de0c9"
+  },
+  "web.colonel.bannedIps.columns.reason": {
+    "text": "Причина",
+    "source_hash": "f81ab834"
+  },
+  "web.colonel.bannedIps.columns.bannedAt": {
+    "text": "Заблоковано",
+    "source_hash": "dfbd120e"
+  },
+  "web.colonel.bannedIps.columns.bannedBy": {
+    "text": "Заблокував",
+    "source_hash": "9f47db0e"
+  },
+  "web.colonel.bannedIps.error.banFailed": {
+    "text": "Не вдалося заблокувати IP-адресу",
+    "source_hash": "24e94d9b"
+  },
+  "web.colonel.bannedIps.error.unbanFailed": {
+    "text": "Не вдалося розблокувати IP-адресу",
+    "source_hash": "66bbac9a"
+  },
+  "web.colonel.bannedIps.form.title": {
+    "text": "Заблокувати IP-адресу",
+    "source_hash": "3f5b3dfa"
+  },
+  "web.colonel.bannedIps.form.ipLabel": {
+    "text": "IP-адреса",
+    "source_hash": "3c3de0c9"
+  },
+  "web.colonel.bannedIps.form.reasonLabel": {
+    "text": "Причина",
+    "source_hash": "f81ab834"
+  },
+  "web.colonel.bannedIps.form.reasonPlaceholder": {
+    "text": "Необов'язкова причина",
+    "source_hash": "956688a5"
+  },
+  "web.colonel.bannedIps.success.banned": {
+    "text": "IP-адресу {ip} заблоковано",
+    "source_hash": "b6f861d5"
+  },
+  "web.colonel.bannedIps.success.unbanned": {
+    "text": "IP-адресу {ip} розблоковано",
+    "source_hash": "dbe93550"
+  },
+  "web.colonel.customDomains.empty": {
+    "text": "Користувацькі домени не налаштовано",
+    "source_hash": "e10b39f7"
+  },
+  "web.colonel.customDomains.noLogo": {
+    "text": "Без логотипа",
+    "source_hash": "ee5e36ff"
+  },
+  "web.colonel.customDomains.labels.organization": {
+    "text": "Організація",
+    "source_hash": "d764d425"
+  },
+  "web.colonel.customDomains.labels.externalId": {
+    "text": "Зовнішній ідентифікатор",
+    "source_hash": "69da56ba"
+  },
+  "web.colonel.customDomains.labels.created": {
+    "text": "Створено",
+    "source_hash": "d70b9e24"
+  },
+  "web.colonel.customDomains.labels.updated": {
+    "text": "Оновлено",
+    "source_hash": "3a5ecca1"
+  },
+  "web.colonel.customDomains.labels.favicon": {
+    "text": "Favicon",
+    "source_hash": "42955289"
+  },
+  "web.colonel.customDomains.status.verified": {
+    "text": "Перевірено",
+    "source_hash": "4f783840"
+  },
+  "web.colonel.customDomains.status.resolving": {
+    "text": "Визначення",
+    "source_hash": "3287a034"
+  },
+  "web.colonel.customDomains.status.ready": {
+    "text": "Готово",
+    "source_hash": "5fa7aac5"
+  },
+  "web.colonel.customDomains.status.publicHomepage": {
+    "text": "Публічна головна сторінка",
+    "source_hash": "2ae3ccba"
+  },
+  "web.colonel.customDomains.status.publicApi": {
+    "text": "Публічний API",
+    "source_hash": "ab3aa426"
+  },
+  "web.colonel.customDomains.status.pending": {
+    "text": "Очікування",
+    "source_hash": "331551b0"
+  },
+  "web.colonel.pagination.showing": {
+    "text": "Показано {start}–{end} із {total}",
+    "source_hash": "64af6de2"
+  },
+  "web.colonel.pagination.itemsPerPage": {
+    "text": "Елементів на сторінці",
+    "source_hash": "766a02e0"
+  },
+  "web.colonel.pagination.perPage": {
+    "text": "{count} на сторінці",
+    "source_hash": "34671d42"
+  },
+  "web.colonel.pagination.pageOf": {
+    "text": "Сторінка {current} із {total}",
+    "source_hash": "f0df6412"
+  },
+  "web.colonel.secrets.empty": {
+    "text": "Таємниць не знайдено",
+    "source_hash": "28647b3b"
+  },
+  "web.colonel.secrets.never": {
+    "text": "Ніколи",
+    "source_hash": "6300ef80"
+  },
+  "web.colonel.secrets.columns.shortId": {
+    "text": "Короткий ідентифікатор",
+    "source_hash": "7eaeb4a7"
+  },
+  "web.colonel.secrets.columns.state": {
+    "text": "Стан",
+    "source_hash": "a3b50c47"
+  },
+  "web.colonel.secrets.columns.created": {
+    "text": "Створено",
+    "source_hash": "d70b9e24"
+  },
+  "web.colonel.secrets.columns.expiration": {
+    "text": "Термін дії",
+    "source_hash": "f38d6e0e"
+  },
+  "web.colonel.secrets.columns.age": {
+    "text": "Вік (днів)",
+    "source_hash": "52ae64c6"
+  },
+  "web.colonel.secrets.state.new": {
+    "text": "Нова",
+    "source_hash": "18fdd549"
+  },
+  "web.colonel.secrets.state.received": {
+    "text": "Отримано",
+    "source_hash": "49f19bee"
+  },
+  "web.colonel.secrets.state.viewed": {
+    "text": "Переглянуто",
+    "source_hash": "1b28d178"
   }
 }

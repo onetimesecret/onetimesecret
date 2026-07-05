@@ -58,5 +58,17 @@
   "web.feedback.reason_email_change_unauthorized": {
     "text": "Φαίνεται ότι αναφέρετε μια μη εξουσιοδοτημένη αλλαγή email στον λογαριασμό σας. Παρακαλώ περιγράψτε τι συνέβη και θα το διερευνήσουμε αμέσως.",
     "source_hash": "00e56551"
+  },
+  "web.feedback.anonymous_no_reply": {
+    "text": "Σημείωση: αν θέλετε απάντηση, υπογράψτε ή συμπεριλάβετε μια διεύθυνση email στο μήνυμα.",
+    "source_hash": "c984f705"
+  },
+  "web.feedback.characters_remaining": {
+    "text": "Απομένουν {count} χαρακτήρες",
+    "source_hash": "8d796f40"
+  },
+  "web.feedback.character_limit_reached": {
+    "text": "Συμπληρώθηκε το όριο χαρακτήρων",
+    "source_hash": "031e9310"
   }
 }

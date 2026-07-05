@@ -144,12 +144,12 @@
     "content_hash": "1f981aaf"
   },
   "web.billing.overview.no_organizations_title": {
-    "text": "No Organizations",
-    "content_hash": "12420110"
+    "text": "No Workspaces",
+    "content_hash": "c7f70723"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "Create an organization to manage your billing and subscription",
-    "content_hash": "41e922d2"
+    "text": "Create a workspace to manage your billing and subscription",
+    "content_hash": "e0fd27a5"
   },
   "web.billing.overview.load_error": {
     "text": "Failed to load billing information",

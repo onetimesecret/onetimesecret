@@ -2,6 +2,9 @@
 #
 # frozen_string_literal: true
 
+require 'yaml'
+require 'date' # ensure Date/Time constants resolve for permitted_classes
+
 module Onetime
   module Utils
     module Enumerables
@@ -107,8 +110,10 @@ module Onetime
          # safe_load (rather than load) keeps this round-trip from
          # materializing arbitrary Ruby objects. The input is our own
          # YAML.dump output, so Symbol and aliases (emitted for shared object
-         # references) are both expected and safe to permit.
-         YAML.safe_load(yaml_str, permitted_classes: [Symbol], aliases: true)
+         # references) are both expected and safe to permit. Date and Time are
+         # permitted so a config containing date/time values survives the
+         # clone round-trip (kept in sync with the config loader, #3498).
+         YAML.safe_load(yaml_str, permitted_classes: [Symbol, Date, Time], aliases: true)
       rescue TypeError, Psych::DisallowedClass, Psych::BadAlias => ex
          raise OT::Problem, "[deep_clone] #{ex.message}"
       end

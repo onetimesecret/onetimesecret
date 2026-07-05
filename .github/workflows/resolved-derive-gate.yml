@@ -1,0 +1,136 @@
+# Regenerate-in-CI freshness / integrity gate. Replaces the retired SPEC §2.4
+# byte-hash gate (resolved-freshness.yml) per translation-rules ADR-005 and
+# issue #36.
+#
+# Under the no-vendor model there is no committed .resolved corpus to hash — the
+# old gate's guarantee ("generated governance is the authority's output, never a
+# hand edit") is preserved instead by DERIVING from scratch at the pin in CI and
+# linting it. Output goes to an ignored cache (.derived/) and is thrown away;
+# nothing is committed. If the pin points at a translation-rules commit whose
+# governance does not lint clean, this fails — so the app can never pin to a
+# broken authority commit.
+#
+# Two separate axes, not one pin: the derive ACTION pin (`uses:` digest — the
+# tool that runs, a literal SHA is required there) and the translation-rules REF
+# (TRANSLATION_RULES_REF below — the rules/engine data it derives). Both live in
+# the translation-rules repo and Renovate normally bumps each to the same vX.Y.Z
+# tag (#38), but they are tracked independently and the ref can be overridden
+# per-run (repo variable / dispatch input) without moving the action pin.
+
+name: resolved-derive-gate
+
+on:
+  pull_request:
+    paths:
+      - 'locales/content/**'
+      - '.github/workflows/resolved-derive-gate.yml'
+  push:
+    branches: [main, develop]
+    paths:
+      - 'locales/content/**'
+      - '.github/workflows/resolved-derive-gate.yml'
+  # Allow manual verification on any branch (e.g. before this lands on main),
+  # optionally against a candidate translation-rules ref before pinning it.
+  workflow_dispatch:
+    inputs:
+      rules_ref:
+        description: >-
+          Override the translation-rules ref (40-hex SHA or vX.Y.Z) for this run
+          only. Blank → repo variable TRANSLATION_RULES_REF → the in-file
+          default. Does NOT change the derive action pin in `uses:`.
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  # The translation-rules VERSION (rules + resolver engine) this gate derives and
+  # lints. Distinct from the derive ACTION pin in `uses:` below (the tool that
+  # runs, a literal SHA is required there). Renovate normally bumps both to the
+  # same vX.Y.Z release — customManager for this line, built-in github-actions
+  # manager for the `uses:` digest — but they are independent axes, and this ref
+  # can be overridden per-run via the TRANSLATION_RULES_REF repo variable or the
+  # rules_ref dispatch input.
+  #
+  # A human-readable vX.Y.Z tag (not a digest): the derive action resolves it to
+  # a commit at run time. The supply-chain pin is the `uses:` digest; this is the
+  # readable, first-party data version. Renovate's customManager bumps the tag.
+  TRANSLATION_RULES_REF: v0.1.1
+
+jobs:
+  resolved-derive-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout app repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Resolve translation-rules ref
+        # Precedence: dispatch input → repo variable → in-file default. Each
+        # candidate is passed through an env var (never interpolated into the
+        # shell) and the winner is shape-checked to a 40-hex SHA or vX.Y.Z tag
+        # before use. This only selects the data/engine ref; the derive action
+        # pin in the next step's `uses:` is a separate, fixed literal.
+        #
+        # NOTE: this resolve+validate block is intentionally duplicated verbatim
+        # in .github/workflows/validate-register.yml. A composite action would add
+        # more indirection than it saves for ~15 lines; keep the two copies in sync.
+        env:
+          DISPATCH_REF: ${{ github.event.inputs.rules_ref }}
+          VAR_REF: ${{ vars.TRANSLATION_RULES_REF }}
+          DEFAULT_REF: ${{ env.TRANSLATION_RULES_REF }}
+        run: |
+          set -euo pipefail
+          if   [ -n "${DISPATCH_REF}" ]; then ref="${DISPATCH_REF}"; src="dispatch input"
+          elif [ -n "${VAR_REF}" ];      then ref="${VAR_REF}";      src="repo variable"
+          else                                ref="${DEFAULT_REF}";  src="in-file default"
+          fi
+          # bash =~ matches the WHOLE string; grep -E '^...$' anchors per LINE, so a
+          # multiline value whose first line looks valid (e.g. "v1.2.3\n::error::x")
+          # slips past grep and reaches the ::notice:: echo and the GITHUB_ENV write
+          # below — an injection sink. Whole-string matching rejects it outright.
+          if [[ ! "${ref}" =~ ^([0-9a-fA-F]{40}|v[0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            # Keep the rejected value OUT of the ::error:: workflow command: it is
+            # unvalidated input and could carry newlines or ::workflow-command::
+            # sequences the runner would interpret from the log stream. The
+            # annotation stays constant; the raw value is shown on a plain line,
+            # shell-escaped (%q) so any control characters render inert.
+            echo "::error::invalid translation-rules ref (want 40-hex SHA or vX.Y.Z); rejected value printed below"
+            printf 'rejected ref (escaped): %q\n' "${ref}"
+            exit 1
+          fi
+          echo "::notice::translation-rules ref = ${ref} (source: ${src})"
+          echo "EFFECTIVE_RULES_REF=${ref}" >> "$GITHUB_ENV"
+
+      - name: Derive + lint all governed locales at the resolved ref
+        id: derive
+        uses: onetimesecret/translation-rules/.github/actions/derive@658c4109b629ffb7d1926a7c8c00e2c08076228a # v0.1.1
+        with:
+          ref: ${{ env.EFFECTIVE_RULES_REF }}
+          locales: all
+          emit: md,json
+          lint: 'true'
+          # Holds .resolved/<locale>.json + guides/for-translators/<locale>.md
+          # derived from translation-rules; ignored, regenerated each run.
+          emit-dir: generated/i18n
+
+      - name: Assert the derive resolved the requested ref to a commit
+        # source-commit is the requested ref (tag or SHA) resolved to a concrete
+        # commit by the action. A non-empty 40-hex SHA proves the derive ran and
+        # resolved our ref; the logged `ref → commit` mapping records exactly
+        # which translation-rules commit this run was evaluated against.
+        env:
+          GOT: ${{ steps.derive.outputs.source-commit }}
+          REF: ${{ env.EFFECTIVE_RULES_REF }}
+        run: |
+          set -euo pipefail
+          # Whole-string match (see the resolve step's note on grep's per-line gap).
+          if [[ ! "${GOT}" =~ ^[0-9a-f]{40}$ ]]; then
+            # ${REF} is already shape-validated (safe to interpolate). ${GOT} is the
+            # action's raw output and only reaches this branch when malformed, so
+            # keep it out of the ::error:: command and print it shell-escaped (%q).
+            echo "::error::derive did not resolve ${REF} to a commit; malformed source-commit printed below"
+            printf 'source-commit (escaped): %q\n' "${GOT}"
+            exit 1
+          fi
+          echo "resolved-derive-gate: derived + linted at translation-rules ${REF} → ${GOT}"

@@ -1,0 +1,38 @@
+{
+  "api.domains.errors.domain_id_required": {
+    "text": "Zahtevan je ID domene",
+    "source_hash": "6837426b"
+  },
+  "api.domains.errors.domain_not_found": {
+    "text": "Domena ni najdena: %{extid}",
+    "source_hash": "a0fd1025"
+  },
+  "api.domains.errors.organization_not_found": {
+    "text": "Organizacija za domeno ni najdena: %{domain}",
+    "source_hash": "632afc93"
+  },
+  "api.domains.errors.incoming_secrets_disabled": {
+    "text": "Dohodne skrivnosti niso omogočene na tej namestitvi",
+    "source_hash": "45c0b5c4"
+  },
+  "api.domains.errors.incoming_secrets_entitlement_required": {
+    "text": "Upravljanje dohodnih skrivnosti zahteva upravičenje incoming_secrets. Nadgradite svoj paket.",
+    "source_hash": "1af54ec2"
+  },
+  "api.domains.errors.incoming_config_not_found": {
+    "text": "Konfiguracija dohodnih skrivnosti za domeno ni najdena: %{extid}",
+    "source_hash": "491644a8"
+  },
+  "api.domains.errors.recipients_max_exceeded": {
+    "text": "Dovoljenih je največ %{max} prejemnikov",
+    "source_hash": "159842ad"
+  },
+  "api.domains.errors.recipients_invalid_email": {
+    "text": "Neveljaven e-poštni naslov: %{email}",
+    "source_hash": "e9c729c7"
+  },
+  "api.domains.errors.recipients_duplicate": {
+    "text": "Podvojeni e-poštni naslovi prejemnikov niso dovoljeni",
+    "source_hash": "6de22182"
+  }
+}

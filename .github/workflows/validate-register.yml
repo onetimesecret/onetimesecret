@@ -1,21 +1,41 @@
-# Phase 0 cross-repo prevention gate. Blocks any PR touching locale content
-# that introduces a forbidden register token (e.g. informal "du" in formal
-# de_AT). This is the load-bearing gate from translation-rules SPEC.md §1/§2.4
-# — the single mechanism that would have blocked the 2026-04-12 de_AT
-# regression. It needs neither base.yaml nor the resolver: just the authority's
-# existing bin/lint-register + the per-locale register.yaml token lists.
+# Cross-locale content register gate (translation-rules#42, ADR-008).
 #
-# Source of truth is the translation-rules repo, checked out read-only at a
-# pinned ref. Coverage grows automatically: every locale that has a
-# register.yaml upstream gets scanned. Today that is de_AT only. Verified
-# clean against current app content 2026-05-30 (20 files, 10 tokens, exit 0),
-# so activation will not fail unrelated PRs.
+# Blocks any PR that introduces a forbidden register token into shipped locale
+# content — the formal-in-informal / informal-in-formal flip the
+# translation-rules project exists to prevent (translation-rules#2). It is the
+# single mechanism that would have blocked the 2026-04-12 de_AT regression.
 #
-# Decision recorded: read-only checkout at a pinned ref, not a submodule. The
-# submodule is the eventual full-P1-4b form (it also carries .resolved JSON +
-# source_commit equality, which this slice does not). Pinning `ref:` to a SHA
-# or tag — not a moving `main` — is what makes the gate reproducible; bump it
-# deliberately the same way the yq pin is bumped.
+# WHAT CHANGED (was: de_AT-only). The previous gate ran the authority's
+# Phase-0 LC_ALL=C byte-grep (bin/lint-register), which only works for de_AT:
+# it hard-errors on the CJK `substring` rules (ja/ko/zh) and floods false
+# positives elsewhere (291 on vi `bà`-in-`bài`, 59/57 on fr `te`-in-`Hôte`), so
+# the other ~28 governed locales shipped UNCHECKED. This gate instead derives
+# each locale's resolved register and scans content with the resolver's own
+# Unicode-correct, substring-capable, exception-honouring matcher
+# (translation-rules lib/resolver/lint_content.py). One engine, every locale.
+#
+# SCOPE (blocks new contamination without punishing unrelated work).
+#   * On a PR: scan only the governed locales whose content changed vs the base.
+#     A PR that edits only a clean locale (e.g. vi, de_AT) is NOT failed by the
+#     pre-existing hits in other locales; a PR that touches cs/ja/nl must leave
+#     that locale clean. The gate file changing forces a full scan (a pin/logic
+#     bump must be validated against the whole corpus).
+#   * On push to main/develop, on a weekly schedule, and on manual dispatch:
+#     scan EVERY governed locale (drift detection + the full burndown signal).
+#
+# KNOWN DEBT. There is live contamination today — 49 hits in cs (13) / ja (2) /
+# nl (34), listed for native review in issue #3530. Full scans (and any PR
+# touching those locales) fail until they are remediated:
+#   * cs, ja — clear regressions; fix to the locked register (native review).
+#   * nl     — overlaps the register's noted formal B2B/marketing carve-out;
+#              encode that carve-out as register `exceptions` upstream in
+#              translation-rules so the engine stops flagging the intended copy,
+#              then fix any genuine remainder.
+#
+# Source of truth is translation-rules, checked out read-only at a pinned ref
+# via the shared derive action (translation-rules ADR-006). Coverage grows
+# automatically: every locale with a register.yaml upstream that also has app
+# content gets scanned.
 
 name: validate-register
 
@@ -23,84 +43,219 @@ on:
   pull_request:
     paths:
       - 'locales/content/**/*.json'
-      # The gate must also run when its own pins (translation-rules ref, yq)
-      # are bumped — otherwise a bump that makes existing content
-      # non-compliant merges unvalidated and fails the next unrelated PR.
+      # Re-run when the gate's own pins change, so a bump that makes existing
+      # content non-compliant is caught on the bumping PR, not the next one.
+      # A change here also forces a full scan (see the scope step).
       - '.github/workflows/validate-register.yml'
   push:
     branches: [main, develop]
     paths:
       - 'locales/content/**/*.json'
       - '.github/workflows/validate-register.yml'
+  # Weekly full-corpus drift check (independent of any PR), and an on-demand
+  # full scan for verifying the burndown.
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      rules_ref:
+        description: >-
+          Override the translation-rules ref (40-hex SHA or vX.Y.Z) for this run
+          only. Blank → repo variable TRANSLATION_RULES_REF → the in-file
+          default. Does NOT change the derive action pin in `uses:`.
+        required: false
+        type: string
 
 permissions:
   contents: read
+
+env:
+  # The translation-rules VERSION to evaluate against — the register rules and
+  # resolver engine (lib/resolver/lint_content.py) the derive action checks out
+  # at `ref:`. This is a DIFFERENT axis from the derive ACTION pin in `uses:`
+  # below: that pins the tool that runs (a literal SHA is required there); this
+  # pins the data + engine it runs against. Both live in the translation-rules
+  # repo, so Renovate normally bumps each to the same vX.Y.Z tag — but they are
+  # tracked independently now (customManager for this line; the built-in
+  # github-actions manager for the `uses:` digest), and only this ref can be
+  # floated per-run via the TRANSLATION_RULES_REF repo variable or the rules_ref
+  # dispatch input, without disturbing the action pin.
+  #
+  # A human-readable vX.Y.Z tag (not a digest): translation-rules is first-party
+  # and the derive action resolves the tag to a commit at run time, so this is a
+  # readability/ergonomics choice, not a supply-chain pin. The supply-chain pin
+  # is the `uses:` digest. Renovate's customManager bumps this tag string.
+  TRANSLATION_RULES_REF: v0.1.1
 
 jobs:
   validate-register:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout app repo
-        uses: actions/checkout@v4
-
-      - name: Checkout translation-rules (authority, read-only)
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          repository: onetimesecret/translation-rules
-          # translation-rules main as of 2026-06-11 (merge of PR #20; re-verified
-          # clean against app content at this SHA: 20 files, 10 tokens, exit 0).
-          # Bumping this pin is how the app repo adopts new rules — deliberately,
-          # as a reviewable diff, same as the yq pin below.
-          ref: 374f5c38639a4a4183e523614d212cc9d2e5ee21
-          path: .translation-rules
+          # Full history so a PR run can diff against its base SHA to find the
+          # changed locales (the scope step below).
+          fetch-depth: 0
 
-      - name: Install yq (pinned + checksum-verified)
+      - name: Resolve translation-rules ref
+        # Precedence: dispatch input → repo variable → in-file default. Each
+        # candidate is passed through an env var (never interpolated into the
+        # shell) and the winner is shape-checked to a 40-hex SHA or vX.Y.Z tag
+        # before use. This only selects the data/engine ref; the derive action
+        # pin in the next step's `uses:` is a separate, fixed literal.
+        #
+        # NOTE: this resolve+validate block is intentionally duplicated verbatim
+        # in .github/workflows/resolved-derive-gate.yml. A composite action would
+        # add more indirection than it saves for ~15 lines; keep the copies in sync.
         env:
-          # Kept in lockstep with translation-rules .github/workflows/lint-register.yml.
-          # Bump deliberately, not via `latest`.
-          YQ_VERSION: v4.53.2
-          YQ_SHA256: d56bf5c6819e8e696340c312bd70f849dc1678a7cda9c2ad63eebd906371d56b
+          DISPATCH_REF: ${{ github.event.inputs.rules_ref }}
+          VAR_REF: ${{ vars.TRANSLATION_RULES_REF }}
+          DEFAULT_REF: ${{ env.TRANSLATION_RULES_REF }}
         run: |
           set -euo pipefail
-          tmpdir="$(mktemp -d)"
-          curl -fsSL -o "${tmpdir}/yq" \
-            "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
-          echo "${YQ_SHA256}  ${tmpdir}/yq" | sha256sum -c -
-          sudo install -m 0755 "${tmpdir}/yq" /usr/local/bin/yq
-          rm -rf "${tmpdir}"
-          yq --version
+          if   [ -n "${DISPATCH_REF}" ]; then ref="${DISPATCH_REF}"; src="dispatch input"
+          elif [ -n "${VAR_REF}" ];      then ref="${VAR_REF}";      src="repo variable"
+          else                                ref="${DEFAULT_REF}";  src="in-file default"
+          fi
+          # bash =~ matches the WHOLE string; grep -E '^...$' anchors per LINE, so a
+          # multiline value whose first line looks valid (e.g. "v1.2.3\n::error::x")
+          # slips past grep and reaches the ::notice:: echo and the GITHUB_ENV write
+          # below — an injection sink. Whole-string matching rejects it outright.
+          if [[ ! "${ref}" =~ ^([0-9a-fA-F]{40}|v[0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            # Keep the rejected value OUT of the ::error:: workflow command: it is
+            # unvalidated input and could carry newlines or ::workflow-command::
+            # sequences the runner would interpret from the log stream. The
+            # annotation stays constant; the raw value is shown on a plain line,
+            # shell-escaped (%q) so any control characters render inert.
+            echo "::error::invalid translation-rules ref (want 40-hex SHA or vX.Y.Z); rejected value printed below"
+            printf 'rejected ref (escaped): %q\n' "${ref}"
+            exit 1
+          fi
+          echo "::notice::translation-rules ref = ${ref} (source: ${src})"
+          echo "EFFECTIVE_RULES_REF=${ref}" >> "$GITHUB_ENV"
 
-      - name: Lint each governed locale's content
+      - name: Derive resolved registers for all governed locales at the resolved ref
+        id: derive
+        uses: onetimesecret/translation-rules/.github/actions/derive@658c4109b629ffb7d1926a7c8c00e2c08076228a # v0.1.1
+        with:
+          ref: ${{ env.EFFECTIVE_RULES_REF }}
+          locales: all
+          # Only the .resolved/<locale>.json registers are needed here. The
+          # authority-model lint (examples + embedded docs) is a separate
+          # concern owned by resolved-derive-gate.yml, so leave it off — this
+          # gate must fail only on CONSUMER-content violations.
+          emit: json
+          lint: 'false'
+          # Same ignored cache the resolved-derive-gate uses (.gitignore:
+          # generated/i18n/) — never committed, regenerated each run (ADR-005).
+          emit-dir: generated/i18n
+          checkout-path: .translation-rules
+
+      - name: Assert the derive resolved the requested ref to a commit
+        # source-commit is the requested ref (tag or SHA) resolved to a concrete
+        # commit by the action. A non-empty 40-hex SHA proves the derive ran and
+        # resolved our ref; the logged `ref → commit` mapping records exactly
+        # which translation-rules commit this run was evaluated against.
+        env:
+          GOT: ${{ steps.derive.outputs.source-commit }}
+          REF: ${{ env.EFFECTIVE_RULES_REF }}
+        run: |
+          set -euo pipefail
+          # Whole-string match (see the resolve step's note on grep's per-line gap).
+          if [[ ! "${GOT}" =~ ^[0-9a-f]{40}$ ]]; then
+            # ${REF} is already shape-validated (safe to interpolate). ${GOT} is the
+            # action's raw output and only reaches this branch when malformed, so
+            # keep it out of the ::error:: command and print it shell-escaped (%q).
+            echo "::error::derive did not resolve ${REF} to a commit; malformed source-commit printed below"
+            printf 'source-commit (escaped): %q\n' "${GOT}"
+            exit 1
+          fi
+          echo "validate-register: derived resolved registers at translation-rules ${REF} → ${GOT}"
+
+      - name: Lint shipped content against each locale's resolved register
+        env:
+          EMIT_DIR: ${{ steps.derive.outputs.emit-dir }}
+          EVENT_NAME: ${{ github.event_name }}
+          # Empty for non-PR events; only read when EVENT_NAME is pull_request.
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           set -euo pipefail
           shopt -s nullglob
           rules=.translation-rules
+          resolved="${EMIT_DIR}/.resolved"
+
+          # --- decide scan scope -------------------------------------------
+          # Full scan on push/schedule/dispatch. On a PR, scan only the
+          # governed locales whose content changed vs the base — unless the
+          # gate file itself changed, which forces a full scan.
+          full_scan=1
+          declare -A want=()
+          if [ "${EVENT_NAME}" = "pull_request" ]; then
+            gate_changed="$(git diff --name-only "${BASE_SHA}...HEAD" \
+              -- '.github/workflows/validate-register.yml')"
+            if [ -n "${gate_changed}" ]; then
+              echo "::notice::gate file changed — running a full-corpus scan"
+            else
+              full_scan=0
+              changed="$(git diff --name-only "${BASE_SHA}...HEAD" \
+                -- 'locales/content/' \
+                | sed -nE 's#^locales/content/([^/]+)/.*#\1#p' | sort -u)"
+              for l in ${changed}; do want["$l"]=1; done
+              echo "::notice::PR scope — changed content locales: ${changed:-<none>}"
+            fi
+          fi
+
+          # --- scan ---------------------------------------------------------
           fail=0
           scanned=0
-          for d in "$rules"/locales/*/; do
+          for d in "$rules"/rules/locales/*/; do
             locale="$(basename "$d")"
             [ -f "${d}register.yaml" ] || continue
+            # PR scope: skip governed locales this PR did not touch.
+            if [ "$full_scan" -eq 0 ] && [ -z "${want[$locale]:-}" ]; then
+              continue
+            fi
             content_dir="locales/content/${locale}"
             if [ ! -d "$content_dir" ]; then
               echo "::notice::no app content for governed locale ${locale}; skipping"
               continue
             fi
+            model="${resolved}/${locale}.json"
+            if [ ! -f "$model" ]; then
+              echo "::error::no resolved model for governed locale ${locale} at ${model} — derive incomplete?"
+              fail=1
+              continue
+            fi
             scanned=$((scanned + 1))
             echo "::group::lint ${locale}"
-            # The authority's own linter. It resolves register.yaml relative to
-            # its own location (.translation-rules/locales/<locale>/) and the
-            # content glob relative to this job's CWD (the app repo root).
-            # Non-zero from lint-register — forbidden token (1), config (2), or
-            # empty glob (3) — fails the gate.
-            if ! "$rules"/bin/lint-register "$locale" "${content_dir}/*.json"; then
+            # lint_content.py is pure stdlib (no pip install): reads the resolved
+            # register from <model>, scans rendered content strings, emits GitHub
+            # ::error:: annotations, and exits non-zero on any forbidden-token hit
+            # (1), config error (2), or empty glob (3) — any of which fails the gate.
+            if ! python3 "$rules"/lib/resolver/lint_content.py \
+                 --resolved "$model" \
+                 --content-root . \
+                 --format github \
+                 "${content_dir}/*.json"; then
               echo "::error::forbidden register token (or scan error) in ${locale} content"
               fail=1
             fi
             echo "::endgroup::"
           done
+
+          # --- empty-scan handling -----------------------------------------
+          # A full scan that matched nothing is a misconfiguration (wrong path
+          # or ref). A PR scan can legitimately match nothing — e.g. the PR only
+          # touched a non-governed locale like `en` — which is a clean pass.
           if [ "$scanned" -eq 0 ]; then
-            echo "::error::no governed locale matched app content — gate scanned nothing (misconfigured path or ref?)"
-            exit 1
+            if [ "$full_scan" -eq 1 ]; then
+              echo "::error::no governed locale matched app content — gate scanned nothing (misconfigured path or ref?)"
+              exit 1
+            fi
+            echo "::notice::no changed governed locale to lint; nothing to enforce on this PR"
+            exit 0
           fi
-          echo "validate-register: scanned ${scanned} governed locale(s)"
+          mode="$([ "$full_scan" -eq 1 ] && echo full || echo changed-only)"
+          echo "validate-register: scanned ${scanned} governed locale(s) (mode: ${mode})"
           exit "$fail"

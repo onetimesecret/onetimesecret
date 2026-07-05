@@ -28,7 +28,7 @@
     "source_hash": "c6fb1cf5"
   },
   "web.translations.remember_to_include_your_email_if_youre_not_logg": {
-    "text": "- vergeet niet uw e-mail toe te voegen als u niet bent ingelogd. Elke vertaling helpt meer mensen veilig te communiceren.",
+    "text": "- vergeet niet je e-mail toe te voegen als je niet bent ingelogd. Elke vertaling helpt meer mensen veilig te communiceren.",
     "source_hash": "1a8ccc7d"
   },
   "web.translations.reach_out_to_us": {
@@ -64,7 +64,7 @@
     "source_hash": "13131e36"
   },
   "web.translations.the_following_people_have_donated_their_time_to_": {
-    "text": "De volgende mensen hebben hun tijd gedoneerd om het bereik van {product_name} te helpen uitbreiden:",
+    "text": "De volgende mensen hebben hun tijd gedoneerd om het bereik van {product_name} te helpen vergroten:",
     "source_hash": "85a766af"
   },
   "web.translations.translations": {
@@ -76,7 +76,7 @@
     "source_hash": "bb60a45d"
   },
   "web.translations.your_language_skills_can_help_expand_access_to_s": {
-    "text": "Uw taalvaardigheden kunnen helpen bij het uitbreiden van toegang tot veilige communicatie.",
+    "text": "Je taalvaardigheden kunnen helpen bij het uitbreiden van toegang tot veilige communicatie.",
     "source_hash": "ad22076b"
   },
   "web.translations.thanks_to_our_community_we_support_over_20_langu": {
@@ -84,7 +84,7 @@
     "source_hash": "ba5c4395"
   },
   "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
-    "text": "Sinds 2012 biedt {product_name} wereldwijd een veilige manier om gevoelige informatie te delen. Met gebruikers in regio's waar Engels niet de primaire taal is, zijn nauwkeurige vertalingen essentieel om veilige communicatie voor iedereen toegankelijk te maken.",
+    "text": "Sinds 2012 biedt {product_name} een beveiligde manier om gevoelige informatie wereldwijd te delen. Met gebruikers in regio's waar Engels niet de hoofdtaal is, zijn nauwkeurige vertalingen essentieel om beveiligde communicatie voor iedereen toegankelijk te maken.",
     "source_hash": "87a6e9af"
   },
   "web.translations.help_secure_communication_go_global": {

@@ -6,3 +6,10 @@ db/tasks.sql
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# No-vendor translation governance (#3510 / translation-rules ADR-005): the
+# resolved governance + translator guides are DERIVED ON DEMAND into the
+# gitignored generated/i18n/ cache (locales/scripts/derive-governance.sh) and
+# curated upstream in translation-rules — never re-vendored back under locales/.
+/.resolved/
+/guides/for-translators/

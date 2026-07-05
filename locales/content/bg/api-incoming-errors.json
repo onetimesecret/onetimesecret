@@ -1,0 +1,6 @@
+{
+  "api.incoming.errors.custom_domain_unresolved": {
+    "text": "Организацията за потребителския домейн не можа да бъде разрешена",
+    "source_hash": "b30d65d2"
+  }
+}

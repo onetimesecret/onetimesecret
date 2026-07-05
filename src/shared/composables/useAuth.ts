@@ -1,14 +1,6 @@
 // src/shared/composables/useAuth.ts
 
 import {
-  useAsyncHandler,
-  createError,
-  type AsyncHandlerOptions,
-} from '@/shared/composables/useAsyncHandler';
-import { loggingService } from '@/services/logging.service';
-import { isValidInternalPath } from '@/utils/redirect';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import {
   isAuthError,
   requiresMfa,
   hasBillingRedirect,
@@ -23,6 +15,7 @@ import {
   type EmailChangeRequestResponse,
   type EmailChangeConfirmResponse,
   type EmailChangeResendResponse,
+  type ResendVerificationEmailResponse,
   type BillingRedirect,
 } from '@/schemas/api/auth/responses/auth';
 import {
@@ -37,17 +30,27 @@ import {
   emailChangeRequestResponseSchema,
   emailChangeConfirmResponseSchema,
   emailChangeResendResponseSchema,
+  resendVerificationEmailResponseSchema,
 } from '@/schemas/api/auth/responses/auth';
+import { loggingService } from '@/services/logging.service';
+import { useApi } from '@/shared/composables/useApi';
+import {
+  useAsyncHandler,
+  createError,
+  type AsyncHandlerOptions,
+} from '@/shared/composables/useAsyncHandler';
+import { CHECK_EMAIL_STATE_KEY } from '@/shared/constants/checkEmail';
+import { SIGNIN_VERIFIED_STATE_KEY } from '@/shared/constants/signin';
 import { useAuthStore } from '@/shared/stores/authStore';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { LockoutStatus } from '@/types/auth';
+import { isValidInternalPath } from '@/utils/redirect';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
-
-import { useApi } from '@/shared/composables/useApi';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -450,12 +453,23 @@ export function useAuth() {
         });
       }
 
-      // Success - account created but NOT authenticated yet
-      // User needs to either verify email or sign in
+      // Success - account created but NOT authenticated yet. The user must
+      // click the verification link in their email before they can sign in.
       notificationsStore.show(validated.success, 'success', 'top');
 
-      // Build query params for signin redirect
-      // Preserve billing params and redirect path for subsequent login
+      // Route to a dedicated "Check your email" confirmation page rather than
+      // the sign-in form. The sign-in form is unusable until the account is
+      // verified, and a transient toast is the only cue the user would get
+      // there. The confirmation page persistently echoes the email address,
+      // explains the next step, and offers a resend action.
+      //
+      // The email travels in router history state, NOT the URL: it is PII, and
+      // a query string would leak it through browser history, the Referer
+      // header, proxy/CDN access logs and Sentry (disclosure F6; see
+      // src/utils/pii.ts and src/router/README.md "Query-string policy"). A
+      // plain reload preserves state, but a fresh entry (shared link, new tab)
+      // does not — so the billing params and redirect path ride in the query,
+      // which survives both, keeping the checkout flow intact.
       const redirectPath = getRedirectParam();
       const query: Record<string, string> = {};
 
@@ -468,8 +482,9 @@ export function useAuth() {
       }
 
       await router.push({
-        path: '/signin',
-        query: Object.keys(query).length > 0 ? query : undefined,
+        path: '/check-email',
+        ...(Object.keys(query).length > 0 ? { query } : {}),
+        state: { [CHECK_EMAIL_STATE_KEY]: email },
       });
       return true;
     });
@@ -613,9 +628,16 @@ export function useAuth() {
         throw createError(validated.error, 'human', 'error');
       }
 
-      // Success - show notification and navigate to signin
+      // Success - show notification, then navigate to the sign-in page. The
+      // "just verified" signal is handed over via router history `state`
+      // (SIGNIN_VERIFIED_STATE_KEY), NOT a `?verified=1` query param: it is a
+      // one-shot UI flag, so keeping it out of the URL lets Login.vue clear it
+      // after showing the banner without remounting the fullPath-keyed view
+      // (see Login.vue). The sign-in page renders a persistent success banner
+      // (surviving longer than the transient toast) and defaults to the password
+      // tab so the user re-enters the password they just chose during signup.
       notificationsStore.show(validated.success, 'success', 'top');
-      await router.push('/signin');
+      await router.push({ path: '/signin', state: { [SIGNIN_VERIFIED_STATE_KEY]: true } });
       return true;
     });
 
@@ -805,6 +827,44 @@ export function useAuth() {
     return result ?? false;
   }
 
+  /**
+   * Resends the account verification email for an unverified account.
+   *
+   * Anti-enumeration: the backend returns an identical { sent: true } for all
+   * cases, so this resolves true whenever the request was well-formed and
+   * accepted — it does NOT reveal whether the email exists or was actually sent.
+   *
+   * @param email - the login/email to (re)send verification to
+   * @returns true if the request was accepted
+   */
+  async function resendVerificationEmail(email: string): Promise<boolean> {
+    clearErrors();
+
+    const result = await wrap(async () => {
+      const response = await $api.post<ResendVerificationEmailResponse>(
+        '/api/account/resend-verification-email',
+        {
+          login: email,
+          shrimp: csrfStore.shrimp,
+          locale: locale.value,
+        }
+      );
+
+      const validated =
+        resendVerificationEmailResponseSchema.parse(response.data);
+
+      if (isAuthError(validated)) {
+        throw createError(validated.error, 'human', 'error', {
+          'field-error': validated['field-error'],
+        });
+      }
+
+      return true;
+    });
+
+    return result ?? false;
+  }
+
   return {
     // State
     isLoading,
@@ -824,6 +884,7 @@ export function useAuth() {
     requestEmailChange,
     confirmEmailChange,
     resendEmailChangeConfirmation,
+    resendVerificationEmail,
     clearErrors,
   };
 }

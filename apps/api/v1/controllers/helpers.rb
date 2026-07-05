@@ -14,30 +14,16 @@ module V1
   module ControllerHelpers
     include Onetime::Helpers::SessionHelpers
 
-    # `carefully` is a wrapper around the main web application logic. We
-    # handle errors, redirects, and other exceptions here to ensure that
-    # we respond consistently to all requests. That's why we integrate
-    # Sentry here rather than app specific logic.
-    def carefully(redirect = nil, content_type = nil, app: :web) # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
-      redirect     ||= req.request_path unless app == :api
-      content_type ||= 'text/html; charset=utf-8'
+    # `carefully` wraps a v1 API action: it handles errors and exceptions so we
+    # respond consistently — and integrate Sentry here — across all requests.
+    # v1 is a legacy JSON-only API that renders no HTML, so responses default to
+    # JSON and there is no web/redirect handling.
+    def carefully(content_type = 'application/json') # rubocop:disable Metrics/MethodLength
+      # cust may be nil for anonymous requests.
 
-      # cust may be nil for anonymous requests
-
-      # Prevent infinite redirect loops by checking if the request is a GET request.
-      # Pages redirecting from a POST request can use the same page once.
-      if req.get? && redirect.to_s == req.request_path
-        redirect = '/500'
-      end
-
-      # Generate a unique nonce for this response
-      nonce = SecureRandom.base64(16)
-
-      # Make the nonce available to the CSP header
-      add_response_headers(content_type, nonce)
-
-      # Make the nonce available to the view
-      req.env['onetime.nonce'] = nonce
+      # Set the default content-type. v1 emits no CSP or nonce: it serves JSON
+      # only and is never executed by a browser; CSP is owned by Otto.
+      add_response_headers(content_type)
 
       return_value = yield
 
@@ -57,7 +43,7 @@ module V1
       OT.info ex.message
       not_authorized_error
     rescue OT::FormError => ex
-      OT.ld "[carefully] FormError: #{ex.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
+      OT.ld "[carefully] FormError: #{ex.message} (#{req.path})"
 
       # Track form errors in Sentry. They can indicate bugs that would
       # not surface any other way. We track as messages though since
@@ -65,11 +51,7 @@ module V1
       # the message and not fields to limit the amount of data sent.
       capture_message ex.message, :error
 
-      if redirect
-        handle_form_error ex, redirect
-      else
-        handle_form_error ex
-      end
+      handle_form_error ex
 
     # NOTE: It's important to handle MissingSecret before RecordNotFound since
     #       MissingSecret is a subclass of RecordNotFound. If we don't, we'll
@@ -77,13 +59,13 @@ module V1
     rescue OT::MissingSecret
       secret_not_found_response
     rescue OT::RecordNotFound => ex
-      OT.ld "[carefully] RecordNotFound: #{ex.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
+      OT.ld "[carefully] RecordNotFound: #{ex.message} (#{req.path})"
       not_found_response ex.message
     rescue Familia::FieldTypeError => ex
       # session may be a Hash fallback when no session middleware is available
       session_id       = (session.respond_to?(:id) && session.id&.to_s) || req.cookies['onetime.session'] || 'unknown'
       short_session_id = session_id.length <= 10 ? session_id : session_id[0, 10] + '...'
-      OT.le "[attempt-saving-non-string-to-db] #{obscured} (#{req.client_ipaddress}): #{short_session_id} (#{req.current_absolute_uri})"
+      OT.le "[attempt-saving-non-string-to-db] #{obscured} (#{req.client_ipaddress}): #{short_session_id} (#{req.path})"
 
       # Track attempts to save non-string data to the database as a warning error
       capture_error ex, :warning
@@ -110,7 +92,7 @@ module V1
       # session may be a Hash fallback when no session middleware is available
       session_id       = (session.respond_to?(:id) && session.id&.to_s) || req.cookies['onetime.session'] || 'unknown'
       short_session_id = session_id.length <= 10 ? session_id : session_id[0, 10] + '...'
-      OT.le "#{ex.class}: #{ex.message} -- #{req.current_absolute_uri} -- #{req.client_ipaddress} #{custid} #{short_session_id} #{locale} #{content_type} #{redirect} "
+      OT.le "#{ex.class}: #{ex.message} -- #{req.path} -- #{req.client_ipaddress} #{custid} #{short_session_id} #{locale} #{content_type}"
       OT.le ex.backtrace.join("\n")
 
       # Track the unexected errors
@@ -160,63 +142,25 @@ module V1
       @locale = req.env['ots.locale']
     end
 
-    def add_response_headers(content_type, nonce)
-      # Set the Content-Type header if it's not already set by the application
+    def add_response_headers(content_type)
+      # Set the Content-Type header if it's not already set by the application.
+      #
+      # Content-Security-Policy is emitted by Otto's response layer, the single
+      # policy source for the app. The deprecated v1 API no longer defines its
+      # own parallel policy here.
       res.headers['content-type'] ||= content_type
-
-      # Skip the Content-Security-Policy header if it's already set
-      return if res.headers['content-security-policy']
-
-      # Skip the CSP header unless it's enabled in site.security settings
-      return if OT.conf.dig('site', 'security', 'csp', 'enabled') != true
-
-      # Skip the Content-Security-Policy header if the front is running in
-      # development mode. We need to allow inline scripts and styles for
-      # hot reloading to work.
-      csp = if OT.conf.dig('development', 'enabled')
-        [
-          "default-src 'none';",                               # Restrict to same origin by default
-          "script-src 'nonce-#{nonce}';",                      # Nonce-only: omit 'unsafe-inline' so CSP Level 1 agents can't bypass the nonce
-          "style-src 'self' 'unsafe-inline';",                 # Enable Vite's dynamic style injection
-          "connect-src 'self' ws: wss: http: https:;",         # Allow WebSocket connections for hot module replacement
-          "img-src 'self' data:;",                             # Allow images from same origin only
-          "font-src 'self';",                                  # Allow fonts from same origin only
-          "object-src 'none';",                                # Block <object>, <embed>, and <applet> elements
-          "base-uri 'self';",                                  # Restrict <base> tag targets to same origin
-          "form-action 'self';",                               # Restrict form submissions to same origin
-          "frame-ancestors 'none';",                           # Prevent site from being embedded in frames
-          "manifest-src 'self';",
-          # "require-trusted-types-for 'script';",
-          "worker-src 'self';",                                # Allow Workers from same origin only
-        ]
-      else
-        [
-          "default-src 'none';",
-          "script-src 'nonce-#{nonce}';",                      # Nonce-only: omit 'unsafe-inline' so CSP Level 1 agents can't bypass the nonce
-          "style-src 'self' 'unsafe-inline';",
-          "connect-src 'self' wss: https:;",                   # Only HTTPS and secure WebSockets
-          "img-src 'self' data:;",
-          "font-src 'self';",
-          "object-src 'none';",
-          "base-uri 'self';",
-          "form-action 'self';",
-          "frame-ancestors 'none';",
-          "manifest-src 'self';",
-          # "require-trusted-types-for 'script';",
-          "worker-src 'self';",
-        ]
-      end
-
-      OT.ld "[CSP] #{csp.join(' ')}" if OT.debug?
-
-      res.headers['content-security-policy'] = csp.join(' ')
     end
 
     # Collectes request details in a single string for logging purposes.
     #
-    # This method collects the IP address, request method, path, query string,
-    # and proxy header details from the given request object and formats them
-    # into a single string. The resulting string is suitable for logging.
+    # This method collects the IP address, request method, path, and proxy
+    # header details from the given request object and formats them into a
+    # single string. The resulting string is suitable for logging. The query
+    # string is intentionally omitted -- this is called on every authenticated
+    # request via log_customer_activity, and a query string can carry the same
+    # class of sensitive value (an accidentally-appended secret/token) that
+    # Onetime::ErrorHandler.safe_request_context guards against on the error
+    # path.
     #
     # @param req [Rack::Request] The request object containing the details to be
     #   stringified.
@@ -225,14 +169,14 @@ module V1
     # @example
     #   req = Rack::Request.new(env)
     #   stringify_request_details(req)
-    #   # => "192.0.2.1; GET /path?query=string; Proxy[HTTP_X_FORWARDED_FOR=203.0.113.195 REMOTE_ADDR=192.0.2.1]"
+    #   # => "192.0.2.1; GET /path; Proxy[HTTP_X_FORWARDED_FOR=203.0.113.195 REMOTE_ADDR=192.0.2.1]"
     #
     def stringify_request_details(req)
       header_details = collect_proxy_header_details(req.env)
 
       details = [
         req.ip,
-        "#{req.request_method} #{req.path_info}?#{req.query_string}",
+        "#{req.request_method} #{req.path_info}",
         "Proxy[#{header_details}]",
       ]
 
@@ -368,16 +312,10 @@ module V1
           endpoint: (defined?(req) && req&.path_info) || 'unknown',
         )
 
-        # Add request context (URLs scrubbed by before_send hook)
-        if defined?(req) && req.respond_to?(:url)
-          scope.set_context(
-            'request',
-            {
-              url: req.url,
-              method: req.request_method,
-              ip: req.ip,
-            },
-          )
+        # Add request context: path only (never the query string) plus any
+        # explicitly allow-listed params — see Onetime::ErrorHandler.safe_request_context.
+        if defined?(req) && req.respond_to?(:path)
+          scope.set_context('request', Onetime::ErrorHandler.safe_request_context(req))
         end
 
         # Add customer/session context with truncated IDs for privacy

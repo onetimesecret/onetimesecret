@@ -1,0 +1,6 @@
+{
+  "api.incoming.errors.custom_domain_unresolved": {
+    "text": "Die Organisation des benutzerdefinierten Bereichs konnte nicht aufgelöst werden",
+    "source_hash": "b30d65d2"
+  }
+}

@@ -111,6 +111,88 @@ RSpec.describe Onetime::Config do
         expect { described_class.load(invalid_erb_path) }.to raise_error(OT::ConfigError)
       end
     end
+
+    context 'when a BRAND_* value contains YAML-significant characters' do
+      # Regression: the brand block interpolates each BRAND_* var as a
+      # JSON-quoted scalar (`&.to_json`), so an operator value like "& Co: *x"
+      # parses cleanly instead of aborting the whole document the way a bare
+      # `site: *undefined_alias` does above. See the brand block in
+      # etc/defaults/config.defaults.yaml.
+      let(:brand_config_path) { File.join(temp_dir, 'brand.yaml') }
+      let(:brand_yaml) do
+        <<~YAML
+          ---
+          brand:
+            product_name: <%= ENV['BRAND_PRODUCT_NAME']&.to_json %>
+        YAML
+      end
+
+      around do |example|
+        original = ENV.fetch('BRAND_PRODUCT_NAME', nil)
+        example.run
+      ensure
+        original.nil? ? ENV.delete('BRAND_PRODUCT_NAME') : (ENV['BRAND_PRODUCT_NAME'] = original)
+      end
+
+      before { File.write(brand_config_path, brand_yaml) }
+
+      it 'parses instead of aborting the document' do
+        ENV['BRAND_PRODUCT_NAME'] = '& Co: "special" *value'
+
+        expect { described_class.load(brand_config_path) }.not_to raise_error
+        config = described_class.load(brand_config_path)
+        expect(config.dig('brand', 'product_name')).to eq('& Co: "special" *value')
+      end
+    end
+
+    context 'header layout knobs in the shipped defaults (#3612)' do
+      # The masthead layout knobs must render as YAML nil when their env vars
+      # are unset OR blank ("not specified" — show_name's auto-hide heuristic
+      # depends on the distinction), and as real values when set. Loads the
+      # real defaults file so the ERB ternaries themselves are pinned.
+      let(:defaults_path) { File.expand_path('../../../../etc/defaults/config.defaults.yaml', __dir__) }
+
+      around do |example|
+        saved = %w[LOGO_LINK LOGO_SHOW_NAME LOGO_PROMINENT].to_h { |k| [k, ENV.fetch(k, nil)] }
+        example.run
+      ensure
+        saved.each { |k, v| v.nil? ? ENV.delete(k) : (ENV[k] = v) }
+      end
+
+      it 'renders all three knobs as nil when the env vars are unset' do
+        %w[LOGO_LINK LOGO_SHOW_NAME LOGO_PROMINENT].each { |k| ENV.delete(k) }
+
+        logo = described_class.load(defaults_path).dig('site', 'interface', 'ui', 'header', 'logo')
+        expect(logo).to eq('href' => nil, 'show_name' => nil, 'prominent' => nil)
+      end
+
+      it 'treats blank env vars as unset (nil), not as explicit values' do
+        ENV['LOGO_LINK']      = ''
+        ENV['LOGO_SHOW_NAME'] = ''
+        ENV['LOGO_PROMINENT'] = ''
+
+        logo = described_class.load(defaults_path).dig('site', 'interface', 'ui', 'header', 'logo')
+        expect(logo).to eq('href' => nil, 'show_name' => nil, 'prominent' => nil)
+      end
+
+      it 'renders explicit values when the env vars are set' do
+        ENV['LOGO_LINK']      = '/home'
+        ENV['LOGO_SHOW_NAME'] = 'false'
+        ENV['LOGO_PROMINENT'] = 'true'
+
+        logo = described_class.load(defaults_path).dig('site', 'interface', 'ui', 'header', 'logo')
+        expect(logo).to eq('href' => '/home', 'show_name' => false, 'prominent' => true)
+      end
+
+      it 'ships no branding nesting, site_name, or vendor defaults in the header' do
+        %w[LOGO_LINK LOGO_SHOW_NAME LOGO_PROMINENT].each { |k| ENV.delete(k) }
+
+        header = described_class.load(defaults_path).dig('site', 'interface', 'ui', 'header')
+        expect(header).not_to have_key('branding')
+        expect(header.to_s).not_to include('One-Time Secret')
+        expect(header.to_s).not_to include('DefaultLogo.vue')
+      end
+    end
   end
 
   describe '.path' do

@@ -398,5 +398,965 @@
   "web.domains.dns_widget_description": {
     "text": "Brug værktøjet nedenfor til automatisk at registrere din DNS-udbyder og få trinvise instruktioner til konfiguration af dit domæne.",
     "source_hash": "91c1af2e"
+  },
+  "api.domains.errors.add_admin_required": {
+    "text": "Kun organisationsejere og administratorer kan tilføje brugerdefinerede domæner",
+    "source_hash": "3324aabe"
+  },
+  "web.domains.public_homepage": {
+    "text": "Offentlig hjemmeside",
+    "source_hash": "2ae3ccba"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Domæne bekræftet og aktivt",
+    "source_hash": "e4b6a6e1"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS ikke konfigureret — klik for at rette",
+    "source_hash": "892cb2cb"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Domæne ikke bekræftet — klik for at bekræfte",
+    "source_hash": "a9806710"
+  },
+  "web.domains.status_tooltip_unverified": {
+    "text": "Domænestatus ikke bekræftet — klik for at opdatere",
+    "source_hash": "a45aa76d"
+  },
+  "web.domains.last_check_failed": {
+    "text": "Sidste bekræftelseskontrol mislykkedes",
+    "source_hash": "88b594b8"
+  },
+  "web.domains.last_check_failed_ago": {
+    "text": "sidste kontrol mislykkedes {0}",
+    "source_hash": "ddfb6412"
+  },
+  "web.domains.verify_now": {
+    "text": "Bekræft nu",
+    "source_hash": "db383efb"
+  },
+  "web.domains.click_to_verify": {
+    "text": "klik for at bekræfte",
+    "source_hash": "6eae7d9c"
+  },
+  "web.domains.remove_domain_description": {
+    "text": "Fjern dette domæne og hele dets konfiguration permanent.",
+    "source_hash": "73946b9e"
+  },
+  "web.domains.add_access_denied": {
+    "text": "Adgang nægtet",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.add_access_denied_description": {
+    "text": "Du har ikke tilladelse til at tilføje domæner til denne organisation. Kontakt din organisationsadministrator.",
+    "source_hash": "25e035c6"
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "Kunne ikke indlæse DNS-widget",
+    "source_hash": "5a1d8ab5"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "DNS-widget ikke tilgængelig",
+    "source_hash": "4eed448b"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "Kunne ikke initialisere DNS-widget",
+    "source_hash": "de477585"
+  },
+  "web.domains.verified": {
+    "text": "Bekræftet",
+    "source_hash": "4f783840"
+  },
+  "web.domains.pending_verification": {
+    "text": "Afventer bekræftelse",
+    "source_hash": "77e07795"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Du har ugemte ændringer. Er du sikker på, at du vil forlade siden?",
+    "source_hash": "322380c1"
+  },
+  "web.domains.entitlement_required_owner": {
+    "text": "Denne funktion kræver en planopgradering.",
+    "source_hash": "6de1f752"
+  },
+  "web.domains.entitlement_required_member": {
+    "text": "Denne funktion er ikke tilgængelig på din nuværende plan. Kontakt din organisationsejer.",
+    "source_hash": "8f1688b2"
+  },
+  "web.domains.detail.manage": {
+    "text": "Administrer",
+    "source_hash": "5a234448"
+  },
+  "web.domains.detail.features": {
+    "text": "Funktioner",
+    "source_hash": "5697d03d"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Hjemmesidebeskeder",
+    "source_hash": "6360f7ec"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Tillad offentlig adgang til at oprette beskeder på dit domænes hjemmeside",
+    "source_hash": "209b3ded"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logo, farver og brugerdefineret branding",
+    "source_hash": "69f7a9e8"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Indstillinger for single sign-on-udbyder",
+    "source_hash": "234e6150"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Konfiguration af brugerdefineret e-mailafsender",
+    "source_hash": "7fcde01b"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Indstillinger for modtager af indgående beskeder",
+    "source_hash": "37c1fd6d"
+  },
+  "web.domains.detail.signup_description": {
+    "text": "Strategi for tilmeldingsvalidering pr. domæne",
+    "source_hash": "3c5a511f"
+  },
+  "web.domains.detail.signin_description": {
+    "text": "Konfiguration af loginmetode pr. domæne",
+    "source_hash": "73e01e36"
+  },
+  "web.domains.email.title": {
+    "text": "E-mailafsendelse",
+    "source_hash": "6c428e5f"
+  },
+  "web.domains.email.config_title": {
+    "text": "E-mailkonfiguration",
+    "source_hash": "6f38aa51"
+  },
+  "web.domains.email.config_description": {
+    "text": "Konfigurer e-mailafsendelse for dette domæne",
+    "source_hash": "1c275ff0"
+  },
+  "web.domains.email.provider_label": {
+    "text": "E-mailudbyder",
+    "source_hash": "a7ed3f4e"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "Vælg en e-mailudbyder",
+    "source_hash": "63c8080c"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "Afsendernavn",
+    "source_hash": "2f13b589"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "f.eks. Acme Security",
+    "source_hash": "03c0f138"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "Afsenderadresse",
+    "source_hash": "60643eae"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "f.eks. secrets{'@'}example.com",
+    "source_hash": "a09b3928"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Svar til-adresse",
+    "source_hash": "4538ea9c"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "f.eks. support{'@'}example.com",
+    "source_hash": "fa3e5f0b"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Gem ændringer",
+    "source_hash": "35322b5b"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Kassér ændringer",
+    "source_hash": "e07e053c"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES",
+    "source_hash": "15de4969"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid",
+    "source_hash": "b889d002"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint",
+    "source_hash": "ec994dad"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Brug kontoens standardindstillinger",
+    "source_hash": "f6fa84e7"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "Kræver domænebekræftelse via DKIM- og SPF-poster",
+    "source_hash": "4df5aa60"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Kræver opsætning af domænegodkendelse",
+    "source_hash": "71b53242"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Kræver domænebekræftelse",
+    "source_hash": "87073c93"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "Bruger din kontos standardkonfiguration for e-mailafsendelse",
+    "source_hash": "3f798263"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "DNS-poster",
+    "source_hash": "34d2c307"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "Tilføj følgende DNS-poster for at bekræfte dit domæne til e-mailafsendelse.",
+    "source_hash": "9fa85863"
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Type",
+    "source_hash": "baaddf70"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Navn",
+    "source_hash": "dcd1d522"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Værdi",
+    "source_hash": "8e37953d"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS",
+    "source_hash": "020965a2"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Udbyder",
+    "source_hash": "472590ae"
+  },
+  "web.domains.email.dns_optional_label": {
+    "text": "Anbefalet",
+    "source_hash": "d70604e8"
+  },
+  "web.domains.email.dns_optional_hint": {
+    "text": "Denne post anbefales, men er ikke påkrævet til bekræftelse. En DMARC-politik på dit organisationsdomæne dækker muligvis allerede dette underdomæne.",
+    "source_hash": "58e1a12b"
+  },
+  "web.domains.email.copy": {
+    "text": "Kopier",
+    "source_hash": "e21f935f"
+  },
+  "web.domains.email.copied": {
+    "text": "Kopieret",
+    "source_hash": "8d525e5f"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Bekræftet",
+    "source_hash": "4f783840"
+  },
+  "web.domains.email.status_pending": {
+    "text": "Afventer",
+    "source_hash": "331551b0"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Mislykkedes",
+    "source_hash": "031a8f0f"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Valider igen",
+    "source_hash": "4918da12"
+  },
+  "web.domains.email.validating": {
+    "text": "Validerer...",
+    "source_hash": "b28b48d5"
+  },
+  "web.domains.email.domain_verified": {
+    "text": "Domæne bekræftet",
+    "source_hash": "08e0df67"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "Validering mislykkedes",
+    "source_hash": "23a86f5a"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Sidst valideret",
+    "source_hash": "887dd486"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Opgrader din plan for at konfigurere e-mailafsendelse for dette domæne.",
+    "source_hash": "16a876f7"
+  },
+  "web.domains.email.configure_email": {
+    "text": "Konfigurer e-mail",
+    "source_hash": "a48c0d40"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Adgang nægtet",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "Du har ikke tilladelse til at administrere e-mailindstillinger for dette domæne. Kontakt din organisationsadministrator.",
+    "source_hash": "32049ff0"
+  },
+  "web.domains.email.update_success": {
+    "text": "E-mailkonfiguration gemt",
+    "source_hash": "dd3607fc"
+  },
+  "web.domains.email.delete_success": {
+    "text": "E-mailkonfiguration fjernet",
+    "source_hash": "2ba99a91"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "E-mails for dette domæne sendes i øjeblikket fra den globale afsender. Færdiggør e-mailkonfigurationen for at bruge din egen afsenderidentitet.",
+    "source_hash": "ffcf39fb"
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "Brugerdefineret e-mailafsendelse er i øjeblikket deaktiveret. E-mails vil blive sendt fra den globale afsender. Aktivér funktionen nedenfor for at bruge din brugerdefinerede afsenderidentitet.",
+    "source_hash": "60a26f5b"
+  },
+  "web.domains.email.test_email_title": {
+    "text": "Test e-maillevering",
+    "source_hash": "c1b3dee2"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Send en test-e-mail til dig selv med den gemte konfiguration. Virker, selv når funktionen endnu ikke er aktiveret.",
+    "source_hash": "33e876ad"
+  },
+  "web.domains.email.send_test": {
+    "text": "Send test",
+    "source_hash": "22d7b11d"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Test-e-mail sendt",
+    "source_hash": "561617fd"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Kunne ikke sende test-e-mail",
+    "source_hash": "95ce63bc"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Sendt til {email}",
+    "source_hash": "8ceb9588"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Leveret via {provider}",
+    "source_hash": "f741959b"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "Ikke konfigureret",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "Bruger standardafsender",
+    "source_hash": "e1afb18f"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Bekræftet",
+    "source_hash": "4f783840"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Afventer bekræftelse",
+    "source_hash": "417a6b7e"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Deaktiveret",
+    "source_hash": "75081b59"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "Ingen e-mailafsender konfigureret — e-mails bruger platformens standardafsender",
+    "source_hash": "360083bb"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "E-mailafsenderkonfiguration afventer bekræftelse — e-mails bruger platformens standardafsender",
+    "source_hash": "c8c2449c"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "E-mailafsender er deaktiveret — e-mails bruger platformens standardafsender",
+    "source_hash": "64e84955"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "E-mailafsender bekræftet — e-mails sendes fra dette domæne",
+    "source_hash": "0e9a005c"
+  },
+  "web.domains.incoming.title": {
+    "text": "Indgående beskeder",
+    "source_hash": "883dbca9"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Konfiguration af indgående beskeder",
+    "source_hash": "b3fef15b"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Tillad eksterne brugere at sende beskeder direkte til udpegede modtagere på dette domæne",
+    "source_hash": "452ab4fe"
+  },
+  "web.domains.incoming.feature_disabled": {
+    "text": "Indgående beskeder utilgængelig",
+    "source_hash": "0f96c5ec"
+  },
+  "web.domains.incoming.feature_disabled_description": {
+    "text": "Indgående beskeder er ikke aktiveret på denne instans. Kontakt din administrator.",
+    "source_hash": "dce981e0"
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Adgang nægtet",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "Du har ikke tilladelse til at administrere indstillinger for indgående beskeder for dette domæne. Kontakt din organisationsadministrator.",
+    "source_hash": "3e9d8adc"
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Opgrader din plan for at konfigurere indgående beskeder for dette domæne.",
+    "source_hash": "9dfdfeb5"
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Konfigurer indgående beskeder",
+    "source_hash": "eab52939"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "Indgående beskeder er ikke konfigureret for dette domæne. Tilføj modtagere for at lade eksterne brugere sende beskeder til dit team.",
+    "source_hash": "dbc443a6"
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "Indgående beskeder er i øjeblikket deaktiveret. Eksterne brugere kan ikke sende beskeder til modtagere på dette domæne. Aktivér funktionen nedenfor for at tillade indgående beskeder.",
+    "source_hash": "d1f8dafb"
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Modtagere",
+    "source_hash": "1e8568a8"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Definer, hvem der kan modtage indgående beskeder på dette domæne. Modtagere får en e-mailnotifikation, når der sendes en besked til dem.",
+    "source_hash": "026f9d9d"
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Tilføj modtager",
+    "source_hash": "25f93c13"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Fjern",
+    "source_hash": "c3812fc4"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "E-mailadresse",
+    "source_hash": "09bf25ef"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "recipient{'@'}example.com",
+    "source_hash": "55d1508e"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Visningsnavn",
+    "source_hash": "18d67c99"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "f.eks. Security Team",
+    "source_hash": "0c52400c"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "Ingen modtagere konfigureret",
+    "source_hash": "bc8c2058"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Tilføj modtagere for at lade eksterne brugere sende beskeder til dit team.",
+    "source_hash": "2a647a40"
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Ugyldig e-mailadresse",
+    "source_hash": "4eaf1d80"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "Denne e-mailadresse er allerede tilføjet",
+    "source_hash": "f89de141"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "Maksimalt {max} modtagere tilladt",
+    "source_hash": "e2585847"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "Visningsnavn er påkrævet",
+    "source_hash": "c6892c89"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "E-mailadresse er påkrævet",
+    "source_hash": "41381ba2"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Gem ændringer",
+    "source_hash": "35322b5b"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Kassér ændringer",
+    "source_hash": "e07e053c"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "Konfiguration af indgående beskeder gemt",
+    "source_hash": "9317e02d"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "Konfiguration af indgående beskeder fjernet",
+    "source_hash": "4c4a33ae"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} modtager | {count} modtagere",
+    "source_hash": "0e4f5985"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "Ikke konfigureret",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Konfigureret",
+    "source_hash": "84aebc69"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Deaktiveret",
+    "source_hash": "75081b59"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "Indgående beskeder ikke konfigureret - eksterne brugere kan ikke sende beskeder til dette domæne",
+    "source_hash": "79786d5c"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "Indgående beskeder aktiveret med {count} modtager(e)",
+    "source_hash": "c205cc54"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "Funktionen for indgående beskeder er deaktiveret for dette domæne",
+    "source_hash": "0413f96b"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Aktivér indgående beskeder",
+    "source_hash": "c0b25980"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Tillad eksterne brugere at sende beskeder til modtagere på dette domæne",
+    "source_hash": "24aadd31"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "Offentlig URL",
+    "source_hash": "f7b60b04"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Del denne URL med eksterne brugere for at lade dem sende beskeder",
+    "source_hash": "df47a894"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "Kopier URL",
+    "source_hash": "b26d1037"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "URL kopieret til udklipsholder",
+    "source_hash": "2f396c3e"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Er du sikker på, at du vil fjerne alle modtagere? Eksterne brugere vil ikke længere kunne sende beskeder til dette domæne.",
+    "source_hash": "06f9e551"
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Det maksimale antal modtagere er nået",
+    "source_hash": "ba659e54"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "Denne e-mailadresse er allerede tilføjet",
+    "source_hash": "ca598f6d"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "Hvis du gemmer, erstattes alle eksisterende modtagere med dine afventende ændringer. Er du sikker?",
+    "source_hash": "f497862e"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Slet alle modtagere",
+    "source_hash": "207d0dbe"
+  },
+  "web.domains.signin.title": {
+    "text": "Loginkonfiguration",
+    "source_hash": "2da38c03"
+  },
+  "web.domains.signin.configure_signin": {
+    "text": "Konfigurer login",
+    "source_hash": "f72b58b5"
+  },
+  "web.domains.signin.config_description": {
+    "text": "Konfigurer godkendelsesmetoder for login på dette domæne",
+    "source_hash": "8efce428"
+  },
+  "web.domains.signin.access_denied": {
+    "text": "Adgang nægtet",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.signin.upgrade_to_configure": {
+    "text": "Opgrader din plan for at konfigurere loginmetoder for dette domæne.",
+    "source_hash": "e242bb74"
+  },
+  "web.domains.signin.not_configured_notice": {
+    "text": "Loginkonfiguration er endnu ikke angivet for dette domæne. Konfigurer tilsidesættelser for at styre, hvilke godkendelsesmetoder der er tilgængelige på dette domænes loginside.",
+    "source_hash": "cb788a2d"
+  },
+  "web.domains.signin.signin_enabled_label": {
+    "text": "Login aktiveret",
+    "source_hash": "cabe4898"
+  },
+  "web.domains.signin.header_toggle_label": {
+    "text": "Login",
+    "source_hash": "5bbbe531"
+  },
+  "web.domains.signin.signin_enabled_hint": {
+    "text": "Om brugere kan logge ind på dette domæne",
+    "source_hash": "57a92aee"
+  },
+  "web.domains.signin.restrict_to_label": {
+    "text": "Begræns loginmetode",
+    "source_hash": "edbec83f"
+  },
+  "web.domains.signin.restrict_to_hint": {
+    "text": "Begræns dette domæne til en enkelt godkendelsesmetode. Når den er angivet, vises kun den valgte metode på loginsiden.",
+    "source_hash": "682bc4c5"
+  },
+  "web.domains.signin.all_methods": {
+    "text": "Alle metoder",
+    "source_hash": "e601c19e"
+  },
+  "web.domains.signin.all_methods_description": {
+    "text": "Vis alle aktiverede godkendelsesmetoder på loginsiden",
+    "source_hash": "62723340"
+  },
+  "web.domains.signin.method_password": {
+    "text": "Adgangskode",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.domains.signin.method_email_auth": {
+    "text": "E-mailgodkendelse",
+    "source_hash": "68c38f94"
+  },
+  "web.domains.signin.method_webauthn": {
+    "text": "WebAuthn / Adgangsnøgler",
+    "source_hash": "c40224ce"
+  },
+  "web.domains.signin.method_sso": {
+    "text": "Single Sign-On",
+    "source_hash": "cf7cd744"
+  },
+  "web.domains.signin.method_overrides_label": {
+    "text": "Metodetilsidesættelser",
+    "source_hash": "5496cba6"
+  },
+  "web.domains.signin.method_overrides_hint": {
+    "text": "Aktivér eller deaktiver individuelle godkendelsesmetoder for dette domæne",
+    "source_hash": "394e3878"
+  },
+  "web.domains.signin.mode_question": {
+    "text": "Hvordan kan brugere logge ind?",
+    "source_hash": "3694eb23"
+  },
+  "web.domains.signin.mode_any": {
+    "text": "Enhver tilgængelig metode",
+    "source_hash": "23665425"
+  },
+  "web.domains.signin.mode_any_hint": {
+    "text": "Vis alle metoder, der er tilgængelige på dette domæne. Indsnævr individuelle metoder nedenfor.",
+    "source_hash": "2f3dcba6"
+  },
+  "web.domains.signin.mode_one": {
+    "text": "Én bestemt metode",
+    "source_hash": "601f5768"
+  },
+  "web.domains.signin.mode_one_hint": {
+    "text": "Begræns loginsiden til en enkelt metode. Kun metoder, der er tilgængelige på dette domæne, vises.",
+    "source_hash": "58bde6d5"
+  },
+  "web.domains.signin.mode_disabled": {
+    "text": "Login deaktiveret",
+    "source_hash": "bb807607"
+  },
+  "web.domains.signin.mode_disabled_hint": {
+    "text": "Brugere kan ikke logge ind på dette domæne.",
+    "source_hash": "8938f098"
+  },
+  "web.domains.signin.mode_disabled_notice": {
+    "text": "Besøgende på dette domænes loginside ser en meddelelse om, at login ikke er tilgængeligt, med et link tilbage til hjemmesiden. Dine tidligere metodeindstillinger bevares og gendannes, når du genaktiverer login.",
+    "source_hash": "1a04de18"
+  },
+  "web.domains.signin.methods_list_label": {
+    "text": "Metoder vist på loginsiden",
+    "source_hash": "66fd133b"
+  },
+  "web.domains.signin.restrict_picker_hint": {
+    "text": "Kun metoder, der er tilgængelige på dette domæne, vises.",
+    "source_hash": "c7a56f44"
+  },
+  "web.domains.signin.availability_always": {
+    "text": "Altid tilgængelig",
+    "source_hash": "0fda3772"
+  },
+  "web.domains.signin.availability_global_on": {
+    "text": "Følger global politik · Til",
+    "source_hash": "3844e6f7"
+  },
+  "web.domains.signin.availability_global_off": {
+    "text": "Ikke tilgængelig",
+    "source_hash": "67a926f7"
+  },
+  "web.domains.signin.availability_unavailable": {
+    "text": "Utilgængelig på hele webstedet",
+    "source_hash": "da29c1be"
+  },
+  "web.domains.signin.allow_on_domain": {
+    "text": "Tillad på dette domæne",
+    "source_hash": "760b578e"
+  },
+  "web.domains.signin.method_password_blurb": {
+    "text": "Kun adgangskode",
+    "source_hash": "ed1a02fd"
+  },
+  "web.domains.signin.method_email_auth_blurb": {
+    "text": "Adgangskodefrit login med magisk link",
+    "source_hash": "7f776a85"
+  },
+  "web.domains.signin.method_webauthn_blurb": {
+    "text": "Biometri og sikkerhedsnøgler",
+    "source_hash": "7d6a7bd5"
+  },
+  "web.domains.signin.method_sso_blurb": {
+    "text": "Ekstern identitetsudbyder",
+    "source_hash": "a3442088"
+  },
+  "web.domains.signin.email_auth_label": {
+    "text": "E-mailgodkendelse",
+    "source_hash": "68c38f94"
+  },
+  "web.domains.signin.email_auth_hint": {
+    "text": "Tillad adgangskodefri e-mailgodkendelse på dette domæne",
+    "source_hash": "6ad82127"
+  },
+  "web.domains.signin.sso_enabled_label": {
+    "text": "Single Sign-On",
+    "source_hash": "cf7cd744"
+  },
+  "web.domains.signin.sso_enabled_hint": {
+    "text": "Tillad SSO-godkendelse på dette domæne",
+    "source_hash": "22d78ad5"
+  },
+  "web.domains.signin.enabled_label": {
+    "text": "Aktivér loginkonfiguration",
+    "source_hash": "dbd8e11c"
+  },
+  "web.domains.signin.enabled_hint": {
+    "text": "Når den er aktiveret, bruger dette domæne de loginindstillinger, der er konfigureret ovenfor",
+    "source_hash": "6259f8a2"
+  },
+  "web.domains.signin.save_config": {
+    "text": "Gem konfiguration",
+    "source_hash": "b2b158f2"
+  },
+  "web.domains.signin.update_success": {
+    "text": "Loginkonfiguration opdateret",
+    "source_hash": "10ea50d8"
+  },
+  "web.domains.signin.reset_to_defaults": {
+    "text": "Nulstil til standardindstillinger",
+    "source_hash": "e240e635"
+  },
+  "web.domains.signin.reset_confirm": {
+    "text": "Nulstil login til de globale standardindstillinger?",
+    "source_hash": "2c6bbc32"
+  },
+  "web.domains.signin.reset_keeps_sso": {
+    "text": "Dine SSO-legitimationsoplysninger bevares. Fjern dem separat på SSO-konfigurationsskærmen.",
+    "source_hash": "edc0c756"
+  },
+  "web.domains.signin.reset_action": {
+    "text": "Ja, nulstil",
+    "source_hash": "4bb21d8b"
+  },
+  "web.domains.signin.reset_success": {
+    "text": "Loginindstillinger nulstillet til de globale standardindstillinger",
+    "source_hash": "0c364d89"
+  },
+  "web.domains.signup.title": {
+    "text": "Tilmeldingsvalidering",
+    "source_hash": "2c34ac0a"
+  },
+  "web.domains.signup.config_description": {
+    "text": "Konfigurer tilmeldingsvalidering for dette domæne",
+    "source_hash": "e9c81e8a"
+  },
+  "web.domains.signup.access_denied": {
+    "text": "Adgang nægtet",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.signup.upgrade_to_configure": {
+    "text": "Opgrader din plan for at konfigurere tilmeldingsvalidering pr. domæne.",
+    "source_hash": "d87d6614"
+  },
+  "web.domains.signup.configure_signup": {
+    "text": "Konfigurer tilmelding",
+    "source_hash": "e2697662"
+  },
+  "web.domains.signup.not_configured_notice": {
+    "text": "Tilmeldingsvalidering er endnu ikke konfigureret for dette domæne. Konfigurer en strategi for at styre, hvem der kan tilmelde sig via dette domæne.",
+    "source_hash": "fc6c6eb8"
+  },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "Tilmeldinger er i øjeblikket deaktiveret på webstedsniveau. Denne politik pr. domæne er konfigureret, men vil ikke begrænse nogen trafik, før webstedstilmeldinger er aktiveret.",
+    "source_hash": "c0e59f86"
+  },
+  "web.domains.signup.strategy_label": {
+    "text": "Valideringsstrategi",
+    "source_hash": "a2e95531"
+  },
+  "web.domains.signup.strategy_description": {
+    "text": "Vælg, hvordan e-mailadresser valideres, når brugere tilmelder sig på dette domæne.",
+    "source_hash": "8e232b03"
+  },
+  "web.domains.signup.network_validation_warning": {
+    "text": "Denne strategi foretager netværkskald under tilmelding, hvilket kan øge ventetiden eller blive blokeret af nogle udbydere.",
+    "source_hash": "53d4c266"
+  },
+  "web.domains.signup.allowed_domains_label": {
+    "text": "Tilladte tilmeldingsdomæner",
+    "source_hash": "9b5bb5b1"
+  },
+  "web.domains.signup.allowed_domains_hint": {
+    "text": "Kun disse e-maildomæner vil få lov til at tilmelde sig. Tilføj ét domæne pr. post.",
+    "source_hash": "c082414d"
+  },
+  "web.domains.signup.domain_placeholder": {
+    "text": "example.com",
+    "source_hash": "a379a6f6"
+  },
+  "web.domains.signup.invalid_domain": {
+    "text": "Indtast et gyldigt domæne (f.eks. example.com)",
+    "source_hash": "16807983"
+  },
+  "web.domains.signup.domain_exists": {
+    "text": "Dette domæne er allerede på listen",
+    "source_hash": "3fccb721"
+  },
+  "web.domains.signup.remove_domain": {
+    "text": "Fjern {domain}",
+    "source_hash": "ae708a1d"
+  },
+  "web.domains.signup.enabled_label": {
+    "text": "Aktivér validering pr. domæne",
+    "source_hash": "db103925"
+  },
+  "web.domains.signup.enabled_hint": {
+    "text": "Når den er aktiveret, bruger tilmeldinger på dette domæne strategien ovenfor i stedet for den globale politik.",
+    "source_hash": "99de2008"
+  },
+  "web.domains.signup.delete_config": {
+    "text": "Slet konfiguration",
+    "source_hash": "a9a30c7f"
+  },
+  "web.domains.signup.delete_confirm": {
+    "text": "Slet konfiguration for tilmeldingsvalidering? Tilmeldinger falder tilbage til den globale politik.",
+    "source_hash": "a8c9086e"
+  },
+  "web.domains.signup.save_config": {
+    "text": "Gem konfiguration",
+    "source_hash": "b2b158f2"
+  },
+  "web.domains.signup.update_success": {
+    "text": "Tilmeldingsvalidering opdateret",
+    "source_hash": "57a529ac"
+  },
+  "web.domains.signup.delete_success": {
+    "text": "Konfiguration for tilmeldingsvalidering fjernet",
+    "source_hash": "eb6add4d"
+  },
+  "web.domains.signup.domain_overrides_label": {
+    "text": "Domænetilsidesættelser",
+    "source_hash": "d25da3cd"
+  },
+  "web.domains.signup.domain_overrides_hint": {
+    "text": "Tilsidesæt globale tilmeldingsindstillinger for dette domæne",
+    "source_hash": "53101057"
+  },
+  "web.domains.signup.signup_enabled_label": {
+    "text": "Tilmelding aktiveret",
+    "source_hash": "296ac66d"
+  },
+  "web.domains.signup.signup_enabled_hint": {
+    "text": "Tilsidesæt, om tilmelding er aktiveret for dette domæne",
+    "source_hash": "2ee146b6"
+  },
+  "web.domains.signup.autoverify_label": {
+    "text": "Bekræft konti automatisk",
+    "source_hash": "4b103cd5"
+  },
+  "web.domains.signup.autoverify_hint": {
+    "text": "Tilsidesæt, om nye konti automatisk bekræftes på dette domæne",
+    "source_hash": "63866ecd"
+  },
+  "web.domains.sso.title": {
+    "text": "Single Sign-On",
+    "source_hash": "cf7cd744"
+  },
+  "web.domains.sso.config_title": {
+    "text": "SSO-konfiguration",
+    "source_hash": "afd5751e"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Konfigurer single sign-on-godkendelse for dette domæne",
+    "source_hash": "f37a0b47"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Adgang nægtet",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "Du har ikke tilladelse til at administrere SSO-indstillinger for dette domæne. Kontakt din organisationsadministrator.",
+    "source_hash": "db7fcfeb"
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Opgrader din plan for at konfigurere single sign-on for dette domæne.",
+    "source_hash": "71fc0069"
+  },
+  "web.domains.sso.create_success": {
+    "text": "SSO-konfiguration oprettet",
+    "source_hash": "531c7d92"
+  },
+  "web.domains.sso.update_success": {
+    "text": "SSO-konfiguration opdateret",
+    "source_hash": "d98d8e83"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "SSO-konfiguration fjernet",
+    "source_hash": "2e924798"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Forbindelsestest lykkedes — udbyderen svarede korrekt",
+    "source_hash": "1570ddb0"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Forbindelsestest mislykkedes",
+    "source_hash": "a45a37dd"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "For at kræve SSO for alle logins på dette domæne skal du konfigurere det i domænets loginindstillinger. Kun-SSO-tilstand begrænser loginsiden til den SSO-udbyder, der er konfigureret her.",
+    "source_hash": "d26627a5"
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "Konfigurer SSO",
+    "source_hash": "80d3a144"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "SSO er endnu ikke konfigureret for dette domæne. Aktivér single sign-on for at lade teammedlemmer godkende sig med din organisations identitetsudbyder.",
+    "source_hash": "c439214b"
+  },
+  "web.domains.sso.edit_credentials": {
+    "text": "Rediger legitimationsoplysninger",
+    "source_hash": "5a6622b6"
+  },
+  "web.domains.sso.configure_button": {
+    "text": "Konfigurer",
+    "source_hash": "6defafa2"
+  },
+  "web.domains.sso.upgrade_required": {
+    "text": "Opgrader for at konfigurere",
+    "source_hash": "571cfa98"
   }
 }

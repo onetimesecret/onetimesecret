@@ -4,7 +4,16 @@ import { mount, RouterLinkStub } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
 import type { CustomDomain } from '@/schemas/shapes/v3';
+import { isApproximatedDomainValidation } from '@/utils/features';
 import { ref } from 'vue';
+
+// Control the install's domain validation strategy. Default to approximated so
+// the status-badge assertions hold; the dedicated block flips it off.
+vi.mock('@/utils/features', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/utils/features')>()),
+  isApproximatedDomainValidation: vi.fn(() => true),
+}));
+const mockApprox = vi.mocked(isApproximatedDomainValidation);
 
 // Use refs for reactive mocks that can change between tests
 const mockStatusIcon = ref('check-circle');
@@ -66,6 +75,8 @@ describe('DomainHeader', () => {
     mockStatusColor.value = 'text-emerald-600 dark:text-emerald-400';
     mockDisplayStatus.value = 'Active';
     mockIsActive.value = true;
+    // Default to approximated (status badge visible).
+    mockApprox.mockReturnValue(true);
   });
 
   function mountComponent(props: Partial<typeof defaultProps> = {}) {
@@ -173,6 +184,31 @@ describe('DomainHeader', () => {
       const wrapper = mountComponent({ domain, orgid: 'org-abc' });
       const routerLink = wrapper.findComponent(RouterLinkStub);
       expect(routerLink.props('to')).toBe('/org/org-abc/domains/domain-xyz/verify');
+    });
+  });
+
+  describe('validation strategy gating', () => {
+    it('shows the status badge when validation strategy is approximated', () => {
+      mockApprox.mockReturnValue(true);
+      const domain = createMockDomain();
+      const wrapper = mountComponent({ domain });
+
+      // Badge renders its status icon and a RouterLink to the verify page.
+      expect(wrapper.find('[data-name="check-circle"]').exists()).toBe(true);
+      expect(wrapper.findComponent(RouterLinkStub).exists()).toBe(true);
+    });
+
+    it('hides the status badge when validation strategy is not approximated', () => {
+      mockApprox.mockReturnValue(false);
+      const domain = createMockDomain();
+      const wrapper = mountComponent({ domain });
+
+      // No status icon, no verify RouterLink — only the external-link anchor remains.
+      expect(wrapper.find('[data-name="check-circle"]').exists()).toBe(false);
+      expect(wrapper.findComponent(RouterLinkStub).exists()).toBe(false);
+      // The domain name + external link are still rendered.
+      expect(wrapper.find('h1').exists()).toBe(true);
+      expect(wrapper.find('a[target="_blank"]').exists()).toBe(true);
     });
   });
 

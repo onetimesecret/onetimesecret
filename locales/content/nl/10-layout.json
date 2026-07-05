@@ -124,7 +124,7 @@
     "source_hash": "4d4a570f"
   },
   "web.meta.were_making_onetime_secret_available_in_multiple": {
-    "text": "We maken {onetime-secret} beschikbaar in meerdere talen. Aangezien dit een nieuwe functie is, kunt u vertaalfouten of onhandige formuleringen tegenkomen. Uw feedback helpt ons te verbeteren - als u problemen opmerkt, {send-feedback}",
+    "text": "We maken {onetime-secret} beschikbaar in meerdere talen. Aangezien dit een nieuwe functie is, kun je vertaalfouten of onhandige formuleringen tegenkomen. Je feedback helpt ons te verbeteren - als je problemen opmerkt, {send-feedback}",
     "source_hash": "3b482d7f"
   },
   "web.meta.translations_are_new_spotted_an_error": {
@@ -136,7 +136,7 @@
     "source_hash": "6e2455c1"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
-    "text": "Privacy en veiligheid moeten voor iedereen toegankelijk zijn, ongeacht taal. We voegen vertalingen toe om zowel onze gebruikers als hun berichtontvangers beter te laten begrijpen hoe ze veilig gebruik kunnen maken van en toegang kunnen krijgen tot beveiligde berichten en links. Aangezien dit een nieuwe functie is, kunt u enkele vertaalfouten of onduidelijke instructies tegenkomen. Om ons te helpen de duidelijkheid en nauwkeurigheid van onze vertalingen te verbeteren, vooral voor kritieke beveiligingsgerelateerde inhoud, {send-feedback} als u problemen opmerkt.",
+    "text": "Privacy en veiligheid moeten voor iedereen toegankelijk zijn, ongeacht taal. We voegen vertalingen toe om zowel onze gebruikers als hun berichtontvangers beter te laten begrijpen hoe ze veilig gebruik kunnen maken van en toegang kunnen krijgen tot beveiligde berichten en links. Aangezien dit een nieuwe functie is, kun je enkele vertaalfouten of onduidelijke instructies tegenkomen. Om ons te helpen de duidelijkheid en nauwkeurigheid van onze vertalingen te verbeteren, vooral voor kritieke beveiligingsgerelateerde inhoud, {send-feedback} als je problemen opmerkt.",
     "source_hash": "1b8bb38f"
   },
   "web.help.learn_more": {
@@ -148,7 +148,7 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Je bekijkt een beveiligd bericht dat met je is gedeeld via {product_name}. Deze inhoud wordt slechts één keer getoond en daarna permanent van onze servers verwijderd.",
+    "text": "Je bekijkt een beveiligd bericht dat via {product_name} met je is gedeeld. Deze inhoud wordt slechts één keer weergegeven en daarna permanent van onze servers verwijderd.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -240,7 +240,7 @@
     "source_hash": "e26d51d3"
   },
   "web.layout.customize_your_app_preferences_and_settings": {
-    "text": "Pas uw app-voorkeuren en instellingen aan",
+    "text": "Pas je app-voorkeuren en instellingen aan",
     "source_hash": "00d74c98"
   },
   "web.layout.return_home": {
@@ -264,7 +264,7 @@
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Bezoek de {product_name}-homepage",
+    "text": "Bezoek de homepage van {product_name}",
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {
@@ -338,5 +338,13 @@
   "web.layout.workspace_context": {
     "text": "Werkruimtecontext",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Werkruimte",
+    "source_hash": "87bb59ba"
+  },
+  "web.help.default_content": {
+    "text": "Neem contact op met support voor hulp",
+    "source_hash": "752bca14"
   }
 }

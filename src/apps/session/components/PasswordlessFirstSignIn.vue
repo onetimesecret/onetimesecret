@@ -18,12 +18,19 @@ export interface Props {
   locale?: string;
   magicLinksEnabled?: boolean;
   webauthnEnabled?: boolean;
+  /**
+   * Preselect a specific auth tab on first render. This is a contextual default
+   * (e.g. land on "password" right after email verification), NOT a user choice,
+   * so it takes precedence over the remembered preference but is never persisted.
+   */
+  initialMode?: 'passkey' | 'passwordless' | 'password';
 }
 
 const props = withDefaults(defineProps<Props>(), {
   locale: 'en',
   magicLinksEnabled: true,
   webauthnEnabled: false,
+  initialMode: undefined,
 });
 
 const VALID_AUTH_MODES = ['passkey', 'passwordless', 'password'] as const;
@@ -98,20 +105,38 @@ const tabs = computed<TabConfig[]>(() => {
   return result;
 });
 
-// Tab index management — restore saved preference if the mode is still available
+// Tab index management. Precedence for the initial tab:
+//   1. an explicit `initialMode` (contextual default, e.g. post-verification),
+//   2. the remembered preference (localStorage), if the mode is still available,
+//   3. the first available tab.
 const savedPref = loadSigninModePreference();
 const savedIndex = savedPref ? tabs.value.findIndex(tab => tab.id === savedPref.mode) : -1;
-const selectedTabIndex = ref(savedIndex >= 0 ? savedIndex : 0);
+const initialModeIndex = props.initialMode
+  ? tabs.value.findIndex(tab => tab.id === props.initialMode)
+  : -1;
+let startIndex = 0;
+if (initialModeIndex >= 0) {
+  startIndex = initialModeIndex;
+} else if (savedIndex >= 0) {
+  startIndex = savedIndex;
+}
+const selectedTabIndex = ref(startIndex);
+
+// Housekeeping for the remembered preference, independent of any override:
+// refresh a still-valid pref's TTL, or clear a stale/unavailable one.
 if (savedIndex >= 0 && savedPref) {
   const refreshThreshold = SIGNIN_MODE_TTL_MS - ONE_DAY_MS;
   if (savedPref.expiresAt - Date.now() < refreshThreshold) {
     saveSigninModePreference(savedPref.mode);
   }
-  if (savedIndex > 0) {
-    emit('mode-change', savedPref.mode);
-  }
 } else if (savedPref) {
   try { localStorage.removeItem(SIGNIN_MODE_KEY); } catch { /* localStorage unavailable */ }
+}
+
+// Reflect the initially selected (non-default) mode to the parent footer.
+const startMode = tabs.value[selectedTabIndex.value]?.id;
+if (selectedTabIndex.value > 0 && startMode) {
+  emit('mode-change', startMode);
 }
 
 // Prefill email from query param (e.g., from invitation flow)

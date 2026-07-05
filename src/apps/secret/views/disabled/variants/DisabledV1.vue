@@ -1,7 +1,7 @@
 <!-- src/apps/secret/views/disabled/variants/DisabledV1.vue -->
 
 <script setup lang="ts">
-  import MonotoneJapaneseSecretButtonIcon from '@/shared/components/icons/MonotoneJapaneseSecretButtonIcon.vue';
+  import KeyholeIcon from '@/shared/components/icons/KeyholeIcon.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import type { DisabledHomepageProps } from '../useDisabledConfig';
   import { computed, ref, watch } from 'vue';
@@ -34,18 +34,19 @@
   const hasUsableLogo = computed(() => !!props.logoUri && !logoError.value);
 
   const monogramStyle = computed(() => ({ backgroundColor: props.primaryColor }));
-  // Always emit the dot's accent color from primaryColor so branded mode
-  // uses the workspace color and unbranded falls back to OTS orange. Avoids
-  // the stale hard-coded shadow color in the static class fallback.
+  // The dot's accent color always comes from primaryColor. In branded mode that
+  // is the workspace color; when unbranded, identityStore has already resolved
+  // primaryColor to the neutral default (#3B82F6) — never OTS orange. Hardcoding
+  // a brand hex here would leak OTS branding into private-label deployments.
   const dotStyle = computed(() => {
-    const color = props.isBranded ? props.primaryColor : '#dc4a22';
+    const color = props.primaryColor;
     return { backgroundColor: color, boxShadow: `0 0 8px ${color}` };
   });
 </script>
 
 <template>
   <div class="relative mx-auto flex w-full max-w-2xl flex-col items-center px-4 pb-12 pt-16 text-center sm:pt-24">
-    <!-- Mark — priority: configured custom-domain logo → branded monogram → OTS mark -->
+    <!-- Mark — priority: configured custom-domain logo → branded monogram → neutral keyhole mark -->
     <div class="mb-8 flex items-center justify-center">
       <img
         v-if="hasUsableLogo"
@@ -64,7 +65,7 @@
         v-else
         class="flex size-28 items-center justify-center rounded-3xl bg-brand-500 text-white shadow-sm dark:bg-brand-600"
         aria-hidden="true">
-        <MonotoneJapaneseSecretButtonIcon
+        <KeyholeIcon
           :size="76"
           class="text-white" />
       </div>

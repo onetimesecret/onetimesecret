@@ -1,0 +1,6 @@
+{
+  "api.incoming.errors.custom_domain_unresolved": {
+    "text": "Organisatie van aangepast domein kon niet worden bepaald",
+    "source_hash": "b30d65d2"
+  }
+}

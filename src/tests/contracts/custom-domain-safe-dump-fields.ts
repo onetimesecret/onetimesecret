@@ -30,6 +30,9 @@ export const CUSTOM_DOMAIN_SAFE_DUMP_FIELDS = [
   'sso_configured',
   'sso_enabled',
   'homepage_config',
+  'incoming_configured',
+  'incoming_enabled',
+  'incoming_ready',
   'mail_configured',
   'mail_enabled',
 ] as const;

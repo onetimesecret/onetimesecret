@@ -1299,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Ĉiam kontrolu, ke vi estas sur la oficiala retejo de {product_name}. Frauduloj foje kreas falsajn retejojn, kiuj aspektas ekzakte kiel {product_name} por ŝteli viajn sekretojn. Por eviti phishing-atakojn, kontrolu la regiona domajno antaŭ krei novajn ligilojn.",
+    "text": "Ĉiam kontrolu ke vi estas sur la oficiala retejo de {product_name}. Friponoj foje kreas falsajn retejojn kiuj aspektas ekzakte kiel {product_name} por ŝteli viajn sekretojn. Por eviti phishing-atakojn, kontrolu la regionan domajnon antaŭ ol krei novajn ligilojn.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1383,5 +1383,145 @@
     "text": "Altigu vian planon por malŝlosi pliajn funkciojn",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "Aŭtentikigo necesa",
+    "source_hash": "0fcfb12d"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "Ĉi tiu ago ne disponeblas en nur-SSO reĝimo",
+    "source_hash": "9bc26394"
+  },
+  "web.COMMON.configure": {
+    "text": "Agordi",
+    "source_hash": "6defafa2"
+  },
+  "web.COMMON.copy_to_clipboard": {
+    "text": "Kopii al tondujo",
+    "source_hash": "b749e205"
+  },
+  "web.COMMON.add": {
+    "text": "Aldoni",
+    "source_hash": "9fd728c6"
+  },
+  "web.COMMON.enabled": {
+    "text": "Ŝaltita",
+    "source_hash": "92c1cdfd"
+  },
+  "web.COMMON.disabled": {
+    "text": "Malŝaltita",
+    "source_hash": "75081b59"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Jes, forigi",
+    "source_hash": "7b05a8e3"
+  },
+  "web.COMMON.error_code": {
+    "text": "Erarkodo",
+    "source_hash": "46832415"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTP-stato",
+    "source_hash": "b2a629f2"
+  },
+  "web.COMMON.details": {
+    "text": "Detaloj",
+    "source_hash": "45989de4"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Konfirmu pasvorton",
+    "source_hash": "c292210c"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "La pasvortoj devas kongrui",
+    "source_hash": "0c060bd4"
+  },
+  "web.COMMON.and": {
+    "text": "kaj",
+    "source_hash": "6201111b"
+  },
+  "web.COMMON.or": {
+    "text": "aŭ",
+    "source_hash": "7175517a"
+  },
+  "web.COMMON.copied": {
+    "text": "Kopiita",
+    "source_hash": "8d525e5f"
+  },
+  "web.COMMON.copy": {
+    "text": "Kopii",
+    "source_hash": "e21f935f"
+  },
+  "web.COMMON.copy_email": {
+    "text": "Kopii retpoŝtadreson",
+    "source_hash": "61b94846"
+  },
+  "web.COMMON.copy_id": {
+    "text": "Kopii konto-ID",
+    "source_hash": "fd493ffd"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "La unika identigilo de via organizo",
+    "source_hash": "c8c08d29"
+  },
+  "web.COMMON.success": {
+    "text": "Sukceso",
+    "source_hash": "c88a0b90"
+  },
+  "web.COMMON.need_help": {
+    "text": "Ĉu vi bezonas helpon",
+    "source_hash": "4ca0ca38"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "Malfermi helpdialogon",
+    "source_hash": "55cd1515"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "La fokuso nun estas en la ĉefa tekstkampo",
+    "source_hash": "e00dd260"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Montri sekretan frazon",
+    "source_hash": "76880d38"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Kaŝi sekretan frazon",
+    "source_hash": "8ecdc98c"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "Kopia piktogramo",
+    "source_hash": "d1a5fc0c"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "Kopiita piktogramo",
+    "source_hash": "90a4b4f1"
+  },
+  "web.STATUS.unverified": {
+    "text": "Nekontrolita",
+    "source_hash": "33c8e8de"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Domajnaj Agordoj",
+    "source_hash": "e24f338d"
+  },
+  "web.TITLES.domain_signin": {
+    "text": "Agordo de Ensaluto",
+    "source_hash": "2da38c03"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "Domajna SSO",
+    "source_hash": "13161464"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "Validigo de Domajna Registriĝo",
+    "source_hash": "c8ce809a"
+  },
+  "web.TITLES.domain_email": {
+    "text": "Retpoŝta Agordo",
+    "source_hash": "6f38aa51"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Alvenantaj Sekretoj",
+    "source_hash": "883dbca9"
   }
 }

@@ -231,14 +231,14 @@ Onetime::CustomDomain::HomepageConfig.delete_for_domain!(@su_domain.identifier)
 Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@su_domain.identifier)
 #=> false
 
-## upsert without signup_enabled/signin_enabled defaults signup_enabled? to true
+## upsert without signup_enabled/signin_enabled defaults signup_enabled? to false (conservative)
 @su_cfg = Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @su_domain.identifier, enabled: false)
 @su_cfg.signup_enabled?
-#=> true
+#=> false
 
-## upsert without signup_enabled/signin_enabled defaults signin_enabled? to true
+## upsert without signup_enabled/signin_enabled defaults signin_enabled? to false (conservative)
 @su_cfg.signin_enabled?
-#=> true
+#=> false
 
 # --- upsert: explicit false persists ---
 
@@ -278,24 +278,25 @@ Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @su_domain.identifier, e
 @noclobber.signin_enabled?
 #=> false
 
-# --- predicate: nil field treated as enabled ---
+# --- predicate: nil field treated as disabled (conservative default) ---
 # Familia's instantiate_from_hash uses allocate (no initialize), so init() is
 # NOT called on load. A record saved without signup_enabled/signin_enabled will
-# have those fields as nil when read back from Redis.
+# have those fields as nil when read back from Redis. Only an explicit boolean
+# true shows the link, so a nil field reads as disabled.
 # We simulate this by directly constructing an in-memory instance with nil fields.
 
-## signup_enabled? returns true when field is nil (legacy record, no field in Redis)
+## signup_enabled? returns false when field is nil (legacy record, no field in Redis)
 @legacy = Onetime::CustomDomain::HomepageConfig.new(domain_id: @su_domain.identifier)
 @legacy.signup_enabled = nil
 @legacy.signup_enabled?
-#=> true
+#=> false
 
-## signin_enabled? returns true when field is nil (legacy record)
+## signin_enabled? returns false when field is nil (legacy record)
 @legacy.signin_enabled = nil
 @legacy.signin_enabled?
-#=> true
+#=> false
 
-# --- CustomDomain.create! bootstrap includes signup/signin enabled ---
+# --- CustomDomain.create! bootstrap defaults signup/signin links off ---
 
 ## Setup: fresh domain, bootstrap record created by create!
 @boot_domain = Onetime::CustomDomain.create!("hp-cfg-boot-#{@ts}-#{@entropy}.example.com", @org.objid)
@@ -303,13 +304,13 @@ Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @su_domain.identifier, e
 @boot_cfg.nil?
 #=> false
 
-## Bootstrapped record has signup_enabled? true
+## Bootstrapped record has signup_enabled? false (links hidden until opt-in)
 @boot_cfg.signup_enabled?
-#=> true
+#=> false
 
-## Bootstrapped record has signin_enabled? true
+## Bootstrapped record has signin_enabled? false (links hidden until opt-in)
 @boot_cfg.signin_enabled?
-#=> true
+#=> false
 
 # --- find_or_create_for_domain: persists new fields; preserves existing ---
 
@@ -421,6 +422,191 @@ Onetime::CustomDomain::HomepageConfig.delete_for_domain!(@cr_domain.identifier)
 ## validation_errors stays clean for a recognised variant
 Onetime::CustomDomain::HomepageConfig.new(domain_id: 'x', disabled_homepage_variant: 'closed').validation_errors
 #=> []
+
+# -------------------------------------------------------------------
+# secrets_mode field coverage ('create' | 'incoming')
+# -------------------------------------------------------------------
+
+## coerce_secrets_mode accepts 'create'
+Onetime::CustomDomain::HomepageConfig.coerce_secrets_mode('create')
+#=> 'create'
+
+## coerce_secrets_mode accepts 'incoming'
+Onetime::CustomDomain::HomepageConfig.coerce_secrets_mode('incoming')
+#=> 'incoming'
+
+## coerce_secrets_mode trims surrounding whitespace
+Onetime::CustomDomain::HomepageConfig.coerce_secrets_mode('  incoming  ')
+#=> 'incoming'
+
+## coerce_secrets_mode collapses an unknown value to the create default
+Onetime::CustomDomain::HomepageConfig.coerce_secrets_mode('bogus')
+#=> 'create'
+
+## coerce_secrets_mode collapses blank input to the create default
+Onetime::CustomDomain::HomepageConfig.coerce_secrets_mode('')
+#=> 'create'
+
+## coerce_secrets_mode collapses nil to the create default
+Onetime::CustomDomain::HomepageConfig.coerce_secrets_mode(nil)
+#=> 'create'
+
+## Setup: fresh domain for secrets_mode tests
+@sm_domain = Onetime::CustomDomain.create!("hp-cfg-sm-#{@ts}-#{@entropy}.example.com", @org.objid)
+Onetime::CustomDomain::HomepageConfig.delete_for_domain!(@sm_domain.identifier)
+Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@sm_domain.identifier)
+#=> false
+
+## upsert creating a new record persists an explicit 'create' (self-describing)
+@sm_cfg = Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @sm_domain.identifier, enabled: true)
+@sm_cfg.secrets_mode
+#=> 'create'
+
+## Legacy records (field absent in Redis) load with a nil raw field.
+## Familia's instantiate_from_hash uses allocate, so init() does not run on
+## load — simulate a pre-secrets_mode record by deleting the hash field.
+Familia.dbclient.hdel(@sm_cfg.dbkey, 'secrets_mode')
+@sm_legacy = Onetime::CustomDomain::HomepageConfig.find_by_domain_id(@sm_domain.identifier)
+@sm_legacy.secrets_mode
+#=> nil
+
+## secrets_mode_value reads the nil field as 'create' (historical behavior preserved)
+@sm_legacy.secrets_mode_value
+#=> 'create'
+
+## incoming_mode? is false for a legacy (nil) record
+@sm_legacy.incoming_mode?
+#=> false
+
+## upsert with secrets_mode: 'incoming' stores it
+@sm_cfg = Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @sm_domain.identifier, enabled: true, secrets_mode: 'incoming')
+@sm_cfg.secrets_mode_value
+#=> 'incoming'
+
+## incoming_mode? is true after selecting incoming
+@sm_cfg.incoming_mode?
+#=> true
+
+## reload from Redis confirms secrets_mode persisted
+Onetime::CustomDomain::HomepageConfig.find_by_domain_id(@sm_domain.identifier).secrets_mode_value
+#=> 'incoming'
+
+## upsert without the secrets_mode kwarg does not clobber the stored value
+@sm_cfg = Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @sm_domain.identifier, enabled: false)
+@sm_cfg.secrets_mode_value
+#=> 'incoming'
+
+## upsert with an unknown secrets_mode coerces to 'create' (reset to default)
+@sm_cfg = Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @sm_domain.identifier, enabled: true, secrets_mode: 'nope')
+@sm_cfg.secrets_mode_value
+#=> 'create'
+
+## upsert with explicit nil leaves a previously stored mode unchanged (merge semantics)
+Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @sm_domain.identifier, enabled: true, secrets_mode: 'incoming')
+@sm_cfg = Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @sm_domain.identifier, enabled: true, secrets_mode: nil)
+@sm_cfg.secrets_mode_value
+#=> 'incoming'
+
+## upsert with an empty string resets a previously stored mode to 'create'
+@sm_cfg = Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @sm_domain.identifier, enabled: true, secrets_mode: '')
+@sm_cfg.secrets_mode_value
+#=> 'create'
+
+## create! stores a coerced secrets_mode
+@smc_domain = Onetime::CustomDomain.create!("hp-cfg-smc-#{@ts}-#{@entropy}.example.com", @org.objid)
+Onetime::CustomDomain::HomepageConfig.delete_for_domain!(@smc_domain.identifier)
+@smc_cfg = Onetime::CustomDomain::HomepageConfig.create!(domain_id: @smc_domain.identifier, enabled: true, secrets_mode: 'incoming')
+@smc_cfg.secrets_mode_value
+#=> 'incoming'
+
+## CustomDomain.create! bootstraps an explicit 'create' secrets_mode (self-describing)
+@smb_domain = Onetime::CustomDomain.create!("hp-cfg-smb-#{@ts}-#{@entropy}.example.com", @org.objid)
+Onetime::CustomDomain::HomepageConfig.find_by_domain_id(@smb_domain.identifier).secrets_mode
+#=> 'create'
+
+## validation_errors flags a stored value outside the recognised set
+@bad_sm = Onetime::CustomDomain::HomepageConfig.new(domain_id: 'x', secrets_mode: 'bogus')
+@bad_sm.validation_errors.any? { |e| e.include?('secrets_mode') }
+#=> true
+
+## validation_errors stays clean for a recognised secrets_mode
+Onetime::CustomDomain::HomepageConfig.new(domain_id: 'x', secrets_mode: 'incoming').validation_errors
+#=> []
+
+# -------------------------------------------------------------------
+# CustomDomain#allow_public_secret_creation? (anonymous create-API gate)
+# -------------------------------------------------------------------
+# Distinct from allow_public_homepage?: an incoming-mode homepage is public
+# but must NOT authorize anonymous secret creation.
+
+## Setup: enabled create-mode homepage allows anonymous secret creation
+@apsc_domain = Onetime::CustomDomain.create!("hp-cfg-apsc-#{@ts}-#{@entropy}.example.com", @org.objid)
+Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @apsc_domain.identifier, enabled: true, secrets_mode: 'create')
+[@apsc_domain.allow_public_homepage?, @apsc_domain.allow_public_secret_creation?]
+#=> [true, true]
+
+## Incoming-mode homepage is public but does NOT allow anonymous creation
+Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @apsc_domain.identifier, enabled: true, secrets_mode: 'incoming')
+[@apsc_domain.allow_public_homepage?, @apsc_domain.allow_public_secret_creation?]
+#=> [true, false]
+
+## Disabled homepage allows neither, regardless of mode
+Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @apsc_domain.identifier, enabled: false, secrets_mode: 'create')
+[@apsc_domain.allow_public_homepage?, @apsc_domain.allow_public_secret_creation?]
+#=> [false, false]
+
+## Disabled homepage with secrets_mode='incoming' also allows neither (enabled? short-circuits)
+Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @apsc_domain.identifier, enabled: false, secrets_mode: 'incoming')
+[@apsc_domain.allow_public_homepage?, @apsc_domain.allow_public_secret_creation?]
+#=> [false, false]
+
+# A corrupt stored secrets_mode is written via the raw field setter to bypass
+# the coercion that upsert/create! and the PUT API apply — simulating direct
+# Redis corruption or a botched migration. The branded homepage still renders
+# (allow_public_homepage? stays true), but a mode we cannot interpret must NOT
+# authorize the anonymous create form the operator never selected; the
+# render-path gate (effectively_enabled?, checked next) fails closed too.
+
+## A corrupt stored secrets_mode fails closed on the anonymous-creation gate
+@apsc_corrupt = Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @apsc_domain.identifier, enabled: true, secrets_mode: 'create')
+@apsc_corrupt.secrets_mode = 'corrupted-value'
+@apsc_corrupt.save
+[@apsc_domain.allow_public_homepage?, @apsc_domain.allow_public_secret_creation?]
+#=> [true, false]
+
+## The render-path gate agrees — effectively_enabled? also fails closed on it
+Onetime::CustomDomain::HomepageConfig.find_by_domain_id(@apsc_domain.identifier).effectively_enabled?(custom_domain: @apsc_domain)
+#=> false
+
+## Missing HomepageConfig record fails closed for creation too
+Onetime::CustomDomain::HomepageConfig.delete_for_domain!(@apsc_domain.identifier)
+@apsc_domain.allow_public_secret_creation?
+#=> false
+
+# -------------------------------------------------------------------
+# IncomingConfig#ready? (homepage incoming-mode gate)
+# -------------------------------------------------------------------
+
+## Setup: fresh domain with an incoming config that is enabled but has no recipients
+@ic_domain = Onetime::CustomDomain.create!("hp-cfg-ic-#{@ts}-#{@entropy}.example.com", @org.objid)
+@ic_cfg = Onetime::CustomDomain::IncomingConfig.create!(domain_id: @ic_domain.identifier, enabled: true, recipients: [])
+@ic_cfg.enabled?
+#=> true
+
+## ready? is false while there are no recipients (nowhere to deliver)
+@ic_cfg.ready?
+#=> false
+
+## ready? is true once enabled with at least one recipient
+@ic_cfg.add_recipient(email: "sec-#{@entropy}@example.com", name: 'Security')
+@ic_cfg.save
+Onetime::CustomDomain::IncomingConfig.find_by_domain_id(@ic_domain.identifier).ready?
+#=> true
+
+## ready? is false when recipients exist but the config is disabled
+@ic_cfg.disable!
+Onetime::CustomDomain::IncomingConfig.find_by_domain_id(@ic_domain.identifier).ready?
+#=> false
 
 # Teardown
 Familia.dbclient.flushdb

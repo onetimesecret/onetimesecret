@@ -476,7 +476,7 @@
     "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Lær hvordan du integrerer {product_name} i dine applikationer",
+    "text": "Lær, hvordan du integrerer {product_name} i dine applikationer",
     "source_hash": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {
@@ -682,5 +682,17 @@
   "web.settings.profile.didnt_receive_email": {
     "text": "Modtog du ikke e-mailen?",
     "source_hash": "fe3ac3ad"
+  },
+  "web.settings.api.api_disabled_notice": {
+    "text": "API'en er deaktiveret for denne instans.",
+    "source_hash": "66d12d6b"
+  },
+  "web.settings.security.sso_managed_title": {
+    "text": "Sikkerhed administreres af SSO",
+    "source_hash": "1f6c9472"
+  },
+  "web.settings.security.sso_managed_description": {
+    "text": "Din konto godkendes via din organisations single sign-on-udbyder. Adgangskode, multifaktorgodkendelse og gendannelseskoder administreres af din identitetsudbyder.",
+    "source_hash": "cd0cf39f"
   }
 }

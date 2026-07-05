@@ -88,10 +88,71 @@ module Onetime
     def self.http_headers_from(env)
       return {} unless env.respond_to?(:select)
 
-      headers = env.select { |k, _v| k.start_with?('HTTP_') rescue false } # rubocop:disable Style/RescueModifier
+      headers = env.select { |k, _v| k.is_a?(String) && k.start_with?('HTTP_') }
       headers.each_with_object({}) do |(k, v), result|
         result[k] = SENSITIVE_HEADER_KEYS.include?(k) ? '[FILTERED]' : v
       end
+    end
+
+    # Opt-in allowlist of request field names (params or header names) that
+    # may be attached to an error log line or error-tracking event (Sentry
+    # scope context, RequestLogger's :debug capture mode, etc).
+    #
+    # This is the one dial that governs how much request data "unhandled
+    # exception" reporting is allowed to show, across every capture_error /
+    # capture_exception call site in the app plus RequestLogger's :debug
+    # capture. It is empty by default: with no entries configured,
+    # #safe_request_context below returns only path/method/ip, so an error
+    # response is logged with exactly the same request-derived fields as any
+    # successful request — mirroring Django's SafeExceptionReporterFilter
+    # stance of hiding request data unless a view (here: an operator)
+    # explicitly opts specific field names in.
+    #
+    # Configure via the top-level `http.allowed_error_fields` key in
+    # etc/defaults/logging.defaults.yaml (loaded into Onetime.logging_conf —
+    # a sibling of OT.conf, not nested inside it) or the
+    # LOG_HTTP_ALLOWED_ERROR_FIELDS comma-separated env override. Never add
+    # names like password/secret/token/passphrase.
+    #
+    # @return [Array<String>] allow-listed field names, empty by default
+    def self.allowed_error_fields
+      Array(Onetime.logging_conf&.dig('http', 'allowed_error_fields'))
+    rescue StandardError
+      []
+    end
+
+    # Builds the request-derived context safe to attach to an error log line
+    # or error-tracking event. The query string is never included — only the
+    # bare path — and request parameters are included only when their name
+    # is explicitly allow-listed via #allowed_error_fields. This is what
+    # keeps a POST body's secret/passphrase value (or a query-string secret
+    # smuggled onto any request) from ever reaching an error report: there
+    # is no blocklist to keep up to date, just an empty allowlist by default.
+    #
+    # @param req [Rack::Request, Otto::Request, nil] the current request
+    # @return [Hash] safe subset with :path/:method/:ip, plus :params only
+    #   when the allowlist is non-empty and something on the request matches
+    def self.safe_request_context(req)
+      return {} unless req
+
+      context = {
+        path: (req.path if req.respond_to?(:path)),
+        method: (req.request_method if req.respond_to?(:request_method)),
+        ip: (req.ip if req.respond_to?(:ip)),
+      }.compact
+
+      allowed = allowed_error_fields
+      return context if allowed.empty? || !req.respond_to?(:params)
+
+      filtered         = req.params.each_with_object({}) do |(k, v), result|
+        next unless allowed.include?(k.to_s)
+
+        result[k] = loggable_scalar?(v) ? v : v.to_s
+      end
+      context[:params] = filtered unless filtered.empty?
+      context
+    rescue StandardError
+      {}
     end
 
     # Lua script for atomic INCR + EXPIRE (prevents race condition
@@ -165,6 +226,13 @@ module Onetime
       # Check if Sentry is configured
       def sentry_available?
         defined?(Sentry) && Sentry.initialized?
+      end
+
+      # True for value types safe to attach to a log line or Sentry context
+      # as-is; anything else (Array, Hash, custom object) is coerced to a
+      # String by the caller instead of risking a non-JSON-safe value.
+      def loggable_scalar?(v)
+        v.is_a?(String) || v.is_a?(Numeric) || v == true || v == false || v.nil?
       end
     end
   end

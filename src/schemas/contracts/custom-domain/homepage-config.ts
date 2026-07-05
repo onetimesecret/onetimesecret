@@ -10,6 +10,31 @@ import { z } from 'zod';
 import { disabledHomepageVariantSchema } from '@/schemas/contracts/disabled-homepage';
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Homepage secrets mode
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Which interactive experience an enabled homepage presents to anonymous
+ * visitors:
+ * - 'create': the classic secret-creation form (historical behavior)
+ * - 'incoming': the incoming-secrets form (send a secret TO the domain's
+ *   configured recipients)
+ *
+ * Not to be confused with the site-level `homepage_mode`
+ * (internal/external CIDR gating): that decides WHO sees the interactive
+ * homepage; this decides WHAT the interactive homepage is.
+ *
+ * @category Contracts
+ */
+export const homepageSecretsModeSchema = z.enum(['create', 'incoming']);
+
+/** TypeScript type for the homepage secrets mode. */
+export type HomepageSecretsMode = z.infer<typeof homepageSecretsModeSchema>;
+
+/** Default homepage secrets mode (the historical create-form behavior). */
+export const DEFAULT_HOMEPAGE_SECRETS_MODE: HomepageSecretsMode = 'create';
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Homepage config canonical schema
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -30,18 +55,33 @@ export const homepageConfigCanonical = z.object({
   enabled: z.boolean().default(false),
 
   /**
-   * Whether the Sign Up link renders on this domain's homepage.
-   * Defaults to true (link visible). The site-level authentication.signup
-   * flag remains the master switch — the frontend ANDs both layers.
+   * Which interactive experience the enabled homepage presents
+   * ('create' | 'incoming').
+   *
+   * `.catch('create')` over `.default('create')`: a future backend may emit
+   * a mode this frontend version doesn't recognise; degrading to the
+   * historical create behavior (whose API gate independently rejects
+   * anonymous creation on incoming-mode domains) is preferable to crashing
+   * the whole bootstrap payload parse. Also covers payloads from older
+   * backends that omit the field entirely.
    */
-  signup_enabled: z.boolean().default(true),
+  secrets_mode: homepageSecretsModeSchema.catch(DEFAULT_HOMEPAGE_SECRETS_MODE),
+
+  /**
+   * Whether the Sign Up link renders on this domain's homepage.
+   * Defaults to false (link hidden) — operators opt in per-domain via
+   * PUT /homepage-config. The site-level authentication.signup flag
+   * remains the master switch — the frontend ANDs both layers.
+   */
+  signup_enabled: z.boolean().default(false),
 
   /**
    * Whether the Sign In link renders on this domain's homepage.
-   * Defaults to true (link visible). The site-level authentication.signin
-   * flag remains the master switch — the frontend ANDs both layers.
+   * Defaults to false (link hidden) — operators opt in per-domain via
+   * PUT /homepage-config. The site-level authentication.signin flag
+   * remains the master switch — the frontend ANDs both layers.
    */
-  signin_enabled: z.boolean().default(true),
+  signin_enabled: z.boolean().default(false),
 
   /**
    * Which disabled-homepage variant this domain renders when the homepage

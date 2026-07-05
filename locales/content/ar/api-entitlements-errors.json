@@ -1,0 +1,94 @@
+{
+  "api.entitlements.errors.context_unavailable": {
+    "text": "تعذّر التحقق من الاستحقاقات (سياق المؤسسة غير متاح)",
+    "source_hash": "704dc629"
+  },
+  "api.entitlements.errors.api_access_required": {
+    "text": "يتطلب الوصول إلى API ترقية الخطة",
+    "source_hash": "844d294b"
+  },
+  "api.entitlements.errors.custom_privacy_defaults_required": {
+    "text": "تتطلب إعدادات الخصوصية الافتراضية المخصّصة ترقية الخطة",
+    "source_hash": "4e71274d"
+  },
+  "api.entitlements.errors.extended_default_expiration_required": {
+    "text": "تتطلب مدة انتهاء الصلاحية الافتراضية الممتدة ترقية الخطة",
+    "source_hash": "efa702e7"
+  },
+  "api.entitlements.errors.custom_domains_required": {
+    "text": "تتطلب النطاقات المخصّصة ترقية الخطة",
+    "source_hash": "a23e2184"
+  },
+  "api.entitlements.errors.custom_branding_required": {
+    "text": "تتطلب العلامة التجارية المخصّصة ترقية الخطة",
+    "source_hash": "a4c40a3a"
+  },
+  "api.entitlements.errors.homepage_secrets_required": {
+    "text": "تتطلب أسرار الصفحة الرئيسية ترقية الخطة",
+    "source_hash": "650eeca8"
+  },
+  "api.entitlements.errors.incoming_secrets_required": {
+    "text": "تتطلب الأسرار الواردة ترقية الخطة",
+    "source_hash": "ce1d47ef"
+  },
+  "api.entitlements.errors.custom_mail_sender_required": {
+    "text": "يتطلب مُرسِل البريد المخصّص ترقية الخطة",
+    "source_hash": "e058da13"
+  },
+  "api.entitlements.errors.flexible_from_domain_required": {
+    "text": "يتطلب نطاق المُرسِل المرن ترقية الخطة",
+    "source_hash": "4931dc05"
+  },
+  "api.entitlements.errors.manage_org_required": {
+    "text": "تتطلب إدارة المؤسسة ترقية الخطة",
+    "source_hash": "66a2cd10"
+  },
+  "api.entitlements.errors.manage_teams_required": {
+    "text": "تتطلب إدارة الفِرق ترقية الخطة",
+    "source_hash": "f7f4062f"
+  },
+  "api.entitlements.errors.manage_members_required": {
+    "text": "تتطلب إدارة الأعضاء ترقية الخطة",
+    "source_hash": "f73b80db"
+  },
+  "api.entitlements.errors.manage_sso_required": {
+    "text": "تتطلب إدارة SSO ترقية الخطة",
+    "source_hash": "4e5da22d"
+  },
+  "api.entitlements.errors.audit_logs_required": {
+    "text": "تتطلب سجلات التدقيق ترقية الخطة",
+    "source_hash": "1ff748bc"
+  },
+  "api.entitlements.errors.custom_signup_validation_required": {
+    "text": "يتطلب التحقق المخصّص من التسجيل ترقية الخطة",
+    "source_hash": "93c9befa"
+  },
+  "api.entitlements.errors.create_secrets_required": {
+    "text": "يتطلب إنشاء الأسرار ترقية الخطة",
+    "source_hash": "01091fed"
+  },
+  "api.entitlements.errors.view_receipt_required": {
+    "text": "يتطلب عرض الإيصالات ترقية الخطة",
+    "source_hash": "e6370d8c"
+  },
+  "api.entitlements.errors.notifications_required": {
+    "text": "تتطلب الإشعارات ترقية الخطة",
+    "source_hash": "82353ba6"
+  },
+  "api.entitlements.errors.workspace_branding_required": {
+    "text": "تتطلب العلامة التجارية لمساحة العمل ترقية الخطة",
+    "source_hash": "79ac8099"
+  },
+  "api.entitlements.errors.ip_access_rules_required": {
+    "text": "تتطلب قواعد الوصول عبر IP ترقية الخطة",
+    "source_hash": "3e1d276e"
+  },
+  "api.entitlements.errors.manage_billing_required": {
+    "text": "تتطلب إدارة الفوترة ترقية الخطة",
+    "source_hash": "dec5d6aa"
+  },
+  "api.entitlements.errors.custom_signin_config_required": {
+    "text": "يتطلب إعداد تسجيل الدخول المخصّص ترقية الخطة",
+    "source_hash": "acb1be52"
+  }
+}

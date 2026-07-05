@@ -678,6 +678,20 @@ describe('DomainEmailConfigForm', () => {
       expect(emailInput.attributes('type')).toBe('text');
     });
 
+    it('renders the pre-filled no-reply default as the split-input local part', () => {
+      // End-to-end for the B1 default: buildDomainEmailDefaults produces
+      // `no-reply@<domain>`, and the split-input getter surfaces just the local
+      // part — so an operator sees "no-reply" ready to save, not the full address.
+      wrapper = mountComponent({
+        formState: { ...configuredFormState, from_address: 'no-reply@example.com' },
+        displayDomain: 'example.com',
+        flexibleFromDomain: false,
+      });
+
+      const localPartInput = wrapper.find('#email-from-address');
+      expect((localPartInput.element as HTMLInputElement).value).toBe('no-reply');
+    });
+
     it('shows full email input when flexibleFromDomain=true', () => {
       wrapper = mountComponent({
         formState: configuredFormState,

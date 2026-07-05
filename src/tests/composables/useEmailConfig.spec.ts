@@ -10,12 +10,17 @@
 // 7. reply_to always included in payload (bug fix coverage)
 // 8. validateDomain: triggers DNS record verification
 
-import { useEmailConfig } from '@/shared/composables/useEmailConfig';
+import {
+  buildDomainEmailDefaults,
+  NO_REPLY_LOCAL_PART,
+  useEmailConfig,
+} from '@/shared/composables/useEmailConfig';
 import { createPinia, setActivePinia } from 'pinia';
 import { flushPromises } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { CustomDomainEmailConfig } from '@/schemas/shapes/domains/email-config';
+import enWorkspaceDomains from '@locales/content/en/workspace-domains.json';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mock Setup
@@ -206,6 +211,91 @@ describe('useEmailConfig', () => {
       await composable.initialize();
 
       expect(mockGetEmailConfig).toHaveBeenCalledWith('dm-ext-456');
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // initialize with sender defaults (no-reply@<domain>)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  describe('initialize with sender defaults', () => {
+    it('pre-fills formState with no-reply@<domain> defaults when unconfigured', async () => {
+      mockGetEmailConfig.mockResolvedValue(null);
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize({
+        fromAddress: 'no-reply@acme.example',
+        fromName: 'Acme',
+      });
+
+      expect(composable.formState.value).toEqual({
+        from_name: 'Acme',
+        from_address: 'no-reply@acme.example',
+        reply_to: '',
+        enabled: false,
+      });
+    });
+
+    it('leaves hasUnsavedChanges false right after pre-fill (toggle drives save-ability)', async () => {
+      mockGetEmailConfig.mockResolvedValue(null);
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize({
+        fromAddress: 'no-reply@acme.example',
+        fromName: 'Acme',
+      });
+
+      // Defaults are the saved snapshot, so nothing is "unsaved" yet...
+      expect(composable.hasUnsavedChanges.value).toBe(false);
+
+      // ...flipping the enabled toggle is the only change the operator must make.
+      composable.formState.value = { ...composable.formState.value, enabled: true };
+      expect(composable.hasUnsavedChanges.value).toBe(true);
+    });
+
+    it('ignores defaults when an existing config is present', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize({
+        fromAddress: 'no-reply@acme.example',
+        fromName: 'Acme',
+      });
+
+      expect(composable.formState.value.from_address).toBe('noreply@example.com');
+      expect(composable.formState.value.from_name).toBe('Acme Corp');
+    });
+
+    it('trims blank defaults back to empty strings', async () => {
+      mockGetEmailConfig.mockResolvedValue(null);
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize({ fromAddress: '   ', fromName: '' });
+
+      expect(composable.formState.value.from_address).toBe('');
+      expect(composable.formState.value.from_name).toBe('');
+    });
+
+    it('restores the no-reply defaults after deleteConfig', async () => {
+      // Start configured, then delete: the form should return to the
+      // pre-filled defaults (not blank) so re-enabling stays one click away.
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize({
+        fromAddress: 'no-reply@acme.example',
+        fromName: 'Acme',
+      });
+
+      await composable.deleteConfig();
+
+      expect(composable.formState.value).toEqual({
+        from_name: 'Acme',
+        from_address: 'no-reply@acme.example',
+        reply_to: '',
+        enabled: false,
+      });
+      expect(composable.hasUnsavedChanges.value).toBe(false);
     });
   });
 
@@ -995,5 +1085,88 @@ describe('useEmailConfig', () => {
       const composable = useEmailConfig('dm-ext-123');
       expect(composable.emailConfig.value).toBeNull();
     });
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// buildDomainEmailDefaults — pure default-derivation helper
+//
+// This is the logic that used to live inline in DomainEmail.vue's `emailDefaults`
+// computed (untestable without mounting the whole page). Extracting it makes the
+// no-reply@<domain> / display-name rules directly assertable.
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('buildDomainEmailDefaults', () => {
+  it('pre-fills no-reply@<domain> and prefers the sender name', () => {
+    expect(buildDomainEmailDefaults('acme.example', 'Acme Inc')).toEqual({
+      fromAddress: 'no-reply@acme.example',
+      fromName: 'Acme Inc',
+    });
+  });
+
+  it('falls back to the domain as the display name when no sender name is given', () => {
+    expect(buildDomainEmailDefaults('acme.example')).toEqual({
+      fromAddress: 'no-reply@acme.example',
+      fromName: 'acme.example',
+    });
+  });
+
+  it('falls back to the domain when the sender name is an empty string', () => {
+    expect(buildDomainEmailDefaults('acme.example', '').fromName).toBe('acme.example');
+  });
+
+  it('treats a whitespace-only sender name as empty and falls back to the domain', () => {
+    // Regression: without trimming before the fallback, "   " survives as the
+    // from_name and is later trimmed to '' by createDefaultFormState, blanking
+    // the pre-filled name even though a domain is present.
+    expect(buildDomainEmailDefaults('acme.example', '   ').fromName).toBe('acme.example');
+  });
+
+  it('trims surrounding whitespace from a real sender name', () => {
+    expect(buildDomainEmailDefaults('acme.example', '  Acme Inc  ').fromName).toBe('Acme Inc');
+  });
+
+  it('leaves the address blank when the domain is unknown', () => {
+    // No domain → nothing to anchor `no-reply@` to; a bare local part is not a
+    // valid sender address, so the form stays (correctly) unsaveable.
+    expect(buildDomainEmailDefaults(undefined, 'Acme Inc')).toEqual({
+      fromAddress: '',
+      fromName: 'Acme Inc',
+    });
+  });
+
+  it('returns fully blank defaults when neither domain nor name is known', () => {
+    expect(buildDomainEmailDefaults()).toEqual({ fromAddress: '', fromName: '' });
+  });
+
+  it('caps the display name at 100 characters to match the server-side limit', () => {
+    expect(buildDomainEmailDefaults('acme.example', 'x'.repeat(150)).fromName).toBe(
+      'x'.repeat(100)
+    );
+  });
+
+  it('derives the address local part from NO_REPLY_LOCAL_PART', () => {
+    expect(buildDomainEmailDefaults('acme.example', 'Acme').fromAddress).toBe(
+      `${NO_REPLY_LOCAL_PART}@acme.example`
+    );
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Canonical no-reply local part — single source of truth
+//
+// "no-reply" is expressed twice: as the pre-filled default (NO_REPLY_LOCAL_PART,
+// via buildDomainEmailDefaults) and as the split-input placeholder's i18n text.
+// This test binds the two so a change to one without the other fails CI.
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('no-reply canonical local part', () => {
+  it('the split-input placeholder i18n text matches NO_REPLY_LOCAL_PART', () => {
+    const key = 'web.domains.email.from_address_local_placeholder';
+    const entry = (enWorkspaceDomains as Record<string, { text?: string }>)[key];
+    // Assert the entry (and its `text` shape) exists first, so a renamed key or
+    // changed JSON format fails with a clear message instead of `undefined`.
+    expect(entry, `Missing i18n entry "${key}" in en/workspace-domains.json`).toBeDefined();
+    expect(entry.text).toBe(NO_REPLY_LOCAL_PART);
   });
 });

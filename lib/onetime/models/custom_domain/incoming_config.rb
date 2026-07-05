@@ -71,6 +71,17 @@ module Onetime
         enabled.to_s == 'true'
       end
 
+      # Whether this config can actually receive secrets: enabled AND at
+      # least one recipient. This is the gate for pointing a domain's
+      # homepage at the incoming form (HomepageConfig secrets_mode
+      # 'incoming') — an enabled config with zero recipients has nowhere
+      # to deliver, so it does not count as ready.
+      #
+      # @return [Boolean]
+      def ready?
+        enabled? && recipients.any?
+      end
+
       # Enable incoming secrets for this domain.
       # @return [void]
       def enable!
@@ -94,7 +105,8 @@ module Onetime
         return [] if recipients_json.to_s.empty?
 
         JSON.parse(recipients_json, symbolize_names: true)
-      rescue JSON::ParserError
+      rescue JSON::ParserError => ex
+        OT.le "[IncomingConfig] Corrupt recipients_json for domain_id=#{domain_id}: #{ex.message}"
         []
       end
 

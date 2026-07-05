@@ -5,9 +5,10 @@
   import DefaultLogo from '@/shared/components/logos/DefaultLogo.vue';
   import UserMenu from '@/shared/components/navigation/UserMenu.vue';
   import { useHeaderEnabled } from '@/shared/composables/useHeaderEnabled';
-  import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
+  import { DEFAULT_LOGO_COMPONENT } from '@/shared/constants/brand';
   import { useAuthStore } from '@/shared/stores/authStore';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { useProductIdentity } from '@/shared/stores/identityStore';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { storeToRefs } from 'pinia';
   import { computed, watch, type Component, onMounted, shallowRef } from 'vue';
@@ -20,9 +21,27 @@
     email,
     cust,
     ui,
-    domain_logo,
-    brand_product_name,
   } = storeToRefs(bootstrapStore);
+
+  // Brand identity resolves through the central resolver so the masthead shares
+  // one neutral-safe source of truth with every other surface — the header reads
+  // no raw brand/identity bootstrap fields directly. `productName` replaces the
+  // hand-rolled `brand_product_name ?? NEUTRAL` snippet; `showPlatformIdentity`
+  // is the base "may we show the platform wordmark?" decision (custom domains /
+  // per-tenant logos suppress it — the A3 leak); `logoSource` supplies the
+  // logo image on the identity axis: tenant logo, else the operator's
+  // install-wide brand.logo_url (BRAND_LOGO_URL, suppressed on custom
+  // domains), else the neutral DefaultLogo sentinel (#3612 — the operator
+  // logo no longer comes from ui.header.branding).
+  const identityStore = useProductIdentity();
+  const {
+    productName,
+    displayName,
+    showPlatformIdentity,
+    installLogoUri,
+    installLogoAlt,
+    logoSource,
+  } = storeToRefs(identityStore);
 
   const props = withDefaults(defineProps<LayoutProps>(), {
     displayMasthead: true,
@@ -43,26 +62,44 @@
   // Header configuration
   const headerConfig = computed(() => ui.value?.header);
 
-  // Default logo component for fallback
-  const DEFAULT_LOGO = 'DefaultLogo.vue';
+  // Default logo component for fallback (shared sentinel, also used by the
+  // resolver's logoSource so the dynamic-import comparisons below stay in sync).
+  const DEFAULT_LOGO = DEFAULT_LOGO_COMPONENT;
 
-  // Helper functions for logo configuration
-  // Priority: props > custom domain logo > static config > default
-  const getLogoUrl = () => props.logo?.url || domain_logo.value || headerConfig.value?.branding?.logo?.url || DEFAULT_LOGO;
-  const getLogoAlt = () => props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('web.homepage.one_time_secret_literal', { product_name: brand_product_name?.value ?? NEUTRAL_BRAND_DEFAULTS.product_name });
-  const getLogoHref = () => props.logo?.href || headerConfig.value?.branding?.logo?.link_to || '/';
+  // Helper functions for logo configuration. These are plain functions whose
+  // reactivity comes solely from being called inside the logoConfig computed
+  // below — they must only close over refs/computeds (props, resolver refs,
+  // headerConfig), never a captured plain value, or updates stop propagating.
+  // Priority: props.logo.url (caller) > identity.logoSource, which itself
+  // resolves tenant logo > operator brand.logo_url (BRAND_LOGO_URL, custom
+  // domains excepted) > neutral DefaultLogo terminal. The masthead no longer
+  // holds an operator-logo rung of its own — config authority lives in the
+  // brand: block and resolution in the identity resolver (#3612).
+  const getLogoUrl = () => props.logo?.url || logoSource.value;
+  // Alt text: caller > operator BRAND_LOGO_ALT (only while the install logo
+  // is the asset being shown) > i18n string derived from the product name.
+  // When platform identity is suppressed (custom domain / tenant logo), the
+  // accessible name must not leak the operator's product name either — use
+  // the tenant-facing displayName (brand description or display domain),
+  // mirroring what BrandedMastHead does for the same surface.
+  const getLogoAlt = () =>
+    props.logo?.alt ||
+    installLogoAlt.value ||
+    (showPlatformIdentity.value
+      ? t('web.homepage.one_time_secret_literal', { product_name: productName.value })
+      : displayName.value);
+  const getLogoHref = () => props.logo?.href || headerConfig.value?.logo?.href || '/';
 
-  // Static-config custom logo: operator set LOGO_URL to anything other than the
-  // bundled DefaultLogo.vue. Distinct from domain_logo (per-tenant runtime signal),
-  // because the two have different override semantics for the site name.
-  const isCustomStaticLogo = computed(() =>
-    !!headerConfig.value?.branding?.logo?.url
-    && headerConfig.value.branding.logo.url !== DEFAULT_LOGO
-  );
+  // Custom install-wide logo: operator set BRAND_LOGO_URL. Distinct from the
+  // tenant logo (identity.logoUri), because the two have different override
+  // semantics for the site name. Sentinel comparison is gone: component
+  // sentinels can never enter brand.logo_url (Config#normalize_brand rejects
+  // them), so presence alone means "operator customized the logo".
+  const isCustomStaticLogo = computed(() => !!installLogoUri.value);
 
   // LOGO_PROMINENT opt-in for larger logo sizing.
   const isProminentLogo = computed(() =>
-    headerConfig.value?.branding?.logo?.prominent === true
+    headerConfig.value?.logo?.prominent === true
   );
 
   // Logo sizing: LOGO_PROMINENT controls size, auth state determines the tier.
@@ -75,22 +112,29 @@
   };
   // Priority:
   //   1. props.logo.showSiteName            (caller-site override)
-  //   2. domain_logo.value                  (per-tenant: always hide platform name)
-  //   3. headerConfig.branding.logo.show_name  (LOGO_SHOW_NAME explicit config)
-  //   4. isCustomStaticLogo.value           (heuristic: custom LOGO_URL usually
-  //                                          embeds its own wordmark)
-  //   5. !!site_name                        (default visibility tied to SITE_NAME)
+  //   2. !identity.showPlatformIdentity     (resolver base guard: a per-tenant
+  //                                          logo or any custom domain suppresses
+  //                                          the platform wordmark — the A3 leak)
+  //   3. headerConfig.logo.show_name        (LOGO_SHOW_NAME explicit layout knob;
+  //                                          unset ships as null so the heuristic
+  //                                          below can act)
+  //   4. isCustomStaticLogo.value           (heuristic: a custom BRAND_LOGO_URL
+  //                                          usually embeds its own wordmark)
+  //   5. true                               (default: show the resolver-supplied
+  //                                          product name next to the neutral mark)
   const getShowSiteName = () => {
     if (props.logo?.showSiteName != null) return props.logo.showSiteName;
-    if (domain_logo.value) return false;
+    if (!showPlatformIdentity.value) return false;
 
-    const showName = headerConfig.value?.branding?.logo?.show_name;
+    const showName = headerConfig.value?.logo?.show_name;
     if (showName != null) return showName;
 
-    if (isCustomStaticLogo.value) return false;
-    return !!headerConfig.value?.branding?.site_name;
+    return !isCustomStaticLogo.value;
   };
-  const getSiteName = () => props.logo?.siteName || headerConfig.value?.branding?.site_name || t('web.homepage.one_time_secret_literal', { product_name: brand_product_name?.value ?? NEUTRAL_BRAND_DEFAULTS.product_name });
+  // The wordmark text is the resolver's productName (brand.product_name or
+  // the neutral default) — the deprecated header.branding.site_name is
+  // absorbed into brand.product_name by Config#normalize_brand (#3612).
+  const getSiteName = () => props.logo?.siteName || t('web.homepage.one_time_secret_literal', { product_name: productName.value });
   const getAriaLabel = () => props.logo?.ariaLabel;
   const getIsColonelArea = () => props.logo?.isColonelArea ?? props.colonel;
 
@@ -132,7 +176,10 @@
   // branding/logo resolution.
   const { headerEnabled, navigationEnabled } = useHeaderEnabled();
 
-  // Logo component handling
+  // Logo component handling. A `.vue`-suffixed URL can only be the neutral
+  // DEFAULT_LOGO_COMPONENT sentinel from logoSource, or a caller prop —
+  // Config#normalize_brand rejects component references in brand.logo_url,
+  // so config-supplied values are always real asset URLs.
   const isVueComponent = computed(() => logoConfig.value.url.endsWith('.vue'));
   const logoComponent = shallowRef<Component | null>(
     isVueComponent.value && logoConfig.value.url === DEFAULT_LOGO
@@ -270,7 +317,7 @@
             <router-link
               v-if="authentication?.signin"
               to="/signin"
-              :title="t('web.homepage.log_in_to_onetime_secret', { product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name })"
+              :title="t('web.homepage.log_in_to_onetime_secret', { product_name: productName })"
               data-testid="header-signin-link"
               class="text-gray-600 transition-colors duration-200
                 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">

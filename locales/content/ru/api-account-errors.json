@@ -1,0 +1,10 @@
+{
+  "api.account.errors.invalid_email": {
+    "text": "Это действительный адрес электронной почты?",
+    "source_hash": "21d55b60"
+  },
+  "api.account.errors.password_too_short": {
+    "text": "Пароль слишком короткий",
+    "source_hash": "0d829600"
+  }
+}

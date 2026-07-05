@@ -9,6 +9,7 @@ require 'logger'
 require 'json'
 
 require 'onetime/logger_methods'
+require 'onetime/application/error_correlation'
 
 require_relative 'config'
 require_relative 'error_translator'
@@ -69,6 +70,18 @@ module Auth
     # on plugin load order and is brittle. Serializing here keeps the wire
     # shape correct regardless of plugin layering.
     #
+    # Correlation: the translated body is run through the shared
+    # Onetime::Application::ErrorCorrelation helper — the same one the Otto
+    # hooks use — which echoes the request's x-request-id into the JSON body and
+    # stashes the error_type into the Rack env, so a typed /auth error and its
+    # RequestLogger line share one greppable id (see #3520). request.env is the
+    # same hash RequestLogger reads one frame up the MiddlewareStack, so the
+    # stash lands on the request-log line that already carries request_id (no
+    # logger change needed; added in #3518). The router-level 404 fallbacks
+    # (status_handler/catch-all) are returned from routing, not raised, so they
+    # bypass this handler and stay request-independent — the x-request-id
+    # response header still correlates them.
+    #
     # Logging: 500s log at :error with backtrace so production failures are
     # not silent (Roda's :error_handler does not log by default). Translated
     # typed exceptions log at the per-class level from
@@ -78,6 +91,7 @@ module Auth
     # and Otto apps emitting at the same level for the same exception class.
     plugin :error_handler do |e|
       status, body             = Auth::ErrorTranslator.translate(e)
+      body                     = Onetime::Application::ErrorCorrelation.apply(body, request.env, e)
       if status >= 500
         auth_logger.error 'Auth router unhandled exception', exception: e
       else

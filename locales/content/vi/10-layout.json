@@ -148,7 +148,7 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Bạn đang xem một tin nhắn an toàn được chia sẻ với bạn thông qua {product_name}. Nội dung này chỉ được hiển thị một lần và sau đó sẽ bị xóa vĩnh viễn khỏi máy chủ của chúng tôi.",
+    "text": "Bạn đang xem một tin nhắn an toàn được chia sẻ với bạn qua {product_name}. Nội dung này chỉ được hiển thị một lần và sau đó bị xóa vĩnh viễn khỏi máy chủ của chúng tôi.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -338,5 +338,13 @@
   "web.layout.workspace_context": {
     "text": "Ngữ cảnh không gian làm việc",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Không gian làm việc",
+    "source_hash": "87bb59ba"
+  },
+  "web.help.default_content": {
+    "text": "Vui lòng liên hệ bộ phận hỗ trợ để được trợ giúp",
+    "source_hash": "752bca14"
   }
 }

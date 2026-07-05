@@ -770,5 +770,265 @@
   "web.organizations.sso.status_not_configured": {
     "text": "未設定",
     "source_hash": "bbea960e"
+  },
+  "api.organizations.errors.not_found": {
+    "text": "組織が見つかりません: %{extid}",
+    "source_hash": "c8d058eb"
+  },
+  "api.organizations.errors.owner_required": {
+    "text": "この操作を実行できるのは、組織のオーナーのみです",
+    "source_hash": "5a729e94"
+  },
+  "api.organizations.errors.admin_required": {
+    "text": "この操作を実行できるのは、組織のオーナーと管理者のみです",
+    "source_hash": "cd9e8c0e"
+  },
+  "api.organizations.errors.member_required": {
+    "text": "この操作を実行するには、組織のメンバーである必要があります",
+    "source_hash": "f66f4a60"
+  },
+  "api.organizations.invitations.errors.create_admin_required": {
+    "text": "招待を作成できるのは、組織のオーナーと管理者のみです",
+    "source_hash": "777d150d"
+  },
+  "api.organizations.invitations.errors.resend_admin_required": {
+    "text": "招待を再送信できるのは、組織のオーナーと管理者のみです",
+    "source_hash": "6a857d59"
+  },
+  "api.organizations.invitations.errors.view_admin_required": {
+    "text": "招待を表示できるのは、組織のオーナーと管理者のみです",
+    "source_hash": "42f5878b"
+  },
+  "api.organizations.invitations.errors.revoke_admin_required": {
+    "text": "招待を取り消せるのは、組織のオーナーと管理者のみです",
+    "source_hash": "52f73c8a"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "メールアドレスは必須です",
+    "source_hash": "aae92911"
+  },
+  "api.organizations.invitations.errors.email_invalid": {
+    "text": "メールアドレスの形式が無効です",
+    "source_hash": "0bcecf66"
+  },
+  "api.organizations.invitations.errors.role_invalid": {
+    "text": "役割はメンバーまたは管理者のいずれかである必要があります",
+    "source_hash": "650ea5f6"
+  },
+  "api.organizations.invitations.errors.cannot_invite_owner": {
+    "text": "オーナーとして招待することはできません",
+    "source_hash": "e6581025"
+  },
+  "api.organizations.invitations.errors.already_member": {
+    "text": "ユーザーはすでにこの組織のメンバーです",
+    "source_hash": "8eb45780"
+  },
+  "api.organizations.invitations.errors.already_pending": {
+    "text": "このメールアドレスへの招待はすでに保留中です",
+    "source_hash": "7f5e3093"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "メンバー数の上限に達しました。さらにメンバーを招待するには、プランをアップグレードしてください。",
+    "source_hash": "b8f316e8"
+  },
+  "api.organizations.invitations.errors.not_found": {
+    "text": "招待が見つかりません",
+    "source_hash": "775ba9eb"
+  },
+  "api.organizations.invitations.errors.cannot_resend_non_pending": {
+    "text": "再送信できるのは保留中の招待のみです",
+    "source_hash": "b7578b3e"
+  },
+  "api.organizations.invitations.errors.cannot_revoke_non_pending": {
+    "text": "取り消せるのは保留中の招待のみです",
+    "source_hash": "732b78a6"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "再送信の上限回数 (%{max}) に達しました",
+    "source_hash": "8dc96729"
+  },
+  "api.organizations.invitations.errors.accept_token_required": {
+    "text": "トークンは必須です",
+    "source_hash": "6c718161"
+  },
+  "api.organizations.invitations.errors.accept_organization_gone": {
+    "text": "組織はすでに存在しません",
+    "source_hash": "a5df7d22"
+  },
+  "api.organizations.invitations.errors.accept_already_acted": {
+    "text": "この招待はすでに処理されています(%{status})",
+    "source_hash": "130c87e0"
+  },
+  "api.organizations.invitations.errors.accept_expired": {
+    "text": "招待の有効期限が切れています",
+    "source_hash": "7186297b"
+  },
+  "api.organizations.invitations.errors.accept_email_mismatch": {
+    "text": "お使いのメールアドレスが招待と一致しません",
+    "source_hash": "11026f46"
+  },
+  "api.organizations.invitations.errors.accept_already_member": {
+    "text": "あなたはすでにこの組織のメンバーです",
+    "source_hash": "f56ad547"
+  },
+  "web.organizations.entitlements_title": {
+    "text": "組織のエンタイトルメント",
+    "source_hash": "36054d4f"
+  },
+  "web.organizations.page_description_short": {
+    "text": "ワークスペースの表示と設定",
+    "source_hash": "524fcb9a"
+  },
+  "web.organizations.delete_organization_remove_domains_first": {
+    "text": "この組織を削除する前に、すべてのカスタムドメインを削除してください。",
+    "source_hash": "44678715"
+  },
+  "web.organizations.default_org_delete_notice_title": {
+    "text": "この組織の削除",
+    "source_hash": "9191d915"
+  },
+  "web.organizations.default_org_delete_notice_before": {
+    "text": "これはデフォルトの組織であり、ダッシュボードから削除することはできません。削除するには、",
+    "source_hash": "e203607d"
+  },
+  "web.organizations.default_org_delete_notice_link": {
+    "text": "フィードバックフォーム",
+    "source_hash": "94645a9e"
+  },
+  "web.organizations.default_org_delete_notice_after": {
+    "text": "からご連絡ください。",
+    "source_hash": "cdb4ee2a"
+  },
+  "web.organizations.leave_organization": {
+    "text": "この組織から退出",
+    "source_hash": "d534cff9"
+  },
+  "web.organizations.leave_organization_warning": {
+    "text": "この組織とそのリソースへのアクセス権を失います。",
+    "source_hash": "e9daab07"
+  },
+  "web.organizations.leave_organization_confirm_title": {
+    "text": "組織から退出",
+    "source_hash": "ec8314da"
+  },
+  "web.organizations.leave_organization_confirm_message": {
+    "text": "{name}から退出してもよろしいですか? 再参加するには新しい招待が必要になります。",
+    "source_hash": "e21c5fec"
+  },
+  "web.organizations.leave_organization_success": {
+    "text": "組織から退出しました。",
+    "source_hash": "fc803eb3"
+  },
+  "web.organizations.leave_error": {
+    "text": "組織からの退出に失敗しました",
+    "source_hash": "6cb6af43"
+  },
+  "web.organizations.organizations": {
+    "text": "組織",
+    "source_hash": "2730183d"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "{email}より",
+    "source_hash": "969a7050"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "{role}として",
+    "source_hash": "ff9e9b18"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "ホームに戻る",
+    "source_hash": "76c5505f"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "この招待はこのメールアドレス宛てに送信されました",
+    "source_hash": "2cff7075"
+  },
+  "web.organizations.invitations.signup_continue": {
+    "text": "続ける",
+    "source_hash": "31fbef16"
+  },
+  "web.organizations.invitations.signin_continue": {
+    "text": "ログイン",
+    "source_hash": "bcc0bcc9"
+  },
+  "web.organizations.invitations.confirm_join_below": {
+    "text": "あと少しです — 以下で確認して組織に参加してください。",
+    "source_hash": "2d14f9b0"
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "組織へ移動",
+    "source_hash": "2afa38a3"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "あなたはすでにこの組織のメンバーです",
+    "source_hash": "f56ad547"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "{orgName}に参加",
+    "source_hash": "1aea9194"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "ログインして{orgName}に参加",
+    "source_hash": "f94ed8b4"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "辞退",
+    "source_hash": "a2d285b3"
+  },
+  "web.organizations.members.member_quota": {
+    "text": "{limit}人中{used}人のメンバー",
+    "source_hash": "51183b79"
+  },
+  "web.organizations.members.pending_suffix": {
+    "text": "({count}件保留中)",
+    "source_hash": "c13f787f"
+  },
+  "web.organizations.members.limit_reached_hint": {
+    "text": "メンバー数の上限に達しました。",
+    "source_hash": "26cdb6b8"
+  },
+  "web.organizations.sso.view_discovery_document": {
+    "text": "ディスカバリードキュメントを表示",
+    "source_hash": "513bda60"
+  },
+  "web.organizations.sso.callback_url": {
+    "text": "コールバックURL",
+    "source_hash": "dc297ae9"
+  },
+  "web.organizations.sso.callback_url_hint": {
+    "text": "このURLをIDプロバイダーの許可されたリダイレクトURIに追加してください",
+    "source_hash": "65d55683"
+  },
+  "web.organizations.sso.enforce_sso_only": {
+    "text": "SSOのみを強制",
+    "source_hash": "b3a3f694"
+  },
+  "web.organizations.sso.enforce_sso_only_hint": {
+    "text": "このドメインのすべてのログインでSSOを必須にします。有効にすると、パスワードによる認証は無効になります。",
+    "source_hash": "19432210"
+  },
+  "web.organizations.sso.grant_org_scope": {
+    "text": "組織全体へのアクセスを付与",
+    "source_hash": "2070cef2"
+  },
+  "web.organizations.sso.grant_org_scope_hint": {
+    "text": "このドメインのSSO経由で参加した新規メンバーには、すべての組織ドメインへのアクセス権が付与されます。既存のメンバーには影響しません。無効にした場合(デフォルト)、新規メンバーはこのドメインにのみアクセスできます。",
+    "source_hash": "2ac9f345"
+  },
+  "web.organizations.sso.no_domains": {
+    "text": "検証済みのドメインがありません",
+    "source_hash": "8a7fbb76"
+  },
+  "web.organizations.sso.no_domains_description": {
+    "text": "SSOを設定する前に、ドメインを追加して検証してください。",
+    "source_hash": "e825d13a"
+  },
+  "web.organizations.tabs.team": {
+    "text": "チーム",
+    "source_hash": "5985039f"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO",
+    "source_hash": "5ba3ac9f"
   }
 }

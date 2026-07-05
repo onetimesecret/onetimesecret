@@ -2,6 +2,7 @@
 
 import { useDomainsManager } from '@/shared/composables/useDomainsManager';
 import { ApplicationError, classifyError } from '@/schemas/errors';
+import { isApproximatedDomainValidation } from '@/utils/features';
 import { AxiosError, AxiosHeaders } from 'axios';
 import { mockDomains, newDomainData } from '@/tests/fixtures/domains.fixture';
 import { createPinia, setActivePinia } from 'pinia';
@@ -113,6 +114,15 @@ vi.mock('@/shared/stores/notificationsStore', () => ({
   useNotificationsStore: () => mockDependencies.notificationsStore,
 }));
 
+// Control the install's domain validation strategy. Default to approximated so
+// the existing post-add navigation expectations (DomainVerify + verify poll)
+// hold; the self-hosted test flips it to exercise the CNAME-screen path.
+vi.mock('@/utils/features', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/utils/features')>()),
+  isApproximatedDomainValidation: vi.fn(() => true),
+}));
+const mockApprox = vi.mocked(isApproximatedDomainValidation);
+
 vi.mock('@/shared/composables/useConfirmDialog', () => ({
   useConfirmDialog: () => mockDependencies.confirmDialog,
 }));
@@ -175,6 +185,8 @@ describe('useDomainsManager', () => {
     currentRouteParams = { orgid: 'test-org-id' };
     // Reset entitlement capture
     mockEntitlementCapture.onError = null;
+    // clearAllMocks() keeps mockReturnValue overrides, so re-assert the default.
+    mockApprox.mockReturnValue(true);
   });
 
   describe('domain addition', () => {
@@ -203,6 +215,25 @@ describe('useDomainsManager', () => {
           'web.domains.domain_added_successfully',
           'success',
           'top'
+        );
+      });
+
+      it('routes to the CNAME screen (not the Approximated verify screen) on self-hosted installs', async () => {
+        mockApprox.mockReturnValue(false);
+        mockDependencies.domainsStore.addDomain.mockResolvedValueOnce({
+          record: newDomainData,
+          details: { domain_context: newDomainData.display_domain },
+        });
+
+        const { handleAddDomain } = mountComposable(() => useDomainsManager());
+        await handleAddDomain(newDomainData.domainid);
+
+        expect(mockDependencies.router.push).toHaveBeenCalledWith({
+          name: 'DomainDns',
+          params: { orgid: 'test-org-id', extid: newDomainData.extid },
+        });
+        expect(mockDependencies.router.push).not.toHaveBeenCalledWith(
+          expect.objectContaining({ name: 'DomainVerify' })
         );
       });
 
@@ -547,7 +578,29 @@ describe('useDomainsManager', () => {
       const { toggleHomepageConfig } = mountComposable(() => useDomainsManager());
       const result = await toggleHomepageConfig('domain-ext-1', true, 'owner');
 
-      expect(mockDependencies.domainsStore.putHomepageConfig).toHaveBeenCalledWith('domain-ext-1', true);
+      // toggle delegates to updateHomepageConfig with enabled only — merge
+      // semantics leave the stored secrets_mode unchanged.
+      expect(mockDependencies.domainsStore.putHomepageConfig).toHaveBeenCalledWith('domain-ext-1', {
+        enabled: true,
+      });
+      expect(result).toEqual(apiResult);
+    });
+
+    it('sends secrets_mode when updateHomepageConfig selects an experience', async () => {
+      const apiResult = { homepage: true };
+      mockDependencies.domainsStore.putHomepageConfig.mockResolvedValueOnce(apiResult);
+
+      const { updateHomepageConfig } = mountComposable(() => useDomainsManager());
+      const result = await updateHomepageConfig(
+        'domain-ext-1',
+        { enabled: true, secrets_mode: 'incoming' },
+        'owner'
+      );
+
+      expect(mockDependencies.domainsStore.putHomepageConfig).toHaveBeenCalledWith('domain-ext-1', {
+        enabled: true,
+        secrets_mode: 'incoming',
+      });
       expect(result).toEqual(apiResult);
     });
 

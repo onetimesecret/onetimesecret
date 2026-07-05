@@ -32,7 +32,9 @@ import { useAuth } from '@/shared/composables/useAuth';
 import { useTheme } from '@/shared/composables/useTheme';
 import { useDomainContext } from '@/shared/composables/useDomainContext';
 import { usePreviewPlanMode } from '@/shared/composables/usePreviewPlanMode';
+import { useScopeSwitcherVisibility } from '@/shared/composables/useScopeSwitcherVisibility';
 import { type Customer } from '@/schemas/shapes/v3';
+import { ENTITLEMENTS } from '@/types/organization';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useProductIdentity } from '@/shared/stores/identityStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
@@ -104,6 +106,31 @@ const isCustomDomainMember = computed(() => isCustom.value && !!userRole.value &
 const isElevatedRole = computed(() =>
   userRole.value === 'owner' || userRole.value === 'admin'
 );
+
+// Reuse the org-switcher visibility logic so the header identity chip appears
+// and disappears in step with the organization context dropdown.
+const { isSoloDefaultContext } = useScopeSwitcherVisibility();
+
+// Whether the current org carries the manage_orgs entitlement (the same gate
+// the org switcher uses under billing). Absent entitlements → not granted.
+const hasManageOrgs = computed(() => {
+  const ents = currentOrganization.value?.entitlements;
+  return Array.isArray(ents) && ents.includes(ENTITLEMENTS.MANAGE_ORGS);
+});
+
+// The identity chip shown next to the domain in the menu header:
+// - 'role'  : the Owner/Admin badge — a real multi-user / multi-org context
+// - 'free'  : a "Free" plan chip linking to billing — a solo user without the
+//             manage_orgs entitlement on a billing-enabled install (plan hint)
+// - 'hidden': nothing — a solo user on a standalone (billing-disabled) install,
+//             so the chip only appears when the org switcher would too
+type IdentityChip = 'role' | 'free' | 'hidden';
+const identityChip = computed<IdentityChip>(() => {
+  if (!isElevatedRole.value || props.awaitingMfa) return 'hidden';
+  if (!isSoloDefaultContext.value) return 'role';
+  if (!billing_enabled.value) return 'hidden';
+  return hasManageOrgs.value ? 'role' : 'free';
+});
 
 // Domain context display in menu header
 const { currentContext, isContextActive } = useDomainContext();
@@ -380,9 +407,9 @@ onUnmounted(() => {
             :title="cust?.email">
             {{ cust?.email }}
           </p>
-          <!-- Domain context + Role badge -->
+          <!-- Domain context + identity chip (role badge or Free plan chip) -->
           <div
-            v-if="showDomainContext || (isElevatedRole && !awaitingMfa)"
+            v-if="showDomainContext || identityChip !== 'hidden'"
             class="group/domain mt-1 flex items-center gap-2">
             <p
               v-if="showDomainContext"
@@ -404,9 +431,10 @@ onUnmounted(() => {
                 class="size-3"
                 aria-hidden="true" />
             </button>
-            <!-- Role badge -->
+            <!-- Role badge (owner/admin) -->
             <span
-              v-if="isElevatedRole && !awaitingMfa"
+              v-if="identityChip === 'role'"
+              data-testid="user-menu-role-badge"
               :class="[
                 'shrink-0 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider',
                 'border shadow-xs',
@@ -424,6 +452,24 @@ onUnmounted(() => {
                 aria-hidden="true"></span>
               {{ t(`web.organizations.members.roles.${userRole}`) }}
             </span>
+            <!-- Free plan chip: solo user on a billing-enabled install; links to billing -->
+            <router-link
+              v-else-if="identityChip === 'free'"
+              to="/billing"
+              data-testid="user-menu-plan-chip"
+              :title="t('web.navigation.billing')"
+              @click="closeMenu"
+              :class="[
+                'shrink-0 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider',
+                'border shadow-xs transition-colors',
+                'border-gray-200/70 bg-gray-50 text-gray-500 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-600',
+                'dark:border-gray-600/50 dark:bg-gray-700/40 dark:text-gray-400 dark:hover:border-brand-700/50 dark:hover:bg-brand-950/40 dark:hover:text-brand-400'
+              ]">
+              <span
+                class="size-1.5 rounded-full bg-gray-400 dark:bg-gray-500"
+                aria-hidden="true"></span>
+              {{ t('web.billing.plans.free_plan') }}
+            </router-link>
           </div>
           <!-- MFA Required Notice -->
           <div

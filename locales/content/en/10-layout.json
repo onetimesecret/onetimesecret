@@ -207,6 +207,10 @@
     "text": "Brand logo",
     "content_hash": "e458e2b5"
   },
+  "web.layout.colonels_only_badge": {
+    "text": "Colonels Only",
+    "content_hash": "3f1e2dbd"
+  },
   "web.layout.dashboard_navigation": {
     "text": "Dashboard Navigation",
     "content_hash": "da5c1c43"
@@ -344,6 +348,7 @@
     "content_hash": "dc6fa4f5"
   },
   "web.help.default_content": {
-    "text": "Please contact support for assistance"
+    "text": "Please contact support for assistance",
+    "content_hash": "752bca14"
   }
 }

@@ -157,6 +157,10 @@
       router.push({
         name: 'Sign In',
         query: {
+          // Grandfathered: the sign-in form prefills from ?email= (see
+          // src/router/README.md "Query-string policy"); the runtime guard
+          // exempts /signin too. Migrating this needs /signin to read state.
+          // eslint-disable-next-line ots/no-pii-in-query
           email: invitation.value?.email,
           redirect: `/invite/${invitationToken.value}`,
         },

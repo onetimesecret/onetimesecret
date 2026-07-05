@@ -1,0 +1,6 @@
+{
+  "api.feedback.errors.rate_limit_exceeded": {
+    "text": "Trop de retours d'information envoyés. Veuillez réessayer plus tard.",
+    "source_hash": "3a890eb2"
+  }
+}

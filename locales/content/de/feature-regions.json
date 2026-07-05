@@ -152,7 +152,7 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Wenn deine Rechnungskontakt-E-Mail von deiner {product_name} Konto-E-Mail abweicht, verwende die Rechnungskontakt-E-Mail für das neue Regionskonto, um deine Abonnementvorteile beizubehalten.",
+    "text": "Wenn deine Abrechnungskontakt-E-Mail von der E-Mail-Adresse deines {product_name}-Kontos abweicht, verwende die Abrechnungskontakt-E-Mail für das Konto der neuen Region, um deine Abonnementvorteile zu behalten.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
@@ -186,5 +186,9 @@
   "web.regions.jurisdictions.apac.name": {
     "text": "Asia-Pacific",
     "source_hash": "7a757670"
+  },
+  "web.regions.no_region_configured": {
+    "text": "Für dein Konto sind derzeit keine Regionsinformationen verfügbar.",
+    "source_hash": "bbfe2a32"
   }
 }

@@ -988,5 +988,61 @@
     "text": "仅在您的原始订阅区域可用",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "您已订阅此方案。",
+    "source_hash": "2b02438b"
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "重新激活订阅",
+    "source_hash": "aa036442"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "您的订阅已重新激活。我们将继续按正常方式向您收费。",
+    "source_hash": "523bf7bf"
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "重新激活订阅失败。请重试或联系支持团队。",
+    "source_hash": "d0c79bd4"
+  },
+  "web.billing.features.manage_orgs": {
+    "text": "组织管理",
+    "source_hash": "780ad17c"
+  },
+  "web.billing.features.flexible_from_domain": {
+    "text": "灵活的邮件发件域名",
+    "source_hash": "607572c3"
+  },
+  "web.billing.features.unlimited_admins": {
+    "text": "无限管理员",
+    "source_hash": "5871a536"
+  },
+  "web.billing.features.manage_sso": {
+    "text": "SSO",
+    "source_hash": "5ba3ac9f"
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "灵活的邮件发件域名",
+    "source_hash": "607572c3"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "管理组织",
+    "source_hash": "be0fe4c3"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "单点登录 (SSO)",
+    "source_hash": "5db5c812"
+  },
+  "web.billing.overview.entitlements.manage_billing": {
+    "text": "管理账单",
+    "source_hash": "6d3a16f5"
+  },
+  "web.billing.overview.entitlements.custom_signup_validation": {
+    "text": "自定义注册验证",
+    "source_hash": "0ff55bfa"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "重新激活",
+    "source_hash": "2dc7478f"
   }
 }

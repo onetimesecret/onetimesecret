@@ -578,5 +578,457 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Изтича скоро",
     "source_hash": "a5dcfef9"
+  },
+  "api.organizations.errors.not_found": {
+    "text": "Организацията не е намерена: %{extid}",
+    "source_hash": "c8d058eb"
+  },
+  "api.organizations.errors.owner_required": {
+    "text": "Само собственикът на организацията може да извърши това действие",
+    "source_hash": "5a729e94"
+  },
+  "api.organizations.errors.admin_required": {
+    "text": "Само собствениците и администраторите на организацията могат да извършат това действие",
+    "source_hash": "cd9e8c0e"
+  },
+  "api.organizations.errors.member_required": {
+    "text": "Трябва да сте член на организацията, за да извършите това действие",
+    "source_hash": "f66f4a60"
+  },
+  "api.organizations.invitations.errors.create_admin_required": {
+    "text": "Само собствениците и администраторите на организацията могат да създават покани",
+    "source_hash": "777d150d"
+  },
+  "api.organizations.invitations.errors.resend_admin_required": {
+    "text": "Само собствениците и администраторите на организацията могат да изпращат повторно покани",
+    "source_hash": "6a857d59"
+  },
+  "api.organizations.invitations.errors.view_admin_required": {
+    "text": "Само собствениците и администраторите на организацията могат да преглеждат покани",
+    "source_hash": "42f5878b"
+  },
+  "api.organizations.invitations.errors.revoke_admin_required": {
+    "text": "Само собствениците и администраторите на организацията могат да отменят покани",
+    "source_hash": "52f73c8a"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "Имейлът е задължителен",
+    "source_hash": "aae92911"
+  },
+  "api.organizations.invitations.errors.email_invalid": {
+    "text": "Невалиден формат на имейл",
+    "source_hash": "0bcecf66"
+  },
+  "api.organizations.invitations.errors.role_invalid": {
+    "text": "Ролята трябва да бъде член или администратор",
+    "source_hash": "650ea5f6"
+  },
+  "api.organizations.invitations.errors.cannot_invite_owner": {
+    "text": "Не може да се покани като собственик",
+    "source_hash": "e6581025"
+  },
+  "api.organizations.invitations.errors.already_member": {
+    "text": "Потребителят вече е член на тази организация",
+    "source_hash": "8eb45780"
+  },
+  "api.organizations.invitations.errors.already_pending": {
+    "text": "Вече има чакаща покана за този имейл",
+    "source_hash": "7f5e3093"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Достигнат е лимитът на членове. Надстройте плана си, за да поканите повече членове.",
+    "source_hash": "b8f316e8"
+  },
+  "api.organizations.invitations.errors.not_found": {
+    "text": "Поканата не е намерена",
+    "source_hash": "775ba9eb"
+  },
+  "api.organizations.invitations.errors.cannot_resend_non_pending": {
+    "text": "Можете да изпращате повторно само чакащи покани",
+    "source_hash": "b7578b3e"
+  },
+  "api.organizations.invitations.errors.cannot_revoke_non_pending": {
+    "text": "Можете да отменяте само чакащи покани",
+    "source_hash": "732b78a6"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Достигнат е максималният лимит за повторно изпращане (%{max})",
+    "source_hash": "8dc96729"
+  },
+  "api.organizations.invitations.errors.accept_token_required": {
+    "text": "Изисква се токен",
+    "source_hash": "6c718161"
+  },
+  "api.organizations.invitations.errors.accept_organization_gone": {
+    "text": "Организацията вече не съществува",
+    "source_hash": "a5df7d22"
+  },
+  "api.organizations.invitations.errors.accept_already_acted": {
+    "text": "Поканата вече е %{status}",
+    "source_hash": "130c87e0"
+  },
+  "api.organizations.invitations.errors.accept_expired": {
+    "text": "Поканата е изтекла",
+    "source_hash": "7186297b"
+  },
+  "api.organizations.invitations.errors.accept_email_mismatch": {
+    "text": "Вашият имейл адрес не съвпада с поканата",
+    "source_hash": "11026f46"
+  },
+  "api.organizations.invitations.errors.accept_already_member": {
+    "text": "Вече сте член на тази организация",
+    "source_hash": "f56ad547"
+  },
+  "web.organizations.entitlements_title": {
+    "text": "Правомощия на организацията",
+    "source_hash": "36054d4f"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Преглеждайте и конфигурирайте вашите работни области",
+    "source_hash": "524fcb9a"
+  },
+  "web.organizations.delete_organization_remove_domains_first": {
+    "text": "Премахнете всички персонализирани домейни, преди да изтриете тази организация.",
+    "source_hash": "44678715"
+  },
+  "web.organizations.default_org_delete_notice_title": {
+    "text": "Изтриване на тази организация",
+    "source_hash": "9191d915"
+  },
+  "web.organizations.default_org_delete_notice_before": {
+    "text": "Това е вашата организация по подразбиране и не може да бъде премахната от таблото. За да я изтриете, моля, свържете се чрез",
+    "source_hash": "e203607d"
+  },
+  "web.organizations.default_org_delete_notice_link": {
+    "text": "формата за обратна връзка",
+    "source_hash": "94645a9e"
+  },
+  "web.organizations.default_org_delete_notice_after": {
+    "text": ".",
+    "source_hash": "cdb4ee2a"
+  },
+  "web.organizations.leave_organization": {
+    "text": "Напускане на тази организация",
+    "source_hash": "d534cff9"
+  },
+  "web.organizations.leave_organization_warning": {
+    "text": "Ще загубите достъп до тази организация и нейните ресурси.",
+    "source_hash": "e9daab07"
+  },
+  "web.organizations.leave_organization_confirm_title": {
+    "text": "Напускане на организация",
+    "source_hash": "ec8314da"
+  },
+  "web.organizations.leave_organization_confirm_message": {
+    "text": "Сигурни ли сте, че искате да напуснете {name}? Ще ви е необходима нова покана, за да се присъедините отново.",
+    "source_hash": "e21c5fec"
+  },
+  "web.organizations.leave_organization_success": {
+    "text": "Напуснахте организацията.",
+    "source_hash": "fc803eb3"
+  },
+  "web.organizations.leave_error": {
+    "text": "Напускането на организацията беше неуспешно",
+    "source_hash": "6cb6af43"
+  },
+  "web.organizations.organizations": {
+    "text": "Организации",
+    "source_hash": "2730183d"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "от {email}",
+    "source_hash": "969a7050"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "като {role}",
+    "source_hash": "ff9e9b18"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Обратно към началната страница",
+    "source_hash": "76c5505f"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Тази покана беше изпратена до този имейл адрес",
+    "source_hash": "2cff7075"
+  },
+  "web.organizations.invitations.signup_continue": {
+    "text": "Продължи",
+    "source_hash": "31fbef16"
+  },
+  "web.organizations.invitations.signin_continue": {
+    "text": "Влизане",
+    "source_hash": "bcc0bcc9"
+  },
+  "web.organizations.invitations.confirm_join_below": {
+    "text": "Почти готово — потвърдете по-долу, за да се присъедините към организацията.",
+    "source_hash": "2d14f9b0"
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Към Организации",
+    "source_hash": "2afa38a3"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Вече сте член на тази организация",
+    "source_hash": "f56ad547"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Присъедини се към {orgName}",
+    "source_hash": "1aea9194"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Влезте, за да се присъедините към {orgName}",
+    "source_hash": "f94ed8b4"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Откажи",
+    "source_hash": "a2d285b3"
+  },
+  "web.organizations.members.member_quota": {
+    "text": "{used} от {limit} членове",
+    "source_hash": "51183b79"
+  },
+  "web.organizations.members.pending_suffix": {
+    "text": "({count} чакащи)",
+    "source_hash": "c13f787f"
+  },
+  "web.organizations.members.limit_reached_hint": {
+    "text": "Достигнат е лимитът на членове.",
+    "source_hash": "26cdb6b8"
+  },
+  "web.organizations.sso.title": {
+    "text": "Единно влизане (SSO)",
+    "source_hash": "5db5c812"
+  },
+  "web.organizations.sso.description": {
+    "text": "Конфигурирайте SSO, за да позволите на членовете да влизат с доставчика на идентичност на вашата организация",
+    "source_hash": "464f0a8b"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Тип доставчик",
+    "source_hash": "bdfbb1ec"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Изберете доставчика на идентичност на вашата организация",
+    "source_hash": "e81325a6"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Показвано име",
+    "source_hash": "18d67c99"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "Удобно име, показвано на потребителите при влизане",
+    "source_hash": "a83f1fba"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "напр. Acme Corp SSO",
+    "source_hash": "43c655c5"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "Client ID",
+    "source_hash": "8726db01"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "Вашият OAuth client ID",
+    "source_hash": "830723da"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Client Secret",
+    "source_hash": "ae21cf6d"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "Вашият OAuth client secret",
+    "source_hash": "14e4a8c8"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Оставете празно, за да запазите съществуващата тайна",
+    "source_hash": "98bc3b40"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "Tenant ID",
+    "source_hash": "de1f5fff"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "Идентификаторът на вашия Azure AD / Entra ID наемател",
+    "source_hash": "3c5b707a"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "напр. 12345678-1234-1234-1234-123456789abc",
+    "source_hash": "1a166316"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "Issuer URL",
+    "source_hash": "4d03ba8a"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "OIDC URL адресът за откриване на вашия доставчик на идентичност",
+    "source_hash": "6102d81b"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "напр. https://login.example.com",
+    "source_hash": "9a638e9c"
+  },
+  "web.organizations.sso.view_discovery_document": {
+    "text": "Преглед на документа за откриване",
+    "source_hash": "513bda60"
+  },
+  "web.organizations.sso.callback_url": {
+    "text": "Callback URL",
+    "source_hash": "dc297ae9"
+  },
+  "web.organizations.sso.callback_url_hint": {
+    "text": "Добавете този URL към разрешените redirect URI адреси на вашия доставчик на идентичност",
+    "source_hash": "65d55683"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "Разрешени имейл домейни",
+    "source_hash": "0295ad71"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Само потребители с имейл адреси от тези домейни могат да влизат. Оставете празно, за да разрешите всички домейни.",
+    "source_hash": "1775e874"
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "напр. acme.com",
+    "source_hash": "e4420764"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Моля, въведете валиден домейн (напр. example.com)",
+    "source_hash": "16807983"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Този домейн вече е в списъка",
+    "source_hash": "3fccb721"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "Премахване на {domain}",
+    "source_hash": "ae708a1d"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "Активиране на SSO",
+    "source_hash": "d10d0801"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "Когато е активиран, членовете на организацията могат да влизат, използвайки този доставчик на SSO",
+    "source_hash": "d7da2fa2"
+  },
+  "web.organizations.sso.enforce_sso_only": {
+    "text": "Налагане само на SSO",
+    "source_hash": "b3a3f694"
+  },
+  "web.organizations.sso.enforce_sso_only_hint": {
+    "text": "Изисквайте SSO за всички влизания на този домейн. Когато е активирано, удостоверяването с парола е деактивирано.",
+    "source_hash": "19432210"
+  },
+  "web.organizations.sso.grant_org_scope": {
+    "text": "Предоставяне на достъп в цялата организация",
+    "source_hash": "2070cef2"
+  },
+  "web.organizations.sso.grant_org_scope_hint": {
+    "text": "На новите членове, които се присъединяват чрез SSO на този домейн, ще бъде предоставен достъп до всички домейни на организацията. Съществуващите членове не са засегнати. Когато е деактивирано (по подразбиране), новите членове могат да достъпват само този домейн.",
+    "source_hash": "2ac9f345"
+  },
+  "web.organizations.sso.save_config": {
+    "text": "Запазване на SSO конфигурацията",
+    "source_hash": "70853769"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Изтриване на конфигурацията",
+    "source_hash": "9ac1ac7b"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "Сигурни ли сте? Това ще деактивира SSO за вашата организация.",
+    "source_hash": "5b3f5b9d"
+  },
+  "web.organizations.sso.load_error": {
+    "text": "Неуспешно зареждане на SSO конфигурацията",
+    "source_hash": "75cb73f6"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "Неуспешно запазване на SSO конфигурацията",
+    "source_hash": "99ef145b"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "Конфигурацията на SSO е създадена успешно",
+    "source_hash": "531c7d92"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "Конфигурацията на SSO е актуализирана успешно",
+    "source_hash": "d98d8e83"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "Конфигурацията на SSO е изтрита успешно",
+    "source_hash": "55f5d4f5"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "Неуспешно изтриване на SSO конфигурацията",
+    "source_hash": "4a960fe4"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Тест на връзката",
+    "source_hash": "c02977b0"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Проверете дали доставчикът на идентичност е достъпен (не валидира идентификационните данни)",
+    "source_hash": "22a23b68"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Тест на връзката",
+    "source_hash": "c02977b0"
+  },
+  "web.organizations.sso.testing": {
+    "text": "Тестване...",
+    "source_hash": "6c02a284"
+  },
+  "web.organizations.sso.test_error": {
+    "text": "Неуспешен тест на връзката",
+    "source_hash": "c1d1f310"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Крайна точка за оторизация",
+    "source_hash": "b42b956f"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Липсващи полета",
+    "source_hash": "757df777"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Активирано",
+    "source_hash": "92c1cdfd"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Конфигурирано",
+    "source_hash": "84aebc69"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "SSO за домейн",
+    "source_hash": "13161464"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Конфигурирайте SSO за всеки потвърден домейн",
+    "source_hash": "af5b799e"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "За да промените доставчика, първо изтрийте тази конфигурация",
+    "source_hash": "0a1027ff"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Не е конфигурирано",
+    "source_hash": "bbea960e"
+  },
+  "web.organizations.sso.no_domains": {
+    "text": "Няма потвърдени домейни",
+    "source_hash": "8a7fbb76"
+  },
+  "web.organizations.sso.no_domains_description": {
+    "text": "Добавете и потвърдете домейн, преди да конфигурирате SSO за него.",
+    "source_hash": "e825d13a"
+  },
+  "web.organizations.tabs.team": {
+    "text": "Екип",
+    "source_hash": "5985039f"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO",
+    "source_hash": "5ba3ac9f"
   }
 }

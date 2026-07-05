@@ -205,6 +205,7 @@ RUN set -eux && \
     apt-get install -y --no-install-recommends \
         libsqlite3-0 \
         libpq5 \
+        libsodium23 \
         curl \
         procps \
         xz-utils \
@@ -256,7 +257,6 @@ COPY --chown=appuser:appuser migrations ./migrations
 COPY --chown=appuser:appuser docker/entrypoints/entrypoint.sh ./bin/
 COPY --chown=appuser:appuser docker/entrypoints/healthcheck.sh ./bin/
 COPY --chown=appuser:appuser install.sh ./
-COPY --chown=appuser:appuser scripts ./scripts
 COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
 COPY --chown=appuser:appuser --from=build ${APP_DIR}/package.json ./
 COPY --chown=appuser:appuser config.ru Gemfile Gemfile.lock ./
@@ -331,6 +331,7 @@ RUN set -eux && \
     apt-get install -y --no-install-recommends \
         libsqlite3-0 \
         libpq5 \
+        libsodium23 \
         curl \
         procps \
         ca-certificates && \
@@ -367,7 +368,6 @@ COPY --chown=appuser:appuser migrations ./migrations
 COPY --chown=appuser:appuser docker/entrypoints/entrypoint.sh ./bin/
 COPY --chown=appuser:appuser docker/entrypoints/healthcheck.sh ./bin/
 COPY --chown=appuser:appuser install.sh ./
-COPY --chown=appuser:appuser scripts ./scripts
 COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
 COPY --chown=appuser:appuser --from=build ${APP_DIR}/package.json ./
 COPY --chown=appuser:appuser config.ru Gemfile Gemfile.lock ./

@@ -710,5 +710,31 @@
   "web.auth.recovery_codes.link_title": {
     "text": "Codis de recuperació",
     "source_hash": "579c7f4e"
+  },
+  "web.auth.google": {
+    "text": "Google",
+    "source_hash": "ce770667"
+  },
+  "web.auth.mfa.alternative_auth_options": {
+    "text": "Opcions d'autenticació alternatives",
+    "source_hash": "5ddea736"
+  },
+  "web.auth.remember.enabled": {
+    "text": "Mantén la sessió iniciada",
+    "source_hash": "b0a1ca80"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions.session_singular": {
+    "text": "sessió",
+    "source_hash": "3f3af1ec"
+  },
+  "web.auth.sessions.session_plural": {
+    "text": "sessions",
+    "source_hash": "1225ae6c"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "User's logged-in devices/browsers management page"
   }
 }

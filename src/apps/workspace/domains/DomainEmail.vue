@@ -8,22 +8,25 @@
  * form component, and DNS records display. Follows the DomainSso page
  * structure: header -> entitlement gate -> fallback notice -> form -> DNS.
  */
-import { useI18n } from 'vue-i18n';
-import { computed, onMounted, watch } from 'vue';
-import { useRouter } from 'vue-router';
-import { storeToRefs } from 'pinia';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
 import DomainEmailConfigForm from '@/apps/workspace/components/domains/DomainEmailConfigForm.vue';
 import DomainEmailDnsRecords from '@/apps/workspace/components/domains/DomainEmailDnsRecords.vue';
 import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
+import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
+import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useDomain } from '@/shared/composables/useDomain';
-
-import { useEmailConfig } from '@/shared/composables/useEmailConfig';
+import {
+  useEmailConfig,
+  buildDomainEmailDefaults,
+  type EmailConfigFormState,
+} from '@/shared/composables/useEmailConfig';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { ENTITLEMENTS } from '@/types/organization';
+import { storeToRefs } from 'pinia';
+import { computed, onMounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 import { onBeforeRouteLeave } from 'vue-router';
 
 const { t } = useI18n();
@@ -59,6 +62,15 @@ const hasEntitlement = computed(() => can(ENTITLEMENTS.CUSTOM_MAIL_SENDER));
 const hasFlexibleFromDomain = computed(() => can(ENTITLEMENTS.FLEXIBLE_FROM_DOMAIN));
 const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
 const displayDomain = computed(() => customDomainRecord.value?.display_domain);
+
+/**
+ * Sender defaults for a domain that has no saved email config yet, derived by
+ * the shared `buildDomainEmailDefaults` helper (pre-fills `no-reply@<domain>`
+ * and the organization name). Both fields remain editable before saving.
+ */
+const emailDefaults = computed(() =>
+  buildDomainEmailDefaults(displayDomain.value, organization.value?.display_name)
+);
 
 // ---------------------------------------------------------------------------
 // Email config composable
@@ -96,8 +108,6 @@ const {
 // Form state handler
 // ---------------------------------------------------------------------------
 
-import type { EmailConfigFormState } from '@/shared/composables/useEmailConfig';
-
 const handleFormStateUpdate = (state: EmailConfigFormState) => {
   formState.value = state;
 };
@@ -130,7 +140,7 @@ onMounted(async () => {
 
   // Initialize email config if entitlement is already available
   if (hasEntitlement.value) {
-    await initializeEmailConfig();
+    await initializeEmailConfig(emailDefaults.value);
   }
 });
 
@@ -138,7 +148,7 @@ onMounted(async () => {
 // Watch for entitlement to become true and initialize if needed.
 watch(hasEntitlement, async (entitled) => {
   if (entitled && !isInitialized.value) {
-    await initializeEmailConfig();
+    await initializeEmailConfig(emailDefaults.value);
   }
 });
 </script>
@@ -233,14 +243,13 @@ watch(hasEntitlement, async (entitled) => {
             </div>
           </div>
 
-          <div class="p-6 space-y-8">
+          <div class="space-y-8 p-6">
             <!-- Email config loading -->
             <SettingsSkeleton
               v-if="emailLoading && !isInitialized"
               :heading="false" />
 
             <template v-else>
-
               <!-- Email Configuration Form -->
               <DomainEmailConfigForm
                 :form-state="formState"

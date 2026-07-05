@@ -144,6 +144,11 @@ module Onetime::Receipt::Features
             new_state: 'previewed',
             timestamp: previewed,
           }
+
+        # Audit kind is 'receipt_viewed', not 'previewed': "preview" is the
+        # creator-facing UI word, but in the audit log this event means "the
+        # receipt page was loaded" -- keep the trail unambiguous (#3633).
+        record_org_audit_event('receipt_viewed')
       end
 
       # MIGRATION NOTE: Replaces legacy `received!` method.
@@ -170,6 +175,8 @@ module Onetime::Receipt::Features
             new_state: 'revealed',
             timestamp: revealed,
           }
+
+        record_org_audit_event('revealed')
       end
 
       # We use this method in special cases where a receipt record exists with
@@ -198,6 +205,8 @@ module Onetime::Receipt::Features
             new_state: 'orphaned',
             timestamp: updated,
           }
+
+        record_org_audit_event('orphaned')
       end
 
       def burned!
@@ -219,12 +228,20 @@ module Onetime::Receipt::Features
             new_state: 'burned',
             timestamp: burned,
           }
+
+        record_org_audit_event('burned')
       end
 
       def expired!
         # A guard to prevent prematurely expiring a secret. We only want to
         # expire secrets that are actually old enough to be expired.
         return unless secret_expired?
+
+        # Only a live receipt can expire. Unlike the sibling transitions this
+        # method had no state guard, and secret_expired? stays true forever --
+        # so every later view of an expired receipt re-ran the transition
+        # (redundant save, duplicate logs, duplicate audit events).
+        return unless state?(:new) || state?(:previewed)
 
         previous_state         = state
         original_secret_id     = secret_identifier
@@ -244,6 +261,8 @@ module Onetime::Receipt::Features
             secret_ttl: secret_ttl,
             age_seconds: age,
           }
+
+        record_org_audit_event('expired')
       end
 
       def state?(guess)

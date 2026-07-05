@@ -988,5 +988,61 @@
     "text": "Chỉ khả dụng trong khu vực đăng ký ban đầu",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Bạn đã đăng ký gói này rồi.",
+    "source_hash": "2b02438b"
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Kích hoạt lại đăng ký",
+    "source_hash": "aa036442"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "Đăng ký của bạn đã được kích hoạt lại. Bạn sẽ tiếp tục bị tính phí như bình thường.",
+    "source_hash": "523bf7bf"
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "Không thể kích hoạt lại đăng ký. Vui lòng thử lại hoặc liên hệ bộ phận hỗ trợ.",
+    "source_hash": "d0c79bd4"
+  },
+  "web.billing.features.manage_orgs": {
+    "text": "Quản lý tổ chức",
+    "source_hash": "780ad17c"
+  },
+  "web.billing.features.flexible_from_domain": {
+    "text": "Tên miền người gửi email linh hoạt",
+    "source_hash": "607572c3"
+  },
+  "web.billing.features.unlimited_admins": {
+    "text": "Quản trị viên không giới hạn",
+    "source_hash": "5871a536"
+  },
+  "web.billing.features.manage_sso": {
+    "text": "SSO",
+    "source_hash": "5ba3ac9f"
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Tên miền người gửi email linh hoạt",
+    "source_hash": "607572c3"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "Quản lý tổ chức",
+    "source_hash": "be0fe4c3"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Đăng nhập một lần (SSO)",
+    "source_hash": "5db5c812"
+  },
+  "web.billing.overview.entitlements.manage_billing": {
+    "text": "Quản lý thanh toán",
+    "source_hash": "6d3a16f5"
+  },
+  "web.billing.overview.entitlements.custom_signup_validation": {
+    "text": "Xác thực đăng ký tùy chỉnh",
+    "source_hash": "0ff55bfa"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Kích hoạt lại",
+    "source_hash": "2dc7478f"
   }
 }

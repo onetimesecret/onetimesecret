@@ -395,5 +395,44 @@
   "web.help.contact_support": {
     "text": "Liên hệ hỗ trợ",
     "source_hash": "f8d47b82"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "Tài khoản SSO",
+    "source_hash": "b8f4c728"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Email verification flow after signup"
+  },
+  "web.help.reset_password_link": {
+    "text": "Đặt lại mật khẩu",
+    "source_hash": "e0edfeb3"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "Đăng nhập một lần (SSO) khả dụng cho tên miền này",
+    "source_hash": "af87d51e"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "Quản trị viên của tổ chức có thể bật SSO để cho phép các thành viên nhóm đăng nhập tại đây. Liên hệ quản trị viên để được cấp quyền truy cập.",
+    "source_hash": "f3726509"
+  },
+  "web.login.signin_disabled_heading": {
+    "text": "Đăng nhập không khả dụng",
+    "source_hash": "6b435c76"
+  },
+  "web.login.signin_disabled_message": {
+    "text": "Đăng nhập hiện không khả dụng trên tên miền này.",
+    "source_hash": "b681c35d"
+  },
+  "web.login.errors.sso_not_configured": {
+    "text": "Đăng nhập một lần (SSO) chưa được cấu hình cho tên miền này. Vui lòng liên hệ quản trị viên của bạn.",
+    "source_hash": "b39ef93e"
+  },
+  "web.login.errors.invalid_email": {
+    "text": "Địa chỉ email từ nhà cung cấp danh tính của bạn không hợp lệ. Vui lòng liên hệ quản trị viên của bạn.",
+    "source_hash": "10c12029"
+  },
+  "web.login.errors.domain_not_allowed": {
+    "text": "Tên miền email của bạn không được phép đăng ký bằng SSO. Vui lòng liên hệ quản trị viên của bạn.",
+    "source_hash": "87603782"
   }
 }

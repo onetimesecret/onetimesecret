@@ -359,6 +359,38 @@ export function isOwnerOrAdmin(): boolean {
 }
 
 /**
+ * Pure predicate: install uses the 'approximated' custom-domain validation
+ * strategy in the given state.
+ */
+export function isApproximatedDomainValidationOf(state: {
+  domains?: { validation_strategy?: string | null } | null;
+}): boolean {
+  return state.domains?.validation_strategy === 'approximated';
+}
+
+/**
+ * Checks whether the install uses Approximated for custom-domain validation.
+ *
+ * Approximated is a third-party proxy service (used by onetimesecret.com) that
+ * monitors DNS and provisions TLS certs. Its per-domain vhost status is the
+ * ONLY source that drives the active / inactive / DNS-incorrect badges in the
+ * domain manager. On self-hosted installs that manage their own DNS and certs
+ * (`validation_strategy` of 'passthrough' or 'caddy_on_demand'), that status is
+ * never populated, so every domain would misleadingly read "Inactive".
+ *
+ * Callers use this to hide the Approximated-driven status UI and the
+ * Approximated verification flow on non-approximated installs, where operators
+ * manage their own DNS records. The strategy is install-level configuration
+ * (features.domains.validation_strategy), exposed on the bootstrap payload's
+ * top-level `domains` key.
+ */
+export function isApproximatedDomainValidation(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  return isApproximatedDomainValidationOf({ domains: getBootstrapValue('domains') });
+}
+
+/**
  * Gets all enabled authentication features
  */
 export function getAuthFeatures(): AuthFeatures {

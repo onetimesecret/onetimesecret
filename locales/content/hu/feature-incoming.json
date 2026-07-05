@@ -130,5 +130,33 @@
   "incoming.receipt_link_text": {
     "text": "visszaigazolás",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Csomagfrissítés szükséges",
+    "source_hash": "16487236"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Ez a funkció csomagfrissítést igényel. A bejövő titkok engedélyezéséhez kérjük, vegye fel a kapcsolatot a fiók tulajdonosával.",
+    "source_hash": "5df7f715"
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "A jegyzet legfeljebb {max} karakter lehet",
+    "source_hash": "5727f2d3"
+  },
+  "incoming.validation_secret_required": {
+    "text": "A titok tartalma kötelező",
+    "source_hash": "699783c9"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Kérjük, válasszon ki egy címzettet",
+    "source_hash": "67bb4666"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "A bejövő titkok funkció nincs engedélyezve",
+    "source_hash": "0616d3f4"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Kérjük, ellenőrizze az űrlapot a hibák miatt",
+    "source_hash": "9056e064"
   }
 }

@@ -75,7 +75,7 @@ RSpec.describe 'handle_missing_tenant_config Fallback Policy', type: :integratio
         v2: Base64.strict_encode64(key_v2),
       }
       config.current_key_version = :v1
-      config.encryption_personalization = 'MissingTenantConfigFallbackTest'
+      config.encryption_personalization = 'TenantFallback'
     end
   end
 

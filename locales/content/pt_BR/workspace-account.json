@@ -476,7 +476,7 @@
     "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Aprenda como integrar o {product_name} em seus aplicativos",
+    "text": "Saiba como integrar o {product_name} aos seus aplicativos",
     "source_hash": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {
@@ -682,5 +682,17 @@
   "web.settings.profile.didnt_receive_email": {
     "text": "Não recebeu o e-mail?",
     "source_hash": "fe3ac3ad"
+  },
+  "web.settings.api.api_disabled_notice": {
+    "text": "A API está desativada para esta instância.",
+    "source_hash": "66d12d6b"
+  },
+  "web.settings.security.sso_managed_title": {
+    "text": "Segurança gerenciada pelo SSO",
+    "source_hash": "1f6c9472"
+  },
+  "web.settings.security.sso_managed_description": {
+    "text": "Sua conta é autenticada pelo provedor de single sign-on (SSO) da sua organização. A senha, a autenticação multifator e os códigos de recuperação são gerenciados pelo seu provedor de identidade.",
+    "source_hash": "cd0cf39f"
   }
 }

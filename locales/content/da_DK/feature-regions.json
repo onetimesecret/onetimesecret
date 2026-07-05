@@ -152,7 +152,7 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Hvis din fakturerings-e-mail er forskellig fra din {product_name} konto-e-mail, brug fakturerings-e-mailen til den nye regionskonto for at bevare dine abonnementsfordele.",
+    "text": "Hvis din e-mail til faktureringskontakt afviger fra din {product_name}-konto-e-mail, skal du bruge e-mailen til faktureringskontakt for den nye regionskonto for at bevare dine abonnementsfordele.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
@@ -186,5 +186,9 @@
   "web.regions.jurisdictions.apac.name": {
     "text": "Asia-Pacific",
     "source_hash": "7a757670"
+  },
+  "web.regions.no_region_configured": {
+    "text": "Der er i øjeblikket ingen regionsoplysninger tilgængelige for din konto.",
+    "source_hash": "bbfe2a32"
   }
 }

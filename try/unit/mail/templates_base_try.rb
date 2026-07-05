@@ -165,6 +165,13 @@ context = Onetime::Mail::Templates::Base::TemplateContext.new({ share_domain: 's
 context.display_domain
 #=> 'share.com'
 
+## TemplateContext display_domain treats an empty share_domain as absent
+# Regression guard: display_domain now falls back through brand_host, which
+# maps '' to the canonical site host instead of returning the empty string.
+context = Onetime::Mail::Templates::Base::TemplateContext.new({ share_domain: '' }, 'en')
+context.display_domain == context.site_host
+#=> true
+
 ## TemplateContext display_domain falls back to site_host when neither provided
 context = Onetime::Mail::Templates::Base::TemplateContext.new({}, 'en')
 context.display_domain.is_a?(String) && !context.display_domain.empty?

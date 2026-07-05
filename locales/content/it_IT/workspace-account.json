@@ -682,5 +682,17 @@
   "web.settings.profile.didnt_receive_email": {
     "text": "Non hai ricevuto l'email?",
     "source_hash": "fe3ac3ad"
+  },
+  "web.settings.api.api_disabled_notice": {
+    "text": "L'API è disabilitata per questa istanza.",
+    "source_hash": "66d12d6b"
+  },
+  "web.settings.security.sso_managed_title": {
+    "text": "Sicurezza gestita tramite SSO",
+    "source_hash": "1f6c9472"
+  },
+  "web.settings.security.sso_managed_description": {
+    "text": "Il tuo account viene autenticato tramite il provider Single Sign-On della tua organizzazione. La password, l'autenticazione a più fattori e i codici di recupero sono gestiti dal tuo provider di identità.",
+    "source_hash": "cd0cf39f"
   }
 }

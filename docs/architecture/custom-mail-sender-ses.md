@@ -1,4 +1,3 @@
-# docs/architecture/custom-mail-sender-ses.md
 ---
 title: AWS SES Sender Domain Provider
 type: reference

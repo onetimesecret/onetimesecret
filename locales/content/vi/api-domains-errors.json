@@ -1,0 +1,38 @@
+{
+  "api.domains.errors.domain_id_required": {
+    "text": "Cần có ID tên miền",
+    "source_hash": "6837426b"
+  },
+  "api.domains.errors.domain_not_found": {
+    "text": "Không tìm thấy tên miền: %{extid}",
+    "source_hash": "a0fd1025"
+  },
+  "api.domains.errors.organization_not_found": {
+    "text": "Không tìm thấy tổ chức cho tên miền: %{domain}",
+    "source_hash": "632afc93"
+  },
+  "api.domains.errors.incoming_secrets_disabled": {
+    "text": "Bí mật đến chưa được bật trên phiên bản này",
+    "source_hash": "45c0b5c4"
+  },
+  "api.domains.errors.incoming_secrets_entitlement_required": {
+    "text": "Quản lý bí mật đến yêu cầu quyền lợi incoming_secrets. Vui lòng nâng cấp gói của bạn.",
+    "source_hash": "1af54ec2"
+  },
+  "api.domains.errors.incoming_config_not_found": {
+    "text": "Không tìm thấy cấu hình bí mật đến cho tên miền: %{extid}",
+    "source_hash": "491644a8"
+  },
+  "api.domains.errors.recipients_max_exceeded": {
+    "text": "Cho phép tối đa %{max} người nhận",
+    "source_hash": "159842ad"
+  },
+  "api.domains.errors.recipients_invalid_email": {
+    "text": "Email không hợp lệ: %{email}",
+    "source_hash": "e9c729c7"
+  },
+  "api.domains.errors.recipients_duplicate": {
+    "text": "Không cho phép email người nhận trùng lặp",
+    "source_hash": "6de22182"
+  }
+}
