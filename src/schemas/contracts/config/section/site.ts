@@ -119,9 +119,6 @@ const siteSecretOptionsSchema = z.object({
   default_ttl: z.number().nullable().optional(),
   ttl_options: z.string().nullable().optional(), // Raw string from env, parsed elsewhere
   generated_value_display_ttl: z.number().optional(),
-  // Legacy V1 API escape hatch: reveal concealed plaintext on the V1 receipt
-  // endpoint (server-side behavior flag; V2/V3 never do this).
-  v1_reveal_concealed_on_receipt: z.boolean().optional(),
   passphrase: passphraseSchema,
   password_generation: passwordGenerationSchema,
 });

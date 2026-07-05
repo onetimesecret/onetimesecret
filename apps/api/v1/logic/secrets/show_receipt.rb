@@ -98,20 +98,14 @@ module V1::Logic
             # only on the first (state :new) view within the configured display
             # window. Concealed (user-supplied) plaintext is never echoed back
             # on the receipt — the creator already has it, and reading it back
-            # later would sidestep the at-most-once rule. The legacy behavior
-            # (reveal whenever decryptable) remains available behind the
-            # site.secret_options.v1_reveal_concealed_on_receipt flag.
-            if @can_decrypt
-              if v1_reveal_concealed_on_receipt?
+            # later would sidestep the at-most-once rule.
+            if @can_decrypt && receipt.state?(:new)
+              receipt_age  = Familia.now.to_i - receipt.created.to_i
+              is_generated = receipt.kind.to_s == 'generate'
+              display_ttl  = OT.conf.dig('site', 'secret_options', 'generated_value_display_ttl').to_i
+              if is_generated && display_ttl.positive? && receipt_age < display_ttl
+                OT.ld "[show_receipt] m:#{receipt_shortid} Decrypting generated secret for creator viewing (age: #{receipt_age}s)"
                 @secret_value = secret.decrypted_secret_value
-              elsif receipt.state?(:new)
-                receipt_age  = Familia.now.to_i - receipt.created.to_i
-                is_generated = receipt.kind.to_s == 'generate'
-                display_ttl  = OT.conf.dig('site', 'secret_options', 'generated_value_display_ttl').to_i
-                if is_generated && display_ttl.positive? && receipt_age < display_ttl
-                  OT.ld "[show_receipt] m:#{receipt_shortid} Decrypting generated secret for creator viewing (age: #{receipt_age}s)"
-                  @secret_value = secret.decrypted_secret_value
-                end
               end
             end
             @is_truncated = secret.truncated?
@@ -199,15 +193,6 @@ module V1::Logic
       end
 
       private
-
-      # Legacy V1 escape hatch: when true, the receipt endpoint reveals any
-      # still-decryptable secret value (including concealed, user-supplied
-      # plaintext) the way V1 always did. Defaults to false so V1 matches the
-      # V2/V3 receipt behavior of only showing generated values in the
-      # post-creation display window.
-      def v1_reveal_concealed_on_receipt?
-        OT.conf.dig('site', 'secret_options', 'v1_reveal_concealed_on_receipt') == true
-      end
 
       def _receipt_attributes
         # Start with safe receipt attributes

@@ -7,8 +7,7 @@
 # v2 secrets stored in the ciphertext field, and that the receipt
 # endpoint follows the V2/V3 reveal rules: only generated values,
 # only on first view within the display window. Concealed
-# (user-supplied) plaintext is never revealed unless the legacy
-# v1_reveal_concealed_on_receipt flag is enabled.
+# (user-supplied) plaintext is never revealed on the receipt.
 
 require_relative '../../../application'
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
@@ -74,14 +73,6 @@ RSpec.describe V1::Logic::Secrets::ShowReceipt do
 
         expect(subject.secret_value).to be_nil
         expect(subject.can_decrypt).to be true
-      end
-
-      it 'reveals the plaintext when the legacy flag is enabled' do
-        allow(subject).to receive(:v1_reveal_concealed_on_receipt?).and_return(true)
-
-        subject.process
-
-        expect(subject.secret_value).to eq('v2 secret content')
       end
     end
 
@@ -181,21 +172,13 @@ RSpec.describe V1::Logic::Secrets::ShowReceipt do
       expect { subject.process }.not_to raise_error
     end
 
-    it 'does not decrypt a concealed secret without the legacy flag' do
+    it 'does not decrypt a concealed secret' do
       allow(receipt).to receive(:kind).and_return('conceal')
 
       expect(secret).not_to receive(:decrypted_secret_value)
 
       subject.process
       expect(subject.secret_value).to be_nil
-    end
-
-    it 'decrypts a concealed secret when the legacy flag is enabled' do
-      allow(receipt).to receive(:kind).and_return('conceal')
-      allow(subject).to receive(:v1_reveal_concealed_on_receipt?).and_return(true)
-
-      subject.process
-      expect(subject.secret_value).to eq('v2 secret content')
     end
   end
 end
