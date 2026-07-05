@@ -97,11 +97,12 @@ const isOptionDisabled = (domain: string): boolean => {
 /**
  * Handle domain selection with optional navigation.
  *
- * `close` is the HeadlessUI Menu slot function. We invoke it explicitly so the
- * dropdown always dismisses on selection: HeadlessUI's automatic MenuItem close
- * is not guaranteed here because navigation (router.push) runs in the same click
- * tick, and sibling actions (the gear icon) call stopPropagation which suppresses
- * the built-in close. Closing explicitly keeps every path deterministic.
+ * `close` is the HeadlessUI Menu slot function. Selecting a MenuItem already
+ * auto-closes the menu, so this call is belt-and-suspenders here — it exists so
+ * that "every navigating action closes the dropdown" is a single, uniform
+ * invariant across this component rather than a per-handler judgement call. The
+ * case that genuinely *requires* an explicit close is the gear icon
+ * (navigateToDomainSettings), whose stopPropagation suppresses the built-in one.
  */
 const selectDomain = (domain: string, close?: () => void): void => {
   // Don't allow selection of disabled options
