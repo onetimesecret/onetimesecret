@@ -5,7 +5,7 @@ Resolves the [#3424](https://github.com/onetimesecret/onetimesecret/issues/3424)
 class of failures: a secret renders "That information is no longer available"
 while it is neither expired nor consumed.
 
-Status: proposed.
+Status: accepted.
 
 ## Behavior
 

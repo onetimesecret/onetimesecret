@@ -129,7 +129,7 @@ Plan, preserving every registry key (the tooling and store contract):
    `base.ts` factories while touching them.
 5. Expected end state: 165 files → ~35–45, −2,500 lines or more, zero
    behavior change, verified by the existing contract tests plus
-   `pnpm run schemas:scan` and `openapi:generate` producing identical output.
+   `pnpm run schemas:scan` and `pnpm run openapi:generate` producing identical output.
 
 This is deletion-shaped work. Do it *after* the bridge (next section) so the
 backend validation lands against the current, well-tested layout, and so the
