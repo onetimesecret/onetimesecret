@@ -381,7 +381,7 @@
       <div class="item"><div class="num">1</div><div><h4>Indistinguishability</h4><p>Byte-identical response across all six non-viewable realities — same status (one 404), body, size, and headers. No per-reality sub-code, 422, or 403.</p></div></div>
       <div class="item"><div class="num">2</div><div><h4>Constant-time</h4><p>Latency independent of existence and reality. Equalize crypto, DB writes, and the passphrase KDF; never short-circuit early on &ldquo;never existed.&rdquo;</p></div></div>
       <div class="item"><div class="num">3</div><div><h4>No metadata in transport</h4><p><code>no-store</code>; no <code>ETag</code>/<code>Age</code>/<code>Last-Modified</code>; no ID echo; no brand resolution before viewability; no conditional redirect on existence.</p></div></div>
-      <div class="item"><div class="num">4</div><div><h4>Side-effect-free probing</h4><p>A passive visit must <b>not</b> transition <code>new&rarr;previewed</code> or consume the view. State advances only on the explicit reveal action.</p></div></div>
+      <div class="item"><div class="num">4</div><div><h4>Side-effect-free probing</h4><p>A passive visit must <b>not</b> transition <code>new&rarr;previewed</code> or consume the view. State advances only on the explicit reveal action. <b>Enforced since #3633 (2026-07-04)</b> — GET is a safe method; accesses land as receipt-timeline telemetry instead.</p></div></div>
       <div class="item"><div class="num">5</div><div><h4>Uniform accounting</h4><p>Rate-limit, throttle, and lockout debit hits and misses identically — so the limiter itself reveals nothing about validity.</p></div></div>
       <div class="item"><div class="num" style="background: var(--safe);">6</div><div><h4>Recipient disclosure &rArr; non-server-verifiable</h4><p><b>Added round 2.</b> A legitimate-recipient affordance may reveal more — but only client-side, and only if it can <b>never</b> round-trip to the server. The moment it is server-verifiable it becomes a covert read-receipt the sender never consented to.</p></div></div>
     </div>
@@ -389,13 +389,13 @@
 
   <!-- GAPS -->
   <section>
-    <h2>Reality Check — Gaps Shipping Today</h2>
-    <p class="lede">The design above is the target. A fresh red-team pass found four of its load-bearing invariants are contradicted by code that ships now (verified against source). The matrix is aspirational until these close.</p>
+    <h2>Reality Check — Gap Status</h2>
+    <p class="lede">The design above is the target. A red-team pass found four of its load-bearing invariants contradicted by shipping code. <b>Status ledger (re-verified against source 2026-07-04):</b> F1 is <b>closed</b> by #3633 (PR&nbsp;#3635); F2&ndash;F5 and F9&ndash;F10 remain open; F11 is half-closed (the passive-fetch half) — see each card.</p>
     <div class="gaps">
-      <div class="gap">
-        <div class="id">F1</div>
-        <div><h4>A passive page load mutates state (<code>new&nbsp;&rarr;&nbsp;previewed</code>)</h4><p>Just opening the link — before any reveal — writes <code>save_fields(:state)</code> and flips the sender&rsquo;s &ldquo;never opened&rdquo; into &ldquo;Previewed.&rdquo; Both an oracle <em>and</em> a tamper primitive. Violates invariant&nbsp;4. <code>show_secret.rb:90</code>, <code>secret_state_management.rb:45</code></p></div>
-        <div class="sev high">HIGH</div>
+      <div class="gap" style="border-left-color: var(--safe);">
+        <div class="id" style="color: var(--safe);">F1</div>
+        <div><h4>A passive page load mutated state (<code>new&nbsp;&rarr;&nbsp;previewed</code>) — CLOSED</h4><p><b>Closed by #3633 (PR&nbsp;#3635, merged 2026-07-04).</b> A metadata <code>GET</code> no longer advances the secret&rsquo;s lifecycle; state moves only on a genuine reveal or burn, and the old unconditional <code>save_fields(:state)</code> became an atomic, non-creating CAS on the reveal path. Passive accesses are recorded as telemetry on the receipt&rsquo;s timeline — owner-visible, never in the anonymous response. Invariant&nbsp;4 now holds. <code>show_secret.rb</code> (AccessTelemetry), <code>secret_state_management.rb#previewed!</code></p></div>
+        <div class="sev" style="background: var(--safe-soft); color: var(--safe);">CLOSED</div>
       </div>
       <div class="gap">
         <div class="id">F2</div>
@@ -418,7 +418,7 @@
         <div class="sev med">MED</div>
       </div>
     </div>
-    <div class="firstfix"><b>Fix first: F1.</b> It needs no passphrase and no valid guess beyond a scraped link, and it persistently rewrites the sender&rsquo;s ground truth. It is also the most likely <em>non-adversarial</em> cause of the &ldquo;did someone else open my link?!&rdquo; fear: email/chat link-preview crawlers (Slack unfurl, Outlook Safe Links, AV scanners) auto-fetch the URL and flip <code>new&rarr;previewed</code> before the human ever clicks. State must advance only on the explicit reveal action.</div>
+    <div class="firstfix" style="background: var(--safe-soft); border-color: #bfe4d0; color: #155c3c;"><b style="color: var(--safe);">F1 closed (2026-07-04).</b> The &ldquo;fix first&rdquo; item shipped: #3633 made <code>GET</code> a safe method — link-preview crawlers (Slack unfurl, Outlook Safe Links, AV scanners) can no longer flip <code>new&rarr;previewed</code> before the human clicks, and probing no longer rewrites the sender&rsquo;s ground truth. <b>Fix next: F2/F4</b> — one uniform status across the terminal realities, because the SPA&rsquo;s always-fired XHR keys its view off that status; F2 and F4 close or stay open together.</div>
   </section>
 
   <!-- ROUND 2 GAPS -->
@@ -453,8 +453,8 @@
       </div>
       <div class="gap">
         <div class="id">F11</div>
-        <div><h4>Link-preview bots consume the secret in-transit</h4><p>Email scanners / unfurlers (Slack, Outlook Safe Links, AV) auto-fetch the URL and can spend the one view before the human arrives — F1 escalated across the email boundary. <b>Fix:</b> the destructive reveal must be a human-gated POST only (A4); the passive GET must stay strictly side-effect-free (also closes F1).</p></div>
-        <div class="sev high">HIGH</div>
+        <div><h4>Link-preview bots consume the secret in-transit</h4><p>Email scanners / unfurlers (Slack, Outlook Safe Links, AV) auto-fetch the URL and can spend the one view before the human arrives — F1 escalated across the email boundary. <b>Half-closed by #3633:</b> the passive GET is now strictly side-effect-free, so a bare fetch spends nothing. <b>Remaining:</b> the destructive reveal is still reachable via <code>GET&hellip;continue=true</code> rather than a human-gated POST (A4); a bot that executes the SPA and fires that request still consumes the view.</p></div>
+        <div class="sev med">PARTIAL</div>
       </div>
     </div>
   </section>
@@ -599,6 +599,7 @@
       <span class="step">Completeness critic — dropped A3, found the combination oracle</span>
     </div>
     <p>Verified against current <code>develop</code>: <code>apps/api/v2/logic/secrets/show_secret.rb</code>, <code>lib/onetime/models/secret/features/secret_state_management.rb</code>, <code>lib/onetime/application/otto_hooks.rb</code>, <code>src/shared/composables/useSecret.ts</code>, <code>src/shared/components/base/BaseShowSecret.vue</code>, <code>src/shared/stores/localReceiptStore.ts</code>, <code>src/shared/stores/secretStore.ts</code>, <code>apps/api/v2/logic/secrets/show_receipt.rb</code>. Companion to <code>docs/specs/unviewable-state-root-cause.md</code> and <code>docs/specs/terminal-screen-ux-analysis.md</code>. Formalized as an information-flow channel model (noninterference / Lattice of Information / QIF) in <code>docs/specs/recipient-disclosure-flow-model.md</code> — where this matrix becomes the machine-checkable <code>C_anon</code> and the F/A items become assertions over its rows.</p>
+    <p><b>Status update 2026-07-04.</b> Re-verified against <code>main</code>: <b>F1 closed</b> by #3633 (PR&nbsp;#3635) — passive GET is lifecycle-safe, invariant&nbsp;4 enforced, F11&rsquo;s passive-fetch half closed with it. Still open and re-confirmed in source: F2 (status divergence, <code>otto_hooks.rb</code>), F4 (SPA keys off raw status, incl. the fragile <code>404</code>/<code>'404'</code> dual-type check), F3, F5, F9 (<code>show_receipt</code> still emits state flags), F10; plus the sender-side items in the UX companion (atomic dashboard parse, <code>StatusBadge</code> v3-parse throw, unbranded <code>UnknownReceipt</code>).</p>
     <p style="margin-top:14px;color:var(--ink-faint)">Issue&nbsp;#3424 &middot; Recipient disclosure source of truth &middot; Open in a browser and use File&nbsp;&rarr;&nbsp;Print&nbsp;&rarr;&nbsp;Save&nbsp;as&nbsp;PDF to share or project.</p>
   </footer>
 
