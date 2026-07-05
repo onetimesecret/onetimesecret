@@ -121,6 +121,15 @@ ACME issuance proves DNS points here, but proves nothing about
 account-level ownership — if that's ever read as equivalent to "verified,"
 it inherits the Issue 3 risk. → ADR-016.
 
+This inconsistency has a concrete *functional* consequence, not just a UI
+one: the ACME `ask` gate (`apps/internal/acme/`) reads the resolving axis via
+`ready?`, and under `caddy_on_demand` — whose `check_status` returns
+`is_resolving: nil`, so the `resolving` field is never written — the endpoint
+returns 403 for every domain and no certificate ever issues. ADR-016's
+OTS-side resolving check is therefore a prerequisite for `caddy_on_demand`
+being usable at all, not merely for correct status display. See ADR-016
+Implementation Notes for the full trace.
+
 ### 5. No periodic re-validation with configurable sampling — confidence: high, requirement contradicted by evidence
 
 The only existing job (`lib/onetime/jobs/scheduled/domain_refresh_job.rb`)
