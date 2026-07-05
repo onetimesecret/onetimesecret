@@ -44,9 +44,13 @@ module Onetime::Organization::Features
     module InstanceMethods
       # Append an audit event to the organization's trail.
       #
-      # @param kind [String, Symbol] what happened, e.g. 'created',
-      #   'status_get', 'secret_get', 'previewed', 'revealed', 'burned',
-      #   'expired', 'orphaned'.
+      # @param kind [String, Symbol] what happened. The receipt fan-out
+      #   emits: 'created', 'status_get' / 'secret_get' (a third party
+      #   fetched the status/secret link), 'creator_status_get' /
+      #   'creator_secret_get' (the creator fetched their own link),
+      #   'receipt_viewed' (the creator's receipt page was loaded — shown
+      #   as "preview" in the UI), 'revealed', 'burned', 'expired',
+      #   'orphaned'.
       # @param at [Numeric] event time as epoch seconds; defaults to now.
       # @param attrs [Hash] additional context (receipt/secret shortids,
       #   actor when known). Keep values short and non-sensitive: never

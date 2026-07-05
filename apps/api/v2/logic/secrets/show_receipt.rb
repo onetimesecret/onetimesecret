@@ -101,7 +101,9 @@ module V2::Logic
         @first_access = receipt.first_access_at
         @last_access  = receipt.last_access_at
 
-        secret = receipt.load_secret
+        # Reuse the instance already loaded at the top of process rather than
+        # hitting Redis a second time; nothing in between mutates the secret.
+        secret = @secret
 
         if secret.nil?
 

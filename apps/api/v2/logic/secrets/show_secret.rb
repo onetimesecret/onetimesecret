@@ -99,7 +99,16 @@ module V2::Logic
         # (GET is a safe method, #3633); the access is recorded on the
         # receipt's timeline instead. Lifecycle now only moves on a genuine
         # reveal or burn.
-        record_access_telemetry('secret_get')
+        #
+        # Skip on a winning reveal: that access is already captured as the
+        # `revealed` lifecycle event (which fans out to the org trail via
+        # receipt.revealed!), so also recording `secret_get` here would
+        # double-count the same request — one reveal would appear twice in
+        # the trail and inflate the creator's access count with the
+        # consumption itself. A metadata-only GET, a wrong passphrase, or a
+        # lost reveal race all leave show_secret false and are recorded as a
+        # genuine (non-consuming) access.
+        record_access_telemetry('secret_get') unless show_secret
 
         success_data
       end
