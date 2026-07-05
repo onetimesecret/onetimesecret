@@ -9,7 +9,8 @@ updated: 2026-07-04
 
 The initial setup experience is clunky enough that we receive complaints about
 it. This document restates the problem space, surveys the documented approaches
-(drawing on the March 2026 install-onboarding competitive landscape research:
+(drawing on a March 2026 install-onboarding competitive landscape research
+memo — an internal reference document, not checked into this repo — covering
 Discourse, Coolify, Plane, Sentry Self-Hosted, GitLab Omnibus), and makes
 prioritized recommendations. Issue #2700 ("Add a simple wizard that appears
 precisely when it is meant to") is treated as one instance of a general class
@@ -30,9 +31,9 @@ the first step to fixing any of them.
 Getting from clone/`docker run` to a booted instance. The current surface:
 
 - **Config spread across four files plus env**: `.env` (`.env.example` is the
-  10-var starting point; `.env.reference` documents ~116 vars),
-  `etc/config.yaml` (the default is 1,157 lines with **217 ERB env-var
-  interpolations**), `etc/auth.yaml`, `etc/logging.yaml`.
+  10-var starting point; `.env.reference` documents 119 vars),
+  `etc/defaults/config.defaults.yaml` (the default is 1,157 lines with
+  **214 `<%=` ERB env-var interpolations**), `etc/auth.yaml`, `etc/logging.yaml`.
 - **`SECRET` is high-stakes**: it must be generated, exported, and backed up
   manually in the Docker quick start (README), and losing it orphans all
   existing secrets. `rake ots:secrets` automates generation for the
@@ -60,7 +61,7 @@ experience at all:
   masked config sections, but there is **no POST route**
   (`apps/api/colonel/routes.txt`) — even though the frontend already ships an
   `update()` action POSTing to `/api/colonel/config`
-  (`src/shared/stores/systemSettingsStore.ts:58`). The write path is
+  (`src/shared/stores/systemSettingsStore.ts:70`). The write path is
   aspirational plumbing with no backend.
 
 ### P3 — Ongoing reconfiguration and diagnosis
@@ -70,8 +71,8 @@ experience at all:
   (`lib/onetime/config.rb:540`). There is no runtime-config tier.
 - **Containers run with a read-only filesystem**, so even "edit the file"
   isn't available in the deployment mode we recommend. This is the technical
-  blocker #2700 names: *"we'll need to sort out a way to save env overlays to
-  valkey or similar b/c running in a container with readonly disk."*
+  blocker #2700 names: _"we'll need to sort out a way to save env overlays to
+  valkey or similar b/c running in a container with readonly disk."_
 - **Diagnosis is thin.** `install.sh doctor` checks versions, Valkey ping, and
   file presence — a good foundation, but there's no shareable support bundle,
   so support threads start with "send me your logs and your config."
@@ -82,13 +83,13 @@ P2 and P3 share one root cause: **all configuration is bootstrap-tier.**
 The landscape research found every studied project separates config into two
 tiers:
 
-| Tier | What goes here | Storage | Mutability |
-|---|---|---|---|
-| Bootstrap | DB credentials, secret keys, ports, external URLs | File / env var | Requires restart |
-| Runtime | Site name, policies, feature toggles, branding, SMTP, SSO connections | Database | Hot-reloaded (or restart-applied) |
+| Tier      | What goes here                                                        | Storage        | Mutability                        |
+| --------- | --------------------------------------------------------------------- | -------------- | --------------------------------- |
+| Bootstrap | DB credentials, secret keys, ports, external URLs                     | File / env var | Requires restart                  |
+| Runtime   | Site name, policies, feature toggles, branding, SMTP, SSO connections | Database       | Hot-reloaded (or restart-applied) |
 
-The dividing line: *if the app needs the value to boot, it's bootstrap; if it
-needs it to behave correctly after boot, it's runtime.* OTS puts everything in
+The dividing line: _if the app needs the value to boot, it's bootstrap; if it
+needs it to behave correctly after boot, it's runtime._ OTS puts everything in
 the bootstrap tier. `SITE_HOST`, `SECRET`, `VALKEY_URL` belong there — but
 branding, TTL options, SMTP, SSO connection fields, and feature toggles are
 runtime config trapped in boot-time files. Until a runtime tier exists, no
@@ -101,16 +102,16 @@ throwaway.
 
 The CLI tier is closer to the industry patterns than the complaints suggest:
 
-| Asset | Where | Matches pattern |
-|---|---|---|
-| Re-runnable install with `auto`/`init`/`reconcile` modes | `install.sh` | Sentry's idempotent `./install.sh` |
-| Auto-generated secrets, idempotent, with `DERIVE=1` re-derivation | `rake ots:secrets` | Coolify / Discourse secret generation |
-| `doctor` command (versions, Valkey ping, file presence, auth-mode-aware) | `install.sh cmd_doctor` | Plane `prime-cli`, `gitlab-ctl check-config` (early stage) |
-| First-run detection via Redis counter `onetime:install:init_count` | `lib/onetime/cli/install_command.rb` | "Database state" detection (Discourse/Mattermost family) |
-| Read-only admin config view with secret masking | `GET /api/colonel/config` | The read half of a settings UI |
-| Frontend settings store with fetch/update | `systemSettingsStore.ts` | The client half of the write path |
-| Progressive-disclosure principle, already articulated | `docs/product/workspace-terminology.md` | Plane Express/Advanced philosophy |
-| Onboarding empty-state dashboard | `DashboardEmpty.vue` (#2088) | First-session UX scaffolding |
+| Asset                                                                    | Where                                                                | Matches pattern                                            |
+| ------------------------------------------------------------------------ | -------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Re-runnable install with `auto`/`init`/`reconcile` modes                 | `install.sh`                                                         | Sentry's idempotent `./install.sh`                         |
+| Auto-generated secrets, idempotent, with `DERIVE=1` re-derivation        | `rake ots:secrets`                                                   | Coolify / Discourse secret generation                      |
+| `doctor` command (versions, Valkey ping, file presence, auth-mode-aware) | `install.sh cmd_doctor`                                              | Plane `prime-cli`, `gitlab-ctl check-config` (early stage) |
+| First-run detection via Redis counter `onetime:install:init_count`       | `lib/onetime/cli/install_command.rb`                                 | "Database state" detection (Discourse/Mattermost family)   |
+| Read-only admin config view with secret masking                          | `GET /api/colonel/config`                                            | The read half of a settings UI                             |
+| Frontend settings store with fetch/update                                | `systemSettingsStore.ts`                                             | The client half of the write path                          |
+| Progressive-disclosure principle, already articulated                    | `docs/product/workspace-terminology.md` (in-repo, `status: current`) | Plane Express/Advanced philosophy                          |
+| Onboarding empty-state dashboard                                         | `DashboardEmpty.vue` (#2088)                                         | First-session UX scaffolding                               |
 
 The gaps, per the landscape feature matrix: interactive setup, web first-run
 wizard, support bundle, CI-tested install, and config-surface consolidation.
@@ -130,25 +131,29 @@ everything else to the database. After the wizard, files are read-only.
 it the most elegant). File and UI manage overlapping settings. A value present
 in the file **wins and is greyed out in the UI**; a value absent from the file
 is freely editable in the UI (persisted to the database). Ops teams keep
-config-as-code and automation; app admins get a UI without SSH. *The file is
-the override; the database is the default.*
+config-as-code and automation; app admins get a UI without SSH. _The file is
+the override; the database is the default._ This is called "most elegant"
+because it resolves the tension every self-hosted project hits — ops wants
+config-as-code it can version and automate, admins want a UI they can use
+without shell access — by making file values authoritative but optional,
+so neither workflow is disabled by the other.
 
 **Pattern C — "Web writes to files"** (WordPress, Gitea first-run). The web
 installer writes config files to disk. **Disqualified for OTS**: it is the
 documented anti-pattern precisely because of read-only container filesystems,
 permission issues, and race conditions — the exact constraint #2700 names.
 
-A and B compose: A describes the *first-run moment*, B describes the
-*steady-state precedence rule*. That composition is what we should build.
+A and B compose: A describes the _first-run moment_, B describes the
+_steady-state precedence rule_. That composition is what we should build.
 
 ### First-run detection
 
-| Approach | Used by | Mechanism |
-|---|---|---|
-| File existence | WordPress | Does the config file exist? |
-| Flag in config | Gitea (`INSTALL_LOCK`), Nextcloud | Boolean sentinel |
-| Database state | Discourse (no admin), Mattermost (no users) | Query sentinel data |
-| External script only | Mastodon, GitLab, Sentry | CLI init; no web wizard |
+| Approach             | Used by                                     | Mechanism                                                                                                                      |
+| -------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| File existence       | WordPress                                   | Does the config file exist?                                                                                                    |
+| Flag in config       | Gitea (`INSTALL_LOCK`), Nextcloud           | Boolean sentinel                                                                                                               |
+| Database state       | Discourse (no admin), Mattermost (no users) | Query sentinel data                                                                                                            |
+| External script only | Mastodon, GitLab, Sentry                    | CLI init; no web _setup_ wizard (Mastodon has a web admin-registration form post-init, distinct from configuring the instance) |
 
 The robust approach combines two signals. OTS already has the Redis init
 counter (database-state pattern); adding "no colonel account exists" as the
@@ -157,7 +162,7 @@ second signal gives WordPress-grade robustness.
 ### CLI-tier patterns (from the ranked competitor analysis)
 
 - **Preflight checks** (Sentry, the strongest): validate dependencies, RAM,
-  ports *before touching anything*.
+  ports _before touching anything_.
 - **Interactive setup** (Discourse, the benchmark): 3–5 questions, generate
   everything else. First web visit is a setup wizard.
 - **Doctor/repair** (Plane `prime-cli`, `gitlab-ctl`): healthcheck, repair,
@@ -172,7 +177,7 @@ second signal gives WordPress-grade robustness.
 ### Testing & measurement
 
 - **The install script is a product, not a utility** — the landscape's key
-  insight. Sentry runs `./install.sh` from scratch in CI *twice daily* across
+  insight. Sentry runs `./install.sh` from scratch in CI _twice daily_ across
   x86/ARM and Docker/Podman, then runs pytest HTTP assertions against the live
   instance. GitLab runs nightly full E2E on package builds.
 - Tiers: ShellCheck (static) → BATS (unit-test shell functions like
@@ -207,12 +212,12 @@ recommendation for OTS verbatim.
 
 **R0.2 — Support bundle: `install.sh doctor --bundle`.** Extend the existing
 `cmd_doctor` to emit a sanitized, shareable diagnostic archive: versions,
-which config files exist, auth mode, Valkey reachability, env var *presence*
+which config files exist, auth mode, Valkey reachability, env var _presence_
 (names only, never values), recent boot log excerpt. Directly attacks the
 support back-and-forth that today starts every complaint thread.
 
 **R0.3 — Complete the preflight.** Move the Valkey reachability check to the
-*front* of `cmd_init` (it currently surfaces at the final "install mark"
+_front_ of `cmd_init` (it currently surfaces at the final "install mark"
 step), and check port availability. Fail fast with a one-line fix suggestion,
 Sentry-style.
 
@@ -239,10 +244,15 @@ infrastructure rather than adding a new dependency — and it survives container
 restarts, which the read-only disk cannot offer.
 
 **R1.3 — Apply semantics: restart-required first, hot-reload later.** Phase
-1a: the overlay is read once at boot into the deep-frozen `Onetime.conf` —
-changes require restart, but are *persistent and web-editable*, which already
-unblocks the wizard. Phase 1b (optional, later): a generation counter /
-pub-sub bump for hot-reloading keys that are safe to change live. Do not let
+1a: the overlay merge is one more step in the existing load pipeline —
+`defaults → YAML(ERB+env) → runtime overlay` — read from Valkey _before_
+`deep_freeze(conf)` runs (`lib/onetime/config.rb:540`), so the frozen
+`Onetime.conf` the app boots with already reflects the overlay. Writing the
+overlay (from the wizard or colonel UI) doesn't touch the live frozen hash;
+it persists to Valkey and takes effect on the _next_ boot — changes require
+restart, but are _persistent and web-editable_, which already unblocks the
+wizard. Phase 1b (optional, later): a generation counter / pub-sub bump for
+hot-reloading keys that are safe to change live without a restart. Do not let
 hot-reload complexity delay 1a.
 
 **R1.4 — Implement `POST /api/colonel/config`.** The route missing from
@@ -260,7 +270,11 @@ approach the landscape identifies as most robust.
 detected, allow creating the first colonel account through the web — gated by
 a one-time setup token printed to stdout/logs at first boot (the
 Jenkins/Portainer pattern), so an unattended instance exposed to the internet
-cannot be claimed by a stranger. `bin/ots customers role promote` remains for
+cannot be claimed by a stranger. The token expires after a short window (e.g.
+1 hour) or first successful use, whichever comes first; if it's lost or
+expires before anyone claims it, the escape hatch is the same one that exists
+today — `bin/ots customers role promote EMAIL` from a shell — so the CLI path
+is never blocked by the web path. `bin/ots customers role promote` remains for
 ops and scripting.
 
 **R2.3 — Wizard steps, progressively disclosed.** Simple mode: (1) create
@@ -271,7 +285,7 @@ Plane's Express/Advanced split, and consistent with the progressive-disclosure
 principle already established in `workspace-terminology.md`.
 
 **R2.4 — #2700 becomes a special case, not a one-off.** "SSO enabled without
-connection settings" is one instance of *feature enabled but unconfigured*.
+connection settings" is one instance of _feature enabled but unconfigured_.
 Build the general mechanism: a config-completion prompt component that (a)
 detects the state, (b) renders the relevant wizard section in the colonel
 area, (c) writes through the same overlay path. SMTP-unconfigured gets the
@@ -288,12 +302,12 @@ automation.
 
 **R3.2 — Stop growing the config surface.** Direction, not big-bang: document
 env vars as the primary operator interface with `.env.example` (10 vars) as
-the canonical quick start and `.env.reference` (~116 vars) as the complete
+the canonical quick start and `.env.reference` (119 vars) as the complete
 catalog; treat YAML as the advanced/derived layer. New settings should default
 to the runtime tier (overlay) unless they are genuinely bootstrap.
 
 **R3.3 — Measure.** Step-numbered exit codes in `install.sh` so failures
-report *which* stage died; TTFHW as the metric for the quick start (target:
+report _which_ stage died; TTFHW as the metric for the quick start (target:
 under 15 minutes, measured honestly from `git clone`/`docker run` to first
 secret shared); docs feedback widgets on install pages. Opt-out telemetry
 (Homebrew model, `DO_NOT_TRACK`-respecting) only if/when we decide the
@@ -318,14 +332,14 @@ overlay exists; the overlay is the actual work.
 
 ## 5. How This Maps to the Complaints
 
-| Complaint shape | Addressed by |
-|---|---|
-| "Too many knobs before anything works" | R3.1 (interactive init), R3.2 (env-first surface), R2.3 (wizard defaults) |
-| "I need SSH/exec just to make myself admin" | R2.2 (web first-admin with setup token) |
-| "I enabled X and nothing happened" | R2.4 (config-completion prompts; #2700) |
-| "Every change means editing files and restarting, and my container disk is read-only" | R1.1–R1.4 (Valkey overlay + colonel write path) |
-| "Install failed and support ping-pong took days" | R0.2 (support bundle), R0.3 (preflight), R3.3 (staged exit codes) |
-| "It broke on the new release" | R0.1 (CI-tested install) |
+| Complaint shape                                                                       | Addressed by                                                              |
+| ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| "Too many knobs before anything works"                                                | R3.1 (interactive init), R3.2 (env-first surface), R2.3 (wizard defaults) |
+| "I need SSH/exec just to make myself admin (e.g. a web-only operator on a PaaS)"      | R2.2 (web first-admin with setup token)                                   |
+| "I enabled X and nothing happened"                                                    | R2.4 (config-completion prompts; #2700)                                   |
+| "Every change means editing files and restarting, and my container disk is read-only" | R1.1–R1.4 (Valkey overlay + colonel write path)                           |
+| "Install failed and support ping-pong took days"                                      | R0.2 (support bundle), R0.3 (preflight), R3.3 (staged exit codes)         |
+| "It broke on the new release"                                                         | R0.1 (CI-tested install)                                                  |
 
 ## Related
 
@@ -334,5 +348,6 @@ overlay exists; the overlay is the actual work.
 - Issue #2308 — workspace creation-surface plan (stale/closed; adjacent UX)
 - `docs/product/workspace-terminology.md` — progressive-disclosure principle
 - `docs/authentication/per-install-sso.md` — current env-only SSO configuration
-- Install-onboarding competitive landscape research (March 2026) — source for
-  the patterns, competitor matrix, and testing/measurement guidance cited here
+- Install-onboarding competitive landscape research (March 2026) — internal
+  reference memo, not checked into this repo; source for the patterns,
+  competitor matrix, and testing/measurement guidance cited here
