@@ -77,8 +77,10 @@ module Onetime::Receipt::Features
         # The writes above cascade the receipt's *default* expiration onto the
         # timeline key; tighten it to the receipt's actual remaining TTL so
         # the timeline can never outlive its receipt.
+        # current_expiration is nil when the key carries no TTL (Redis TTL -1)
+        # in some Familia paths; guard so telemetry never raises NoMethodError.
         remaining = current_expiration
-        access_events.update_expiration(expiration: remaining) if remaining.positive?
+        access_events.update_expiration(expiration: remaining) if remaining&.positive?
 
         # Fan out to the organization's audit trail (no-op without org
         # context). The org trail is the durable, org-wide view of the same
@@ -95,7 +97,8 @@ module Onetime::Receipt::Features
       # (state transitions, read endpoints).
       #
       # @param kind [String, Symbol] event kind, e.g. 'created',
-      #   'status_get', 'secret_get', 'previewed', 'revealed', 'burned',
+      #   'status_get' / 'secret_get', 'creator_status_get' /
+      #   'creator_secret_get', 'receipt_viewed', 'revealed', 'burned',
       #   'expired', 'orphaned'.
       # @param at [Numeric] event time as epoch seconds; defaults to now.
       # @param organization [Onetime::Organization, nil] pass when the
