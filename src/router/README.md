@@ -174,7 +174,7 @@ the application through:
 - Sentry breadcrumbs and `event.request.url`.
 
 This is finding **F6** of the disclosure matrix
-(`docs/specs/recipient-disclosure-matrix.html`): *"The URL is the bearer secret
+(`docs/specs/recipient-disclosure/recipient-disclosure-matrix.html`): *"The URL is the bearer secret
 — and it leaks."*
 
 **Instead, hand PII to the next page via router history `state`:**

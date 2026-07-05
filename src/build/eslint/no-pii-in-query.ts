@@ -19,7 +19,7 @@
  *
  * @see src/utils/pii.ts (the shared PII_QUERY_KEYS list)
  * @see src/router/README.md ("Query-string policy")
- * @see docs/specs/recipient-disclosure-matrix.html (finding F6)
+ * @see docs/specs/recipient-disclosure/recipient-disclosure-matrix.html (finding F6)
  */
 
 import type { Rule } from 'eslint';
