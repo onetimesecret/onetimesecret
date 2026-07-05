@@ -18,7 +18,7 @@
 
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';
-import DomainContextSwitcher from '@/shared/components/navigation/DomainContextSwitcher.vue';
+import DomainContextSwitcher from '@/apps/workspace/components/navigation/DomainContextSwitcher.vue';
 import OrganizationScopeSwitcher from '@/apps/workspace/components/navigation/OrganizationScopeSwitcher.vue';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { useScopeSwitcherVisibility } from '@/shared/composables/useScopeSwitcherVisibility';
