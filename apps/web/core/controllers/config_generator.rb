@@ -6,8 +6,12 @@ require_relative 'base'
 
 module Core
   module Controllers
-    # Public, unauthenticated JSON backend for the Configuration Generator
-    # tool (see src/views/ConfigGenerator.vue, mounted at GET /configure).
+    # Public, unauthenticated JSON API for the Configuration Generator.
+    #
+    # The interactive UI lives in the docs site (docs.onetimesecret.com),
+    # driven by the published config JSON schemas. These endpoints are the
+    # machine-facing counterpart — e.g. a future install.sh pulling a config
+    # for a preselected preset.
     #
     # Deals only in YAML text — no database reads, no session, no config
     # mutation. Every request computes its response from

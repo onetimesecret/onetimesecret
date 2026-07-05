@@ -6,8 +6,14 @@ require 'yaml'
 require_relative 'utils/enumerables'
 
 module Onetime
-  # Backend for the Configuration Generator tool (GET /configure in the web
-  # UI, GET /config-generator/options and /config-generator/render as JSON).
+  # Backend for the Configuration Generator JSON API (GET
+  # /config-generator/options and /config-generator/render). The interactive
+  # UI lives in the docs site, driven by the published config JSON schemas;
+  # this module is the machine-facing counterpart (e.g. a future install.sh).
+  #
+  # NOTE: the docs-site generator carries its own parallel preset manifest
+  # (docs repo: src/components/config-generator/presets.ts). Keep the two
+  # OPTIONS lists in sync when adding or renaming a preset.
   #
   # Builds small override-file fragments for etc/config.yaml and
   # etc/auth.yaml from a curated set of installer-facing choices. This is

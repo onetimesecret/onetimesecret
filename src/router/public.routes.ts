@@ -275,29 +275,6 @@ const routes: Array<RouteRecordRaw> = [
       sentryScrubParams: false,
     },
   },
-  // Configuration Generator: static, public tool that turns preset choices
-  // into config.yaml / auth.yaml override fragments. Backed by the public
-  // /config-generator/* JSON endpoints. Not gated by auth.
-  {
-    path: '/configure',
-    name: 'ConfigGenerator',
-    component: () => import('@/views/ConfigGenerator.vue'),
-    meta: {
-      title: 'Configuration Generator',
-      requiresAuth: false,
-      layout: TransactionalLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: false,
-        displayVersion: true,
-        displayToggles: true,
-      },
-      scopesAvailable: SCOPE_PRESETS.hideBoth,
-      sentryScrubParams: false,
-    },
-  },
   // Developer tool: Icon gallery (not linked from navigation)
   {
     path: '/icons',
