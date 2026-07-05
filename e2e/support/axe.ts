@@ -124,6 +124,17 @@ export async function assertThemeApplied(page: Page, theme: Theme): Promise<void
   }
 }
 
+/**
+ * Wait for the SPA to signal it has finished hydrating before scanning. The app
+ * sets `html[data-app-ready="true"]` once the root component mounts; gating on
+ * it stops axe from running against a half-mounted page (which would flag
+ * transient, meaningless violations). Shared by the at-rest (e2e/all) and
+ * interactive (e2e/all) a11y specs so the readiness signal is defined once.
+ */
+export async function waitForAppReady(page: Page): Promise<void> {
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+}
+
 /** A single violating DOM node, flattened to one stable-keyed record. */
 export interface FlatViolation {
   /** `${theme}|${route}|${rule.id}|${node.target.join(' ')}` */

@@ -37,20 +37,26 @@ import {
   updateBaselineScope,
   primeTheme,
   assertThemeApplied,
+  waitForAppReady,
   IS_UPDATE_BASELINE,
   INTERACTIVE_BASELINE_PATH,
   type Theme,
 } from '../support/axe';
 
-const THEMES: Theme[] = ['light', 'dark'];
-
-/**
- * Wait for the SPA to signal readiness the same way the at-rest spec does, so
- * we never scan a half-hydrated page.
- */
-async function waitForAppReady(page: Page): Promise<void> {
-  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+// The A11Y_UPDATE_BASELINE path (updateBaselineScope) does a read-modify-write
+// of one JSON baseline file, which is only correct when these tests don't run
+// concurrently. Assert runs are pure reads and can safely parallelize — and
+// keeping them parallel preserves independent per-test failure reporting, so a
+// regression in one scenario doesn't cascade-skip the others. So pin serial
+// execution for baseline-regeneration runs only. That keeps regeneration
+// race-free even if playwright.config.ts later flips `fullyParallel: true`
+// (a stated Phase 3 goal there); today `fullyParallel: false` already
+// serializes within a file, so this is belt-and-suspenders.
+if (IS_UPDATE_BASELINE) {
+  test.describe.configure({ mode: 'serial' });
 }
+
+const THEMES: Theme[] = ['light', 'dark'];
 
 /**
  * One interactive scenario.
