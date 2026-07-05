@@ -237,9 +237,9 @@
         class="mb-10 rounded-lg border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-900/50">
         <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
               {{ freePlan.name }}
-            </h3>
+            </h2>
             <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
               {{ t('web.pricing.free_tier_description') }}
             </p>
@@ -308,9 +308,9 @@
       <!-- Custom Needs Section -->
       <div
         class="mt-12 rounded-lg border border-gray-200 bg-gray-50 p-8 text-center dark:border-gray-700 dark:bg-gray-900/50">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
           {{ t('web.billing.plans.custom_needs_title') }}
-        </h3>
+        </h2>
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
           {{ t('web.billing.plans.custom_needs_description') }}
         </p>

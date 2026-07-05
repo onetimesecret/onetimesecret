@@ -100,7 +100,10 @@
     <div class="relative z-10 w-full min-w-[320px] max-w-md space-y-12">
       <!-- Title Icon / Logo -->
       <div class="flex flex-col items-center" :class="{ 'invisible': hideIcon }">
-        <RouterLink to="/" class="group">
+        <RouterLink
+          to="/"
+          class="group"
+          :aria-label="t('web.layout.return_to_home_page')">
           <div class="relative">
             <!-- Custom logo (for branded/custom domain pages) -->
             <template v-if="titleLogo">
@@ -128,12 +131,12 @@
 
       <!-- Title Text -->
       <div class="space-y-3 text-center">
-        <h2
+        <h1
           :id="headingId"
           v-if="withHeading"
           class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
           {{ heading }}
-        </h2>
+        </h1>
         <p
           v-if="withSubheading"
           class="flex items-center justify-center text-sm text-gray-600 dark:text-gray-400">

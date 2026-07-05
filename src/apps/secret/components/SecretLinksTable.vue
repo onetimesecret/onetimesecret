@@ -84,7 +84,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="mt-6">
+  <div class="mt-6" role="group">
     <!-- No secrets state -->
     <div
       v-if="!hasSecrets"

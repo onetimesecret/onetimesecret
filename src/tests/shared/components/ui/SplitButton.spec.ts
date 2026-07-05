@@ -378,12 +378,18 @@ describe('SplitButton Keyboard Shortcuts', () => {
       expect(toggleButton.attributes('aria-expanded')).toBe('false');
     });
 
-    it('has aria-controls pointing to dropdown', () => {
+    it('sets aria-controls to the dropdown only while it is open', async () => {
       wrapper = mountComponent({
         withGenerate: true,
       });
 
       const toggleButton = wrapper.find('button[aria-label="Show more actions"]');
+      // Closed: aria-controls is omitted so it never references a
+      // non-rendered element (the dropdown is behind v-if).
+      expect(toggleButton.attributes('aria-controls')).toBeUndefined();
+
+      // Open: points to the now-rendered dropdown.
+      await toggleButton.trigger('click');
       expect(toggleButton.attributes('aria-controls')).toBe('split-button-dropdown');
     });
 

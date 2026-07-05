@@ -224,7 +224,6 @@
               :disabled="isSubmitting"
               :max-height="400"
               :corner-class="cornerClass"
-              aria-labelledby="secretContentLabel"
               @update:content="(content) => operations.updateField('secret', content)" />
           </span>
 
@@ -283,19 +282,17 @@
           <div class="mt-6 grid gap-6 md:grid-cols-2 md:items-start">
             <!-- Passphrase Field -->
             <div class="relative">
-              <h3>
-                <label
-                  :for="passphraseId"
-                  class="mb-1 block font-brand text-sm text-gray-600 dark:text-gray-300">
-                  {{ t('web.COMMON.secret_passphrase') }}
-                  <span
-                    v-if="isPassphraseRequired"
-                    class="ml-1 text-red-500"
-                    aria-label="Required"
-                    >*</span
-                  >
-                </label>
-              </h3>
+              <label
+                :for="passphraseId"
+                class="mb-1 block font-brand text-sm text-gray-600 dark:text-gray-300">
+                {{ t('web.COMMON.secret_passphrase') }}
+                <span
+                  v-if="isPassphraseRequired"
+                  class="ml-1 text-red-500"
+                  aria-label="Required"
+                  >*</span
+                >
+              </label>
               <!-- Fixed height container for hints to prevent layout shifts -->
               <div class="mb-2 min-h-4">
                 <div
@@ -365,13 +362,11 @@
             <div
               v-if="props.withExpiry"
               class="relative">
-              <h3>
-                <label
-                  :for="lifetimeId"
-                  class="mb-1 block font-brand text-sm text-gray-600 dark:text-gray-300">
-                  {{ t('web.LABELS.expiration_time') || 'Secret Expiration' }}
-                </label>
-              </h3>
+              <label
+                :for="lifetimeId"
+                class="mb-1 block font-brand text-sm text-gray-600 dark:text-gray-300">
+                {{ t('web.LABELS.expiration_time') || 'Secret Expiration' }}
+              </label>
               <!-- Empty spacer to match passphrase field hint area -->
               <div class="mb-2 min-h-4"></div>
               <div class="relative">
@@ -425,13 +420,11 @@
           <div
             v-if="showRecipient"
             class="mt-6">
-            <h3>
-              <label
-                :for="recipientId"
-                class="mb-1 block font-brand text-sm text-gray-700 dark:text-gray-300">
-                {{ t('web.COMMON.secret_recipient_address') || 'Email Recipient' }}
-              </label>
-            </h3>
+            <label
+              :for="recipientId"
+              class="mb-1 block font-brand text-sm text-gray-700 dark:text-gray-300">
+              {{ t('web.COMMON.secret_recipient_address') || 'Email Recipient' }}
+            </label>
             <div class="relative">
               <div class="pointer-events-none absolute inset-y-0 left-3 flex items-center">
                 <OIcon
