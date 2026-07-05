@@ -8,7 +8,7 @@
 # Includes all secret operations (create, reveal, receipt, burn).
 # No business logic changes needed - only serialization format differs.
 #
-# @see docs/specs/domain-permissions.md for domain permission truth tables
+# @see docs/specs/domain-permissions/domain-permissions.md for domain permission truth tables
 #
 # Guest route gating is enforced for operations that support anonymous access:
 # - ConcealSecret: guest conceal toggle
@@ -123,7 +123,7 @@ module V3
           )
         rescue StandardError => ex
           # Log but don't fail the reveal - notification is non-critical
-          secret_logger.error "[RevealSecret] Failed to notify owner", exception: ex
+          secret_logger.error '[RevealSecret] Failed to notify owner', exception: ex
         end
       end
 

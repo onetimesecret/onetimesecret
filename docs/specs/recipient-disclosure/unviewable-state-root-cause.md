@@ -1,7 +1,7 @@
 # "secret shows 'no longer available'": root cause and failure surface
 
 Companion to the systemic design in #3496 / #3514
-(`docs/specs/schema-source-of-truth.md`). That spec proposes the cure; this one
+(`docs/specs/schemata/schema-source-of-truth.md`). That spec proposes the cure; this one
 establishes what actually fails, and why the per-field fixes #3268, #3434, #3477,
 and #3494 did not close the issue. It describes current `develop`.
 

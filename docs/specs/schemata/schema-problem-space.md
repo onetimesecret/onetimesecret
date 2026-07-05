@@ -217,8 +217,8 @@ break them:
 
 ## References
 
-- Specs: `docs/specs/schema-source-of-truth.md`,
-  `docs/specs/unviewable-state-root-cause.md`
+- Specs: `docs/specs/schemata/schema-source-of-truth.md`,
+  `docs/specs/recipient-disclosure/unviewable-state-root-cause.md`
 - TS: `src/schemas/registry.ts`, `src/schemas/scripts/generate.ts`,
   `src/schemas/contracts/secret.ts`, `src/schemas/shapes/{v1,v2,v3}/secret.ts`,
   `src/schemas/transforms/index.ts`, `src/schemas/api/v3/responses/secrets.ts`

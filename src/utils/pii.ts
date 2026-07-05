@@ -6,7 +6,7 @@
  * The guiding rule this module encodes: PII must never travel in a URL query
  * string. A URL leaks out of the application through browser history, bfcache,
  * the `Referer` header, proxy/CDN access logs and Sentry breadcrumbs — none of
- * which the app controls. See docs/specs/recipient-disclosure-matrix.html
+ * which the app controls. See docs/specs/recipient-disclosure/recipient-disclosure-matrix.html
  * (finding F6, "The URL is the bearer secret — and it leaks") and the
  * "Query-string policy" section of src/router/README.md.
  *
