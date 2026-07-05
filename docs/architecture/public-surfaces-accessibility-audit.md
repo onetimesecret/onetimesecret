@@ -9,6 +9,13 @@ Companion to the accessibility
 accessibility features and intent; this document records what an automated scan
 actually found so gaps can be tracked and fixed.
 
+> **Status (resolved on this branch):** every violation in sections 3–4 below
+> has been fixed, and **dark mode** — a caveat in the original audit — was
+> scanned and fixed too. All six public surfaces now report **zero** axe
+> violations in both light and dark themes. The findings are retained below as
+> the historical record; see [§7 Resolution & ongoing enforcement](#7-resolution--ongoing-enforcement)
+> for what changed and how regressions are now prevented automatically.
+
 ## Method
 
 | | |
@@ -122,8 +129,8 @@ warrants a human check.
   visibility, and screen-reader spot-checks (NVDA/VoiceOver/JAWS) still require
   manual testing (see the testing plans in
   [`OVERVIEW.md`](../development/accessibility/OVERVIEW.md)).
-- **Light mode only.** Every page has a dark variant; contrast should be
-  re-run in dark mode.
+- ~~**Light mode only.**~~ Resolved: the standing harness (§7) now scans every
+  surface in **both** light and dark themes.
 - **Static post-mount snapshot.** Opened dropdowns, modals, inline
   validation-error states, and focus styles were not exercised.
 - Run against the environment's pre-installed Chromium (the pinned Playwright
@@ -141,8 +148,42 @@ RACK_ENV=production REDIS_URL=redis://127.0.0.1:2121/0 SECRET=$(openssl rand -he
   HOST=localhost:7143 SSL=false AUTH_AUTOVERIFY=true EMAILER_MODE=logger \
   bundle exec bin/ots server --port 7143
 
-# 2. audit each public surface with axe-core via Playwright, e.g.
-#    npm i axe-core && drive Chromium over /, /signin, /signup, /forgot,
-#    /pricing, /feedback, injecting axe.min.js and calling axe.run() with
-#    tags [wcag2a, wcag2aa, wcag21a, wcag21aa, best-practice].
+# 2. run the standing a11y suite (see §7)
+pnpm test:a11y            # scans all 6 surfaces × light/dark against the baseline
+pnpm test:a11y:update     # regenerate the baseline after an intentional change
 ```
+
+## 7. Resolution & ongoing enforcement
+
+The findings above were fixed and, rather than leaving accessibility as a
+point-in-time check, folded into the test suite so the score is maintained.
+
+**Fixes (public surfaces, light + dark → zero axe violations):** darkened the
+footer release-notes text and the "Send Reset Link" / brand-`600` buttons for
+contrast; gave the logo home-link an accessible name; promoted auth-page
+titles to `<h1>` and corrected heading order (form labels demoted, section
+headings normalised to `<h2>`); added `role="group"` where `aria-label`/
+`aria-labelledby` landed on bare `<div>`s and made `SplitButton`'s
+`aria-controls` conditional on the dropdown being open; and added `dark:`
+contrast variants for the feedback list, signup legal links, and the
+return-home link.
+
+**Standing test layers:**
+
+- **Page-level (browser truth)** — `e2e/all/accessibility.spec.ts` drives
+  axe-core (via `@axe-core/playwright`) over all six public surfaces in **both
+  light and dark** themes (12 checks). It compares against a ratcheting
+  baseline (`e2e/accessibility-baseline.json`, currently **empty**): the suite
+  fails on any violation not in the baseline and hard-fails on any new
+  `serious`/`critical` one. `pnpm test:a11y` runs it; `pnpm test:a11y:update`
+  regenerates the baseline after an intentional change. It runs in CI as part
+  of the existing `e2e/all/` gate (`.github/workflows/e2e.yml`).
+- **Component-level (shift-left)** — `src/tests/shared/a11y/*.a11y.spec.ts`
+  run axe-core in jsdom (via `vitest-axe`) against shared UI primitives
+  (buttons, form fields, `SplitButton`, footer, …) as part of the standard
+  `pnpm test` (Vitest) run, catching structural/ARIA/label regressions at the
+  component before they reach a page. Contrast is excluded here (jsdom has no
+  layout) and remains the page-level layer's job.
+
+**Still manual (not automated):** keyboard-only navigation, focus visibility,
+and screen-reader spot-checks (NVDA/VoiceOver/JAWS) — see `OVERVIEW.md`.

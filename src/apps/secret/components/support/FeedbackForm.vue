@@ -204,7 +204,7 @@
         <h2 class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ t('web.feedback.when_you_submit_feedback_well_see') }}
         </h2>
-        <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+        <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-300">
           <!-- Authentication check: cust is null for anonymous users (via AuthenticationSerializer),
                cust.objid confirms a fully hydrated customer object -->
           <li

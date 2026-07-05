@@ -167,7 +167,7 @@
         <div v-if="showReturnHome" class="border-t border-gray-200 pt-6 dark:border-gray-700">
           <RouterLink
             to="/"
-            class="inline-flex items-center text-sm text-gray-500 transition-colors duration-200 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-400"
+            class="inline-flex items-center text-sm text-gray-500 transition-colors duration-200 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
             :aria-label="t('web.layout.return_to_home_page')">
             <span>{{ t('web.layout.return_home') }}</span>
           </RouterLink>

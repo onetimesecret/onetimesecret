@@ -203,7 +203,7 @@
           :class="[
             'rounded-md px-4 py-2 text-sm font-medium transition-colors',
             billingInterval === 'month'
-              ? 'bg-brand-600 text-white dark:bg-brand-500'
+              ? 'bg-brand-600 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700',
           ]">
           {{ t('web.billing.plans.monthly') }}
@@ -214,7 +214,7 @@
           :class="[
             'rounded-md px-4 py-2 text-sm font-medium transition-colors',
             billingInterval === 'year'
-              ? 'bg-brand-600 text-white dark:bg-brand-500'
+              ? 'bg-brand-600 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700',
           ]">
           {{ t('web.billing.plans.yearly') }}
@@ -278,7 +278,7 @@
               :class="[
                 'block w-full rounded-md px-4 py-2 text-center text-sm font-semibold transition-colors',
                 isPlanRecommended(currentPlan) || isPlanHighlighted(currentPlan)
-                  ? 'bg-brand-600 text-white hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400'
+                  ? 'bg-brand-600 text-white hover:bg-brand-500'
                   : 'bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-700',
               ]">
               {{ getCtaLabel(currentPlan) }}
