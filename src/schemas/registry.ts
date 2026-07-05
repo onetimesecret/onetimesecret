@@ -62,6 +62,7 @@ import { responseSchemas } from './api/v3/responses/registry';
 // =============================================================================
 import { BillingConfigShape } from './shapes/config/billing';
 import { staticConfigShape } from './shapes/config/config';
+import { authConfigShape } from './shapes/config/auth';
 
 // =============================================================================
 // Schema Categories
@@ -103,6 +104,7 @@ export const apiV3Schemas = {
 export const configSchemas = {
   'config/billing': BillingConfigShape,
   'config/static': staticConfigShape,
+  'config/auth': authConfigShape,
 } as const;
 
 // =============================================================================
