@@ -15,7 +15,10 @@
 // state. Results compare against a SEPARATE committed baseline
 // (e2e/accessibility-baseline.interactive.json) so interactive-state debt never
 // collides with the at-rest public baseline and rebaselining one never touches
-// the other.
+// the other. That baseline ships EMPTY (`{}`): the only violation this suite
+// surfaced (a dark-mode contrast bug in the feedback modal heading) was fixed
+// at source rather than baselined, so an empty file means "genuinely clean",
+// not "not yet populated".
 //
 //   Regression policy (identical to the at-rest spec):
 //     - FAIL on ANY violation whose stable key is not in the baseline.
@@ -162,7 +165,10 @@ for (const theme of THEMES) {
 
         const baseline = loadBaseline(INTERACTIVE_BASELINE_PATH);
         const cmp = compareToBaseline(violations, baseline);
-        expect(cmp.regressions, formatFailure(cmp)).toHaveLength(0);
+        expect(
+          cmp.regressions,
+          formatFailure(cmp, 'pnpm test:a11y:interactive:update')
+        ).toHaveLength(0);
       });
     }
   });

@@ -280,8 +280,19 @@ export function compareToBaseline(
   return { regressions, seriousOrCritical };
 }
 
-/** Format regressions into a readable, report-friendly failure message. */
-export function formatFailure(cmp: CompareResult): string {
+/**
+ * Format regressions into a readable, report-friendly failure message.
+ *
+ * `updateCommand` is the exact pnpm script that regenerates the baseline for
+ * the calling suite (each suite has its own — `test:a11y:update`,
+ * `test:a11y:interactive:update`, `test:a11y:full:update`). It defaults to the
+ * public at-rest command; the interactive and authenticated specs pass their
+ * own so a failure never tells a developer to run the wrong one.
+ */
+export function formatFailure(
+  cmp: CompareResult,
+  updateCommand: string = 'pnpm test:a11y:update'
+): string {
   const lines: string[] = [];
   lines.push(
     `Found ${cmp.regressions.length} NEW accessibility violation(s) not in the baseline (a11y regression).`
@@ -304,7 +315,7 @@ export function formatFailure(cmp: CompareResult): string {
     }
   }
   lines.push(
-    'Fix the source component, or (if intentional/known) re-baseline via `pnpm test:a11y:update`.'
+    `Fix the source component, or (if intentional/known) re-baseline via \`${updateCommand}\`.`
   );
   return lines.join('\n');
 }
