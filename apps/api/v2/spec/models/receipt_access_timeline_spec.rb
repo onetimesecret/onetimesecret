@@ -125,6 +125,53 @@ RSpec.describe Onetime::Receipt, type: :integration do
     end
   end
 
+  # The atomic claim primitive underpins both the one-time receipt_viewed audit
+  # event and the one-time generated-value reveal. HSETNX gives exactly-once
+  # semantics under concurrency without a read-modify-write race (#3633).
+  describe '#claim_once!' do
+    it 'returns true for the first caller and false thereafter' do
+      expect(receipt.claim_once!(:secret_value_shown_at)).to be true
+      expect(receipt.claim_once!(:secret_value_shown_at)).to be false
+    end
+
+    it 'stamps the field on the persisted record and the in-memory object' do
+      receipt.claim_once!(:secret_value_shown_at)
+
+      expect(receipt.secret_value_shown_at.to_i).to be_positive
+      expect(Onetime::Receipt.load(receipt.identifier).secret_value_shown_at.to_i).to be_positive
+    end
+
+    it 'is decided across instances: a fresh load of the same receipt loses the claim' do
+      expect(receipt.claim_once!(:secret_value_shown_at)).to be true
+      reloaded = Onetime::Receipt.load(receipt.identifier)
+      expect(reloaded.claim_once!(:secret_value_shown_at)).to be false
+    end
+
+    it 'never resurrects a destroyed receipt (no orphan hash key)' do
+      receipt.destroy!
+
+      expect(receipt.claim_once!(:secret_value_shown_at)).to be false
+      expect(receipt.exists?).to be false
+    end
+
+    it 'does not extend the receipt TTL' do
+      before_ttl = receipt.current_expiration
+      receipt.claim_once!(:secret_value_shown_at)
+      after_ttl = Onetime::Receipt.load(receipt.identifier).current_expiration
+
+      expect(after_ttl).to be <= before_ttl
+    end
+  end
+
+  describe '#claim_secret_value_display!' do
+    it 'grants the one-time creator-side value display to a single caller' do
+      expect(receipt.claim_secret_value_display!).to be true
+      expect(receipt.claim_secret_value_display!).to be false
+      # It is a consumption gate, not a lifecycle state.
+      expect(Onetime::Receipt.load(receipt.identifier).state).to eq('new')
+    end
+  end
+
   # is_previewed is no longer a lifecycle state (#3633); it is derived from the
   # access timeline so consumers (receipt banner, dashboard status) still see
   # "the link was previewed" without a state mutation on a safe GET.

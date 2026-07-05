@@ -91,10 +91,20 @@ module V1::Logic
             # If we can't decrypt the secret (i.e. if we can't access it) then
             # then we leave secret_value nil. We do this so that after creating
             # a secret we can show the received contents on the "/receipt/receipt_key"
-            # page one time. Particularly for generated passwords which are not
+            # page ONE TIME. Particularly for generated passwords which are not
             # shown any other time.
-            @secret_value = secret.decrypted_secret_value if @can_decrypt
-            @is_truncated = secret.truncated?
+            #
+            # claim_secret_value_display! is the "one time" guarantee, shared
+            # with the v2 receipt path via the receipt's secret_value_shown_at
+            # field: it atomically claims the display so a repeated or
+            # concurrent load never re-reveals the value. #3633 retired the
+            # previewed! state mutation that used to bound this, so this GET
+            # must not lean on a state change; the claim is the sole once-only
+            # gate here (v1 has no display-window bound).
+            if @can_decrypt && receipt.claim_secret_value_display!
+              @secret_value = secret.decrypted_secret_value
+              @is_truncated = secret.truncated?
+            end
           end
         end
 

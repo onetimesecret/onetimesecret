@@ -117,6 +117,33 @@ RSpec.describe V2::Logic::Secrets::ShowReceipt, type: :integration do
       expect(details[:view_count]).to eq(0)
     end
 
+    it "reveals a generated secret's value to the creator exactly once (#3633)" do
+      # The generated plaintext is shown nowhere but the receipt page, so this
+      # is the enforcement point for the "one time" guarantee. Before #3633 the
+      # previewed! state mutation bounded it; now an atomic claim does, so a
+      # second load must return nil even inside the display window.
+      display_ttl = OT.conf.dig('site', 'secret_options', 'generated_value_display_ttl').to_i
+      expect(display_ttl).to be_positive # config sanity: the value path is dead at 0
+
+      receipt.kind = 'generate'
+      receipt.save_fields(:kind)
+
+      first = build_logic({ 'identifier' => receipt.identifier })
+      first.process_params
+      first.raise_concerns
+      first_details = first.process[:details]
+
+      second = build_logic({ 'identifier' => receipt.identifier })
+      second.process_params
+      second.raise_concerns
+      second_details = second.process[:details]
+
+      expect(first_details[:secret_value]).to eq('a secret value')
+      expect(second_details[:secret_value]).to be_nil
+      # A safe GET either way: the one-time reveal never advanced lifecycle state.
+      expect(Onetime::Receipt.load(receipt.identifier).state).to eq('new')
+    end
+
     it "records a 'receipt_viewed' audit event on the owning org's trail, exactly once across repeated loads" do
       org = Onetime::Organization.new(
         display_name: 'Receipt View Test Org',

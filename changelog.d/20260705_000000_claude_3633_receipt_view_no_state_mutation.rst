@@ -15,6 +15,21 @@ Fixed
   completes the #3633 GET-safety work, which had left the receipt-page
   transition (and the legacy v1 GET transitions) in place. (#3633)
 
+- A generated secret's plaintext is now shown to its creator on the receipt
+  page *exactly once* ("one time"). Retiring the ``previewed`` state mutation
+  had left the value re-displayable on every reload within the display window
+  (v2) or unbounded (v1). Both paths now claim the display atomically via a
+  new ``secret_value_shown_at`` field (Redis ``HSETNX``), so a repeated or
+  concurrent load never re-reveals the value. The claim is taken at display
+  time: an at-most-once semantic, matching the old state gate — a lost
+  response forfeits the reveal rather than risking a second one. The display
+  window (``generated_value_display_ttl``) now bounds only *when* the single
+  reveal may occur, not how many times. (#3633)
+
+- The one-time ``receipt_viewed`` audit event is now claimed atomically as
+  well, so simultaneous first-loads of a receipt record exactly one event
+  instead of racing to record two. (#3633)
+
 Changed
 -------
 

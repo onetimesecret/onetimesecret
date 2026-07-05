@@ -51,6 +51,15 @@ module Onetime
     # not feed is_previewed (which derives from the access timeline).
     field :receipt_viewed_at
 
+    # Consumption gate (#3633): epoch seconds when the secret's plaintext value
+    # was displayed to its creator on the receipt page, claimed exactly once by
+    # claim_secret_value_display! (atomic HSETNX). It enforces the "one time"
+    # guarantee for the creator-side preview — generated passwords are shown
+    # nowhere else, and a repeated or concurrent receipt load must never
+    # re-reveal the value. Like receipt_viewed_at this is NOT a lifecycle state:
+    # it gates only the one-shot value display, never viewable?/reveal/burn.
+    field :secret_value_shown_at
+
     # Familia v2 relationships - enables org.receipts and custom_domain.receipts queries
     # These auto-generate sorted_set collections on the target models
     # NOTE: Uses full class names (Onetime::X) to ensure Familia can resolve the target class

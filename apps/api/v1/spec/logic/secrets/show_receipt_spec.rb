@@ -118,6 +118,9 @@ RSpec.describe V1::Logic::Secrets::ShowReceipt do
       # Loading the receipt page records a one-time 'receipt_viewed' audit
       # event instead of advancing state via previewed! (#3633).
       allow(receipt).to receive(:record_receipt_view!)
+      # The plaintext value is revealed to the creator at most once, gated on
+      # an atomic claim rather than the retired previewed! state (#3633).
+      allow(receipt).to receive(:claim_secret_value_display!).and_return(true)
 
       # decrypted_secret_value is the CORRECT method - returns plaintext
       allow(secret).to receive(:decrypted_secret_value).and_return('v2 secret content')
