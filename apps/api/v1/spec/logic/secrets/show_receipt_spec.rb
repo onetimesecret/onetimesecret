@@ -97,6 +97,7 @@ RSpec.describe V1::Logic::Secrets::ShowReceipt do
 
       it 'does not reveal the value outside the display window' do
         display_ttl = OT.conf.dig('site', 'secret_options', 'generated_value_display_ttl').to_i
+        expect(display_ttl).to be_positive, 'generated_value_display_ttl must be > 0 for this test to exercise the age check'
         receipt.created = Familia.now.to_i - (display_ttl + 10)
         receipt.save
 
@@ -174,6 +175,20 @@ RSpec.describe V1::Logic::Secrets::ShowReceipt do
 
     it 'does not decrypt a concealed secret' do
       allow(receipt).to receive(:kind).and_return('conceal')
+
+      expect(secret).not_to receive(:decrypted_secret_value)
+
+      subject.process
+      expect(subject.secret_value).to be_nil
+    end
+
+    it 'does not decrypt when generated_value_display_ttl is zero or unset' do
+      # A zero/absent display TTL disables the reveal window entirely, so even
+      # a fresh generated secret must not be decrypted on the receipt.
+      allow(OT.conf).to receive(:dig).and_call_original
+      allow(OT.conf).to receive(:dig)
+        .with('site', 'secret_options', 'generated_value_display_ttl')
+        .and_return(0)
 
       expect(secret).not_to receive(:decrypted_secret_value)
 
