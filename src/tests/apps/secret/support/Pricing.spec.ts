@@ -640,7 +640,7 @@ describe('Pricing.vue', () => {
         id: 'free_v1',
         name: 'Free',
         tier: 'free',
-        interval: null, // Free plans have no interval
+        interval: '', // Free plans have no interval
         amount: 0,
       });
       const paidPlanYearly = createMockPlan({
@@ -664,7 +664,7 @@ describe('Pricing.vue', () => {
       const freePlan = createMockPlan({
         id: 'free_v1',
         tier: 'free',
-        interval: null,
+        interval: '',
       });
 
       mockListPlans.mockResolvedValueOnce({ plans: [freePlan] });
@@ -679,7 +679,7 @@ describe('Pricing.vue', () => {
       const freePlan = createMockPlan({
         id: 'free_v1',
         tier: 'free',
-        interval: null,
+        interval: '',
       });
 
       mockListPlans.mockResolvedValueOnce({ plans: [freePlan] });
@@ -692,7 +692,7 @@ describe('Pricing.vue', () => {
       const freePlan = createMockPlan({
         id: 'free_v1',
         tier: 'free',
-        interval: null,
+        interval: '',
         amount: 0,
       });
 
