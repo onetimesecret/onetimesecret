@@ -149,4 +149,32 @@ describe('DomainContextSwitcher real-HeadlessUI close behaviour', () => {
     expect(mockPush).toHaveBeenCalledWith('/org/org1/domains/add');
     expect(dropdown(wrapper).exists()).toBe(false);
   });
+
+  it('closes the dropdown when the "Manage Domains" footer link is clicked', async () => {
+    // Owner + at least one custom domain renders the "Manage Domains" link.
+    wrapper = mount(DomainContextSwitcher, { attachTo: document.body });
+    await openMenu(wrapper);
+
+    await wrapper.get('[data-testid="domain-context-manage-link"]').trigger('click');
+    await nextTick();
+    await flushPromises();
+
+    expect(mockPush).toHaveBeenCalledWith('/org/org1');
+    expect(dropdown(wrapper).exists()).toBe(false);
+  });
+
+  it('closes the dropdown when the "Add Domain" footer link is clicked (no custom domains)', async () => {
+    // With no custom domains the footer shows the prominent "Add Domain" link.
+    mockAvailableDomains.value = ['canonical.example.com'];
+
+    wrapper = mount(DomainContextSwitcher, { attachTo: document.body });
+    await openMenu(wrapper);
+
+    await wrapper.get('[data-testid="domain-context-add-link"]').trigger('click');
+    await nextTick();
+    await flushPromises();
+
+    expect(mockPush).toHaveBeenCalledWith('/org/org1/domains/add');
+    expect(dropdown(wrapper).exists()).toBe(false);
+  });
 });

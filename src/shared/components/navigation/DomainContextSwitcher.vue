@@ -320,7 +320,10 @@ const navigateToDomainSettings = (
           </span>
 
           <!-- Compact add-domain action: shown once an owner/admin already has
-               a domain, so the "Add Domain" call to action demotes to an icon. -->
+               a domain, so the "Add Domain" call to action demotes to an icon.
+               This is a plain button, NOT a <MenuItem>, so HeadlessUI does not
+               auto-close the menu on click — navigateToAddDomain(close) must
+               call close() explicitly here (required, not belt-and-suspenders). -->
           <button
             v-if="canManageDomains && hasCustomDomains"
             type="button"
