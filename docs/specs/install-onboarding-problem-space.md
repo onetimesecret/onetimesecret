@@ -9,8 +9,8 @@ updated: 2026-07-04
 
 The initial setup experience is clunky enough that we receive complaints about
 it. This document restates the problem space, surveys the documented approaches
-(drawing on a March 2026 install-onboarding competitive landscape research
-memo — an internal reference document, not checked into this repo — covering
+(drawing on the March 2026 install-onboarding
+[competitive landscape research](./install-onboarding-landscape.md) covering
 Discourse, Coolify, Plane, Sentry Self-Hosted, GitLab Omnibus), and makes
 prioritized recommendations. Issue #2700 ("Add a simple wizard that appears
 precisely when it is meant to") is treated as one instance of a general class
@@ -348,6 +348,6 @@ overlay exists; the overlay is the actual work.
 - Issue #2308 — workspace creation-surface plan (stale/closed; adjacent UX)
 - `docs/product/workspace-terminology.md` — progressive-disclosure principle
 - `docs/authentication/per-install-sso.md` — current env-only SSO configuration
-- Install-onboarding competitive landscape research (March 2026) — internal
-  reference memo, not checked into this repo; source for the patterns,
+- [install-onboarding-landscape.md](./install-onboarding-landscape.md) —
+  the March 2026 competitive landscape research; source for the patterns,
   competitor matrix, and testing/measurement guidance cited here
