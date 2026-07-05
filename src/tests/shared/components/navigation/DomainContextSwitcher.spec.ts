@@ -19,12 +19,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { reactive, ref } from 'vue';
 import DomainContextSwitcher from '@/shared/components/navigation/DomainContextSwitcher.vue';
 
+// Shared spy for HeadlessUI's Menu `close` slot function so tests can assert the
+// dropdown is dismissed on navigation. Hoisted so it is available inside the
+// (hoisted) vi.mock factory below.
+const { mockClose } = vi.hoisted(() => ({ mockClose: vi.fn() }));
+
 // --- HeadlessUI: render slot content unconditionally -------------------------
 vi.mock('@headlessui/vue', () => ({
   Menu: {
     name: 'Menu',
-    template: '<div class="menu"><slot :open="false" :close="() => {}" /></div>',
+    template: '<div class="menu"><slot :open="false" :close="mockClose" /></div>',
     props: ['as'],
+    setup: () => ({ mockClose }),
   },
   MenuButton: {
     name: 'MenuButton',
@@ -179,5 +185,81 @@ describe('DomainContextSwitcher add/manage call-to-action', () => {
     await addIcon(wrapper).trigger('click');
 
     expect(mockPush).toHaveBeenCalledWith('/org/org1/domains/add');
+  });
+});
+
+/**
+ * Regression coverage for the "dropdown stays open after navigation" bug.
+ *
+ * Every navigating interaction must dismiss the menu via HeadlessUI's `close`
+ * slot function. This is essential for the gear icon, whose handler calls
+ * event.stopPropagation() (to avoid triggering row selection) and thereby
+ * suppresses HeadlessUI's built-in MenuItem auto-close.
+ */
+describe('DomainContextSwitcher closes on navigation', () => {
+  let wrapper: VueWrapper;
+
+  // Select a domain row by its stable test id (keyed by extid) rather than by
+  // matching rendered domain text.
+  const rowButtonFor = (w: VueWrapper, extid: string) =>
+    w.find(`[data-testid="domain-menu-item-${extid}"]`);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockRoute.meta = {};
+    mockRoute.params = {};
+    mockRoute.matched = [];
+    mockCurrentOrganization.value = { current_user_role: 'owner', extid: 'org1' };
+    mockBillingEnabled.value = false;
+    mockAvailableDomains.value = ['acme.example.com', 'canonical.example.com'];
+    mockIsContextActive.value = true;
+  });
+
+  afterEach(() => {
+    if (wrapper) wrapper.unmount();
+  });
+
+  it('closes the dropdown when a domain row is selected', async () => {
+    wrapper = mount(DomainContextSwitcher);
+
+    await rowButtonFor(wrapper, 'cd1').trigger('click');
+
+    expect(mockClose).toHaveBeenCalled();
+  });
+
+  it('closes the dropdown and navigates when the gear icon is clicked', async () => {
+    wrapper = mount(DomainContextSwitcher);
+
+    await wrapper
+      .find('[aria-label="web.domains.domain_settings"]')
+      .trigger('click');
+
+    expect(mockPush).toHaveBeenCalledWith('/org/org1/domains/cd1');
+    expect(mockClose).toHaveBeenCalled();
+  });
+
+  it('closes the dropdown when the header [+] icon is clicked', async () => {
+    wrapper = mount(DomainContextSwitcher);
+
+    await addIcon(wrapper).trigger('click');
+
+    expect(mockClose).toHaveBeenCalled();
+  });
+
+  it('closes the dropdown when the "Manage Domains" link is clicked', async () => {
+    wrapper = mount(DomainContextSwitcher);
+
+    await manageLink(wrapper).trigger('click');
+
+    expect(mockClose).toHaveBeenCalled();
+  });
+
+  it('closes the dropdown when the "Add Domain" link is clicked (no custom domains)', async () => {
+    mockAvailableDomains.value = ['canonical.example.com'];
+
+    wrapper = mount(DomainContextSwitcher);
+    await addLink(wrapper).trigger('click');
+
+    expect(mockClose).toHaveBeenCalled();
   });
 });
