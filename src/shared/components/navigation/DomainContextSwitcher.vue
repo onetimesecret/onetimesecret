@@ -95,14 +95,21 @@ const isOptionDisabled = (domain: string): boolean => {
 };
 
 /**
- * Handle domain selection with optional navigation
+ * Handle domain selection with optional navigation.
+ *
+ * `close` is the HeadlessUI Menu slot function. We invoke it explicitly so the
+ * dropdown always dismisses on selection: HeadlessUI's automatic MenuItem close
+ * is not guaranteed here because navigation (router.push) runs in the same click
+ * tick, and sibling actions (the gear icon) call stopPropagation which suppresses
+ * the built-in close. Closing explicitly keeps every path deterministic.
  */
-const selectDomain = (domain: string): void => {
+const selectDomain = (domain: string, close?: () => void): void => {
   // Don't allow selection of disabled options
   if (isOptionDisabled(domain)) {
     return;
   }
 
+  close?.();
   setContext(domain);
 
   // Handle route-aware navigation based on onDomainSwitch meta
@@ -199,7 +206,8 @@ watch(
 /**
  * Navigate to domains management page (org-qualified)
  */
-const navigateToManageDomains = (): void => {
+const navigateToManageDomains = (close?: () => void): void => {
+  close?.();
   if (currentOrgExtid.value) {
     router.push(`/org/${currentOrgExtid.value}`);
   } else {
@@ -211,7 +219,8 @@ const navigateToManageDomains = (): void => {
  * Navigate to the add-domain page (org-qualified).
  * Falls back to the /domains/add redirect when no org context is available.
  */
-const navigateToAddDomain = (): void => {
+const navigateToAddDomain = (close?: () => void): void => {
+  close?.();
   if (currentOrgExtid.value) {
     router.push(`/org/${currentOrgExtid.value}/domains/add`);
   } else {
@@ -222,8 +231,15 @@ const navigateToAddDomain = (): void => {
 /**
  * Navigate to edit a specific domain (uses org-qualified routes)
  */
-const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
+const navigateToDomainSettings = (
+  domain: string,
+  event: MouseEvent,
+  close?: () => void
+): void => {
   event.stopPropagation(); // Prevent row selection when clicking gear
+  // stopPropagation above suppresses HeadlessUI's built-in MenuItem close, so
+  // dismiss the dropdown explicitly before navigating.
+  close?.();
   const extid = getExtidByDomain(domain);
   if (extid && currentOrgExtid.value) {
     router.push(`/org/${currentOrgExtid.value}/domains/${extid}`);
@@ -311,7 +327,7 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
             :title="t('web.domains.add_domain')"
             :aria-label="t('web.domains.add_domain')"
             data-testid="domain-context-add-icon"
-            @click="() => { close?.(); navigateToAddDomain(); }">
+            @click="navigateToAddDomain(close)">
             <OIcon
               collection="heroicons"
               name="plus-20-solid"
@@ -326,7 +342,7 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
           :key="domain"
           v-slot="{ active }"
           :disabled="isOptionDisabled(domain)"
-          @click="selectDomain(domain)">
+          @click="selectDomain(domain, close)">
           <button
             type="button"
             class="group/row relative w-full select-none py-2 pl-3 pr-9 text-left transition-colors duration-150"
@@ -385,7 +401,7 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
                 type="button"
                 class="hidden rounded p-0.5 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 group-hover/row:block dark:text-gray-500 dark:hover:bg-gray-600 dark:hover:text-gray-300"
                 :aria-label="t('web.domains.domain_settings')"
-                @click="navigateToDomainSettings(domain, $event)">
+                @click="navigateToDomainSettings(domain, $event, close)">
                 <OIcon
                   collection="heroicons"
                   name="cog"
@@ -408,7 +424,7 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
           <MenuItem
             v-if="!hasCustomDomains"
             v-slot="{ active }"
-            @click="navigateToAddDomain">
+            @click="navigateToAddDomain(close)">
             <button
               type="button"
               class="mx-2 w-[calc(100%-1rem)] cursor-pointer select-none rounded-md px-2 py-2 text-left transition-colors duration-150"
@@ -432,7 +448,7 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
           <MenuItem
             v-else
             v-slot="{ active }"
-            @click="navigateToManageDomains">
+            @click="navigateToManageDomains(close)">
             <button
               type="button"
               class="mx-2 w-[calc(100%-1rem)] cursor-pointer select-none rounded-md px-2 py-2 text-left transition-colors duration-150"
