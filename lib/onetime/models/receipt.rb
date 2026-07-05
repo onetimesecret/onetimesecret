@@ -189,17 +189,23 @@ module Onetime
       # Creates a linked Secret and Receipt pair for secure content storage.
       #
       # SECURITY CONTRACT: Callers must validate domain and passphrase before
-      # calling this method, as both are used as cryptographic inputs:
+      # calling this method:
       #
-      # - domain: Used as Additional Authenticated Data (AAD) for encryption.
-      #   API callers validate via: process_share_domain (format validation),
-      #   validate_domain_access (DB lookup + existence check), and
-      #   validate_domain_permissions (ownership/access rules). Attackers
-      #   cannot bind secrets to arbitrary AAD values.
+      # - domain: NOT a cryptographic input. The AAD for ciphertext is bound
+      #   automatically by Familia's encrypted_field and is exactly
+      #   "Onetime::Secret:ciphertext:<objid>" (class, field, identifier);
+      #   Secret declares no aad_fields, so the share domain is not part of
+      #   the AAD, and ciphertext_domain is a transient field that no code
+      #   reads back. Domain validation (process_share_domain,
+      #   validate_domain_access, validate_domain_permissions) is an
+      #   authorization control, not an encryption binding.
       #
-      # - passphrase: Used for secret access control (encrypted before storage).
-      #   API callers validate via: validate_passphrase (min/max length) and
-      #   validate_passphrase_complexity (when enforce_complexity enabled).
+      # - passphrase: An access-control gate, not an encryption input. It is
+      #   hashed with argon2id (passphrase_hashing feature) and verified
+      #   before decryption is attempted; it does not participate in key
+      #   derivation. API callers validate via: validate_passphrase (min/max
+      #   length) and validate_passphrase_complexity (when enforce_complexity
+      #   enabled).
       #
       # See: apps/api/v2/logic/secrets/base_secret_action.rb for validation.
       #

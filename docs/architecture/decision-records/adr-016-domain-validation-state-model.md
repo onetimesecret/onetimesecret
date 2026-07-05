@@ -1,12 +1,12 @@
 ---
 id: "016"
-status: proposed
+status: accepted
 title: "ADR-016: Decouple Ownership Verification from Certificate/Serving Status"
 ---
 
 ## Status
 
-Proposed
+Accepted
 
 ## Date
 
@@ -185,6 +185,73 @@ Code-checked: `Application.domain_allowed?`
 (`CustomDomain.load_by_display_domain`) then `ready?`, which is a pure
 in-memory boolean check with no I/O. This already meets the guidance — no
 remediation needed here, only confirmed and documented.
+
+### ACME `ask` gate is unsatisfiable under `caddy_on_demand` today — makes this ADR a functional prerequisite, not just UI/ownership polish (2026-07-03, re-verified against current source 2026-07-05)
+
+The `ask` endpoint gates cert issuance on `ready?` ⇔
+`verification_state == :verified` (`custom_domain.rb:656`, `639-647`), which
+requires `resolving.to_s == 'true'`. The `domain.resolving` field is written
+in exactly one place — `VerifyDomain#persist_changes`
+(`lib/onetime/operations/verify_domain.rb:307-331`) — and that write is
+gated on the strategy's `check_status` returning a **non-nil** `is_resolving`:
+
+```ruby
+# verify_domain.rb:314-315
+unless status_result[:is_resolving].nil?
+  domain.resolving = status_result[:is_resolving].to_s
+end
+```
+
+`caddy_on_demand`'s `check_status` returns `is_resolving: nil`
+(`caddy_on_demand_strategy.rb:61`), and `field :resolving`
+(`custom_domain.rb:93`) has no default. So under `caddy_on_demand`:
+`resolving` is never written → stays nil → `nil.to_s == 'true'` is false →
+`verification_state` caps at `:pending` → `ready?` is never true →
+`domain_allowed?` returns false → **the `ask` endpoint returns 403 for every
+domain, and Caddy can never obtain a certificate.** The strategy whose entire
+purpose is Caddy on-demand TLS calling this endpoint cannot serve a single
+domain until this ADR's OTS-side resolving check ships.
+
+(Note: the `is_resolving: status_result[:is_resolving] || false` on
+`verify_domain.rb:162` coerces nil→false only in the returned `Result`
+struct — it does **not** write the persisted `resolving` field, which remains
+governed by the nil-guard above.)
+
+This reclassifies ADR-016 from a UI-correctness / ownership-axis improvement
+to a **functional prerequisite** for `caddy_on_demand` end-to-end usability.
+
+Two facts that bound the claim, both code-checked:
+
+- **`passthrough` is unaffected** — its `check_status` hardcodes
+  `is_resolving: true` (`passthrough_strategy.rb:54`), so its resolving axis
+  can be set. Do not lump `passthrough` in with `caddy_on_demand` here; this
+  consequence is caddy-specific. `approximated` is likewise unaffected (it
+  returns a real `is_resolving`).
+- **The 403-under-caddy behavior is untested.**
+  `apps/internal/acme/spec/application_spec.rb:31-39` stubs
+  `CustomDomain.load_by_display_domain` to return doubles with hardcoded
+  `ready?: true/false`; it never exercises the real strategy → `check_status`
+  → `persist_changes` → `resolving` path, which is why CI is green on a
+  strategy that returns 403 for everything.
+
+### Localhost-only gate trusts `REMOTE_ADDR` — unconfirmed enumeration lead, not an asserted vector (2026-07-03)
+
+The `ask` endpoint is fronted by a `LocalhostOnly` middleware that reads
+`env['REMOTE_ADDR']` (`apps/internal/acme/application.rb:69-77`). The app's
+own comment (`application.rb:65-66`, `116-119`) states it relies on
+`IPPrivacyMiddleware` (from the universal MiddlewareStack) having already
+rewritten `REMOTE_ADDR` from forwarded headers. **If** that upstream rewrite
+trusts `X-Forwarded-For`/`Forwarded` from untrusted peers, a spoofed
+`X-Forwarded-For: 127.0.0.1` could pass the localhost gate and let an
+external caller enumerate which domains are registered/verified (200 vs 403).
+
+This is recorded as a lead, **not** an asserted vulnerability: the exact
+trust boundary of `IPPrivacyMiddleware` was not traced end-to-end, and the
+#3436 trusted-proxy harmonization (otto 2.3.1, RFC 7239 depth) governs how
+forwarded headers are trusted. Before treating this as real, confirm
+`IPPrivacyMiddleware`'s peer-trust configuration against the #3436 model. The
+endpoint response body is a bare `OK`/`Forbidden`, so any enumeration is
+boolean-only — no domain listing is leaked directly.
 
 ### TXT challenge has no expiry (2026-06-30)
 

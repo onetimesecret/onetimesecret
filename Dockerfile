@@ -205,6 +205,7 @@ RUN set -eux && \
     apt-get install -y --no-install-recommends \
         libsqlite3-0 \
         libpq5 \
+        libsodium23 \
         curl \
         procps \
         xz-utils \
@@ -330,6 +331,7 @@ RUN set -eux && \
     apt-get install -y --no-install-recommends \
         libsqlite3-0 \
         libpq5 \
+        libsodium23 \
         curl \
         procps \
         ca-certificates && \

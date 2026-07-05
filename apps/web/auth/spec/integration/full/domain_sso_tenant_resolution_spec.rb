@@ -68,7 +68,7 @@ RSpec.describe 'Domain SSO Tenant Resolution', type: :integration do
         v2: Base64.strict_encode64(key_v2),
       }
       config.current_key_version = :v1
-      config.encryption_personalization = 'DomainSsoTenantResolutionTest'
+      config.encryption_personalization = 'SsoTenantResolve'
     end
   end
 

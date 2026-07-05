@@ -62,7 +62,7 @@ logic = Logic::Secrets::ConcealSecret.new @strategy_result_with_cust, {'secret' 
 # ShowSecret Tests
 
 ## Create a secret for viewing tests
-@secret.value = 'test secret'
+@secret.ciphertext = 'test secret'
 @secret.passphrase = 'testpass123'
 @secret.save
 
