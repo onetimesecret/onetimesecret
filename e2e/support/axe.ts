@@ -41,6 +41,21 @@ export const FULL_BASELINE_PATH = path.join(
   'accessibility-baseline.full.json'
 );
 
+/**
+ * Separate baseline for the INTERACTIVE-STATE scans (dropdown open, error
+ * banners, open modals) in e2e/all/accessibility-interactive.spec.ts. The
+ * public at-rest baseline (BASELINE_PATH) is a pure "pages load clean" signal;
+ * post-interaction DOM is a conceptually distinct scope, so it gets its own
+ * file. Separate files also mean regenerating one never touches another and
+ * there is no read-modify-write contention if the a11y specs ever update in
+ * parallel.
+ */
+export const INTERACTIVE_BASELINE_PATH = path.join(
+  SUPPORT_DIR,
+  '..',
+  'accessibility-baseline.interactive.json'
+);
+
 /** True when the run should REWRITE the baseline instead of asserting. */
 export const IS_UPDATE_BASELINE = !!process.env.A11Y_UPDATE_BASELINE;
 
