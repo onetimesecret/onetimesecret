@@ -238,6 +238,9 @@ module Onetime
 
       if selections[:deployment_mode] == 'full'
         lines << 'AUTH_DATABASE_URL='
+        # AUTH_SECRET: independent HMAC key for Rodauth (TOTP, login tokens);
+        # cannot be recovered from SECRET, so full mode must supply it.
+        lines << 'AUTH_SECRET='
         lines << 'ARGON2_SECRET='
       end
 

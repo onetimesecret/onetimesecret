@@ -35,7 +35,7 @@ module Core
       # Returns the resulting etc/config.yaml / etc/auth.yaml override
       # fragments and a companion .env snippet as JSON string fields. Unknown
       # selections are ignored; invalid values fall back to that option's
-      # default (see Onetime::ConfigGenerator#coerce) — the endpoint never
+      # default (see Onetime::ConfigGenerator.coerce) — the endpoint never
       # errors on a malformed query string.
       def render
         result = Onetime::ConfigGenerator.build(req.params)

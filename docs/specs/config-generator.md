@@ -93,9 +93,9 @@ client-side.
 ## Security stance
 
 The generator never emits a real secret value. Anything secret-bearing —
-`SECRET`, `AUTH_DATABASE_URL`, `ARGON2_SECRET`, SMTP/SES/SendGrid/Lettermint
-credentials, `SENTRY_DSN_BACKEND` — is only ever rendered as an **empty** `.env`
-placeholder, never a generated or default value. Generator output is designed to
+`SECRET`, `AUTH_DATABASE_URL`, `AUTH_SECRET`, `ARGON2_SECRET`,
+SMTP/SES/SendGrid/Lettermint credentials, `SENTRY_DSN_BACKEND` — is only ever
+rendered as an **empty** `.env` placeholder, never a generated or default value. Generator output is designed to
 be safe to drop into a shareable link or a checked-in file. The endpoint has no
 database access, no session, and mutates no state.
 

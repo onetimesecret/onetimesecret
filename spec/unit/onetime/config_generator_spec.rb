@@ -76,9 +76,12 @@ RSpec.describe Onetime::ConfigGenerator do
       combined = "#{result.config_yaml}\n#{result.auth_yaml}\n#{result.env_snippet}"
 
       # Every secret-bearing ENV placeholder must be present but empty —
-      # no generated/default value ever appears next to the key.
+      # no generated/default value ever appears next to the key. Full mode
+      # carries three independent secrets (DB URL, AUTH_SECRET, ARGON2_SECRET).
       expect(result.env_snippet).to match(/^SECRET=$/)
       expect(result.env_snippet).to match(/^AUTH_DATABASE_URL=$/)
+      expect(result.env_snippet).to match(/^AUTH_SECRET=$/)
+      expect(result.env_snippet).to match(/^ARGON2_SECRET=$/)
       expect(result.env_snippet).to match(/^SMTP_PASSWORD=$/)
       expect(result.env_snippet).to match(/^SENTRY_DSN_BACKEND=$/)
 
