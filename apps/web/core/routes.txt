@@ -47,6 +47,11 @@ GET   /mfa-verify                                Core::Controllers::Page#index
 # Bootstrap endpoint - returns initialization data for the current session
 GET   /bootstrap/me                              Core::Controllers::Page#bootstrap_me auth=noauth
 
+# Configuration Generator - public, static YAML/JSON tool (no auth, no DB)
+GET   /configure                                 Core::Controllers::Page#index auth=noauth
+GET   /config-generator/options                  Core::Controllers::ConfigGenerator#options auth=noauth
+GET   /config-generator/render                   Core::Controllers::ConfigGenerator#render auth=noauth
+
 # Vue SPA catch-all routes - public (Vue handles auth client-side)
 GET   /receipt/*                                 Core::Controllers::Page#index auth=noauth
 GET   /secret/*                                  Core::Controllers::Page#index auth=noauth
