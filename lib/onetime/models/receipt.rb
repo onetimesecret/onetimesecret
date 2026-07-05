@@ -15,6 +15,7 @@ module Onetime
       generator: proc { Familia::VerifiableIdentifier.generate_verifiable_id }
     feature :safe_dump_fields
     feature :expiration
+    feature :access_timeline
     feature :relationships
     feature :required_fields
     feature :housekeeping
