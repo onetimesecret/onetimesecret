@@ -9,8 +9,14 @@
 //  - baseline compare logic keyed on a STABLE identity (no volatile data
 //    like exact contrast ratios) so the committed baseline is diff-friendly.
 //
-// Consumed by e2e/all/accessibility.spec.ts. The baseline file lives at
-// e2e/accessibility-baseline.json (one level up from this support/ dir).
+// Consumed by e2e/all/accessibility.spec.ts (public surfaces) and
+// e2e/full/accessibility.spec.ts (authenticated surfaces). Each spec passes
+// its OWN baseline file so the two suites never collide:
+//  - public:        e2e/accessibility-baseline.json      (default)
+//  - authenticated: e2e/accessibility-baseline.full.json (FULL_BASELINE_PATH)
+// The baseline-aware functions (loadBaseline / updateBaselineScope) take an
+// optional path that defaults to the public baseline, so existing public
+// callers are unaffected.
 
 import { AxeBuilder } from '@axe-core/playwright';
 import type { Page, TestInfo } from '@playwright/test';
@@ -23,6 +29,17 @@ const SUPPORT_DIR = path.dirname(fileURLToPath(import.meta.url));
 
 /** Committed baseline of KNOWN violations. Absolute so writer/reader agree. */
 export const BASELINE_PATH = path.join(SUPPORT_DIR, '..', 'accessibility-baseline.json');
+
+/**
+ * Separate baseline for the AUTHENTICATED (`full` project) surfaces. Kept
+ * apart from the public baseline so the two suites' keys never collide and so
+ * regenerating one doesn't touch the other.
+ */
+export const FULL_BASELINE_PATH = path.join(
+  SUPPORT_DIR,
+  '..',
+  'accessibility-baseline.full.json'
+);
 
 /** True when the run should REWRITE the baseline instead of asserting. */
 export const IS_UPDATE_BASELINE = !!process.env.A11Y_UPDATE_BASELINE;
@@ -120,10 +137,14 @@ export async function scanPage(
   return flattenViolations(results, opts.theme, opts.route);
 }
 
-/** Load the committed baseline; an absent file is treated as empty. */
-export function loadBaseline(): Baseline {
+/**
+ * Load the committed baseline; an absent file is treated as empty. Pass a
+ * `baselinePath` to read a suite-specific baseline (defaults to the public
+ * one at BASELINE_PATH).
+ */
+export function loadBaseline(baselinePath: string = BASELINE_PATH): Baseline {
   try {
-    const raw = fs.readFileSync(BASELINE_PATH, 'utf8');
+    const raw = fs.readFileSync(baselinePath, 'utf8');
     const parsed = JSON.parse(raw) as Baseline;
     return parsed ?? {};
   } catch {
@@ -149,9 +170,10 @@ export function serializeBaseline(baseline: Baseline): string {
 export function updateBaselineScope(
   theme: Theme,
   route: string,
-  violations: FlatViolation[]
+  violations: FlatViolation[],
+  baselinePath: string = BASELINE_PATH
 ): void {
-  const baseline = loadBaseline();
+  const baseline = loadBaseline(baselinePath);
   const prefix = `${theme}|${route}|`;
   for (const k of Object.keys(baseline)) {
     if (k.startsWith(prefix)) delete baseline[k];
@@ -160,7 +182,7 @@ export function updateBaselineScope(
     const { key, ...meta } = v;
     baseline[key] = meta;
   }
-  fs.writeFileSync(BASELINE_PATH, serializeBaseline(baseline), 'utf8');
+  fs.writeFileSync(baselinePath, serializeBaseline(baseline), 'utf8');
 }
 
 export interface CompareResult {
