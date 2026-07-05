@@ -28,6 +28,105 @@ status: preparation / design research
 
 ---
 
+## 0. Problem statement
+
+> Solution-free articulation of why this work exists, so the problem can be
+> evaluated independently of the chosen remedy (target design begins at §5).
+> Issue #3491 is closed as of 2026-07-04; this document supersedes it as the
+> problem record. The issue's original framing — "the architecture is sound,
+> the naming is confusing" — understated the defect; see §0.2 harm 2.
+
+### 0.1 One vocabulary answering two questions
+
+The system needs to answer "does this organization's subscription include X?"
+(a billing question, org-scoped, changes when money changes) and "is this
+member allowed to do Y?" (an authorization question, member-scoped, changes
+when their role changes). Today both questions are asked with the same
+strings, stored in the same sets, resolved through the same materialization
+step, checked by the same predicate, denied with the same error, shipped over
+the same wire field, and gated by the same frontend check. Nothing anywhere in
+the stack — not the data, not the types, not the code paths — records which
+kind of question a given string answers.
+
+### 0.2 Four classes of harm
+
+**1. The system cannot explain a denial.** A member blocked from custom
+branding (their org didn't buy it) and a member blocked from renaming the org
+(their role doesn't permit it) traverse identical code and receive the
+identical answer: a 403 framed as "upgrade your plan," complete with a
+suggested plan to buy. For role denials this is not just unhelpful — it is
+false. No amount of money grants a role permission. The user-facing
+consequence is misdirected UX (upgrade prompts where "ask your admin" is the
+truth); the engineering consequence is that no layer can branch on *why*
+access was refused.
+
+**2. Role authorization is accidentally coupled to billing.** Because a
+member's effective set is computed by intersecting the org's plan set with the
+role's set, a role permission only survives if the *plan* also lists it. Paid
+plans don't list management permissions — so in billing-enabled mode the
+intersection silently strips every management permission from every member,
+owners included. The only reason authorization works at all is that
+self-hosted (non-billing) mode deliberately stuffs role permissions into the
+*plan* set to survive the intersection — a plan-shaped container carrying role
+cargo purely so the math comes out right. Whether a member can administer
+their org should never depend on the billing catalog's contents, yet today it
+structurally does. The defect is latent only because paid multi-member orgs
+aren't sellable yet; the mechanism is already armed. Corollaries: a billing
+webhook recomputes everyone's *permissions* on a plan event, and an operator
+editing billing YAML can grant or withhold administrative authority as if it
+were a SKU.
+
+**3. Ambiguity breeds unchecked drift.** Because nothing marks a string's
+kind, nothing can validate the inventory — and it has rotted accordingly. Two
+strings are consumed by live frontend gates but can never be granted by any
+backend path. Three hand-maintained enumerations of "the full set" disagree
+with each other. The governing ADR disagrees with shipped code and was never
+accepted. The frontend and backend disagree about self-hosted behavior: the
+client grants *everything* to *everyone* (erasing role differences), while the
+server still honors roles. Enforcement itself has forked: two backend gates
+accept the same string but check different dimensions of it, with different
+anonymous-access and operator-bypass policies; sibling frontend pages gate the
+same kind of surface differently. None of these is an isolated bug — each is
+the conflation expressing itself, and each is the kind of drift a typed
+distinction would have made impossible or at least detectable. (Inventory:
+§4.)
+
+**4. The fusion is also doing real, invisible work — which is what makes this
+hard.** Two things prevent this from being a mechanical rename. First, the
+fusion exists *on purpose*: it was the cure for the previous defect (#3225),
+where plan checks and role checks were separate and had to be manually paired
+at every endpoint, and endpoints shipped having forgotten one. A single fused
+check made forgetting impossible. So the problem space contains a genuine
+tension: the system must regain "which axis denied this?" without giving back
+"no endpoint can forget an axis." Second, the intersection is currently the
+*only* thing enforcing role-tiering of features at some endpoints — e.g., an
+ordinary member can't add a custom domain solely because that feature happens
+to sit in the admin tier of the fused sets. Naively untangling the two axes
+silently relaxes those checks. The load the fusion carries has to be
+inventoried before it can be removed. (§1.2, §6 Stage B, §8.)
+
+### 0.3 Edges of the space
+
+Numeric limits are already a cleanly separated third thing and are not part of
+the problem — except that some limits are plan-imposed quotas *on roles*
+(`role_*_per_org`), evidence the axes genuinely interact rather than merely
+cohabiting. A few tokens are honestly dual-natured (`audit_logs`: "does the
+org have it?" and "may this role view it?" are both real questions collapsed
+into one string), so the boundary between the two kinds requires per-token
+product judgment, not just sorting. And one string (`manage_orgs`) is scoped
+to neither the org's plan nor an org role but to the *account* — a hint that
+the space may hold more than two axes.
+
+### 0.4 In one sentence
+
+Subscription scope and member authority are two independent dimensions of
+access that the system has flattened into one, so it can neither tell them
+apart when denying access, keep them from corrupting each other's semantics,
+nor evolve either one without risking the other — while the flattening itself
+is load-bearing safety machinery that can't simply be removed.
+
+---
+
 ## 1. Executive summary
 
 OnetimeSecret today stores two semantically different things — **plan entitlements** (what an organization's *subscription* includes: `incoming_secrets`, `custom_branding`, `audit_logs`, `custom_domains`, …) and **role capabilities** (what a member's *role* lets them do: `manage_org`, `manage_members`, `manage_sso`, `manage_billing`) — in **one undifferentiated `ENTITLEMENTS` string namespace**. Both are listed in the same billing catalog (`etc/examples/billing.example.yaml:72-163`), interleaved in the same per-role `ROLE_ENTITLEMENTS` Sets (`lib/onetime/models/organization_membership.rb:72-106`), fused into one flat `membership.materialized_entitlements` blob via the single intersection `org.entitlements ∩ ROLE_ENTITLEMENTS[role] + grants − revokes` (`lib/onetime/models/organization_membership/features/with_materialized_entitlements.rb:88-113`), checked through one concern-agnostic `can?(entitlement)` predicate (`lib/onetime/models/features/with_entitlements.rb:70-72`), and serialized to the frontend as one `org.entitlements` array consumed by one `can()` composable (`src/shared/composables/useEntitlements.ts:86-100`). The consequence: the system cannot tell *why* a check fails — a member denied `custom_branding` (a plan gap) and a member denied `manage_org` (a role gap) flow through identical code and both raise the same `EntitlementRequired` error framed as a **"upgrade your plan"** message (`lib/onetime/errors.rb:160-182`), even though no plan upgrade can ever grant a role capability. **Target end-state (Option C):** two disjoint registries and stores — `org.plan_entitlements` (subscription features, org-level, billing-driven) and `membership.role_capabilities` (role permissions, member-level, role-table-driven, billing-independent) — with two explicit check predicates (`org.has_feature?` / `membership.has_capability?`), two error/UX vocabularies ("upgrade plan" vs "insufficient role / ask an admin"), two wire fields, and two frontend composables (`useFeatures(org)` / `usePermissions(membership)`). Enforcement points that need both run **two explicit gates** (plan gate AND role gate). Limits (`secret_lifetime.max`, `role_*_per_org.max`, …) are already cleanly separated in `WithMaterializedLimits` and stay where they are.
