@@ -437,7 +437,7 @@ module V1::Logic
             class:     #{self.class}
             share_domain:   #{@share_domain}
             custom_domain?:  #{custom_domain?}
-            allow_public?:   #{domain_record.allow_public_homepage?}
+            allow_public?:   #{domain_record.allow_public_secret_creation?}
             accessible?:     #{domain_record.accessible_by?(@cust)}
             verified?:       #{domain_record.verified}
         DEBUG
@@ -483,9 +483,11 @@ module V1::Logic
           raise_form_error "You do not have permission to use domain: #{share_domain}"
         end
 
-        # Anonymous on a custom domain: gated by the Homepage Secrets toggle.
+        # Anonymous on a custom domain: gated by the Homepage Secrets toggle
+        # AND the homepage secrets_mode — 'incoming' mode does not authorize
+        # anonymous secret creation (visitors use the incoming API instead).
         if custom_domain?
-          return if domain_record.allow_public_homepage?
+          return if domain_record.allow_public_secret_creation?
           raise_form_error "Public sharing disabled for domain: #{share_domain}"
         end
 

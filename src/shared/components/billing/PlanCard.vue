@@ -124,11 +124,11 @@
       <!-- Plan Header -->
       <div class="mb-4">
         <div class="flex items-center gap-2">
-          <h3
+          <h2
             class="text-xl font-bold text-gray-900 dark:text-white"
             :data-plan-id="plan.id">
             {{ plan.name }}
-          </h3>
+          </h2>
           <span
             v-if="plan.plan_name_label"
             class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-300">

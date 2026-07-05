@@ -147,10 +147,28 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     }
   );
 
-  // Watch homepage_config for toggle state (authoritative source, separate from brand)
-  watch(homepage_config, (newConfig) => {
-    state.allowPublicHomepage = newConfig?.enabled ?? false;
-  });
+  // Watch homepage_config for toggle state (authoritative source, separate
+  // from brand). deep: true because pinia's $patch merges a plain nested
+  // object IN PLACE (same reference), so a shallow watch only fires on the
+  // null -> object transition — and on custom domains bootstrap always
+  // ships an object, so in-session updates would otherwise never land.
+  watch(
+    homepage_config,
+    (newConfig) => {
+      state.allowPublicHomepage = newConfig?.enabled ?? false;
+    },
+    { deep: true }
+  );
+
+  /**
+   * Which interactive experience the enabled homepage presents
+   * ('create' | 'incoming'). Computed (not state + watch) so it tracks
+   * nested property access through the reactive proxy and survives
+   * in-place $patch merges of homepage_config.
+   */
+  const homepageSecretsMode = computed(
+    () => homepage_config.value?.secrets_mode ?? 'create'
+  );
 
   // Watch for domain config changes (consolidated for reduced reactive overhead)
   watch(
@@ -303,6 +321,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     installLogoUri,
     installLogoAlt,
     logoSource,
+    homepageSecretsMode,
     $reset,
 
     ...toRefs(state),

@@ -185,7 +185,7 @@
           flex-wrap items-center justify-center
           gap-x-3
           text-center
-          text-xs text-gray-500 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
+          text-xs text-gray-600 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
           <span
             v-if="displayVersion && showVersionConfig"
             :title="`${t('web.homepage.onetime_secret_literal')} ${t('web.COMMON.version')}`">

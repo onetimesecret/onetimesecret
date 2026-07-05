@@ -1395,5 +1395,90 @@
   "web.domains.entitlement_required_member": {
     "text": "This feature is not available on your current plan. Contact your organization owner.",
     "content_hash": "8f1688b2"
+  },
+  "web.domains.homepage.title": {
+    "text": "Homepage",
+    "context": "Domain detail Features row title for the homepage experience selector (replaces the former Homepage Secrets toggle row)",
+    "content_hash": "9e3391e9"
+  },
+  "web.domains.homepage.description": {
+    "text": "What visitors can do on your domain homepage",
+    "context": "Domain detail Features row description under the Homepage title",
+    "content_hash": "974d159e"
+  },
+  "web.domains.homepage.option_private_title": {
+    "text": "Private landing page",
+    "context": "Homepage selector option: no interactive functionality for anonymous visitors (trust-card landing)",
+    "content_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.option_private_description": {
+    "text": "Visitors see a private landing page with no interactive form",
+    "context": "Homepage selector option description for the private landing choice",
+    "content_hash": "4d9aaf6f"
+  },
+  "web.domains.homepage.option_create_title": {
+    "text": "Secret creation form",
+    "context": "Homepage selector option: anonymous visitors can create secrets (classic Homepage Secrets behavior)",
+    "content_hash": "6539dfc1"
+  },
+  "web.domains.homepage.option_create_description": {
+    "text": "Visitors can create their own secret links",
+    "context": "Homepage selector option description for the create choice",
+    "content_hash": "884310f4"
+  },
+  "web.domains.homepage.option_incoming_title": {
+    "text": "Incoming secrets form",
+    "context": "Homepage selector option: anonymous visitors send secrets to the domain's configured recipients",
+    "content_hash": "882997bf"
+  },
+  "web.domains.homepage.option_incoming_description": {
+    "text": "Visitors can send secrets to your configured recipients",
+    "context": "Homepage selector option description for the incoming choice",
+    "content_hash": "86bdaedb"
+  },
+  "web.domains.homepage.incoming_requires_recipients": {
+    "text": "Requires incoming secrets to be enabled with at least one recipient",
+    "context": "Hint shown on the disabled incoming option when the domain's incoming config is not ready",
+    "content_hash": "0462611d"
+  },
+  "web.domains.homepage.configure_recipients": {
+    "text": "Configure recipients",
+    "context": "Link from the disabled incoming option to the Incoming Secrets configuration page",
+    "content_hash": "1c3df8b4"
+  },
+  "web.domains.homepage.status_private": {
+    "text": "Private landing page",
+    "context": "Homepage row live status line when the homepage is not interactive",
+    "content_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.status_create": {
+    "text": "Public: visitors create secrets",
+    "context": "Homepage row live status line when the create form is active",
+    "content_hash": "251cfb95"
+  },
+  "web.domains.homepage.status_incoming": {
+    "text": "Public: visitors send you secrets",
+    "context": "Homepage row live status line when the incoming form is active",
+    "content_hash": "baa926b8"
+  },
+  "web.domains.homepage.status_incoming_unready": {
+    "text": "Incoming not ready — showing private landing page",
+    "context": "Homepage row live status line when secrets_mode is incoming but incoming isn't ready (recipients removed, disabled, or entitlement lapsed); the backend fails closed to the private trust card",
+    "content_hash": "a5cc237c"
+  },
+  "web.domains.homepage.badge_incoming": {
+    "text": "Incoming",
+    "context": "Small badge under the domains-table homepage toggle when the homepage presents the incoming form",
+    "content_hash": "e301820a"
+  },
+  "web.domains.homepage.update_success": {
+    "text": "Homepage settings saved",
+    "context": "Notification after successfully saving the homepage experience selection",
+    "content_hash": "4eac9f45"
+  },
+  "web.domains.homepage.homepage_uses_incoming_warning": {
+    "text": "This domain's homepage currently presents the incoming secrets form. Disabling incoming secrets or removing all recipients will switch the homepage to a private landing page until incoming is ready again.",
+    "context": "Warning on the Incoming Secrets config page when the homepage secrets_mode is incoming and a change could un-ready it",
+    "content_hash": "cc0d4997"
   }
 }

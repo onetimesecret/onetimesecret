@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/models/custom_domain/homepage_config'
 require_relative 'base'
 require_relative 'serializers'
 
@@ -67,6 +68,8 @@ module DomainsAPI
 
           @incoming_config.destroy!
 
+          log_homepage_drift
+
           success_data
         end
 
@@ -76,6 +79,21 @@ module DomainsAPI
             deleted: true,
             domain_id: @custom_domain.identifier,
           }
+        end
+
+        private
+
+        # Deleting the config un-readies a homepage that points at the
+        # incoming form. Deliberately permissive (deleting recipients is a
+        # legitimate escape hatch; the bootstrap serializer fails the
+        # homepage closed to the trust card) — but leave an audit trail so
+        # a silently trust-carded homepage is traceable to this write.
+        def log_homepage_drift
+          homepage = Onetime::CustomDomain::HomepageConfig.find_by_domain_id(@custom_domain.identifier)
+          return unless homepage&.enabled? && homepage.incoming_mode?
+
+          OT.li "[DeleteIncomingConfig] domain=#{@custom_domain.identifier} homepage secrets_mode=incoming " \
+                "now unready after config delete by user=#{cust.extid}; public homepage degrades to trust card"
         end
       end
     end

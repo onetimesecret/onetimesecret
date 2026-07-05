@@ -191,10 +191,10 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
         organization_instances: [])
     end
 
-    # Stand-in for CustomDomain. accessible_by? and allow_public_homepage? are the
+    # Stand-in for CustomDomain. accessible_by? and allow_public_secret_creation? are the
     # only methods validate_domain_permissions touches on the record.
-    def build_domain_record(owner: false, allow_public_homepage: false)
-      double('CustomDomain', accessible_by?: owner, allow_public_homepage?: allow_public_homepage)
+    def build_domain_record(owner: false, allow_public_secret_creation: false)
+      double('CustomDomain', accessible_by?: owner, allow_public_secret_creation?: allow_public_secret_creation)
     end
 
     # Build a subject seeded with @cust and @share_domain so the helper
@@ -253,7 +253,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
     end
 
     context 'anonymous on custom domain with public sharing disabled (line ~459)' do
-      let(:domain_record) { build_domain_record(owner: false, allow_public_homepage: false) }
+      let(:domain_record) { build_domain_record(owner: false, allow_public_secret_creation: false) }
       subject { build_subject(cust: anonymous_customer, custom_domain: true) }
 
       it 'raises Onetime::Forbidden' do
@@ -296,7 +296,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
     end
 
     context 'anonymous on canonical attempting cross-domain (line ~470)' do
-      let(:domain_record) { build_domain_record(owner: false, allow_public_homepage: true) }
+      let(:domain_record) { build_domain_record(owner: false, allow_public_secret_creation: true) }
       subject { build_subject(cust: anonymous_customer, custom_domain: false) }
 
       it 'raises Onetime::Forbidden' do
@@ -752,7 +752,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
     def build_passing_domain_record(owner: true)
       double('CustomDomain',
         accessible_by?: owner,
-        allow_public_homepage?: true,
+        allow_public_secret_creation?: true,
         verified: 'true')
     end
 
@@ -822,7 +822,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       let(:domain_record) do
         double('CustomDomain',
           accessible_by?: false,
-          allow_public_homepage?: false,
+          allow_public_secret_creation?: false,
           verified: 'true')
       end
 
@@ -880,7 +880,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       let(:domain_record) do
         double('CustomDomain',
           accessible_by?: false,
-          allow_public_homepage?: true,
+          allow_public_secret_creation?: true,
           verified: 'true')
       end
 
@@ -939,7 +939,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       let(:host_record) do
         double('CustomDomain',
           accessible_by?: false,
-          allow_public_homepage?: true,
+          allow_public_secret_creation?: true,
           verified: 'true')
       end
 
@@ -995,7 +995,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
     end
 
     let(:host_record) do
-      double('CustomDomain', accessible_by?: false, allow_public_homepage?: true, verified: 'true')
+      double('CustomDomain', accessible_by?: false, allow_public_secret_creation?: true, verified: 'true')
     end
 
     # Real nested payload, exactly as a guest POST would arrive.

@@ -431,7 +431,7 @@ module V2::Logic
           {
             domain: domain,
             custom_domain: custom_domain?,
-            allow_public: domain_record.allow_public_homepage?,
+            allow_public: domain_record.allow_public_secret_creation?,
             accessible: domain_record.accessible_by?(@cust),
             user_id: @cust&.objid,
           }
@@ -499,9 +499,12 @@ module V2::Logic
           )
         end
 
-        # Anonymous on a custom domain: gated by the Homepage Secrets toggle.
+        # Anonymous on a custom domain: gated by the Homepage Secrets toggle
+        # AND the homepage secrets_mode — a homepage presenting the incoming
+        # form ('incoming' mode) is public but does not authorize anonymous
+        # secret CREATION (visitors send secrets via the incoming API instead).
         if custom_domain?
-          return if domain_record.allow_public_homepage?
+          return if domain_record.allow_public_secret_creation?
 
           secret_logger.warn 'Public sharing disabled for domain',
             {

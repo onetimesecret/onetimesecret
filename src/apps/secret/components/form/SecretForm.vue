@@ -205,26 +205,19 @@
         <div class="p-8">
           <!-- Secret Input Section -->
           <span v-show="selectedAction === 'create-link'">
-            <label
-              id="secretContentLabel"
-              class="sr-only">
-              <!--
-                  Using sr-only (screen-reader only) for this main content area because:
-                  1. The purpose of a large textarea in a secret-sharing context is visually self-evident
-                  2. The placeholder text provides sufficient visual context for sighted users
-                  3. Other form fields (passphrase, expiration, etc.) keep visible labels as they
-                      represent configuration options that need explicit identification
-                -->
-              {{ t('web.secrets.secret_content') || 'Secret Content' }}
-            </label>
-
+            <!--
+              The secret content textarea is labelled by its own aria-label
+              (web.secrets.enter_the_secret_content_here, set inside
+              SecretContentInputArea). A separate sr-only <label> was removed
+              because it had no associated control (invalid label semantics)
+              and would have been overridden by that aria-label anyway.
+            -->
             <SecretContentInputArea
               ref="secretContentInput"
               v-model:content="form.secret"
               :disabled="isSubmitting"
               :max-height="400"
               :corner-class="cornerClass"
-              aria-labelledby="secretContentLabel"
               @update:content="(content) => operations.updateField('secret', content)" />
           </span>
 
@@ -283,19 +276,17 @@
           <div class="mt-6 grid gap-6 md:grid-cols-2 md:items-start">
             <!-- Passphrase Field -->
             <div class="relative">
-              <h3>
-                <label
-                  :for="passphraseId"
-                  class="mb-1 block font-brand text-sm text-gray-600 dark:text-gray-300">
-                  {{ t('web.COMMON.secret_passphrase') }}
-                  <span
-                    v-if="isPassphraseRequired"
-                    class="ml-1 text-red-500"
-                    aria-label="Required"
-                    >*</span
-                  >
-                </label>
-              </h3>
+              <label
+                :for="passphraseId"
+                class="mb-1 block font-brand text-sm text-gray-600 dark:text-gray-300">
+                {{ t('web.COMMON.secret_passphrase') }}
+                <span
+                  v-if="isPassphraseRequired"
+                  class="ml-1 text-red-500"
+                  aria-label="Required"
+                  >*</span
+                >
+              </label>
               <!-- Fixed height container for hints to prevent layout shifts -->
               <div class="mb-2 min-h-4">
                 <div
@@ -365,13 +356,11 @@
             <div
               v-if="props.withExpiry"
               class="relative">
-              <h3>
-                <label
-                  :for="lifetimeId"
-                  class="mb-1 block font-brand text-sm text-gray-600 dark:text-gray-300">
-                  {{ t('web.LABELS.expiration_time') || 'Secret Expiration' }}
-                </label>
-              </h3>
+              <label
+                :for="lifetimeId"
+                class="mb-1 block font-brand text-sm text-gray-600 dark:text-gray-300">
+                {{ t('web.LABELS.expiration_time') || 'Secret Expiration' }}
+              </label>
               <!-- Empty spacer to match passphrase field hint area -->
               <div class="mb-2 min-h-4"></div>
               <div class="relative">
@@ -425,13 +414,11 @@
           <div
             v-if="showRecipient"
             class="mt-6">
-            <h3>
-              <label
-                :for="recipientId"
-                class="mb-1 block font-brand text-sm text-gray-700 dark:text-gray-300">
-                {{ t('web.COMMON.secret_recipient_address') || 'Email Recipient' }}
-              </label>
-            </h3>
+            <label
+              :for="recipientId"
+              class="mb-1 block font-brand text-sm text-gray-700 dark:text-gray-300">
+              {{ t('web.COMMON.secret_recipient_address') || 'Email Recipient' }}
+            </label>
             <div class="relative">
               <div class="pointer-events-none absolute inset-y-0 left-3 flex items-center">
                 <OIcon
