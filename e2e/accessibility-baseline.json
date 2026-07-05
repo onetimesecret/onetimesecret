@@ -1,0 +1,50 @@
+{
+  "dark|/feedback|color-contrast|li:nth-child(1)": {
+    "theme": "dark",
+    "route": "/feedback",
+    "ruleId": "color-contrast",
+    "target": "li:nth-child(1)",
+    "impact": "serious",
+    "help": "Elements must meet minimum color contrast ratio thresholds"
+  },
+  "dark|/feedback|color-contrast|li:nth-child(2)": {
+    "theme": "dark",
+    "route": "/feedback",
+    "ruleId": "color-contrast",
+    "target": "li:nth-child(2)",
+    "impact": "serious",
+    "help": "Elements must meet minimum color contrast ratio thresholds"
+  },
+  "dark|/pricing|color-contrast|.bg-brand-600": {
+    "theme": "dark",
+    "route": "/pricing",
+    "ruleId": "color-contrast",
+    "target": ".bg-brand-600",
+    "impact": "serious",
+    "help": "Elements must meet minimum color contrast ratio thresholds"
+  },
+  "dark|/signup|color-contrast|.hover\\:text-gray-700 > span": {
+    "theme": "dark",
+    "route": "/signup",
+    "ruleId": "color-contrast",
+    "target": ".hover\\:text-gray-700 > span",
+    "impact": "serious",
+    "help": "Elements must meet minimum color contrast ratio thresholds"
+  },
+  "dark|/signup|color-contrast|a[href$=\"privacy\"]": {
+    "theme": "dark",
+    "route": "/signup",
+    "ruleId": "color-contrast",
+    "target": "a[href$=\"privacy\"]",
+    "impact": "serious",
+    "help": "Elements must meet minimum color contrast ratio thresholds"
+  },
+  "dark|/signup|color-contrast|a[href$=\"terms\"]": {
+    "theme": "dark",
+    "route": "/signup",
+    "ruleId": "color-contrast",
+    "target": "a[href$=\"terms\"]",
+    "impact": "serious",
+    "help": "Elements must meet minimum color contrast ratio thresholds"
+  }
+}
