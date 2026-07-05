@@ -111,7 +111,10 @@
         v-if="!omitIcon"
         class="flex flex-col items-center"
         :class="{ 'invisible': hideIcon }">
-        <RouterLink to="/" class="group">
+        <RouterLink
+          to="/"
+          class="group"
+          :aria-label="t('web.layout.return_to_home_page')">
           <div class="relative">
             <!-- Custom logo (for branded/custom domain pages) -->
             <template v-if="titleLogo">
@@ -139,12 +142,12 @@
 
       <!-- Title Text -->
       <div class="space-y-3 text-center">
-        <h2
+        <h1
           :id="headingId"
           v-if="withHeading"
           class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
           {{ heading }}
-        </h2>
+        </h1>
         <p
           v-if="withSubheading"
           class="flex items-center justify-center text-sm text-gray-600 dark:text-gray-400">
@@ -175,7 +178,7 @@
         <div v-if="showReturnHome" class="border-t border-gray-200 pt-6 dark:border-gray-700">
           <RouterLink
             to="/"
-            class="inline-flex items-center text-sm text-gray-500 transition-colors duration-200 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-400"
+            class="inline-flex items-center text-sm text-gray-500 transition-colors duration-200 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
             :aria-label="t('web.layout.return_to_home_page')">
             <span>{{ t('web.layout.return_home') }}</span>
           </RouterLink>
