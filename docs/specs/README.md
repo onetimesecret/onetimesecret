@@ -5,6 +5,17 @@ behaviour and its rationale, kept current with the code. Single-issue names are
 avoided here; specs are titled by the behaviour they describe, not the ticket
 that prompted them.
 
+## Install & onboarding
+
+- [install-onboarding-problem-space.md](./install-onboarding-problem-space.md) —
+  The install/first-run problem space, industry patterns for bridging file
+  config to a web setup wizard, and phased recommendations (runtime-config
+  overlay in Valkey, first-run wizard, CI-tested install).
+- [install-onboarding-landscape.md](./install-onboarding-landscape.md) — The
+  March 2026 competitive landscape research (Discourse, Coolify, Plane,
+  Sentry, GitLab) the assessment draws on: install UX patterns,
+  testing/validation tooling, and the two-tier config model.
+
 ## Secret creation & permissions
 
 - [secret-creation-flows.md](./secret-creation-flows.md) — The paths through
