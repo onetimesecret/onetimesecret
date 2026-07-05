@@ -117,5 +117,26 @@ RSpec.describe Onetime::CustomDomain::HomepageConfig do
         expect(config.effectively_enabled?).to be(true)
       end
     end
+
+    context 'when secrets_mode is an unrecognized stored value' do
+      let(:secrets_mode) { 'corrupted-mode' }
+
+      it 'fails closed rather than falling open to the create form' do
+        # Only reachable via direct Redis corruption or a botched migration —
+        # the PUT API rejects unknown modes and upsert/create! coerce them. An
+        # enabled homepage whose stored mode we cannot interpret must show the
+        # non-interactive trust card, not the public create form the operator
+        # never selected.
+        expect(config.effectively_enabled?(custom_domain: custom_domain)).to be(false)
+      end
+    end
+
+    context 'when secrets_mode is blank (legacy/unset record)' do
+      let(:secrets_mode) { '' }
+
+      it 'reads as the historical create form (interactive)' do
+        expect(config.effectively_enabled?(custom_domain: custom_domain)).to be(true)
+      end
+    end
   end
 end

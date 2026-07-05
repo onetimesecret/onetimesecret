@@ -185,6 +185,29 @@ end
 @result[:record][:secrets_mode]
 #=> 'create'
 
+# --- enabled presence (defence-in-depth) ---
+# The request schema requires enabled, but the server is the authoritative
+# validator: an omitted enabled must be rejected, not silently coerced to
+# false (which would disable the homepage the caller meant to keep on).
+
+## PUT omitting enabled is rejected rather than silently disabling the homepage
+begin
+  run_put(@test_cust, @test_domain, { 'secrets_mode' => 'create' })
+  'unexpected_success'
+rescue OT::FormError => e
+  e.message
+end
+#=> 'enabled is required'
+
+## An explicit null enabled is likewise rejected
+begin
+  run_put(@test_cust, @test_domain, { 'enabled' => nil })
+  'unexpected_success'
+rescue OT::FormError => e
+  e.message
+end
+#=> 'enabled is required'
+
 # Teardown
 OT.send(:conf=, @original_conf)
 @test_domain.destroy!

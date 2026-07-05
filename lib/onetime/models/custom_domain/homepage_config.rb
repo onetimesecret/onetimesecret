@@ -34,11 +34,16 @@ module Onetime
       #   'create'   - the classic secret-creation form (historical behavior)
       #   'incoming' - the incoming-secrets form (send a secret TO the
       #                domain's configured IncomingConfig recipients)
-      # Unset/unknown values coerce to 'create' so records that pre-date this
-      # field keep their existing behavior. Not to be confused with the
-      # site-level homepage "mode" (internal/external CIDR detection in
-      # Helpers::HomepageModeHelpers) — that gates WHO sees the interactive
-      # homepage; this selects WHAT the interactive homepage is.
+      # Unset/blank values read as 'create' via secrets_mode_value so records
+      # that pre-date this field keep their existing behavior. An unrecognised
+      # non-blank value coerces to 'create' for display too, but the security
+      # gates (effectively_enabled?, CustomDomain#allow_public_secret_creation?)
+      # deliberately DO NOT trust that coercion — they fail closed on it via
+      # recognized_secrets_mode? rather than exposing a form the operator never
+      # chose. Not to be confused with the site-level homepage "mode"
+      # (internal/external CIDR detection in Helpers::HomepageModeHelpers) —
+      # that gates WHO sees the interactive homepage; this selects WHAT the
+      # interactive homepage is.
       VALID_SECRETS_MODES  = %w[create incoming].freeze
       DEFAULT_SECRETS_MODE = 'create'
 
@@ -130,6 +135,20 @@ module Onetime
         secrets_mode_value == 'incoming'
       end
 
+      # Whether the stored secrets_mode is one we can interpret: blank (a
+      # legacy/unset record, which reads as the historical 'create') or a value
+      # in VALID_SECRETS_MODES. A non-blank value we don't recognise is treated
+      # as corruption. The security gates (effectively_enabled? and
+      # CustomDomain#allow_public_secret_creation?) fail closed on it rather
+      # than letting secrets_mode_value's display coercion silently turn it into
+      # the public create form. Not reachable through the model's own writers
+      # (upsert / create! coerce) or the PUT API (rejects unknown modes); this
+      # guards against direct Redis writes and botched migrations.
+      def recognized_secrets_mode?
+        v = secrets_mode.to_s.strip
+        v.empty? || VALID_SECRETS_MODES.include?(v)
+      end
+
       # Whether the homepage is EFFECTIVELY interactive for anonymous
       # visitors right now. For create mode this is just enabled?; for
       # incoming mode it additionally requires that incoming can actually
@@ -144,6 +163,11 @@ module Onetime
       # @return [Boolean]
       def effectively_enabled?(custom_domain: nil)
         return false unless enabled?
+        # An unrecognised stored mode (corruption, a botched migration, or a
+        # mode written by a newer app version) must not fall open to the public
+        # create form the operator never selected — fail closed to the trust
+        # card. Recognised legacy/blank still reads as the create form below.
+        return false unless recognized_secrets_mode?
         return true unless incoming_mode?
 
         incoming_available?(custom_domain: custom_domain)
@@ -237,9 +261,12 @@ module Onetime
           VALID_DISABLED_HOMEPAGE_VARIANTS.include?(v) ? v : nil
         end
 
-        # Normalise a homepage secrets mode to a recognised id. Blank and
-        # unknown values collapse to DEFAULT_SECRETS_MODE ('create') so
-        # legacy records and stray Redis values keep historical behavior.
+        # Normalise a homepage secrets mode to a recognised id for DISPLAY and
+        # merge-write purposes. Blank and unknown values collapse to
+        # DEFAULT_SECRETS_MODE ('create') so legacy records and stray Redis
+        # values keep historical behavior. Security decisions do NOT rely on
+        # this coercion: the read-time gates use recognized_secrets_mode? to
+        # fail closed on an unknown value instead of treating it as create.
         def coerce_secrets_mode(value)
           v = value.to_s.strip
           VALID_SECRETS_MODES.include?(v) ? v : DEFAULT_SECRETS_MODE
