@@ -79,7 +79,7 @@
           flex w-full
           flex-wrap items-center justify-center
           text-center
-          text-xs text-gray-500 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
+          text-xs text-gray-600 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
           <span
             v-if="displayVersion && showVersionConfig"
             :title="`${t('web.homepage.onetime_secret_literal')} ${t('web.COMMON.version')}`">
@@ -129,8 +129,7 @@
           <FeedbackToggle
             v-if="displayFeedback && authentication?.enabled"
             class="text-gray-500 transition-colors duration-200
-              hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
-            :aria-label="t('web.layout.provide_feedback')" />
+              hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100" />
         </div>
       </div>
     </div>

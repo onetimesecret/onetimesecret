@@ -132,6 +132,7 @@
 <template>
   <div
     class="relative inline-flex w-full sm:w-auto"
+    role="group"
     ref="buttonRef">
     <!-- Visually hidden announcement for screen readers when action changes -->
     <div
@@ -244,7 +245,7 @@ ry="2" />
       aria-label="Show more actions"
       :aria-expanded="isDropdownOpen"
       aria-haspopup="true"
-      aria-controls="split-button-dropdown">
+      :aria-controls="isDropdownOpen ? 'split-button-dropdown' : undefined">
       <!-- Gradient overlay for depth -->
       <span class="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" aria-hidden="true"></span>
 

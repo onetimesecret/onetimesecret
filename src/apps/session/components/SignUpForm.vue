@@ -233,7 +233,7 @@ const handleSubmit = async () => {
           <router-link
             to="/info/terms"
             class="font-medium text-brand-600 hover:text-brand-500
-                     dark:text-brand-500 dark:hover:text-brand-400"
+                     dark:text-brand-400 dark:hover:text-brand-300"
             data-testid="signup-terms-link">
             {{ t('web.layout.terms_of_service') }}
           </router-link>
@@ -241,7 +241,7 @@ const handleSubmit = async () => {
           <router-link
             to="/info/privacy"
             class="font-medium text-brand-600 hover:text-brand-500
-                     dark:text-brand-500 dark:hover:text-brand-400"
+                     dark:text-brand-400 dark:hover:text-brand-300"
             data-testid="signup-privacy-link">
             {{ t('web.layout.privacy_policy') }}
           </router-link>
