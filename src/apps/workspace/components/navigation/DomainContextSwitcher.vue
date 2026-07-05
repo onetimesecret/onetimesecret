@@ -204,9 +204,11 @@ const onSelect = (id: string): void => {
       // Replace :extid (domain param) with new domain's extid.
       // Also replace :orgid (org param) with current org extid so the literal
       // route pattern placeholder doesn't appear in the navigated URL.
-      let newPath = matchedRoute.path.replace(':extid', extid);
+      // Use replaceAll so a route pattern that repeats a placeholder can't
+      // leave a stray ':extid'/':orgid' segment in the navigated URL.
+      let newPath = matchedRoute.path.replaceAll(':extid', extid);
       if (currentOrgExtid.value) {
-        newPath = newPath.replace(':orgid', currentOrgExtid.value);
+        newPath = newPath.replaceAll(':orgid', currentOrgExtid.value);
       }
       router.push(newPath);
     }
@@ -216,7 +218,7 @@ const onSelect = (id: string): void => {
       console.warn('[DomainContextSwitcher] Cannot navigate: domain missing extid', domain);
       return;
     }
-    const newPath = switchTarget.replace(':extid', extid);
+    const newPath = switchTarget.replaceAll(':extid', extid);
     router.push(newPath);
   } else {
     // Path without :extid - navigate directly

@@ -169,13 +169,17 @@ const onSelect = (id: string): void => {
     }
     if (route.name) {
       router.push({ name: route.name, params: { ...route.params, extid: org.extid } });
+    } else {
+      // Anonymous route: a name-based push is impossible. Warn (consistent with
+      // the missing-extid branches) rather than failing silently.
+      console.warn('[OrganizationScopeSwitcher] Cannot navigate: current route has no name');
     }
   } else if (switchTarget.includes(':extid')) {
     if (!org.extid) {
       console.warn('[OrganizationScopeSwitcher] Cannot navigate: org missing extid', org.objid);
       return;
     }
-    const newPath = switchTarget.replace(':extid', org.extid);
+    const newPath = switchTarget.replaceAll(':extid', org.extid);
     router.push(newPath);
   } else {
     // Path without :extid - navigate directly
