@@ -230,8 +230,9 @@ module Onetime
 
     def env_snippet_for(selections)
       lines = [
-        '# Secrets — generate and store these yourself; never commit them',
-        '# or paste them into a shared link.',
+        '# Secrets and connection details your selections require — fill these in',
+        '# yourself. Never commit the secret values or paste them into a shared',
+        '# link. Feature toggles and modes are in the YAML above, not here.',
         'SECRET=',
       ]
 
