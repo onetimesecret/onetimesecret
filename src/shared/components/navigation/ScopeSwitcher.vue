@@ -151,14 +151,22 @@ const onSettings = (item: ScopeSwitcherItem, event: MouseEvent, close: () => voi
         </div>
 
         <!-- Scope Options -->
+        <!--
+          The row element is a <div>, not a <button>. HeadlessUI's MenuItem
+          (as="template") applies role="menuitem" + its click/keyboard handlers
+          to whatever element we hand it, so the div is fully activatable. Using
+          a <div> is deliberate: the row hosts a nested "settings" (gear)
+          <button>, and a <button> inside a <button> is invalid HTML that
+          assistive tech reports as a single, ambiguous control. With a <div>
+          row the gear is the row's only real interactive control.
+        -->
         <MenuItem
           v-for="item in items"
           :key="item.id"
           v-slot="{ active }"
           :disabled="item.disabled"
           @click="onSelect(item, close)">
-          <button
-            type="button"
+          <div
             :data-testid="`${itemTestid}-${item.id}`"
             class="group/row relative w-full py-2 pr-9 pl-3 text-left transition-colors duration-150 select-none"
             :class="[
@@ -211,7 +219,7 @@ const onSettings = (item: ScopeSwitcherItem, event: MouseEvent, close: () => voi
                   aria-hidden="true" />
               </button>
             </span>
-          </button>
+          </div>
         </MenuItem>
 
         <!-- Divider + footer call to action (adapter-provided, gated by canManage) -->
