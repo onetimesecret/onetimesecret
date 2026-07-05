@@ -166,7 +166,9 @@ module Onetime::Secret::Features
       private
 
       # Atomic claim shared by {#revealed!} and {#reveal!}. Returns true iff
-      # THIS caller won the one-and-only reveal. On loss (a concurrent caller
+      # THIS caller won the one-and-only reveal. This is the recipient-reveal
+      # claim in ADR-019 (At-Most-Once Secret Reveal); a bare decrypt-and-return
+      # that bypasses it silently reintroduces multi-reveal. On loss (a concurrent caller
       # already terminalized the secret) it marks the in-memory instance
       # terminal so its viewable?/safe_dump reflect reality and its plaintext
       # stays withheld; the in-memory check above is a cheap fast-path before

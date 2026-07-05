@@ -188,7 +188,9 @@ module Onetime::Receipt::Features
       # the claim; every later or concurrent load gets false and must not
       # re-reveal the value. This is the "one time" guarantee for the
       # creator-side preview (generated passwords are shown nowhere else),
-      # enforced independently of any display-window bound.
+      # enforced independently of any display-window bound. This is the
+      # creator-preview claim in ADR-019 (At-Most-Once Secret Reveal); the
+      # receipt GET must gate its plaintext display on this, never re-reveal.
       #
       # The claim is taken at DISPLAY time, before the value is returned: this
       # is an at-most-once semantic. If the HTTP response is then lost in
