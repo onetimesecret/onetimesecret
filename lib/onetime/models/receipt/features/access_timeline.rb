@@ -58,6 +58,15 @@ module Onetime::Receipt::Features
         # Sorted-set members must be unique: two accesses in the same
         # millisecond may not collide, so suffix with a short nonce. The score
         # carries the authoritative timestamp.
+        # Sampled BEFORE the append: once this receipt's own timeline is
+        # saturated, its fetch events stop fanning out to the org trail --
+        # otherwise one hammered link (scanner, monitor, attacker) could
+        # evict every other receipt's history from the org-wide cap. Each
+        # receipt therefore contributes at most ACCESS_EVENTS_MAX fetch
+        # events to the trail; lifecycle transitions are unaffected (they
+        # call record_org_audit_event directly).
+        saturated = access_count >= ACCESS_EVENTS_MAX
+
         member = format('%s:%d:%s', kind, (at.to_f * 1000).to_i, SecureRandom.hex(4))
         access_events.add(member, at.to_f)
 
@@ -74,7 +83,7 @@ module Onetime::Receipt::Features
         # Fan out to the organization's audit trail (no-op without org
         # context). The org trail is the durable, org-wide view of the same
         # activity; see Organization::Features::AuditTrail.
-        record_org_audit_event(kind, at: at)
+        record_org_audit_event(kind, at: at) unless saturated
 
         member
       end

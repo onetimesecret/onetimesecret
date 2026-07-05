@@ -128,17 +128,35 @@ RSpec.describe Onetime::Organization, type: :integration do
       expect { receipt.record_access_event('status_get') }.not_to raise_error
       expect(org.audit_event_count).to eq(0)
     end
+
+    it 'caps one receipt\'s fetch contribution so a hammered link cannot flood the trail' do
+      stub_const('Onetime::Receipt::Features::AccessTimeline::ACCESS_EVENTS_MAX', 3)
+      link_to_org!(receipt, org)
+
+      5.times { receipt.record_access_event('status_get') }
+
+      # The receipt's own timeline saturates at the cap, and fan-out stops
+      # with it: other receipts' history in the org trail stays safe.
+      expect(receipt.access_count).to eq(3)
+      expect(org.audit_event_count).to eq(3)
+
+      # Lifecycle transitions are not subject to the fetch bound.
+      receipt.revealed!
+      expect(org.audit_events_page.first['kind']).to eq('revealed')
+    end
   end
 
   describe 'fan-out from lifecycle transitions (completeness + no duplicates)' do
     before { link_to_org!(receipt, org) }
 
-    it 'records previewed exactly once even if called repeatedly' do
+    it 'records the receipt view exactly once, under its unambiguous audit kind' do
       receipt.previewed!
       receipt.previewed! # guard: state is no longer :new
 
+      # 'preview' is UI language; the trail records what mechanically
+      # happened: the receipt page was loaded.
       kinds = org.audit_events_page.map { |e| e['kind'] }
-      expect(kinds).to eq(['previewed'])
+      expect(kinds).to eq(['receipt_viewed'])
     end
 
     it 'records revealed exactly once even if called repeatedly' do

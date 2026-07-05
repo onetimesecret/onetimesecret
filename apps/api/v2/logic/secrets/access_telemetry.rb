@@ -17,8 +17,18 @@ module V2::Logic
       # Best-effort by design: telemetry must never break or delay the read
       # path, so every failure is logged and swallowed. Secrets without a
       # receipt (e.g. account-verification secrets) are skipped.
+      #
+      # Creator self-access is a DISTINCT signal from third-party access
+      # (a creator opening their own link is not "the recipient saw it"),
+      # so the kind is prefixed: 'creator_status_get' / 'creator_secret_get'.
+      # The anonymous_user? guard matters: Secret#owner? compares objids, and
+      # a guest-created secret (owner_id nil) fetched by an anonymous caller
+      # (objid nil) would otherwise match nil == nil and misattribute the
+      # access to "the creator".
       def record_access_telemetry(kind)
         return if secret.nil? || secret.receipt_identifier.to_s.empty?
+
+        kind = "creator_#{kind}" if !anonymous_user? && secret.owner?(cust)
 
         receipt = secret.load_receipt
         receipt&.record_access_event(kind)

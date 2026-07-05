@@ -145,7 +145,10 @@ module Onetime::Receipt::Features
             timestamp: previewed,
           }
 
-        record_org_audit_event('previewed')
+        # Audit kind is 'receipt_viewed', not 'previewed': "preview" is the
+        # creator-facing UI word, but in the audit log this event means "the
+        # receipt page was loaded" -- keep the trail unambiguous (#3633).
+        record_org_audit_event('receipt_viewed')
       end
 
       # MIGRATION NOTE: Replaces legacy `received!` method.

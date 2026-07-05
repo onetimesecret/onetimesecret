@@ -94,6 +94,19 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
       expect(timeline.access_count).to eq(1)
       expect(timeline.access_events.last).to start_with('secret_get:')
     end
+
+    it 'records the distinct creator_secret_get kind when the creator opens their own link' do
+      owner = Onetime::Customer.create!(email: "show-owner-#{SecureRandom.hex(6)}@example.com")
+      owner_pair = Onetime::Receipt.spawn_pair(owner.objid, 3600, 'a secret value')
+      as_owner = double('Customer', custid: owner.custid, objid: owner.objid, anonymous?: false)
+
+      logic = build_logic({ 'identifier' => owner_pair.last.identifier }, customer: as_owner)
+      logic.process_params
+      logic.process
+
+      timeline = Onetime::Receipt.load(owner_pair.first.identifier)
+      expect(timeline.access_events.last).to start_with('creator_secret_get:')
+    end
   end
 
   context 'when a concurrent request already won the reveal (this request loses)' do

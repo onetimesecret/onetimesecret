@@ -10,7 +10,12 @@ Added
   first). Access requires the ``audit_logs`` entitlement, which the
   role/plan intersection grants to admins and owners on qualifying plans;
   this makes the previously catalog-only entitlement functional. Events
-  carry receipt/secret shortids only, never full identifiers. (#3633)
+  carry receipt/secret shortids only, never full identifiers. Creator
+  self-access is recorded distinctly (``creator_status_get`` /
+  ``creator_secret_get``), the receipt-page view is recorded as
+  ``receipt_viewed`` (unambiguous, unlike the UI word "preview"), and a
+  single hammered link cannot flood the org trail — each receipt
+  contributes at most its own per-receipt cap of fetch events. (#3633)
 
 Fixed
 -----
