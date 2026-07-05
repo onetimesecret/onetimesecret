@@ -144,8 +144,8 @@ backoff with bounded retry counts and automatic terminal-state expiry — every
 domain gets checked, but on a schedule that lengthens for stable domains and
 gives up (to an explicit, recoverable failure state) for chronically-broken
 ones. This is flagged as a direct contradiction of the stated requirement,
-not smoothed over — see ADR-018 for the reversal and rationale, presented
-for explicit sign-off. → ADR-018.
+not smoothed over — see ADR-018 for the reversal and rationale. Sign-off
+given and ADR-018 accepted 2026-07-05. → ADR-018.
 
 ## Additional Gaps Surfaced by Research (not on the original list)
 
@@ -204,8 +204,8 @@ question.
   patterns for SaaS infrastructure cutover" (not DCV-specific) is needed —
   out of scope here.
 - ADR-018 reverses the team's stated "percentage sampling" requirement.
-  This needs explicit sign-off before implementation, not silent
-  substitution.
+  Sign-off given 2026-07-05; ADR-018 accepted. Resolved, retained here for
+  the audit trail of the reversal.
 
 ## Sources
 

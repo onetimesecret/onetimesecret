@@ -1,12 +1,12 @@
 ---
 id: "016"
-status: proposed
+status: accepted
 title: "ADR-016: Decouple Ownership Verification from Certificate/Serving Status"
 ---
 
 ## Status
 
-Proposed
+Accepted
 
 ## Date
 
