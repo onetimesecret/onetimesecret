@@ -219,6 +219,13 @@ site:
     # How long (in seconds) a generated password remains visible on the
     # receipt page after creation. Set to 0 to disable receipt-page display.
     generated_value_display_ttl: <%= ENV['GENERATED_VALUE_DISPLAY_TTL'] || 60 %>
+    # Legacy V1 API behavior: reveal a concealed (user-supplied) secret's
+    # plaintext on the V1 receipt endpoint whenever it is still decryptable.
+    # V2/V3 never do this — the receipt only shows generated values, and only
+    # within generated_value_display_ttl of creation. Leave false to keep V1
+    # aligned with V2/V3; enable only if a legacy integration depends on
+    # reading plaintext back from the V1 receipt endpoint.
+    v1_reveal_concealed_on_receipt: <%= ENV['V1_REVEAL_CONCEALED_ON_RECEIPT'] == 'true' || false %>
     # Settings for password generation (when users click "Generate Password")
     password_generation:
       # Default length for generated passwords
