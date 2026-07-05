@@ -11,8 +11,16 @@
 # - custid (email or 'anon') → owner_id (Customer objid or 'anon')
 # - Remove: original_size field (dropped in v2)
 # - Encryption: Preserve exact values (do NOT re-encrypt)
-#   - value_encryption: -1 (empty), 0 (none), 1 (v1), 2 (v2)
 #   - passphrase_encryption: 1 (bcrypt), 2 (argon2id)
+#
+# The legacy `value` / `value_encryption` fields (pre-Familia AES-256-CBC
+# ciphertext, carried over verbatim by the v0.24.5 migration) have been
+# removed from the live model (see features/deprecated_fields.rb): Secret
+# Content has a hard TTL cap, so no data written under that scheme has
+# existed in Redis for a long time. The historical migration script and its
+# completeness tests (scripts/upgrades/v0.24.5/, try/migrations/) still
+# reference those field names -- that's intentional; they're an immutable
+# record of the v1 -> v2 transform and must not be edited to match.
 #
 # REMOVAL: See lib/onetime/models/features/with_migration_fields.rb
 #
@@ -40,22 +48,6 @@ module Onetime::Secret::Features
           secret = load(identifier)
           secret if secret&.v1_custid.to_s.present? && secret.owner_id.to_s.empty?
         end.compact
-      end
-
-      # Count secrets by encryption version
-      #
-      # @return [Hash] { version => count }
-      def encryption_stats
-        stats = Hash.new(0)
-        instances.revrangeraw(0, -1).each do |identifier|
-          secret = load(identifier)
-          next unless secret
-
-          version         = secret.value_encryption.to_s
-          version         = 'none' if version.empty?
-          stats[version] += 1
-        end
-        stats
       end
 
       # Count anonymous vs authenticated secrets
@@ -138,19 +130,6 @@ module Onetime::Secret::Features
       # @return [Boolean]
       def anonymous_secret?
         owner_id.to_s == 'anon' || v1_custid.to_s == 'anon'
-      end
-
-      # Check encryption version
-      #
-      # @return [Symbol] :empty, :none, :v1, :v2
-      def encryption_version
-        case value_encryption.to_s
-        when '-1' then :empty
-        when '0' then :none
-        when '1' then :v1
-        when '2' then :v2
-        else :unknown
-        end
       end
     end
   end
