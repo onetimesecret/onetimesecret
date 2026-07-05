@@ -40,6 +40,7 @@ import {
   type AsyncHandlerOptions,
 } from '@/shared/composables/useAsyncHandler';
 import { CHECK_EMAIL_STATE_KEY } from '@/shared/constants/checkEmail';
+import { SIGNIN_VERIFIED_STATE_KEY } from '@/shared/constants/signin';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
@@ -627,13 +628,16 @@ export function useAuth() {
         throw createError(validated.error, 'human', 'error');
       }
 
-      // Success - show notification and navigate to signin. The `verified=1`
-      // flag lets the sign-in page render a persistent success banner and
-      // default to the password tab (see Login.vue), so the confirmation
-      // survives longer than the transient toast and the user re-enters the
-      // password they just chose during signup.
+      // Success - show notification, then navigate to the sign-in page. The
+      // "just verified" signal is handed over via router history `state`
+      // (SIGNIN_VERIFIED_STATE_KEY), NOT a `?verified=1` query param: it is a
+      // one-shot UI flag, so keeping it out of the URL lets Login.vue clear it
+      // after showing the banner without remounting the fullPath-keyed view
+      // (see Login.vue). The sign-in page renders a persistent success banner
+      // (surviving longer than the transient toast) and defaults to the password
+      // tab so the user re-enters the password they just chose during signup.
       notificationsStore.show(validated.success, 'success', 'top');
-      await router.push({ path: '/signin', query: { verified: '1' } });
+      await router.push({ path: '/signin', state: { [SIGNIN_VERIFIED_STATE_KEY]: true } });
       return true;
     });
 

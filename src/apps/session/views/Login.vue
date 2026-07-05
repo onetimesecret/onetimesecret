@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 import AuthMethodSelector from '@/apps/session/components/AuthMethodSelector.vue';
 import AuthView from '@/apps/session/components/AuthView.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
+import { SIGNIN_VERIFIED_STATE_KEY } from '@/shared/constants/signin';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useProductIdentity } from '@/shared/stores/identityStore';
 import { useLanguageStore } from '@/shared/stores/languageStore';
@@ -39,21 +40,31 @@ const signupEnabled = computed(
 // Handle auth errors passed via query params (from SSO/magic link failures)
 const authError = ref<string | null>(null);
 
-// Post-verification return: useAuth.verifyAccount() redirects here with
-// ?verified=1 after the user clicks the link in their welcome email.
+// Post-verification return: useAuth.verifyAccount() sends the user here after
+// they click the link in their welcome email. The "just verified" signal
+// arrives via router history state (SIGNIN_VERIFIED_STATE_KEY), not the URL:
 //   - verifiedNotice: drives a persistent success banner (vs. the transient toast)
 //   - initialAuthMode: default to the password tab. Re-entering the password
 //     they just chose is less redundant than another email link and confirms it
 //     was typed correctly the first time.
 //
-// The flag is intentionally NOT stripped from the URL afterwards: App.vue keys
-// the routed component by $route.fullPath, so a router.replace to drop the param
-// would re-mount this view and discard verifiedNotice — hiding the banner it was
-// meant to show. Leaving ?verified=1 in place is harmless; at worst a manual
-// refresh re-shows a reassuring success message.
-const justVerified = route.query.verified === '1';
+// It is a one-shot flag: we clear it from history state right after reading, so a
+// manual refresh does not re-show the banner. Clearing touches only history
+// state — the route's path/query (and thus fullPath) are unchanged — so the
+// fullPath-keyed routed component in App.vue is NOT remounted and verifiedNotice
+// survives. (Stripping a ?verified=1 query param, by contrast, would change
+// fullPath, remount this view, and discard the banner it was meant to show.)
+const verifiedState = (typeof window !== 'undefined' ? window.history.state : null) as
+  | Record<string, unknown>
+  | null;
+const justVerified = verifiedState?.[SIGNIN_VERIFIED_STATE_KEY] === true;
 const verifiedNotice = ref(justVerified);
 const initialAuthMode = justVerified ? 'password' : undefined;
+if (justVerified && typeof window !== 'undefined') {
+  // Drop just our one-shot key; spread preserves vue-router's reserved state
+  // keys (back / current / forward / replaced / position / scroll).
+  window.history.replaceState({ ...window.history.state, [SIGNIN_VERIFIED_STATE_KEY]: undefined }, '');
+}
 
 const authErrorMessages: Record<string, string> = {
   sso_failed: 'web.login.errors.sso_failed',
