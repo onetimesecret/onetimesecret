@@ -1,4 +1,4 @@
-// src/tests/shared/components/navigation/DomainContextSwitcher.close.spec.ts
+// src/tests/apps/workspace/components/navigation/DomainContextSwitcher.close.spec.ts
 
 /**
  * End-to-end close-behaviour regression for the Domain Context Switcher.
@@ -17,7 +17,7 @@
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick, reactive, ref } from 'vue';
-import DomainContextSwitcher from '@/shared/components/navigation/DomainContextSwitcher.vue';
+import DomainContextSwitcher from '@/apps/workspace/components/navigation/DomainContextSwitcher.vue';
 
 // NOTE: no vi.mock('@headlessui/vue') here — that is the whole point.
 

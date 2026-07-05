@@ -1,4 +1,4 @@
-// src/tests/shared/components/navigation/DomainContextSwitcher.spec.ts
+// src/tests/apps/workspace/components/navigation/DomainContextSwitcher.spec.ts
 
 /**
  * Tests for the Domain Context Switcher's add/manage call-to-action logic.
@@ -17,7 +17,7 @@
 import { mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { reactive, ref } from 'vue';
-import DomainContextSwitcher from '@/shared/components/navigation/DomainContextSwitcher.vue';
+import DomainContextSwitcher from '@/apps/workspace/components/navigation/DomainContextSwitcher.vue';
 
 // Shared spy for HeadlessUI's Menu `close` slot function so tests can assert the
 // dropdown is dismissed on navigation. Hoisted so it is available inside the
