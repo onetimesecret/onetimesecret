@@ -1,7 +1,7 @@
 ---
 labels: admin-v2, work, architecture
 depends: none
-issue: "#3653"
+epic: "#3653"
 ---
 
 # Colonel Admin Rebuild — operating console (tracking)
