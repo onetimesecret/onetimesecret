@@ -1,12 +1,12 @@
 ---
 id: "015"
-status: proposed
+status: accepted
 title: "ADR-015: Per-Domain Validation Strategy Override"
 ---
 
 ## Status
 
-Proposed
+Accepted
 
 ## Date
 
