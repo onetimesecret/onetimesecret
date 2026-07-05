@@ -111,9 +111,18 @@ const isCurrentOrganization = (org: Organization): boolean =>
   currentOrganization.value?.objid === org.objid;
 
 /**
- * Handle organization selection with optional navigation
+ * Handle organization selection with optional navigation.
+ *
+ * `close` is the HeadlessUI Menu slot function. Selecting a MenuItem already
+ * auto-closes the menu, so this call is belt-and-suspenders here — it exists so
+ * that "every navigating action closes the dropdown" is a single, uniform
+ * invariant across this component rather than a per-handler judgement call. The
+ * case that genuinely *requires* an explicit close is the gear icon
+ * (navigateToManageOrganization), whose stopPropagation suppresses the built-in
+ * one.
  */
-const selectOrganization = (org: Organization): void => {
+const selectOrganization = (org: Organization, close?: () => void): void => {
+  close?.();
   // setCurrentOrganization triggers the store's watcher to persist to localStorage
   organizationStore.setCurrentOrganization(org);
 
@@ -148,8 +157,15 @@ const selectOrganization = (org: Organization): void => {
 /**
  * Navigate to organization management page (requires extid)
  */
-const navigateToManageOrganization = (org: Organization, event: MouseEvent): void => {
+const navigateToManageOrganization = (
+  org: Organization,
+  event: MouseEvent,
+  close?: () => void
+): void => {
   event.stopPropagation(); // Prevent row selection when clicking gear
+  // stopPropagation above suppresses HeadlessUI's built-in MenuItem close, so
+  // dismiss the dropdown explicitly before navigating.
+  close?.();
   if (!org.extid) {
     // Cannot navigate without extid - gear icon should be hidden for these orgs
     console.warn('[OrganizationScopeSwitcher] Cannot navigate: org missing extid', org.objid);
@@ -161,7 +177,8 @@ const navigateToManageOrganization = (org: Organization, event: MouseEvent): voi
 /**
  * Navigate to manage organizations page
  */
-const navigateToManageOrganizations = (): void => {
+const navigateToManageOrganizations = (close?: () => void): void => {
+  close?.();
   router.push('/orgs');
 };
 </script>
@@ -172,7 +189,7 @@ const navigateToManageOrganizations = (): void => {
     as="div"
     class="relative inline-flex"
     data-testid="org-scope-switcher"
-    v-slot="{ open }">
+    v-slot="{ open, close }">
     <!-- Trigger Button -->
     <MenuButton
       class="group inline-flex h-10 items-center gap-2 rounded-lg bg-gray-100 px-3 text-sm font-medium text-gray-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:focus:ring-offset-gray-900"
@@ -252,7 +269,7 @@ const navigateToManageOrganizations = (): void => {
           v-for="org in visibleOrganizations"
           :key="org.objid"
           v-slot="{ active }"
-          @click="selectOrganization(org)">
+          @click="selectOrganization(org, close)">
           <button
             type="button"
             :data-testid="`org-menu-item-${org.extid}`"
@@ -314,7 +331,7 @@ const navigateToManageOrganizations = (): void => {
                 type="button"
                 class="hidden rounded p-0.5 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 group-hover/row:block dark:text-gray-500 dark:hover:bg-gray-600 dark:hover:text-gray-300"
                 :aria-label="t('web.organizations.organization_settings')"
-                @click="navigateToManageOrganization(org, $event)">
+                @click="navigateToManageOrganization(org, $event, close)">
                 <OIcon
                   collection="heroicons"
                   name="cog"
@@ -332,7 +349,7 @@ const navigateToManageOrganizations = (): void => {
           aria-hidden="true" ></div>
 
         <!-- Manage Organizations Link -->
-        <MenuItem v-slot="{ active }" @click="navigateToManageOrganizations">
+        <MenuItem v-slot="{ active }" @click="navigateToManageOrganizations(close)">
           <button
             type="button"
             class="mx-2 w-[calc(100%-1rem)] cursor-pointer select-none rounded-md px-2 py-2 text-left transition-colors duration-150"
