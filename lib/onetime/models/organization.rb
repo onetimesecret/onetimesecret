@@ -50,6 +50,7 @@ module Onetime
     feature :with_entitlements
     feature :with_materialized_limits
     feature :with_plan_entitlements
+    feature :audit_trail
     feature :housekeeping
 
     # Migration features - REMOVE after v1→v2 migration complete
