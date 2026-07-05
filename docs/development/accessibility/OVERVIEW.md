@@ -60,13 +60,19 @@ We've implemented fundamental accessibility features and continue to improve the
 ### Automated Testing & Enforcement Policy
 
 Accessibility is checked automatically in CI (engine:
-[axe-core](https://github.com/dequelabs/axe-core), Deque). Three scans run on
+[axe-core](https://github.com/dequelabs/axe-core), Deque). Four scans run on
 every pull request, with two enforcement tiers:
 
-- **Page-level, public (blocking)** — `e2e/all/accessibility.spec.ts` scans the
-  public surfaces in **both light and dark** themes via `@axe-core/playwright`,
-  as part of the blocking `e2e/all/` CI gate. Run locally, credential-free,
-  with `pnpm test:a11y`.
+- **Page-level, public — at rest (blocking)** — `e2e/all/accessibility.spec.ts`
+  scans the public surfaces in **both light and dark** themes via
+  `@axe-core/playwright`, as part of the blocking `e2e/all/` CI gate. Run
+  locally, credential-free, with `pnpm test:a11y`.
+- **Page-level, public — interactive states (blocking)** —
+  `e2e/all/accessibility-interactive.spec.ts` drives the app *into*
+  post-interaction DOM (open split-button dropdown, sign-in error banner, open
+  feedback modal) in both themes and scans each. axe only sees the DOM present
+  at scan time, so these states are invisible to the at-rest scan above. Same
+  blocking `e2e/all/` gate; run locally with `pnpm test:a11y:interactive`.
 - **Page-level, authenticated (informational, not yet blocking)** —
   `e2e/full/accessibility.spec.ts` scans the signed-in surfaces the same way,
   in the `full/` CI suite. That suite is mid-remediation and currently runs
@@ -88,7 +94,9 @@ The policy the layers enforce:
   regression), and **hard-fails on any new `serious`/`critical`** regardless of
   baseline. Baselines may only **shrink**: fix a violation, then regenerate the
   baseline for the surface you changed — `pnpm test:a11y:update` for the public
-  baseline (`e2e/accessibility-baseline.json`), or
+  at-rest baseline (`e2e/accessibility-baseline.json`),
+  `pnpm test:a11y:interactive:update` for the interactive-state baseline
+  (`e2e/accessibility-baseline.interactive.json`), or
   `pnpm test:a11y:full:update` (with test credentials, as above) for the
   authenticated baseline (`e2e/accessibility-baseline.full.json`). Each script
   regenerates only its own baseline. This mirrors the `e2e/QUARANTINE.md`

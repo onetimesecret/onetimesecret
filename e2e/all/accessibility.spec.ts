@@ -29,9 +29,18 @@ import {
   updateBaselineScope,
   primeTheme,
   assertThemeApplied,
+  waitForAppReady,
   IS_UPDATE_BASELINE,
   type Theme,
 } from '../support/axe';
+
+// See e2e/all/accessibility-interactive.spec.ts for the rationale: the
+// A11Y_UPDATE_BASELINE read-modify-write is only race-free when these tests run
+// serially, so pin serial execution for baseline-regeneration runs only and
+// leave assert runs parallel-friendly with independent per-test reporting.
+if (IS_UPDATE_BASELINE) {
+  test.describe.configure({ mode: 'serial' });
+}
 
 /** Public, credential-free surfaces to scan. */
 const PUBLIC_SURFACES = ['/', '/signin', '/signup', '/forgot', '/pricing', '/feedback'];
@@ -45,7 +54,7 @@ for (const theme of THEMES) {
         await primeTheme(page, theme);
 
         await page.goto(route);
-        await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+        await waitForAppReady(page);
         await assertThemeApplied(page, theme);
 
         const violations = await scanPage(page, testInfo, { theme, route });

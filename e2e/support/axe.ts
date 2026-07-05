@@ -41,6 +41,21 @@ export const FULL_BASELINE_PATH = path.join(
   'accessibility-baseline.full.json'
 );
 
+/**
+ * Separate baseline for the INTERACTIVE-STATE scans (dropdown open, error
+ * banners, open modals) in e2e/all/accessibility-interactive.spec.ts. The
+ * public at-rest baseline (BASELINE_PATH) is a pure "pages load clean" signal;
+ * post-interaction DOM is a conceptually distinct scope, so it gets its own
+ * file. Separate files also mean regenerating one never touches another and
+ * there is no read-modify-write contention if the a11y specs ever update in
+ * parallel.
+ */
+export const INTERACTIVE_BASELINE_PATH = path.join(
+  SUPPORT_DIR,
+  '..',
+  'accessibility-baseline.interactive.json'
+);
+
 /** True when the run should REWRITE the baseline instead of asserting. */
 export const IS_UPDATE_BASELINE = !!process.env.A11Y_UPDATE_BASELINE;
 
@@ -107,6 +122,17 @@ export async function assertThemeApplied(page: Page, theme: Theme): Promise<void
       "Light theme did not apply: html unexpectedly has the 'dark' class after load."
     ).toBe(false);
   }
+}
+
+/**
+ * Wait for the SPA to signal it has finished hydrating before scanning. The app
+ * sets `html[data-app-ready="true"]` once the root component mounts; gating on
+ * it stops axe from running against a half-mounted page (which would flag
+ * transient, meaningless violations). Shared by the at-rest (e2e/all) and
+ * interactive (e2e/all) a11y specs so the readiness signal is defined once.
+ */
+export async function waitForAppReady(page: Page): Promise<void> {
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 }
 
 /** A single violating DOM node, flattened to one stable-keyed record. */
@@ -254,8 +280,19 @@ export function compareToBaseline(
   return { regressions, seriousOrCritical };
 }
 
-/** Format regressions into a readable, report-friendly failure message. */
-export function formatFailure(cmp: CompareResult): string {
+/**
+ * Format regressions into a readable, report-friendly failure message.
+ *
+ * `updateCommand` is the exact pnpm script that regenerates the baseline for
+ * the calling suite (each suite has its own — `test:a11y:update`,
+ * `test:a11y:interactive:update`, `test:a11y:full:update`). It defaults to the
+ * public at-rest command; the interactive and authenticated specs pass their
+ * own so a failure never tells a developer to run the wrong one.
+ */
+export function formatFailure(
+  cmp: CompareResult,
+  updateCommand: string = 'pnpm test:a11y:update'
+): string {
   const lines: string[] = [];
   lines.push(
     `Found ${cmp.regressions.length} NEW accessibility violation(s) not in the baseline (a11y regression).`
@@ -278,7 +315,7 @@ export function formatFailure(cmp: CompareResult): string {
     }
   }
   lines.push(
-    'Fix the source component, or (if intentional/known) re-baseline via `pnpm test:a11y:update`.'
+    `Fix the source component, or (if intentional/known) re-baseline via \`${updateCommand}\`.`
   );
   return lines.join('\n');
 }
