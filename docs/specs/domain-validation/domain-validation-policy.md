@@ -217,6 +217,7 @@ with per-claim vote counts in the research transcript):
 ## Implementation References
 
 - `lib/onetime/domain_validation/` — strategy.rb, base_strategy.rb, approximated_strategy.rb, approximated_client.rb, passthrough_strategy.rb, caddy_on_demand_strategy.rb
+- `lib/onetime/domain_validation/sender_strategies/` — sibling subsystem (sender/email DNS, issue #2835) with in-repo DNS-lookup machinery already built and tested: parallel `Resolv::DNS` lookups with error isolation (`base_strategy.rb#verify_all_records`), strategy-level retry (`with_retry`), Redis-backed DNS rate limiting, and result caching. ADR-016's ownership-axis TXT/CNAME checks should reuse this, not rebuild it. Test-case catalog and edge-case policies (e.g. Redis-unavailable fallbacks) in `docs/test-plans/dns-resilience-2835-qa-plan.md` (stale as a status tracker; designs still sound)
 - `lib/onetime/models/custom_domain.rb` — verification state machine, TXT challenge generation
 - `lib/onetime/jobs/scheduled/domain_refresh_job.rb` — existing full-sweep re-check job
 - `apps/internal/acme/application.rb`, `routes.txt`, `README.md` — Caddy on-demand TLS `ask` endpoint (deprecated form, not yet migrated to `permission`)

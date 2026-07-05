@@ -90,7 +90,13 @@ table) since it's specific to that provider's onboarding flow.
   ownership proof.
 - **Risk**: building OTS's own TXT/CNAME lookup is new code surface (DNS
   resolution, timeouts, retry semantics) that didn't exist before for the
-  non-Approximated strategies.
+  non-Approximated strategies. Substantially mitigated: the sender-domain
+  validation subsystem (`lib/onetime/domain_validation/sender_strategies/`,
+  issue #2835) already implements parallel `Resolv::DNS` lookups with error
+  isolation, retry with backoff, Redis-backed DNS rate limiting, and result
+  caching — reuse that machinery rather than building a second DNS stack.
+  Its test catalog (`docs/test-plans/dns-resilience-2835-qa-plan.md`) is the
+  QA skeleton for this work.
 
 ## Implementation Notes
 
