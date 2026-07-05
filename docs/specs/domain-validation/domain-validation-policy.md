@@ -18,7 +18,7 @@ forward only the claims that survived verification.
 Three strategies behind a factory (`lib/onetime/domain_validation/strategy.rb`),
 selected by a single **install-level** config key
 `features.domains.validation_strategy` (default: `passthrough`,
-`etc/defaults/config.defaults.yaml:60-75`). No per-domain or per-region
+`etc/defaults/config.defaults.yaml:504-509`). No per-domain or per-region
 override exists anywhere, not even as a TODO.
 
 | Strategy | Ownership proof | Cert/serving | DNS check | File |
@@ -28,7 +28,7 @@ override exists anywhere, not even as a TODO.
 | `passthrough` | None — always returns true | External/operator-managed | None | `passthrough_strategy.rb:16-92` |
 
 `CustomDomain` (`lib/onetime/models/custom_domain.rb`) verification state
-machine (`verification_state`, lines 608-616):
+machine (`verification_state`, lines 639-647):
 
 ```
 :unverified → :pending → :resolving → :verified
@@ -36,14 +36,14 @@ machine (`verification_state`, lines 608-616):
 
 `:unverified` = no `txt_validation_value`. `:pending` = challenge set,
 `resolving` field false. `:resolving` = `resolving` true, `verified` false.
-`:verified` = both true. `ready?` (line 625-627) ⇔ `:verified`. This method
+`:verified` = both true. `ready?` (lines 656-658) ⇔ `:verified`. This method
 does a pure in-memory boolean check on already-loaded fields — no DNS or
 network I/O — **confirmed compliant** with Caddy's documented "ask/permission
 endpoint must be a fast, constant-time, network-free lookup" guidance (see
 Issue 4 / Additional Gap 3 below).
 
-The TXT challenge (`generate_txt_validation_record`, lines 558-586) uses
-`SecureRandom.hex(16)` (line 574) — 128 bits, CSPRNG-sourced — **confirmed
+The TXT challenge (`generate_txt_validation_record`, lines 589-617) uses
+`SecureRandom.hex(16)` (line 605) — 128 bits, CSPRNG-sourced — **confirmed
 compliant** with the CA/Browser Forum Baseline Requirements 112-bit minimum
 entropy for domain-control Random Values. **Gap confirmed by code read:**
 the value is generated once and never expires or rotates — no code path
@@ -222,5 +222,5 @@ with per-claim vote counts in the research transcript):
 - `apps/internal/acme/application.rb`, `routes.txt`, `README.md` — Caddy on-demand TLS `ask` endpoint (deprecated form, not yet migrated to `permission`)
 - `apps/api/v1/logic/secrets/base_secret_action.rb:456-461` — `validate_domain_verification` gate
 - `src/shared/composables/useDomainStatus.ts` — frontend status derivation
-- `etc/defaults/config.defaults.yaml:60-75` — config schema
+- `etc/defaults/config.defaults.yaml:494-537` — config schema (`features.domains` block: strategy, approximated, acme)
 - `etc/examples/Caddyfile-example:67-69` — example on-demand TLS config (deprecated `ask` form)

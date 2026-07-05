@@ -34,7 +34,7 @@ independent state machines that can be observably out of sync. Fly.io
 requires proof via at least one of AAAA/CNAME *or* a dedicated TXT record,
 treating "pointed at us" and "owned by this tenant" as separate,
 independently-satisfiable signals. OTS's `verification_state` enum
-(`custom_domain.rb:608-616`) is already structurally the ownership axis —
+(`custom_domain.rb:639-647`) is already structurally the ownership axis —
 the gap is that (a) it's never populated independently of Approximated, and
 (b) the frontend doesn't surface it as a distinct axis from cert/serving
 status.
@@ -182,7 +182,7 @@ remediation needed here, only confirmed and documented.
 
 ### TXT challenge has no expiry (2026-06-30)
 
-`generate_txt_validation_record` (`custom_domain.rb:558-586`) generates
+`generate_txt_validation_record` (`custom_domain.rb:589-617`) generates
 `txt_validation_value` once; no code path expires or rotates it. CA/Browser
 Forum BR allows reuse up to 30 days; OTS currently has no upper bound at
 all. Candidate to fold into ADR-018's bounded-lifecycle work rather than a

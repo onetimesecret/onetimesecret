@@ -14,7 +14,7 @@ Proposed
 
 ## Context
 
-`features.domains.validation_strategy` (`etc/defaults/config.defaults.yaml:60-75`)
+`features.domains.validation_strategy` (`etc/defaults/config.defaults.yaml:504-509`)
 is the only place a validation strategy is selected, and it is install-level:
 one value for the entire deployment. The motivation for moving off
 Approximated as the sole strategy is cost (hundreds/month and growing since
