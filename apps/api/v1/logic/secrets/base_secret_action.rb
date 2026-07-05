@@ -432,17 +432,24 @@ module V1::Logic
         domain_record = Onetime::CustomDomain.from_display_domain(domain)
         raise_form_error "Unknown domain: #{domain}" if domain_record.nil?
 
+        # Resolve the anonymous-creation gate once and pass it to
+        # validate_domain_permissions so the debug line and the permission check
+        # share a single HomepageConfig read instead of two (#3631). Not memoized
+        # on the domain instance: an instance cache goes stale after an in-request
+        # HomepageConfig write, which is why the model predicate stays read-through.
+        allow_public = domain_record.allow_public_secret_creation?
+
         OT.ld <<~DEBUG
           [BaseSecretAction]
             class:     #{self.class}
             share_domain:   #{@share_domain}
             custom_domain?:  #{custom_domain?}
-            allow_public?:   #{domain_record.allow_public_secret_creation?}
+            allow_public?:   #{allow_public}
             accessible?:     #{domain_record.accessible_by?(@cust)}
             verified?:       #{domain_record.verified}
         DEBUG
 
-        validate_domain_permissions(domain_record)
+        validate_domain_permissions(domain_record, allow_public)
         validate_domain_verification(domain_record)
       end
 
@@ -464,6 +471,11 @@ module V1::Logic
       # Validates domain permissions based on context and configuration.
       #
       # @param domain_record [CustomDomain] The domain record to validate
+      # @param allow_public [Boolean, nil] Pre-resolved
+      #   domain_record.allow_public_secret_creation? from the caller, to avoid
+      #   a second HomepageConfig read (#3631). nil means "not resolved yet" —
+      #   the anonymous custom-domain branch computes it on demand, so direct
+      #   callers may still pass just the record.
       # @raise [FormError] If access is not permitted
       # @see docs/specs/domain-permissions/domain-permissions.md for the full truth table
       #
@@ -473,7 +485,7 @@ module V1::Logic
       #   gates anonymous public intake only.
       # - Anonymous on a custom domain: gated by the Homepage Secrets toggle.
       # - Anonymous on canonical with share_domain set: not permitted.
-      def validate_domain_permissions(domain_record)
+      def validate_domain_permissions(domain_record, allow_public = nil)
         # Any org member can always use the domain.
         return if domain_record.accessible_by?(@cust)
 
@@ -487,7 +499,11 @@ module V1::Logic
         # AND the homepage secrets_mode — 'incoming' mode does not authorize
         # anonymous secret creation (visitors use the incoming API instead).
         if custom_domain?
-          return if domain_record.allow_public_secret_creation?
+          # Reuse the caller-resolved gate when present; recompute only for
+          # direct callers that pass just the record. Guard on nil since false
+          # is a valid pre-resolved value.
+          allow_public = domain_record.allow_public_secret_creation? if allow_public.nil?
+          return if allow_public
           raise_form_error "Public sharing disabled for domain: #{share_domain}"
         end
 
