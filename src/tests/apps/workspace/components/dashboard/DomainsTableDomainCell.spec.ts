@@ -3,6 +3,7 @@
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import DomainsTableDomainCell from '@/apps/workspace/components/dashboard/DomainsTableDomainCell.vue';
+import { isApproximatedDomainValidation } from '@/utils/features';
 
 // Mock vue-i18n
 vi.mock('vue-i18n', () => ({
@@ -39,6 +40,14 @@ const mockUseDomainStatus = vi.fn();
 vi.mock('@/shared/composables/useDomainStatus', () => ({
   useDomainStatus: () => mockUseDomainStatus(),
 }));
+
+// Control the install's domain validation strategy. Default to approximated so
+// the DNS status assertions below hold; the dedicated block flips it off.
+vi.mock('@/utils/features', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/utils/features')>()),
+  isApproximatedDomainValidation: vi.fn(() => true),
+}));
+const mockApprox = vi.mocked(isApproximatedDomainValidation);
 
 const mockDomain = {
   identifier: 'domain-123',
@@ -88,6 +97,8 @@ describe('DomainsTableDomainCell', () => {
       isError: false,
       displayStatus: 'Verified',
     });
+    // clearAllMocks() keeps mockReturnValue overrides, so re-assert the default.
+    mockApprox.mockReturnValue(true);
   });
 
   afterEach(() => {
@@ -221,6 +232,50 @@ describe('DomainsTableDomainCell', () => {
       // Should show the i18n key for age (which contains formatDistanceToNow)
       // The actual rendered text will use i18n interpolation with the mocked date-fns
       expect(wrapper.text()).toContain('web.domains.added_formatdistancetonow_domain_created_addsuffix_true');
+    });
+  });
+
+  describe('non-approximated validation strategy', () => {
+    beforeEach(() => {
+      mockApprox.mockReturnValue(false);
+    });
+
+    it('hides the DomainVerificationInfo status icon even when healthy', () => {
+      mockUseDomainStatus.mockReturnValue({
+        isWarning: false,
+        isError: false,
+        displayStatus: 'Verified',
+      });
+
+      const wrapper = mountComponent();
+
+      expect(wrapper.find('[data-testid="verification-info"]').exists()).toBe(false);
+    });
+
+    it('hides the clickable DNS warning link even when isWarning is true', () => {
+      mockUseDomainStatus.mockReturnValue({
+        isWarning: true,
+        isError: false,
+        displayStatus: 'DNS Check Required',
+      });
+
+      const wrapper = mountComponent();
+
+      expect(wrapper.find('.text-amber-600').exists()).toBe(false);
+    });
+
+    it('still shows the added-ago timestamp', () => {
+      mockUseDomainStatus.mockReturnValue({
+        isWarning: false,
+        isError: false,
+        displayStatus: 'Verified',
+      });
+
+      const wrapper = mountComponent();
+
+      expect(wrapper.text()).toContain(
+        'web.domains.added_formatdistancetonow_domain_created_addsuffix_true'
+      );
     });
   });
 

@@ -4,7 +4,11 @@ import {
   brandSettingsSchema,
   type BrandSettings,
 } from '@/schemas/shapes/v3/custom-domain';
-import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
+import {
+  DEFAULT_LOGO_COMPONENT,
+  NEUTRAL_BRAND_DEFAULTS,
+  resolveProductName,
+} from '@/shared/constants/brand';
 import { cornerStyleClasses, fontFamilyClasses } from '@/shared/utils/brand-helpers';
 import { gracefulParse } from '@/utils/schemaValidation';
 import { defineStore, storeToRefs } from 'pinia';
@@ -67,6 +71,9 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     domain_id,
     domain_branding,
     domain_logo,
+    brand_product_name,
+    brand_logo_url,
+    brand_logo_alt,
     homepage_config,
   } = storeToRefs(bootstrapStore);
 
@@ -140,10 +147,28 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     }
   );
 
-  // Watch homepage_config for toggle state (authoritative source, separate from brand)
-  watch(homepage_config, (newConfig) => {
-    state.allowPublicHomepage = newConfig?.enabled ?? false;
-  });
+  // Watch homepage_config for toggle state (authoritative source, separate
+  // from brand). deep: true because pinia's $patch merges a plain nested
+  // object IN PLACE (same reference), so a shallow watch only fires on the
+  // null -> object transition — and on custom domains bootstrap always
+  // ships an object, so in-session updates would otherwise never land.
+  watch(
+    homepage_config,
+    (newConfig) => {
+      state.allowPublicHomepage = newConfig?.enabled ?? false;
+    },
+    { deep: true }
+  );
+
+  /**
+   * Which interactive experience the enabled homepage presents
+   * ('create' | 'incoming'). Computed (not state + watch) so it tracks
+   * nested property access through the reactive proxy and survives
+   * in-place $patch merges of homepage_config.
+   */
+  const homepageSecretsMode = computed(
+    () => homepage_config.value?.secrets_mode ?? 'create'
+  );
 
   // Watch for domain config changes (consolidated for reduced reactive overhead)
   watch(
@@ -171,6 +196,18 @@ export const useProductIdentity = defineStore('productIdentity', () => {
   /** Display name for current domain context */
   const displayName = computed(() => state.brand?.description || state.displayDomain);
 
+  /**
+   * Install product name, neutral-safe. Never the hardcoded OTS literal.
+   *
+   * Centralizes the `brand_product_name || NEUTRAL_BRAND_DEFAULTS.product_name`
+   * fallback that surfaces (MastHead, DefaultLogo) previously each re-derived by
+   * hand — so a new name-rendering surface has one safe source of truth instead
+   * of another chance to leak "Onetime Secret". Shares `resolveProductName` with
+   * `usePageTitle`, which cannot depend on this store (it runs in router guards,
+   * outside the i18n context this store initializes with).
+   */
+  const productName = computed(() => resolveProductName(brand_product_name?.value));
+
   /** Logo URL for custom domain, pre-computed by backend with correct extid */
   const logoUri = computed(() =>
     // Backend provides the correct logo URL using extid (external ID).
@@ -178,6 +215,68 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     // Note: Client-side URL generation is not possible since we only have
     // the internal domainId, not the public extid needed for the /imagine route.
     domain_logo.value
+  );
+
+  /**
+   * Whether a surface may show the platform's own name / wordmark.
+   *
+   * False on a custom domain — with or without an uploaded logo — and whenever a
+   * per-tenant logo is present: rendering the install's identity there would
+   * leak it onto another company's domain (the A3 masthead leak). Canonical and
+   * subdomain contexts are permitted to show it, subject to the consumer's own
+   * config (a `subdomain` IS the platform, so its name legitimately shows).
+   *
+   * This encodes only the base identity-leak guard; consumers keep their own
+   * override ladder (caller props, operator LOGO_SHOW_NAME, etc.) on top.
+   */
+  const showPlatformIdentity = computed(() => !isCustom.value && !logoUri.value);
+
+  /**
+   * Operator-configured install-wide logo asset (BRAND_LOGO_URL /
+   * brand.logo_url, flattened to `brand_logo_url` in the bootstrap payload).
+   * This is the platform's own identity, so it is suppressed on custom
+   * domains for the same reason `showPlatformIdentity` suppresses the
+   * wordmark there: a tenant's domain shows the tenant's logo or the neutral
+   * mark, never the operator's (#3612 closes the logo-asset half of the A3
+   * leak). Null when unconfigured or on a custom domain.
+   *
+   * `||` (not `??`) so an empty-string config value reads as absent.
+   */
+  const installLogoUri = computed(() =>
+    isCustom.value ? null : brand_logo_url?.value || null
+  );
+
+  /**
+   * Operator-supplied alt text for the install logo (BRAND_LOGO_ALT /
+   * brand.logo_alt). Only meaningful while the install logo is the asset
+   * actually being rendered — it describes that image — so it is null when
+   * installLogoUri is null AND when a tenant logo outranks the install logo
+   * in logoSource (labeling the tenant's image with the operator's alt text
+   * would leak the wrong accessible name). Consumers fall back to their
+   * i18n productName-derived alt.
+   */
+  const installLogoAlt = computed(() =>
+    installLogoUri.value && !logoUri.value ? brand_logo_alt?.value || null : null
+  );
+
+  /**
+   * Resolved logo source on the identity axis: the tenant's uploaded logo when
+   * present, then the operator's install-wide logo (custom domains excepted,
+   * see installLogoUri), then the neutral `DefaultLogo` component sentinel.
+   * Never null or empty, so a consumer can render a lockup without its own
+   * "no logo" fallback.
+   *
+   * Uses `||` (not `??`): an empty-string `domain_logo` is treated as absent and
+   * falls through, matching how the rest of the codebase reads the logo as a
+   * truthy/falsy signal (e.g. `!!domain_logo` in the router guards) and
+   * preserving the masthead's prior terminal fallback for `''`.
+   *
+   * This completes the #3612 consolidation: the masthead's only remaining
+   * rung above this is the caller prop (props.logo.url) — the operator logo
+   * is no longer read from `ui.header.branding`.
+   */
+  const logoSource = computed(
+    () => logoUri.value || installLogoUri.value || DEFAULT_LOGO_COMPONENT
   );
 
   const cornerClass = computed(() =>
@@ -217,6 +316,12 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     isCustom,
     isSubdomain,
     displayName,
+    productName,
+    showPlatformIdentity,
+    installLogoUri,
+    installLogoAlt,
+    logoSource,
+    homepageSecretsMode,
     $reset,
 
     ...toRefs(state),

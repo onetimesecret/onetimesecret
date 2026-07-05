@@ -134,6 +134,13 @@ config = load_effective_logging_config
 config['http'].key?('ignore_paths')
 #=> true
 
+## Configuration File - HTTP allowed_error_fields exists and defaults empty
+# Opt-in allowlist gating :debug capture's params/headers and the request
+# context attached to error reports (Onetime::ErrorHandler.safe_request_context).
+config = load_effective_logging_config
+[config['http'].key?('allowed_error_fields'), config['http']['allowed_error_fields']]
+#=> [true, []]
+
 ## Logging Module File - Exists
 File.exist?('lib/onetime/logger_methods.rb')
 #=> true

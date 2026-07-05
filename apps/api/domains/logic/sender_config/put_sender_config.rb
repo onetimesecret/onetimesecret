@@ -58,11 +58,15 @@ module DomainsAPI
           # Check if config already exists
           @existing_config = Onetime::CustomDomain::MailerConfig.find_by_domain_id(@custom_domain.identifier)
 
-          # Validate required fields
-          validate_required_fields
-
-          # Enforce domain restriction based on entitlement
+          # Enforce domain restriction BEFORE validating. A blank from_address is
+          # normalized to noreply@<domain> for the (non-flexible) custom-mail-sender
+          # entitlement, so an operator can enable the sender without hand-typing an
+          # address. In flexible-from-domain mode the address is returned unchanged,
+          # so validate_required_fields still requires an explicit value.
           @from_address = enforce_from_domain(@from_address, @custom_domain, @organization)
+
+          # Validate required fields (against the normalized address)
+          validate_required_fields
         end
 
         def process
@@ -180,8 +184,9 @@ module DomainsAPI
           # Skip if no change (both false, or both true)
           return if was_enabled == is_enabled
 
-          # Log when sender config is enabled (new config or was disabled)
-          if is_enabled && (was_enabled.nil? || was_enabled == false)
+          # Log when sender config is enabled (new config or was disabled).
+          # !was_enabled covers both nil (new config) and false (was disabled).
+          if is_enabled && !was_enabled
             log_sender_audit_event(
               event: :domain_sender_config_enabled,
               domain: @custom_domain,

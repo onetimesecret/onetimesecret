@@ -178,5 +178,13 @@
   "web.branding.upgrade_to_customize": {
     "text": "Faça upgrade do seu plano para personalizar a marca deste domínio.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "Definições da marca guardadas com sucesso",
+    "source_hash": "9960c252"
+  },
+  "web.branding.keyhole_logo_icon": {
+    "text": "Ícone de buraco de fechadura que representa a partilha segura e privada",
+    "source_hash": "c868ac60"
   }
 }

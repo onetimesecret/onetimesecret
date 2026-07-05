@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'yaml'
+require 'date' # ensure Date/Time constants resolve for permitted_classes
 require 'erb'
 require 'json'
 require 'json_schemer'
@@ -103,7 +104,11 @@ module Onetime
         def load_config(path)
           erb_template = ERB.new(File.read(path))
           yaml_content = erb_template.result
-          parsed = YAML.safe_load(yaml_content, permitted_classes: [Symbol], symbolize_names: false, aliases: true)
+          # permitted_classes kept symmetric with the runtime config loader
+          # (lib/onetime/config.rb) so a config that boots also validates and
+          # vice-versa: Date/Time are permitted (#3498), arbitrary Ruby objects
+          # stay rejected.
+          parsed = YAML.safe_load(yaml_content, permitted_classes: [Symbol, Date, Time], symbolize_names: false, aliases: true)
           stringify_symbols(parsed)
         rescue Psych::SyntaxError, Psych::DisallowedClass
           nil

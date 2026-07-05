@@ -130,5 +130,33 @@
   "incoming.receipt_link_text": {
     "text": "回执",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "需要升级",
+    "source_hash": "16487236"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "此功能需要升级方案。请联系账户所有者以启用接收内容功能。",
+    "source_hash": "5df7f715"
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "备注必须不超过 {max} 个字符",
+    "source_hash": "5727f2d3"
+  },
+  "incoming.validation_secret_required": {
+    "text": "内容为必填项",
+    "source_hash": "699783c9"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "请选择一位收件人",
+    "source_hash": "67bb4666"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "接收内容功能未启用",
+    "source_hash": "0616d3f4"
+  },
+  "incoming.validation_form_errors": {
+    "text": "请检查表单中的错误",
+    "source_hash": "9056e064"
   }
 }

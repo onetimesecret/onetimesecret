@@ -578,5 +578,457 @@
   "web.organizations.invitations.expires_soon": {
     "text": "تنتهي قريباً",
     "source_hash": "a5dcfef9"
+  },
+  "api.organizations.errors.not_found": {
+    "text": "لم يتم العثور على المؤسسة: %{extid}",
+    "source_hash": "c8d058eb"
+  },
+  "api.organizations.errors.owner_required": {
+    "text": "يمكن لمالك المؤسسة فقط تنفيذ هذا الإجراء",
+    "source_hash": "5a729e94"
+  },
+  "api.organizations.errors.admin_required": {
+    "text": "يمكن لمالكي المؤسسة والمسؤولين فقط تنفيذ هذا الإجراء",
+    "source_hash": "cd9e8c0e"
+  },
+  "api.organizations.errors.member_required": {
+    "text": "يجب أن تكون عضواً في المؤسسة لتنفيذ هذا الإجراء",
+    "source_hash": "f66f4a60"
+  },
+  "api.organizations.invitations.errors.create_admin_required": {
+    "text": "يمكن لمالكي المؤسسة والمسؤولين فقط إنشاء الدعوات",
+    "source_hash": "777d150d"
+  },
+  "api.organizations.invitations.errors.resend_admin_required": {
+    "text": "يمكن لمالكي المؤسسة والمسؤولين فقط إعادة إرسال الدعوات",
+    "source_hash": "6a857d59"
+  },
+  "api.organizations.invitations.errors.view_admin_required": {
+    "text": "يمكن لمالكي المؤسسة والمسؤولين فقط عرض الدعوات",
+    "source_hash": "42f5878b"
+  },
+  "api.organizations.invitations.errors.revoke_admin_required": {
+    "text": "يمكن لمالكي المؤسسة والمسؤولين فقط إلغاء الدعوات",
+    "source_hash": "52f73c8a"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "البريد الإلكتروني مطلوب",
+    "source_hash": "aae92911"
+  },
+  "api.organizations.invitations.errors.email_invalid": {
+    "text": "تنسيق البريد الإلكتروني غير صالح",
+    "source_hash": "0bcecf66"
+  },
+  "api.organizations.invitations.errors.role_invalid": {
+    "text": "يجب أن يكون الدور عضواً أو مسؤولاً",
+    "source_hash": "650ea5f6"
+  },
+  "api.organizations.invitations.errors.cannot_invite_owner": {
+    "text": "لا يمكن الدعوة بصفة مالك",
+    "source_hash": "e6581025"
+  },
+  "api.organizations.invitations.errors.already_member": {
+    "text": "المستخدم عضو بالفعل في هذه المؤسسة",
+    "source_hash": "8eb45780"
+  },
+  "api.organizations.invitations.errors.already_pending": {
+    "text": "توجد دعوة معلقة بالفعل لهذا البريد الإلكتروني",
+    "source_hash": "7f5e3093"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "تم بلوغ حد الأعضاء. قم بترقية خطتك لدعوة المزيد من الأعضاء.",
+    "source_hash": "b8f316e8"
+  },
+  "api.organizations.invitations.errors.not_found": {
+    "text": "لم يتم العثور على الدعوة",
+    "source_hash": "775ba9eb"
+  },
+  "api.organizations.invitations.errors.cannot_resend_non_pending": {
+    "text": "يمكن إعادة إرسال الدعوات المعلقة فقط",
+    "source_hash": "b7578b3e"
+  },
+  "api.organizations.invitations.errors.cannot_revoke_non_pending": {
+    "text": "يمكن إلغاء الدعوات المعلقة فقط",
+    "source_hash": "732b78a6"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "تم بلوغ الحد الأقصى لإعادة الإرسال (%{max})",
+    "source_hash": "8dc96729"
+  },
+  "api.organizations.invitations.errors.accept_token_required": {
+    "text": "الرمز مطلوب",
+    "source_hash": "6c718161"
+  },
+  "api.organizations.invitations.errors.accept_organization_gone": {
+    "text": "المؤسسة لم تعد موجودة",
+    "source_hash": "a5df7d22"
+  },
+  "api.organizations.invitations.errors.accept_already_acted": {
+    "text": "تم بالفعل %{status} الدعوة",
+    "source_hash": "130c87e0"
+  },
+  "api.organizations.invitations.errors.accept_expired": {
+    "text": "انتهت صلاحية الدعوة",
+    "source_hash": "7186297b"
+  },
+  "api.organizations.invitations.errors.accept_email_mismatch": {
+    "text": "عنوان بريدك الإلكتروني لا يطابق الدعوة",
+    "source_hash": "11026f46"
+  },
+  "api.organizations.invitations.errors.accept_already_member": {
+    "text": "أنت عضو بالفعل في هذه المؤسسة",
+    "source_hash": "f56ad547"
+  },
+  "web.organizations.entitlements_title": {
+    "text": "استحقاقات المؤسسة",
+    "source_hash": "36054d4f"
+  },
+  "web.organizations.page_description_short": {
+    "text": "اعرض مساحات العمل الخاصة بك وقم بإعدادها",
+    "source_hash": "524fcb9a"
+  },
+  "web.organizations.delete_organization_remove_domains_first": {
+    "text": "أزل جميع النطاقات المخصّصة قبل حذف هذه المؤسسة.",
+    "source_hash": "44678715"
+  },
+  "web.organizations.default_org_delete_notice_title": {
+    "text": "حذف هذه المؤسسة",
+    "source_hash": "9191d915"
+  },
+  "web.organizations.default_org_delete_notice_before": {
+    "text": "هذه هي مؤسستك الافتراضية ولا يمكن إزالتها من لوحة التحكم. لحذفها، يرجى التواصل من خلال",
+    "source_hash": "e203607d"
+  },
+  "web.organizations.default_org_delete_notice_link": {
+    "text": "نموذج الملاحظات",
+    "source_hash": "94645a9e"
+  },
+  "web.organizations.default_org_delete_notice_after": {
+    "text": ".",
+    "source_hash": "cdb4ee2a"
+  },
+  "web.organizations.leave_organization": {
+    "text": "مغادرة هذه المؤسسة",
+    "source_hash": "d534cff9"
+  },
+  "web.organizations.leave_organization_warning": {
+    "text": "ستفقد الوصول إلى هذه المؤسسة ومواردها.",
+    "source_hash": "e9daab07"
+  },
+  "web.organizations.leave_organization_confirm_title": {
+    "text": "مغادرة المؤسسة",
+    "source_hash": "ec8314da"
+  },
+  "web.organizations.leave_organization_confirm_message": {
+    "text": "هل أنت متأكد من رغبتك في مغادرة {name}؟ ستحتاج إلى دعوة جديدة للانضمام مجدداً.",
+    "source_hash": "e21c5fec"
+  },
+  "web.organizations.leave_organization_success": {
+    "text": "لقد غادرت المؤسسة.",
+    "source_hash": "fc803eb3"
+  },
+  "web.organizations.leave_error": {
+    "text": "فشلت مغادرة المؤسسة",
+    "source_hash": "6cb6af43"
+  },
+  "web.organizations.organizations": {
+    "text": "المؤسسات",
+    "source_hash": "2730183d"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "بواسطة {email}",
+    "source_hash": "969a7050"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "بصفة {role}",
+    "source_hash": "ff9e9b18"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "العودة إلى الصفحة الرئيسية",
+    "source_hash": "76c5505f"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "تم إرسال هذه الدعوة إلى عنوان البريد الإلكتروني هذا",
+    "source_hash": "2cff7075"
+  },
+  "web.organizations.invitations.signup_continue": {
+    "text": "متابعة",
+    "source_hash": "31fbef16"
+  },
+  "web.organizations.invitations.signin_continue": {
+    "text": "تسجيل الدخول",
+    "source_hash": "bcc0bcc9"
+  },
+  "web.organizations.invitations.confirm_join_below": {
+    "text": "أوشكت على الانتهاء — أكّد أدناه للانضمام إلى المؤسسة.",
+    "source_hash": "2d14f9b0"
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "الانتقال إلى المؤسسات",
+    "source_hash": "2afa38a3"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "أنت عضو بالفعل في هذه المؤسسة",
+    "source_hash": "f56ad547"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "الانضمام إلى {orgName}",
+    "source_hash": "1aea9194"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "سجّل الدخول للانضمام إلى {orgName}",
+    "source_hash": "f94ed8b4"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "رفض",
+    "source_hash": "a2d285b3"
+  },
+  "web.organizations.members.member_quota": {
+    "text": "{used} من {limit} عضو",
+    "source_hash": "51183b79"
+  },
+  "web.organizations.members.pending_suffix": {
+    "text": "({count} معلق)",
+    "source_hash": "c13f787f"
+  },
+  "web.organizations.members.limit_reached_hint": {
+    "text": "تم بلوغ حد الأعضاء.",
+    "source_hash": "26cdb6b8"
+  },
+  "web.organizations.sso.title": {
+    "text": "تسجيل الدخول الموحّد (SSO)",
+    "source_hash": "5db5c812"
+  },
+  "web.organizations.sso.description": {
+    "text": "قم بإعداد تسجيل الدخول الموحّد (SSO) للسماح للأعضاء بتسجيل الدخول باستخدام موفّر الهوية الخاص بمؤسستك",
+    "source_hash": "464f0a8b"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "نوع الموفّر",
+    "source_hash": "bdfbb1ec"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "اختر موفّر الهوية الخاص بمؤسستك",
+    "source_hash": "e81325a6"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "الاسم المعروض",
+    "source_hash": "18d67c99"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "اسم ودّي يُعرض للمستخدمين عند تسجيل الدخول",
+    "source_hash": "a83f1fba"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "مثال: Acme Corp SSO",
+    "source_hash": "43c655c5"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "معرّف العميل (Client ID)",
+    "source_hash": "8726db01"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "معرّف عميل OAuth الخاص بك",
+    "source_hash": "830723da"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "سر العميل (Client Secret)",
+    "source_hash": "ae21cf6d"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "سر عميل OAuth الخاص بك",
+    "source_hash": "14e4a8c8"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "اتركه فارغاً للاحتفاظ بالسر الحالي",
+    "source_hash": "98bc3b40"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "معرّف المستأجر (Tenant ID)",
+    "source_hash": "de1f5fff"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "معرّف المستأجر لـ Azure AD / Entra ID الخاص بك",
+    "source_hash": "3c5b707a"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "مثال: 12345678-1234-1234-1234-123456789abc",
+    "source_hash": "1a166316"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "رابط المُصدِر (Issuer URL)",
+    "source_hash": "4d03ba8a"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "رابط اكتشاف OIDC لموفّر الهوية الخاص بك",
+    "source_hash": "6102d81b"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "مثال: https://login.example.com",
+    "source_hash": "9a638e9c"
+  },
+  "web.organizations.sso.view_discovery_document": {
+    "text": "عرض مستند الاكتشاف",
+    "source_hash": "513bda60"
+  },
+  "web.organizations.sso.callback_url": {
+    "text": "رابط رد الاتصال (Callback URL)",
+    "source_hash": "dc297ae9"
+  },
+  "web.organizations.sso.callback_url_hint": {
+    "text": "أضف هذا الرابط إلى عناوين URI لإعادة التوجيه المسموح بها لدى موفّر الهوية الخاص بك",
+    "source_hash": "65d55683"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "نطاقات البريد الإلكتروني المسموح بها",
+    "source_hash": "0295ad71"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "يمكن فقط للمستخدمين الذين لديهم عناوين بريد إلكتروني من هذه النطاقات تسجيل الدخول. اتركه فارغاً للسماح بجميع النطاقات.",
+    "source_hash": "1775e874"
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "مثال: acme.com",
+    "source_hash": "e4420764"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "يرجى إدخال نطاق صالح (مثال: example.com)",
+    "source_hash": "16807983"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "هذا النطاق موجود بالفعل في القائمة",
+    "source_hash": "3fccb721"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "إزالة {domain}",
+    "source_hash": "ae708a1d"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "تفعيل تسجيل الدخول الموحّد (SSO)",
+    "source_hash": "d10d0801"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "عند التفعيل، يمكن لأعضاء المؤسسة تسجيل الدخول باستخدام موفّر تسجيل الدخول الموحّد (SSO) هذا",
+    "source_hash": "d7da2fa2"
+  },
+  "web.organizations.sso.enforce_sso_only": {
+    "text": "فرض تسجيل الدخول الموحّد (SSO) فقط",
+    "source_hash": "b3a3f694"
+  },
+  "web.organizations.sso.enforce_sso_only_hint": {
+    "text": "تطلّب تسجيل الدخول الموحّد (SSO) لجميع عمليات تسجيل الدخول على هذا النطاق. عند التفعيل، تُعطّل المصادقة المعتمدة على كلمة المرور.",
+    "source_hash": "19432210"
+  },
+  "web.organizations.sso.grant_org_scope": {
+    "text": "منح وصول على مستوى المؤسسة",
+    "source_hash": "2070cef2"
+  },
+  "web.organizations.sso.grant_org_scope_hint": {
+    "text": "سيُمنح الأعضاء الجدد الذين ينضمون عبر تسجيل الدخول الموحّد (SSO) لهذا النطاق وصولاً إلى جميع نطاقات المؤسسة. لا يتأثر الأعضاء الحاليون. عند التعطيل (الافتراضي)، يمكن للأعضاء الجدد الوصول إلى هذا النطاق فقط.",
+    "source_hash": "2ac9f345"
+  },
+  "web.organizations.sso.save_config": {
+    "text": "حفظ إعداد تسجيل الدخول الموحّد (SSO)",
+    "source_hash": "70853769"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "حذف الإعداد",
+    "source_hash": "9ac1ac7b"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "هل أنت متأكد؟ سيؤدي هذا إلى تعطيل تسجيل الدخول الموحّد (SSO) لمؤسستك.",
+    "source_hash": "5b3f5b9d"
+  },
+  "web.organizations.sso.load_error": {
+    "text": "فشل تحميل إعداد تسجيل الدخول الموحّد (SSO)",
+    "source_hash": "75cb73f6"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "فشل حفظ إعداد تسجيل الدخول الموحّد (SSO)",
+    "source_hash": "99ef145b"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "تم إنشاء إعداد تسجيل الدخول الموحّد (SSO) بنجاح",
+    "source_hash": "531c7d92"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "تم تحديث إعداد تسجيل الدخول الموحّد (SSO) بنجاح",
+    "source_hash": "d98d8e83"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "تم حذف إعداد تسجيل الدخول الموحّد (SSO) بنجاح",
+    "source_hash": "55f5d4f5"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "فشل حذف إعداد تسجيل الدخول الموحّد (SSO)",
+    "source_hash": "4a960fe4"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "اختبار الاتصال",
+    "source_hash": "c02977b0"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "تحقق من إمكانية الوصول إلى موفّر الهوية (لا يتحقق من بيانات الاعتماد)",
+    "source_hash": "22a23b68"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "اختبار الاتصال",
+    "source_hash": "c02977b0"
+  },
+  "web.organizations.sso.testing": {
+    "text": "جارٍ الاختبار...",
+    "source_hash": "6c02a284"
+  },
+  "web.organizations.sso.test_error": {
+    "text": "فشل اختبار الاتصال",
+    "source_hash": "c1d1f310"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "نقطة نهاية التفويض",
+    "source_hash": "b42b956f"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "حقول مفقودة",
+    "source_hash": "757df777"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "مفعّل",
+    "source_hash": "92c1cdfd"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "تم الإعداد",
+    "source_hash": "84aebc69"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "تسجيل الدخول الموحّد للنطاق",
+    "source_hash": "13161464"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "قم بإعداد تسجيل الدخول الموحّد (SSO) لكل نطاق تم التحقق منه",
+    "source_hash": "af5b799e"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "لتغيير الموفّر، احذف هذا الإعداد أولاً",
+    "source_hash": "0a1027ff"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "غير معدّ",
+    "source_hash": "bbea960e"
+  },
+  "web.organizations.sso.no_domains": {
+    "text": "لا توجد نطاقات تم التحقق منها",
+    "source_hash": "8a7fbb76"
+  },
+  "web.organizations.sso.no_domains_description": {
+    "text": "أضف نطاقاً وتحقق منه قبل إعداد تسجيل الدخول الموحّد (SSO) له.",
+    "source_hash": "e825d13a"
+  },
+  "web.organizations.tabs.team": {
+    "text": "الفريق",
+    "source_hash": "5985039f"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO",
+    "source_hash": "5ba3ac9f"
   }
 }

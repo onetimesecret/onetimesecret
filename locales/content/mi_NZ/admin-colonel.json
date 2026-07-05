@@ -634,5 +634,201 @@
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
     "text": "I te wā e tuku urupare ana koe, ka kite mātou i:",
     "source_hash": "fe77172e"
+  },
+  "web.colonel.previewPlanMode": {
+    "text": "Aratau arokite mahere",
+    "source_hash": "cf53f19d"
+  },
+  "web.colonel.previewModeDescription": {
+    "text": "Arokitea te taupānga e rite ana ki tā ngā kiritaki e kite ai i runga i tētahi mahere rerekē. Ka pā tēnei ki tāu tirohanga anake, kāore e huri i te mahere tūturu o tētahi whakahaere.",
+    "source_hash": "6fe23f23"
+  },
+  "web.colonel.previewModeActive": {
+    "text": "Arokite hohe",
+    "source_hash": "a558d603"
+  },
+  "web.colonel.bannedIps.empty": {
+    "text": "Kāore he IP aukati",
+    "source_hash": "bd101143"
+  },
+  "web.colonel.bannedIps.currentIp": {
+    "text": "Tō Wāhitau IP o Nāianei",
+    "source_hash": "72f9fefe"
+  },
+  "web.colonel.bannedIps.confirmUnban": {
+    "text": "Whakawāteatia a {ip}?",
+    "source_hash": "ff009b1c"
+  },
+  "web.colonel.bannedIps.actions.ban": {
+    "text": "Aukati IP",
+    "source_hash": "f91a5285"
+  },
+  "web.colonel.bannedIps.actions.quickBan": {
+    "text": "Aukati Tere",
+    "source_hash": "c32d0943"
+  },
+  "web.colonel.bannedIps.actions.unban": {
+    "text": "Whakawātea",
+    "source_hash": "25fb5989"
+  },
+  "web.colonel.bannedIps.actions.cancel": {
+    "text": "Whakakore",
+    "source_hash": "19766ed6"
+  },
+  "web.colonel.bannedIps.columns.ipAddress": {
+    "text": "Wāhitau IP",
+    "source_hash": "3c3de0c9"
+  },
+  "web.colonel.bannedIps.columns.reason": {
+    "text": "Take",
+    "source_hash": "f81ab834"
+  },
+  "web.colonel.bannedIps.columns.bannedAt": {
+    "text": "I Aukatia i",
+    "source_hash": "dfbd120e"
+  },
+  "web.colonel.bannedIps.columns.bannedBy": {
+    "text": "Nā Wai i Aukati",
+    "source_hash": "9f47db0e"
+  },
+  "web.colonel.bannedIps.error.banFailed": {
+    "text": "I rahu te aukati i te wāhitau IP",
+    "source_hash": "24e94d9b"
+  },
+  "web.colonel.bannedIps.error.unbanFailed": {
+    "text": "I rahu te whakawātea i te wāhitau IP",
+    "source_hash": "66bbac9a"
+  },
+  "web.colonel.bannedIps.form.title": {
+    "text": "Aukati Wāhitau IP",
+    "source_hash": "3f5b3dfa"
+  },
+  "web.colonel.bannedIps.form.ipLabel": {
+    "text": "Wāhitau IP",
+    "source_hash": "3c3de0c9"
+  },
+  "web.colonel.bannedIps.form.reasonLabel": {
+    "text": "Take",
+    "source_hash": "f81ab834"
+  },
+  "web.colonel.bannedIps.form.reasonPlaceholder": {
+    "text": "Take kōwhiri",
+    "source_hash": "956688a5"
+  },
+  "web.colonel.bannedIps.success.banned": {
+    "text": "Kua aukatia te wāhitau IP {ip}",
+    "source_hash": "b6f861d5"
+  },
+  "web.colonel.bannedIps.success.unbanned": {
+    "text": "Kua whakawāteatia te wāhitau IP {ip}",
+    "source_hash": "dbe93550"
+  },
+  "web.colonel.customDomains.empty": {
+    "text": "Kāore he rohe ritenga kua whirihorahia",
+    "source_hash": "e10b39f7"
+  },
+  "web.colonel.customDomains.noLogo": {
+    "text": "Kāore he Moko",
+    "source_hash": "ee5e36ff"
+  },
+  "web.colonel.customDomains.labels.organization": {
+    "text": "Whakahaere",
+    "source_hash": "d764d425"
+  },
+  "web.colonel.customDomains.labels.externalId": {
+    "text": "ID o Waho",
+    "source_hash": "69da56ba"
+  },
+  "web.colonel.customDomains.labels.created": {
+    "text": "I Hangaia",
+    "source_hash": "d70b9e24"
+  },
+  "web.colonel.customDomains.labels.updated": {
+    "text": "I Whakahōutia",
+    "source_hash": "3a5ecca1"
+  },
+  "web.colonel.customDomains.labels.favicon": {
+    "text": "Favicon",
+    "source_hash": "42955289"
+  },
+  "web.colonel.customDomains.status.verified": {
+    "text": "Kua manatokona",
+    "source_hash": "4f783840"
+  },
+  "web.colonel.customDomains.status.resolving": {
+    "text": "Te whakatau",
+    "source_hash": "3287a034"
+  },
+  "web.colonel.customDomains.status.ready": {
+    "text": "Kua rite",
+    "source_hash": "5fa7aac5"
+  },
+  "web.colonel.customDomains.status.publicHomepage": {
+    "text": "Whārangi Kāinga Tūmatanui",
+    "source_hash": "2ae3ccba"
+  },
+  "web.colonel.customDomains.status.publicApi": {
+    "text": "API Tūmatanui",
+    "source_hash": "ab3aa426"
+  },
+  "web.colonel.customDomains.status.pending": {
+    "text": "Tārewa",
+    "source_hash": "331551b0"
+  },
+  "web.colonel.pagination.showing": {
+    "text": "E whakaatu ana i te {start}–{end} o te {total}",
+    "source_hash": "64af6de2"
+  },
+  "web.colonel.pagination.itemsPerPage": {
+    "text": "Tūemi ia whārangi",
+    "source_hash": "766a02e0"
+  },
+  "web.colonel.pagination.perPage": {
+    "text": "{count} ia whārangi",
+    "source_hash": "34671d42"
+  },
+  "web.colonel.pagination.pageOf": {
+    "text": "Whārangi {current} o te {total}",
+    "source_hash": "f0df6412"
+  },
+  "web.colonel.secrets.empty": {
+    "text": "Kāore he karere huna i kitea",
+    "source_hash": "28647b3b"
+  },
+  "web.colonel.secrets.never": {
+    "text": "Kāore rawa",
+    "source_hash": "6300ef80"
+  },
+  "web.colonel.secrets.columns.shortId": {
+    "text": "ID Poto",
+    "source_hash": "7eaeb4a7"
+  },
+  "web.colonel.secrets.columns.state": {
+    "text": "Tūnga",
+    "source_hash": "a3b50c47"
+  },
+  "web.colonel.secrets.columns.created": {
+    "text": "I Hangaia",
+    "source_hash": "d70b9e24"
+  },
+  "web.colonel.secrets.columns.expiration": {
+    "text": "Paunga",
+    "source_hash": "f38d6e0e"
+  },
+  "web.colonel.secrets.columns.age": {
+    "text": "Pakeke (ngā rā)",
+    "source_hash": "52ae64c6"
+  },
+  "web.colonel.secrets.state.new": {
+    "text": "Hou",
+    "source_hash": "18fdd549"
+  },
+  "web.colonel.secrets.state.received": {
+    "text": "Kua Whiwhia",
+    "source_hash": "49f19bee"
+  },
+  "web.colonel.secrets.state.viewed": {
+    "text": "Kua Tirohia",
+    "source_hash": "1b28d178"
   }
 }

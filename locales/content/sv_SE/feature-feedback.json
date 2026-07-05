@@ -58,5 +58,17 @@
   "web.feedback.reason_email_change_unauthorized": {
     "text": "Det verkar som att du rapporterar en obehörig e-poständring på ditt konto. Beskriv vad som hände så utreder vi det omedelbart.",
     "source_hash": "00e56551"
+  },
+  "web.feedback.anonymous_no_reply": {
+    "text": "Obs! Om du vill ha ett svar, signera eller ange en e-postadress i meddelandet.",
+    "source_hash": "c984f705"
+  },
+  "web.feedback.characters_remaining": {
+    "text": "{count} tecken kvar",
+    "source_hash": "8d796f40"
+  },
+  "web.feedback.character_limit_reached": {
+    "text": "Teckengränsen har nåtts",
+    "source_hash": "031e9310"
   }
 }

@@ -144,7 +144,7 @@
     "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Provozováno službou {product_name}",
+    "text": "Využívá {product_name}",
     "source_hash": "d8e9f0a1"
   },
   "web.branding.low_contrast_warning": {
@@ -178,5 +178,13 @@
   "web.branding.upgrade_to_customize": {
     "text": "Upgraduj svůj plán pro přizpůsobení značky této domény.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "Nastavení značky bylo úspěšně uloženo",
+    "source_hash": "9960c252"
+  },
+  "web.branding.keyhole_logo_icon": {
+    "text": "Ikona klíčové dírky symbolizující bezpečné, soukromé sdílení",
+    "source_hash": "c868ac60"
   }
 }

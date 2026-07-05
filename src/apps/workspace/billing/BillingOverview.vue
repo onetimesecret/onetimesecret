@@ -242,7 +242,7 @@ onMounted(async () => {
       <!-- Loading State -->
       <SettingsSkeleton v-if="isLoading" />
 
-      <!-- Empty State: No Organizations -->
+      <!-- Empty State: No Workspaces -->
       <div v-else-if="organizations.length === 0" class="rounded-lg border border-gray-200/60 bg-white/60 p-12 text-center shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
         <OIcon
           collection="heroicons"
@@ -264,7 +264,7 @@ onMounted(async () => {
               name="plus"
               class="size-4"
               aria-hidden="true" />
-            {{ t('web.organizations.create_organization') }}
+            {{ t('web.organizations.create_workspace') }}
           </router-link>
         </div>
       </div>

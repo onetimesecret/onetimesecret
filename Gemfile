@@ -10,7 +10,7 @@
 #   normal maintenance until: TBD
 #   end of life: 2028-03 (est)
 #
-ruby '>= 3.4.7'
+ruby '>= 3.3.6'
 
 source 'https://rubygems.org/'
 
@@ -18,7 +18,7 @@ source 'https://rubygems.org/'
 # Core Application Framework
 # ====================================
 
-gem 'otto', '~> 2.3'
+gem 'otto', '~> 2.5'
 gem 'rhales', '~> 0.6.2'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'
@@ -29,7 +29,8 @@ gem 'rodauth', '~> 2.0'
 # (not the mutable `claude/gifted-volta-4tpzai` branch) so `bundle update` can't
 # silently drift this security-critical gem. Bump the ref when the fork advances;
 # drop the fork once the change is upstreamed to os85/rodauth-oauth.
-gem 'rodauth-oauth', '~> 1.6',
+gem 'rodauth-oauth',
+  '~> 1.6',
   git: 'https://github.com/onetimesecret/rodauth-oauth.git',
   ref: '6e91089d5ee598a5ee6e78a5992d9e778ba7ccad'
 gem 'rodauth-omniauth', '~> 0.4'
@@ -85,7 +86,13 @@ gem 'truemail'
 # ORMs and database drivers
 # NOTE: We install both db drivers for the OCI images so that users can choose
 # which database to use at runtime via environment variable without rebuilding.
-gem 'familia', '~> 2.10'
+# familia 2.11.1 floor: rejects a blank VERIFIABLE_ID_HMAC_SECRET at the library
+# layer (delano/familia#335), and the 2.11 line decouples the AES-256-GCM HKDF
+# salt from the XChaCha20 personalization -- which activates the salt/
+# personalization/history pinning in ConfigureFamilia. Do NOT relax to 2.12: it
+# lands breaking encryption personalization/salt-history changes (delano/
+# familia#333, #334) that need the migration tracked in issue #3630.
+gem 'familia', '~> 2.11.1'
 gem 'pg', '~> 1.6'
 gem 'sequel', '~> 5.0'
 gem 'sqlite3', '~> 2.0'
@@ -101,6 +108,14 @@ gem 'uri-valkey', '~> 1.4.0'
 gem 'argon2', '~> 2.3'
 gem 'bcrypt', '~> 3.1'
 gem 'passforge', '~> 1.1'
+# libsodium bindings. With rbnacl present, Familia's encrypted fields write
+# XChaCha20-Poly1305 for new data (provider priority) while existing
+# AES-256-GCM envelopes remain readable (algorithm recorded per envelope).
+# Requires the libsodium shared library at runtime (see Dockerfile).
+# MUST stay top-level: the production image sets
+# BUNDLE_WITHOUT="development:test:optional", which would silently exclude
+# it from any of those groups and quietly fall back to AES-256-GCM.
+gem 'rbnacl', '~> 7.1', '>= 7.1.1'
 gem 'rotp', '~> 6.2'
 gem 'rqrcode', '~> 3.1'
 gem 'webauthn', '~> 3.0'
@@ -172,7 +187,7 @@ group :test do
   gem 'bunny-mock', '~> 1.7', require: false  # Mock RabbitMQ for testing
   gem 'climate_control'
   gem 'rack-test', require: false
-  gem 'rspec', git: 'https://github.com/rspec/rspec'
+  gem 'rspec', '4.0.0.beta1'
   gem 'simplecov', require: false
   gem 'simplecov-cobertura', '~> 3.2', require: false # Cobertura XML output for GitHub Code Quality
   gem 'timecop', '~> 0.9'
@@ -180,8 +195,8 @@ group :test do
   gem 'vcr', '~> 6.0'
   gem 'webmock', '~> 3.0'
 
-  # RSpec components
+  # RSpec components, pinned to match the rspec 4.0.0.beta1 release on rubygems.
   %w[rspec-core rspec-expectations rspec-mocks rspec-support].each do |lib|
-    gem lib, git: 'https://github.com/rspec/rspec', glob: "#{lib}/#{lib}.gemspec"
+    gem lib, '4.0.0.beta1'
   end
 end

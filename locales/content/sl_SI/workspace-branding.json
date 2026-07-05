@@ -178,5 +178,13 @@
   "web.branding.upgrade_to_customize": {
     "text": "Nadgradite svoj načrt, da prilagodite blagovno znamko za to domeno.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "Nastavitve blagovne znamke uspešno shranjene",
+    "source_hash": "9960c252"
+  },
+  "web.branding.keyhole_logo_icon": {
+    "text": "Ikona ključavnice, ki predstavlja varno, zasebno deljenje",
+    "source_hash": "c868ac60"
   }
 }

@@ -311,10 +311,9 @@ describe('bootstrapStore', () => {
         enabled: true,
         header: {
           enabled: true,
-          branding: {
-            logo: { url: '/logo.png', alt: 'Logo', link_to: '/' },
-            site_name: 'Custom Site',
-          },
+          // #3612: header carries only layout knobs (href/show_name/prominent);
+          // brand identity lives in the flat brand_* fields.
+          logo: { href: '/', show_name: true, prominent: false },
         },
         footer_links: {
           enabled: true,
@@ -749,22 +748,21 @@ describe('bootstrapStore', () => {
     });
 
     describe('headerConfig', () => {
-      it('returns header configuration from UI', () => {
+      it('returns header configuration from UI (logo layout knobs pass through)', () => {
         store.update({
           ui: {
             enabled: true,
             header: {
               enabled: true,
-              branding: {
-                logo: { url: '/logo.png', alt: 'Logo', link_to: '/' },
-                site_name: 'My Site',
-              },
+              logo: { href: '/dashboard', show_name: true, prominent: false },
             },
           },
         });
 
         expect(store.headerConfig?.enabled).toBe(true);
-        expect(store.headerConfig?.branding?.site_name).toBe('My Site');
+        expect(store.headerConfig?.logo?.href).toBe('/dashboard');
+        expect(store.headerConfig?.logo?.show_name).toBe(true);
+        expect(store.headerConfig?.logo?.prominent).toBe(false);
       });
 
       it('returns undefined when header not configured', () => {
@@ -928,10 +926,7 @@ describe('bootstrapStore', () => {
         enabled: true,
         header: {
           enabled: true,
-          branding: {
-            logo: { url: '/custom.png', alt: 'Custom', link_to: '/home' },
-            site_name: 'Complex Site',
-          },
+          logo: { href: '/home', show_name: true, prominent: true },
           navigation: { enabled: true },
         },
         footer_links: {
@@ -952,7 +947,9 @@ describe('bootstrapStore', () => {
       store.update({ ui: complexUi });
 
       expect(store.ui).toEqual(complexUi);
-      expect(store.ui.header?.branding?.site_name).toBe('Complex Site');
+      expect(store.ui.header?.logo?.href).toBe('/home');
+      expect(store.ui.header?.logo?.show_name).toBe(true);
+      expect(store.ui.header?.logo?.prominent).toBe(true);
       expect(store.ui.footer_links?.groups[0].links).toHaveLength(2);
     });
   });
@@ -1424,10 +1421,7 @@ describe('bootstrapStore', () => {
         enabled: true,
         header: {
           enabled: true,
-          branding: {
-            logo: { url: '/logo.png', alt: 'Logo', link_to: '/' },
-            site_name: 'Test Site',
-          },
+          logo: { href: '/', show_name: true, prominent: false },
           navigation: {
             enabled: true,
             links: [

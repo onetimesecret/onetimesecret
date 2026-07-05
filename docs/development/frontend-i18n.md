@@ -1,6 +1,3 @@
-# docs/development/frontend-i18n.md
----
-
 # Frontend i18n
 
 Localize Vue components using vue-i18n with keys from source locale files.

@@ -1,6 +1,3 @@
-# docs/architecture/email-validation.md
----
-
 # Email Validation
 
 ## Flow

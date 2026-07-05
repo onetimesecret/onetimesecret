@@ -1,0 +1,10 @@
+{
+  "api.account.errors.invalid_email": {
+    "text": "Esse é um endereço de e-mail válido?",
+    "source_hash": "21d55b60"
+  },
+  "api.account.errors.password_too_short": {
+    "text": "A senha é muito curta",
+    "source_hash": "0d829600"
+  }
+}

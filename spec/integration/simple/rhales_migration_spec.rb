@@ -44,8 +44,23 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
         'host' => 'localhost:7143',
         'domain' => 'localhost',
         'ssl' => false,
-        'secret' => 'test-secret-for-rhales-migration-spec'
+        'secret' => 'test-secret-for-rhales-migration-spec',
+        # Masthead layout knobs only — brand identity lives in the brand:
+        # block below (#3612 retired the header.branding nesting).
+        'interface' => {
+          'ui' => {
+            'header' => {
+              'enabled' => true,
+              'logo' => {}
+            }
+          }
+        }
       },
+      # page_title falls through display_domain -> brand_product_name, which
+      # reads brand.product_name only (the legacy header.branding.site_name
+      # tier was retired in #3612). Without this the rendered <title> would
+      # be empty.
+      'brand' => { 'product_name' => 'One-Time Secret' },
       'development' => { 'enabled' => false },
       'diagnostics' => {},
       'billing' => { 'enabled' => false }

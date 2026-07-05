@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/security/passphrase_rate_limiter'
+
 module V1::Logic
   module Secrets
 
@@ -10,6 +12,8 @@ module V1::Logic
     # V1 compat: uses load_owner (not load_customer). See ShowSecret
     # for rationale. The v0.24 model renamed the method.
     class BurnSecret < V1::Logic::Base
+      include Onetime::Security::PassphraseRateLimiter
+
       attr_reader :key, :passphrase, :continue
       attr_reader :receipt, :secret, :correct_passphrase, :greenlighted
 
@@ -30,6 +34,11 @@ module V1::Logic
 
         if potential_secret
 
+          # Check passphrase rate limit before allowing passphrase attempts.
+          # Burn is the same brute-force oracle as show/reveal: each wrong
+          # guess confirms the passphrase is wrong, and a correct guess
+          # destroys the secret.
+          check_passphrase_rate_limit!(potential_secret.identifier) if potential_secret.has_passphrase?
 
           @correct_passphrase = !potential_secret.has_passphrase? || potential_secret.passphrase?(passphrase)
           viewable = potential_secret.viewable?
@@ -40,13 +49,23 @@ module V1::Logic
 
           if greenlighted
             @secret = potential_secret
+
+            # Clear any rate limit state on successful passphrase entry
+            clear_passphrase_rate_limit!(secret.identifier) if secret.has_passphrase?
+
             owner = secret.load_owner
-            secret.burned!
-            owner.increment_field(:secrets_burned) if owner && !owner.anonymous?
+            # Gate on winning the atomic burn claim: when a concurrent reveal
+            # or burn already consumed the secret, burned! returns false and
+            # this request must not count the burn nor report success (the
+            # controller then renders its standard not-found response).
+            @greenlighted = secret.burned!
+            owner.increment_field(:secrets_burned) if greenlighted && owner && !owner.anonymous?
             # TODO:
             # Onetime::Customer.global.increment_field :secrets_burned
 
           elsif !correct_passphrase
+            # Record failed attempt for rate limiting
+            record_failed_passphrase_attempt!(potential_secret.identifier)
 
             message = I18n.t('web.COMMON.error_passphrase', locale: locale, default: 'Incorrect passphrase')
             raise_form_error message

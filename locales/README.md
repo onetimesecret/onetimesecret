@@ -61,6 +61,22 @@ The sync script merges all content files for each locale into a single nested JS
 
 Security messages require special handling - see `guides/SECURITY-TRANSLATION-GUIDE.md`.
 
+## Register check (run locally)
+
+Catch politeness-level violations (e.g. formal forms in an informal-locked
+locale) before review — same engine as the `validate-register` CI gate.
+
+```bash
+# 1. derive the resolved registers at the canonical pin (writes generated/i18n/)
+locales/scripts/derive-governance.sh
+
+# 2. check one locale's content (exit 0 = clean; 1 = lists each hit)
+python3 .translation-rules/lib/resolver/lint_content.py \
+  --resolved generated/i18n/.resolved/<locale>.json \
+  --content-root . \
+  "locales/content/<locale>/*.json"
+```
+
 ## Testing
 
 ```bash
@@ -124,7 +140,7 @@ Session loop (per locale)
 
 Entry points (slash commands): /d:start-translation-session or /d:translate-parallel-agents orchestrate steps 4–8 across locales with background agents; the manual path is opening a session with @locales/TRANSLATION_PROTOCOL.md and claiming tasks one at a time.
 
-Glossary (when & how): entries originate from the terminology choices made while translating in step 6 — there is no separate list that step 7 reads. Record one whenever you fix the target rendering of a recurring domain/brand term (secret, passphrase, burn, email, …) so the next task and the next session stay consistent. Two inputs shape the choice but are not the source of new rows: guides/for-translators/<locale>.md holds prior agreed terms (read in step 0), and QC reviews surface good renderings after the fact (see TRANSLATION_PROTOCOL.md → "Glossary Updates from QC"), written via the same INSERT INTO glossary. Note the gap: the parallel drain workflows (/d:translate-parallel-agents, /d:start-translation-session orchestration, and the translate-parallel-locales* workflows) do NOT execute step 7 — their agents translate, save, and verify only. To accrue glossary entries for an agent-drained locale, run a manual session or a QC pass afterward.
+Glossary (when & how): entries originate from the terminology choices made while translating in step 6 — there is no separate list that step 7 reads. Record one whenever you fix the target rendering of a recurring domain/brand term (secret, passphrase, burn, email, …) so the next task and the next session stay consistent. Two inputs shape the choice but are not the source of new rows: the locale's translator guide (curated in translation-rules and derived on demand into `generated/i18n/guides/for-translators/<locale>.md`) holds prior agreed terms (read in step 0), and QC reviews surface good renderings after the fact (see TRANSLATION_PROTOCOL.md → "Glossary Updates from QC"), written via the same INSERT INTO glossary. Note the gap: the parallel drain workflows (/d:translate-parallel-agents, /d:start-translation-session orchestration, and the translate-parallel-locales* workflows) do NOT execute step 7 — their agents translate, save, and verify only. To accrue glossary entries for an agent-drained locale, run a manual session or a QC pass afterward.
 
 Export (step 8 — per-locale vs once): `tasks export` takes ONE locale and writes that locale's completed rows to `content/<locale>/`; run it once per finished locale. `db export` is locale-independent — it dumps the committable tables (glossary, session_log, translation_issues) to `db/*.sql` and regenerates `checksums.sha256` — so run it once after the per-locale loop, not inside it. Export only fully drained locales (`python3 locales/scripts/i18n tasks next <locale> --stats` shows `pending: 0`); partial locales would write half-translated content. For a batch (substitute the locales you finished this session):
 

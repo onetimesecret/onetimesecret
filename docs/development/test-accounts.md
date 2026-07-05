@@ -1,6 +1,3 @@
-# docs/development/test-accounts.md
----
-
 # Test Accounts and API Credentials
 
 Create customer accounts and generate Basic Auth API tokens from the CLI for development and testing.

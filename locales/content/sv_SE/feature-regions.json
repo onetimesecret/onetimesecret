@@ -186,5 +186,9 @@
   "web.regions.jurisdictions.apac.name": {
     "text": "Asia-Pacific",
     "source_hash": "7a757670"
+  },
+  "web.regions.no_region_configured": {
+    "text": "Ingen regioninformation är för närvarande tillgänglig för ditt konto.",
+    "source_hash": "bbfe2a32"
   }
 }

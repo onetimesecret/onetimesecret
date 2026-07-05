@@ -84,6 +84,22 @@ describe('SplitButton Keyboard Shortcuts', () => {
     });
   };
 
+  describe('Brand shadow color fallback', () => {
+    it('uses the primaryColor for --button-shadow-color when provided', () => {
+      wrapper = mountComponent({ primaryColor: '#abcdef' });
+      const button = wrapper.find('button').element as HTMLElement;
+      expect(button.style.getPropertyValue('--button-shadow-color')).toBe('#abcdef');
+    });
+
+    it('falls back to the brand CSS variable (not a hardcoded rgb literal) when primaryColor is empty', () => {
+      wrapper = mountComponent({ primaryColor: '' });
+      const button = wrapper.find('button').element as HTMLElement;
+      // Must be the themeable token so runtime brand overrides apply — never the
+      // old hardcoded rgb(59, 130, 246) literal.
+      expect(button.style.getPropertyValue('--button-shadow-color')).toBe('var(--color-brand-500)');
+    });
+  });
+
   describe('Keyboard Hint Visibility', () => {
     it('shows keyboard hint when showKeyboardHint is true', () => {
       wrapper = mountComponent({
@@ -362,12 +378,18 @@ describe('SplitButton Keyboard Shortcuts', () => {
       expect(toggleButton.attributes('aria-expanded')).toBe('false');
     });
 
-    it('has aria-controls pointing to dropdown', () => {
+    it('sets aria-controls to the dropdown only while it is open', async () => {
       wrapper = mountComponent({
         withGenerate: true,
       });
 
       const toggleButton = wrapper.find('button[aria-label="Show more actions"]');
+      // Closed: aria-controls is omitted so it never references a
+      // non-rendered element (the dropdown is behind v-if).
+      expect(toggleButton.attributes('aria-controls')).toBeUndefined();
+
+      // Open: points to the now-rendered dropdown.
+      await toggleButton.trigger('click');
       expect(toggleButton.attributes('aria-controls')).toBe('split-button-dropdown');
     });
 

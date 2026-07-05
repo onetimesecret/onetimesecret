@@ -64,6 +64,13 @@ BRAND_LOGO_URL=https://cdn.example.com/logo.svg
 `BRAND_PRIMARY_COLOR` onto the neutral manifest, so those env vars also brand the
 Android install (icons still need a file).
 
+`BRAND_LOGO_URL` is not an icon-pack asset: it is the brand logo itself, shown
+in the masthead and in outbound emails (emails require an absolute `http(s)://`
+URL — https recommended; other values degrade emails to a text-only header).
+It appears above because it usually points at the same CDN. Pair it with
+`BRAND_LOGO_ALT` for the logo's alt text; unset falls back to an i18n string
+derived from the product name.
+
 **Option B — drop-in files at build.** Place replacement files in
 [`docker/public/`](../../docker/public/) before building; the `Dockerfile`
 copies them flat into `public/web/`. Empty by default. The right choice for
@@ -85,10 +92,12 @@ The pack derives from a single keyhole glyph + neutral palette in
 pnpm run gen:favicons    # installs isolated deps, regenerates the pack
 ```
 
-To generate a **custom-coloured** pack without editing the source, override the
-`PRIMARY_COLOUR`, `BACKGROUND_COLOUR`, and `KEYHOLE_PATH` constants via env vars
-(`MARK_PRIMARY_COLOR`, `MARK_BACKGROUND_COLOR`, `MARK_PATH`) — see the Usage
-block in `scripts/branding/mark.mjs`:
+To generate a **custom** pack without editing the source, override the glyph
+(`MARK_PATH` + its `MARK_NATIVE_WIDTH`/`MARK_NATIVE_HEIGHT`), palette
+(`MARK_PRIMARY_COLOR`, `MARK_BACKGROUND_COLOR`, `MARK_OG_GRADIENT_DARK`),
+manifest name (`MARK_PRODUCT_NAME`, `MARK_SHORT_NAME`), or glyph sizing
+(`MARK_COVERAGE`, `MARK_MASK_COVERAGE`, `MARK_OG_COVERAGE`) via env vars — the
+full list is in the Usage block of `scripts/branding/mark.mjs`:
 
 ```bash
 MARK_PRIMARY_COLOR='#DC4A22' pnpm run gen:favicons
@@ -103,3 +112,57 @@ Drop the output into `docker/public/` to bake it in (Option B). Generator deps
 `pnpm run gen:favicons:check` (node-only) and fails if the committed text assets
 diverge from `mark.mjs`, so use env overrides to produce *your own* pack, not to
 re-skin the committed neutral defaults.
+
+A custom `MARK_*` run still writes to `public/web`/`src/assets/branding` by
+default, which would dirty the protected neutral files. Redirect it with
+`MARK_OUT_PUBLIC_DIR` / `MARK_OUT_SRC_DIR` — each is resolved against the repo
+root when relative, or used as-is when absolute (handy for a throwaway or CI
+directory outside the tree). The generator prints the resolved destination:
+
+```bash
+MARK_OUT_PUBLIC_DIR=docker/public MARK_OUT_SRC_DIR=/tmp/mark-src \
+  MARK_PRIMARY_COLOR='#DC4A22' pnpm run gen:favicons
+```
+
+## Presets: the OTS-brand ("maruhi") pack
+
+A **preset** is a named bundle of `MARK_*` overrides — a data file, not a fork
+of the generator — at `scripts/branding/presets/<name>.mjs`. Select one with
+`--preset <name>` (or the `MARK_PRESET=<name>` env var); the generator applies
+its values as env defaults (anything you set explicitly still wins), so a single
+code path produces every pack. Unknown keys in a preset (e.g. a misspelled
+`MARK_*`) are reported and skipped rather than silently ignored.
+
+`onetimesecret.com` itself (and anyone who wants it) can generate a pack styled
+after the current Onetime Secret logo (`OnetimeSecretIcon.vue` /
+`onetime-logo-v3`, `#DC4A22` orange + white): the circled 秘 ("secret") mark,
+colloquially "maruhi", instead of the neutral keyhole. It ships as a preset:
+
+```bash
+pnpm run gen:favicons:maruhi     # = generate-favicons.mjs --preset maruhi
+```
+
+This is company branding, not the OSS default. The preset points its output at
+`docker/public/` (the build-time brand-overlay directory — see Option B above;
+gitignored, never committed) and a reviewable source-SVG copy at
+`src/assets/branding/maruhi/` (committed, like the neutral pack's `*-source.svg`
+files), so it never touches `public/web/`. `gen:favicons:check` guards only the
+neutral defaults, so a preset can never trip it. Override any value inline, e.g.
+`MARK_PRIMARY_COLOR='#DC4A22' pnpm run gen:favicons:maruhi`.
+
+**Attribution.** The maruhi glyph is derived from
+[EmojiTwo](https://github.com/EmojiTwo/emojitwo) (originally EmojiOne 2.2),
+licensed **CC-BY-4.0**. The preset carries this credit in `MARK_ATTRIBUTION`, so
+every generated SVG (including the committed sources under
+`src/assets/branding/maruhi/`) embeds it as a comment and the attribution
+travels with the redistributed asset.
+
+To add your own pack, drop a `presets/<name>.mjs` that default-exports a
+`{ MARK_*: value }` object (copy `maruhi.mjs` as a template), then run
+`pnpm run gen:favicons --preset <name>`. A dependency-free test suite covers the
+generator's pure logic — run it with `pnpm run gen:favicons:test`.
+
+Known limitation: the 秘 kanji has fine brush-stroke detail that stops being
+legible below ~24px (a true 16px browser tab favicon renders as a soft white
+blob on orange, not readable text) — inherent to the glyph, not a generator
+bug. It reads clearly from the 32px `.ico` size up through the social card.

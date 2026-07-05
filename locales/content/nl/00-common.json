@@ -1299,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Controleer altijd of je op de officiële {product_name}-website bent. Fraudeurs maken soms nepwebsites die er precies uitzien als {product_name} om je berichten te stelen. Om phishing-aanvallen te voorkomen, controleer het domein voordat je nieuwe links aanmaakt.",
+    "text": "Controleer altijd of je je op de officiële website van {product_name} bevindt. Fraudeurs maken soms nepwebsites die er precies uitzien als {product_name} om je berichten te stelen. Controleer het regiodomein voordat je nieuwe links aanmaakt om phishingaanvallen te voorkomen.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1383,5 +1383,145 @@
     "text": "Upgrade om meer functies te ontgrendelen",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "api.errors.authentication_required": {
+    "text": "Authenticatie vereist",
+    "source_hash": "0fcfb12d"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "Deze actie is niet beschikbaar in SSO-only-modus",
+    "source_hash": "9bc26394"
+  },
+  "web.COMMON.configure": {
+    "text": "Configureren",
+    "source_hash": "6defafa2"
+  },
+  "web.COMMON.copy_to_clipboard": {
+    "text": "Kopiëren naar klembord",
+    "source_hash": "b749e205"
+  },
+  "web.COMMON.add": {
+    "text": "Toevoegen",
+    "source_hash": "9fd728c6"
+  },
+  "web.COMMON.enabled": {
+    "text": "Ingeschakeld",
+    "source_hash": "92c1cdfd"
+  },
+  "web.COMMON.disabled": {
+    "text": "Uitgeschakeld",
+    "source_hash": "75081b59"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Ja, verwijderen",
+    "source_hash": "7b05a8e3"
+  },
+  "web.COMMON.error_code": {
+    "text": "Foutcode",
+    "source_hash": "46832415"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTP-status",
+    "source_hash": "b2a629f2"
+  },
+  "web.COMMON.details": {
+    "text": "Details",
+    "source_hash": "45989de4"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Wachtwoord bevestigen",
+    "source_hash": "c292210c"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Wachtwoorden moeten overeenkomen",
+    "source_hash": "0c060bd4"
+  },
+  "web.COMMON.and": {
+    "text": "en",
+    "source_hash": "6201111b"
+  },
+  "web.COMMON.or": {
+    "text": "of",
+    "source_hash": "7175517a"
+  },
+  "web.COMMON.copied": {
+    "text": "Gekopieerd",
+    "source_hash": "8d525e5f"
+  },
+  "web.COMMON.copy": {
+    "text": "Kopiëren",
+    "source_hash": "e21f935f"
+  },
+  "web.COMMON.copy_email": {
+    "text": "E-mailadres kopiëren",
+    "source_hash": "61b94846"
+  },
+  "web.COMMON.copy_id": {
+    "text": "Account-ID kopiëren",
+    "source_hash": "fd493ffd"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "De unieke identificatie van je organisatie",
+    "source_hash": "c8c08d29"
+  },
+  "web.COMMON.success": {
+    "text": "Gelukt",
+    "source_hash": "c88a0b90"
+  },
+  "web.COMMON.need_help": {
+    "text": "Hulp nodig",
+    "source_hash": "4ca0ca38"
+  },
+  "web.COMMON.open_help_dialog": {
+    "text": "Hulpvenster openen",
+    "source_hash": "55cd1515"
+  },
+  "web.COMMON.focus_is_now_in_the_main_text_area": {
+    "text": "De focus ligt nu in het hoofdtekstvak",
+    "source_hash": "e00dd260"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Wachtwoordzin tonen",
+    "source_hash": "76880d38"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Wachtwoordzin verbergen",
+    "source_hash": "8ecdc98c"
+  },
+  "web.LABELS.copy_icon": {
+    "text": "Kopieerpictogram",
+    "source_hash": "d1a5fc0c"
+  },
+  "web.LABELS.copied_icon": {
+    "text": "Gekopieerd-pictogram",
+    "source_hash": "90a4b4f1"
+  },
+  "web.STATUS.unverified": {
+    "text": "Niet geverifieerd",
+    "source_hash": "33c8e8de"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Domeininstellingen",
+    "source_hash": "e24f338d"
+  },
+  "web.TITLES.domain_signin": {
+    "text": "Inlogconfiguratie",
+    "source_hash": "2da38c03"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "Domein-SSO",
+    "source_hash": "13161464"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "Validatie van domeinaanmelding",
+    "source_hash": "c8ce809a"
+  },
+  "web.TITLES.domain_email": {
+    "text": "E-mailconfiguratie",
+    "source_hash": "6f38aa51"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Inkomende berichten",
+    "source_hash": "883dbca9"
   }
 }

@@ -398,5 +398,965 @@
   "web.domains.dns_widget_description": {
     "text": "DNS sağlayıcınızı otomatik olarak algılamak ve alan adınızı yapılandırmak için adım adım talimatlar almak üzere aşağıdaki aracı kullanın.",
     "source_hash": "91c1af2e"
+  },
+  "api.domains.errors.add_admin_required": {
+    "text": "Yalnızca kuruluş sahipleri ve yöneticileri özel alan adı ekleyebilir",
+    "source_hash": "3324aabe"
+  },
+  "web.domains.public_homepage": {
+    "text": "Genel Ana Sayfa",
+    "source_hash": "2ae3ccba"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Alan adı doğrulandı ve aktif",
+    "source_hash": "e4b6a6e1"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS yapılandırılmamış — düzeltmek için tıklayın",
+    "source_hash": "892cb2cb"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Alan adı doğrulanmadı — doğrulamak için tıklayın",
+    "source_hash": "a9806710"
+  },
+  "web.domains.status_tooltip_unverified": {
+    "text": "Alan adı durumu doğrulanmamış — yenilemek için tıklayın",
+    "source_hash": "a45aa76d"
+  },
+  "web.domains.last_check_failed": {
+    "text": "Son doğrulama kontrolü başarısız oldu",
+    "source_hash": "88b594b8"
+  },
+  "web.domains.last_check_failed_ago": {
+    "text": "son kontrol {0} başarısız oldu",
+    "source_hash": "ddfb6412"
+  },
+  "web.domains.verify_now": {
+    "text": "Şimdi doğrula",
+    "source_hash": "db383efb"
+  },
+  "web.domains.click_to_verify": {
+    "text": "doğrulamak için tıklayın",
+    "source_hash": "6eae7d9c"
+  },
+  "web.domains.remove_domain_description": {
+    "text": "Bu alan adını ve tüm yapılandırmasını kalıcı olarak kaldırın.",
+    "source_hash": "73946b9e"
+  },
+  "web.domains.add_access_denied": {
+    "text": "Erişim Reddedildi",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.add_access_denied_description": {
+    "text": "Bu kuruluşa alan adı ekleme izniniz yok. Kuruluş yöneticinizle iletişime geçin.",
+    "source_hash": "25e035c6"
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "DNS bileşeni yüklenemedi",
+    "source_hash": "5a1d8ab5"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "DNS bileşeni kullanılamıyor",
+    "source_hash": "4eed448b"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "DNS bileşeni başlatılamadı",
+    "source_hash": "de477585"
+  },
+  "web.domains.verified": {
+    "text": "Doğrulandı",
+    "source_hash": "4f783840"
+  },
+  "web.domains.pending_verification": {
+    "text": "Doğrulama Bekliyor",
+    "source_hash": "77e07795"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Kaydedilmemiş değişiklikleriniz var. Ayrılmak istediğinizden emin misiniz?",
+    "source_hash": "322380c1"
+  },
+  "web.domains.entitlement_required_owner": {
+    "text": "Bu özellik bir plan yükseltmesi gerektirir.",
+    "source_hash": "6de1f752"
+  },
+  "web.domains.entitlement_required_member": {
+    "text": "Bu özellik mevcut planınızda kullanılamıyor. Kuruluş sahibinizle iletişime geçin.",
+    "source_hash": "8f1688b2"
+  },
+  "web.domains.detail.manage": {
+    "text": "Yönet",
+    "source_hash": "5a234448"
+  },
+  "web.domains.detail.features": {
+    "text": "Özellikler",
+    "source_hash": "5697d03d"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Ana Sayfa Gizli Mesajları",
+    "source_hash": "6360f7ec"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Alan adı ana sayfanızda gizli mesaj oluşturmaya genel erişime izin verin",
+    "source_hash": "209b3ded"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logo, renkler ve özel markalama",
+    "source_hash": "69f7a9e8"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Tek oturum açma (SSO) sağlayıcı ayarları",
+    "source_hash": "234e6150"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Özel e-posta gönderen yapılandırması",
+    "source_hash": "7fcde01b"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Gelen gizli mesaj alıcı ayarları",
+    "source_hash": "37c1fd6d"
+  },
+  "web.domains.detail.signup_description": {
+    "text": "Alan adına özel kayıt doğrulama stratejisi",
+    "source_hash": "3c5a511f"
+  },
+  "web.domains.detail.signin_description": {
+    "text": "Alan adına özel giriş yöntemi yapılandırması",
+    "source_hash": "73e01e36"
+  },
+  "web.domains.email.title": {
+    "text": "E-posta Gönderme",
+    "source_hash": "6c428e5f"
+  },
+  "web.domains.email.config_title": {
+    "text": "E-posta Yapılandırması",
+    "source_hash": "6f38aa51"
+  },
+  "web.domains.email.config_description": {
+    "text": "Bu alan adı için e-posta göndermeyi yapılandırın",
+    "source_hash": "1c275ff0"
+  },
+  "web.domains.email.provider_label": {
+    "text": "E-posta Sağlayıcısı",
+    "source_hash": "a7ed3f4e"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "Bir e-posta sağlayıcısı seçin",
+    "source_hash": "63c8080c"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "Gönderen Adı",
+    "source_hash": "2f13b589"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "örn. Acme Security",
+    "source_hash": "03c0f138"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "Gönderen Adresi",
+    "source_hash": "60643eae"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "örn. secrets{'@'}example.com",
+    "source_hash": "a09b3928"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Yanıt Adresi",
+    "source_hash": "4538ea9c"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "örn. support{'@'}example.com",
+    "source_hash": "fa3e5f0b"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Değişiklikleri Kaydet",
+    "source_hash": "35322b5b"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Değişiklikleri At",
+    "source_hash": "e07e053c"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES",
+    "source_hash": "15de4969"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid",
+    "source_hash": "b889d002"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint",
+    "source_hash": "ec994dad"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Hesap varsayılanlarını kullan",
+    "source_hash": "f6fa84e7"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "DKIM ve SPF kayıtları aracılığıyla alan adı doğrulaması gerektirir",
+    "source_hash": "4df5aa60"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Alan adı kimlik doğrulaması kurulumu gerektirir",
+    "source_hash": "71b53242"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Alan adı doğrulaması gerektirir",
+    "source_hash": "87073c93"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "Hesabınızın varsayılan e-posta gönderme yapılandırmasını kullanır",
+    "source_hash": "3f798263"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "DNS Kayıtları",
+    "source_hash": "34d2c307"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "E-posta göndermek için alan adınızı doğrulamak üzere aşağıdaki DNS kayıtlarını ekleyin.",
+    "source_hash": "9fa85863"
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Tür",
+    "source_hash": "baaddf70"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Ad",
+    "source_hash": "dcd1d522"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Değer",
+    "source_hash": "8e37953d"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS",
+    "source_hash": "020965a2"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Sağlayıcı",
+    "source_hash": "472590ae"
+  },
+  "web.domains.email.dns_optional_label": {
+    "text": "Önerilen",
+    "source_hash": "d70604e8"
+  },
+  "web.domains.email.dns_optional_hint": {
+    "text": "Bu kayıt önerilir ancak doğrulama için gerekli değildir. Kuruluş alan adınızdaki bir DMARC politikası bu alt alan adını zaten kapsıyor olabilir.",
+    "source_hash": "58e1a12b"
+  },
+  "web.domains.email.copy": {
+    "text": "Kopyala",
+    "source_hash": "e21f935f"
+  },
+  "web.domains.email.copied": {
+    "text": "Kopyalandı",
+    "source_hash": "8d525e5f"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Doğrulandı",
+    "source_hash": "4f783840"
+  },
+  "web.domains.email.status_pending": {
+    "text": "Beklemede",
+    "source_hash": "331551b0"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Başarısız",
+    "source_hash": "031a8f0f"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Yeniden doğrula",
+    "source_hash": "4918da12"
+  },
+  "web.domains.email.validating": {
+    "text": "Doğrulanıyor...",
+    "source_hash": "b28b48d5"
+  },
+  "web.domains.email.domain_verified": {
+    "text": "Alan adı doğrulandı",
+    "source_hash": "08e0df67"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "Doğrulama başarısız oldu",
+    "source_hash": "23a86f5a"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Son doğrulama",
+    "source_hash": "887dd486"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Bu alan adı için e-posta göndermeyi yapılandırmak üzere planınızı yükseltin.",
+    "source_hash": "16a876f7"
+  },
+  "web.domains.email.configure_email": {
+    "text": "E-postayı Yapılandır",
+    "source_hash": "a48c0d40"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Erişim Reddedildi",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "Bu alan adının e-posta ayarlarını yönetme izniniz yok. Kuruluş yöneticinizle iletişime geçin.",
+    "source_hash": "32049ff0"
+  },
+  "web.domains.email.update_success": {
+    "text": "E-posta yapılandırması başarıyla kaydedildi",
+    "source_hash": "dd3607fc"
+  },
+  "web.domains.email.delete_success": {
+    "text": "E-posta yapılandırması başarıyla kaldırıldı",
+    "source_hash": "2ba99a91"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "Bu alan adı için e-postalar şu anda genel göndericiden gönderiliyor. Kendi gönderici kimliğinizi kullanmak için e-posta yapılandırmasını tamamlayın.",
+    "source_hash": "ffcf39fb"
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "Özel e-posta gönderme şu anda devre dışı. E-postalar genel göndericiden gönderilecek. Kendi gönderici kimliğinizi kullanmak için aşağıdaki özelliği etkinleştirin.",
+    "source_hash": "60a26f5b"
+  },
+  "web.domains.email.test_email_title": {
+    "text": "E-posta teslimatını test edin",
+    "source_hash": "c1b3dee2"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Kaydedilen yapılandırmayı kullanarak kendinize bir test e-postası gönderin. Özellik henüz etkinleştirilmemiş olsa bile çalışır.",
+    "source_hash": "33e876ad"
+  },
+  "web.domains.email.send_test": {
+    "text": "Test gönder",
+    "source_hash": "22d7b11d"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Test e-postası başarıyla gönderildi",
+    "source_hash": "561617fd"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Test e-postası gönderilemedi",
+    "source_hash": "95ce63bc"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "{email} adresine gönderildi",
+    "source_hash": "8ceb9588"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "{provider} aracılığıyla teslim edildi",
+    "source_hash": "f741959b"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "Yapılandırılmamış",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "Varsayılan gönderici kullanılıyor",
+    "source_hash": "e1afb18f"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Doğrulandı",
+    "source_hash": "4f783840"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Doğrulama bekliyor",
+    "source_hash": "417a6b7e"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Devre dışı",
+    "source_hash": "75081b59"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "Yapılandırılmış e-posta göndericisi yok — e-postalar platformun varsayılan göndericisini kullanır",
+    "source_hash": "360083bb"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "E-posta göndericisi yapılandırması doğrulama bekliyor — e-postalar platformun varsayılan göndericisini kullanır",
+    "source_hash": "c8c2449c"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "E-posta göndericisi devre dışı — e-postalar platformun varsayılan göndericisini kullanır",
+    "source_hash": "64e84955"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "E-posta göndericisi doğrulandı — e-postalar bu alan adından gönderilir",
+    "source_hash": "0e9a005c"
+  },
+  "web.domains.incoming.title": {
+    "text": "Gelen Gizli Mesajlar",
+    "source_hash": "883dbca9"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Gelen Gizli Mesajlar Yapılandırması",
+    "source_hash": "b3fef15b"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Harici kullanıcıların bu alan adındaki belirlenen alıcılara doğrudan gizli mesaj göndermesine izin verin",
+    "source_hash": "452ab4fe"
+  },
+  "web.domains.incoming.feature_disabled": {
+    "text": "Gelen Gizli Mesajlar Kullanılamıyor",
+    "source_hash": "0f96c5ec"
+  },
+  "web.domains.incoming.feature_disabled_description": {
+    "text": "Bu örnekte gelen gizli mesajlar etkinleştirilmemiş. Yöneticinizle iletişime geçin.",
+    "source_hash": "dce981e0"
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Erişim Reddedildi",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "Bu alan adının gelen gizli mesaj ayarlarını yönetme izniniz yok. Kuruluş yöneticinizle iletişime geçin.",
+    "source_hash": "3e9d8adc"
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Bu alan adı için gelen gizli mesajları yapılandırmak üzere planınızı yükseltin.",
+    "source_hash": "9dfdfeb5"
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Gelen Gizli Mesajları Yapılandır",
+    "source_hash": "eab52939"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "Bu alan adı için gelen gizli mesajlar yapılandırılmamış. Harici kullanıcıların ekibinize gizli mesaj göndermesine izin vermek için alıcılar ekleyin.",
+    "source_hash": "dbc443a6"
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "Gelen gizli mesajlar şu anda devre dışı. Harici kullanıcılar bu alan adındaki alıcılara gizli mesaj gönderemez. Gelen gizli mesajlara izin vermek için aşağıdaki özelliği etkinleştirin.",
+    "source_hash": "d1f8dafb"
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Alıcılar",
+    "source_hash": "1e8568a8"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Bu alan adında kimlerin gelen gizli mesaj alabileceğini belirleyin. Kendilerine bir gizli mesaj gönderildiğinde alıcılar e-posta bildirimleri alır.",
+    "source_hash": "026f9d9d"
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Alıcı Ekle",
+    "source_hash": "25f93c13"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Kaldır",
+    "source_hash": "c3812fc4"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "E-posta Adresi",
+    "source_hash": "09bf25ef"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "recipient{'@'}example.com",
+    "source_hash": "55d1508e"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Görünen Ad",
+    "source_hash": "18d67c99"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "örn. Security Team",
+    "source_hash": "0c52400c"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "Yapılandırılmış alıcı yok",
+    "source_hash": "bc8c2058"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Harici kullanıcıların ekibinize gizli mesaj göndermesine izin vermek için alıcılar ekleyin.",
+    "source_hash": "2a647a40"
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Geçersiz e-posta adresi",
+    "source_hash": "4eaf1d80"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "Bu e-posta adresi zaten eklenmiş",
+    "source_hash": "f89de141"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "En fazla {max} alıcıya izin verilir",
+    "source_hash": "e2585847"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "Görünen ad gereklidir",
+    "source_hash": "c6892c89"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "E-posta adresi gereklidir",
+    "source_hash": "41381ba2"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Değişiklikleri Kaydet",
+    "source_hash": "35322b5b"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Değişiklikleri At",
+    "source_hash": "e07e053c"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "Gelen gizli mesajlar yapılandırması başarıyla kaydedildi",
+    "source_hash": "9317e02d"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "Gelen gizli mesajlar yapılandırması başarıyla kaldırıldı",
+    "source_hash": "4c4a33ae"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} alıcı | {count} alıcı",
+    "source_hash": "0e4f5985"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "Yapılandırılmamış",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Yapılandırılmış",
+    "source_hash": "84aebc69"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Devre dışı",
+    "source_hash": "75081b59"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "Gelen gizli mesajlar yapılandırılmamış - harici kullanıcılar bu alan adına gizli mesaj gönderemez",
+    "source_hash": "79786d5c"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "Gelen gizli mesajlar {count} alıcı ile etkinleştirildi",
+    "source_hash": "c205cc54"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "Gelen gizli mesajlar özelliği bu alan adı için devre dışı",
+    "source_hash": "0413f96b"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Gelen Gizli Mesajları Etkinleştir",
+    "source_hash": "c0b25980"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Harici kullanıcıların bu alan adındaki alıcılara gizli mesaj göndermesine izin verin",
+    "source_hash": "24aadd31"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "Genel URL",
+    "source_hash": "f7b60b04"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Harici kullanıcıların gizli mesaj göndermesine izin vermek için bu URL'yi onlarla paylaşın",
+    "source_hash": "df47a894"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "URL'yi Kopyala",
+    "source_hash": "b26d1037"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "URL panoya kopyalandı",
+    "source_hash": "2f396c3e"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Tüm alıcıları kaldırmak istediğinizden emin misiniz? Harici kullanıcılar artık bu alan adına gizli mesaj gönderemeyecek.",
+    "source_hash": "06f9e551"
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Maksimum alıcı sayısına ulaşıldı",
+    "source_hash": "ba659e54"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "Bu e-posta adresi zaten eklenmiş",
+    "source_hash": "ca598f6d"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "Kaydetmek, mevcut tüm alıcıları bekleyen değişikliklerinizle değiştirecek. Emin misiniz?",
+    "source_hash": "f497862e"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Tüm Alıcıları Sil",
+    "source_hash": "207d0dbe"
+  },
+  "web.domains.signin.title": {
+    "text": "Giriş Yapılandırması",
+    "source_hash": "2da38c03"
+  },
+  "web.domains.signin.configure_signin": {
+    "text": "Girişi Yapılandır",
+    "source_hash": "f72b58b5"
+  },
+  "web.domains.signin.config_description": {
+    "text": "Bu alan adı için giriş kimlik doğrulama yöntemlerini yapılandırın",
+    "source_hash": "8efce428"
+  },
+  "web.domains.signin.access_denied": {
+    "text": "Erişim Reddedildi",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.signin.upgrade_to_configure": {
+    "text": "Bu alan adı için giriş yöntemlerini yapılandırmak üzere planınızı yükseltin.",
+    "source_hash": "e242bb74"
+  },
+  "web.domains.signin.not_configured_notice": {
+    "text": "Bu alan adı için giriş yapılandırması henüz ayarlanmamış. Bu alan adının giriş sayfasında hangi kimlik doğrulama yöntemlerinin kullanılabilir olduğunu denetlemek için geçersiz kılmaları yapılandırın.",
+    "source_hash": "cb788a2d"
+  },
+  "web.domains.signin.signin_enabled_label": {
+    "text": "Giriş etkin",
+    "source_hash": "cabe4898"
+  },
+  "web.domains.signin.header_toggle_label": {
+    "text": "Giriş",
+    "source_hash": "5bbbe531"
+  },
+  "web.domains.signin.signin_enabled_hint": {
+    "text": "Kullanıcıların bu alan adında giriş yapıp yapamayacağı",
+    "source_hash": "57a92aee"
+  },
+  "web.domains.signin.restrict_to_label": {
+    "text": "Giriş yöntemini kısıtla",
+    "source_hash": "edbec83f"
+  },
+  "web.domains.signin.restrict_to_hint": {
+    "text": "Bu alan adını tek bir kimlik doğrulama yöntemiyle kısıtlayın. Ayarlandığında, giriş sayfasında yalnızca seçilen yöntem gösterilir.",
+    "source_hash": "682bc4c5"
+  },
+  "web.domains.signin.all_methods": {
+    "text": "Tüm yöntemler",
+    "source_hash": "e601c19e"
+  },
+  "web.domains.signin.all_methods_description": {
+    "text": "Giriş sayfasında etkinleştirilmiş tüm kimlik doğrulama yöntemlerini göster",
+    "source_hash": "62723340"
+  },
+  "web.domains.signin.method_password": {
+    "text": "Parola",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.domains.signin.method_email_auth": {
+    "text": "E-posta ile kimlik doğrulama",
+    "source_hash": "68c38f94"
+  },
+  "web.domains.signin.method_webauthn": {
+    "text": "WebAuthn / Passkeys",
+    "source_hash": "c40224ce"
+  },
+  "web.domains.signin.method_sso": {
+    "text": "Tek Oturum Açma (SSO)",
+    "source_hash": "cf7cd744"
+  },
+  "web.domains.signin.method_overrides_label": {
+    "text": "Yöntem geçersiz kılmaları",
+    "source_hash": "5496cba6"
+  },
+  "web.domains.signin.method_overrides_hint": {
+    "text": "Bu alan adı için tek tek kimlik doğrulama yöntemlerini etkinleştirin veya devre dışı bırakın",
+    "source_hash": "394e3878"
+  },
+  "web.domains.signin.mode_question": {
+    "text": "Kullanıcılar nasıl giriş yapabilir?",
+    "source_hash": "3694eb23"
+  },
+  "web.domains.signin.mode_any": {
+    "text": "Kullanılabilir herhangi bir yöntem",
+    "source_hash": "23665425"
+  },
+  "web.domains.signin.mode_any_hint": {
+    "text": "Bu alan adında kullanılabilen her yöntemi göster. Aşağıdan tek tek yöntemleri daraltın.",
+    "source_hash": "2f3dcba6"
+  },
+  "web.domains.signin.mode_one": {
+    "text": "Belirli bir yöntem",
+    "source_hash": "601f5768"
+  },
+  "web.domains.signin.mode_one_hint": {
+    "text": "Giriş sayfasını tek bir yöntemle kısıtlayın. Yalnızca bu alan adında kullanılabilen yöntemler listelenir.",
+    "source_hash": "58bde6d5"
+  },
+  "web.domains.signin.mode_disabled": {
+    "text": "Giriş devre dışı",
+    "source_hash": "bb807607"
+  },
+  "web.domains.signin.mode_disabled_hint": {
+    "text": "Kullanıcılar bu alan adında giriş yapamaz.",
+    "source_hash": "8938f098"
+  },
+  "web.domains.signin.mode_disabled_notice": {
+    "text": "Bu alan adının giriş sayfasını ziyaret edenler, ana sayfaya geri dönen bir bağlantıyla birlikte girişin kullanılamadığına dair bir bildirim görür. Önceki yöntem ayarlarınız saklanır ve girişi yeniden etkinleştirdiğinizde geri yüklenir.",
+    "source_hash": "1a04de18"
+  },
+  "web.domains.signin.methods_list_label": {
+    "text": "Giriş sayfasında gösterilen yöntemler",
+    "source_hash": "66fd133b"
+  },
+  "web.domains.signin.restrict_picker_hint": {
+    "text": "Yalnızca bu alan adında kullanılabilen yöntemler listelenir.",
+    "source_hash": "c7a56f44"
+  },
+  "web.domains.signin.availability_always": {
+    "text": "Her zaman kullanılabilir",
+    "source_hash": "0fda3772"
+  },
+  "web.domains.signin.availability_global_on": {
+    "text": "Genel politikayı izler · Açık",
+    "source_hash": "3844e6f7"
+  },
+  "web.domains.signin.availability_global_off": {
+    "text": "Kullanılamıyor",
+    "source_hash": "67a926f7"
+  },
+  "web.domains.signin.availability_unavailable": {
+    "text": "Site genelinde kullanılamıyor",
+    "source_hash": "da29c1be"
+  },
+  "web.domains.signin.allow_on_domain": {
+    "text": "Bu alan adında izin ver",
+    "source_hash": "760b578e"
+  },
+  "web.domains.signin.method_password_blurb": {
+    "text": "Yalnızca parola",
+    "source_hash": "ed1a02fd"
+  },
+  "web.domains.signin.method_email_auth_blurb": {
+    "text": "Parolasız sihirli bağlantı ile giriş",
+    "source_hash": "7f776a85"
+  },
+  "web.domains.signin.method_webauthn_blurb": {
+    "text": "Biyometri ve güvenlik anahtarları",
+    "source_hash": "7d6a7bd5"
+  },
+  "web.domains.signin.method_sso_blurb": {
+    "text": "Harici kimlik sağlayıcı",
+    "source_hash": "a3442088"
+  },
+  "web.domains.signin.email_auth_label": {
+    "text": "E-posta ile kimlik doğrulama",
+    "source_hash": "68c38f94"
+  },
+  "web.domains.signin.email_auth_hint": {
+    "text": "Bu alan adında parolasız e-posta kimlik doğrulamasına izin verin",
+    "source_hash": "6ad82127"
+  },
+  "web.domains.signin.sso_enabled_label": {
+    "text": "Tek Oturum Açma (SSO)",
+    "source_hash": "cf7cd744"
+  },
+  "web.domains.signin.sso_enabled_hint": {
+    "text": "Bu alan adında SSO kimlik doğrulamasına izin verin",
+    "source_hash": "22d78ad5"
+  },
+  "web.domains.signin.enabled_label": {
+    "text": "Giriş yapılandırmasını etkinleştir",
+    "source_hash": "dbd8e11c"
+  },
+  "web.domains.signin.enabled_hint": {
+    "text": "Etkinleştirildiğinde, bu alan adı yukarıda yapılandırılan giriş ayarlarını kullanır",
+    "source_hash": "6259f8a2"
+  },
+  "web.domains.signin.save_config": {
+    "text": "Yapılandırmayı kaydet",
+    "source_hash": "b2b158f2"
+  },
+  "web.domains.signin.update_success": {
+    "text": "Giriş yapılandırması başarıyla güncellendi",
+    "source_hash": "10ea50d8"
+  },
+  "web.domains.signin.reset_to_defaults": {
+    "text": "Varsayılanlara sıfırla",
+    "source_hash": "e240e635"
+  },
+  "web.domains.signin.reset_confirm": {
+    "text": "Giriş genel varsayılanlara sıfırlansın mı?",
+    "source_hash": "2c6bbc32"
+  },
+  "web.domains.signin.reset_keeps_sso": {
+    "text": "SSO kimlik bilgileriniz saklanır. Bunları SSO yapılandırma ekranında ayrıca kaldırın.",
+    "source_hash": "edc0c756"
+  },
+  "web.domains.signin.reset_action": {
+    "text": "Evet, sıfırla",
+    "source_hash": "4bb21d8b"
+  },
+  "web.domains.signin.reset_success": {
+    "text": "Giriş ayarları genel varsayılanlara sıfırlandı",
+    "source_hash": "0c364d89"
+  },
+  "web.domains.signup.title": {
+    "text": "Kayıt Doğrulaması",
+    "source_hash": "2c34ac0a"
+  },
+  "web.domains.signup.config_description": {
+    "text": "Bu alan adı için kayıt doğrulamasını yapılandırın",
+    "source_hash": "e9c81e8a"
+  },
+  "web.domains.signup.access_denied": {
+    "text": "Erişim Reddedildi",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.signup.upgrade_to_configure": {
+    "text": "Alan adına özel kayıt doğrulamasını yapılandırmak üzere planınızı yükseltin.",
+    "source_hash": "d87d6614"
+  },
+  "web.domains.signup.configure_signup": {
+    "text": "Kaydı Yapılandır",
+    "source_hash": "e2697662"
+  },
+  "web.domains.signup.not_configured_notice": {
+    "text": "Bu alan adı için kayıt doğrulaması henüz yapılandırılmamış. Bu alan adı üzerinden kimlerin kaydolabileceğini denetlemek için bir strateji yapılandırın.",
+    "source_hash": "fc6c6eb8"
+  },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "Kayıtlar şu anda site düzeyinde devre dışı. Bu alan adına özel politika yapılandırılmış ancak site kayıtları etkinleştirilene kadar herhangi bir trafiği denetlemeyecek.",
+    "source_hash": "c0e59f86"
+  },
+  "web.domains.signup.strategy_label": {
+    "text": "Doğrulama stratejisi",
+    "source_hash": "a2e95531"
+  },
+  "web.domains.signup.strategy_description": {
+    "text": "Kullanıcılar bu alan adında kaydolurken e-posta adreslerinin nasıl doğrulanacağını seçin.",
+    "source_hash": "8e232b03"
+  },
+  "web.domains.signup.network_validation_warning": {
+    "text": "Bu strateji, kayıt sırasında ağ çağrıları gerçekleştirir; bu da gecikme ekleyebilir veya bazı sağlayıcılar tarafından engellenebilir.",
+    "source_hash": "53d4c266"
+  },
+  "web.domains.signup.allowed_domains_label": {
+    "text": "İzin verilen kayıt alan adları",
+    "source_hash": "9b5bb5b1"
+  },
+  "web.domains.signup.allowed_domains_hint": {
+    "text": "Yalnızca bu e-posta alan adlarının kaydolmasına izin verilir. Her giriş için bir alan adı ekleyin.",
+    "source_hash": "c082414d"
+  },
+  "web.domains.signup.domain_placeholder": {
+    "text": "example.com",
+    "source_hash": "a379a6f6"
+  },
+  "web.domains.signup.invalid_domain": {
+    "text": "Lütfen geçerli bir alan adı girin (örn. example.com)",
+    "source_hash": "16807983"
+  },
+  "web.domains.signup.domain_exists": {
+    "text": "Bu alan adı zaten listede",
+    "source_hash": "3fccb721"
+  },
+  "web.domains.signup.remove_domain": {
+    "text": "{domain} adresini kaldır",
+    "source_hash": "ae708a1d"
+  },
+  "web.domains.signup.enabled_label": {
+    "text": "Alan adına özel doğrulamayı etkinleştir",
+    "source_hash": "db103925"
+  },
+  "web.domains.signup.enabled_hint": {
+    "text": "Etkinleştirildiğinde, bu alan adındaki kayıtlar genel politika yerine yukarıdaki stratejiyi kullanır.",
+    "source_hash": "99de2008"
+  },
+  "web.domains.signup.delete_config": {
+    "text": "Yapılandırmayı sil",
+    "source_hash": "a9a30c7f"
+  },
+  "web.domains.signup.delete_confirm": {
+    "text": "Kayıt doğrulama yapılandırması silinsin mi? Kayıtlar genel politikaya geri dönecek.",
+    "source_hash": "a8c9086e"
+  },
+  "web.domains.signup.save_config": {
+    "text": "Yapılandırmayı kaydet",
+    "source_hash": "b2b158f2"
+  },
+  "web.domains.signup.update_success": {
+    "text": "Kayıt doğrulaması başarıyla güncellendi",
+    "source_hash": "57a529ac"
+  },
+  "web.domains.signup.delete_success": {
+    "text": "Kayıt doğrulama yapılandırması başarıyla kaldırıldı",
+    "source_hash": "eb6add4d"
+  },
+  "web.domains.signup.domain_overrides_label": {
+    "text": "Alan adı geçersiz kılmaları",
+    "source_hash": "d25da3cd"
+  },
+  "web.domains.signup.domain_overrides_hint": {
+    "text": "Bu alan adı için genel kayıt ayarlarını geçersiz kılın",
+    "source_hash": "53101057"
+  },
+  "web.domains.signup.signup_enabled_label": {
+    "text": "Kayıt etkin",
+    "source_hash": "296ac66d"
+  },
+  "web.domains.signup.signup_enabled_hint": {
+    "text": "Bu alan adı için kaydın etkin olup olmadığını geçersiz kılın",
+    "source_hash": "2ee146b6"
+  },
+  "web.domains.signup.autoverify_label": {
+    "text": "Hesapları otomatik doğrula",
+    "source_hash": "4b103cd5"
+  },
+  "web.domains.signup.autoverify_hint": {
+    "text": "Bu alan adında yeni hesapların otomatik olarak doğrulanıp doğrulanmayacağını geçersiz kılın",
+    "source_hash": "63866ecd"
+  },
+  "web.domains.sso.title": {
+    "text": "Tek Oturum Açma (SSO)",
+    "source_hash": "cf7cd744"
+  },
+  "web.domains.sso.config_title": {
+    "text": "SSO Yapılandırması",
+    "source_hash": "afd5751e"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Bu alan adı için tek oturum açma kimlik doğrulamasını yapılandırın",
+    "source_hash": "f37a0b47"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Erişim Reddedildi",
+    "source_hash": "d134ca02"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "Bu alan adının SSO ayarlarını yönetme izniniz yok. Kuruluş yöneticinizle iletişime geçin.",
+    "source_hash": "db7fcfeb"
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Bu alan adı için tek oturum açmayı yapılandırmak üzere planınızı yükseltin.",
+    "source_hash": "71fc0069"
+  },
+  "web.domains.sso.create_success": {
+    "text": "SSO yapılandırması başarıyla oluşturuldu",
+    "source_hash": "531c7d92"
+  },
+  "web.domains.sso.update_success": {
+    "text": "SSO yapılandırması başarıyla güncellendi",
+    "source_hash": "d98d8e83"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "SSO yapılandırması başarıyla kaldırıldı",
+    "source_hash": "2e924798"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Bağlantı testi başarılı — sağlayıcı doğru yanıt verdi",
+    "source_hash": "1570ddb0"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Bağlantı testi başarısız oldu",
+    "source_hash": "a45a37dd"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "Bu alan adındaki tüm girişler için SSO'yu zorunlu kılmak istiyorsanız bunu alan adının giriş ayarlarında yapılandırın. Yalnızca SSO modu, giriş sayfasını burada yapılandırılan SSO sağlayıcısıyla kısıtlar.",
+    "source_hash": "d26627a5"
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "SSO'yu Yapılandır",
+    "source_hash": "80d3a144"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "Bu alan adı için SSO henüz yapılandırılmamış. Ekip üyelerinin kuruluşunuzun kimlik sağlayıcısını kullanarak kimlik doğrulaması yapmasına izin vermek için tek oturum açmayı etkinleştirin.",
+    "source_hash": "c439214b"
+  },
+  "web.domains.sso.edit_credentials": {
+    "text": "Kimlik bilgilerini düzenle",
+    "source_hash": "5a6622b6"
+  },
+  "web.domains.sso.configure_button": {
+    "text": "Yapılandır",
+    "source_hash": "6defafa2"
+  },
+  "web.domains.sso.upgrade_required": {
+    "text": "Yapılandırmak için yükseltin",
+    "source_hash": "571cfa98"
   }
 }

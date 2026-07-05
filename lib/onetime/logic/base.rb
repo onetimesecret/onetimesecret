@@ -79,6 +79,13 @@ module Onetime
         end
         # If @cust is already a Onetime::Customer instance, use it as-is
 
+        # process_params runs on EVERY request and fires here in the
+        # constructor — BEFORE raise_concerns, so no auth/validation gating has
+        # happened yet. On auth=noauth routes cust is nil for anonymous callers
+        # (authenticated-only routes are rejected at the Otto auth layer, so
+        # their cust is always present). Subclasses reachable via noauth routes
+        # must therefore guard cust access in process_params. See #3516.
+        #
         # Won't run if params aren't passed in
         process_params if respond_to?(:process_params) && @params
       end
@@ -348,29 +355,36 @@ module Onetime
         warn "[set_error_message] #{caller(1..3)}"
       end
 
-      # Requires the implementing class to have cust and session fields
+      # Send (or resend) a verification email.
+      #
+      # @param customer [Onetime::Customer] the recipient. Defaults to the
+      #   request-context `cust`. Unauthenticated flows (e.g. the public
+      #   password-reset request) have a nil `cust`, so they MUST pass the
+      #   looked-up customer explicitly — otherwise the verification secret binds
+      #   to nil and the request 500s.
       #
       # Used by:
-      #   - AccountAPI::Logic::Account::CreateAccount
-      #   - Core::Logic::Authentication::AuthenticateSession
-      def send_verification_email(_token = nil)
+      #   - AccountAPI::Logic::Account::CreateAccount (implicit cust)
+      #   - Core::Logic::Authentication::AuthenticateSession (implicit cust)
+      #   - AccountAPI::Logic::Authentication::ResetPasswordRequest (explicit)
+      def send_verification_email(_token = nil, customer: cust)
         msg = format("Thanks for verifying your account. We got you a secret fortune cookie!\n\n\"%s\"", OT::Utils.random_fortune)
 
-        _receipt, secret = Onetime::Receipt.spawn_pair(cust&.objid, 24.days, msg)
+        _receipt, secret = Onetime::Receipt.spawn_pair(customer&.objid, 24.days, msg)
 
         secret.verification = true
-        secret.custid       = cust.custid
+        secret.custid       = customer.custid
         secret.save
 
         # The reset_secret field is a related standalone dbkey, writes
         # immediately. e.g. customer:abcd1234:reset_secret
-        cust.reset_secret = secret.identifier
+        customer.reset_secret = secret.identifier
 
         begin
           Onetime::Mail::Mailer.deliver(
             :welcome,
             {
-              email_address: cust.email,
+              email_address: customer.email,
               secret: secret,
             },
             locale: locale || 'en',

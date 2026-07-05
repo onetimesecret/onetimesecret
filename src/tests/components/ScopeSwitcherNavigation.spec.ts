@@ -8,7 +8,7 @@
  *
  * @see src/types/router.ts - ScopesAvailable interface
  * @see src/apps/workspace/components/navigation/OrganizationScopeSwitcher.vue
- * @see src/shared/components/navigation/DomainContextSwitcher.vue
+ * @see src/apps/workspace/components/navigation/DomainContextSwitcher.vue
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';

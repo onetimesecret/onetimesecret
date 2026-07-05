@@ -1,10 +1,11 @@
 <!-- src/apps/session/views/VerifyAccount.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+  import ResendVerificationForm from '@/apps/session/components/ResendVerificationForm.vue';
   import { useAuth } from '@/shared/composables/useAuth';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { computed, onMounted, ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
   import { useRoute } from 'vue-router';
 
   const route = useRoute();
@@ -91,7 +92,7 @@
         <div class="flex">
           <div class="shrink-0">
             <svg
-              class="size-5 animate-spin motion-reduce:animate-none text-blue-400"
+              class="size-5 animate-spin text-blue-400 motion-reduce:animate-none"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -210,6 +211,9 @@
           </div>
         </div>
 
+        <!-- Resend verification email (self-service recovery) -->
+        <ResendVerificationForm />
+
         <!-- Action buttons -->
         <div class="space-y-4">
           <div class="flex flex-col gap-3 sm:flex-row sm:justify-center">
@@ -222,7 +226,7 @@
             <router-link
               v-if="signupEnabled"
               to="/signup"
-              class="inline-flex justify-center rounded-md bg-white px-4 py-2 font-brand text-lg  text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-white dark:ring-gray-700 dark:hover:bg-gray-700">
+              class="inline-flex justify-center rounded-md bg-white px-4 py-2 font-brand text-lg  text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 dark:bg-gray-800 dark:text-white dark:ring-gray-700 dark:hover:bg-gray-700">
               {{ t('web.auth.verify.create_new_account') }}
             </router-link>
           </div>
@@ -266,6 +270,9 @@
             </div>
           </div>
         </div>
+
+        <!-- Resend verification email — users who never clicked their link land here. -->
+        <ResendVerificationForm />
 
         <div class="space-y-2 text-center">
           <div v-if="signinEnabled">

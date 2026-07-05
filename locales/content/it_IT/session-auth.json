@@ -395,5 +395,41 @@
   "web.help.contact_support": {
     "text": "Contatta il supporto",
     "source_hash": "f8d47b82"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "Account SSO",
+    "source_hash": "b8f4c728"
+  },
+  "web.help.reset_password_link": {
+    "text": "Reimposta password",
+    "source_hash": "e0edfeb3"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "Single Sign-On è disponibile per questo dominio",
+    "source_hash": "af87d51e"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "L'amministratore dell'organizzazione può abilitare l'SSO per consentire ai membri del team di accedere qui. Contatta l'amministratore per l'accesso.",
+    "source_hash": "f3726509"
+  },
+  "web.login.signin_disabled_heading": {
+    "text": "L'accesso non è disponibile",
+    "source_hash": "6b435c76"
+  },
+  "web.login.signin_disabled_message": {
+    "text": "Al momento l'accesso non è disponibile su questo dominio.",
+    "source_hash": "b681c35d"
+  },
+  "web.login.errors.sso_not_configured": {
+    "text": "Single Sign-On non è configurato per questo dominio. Contatta il tuo amministratore.",
+    "source_hash": "b39ef93e"
+  },
+  "web.login.errors.invalid_email": {
+    "text": "L'indirizzo email del tuo provider di identità non è valido. Contatta il tuo amministratore.",
+    "source_hash": "10c12029"
+  },
+  "web.login.errors.domain_not_allowed": {
+    "text": "Il tuo dominio email non è autorizzato per la registrazione tramite SSO. Contatta il tuo amministratore.",
+    "source_hash": "87603782"
   }
 }

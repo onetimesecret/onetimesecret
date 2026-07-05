@@ -43,5 +43,20 @@
     "text": "Duplicate recipient emails not allowed",
     "context": "Returned by PUT /api/domains/:extid/incoming-config when the request body contains the same email address more than once",
     "content_hash": "6de22182"
+  },
+  "api.domains.errors.homepage_secrets_mode_invalid": {
+    "text": "Invalid secrets_mode: %{secrets_mode}",
+    "context": "Returned by PUT /api/domains/:extid/homepage-config when secrets_mode is not one of create|incoming (apps/api/domains/logic/homepage_config/put_homepage_config.rb)",
+    "content_hash": "cf093a04"
+  },
+  "api.domains.errors.homepage_incoming_entitlement_required": {
+    "text": "Incoming secrets mode requires the incoming_secrets entitlement. Please upgrade your plan.",
+    "context": "Returned by PUT /api/domains/:extid/homepage-config when secrets_mode=incoming but the owning organization lacks the incoming_secrets entitlement",
+    "content_hash": "d68b13d8"
+  },
+  "api.domains.errors.homepage_incoming_not_ready": {
+    "text": "Incoming secrets must be enabled with at least one recipient before it can be used as the homepage.",
+    "context": "Returned by PUT /api/domains/:extid/homepage-config when secrets_mode=incoming but the domain's IncomingConfig is missing, disabled, or has no recipients",
+    "content_hash": "556da6e2"
   }
 }

@@ -60,7 +60,7 @@
     "source_hash": "88c72144"
   },
   "email.welcome.signature": {
-    "text": "Delano",
+    "text": "Equip de suport",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -100,7 +100,7 @@
     "source_hash": "fbb7eb2d"
   },
   "email.password_request.signature": {
-    "text": "Delano",
+    "text": "Equip de suport",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -145,7 +145,7 @@
     "source_hash": "1863f5be"
   },
   "email.magic_link.signature": {
-    "text": "Delano",
+    "text": "Equip de suport",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -230,7 +230,7 @@
     "source_hash": "3f6b45dd"
   },
   "email.secret_revealed.signature": {
-    "text": "Delano",
+    "text": "Equip de suport",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -355,7 +355,7 @@
     "source_hash": "734882d2"
   },
   "email.organization_invitation.signature": {
-    "text": "Delano",
+    "text": "Equip de suport",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -395,7 +395,7 @@
     "source_hash": "be92cff3"
   },
   "email.password_changed.signature": {
-    "text": "Delano",
+    "text": "Equip de suport",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -408,11 +408,6 @@
     "text": "La teva adreça de correu electrònic s'ha canviat",
     "renderer": "erb",
     "source_hash": "62b07299"
-  },
-  "email.email_changed.body": {
-    "text": "L'adreça de correu electrònic del teu compte de %{product_name} s'ha canviat a %{new_email_masked}.",
-    "renderer": "erb",
-    "source_hash": "6f3419d1"
   },
   "email.email_changed.security_notice": {
     "text": "Si no has fet aquest canvi, si us plau contacta amb el suport immediatament ja que el teu compte pot estar compromès.",
@@ -450,7 +445,7 @@
     "source_hash": "f8d47b82"
   },
   "email.email_changed.signature": {
-    "text": "Delano",
+    "text": "Equip de suport",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -500,7 +495,7 @@
     "source_hash": "f8d47b82"
   },
   "email.email_change_requested.signature": {
-    "text": "Delano",
+    "text": "Equip de suport",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -555,7 +550,7 @@
     "source_hash": "d4d835fc"
   },
   "email.email_change_confirmation.signature": {
-    "text": "Delano",
+    "text": "Equip de suport",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -585,7 +580,7 @@
     "source_hash": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
-    "text": "Delano",
+    "text": "Equip de suport",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -610,7 +605,7 @@
     "source_hash": "97ef0a3e"
   },
   "email.mfa_disabled.signature": {
-    "text": "Delano",
+    "text": "Equip de suport",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -655,7 +650,7 @@
     "source_hash": "450c54c5"
   },
   "email.new_login_alert.signature": {
-    "text": "Delano",
+    "text": "Equip de suport",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -675,7 +670,7 @@
     "source_hash": "d442beed"
   },
   "email.member_removed.signature": {
-    "text": "Delano",
+    "text": "Equip de suport",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -695,7 +690,7 @@
     "source_hash": "c2280c0c"
   },
   "email.role_changed.signature": {
-    "text": "Delano",
+    "text": "Equip de suport",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -715,7 +710,7 @@
     "source_hash": "7095fc69"
   },
   "email.organization_deleted.signature": {
-    "text": "Delano",
+    "text": "Equip de suport",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -755,7 +750,7 @@
     "source_hash": "36008943"
   },
   "email.payment_receipt.signature": {
-    "text": "Delano",
+    "text": "Equip de suport",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -780,7 +775,7 @@
     "source_hash": "926406b1"
   },
   "email.payment_failed.signature": {
-    "text": "Delano",
+    "text": "Equip de suport",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -805,7 +800,7 @@
     "source_hash": "66a1419e"
   },
   "email.trial_expiring.signature": {
-    "text": "Delano",
+    "text": "Equip de suport",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -830,7 +825,7 @@
     "source_hash": "5a96ae38"
   },
   "email.subscription_changed.signature": {
-    "text": "Delano",
+    "text": "Equip de suport",
     "renderer": "erb",
     "source_hash": "f58154f7"
   },
@@ -858,5 +853,53 @@
     "text": "Onetime Secret",
     "renderer": "erb",
     "source_hash": "1cd0194a"
+  },
+  "email.common.secret_link_label": {
+    "text": "Enllaç secret",
+    "source_hash": "18ddf44f"
+  },
+  "email.common.automated_notice": {
+    "text": "Aquest és un missatge automatitzat de %{product_name}.",
+    "source_hash": "8fbabfba"
+  },
+  "email.common.support_label": {
+    "text": "Suport",
+    "source_hash": "be91940b"
+  },
+  "email.expiration_warning.signature": {
+    "text": "Equip de suport",
+    "source_hash": "dc75bf9f"
+  },
+  "email.expiration_warning.footer_note": {
+    "text": "Has rebut això perquè un secret que has creat a %{product_name} està a punt de caducar.",
+    "source_hash": "920779e4"
+  },
+  "email.feedback_email.user_id_label": {
+    "text": "Usuari:",
+    "source_hash": "93d6b3e9"
+  },
+  "email.feedback_email.timezone_label": {
+    "text": "Zona horària:",
+    "source_hash": "39651ebf"
+  },
+  "email.feedback_email.version_label": {
+    "text": "Versió:",
+    "source_hash": "4c5726ee"
+  },
+  "email.incoming_secret.footer_note": {
+    "text": "Has rebut això perquè algú ha utilitzat %{product_name} per enviar-te un secret. Si no l'esperaves, pots ignorar aquest correu electrònic amb tota tranquil·litat.",
+    "source_hash": "91ee6e8d"
+  },
+  "email.secret_link.passphrase_label": {
+    "text": "Cal una frase de contrasenya:",
+    "source_hash": "1ab9a20f"
+  },
+  "email.secret_link.passphrase_required": {
+    "text": "Aquest secret està protegit amb una frase de contrasenya. El remitent te l'hauria de proporcionar per separat.",
+    "source_hash": "1e49826b"
+  },
+  "email.secret_link.footer_note": {
+    "text": "Has rebut això perquè %{sender_email} ha utilitzat %{product_name} per compartir un secret amb tu. Si no l'esperaves, pots ignorar aquest correu electrònic amb tota tranquil·litat.",
+    "source_hash": "2d544dad"
   }
 }

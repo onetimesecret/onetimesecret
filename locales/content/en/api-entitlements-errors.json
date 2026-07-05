@@ -111,6 +111,7 @@
   },
   "api.entitlements.errors.custom_signin_config_required": {
     "text": "Custom sign-in configuration requires a plan upgrade",
-    "context": "Returned when EntitlementRequired is raised for custom_signin_config"
+    "context": "Returned when EntitlementRequired is raised for custom_signin_config",
+    "content_hash": "acb1be52"
   }
 }

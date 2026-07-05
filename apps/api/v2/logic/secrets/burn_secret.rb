@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/security/passphrase_rate_limiter'
+
 module V2::Logic
   module Secrets
     using Familia::Refinements::TimeLiterals
@@ -28,6 +30,7 @@ module V2::Logic
     class BurnSecret < V2::Logic::Base
       include Onetime::LoggerMethods
       include Onetime::Logic::GuestRouteGating
+      include Onetime::Security::PassphraseRateLimiter
 
       SCHEMAS = { response: 'receipt' }.freeze
 
@@ -51,6 +54,12 @@ module V2::Logic
 
         return unless potential_secret
 
+        # Check passphrase rate limit before allowing passphrase attempts.
+        # Burn is the same brute-force oracle as show/reveal: each wrong
+        # guess confirms the passphrase is wrong, and a correct guess
+        # destroys the secret.
+        check_passphrase_rate_limit!(potential_secret.identifier) if potential_secret.has_passphrase?
+
         @correct_passphrase = !potential_secret.has_passphrase? || potential_secret.passphrase?(passphrase)
         viewable            = potential_secret.viewable?
         # Use the parsed boolean (true / 'true' only), not the raw param: the
@@ -71,22 +80,46 @@ module V2::Logic
 
         if greenlighted
           @secret = potential_secret
-          secret.burned!
-          owner   = secret.load_owner
-          owner&.increment_field :secrets_burned unless owner&.anonymous?
-          Onetime::Customer.secrets_burned.increment
 
-          secret_logger.info 'Secret burned successfully',
-            {
-              secret_identifier: secret.shortid,
-              receipt_identifier: receipt.identifier,
-              owner_id: owner&.custid,
-              user_id: cust&.custid,
-              action: 'burn',
-              result: :success,
-            }
+          # Clear any rate limit state on successful passphrase entry
+          clear_passphrase_rate_limit!(secret.identifier) if secret.has_passphrase?
+
+          # Gate all bookkeeping on winning the atomic burn claim: burned!
+          # returns true only for the single caller that flips the state. When
+          # a concurrent reveal or burn already consumed the secret, this
+          # request lost the race -- it must not count the burn, log success,
+          # or report success to the client.
+          @greenlighted = secret.burned!
+
+          if greenlighted
+            owner = secret.load_owner
+            owner&.increment_field :secrets_burned unless owner&.anonymous?
+            Onetime::Customer.secrets_burned.increment
+
+            secret_logger.info 'Secret burned successfully',
+              {
+                secret_identifier: secret.shortid,
+                receipt_identifier: receipt.identifier,
+                owner_id: owner&.custid,
+                user_id: cust&.custid,
+                action: 'burn',
+                result: :success,
+              }
+          else
+            secret_logger.warn 'Burn failed - secret already consumed',
+              {
+                secret_identifier: secret.shortid,
+                receipt_identifier: receipt.identifier,
+                user_id: cust&.custid,
+                action: 'burn',
+                result: :already_consumed,
+              }
+          end
 
         elsif !correct_passphrase
+          # Record failed attempt for rate limiting
+          attempt_count = record_failed_passphrase_attempt!(potential_secret.identifier)
+
           secret_logger.warn 'Burn failed - incorrect passphrase',
             {
               receipt_identifier: receipt.identifier,
@@ -94,6 +127,7 @@ module V2::Logic
               user_id: cust&.custid,
               action: 'burn',
               result: :passphrase_failed,
+              attempt_count: attempt_count,
             }
 
           message = I18n.t('web.COMMON.error_passphrase', locale: locale, default: 'Incorrect passphrase')

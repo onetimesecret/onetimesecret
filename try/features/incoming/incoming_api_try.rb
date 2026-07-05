@@ -605,6 +605,80 @@ logic.process
 logic.receipt.domain_id
 #=> @v3_custom_domain.identifier
 
+## V3 CreateIncomingSecret binds share_domain to the custom domain
+# Regression: without domain: on spawn_pair, secret.share_domain was nil and
+# the notification email rendered the canonical host for the secret link and
+# footer instead of the custom domain the secret was submitted on.
+v3_strategy = create_v3_strategy_with_domain(@v3_cust, @v3_custom_fqdn)
+logic = Incoming::Logic::CreateIncomingSecret.new(v3_strategy, {
+  'secret' => {
+    'memo' => 'V3 share_domain test',
+    'secret' => 'Secret for share_domain test',
+    'recipient' => @v3_recipient_hash
+  }
+})
+logic.process_params
+logic.raise_concerns
+logic.process
+# Both the secret and its receipt carry the custom domain FQDN
+[logic.secret.share_domain, logic.receipt.share_domain]
+#=> [@v3_custom_fqdn, @v3_custom_fqdn]
+
+## V3 CreateIncomingSecret enqueues the notification with the custom share_domain
+# The notification email is the observable output of this fix: its payload must
+# carry share_domain so the mail layout renders the custom domain. Captures the
+# enqueue_email arguments via monkey-patching to assert the payload's
+# share_domain (and the domain_id kwarg used for sender-config selection)
+# instead of only checking the secret object.
+v3_strategy = create_v3_strategy_with_domain(@v3_cust, @v3_custom_fqdn)
+@_enqueue_email_original = Onetime::Jobs::Publisher.method(:enqueue_email)
+@_enqueued_incoming = nil
+begin
+  enqueue_backup = @_enqueue_email_original
+  capture = ->(payload, domain_id) { @_enqueued_incoming = { payload: payload, domain_id: domain_id } }
+  Onetime::Jobs::Publisher.define_singleton_method(:enqueue_email) do |template, payload, **kwargs|
+    capture.call(payload, kwargs[:domain_id]) if template == :incoming_secret
+    enqueue_backup.call(template, payload, **kwargs)
+  end
+  logic = Incoming::Logic::CreateIncomingSecret.new(v3_strategy, {
+    'secret' => {
+      'memo' => 'V3 notification payload test',
+      'secret' => 'Secret for notification payload',
+      'recipient' => @v3_recipient_hash
+    }
+  })
+  logic.process_params
+  logic.raise_concerns
+  logic.process
+ensure
+  Onetime::Jobs::Publisher.define_singleton_method(:enqueue_email) do |template, payload, **kwargs|
+    enqueue_backup.call(template, payload, **kwargs)
+  end
+end
+[@_enqueued_incoming[:payload][:share_domain], @_enqueued_incoming[:domain_id]]
+#=> [@v3_custom_fqdn, @v3_custom_domain.identifier]
+
+## V3 CreateIncomingSecret binds share_domain when domain_strategy is a String
+# domain_strategy arrives from StrategyResult metadata and may be the String
+# 'custom' rather than the Symbol :custom. RecipientResolver normalizes it via
+# &.to_sym so entitlement/enabled? checks pass either way, but CreateIncomingSecret
+# reads the raw value: a strict `== :custom` would leave share_domain nil and
+# reintroduce the canonical-host regression. Asserts binding + domain_id for the
+# String path.
+v3_strategy = create_v3_strategy_with_domain(@v3_cust, @v3_custom_fqdn, domain_strategy: 'custom')
+logic = Incoming::Logic::CreateIncomingSecret.new(v3_strategy, {
+  'secret' => {
+    'memo' => 'V3 string strategy test',
+    'secret' => 'Secret for string strategy',
+    'recipient' => @v3_recipient_hash
+  }
+})
+logic.process_params
+logic.raise_concerns
+logic.process
+[logic.secret.share_domain, logic.receipt.domain_id]
+#=> [@v3_custom_fqdn, @v3_custom_domain.identifier]
+
 ## V3 CreateIncomingSecret with canonical domain leaves receipt.domain_id as nil
 # Canonical domain uses global config - use the same recipient as global tests
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
@@ -622,6 +696,75 @@ logic.process
 # Receipt should NOT have domain_id set when using canonical domain
 logic.receipt.domain_id
 #=> nil
+
+## V3 CreateIncomingSecret leaves share_domain nil on the canonical domain
+# Canonical secrets stay unbound so the email renders the canonical host.
+enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
+canonical_strategy = create_v3_strategy_with_domain(@v3_cust, '', domain_strategy: :canonical)
+logic = Incoming::Logic::CreateIncomingSecret.new(canonical_strategy, {
+  'secret' => {
+    'memo' => 'V3 canonical share_domain test',
+    'secret' => 'Secret for canonical share_domain',
+    'recipient' => @test_recipient_hash
+  }
+})
+logic.process_params
+logic.raise_concerns
+logic.process
+logic.secret.share_domain
+#=> nil
+
+## V3 CreateIncomingSecret leaves share_domain nil for a custom strategy with a blank display_domain
+# Guards the `!display_domain.to_s.empty?` check: a misconfigured custom
+# strategy must not bind share_domain to "" (an empty string is truthy in
+# Ruby, so spawn_pair(domain: "") would otherwise slip through and the email
+# would render an empty authority). Exercises the private share_domain helper
+# directly — a blank custom domain fails the entitlement check in
+# raise_concerns, so the full process path can't reach the guard.
+blank_custom_strategy = create_v3_strategy_with_domain(@v3_cust, '', domain_strategy: :custom)
+logic = Incoming::Logic::CreateIncomingSecret.new(blank_custom_strategy, {
+  'secret' => {
+    'memo' => 'V3 blank custom domain test',
+    'secret' => 'Secret for blank custom domain',
+    'recipient' => @v3_recipient_hash
+  }
+})
+logic.process_params
+logic.send(:share_domain)
+#=> nil
+
+## V3 CreateIncomingSecret resolves the custom domain's objid exactly once per request
+# Regression guard for the resolved_domain_id memoization: receipt persistence and
+# the notification's sender-config selection both need the CustomDomain objid, but
+# resolve_domain_id hits the datastore. Counts calls via monkey-patching to confirm
+# the two call sites still share one resolved value instead of re-reading Redis.
+v3_strategy = create_v3_strategy_with_domain(@v3_cust, @v3_custom_fqdn)
+@_resolve_domain_id_original = Onetime::CustomDomain.method(:resolve_domain_id)
+@_resolve_domain_id_calls = 0
+begin
+  resolve_domain_id_backup = @_resolve_domain_id_original
+  call_counter = -> { @_resolve_domain_id_calls += 1 }
+  Onetime::CustomDomain.define_singleton_method(:resolve_domain_id) do |*args, **kwargs|
+    call_counter.call
+    resolve_domain_id_backup.call(*args, **kwargs)
+  end
+  logic = Incoming::Logic::CreateIncomingSecret.new(v3_strategy, {
+    'secret' => {
+      'memo' => 'V3 resolve_domain_id call count test',
+      'secret' => 'Secret for call count test',
+      'recipient' => @v3_recipient_hash
+    }
+  })
+  logic.process_params
+  logic.raise_concerns
+  logic.process
+ensure
+  Onetime::CustomDomain.define_singleton_method(:resolve_domain_id) do |*args, **kwargs|
+    resolve_domain_id_backup.call(*args, **kwargs)
+  end
+end
+@_resolve_domain_id_calls
+#=> 1
 
 ## V3 CreateIncomingSecret with unknown custom domain raises Forbidden error
 # Unknown custom domain should fail entitlement check before receipt creation

@@ -124,11 +124,11 @@
     "source_hash": "4d4a570f"
   },
   "web.meta.were_making_onetime_secret_available_in_multiple": {
-    "text": "",
+    "text": "Ni igas {onetime-secret} disponebla en pluraj lingvoj. Ĉar tio estas nova funkcio, vi eble renkontos tradukerarojn aŭ mallertan frazadon. Via reago helpas nin pliboniĝi - se vi rimarkas iujn problemojn, bonvolu {send-feedback}",
     "source_hash": "3b482d7f"
   },
   "web.meta.translations_are_new_spotted_an_error": {
-    "text": "",
+    "text": "La tradukoj estas novaj. Ĉu vi rimarkis eraron? {send-feedback}",
     "source_hash": "31eca08d"
   },
   "web.meta.we_recently_added_translations": {
@@ -136,7 +136,7 @@
     "source_hash": "6e2455c1"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
-    "text": "",
+    "text": "Privateco kaj sekureco devus esti alireblaj por ĉiuj, sendepende de lingvo. Ni aldonas tradukojn por helpi kaj niajn uzantojn kaj iliajn mesaĝricevantojn pli bone kompreni kiel sekure uzi kaj aliri sekurajn mesaĝojn kaj ligilojn. Ĉar tio estas nova funkcio, vi eble renkontos kelkajn tradukerarojn aŭ neklarajn instrukciojn. Por helpi nin plibonigi la klarecon kaj precizecon de niaj tradukoj, precipe por kritika sekureco-rilata enhavo, bonvolu {send-feedback} se vi rimarkas iujn problemojn",
     "source_hash": "1b8bb38f"
   },
   "web.help.learn_more": {
@@ -240,7 +240,7 @@
     "source_hash": "e26d51d3"
   },
   "web.layout.customize_your_app_preferences_and_settings": {
-    "text": "",
+    "text": "Personecigu viajn aplikaĵajn preferojn kaj agordojn",
     "source_hash": "00d74c98"
   },
   "web.layout.return_home": {
@@ -264,7 +264,7 @@
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Viziti {product_name} hejmpaĝon",
+    "text": "Vizitu la hejmpaĝon de {product_name}",
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {
@@ -338,5 +338,13 @@
   "web.layout.workspace_context": {
     "text": "Laborspaca kunteksto",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Laborspaco",
+    "source_hash": "87bb59ba"
+  },
+  "web.help.default_content": {
+    "text": "Bonvolu kontakti subtenon por helpo",
+    "source_hash": "752bca14"
   }
 }

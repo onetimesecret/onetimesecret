@@ -1,0 +1,38 @@
+{
+  "api.domains.errors.domain_id_required": {
+    "text": "Alan adı kimliği gerekli",
+    "source_hash": "6837426b"
+  },
+  "api.domains.errors.domain_not_found": {
+    "text": "Alan adı bulunamadı: %{extid}",
+    "source_hash": "a0fd1025"
+  },
+  "api.domains.errors.organization_not_found": {
+    "text": "Şu alan adı için kuruluş bulunamadı: %{domain}",
+    "source_hash": "632afc93"
+  },
+  "api.domains.errors.incoming_secrets_disabled": {
+    "text": "Gelen gizli mesajlar bu sunucuda etkin değil",
+    "source_hash": "45c0b5c4"
+  },
+  "api.domains.errors.incoming_secrets_entitlement_required": {
+    "text": "Gelen gizli mesaj yönetimi, incoming_secrets yetkisini gerektirir. Lütfen planınızı yükseltin.",
+    "source_hash": "1af54ec2"
+  },
+  "api.domains.errors.incoming_config_not_found": {
+    "text": "Şu alan adı için gelen yapılandırma bulunamadı: %{extid}",
+    "source_hash": "491644a8"
+  },
+  "api.domains.errors.recipients_max_exceeded": {
+    "text": "En fazla %{max} alıcıya izin verilir",
+    "source_hash": "159842ad"
+  },
+  "api.domains.errors.recipients_invalid_email": {
+    "text": "Geçersiz e-posta: %{email}",
+    "source_hash": "e9c729c7"
+  },
+  "api.domains.errors.recipients_duplicate": {
+    "text": "Yinelenen alıcı e-postalarına izin verilmez",
+    "source_hash": "6de22182"
+  }
+}

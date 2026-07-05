@@ -71,6 +71,32 @@
     },
   ],
 
+  // Bump the translation-rules DATA ref (TRANSLATION_RULES_REF) in both derive
+  // gates to the latest vX.Y.Z release tag:
+  //   - resolved-derive-gate.yml (authority freshness/integrity)
+  //   - validate-register.yml    (cross-locale content register lint)
+  // This is the human-readable tag the derive action resolves at run time — a
+  // bare tag string, not a digest. The separate `uses:` action digest (the code
+  // that runs) is pinned to a SHA and bumped by the built-in github-actions
+  // manager (helpers:pinGitHubActionDigests). Two independent axes that normally
+  // land on the same release.
+  customManagers: [
+    {
+      customType: 'regex',
+      fileMatch: [
+        '^\\.github/workflows/(resolved-derive-gate|validate-register)\\.yml$',
+      ],
+      matchStrings: [
+        // Optional quotes tolerated: the workflows emit the bare form
+        // (TRANSLATION_RULES_REF: v0.1.1), but a quoted value ('v0.1.1' or
+        // "v0.1.1") must still match so auto-bumps don't silently stop.
+        'TRANSLATION_RULES_REF:\\s+["\']?(?<currentValue>v\\d+\\.\\d+\\.\\d+)["\']?',
+      ],
+      depNameTemplate: 'onetimesecret/translation-rules',
+      datasourceTemplate: 'github-tags',
+    },
+  ],
+
   // Additional settings
   forkProcessing: 'enabled',
 }

@@ -21,7 +21,9 @@ pnpm-debug.log*
 .claude
 .continue/
 .devcontainer
+.gemini*
 .history
+.interface-design
 .hypothesis/
 .pnpm/
 .pnpm-store/
@@ -56,6 +58,7 @@ public/doc
 
 # Files
 .DS_Store
+AGENTS.md
 CLAUDE.md
 !.oci-build.json
 .github/*md
@@ -92,6 +95,12 @@ generated/types/*.d.ts
 generated/openapi/*.json
 generated/outputs
 generated/docs/
+# Derived i18n governance cache — .resolved/ JSON + for-translators guides
+# (translation-rules ADR-005): never committed; regenerated on demand at the pin.
+generated/i18n/
+# On-demand authority checkout used by locales/scripts/derive-governance.sh
+# (read-only translation-rules clone at the canonical pin); never committed.
+/.translation-rules/
 
 scripts/api-validation/captures
 scripts/api-validation/diffs
@@ -101,6 +110,7 @@ scripts/api-validation/diffs
 .test-mode
 !.env.example
 !.env.reference
+!.env.test.example
 
 
 # Playwright paths

@@ -9,16 +9,19 @@ allowed-tools: Bash(git diff:*), Bash(cp:*), Bash(ls:*), Bash(cat:*), Bash([ -f:
 Orchestration ONLY. This command detects what needs translating for one language,
 then routes the actual translation work to a `saas-translator` agent that follows
 `locales/AGENT_TRANSLATION_PROTOCOL.md` exactly and reads its per-locale governance
-from `locales/.resolved/{LANG}.json`. It carries no per-locale convention prose.
+from `generated/i18n/.resolved/{LANG}.json` (derived on demand). It carries no
+per-locale convention prose.
 
-**Prerequisite (resolved-only): governance is back-ported first.** Under the
-resolved-only model a language becomes translatable only once
-`locales/.resolved/{LANG}.json` exists with a populated register + glossary.
+**Prerequisite (resolved-only, no-vendor): governance exists upstream first.**
+A language becomes translatable only once the derive produces
+`generated/i18n/.resolved/{LANG}.json` with a populated register + glossary.
 "New language" here means *new to translation* — its governance already exists,
 its content just hasn't been drained yet. This command does **not** bootstrap a
-language from nothing: if the resolved artifact is missing, back-port the
-language in the `translation-rules` repo (`authoring/backfill-locale.md`) and
-vendor the artifact first, then run this command. The gate below enforces that
+language from nothing: if the derived artifact is missing, add the language's
+governance in the `translation-rules` repo
+(`_references/authoring/backfill-locale.md`), bump the pin in
+`.github/workflows/resolved-derive-gate.yml`, and re-derive
+(`locales/scripts/derive-governance.sh`) first. The gate below enforces that
 ordering rather than silently producing ungoverned translations.
 
 ## Detect Locale Structure
@@ -33,17 +36,24 @@ Source of truth is `./locales/content/{lang}/`.
 
 ## Eligibility gate
 
+**Preflight — derive governance (no-vendor).** Governance is not committed; derive
+it on demand into the gitignored `generated/i18n/` cache first:
+
+```bash
+locales/scripts/derive-governance.sh   # writes generated/i18n/.resolved/<loc>.json at the canonical pin
+```
+
 A language is eligible for automated drain **only if**
-`locales/.resolved/{LANG}.json` exists with a populated `register` and a populated
-`glossary` (i.e., its governance has been back-ported upstream). Check it first and
+`generated/i18n/.resolved/{LANG}.json` exists with a populated `register` and a
+populated `glossary` (i.e., it is governed upstream at the pin). Check it first and
 **SKIP + warn** if it is missing:
 
 ```bash
-if [ -f "locales/.resolved/$LANG.json" ] \
-   && jq -e '((.register // {}) | length > 0) and ((.glossary // {}) | length > 0)' "locales/.resolved/$LANG.json" >/dev/null 2>&1; then
+if [ -f "generated/i18n/.resolved/$LANG.json" ] \
+   && jq -e '((.register // {}) | length > 0) and ((.glossary // {}) | length > 0)' "generated/i18n/.resolved/$LANG.json" >/dev/null 2>&1; then
   echo "ELIGIBLE: $LANG"
 else
-  echo "SKIP (no resolved governance): $LANG — back-port locales/.resolved/$LANG.json first"
+  echo "SKIP (not governed at pin): $LANG — add it in translation-rules and bump the pin, then re-derive"
 fi
 ```
 
@@ -82,7 +92,7 @@ Task tool:
     Drain translation tasks for locale {LANG}. Follow
     locales/AGENT_TRANSLATION_PROTOCOL.md exactly. Per-locale governance
     (register, glossary, binding rules, declined decisions):
-    locales/.resolved/{LANG}.json. Preserve all interpolation/markup tokens;
+    generated/i18n/.resolved/{LANG}.json. Preserve all interpolation/markup tokens;
     brand names stay English. Loop until 0 pending; do not export or commit.
 ```
 

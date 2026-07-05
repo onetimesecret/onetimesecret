@@ -50,8 +50,11 @@ RSpec.describe Core::Views::BaseView do
     it 'sets basic template variables' do
       expect(subject.view_vars['description']).to eq('Test Description')
       expect(subject.view_vars['keywords']).to eq('test,keywords')
-      # page_title defaults to BrandSettingsConstants::GLOBAL_DEFAULTS[:product_name]
-      expect(subject.view_vars['page_title']).to eq('OTS')
+      # page_title falls through display_domain -> brand_product_name (the
+      # legacy site_name tier was retired in #3612); the test config stubs
+      # neither, so it resolves to the neutral NEUTRAL_PRODUCT_NAME terminal —
+      # the server-rendered <title> must never be empty, and never 'OTS'.
+      expect(subject.view_vars['page_title']).to eq('Secure Links')
     end
 
     it 'initializes JavaScript variables' do

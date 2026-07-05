@@ -398,5 +398,41 @@
   },
   "web.auth.verify._guidance.context": {
     "text": "Processus de vérification par courriel après l'inscription"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "Compte SSO",
+    "source_hash": "b8f4c728"
+  },
+  "web.help.reset_password_link": {
+    "text": "Réinitialiser le mot de passe",
+    "source_hash": "e0edfeb3"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "L'authentification unique est disponible pour ce domaine",
+    "source_hash": "af87d51e"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "L'administrateur de l'organisation peut activer le SSO pour permettre aux membres de l'équipe de se connecter ici. Communiquez avec l'administrateur pour obtenir un accès.",
+    "source_hash": "f3726509"
+  },
+  "web.login.signin_disabled_heading": {
+    "text": "La connexion n'est pas disponible",
+    "source_hash": "6b435c76"
+  },
+  "web.login.signin_disabled_message": {
+    "text": "La connexion n'est actuellement pas disponible sur ce domaine.",
+    "source_hash": "b681c35d"
+  },
+  "web.login.errors.sso_not_configured": {
+    "text": "L'authentification unique n'est pas configurée pour ce domaine. Veuillez communiquer avec votre administrateur.",
+    "source_hash": "b39ef93e"
+  },
+  "web.login.errors.invalid_email": {
+    "text": "L'adresse courriel provenant de votre fournisseur d'identité est invalide. Veuillez communiquer avec votre administrateur.",
+    "source_hash": "10c12029"
+  },
+  "web.login.errors.domain_not_allowed": {
+    "text": "Le domaine de votre courriel n'est pas autorisé pour l'inscription par SSO. Veuillez communiquer avec votre administrateur.",
+    "source_hash": "87603782"
   }
 }

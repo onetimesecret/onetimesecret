@@ -66,18 +66,13 @@ export const apiInterfaceSchema = z.object({
       header: z
         .object({
           enabled: booleanOrString,
-          branding: z
+          logo: z
             .object({
-              logo: z
-                .object({
-                  url: z.string().optional(),
-                  alt: z.string().optional(),
-                  link_to: z.string().optional(),
-                  show_name: booleanOrString,
-                  prominent: booleanOrString,
-                })
-                .optional(),
-              site_name: z.string().optional(),
+              // Layout knobs ship as YAML nil when their env vars are unset
+              // (#3612), so each must accept null, not just absence.
+              href: z.string().nullable().optional(),
+              show_name: z.union([z.boolean(), z.string()]).nullable().optional(),
+              prominent: z.union([z.boolean(), z.string()]).nullable().optional(),
             })
             .optional(),
           navigation: z

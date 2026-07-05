@@ -152,7 +152,7 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "결제 연락처 이메일이 {product_name} 계정 이메일과 다른 경우, 구독 혜택을 유지하려면 새 지역 계정에 결제 연락처 이메일을 사용하세요.",
+    "text": "결제 담당자 이메일이 {product_name} 계정 이메일과 다른 경우, 구독 혜택을 유지하려면 새 지역 계정에 결제 담당자 이메일을 사용하세요.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
@@ -186,5 +186,9 @@
   "web.regions.jurisdictions.apac.name": {
     "text": "Asia-Pacific",
     "source_hash": "7a757670"
+  },
+  "web.regions.no_region_configured": {
+    "text": "현재 계정에 대한 지역 정보가 없습니다.",
+    "source_hash": "bbfe2a32"
   }
 }

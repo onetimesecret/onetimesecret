@@ -634,5 +634,201 @@
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
     "text": "Quando invii un feedback, vedremo:",
     "source_hash": "fe77172e"
+  },
+  "web.colonel.previewPlanMode": {
+    "text": "Modalità anteprima piano",
+    "source_hash": "cf53f19d"
+  },
+  "web.colonel.previewModeDescription": {
+    "text": "Visualizza l'anteprima dell'applicazione come appare ai clienti con un piano diverso. Questo influisce solo sulla tua visualizzazione e non modifica il piano effettivo di alcuna organizzazione.",
+    "source_hash": "6fe23f23"
+  },
+  "web.colonel.previewModeActive": {
+    "text": "Anteprima attiva",
+    "source_hash": "a558d603"
+  },
+  "web.colonel.bannedIps.empty": {
+    "text": "Nessun IP bloccato",
+    "source_hash": "bd101143"
+  },
+  "web.colonel.bannedIps.currentIp": {
+    "text": "Il tuo indirizzo IP attuale",
+    "source_hash": "72f9fefe"
+  },
+  "web.colonel.bannedIps.confirmUnban": {
+    "text": "Sbloccare {ip}?",
+    "source_hash": "ff009b1c"
+  },
+  "web.colonel.bannedIps.actions.ban": {
+    "text": "Blocca IP",
+    "source_hash": "f91a5285"
+  },
+  "web.colonel.bannedIps.actions.quickBan": {
+    "text": "Blocco rapido",
+    "source_hash": "c32d0943"
+  },
+  "web.colonel.bannedIps.actions.unban": {
+    "text": "Sblocca",
+    "source_hash": "25fb5989"
+  },
+  "web.colonel.bannedIps.actions.cancel": {
+    "text": "Annulla",
+    "source_hash": "19766ed6"
+  },
+  "web.colonel.bannedIps.columns.ipAddress": {
+    "text": "Indirizzo IP",
+    "source_hash": "3c3de0c9"
+  },
+  "web.colonel.bannedIps.columns.reason": {
+    "text": "Motivo",
+    "source_hash": "f81ab834"
+  },
+  "web.colonel.bannedIps.columns.bannedAt": {
+    "text": "Bloccato il",
+    "source_hash": "dfbd120e"
+  },
+  "web.colonel.bannedIps.columns.bannedBy": {
+    "text": "Bloccato da",
+    "source_hash": "9f47db0e"
+  },
+  "web.colonel.bannedIps.error.banFailed": {
+    "text": "Impossibile bloccare l'indirizzo IP",
+    "source_hash": "24e94d9b"
+  },
+  "web.colonel.bannedIps.error.unbanFailed": {
+    "text": "Impossibile sbloccare l'indirizzo IP",
+    "source_hash": "66bbac9a"
+  },
+  "web.colonel.bannedIps.form.title": {
+    "text": "Blocca indirizzo IP",
+    "source_hash": "3f5b3dfa"
+  },
+  "web.colonel.bannedIps.form.ipLabel": {
+    "text": "Indirizzo IP",
+    "source_hash": "3c3de0c9"
+  },
+  "web.colonel.bannedIps.form.reasonLabel": {
+    "text": "Motivo",
+    "source_hash": "f81ab834"
+  },
+  "web.colonel.bannedIps.form.reasonPlaceholder": {
+    "text": "Motivo facoltativo",
+    "source_hash": "956688a5"
+  },
+  "web.colonel.bannedIps.success.banned": {
+    "text": "L'indirizzo IP {ip} è stato bloccato",
+    "source_hash": "b6f861d5"
+  },
+  "web.colonel.bannedIps.success.unbanned": {
+    "text": "L'indirizzo IP {ip} è stato sbloccato",
+    "source_hash": "dbe93550"
+  },
+  "web.colonel.customDomains.empty": {
+    "text": "Nessun dominio personalizzato configurato",
+    "source_hash": "e10b39f7"
+  },
+  "web.colonel.customDomains.noLogo": {
+    "text": "Nessun logo",
+    "source_hash": "ee5e36ff"
+  },
+  "web.colonel.customDomains.labels.organization": {
+    "text": "Organizzazione",
+    "source_hash": "d764d425"
+  },
+  "web.colonel.customDomains.labels.externalId": {
+    "text": "ID esterno",
+    "source_hash": "69da56ba"
+  },
+  "web.colonel.customDomains.labels.created": {
+    "text": "Creato",
+    "source_hash": "d70b9e24"
+  },
+  "web.colonel.customDomains.labels.updated": {
+    "text": "Aggiornato",
+    "source_hash": "3a5ecca1"
+  },
+  "web.colonel.customDomains.labels.favicon": {
+    "text": "Favicon",
+    "source_hash": "42955289"
+  },
+  "web.colonel.customDomains.status.verified": {
+    "text": "Verificato",
+    "source_hash": "4f783840"
+  },
+  "web.colonel.customDomains.status.resolving": {
+    "text": "Risoluzione in corso",
+    "source_hash": "3287a034"
+  },
+  "web.colonel.customDomains.status.ready": {
+    "text": "Pronto",
+    "source_hash": "5fa7aac5"
+  },
+  "web.colonel.customDomains.status.publicHomepage": {
+    "text": "Homepage pubblica",
+    "source_hash": "2ae3ccba"
+  },
+  "web.colonel.customDomains.status.publicApi": {
+    "text": "API pubblica",
+    "source_hash": "ab3aa426"
+  },
+  "web.colonel.customDomains.status.pending": {
+    "text": "In sospeso",
+    "source_hash": "331551b0"
+  },
+  "web.colonel.pagination.showing": {
+    "text": "Visualizzazione {start}–{end} di {total}",
+    "source_hash": "64af6de2"
+  },
+  "web.colonel.pagination.itemsPerPage": {
+    "text": "Elementi per pagina",
+    "source_hash": "766a02e0"
+  },
+  "web.colonel.pagination.perPage": {
+    "text": "{count} per pagina",
+    "source_hash": "34671d42"
+  },
+  "web.colonel.pagination.pageOf": {
+    "text": "Pagina {current} di {total}",
+    "source_hash": "f0df6412"
+  },
+  "web.colonel.secrets.empty": {
+    "text": "Nessun segreto trovato",
+    "source_hash": "28647b3b"
+  },
+  "web.colonel.secrets.never": {
+    "text": "Mai",
+    "source_hash": "6300ef80"
+  },
+  "web.colonel.secrets.columns.shortId": {
+    "text": "ID breve",
+    "source_hash": "7eaeb4a7"
+  },
+  "web.colonel.secrets.columns.state": {
+    "text": "Stato",
+    "source_hash": "a3b50c47"
+  },
+  "web.colonel.secrets.columns.created": {
+    "text": "Creato",
+    "source_hash": "d70b9e24"
+  },
+  "web.colonel.secrets.columns.expiration": {
+    "text": "Scadenza",
+    "source_hash": "f38d6e0e"
+  },
+  "web.colonel.secrets.columns.age": {
+    "text": "Età (giorni)",
+    "source_hash": "52ae64c6"
+  },
+  "web.colonel.secrets.state.new": {
+    "text": "Nuovo",
+    "source_hash": "18fdd549"
+  },
+  "web.colonel.secrets.state.received": {
+    "text": "Ricevuto",
+    "source_hash": "49f19bee"
+  },
+  "web.colonel.secrets.state.viewed": {
+    "text": "Visualizzato",
+    "source_hash": "1b28d178"
   }
 }

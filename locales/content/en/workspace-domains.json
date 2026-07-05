@@ -508,7 +508,8 @@
     "content_hash": "a45a37dd"
   },
   "web.domains.sso.enforce_moved_notice": {
-    "text": "To require SSO for all sign-ins on this domain, configure it in the domain's sign-in settings. SSO-only mode restricts the login page to the SSO provider configured here."
+    "text": "To require SSO for all sign-ins on this domain, configure it in the domain's sign-in settings. SSO-only mode restricts the login page to the SSO provider configured here.",
+    "content_hash": "d26627a5"
   },
   "web.domains.sso.configure_sso": {
     "text": "Configure SSO",
@@ -519,13 +520,16 @@
     "content_hash": "c439214b"
   },
   "web.domains.sso.edit_credentials": {
-    "text": "Edit credentials"
+    "text": "Edit credentials",
+    "content_hash": "5a6622b6"
   },
   "web.domains.sso.configure_button": {
-    "text": "Configure"
+    "text": "Configure",
+    "content_hash": "6defafa2"
   },
   "web.domains.sso.upgrade_required": {
-    "text": "Upgrade to configure"
+    "text": "Upgrade to configure",
+    "content_hash": "571cfa98"
   },
   "web.domains.signup.title": {
     "text": "Signup Validation",
@@ -654,6 +658,11 @@
   "web.domains.email.from_address_placeholder": {
     "text": "e.g. secrets{'@'}example.com",
     "content_hash": "a09b3928"
+  },
+  "web.domains.email.from_address_local_placeholder": {
+    "text": "no-reply",
+    "context": "Placeholder for the local part (before the @) of the sender email address. 'no-reply' is a reserved technical mailbox name (RFC 2142) — keep it as-is, do not translate.",
+    "content_hash": "510d274d"
   },
   "web.domains.email.reply_to_label": {
     "text": "Reply-To Address",
@@ -1087,6 +1096,38 @@
     "text": "Features",
     "content_hash": "5697d03d"
   },
+  "web.domains.detail.dns_title": {
+    "text": "DNS Setup",
+    "content_hash": "6c63df31"
+  },
+  "web.domains.detail.dns_description": {
+    "text": "Point your domain to this server with a CNAME record",
+    "content_hash": "080f84f0"
+  },
+  "web.domains.dns.title": {
+    "text": "DNS configuration",
+    "content_hash": "da78c35d"
+  },
+  "web.domains.dns.point_domain_intro": {
+    "text": "Point",
+    "content_hash": "2fc0c524"
+  },
+  "web.domains.dns.point_domain_outro": {
+    "text": "at this server by adding the following DNS record with your provider.",
+    "content_hash": "8d260c05"
+  },
+  "web.domains.dns.cname_heading": {
+    "text": "Create a CNAME record",
+    "content_hash": "11aeef5a"
+  },
+  "web.domains.dns.apex_heading": {
+    "text": "Create an ALIAS or ANAME record",
+    "content_hash": "41135375"
+  },
+  "web.domains.dns.apex_notice": {
+    "text": "Apex (root) domains can't use a CNAME record. Use your DNS provider's ALIAS or ANAME record, or point an A record at your server's IP address, instead.",
+    "content_hash": "2d1c3298"
+  },
   "web.domains.detail.homepage_title": {
     "text": "Homepage Secrets",
     "content_hash": "6360f7ec"
@@ -1116,178 +1157,236 @@
     "content_hash": "3c5a511f"
   },
   "web.domains.detail.signin_description": {
-    "text": "Per-domain sign-in method configuration"
+    "text": "Per-domain sign-in method configuration",
+    "content_hash": "73e01e36"
   },
   "web.domains.signin.title": {
-    "text": "Sign-In Configuration"
+    "text": "Sign-In Configuration",
+    "content_hash": "2da38c03"
   },
   "web.domains.signin.configure_signin": {
-    "text": "Configure Sign-In"
+    "text": "Configure Sign-In",
+    "content_hash": "f72b58b5"
   },
   "web.domains.signin.config_description": {
-    "text": "Configure sign-in authentication methods for this domain"
+    "text": "Configure sign-in authentication methods for this domain",
+    "content_hash": "8efce428"
   },
   "web.domains.signin.access_denied": {
-    "text": "Access Denied"
+    "text": "Access Denied",
+    "content_hash": "d134ca02"
   },
   "web.domains.signin.upgrade_to_configure": {
-    "text": "Upgrade your plan to configure sign-in methods for this domain."
+    "text": "Upgrade your plan to configure sign-in methods for this domain.",
+    "content_hash": "e242bb74"
   },
   "web.domains.signin.not_configured_notice": {
-    "text": "Sign-in configuration is not yet set for this domain. Configure overrides to control which authentication methods are available on this domain's sign-in page."
+    "text": "Sign-in configuration is not yet set for this domain. Configure overrides to control which authentication methods are available on this domain's sign-in page.",
+    "content_hash": "cb788a2d"
   },
   "web.domains.signin.signin_enabled_label": {
-    "text": "Sign-in enabled"
+    "text": "Sign-in enabled",
+    "content_hash": "cabe4898"
   },
   "web.domains.signin.header_toggle_label": {
-    "text": "Sign-in"
+    "text": "Sign-in",
+    "content_hash": "5bbbe531"
   },
   "web.domains.signin.signin_enabled_hint": {
-    "text": "Whether users can sign in on this domain"
+    "text": "Whether users can sign in on this domain",
+    "content_hash": "57a92aee"
   },
   "web.domains.signin.restrict_to_label": {
-    "text": "Restrict sign-in method"
+    "text": "Restrict sign-in method",
+    "content_hash": "edbec83f"
   },
   "web.domains.signin.restrict_to_hint": {
-    "text": "Restrict this domain to a single authentication method. When set, only the chosen method is shown on the sign-in page."
+    "text": "Restrict this domain to a single authentication method. When set, only the chosen method is shown on the sign-in page.",
+    "content_hash": "682bc4c5"
   },
   "web.domains.signin.all_methods": {
-    "text": "All methods"
+    "text": "All methods",
+    "content_hash": "e601c19e"
   },
   "web.domains.signin.all_methods_description": {
-    "text": "Show all enabled authentication methods on the sign-in page"
+    "text": "Show all enabled authentication methods on the sign-in page",
+    "content_hash": "62723340"
   },
   "web.domains.signin.method_password": {
-    "text": "Password"
+    "text": "Password",
+    "content_hash": "e7cf3ef4"
   },
   "web.domains.signin.method_email_auth": {
-    "text": "Email authentication"
+    "text": "Email authentication",
+    "content_hash": "68c38f94"
   },
   "web.domains.signin.method_webauthn": {
-    "text": "WebAuthn / Passkeys"
+    "text": "WebAuthn / Passkeys",
+    "content_hash": "c40224ce"
   },
   "web.domains.signin.method_sso": {
-    "text": "Single Sign-On"
+    "text": "Single Sign-On",
+    "content_hash": "cf7cd744"
   },
   "web.domains.signin.method_overrides_label": {
-    "text": "Method overrides"
+    "text": "Method overrides",
+    "content_hash": "5496cba6"
   },
   "web.domains.signin.method_overrides_hint": {
-    "text": "Enable or disable individual authentication methods for this domain"
+    "text": "Enable or disable individual authentication methods for this domain",
+    "content_hash": "394e3878"
   },
   "web.domains.signin.mode_question": {
-    "text": "How can users sign in?"
+    "text": "How can users sign in?",
+    "content_hash": "3694eb23"
   },
   "web.domains.signin.mode_any": {
-    "text": "Any available method"
+    "text": "Any available method",
+    "content_hash": "23665425"
   },
   "web.domains.signin.mode_any_hint": {
-    "text": "Show every method available on this domain. Narrow individual methods below."
+    "text": "Show every method available on this domain. Narrow individual methods below.",
+    "content_hash": "2f3dcba6"
   },
   "web.domains.signin.mode_one": {
-    "text": "One specific method"
+    "text": "One specific method",
+    "content_hash": "601f5768"
   },
   "web.domains.signin.mode_one_hint": {
-    "text": "Restrict the sign-in page to a single method. Only methods available on this domain are listed."
+    "text": "Restrict the sign-in page to a single method. Only methods available on this domain are listed.",
+    "content_hash": "58bde6d5"
   },
   "web.domains.signin.mode_disabled": {
-    "text": "Sign-in disabled"
+    "text": "Sign-in disabled",
+    "content_hash": "bb807607"
   },
   "web.domains.signin.mode_disabled_hint": {
-    "text": "Users cannot sign in on this domain."
+    "text": "Users cannot sign in on this domain.",
+    "content_hash": "8938f098"
   },
   "web.domains.signin.mode_disabled_notice": {
-    "text": "Visitors to this domain's sign-in page see a notice that sign-in is not available, with a link back to the homepage. Your previous method settings are kept and restored when you re-enable sign-in."
+    "text": "Visitors to this domain's sign-in page see a notice that sign-in is not available, with a link back to the homepage. Your previous method settings are kept and restored when you re-enable sign-in.",
+    "content_hash": "1a04de18"
   },
   "web.domains.signin.methods_list_label": {
-    "text": "Methods shown on the sign-in page"
+    "text": "Methods shown on the sign-in page",
+    "content_hash": "66fd133b"
   },
   "web.domains.signin.restrict_picker_hint": {
-    "text": "Only methods available on this domain are listed."
+    "text": "Only methods available on this domain are listed.",
+    "content_hash": "c7a56f44"
   },
   "web.domains.signin.availability_always": {
-    "text": "Always available"
+    "text": "Always available",
+    "content_hash": "0fda3772"
   },
   "web.domains.signin.availability_global_on": {
-    "text": "Follows global policy · On"
+    "text": "Follows global policy · On",
+    "content_hash": "3844e6f7"
   },
   "web.domains.signin.availability_global_off": {
-    "text": "Not available"
+    "text": "Not available",
+    "content_hash": "67a926f7"
   },
   "web.domains.signin.availability_unavailable": {
-    "text": "Unavailable site-wide"
+    "text": "Unavailable site-wide",
+    "content_hash": "da29c1be"
   },
   "web.domains.signin.allow_on_domain": {
-    "text": "Allow on this domain"
+    "text": "Allow on this domain",
+    "content_hash": "760b578e"
   },
   "web.domains.signin.method_password_blurb": {
-    "text": "Password only"
+    "text": "Password only",
+    "content_hash": "ed1a02fd"
   },
   "web.domains.signin.method_email_auth_blurb": {
-    "text": "Passwordless magic-link sign-in"
+    "text": "Passwordless magic-link sign-in",
+    "content_hash": "7f776a85"
   },
   "web.domains.signin.method_webauthn_blurb": {
-    "text": "Biometrics and security keys"
+    "text": "Biometrics and security keys",
+    "content_hash": "7d6a7bd5"
   },
   "web.domains.signin.method_sso_blurb": {
-    "text": "External identity provider"
+    "text": "External identity provider",
+    "content_hash": "a3442088"
   },
   "web.domains.signin.email_auth_label": {
-    "text": "Email authentication"
+    "text": "Email authentication",
+    "content_hash": "68c38f94"
   },
   "web.domains.signin.email_auth_hint": {
-    "text": "Allow passwordless email authentication on this domain"
+    "text": "Allow passwordless email authentication on this domain",
+    "content_hash": "6ad82127"
   },
   "web.domains.signin.sso_enabled_label": {
-    "text": "Single Sign-On"
+    "text": "Single Sign-On",
+    "content_hash": "cf7cd744"
   },
   "web.domains.signin.sso_enabled_hint": {
-    "text": "Allow SSO authentication on this domain"
+    "text": "Allow SSO authentication on this domain",
+    "content_hash": "22d78ad5"
   },
   "web.domains.signin.enabled_label": {
-    "text": "Enable sign-in configuration"
+    "text": "Enable sign-in configuration",
+    "content_hash": "dbd8e11c"
   },
   "web.domains.signin.enabled_hint": {
-    "text": "When enabled, this domain uses the sign-in settings configured above"
+    "text": "When enabled, this domain uses the sign-in settings configured above",
+    "content_hash": "6259f8a2"
   },
   "web.domains.signin.save_config": {
-    "text": "Save configuration"
+    "text": "Save configuration",
+    "content_hash": "b2b158f2"
   },
   "web.domains.signin.update_success": {
-    "text": "Sign-in configuration updated successfully"
+    "text": "Sign-in configuration updated successfully",
+    "content_hash": "10ea50d8"
   },
   "web.domains.signin.reset_to_defaults": {
-    "text": "Reset to defaults"
+    "text": "Reset to defaults",
+    "content_hash": "e240e635"
   },
   "web.domains.signin.reset_confirm": {
-    "text": "Reset sign-in to the global defaults?"
+    "text": "Reset sign-in to the global defaults?",
+    "content_hash": "2c6bbc32"
   },
   "web.domains.signin.reset_keeps_sso": {
-    "text": "Your SSO credentials are kept. Remove them separately on the SSO configuration screen."
+    "text": "Your SSO credentials are kept. Remove them separately on the SSO configuration screen.",
+    "content_hash": "edc0c756"
   },
   "web.domains.signin.reset_action": {
-    "text": "Yes, reset"
+    "text": "Yes, reset",
+    "content_hash": "4bb21d8b"
   },
   "web.domains.signin.reset_success": {
-    "text": "Sign-in settings reset to the global defaults"
+    "text": "Sign-in settings reset to the global defaults",
+    "content_hash": "0c364d89"
   },
   "web.domains.signup.domain_overrides_label": {
-    "text": "Domain overrides"
+    "text": "Domain overrides",
+    "content_hash": "d25da3cd"
   },
   "web.domains.signup.domain_overrides_hint": {
-    "text": "Override global signup settings for this domain"
+    "text": "Override global signup settings for this domain",
+    "content_hash": "53101057"
   },
   "web.domains.signup.signup_enabled_label": {
-    "text": "Signup enabled"
+    "text": "Signup enabled",
+    "content_hash": "296ac66d"
   },
   "web.domains.signup.signup_enabled_hint": {
-    "text": "Override whether signup is enabled for this domain"
+    "text": "Override whether signup is enabled for this domain",
+    "content_hash": "2ee146b6"
   },
   "web.domains.signup.autoverify_label": {
-    "text": "Auto-verify accounts"
+    "text": "Auto-verify accounts",
+    "content_hash": "4b103cd5"
   },
   "web.domains.signup.autoverify_hint": {
-    "text": "Override whether new accounts are automatically verified on this domain"
+    "text": "Override whether new accounts are automatically verified on this domain",
+    "content_hash": "63866ecd"
   },
   "web.domains.entitlement_required_owner": {
     "text": "This feature requires a plan upgrade.",
@@ -1296,5 +1395,90 @@
   "web.domains.entitlement_required_member": {
     "text": "This feature is not available on your current plan. Contact your organization owner.",
     "content_hash": "8f1688b2"
+  },
+  "web.domains.homepage.title": {
+    "text": "Homepage",
+    "context": "Domain detail Features row title for the homepage experience selector (replaces the former Homepage Secrets toggle row)",
+    "content_hash": "9e3391e9"
+  },
+  "web.domains.homepage.description": {
+    "text": "What visitors can do on your domain homepage",
+    "context": "Domain detail Features row description under the Homepage title",
+    "content_hash": "974d159e"
+  },
+  "web.domains.homepage.option_private_title": {
+    "text": "Private landing page",
+    "context": "Homepage selector option: no interactive functionality for anonymous visitors (trust-card landing)",
+    "content_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.option_private_description": {
+    "text": "Visitors see a private landing page with no interactive form",
+    "context": "Homepage selector option description for the private landing choice",
+    "content_hash": "4d9aaf6f"
+  },
+  "web.domains.homepage.option_create_title": {
+    "text": "Secret creation form",
+    "context": "Homepage selector option: anonymous visitors can create secrets (classic Homepage Secrets behavior)",
+    "content_hash": "6539dfc1"
+  },
+  "web.domains.homepage.option_create_description": {
+    "text": "Visitors can create their own secret links",
+    "context": "Homepage selector option description for the create choice",
+    "content_hash": "884310f4"
+  },
+  "web.domains.homepage.option_incoming_title": {
+    "text": "Incoming secrets form",
+    "context": "Homepage selector option: anonymous visitors send secrets to the domain's configured recipients",
+    "content_hash": "882997bf"
+  },
+  "web.domains.homepage.option_incoming_description": {
+    "text": "Visitors can send secrets to your configured recipients",
+    "context": "Homepage selector option description for the incoming choice",
+    "content_hash": "86bdaedb"
+  },
+  "web.domains.homepage.incoming_requires_recipients": {
+    "text": "Requires incoming secrets to be enabled with at least one recipient",
+    "context": "Hint shown on the disabled incoming option when the domain's incoming config is not ready",
+    "content_hash": "0462611d"
+  },
+  "web.domains.homepage.configure_recipients": {
+    "text": "Configure recipients",
+    "context": "Link from the disabled incoming option to the Incoming Secrets configuration page",
+    "content_hash": "1c3df8b4"
+  },
+  "web.domains.homepage.status_private": {
+    "text": "Private landing page",
+    "context": "Homepage row live status line when the homepage is not interactive",
+    "content_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.status_create": {
+    "text": "Public: visitors create secrets",
+    "context": "Homepage row live status line when the create form is active",
+    "content_hash": "251cfb95"
+  },
+  "web.domains.homepage.status_incoming": {
+    "text": "Public: visitors send you secrets",
+    "context": "Homepage row live status line when the incoming form is active",
+    "content_hash": "baa926b8"
+  },
+  "web.domains.homepage.status_incoming_unready": {
+    "text": "Incoming not ready — showing private landing page",
+    "context": "Homepage row live status line when secrets_mode is incoming but incoming isn't ready (recipients removed, disabled, or entitlement lapsed); the backend fails closed to the private trust card",
+    "content_hash": "a5cc237c"
+  },
+  "web.domains.homepage.badge_incoming": {
+    "text": "Incoming",
+    "context": "Small badge under the domains-table homepage toggle when the homepage presents the incoming form",
+    "content_hash": "e301820a"
+  },
+  "web.domains.homepage.update_success": {
+    "text": "Homepage settings saved",
+    "context": "Notification after successfully saving the homepage experience selection",
+    "content_hash": "4eac9f45"
+  },
+  "web.domains.homepage.homepage_uses_incoming_warning": {
+    "text": "This domain's homepage currently presents the incoming secrets form. Disabling incoming secrets or removing all recipients will switch the homepage to a private landing page until incoming is ready again.",
+    "context": "Warning on the Incoming Secrets config page when the homepage secrets_mode is incoming and a change could un-ready it",
+    "content_hash": "cc0d4997"
   }
 }

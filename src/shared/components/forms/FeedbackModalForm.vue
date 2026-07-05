@@ -192,7 +192,7 @@ import { storeToRefs } from 'pinia';
     </div>
 
     <div class="mt-6 text-sm text-gray-500 dark:text-gray-400">
-      <h3 class="mb-2 text-lg font-medium text-gray-500">
+      <h3 class="mb-2 text-lg font-medium text-gray-500 dark:text-gray-400">
         {{ t('web.feedback.when_you_submit_feedback_well_see') }}
       </h3>
       <ul class="space-y-1">

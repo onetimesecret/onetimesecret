@@ -3,8 +3,10 @@
 import { AsyncHandlerOptions, createError, useAsyncHandler } from '@/shared/composables/useAsyncHandler';
 import { useDomainContext } from '@/shared/composables/useDomainContext';
 import { ApplicationError } from '@/schemas/errors';
+import type { PutHomepageConfigRequest } from '@/schemas/api/domains/requests';
 import type { CustomDomain } from '@/schemas/shapes/v3';
 import { useDomainsStore, useNotificationsStore } from '@/shared/stores';
+import { isApproximatedDomainValidation } from '@/utils/features';
 import { storeToRefs } from 'pinia';
 import { computed, onScopeDispose, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -114,8 +116,10 @@ export function useDomainsManager() {
   const handleDomainExistsError = async (domain: string, errorMessage: string) => {
     if (errorMessage.includes('already registered in your organization')) {
       notifications.show(t('web.domains.domain_already_in_organization'), 'warning', 'top');
-      // Best-effort: refresh and redirect to the existing domain's verify page.
-      // If fetchList fails (e.g. schema mismatch), we still show the warning above.
+      // Best-effort: refresh and redirect to the existing domain's DNS page —
+      // the Approximated verification screen, or the CNAME-setup screen on
+      // non-approximated installs. If fetchList fails (e.g. schema mismatch),
+      // we still show the warning above.
       try {
         await store.fetchList();
         const existingDomain = store.records?.find(d => d.display_domain === domain);
@@ -123,7 +127,7 @@ export function useDomainsManager() {
           redirectTimer = setTimeout(() => {
             redirectTimer = null;
             router.push({
-              name: 'DomainVerify',
+              name: isApproximatedDomainValidation() ? 'DomainVerify' : 'DomainDns',
               params: { orgid: orgid.value, extid: existingDomain.extid },
             });
           }, 2000);
@@ -155,6 +159,34 @@ export function useDomainsManager() {
     }
   };
 
+  /**
+   * Route to the appropriate screen after a domain is added.
+   *
+   * Approximated installs land on the verification screen and kick off a
+   * backend DNS check. Self-hosted installs manage their own DNS/TLS, so they
+   * go to the simpler CNAME-instructions screen and skip the Approximated
+   * verification poll (which would never resolve). See
+   * isApproximatedDomainValidation().
+   */
+  const navigateAfterAdd = (record: CustomDomain) => {
+    const useApproximated = isApproximatedDomainValidation();
+
+    if (orgid.value) {
+      router.push({
+        name: useApproximated ? 'DomainVerify' : 'DomainDns',
+        params: { orgid: orgid.value, extid: record.extid },
+      });
+    }
+
+    if (useApproximated) {
+      verifyTimer = setTimeout(() => {
+        verifyDomain(record.extid).catch((err: unknown) => {
+          console.warn('[useDomainsManager] Post-add verification failed:', err);
+        });
+      }, 2000);
+    }
+  };
+
   const handleAddDomain = async (domain: string) =>
     wrap(async () => {
       try {
@@ -171,18 +203,7 @@ export function useDomainsManager() {
         notifications.show(t(message), 'success', 'top');
 
         updateDomainContextAfterAdd(record, details);
-
-        if (orgid.value) {
-          router.push({
-            name: 'DomainVerify',
-            params: { orgid: orgid.value, extid: record.extid },
-          });
-        }
-        verifyTimer = setTimeout(() => {
-          verifyDomain(record.extid).catch((err: unknown) => {
-            console.warn('[useDomainsManager] Post-add verification failed:', err);
-          });
-        }, 2000);
+        navigateAfterAdd(record);
         return record;
       } catch (err: unknown) {
         const axiosErr = err as { response?: { data?: { error?: string } }; message?: string };
@@ -218,10 +239,22 @@ export function useDomainsManager() {
     },
   });
 
-  const toggleHomepageConfig = async (extid: string, enabled: boolean, orgRole?: string | null) => {
+  /**
+   * Write homepage configuration (enabled + optional secrets_mode).
+   * secrets_mode uses merge semantics — omit it to leave the stored mode
+   * unchanged (binary on/off callers never clobber an incoming selection).
+   */
+  const updateHomepageConfig = async (
+    extid: string,
+    update: PutHomepageConfigRequest,
+    orgRole?: string | null
+  ) => {
     pendingOrgRole.value = orgRole ?? null;
-    return wrapEntitlementAware(async () => await store.putHomepageConfig(extid, enabled));
+    return wrapEntitlementAware(async () => await store.putHomepageConfig(extid, update));
   };
+
+  const toggleHomepageConfig = async (extid: string, enabled: boolean, orgRole?: string | null) =>
+    updateHomepageConfig(extid, { enabled }, orgRole);
 
   /**
    * Refresh domain records for the current organization context.
@@ -249,6 +282,7 @@ export function useDomainsManager() {
     refreshRecords,
     deleteDomain,
     toggleHomepageConfig,
+    updateHomepageConfig,
     goBack,
   };
 }

@@ -9,28 +9,39 @@ allowed-tools: Bash, Task, Read, Glob, TodoWrite
 Orchestration ONLY. This command launches, monitors, and replaces background
 translator agents. It does **not** carry workflow steps or per-locale conventions:
 each agent follows `locales/AGENT_TRANSLATION_PROTOCOL.md` exactly, and reads its
-per-locale governance from `locales/.resolved/{LOCALE}.json`. Concurrency is owned
+per-locale governance from `generated/i18n/.resolved/{LOCALE}.json` (derived on
+demand — see Preflight). Concurrency is owned
 by the CLI (every connection opens WAL with a 30s busy timeout), so there is no
 WAL/lock setup or retry handling here.
 
 One writer per locale: each agent drains its locale's task queue independently;
 the main session tracks progress with TodoWrite and replaces agents as they finish.
 
+## Preflight: derive governance (no-vendor)
+
+Governance is **not committed** — derive it on demand into the gitignored
+`generated/i18n/` cache before the eligibility gate (re-run whenever the pin in
+`.github/workflows/resolved-derive-gate.yml` changes):
+
+```bash
+locales/scripts/derive-governance.sh   # writes generated/i18n/.resolved/<loc>.json at the canonical pin
+```
+
 ## Eligibility gate (check per target locale)
 
 A locale is eligible for automated drain **only if**
-`locales/.resolved/{LOCALE}.json` exists with a populated `register` and a
-populated `glossary` (i.e., its governance has been back-ported upstream). For
-every requested locale, verify this first and **SKIP + warn** for any locale that
-lacks it:
+`generated/i18n/.resolved/{LOCALE}.json` exists with a populated `register` and a
+populated `glossary` (i.e., it is governed upstream at the pin). For every
+requested locale, verify this first and **SKIP + warn** for any locale that lacks
+it:
 
 ```bash
 for locale in $LOCALES; do
-  f="locales/.resolved/$locale.json"
+  f="generated/i18n/.resolved/$locale.json"
   if [ -f "$f" ] && jq -e '((.register // {}) | length > 0) and ((.glossary // {}) | length > 0)' "$f" >/dev/null 2>&1; then
     echo "ELIGIBLE: $locale"
   else
-    echo "SKIP (no resolved governance): $locale — back-port locales/.resolved/$locale.json first"
+    echo "SKIP (not governed at pin): $locale — add it in translation-rules and bump the pin, then re-derive"
   fi
 done
 ```
@@ -83,7 +94,7 @@ Task tool:
     Drain translation tasks for locale {LOCALE}. Follow
     locales/AGENT_TRANSLATION_PROTOCOL.md exactly. Per-locale governance
     (register, glossary, binding rules, declined decisions):
-    locales/.resolved/{LOCALE}.json. Preserve all interpolation/markup tokens;
+    generated/i18n/.resolved/{LOCALE}.json. Preserve all interpolation/markup tokens;
     brand names stay English. Loop until 0 pending; do not export or commit.
 ```
 

@@ -1,0 +1,10 @@
+{
+  "api.account.errors.invalid_email": {
+    "text": "Är det en giltig e-postadress?",
+    "source_hash": "21d55b60"
+  },
+  "api.account.errors.password_too_short": {
+    "text": "Lösenordet är för kort",
+    "source_hash": "0d829600"
+  }
+}

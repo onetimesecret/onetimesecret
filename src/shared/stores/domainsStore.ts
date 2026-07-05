@@ -1,7 +1,10 @@
 // src/shared/stores/domainsStore.ts
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
-import { UpdateDomainBrandRequest } from '@/schemas/api/domains/requests';
+import {
+  UpdateDomainBrandRequest,
+  type PutHomepageConfigRequest,
+} from '@/schemas/api/domains/requests';
 import type {
   PutEmailConfigRequest,
   PatchEmailConfigRequest,
@@ -347,34 +350,52 @@ export const useDomainsStore = defineStore('domains', () => {
    * Updates both the domainsStore records array and the bootstrapStore's
    * homepage_config to keep all consumers (workspace views and identity store)
    * reactive without requiring a page reload.
+   *
+   * `update.secrets_mode` is optional with merge semantics: omitted leaves
+   * the stored mode unchanged (so binary on/off callers like the domains
+   * table never clobber a domain's incoming selection).
    */
   async function putHomepageConfig(
     extid: string,
-    enabled: boolean
+    update: PutHomepageConfigRequest
   ): Promise<HomepageConfigResponse> {
-    const response = await $api.put(`/api/domains/${extid}/homepage-config`, { enabled });
+    const response = await $api.put(`/api/domains/${extid}/homepage-config`, update);
     const result = gracefulParse(homepageConfigResponseSchema, response.data, 'HomepageConfigResponse');
     if (!result.ok) {
       throw new Error('Unable to update homepage configuration. Please try again.');
     }
 
-    // Update the domain record in the domainsStore to keep workspace views reactive
-    if (records.value && result.data.record) {
-      const domainIndex = records.value.findIndex((d) => d.extid === extid);
+    if (result.data.record) {
+      // Split the server-computed effective flag from the stored record.
+      const { effective_enabled, ...storedRecord } = result.data.record;
+
+      // Update the domain record in the domainsStore to keep workspace views
+      // reactive (stored values — the admin UI edits truth, not effect).
+      const domainIndex = records.value?.findIndex((d) => d.extid === extid) ?? -1;
       if (domainIndex !== -1) {
-        records.value[domainIndex] = {
-          ...records.value[domainIndex],
-          homepage_config: result.data.record,
+        records.value![domainIndex] = {
+          ...records.value![domainIndex],
+          homepage_config: storedRecord,
         };
       }
-    }
 
-    // Update bootstrapStore so identityStore (branded header/homepage) stays in sync
-    // on custom domains without requiring a full page reload
-    if (result.data.record) {
+      // Update bootstrapStore so identityStore (branded header/homepage)
+      // stays in sync on custom domains without requiring a full page
+      // reload. The bootstrap slot carries the EFFECTIVE enabled value (the
+      // backend serializer downgrades incoming-mode homepages whose
+      // incoming config is unavailable); the server computes it in the PUT
+      // response so the admin's own session never renders an interactive
+      // homepage the next visitor wouldn't get. Older backends omit the
+      // field — fall back to the stored flag (they also predate incoming
+      // mode, so stored == effective there).
       const { useBootstrapStore } = await import('./bootstrapStore');
       const bootstrapStore = useBootstrapStore();
-      bootstrapStore.$patch({ homepage_config: result.data.record });
+      bootstrapStore.$patch({
+        homepage_config: {
+          ...storedRecord,
+          enabled: effective_enabled ?? storedRecord.enabled,
+        },
+      });
     }
 
     return result.data;

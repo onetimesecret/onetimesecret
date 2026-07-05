@@ -11,6 +11,7 @@ import sessionRoutes from '@/apps/session/routes';
 import workspaceRoutes from '@/apps/workspace/routes';
 
 // Cross-cutting routes
+import { installPiiQueryDevWarning } from './piiQueryGuard';
 import publicRoutes from './public.routes';
 
 /**
@@ -140,6 +141,15 @@ export function createAppRouter(): Router {
    * 2. Global error boundary (globalErrorBoundary.ts)
    * 3. useAsyncHandler composable when used in navigation guards
    */
+
+  // Dev-only: warn when PII rides in a URL query. Registered here (not in
+  // setupRouterGuards) because it needs no Pinia store and is tree-shaken from
+  // production builds. The diagnostics scrubber is the runtime safety-net; this
+  // surfaces the mistake at author time. See src/router/README.md.
+  if (import.meta.env.DEV) {
+    installPiiQueryDevWarning(router);
+  }
+
   return router;
 }
 

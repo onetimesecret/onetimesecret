@@ -1,0 +1,10 @@
+{
+  "api.account.errors.invalid_email": {
+    "text": "Is dat een geldig e-mailadres?",
+    "source_hash": "21d55b60"
+  },
+  "api.account.errors.password_too_short": {
+    "text": "Wachtwoord is te kort",
+    "source_hash": "0d829600"
+  }
+}

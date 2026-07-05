@@ -15,6 +15,7 @@ GET   /health/advanced                           Core::Controllers::Health#advan
 GET   /signin                                    Core::Controllers::Page#index auth=noauth
 GET   /signup                                    Core::Controllers::Page#index auth=noauth
 GET   /signup/*                                  Core::Controllers::Page#index auth=noauth
+GET   /check-email                               Core::Controllers::Page#index auth=noauth
 GET   /pricing                                   Core::Controllers::Page#index auth=noauth
 GET   /forgot                                    Core::Controllers::Page#index auth=noauth
 GET   /forgot/:key                               Core::Controllers::Page#index auth=noauth
@@ -46,6 +47,13 @@ GET   /mfa-verify                                Core::Controllers::Page#index
 
 # Bootstrap endpoint - returns initialization data for the current session
 GET   /bootstrap/me                              Core::Controllers::Page#bootstrap_me auth=noauth
+
+# Configuration Generator API - public JSON endpoints (no auth, no DB).
+# The interactive UI lives in the docs site (docs.onetimesecret.com), driven
+# by the published config JSON schemas. These endpoints remain as a machine
+# API — e.g. a future install.sh pulling a config for a chosen preset.
+GET   /config-generator/options                  Core::Controllers::ConfigGenerator#options auth=noauth
+GET   /config-generator/render                   Core::Controllers::ConfigGenerator#render auth=noauth
 
 # Vue SPA catch-all routes - public (Vue handles auth client-side)
 GET   /receipt/*                                 Core::Controllers::Page#index auth=noauth

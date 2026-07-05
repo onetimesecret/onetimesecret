@@ -58,5 +58,17 @@
   "web.feedback.reason_email_change_unauthorized": {
     "text": "계정에서 승인되지 않은 이메일 변경을 신고하시는 것으로 보입니다. 상황을 설명해 주시면 즉시 조사하겠습니다.",
     "source_hash": "00e56551"
+  },
+  "web.feedback.anonymous_no_reply": {
+    "text": "참고: 답변을 원하시면 메시지에 서명하거나 이메일 주소를 포함해 주세요.",
+    "source_hash": "c984f705"
+  },
+  "web.feedback.characters_remaining": {
+    "text": "{count}자 남음",
+    "source_hash": "8d796f40"
+  },
+  "web.feedback.character_limit_reached": {
+    "text": "글자 수 제한에 도달했습니다",
+    "source_hash": "031e9310"
   }
 }

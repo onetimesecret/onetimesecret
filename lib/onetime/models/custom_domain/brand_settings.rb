@@ -47,21 +47,38 @@ module Onetime
       # views, and initializers.
       #
       # All values default to nil per #3049 (no OTS branding leaks into shipped
-      # defaults). Operators set BRAND_SUPPORT_EMAIL / BRAND_LOGO_URL /
-      # BRAND_TOTP_ISSUER to populate. 'OTS' is acceptable as a neutral
-      # abbreviation per the issue body.
+      # defaults) — including product_name. Operators set BRAND_PRODUCT_NAME /
+      # BRAND_SUPPORT_EMAIL / BRAND_LOGO_URL to populate; an unconfigured
+      # install falls through to each consumer's own neutral default
+      # (frontend: NEUTRAL_BRAND_DEFAULTS.product_name; mail: NEUTRAL_PRODUCT_NAME
+      # below — the legacy site.interface.ui.header.branding.site_name tier was
+      # retired in #3612).
+      #
+      # totp_issuer is the one deliberate exception, kept as 'OTS' rather
+      # than nil: it's baked into already-provisioned authenticator-app
+      # entries (otpauth:// issuer label, see mfa.rb / totp.rb), so changing
+      # the unconfigured default risks confusing existing MFA enrollments.
       # signature_name defaults to nil: when unset, the email sign-off falls
       # through to the neutral i18n default (email.*.signature, "Support Team")
       # rather than a hardcoded person's name. Operators set
       # BRAND_SIGNATURE_NAME to sign mail with their own name or team.
       GLOBAL_DEFAULTS = {
         support_email: nil,
-        product_name: 'OTS',
+        product_name: nil,
         totp_issuer: 'OTS',
         logo_url: nil,
+        logo_alt: nil,
         favicon_url: nil,
         signature_name: nil,
       }.freeze
+
+      # Neutral, vendor-agnostic product name used as the terminal fallback on
+      # surfaces that must render *some* name even when brand.product_name is
+      # unconfigured (email subjects/headers interpolate it into copy). Must
+      # stay in lockstep with the frontend NEUTRAL_BRAND_DEFAULTS.product_name
+      # (src/shared/constants/brand.ts) so an unbranded install reads the same
+      # everywhere — and per #3049 it must NEVER be an OTS-branded literal.
+      NEUTRAL_PRODUCT_NAME = 'Secure Links'
 
       # Returns defaults with primary_color resolved from brand config.
       # Falls back to DEFAULTS when OT.conf is not available.
@@ -75,6 +92,11 @@ module Onetime
       # Returns global defaults resolved from brand config at runtime.
       # Falls back to GLOBAL_DEFAULTS when OT.conf is not available.
       #
+      # Call-time safety: OT.conf is only ever assigned the *result* of
+      # Config.after_load (boot.rb), so a non-nil OT.conf['brand'] has
+      # already been through normalize_brand — legacy fallbacks (e.g.
+      # SITE_NAME -> product_name) are absorbed before any reader here.
+      #
       # @return [Hash<Symbol, Object>] Global brand settings with config overrides
       def self.global_defaults
         return GLOBAL_DEFAULTS unless defined?(OT) && OT.respond_to?(:conf) && OT.conf
@@ -83,8 +105,13 @@ module Onetime
         {
           support_email: brand_conf['support_email'] || GLOBAL_DEFAULTS[:support_email],
           product_name: brand_conf['product_name'] || GLOBAL_DEFAULTS[:product_name],
-          totp_issuer: brand_conf['totp_issuer'] || GLOBAL_DEFAULTS[:totp_issuer],
+          # A configured product name brands new MFA enrollments too (#3612) —
+          # an authenticator entry labeled with the vendor default on a renamed
+          # install reads as a leak. The unconfigured 'OTS' default is unchanged,
+          # so pre-existing installs keep issuing consistent labels.
+          totp_issuer: brand_conf['totp_issuer'] || brand_conf['product_name'] || GLOBAL_DEFAULTS[:totp_issuer],
           logo_url: brand_conf['logo_url'] || GLOBAL_DEFAULTS[:logo_url],
+          logo_alt: brand_conf['logo_alt'] || GLOBAL_DEFAULTS[:logo_alt],
           favicon_url: brand_conf['favicon_url'] || GLOBAL_DEFAULTS[:favicon_url],
           signature_name: brand_conf['signature_name'] || GLOBAL_DEFAULTS[:signature_name],
         }
@@ -100,6 +127,12 @@ module Onetime
       CORNERS = %w[rounded square pill].freeze
     end
 
+    # Per-domain (tenant, Redis-stored) brand settings. Deliberately NOT a
+    # mirror of the install-wide brand: block: logo_alt, for example, is
+    # install-only (GLOBAL_DEFAULTS above) — a tenant's uploaded logo takes
+    # its accessible name from the domain's display name, so a per-domain
+    # logo_alt supplied via from_hash is intentionally dropped by the
+    # members slice below.
     BrandSettings = Data.define(
       :logo,
       :primary_color,
@@ -223,6 +256,12 @@ module Onetime
       end
 
       # @api private
+      #
+      # Write-path validation for PER-DOMAIN (tenant-uploaded) settings only:
+      # https or app-relative. The install-wide brand.logo_url is a separate,
+      # more permissive surface — the mail renderer gates it to absolute
+      # http(s) at render time (Mail::Views TemplateContext#logo_url) and the
+      # web UI accepts relative paths. The two policies intentionally differ.
       def self.validate_url_fields!(normalized)
         [:logo_url, :logo_dark_url, :favicon_url].each do |url_field|
           next unless normalized.key?(url_field) && !normalized[url_field].nil?

@@ -1,0 +1,142 @@
+{
+  "api.organizations.errors.domain_scoped_forbidden": {
+    "text": "Les membres limités à un domaine ne peuvent pas effectuer cette action",
+    "source_hash": "0a06a035"
+  },
+  "api.organizations.errors.organization_not_found": {
+    "text": "Organisation introuvable : %{extid}",
+    "source_hash": "c8d058eb"
+  },
+  "api.organizations.errors.organization_owner_required": {
+    "text": "Seul le propriétaire de l'organisation peut effectuer cette action",
+    "source_hash": "5a729e94"
+  },
+  "api.organizations.errors.organization_member_required": {
+    "text": "Vous devez être membre de l'organisation pour effectuer cette action",
+    "source_hash": "f66f4a60"
+  },
+  "api.organizations.errors.organization_admin_required": {
+    "text": "Seuls les propriétaires et les administrateurs de l'organisation peuvent effectuer cette action",
+    "source_hash": "cd9e8c0e"
+  },
+  "api.organizations.errors.extid_required": {
+    "text": "ID d'organisation requis",
+    "source_hash": "02fbe301"
+  },
+  "api.organizations.errors.display_name_required": {
+    "text": "Le nom de l'organisation est requis",
+    "source_hash": "c3f6e9af"
+  },
+  "api.organizations.errors.display_name_too_long": {
+    "text": "Le nom de l'organisation doit comporter moins de %{max} caractères",
+    "source_hash": "5866973d"
+  },
+  "api.organizations.errors.description_too_long": {
+    "text": "La description doit comporter moins de %{max} caractères",
+    "source_hash": "562b7250"
+  },
+  "api.organizations.errors.contact_email_exists": {
+    "text": "Une organisation avec cet e-mail de contact existe déjà",
+    "source_hash": "e9fdce56"
+  },
+  "api.organizations.errors.creation_in_progress": {
+    "text": "Création de l'organisation en cours. Veuillez réessayer.",
+    "source_hash": "ef68bc2d"
+  },
+  "api.organizations.errors.organization_limit_reached": {
+    "text": "Limite d'organisations atteinte. Mettez à niveau votre forfait pour créer davantage d'organisations.",
+    "source_hash": "69e2e61b"
+  },
+  "api.organizations.invitations.errors.invitation_not_found": {
+    "text": "Invitation introuvable",
+    "source_hash": "775ba9eb"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "L'e-mail est requis",
+    "source_hash": "aae92911"
+  },
+  "api.organizations.invitations.errors.invalid_email_format": {
+    "text": "Format d'e-mail invalide",
+    "source_hash": "0bcecf66"
+  },
+  "api.organizations.invitations.errors.invalid_role": {
+    "text": "Le rôle doit être membre ou administrateur",
+    "source_hash": "650ea5f6"
+  },
+  "api.organizations.invitations.errors.cannot_invite_as_owner": {
+    "text": "Impossible d'inviter en tant que propriétaire",
+    "source_hash": "e6581025"
+  },
+  "api.organizations.invitations.errors.user_already_member": {
+    "text": "L'utilisateur est déjà membre de cette organisation",
+    "source_hash": "8eb45780"
+  },
+  "api.organizations.invitations.errors.invitation_already_pending": {
+    "text": "Une invitation est déjà en attente pour cet e-mail",
+    "source_hash": "7f5e3093"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Limite de membres atteinte. Mettez à niveau votre forfait pour inviter davantage de membres.",
+    "source_hash": "b8f316e8"
+  },
+  "api.organizations.invitations.errors.resend_only_pending": {
+    "text": "Seules les invitations en attente peuvent être renvoyées",
+    "source_hash": "b7578b3e"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Limite maximale de renvois (%{max}) atteinte",
+    "source_hash": "8dc96729"
+  },
+  "api.organizations.invitations.errors.revoke_only_pending": {
+    "text": "Seules les invitations en attente peuvent être révoquées",
+    "source_hash": "732b78a6"
+  },
+  "api.organizations.members.errors.member_not_found": {
+    "text": "Membre introuvable : %{extid}",
+    "source_hash": "57654771"
+  },
+  "api.organizations.members.errors.member_not_in_organization": {
+    "text": "Membre introuvable dans cette organisation",
+    "source_hash": "dcab71ff"
+  },
+  "api.organizations.members.errors.member_not_active": {
+    "text": "Le membre n'est pas actif",
+    "source_hash": "a51b8760"
+  },
+  "api.organizations.members.errors.invalid_role_value": {
+    "text": "Rôle invalide. Doit être l'un des suivants : %{roles}",
+    "source_hash": "c3331aa0"
+  },
+  "api.organizations.members.errors.cannot_change_owner_role": {
+    "text": "Impossible de modifier le rôle du propriétaire. Utilisez plutôt le transfert de propriété.",
+    "source_hash": "76015424"
+  },
+  "api.organizations.members.errors.member_already_has_role": {
+    "text": "Le membre possède déjà le rôle : %{role}",
+    "source_hash": "6771166a"
+  },
+  "api.organizations.members.errors.cannot_promote_to_owner": {
+    "text": "Impossible de promouvoir au rang de propriétaire. Utilisez plutôt le transfert de propriété.",
+    "source_hash": "cd574007"
+  },
+  "api.organizations.members.errors.must_be_member": {
+    "text": "Vous devez être membre de cette organisation",
+    "source_hash": "de1c77b8"
+  },
+  "api.organizations.members.errors.cannot_remove_owner": {
+    "text": "Impossible de retirer le propriétaire de l'organisation. Transférez d'abord la propriété.",
+    "source_hash": "d4f33003"
+  },
+  "api.organizations.members.errors.cannot_remove_self": {
+    "text": "Impossible de vous retirer vous-même. Utilisez plutôt l'option de quitter l'organisation.",
+    "source_hash": "d64cec91"
+  },
+  "api.organizations.members.errors.admin_cannot_remove_admin": {
+    "text": "Les administrateurs ne peuvent pas retirer d'autres administrateurs. Seuls les propriétaires le peuvent.",
+    "source_hash": "2b3e6e30"
+  },
+  "api.organizations.members.errors.no_permission_to_remove": {
+    "text": "Vous n'avez pas la permission de retirer des membres",
+    "source_hash": "b0ac7287"
+  }
+}

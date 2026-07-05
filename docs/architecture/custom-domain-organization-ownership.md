@@ -1,5 +1,4 @@
 ---
-# docs/architecture/custom-domain-organization-ownership.md
 labels: familia-v2, multi-tenant, custom-domains
 ---
 # CustomDomain Organization Ownership

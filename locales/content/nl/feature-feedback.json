@@ -58,5 +58,17 @@
   "web.feedback.reason_email_change_unauthorized": {
     "text": "Het lijkt erop dat je een ongeautoriseerde wijziging van het e-mailadres op je account meldt. Beschrijf wat er is gebeurd en we onderzoeken het direct.",
     "source_hash": "00e56551"
+  },
+  "web.feedback.anonymous_no_reply": {
+    "text": "Let op: als je een reactie wilt, onderteken het bericht dan of vermeld een e-mailadres erin.",
+    "source_hash": "c984f705"
+  },
+  "web.feedback.characters_remaining": {
+    "text": "Nog {count} tekens",
+    "source_hash": "8d796f40"
+  },
+  "web.feedback.character_limit_reached": {
+    "text": "Tekenlimiet bereikt",
+    "source_hash": "031e9310"
   }
 }

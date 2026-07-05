@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/security/passphrase_rate_limiter'
+
 module V1::Logic
   module Secrets
 
@@ -10,6 +12,8 @@ module V1::Logic
     # V1 compat: uses load_owner (not load_customer) and
     # decrypted_secret_value for decryption.
     class ShowSecret < V1::Logic::Base
+      include Onetime::Security::PassphraseRateLimiter
+
       attr_reader :key, :passphrase, :continue
       attr_reader :secret, :show_secret, :secret_value, :is_truncated,
                   :original_size, :verification, :correct_passphrase,
@@ -25,6 +29,10 @@ module V1::Logic
 
       def raise_concerns
         raise OT::MissingSecret if secret.nil? || !secret.viewable?
+
+        # Check passphrase rate limit before allowing passphrase attempts
+        # This prevents brute-force attacks on secrets with passphrases
+        check_passphrase_rate_limit!(secret.identifier) if secret.has_passphrase?
       end
 
       def process
@@ -33,9 +41,28 @@ module V1::Logic
         @verification = secret.verification.to_s == "true"
         @secret_key = @secret.identifier # Use identifier, not deprecated .key field
 
+        # Track passphrase attempts for rate limiting. Only non-empty
+        # submissions count: the initial preview of a passphrase-protected
+        # secret sends an empty passphrase and must not accrue attempts.
+        if secret.has_passphrase? && !passphrase.empty?
+          if correct_passphrase
+            # Clear rate limit on successful passphrase
+            clear_passphrase_rate_limit!(secret.identifier)
+          else
+            # Record failed attempt
+            record_failed_passphrase_attempt!(secret.identifier)
+          end
+        end
+
         owner = secret.load_owner
 
         if show_secret
+          # Legacy v1 ordering: the plaintext is decrypted here, BEFORE the
+          # atomic revealed! claim below. A losing racer never sends it -- the
+          # claim gate suppresses @secret_value -- but it is still computed in
+          # memory. v2 avoids this by decrypting only inside the won claim
+          # (Secret#reveal!); v1 is maintenance-only, so the decoupled ordering
+          # is kept by design.
           @secret_value = secret.decrypted_secret_value(passphrase_input: passphrase)
           @is_truncated = secret.truncated?
           @original_size = secret.respond_to?(:original_size) ? secret.original_size : nil
@@ -47,15 +74,11 @@ module V1::Logic
               owner.verified! "true"
               # Skip for stateless auth (BasicAuth provides empty session)
               sess.clear unless sess.empty?
-              secret.revealed!
+              @revealed = secret.revealed!
             else
               raise_form_error "You can't verify an account when you're already logged in."
             end
           else
-
-            owner.increment_field(:secrets_shared) if owner && !owner.anonymous?
-            # TODO:
-            # Onetime::Customer.global.increment_field :secrets_shared
 
             # Immediately mark the secret as revealed, so that it
             # can't be shown again. If there's a network failure
@@ -68,8 +91,25 @@ module V1::Logic
             # happens in success_data). This is a feature, not a
             # bug but it means that all return values need to be
             # pluck out of the secret object before this is called.
-            secret.revealed!
+            @revealed = secret.revealed!
 
+            # Gate the shared-secret metric on winning the atomic claim:
+            # revealed! returns false to a request that lost the burn-after-
+            # reading race, which revealed nothing and must not inflate the
+            # owner's counter (mirrors the v2 controllers).
+            owner.increment_field(:secrets_shared) if @revealed && owner && !owner.anonymous?
+            # TODO:
+            # Onetime::Customer.global.increment_field :secrets_shared
+
+          end
+
+          # revealed! performs an atomic claim: it returns true only for the
+          # single caller that won the burn-after-reading race. If a concurrent
+          # request beat us to it, we must NOT disclose the plaintext -- suppress
+          # it so success_data omits secret_value. Prevents a double-reveal.
+          unless @revealed
+            @show_secret  = false
+            @secret_value = nil
           end
 
         elsif continue && secret.has_passphrase? && !correct_passphrase

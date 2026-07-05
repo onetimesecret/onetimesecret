@@ -178,6 +178,13 @@ module Onetime
           data[:recipient] || data[:email_address] || data[:to]
         end
 
+        # URL scheme ('https://' unless site.ssl is explicitly false). Shared
+        # by site_baseuri and brand_baseuri so both agree on http/https.
+        # @return [String]
+        def scheme
+          site_ssl? ? 'https://' : 'http://'
+        end
+
         # Site SSL configuration helper
         # @return [Boolean]
         def site_ssl?
@@ -197,14 +204,27 @@ module Onetime
         # Site base URI configuration helper
         # @return [String]
         def site_baseuri
-          scheme = site_ssl? ? 'https://' : 'http://'
           "#{scheme}#{site_host}"
         end
 
+        # Full base URI for the domain this message concerns: the custom
+        # share_domain when the message carries one, otherwise the
+        # (overridable) canonical base URI. Delegates to
+        # TemplateContext#brand_baseuri — the same helper templates render
+        # with — so Ruby-side callers (e.g. ExpirationWarning#secret_uri)
+        # cannot drift from what the rendered output links to.
+        # @return [String]
+        def brand_baseuri
+          TemplateContext.new(data, locale).brand_baseuri
+        end
+
+        # Install-wide product name for mail copy. brand.product_name is the
+        # single authority (#3612); unconfigured installs fall through to the
+        # neutral NEUTRAL_PRODUCT_NAME — never nil, since templates interpolate
+        # the name into subjects and headers, and never an OTS-branded literal.
         def site_product_name
           OT.conf.dig('brand', 'product_name') ||
-            OT.conf.dig('site', 'interface', 'ui', 'header', 'branding', 'site_name') ||
-            Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:product_name]
+            Onetime::CustomDomain::BrandSettingsConstants::NEUTRAL_PRODUCT_NAME
         end
 
         # Product name with fallback to site config
@@ -213,7 +233,11 @@ module Onetime
           data[:product_name] || site_product_name
         end
 
-        # Display domain with fallback to site host
+        # Bare host label naming the domain this message is about. Used by
+        # account/system emails (password_request, magic_link, ...) in
+        # subjects and i18n interpolations; data-driven with a canonical-host
+        # fallback. Not a link: URLs are built from brand_baseuri, which
+        # derives from share_domain rather than display_domain.
         # @return [String]
         def display_domain
           data[:display_domain] || site_host
@@ -322,10 +346,42 @@ module Onetime
             @data[:product_name] || site_product_name
           end
 
-          # Display domain helper (custom domain or canonical)
+          # Bare host label naming the domain this message is about. Prefers
+          # an explicit per-message display_domain (account/system emails
+          # inject it for subjects and body copy; feedback_email reports the
+          # domain feedback was submitted from), then falls back to
+          # brand_host so domain-bound messages label the domain they
+          # concern. Not a link: templates build URLs from brand_baseuri.
           # @return [String]
           def display_domain
-            @data[:display_domain] || @data[:share_domain] || site_host
+            @data[:display_domain] || brand_host
+          end
+
+          # Host the shared layout header/footer links to and displays. Prefers
+          # the custom domain the message concerns (share_domain, set on the
+          # secret_link and incoming_secret emails) so the wordmark and footer
+          # match the domain the recipient is actually visiting; falls back to
+          # the canonical site host for account/system emails that carry no
+          # domain. This is intentionally distinct from baseuri, which body
+          # templates use to build links to install-level app paths (invite
+          # acceptance, account settings, support) that live on the canonical
+          # host regardless of the sharing domain.
+          # @return [String]
+          def brand_host
+            host = @data[:share_domain].to_s
+            host.empty? ? site_host : host
+          end
+
+          # Base URI (scheme + host) for the shared layout header/footer. When
+          # the message concerns a custom share_domain, links to that domain;
+          # otherwise defers to baseuri, preserving both the @data[:baseuri]
+          # override and the canonical site fallback for account/system emails.
+          # @return [String]
+          def brand_baseuri
+            host = @data[:share_domain].to_s
+            return "#{scheme}#{host}" unless host.empty?
+
+            baseuri
           end
 
           # Brand color helper - resolves from per-message data, brand config, or
@@ -365,11 +421,16 @@ module Onetime
                               conf_dig('brand', 'signature_name')
           end
 
-          # Logo alt text helper - delegates to product_name so the logo's
-          # accessible name matches the surrounding brand identity.
+          # Logo alt text helper - operator-supplied brand.logo_alt
+          # (BRAND_LOGO_ALT) when set, otherwise the install-level product
+          # name. Deliberately site_product_name, not product_name: the image
+          # this alt describes is always the install-wide brand.logo_url, so
+          # a per-message data[:product_name] (e.g. a tenant name) must not
+          # label the operator's logo — the same wrong-accessible-name rule
+          # the frontend applies to installLogoAlt.
           # @return [String]
           def logo_alt
-            product_name
+            conf_dig('brand', 'logo_alt') || site_product_name
           end
 
           # Logo URL helper - resolves from brand config; nil when no brand
@@ -377,19 +438,29 @@ module Onetime
           # "#{baseuri}/img/onetime-logo-v3-xl.svg" has been neutralized so
           # shipped/private-label instances don't leak OTS branding. Templates
           # check truthiness and render a text-only header when nil.
+          #
+          # Only absolute http(s) URLs are emitted: mail clients cannot
+          # resolve relative paths or component references, and with the
+          # legacy LOGO_URL now feeding brand.logo_url as a fallback (#3612),
+          # a masthead-oriented relative path (e.g. /img/logo.png) must not
+          # break email rendering — such values degrade to the text-only
+          # header instead.
           # @return [String, nil]
           def logo_url
             return @logo_url if defined?(@logo_url)
 
-            @logo_url = conf_dig('brand', 'logo_url') ||
+            candidate = conf_dig('brand', 'logo_url') ||
                         Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:logo_url]
+            @logo_url = candidate.to_s.match?(%r{\Ahttps?://}i) ? candidate : nil
           end
 
+          # Mirrors Templates::Base#site_product_name: brand.product_name is
+          # the single authority (#3612), with the neutral NEUTRAL_PRODUCT_NAME
+          # terminal so layout copy never interpolates nil.
           def site_product_name
             @site_product_name ||=
               conf_dig('brand', 'product_name') ||
-              conf_dig('site', 'interface', 'ui', 'header', 'branding', 'site_name') ||
-              Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:product_name]
+              Onetime::CustomDomain::BrandSettingsConstants::NEUTRAL_PRODUCT_NAME
           end
 
           # Get host from site config
@@ -399,18 +470,27 @@ module Onetime
 
           # Get base URI from site config
           def site_baseuri
-            @site_baseuri ||= begin
-              scheme = conf_dig('site', 'ssl') == false ? 'http://' : 'https://'
-              host   = conf_dig('site', 'host') || 'localhost'
-              "#{scheme}#{host}"
-            end
+            @site_baseuri ||= "#{scheme}#{site_host}"
           end
 
+          # Operator opt-in gate for rendering a logo <img> in mail at all.
+          # Templates require show_logo? AND a usable logo_url — an absolute
+          # brand.logo_url still renders text-only when emailer.show_logo is
+          # unset/false. The two gates are independent by design: show_logo?
+          # is the "do I trust images in mail clients" switch, logo_url is
+          # the asset (nil when unset or not absolute http(s)).
           def show_logo?
             conf_dig('emailer', 'show_logo') == true
           end
 
           private
+
+          # URL scheme ('https://' unless site.ssl is explicitly false). Shared
+          # by site_baseuri and brand_baseuri so both agree on http/https.
+          # @return [String]
+          def scheme
+            conf_dig('site', 'ssl') == false ? 'http://' : 'https://'
+          end
 
           def conf_dig(*keys)
             return nil unless defined?(OT) && OT.respond_to?(:conf) && OT.conf

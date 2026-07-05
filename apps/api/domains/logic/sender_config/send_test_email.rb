@@ -193,11 +193,18 @@ module DomainsAPI
           end
         end
 
+        # Install-branded platform name for outbound copy — a hardcoded vendor
+        # literal here would leak into a white-label install's test emails.
+        def platform_name
+          Onetime::CustomDomain::BrandSettingsConstants.global_defaults[:product_name] ||
+            Onetime::CustomDomain::BrandSettingsConstants::NEUTRAL_PRODUCT_NAME
+        end
+
         def build_text_body(domain, from_name, from_address, reply_to)
           lines = []
           lines << "Test Email from #{domain}"
           lines << ''
-          lines << 'This is a test email sent via Onetime Secret to verify your'
+          lines << "This is a test email sent via #{platform_name} to verify your"
           lines << 'email sender configuration is working correctly.'
           lines << ''
           lines << 'Configuration details:'
@@ -221,7 +228,7 @@ module DomainsAPI
                 Test Email from #{escape_html(domain)}
               </h2>
               <p>
-                This is a test email sent via Onetime Secret to verify your
+                This is a test email sent via #{escape_html(platform_name)} to verify your
                 email sender configuration is working correctly.
               </p>
               <table style="border-collapse: collapse; margin: 20px 0; width: 100%;">

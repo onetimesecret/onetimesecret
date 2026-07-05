@@ -578,5 +578,457 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Ka pau tata",
     "source_hash": "a5dcfef9"
+  },
+  "api.organizations.errors.not_found": {
+    "text": "Kāore i kitea te whakahaere: %{extid}",
+    "source_hash": "c8d058eb"
+  },
+  "api.organizations.errors.owner_required": {
+    "text": "Ko te rangatira whakahaere anake ka taea te mahi i tēnei",
+    "source_hash": "5a729e94"
+  },
+  "api.organizations.errors.admin_required": {
+    "text": "Ko ngā rangatira me ngā kaiwhakahaere whakahaere anake ka taea te mahi i tēnei",
+    "source_hash": "cd9e8c0e"
+  },
+  "api.organizations.errors.member_required": {
+    "text": "Me noho koe hei mema whakahaere kia taea ai e koe te mahi i tēnei",
+    "source_hash": "f66f4a60"
+  },
+  "api.organizations.invitations.errors.create_admin_required": {
+    "text": "Ko ngā rangatira me ngā kaiwhakahaere whakahaere anake ka taea te waihanga tono",
+    "source_hash": "777d150d"
+  },
+  "api.organizations.invitations.errors.resend_admin_required": {
+    "text": "Ko ngā rangatira me ngā kaiwhakahaere whakahaere anake ka taea te tuku anō i ngā tono",
+    "source_hash": "6a857d59"
+  },
+  "api.organizations.invitations.errors.view_admin_required": {
+    "text": "Ko ngā rangatira me ngā kaiwhakahaere whakahaere anake ka taea te tiro i ngā tono",
+    "source_hash": "42f5878b"
+  },
+  "api.organizations.invitations.errors.revoke_admin_required": {
+    "text": "Ko ngā rangatira me ngā kaiwhakahaere whakahaere anake ka taea te whakakore i ngā tono",
+    "source_hash": "52f73c8a"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "E hiahiatia ana te īmēra",
+    "source_hash": "aae92911"
+  },
+  "api.organizations.invitations.errors.email_invalid": {
+    "text": "Hōputu īmēra muhu",
+    "source_hash": "0bcecf66"
+  },
+  "api.organizations.invitations.errors.role_invalid": {
+    "text": "Me noho te tūranga hei mema, hei kaiwhakahaere rānei",
+    "source_hash": "650ea5f6"
+  },
+  "api.organizations.invitations.errors.cannot_invite_owner": {
+    "text": "Kāore e taea te tono hei rangatira",
+    "source_hash": "e6581025"
+  },
+  "api.organizations.invitations.errors.already_member": {
+    "text": "He mema kē te kaiwhakamahi o tēnei whakahaere",
+    "source_hash": "8eb45780"
+  },
+  "api.organizations.invitations.errors.already_pending": {
+    "text": "Kei te tārewa kē tētahi tono mō tēnei īmēra",
+    "source_hash": "7f5e3093"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Kua tae ki te tepe mema. Whakapikihia tō mahere kia tono ai i ētahi atu mema.",
+    "source_hash": "b8f316e8"
+  },
+  "api.organizations.invitations.errors.not_found": {
+    "text": "Kāore i kitea te tono",
+    "source_hash": "775ba9eb"
+  },
+  "api.organizations.invitations.errors.cannot_resend_non_pending": {
+    "text": "Ka taea anake te tuku anō i ngā tono tārewa",
+    "source_hash": "b7578b3e"
+  },
+  "api.organizations.invitations.errors.cannot_revoke_non_pending": {
+    "text": "Ka taea anake te whakakore i ngā tono tārewa",
+    "source_hash": "732b78a6"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Kua tae ki te tepe tuku-anō mōrahi (%{max})",
+    "source_hash": "8dc96729"
+  },
+  "api.organizations.invitations.errors.accept_token_required": {
+    "text": "E hiahiatia ana te tokena",
+    "source_hash": "6c718161"
+  },
+  "api.organizations.invitations.errors.accept_organization_gone": {
+    "text": "Kāore te whakahaere e noho tonu ana",
+    "source_hash": "a5df7d22"
+  },
+  "api.organizations.invitations.errors.accept_already_acted": {
+    "text": "Kua %{status} kē te tono",
+    "source_hash": "130c87e0"
+  },
+  "api.organizations.invitations.errors.accept_expired": {
+    "text": "Kua pau te tono",
+    "source_hash": "7186297b"
+  },
+  "api.organizations.invitations.errors.accept_email_mismatch": {
+    "text": "Kāore tō wāhitau īmēra e ōrite ana ki te tono",
+    "source_hash": "11026f46"
+  },
+  "api.organizations.invitations.errors.accept_already_member": {
+    "text": "He mema kē koe o tēnei whakahaere",
+    "source_hash": "f56ad547"
+  },
+  "web.organizations.entitlements_title": {
+    "text": "Ngā Whaimana Whakahaere",
+    "source_hash": "36054d4f"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Tirohia, whirihorahia hoki ō wāhi mahi",
+    "source_hash": "524fcb9a"
+  },
+  "web.organizations.delete_organization_remove_domains_first": {
+    "text": "Tangohia ngā rohe ritenga katoa i mua i te muku i tēnei whakahaere.",
+    "source_hash": "44678715"
+  },
+  "web.organizations.default_org_delete_notice_title": {
+    "text": "Te muku i tēnei whakahaere",
+    "source_hash": "9191d915"
+  },
+  "web.organizations.default_org_delete_notice_before": {
+    "text": "Koinei tō whakahaere taunoa, ā, kāore e taea te tango i te papatohu. Hei muku i a ia, tēnā whakapā mai mā te",
+    "source_hash": "e203607d"
+  },
+  "web.organizations.default_org_delete_notice_link": {
+    "text": "puka urupare",
+    "source_hash": "94645a9e"
+  },
+  "web.organizations.default_org_delete_notice_after": {
+    "text": ".",
+    "source_hash": "cdb4ee2a"
+  },
+  "web.organizations.leave_organization": {
+    "text": "Wehe i tēnei whakahaere",
+    "source_hash": "d534cff9"
+  },
+  "web.organizations.leave_organization_warning": {
+    "text": "Ka ngaro i a koe te urunga ki tēnei whakahaere me ōna rauemi.",
+    "source_hash": "e9daab07"
+  },
+  "web.organizations.leave_organization_confirm_title": {
+    "text": "Wehe i te Whakahaere",
+    "source_hash": "ec8314da"
+  },
+  "web.organizations.leave_organization_confirm_message": {
+    "text": "E tino hiahia ana koe ki te wehe i a {name}? Ka hiahiatia e koe tētahi tono hou kia hono anō.",
+    "source_hash": "e21c5fec"
+  },
+  "web.organizations.leave_organization_success": {
+    "text": "Kua wehe koe i te whakahaere.",
+    "source_hash": "fc803eb3"
+  },
+  "web.organizations.leave_error": {
+    "text": "I rahu te wehe i te whakahaere",
+    "source_hash": "6cb6af43"
+  },
+  "web.organizations.organizations": {
+    "text": "Ngā Whakahaere",
+    "source_hash": "2730183d"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "nā {email}",
+    "source_hash": "969a7050"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "hei {role}",
+    "source_hash": "ff9e9b18"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Hoki ki te kāinga",
+    "source_hash": "76c5505f"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "I tukuna tēnei tono ki tēnei wāhitau īmēra",
+    "source_hash": "2cff7075"
+  },
+  "web.organizations.invitations.signup_continue": {
+    "text": "Haere tonu",
+    "source_hash": "31fbef16"
+  },
+  "web.organizations.invitations.signin_continue": {
+    "text": "Takiuru",
+    "source_hash": "bcc0bcc9"
+  },
+  "web.organizations.invitations.confirm_join_below": {
+    "text": "Kua tata oti — whakaūngia kei raro nei kia hono ai ki te whakahaere.",
+    "source_hash": "2d14f9b0"
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Haere ki ngā Whakahaere",
+    "source_hash": "2afa38a3"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "He mema kē koe o tēnei whakahaere",
+    "source_hash": "f56ad547"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Hono ki {orgName}",
+    "source_hash": "1aea9194"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Takiuru kia hono ai ki {orgName}",
+    "source_hash": "f94ed8b4"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Whakakāhore",
+    "source_hash": "a2d285b3"
+  },
+  "web.organizations.members.member_quota": {
+    "text": "{used} o {limit} mema",
+    "source_hash": "51183b79"
+  },
+  "web.organizations.members.pending_suffix": {
+    "text": "({count} e tārewa ana)",
+    "source_hash": "c13f787f"
+  },
+  "web.organizations.members.limit_reached_hint": {
+    "text": "Kua tae ki te tepe mema.",
+    "source_hash": "26cdb6b8"
+  },
+  "web.organizations.sso.title": {
+    "text": "Takiuru Kotahi (SSO)",
+    "source_hash": "5db5c812"
+  },
+  "web.organizations.sso.description": {
+    "text": "Whirihorahia te SSO kia āhei ai ngā mema ki te takiuru mā te kaiwhakarato tuakiri o tō whakahaere",
+    "source_hash": "464f0a8b"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Momo Kaiwhakarato",
+    "source_hash": "bdfbb1ec"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Tīpakohia te kaiwhakarato tuakiri o tō whakahaere",
+    "source_hash": "e81325a6"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Ingoa Whakaatu",
+    "source_hash": "18d67c99"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "He ingoa hoa ka whakaatuhia ki ngā kaiwhakamahi ina takiuru",
+    "source_hash": "a83f1fba"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "hei tauira Acme Corp SSO",
+    "source_hash": "43c655c5"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "Client ID",
+    "source_hash": "8726db01"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "Tō Client ID OAuth",
+    "source_hash": "830723da"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Client Secret",
+    "source_hash": "ae21cf6d"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "Tō Client Secret OAuth",
+    "source_hash": "14e4a8c8"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Waiho wātea kia mau ai te secret o nāianei",
+    "source_hash": "98bc3b40"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "Tenant ID",
+    "source_hash": "de1f5fff"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "Tō tautohu tenant Azure AD / Entra ID",
+    "source_hash": "3c5b707a"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "hei tauira 12345678-1234-1234-1234-123456789abc",
+    "source_hash": "1a166316"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "Issuer URL",
+    "source_hash": "4d03ba8a"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "Te URL kitenga OIDC mō tō kaiwhakarato tuakiri",
+    "source_hash": "6102d81b"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "hei tauira https://login.example.com",
+    "source_hash": "9a638e9c"
+  },
+  "web.organizations.sso.view_discovery_document": {
+    "text": "Tirohia te tuhinga kitenga",
+    "source_hash": "513bda60"
+  },
+  "web.organizations.sso.callback_url": {
+    "text": "Callback URL",
+    "source_hash": "dc297ae9"
+  },
+  "web.organizations.sso.callback_url_hint": {
+    "text": "Tāpirihia tēnei URL ki ngā URI whakahuri kua whakaaetia a tō kaiwhakarato tuakiri",
+    "source_hash": "65d55683"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "Ngā Rohe Īmēra Kua Whakaaetia",
+    "source_hash": "0295ad71"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Ko ngā kaiwhakamahi anake he wāhitau īmēra nō ēnei rohe ka taea te takiuru. Waiho wātea kia whakaaetia ai ngā rohe katoa.",
+    "source_hash": "1775e874"
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "hei tauira acme.com",
+    "source_hash": "e4420764"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Tēnā whakaurua tētahi rohe whaimana (hei tauira example.com)",
+    "source_hash": "16807983"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Kei te rārangi kē tēnei rohe",
+    "source_hash": "3fccb721"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "Tangohia {domain}",
+    "source_hash": "ae708a1d"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "Whakahohea te SSO",
+    "source_hash": "d10d0801"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "Ina whakahohea, ka taea e ngā mema whakahaere te takiuru mā tēnei kaiwhakarato SSO",
+    "source_hash": "d7da2fa2"
+  },
+  "web.organizations.sso.enforce_sso_only": {
+    "text": "Whakaū SSO-anake",
+    "source_hash": "b3a3f694"
+  },
+  "web.organizations.sso.enforce_sso_only_hint": {
+    "text": "Whakarite kia hiahiatia te SSO mō ngā takiuru katoa o tēnei rohe. Ina whakahohea, ka monokia te motuhēhēnga ā-kupuhipa.",
+    "source_hash": "19432210"
+  },
+  "web.organizations.sso.grant_org_scope": {
+    "text": "Tuku urunga puta noa i te whakahaere",
+    "source_hash": "2070cef2"
+  },
+  "web.organizations.sso.grant_org_scope_hint": {
+    "text": "Ko ngā mema hou ka hono mā te SSO o tēnei rohe, ka tukuna te urunga ki ngā rohe katoa o te whakahaere. Kāore ngā mema o nāianei e pā. Ina monokia (taunoa), ka taea e ngā mema hou te urunga ki tēnei rohe anake.",
+    "source_hash": "2ac9f345"
+  },
+  "web.organizations.sso.save_config": {
+    "text": "Tiaki Whirihoranga SSO",
+    "source_hash": "70853769"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Mukua te Whirihoranga",
+    "source_hash": "9ac1ac7b"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "E tino hiahia ana koe? Ka monokia tēnei i te SSO mō tō whakahaere.",
+    "source_hash": "5b3f5b9d"
+  },
+  "web.organizations.sso.load_error": {
+    "text": "I rahu te uta i te whirihoranga SSO",
+    "source_hash": "75cb73f6"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "I rahu te tiaki i te whirihoranga SSO",
+    "source_hash": "99ef145b"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "Kua angitu te waihanga i te whirihoranga SSO",
+    "source_hash": "531c7d92"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "Kua angitu te whakahou i te whirihoranga SSO",
+    "source_hash": "d98d8e83"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "Kua angitu te muku i te whirihoranga SSO",
+    "source_hash": "55f5d4f5"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "I rahu te muku i te whirihoranga SSO",
+    "source_hash": "4a960fe4"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Whakamātau Hononga",
+    "source_hash": "c02977b0"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Manatokohia ka taea te kaiwhakarato tuakiri (kāore e whakamana i ngā pūnga whaimana)",
+    "source_hash": "22a23b68"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Whakamātau Hononga",
+    "source_hash": "c02977b0"
+  },
+  "web.organizations.sso.testing": {
+    "text": "E whakamātau ana...",
+    "source_hash": "6c02a284"
+  },
+  "web.organizations.sso.test_error": {
+    "text": "I rahu te whakamātau hononga",
+    "source_hash": "c1d1f310"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Pito Mutunga Whakaaetanga",
+    "source_hash": "b42b956f"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Ngā Āpure Ngaro",
+    "source_hash": "757df777"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Kua Whakahohea",
+    "source_hash": "92c1cdfd"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Kua Whirihorahia",
+    "source_hash": "84aebc69"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "SSO Rohe",
+    "source_hash": "13161464"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Whirihorahia te SSO mō ia rohe kua manatokona",
+    "source_hash": "af5b799e"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "Hei whakarerekē i te kaiwhakarato, mukua tēnei whirihoranga i te tuatahi",
+    "source_hash": "0a1027ff"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Kāore Anō Kia Whirihorahia",
+    "source_hash": "bbea960e"
+  },
+  "web.organizations.sso.no_domains": {
+    "text": "Kāore he rohe kua manatokona",
+    "source_hash": "8a7fbb76"
+  },
+  "web.organizations.sso.no_domains_description": {
+    "text": "Tāpirihia, manatokohia hoki tētahi rohe i mua i te whirihora SSO mōna.",
+    "source_hash": "e825d13a"
+  },
+  "web.organizations.tabs.team": {
+    "text": "Kapa",
+    "source_hash": "5985039f"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO",
+    "source_hash": "5ba3ac9f"
   }
 }

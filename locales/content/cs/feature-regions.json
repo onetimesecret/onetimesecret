@@ -4,7 +4,7 @@
     "source_hash": "1e6287f1"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "Tvoje data se nacházejí výhradně ve vámi zvoleném regionu a nikdy nejsou přenášena mezi regiony",
+    "text": "Tvoje data se nacházejí výhradně v tebou zvoleném regionu a nikdy nejsou přenášena mezi regiony",
     "source_hash": "5e904993"
   },
   "web.regions.separate_environments_explanation": {
@@ -52,7 +52,7 @@
     "source_hash": "d13d2931"
   },
   "web.regions.privacy_description": {
-    "text": "Zajistěte, aby se s vašimi osobními údaji zacházelo podle zákonů a předpisů o soukromí tvojí země, čímž se zabrání neoprávněnému přístupu nebo zneužití.",
+    "text": "Zajistěte, aby se s tvými osobními údaji zacházelo podle zákonů a předpisů o soukromí tvojí země, čímž se zabrání neoprávněnému přístupu nebo zneužití.",
     "source_hash": "28d9d42e"
   },
   "web.regions.compliance_title": {
@@ -152,7 +152,7 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Pokud se tvůj fakturační kontaktní e-mail liší od e-mailu tvého účtu {product_name}, použij fakturační kontaktní e-mail pro účet v novém regionu, aby se zachovaly výhody tvého předplatného.",
+    "text": "Pokud se tvůj fakturační kontaktní e-mail liší od e-mailu tvého účtu {product_name}, použij pro účet v novém regionu fakturační kontaktní e-mail, aby zůstaly zachovány výhody tvého předplatného.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
@@ -186,5 +186,9 @@
   "web.regions.jurisdictions.apac.name": {
     "text": "Asia-Pacific",
     "source_hash": "7a757670"
+  },
+  "web.regions.no_region_configured": {
+    "text": "Pro tvůj účet nejsou momentálně k dispozici žádné informace o regionu.",
+    "source_hash": "bbfe2a32"
   }
 }
