@@ -128,7 +128,11 @@ module V1::Logic
         @is_owner = secret.owner?(cust)
         @one_liner = one_liner
 
-        secret.previewed! if secret.state?(:new)
+        # A metadata GET must not advance the secret's lifecycle state (#3633).
+        # Previously this flipped :new -> :previewed on every view; the secret
+        # now stays :new until a genuine reveal/burn. Downstream guards
+        # (viewable?, burned!, win_reveal_claim!) already accept :new, so no
+        # behavior depends on the removed transition.
       end
 
       def success_data

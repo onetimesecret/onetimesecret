@@ -220,12 +220,18 @@ module V2::Logic
         OT.ld "[process] Set @share_domain: #{@share_domain}"
         process_uris
 
-        # Dump the receipt attributes before marking as previewed
         @receipt_attributes = _receipt_attributes
 
-        # We mark the receipt record previewed so that we can support showing the
-        # secret link on the receipt page, just the one time.
-        receipt.previewed! if receipt.state?(:new)
+        # Loading the receipt page is a safe GET: it records a one-time
+        # 'receipt_viewed' audit event but must NOT advance the secret's
+        # lifecycle state (#3633). "previewed" now names the distinct event of
+        # the creator opening their own secret *link* (recorded on the access
+        # timeline via AccessTelemetry), not this metadata-page load -- so
+        # viewing the receipt no longer flips receipt.state to 'previewed'. The
+        # creator's live view/link is instead driven by the append-only access
+        # timeline (view_count/first_access). record_receipt_view! is
+        # idempotent, bounding the org trail against a hammered receipt page.
+        receipt.record_receipt_view!
 
         success_data
       end

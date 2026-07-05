@@ -19,8 +19,13 @@ module V2::Logic
       # receipt (e.g. account-verification secrets) are skipped.
       #
       # Creator self-access is a DISTINCT signal from third-party access
-      # (a creator opening their own link is not "the recipient saw it"),
-      # so the kind is prefixed: 'creator_status_get' / 'creator_secret_get'.
+      # (a creator opening their own link is not "the recipient saw it").
+      # The creator opening their own secret *link* is the "previewed" event
+      # (creator-facing term; #3633): it is what the receipt page surfaces as
+      # "you previewed this secret". Other creator self-accesses keep the
+      # 'creator_' prefix (e.g. 'creator_status_get'), and third-party fetches
+      # stay 'secret_get' / 'status_get'.
+      #
       # The anonymous_user? guard matters: Secret#owner? compares objids, and
       # a guest-created secret (owner_id nil) fetched by an anonymous caller
       # (objid nil) would otherwise match nil == nil and misattribute the
@@ -28,7 +33,9 @@ module V2::Logic
       def record_access_telemetry(kind)
         return if secret.nil? || secret.receipt_identifier.to_s.empty?
 
-        kind = "creator_#{kind}" if !anonymous_user? && secret.owner?(cust)
+        if !anonymous_user? && secret.owner?(cust)
+          kind = kind.to_s == 'secret_get' ? 'previewed' : "creator_#{kind}"
+        end
 
         receipt = secret.load_receipt
         receipt&.record_access_event(kind)

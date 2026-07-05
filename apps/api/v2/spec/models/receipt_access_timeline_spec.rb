@@ -92,4 +92,74 @@ RSpec.describe Onetime::Receipt, type: :integration do
       expect(Onetime::Secret.load(secret.identifier).state).to eq('new')
     end
   end
+
+  describe '#record_receipt_view!' do
+    it 'stamps receipt_viewed_at once and never advances lifecycle state' do
+      expect(receipt.receipt_viewed_at.to_i).to eq(0)
+
+      receipt.record_receipt_view!
+
+      reloaded = Onetime::Receipt.load(receipt.identifier)
+      expect(reloaded.receipt_viewed_at.to_i).to be_positive
+      expect(reloaded.state).to eq('new')
+      # It is telemetry, not an access of the secret link.
+      expect(reloaded.access_count).to eq(0)
+    end
+
+    it 'is idempotent: repeated calls do not re-stamp receipt_viewed_at' do
+      receipt.record_receipt_view!
+      first_stamp = Onetime::Receipt.load(receipt.identifier).receipt_viewed_at.to_i
+
+      receipt.record_receipt_view!
+      receipt.record_receipt_view!
+
+      expect(Onetime::Receipt.load(receipt.identifier).receipt_viewed_at.to_i).to eq(first_stamp)
+    end
+
+    it 'does not extend the receipt TTL (a page view is a safe read)' do
+      before_ttl = receipt.current_expiration
+      receipt.record_receipt_view!
+      after_ttl = Onetime::Receipt.load(receipt.identifier).current_expiration
+
+      expect(after_ttl).to be <= before_ttl
+    end
+  end
+
+  # is_previewed is no longer a lifecycle state (#3633); it is derived from the
+  # access timeline so consumers (receipt banner, dashboard status) still see
+  # "the link was previewed" without a state mutation on a safe GET.
+  describe 'is_previewed derived from telemetry' do
+    it 'reports false before any access, while state stays new' do
+      dump = receipt.safe_dump
+      expect(dump[:is_previewed]).to be false
+      expect(dump[:is_viewed]).to be false
+      expect(receipt.state).to eq('new')
+    end
+
+    it 'reports true once the link has been accessed, without advancing state' do
+      receipt.record_access_event('secret_get')
+
+      dump = Onetime::Receipt.load(receipt.identifier).safe_dump
+      expect(dump[:is_previewed]).to be true
+      expect(dump[:is_viewed]).to be true
+      expect(dump[:state]).to eq('new')
+    end
+
+    it 'keeps the previewed/viewed timestamps coherent with is_previewed' do
+      at = Familia.now.to_f - 5
+      receipt.record_access_event('secret_get', at: at)
+
+      dump = Onetime::Receipt.load(receipt.identifier).safe_dump
+      # is_previewed=true must not pair with a null previewed timestamp: the
+      # timestamp falls back to the first access when the state was never set.
+      expect(dump[:previewed]).to eq(at.to_i)
+      expect(dump[:viewed]).to eq(at.to_i)
+    end
+
+    it 'leaves previewed/viewed null when the link has never been accessed' do
+      dump = receipt.safe_dump
+      expect(dump[:previewed]).to be_nil
+      expect(dump[:viewed]).to be_nil
+    end
+  end
 end

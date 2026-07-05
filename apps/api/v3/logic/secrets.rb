@@ -131,7 +131,8 @@ module V3
       #
       # @api Return metadata about a secret without revealing its value.
       #   Includes state, expiration details, and whether a passphrase is
-      #   required. Marks the secret as previewed on first access.
+      #   required. Records the access as telemetry on the receipt (#3633);
+      #   a metadata GET no longer advances the secret's lifecycle state.
       class ShowSecret < V2::Logic::Secrets::ShowSecret
         include Onetime::Logic::GuestRouteGating
 

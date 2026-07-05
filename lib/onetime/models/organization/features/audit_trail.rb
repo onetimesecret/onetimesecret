@@ -46,11 +46,12 @@ module Onetime::Organization::Features
       #
       # @param kind [String, Symbol] what happened. The receipt fan-out
       #   emits: 'created', 'status_get' / 'secret_get' (a third party
-      #   fetched the status/secret link), 'creator_status_get' /
-      #   'creator_secret_get' (the creator fetched their own link),
-      #   'receipt_viewed' (the creator's receipt page was loaded — shown
-      #   as "preview" in the UI), 'revealed', 'burned', 'expired',
-      #   'orphaned'.
+      #   fetched the status/secret link), 'previewed' (the creator opened
+      #   their own secret link — the creator-facing "preview" event),
+      #   'creator_status_get' (the creator checked their own secret's
+      #   status), 'receipt_viewed' (the creator's receipt/metadata page was
+      #   loaded — distinct from opening the secret link itself), 'revealed',
+      #   'burned', 'expired', 'orphaned'.
       # @param at [Numeric] event time as epoch seconds; defaults to now.
       # @param attrs [Hash] additional context (receipt/secret shortids,
       #   actor when known). Keep values short and non-sensitive: never
@@ -60,8 +61,8 @@ module Onetime::Organization::Features
         return if kind.to_s.empty?
 
         event = {
-          'kind'  => kind.to_s,
-          'at'    => at.to_f,
+          'kind' => kind.to_s,
+          'at' => at.to_f,
           'nonce' => SecureRandom.hex(4),
         }.merge(attrs.transform_keys(&:to_s))
 

@@ -118,7 +118,16 @@ module Onetime::Receipt::Features
       #
       # TODO: Replace with transaction (i.e. MULTI/EXEC command)
 
-      # MIGRATION NOTE: Replaces legacy `viewed!` method.
+      # DEPRECATED (#3633): no request path calls this anymore. Loading the
+      # receipt page (a safe GET) must not advance lifecycle state; the receipt
+      # page now records a 'receipt_viewed' audit event directly, and the
+      # creator opening their own secret *link* is recorded as the 'previewed'
+      # access event (see V2::Logic::Secrets::AccessTelemetry). 'previewed' is
+      # no longer a state a new receipt ever reaches. The method and the
+      # read-side state?(:previewed) checks are retained only for backward
+      # compatibility with data written before this change.
+      #
+      # MIGRATION NOTE: Replaced legacy `viewed!` method.
       # - Sets state to 'previewed' (was 'viewed')
       # - Sets `previewed` timestamp (legacy `viewed` kept for backward compat in safe_dump)
       def previewed!

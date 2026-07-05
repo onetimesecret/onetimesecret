@@ -88,4 +88,54 @@ RSpec.describe V2::Logic::Secrets::ShowReceipt, type: :integration do
       expect(details[:first_access]).not_to be_nil
     end
   end
+
+  # Regression (#3633): loading the receipt page is a safe GET. It must not
+  # advance lifecycle state to 'previewed' (the old side effect), and the
+  # page load is recorded as a 'receipt_viewed' audit event -- distinct from
+  # the creator opening the secret *link* ('previewed').
+  context 'when the receipt page is loaded (safe GET)' do
+    it 'does not advance the receipt or secret lifecycle state' do
+      logic = build_logic({ 'identifier' => receipt.identifier })
+      logic.process_params
+      logic.raise_concerns
+      logic.process
+
+      reloaded_receipt = Onetime::Receipt.load(receipt.identifier)
+      expect(reloaded_receipt.state).to eq('new')
+      expect(reloaded_receipt.state?(:previewed)).to be false
+      expect(Onetime::Secret.load(secret.identifier).state).to eq('new')
+    end
+
+    it 'does not inflate the access timeline view_count' do
+      logic = build_logic({ 'identifier' => receipt.identifier })
+      logic.process_params
+      logic.raise_concerns
+      details = logic.process[:details]
+
+      # Viewing the receipt page is audit-trail telemetry only; it must not
+      # count as an access of the secret link.
+      expect(details[:view_count]).to eq(0)
+    end
+
+    it "records a 'receipt_viewed' audit event on the owning org's trail, exactly once across repeated loads" do
+      org = Onetime::Organization.new(
+        display_name: 'Receipt View Test Org',
+        contact_email: "rcpt-view-#{SecureRandom.hex(6)}@example.com",
+      ).tap(&:save)
+      receipt.org_id = org.objid
+      receipt.save_fields(:org_id)
+
+      # Load the receipt page three times: a bookmarked/monitored page must not
+      # flood the org's capped audit trail, so the event is bounded to one.
+      3.times do
+        logic = build_logic({ 'identifier' => receipt.identifier })
+        logic.process_params
+        logic.raise_concerns
+        logic.process
+      end
+
+      kinds = Onetime::Organization.load(org.objid).audit_events_page.map { |e| e['kind'] }
+      expect(kinds).to eq(['receipt_viewed'])
+    end
+  end
 end

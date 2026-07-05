@@ -44,6 +44,13 @@ module Onetime
     field :org_id      # Organization objid (current context when created)
     field :domain_id   # CustomDomain objid (when using registered custom domain)
 
+    # Observability only (#3633): epoch seconds of the FIRST receipt/metadata
+    # page load, set once by record_receipt_view!. It bounds the org audit
+    # trail's 'receipt_viewed' events to one per receipt and is NOT a lifecycle
+    # state — it gates nothing (viewable?/reveal/burn are untouched) and does
+    # not feed is_previewed (which derives from the access timeline).
+    field :receipt_viewed_at
+
     # Familia v2 relationships - enables org.receipts and custom_domain.receipts queries
     # These auto-generate sorted_set collections on the target models
     # NOTE: Uses full class names (Onetime::X) to ensure Familia can resolve the target class

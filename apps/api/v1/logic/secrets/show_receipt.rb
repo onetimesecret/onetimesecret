@@ -158,12 +158,12 @@ module V1::Logic
         OT.ld "[process] Set @share_domain: #{@share_domain}"
         process_uris
 
-        # Dump the receipt attributes before marking as previewed
         @receipt_attributes = self._receipt_attributes
 
-        # We mark the receipt record previewed so that we can support showing the
-        # secret link on the receipt page, just the one time.
-        receipt.previewed! if receipt.state?(:new)
+        # Loading the receipt page is a safe GET (#3633): record a one-time
+        # 'receipt_viewed' audit event but do NOT advance the secret's
+        # lifecycle state. See the v2 ShowReceipt for the full rationale.
+        receipt.record_receipt_view!
       end
 
       def one_liner

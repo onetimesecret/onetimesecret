@@ -97,9 +97,9 @@ module Onetime::Receipt::Features
       # (state transitions, read endpoints).
       #
       # @param kind [String, Symbol] event kind, e.g. 'created',
-      #   'status_get' / 'secret_get', 'creator_status_get' /
-      #   'creator_secret_get', 'receipt_viewed', 'revealed', 'burned',
-      #   'expired', 'orphaned'.
+      #   'status_get' / 'secret_get', 'previewed' (creator opened their own
+      #   secret link), 'creator_status_get', 'receipt_viewed' (creator's
+      #   receipt page loaded), 'revealed', 'burned', 'expired', 'orphaned'.
       # @param at [Numeric] event time as epoch seconds; defaults to now.
       # @param organization [Onetime::Organization, nil] pass when the
       #   caller already holds the org to skip the extra load.
@@ -114,17 +114,57 @@ module Onetime::Receipt::Features
           # Shortids only: full identifiers are capability tokens (the
           # secret identifier IS the link) and must not leak into the trail.
           'receipt' => shortid,
-          'secret'  => secret_shortid.to_s,
+          'secret' => secret_shortid.to_s,
         )
       rescue StandardError => ex
         OT.le "[audit-trail] #{ex.class}: #{ex.message} (kind=#{kind}, receipt=#{shortid})"
         nil
       end
 
+      # Record the receipt/metadata page load as a one-time 'receipt_viewed'
+      # audit event. Idempotent by design: it fires at most once per receipt,
+      # gated on the receipt_viewed_at observability field. This bounds the
+      # org audit trail against a bookmarked or monitored receipt page (whose
+      # loads would otherwise be unbounded and could evict every other
+      # receipt's history from the org-wide cap -- the receipt page is a safe
+      # GET but is not covered by the access timeline's saturation guard,
+      # which only bounds link/status fetches).
+      #
+      # It does NOT advance lifecycle state (#3633): receipt_viewed_at gates
+      # nothing and is not part of is_previewed. The field write skips
+      # update_expiration so a page view never extends the receipt's TTL.
+      #
+      # @return [Hash, nil] the recorded audit event, or nil when already
+      #   recorded or when there is no org context.
+      def record_receipt_view!
+        # Guard exists? so a partial save_fields can never resurrect a
+        # destroyed/expired receipt hash key (mirrors record_access_event).
+        return unless exists?
+        return unless receipt_viewed_at.to_i.zero?
+
+        self.receipt_viewed_at = Familia.now.to_i
+        save_fields(:receipt_viewed_at, update_expiration: false)
+
+        record_org_audit_event('receipt_viewed')
+      end
+
       # @return [Integer] number of retained access events (saturates at
       #   ACCESS_EVENTS_MAX; see cap semantics above).
       def access_count
         access_events.element_count
+      end
+
+      # Telemetry-derived "previewed at" timestamp (#3633): the stored
+      # +previewed+ field when set, else the earliest access-timeline
+      # timestamp (the moment the secret link was first fetched), else nil.
+      # Keeps the previewed/viewed safe_dump fields coherent with
+      # is_previewed now that no request path stamps +previewed+.
+      #
+      # @return [Integer, nil] epoch seconds, or nil when never previewed.
+      def effective_previewed_at
+        ts = previewed.to_i
+        ts = first_access_at.to_i if ts.zero?
+        ts.positive? ? ts : nil
       end
 
       # @return [Float, nil] epoch seconds of the earliest retained access.
