@@ -1,12 +1,13 @@
 <!-- src/apps/workspace/components/dashboard/SecretPreview.vue -->
 
 <script setup lang="ts">
-import OIcon from '@/shared/components/icons/OIcon.vue';
 import BaseSecretDisplay from '@/apps/secret/components/branded/BaseSecretDisplay.vue';
 import { BrandSettings, ImageProps } from '@/schemas/shapes/v3/custom-domain';
+import OIcon from '@/shared/components/icons/OIcon.vue';
 import {
 CornerStyle,
 FontFamily,
+borderRadiusToCss,
 cornerStyleClasses,
 fontFamilyClasses
 } from '@/shared/utils/brand-helpers';
@@ -68,6 +69,20 @@ const fontFamilyClass = computed(() => {
   return fontFamilyClasses[font ?? FontFamily.SANS];
 });
 
+// Expanded vocabulary (#3646). The preview renders an arbitrary domain's
+// settings (not the editing admin's injected palette), so these resolve
+// straight from the domainBranding prop as inline styles.
+const radiusStyle = computed<Record<string, string>>(() => {
+  const css = borderRadiusToCss(props.domainBranding?.border_radius);
+  return css ? { borderRadius: css } : ({} as Record<string, string>);
+});
+
+const actionButtonStyle = computed<Record<string, string>>(() => ({
+  backgroundColor: props.domainBranding.primary_color ?? 'var(--color-brand-500)',
+  color: (props.domainBranding.button_text_light ?? true) ? '#ffffff' : '#000000',
+  ...radiusStyle.value,
+}));
+
 </script>
 
 <template>
@@ -90,7 +105,7 @@ const fontFamilyClass = computed(() => {
             :class="[cornerClass, {
               'animate-wiggle': !isValidLogo
             }]"
-            class="hover:ring-primary-500 flex size-14 items-center justify-center overflow-hidden bg-gray-100 hover:ring-2 hover:ring-offset-2 dark:bg-gray-700 sm:size-16">
+            class="hover:ring-primary-500 flex size-14 items-center justify-center overflow-hidden bg-gray-100 hover:ring-2 hover:ring-offset-2 sm:size-16 dark:bg-gray-700">
             <img
               v-if="isValidLogo"
               :src="logoSrc"
@@ -132,12 +147,12 @@ const fontFamilyClass = computed(() => {
         <!-- Hover/Focus Controls -->
         <div
           v-if="isValidLogo"
-          class="absolute inset-0 flex items-center justify-center rounded-lg bg-black/70 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100"
+          class="absolute inset-0 flex items-center justify-center rounded-lg bg-black/70 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100"
           role="group"
           :aria-label="t('web.branding.logo_controls')">
           <button
             @click.stop="onLogoRemove"
-            class="rounded-md bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700 focus:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+            class="rounded-md bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700 focus:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none">
             <span class="flex items-center gap-1">
               <OIcon
                 collection="mdi"
@@ -157,7 +172,7 @@ const fontFamilyClass = computed(() => {
         :class="[cornerClass]"
         class="w-full resize-none border-0 bg-transparent
             font-mono text-xs text-gray-700
-            focus:ring-0 dark:text-gray-300 sm:text-base"
+            focus:ring-0 sm:text-base dark:text-gray-300"
         rows="3"
         :aria-label="t('web.secrets.sample_secret_content')"
         :value="textareaPlaceholder"></textarea>
@@ -179,10 +194,7 @@ const fontFamilyClass = computed(() => {
       <button
         class="w-full py-3 text-base font-medium transition-colors sm:text-lg"
         :class="[cornerClass, fontFamilyClass]"
-        :style="{
-          backgroundColor: domainBranding.primary_color ?? 'var(--color-brand-500)',
-          color: (domainBranding.button_text_light ?? true) ? '#ffffff' : '#000000',
-        }"
+        :style="actionButtonStyle"
         @click="toggleReveal"
         :aria-expanded="isRevealed"
         aria-controls="secretContent"

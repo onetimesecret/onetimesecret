@@ -1,11 +1,11 @@
 <!-- src/apps/secret/components/branded/SecretConfirmationForm.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
-  import type { Secret, SecretDetails } from '@/schemas/shapes/v3/secret';
   import { brandSettingsSchema } from '@/schemas/shapes/v3/custom-domain';
+  import type { Secret, SecretDetails } from '@/schemas/shapes/v3/secret';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import { ref, computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   import BaseSecretDisplay from './BaseSecretDisplay.vue';
 
@@ -161,7 +161,7 @@
             name="passphrase"
             :class="[
               cornerClass,
-              'w-full border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white',
+              'w-full border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white',
             ]"
             autocomplete="current-password"
             :aria-label="t('web.COMMON.enter_passphrase_here')"
@@ -176,13 +176,10 @@
           :class="[
             cornerClass,
             fontFamilyClass,
-            'w-full py-3 text-base font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:text-lg',
+            productIdentity.buttonTextLight ? 'text-white' : 'text-gray-900',
+            'w-full bg-brand-500 py-3 text-base font-medium transition-colors hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50 sm:text-lg',
           ]"
-          :style="{
-            backgroundColor: productIdentity.primaryColor,
-            color: productIdentity.buttonTextLight ? '#ffffff' : '#222222',
-          }"
-          class="focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+          class="focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none"
           aria-live="polite">
           <span class="sr-only">{{ buttonText }}</span>
           {{ isSubmitting ? t('web.COMMON.submitting') : t('web.COMMON.click_to_continue') }}

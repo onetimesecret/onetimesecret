@@ -3,9 +3,14 @@
 /** eslint-disable tailwindcss/classnames-order */
 
 <script setup lang="ts">
-  import OIcon from '@/shared/components/icons/OIcon.vue';
   import type { BrandSettings } from '@/schemas/shapes/v3/custom-domain';
+  import ColorPicker from '@/shared/components/common/ColorPicker.vue';
+  import CycleButton from '@/shared/components/common/CycleButton.vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
   import {
+    borderRadiusDisplayMap,
+    borderRadiusOptions,
+    brandPresets,
     CornerStyle,
     cornerStyleDisplayMap,
     cornerStyleIconMap,
@@ -14,15 +19,13 @@
     FontFamily,
     fontIconMap,
     fontOptions,
+    type BrandPreset,
     type CornerStyle as CornerStyleType,
     type FontFamily as FontFamilyType,
   } from '@/shared/utils/brand-helpers';
   import { checkBrandContrast } from '@/utils/brand-palette';
   import { computed } from 'vue';
   import { useI18n, Composer } from 'vue-i18n';
-
-  import ColorPicker from '@/shared/components/common/ColorPicker.vue';
-  import CycleButton from '@/shared/components/common/CycleButton.vue';
 
   const { t } = useI18n();
 
@@ -49,6 +52,32 @@
     });
   };
 
+  // Theme presets (#3646): one click applies a designed token combination on
+  // top of the current settings. Identity fields (logo, name, instructions)
+  // are untouched — only the cosmetic token subset is merged.
+  const presets = brandPresets;
+
+  const applyPreset = (preset: BrandPreset) => {
+    emit('update:modelValue', {
+      ...props.modelValue,
+      ...preset.tokens,
+    });
+  };
+
+  // border_radius may be a preset string or a numeric px value; CycleButton
+  // cycles the named presets, so coerce to a string for the control.
+  const borderRadiusValue = computed<string | undefined>(() => {
+    const radius = props.modelValue.border_radius;
+    return radius == null ? undefined : String(radius);
+  });
+
+  const activePresetId = computed(() =>
+    presets.find((p) =>
+      p.tokens.primary_color?.toUpperCase() === props.modelValue.primary_color?.toUpperCase() &&
+      p.tokens.secondary_color?.toUpperCase() === props.modelValue.secondary_color?.toUpperCase()
+    )?.id ?? null
+  );
+
   const isDisabled = computed(() => props.isLoading || !props.hasUnsavedChanges);
 
   const contrastCheck = computed(() => checkBrandContrast(props.modelValue.primary_color ?? ''));
@@ -69,11 +98,11 @@
       <div class="mx-auto w-fit px-2 py-3">
         <form
           @submit.prevent="handleSubmit"
-          class="flex min-w-0 items-center gap-4">
+          class="flex min-w-0 flex-wrap items-center gap-4">
           <!-- Left section - wrap in flex container -->
-          <div class="flex min-w-0 shrink items-center gap-4">
-            <!-- Color Picker -->
-            <div class="flex min-w-0 shrink items-center gap-4">
+          <div class="flex min-w-0 shrink flex-wrap items-center gap-3">
+            <!-- Color Pickers -->
+            <div class="flex min-w-0 shrink flex-wrap items-center gap-3">
               <ColorPicker
                 :model-value="modelValue.primary_color ?? undefined"
                 @update:model-value="(value) => updateBrandSetting('primary_color', value)"
@@ -82,6 +111,30 @@
                 :disable-alpha="false"
                 :label="t('web.branding.brand_color')"
                 id="brand-color" />
+              <ColorPicker
+                :model-value="modelValue.secondary_color ?? undefined"
+                @update:model-value="(value) => updateBrandSetting('secondary_color', value)"
+                name="brand[secondary_color]"
+                variant="sketch"
+                :disable-alpha="false"
+                :label="t('web.branding.secondary_color')"
+                id="brand-secondary-color" />
+              <ColorPicker
+                :model-value="modelValue.background_color ?? undefined"
+                @update:model-value="(value) => updateBrandSetting('background_color', value)"
+                name="brand[background_color]"
+                variant="sketch"
+                :disable-alpha="false"
+                :label="t('web.branding.background_color')"
+                id="brand-background-color" />
+              <ColorPicker
+                :model-value="modelValue.text_color ?? undefined"
+                @update:model-value="(value) => updateBrandSetting('text_color', value)"
+                name="brand[text_color]"
+                variant="sketch"
+                :disable-alpha="false"
+                :label="t('web.branding.text_color')"
+                id="brand-text-color" />
               <!-- WCAG Contrast Warning -->
               <div
                 v-if="showContrastWarning"
@@ -99,7 +152,7 @@
             </div>
 
             <!-- UI Elements -->
-            <div class="flex shrink-0 items-center gap-2">
+            <div class="flex shrink-0 flex-wrap items-center gap-2">
               <CycleButton
                 :model-value="modelValue.corner_style"
                 @update:model-value="(value) => updateBrandSetting('corner_style', value as CornerStyleType)"
@@ -108,6 +161,14 @@
                 :label="t('web.branding.corner_style')"
                 :display-map="cornerStyleDisplayMap"
                 :icon-map="cornerStyleIconMap" />
+              <!-- Border radius (#3646): richer replacement for corner_style -->
+              <CycleButton
+                :model-value="borderRadiusValue"
+                @update:model-value="(value) => updateBrandSetting('border_radius', value)"
+                default-value="md"
+                :options="borderRadiusOptions"
+                :label="t('web.branding.border_radius')"
+                :display-map="borderRadiusDisplayMap" />
               <CycleButton
                 :model-value="modelValue.font_family"
                 @update:model-value="(value) => updateBrandSetting('font_family', value as FontFamilyType)"
@@ -116,6 +177,37 @@
                 :label="t('web.branding.font_family')"
                 :display-map="fontDisplayMap"
                 :icon-map="fontIconMap" />
+              <!-- Heading font (#3646): optional separate font for headings -->
+              <CycleButton
+                :model-value="modelValue.heading_font ?? modelValue.font_family"
+                @update:model-value="(value) => updateBrandSetting('heading_font', value as FontFamilyType)"
+                :default-value="FontFamily.SANS"
+                :options="fontOptions"
+                :label="t('web.branding.heading_font')"
+                :display-map="fontDisplayMap"
+                :icon-map="fontIconMap" />
+            </div>
+
+            <!-- Theme presets (#3646): one-click designed token combinations -->
+            <div
+              class="flex shrink-0 items-center gap-1.5"
+              role="group"
+              :aria-label="t('web.branding.theme_presets')">
+              <button
+                v-for="preset in presets"
+                :key="preset.id"
+                type="button"
+                @click="applyPreset(preset)"
+                :title="preset.name"
+                :aria-label="preset.name"
+                :aria-pressed="activePresetId === preset.id"
+                class="size-6 rounded-full border-2 shadow-sm transition-transform hover:scale-110 focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 focus:outline-none"
+                :class="activePresetId === preset.id
+                  ? 'border-brand-500'
+                  : 'border-white ring-1 ring-gray-200 dark:border-gray-700 dark:ring-gray-600'"
+                :style="{
+                  background: `linear-gradient(135deg, ${preset.tokens.primary_color} 0 50%, ${preset.tokens.secondary_color} 50% 100%)`,
+                }"></button>
             </div>
 
             <!-- Instructions -->
@@ -142,21 +234,21 @@
                 text-white
                 shadow-sm
                 transition-all
-                duration-200 hover:bg-brand-700 focus:outline-none focus:ring-2
-                focus:ring-brand-500 focus:ring-offset-2
+                duration-200 hover:bg-brand-700 focus:ring-2 focus:ring-brand-500
+                focus:ring-offset-2 focus:outline-none
                 disabled:cursor-not-allowed disabled:opacity-50
-                dark:focus:ring-brand-400 dark:focus:ring-offset-0
-                sm:w-auto sm:text-sm">
+                sm:w-auto sm:text-sm
+                dark:focus:ring-brand-400 dark:focus:ring-offset-0">
               <OIcon
                 v-if="isLoading"
                 collection="mdi"
                 name="loading"
-                class="-ml-1 mr-2 size-4 animate-spin motion-reduce:animate-none" />
+                class="mr-2 -ml-1 size-4 animate-spin motion-reduce:animate-none" />
               <OIcon
                 v-else
                 collection="mdi"
                 name="content-save"
-                class="-ml-1 mr-2 size-4" />
+                class="mr-2 -ml-1 size-4" />
               {{ buttonText }}
             </button>
           </div>

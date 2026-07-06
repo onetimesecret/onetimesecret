@@ -16,11 +16,14 @@
 # Validation layering inside UpdateDomainBrand#validate_brand_values:
 #   1. sanitize_text_fields    (truncates, never rejects)
 #   2. validate_color          (per-field: format only — does NOT check WCAG)
-#   3. validate_font           (per-field)
-#   4. validate_corner_style   (per-field)
-#   5. validate_default_ttl    (per-field)
-#   6. validate_urls           (per-field: same valid_url? as model)
-#   7. BrandSettings.validate! (model-level catch-all — owns WCAG contrast)
+#   3. validate_extra_colors   (per-field: secondary/background/text format)
+#   4. validate_font           (per-field)
+#   5. validate_heading_font   (per-field)
+#   6. validate_corner_style   (per-field)
+#   7. validate_border_radius  (per-field: preset or 0-64 px)
+#   8. validate_default_ttl    (per-field)
+#   9. validate_urls           (per-field: same valid_url? as model)
+#  10. BrandSettings.validate! (model-level catch-all — owns WCAG contrast)
 #
 # Coverage focus:
 #   - WCAG contrast rejection is the discriminator: it is ONLY enforced by
@@ -200,7 +203,7 @@ end
     ex.message
   end
 @msg_font
-#=> 'Invalid font family - must be one of: sans, serif, mono'
+#=> 'Invalid font family - must be one of: sans, serif, mono, system, slab, rounded, humanist, geometric'
 
 ## TEST 8: Invalid corner_style — caught by per-field validator
 @logic_bad_corner = build_logic(

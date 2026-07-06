@@ -14,6 +14,7 @@ import { gracefulParse } from '@/utils/schemaValidation';
 import { defineStore, storeToRefs } from 'pinia';
 import { computed, reactive, toRefs, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+
 import { useBootstrapStore } from './bootstrapStore';
 
 export const DEFAULT_CORNER_CLASS = 'rounded-lg';
@@ -279,17 +280,31 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     () => logoUri.value || installLogoUri.value || DEFAULT_LOGO_COMPONENT
   );
 
-  const cornerClass = computed(() =>
-    state.brand?.corner_style
+  // border_radius (#3646) supersedes corner_style when set: it resolves to the
+  // `rounded-brand` utility backed by the runtime-injected `--radius-brand`
+  // variable, lifting the old 3-value corner_style ceiling. corner_style is the
+  // back-compat fallback for domains that predate the numeric radius.
+  const cornerClass = computed(() => {
+    if (state.brand?.border_radius != null && state.brand.border_radius !== '') {
+      return 'rounded-brand';
+    }
+    return state.brand?.corner_style
       ? cornerStyleClasses[state.brand.corner_style] ?? DEFAULT_CORNER_CLASS
-      : DEFAULT_CORNER_CLASS
-  );
+      : DEFAULT_CORNER_CLASS;
+  });
 
   const fontFamilyClass = computed(() =>
     state.brand?.font_family
       ? fontFamilyClasses[state.brand.font_family] ?? ''
       : ''
   );
+
+  // Heading font (#3646): a separate curated font for headings, falling back to
+  // the body font_family when unset.
+  const headingFontClass = computed(() => {
+    const heading = state.brand?.heading_font ?? state.brand?.font_family;
+    return heading ? fontFamilyClasses[heading] ?? '' : '';
+  });
 
   const preRevealInstructions = computed(
     () => state.brand?.instructions_pre_reveal?.trim() || t('web.shared.pre_reveal_default')
@@ -309,6 +324,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     logoUri,
     cornerClass,
     fontFamilyClass,
+    headingFontClass,
     preRevealInstructions,
     postRevealInstructions,
 

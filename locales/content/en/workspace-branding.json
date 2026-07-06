@@ -23,6 +23,24 @@
     "text": "Brand Color",
     "content_hash": "db3183e3"
   },
+  "web.branding.secondary_color": {
+    "text": "Secondary Color"
+  },
+  "web.branding.background_color": {
+    "text": "Background Color"
+  },
+  "web.branding.text_color": {
+    "text": "Text Color"
+  },
+  "web.branding.border_radius": {
+    "text": "Border Radius"
+  },
+  "web.branding.heading_font": {
+    "text": "Heading Font"
+  },
+  "web.branding.theme_presets": {
+    "text": "Theme Presets"
+  },
   "web.branding.preview_of_the_secret_link_page_for_recipients": {
     "text": "Preview of recipient's view when accessing your secure link",
     "content_hash": "199c165f"

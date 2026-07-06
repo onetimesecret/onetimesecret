@@ -137,8 +137,11 @@ module DomainsAPI::Logic
       def validate_brand_values
         sanitize_text_fields
         validate_color
+        validate_extra_colors
         validate_font
+        validate_heading_font
         validate_corner_style
+        validate_border_radius
         validate_default_ttl
         validate_urls
 
@@ -163,6 +166,25 @@ module DomainsAPI::Logic
         @brand_settings['primary_color'] = Onetime::CustomDomain::BrandSettings.normalize_color(color)
       end
 
+      # Expanded color vocabulary (#3646): secondary/background/text colors.
+      # Same hex format + normalization as primary_color. WCAG pairing (incl.
+      # text-on-background) is enforced by BrandSettings.validate! below.
+      EXTRA_COLOR_FIELDS = %w[secondary_color background_color text_color].freeze
+
+      def validate_extra_colors
+        EXTRA_COLOR_FIELDS.each do |field|
+          color = @brand_settings[field]
+          next if color.nil?
+
+          unless Onetime::CustomDomain::BrandSettings.valid_color?(color)
+            OT.ld "[UpdateDomainBrand] Error: Invalid #{field} format '#{color}'"
+            raise_form_error "Invalid #{field.tr('_', ' ')} format - must be hex code (e.g. #FF0000)"
+          end
+
+          @brand_settings[field] = Onetime::CustomDomain::BrandSettings.normalize_color(color)
+        end
+      end
+
       def validate_font
         font = @brand_settings['font_family']
         return if font.nil?
@@ -173,6 +195,16 @@ module DomainsAPI::Logic
         raise_form_error "Invalid font family - must be one of: #{Onetime::CustomDomain::BrandSettings::FONTS.join(', ')}"
       end
 
+      def validate_heading_font
+        font = @brand_settings['heading_font']
+        return if font.nil?
+
+        return if Onetime::CustomDomain::BrandSettings.valid_font?(font)
+
+        OT.ld "[UpdateDomainBrand] Error: Invalid heading font '#{font}'"
+        raise_form_error "Invalid heading font - must be one of: #{Onetime::CustomDomain::BrandSettings::FONTS.join(', ')}"
+      end
+
       def validate_corner_style
         style = @brand_settings['corner_style']
         return if style.nil?
@@ -181,6 +213,24 @@ module DomainsAPI::Logic
 
         OT.ld "[UpdateDomainBrand] Error: Invalid corner style '#{style}'"
         raise_form_error "Invalid corner style - must be one of: #{Onetime::CustomDomain::BrandSettings::CORNERS.join(', ')}"
+      end
+
+      def validate_border_radius
+        radius = @brand_settings['border_radius']
+        return if radius.nil?
+
+        unless Onetime::CustomDomain::BrandSettings.valid_border_radius?(radius)
+          OT.ld "[UpdateDomainBrand] Error: Invalid border radius '#{radius}'"
+          raise_form_error(
+            "Invalid border radius - must be a preset " \
+            "(#{Onetime::CustomDomain::BrandSettings::RADII.join(', ')}) " \
+            "or a whole number of pixels 0-#{Onetime::CustomDomain::BrandSettings::RADIUS_MAX}"
+          )
+        end
+
+        # Normalize named presets to lowercase; leave numeric strings as-is so
+        # the frontend can map either form to the --radius-brand CSS variable.
+        @brand_settings['border_radius'] = radius.to_s.strip.downcase
       end
 
       # Currently disabled (see raise_concerns). When re-enabled, uses

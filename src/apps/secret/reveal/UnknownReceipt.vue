@@ -1,9 +1,9 @@
 <!-- src/apps/secret/reveal/UnknownReceipt.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
   import BaseUnknownSecret from '@/shared/components/base/BaseUnknownSecret.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
@@ -36,14 +36,11 @@ const { t } = useI18n();
             'inline-block rounded-lg border-2 transition duration-300 ease-in-out',
             'bg-white dark:bg-gray-800',
             'hover:bg-brand-100 dark:hover:bg-gray-700',
-            'focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-900',
+            'focus:ring-2 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-900',
             'focus:ring-brand-500 dark:focus:ring-brand-400',
             'px-6 py-3 font-brand text-lg hover:border-brand-600 dark:hover:border-brand-400',
+            'border-brand-500 text-brand-500',
           ]"
-          :style="{
-            color: 'var(--color-brand-500)',
-            borderColor: 'var(--color-brand-500)',
-          }"
           :aria-label="t('web.layout.return_to_home_page')">
           {{ t('web.layout.return_to_home') }}
         </router-link>

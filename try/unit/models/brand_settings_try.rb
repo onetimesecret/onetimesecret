@@ -18,15 +18,15 @@ require 'onetime/models/custom_domain'
 ## (allow_public_homepage and allow_public_api were retired in #3026 — see
 ## HomepageConfig / ApiConfig for the canonical per-domain toggles.)
 @bs.members.sort
-#=> [:button_text_light, :corner_style, :default_ttl, :description, :favicon_url, :font_family, :footer_text, :instructions_post_reveal, :instructions_pre_reveal, :instructions_reveal, :locale, :logo, :logo_dark_url, :logo_url, :notify_enabled, :passphrase_required, :primary_color, :product_domain, :product_name, :support_email]
+#=> [:background_color, :border_radius, :button_text_light, :corner_style, :default_ttl, :description, :favicon_url, :font_family, :footer_text, :heading_font, :instructions_post_reveal, :instructions_pre_reveal, :instructions_reveal, :locale, :logo, :logo_dark_url, :logo_url, :notify_enabled, :passphrase_required, :primary_color, :product_domain, :product_name, :secondary_color, :support_email, :text_color]
 
 ## DEFAULTS constant is accessible and frozen
 [@bs::DEFAULTS.frozen?, @bs::DEFAULTS[:font_family]]
 #=> [true, 'sans']
 
-## FONTS constant contains valid font families
+## FONTS constant contains the expanded curated allowlist (#3646)
 @bs::FONTS
-#=> ['sans', 'serif', 'mono']
+#=> ['sans', 'serif', 'mono', 'system', 'slab', 'rounded', 'humanist', 'geometric']
 
 ## CORNERS constant contains valid corner styles
 @bs::CORNERS

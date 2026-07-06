@@ -8,6 +8,7 @@
 // Architecture: contract -> shape -> API
 
 import { z } from 'zod';
+
 import { customDomainEmailConfigCanonical } from '../email-config';
 
 // Re-export sub-contracts
@@ -15,12 +16,16 @@ export {
   brandSettingsCanonical,
   fontFamilyValues,
   cornerStyleValues,
+  borderRadiusPresets,
+  BORDER_RADIUS_MAX_PX,
+  isValidBorderRadius,
   imagePropsCanonical,
 } from './brand-config';
 export type {
   BrandSettingsCanonical,
   FontFamily,
   CornerStyle,
+  BorderRadiusPreset,
   ImagePropsCanonical,
 } from './brand-config';
 
@@ -31,9 +36,9 @@ export { apiConfigCanonical } from './api-config';
 export type { ApiConfigCanonical } from './api-config';
 
 // Import for use in customDomainCanonical
+import { apiConfigCanonical } from './api-config';
 import { brandSettingsCanonical } from './brand-config';
 import { homepageConfigCanonical } from './homepage-config';
-import { apiConfigCanonical } from './api-config';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Domain status enum

@@ -17,8 +17,13 @@ import {
   FontFamily,
   fontDisplayMap,
   fontFamilyClasses,
+  fontFamilyStacks,
   fontIconMap,
   fontOptions,
+  borderRadiusToCss,
+  borderRadiusOptions,
+  borderRadiusDisplayMap,
+  brandPresets,
 } from '@/shared/utils/brand-helpers';
 import { describe, expect, it } from 'vitest';
 
@@ -255,6 +260,66 @@ describe('brand-helpers', () => {
     it('all icon maps have matching entry counts', () => {
       expect(Object.keys(fontIconMap).length).toBe(fontFamilyValues.length);
       expect(Object.keys(cornerStyleIconMap).length).toBe(cornerStyleValues.length);
+    });
+
+    it('fontFamilyStacks covers every font value', () => {
+      expect(Object.keys(fontFamilyStacks).length).toBe(fontFamilyValues.length);
+      for (const font of fontFamilyValues) {
+        expect(fontFamilyStacks[font]).toBeTruthy();
+      }
+    });
+  });
+
+  describe('borderRadiusToCss', () => {
+    it('maps named presets to CSS lengths', () => {
+      expect(borderRadiusToCss('none')).toBe('0px');
+      expect(borderRadiusToCss('md')).toBe('0.5rem');
+      expect(borderRadiusToCss('full')).toBe('9999px');
+    });
+
+    it('maps numeric px values (number or string)', () => {
+      expect(borderRadiusToCss(12)).toBe('12px');
+      expect(borderRadiusToCss('20')).toBe('20px');
+      expect(borderRadiusToCss(0)).toBe('0px');
+    });
+
+    it('is case-insensitive for presets', () => {
+      expect(borderRadiusToCss('LG')).toBe('0.75rem');
+    });
+
+    it('returns null for unset or invalid input', () => {
+      expect(borderRadiusToCss(null)).toBeNull();
+      expect(borderRadiusToCss(undefined)).toBeNull();
+      expect(borderRadiusToCss('')).toBeNull();
+      expect(borderRadiusToCss('12px')).toBeNull();
+      expect(borderRadiusToCss('huge')).toBeNull();
+      expect(borderRadiusToCss(999)).toBeNull(); // out of range
+    });
+
+    it('borderRadiusOptions and displayMap stay in sync', () => {
+      for (const preset of borderRadiusOptions) {
+        expect(borderRadiusDisplayMap[preset]).toBeTruthy();
+      }
+    });
+  });
+
+  describe('brandPresets', () => {
+    it('exposes a curated set of presets with unique ids', () => {
+      expect(brandPresets.length).toBeGreaterThanOrEqual(5);
+      const ids = brandPresets.map((p) => p.id);
+      expect(new Set(ids).size).toBe(ids.length);
+    });
+
+    it('every preset supplies the full cosmetic token set', () => {
+      for (const preset of brandPresets) {
+        expect(preset.tokens.primary_color).toMatch(/^#[0-9A-F]{6}$/i);
+        expect(preset.tokens.secondary_color).toMatch(/^#[0-9A-F]{6}$/i);
+        expect(preset.tokens.background_color).toMatch(/^#[0-9A-F]{6}$/i);
+        expect(preset.tokens.text_color).toMatch(/^#[0-9A-F]{6}$/i);
+        expect(fontFamilyValues).toContain(preset.tokens.font_family);
+        expect(fontFamilyValues).toContain(preset.tokens.heading_font);
+        expect(borderRadiusOptions).toContain(preset.tokens.border_radius);
+      }
     });
   });
 });

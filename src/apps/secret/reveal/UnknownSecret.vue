@@ -1,13 +1,13 @@
 <!-- src/apps/secret/reveal/UnknownSecret.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+  import UnknownSecretHelpContent from '@/apps/secret/components/UnknownSecretHelpContent.vue';
+  import type { BrandSettings } from '@/schemas/shapes/v3/custom-domain';
   import BaseUnknownSecret from '@/shared/components/base/BaseUnknownSecret.vue';
   import NeedHelpModal from '@/shared/components/modals/NeedHelpModal.vue';
-  import UnknownSecretHelpContent from '@/apps/secret/components/UnknownSecretHelpContent.vue';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-  import type { BrandSettings } from '@/schemas/shapes/v3/custom-domain';
   import { computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
   const bootstrapStore = useBootstrapStore();
@@ -67,7 +67,7 @@
               type="button"
               class="ml-4 text-sm font-medium
                 text-brand-600 hover:text-brand-500
-                focus:underline focus:outline-none focus:ring-2 focus:ring-brand-500
+                focus:underline focus:ring-2 focus:ring-brand-500 focus:outline-none
                 dark:text-brand-400 dark:hover:text-brand-300"
               :aria-label="t('web.COMMON.open_help_dialog')">
               {{ t('web.COMMON.need_help') }}
@@ -88,22 +88,19 @@
 
     <template #action="{}">
       <!-- Canonical action buttons -->
-      <div class="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
+      <div class="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
         <router-link
           to="/"
           :class="[
             'inline-block rounded-lg border-2 transition duration-300 ease-in-out',
             'bg-white dark:bg-gray-800',
             'hover:bg-brand-100 dark:hover:bg-gray-700',
-            'focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-900',
+            'focus:ring-2 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-900',
             'focus:ring-brand-500 dark:focus:ring-brand-400',
             'px-6 py-3 font-brand text-lg hover:border-brand-600 dark:hover:border-brand-400',
+            'border-brand-500 text-brand-500',
             'w-full text-center sm:w-auto'
           ]"
-          :style="{
-            color: 'var(--color-brand-500)',
-            borderColor: 'var(--color-brand-500)',
-          }"
           :aria-label="t('web.layout.return_to_home_page')">
           {{ t('web.layout.return_to_home') }}
         </router-link>
@@ -114,7 +111,7 @@
             'inline-block rounded-lg transition duration-300 ease-in-out',
             'bg-brand-400 dark:bg-brand-600',
             'hover:bg-brand-100 dark:hover:bg-gray-700',
-            'focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-900',
+            'focus:ring-2 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-900',
             'focus:ring-brand-500 dark:focus:ring-brand-400',
             'px-6 py-3 font-brand text-lg hover:border-brand-600 dark:hover:border-brand-400',
             'w-full text-center sm:w-auto'

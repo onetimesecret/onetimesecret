@@ -1,13 +1,13 @@
 <!-- src/apps/secret/components/branded/SecretDisplayCase.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
   import BaseSecretDisplay from '@/apps/secret/components/branded/BaseSecretDisplay.vue';
-  import { useClipboard } from '@/shared/composables/useClipboard';
-  import type { Secret, SecretDetails } from '@/schemas/shapes/v3/secret';
   import { brandSettingsSchema } from '@/schemas/shapes/v3/custom-domain';
+  import type { Secret, SecretDetails } from '@/schemas/shapes/v3/secret';
+  import { useClipboard } from '@/shared/composables/useClipboard';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import { ref, computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   // Default brand settings for when no custom branding is configured
   const defaultBrandSettings = brandSettingsSchema.parse({});
@@ -131,7 +131,7 @@
         <router-link to="/">
           <div
             :class="[cornerClass]"
-            class="flex size-14 items-center justify-center bg-gray-100 dark:bg-gray-700 sm:size-16"
+            class="flex size-14 items-center justify-center bg-gray-100 sm:size-16 dark:bg-gray-700"
             role="img"
             :aria-label="logoAriaLabel">
             <!-- Default lock icon -->
@@ -172,7 +172,7 @@
           </label>
           <textarea
             :id="'secret-content-' + record?.identifier"
-            class="block size-full min-h-32 resize-none border-none bg-transparent font-mono text-base focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-white sm:min-h-36"
+            class="block size-full min-h-32 resize-none border-none bg-transparent font-mono text-base focus:ring-2 focus:ring-brand-500 focus:outline-none sm:min-h-36 dark:text-white"
             readonly
             :rows="details?.display_lines ?? 4"
             :value="record?.secret_value"
@@ -187,12 +187,12 @@
       <button
         @click="copySecretContent"
         :title="isCopiedText"
-        class="inline-flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-medium text-brand-700 shadow-sm transition-colors duration-150 ease-in-out hover:shadow focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:text-brand-100"
-        :class="[fontFamilyClass, cornerClass]"
-        :style="{
-          backgroundColor: productIdentity.primaryColor,
-          color: productIdentity.buttonTextLight ? '#ffffff' : '#000000'
-        }"
+        class="inline-flex items-center justify-center rounded-md bg-brand-500 px-4 py-2.5 text-sm font-medium shadow-sm transition-colors duration-150 ease-in-out hover:bg-brand-600 hover:shadow focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+        :class="[
+          fontFamilyClass,
+          cornerClass,
+          productIdentity.buttonTextLight ? 'text-white' : 'text-gray-900',
+        ]"
         aria-live="polite"
         :aria-label="isCopied ? t('web.COMMON.secret_copied_to_clipboard') : t('web.COMMON.copy_secret_to_clipboard')"
         :aria-pressed="isCopied">
