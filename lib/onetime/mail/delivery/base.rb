@@ -48,6 +48,7 @@ module Onetime
           email  = normalize_email(email)
           result = perform_delivery(email)
           log_delivery(email, delivery_log_status)
+          record_sent_metric
           result
         rescue Onetime::Mail::DeliveryError
           raise # pass-through, no double-wrap
@@ -92,6 +93,30 @@ module Onetime
         end
 
         protected
+
+        # Best-effort global "emails sent" tally, surfaced on the colonel stats
+        # dashboard (issue #3653, debt §7 — the send chokepoint for emails_sent).
+        #
+        # This is the single point every backend's successful send converges on,
+        # so the counter is incremented exactly once per delivered email. Only real
+        # provider sends count: the Disabled backend reports 'skipped' and the
+        # Logger backend reports 'logged' — neither emits an actual email, so they
+        # must not inflate the metric.
+        #
+        # A metrics write must never disrupt mail delivery, so the increment is
+        # guarded (Onetime::Customer may be absent in isolated mailer tests) and
+        # any error is swallowed.
+        def record_sent_metric
+          return unless delivery_log_status == 'sent'
+          return unless defined?(Onetime::Customer)
+
+          Onetime::Customer.emails_sent.increment
+        rescue StandardError => ex
+          if defined?(OT) && OT.respond_to?(:le)
+            OT.le "[mail] emails_sent counter increment failed: #{ex.message}"
+          end
+          nil
+        end
 
         # Override in subclasses for provider-specific validation
         def validate_config!

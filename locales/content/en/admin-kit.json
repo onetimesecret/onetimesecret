@@ -1,0 +1,54 @@
+{
+  "web.admin.kit.dataTable.empty": {
+    "text": "No records found",
+    "content_hash": "6e2ea637"
+  },
+  "web.admin.kit.dataTable.sortBy": {
+    "text": "Sort by {column}",
+    "content_hash": "55fb1bf9"
+  },
+  "web.admin.kit.filterBar.search": {
+    "text": "Search",
+    "content_hash": "49c266ba"
+  },
+  "web.admin.kit.filterBar.searchPlaceholder": {
+    "text": "Search…",
+    "content_hash": "7336265a"
+  },
+  "web.admin.kit.filterBar.clearFilters": {
+    "text": "Clear filters",
+    "content_hash": "7179ea00"
+  },
+  "web.admin.kit.filterBar.all": {
+    "text": "All",
+    "content_hash": "a52ace42"
+  },
+  "web.admin.kit.jsonViewer.expandAll": {
+    "text": "Expand all",
+    "content_hash": "a3e586be"
+  },
+  "web.admin.kit.jsonViewer.collapseAll": {
+    "text": "Collapse all",
+    "content_hash": "25f7b372"
+  },
+  "web.admin.kit.jsonViewer.empty": {
+    "text": "No data",
+    "content_hash": "3b41ba9c"
+  },
+  "web.admin.kit.jsonViewer.copyLabel": {
+    "text": "Copy JSON",
+    "content_hash": "7708c6e2"
+  },
+  "web.admin.kit.confirmDialog.typePrompt": {
+    "text": "To confirm, type {token} below",
+    "content_hash": "282445b6"
+  },
+  "web.admin.kit.confirmDialog.inputLabel": {
+    "text": "Confirmation text",
+    "content_hash": "8edc1113"
+  },
+  "web.admin.kit.confirmDialog.mismatchHint": {
+    "text": "The entered text must match exactly to continue.",
+    "content_hash": "f0cc7389"
+  }
+}
