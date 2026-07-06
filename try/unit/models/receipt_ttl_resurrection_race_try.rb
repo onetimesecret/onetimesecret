@@ -13,7 +13,8 @@
 # hash with NO TTL -- an immortal receipt, re-registered in the instances index.
 #
 # The transitions now gate on an atomic compare-and-set on the persisted `state`
-# field (DeprecatedFields#compare_and_set_state!). It FAILS CLOSED: a missing
+# field (the shared state_cas feature's #compare_and_set_state!). It FAILS
+# CLOSED: a missing
 # key's HGET matches nothing so the claim loses and nothing is recreated; an
 # already-advanced state also loses so a terminal receipt is never reverted. The
 # winner's HSET lands on the live key, preserving its TTL.

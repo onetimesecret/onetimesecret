@@ -20,6 +20,7 @@ module Onetime
     feature :required_fields
     feature :encrypted_fields
     feature :transient_fields
+    feature :state_cas
     feature :secret_state_management
     feature :passphrase_hashing
     feature :deprecated_fields
