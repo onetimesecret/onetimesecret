@@ -187,10 +187,24 @@ RSpec.describe 'IncomingConfig Logic error_key propagation' do
         )
       end
 
+      # This example runs under shared_examples across Get/Delete/Put. The
+      # flag-off path is deliberately non-uniform: Get/Put return normally,
+      # while Delete raises RecordNotFound(incoming_config_not_found) because
+      # the shared before-block stubs find_by_domain_id -> nil. So a bare
+      # `not_to raise_error` (or `not_to raise_error(FormError)`) is wrong here.
+      # Capture the raised key (nil when nothing raised) so the expectation
+      # ALWAYS executes and asserts the one thing that matters: the install
+      # flag never short-circuits into incoming_secrets_disabled.
       it 'does not raise incoming_secrets_disabled (entitlement governs, not the install flag)' do
-        logic.raise_concerns
-      rescue Onetime::FormError, Onetime::RecordNotFound => e
-        expect(e.error_key).not_to eq('api.domains.errors.incoming_secrets_disabled')
+        raised_error_key =
+          begin
+            logic.raise_concerns
+            nil
+          rescue Onetime::FormError, Onetime::RecordNotFound => e
+            e.error_key
+          end
+
+        expect(raised_error_key).not_to eq('api.domains.errors.incoming_secrets_disabled')
       end
     end
 
