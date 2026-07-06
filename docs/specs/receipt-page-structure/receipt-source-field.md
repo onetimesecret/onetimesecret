@@ -76,10 +76,11 @@ end
 
 This collapses the four gates into one authority and makes the fail direction an
 explicit one-line policy: unrecognized non-empty values **fail closed** (link
-withheld); only the empty/`nil` legacy case is shown (see §5). Familia round-trips
-an unset declared field through the stored string `"null"` back to `nil` on read
-(`deserialize_value`), so `source.to_s.empty?` covers absent, `nil`, `""`, and
-stored-`"null"` alike.
+withheld); only the empty/`nil` legacy case is shown (see §5). A legacy receipt's
+`source` reads back as `nil` regardless of storage era — familia ≥ 2.11.2 omits
+nil declared fields (absent → `nil`), and any stale `"null"` written by ≤ 2.11.1
+still decodes to `nil` via `deserialize_value`. So `source.to_s.empty?` covers
+absent, `nil`, `""`, and stored-`"null"` alike.
 
 ---
 
