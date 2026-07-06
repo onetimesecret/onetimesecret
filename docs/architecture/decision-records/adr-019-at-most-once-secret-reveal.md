@@ -82,10 +82,11 @@ lifecycle transition and legitimately advances `state`.
 
 ### Open follow-ups (2026-07-05)
 
-- **Familia claim primitive.** The creator-preview claim is a hand-rolled Lua
-  check-and-set because Familia (v2.11.x) persists declared fields as the
-  serialized nil `"null"`, so `HSETNX` never fires. Replace with the native
-  primitive expected in Familia v2.11.2; the model specs pin the semantics.
+- **Familia claim primitive — resolved.** Familia v2.11.2 stops persisting nil
+  declared fields as the serialized string `"null"` (it does `HDEL` on clear
+  instead), so `HSETNX` is now a reliable check-and-set. `claim_once!` was
+  simplified to a guarded `HSETNX` (`EXISTS` guard against a destroyed/expired
+  hash key, then `HSETNX`); the digit-match workaround is gone.
 - **v1 concealed-value divergence.** The once-only bound holds on all paths, but
   legacy v1 also reveals _concealed_ (user-supplied) values to the creator,
   where v2/v3 reveal only _generated_ ones. Aligning v1 down is a separate
@@ -105,7 +106,7 @@ plaintext-revealing path must route through one of them:
   one-way `claim_once!` Lua CAS on `secret_value_shown_at`. The same file's
   `record_receipt_view!` is the state-neutral telemetry counterpart from #3633.
 - **Issue #3633** — the receipt state/telemetry split whose GET-safety fix this
-  ADR completes. Commits `f4de11ec3` (stop GET mutating state) and `eea1b86e6`
+  ADR completes. Commits `b720a2392` (stop GET mutating state) and `f3d2c5b05`
   (show a generated value exactly once).
 - **ADR-008** — Secret Management Architecture, for the cryptographic key
   lifecycle these reveals operate within.

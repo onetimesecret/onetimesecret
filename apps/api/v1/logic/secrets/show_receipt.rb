@@ -94,17 +94,29 @@ module V1::Logic
             # page ONE TIME. Particularly for generated passwords which are not
             # shown any other time.
             #
-            # claim_secret_value_display! is the "one time" guarantee, shared
-            # with the v2 receipt path via the receipt's secret_value_shown_at
-            # field: it atomically claims the display so a repeated or
-            # concurrent load never re-reveals the value. #3633 retired the
-            # previewed! state mutation that used to bound this, so this GET
-            # must not lean on a state change; the claim is the sole once-only
-            # gate here (v1 has no display-window bound).
-            if @can_decrypt && receipt.claim_secret_value_display!
-              @secret_value = secret.decrypted_secret_value
-              @is_truncated = secret.truncated?
+            # Aligned with V2/V3: only generated values are revealed here, and
+            # only on the first (state :new) view within the configured display
+            # window. Concealed (user-supplied) plaintext is never echoed back
+            # on the receipt — the creator already has it, and reading it back
+            # later would sidestep the at-most-once rule.
+            #
+            # claim_secret_value_display! is the "one time" guarantee: it
+            # atomically claims the display so a repeated or concurrent load
+            # never re-reveals the value (#3633 retired the previewed! state
+            # mutation that used to bound this, so this GET must not lean on a
+            # state change). display_ttl now only bounds *when* the single
+            # reveal may happen. Claim last, so the window/kind checks
+            # short-circuit before we consume the one-shot claim.
+            if @can_decrypt && receipt.state?(:new)
+              receipt_age  = Familia.now.to_i - receipt.created.to_i
+              is_generated = receipt.kind.to_s == 'generate'
+              display_ttl  = OT.conf.dig('site', 'secret_options', 'generated_value_display_ttl').to_i
+              if is_generated && display_ttl.positive? && receipt_age < display_ttl && receipt.claim_secret_value_display!
+                OT.ld "[show_receipt] m:#{receipt_shortid} Decrypting generated secret for creator viewing (age: #{receipt_age}s)"
+                @secret_value = secret.decrypted_secret_value
+              end
             end
+            @is_truncated = secret.truncated?
           end
         end
 
