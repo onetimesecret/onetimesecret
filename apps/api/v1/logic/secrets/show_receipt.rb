@@ -93,7 +93,21 @@ module V1::Logic
             # a secret we can show the received contents on the "/receipt/receipt_key"
             # page one time. Particularly for generated passwords which are not
             # shown any other time.
-            @secret_value = secret.decrypted_secret_value if @can_decrypt
+            #
+            # Aligned with V2/V3: only generated values are revealed here, and
+            # only on the first (state :new) view within the configured display
+            # window. Concealed (user-supplied) plaintext is never echoed back
+            # on the receipt — the creator already has it, and reading it back
+            # later would sidestep the at-most-once rule.
+            if @can_decrypt && receipt.state?(:new)
+              receipt_age  = Familia.now.to_i - receipt.created.to_i
+              is_generated = receipt.kind.to_s == 'generate'
+              display_ttl  = OT.conf.dig('site', 'secret_options', 'generated_value_display_ttl').to_i
+              if is_generated && display_ttl.positive? && receipt_age < display_ttl
+                OT.ld "[show_receipt] m:#{receipt_shortid} Decrypting generated secret for creator viewing (age: #{receipt_age}s)"
+                @secret_value = secret.decrypted_secret_value
+              end
+            end
             @is_truncated = secret.truncated?
           end
         end
