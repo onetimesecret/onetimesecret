@@ -27,6 +27,11 @@ config = OT.conf.dig('features', 'incoming')
 config['memo_max_length']
 #=> 50
 
+## Default secret max length is 10000
+config = OT.conf.dig('features', 'incoming')
+config['secret_max_length']
+#=> 10_000
+
 ## Default TTL is 7 days (604800 seconds)
 config = OT.conf.dig('features', 'incoming')
 config['default_ttl']

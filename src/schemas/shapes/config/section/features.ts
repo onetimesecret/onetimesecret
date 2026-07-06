@@ -32,6 +32,7 @@ export {
 const featuresIncomingShape = augment(featuresIncomingSchema, {
   enabled: (b) => b.default(false),
   memo_max_length: (n) => n.int().positive().default(50),
+  secret_max_length: (n) => n.int().positive().default(10000),
   default_ttl: (n) => n.int().positive().default(604800),
 });
 
@@ -72,6 +73,7 @@ const featuresShape = augment(featuresSchema, {
   incoming: {
     enabled: (b) => b.default(false),
     memo_max_length: (n) => n.int().positive().default(50),
+    secret_max_length: (n) => n.int().positive().default(10000),
     default_ttl: (n) => n.int().positive().default(604800),
   },
   domains: {

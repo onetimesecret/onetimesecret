@@ -469,6 +469,8 @@ features:
     enabled: <%= ENV['INCOMING_ENABLED'] == 'true' || false %>
     # Maximum character length for the memo/subject field
     memo_max_length: <%= ENV['INCOMING_MEMO_MAX_LENGTH'] || 50 %>
+    # Maximum character length for the secret content field (client-side hint)
+    secret_max_length: <%= ENV['INCOMING_SECRET_MAX_LENGTH'] || 10000 %>
     # Default TTL for incoming secrets in seconds (7 days = 604800)
     default_ttl: <%= ENV['INCOMING_DEFAULT_TTL'] || 604800 %>
     # Optional default passphrase for all incoming secrets (nil = no passphrase)

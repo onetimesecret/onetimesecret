@@ -112,6 +112,7 @@ module Onetime
           'incoming' => {
             'enabled' => false,
             'memo_max_length' => 50,
+            'secret_max_length' => 10_000,
             'default_ttl' => 604_800, # 7 days
             'default_passphrase' => nil,
             'recipients' => [],

@@ -23,6 +23,7 @@ const incomingRecipientSchema = z.tuple([z.string(), z.string().optional()]).nul
 const featuresIncomingSchema = z.object({
   enabled: z.boolean().optional(),
   memo_max_length: z.number().optional(),
+  secret_max_length: z.number().optional(),
   default_ttl: z.number().optional(),
   default_passphrase: z.string().nullable().optional(),
   recipients: z.array(incomingRecipientSchema).optional(),

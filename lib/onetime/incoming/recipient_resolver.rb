@@ -162,6 +162,7 @@ module Onetime
           {
             enabled: enabled?,
             memo_max_length: config&.memo_max_length || defaults[:memo_max_length],
+            secret_max_length: config&.secret_max_length || defaults[:secret_max_length],
             default_ttl: config&.default_ttl || defaults[:default_ttl],
             recipients: public_recipients,
           }
@@ -170,6 +171,7 @@ module Onetime
           {
             enabled: enabled?,
             memo_max_length: incoming_config['memo_max_length'] || defaults[:memo_max_length],
+            secret_max_length: incoming_config['secret_max_length'] || defaults[:secret_max_length],
             default_ttl: incoming_config['default_ttl'] || defaults[:default_ttl],
             recipients: public_recipients,
           }

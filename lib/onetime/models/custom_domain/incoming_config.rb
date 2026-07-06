@@ -38,6 +38,7 @@ module Onetime
       # (`features.incoming.*`). Consumed by RecipientResolver#config_data.
       DEFAULTS = {
         memo_max_length: 50,
+        secret_max_length: 10_000,
         default_ttl: 604_800,
       }.freeze
 
@@ -147,6 +148,14 @@ module Onetime
       # currently a feature; the DEFAULTS constant is the source of truth.
       def memo_max_length
         DEFAULTS[:memo_max_length]
+      end
+
+      # Default secret-content max length for this domain. Per-domain
+      # overrides are not currently a feature; the DEFAULTS constant is the
+      # source of truth. Consumed by the frontend as a client-side input
+      # hint only — the backend does not enforce this limit.
+      def secret_max_length
+        DEFAULTS[:secret_max_length]
       end
 
       # Default secret TTL for this domain.

@@ -295,6 +295,7 @@ export const apiFeaturesSchema = z.object({
     .object({
       enabled: booleanOrString,
       memo_max_length: numberOrString,
+      secret_max_length: numberOrString,
       default_ttl: numberOrString,
     })
     .nullable()

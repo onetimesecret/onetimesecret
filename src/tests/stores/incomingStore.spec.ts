@@ -22,6 +22,7 @@ describe('incomingStore', () => {
   const mockConfig = {
     enabled: true,
     memo_max_length: 100,
+    secret_max_length: 10000,
     recipients: [
       { digest: 'abc123hash', display_name: 'Alice' },
       { digest: 'def456hash', display_name: 'Bob' },
@@ -127,6 +128,10 @@ describe('incomingStore', () => {
 
     it('returns default memoMaxLength of 50', () => {
       expect(store.memoMaxLength).toBe(50);
+    });
+
+    it('returns default secretMaxLength of 10000', () => {
+      expect(store.secretMaxLength).toBe(10000);
     });
 
     it('returns empty recipients array', () => {
@@ -734,6 +739,17 @@ describe('incomingStore', () => {
       await store.loadConfig();
 
       expect(store.memoMaxLength).toBe(200);
+    });
+
+    it('secretMaxLength reflects config.secret_max_length', async () => {
+      expect(store.secretMaxLength).toBe(10000); // default
+
+      axiosMock.onGet('/api/incoming/config').reply(200, {
+        config: { ...mockConfig, secret_max_length: 25000 },
+      });
+      await store.loadConfig();
+
+      expect(store.secretMaxLength).toBe(25000);
     });
 
     it('recipients reflects config.recipients', async () => {
