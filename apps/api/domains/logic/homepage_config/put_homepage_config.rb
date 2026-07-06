@@ -138,18 +138,11 @@ module DomainsAPI
 
           return unless @secrets_mode == 'incoming'
 
-          # Mirror authorize_domain_incoming! (incoming_config/base.rb): the
-          # instance-level feature flag gates every incoming write path, so a
-          # flag-off instance cannot point homepages at the incoming form.
-          unless OT.conf.dig('features', 'incoming', 'enabled')
-            raise_form_error(
-              'Incoming secrets is not enabled on this instance',
-              error_key: 'api.domains.errors.incoming_secrets_disabled',
-              field: :secrets_mode,
-              error_type: :forbidden,
-            )
-          end
-
+          # Custom-domain incoming is governed by the org's incoming_secrets
+          # entitlement, NOT the install-wide features.incoming.enabled flag
+          # (which gates the canonical domain only). Mirrors
+          # authorize_domain_incoming! (incoming_config/base.rb) and the
+          # canonical/custom split in RecipientResolver.
           unless @organization.can?('incoming_secrets')
             raise_form_error(
               'Incoming secrets mode requires the incoming_secrets entitlement. Please upgrade your plan.',

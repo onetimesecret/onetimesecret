@@ -173,7 +173,11 @@ RSpec.describe 'IncomingConfig Logic error_key propagation' do
       end
     end
 
-    context 'when the incoming feature flag is disabled' do
+    context 'when the install-wide incoming feature flag is disabled' do
+      # The features.incoming.enabled flag gates the canonical domain only.
+      # Custom-domain incoming is authorized by the org's incoming_secrets
+      # entitlement, so a flag-off install must NOT block an entitled domain
+      # (same canonical/custom split as RecipientResolver).
       let(:logic) { described_class.new(strategy_result, params) }
 
       before do
@@ -183,11 +187,10 @@ RSpec.describe 'IncomingConfig Logic error_key propagation' do
         )
       end
 
-      it 'raises FormError tagged with incoming_secrets_disabled' do
-        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
-          expect(error.error_key).to eq('api.domains.errors.incoming_secrets_disabled')
-          expect(error.error_type).to eq(:forbidden)
-        end
+      it 'does not raise incoming_secrets_disabled (entitlement governs, not the install flag)' do
+        logic.raise_concerns
+      rescue Onetime::FormError, Onetime::RecordNotFound => e
+        expect(e.error_key).not_to eq('api.domains.errors.incoming_secrets_disabled')
       end
     end
 
