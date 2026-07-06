@@ -150,6 +150,21 @@ export const borderRadiusDisplayMap: Record<BorderRadiusPreset, string> = {
 };
 
 /**
+ * Icon class names for border-radius presets. Reuses the tabler corner icons
+ * (square → rounded → pill) so the CycleButton shows a meaningful glyph per
+ * step — without an icon-map the control renders a generic question mark, since
+ * CycleButton's only visible content is the icon.
+ */
+export const borderRadiusIconMap: Record<BorderRadiusPreset, string> = {
+  none: 'tabler-border-corner-square',
+  sm: 'tabler-border-corner-rounded',
+  md: 'tabler-border-corner-rounded',
+  lg: 'tabler-border-corner-rounded',
+  xl: 'tabler-border-corner-pill',
+  full: 'tabler-border-corner-pill',
+};
+
+/**
  * Resolves a `border_radius` value (preset keyword or px number/string) to a
  * CSS length for the `--radius-brand` variable. Returns null for unset or
  * invalid input so callers can fall back to the compiled `@theme` default.

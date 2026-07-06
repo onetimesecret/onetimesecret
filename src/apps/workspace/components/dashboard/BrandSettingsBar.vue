@@ -9,6 +9,7 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import {
     borderRadiusDisplayMap,
+    borderRadiusIconMap,
     borderRadiusOptions,
     brandPresets,
     CornerStyle,
@@ -168,7 +169,8 @@
                 default-value="md"
                 :options="borderRadiusOptions"
                 :label="t('web.branding.border_radius')"
-                :display-map="borderRadiusDisplayMap" />
+                :display-map="borderRadiusDisplayMap"
+                :icon-map="borderRadiusIconMap" />
               <CycleButton
                 :model-value="modelValue.font_family"
                 @update:model-value="(value) => updateBrandSetting('font_family', value as FontFamilyType)"

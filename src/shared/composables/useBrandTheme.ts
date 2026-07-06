@@ -10,7 +10,7 @@ import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useProductIdentity } from '@/shared/stores/identityStore';
 import { borderRadiusToCss } from '@/shared/utils/brand-helpers';
-import { generateBrandPalette, generateNamedScale } from '@/utils/brand-palette';
+import { generateBrandPalette, generateNamedScale, isValidHex } from '@/utils/brand-palette';
 import { storeToRefs } from 'pinia';
 import { computed, watch, onScopeDispose } from 'vue';
 
@@ -119,9 +119,14 @@ function applyExtendedTokens(brand: {
 } | null | undefined): void {
   const el = document.documentElement;
 
-  // Secondary color scale.
+  // Secondary color scale. NOT neutral-gated: unlike the primary palette (whose
+  // @theme default *is* the neutral blue, so an equal override is redundant),
+  // the brand2 @theme default is an unrelated slate. Gating against the primary
+  // neutral would drop a legitimately-configured secondary that happens to equal
+  // #3B82F6 and render slate instead. Inject whenever it's a valid hex; clear
+  // otherwise so the slate default applies.
   const secondary = brand?.secondary_color;
-  if (secondary && !isNeutralColor(secondary)) {
+  if (secondary && isValidHex(secondary)) {
     const scale = generateNamedScale(secondary, SECONDARY_PREFIX);
     for (const [key, value] of Object.entries(scale)) {
       el.style.setProperty(key, value);

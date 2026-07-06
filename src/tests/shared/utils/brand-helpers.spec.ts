@@ -23,6 +23,7 @@ import {
   borderRadiusToCss,
   borderRadiusOptions,
   borderRadiusDisplayMap,
+  borderRadiusIconMap,
   brandPresets,
 } from '@/shared/utils/brand-helpers';
 import { describe, expect, it } from 'vitest';
@@ -296,9 +297,12 @@ describe('brand-helpers', () => {
       expect(borderRadiusToCss(999)).toBeNull(); // out of range
     });
 
-    it('borderRadiusOptions and displayMap stay in sync', () => {
+    it('borderRadiusOptions, displayMap and iconMap stay in sync', () => {
+      // iconMap is required: CycleButton's only visible content is the icon, so
+      // a missing entry renders a generic question mark (review finding #3646).
       for (const preset of borderRadiusOptions) {
         expect(borderRadiusDisplayMap[preset]).toBeTruthy();
+        expect(borderRadiusIconMap[preset]).toBeTruthy();
       }
     });
   });
