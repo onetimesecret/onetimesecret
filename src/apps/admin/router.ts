@@ -5,7 +5,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 
 import NotFound from '@/shared/components/errors/ErrorNotFound.vue';
 
-import adminRoutes from './routes';
+import adminRoutes, { adminDefaultMeta } from './routes';
 
 /**
  * Router for the isolated admin (Colonel) console bundle (`src/admin.ts`).
@@ -19,15 +19,19 @@ export function createAdminRouter(): Router {
   const routes: RouteRecordRaw[] = [
     ...adminRoutes,
     // Catch-all: the admin shell is served for /colonel and /colonel/*, so an
-    // unknown sub-path renders the shared not-found view rather than a blank
-    // page. requiresAuth is kept true — the whole console is behind role=colonel.
+    // unknown sub-path renders the shared not-found view INSIDE the console
+    // shell (spreads adminDefaultMeta → AdminLayout, not the customer layout).
+    // Named 'NotFound' so the auth guard's not-found bypass exempts it
+    // (guards.routes.ts): the admin router defines no /signin route, so a
+    // requiresAuth catch-all would otherwise trap auth-recovery redirects in a
+    // loop. The console itself stays behind the backend role=colonel gate.
     {
       path: '/:pathMatch(.*)*',
-      name: 'AdminNotFound',
+      name: 'NotFound',
       component: NotFound,
       meta: {
+        ...adminDefaultMeta,
         title: 'web.TITLES.not_found',
-        requiresAuth: true,
       },
     },
   ];

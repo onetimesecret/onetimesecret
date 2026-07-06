@@ -1,6 +1,6 @@
 // src/tests/apps/admin/routes.spec.ts
 
-import adminRoutes from '@/apps/admin/routes';
+import adminRoutes, { adminDefaultMeta } from '@/apps/admin/routes';
 import { createAdminRouter } from '@/apps/admin/router';
 import { CONSOLE_SECTIONS } from '@/apps/admin/console-sections';
 import { createPinia, setActivePinia } from 'pinia';
@@ -62,7 +62,10 @@ describe('Admin Routes Configuration', () => {
       const router = createAdminRouter();
       const names = router.getRoutes().map((r) => r.name);
       expect(names).toContain('AdminOverview');
-      expect(names).toContain('AdminNotFound');
+      // Named 'NotFound' so the shared auth guard's not-found bypass exempts it
+      // (the admin router has no /signin route, so a requiresAuth catch-all
+      // would trap auth-recovery redirects in a loop).
+      expect(names).toContain('NotFound');
     });
 
     it('navigates to the overview at /colonel', async () => {
@@ -74,7 +77,17 @@ describe('Admin Routes Configuration', () => {
     it('falls back to the not-found route for unknown admin sub-paths', async () => {
       const router = createAdminRouter();
       await router.push('/colonel/does-not-exist-yet');
-      expect(router.currentRoute.value.name).toBe('AdminNotFound');
+      expect(router.currentRoute.value.name).toBe('NotFound');
+    });
+
+    it('renders the not-found fallback inside the console shell (AdminLayout)', async () => {
+      // The router-injected catch-all is NOT in the adminRoutes array, so the
+      // "every route uses AdminLayout" check above cannot cover it. Assert here
+      // that an in-console 404 keeps the admin layout rather than escaping to
+      // the customer MinimalLayout.
+      const router = createAdminRouter();
+      await router.push('/colonel/does-not-exist-yet');
+      expect(router.currentRoute.value.meta.layout).toBe(adminDefaultMeta.layout);
     });
   });
 
