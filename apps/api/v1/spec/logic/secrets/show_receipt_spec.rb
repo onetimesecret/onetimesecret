@@ -115,8 +115,10 @@ RSpec.describe V1::Logic::Secrets::ShowReceipt do
         expect(subject.secret_value).to eq('v2 secret content')
       end
 
-      it 'does not reveal the value once the receipt has been previewed' do
-        receipt.previewed!
+      it 'does not reveal the value once the one-time display has been claimed' do
+        # #3633 retired the previewed! state; the once-only reveal is now the
+        # atomic claim. Consuming it here simulates a prior reveal.
+        expect(receipt.claim_secret_value_display!).to be true
 
         subject.process
 

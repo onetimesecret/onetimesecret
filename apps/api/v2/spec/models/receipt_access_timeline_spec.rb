@@ -45,6 +45,12 @@ RSpec.describe Onetime::Receipt, type: :integration do
       expect(member).to start_with('status_get:')
     end
 
+    it 'accepts a symbol kind and records it the same as a string' do
+      member = receipt.record_access_event(:status_get)
+      expect(member).to start_with('status_get:')
+      expect(receipt.access_count).to eq(1)
+    end
+
     it 'records nothing for a blank kind' do
       expect(receipt.record_access_event('')).to be_nil
       expect(receipt.record_access_event(nil)).to be_nil
@@ -128,6 +134,11 @@ RSpec.describe Onetime::Receipt, type: :integration do
   # The atomic claim primitive underpins both the one-time receipt_viewed audit
   # event and the one-time generated-value reveal. HSETNX gives exactly-once
   # semantics under concurrency without a read-modify-write race (#3633).
+  # The win/lose decision is made atomically inside CLAIM_ONCE_SCRIPT (EXISTS +
+  # HSETNX in one Lua eval), so simultaneous first-loads can never both succeed.
+  # These specs pin the observable sequential contract; the concurrent-safety
+  # guarantee rests on Redis single-threaded eval, not on thread interleaving,
+  # so it is deliberately not exercised with threads here.
   describe '#claim_once!' do
     it 'returns true for the first caller and false thereafter' do
       expect(receipt.claim_once!(:secret_value_shown_at)).to be true
@@ -169,6 +180,27 @@ RSpec.describe Onetime::Receipt, type: :integration do
       expect(receipt.claim_secret_value_display!).to be false
       # It is a consumption gate, not a lifecycle state.
       expect(Onetime::Receipt.load(receipt.identifier).state).to eq('new')
+    end
+  end
+
+  describe '#effective_previewed_at' do
+    it 'prefers a stored previewed timestamp over the first access event' do
+      stored = Familia.now.to_i - 100
+      receipt.previewed = stored
+      receipt.record_access_event('secret_get', at: Familia.now.to_f)
+
+      expect(receipt.effective_previewed_at).to eq(stored)
+    end
+
+    it 'falls back to the first access when no previewed timestamp is stored' do
+      at = Familia.now.to_f - 5
+      receipt.record_access_event('secret_get', at: at)
+
+      expect(receipt.effective_previewed_at).to eq(at.to_i)
+    end
+
+    it 'is nil when the link was never previewed and never accessed' do
+      expect(receipt.effective_previewed_at).to be_nil
     end
   end
 

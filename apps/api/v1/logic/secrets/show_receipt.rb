@@ -54,7 +54,7 @@ module V1::Logic
         @expiration = receipt.secret_expiration
         @expiration_in_seconds = receipt.secret_ttl
 
-        secret = receipt.load_secret
+        secret = @secret
 
         if secret.nil?
 

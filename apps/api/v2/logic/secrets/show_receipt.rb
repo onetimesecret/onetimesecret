@@ -156,7 +156,7 @@ module V2::Logic
             # reveal may happen — a first visit after the window shows nothing —
             # rather than how many times. Claim last, so the window/kind checks
             # short-circuit before we consume the one-shot claim.
-            if secret && receipt.state?(:new)
+            if receipt.state?(:new)
               receipt_age   = Familia.now.to_i - receipt.created.to_i
               is_generated  = receipt.kind.to_s == 'generate'
               display_ttl   = OT.conf.dig('site', 'secret_options', 'generated_value_display_ttl').to_i
@@ -176,7 +176,10 @@ module V2::Logic
         #   2. The receipt state is NOT in any of these states: previewed/viewed,
         #      revealed/received, or burned
         #
-        # Note: Check both new states (previewed, revealed) and legacy states (viewed, received)
+        # Note: Check both new states (revealed) and legacy states (received).
+        # previewed/viewed are backward-compat guards for pre-#3633 data only —
+        # no GET path advances a receipt to those states anymore (the previewed!
+        # mutation was retired), so live receipts never reach them via this page.
         secret_consumed = receipt.state?(:previewed) || receipt.state?(:viewed) ||
                           receipt.state?(:revealed) || receipt.state?(:received) ||
                           receipt.state?(:burned) || receipt.state?(:orphaned)

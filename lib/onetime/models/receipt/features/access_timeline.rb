@@ -137,6 +137,12 @@ module Onetime::Receipt::Features
         return redis.call('HSETNX', KEYS[1], ARGV[1], ARGV[2])
       LUA
 
+      # The only fields claim_once! may stamp. claim_once! writes via
+      # send("#{field}="), so restrict it to these two declared observability
+      # fields — never let a caller-supplied name HSETNX an unknown key
+      # (orphaned data) or raise NoMethodError on a missing writer.
+      PERMITTED_CLAIM_FIELDS = [:receipt_viewed_at, :secret_value_shown_at].freeze
+
       # Atomically claim a one-time observability/consumption timestamp field,
       # stamping it with the current epoch seconds. Returns true for the single
       # caller that wins and false for every later OR concurrent caller -- the
@@ -149,8 +155,10 @@ module Onetime::Receipt::Features
       # @return [Boolean] true if this call claimed the field, false if it was
       #   already claimed (or the receipt no longer exists).
       def claim_once!(field)
+        raise ArgumentError, "unclaimable field: #{field}" unless PERMITTED_CLAIM_FIELDS.include?(field.to_sym)
+
         ts  = Familia.now.to_i
-        won = dbclient.eval(CLAIM_ONCE_SCRIPT, keys: [dbkey], argv: [field.to_s, ts.to_s]) == 1
+        won = dbclient.eval(CLAIM_ONCE_SCRIPT, keys: [dbkey], argv: [field.to_s, ts.to_s]).to_i == 1
         send("#{field}=", ts) if won
         won
       end
