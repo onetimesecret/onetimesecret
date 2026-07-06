@@ -1,0 +1,166 @@
+<schema src="bootstrap.ts" lang="js-zod" version="2" window="__BOOTSTRAP_ME__">
+<!-- External schema reference (Rhales 0.6.0+)
+     Source: src/schemas/contracts/bootstrap.ts
+
+     Admin console shell. Structurally identical to index.rue — the same
+     bootstrap window state (AdminPoint reuses VuePoint's serializers) — but the
+     Vite assets resolve the `admin.ts` entry instead of `main.ts`, via
+     AdminPoint#vite_entry. Served at /colonel only when experimental.admin_v2
+     is on (see Core::Controllers::Page#colonel). -->
+</schema>
+
+
+<template layout="">
+<!doctype html>
+<html lang="{{locale}}" class="light">
+  <head>
+    <script nonce="{{app.nonce}}">
+      (() => {
+        var { matches: isRestMode } = window.matchMedia('(prefers-color-scheme: dark)');
+        var hasHumanOverride = (typeof localStorage !== 'undefined' && localStorage.getItem('restMode') !== null);
+        var humanElement = document.documentElement;
+        var nightVision = 'rgb(17 24 39)';
+        var dayVision = '#ffffff';
+
+        var visualSettings = {
+          true: {
+            bgColor: nightVision,
+            textColor: dayVision,
+            removeClass: 'light',
+            addClass: 'dark'
+          },
+          false: {
+            bgColor: dayVision,
+            textColor: nightVision,
+            removeClass: 'dark',
+            addClass: 'light'
+          }
+        };
+
+        // When the user has toggled dark mode in the app, honour that
+        // stored preference immediately (before Vue mounts) to avoid a
+        // flash of the wrong theme. Fall back to OS preference otherwise.
+        var effectiveMode = hasHumanOverride
+          ? localStorage.getItem('restMode') === 'true'
+          : isRestMode;
+        var config = visualSettings[effectiveMode];
+        window.enjoyTheVue = false; // Vue will reconcile on mount
+
+        // Function to adjust the visual environment
+        function adjustVisualEnvironment() {
+          humanElement.style.setProperty('--bg-color', config.bgColor);
+          humanElement.style.setProperty('--text-color', config.textColor);
+          humanElement.classList.remove(config.removeClass);
+          humanElement.classList.add(config.addClass);
+        }
+
+        // Initial adjustment
+        adjustVisualEnvironment();
+
+        // Re-adjust on system color scheme change (only when no stored override)
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+          if (hasHumanOverride) return;
+          isRestMode = e.matches;
+          config = visualSettings[isRestMode];
+          adjustVisualEnvironment();
+        });
+      })();
+    </script>
+    {{> partials/head}}
+  </head>
+  <body class="font-serif bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <div id="app">
+      <!-- Fallback: Vue replaces this on mount. If Vue fails to load, this remains visible.
+           The two loader pieces can be shown or hidden independently by flipping the
+           data attributes on .app-fallback below. They can appear together, one or
+           the other, or neither:
+             data-show-orb="true|false"   tri-color spinning orb
+             data-show-text="true|false"  "Loading..." text with blinking dots -->
+      <div class="app-fallback" data-show-orb="true" data-show-text="false">
+        <div class="app-fallback-inner">
+          <div class="loader-orb" aria-hidden="true"></div>
+          <div class="loader-text" role="status">Loading<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></div>
+          <noscript>
+            <p>JavaScript is required to use this application.</p>
+          </noscript>
+        </div>
+      </div>
+    </div>
+    <style>
+      /* Fallback styles - must be inline since CSS bundle may not load.
+         Tailwind v4 puts utilities in @layer, so un-layered styles here
+         win the cascade.
+
+         Body background controlled solely by .dark class on <html>.
+         The inline script in <head> already converts prefers-color-scheme
+         to the appropriate class, so no media query fallback is needed.
+         Using both created a conflict when user had stored light preference
+         but system was in dark mode. */
+      body {
+        background-color: #ffffff;
+        color: #111827;
+      }
+      html.dark body {
+        background-color: rgb(17, 24, 39);
+        color: #f3f4f6;
+      }
+      .app-fallback {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6b7280;
+      }
+      html.dark .app-fallback { color: #9ca3af; }
+      .app-fallback-inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        text-align: center;
+      }
+      /* Independent toggles - the parent's data attributes drive visibility. */
+      .app-fallback[data-show-orb="false"] .loader-orb { display: none; }
+      .app-fallback[data-show-text="false"] .loader-text { display: none; }
+      /* Tri-color gradient orb using the brand + brandcomp palette
+         (brand-500 #dc4a22, brand-400 #e68b5e, brandcomp-500 #23b5dd). */
+      .loader-orb {
+        width: 2.6rem;
+        height: 2.6rem;
+        border-radius: 50%;
+        background: conic-gradient(from 0deg,
+          #dc4a22,
+          #e68b5e 33%,
+          #23b5dd 66%,
+          #dc4a22);
+        animation: orb-spin 1.8s linear infinite;
+        position: relative;
+      }
+      .loader-orb::after {
+        content: "";
+        position: absolute;
+        inset: 4px;
+        /* --bg-color is set on <html> by the inline script in <head> before
+           first paint, so the inner disc tracks the body background in both
+           themes without a separate dark override. */
+        background: var(--bg-color, #ffffff);
+        border-radius: 50%;
+      }
+      @keyframes orb-spin { to { transform: rotate(360deg); } }
+      .dot {
+        animation: blink 1.4s infinite;
+        opacity: 0;
+      }
+      .dot:nth-child(1) { animation-delay: 0s; }
+      .dot:nth-child(2) { animation-delay: 0.2s; }
+      .dot:nth-child(3) { animation-delay: 0.4s; }
+      @keyframes blink {
+        0%, 20% { opacity: 0; }
+        40%, 100% { opacity: 1; }
+      }
+      /* Hide fallback once Vue mounts (adds data-v-app attribute) */
+      #app[data-v-app] .app-fallback { display: none; }
+    </style>
+  </body>
+</html>
+</template>

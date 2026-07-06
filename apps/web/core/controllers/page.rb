@@ -9,6 +9,25 @@ module Core
     class Page
       include Controllers::Base
 
+      # GET /colonel and /colonel/* (role=colonel).
+      #
+      # Serves the rebuilt admin console shell when experimental.admin_v2 is on,
+      # otherwise falls back to the standard SPA shell so the legacy colonel app
+      # renders exactly as before. Rollback is a pure config flip — both shells
+      # ship; the flag only chooses which one (and thus which Vite entry) loads.
+      # Reuses this core Page controller rather than a second Rack app (D2).
+      def colonel
+        # Keep parity with Base#index: the view layer serializes homepage_mode.
+        req.env['onetime.homepage_mode'] = determine_homepage_mode
+
+        view = if OT.conf.dig('experimental', 'admin_v2')
+                 Core::Views::AdminPoint.new(req)
+               else
+                 Core::Views::VuePoint.new(req)
+               end
+        res.body = view.render
+      end
+
       # /imagine/b79b17281be7264f778c/logo.png
       def imagine
         logic = DomainsAPI::Logic::Domains::GetImage.new(strategy_result, req.params, locale)

@@ -1155,3 +1155,14 @@ compatibility:
   #   warn:             log a migration message and continue
   #   silent:           ignore
   deprecated_config_mode: <%= ENV['DEPRECATED_CONFIG_MODE'] || 'strict' %>
+
+# Experimental features
+#
+# Opt-in, not-yet-stable capabilities. Each flag gates a feature that is safe to
+# disable at any time — rollback is a config flip. Flags graduate out of this
+# section once stable.
+experimental:
+  # admin_v2: serve the rebuilt Colonel admin console (its own isolated
+  # `admin.ts` bundle + admin shell) at /colonel. When false, the legacy colonel
+  # SPA renders unchanged. See docs/specs/colonel-ui/.
+  admin_v2: <%= ENV['EXPERIMENTAL_ADMIN_V2'] == 'true' %>

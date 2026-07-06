@@ -21,18 +21,22 @@ module Core
       #
       # @param nonce [String, nil] Content Security Policy nonce
       # @param development [Boolean] Whether to use development mode
+      # @param entry [String] Vite manifest entry key to resolve. Defaults to
+      #   'main.ts' (the customer bundle); the admin shell passes 'admin.ts'.
+      #   The key is the source path relative to the Vite root (src/), which is
+      #   why it is the '.ts' filename and not the input object key.
       # @return [String] HTML tags for all required assets
-      def vite_assets(nonce: nil, development: nil)
+      def vite_assets(nonce: nil, development: nil, entry: 'main.ts')
         nonce     ||= self['nonce'] if respond_to?(:[]) # we allow overriding the nonce for testing
         development = self['frontend_development'] if development.nil? && respond_to?(:[])
 
         # Development mode: direct Vite dev server links
         if development
-          return build_dev_assets(nonce)
+          return build_dev_assets(nonce, entry)
         end
 
         # Production mode: use manifest
-        build_prod_assets(nonce)
+        build_prod_assets(nonce, entry)
       end
 
       private
@@ -40,10 +44,11 @@ module Core
       # Builds development mode asset tags (Vite dev server)
       #
       # @param nonce [String] Content Security Policy nonce
+      # @param entry [String] Vite entry to serve (e.g. 'main.ts' or 'admin.ts')
       # @return [String] HTML tags for dev assets
-      def build_dev_assets(nonce)
+      def build_dev_assets(nonce, entry = 'main.ts')
         <<~HTML.chomp
-          <script type="module" nonce="#{nonce}" src="/dist/main.ts"></script>
+          <script type="module" nonce="#{nonce}" src="/dist/#{entry}"></script>
           <script type="module" nonce="#{nonce}" src="/dist/@vite/client"></script>
         HTML
       end
@@ -51,9 +56,16 @@ module Core
       # Builds production mode asset tags (from manifest)
       #
       # @param nonce [String] Content Security Policy nonce
+      # @param entry [String] Vite manifest entry key to resolve (e.g. 'main.ts'
+      #   or 'admin.ts'). Each entry is its own single chunk (codeSplitting:false).
       # @return [String] HTML tags for production assets
-      def build_prod_assets(nonce)
-        manifest_path = File.join(PUBLIC_DIR, 'dist', '.vite', 'manifest.json')
+      def build_prod_assets(nonce, entry = 'main.ts')
+        # Each entry is built in its own single-input Vite pass and writes its
+        # own self-contained manifest (chunk + CSS + fonts). Resolve the file
+        # for the requested entry: the admin console has manifest-admin.json,
+        # everything else uses the default manifest.json.
+        manifest_file = entry == 'admin.ts' ? 'manifest-admin.json' : 'manifest.json'
+        manifest_path = File.join(PUBLIC_DIR, 'dist', '.vite', manifest_file)
 
         unless File.exist?(manifest_path)
           app_logger.error 'Vite manifest not found - frontend assets unavailable',
@@ -61,31 +73,34 @@ module Core
               manifest_path: manifest_path,
               instruction: 'Run `pnpm run build` to generate assets',
             }
-          return error_script(nonce, 'Vite manifest.json not found. Run `pnpm run build`')
+          return error_script(nonce, "Vite #{manifest_file} not found. Run `pnpm run build`")
         end
 
-        @manifest_cache ||= Familia::JsonSerializer.parse(File.read(manifest_path))
-        main_entry        = @manifest_cache['main.ts']
-        style_entry       = @manifest_cache['style.css'] # may not exist
+        @manifest_caches      ||= {}
+        manifest                = (@manifest_caches[manifest_file] ||= Familia::JsonSerializer.parse(File.read(manifest_path)))
+        entry_data              = manifest[entry]
+        style_entry             = manifest['style.css'] # may not exist
 
-        return error_script(nonce, 'Main entry not found in Vite manifest') unless main_entry
+        return error_script(nonce, "Entry '#{entry}' not found in Vite manifest") unless entry_data
 
         assets = []
-        assets << build_script_tag(main_entry['file'], nonce)
+        assets << build_script_tag(entry_data['file'], nonce)
 
-        # Handle CSS from main entry
-        if main_entry['css']&.any?
-          main_entry['css'].each do |css_file|
+        # Handle CSS attached to this entry's chunk
+        if entry_data['css']&.any?
+          entry_data['css'].each do |css_file|
             assets << build_css_tag(css_file, nonce)
           end
         end
 
-        # Handle separate style.css entry
+        # Handle separate style.css entry. With cssCodeSplit:false the whole
+        # build emits one stylesheet; depending on which entry it attaches to in
+        # the manifest, this shared lookup guarantees the shell still links it.
         if style_entry && style_entry['file']
           assets << build_css_tag(style_entry['file'], nonce)
         end
 
-        assets.concat(build_font_preloads(@manifest_cache, nonce))
+        assets.concat(build_font_preloads(manifest, nonce))
         assets.join("\n")
       end
 
