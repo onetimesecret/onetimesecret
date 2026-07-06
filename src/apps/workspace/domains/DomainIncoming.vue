@@ -92,6 +92,29 @@ const {
 // Event handlers
 // ---------------------------------------------------------------------------
 
+// Adding a recipient, removing one, and toggling enabled are all deliberate
+// actions, so they persist immediately instead of waiting for a manual Save.
+// Success toasts are suppressed (silent) to avoid one-per-action noise; the
+// updated list is its own feedback. On failure the error surfaces and
+// hasUnsavedChanges flips true, re-exposing the Save button as a retry.
+
+const handleAddRecipient = async (email: string, name?: string) => {
+  if (addRecipient(email, name)) {
+    await saveConfig({ silent: true });
+  }
+};
+
+const handleRemoveRecipient = async (index: number) => {
+  removeRecipient(index);
+  await saveConfig({ silent: true });
+};
+
+const handleUpdateEnabled = async (enabled: boolean) => {
+  if (isSaving.value) return;
+  updateEnabled(enabled);
+  await saveConfig({ silent: true });
+};
+
 // ---------------------------------------------------------------------------
 // Navigation
 // ---------------------------------------------------------------------------
@@ -307,9 +330,9 @@ watch(() => props.extid, async () => {
               @save="saveConfig"
               @delete="deleteConfig"
               @discard="discardChanges"
-              @add-recipient="(email, name) => addRecipient(email, name)"
-              @remove-recipient="removeRecipient"
-              @update:enabled="updateEnabled" />
+              @add-recipient="handleAddRecipient"
+              @remove-recipient="handleRemoveRecipient"
+              @update:enabled="handleUpdateEnabled" />
           </template>
         </div>
       </div>

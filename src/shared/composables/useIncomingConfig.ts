@@ -199,7 +199,7 @@ export function useIncomingConfig(domainExtId: MaybeRef<string>) {
    * PUTs the full intended state (enabled + recipients). After success,
    * formState is rehydrated from the server response and snapshotted.
    */
-  const saveConfig = async (): Promise<boolean> => {
+  const saveConfig = async ({ silent = false }: { silent?: boolean } = {}): Promise<boolean> => {
     isSaving.value = true;
     error.value = null;
 
@@ -223,7 +223,9 @@ export function useIncomingConfig(domainExtId: MaybeRef<string>) {
           recipients: result.record.recipients.map((r) => ({ ...r })),
         };
         savedFormState.value = cloneFormState(formState.value);
-        notifications.show(t('web.domains.incoming.update_success'), 'success', 'top');
+        if (!silent) {
+          notifications.show(t('web.domains.incoming.update_success'), 'success', 'top');
+        }
         return true;
       }
       return false;

@@ -165,4 +165,38 @@ RSpec.describe V2::Logic::Secrets::ShowReceipt, type: :integration do
       expect(kinds).to eq(['receipt_viewed'])
     end
   end
+
+  # Provenance gate on the live V2 path (inherited by V3::ShowReceipt). safe_dump
+  # never emits share_url/share_path, so the withhold branch is only reachable
+  # through process -> _receipt_attributes with a real receipt.
+  context 'provenance gate (Receipt#shows_share_link?)' do
+    it 'withholds the share link and bearer key for an incoming receipt' do
+      receipt.source = 'incoming'
+      receipt.save
+
+      logic = build_logic({ 'identifier' => receipt.identifier })
+      logic.process_params
+      logic.raise_concerns
+      record = logic.process[:record]
+
+      expect(record[:share_url]).to be_nil
+      expect(record[:share_path]).to be_nil
+      expect(record[:secret_identifier]).to be_nil
+    end
+
+    it 'ships the share link for a standard receipt with recipients (email-share regression guard)' do
+      receipt.recipients = 'recipient@example.com'
+      receipt.source     = 'standard'
+      receipt.save
+
+      logic = build_logic({ 'identifier' => receipt.identifier })
+      logic.process_params
+      logic.raise_concerns
+      record = logic.process[:record]
+
+      expect(record[:share_url]).not_to be_nil
+      expect(record[:share_path]).not_to be_nil
+      expect(record[:secret_identifier]).to eq(receipt.secret_identifier)
+    end
+  end
 end

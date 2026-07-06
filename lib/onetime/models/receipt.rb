@@ -40,6 +40,13 @@ module Onetime
     field :has_passphrase
     field :kind
 
+    # Submission provenance — how the underlying secret entered the system.
+    # Stamped once at creation (init defaults 'standard'; Incoming forms set
+    # 'incoming' in create_incoming_secret) and never inferred at read time.
+    # One of SOURCES; drives the share-link withholding gate via
+    # #shows_share_link?.
+    field :source
+
     # Organization and domain tracking for scoped receipt queries
     field :org_id      # Organization objid (current context when created)
     field :domain_id   # CustomDomain objid (when using registered custom domain)
@@ -73,6 +80,25 @@ module Onetime
     field :recipient_name  # Display name for incoming-secret recipients (preferred over obscured email)
     field :memo  # Optional memo/subject for incoming secrets
 
+    # Closed value space for the :source discriminator. Kept as strings to
+    # match the :kind / :state convention; extend here (e.g. 'api', 'import')
+    # without a schema change.
+    SOURCES = %w[standard incoming].freeze
+
+    # Source-dependent behaviour, keyed by :source. The single source of truth
+    # for what each provenance permits; read via #shows_share_link?. Mirrors
+    # CustomDomain::SignupConfig::STRATEGY_METADATA. Unmapped (non-empty)
+    # values fall through to WITHHELD_CAPABILITIES — fail closed.
+    SOURCE_CAPABILITIES = {
+      'standard' => { shows_share_link: true }.freeze,
+      'incoming' => { shows_share_link: false }.freeze,
+    }.freeze
+
+    # Fallback for any :source value not in SOURCE_CAPABILITIES (a typo or an
+    # unshipped future source): withhold the link. A nil/empty source (legacy
+    # pre-field receipt) is handled separately in #shows_share_link?.
+    WITHHELD_CAPABILITIES = { shows_share_link: false }.freeze
+
     # Class-level collections for expiration warning feature
     # Sorted set: score = expiration timestamp, member = receipt identifier
     class_sorted_set :expiration_timeline
@@ -80,7 +106,24 @@ module Onetime
     class_set :warnings_sent
 
     def init
-      self.state ||= 'new'
+      self.state  ||= 'new'
+      self.source ||= 'standard'
+    end
+
+    # Whether this receipt's payload may carry the share link and its
+    # secret_identifier bearer key. Incoming secrets withhold both from their
+    # creator (a guest on a custom domain), so opening the receipt can't spend
+    # the secret's one view.
+    #
+    # Legacy receipts created before the :source field read as nil; they are
+    # overwhelmingly 'standard', so an empty source is treated as standard
+    # (link shown). Any non-empty but unrecognized value fails closed.
+    #
+    # @return [Boolean]
+    def shows_share_link?
+      return true if source.to_s.empty?
+
+      SOURCE_CAPABILITIES.fetch(source.to_s, WITHHELD_CAPABILITIES)[:shows_share_link]
     end
 
     # Clean up class-level collections before destroying the object.

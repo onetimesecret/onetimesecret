@@ -206,8 +206,13 @@ module V1::Logic
         # Start with safe receipt attributes
         attributes = receipt.safe_dump
 
-        # Only include the secret's identifying key when necessary
-        attributes[:secret_key] = secret_key if show_secret
+        # Provenance gate: incoming secrets withhold the share link (and its
+        # bearer key) from the creator. See Receipt#shows_share_link?.
+        link_visible = receipt.shows_share_link?
+
+        # Only include the secret's identifying key when necessary AND when
+        # provenance permits sharing the link.
+        attributes[:secret_key] = secret_key if show_secret && link_visible
 
         # Add additional attributes not included in safe dump
         attributes.merge!({
@@ -215,11 +220,13 @@ module V1::Logic
           natural_expiration: natural_expiration,
           expiration: expiration,
           expiration_in_seconds: expiration_in_seconds,
-          share_path: share_path,
+          # share_path/share_url withheld (null) for incoming provenance; burn
+          # and receipt paths stay for the creator.
+          share_path: link_visible ? share_path : nil,
           burn_path: burn_path,
           receipt_path: receipt_path,
           metadata_path: metadata_path, # maintain public API
-          share_url: share_url,
+          share_url: link_visible ? share_url : nil,
           receipt_url: receipt_url,
           metadata_url: metadata_url, # maintain public API
           burn_url: burn_url,
