@@ -373,4 +373,37 @@ export const brandPresets: readonly BrandPreset[] = [
       button_text_light: true,
     },
   },
+  // Accessibility presets: maximum-contrast light/dark pairs modeled on the
+  // OS-level "High Contrast" themes (WCAG AAA — text-on-bg is 21:1). System
+  // font for legibility, minimal rounding, no decorative tints.
+  {
+    id: 'high-contrast',
+    name: 'High Contrast',
+    tokens: {
+      primary_color: '#000000',
+      secondary_color: '#1D4ED8',
+      background_color: '#FFFFFF',
+      text_color: '#000000',
+      font_family: 'system',
+      heading_font: 'system',
+      border_radius: 'sm',
+      button_text_light: true,
+    },
+  },
+  {
+    id: 'high-contrast-dark',
+    name: 'High Contrast Dark',
+    tokens: {
+      // Primary is still validated against white (3:1), so a mid-dark blue
+      // rather than pure white — it reads as a button on the black surface too.
+      primary_color: '#2563EB',
+      secondary_color: '#FDE047',
+      background_color: '#000000',
+      text_color: '#FFFFFF',
+      font_family: 'system',
+      heading_font: 'system',
+      border_radius: 'sm',
+      button_text_light: true,
+    },
+  },
 ] as const;

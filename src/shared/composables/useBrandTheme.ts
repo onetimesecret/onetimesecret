@@ -94,6 +94,22 @@ function clearOverrides(): void {
  * Each token is independent: an unset field removes its override so the
  * compiled `@theme static` default applies. Fonts are handled via utility
  * classes (fontFamilyClasses), not here.
+ *
+ * ── WIRING, for whoever picks this up ──────────────────────────────────────
+ * Heads up: these vars go LIVE per-domain here, but no view renders them yet.
+ * The pipe is built end-to-end (schema → validate → store → inject → editor →
+ * presets); only the last mile (branded components) is missing. Lighting a
+ * token up is just a class in a branded/* view — no JS needed, the var is
+ * already on <html>:
+ *   secondary  → `bg-brand2-500` / `text-brand2-50` (full 11-shade scale)
+ *   background → `bg-brandbg`
+ *   text       → `text-brandtext`
+ *   radius     → `rounded-brand`      (already live via identityStore.cornerClass)
+ *   heading    → `:class="headingFontClass"` on <h1>..<h3> (identityStore)
+ * Defaults live in @theme static (style.css) so utilities resolve even
+ * unbranded — you won't get bare `var()` misses. One gotcha: the workspace
+ * editor PREVIEW (SecretPreview.vue) reads `domainBranding` inline, NOT these
+ * <html> vars, so wire the preview separately when you wire a real view.
  */
 function applyExtendedTokens(brand: {
   secondary_color?: string | null;

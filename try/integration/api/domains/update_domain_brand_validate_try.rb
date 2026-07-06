@@ -141,7 +141,9 @@ end
 #=> true
 
 ## TEST 3: WCAG message includes the offending color and contrast ratio
-@msg_contrast.match?(/Color #FFFF00.*contrast \d+\.\d+:1 with white/) == true
+# Message now prefixes the field label (#3646: multiple validated colors), e.g.
+# "Primary color #FFFF00 fails WCAG AA accessibility - contrast 1.07:1 with white".
+@msg_contrast.match?(/[Pp]rimary color #FFFF00.*contrast \d+\.\d+:1 with white/) == true
 #=> true
 
 ## TEST 4: Invalid URL format (http://) — caught by per-field validate_urls

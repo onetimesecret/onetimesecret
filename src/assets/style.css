@@ -101,6 +101,11 @@
    * overrides for each of these; the neutral defaults below keep every
    * bg-brand2-* / bg-brandbg / text-brandtext / rounded-brand utility
    * resolving even before (or without) any per-domain branding.
+   *
+   * Wiring note: these tokens are injected but not yet rendered by any view.
+   * Consume them with the matching utility in a branded/* component — e.g.
+   * `bg-brand2-500`, `bg-brandbg`, `text-brandtext`, `rounded-brand`. See the
+   * "WIRING" block in useBrandTheme.ts for the full last-mile checklist.
    */
 
   /* Secondary brand color scale (neutral slate default) - 11 shades */
