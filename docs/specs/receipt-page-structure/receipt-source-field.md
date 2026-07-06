@@ -1,6 +1,6 @@
 # Receipt provenance: the `source` field
 
-Status: **Proposed** · Prompted by: the incoming-secret share-link leak · Related:
+Status: **Implemented** · Prompted by: the incoming-secret share-link leak · Related:
 `docs/specs/receipt-page-structure/receipt-kind-model.md` (the broader structural
 rethink this field is the first step of), `docs/specs/recipient-disclosure/`
 
@@ -40,7 +40,12 @@ field :source   # submission provenance — see docs/specs/receipt-page-structur
 ```
 
 **Value space** — a closed, explicit set of strings (matching the string-value
-convention already used for `kind` and `state`):
+convention already used for `kind` and `state`), declared beside the field the
+way `Customer::PROVISIONING_ORIGINS` declares its provenance set:
+
+```ruby
+SOURCES = %w[standard incoming].freeze
+```
 
 | Value        | Meaning                                                       |
 | ------------ | ------------------------------------------------------------ |
@@ -50,6 +55,31 @@ convention already used for `kind` and `state`):
 String, not a boolean `incoming?`, so future surfaces (`api`, `cli`, `import`) can
 be added without a schema change or a second flag. Two values satisfy today's
 requirement.
+
+**Read behaviour lives in a capability map, not scattered comparisons.** Rather
+than repeat `source == 'incoming'` at every gate, source-dependent behaviour is a
+single frozen map keyed by `source` (mirroring
+`CustomDomain::SignupConfig::STRATEGY_METADATA`), read through one model predicate:
+
+```ruby
+SOURCE_CAPABILITIES = {
+  'standard' => { shows_share_link: true }.freeze,
+  'incoming' => { shows_share_link: false }.freeze,
+}.freeze
+WITHHELD_CAPABILITIES = { shows_share_link: false }.freeze  # fail closed
+
+def shows_share_link?
+  return true if source.to_s.empty?   # legacy pre-field receipt → standard
+  SOURCE_CAPABILITIES.fetch(source.to_s, WITHHELD_CAPABILITIES)[:shows_share_link]
+end
+```
+
+This collapses the four gates into one authority and makes the fail direction an
+explicit one-line policy: unrecognized non-empty values **fail closed** (link
+withheld); only the empty/`nil` legacy case is shown (see §5). Familia round-trips
+an unset declared field through the stored string `"null"` back to `nil` on read
+(`deserialize_value`), so `source.to_s.empty?` covers absent, `nil`, `""`, and
+stored-`"null"` alike.
 
 ---
 
@@ -65,40 +95,50 @@ Provenance is stamped at creation, never inferred at read time.
   receipt.source = 'incoming'
   ```
 
-- **Everything else** — defaults to `standard`. Set it once at the model boundary
-  so callers never have to think about it and legacy nils read as standard:
+- **Everything else** — defaults to `standard`, set in `Receipt#init` beside the
+  sibling discriminator's default so every `.new` path is covered (not just
+  `spawn_pair`) and callers never think about it:
 
   ```ruby
-  # Receipt.spawn_pair
-  receipt.source ||= 'standard'
+  def init
+    self.state  ||= 'new'
+    self.source ||= 'standard'
+  end
   ```
 
-  `spawn_pair` is the single creation path for both members of the pair, so this
-  one line covers standard, generated, and email-shared without touching their
-  call sites.
+  `init` runs on construction for standard, generated, and email-shared receipts
+  alike. For incoming, `spawn_pair` constructs the receipt (so `init` defaults it
+  to `standard`) and `create_incoming_secret` then overrides to `'incoming'`
+  before its `save` — a plain assignment wins over the `||=` default.
 
 ---
 
 ## 4. The gate (read)
 
-`source == 'incoming'` is the single predicate for withholding the link. Four read
-sites replace their `!recipients.empty?` / `!details.show_recipients` checks:
+`Receipt#shows_share_link?` (the capability-map predicate from §2) is the single
+authority for withholding the link. Four read sites call it instead of the
+`!recipients.empty?` / `!details.show_recipients` checks they used to carry:
 
-| Site                                                        | Withholds                                        |
+| Site                                                        | Withholds when `!shows_share_link?`              |
 | ----------------------------------------------------------- | ------------------------------------------------ |
 | `lib/onetime/models/receipt/features/safe_dump_fields.rb`   | `secret_identifier` (serializer — covers the noauth batch endpoint) |
 | `apps/api/v2/logic/secrets/show_receipt.rb`                 | `share_url`, `share_path`, `secret_identifier`   |
-| `apps/api/v1/logic/secrets/show_receipt.rb`                 | same (near-duplicate)                            |
-| `src/apps/secret/components/receipt/SecretLink.vue`         | — (no change: already gates on `record.share_url` presence, which follows the payload) |
+| `apps/api/v1/logic/secrets/show_receipt.rb`                 | `share_url`, `share_path`, `secret_key` (near-duplicate) |
+| `src/apps/secret/components/receipt/SecretLink.vue`         | — (no gating change: already hidden for recipient-bearing receipts; only made `share_url` null-safe for the nullable contract) |
 
 The serializer gate is load-bearing: `V3::Logic::Secrets::ShowMultipleReceipts`
 builds its batch response with `map(&:safe_dump)` and never runs the logic-layer
 gate, so `secret_identifier` must be withheld at `safe_dump` to close the
-unauthenticated `POST /api/v3/guest/receipts` door.
+unauthenticated `POST /api/v3/guest/receipts` door. `safe_dump` also now emits
+`:source` (alongside `:kind`) so the frontend can see provenance directly.
 
-**Predicate direction:** use `source.to_s == 'incoming'` (the narrow, positive
-test), not `source != 'standard'`. The gate should name what it withholds from,
-not fail closed on every unrecognized value.
+**Predicate direction:** the gate **fails closed** — an unrecognized non-empty
+`source` (a typo, or an unshipped future value someone forgot to add to
+`SOURCE_CAPABILITIES`) withholds the link. Only the empty/`nil` legacy case is
+shown (§5), because that population is the entire pre-field table and is
+overwhelmingly `standard` — failing closed there would strip the link from every
+legacy receipt. This is one line in the predicate (`fetch(..., WITHHELD)` + the
+empty carve-out), not a `==`-vs-`!=` choice scattered across four files.
 
 **Contract** — `share_path` and `share_url` become nullable in
 `src/schemas/contracts/receipt.ts`; a null there is the intended "link withheld"
@@ -124,16 +164,26 @@ by widening the predicate. Documented here so it is a decision, not an oversight
 
 ## 6. Test coverage
 
-- **Creation:** `create_incoming_secret` sets `source = 'incoming'`; `spawn_pair`
-  defaults `source = 'standard'` for conceal / generate / email-shared.
-- **Gate — incoming:** receipt payload from v1, v2, and the v3 batch endpoint omits
-  `share_url` / `share_path` / `secret_identifier`.
+Model, predicate, and the load-bearing serializer gate:
+`try/unit/models/receipt_safe_dump_try.rb`. Contract: the frontend receipt schema
+suite (`src/tests/contracts/`, `src/tests/schemas/shapes/`). Logic-layer gate:
+`apps/api/v1/spec/logic/secrets/show_receipt_spec.rb` (its receipt double stubs
+`shows_share_link?`).
+
+- **Creation / default:** `init` defaults `source = 'standard'` (asserted on
+  `Receipt.new`); `create_incoming_secret` overrides to `'incoming'`.
+- **Predicate matrix:** `shows_share_link?` is true for `standard`, false for
+  `incoming`, true for empty/`nil` (legacy), false for an unrecognized non-empty
+  value (fail closed).
+- **Gate — incoming:** `safe_dump` omits `secret_identifier` (this closes the v3
+  noauth batch door directly, since that endpoint is `map(&:safe_dump)`); v1/v2
+  logic additionally null `share_url` / `share_path`.
 - **Gate — email-shared (regression guard):** a `standard` receipt _with_
-  recipients still ships `share_url` / `share_path` / `secret_identifier`. This is
-  the case the recipients-proxy broke; it must be asserted explicitly.
+  recipients still ships `secret_identifier` (and the URLs). This is the case the
+  recipients-proxy broke; asserted explicitly.
 - **Legacy:** a receipt with `source = nil` behaves as `standard` (link shown).
 - **Contract:** `receiptCanonical` accepts null `share_path` / `share_url` without
-  nulling the record.
+  nulling the record; adds a nullable `source` enum.
 
 ---
 

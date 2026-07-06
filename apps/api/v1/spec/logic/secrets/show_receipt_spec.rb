@@ -67,6 +67,34 @@ RSpec.describe V1::Logic::Secrets::ShowReceipt do
 
       expect(subject.can_decrypt).to be true
     end
+
+    # Provenance gate (Receipt#shows_share_link?) at the logic layer. safe_dump
+    # doesn't emit share_url/share_path, so these branches are only exercisable
+    # through process → _receipt_attributes with a real receipt.
+    it 'withholds the share link and bearer key for an incoming receipt' do
+      receipt.source = 'incoming'
+      receipt.save
+
+      subject.process
+      attrs = subject.receipt_attributes
+
+      expect(attrs[:share_url]).to be_nil
+      expect(attrs[:share_path]).to be_nil
+      expect(attrs).not_to have_key(:secret_key)
+    end
+
+    it 'ships the share link for a standard receipt even when it has recipients (email-share regression guard)' do
+      receipt.recipients = 'recipient@example.com'
+      receipt.source     = 'standard'
+      receipt.save
+
+      subject.process
+      attrs = subject.receipt_attributes
+
+      expect(attrs[:share_url]).not_to be_nil
+      expect(attrs[:share_path]).not_to be_nil
+      expect(attrs[:secret_key]).to eq(receipt.secret_key)
+    end
   end
 
   # ---------------------------------------------------------------
@@ -99,6 +127,7 @@ RSpec.describe V1::Logic::Secrets::ShowReceipt do
         share_domain: '',
         state: 'new',
         owner?: false,
+        shows_share_link?: true, # standard provenance — share link permitted
         safe_dump: { key: 'receipt_xyz', state: 'new' },
         load_secret: nil) # overridden per-test below
     end
