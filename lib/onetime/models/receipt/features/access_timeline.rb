@@ -122,26 +122,19 @@ module Onetime::Receipt::Features
       end
 
       # Atomic conditional set that claims a one-time timestamp field, run as a
-      # single Lua script so the whole check-and-set is indivisible.
+      # single Lua script so the check-and-set is indivisible.
       #
       #   1. If the receipt hash no longer exists, do nothing -- never resurrect
-      #      a destroyed/expired receipt (HSET would otherwise create the hash).
-      #   2. Claim only when the field is NOT already a positive integer
-      #      timestamp. HSETNX cannot be used: Familia persists every declared
-      #      field on save (a never-claimed field holds the serialized nil,
-      #      "null", not an absent field), so existence is not the signal. The
-      #      digit test is also robust to Familia's nil serialization changing:
-      #      any non-numeric sentinel ("null"/empty/absent) stays claimable, and
-      #      only a real stamp blocks -- so at worst a serialization change fails
-      #      closed (never re-reveals), never open.
-      #   3. HSET on an existing hash performs no TTL change, so a claim never
-      #      extends the receipt's expiration -- safe on a GET.
+      #      a destroyed/expired receipt (a bare HSETNX would otherwise create
+      #      the hash).
+      #   2. HSETNX on an existing hash claims the field only when it is
+      #      genuinely absent, and performs no TTL change -- safe on a GET.
+      #      familia >= 2.11.2 omits nil declared fields from storage (HDEL on
+      #      clear) instead of persisting the serialized "null", so absence is
+      #      now a reliable signal here; see the Gemfile familia pin comment.
       CLAIM_ONCE_SCRIPT = <<~LUA
         if redis.call('EXISTS', KEYS[1]) == 0 then return 0 end
-        local v = redis.call('HGET', KEYS[1], ARGV[1])
-        if v and string.match(v, '^%d+$') then return 0 end
-        redis.call('HSET', KEYS[1], ARGV[1], ARGV[2])
-        return 1
+        return redis.call('HSETNX', KEYS[1], ARGV[1], ARGV[2])
       LUA
 
       # Atomically claim a one-time observability/consumption timestamp field,
