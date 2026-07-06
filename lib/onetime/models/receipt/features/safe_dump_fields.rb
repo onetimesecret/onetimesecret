@@ -104,23 +104,45 @@ module Onetime::Receipt::Features
       # console / raw HSET) or an empty string would trip the strict
       # z.number().nullish() V3 transform and null the whole receipt (#3424).
       # to_i is a no-op for the healthy Familia.now.to_i values already stored.
-      base.safe_dump_field :previewed, ->(m) { m.previewed.to_i > 0 ? m.previewed.to_i : nil }
+      #
+      # previewed is telemetry-derived (effective_previewed_at) to stay
+      # coherent with is_previewed (#3633): the 'previewed' lifecycle state is
+      # retired, so a fresh receipt never stamps the previewed field. When it
+      # is unset, it falls back to the earliest access-timeline timestamp — the
+      # moment the secret link was first fetched — so a consumer never sees
+      # is_previewed=true paired with previewed=null. Legacy receipts with a
+      # stored previewed timestamp keep it.
+      base.safe_dump_field :previewed, ->(m) { m.effective_previewed_at }
       base.safe_dump_field :revealed, ->(m) { m.revealed.to_i > 0 ? m.revealed.to_i : nil }
 
-      # New canonical boolean fields
-      base.safe_dump_field :is_previewed, ->(m) { m.state?(:previewed) }
+      # New canonical boolean fields.
+      #
+      # is_previewed reflects access TELEMETRY, not lifecycle state (#3633):
+      # a receipt no longer advances to a 'previewed' state when its page is
+      # viewed. It is true when the secret link has been accessed at least
+      # once (the append-only access timeline is non-empty), which is the
+      # signal every consumer — the receipt page's post-creation banner and
+      # the recent-secrets dashboard status — actually wants. The legacy
+      # state?(:previewed)/state?(:viewed) terms are retained so receipts
+      # written before the telemetry existed still report correctly. (One
+      # ZCARD per dump; receipt lists are small, so this is not a hot path.)
+      base.safe_dump_field :is_previewed,
+        ->(m) { m.state?(:previewed) || m.state?(:viewed) || m.access_count.to_i.positive? }
 
-      # BACKWARD COMPAT: Returns previewed timestamp for legacy clients
-      # Falls back to previewed if viewed is nil (new data)
-      base.safe_dump_field :viewed, ->(m) { m.viewed.to_s.empty? ? m.previewed : m.viewed }
+      # BACKWARD COMPAT: Returns previewed timestamp for legacy clients. Falls
+      # back to the telemetry-derived previewed value (stored timestamp, else
+      # first access) when the legacy viewed field is unset — see :previewed.
+      base.safe_dump_field :viewed,
+        ->(m) { m.viewed.to_s.empty? ? m.effective_previewed_at : m.viewed }
       # BACKWARD COMPAT: Returns revealed timestamp for legacy clients
       # Falls back to revealed if received is nil (new data)
       base.safe_dump_field :received, ->(m) { m.received.to_s.empty? ? m.revealed : m.received }
       # Coerce to Integer epoch seconds (or nil when unset) — see :previewed note (#3424).
       base.safe_dump_field :burned, ->(m) { m.burned.to_i > 0 ? m.burned.to_i : nil }
 
-      # BACKWARD COMPAT: Returns true if previewed OR legacy viewed
-      base.safe_dump_field :is_viewed, ->(m) { m.state?(:previewed) || m.state?(:viewed) }
+      # BACKWARD COMPAT: legacy alias of is_previewed (telemetry-derived, #3633).
+      base.safe_dump_field :is_viewed,
+        ->(m) { m.state?(:previewed) || m.state?(:viewed) || m.access_count.to_i.positive? }
       # BACKWARD COMPAT: Returns true if revealed OR legacy received
       base.safe_dump_field :is_received, ->(m) { m.state?(:revealed) || m.state?(:received) }
       base.safe_dump_field :is_revealed, ->(m) { m.state?(:revealed) || m.state?(:received) }

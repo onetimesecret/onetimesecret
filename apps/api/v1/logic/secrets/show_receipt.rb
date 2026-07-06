@@ -54,7 +54,7 @@ module V1::Logic
         @expiration = receipt.secret_expiration
         @expiration_in_seconds = receipt.secret_ttl
 
-        secret = receipt.load_secret
+        secret = @secret
 
         if secret.nil?
 
@@ -91,7 +91,7 @@ module V1::Logic
             # If we can't decrypt the secret (i.e. if we can't access it) then
             # then we leave secret_value nil. We do this so that after creating
             # a secret we can show the received contents on the "/receipt/receipt_key"
-            # page one time. Particularly for generated passwords which are not
+            # page ONE TIME. Particularly for generated passwords which are not
             # shown any other time.
             #
             # Aligned with V2/V3: only generated values are revealed here, and
@@ -99,11 +99,19 @@ module V1::Logic
             # window. Concealed (user-supplied) plaintext is never echoed back
             # on the receipt — the creator already has it, and reading it back
             # later would sidestep the at-most-once rule.
+            #
+            # claim_secret_value_display! is the "one time" guarantee: it
+            # atomically claims the display so a repeated or concurrent load
+            # never re-reveals the value (#3633 retired the previewed! state
+            # mutation that used to bound this, so this GET must not lean on a
+            # state change). display_ttl now only bounds *when* the single
+            # reveal may happen. Claim last, so the window/kind checks
+            # short-circuit before we consume the one-shot claim.
             if @can_decrypt && receipt.state?(:new)
               receipt_age  = Familia.now.to_i - receipt.created.to_i
               is_generated = receipt.kind.to_s == 'generate'
               display_ttl  = OT.conf.dig('site', 'secret_options', 'generated_value_display_ttl').to_i
-              if is_generated && display_ttl.positive? && receipt_age < display_ttl
+              if is_generated && display_ttl.positive? && receipt_age < display_ttl && receipt.claim_secret_value_display!
                 OT.ld "[show_receipt] m:#{receipt_shortid} Decrypting generated secret for creator viewing (age: #{receipt_age}s)"
                 @secret_value = secret.decrypted_secret_value
               end
@@ -172,12 +180,12 @@ module V1::Logic
         OT.ld "[process] Set @share_domain: #{@share_domain}"
         process_uris
 
-        # Dump the receipt attributes before marking as previewed
         @receipt_attributes = self._receipt_attributes
 
-        # We mark the receipt record previewed so that we can support showing the
-        # secret link on the receipt page, just the one time.
-        receipt.previewed! if receipt.state?(:new)
+        # Loading the receipt page is a safe GET (#3633): record a one-time
+        # 'receipt_viewed' audit event but do NOT advance the secret's
+        # lifecycle state. See the v2 ShowReceipt for the full rationale.
+        receipt.record_receipt_view!
       end
 
       def one_liner

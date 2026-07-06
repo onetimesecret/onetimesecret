@@ -118,39 +118,6 @@ module Onetime::Receipt::Features
       #
       # TODO: Replace with transaction (i.e. MULTI/EXEC command)
 
-      # MIGRATION NOTE: Replaces legacy `viewed!` method.
-      # - Sets state to 'previewed' (was 'viewed')
-      # - Sets `previewed` timestamp (legacy `viewed` kept for backward compat in safe_dump)
-      def previewed!
-        # A guard to allow only a fresh, new secret to be previewed. Also ensures
-        # that we don't support going from previewed back to something else.
-        return unless state?(:new)
-
-        self.state     = 'previewed'
-        self.previewed = Familia.now.to_i
-        # The nuance between being "previewed" vs "revealed" or "burned" is
-        # that the secret link page has been requested (via GET)
-        # but the "View Secret" button hasn't been clicked yet (i.e. we haven't
-        # yet received the POST request that actually reveals the contents
-        # of the secret). It's a subtle but important distinction bc it
-        # communicates an amount of activity around the secret.
-        save update_expiration: false
-
-        secret_logger.info 'Receipt state transition to previewed',
-          {
-            receipt_id: shortid,
-            secret_id: secret_identifier,
-            previous_state: 'new',
-            new_state: 'previewed',
-            timestamp: previewed,
-          }
-
-        # Audit kind is 'receipt_viewed', not 'previewed': "preview" is the
-        # creator-facing UI word, but in the audit log this event means "the
-        # receipt page was loaded" -- keep the trail unambiguous (#3633).
-        record_org_audit_event('receipt_viewed')
-      end
-
       # MIGRATION NOTE: Replaces legacy `received!` method.
       # - Sets state to 'revealed' (was 'received')
       # - Sets `revealed` timestamp (legacy `received` kept for backward compat in safe_dump)
@@ -270,7 +237,6 @@ module Onetime::Receipt::Features
       end
 
       # Backward compatibility aliases for legacy method names
-      alias viewed! previewed!
       alias received! revealed!
 
       def truncated?

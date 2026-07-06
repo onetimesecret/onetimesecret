@@ -89,6 +89,83 @@ RSpec.describe V2::Logic::Secrets::ShowReceipt, type: :integration do
     end
   end
 
+  # Regression (#3633): loading the receipt page is a safe GET. It must not
+  # advance lifecycle state to 'previewed' (the old side effect), and the
+  # page load is recorded as a 'receipt_viewed' audit event -- distinct from
+  # the creator opening the secret *link* ('previewed').
+  context 'when the receipt page is loaded (safe GET)' do
+    it 'does not advance the receipt or secret lifecycle state' do
+      logic = build_logic({ 'identifier' => receipt.identifier })
+      logic.process_params
+      logic.raise_concerns
+      logic.process
+
+      reloaded_receipt = Onetime::Receipt.load(receipt.identifier)
+      expect(reloaded_receipt.state).to eq('new')
+      expect(reloaded_receipt.state?(:previewed)).to be false
+      expect(Onetime::Secret.load(secret.identifier).state).to eq('new')
+    end
+
+    it 'does not inflate the access timeline view_count' do
+      logic = build_logic({ 'identifier' => receipt.identifier })
+      logic.process_params
+      logic.raise_concerns
+      details = logic.process[:details]
+
+      # Viewing the receipt page is audit-trail telemetry only; it must not
+      # count as an access of the secret link.
+      expect(details[:view_count]).to eq(0)
+    end
+
+    it "reveals a generated secret's value to the creator exactly once (#3633)" do
+      # The generated plaintext is shown nowhere but the receipt page, so this
+      # is the enforcement point for the "one time" guarantee. Before #3633 the
+      # previewed! state mutation bounded it; now an atomic claim does, so a
+      # second load must return nil even inside the display window.
+      display_ttl = OT.conf.dig('site', 'secret_options', 'generated_value_display_ttl').to_i
+      expect(display_ttl).to be_positive # config sanity: the value path is dead at 0
+
+      receipt.kind = 'generate'
+      receipt.save_fields(:kind)
+
+      first = build_logic({ 'identifier' => receipt.identifier })
+      first.process_params
+      first.raise_concerns
+      first_details = first.process[:details]
+
+      second = build_logic({ 'identifier' => receipt.identifier })
+      second.process_params
+      second.raise_concerns
+      second_details = second.process[:details]
+
+      expect(first_details[:secret_value]).to eq('a secret value')
+      expect(second_details[:secret_value]).to be_nil
+      # A safe GET either way: the one-time reveal never advanced lifecycle state.
+      expect(Onetime::Receipt.load(receipt.identifier).state).to eq('new')
+    end
+
+    it "records a 'receipt_viewed' audit event on the owning org's trail, exactly once across repeated loads" do
+      org = Onetime::Organization.new(
+        display_name: 'Receipt View Test Org',
+        contact_email: "rcpt-view-#{SecureRandom.hex(6)}@example.com",
+      ).tap(&:save)
+      receipt.org_id = org.objid
+      receipt.save_fields(:org_id)
+
+      # Load the receipt page three times: a bookmarked/monitored page must not
+      # flood the org's capped audit trail, so the event is bounded to one.
+      3.times do
+        logic = build_logic({ 'identifier' => receipt.identifier })
+        logic.process_params
+        logic.raise_concerns
+        logic.process
+      end
+
+      kinds = Onetime::Organization.load(org.objid).audit_events_page.map { |e| e['kind'] }
+      expect(kinds).to eq(['receipt_viewed'])
+    end
+  end
+
   # Provenance gate on the live V2 path (inherited by V3::ShowReceipt). safe_dump
   # never emits share_url/share_path, so the withhold branch is only reachable
   # through process -> _receipt_attributes with a real receipt.

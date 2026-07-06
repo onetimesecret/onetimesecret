@@ -11,7 +11,7 @@
 # 2. Consistency of Redis keys
 # 3. Spawning secret pairs (metadata and secret)
 # 4. Saving, loading, and destroying secrets
-# 5. Managing secret states (previewed, revealed)
+# 5. Managing secret states (revealed, burned)
 #
 # These tests aim to ensure that secrets can be correctly created,
 # stored, and managed throughout their lifecycle in the application.
@@ -77,13 +77,6 @@ receipt.save
 receipt.destroy!
 !receipt.exists?
 #=> true
-
-## Can set receipt to previewed state
-receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
-now = Familia.now.to_i
-receipt.previewed!
-[receipt.previewed.between?(now, now + 1), receipt.state]
-#=> [true, 'previewed']
 
 # NOTE: The received method has been removed from the Secret model.
 # The secret no longer keeps a reference to the receipt.

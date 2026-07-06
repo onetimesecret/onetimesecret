@@ -39,32 +39,6 @@ module Onetime::Secret::Features
         (key?(:ciphertext) || key?(:value)) && (state?(:new) || state?(:previewed))
       end
 
-      # MIGRATION NOTE: This method replaces the legacy `viewed!` method.
-      # Existing data with state='viewed' should be migrated to state='previewed'.
-      # The `viewed` timestamp field maps to the new `previewed` field.
-      #
-      # Records that the secret link was accessed (but not yet consumed) by
-      # flipping state :new -> :previewed with an atomic, NON-creating CAS.
-      # Unlike the former save_fields(:state) -- an unconditional HSET that
-      # recreates the key if absent -- this transition:
-      #   * cannot resurrect a secret a concurrent reveal/burn already
-      #     destroyed (HGET on a missing key matches nothing), and
-      #   * cannot revert a secret that has already reached a terminal state
-      #     (it fires only from :new); the old unconditional write could briefly
-      #     revert a revealed-but-not-yet-destroyed record to :previewed and
-      #     re-open viewability while its ciphertext still existed.
-      # It also no longer resets the secret's TTL on preview: a merely-viewed
-      # link must not extend a burn-after-reading secret's lifetime -- which is
-      # both safer and what this method's comment always claimed to do.
-      def previewed!
-        # Fast-path guard on in-memory state; the CAS below is the authority.
-        return unless state?(:new)
-
-        return unless compare_and_set_state!(:previewed, [:new])
-
-        @state = 'previewed'
-      end
-
       # MIGRATION NOTE: This method replaces the legacy `received!` method.
       # Existing data with state='received' should be migrated to state='revealed'.
       # The `received` timestamp field maps to the new `revealed` field.
@@ -142,7 +116,6 @@ module Onetime::Secret::Features
       end
 
       # Backward compatibility aliases for legacy method names
-      alias viewed! previewed!
       alias received! revealed!
 
       # Lua compare-and-set on the +state+ field, run atomically by Redis (its
@@ -166,7 +139,9 @@ module Onetime::Secret::Features
       private
 
       # Atomic claim shared by {#revealed!} and {#reveal!}. Returns true iff
-      # THIS caller won the one-and-only reveal. On loss (a concurrent caller
+      # THIS caller won the one-and-only reveal. This is the recipient-reveal
+      # claim in ADR-019 (At-Most-Once Secret Reveal); a bare decrypt-and-return
+      # that bypasses it silently reintroduces multi-reveal. On loss (a concurrent caller
       # already terminalized the secret) it marks the in-memory instance
       # terminal so its viewable?/safe_dump reflect reality and its plaintext
       # stays withheld; the in-memory check above is a cheap fast-path before

@@ -95,7 +95,7 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
       expect(timeline.access_events.last).to start_with('secret_get:')
     end
 
-    it 'records the distinct creator_secret_get kind when the creator opens their own link' do
+    it "records the distinct 'previewed' kind when the creator opens their own link" do
       owner = Onetime::Customer.create!(email: "show-owner-#{SecureRandom.hex(6)}@example.com")
       owner_pair = Onetime::Receipt.spawn_pair(owner.objid, 3600, 'a secret value')
       as_owner = double('Customer', custid: owner.custid, objid: owner.objid, anonymous?: false)
@@ -104,8 +104,12 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
       logic.process_params
       logic.process
 
+      # The creator opening their OWN secret link is the "previewed" event
+      # (#3633) -- a distinct, non-mutating signal from a third party's
+      # 'secret_get'. It is telemetry only: the secret's state is untouched.
       timeline = Onetime::Receipt.load(owner_pair.first.identifier)
-      expect(timeline.access_events.last).to start_with('creator_secret_get:')
+      expect(timeline.access_events.last).to start_with('previewed:')
+      expect(Onetime::Secret.load(owner_pair.last.identifier).state).to eq('new')
     end
   end
 

@@ -200,6 +200,11 @@ export const receiptBaseCanonical = z.object({
 
   // Boolean status flags
   has_passphrase: z.boolean().nullish(),
+  // True once the secret link has been accessed at least once. Backend
+  // #3633: derived from the access timeline (view_count > 0), not from a
+  // mutated 'previewed' lifecycle state — viewing the receipt page no longer
+  // flips this. Legacy receipts still in a 'previewed'/'viewed' state also
+  // report true.
   is_previewed: z.boolean(),
   is_revealed: z.boolean(),
   is_burned: z.boolean(),

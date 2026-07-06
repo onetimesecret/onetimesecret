@@ -115,8 +115,10 @@ RSpec.describe V1::Logic::Secrets::ShowReceipt do
         expect(subject.secret_value).to eq('v2 secret content')
       end
 
-      it 'does not reveal the value once the receipt has been previewed' do
-        receipt.previewed!
+      it 'does not reveal the value once the one-time display has been claimed' do
+        # #3633 retired the previewed! state; the once-only reveal is now the
+        # atomic claim. Consuming it here simulates a prior reveal.
+        expect(receipt.claim_secret_value_display!).to be true
 
         subject.process
 
@@ -185,7 +187,12 @@ RSpec.describe V1::Logic::Secrets::ShowReceipt do
       # State queries
       allow(receipt).to receive(:state?).and_return(false)
       allow(receipt).to receive(:state?).with(:new).and_return(true)
-      allow(receipt).to receive(:previewed!)
+      # Loading the receipt page records a one-time 'receipt_viewed' audit
+      # event instead of advancing state via previewed! (#3633).
+      allow(receipt).to receive(:record_receipt_view!)
+      # The plaintext value is revealed to the creator at most once, gated on
+      # an atomic claim rather than the retired previewed! state (#3633).
+      allow(receipt).to receive(:claim_secret_value_display!).and_return(true)
 
       # decrypted_secret_value is the CORRECT method - returns plaintext
       allow(secret).to receive(:decrypted_secret_value).and_return('v2 secret content')
