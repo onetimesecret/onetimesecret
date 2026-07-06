@@ -116,16 +116,37 @@ module Onetime::Receipt::Features
       # we pass update_expiration: false to save so that changing this receipt
       # object's state doesn't affect its original expiration time.
       #
+      # Every transition is gated by an atomic compare-and-set on the persisted
+      # +state+ field ({#compare_and_set_state!}) so it FAILS CLOSED. If the
+      # receipt's Redis key was TTL-evicted between the time this instance was
+      # loaded and the time the transition runs, the CAS's HGET matches nothing,
+      # the claim loses, and the unconditional `save` never fires -- so an
+      # evicted receipt is not resurrected as a TTL-less "immortal" key (#3625).
+      # If a concurrent caller already advanced the state, the CAS also loses, so
+      # a stale instance can never revert an already-terminal receipt. Only the
+      # caller that wins the claim persists the accompanying fields and emits the
+      # log/audit side effects.
+      #
+      # The winner's follow-up field writes still go through
+      # `save update_expiration: false` so advancing state never resets the
+      # receipt's original expiration. That write lands on the key the CAS just
+      # confirmed exists, so an HSET/HMSET on a live key leaves its TTL untouched
+      # -- exactly the guarantee `update_expiration: false` was approximating.
+      #
       # TODO: Replace with transaction (i.e. MULTI/EXEC command)
 
       # MIGRATION NOTE: Replaces legacy `received!` method.
       # - Sets state to 'revealed' (was 'received')
       # - Sets `revealed` timestamp (legacy `received` kept for backward compat in safe_dump)
       # - Clears secret_identifier
+      #
+      # @return [Boolean, nil] true if THIS caller performed the transition;
+      #   a falsy value if the in-memory guard or the atomic claim lost.
       def revealed!
-        # A guard to allow only a fresh secret to be revealed. Also ensures
-        # that we don't support going from revealed back to something else.
+        # In-memory fast-path: short-circuit an already-terminal instance before
+        # touching Redis. The authoritative, resurrection-proof guard is the CAS.
         return unless state?(:new) || state?(:previewed)
+        return unless compare_and_set_state!(:revealed, [:new, :previewed])
 
         previous_state         = state
         original_secret_id     = secret_identifier
@@ -144,6 +165,7 @@ module Onetime::Receipt::Features
           }
 
         record_org_audit_event('revealed')
+        true
       end
 
       # We use this method in special cases where a receipt record exists with
@@ -156,6 +178,7 @@ module Onetime::Receipt::Features
         return if secret_identifier.to_s.empty?
         # Only new or previewed secrets can be orphaned (was state?(:viewed))
         return unless state?(:new) || state?(:previewed)
+        return unless compare_and_set_state!(:orphaned, [:new, :previewed])
 
         previous_state         = state
         original_secret_id     = secret_identifier
@@ -174,11 +197,13 @@ module Onetime::Receipt::Features
           }
 
         record_org_audit_event('orphaned')
+        true
       end
 
       def burned!
         # See guard comment on `revealed!` (was `received!`)
         return unless state?(:new) || state?(:previewed)
+        return unless compare_and_set_state!(:burned, [:new, :previewed])
 
         previous_state         = state
         original_secret_id     = secret_identifier
@@ -197,6 +222,7 @@ module Onetime::Receipt::Features
           }
 
         record_org_audit_event('burned')
+        true
       end
 
       def expired!
@@ -209,6 +235,7 @@ module Onetime::Receipt::Features
         # so every later view of an expired receipt re-ran the transition
         # (redundant save, duplicate logs, duplicate audit events).
         return unless state?(:new) || state?(:previewed)
+        return unless compare_and_set_state!(:expired, [:new, :previewed])
 
         previous_state         = state
         original_secret_id     = secret_identifier
@@ -230,6 +257,7 @@ module Onetime::Receipt::Features
           }
 
         record_org_audit_event('expired')
+        true
       end
 
       def state?(guess)
@@ -241,6 +269,56 @@ module Onetime::Receipt::Features
 
       def truncated?
         truncate.to_s == 'true'
+      end
+
+      # Lua compare-and-set on the +state+ field, run atomically by Redis (its
+      # command loop is single-threaded). Sets state to ARGV[1] iff the current
+      # value equals one of ARGV[2..]. Returns 1 to the single caller that
+      # performs the flip, 0 to everyone else -- including when the key/field is
+      # gone (HGET yields a Lua false that matches nothing, so a TTL-evicted
+      # receipt is never resurrected) and when the state has already advanced
+      # (so a terminal receipt is never reverted). This mirrors the Secret's
+      # STATE_CAS_SCRIPT (SecretStateManagement) so both models share one
+      # concurrency idiom.
+      STATE_CAS_SCRIPT = <<~LUA
+        local current = redis.call('HGET', KEYS[1], 'state')
+        for i = 2, #ARGV do
+          if current == ARGV[i] then
+            redis.call('HSET', KEYS[1], 'state', ARGV[1])
+            return 1
+          end
+        end
+        return 0
+      LUA
+
+      private
+
+      # Atomically transition the persisted +state+ field from one of
+      # +from_states+ to +to_state+, returning whether THIS caller performed the
+      # flip. This is the single concurrency primitive behind every receipt state
+      # transition; each transition documents what its own guard protects.
+      #
+      # Because Redis runs the Lua script atomically, of any number of racing
+      # callers exactly one observes an allowed +from+ value and flips it. It
+      # fails closed: a missing key (TTL-evicted) or an already-advanced state
+      # simply loses, so a transition can neither resurrect an immortal, TTL-less
+      # receipt (#3625) nor revert a terminal one. On a win, the HSET lands on
+      # the live key, preserving its TTL.
+      #
+      # Operands are produced with #serialize_value so they match how +state+ is
+      # encoded at rest (Familia JSON-encodes scalar fields), and the eval uses
+      # the keyword +keys:+/+argv:+ form (as in claim_once! and the Secret CAS)
+      # so it does not depend on positional-argument compatibility across Redis
+      # client versions.
+      #
+      # @param to_state [Symbol, String] state to set on success.
+      # @param from_states [Array<Symbol, String>] states the flip may fire from.
+      # @return [Boolean] true iff this caller performed the transition.
+      def compare_and_set_state!(to_state, from_states)
+        argv = [serialize_value(to_state.to_s)]
+        from_states.each { |from_state| argv << serialize_value(from_state.to_s) }
+
+        dbclient.eval(STATE_CAS_SCRIPT, keys: [dbkey], argv: argv).to_i == 1
       end
     end
   end
