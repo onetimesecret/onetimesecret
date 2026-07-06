@@ -10,6 +10,7 @@ module Onetime::Customer::Features
       OT.ld "[features] #{base}: #{name}"
 
       base.include InstanceMethods
+      base.extend ClassMethods
 
       # Store counters for each customer as separate keys. This allows for simple
       # math operations for aggregation and integrity checks, and avoids the need
@@ -24,12 +25,60 @@ module Onetime::Customer::Features
         base.counter :secrets_burned
         base.counter :secrets_shared
         base.counter :emails_sent
+
+        # secrets_active — the number of *live* (non-expired, non-revealed)
+        # secrets this customer currently owns. This backs the colonel users
+        # list's `secrets_count` (issue #60), replacing the former per-request
+        # `secret:*` SCAN (10k-capped, undercounted large owners — #2211's
+        # blocking-enumeration family of problems).
+        #
+        # DRIFT IS UP-ONLY BY DESIGN. It is incremented once per secret create
+        # at the single chokepoint (Onetime::Customer.increment_secrets_active,
+        # called from Onetime::Receipt.spawn_pair). There is NO destroy/expire
+        # decrement hook: secrets vanish silently on TTL expiry (no application
+        # code runs) and on reveal/burn `Secret#destroy!` deletes the key with
+        # no counter callback. So this counter only ever grows and therefore
+        # OVER-counts between reconciliations. Correctness is restored by the
+        # daily SET-recount reconciliation (SecretCountReconcileJob) which
+        # recomputes each owner's true live count off the request path and
+        # resets this counter. That reconciliation — not the increment — is the
+        # primary correctness mechanism; the increment merely keeps the value
+        # approximately fresh between nightly recounts. See #60.
+        base.counter :secrets_active
       end
 
       base.class_counter :secrets_created
       base.class_counter :secrets_shared
       base.class_counter :secrets_burned
       base.class_counter :emails_sent
+    end
+
+    module ClassMethods
+      # Increment a customer's per-customer live-secret counter (secrets_active)
+      # by object id, without loading the full Customer record.
+      #
+      # Called from the single secret-creation chokepoint
+      # (Onetime::Receipt.spawn_pair). Anonymous / ownerless secrets carry a nil
+      # or 'anon' owner_id and are skipped — there is no per-customer counter to
+      # bump for them (mirroring the old SCAN, which grouped by a real owner_id).
+      #
+      # A bare `Customer.new(objid:)` is intentional: constructing the instance
+      # does not touch the datastore, and reaching through the `secrets_active`
+      # counter issues a single INCR on `customer:<objid>:secrets_active` — the
+      # same key the reconciliation resets and the colonel list reads. See #60.
+      #
+      # @param owner_id [String, nil] the secret owner's Customer objid
+      # @return [void]
+      def increment_secrets_active(owner_id)
+        oid = owner_id.to_s
+        return if oid.empty? || oid == 'anon'
+
+        new(objid: oid).secrets_active.increment
+      rescue StandardError => ex
+        # A counter bump must never break secret creation. Log and move on; the
+        # nightly reconciliation will correct any missed increment.
+        OT.le "[increment_secrets_active] #{ex.class}: #{ex.message} (owner_id=#{oid})"
+      end
     end
 
     module InstanceMethods
@@ -43,6 +92,7 @@ module Onetime::Customer::Features
         self.secrets_burned  ||= 0
         self.secrets_shared  ||= 0
         self.emails_sent     ||= 0
+        self.secrets_active  ||= 0
       end
     end
   end

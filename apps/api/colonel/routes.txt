@@ -24,6 +24,10 @@ DELETE /secrets/:secret_id                ColonelAPI::Logic::Colonel::DeleteSecr
 GET    /users                             ColonelAPI::Logic::Colonel::ListUsers response=json auth=sessionauth role=colonel scope=internal
 GET    /users/:user_id                    ColonelAPI::Logic::Colonel::GetUserDetails response=json auth=sessionauth role=colonel scope=internal
 POST   /users/:user_id/plan               ColonelAPI::Logic::Colonel::UpdateUserPlan response=json auth=sessionauth role=colonel scope=internal
+POST   /users/:user_id/role               ColonelAPI::Logic::Colonel::SetUserRole response=json auth=sessionauth role=colonel scope=internal
+POST   /users/:user_id/verify             ColonelAPI::Logic::Colonel::VerifyUser response=json auth=sessionauth role=colonel scope=internal
+POST   /users/:user_id/unverify           ColonelAPI::Logic::Colonel::UnverifyUser response=json auth=sessionauth role=colonel scope=internal
+DELETE /users/:user_id                    ColonelAPI::Logic::Colonel::PurgeUser response=json auth=sessionauth role=colonel scope=internal
 
 # System Monitoring
 GET    /system/database                   ColonelAPI::Logic::Colonel::GetDatabaseMetrics response=json auth=sessionauth role=colonel scope=internal

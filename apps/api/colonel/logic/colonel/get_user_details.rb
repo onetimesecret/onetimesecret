@@ -53,6 +53,21 @@ module ColonelAPI
         # Scan secrets owned by user using non-blocking Redis SCAN.
         # O(all secrets) but filters by owner_id. The user.receipts sorted
         # set would be more efficient but isn't populated by spawn_pair yet.
+        #
+        # SCOPE (#60): this detail view intentionally keeps its own bounded
+        # cursor SCAN and does NOT source `details.secrets.count` from the
+        # maintained `secrets_active` counter. #60's "count correct beyond 10k"
+        # criterion applies to the colonel USERS LIST column (ListUsers), which
+        # shows only a count. Here we render the actual secret ITEMS, so the
+        # count must equal the items shown (`details.secrets.count == items.size`).
+        # Sourcing it from `secrets_active` would surface a visible count/items
+        # mismatch because that counter drifts UP between nightly reconciliations
+        # (no expiry/burn decrement — see Customer::Features::CounterFields). This
+        # is a bounded, non-blocking cursor SCAN (COUNT=100, 10k cap), so it is
+        # CONTRACT-8 compliant — not the blocking KEYS/SMEMBERS the #2211 incident
+        # forbids. list_secrets.rb / export_usage.rb keep similar bounded SCANs
+        # for the same reason (separate features). Removing the full-keyspace scan
+        # via a per-owner secret index is a separate follow-up.
         def scan_user_secrets
           secrets  = []
           cursor   = '0'
