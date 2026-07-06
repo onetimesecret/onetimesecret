@@ -11,6 +11,11 @@
 # - "revealed" better describes the action of displaying the secret content
 #
 # The old terminology is maintained for backward compatibility in safe_dump.
+#
+# NOTE (#3633): the previewed! state mutation was retired. No request path
+# advances a Secret to :previewed anymore; :previewed survives only as a
+# backward-compat guard term for pre-#3633 data. Cases that exercised the
+# previewed! transition/state were dropped here.
 
 require_relative '../../support/test_models'
 
@@ -36,35 +41,8 @@ secret = Onetime::Secret.new state: :new
 secret.state?(:revealed)
 #=> false
 
-## previewed! transitions from :new to 'previewed'
-receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
-secret.previewed!
-secret.state
-#=> 'previewed'
-
-## previewed! guard prevents transition from :previewed (idempotent)
-receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
-secret.previewed!
-first_state = secret.state
-secret.previewed!
-[first_state, secret.state]
-#=> ['previewed', 'previewed']
-
-## state?(:previewed) returns true after previewed!
-receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
-secret.previewed!
-secret.state?(:previewed)
-#=> true
-
 ## revealed! transitions from :new to 'revealed'
 receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
-secret.revealed!
-secret.state
-#=> 'revealed'
-
-## revealed! transitions from :previewed to 'revealed'
-receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
-secret.previewed!
 secret.revealed!
 secret.state
 #=> 'revealed'
@@ -87,12 +65,6 @@ receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
 secret.state?(:new) && secret.viewable?
 #=> true
 
-## viewable? returns true for :previewed state
-receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
-secret.previewed!
-secret.viewable?
-#=> true
-
 ## viewable? returns false for :revealed state
 receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
 secret.revealed!
@@ -104,37 +76,17 @@ receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
 secret.receivable?
 #=> true
 
-## receivable? returns true for :previewed state
-receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
-secret.previewed!
-secret.receivable?
-#=> true
-
 ## receivable? returns false for :revealed state
 receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
 secret.revealed!
 secret.receivable?
 #=> false
 
-## safe_dump is_previewed returns true after previewed!
-receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
-secret.previewed!
-dump = secret.safe_dump
-dump[:is_previewed]
-#=> true
-
 ## safe_dump is_revealed returns true after revealed!
 receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
 secret.revealed!
 dump = secret.safe_dump
 dump[:is_revealed]
-#=> true
-
-## safe_dump is_viewed returns true when previewed (backward compat)
-receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
-secret.previewed!
-dump = secret.safe_dump
-dump[:is_viewed]
 #=> true
 
 ## safe_dump is_received returns true when revealed (backward compat)
@@ -163,13 +115,6 @@ secret.exists?
 
 ## burned! from :new transitions receipt to 'burned'
 receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
-secret.burned!
-Onetime::Receipt.load(receipt.identifier).state
-#=> 'burned'
-
-## burned! from :previewed also transitions receipt to 'burned'
-receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
-secret.previewed!
 secret.burned!
 Onetime::Receipt.load(receipt.identifier).state
 #=> 'burned'
@@ -213,13 +158,6 @@ secret.revealed!
 Onetime::Receipt.load(receipt.identifier).state
 #=> 'revealed'
 
-## revealed! from :previewed transitions receipt to 'revealed'
-receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
-secret.previewed!
-secret.revealed!
-Onetime::Receipt.load(receipt.identifier).state
-#=> 'revealed'
-
 ## revealed! clears @value and @ciphertext
 receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
 secret.revealed!
@@ -230,30 +168,18 @@ secret.revealed!
 # Sequential lifecycle chains (#2619)
 # ----------------------------------------------------------------
 
-## new → previewed → revealed chain
+## new → burned chain (receipt reflects burn)
 receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
 s1 = secret.state
-secret.previewed!
-s2 = secret.state
-secret.revealed!
-s3 = secret.state
-[s1, s2, s3]
-#=> ['new', 'previewed', 'revealed']
-
-## new → previewed → burned chain (receipt reflects burn)
-receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
-s1 = secret.state
-secret.previewed!
-s2 = secret.state
 secret.burned!
 r_state = Onetime::Receipt.load(receipt.identifier).state
-[s1, s2, r_state]
-#=> ['new', 'previewed', 'burned']
+[s1, r_state]
+#=> ['new', 'burned']
 
 ## After revealed!, further transitions are no-ops (state stays 'revealed')
 receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
 secret.revealed!
-secret.previewed!
+secret.burned!
 secret.state
 #=> 'revealed'
 
