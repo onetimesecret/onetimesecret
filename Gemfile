@@ -23,7 +23,7 @@ gem 'rhales', '~> 0.6.2'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'
 gem 'rodauth-omniauth', '~> 0.4'
-gem 'rodauth-tools', '~> 0.3.1'
+gem 'rodauth-tools', '~> 0.4.0'
 
 # OmniAuth providers (SSO via OIDC)
 # NOTE: omniauth_openid_connect transitively pulls in activesupport (via
@@ -75,13 +75,15 @@ gem 'truemail'
 # ORMs and database drivers
 # NOTE: We install both db drivers for the OCI images so that users can choose
 # which database to use at runtime via environment variable without rebuilding.
-# familia 2.11.1 floor: rejects a blank VERIFIABLE_ID_HMAC_SECRET at the library
-# layer (delano/familia#335), and the 2.11 line decouples the AES-256-GCM HKDF
-# salt from the XChaCha20 personalization -- which activates the salt/
-# personalization/history pinning in ConfigureFamilia. Do NOT relax to 2.12: it
-# lands breaking encryption personalization/salt-history changes (delano/
-# familia#333, #334) that need the migration tracked in issue #3630.
-gem 'familia', '~> 2.11.1'
+# familia 2.11.2 floor: rejects a blank VERIFIABLE_ID_HMAC_SECRET at the library
+# layer (delano/familia#335); the 2.11 line decouples the AES-256-GCM HKDF salt
+# from the XChaCha20 personalization -- which activates the salt/personalization/
+# history pinning in ConfigureFamilia; and 2.11.2 stops persisting nil declared
+# fields as the JSON string "null" (HDEL on clear), restoring HSETNX/HEXISTS
+# atomic-claim semantics (no migration -- stale "null" decodes to nil on read).
+# Do NOT relax to 2.12: it lands breaking encryption personalization/salt-history
+# changes (delano/familia#333, #334) that need the migration tracked in issue #3630.
+gem 'familia', '~> 2.11.2'
 gem 'pg', '~> 1.6'
 gem 'sequel', '~> 5.0'
 gem 'sqlite3', '~> 2.0'

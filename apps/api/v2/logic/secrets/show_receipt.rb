@@ -249,9 +249,16 @@ module V2::Logic
         # Start with safe receipt attributes
         attributes = receipt.safe_dump
 
+        # Provenance gate: incoming secrets withhold the share link (and its
+        # secret_identifier bearer key) from the creator. safe_dump already
+        # withholds secret_identifier for these; keep the re-add and the
+        # share_url/share_path merge below consistent with it.
+        link_visible = receipt.shows_share_link?
+
         # Only include the secret's identifying key when necessary
         # Remove it from safe_dump and only add it back if show_secret is true
-        if show_secret
+        # AND provenance permits sharing the link.
+        if show_secret && link_visible
           attributes[:secret_identifier] = secret_identifier
         else
           attributes.delete(:secret_identifier)
@@ -269,11 +276,15 @@ module V2::Logic
             # contract and null the whole receipt (#3424).
             expiration: expiration,
             expiration_in_seconds: expiration_in_seconds.to_i,
-            share_path: share_path,
+            # share_path/share_url are the secret link; withheld (null) for
+            # incoming provenance. burn/receipt paths stay — the creator still
+            # manages the receipt. Null is the intended "link withheld" signal
+            # (contract makes these nullable), not a defect (#3424).
+            share_path: link_visible ? share_path : nil,
             burn_path: burn_path,
             receipt_path: receipt_path,
             metadata_path: metadata_path, # V2 backward-compat alias
-            share_url: share_url,
+            share_url: link_visible ? share_url : nil,
             receipt_url: receipt_url,
             metadata_url: metadata_url, # V2 backward-compat alias
             burn_url: burn_url,

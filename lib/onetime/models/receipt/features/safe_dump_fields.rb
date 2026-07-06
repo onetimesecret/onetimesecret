@@ -61,7 +61,12 @@ module Onetime::Receipt::Features
                 val = m.secret_shortid.to_s
                 val.empty? ? m.secret_identifier.to_s.slice(0, 8) : val
         }
-      base.safe_dump_field :secret_identifier
+      # secret_identifier is the share-link bearer key. Withhold it for
+      # provenance that must not expose the link (incoming secrets). This gate
+      # is load-bearing for the unauthenticated batch endpoint
+      # (V3::Logic::Secrets::ShowMultipleReceipts serializes via safe_dump and
+      # never runs the logic-layer gate). See Receipt#shows_share_link?.
+      base.safe_dump_field :secret_identifier, ->(m) { m.shows_share_link? ? m.secret_identifier : nil }
 
       # Coerce numeric fields to Integer at the serialization boundary — see the
       # full note in secret/features/safe_dump_fields.rb (#3424/#3299). TTL and
@@ -131,6 +136,7 @@ module Onetime::Receipt::Features
       # base.safe_dump_field :is_truncated, ->(m) { m.truncated? }
       base.safe_dump_field :has_passphrase, ->(m) { m.has_passphrase? }
       base.safe_dump_field :kind
+      base.safe_dump_field :source
     end
   end
 end
