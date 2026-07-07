@@ -24,7 +24,7 @@
     type CornerStyle as CornerStyleType,
     type FontFamily as FontFamilyType,
   } from '@/shared/utils/brand-helpers';
-  import { checkBrandContrast } from '@/utils/brand-palette';
+  import { checkBrandContrast, contrastRatio } from '@/utils/brand-palette';
   import { computed } from 'vue';
   import { useI18n, Composer } from 'vue-i18n';
 
@@ -95,6 +95,22 @@
   const showContrastWarning = computed(() => !contrastCheck.value.passesAA);
   const contrastRatioDisplay = computed(() => contrastCheck.value.ratio.toFixed(1));
 
+  // text_color-on-background_color pair: mirror the backend's
+  // validate_text_on_background! (WCAG AA normal-text 4.5:1) so the user sees a
+  // warning in-editor instead of only discovering it as a save error. Only
+  // evaluated when BOTH halves are set (matching the backend gate).
+  const WCAG_AA_NORMAL = 4.5;
+  const textBgContrast = computed<number | null>(() => {
+    const text = props.modelValue.text_color;
+    const bg = props.modelValue.background_color;
+    if (!text || !bg) return null;
+    return contrastRatio(text, bg);
+  });
+  const showTextBgWarning = computed(
+    () => textBgContrast.value !== null && textBgContrast.value < WCAG_AA_NORMAL
+  );
+  const textBgRatioDisplay = computed(() => textBgContrast.value?.toFixed(1) ?? '');
+
   const buttonText = computed(() => props.isLoading ? t('web.LABELS.saving') : t('web.LABELS.save'));
   const handleSubmit = () => emit('submit');
 </script>
@@ -146,7 +162,7 @@
                 :disable-alpha="false"
                 :label="t('web.branding.text_color')"
                 id="brand-text-color" />
-              <!-- WCAG Contrast Warning -->
+              <!-- WCAG Contrast Warning (primary color vs white) -->
               <div
                 v-if="showContrastWarning"
                 class="flex items-center gap-1.5 rounded-md bg-amber-50 px-2 py-1 text-xs text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
@@ -158,6 +174,21 @@
                 <span class="whitespace-nowrap">
                   {{ t('web.branding.low_contrast_warning') }}
                   <span class="font-medium">{{ contrastRatioDisplay }}:1</span>
+                </span>
+              </div>
+              <!-- WCAG Contrast Warning (text on background) — mirrors the
+                   backend text-on-background rule so it never surprises on save -->
+              <div
+                v-if="showTextBgWarning"
+                class="flex items-center gap-1.5 rounded-md bg-amber-50 px-2 py-1 text-xs text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                role="alert">
+                <OIcon
+                  collection="mdi"
+                  name="alert"
+                  class="size-4 shrink-0" />
+                <span class="whitespace-nowrap">
+                  {{ t('web.branding.low_contrast_text_bg_warning') }}
+                  <span class="font-medium">{{ textBgRatioDisplay }}:1</span>
                 </span>
               </div>
             </div>

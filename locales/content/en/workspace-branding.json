@@ -179,6 +179,10 @@
     "text": "Low contrast",
     "content_hash": "2d6e7516"
   },
+  "web.branding.low_contrast_text_bg_warning": {
+    "text": "Low text/background contrast",
+    "content_hash": "1c676370"
+  },
   "web.branding.contrast_ratio_label": {
     "text": "Contrast ratio",
     "content_hash": "d521a5be"
