@@ -24,11 +24,6 @@
       <h2 class="font-brand text-2xl font-semibold text-gray-900 dark:text-white">
         {{ t('web.colonel.titles.index') }}
       </h2>
-      <!-- Technical flag tag (not translatable prose): shows which shell is live. -->
-      <span
-        class="rounded-full bg-brand-50 px-2.5 py-0.5 font-mono text-xs font-medium text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
-        admin_v2
-      </span>
     </div>
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

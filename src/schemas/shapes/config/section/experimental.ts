@@ -15,8 +15,10 @@ import { augment } from '@/schemas/utils/augment';
 
 export { experimentalSchema };
 
-const experimentalShape = augment(experimentalSchema, {
-  admin_v2: (b) => b.default(false),
-});
+// No experimental flags are currently defined (the Colonel admin-console
+// cutover flag was retired — see docs/specs/colonel-ui/50-cutover-hardening.md).
+// The `augment` call is retained as the extension point: add
+// `flag: (b) => b.default(...)` here when a new experimental flag lands.
+const experimentalShape = augment(experimentalSchema, {});
 
 export { experimentalShape };

@@ -11,20 +11,17 @@ module Core
 
       # GET /colonel and /colonel/* (role=colonel).
       #
-      # Serves the rebuilt admin console shell when experimental.admin_v2 is on,
-      # otherwise falls back to the standard SPA shell so the legacy colonel app
-      # renders exactly as before. Rollback is a pure config flip — both shells
-      # ship; the flag only chooses which one (and thus which Vite entry) loads.
-      # Reuses this core Page controller rather than a second Rack app (D2).
+      # Serves the rebuilt Colonel admin console shell (its own isolated
+      # `admin.ts` Vite entry). Since the cutover
+      # (docs/specs/colonel-ui/50-cutover-hardening.md) this is unconditional:
+      # the admin console is the sole admin frontend and the legacy colonel SPA
+      # has been retired. Reuses this core Page controller rather than a second
+      # Rack app (D2).
       def colonel
         # Keep parity with Base#index: the view layer serializes homepage_mode.
         req.env['onetime.homepage_mode'] = determine_homepage_mode
 
-        view = if OT.conf.dig('experimental', 'admin_v2')
-                 Core::Views::AdminPoint.new(req)
-               else
-                 Core::Views::VuePoint.new(req)
-               end
+        view = Core::Views::AdminPoint.new(req)
         res.body = view.render
       end
 

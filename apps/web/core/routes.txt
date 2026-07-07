@@ -94,8 +94,9 @@ GET   /welcome                                   Core::Controllers::Welcome#welc
 GET   /account/billing_portal                    Core::Controllers::Welcome#customer_portal_redirect auth=sessionauth
 
 # Colonel routes - require colonel role
-# Page#colonel selects the admin console shell (experimental.admin_v2) or the
-# legacy SPA shell; both keep auth=sessionauth role=colonel.
+# Page#colonel serves the rebuilt admin console shell (the sole admin frontend
+# since the cutover, docs/specs/colonel-ui/50-cutover-hardening.md);
+# auth=sessionauth role=colonel.
 GET   /colonel                                   Core::Controllers::Page#colonel auth=sessionauth role=colonel
 GET   /colonel/*                                 Core::Controllers::Page#colonel auth=sessionauth role=colonel
 

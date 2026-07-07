@@ -5,8 +5,9 @@
      Admin console shell. Structurally identical to index.rue — the same
      bootstrap window state (AdminPoint reuses VuePoint's serializers) — but the
      Vite assets resolve the `admin.ts` entry instead of `main.ts`, via
-     AdminPoint#vite_entry. Served at /colonel only when experimental.admin_v2
-     is on (see Core::Controllers::Page#colonel). -->
+     AdminPoint#vite_entry. Served at /colonel as the sole admin shell since the
+     cutover (docs/specs/colonel-ui/50-cutover-hardening.md); see
+     Core::Controllers::Page#colonel. -->
 </schema>
 
 

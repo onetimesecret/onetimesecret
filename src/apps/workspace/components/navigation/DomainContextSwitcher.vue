@@ -17,11 +17,10 @@
   - Route-aware navigation (updates URL when switching domains)
   - Add/Manage call-to-action for owners and admins
 
-  Related component:
-    src/apps/colonel/components/DomainContextSwitcher.vue
-    - Admin tool for simulating arbitrary domains (not limited to user's domains)
-    - Used for testing branding without DNS setup
-    - Both share the same sessionStorage key ('domainContext')
+  Note: the legacy colonel domain-context override tool (for simulating
+  arbitrary domains, not limited to the user's own) was retired at cutover
+  (docs/specs/colonel-ui/50-cutover-hardening.md). The admin console's domain
+  tooling now lives under src/apps/admin/ (AdminDomains / AdminDomainToolbox).
 -->
 
 <script setup lang="ts">

@@ -155,7 +155,16 @@ module Core::Logic
       end
 
       def success?
-        !cust&.anonymous? && (cust.passphrase?(@passwd) || @colonel&.passphrase?(@passwd))
+        # Least-capability auth: a session authenticates only when the supplied
+        # passphrase matches the target customer's own passphrase.
+        #
+        # A colonel-passphrase-as-any-customer branch is deliberately absent: any
+        # such implicit impersonation would mint an authenticated-as-arbitrary
+        # -customer session with no AdminAuditEvent (see ticket 52). If a genuine
+        # impersonation need ever arises it must be an explicit operation gated by
+        # both authz layers (Otto role=colonel + verify_one_of_roles!(colonel:true))
+        # that writes an audit event on every use — never a clause here.
+        !cust&.anonymous? && cust.passphrase?(@passwd)
       end
 
       private

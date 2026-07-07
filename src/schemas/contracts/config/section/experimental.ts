@@ -17,12 +17,11 @@ import { z } from 'zod';
 /**
  * Experimental feature flags
  *
- * - admin_v2: serve the rebuilt Colonel admin console (its own isolated
- *   `admin.ts` bundle + admin shell) at /colonel. When false, the legacy
- *   colonel SPA renders unchanged. See docs/specs/colonel-ui/.
+ * Extension point for opt-in, not-yet-stable flags. Currently empty — the
+ * Colonel admin-console cutover flag was retired once the rebuilt console became
+ * the sole admin frontend (docs/specs/colonel-ui/50-cutover-hardening.md).
+ * Add new flags here (field + type) with their default in `shapes/`.
  */
-const experimentalSchema = z.object({
-  admin_v2: z.boolean().optional(),
-});
+const experimentalSchema = z.object({});
 
 export { experimentalSchema };

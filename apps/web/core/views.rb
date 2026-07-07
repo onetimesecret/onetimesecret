@@ -34,9 +34,10 @@ module Core
     #
     # It reuses VuePoint's serializers (identical window.__BOOTSTRAP_ME__ state)
     # but selects the `admin` template and the `admin.ts` Vite entry, so /colonel
-    # loads the isolated admin bundle. Served only when experimental.admin_v2 is
-    # on (see Core::Controllers::Page#colonel); otherwise VuePoint renders the
-    # legacy colonel SPA unchanged.
+    # loads the isolated admin bundle. Since the cutover
+    # (docs/specs/colonel-ui/50-cutover-hardening.md) this is the sole shell
+    # served at /colonel (see Core::Controllers::Page#colonel); the legacy
+    # colonel SPA has been retired.
     #
     class AdminPoint < Core::Views::BaseView
       use_serializers(
