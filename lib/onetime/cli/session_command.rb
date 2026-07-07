@@ -14,17 +14,30 @@
 
 require 'json'
 
+# The session capability now lives in central operations (epic #40 / D3): the
+# single implementation of the list / inspect / delete verbs. These CLI commands
+# are thin adapters over the ops, and SessionHelpers delegates its Redis/session
+# primitives to Onetime::Operations::Sessions::Store so there is one source of
+# truth. Loaded explicitly because CLI runs don't go through an app autoloader.
+require 'onetime/operations/sessions/store'
+require 'onetime/operations/sessions/list_sessions'
+require 'onetime/operations/sessions/inspect_session'
+require 'onetime/operations/sessions/delete_session'
+
 module Onetime
   module CLI
-    # Shared helpers for session commands
+    # Shared helpers for session commands.
+    #
+    # The Redis/session primitives here are thin delegations to
+    # {Onetime::Operations::Sessions::Store} — the single extracted implementation
+    # (epic #40). Behaviour is preserved byte-for-byte, in particular
+    # {#load_session_data}'s JSON-not-Marshal safety guarantee locked in by
+    # spec/cli/session_command_security_spec.rb.
     module SessionHelpers
+      Store = Onetime::Operations::Sessions::Store
+
       def session_key_patterns(session_id)
-        [
-          "session:#{session_id}",
-          "rack:session:#{session_id}",
-          session_id,
-          "session:rack:session:#{session_id}",
-        ]
+        Store.key_patterns(session_id)
       end
 
       def find_session_in_redis(dbclient, session_id)
@@ -37,31 +50,15 @@ module Onetime
       end
 
       def find_session_key(dbclient, session_id)
-        session_key_patterns(session_id).each do |pattern|
-          return pattern if dbclient.exists(pattern) > 0
-        end
-        nil
+        Store.find_key(dbclient, session_id)
       end
 
       def load_session_data(dbclient, key)
-        raw_data = dbclient.get(key)
-        return nil unless raw_data
-
-        # Session data is JSON-serializable, so parse it as JSON. We
-        # deliberately avoid Marshal.load on Redis-sourced bytes: Marshal
-        # executes its object graph (and any embedded gadget chain) *before*
-        # it can raise, so a rescue fallback offers no protection against a
-        # crafted payload planted at a session key.
-        begin
-          JSON.parse(raw_data)
-        rescue StandardError
-          { '_raw' => raw_data[0..200] }
-        end
+        Store.load_data(dbclient, key)
       end
 
       def extract_session_id_from_key(key)
-        # Remove common prefixes
-        key.gsub(/^(session:|rack:session:)/, '')
+        Store.extract_id(key)
       end
 
       def display_session_info(data, session_id)
@@ -130,12 +127,7 @@ module Onetime
       end
 
       def matches_search?(session_data, search_term)
-        search_term_lower = search_term.downcase
-        [
-          session_data['email'],
-          session_data['external_id'],
-          session_data['account_external_id'],
-        ].compact.any? { |field| field.downcase.include?(search_term_lower) }
+        Store.matches_search?(session_data, search_term)
       end
 
       def format_timestamp(timestamp)
@@ -190,11 +182,10 @@ module Onetime
         puts '=' * 80
         puts
 
-        # Try to find session in Redis using common patterns
-        dbclient     = Familia.dbclient
-        session_data = find_session_in_redis(dbclient, session_id)
+        # Route through the extracted inspect op (the single implementation).
+        result = Onetime::Operations::Sessions::Inspect.new(session_id: session_id).call
 
-        unless session_data
+        unless result.found
           puts '❌ Session not found in Redis'
           puts
           puts 'Searched patterns:'
@@ -205,7 +196,7 @@ module Onetime
           puts 'Available session keys (first 10):'
           keys = []
           begin
-            dbclient.scan_each(match: '*session*').take(10).each { |k| keys << k }
+            Familia.dbclient.scan_each(match: '*session*').take(10).each { |k| keys << k }
           rescue StandardError
             keys = []
           end
@@ -214,7 +205,7 @@ module Onetime
         end
 
         # Display session information
-        display_session_info(session_data, session_id)
+        display_session_info(result.data, session_id)
       end
     end
 
@@ -235,10 +226,11 @@ module Onetime
         puts "Active Sessions (limit: #{limit})"
         puts '-' * 80
 
-        dbclient     = Familia.dbclient
-        session_keys = dbclient.scan_each(match: '*session*').first(limit.to_i)
+        # Route through the extracted list op (single implementation, bounded
+        # scan). `--limit` maps to one page; the op caps a page at its MAX_PER_PAGE.
+        result = Onetime::Operations::Sessions::List.new(page: 1, per_page: limit.to_i).call
 
-        if session_keys.empty?
+        if result.sessions.empty?
           puts 'No sessions found'
           return
         end
@@ -246,15 +238,12 @@ module Onetime
         puts format('%-40s %-25s %-15s', 'Session ID', 'Authenticated As', 'Created')
         puts '-' * 80
 
-        session_keys.each do |key|
-          session_data = load_session_data(dbclient, key)
-          next unless session_data
-
-          session_id = extract_session_id_from_key(key)
-          email      = session_data['email'] || 'anonymous'
-          external_id= session_data['external_id'] || '<n/a>'
-          auth       = session_data['authenticated'] ? '✓' : '✗'
-          created_at = session_data['authenticated_at']
+        result.sessions.each do |session|
+          session_id  = session[:session_id]
+          email       = session[:email] || 'anonymous'
+          external_id = session[:external_id] || '<n/a>'
+          auth        = session[:authenticated] ? '✓' : '✗'
+          created_at  = session[:created_at]
 
           time_str = if created_at
             Time.at(created_at).strftime('%Y-%m-%d %H:%M')
@@ -287,34 +276,27 @@ module Onetime
         puts "Searching for sessions matching: #{search_term}"
         puts '-' * 80
 
-        dbclient     = Familia.dbclient
-        session_keys = dbclient.scan_each(match: '*session*').to_a
-        found        = []
+        # Route through the extracted list op with a search filter (single
+        # implementation, bounded scan).
+        result = Onetime::Operations::Sessions::List.new(
+          search: search_term,
+          per_page: Onetime::Operations::Sessions::List::MAX_PER_PAGE,
+        ).call
 
-        session_keys.each do |key|
-          session_data = load_session_data(dbclient, key)
-          next unless session_data
-
-          if matches_search?(session_data, search_term)
-            found << [key, session_data]
-          end
-        end
-
-        if found.empty?
+        if result.sessions.empty?
           puts "No sessions found matching '#{search_term}'"
           return
         end
 
-        puts "Found #{found.size} session(s):"
+        puts "Found #{result.total_count} session(s):"
         puts
 
-        found.each do |key, data|
-          session_id = extract_session_id_from_key(key)
-          puts "Session: #{session_id}"
-          puts "  Email: #{data['email']}"
-          puts "  External ID: #{data['external_id'] || data['account_external_id']}"
-          puts "  Authenticated: #{data['authenticated']}"
-          puts "  Created: #{format_timestamp(data['authenticated_at'])}"
+        result.sessions.each do |session|
+          puts "Session: #{session[:session_id]}"
+          puts "  Email: #{session[:email]}"
+          puts "  External ID: #{session[:external_id]}"
+          puts "  Authenticated: #{session[:authenticated]}"
+          puts "  Created: #{format_timestamp(session[:created_at])}"
           puts
         end
       end
@@ -325,6 +307,11 @@ module Onetime
       include SessionHelpers
 
       desc 'Delete a session'
+
+      # Audit actor recorded for CLI-initiated revokes. The shell carries no
+      # authenticated colonel identity; a plain, non-secret public sentinel is
+      # used — never an internal objid. Mirrors BannedIpsBanCommand::CLI_ACTOR.
+      CLI_ACTOR = 'cli'
 
       argument :session_id, type: :string, required: false, desc: 'Session ID'
 
@@ -341,6 +328,8 @@ module Onetime
         end
         boot_application!
 
+        # Resolve + display the target before mutating (EXISTS + GET only, no
+        # TTL) so the confirmation shows the exact session being revoked.
         dbclient    = Familia.dbclient
         session_key = find_session_key(dbclient, session_id)
 
@@ -366,7 +355,12 @@ module Onetime
           end
         end
 
-        dbclient.del(session_key)
+        # Route the actual deletion through the extracted, audited op (the single
+        # implementation). It re-resolves the key and records one AdminAuditEvent.
+        Onetime::Operations::Sessions::Delete.new(
+          session_id: session_id,
+          actor: CLI_ACTOR,
+        ).call
         puts '✓ Session deleted'
       end
     end

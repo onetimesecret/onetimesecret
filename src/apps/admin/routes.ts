@@ -125,6 +125,73 @@ const routes: Array<RouteRecordRaw> = [
       sentryScrubParams: false,
     },
   },
+  {
+    // Sessions console: paginated list + search + inspect drawer + guarded revoke (ticket #40).
+    path: '/colonel/sessions',
+    name: 'AdminSessions',
+    component: () => import('@/apps/admin/views/AdminSessions.vue'),
+    meta: {
+      ...adminDefaultMeta,
+      title: 'web.admin.sessions.title',
+      sentryScrubParams: false,
+    },
+  },
+  {
+    // Broadcast banner: settings-style get/set/clear (ticket #41).
+    path: '/colonel/banner',
+    name: 'AdminBanner',
+    component: () => import('@/apps/admin/views/AdminBanner.vue'),
+    meta: {
+      ...adminDefaultMeta,
+      title: 'web.admin.banner.title',
+      sentryScrubParams: false,
+    },
+  },
+  {
+    // Queue DLQ console: list + peek drawer + guarded replay/purge (ticket #42).
+    path: '/colonel/queues/dlq',
+    name: 'AdminQueueDlq',
+    component: () => import('@/apps/admin/views/AdminQueueDlq.vue'),
+    meta: {
+      ...adminDefaultMeta,
+      title: 'web.admin.queue.title',
+      sentryScrubParams: false,
+    },
+  },
+  {
+    // Domain toolbox: orphaned scan + probe + guarded repair/transfer (ticket #43).
+    path: '/colonel/domain-toolbox',
+    name: 'AdminDomainToolbox',
+    component: () => import('@/apps/admin/views/AdminDomainToolbox.vue'),
+    meta: {
+      ...adminDefaultMeta,
+      title: 'web.admin.domaintoolbox.title',
+      sentryScrubParams: false,
+    },
+  },
+  {
+    // Email + rate-limit tools (ticket #44): template preview / test send /
+    // limiter inspect+reset. No route params (all inputs are in-page).
+    path: '/colonel/email-tools',
+    name: 'AdminEmailTools',
+    component: () => import('@/apps/admin/views/AdminEmailTools.vue'),
+    meta: {
+      ...adminDefaultMeta,
+      title: 'web.admin.emailtools.title',
+      sentryScrubParams: false,
+    },
+  },
+  {
+    // Billing catalog / plan-drift read-out (ticket #45). No params.
+    path: '/colonel/billing',
+    name: 'AdminBilling',
+    component: () => import('@/apps/admin/views/AdminBilling.vue'),
+    meta: {
+      ...adminDefaultMeta,
+      title: 'web.admin.billing.title',
+      sentryScrubParams: false,
+    },
+  },
 ];
 
 export default routes;

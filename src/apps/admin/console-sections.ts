@@ -29,4 +29,10 @@ export const CONSOLE_SECTIONS: ConsoleSection[] = [
   { key: 'system', labelKey: 'web.colonel.titles.system', icon: 'cog-6-tooth', to: '/colonel/system' },
   { key: 'bannedIps', labelKey: 'web.colonel.titles.bannedIps', icon: 'no-symbol', to: '/colonel/banned-ips' },
   { key: 'usage', labelKey: 'web.colonel.titles.usage', icon: 'rectangle-group', to: '/colonel/usage' },
+  { key: 'sessions', labelKey: 'web.admin.sessions.title', icon: 'finger-print', to: '/colonel/sessions' },
+  { key: 'banner', labelKey: 'web.admin.banner.title', icon: 'bell', to: '/colonel/banner' },
+  { key: 'queueDlq', labelKey: 'web.admin.queue.nav', icon: 'rectangle-stack', to: '/colonel/queues/dlq' },
+  { key: 'domaintoolbox', labelKey: 'web.admin.domaintoolbox.title', icon: 'shield-exclamation', to: '/colonel/domain-toolbox' },
+  { key: 'emailTools', labelKey: 'web.admin.emailtools.title', icon: 'envelope', to: '/colonel/email-tools' },
+  { key: 'billing', labelKey: 'web.admin.billing.title', icon: 'credit-card', to: '/colonel/billing' },
 ];

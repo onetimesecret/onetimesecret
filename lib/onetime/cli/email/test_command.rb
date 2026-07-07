@@ -18,12 +18,18 @@
 
 require 'json'
 require 'socket'
+require 'onetime/operations/email/send_test'
 
 module Onetime
   module CLI
     module Email
       class TestCommand < Command
         desc 'Send a test email to verify delivery connectivity'
+
+        # Audit actor sentinel for CLI-initiated sends (matches the customer /
+        # session / DLQ CLI convention). The extracted op records one audit event
+        # per successful real send, attributed to this sentinel on the shell path.
+        CLI_ACTOR = 'cli'
 
         option :to,
           type: :string,
@@ -49,34 +55,30 @@ module Onetime
         def call(to:, dry_run: false, format: 'text', enqueue: false, **)
           boot_application!
 
-          provider  = Onetime::Mail::Mailer.send(:determine_provider)
-          hostname  = Socket.gethostname
-          timestamp = Time.now.utc.iso8601
-
-          # Brand-aware copy: a hardcoded vendor literal would leak into a
-          # white-label install's outbound test email (#3612).
-          product_name = Onetime::CustomDomain::BrandSettingsConstants.global_defaults[:product_name] ||
-                         Onetime::CustomDomain::BrandSettingsConstants::NEUTRAL_PRODUCT_NAME
-
-          email = {
-            to: to,
-            from: Onetime::Mail::Mailer.from_address,
-            subject: "[#{product_name}] Email delivery test - #{timestamp}",
-            text_body: "This is a test email from the #{product_name} CLI.\n\nProvider: #{provider}\nTimestamp: #{timestamp}\nHost: #{hostname}",
+          # Build the exact diagnostic email through the extracted op — the SINGLE
+          # implementation shared with the colonel API (ticket #44). The op owns
+          # the brand-aware subject/body + provider/host probe; this command keeps
+          # its own output + timing + exit-code behaviour byte-for-byte.
+          diagnostic = Onetime::Operations::Email::SendTest.build(to: to)
+          email      = {
+            to: diagnostic.to,
+            from: diagnostic.from,
+            subject: diagnostic.subject,
+            text_body: diagnostic.text_body,
           }
 
           if format == 'json'
-            output_json(email, provider, hostname, dry_run, enqueue: enqueue)
+            output_json(email, diagnostic.provider, diagnostic.host, dry_run, enqueue: enqueue)
           else
-            output_text(email, provider, hostname, dry_run, enqueue: enqueue)
+            output_text(email, diagnostic.provider, diagnostic.host, dry_run, enqueue: enqueue)
           end
 
           return if dry_run
 
           if enqueue
-            enqueue!(email)
+            enqueue!(to)
           else
-            deliver!(email)
+            deliver!(to)
           end
         rescue StandardError => ex
           warn "Error: #{ex.message}"
@@ -85,9 +87,15 @@ module Onetime
 
         private
 
-        def deliver!(email)
+        # Route the actual send through the op (which records the audit event on
+        # success); keep the CLI's timing + status output identical. The op raises
+        # the same delivery exceptions the inline call did, so this rescue is
+        # unchanged behaviourally.
+        def deliver!(to)
           start   = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          Onetime::Mail::Mailer.delivery_backend.deliver(email)
+          Onetime::Operations::Email::SendTest.new(
+            to: to, actor: CLI_ACTOR, dry_run: false, enqueue: false
+          ).call
           elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
 
           puts
@@ -100,22 +108,15 @@ module Onetime
           exit 1
         end
 
-        def enqueue!(email)
-          require_relative '../../../onetime/jobs/publisher'
-
-          start      = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          # Convert to raw email format expected by Publisher
-          raw_email  = {
-            to: email[:to],
-            from: email[:from],
-            subject: email[:subject],
-            body: email[:text_body],
-          }
-          queued     = Onetime::Jobs::Publisher.enqueue_email_raw(raw_email, fallback: :raise)
-          elapsed    = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
+        def enqueue!(to)
+          start   = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          result  = Onetime::Operations::Email::SendTest.new(
+            to: to, actor: CLI_ACTOR, dry_run: false, enqueue: true
+          ).call
+          elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
 
           puts
-          if queued
+          if result.status == :enqueued
             puts format('Status:    ENQUEUED (%.2fs)', elapsed)
             puts 'Queue:     email.message.send'
             puts

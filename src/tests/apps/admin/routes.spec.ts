@@ -177,4 +177,58 @@ describe('Admin Routes Configuration', () => {
       });
     });
   });
+
+  describe('Phase-3 routes (tickets #40-45)', () => {
+    const cases: Array<{ path: string; name: string; title: string; sectionKey: string }> = [
+      {
+        path: '/colonel/sessions',
+        name: 'AdminSessions',
+        title: 'web.admin.sessions.title',
+        sectionKey: 'sessions',
+      },
+      {
+        path: '/colonel/banner',
+        name: 'AdminBanner',
+        title: 'web.admin.banner.title',
+        sectionKey: 'banner',
+      },
+      {
+        path: '/colonel/queues/dlq',
+        name: 'AdminQueueDlq',
+        title: 'web.admin.queue.title',
+        sectionKey: 'queueDlq',
+      },
+      {
+        path: '/colonel/domain-toolbox',
+        name: 'AdminDomainToolbox',
+        title: 'web.admin.domaintoolbox.title',
+        sectionKey: 'domaintoolbox',
+      },
+      {
+        path: '/colonel/email-tools',
+        name: 'AdminEmailTools',
+        title: 'web.admin.emailtools.title',
+        sectionKey: 'emailTools',
+      },
+      {
+        path: '/colonel/billing',
+        name: 'AdminBilling',
+        title: 'web.admin.billing.title',
+        sectionKey: 'billing',
+      },
+    ];
+
+    cases.forEach(({ path, name, title, sectionKey }) => {
+      it(`registers the ${name} route at ${path}`, () => {
+        const route = adminRoutes.find((r: RouteRecordRaw) => r.path === path);
+        expect(route).toBeDefined();
+        expect(route?.name).toBe(name);
+        expect(route?.meta?.title).toBe(title);
+      });
+
+      it(`${sectionKey} is a live section pointing at ${path}`, () => {
+        expect(CONSOLE_SECTIONS.find((s) => s.key === sectionKey)?.to).toBe(path);
+      });
+    });
+  });
 });
