@@ -1,0 +1,114 @@
+{
+  "web.admin.bannedIps.title": {
+    "text": "Banned IPs",
+    "content_hash": "0ece5643"
+  },
+  "web.admin.bannedIps.description": {
+    "text": "Ban and unban IP addresses at the site perimeter.",
+    "content_hash": "69c0c992"
+  },
+  "web.admin.bannedIps.currentIp": {
+    "text": "Your current IP",
+    "content_hash": "14ff3ec5"
+  },
+  "web.admin.bannedIps.actions.cancel": {
+    "text": "Cancel",
+    "content_hash": "19766ed6"
+  },
+  "web.admin.bannedIps.actions.ban": {
+    "text": "Ban an IP",
+    "content_hash": "9937d7fd"
+  },
+  "web.admin.bannedIps.actions.quickBan": {
+    "text": "Ban this IP",
+    "content_hash": "95720658"
+  },
+  "web.admin.bannedIps.stats.total": {
+    "text": "Total Banned",
+    "content_hash": "41059c94"
+  },
+  "web.admin.bannedIps.columns.ipAddress": {
+    "text": "IP Address",
+    "content_hash": "3c3de0c9"
+  },
+  "web.admin.bannedIps.columns.reason": {
+    "text": "Reason",
+    "content_hash": "f81ab834"
+  },
+  "web.admin.bannedIps.columns.bannedAt": {
+    "text": "Banned At",
+    "content_hash": "dfbd120e"
+  },
+  "web.admin.bannedIps.columns.bannedBy": {
+    "text": "Banned By",
+    "content_hash": "9f47db0e"
+  },
+  "web.admin.bannedIps.columns.actions": {
+    "text": "Actions",
+    "content_hash": "ff8059dc"
+  },
+  "web.admin.bannedIps.list.loadError": {
+    "text": "Could not load banned IPs.",
+    "content_hash": "539f2e34"
+  },
+  "web.admin.bannedIps.list.retry": {
+    "text": "Retry",
+    "content_hash": "942087cc"
+  },
+  "web.admin.bannedIps.list.empty": {
+    "text": "No IPs are currently banned",
+    "content_hash": "b72cc9c5"
+  },
+  "web.admin.bannedIps.form.title": {
+    "text": "Ban an IP address",
+    "content_hash": "59961746"
+  },
+  "web.admin.bannedIps.form.ipLabel": {
+    "text": "IP Address or CIDR",
+    "content_hash": "133d0819"
+  },
+  "web.admin.bannedIps.form.reasonLabel": {
+    "text": "Reason (optional)",
+    "content_hash": "0f7d4664"
+  },
+  "web.admin.bannedIps.form.reasonPlaceholder": {
+    "text": "e.g. credential stuffing",
+    "content_hash": "828a15ae"
+  },
+  "web.admin.bannedIps.form.submit": {
+    "text": "Ban IP",
+    "content_hash": "f91a5285"
+  },
+  "web.admin.bannedIps.ban.confirmTitle": {
+    "text": "Ban this IP address?",
+    "content_hash": "512acd7b"
+  },
+  "web.admin.bannedIps.ban.confirmDescription": {
+    "text": "This blocks {ip} at the site perimeter. Type the IP to confirm.",
+    "content_hash": "d8f6142e"
+  },
+  "web.admin.bannedIps.ban.button": {
+    "text": "Ban IP",
+    "content_hash": "f91a5285"
+  },
+  "web.admin.bannedIps.ban.success": {
+    "text": "Banned {ip}",
+    "content_hash": "97180685"
+  },
+  "web.admin.bannedIps.unban.confirmTitle": {
+    "text": "Remove this ban?",
+    "content_hash": "88473e59"
+  },
+  "web.admin.bannedIps.unban.confirmDescription": {
+    "text": "This unblocks {ip}. Type the IP to confirm.",
+    "content_hash": "6bec3191"
+  },
+  "web.admin.bannedIps.unban.button": {
+    "text": "Unban",
+    "content_hash": "25fb5989"
+  },
+  "web.admin.bannedIps.unban.success": {
+    "text": "Unbanned {ip}",
+    "content_hash": "79192c36"
+  }
+}

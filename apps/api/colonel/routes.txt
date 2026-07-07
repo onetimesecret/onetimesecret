@@ -41,6 +41,7 @@ DELETE /banned-ips/:ip                    ColonelAPI::Logic::Colonel::UnbanIP re
 
 # Custom Domains
 GET    /domains                           ColonelAPI::Logic::Colonel::ListCustomDomains response=json auth=sessionauth role=colonel scope=internal
+POST   /domains/:extid/verify             ColonelAPI::Logic::Colonel::VerifyCustomDomain response=json auth=sessionauth role=colonel scope=internal
 
 # Organizations
 GET    /organizations                     ColonelAPI::Logic::Colonel::ListOrganizations response=json auth=sessionauth role=colonel scope=internal

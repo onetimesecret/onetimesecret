@@ -1,0 +1,146 @@
+{
+  "web.admin.organizations.list.loadError": {
+    "text": "Could not load organizations.",
+    "content_hash": "130d5e70"
+  },
+  "web.admin.organizations.retry": {
+    "text": "Retry",
+    "content_hash": "942087cc"
+  },
+  "web.admin.organizations.fields.contactEmail": {
+    "text": "Contact email",
+    "content_hash": "6d7fce11"
+  },
+  "web.admin.organizations.fields.owner": {
+    "text": "Owner",
+    "content_hash": "4b1b8aa3"
+  },
+  "web.admin.organizations.fields.plan": {
+    "text": "Plan",
+    "content_hash": "fa8ed0bd"
+  },
+  "web.admin.organizations.fields.subscription": {
+    "text": "Subscription status",
+    "content_hash": "f0723c4e"
+  },
+  "web.admin.organizations.fields.periodEnd": {
+    "text": "Period end",
+    "content_hash": "eeae9fdd"
+  },
+  "web.admin.organizations.fields.billingEmail": {
+    "text": "Billing email",
+    "content_hash": "8805b928"
+  },
+  "web.admin.organizations.fields.stripeCustomer": {
+    "text": "Stripe customer",
+    "content_hash": "8f169be1"
+  },
+  "web.admin.organizations.fields.stripeSubscription": {
+    "text": "Stripe subscription",
+    "content_hash": "53f71e08"
+  },
+  "web.admin.organizations.fields.orgId": {
+    "text": "Organization ID",
+    "content_hash": "1f466322"
+  },
+  "web.admin.organizations.fields.created": {
+    "text": "Created",
+    "content_hash": "d70b9e24"
+  },
+  "web.admin.organizations.fields.updated": {
+    "text": "Updated",
+    "content_hash": "3a5ecca1"
+  },
+  "web.admin.organizations.investigate.description": {
+    "text": "Compare local billing state against the live Stripe subscription.",
+    "content_hash": "d7bbe9ed"
+  },
+  "web.admin.organizations.investigate.rawPayload": {
+    "text": "Raw investigation payload",
+    "content_hash": "29ca7df2"
+  },
+  "web.admin.organizations.investigate.parseError": {
+    "text": "The investigation response did not match the expected format.",
+    "content_hash": "db59cab1"
+  },
+  "web.admin.organizations.entitlements.section": {
+    "text": "Entitlement overrides",
+    "content_hash": "48812068"
+  },
+  "web.admin.organizations.entitlements.description": {
+    "text": "Grant or revoke entitlements independently of the plan. Effective = plan entitlements + grants - revokes.",
+    "content_hash": "4c38425b"
+  },
+  "web.admin.organizations.entitlements.inputLabel": {
+    "text": "Entitlement",
+    "content_hash": "0d8f0b2d"
+  },
+  "web.admin.organizations.entitlements.placeholder": {
+    "text": "e.g. custom_domains",
+    "content_hash": "05346c68"
+  },
+  "web.admin.organizations.entitlements.grant": {
+    "text": "Grant",
+    "content_hash": "78b7d037"
+  },
+  "web.admin.organizations.entitlements.revoke": {
+    "text": "Revoke",
+    "content_hash": "87e6d00b"
+  },
+  "web.admin.organizations.entitlements.clear": {
+    "text": "Clear all overrides",
+    "content_hash": "f0e485c3"
+  },
+  "web.admin.organizations.entitlements.effective": {
+    "text": "Effective entitlements",
+    "content_hash": "b840f8c8"
+  },
+  "web.admin.organizations.entitlements.grants": {
+    "text": "Grants",
+    "content_hash": "b3e1c95a"
+  },
+  "web.admin.organizations.entitlements.revokes": {
+    "text": "Revokes",
+    "content_hash": "f0e69b17"
+  },
+  "web.admin.organizations.entitlements.noOverrides": {
+    "text": "Perform an action to view this organization's current override state.",
+    "content_hash": "98d2e30d"
+  },
+  "web.admin.organizations.entitlements.confirm.grantTitle": {
+    "text": "Grant entitlement?",
+    "content_hash": "a4b2c57b"
+  },
+  "web.admin.organizations.entitlements.confirm.grantDescription": {
+    "text": "Grant “{entitlement}” to {org}. This changes the organization's billing entitlements.",
+    "content_hash": "542ce26a"
+  },
+  "web.admin.organizations.entitlements.confirm.revokeTitle": {
+    "text": "Revoke entitlement?",
+    "content_hash": "c93d520a"
+  },
+  "web.admin.organizations.entitlements.confirm.revokeDescription": {
+    "text": "Revoke “{entitlement}” from {org}. This changes the organization's billing entitlements.",
+    "content_hash": "a5d2a8a6"
+  },
+  "web.admin.organizations.entitlements.confirm.clearTitle": {
+    "text": "Clear all entitlement overrides?",
+    "content_hash": "e36eb218"
+  },
+  "web.admin.organizations.entitlements.confirm.clearDescription": {
+    "text": "Remove every grant and revoke override for {org}, resetting it to its plan entitlements.",
+    "content_hash": "96bad079"
+  },
+  "web.admin.organizations.entitlements.success.granted": {
+    "text": "Entitlement “{entitlement}” granted.",
+    "content_hash": "cf52fb0e"
+  },
+  "web.admin.organizations.entitlements.success.revoked": {
+    "text": "Entitlement “{entitlement}” revoked.",
+    "content_hash": "279d425d"
+  },
+  "web.admin.organizations.entitlements.success.cleared": {
+    "text": "All entitlement overrides cleared.",
+    "content_hash": "a482743b"
+  }
+}

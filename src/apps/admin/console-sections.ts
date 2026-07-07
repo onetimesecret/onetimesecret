@@ -23,10 +23,10 @@ export interface ConsoleSection {
 export const CONSOLE_SECTIONS: ConsoleSection[] = [
   { key: 'overview', labelKey: 'web.colonel.titles.index', icon: 'home', to: '/colonel' },
   { key: 'customers', labelKey: 'web.colonel.titles.users', icon: 'users', to: '/colonel/customers' },
-  { key: 'secrets', labelKey: 'web.colonel.titles.secrets', icon: 'key' },
-  { key: 'organizations', labelKey: 'web.colonel.titles.organizations', icon: 'building-office' },
-  { key: 'domains', labelKey: 'web.colonel.titles.domains', icon: 'globe-alt' },
-  { key: 'system', labelKey: 'web.colonel.titles.system', icon: 'cog-6-tooth' },
-  { key: 'bannedIps', labelKey: 'web.colonel.titles.bannedIps', icon: 'no-symbol' },
-  { key: 'usage', labelKey: 'web.colonel.titles.usage', icon: 'rectangle-group' },
+  { key: 'secrets', labelKey: 'web.colonel.titles.secrets', icon: 'key', to: '/colonel/secrets' },
+  { key: 'organizations', labelKey: 'web.colonel.titles.organizations', icon: 'building-office', to: '/colonel/organizations' },
+  { key: 'domains', labelKey: 'web.colonel.titles.domains', icon: 'globe-alt', to: '/colonel/domains' },
+  { key: 'system', labelKey: 'web.colonel.titles.system', icon: 'cog-6-tooth', to: '/colonel/system' },
+  { key: 'bannedIps', labelKey: 'web.colonel.titles.bannedIps', icon: 'no-symbol', to: '/colonel/banned-ips' },
+  { key: 'usage', labelKey: 'web.colonel.titles.usage', icon: 'rectangle-group', to: '/colonel/usage' },
 ];
