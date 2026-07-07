@@ -118,25 +118,11 @@ module Onetime::Secret::Features
       # Backward compatibility aliases for legacy method names
       alias received! revealed!
 
-      # Lua compare-and-set on the +state+ field, run atomically by Redis (its
-      # command loop is single-threaded). Sets state to ARGV[1] iff the current
-      # value equals one of ARGV[2..]. Returns 1 to the single caller that
-      # performs the flip, 0 to everyone else -- including when the key/field is
-      # gone (HGET yields a Lua false that matches nothing, so a destroyed
-      # record is never resurrected) and when the state has already advanced
-      # (so a terminal state is never reverted).
-      STATE_CAS_SCRIPT = <<~LUA
-        local current = redis.call('HGET', KEYS[1], 'state')
-        for i = 2, #ARGV do
-          if current == ARGV[i] then
-            redis.call('HSET', KEYS[1], 'state', ARGV[1])
-            return 1
-          end
-        end
-        return 0
-      LUA
-
       private
+
+      # The atomic +state+ compare-and-set these transitions claim through
+      # (+compare_and_set_state!+) is provided by the shared +state_cas+
+      # feature; see Onetime::Models::Features::StateCas.
 
       # Atomic claim shared by {#revealed!} and {#reveal!}. Returns true iff
       # THIS caller won the one-and-only reveal. This is the recipient-reveal
@@ -188,41 +174,6 @@ module Onetime::Secret::Features
         @ciphertext      = nil
         @passphrase_temp = nil
         destroy!
-      end
-
-      # Atomically transition the persisted +state+ field from one of
-      # +from_states+ to +to_state+, returning whether THIS caller performed
-      # the flip. This is the single concurrency primitive behind every state
-      # transition on a Secret; each caller documents what its own transition
-      # guards against.
-      #
-      # Because Redis executes the Lua script atomically, of any number of
-      # racing callers exactly one observes an allowed +from+ value and flips
-      # it. This is the same compare-and-set idiom Familia's
-      # {Familia::Lock#release} uses, reached through the connection resolver
-      # via +dbclient+ -- but on the record's own +state+ field rather than a
-      # separate lock key, so there is no second key, no TTL, and no expiry
-      # window where a slow critical section outlives the lock and a second
-      # caller slips in. It fails closed: a missing key (destroyed) or an
-      # already-advanced state simply loses, so the transition can neither
-      # resurrect nor revert a record.
-      #
-      # Operands are produced with #serialize_value so they match how +state+
-      # is encoded at rest (Familia JSON-encodes scalar fields for type
-      # preservation), rather than hard-coding the on-disk representation here.
-      # The eval uses the keyword +keys:+/+argv:+ form (the convention used
-      # elsewhere in the codebase, e.g. error_handler and the rate limiters) so
-      # it does not depend on positional-argument compatibility across Redis
-      # client versions.
-      #
-      # @param to_state [Symbol, String] state to set on success.
-      # @param from_states [Array<Symbol, String>] states the flip may fire from.
-      # @return [Boolean] true iff this caller performed the transition.
-      def compare_and_set_state!(to_state, from_states)
-        argv = [serialize_value(to_state.to_s)]
-        from_states.each { |state| argv << serialize_value(state.to_s) }
-
-        dbclient.eval(STATE_CAS_SCRIPT, keys: [dbkey], argv: argv).to_i == 1
       end
     end
   end
