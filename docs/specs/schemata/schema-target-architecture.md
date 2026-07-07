@@ -9,8 +9,10 @@ codebase and grounded in what durable open-source projects actually do.
 
 Status: proposed. Verified against this tree (main, 2026-07-06), familia
 2.11.2, otto 2.5.0, json_schemer 2.5.0. Executable evidence:
-`docs/specs/schemata/proofs/emission_boundary_proof.rb` (14 expectations,
-all passing; referenced below as P1–P6).
+`docs/specs/schemata/proofs/emission_boundary_proof.rb` (12 asserted
+expectations plus two informational reports — P5 timing, P6 drift status;
+referenced below as P1–P6). The corrections below (Δ1–Δ4) are applied in
+place in the cure spec.
 
 ## The problem, restated
 
@@ -285,7 +287,11 @@ Creating an entry requires creating the contraction issue. That converts
 defect 5 from "six expressions of one unfinished transition" into one
 expression with an expiry date.
 
-## Corrections to the cure spec
+## Corrections to the cure spec (applied)
+
+Folded into `schema-source-of-truth.md` on 2026-07-06 — its target
+architecture and Phases 1–3 now state the corrected design directly. This
+section stands as the rationale and evidence record.
 
 - **Δ1 — Phase 1 as written is unsound.** Storage schemas cannot be derived
   from TS contracts by retyping timestamps: the field sets differ in both
@@ -375,8 +381,8 @@ no Redis, no boot, gems from the lockfile only:
 | P2 | Bare `safe_dump` fails the shape schema on exactly the nine required merged fields — the endpoint payload is the unit | pass |
 | P3 | Deprecated aliases pass as additionalProperties — V3 wire carries them today; tightening is policy | pass |
 | P4 | `Familia::SchemaRegistry` handles named wire schemas as-is; errors carry field pointers | pass |
-| P5 | Default validator recompiles per call (~5×); a caching validator injects via `Familia.schema_validator` | pass |
-| P6 | The hand-maintained TS mirror is stale on this tree (`recipient_name`, `source` missing) | pass |
+| P5 | Default validator recompiles per call — asserted from the gem source; cost printed informationally (~5×); a caching validator injects via `Familia.schema_validator` | pass |
+| P6 | The hand-maintained TS mirror was stale when written (`recipient_name`, `source` missing) — reported, not asserted, so the proof survives the mirror being synced or retired; the durable inverted gate belongs in CI | informational |
 
 ## Upstream follow-ups (nice, none blocking)
 

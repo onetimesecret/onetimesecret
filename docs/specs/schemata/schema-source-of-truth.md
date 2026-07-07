@@ -5,7 +5,11 @@ Resolves the [#3424](https://github.com/onetimesecret/onetimesecret/issues/3424)
 class of failures: a secret renders "That information is no longer available"
 while it is neither expired nor consumed.
 
-Status: accepted.
+Status: accepted. Amended 2026-07-06: the target architecture and Phases 1–3
+are revised in place per corrections Δ1–Δ4 in
+[schema-target-architecture.md](./schema-target-architecture.md), which holds
+the rationale and evidence; executable proofs (P1–P6) in
+[proofs/emission_boundary_proof.rb](./proofs/emission_boundary_proof.rb).
 
 ## Behavior
 
@@ -81,20 +85,28 @@ a failing record.
 
 ## Target architecture
 
-`src/schemas/contracts/*.ts` is the single model definition. Two targets derive
-from it; nothing is hand-aligned.
+One authority per projection; machine bridges between them; nothing is
+hand-aligned. (Amended per Δ1/Δ2/Δ4 — the original single-source claim, with
+storage schemas derived from TS contracts, does not survive the field sets;
+see schema-target-architecture.md.)
 
 ```
-contracts/*.ts ── canonical model (Zod, no transforms)  ◄── SINGLE SOURCE
-   ├─► generated/schemas/storage/*  (timestamps → number)  → Familia validates to_h    (pre-save)
-   └─► generated/schemas/shapes/*   (wire projection)      → backend validates safe_dump (pre-response)
-                                                           → frontend gracefulParse      (already)
+src/schemas/contracts/*.ts ── canonical WIRE model (Zod, no transforms)  ◄── wire + application authority
+   └─► generated/schemas/shapes/*  (wire projection, per API version; checked in, CI drift gate)
+          → backend validates the FINAL endpoint payload  (pre-response, otto response_data seam)
+          → frontend gracefulParse                         (already)
+
+lib/onetime/models/<model>/storage.schema.json  ◄── storage authority (Ruby-authored, co-located)
+   └─► Familia feature :schema_validation validates to_h  (pre-save; explicit Familia.schemas keys)
 ```
 
-`to_h` is validated against storage schemas; `safe_dump` against shape schemas.
-`safe_dump ≠ to_h`, so both boundaries are required — validating only `to_h`
-leaves the wire payload unchecked. Drift between model, storage, and wire becomes
-a build failure, not a production incident.
+The unit of wire validation is the final endpoint payload — `safe_dump` output
+merged with the logic-class computed attributes — not raw `safe_dump`: a bare
+`safe_dump` record fails the shape schema on its required merged fields
+(proof P2). Registries stay split by projection: Familia's `SchemaRegistry`
+holds storage schemas (class-name keys); an OTS `WireSchemas` registry holds
+endpoint payload schemas (registry keys). Drift between model, storage, and
+wire becomes a build failure, not a production incident.
 
 ## Phases
 
@@ -102,21 +114,37 @@ a build failure, not a production incident.
 message and as a searchable Sentry tag (`schemaField` in
 `diagnostics.service.ts` `TAG_FIELDS`); log on backend shape-validation failure.
 
-**1 — Storage schemas.** Add `contracts/*` to `src/schemas/registry.ts`. Add a
-storage generation target whose `override` maps `z.date()` → `{ type: 'number' }`;
-output to `generated/schemas/storage/` alongside the existing wire output in
-`generated/schemas/shapes/`.
+**1 — Storage schemas (amended, Δ1).** Hand-author one JSON Schema per model,
+co-located with it (`lib/onetime/models/receipt/storage.schema.json`),
+describing the canonical at-rest shape: every persistent field, its type,
+`state` as the canonical enum, `null` wherever unset is legal. Deriving these
+from TS contracts is unsound — the field sets differ in both directions
+(storage-only fields the contract has never heard of; wire-only computed
+fields never stored). A short spec asserts schema properties ==
+`Model.persistent_fields` (modulo declared exclusions) to prevent drift
+against the field declarations.
 
-**2 — Familia validation.** Set `Familia.schema_path` + `schema_validator` in
-`lib/onetime/boot.rb`; enable `feature :schema_validation` on `OT::Secret` and
-`OT::Receipt`. Validate `to_h` against the storage schema before save (warn, then
-raise after Phase 4); validate `safe_dump` against the shape schema before
-response.
+**2 — Boundary validation (amended, Δ2/Δ4).** Storage: wire the co-located
+schemas via explicit `Familia.schemas` in `lib/onetime/boot.rb` (the
+convention loader cannot produce namespaced class names) and enable
+`feature :schema_validation` on `OT::Secret` and `OT::Receipt`; validate
+`to_h` pre-save (warn, then raise after Phase 4). Inject a memoizing
+validator via `Familia.schema_validator` — the default recompiles the schema
+on every call (proof P5). Wire: validate the final endpoint payload — not
+raw `safe_dump` (proof P2) — against the shape schema at otto's
+`JSONHandler` → `logic#response_data` seam (currently unclaimed;
+`V3::Logic::Base#success_data` is dead code, removed when claiming it),
+keyed by each logic class's `SCHEMAS[:response]` through the OTS
+`WireSchemas` registry. Production posture: pre-save raises once clean;
+emission logs + metrics, permanently.
 
-**3 — Generated coercion.** Replace hand-written `safe_dump` casts with a
-coercion layer driven by the schema (field → type). Normalize `state`: known
-renames (`viewed→previewed`, `received→revealed`) to canonical; unrecognized
-values to a logged fallback.
+**3 — Schema-driven coercion (amended, Δ3).** Replace hand-written
+`safe_dump` casts with a coercion layer driven by the wire schema plus the
+rename registry (`src/schemas/renames.json`) — not "the schema" in the
+abstract — and keep it separate from computed-field lambdas rather than
+replacing `safe_dump` wholesale. Normalize `state`: registry renames
+(`viewed→previewed`, `received→revealed`) to canonical; unrecognized values
+to a logged fallback.
 
 **4 — Reconcile keyspace.** Migrate at-rest `state` values to canonical for
 `secret:*` and `receipt:*`. Extend the diagnostic to report any field outside its
@@ -162,6 +190,11 @@ MVP closing #3424: Phases 0, 2 (pre-response), 3 (`state`), 4.
 
 ## References
 
+- Amendments: `docs/specs/schemata/schema-target-architecture.md` (Δ1–Δ4
+  rationale and evidence),
+  `docs/specs/schemata/proofs/emission_boundary_proof.rb` (P1–P6).
+- Emission seam: otto 2.5.0 `lib/otto/response_handlers/json.rb`
+  (`JSONHandler` prefers `logic#response_data`).
 - Issues/PRs: #3424, #3496; prior numeric coercion #3268, #3299, #3434, #3477.
 - Backend: `lib/onetime/models/secret/features/safe_dump_fields.rb`,
   `lib/onetime/models/receipt/features/safe_dump_fields.rb`,
