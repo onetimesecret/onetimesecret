@@ -169,6 +169,25 @@ module Onetime
         raise ex
       end
 
+      # Server-enforced ceiling on secret body size, shared by the regular
+      # (V2 ConcealSecret) and incoming (V3 CreateIncomingSecret) paths.
+      # Reads the single source of truth at
+      # site.secret_options.content.maximum_length, which is also exposed to
+      # the frontend as the textarea hint — keeping the client limit and the
+      # server limit from drifting. Presence (empty/nil) is the caller's
+      # responsibility; this only rejects content that exceeds the ceiling.
+      #
+      # @sync src/schemas/contracts/config/public.ts — secret_options.content
+      def validate_secret_size(value)
+        # Normalize once so the comparison and the error message agree and a
+        # Float from config never renders as "10000.0".
+        max_length = (OT.conf.dig('site', 'secret_options', 'content', 'maximum_length') || 10_000).to_i
+        return if value.to_s.length <= max_length
+
+        raise_form_error "Secret content must be no more than #{max_length} characters long",
+          field: :secret
+      end
+
       # Require that the authenticated user's membership has a specific entitlement.
       # Raises EntitlementRequired with upgrade path if check fails.
       #
