@@ -19,6 +19,7 @@ export type IncomingRecipient = z.infer<typeof incomingRecipientSchema>;
 export const incomingConfigSchema = z.object({
   enabled: z.boolean(),
   memo_max_length: z.number().int().positive().default(50),
+  secret_max_length: z.number().int().positive().default(10000),
   recipients: z.array(incomingRecipientSchema).default([]),
   default_ttl: z.number().int().positive().optional(),
 });
