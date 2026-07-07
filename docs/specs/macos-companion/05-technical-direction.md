@@ -85,14 +85,25 @@ The claims in docs 02–03, made implementable:
   clipboard still holds our change-count).
 - **Capture exclusion.** Panel `NSWindow.sharingType = .none` by default,
   surfaced honestly in the UI as a toggle.
+- **Runtime memory dumping.** Unlike Linux (`ptrace`, `/proc/pid/mem` —
+  trivial with same UID), macOS blocks `task_for_pid` against a Hardened
+  Runtime binary without `get-task-allow` — even for root, unless SIP is
+  disabled via Recovery. Hardened Runtime is already required for
+  notarization; the discipline is shipping **zero** weakening
+  entitlements (`allow-jit`, `disable-library-validation`, …). Tauri
+  clears this where Electron can't: JS runs out-of-process in Apple's
+  SIP-protected `WebContent`, so the binary holding resident secrets can
+  be fully hardened. Note this guarantee is macOS-specific — it does not
+  transfer to a Linux/Windows sibling (doc 06 §15).
 - **Network boundary.** Exactly one outbound destination (the configured
   OTS server), TLS-only, only on explicit promotion. No telemetry, no
   update pings beyond a launch-time check against the release feed.
 - **Credential storage.** API token in the macOS Keychain, never in
   config files.
 - **Threat honesty.** Out of scope and said so: a compromised local user
-  account, kernel-level attackers, and other apps with screen-recording +
-  accessibility permissions granted. The app hardens the common cases
+  account, kernel-level attackers, machines with SIP disabled (common on
+  dev boxes — the anti-dumping guarantee above evaporates there), and
+  other apps with screen-recording + accessibility permissions granted. The app hardens the common cases
   (shoulder surfing, screen sharing, clipboard-manager retention, swap,
   crash dumps) and does not pretend to be an enclave.
 
