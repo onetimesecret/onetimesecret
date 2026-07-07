@@ -1,11 +1,17 @@
 # Schema target architecture: one authority per projection
 
-Fourth document in the series: `schema-problem-space.md` (the map),
-`schema-source-of-truth.md` (the cure, #3496/#3514), and
-`schema-complexity-verdict.md` (the review). This one restates the problem
-from first principles, corrects two structural errors in the cure spec, and
-commits to a target architecture chosen for the long-term health of the
-codebase and grounded in what durable open-source projects actually do.
+Companion to `schema-source-of-truth.md` (the cure spec, #3496/#3514): that
+document says what to do; this one restates the problem from first
+principles, records the rationale and evidence, and commits to a target
+architecture chosen for the long-term health of the codebase and grounded
+in what durable open-source projects actually do.
+
+Two earlier working documents — `schema-problem-space.md` (the map) and
+`schema-complexity-verdict.md` (the review) — are retired: their accepted
+findings are folded into these two docs (the review's api/-layer collapse
+plan is preserved verbatim in the appendix) and git history keeps the
+originals. Citations of the review's numbered answers (Q1–Q7) refer to that
+retired document.
 
 Status: proposed. Verified against this tree (main, 2026-07-06), familia
 2.11.2, otto 2.5.0, json_schemer 2.5.0. Executable evidence:
@@ -359,10 +365,10 @@ corrected storage track. Each stage is independently shippable.
 4. **Coercion consolidation.** Schema-driven coercion replaces the hand
    `to_i`/`to_f` casts (output-identical acceptance); V3 emission projection
    drops aliases from the wire; delete the TS mirrors.
-5. **Then the deletions the verdict already approved:** api/ layer collapse
-   behind the now-existing conformance gates; hygiene items; OpenAPI 3.1
-   publication as an *output* artifact when wanted (oasdiff becomes available
-   then, not before).
+5. **Then the deletions the review already approved:** api/ layer collapse
+   behind the now-existing conformance gates (plan preserved in the
+   appendix); hygiene items; OpenAPI 3.1 publication as an *output* artifact
+   when wanted (oasdiff becomes available then, not before).
 
 What the end state deletes — the payoff, in the currency of maintenance:
 every hand cast in the safe_dump files, both `*-safe-dump-fields.ts`
@@ -401,10 +407,50 @@ generation roots are shapes and endpoint payloads, which express wire types
 correctly; confining `unrepresentable: 'any'` remains a generator-hygiene
 item, not an architecture one).
 
+## Appendix: api/ layer collapse (preserved from the retired review)
+
+Rollout stage 5's frontend reduction, kept here because the review that
+approved it is retired. Evidence for collapsibility: stores consume the
+layer through the coarse registries (`gracefulParse(responseSchemas.secret,
+…)`, `secretStore.ts:109`), not per-file imports; the per-endpoint files
+serve the OpenAPI generator and `schema-scanner.ts` (which iterate registry
+keys), not the runtime. The v1/v2 TS surfaces have no frontend consumer at
+all — they feed `scripts/openapi/*` and `scripts/api-validation/*`
+exclusively, and earn their keep as *documentation* for the still-served
+Ruby `/api/v1` and `/api/v2` apps, not as 54 separate files. Real
+per-endpoint logic concentrates in ~8–10 files that deserve to remain
+modules: `auth/responses/auth.ts` (discriminated MFA/billing unions, type
+guards), `account/responses/colonel.ts` (admin records with transforms),
+`incoming/responses/incoming-secret.ts`, `invite/responses/show-invite.ts`,
+the domain-config request forms (`email-config.ts`, `sso-config.ts`), and
+the two `content/base.ts` files holding the layer's only `.refine()` calls.
+
+Plan, preserving every registry key (the tooling and store contract):
+
+1. Per surface, replace the mechanical `responses/*.ts` + `requests/*.ts` +
+   barrels with one `surface.ts` that builds the registry object directly:
+   `secret: createApiResponseSchema(secretSchema, secretDetailsSchema), …`.
+   Store call sites do not change.
+2. Keep the ~8–10 real-logic files as modules imported by their surface file.
+3. Delete the re-export shims (`v2/responses/domains.ts`,
+   `internal/responses/organizations.ts`) and the near-dead
+   `invite/requests/*`.
+4. Convert the hand-rolled envelopes in organizations/internal to the
+   `base.ts` factories while touching them.
+5. Expected end state: 165 files → ~35–45, −2,500 lines or more, zero
+   behavior change, verified by the existing contract tests plus
+   `pnpm run schemas:scan` and `pnpm run openapi:generate` producing
+   identical output.
+
+This is deletion-shaped work. Do it *after* the bridge, so backend
+validation lands against the current, well-tested layout and the collapse
+has CI-level schema-sync checks watching it.
+
 ## References
 
-- Series: `schema-problem-space.md`, `schema-source-of-truth.md`,
-  `schema-complexity-verdict.md`;
+- Living docs: `schema-source-of-truth.md` (the amended cure spec) and this
+  one; retired (in git history): `schema-problem-space.md`,
+  `schema-complexity-verdict.md`. Related:
   `docs/specs/recipient-disclosure/unviewable-state-root-cause.md`
 - Proof: `docs/specs/schemata/proofs/emission_boundary_proof.rb`
 - Seam: otto 2.5.0 `lib/otto/response_handlers/json.rb:19-27`;

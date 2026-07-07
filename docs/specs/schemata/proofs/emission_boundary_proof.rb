@@ -17,7 +17,8 @@
 #       not raw safe_dump output: a faithful bare-safe_dump record FAILS
 #       the shape schema on the merged-in fields (natural_expiration,
 #       expiration_in_seconds, share/burn/receipt paths and urls). This is
-#       the empirical form of the verdict doc's Phase-2 correction.
+#       the empirical form of the review round's Phase-2 correction, now
+#       folded into the cure spec (schema-source-of-truth.md).
 #   P3. Deprecated aliases (viewed/received/is_viewed/is_received) pass as
 #       additionalProperties — the V3 *wire* carries them today even though
 #       the V3 shape excludes them; tightening is a policy knob, not a
