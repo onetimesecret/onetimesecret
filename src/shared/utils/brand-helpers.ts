@@ -97,10 +97,14 @@ export const fontFamilyClasses: Record<FontFamily, string> = {
 };
 
 /**
- * CSS `font-family` stacks for each curated font. Injected at runtime as the
- * `--font-brand-body` / `--font-brand-heading` variables by useBrandTheme, and
- * mirrored as `--font-brand-*` theme defaults in style.css. Kept in lockstep
- * with the Ruby allowlist (BrandSettingsConstants::FONTS).
+ * CSS `font-family` stacks for each curated font.
+ *
+ * These back the `font-brand-*` utilities via the matching `--font-brand-*`
+ * tokens declared in `@theme static` (style.css) — the font pipeline is
+ * class-based (fontFamilyClasses), NOT runtime CSS-variable injection like the
+ * colors. This map is the single source these stacks are authored from; the
+ * style.css tokens must mirror it. Kept in lockstep with the Ruby allowlist
+ * (BrandSettingsConstants::FONTS).
  */
 export const fontFamilyStacks: Record<FontFamily, string> = {
   sans: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',

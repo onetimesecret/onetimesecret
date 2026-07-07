@@ -69,15 +69,25 @@
   // cycles the named presets, so coerce to a string for the control.
   const borderRadiusValue = computed<string | undefined>(() => {
     const radius = props.modelValue.border_radius;
-    return radius == null ? undefined : String(radius);
+    // Treat '' as unset (matches identityStore.cornerClass) so CycleButton
+    // never receives a model-value that isn't one of its options.
+    return radius == null || radius === '' ? undefined : String(radius);
   });
 
-  const activePresetId = computed(() =>
-    presets.find((p) =>
-      p.tokens.primary_color?.toUpperCase() === props.modelValue.primary_color?.toUpperCase() &&
-      p.tokens.secondary_color?.toUpperCase() === props.modelValue.secondary_color?.toUpperCase()
-    )?.id ?? null
-  );
+  // A preset is "active" only when EVERY token it sets matches the current
+  // settings — otherwise aria-pressed and the selection border would lie when
+  // the user has tweaked a color/font/radius away from the preset.
+  const presetMatches = (preset: BrandPreset): boolean =>
+    (Object.keys(preset.tokens) as (keyof BrandPreset['tokens'])[]).every((key) => {
+      const want = preset.tokens[key];
+      const have = props.modelValue[key];
+      if (typeof want === 'string' && typeof have === 'string') {
+        return want.toLowerCase() === have.toLowerCase();
+      }
+      return want === have;
+    });
+
+  const activePresetId = computed(() => presets.find(presetMatches)?.id ?? null);
 
   const isDisabled = computed(() => props.isLoading || !props.hasUnsavedChanges);
 

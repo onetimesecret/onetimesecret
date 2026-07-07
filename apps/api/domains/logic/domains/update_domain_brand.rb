@@ -41,6 +41,11 @@ module DomainsAPI::Logic
         description
       ].freeze
 
+      # Expanded color vocabulary (#3646): secondary/background/text colors.
+      # Same hex format + normalization as primary_color. WCAG pairing (incl.
+      # text-on-background) is enforced by BrandSettings.validate!.
+      EXTRA_COLOR_FIELDS = %w[secondary_color background_color text_color].freeze
+
       attr_reader :greenlighted, :brand_settings, :display_domain, :custom_domain
 
       def process_params
@@ -165,11 +170,6 @@ module DomainsAPI::Logic
         # Normalize 3-digit hex to 6-digit (e.g. #F00 -> #FF0000)
         @brand_settings['primary_color'] = Onetime::CustomDomain::BrandSettings.normalize_color(color)
       end
-
-      # Expanded color vocabulary (#3646): secondary/background/text colors.
-      # Same hex format + normalization as primary_color. WCAG pairing (incl.
-      # text-on-background) is enforced by BrandSettings.validate! below.
-      EXTRA_COLOR_FIELDS = %w[secondary_color background_color text_color].freeze
 
       def validate_extra_colors
         EXTRA_COLOR_FIELDS.each do |field|

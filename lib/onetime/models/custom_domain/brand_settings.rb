@@ -142,6 +142,17 @@ module Onetime
       # form lifts the old 3-value corner_style ceiling.
       RADII      = %w[none sm md lg xl full].freeze
       RADIUS_MAX = 64
+
+      # Expanded color vocabulary (#3646): non-primary hex color fields. Each is
+      # format-validated like primary_color; WCAG pairing lives in the accessor
+      # checks. secondary_color is intentionally not contrast-gated (see
+      # validate_color_accessibility!).
+      EXTRA_COLOR_FIELDS = %i[secondary_color background_color text_color].freeze
+
+      # WCAG AA minimums (contrast ratio). 3:1 for large text / UI components,
+      # 4.5:1 for normal body text.
+      WCAG_AA_LARGE  = 3.0
+      WCAG_AA_NORMAL = 4.5
     end
 
     # Per-domain (tenant, Redis-stored) brand settings. Deliberately NOT a
@@ -250,10 +261,8 @@ module Onetime
       # Format validation for the expanded color vocabulary (secondary, surface
       # background, and body text). Each reuses the same hex validator as
       # primary_color; the WCAG pairing checks live in validate_color_accessibility!.
-      EXTRA_COLOR_FIELDS = %i[secondary_color background_color text_color].freeze
-
       def self.validate_extra_color_fields!(normalized)
-        EXTRA_COLOR_FIELDS.each do |field|
+        BrandSettingsConstants::EXTRA_COLOR_FIELDS.each do |field|
           next unless normalized.key?(field) && !normalized[field].nil?
           next if valid_color?(normalized[field])
 
@@ -261,11 +270,6 @@ module Onetime
           raise Onetime::Problem, "Invalid #{label} format - must be hex code (e.g. #FF0000)"
         end
       end
-
-      # WCAG AA minimums (contrast ratio). 3:1 for large text / UI components,
-      # 4.5:1 for normal body text.
-      WCAG_AA_LARGE  = 3.0
-      WCAG_AA_NORMAL = 4.5
 
       # @api private
       #
@@ -295,7 +299,7 @@ module Onetime
         color          = normalized[field]
         white_contrast = contrast_ratio(color, '#FFFFFF')
 
-        return if white_contrast >= WCAG_AA_LARGE
+        return if white_contrast >= BrandSettingsConstants::WCAG_AA_LARGE
 
         raise Onetime::Problem,
           "#{label.capitalize} color #{color} fails WCAG AA accessibility - contrast " \
@@ -312,7 +316,7 @@ module Onetime
         return unless valid_color?(text) && valid_color?(bg)
 
         ratio = contrast_ratio(text, bg)
-        return if ratio >= WCAG_AA_NORMAL
+        return if ratio >= BrandSettingsConstants::WCAG_AA_NORMAL
 
         raise Onetime::Problem,
           "Text color #{text} on background #{bg} fails WCAG AA accessibility - " \
