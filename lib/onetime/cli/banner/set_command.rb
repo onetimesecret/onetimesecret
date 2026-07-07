@@ -19,6 +19,13 @@
 require 'cgi'
 require 'sanitize'
 
+# The actual Redis write + runtime refresh + audit event is performed by the
+# shared Onetime::Operations::SetBanner op (the single implementation; the colonel
+# POST /api/colonel/banner endpoint is the other adapter). This command owns only
+# CLI concerns (arg/file parsing, the ASCII preview, dry-run text). The CLI runs
+# outside the app autoloader, so require the op explicitly.
+require 'onetime/operations/banner'
+
 module Onetime
   module CLI
     class BannerSetCommand < Command
@@ -147,15 +154,13 @@ module Onetime
       end
 
       def write_banner(banner_text, ttl)
-        db = Familia.dbclient(0)
-
-        if ttl
-          db.setex(BANNER_KEY, ttl, banner_text)
-        else
-          db.set(BANNER_KEY, banner_text)
-        end
-
-        Onetime::Runtime.update_features(global_banner: banner_text)
+        # Single implementation: the op owns the Redis write, the runtime refresh,
+        # and (new) the admin audit event. Output below is unchanged (golden-master).
+        Onetime::Operations::SetBanner.new(
+          content: banner_text,
+          ttl: ttl,
+          actor: CLI_ACTOR,
+        ).call
 
         puts
         puts 'Banner set.'

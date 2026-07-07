@@ -1,0 +1,130 @@
+{
+  "web.admin.banner.title": {
+    "text": "Broadcast Banner",
+    "content_hash": "0bc449a3"
+  },
+  "web.admin.banner.description": {
+    "text": "Publish a site-wide announcement shown to every visitor, or clear the current one.",
+    "content_hash": "a0f720d7"
+  },
+  "web.admin.banner.loadError": {
+    "text": "Could not load the current banner.",
+    "content_hash": "04954e72"
+  },
+  "web.admin.banner.retry": {
+    "text": "Retry",
+    "content_hash": "942087cc"
+  },
+  "web.admin.banner.current.title": {
+    "text": "Current banner",
+    "content_hash": "d17ab873"
+  },
+  "web.admin.banner.current.none": {
+    "text": "No banner is currently set.",
+    "content_hash": "487b2cac"
+  },
+  "web.admin.banner.current.status": {
+    "text": "Status",
+    "content_hash": "920e413c"
+  },
+  "web.admin.banner.current.live": {
+    "text": "Live",
+    "content_hash": "b64ac05f"
+  },
+  "web.admin.banner.current.expiry": {
+    "text": "Expiry",
+    "content_hash": "6956d814"
+  },
+  "web.admin.banner.current.persistent": {
+    "text": "Persistent (no expiry)",
+    "content_hash": "5f95d1b0"
+  },
+  "web.admin.banner.current.expiresIn": {
+    "text": "Expires in {duration}",
+    "content_hash": "f353f9a7"
+  },
+  "web.admin.banner.current.storedContent": {
+    "text": "Stored content",
+    "content_hash": "3579f3e6"
+  },
+  "web.admin.banner.current.htmlNote": {
+    "text": "Content is HTML; the site sanitizes it to links only when displayed.",
+    "content_hash": "e45a7dfe"
+  },
+  "web.admin.banner.current.edit": {
+    "text": "Edit",
+    "content_hash": "464c4ffd"
+  },
+  "web.admin.banner.set.title": {
+    "text": "Set a banner",
+    "content_hash": "b6f90d5c"
+  },
+  "web.admin.banner.set.updateTitle": {
+    "text": "Update the banner",
+    "content_hash": "841a0183"
+  },
+  "web.admin.banner.set.contentLabel": {
+    "text": "Message",
+    "content_hash": "2f77668a"
+  },
+  "web.admin.banner.set.contentPlaceholder": {
+    "text": "Scheduled maintenance Sun 02:00 UTC",
+    "content_hash": "4ec99d7d"
+  },
+  "web.admin.banner.set.contentHelp": {
+    "text": "HTML is allowed; the site sanitizes it to links only.",
+    "content_hash": "7253d1cd"
+  },
+  "web.admin.banner.set.ttlLabel": {
+    "text": "Auto-expire after (seconds)",
+    "content_hash": "72134116"
+  },
+  "web.admin.banner.set.ttlPlaceholder": {
+    "text": "Leave blank for no expiry",
+    "content_hash": "a8fd81e1"
+  },
+  "web.admin.banner.set.ttlHelp": {
+    "text": "Optional. The banner is removed automatically after this many seconds.",
+    "content_hash": "ba0237f5"
+  },
+  "web.admin.banner.set.publishButton": {
+    "text": "Publish banner",
+    "content_hash": "5b7427a1"
+  },
+  "web.admin.banner.set.updateButton": {
+    "text": "Update banner",
+    "content_hash": "69b6e40e"
+  },
+  "web.admin.banner.set.confirmTitle": {
+    "text": "Publish broadcast banner?",
+    "content_hash": "8b72b5c3"
+  },
+  "web.admin.banner.set.confirmDescription": {
+    "text": "This banner will be shown to every visitor across the site until it is cleared or expires.",
+    "content_hash": "c61bbec1"
+  },
+  "web.admin.banner.set.confirmButton": {
+    "text": "Publish",
+    "content_hash": "859390eb"
+  },
+  "web.admin.banner.set.success": {
+    "text": "Broadcast banner published.",
+    "content_hash": "55c06cab"
+  },
+  "web.admin.banner.clear.button": {
+    "text": "Clear banner",
+    "content_hash": "da6b2e5d"
+  },
+  "web.admin.banner.clear.confirmTitle": {
+    "text": "Clear the broadcast banner?",
+    "content_hash": "46d9c35a"
+  },
+  "web.admin.banner.clear.confirmDescription": {
+    "text": "This removes the live banner for every visitor. Type the confirmation word to proceed.",
+    "content_hash": "9a56e4be"
+  },
+  "web.admin.banner.clear.success": {
+    "text": "Broadcast banner cleared.",
+    "content_hash": "b0f52af4"
+  }
+}

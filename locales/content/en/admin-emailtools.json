@@ -1,0 +1,154 @@
+{
+  "web.admin.emailtools.title": {
+    "text": "Email & Rate-limit Tools",
+    "content_hash": "ecfc315a"
+  },
+  "web.admin.emailtools.description": {
+    "text": "Preview email templates, send a delivery test, and inspect or reset a rate limiter — the diagnostics that previously required SSH.",
+    "content_hash": "bf376c2a"
+  },
+  "web.admin.emailtools.preview.title": {
+    "text": "Template preview",
+    "content_hash": "df89bd92"
+  },
+  "web.admin.emailtools.preview.description": {
+    "text": "Render a template with its sample data. Preview has no side effects — no email is sent.",
+    "content_hash": "9b0e40f3"
+  },
+  "web.admin.emailtools.preview.templateLabel": {
+    "text": "Template",
+    "content_hash": "0575f29d"
+  },
+  "web.admin.emailtools.preview.formatLabel": {
+    "text": "Format",
+    "content_hash": "2f343666"
+  },
+  "web.admin.emailtools.preview.localeLabel": {
+    "text": "Locale",
+    "content_hash": "ca3dc612"
+  },
+  "web.admin.emailtools.preview.button": {
+    "text": "Preview",
+    "content_hash": "324b134f"
+  },
+  "web.admin.emailtools.test.title": {
+    "text": "Test send",
+    "content_hash": "5fab5d67"
+  },
+  "web.admin.emailtools.test.description": {
+    "text": "Send a plain-text diagnostic email to verify delivery connectivity. Preview it first, then confirm to send a real email.",
+    "content_hash": "4130741c"
+  },
+  "web.admin.emailtools.test.toLabel": {
+    "text": "Recipient",
+    "content_hash": "51fac985"
+  },
+  "web.admin.emailtools.test.toPlaceholder": {
+    "text": "you@example.com",
+    "content_hash": "53e6cdc3"
+  },
+  "web.admin.emailtools.test.enqueueLabel": {
+    "text": "Via worker queue",
+    "content_hash": "97897017"
+  },
+  "web.admin.emailtools.test.previewButton": {
+    "text": "Preview (no send)",
+    "content_hash": "747ced83"
+  },
+  "web.admin.emailtools.test.sendButton": {
+    "text": "Send test email",
+    "content_hash": "46ebd7db"
+  },
+  "web.admin.emailtools.test.provider": {
+    "text": "Provider",
+    "content_hash": "472590ae"
+  },
+  "web.admin.emailtools.test.host": {
+    "text": "Host",
+    "content_hash": "4a823118"
+  },
+  "web.admin.emailtools.test.from": {
+    "text": "From",
+    "content_hash": "21819769"
+  },
+  "web.admin.emailtools.test.subject": {
+    "text": "Subject",
+    "content_hash": "68971283"
+  },
+  "web.admin.emailtools.test.confirmTitle": {
+    "text": "Send a real test email?",
+    "content_hash": "64a16b62"
+  },
+  "web.admin.emailtools.test.confirmDescription": {
+    "text": "This dispatches a live email to {to} through the configured mailer.",
+    "content_hash": "10114929"
+  },
+  "web.admin.emailtools.test.success": {
+    "text": "Test email sent to {to}.",
+    "content_hash": "daa61a62"
+  },
+  "web.admin.emailtools.ratelimit.title": {
+    "text": "Rate-limit inspector",
+    "content_hash": "1ebff494"
+  },
+  "web.admin.emailtools.ratelimit.description": {
+    "text": "Inspect a limiter's live counter state for one IP or identifier, then reset it if a legitimate user is throttled.",
+    "content_hash": "fbfab210"
+  },
+  "web.admin.emailtools.ratelimit.kindLabel": {
+    "text": "Limiter",
+    "content_hash": "d313c56e"
+  },
+  "web.admin.emailtools.ratelimit.subjectLabel": {
+    "text": "Subject",
+    "content_hash": "68971283"
+  },
+  "web.admin.emailtools.ratelimit.subjectPlaceholder": {
+    "text": "IP or identifier",
+    "content_hash": "7616a8f5"
+  },
+  "web.admin.emailtools.ratelimit.inspectButton": {
+    "text": "Inspect",
+    "content_hash": "e0723a86"
+  },
+  "web.admin.emailtools.ratelimit.columns.key": {
+    "text": "Key",
+    "content_hash": "99a52df3"
+  },
+  "web.admin.emailtools.ratelimit.columns.value": {
+    "text": "Value",
+    "content_hash": "8e37953d"
+  },
+  "web.admin.emailtools.ratelimit.columns.ttl": {
+    "text": "TTL",
+    "content_hash": "76f6014f"
+  },
+  "web.admin.emailtools.ratelimit.absent": {
+    "text": "absent",
+    "content_hash": "5ad38304"
+  },
+  "web.admin.emailtools.ratelimit.noExpiry": {
+    "text": "no expiry",
+    "content_hash": "dd848d43"
+  },
+  "web.admin.emailtools.ratelimit.noState": {
+    "text": "No active rate-limit state for this subject.",
+    "content_hash": "90cf78a7"
+  },
+  "web.admin.emailtools.ratelimit.resetButton": {
+    "text": "Reset limiter",
+    "content_hash": "6786df4e"
+  },
+  "web.admin.emailtools.ratelimit.confirmTitle": {
+    "text": "Reset this rate limiter?",
+    "content_hash": "8e2c5466"
+  },
+  "web.admin.emailtools.ratelimit.confirmDescription": {
+    "text": "This clears the throttle counters for {subject}, letting it act again immediately. Retype the subject to confirm.",
+    "content_hash": "aa6f7921"
+  },
+  "web.admin.emailtools.ratelimit.resetSuccess": {
+    "text": "Rate limiter reset.",
+    "content_hash": "ac1a46a3"
+  }
+}

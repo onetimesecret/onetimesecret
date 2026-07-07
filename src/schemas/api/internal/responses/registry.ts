@@ -39,6 +39,39 @@ import {
   colonelUnbanIpResponseSchema,
 } from './colonel-bannedips';
 
+// Colonel (admin) per-resource schemas — Phase-3 screens (tickets #40-45)
+import {
+  colonelSessionsResponseSchema,
+  colonelSessionDetailResponseSchema,
+  colonelSessionDeleteResponseSchema,
+} from './colonel-sessions';
+import {
+  colonelBannerResponseSchema,
+  colonelBannerSetResponseSchema,
+  colonelBannerClearResponseSchema,
+} from './colonel-banner';
+import {
+  colonelDlqListResponseSchema,
+  colonelDlqMessagesResponseSchema,
+  colonelDlqReplayResponseSchema,
+  colonelDlqPurgeResponseSchema,
+} from './colonel-queue';
+import {
+  colonelDomainsOrphanedResponseSchema,
+  colonelDomainProbeResponseSchema,
+  colonelDomainRepairResponseSchema,
+  colonelDomainTransferResponseSchema,
+} from './colonel-domaintoolbox';
+import {
+  colonelEmailTemplatesResponseSchema,
+  colonelEmailPreviewResponseSchema,
+  colonelEmailTestResponseSchema,
+  colonelRateLimitersResponseSchema,
+  colonelRateLimitInspectResponseSchema,
+  colonelRateLimitResetResponseSchema,
+} from './colonel-emailtools';
+import { colonelBillingCatalogResponseSchema } from './colonel-billing';
+
 // Organization schemas — internal-only
 import {
   organizationResponseSchema,
@@ -109,6 +142,29 @@ export const responseSchemas = {
   usageExport: usageExportResponseSchema,
   queueMetrics: queueMetricsResponseSchema,
   systemSettings: systemSettingsResponseSchema,
+
+  // Colonel / admin — Phase-3 screens (tickets #40-45)
+  colonelSessions: colonelSessionsResponseSchema,
+  colonelSessionDetail: colonelSessionDetailResponseSchema,
+  colonelSessionDelete: colonelSessionDeleteResponseSchema,
+  colonelBanner: colonelBannerResponseSchema,
+  colonelBannerSet: colonelBannerSetResponseSchema,
+  colonelBannerClear: colonelBannerClearResponseSchema,
+  colonelDlqList: colonelDlqListResponseSchema,
+  colonelDlqMessages: colonelDlqMessagesResponseSchema,
+  colonelDlqReplay: colonelDlqReplayResponseSchema,
+  colonelDlqPurge: colonelDlqPurgeResponseSchema,
+  colonelDomainsOrphaned: colonelDomainsOrphanedResponseSchema,
+  colonelDomainProbe: colonelDomainProbeResponseSchema,
+  colonelDomainRepair: colonelDomainRepairResponseSchema,
+  colonelDomainTransfer: colonelDomainTransferResponseSchema,
+  colonelEmailTemplates: colonelEmailTemplatesResponseSchema,
+  colonelEmailPreview: colonelEmailPreviewResponseSchema,
+  colonelEmailTest: colonelEmailTestResponseSchema,
+  colonelRateLimiters: colonelRateLimitersResponseSchema,
+  colonelRateLimitInspect: colonelRateLimitInspectResponseSchema,
+  colonelRateLimitReset: colonelRateLimitResetResponseSchema,
+  colonelBillingCatalog: colonelBillingCatalogResponseSchema,
 
   // Organizations (internal-only)
   organization: organizationResponseSchema,

@@ -56,3 +56,36 @@ require_relative 'colonel/export_usage'
 
 # Queue metrics (RabbitMQ)
 require_relative 'colonel/get_queue_metrics'
+
+# Sessions (ticket #40)
+require_relative 'colonel/list_sessions'
+require_relative 'colonel/get_session_detail'
+require_relative 'colonel/delete_session'
+
+# Broadcast banner (ticket #41)
+require_relative 'colonel/get_banner'
+require_relative 'colonel/set_banner'
+require_relative 'colonel/clear_banner'
+
+# Queue DLQ console (ticket #42)
+require_relative 'colonel/list_dlqs'
+require_relative 'colonel/get_dlq_messages'
+require_relative 'colonel/replay_dlq'
+require_relative 'colonel/purge_dlq'
+
+# Domain toolbox (ticket #43)
+require_relative 'colonel/list_orphaned_domains'
+require_relative 'colonel/probe_domain'
+require_relative 'colonel/repair_domain'
+require_relative 'colonel/transfer_domain'
+
+# Email + rate-limit tools (ticket #44)
+require_relative 'colonel/list_email_templates'
+require_relative 'colonel/preview_email_template'
+require_relative 'colonel/send_test_email'
+require_relative 'colonel/list_rate_limiters'
+require_relative 'colonel/inspect_rate_limit'
+require_relative 'colonel/reset_rate_limit'
+
+# Billing catalog (ticket #45)
+require_relative 'colonel/get_billing_catalog'

@@ -13,6 +13,12 @@
 #   bin/ots banner clear --apply   # delete the key
 #
 
+# The actual delete + runtime refresh + audit event is performed by the shared
+# Onetime::Operations::ClearBanner op (the single implementation). This command
+# owns only CLI concerns (the dry-run text + confirmation output). Required
+# explicitly since the CLI runs outside the app autoloader.
+require 'onetime/operations/banner'
+
 module Onetime
   module CLI
     class BannerClearCommand < Command
@@ -40,8 +46,10 @@ module Onetime
         puts
 
         if apply
-          db.del(BANNER_KEY)
-          Onetime::Runtime.update_features(global_banner: nil)
+          # Single implementation: the op owns the delete, the runtime refresh, and
+          # (new) the admin audit event. The empty-banner short-circuit above means
+          # the op always finds a banner here and clears it. Output unchanged.
+          Onetime::Operations::ClearBanner.new(actor: CLI_ACTOR).call
 
           puts 'Banner cleared.'
           puts

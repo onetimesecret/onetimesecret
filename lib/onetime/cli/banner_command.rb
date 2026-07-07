@@ -17,6 +17,8 @@
 #   bin/ots banner clear                  # Dry-run (safe default)
 #   bin/ots banner clear --apply          # Remove from Redis + refresh runtime
 
+require 'onetime/operations/banner'
+
 module Onetime
   module CLI
     class BannerCommand < Command
@@ -27,10 +29,11 @@ module Onetime
       def call(**)
         boot_application!
 
-        banner_text = Familia.dbclient(0).get(BANNER_KEY)
+        # Single implementation: read the current banner through the shared op.
+        banner = Onetime::Operations::GetBanner.new.call
 
-        if banner_text && !banner_text.empty?
-          puts format('Current banner: %s', banner_text)
+        if banner.active
+          puts format('Current banner: %s', banner.content)
         else
           puts 'No banner is currently set.'
         end
