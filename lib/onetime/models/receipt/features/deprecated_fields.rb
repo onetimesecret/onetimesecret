@@ -116,16 +116,37 @@ module Onetime::Receipt::Features
       # we pass update_expiration: false to save so that changing this receipt
       # object's state doesn't affect its original expiration time.
       #
+      # Every transition is gated by an atomic compare-and-set on the persisted
+      # +state+ field ({#compare_and_set_state!}) so it FAILS CLOSED. If the
+      # receipt's Redis key was TTL-evicted between the time this instance was
+      # loaded and the time the transition runs, the CAS's HGET matches nothing,
+      # the claim loses, and the unconditional `save` never fires -- so an
+      # evicted receipt is not resurrected as a TTL-less "immortal" key (#3625).
+      # If a concurrent caller already advanced the state, the CAS also loses, so
+      # a stale instance can never revert an already-terminal receipt. Only the
+      # caller that wins the claim persists the accompanying fields and emits the
+      # log/audit side effects.
+      #
+      # The winner's follow-up field writes still go through
+      # `save update_expiration: false` so advancing state never resets the
+      # receipt's original expiration. That write lands on the key the CAS just
+      # confirmed exists, so an HSET/HMSET on a live key leaves its TTL untouched
+      # -- exactly the guarantee `update_expiration: false` was approximating.
+      #
       # TODO: Replace with transaction (i.e. MULTI/EXEC command)
 
       # MIGRATION NOTE: Replaces legacy `received!` method.
       # - Sets state to 'revealed' (was 'received')
       # - Sets `revealed` timestamp (legacy `received` kept for backward compat in safe_dump)
       # - Clears secret_identifier
+      #
+      # @return [Boolean, nil] true if THIS caller performed the transition;
+      #   a falsy value if the in-memory guard or the atomic claim lost.
       def revealed!
-        # A guard to allow only a fresh secret to be revealed. Also ensures
-        # that we don't support going from revealed back to something else.
+        # In-memory fast-path: short-circuit an already-terminal instance before
+        # touching Redis. The authoritative, resurrection-proof guard is the CAS.
         return unless state?(:new) || state?(:previewed)
+        return unless compare_and_set_state!(:revealed, [:new, :previewed])
 
         previous_state         = state
         original_secret_id     = secret_identifier
@@ -144,6 +165,7 @@ module Onetime::Receipt::Features
           }
 
         record_org_audit_event('revealed')
+        true
       end
 
       # We use this method in special cases where a receipt record exists with
@@ -156,6 +178,7 @@ module Onetime::Receipt::Features
         return if secret_identifier.to_s.empty?
         # Only new or previewed secrets can be orphaned (was state?(:viewed))
         return unless state?(:new) || state?(:previewed)
+        return unless compare_and_set_state!(:orphaned, [:new, :previewed])
 
         previous_state         = state
         original_secret_id     = secret_identifier
@@ -174,11 +197,13 @@ module Onetime::Receipt::Features
           }
 
         record_org_audit_event('orphaned')
+        true
       end
 
       def burned!
         # See guard comment on `revealed!` (was `received!`)
         return unless state?(:new) || state?(:previewed)
+        return unless compare_and_set_state!(:burned, [:new, :previewed])
 
         previous_state         = state
         original_secret_id     = secret_identifier
@@ -197,6 +222,7 @@ module Onetime::Receipt::Features
           }
 
         record_org_audit_event('burned')
+        true
       end
 
       def expired!
@@ -209,6 +235,7 @@ module Onetime::Receipt::Features
         # so every later view of an expired receipt re-ran the transition
         # (redundant save, duplicate logs, duplicate audit events).
         return unless state?(:new) || state?(:previewed)
+        return unless compare_and_set_state!(:expired, [:new, :previewed])
 
         previous_state         = state
         original_secret_id     = secret_identifier
@@ -230,6 +257,7 @@ module Onetime::Receipt::Features
           }
 
         record_org_audit_event('expired')
+        true
       end
 
       def state?(guess)
@@ -242,6 +270,9 @@ module Onetime::Receipt::Features
       def truncated?
         truncate.to_s == 'true'
       end
+
+      # See Onetime::Models::Features::StateCas for +compare_and_set_state!+,
+      # the shared atomic guard each transition above claims through.
     end
   end
 end

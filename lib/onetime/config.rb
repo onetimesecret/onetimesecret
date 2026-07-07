@@ -62,6 +62,13 @@ module Onetime
               'maximum_length' => 128,
               'enforce_complexity' => false,
             },
+            # Limits on the secret content itself. maximum_length is the
+            # server-enforced ceiling on secret body size and the single
+            # source of truth for the client-side textarea hint (exposed via
+            # public config as secret_options.content.maximum_length).
+            'content' => {
+              'maximum_length' => 10_000,
+            },
             'password_generation' => {
               'default_length' => 12,
               'length_options' => [8, 12, 16, 20, 24, 32],
@@ -468,6 +475,16 @@ module Onetime
 
       if passphrase_config['maximum_length'].is_a?(String)
         conf['site']['secret_options']['passphrase']['maximum_length'] = passphrase_config['maximum_length'].to_i
+      end
+
+      # Process secret content limits. ENV/ERB delivers strings and unquoted
+      # YAML scalars like 10000.0 parse as Float; normalize any non-Integer to
+      # an Integer so the value the frontend receives satisfies its int()
+      # contract and never renders as "10000.0".
+      content_config = conf.dig('site', 'secret_options', 'content') || {}
+      content_max = content_config['maximum_length']
+      unless content_max.nil? || content_max.is_a?(Integer)
+        conf['site']['secret_options']['content']['maximum_length'] = content_max.to_i
       end
 
       # Process password generation configuration
