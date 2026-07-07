@@ -18,6 +18,10 @@ import {
   colonelOrganizationsDetailsSchema,
   investigateOrganizationResultSchema,
   queueMetricsDetailsSchema,
+  colonelUserDetailRecordSchema,
+  colonelUserDetailsSchema,
+  colonelUserMutationRecordSchema,
+  colonelUserMutationDetailsSchema,
 } from '@/schemas/api/account/responses/colonel';
 import { z } from 'zod';
 
@@ -73,6 +77,17 @@ export const systemSettingsResponseSchema = createApiResponseSchema(
   systemSettingsDetailsSchema
 );
 
+// Customer detail + guarded-mutation acks (ticket #22). Single-record envelopes
+// (`{ record, details }`) — the customers detail view + guarded action buttons.
+export const colonelUserDetailResponseSchema = createApiResponseSchema(
+  colonelUserDetailRecordSchema,
+  colonelUserDetailsSchema
+);
+export const colonelUserMutationResponseSchema = createApiResponseSchema(
+  colonelUserMutationRecordSchema,
+  colonelUserMutationDetailsSchema
+);
+
 export type ColonelInfoResponse = z.infer<typeof colonelInfoResponseSchema>;
 export type ColonelStatsResponse = z.infer<typeof colonelStatsResponseSchema>;
 export type ColonelUsersResponse = z.infer<typeof colonelUsersResponseSchema>;
@@ -86,3 +101,5 @@ export type BannedIPsResponse = z.infer<typeof bannedIPsResponseSchema>;
 export type UsageExportResponse = z.infer<typeof usageExportResponseSchema>;
 export type QueueMetricsResponse = z.infer<typeof queueMetricsResponseSchema>;
 export type SystemSettingsResponse = z.infer<typeof systemSettingsResponseSchema>;
+export type ColonelUserDetailResponse = z.infer<typeof colonelUserDetailResponseSchema>;
+export type ColonelUserMutationResponse = z.infer<typeof colonelUserMutationResponseSchema>;

@@ -111,11 +111,14 @@ module ColonelAPI
           # Use O(1) ZCARD-based count via Familia instances instead of O(N) blocking KEYS
           @receipt_count = Onetime::Receipt.count
           @secret_count  = Onetime::Secret.count
-          # TODO: Re-enable global statistics when Customer.global is implemented
-          # @secrets_created = Onetime::Customer.global.secrets_created.to_s
-          # @secrets_shared  = Onetime::Customer.global.secrets_shared.to_s
-          # @secrets_burned  = Onetime::Customer.global.secrets_burned.to_s
-          # @emails_sent     = Onetime::Customer.global.emails_sent.to_s
+
+          # Global lifetime counters (Familia class-level counters maintained at the
+          # creation/send chokepoints). Previously stubbed; now sourced from the real
+          # counters so the dashboard never reports fabricated values. See
+          # GetColonelStats#process_statistics for the backfill note (forward-only).
+          @secrets_created = Onetime::Customer.secrets_created.to_i
+          @secrets_shared  = Onetime::Customer.secrets_shared.to_i
+          @emails_sent     = Onetime::Customer.emails_sent.to_i
         end
         private :process_statistics
 

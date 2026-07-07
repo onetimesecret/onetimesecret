@@ -128,6 +128,7 @@ module Core
           'vite_assets_html' => vite_assets(
             nonce: view_vars['nonce'],
             development: view_vars['frontend_development'],
+            entry: vite_entry,
           ),
         }
 
@@ -142,6 +143,15 @@ module Core
         )
 
         rhales_view.render(template_name)
+      end
+
+      # Vite manifest entry to inject into the shell. Defaults to the customer
+      # bundle; the admin console view overrides this to 'admin.ts' so /colonel
+      # loads the isolated admin chunk. See Core::Views::AdminPoint.
+      #
+      # @return [String] Vite entry key (source path relative to src/)
+      def vite_entry
+        'main.ts'
       end
 
       class << self
