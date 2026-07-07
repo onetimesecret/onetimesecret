@@ -9,3 +9,8 @@ Per the spec's own initialization prescription (doc 07, "the spec moves
 in"), the copy that was here was imported there when the repository was
 initialized; this pointer is what remains. Changes to companion
 behaviour start as PRs against that repo's `docs/spec/`.
+
+Breadcrumb: the seven documents plus index were moved on 2026-07-07,
+imported verbatim at onetimesecret/macos commit `1edcffb`. Their history
+in this repository is preserved at
+`git log -- docs/specs/macos-companion/`.
