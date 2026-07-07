@@ -151,11 +151,10 @@ RSpec.describe Onetime::Organization, type: :integration do
 
     it 'records the receipt view exactly once, under its unambiguous audit kind' do
       receipt.record_receipt_view!
-      receipt.record_receipt_view! # guard: receipt_viewed_at already claimed
+      receipt.record_receipt_view! # guard: claim_once! already stamped receipt_viewed_at
 
       # 'preview' is UI language; the trail records what mechanically
-      # happened: the receipt page was loaded. #3633 retired previewed!; the
-      # one-time receipt-view event is now emitted by record_receipt_view!.
+      # happened: the receipt page was loaded.
       kinds = org.audit_events_page.map { |e| e['kind'] }
       expect(kinds).to eq(['receipt_viewed'])
     end
