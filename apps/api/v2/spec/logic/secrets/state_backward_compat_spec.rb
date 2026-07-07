@@ -2,12 +2,14 @@
 #
 # frozen_string_literal: true
 
-# Tests backward compatibility for state terminology rename in V2 API:
-# - Internal: viewed -> previewed, received -> revealed
-# - API: maintains `viewed` and `received` fields in safe_dump for compatibility
+# Tests backward compatibility for state terminology in the V2 API:
+# - API: maintains `viewed`/`received` (and is_viewed/is_received) fields in
+#   safe_dump for compatibility.
 #
-# V2 API may choose to expose new terminology directly while maintaining
-# backward compatible fields.
+# #3633 retired the previewed!/`:previewed` state mutation: fetching a secret
+# link is now recorded as access telemetry on the receipt (record_access_event),
+# and that telemetry -- not a lifecycle state -- is what drives the
+# backward-compat viewed/is_viewed safe_dump fields.
 
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require_relative File.join(Onetime::HOME, 'spec', 'support', 'model_test_helper.rb')
@@ -60,8 +62,11 @@ RSpec.describe 'V2 API State Backward Compatibility' do
       end
     end
 
-    context 'when previewed (new internal state)' do
-      before { receipt.previewed! }
+    # #3633 retired previewed!: fetching the secret link is now access
+    # telemetry (record_access_event), which is what drives the backward-compat
+    # is_viewed/viewed safe_dump fields.
+    context 'when the secret link has been fetched (access telemetry)' do
+      before { receipt.record_access_event('secret_get') }
 
       it 'viewed timestamp is populated' do
         dump = receipt.safe_dump
@@ -115,9 +120,9 @@ RSpec.describe 'V2 API State Backward Compatibility' do
       end
     end
 
-    context 'when previewed then revealed' do
+    context 'when fetched then revealed' do
       before do
-        receipt.previewed!
+        receipt.record_access_event('secret_get')
         @viewed_timestamp = receipt.safe_dump[:viewed]
         receipt.revealed!
       end
@@ -151,22 +156,10 @@ RSpec.describe 'V2 API State Backward Compatibility' do
       receipt.destroy! if receipt.exists?
     end
 
-    describe '#previewed!' do
-      it 'sets state and timestamp' do
-        receipt.previewed!
-        expect(receipt.state).to eq('previewed').or eq('viewed')
-        # Check the new canonical field (safe_dump provides backward compat for :viewed)
-        expect(receipt.previewed.to_i).to be > 0
-      end
-
-      it 'only transitions from :new state' do
-        receipt.state = 'burned'
-        receipt.save
-        receipt.previewed!
-        # Should not change since guard prevents it
-        expect(receipt.state).to eq('burned')
-      end
-    end
+    # #3633 retired the receipt #previewed! transition (and the :previewed
+    # state itself); the receipt-view signal is now telemetry, not lifecycle.
+    # The former "#previewed! sets state/guards" examples were removed with the
+    # state they exercised.
 
     describe '#revealed!' do
       it 'sets state and timestamp' do
@@ -186,11 +179,8 @@ RSpec.describe 'V2 API State Backward Compatibility' do
         expect(receipt.state?(:revealed) || receipt.state?(:received)).to be true
       end
 
-      it 'transitions from :previewed state' do
-        receipt.previewed!
-        receipt.revealed!
-        expect(receipt.state?(:revealed) || receipt.state?(:received)).to be true
-      end
+      # #3633 retired the :previewed state, so there is no longer a
+      # :previewed -> :revealed transition to exercise.
 
       it 'does not transition from :burned state' do
         receipt.burned!
@@ -211,19 +201,9 @@ RSpec.describe 'V2 API State Backward Compatibility' do
       secret.destroy! if secret&.respond_to?(:exists?) && secret.exists?
     end
 
-    describe '#previewed!' do
-      it 'transitions from :new to previewed' do
-        secret.previewed!
-        expect(secret.state?(:previewed) || secret.state?(:viewed)).to be true
-      end
-
-      it 'is idempotent (calling twice is safe)' do
-        secret.previewed!
-        first_state = secret.state
-        secret.previewed!
-        expect(secret.state).to eq(first_state)
-      end
-    end
+    # #3633 retired the secret #previewed! transition and the :previewed
+    # state; the former "#previewed! transitions/idempotent" examples were
+    # removed with the state they exercised.
 
     describe '#revealed!' do
       it 'transitions from :new and destroys secret' do
@@ -231,11 +211,8 @@ RSpec.describe 'V2 API State Backward Compatibility' do
         expect(secret.state?(:revealed) || secret.state?(:received)).to be true
       end
 
-      it 'transitions from :previewed and destroys secret' do
-        secret.previewed!
-        secret.revealed!
-        expect(secret.state?(:revealed) || secret.state?(:received)).to be true
-      end
+      # #3633 retired the :previewed state, so there is no longer a
+      # :previewed -> :revealed transition to exercise.
 
       it 'updates receipt state' do
         secret.revealed!
