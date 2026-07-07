@@ -26,13 +26,19 @@
 #       (multiple schemas per class: storage vs wire) — no upstream change
 #       needed for the MVP.
 #   P5. Familia's default JsonSchemerValidator compiles the schema on every
-#       call; a memoizing validator injected via Familia.schema_validator
-#       is required before per-request use. Measured here.
-#   P6. Discipline-based alignment fails in practice: the hand-maintained
-#       TS mirror of the Ruby safe_dump field list
+#       call — asserted from the gem source, not a stopwatch (timing
+#       assertions flake). The relative cost is printed informationally,
+#       and a memoizing validator injected via Familia.schema_validator is
+#       shown to work.
+#   P6 (informational, not asserted). Discipline-based alignment fails in
+#       practice: when this proof was written (2026-07-06) the hand-kept TS
+#       mirror of the Ruby safe_dump field list
 #       (src/tests/contracts/receipt-safe-dump-fields.ts, "Update this list
-#       when safe_dump_fields.rb changes") is stale on develop today.
-#       Detected mechanically here.
+#       when safe_dump_fields.rb changes") was stale — missing
+#       recipient_name and source. The script reports the current drift
+#       status without asserting it, so it keeps passing once the mirror is
+#       synced or deleted; the durable gate has inverted polarity (fail
+#       WHEN drifted) and belongs in CI.
 #
 # Run: bundle exec ruby docs/specs/schemata/proofs/emission_boundary_proof.rb
 # No Redis/Valkey, no OT.boot!, no network. Exits non-zero on any
@@ -48,9 +54,11 @@ ROOT       = File.expand_path('../../../..', __dir__)
 SHAPE_PATH = File.join(ROOT, 'generated/schemas/shapes/receipt.schema.json')
 
 $failures = []
+$checks   = 0
 
 def check(label, actual, expected: true)
-  ok = (actual == expected)
+  $checks += 1
+  ok       = (actual == expected)
   puts format('  %s %s', ok ? 'PASS' : 'FAIL', label)
   $failures << label unless ok
   ok
@@ -171,19 +179,25 @@ check 'registry error names the field',
   expected: '/state'
 
 puts "\nP5. Default validator recompiles per call; a cached one must be injected"
-compiled                 = JSONSchemer.schema(schema)
-n                        = 200
-recompile                = Benchmark.realtime { n.times { JSONSchemer.schema(schema).valid?(healthy) } }
-cached                   = Benchmark.realtime { n.times { compiled.valid?(healthy) } }
+# The durable claim is provable from the gem source without a stopwatch:
+# JsonSchemerValidator#validate constructs a fresh JSONSchemer schema inside
+# the method body, so every call pays compilation.
+src_file, src_line = Familia::JsonSchemerValidator.instance_method(:validate).source_location
+method_body        = File.readlines(src_file)[src_line - 1, 4].join
+check 'gem source: JsonSchemerValidator#validate compiles the schema per call',
+  method_body.include?('JSONSchemer.schema(')
+
+compiled  = JSONSchemer.schema(schema)
+n         = 200
+recompile = Benchmark.realtime { n.times { JSONSchemer.schema(schema).valid?(healthy) } }
+cached    = Benchmark.realtime { n.times { compiled.valid?(healthy) } }
 puts format(
-  '       %d validations — recompile-per-call: %.1fms, cached: %.1fms (%.1fx)',
+  '       informational: %d validations — recompile-per-call: %.1fms, cached: %.1fms (%.1fx)',
   n,
   recompile * 1000,
   cached * 1000,
   recompile / cached,
 )
-check 'cached validation is at least 3x faster than recompile-per-call',
-  (recompile / cached) > 3
 
 # A caching validator is injectable without touching the gem:
 class CachedSchemerValidator
@@ -200,21 +214,32 @@ result                   = Familia::SchemaRegistry.validate('Onetime::Receipt.wi
 check 'custom cached validator injects cleanly via Familia.schema_validator', result[:valid]
 Familia.schema_validator = :json_schemer # restore default
 
-puts "\nP6. The hand-maintained TS mirror of the Ruby field list has already drifted"
-ruby_fields   = File.readlines(File.join(ROOT, 'lib/onetime/models/receipt/features/safe_dump_fields.rb'))
-  .reject { |l| l.strip.start_with?('#') }
-  .flat_map { |l| l.scan(/safe_dump_field :(\w+)/).flatten }.uniq
-ts_mirror     = File.read(File.join(ROOT, 'src/tests/contracts/receipt-safe-dump-fields.ts'))
-  .scan(/^\s*'(\w+)',/).flatten.uniq
-missing_in_ts = ruby_fields - ts_mirror
-extra_in_ts   = ts_mirror - ruby_fields
-puts "       Ruby safe_dump fields: #{ruby_fields.size}; TS mirror: #{ts_mirror.size}"
-puts "       missing from TS mirror: #{missing_in_ts.inspect}; stale extras: #{extra_in_ts.inspect}"
-check 'the discipline-maintained mirror is out of sync right now', !missing_in_ts.empty? || !extra_in_ts.empty?
+puts "\nP6. Drift status of the hand-maintained TS mirror (informational)"
+# Evidence-of-the-moment, deliberately NOT asserted: this script must keep
+# passing after the mirror is synced or deleted. The durable gate has
+# inverted polarity — fail WHEN drifted — and belongs in CI, not in a proof.
+# Stale when this proof was written (2026-07-06): missing recipient_name, source.
+mirror_path = File.join(ROOT, 'src/tests/contracts/receipt-safe-dump-fields.ts')
+if File.exist?(mirror_path)
+  ruby_fields   = File.readlines(File.join(ROOT, 'lib/onetime/models/receipt/features/safe_dump_fields.rb'))
+    .reject { |l| l.strip.start_with?('#') }
+    .flat_map { |l| l.scan(/safe_dump_field :(\w+)/).flatten }.uniq
+  ts_mirror     = File.read(mirror_path).scan(/^\s*'(\w+)',/).flatten.uniq
+  missing_in_ts = ruby_fields - ts_mirror
+  extra_in_ts   = ts_mirror - ruby_fields
+  puts "       Ruby safe_dump fields: #{ruby_fields.size}; TS mirror: #{ts_mirror.size}"
+  if missing_in_ts.empty? && extra_in_ts.empty?
+    puts '       in sync at this commit'
+  else
+    puts "       DRIFTED — missing from TS mirror: #{missing_in_ts.inspect}; stale extras: #{extra_in_ts.inspect}"
+  end
+else
+  puts '       mirror deleted (the target architecture retires it) — nothing to compare'
+end
 
 puts
 if $failures.empty?
-  puts "All #{`grep -c "check '" #{__FILE__}`.strip} expectations hold."
+  puts "All #{$checks} expectations hold."
 else
   puts "FAILED: #{$failures.size} expectation(s):"
   $failures.each { |f| puts "  - #{f}" }
