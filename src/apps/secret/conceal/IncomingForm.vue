@@ -2,8 +2,10 @@
 
 <script setup lang="ts">
   import { computed, onMounted, ref } from 'vue';
+  import { storeToRefs } from 'pinia';
   import { useIncomingSecret } from '@/shared/composables/useIncomingSecret';
   import { useIncomingStore } from '@/shared/stores/incomingStore';
+  import { useProductIdentity } from '@/shared/stores/identityStore';
   import IncomingSecretFormBody from '@/apps/secret/components/incoming/IncomingSecretFormBody.vue';
   import LoadingOverlay from '@/shared/components/common/LoadingOverlay.vue';
   import EmptyState from '@/shared/components/ui/EmptyState.vue';
@@ -12,6 +14,16 @@
   const { t } = useI18n();
   const incomingStore = useIncomingStore();
   const { isFeatureEnabled, loadConfig } = useIncomingSecret();
+
+  // Custom-domain brand logo. The top masthead is suppressed on custom domains
+  // (see guards.routes.ts), so the page body owns the logo — mirroring
+  // BrandedHomepage. Hidden when no logo is configured or the asset 404s, so
+  // the no-logo page stays title + subtitle + form with no placeholder box.
+  const { logoUri, displayName } = storeToRefs(useProductIdentity());
+  const logoError = ref(false);
+  const handleLogoError = () => {
+    logoError.value = true;
+  };
 
   const isLoading = ref(true);
 
@@ -63,6 +75,13 @@
     <template v-else>
       <!-- Header -->
       <div class="mb-10">
+        <!-- Brand logo (custom domains) — hidden if unconfigured or 404s -->
+        <img
+          v-if="logoUri && !logoError"
+          :src="logoUri"
+          :alt="displayName"
+          class="mb-6 h-16 max-w-[200px] object-contain"
+          @error="handleLogoError" />
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
           {{ t('incoming.page_title') }}
         </h1>
