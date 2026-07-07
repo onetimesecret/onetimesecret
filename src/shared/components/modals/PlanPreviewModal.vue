@@ -106,43 +106,16 @@ const actualPlanName = computed(() => {
 /**
  * Sync client state after the preview override changes on the server.
  *
- * Two independent pieces of state must be refreshed, because they come from
- * different endpoints:
- *
- * 1. bootstrapStore.refresh() — picks up `entitlement_preview_planid` /
- *    `entitlement_preview_plan_name`, which drive the preview banner.
- *
- * 2. organizationStore.fetchEntitlements() — the org's entitlements/limits
- *    (what `useEntitlements` gates features on) are NOT part of the bootstrap
- *    payload. They are served by the preview-aware billing entitlements
- *    endpoint. Without re-fetching them, the banner flips but the rest of the
- *    UI keeps gating against the org's actual plan.
+ * The override is applied server-side on every read (ADR-020), so plain
+ * refetches return preview-corrected data: bootstrapStore.refresh() picks up
+ * the banner fields (`entitlement_preview_planid` / `_plan_name`), and
+ * fetchOrganizations() reloads the org records whose entitlements/limits
+ * `useEntitlements` gates features on.
  */
 const syncPreviewState = async () => {
-  // The two refreshes are independent and hit different endpoints:
-  //   - bootstrapStore.refresh() updates entitlement_preview_planid /
-  //     _plan_name (the banner) from /bootstrap/me
-  //   - fetchEntitlements() reloads the org's preview-aware entitlements/limits
-  //     (what useEntitlements gates on) from the billing endpoint
-  // The active org's extid does not change across a preview toggle, so resolve
-  // it up front and run both requests concurrently.
-  const extid =
-    organizationStore.currentOrganization?.extid ?? bootstrapStore.organization?.extid;
-
-  if (!extid) {
-    // An active org should always be present in the colonel preview context.
-    // If it isn't, the banner would still update while feature gating stayed on
-    // the old plan — the exact mismatch this feature fixes. Surface it instead
-    // of failing silently so the half-updated state is debuggable.
-    console.warn(
-      '[PlanPreviewModal] No organization extid resolvable; skipping entitlements refresh. ' +
-        'Preview banner may not match feature gating until a page reload.'
-    );
-  }
-
   await Promise.all([
     bootstrapStore.refresh(),
-    extid ? organizationStore.fetchEntitlements(extid) : Promise.resolve(),
+    organizationStore.fetchOrganizations(),
   ]);
 };
 
@@ -153,8 +126,8 @@ const handleActivateTestMode = async (planId: string) => {
   try {
     await $api.post('/api/colonel/entitlement-preview', { planid: planId });
 
-    // Refresh banner state and re-fetch the org's preview-aware entitlements
-    // so feature gating reflects the selected plan (no page reload needed).
+    // Refetch server state so the banner and feature gating reflect the
+    // selected plan (no page reload needed).
     await syncPreviewState();
     emit('close');
   } catch (err: unknown) {
@@ -172,8 +145,8 @@ const handleResetToActual = async () => {
   try {
     await $api.post('/api/colonel/entitlement-preview', { planid: null });
 
-    // Refresh banner state and re-fetch the org's actual entitlements so
-    // feature gating returns to the real plan (no page reload needed).
+    // Refetch server state so the banner and feature gating return to the
+    // real plan (no page reload needed).
     await syncPreviewState();
     emit('close');
   } catch (err: unknown) {

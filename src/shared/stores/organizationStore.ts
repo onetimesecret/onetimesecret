@@ -72,7 +72,6 @@ export const useOrganizationStore = defineStore('organization', () => {
   const _initialized = ref(false);
   const _listFetched = ref(false); // Tracks whether fetchOrganizations() was called (full list)
   const loading = ref(false);
-  const entitlementsError = ref<string | null>(null);
   // AbortController for list fetches only - single-org fetches don't need cancellation
   const abortController = ref<AbortController | null>(null);
 
@@ -290,64 +289,6 @@ export const useOrganizationStore = defineStore('organization', () => {
   }
 
   /**
-   * Fetch entitlements for an organization
-   * This method fetches the organization's billing entitlements and limits
-   *
-   * @param extid - The external ID for API calls
-   * @param options.throwOnError - If true, throws on error instead of swallowing
-   */
-  async function fetchEntitlements(
-    extid: string,
-    options: { throwOnError?: boolean } = {}
-  ): Promise<void> {
-    entitlementsError.value = null;
-
-    try {
-      const response = await $api.get(`/billing/api/entitlements/${extid}`);
-
-      // Update the organization with entitlements (find by extid)
-      const index = organizations.value.findIndex((o) => o.extid === extid);
-      if (index !== -1) {
-        organizations.value[index] = {
-          ...organizations.value[index],
-          planid: response.data.planid,
-          entitlements: response.data.entitlements,
-          limits: response.data.limits,
-        };
-      } else {
-        loggingService.debug('[OrganizationStore] Organization not in cache, skipping list update', { extid });
-      }
-
-      // Update current organization if it matches
-      if (currentOrganization.value?.extid === extid) {
-        currentOrganization.value = {
-          ...currentOrganization.value,
-          planid: response.data.planid,
-          entitlements: response.data.entitlements,
-          limits: response.data.limits,
-        };
-      }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to load entitlements';
-      entitlementsError.value = message;
-      console.error('[OrganizationStore] Error fetching entitlements:', err);
-
-      // Optionally throw for callers that want to handle errors explicitly
-      if (options.throwOnError) {
-        throw err;
-      }
-      // Otherwise, fail gracefully - entitlements are optional enhancements
-    }
-  }
-
-  /**
-   * Clear the entitlements error state
-   */
-  function clearEntitlementsError(): void {
-    entitlementsError.value = null;
-  }
-
-  /**
    * Fetch pending invitations for an organization
    *
    * @param extid - The external ID for API calls
@@ -452,7 +393,6 @@ export const useOrganizationStore = defineStore('organization', () => {
     _initialized.value = false;
     _listFetched.value = false;
     loading.value = false;
-    entitlementsError.value = null;
   }
 
   /**
@@ -517,7 +457,7 @@ export const useOrganizationStore = defineStore('organization', () => {
       if (bootstrapOrg && !currentOrganization.value) {
         // Convert bootstrap org format to Organization type
         // Bootstrap provides minimal fields (objid, extid, display_name,
-        // is_default, planid, current_user_role)
+        // is_default, planid, current_user_role, entitlements, limits)
         // Full data comes from fetchOrganization
         currentOrganization.value = {
           objid: bootstrapOrg.objid,
@@ -529,6 +469,8 @@ export const useOrganizationStore = defineStore('organization', () => {
           is_default: bootstrapOrg.is_default,
           planid: bootstrapOrg.planid ?? 'free_v1',
           current_user_role: bootstrapOrg.current_user_role ?? null,
+          entitlements: bootstrapOrg.entitlements ?? null,
+          limits: bootstrapOrg.limits ?? null,
           // These fields will be populated when full org is fetched
           created: new Date(),
           updated: new Date(),
@@ -546,7 +488,6 @@ export const useOrganizationStore = defineStore('organization', () => {
     currentOrganization,
     invitations,
     loading,
-    entitlementsError,
     _initialized,
 
     // Getters
@@ -566,8 +507,6 @@ export const useOrganizationStore = defineStore('organization', () => {
     deleteOrganization,
     setCurrentOrganization,
     restorePersistedSelection,
-    fetchEntitlements,
-    clearEntitlementsError,
     fetchInvitations,
     createInvitation,
     resendInvitation,

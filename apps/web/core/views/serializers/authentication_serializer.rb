@@ -42,13 +42,16 @@ module Core
           output['customer_since'] = OT::Utils::TimeUtils.epochdom(cust.created) if cust.created
           output['has_password']   = account_has_password?(sess)
 
-          # Add entitlement test mode state for colonels
-          if cust.role?(:colonel) && sess[:entitlement_preview_planid]
-            test_planid    = sess[:entitlement_preview_planid]
-            test_plan_name = resolve_test_plan_name(test_planid)
+          # Add entitlement preview state for colonels. The planid comes from
+          # the request-scoped context (ADR-020) — the same source the
+          # entitlement chokepoints consult — so the banner cannot disagree
+          # with the entitlements actually served.
+          preview_planid = Onetime::EntitlementPreview.context&.dig(:planid)
+          if cust.role?(:colonel) && preview_planid
+            test_plan_name = resolve_test_plan_name(preview_planid)
 
             if test_plan_name
-              output['entitlement_preview_planid']    = test_planid
+              output['entitlement_preview_planid']    = preview_planid
               output['entitlement_preview_plan_name'] = test_plan_name
             end
           end

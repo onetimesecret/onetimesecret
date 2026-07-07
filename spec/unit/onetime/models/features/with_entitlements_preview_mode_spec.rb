@@ -4,17 +4,37 @@
 
 require 'spec_helper'
 
-# Unit tests for WithEntitlements Preview Mode
+require_relative '../../../../../lib/onetime/models/organization/features/with_materialized_entitlements'
+
+# Unit tests for the entitlement/limit preview chokepoints (ADR-020).
 #
-# Tests the session-based preview mode mechanism that allows colonels
-# to test features from different plan tiers.
+# Preview state lives in a request-scoped Fiber-local
+# (Onetime::EntitlementPreview) populated by middleware; the chokepoints —
+# WithEntitlements#entitlements, WithPlanEntitlements#entitlements and
+# WithMaterializedLimits#limit_for — consult it so every consumer above them
+# is preview-aware without a session parameter.
 #
-# The preview mode uses explicit session parameters instead of Thread.current,
-# making it safer for async contexts and easier to test.
-#
+# Session grants/revokes sets are written to real Redis (port 2121) because
+# the reconciler reads them via Familia.dbclient.
 RSpec.describe 'WithEntitlements Preview Mode', billing: true do
-  # Mock class that includes WithEntitlements
-  let(:test_class) do
+  # Lightweight in-memory set mirroring the Familia set interface used by
+  # the reconciler (same pattern as with_materialized_entitlements_spec.rb).
+  class FakeSet
+    def initialize = @data = Set.new
+    def add(v)    = @data.add(v.to_s)
+    def delete(v) = @data.delete(v.to_s)
+    alias remove_element delete
+    def each(&b)  = @data.each(&b)
+    def clear     = @data.clear
+    def to_a      = @data.to_a
+    def size      = @data.size
+    def include?(v) = @data.include?(v.to_s)
+  end
+
+  # Mirrors Organization's feature mix minus Familia storage: the plan chain
+  # (WithPlanEntitlements over WithEntitlements) plus limits, WITHOUT the
+  # session reconciler. Hosts like this must fall through the preview guard.
+  let(:plain_class) do
     Class.new do
       include Onetime::Models::Features::WithEntitlements
       include Onetime::Models::Features::WithMaterializedLimits
@@ -24,17 +44,67 @@ RSpec.describe 'WithEntitlements Preview Mode', billing: true do
 
       def initialize(planid, extid: 'test_org_preview_spec')
         @planid = planid
-        @extid = extid
+        @extid  = extid
       end
 
-      # Mock billing_enabled? to return true for tests
       def billing_enabled?
         true
       end
     end
   end
 
-  let(:org) { test_class.new('free') }
+  # Adds the real reconciler (WithMaterializedEntitlements::InstanceMethods)
+  # on top of the plan chain, backed by FakeSet storage — the same shape a
+  # real Organization presents to the preview guard.
+  let(:reconciling_class) do
+    Class.new do
+      include Onetime::Models::Features::WithEntitlements
+      include Onetime::Models::Features::WithMaterializedLimits
+      include Onetime::Models::Features::WithPlanEntitlements
+      include Onetime::Models::Features::WithMaterializedEntitlements::InstanceMethods
+
+      attr_accessor :planid, :extid, :materialized_entitlements_at
+
+      def initialize(planid, extid: 'test_org_preview_reconciler')
+        @planid                       = planid
+        @extid                        = extid
+        @entitlements_plan            = FakeSet.new
+        @entitlements_grants          = FakeSet.new
+        @entitlements_revokes         = FakeSet.new
+        @materialized_entitlements    = FakeSet.new
+        @materialized_entitlements_at = nil
+      end
+
+      def entitlements_plan         = @entitlements_plan
+      def entitlements_grants       = @entitlements_grants
+      def entitlements_revokes      = @entitlements_revokes
+      def materialized_entitlements = @materialized_entitlements
+
+      def billing_enabled?
+        true
+      end
+    end
+  end
+
+  let(:free_entitlements)     { %w[create_secrets basic_sharing] }
+  let(:identity_entitlements) { %w[create_secrets basic_sharing custom_domains create_team priority_support] }
+
+  let(:org) { plain_class.new('free') }
+
+  # Session-scoped override sets in real Redis, unique per example
+  let(:session_suffix) { SecureRandom.hex(4) }
+  let(:grants_key)     { "spec:preview:#{session_suffix}:grants" }
+  let(:revokes_key)    { "spec:preview:#{session_suffix}:revokes" }
+
+  def seed_preview_sets(grants:, revokes:)
+    redis = Familia.dbclient
+    redis.sadd(grants_key, grants) if grants.any?
+    redis.sadd(revokes_key, revokes) if revokes.any?
+  end
+
+  after do
+    Familia.dbclient.del(grants_key, revokes_key)
+  end
 
   # Setup test plans in cache
   before do
@@ -69,110 +139,169 @@ RSpec.describe 'WithEntitlements Preview Mode', billing: true do
     ])
   end
 
-  describe '#entitlements_for_request' do
-    context 'when session is nil' do
-      it 'returns actual plan entitlements' do
-        expect(org.entitlements_for_request(nil)).to match_array(%w[create_secrets basic_sharing])
+  describe '#entitlements without a preview context' do
+    it 'returns the actual plan entitlements' do
+      expect(org.entitlements).to match_array(free_entitlements)
+    end
+
+    it 'returns materialized entitlements for a materialized org' do
+      materialized = reconciling_class.new('free')
+      free_entitlements.each { |e| materialized.materialized_entitlements.add(e) }
+      materialized.materialized_entitlements_at = "#{Time.now.to_i}:abc123def456"
+
+      expect(materialized.entitlements).to match_array(free_entitlements)
+    end
+
+    it 'does not include higher tier entitlements' do
+      expect(org.entitlements).not_to include('custom_domains')
+      expect(org.entitlements).not_to include('api_access')
+    end
+  end
+
+  describe '#entitlements with an active preview (reconciler host)' do
+    let(:materialized_org) do
+      instance = reconciling_class.new('free')
+      free_entitlements.each { |e| instance.materialized_entitlements.add(e) }
+      instance.materialized_entitlements_at = "#{Time.now.to_i}:abc123def456"
+      instance
+    end
+
+    before do
+      # Reset-and-substitute: revoke the actual entitlements, grant the
+      # preview plan's set
+      seed_preview_sets(grants: identity_entitlements, revokes: free_entitlements)
+    end
+
+    it 'returns the reconciled preview entitlements' do
+      with_entitlement_preview(planid: 'identity_v1', grants_key: grants_key, revokes_key: revokes_key) do
+        expect(materialized_org.entitlements).to match_array(identity_entitlements)
       end
     end
 
-    context 'when session has no preview keys' do
-      let(:session) { {} }
-
-      it 'returns actual plan entitlements' do
-        expect(org.entitlements_for_request(session)).to match_array(%w[create_secrets basic_sharing])
-      end
-
-      it 'does not include higher tier entitlements' do
-        entitlements = org.entitlements_for_request(session)
-        expect(entitlements).not_to include('custom_domains')
-        expect(entitlements).not_to include('api_access')
+    it 'reflects the override through can?' do
+      with_entitlement_preview(planid: 'identity_v1', grants_key: grants_key, revokes_key: revokes_key) do
+        expect(materialized_org.can?('custom_domains')).to be true
+        expect(materialized_org.can?('create_team')).to be true
       end
     end
 
-    context 'when session has preview keys but org lacks reconciler' do
-      let(:session) do
-        {
-          entitlement_preview_grants_key: 'session:abc:grants',
-          entitlement_preview_revokes_key: 'session:abc:revokes',
-        }
+    it 'reverts to materialized entitlements once the context is cleared' do
+      with_entitlement_preview(planid: 'identity_v1', grants_key: grants_key, revokes_key: revokes_key) do
+        materialized_org.entitlements
       end
 
-      it 'falls back to actual entitlements when reconciler not available' do
-        # Mock org without reconciler (respond_to? returns false)
-        expect(org.entitlements_for_request(session)).to match_array(%w[create_secrets basic_sharing])
+      expect(materialized_org.entitlements).to match_array(free_entitlements)
+      expect(materialized_org.can?('custom_domains')).to be false
+    end
+
+    it 'ignores a planid-only context (no reconciliation keys)' do
+      with_entitlement_preview(planid: 'identity_v1') do
+        expect(materialized_org.entitlements).to match_array(free_entitlements)
       end
     end
   end
 
-  describe '#limit_for_request' do
-    context 'when session is nil' do
-      it 'returns actual plan limits' do
-        expect(org.limit_for_request('teams', nil)).to eq(0)
+  describe '#entitlements with an active preview (non-materialized org)' do
+    # The MRO regression this design exists to prevent: the Plan.load
+    # fallback branches in WithPlanEntitlements#entitlements return without
+    # reaching super, so a guard placed only in the base module would be
+    # skipped for orgs that were never materialized.
+    let(:unmaterialized_org) { reconciling_class.new('free') }
+
+    before do
+      seed_preview_sets(grants: identity_entitlements, revokes: free_entitlements)
+    end
+
+    it 'preview wins over the Plan.load fallback' do
+      with_entitlement_preview(planid: 'identity_v1', grants_key: grants_key, revokes_key: revokes_key) do
+        expect(unmaterialized_org.entitlements).to match_array(identity_entitlements)
       end
     end
 
-    context 'when session has no preview planid' do
-      let(:session) { {} }
+    it 'preview wins over the empty-planid FREE tier fallback' do
+      no_plan_org = reconciling_class.new('')
 
-      it 'returns actual plan limits' do
-        expect(org.limit_for_request('teams', session)).to eq(0)
+      with_entitlement_preview(planid: 'identity_v1', grants_key: grants_key, revokes_key: revokes_key) do
+        expect(no_plan_org.entitlements).to match_array(identity_entitlements)
       end
     end
 
-    context 'when session has preview planid' do
-      it 'returns preview plan limits for identity_v1' do
-        session = { entitlement_preview_planid: 'identity_v1' }
-        expect(org.limit_for_request('teams', session)).to eq(1)
-      end
+    it 'falls back to the Plan.load chain without a context' do
+      expect(unmaterialized_org.entitlements).to match_array(free_entitlements)
+    end
+  end
 
-      it 'returns unlimited for multi_team plan' do
-        session = { entitlement_preview_planid: 'multi_team_v1' }
-        expect(org.limit_for_request('teams', session)).to eq(Float::INFINITY)
+  describe '#entitlements with an active preview (host without reconciler)' do
+    it 'falls back cleanly to the actual entitlements' do
+      with_entitlement_preview(planid: 'identity_v1', grants_key: grants_key, revokes_key: revokes_key) do
+        expect(org.entitlements).to match_array(free_entitlements)
       end
+    end
 
-      it 'ignores empty preview planid' do
-        session = { entitlement_preview_planid: '' }
-        expect(org.limit_for_request('teams', session)).to eq(0) # falls back to actual
-      end
-
-      it 'ignores nil preview planid' do
-        session = { entitlement_preview_planid: nil }
-        expect(org.limit_for_request('teams', session)).to eq(0) # falls back to actual
+    it 'keeps can? on the actual entitlements' do
+      with_entitlement_preview(planid: 'identity_v1', grants_key: grants_key, revokes_key: revokes_key) do
+        expect(org.can?('custom_domains')).to be false
       end
     end
   end
 
-  describe '#entitlements (without session context)' do
-    it 'returns actual plan entitlements' do
-      expect(org.entitlements).to match_array(%w[create_secrets basic_sharing])
+  describe '#limit_for' do
+    context 'without a preview context' do
+      it 'returns the actual plan limit' do
+        expect(org.limit_for('teams')).to eq(0)
+      end
     end
 
-    it 'is not affected by any external state' do
-      # No Thread.current pollution
-      expect(org.entitlements).to match_array(%w[create_secrets basic_sharing])
+    context 'with a preview context carrying a planid' do
+      it 'returns the preview plan limit for identity_v1' do
+        with_entitlement_preview(planid: 'identity_v1') do
+          expect(org.limit_for('teams')).to eq(1)
+        end
+      end
+
+      it 'returns unlimited for the multi_team plan' do
+        with_entitlement_preview(planid: 'multi_team_v1') do
+          expect(org.limit_for('teams')).to eq(Float::INFINITY)
+        end
+      end
+
+      it 'returns 0 for a non-existent preview plan' do
+        with_entitlement_preview(planid: 'nonexistent_plan') do
+          expect(org.limit_for('teams')).to eq(0)
+        end
+      end
+
+      it 'reverts to the actual plan limit once cleared' do
+        with_entitlement_preview(planid: 'identity_v1') { org.limit_for('teams') }
+
+        expect(org.limit_for('teams')).to eq(0)
+      end
+    end
+
+    context 'with a preview context lacking a planid' do
+      it 'falls back to the actual plan limit' do
+        with_entitlement_preview(grants_key: grants_key, revokes_key: revokes_key) do
+          expect(org.limit_for('teams')).to eq(0)
+        end
+      end
     end
   end
 
-  describe '#can? (without session context)' do
-    it 'checks against actual plan entitlements' do
-      expect(org.can?('create_secrets')).to be true
-      expect(org.can?('custom_domains')).to be false
+  describe '#at_limit?' do
+    it 'checks against the actual plan limits without a context' do
+      expect(org.at_limit?('teams', 0)).to be true
+      expect(org.at_limit?('teams', 1)).to be true
     end
 
-    it 'handles symbol entitlement names' do
-      expect(org.can?(:create_secrets)).to be true
-      expect(org.can?(:api_access)).to be false
-    end
-  end
-
-  describe '#limit_for (without session context)' do
-    it 'returns actual plan limits' do
-      expect(org.limit_for('teams')).to eq(0)
+    it 'checks against the preview plan limits with a context' do
+      with_entitlement_preview(planid: 'identity_v1') do
+        expect(org.at_limit?('teams', 0)).to be false
+        expect(org.at_limit?('teams', 1)).to be true
+      end
     end
   end
 
-  describe '#check_entitlement (without session context)' do
+  describe '#check_entitlement (without preview context)' do
     before do
       stub_const('Billing::PlanHelpers', Class.new do
         def self.upgrade_path_for(entitlement, current_plan)
@@ -199,65 +328,25 @@ RSpec.describe 'WithEntitlements Preview Mode', billing: true do
     end
   end
 
-  describe '#at_limit? (without session context)' do
-    it 'checks against actual plan limits' do
-      expect(org.at_limit?('teams', 0)).to be true
-      expect(org.at_limit?('teams', 1)).to be true
-    end
-  end
-
   describe 'edge cases' do
     context 'organization without planid' do
-      let(:no_plan_org) { test_class.new(nil) }
+      let(:no_plan_org) { plain_class.new(nil) }
 
       it 'returns FREE tier entitlements (graceful degradation)' do
         expect(no_plan_org.entitlements).to eq(
           Onetime::Models::Features::WithPlanEntitlements::FREE_TIER_ENTITLEMENTS
         )
       end
-
-      it 'returns FREE tier entitlements via entitlements_for_request' do
-        expect(no_plan_org.entitlements_for_request(nil)).to eq(
-          Onetime::Models::Features::WithPlanEntitlements::FREE_TIER_ENTITLEMENTS
-        )
-      end
     end
 
     context 'organization with empty planid' do
-      let(:empty_plan_org) { test_class.new('') }
+      let(:empty_plan_org) { plain_class.new('') }
 
       it 'returns FREE tier entitlements (graceful degradation)' do
         expect(empty_plan_org.entitlements).to eq(
           Onetime::Models::Features::WithPlanEntitlements::FREE_TIER_ENTITLEMENTS
         )
       end
-    end
-
-    context 'invalid preview planid in session' do
-      it 'returns 0 for non-existent plan limit' do
-        session = { entitlement_preview_planid: 'nonexistent_plan' }
-        expect(org.limit_for_request('teams', session)).to eq(0)
-      end
-    end
-  end
-
-  describe 'session parameter handling' do
-    it 'accepts hash-like objects for session' do
-      # Rack session is hash-like
-      session = { entitlement_preview_planid: 'identity_v1' }
-      expect(org.limit_for_request('teams', session)).to eq(1)
-    end
-
-    it 'safely handles session with string keys' do
-      # Some contexts may use string keys
-      session = { 'entitlement_preview_planid' => 'identity_v1' }
-      # Should not crash, falls back to actual
-      expect(org.limit_for_request('teams', session)).to eq(0)
-    end
-
-    it 'safely handles non-hash session' do
-      # Edge case: corrupted session
-      expect(org.entitlements_for_request('not a hash')).to match_array(%w[create_secrets basic_sharing])
     end
   end
 end
