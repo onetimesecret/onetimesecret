@@ -13,6 +13,44 @@ the model is unchanged). Every password, 2FA code, API token, address,
 screenshot, and half-written paragraph passes through it — and the user's
 mental model of "where that thing is right now" is a coin flip.
 
+### Sidebar: fifty years of prior art at the system level
+
+"Least-designed" is not the same as "never attempted" — the lineage is
+worth having on the record, because it shows the gap is a *declined*
+design, not an overlooked one.
+
+- **Origin.** Cut/copy/paste comes from Larry Tesler and Tim Mott's Gypsy
+  editor at Xerox PARC (1975), the names taken literally from paper-era
+  manuscript editing; Tesler credited Pentti Kanerva's earlier insight
+  that a deletion buffer could double as a transfer mechanism. Apple's
+  Lisa and Macintosh (1983–84) made it system-wide, named it "the
+  Clipboard", and fixed the ⌘X/C/V bindings. The model — one anonymous
+  slot, no expiry, no sensitivity — has not changed since.
+- **Before it.** Delete buffers and yank registers in line editors: TECO,
+  vi's named registers, the Emacs kill ring. The kill ring is a
+  *multi-slot* clipboard from the 1970s — the "clipboard manager" idea
+  predates the single-slot design that won.
+- **System-level attempts, mostly dead.** Apple's Scrapbook (a persistent
+  multi-item store, shipped in System 1, quietly abandoned); System 7's
+  Publish & Subscribe and Windows DDE/OLE (live links instead of copies —
+  a mental model users never adopted); NeXTSTEP's Shelf (spatial staging,
+  the direct ancestor of today's shelf apps); X11's ownership model,
+  where the "clipboard" is a pointer into the source app and the data
+  dies when that app quits.
+- **The integration that *did* happen — and its hedges.** OS vendors
+  eventually shipped clipboard history: Windows added Win+V history and
+  cloud sync in 2018, KDE has bundled Klipper for decades, Apple did
+  Universal Clipboard across devices. But Windows ships history **off by
+  default**, and Apple has conspicuously never added history at all —
+  adding *counter*-features instead (`org.nspasteboard.ConcealedType`,
+  iOS paste-access prompts). Clipboard traffic is dense with credentials,
+  and retention turns a transfer mechanism into a liability archive. The
+  vendors aren't overlooking retention; they're declining it.
+
+So the unsolved quadrant is not *remember more* — that has been tried,
+integrated, and deliberately hobbled. It is *hold briefly, then verifiably
+forget*, and nobody has shipped it at the system level.
+
 Because the clipboard is so inadequate, people improvise **staging areas**
 — places to put content that is *between* an origin and a destination:
 
