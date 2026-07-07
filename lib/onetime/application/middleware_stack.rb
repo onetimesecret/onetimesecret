@@ -11,6 +11,7 @@ require 'rack/utf8_sanitizer'
 require_relative '../session'
 require_relative '../middleware/ip_ban'
 require_relative '../middleware/health_access_control'
+require_relative '../middleware/admin_network_isolation'
 require_relative '../middleware/csrf_response_header'
 require_relative '../middleware/normalize_content_type'
 require 'otto'
@@ -299,6 +300,14 @@ module Onetime
           # Health endpoint access control - restrict to localhost/private networks
           logger.debug 'Setting up Health Access Control middleware'
           builder.use Onetime::Middleware::HealthAccessControl
+
+          # Admin network isolation - optional CIDR allowlist for the Colonel
+          # surfaces (/colonel + /api/colonel). No-op unless
+          # site.admin.allowed_cidrs is configured; then a request from outside
+          # the allowlist gets a 404 (indistinguishable-from-absent). Runs after
+          # IP privacy so it can use the trusted-proxy-resolved client IP.
+          logger.debug 'Setting up Admin Network Isolation middleware'
+          builder.use Onetime::Middleware::AdminNetworkIsolation
 
           builder.use Rack::ContentLength
           builder.use Onetime::Middleware::StartupReadiness

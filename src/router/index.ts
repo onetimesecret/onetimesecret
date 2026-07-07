@@ -5,7 +5,6 @@ import type { Router, RouteRecordRaw } from 'vue-router';
 import { createRouter, createWebHistory } from 'vue-router';
 
 // App-specific routes
-import colonelRoutes from '@/apps/colonel/routes';
 import secretRoutes from '@/apps/secret/routes';
 import sessionRoutes from '@/apps/session/routes';
 import workspaceRoutes from '@/apps/workspace/routes';
@@ -55,14 +54,18 @@ export function isVerifiableId(segment: string): boolean {
  * Route loading order - determines precedence for route matching.
  * More specific routes should come before catch-all patterns.
  */
-const routeOrder = ['public', 'session', 'secret', 'workspace', 'colonel'] as const;
+// The colonel/admin console is served by its own isolated bundle (`src/admin.ts`
+// + `createAdminRouter`), NOT by this customer router. `/colonel` is handled
+// entirely by the admin app; the customer route graph must not carry it (that
+// would drag admin code back into the customer bundle — the epic's bundle
+// isolation invariant).
+const routeOrder = ['public', 'session', 'secret', 'workspace'] as const;
 
 const routeMap: Record<(typeof routeOrder)[number], RouteRecordRaw[]> = {
   public: publicRoutes,
   session: sessionRoutes,
   secret: secretRoutes,
   workspace: workspaceRoutes,
-  colonel: colonelRoutes,
 };
 
 const routes: RouteRecordRaw[] = routeOrder.flatMap((key) => routeMap[key]);

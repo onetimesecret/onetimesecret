@@ -98,6 +98,15 @@ module Onetime
             'autoverify' => false,
             'allowed_signup_domains' => [],
           },
+          # Colonel admin surfaces network posture. allowed_cidrs empty (default)
+          # = AdminNetworkIsolation middleware is a no-op; both /colonel and
+          # /api/colonel stay reachable, gated only by the two app-layer auth
+          # layers. Set to private CIDRs on cloud to require an in-network
+          # (VPN/private) origin as defense-in-depth. See
+          # lib/onetime/middleware/admin_network_isolation.rb.
+          'admin' => {
+            'allowed_cidrs' => [],
+          },
         },
         'features' => {
           'regions' => { 'enabled' => false },
@@ -144,9 +153,9 @@ module Onetime
           # section once stable. Present here as a defensive default so the key
           # always resolves even when a deployment's YAML omits the section.
           #
-          # admin_v2: serve the rebuilt Colonel admin console at /colonel. See
-          # docs/specs/colonel-ui/ and Core::Controllers::Page#colonel.
-          'admin_v2' => false,
+          # Currently empty: the Colonel admin-console cutover flag was retired
+          # once the rebuilt console became the sole admin frontend. See
+          # docs/specs/colonel-ui/50-cutover-hardening.md.
         },
       }
 

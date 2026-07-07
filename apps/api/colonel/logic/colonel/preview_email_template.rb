@@ -53,9 +53,7 @@ module ColonelAPI
           ).call
 
           success_data
-        rescue Onetime::Operations::Email::PreviewTemplate::MissingSampleError => ex
-          raise_form_error(ex.message, field: :template)
-        rescue ArgumentError => ex
+        rescue Onetime::Operations::Email::PreviewTemplate::MissingSampleError, ArgumentError => ex
           raise_form_error(ex.message, field: :template)
         end
 

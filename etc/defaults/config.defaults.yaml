@@ -415,6 +415,33 @@ site:
       # than depth: 0; the master switch falls back to REMOTE_ADDR.
       depth: <%= ENV['TRUSTED_PROXY_DEPTH']&.to_i || 1 %>
 
+  # Admin (Colonel) Configuration
+  # Network-level posture for the Colonel admin surfaces.
+  admin:
+    # Optional network isolation for the Colonel admin surfaces (/colonel shell
+    # and /api/colonel API). When set to a non-empty list of CIDR ranges, any
+    # request whose trusted-proxy-resolved client IP falls OUTSIDE the allowlist
+    # receives a 404 (indistinguishable-from-absent, not a 403) on both
+    # surfaces. This is defense-in-depth ON TOP OF the two app-layer auth layers
+    # (role=colonel at the router + verify_one_of_roles!(colonel:true) in each
+    # logic class), which still enforce beneath it.
+    #
+    # Empty/unset (default): NO-OP. Both surfaces stay reachable and the auth
+    # layers are the sole gate — the correct posture for self-hosted
+    # single-container installs, which cannot require a VPN. Set this on cloud
+    # deployments to private ranges only (e.g. a Tailscale/VPN CGNAT range like
+    # 100.64.0.0/10, or an office RFC1918 range). Self-hosted operators who want
+    # isolation without app config can instead front the surfaces with a reverse
+    # proxy (see docs/operations/admin-network-isolation.md).
+    #
+    # IMPORTANT: resolution uses the trusted-proxy-aware client IP, so behind a
+    # reverse proxy you must also configure site.network.trusted_proxy or every
+    # request resolves to the proxy hop. A raw X-Forwarded-For header cannot
+    # bypass the allowlist.
+    #
+    # Example: ["100.64.0.0/10", "10.0.0.0/8"]
+    allowed_cidrs: <%= ENV['ADMIN_ALLOWED_CIDRS']&.split(',')&.map(&:strip) || [] %>
+
 # Brand block. Each BRAND_* env var is interpolated as a JSON-quoted scalar
 # (`&.to_json`) so the value survives the YAML layer intact. Without quoting, an
 # operator value with YAML-significant characters — a leading '#' (hex color),
@@ -1161,8 +1188,9 @@ compatibility:
 # Opt-in, not-yet-stable capabilities. Each flag gates a feature that is safe to
 # disable at any time — rollback is a config flip. Flags graduate out of this
 # section once stable.
-experimental:
-  # admin_v2: serve the rebuilt Colonel admin console (its own isolated
-  # `admin.ts` bundle + admin shell) at /colonel. When false, the legacy colonel
-  # SPA renders unchanged. See docs/specs/colonel-ui/.
-  admin_v2: <%= ENV['EXPERIMENTAL_ADMIN_V2'] == 'true' %>
+#
+# Currently empty: the Colonel admin-console cutover flag was retired once the
+# rebuilt console became the sole admin frontend
+# (docs/specs/colonel-ui/50-cutover-hardening.md). Kept as an extension point
+# for future flags.
+experimental: {}

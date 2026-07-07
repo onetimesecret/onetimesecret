@@ -4,8 +4,9 @@ import AdminLayout from '@/apps/admin/layouts/AdminLayout.vue';
 import { RouteRecordRaw } from 'vue-router';
 
 // Shared meta for every admin route (including the router's catch-all). The
-// console lives at the SAME /colonel URL as the legacy app (decision D1); which
-// shell renders is chosen server-side by the `experimental.admin_v2` flag.
+// console lives at the /colonel URL (decision D1) and, since the cutover, is the
+// sole admin frontend served there — the backend serves this isolated admin
+// bundle unconditionally (docs/specs/colonel-ui/50-cutover-hardening.md).
 // Access control is the backend's role=colonel gate on /colonel plus the API
 // 403s — requiresAuth here is defence-in-depth.
 export const adminDefaultMeta = {
