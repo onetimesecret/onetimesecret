@@ -62,6 +62,13 @@ module Onetime
               'maximum_length' => 128,
               'enforce_complexity' => false,
             },
+            # Limits on the secret content itself. maximum_length is the
+            # server-enforced ceiling on secret body size and the single
+            # source of truth for the client-side textarea hint (exposed via
+            # public config as secret_options.content.maximum_length).
+            'content' => {
+              'maximum_length' => 10_000,
+            },
             'password_generation' => {
               'default_length' => 12,
               'length_options' => [8, 12, 16, 20, 24, 32],
@@ -112,7 +119,6 @@ module Onetime
           'incoming' => {
             'enabled' => false,
             'memo_max_length' => 50,
-            'secret_max_length' => 10_000,
             'default_ttl' => 604_800, # 7 days
             'default_passphrase' => nil,
             'recipients' => [],
@@ -469,6 +475,13 @@ module Onetime
 
       if passphrase_config['maximum_length'].is_a?(String)
         conf['site']['secret_options']['passphrase']['maximum_length'] = passphrase_config['maximum_length'].to_i
+      end
+
+      # Process secret content limits (ENV/YAML may deliver strings)
+      content_config = conf.dig('site', 'secret_options', 'content') || {}
+
+      if content_config['maximum_length'].is_a?(String)
+        conf['site']['secret_options']['content']['maximum_length'] = content_config['maximum_length'].to_i
       end
 
       # Process password generation configuration

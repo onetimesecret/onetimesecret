@@ -29,10 +29,10 @@ config = resolver.config_data
 config[:memo_max_length]
 #=> 50
 
-## Canonical domain uses global YAML config for secret_max_length
+## secret_max_length is sourced from site.secret_options.content.maximum_length
 resolver = RecipientResolver.new(domain_strategy: :canonical)
 config = resolver.config_data
-# Falls back to DEFAULTS since the test config omits secret_max_length
+# Global limit shared by regular + incoming paths; default 10000
 config[:secret_max_length]
 #=> 10_000
 
@@ -67,5 +67,5 @@ config[:recipients].is_a?(Array)
 
 ## IncomingConfig DEFAULTS match what resolver expects
 defaults = IncomingConfig::DEFAULTS
-[defaults[:memo_max_length], defaults[:secret_max_length], defaults[:default_ttl]]
-#=> [50, 10_000, 604_800]
+[defaults[:memo_max_length], defaults[:default_ttl]]
+#=> [50, 604_800]

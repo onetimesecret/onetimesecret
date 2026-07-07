@@ -77,6 +77,7 @@ module Incoming
 
         # Validate required fields (memo is optional)
         raise_form_error 'Secret content is required' if secret_value.empty?
+        validate_secret_size(secret_value)
         raise_form_error 'Recipient is required' if @recipient_hash.to_s.empty?
 
         # Now safe to perform resolver I/O (entitlement verified)
