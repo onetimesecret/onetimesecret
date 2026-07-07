@@ -477,11 +477,14 @@ module Onetime
         conf['site']['secret_options']['passphrase']['maximum_length'] = passphrase_config['maximum_length'].to_i
       end
 
-      # Process secret content limits (ENV/YAML may deliver strings)
+      # Process secret content limits. ENV/ERB delivers strings and unquoted
+      # YAML scalars like 10000.0 parse as Float; normalize any non-Integer to
+      # an Integer so the value the frontend receives satisfies its int()
+      # contract and never renders as "10000.0".
       content_config = conf.dig('site', 'secret_options', 'content') || {}
-
-      if content_config['maximum_length'].is_a?(String)
-        conf['site']['secret_options']['content']['maximum_length'] = content_config['maximum_length'].to_i
+      content_max = content_config['maximum_length']
+      unless content_max.nil? || content_max.is_a?(Integer)
+        conf['site']['secret_options']['content']['maximum_length'] = content_max.to_i
       end
 
       # Process password generation configuration

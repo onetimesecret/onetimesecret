@@ -189,7 +189,9 @@ module Onetime
       # per-domain), so both domain strategies read the same global value.
       # Surfaced in the GetConfig response as the client-side textarea hint.
       def secret_max_length
-        OT.conf.dig('site', 'secret_options', 'content', 'maximum_length') || 10_000
+        # to_i guards against a Float slipping through (unquoted YAML/ERB),
+        # which would violate the frontend response's int() contract.
+        (OT.conf.dig('site', 'secret_options', 'content', 'maximum_length') || 10_000).to_i
       end
 
       def site_secret

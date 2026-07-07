@@ -179,8 +179,10 @@ module Onetime
       #
       # @sync src/schemas/contracts/config/public.ts — secret_options.content
       def validate_secret_size(value)
-        max_length = OT.conf.dig('site', 'secret_options', 'content', 'maximum_length') || 10_000
-        return if value.to_s.length <= max_length.to_i
+        # Normalize once so the comparison and the error message agree and a
+        # Float from config never renders as "10000.0".
+        max_length = (OT.conf.dig('site', 'secret_options', 'content', 'maximum_length') || 10_000).to_i
+        return if value.to_s.length <= max_length
 
         raise_form_error "Secret content must be no more than #{max_length} characters long",
           field: :secret
