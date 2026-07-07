@@ -65,13 +65,19 @@ The claims in docs 02–03, made implementable:
   memory-hygienic: `String`/`Data` are copy-on-write, ARC/autorelease and
   `NSString` bridging create uncontrolled copies, and there is no blessed
   way to zeroize a `String`. Rust ownership makes the wipe deterministic.
-  Consequences: (a) secret bytes stay in the Rust core — only handles
-  cross the FFI, plaintext crossing only at the pasteboard moment;
-  (b) a webview shell must answer for rendered copies of secrets in the
-  WebKit process heap — a *gate* on the shell decision (doc 06 §9), not
-  a scoring criterion. Platform security APIs (Keychain, CryptoKit,
-  `sharingType`, Sandbox) are equally reachable from any shell and don't
-  differentiate; buffer lifecycle does.
+  Platform security APIs (Keychain, CryptoKit, `sharingType`, Sandbox)
+  are equally reachable from any shell and don't differentiate; buffer
+  lifecycle does.
+- **Rendering vs residence.** Displaying a secret in a UI layer for the
+  moments a human reads it is a normal, accepted exposure — browsers do
+  secure work all day, including Onetime Secret itself. The rule is about
+  *residence*: the authoritative copy lives at rest only in the zeroizing
+  core; any shell's UI layer (DOM included) receives plaintext
+  transiently, on demand, for display, and never retains it in frontend
+  state for the cell's lifetime. Copy-out goes core → pasteboard
+  directly, not through the UI layer. Residual heap/crash-dump copies in
+  a webview process are a real but marginal exposure under the threat
+  model below — a scoring criterion for the shell decision, not a gate.
 - **Pasteboard hygiene.** Outbound copies marked
   `org.nspasteboard.ConcealedType` + transient; inbound `ConcealedType`
   respected by masking the cell by default. Optional clear-after-copy

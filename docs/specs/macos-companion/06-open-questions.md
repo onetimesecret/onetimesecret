@@ -41,11 +41,12 @@ exists, so disagreement has a target.
 
 9. **Shell decision.** Tauri 2.x vs Swift-shell-Rust-core (doc 05).
    Requires the two-way spike on the non-activating edge-docked panel —
-   the one surface that can disqualify a framework. Added gate: the
-   zeroization promise (doc 05, security posture) — a webview shell must
-   show that rendered secrets don't accumulate uncontrolled copies in the
-   WebKit process heap. This re-weights the leaning toward
-   Swift-shell-Rust-core; "Rust-based" honestly becomes "Rust-cored".
+   the one surface that can disqualify a framework. Added design rule
+   (doc 05, "rendering vs residence"): plaintext resides at rest only in
+   the zeroizing Rust core, and the UI layer renders it transiently
+   without retaining it in frontend state — a discipline any shell can
+   meet, so it's a scoring criterion, not a gate. Either way,
+   "Rust-based" honestly means "Rust-cored".
 10. **Sandbox + capture exclusion.** Verify App Sandbox coexists with
     `sharingType = .none` and the pasteboard patterns we need; sandboxing
     is worth real effort but not worth losing capture exclusion.
