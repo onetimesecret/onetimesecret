@@ -89,7 +89,7 @@ function initializeApp(app: App, options: AppInitializerOptions) {
   // and browser locale to the plugin so stores can use them during init.
   pinia.use(
     autoInitPlugin({
-      api: options.api,
+      api,
       deviceLocale: navigator.language,
     })
   );

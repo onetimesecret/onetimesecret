@@ -94,7 +94,8 @@
         <button
           type="button"
           class="inline-flex size-9 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-gray-400 dark:hover:bg-gray-800"
-          :aria-label="t('web.colonel.admin')"
+          :aria-label="t('web.layout.toggle_dark_mode')"
+          :aria-pressed="isDarkMode"
           @click="toggleDarkMode">
           <OIcon
             collection="heroicons"
