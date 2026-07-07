@@ -54,6 +54,17 @@ result = receipt.orphaned!
 [!!result, receipt.dbclient.exists(receipt.dbkey)]
 #=> [false, 0]
 
+## expired! on a TTL-evicted key also fails closed. Unlike its siblings this
+## transition first clears the secret_expired? time gate; back-dating the
+## in-memory created stamp puts secret_expiration in the past so that gate
+## passes -- proving the CAS, not the guard, is what stops the resurrection.
+receipt, _secret = Onetime::Receipt.spawn_pair('anon', 3600, 'content')
+receipt.created = 1                          # force secret_expiration into the past
+receipt.dbclient.del(receipt.dbkey)          # simulate TTL eviction
+result = receipt.expired!
+[receipt.secret_expired?, !!result, receipt.dbclient.exists(receipt.dbkey)]
+#=> [true, false, 0]
+
 ## A live revealed! still works: returns true, persists state=revealed, clears
 ## the secret_identifier, and PRESERVES the original TTL (never resets it).
 receipt, _secret = Onetime::Receipt.spawn_pair('anon', 3600, 'content')

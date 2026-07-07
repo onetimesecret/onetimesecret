@@ -36,28 +36,32 @@ module Onetime
       module StateCas
         Familia::Base.add_feature self, :state_cas
 
+        # Lua compare-and-set on the +state+ field, run atomically by Redis.
+        # Sets state to ARGV[1] iff the current value equals one of ARGV[2..].
+        # Returns 1 to the single caller that performs the flip, 0 to everyone
+        # else -- including when the key/field is gone (HGET yields a Lua false
+        # that matches nothing) and when the state has already advanced.
+        #
+        # Held at the module level (not inside InstanceMethods) so it is
+        # reachable as StateCas::STATE_CAS_SCRIPT for discovery and so a future
+        # SCRIPT LOAD / EVALSHA path has a single canonical source to hash.
+        STATE_CAS_SCRIPT = <<~LUA
+          local current = redis.call('HGET', KEYS[1], 'state')
+          for i = 2, #ARGV do
+            if current == ARGV[i] then
+              redis.call('HSET', KEYS[1], 'state', ARGV[1])
+              return 1
+            end
+          end
+          return 0
+        LUA
+
         def self.included(base)
           OT.ld "[features] #{base}: #{name}"
           base.include InstanceMethods
         end
 
         module InstanceMethods
-          # Lua compare-and-set on the +state+ field, run atomically by Redis.
-          # Sets state to ARGV[1] iff the current value equals one of ARGV[2..].
-          # Returns 1 to the single caller that performs the flip, 0 to everyone
-          # else -- including when the key/field is gone (HGET yields a Lua false
-          # that matches nothing) and when the state has already advanced.
-          STATE_CAS_SCRIPT = <<~LUA
-            local current = redis.call('HGET', KEYS[1], 'state')
-            for i = 2, #ARGV do
-              if current == ARGV[i] then
-                redis.call('HSET', KEYS[1], 'state', ARGV[1])
-                return 1
-              end
-            end
-            return 0
-          LUA
-
           private
 
           # Atomically transition the persisted +state+ field from one of
