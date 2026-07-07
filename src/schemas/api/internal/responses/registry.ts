@@ -23,6 +23,8 @@ import {
   usageExportResponseSchema,
   queueMetricsResponseSchema,
   systemSettingsResponseSchema,
+  colonelUserDetailResponseSchema,
+  colonelUserMutationResponseSchema,
 } from './colonel';
 
 // Organization schemas — internal-only
@@ -77,6 +79,8 @@ export const responseSchemas = {
   colonelInfo: colonelInfoResponseSchema,
   colonelStats: colonelStatsResponseSchema,
   colonelUsers: colonelUsersResponseSchema,
+  colonelUserDetail: colonelUserDetailResponseSchema,
+  colonelUserMutation: colonelUserMutationResponseSchema,
   colonelSecrets: colonelSecretsResponseSchema,
   customDomains: colonelCustomDomainsResponseSchema,
   colonelOrganizations: colonelOrganizationsResponseSchema,

@@ -22,7 +22,7 @@ export interface ConsoleSection {
 
 export const CONSOLE_SECTIONS: ConsoleSection[] = [
   { key: 'overview', labelKey: 'web.colonel.titles.index', icon: 'home', to: '/colonel' },
-  { key: 'customers', labelKey: 'web.colonel.titles.users', icon: 'users' },
+  { key: 'customers', labelKey: 'web.colonel.titles.users', icon: 'users', to: '/colonel/customers' },
   { key: 'secrets', labelKey: 'web.colonel.titles.secrets', icon: 'key' },
   { key: 'organizations', labelKey: 'web.colonel.titles.organizations', icon: 'building-office' },
   { key: 'domains', labelKey: 'web.colonel.titles.domains', icon: 'globe-alt' },

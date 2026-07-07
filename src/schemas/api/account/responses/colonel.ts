@@ -453,3 +453,123 @@ export type InvestigateStripeState = z.infer<typeof investigateStripeStateSchema
 export type InvestigateIssue = z.infer<typeof investigateIssueSchema>;
 export type InvestigateComparison = z.infer<typeof investigateComparisonSchema>;
 export type InvestigateOrganizationResult = z.infer<typeof investigateOrganizationResultSchema>;
+
+// ============================================================================
+// Colonel customer DETAIL + mutation schemas (ticket #22)
+//
+// New schemas only — the existing colonel contracts above are frozen (the Zod
+// tripwire, epic non-goal). These describe the SHAPE the Slice-2 endpoints
+// already return; verified against the live logic classes:
+//   - GetUserDetails         → GET    /api/colonel/users/:user_id
+//   - SetUserRole            → POST   /api/colonel/users/:user_id/role
+//   - Verify / UnverifyUser  → POST   /api/colonel/users/:user_id/{,un}verify
+//   - PurgeUser              → DELETE /api/colonel/users/:user_id
+// ============================================================================
+
+/**
+ * The core customer record on the detail page (GetUserDetails `record`).
+ * `email` is the OBSCURED email (`obscure_email`); never the raw address.
+ * Timestamps arrive as Unix-epoch numbers (seconds, sometimes fractional) and
+ * are transformed to Date, mirroring {@link colonelUserSchema}.
+ */
+export const colonelUserDetailRecordSchema = z.object({
+  extid: z.string(),
+  email: z.string(),
+  role: z.string(),
+  verified: z.boolean(),
+  created: transforms.fromNumber.toDate,
+  updated: transforms.fromNumber.toDateNullable,
+  last_login: transforms.fromNumber.toDateNullable,
+  planid: z.string().nullable(),
+  locale: z.string().nullable(),
+});
+
+/** One secret owned by the customer (GetUserDetails `details.secrets.items`). */
+export const colonelUserDetailSecretSchema = z.object({
+  secret_id: z.string(),
+  shortid: z.string(),
+  state: z.string(),
+  created: transforms.fromNumber.toDate,
+  expiration: transforms.fromNumber.toDateNullable,
+});
+
+/** One receipt owned by the customer (GetUserDetails `details.receipts.items`). */
+export const colonelUserDetailReceiptSchema = z.object({
+  receipt_id: z.string(),
+  shortid: z.string(),
+  state: z.string(),
+  created: transforms.fromNumber.toDate,
+});
+
+/** One organization the customer participates in. */
+export const colonelUserDetailOrganizationSchema = z.object({
+  organization_id: z.string(),
+  extid: z.string(),
+  display_name: z.string().nullable(),
+  is_default: z.boolean(),
+});
+
+/** Lifetime counters coerced to Integer server-side (never opaque Counters). */
+export const colonelUserDetailStatsSchema = z.object({
+  secrets_created: z.number(),
+  secrets_shared: z.number(),
+  emails_sent: z.number(),
+});
+
+/**
+ * The `details` payload of GetUserDetails: everything a support agent needs to
+ * read out a customer without SSH — secrets (count + items), receipts, orgs and
+ * lifetime stats. `count` is authoritative and equals `items.length` (the
+ * endpoint sources it from the same bounded SCAN, not the drifting counter).
+ */
+export const colonelUserDetailsSchema = z.object({
+  secrets: z.object({
+    count: z.number(),
+    items: z.array(colonelUserDetailSecretSchema),
+  }),
+  receipts: z.object({
+    count: z.number(),
+    items: z.array(colonelUserDetailReceiptSchema),
+  }),
+  organizations: z.array(colonelUserDetailOrganizationSchema),
+  stats: colonelUserDetailStatsSchema,
+});
+
+/**
+ * Shared mutation-ack record for the four guarded customer actions
+ * (set-role / verify / unverify / purge). The endpoints return structurally
+ * different records, so the fields that only SOME emit are optional — this one
+ * schema validates every ack:
+ *   - set-role  → old_role, new_role, email, updated
+ *   - verify/unverify → verified, email, updated
+ *   - purge     → deleted (email/updated omitted)
+ *
+ * `user_id` here is the customer's OBJID (server-internal); the UI keys off
+ * `extid` (the public id) and refreshes the resource rather than trusting the
+ * ack, so the differing `user_id` semantics never leak into routing.
+ */
+export const colonelUserMutationRecordSchema = z.object({
+  user_id: z.string(),
+  extid: z.string(),
+  email: z.string().optional(),
+  old_role: z.string().optional(),
+  new_role: z.string().optional(),
+  verified: z.boolean().optional(),
+  deleted: z.boolean().optional(),
+  updated: transforms.fromNumber.toDateNullable.optional(),
+});
+
+/** Shared `details` ack: `changed` present on toggles, absent on purge. */
+export const colonelUserMutationDetailsSchema = z.object({
+  changed: z.boolean().optional(),
+  message: z.string(),
+});
+
+export type ColonelUserDetailRecord = z.infer<typeof colonelUserDetailRecordSchema>;
+export type ColonelUserDetailSecret = z.infer<typeof colonelUserDetailSecretSchema>;
+export type ColonelUserDetailReceipt = z.infer<typeof colonelUserDetailReceiptSchema>;
+export type ColonelUserDetailOrganization = z.infer<typeof colonelUserDetailOrganizationSchema>;
+export type ColonelUserDetailStats = z.infer<typeof colonelUserDetailStatsSchema>;
+export type ColonelUserDetails = z.infer<typeof colonelUserDetailsSchema>;
+export type ColonelUserMutationRecord = z.infer<typeof colonelUserMutationRecordSchema>;
+export type ColonelUserMutationDetails = z.infer<typeof colonelUserMutationDetailsSchema>;

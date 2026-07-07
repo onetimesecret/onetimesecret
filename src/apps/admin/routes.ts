@@ -34,6 +34,30 @@ const routes: Array<RouteRecordRaw> = [
     },
     props: true,
   },
+  {
+    // Customers list (ticket #22). No params, so scrubbing is irrelevant.
+    path: '/colonel/customers',
+    name: 'AdminCustomers',
+    component: () => import('@/apps/admin/views/AdminCustomers.vue'),
+    meta: {
+      ...adminDefaultMeta,
+      title: 'web.admin.customers.title',
+      sentryScrubParams: false,
+    },
+  },
+  {
+    // Customer detail (ticket #22). `:id` is the customer's PUBLIC id (extid).
+    // `sentryScrubParams` is OMITTED so the default (scrub all params) redacts
+    // the id from breadcrumbs.
+    path: '/colonel/customers/:id',
+    name: 'AdminCustomerDetail',
+    component: () => import('@/apps/admin/views/AdminCustomerDetail.vue'),
+    meta: {
+      ...adminDefaultMeta,
+      title: 'web.admin.customers.title',
+    },
+    props: true,
+  },
 ];
 
 export default routes;

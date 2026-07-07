@@ -27,7 +27,12 @@ module ColonelAPI
         def raise_concerns
           verify_one_of_roles!(colonel: true)
 
-          @user = Onetime::Customer.load(user_id)
+          # Resolve by PUBLIC id (extid) first — the users list exposes only
+          # extid, so every admin surface routes by it — then email, then objid.
+          # Mirrors Auth::Operations::Customers::Show#resolve (show.rb): a plain
+          # Customer.load only resolves the internal objid, so an extid would 404.
+          @user = Onetime::Customer.load_by_extid_or_email(user_id) ||
+                  Onetime::Customer.load(user_id)
           raise_not_found('User not found') unless user&.exists?
 
           raise_form_error('Cannot purge anonymous user', field: :user_id) if user.anonymous?
