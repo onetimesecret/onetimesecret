@@ -76,4 +76,16 @@ The preview branch in `OrganizationMembership#entitlements` keys off the Fiber-l
 
 ### Same-request visibility (2026-07-07)
 
-The middleware stashes the context before the handler runs, so a request that *changes* preview state would otherwise serialize its own response from the stale pre-flip context. `SetEntitlementPreview` must mirror its session writes into the Fiber-local (set → populate, clear → clear) so the flipping request's own response reflects the new state.
+The middleware stashes the context before the handler runs, so a request that *changes* preview state would otherwise serialize its own response from the stale pre-flip context. `SetEntitlementPreview` must mirror its session writes into the Fiber-local (set → populate, clear → clear) so the flipping request's own response reflects the new state (`set_entitlement_preview.rb:194`).
+
+### Reconciler DB client (2026-07-07)
+
+The historical root cause of "preview keeps not working," and the biggest single insight of the design session. `reconcile_with_session_overrides` originally called `Familia.redis`, which does not exist in Familia 2.x — the reconciler raised `NoMethodError` the instant it was reached, so session-override reconciliation *never executed at runtime*, regardless of which consumers were wired. This is why per-consumer patches never held: even the one opted-in consumer's reconciliation path was dead code. Fixed to `Familia.dbclient` (`with_materialized_entitlements.rb:209`). It validates the ADR's premise from the other direction — the opt-in polarity hid a hard runtime failure, and correcting polarity without correcting the client would still have produced nothing. Called out here (not only in commit `6bbb7fe15`) because it is a live upgrade-hazard pattern worth a team heads-up: any `Familia.redis` callsite is a latent `NoMethodError`.
+
+### Clear-before-baseline-read (2026-07-07)
+
+`set_test_mode` builds the session revokes set from the org's *actual* entitlements — the baseline the preview "resets" from. But `organization.entitlements` is now preview-aware through the first chokepoint. If an in-flight preview context is present — switching preview from plan A to plan B within one session — reading the baseline would return A's *reconciled* view, baking A's grants into B's revokes and leaking actual entitlements through the new preview. `set_test_mode` therefore calls `Onetime::EntitlementPreview.clear` before reading `organization.entitlements` (`set_entitlement_preview.rb:163`). This is the mirror image of the Same-request visibility note: that one *sets* the Fiber-local after the write so the flip is visible; this one *clears* it before the baseline read so the flip is clean. A maintainer "simplifying" either away reintroduces a leak.
+
+## Other notes
+
+1. Smaller items documented only in agent output: the process_without_reconciler fallback yields a planid-only context (limits preview works, entitlement reconciliation inactive — legacy-mirroring, not a gap); the bootstrap serializer now shares safe_dump's PlanCacheMissError fail-closed exposure; the frontend currentOrganization ref staleness trap for future consumers; and GET /billing/api/entitlements/:extid now has zero frontend callers (delete-or-keep is an open decision).
