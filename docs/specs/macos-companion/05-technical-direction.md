@@ -61,6 +61,17 @@ The claims in docs 02–03, made implementable:
   Buffers zeroized on expiry/discard (`zeroize`), `mlock` where practical
   for small secret-shaped payloads; large images excluded from `mlock`
   and documented as such.
+- **Zeroization is why the core is Rust.** Swift is memory-safe but not
+  memory-hygienic: `String`/`Data` are copy-on-write, ARC/autorelease and
+  `NSString` bridging create uncontrolled copies, and there is no blessed
+  way to zeroize a `String`. Rust ownership makes the wipe deterministic.
+  Consequences: (a) secret bytes stay in the Rust core — only handles
+  cross the FFI, plaintext crossing only at the pasteboard moment;
+  (b) a webview shell must answer for rendered copies of secrets in the
+  WebKit process heap — a *gate* on the shell decision (doc 06 §9), not
+  a scoring criterion. Platform security APIs (Keychain, CryptoKit,
+  `sharingType`, Sandbox) are equally reachable from any shell and don't
+  differentiate; buffer lifecycle does.
 - **Pasteboard hygiene.** Outbound copies marked
   `org.nspasteboard.ConcealedType` + transient; inbound `ConcealedType`
   respected by masking the cell by default. Optional clear-after-copy
