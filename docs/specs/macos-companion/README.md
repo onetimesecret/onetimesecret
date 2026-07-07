@@ -33,6 +33,7 @@ record. Secondarily, any cell can be promoted into a Onetime Secret link
 | [04-interaction-model.md](04-interaction-model.md) | SleeperCell anatomy, TTL cycling, panel behaviour, promotion flow | Supporting — draft |
 | [05-technical-direction.md](05-technical-direction.md) | Rust framework survey, v3 API integration, security posture, a11y | Supporting — draft, no decisions |
 | [06-open-questions.md](06-open-questions.md) | Everything unresolved, honestly | Supporting |
+| [07-repo-skeleton.md](07-repo-skeleton.md) | Prescription for initializing the app repository | Supporting — prescription, not yet executed |
 
 ## Naming note
 
