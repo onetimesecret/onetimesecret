@@ -60,6 +60,34 @@ RSpec.describe 'V2 API State Backward Compatibility' do
       end
     end
 
+    context 'when previewed (telemetry-derived, #3633)' do
+      # previewed! was retired: viewing a link no longer mutates lifecycle
+      # state. A receipt now reads as "previewed" once its link has been
+      # fetched, i.e. once an access-timeline event exists.
+      before { receipt.record_access_event('secret_get') }
+
+      it 'viewed timestamp is populated' do
+        dump = receipt.safe_dump
+        expect(dump[:viewed]).to be_a(Integer)
+        expect(dump[:viewed]).to be > 0
+      end
+
+      it 'is_viewed returns true' do
+        dump = receipt.safe_dump
+        expect(dump[:is_viewed]).to be true
+      end
+
+      it 'is_received returns false' do
+        dump = receipt.safe_dump
+        expect(dump[:is_received]).to be false
+      end
+
+      it 'is_revealed returns false' do
+        dump = receipt.safe_dump
+        expect(dump[:is_revealed]).to be false
+      end
+    end
+
     context 'when revealed (new internal state)' do
       before { receipt.revealed! }
 
@@ -90,6 +118,24 @@ RSpec.describe 'V2 API State Backward Compatibility' do
       end
     end
 
+    context 'when previewed then revealed' do
+      before do
+        receipt.record_access_event('secret_get')
+        @viewed_timestamp = receipt.safe_dump[:viewed]
+        receipt.revealed!
+      end
+
+      it 'preserves viewed timestamp' do
+        dump = receipt.safe_dump
+        expect(dump[:viewed]).to eq(@viewed_timestamp)
+      end
+
+      it 'has both viewed and received timestamps' do
+        dump = receipt.safe_dump
+        expect(dump[:viewed]).to be > 0
+        expect(dump[:received]).to be > 0
+      end
+    end
   end
 
   describe 'Receipt state transition methods' do
@@ -108,6 +154,11 @@ RSpec.describe 'V2 API State Backward Compatibility' do
       receipt.destroy! if receipt.exists?
     end
 
+    # #previewed! was retired in #3633: viewing a secret link no longer mutates
+    # lifecycle state. The telemetry-derived "previewed" signal (is_viewed /
+    # viewed timestamp) is covered by the safe_dump contexts above; the
+    # receipt-page-view audit event is covered in organization_audit_trail_spec.
+
     describe '#revealed!' do
       it 'sets state and timestamp' do
         receipt.revealed!
@@ -122,6 +173,17 @@ RSpec.describe 'V2 API State Backward Compatibility' do
       end
 
       it 'transitions from :new state' do
+        receipt.revealed!
+        expect(receipt.state?(:revealed) || receipt.state?(:received)).to be true
+      end
+
+      it 'transitions from a legacy :previewed state' do
+        # :previewed remains an accepted reveal from-state for legacy receipts
+        # even though no method advances into it anymore (#3633); the CAS still
+        # allows new -> revealed and previewed -> revealed, so construct the
+        # legacy precondition directly.
+        receipt.state = 'previewed'
+        receipt.save
         receipt.revealed!
         expect(receipt.state?(:revealed) || receipt.state?(:received)).to be true
       end
@@ -145,8 +207,20 @@ RSpec.describe 'V2 API State Backward Compatibility' do
       secret.destroy! if secret&.respond_to?(:exists?) && secret.exists?
     end
 
+    # #previewed! was retired in #3633; a secret no longer advances to a
+    # 'previewed' state on access. Only :new and (legacy) :previewed remain
+    # accepted reveal from-states, exercised below.
+
     describe '#revealed!' do
       it 'transitions from :new and destroys secret' do
+        secret.revealed!
+        expect(secret.state?(:revealed) || secret.state?(:received)).to be true
+      end
+
+      it 'transitions from a legacy :previewed state and destroys secret' do
+        # See note above: construct the legacy :previewed precondition directly.
+        secret.state = 'previewed'
+        secret.save
         secret.revealed!
         expect(secret.state?(:revealed) || secret.state?(:received)).to be true
       end

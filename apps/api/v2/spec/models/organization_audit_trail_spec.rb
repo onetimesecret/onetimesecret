@@ -151,7 +151,7 @@ RSpec.describe Onetime::Organization, type: :integration do
 
     it 'records the receipt view exactly once, under its unambiguous audit kind' do
       receipt.record_receipt_view!
-      receipt.record_receipt_view! # idempotent: the atomic claim fires at most once
+      receipt.record_receipt_view! # guard: claim_once! already stamped receipt_viewed_at
 
       # 'preview' is UI language; the trail records what mechanically
       # happened: the receipt page was loaded.

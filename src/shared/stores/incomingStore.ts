@@ -36,6 +36,7 @@ export type IncomingStore = {
   isFeatureEnabled: boolean;
   isEntitlementBlocked: boolean;
   memoMaxLength: number;
+  secretMaxLength: number;
   recipients: IncomingConfig['recipients'];
   defaultTtl: number | undefined;
 
@@ -67,6 +68,7 @@ export const useIncomingStore = defineStore('incoming', () => {
   const isFeatureEnabled = computed(() => config.value?.enabled ?? false);
   const isEntitlementBlocked = computed(() => entitlementError.value !== null);
   const memoMaxLength = computed(() => config.value?.memo_max_length ?? 50);
+  const secretMaxLength = computed(() => config.value?.secret_max_length ?? 10000);
   const recipients = computed(() => config.value?.recipients ?? []);
   const defaultTtl = computed(() => config.value?.default_ttl);
 
@@ -196,6 +198,7 @@ export const useIncomingStore = defineStore('incoming', () => {
     isFeatureEnabled,
     isEntitlementBlocked,
     memoMaxLength,
+    secretMaxLength,
     recipients,
     defaultTtl,
 

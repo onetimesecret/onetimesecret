@@ -57,6 +57,7 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
 
   // Computed
   const memoMaxLength = computed(() => incomingStore.memoMaxLength);
+  const secretMaxLength = computed(() => incomingStore.secretMaxLength);
   const isFeatureEnabled = computed(() => incomingStore.isFeatureEnabled);
   const recipients = computed(() => incomingStore.recipients);
   const isFormValid = computed(() => !!(form.value.secret.trim() && form.value.recipientId));
@@ -195,6 +196,7 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
 
     // Computed
     memoMaxLength,
+    secretMaxLength,
     isFeatureEnabled,
     recipients,
     isFormValid,

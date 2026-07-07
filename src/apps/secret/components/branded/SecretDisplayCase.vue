@@ -67,9 +67,11 @@
   };
   const isCopiedText = computed(() => isCopied ? t('web.STATUS.copied') : t('web.LABELS.copy_to_clipboard') );
 
-  // Prepare the standardized path to the logo image.
-  // Note that the file extension needs to be present but is otherwise not used.
-  const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
+  // Brand logo for the reveal card. Use the backend-computed URL (built with
+  // the domain's public extid), not a client-side path from the internal
+  // domainId — the latter 404s, tripping @error and showing the placeholder
+  // lock icon even when a logo is configured. Null (no logo) → placeholder.
+  const logoImage = computed(() => productIdentity.logoUri);
 </script>
 
 <template>
