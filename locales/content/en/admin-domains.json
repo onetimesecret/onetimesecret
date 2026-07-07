@@ -1,0 +1,42 @@
+{
+  "web.admin.domains.list.loadError": {
+    "text": "Could not load domains.",
+    "content_hash": "548deff8"
+  },
+  "web.admin.domains.retry": {
+    "text": "Retry",
+    "content_hash": "942087cc"
+  },
+  "web.admin.domains.verify.button": {
+    "text": "Verify",
+    "content_hash": "eea2745e"
+  },
+  "web.admin.domains.verify.confirmTitle": {
+    "text": "Verify domain?",
+    "content_hash": "07c4dc4f"
+  },
+  "web.admin.domains.verify.confirmDescription": {
+    "text": "Run DNS and SSL verification checks for {domain}.",
+    "content_hash": "06797824"
+  },
+  "web.admin.domains.verify.success.verified": {
+    "text": "{domain} is verified.",
+    "content_hash": "802b5d1e"
+  },
+  "web.admin.domains.verify.success.resolving": {
+    "text": "{domain} is resolving but not yet verified.",
+    "content_hash": "bc8aecad"
+  },
+  "web.admin.domains.verify.success.pending": {
+    "text": "{domain} is pending — DNS is not resolving yet.",
+    "content_hash": "0d9f66d5"
+  },
+  "web.admin.domains.verify.success.unverified": {
+    "text": "{domain} could not be verified.",
+    "content_hash": "630da482"
+  },
+  "web.admin.domains.verify.success.done": {
+    "text": "Verification complete for {domain}.",
+    "content_hash": "ed67e22d"
+  }
+}

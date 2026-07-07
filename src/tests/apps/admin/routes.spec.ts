@@ -128,11 +128,53 @@ describe('Admin Routes Configuration', () => {
       expect(customers?.to).toBe('/colonel/customers');
     });
 
-    it('the remaining sections have no route until later phases wire them', () => {
-      const liveKeys = new Set(['overview', 'customers']);
-      const placeholders = CONSOLE_SECTIONS.filter((s) => !liveKeys.has(s.key));
-      expect(placeholders.length).toBeGreaterThan(0);
-      placeholders.forEach((s) => expect(s.to).toBeUndefined());
+    it('every console section is now wired to a route (Phase 2 complete)', () => {
+      // Phase 2 (tickets #30-33) wires the last placeholder sections: secrets,
+      // organizations, domains, system, bannedIps, usage. Every section now
+      // points at a live route, and each `to` resolves to a defined route.
+      const routePaths = new Set(adminRoutes.map((r: RouteRecordRaw) => r.path));
+      CONSOLE_SECTIONS.forEach((s) => {
+        expect(s.to).toBeDefined();
+        expect(routePaths.has(s.to as string)).toBe(true);
+      });
+    });
+
+    it('maps each Phase-2 section to its list route', () => {
+      const expected: Record<string, string> = {
+        secrets: '/colonel/secrets',
+        organizations: '/colonel/organizations',
+        domains: '/colonel/domains',
+        system: '/colonel/system',
+        bannedIps: '/colonel/banned-ips',
+        usage: '/colonel/usage',
+      };
+      Object.entries(expected).forEach(([key, path]) => {
+        expect(CONSOLE_SECTIONS.find((s) => s.key === key)?.to).toBe(path);
+      });
+    });
+  });
+
+  describe('Phase-2 routes (tickets #30-33)', () => {
+    const cases: Array<{ path: string; name: string; title: string }> = [
+      { path: '/colonel/secrets', name: 'AdminSecrets', title: 'web.admin.secrets.title' },
+      { path: '/colonel/domains', name: 'AdminDomains', title: 'web.colonel.titles.domains' },
+      {
+        path: '/colonel/organizations',
+        name: 'AdminOrganizations',
+        title: 'web.colonel.titles.organizations',
+      },
+      { path: '/colonel/system', name: 'AdminSystem', title: 'web.admin.system.title' },
+      { path: '/colonel/banned-ips', name: 'AdminBannedIps', title: 'web.admin.bannedIps.title' },
+      { path: '/colonel/usage', name: 'AdminUsage', title: 'web.admin.usage.title' },
+    ];
+
+    cases.forEach(({ path, name, title }) => {
+      it(`registers the ${name} route at ${path}`, () => {
+        const route = adminRoutes.find((r: RouteRecordRaw) => r.path === path);
+        expect(route).toBeDefined();
+        expect(route?.name).toBe(name);
+        expect(route?.meta?.title).toBe(title);
+      });
     });
   });
 });

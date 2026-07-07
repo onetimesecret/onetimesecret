@@ -27,6 +27,18 @@ import {
   colonelUserMutationResponseSchema,
 } from './colonel';
 
+// Colonel (admin) per-resource ack schemas — Phase-2 screens (tickets #30-33)
+import {
+  colonelSecretReceiptResponseSchema,
+  colonelSecretDeleteResponseSchema,
+} from './colonel-secrets';
+import { colonelDomainVerifyResponseSchema } from './colonel-domains';
+import { colonelEntitlementOverrideResponseSchema } from './colonel-organizations';
+import {
+  colonelBanIpResponseSchema,
+  colonelUnbanIpResponseSchema,
+} from './colonel-bannedips';
+
 // Organization schemas — internal-only
 import {
   organizationResponseSchema,
@@ -82,12 +94,18 @@ export const responseSchemas = {
   colonelUserDetail: colonelUserDetailResponseSchema,
   colonelUserMutation: colonelUserMutationResponseSchema,
   colonelSecrets: colonelSecretsResponseSchema,
+  colonelSecretReceipt: colonelSecretReceiptResponseSchema,
+  colonelSecretDelete: colonelSecretDeleteResponseSchema,
   customDomains: colonelCustomDomainsResponseSchema,
+  colonelDomainVerify: colonelDomainVerifyResponseSchema,
   colonelOrganizations: colonelOrganizationsResponseSchema,
   investigateOrganization: investigateOrganizationResponseSchema,
+  colonelEntitlementOverride: colonelEntitlementOverrideResponseSchema,
   databaseMetrics: databaseMetricsResponseSchema,
   redisMetrics: redisMetricsResponseSchema,
   bannedIPs: bannedIPsResponseSchema,
+  colonelBanIp: colonelBanIpResponseSchema,
+  colonelUnbanIp: colonelUnbanIpResponseSchema,
   usageExport: usageExportResponseSchema,
   queueMetrics: queueMetricsResponseSchema,
   systemSettings: systemSettingsResponseSchema,
