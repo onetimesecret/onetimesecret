@@ -271,9 +271,8 @@ module Onetime::Receipt::Features
         truncate.to_s == 'true'
       end
 
-      # The atomic +state+ compare-and-set every transition above claims through
-      # (+compare_and_set_state!+) is provided by the shared +state_cas+ feature;
-      # see Onetime::Models::Features::StateCas.
+      # See Onetime::Models::Features::StateCas for +compare_and_set_state!+,
+      # the shared atomic guard each transition above claims through.
     end
   end
 end
