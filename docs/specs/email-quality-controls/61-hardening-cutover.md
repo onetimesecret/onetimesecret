@@ -75,8 +75,8 @@ operators and pentesters.
       config with the new sections.
 - [ ] Provider suppression backfill runbooks executed against staging; import
       idempotency re-verified on the real dumps.
-- [ ] DLQ peek shows obscured addresses in previews (CLI + colonel), byte-for-
-      byte otherwise.
+- [ ] DLQ peek shows obscured addresses in previews (CLI + colonel),
+      byte-for-byte otherwise.
 - [ ] Schedule-queue decision made, implemented, and `DlqEmailConsumerJob`'s
       discard behavior re-documented to match.
 - [ ] Replay-time suppression tryout green.

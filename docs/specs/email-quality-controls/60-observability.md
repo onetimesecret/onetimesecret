@@ -18,7 +18,7 @@ happened to mail for this address?".
 ## Scope
 
 - **Counters** at the slice-20 choke point, beside `emails_sent` /
-  `emails_suppressed`: class_counters `emails_hard_bounced`,
+  `emails_suppressed`: new `class_counter` fields `emails_hard_bounced`,
   `emails_soft_bounced`, `emails_complained`, `emails_rate_limited`,
   `emails_unsubscribed` (incremented by the slice-31 handlers and slice-50
   endpoint). Optional per-tenant breakdown: a `class_hashkey` keyed by
