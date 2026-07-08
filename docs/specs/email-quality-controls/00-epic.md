@@ -161,6 +161,108 @@ in parallel with 30/31. 50 needs 10, 11, and 20; 51 needs 50. 60 needs 20 and
 is 10 → 11 → 20 → 30 → 31 (suppression fed by provider feedback), with 21 in
 tow for operator access; 40 and 50 follow.
 
+## Classification & prioritization (2026-07)
+
+Volume context: ~10k transactional emails/month (~330/day), each an individual
+choice by a free or paid account holder. That is **below** Gmail/Yahoo's 5k/day
+"bulk sender" hard threshold — so RFC 8058 one-click unsubscribe is best-practice
+and complaint-reducing, not a compliance gate yet. The acute risk at this volume
+is not throughput; it is **sending to dead or hostile mailboxes on a shared
+sending domain** (anyone can put an arbitrary third-party address into a secret
+link). Bounces and complaints are the reputation currency, and today we neither
+suppress nor even observe them.
+
+### Per-slice flags
+
+| Slice | Flag | Rationale |
+|---|---|---|
+| 10 headers + classification | **NOW (trim)** | The **category taxonomy** is required for suppression scope (31). The **headers channel** is only consumed by unsubscribe (50) — defer that half with 50 to shrink Phase 0. |
+| 11 keys + hashing + tokens | **NOW (trim)** | `address_hash`/`domain_hash` + key purpose are required for suppression keys. The **stateless Token codec** is only consumed by 50/51 — defer with them. |
+| 20 suppression model + gate | **NOW** | The core capability. The gate at `Delivery::Base#deliver` is the whole point. |
+| 21 suppression ops + CLI | **NOW** | Operators/support need check/add/remove/import from day one. |
+| 30 ESP webhook ingestion | **NOW\*** | "Biggest reputation win." A suppression list nobody feeds is theater. **\*API-provider-only** — inert on plain SMTP (see fitness finding B). |
+| 31 bounce/complaint handlers | **NOW\*** | Turns feedback into suppressions. Same SMTP caveat. |
+| 61 hardening + cutover | **NOW (partial)** | The bits that ship Phase 1 safely: default-on flip, provider backfill import, and the **pre-existing DLQ PII leak** fix. Schedule-queue decision can ride later. |
+| 22 suppression admin UI | **MAYBE LATER** | CLI (21) covers operations. Build when list volume makes CLI painful for non-engineer support. |
+| 40 outbound rate limits | **MAYBE LATER (ship the address limiter early)** | The per-address anti-harassment cap is the valuable core and is cheap; the domain/sender/tenant limiters are the deferrable bulk. |
+| 50 one-click unsubscribe | **MAYBE LATER (strong recommend)** | Under the bulk threshold so not compulsory, but recipient-facing mail is exactly the unsolicited profile that generates complaints — a mute button directly lowers the metric that matters most. Blocked on fitness finding A. |
+| 51 opt-back-in | **MAYBE LATER** | Depends on 50; no value before it ships. |
+| 60 observability | **MAYBE LATER** | The control-loop's measurement half. Cheap, but only useful once 20+30/31 are producing signal. |
+
+### Prioritization
+
+**1. Bare minimum to maintain reputation** (the epic's own shortest path,
+`10 → 11 → 20 → 30 → 31`, plus `21`):
+- Category taxonomy + address hashing (10/11, trimmed).
+- Suppression store + the `Delivery::Base#deliver` gate (20).
+- CLI + import ops for operators (21).
+- **Automatic bounce/complaint ingestion (30/31)** — the difference between a
+  living suppression list and a dead one. **Only viable if production runs an
+  API provider (SES/SendGrid/Lettermint), not plain SMTP.**
+- The Phase-1 slice of cutover (61): default-on + backfill + DLQ PII fix.
+
+**2. Stretch, if dev time allows** (in order):
+- One-click unsubscribe (50) + its trimmed 10/11 header/token halves — the
+  single best complaint-rate lever and a Gmail/Yahoo best practice we should
+  adopt before we're forced to.
+- The per-address anti-harassment rate limiter (the useful sliver of 40).
+- Observability counters + health job (60) for early warning.
+
+**3. Wait until X:**
+- **22 (admin UI)** — until support outgrows the CLI, or non-engineers need
+  self-serve access.
+- **Rest of 40 (domain/sender/tenant limiters)** — until slice 60 shows an
+  actual abuse or noisy-tenant signal; ceilings should be set from real data.
+- **51 (opt-back-in)** — until 50 has shipped and accidental-unsubscribe
+  support load justifies it.
+- **50/51 as a compliance item** — becomes non-optional if daily volume to any
+  single mailbox provider approaches 5k/day, or if slice-60 complaint rate
+  trends toward 0.1%.
+- **61 schedule-queue decision** — until real usage data says whether to fix or
+  retire `schedule_email` (see fitness finding C).
+
+### Fitness of current mailer (verified against code, not assumed)
+
+The architecture the design leans on is **sound and real**. `Delivery::Base#deliver`
+is a genuine 100% choke point (worker, `:sync`/`:async_thread` fallbacks,
+`deliver_raw`, CLI, DLQ replay all pass through it); `normalize_email` whitelists
+exactly the six documented keys; the KeyDerivation `PURPOSES` table, the
+`pending_federated_subscription`/`banned_ip`/`admin_audit_event` model precedents,
+and the entire Stripe webhook pipeline all exist as described and are cloneable.
+No fundamental rework is required. Three items to **resolve before the slices that
+depend on them**, however:
+
+- **A — Provider header capability (blocks 50 on some backends).** No backend
+  maps custom headers today; `List-Unsubscribe` must be added to all four. SMTP
+  (`::Mail`) and SendGrid (v3 JSON) are trivial. **SES** (`content.simple`) needs
+  aws-sdk-sesv2 1.96.0 to expose `Message#headers`; if it doesn't, fall back to
+  `content: {raw:}`, which changes DKIM signing inputs — verify the installed gem
+  first. **Lettermint** is the real risk: the vendored SDK (0.2.0) is used only
+  through its fluent builder with no header call, and the gem is not inspectable
+  in-repo. **If production runs Lettermint, confirm the SDK exposes a header API
+  before committing to slice 50** — otherwise it's a raw-API workaround or a
+  blocker, exactly as slice 10 warns.
+- **B — Which global backend does production run?** The platform runs ONE global
+  backend (`resolve_backend` ignores per-customer config). Webhook feedback
+  (30/31) is **only possible on an API provider**. On plain SMTP the bare-minimum
+  path degrades to manual + import suppression only, which elevates 50
+  (unsubscribe) from stretch toward necessary. Settle this before sequencing.
+- **C — `schedule_email` is an orphaned path (pre-existing latent bug, not this
+  epic's fault).** `schedule_email` publishes to `email.message.schedule`, which
+  has **no consumer**; messages sit until the 24h queue TTL dead-letters them,
+  and `DlqEmailConsumerJob` then **discards** everything except three auth
+  templates. Any delayed mail routed through it today (the design flags
+  `expiration_warning`) is silently dropped. This is independent of the epic but
+  worth triaging now; the epic correctly forbids building on it until 61 decides
+  fix-vs-retire.
+
+Two smaller precision notes, neither a blocker: the four existing Security rate
+limiters are **not** a uniform mold (only `invite_token` is a class with
+`force_enabled` + evalsha + Registry wiring — use it as the template for slice 40,
+not "the four"); and `EmailHash` raises for a missing `FEDERATION_SECRET` lazily
+at compute time (not at require), so the new `EmailProtection` helper must derive
+lazily and stay boot-safe — which slice 11 already specifies.
+
 ## Related prior art
 
 - #3653 — Colonel Admin Rebuild epic: the Operations/adapters architecture,
