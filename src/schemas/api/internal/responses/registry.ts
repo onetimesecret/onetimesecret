@@ -75,6 +75,10 @@ import {
 } from './colonel-emailtools';
 import { colonelBillingCatalogResponseSchema } from './colonel-billing';
 
+// Colonel (admin) observability — audit trail reader + overview trends
+import { colonelAuditEventsResponseSchema } from './colonel-audit';
+import { colonelTrendsResponseSchema } from './colonel-trends';
+
 // Organization schemas — internal-only
 import {
   organizationResponseSchema,
@@ -168,6 +172,10 @@ export const responseSchemas = {
   colonelRateLimitInspect: colonelRateLimitInspectResponseSchema,
   colonelRateLimitReset: colonelRateLimitResetResponseSchema,
   colonelBillingCatalog: colonelBillingCatalogResponseSchema,
+
+  // Colonel / admin — observability (audit reader + trends)
+  colonelAuditEvents: colonelAuditEventsResponseSchema,
+  colonelTrends: colonelTrendsResponseSchema,
 
   // Organizations (internal-only)
   organization: organizationResponseSchema,

@@ -90,3 +90,7 @@ require_relative 'colonel/reset_rate_limit'
 
 # Billing catalog (ticket #45)
 require_relative 'colonel/get_billing_catalog'
+
+# Observability: audit trail reader + daily activity trends
+require_relative 'colonel/list_audit_events'
+require_relative 'colonel/get_trends'

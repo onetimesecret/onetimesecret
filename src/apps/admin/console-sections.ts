@@ -32,6 +32,7 @@ export const CONSOLE_SECTIONS: ConsoleSection[] = [
   { key: 'bannedIps', labelKey: 'web.colonel.titles.bannedIps', icon: 'no-symbol', to: '/colonel/banned-ips' },
   { key: 'usage', labelKey: 'web.colonel.titles.usage', icon: 'rectangle-group', to: '/colonel/usage' },
   { key: 'sessions', labelKey: 'web.admin.sessions.title', icon: 'finger-print', to: '/colonel/sessions' },
+  { key: 'auditLog', labelKey: 'web.admin.audit.title', icon: 'document-text', to: '/colonel/audit' },
   { key: 'banner', labelKey: 'web.admin.banner.title', icon: 'bell', to: '/colonel/banner' },
   { key: 'domaintoolbox', labelKey: 'web.admin.domaintoolbox.title', icon: 'shield-exclamation', to: '/colonel/domain-toolbox' },
   { key: 'emailTools', labelKey: 'web.admin.emailtools.title', icon: 'envelope', to: '/colonel/email-tools' },

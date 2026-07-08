@@ -18,7 +18,8 @@ module Onetime
   # Each event is a JSON payload stored as a member, scored by its creation time
   # (a high-precision float from Familia.now), so:
   #
-  # - Reads are newest-first (revrange) for a future admin audit view.
+  # - Reads are newest-first (revrange) for the admin audit view
+  #   (GET /api/colonel/audit).
   # - The set is trimmed to MAX_EVENTS on every write. An unbounded audit set is a
   #   memory risk in Valkey (see epic D4) — the count cap is a hard memory bound.
   #
@@ -54,8 +55,10 @@ module Onetime
     # is no frontend Zod shape to link to (unlike Customer/Secret/etc.). Declaring
     # `SCHEMA = 'models/admin_audit_event'` would point the schema-scanner at a
     # nonexistent `shapes/admin_audit_event`. Matches the Features /
-    # OrganizationMembership precedent for non-serialised models. If a read API for
-    # the audit trail is ever added, introduce the shape then and link it here.
+    # OrganizationMembership precedent for non-serialised models. The read API
+    # (GET /api/colonel/audit) declares its own wire contract instead: the logic
+    # class links `response: 'colonelAuditEvents'`, whose Zod shape lives at
+    # src/schemas/api/account/responses/colonel-audit.ts.
 
     prefix :admin_audit_event
 
@@ -136,15 +139,20 @@ module Onetime
         nil
       end
 
-      # Newest-first slice of the audit trail, for a future admin audit view.
+      # Newest-first slice of the audit trail. Backs the admin audit view
+      # (GET /api/colonel/audit via ColonelAPI::Logic::Colonel::ListAuditEvents).
       #
       # @param limit [Integer] max events to return (most recent first).
+      # @param offset [Integer] rank offset into the newest-first ordering
+      #   (0 = the newest event), enabling page reads without loading the set.
       # @return [Array<Hash>] events with string keys, newest first.
-      def recent(limit = 100)
-        limit = limit.to_i
+      def recent(limit = 100, offset = 0)
+        limit  = limit.to_i
+        offset = offset.to_i
         return [] if limit <= 0
 
-        events.revrange(0, limit - 1)
+        offset = 0 if offset.negative?
+        events.revrange(offset, offset + limit - 1)
       end
 
       # @return [Integer] number of retained events.

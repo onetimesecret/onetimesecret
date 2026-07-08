@@ -225,4 +225,17 @@ describe('Admin Routes Configuration', () => {
       });
     });
   });
+
+  describe('Observability routes (audit log)', () => {
+    it('registers the AdminAuditLog route at /colonel/audit', () => {
+      const route = adminRoutes.find((r: RouteRecordRaw) => r.path === '/colonel/audit');
+      expect(route).toBeDefined();
+      expect(route?.name).toBe('AdminAuditLog');
+      expect(route?.meta?.title).toBe('web.admin.audit.title');
+    });
+
+    it('auditLog is a live section pointing at /colonel/audit', () => {
+      expect(CONSOLE_SECTIONS.find((s) => s.key === 'auditLog')?.to).toBe('/colonel/audit');
+    });
+  });
 });

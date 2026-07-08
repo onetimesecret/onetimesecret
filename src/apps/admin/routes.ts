@@ -139,6 +139,19 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
+    // Audit log reader (observability): newest-first playback of the
+    // AdminAuditEvent trail every mutating admin op writes. Read-only; no
+    // route params (filters are in-page).
+    path: '/colonel/audit',
+    name: 'AdminAuditLog',
+    component: () => import('@/apps/admin/views/AdminAuditLog.vue'),
+    meta: {
+      ...adminDefaultMeta,
+      title: 'web.admin.audit.title',
+      sentryScrubParams: false,
+    },
+  },
+  {
     // Broadcast banner: settings-style get/set/clear (ticket #41).
     path: '/colonel/banner',
     name: 'AdminBanner',
