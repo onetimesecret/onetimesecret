@@ -10,11 +10,13 @@ import {
 } from '@/schemas/api/internal/responses/colonel-queue';
 
 /**
- * Zod tripwire (CONTRACT 3) for the four NEW Queue-DLQ-console contracts. These
- * payloads are shaped exactly as the live logic classes emit them — verified
- * against apps/api/colonel/logic/colonel/{list_dlqs,get_dlq_messages,replay_dlq,
+ * Zod tripwire (CONTRACT 3) for the four DLQ endpoint contracts. The DLQ
+ * console screen was removed by design review, but the endpoints stay live and
+ * these envelopes remain their registry/OpenAPI contract. Payloads are shaped
+ * exactly as the live logic classes emit them — verified against
+ * apps/api/colonel/logic/colonel/{list_dlqs,get_dlq_messages,replay_dlq,
  * purge_dlq}.rb, thin adapters over Onetime::Operations::Dlq::*. If a backend
- * response drifts, these fail rather than the screen silently breaking.
+ * response drifts, these fail rather than the contract silently rotting.
  */
 
 // ListDlqs `success_data` — a healthy queue + one not-yet-declared queue.

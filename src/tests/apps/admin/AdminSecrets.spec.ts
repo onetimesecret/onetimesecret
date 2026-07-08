@@ -37,8 +37,6 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
 }));
 
 // Render HeadlessUI dialog markup synchronously (mirrors AdminCustomerDetail.spec).
-// DialogPanel renders its default slot, which for DetailDrawer contains the
-// header/body/footer slot outlets.
 vi.mock('@headlessui/vue', () => ({
   Dialog: {
     name: 'Dialog',
@@ -65,34 +63,9 @@ import { createTestI18n } from '@tests/setup';
 
 const i18n = createTestI18n();
 
-const LIST_URL = '/api/colonel/secrets';
 const SECRET_ID = 's1';
 const SHORT_ID = 'abc123';
 const RECEIPT_URL = `/api/colonel/secrets/${SECRET_ID}`;
-
-function secretsPayload() {
-  return {
-    shrimp: '',
-    record: {},
-    details: {
-      secrets: [
-        {
-          secret_id: SECRET_ID,
-          shortid: SHORT_ID,
-          owner_id: 'ext_owner',
-          state: 'received',
-          created: 1700000000,
-          expiration: 1700003600,
-          lifespan: 3600,
-          receipt_id: 'r1',
-          age: 172800,
-          has_ciphertext: true,
-        },
-      ],
-      pagination: { page: 1, per_page: 50, total_count: 1, total_pages: 1 },
-    },
-  };
-}
 
 function receiptPayload() {
   return {
@@ -128,23 +101,23 @@ function receiptPayload() {
   };
 }
 
-/** Route GETs by URL so the list + receipt fetches return distinct payloads. */
-function routeGet() {
-  mockApi.get.mockImplementation((url: string) => {
-    if (url === RECEIPT_URL) return Promise.resolve({ data: receiptPayload() });
-    return Promise.resolve({ data: secretsPayload() });
-  });
-}
-
 const mountView = (pinia: ReturnType<typeof createPinia>) =>
   mount(AdminSecrets, {
     global: { plugins: [pinia, i18n], stubs: { JsonViewer: true } },
   });
 
+/** Type the key into the lookup input and submit the lookup form. */
+async function lookup(w: VueWrapper, key = SECRET_ID) {
+  await w.find('[data-testid="secret-lookup-input"]').setValue(key);
+  await w.find('[data-testid="secret-lookup-form"]').trigger('submit');
+  await flushPromises();
+}
+
 const dialogInput = (w: VueWrapper) => w.find('#admin-confirm-input');
 const dialogSubmit = (w: VueWrapper) => w.find('[data-testid="admin-confirm-submit"]');
+const dialogForm = (w: VueWrapper) => w.find('[data-testid="admin-confirm-dialog"] form');
 
-describe('AdminSecrets (list + receipt + guarded delete — ticket #30)', () => {
+describe('AdminSecrets (lookup-first inspect + guarded delete — ticket #30)', () => {
   let wrapper: VueWrapper;
   let pinia: ReturnType<typeof createPinia>;
 
@@ -155,84 +128,80 @@ describe('AdminSecrets (list + receipt + guarded delete — ticket #30)', () => 
   });
   afterEach(() => wrapper?.unmount());
 
-  // ---- List -----------------------------------------------------------------
+  // ---- Lookup ----------------------------------------------------------------
 
-  it('fetches the first page on mount and renders a row per secret', async () => {
-    routeGet();
+  it('renders the lookup form and calls NOTHING on mount (no browse-all list)', async () => {
     wrapper = mountView(pinia);
     await flushPromises();
 
-    expect(mockApi.get).toHaveBeenCalledWith(LIST_URL, {
-      params: { page: 1, per_page: 50 },
-    });
-    const table = wrapper.find('[data-testid="secrets-table"]');
-    expect(table.exists()).toBe(true);
-    expect(table.text()).toContain(SHORT_ID);
-    // Age rendered in whole days (172800s / 86400 = 2).
-    expect(table.text()).toContain('2');
-    // No filter bar (the list endpoint offers no server-side filter).
-    expect(wrapper.find('[data-testid="secrets-filterbar"]').exists()).toBe(false);
+    // Lookup-first by design review: the list endpoint still exists
+    // server-side but the UI must never call it (or anything else) on mount.
+    expect(mockApi.get).not.toHaveBeenCalled();
+    expect(wrapper.find('[data-testid="secret-lookup-form"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="secret-lookup-result"]').exists()).toBe(false);
   });
 
-  it('shows the error banner + retry on a network failure', async () => {
-    mockApi.get.mockRejectedValue(new Error('Network Error'));
+  it('disables the lookup submit until a key is entered', async () => {
     wrapper = mountView(pinia);
-    await flushPromises();
 
-    const banner = wrapper.find('[data-testid="secrets-error"]');
-    expect(banner.exists()).toBe(true);
+    const submit = wrapper.find('[data-testid="secret-lookup-submit"]');
+    expect(submit.attributes('disabled')).toBeDefined();
 
-    routeGet();
-    await banner.find('button').trigger('click');
-    await flushPromises();
-    expect(wrapper.find('[data-testid="secrets-error"]').exists()).toBe(false);
+    await wrapper.find('[data-testid="secret-lookup-input"]').setValue(SECRET_ID);
+    expect(submit.attributes('disabled')).toBeUndefined();
   });
 
-  // ---- Receipt drawer -------------------------------------------------------
-
-  it('opens the receipt drawer and fetches GetSecretReceipt on row click', async () => {
-    routeGet();
+  it('fetches GetSecretReceipt for the entered key and renders the read-out', async () => {
+    mockApi.get.mockResolvedValue({ data: receiptPayload() });
     wrapper = mountView(pinia);
-    await flushPromises();
 
-    await wrapper.find('[data-testid="secrets-table"] tbody tr').trigger('click');
-    await flushPromises();
+    await lookup(wrapper);
 
     expect(mockApi.get).toHaveBeenCalledWith(RECEIPT_URL, undefined);
-    const content = wrapper.find('[data-testid="secret-drawer-content"]');
-    expect(content.exists()).toBe(true);
+    const result = wrapper.find('[data-testid="secret-lookup-result"]');
+    expect(result.exists()).toBe(true);
     expect(wrapper.find('[data-testid="secret-field-secretId"]').text()).toContain(SECRET_ID);
     // Receipt + owner sub-sections render from details.
     expect(wrapper.find('[data-testid="receipt-field-receiptId"]').text()).toContain('r1');
     expect(wrapper.find('[data-testid="owner-field-email"]').text()).toContain('o***@e***.com');
   });
 
-  it('renders the not-found panel in the drawer on a 404', async () => {
-    mockApi.get.mockImplementation((url: string) => {
-      if (url === RECEIPT_URL) {
-        return Promise.reject(Object.assign(new Error('nf'), { response: { status: 404 } }));
-      }
-      return Promise.resolve({ data: secretsPayload() });
-    });
+  it('renders the not-found panel on a 404', async () => {
+    mockApi.get.mockRejectedValue(
+      Object.assign(new Error('nf'), { response: { status: 404 } })
+    );
     wrapper = mountView(pinia);
+
+    await lookup(wrapper, 'does-not-exist');
+
+    expect(wrapper.find('[data-testid="secret-lookup-not-found"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="secret-lookup-result"]').exists()).toBe(false);
+  });
+
+  it('renders the load-error panel with retry on a network failure', async () => {
+    mockApi.get.mockRejectedValueOnce(new Error('Network Error'));
+    wrapper = mountView(pinia);
+
+    await lookup(wrapper);
+
+    const errorPanel = wrapper.find('[data-testid="secret-lookup-error"]');
+    expect(errorPanel.exists()).toBe(true);
+
+    mockApi.get.mockResolvedValue({ data: receiptPayload() });
+    await errorPanel.find('button').trigger('click');
     await flushPromises();
 
-    await wrapper.find('[data-testid="secrets-table"] tbody tr').trigger('click');
-    await flushPromises();
-
-    expect(wrapper.find('[data-testid="secret-drawer-not-found"]').exists()).toBe(true);
-    expect(wrapper.find('[data-testid="secret-drawer-content"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="secret-lookup-error"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="secret-lookup-result"]').exists()).toBe(true);
   });
 
   // ---- Guarded delete (D4) --------------------------------------------------
 
   describe('delete — typed-confirmation gate', () => {
     beforeEach(async () => {
-      routeGet();
+      mockApi.get.mockResolvedValue({ data: receiptPayload() });
       wrapper = mountView(pinia);
-      await flushPromises();
-      await wrapper.find('[data-testid="secrets-table"] tbody tr').trigger('click');
-      await flushPromises();
+      await lookup(wrapper);
     });
 
     it('opens a danger dialog whose confirm stays disabled until the short id is retyped', async () => {
@@ -249,7 +218,7 @@ describe('AdminSecrets (list + receipt + guarded delete — ticket #30)', () => 
       expect(dialogSubmit(wrapper).attributes('disabled')).toBeUndefined();
     });
 
-    it('DELETEs the secret, notifies, closes the drawer and refreshes the list on confirm', async () => {
+    it('DELETEs the secret, notifies, and clears the read-out on confirm', async () => {
       mockApi.delete.mockResolvedValue({
         data: {
           shrimp: '',
@@ -261,26 +230,26 @@ describe('AdminSecrets (list + receipt + guarded delete — ticket #30)', () => 
           details: { message: 'Secret and associated receipt deleted successfully' },
         },
       });
-      const listGetsBefore = mockApi.get.mock.calls.filter((c) => c[0] === LIST_URL).length;
 
       await wrapper.find('[data-testid="secret-delete-button"]').trigger('click');
       await dialogInput(wrapper).setValue(SHORT_ID);
-      await wrapper.find('form').trigger('submit');
+      await dialogForm(wrapper).trigger('submit');
       await flushPromises();
 
       expect(mockApi.delete).toHaveBeenCalledWith(RECEIPT_URL);
       expect(showMock).toHaveBeenCalledWith('web.admin.secrets.actions.delete.success', 'success');
-      // Drawer closed + list re-fetched (one more list GET than before).
-      expect(wrapper.find('[data-testid="secret-drawer-content"]').exists()).toBe(false);
-      const listGetsAfter = mockApi.get.mock.calls.filter((c) => c[0] === LIST_URL).length;
-      expect(listGetsAfter).toBe(listGetsBefore + 1);
+      // The read-out clears back to the lookup prompt (the secret is gone).
+      expect(wrapper.find('[data-testid="secret-lookup-result"]').exists()).toBe(false);
+      const input = wrapper.find('[data-testid="secret-lookup-input"]')
+        .element as HTMLInputElement;
+      expect(input.value).toBe('');
     });
 
     it('does NOT delete when submitted without a matching token', async () => {
       mockApi.delete.mockResolvedValue({ data: {} });
       await wrapper.find('[data-testid="secret-delete-button"]').trigger('click');
       await dialogInput(wrapper).setValue('wrong');
-      await wrapper.find('form').trigger('submit');
+      await dialogForm(wrapper).trigger('submit');
       await flushPromises();
 
       expect(mockApi.delete).not.toHaveBeenCalled();
@@ -292,11 +261,13 @@ describe('AdminSecrets (list + receipt + guarded delete — ticket #30)', () => 
 
       await wrapper.find('[data-testid="secret-delete-button"]').trigger('click');
       await dialogInput(wrapper).setValue(SHORT_ID);
-      await wrapper.find('form').trigger('submit');
+      await dialogForm(wrapper).trigger('submit');
       await flushPromises();
 
       expect(wrapper.find('[role="alert"]').text()).toContain('Secret not found');
       expect(showMock).not.toHaveBeenCalled();
+      // The read-out stays so the operator can retry or cancel.
+      expect(wrapper.find('[data-testid="secret-lookup-result"]').exists()).toBe(true);
     });
   });
 });

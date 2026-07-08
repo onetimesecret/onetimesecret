@@ -1,16 +1,17 @@
 // src/schemas/api/account/responses/colonel-queue.ts
 //
-// Per-resource colonel/admin schemas for the Queue DLQ console (ticket #42).
+// Per-resource colonel/admin schemas for the DLQ endpoints.
 //
-// NEW schemas only — the frozen colonel contracts in ./colonel.ts (including the
-// existing read-only `queueMetrics`) are untouched (the Zod tripwire, epic
-// non-goal). These shapes are for the net-new dead-letter-queue endpoints (there
-// was no old colonel queue-DLQ screen — CLI-only until now):
+// The DLQ console screen was removed by design review (YAGNI — `bin/ots queue
+// dlq …` is the operator surface), but the endpoints remain live, so these
+// shapes stay as their registry/OpenAPI contract. The frozen colonel contracts
+// in ./colonel.ts (including the existing read-only `queueMetrics`) are
+// untouched (the Zod tripwire, epic non-goal):
 //
 //   - ListDlqs        → GET  /api/colonel/queues/dlq                  (summary list)
-//   - GetDlqMessages  → GET  /api/colonel/queues/dlq/:queue           (peek drawer)
-//   - ReplayDlq       → POST /api/colonel/queues/dlq/:queue/replay    (guarded retry)
-//   - PurgeDlq        → POST /api/colonel/queues/dlq/:queue/purge      (guarded purge)
+//   - GetDlqMessages  → GET  /api/colonel/queues/dlq/:queue           (peek)
+//   - ReplayDlq       → POST /api/colonel/queues/dlq/:queue/replay    (replay)
+//   - PurgeDlq        → POST /api/colonel/queues/dlq/:queue/purge      (purge)
 //
 // Shapes verified against the live logic classes
 // (apps/api/colonel/logic/colonel/{list_dlqs,get_dlq_messages,replay_dlq,purge_dlq}.rb),

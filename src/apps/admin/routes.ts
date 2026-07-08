@@ -60,8 +60,9 @@ const routes: Array<RouteRecordRaw> = [
     props: true,
   },
   {
-    // Secrets: paginated list + receipt drawer + guarded delete (ticket #30).
-    // No route params (the receipt opens in a DetailDrawer, not a sub-route).
+    // Secrets: lookup-by-key inspect + guarded delete (ticket #30; browse-all
+    // table removed by design review — no browsing secrets on a zero-knowledge
+    // platform). No route params (the key is an in-page input).
     path: '/colonel/secrets',
     name: 'AdminSecrets',
     component: () => import('@/apps/admin/views/AdminSecrets.vue'),
@@ -149,17 +150,6 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    // Queue DLQ console: list + peek drawer + guarded replay/purge (ticket #42).
-    path: '/colonel/queues/dlq',
-    name: 'AdminQueueDlq',
-    component: () => import('@/apps/admin/views/AdminQueueDlq.vue'),
-    meta: {
-      ...adminDefaultMeta,
-      title: 'web.admin.queue.title',
-      sentryScrubParams: false,
-    },
-  },
-  {
     // Domain toolbox: orphaned scan + probe + guarded repair/transfer (ticket #43).
     path: '/colonel/domain-toolbox',
     name: 'AdminDomainToolbox',
@@ -171,8 +161,8 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    // Email + rate-limit tools (ticket #44): template preview / test send /
-    // limiter inspect+reset. No route params (all inputs are in-page).
+    // Email tools (ticket #44): template preview / test send. No route params
+    // (all inputs are in-page).
     path: '/colonel/email-tools',
     name: 'AdminEmailTools',
     component: () => import('@/apps/admin/views/AdminEmailTools.vue'),

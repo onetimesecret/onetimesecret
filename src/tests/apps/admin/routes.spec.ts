@@ -193,12 +193,6 @@ describe('Admin Routes Configuration', () => {
         sectionKey: 'banner',
       },
       {
-        path: '/colonel/queues/dlq',
-        name: 'AdminQueueDlq',
-        title: 'web.admin.queue.title',
-        sectionKey: 'queueDlq',
-      },
-      {
         path: '/colonel/domain-toolbox',
         name: 'AdminDomainToolbox',
         title: 'web.admin.domaintoolbox.title',

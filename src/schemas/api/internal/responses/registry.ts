@@ -39,7 +39,10 @@ import {
   colonelUnbanIpResponseSchema,
 } from './colonel-bannedips';
 
-// Colonel (admin) per-resource schemas — Phase-3 screens (tickets #40-45)
+// Colonel (admin) per-resource schemas — Phase-3 screens (tickets #40-45).
+// The DLQ console and the rate-limit inspect/reset UI were removed by design
+// review; their envelopes stay registry-only as the OpenAPI contract for the
+// still-live endpoints (list_dlqs.rb declares `response: 'colonelDlqList'`).
 import {
   colonelSessionsResponseSchema,
   colonelSessionDetailResponseSchema,

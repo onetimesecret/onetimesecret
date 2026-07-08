@@ -1,13 +1,12 @@
 // src/schemas/api/internal/responses/colonel-emailtools.ts
 //
-// Wrapped response schemas for the colonel Email + Rate-limit Tools screen
-// (ticket #44). Internal-only; consumed by the Vue admin console, never exposed
-// publicly.
+// Wrapped response schemas for the colonel Email Tools screen (ticket #44) and
+// the rate-limit endpoints. Internal-only; never exposed publicly.
 //
-// All six envelopes are new (these capabilities had no colonel endpoint before
-// this slice). The view imports these DIRECTLY (CONTRACT 3) so it typechecks
-// independently of the registry; the Integrate step adds the registry keys from
-// wiringInstructions.
+// The view imports the email envelopes DIRECTLY (CONTRACT 3) so it typechecks
+// independently of the registry. The three ratelimit envelopes are
+// registry-only: the inspect/reset UI was removed by design review, but the
+// endpoints remain live and these document their contracts.
 
 import { createApiResponseSchema } from '@/schemas/api/base';
 import {

@@ -9,16 +9,11 @@
   import type {
     ColonelEmailTemplate,
     ColonelEmailTestDetails,
-    ColonelRateLimiter,
-    ColonelRateLimitEntry,
   } from '@/schemas/api/account/responses/colonel-emailtools';
   import {
     colonelEmailTemplatesResponseSchema,
     colonelEmailPreviewResponseSchema,
     colonelEmailTestResponseSchema,
-    colonelRateLimitersResponseSchema,
-    colonelRateLimitInspectResponseSchema,
-    colonelRateLimitResetResponseSchema,
   } from '@/schemas/api/internal/responses/colonel-emailtools';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useApi } from '@/shared/composables/useApi';
@@ -26,20 +21,21 @@
   import { gracefulParse } from '@/utils/schemaValidation';
 
   /**
-   * Email + Rate-limit Tools (ticket #44) — the Phase-3 payoff that surfaces the
-   * CLI-only email diagnostics (`bin/ots email {templates,preview,test}`) and
-   * rate-limiter inspection (`bin/ots ratelimit keys`) in the browser, built fresh
-   * on the Slice-3 template (no `src/apps/colonel/*` / `colonelInfoStore`).
+   * Email Tools (ticket #44) — the Phase-3 payoff that surfaces the CLI-only
+   * email diagnostics (`bin/ots email {templates,preview,test}`) in the browser,
+   * built fresh on the Slice-3 template (no `src/apps/colonel/*` /
+   * `colonelInfoStore`).
    *
-   * Three sections, all disjoint under the `emailtools` namespace:
+   * Two sections, all disjoint under the `emailtools` namespace (further email
+   * sections — e.g. deliverability — slot in as sibling `<section>` blocks):
    *  - TEMPLATE PREVIEW (read-only): pick a template + format → render sample
    *    output. HTML renders in a sandboxed iframe; text shows as escaped source.
    *  - TEST SEND (guarded, low-risk one-click confirm — CONTRACT 1): preview the
    *    exact diagnostic (dry-run, no send), then send to an operator-supplied
    *    address. The real send is audited SERVER-SIDE by the op (CONTRACT 4).
-   *  - RATE-LIMIT (read + guarded reset): inspect a limiter/identifier's live
-   *    counter state (read-only), then RESET behind an {@link AdminConfirmDialog}
-   *    typed-confirmation (retype the subject). Reset is audited SERVER-SIDE.
+   *
+   * The rate-limit inspect/reset half was removed by design review (YAGNI —
+   * the endpoints and `bin/ots ratelimit` CLI remain the operator surface).
    *
    * Every mutation goes through {@link useAdminMutation}; nothing here logs.
    */
@@ -49,14 +45,10 @@
 
   const TEMPLATES_URL = '/api/colonel/email/templates';
   const TEST_URL = '/api/colonel/email/test';
-  const LIMITERS_URL = '/api/colonel/ratelimit/limiters';
-  const INSPECT_URL = '/api/colonel/ratelimit/inspect';
-  const RESET_URL = '/api/colonel/ratelimit/reset';
 
-  // ---- Reference lists (templates + limiters) -------------------------------
+  // ---- Reference lists (templates) ------------------------------------------
 
   const templates = ref<ColonelEmailTemplate[]>([]);
-  const limiters = ref<ColonelRateLimiter[]>([]);
 
   async function loadTemplates(): Promise<void> {
     try {
@@ -75,25 +67,6 @@
     } catch {
       // A missing list only disables the picker; the section stays usable via
       // a manual template id. No blocking error surface.
-    }
-  }
-
-  async function loadLimiters(): Promise<void> {
-    try {
-      const response = await $api.get(LIMITERS_URL);
-      const parsed = gracefulParse(
-        colonelRateLimitersResponseSchema,
-        response.data,
-        'ColonelRateLimitersResponse'
-      );
-      if (parsed.ok) {
-        limiters.value = parsed.data.record?.limiters ?? [];
-        if (!rlKind.value && limiters.value.length) {
-          rlKind.value = limiters.value[0].kind;
-        }
-      }
-    } catch {
-      // Non-blocking, as above.
     }
   }
 
@@ -211,82 +184,8 @@
     resetSend();
   }
 
-  // ---- Section 3: rate-limit inspect (read) + reset (guarded) ---------------
-
-  const rlKind = ref('');
-  const rlSubject = ref('');
-  const rlEntries = ref<ColonelRateLimitEntry[] | null>(null);
-  const resetDialogOpen = ref(false);
-
-  const rlReady = computed(() => rlKind.value.trim() !== '' && rlSubject.value.trim() !== '');
-  /** Reset is only meaningful once at least one key is known to exist. */
-  const rlHasState = computed(() => (rlEntries.value ?? []).some((e) => e.exists));
-
-  const {
-    loading: inspectLoading,
-    error: inspectError,
-    run: runInspect,
-    reset: resetInspect,
-  } = useAdminMutation(async () => {
-    rlEntries.value = null;
-    const response = await $api.get(INSPECT_URL, {
-      params: { kind: rlKind.value.trim(), subject: rlSubject.value.trim() },
-    });
-    const parsed = gracefulParse(
-      colonelRateLimitInspectResponseSchema,
-      response.data,
-      'ColonelRateLimitInspectResponse'
-    );
-    if (parsed.ok) rlEntries.value = parsed.data.details?.entries ?? [];
-  });
-
-  const {
-    loading: rlResetLoading,
-    error: rlResetError,
-    run: runReset,
-    reset: resetResetMutation,
-  } = useAdminMutation(async () => {
-    const response = await $api.post(RESET_URL, {
-      kind: rlKind.value.trim(),
-      subject: rlSubject.value.trim(),
-    });
-    gracefulParse(colonelRateLimitResetResponseSchema, response.data, 'ColonelRateLimitResetResponse');
-  });
-
-  async function onInspect(): Promise<void> {
-    if (!rlReady.value) return;
-    resetInspect();
-    await runInspect();
-  }
-
-  function requestReset(): void {
-    resetResetMutation();
-    resetDialogOpen.value = true;
-  }
-
-  async function onResetConfirm(): Promise<void> {
-    const ok = await runReset();
-    if (!ok) return;
-    resetDialogOpen.value = false;
-    notifications.show(t('web.admin.emailtools.ratelimit.resetSuccess'), 'success');
-    // Re-inspect so the operator sees the cleared state immediately.
-    await onInspect();
-  }
-
-  function onResetCancel(): void {
-    resetDialogOpen.value = false;
-    resetResetMutation();
-  }
-
-  function ttlLabel(entry: ColonelRateLimitEntry): string {
-    if (!entry.exists) return t('web.admin.emailtools.ratelimit.absent');
-    if (entry.ttl === null) return t('web.admin.emailtools.ratelimit.noExpiry');
-    return `${entry.ttl}s`;
-  }
-
   onMounted(() => {
     loadTemplates();
-    loadLimiters();
   });
 </script>
 
@@ -494,125 +393,6 @@
       </div>
     </section>
 
-    <!-- ===== Section 3: rate-limit inspect + reset ======================= -->
-    <section
-      class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900"
-      data-testid="ratelimit-section">
-      <h3 class="mb-3 text-lg font-semibold text-gray-900 dark:text-white">
-        {{ t('web.admin.emailtools.ratelimit.title') }}
-      </h3>
-      <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
-        {{ t('web.admin.emailtools.ratelimit.description') }}
-      </p>
-
-      <div class="flex flex-wrap items-end gap-3">
-        <div class="min-w-[12rem]">
-          <label
-            for="rl-kind"
-            class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
-            {{ t('web.admin.emailtools.ratelimit.kindLabel') }}
-          </label>
-          <select
-            id="rl-kind"
-            v-model="rlKind"
-            data-testid="rl-kind-select"
-            class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
-            <option
-              v-for="lim in limiters"
-              :key="lim.kind"
-              :value="lim.kind">
-              {{ lim.kind }} — {{ lim.subject }}
-            </option>
-          </select>
-        </div>
-        <div class="min-w-[16rem] flex-1">
-          <label
-            for="rl-subject"
-            class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
-            {{ t('web.admin.emailtools.ratelimit.subjectLabel') }}
-          </label>
-          <input
-            id="rl-subject"
-            v-model="rlSubject"
-            type="text"
-            data-testid="rl-subject-input"
-            :placeholder="t('web.admin.emailtools.ratelimit.subjectPlaceholder')"
-            class="w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm text-gray-900 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
-        </div>
-        <button
-          type="button"
-          data-testid="rl-inspect"
-          :disabled="!rlReady || inspectLoading"
-          class="inline-flex items-center gap-1 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50"
-          @click="onInspect">
-          <OIcon
-            collection="heroicons"
-            :name="inspectLoading ? 'arrow-path' : 'magnifying-glass'"
-            size="4"
-            :class="inspectLoading ? 'animate-spin motion-reduce:animate-none' : ''" />
-          {{ t('web.admin.emailtools.ratelimit.inspectButton') }}
-        </button>
-      </div>
-
-      <p
-        v-if="inspectError"
-        class="mt-3 text-sm text-red-700 dark:text-red-300"
-        role="alert"
-        data-testid="rl-inspect-error">
-        {{ inspectError }}
-      </p>
-
-      <!-- Inspect result -->
-      <div
-        v-if="rlEntries"
-        class="mt-5 border-t border-gray-100 pt-4 dark:border-gray-800"
-        data-testid="rl-result">
-        <table class="w-full text-left text-sm">
-          <thead>
-            <tr class="border-b border-gray-100 text-xs uppercase tracking-wider text-gray-500 dark:border-gray-800 dark:text-gray-400">
-              <th class="py-2 pr-4 font-medium">{{ t('web.admin.emailtools.ratelimit.columns.key') }}</th>
-              <th class="py-2 pr-4 font-medium">{{ t('web.admin.emailtools.ratelimit.columns.value') }}</th>
-              <th class="py-2 font-medium">{{ t('web.admin.emailtools.ratelimit.columns.ttl') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="entry in rlEntries"
-              :key="entry.key"
-              class="border-b border-gray-50 last:border-0 dark:border-gray-800/50"
-              :data-testid="`rl-entry-${entry.key}`">
-              <td class="py-2 pr-4 font-mono text-gray-900 dark:text-white">{{ entry.key }}</td>
-              <td class="py-2 pr-4 font-mono">
-                <span v-if="entry.exists">{{ entry.value }}</span>
-                <span v-else class="text-gray-400 dark:text-gray-600">—</span>
-              </td>
-              <td class="py-2 font-mono text-gray-600 dark:text-gray-400">{{ ttlLabel(entry) }}</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div
-          v-if="!rlHasState"
-          class="mt-3 text-sm text-gray-500 dark:text-gray-400"
-          data-testid="rl-empty">
-          {{ t('web.admin.emailtools.ratelimit.noState') }}
-        </div>
-
-        <button
-          v-if="rlHasState"
-          type="button"
-          data-testid="rl-reset"
-          class="mt-4 inline-flex items-center gap-1 rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-          @click="requestReset">
-          <OIcon
-            collection="heroicons"
-            name="trash"
-            size="4" />
-          {{ t('web.admin.emailtools.ratelimit.resetButton') }}
-        </button>
-      </div>
-    </section>
-
     <!-- Test send: one-click confirm (low-risk verb — CONTRACT 1). -->
     <AdminConfirmDialog
       v-model:open="sendDialogOpen"
@@ -625,18 +405,5 @@
       :error="sendError"
       @confirm="onSendConfirm"
       @cancel="onSendCancel" />
-
-    <!-- Rate-limit reset: typed-confirmation (retype the subject). -->
-    <AdminConfirmDialog
-      v-model:open="resetDialogOpen"
-      :title="t('web.admin.emailtools.ratelimit.confirmTitle')"
-      :description="t('web.admin.emailtools.ratelimit.confirmDescription', { subject: rlSubject.trim() })"
-      :confirm-token="rlSubject.trim()"
-      variant="danger"
-      :confirm-text="t('web.admin.emailtools.ratelimit.resetButton')"
-      :loading="rlResetLoading"
-      :error="rlResetError"
-      @confirm="onResetConfirm"
-      @cancel="onResetCancel" />
   </div>
 </template>

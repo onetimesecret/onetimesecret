@@ -1,7 +1,7 @@
 // src/schemas/api/account/responses/colonel-emailtools.ts
 //
-// Per-resource colonel/admin schemas for the Email + Rate-limit Tools screen
-// (ticket #44).
+// Per-resource colonel/admin schemas for the Email Tools screen (ticket #44)
+// and the rate-limit endpoints.
 //
 // NEW schemas only — the frozen colonel contracts in ./colonel.ts are UNTOUCHED
 // (the Zod tripwire, epic non-goal). These surface CLI-only powers
@@ -9,6 +9,10 @@
 // never had a colonel endpoint, so there is nothing to reuse. Distinct
 // `emailtools` namespace so this screen never collides with another's contract
 // (CONTRACT 2 / 3).
+//
+// The rate-limit inspect/reset UI was removed by design review (YAGNI — the
+// CLI is the operator surface), but the three ratelimit endpoints remain live,
+// so their shapes stay as registry/OpenAPI contract documentation.
 //
 // Shapes verified against the live colonel logic classes
 // (apps/api/colonel/logic/colonel/{list_email_templates,preview_email_template,

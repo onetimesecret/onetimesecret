@@ -3,9 +3,10 @@
 // Wrapped response schemas for the colonel Secrets screen (ticket #30).
 // Internal-only; consumed by the Vue admin console, never exposed publicly.
 //
-// The secrets LIST reuses the existing `colonelSecretsResponseSchema` from
-// ./colonel.ts (imported by useAdminSecrets). This file wraps ONLY the two
-// new single-record envelopes: the receipt drawer + the guarded-delete ack.
+// The secrets LIST endpoint keeps its existing `colonelSecretsResponseSchema`
+// in ./colonel.ts (registry-only since the browse-all UI was removed — the
+// screen is lookup-first). This file wraps ONLY the two single-record
+// envelopes: the receipt read-out + the guarded-delete ack.
 //
 // The view imports these DIRECTLY (CONTRACT 3) so it typechecks independently of
 // the registry; the Integrate step adds the registry keys from wiringInstructions.

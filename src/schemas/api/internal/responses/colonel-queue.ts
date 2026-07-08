@@ -1,11 +1,12 @@
 // src/schemas/api/internal/responses/colonel-queue.ts
 //
-// Wrapped response schemas for the colonel Queue DLQ console (ticket #42).
-// Internal-only; consumed by the Vue admin console, never exposed publicly.
+// Wrapped response schemas for the colonel DLQ endpoints. Internal-only; never
+// exposed publicly.
 //
-// The view + store import these DIRECTLY (CONTRACT 3) so they typecheck
-// independently of the registry; the Integrate step adds the registry keys from
-// wiringInstructions.
+// The DLQ console screen was removed by design review (YAGNI — `bin/ots queue
+// dlq …` is the operator surface), but the four endpoints remain live, so
+// these envelopes stay as their registry/OpenAPI contract (list_dlqs.rb
+// declares `SCHEMAS = { response: 'colonelDlqList' }`).
 
 import { createApiResponseSchema } from '@/schemas/api/base';
 import {

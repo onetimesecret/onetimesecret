@@ -1,11 +1,11 @@
 {
   "web.admin.emailtools.title": {
-    "text": "Email & Rate-limit Tools",
-    "content_hash": "ecfc315a"
+    "text": "Email Tools",
+    "content_hash": "f9643d5a"
   },
   "web.admin.emailtools.description": {
-    "text": "Preview email templates, send a delivery test, and inspect or reset a rate limiter — the diagnostics that previously required SSH.",
-    "content_hash": "bf376c2a"
+    "text": "Preview email templates and send a delivery test — the diagnostics that previously required SSH.",
+    "content_hash": "ff560095"
   },
   "web.admin.emailtools.preview.title": {
     "text": "Template preview",
@@ -86,69 +86,5 @@
   "web.admin.emailtools.test.success": {
     "text": "Test email sent to {to}.",
     "content_hash": "daa61a62"
-  },
-  "web.admin.emailtools.ratelimit.title": {
-    "text": "Rate-limit inspector",
-    "content_hash": "1ebff494"
-  },
-  "web.admin.emailtools.ratelimit.description": {
-    "text": "Inspect a limiter's live counter state for one IP or identifier, then reset it if a legitimate user is throttled.",
-    "content_hash": "fbfab210"
-  },
-  "web.admin.emailtools.ratelimit.kindLabel": {
-    "text": "Limiter",
-    "content_hash": "d313c56e"
-  },
-  "web.admin.emailtools.ratelimit.subjectLabel": {
-    "text": "Subject",
-    "content_hash": "68971283"
-  },
-  "web.admin.emailtools.ratelimit.subjectPlaceholder": {
-    "text": "IP or identifier",
-    "content_hash": "7616a8f5"
-  },
-  "web.admin.emailtools.ratelimit.inspectButton": {
-    "text": "Inspect",
-    "content_hash": "e0723a86"
-  },
-  "web.admin.emailtools.ratelimit.columns.key": {
-    "text": "Key",
-    "content_hash": "99a52df3"
-  },
-  "web.admin.emailtools.ratelimit.columns.value": {
-    "text": "Value",
-    "content_hash": "8e37953d"
-  },
-  "web.admin.emailtools.ratelimit.columns.ttl": {
-    "text": "TTL",
-    "content_hash": "76f6014f"
-  },
-  "web.admin.emailtools.ratelimit.absent": {
-    "text": "absent",
-    "content_hash": "5ad38304"
-  },
-  "web.admin.emailtools.ratelimit.noExpiry": {
-    "text": "no expiry",
-    "content_hash": "dd848d43"
-  },
-  "web.admin.emailtools.ratelimit.noState": {
-    "text": "No active rate-limit state for this subject.",
-    "content_hash": "90cf78a7"
-  },
-  "web.admin.emailtools.ratelimit.resetButton": {
-    "text": "Reset limiter",
-    "content_hash": "6786df4e"
-  },
-  "web.admin.emailtools.ratelimit.confirmTitle": {
-    "text": "Reset this rate limiter?",
-    "content_hash": "8e2c5466"
-  },
-  "web.admin.emailtools.ratelimit.confirmDescription": {
-    "text": "This clears the throttle counters for {subject}, letting it act again immediately. Retype the subject to confirm.",
-    "content_hash": "aa6f7921"
-  },
-  "web.admin.emailtools.ratelimit.resetSuccess": {
-    "text": "Rate limiter reset.",
-    "content_hash": "ac1a46a3"
   }
 }
