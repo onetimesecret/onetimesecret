@@ -130,7 +130,7 @@ has survived at Stripe, GitHub, Kubernetes, or GitLab.
 
 ```
                     TS (Zod) — authority for W and A
-  contracts/*.ts ──► shapes/v3, endpoint payloads ──► generated/schemas/**   (checked in, drift-gated CI)
+  contracts/*.ts ──→ shapes/v3, endpoint payloads ──→ generated/schemas/**   (checked in, drift-gated CI)
                                                           │            ▲
                                             wire schemas  │            │  emission manifest
                                                           ▼            │  (safe_dump field lists)

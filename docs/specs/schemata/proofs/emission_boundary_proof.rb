@@ -43,7 +43,8 @@
 #
 # Run: bundle exec ruby docs/specs/schemata/proofs/emission_boundary_proof.rb
 # No Redis/Valkey, no OT.boot!, no network. Exits non-zero on any
-# expectation failure.
+# expectation failure. Requires Ruby >= 3.0 (Hash#except), well within the
+# project's pinned Ruby.
 
 require 'bundler/setup'
 require 'json'
@@ -66,6 +67,10 @@ def check(label, actual, expected: true)
 end
 
 def error_pointers(schema, data)
+  # NOTE: a root-level schema failure (wrong type for the whole payload)
+  # yields data_pointer "" — so an expected: ['/state'] check would never
+  # match [""] and the failure surfaces loudly rather than passing vacuously.
+  # Every fixture here mutates a single named field, so pointers are field-scoped.
   JSONSchemer.schema(schema).validate(data).map { |e| e['data_pointer'] }.uniq
 end
 
@@ -183,8 +188,16 @@ puts "\nP5. Default validator recompiles per call; a cached one must be injected
 # The durable claim is provable from the gem source without a stopwatch:
 # JsonSchemerValidator#validate constructs a fresh JSONSchemer schema inside
 # the method body, so every call pays compilation.
-src_file, src_line = Familia::JsonSchemerValidator.instance_method(:validate).source_location
-method_body        = File.readlines(src_file)[src_line - 1, 4].join
+meth               = Familia::JsonSchemerValidator.instance_method(:validate)
+src_file, src_line = meth.source_location
+# Scan from the method's first line to the next `def`/`end`-dedent rather than a
+# fixed 4-line window, so a gem reformat that moves the call can't make this pass
+# vacuously (window missing the call) or fail confusingly.
+src_lines          = File.readlines(src_file)
+def_indent         = src_lines[src_line - 1][/\A\s*/].length
+method_body        = src_lines[src_line, 40]
+  .take_while { |l| l.strip.empty? || l[/\A\s*/].length > def_indent }
+  .join
 check 'gem source: JsonSchemerValidator#validate compiles the schema per call',
   method_body.include?('JSONSchemer.schema(')
 
@@ -205,6 +218,9 @@ class CachedSchemerValidator
   def initialize = @cache = {}
 
   def validate(schema, data)
+    # object_id is a valid cache key only within a single process — it is not
+    # stable across processes. Fine for this in-process proof; a production
+    # extraction would key on a content hash or the schema's source path.
     (@cache[schema.object_id] ||= JSONSchemer.schema(schema)).validate(data) # rubocop:disable Lint/HashCompareByIdentity
   end
 end
@@ -213,7 +229,10 @@ Familia.schemas          = { 'Onetime::Receipt.wire.v3' => SHAPE_PATH }
 Familia.schema_validator = CachedSchemerValidator.new
 result                   = Familia::SchemaRegistry.validate('Onetime::Receipt.wire.v3', healthy)
 check 'custom cached validator injects cleanly via Familia.schema_validator', result[:valid]
-Familia.schema_validator = :json_schemer # restore default
+# Restore the default. Per Familia's API the :json_schemer symbol is the
+# sentinel for the built-in validator; reassigning it swaps our object instance
+# back out so any later assertion runs against the stock validator.
+Familia.schema_validator = :json_schemer
 
 puts "\nP6. Drift status of the hand-maintained TS mirror (informational)"
 # Evidence-of-the-moment, deliberately NOT asserted: this script must keep

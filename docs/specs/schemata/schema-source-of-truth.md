@@ -92,12 +92,12 @@ see schema-target-architecture.md.)
 
 ```
 src/schemas/contracts/*.ts ── canonical WIRE model (Zod, no transforms)  ◄── wire + application authority
-   └─► generated/schemas/shapes/*  (wire projection, per API version; checked in, CI drift gate)
+   └─→ generated/schemas/shapes/*  (wire projection, per API version; checked in, CI drift gate)
           → backend validates the FINAL endpoint payload  (pre-response, otto response_data seam)
           → frontend gracefulParse                         (already)
 
 lib/onetime/models/<model>/storage.schema.json  ◄── storage authority (Ruby-authored, co-located)
-   └─► Familia feature :schema_validation validates to_h  (pre-save; explicit Familia.schemas keys)
+   └─→ Familia feature :schema_validation validates to_h  (pre-save; explicit Familia.schemas keys)
 ```
 
 The unit of wire validation is the final endpoint payload — `safe_dump` output
