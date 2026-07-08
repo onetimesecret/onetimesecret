@@ -174,17 +174,20 @@ module Onetime
       end
 
       # Whether the domain can actually serve the incoming form to
-      # anonymous visitors: instance feature flag on, site.secret present
-      # (recipient hashes cannot be computed without it — RecipientResolver
-      # fails closed the same way), IncomingConfig ready (enabled with at
-      # least one recipient), and the owning org still entitled. Mirrors
-      # the PutHomepageConfig secrets_mode=incoming write gate. Checks run
-      # cheapest-first (in-memory config, one Redis read, org load).
+      # anonymous visitors: site.secret present (recipient hashes cannot be
+      # computed without it — RecipientResolver fails closed the same way),
+      # IncomingConfig ready (enabled with at least one recipient), and the
+      # owning org still entitled. The install-wide features.incoming.enabled
+      # flag is deliberately NOT consulted here: it gates the canonical domain
+      # only, while custom domains self-govern via their own IncomingConfig
+      # plus the incoming_secrets entitlement — the same canonical/custom split
+      # RecipientResolver#enabled? enforces. Mirrors the PutHomepageConfig
+      # secrets_mode=incoming write gate. Checks run cheapest-first (in-memory
+      # config, one Redis read, org load).
       #
       # @param custom_domain [CustomDomain, nil] optional pre-loaded domain
       # @return [Boolean]
       def incoming_available?(custom_domain: nil)
-        return false unless OT.conf.dig('features', 'incoming', 'enabled')
         return false if OT.conf.dig('site', 'secret').to_s.strip.empty?
 
         incoming = Onetime::CustomDomain::IncomingConfig.find_by_domain_id(domain_id)
