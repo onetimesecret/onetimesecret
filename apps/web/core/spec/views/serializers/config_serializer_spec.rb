@@ -660,10 +660,10 @@ RSpec.describe Core::Views::ConfigSerializer do
           )
         end
 
-        it 'returns incoming_secrets_enabled as false (install gate takes precedence)' do
+        it 'returns incoming_secrets_enabled as true (install flag gates the canonical domain only, not the per-domain config surface)' do
           result = described_class.build_feature_flags(view_vars_with_incoming)
 
-          expect(result['organizations']['incoming_secrets_enabled']).to be false
+          expect(result['organizations']['incoming_secrets_enabled']).to be true
         end
       end
 

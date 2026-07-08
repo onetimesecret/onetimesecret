@@ -296,6 +296,18 @@ end
 result['organizations']['incoming_secrets_enabled']
 #=> true
 
+## build_feature_flags organizations.incoming_secrets_enabled is independent of the canonical
+## features.incoming.enabled flag: install-wide INCOMING_SECRETS gates the canonical domain only,
+## while the per-domain config surface stays governed by ORGS_INCOMING_SECRETS_ENABLED so an
+## entitled custom domain can still be configured on a flag-off install.
+result = with_orgs_features(incoming_secrets_enabled: true, incoming_enabled: false) do
+  config = Onetime.auth_config.instance_variable_get(:@config)
+  view_vars = { 'features' => config['full']['features'] }
+  Core::Views::ConfigSerializer.send(:build_feature_flags, view_vars)
+end
+result['organizations']['incoming_secrets_enabled']
+#=> true
+
 ## build_feature_flags organizations.custom_mail_enabled defaults to false when features is empty
 result = Core::Views::ConfigSerializer.send(:build_feature_flags, {})
 result['organizations']['custom_mail_enabled']
