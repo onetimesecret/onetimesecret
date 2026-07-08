@@ -16,6 +16,10 @@ import { Composer, useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
+// The Tailwind @theme token that `rounded-brand` reads (border-radius: var(...)).
+// Named so rootStyle scopes it by reference, not a repeated string literal.
+const RADIUS_BRAND_VAR = '--radius-brand';
+
 const props = defineProps<{
   domainBranding: BrandSettings;
   logoImage?: ImageProps | null;
@@ -59,7 +63,15 @@ const toggleReveal = () => {
   isRevealed.value = !isRevealed.value;
 };
 
+// Mirror identityStore.cornerClass: border_radius (#3646) supersedes corner_style
+// when set. The recipient page backs `rounded-brand` with <html>'s injected
+// --radius-brand; the preview can't use that (it's the operator's theme, not the
+// edited domain), so it scopes --radius-brand locally via rootStyle below. Guard
+// matches identityStore (`!= null && !== ''`) so an invalid-but-present radius
+// falls back to the @theme default there too.
 const cornerClass = computed(() => {
+  const radius = props.domainBranding?.border_radius;
+  if (radius != null && radius !== '') return 'rounded-brand';
   const style = props.domainBranding?.corner_style as CornerStyle | undefined;
   return cornerStyleClasses[style ?? CornerStyle.ROUNDED];
 });
@@ -70,17 +82,20 @@ const fontFamilyClass = computed(() => {
 });
 
 // Expanded vocabulary (#3646). The preview renders an arbitrary domain's
-// settings (not the editing admin's injected palette), so these resolve
-// straight from the domainBranding prop as inline styles.
-const radiusStyle = computed<Record<string, string>>(() => {
+// settings (not the editing admin's injected palette). Scope this domain's
+// border_radius to a local --radius-brand so every `rounded-brand` descendant
+// (logo, content box, textarea, button, and BaseSecretDisplay's content
+// wrapper) resolves to THIS domain's radius — matching the recipient page.
+// Applied via :style fallthrough on <BaseSecretDisplay>; depends on it staying
+// single-root (fallthrough merges onto that one root element).
+const rootStyle = computed<Record<string, string>>(() => {
   const css = borderRadiusToCss(props.domainBranding?.border_radius);
-  return css ? { borderRadius: css } : ({} as Record<string, string>);
+  return css ? { [RADIUS_BRAND_VAR]: css } : {};
 });
 
 const actionButtonStyle = computed<Record<string, string>>(() => ({
   backgroundColor: props.domainBranding.primary_color ?? 'var(--color-brand-500)',
   color: (props.domainBranding.button_text_light ?? true) ? '#ffffff' : '#000000',
-  ...radiusStyle.value,
 }));
 
 </script>
@@ -88,6 +103,7 @@ const actionButtonStyle = computed<Record<string, string>>(() => ({
 <template>
   <!-- Updated -->
   <BaseSecretDisplay
+    :style="rootStyle"
     :default-title="previewI18n.t('web.secrets.you_have_a_message')"
     :domain-branding="domainBranding"
     :preview-i18n="previewI18n"
