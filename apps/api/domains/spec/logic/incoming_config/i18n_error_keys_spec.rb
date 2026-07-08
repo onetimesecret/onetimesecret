@@ -99,6 +99,10 @@ RSpec.describe 'IncomingConfig Logic error_key propagation' do
     )
   end
 
+  # Happy-path default: install-wide incoming flag ON. The flag-off context
+  # below flips this to false to prove the flag never gates custom-domain
+  # incoming — starting from ON makes that override the single variable under
+  # test rather than part of the ambient baseline.
   let(:incoming_enabled_conf) do
     {
       'features' => { 'incoming' => { 'enabled' => true } },
