@@ -88,6 +88,13 @@ require_relative 'colonel/list_rate_limiters'
 require_relative 'colonel/inspect_rate_limit'
 require_relative 'colonel/reset_rate_limit'
 
+# Email deliverability (bounces / complaints / suppression list)
+require_relative 'colonel/get_email_deliverability'
+require_relative 'colonel/list_email_suppressions'
+require_relative 'colonel/remove_email_suppression'
+require_relative 'colonel/list_email_deliverability_events'
+require_relative 'colonel/ingest_email_deliverability_events'
+
 # Billing catalog (ticket #45)
 require_relative 'colonel/get_billing_catalog'
 

@@ -73,6 +73,13 @@ import {
   colonelRateLimitInspectResponseSchema,
   colonelRateLimitResetResponseSchema,
 } from './colonel-emailtools';
+import {
+  colonelEmailDeliverabilityResponseSchema,
+  colonelEmailSuppressionsResponseSchema,
+  colonelEmailSuppressionRemoveResponseSchema,
+  colonelEmailDeliverabilityEventsResponseSchema,
+  colonelEmailDeliverabilityIngestResponseSchema,
+} from './colonel-deliverability';
 import { colonelBillingCatalogResponseSchema } from './colonel-billing';
 
 // Colonel (admin) observability — audit trail reader + overview trends
@@ -171,6 +178,11 @@ export const responseSchemas = {
   colonelRateLimiters: colonelRateLimitersResponseSchema,
   colonelRateLimitInspect: colonelRateLimitInspectResponseSchema,
   colonelRateLimitReset: colonelRateLimitResetResponseSchema,
+  colonelEmailDeliverability: colonelEmailDeliverabilityResponseSchema,
+  colonelEmailSuppressions: colonelEmailSuppressionsResponseSchema,
+  colonelEmailSuppressionRemove: colonelEmailSuppressionRemoveResponseSchema,
+  colonelEmailDeliverabilityEvents: colonelEmailDeliverabilityEventsResponseSchema,
+  colonelEmailDeliverabilityIngest: colonelEmailDeliverabilityIngestResponseSchema,
   colonelBillingCatalog: colonelBillingCatalogResponseSchema,
 
   // Colonel / admin — observability (audit reader + trends)

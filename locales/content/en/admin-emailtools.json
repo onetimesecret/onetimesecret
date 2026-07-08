@@ -4,8 +4,8 @@
     "content_hash": "f9643d5a"
   },
   "web.admin.emailtools.description": {
-    "text": "Preview email templates and send a delivery test — the diagnostics that previously required SSH.",
-    "content_hash": "ff560095"
+    "text": "Preview email templates, send a delivery test, and monitor deliverability — the diagnostics that previously required SSH.",
+    "content_hash": "be85c9e9"
   },
   "web.admin.emailtools.preview.title": {
     "text": "Template preview",
@@ -86,5 +86,153 @@
   "web.admin.emailtools.test.success": {
     "text": "Test email sent to {to}.",
     "content_hash": "daa61a62"
+  },
+  "web.admin.emailtools.deliverability.title": {
+    "text": "Deliverability",
+    "content_hash": "66b4d300"
+  },
+  "web.admin.emailtools.deliverability.description": {
+    "text": "What comes back after sending: bounces, complaints, and the suppression list that protects your sender reputation.",
+    "content_hash": "e8363bb5"
+  },
+  "web.admin.emailtools.deliverability.retry": {
+    "text": "Retry",
+    "content_hash": "942087cc"
+  },
+  "web.admin.emailtools.deliverability.tiles.suppressed": {
+    "text": "Suppressed addresses",
+    "content_hash": "b31a245e"
+  },
+  "web.admin.emailtools.deliverability.tiles.bounces": {
+    "text": "Bounces ({days}d)",
+    "content_hash": "3a4d0f09"
+  },
+  "web.admin.emailtools.deliverability.tiles.complaints": {
+    "text": "Complaints ({days}d)",
+    "content_hash": "16ad856f"
+  },
+  "web.admin.emailtools.deliverability.tiles.skipped": {
+    "text": "Sends skipped",
+    "content_hash": "391467f9"
+  },
+  "web.admin.emailtools.deliverability.summary.loadError": {
+    "text": "Could not load the deliverability summary.",
+    "content_hash": "0c16ef96"
+  },
+  "web.admin.emailtools.deliverability.suppressions.title": {
+    "text": "Suppression list",
+    "content_hash": "9f3e322f"
+  },
+  "web.admin.emailtools.deliverability.suppressions.description": {
+    "text": "Addresses outbound mail skips. Entries come from ESP feedback ingestion or manual import; removing one resumes delivery.",
+    "content_hash": "3651887e"
+  },
+  "web.admin.emailtools.deliverability.suppressions.searchLabel": {
+    "text": "Exact address",
+    "content_hash": "f4338ff8"
+  },
+  "web.admin.emailtools.deliverability.suppressions.searchPlaceholder": {
+    "text": "user{'@'}example.com",
+    "content_hash": "333f0f15"
+  },
+  "web.admin.emailtools.deliverability.suppressions.searchButton": {
+    "text": "Look up",
+    "content_hash": "504101bc"
+  },
+  "web.admin.emailtools.deliverability.suppressions.clearButton": {
+    "text": "Clear",
+    "content_hash": "83b12c22"
+  },
+  "web.admin.emailtools.deliverability.suppressions.columns.address": {
+    "text": "Address",
+    "content_hash": "56ef8f20"
+  },
+  "web.admin.emailtools.deliverability.suppressions.columns.reason": {
+    "text": "Reason",
+    "content_hash": "f81ab834"
+  },
+  "web.admin.emailtools.deliverability.suppressions.columns.source": {
+    "text": "Source",
+    "content_hash": "0e570ca6"
+  },
+  "web.admin.emailtools.deliverability.suppressions.columns.added": {
+    "text": "Added",
+    "content_hash": "6b02e0d3"
+  },
+  "web.admin.emailtools.deliverability.suppressions.columns.actions": {
+    "text": "Actions",
+    "content_hash": "ff8059dc"
+  },
+  "web.admin.emailtools.deliverability.suppressions.empty": {
+    "text": "No suppressed addresses yet. They will appear here as bounce and complaint feedback is ingested.",
+    "content_hash": "dd3f4d61"
+  },
+  "web.admin.emailtools.deliverability.suppressions.emptySearch": {
+    "text": "No suppression entry for {address}.",
+    "content_hash": "200c361e"
+  },
+  "web.admin.emailtools.deliverability.suppressions.loadError": {
+    "text": "Could not load the suppression list.",
+    "content_hash": "2a12c8ba"
+  },
+  "web.admin.emailtools.deliverability.suppressions.remove.button": {
+    "text": "Remove",
+    "content_hash": "c3812fc4"
+  },
+  "web.admin.emailtools.deliverability.suppressions.remove.confirmTitle": {
+    "text": "Remove this suppression?",
+    "content_hash": "0b0aec2e"
+  },
+  "web.admin.emailtools.deliverability.suppressions.remove.confirmDescription": {
+    "text": "Outbound mail to {address} will resume. This address previously bounced or complained — remove it only if you know it is deliverable again.",
+    "content_hash": "09442f9c"
+  },
+  "web.admin.emailtools.deliverability.suppressions.remove.success": {
+    "text": "Suppression removed for {address}.",
+    "content_hash": "bfc0de36"
+  },
+  "web.admin.emailtools.deliverability.events.title": {
+    "text": "Recent events",
+    "content_hash": "8ecce94d"
+  },
+  "web.admin.emailtools.deliverability.events.description": {
+    "text": "The raw bounce and complaint feed, newest first.",
+    "content_hash": "0e7a533b"
+  },
+  "web.admin.emailtools.deliverability.events.columns.time": {
+    "text": "Time",
+    "content_hash": "33b93476"
+  },
+  "web.admin.emailtools.deliverability.events.columns.kind": {
+    "text": "Type",
+    "content_hash": "baaddf70"
+  },
+  "web.admin.emailtools.deliverability.events.columns.address": {
+    "text": "Address",
+    "content_hash": "56ef8f20"
+  },
+  "web.admin.emailtools.deliverability.events.columns.source": {
+    "text": "Source",
+    "content_hash": "0e570ca6"
+  },
+  "web.admin.emailtools.deliverability.events.columns.reason": {
+    "text": "Reason",
+    "content_hash": "f81ab834"
+  },
+  "web.admin.emailtools.deliverability.events.empty": {
+    "text": "No bounce or complaint data yet. Pipe your ESP's feedback in via POST /api/colonel/email/deliverability/events (colonel-authenticated — see the endpoint's docs for the record format). Synchronous SMTP hard bounces are recorded automatically.",
+    "content_hash": "a90f259c"
+  },
+  "web.admin.emailtools.deliverability.events.loadError": {
+    "text": "Could not load recent events.",
+    "content_hash": "02244c61"
+  },
+  "web.admin.emailtools.deliverability.events.kinds.bounce": {
+    "text": "bounce",
+    "content_hash": "4d6723e5"
+  },
+  "web.admin.emailtools.deliverability.events.kinds.complaint": {
+    "text": "complaint",
+    "content_hash": "5d08b02d"
   }
 }

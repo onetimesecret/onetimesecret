@@ -43,9 +43,19 @@ module Onetime
         # Deliver an email message with unified error handling.
         # Subclasses implement perform_delivery and classify_error.
         # @param email [Hash] Email parameters (to, from, subject, text_body, html_body)
-        # @return [Object] Provider-specific response or nil
+        # @return [Object] Provider-specific response, or nil when the recipient
+        #   is on the suppression list (send skipped, nothing dispatched)
         def deliver(email)
-          email  = normalize_email(email)
+          email = normalize_email(email)
+
+          # Outbound suppression guard: never send to an address with a recorded
+          # bounce/complaint — repeat sends to known-bad addresses are what burn
+          # sender reputation. One Redis lookup, fail-open (see the helper).
+          if suppressed_recipient?(email)
+            log_delivery(email, 'suppressed')
+            return nil
+          end
+
           result = perform_delivery(email)
           log_delivery(email, delivery_log_status)
           record_sent_metric
@@ -54,6 +64,7 @@ module Onetime
           raise # pass-through, no double-wrap
         rescue StandardError => ex
           log_error(email, ex)
+          record_sync_bounce(email, ex)
           transient = classify_error(ex) == :transient
           raise Onetime::Mail::DeliveryError.new(
             "#{provider_name} delivery error: #{ex.message}",
@@ -114,6 +125,57 @@ module Onetime
         rescue StandardError => ex
           if defined?(OT) && OT.respond_to?(:le)
             OT.le "[mail] emails_sent counter increment failed: #{ex.message}"
+          end
+          nil
+        end
+
+        # The suppression-list check guarding every send (the deliverability
+        # counterpart of record_sent_metric — same single chokepoint, so every
+        # backend and every entry point above them is covered).
+        #
+        # FAIL-OPEN by contract: EmailSuppression.skip_send? already swallows
+        # Redis errors, and this wrapper adds a second layer (plus the same
+        # defined? guard record_sent_metric uses for isolated mailer tests) so
+        # a suppression-check failure can NEVER block mail delivery — losing
+        # one skip is a rounding error; blocking all outbound mail is an outage.
+        #
+        # @return [Boolean] true when the recipient is suppressed (skip the send)
+        def suppressed_recipient?(email)
+          return false unless defined?(Onetime::EmailSuppression)
+
+          Onetime::EmailSuppression.skip_send?(email[:to])
+        rescue StandardError => ex
+          if defined?(OT) && OT.respond_to?(:le)
+            OT.le "[mail] suppression check failed (failing open): #{ex.message}"
+          end
+          false
+        end
+
+        # Record a synchronous hard bounce into the deliverability event feed.
+        #
+        # Deliberately narrow: only SMTP 5xx rejections (Net::SMTPFatalError —
+        # e.g. 550 mailbox unavailable) are recipient-level feedback we can
+        # trust at send time. Other fatal errors (auth failures, API 4xx,
+        # config problems) are SENDER-side and must not show up as bounces.
+        # Recording is event-only — no auto-suppression from a single
+        # synchronous failure; suppression comes from ESP feedback ingestion
+        # or an operator decision (see Onetime::EmailSuppression).
+        #
+        # Best-effort like record_sent_metric: a feed write must never mask
+        # the delivery error being raised to the caller.
+        def record_sync_bounce(email, error)
+          return unless defined?(Onetime::EmailSuppression)
+          return unless defined?(Net::SMTPFatalError) && error.is_a?(Net::SMTPFatalError)
+
+          Onetime::EmailSuppression.record_event(
+            address: email[:to],
+            kind: 'bounce',
+            reason: error.message.to_s,
+            source: "#{provider_name.downcase}-sync",
+          )
+        rescue StandardError => ex
+          if defined?(OT) && OT.respond_to?(:le)
+            OT.le "[mail] sync bounce recording failed: #{ex.message}"
           end
           nil
         end

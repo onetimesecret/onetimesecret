@@ -106,8 +106,13 @@ function primeMountGets() {
   });
 }
 
+// The deliverability section owns its own fetches and has a dedicated spec
+// (EmailDeliverabilitySection.spec.ts); stub it here so this spec keeps
+// asserting exactly what the VIEW requests on mount.
 const mountView = (pinia: ReturnType<typeof createPinia>) =>
-  mount(AdminEmailTools, { global: { plugins: [pinia, i18n] } });
+  mount(AdminEmailTools, {
+    global: { plugins: [pinia, i18n], stubs: { EmailDeliverabilitySection: true } },
+  });
 
 const dialogInput = (w: VueWrapper) => w.find('#admin-confirm-input');
 const dialogSubmit = (w: VueWrapper) => w.find('[data-testid="admin-confirm-submit"]');
@@ -144,6 +149,14 @@ describe('AdminEmailTools (email tools — ticket #44)', () => {
     await flushPromises();
 
     expect(wrapper.find('[data-testid="ratelimit-section"]').exists()).toBe(false);
+  });
+
+  it('mounts the deliverability section (fetches covered by its own spec)', async () => {
+    primeMountGets();
+    wrapper = mountView(pinia);
+    await flushPromises();
+
+    expect(wrapper.findComponent({ name: 'EmailDeliverabilitySection' }).exists()).toBe(true);
   });
 
   // ---- Section 1: preview ---------------------------------------------------

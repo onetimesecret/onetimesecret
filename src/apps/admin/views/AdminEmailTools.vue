@@ -4,6 +4,7 @@
   import { computed, onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
 
+  import EmailDeliverabilitySection from '@/apps/admin/components/EmailDeliverabilitySection.vue';
   import { AdminConfirmDialog } from '@/apps/admin/components/kit';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import type {
@@ -26,13 +27,15 @@
    * built fresh on the Slice-3 template (no `src/apps/colonel/*` /
    * `colonelInfoStore`).
    *
-   * Two sections, all disjoint under the `emailtools` namespace (further email
-   * sections — e.g. deliverability — slot in as sibling `<section>` blocks):
+   * Three sections, all disjoint under the `emailtools` namespace:
    *  - TEMPLATE PREVIEW (read-only): pick a template + format → render sample
    *    output. HTML renders in a sandboxed iframe; text shows as escaped source.
    *  - TEST SEND (guarded, low-risk one-click confirm — CONTRACT 1): preview the
    *    exact diagnostic (dry-run, no send), then send to an operator-supplied
    *    address. The real send is audited SERVER-SIDE by the op (CONTRACT 4).
+   *  - DELIVERABILITY (the receiving side — bounces, complaints, suppression
+   *    list): self-contained in {@link EmailDeliverabilitySection}, which owns
+   *    its own fetches and guarded remove.
    *
    * The rate-limit inspect/reset half was removed by design review (YAGNI —
    * the endpoints and `bin/ots ratelimit` CLI remain the operator surface).
@@ -392,6 +395,9 @@
           class="max-h-48 overflow-auto whitespace-pre-wrap break-words rounded bg-gray-50 p-3 font-mono text-xs text-gray-900 dark:bg-gray-800 dark:text-gray-100">{{ testDiagnostic.text_body }}</pre>
       </div>
     </section>
+
+    <!-- ===== Section 3: deliverability (bounces / complaints / suppressions) -->
+    <EmailDeliverabilitySection />
 
     <!-- Test send: one-click confirm (low-risk verb — CONTRACT 1). -->
     <AdminConfirmDialog

@@ -85,6 +85,15 @@ GET    /ratelimit/limiters                    ColonelAPI::Logic::Colonel::ListRa
 GET    /ratelimit/inspect                     ColonelAPI::Logic::Colonel::InspectRateLimit response=json auth=sessionauth role=colonel scope=internal
 POST   /ratelimit/reset                       ColonelAPI::Logic::Colonel::ResetRateLimit response=json auth=sessionauth role=colonel scope=internal
 
+# Email deliverability: suppression list + bounce/complaint feed. Ingestion is
+# colonel-authenticated by design (no public webhook — ESP feedback is piped in
+# via CLI/cron; see IngestEmailDeliverabilityEvents for the wire format).
+GET    /email/deliverability                          ColonelAPI::Logic::Colonel::GetEmailDeliverability response=json auth=sessionauth role=colonel scope=internal
+GET    /email/deliverability/suppressions             ColonelAPI::Logic::Colonel::ListEmailSuppressions response=json auth=sessionauth role=colonel scope=internal
+DELETE /email/deliverability/suppressions/:address    ColonelAPI::Logic::Colonel::RemoveEmailSuppression response=json auth=sessionauth role=colonel scope=internal
+GET    /email/deliverability/events                   ColonelAPI::Logic::Colonel::ListEmailDeliverabilityEvents response=json auth=sessionauth role=colonel scope=internal
+POST   /email/deliverability/events                   ColonelAPI::Logic::Colonel::IngestEmailDeliverabilityEvents response=json auth=sessionauth role=colonel scope=internal
+
 # Billing Catalog (ticket #45, read-only plan drift)
 GET    /billing/catalog                   ColonelAPI::Logic::Colonel::GetBillingCatalog response=json auth=sessionauth role=colonel scope=internal
 
