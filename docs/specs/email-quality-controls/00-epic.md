@@ -45,8 +45,9 @@ So implementers don't follow stale assumptions:
 2. **`email.message.schedule` has no consumer.** Delayed messages rely on
    per-message TTL expiry dead-lettering into `dlq.email.message`, where
    `DlqEmailConsumerJob` replays only auth templates and **discards** the rest
-   (including `expiration_warning`). Do not build anything on `schedule_email`
-   until slice 61 fixes or retires it.
+   (including `expiration_warning`). **This is a live bug** — expiration warnings
+   are dropped in jobs-enabled regions. `schedule_email` and the queue are being
+   **retired** (slice 61, decision C); build nothing on the delayed path.
 3. **Receipts store recipients obscured** (`recipients! eaddrs_safe_str` in
    `lib/onetime/models/receipt/features/deprecated_fields.rb`). Per-recipient
    send history cannot be reconstructed from Receipts; it must be recorded at
@@ -218,8 +219,9 @@ suppress nor even observe them.
 - **50/51 as a compliance item** — becomes non-optional if daily volume to any
   single mailbox provider approaches 5k/day, or if slice-60 complaint rate
   trends toward 0.1%.
-- **61 schedule-queue decision** — until real usage data says whether to fix or
-  retire `schedule_email` (see fitness finding C).
+- ~~**61 schedule-queue decision**~~ — **settled: retire `schedule_email` now**
+  (fitness finding C). This is a live-outage fix, not a wait-for-data item; do it
+  ahead of the epic.
 
 ### Fitness of current mailer (verified against code, not assumed)
 
@@ -242,19 +244,27 @@ depend on them**, however:
   in-repo. **If production runs Lettermint, confirm the SDK exposes a header API
   before committing to slice 50** — otherwise it's a raw-API workaround or a
   blocker, exactly as slice 10 warns.
-- **B — Which global backend does production run?** The platform runs ONE global
-  backend (`resolve_backend` ignores per-customer config). Webhook feedback
-  (30/31) is **only possible on an API provider**. On plain SMTP the bare-minimum
-  path degrades to manual + import suppression only, which elevates 50
-  (unsubscribe) from stretch toward necessary. Settle this before sequencing.
-- **C — `schedule_email` is an orphaned path (pre-existing latent bug, not this
-  epic's fault).** `schedule_email` publishes to `email.message.schedule`, which
-  has **no consumer**; messages sit until the 24h queue TTL dead-letters them,
-  and `DlqEmailConsumerJob` then **discards** everything except three auth
-  templates. Any delayed mail routed through it today (the design flags
-  `expiration_warning`) is silently dropped. This is independent of the epic but
-  worth triaging now; the epic correctly forbids building on it until 61 decides
-  fix-vs-retire.
+- **B — Global backends: all four are production-critical (settled).** We run 10
+  regional environments spanning SMTP, SES, SendGrid, and Lettermint, so slice 10
+  (headers + category) must land in **all four delivery methods plus Logger** —
+  none is optional or trimmable. It also means webhook feedback (30/31) covers
+  only the SES/SendGrid/Lettermint regions; the SMTP region(s) get manual + import
+  suppression only, so slice 50 (unsubscribe) is closer to necessary than stretch
+  for those. And finding A's Lettermint header question is **on the critical
+  path**, not hypothetical — at least one region runs it.
+- **C — `schedule_email` is a LIVE bug; decision: RETIRE it (settled).**
+  `schedule_email` publishes to `email.message.schedule`, which has **no
+  consumer**; messages dead-letter (per-message expiry or the 24h queue TTL) and
+  `DlqEmailConsumerJob` **discards** everything except three auth templates. Its
+  only caller is `ExpirationWarningJob`, so **expiration-warning emails are
+  silently dropped in every jobs-enabled region today** (they only send on
+  jobs-disabled self-hosted, where the fallback ignores the delay and sends
+  immediately — the behavior we actually want). Decision: take slice 61 option
+  (b) — delete `schedule_email` + the `email.message.schedule` queue, and rewire
+  `ExpirationWarningJob` to send immediately via `enqueue_email` on the hourly
+  scan (matching the existing fallback behavior). This fixes a real outage and
+  removes the trap in one move; pull it forward out of 61 into its own small fix
+  ahead of the epic. Concrete steps in slice 61.
 
 Two smaller precision notes, neither a blocker: the four existing Security rate
 limiters are **not** a uniform mold (only `invite_token` is a class with
