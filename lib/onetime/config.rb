@@ -482,7 +482,7 @@ module Onetime
       # an Integer so the value the frontend receives satisfies its int()
       # contract and never renders as "10000.0".
       content_config = conf.dig('site', 'secret_options', 'content') || {}
-      content_max = content_config['maximum_length']
+      content_max    = content_config['maximum_length']
       unless content_max.nil? || content_max.is_a?(Integer)
         conf['site']['secret_options']['content']['maximum_length'] = content_max.to_i
       end
@@ -650,6 +650,19 @@ module Onetime
         candidate  = legacy_brand_value(ENV.fetch(legacy[:env], nil)) ||
                      legacy_brand_value(dig_path(conf, legacy[:path]))
         brand[key] = candidate if candidate
+      end
+
+      # A bare-relative logo path (e.g. 'img/logo.svg') resolves against the
+      # browser's current-route directory, so it loads on '/' but 404s on a
+      # nested route like '/receipt/:id' (the img then renders its alt text
+      # instead). Root-relativize it here so the one install logo resolves
+      # identically on every surface. Absolute URLs (scheme: or protocol-
+      # relative //) and already-root-relative paths pass through untouched.
+      logo_path = brand['logo_url']
+      if logo_path.is_a?(String) && !logo_path.empty? &&
+         !logo_path.start_with?('/') &&
+         !logo_path.match?(/\A[a-z][a-z0-9+.-]*:/i)
+        brand['logo_url'] = "/#{logo_path}"
       end
 
       # brand.logo_url is now the one install logo for every surface, but the
