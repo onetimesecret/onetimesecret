@@ -76,15 +76,20 @@ So implementers don't follow stale assumptions:
 
 ## Decisions (settle before Phase 0)
 
+- **Q0 — No open/click tracking.** Bounce and complaint events only. Engagement
+  tracking is contrary to the product's privacy posture and is a permanent
+  non-goal, not a deferral.
+
 - **Q1 — Hash key derivation.** Suppression entries, event logs, and rate-limit
   keys are keyed by an HMAC-SHA256 of the normalized address using a NEW
   `Onetime::KeyDerivation::PURPOSES` entry (`email_protection:`, env override
   `EMAIL_PROTECTION_SECRET`), derived from root `SECRET` per ADR-008 Category 1.
-  Do NOT reuse `FEDERATION_SECRET` (optional, federation-scoped) or store
+  Use `FEDERATION_SECRET` if present (optional, federation-scoped). DO NOT store
   plaintext addresses. Store the obscured display form
   (`OT::Utils.obscure_email`) alongside for admin UX. Normalization must be
   `OT::Utils.normalize_email` (strip → NFC → `downcase(:fold)`), same as
   `EmailHash`.
+
 - **Q2 — Enforcement placement.** The authoritative gate is
   `Delivery::Base#deliver`, before `perform_delivery` — the same choke point as
   `record_sent_metric`, covering worker, fallbacks, direct senders, and DLQ
@@ -92,6 +97,7 @@ So implementers don't follow stale assumptions:
   interactive callers synchronous rejection and saves queue traffic. A
   suppressed send is a SUCCESSFUL no-op (status `:suppressed`, ack'd, event
   logged) — never a raise inside the worker, never a DLQ entry.
+
 - **Q3 — Category taxonomy.** Every outbound email carries a category
   (slice 10): `transactional_recipient` (third-party: secret_link,
   incoming_secret, organization_invitation, email_change_confirmation),
@@ -119,9 +125,7 @@ So implementers don't follow stale assumptions:
   CLI-only (the colonel-promotion precedent — the UI never lifts a complaint),
   hard-bounce removal is colonel-UI + CLI behind typed confirmation. Every
   removal is audited on EVERY invocation.
-- **Q7 — No open/click tracking.** Bounce and complaint events only. Engagement
-  tracking is contrary to the product's privacy posture and is a permanent
-  non-goal, not a deferral.
+
 
 ## Roadmap & dependency graph
 
