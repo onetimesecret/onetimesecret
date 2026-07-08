@@ -471,7 +471,14 @@ features:
   # Allows anonymous users to send encrypted secrets to pre-configured recipients
   # via a dedicated web form at /incoming. Recipients receive email notifications.
   incoming:
-    # Enable or disable the incoming secrets feature
+    # Enable or disable the incoming secrets feature.
+    #
+    # This flag governs the CANONICAL domain only. Per-domain incoming on
+    # custom domains is gated by the org's incoming_secrets entitlement plus a
+    # ready IncomingConfig, NOT by this flag (see the canonical/custom split in
+    # RecipientResolver / CustomDomain::HomepageConfig#incoming_available?). To
+    # emergency-disable incoming on custom domains, revoke the incoming_secrets
+    # entitlement or set ORGS_INCOMING_SECRETS_ENABLED=false.
     enabled: <%= ENV['INCOMING_ENABLED'] == 'true' || false %>
     # Maximum character length for the memo/subject field
     memo_max_length: <%= ENV['INCOMING_MEMO_MAX_LENGTH'] || 50 %>
