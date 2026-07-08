@@ -27,6 +27,8 @@ POST   /users/:user_id/plan               ColonelAPI::Logic::Colonel::UpdateUser
 POST   /users/:user_id/role               ColonelAPI::Logic::Colonel::SetUserRole response=json auth=sessionauth role=colonel scope=internal
 POST   /users/:user_id/verify             ColonelAPI::Logic::Colonel::VerifyUser response=json auth=sessionauth role=colonel scope=internal
 POST   /users/:user_id/unverify           ColonelAPI::Logic::Colonel::UnverifyUser response=json auth=sessionauth role=colonel scope=internal
+POST   /users/:user_id/suspend            ColonelAPI::Logic::Colonel::SuspendUser response=json auth=sessionauth role=colonel scope=internal
+POST   /users/:user_id/unsuspend          ColonelAPI::Logic::Colonel::UnsuspendUser response=json auth=sessionauth role=colonel scope=internal
 DELETE /users/:user_id                    ColonelAPI::Logic::Colonel::PurgeUser response=json auth=sessionauth role=colonel scope=internal
 
 # System Monitoring

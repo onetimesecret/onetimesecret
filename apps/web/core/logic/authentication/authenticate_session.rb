@@ -77,6 +77,25 @@ module Core::Logic
           raise_form_error 'Invalid email or password', field: 'email', error_type: 'invalid'
         end
 
+        # Suspended accounts cannot log in. This check runs AFTER credential
+        # verification (success? above), so the message is only ever shown to
+        # someone holding valid credentials — it confirms nothing to an
+        # attacker probing for account existence (non-enumerating), while
+        # staying clear for the legitimate owner.
+        if cust.suspended?
+          auth_logger.warn 'Login rejected: account suspended',
+            {
+              user_id: cust.objid,
+              email: cust.obscure_email,
+              session_id: safe_session_id,
+              ip: @strategy_result.metadata[:ip],
+              reason: :suspended,
+            }
+
+          raise_form_error 'This account has been suspended. Contact support for assistance.',
+            field: 'email', error_type: 'suspended'
+        end
+
         if cust.pending?
           auth_logger.info 'Login pending customer verification',
             {

@@ -24,18 +24,22 @@
   import { gracefulParse } from '@/utils/schemaValidation';
 
   /**
-   * Customer detail — the "support without SSH" read-out plus the four guarded
+   * Customer detail — the "support without SSH" read-out plus the guarded
    * mutation buttons (ticket #22, the reference slice for tickets 30/31/32).
    *
    * - Single-resource fetch via {@link useResourceFetch} against
    *   GET /api/colonel/users/:id, keyed by the customer's PUBLIC id (extid).
    * - Read-out: profile, plan/entitlement, verification + role, key timestamps,
-   *   lifetime stats, and the customer's secrets / receipts / organizations.
-   *   Loading, empty, not-found and error states are all handled explicitly.
-   * - Guarded actions (CONTRACT 3 / D4): set-role, verify, unverify go through a
-   *   simple confirm; PURGE requires typed confirmation (retype the public id)
-   *   via {@link AdminConfirmDialog} in danger mode. Audit is emitted
-   *   server-side; nothing here logs it.
+   *   lifetime stats, billing (plan + latest Stripe invoice, gracefully
+   *   degrading when Stripe is unconfigured/unreachable), and the customer's
+   *   secrets / receipts / organizations. Loading, empty, not-found and error
+   *   states are all handled explicitly.
+   * - Guarded actions (CONTRACT 3 / D4): set-role, verify, unverify and
+   *   unsuspend go through a simple confirm; PURGE and SUSPEND require typed
+   *   confirmation (retype the public id) via {@link AdminConfirmDialog} in
+   *   danger mode. Suspension is the reversible trust & safety pause (no data
+   *   destroyed — unlike purge); colonel accounts cannot be suspended. Audit
+   *   is emitted server-side; nothing here logs it.
    */
   const props = defineProps<{
     /** The customer's public id (route param), forwarded from the router. */
@@ -74,7 +78,7 @@
 
   // ---- Guarded actions ------------------------------------------------------
 
-  type ActionKey = 'setRole' | 'verify' | 'unverify' | 'purge';
+  type ActionKey = 'setRole' | 'verify' | 'unverify' | 'suspend' | 'unsuspend' | 'purge';
 
   /** Assignable roles, mirrored from the backend SetRole::VALID_ROLES. */
   const ROLE_OPTIONS = ['colonel', 'admin', 'staff', 'customer'] as const;
@@ -82,6 +86,8 @@
   const dialogOpen = ref(false);
   const activeAction = ref<ActionKey | null>(null);
   const pendingRole = ref('');
+  /** Optional operator-supplied suspension reason (sent with the suspend POST). */
+  const suspendReason = ref('');
 
   // Keep the role selector in sync with the loaded record.
   watch(
@@ -125,6 +131,14 @@
         return callMutation('post', `${userUrl()}/verify`);
       case 'unverify':
         return callMutation('post', `${userUrl()}/unverify`);
+      case 'suspend':
+        return callMutation(
+          'post',
+          `${userUrl()}/suspend`,
+          suspendReason.value.trim() ? { reason: suspendReason.value.trim() } : {}
+        );
+      case 'unsuspend':
+        return callMutation('post', `${userUrl()}/unsuspend`);
       case 'purge':
         return callMutation('delete', userUrl());
       default:
@@ -171,6 +185,23 @@
           variant: 'default' as const,
           confirmText: undefined,
         };
+      case 'suspend':
+        return {
+          title: t('web.admin.customers.actions.suspend.confirmTitle'),
+          description: t('web.admin.customers.actions.suspend.confirmDescription', { email }),
+          // Typed-confirmation gate: retype the public id to enable confirm.
+          confirmToken: publicId.value,
+          variant: 'danger' as const,
+          confirmText: t('web.admin.customers.actions.suspend.button'),
+        };
+      case 'unsuspend':
+        return {
+          title: t('web.admin.customers.actions.unsuspend.confirmTitle'),
+          description: t('web.admin.customers.actions.unsuspend.confirmDescription', { email }),
+          confirmToken: undefined,
+          variant: 'default' as const,
+          confirmText: undefined,
+        };
       default:
         return {
           title: '',
@@ -186,6 +217,8 @@
     setRole: 'web.admin.customers.actions.role.success',
     verify: 'web.admin.customers.actions.verify.success',
     unverify: 'web.admin.customers.actions.unverify.success',
+    suspend: 'web.admin.customers.actions.suspend.success',
+    unsuspend: 'web.admin.customers.actions.unsuspend.success',
     purge: 'web.admin.customers.actions.purge.success',
   };
 
@@ -215,6 +248,7 @@
       // The record no longer exists — return to the list.
       router.push({ name: 'AdminCustomers' });
     } else {
+      if (key === 'suspend') suspendReason.value = '';
       await refreshUser().catch(() => {});
     }
     activeAction.value = null;
@@ -288,7 +322,101 @@
           ? formatDisplayDateTime(r.last_login)
           : t('web.admin.customers.detail.never'),
       },
+      // Suspension context, only while suspended (who / when / why).
+      ...(r.suspended
+        ? [
+            {
+              key: 'suspendedAt',
+              label: t('web.admin.customers.detail.fields.suspendedAt'),
+              value: r.suspended_at
+                ? formatDisplayDateTime(r.suspended_at)
+                : t('web.admin.customers.detail.none'),
+            },
+            {
+              key: 'suspendedBy',
+              label: t('web.admin.customers.detail.fields.suspendedBy'),
+              value: r.suspended_by || t('web.admin.customers.detail.none'),
+            },
+            {
+              key: 'suspendedReason',
+              label: t('web.admin.customers.detail.fields.suspendedReason'),
+              value: r.suspended_reason || t('web.admin.customers.detail.none'),
+            },
+          ]
+        : []),
     ];
+  });
+
+  // ---- Billing card ----------------------------------------------------------
+
+  /** Billing summary (plan + org subscription + optional live Stripe block). */
+  const billing = computed(() => details.value?.billing ?? null);
+
+  /** "12.34 USD" from Stripe's smallest-currency-unit total. */
+  function invoiceAmount(total: number | null, currency: string | null): string {
+    if (total === null) return t('web.admin.customers.detail.none');
+    const amount = (total / 100).toFixed(2);
+    return currency ? `${amount} ${currency.toUpperCase()}` : amount;
+  }
+
+  const billingFields = computed(() => {
+    const b = billing.value;
+    if (!b) return [];
+
+    const fields: { key: string; label: string; value: string }[] = [
+      {
+        key: 'plan',
+        label: t('web.admin.customers.detail.billing.plan'),
+        value: b.plan_id || record.value?.planid || t('web.admin.customers.detail.none'),
+      },
+    ];
+
+    if (b.organization) {
+      fields.push({
+        key: 'organization',
+        label: t('web.admin.customers.detail.billing.organization'),
+        value: b.organization.display_name || b.organization.extid,
+      });
+      const status = b.stripe.subscription?.status || b.organization.subscription_status;
+      if (status) {
+        fields.push({
+          key: 'subscriptionStatus',
+          label: t('web.admin.customers.detail.billing.subscriptionStatus'),
+          value: status,
+        });
+      }
+      const periodEnd =
+        b.stripe.subscription?.current_period_end ??
+        (b.organization.subscription_period_end
+          ? Number(b.organization.subscription_period_end)
+          : null);
+      if (periodEnd) {
+        fields.push({
+          key: 'periodEnd',
+          label: t('web.admin.customers.detail.billing.periodEnd'),
+          value: formatDisplayDateTime(new Date(periodEnd * 1000)),
+        });
+      }
+    }
+
+    if (b.stripe.available) {
+      const invoice = b.stripe.latest_invoice;
+      fields.push({
+        key: 'latestInvoice',
+        label: t('web.admin.customers.detail.billing.latestInvoice'),
+        value: invoice
+          ? [
+              invoice.created ? formatDisplayDateTime(invoice.created) : null,
+              invoiceAmount(invoice.total, invoice.currency),
+              invoice.status,
+            ]
+              .filter(Boolean)
+              .join(' · ')
+          : t('web.admin.customers.detail.billing.noInvoices'),
+      });
+    }
+
+    return fields;
   });
 
   function goBack(): void {
@@ -403,6 +531,16 @@
             name="check-circle"
             size="3" />
           {{ t('web.admin.customers.detail.fields.verified') }}
+        </span>
+        <span
+          v-if="record.suspended"
+          class="inline-flex items-center gap-1 rounded bg-red-100 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-red-800 dark:bg-red-900/40 dark:text-red-200"
+          data-testid="suspended-badge">
+          <OIcon
+            collection="heroicons"
+            name="no-symbol"
+            size="3" />
+          {{ t('web.admin.customers.suspended.badge') }}
         </span>
         <span class="font-mono text-xs text-gray-400 dark:text-gray-500">{{ record.extid }}</span>
       </div>
@@ -522,6 +660,56 @@
               {{ t('web.admin.customers.actions.unverify.button') }}
             </button>
 
+            <!-- Suspend / unsuspend (reversible trust & safety pause).
+                 Colonel accounts cannot be suspended (privilege guard); the
+                 backend refuses too — hiding the block avoids a dead button. -->
+            <div
+              v-if="record.suspended || record.role !== 'colonel'"
+              class="space-y-3 border-t border-gray-200 pt-4 dark:border-gray-800">
+              <template v-if="!record.suspended">
+                <template v-if="record.role !== 'colonel'">
+                  <div>
+                    <label
+                      for="suspend-reason-input"
+                      class="block text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                      {{ t('web.admin.customers.actions.suspend.reasonLabel') }}
+                    </label>
+                    <input
+                      id="suspend-reason-input"
+                      v-model="suspendReason"
+                      type="text"
+                      maxlength="255"
+                      data-testid="suspend-reason"
+                      :placeholder="t('web.admin.customers.actions.suspend.reasonPlaceholder')"
+                      class="mt-2 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:placeholder:text-gray-500" />
+                  </div>
+                  <button
+                    type="button"
+                    data-testid="suspend-button"
+                    class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
+                    @click="requestAction('suspend')">
+                    <OIcon
+                      collection="heroicons"
+                      name="no-symbol"
+                      size="4" />
+                    {{ t('web.admin.customers.actions.suspend.button') }}
+                  </button>
+                </template>
+              </template>
+              <button
+                v-else
+                type="button"
+                data-testid="unsuspend-button"
+                class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+                @click="requestAction('unsuspend')">
+                <OIcon
+                  collection="heroicons"
+                  name="arrow-uturn-left"
+                  size="4" />
+                {{ t('web.admin.customers.actions.unsuspend.button') }}
+              </button>
+            </div>
+
             <!-- Purge (destructive, typed-confirm) -->
             <div class="border-t border-gray-200 pt-4 dark:border-gray-800">
               <button
@@ -539,6 +727,65 @@
           </div>
         </section>
       </div>
+
+      <!-- Billing ("why was I charged" — plan always renders from the model;
+           the Stripe block degrades gracefully when unavailable). -->
+      <section
+        v-if="billing"
+        class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900"
+        data-testid="billing-section">
+        <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
+          <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+            {{ t('web.admin.customers.detail.sections.billing') }}
+          </h3>
+        </div>
+        <dl class="grid grid-cols-1 gap-x-6 gap-y-4 px-6 py-5 sm:grid-cols-2">
+          <div
+            v-for="field in billingFields"
+            :key="field.key"
+            :data-testid="`billing-${field.key}`">
+            <dt class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              {{ field.label }}
+            </dt>
+            <dd class="mt-1 break-words text-sm text-gray-900 dark:text-gray-100">
+              {{ field.value }}
+            </dd>
+          </div>
+        </dl>
+        <div class="border-t border-gray-200 px-6 py-4 dark:border-gray-800">
+          <!-- Deep link into the Stripe dashboard when the live read worked. -->
+          <a
+            v-if="billing.stripe.available && billing.stripe.dashboard_url"
+            :href="billing.stripe.dashboard_url"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-testid="billing-stripe-link"
+            class="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
+            <OIcon
+              collection="heroicons"
+              name="arrow-top-right-on-square"
+              size="4" />
+            {{ t('web.admin.customers.detail.billing.openStripe') }}
+          </a>
+          <!-- Graceful degradation: Stripe configured but unreachable / no identity. -->
+          <p
+            v-else-if="billing.enabled"
+            class="text-sm text-gray-500 dark:text-gray-400"
+            data-testid="billing-unavailable">
+            {{
+              t('web.admin.customers.detail.billing.unavailable', {
+                reason: billing.stripe.reason ?? '',
+              })
+            }}
+          </p>
+          <p
+            v-else
+            class="text-sm text-gray-500 dark:text-gray-400"
+            data-testid="billing-disabled">
+            {{ t('web.admin.customers.detail.billing.notConfigured') }}
+          </p>
+        </div>
+      </section>
 
       <!-- Secrets -->
       <section

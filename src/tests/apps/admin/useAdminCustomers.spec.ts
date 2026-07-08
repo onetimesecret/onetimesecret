@@ -119,6 +119,43 @@ describe('useAdminCustomers', () => {
     });
   });
 
+  it('passes the email search term through as a server query param', async () => {
+    mockApi.get.mockResolvedValue({ data: usersPayload() });
+    const store = useAdminCustomers();
+
+    await store.fetchPage(1, undefined, 'alice@example.com');
+
+    expect(mockApi.get).toHaveBeenCalledWith('/api/colonel/users', {
+      params: { page: 1, per_page: 50, search: 'alice@example.com' },
+    });
+  });
+
+  it('combines role filter and search in a single request', async () => {
+    mockApi.get.mockResolvedValue({ data: usersPayload() });
+    const store = useAdminCustomers();
+
+    await store.fetchPage(1, 'customer', 'alice');
+
+    expect(mockApi.get).toHaveBeenCalledWith('/api/colonel/users', {
+      params: { page: 1, per_page: 50, role: 'customer', search: 'alice' },
+    });
+  });
+
+  it('parses the suspended flag (defaulting to false when absent)', async () => {
+    const payload = usersPayload();
+    (payload.details.users[0] as Record<string, unknown>).suspended = true;
+    mockApi.get.mockResolvedValue({ data: payload });
+    const store = useAdminCustomers();
+
+    await store.fetchPage(1);
+    expect(store.customers[0].suspended).toBe(true);
+
+    // Absent flag (pre-suspension payloads) defaults to false.
+    mockApi.get.mockResolvedValue({ data: usersPayload() });
+    await store.fetchPage(1);
+    expect(store.customers[0].suspended).toBe(false);
+  });
+
   it('degrades to empty on a schema mismatch without throwing', async () => {
     mockApi.get.mockResolvedValue({ data: { record: {}, details: { users: 'nope' } } });
     const store = useAdminCustomers();

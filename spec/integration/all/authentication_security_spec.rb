@@ -30,6 +30,7 @@ RSpec.describe 'Authentication Security Attack Vectors', type: :integration do
       allow(c).to receive(:passphrase?).and_return(false)
       allow(c).to receive(:passphrase).and_return('$argon2id$v=19$m=65536,t=2,p=1$somehash')
       allow(c).to receive(:pending?).and_return(false)
+      allow(c).to receive(:suspended?).and_return(false)
       allow(c).to receive(:role).and_return(:customer)
       allow(c).to receive(:role=)
       allow(c).to receive(:obscure_email).and_return('se***@example.com')

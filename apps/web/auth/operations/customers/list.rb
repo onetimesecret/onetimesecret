@@ -51,6 +51,21 @@ module Auth
       # `find_all_by_role` — a blocking `SMEMBERS` + load-all-then-slice, which
       # was the residual request-path unbounded enumeration flagged on the slice.
       #
+      # ### Email search (bounded cursor HSCAN over the email index)
+      #
+      # "Look up the account that just emailed you" is the #1 admin action, so
+      # the op supports a free-text `search` term matched against customer
+      # emails. It never enumerates customer objects: it cursor-HSCANs the
+      # `customer:email_index` hash (email -> objid, emails stored lowercase)
+      # with a server-side `*term*` glob — the same scan-with-match mechanism
+      # the sessions listing uses, but against the index instead of the
+      # keyspace. Bounded twice (CONTRACT 8 / #2211): matches are capped at
+      # SEARCH_MATCH_LIMIT and the scan itself stops after
+      # SEARCH_SCAN_ROUNDS round-trips, so a no-match search over a huge
+      # customer base can never turn one request into an unbounded walk. The
+      # glob term is escaped, so user input cannot inject pattern syntax.
+      # Search composes with the role filter (applied in Ruby on the already
+      # -bounded matches) and is paginated in memory like the filtered path.
       class List
         # Immutable result. `customers` is a page of loaded Onetime::Customer
         # objects; the adapters format them for their respective surfaces (the
@@ -80,21 +95,39 @@ module Auth
         # CLI view) is exempt — it reads the whole set, still via the cursor SSCAN.
         ROLE_FILTER_SCAN_LIMIT = 10_000
 
+        # Cap on how many email-index MATCHES the search path collects. A page
+        # is at most MAX_PER_PAGE rows, so 1k matches is already 10 pages of
+        # results for a support lookup — anything broader is a filter problem,
+        # not a pagination problem.
+        SEARCH_MATCH_LIMIT = 1_000
+
+        # Cap on HSCAN round-trips for one search. With SCAN_COUNT=100 per
+        # round-trip this bounds the index walk at ~100k entries examined even
+        # when the term matches nothing (HSCAN's MATCH filters server-side, so
+        # a no-match term would otherwise walk the entire index).
+        SEARCH_SCAN_ROUNDS = 1_000
+
         # @param page [Integer] 1-based page number (clamped to >= 1)
         # @param per_page [Integer, :all] page size (clamped to 1..MAX_PER_PAGE),
         #   or :all to load every matching customer in one shot. `:all` is for the
         #   off-request CLI grouping view only — never pass it from a request handler.
         # @param role [String, nil] optional role filter (blank string treated as nil)
-        def initialize(page: 1, per_page: DEFAULT_PER_PAGE, role: nil)
+        # @param search [String, nil] optional email substring (case-insensitive;
+        #   blank string treated as nil). Composes with the role filter.
+        def initialize(page: 1, per_page: DEFAULT_PER_PAGE, role: nil, search: nil)
           @all      = (per_page == :all)
           @page     = [page.to_i, 1].max
           @per_page = @all ? 0 : clamp_per_page(per_page)
           role      = role.to_s.strip
           @role     = role.empty? ? nil : role
+          search    = search.to_s.strip
+          @search   = search.empty? ? nil : search
         end
 
         # @return [Result]
         def call
+          return call_search if @search
+
           @role ? call_filtered : call_unfiltered
         end
 
@@ -150,6 +183,60 @@ module Auth
           end
 
           build_result(page, total_count)
+        end
+
+        # Email search: bounded cursor HSCAN over the email unique index (see
+        # class docs), then order + slice exactly like the filtered path. The
+        # role filter, when also present, is applied in Ruby on the loaded
+        # matches — the match set is already bounded, so this stays cheap.
+        def call_search
+          matches = load(scan_email_index_matches(@search))
+          matches.select! { |cust| cust.role.to_s == @role } if @role
+          # Same within-page ordering as the filtered path (created descending);
+          # the email index is a hash, so there is no index-native order here.
+          matches.sort_by! { |cust| -(cust.created || 0).to_f }
+          total_count = matches.size
+
+          page = if @all
+            matches
+          else
+            start_idx = (@page - 1) * @per_page
+            end_idx   = start_idx + @per_page - 1
+            matches[start_idx..end_idx] || []
+          end
+
+          build_result(page, total_count)
+        end
+
+        # Non-blocking cursor HSCAN of the email_index hash (email -> objid),
+        # matching `*term*` server-side against the lowercased stored emails.
+        # Doubly bounded: stops at SEARCH_MATCH_LIMIT collected matches AND at
+        # SEARCH_SCAN_ROUNDS round-trips (see the constants above).
+        def scan_email_index_matches(term)
+          dbkey    = Onetime::Customer.email_index.dbkey
+          dbclient = Onetime::Customer.dbclient
+          pattern  = "*#{glob_escape(term.downcase)}*"
+          objids   = []
+          cursor   = '0'
+          rounds   = 0
+
+          loop do
+            cursor, entries = dbclient.hscan(dbkey, cursor, match: pattern, count: SCAN_COUNT)
+            entries.each { |_email, objid| objids << objid }
+            rounds += 1
+
+            break if cursor == '0'
+            break if objids.size >= SEARCH_MATCH_LIMIT
+            break if rounds >= SEARCH_SCAN_ROUNDS
+          end
+
+          objids.first(SEARCH_MATCH_LIMIT)
+        end
+
+        # Escape Redis glob metacharacters so a user-supplied term is always a
+        # literal substring match, never pattern syntax.
+        def glob_escape(term)
+          term.gsub(/[\*\?\[\]\\]/) { |char| "\\#{char}" }
         end
 
         # Non-blocking cursor SSCAN of a role_index set, collecting member objids.

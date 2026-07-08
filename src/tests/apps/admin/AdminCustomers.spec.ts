@@ -35,7 +35,14 @@ import { createTestI18n } from '@tests/setup';
 
 const i18n = createTestI18n();
 
-function usersPayload(overrides: { page?: number; per_page?: number; role?: string | null } = {}) {
+function usersPayload(
+  overrides: {
+    page?: number;
+    per_page?: number;
+    role?: string | null;
+    suspended?: boolean;
+  } = {}
+) {
   return {
     shrimp: '',
     record: {},
@@ -47,6 +54,7 @@ function usersPayload(overrides: { page?: number; per_page?: number; role?: stri
           email: 'alice@example.com',
           role: 'customer',
           verified: true,
+          suspended: overrides.suspended ?? false,
           created: 1700000000,
           last_login: 1700000100,
           planid: 'basic',
@@ -105,6 +113,47 @@ describe('AdminCustomers (list view — ticket #22)', () => {
     expect(mockApi.get).toHaveBeenLastCalledWith('/api/colonel/users', {
       params: { page: 1, per_page: 50, role: 'admin' },
     });
+  });
+
+  it('debounces the email search box into a single filtered fetch', async () => {
+    vi.useFakeTimers();
+    try {
+      mockApi.get.mockResolvedValue({ data: usersPayload() });
+      wrapper = mountView();
+      await flushPromises();
+      const before = mockApi.get.mock.calls.length;
+
+      await wrapper
+        .find('[data-testid="customers-filterbar"] input[type="search"]')
+        .setValue('alice');
+      // Debounced — no request yet.
+      expect(mockApi.get.mock.calls.length).toBe(before);
+
+      vi.advanceTimersByTime(300);
+      await flushPromises();
+
+      expect(mockApi.get.mock.calls.length).toBe(before + 1);
+      expect(mockApi.get).toHaveBeenLastCalledWith('/api/colonel/users', {
+        params: { page: 1, per_page: 50, search: 'alice' },
+      });
+    } finally {
+      vi.runOnlyPendingTimers();
+      vi.useRealTimers();
+    }
+  });
+
+  it('shows a SUSPENDED badge on suspended rows only', async () => {
+    mockApi.get.mockResolvedValue({ data: usersPayload({ suspended: true }) });
+    wrapper = mountView();
+    await flushPromises();
+    expect(wrapper.find('[data-testid="suspended-badge"]').exists()).toBe(true);
+
+    wrapper.unmount();
+    setActivePinia((pinia = createPinia()));
+    mockApi.get.mockResolvedValue({ data: usersPayload() });
+    wrapper = mountView();
+    await flushPromises();
+    expect(wrapper.find('[data-testid="suspended-badge"]').exists()).toBe(false);
   });
 
   it('routes to the detail page (by public id) on row click', async () => {

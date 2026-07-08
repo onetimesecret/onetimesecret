@@ -51,6 +51,19 @@ function detailPayload() {
       organizations: [
         { organization_id: 'org1', extid: 'og_abc', display_name: 'Acme', is_default: true },
       ],
+      billing: {
+        enabled: false,
+        plan_id: 'basic',
+        organization: null,
+        stripe: {
+          available: false,
+          reason: 'Billing is not configured',
+          customer_id: null,
+          dashboard_url: null,
+          subscription: null,
+          latest_invoice: null,
+        },
+      },
       stats: { secrets_created: 5, secrets_shared: 2, emails_sent: 3 },
     },
   };
@@ -90,6 +103,70 @@ describe('colonelUserDetailResponseSchema (GetUserDetails)', () => {
     expect(colonelUserDetailResponseSchema.safeParse(payload).success).toBe(false);
   });
 
+  it('defaults suspended to false and tolerates a missing billing block (pre-feature payloads)', () => {
+    const payload = detailPayload() as unknown as {
+      record: Record<string, unknown>;
+      details: Record<string, unknown>;
+    };
+    delete payload.record.suspended;
+    delete payload.record.suspended_at;
+    delete payload.record.suspended_by;
+    delete payload.record.suspended_reason;
+    delete payload.details.billing;
+
+    const result = colonelUserDetailResponseSchema.safeParse(payload);
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    expect(result.data.record.suspended).toBe(false);
+    expect(result.data.details?.billing).toBeUndefined();
+  });
+
+  it('parses a suspended record (timestamp to Date) and a live Stripe billing block', () => {
+    const payload = detailPayload();
+    Object.assign(payload.record, {
+      suspended: true,
+      suspended_at: 1783378500,
+      suspended_by: 'ur_colonel',
+      suspended_reason: 'tos violation',
+    });
+    payload.details.billing = {
+      enabled: true,
+      plan_id: 'identity_plus_v1',
+      organization: {
+        extid: 'og_abc',
+        display_name: 'Acme',
+        planid: 'identity_plus_v1',
+        subscription_status: 'active',
+        subscription_period_end: '1783382000',
+      },
+      stripe: {
+        available: true,
+        reason: null,
+        customer_id: 'cus_123',
+        dashboard_url: 'https://dashboard.stripe.com/customers/cus_123',
+        subscription: { id: 'sub_123', status: 'active', current_period_end: 1783382000 },
+        latest_invoice: {
+          id: 'in_1',
+          number: 'INV-0001',
+          status: 'paid',
+          currency: 'usd',
+          total: 3500,
+          created: 1783378400,
+          hosted_invoice_url: 'https://invoice.stripe.com/i/in_1',
+        },
+      },
+    };
+
+    const result = colonelUserDetailResponseSchema.safeParse(payload);
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    expect(result.data.record.suspended).toBe(true);
+    expect(result.data.record.suspended_at).toBeInstanceOf(Date);
+    expect(result.data.details?.billing?.stripe.available).toBe(true);
+    expect(result.data.details?.billing?.stripe.latest_invoice?.created).toBeInstanceOf(Date);
+    expect(result.data.details?.billing?.stripe.latest_invoice?.total).toBe(3500);
+  });
+
   it('is registered under a stable registry key', () => {
     expect(responseSchemas.colonelUserDetail).toBe(colonelUserDetailResponseSchema);
   });
@@ -125,6 +202,25 @@ describe('colonelUserMutationResponseSchema (shared ack)', () => {
       details: { changed: true, message: 'User verified' },
     };
     expect(colonelUserMutationResponseSchema.safeParse(payload).success).toBe(true);
+  });
+
+  it('validates the suspend / unsuspend ack (with sessions_revoked)', () => {
+    const payload = {
+      shrimp: '',
+      record: {
+        user_id: '019f-objid',
+        extid: 'ur_abc',
+        email: 'a***@e***.com',
+        suspended: true,
+        updated: 1783378464,
+      },
+      details: { changed: true, sessions_revoked: 2, message: 'User suspended' },
+    };
+    const result = colonelUserMutationResponseSchema.safeParse(payload);
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    expect(result.data.record.suspended).toBe(true);
+    expect(result.data.details?.sessions_revoked).toBe(2);
   });
 
   it('validates the purge ack (no email/updated/changed)', () => {

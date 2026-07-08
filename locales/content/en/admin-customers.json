@@ -19,6 +19,14 @@
     "text": "Could not load customers.",
     "content_hash": "81783303"
   },
+  "web.admin.customers.list.searchPlaceholder": {
+    "text": "Search by email",
+    "content_hash": "f2462809"
+  },
+  "web.admin.customers.list.emptySearch": {
+    "text": "No customers match this search",
+    "content_hash": "ea7e7012"
+  },
   "web.admin.customers.roles.colonel": {
     "text": "Colonel",
     "content_hash": "02577777"
@@ -34,6 +42,10 @@
   "web.admin.customers.roles.customer": {
     "text": "Customer",
     "content_hash": "bf376338"
+  },
+  "web.admin.customers.suspended.badge": {
+    "text": "Suspended",
+    "content_hash": "e392a389"
   },
   "web.admin.customers.columns.email": {
     "text": "Email",
@@ -119,6 +131,46 @@
     "text": "Actions",
     "content_hash": "ff8059dc"
   },
+  "web.admin.customers.detail.sections.billing": {
+    "text": "Billing",
+    "content_hash": "3ac8bbca"
+  },
+  "web.admin.customers.detail.billing.plan": {
+    "text": "Plan",
+    "content_hash": "fa8ed0bd"
+  },
+  "web.admin.customers.detail.billing.organization": {
+    "text": "Billing organization",
+    "content_hash": "90c94ee1"
+  },
+  "web.admin.customers.detail.billing.subscriptionStatus": {
+    "text": "Subscription status",
+    "content_hash": "f0723c4e"
+  },
+  "web.admin.customers.detail.billing.periodEnd": {
+    "text": "Current period ends",
+    "content_hash": "742b8229"
+  },
+  "web.admin.customers.detail.billing.latestInvoice": {
+    "text": "Latest invoice",
+    "content_hash": "7a6133cc"
+  },
+  "web.admin.customers.detail.billing.noInvoices": {
+    "text": "No invoices",
+    "content_hash": "e6b30f93"
+  },
+  "web.admin.customers.detail.billing.openStripe": {
+    "text": "Open in Stripe dashboard",
+    "content_hash": "dfa7c41d"
+  },
+  "web.admin.customers.detail.billing.unavailable": {
+    "text": "Stripe data unavailable: {reason}",
+    "content_hash": "9fe08e49"
+  },
+  "web.admin.customers.detail.billing.notConfigured": {
+    "text": "Billing is not configured on this install.",
+    "content_hash": "6e90375e"
+  },
   "web.admin.customers.detail.fields.email": {
     "text": "Email",
     "content_hash": "969ccbd3"
@@ -154,6 +206,18 @@
   "web.admin.customers.detail.fields.lastLogin": {
     "text": "Last login",
     "content_hash": "0d39602d"
+  },
+  "web.admin.customers.detail.fields.suspendedAt": {
+    "text": "Suspended at",
+    "content_hash": "7227f219"
+  },
+  "web.admin.customers.detail.fields.suspendedBy": {
+    "text": "Suspended by",
+    "content_hash": "e0830524"
+  },
+  "web.admin.customers.detail.fields.suspendedReason": {
+    "text": "Suspension reason",
+    "content_hash": "d6b08d8e"
   },
   "web.admin.customers.detail.stats.secretsCreated": {
     "text": "Secrets created",
@@ -262,6 +326,46 @@
   "web.admin.customers.actions.unverify.success": {
     "text": "Customer unverified.",
     "content_hash": "a9b7bbac"
+  },
+  "web.admin.customers.actions.suspend.button": {
+    "text": "Suspend account",
+    "content_hash": "95a04f27"
+  },
+  "web.admin.customers.actions.suspend.reasonLabel": {
+    "text": "Reason (optional)",
+    "content_hash": "0f7d4664"
+  },
+  "web.admin.customers.actions.suspend.reasonPlaceholder": {
+    "text": "Why is this account being suspended?",
+    "content_hash": "8eca975e"
+  },
+  "web.admin.customers.actions.suspend.confirmTitle": {
+    "text": "Suspend account?",
+    "content_hash": "cbfa275b"
+  },
+  "web.admin.customers.actions.suspend.confirmDescription": {
+    "text": "Blocks {email} from signing in and revokes their active sessions. No data is deleted — this is reversible.",
+    "content_hash": "e5d046bc"
+  },
+  "web.admin.customers.actions.suspend.success": {
+    "text": "Account suspended.",
+    "content_hash": "04c5f996"
+  },
+  "web.admin.customers.actions.unsuspend.button": {
+    "text": "Unsuspend account",
+    "content_hash": "35a10fb5"
+  },
+  "web.admin.customers.actions.unsuspend.confirmTitle": {
+    "text": "Unsuspend account?",
+    "content_hash": "6fd78a72"
+  },
+  "web.admin.customers.actions.unsuspend.confirmDescription": {
+    "text": "Restores sign-in for {email}.",
+    "content_hash": "cb2bb4e0"
+  },
+  "web.admin.customers.actions.unsuspend.success": {
+    "text": "Account unsuspended.",
+    "content_hash": "c5b4377f"
   },
   "web.admin.customers.actions.purge.button": {
     "text": "Purge customer",

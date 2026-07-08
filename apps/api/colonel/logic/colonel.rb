@@ -31,6 +31,7 @@ require_relative 'colonel/get_user_details'
 require_relative 'colonel/update_user_plan'
 require_relative 'colonel/set_user_role'
 require_relative 'colonel/set_user_verification'
+require_relative 'colonel/set_user_suspension'
 require_relative 'colonel/purge_user'
 
 # System monitoring

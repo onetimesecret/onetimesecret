@@ -47,6 +47,9 @@ export const colonelUserSchema = z.object({
   email: z.string(),
   role: z.string(),
   verified: z.boolean(),
+  // Reversible trust & safety pause (customer-support features). Optional
+  // with a default so pre-suspension payloads/fixtures keep parsing.
+  suspended: z.boolean().optional().default(false),
   created: transforms.fromNumber.toDate,
   last_login: transforms.fromNumber.toDateNullable,
   planid: z.string().nullable(),
@@ -64,6 +67,8 @@ export const paginationSchema = z.object({
   total_count: z.number(),
   total_pages: z.number(),
   role_filter: z.string().nullable().optional(),
+  /** Server echo of the email search term (users list). */
+  search: z.string().nullable().optional(),
 });
 
 /**
@@ -477,6 +482,13 @@ export const colonelUserDetailRecordSchema = z.object({
   email: z.string(),
   role: z.string(),
   verified: z.boolean(),
+  // Reversible trust & safety pause. All four fields are optional so
+  // pre-suspension payloads keep parsing; the *_at/_by/_reason trio is
+  // nil server-side whenever the account is not suspended.
+  suspended: z.boolean().optional().default(false),
+  suspended_at: transforms.fromNumber.toDateNullable.optional(),
+  suspended_by: z.string().nullable().optional(),
+  suspended_reason: z.string().nullable().optional(),
   created: transforms.fromNumber.toDate,
   updated: transforms.fromNumber.toDateNullable,
   last_login: transforms.fromNumber.toDateNullable,
@@ -517,10 +529,66 @@ export const colonelUserDetailStatsSchema = z.object({
 });
 
 /**
+ * Live Stripe read-out on the customer detail page. `available: false` is the
+ * graceful-degradation shape (billing disabled, no Stripe identity, or Stripe
+ * unreachable) — the server NEVER fails the detail page over Stripe; it
+ * degrades to this with a human-readable `reason`.
+ */
+export const colonelUserBillingStripeSchema = z.object({
+  available: z.boolean(),
+  reason: z.string().nullable(),
+  customer_id: z.string().nullable(),
+  /** Deep link to the customer in the Stripe dashboard (mode-aware). */
+  dashboard_url: z.string().nullable(),
+  subscription: z
+    .object({
+      id: z.string(),
+      status: z.string(),
+      current_period_end: z.number().nullable(),
+    })
+    .nullable(),
+  latest_invoice: z
+    .object({
+      id: z.string().nullable(),
+      number: z.string().nullable(),
+      status: z.string().nullable(),
+      currency: z.string().nullable(),
+      /** Smallest currency unit (e.g. cents). */
+      total: z.number().nullable(),
+      created: transforms.fromNumber.toDateNullable,
+      hosted_invoice_url: z.string().nullable(),
+    })
+    .nullable(),
+});
+
+/**
+ * Billing summary on the customer detail page ("why was I charged" support).
+ * `plan_id` comes from the customer model so the card renders even when every
+ * Stripe path degrades; `organization` is the customer's billing org (Stripe
+ * identifiers live on Organization, not Customer).
+ */
+export const colonelUserBillingSchema = z.object({
+  enabled: z.boolean(),
+  plan_id: z.string().nullable(),
+  organization: z
+    .object({
+      extid: z.string(),
+      display_name: z.string().nullable(),
+      planid: z.string().nullable(),
+      subscription_status: z.string().nullable(),
+      /** Unix timestamp stored as a string on Organization; may be empty. */
+      subscription_period_end: z.string().nullable(),
+    })
+    .nullable(),
+  stripe: colonelUserBillingStripeSchema,
+});
+
+/**
  * The `details` payload of GetUserDetails: everything a support agent needs to
- * read out a customer without SSH — secrets (count + items), receipts, orgs and
- * lifetime stats. `count` is authoritative and equals `items.length` (the
- * endpoint sources it from the same bounded SCAN, not the drifting counter).
+ * read out a customer without SSH — secrets (count + items), receipts, orgs,
+ * billing and lifetime stats. `count` is authoritative and equals
+ * `items.length` (the endpoint sources it from the same bounded SCAN, not the
+ * drifting counter). `billing` is optional so pre-billing payloads keep parsing.
  */
 export const colonelUserDetailsSchema = z.object({
   secrets: z.object({
@@ -532,6 +600,7 @@ export const colonelUserDetailsSchema = z.object({
     items: z.array(colonelUserDetailReceiptSchema),
   }),
   organizations: z.array(colonelUserDetailOrganizationSchema),
+  billing: colonelUserBillingSchema.optional(),
   stats: colonelUserDetailStatsSchema,
 });
 
@@ -542,6 +611,7 @@ export const colonelUserDetailsSchema = z.object({
  * schema validates every ack:
  *   - set-role  → old_role, new_role, email, updated
  *   - verify/unverify → verified, email, updated
+ *   - suspend/unsuspend → suspended, email, updated
  *   - purge     → deleted (email/updated omitted)
  *
  * `user_id` here is the customer's OBJID (server-internal); the UI keys off
@@ -555,6 +625,7 @@ export const colonelUserMutationRecordSchema = z.object({
   old_role: z.string().optional(),
   new_role: z.string().optional(),
   verified: z.boolean().optional(),
+  suspended: z.boolean().optional(),
   deleted: z.boolean().optional(),
   updated: transforms.fromNumber.toDateNullable.optional(),
 });
@@ -562,6 +633,8 @@ export const colonelUserMutationRecordSchema = z.object({
 /** Shared `details` ack: `changed` present on toggles, absent on purge. */
 export const colonelUserMutationDetailsSchema = z.object({
   changed: z.boolean().optional(),
+  /** Suspend only: how many readable sessions the sweep revoked. */
+  sessions_revoked: z.number().optional(),
   message: z.string(),
 });
 
@@ -570,6 +643,8 @@ export type ColonelUserDetailSecret = z.infer<typeof colonelUserDetailSecretSche
 export type ColonelUserDetailReceipt = z.infer<typeof colonelUserDetailReceiptSchema>;
 export type ColonelUserDetailOrganization = z.infer<typeof colonelUserDetailOrganizationSchema>;
 export type ColonelUserDetailStats = z.infer<typeof colonelUserDetailStatsSchema>;
+export type ColonelUserBillingStripe = z.infer<typeof colonelUserBillingStripeSchema>;
+export type ColonelUserBilling = z.infer<typeof colonelUserBillingSchema>;
 export type ColonelUserDetails = z.infer<typeof colonelUserDetailsSchema>;
 export type ColonelUserMutationRecord = z.infer<typeof colonelUserMutationRecordSchema>;
 export type ColonelUserMutationDetails = z.infer<typeof colonelUserMutationDetailsSchema>;
