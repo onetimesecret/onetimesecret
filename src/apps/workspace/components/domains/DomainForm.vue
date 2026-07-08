@@ -62,6 +62,12 @@
   // Only paint the field red for a real hostname problem, never for empty.
   const inputValid = computed<boolean | null>(() => (showError.value ? false : null));
 
+  // The input is always described by the help text; when an inline error is
+  // showing, add the error element so screen readers announce it too.
+  const describedby = computed(() =>
+    showEmptyError.value || showError.value ? 'domain-help domain-error' : 'domain-help'
+  );
+
   const placeholderText = computed(
     () => `${t('web.COMMON.e_g_example')} ${t('web.domains.secrets_example_dot_com')}`
   );
@@ -95,9 +101,11 @@
       // request-schema guard the API uses before we emit.
       const validated = addDomainRequestSchema.parse({ domain: host });
       emit('submit', validated.domain);
-    } catch {
+    } catch (err) {
       // A valid analysis always satisfies the schema; if it somehow doesn't we
-      // simply don't emit rather than sending a bad domain upstream.
+      // simply don't emit rather than sending a bad domain upstream. Surface it
+      // in development so the divergence is debuggable.
+      if (import.meta.env.DEV) console.error('[DomainForm] unexpected schema rejection', err);
     }
   };
 </script>
@@ -110,7 +118,7 @@
       class="space-y-6">
       <!-- Step rail: reflects the real Add › Verify › Brand flow -->
       <nav
-        :aria-label="t('web.domains.add.step_add')"
+        :aria-label="t('web.domains.add.step_rail_label')"
         class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
         <span class="font-medium text-brand-600 dark:text-brand-400">
           1 {{ t('web.domains.add.step_add') }}
@@ -140,9 +148,8 @@
           :model-value="raw"
           @update:model-value="onInput"
           :is-valid="inputValid"
-          describedby="domain-help"
+          :describedby="describedby"
           autofocus
-          required
           data-testid="domain-input"
           :placeholder="placeholderText"
           class="dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
@@ -268,13 +275,15 @@
       <!-- Inline error: empty submit keeps the original copy; otherwise hostname guidance -->
       <p
         v-if="showEmptyError"
+        id="domain-error"
         role="alert"
         data-testid="domain-error"
         class="text-sm text-red-600 dark:text-red-400">
-        {{ t('web.domains.please_enter_a_domain_name', ['']) }}
+        {{ t('web.domains.add.error_empty') }}
       </p>
       <p
         v-else-if="showError"
+        id="domain-error"
         role="alert"
         data-testid="domain-error"
         class="text-sm text-red-600 dark:text-red-400">

@@ -2,22 +2,32 @@
 
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';
+import { onMounted, ref } from 'vue';
 
 // Define the props expected from the parent. The visible <label> now lives in
 // the parent (DomainForm) so there is exactly one label bound to #domain; the
 // describing help/error element id is passed in via `describedby`.
-defineProps<{
+const props = defineProps<{
   modelValue: string;
   placeholder: string;
   isValid: boolean | null;
   /** id of the element(s) that describe this input (help/error text). */
   describedby?: string;
+  /** Focus the input on mount. Applied to the real <input>, not the wrapper. */
+  autofocus?: boolean;
 }>();
 
 // Define the emits to notify the parent of updates
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void;
 }>();
+
+// A template ref so `autofocus` reliably lands on the input in an SPA — the
+// native attribute only fires on a full page load, not on component mount.
+const inputEl = ref<HTMLInputElement | null>(null);
+onMounted(() => {
+  if (props.autofocus) inputEl.value?.focus();
+});
 
 // Handle the input event and emit the updated value
 const onInput = (event: Event) => {
@@ -30,6 +40,7 @@ const onInput = (event: Event) => {
   <div>
     <div class="relative mt-2 rounded-md shadow-sm">
       <input
+        ref="inputEl"
         type="text"
         name="domain"
         id="domain"

@@ -4,7 +4,7 @@ import { analyzeDomain } from '@/utils/parse/domain';
 import { describe, expect, it } from 'vitest';
 
 /**
- * pnpm exec vitest run tests/unit/vue/utils/parse/domain.spec.ts
+ * pnpm exec vitest run src/tests/utils/parse/domain.spec.ts
  *
  */
 
@@ -73,6 +73,9 @@ describe('analyzeDomain', () => {
       expect(result.apex).toBe(true);
       expect(result.registrable).toBe('acme.com');
       expect(result.subdomain).toBe('');
+      // `full` preserves what was typed even though it is treated as apex — the
+      // form uses `registrable` (or the chosen subdomain) to build the host.
+      expect(result.full).toBe('www.acme.com');
     });
 
     it('treats a multi-part-suffix registrable as apex', () => {
@@ -102,6 +105,30 @@ describe('analyzeDomain', () => {
 
     it('rejects a bare multi-part suffix', () => {
       const result = analyzeDomain('co.uk');
+      expect(result.valid).toBe(false);
+      expect(result.reason).toBe('suffix');
+    });
+  });
+
+  describe('alignment with addDomainRequestSchema', () => {
+    it('accepts an underscore in an interior label (schema allows "_")', () => {
+      const result = analyzeDomain('my_app.acme.com');
+      expect(result.valid).toBe(true);
+      expect(result.apex).toBe(false);
+      expect(result.subdomain).toBe('my_app');
+      expect(result.registrable).toBe('acme.com');
+    });
+
+    it('accepts a punycode TLD (xn--p1ai)', () => {
+      const result = analyzeDomain('acme.xn--p1ai');
+      expect(result.valid).toBe(true);
+      expect(result.apex).toBe(true);
+      expect(result.registrable).toBe('acme.xn--p1ai');
+      expect(result.tld).toBe('xn--p1ai');
+    });
+
+    it('still rejects a purely-numeric last label', () => {
+      const result = analyzeDomain('acme.123');
       expect(result.valid).toBe(false);
       expect(result.reason).toBe('suffix');
     });

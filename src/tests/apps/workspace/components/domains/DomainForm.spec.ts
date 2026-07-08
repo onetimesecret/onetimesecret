@@ -28,11 +28,12 @@ vi.mock('@/apps/workspace/components/domains/DomainInput.vue', () => ({
           data-testid="domain-input-field"
           :value="modelValue"
           @input="$emit('update:modelValue', $event.target.value)"
+          :aria-describedby="describedby"
           :placeholder="placeholder"
         />
       </div>
     `,
-    props: ['modelValue', 'placeholder', 'isValid', 'describedby', 'autofocus', 'required'],
+    props: ['modelValue', 'placeholder', 'isValid', 'describedby', 'autofocus'],
     emits: ['update:modelValue'],
   },
 }));
@@ -301,6 +302,20 @@ describe('DomainForm', () => {
       expect(wrapper.emitted('submit')![0]).toEqual(['links.acme.co.uk']);
     });
 
+    it('treats www.<registrable> as apex and emits the bare registrable for root', async () => {
+      wrapper = mountComponent();
+
+      // www is collapsed to apex, so the address chooser (not the echo) shows.
+      await typeDomain(wrapper, 'www.acme.com');
+      expect(wrapper.find('[data-testid="domain-apex-cards"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="domain-echo"]').exists()).toBe(false);
+
+      await chooseAddress(wrapper, 'root');
+      await submitForm(wrapper);
+
+      expect(wrapper.emitted('submit')![0]).toEqual(['acme.com']);
+    });
+
     it('resets a pending choice when the input changes', async () => {
       wrapper = mountComponent();
 
@@ -381,6 +396,29 @@ describe('DomainForm', () => {
 
       const error = wrapper.find('[data-testid="domain-error"]');
       expect(error.attributes('role')).toBe('alert');
+    });
+
+    it('error block carries id="domain-error" so it can be referenced', async () => {
+      wrapper = mountComponent();
+
+      await typeDomain(wrapper, 'example.c');
+      await submitForm(wrapper);
+
+      const error = wrapper.find('[data-testid="domain-error"]');
+      expect(error.attributes('id')).toBe('domain-error');
+    });
+
+    it('describes the input by help only until an error, then adds the error id', async () => {
+      wrapper = mountComponent();
+      const field = () => wrapper.find('[data-testid="domain-input-field"]');
+
+      // Baseline: only the help text describes the field.
+      expect(field().attributes('aria-describedby')).toBe('domain-help');
+
+      // After a failed submit the error id is appended for assistive tech.
+      await typeDomain(wrapper, 'example.c');
+      await submitForm(wrapper);
+      expect(field().attributes('aria-describedby')).toBe('domain-help domain-error');
     });
   });
 });

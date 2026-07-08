@@ -123,9 +123,11 @@ export function analyzeDomain(raw: string): DomainAnalysis {
     };
   }
 
-  // Basic hostname shape: dot-separated labels of [a-z0-9-], not starting or
-  // ending with a hyphen, with at least two labels.
-  const okChars = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/;
+  // Basic hostname shape: dot-separated labels of [a-z0-9_-], not starting or
+  // ending with a hyphen/underscore, with at least two labels. Underscores are
+  // permitted in interior positions to stay aligned with `addDomainRequestSchema`
+  // (which accepts `_`) so this guidance never hard-blocks a schema-valid value.
+  const okChars = /^[a-z0-9]([a-z0-9_-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9_-]*[a-z0-9])?)+$/;
   if (!okChars.test(full)) {
     return {
       empty: false,
@@ -141,7 +143,11 @@ export function analyzeDomain(raw: string): DomainAnalysis {
 
   const labels = full.split('.');
   const last = labels[labels.length - 1];
-  const listed = /^[a-z]{2,}$/.test(last); // TLD label must be alphabetic, length >= 2
+  // The public suffix's last label must be at least two chars and carry a
+  // letter. This accepts punycode TLDs (e.g. "xn--p1ai") and any letter-bearing
+  // gTLD while still rejecting a single-char TLD ("example.c") and a purely
+  // numeric last label (an IPv4-looking "1.2").
+  const listed = last.length >= 2 && /[a-z]/.test(last);
 
   const last2 = labels.slice(-2).join('.');
   const nTld = MULTI_PART_SUFFIXES.has(last2) ? 2 : 1;

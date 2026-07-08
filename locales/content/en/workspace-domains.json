@@ -163,6 +163,14 @@
     "text": "Enter a valid hostname — letters, numbers, single dots and dashes (e.g. {0}).",
     "content_hash": "c4ceabc1"
   },
+  "web.domains.add.error_empty": {
+    "text": "Please enter a domain name.",
+    "content_hash": "d8e2c1e4"
+  },
+  "web.domains.add.step_rail_label": {
+    "text": "Domain setup steps",
+    "content_hash": "2497889d"
+  },
   "web.domains.add.step_add": {
     "text": "Add",
     "content_hash": "9fd728c6"
