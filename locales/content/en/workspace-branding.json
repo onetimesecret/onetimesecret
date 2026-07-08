@@ -23,6 +23,30 @@
     "text": "Brand Color",
     "content_hash": "db3183e3"
   },
+  "web.branding.secondary_color": {
+    "text": "Secondary Color",
+    "content_hash": "1f4728f6"
+  },
+  "web.branding.background_color": {
+    "text": "Background Color",
+    "content_hash": "b48bc969"
+  },
+  "web.branding.text_color": {
+    "text": "Text Color",
+    "content_hash": "2ea23234"
+  },
+  "web.branding.border_radius": {
+    "text": "Border Radius",
+    "content_hash": "e758d7db"
+  },
+  "web.branding.heading_font": {
+    "text": "Heading Font",
+    "content_hash": "6b5d30dc"
+  },
+  "web.branding.theme_presets": {
+    "text": "Theme Presets",
+    "content_hash": "931eeb74"
+  },
   "web.branding.preview_of_the_secret_link_page_for_recipients": {
     "text": "Preview of recipient's view when accessing your secure link",
     "content_hash": "199c165f"
@@ -154,6 +178,10 @@
   "web.branding.low_contrast_warning": {
     "text": "Low contrast",
     "content_hash": "2d6e7516"
+  },
+  "web.branding.low_contrast_text_bg_warning": {
+    "text": "Low text/background contrast",
+    "content_hash": "1c676370"
   },
   "web.branding.contrast_ratio_label": {
     "text": "Contrast ratio",

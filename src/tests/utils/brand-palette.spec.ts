@@ -10,6 +10,7 @@ import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_BRAND_PALETTE,
   generateBrandPalette,
+  generateNamedScale,
   hexToOklch,
   oklchToHex,
   isValidHex,
@@ -210,6 +211,37 @@ describe('brand-palette', () => {
   describe('DEFAULT_BRAND_PALETTE', () => {
     it('is pre-computed with 44 entries', () => {
       expect(Object.keys(DEFAULT_BRAND_PALETTE)).toHaveLength(TOTAL_KEYS);
+    });
+  });
+
+  describe('generateNamedScale', () => {
+    it('emits exactly 11 keys under the given prefix', () => {
+      const scale = generateNamedScale('#0EA5E9', 'brand2');
+      expect(Object.keys(scale)).toHaveLength(SHADE_STEPS.length);
+      for (const step of SHADE_STEPS) {
+        expect(scale).toHaveProperty(`--color-brand2-${step}`);
+      }
+    });
+
+    it('produces valid hex values for every shade', () => {
+      const scale = generateNamedScale('#DB2777', 'accent');
+      for (const value of Object.values(scale)) {
+        expect(value).toMatch(/^#[0-9a-f]{6}$/i);
+      }
+    });
+
+    it('falls back to the neutral seed for invalid input', () => {
+      const scale = generateNamedScale('not-a-hex', 'brand2');
+      expect(Object.keys(scale)).toHaveLength(SHADE_STEPS.length);
+      // Shade 500 should equal the neutral fallback's brand-500.
+      const neutral = generateBrandPalette(null);
+      expect(scale['--color-brand2-500']).toBe(neutral['--color-brand-500']);
+    });
+
+    it('varies the scale with the seed color', () => {
+      const a = generateNamedScale('#DB2777', 'x');
+      const b = generateNamedScale('#0EA5E9', 'x');
+      expect(a['--color-x-500']).not.toBe(b['--color-x-500']);
     });
   });
 

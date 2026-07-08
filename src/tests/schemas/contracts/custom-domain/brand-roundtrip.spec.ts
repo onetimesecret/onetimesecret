@@ -280,7 +280,18 @@ describe('FontFamily enum', () => {
   });
 
   it('exposes the expected canonical value set', () => {
-    expect([...fontFamilyValues].sort()).toEqual(['mono', 'sans', 'serif']);
+    // Expanded curated allowlist (#3646): original sans/serif/mono plus
+    // self-hosted (slab) and system font stacks.
+    expect([...fontFamilyValues].sort()).toEqual([
+      'geometric',
+      'humanist',
+      'mono',
+      'rounded',
+      'sans',
+      'serif',
+      'slab',
+      'system',
+    ]);
   });
 });
 

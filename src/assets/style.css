@@ -96,6 +96,49 @@
   --color-brandcompdim-900: #65250d;
   --color-brandcompdim-950: #3a1306;
 
+  /*
+   * Expanded brand vocabulary (#3646). useBrandTheme injects per-domain
+   * overrides for each of these; the neutral defaults below keep every
+   * bg-brand2-* / bg-brandbg / text-brandtext / rounded-brand utility
+   * resolving even before (or without) any per-domain branding.
+   *
+   * Wiring note: these tokens are injected but not yet rendered by any view.
+   * Consume them with the matching utility in a branded/* component — e.g.
+   * `bg-brand2-500`, `bg-brandbg`, `text-brandtext`, `rounded-brand`. See the
+   * "WIRING" block in useBrandTheme.ts for the full last-mile checklist.
+   */
+
+  /* Secondary brand color scale (neutral slate default) - 11 shades */
+  --color-brand2-50: #f8fafc;
+  --color-brand2-100: #f1f5f9;
+  --color-brand2-200: #e2e8f0;
+  --color-brand2-300: #cbd5e1;
+  --color-brand2-400: #94a3b8;
+  --color-brand2-500: #64748b;
+  --color-brand2-600: #475569;
+  --color-brand2-700: #334155;
+  --color-brand2-800: #1e293b;
+  --color-brand2-900: #0f172a;
+  --color-brand2-950: #020617;
+
+  /* Surface (background) and body-text (ink) single tokens */
+  --color-brandbg: #ffffff;
+  --color-brandtext: #1f2937;
+
+  /* Brand border radius token (default = "md" preset, 0.5rem) */
+  --radius-brand: 0.5rem;
+
+  /*
+   * Curated font-family tokens for the expanded font allowlist. sans/serif/mono
+   * reuse Tailwind's built-ins; these five back the font-brand-* utilities
+   * (see fontFamilyStacks / fontFamilyClasses in brand-helpers.ts).
+   */
+  --font-brand-system: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-brand-slab: 'Zilla Slab', ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-brand-rounded: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Nunito", system-ui, sans-serif;
+  --font-brand-humanist: "Segoe UI", "Helvetica Neue", "Optima", Candara, Calibri, system-ui, sans-serif;
+  --font-brand-geometric: "Avenir Next", Avenir, "Century Gothic", "Futura", system-ui, sans-serif;
+
   /* Custom animations */
   --animate-gradient-x: gradient-x 5s ease-in-out infinite;
 }

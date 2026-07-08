@@ -25,13 +25,13 @@ require 'onetime/models/custom_domain'
 @bs.ancestors.include?(Data)
 #=> true
 
-## BrandSettings defines all 20 expected members
+## BrandSettings defines all 25 expected members
 @bs.members.sort
-#=> [:button_text_light, :corner_style, :default_ttl, :description, :favicon_url, :font_family, :footer_text, :instructions_post_reveal, :instructions_pre_reveal, :instructions_reveal, :locale, :logo, :logo_dark_url, :logo_url, :notify_enabled, :passphrase_required, :primary_color, :product_domain, :product_name, :support_email]
+#=> [:background_color, :border_radius, :button_text_light, :corner_style, :default_ttl, :description, :favicon_url, :font_family, :footer_text, :heading_font, :instructions_post_reveal, :instructions_pre_reveal, :instructions_reveal, :locale, :logo, :logo_dark_url, :logo_url, :notify_enabled, :passphrase_required, :primary_color, :product_domain, :product_name, :secondary_color, :support_email, :text_color]
 
-## BrandSettings has exactly 20 members
+## BrandSettings has exactly 25 members
 @bs.members.size
-#=> 20
+#=> 25
 
 ## [forward] from_hash creates instance with new product_name field
 @settings = @bs.from_hash({})
@@ -139,13 +139,17 @@ end
 @bs::DEFAULTS.frozen?
 #=> true
 
-## FONTS constant unchanged
+## FONTS constant is the expanded curated allowlist (#3646)
 @bs::FONTS
-#=> ['sans', 'serif', 'mono']
+#=> ['sans', 'serif', 'mono', 'system', 'slab', 'rounded', 'humanist', 'geometric']
 
 ## CORNERS constant unchanged
 @bs::CORNERS
 #=> ['rounded', 'square', 'pill']
+
+## RADII constant lists the border-radius presets (#3646)
+@bs::RADII
+#=> ['none', 'sm', 'md', 'lg', 'xl', 'full']
 
 ## Pattern matching works with new fields
 @pattern = @bs.from_hash(product_name: 'Acme')

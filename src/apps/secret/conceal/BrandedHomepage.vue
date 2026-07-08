@@ -1,14 +1,14 @@
 <!-- src/apps/secret/conceal/BrandedHomepage.vue -->
 
 <script setup lang="ts">
-  import { computed, ref, watch } from 'vue';
-  import { useI18n } from 'vue-i18n';
-  import { storeToRefs } from 'pinia';
   import SecretForm from '@/apps/secret/components/form/SecretForm.vue';
   import IncomingSecretFormBody from '@/apps/secret/components/incoming/IncomingSecretFormBody.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import { useIncomingStore } from '@/shared/stores/incomingStore';
   import { useProductIdentity } from '@/shared/stores/identityStore';
+  import { useIncomingStore } from '@/shared/stores/incomingStore';
+  import { storeToRefs } from 'pinia';
+  import { computed, ref, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
 
@@ -183,20 +183,16 @@
       <div
         class="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:shadow-none">
         <!-- Brand accent line -->
-        <div
-          class="absolute inset-x-0 top-0 h-1"
-          :style="{ backgroundColor: primaryColor }"></div>
+        <div class="absolute inset-x-0 top-0 h-1 bg-brand-500"></div>
 
         <!-- Status indicator -->
         <div class="mb-6 flex items-center gap-3">
           <div
-            class="flex size-10 items-center justify-center rounded-full"
-            :style="{ backgroundColor: `${primaryColor}20` }">
+            class="flex size-10 items-center justify-center rounded-full bg-brand-500/10">
             <OIcon
               collection="heroicons"
               name="shield-check"
-              class="size-5"
-              :style="{ color: primaryColor }" />
+              class="size-5 text-brand-500" />
           </div>
           <div>
             <p class="text-sm font-medium text-gray-900 dark:text-white/90">
