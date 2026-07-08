@@ -51,14 +51,12 @@ type MockOrg = typeof mockOrganization;
 const storeState = { organizations: [] as MockOrg[] };
 const mockFetchOrganizations = vi.fn();
 const mockFetchOrganization = vi.fn();
-const mockFetchEntitlements = vi.fn();
 
 vi.mock('@/shared/stores/organizationStore', () => ({
   useOrganizationStore: () => ({
     get organizations() { return storeState.organizations; },
     fetchOrganizations: mockFetchOrganizations,
     fetchOrganization: mockFetchOrganization,
-    fetchEntitlements: mockFetchEntitlements,
   }),
 }));
 
@@ -107,7 +105,6 @@ describe('BillingOverview', () => {
     storeState.organizations = [];
     mockEntitlements.value = [];
     mockInitDefinitions.mockResolvedValue(undefined);
-    mockFetchEntitlements.mockResolvedValue(undefined);
     mockGetOverview.mockResolvedValue(defaultOverviewResponse);
   });
 
@@ -174,7 +171,6 @@ describe('BillingOverview', () => {
       let resolveOverview: (value: ReturnType<typeof createMockOverviewResponse>) => void;
       storeState.organizations = [mockOrganization];
       mockFetchOrganization.mockResolvedValue(mockOrganization);
-      mockFetchEntitlements.mockResolvedValue(undefined);
       mockGetOverview.mockImplementationOnce(() => new Promise(r => { resolveOverview = r; }));
 
       wrapper = mount(BillingOverview, {
