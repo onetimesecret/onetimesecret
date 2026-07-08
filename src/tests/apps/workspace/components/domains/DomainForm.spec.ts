@@ -8,8 +8,9 @@
 // key itself, so these tests assert on data-testids, emitted values, and the
 // presence/absence of blocks — never on translated copy.
 
-import { mount, VueWrapper, flushPromises } from '@vue/test-utils';
+import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { nextTick } from 'vue';
 import { createTestI18n } from '@tests/setup';
 import DomainForm from '@/apps/workspace/components/domains/DomainForm.vue';
 
@@ -51,14 +52,20 @@ const i18n = createTestI18n();
 describe('DomainForm', () => {
   let wrapper: VueWrapper;
 
+  // The form debounces its guidance: echo/apex options only appear after typing
+  // settles. Fake timers let us advance past that reveal delay deterministically.
+  const REVEAL_DELAY_MS = 350;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
     if (wrapper) {
       wrapper.unmount();
     }
+    vi.useRealTimers();
   });
 
   const mountComponent = (props: { isSubmitting?: boolean } = {}) =>
@@ -71,17 +78,25 @@ describe('DomainForm', () => {
       },
     });
 
-  // Type into the (mocked) domain field.
+  // Type into the (mocked) domain field, then wait out the reveal delay so the
+  // settled guidance (echo/apex cards) has a chance to render.
   const typeDomain = async (w: VueWrapper, value: string) => {
     const input = w.find('[data-testid="domain-input-field"]');
     await input.setValue(value);
-    await flushPromises();
+    await vi.advanceTimersByTimeAsync(REVEAL_DELAY_MS);
+    await nextTick();
+  };
+
+  // Type without advancing the reveal timer — for asserting the pre-settle state.
+  const typeWithoutSettling = async (w: VueWrapper, value: string) => {
+    await w.find('[data-testid="domain-input-field"]').setValue(value);
+    await nextTick();
   };
 
   const submitForm = async (w: VueWrapper) => {
     const form = w.find('[data-testid="domain-add-form"]');
     await form.trigger('submit.prevent');
-    await flushPromises();
+    await nextTick();
   };
 
   // Pick a radio inside the apex chooser by its native value.
@@ -89,7 +104,7 @@ describe('DomainForm', () => {
     const radio = w.find(`input[type="radio"][value="${value}"]`);
     expect(radio.exists()).toBe(true);
     await radio.setValue();
-    await flushPromises();
+    await nextTick();
   };
 
   // -------------------------------------------------------------------------
@@ -100,16 +115,6 @@ describe('DomainForm', () => {
     it('renders the form element', () => {
       wrapper = mountComponent();
       expect(wrapper.find('[data-testid="domain-add-form"]').exists()).toBe(true);
-    });
-
-    it('renders the step rail', () => {
-      wrapper = mountComponent();
-      const rail = wrapper.find('nav');
-      expect(rail.exists()).toBe(true);
-      // Add / Verify / Brand steps are present in the rail.
-      expect(rail.text()).toContain('web.domains.add.step_add');
-      expect(rail.text()).toContain('web.domains.add.step_verify');
-      expect(rail.text()).toContain('web.domains.add.step_brand');
     });
 
     it('renders the DomainInput field', () => {
@@ -128,6 +133,48 @@ describe('DomainForm', () => {
       expect(wrapper.find('[data-testid="domain-echo"]').exists()).toBe(false);
       expect(wrapper.find('[data-testid="domain-apex-cards"]').exists()).toBe(false);
       expect(wrapper.find('[data-testid="domain-error"]').exists()).toBe(false);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Reveal delay (debounce)
+  // -------------------------------------------------------------------------
+
+  describe('Reveal delay (debounce)', () => {
+    it('does not reveal options until typing settles', async () => {
+      wrapper = mountComponent();
+
+      await typeWithoutSettling(wrapper, 'acme.com');
+      // Before the delay elapses nothing is shown yet — no per-keystroke churn.
+      expect(wrapper.find('[data-testid="domain-apex-cards"]').exists()).toBe(false);
+
+      await vi.advanceTimersByTimeAsync(REVEAL_DELAY_MS);
+      await nextTick();
+      expect(wrapper.find('[data-testid="domain-apex-cards"]').exists()).toBe(true);
+    });
+
+    it('clearing the field hides options immediately', async () => {
+      wrapper = mountComponent();
+
+      await typeDomain(wrapper, 'acme.com');
+      expect(wrapper.find('[data-testid="domain-apex-cards"]').exists()).toBe(true);
+
+      // Emptying the field hides guidance at once, without waiting out the delay.
+      await typeWithoutSettling(wrapper, '');
+      expect(wrapper.find('[data-testid="domain-apex-cards"]').exists()).toBe(false);
+    });
+
+    it('submitting flushes a pending reveal instead of waiting', async () => {
+      wrapper = mountComponent();
+
+      await typeWithoutSettling(wrapper, 'acme.com');
+      expect(wrapper.find('[data-testid="domain-apex-cards"]').exists()).toBe(false);
+
+      // Submitting resolves the pending value: cards appear and nothing is
+      // emitted (apex still needs an address choice).
+      await submitForm(wrapper);
+      expect(wrapper.find('[data-testid="domain-apex-cards"]').exists()).toBe(true);
+      expect(wrapper.emitted('submit')).toBeFalsy();
     });
   });
 

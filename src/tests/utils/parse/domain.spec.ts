@@ -108,6 +108,30 @@ describe('analyzeDomain', () => {
       expect(result.valid).toBe(false);
       expect(result.reason).toBe('suffix');
     });
+
+    it('rejects a made-up TLD that is not in the public suffix list', () => {
+      // Regression: ".afb" is not a real TLD, and the server rejects it too
+      // (PublicSuffix default_rule: nil), so the form must not show apex cards.
+      const result = analyzeDomain('local-secrets2.afb');
+      expect(result.valid).toBe(false);
+      expect(result.apex).toBe(false);
+      expect(result.reason).toBe('suffix');
+      expect(result.tld).toBe('afb');
+    });
+
+    it('rejects a common TLD typo (.con)', () => {
+      const result = analyzeDomain('acme.con');
+      expect(result.valid).toBe(false);
+      expect(result.reason).toBe('suffix');
+      expect(result.tld).toBe('con');
+    });
+
+    it('accepts a real but less-common TLD (.travel)', () => {
+      const result = analyzeDomain('acme.travel');
+      expect(result.valid).toBe(true);
+      expect(result.apex).toBe(true);
+      expect(result.tld).toBe('travel');
+    });
   });
 
   describe('alignment with addDomainRequestSchema', () => {

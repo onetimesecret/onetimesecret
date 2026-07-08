@@ -4,10 +4,14 @@
  * Client-side domain-parsing guidance utility.
  *
  * Decides whether a typed hostname is a subdomain, an apex (registrable)
- * domain, or invalid. This is a pure, dependency-free heuristic used only to
- * guide the UX — the server (Ruby PublicSuffix) remains the authoritative
- * validator. Intentionally does NOT pull in `psl` or any npm package.
+ * domain, or invalid. This is pure and dependency-free — it uses a bundled
+ * snapshot of the Public Suffix List (see ./tlds) rather than pulling in `psl`
+ * or any npm package. The server (Ruby PublicSuffix) remains the authoritative
+ * validator; this only guides the UX so the form's apex/subdomain/invalid
+ * verdict lines up with what the API will accept.
  */
+
+import { TLDS } from './tlds';
 
 /**
  * Curated set of common two-level ICANN public suffixes.
@@ -102,69 +106,61 @@ function clean(raw: string): string {
     .replace(/\.$/, '');
 }
 
+/** Result for an empty (blank/whitespace-only) input. */
+function emptyResult(): DomainAnalysis {
+  return {
+    empty: true, valid: false, apex: false,
+    registrable: '', subdomain: '', full: '', reason: null, tld: '',
+  };
+}
+
+/** Result for a non-empty input we cannot use, tagged with why. */
+function invalidResult(full: string, reason: 'malformed' | 'suffix', tld = ''): DomainAnalysis {
+  return {
+    empty: false, valid: false, apex: false,
+    registrable: '', subdomain: '', full, reason, tld,
+  };
+}
+
 /**
  * Analyze a typed hostname into its parts (registrable domain, subdomain,
- * public suffix) with a validity verdict. Pure heuristic — see the note on
- * MULTI_PART_SUFFIXES regarding server authority.
+ * public suffix) with a validity verdict. Pure heuristic backed by the bundled
+ * PSL snapshot (TLDS + MULTI_PART_SUFFIXES); the server stays authoritative.
  */
 export function analyzeDomain(raw: string): DomainAnalysis {
   const full = clean(raw);
-
-  if (full === '') {
-    return {
-      empty: true,
-      valid: false,
-      apex: false,
-      registrable: '',
-      subdomain: '',
-      full: '',
-      reason: null,
-      tld: '',
-    };
-  }
+  if (full === '') return emptyResult();
 
   // Basic hostname shape: dot-separated labels of [a-z0-9_-], not starting or
   // ending with a hyphen/underscore, with at least two labels. Underscores are
   // permitted in interior positions to stay aligned with `addDomainRequestSchema`
   // (which accepts `_`) so this guidance never hard-blocks a schema-valid value.
   const okChars = /^[a-z0-9]([a-z0-9_-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9_-]*[a-z0-9])?)+$/;
-  if (!okChars.test(full)) {
-    return {
-      empty: false,
-      valid: false,
-      apex: false,
-      registrable: '',
-      subdomain: '',
-      full,
-      reason: 'malformed',
-      tld: '',
-    };
-  }
+  if (!okChars.test(full)) return invalidResult(full, 'malformed');
 
   const labels = full.split('.');
   const last = labels[labels.length - 1];
-  // The public suffix's last label must be at least two chars and carry a
-  // letter. This accepts punycode TLDs (e.g. "xn--p1ai") and any letter-bearing
-  // gTLD while still rejecting a single-char TLD ("example.c") and a purely
-  // numeric last label (an IPv4-looking "1.2").
-  const listed = last.length >= 2 && /[a-z]/.test(last);
-
   const last2 = labels.slice(-2).join('.');
-  const nTld = MULTI_PART_SUFFIXES.has(last2) ? 2 : 1;
-  const tld = labels.slice(-nTld).join('.');
 
-  if (!listed || labels.length <= nTld) {
-    return {
-      empty: false,
-      valid: false,
-      apex: false,
-      registrable: '',
-      subdomain: '',
-      full,
-      reason: 'suffix',
-      tld,
-    };
+  // How many trailing labels form the public suffix — and is that suffix even
+  // recognized? Check the curated two-level suffixes first (co.uk, com.au, …),
+  // then the bundled TLD list. A punycode label (xn--…) is always a valid IDN
+  // A-label, so accept it generically rather than enumerating every IDN TLD.
+  let nTld: number;
+  if (MULTI_PART_SUFFIXES.has(last2)) {
+    nTld = 2;
+  } else if (TLDS.has(last) || /^xn--/.test(last)) {
+    nTld = 1;
+  } else {
+    // Unrecognized ending — a typo like ".con" or a made-up ".afb". The server
+    // rejects these too (PublicSuffix default_rule: nil), so flag it here rather
+    // than confidently presenting apex/subdomain guidance the API will refuse.
+    return invalidResult(full, 'suffix', last);
   }
+
+  const tld = labels.slice(-nTld).join('.');
+  // A bare public suffix with nothing registrable in front (e.g. "co.uk").
+  if (labels.length <= nTld) return invalidResult(full, 'suffix', tld);
 
   const registrable = labels.slice(-(nTld + 1)).join('.');
   const subRaw =
