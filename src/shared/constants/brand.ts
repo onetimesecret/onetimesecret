@@ -116,7 +116,10 @@ export const DEFAULT_LOGO_COMPONENT = 'DefaultLogo.vue';
  *
  * Unset → the neutral `DEFAULT_LOGO_COMPONENT`.
  */
-const buildLogoComponent = import.meta.env.VITE_LOGO_COMPONENT?.trim();
+// `import.meta.env` is undefined outside Vite (e.g. the OpenAPI generator runs
+// this module under tsx), so optional-chain the whole access rather than just
+// the value — unset resolves to the neutral DEFAULT_LOGO_COMPONENT below.
+const buildLogoComponent = import.meta.env?.VITE_LOGO_COMPONENT?.trim();
 export const RESOLVED_LOGO_COMPONENT = buildLogoComponent
   ? `${buildLogoComponent.replace(/\.vue$/, '')}.vue`
   : DEFAULT_LOGO_COMPONENT;
