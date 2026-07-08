@@ -9,7 +9,7 @@ import {
   type PageMeta,
 } from '@/apps/admin/composables/usePaginatedFetch';
 import { colonelSessionsResponseSchema } from '@/schemas/api/internal/responses/colonel-sessions';
-import type { ColonelSession } from '@/schemas/api/account/responses/colonel-sessions';
+import type { ColonelSession } from '@/schemas/api/internal/responses/colonel-sessions';
 
 type ColonelSessionsResponse = z.infer<typeof colonelSessionsResponseSchema>;
 

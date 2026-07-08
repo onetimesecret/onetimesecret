@@ -3,7 +3,7 @@
 <script setup lang="ts">
   import { computed } from 'vue';
 
-  import type { ColonelTrendPoint } from '@/schemas/api/account/responses/colonel-trends';
+  import type { ColonelTrendPoint } from '@/schemas/api/internal/responses/colonel-trends';
 
   /**
    * Inline SVG sparkline for the overview trend cards (observability lane).

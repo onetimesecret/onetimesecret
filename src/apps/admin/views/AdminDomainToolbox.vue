@@ -14,12 +14,12 @@
   import type { DataTableColumn } from '@/apps/admin/components/kit';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useAdminDomainToolbox } from '@/apps/admin/stores/useAdminDomainToolbox';
-  import type { ColonelOrphanedDomain } from '@/schemas/api/account/responses/colonel-domaintoolbox';
+  import type { ColonelOrphanedDomain } from '@/schemas/api/internal/responses/colonel-domaintoolbox';
   import type {
     ColonelDomainProbeDetails,
     ColonelDomainRepairDetails,
     ColonelDomainTransferDetails,
-  } from '@/schemas/api/account/responses/colonel-domaintoolbox';
+  } from '@/schemas/api/internal/responses/colonel-domaintoolbox';
   import {
     colonelDomainProbeResponseSchema,
     colonelDomainRepairResponseSchema,

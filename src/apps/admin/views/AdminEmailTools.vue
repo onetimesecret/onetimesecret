@@ -10,7 +10,7 @@
   import type {
     ColonelEmailTemplate,
     ColonelEmailTestDetails,
-  } from '@/schemas/api/account/responses/colonel-emailtools';
+  } from '@/schemas/api/internal/responses/colonel-emailtools';
   import {
     colonelEmailTemplatesResponseSchema,
     colonelEmailPreviewResponseSchema,

@@ -5,7 +5,7 @@
   import { AdminConfirmDialog, KitPagination } from '@/apps/admin/components/kit';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useAdminDomains } from '@/apps/admin/stores/useAdminDomains';
-  import type { ColonelCustomDomain } from '@/schemas/api/account/responses/colonel';
+  import type { ColonelCustomDomain } from '@/schemas/api/internal/responses/colonel';
   import { colonelDomainVerifyResponseSchema } from '@/schemas/api/internal/responses/colonel-domains';
   import type { ColonelDomainVerifyResponse } from '@/schemas/api/internal/responses/colonel-domains';
   import CardGridSkeleton from '@/shared/components/closet/CardGridSkeleton.vue';

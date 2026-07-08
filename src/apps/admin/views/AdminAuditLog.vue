@@ -8,7 +8,7 @@
   import { DataTable, FilterBar, KitPagination } from '@/apps/admin/components/kit';
   import type { DataTableColumn, FilterConfig } from '@/apps/admin/components/kit';
   import { useAdminAuditLog } from '@/apps/admin/stores/useAdminAuditLog';
-  import type { ColonelAuditEvent } from '@/schemas/api/account/responses/colonel-audit';
+  import type { ColonelAuditEvent } from '@/schemas/api/internal/responses/colonel-audit';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { formatDisplayDateTime } from '@/utils/format';
 

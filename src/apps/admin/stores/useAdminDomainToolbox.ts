@@ -9,7 +9,7 @@ import {
   type PageMeta,
 } from '@/apps/admin/composables/usePaginatedFetch';
 import { colonelDomainsOrphanedResponseSchema } from '@/schemas/api/internal/responses/colonel-domaintoolbox';
-import type { ColonelOrphanedDomain } from '@/schemas/api/account/responses/colonel-domaintoolbox';
+import type { ColonelOrphanedDomain } from '@/schemas/api/internal/responses/colonel-domaintoolbox';
 
 type ColonelDomainsOrphanedResponse = z.infer<typeof colonelDomainsOrphanedResponseSchema>;
 

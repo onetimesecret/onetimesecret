@@ -17,7 +17,7 @@
   import type {
     ColonelDeliverabilityEvent,
     ColonelEmailSuppression,
-  } from '@/schemas/api/account/responses/colonel-deliverability';
+  } from '@/schemas/api/internal/responses/colonel-deliverability';
   import {
     colonelEmailDeliverabilityEventsResponseSchema,
     colonelEmailDeliverabilityResponseSchema,

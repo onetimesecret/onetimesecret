@@ -12,7 +12,7 @@
   import type {
     ColonelUserDetailReceipt,
     ColonelUserDetailSecret,
-  } from '@/schemas/api/account/responses/colonel';
+  } from '@/schemas/api/internal/responses/colonel';
   import {
     colonelUserDetailResponseSchema,
     colonelUserMutationResponseSchema,

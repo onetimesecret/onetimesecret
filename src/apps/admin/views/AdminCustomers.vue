@@ -9,7 +9,7 @@
   import { DataTable, FilterBar, KitPagination } from '@/apps/admin/components/kit';
   import type { DataTableColumn, FilterConfig } from '@/apps/admin/components/kit';
   import { useAdminCustomers } from '@/apps/admin/stores/useAdminCustomers';
-  import type { ColonelUser } from '@/schemas/api/account/responses/colonel';
+  import type { ColonelUser } from '@/schemas/api/internal/responses/colonel';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { formatDisplayDateTime } from '@/utils/format';
 

@@ -4,7 +4,7 @@ import {
   usePaginatedFetch,
   type PageMeta,
 } from '@/apps/admin/composables/usePaginatedFetch';
-import type { ColonelCustomDomain } from '@/schemas/api/account/responses/colonel';
+import type { ColonelCustomDomain } from '@/schemas/api/internal/responses/colonel';
 import { colonelCustomDomainsResponseSchema } from '@/schemas/api/internal/responses/colonel';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';

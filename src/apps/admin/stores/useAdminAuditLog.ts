@@ -9,7 +9,7 @@ import {
   type PageMeta,
 } from '@/apps/admin/composables/usePaginatedFetch';
 import { colonelAuditEventsResponseSchema } from '@/schemas/api/internal/responses/colonel-audit';
-import type { ColonelAuditEvent } from '@/schemas/api/account/responses/colonel-audit';
+import type { ColonelAuditEvent } from '@/schemas/api/internal/responses/colonel-audit';
 
 type ColonelAuditEventsResponse = z.infer<typeof colonelAuditEventsResponseSchema>;
 

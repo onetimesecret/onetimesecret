@@ -7,7 +7,7 @@
   import TrendSparkline from '@/apps/admin/components/TrendSparkline.vue';
   import { StatCard } from '@/apps/admin/components/kit';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
-  import type { ColonelTrendPoint } from '@/schemas/api/account/responses/colonel-trends';
+  import type { ColonelTrendPoint } from '@/schemas/api/internal/responses/colonel-trends';
   import {
     colonelInfoResponseSchema,
     colonelStatsResponseSchema,

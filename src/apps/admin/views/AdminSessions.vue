@@ -17,7 +17,7 @@
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
   import { useAdminSessions } from '@/apps/admin/stores/useAdminSessions';
-  import type { ColonelSession } from '@/schemas/api/account/responses/colonel-sessions';
+  import type { ColonelSession } from '@/schemas/api/internal/responses/colonel-sessions';
   import {
     colonelSessionDetailResponseSchema,
     colonelSessionDeleteResponseSchema,
