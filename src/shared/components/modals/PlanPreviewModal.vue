@@ -111,12 +111,25 @@ const actualPlanName = computed(() => {
  * the banner fields (`entitlement_preview_planid` / `_plan_name`), and
  * fetchOrganizations() reloads the org records whose entitlements/limits
  * `useEntitlements` gates features on.
+ *
+ * fetchOrganizations() refreshes the `organizations` list but not
+ * `currentOrganization`, which is the ref most feature gating passes to
+ * useEntitlements(). Re-point it at the refreshed record (matched by objid)
+ * so gating reflects the preview flip instead of the pre-flip entitlements.
  */
 const syncPreviewState = async () => {
-  await Promise.all([
+  const [, refreshedOrgs] = await Promise.all([
     bootstrapStore.refresh(),
     organizationStore.fetchOrganizations(),
   ]);
+
+  const currentObjid = organizationStore.currentOrganization?.objid;
+  if (currentObjid) {
+    const refreshed = refreshedOrgs.find((o) => o.objid === currentObjid);
+    if (refreshed) {
+      organizationStore.setCurrentOrganization(refreshed);
+    }
+  }
 };
 
 const handleActivateTestMode = async (planId: string) => {

@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'set' # FakeSet uses Set.new; not guaranteed to be required by load order
 
 require_relative '../../../../../lib/onetime/models/organization/features/with_materialized_entitlements'
 
