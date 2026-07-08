@@ -44,8 +44,8 @@
     "content_hash": "51fac985"
   },
   "web.admin.emailtools.test.toPlaceholder": {
-    "text": "you@example.com",
-    "content_hash": "53e6cdc3"
+    "text": "you{'@'}example.com",
+    "content_hash": "cf0a9acc"
   },
   "web.admin.emailtools.test.enqueueLabel": {
     "text": "Via worker queue",

@@ -104,7 +104,19 @@ counts = JSON.parse(last_response.body)['details']['counts']
 [counts['emails_sent'] == @live_emails, counts['emails_sent'].positive?]
 #=> [true, true]
 
+## session_count reflects real session keys, not a hardcoded 0 (QA 2026-07-07)
+@session_key = "session:stats_try_#{@timestamp}"
+Familia.dbclient.set(@session_key, JSON.generate({ 'authenticated' => true }))
+get '/api/colonel/stats', {}, { 'rack.session' => @colonel_session, 'HTTP_ACCEPT' => 'application/json' }
+counts = JSON.parse(last_response.body)['details']['counts']
+[counts['session_count'].is_a?(Integer), counts['session_count'].positive?]
+#=> [true, true]
+
 ## the counts block still exposes the full expected key set
 get '/api/colonel/stats', {}, { 'rack.session' => @colonel_session, 'HTTP_ACCEPT' => 'application/json' }
 JSON.parse(last_response.body)['details']['counts'].keys.sort
 #=> ["customer_count", "emails_sent", "receipt_count", "secret_count", "secrets_created", "secrets_shared", "session_count"]
+
+# TEARDOWN
+
+Familia.dbclient.del(@session_key)

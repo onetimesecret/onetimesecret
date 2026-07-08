@@ -354,11 +354,16 @@
             class="mb-1 block text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
             {{ t('web.admin.banner.set.ttlLabel') }}
           </label>
+          <!-- max: one year in seconds. The backend accepts any positive TTL;
+               the explicit bound exists so the spinbutton exposes a real
+               aria-valuemax (a11y: an unbounded number input reports
+               valuemax=0, which checkers flag as an invalid 0..0 range). -->
           <input
             id="banner-ttl-input"
             v-model="formTtl"
             type="number"
             min="0"
+            max="31536000"
             inputmode="numeric"
             data-testid="banner-ttl-input"
             :placeholder="t('web.admin.banner.set.ttlPlaceholder')"

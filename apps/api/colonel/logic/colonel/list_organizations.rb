@@ -71,7 +71,10 @@ module ColonelAPI
             org_id: org.objid,
             extid: org.extid,
             display_name: org.display_name,
-            contact_email: org.contact_email,
+            # Masked like owner_email below — the listing needs a recognizable
+            # identifier, not a raw address (QA 2026-07-07: contact_email was
+            # the one email in this payload returned unmasked).
+            contact_email: OT::Utils.obscure_email(org.contact_email),
             owner_id: org.owner_id,
             owner_email: owner&.obscure_email,
             member_count: org.member_count,

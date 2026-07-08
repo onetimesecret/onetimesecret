@@ -68,7 +68,7 @@ module ColonelAPI
         # count must equal the items shown (`details.secrets.count == items.size`).
         # Sourcing it from `secrets_active` would surface a visible count/items
         # mismatch because that counter drifts UP between nightly reconciliations
-        # (no expiry/burn decrement — see Customer::Features::CounterFields). This
+        # (no TTL-expiry decrement — see Customer::Features::CounterFields). This
         # is a bounded, non-blocking cursor SCAN (COUNT=100, 10k cap), so it is
         # CONTRACT-8 compliant — not the blocking KEYS/SMEMBERS the #2211 incident
         # forbids. list_secrets.rb / export_usage.rb keep similar bounded SCANs

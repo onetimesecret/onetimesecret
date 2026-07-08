@@ -58,13 +58,39 @@ DB.set(@key_a, JSON.generate(@data_a))
 DB.set(@key_b, JSON.generate(@data_b))
 AE.events.clear
 
+# Plant a NON-STRING key matching the session scan pattern — the shape the
+# colonel entitlement-preview writes (session:<sid>:entitlement_preview_*, a
+# Redis SET). Regression guard for the QA 2026-07-07 finding: one such key
+# made EVERY listing 500 (GET on it raises WRONGTYPE, and the read ran outside
+# any rescue). All List cases below run with this key present.
+@set_key = "session:#{@nonce}:entitlement_preview_grants"
+DB.del(@set_key)
+DB.sadd(@set_key, %w[api_access custom_domains])
+
 # ---- List -------------------------------------------------------------
 
 ## List returns a Result whose sessions include the seeded pair
+## (with the non-string session:* key planted — see the regression note above)
 @list = Onetime::Operations::Sessions::List.new(page: 1, per_page: 50).call
 ids   = @list.sessions.map { |s| s[:session_id] }
 [ids.include?(@sid_a), ids.include?(@sid_b)]
 #=> [true, true]
+
+## [regression] the non-string key never surfaces as a listing row
+@list.sessions.map { |s| s[:key] }.include?(@set_key)
+#=> false
+
+## [regression] Store.scan_keys filters non-string keys out server-side (SCAN TYPE)
+Onetime::Operations::Sessions::Store.scan_keys(DB).include?(@set_key)
+#=> false
+
+## [regression] Store.load_data on a non-string key resolves nil instead of raising WRONGTYPE
+Onetime::Operations::Sessions::Store.load_data(DB, @set_key)
+#=> nil
+
+## Store.count tallies string session keys via the same bounded scan (>= the seeded pair)
+Onetime::Operations::Sessions::Store.count(DB) >= 2
+#=> true
 
 ## List surfaces the summary fields (authenticated flag + email + external id)
 @row_a = @list.sessions.find { |s| s[:session_id] == @sid_a }
@@ -147,4 +173,5 @@ AE.count
 # Cleanup
 DB.del(@key_a)
 DB.del(@key_b)
+DB.del(@set_key)
 AE.events.clear

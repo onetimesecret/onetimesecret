@@ -32,18 +32,20 @@ module Onetime::Customer::Features
         # `secret:*` SCAN (10k-capped, undercounted large owners — #2211's
         # blocking-enumeration family of problems).
         #
-        # DRIFT IS UP-ONLY BY DESIGN. It is incremented once per secret create
-        # at the single chokepoint (Onetime::Customer.increment_secrets_active,
-        # called from Onetime::Receipt.spawn_pair). There is NO destroy/expire
-        # decrement hook: secrets vanish silently on TTL expiry (no application
-        # code runs) and on reveal/burn `Secret#destroy!` deletes the key with
-        # no counter callback. So this counter only ever grows and therefore
-        # OVER-counts between reconciliations. Correctness is restored by the
-        # daily SET-recount reconciliation (SecretCountReconcileJob) which
-        # recomputes each owner's true live count off the request path and
-        # resets this counter. That reconciliation — not the increment — is the
-        # primary correctness mechanism; the increment merely keeps the value
-        # approximately fresh between nightly recounts. See #60.
+        # It is incremented once per secret create at the single chokepoint
+        # (Onetime::Customer.increment_secrets_active, called from
+        # Onetime::Receipt.spawn_pair) and decremented once per early
+        # destruction at the mirror chokepoint (decrement_secrets_active,
+        # called from Secret#destroy! — reveal, burn, and admin delete all
+        # funnel through it). The remaining drift source is TTL expiry, where
+        # Redis drops the key silently and no application code runs, so the
+        # counter can still OVER-count between reconciliations. Correctness is
+        # restored by the daily SET-recount reconciliation
+        # (SecretCountReconcileJob) which recomputes each owner's true live
+        # count off the request path and resets this counter. That
+        # reconciliation remains the primary correctness mechanism; the
+        # increment/decrement pair keeps the value approximately fresh between
+        # nightly recounts. See #60.
         base.counter :secrets_active
       end
 
@@ -78,6 +80,32 @@ module Onetime::Customer::Features
         # A counter bump must never break secret creation. Log and move on; the
         # nightly reconciliation will correct any missed increment.
         OT.le "[increment_secrets_active] #{ex.class}: #{ex.message} (owner_id=#{oid})"
+      end
+
+      # Decrement a customer's per-customer live-secret counter (secrets_active)
+      # by object id — the mirror of {increment_secrets_active}, called from the
+      # single early-destruction chokepoint (Onetime::Secret#destroy!, which
+      # reveal, burn, and the colonel delete all funnel through). Keeps the
+      # colonel users list's `secrets_count` in step with the live secrets the
+      # user-detail view scans, instead of drifting until the nightly recount.
+      #
+      # Clamped at zero: a decrement can race the nightly reconciliation or
+      # follow a create that predates the counter's backfill, and a negative
+      # "live secrets" count is never meaningful. The clamp itself is not
+      # atomic, but the reconciliation SETs the true value daily either way.
+      #
+      # @param owner_id [String, nil] the secret owner's Customer objid
+      # @return [void]
+      def decrement_secrets_active(owner_id)
+        oid = owner_id.to_s
+        return if oid.empty? || oid == 'anon'
+
+        counter = new(objid: oid).secrets_active
+        counter.reset(0) if counter.decrement.negative?
+      rescue StandardError => ex
+        # A counter bump must never break secret destruction. Log and move on;
+        # the nightly reconciliation will correct any missed decrement.
+        OT.le "[decrement_secrets_active] #{ex.class}: #{ex.message} (owner_id=#{oid})"
       end
     end
 

@@ -3,20 +3,22 @@
 /**
  * The admin console's navigable map.
  *
- * Phase 0 ships the Overview screen live; the remaining sections are
- * placeholders that later phases turn into real routes (see
+ * Every section is live: each entry routes to a real screen (see
  * docs/specs/colonel-ui/). Keeping the map in one place means the sidebar and
  * the overview dashboard never drift.
  *
- * `labelKey` reuses existing `web.colonel.*` i18n keys, so the Phase-0
- * skeleton needs no new locale content. `icon` is a heroicons sprite name
+ * `labelKey` mixes legacy `web.colonel.*` keys (Phase-0 parity screens) with
+ * `web.admin.*` keys (Phase-3 screens). `icon` is a heroicons sprite name
  * verified to exist in HeroiconsSprites.vue.
  */
 export interface ConsoleSection {
   key: string;
   labelKey: string;
   icon: string;
-  /** Route path once the section is live; omitted while it is a placeholder. */
+  /**
+   * Route path for the section. Optional only for the historical placeholder
+   * affordance in AdminLayout/AdminOverview; every current entry sets it.
+   */
   to?: string;
 }
 
