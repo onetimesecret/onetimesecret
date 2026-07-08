@@ -2,7 +2,7 @@
 
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 // Define the props expected from the parent. The visible <label> now lives in
 // the parent (DomainForm) so there is exactly one label bound to #domain; the
@@ -29,6 +29,15 @@ onMounted(() => {
   if (props.autofocus) inputEl.value?.focus();
 });
 
+// Ring color reflects state: brand (blue) to match the rest of the form and the
+// app-wide input convention, red when the parent flags the value invalid. The
+// structural ring utilities (width/inset) stay static on the input itself.
+const ringClasses = computed(() =>
+  props.isValid === false
+    ? 'ring-red-500 focus:ring-red-500 dark:ring-red-500 dark:focus:ring-red-400'
+    : 'ring-gray-300 focus:ring-brand-500 dark:ring-gray-600 dark:focus:ring-brand-400'
+);
+
 // Handle the input event and emit the updated value
 const onInput = (event: Event) => {
   const target = event.target as HTMLInputElement;
@@ -49,10 +58,11 @@ const onInput = (event: Event) => {
         :aria-describedby="describedby"
         :value="modelValue"
         @input="onInput"
+        :class="ringClasses"
         class="block w-full rounded-md border-0 py-3 pr-10 pl-5
-          text-xl text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset
-          placeholder:text-gray-400 focus:ring-2 focus:ring-brandcomp-600 focus:ring-inset
-          dark:bg-gray-700 dark:text-white dark:ring-gray-600 dark:placeholder:text-gray-400 dark:focus:ring-brandcomp-500" />
+          text-xl text-gray-900 shadow-sm ring-1 ring-inset
+          placeholder:text-gray-400 focus:ring-2 focus:ring-inset
+          dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400" />
       <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
         <OIcon
           v-if="isValid === false"
