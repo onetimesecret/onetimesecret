@@ -32,15 +32,32 @@ operators and pentesters.
     truncation).
   - Webhook idempotency records (slice 30) hold raw provider payloads: confirm
     the 5-day TTL and that no colonel surface renders them unredacted.
-- **Schedule-queue decision** (grounding correction 2): `email.message.
-  schedule` has no consumer, so delayed mail (today: `expiration_warning`)
-  dead-letters and is discarded. Either (a) implement the missing consumer
-  path (dead-letter routing back to `email.message.send` via
-  `x-dead-letter-routing-key` on a versioned queue — queue arguments are
-  immutable, so this is a `.v2` two-release migration), or (b) retire
-  `schedule_email` and send expiration warnings directly with the job's own
-  timing. Decide with real usage data; (b) is simpler and the epic's flows
-  never use delays.
+- **Schedule-queue removal** (grounding correction 2 — DECIDED: option (b),
+  pull ahead of the epic as a standalone live-bug fix): `email.message.schedule`
+  has no consumer, so delayed mail dead-letters and is discarded — meaning
+  `ExpirationWarningJob` (its only caller) sends **nothing** in jobs-enabled
+  regions today. Retire the delayed path entirely:
+  - Delete `Publisher.schedule_email` / `#schedule_email` (class + instance) from
+    `lib/onetime/jobs/publisher.rb`.
+  - Rewire `ExpirationWarningJob#schedule_warning_email` to call
+    `Onetime::Jobs::Publisher.enqueue_email(:expiration_warning, {...})` — send
+    immediately on the hourly scan. Drop the `WARNING_BUFFER_SECONDS`/`delay`
+    computation; the scan window (`warning_hours`) already scopes which secrets
+    warn, and the `warning_sent?`/`mark_warning_sent` dedup already prevents
+    repeats. (This is exactly what the jobs-disabled fallback already does.)
+  - Remove the `email.message.schedule` entry from `QueueConfig::QUEUES`. The
+    queue's `dlx.email.message` DLX is shared with `email.message.send`, so the
+    `DEAD_LETTER_CONFIG` mapping stays. Note the manual RabbitMQ queue teardown
+    across the 10 regional environments in the migration notes (queue args are
+    immutable; a stale unused queue is harmless but should be deleted for hygiene).
+  - Update specs: `publisher_spec` (drop `respond_to(:schedule_email)` +
+    trace-propagation cases), `queue_config_spec` (drop the
+    `email.message.schedule` expectations), and `expiration_warning_job_spec`
+    (retarget the ~8 `schedule_email` mocks to `enqueue_email`, drop delay
+    assertions).
+  - `DlqEmailConsumerJob`'s `discarded_non_auth` behavior no longer strands
+    `expiration_warning` (nothing schedules it); re-document the discard set
+    accordingly.
 - **DLQ replay hygiene**: verify (tryout) that colonel DLQ replay and
   `DlqEmailConsumerJob` re-deliveries hit the slice-20 gate — suppression state
   at REPLAY time wins, not at original-send time. (True by construction with
@@ -77,8 +94,10 @@ operators and pentesters.
       idempotency re-verified on the real dumps.
 - [ ] DLQ peek shows obscured addresses in previews (CLI + colonel),
       byte-for-byte otherwise.
-- [ ] Schedule-queue decision made, implemented, and `DlqEmailConsumerJob`'s
-      discard behavior re-documented to match.
+- [ ] `schedule_email` + `email.message.schedule` queue removed;
+      `ExpirationWarningJob` sends immediately via `enqueue_email` and a tryout
+      confirms warnings actually deliver in a jobs-enabled config;
+      `DlqEmailConsumerJob`'s discard behavior re-documented to match.
 - [ ] Replay-time suppression tryout green.
 - [ ] Pentest scope updated; operator guide + runbooks merged; scriv fragments
       present.

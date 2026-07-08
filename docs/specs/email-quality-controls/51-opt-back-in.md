@@ -97,8 +97,9 @@ invocation.
 - The `suppression_recovery` category is a tempting bypass channel — its
   membership is a frozen one-element list, asserted in spec; adding to it
   requires touching this policy deliberately.
-- Do NOT batch or delay the confirmation email through `schedule_email`
-  (grounding correction 2 — the schedule queue is a trap until slice 61).
+- Send the confirmation email immediately via `enqueue_email`; there is no
+  delayed-send path (`schedule_email` and the `email.message.schedule` queue are
+  removed in slice 61, grounding correction 2).
 - Refusal copy must be generic ("this address's status can't be changed here;
   contact support") — naming the reason would disclose complaint state to
   whoever holds the token.
