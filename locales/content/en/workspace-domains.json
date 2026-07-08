@@ -123,6 +123,62 @@
     "text": "Add domain",
     "content_hash": "d86476ae"
   },
+  "web.domains.add.field_label": {
+    "text": "Custom domain",
+    "content_hash": "d7d4c1e4"
+  },
+  "web.domains.add.field_help": {
+    "text": "The exact hostname your team will use, like {example}.",
+    "content_hash": "3ba71f78"
+  },
+  "web.domains.add.echo_label": {
+    "text": "Your secret links will live at",
+    "content_hash": "ad60b17d"
+  },
+  "web.domains.add.apex_question": {
+    "text": "That's your whole domain — where should secret links live?",
+    "content_hash": "efacad1b"
+  },
+  "web.domains.add.apex_help": {
+    "text": "A subdomain keeps the rest of {domain} untouched.",
+    "content_hash": "0f7e6181"
+  },
+  "web.domains.add.recommended": {
+    "text": "Recommended",
+    "content_hash": "d70604e8"
+  },
+  "web.domains.add.root_domain_label": {
+    "text": "Use my root domain",
+    "content_hash": "9fbbe253"
+  },
+  "web.domains.add.root_domain_description": {
+    "text": "This points the whole of {domain} at us — the site there stops resolving — and needs an A / ALIAS record.",
+    "content_hash": "fae93847"
+  },
+  "web.domains.add.error_unrecognized_suffix": {
+    "text": "“.{0}” isn't a recognized domain ending — check for a typo (e.g. {1}).",
+    "content_hash": "4b90033d"
+  },
+  "web.domains.add.error_invalid_hostname": {
+    "text": "Enter a valid hostname — letters, numbers, single dots and dashes (e.g. {0}).",
+    "content_hash": "c4ceabc1"
+  },
+  "web.domains.add.step_add": {
+    "text": "Add",
+    "content_hash": "9fd728c6"
+  },
+  "web.domains.add.step_verify": {
+    "text": "Verify",
+    "content_hash": "eea2745e"
+  },
+  "web.domains.add.step_brand": {
+    "text": "Brand",
+    "content_hash": "090ed431"
+  },
+  "web.domains.add.continue_with": {
+    "text": "Continue with {0}",
+    "content_hash": "73f8ab40"
+  },
   "web.domains.domain_settings": {
     "text": "Domain settings",
     "content_hash": "3dedc533"

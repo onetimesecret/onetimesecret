@@ -1,16 +1,17 @@
 <!-- src/apps/workspace/components/domains/DomainInput.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 
-const { t } = useI18n();
-
-// Define the props expected from the parent
+// Define the props expected from the parent. The visible <label> now lives in
+// the parent (DomainForm) so there is exactly one label bound to #domain; the
+// describing help/error element id is passed in via `describedby`.
 defineProps<{
   modelValue: string;
   placeholder: string;
   isValid: boolean | null;
+  /** id of the element(s) that describe this input (help/error text). */
+  describedby?: string;
 }>();
 
 // Define the emits to notify the parent of updates
@@ -27,11 +28,6 @@ const onInput = (event: Event) => {
 
 <template>
   <div>
-    <label
-      for="domain"
-      class="sr-only bg-inherit text-xl font-medium leading-6 text-gray-900 dark:text-gray-100">
-      {{ t('web.domains.domain_name') }}
-    </label>
     <div class="relative mt-2 rounded-md shadow-sm">
       <input
         type="text"
@@ -39,12 +35,12 @@ const onInput = (event: Event) => {
         id="domain"
         :placeholder="placeholder"
         :aria-invalid="isValid === false"
-        aria-describedby="domain-error"
+        :aria-describedby="describedby"
         :value="modelValue"
         @input="onInput"
-        class="block w-full rounded-md border-0 py-3 pl-5 pr-10
-          text-xl text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300
-          placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brandcomp-600
+        class="block w-full rounded-md border-0 py-3 pr-10 pl-5
+          text-xl text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset
+          placeholder:text-gray-400 focus:ring-2 focus:ring-brandcomp-600 focus:ring-inset
           dark:bg-gray-700 dark:text-white dark:ring-gray-600 dark:placeholder:text-gray-400 dark:focus:ring-brandcomp-500" />
       <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
         <OIcon
