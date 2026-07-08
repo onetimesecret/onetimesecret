@@ -41,11 +41,19 @@ const passphraseTree: AugmentTree = {
   required: (b) => b.default(false),
   /**
    * Minimum length required for passphrases.
-   * @sync apps/api/v1/logic/secrets/base_secret_action.rb
+   * @sync apps/api/v2/logic/secrets/base_secret_action.rb — validate_passphrase
    */
   minimum_length: (n) => n.int().min(0).max(256).default(4),
   maximum_length: (n) => n.int().min(8).max(1024).default(128),
   enforce_complexity: (b) => b.default(false),
+};
+
+const contentTree: AugmentTree = {
+  /**
+   * Maximum length allowed for a secret's body.
+   * @sync lib/onetime/logic/base.rb — validate_secret_size
+   */
+  maximum_length: (n) => n.int().positive().default(10000),
 };
 
 const passwordGenerationTree: AugmentTree = {
@@ -78,6 +86,7 @@ const publicSecretOptionsShape = augment(publicSecretOptionsSchema, {
       .default([300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]),
 
   passphrase: passphraseTree,
+  content: contentTree,
   password_generation: passwordGenerationTree,
 });
 
@@ -101,6 +110,7 @@ const publicSettingsShape = augment(publicSettingsSchema, {
         .array(z.number().int().positive().min(60).max(2592000))
         .default([300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]),
     passphrase: passphraseTree,
+    content: contentTree,
     password_generation: passwordGenerationTree,
   },
 });

@@ -218,13 +218,16 @@ describe('Router Guards', () => {
       guard(to);
       const layoutProps = to.meta.layoutProps as Record<string, unknown>;
       expect(layoutProps).toBeDefined();
-      expect(layoutProps.displayMasthead).toBe(true);
+      // Masthead is always off on custom domains, even with a logo configured:
+      // the page body owns the logo. Gating it on logo presence duplicated the
+      // /incoming header and leaked the masthead onto the reveal page.
+      expect(layoutProps.displayMasthead).toBe(false);
       expect(layoutProps.displayNavigation).toBe(false);
       expect(layoutProps.displayFooterLinks).toBe(false);
       expect(layoutProps.displayFeedback).toBe(false);
     });
 
-    it('sets displayMasthead to false when custom domain has no logo', () => {
+    it('keeps displayMasthead false when custom domain has no logo', () => {
       const bootstrapStore = useBootstrapStore();
       bootstrapStore.$patch({ domain_strategy: 'custom', domain_logo: null });
 

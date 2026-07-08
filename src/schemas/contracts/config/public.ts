@@ -48,7 +48,7 @@ export const publicSecretOptionsSchema = z.object({
 
       /**
        * Minimum length required for passphrases.
-       * @sync apps/api/v1/logic/secrets/base_secret_action.rb — passphrase validation
+       * @sync apps/api/v2/logic/secrets/base_secret_action.rb — validate_passphrase
        */
       minimum_length: z.number().optional(),
 
@@ -61,6 +61,21 @@ export const publicSecretOptionsSchema = z.object({
        * Whether to enforce complexity requirements
        */
       enforce_complexity: z.boolean().optional(),
+    })
+    .optional(),
+
+  /**
+   * Limits on the secret content itself
+   */
+  content: z
+    .object({
+      /**
+       * Maximum length allowed for a secret's body. Server-enforced on
+       * creation and the single source of truth for the client-side
+       * textarea limit.
+       * @sync lib/onetime/logic/base.rb — validate_secret_size
+       */
+      maximum_length: z.number().optional(),
     })
     .optional(),
 

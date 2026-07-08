@@ -150,8 +150,8 @@ RSpec.describe Onetime::Organization, type: :integration do
     before { link_to_org!(receipt, org) }
 
     it 'records the receipt view exactly once, under its unambiguous audit kind' do
-      receipt.previewed!
-      receipt.previewed! # guard: state is no longer :new
+      receipt.record_receipt_view!
+      receipt.record_receipt_view! # guard: claim_once! already stamped receipt_viewed_at
 
       # 'preview' is UI language; the trail records what mechanically
       # happened: the receipt page was loaded.

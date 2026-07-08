@@ -17,6 +17,7 @@
     errors,
     isSubmitting,
     memoMaxLength,
+    secretMaxLength,
     isFeatureEnabled,
     recipients,
     isFormValid,
@@ -144,7 +145,7 @@
               ref="secretContentRef"
               :initial-content="form.secret"
               :disabled="isSubmitting"
-              :max-length="10000"
+              :max-length="secretMaxLength"
               @update:content="handleSecretUpdate" />
 
             <span
