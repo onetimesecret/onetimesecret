@@ -87,5 +87,39 @@ export function resolveProductName(
  * keyhole mark — the OTS-company maruhi 秘 mark is never the default). Centralized
  * here so the resolver (`identityStore.logoSource`) and its consumers agree on
  * one sentinel rather than each hardcoding the string.
+ *
+ * Stays the terminal fallback on custom domains, and the hard-fallback when a
+ * dynamic import fails, so a misconfigured build degrades to neutral — never
+ * to an operator-branded component (see `RESOLVED_LOGO_COMPONENT`).
  */
 export const DEFAULT_LOGO_COMPONENT = 'DefaultLogo.vue';
+
+/**
+ * Build-time operator override for the default masthead logo component,
+ * selected via `VITE_LOGO_COMPONENT` (baked at compile time — deliberately a
+ * `VITE_` build var, NOT a runtime `BRAND_*` setting, since the choice is a
+ * property of the brand build, not per-deployment config).
+ *
+ * Conventions & constraints for an override component:
+ *  - Value is the bare component name (e.g. `OnetimeSecretLogo`); the `.vue`
+ *    suffix is normalized on so the masthead's `endsWith('.vue')` detection and
+ *    dynamic-import loader keep working unchanged.
+ *  - Must be a `.vue` file in `src/shared/components/logos/` (the loader's glob
+ *    root). A name that doesn't resolve fails the Vite build (existence check
+ *    in vite.config.ts) rather than silently degrading at runtime.
+ *  - Must accept the `LogoConfig` props the masthead binds (size, href,
+ *    showSiteName, siteName, alt/ariaLabel, isUserPresent, isColonelArea).
+ *  - Applies ONLY as the install (canonical/subdomain) terminal fallback. It
+ *    never displaces a tenant's uploaded logo and is suppressed on custom
+ *    domains — the resolver, not the component, enforces this so operator
+ *    branding cannot leak onto a tenant domain.
+ *
+ * Unset → the neutral `DEFAULT_LOGO_COMPONENT`.
+ */
+// `import.meta.env` is undefined outside Vite (e.g. the OpenAPI generator runs
+// this module under tsx), so optional-chain the whole access rather than just
+// the value — unset resolves to the neutral DEFAULT_LOGO_COMPONENT below.
+const buildLogoComponent = import.meta.env?.VITE_LOGO_COMPONENT?.trim();
+export const RESOLVED_LOGO_COMPONENT = buildLogoComponent
+  ? `${buildLogoComponent.replace(/\.vue$/, '')}.vue`
+  : DEFAULT_LOGO_COMPONENT;
