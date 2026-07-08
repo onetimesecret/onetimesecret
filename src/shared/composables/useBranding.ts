@@ -189,13 +189,27 @@ export function useBranding(domainId?: string) {
         return;
       }
 
-      const updated = await store.updateSettings(extid, updates);
-      // Only update local state if we're saving to the composable's domain
-      if (!targetDomain || targetDomain === domainId) {
-        brandSettings.value = updated;
-        originalSettings.value = { ...brandSettings.value };
+      const isLocalDomain = !targetDomain || targetDomain === domainId;
+      try {
+        const updated = await store.updateSettings(extid, updates);
+        // Only update local state if we're saving to the composable's domain
+        if (isLocalDomain) {
+          brandSettings.value = updated;
+          originalSettings.value = { ...brandSettings.value };
+        }
+        notifications.show(t('web.branding.saved_successfully'), 'success', 'top');
+      } catch (err) {
+        // Save failed: roll the live preview (and the bound form controls) back
+        // to the last-saved snapshot so a failed save can't masquerade as a
+        // successful one — otherwise the preview keeps showing the attempted
+        // change and the error toast is easy to miss. The async handler (wrap)
+        // still classifies + notifies. Trade-off: the rejected edits are
+        // discarded; the user re-applies and retries.
+        if (isLocalDomain && originalSettings.value) {
+          brandSettings.value = { ...originalSettings.value };
+        }
+        throw err;
       }
-      notifications.show(t('web.branding.saved_successfully'), 'success', 'top');
     });
 
   const handleLogoUpload = async (file: File) =>

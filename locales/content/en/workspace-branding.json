@@ -214,5 +214,83 @@
   "web.branding.upgrade_to_customize": {
     "text": "Upgrade your plan to customize branding for this domain.",
     "content_hash": "9077bf79"
+  },
+  "web.branding.path_simple": {
+    "text": "Simple"
+  },
+  "web.branding.path_match": {
+    "text": "Match my site"
+  },
+  "web.branding.path_advanced": {
+    "text": "Advanced"
+  },
+  "web.branding.path_simple_tag": {
+    "text": "Your brand color, accent and corners. Quick."
+  },
+  "web.branding.path_match_tag": {
+    "text": "We read your website and close the gap."
+  },
+  "web.branding.path_advanced_tag": {
+    "text": "Tailwind v4 CSS. Full control, technical."
+  },
+  "web.branding.badge_default": {
+    "text": "Default"
+  },
+  "web.branding.badge_coming_soon": {
+    "text": "Coming soon"
+  },
+  "web.branding.your_brand": {
+    "text": "Your brand"
+  },
+  "web.branding.your_brand_subtitle": {
+    "text": "A few quick choices — we handle the rest."
+  },
+  "web.branding.corners": {
+    "text": "Corners"
+  },
+  "web.branding.more_options": {
+    "text": "More options"
+  },
+  "web.branding.brand_color_hint": {
+    "text": "Grab it from your logo or site header."
+  },
+  "web.branding.paths_carryover_hint": {
+    "text": "This is a live preview — your changes won't be visible to visitors until you save."
+  },
+  "web.branding.coming_soon_match_blurb": {
+    "text": "Point us at your website and we'll read its colors and fonts, then close the gap in one click."
+  },
+  "web.branding.coming_soon_advanced_blurb": {
+    "text": "Edit the Tailwind v4 {'@'}theme tokens directly, or paste your own stylesheet."
+  },
+  "web.branding.preview_recipient_page": {
+    "text": "Recipient page"
+  },
+  "web.branding.preview_homepage_enabled": {
+    "text": "Homepage · enabled"
+  },
+  "web.branding.preview_homepage_disabled": {
+    "text": "Homepage · disabled"
+  },
+  "web.branding.preview_live": {
+    "text": "Live preview"
+  },
+  "web.branding.tile_share_secret": {
+    "text": "Share a secret"
+  },
+  "web.branding.tile_create_link": {
+    "text": "Create secret link"
+  },
+  "web.branding.tile_delivery_only": {
+    "text": "Secure message delivery only"
+  },
+  "web.branding.tile_no_create": {
+    "text": "Visitors can't create secrets here."
+  },
+  "web.branding.recipient_page_content": {
+    "text": "Recipient page content"
+  },
+  "web.branding.recipient_page_content_hint": {
+    "text": "Language and reveal instructions shown to recipients on this domain."
   }
 }

@@ -23,19 +23,26 @@
 #   7. validate_border_radius  (per-field: preset or 0-64 px)
 #   8. validate_default_ttl    (per-field)
 #   9. validate_urls           (per-field: same valid_url? as model)
-#  10. BrandSettings.validate! (model-level catch-all — owns WCAG contrast)
+#  10. BrandSettings.validate! (model-level format catch-all, defense-in-depth)
+#
+# NOTE (product decision 2026-07): WCAG contrast is no longer enforced on save.
+# It was previously the ONE rejection unique to validate!() and thus served as
+# "the discriminator" proving the model-level call site ran. With it gone,
+# every format check in validate!() is shadowed by an identical per-field
+# validator that raises FIRST (steps 2-9), so no rejection path is unique to
+# validate!() anymore. The TEST 1 spy is now the sole proof that validate!()
+# actually fires.
 #
 # Coverage focus:
-#   - WCAG contrast rejection is the discriminator: it is ONLY enforced by
-#     BrandSettings.validate!(), so a contrast-failing color pair proves
-#     the model-level call site is reached.
-#   - Invalid URL is caught by the per-field validator BEFORE validate!()
-#     runs, but still produces the expected end-to-end form error — so we
-#     test it as a path-level regression guard, not as a "reaches validate!"
-#     assertion.
-#   - A happy-path call asserts the model-level call site actually fires
-#     (spy on BrandSettings.validate!) so a future refactor that drops the
-#     defense-in-depth call would be caught.
+#   - The happy-path spy (TEST 1) is the proof the model-level call site fires;
+#     a future refactor that drops the defense-in-depth call would be caught.
+#   - Malformed primary_color (TEST 2/3) is rejected end-to-end. It is caught
+#     by the per-field validate_color BEFORE validate!() runs (validate!
+#     enforces the same hex format as defense-in-depth), so this is a
+#     path-level regression guard, not a "reaches validate!" assertion.
+#   - Invalid URL is likewise caught by the per-field validator BEFORE
+#     validate!() runs, but still produces the expected end-to-end form error —
+#     tested as a path-level regression guard.
 
 require_relative '../../../support/test_helpers'
 require_relative '../../../support/test_logic'
@@ -122,28 +129,28 @@ end
 @validate_calls.size
 #=> 2
 
-## TEST 2: WCAG contrast rejection — pure validate!() path
-# #FFFF00 (yellow) on white fails the 3:1 minimum. validate_color (per-field)
-# accepts it as a valid hex format, so rejection MUST come from validate!().
-@logic_low_contrast = build_logic(
+## TEST 2: Malformed primary_color — format rejection end-to-end
+# WCAG contrast is no longer a rejection path (product decision 2026-07), so the
+# discriminator is now a malformed hex. '#GGGGGG' is caught by the per-field
+# validate_color (validate! enforces the same format as defense-in-depth); the
+# TEST 1 spy — not this rejection — is what proves validate! itself runs.
+@logic_bad_hex = build_logic(
   extid: @extid,
-  brand: { 'primary_color' => '#FFFF00' },
+  brand: { 'primary_color' => '#GGGGGG' },
   strategy_result: @strategy_result,
 )
-@msg_contrast =
+@msg_bad_hex =
   begin
-    @logic_low_contrast.raise_concerns
+    @logic_bad_hex.raise_concerns
     nil
   rescue Onetime::FormError => ex
     ex.message
   end
-@msg_contrast&.include?('fails WCAG AA accessibility')
-#=> true
+@msg_bad_hex
+#=> 'Invalid primary color format - must be hex code (e.g. #FF0000)'
 
-## TEST 3: WCAG message includes the offending color and contrast ratio
-# Message now prefixes the field label (#3646: multiple validated colors), e.g.
-# "Primary color #FFFF00 fails WCAG AA accessibility - contrast 1.07:1 with white".
-@msg_contrast.match?(/[Pp]rimary color #FFFF00.*contrast \d+\.\d+:1 with white/) == true
+## TEST 3: Malformed primary_color message names the format problem
+@msg_bad_hex&.include?('Invalid primary color format')
 #=> true
 
 ## TEST 4: Invalid URL format (http://) — caught by per-field validate_urls

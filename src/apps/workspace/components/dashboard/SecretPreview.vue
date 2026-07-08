@@ -90,7 +90,9 @@ const fontFamilyClass = computed(() => {
 // single-root (fallthrough merges onto that one root element).
 const rootStyle = computed<Record<string, string>>(() => {
   const css = borderRadiusToCss(props.domainBranding?.border_radius);
-  return css ? { [RADIUS_BRAND_VAR]: css } : {};
+  const style: Record<string, string> = {};
+  if (css) style[RADIUS_BRAND_VAR] = css;
+  return style;
 });
 
 const actionButtonStyle = computed<Record<string, string>>(() => ({
