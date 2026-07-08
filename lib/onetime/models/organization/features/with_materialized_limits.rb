@@ -54,18 +54,27 @@ module Onetime
           # @return [Numeric] Limit value (Float::INFINITY for unlimited)
           #
           # Fallback hierarchy:
-          # 1. If billing disabled (standalone mode) -> Float::INFINITY (unlimited)
-          # 2. If materialized -> materialized_limit_for(key)
-          # 3. If no planid set -> free_tier_limits
-          # 4. If plan found in cache -> plan.limits
-          # 5. If plan not in cache, try billing.yaml config fallback
-          # 6. Final fallback -> raise PlanCacheMissError (fail-closed)
+          # 1. If a request-scoped preview is active (ADR-020) -> preview plan's limits
+          # 2. If billing disabled (standalone mode) -> Float::INFINITY (unlimited)
+          # 3. If materialized -> materialized_limit_for(key)
+          # 4. If no planid set -> free_tier_limits
+          # 5. If plan found in cache -> plan.limits
+          # 6. If plan not in cache, try billing.yaml config fallback
+          # 7. Final fallback -> raise PlanCacheMissError (fail-closed)
           #
           # @example
           #   org.limit_for('teams')            # => 1
           #   org.limit_for(:total_members_per_org)  # => Float::INFINITY
           #   org.limit_for('unknown')          # => 0
           def limit_for(resource)
+            # Preview override first (ADR-020): a previewing colonel sees the
+            # target plan's limits, resolved by planid rather than by the
+            # grants/revokes reconciliation the entitlement side uses.
+            preview = Onetime::EntitlementPreview.context
+            if preview && preview[:planid]
+              return test_plan_limit_for(preview[:planid], resource)
+            end
+
             # Fail-open: self-hosted/standalone gets unlimited
             return Float::INFINITY unless billing_enabled?
 
@@ -124,29 +133,6 @@ module Onetime
             return false if limit == Float::INFINITY
 
             current_count >= limit
-          end
-
-          # Get limit with request context for preview mode support
-          #
-          # Call sites that have session access should use this method instead
-          # of `limit_for` when preview mode needs to be respected.
-          #
-          # @param resource [String, Symbol] Resource to check limit for
-          # @param session [Hash, nil] Rack session hash (or hash-like object)
-          # @return [Numeric] Limit value (Float::INFINITY for unlimited)
-          #
-          # @example Controller usage
-          #   org.limit_for_request('teams', env['rack.session'])
-          def limit_for_request(resource, session = nil)
-            return limit_for(resource) unless session.respond_to?(:key?)
-
-            preview_planid = session[:entitlement_preview_planid]
-
-            if preview_planid && !preview_planid.to_s.empty?
-              return test_plan_limit_for(preview_planid, resource)
-            end
-
-            limit_for(resource)
           end
 
           private

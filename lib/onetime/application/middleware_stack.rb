@@ -14,6 +14,7 @@ require_relative '../middleware/health_access_control'
 require_relative '../middleware/admin_network_isolation'
 require_relative '../middleware/csrf_response_header'
 require_relative '../middleware/normalize_content_type'
+require_relative '../middleware/entitlement_preview_context'
 require 'otto'
 
 module Onetime
@@ -339,6 +340,11 @@ module Onetime
 
           # Identity resolution middleware (after session)
           builder.use Onetime::Middleware::IdentityResolution
+
+          # Entitlement preview context (after session): stashes the session's
+          # preview keys in a Fiber-local consulted by the entitlement/limit
+          # chokepoints (ADR-020)
+          builder.use Onetime::Middleware::EntitlementPreviewContext
 
           # Locale detection middleware (after session, before domain strategy)
           # Sets env['otto.locale'] based on URL param, session, Accept-Language header.

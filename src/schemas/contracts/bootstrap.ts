@@ -391,6 +391,9 @@ export const developmentConfigSchema = z.object({
 
 /**
  * Organization schema - nullable since not all users have organizations.
+ *
+ * entitlements/limits are resolved server-side at the WithEntitlements
+ * chokepoint (ADR-020), so they already reflect an active colonel preview.
  */
 export const organizationSchema = z
   .object({
@@ -400,6 +403,15 @@ export const organizationSchema = z
     is_default: z.boolean(),
     planid: CanonicalPlanIdSchema.nullish(),
     current_user_role: z.enum(['owner', 'admin', 'member']).nullish(),
+    entitlements: z.array(z.string()).nullish(),
+    /** Plan limits per resource; -1 means unlimited. */
+    limits: z
+      .object({
+        teams: z.number().optional(),
+        total_members_per_org: z.number().optional(),
+        custom_domains: z.number().optional(),
+      })
+      .nullish(),
   })
   .nullable();
 

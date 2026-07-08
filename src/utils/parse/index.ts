@@ -6,6 +6,7 @@
  */
 
 export * from './date';
+export * from './domain';
 
 export function parseBoolean(val: unknown): boolean {
   if (val === null || val === undefined || val === '') return false;
