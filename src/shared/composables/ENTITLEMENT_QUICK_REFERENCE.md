@@ -225,8 +225,10 @@ if (can(ENTITLEMENTS.CREATE_TEAMS) && !hasReachedLimit('teams', count)) { }
 
 **Features not showing up?**
 - Check that `currentOrganization` is set
-- Check that `fetchEntitlements()` has been called
-- Check console for entitlement fetch errors
+- Check that the org record was loaded via `fetchOrganizations()` /
+  `fetchOrganization()` (or the bootstrap payload) — `/api/organizations`
+  serializes `entitlements`/`limits` on every org record
+- Check console for organization fetch errors
 
 **Wrong upgrade plan showing?**
 - Update `upgradePath()` mapping in composable

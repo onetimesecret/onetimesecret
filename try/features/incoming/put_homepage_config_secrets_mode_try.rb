@@ -6,10 +6,13 @@
 #
 # The homepage secrets_mode selects which interactive experience an enabled
 # homepage presents ('create' | 'incoming'). Selecting 'incoming' requires:
-#   1. the instance feature flag (features.incoming.enabled)
-#   2. the org's incoming_secrets entitlement (granted automatically in
+#   1. the org's incoming_secrets entitlement (granted automatically in
 #      tests — billing disabled means STANDALONE_ENTITLEMENTS)
-#   3. a ready IncomingConfig (enabled with at least one recipient)
+#   2. a ready IncomingConfig (enabled with at least one recipient)
+#
+# The install-wide features.incoming.enabled flag is NOT a requirement here:
+# it gates the canonical domain only. Custom domains self-govern via the
+# entitlement above (same canonical/custom split as RecipientResolver).
 #
 # Also covers the merge semantics (omitted mode leaves the stored value
 # unchanged) and the documented write-path bypass: re-enabling a homepage
@@ -167,18 +170,17 @@ rescue OT::FormError => e
 end
 #=> 'Invalid secrets_mode: bogus'
 
-# --- instance feature flag ---
+# --- install-wide feature flag does NOT gate custom-domain incoming ---
+# features.incoming.enabled governs the canonical domain only; a custom
+# domain that is entitled and ready still accepts secrets_mode=incoming when
+# the install-wide flag is off (same canonical/custom split as RecipientResolver).
 
-## secrets_mode=incoming is rejected when features.incoming.enabled is off
+## secrets_mode=incoming is accepted even when features.incoming.enabled is off
 @incoming.enable!
 set_incoming_feature(false)
-begin
-  run_put(@test_cust, @test_domain, { 'enabled' => true, 'secrets_mode' => 'incoming' })
-  'unexpected_success'
-rescue OT::FormError => e
-  e.message.include?('not enabled on this instance')
-end
-#=> true
+@flag_off_result = run_put(@test_cust, @test_domain, { 'enabled' => true, 'secrets_mode' => 'incoming' })
+@flag_off_result[:record][:secrets_mode]
+#=> 'incoming'
 
 ## create mode is unaffected by the incoming feature flag
 @result = run_put(@test_cust, @test_domain, { 'enabled' => true, 'secrets_mode' => 'create' })
