@@ -58,6 +58,15 @@ module Onetime
 
           # Only succeed if we have a real customer AND valid credentials
           if cust && valid_credentials
+            # Suspended accounts are rejected on EVERY access gate, not just
+            # sessions, so a suspension takes effect immediately even for API
+            # key holders. Mirrors BaseSessionAuthStrategy. Reversible trust &
+            # safety state — see Auth::Operations::Customers::SetSuspension.
+            #
+            # Checked AFTER credential validation so the outcome is only ever
+            # observable to someone holding valid credentials (non-enumerating).
+            return failure('[ACCOUNT_SUSPENDED] Account suspended') if cust.suspended?
+
             OT.ld "[onetime_basic_auth] Authenticated '#{cust.objid}' via API key"
 
             # Load organization context for API key auth.

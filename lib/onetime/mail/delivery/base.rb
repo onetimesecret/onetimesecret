@@ -139,11 +139,22 @@ module Onetime
         # a suppression-check failure can NEVER block mail delivery — losing
         # one skip is a rounding error; blocking all outbound mail is an outage.
         #
-        # @return [Boolean] true when the recipient is suppressed (skip the send)
+        # A send fans out to every recipient in email[:to], so the guard must
+        # inspect each mailbox individually: a To of "a@x.com, b@x.com" or an
+        # Array of addresses would otherwise be looked up as one opaque string
+        # and never match a suppressed mailbox in the set. If ANY recipient is
+        # suppressed the whole send is skipped — the backends dispatch to all
+        # recipients at once, so there is no way to drop just one without
+        # rewriting the message; skipping matches the existing return-nil
+        # semantics and keeps known-bad addresses off the wire.
+        #
+        # @return [Boolean] true when any recipient is suppressed (skip the send)
         def suppressed_recipient?(email)
           return false unless defined?(Onetime::EmailSuppression)
 
-          Onetime::EmailSuppression.skip_send?(email[:to])
+          recipient_mailboxes(email[:to]).any? do |address|
+            Onetime::EmailSuppression.skip_send?(address)
+          end
         rescue StandardError => ex
           if defined?(OT) && OT.respond_to?(:le)
             OT.le "[mail] suppression check failed (failing open): #{ex.message}"
@@ -224,10 +235,37 @@ module Onetime
           end
         end
 
+        # Canonicalize the :to field to a string the backends can hand to a
+        # provider. An Array of recipients is joined into a comma-separated
+        # string (the form every backend already expects); a String passes
+        # through unchanged. Keeps any display names intact for the header —
+        # mailbox extraction for the suppression guard is handled separately.
+        def normalize_recipients(value)
+          return value.to_s unless value.is_a?(Array)
+
+          value.map(&:to_s).map(&:strip).reject(&:empty?).join(', ')
+        end
+
+        # Split a recipient value into individual mailbox addresses.
+        #
+        # Handles the shapes a mailer can hand us for :to — an Array of
+        # addresses, a single "a@x.com, b@x.com" comma-separated string, or a
+        # bare address — and strips any "Display Name <addr>" wrapper so the
+        # comparison is against the raw mailbox. Blank tokens are dropped.
+        #
+        # @return [Array<String>] individual recipient addresses
+        def recipient_mailboxes(value)
+          Array(value)
+            .flat_map { |entry| entry.to_s.split(',') }
+            .map { |token| token[/<([^>]+)>/, 1] || token }
+            .map(&:strip)
+            .reject(&:empty?)
+        end
+
         # Normalize email hash to ensure required fields
         def normalize_email(email)
           {
-            to: email[:to].to_s,
+            to: normalize_recipients(email[:to]),
             from: email[:from].to_s,
             reply_to: email[:reply_to]&.to_s,
             subject: email[:subject].to_s,

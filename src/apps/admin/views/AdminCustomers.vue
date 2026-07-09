@@ -83,6 +83,9 @@
   let searchTimer: ReturnType<typeof setTimeout> | null = null;
   watch(searchTerm, (value) => {
     if (searchTimer) clearTimeout(searchTimer);
+    // Skip no-op changes (e.g. the programmatic reset in onClear(), which
+    // already issues its own fetch) so clearing doesn't double-fetch.
+    if (value.trim() === activeSearch.value) return;
     searchTimer = setTimeout(() => {
       activeSearch.value = value.trim();
       fetchPage(1);
@@ -100,6 +103,9 @@
   }
 
   function onClear(): void {
+    // Cancel any in-flight debounce so the reset below doesn't fire a second,
+    // late request on top of this one.
+    if (searchTimer) clearTimeout(searchTimer);
     roleFilter.value = '';
     searchTerm.value = '';
     activeSearch.value = '';
