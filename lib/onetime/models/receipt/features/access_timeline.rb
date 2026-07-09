@@ -103,8 +103,10 @@ module Onetime::Receipt::Features
       # @param at [Numeric] event time as epoch seconds; defaults to now.
       # @param organization [Onetime::Organization, nil] pass when the
       #   caller already holds the org to skip the extra load.
+      # @param event_attrs [Hash] additional string-keyed context merged into
+      #   the recorded event (e.g. the lifecycle actor discriminator, #3639).
       # @return [Hash, nil] the recorded event, or nil when skipped.
-      def record_org_audit_event(kind, at: Familia.now, organization: nil)
+      def record_org_audit_event(kind, at: Familia.now, organization: nil, **event_attrs)
         organization ||= Onetime::Organization.load(org_id) unless org_id.to_s.empty?
         return if organization.nil?
 
@@ -115,6 +117,7 @@ module Onetime::Receipt::Features
           # secret identifier IS the link) and must not leak into the trail.
           'receipt' => shortid,
           'secret' => secret_shortid.to_s,
+          **event_attrs,
         )
       rescue StandardError => ex
         OT.le "[audit-trail] #{ex.class}: #{ex.message} (kind=#{kind}, receipt=#{shortid})"

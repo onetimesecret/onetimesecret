@@ -210,6 +210,91 @@ RSpec.describe Onetime::Organization, type: :integration do
     end
   end
 
+  # Actor attribution on lifecycle events (#3639). The revealed/burned events
+  # must carry WHO acted; the discriminator is computed at the request-scoped
+  # logic layer and threaded through the atomic consume cascade. These model
+  # specs pin the trail-facing half of that contract:
+  #   * record_org_audit_event forwards arbitrary string-keyed event_attrs;
+  #   * revealed!/burned! record the threaded actor exactly once (CAS-gated);
+  #   * a missing actor context fails safe to 'anonymous' (never 'creator');
+  #   * the full Secret -> Receipt -> Org cascade carries the actor down.
+  describe 'actor attribution on lifecycle events (#3639)' do
+    before { link_to_org!(receipt, org) }
+
+    it 'record_org_audit_event forwards extra string-keyed attrs into the event' do
+      receipt.record_org_audit_event('revealed', 'actor' => 'creator', 'actor_id' => 'abcd1234')
+
+      event = org.audit_events_page.first
+      expect(event['kind']).to eq('revealed')
+      expect(event['actor']).to eq('creator')
+      expect(event['actor_id']).to eq('abcd1234')
+    end
+
+    it 'threads the actor through revealed! into the trail' do
+      receipt.revealed!(actor_context: { 'actor' => 'creator', 'actor_id' => 'abcd1234' })
+
+      event = org.audit_events_page.first
+      expect(event['kind']).to eq('revealed')
+      expect(event['actor']).to eq('creator')
+      expect(event['actor_id']).to eq('abcd1234')
+    end
+
+    it 'threads the actor through burned! into the trail' do
+      receipt.burned!(actor_context: { 'actor' => 'authenticated_other', 'actor_id' => 'beef5678' })
+
+      event = org.audit_events_page.first
+      expect(event['kind']).to eq('burned')
+      expect(event['actor']).to eq('authenticated_other')
+      expect(event['actor_id']).to eq('beef5678')
+    end
+
+    it 'defaults a missing actor context to anonymous on revealed! (never misattributed)' do
+      receipt.revealed! # v1 / account-verification path: no request context
+
+      event = org.audit_events_page.first
+      expect(event['actor']).to eq('anonymous')
+      expect(event).not_to have_key('actor_id')
+    end
+
+    it 'defaults a blank actor to anonymous on burned! (never misattributed)' do
+      receipt.burned!(actor_context: { 'actor' => '' })
+
+      event = org.audit_events_page.first
+      expect(event['actor']).to eq('anonymous')
+    end
+
+    it 'records the threaded actor exactly once; a race-loser records nothing' do
+      loser = Onetime::Receipt.load(receipt.identifier)
+
+      expect(receipt.revealed!(actor_context: { 'actor' => 'creator', 'actor_id' => 'abcd1234' })).to be true
+      # The loser lost the CAS: it neither transitions nor appends an event.
+      expect(loser.revealed!(actor_context: { 'actor' => 'authenticated_other' })).to be_falsey
+
+      events = org.audit_events_page
+      expect(events.map { |e| e['kind'] }).to eq(['revealed'])
+      expect(events.first['actor']).to eq('creator')
+    end
+
+    it 'carries the actor down the full Secret -> Receipt -> Org reveal cascade' do
+      expect(secret.reveal!(actor_context: { 'actor' => 'authenticated_other', 'actor_id' => 'beef5678' }))
+        .to eq('a secret value')
+
+      event = org.audit_events_page.first
+      expect(event['kind']).to eq('revealed')
+      expect(event['actor']).to eq('authenticated_other')
+      expect(event['actor_id']).to eq('beef5678')
+    end
+
+    it 'carries the actor down the full Secret -> Receipt -> Org burn cascade' do
+      expect(secret.burned!(actor_context: { 'actor' => 'creator', 'actor_id' => 'abcd1234' })).to be true
+
+      event = org.audit_events_page.first
+      expect(event['kind']).to eq('burned')
+      expect(event['actor']).to eq('creator')
+      expect(event['actor_id']).to eq('abcd1234')
+    end
+  end
+
   describe 'isolation' do
     let(:other_org) do
       described_class.new(

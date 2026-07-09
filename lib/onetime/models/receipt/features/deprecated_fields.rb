@@ -140,9 +140,13 @@ module Onetime::Receipt::Features
       # - Sets `revealed` timestamp (legacy `received` kept for backward compat in safe_dump)
       # - Clears secret_identifier
       #
+      # @param actor_context [Hash, nil] request-scoped audit context (e.g. the
+      #   actor discriminator) threaded down from the reveal cascade (#3639).
+      #   Forwarded to the org audit trail; nil is treated as an unknown/anonymous
+      #   actor (never misattributed to the creator). See #lifecycle_audit_attrs.
       # @return [Boolean, nil] true if THIS caller performed the transition;
       #   a falsy value if the in-memory guard or the atomic claim lost.
-      def revealed!
+      def revealed!(actor_context: nil)
         # In-memory fast-path: short-circuit an already-terminal instance before
         # touching Redis. The authoritative, resurrection-proof guard is the CAS.
         return unless state?(:new) || state?(:previewed)
@@ -164,7 +168,9 @@ module Onetime::Receipt::Features
             timestamp: revealed,
           }
 
-        record_org_audit_event('revealed')
+        # The audit event fires only inside the won-CAS branch, so the actor is
+        # recorded exactly once; a race loser returned above and records nothing.
+        record_org_audit_event('revealed', **lifecycle_audit_attrs(actor_context))
         true
       end
 
@@ -200,7 +206,10 @@ module Onetime::Receipt::Features
         true
       end
 
-      def burned!
+      # @param actor_context [Hash, nil] request-scoped audit context threaded
+      #   down from the burn cascade (#3639); see #revealed! and
+      #   #lifecycle_audit_attrs. nil is treated as an unknown/anonymous actor.
+      def burned!(actor_context: nil)
         # See guard comment on `revealed!` (was `received!`)
         return unless state?(:new) || state?(:previewed)
         return unless compare_and_set_state!(:burned, [:new, :previewed])
@@ -221,7 +230,8 @@ module Onetime::Receipt::Features
             timestamp: burned,
           }
 
-        record_org_audit_event('burned')
+        # Actor recorded exactly once inside the won-CAS branch (see revealed!).
+        record_org_audit_event('burned', **lifecycle_audit_attrs(actor_context))
         true
       end
 
@@ -269,6 +279,28 @@ module Onetime::Receipt::Features
 
       def truncated?
         truncate.to_s == 'true'
+      end
+
+      private
+
+      # Normalize the request-scoped actor context threaded into a lifecycle
+      # transition (revealed!/burned!, #3639) into string-keyed audit attributes.
+      #
+      # The org audit trail records the terminal lifecycle events with WHO acted
+      # ('actor' => 'creator' | 'authenticated_other' | 'anonymous'), computed at
+      # the logic layer where the request's customer is in scope. This model
+      # method never sees request context, so it fails safe: a missing/blank
+      # actor context is recorded as 'anonymous' — the same "never misattribute an
+      # unknown actor to the creator" precedent the fetch-side telemetry follows.
+      # Callers without request context (v1 paths, account verification, direct
+      # receipt.revealed! test calls) therefore still emit a well-formed actor.
+      #
+      # @param actor_context [Hash, nil] string- or symbol-keyed audit attrs.
+      # @return [Hash] string-keyed attrs with a guaranteed non-blank 'actor'.
+      def lifecycle_audit_attrs(actor_context)
+        attrs          = actor_context.is_a?(Hash) ? actor_context.transform_keys(&:to_s) : {}
+        attrs['actor'] = 'anonymous' if attrs['actor'].to_s.empty?
+        attrs
       end
 
       # See Onetime::Models::Features::StateCas for +compare_and_set_state!+,

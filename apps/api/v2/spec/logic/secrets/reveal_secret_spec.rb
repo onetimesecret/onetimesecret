@@ -64,6 +64,25 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
     secret.save_fields(:verification)
   end
 
+  # Persist an org on the receipt so the reveal cascade fans the 'revealed'
+  # event (with its actor attribution) out to a real, inspectable trail. The
+  # cascade reloads the receipt from Redis, so org_id must be saved, not just
+  # set in memory.
+  def link_receipt_to_org!(receipt)
+    org = Onetime::Organization.new(
+      display_name: 'Actor Attribution Org',
+      contact_email: "actor-#{SecureRandom.hex(6)}@example.com",
+    ).tap(&:save)
+    receipt.org_id = org.objid
+    receipt.save_fields(:org_id)
+    org
+  end
+
+  # An authenticated caller who owns `owner_objid`'s secret.
+  def owner_double(owner_objid)
+    double('Customer', custid: owner_objid, objid: owner_objid, anonymous?: false)
+  end
+
   let!(:pair)   { Onetime::Receipt.spawn_pair(nil, 3600, 'a secret value') }
   let(:receipt) { pair.first }
   let(:secret)  { pair.last }
@@ -99,6 +118,70 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
       expect(logic.show_secret).to be false
       expect(logic.secret_value).to be_nil
       expect(logic.success_data[:record]).not_to have_key(:secret_value)
+    end
+  end
+
+  # Actor attribution on reveal (#3639). "Who revealed it" is the first
+  # question an auditor asks; the revealed event must carry the actor
+  # discriminator computed from the request's customer. The ownership test
+  # mirrors the fetch-side telemetry EXACTLY, including the anonymous guard
+  # that keeps a guest link (owner_id nil) revealed by an anonymous caller
+  # (objid nil) from matching nil == nil and being misattributed to "creator".
+  context 'actor attribution (#3639)' do
+    it 'records actor=creator when the authenticated owner reveals' do
+      owner_objid = "objid_#{SecureRandom.hex(6)}"
+      owner_pair  = Onetime::Receipt.spawn_pair(owner_objid, 3600, 'a secret value')
+      org         = link_receipt_to_org!(owner_pair.first)
+
+      logic = build_logic(
+        { 'identifier' => owner_pair.last.identifier, 'continue' => 'true' },
+        customer: owner_double(owner_objid),
+      )
+      logic.process_params
+      logic.process
+
+      expect(logic.secret_value).to eq('a secret value')
+      event = org.audit_events_page.first
+      expect(event['kind']).to eq('revealed')
+      expect(event['actor']).to eq('creator')
+      expect(event['actor_id']).to eq(owner_objid.slice(0, 8))
+    end
+
+    it 'records actor=authenticated_other when an authenticated non-owner reveals' do
+      owner_objid = "objid_#{SecureRandom.hex(6)}"
+      other_objid = "objid_#{SecureRandom.hex(6)}"
+      owner_pair  = Onetime::Receipt.spawn_pair(owner_objid, 3600, 'a secret value')
+      org         = link_receipt_to_org!(owner_pair.first)
+
+      logic = build_logic(
+        { 'identifier' => owner_pair.last.identifier, 'continue' => 'true' },
+        customer: owner_double(other_objid), # authenticated, but not the owner
+      )
+      logic.process_params
+      logic.process
+
+      expect(logic.secret_value).to eq('a secret value')
+      event = org.audit_events_page.first
+      expect(event['actor']).to eq('authenticated_other')
+      expect(event['actor_id']).to eq(other_objid.slice(0, 8))
+    end
+
+    # THE privacy pin: an anonymous reveal of a guest link (secret owner_id nil,
+    # caller objid nil) must be 'anonymous' and NEVER 'creator', even though
+    # owner?(cust) would match nil == nil without the anonymous_user? guard.
+    it 'records actor=anonymous for an anonymous reveal of a guest link (never creator)' do
+      org = link_receipt_to_org!(receipt) # default pair is a guest secret (owner_id nil)
+
+      logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+      logic.process_params
+      logic.process
+
+      expect(logic.secret_value).to eq('a secret value')
+      event = org.audit_events_page.first
+      expect(event['kind']).to eq('revealed')
+      expect(event['actor']).to eq('anonymous')
+      expect(event['actor']).not_to eq('creator')
+      expect(event).not_to have_key('actor_id')
     end
   end
 
