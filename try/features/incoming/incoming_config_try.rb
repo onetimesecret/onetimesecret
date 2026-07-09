@@ -27,6 +27,14 @@ config = OT.conf.dig('features', 'incoming')
 config['memo_max_length']
 #=> 50
 
+## Secret max length lives under site.secret_options.content, not features.incoming
+OT.conf.dig('features', 'incoming', 'secret_max_length')
+#=> nil
+
+## Default secret content max length is 10000
+OT.conf.dig('site', 'secret_options', 'content', 'maximum_length')
+#=> 10_000
+
 ## Default TTL is 7 days (604800 seconds)
 config = OT.conf.dig('features', 'incoming')
 config['default_ttl']

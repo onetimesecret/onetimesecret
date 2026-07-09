@@ -40,7 +40,7 @@
       aria-labelledby="founders-message">
       <div class="p-6">
         <div class="border-l-4 border-brand-500 pl-4 space-y-3 text-gray-500 dark:text-gray-400 italic">
-          <p>
+          <p id="founders-message">
             {{ t('web.feedback.founder_note_line1') }}
           </p>
           <p>

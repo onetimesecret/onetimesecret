@@ -2,34 +2,30 @@
 
 <script setup lang="ts">
   import { computed, onMounted, ref } from 'vue';
+  import { storeToRefs } from 'pinia';
   import { useIncomingSecret } from '@/shared/composables/useIncomingSecret';
   import { useIncomingStore } from '@/shared/stores/incomingStore';
-  import IncomingMemoInput from '@/apps/secret/components/incoming/IncomingMemoInput.vue';
-  import IncomingRecipientDropdown from '@/apps/secret/components/incoming/IncomingRecipientDropdown.vue';
-  import SecretContentInputArea from '@/apps/secret/components/form/SecretContentInputArea.vue';
+  import { useProductIdentity } from '@/shared/stores/identityStore';
+  import IncomingSecretFormBody from '@/apps/secret/components/incoming/IncomingSecretFormBody.vue';
   import LoadingOverlay from '@/shared/components/common/LoadingOverlay.vue';
   import EmptyState from '@/shared/components/ui/EmptyState.vue';
   import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
   const incomingStore = useIncomingStore();
-  const {
-    form,
-    errors,
-    isSubmitting,
-    memoMaxLength,
-    isFeatureEnabled,
-    recipients,
-    isFormValid,
-    validateMemo,
-    validateSecret,
-    validateRecipient,
-    submit,
-    loadConfig,
-  } = useIncomingSecret();
+  const { isFeatureEnabled, loadConfig } = useIncomingSecret();
+
+  // Custom-domain brand logo. The top masthead is suppressed on custom domains
+  // (see guards.routes.ts), so the page body owns the logo — mirroring
+  // BrandedHomepage. Hidden when no logo is configured or the asset 404s, so
+  // the no-logo page stays title + subtitle + form with no placeholder box.
+  const { logoUri, displayName } = storeToRefs(useProductIdentity());
+  const logoError = ref(false);
+  const handleLogoError = () => {
+    logoError.value = true;
+  };
 
   const isLoading = ref(true);
-  const secretContentRef = ref<InstanceType<typeof SecretContentInputArea> | null>(null);
 
   const showEntitlementBlocked = computed(
     () => !isLoading.value && incomingStore.isEntitlementBlocked
@@ -46,33 +42,6 @@
     await loadConfig();
     isLoading.value = false;
   });
-
-  const handleTitleBlur = () => {
-    validateMemo();
-  };
-
-  const handleRecipientBlur = () => {
-    validateRecipient();
-  };
-
-  const handleSecretUpdate = (content: string) => {
-    form.value.secret = content;
-    if (errors.value.secret && content.trim()) {
-      validateSecret();
-    }
-  };
-
-  const handleSubmit = async () => {
-    await submit();
-  };
-
-  const handleReset = () => {
-    form.value.memo = '';
-    form.value.secret = '';
-    form.value.recipientId = '';
-    errors.value = {};
-    secretContentRef.value?.clearTextarea();
-  };
 </script>
 
 <template>
@@ -106,6 +75,13 @@
     <template v-else>
       <!-- Header -->
       <div class="mb-10">
+        <!-- Brand logo (custom domains) — hidden if unconfigured or 404s -->
+        <img
+          v-if="logoUri && !logoError"
+          :src="logoUri"
+          :alt="displayName"
+          class="mb-6 h-16 max-w-[200px] object-contain"
+          @error="handleLogoError" />
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
           {{ t('incoming.page_title') }}
         </h1>
@@ -133,96 +109,7 @@
       </EmptyState>
 
       <!-- Form -->
-      <div
-        v-else-if="!isLoading"
-        class="overflow-hidden rounded-2xl bg-white shadow-lg dark:bg-slate-800">
-        <form
-          @submit.prevent="handleSubmit"
-          class="space-y-8 p-8 sm:p-10"
-          data-testid="incoming-form">
-          <!-- Recipient Dropdown (First - like e-transfer) -->
-          <IncomingRecipientDropdown
-            v-model="form.recipientId"
-            :recipients="recipients"
-            :error="errors.recipientId"
-            :disabled="isSubmitting"
-            @blur="handleRecipientBlur" />
-
-          <!-- Secret Content (Second) -->
-          <div>
-            <label
-              for="secret-content"
-              class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              {{ t('incoming.secret_content_label') }}
-              <span
-                v-if="errors.secret"
-                class="text-red-500">
-                *
-              </span>
-            </label>
-
-            <SecretContentInputArea
-              ref="secretContentRef"
-              :initial-content="form.secret"
-              :disabled="isSubmitting"
-              :max-length="10000"
-              @update:content="handleSecretUpdate" />
-
-            <span
-              v-if="errors.secret"
-              class="mt-1 block text-sm text-red-600 dark:text-red-400"
-              data-testid="incoming-secret-error">
-              {{ errors.secret }}
-            </span>
-          </div>
-
-          <!-- Memo Input (Last - optional, like e-transfer) -->
-          <IncomingMemoInput
-            v-model="form.memo"
-            :max-length="memoMaxLength"
-            :error="errors.memo"
-            :disabled="isSubmitting"
-            @blur="handleTitleBlur" />
-
-          <!-- Action Buttons -->
-          <div
-            class="flex flex-col gap-4 border-t border-gray-200 pt-8 dark:border-gray-700 sm:flex-row sm:items-center sm:justify-between">
-            <button
-              type="button"
-              :disabled="isSubmitting"
-              class="order-2 rounded-xl border-2 border-gray-300 bg-white px-6 py-3.5 text-base font-semibold text-gray-700 shadow-sm transition-all duration-200 hover:border-gray-400 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-slate-800 dark:text-gray-300 dark:hover:border-gray-500 dark:hover:bg-slate-700 sm:order-1"
-              @click="handleReset"
-              data-testid="incoming-form-reset">
-              {{ t('incoming.reset_form') }}
-            </button>
-
-            <button
-              type="submit"
-              :disabled="isSubmitting || !isFormValid"
-              class="order-1 flex items-center justify-center gap-2 rounded-xl px-8 py-3.5 text-base font-semibold text-white shadow-md transition-all duration-300 sm:order-2"
-              :class="
-                isFormValid && !isSubmitting
-                  ? 'bg-brand-500 text-white hover:scale-105 hover:bg-brand-600 hover:shadow-lg active:scale-100'
-                  : 'cursor-not-allowed bg-gray-400 opacity-60 dark:bg-gray-600'
-              "
-              data-testid="incoming-form-submit">
-              <svg
-                class="size-5 text-white"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                aria-hidden="true">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-              {{ isSubmitting ? t('incoming.submitting') : t('incoming.submit_secret') }}
-            </button>
-          </div>
-        </form>
-      </div>
+      <IncomingSecretFormBody v-else-if="!isLoading" />
     </template>
   </div>
 </template>

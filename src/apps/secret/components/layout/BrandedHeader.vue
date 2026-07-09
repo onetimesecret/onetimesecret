@@ -22,10 +22,24 @@
   // landmark, no padding band.
   const { headerEnabled } = useHeaderEnabled();
 
-  const headertext = computed(() => productIdentity.allowPublicHomepage ? t('web.homepage.create_a_secure_link') : t('web.homepage.secure_links'));
-  const subtext = computed(() => productIdentity.allowPublicHomepage
-      ? t('web.homepage.send_sensitive_information_that_can_only_be_viewed_once')
-      : t('web.homepage.a_trusted_way_to_share_sensitive_information_etc'));
+  // Copy tracks what the domain's homepage actually offers: the create
+  // headline for the classic form, the send headline when the homepage
+  // presents the incoming form (secrets_mode=incoming), and the neutral
+  // secure-links copy when the homepage is private.
+  const headertext = computed(() => {
+    if (!productIdentity.allowPublicHomepage) return t('web.homepage.secure_links');
+    return productIdentity.homepageSecretsMode === 'incoming'
+      ? t('web.homepage.send_a_secret')
+      : t('web.homepage.create_a_secure_link');
+  });
+  const subtext = computed(() => {
+    if (!productIdentity.allowPublicHomepage) {
+      return t('web.homepage.a_trusted_way_to_share_sensitive_information_etc');
+    }
+    return productIdentity.homepageSecretsMode === 'incoming'
+      ? t('web.homepage.deliver_sensitive_information_directly_and_securely')
+      : t('web.homepage.send_sensitive_information_that_can_only_be_viewed_once');
+  });
 </script>
 
 <template>

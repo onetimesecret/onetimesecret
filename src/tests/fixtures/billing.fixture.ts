@@ -52,7 +52,7 @@ export const mockPlans: Record<string, Plan> = {
     stripe_price_id: null, // Free plans have no Stripe price
     name: 'Free',
     tier: 'free',
-    interval: null, // Free plans have no interval
+    interval: '', // Free plans have no interval
     amount: 0,
     display_order: 0,
     features: ['Basic secret sharing'],

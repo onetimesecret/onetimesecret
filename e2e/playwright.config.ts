@@ -116,6 +116,15 @@ export default defineConfig({
 
     /* Global timeout for navigation actions */
     navigationTimeout: 15000,
+
+    /* Sandbox/local escape hatch for the a11y suite: when A11Y_CHROME_PATH is
+     * set (e.g. to a pre-installed Chromium in an egress-blocked sandbox),
+     * launch that binary instead of Playwright's managed download. Unset in
+     * real CI, where `playwright install chromium` provisions the pinned
+     * build — so this stays undefined and CI uses the default browser. */
+    launchOptions: process.env.A11Y_CHROME_PATH
+      ? { executablePath: process.env.A11Y_CHROME_PATH }
+      : undefined,
   },
 
   /* Configure projects.

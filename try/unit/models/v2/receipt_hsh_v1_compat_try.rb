@@ -67,9 +67,12 @@ result = V1::Controllers::Index.receipt_hsh(receipt_new)
 result['state']
 #=> 'new'
 
-## State mapping: 'previewed' maps to 'viewed'
+## State mapping: legacy 'previewed' state maps to 'viewed' (pre-#3633 data)
+## #3633 retired the previewed! mutation, but the V1 vocabulary translation
+## must still map any pre-existing stored 'previewed' state; set it directly.
 receipt_previewed, _ = Onetime::Receipt.spawn_pair 'anon', 3600, 'previewed state secret'
-receipt_previewed.previewed!
+receipt_previewed.state = 'previewed'
+receipt_previewed.save
 result = V1::Controllers::Index.receipt_hsh(receipt_previewed)
 result['state']
 #=> 'viewed'

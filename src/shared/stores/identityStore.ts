@@ -7,6 +7,7 @@ import {
 import {
   DEFAULT_LOGO_COMPONENT,
   NEUTRAL_BRAND_DEFAULTS,
+  RESOLVED_LOGO_COMPONENT,
   resolveProductName,
 } from '@/shared/constants/brand';
 import { cornerStyleClasses, fontFamilyClasses } from '@/shared/utils/brand-helpers';
@@ -147,10 +148,28 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     }
   );
 
-  // Watch homepage_config for toggle state (authoritative source, separate from brand)
-  watch(homepage_config, (newConfig) => {
-    state.allowPublicHomepage = newConfig?.enabled ?? false;
-  });
+  // Watch homepage_config for toggle state (authoritative source, separate
+  // from brand). deep: true because pinia's $patch merges a plain nested
+  // object IN PLACE (same reference), so a shallow watch only fires on the
+  // null -> object transition — and on custom domains bootstrap always
+  // ships an object, so in-session updates would otherwise never land.
+  watch(
+    homepage_config,
+    (newConfig) => {
+      state.allowPublicHomepage = newConfig?.enabled ?? false;
+    },
+    { deep: true }
+  );
+
+  /**
+   * Which interactive experience the enabled homepage presents
+   * ('create' | 'incoming'). Computed (not state + watch) so it tracks
+   * nested property access through the reactive proxy and survives
+   * in-place $patch merges of homepage_config.
+   */
+  const homepageSecretsMode = computed(
+    () => homepage_config.value?.secrets_mode ?? 'create'
+  );
 
   // Watch for domain config changes (consolidated for reduced reactive overhead)
   watch(
@@ -244,7 +263,16 @@ export const useProductIdentity = defineStore('productIdentity', () => {
   /**
    * Resolved logo source on the identity axis: the tenant's uploaded logo when
    * present, then the operator's install-wide logo (custom domains excepted,
-   * see installLogoUri), then the neutral `DefaultLogo` component sentinel.
+   * see installLogoUri), then the terminal component sentinel.
+   *
+   * The terminal is `RESOLVED_LOGO_COMPONENT` (the build-time
+   * `VITE_LOGO_COMPONENT` override, else the neutral `DefaultLogo`) on the
+   * install's own contexts, but stays the neutral `DEFAULT_LOGO_COMPONENT` on
+   * custom domains: `installLogoUri` is already null there, so without this
+   * guard the operator's chosen component would surface on a tenant domain that
+   * has no uploaded logo — the same leak `installLogoUri` guards against. The
+   * override thus never affects custom-domain logo display.
+   *
    * Never null or empty, so a consumer can render a lockup without its own
    * "no logo" fallback.
    *
@@ -258,7 +286,10 @@ export const useProductIdentity = defineStore('productIdentity', () => {
    * is no longer read from `ui.header.branding`.
    */
   const logoSource = computed(
-    () => logoUri.value || installLogoUri.value || DEFAULT_LOGO_COMPONENT
+    () =>
+      logoUri.value ||
+      installLogoUri.value ||
+      (isCustom.value ? DEFAULT_LOGO_COMPONENT : RESOLVED_LOGO_COMPONENT)
   );
 
   const cornerClass = computed(() =>
@@ -303,6 +334,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     installLogoUri,
     installLogoAlt,
     logoSource,
+    homepageSecretsMode,
     $reset,
 
     ...toRefs(state),

@@ -107,6 +107,7 @@ module ColonelAPI
               homepage_config: homepage_config && {
                 domain_id: homepage_config.domain_id,
                 enabled: homepage_config.enabled?,
+                secrets_mode: homepage_config.secrets_mode_value,
                 created_at: homepage_config.created&.to_i,
                 updated_at: homepage_config.updated&.to_i,
               },

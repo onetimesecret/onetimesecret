@@ -27,6 +27,7 @@ module V2::Logic
         require_guest_route_enabled!(:conceal)
         super
         raise_form_error 'You did not provide anything to share', field: :secret, error_type: :missing if secret_value.to_s.empty?
+        validate_secret_size(secret_value)
       end
     end
   end

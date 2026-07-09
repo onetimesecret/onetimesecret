@@ -75,6 +75,44 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
     end
   end
 
+  # Safe-method pin (#3633): a metadata fetch (GET without continue) must not
+  # advance the secret's lifecycle state. The old previewed! side effect is
+  # replaced by append-only telemetry on the receipt's access timeline.
+  context 'when fetching metadata without continue' do
+    it 'leaves the lifecycle state untouched and records the access on the receipt' do
+      logic = build_logic({ 'identifier' => secret.identifier })
+      logic.process_params
+      logic.process
+
+      expect(logic.show_secret).to be false
+
+      reloaded = Onetime::Secret.load(secret.identifier)
+      expect(reloaded.state).to eq('new')
+      expect(reloaded.viewable?).to be true
+
+      timeline = Onetime::Receipt.load(receipt.identifier)
+      expect(timeline.access_count).to eq(1)
+      expect(timeline.access_events.last).to start_with('secret_get:')
+    end
+
+    it "records the distinct 'previewed' kind when the creator opens their own link" do
+      owner = Onetime::Customer.create!(email: "show-owner-#{SecureRandom.hex(6)}@example.com")
+      owner_pair = Onetime::Receipt.spawn_pair(owner.objid, 3600, 'a secret value')
+      as_owner = double('Customer', custid: owner.custid, objid: owner.objid, anonymous?: false)
+
+      logic = build_logic({ 'identifier' => owner_pair.last.identifier }, customer: as_owner)
+      logic.process_params
+      logic.process
+
+      # The creator opening their OWN secret link is the "previewed" event
+      # (#3633) -- a distinct, non-mutating signal from a third party's
+      # 'secret_get'. It is telemetry only: the secret's state is untouched.
+      timeline = Onetime::Receipt.load(owner_pair.first.identifier)
+      expect(timeline.access_events.last).to start_with('previewed:')
+      expect(Onetime::Secret.load(owner_pair.last.identifier).state).to eq('new')
+    end
+  end
+
   context 'when a concurrent request already won the reveal (this request loses)' do
     it 'does NOT emit the plaintext' do
       logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
@@ -125,8 +163,9 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
         expect(reloaded.verified?).to be true
         expect(reloaded.verified_by).to eq('email')
 
-        # Consumed: the won claim leaves the in-memory state 'revealed', so
-        # the trailing `previewed! if state?(:new)` cannot resurrect it.
+        # Consumed: the won claim destroys the record; the trailing access
+        # telemetry only appends to the receipt timeline and cannot
+        # resurrect the secret.
         expect(Onetime::Secret.load(secret.identifier)).to be_nil
       end
     end
@@ -188,8 +227,8 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
         # Hardcoded message (not i18n) -- safe to match.
         expect { logic.process }.to raise_error(Onetime::FormError, /already logged in/)
 
-        # The raise short-circuits before the trailing previewed!, so the
-        # secret stays :new and viewable.
+        # The raise short-circuits process, so the secret stays :new and
+        # viewable (state is never advanced on a read anyway; #3633).
         reloaded = Onetime::Secret.load(secret.identifier)
         expect(reloaded.state).to eq('new')
         expect(reloaded.viewable?).to be true
@@ -224,8 +263,8 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
         expect(reloaded.verified?).to be true
         expect(reloaded.verified_by).to eq('email')
 
-        # The lost claim marks the loser's in-memory state 'revealed', so the
-        # trailing previewed! is skipped -- the destroyed record stays gone.
+        # The lost claim marks the loser's in-memory state 'revealed'; the
+        # trailing access telemetry cannot resurrect the destroyed record.
         expect(Onetime::Secret.load(secret.identifier)).to be_nil
       end
     end

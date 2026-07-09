@@ -17,6 +17,7 @@ module Incoming
     #     config: {
     #       enabled: true,
     #       memo_max_length: 50,
+    #       secret_max_length: 10000,
     #       default_ttl: 604800,
     #       recipients: [
     #         { hash: "abc123...", name: "Support Team" }

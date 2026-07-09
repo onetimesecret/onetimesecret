@@ -114,6 +114,31 @@ const routes: Array<RouteRecordRaw> = [
       window.location.href = '/logout';
     },
   },
+  // Post-signup confirmation page ("Check your email"). Intentionally ungated:
+  // it is reached immediately after account creation and is purely informational
+  // (echoes the address, offers resend), so it must render regardless of the
+  // signin/signup feature toggles.
+  {
+    path: '/check-email',
+    name: 'Check Email',
+    component: () => import('@/apps/session/views/CheckEmail.vue'),
+    meta: {
+      title: 'web.TITLES.check_email',
+      requiresAuth: false,
+      isAuthRoute: true,
+      excludeSsoOnly: true,
+      layout: AuthLayout,
+      layoutProps: {
+        displayMasthead: false,
+        displayNavigation: false,
+        displayFooterLinks: false,
+        displayFeedback: false,
+        displayVersion: true,
+        displayToggles: true,
+      },
+      sentryScrubParams: false,
+    },
+  },
   // Intentionally ungated: account verification must work regardless of
   // signin/signup feature toggles since the flow starts from an email link.
   {

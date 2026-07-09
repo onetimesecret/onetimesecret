@@ -129,5 +129,67 @@ RSpec.describe V1::Logic::Secrets::BurnSecret do
         expect(subject.greenlighted).to be_falsey
       end
     end
+
+    # v1 burn shares the passphrase rate limiter with show/reveal so the burn
+    # endpoint cannot be used as a free brute-force oracle.
+    context 'when the secret is passphrase-protected' do
+      let(:secret_identifier) { "burnrl_#{SecureRandom.hex(6)}" }
+      let(:secret) do
+        double('Onetime::Secret',
+          key: 'secret123',
+          identifier: secret_identifier,
+          state?: true,
+          owner?: false,
+          viewable?: true,
+          has_passphrase?: true,
+          passphrase?: false)
+      end
+
+      before do
+        allow(secret).to receive(:burned!)
+      end
+
+      it 'records a failed attempt and raises a form error on a wrong guess' do
+        expect { subject.process }.to raise_error(OT::FormError)
+
+        attempts = Onetime::Secret.dbclient.get("passphrase:attempts:#{secret_identifier}")
+        expect(attempts.to_i).to eq(1)
+        expect(secret).not_to have_received(:burned!)
+      end
+
+      it 'rejects further attempts once locked out, before checking the passphrase' do
+        Onetime::Secret.dbclient.setex("passphrase:locked:#{secret_identifier}", 60, '1')
+
+        expect { subject.process }.to raise_error(Onetime::LimitExceeded)
+        expect(secret).not_to have_received(:burned!)
+      end
+
+      context 'with the correct passphrase' do
+        let(:secret) do
+          double('Onetime::Secret',
+            key: 'secret123',
+            identifier: secret_identifier,
+            state?: true,
+            owner?: false,
+            viewable?: true,
+            has_passphrase?: true,
+            passphrase?: true)
+        end
+
+        before do
+          allow(secret).to receive(:burned!).and_return(true)
+        end
+
+        it 'clears rate limit state and burns' do
+          Onetime::Secret.dbclient.set("passphrase:attempts:#{secret_identifier}", '3')
+
+          subject.process
+
+          expect(secret).to have_received(:burned!)
+          expect(subject.greenlighted).to be true
+          expect(Onetime::Secret.dbclient.get("passphrase:attempts:#{secret_identifier}")).to be_nil
+        end
+      end
+    end
   end
 end

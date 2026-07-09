@@ -4,7 +4,7 @@ Documents that capture important architectural decisions along with their contex
 
 **Lifecycle:**
 - Proposed: Under discussion
-- Accepted: Decision approved and implemented
+- Accepted: Decision ratified by the team (implementation may follow; track rollout in Implementation Notes)
 - Deprecated: No longer relevant but kept for history
 - Superseded: Replaced by a newer ADR (reference the new one)
 

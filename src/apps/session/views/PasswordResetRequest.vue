@@ -91,7 +91,7 @@ const handleSubmit = async () => {
           <button
             type="submit"
             :disabled="isLoading"
-            class="focus:shadow-outline rounded bg-brand-500 px-4 py-2 font-bold text-white transition duration-300 hover:bg-brand-700 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-800"
+            class="focus:shadow-outline rounded bg-brand-600 px-4 py-2 font-bold text-white transition duration-300 hover:bg-brand-700 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-800"
             data-testid="password-reset-request-submit">
             <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
             <span v-else>{{ t('web.auth.password_reset_request.button') }}</span>

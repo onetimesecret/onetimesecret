@@ -138,6 +138,11 @@
     "context": "Body text of the notice shown instead of the auth form when sign-in is disabled for the current domain. A return-to-homepage link is shown below it.",
     "content_hash": "b681c35d"
   },
+  "web.login.verified_notice": {
+    "text": "Your email has been verified — you can now sign in.",
+    "context": "Persistent success banner shown on the /signin page after the user clicks the verification link in their welcome email (arrives via ?verified=1).",
+    "content_hash": "c8d4b5a8"
+  },
   "web.signup.create_your_account": {
     "text": "Create Your Account",
     "content_hash": "5f4c33d7"
@@ -245,6 +250,38 @@
     "text": "Couldn't send the verification email. Please check your connection and try again.",
     "content_hash": "15149f46"
   },
+  "web.auth.verify.resend_short": {
+    "text": "Resend email",
+    "content_hash": "4f44603e"
+  },
+  "web.auth.check_email._guidance": {
+    "context": "Confirmation page shown right after signup, telling the user a verification link was emailed and they must click it before signing in."
+  },
+  "web.auth.check_email.title": {
+    "text": "Check your email",
+    "content_hash": "77322879"
+  },
+  "web.auth.check_email.sent_to_generic": {
+    "text": "We sent a verification link to your email address.",
+    "content_hash": "4e5510af"
+  },
+  "web.auth.check_email.help": {
+    "text": "We sent a verification link to this address — open the email and click the link to activate your account.",
+    "context": "Tooltip/aria-label on the help icon beside the emailed address on the post-signup check-email page. Carries the 'what was sent / what to do next' detail so the screen stays a single clear instruction.",
+    "content_hash": "8babedc4"
+  },
+  "web.auth.check_email.spam_hint": {
+    "text": "Can't find it? Check your spam folder.",
+    "content_hash": "d166d9a4"
+  },
+  "web.auth.check_email.wrong_email": {
+    "text": "Entered the wrong address?",
+    "content_hash": "0aa863e5"
+  },
+  "web.auth.check_email.start_over": {
+    "text": "Start over",
+    "content_hash": "5eed7e9f"
+  },
   "web.auth.change_password.title": {
     "text": "Change Password",
     "content_hash": "a949f462"
@@ -317,6 +354,10 @@
   "web.auth.passwordReset.emailSent": {
     "text": "An email has been sent to you with a link to reset the password for your account",
     "content_hash": "63a6af45"
+  },
+  "web.auth.field-errors.password": {
+    "text": "Password",
+    "context": "Field label prefixing a password validation error (e.g. \"Password: same as current password\")"
   },
   "web.auth.terms.agree_prefix": {
     "text": "I agree to the",

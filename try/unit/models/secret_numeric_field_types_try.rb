@@ -36,8 +36,8 @@
 #    (an unconverted form param, config value, console fix, or any code
 #    path that calls hset with a quoted value) and the record is poisoned:
 #    it hydrates as String on every subsequent load. The recipient flow
-#    never heals it: previewed! uses save_fields(:state), which rewrites
-#    only the state field.
+#    never heals it: #3633 retired the previewed! state mutation, so the
+#    recipient's ShowSecret read no longer writes any field at all.
 #
 # MITIGATION (#3424/#3299): the safe_dump lambdas in Secret and Receipt cast
 # the numeric fields at the serialization boundary. lifespan/secret_ttl use
@@ -108,14 +108,6 @@ sd = Onetime::Secret.load(@secret.objid).safe_dump
 sd = Onetime::Secret.load(@secret.objid).safe_dump
 Familia::JsonSerializer.dump(lifespan: sd[:lifespan], secret_ttl: sd[:secret_ttl])
 #=> '{"lifespan":604800,"secret_ttl":604800}'
-
-## previewed! (the exact ShowSecret flow the recipient triggers) only
-## rewrites state via save_fields(:state); numeric fields keep their types
-fresh = Onetime::Secret.load(@secret.objid)
-fresh.previewed!
-sd = Onetime::Secret.load(@secret.objid).safe_dump
-[sd[:state], sd[:lifespan].class, sd[:created].class]
-#=> ['previewed', Integer, Float]
 
 ## Receipt safe_dump numeric fields are natively typed too
 ## (lifespan, secret_ttl, metadata_ttl, receipt_ttl, created, updated)
@@ -209,11 +201,9 @@ loaded = Onetime::Secret.load(@sticky.objid)
 [loaded.created.class, loaded.updated.class, loaded.lifespan.class]
 #=> [String, Float, String]
 
-## The recipient flow cannot heal a poisoned record either: previewed!
-## writes only the state field. The String survives at rest -- but the
-## boundary cast keeps the V3 payload numeric regardless
-poisoned = Onetime::Secret.load(@poisoned.objid)
-poisoned.previewed!
+## The recipient flow cannot heal a poisoned record either: reads no longer
+## mutate state (#3633 retired previewed!), so the String survives at rest --
+## but the boundary cast keeps the V3 payload numeric regardless
 reloaded = Onetime::Secret.load(@poisoned.objid)
 [reloaded.lifespan.class, reloaded.safe_dump[:lifespan]]
 #=> [String, 604800]

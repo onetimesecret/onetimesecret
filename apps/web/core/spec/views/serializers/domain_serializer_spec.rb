@@ -276,6 +276,58 @@ RSpec.describe Core::Views::DomainSerializer do
         end
       end
 
+      describe 'homepage_config secrets_mode serialization' do
+        # The bootstrap payload is the read-path invariant for the homepage
+        # secrets_mode feature. The availability matrix itself (feature flag,
+        # site.secret, IncomingConfig readiness, entitlement) lives on
+        # HomepageConfig#effectively_enabled? — the single source of truth
+        # shared with the homepage-config API responses — and is covered by
+        # spec/unit/onetime/models/custom_domain/homepage_config_effective_spec.rb.
+        # Here we pin the delegation: `enabled` carries the EFFECTIVE value
+        # while the stored secrets_mode is preserved so intent survives a
+        # downgrade.
+
+        let(:homepage_config) do
+          instance_double(
+            Onetime::CustomDomain::HomepageConfig,
+            domain_id: 'domain123',
+            enabled?: true,
+            secrets_mode_value: 'incoming',
+            signup_enabled?: false,
+            signin_enabled?: false,
+            disabled_homepage_variant_value: nil,
+            created: 1_700_000_000,
+            updated: 1_700_000_000,
+          )
+        end
+
+        before do
+          allow(Onetime::CustomDomain::HomepageConfig).to receive(:find_by_domain_id)
+            .with('domain123')
+            .and_return(homepage_config)
+        end
+
+        it 'emits the effective enablement, passing the already-loaded domain through' do
+          allow(homepage_config).to receive(:effectively_enabled?)
+            .with(custom_domain: custom_domain)
+            .and_return(true)
+
+          result = described_class.serialize(custom_domain_view_vars)
+          expect(result['homepage_config']['enabled']).to be(true)
+          expect(result['homepage_config']['secrets_mode']).to eq('incoming')
+        end
+
+        it 'preserves the stored secrets_mode through a downgrade so intent survives' do
+          allow(homepage_config).to receive(:effectively_enabled?)
+            .with(custom_domain: custom_domain)
+            .and_return(false)
+
+          result = described_class.serialize(custom_domain_view_vars)
+          expect(result['homepage_config']['enabled']).to be(false)
+          expect(result['homepage_config']['secrets_mode']).to eq('incoming')
+        end
+      end
+
       describe 'domain_branding with mixed boolean representations' do
         # Test that the coercion handles various boolean representations
 

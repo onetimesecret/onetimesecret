@@ -292,24 +292,15 @@ describe('PlanPreviewModal', () => {
     });
   });
 
-  // Regression: the modal must re-fetch the org's entitlements/limits after a
-  // preview toggle. Those drive useEntitlements feature gating and are NOT in
-  // the bootstrap payload, so refreshing bootstrap alone leaves the UI gating
-  // against the org's real plan instead of the previewed plan.
-  describe('Entitlement refresh', () => {
-    const orgState = {
-      organization: {
-        objid: 'org_1',
-        extid: 'on-abc',
-        display_name: 'Acme',
-        is_default: true,
-      },
-    };
-
-    it('re-fetches org entitlements after activating preview mode', async () => {
+  // Regression: the modal must refetch org records after a preview toggle.
+  // The server applies the preview override on every read (ADR-020), so
+  // fetchOrganizations() returns preview-corrected entitlements/limits;
+  // without it the UI keeps gating against the previously loaded records.
+  describe('Org state refresh', () => {
+    it('refetches organizations after activating preview mode', async () => {
       mockPost.mockResolvedValueOnce({ data: { status: 'active' } });
 
-      wrapper = await mountComponent({}, { ...orgState });
+      wrapper = await mountComponent();
       const orgStore = useOrganizationStore();
 
       const planButton = wrapper.findAll('button').find(
@@ -319,17 +310,16 @@ describe('PlanPreviewModal', () => {
       await nextTick();
       await nextTick();
 
-      expect(orgStore.fetchEntitlements).toHaveBeenCalledWith('on-abc');
+      expect(orgStore.fetchOrganizations).toHaveBeenCalled();
     });
 
-    it('re-fetches org entitlements after resetting to actual plan', async () => {
+    it('refetches organizations after resetting to actual plan', async () => {
       mockPost.mockResolvedValueOnce({
         data: { status: 'cleared', actual_planid: 'free' },
       });
 
       wrapper = await mountComponent({}, {
         entitlement_preview_planid: 'identity_v1',
-        ...orgState,
       });
       const orgStore = useOrganizationStore();
 
@@ -340,7 +330,7 @@ describe('PlanPreviewModal', () => {
       await nextTick();
       await nextTick();
 
-      expect(orgStore.fetchEntitlements).toHaveBeenCalledWith('on-abc');
+      expect(orgStore.fetchOrganizations).toHaveBeenCalled();
     });
   });
 

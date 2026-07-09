@@ -172,6 +172,15 @@ result = logic.process
 result[:config][:memo_max_length]
 #=> 50
 
+## GetConfig result includes secret_max_length from site.secret_options.content
+enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
+logic = Incoming::Logic::GetConfig.new(@strategy_result, {})
+logic.process_params
+logic.raise_concerns
+result = logic.process
+result[:config][:secret_max_length]
+#=> 10_000
+
 ## GetConfig result includes public recipients
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
 logic = Incoming::Logic::GetConfig.new(@strategy_result, {})
@@ -180,6 +189,41 @@ logic.raise_concerns
 result = logic.process
 result[:config][:recipients].first['digest']
 #=> 'test_recipient_hash_abc123'
+
+## CreateIncomingSecret rejects content longer than the configured maximum
+enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
+max_len = OT.conf.dig('site', 'secret_options', 'content', 'maximum_length')
+begin
+  logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
+    'secret' => {
+      'memo' => 'Test memo',
+      'secret' => 'x' * (max_len + 1),
+      'recipient' => @test_recipient_hash
+    }
+  })
+  logic.process_params
+  logic.raise_concerns
+  false
+rescue OT::FormError => e
+  e.message.include?('no more than')
+end
+#=> true
+
+## CreateIncomingSecret accepts content exactly at the configured maximum
+enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
+max_len = OT.conf.dig('site', 'secret_options', 'content', 'maximum_length')
+logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
+  'secret' => {
+    'memo' => 'Test memo',
+    'secret' => 'x' * max_len,
+    'recipient' => @test_recipient_hash
+  }
+})
+logic.process_params
+logic.raise_concerns
+logic.process
+logic.greenlighted
+#=> true
 
 ## ValidateRecipient returns valid true for valid hash
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)

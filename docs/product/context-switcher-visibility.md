@@ -15,7 +15,7 @@ add domains, collaborators, or organizations.
 Implemented in:
 
 - `src/shared/composables/useScopeSwitcherVisibility.ts` — org switcher gating
-- `src/shared/components/navigation/DomainContextSwitcher.vue` — domain CTA
+- `src/apps/workspace/components/navigation/DomainContextSwitcher.vue` — domain CTA
 - `src/apps/workspace/components/navigation/OrganizationContextBar.vue` — static fallback
 - `src/shared/components/navigation/UserMenu.vue` — identity chip
 

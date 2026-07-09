@@ -1177,6 +1177,10 @@
     "text": "Verify Account",
     "content_hash": "2f3ea760"
   },
+  "web.TITLES.check_email": {
+    "text": "Check Your Email",
+    "content_hash": "0e5fc27d"
+  },
   "web.TITLES.mfa_verify": {
     "text": "Two-Factor Authentication",
     "content_hash": "bc074b60"

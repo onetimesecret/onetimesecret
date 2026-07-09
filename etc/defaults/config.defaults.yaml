@@ -216,6 +216,12 @@ site:
       maximum_length: <%= ENV['PASSPHRASE_MAX_LENGTH'] || 128 %>
       # Enforce complexity requirements (uppercase, lowercase, numbers, symbols)
       enforce_complexity: <%= ENV['PASSPHRASE_ENFORCE_COMPLEXITY'] == 'true' || false %>
+    # Limits on the secret content itself
+    content:
+      # Maximum number of characters allowed in a secret's body. Enforced
+      # server-side on secret creation and used as the single source of
+      # truth for the client-side textarea limit.
+      maximum_length: <%= ENV['SECRET_MAX_LENGTH'] || 10000 %>
     # How long (in seconds) a generated password remains visible on the
     # receipt page after creation. Set to 0 to disable receipt-page display.
     generated_value_display_ttl: <%= ENV['GENERATED_VALUE_DISPLAY_TTL'] || 60 %>
@@ -465,7 +471,14 @@ features:
   # Allows anonymous users to send encrypted secrets to pre-configured recipients
   # via a dedicated web form at /incoming. Recipients receive email notifications.
   incoming:
-    # Enable or disable the incoming secrets feature
+    # Enable or disable the incoming secrets feature.
+    #
+    # This flag governs the CANONICAL domain only. Per-domain incoming on
+    # custom domains is gated by the org's incoming_secrets entitlement plus a
+    # ready IncomingConfig, NOT by this flag (see the canonical/custom split in
+    # RecipientResolver / CustomDomain::HomepageConfig#incoming_available?). To
+    # emergency-disable incoming on custom domains, revoke the incoming_secrets
+    # entitlement or set ORGS_INCOMING_SECRETS_ENABLED=false.
     enabled: <%= ENV['INCOMING_ENABLED'] == 'true' || false %>
     # Maximum character length for the memo/subject field
     memo_max_length: <%= ENV['INCOMING_MEMO_MAX_LENGTH'] || 50 %>

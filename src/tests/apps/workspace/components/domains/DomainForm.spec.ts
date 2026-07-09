@@ -1,16 +1,16 @@
 // src/tests/apps/workspace/components/domains/DomainForm.spec.ts
 //
-// Tests for DomainForm.vue covering:
-// 1. Form renders with DomainInput component
-// 2. Empty submission shows error
-// 3. Invalid domain shows error
-// 4. Valid domain emits submit event with validated domain
-// 5. Back button emits back event
-// 6. Submit button shows loading state when isSubmitting
-// 7. Error display component shows when localError exists
+// Tests for the "guided address cards" DomainForm.vue. The form drives its
+// entire UX off analyzeDomain(raw) and keeps the original emit contract:
+//   emit('submit', <finalHostnameString>)  and  emit('back').
+//
+// i18n runs in PASS-THROUGH mode (createTestI18n): missing keys render as the
+// key itself, so these tests assert on data-testids, emitted values, and the
+// presence/absence of blocks — never on translated copy.
 
-import { mount, VueWrapper, flushPromises } from '@vue/test-utils';
+import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { nextTick } from 'vue';
 import { createTestI18n } from '@tests/setup';
 import DomainForm from '@/apps/workspace/components/domains/DomainForm.vue';
 
@@ -18,6 +18,8 @@ import DomainForm from '@/apps/workspace/components/domains/DomainForm.vue';
 // Mocks
 // ---------------------------------------------------------------------------
 
+// A minimal stand-in for DomainInput: a bare <input> that mirrors v-model via
+// update:modelValue. The parent binds :model-value / @update:model-value.
 vi.mock('@/apps/workspace/components/domains/DomainInput.vue', () => ({
   default: {
     name: 'DomainInput',
@@ -27,20 +29,13 @@ vi.mock('@/apps/workspace/components/domains/DomainInput.vue', () => ({
           data-testid="domain-input-field"
           :value="modelValue"
           @input="$emit('update:modelValue', $event.target.value)"
+          :aria-describedby="describedby"
           :placeholder="placeholder"
         />
       </div>
     `,
-    props: ['modelValue', 'placeholder', 'isValid', 'autofocus', 'required'],
+    props: ['modelValue', 'placeholder', 'isValid', 'describedby', 'autofocus'],
     emits: ['update:modelValue'],
-  },
-}));
-
-vi.mock('@/shared/components/ui/ErrorDisplay.vue', () => ({
-  default: {
-    name: 'ErrorDisplay',
-    template: '<div data-testid="error-display" :data-message="error?.message">{{ error?.message }}</div>',
-    props: ['error'],
   },
 }));
 
@@ -51,23 +46,30 @@ vi.mock('@/shared/components/ui/ErrorDisplay.vue', () => ({
 const i18n = createTestI18n();
 
 // ---------------------------------------------------------------------------
-// Tests
+// Helpers
 // ---------------------------------------------------------------------------
 
 describe('DomainForm', () => {
   let wrapper: VueWrapper;
 
+  // The form debounces its guidance: echo/apex options only appear after typing
+  // settles. Fake timers let us advance past that reveal delay deterministically.
+  const REVEAL_DELAY_MS = 350;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
     if (wrapper) {
       wrapper.unmount();
     }
+    vi.useRealTimers();
   });
 
-  const mountComponent = (props: { isSubmitting?: boolean } = {}) => mount(DomainForm, {
+  const mountComponent = (props: { isSubmitting?: boolean } = {}) =>
+    mount(DomainForm, {
       props: {
         isSubmitting: props.isSubmitting ?? false,
       },
@@ -76,262 +78,305 @@ describe('DomainForm', () => {
       },
     });
 
+  // Type into the (mocked) domain field, then wait out the reveal delay so the
+  // settled guidance (echo/apex cards) has a chance to render.
+  const typeDomain = async (w: VueWrapper, value: string) => {
+    const input = w.find('[data-testid="domain-input-field"]');
+    await input.setValue(value);
+    await vi.advanceTimersByTimeAsync(REVEAL_DELAY_MS);
+    await nextTick();
+  };
+
+  // Type without advancing the reveal timer — for asserting the pre-settle state.
+  const typeWithoutSettling = async (w: VueWrapper, value: string) => {
+    await w.find('[data-testid="domain-input-field"]').setValue(value);
+    await nextTick();
+  };
+
+  const submitForm = async (w: VueWrapper) => {
+    const form = w.find('[data-testid="domain-add-form"]');
+    await form.trigger('submit.prevent');
+    await nextTick();
+  };
+
+  // Pick a radio inside the apex chooser by its native value.
+  const chooseAddress = async (w: VueWrapper, value: string) => {
+    const radio = w.find(`input[type="radio"][value="${value}"]`);
+    expect(radio.exists()).toBe(true);
+    await radio.setValue();
+    await nextTick();
+  };
+
   // -------------------------------------------------------------------------
-  // Form rendering
+  // Rendering
   // -------------------------------------------------------------------------
 
   describe('Form rendering', () => {
     it('renders the form element', () => {
       wrapper = mountComponent();
-
-      const form = wrapper.find('[data-testid="domain-add-form"]');
-      expect(form.exists()).toBe(true);
+      expect(wrapper.find('[data-testid="domain-add-form"]').exists()).toBe(true);
     });
 
-    it('renders DomainInput component', () => {
+    it('renders the DomainInput field', () => {
       wrapper = mountComponent();
-
-      // The component has data-testid="domain-input" on the DomainInput component itself
-      // Check for the input field within the form
-      const domainInput = wrapper.find('[data-testid="domain-input-field"]');
-      expect(domainInput.exists()).toBe(true);
+      expect(wrapper.find('[data-testid="domain-input-field"]').exists()).toBe(true);
     });
 
-    it('renders back button', () => {
+    it('renders back and submit buttons', () => {
       wrapper = mountComponent();
-
-      const backButton = wrapper.find('[data-testid="domain-add-cancel-btn"]');
-      expect(backButton.exists()).toBe(true);
-      expect(backButton.text()).toContain('web.COMMON.back');
+      expect(wrapper.find('[data-testid="domain-add-cancel-btn"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="domain-add-submit"]').exists()).toBe(true);
     });
 
-    it('renders submit button', () => {
+    it('shows neither echo nor apex cards nor error initially', () => {
       wrapper = mountComponent();
-
-      const submitButton = wrapper.find('[data-testid="domain-add-submit"]');
-      expect(submitButton.exists()).toBe(true);
-      expect(submitButton.text()).toContain('web.COMMON.continue');
-    });
-
-    it('does not show error display initially', () => {
-      wrapper = mountComponent();
-
-      const errorDisplay = wrapper.find('[data-testid="error-display"]');
-      expect(errorDisplay.exists()).toBe(false);
+      expect(wrapper.find('[data-testid="domain-echo"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="domain-apex-cards"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="domain-error"]').exists()).toBe(false);
     });
   });
 
   // -------------------------------------------------------------------------
-  // Form validation - empty submission
+  // Reveal delay (debounce)
+  // -------------------------------------------------------------------------
+
+  describe('Reveal delay (debounce)', () => {
+    it('does not reveal options until typing settles', async () => {
+      wrapper = mountComponent();
+
+      await typeWithoutSettling(wrapper, 'acme.com');
+      // Before the delay elapses nothing is shown yet — no per-keystroke churn.
+      expect(wrapper.find('[data-testid="domain-apex-cards"]').exists()).toBe(false);
+
+      await vi.advanceTimersByTimeAsync(REVEAL_DELAY_MS);
+      await nextTick();
+      expect(wrapper.find('[data-testid="domain-apex-cards"]').exists()).toBe(true);
+    });
+
+    it('clearing the field hides options immediately', async () => {
+      wrapper = mountComponent();
+
+      await typeDomain(wrapper, 'acme.com');
+      expect(wrapper.find('[data-testid="domain-apex-cards"]').exists()).toBe(true);
+
+      // Emptying the field hides guidance at once, without waiting out the delay.
+      await typeWithoutSettling(wrapper, '');
+      expect(wrapper.find('[data-testid="domain-apex-cards"]').exists()).toBe(false);
+    });
+
+    it('submitting flushes a pending reveal instead of waiting', async () => {
+      wrapper = mountComponent();
+
+      await typeWithoutSettling(wrapper, 'acme.com');
+      expect(wrapper.find('[data-testid="domain-apex-cards"]').exists()).toBe(false);
+
+      // Submitting resolves the pending value: cards appear and nothing is
+      // emitted (apex still needs an address choice).
+      await submitForm(wrapper);
+      expect(wrapper.find('[data-testid="domain-apex-cards"]').exists()).toBe(true);
+      expect(wrapper.emitted('submit')).toBeFalsy();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Empty submission
   // -------------------------------------------------------------------------
 
   describe('Empty submission', () => {
-    it('shows error when submitting empty form', async () => {
+    it('shows an error and does not emit submit', async () => {
       wrapper = mountComponent();
 
-      const form = wrapper.find('[data-testid="domain-add-form"]');
-      await form.trigger('submit.prevent');
-      await flushPromises();
+      await submitForm(wrapper);
 
-      const errorDisplay = wrapper.find('[data-testid="error-display"]');
-      expect(errorDisplay.exists()).toBe(true);
-      expect(errorDisplay.attributes('data-message')).toBe('web.domains.please_enter_a_domain_name');
-    });
-
-    it('does not emit submit event when form is empty', async () => {
-      wrapper = mountComponent();
-
-      const form = wrapper.find('[data-testid="domain-add-form"]');
-      await form.trigger('submit.prevent');
-      await flushPromises();
-
+      expect(wrapper.find('[data-testid="domain-error"]').exists()).toBe(true);
       expect(wrapper.emitted('submit')).toBeFalsy();
     });
 
-    it('shows error when submitting whitespace-only domain', async () => {
+    it('treats whitespace-only input as empty', async () => {
       wrapper = mountComponent();
 
-      const input = wrapper.find('[data-testid="domain-input-field"]');
-      await input.setValue('   ');
-      await flushPromises();
+      await typeDomain(wrapper, '   ');
+      await submitForm(wrapper);
 
-      const form = wrapper.find('[data-testid="domain-add-form"]');
-      await form.trigger('submit.prevent');
-      await flushPromises();
-
-      const errorDisplay = wrapper.find('[data-testid="error-display"]');
-      expect(errorDisplay.exists()).toBe(true);
+      expect(wrapper.find('[data-testid="domain-error"]').exists()).toBe(true);
+      expect(wrapper.emitted('submit')).toBeFalsy();
     });
   });
 
   // -------------------------------------------------------------------------
-  // Form validation - invalid domain
+  // Invalid hostnames
   // -------------------------------------------------------------------------
 
-  describe('Invalid domain', () => {
-    it('shows error for domain shorter than 3 characters', async () => {
+  describe('Invalid hostname', () => {
+    it('malformed input shows the error block and does not emit', async () => {
       wrapper = mountComponent();
 
-      const input = wrapper.find('[data-testid="domain-input-field"]');
-      await input.setValue('ab');
-      await flushPromises();
+      await typeDomain(wrapper, '-bad-');
+      await submitForm(wrapper);
 
-      const form = wrapper.find('[data-testid="domain-add-form"]');
-      await form.trigger('submit.prevent');
-      await flushPromises();
-
-      const errorDisplay = wrapper.find('[data-testid="error-display"]');
-      expect(errorDisplay.exists()).toBe(true);
+      expect(wrapper.find('[data-testid="domain-error"]').exists()).toBe(true);
       expect(wrapper.emitted('submit')).toBeFalsy();
     });
 
-    it('shows error for domain starting with special character', async () => {
+    it('unrecognized suffix shows the error block and does not emit', async () => {
       wrapper = mountComponent();
 
-      const input = wrapper.find('[data-testid="domain-input-field"]');
-      await input.setValue('-example.com');
-      await flushPromises();
+      await typeDomain(wrapper, 'example.c');
+      await submitForm(wrapper);
 
-      const form = wrapper.find('[data-testid="domain-add-form"]');
-      await form.trigger('submit.prevent');
-      await flushPromises();
-
-      const errorDisplay = wrapper.find('[data-testid="error-display"]');
-      expect(errorDisplay.exists()).toBe(true);
+      expect(wrapper.find('[data-testid="domain-error"]').exists()).toBe(true);
+      expect(wrapper.emitted('submit')).toBeFalsy();
     });
 
-    it('shows error for domain ending with special character', async () => {
+    it('clears the error once the input becomes valid again', async () => {
       wrapper = mountComponent();
 
-      const input = wrapper.find('[data-testid="domain-input-field"]');
-      await input.setValue('example.com-');
-      await flushPromises();
+      await typeDomain(wrapper, '-bad-');
+      await submitForm(wrapper);
+      expect(wrapper.find('[data-testid="domain-error"]').exists()).toBe(true);
 
-      const form = wrapper.find('[data-testid="domain-add-form"]');
-      await form.trigger('submit.prevent');
-      await flushPromises();
-
-      const errorDisplay = wrapper.find('[data-testid="error-display"]');
-      expect(errorDisplay.exists()).toBe(true);
-    });
-
-    it('shows error for domain with invalid characters', async () => {
-      wrapper = mountComponent();
-
-      const input = wrapper.find('[data-testid="domain-input-field"]');
-      await input.setValue('example@domain.com');
-      await flushPromises();
-
-      const form = wrapper.find('[data-testid="domain-add-form"]');
-      await form.trigger('submit.prevent');
-      await flushPromises();
-
-      const errorDisplay = wrapper.find('[data-testid="error-display"]');
-      expect(errorDisplay.exists()).toBe(true);
+      // Editing resets attempted -> error disappears before the next submit.
+      await typeDomain(wrapper, 'secrets.acme.com');
+      expect(wrapper.find('[data-testid="domain-error"]').exists()).toBe(false);
     });
   });
 
   // -------------------------------------------------------------------------
-  // Form validation - valid domain
+  // Deeper hostname (echo path)
   // -------------------------------------------------------------------------
 
-  describe('Valid domain submission', () => {
-    it('emits submit event with validated domain', async () => {
+  describe('Subdomain (echo) path', () => {
+    it('shows the echo block and no apex cards', async () => {
       wrapper = mountComponent();
 
-      const input = wrapper.find('[data-testid="domain-input-field"]');
-      await input.setValue('example.com');
-      await flushPromises();
+      await typeDomain(wrapper, 'secrets.acme.com');
 
-      const form = wrapper.find('[data-testid="domain-add-form"]');
-      await form.trigger('submit.prevent');
-      await flushPromises();
+      expect(wrapper.find('[data-testid="domain-echo"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="domain-apex-cards"]').exists()).toBe(false);
+    });
+
+    it('emits the hostname verbatim on submit', async () => {
+      wrapper = mountComponent();
+
+      await typeDomain(wrapper, 'secrets.acme.com');
+      await submitForm(wrapper);
 
       expect(wrapper.emitted('submit')).toBeTruthy();
-      expect(wrapper.emitted('submit')![0]).toEqual(['example.com']);
+      expect(wrapper.emitted('submit')![0]).toEqual(['secrets.acme.com']);
     });
 
-    it('accepts domain with subdomain', async () => {
+    it('normalizes scheme/case/path before emitting', async () => {
       wrapper = mountComponent();
 
-      const input = wrapper.find('[data-testid="domain-input-field"]');
-      await input.setValue('secrets.example.com');
-      await flushPromises();
+      await typeDomain(wrapper, 'HTTPS://Links.Acme.COM/foo');
+      await submitForm(wrapper);
 
-      const form = wrapper.find('[data-testid="domain-add-form"]');
-      await form.trigger('submit.prevent');
-      await flushPromises();
+      expect(wrapper.emitted('submit')![0]).toEqual(['links.acme.com']);
+    });
+  });
 
-      expect(wrapper.emitted('submit')).toBeTruthy();
-      expect(wrapper.emitted('submit')![0]).toEqual(['secrets.example.com']);
+  // -------------------------------------------------------------------------
+  // Apex (address cards) path
+  // -------------------------------------------------------------------------
+
+  describe('Apex (address cards) path', () => {
+    it('shows the apex cards and no echo', async () => {
+      wrapper = mountComponent();
+
+      await typeDomain(wrapper, 'acme.com');
+
+      expect(wrapper.find('[data-testid="domain-apex-cards"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="domain-echo"]').exists()).toBe(false);
+      // The four subdomain options plus the root option are rendered.
+      expect(wrapper.find('[data-testid="domain-address-option-secrets"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="domain-address-option-links"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="domain-address-option-secure"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="domain-address-option-share"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="domain-root-option"]').exists()).toBe(true);
     });
 
-    it('accepts domain with hyphens', async () => {
+    it('disables submit while no address is chosen', async () => {
       wrapper = mountComponent();
 
-      const input = wrapper.find('[data-testid="domain-input-field"]');
-      await input.setValue('my-company.example.com');
-      await flushPromises();
+      await typeDomain(wrapper, 'acme.com');
 
-      const form = wrapper.find('[data-testid="domain-add-form"]');
-      await form.trigger('submit.prevent');
-      await flushPromises();
-
-      expect(wrapper.emitted('submit')).toBeTruthy();
-      expect(wrapper.emitted('submit')![0]).toEqual(['my-company.example.com']);
+      const submit = wrapper.find('[data-testid="domain-add-submit"]');
+      expect(submit.attributes('disabled')).toBeDefined();
     });
 
-    it('accepts domain with underscores', async () => {
+    it('does not emit when submitted without a choice', async () => {
       wrapper = mountComponent();
 
-      const input = wrapper.find('[data-testid="domain-input-field"]');
-      await input.setValue('my_company.example.com');
-      await flushPromises();
+      await typeDomain(wrapper, 'acme.com');
+      await submitForm(wrapper);
 
-      const form = wrapper.find('[data-testid="domain-add-form"]');
-      await form.trigger('submit.prevent');
-      await flushPromises();
-
-      expect(wrapper.emitted('submit')).toBeTruthy();
-      expect(wrapper.emitted('submit')![0]).toEqual(['my_company.example.com']);
+      expect(wrapper.emitted('submit')).toBeFalsy();
     });
 
-    it('does not show error display on valid submission', async () => {
+    it('emits "<sub>.<registrable>" after choosing a subdomain', async () => {
       wrapper = mountComponent();
 
-      const input = wrapper.find('[data-testid="domain-input-field"]');
-      await input.setValue('example.com');
-      await flushPromises();
+      await typeDomain(wrapper, 'acme.com');
+      await chooseAddress(wrapper, 'secrets');
 
-      const form = wrapper.find('[data-testid="domain-add-form"]');
-      await form.trigger('submit.prevent');
-      await flushPromises();
+      // Choosing enables the submit button.
+      expect(
+        wrapper.find('[data-testid="domain-add-submit"]').attributes('disabled')
+      ).toBeUndefined();
 
-      const errorDisplay = wrapper.find('[data-testid="error-display"]');
-      expect(errorDisplay.exists()).toBe(false);
+      await submitForm(wrapper);
+
+      expect(wrapper.emitted('submit')![0]).toEqual(['secrets.acme.com']);
     });
 
-    it('clears previous error on valid submission', async () => {
+    it('emits the bare registrable after choosing root', async () => {
       wrapper = mountComponent();
 
-      // First trigger error with empty submission
-      const form = wrapper.find('[data-testid="domain-add-form"]');
-      await form.trigger('submit.prevent');
-      await flushPromises();
+      await typeDomain(wrapper, 'acme.com');
+      await chooseAddress(wrapper, 'root');
+      await submitForm(wrapper);
 
-      let errorDisplay = wrapper.find('[data-testid="error-display"]');
-      expect(errorDisplay.exists()).toBe(true);
+      expect(wrapper.emitted('submit')![0]).toEqual(['acme.com']);
+    });
 
-      // Then submit valid domain
-      const input = wrapper.find('[data-testid="domain-input-field"]');
-      await input.setValue('example.com');
-      await flushPromises();
+    it('handles multi-part suffixes when choosing a subdomain', async () => {
+      wrapper = mountComponent();
 
-      await form.trigger('submit.prevent');
-      await flushPromises();
+      await typeDomain(wrapper, 'acme.co.uk');
+      await chooseAddress(wrapper, 'links');
+      await submitForm(wrapper);
 
-      errorDisplay = wrapper.find('[data-testid="error-display"]');
-      expect(errorDisplay.exists()).toBe(false);
+      expect(wrapper.emitted('submit')![0]).toEqual(['links.acme.co.uk']);
+    });
+
+    it('treats www.<registrable> as apex and emits the bare registrable for root', async () => {
+      wrapper = mountComponent();
+
+      // www is collapsed to apex, so the address chooser (not the echo) shows.
+      await typeDomain(wrapper, 'www.acme.com');
+      expect(wrapper.find('[data-testid="domain-apex-cards"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="domain-echo"]').exists()).toBe(false);
+
+      await chooseAddress(wrapper, 'root');
+      await submitForm(wrapper);
+
+      expect(wrapper.emitted('submit')![0]).toEqual(['acme.com']);
+    });
+
+    it('resets a pending choice when the input changes', async () => {
+      wrapper = mountComponent();
+
+      await typeDomain(wrapper, 'acme.com');
+      await chooseAddress(wrapper, 'secrets');
+      expect(
+        wrapper.find('[data-testid="domain-add-submit"]').attributes('disabled')
+      ).toBeUndefined();
+
+      // Re-typing another apex clears the choice -> submit disabled again.
+      await typeDomain(wrapper, 'other.com');
+      expect(
+        wrapper.find('[data-testid="domain-add-submit"]').attributes('disabled')
+      ).toBeDefined();
     });
   });
 
@@ -340,118 +385,42 @@ describe('DomainForm', () => {
   // -------------------------------------------------------------------------
 
   describe('Back button', () => {
-    it('emits back event when clicked', async () => {
+    it('emits back when clicked', async () => {
       wrapper = mountComponent();
 
-      const backButton = wrapper.find('[data-testid="domain-add-cancel-btn"]');
-      await backButton.trigger('click');
-      await flushPromises();
+      await wrapper.find('[data-testid="domain-add-cancel-btn"]').trigger('click');
 
       expect(wrapper.emitted('back')).toBeTruthy();
     });
 
-    it('has correct aria-label', () => {
+    it('is a type=button, not a submit', () => {
       wrapper = mountComponent();
-
-      const backButton = wrapper.find('[data-testid="domain-add-cancel-btn"]');
-      expect(backButton.attributes('aria-label')).toBe('web.layout.go_back_to_previous_page');
-    });
-
-    it('is a button type button (not submit)', () => {
-      wrapper = mountComponent();
-
-      const backButton = wrapper.find('[data-testid="domain-add-cancel-btn"]');
-      expect(backButton.attributes('type')).toBe('button');
+      expect(
+        wrapper.find('[data-testid="domain-add-cancel-btn"]').attributes('type')
+      ).toBe('button');
     });
   });
 
   // -------------------------------------------------------------------------
-  // Submit button loading state
+  // Submitting state
   // -------------------------------------------------------------------------
 
-  describe('Submit button loading state', () => {
-    it('shows Continue text when not submitting', () => {
-      wrapper = mountComponent({ isSubmitting: false });
-
-      const submitButton = wrapper.find('[data-testid="domain-add-submit"]');
-      expect(submitButton.text()).toContain('web.COMMON.continue');
-      expect(submitButton.text()).not.toContain('web.COMMON.adding_ellipses');
-    });
-
-    it('shows loading text when isSubmitting is true', () => {
+  describe('Submitting state', () => {
+    it('shows the spinner and disables submit while submitting', () => {
       wrapper = mountComponent({ isSubmitting: true });
 
-      const submitButton = wrapper.find('[data-testid="domain-add-submit"]');
-      expect(submitButton.text()).toContain('web.COMMON.adding_ellipses');
+      const submit = wrapper.find('[data-testid="domain-add-submit"]');
+      expect(submit.find('svg.animate-spin').exists()).toBe(true);
+      expect(submit.text()).toContain('web.COMMON.adding_ellipses');
+      expect(submit.attributes('disabled')).toBeDefined();
     });
 
-    it('shows spinner when isSubmitting is true', () => {
-      wrapper = mountComponent({ isSubmitting: true });
-
-      const submitButton = wrapper.find('[data-testid="domain-add-submit"]');
-      const spinner = submitButton.find('svg.animate-spin');
-      expect(spinner.exists()).toBe(true);
-    });
-
-    it('does not show spinner when not submitting', () => {
+    it('has no spinner and is enabled when not submitting', () => {
       wrapper = mountComponent({ isSubmitting: false });
 
-      const submitButton = wrapper.find('[data-testid="domain-add-submit"]');
-      const spinner = submitButton.find('svg.animate-spin');
-      expect(spinner.exists()).toBe(false);
-    });
-
-    it('is disabled when isSubmitting is true', () => {
-      wrapper = mountComponent({ isSubmitting: true });
-
-      const submitButton = wrapper.find('[data-testid="domain-add-submit"]');
-      expect(submitButton.attributes('disabled')).toBeDefined();
-    });
-
-    it('is enabled when isSubmitting is false', () => {
-      wrapper = mountComponent({ isSubmitting: false });
-
-      const submitButton = wrapper.find('[data-testid="domain-add-submit"]');
-      expect(submitButton.attributes('disabled')).toBeUndefined();
-    });
-  });
-
-  // -------------------------------------------------------------------------
-  // Error display
-  // -------------------------------------------------------------------------
-
-  describe('Error display', () => {
-    it('shows ErrorDisplay when localError exists after empty submission', async () => {
-      wrapper = mountComponent();
-
-      const form = wrapper.find('[data-testid="domain-add-form"]');
-      await form.trigger('submit.prevent');
-      await flushPromises();
-
-      const errorDisplay = wrapper.find('[data-testid="error-display"]');
-      expect(errorDisplay.exists()).toBe(true);
-    });
-
-    it('shows ErrorDisplay when localError exists after invalid domain', async () => {
-      wrapper = mountComponent();
-
-      const input = wrapper.find('[data-testid="domain-input-field"]');
-      await input.setValue('ab');
-      await flushPromises();
-
-      const form = wrapper.find('[data-testid="domain-add-form"]');
-      await form.trigger('submit.prevent');
-      await flushPromises();
-
-      const errorDisplay = wrapper.find('[data-testid="error-display"]');
-      expect(errorDisplay.exists()).toBe(true);
-    });
-
-    it('hides ErrorDisplay when no error', () => {
-      wrapper = mountComponent();
-
-      const errorDisplay = wrapper.find('[data-testid="error-display"]');
-      expect(errorDisplay.exists()).toBe(false);
+      const submit = wrapper.find('[data-testid="domain-add-submit"]');
+      expect(submit.find('svg.animate-spin').exists()).toBe(false);
+      expect(submit.attributes('disabled')).toBeUndefined();
     });
   });
 
@@ -460,18 +429,43 @@ describe('DomainForm', () => {
   // -------------------------------------------------------------------------
 
   describe('Accessibility', () => {
-    it('submit button has aria-live for status announcements', () => {
+    it('submit button has aria-live', () => {
       wrapper = mountComponent();
-
-      const submitButton = wrapper.find('[data-testid="domain-add-submit"]');
-      expect(submitButton.attributes('aria-live')).toBe('polite');
+      expect(
+        wrapper.find('[data-testid="domain-add-submit"]').attributes('aria-live')
+      ).toBe('polite');
     });
 
-    it('form has submit type button', () => {
+    it('error block is a role=alert', async () => {
       wrapper = mountComponent();
 
-      const submitButton = wrapper.find('[data-testid="domain-add-submit"]');
-      expect(submitButton.attributes('type')).toBe('submit');
+      await submitForm(wrapper);
+
+      const error = wrapper.find('[data-testid="domain-error"]');
+      expect(error.attributes('role')).toBe('alert');
+    });
+
+    it('error block carries id="domain-error" so it can be referenced', async () => {
+      wrapper = mountComponent();
+
+      await typeDomain(wrapper, 'example.c');
+      await submitForm(wrapper);
+
+      const error = wrapper.find('[data-testid="domain-error"]');
+      expect(error.attributes('id')).toBe('domain-error');
+    });
+
+    it('describes the input by help only until an error, then adds the error id', async () => {
+      wrapper = mountComponent();
+      const field = () => wrapper.find('[data-testid="domain-input-field"]');
+
+      // Baseline: only the help text describes the field.
+      expect(field().attributes('aria-describedby')).toBe('domain-help');
+
+      // After a failed submit the error id is appended for assistive tech.
+      await typeDomain(wrapper, 'example.c');
+      await submitForm(wrapper);
+      expect(field().attributes('aria-describedby')).toBe('domain-help domain-error');
     });
   });
 });

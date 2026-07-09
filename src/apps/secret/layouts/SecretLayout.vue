@@ -81,9 +81,11 @@
         </div>
       </div>
       <!-- Guest: narrower transactional layout -->
-      <main v-else :class="transactionalClasses">
-        <slot></slot>
-      </main>
+      <div v-else class="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <main :class="transactionalClasses">
+          <slot></slot>
+        </main>
+      </div>
     </template>
 
     <template #footer>

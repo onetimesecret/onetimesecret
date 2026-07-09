@@ -410,3 +410,76 @@ RSpec.describe 'V1 BaseSecretAction validate_anonymous_share_domain' do
     end
   end
 end
+
+# ============================================================================
+# Single HomepageConfig read per request (issue #3631, PR #3665)
+#
+# Parity with V2: allow_public_secret_creation? is a read-through predicate, so
+# each call is an independent HomepageConfig lookup. validate_domain_access
+# resolves the gate once and threads it into validate_domain_permissions so the
+# debug line and the permission check share a single read instead of two.
+#
+# Regression guards: pin the read count so the double-read cannot creep back in
+# (e.g. by dropping the threaded argument).
+# ============================================================================
+RSpec.describe 'V1 BaseSecretAction HomepageConfig read count (issue #3631)' do
+  using Familia::Refinements::TimeLiterals
+
+  before(:all) { OT.boot!(:test) }
+
+  before do
+    allow(Truemail).to receive(:validate).and_return(
+      double('Validator', result: double('Result', valid?: true), as_json: '{}'),
+    )
+  end
+
+  # A non-owner public custom-domain record whose allow_public_secret_creation?
+  # we can count. accessible_by? is false so the anonymous branch consults the
+  # gate; verified 'true' clears validate_domain_verification.
+  def build_counting_domain_record(allow_public: true)
+    double('CustomDomain',
+      accessible_by?: false,
+      allow_public_secret_creation?: allow_public,
+      verified: 'true')
+  end
+
+  # Anonymous guest on a custom domain, with @share_domain seeded and the domain
+  # lookup stubbed to the counting record.
+  def build_v1_access_subject(domain_record, share_domain: 'secrets.acme.com')
+    cust = double('Customer', anonymous?: true, custid: nil, objid: nil, planid: 'anonymous')
+    sess = double('Session', anonymous?: true, custid: nil)
+    action = V1ShareDomainTestAction.new(sess, cust, { 'share_domain' => '', 'recipient' => [] })
+    action.instance_variable_set(:@share_domain, share_domain)
+    action.domain_strategy = 'custom'
+    allow(Onetime::CustomDomain).to receive(:from_display_domain)
+      .with(share_domain).and_return(domain_record)
+    action
+  end
+
+  it 'reads allow_public_secret_creation? exactly once through validate_domain_access' do
+    domain_record = build_counting_domain_record(allow_public: true)
+    subject = build_v1_access_subject(domain_record)
+
+    subject.send(:validate_domain_access, 'secrets.acme.com')
+
+    expect(domain_record).to have_received(:allow_public_secret_creation?).once
+  end
+
+  it 'does not re-read the gate inside validate_domain_permissions when the resolved value is threaded in' do
+    domain_record = build_counting_domain_record(allow_public: true)
+    subject = build_v1_access_subject(domain_record)
+
+    subject.send(:validate_domain_permissions, domain_record, true)
+
+    expect(domain_record).not_to have_received(:allow_public_secret_creation?)
+  end
+
+  it 'still resolves the gate on demand for direct callers that omit the argument' do
+    domain_record = build_counting_domain_record(allow_public: true)
+    subject = build_v1_access_subject(domain_record)
+
+    subject.send(:validate_domain_permissions, domain_record)
+
+    expect(domain_record).to have_received(:allow_public_secret_creation?).once
+  end
+end
