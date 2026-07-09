@@ -4,6 +4,7 @@
 
 require_relative '../../application'
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
+require 'onetime/security/request_context'
 
 # Audit-fidelity coverage for the organization audit trail (#3633).
 #
@@ -122,6 +123,90 @@ RSpec.describe Onetime::Organization, type: :integration do
       raw = org.audit_events.membersraw.join
       expect(raw).not_to include(secret.identifier)
       expect(raw).not_to include(receipt.identifier)
+    end
+
+    # Network context capture (#3640, ADR-022). The fetch path threads a
+    # privacy-safe context hash into record_access_event, which forwards it to
+    # the trail. These specs pin that the AGREED representation lands -- masked
+    # partial IP, partial UA, keyed correlation hash -- and, critically, that a
+    # raw IP or full UA can NEVER reach the stored event.
+    describe 'network context fan-out' do
+      # Represents what the capture layer produces: already-reduced values.
+      let(:context) do
+        {
+          'net_ip_partial' => '203.0.113.0',
+          'net_ua_partial' => 'Mozilla/*.* Chrome/*.*.*.*',
+          'net_ip_hash' => 'd5cc375856c803a88c2aed517a5ae82244be6819a7ac0c11e08deeb679ecff39',
+        }
+      end
+
+      before { link_to_org!(receipt, org) }
+
+      it 'carries the masked partial IP, partial UA, and keyed hash into the trail' do
+        receipt.record_access_event('secret_get', context: context)
+
+        event = org.audit_events_page.first
+        expect(event['kind']).to eq('secret_get')
+        expect(event['net_ip_partial']).to eq('203.0.113.0')
+        expect(event['net_ua_partial']).to eq('Mozilla/*.* Chrome/*.*.*.*')
+        expect(event['net_ip_hash']).to eq(context['net_ip_hash'])
+        # Alongside the existing shortid context, not instead of it.
+        expect(event['receipt']).to eq(receipt.shortid)
+      end
+
+      it 'keeps the shortid-only context intact when no network context is given' do
+        receipt.record_access_event('status_get')
+
+        event = org.audit_events_page.first
+        expect(event).to include('receipt', 'secret', 'kind', 'at')
+        expect(event.keys).not_to include('net_ip_partial', 'net_ua_partial', 'net_ip_hash')
+      end
+
+      # NO-REGRESSION GUARD (primary privacy safety net): a raw dotted-quad IP
+      # or a full user-agent string must NEVER appear in any recorded event
+      # attribute. Even if a caller hands record_access_event a context built
+      # from raw values, only the masked representation may be persisted -- so
+      # here we build the context through the real capture helper from RAW
+      # inputs and assert the raw values are absent from the stored trail.
+      it 'never persists a raw IP or full UA anywhere in the recorded event' do
+        raw_ip   = '203.0.113.42'
+        raw_ipv6 = '2001:db8:1234:5678:9abc:def0:1234:5678'
+        full_ua  = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' \
+                   '(KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'
+
+        [raw_ip, raw_ipv6].each do |ip|
+          real_context = Onetime::Security::RequestContext.capture(ip: ip, user_agent: full_ua)
+          receipt.record_access_event('secret_get', context: real_context)
+        end
+
+        raw = org.audit_events.membersraw.join
+
+        # No raw dotted-quad IPv4, no full IPv6, no full UA, no version token.
+        expect(raw).not_to include(raw_ip)
+        expect(raw).not_to include(raw_ipv6)
+        expect(raw).not_to include(full_ua)
+        expect(raw).not_to include('119.0.0.0')
+
+        # Belt and suspenders: scan every stored attribute value directly.
+        org.audit_events_page(limit: 200).each do |event|
+          event.each_value do |value|
+            expect(value.to_s).not_to include(raw_ip)
+            expect(value.to_s).not_to include(raw_ipv6)
+            expect(value.to_s).not_to include(full_ua)
+          end
+        end
+      end
+
+      it 'records a stable, keyed correlation hash across two events from the same source' do
+        real_context = Onetime::Security::RequestContext.capture(
+          ip: '203.0.113.42', user_agent: 'UA/1.0',
+        )
+        2.times { receipt.record_access_event('status_get', context: real_context) }
+
+        hashes = org.audit_events_page.map { |e| e['net_ip_hash'] }
+        expect(hashes.uniq.size).to eq(1)
+        expect(hashes.first).to match(/\A[0-9a-f]{64}\z/)
+      end
     end
 
     it 'writes nowhere and raises nothing for receipts without org context' do
