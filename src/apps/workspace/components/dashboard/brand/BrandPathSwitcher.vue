@@ -27,10 +27,9 @@
       id: path.id,
       name: t(`web.branding.path_${path.id}`),
       tag: t(`web.branding.path_${path.id}_tag`),
-      badge: path.available
-        ? t('web.branding.badge_default')
-        : t('web.branding.badge_coming_soon'),
-      badgeTone: path.available,
+      // Only the not-yet-built paths carry a badge ("Coming soon"). The
+      // functional Simple path needs no "Default" label.
+      badge: path.available ? null : t('web.branding.badge_coming_soon'),
       selected: props.modelValue === path.id,
     }))
   );
@@ -52,10 +51,9 @@
       <span class="flex items-center gap-2 text-sm font-bold text-gray-900 dark:text-gray-100">
         {{ card.name }}
         <span
-          class="rounded-full border px-2 py-px text-[10.5px] font-semibold"
-          :class="card.badgeTone
-            ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300'
-            : 'border-gray-200 bg-gray-50 text-gray-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300'">
+          v-if="card.badge"
+          class="rounded-full border border-gray-200 bg-gray-50 px-2 py-px text-[10.5px] font-semibold
+            text-gray-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
           {{ card.badge }}
         </span>
       </span>

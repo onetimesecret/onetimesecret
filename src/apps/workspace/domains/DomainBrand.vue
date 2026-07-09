@@ -2,9 +2,8 @@
 
 <script setup lang="ts">
   import BrandEditor from '@/apps/workspace/components/dashboard/brand/BrandEditor.vue';
+  import DeliveryPanel from '@/apps/workspace/components/dashboard/DeliveryPanel.vue';
   import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
-  import InstructionsModal from '@/apps/workspace/components/dashboard/InstructionsModal.vue';
-  import LanguageSelector from '@/apps/workspace/components/dashboard/LanguageSelector.vue';
   import { createError } from '@/schemas/errors';
   import LoadingOverlay from '@/shared/components/common/LoadingOverlay.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
@@ -15,7 +14,7 @@
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
   import { ENTITLEMENTS } from '@/types/organization';
   import { storeToRefs } from 'pinia';
-  import { computed, onMounted, watch } from 'vue';
+  import { computed, onMounted, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRouter, onBeforeRouteLeave } from 'vue-router';
 
@@ -46,8 +45,6 @@
     initialize: initializeDomain,
   } = useDomain(props.extid);
 
-  const displayDomain = computed(() => customDomainRecord.value?.display_domain);
-
   const bootstrapStore = useBootstrapStore();
   const { i18n_enabled } = storeToRefs(bootstrapStore);
 
@@ -61,33 +58,18 @@
 
   const isSaveDisabled = computed(() => isLoading.value || !hasUnsavedChanges.value);
 
-  // Instructions fields configuration for the modal
-  const instructionFields = computed(() => [
-    {
-      key: 'instructions_pre_reveal',
-      label: t('web.branding.pre_reveal_instructions'),
-      tooltipContent: t('web.branding.these_instructions_will_be_shown_to_recipients_before'),
-      placeholderKey: t('web.branding.example_pre_reveal_instructions'),
-      value: brandSettings.value?.instructions_pre_reveal || ''
-    },
-    {
-      key: 'instructions_post_reveal',
-      label: t('web.branding.post_reveal_instructions'),
-      tooltipContent: t('web.branding.these_instructions_will_be_shown_to_recipients_after'),
-      placeholderKey: t('web.branding.example_post_reveal_instructions'),
-      value: brandSettings.value?.instructions_post_reveal || ''
-    }
-  ]);
-
-  // Handle instruction updates from the modal
-  const handleInstructionUpdate = (key: string, value: string) => {
-    if (brandSettings.value) {
-      brandSettings.value = {
-        ...brandSettings.value,
-        [key]: value
-      };
-    }
-  };
+  // Domain-settings tabs. Brand = the three-path editor; Delivery = the
+  // recipient-facing language + reveal instructions (companion tab). Both tabs
+  // edit the same brandSettings record and persist via the shared header Save,
+  // so switching between them never loses work. Held here (inside the
+  // isInitialized content block) rather than keyed on isLoading, so a Save —
+  // which flips isLoading — never resets the active tab. Mirrors the activePath
+  // guard inside BrandEditor.
+  const tabs = [
+    { id: 'brand', labelKey: 'web.branding.tab_brand' },
+    { id: 'delivery', labelKey: 'web.branding.tab_delivery' },
+  ] as const;
+  const activeTab = ref<'brand' | 'delivery'>('brand');
 
   // Add loading guard
   watch(
@@ -118,62 +100,20 @@
 <template>
   <div>
     <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <!-- Back button -->
-      <div class="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
-        <div class="mb-4">
-          <button
-            type="button"
-            class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-            @click="handleBack">
-            <OIcon
-              collection="heroicons"
-              name="arrow-left"
-              class="size-5"
-              aria-hidden="true" />
-            {{ t('web.COMMON.back') }}
-          </button>
-        </div>
-      </div>
-
-      <!-- Header Section -->
+      <!-- Header Section. Back + title + Save share one row (opt-in DomainHeader
+           affordances), so there's no separate Back row or Save action bar. -->
       <div class="sticky top-0 z-30">
         <DomainHeader
           :domain="customDomainRecord"
           :has-unsaved-changes="hasUnsavedChanges"
           :orgid="props.orgid"
-          external-path="/" />
-
-        <!-- Save action bar (replaces the old BrandSettingsBar's save button) -->
-        <div
-          v-if="canBrand"
-          class="border-b border-gray-200 bg-white/80 backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/80">
-          <div class="mx-auto flex max-w-7xl justify-end px-4 py-2.5 sm:px-6 lg:px-8">
-            <!-- prettier-ignore-attribute class -->
-            <button
-              type="button"
-              :disabled="isSaveDisabled"
-              @click="saveBranding(brandSettings)"
-              class="inline-flex h-11 min-w-[120px] shrink-0 items-center
-                justify-center rounded-lg border border-transparent
-                bg-brand-600 px-4 text-base font-medium text-white shadow-sm
-                transition-all duration-200 hover:bg-brand-700 focus:ring-2
-                focus:ring-brand-500 focus:ring-offset-2 focus:outline-none
-                disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm
-                dark:focus:ring-brand-400 dark:focus:ring-offset-0">
-              <OIcon
-                v-if="isLoading"
-                collection="mdi"
-                name="loading"
-                class="mr-2 -ml-1 size-4 animate-spin motion-reduce:animate-none" />
-              <OIcon
-                v-else
-                collection="mdi"
-                name="content-save"
-                class="mr-2 -ml-1 size-4" />
-              {{ isLoading ? t('web.LABELS.saving') : t('web.LABELS.save') }}
-            </button>
-          </div>
-        </div>
+          external-path="/"
+          back-visible
+          :save-visible="canBrand"
+          :save-disabled="isSaveDisabled"
+          :save-loading="isLoading"
+          @back="handleBack"
+          @save="saveBranding(brandSettings)" />
       </div>
 
       <!-- Upgrade banner when custom_branding entitlement is missing -->
@@ -209,44 +149,40 @@
       <div
         v-if="canBrand && isInitialized"
         class="mx-auto max-w-7xl p-4 sm:px-6 sm:py-8 lg:px-8">
-        <h2
-          id="previewHeading"
-          class="mb-6 text-xl font-semibold text-gray-900 dark:text-gray-100">
-          {{ t('web.branding.preview_and_customize') }}
-        </h2>
+        <!-- Brand | Delivery tabs — both edit the same brandSettings record. -->
+        <div
+          class="mb-6 flex gap-6 border-b border-gray-200 dark:border-gray-700"
+          role="tablist">
+          <button
+            v-for="tab in tabs"
+            :key="tab.id"
+            type="button"
+            role="tab"
+            :aria-selected="activeTab === tab.id"
+            @click="activeTab = tab.id"
+            class="-mb-px border-b-2 px-1 pb-2.5 text-sm font-medium transition-colors focus:outline-none"
+            :class="activeTab === tab.id
+              ? 'border-brand-600 text-gray-900 dark:border-brand-400 dark:text-gray-100'
+              : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'">
+            {{ t(tab.labelKey) }}
+          </button>
+        </div>
 
-        <!-- Three-path editor + fixed preview -->
+        <!-- Brand tab: three-path editor + fixed preview -->
         <BrandEditor
+          v-if="activeTab === 'brand'"
           v-model="brandSettings"
           :logo-image="logoImage"
           :preview-i18n="previewI18n"
           :on-logo-upload="handleLogoUpload"
-          :on-logo-remove="removeLogo"
-          :display-domain="displayDomain" />
+          :on-logo-remove="removeLogo" />
 
-        <!-- Recipient page content (language + reveal instructions). A future
-             "Delivery" tab will rehome these; kept here for now so nothing is
-             orphaned. -->
-        <div class="mt-8 rounded-2xl border border-gray-200 bg-white p-[18px] dark:border-gray-700 dark:bg-gray-800">
-          <h3 class="font-brand-slab text-base font-bold text-gray-900 dark:text-gray-100">
-            {{ t('web.branding.recipient_page_content') }}
-          </h3>
-          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            {{ t('web.branding.recipient_page_content_hint') }}
-          </p>
-          <div class="mt-3 flex flex-wrap items-center gap-2">
-            <InstructionsModal
-              :instruction-fields="instructionFields"
-              :preview-i18n="previewI18n"
-              @update="handleInstructionUpdate"
-              @save="() => saveBranding(brandSettings)" />
-            <LanguageSelector
-              v-if="i18n_enabled"
-              v-model="brandSettings.locale"
-              :preview-i18n="previewI18n"
-              @update:model-value="(value) => (brandSettings.locale = value)" />
-          </div>
-        </div>
+        <!-- Delivery tab: recipient-facing language + reveal instructions -->
+        <DeliveryPanel
+          v-else
+          v-model="brandSettings"
+          :i18n-enabled="i18n_enabled"
+          :preview-i18n="previewI18n" />
       </div>
 
       <!-- Loading Overlay -->

@@ -9,7 +9,7 @@
  * entitlement gate -> form.
  */
 import { useI18n } from 'vue-i18n';
-import { computed, onMounted, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter, onBeforeRouteLeave, RouterLink } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import OIcon from '@/shared/components/icons/OIcon.vue';
@@ -89,6 +89,10 @@ const {
   discardChanges,
 } = useSignupConfig(props.extid);
 
+// The primary Save ("Update") lives in the page header. The form owns validity,
+// so it emits `can-save`; the header's Save button is disabled unless it's true.
+const formCanSave = ref(false);
+
 // ---------------------------------------------------------------------------
 // Navigation
 // ---------------------------------------------------------------------------
@@ -130,30 +134,20 @@ watch(canCustomSignup, async (entitled) => {
 
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-    <!-- Back button -->
-    <div class="mx-auto max-w-4xl px-4 pt-4 sm:px-6 lg:px-8">
-      <div class="mb-4">
-        <button
-          type="button"
-          class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-          @click="handleBack">
-          <OIcon
-            collection="heroicons"
-            name="arrow-left"
-            class="size-5"
-            aria-hidden="true" />
-          {{ t('web.COMMON.back') }}
-        </button>
-      </div>
-    </div>
-
-    <!-- Header Section -->
+    <!-- Header Section. Back folded into the header row (opt-in affordance),
+         so there's no separate Back row above it. -->
     <div class="sticky top-0 z-30">
       <DomainHeader
         :domain="customDomainRecord"
         :has-unsaved-changes="hasUnsavedChanges"
         :orgid="props.orgid"
-        external-path="/signup" />
+        external-path="/signup"
+        back-visible
+        :save-visible="canCustomSignup && isInitialized"
+        :save-disabled="!formCanSave"
+        :save-loading="isSaving"
+        @back="handleBack"
+        @save="saveConfig" />
     </div>
 
     <!-- Content -->
@@ -262,7 +256,8 @@ watch(canCustomSignup, async (entitled) => {
             :is-configured="isConfigured"
             @save="saveConfig"
             @delete="deleteConfig"
-            @discard="discardChanges" />
+            @discard="discardChanges"
+            @can-save="formCanSave = $event" />
         </div>
       </div>
     </div>

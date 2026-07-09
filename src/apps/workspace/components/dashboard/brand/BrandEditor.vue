@@ -33,10 +33,9 @@
       onLogoUpload: (file: File) => Promise<void>;
       onLogoRemove: () => Promise<void>;
       previewI18n: Composer;
-      displayDomain?: string;
       secretIdentifier?: string;
     }>(),
-    { secretIdentifier: 'abcd', logoImage: null, displayDomain: undefined }
+    { secretIdentifier: 'abcd', logoImage: null }
   );
 
   const emit = defineEmits<{
@@ -86,8 +85,7 @@
         :on-logo-upload="onLogoUpload"
         :on-logo-remove="onLogoRemove"
         :secret-identifier="secretIdentifier"
-        :preview-i18n="previewI18n"
-        :display-domain="displayDomain" />
+        :preview-i18n="previewI18n" />
     </div>
   </div>
 </template>

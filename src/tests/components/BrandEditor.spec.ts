@@ -11,6 +11,7 @@ import { mount } from '@vue/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import BrandEditor from '@/apps/workspace/components/dashboard/brand/BrandEditor.vue';
 import BrandPathSwitcher from '@/apps/workspace/components/dashboard/brand/BrandPathSwitcher.vue';
+import DeliveryPanel from '@/apps/workspace/components/dashboard/DeliveryPanel.vue';
 import SimpleBrandPanel from '@/apps/workspace/components/dashboard/brand/SimpleBrandPanel.vue';
 import type { BrandSettings } from '@/schemas/shapes/v3/custom-domain';
 
@@ -18,6 +19,14 @@ import type { BrandSettings } from '@/schemas/shapes/v3/custom-domain';
 // convention — see SecretPreview.spec.ts / DomainHeader.spec.ts).
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: (k: string) => k }),
+}));
+
+// DeliveryPanel imports LanguageSelector, which transitively loads the language
+// store + a real createI18n at module-eval time — incompatible with the fully
+// mocked vue-i18n above (no createI18n). Mock the component module so the chain
+// never loads; the Language card's own heading still renders via t().
+vi.mock('@/apps/workspace/components/dashboard/LanguageSelector.vue', () => ({
+  default: { name: 'LanguageSelector', template: '<div data-stub="language-selector" />' },
 }));
 
 const previewI18n = { t: (k: string) => k } as any;
@@ -84,20 +93,15 @@ describe('SimpleBrandPanel', () => {
     expect(cornerButtons[2].attributes('aria-pressed')).toBe('true');
   });
 
-  it('toggles the More options (fonts) disclosure', async () => {
+  it('shows one inline Font Family select (no disclosure, no heading font)', () => {
     const wrapper = mountPanel();
-    const toggle = wrapper.get('button[aria-expanded]');
-    // Collapsed on mount; the font selects are not rendered yet.
-    expect(toggle.attributes('aria-expanded')).toBe('false');
-    expect(wrapper.findAll('select')).toHaveLength(0);
-
-    await toggle.trigger('click');
-    expect(toggle.attributes('aria-expanded')).toBe('true');
-    // Body + heading font selects appear, each exposing all font options.
+    // No "More options" disclosure — the font control is always visible.
+    expect(wrapper.find('button[aria-expanded]').exists()).toBe(false);
+    // Exactly one select: body font. Heading font was removed.
     const selects = wrapper.findAll('select');
-    expect(selects).toHaveLength(2);
-    // The picker exposes the full font vocabulary (not just Sans) — regression
-    // guard for the "both options are Sans-Serif" report.
+    expect(selects).toHaveLength(1);
+    // It exposes the full font vocabulary (not just Sans) — regression guard for
+    // the "both options are Sans-Serif" report.
     expect(selects[0].findAll('option').length).toBeGreaterThanOrEqual(3);
   });
 });
@@ -111,7 +115,6 @@ describe('BrandEditor', () => {
         onLogoUpload: vi.fn(),
         onLogoRemove: vi.fn(),
         previewI18n,
-        displayDomain: 'brand.example.com',
         secretIdentifier: 'abcd',
       },
       global: { stubs: leafStubs },
@@ -140,5 +143,37 @@ describe('BrandEditor', () => {
     await pathButtons[2].trigger('click'); // advanced
     // The decorative mockup wrapper is inert.
     expect(wrapper.find('.pointer-events-none').exists()).toBe(true);
+  });
+});
+
+describe('DeliveryPanel', () => {
+  const mountDelivery = (i18nEnabled = true) =>
+    mount(DeliveryPanel, {
+      // LanguageSelector is module-mocked above (severs the i18n/store chain).
+      props: { modelValue: baseSettings(), i18nEnabled, previewI18n },
+    });
+
+  it('writes reveal instructions to the shared brandSettings record', async () => {
+    const wrapper = mountDelivery();
+    const inputs = wrapper.findAll('input');
+    expect(inputs.length).toBe(2); // before + after reveal
+
+    await inputs[0].setValue('Scan the QR code');
+    expect(wrapper.emitted('update:modelValue')?.at(-1)?.[0]).toMatchObject({
+      instructions_pre_reveal: 'Scan the QR code',
+    });
+
+    await inputs[1].setValue('Store it safely');
+    expect(wrapper.emitted('update:modelValue')?.at(-1)?.[0]).toMatchObject({
+      instructions_post_reveal: 'Store it safely',
+    });
+  });
+
+  it('hides the whole Language card when i18n is disabled', () => {
+    // Enabled: the language card (heading + selector) is present.
+    expect(mountDelivery(true).text()).toContain('web.branding.delivery_language');
+    // Disabled: the card is gone entirely, not just the control (an empty
+    // card reads as broken).
+    expect(mountDelivery(false).text()).not.toContain('web.branding.delivery_language');
   });
 });

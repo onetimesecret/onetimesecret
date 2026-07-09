@@ -52,8 +52,7 @@
     "content_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
-    "text": "Preview & Customize",
-    "content_hash": "215d3659"
+    "text": "Customize & Preview"
   },
   "web.branding.switch_to_safari_browser_view": {
     "text": "Switch to Safari browser view",
@@ -225,13 +224,13 @@
     "text": "Advanced"
   },
   "web.branding.path_simple_tag": {
-    "text": "Your brand color, accent and corners. Quick."
+    "text": "Your brand essentials."
   },
   "web.branding.path_match_tag": {
-    "text": "We read your website and close the gap."
+    "text": "Copy settings from an existing site."
   },
   "web.branding.path_advanced_tag": {
-    "text": "Tailwind v4 CSS. Full control, technical."
+    "text": "Roll your own Tailwind v4 CSS."
   },
   "web.branding.badge_default": {
     "text": "Default"
@@ -266,6 +265,9 @@
   "web.branding.preview_recipient_page": {
     "text": "Recipient page"
   },
+  "web.branding.preview_badge": {
+    "text": "Preview"
+  },
   "web.branding.preview_homepage_enabled": {
     "text": "Homepage · enabled"
   },
@@ -292,5 +294,29 @@
   },
   "web.branding.recipient_page_content_hint": {
     "text": "Language and reveal instructions shown to recipients on this domain."
+  },
+  "web.branding.tab_brand": {
+    "text": "Brand"
+  },
+  "web.branding.tab_delivery": {
+    "text": "Delivery"
+  },
+  "web.branding.delivery_language": {
+    "text": "Language"
+  },
+  "web.branding.delivery_language_hint": {
+    "text": "Default for recipient pages and emails on this domain. Recipients can switch language on the page."
+  },
+  "web.branding.delivery_reveal_instructions": {
+    "text": "Reveal instructions"
+  },
+  "web.branding.delivery_reveal_instructions_hint": {
+    "text": "Shown on the recipient page. Leave blank to use the built-in copy in the selected language."
+  },
+  "web.branding.delivery_before_reveal": {
+    "text": "Before reveal"
+  },
+  "web.branding.delivery_after_reveal": {
+    "text": "After reveal"
   }
 }

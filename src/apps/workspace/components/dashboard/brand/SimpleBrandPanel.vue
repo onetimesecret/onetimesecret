@@ -3,9 +3,10 @@
 <script setup lang="ts">
   /**
    * The functional "Simple" path: the quick happy path for branding a domain.
-   * Two headline choices — brand color and corners — plus a "More options"
-   * disclosure for the fonts. All write the shared BrandSettings record via
-   * v-model, so switching paths never loses work.
+   * Three choices — brand color, corners, and body font — all inline. Each writes
+   * the shared BrandSettings record via v-model, so switching paths never loses
+   * work. (Heading font is not exposed here; the recipient render falls back to
+   * the body font, and a separate heading choice returns with the Advanced path.)
    *
    * secondary_color is intentionally NOT exposed here: it has no live consumer
    * yet (useBrandTheme injects a `--color-brand2-*` scale onto <html>, but no
@@ -29,7 +30,7 @@
     type FontFamily as FontFamilyType,
   } from '@/shared/utils/brand-helpers';
   import { checkBrandContrast } from '@/utils/brand-palette';
-  import { computed, ref } from 'vue';
+  import { computed } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
@@ -46,9 +47,9 @@
     emit('update:modelValue', { ...props.modelValue, [key]: value });
   };
 
-  const onFontChange = (key: 'font_family' | 'heading_font', event: Event) => {
+  const onFontChange = (event: Event) => {
     const value = (event.target as HTMLSelectElement).value as FontFamilyType;
-    updateBrandSetting(key, value as BrandSettings[typeof key]);
+    updateBrandSetting('font_family', value as BrandSettings['font_family']);
   };
 
   // Corner options map to border_radius presets (Square→none, Rounded→md,
@@ -77,12 +78,8 @@
   const showContrastWarning = computed(() => !contrastCheck.value.passesAA);
   const contrastRatioDisplay = computed(() => contrastCheck.value.ratio.toFixed(1));
 
-  const showMore = ref(false);
-
-  // Body font falls back to Sans; heading font falls back to the body font (so
-  // the two selects start coherent, matching the recipient render).
+  // Body font falls back to Sans, matching the recipient render.
   const bodyFont = computed(() => props.modelValue.font_family ?? FontFamily.SANS);
-  const headingFont = computed(() => props.modelValue.heading_font ?? bodyFont.value);
 </script>
 
 <template>
@@ -159,62 +156,27 @@
       </div>
     </div>
 
-    <!-- More options: fonts -->
+    <!-- Font -->
     <div class="mt-3.5">
-      <button
-        type="button"
-        @click="showMore = !showMore"
-        :aria-expanded="showMore"
-        class="flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-gray-700
-          dark:text-gray-400 dark:hover:text-gray-200">
-        <OIcon
-          collection="mdi"
-          :name="showMore ? 'chevron-down' : 'chevron-right'"
-          class="size-4" />
-        {{ t('web.branding.more_options') }}
-      </button>
-      <div
-        v-if="showMore"
-        class="mt-2.5 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <label class="block">
-          <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">
-            {{ t('web.branding.font_family') }}
-          </span>
-          <select
-            :value="bodyFont"
-            @change="(e) => onFontChange('font_family', e)"
-            class="mt-1 h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm
-              text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500
-              focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100">
-            <option
-              v-for="font in fontOptions"
-              :key="`body-${font}`"
-              :value="font"
-              :style="{ fontFamily: fontFamilyStacks[font] }">
-              {{ fontDisplayMap[font] }}
-            </option>
-          </select>
-        </label>
-        <label class="block">
-          <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">
-            {{ t('web.branding.heading_font') }}
-          </span>
-          <select
-            :value="headingFont"
-            @change="(e) => onFontChange('heading_font', e)"
-            class="mt-1 h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm
-              text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500
-              focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100">
-            <option
-              v-for="font in fontOptions"
-              :key="`heading-${font}`"
-              :value="font"
-              :style="{ fontFamily: fontFamilyStacks[font] }">
-              {{ fontDisplayMap[font] }}
-            </option>
-          </select>
-        </label>
-      </div>
+      <label class="block">
+        <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">
+          {{ t('web.branding.font_family') }}
+        </span>
+        <select
+          :value="bodyFont"
+          @change="onFontChange"
+          class="mt-1.5 h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm
+            text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500
+            focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100">
+          <option
+            v-for="font in fontOptions"
+            :key="`body-${font}`"
+            :value="font"
+            :style="{ fontFamily: fontFamilyStacks[font] }">
+            {{ fontDisplayMap[font] }}
+          </option>
+        </select>
+      </label>
     </div>
   </div>
 </template>
