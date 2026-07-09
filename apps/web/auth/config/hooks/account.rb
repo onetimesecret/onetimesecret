@@ -238,6 +238,16 @@ module Auth::Config::Hooks
             # When verify_account is disabled for this deployment there is no
             # verification step to defer to, so we preserve the immediate-claim
             # behavior (require_verification: false) rather than never claiming.
+            #
+            # RESIDUAL: in that verify-disabled config the immediate claim
+            # happens with NO proof of email ownership — an attacker who knows a
+            # subscriber's email could register it here and claim their pending
+            # federated subscription. We deliberately do not gate on verified?
+            # here (the Redis customer.verified flag never becomes true without
+            # verify_account, so gating would disable federated claims entirely);
+            # CreateDefaultWorkspace instead emits a loud security-audit log for
+            # each such unverified immediate claim. See
+            # CreateDefaultWorkspace#apply_pending_federation! and #initialize.
             require_verification = Onetime.auth_config.verify_account_enabled?
 
             Onetime::ErrorHandler.safe_execute('create_default_workspace', extid: customer.extid) do

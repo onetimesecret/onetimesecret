@@ -44,6 +44,22 @@ module Auth
       #   deferred to `after_verify_account`. Pre-verified/trusted callers (SSO
       #   IdP-verified, invite-token, post-payment billing, authenticated lazy
       #   creation) leave it at the default (false) and claim immediately.
+      #
+      #   RESIDUAL (verify_account disabled): the standard-signup caller derives
+      #   this flag from `Onetime.auth_config.verify_account_enabled?`, so when a
+      #   deployment turns email verification OFF the flag is false and the claim
+      #   still happens immediately with no proof of email ownership. Gating on
+      #   `verified?` cannot help there: with verify_account disabled the Redis
+      #   `customer.verified` flag is never set true for standard signups and
+      #   there is no `after_verify_account` hook to defer to, so requiring
+      #   verification would silently disable federated claims for that config.
+      #   We deliberately preserve the immediate-claim behavior and instead emit
+      #   a loud security-audit log for every unverified immediate claim under a
+      #   verify-disabled deployment (see {#apply_pending_federation!} and
+      #   {#unverified_immediate_claim?}) so operators can detect abuse. Fully
+      #   closing this residual (e.g. an opt-in "require verified claim" flag)
+      #   would degrade the feature for those deployments and is a product
+      #   decision, not a default.
       def initialize(customer:, require_verification: false)
         @customer             = customer
         @require_verification = require_verification
@@ -184,6 +200,27 @@ module Auth
         raise
       end
 
+      # Detect the verify-disabled federation residual: a federated benefit is
+      # about to be claimed for a customer whose email was never verified, in a
+      # deployment that has no email-verification step at all. Reaching the claim
+      # while unverified means the require_verification gate did not defer us
+      # (the gate would have returned early for an unverified customer), so the
+      # caller ran with the gate disabled — the standard-signup path does exactly
+      # that when verify_account is disabled. See #initialize and
+      # #apply_pending_federation! for the full rationale.
+      #
+      # Never lets audit bookkeeping interfere with the claim itself: any error
+      # reading the config is swallowed and treated as "not the residual".
+      #
+      # @return [Boolean]
+      def unverified_immediate_claim?
+        return false if @customer&.verified?
+
+        !Onetime.auth_config.verify_account_enabled?
+      rescue StandardError
+        false
+      end
+
       # Check for and apply pending federated subscription
       #
       # When a Stripe webhook fired before this account existed, the subscription
@@ -200,6 +237,17 @@ module Auth
       # verifies, via `after_verify_account` → {.claim_pending_federation_for}.
       # Pre-verified callers (SSO, invite, post-payment billing, authenticated
       # lazy creation) run this immediately with the gate disabled.
+      #
+      # RESIDUAL (verify_account disabled): when the deployment has no email
+      # verification step, the standard-signup caller passes
+      # `require_verification: false` and this method claims immediately for a
+      # customer whose email ownership was never proven — the benefit-theft
+      # surface cannot be closed by deferral there (no verified state ever
+      # becomes true, no after_verify_account to re-claim from). We do NOT block
+      # the claim (that would disable federation for legitimate verify-disabled
+      # deployments); instead {#unverified_immediate_claim?} detects the risky
+      # combination and we emit a loud security-audit log so operators can spot
+      # abuse. See #initialize.
       #
       # @param org [Onetime::Organization] Newly created organization
       # @return [Boolean] True if pending subscription was applied
@@ -245,6 +293,26 @@ module Auth
         pending = Billing::PendingFederatedSubscription.find_by_email_hash(org.email_hash)
         return false unless pending
         return false unless pending.active?
+
+        # SECURITY AUDIT (verify-disabled residual): we are about to apply a
+        # cross-region subscription benefit. If the customer's email ownership
+        # was never proven AND this deployment has no email-verification step at
+        # all, this is the residual benefit-theft surface — nothing here can
+        # distinguish the real subscriber from an attacker who merely registered
+        # the subscriber's email. Do not block (that would silently disable
+        # federation for legitimate verify-disabled deployments); emit a loud,
+        # structured audit event instead. Verified customers and verify-enabled
+        # deployments (where the claim is deferred to after_verify_account) never
+        # trip this branch.
+        if unverified_immediate_claim?
+          auth_logger.warn '[create-default-workspace] SECURITY: federated subscription claimed WITHOUT email verification',
+            {
+              org: org.extid,
+              hash_prefix: org.email_hash[0..7],
+              plan: pending.planid,
+              reason: 'verify_account disabled: no proof of email ownership at claim time',
+            }
+        end
 
         # Apply subscription benefits
         org.subscription_status     = pending.subscription_status
