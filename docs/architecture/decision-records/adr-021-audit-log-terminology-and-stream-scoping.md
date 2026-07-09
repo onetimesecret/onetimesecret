@@ -147,3 +147,5 @@ because it concerns the #2799 stream; ADR-022 governs the #3640 stream.
 - SIEM data normalization (SearchInform); NIST SP 800-92
 - Vendor patterns — 1Password Events API, Doppler security fact sheet
 - ADR-022 — Secret Activity network-capture privacy stance (#3640)
+- ADR-023 — Audit actor attribution accuracy (refines Decision 4: what to record
+  when the actor is unresolved)

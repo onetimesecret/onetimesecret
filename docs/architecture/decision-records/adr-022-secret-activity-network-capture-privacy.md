@@ -153,3 +153,6 @@ granularity stands and is documented inline at the hash site
   `RequestContext.mask_user_agent` delegate instead of copying Otto's private
   version/build-stripping regexes; a cross-implementation spec guards the drift
   until it lands.
+- ADR-023 (audit actor attribution accuracy) — never fabricate an actor; record
+  an explicit `unknown` when attribution is indeterminate. Same shortids-only,
+  minimized posture applied to the actor dimension.
