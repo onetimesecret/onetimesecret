@@ -4,6 +4,7 @@
 
 require_relative '../../../application'
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
+require_relative '../../support/actor_attribution_helpers'
 require 'onetime/security/request_context'
 
 # Security regression coverage for the double-reveal race (ShowSecret variant).
@@ -16,6 +17,8 @@ require 'onetime/security/request_context'
 # duplicated per controller by design (v1 legacy and each v2 endpoint own their
 # own copy rather than sharing a base implementation).
 RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
+  include ActorAttributionSpecHelpers
+
   before(:all) do
     require 'onetime'
     Onetime.boot! :test
@@ -193,6 +196,65 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
       expect(logic.show_secret).to be false
       expect(logic.secret_value).to be_nil
       expect(logic.success_data[:record]).not_to have_key(:secret_value)
+    end
+  end
+
+  # Actor attribution on the ShowSecret reveal path (#3639). ShowSecret reveals
+  # via reveal_secret/verify_owner, both of which now thread the actor context.
+  context 'actor attribution (#3639)' do
+    it 'records actor=creator when the authenticated owner reveals' do
+      owner_objid = "objid_#{SecureRandom.hex(6)}"
+      owner_pair  = Onetime::Receipt.spawn_pair(owner_objid, 3600, 'a secret value')
+      org         = link_receipt_to_org!(owner_pair.first)
+
+      logic = build_logic(
+        { 'identifier' => owner_pair.last.identifier, 'continue' => 'true' },
+        customer: owner_double(owner_objid),
+      )
+      logic.process_params
+      logic.process
+
+      expect(logic.secret_value).to eq('a secret value')
+      event = org.audit_events_page.first
+      expect(event['kind']).to eq('revealed')
+      expect(event['actor']).to eq('creator')
+      expect(event['actor_id']).to eq(owner_objid.slice(0, 8))
+    end
+
+    it 'records actor=authenticated_other when an authenticated non-owner reveals' do
+      owner_objid = "objid_#{SecureRandom.hex(6)}"
+      other_objid = "objid_#{SecureRandom.hex(6)}"
+      owner_pair  = Onetime::Receipt.spawn_pair(owner_objid, 3600, 'a secret value')
+      org         = link_receipt_to_org!(owner_pair.first)
+
+      logic = build_logic(
+        { 'identifier' => owner_pair.last.identifier, 'continue' => 'true' },
+        customer: owner_double(other_objid),
+      )
+      logic.process_params
+      logic.process
+
+      expect(logic.secret_value).to eq('a secret value')
+      event = org.audit_events_page.first
+      expect(event['actor']).to eq('authenticated_other')
+      expect(event['actor_id']).to eq(other_objid.slice(0, 8))
+    end
+
+    # THE privacy pin: an anonymous reveal of a guest link (owner_id nil, caller
+    # objid nil) must be 'anonymous', never 'creator'.
+    it 'records actor=anonymous for an anonymous reveal of a guest link (never creator)' do
+      org = link_receipt_to_org!(receipt) # default pair is a guest secret
+
+      logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+      logic.process_params
+      logic.process
+
+      expect(logic.secret_value).to eq('a secret value')
+      event = org.audit_events_page.first
+      expect(event['kind']).to eq('revealed')
+      expect(event['actor']).to eq('anonymous')
+      expect(event['actor']).not_to eq('creator')
+      expect(event).not_to have_key('actor_id')
     end
   end
 

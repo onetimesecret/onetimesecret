@@ -4,6 +4,7 @@
 
 require_relative '../../../application'
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
+require_relative '../../support/actor_attribution_helpers'
 
 # Regression coverage for the v2 burn confirmation flag.
 #
@@ -19,6 +20,8 @@ require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 # Uses real Receipt/Secret objects (spawn_pair) so process -> success_data runs
 # end-to-end without stubbing the URL/serialization helpers.
 RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
+  include ActorAttributionSpecHelpers
+
   before(:all) do
     require 'onetime'
     Onetime.boot! :test
@@ -34,9 +37,13 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
 
   # Build a BurnSecret instance over a real receipt with the api_access
   # entitlement granted (we exercise process directly, not raise_concerns).
-  def build_logic(params)
-    customer = double('Customer', custid: 'anon', anonymous?: true, objid: nil)
-    org      = double('Organization', objid: "org_#{SecureRandom.hex(4)}")
+  # customer overrides the default anonymous caller for actor-attribution
+  # coverage (#3639). Positional (not a kwarg) so the existing bare-hash
+  # `build_logic('identifier' => ...)` call sites keep working — a trailing
+  # kwarg would otherwise swallow the bare params hash as keywords.
+  def build_logic(params, customer = nil)
+    customer ||= double('Customer', custid: 'anon', anonymous?: true, objid: nil)
+    org        = double('Organization', objid: "org_#{SecureRandom.hex(4)}")
     allow(org).to receive(:can?).and_return(true)
 
     strategy_result = double('StrategyResult',
@@ -149,6 +156,65 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
       expect(stale).not_to have_received(:load_owner)
       # Branch-entry pin -- see the concurrent-reveal case above.
       expect(logic.secret).to be(stale)
+    end
+  end
+
+  # Actor attribution on burn (#3639). The burned event must carry the actor
+  # discriminator computed from the request's customer, with the same anonymous
+  # guard as reveal so an anonymous burn of a guest link is never misattributed.
+  context 'actor attribution (#3639)' do
+    it 'records actor=creator when the authenticated owner burns' do
+      owner_objid = "objid_#{SecureRandom.hex(6)}"
+      owner_pair  = Onetime::Receipt.spawn_pair(owner_objid, 3600, 'a secret value')
+      org         = link_receipt_to_org!(owner_pair.first)
+
+      logic = build_logic(
+        { 'identifier' => owner_pair.first.identifier, 'continue' => 'true' },
+        owner_double(owner_objid),
+      )
+      logic.process_params
+      logic.process
+
+      expect(logic.greenlighted).to be true
+      event = org.audit_events_page.first
+      expect(event['kind']).to eq('burned')
+      expect(event['actor']).to eq('creator')
+      expect(event['actor_id']).to eq(owner_objid.slice(0, 8))
+    end
+
+    it 'records actor=authenticated_other when an authenticated non-owner burns' do
+      owner_objid = "objid_#{SecureRandom.hex(6)}"
+      other_objid = "objid_#{SecureRandom.hex(6)}"
+      owner_pair  = Onetime::Receipt.spawn_pair(owner_objid, 3600, 'a secret value')
+      org         = link_receipt_to_org!(owner_pair.first)
+
+      logic = build_logic(
+        { 'identifier' => owner_pair.first.identifier, 'continue' => 'true' },
+        owner_double(other_objid),
+      )
+      logic.process_params
+      logic.process
+
+      expect(logic.greenlighted).to be true
+      event = org.audit_events_page.first
+      expect(event['actor']).to eq('authenticated_other')
+      expect(event['actor_id']).to eq(other_objid.slice(0, 8))
+    end
+
+    # THE privacy pin (burn variant): an anonymous burn of a guest link
+    # (owner_id nil, caller objid nil) must be 'anonymous', never 'creator'.
+    it 'records actor=anonymous for an anonymous burn of a guest link (never creator)' do
+      org   = link_receipt_to_org!(receipt) # default pair is a guest secret
+      logic = build_logic('identifier' => receipt.identifier, 'continue' => 'true')
+      logic.process_params
+      logic.process
+
+      expect(logic.greenlighted).to be true
+      event = org.audit_events_page.first
+      expect(event['kind']).to eq('burned')
+      expect(event['actor']).to eq('anonymous')
+      expect(event['actor']).not_to eq('creator')
+      expect(event).not_to have_key('actor_id')
     end
   end
 

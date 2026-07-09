@@ -125,11 +125,15 @@ module Onetime::Receipt::Features
         organization.record_audit_event(
           kind,
           at: at,
+          **event_attrs,
           # Shortids only: full identifiers are capability tokens (the
           # secret identifier IS the link) and must not leak into the trail.
+          # Placed AFTER the splat so these canonical fields always win over a
+          # caller-supplied attr sharing the same key -- a composed caller
+          # (#3639 actor, #3640 network context) can never override the
+          # receipt/secret identity of the event it is annotating.
           'receipt' => shortid,
           'secret' => secret_shortid.to_s,
-          **event_attrs,
         )
       rescue StandardError => ex
         OT.le "[audit-trail] #{ex.class}: #{ex.message} (kind=#{kind}, receipt=#{shortid})"
