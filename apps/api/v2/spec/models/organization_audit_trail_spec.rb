@@ -263,6 +263,41 @@ RSpec.describe Onetime::Organization, type: :integration do
       expect(event['actor']).to eq('anonymous')
     end
 
+    # Privacy no-regression guards for lifecycle_audit_attrs normalization.
+    # These pin the three ways an actor context is reduced before it is stored,
+    # so a future change can't silently start leaking identity into the trail.
+    it 'never attaches an actor_id to an anonymous event, even if one is supplied' do
+      # An anonymous actor has no identity to record; an id riding along on the
+      # context must be dropped, not stored against 'anonymous'.
+      receipt.revealed!(actor_context: { 'actor' => 'anonymous', 'actor_id' => 'abcd1234' })
+
+      event = org.audit_events_page.first
+      expect(event['actor']).to eq('anonymous')
+      expect(event).not_to have_key('actor_id')
+    end
+
+    it 'fails an unrecognized actor safe to anonymous and drops its id' do
+      # An actor label outside the known set is never recorded verbatim: it
+      # fails safe to anonymous (never misattributed to the creator) and any
+      # id it carried is dropped with it.
+      receipt.revealed!(actor_context: { 'actor' => 'root', 'actor_id' => 'abcd1234' })
+
+      event = org.audit_events_page.first
+      expect(event['actor']).to eq('anonymous')
+      expect(event).not_to have_key('actor_id')
+    end
+
+    it 'clamps an over-long actor_id to the 8-char shortid policy' do
+      # Defense in depth: even if a caller supplies an unreduced objid/custid,
+      # the trail stores only the 8-char shortid -- a full identifier (which
+      # could be a capability token) can never leak in.
+      receipt.burned!(actor_context: { 'actor' => 'creator', 'actor_id' => 'abcd1234efgh5678' })
+
+      event = org.audit_events_page.first
+      expect(event['actor']).to eq('creator')
+      expect(event['actor_id']).to eq('abcd1234')
+    end
+
     it 'records the threaded actor exactly once; a race-loser records nothing' do
       loser = Onetime::Receipt.load(receipt.identifier)
 

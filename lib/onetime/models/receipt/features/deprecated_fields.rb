@@ -295,11 +295,44 @@ module Onetime::Receipt::Features
       # Callers without request context (v1 paths, account verification, direct
       # receipt.revealed! test calls) therefore still emit a well-formed actor.
       #
+      # Recognized actor discriminators. An empty or unexpected value fails
+      # safe to 'anonymous' rather than being recorded verbatim: the trail must
+      # never carry an actor label the rest of the system doesn't understand,
+      # and an unknown actor must never be misattributed to the creator.
+      LIFECYCLE_ACTORS = %w[creator authenticated_other anonymous].freeze
+
+      # Max length of a stored actor_id, matching Receipt#shortid
+      # (objid.slice(0, 8)). Clamping here is defense in depth so a full
+      # objid/custid can never leak into the trail even if a caller supplies an
+      # unreduced value.
+      ACTOR_ID_MAX_LENGTH = 8
+
       # @param actor_context [Hash, nil] string- or symbol-keyed audit attrs.
-      # @return [Hash] string-keyed attrs with a guaranteed non-blank 'actor'.
+      # @return [Hash] string-keyed attrs with a guaranteed known 'actor' and,
+      #   for authenticated actors only, an 8-char 'actor_id'.
       def lifecycle_audit_attrs(actor_context)
-        attrs          = actor_context.is_a?(Hash) ? actor_context.transform_keys(&:to_s) : {}
-        attrs['actor'] = 'anonymous' if attrs['actor'].to_s.empty?
+        attrs = actor_context.is_a?(Hash) ? actor_context.transform_keys(&:to_s) : {}
+
+        # Fail safe: an empty or unrecognized actor becomes 'anonymous'.
+        actor          = attrs['actor'].to_s
+        actor          = 'anonymous' unless LIFECYCLE_ACTORS.include?(actor)
+        attrs['actor'] = actor
+
+        if actor == 'anonymous'
+          # An anonymous event has no identity: never attach an id to it, even
+          # if a caller supplied one.
+          attrs.delete('actor_id')
+        elsif attrs.key?('actor_id')
+          # Authenticated actor: keep the id but clamp it to the shortid policy;
+          # drop it entirely if blank so we never store an empty token.
+          id = attrs['actor_id'].to_s
+          if id.empty?
+            attrs.delete('actor_id')
+          else
+            attrs['actor_id'] = id.slice(0, ACTOR_ID_MAX_LENGTH)
+          end
+        end
+
         attrs
       end
 

@@ -45,6 +45,18 @@ module V2::Logic
       def lifecycle_actor_context(target_secret)
         return { 'actor' => 'anonymous' } if anonymous_user?
 
+        # target_secret is the secret being consumed and is always in hand at
+        # the reveal/burn call sites. Guard nil explicitly: without a secret we
+        # cannot establish ownership, and letting it fall through owner? would
+        # silently bucket the caller as `authenticated_other` -- a misleading
+        # actor that also hides the programmer error. Surface it, but never
+        # raise: attribution is best-effort observability and must not break
+        # the consume path.
+        if target_secret.nil?
+          OT.le '[actor-attribution] nil target_secret for an authenticated ' \
+                'caller; ownership indeterminate, recording actor=authenticated_other'
+        end
+
         actor               = target_secret&.owner?(cust) ? 'creator' : 'authenticated_other'
         context             = { 'actor' => actor }
         # Only attach an id when we actually resolved one; never store a nil.
