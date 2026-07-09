@@ -157,6 +157,15 @@ module Onetime
       # at the edge and one reduced here agree. Idempotent: re-stripping an
       # already-stripped UA changes nothing.
       #
+      # KNOWN ISSUE (temporary; tracked in otto#194). The regexes below are
+      # copied from Otto's private #anonymize_user_agent; the two will silently
+      # drift if Otto adjusts its patterns without a matching change here. A
+      # cross-implementation idempotency spec (request_context_spec.rb) feeds
+      # Otto's ACTUAL output back through this method to catch that drift. otto#194
+      # asks Otto to expose a public UA-anonymization surface (the analogue of
+      # the public IP primitives / otto#192); when it lands, this copy is
+      # replaced by a delegation and the drift risk goes away.
+      #
       # @param ua [String, nil]
       # @return [String, nil] the partial UA, or nil for blank input.
       def mask_user_agent(ua)

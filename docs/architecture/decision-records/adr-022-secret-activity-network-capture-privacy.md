@@ -149,3 +149,7 @@ granularity stands and is documented inline at the hash site
   `record_org_audit_event` extension point.
 - Upstream follow-up: otto#192 (stable-keyed full-IP correlation hash) — see
   Implementation Notes; unblocks per-host correlation.
+- Upstream follow-up: otto#194 (public UA-anonymization surface) — lets
+  `RequestContext.mask_user_agent` delegate instead of copying Otto's private
+  version/build-stripping regexes; a cross-implementation spec guards the drift
+  until it lands.

@@ -101,6 +101,46 @@ RSpec.describe Onetime::Security::RequestContext do
       expect(twice).to eq(once)
     end
 
+    # Cross-implementation idempotency (the real regression risk). The privacy
+    # stance relies on this helper AGREEING with Otto's edge reduction: a UA
+    # already anonymized by Otto::Privacy must pass back through mask_user_agent
+    # unchanged. mask_user_agent copies its regexes from Otto's private
+    # RedactedFingerprint#anonymize_user_agent, so if Otto ever adjusts those
+    # patterns this test fails -- catching the drift here instead of silently
+    # double-reducing (or leaking) in production. We feed Otto's ACTUAL output
+    # (not a hand-written fixture) so the two implementations are compared for
+    # real. Tracked upstream as otto#194 (request a public UA-anonymization
+    # surface so this copy can be retired).
+    it "is idempotent against Otto's own anonymized UA output" do
+      require 'otto/privacy/redacted_fingerprint'
+
+      # geo_enabled: false keeps fingerprint construction self-contained (no
+      # GeoResolver/GeoIP dependency); the rotation key falls back to an
+      # in-memory store when no Redis is configured.
+      config = Otto::Privacy::Config.new(geo_enabled: false)
+      env    = { 'REMOTE_ADDR' => '203.0.113.42', 'HTTP_USER_AGENT' => full_ua }
+      otto_reduced = Otto::Privacy::RedactedFingerprint.new(env, config).anonymized_ua
+
+      # Sanity: Otto did reduce the UA (versions stripped) and stayed within our
+      # cap, so equality is a meaningful idempotency assertion.
+      expect(otto_reduced).not_to include('119.0.0.0')
+      expect(otto_reduced.length).to be <= described_class::UA_MAX_LENGTH
+
+      expect(described_class.mask_user_agent(otto_reduced)).to eq(otto_reduced)
+    end
+
+    it "is idempotent against Otto's build-identifier stripping" do
+      require 'otto/privacy/redacted_fingerprint'
+
+      ua     = 'Dalvik/2.1.0 (Linux; U; Android 9; SM-G960F Build/PPR1.180610.011)'
+      config = Otto::Privacy::Config.new(geo_enabled: false)
+      env    = { 'REMOTE_ADDR' => '203.0.113.42', 'HTTP_USER_AGENT' => ua }
+      otto_reduced = Otto::Privacy::RedactedFingerprint.new(env, config).anonymized_ua
+
+      expect(otto_reduced).to include('Build/*')
+      expect(described_class.mask_user_agent(otto_reduced)).to eq(otto_reduced)
+    end
+
     it 'returns nil for blank input' do
       expect(described_class.mask_user_agent(nil)).to be_nil
       expect(described_class.mask_user_agent('')).to be_nil
