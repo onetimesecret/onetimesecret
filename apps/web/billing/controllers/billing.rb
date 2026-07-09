@@ -4,6 +4,7 @@
 
 # rubocop:disable Metrics/ClassLength
 
+require 'securerandom'
 require 'stripe'
 
 require_relative 'base'
@@ -73,6 +74,27 @@ module Billing
       # @return [Hash] Checkout session URL
       def create_checkout_session
         org = load_organization(req.params['extid'], require_owner: true)
+
+        # Duplicate-subscription guard (issue #2605). Block creating a second
+        # checkout session when the org already owns a genuinely active,
+        # non-canceling subscription. Currency-migration and post-cancel flows
+        # are exempt (see org_has_blocking_active_subscription?).
+        if org_has_blocking_active_subscription?(org)
+          billing_logger.warn 'Blocked checkout: organization already has an active subscription',
+            {
+              extid: org.extid,
+              stripe_subscription_id: org.stripe_subscription_id,
+              subscription_status: org.subscription_status,
+            }
+          return json_response(
+            {
+              error: true,
+              code: 'active_subscription_exists',
+              message: 'This organization already has an active subscription.',
+            },
+            status: 409,
+          )
+        end
 
         product  = req.params['product']
         interval = req.params['interval']
@@ -163,34 +185,25 @@ module Billing
           return json_error('Billing service temporarily unavailable', status: 503)
         end
 
-        # Create Stripe Checkout Session with idempotency
-        # Generate deterministic idempotency key to prevent duplicate sessions
         stripe_client = Billing::StripeClient.new
 
-        # ==========================================================================
-        # IDEMPOTENCY KEY - CRITICAL FOR PREVENTING DUPLICATE CHECKOUTS
-        # ==========================================================================
+        # Idempotency key: unique per attempt, NOT deterministic.
         #
-        # Stripe caches checkout sessions by idempotency key. If you see
-        # "You're all done here" on the checkout page, it means Stripe returned
-        # a cached (already-completed) session instead of creating a new one.
+        # Session creation is a pre-payment operation: an extra session costs
+        # nothing, expires on its own, and duplicate *completions* are handled
+        # by the checkout.session.completed webhook handler. A deterministic
+        # time-bucketed key is actively harmful here — Stripe caches the
+        # response by key, so a retry within the window returns the original
+        # (possibly already-completed) session ("You're all done here"), and
+        # reusing a key with different parameters (e.g. the org switches plans
+        # within the window) raises Stripe::IdempotencyError.
         #
-        # KEY BEHAVIOR DIFFERENCE:
-        #   - TEST MODE (sk_test_*): Minute granularity - allows rapid iteration
-        #   - LIVE MODE (sk_live_*): Daily granularity - prevents accidental duplicates
+        # Deterministic keys remain correct for MUTATION calls where retries
+        # must dedupe to one applied change — see change_plan below, which
+        # keeps its 5-minute-window SHA256 key.
         #
-        # If stuck in test mode: wait 1 minute, or try a different plan tier.
-        #
-        # SHA256 produces 64 hex chars, well within Stripe's 255 char limit.
-        # ==========================================================================
-        time_component  = if Stripe.api_key&.start_with?('sk_test_')
-                           Time.now.strftime('%Y-%m-%dT%H:%M') # Minute granularity for test
-                         else
-                           Time.now.to_date.iso8601 # Daily for production
-                         end
-        idempotency_key = Digest::SHA256.hexdigest(
-          "checkout:#{org.objid}:#{plan.plan_id}:#{time_component}",
-        )
+        # @see apps/web/billing/docs/adr-checkout-idempotency-keys.md
+        idempotency_key = SecureRandom.uuid
 
         checkout_session = stripe_client.create(
           Stripe::Checkout::Session,
