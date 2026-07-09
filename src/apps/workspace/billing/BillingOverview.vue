@@ -92,16 +92,6 @@ const loadOrganizationData = async (extid: string) => {
     const org = await organizationStore.fetchOrganization(extid);
     selectedOrg.value = org;
 
-    // Fetch entitlements if not already loaded
-    if ((!org.entitlements || org.entitlements.length === 0) && org.extid) {
-      await organizationStore.fetchEntitlements(org.extid);
-      // Re-fetch org from store since fetchEntitlements updates it there
-      const updatedOrg = organizations.value.find((o) => o.extid === org.extid);
-      if (updatedOrg) {
-        selectedOrg.value = updatedOrg;
-      }
-    }
-
     // Load billing overview data from API
     if (org.extid) {
       const overview = await BillingService.getOverview(org.extid);

@@ -169,6 +169,32 @@ RSpec.describe Onetime::Config do
           expect(brand['logo_url']).to be_nil
         end
 
+        it 'root-relativizes a bare relative path so it resolves on nested routes' do
+          # 'img/logo.svg' resolves against the current route dir in the browser,
+          # loading on '/' but 404ing on '/receipt/:id'. A leading slash fixes it.
+          brand = normalized({ 'brand' => {} }, 'BRAND_LOGO_URL' => 'img/logo.svg')
+          expect(brand['logo_url']).to eq('/img/logo.svg')
+        end
+
+        it 'leaves an already-root-relative path untouched' do
+          brand = normalized({ 'brand' => {} }, 'BRAND_LOGO_URL' => '/img/logo.svg')
+          expect(brand['logo_url']).to eq('/img/logo.svg')
+        end
+
+        it 'leaves an absolute and a protocol-relative URL untouched' do
+          expect(normalized({ 'brand' => {} }, 'BRAND_LOGO_URL' => 'https://cdn.example.com/l.svg')['logo_url'])
+            .to eq('https://cdn.example.com/l.svg')
+          expect(normalized({ 'brand' => {} }, 'BRAND_LOGO_URL' => '//cdn.example.com/l.svg')['logo_url'])
+            .to eq('//cdn.example.com/l.svg')
+        end
+
+        it 'still logs the boot notice for a root-relativized bare path' do
+          # Root-relative is correct for web but still not usable in email, so
+          # the not-absolute notice must keep firing.
+          expect(OT).to receive(:le).with(/CONFIG NOTICE: brand\.logo_url/)
+          normalized({ 'brand' => {} }, 'BRAND_LOGO_URL' => 'img/logo.svg')
+        end
+
         it 'falls back to a usable legacy LOGO_URL when the brand value was a sentinel' do
           brand = normalized({ 'brand' => {} },
                              'BRAND_LOGO_URL' => 'DefaultLogo.vue',

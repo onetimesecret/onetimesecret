@@ -122,7 +122,7 @@
     "test:rspec:apps:web:billing": "bundle exec rake spec:apps:web_billing",
     "test:rspec:apps:web:core": "bundle exec rake spec:apps:web_core",
     "test:rspec:apps:internal:acme": "bundle exec rake spec:apps:internal_acme",
-    "test:tryouts": "bundle exec try",
+    "test:tryouts": "RACK_ENV=test bundle exec try",
     "test:tryouts:agent": "pnpm test:tryouts --agent",
     "test:tryouts:failures": "pnpm test:tryouts --stack --fails --debug",
     "test:tryouts:clean": "pnpm valkey:clean && pnpm test:tryouts ",

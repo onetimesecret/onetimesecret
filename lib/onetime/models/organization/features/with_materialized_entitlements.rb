@@ -206,7 +206,7 @@ module Onetime
           # @param session_revokes_key [String] Redis key for session revokes set
           # @return [Array<String>] Effective entitlements for this session
           def reconcile_with_session_overrides(session_grants_key, session_revokes_key)
-            redis = Familia.redis
+            redis = Familia.dbclient
 
             # Start with org's materialized entitlements
             base = if entitlements_materialized?

@@ -10,9 +10,12 @@ require 'spec_helper'
 # homepage-config API responses (effective_enabled field).
 #
 # A homepage pointed at the incoming form must fail CLOSED (false → trust
-# card) whenever incoming cannot actually receive secrets — feature flag
-# off, site.secret missing, config missing/unready, or entitlement lapsed.
-# It must never fall open to the create form the operator did not select.
+# card) whenever incoming cannot actually receive secrets — site.secret
+# missing, config missing/unready, or entitlement lapsed. It must never fall
+# open to the create form the operator did not select. The install-wide
+# features.incoming.enabled flag is NOT one of these gates: it governs the
+# canonical domain only, so a custom domain self-governs via its own
+# IncomingConfig + the incoming_secrets entitlement (see RecipientResolver).
 RSpec.describe Onetime::CustomDomain::HomepageConfig do
   let(:organization) { instance_double(Onetime::Organization, can?: true) }
   let(:custom_domain) do
@@ -70,9 +73,9 @@ RSpec.describe Onetime::CustomDomain::HomepageConfig do
         expect(config.effectively_enabled?(custom_domain: custom_domain)).to be(false)
       end
 
-      it 'fails closed when the instance feature flag is off' do
+      it 'ignores the install-wide feature flag (custom domains self-govern via entitlement)' do
         conf['features']['incoming']['enabled'] = false
-        expect(config.effectively_enabled?(custom_domain: custom_domain)).to be(false)
+        expect(config.effectively_enabled?(custom_domain: custom_domain)).to be(true)
       end
 
       it 'fails closed when site.secret is missing (hashes cannot be computed)' do

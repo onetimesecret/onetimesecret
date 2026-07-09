@@ -441,21 +441,16 @@ RSpec.describe 'GET /api/account/permissions', type: :integration do
     end
 
     context 'nonexistent resource' do
-      # NOTE: The logic class raises OT::Problem for not-found errors, which
-      # the Otto error handler maps to 500 (not 404). Only OT::RecordNotFound
-      # and OT::MissingSecret are registered as 404 handlers. This is a known
-      # gap - the logic class raise_not_found_error should use OT::RecordNotFound.
-      # The logic class behavior is tested directly below.
-      it 'returns error for nonexistent domain (currently 500, should be 404)' do
+      # The logic class raises OT::RecordNotFound (raise_not_found_error),
+      # which the Otto error handler maps to 404.
+      it 'returns 404 for nonexistent domain' do
         get '/api/account/permissions?resource_type=domain&resource_id=nonexistent123'
-        # GAP: Should be 404 but OT::Problem maps to 500
-        expect(last_response.status).to eq(500)
+        expect(last_response.status).to eq(404)
       end
 
-      it 'returns error for nonexistent organization (currently 500, should be 404)' do
+      it 'returns 404 for nonexistent organization' do
         get '/api/account/permissions?resource_type=organization&resource_id=nonexistent456'
-        # GAP: Should be 404 but OT::Problem maps to 500
-        expect(last_response.status).to eq(500)
+        expect(last_response.status).to eq(404)
       end
     end
 

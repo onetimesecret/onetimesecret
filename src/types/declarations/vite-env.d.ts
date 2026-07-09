@@ -43,6 +43,13 @@ import type { Plugin } from 'vite';
 interface ImportMetaEnv {
   readonly VITE_AUTH_URL?: string
   readonly VITE_APP_TITLE?: string
+  /**
+   * Build-time masthead logo component override. Bare name of a `.vue` file in
+   * `src/shared/components/logos/` (e.g. `OnetimeSecretLogo`). Validated at
+   * build time (vite.config.ts); resolved by `RESOLVED_LOGO_COMPONENT`. Unset →
+   * neutral keyhole. Distinct from the runtime `BRAND_LOGO_URL` image asset.
+   */
+  readonly VITE_LOGO_COMPONENT?: string
 }
 
 /**

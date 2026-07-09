@@ -407,6 +407,23 @@ describe('Bootstrap Zod schema validation', () => {
       expect(result.success).toBe(true);
     });
 
+    it('accepts organization with entitlements and limits', () => {
+      const org = {
+        objid: 'org_obj_123',
+        extid: 'org_ext_123',
+        display_name: 'ACME Corp',
+        is_default: false,
+        planid: 'identity_plus_v1',
+        current_user_role: 'owner' as const,
+        entitlements: ['custom_domains', 'api_access'],
+        // -1 is the serialized form of an unlimited (Float::INFINITY) limit
+        limits: { teams: 3, total_members_per_org: -1, custom_domains: 5 },
+      };
+
+      const result = organizationSchema.safeParse(org);
+      expect(result.success).toBe(true);
+    });
+
     it('validates role enum', () => {
       const orgWithInvalidRole = {
         objid: 'org_obj_123',
