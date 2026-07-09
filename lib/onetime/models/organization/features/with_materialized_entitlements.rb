@@ -206,7 +206,7 @@ module Onetime
           # @param session_revokes_key [String] Redis key for session revokes set
           # @return [Array<String>] Effective entitlements for this session
           def reconcile_with_session_overrides(session_grants_key, session_revokes_key)
-            redis = Familia.dbclient
+            dbclient = Familia.dbclient
 
             # Start with org's materialized entitlements
             base = if entitlements_materialized?
@@ -217,14 +217,14 @@ module Onetime
                    end
 
             # Apply session revokes (removes test plan's "reset" of current entitlements)
-            if session_revokes_key && redis.exists?(session_revokes_key)
-              session_revokes = redis.smembers(session_revokes_key)
+            if session_revokes_key && dbclient.exists?(session_revokes_key)
+              session_revokes = dbclient.smembers(session_revokes_key)
               base           -= session_revokes
             end
 
             # Apply session grants (adds test plan entitlements)
-            if session_grants_key && redis.exists?(session_grants_key)
-              session_grants = redis.smembers(session_grants_key)
+            if session_grants_key && dbclient.exists?(session_grants_key)
+              session_grants = dbclient.smembers(session_grants_key)
               base          |= session_grants
             end
 

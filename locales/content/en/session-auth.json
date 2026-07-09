@@ -355,6 +355,10 @@
     "text": "An email has been sent to you with a link to reset the password for your account",
     "content_hash": "63a6af45"
   },
+  "web.auth.field-errors.password": {
+    "text": "Password",
+    "context": "Field label prefixing a password validation error (e.g. \"Password: same as current password\")"
+  },
   "web.auth.terms.agree_prefix": {
     "text": "I agree to the",
     "content_hash": "26a58d00"
