@@ -281,6 +281,19 @@ module Onetime::Receipt::Features
         truncate.to_s == 'true'
       end
 
+      # Recognized actor discriminators for lifecycle audit events (#3639). An
+      # empty or unexpected value fails safe to 'anonymous' rather than being
+      # recorded verbatim: the trail must never carry an actor label the rest of
+      # the system doesn't understand, and an unknown actor must never be
+      # misattributed to the creator. (Defined above `private` -- `private` does
+      # not scope constants; see RuboCop Lint/UselessConstantScoping.)
+      LIFECYCLE_ACTORS = %w[creator authenticated_other anonymous].freeze
+
+      # Max length of a stored actor_id, matching Receipt#shortid
+      # (objid.slice(0, 8)). Clamping is defense in depth so a full objid/custid
+      # can never leak into the trail even if a caller supplies an unreduced value.
+      ACTOR_ID_MAX_LENGTH = 8
+
       private
 
       # Normalize the request-scoped actor context threaded into a lifecycle
@@ -295,18 +308,6 @@ module Onetime::Receipt::Features
       # Callers without request context (v1 paths, account verification, direct
       # receipt.revealed! test calls) therefore still emit a well-formed actor.
       #
-      # Recognized actor discriminators. An empty or unexpected value fails
-      # safe to 'anonymous' rather than being recorded verbatim: the trail must
-      # never carry an actor label the rest of the system doesn't understand,
-      # and an unknown actor must never be misattributed to the creator.
-      LIFECYCLE_ACTORS = %w[creator authenticated_other anonymous].freeze
-
-      # Max length of a stored actor_id, matching Receipt#shortid
-      # (objid.slice(0, 8)). Clamping here is defense in depth so a full
-      # objid/custid can never leak into the trail even if a caller supplies an
-      # unreduced value.
-      ACTOR_ID_MAX_LENGTH = 8
-
       # @param actor_context [Hash, nil] string- or symbol-keyed audit attrs.
       # @return [Hash] string-keyed attrs with a guaranteed known 'actor' and,
       #   for authenticated actors only, an 8-char 'actor_id'.
