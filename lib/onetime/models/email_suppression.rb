@@ -84,6 +84,32 @@ module Onetime
     # Window for the "recent bounces/complaints" summary counts.
     RECENT_WINDOW = 7 * 24 * 60 * 60
 
+    # Atomic suppression trim (Finding: paired hash + index writes must not
+    # desync). Reading the oldest overflow members, deleting their hash entries,
+    # and dropping them from the index run as ONE server-side step so a
+    # concurrent add can never make the index rank removal target a different
+    # set than the hash deletion — which would orphan an entry that still blocks
+    # mail via {.suppressed?} yet has vanished from {.list}. Held at class level
+    # (the StateCas Lua precedent) as the single canonical source.
+    #
+    # The overflow is re-derived from a live ZCARD inside the script so it is
+    # authoritative even if the set changed since the caller's pre-check. Index
+    # members are JSON-encoded (Familia serialize_value), hash field names are
+    # raw, so each member is cjson.decode'd before the HDEL.
+    #
+    # KEYS: [entries hash, index sorted set]. ARGV: [cap]. Returns removed count.
+    TRIM_SUPPRESSIONS_SCRIPT = <<~LUA
+      local cap = tonumber(ARGV[1])
+      local overflow = redis.call('ZCARD', KEYS[2]) - cap
+      if overflow <= 0 then return 0 end
+      local members = redis.call('ZRANGE', KEYS[2], 0, overflow - 1)
+      for i = 1, #members do
+        redis.call('HDEL', KEYS[1], cjson.decode(members[i]))
+      end
+      redis.call('ZREMRANGEBYRANK', KEYS[2], 0, overflow - 1)
+      return overflow
+    LUA
+
     class << self
       # Canonical address form used for every key: trimmed + downcased.
       def normalize(address)
@@ -116,8 +142,17 @@ module Onetime
           'created' => Familia.now,
         }
 
-        entries[addr] = entry
-        index.add(addr, entry['created'])
+        # HSET (entry) and ZADD (index) must commit together for the same reason
+        # remove! wraps its HDEL/ZREM: a concurrent remove! or reader landing
+        # between the two writes would see a half-added address (in the index
+        # but not the hash, or the reverse), desyncing count/list from
+        # suppressed?. MULTI/EXEC via #transaction makes the pair atomic. Trim
+        # runs after (its own atomic EVAL) — a MULTI must not queue an EVAL that
+        # depends on the values written in the same transaction.
+        transaction do
+          entries[addr] = entry
+          index.add(addr, entry['created'])
+        end
         trim_suppressions!
 
         existed ? :updated : :created
@@ -126,10 +161,20 @@ module Onetime
       # Remove an address from the suppression list.
       # @return [Boolean] true when an entry was actually removed.
       def remove!(address)
-        addr    = normalize(address)
-        removed = entries.remove_field(addr)
-        index.remove_element(addr)
-        removed.to_i.positive?
+        addr = normalize(address)
+
+        # HDEL (entry) and ZREM (index) must commit together. Issued as separate
+        # commands, a concurrent suppress! landing between them resurrects the
+        # entry without its index member (or the reverse), desyncing count/list
+        # from suppressed?. MULTI/EXEC via #transaction makes the pair atomic;
+        # the DataType calls route into the same transaction connection
+        # (Fiber-local), preserving their serialization. The HDEL reply is the
+        # first result — positive when a field was actually removed.
+        result = transaction do
+          entries.remove_field(addr)
+          index.remove_element(addr)
+        end
+        result.results.first.to_i.positive?
       end
 
       # Exact-address membership check (one HEXISTS). Raises on Redis errors —
@@ -256,12 +301,27 @@ module Onetime
       # (both index members and their hash entries). No-op below the cap.
       # @return [Integer] number of entries removed.
       def trim_suppressions!(cap = MAX_SUPPRESSIONS)
-        overflow = index.element_count - cap.to_i
-        return 0 if overflow <= 0
+        cap = cap.to_i
+        # Reject a negative cap (matching trim_events!): the Lua script derives
+        # overflow as ZCARD - cap, so a negative cap would report a removed count
+        # larger than the set could ever hold. Treat bad input as a no-op.
+        return 0 if cap.negative?
 
-        index.range(0, overflow - 1).each { |addr| entries.remove_field(addr) }
-        index.remrangebyrank(0, overflow - 1)
-        overflow
+        # Fast path: skip the round trip when clearly under the cap. The script
+        # re-derives the overflow from a live ZCARD, so this pre-check only
+        # avoids work on the common under-cap path — it is never the authority.
+        return 0 if index.element_count <= cap
+
+        # Read (oldest overflow members), hash deletion, and index removal must
+        # be one atomic step. As separate commands a concurrent add shifts ranks
+        # between the HDEL and the rank removal, so the index range removed would
+        # not match the entries deleted — orphaning entries that still block mail
+        # via #suppressed? but have vanished from #list. Lua runs it atomically.
+        index.dbclient.eval(
+          TRIM_SUPPRESSIONS_SCRIPT,
+          keys: [entries.dbkey, index.dbkey],
+          argv: [cap],
+        ).to_i
       end
 
       # Enforce the event-feed cap: keep only the newest `cap` events.

@@ -51,6 +51,30 @@ RSpec.describe Onetime::Application::AuthStrategies::BasicAuthStrategy, type: :i
     end
 
     # -----------------------------------------------------------------
+    # Suspended account — valid API key, but the account is on a trust &
+    # safety pause. Suspension must be enforced at the API-key gate, not
+    # only on session-authenticated routes (regression for PR #3688:
+    # BasicAuth bypassing suspension).
+    # -----------------------------------------------------------------
+    context 'with valid credentials for a suspended account' do
+      before do
+        test_customer.suspended = 'true'
+        test_customer.save
+      end
+
+      let(:result) { basic_auth_strategy.authenticate(env_basic_auth_valid, nil) }
+
+      it 'returns an AuthFailure (does not authenticate)' do
+        expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+        expect(result.authenticated?).to be false
+      end
+
+      it 'reports the suspension as the failure reason' do
+        expect(result.failure_reason).to include('ACCOUNT_SUSPENDED')
+      end
+    end
+
+    # -----------------------------------------------------------------
     # Stateless call — no Rack session middleware (env has no rack.session)
     # Regression test: ensures result.session is nil, not a plain {},
     # which would crash Rack's session middleware (.options on Hash).

@@ -89,10 +89,16 @@ module Onetime::Customer::Features
       # colonel users list's `secrets_count` in step with the live secrets the
       # user-detail view scans, instead of drifting until the nightly recount.
       #
-      # Clamped at zero: a decrement can race the nightly reconciliation or
+      # Floored at zero: a decrement can race the nightly reconciliation or
       # follow a create that predates the counter's backfill, and a negative
-      # "live secrets" count is never meaningful. The clamp itself is not
-      # atomic, but the reconciliation SETs the true value daily either way.
+      # "live secrets" count is never meaningful. The floor is applied by
+      # undoing ONLY our own over-decrement with a compensating INCR — never by
+      # SETting the whole counter to 0. A blanket reset(0) is a non-atomic
+      # read-modify-write that would clobber any create's INCR that raced
+      # between our DECR and the write, forcing a false zero on an owner who
+      # still has live secrets. The compensating INCR touches only the single
+      # unit we removed, so concurrent increments survive and the counter never
+      # loses live-secret information; reconciliation still SETs the truth daily.
       #
       # @param owner_id [String, nil] the secret owner's Customer objid
       # @return [void]
@@ -101,7 +107,7 @@ module Onetime::Customer::Features
         return if oid.empty? || oid == 'anon'
 
         counter = new(objid: oid).secrets_active
-        counter.reset(0) if counter.decrement.negative?
+        counter.increment if counter.decrement.negative?
       rescue StandardError => ex
         # A counter bump must never break secret destruction. Log and move on;
         # the nightly reconciliation will correct any missed decrement.

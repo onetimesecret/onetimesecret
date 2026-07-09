@@ -31,6 +31,7 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
 }));
 
 import AdminCustomers from '@/apps/admin/views/AdminCustomers.vue';
+import { FilterBar } from '@/apps/admin/components/kit';
 import { createTestI18n } from '@tests/setup';
 
 const i18n = createTestI18n();
@@ -135,6 +136,40 @@ describe('AdminCustomers (list view — ticket #22)', () => {
       expect(mockApi.get.mock.calls.length).toBe(before + 1);
       expect(mockApi.get).toHaveBeenLastCalledWith('/api/colonel/users', {
         params: { page: 1, per_page: 50, search: 'alice' },
+      });
+    } finally {
+      vi.runOnlyPendingTimers();
+      vi.useRealTimers();
+    }
+  });
+
+  it('issues exactly one fetch when clearing filters (no debounce double-fetch)', async () => {
+    vi.useFakeTimers();
+    try {
+      mockApi.get.mockResolvedValue({ data: usersPayload() });
+      wrapper = mountView();
+      await flushPromises();
+
+      // Establish an active search so the clear affordance has something to reset.
+      await wrapper
+        .find('[data-testid="customers-filterbar"] input[type="search"]')
+        .setValue('alice');
+      vi.advanceTimersByTime(300);
+      await flushPromises();
+
+      const before = mockApi.get.mock.calls.length;
+
+      // Clear the filter bar (emits the 'clear' event AdminCustomers handles).
+      wrapper.findComponent(FilterBar).vm.$emit('clear');
+      // Let any (incorrectly) scheduled debounce fire.
+      vi.advanceTimersByTime(300);
+      await flushPromises();
+
+      // Exactly one fetch — the immediate fetchPage(1) from onClear(). The
+      // programmatic searchTerm reset must NOT schedule a second late request.
+      expect(mockApi.get.mock.calls.length).toBe(before + 1);
+      expect(mockApi.get).toHaveBeenLastCalledWith('/api/colonel/users', {
+        params: { page: 1, per_page: 50 },
       });
     } finally {
       vi.runOnlyPendingTimers();

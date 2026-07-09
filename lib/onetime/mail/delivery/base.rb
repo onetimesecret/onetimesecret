@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'openssl'
+require 'mail'
 
 module Onetime
   module Mail
@@ -139,11 +140,22 @@ module Onetime
         # a suppression-check failure can NEVER block mail delivery — losing
         # one skip is a rounding error; blocking all outbound mail is an outage.
         #
-        # @return [Boolean] true when the recipient is suppressed (skip the send)
+        # A send fans out to every recipient in email[:to], so the guard must
+        # inspect each mailbox individually: a To of "a@x.com, b@x.com" or an
+        # Array of addresses would otherwise be looked up as one opaque string
+        # and never match a suppressed mailbox in the set. If ANY recipient is
+        # suppressed the whole send is skipped — the backends dispatch to all
+        # recipients at once, so there is no way to drop just one without
+        # rewriting the message; skipping matches the existing return-nil
+        # semantics and keeps known-bad addresses off the wire.
+        #
+        # @return [Boolean] true when any recipient is suppressed (skip the send)
         def suppressed_recipient?(email)
           return false unless defined?(Onetime::EmailSuppression)
 
-          Onetime::EmailSuppression.skip_send?(email[:to])
+          recipient_mailboxes(email[:to]).any? do |address|
+            Onetime::EmailSuppression.skip_send?(address)
+          end
         rescue StandardError => ex
           if defined?(OT) && OT.respond_to?(:le)
             OT.le "[mail] suppression check failed (failing open): #{ex.message}"
@@ -167,12 +179,20 @@ module Onetime
           return unless defined?(Onetime::EmailSuppression)
           return unless defined?(Net::SMTPFatalError) && error.is_a?(Net::SMTPFatalError)
 
-          Onetime::EmailSuppression.record_event(
-            address: email[:to],
-            kind: 'bounce',
-            reason: error.message.to_s,
-            source: "#{provider_name.downcase}-sync",
-          )
+          # A 5xx rejection is recipient-level feedback, but a fanned-out send
+          # can carry several mailboxes in :to. Record the bounce against each
+          # real mailbox rather than the opaque joined "a@x, b@x" string, which
+          # no per-address lookup could ever match. Event-only (no
+          # auto-suppression), so recording every recipient of a rejected
+          # envelope is safe; the single-recipient path records exactly one.
+          recipient_mailboxes(email[:to]).each do |address|
+            Onetime::EmailSuppression.record_event(
+              address: address,
+              kind: 'bounce',
+              reason: error.message.to_s,
+              source: "#{provider_name.downcase}-sync",
+            )
+          end
         rescue StandardError => ex
           if defined?(OT) && OT.respond_to?(:le)
             OT.le "[mail] sync bounce recording failed: #{ex.message}"
@@ -224,10 +244,56 @@ module Onetime
           end
         end
 
+        # Canonicalize the :to field to a single-mailbox string the backends can
+        # hand to a provider. The delivery stack is single-recipient by contract:
+        # Mailer#extract_email_address already collapses an Array to its first
+        # entry upstream, and every backend treats :to as one mailbox — SES wraps
+        # it as [email[:to]] and SendGrid as { email: email[:to] }. So an Array
+        # is collapsed to its first entry (mirroring extract_email_address) rather
+        # than comma-joined, which those backends would send as one invalid
+        # address. A String passes through unchanged, preserving any display name
+        # for the header — mailbox extraction for the guard is handled separately.
+        def normalize_recipients(value)
+          return value.to_s unless value.is_a?(Array)
+
+          value.map(&:to_s).map(&:strip).reject(&:empty?).first.to_s
+        end
+
+        # Split a recipient value into individual mailbox addresses for the
+        # suppression guard.
+        #
+        # Uses the mail gem's RFC 5322 parser so address lists with quoted
+        # display names ("Doe, John" <john@x.com>) or angle-addr wrappers are
+        # parsed correctly rather than naively split on commas. Handles the shapes
+        # a mailer can hand us for :to — an Array, a "a@x.com, b@x.com" string, or
+        # a bare address — and returns raw mailboxes with display names stripped.
+        # Falls back to a naive comma split if the value is not parseable, so a
+        # malformed header can never raise out of the delivery path.
+        #
+        # @return [Array<String>] individual recipient addresses
+        def recipient_mailboxes(value)
+          Array(value)
+            .flat_map { |entry| parse_addresses(entry) }
+            .map(&:strip)
+            .reject(&:empty?)
+        end
+
+        # Parse one recipient value into bare mailbox addresses via Mail's
+        # RFC 5322 address-list parser, falling back to a naive comma split
+        # (stripping any "Display Name <addr>" wrapper) if it will not parse.
+        def parse_addresses(entry)
+          str = entry.to_s
+          return [] if str.strip.empty?
+
+          Mail::AddressList.new(str).addresses.map(&:address)
+        rescue StandardError
+          str.split(',').map { |token| token[/<([^>]+)>/, 1] || token }
+        end
+
         # Normalize email hash to ensure required fields
         def normalize_email(email)
           {
-            to: email[:to].to_s,
+            to: normalize_recipients(email[:to]),
             from: email[:from].to_s,
             reply_to: email[:reply_to]&.to_s,
             subject: email[:subject].to_s,

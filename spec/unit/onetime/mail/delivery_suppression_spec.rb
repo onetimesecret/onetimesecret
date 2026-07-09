@@ -91,6 +91,16 @@ RSpec.describe Onetime::Mail::Delivery::Base do
       expect(backend.deliver(email)).to eq(:provider_response)
       expect(backend.performed.length).to eq(1)
     end
+
+    it 'checks each mailbox in an RFC 5322 list, even quoted names with commas' do
+      # A naive comma split would mangle the quoted display name and miss the
+      # suppressed mailbox; the mail-gem parser extracts it correctly.
+      Onetime::EmailSuppression.suppress!(address: 'blocked@example.com', reason: 'bounce')
+      to = '"Doe, John" <ok@example.com>, blocked@example.com'
+
+      expect(backend.deliver(email.merge(to: to))).to be_nil
+      expect(backend.performed).to be_nil
+    end
   end
 
   describe 'synchronous hard bounce recording' do

@@ -67,8 +67,11 @@ module Onetime::Customer::Features
 
       def active?
         # We modify the role when destroying so if a customer is verified
-        # and has a role of 'customer' then they are active.
-        verified? && role?('customer')
+        # and has a role of 'customer' then they are active. A suspended
+        # account is never active: suspension is a reversible trust & safety
+        # pause enforced consistently at every access gate (auth strategies,
+        # org/workspace behavior), so anything gating on active? honors it too.
+        verified? && role?('customer') && !suspended?
       end
 
       def pending?
