@@ -142,8 +142,17 @@ module Onetime
           'created' => Familia.now,
         }
 
-        entries[addr] = entry
-        index.add(addr, entry['created'])
+        # HSET (entry) and ZADD (index) must commit together for the same reason
+        # remove! wraps its HDEL/ZREM: a concurrent remove! or reader landing
+        # between the two writes would see a half-added address (in the index
+        # but not the hash, or the reverse), desyncing count/list from
+        # suppressed?. MULTI/EXEC via #transaction makes the pair atomic. Trim
+        # runs after (its own atomic EVAL) — a MULTI must not queue an EVAL that
+        # depends on the values written in the same transaction.
+        transaction do
+          entries[addr] = entry
+          index.add(addr, entry['created'])
+        end
         trim_suppressions!
 
         existed ? :updated : :created

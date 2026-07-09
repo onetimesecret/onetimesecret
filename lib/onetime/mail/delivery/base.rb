@@ -178,12 +178,20 @@ module Onetime
           return unless defined?(Onetime::EmailSuppression)
           return unless defined?(Net::SMTPFatalError) && error.is_a?(Net::SMTPFatalError)
 
-          Onetime::EmailSuppression.record_event(
-            address: email[:to],
-            kind: 'bounce',
-            reason: error.message.to_s,
-            source: "#{provider_name.downcase}-sync",
-          )
+          # A 5xx rejection is recipient-level feedback, but a fanned-out send
+          # can carry several mailboxes in :to. Record the bounce against each
+          # real mailbox rather than the opaque joined "a@x, b@x" string, which
+          # no per-address lookup could ever match. Event-only (no
+          # auto-suppression), so recording every recipient of a rejected
+          # envelope is safe; the single-recipient path records exactly one.
+          recipient_mailboxes(email[:to]).each do |address|
+            Onetime::EmailSuppression.record_event(
+              address: address,
+              kind: 'bounce',
+              reason: error.message.to_s,
+              source: "#{provider_name.downcase}-sync",
+            )
+          end
         rescue StandardError => ex
           if defined?(OT) && OT.respond_to?(:le)
             OT.le "[mail] sync bounce recording failed: #{ex.message}"
