@@ -62,12 +62,10 @@ module Onetime
           ).call
 
           format == 'json' ? output_json(result) : output_text(result)
-        rescue ArgumentError => ex
-          # Unsupported provider or missing credentials — an operator config
-          # problem, reported plainly with a non-zero exit.
-          warn "Error: #{ex.message}"
-          exit 1
         rescue StandardError => ex
+          # ArgumentError covers unsupported provider or missing credentials —
+          # an operator config problem; every failure is reported plainly with
+          # a non-zero exit.
           warn "Error: #{ex.message}"
           exit 1
         end
