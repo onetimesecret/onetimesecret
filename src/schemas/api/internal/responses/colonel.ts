@@ -606,11 +606,11 @@ export const colonelUserDetailsSchema = z.object({
 });
 
 /**
- * Shared mutation-ack record for the four guarded customer actions
- * (set-role / verify / unverify / purge). The endpoints return structurally
- * different records, so the fields that only SOME emit are optional — this one
- * schema validates every ack:
+ * Shared mutation-ack record for the guarded customer actions. The endpoints
+ * return structurally different records, so the fields that only SOME emit are
+ * optional — this one schema validates every ack:
  *   - set-role  → old_role, new_role, email, updated
+ *   - set-plan  → old_planid, new_planid, email, updated
  *   - verify/unverify → verified, email, updated
  *   - suspend/unsuspend → suspended, email, updated
  *   - purge     → deleted (email/updated omitted)
@@ -625,6 +625,8 @@ export const colonelUserMutationRecordSchema = z.object({
   email: z.string().optional(),
   old_role: z.string().optional(),
   new_role: z.string().optional(),
+  old_planid: z.string().nullable().optional(),
+  new_planid: z.string().nullable().optional(),
   verified: z.boolean().optional(),
   suspended: z.boolean().optional(),
   deleted: z.boolean().optional(),
@@ -649,6 +651,37 @@ export type ColonelUserBilling = z.infer<typeof colonelUserBillingSchema>;
 export type ColonelUserDetails = z.infer<typeof colonelUserDetailsSchema>;
 export type ColonelUserMutationRecord = z.infer<typeof colonelUserMutationRecordSchema>;
 export type ColonelUserMutationDetails = z.infer<typeof colonelUserMutationDetailsSchema>;
+
+// ---- Available plans (GET /api/colonel/available-plans) --------------------
+// NOTE: this endpoint (ColonelAPI::Logic::Colonel::GetAvailablePlans) returns a
+// BARE `{ plans, source }` body — it overrides `process` directly instead of
+// `success_data`, so there is NO `{ record, details }` envelope. Do NOT wrap
+// this in createApiResponseSchema. The customer-detail plan selector and the
+// entitlement-preview modal both read `response.data.plans` / `.source`.
+
+/** One selectable plan. Only the fields the admin UI consumes are required. */
+export const colonelAvailablePlanSchema = z.object({
+  planid: z.string(),
+  name: z.string(),
+  tier: z.string().nullable().optional(),
+  display_order: z.number().optional(),
+  show_on_plans_page: z.boolean().optional(),
+});
+
+/**
+ * Bare available-plans payload. `source` flags whether plans came from the
+ * Stripe-synced cache or the local billing.yaml fallback (dev / no Stripe) —
+ * the UI warns on `local_config` per the endpoint's own guidance.
+ */
+export const colonelAvailablePlansResponseSchema = z.object({
+  plans: z.array(colonelAvailablePlanSchema),
+  source: z.enum(['stripe', 'local_config']),
+});
+
+export type ColonelAvailablePlan = z.infer<typeof colonelAvailablePlanSchema>;
+export type ColonelAvailablePlansResponse = z.infer<
+  typeof colonelAvailablePlansResponseSchema
+>;
 
 // ============================================================================
 // Wrapped response envelopes ({ record, details } across the API envelope).

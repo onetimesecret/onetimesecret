@@ -4,17 +4,24 @@
 
 require_relative '../base'
 require_relative '../../../../../apps/web/billing/lib/billing_service'
+require 'auth/operations/customers/set_plan'
 
 module ColonelAPI
   module Logic
     module Colonel
-      # Updates a user's plan with catalog validation
+      # Updates a user's plan with catalog validation.
+      #
+      # Thin adapter over Auth::Operations::Customers::SetPlan (the single
+      # implementation). This class handles HTTP concerns (param sanitization,
+      # authorization, catalog validation, response shape); the op performs the
+      # mutation AND records the AdminAuditEvent — so a plan change is audited
+      # like every other mutating admin verb (epic #20 CONTRACT 4).
       #
       # Validates that the requested plan_id exists in the billing catalog
       # before allowing the update, preventing invalid plan assignments.
       #
       class UpdateUserPlan < ColonelAPI::Logic::Base
-        attr_reader :user_id, :user, :new_planid, :old_planid
+        attr_reader :user_id, :user, :new_planid, :old_planid, :change_status
 
         def process_params
           @user_id    = sanitize_identifier(params['user_id'])
@@ -49,9 +56,12 @@ module ColonelAPI
         def process
           @old_planid = user.planid
 
-          # Update the user's plan
-          user.planid = new_planid
-          user.save
+          result         = Auth::Operations::Customers::SetPlan.new(
+            customer: user,
+            planid: new_planid,
+            actor: cust.extid, # acting colonel's PUBLIC id (never an objid)
+          ).call
+          @change_status = result.status
 
           success_data
         end
@@ -67,6 +77,7 @@ module ColonelAPI
               updated: user.updated,
             },
             details: {
+              changed: change_status == :success,
               message: 'User plan updated successfully',
             },
           }

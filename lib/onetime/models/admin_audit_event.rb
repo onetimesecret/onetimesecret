@@ -80,9 +80,15 @@ module Onetime
     # Keys whose values must never be persisted verbatim. Matched case-insensitively
     # against stringified detail keys at any nesting depth. Defense-in-depth only —
     # the primary control is callers not passing secret content to `detail`.
+    # `otp`/`pin` use letter-delimited lookarounds rather than `\b`: `\b` treats
+    # `_` as a word char, so `\botp\b` would MISS snake_case keys like `otp_code`
+    # / `user_pin`. The lookarounds match `otp`/`pin` as a whole segment (start,
+    # end, or a non-letter delimiter such as `_`/`-`/digit) while still rejecting
+    # embeddings like `caption`, `shipping`, `mapping`, `spindle`.
     SENSITIVE_KEY_PATTERN = /
       pass(word|phrase|code)? | token | secret | cipher | api[-_]?key |
-      authorization | cookie | credential | private[-_]?key | \botp\b | \bpin\b
+      authorization | cookie | credential | private[-_]?key |
+      (?<![a-z])otp(?![a-z]) | (?<![a-z])pin(?![a-z])
     /xi
 
     # Bounds on stored detail, to keep a single event small and predictable.

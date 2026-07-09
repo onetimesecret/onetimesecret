@@ -97,6 +97,28 @@ RSpec.describe Onetime::AdminAuditEvent do
       expect(detail['nested']['ok']).to eq(1)
     end
 
+    it 'redacts snake_case otp/pin keys without over-redacting lookalike words' do
+      event = described_class.record(
+        actor: 'a', verb: 'v', target: 't', result: :success,
+        detail: {
+          'otp_code' => '123456',
+          'user_pin' => '0000',
+          'otp'      => '654321',
+          'shipping' => 'safe',   # contains "pin" — must NOT redact
+          'caption'  => 'safe',   # contains "ption" — must NOT redact
+          'options'  => 'safe',   # must NOT redact
+        },
+      )
+
+      detail = event['detail']
+      expect(detail['otp_code']).to eq(described_class::REDACTED)
+      expect(detail['user_pin']).to eq(described_class::REDACTED)
+      expect(detail['otp']).to eq(described_class::REDACTED)
+      expect(detail['shipping']).to eq('safe')
+      expect(detail['caption']).to eq('safe')
+      expect(detail['options']).to eq('safe')
+    end
+
     it 'truncates overlong string values' do
       event = described_class.record(
         actor: 'a', verb: 'v', target: 't', result: :success,

@@ -295,6 +295,24 @@
     "text": "Role updated.",
     "content_hash": "0c33aa24"
   },
+  "web.admin.customers.actions.plan.label": {
+    "text": "Plan"
+  },
+  "web.admin.customers.actions.plan.apply": {
+    "text": "Apply"
+  },
+  "web.admin.customers.actions.plan.confirmTitle": {
+    "text": "Change plan?"
+  },
+  "web.admin.customers.actions.plan.confirmDescription": {
+    "text": "Change {email} to the {plan} plan."
+  },
+  "web.admin.customers.actions.plan.success": {
+    "text": "Plan updated."
+  },
+  "web.admin.customers.actions.plan.localConfigWarning": {
+    "text": "Plans loaded from local config — Stripe is not configured or unreachable."
+  },
   "web.admin.customers.actions.verify.button": {
     "text": "Verify",
     "content_hash": "eea2745e"
