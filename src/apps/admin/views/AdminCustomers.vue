@@ -2,14 +2,14 @@
 
 <script setup lang="ts">
   import { storeToRefs } from 'pinia';
-  import { computed, onMounted, ref } from 'vue';
+  import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRouter } from 'vue-router';
 
   import { DataTable, FilterBar, KitPagination } from '@/apps/admin/components/kit';
   import type { DataTableColumn, FilterConfig } from '@/apps/admin/components/kit';
   import { useAdminCustomers } from '@/apps/admin/stores/useAdminCustomers';
-  import type { ColonelUser } from '@/schemas/api/account/responses/colonel';
+  import type { ColonelUser } from '@/schemas/api/internal/responses/colonel';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { formatDisplayDateTime } from '@/utils/format';
 
@@ -19,10 +19,11 @@
    *
    * Pure consumer of the Slice-1 kit + `useAdminCustomers` store (CONTRACT 1):
    * DataTable + FilterBar + KitPagination over `usePaginatedFetch`. One server
-   * page per request — never load-all-then-slice. The only server-side filter
-   * the list endpoint supports is `role`, so that is the only filter offered and
-   * search is disabled (an inert search box would imply a capability the
-   * endpoint lacks). Columns are non-sortable on purpose: the endpoint returns a
+   * page per request — never load-all-then-slice. Two server-side filters:
+   * `role` and a debounced `search` (the list endpoint resolves it via a
+   * bounded scan of the email index PLUS exact extid/objid lookups — wired
+   * exactly like the sessions screen's search, so a support agent can paste an
+   * address or an id). Columns are non-sortable on purpose: the endpoint returns a
    * FIXED most-recently-modified ordering (epic #20 CONTRACT 6), so there is no
    * server `sort` param to drive a controlled re-fetch.
    */
@@ -36,8 +37,10 @@
   const ROLE_OPTIONS = ['colonel', 'admin', 'staff', 'customer'] as const;
 
   const roleFilter = ref('');
+  const searchTerm = ref('');
+  const activeSearch = ref('');
 
-  const hasActiveFilters = computed(() => roleFilter.value !== '');
+  const hasActiveFilters = computed(() => roleFilter.value !== '' || searchTerm.value !== '');
 
   const filters = computed<FilterConfig[]>(() => [
     {
@@ -61,15 +64,36 @@
     { key: 'lastLogin', label: t('web.admin.customers.columns.lastLogin') },
   ]);
 
-  /** Fetch one server page with the active role filter. Errors surface via the store. */
+  /** Fetch one server page with the active filters. Errors surface via the store. */
   async function fetchPage(targetPage = 1): Promise<void> {
     try {
-      await store.fetchPage(targetPage, roleFilter.value || undefined);
+      await store.fetchPage(
+        targetPage,
+        roleFilter.value || undefined,
+        activeSearch.value || undefined
+      );
     } catch {
       // Network/HTTP failure is captured in `store.error`; the banner + retry
       // button below handle it. Swallow here so it doesn't become unhandled.
     }
   }
+
+  // Debounce search input so we issue one request per pause, not per keystroke
+  // (same 300 ms wiring as AdminSessions).
+  let searchTimer: ReturnType<typeof setTimeout> | null = null;
+  watch(searchTerm, (value) => {
+    if (searchTimer) clearTimeout(searchTimer);
+    // Skip no-op changes (e.g. the programmatic reset in onClear(), which
+    // already issues its own fetch) so clearing doesn't double-fetch.
+    if (value.trim() === activeSearch.value) return;
+    searchTimer = setTimeout(() => {
+      activeSearch.value = value.trim();
+      fetchPage(1);
+    }, 300);
+  });
+  onBeforeUnmount(() => {
+    if (searchTimer) clearTimeout(searchTimer);
+  });
 
   function onFilterChange(key: string, value: string): void {
     if (key === 'role') {
@@ -79,7 +103,12 @@
   }
 
   function onClear(): void {
+    // Cancel any in-flight debounce so the reset below doesn't fire a second,
+    // late request on top of this one.
+    if (searchTimer) clearTimeout(searchTimer);
     roleFilter.value = '';
+    searchTerm.value = '';
+    activeSearch.value = '';
     fetchPage(1);
   }
 
@@ -139,8 +168,9 @@
     <!-- Filters -->
     <div class="mb-4">
       <FilterBar
+        v-model:search="searchTerm"
         :filters="filters"
-        :show-search="false"
+        :search-placeholder="t('web.admin.customers.list.searchPlaceholder')"
         :has-active-filters="hasActiveFilters"
         testid="customers-filterbar"
         @filter-change="onFilterChange"
@@ -155,12 +185,22 @@
         :rows="customers"
         row-key="user_id"
         :loading="loading"
-        :empty-text="t('web.admin.customers.list.empty')"
+        :empty-text="
+          activeSearch
+            ? t('web.admin.customers.list.emptySearch')
+            : t('web.admin.customers.list.empty')
+        "
         clickable-rows
         testid="customers-table"
         @row-click="openDetail">
         <template #cell-email="{ row }">
           <span class="font-medium text-gray-900 dark:text-white">{{ row.email }}</span>
+          <span
+            v-if="row.suspended"
+            class="ml-2 inline-flex rounded bg-red-100 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-red-800 dark:bg-red-900/40 dark:text-red-200"
+            data-testid="suspended-badge">
+            {{ t('web.admin.customers.suspended.badge') }}
+          </span>
         </template>
 
         <template #cell-role="{ row }">

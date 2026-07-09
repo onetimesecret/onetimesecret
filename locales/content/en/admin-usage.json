@@ -66,5 +66,13 @@
   "web.admin.usage.stats.avgUsers": {
     "text": "Avg Users/Day",
     "content_hash": "491f626d"
+  },
+  "web.admin.usage.exportJson": {
+    "text": "Download JSON",
+    "content_hash": "49e0e6d5"
+  },
+  "web.admin.usage.exportCsv": {
+    "text": "Download CSV",
+    "content_hash": "a4023b89"
   }
 }

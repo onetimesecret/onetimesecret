@@ -17,7 +17,7 @@ vi.mock('@/shared/composables/useApi', () => ({
 }));
 
 import { useAdminCustomers } from '@/apps/admin/stores/useAdminCustomers';
-import { useAdminSecrets } from '@/apps/admin/stores/useAdminSecrets';
+import { useAdminDomains } from '@/apps/admin/stores/useAdminDomains';
 
 // A wire-shape colonel users response (numbers for date fields, matching the
 // real endpoint) so the REAL colonelUsersResponseSchema — including its
@@ -119,6 +119,43 @@ describe('useAdminCustomers', () => {
     });
   });
 
+  it('passes the email search term through as a server query param', async () => {
+    mockApi.get.mockResolvedValue({ data: usersPayload() });
+    const store = useAdminCustomers();
+
+    await store.fetchPage(1, undefined, 'alice@example.com');
+
+    expect(mockApi.get).toHaveBeenCalledWith('/api/colonel/users', {
+      params: { page: 1, per_page: 50, search: 'alice@example.com' },
+    });
+  });
+
+  it('combines role filter and search in a single request', async () => {
+    mockApi.get.mockResolvedValue({ data: usersPayload() });
+    const store = useAdminCustomers();
+
+    await store.fetchPage(1, 'customer', 'alice');
+
+    expect(mockApi.get).toHaveBeenCalledWith('/api/colonel/users', {
+      params: { page: 1, per_page: 50, role: 'customer', search: 'alice' },
+    });
+  });
+
+  it('parses the suspended flag (defaulting to false when absent)', async () => {
+    const payload = usersPayload();
+    (payload.details.users[0] as Record<string, unknown>).suspended = true;
+    mockApi.get.mockResolvedValue({ data: payload });
+    const store = useAdminCustomers();
+
+    await store.fetchPage(1);
+    expect(store.customers[0].suspended).toBe(true);
+
+    // Absent flag (pre-suspension payloads) defaults to false.
+    mockApi.get.mockResolvedValue({ data: usersPayload() });
+    await store.fetchPage(1);
+    expect(store.customers[0].suspended).toBe(false);
+  });
+
   it('degrades to empty on a schema mismatch without throwing', async () => {
     mockApi.get.mockResolvedValue({ data: { record: {}, details: { users: 'nope' } } });
     const store = useAdminCustomers();
@@ -167,15 +204,15 @@ describe('useAdminCustomers', () => {
   it('coexists with a sibling resource store without state collision', async () => {
     mockApi.get.mockResolvedValue({ data: usersPayload() });
     const customers = useAdminCustomers();
-    const secrets = useAdminSecrets();
+    const domains = useAdminDomains();
 
     expect(customers.$id).toBe('adminCustomers');
-    expect(secrets.$id).toBe('adminSecrets');
-    expect(customers.$id).not.toBe(secrets.$id);
+    expect(domains.$id).toBe('adminDomains');
+    expect(customers.$id).not.toBe(domains.$id);
 
     await customers.fetchPage(1);
-    // The customers fetch must not have populated the secrets store.
-    expect(secrets.secrets).toEqual([]);
+    // The customers fetch must not have populated the domains store.
+    expect(domains.domains).toEqual([]);
   });
 });
 
@@ -184,7 +221,7 @@ describe('useAdminCustomers — import isolation (CONTRACT 3)', () => {
   const files = [
     resolve(adminRoot, 'composables/usePaginatedFetch.ts'),
     resolve(adminRoot, 'stores/useAdminCustomers.ts'),
-    resolve(adminRoot, 'stores/useAdminSecrets.ts'),
+    resolve(adminRoot, 'stores/useAdminDomains.ts'),
   ];
 
   it.each(files)('%s has ZERO import edge into the retiring colonel tree', (file) => {

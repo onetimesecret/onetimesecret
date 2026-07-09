@@ -13,6 +13,8 @@ require_relative 'models/custom_domain'
 require_relative 'models/receipt'
 require_relative 'models/feedback'
 require_relative 'models/admin_audit_event'
+require_relative 'models/daily_metric'
+require_relative 'models/email_suppression'
 
 # CustomDomain sibling configs — loaded after CustomDomain so the
 # nested-class reopens (`class CustomDomain; class ApiConfig; ...`)

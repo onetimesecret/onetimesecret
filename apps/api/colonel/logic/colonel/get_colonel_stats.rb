@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require 'onetime/operations/sessions/store'
 
 module ColonelAPI
   module Logic
@@ -40,7 +41,12 @@ module ColonelAPI
           @customer_count  = Onetime::Customer.count
           @receipt_count   = Onetime::Receipt.count
           @secret_count    = Onetime::Secret.count
-          @session_count   = 0 # Session tracking now handled by Rack::Session middleware
+
+          # Real count of session keys via the sessions store's bounded scan —
+          # the same key definition GET /api/colonel/sessions lists. This was
+          # hardcoded to 0 after session tracking moved to Rack::Session
+          # middleware (QA 2026-07-07: dashboard reported 0 with live sessions).
+          @session_count = Onetime::Operations::Sessions::Store.count(Familia.dbclient)
 
           # Global lifetime counters. These are real Familia class-level counters
           # (`Onetime::Customer.<name>`) maintained at the creation/send chokepoints:

@@ -18,7 +18,9 @@
    * use useResourceFetch), REUSING the frozen `usageExportResponseSchema`
    * (CONTRACT 3). The date range is passed as `start_date` / `end_date` Unix-second
    * params; `load(params)` re-issues the request and `refresh()` repeats the last.
-   * Read-only: nothing here mutates, so nothing is audited (CONTRACT 4).
+   * Read-only: nothing here mutates, so nothing is audited (CONTRACT 4). The
+   * Export buttons serialize the already-loaded payload into real JSON/CSV file
+   * downloads client-side — no additional requests.
    *
    * Stub note (spec #33): backend usage counters that are stubbed at 0 upstream
    * are surfaced as-is — this screen never fabricates numbers.
@@ -86,6 +88,52 @@
       .map(([state, count]) => ({ state, count }))
       .sort((a, b) => b.count - a.count)
   );
+
+  // ---- File export ----------------------------------------------------------
+  //
+  // "Export" must produce an actual file (QA 2026-07-07: the screen fetched and
+  // rendered JSON on-page but never downloaded anything). Client-side only:
+  // the loaded payload is serialized into a Blob and saved via a transient
+  // anchor — no extra request, nothing mutates (still CONTRACT 4 clean).
+
+  /** Trigger a browser download of `content` as `filename`. */
+  function downloadFile(filename: string, mime: string, content: string): void {
+    const url = URL.createObjectURL(new Blob([content], { type: mime }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  const exportBasename = computed(
+    () => `usage-export_${startDate.value || 'start'}_${endDate.value || 'end'}`
+  );
+
+  /** Download the loaded export payload as pretty-printed JSON. */
+  function exportJson(): void {
+    if (!usage.value) return;
+    downloadFile(`${exportBasename.value}.json`, 'application/json', JSON.stringify(usage.value, null, 2));
+  }
+
+  /**
+   * Download the tabular day-by-day breakdown as CSV (date, secrets,
+   * new_users). Dates are ISO yyyy-mm-dd and counts are numbers, so no CSV
+   * quoting is needed.
+   */
+  function exportCsv(): void {
+    if (!usage.value) return;
+    const secrets = new Map(secretsByDay.value.map((row) => [row.date, row.count]));
+    const users = new Map(usersByDay.value.map((row) => [row.date, row.count]));
+    const dates = [...new Set([...secrets.keys(), ...users.keys()])].sort();
+    const lines = [
+      'date,secrets,new_users',
+      ...dates.map((date) => `${date},${secrets.get(date) ?? 0},${users.get(date) ?? 0}`),
+    ];
+    downloadFile(`${exportBasename.value}.csv`, 'text/csv', lines.join('\n'));
+  }
 
   onMounted(() => {
     applyDefaultDates();
@@ -181,6 +229,32 @@
       v-if="usage"
       class="space-y-6"
       data-testid="usage-content">
+      <!-- Export downloads -->
+      <div class="flex justify-end gap-2">
+        <button
+          type="button"
+          data-testid="usage-export-json"
+          class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+          @click="exportJson">
+          <OIcon
+            collection="heroicons"
+            name="arrow-down"
+            size="4" />
+          {{ t('web.admin.usage.exportJson') }}
+        </button>
+        <button
+          type="button"
+          data-testid="usage-export-csv"
+          class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+          @click="exportCsv">
+          <OIcon
+            collection="heroicons"
+            name="arrow-down"
+            size="4" />
+          {{ t('web.admin.usage.exportCsv') }}
+        </button>
+      </div>
+
       <!-- Summary tiles -->
       <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard

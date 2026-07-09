@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'json'
+require 'redis' # for Redis::CommandError in the defensive load_data rescue
 
 module Onetime
   module Operations
@@ -74,11 +75,22 @@ module Onetime
         # a parsed Hash on success, or a bounded `{'_raw' => ...}` fallback when the
         # bytes are not JSON. NEVER calls Marshal.load (see the security note above).
         #
+        # The GET itself is defensive: a non-string key that slipped past the
+        # scan filter (e.g. a SET named `session:<sid>:...`, like the colonel
+        # entitlement-preview keys) raises WRONGTYPE, and one bad key must never
+        # take down a whole listing (QA 2026-07-07: every GET /api/colonel/sessions
+        # 500ed while such keys existed). Command-level failures resolve to nil —
+        # "no session data here" — while connection errors still propagate.
+        #
         # @param dbclient [Object]
         # @param key [String]
         # @return [Hash, nil]
         def load_data(dbclient, key)
-          raw_data = dbclient.get(key)
+          raw_data = begin
+            dbclient.get(key)
+          rescue Redis::CommandError
+            nil
+          end
           return nil unless raw_data
 
           begin
@@ -101,11 +113,27 @@ module Onetime
         # blocking KEYS, CONTRACT 6) and stops after at most {MAX_SCAN} keys so an
         # unbounded keyspace can't turn one request into an O(all-keys) walk.
         #
+        # Filters to STRING keys server-side (SCAN's TYPE option, Redis 6+):
+        # real session values are strings, but the loose `*session*` match also
+        # catches non-string keys such as the entitlement-preview SETs
+        # (`session:<sid>:entitlement_preview_*`), which would WRONGTYPE on GET.
+        # {load_data} stays defensive for anything a filter can't anticipate.
+        #
         # @param dbclient [Object]
         # @param pattern [String]
         # @return [Array<String>] the matched keys (scan order, capped)
         def scan_keys(dbclient, pattern: SESSION_SCAN_PATTERN)
-          dbclient.scan_each(match: pattern).first(MAX_SCAN)
+          dbclient.scan_each(match: pattern, type: 'string').first(MAX_SCAN)
+        end
+
+        # Count session keys via the same bounded, string-typed scan the listing
+        # uses. Backs the colonel stats/info `session_count`, which was hardcoded
+        # to 0 after session tracking moved to Rack::Session middleware.
+        #
+        # @param dbclient [Object]
+        # @return [Integer]
+        def count(dbclient)
+          scan_keys(dbclient).size
         end
 
         # Build a compact, JSON-ready summary of one session for list rows. Raw

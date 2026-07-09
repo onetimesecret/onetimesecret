@@ -7,8 +7,12 @@
 # Covers:
 # - Receipt.spawn_pair increments the owner's secrets_active counter (exactly
 #   once per created secret, at the single creation chokepoint)
+# - Secret#destroy! (the reveal/burn/delete chokepoint) decrements it, so the
+#   counter tracks live secrets between nightly recounts (QA 2026-07-07:
+#   colonel list vs user-detail count mismatch)
 # - anonymous / ownerless creates ('anon' or nil owner_id) do NOT increment
 # - Customer.increment_secrets_active guards anon/nil/blank owner ids
+# - Customer.decrement_secrets_active clamps at zero
 # - a fresh Customer.new(objid:) reads the same counter key (no full load)
 #
 # Run: try --agent try/unit/models/secret_active_counter_try.rb
@@ -40,6 +44,30 @@ Onetime::Receipt.spawn_pair(@cust.objid, 3600, 'first secret')
 Onetime::Customer.new(objid: @cust.objid).secrets_active.to_i
 #=> 3
 
+## Secret#destroy! — the single early-destruction chokepoint — decrements by one
+_receipt, @doomed = Onetime::Receipt.spawn_pair(@cust.objid, 3600, 'to destroy')
+@doomed.destroy!
+@cust.secrets_active.to_i
+#=> 3
+
+## a reveal consumes the secret and decrements through the same chokepoint
+_receipt, @revealable = Onetime::Receipt.spawn_pair(@cust.objid, 3600, 'to reveal')
+@revealable.revealed!
+@cust.secrets_active.to_i
+#=> 3
+
+## destroying an anonymous secret touches no customer counter
+_receipt, @anon_secret = Onetime::Receipt.spawn_pair('anon', 3600, 'anon gone')
+@anon_secret.destroy!
+Onetime::Customer.new(objid: 'anon').secrets_active.to_i
+#=> 0
+
+## decrement_secrets_active clamps at zero — never a negative live count
+@zeroed = Onetime::Customer.create!(email: "zeroed_#{@stamp}@ctr.example")
+Onetime::Customer.decrement_secrets_active(@zeroed.objid)
+@zeroed.secrets_active.to_i
+#=> 0
+
 ## an anonymous ('anon' owner) create does NOT touch any customer counter
 @anon_before = @cust.secrets_active.to_i
 Onetime::Receipt.spawn_pair('anon', 3600, 'anon secret')
@@ -69,4 +97,4 @@ Onetime::Customer.increment_secrets_active(@direct.objid)
 
 # TEARDOWN
 
-[@cust, @direct].each { |c| c.destroy! rescue nil }
+[@cust, @direct, @zeroed].each { |c| c.destroy! rescue nil }

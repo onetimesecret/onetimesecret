@@ -9,14 +9,14 @@ import {
   type PageMeta,
 } from '@/apps/admin/composables/usePaginatedFetch';
 import { colonelSessionsResponseSchema } from '@/schemas/api/internal/responses/colonel-sessions';
-import type { ColonelSession } from '@/schemas/api/account/responses/colonel-sessions';
+import type { ColonelSession } from '@/schemas/api/internal/responses/colonel-sessions';
 
 type ColonelSessionsResponse = z.infer<typeof colonelSessionsResponseSchema>;
 
 /**
  * Per-resource admin store for active sessions (ticket #40, CONTRACT 3).
  *
- * Sibling of {@link useAdminSecrets} / {@link useAdminCustomers}: one server page
+ * Sibling of {@link useAdminCustomers}: one server page
  * per request over the NEW `GET /api/colonel/sessions` endpoint (a thin adapter
  * over `Onetime::Operations::Sessions::List` — bounded scan, #2211). The endpoint
  * supports an optional server-side `search` filter across session identity fields;

@@ -100,6 +100,20 @@ get '/api/colonel/users', { 'role' => 'colonel', 'per_page' => 100 }, { 'rack.se
 [@row['secrets_count'], @colonel.secrets_active.to_i]
 #=> [3, 3]
 
+## destroying a secret (reveal/burn/delete funnel through Secret#destroy!)
+## decrements the counter, so the list stays in step with the live secrets
+## the user-detail view scans (QA 2026-07-07: list vs detail count mismatch)
+_receipt, @burnable = Onetime::Receipt.spawn_pair(@colonel.objid, 3600, 'soon gone')
+@before = @colonel.secrets_active.to_i
+@burnable.burned!
+get '/api/colonel/users', { 'role' => 'colonel', 'per_page' => 100 }, { 'rack.session' => @colonel_session, 'HTTP_ACCEPT' => 'application/json' }
+@row = colonel_row(last_response.body, @colonel.extid)
+[@before, @row['secrets_count'], @colonel.secrets_active.to_i]
+#=> [4, 3, 3]
+
+# NOTE: unit-level decrement coverage (anon guard, zero clamp, reveal path)
+# lives in try/unit/models/secret_active_counter_try.rb.
+
 # TEARDOWN
 
 [@colonel, @regular].each { |c| c.destroy! rescue nil }

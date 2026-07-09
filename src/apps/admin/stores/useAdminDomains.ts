@@ -4,7 +4,7 @@ import {
   usePaginatedFetch,
   type PageMeta,
 } from '@/apps/admin/composables/usePaginatedFetch';
-import type { ColonelCustomDomain } from '@/schemas/api/account/responses/colonel';
+import type { ColonelCustomDomain } from '@/schemas/api/internal/responses/colonel';
 import { colonelCustomDomainsResponseSchema } from '@/schemas/api/internal/responses/colonel';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
@@ -16,9 +16,9 @@ type ColonelCustomDomainsResponse = z.infer<typeof colonelCustomDomainsResponseS
 /**
  * Per-resource admin store for custom domains (CONTRACT 1 / #31).
  *
- * Sibling of {@link useAdminCustomers} / {@link useAdminSecrets} — the shared
- * paginated-fetch composable makes a new resource a few lines pointing at its
- * endpoint + schema + selector. Backed by the existing `GET /api/colonel/domains`
+ * Sibling of {@link useAdminCustomers} — the shared paginated-fetch
+ * composable makes a new resource a few lines pointing at its endpoint +
+ * schema + selector. Backed by the existing `GET /api/colonel/domains`
  * and the existing `colonelCustomDomainsResponseSchema` (REUSED, no schema
  * changes — CONTRACT 3). Owns ONLY this resource's page state.
  *

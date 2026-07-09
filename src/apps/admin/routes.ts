@@ -60,8 +60,9 @@ const routes: Array<RouteRecordRaw> = [
     props: true,
   },
   {
-    // Secrets: paginated list + receipt drawer + guarded delete (ticket #30).
-    // No route params (the receipt opens in a DetailDrawer, not a sub-route).
+    // Secrets: lookup-by-key inspect + guarded delete (ticket #30; browse-all
+    // table removed by design review — no browsing secrets on a zero-knowledge
+    // platform). No route params (the key is an in-page input).
     path: '/colonel/secrets',
     name: 'AdminSecrets',
     component: () => import('@/apps/admin/views/AdminSecrets.vue'),
@@ -138,6 +139,19 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
+    // Audit log reader (observability): newest-first playback of the
+    // AdminAuditEvent trail every mutating admin op writes. Read-only; no
+    // route params (filters are in-page).
+    path: '/colonel/audit',
+    name: 'AdminAuditLog',
+    component: () => import('@/apps/admin/views/AdminAuditLog.vue'),
+    meta: {
+      ...adminDefaultMeta,
+      title: 'web.admin.audit.title',
+      sentryScrubParams: false,
+    },
+  },
+  {
     // Broadcast banner: settings-style get/set/clear (ticket #41).
     path: '/colonel/banner',
     name: 'AdminBanner',
@@ -145,17 +159,6 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       ...adminDefaultMeta,
       title: 'web.admin.banner.title',
-      sentryScrubParams: false,
-    },
-  },
-  {
-    // Queue DLQ console: list + peek drawer + guarded replay/purge (ticket #42).
-    path: '/colonel/queues/dlq',
-    name: 'AdminQueueDlq',
-    component: () => import('@/apps/admin/views/AdminQueueDlq.vue'),
-    meta: {
-      ...adminDefaultMeta,
-      title: 'web.admin.queue.title',
       sentryScrubParams: false,
     },
   },
@@ -171,8 +174,8 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    // Email + rate-limit tools (ticket #44): template preview / test send /
-    // limiter inspect+reset. No route params (all inputs are in-page).
+    // Email tools (ticket #44): template preview / test send. No route params
+    // (all inputs are in-page).
     path: '/colonel/email-tools',
     name: 'AdminEmailTools',
     component: () => import('@/apps/admin/views/AdminEmailTools.vue'),

@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/refinements/stripe_refinements'
+require 'onetime/operations/sessions/store'
 
 require_relative '../base'
 
@@ -52,8 +53,13 @@ module ColonelAPI
         end
 
         def process
-          @title         = 'Home'
-          @session_count = 0 # Session tracking now handled by Rack::Session middleware
+          @title = 'Home'
+
+          # Real count of session keys via the sessions store's bounded scan —
+          # the same key definition GET /api/colonel/sessions lists. This was
+          # hardcoded to 0 after session tracking moved to Rack::Session
+          # middleware (QA 2026-07-07: dashboard reported 0 with live sessions).
+          @session_count = Onetime::Operations::Sessions::Store.count(Familia.dbclient)
 
           process_feedback
           process_customers

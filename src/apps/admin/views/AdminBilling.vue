@@ -10,7 +10,7 @@
   import type {
     ColonelBillingPlan,
     ColonelBillingDriftChange,
-  } from '@/schemas/api/account/responses/colonel-billing';
+  } from '@/schemas/api/internal/responses/colonel-billing';
   import { colonelBillingCatalogResponseSchema } from '@/schemas/api/internal/responses/colonel-billing';
   import OIcon from '@/shared/components/icons/OIcon.vue';
 

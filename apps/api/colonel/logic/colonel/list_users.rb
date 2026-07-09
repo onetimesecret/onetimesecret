@@ -12,12 +12,14 @@ module ColonelAPI
       #
       # @api Returns a paginated list of all users with obscured emails,
       #   roles, verification status, plan IDs, and secret counts. Supports
-      #   optional role filtering and pagination via page/per_page params.
-      #   Requires colonel role.
+      #   optional role filtering, an optional email `search` term (bounded
+      #   HSCAN over the email index — the same server-side search mechanism
+      #   the sessions listing offers), and pagination via page/per_page
+      #   params. Requires colonel role.
       class ListUsers < ColonelAPI::Logic::Base
         SCHEMAS = { response: 'colonelUsers' }.freeze
 
-        attr_reader :users, :total_count, :page, :per_page, :total_pages, :role_filter
+        attr_reader :users, :total_count, :page, :per_page, :total_pages, :role_filter, :search
 
         def process_params
           @page        = (params['page'] || 1).to_i
@@ -25,6 +27,7 @@ module ColonelAPI
           @per_page    = 100 if @per_page > 100 # Max 100 per page
           @page        = 1 if @page < 1
           @role_filter = sanitize_plain_text(params['role']) # Optional: filter by role
+          @search      = sanitize_plain_text(params['search'], max_length: 255) if params['search']
         end
 
         def raise_concerns
@@ -47,6 +50,7 @@ module ColonelAPI
             page: page,
             per_page: per_page,
             role: role_filter,
+            search: search,
           ).call
 
           @total_count = result.total_count
@@ -63,6 +67,7 @@ module ColonelAPI
               email: cust.obscure_email,
               role: cust.role,
               verified: cust.verified?,
+              suspended: cust.suspended?,
               created: cust.created,
               last_login: cust.last_login,
               planid: cust.planid,
@@ -98,6 +103,7 @@ module ColonelAPI
                 total_count: total_count,
                 total_pages: total_pages,
                 role_filter: role_filter,
+                search: search,
               },
             },
           }

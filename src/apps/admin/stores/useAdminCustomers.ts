@@ -9,16 +9,18 @@ import {
   type PageMeta,
 } from '@/apps/admin/composables/usePaginatedFetch';
 import { colonelUsersResponseSchema } from '@/schemas/api/internal/responses/colonel';
-import type { ColonelUser } from '@/schemas/api/account/responses/colonel';
+import type { ColonelUser } from '@/schemas/api/internal/responses/colonel';
 
 type ColonelUsersResponse = z.infer<typeof colonelUsersResponseSchema>;
 
 /**
  * Per-resource admin store for customers/users (CONTRACT 3).
  *
- * Backed by the existing `GET /api/colonel/users` endpoint (contract unchanged)
- * and the existing `colonelUsersResponseSchema` (no schema changes). Owns ONLY
- * this resource — loading/page/error come from the shared paginated-fetch
+ * Backed by the `GET /api/colonel/users` endpoint and
+ * `colonelUsersResponseSchema`. The endpoint supports an optional server-side
+ * `search` param (email lookup via a bounded index scan) alongside the `role`
+ * filter; the view drives both through {@link fetchPage}. Owns ONLY this
+ * resource — loading/page/error come from the shared paginated-fetch
  * composable, so adding the next resource is a copy of this ~40-line file, not
  * an edit to a shared god-store.
  *
@@ -46,17 +48,22 @@ export const useAdminCustomers = defineStore('adminCustomers', () => {
    *
    * @param targetPage 1-based page (defaults to the current page).
    * @param roleFilter optional `role` server filter (e.g. 'colonel').
+   * @param search optional email search term (server-side, bounded index scan).
    * @returns the page result, or null on a schema mismatch (see validationError).
    * @throws the underlying network/HTTP error (state is cleared first).
    */
   async function fetchPage(
     targetPage: number = pager.page.value,
-    roleFilter?: string
+    roleFilter?: string,
+    search?: string
   ): Promise<{ items: ColonelUser[]; pagination: PageMeta | null } | null> {
     try {
+      const params: Record<string, string> = {};
+      if (roleFilter) params.role = roleFilter;
+      if (search) params.search = search;
       const result = await pager.fetchPage(
         targetPage,
-        roleFilter ? { role: roleFilter } : undefined
+        Object.keys(params).length > 0 ? params : undefined
       );
       if (result) {
         customers.value = result.items;

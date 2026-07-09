@@ -70,7 +70,57 @@ const i18n = createTestI18n();
 
 const PUBLIC_ID = 'ur_alice';
 
-function detailPayload(overrides: { role?: string; verified?: boolean } = {}) {
+type BillingOverride = {
+  enabled?: boolean;
+  stripeAvailable?: boolean;
+  stripeReason?: string | null;
+  invoice?: boolean;
+};
+
+function billingPayload(overrides: BillingOverride = {}) {
+  const available = overrides.stripeAvailable ?? false;
+  return {
+    enabled: overrides.enabled ?? false,
+    plan_id: 'basic',
+    organization: {
+      extid: 'og_acme',
+      display_name: 'Acme',
+      planid: 'basic',
+      subscription_status: available ? 'active' : null,
+      subscription_period_end: null,
+    },
+    stripe: {
+      available,
+      reason: available ? null : (overrides.stripeReason ?? 'Billing is not configured'),
+      customer_id: available ? 'cus_123' : null,
+      dashboard_url: available ? 'https://dashboard.stripe.com/customers/cus_123' : null,
+      subscription: available
+        ? { id: 'sub_123', status: 'active', current_period_end: 1700003600 }
+        : null,
+      latest_invoice:
+        available && (overrides.invoice ?? true)
+          ? {
+              id: 'in_1',
+              number: 'INV-0001',
+              status: 'paid',
+              currency: 'usd',
+              total: 3500,
+              created: 1700000000,
+              hosted_invoice_url: 'https://invoice.stripe.com/i/in_1',
+            }
+          : null,
+    },
+  };
+}
+
+function detailPayload(
+  overrides: {
+    role?: string;
+    verified?: boolean;
+    suspended?: boolean;
+    billing?: BillingOverride;
+  } = {}
+) {
   return {
     shrimp: '',
     record: {
@@ -78,6 +128,10 @@ function detailPayload(overrides: { role?: string; verified?: boolean } = {}) {
       email: 'alice@example.com',
       role: overrides.role ?? 'customer',
       verified: overrides.verified ?? false,
+      suspended: overrides.suspended ?? false,
+      suspended_at: overrides.suspended ? 1700000300 : null,
+      suspended_by: overrides.suspended ? 'ur_colonel' : null,
+      suspended_reason: overrides.suspended ? 'tos violation' : null,
       created: 1700000000,
       updated: 1700000100,
       last_login: 1700000200,
@@ -98,6 +152,7 @@ function detailPayload(overrides: { role?: string; verified?: boolean } = {}) {
       organizations: [
         { organization_id: 'o1', extid: 'og_acme', display_name: 'Acme', is_default: true },
       ],
+      billing: billingPayload(overrides.billing),
       stats: { secrets_created: 5, secrets_shared: 2, emails_sent: 3 },
     },
   };
@@ -269,6 +324,167 @@ describe('AdminCustomerDetail (ticket #22)', () => {
       await flushPromises();
 
       expect(mockApi.post).toHaveBeenCalledWith('/api/colonel/users/ur_alice/unverify', {});
+    });
+  });
+
+  // ---- Billing card ----------------------------------------------------------
+
+  describe('billing card', () => {
+    it('renders plan from the model with the not-configured note when billing is disabled', async () => {
+      mockApi.get.mockResolvedValue({ data: detailPayload({ billing: { enabled: false } }) });
+      wrapper = mountView();
+      await flushPromises();
+
+      const section = wrapper.find('[data-testid="billing-section"]');
+      expect(section.exists()).toBe(true);
+      expect(section.find('[data-testid="billing-plan"]').text()).toContain('basic');
+      expect(section.find('[data-testid="billing-disabled"]').exists()).toBe(true);
+      expect(section.find('[data-testid="billing-stripe-link"]').exists()).toBe(false);
+    });
+
+    it('degrades to the unavailable note (still showing plan) when Stripe is unreachable', async () => {
+      mockApi.get.mockResolvedValue({
+        data: detailPayload({
+          billing: { enabled: true, stripeAvailable: false, stripeReason: 'Stripe unavailable: timeout' },
+        }),
+      });
+      wrapper = mountView();
+      await flushPromises();
+
+      const section = wrapper.find('[data-testid="billing-section"]');
+      expect(section.find('[data-testid="billing-plan"]').text()).toContain('basic');
+      expect(section.find('[data-testid="billing-unavailable"]').exists()).toBe(true);
+      expect(section.find('[data-testid="billing-stripe-link"]').exists()).toBe(false);
+      expect(section.find('[data-testid="billing-latestInvoice"]').exists()).toBe(false);
+    });
+
+    it('shows the latest invoice and the Stripe dashboard link when the live read worked', async () => {
+      mockApi.get.mockResolvedValue({
+        data: detailPayload({ billing: { enabled: true, stripeAvailable: true } }),
+      });
+      wrapper = mountView();
+      await flushPromises();
+
+      const section = wrapper.find('[data-testid="billing-section"]');
+      const invoice = section.find('[data-testid="billing-latestInvoice"]');
+      expect(invoice.exists()).toBe(true);
+      // date · amount · status
+      expect(invoice.text()).toContain('35.00 USD');
+      expect(invoice.text()).toContain('paid');
+      expect(section.find('[data-testid="billing-subscriptionStatus"]').text()).toContain('active');
+
+      const link = section.find('[data-testid="billing-stripe-link"]');
+      expect(link.exists()).toBe(true);
+      expect(link.attributes('href')).toBe('https://dashboard.stripe.com/customers/cus_123');
+      expect(link.attributes('target')).toBe('_blank');
+    });
+  });
+
+  // ---- Suspend / unsuspend ----------------------------------------------------
+
+  describe('suspend — typed-confirmation gate (reversible pause)', () => {
+    beforeEach(async () => {
+      mockApi.get.mockResolvedValue({ data: detailPayload() });
+      wrapper = mountView();
+      await flushPromises();
+    });
+
+    it('requires retyping the public id, then POSTs suspend with the reason', async () => {
+      mockApi.post.mockResolvedValue({ data: mutationAck() });
+
+      await wrapper.find('[data-testid="suspend-reason"]').setValue('abuse report');
+      await wrapper.find('[data-testid="suspend-button"]').trigger('click');
+      await flushPromises();
+
+      // Typed-confirmation input present; confirm disabled until the id matches.
+      expect(dialogInput(wrapper).exists()).toBe(true);
+      expect(dialogSubmit(wrapper).attributes('disabled')).toBeDefined();
+
+      await dialogInput(wrapper).setValue(PUBLIC_ID);
+      expect(dialogSubmit(wrapper).attributes('disabled')).toBeUndefined();
+
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+
+      expect(mockApi.post).toHaveBeenCalledWith('/api/colonel/users/ur_alice/suspend', {
+        reason: 'abuse report',
+      });
+      expect(showMock).toHaveBeenCalledWith(
+        'web.admin.customers.actions.suspend.success',
+        'success'
+      );
+      // Stays on the page and refreshes (suspension is reversible — not purge).
+      expect(pushMock).not.toHaveBeenCalled();
+    });
+
+    it('omits the reason key when no reason is given', async () => {
+      mockApi.post.mockResolvedValue({ data: mutationAck() });
+
+      await wrapper.find('[data-testid="suspend-button"]').trigger('click');
+      await dialogInput(wrapper).setValue(PUBLIC_ID);
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+
+      expect(mockApi.post).toHaveBeenCalledWith('/api/colonel/users/ur_alice/suspend', {});
+    });
+
+    it('does NOT suspend when submitted without a matching token', async () => {
+      mockApi.post.mockResolvedValue({ data: mutationAck() });
+
+      await wrapper.find('[data-testid="suspend-button"]').trigger('click');
+      await dialogInput(wrapper).setValue('wrong');
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+
+      expect(mockApi.post).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('suspended state + unsuspend', () => {
+    it('shows the SUSPENDED badge, suspension fields, and the unsuspend action', async () => {
+      mockApi.get.mockResolvedValue({ data: detailPayload({ suspended: true }) });
+      mockApi.post.mockResolvedValue({ data: mutationAck() });
+      wrapper = mountView();
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="suspended-badge"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="profile-suspendedReason"]').text()).toContain(
+        'tos violation'
+      );
+      expect(wrapper.find('[data-testid="suspend-button"]').exists()).toBe(false);
+
+      // Unsuspend is a simple confirm (no typed input).
+      await wrapper.find('[data-testid="unsuspend-button"]').trigger('click');
+      await flushPromises();
+      expect(dialogInput(wrapper).exists()).toBe(false);
+
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+
+      expect(mockApi.post).toHaveBeenCalledWith('/api/colonel/users/ur_alice/unsuspend', {});
+      expect(showMock).toHaveBeenCalledWith(
+        'web.admin.customers.actions.unsuspend.success',
+        'success'
+      );
+    });
+
+    it('hides the suspended badge and fields for a non-suspended customer', async () => {
+      mockApi.get.mockResolvedValue({ data: detailPayload() });
+      wrapper = mountView();
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="suspended-badge"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="profile-suspendedReason"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="unsuspend-button"]').exists()).toBe(false);
+    });
+
+    it('offers no suspend action for colonel accounts (privilege guard)', async () => {
+      mockApi.get.mockResolvedValue({ data: detailPayload({ role: 'colonel' }) });
+      wrapper = mountView();
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="suspend-button"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="suspend-reason"]').exists()).toBe(false);
     });
   });
 

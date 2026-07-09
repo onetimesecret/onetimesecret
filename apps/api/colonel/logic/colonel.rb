@@ -31,6 +31,7 @@ require_relative 'colonel/get_user_details'
 require_relative 'colonel/update_user_plan'
 require_relative 'colonel/set_user_role'
 require_relative 'colonel/set_user_verification'
+require_relative 'colonel/set_user_suspension'
 require_relative 'colonel/purge_user'
 
 # System monitoring
@@ -87,5 +88,16 @@ require_relative 'colonel/list_rate_limiters'
 require_relative 'colonel/inspect_rate_limit'
 require_relative 'colonel/reset_rate_limit'
 
+# Email deliverability (bounces / complaints / suppression list)
+require_relative 'colonel/get_email_deliverability'
+require_relative 'colonel/list_email_suppressions'
+require_relative 'colonel/remove_email_suppression'
+require_relative 'colonel/list_email_deliverability_events'
+require_relative 'colonel/ingest_email_deliverability_events'
+
 # Billing catalog (ticket #45)
 require_relative 'colonel/get_billing_catalog'
+
+# Observability: audit trail reader + daily activity trends
+require_relative 'colonel/list_audit_events'
+require_relative 'colonel/get_trends'

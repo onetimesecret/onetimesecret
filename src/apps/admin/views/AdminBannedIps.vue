@@ -8,7 +8,7 @@
   import type { DataTableColumn } from '@/apps/admin/components/kit';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
-  import type { BannedIP } from '@/schemas/api/account/responses/colonel';
+  import type { BannedIP } from '@/schemas/api/internal/responses/colonel';
   import {
     bannedIPsResponseSchema,
     colonelBanIpResponseSchema,

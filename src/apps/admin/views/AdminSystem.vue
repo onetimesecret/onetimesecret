@@ -7,7 +7,7 @@
   import { DataTable, JsonViewer, StatCard } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
-  import type { QueueMetric } from '@/schemas/api/account/responses/colonel';
+  import type { QueueMetric } from '@/schemas/api/internal/responses/colonel';
   import {
     databaseMetricsResponseSchema,
     queueMetricsResponseSchema,

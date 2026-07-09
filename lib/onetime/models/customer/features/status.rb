@@ -24,6 +24,16 @@ module Onetime::Customer::Features
       base.field :joined
       base.boolean_field :verified
       base.field :verified_by  # 'email', 'stripe_payment', 'autoverify', nil
+
+      # Reversible trust & safety pause (NOT a role, NOT destructive).
+      # A suspended customer keeps all of their data but cannot authenticate:
+      # login rejects them and BaseSessionAuthStrategy refuses their sessions.
+      # Managed exclusively via the audited SetSuspension op (colonel API);
+      # see Auth::Operations::Customers::SetSuspension.
+      base.boolean_field :suspended
+      base.field :suspended_at      # Unix timestamp when the suspension was applied
+      base.field :suspended_by      # acting admin's PUBLIC id (extid), never an objid
+      base.field :suspended_reason  # optional operator-supplied reason
     end
 
     module ClassMethods
@@ -47,10 +57,21 @@ module Onetime::Customer::Features
         verified? && verified_by.to_s == 'stripe_payment'
       end
 
+      # Reversible trust & safety pause. Stored form is canonical
+      # 'true' / 'false' (BooleanFieldType), so — like verified? — the
+      # predicate is a plain string equality check. nil (records that
+      # predate the field) reads as not suspended.
+      def suspended?
+        !anonymous? && suspended == 'true'
+      end
+
       def active?
         # We modify the role when destroying so if a customer is verified
-        # and has a role of 'customer' then they are active.
-        verified? && role?('customer')
+        # and has a role of 'customer' then they are active. A suspended
+        # account is never active: suspension is a reversible trust & safety
+        # pause enforced consistently at every access gate (auth strategies,
+        # org/workspace behavior), so anything gating on active? honors it too.
+        verified? && role?('customer') && !suspended?
       end
 
       def pending?

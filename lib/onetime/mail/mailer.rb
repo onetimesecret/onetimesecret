@@ -175,6 +175,42 @@ module Onetime
           determine_provider
         end
 
+        # Resolves the active delivery transport from emailer config: the
+        # explicit `mode`, else auto-detection from the credentials present.
+        # Public because it is a plain config query with legitimate callers
+        # outside the mailer (e.g. the deliverability feedback sync choosing
+        # which provider list to pull).
+        #
+        # @return [String] provider name: 'ses' | 'sendgrid' | 'lettermint' |
+        #   'smtp' | 'logger' (the safe fallback).
+        def determine_provider
+          conf = emailer_config
+          mode = conf['mode']&.to_s&.downcase
+
+          return mode if mode && !mode.empty?
+
+          # Test environment always uses logger
+          return 'logger' if ENV['RACK_ENV'] == 'test'
+
+          # Auto-detect provider from config keys (first match wins):
+          #   region + user        -> ses (AWS SES credentials)
+          #   sendgrid_api_key     -> sendgrid
+          #   lettermint_api_token -> lettermint
+          #   host                 -> smtp (generic SMTP)
+          #   (none)               -> logger (safe fallback)
+          if conf['region'] && conf['user']
+            'ses' # AWS SES uses region + AWS credentials
+          elsif conf['sendgrid_api_key']
+            'sendgrid'
+          elsif conf['lettermint_api_token']
+            'lettermint'
+          elsif conf['host']
+            'smtp'
+          else
+            'logger' # fallback
+          end
+        end
+
         private
 
         def template_class_for(name)
@@ -253,34 +289,6 @@ module Onetime
             OT.le message
           else
             warn message
-          end
-        end
-
-        def determine_provider
-          conf = emailer_config
-          mode = conf['mode']&.to_s&.downcase
-
-          return mode if mode && !mode.empty?
-
-          # Test environment always uses logger
-          return 'logger' if ENV['RACK_ENV'] == 'test'
-
-          # Auto-detect provider from config keys (first match wins):
-          #   region + user        -> ses (AWS SES credentials)
-          #   sendgrid_api_key     -> sendgrid
-          #   lettermint_api_token -> lettermint
-          #   host                 -> smtp (generic SMTP)
-          #   (none)               -> logger (safe fallback)
-          if conf['region'] && conf['user']
-            'ses' # AWS SES uses region + AWS credentials
-          elsif conf['sendgrid_api_key']
-            'sendgrid'
-          elsif conf['lettermint_api_token']
-            'lettermint'
-          elsif conf['host']
-            'smtp'
-          else
-            'logger' # fallback
           end
         end
 

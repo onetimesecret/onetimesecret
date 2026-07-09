@@ -319,6 +319,12 @@ module Onetime
         # the nightly SecretCountReconcileJob — see counter_fields.rb.
         Onetime::Customer.increment_secrets_active(owner_id)
 
+        # Count the creation in today's daily-trend bucket (admin dashboard).
+        # Same chokepoint rationale as the counter above; fire-and-forget —
+        # DailyMetric.increment swallows its own errors and can never fail
+        # the secret creation.
+        Onetime::DailyMetric.increment(:secrets_created)
+
         [receipt, secret]
       end
 

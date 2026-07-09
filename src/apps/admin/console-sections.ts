@@ -3,20 +3,22 @@
 /**
  * The admin console's navigable map.
  *
- * Phase 0 ships the Overview screen live; the remaining sections are
- * placeholders that later phases turn into real routes (see
+ * Every section is live: each entry routes to a real screen (see
  * docs/specs/colonel-ui/). Keeping the map in one place means the sidebar and
  * the overview dashboard never drift.
  *
- * `labelKey` reuses existing `web.colonel.*` i18n keys, so the Phase-0
- * skeleton needs no new locale content. `icon` is a heroicons sprite name
+ * `labelKey` mixes legacy `web.colonel.*` keys (Phase-0 parity screens) with
+ * `web.admin.*` keys (Phase-3 screens). `icon` is a heroicons sprite name
  * verified to exist in HeroiconsSprites.vue.
  */
 export interface ConsoleSection {
   key: string;
   labelKey: string;
   icon: string;
-  /** Route path once the section is live; omitted while it is a placeholder. */
+  /**
+   * Route path for the section. Optional only for the historical placeholder
+   * affordance in AdminLayout/AdminOverview; every current entry sets it.
+   */
   to?: string;
 }
 
@@ -30,8 +32,8 @@ export const CONSOLE_SECTIONS: ConsoleSection[] = [
   { key: 'bannedIps', labelKey: 'web.colonel.titles.bannedIps', icon: 'no-symbol', to: '/colonel/banned-ips' },
   { key: 'usage', labelKey: 'web.colonel.titles.usage', icon: 'rectangle-group', to: '/colonel/usage' },
   { key: 'sessions', labelKey: 'web.admin.sessions.title', icon: 'finger-print', to: '/colonel/sessions' },
+  { key: 'auditLog', labelKey: 'web.admin.audit.title', icon: 'document-text', to: '/colonel/audit' },
   { key: 'banner', labelKey: 'web.admin.banner.title', icon: 'bell', to: '/colonel/banner' },
-  { key: 'queueDlq', labelKey: 'web.admin.queue.nav', icon: 'rectangle-stack', to: '/colonel/queues/dlq' },
   { key: 'domaintoolbox', labelKey: 'web.admin.domaintoolbox.title', icon: 'shield-exclamation', to: '/colonel/domain-toolbox' },
   { key: 'emailTools', labelKey: 'web.admin.emailtools.title', icon: 'envelope', to: '/colonel/email-tools' },
   { key: 'billing', labelKey: 'web.admin.billing.title', icon: 'credit-card', to: '/colonel/billing' },

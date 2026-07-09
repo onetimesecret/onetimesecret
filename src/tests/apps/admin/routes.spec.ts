@@ -193,12 +193,6 @@ describe('Admin Routes Configuration', () => {
         sectionKey: 'banner',
       },
       {
-        path: '/colonel/queues/dlq',
-        name: 'AdminQueueDlq',
-        title: 'web.admin.queue.title',
-        sectionKey: 'queueDlq',
-      },
-      {
         path: '/colonel/domain-toolbox',
         name: 'AdminDomainToolbox',
         title: 'web.admin.domaintoolbox.title',
@@ -229,6 +223,19 @@ describe('Admin Routes Configuration', () => {
       it(`${sectionKey} is a live section pointing at ${path}`, () => {
         expect(CONSOLE_SECTIONS.find((s) => s.key === sectionKey)?.to).toBe(path);
       });
+    });
+  });
+
+  describe('Observability routes (audit log)', () => {
+    it('registers the AdminAuditLog route at /colonel/audit', () => {
+      const route = adminRoutes.find((r: RouteRecordRaw) => r.path === '/colonel/audit');
+      expect(route).toBeDefined();
+      expect(route?.name).toBe('AdminAuditLog');
+      expect(route?.meta?.title).toBe('web.admin.audit.title');
+    });
+
+    it('auditLog is a live section pointing at /colonel/audit', () => {
+      expect(CONSOLE_SECTIONS.find((s) => s.key === 'auditLog')?.to).toBe('/colonel/audit');
     });
   });
 });

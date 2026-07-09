@@ -20,8 +20,8 @@
   import type {
     ColonelOrganization,
     InvestigateOrganizationResult,
-  } from '@/schemas/api/account/responses/colonel';
-  import type { ColonelEntitlementOverrideRecord } from '@/schemas/api/account/responses/colonel-organizations';
+  } from '@/schemas/api/internal/responses/colonel';
+  import type { ColonelEntitlementOverrideRecord } from '@/schemas/api/internal/responses/colonel-organizations';
   import { investigateOrganizationResponseSchema } from '@/schemas/api/internal/responses/colonel';
   import { colonelEntitlementOverrideResponseSchema } from '@/schemas/api/internal/responses/colonel-organizations';
   import OIcon from '@/shared/components/icons/OIcon.vue';

@@ -309,6 +309,13 @@ module Onetime
             result: :success,
           }
 
+        # Count the signup in today's daily-trend bucket (admin dashboard).
+        # Every signup path (canonical signup, SSO JIT, billing welcome,
+        # account create) funnels through create!, so counting here catches
+        # them all. Fire-and-forget: DailyMetric.increment swallows its own
+        # errors and can never fail the signup.
+        Onetime::DailyMetric.increment(:signups)
+
         cust
       end
 

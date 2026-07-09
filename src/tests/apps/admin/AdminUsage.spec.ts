@@ -119,4 +119,67 @@ describe('AdminUsage (read-only metrics read-out — ticket #33)', () => {
     await flushPromises();
     expect(wrapper.find('[data-testid="usage-fetch"]').attributes('disabled')).toBeDefined();
   });
+
+  // ---- File export (QA 2026-07-07: "Export" must download an actual file) --
+
+  /** JSDOM's Blob has no .text(); go through FileReader instead. */
+  function readBlobText(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(reader.error);
+      reader.readAsText(blob);
+    });
+  }
+
+  /** JSDOM implements neither createObjectURL nor anchor-click navigation. */
+  function stubDownloadPlumbing() {
+    const createObjectURL = vi.fn((_blob: Blob) => 'blob:usage-export');
+    const revokeObjectURL = vi.fn();
+    Object.assign(URL, { createObjectURL, revokeObjectURL });
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    return { createObjectURL, revokeObjectURL, click };
+  }
+
+  afterEach(() => {
+    delete (URL as unknown as Record<string, unknown>).createObjectURL;
+    delete (URL as unknown as Record<string, unknown>).revokeObjectURL;
+  });
+
+  it('downloads the loaded payload as a real JSON file', async () => {
+    mockApi.get.mockResolvedValue({ data: usagePayload() });
+    wrapper = mountView(pinia);
+    await flushPromises();
+
+    const { createObjectURL, revokeObjectURL, click } = stubDownloadPlumbing();
+    await wrapper.find('[data-testid="usage-export-json"]').trigger('click');
+
+    // A Blob was minted, an anchor download was clicked, and the URL released.
+    expect(createObjectURL).toHaveBeenCalledTimes(1);
+    const blob = createObjectURL.mock.calls[0][0];
+    expect(blob.type).toBe('application/json');
+    expect(JSON.parse(await readBlobText(blob)).usage_data.total_secrets).toBe(1234);
+
+    expect(click).toHaveBeenCalledTimes(1);
+    const anchor = click.mock.instances[0] as unknown as HTMLAnchorElement;
+    expect(anchor.download).toMatch(/^usage-export_.*\.json$/);
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:usage-export');
+  });
+
+  it('downloads the day-by-day breakdown as CSV', async () => {
+    mockApi.get.mockResolvedValue({ data: usagePayload() });
+    wrapper = mountView(pinia);
+    await flushPromises();
+
+    const { createObjectURL, click } = stubDownloadPlumbing();
+    await wrapper.find('[data-testid="usage-export-csv"]').trigger('click');
+
+    const blob = createObjectURL.mock.calls[0][0];
+    expect(blob.type).toBe('text/csv');
+    expect(await readBlobText(blob)).toBe(
+      ['date,secrets,new_users', '2026-06-01,10,1', '2026-06-02,20,2'].join('\n')
+    );
+    const anchor = click.mock.instances[0] as unknown as HTMLAnchorElement;
+    expect(anchor.download).toMatch(/^usage-export_.*\.csv$/);
+  });
 });

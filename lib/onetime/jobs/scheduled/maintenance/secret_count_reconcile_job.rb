@@ -14,17 +14,14 @@ module Onetime
         # ## Why this job is the PRIMARY correctness mechanism
         #
         # `secrets_active` is incremented once per secret create at the
-        # `Receipt.spawn_pair` chokepoint (see
-        # Customer::Features::CounterFields). It has NO decrement hook, because
-        # neither of the two ways a secret disappears runs application code we
-        # can hang a callback on:
-        #   - TTL expiry: Redis drops the key silently.
-        #   - reveal / burn: `Secret#destroy!` deletes the key with no counter
-        #     callback.
-        # So the counter only ever grows and OVER-counts between runs. This job
-        # recomputes the truth from the datastore and SETs the counter back to
-        # it — the increment keeps the value approximately fresh; this recount
-        # makes it correct.
+        # `Receipt.spawn_pair` chokepoint and decremented once per early
+        # destruction at `Secret#destroy!` (reveal / burn / admin delete — see
+        # Customer::Features::CounterFields). The remaining drift source is TTL
+        # expiry: Redis drops the key silently, no application code runs, so
+        # the counter can still OVER-count between runs. This job recomputes
+        # the truth from the datastore and SETs the counter back to it — the
+        # increment/decrement pair keeps the value approximately fresh; this
+        # recount makes it correct.
         #
         # ## Method: one bounded cursor SCAN, off the request path (#2211)
         #

@@ -39,7 +39,10 @@ import {
   colonelUnbanIpResponseSchema,
 } from './colonel-bannedips';
 
-// Colonel (admin) per-resource schemas — Phase-3 screens (tickets #40-45)
+// Colonel (admin) per-resource schemas — Phase-3 screens (tickets #40-45).
+// The DLQ console and the rate-limit inspect/reset UI were removed by design
+// review; their envelopes stay registry-only as the OpenAPI contract for the
+// still-live endpoints (list_dlqs.rb declares `response: 'colonelDlqList'`).
 import {
   colonelSessionsResponseSchema,
   colonelSessionDetailResponseSchema,
@@ -70,7 +73,18 @@ import {
   colonelRateLimitInspectResponseSchema,
   colonelRateLimitResetResponseSchema,
 } from './colonel-emailtools';
+import {
+  colonelEmailDeliverabilityResponseSchema,
+  colonelEmailSuppressionsResponseSchema,
+  colonelEmailSuppressionRemoveResponseSchema,
+  colonelEmailDeliverabilityEventsResponseSchema,
+  colonelEmailDeliverabilityIngestResponseSchema,
+} from './colonel-deliverability';
 import { colonelBillingCatalogResponseSchema } from './colonel-billing';
+
+// Colonel (admin) observability — audit trail reader + overview trends
+import { colonelAuditEventsResponseSchema } from './colonel-audit';
+import { colonelTrendsResponseSchema } from './colonel-trends';
 
 // Organization schemas — internal-only
 import {
@@ -164,7 +178,16 @@ export const responseSchemas = {
   colonelRateLimiters: colonelRateLimitersResponseSchema,
   colonelRateLimitInspect: colonelRateLimitInspectResponseSchema,
   colonelRateLimitReset: colonelRateLimitResetResponseSchema,
+  colonelEmailDeliverability: colonelEmailDeliverabilityResponseSchema,
+  colonelEmailSuppressions: colonelEmailSuppressionsResponseSchema,
+  colonelEmailSuppressionRemove: colonelEmailSuppressionRemoveResponseSchema,
+  colonelEmailDeliverabilityEvents: colonelEmailDeliverabilityEventsResponseSchema,
+  colonelEmailDeliverabilityIngest: colonelEmailDeliverabilityIngestResponseSchema,
   colonelBillingCatalog: colonelBillingCatalogResponseSchema,
+
+  // Colonel / admin — observability (audit reader + trends)
+  colonelAuditEvents: colonelAuditEventsResponseSchema,
+  colonelTrends: colonelTrendsResponseSchema,
 
   // Organizations (internal-only)
   organization: organizationResponseSchema,

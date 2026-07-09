@@ -1,22 +1,12 @@
 <!-- src/apps/admin/views/AdminSecrets.vue -->
 
 <script setup lang="ts">
-  import { storeToRefs } from 'pinia';
-  import { computed, onMounted, ref } from 'vue';
+  import { computed, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
 
-  import {
-    AdminConfirmDialog,
-    DataTable,
-    DetailDrawer,
-    JsonViewer,
-    KitPagination,
-  } from '@/apps/admin/components/kit';
-  import type { DataTableColumn } from '@/apps/admin/components/kit';
+  import { AdminConfirmDialog, JsonViewer } from '@/apps/admin/components/kit';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
-  import { useAdminSecrets } from '@/apps/admin/stores/useAdminSecrets';
-  import type { ColonelSecret } from '@/schemas/api/account/responses/colonel';
   import {
     colonelSecretDeleteResponseSchema,
     colonelSecretReceiptResponseSchema,
@@ -28,35 +18,70 @@
   import { gracefulParse } from '@/utils/schemaValidation';
 
   /**
-   * Secrets screen (ticket #30) — the parity port of the hand-rolled
-   * `ColonelSecrets.vue`, rebuilt on the Slice-3 template.
+   * Secrets screen (ticket #30) — LOOKUP-FIRST by design review: on a
+   * zero-knowledge platform there is nothing to gain from browsing every
+   * secret, so the paginated browse-all table was removed (the list endpoint
+   * still exists server-side; this screen never calls it).
    *
-   * - LIST: DataTable + KitPagination over the existing {@link useAdminSecrets}
-   *   store (one server page per request; the list endpoint offers no server-side
-   *   filter, so — like AdminCustomers — no inert FilterBar is shown).
-   * - RECEIPT DRAWER: clicking a row opens a {@link DetailDrawer} that loads
-   *   GET /api/colonel/secrets/:secret_id via {@link useResourceFetch} (secret
+   * - LOOKUP: the operator pastes a secret's key (identifier); the screen loads
+   *   GET /api/colonel/secrets/:secret_id via {@link useResourceFetch} and
+   *   renders the same inspect read-out the old receipt drawer showed (secret
    *   record + receipt metadata + owner + raw JSON inspector).
-   * - GUARDED DELETE (D4): the drawer footer surfaces the destructive delete that
-   *   `DELETE /api/colonel/secrets/:secret_id` has always supported but no UI ever
-   *   exposed. It is gated by {@link AdminConfirmDialog} typed-confirmation
-   *   (retype the secret's short id) in danger mode. On success the list refreshes.
+   * - GUARDED DELETE (D4): the destructive delete that
+   *   `DELETE /api/colonel/secrets/:secret_id` has always supported, gated by
+   *   {@link AdminConfirmDialog} typed-confirmation (retype the secret's short
+   *   id) in danger mode. On success the read-out clears.
    */
   const { t } = useI18n();
   const $api = useApi();
   const notifications = useNotificationsStore();
 
-  const store = useAdminSecrets();
-  const { secrets, pagination, loading, error } = storeToRefs(store);
+  // ---- Lookup ---------------------------------------------------------------
 
-  const columns = computed<DataTableColumn<ColonelSecret>[]>(() => [
-    { key: 'shortid', label: t('web.admin.secrets.columns.shortId') },
-    { key: 'state', label: t('web.admin.secrets.columns.state') },
-    { key: 'owner', label: t('web.admin.secrets.columns.owner') },
-    { key: 'created', label: t('web.admin.secrets.columns.created') },
-    { key: 'expiration', label: t('web.admin.secrets.columns.expiration') },
-    { key: 'age', label: t('web.admin.secrets.columns.age'), align: 'right' },
-  ]);
+  /** The input value (a secret's full key / identifier, not its short id). */
+  const secretKey = ref('');
+  /** The key actually fetched — the URL + delete target read this, never the input. */
+  const lookedUpKey = ref('');
+
+  const keyReady = computed(() => secretKey.value.trim() !== '');
+
+  const receiptUrl = (): string =>
+    `/api/colonel/secrets/${encodeURIComponent(lookedUpKey.value)}`;
+
+  const {
+    data: receiptData,
+    loading: receiptLoading,
+    error: receiptError,
+    validationError: receiptValidationError,
+    notFound: receiptNotFound,
+    load: loadReceipt,
+    reset: resetReceipt,
+  } = useResourceFetch({
+    url: receiptUrl,
+    schema: colonelSecretReceiptResponseSchema,
+    context: 'ColonelSecretReceiptResponse',
+  });
+
+  const receiptRecord = computed(() => receiptData.value?.record ?? null);
+  const receiptDetails = computed(() => receiptData.value?.details ?? null);
+
+  /** A non-404 network/HTTP failure, or a Zod contract mismatch. */
+  const receiptLoadFailed = computed(
+    () =>
+      (receiptError.value !== null && !receiptNotFound.value) ||
+      receiptValidationError.value !== null
+  );
+
+  function onLookup(): void {
+    const key = secretKey.value.trim();
+    if (!key) return;
+    lookedUpKey.value = key;
+    resetDelete();
+    loadReceipt().catch(() => {
+      // Failure state is captured by the composable (`notFound` / `error`);
+      // the panels below render it. Swallow so it doesn't become unhandled.
+    });
+  }
 
   /** State badge classes, mirroring the old colonel screen's colour language. */
   function stateBadgeClass(state: string): string {
@@ -78,76 +103,6 @@
   function ageInDays(age: number): number {
     return Math.floor(age / 86400);
   }
-
-  // ---- List paging ----------------------------------------------------------
-
-  async function fetchPage(targetPage = 1): Promise<void> {
-    try {
-      await store.fetchPage(targetPage);
-    } catch {
-      // Network/HTTP failure is captured in `store.error`; the banner + retry
-      // button below handle it. Swallow so it doesn't become unhandled.
-    }
-  }
-
-  function onPageChange(targetPage: number): void {
-    fetchPage(targetPage);
-  }
-
-  function onPerPageChange(perPage: number): void {
-    store.perPage = perPage;
-    fetchPage(1);
-  }
-
-  // ---- Receipt drawer -------------------------------------------------------
-
-  const drawerOpen = ref(false);
-  /** The row that opened the drawer — the source of the delete id + confirm token. */
-  const selectedSecret = ref<ColonelSecret | null>(null);
-
-  const receiptUrl = (): string =>
-    `/api/colonel/secrets/${encodeURIComponent(selectedSecret.value?.secret_id ?? '')}`;
-
-  const {
-    data: receiptData,
-    loading: receiptLoading,
-    error: receiptError,
-    validationError: receiptValidationError,
-    notFound: receiptNotFound,
-    load: loadReceipt,
-  } = useResourceFetch({
-    url: receiptUrl,
-    schema: colonelSecretReceiptResponseSchema,
-    context: 'ColonelSecretReceiptResponse',
-  });
-
-  const receiptRecord = computed(() => receiptData.value?.record ?? null);
-  const receiptDetails = computed(() => receiptData.value?.details ?? null);
-
-  /** A non-404 network/HTTP failure, or a Zod contract mismatch. */
-  const receiptLoadFailed = computed(
-    () =>
-      (receiptError.value !== null && !receiptNotFound.value) ||
-      receiptValidationError.value !== null
-  );
-
-  function openReceipt(row: ColonelSecret): void {
-    selectedSecret.value = row;
-    resetDelete();
-    drawerOpen.value = true;
-    loadReceipt().catch(() => {});
-  }
-
-  function closeDrawer(): void {
-    drawerOpen.value = false;
-    selectedSecret.value = null;
-  }
-
-  const drawerSubtitle = computed(() => {
-    const s = selectedSecret.value;
-    if (!s) return undefined;
-    return stateLabel(s.state);
-  });
 
   const yesNo = (value: boolean): string =>
     value ? t('web.admin.secrets.detail.yes') : t('web.admin.secrets.detail.no');
@@ -288,8 +243,8 @@
     run: runDelete,
     reset: resetDelete,
   } = useAdminMutation(async () => {
-    const secretId = selectedSecret.value?.secret_id;
-    if (!secretId) throw new Error('No secret selected');
+    const secretId = receiptRecord.value?.secret_id;
+    if (!secretId) throw new Error('No secret loaded');
     const response = await $api.delete(
       `/api/colonel/secrets/${encodeURIComponent(secretId)}`
     );
@@ -303,7 +258,7 @@
   });
 
   /** The exact string the operator must retype to enable the delete. */
-  const deleteToken = computed(() => selectedSecret.value?.shortid ?? '');
+  const deleteToken = computed(() => receiptRecord.value?.shortid ?? '');
 
   function requestDelete(): void {
     resetDelete();
@@ -315,24 +270,23 @@
     if (!ok) return; // Failure message stays in the dialog for retry/cancel.
 
     deleteDialogOpen.value = false;
-    closeDrawer();
     notifications.show(t('web.admin.secrets.actions.delete.success'), 'success');
-    // The deleted row is gone — refresh the current page.
-    await fetchPage(pagination.value?.page ?? 1);
+    // The secret is gone — clear the read-out back to the lookup prompt.
+    resetReceipt();
+    lookedUpKey.value = '';
+    secretKey.value = '';
   }
 
   function onDeleteCancel(): void {
     deleteDialogOpen.value = false;
     resetDelete();
   }
-
-  onMounted(() => fetchPage(1));
 </script>
 
 <template>
-  <div class="mx-auto max-w-6xl">
+  <div class="mx-auto max-w-4xl space-y-8">
     <!-- Page header -->
-    <div class="mb-6">
+    <div>
       <h2 class="font-brand text-2xl font-semibold text-gray-900 dark:text-white">
         {{ t('web.admin.secrets.title') }}
       </h2>
@@ -341,235 +295,202 @@
       </p>
     </div>
 
-    <!-- Network/HTTP error banner (validation mismatches degrade to empty). -->
+    <!-- Lookup -->
+    <section
+      class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <form
+        class="flex flex-wrap items-end gap-3"
+        data-testid="secret-lookup-form"
+        @submit.prevent="onLookup">
+        <div class="min-w-[18rem] flex-1">
+          <label
+            for="secret-key-input"
+            class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
+            {{ t('web.admin.secrets.lookup.label') }}
+          </label>
+          <input
+            id="secret-key-input"
+            v-model="secretKey"
+            type="text"
+            autocomplete="off"
+            spellcheck="false"
+            data-testid="secret-lookup-input"
+            :placeholder="t('web.admin.secrets.lookup.placeholder')"
+            class="w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm text-gray-900 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+        </div>
+        <button
+          type="submit"
+          data-testid="secret-lookup-submit"
+          :disabled="!keyReady || receiptLoading"
+          class="inline-flex items-center gap-1 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50">
+          <OIcon
+            collection="heroicons"
+            :name="receiptLoading ? 'arrow-path' : 'magnifying-glass'"
+            size="4"
+            :class="receiptLoading ? 'animate-spin motion-reduce:animate-none' : ''" />
+          {{ t('web.admin.secrets.lookup.button') }}
+        </button>
+      </form>
+    </section>
+
+    <!-- Loading -->
     <div
-      v-if="error"
-      class="mb-4 flex items-center justify-between gap-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 dark:border-red-900/50 dark:bg-red-900/20"
+      v-if="receiptLoading && !receiptRecord"
+      class="flex items-center justify-center py-16 text-gray-500 dark:text-gray-400"
+      data-testid="secret-lookup-loading">
+      <OIcon
+        collection="heroicons"
+        name="arrow-path"
+        size="6"
+        class="animate-spin motion-reduce:animate-none" />
+      <span class="ml-3 text-sm">{{ t('web.COMMON.loading') }}</span>
+    </div>
+
+    <!-- Not found -->
+    <div
+      v-else-if="receiptNotFound"
+      class="rounded-lg border border-gray-200 bg-white px-6 py-12 text-center shadow-sm dark:border-gray-800 dark:bg-gray-900"
+      data-testid="secret-lookup-not-found">
+      <OIcon
+        collection="heroicons"
+        name="key"
+        size="8"
+        class="mx-auto text-gray-400 dark:text-gray-600" />
+      <h3 class="mt-3 text-base font-medium text-gray-900 dark:text-white">
+        {{ t('web.admin.secrets.lookup.notFound') }}
+      </h3>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        {{ t('web.admin.secrets.lookup.notFoundDescription') }}
+      </p>
+    </div>
+
+    <!-- Load error -->
+    <div
+      v-else-if="receiptLoadFailed"
+      class="rounded-lg border border-gray-200 bg-white px-6 py-12 text-center shadow-sm dark:border-gray-800 dark:bg-gray-900"
       role="alert"
-      data-testid="secrets-error">
-      <span class="text-sm text-red-800 dark:text-red-200">
-        {{ t('web.admin.secrets.list.loadError') }}
-      </span>
+      data-testid="secret-lookup-error">
+      <OIcon
+        collection="heroicons"
+        name="exclamation-triangle"
+        size="8"
+        class="mx-auto text-red-500 dark:text-red-400" />
+      <p class="mt-3 text-sm text-red-800 dark:text-red-200">
+        {{ t('web.admin.secrets.lookup.loadError') }}
+      </p>
       <button
         type="button"
-        class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
-        @click="fetchPage(1)">
+        class="mt-4 inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
+        @click="loadReceipt().catch(() => {})">
         <OIcon
           collection="heroicons"
           name="arrow-path"
           size="4" />
-        {{ t('web.admin.secrets.list.retry') }}
+        {{ t('web.admin.secrets.lookup.retry') }}
       </button>
     </div>
 
-    <!-- Table -->
+    <!-- Loaded read-out (the old drawer content, inline) -->
     <div
-      class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-      <DataTable
-        :columns="columns"
-        :rows="secrets"
-        row-key="secret_id"
-        :loading="loading"
-        :empty-text="t('web.admin.secrets.list.empty')"
-        clickable-rows
-        testid="secrets-table"
-        @row-click="openReceipt">
-        <template #cell-shortid="{ row }">
-          <span class="font-mono text-gray-900 dark:text-white">{{ row.shortid }}</span>
-        </template>
-
-        <template #cell-state="{ row }">
-          <span
-            class="inline-flex rounded px-2 py-0.5 text-xs font-medium"
-            :class="stateBadgeClass(row.state)">
-            {{ stateLabel(row.state) }}
-          </span>
-        </template>
-
-        <template #cell-owner="{ row }">
-          <span class="text-gray-600 dark:text-gray-400">{{ ownerLabel(row.owner_id) }}</span>
-        </template>
-
-        <template #cell-created="{ row }">
-          {{ formatDisplayDateTime(row.created) }}
-        </template>
-
-        <template #cell-expiration="{ row }">
-          {{ row.expiration ? formatDisplayDateTime(row.expiration) : t('web.admin.secrets.never') }}
-        </template>
-
-        <template #cell-age="{ row }">
-          {{ ageInDays(row.age) }}
-        </template>
-      </DataTable>
-    </div>
-
-    <!-- Pagination -->
-    <KitPagination
-      v-if="pagination"
-      :pagination="pagination"
-      :loading="loading"
-      class="mt-4"
-      @update:page="onPageChange"
-      @update:per-page="onPerPageChange" />
-
-    <!-- Receipt drawer -->
-    <DetailDrawer
-      v-model:open="drawerOpen"
-      :title="selectedSecret ? t('web.admin.secrets.drawer.title', { shortid: selectedSecret.shortid }) : ''"
-      :subtitle="drawerSubtitle"
-      width-class="max-w-lg"
-      testid="secret-drawer"
-      @close="closeDrawer">
-      <!-- Loading -->
-      <div
-        v-if="receiptLoading && !receiptRecord"
-        class="flex items-center justify-center py-16 text-gray-500 dark:text-gray-400"
-        data-testid="secret-drawer-loading">
-        <OIcon
-          collection="heroicons"
-          name="arrow-path"
-          size="6"
-          class="animate-spin motion-reduce:animate-none" />
-        <span class="ml-3 text-sm">{{ t('web.COMMON.loading') }}</span>
-      </div>
-
-      <!-- Not found -->
-      <div
-        v-else-if="receiptNotFound"
-        class="px-2 py-12 text-center"
-        data-testid="secret-drawer-not-found">
-        <OIcon
-          collection="heroicons"
-          name="key"
-          size="8"
-          class="mx-auto text-gray-400 dark:text-gray-600" />
-        <h3 class="mt-3 text-base font-medium text-gray-900 dark:text-white">
-          {{ t('web.admin.secrets.drawer.notFound') }}
+      v-else-if="receiptRecord"
+      class="space-y-6 rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900"
+      data-testid="secret-lookup-result">
+      <div class="flex items-center gap-3">
+        <h3 class="font-mono text-lg font-semibold text-gray-900 dark:text-white">
+          {{ t('web.admin.secrets.lookup.resultTitle', { shortid: receiptRecord.shortid }) }}
         </h3>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {{ t('web.admin.secrets.drawer.notFoundDescription') }}
+        <span
+          class="inline-flex rounded px-2 py-0.5 text-xs font-medium"
+          :class="stateBadgeClass(receiptRecord.state)">
+          {{ stateLabel(receiptRecord.state) }}
+        </span>
+      </div>
+
+      <!-- Secret record -->
+      <section>
+        <h4 class="mb-2 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+          {{ t('web.admin.secrets.sections.secret') }}
+        </h4>
+        <dl class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+          <div
+            v-for="field in secretFields"
+            :key="field.key"
+            :data-testid="`secret-field-${field.key}`">
+            <dt class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ field.label }}</dt>
+            <dd class="mt-0.5 break-words font-mono text-sm text-gray-900 dark:text-gray-100">
+              {{ field.value }}
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      <!-- Receipt metadata -->
+      <section data-testid="secret-result-receipt">
+        <h4 class="mb-2 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+          {{ t('web.admin.secrets.sections.receipt') }}
+        </h4>
+        <dl
+          v-if="receiptDetails?.metadata"
+          class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+          <div
+            v-for="field in receiptFields"
+            :key="field.key"
+            :data-testid="`receipt-field-${field.key}`">
+            <dt class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ field.label }}</dt>
+            <dd class="mt-0.5 break-words font-mono text-sm text-gray-900 dark:text-gray-100">
+              {{ field.value }}
+            </dd>
+          </div>
+        </dl>
+        <p
+          v-else
+          class="text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.admin.secrets.receipt.none') }}
         </p>
-      </div>
+      </section>
 
-      <!-- Load error -->
-      <div
-        v-else-if="receiptLoadFailed"
-        class="px-2 py-12 text-center"
-        role="alert"
-        data-testid="secret-drawer-error">
-        <OIcon
-          collection="heroicons"
-          name="exclamation-triangle"
-          size="8"
-          class="mx-auto text-red-500 dark:text-red-400" />
-        <p class="mt-3 text-sm text-red-800 dark:text-red-200">
-          {{ t('web.admin.secrets.drawer.loadError') }}
+      <!-- Owner -->
+      <section data-testid="secret-result-owner">
+        <h4 class="mb-2 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+          {{ t('web.admin.secrets.sections.owner') }}
+        </h4>
+        <dl
+          v-if="receiptDetails?.owner"
+          class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+          <div
+            v-for="field in ownerFields"
+            :key="field.key"
+            :data-testid="`owner-field-${field.key}`">
+            <dt class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ field.label }}</dt>
+            <dd class="mt-0.5 break-words text-sm text-gray-900 dark:text-gray-100">
+              {{ field.value }}
+            </dd>
+          </div>
+        </dl>
+        <p
+          v-else
+          class="text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.admin.secrets.owner.anonymous') }}
         </p>
-        <button
-          type="button"
-          class="mt-4 inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
-          @click="loadReceipt().catch(() => {})">
-          <OIcon
-            collection="heroicons"
-            name="arrow-path"
-            size="4" />
-          {{ t('web.admin.secrets.drawer.retry') }}
-        </button>
-      </div>
+      </section>
 
-      <!-- Loaded -->
-      <div
-        v-else-if="receiptRecord"
-        class="space-y-6"
-        data-testid="secret-drawer-content">
-        <!-- Secret record -->
-        <section>
-          <h3 class="mb-2 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-            {{ t('web.admin.secrets.sections.secret') }}
-          </h3>
-          <dl class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
-            <div
-              v-for="field in secretFields"
-              :key="field.key"
-              :data-testid="`secret-field-${field.key}`">
-              <dt class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ field.label }}</dt>
-              <dd class="mt-0.5 break-words font-mono text-sm text-gray-900 dark:text-gray-100">
-                {{ field.value }}
-              </dd>
-            </div>
-          </dl>
-        </section>
+      <!-- Raw inspector -->
+      <section>
+        <h4 class="mb-2 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+          {{ t('web.admin.secrets.sections.raw') }}
+        </h4>
+        <JsonViewer
+          :data="receiptData"
+          :expand-depth="2"
+          testid="secret-result-json" />
+      </section>
 
-        <!-- Receipt metadata -->
-        <section data-testid="secret-drawer-receipt">
-          <h3 class="mb-2 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-            {{ t('web.admin.secrets.sections.receipt') }}
-          </h3>
-          <dl
-            v-if="receiptDetails?.metadata"
-            class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
-            <div
-              v-for="field in receiptFields"
-              :key="field.key"
-              :data-testid="`receipt-field-${field.key}`">
-              <dt class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ field.label }}</dt>
-              <dd class="mt-0.5 break-words font-mono text-sm text-gray-900 dark:text-gray-100">
-                {{ field.value }}
-              </dd>
-            </div>
-          </dl>
-          <p
-            v-else
-            class="text-sm text-gray-500 dark:text-gray-400">
-            {{ t('web.admin.secrets.receipt.none') }}
-          </p>
-        </section>
-
-        <!-- Owner -->
-        <section data-testid="secret-drawer-owner">
-          <h3 class="mb-2 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-            {{ t('web.admin.secrets.sections.owner') }}
-          </h3>
-          <dl
-            v-if="receiptDetails?.owner"
-            class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
-            <div
-              v-for="field in ownerFields"
-              :key="field.key"
-              :data-testid="`owner-field-${field.key}`">
-              <dt class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ field.label }}</dt>
-              <dd class="mt-0.5 break-words text-sm text-gray-900 dark:text-gray-100">
-                {{ field.value }}
-              </dd>
-            </div>
-          </dl>
-          <p
-            v-else
-            class="text-sm text-gray-500 dark:text-gray-400">
-            {{ t('web.admin.secrets.owner.anonymous') }}
-          </p>
-        </section>
-
-        <!-- Raw inspector -->
-        <section>
-          <h3 class="mb-2 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-            {{ t('web.admin.secrets.sections.raw') }}
-          </h3>
-          <JsonViewer
-            :data="receiptData"
-            :expand-depth="2"
-            testid="secret-drawer-json" />
-        </section>
-      </div>
-
-      <!-- Footer: guarded delete -->
-      <template #footer>
+      <!-- Guarded delete -->
+      <div class="border-t border-gray-100 pt-4 dark:border-gray-800">
         <button
           type="button"
           data-testid="secret-delete-button"
-          :disabled="!selectedSecret"
-          class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
+          class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
           @click="requestDelete">
           <OIcon
             collection="heroicons"
@@ -577,8 +498,8 @@
             size="4" />
           {{ t('web.admin.secrets.actions.delete.button') }}
         </button>
-      </template>
-    </DetailDrawer>
+      </div>
+    </div>
 
     <!-- Typed-confirmation delete gate (danger). -->
     <AdminConfirmDialog
