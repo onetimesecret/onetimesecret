@@ -302,6 +302,10 @@ module Onetime
       # @return [Integer] number of entries removed.
       def trim_suppressions!(cap = MAX_SUPPRESSIONS)
         cap = cap.to_i
+        # Reject a negative cap (matching trim_events!): the Lua script derives
+        # overflow as ZCARD - cap, so a negative cap would report a removed count
+        # larger than the set could ever hold. Treat bad input as a no-op.
+        return 0 if cap.negative?
 
         # Fast path: skip the round trip when clearly under the cap. The script
         # re-derives the overflow from a live ZCARD, so this pre-check only

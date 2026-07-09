@@ -68,6 +68,15 @@ RSpec.describe Onetime::EmailSuppression do
       expect(described_class.lookup('old0@example.com')).to be_nil
       expect(described_class.suppressed?('old2@example.com')).to be(true)
     end
+
+    it 'treats a negative cap as a no-op (does not report a bogus removed count)' do
+      # The Lua script derives overflow as ZCARD - cap, so a negative cap would
+      # otherwise return a count larger than the set could hold. Guard rejects it.
+      2.times { |i| described_class.suppress!(address: "keep#{i}@example.com", reason: 'manual') }
+
+      expect(described_class.trim_suppressions!(-5)).to eq(0)
+      expect(described_class.count).to eq(2)
+    end
   end
 
   describe '.remove!' do

@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'openssl'
+require 'mail'
 
 module Onetime
   module Mail
@@ -243,31 +244,50 @@ module Onetime
           end
         end
 
-        # Canonicalize the :to field to a string the backends can hand to a
-        # provider. An Array of recipients is joined into a comma-separated
-        # string (the form every backend already expects); a String passes
-        # through unchanged. Keeps any display names intact for the header —
-        # mailbox extraction for the suppression guard is handled separately.
+        # Canonicalize the :to field to a single-mailbox string the backends can
+        # hand to a provider. The delivery stack is single-recipient by contract:
+        # Mailer#extract_email_address already collapses an Array to its first
+        # entry upstream, and every backend treats :to as one mailbox — SES wraps
+        # it as [email[:to]] and SendGrid as { email: email[:to] }. So an Array
+        # is collapsed to its first entry (mirroring extract_email_address) rather
+        # than comma-joined, which those backends would send as one invalid
+        # address. A String passes through unchanged, preserving any display name
+        # for the header — mailbox extraction for the guard is handled separately.
         def normalize_recipients(value)
           return value.to_s unless value.is_a?(Array)
 
-          value.map(&:to_s).map(&:strip).reject(&:empty?).join(', ')
+          value.map(&:to_s).map(&:strip).reject(&:empty?).first.to_s
         end
 
-        # Split a recipient value into individual mailbox addresses.
+        # Split a recipient value into individual mailbox addresses for the
+        # suppression guard.
         #
-        # Handles the shapes a mailer can hand us for :to — an Array of
-        # addresses, a single "a@x.com, b@x.com" comma-separated string, or a
-        # bare address — and strips any "Display Name <addr>" wrapper so the
-        # comparison is against the raw mailbox. Blank tokens are dropped.
+        # Uses the mail gem's RFC 5322 parser so address lists with quoted
+        # display names ("Doe, John" <john@x.com>) or angle-addr wrappers are
+        # parsed correctly rather than naively split on commas. Handles the shapes
+        # a mailer can hand us for :to — an Array, a "a@x.com, b@x.com" string, or
+        # a bare address — and returns raw mailboxes with display names stripped.
+        # Falls back to a naive comma split if the value is not parseable, so a
+        # malformed header can never raise out of the delivery path.
         #
         # @return [Array<String>] individual recipient addresses
         def recipient_mailboxes(value)
           Array(value)
-            .flat_map { |entry| entry.to_s.split(',') }
-            .map { |token| token[/<([^>]+)>/, 1] || token }
+            .flat_map { |entry| parse_addresses(entry) }
             .map(&:strip)
             .reject(&:empty?)
+        end
+
+        # Parse one recipient value into bare mailbox addresses via Mail's
+        # RFC 5322 address-list parser, falling back to a naive comma split
+        # (stripping any "Display Name <addr>" wrapper) if it will not parse.
+        def parse_addresses(entry)
+          str = entry.to_s
+          return [] if str.strip.empty?
+
+          Mail::AddressList.new(str).addresses.map(&:address)
+        rescue StandardError
+          str.split(',').map { |token| token[/<([^>]+)>/, 1] || token }
         end
 
         # Normalize email hash to ensure required fields
