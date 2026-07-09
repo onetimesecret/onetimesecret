@@ -415,8 +415,12 @@ function handleToggleEnabled(): void {
       </button>
     </div>
 
-    <!-- Action Buttons -->
-    <div class="flex items-center justify-between border-t border-gray-200 pt-6 dark:border-gray-700">
+    <!-- Action Buttons: recipients + enabled auto-save, so this row only
+         appears when there's a deletable config or an unsaved change to
+         retry (e.g. after an auto-save failure). -->
+    <div
+      v-if="canDelete || showDeleteConfirm || hasUnsavedChanges"
+      class="flex items-center justify-between border-t border-gray-200 pt-6 dark:border-gray-700">
       <!-- Left: Delete + Discard -->
       <div class="flex items-center gap-3">
         <!-- Delete button (only when there's a persisted config to remove) -->
@@ -467,8 +471,9 @@ function handleToggleEnabled(): void {
         </button>
       </div>
 
-      <!-- Right: Save -->
+      <!-- Right: Save (retry affordance when auto-save left unsaved changes) -->
       <button
+        v-if="hasUnsavedChanges"
         type="submit"
         :disabled="!hasUnsavedChanges || isSaving || isDeleting"
         class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">

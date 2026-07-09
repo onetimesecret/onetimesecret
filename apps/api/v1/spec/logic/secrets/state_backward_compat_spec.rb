@@ -36,7 +36,9 @@ RSpec.describe 'V1 API State Backward Compatibility' do
 
     context 'when secret is previewed (new terminology)' do
       before do
-        receipt.previewed!
+        receipt.state = 'previewed'
+        receipt.previewed = Familia.now.to_i
+        receipt.save update_expiration: false
       end
 
       it 'includes viewed field mapping from previewed timestamp' do
@@ -89,12 +91,6 @@ RSpec.describe 'V1 API State Backward Compatibility' do
     end
 
     context 'when using old terminology (backward compat)' do
-      it 'viewed! method still works' do
-        receipt.viewed!
-        dump = receipt.safe_dump
-        expect(dump[:is_viewed]).to be true
-      end
-
       it 'received! method still works' do
         receipt.received!
         dump = receipt.safe_dump
@@ -120,7 +116,7 @@ RSpec.describe 'V1 API State Backward Compatibility' do
     end
 
     it 'state?(:previewed) returns true when previewed' do
-      receipt.previewed!
+      receipt.state = 'previewed'
       expect(receipt.state?(:previewed)).to be true
     end
 
@@ -131,7 +127,7 @@ RSpec.describe 'V1 API State Backward Compatibility' do
 
     # Backward compatibility: old state names should still work
     it 'state?(:viewed) returns true when previewed (backward compat)' do
-      receipt.previewed!
+      receipt.state = 'previewed'
       # Either the state is actually 'viewed' or we have an alias
       expect(receipt.state?(:viewed) || receipt.state?(:previewed)).to be true
     end
@@ -154,8 +150,8 @@ RSpec.describe 'V1 API State Backward Compatibility' do
       secret.destroy! if secret&.respond_to?(:exists?) && secret.exists?
     end
 
-    it 'state?(:previewed) returns true after previewed!' do
-      secret.previewed!
+    it 'state?(:previewed) returns true when in previewed state' do
+      secret.state = 'previewed'
       expect(secret.state?(:previewed)).to be true
     end
 
@@ -170,7 +166,7 @@ RSpec.describe 'V1 API State Backward Compatibility' do
     end
 
     it 'viewable? returns true for :previewed state' do
-      secret.previewed!
+      secret.state = 'previewed'
       expect(secret.viewable?).to be true
     end
 

@@ -140,18 +140,29 @@ module V2::Logic
             # If we can't decrypt the secret (i.e. if we can't access it) then
             # then we leave secret_value nil. We do this so that after creating
             # a secret we can show the received contents on the "/receipt/receipt_identifier"
-            # page one time. Particularly for generated passwords which are not
+            # page ONE TIME. Particularly for generated passwords which are not
             # shown any other time.
             #
-            # Only show the decrypted value for generated passwords, and only
-            # within 60 seconds of creation. Concealed (user-typed) secrets are
-            # never shown on the receipt page — the user already knows the value.
-            if secret && receipt.state?(:new)
-              receipt_age  = Familia.now.to_i - receipt.created.to_i
-              is_generated = receipt.kind.to_s == 'generate'
-              display_ttl  = OT.conf.dig('site', 'secret_options', 'generated_value_display_ttl').to_i
-              if is_generated && display_ttl.positive? && receipt_age < display_ttl
-                OT.ld "[show_receipt] m:#{receipt_identifier} s:#{secret_identifier} Decrypting generated secret for creator viewing (age: #{receipt_age}s)"
+            # Only the decrypted value of a generated password is shown, and
+            # only to the FIRST load, and only within the display window.
+            # Concealed (user-typed) secrets are never shown on the receipt page
+            # — the user already knows the value.
+            #
+            # claim_secret_value_display! is the "one time" guarantee: it
+            # atomically claims the display so a repeated or concurrent load
+            # never re-reveals the value (#3633 retired the previewed! state
+            # mutation that used to bound this, so this GET must not lean on a
+            # state change). display_ttl now only bounds *when* the single
+            # reveal may happen — a first visit after the window shows nothing —
+            # rather than how many times. Claim last, so the window/kind checks
+            # short-circuit before we consume the one-shot claim.
+            if receipt.state?(:new)
+              receipt_age   = Familia.now.to_i - receipt.created.to_i
+              is_generated  = receipt.kind.to_s == 'generate'
+              display_ttl   = OT.conf.dig('site', 'secret_options', 'generated_value_display_ttl').to_i
+              within_window = display_ttl.positive? && receipt_age < display_ttl
+              if is_generated && within_window && receipt.claim_secret_value_display!
+                OT.ld "[show_receipt] m:#{receipt_identifier} s:#{secret_identifier} One-time reveal of generated secret to creator (age: #{receipt_age}s)"
                 @secret_value = secret.decrypted_secret_value
               end
             end
@@ -165,7 +176,10 @@ module V2::Logic
         #   2. The receipt state is NOT in any of these states: previewed/viewed,
         #      revealed/received, or burned
         #
-        # Note: Check both new states (previewed, revealed) and legacy states (viewed, received)
+        # Note: Check both new states (revealed) and legacy states (received).
+        # previewed/viewed are backward-compat guards for pre-#3633 data only —
+        # no GET path advances a receipt to those states anymore (the previewed!
+        # mutation was retired), so live receipts never reach them via this page.
         secret_consumed = receipt.state?(:previewed) || receipt.state?(:viewed) ||
                           receipt.state?(:revealed) || receipt.state?(:received) ||
                           receipt.state?(:burned) || receipt.state?(:orphaned)
@@ -220,12 +234,18 @@ module V2::Logic
         OT.ld "[process] Set @share_domain: #{@share_domain}"
         process_uris
 
-        # Dump the receipt attributes before marking as previewed
         @receipt_attributes = _receipt_attributes
 
-        # We mark the receipt record previewed so that we can support showing the
-        # secret link on the receipt page, just the one time.
-        receipt.previewed! if receipt.state?(:new)
+        # Loading the receipt page is a safe GET: it records a one-time
+        # 'receipt_viewed' audit event but must NOT advance the secret's
+        # lifecycle state (#3633). "previewed" now names the distinct event of
+        # the creator opening their own secret *link* (recorded on the access
+        # timeline via AccessTelemetry), not this metadata-page load -- so
+        # viewing the receipt no longer flips receipt.state to 'previewed'. The
+        # creator's live view/link is instead driven by the append-only access
+        # timeline (view_count/first_access). record_receipt_view! is
+        # idempotent, bounding the org trail against a hammered receipt page.
+        receipt.record_receipt_view!
 
         success_data
       end
@@ -249,9 +269,16 @@ module V2::Logic
         # Start with safe receipt attributes
         attributes = receipt.safe_dump
 
+        # Provenance gate: incoming secrets withhold the share link (and its
+        # secret_identifier bearer key) from the creator. safe_dump already
+        # withholds secret_identifier for these; keep the re-add and the
+        # share_url/share_path merge below consistent with it.
+        link_visible = receipt.shows_share_link?
+
         # Only include the secret's identifying key when necessary
         # Remove it from safe_dump and only add it back if show_secret is true
-        if show_secret
+        # AND provenance permits sharing the link.
+        if show_secret && link_visible
           attributes[:secret_identifier] = secret_identifier
         else
           attributes.delete(:secret_identifier)
@@ -269,11 +296,15 @@ module V2::Logic
             # contract and null the whole receipt (#3424).
             expiration: expiration,
             expiration_in_seconds: expiration_in_seconds.to_i,
-            share_path: share_path,
+            # share_path/share_url are the secret link; withheld (null) for
+            # incoming provenance. burn/receipt paths stay — the creator still
+            # manages the receipt. Null is the intended "link withheld" signal
+            # (contract makes these nullable), not a defect (#3424).
+            share_path: link_visible ? share_path : nil,
             burn_path: burn_path,
             receipt_path: receipt_path,
             metadata_path: metadata_path, # V2 backward-compat alias
-            share_url: share_url,
+            share_url: link_visible ? share_url : nil,
             receipt_url: receipt_url,
             metadata_url: metadata_url, # V2 backward-compat alias
             burn_url: burn_url,

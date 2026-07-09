@@ -1,12 +1,12 @@
 ---
 id: "018"
-status: proposed
+status: accepted
 title: "ADR-018: Per-Domain Exponential Backoff Re-Validation (Reverses Stated Sampling Requirement)"
 ---
 
 ## Status
 
-Proposed
+Accepted
 
 ## Date
 

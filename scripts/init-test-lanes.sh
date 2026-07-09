@@ -171,6 +171,7 @@ SECRET=decafbaddecafbaddecafbaddecafbaddecafbaddecafbaddecafbaddecafbad
 SESSION_SECRET=deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef
 AUTH_SECRET=cafef00dcafef00dcafef00dcafef00dcafef00dcafef00dcafef00dcafef00d
 ARGON2_SECRET=feedfacefeedfacefeedfacefeedfacefeedfacefeedfacefeedfacefeedface
+ACCOUNT_ID_SECRET=0ff1ce0ff1ce0ff1ce0ff1ce0ff1ce0ff1ce0ff1ce0ff1ce0ff1ce0ff1ce0ff
 FEDERATION_SECRET=baddcafebaddcafebaddcafebaddcafebaddcafebaddcafebaddcafebaddcafe
 IDENTIFIER_SECRET=d00dfeedd00dfeedd00dfeedd00dfeedd00dfeedd00dfeedd00dfeedd00dfeed
 EOF
@@ -275,7 +276,7 @@ unset RACK_ENV AUTHENTICATION_MODE BILLING_ENABLED ORGS_SSO_ENABLED \
       REDIS_URL VALKEY_URL RABBITMQ_URL \
       AUTH_DATABASE_URL AUTH_DATABASE_URL_MIGRATIONS \
       AUTH_DATABASE_URL_PG AUTH_DATABASE_URL_MIGRATIONS_PG \
-      SECRET SESSION_SECRET AUTH_SECRET ARGON2_SECRET \
+      SECRET SESSION_SECRET AUTH_SECRET ARGON2_SECRET ACCOUNT_ID_SECRET \
       FEDERATION_SECRET IDENTIFIER_SECRET
 
 set -a

@@ -51,12 +51,11 @@ module Core
         # - Domain context initialization (id, extid)
         # - Basic display (display_name, is_default)
         # - Plan identity and role (planid, current_user_role)
+        # - Feature gating and quota display (entitlements, limits)
         #
-        # NOTE: entitlements and limits are intentionally NOT included here.
-        # They are served by the preview-aware billing entitlements endpoint
-        # (GET /billing/api/entitlements/:extid) and loaded into the org via
-        # organizationStore.fetchEntitlements. Adding them here would bypass
-        # colonel preview mode, which only the billing endpoint resolves.
+        # entitlements and limit_for resolve through the request-scoped
+        # preview context (ADR-020), so this bootstrap payload reflects
+        # colonel preview mode without any per-consumer wiring.
         #
         # @param org [Onetime::Organization] Organization to serialize
         # @param cust [Onetime::Customer] Current user for role calculation
@@ -69,6 +68,23 @@ module Core
             'is_default' => org.is_default || false,
             'planid' => org.planid,
             'current_user_role' => determine_user_role(org, cust),
+            'entitlements' => org.entitlements,
+            'limits' => serialize_limits(org),
+          }
+        end
+
+        # Limits for the bootstrap payload, matching the safe_dump shape
+        # (organization/features/safe_dump_fields.rb): Float::INFINITY
+        # normalizes to -1 for JSON serialization (unlimited).
+        #
+        # @param org [Onetime::Organization] Organization
+        # @return [Hash] Normalized limits
+        def serialize_limits(org)
+          normalize = ->(val) { val == Float::INFINITY ? -1 : val.to_i }
+          {
+            'teams' => normalize.call(org.limit_for(:teams)),
+            'total_members_per_org' => normalize.call(org.limit_for(:total_members_per_org)),
+            'custom_domains' => normalize.call(org.limit_for(:custom_domains)),
           }
         end
 

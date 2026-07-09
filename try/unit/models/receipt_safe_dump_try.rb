@@ -155,6 +155,72 @@ dumped = receipt.safe_dump
 receipt.identifier.slice(0, 8) == dumped[:shortid]
 #=> true
 
+## Receipt defaults source to 'standard' on new (init), so provenance is never nil for fresh records
+Receipt.new.source
+#=> 'standard'
+
+## shows_share_link? is true for standard provenance
+r = Receipt.new
+r.source = 'standard'
+r.shows_share_link?
+#=> true
+
+## shows_share_link? is false for incoming provenance (withhold the link from the creator)
+r = Receipt.new
+r.source = 'incoming'
+r.shows_share_link?
+#=> false
+
+## shows_share_link? treats nil (legacy pre-field receipt) as standard — link shown
+r = Receipt.new
+r.source = nil
+r.shows_share_link?
+#=> true
+
+## shows_share_link? treats empty string (Familia round-trips stored "null" to nil/"") as standard
+r = Receipt.new
+r.source = ''
+r.shows_share_link?
+#=> true
+
+## shows_share_link? fails closed on an unrecognized non-empty value (typo / unshipped source)
+r = Receipt.new
+r.source = 'mystery'
+r.shows_share_link?
+#=> false
+
+## safe_dump includes :source field
+Receipt.safe_dump_fields.include?(:source)
+#=> true
+
+## safe_dump emits the source value
+r = Receipt.new
+r.source = 'incoming'
+r.safe_dump[:source]
+#=> 'incoming'
+
+## GATE: incoming provenance withholds secret_identifier from safe_dump (closes the noauth batch door)
+r = Receipt.new
+r.secret_identifier = @test_secret_identifier
+r.source = 'incoming'
+r.safe_dump[:secret_identifier]
+#=> nil
+
+## REGRESSION GUARD: a standard receipt WITH recipients still ships secret_identifier (email-share must keep its link)
+r = Receipt.new
+r.secret_identifier = @test_secret_identifier
+r.recipients = 'recipient@example.com'
+r.source = 'standard'
+r.safe_dump[:secret_identifier]
+#=> @test_secret_identifier
+
+## LEGACY: a receipt with source=nil still ships secret_identifier (reads as standard)
+r = Receipt.new
+r.secret_identifier = @test_secret_identifier
+r.source = nil
+r.safe_dump[:secret_identifier]
+#=> @test_secret_identifier
+
 ## Created receipt can be destroyed (cleanup)
 @receipt = Receipt.new :receipt
 @receipt.secret_identifier = @test_secret_identifier

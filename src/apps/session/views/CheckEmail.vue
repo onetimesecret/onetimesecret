@@ -3,6 +3,7 @@
 <script setup lang="ts">
   import AuthView from '@/apps/session/components/AuthView.vue';
   import ResendVerificationForm from '@/apps/session/components/ResendVerificationForm.vue';
+  import HoverTooltip from '@/shared/components/common/HoverTooltip.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { CHECK_EMAIL_STATE_KEY } from '@/shared/constants/checkEmail';
   import { sanitizeDisplayEmail } from '@/utils/pii';
@@ -112,17 +113,28 @@
               data-testid="check-email-address">
               {{ email }}
             </span>
-            <span
-              class="shrink-0 cursor-help text-gray-400 dark:text-gray-500"
-              role="img"
-              :aria-label="t('web.auth.check_email.help')"
-              :title="t('web.auth.check_email.help')"
-              data-testid="check-email-help">
-              <OIcon
-                collection="heroicons"
-                name="question-mark-circle"
-                size="5"
-                aria-hidden="true" />
+            <span class="group relative shrink-0">
+              <HoverTooltip
+                tooltip-id="check-email-help-tooltip"
+                content-class="w-64 max-w-[calc(100vw-2.5rem)] text-left">
+                {{ t('web.auth.check_email.help') }}
+              </HoverTooltip>
+              <button
+                type="button"
+                class="flex items-center justify-center rounded-full text-gray-400
+                       transition-colors hover:text-gray-600 focus:outline-none
+                       focus-visible:ring-2 focus-visible:ring-brand-500
+                       focus-visible:ring-offset-2 dark:text-gray-500
+                       dark:hover:text-gray-300 dark:focus-visible:ring-offset-gray-900"
+                :aria-label="t('web.auth.check_email.help')"
+                aria-describedby="check-email-help-tooltip"
+                data-testid="check-email-help">
+                <OIcon
+                  collection="heroicons"
+                  name="question-mark-circle"
+                  size="5"
+                  aria-hidden="true" />
+              </button>
             </span>
           </div>
           <p
