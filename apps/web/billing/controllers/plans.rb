@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'base'
+require 'securerandom'
 require 'stripe'
 
 module Billing
@@ -19,7 +20,8 @@ module Billing
       #
       # - Automatic Tax: Stripe Tax for EU VAT, Canadian GST/HST, etc.
       # - VAT ID Collection: EU B2B customers can enter VAT for reverse charge
-      # - Idempotency Key: Per-customer, per-plan, per-minute to prevent duplicates
+      # - Idempotency Key: Unique per attempt (UUID); completed-session dedup
+      #   happens in the checkout.session.completed webhook handler
       # - Nested JSON Metadata: Grouped debug info per Stripe best practices
       # - Customer Reuse: Returning subscribers use existing Stripe Customer ID
       #
@@ -182,9 +184,13 @@ module Billing
           },
         }
 
-        # Create Stripe Checkout Session with idempotency key
-        # Key granularity: per-customer, per-plan, per-minute (prevents duplicates on retry)
-        idempotency_key  = "checkout_#{cust.extid}_#{plan.plan_id}_#{Time.now.to_i / 60}"
+        # Idempotency key: unique per attempt, NOT deterministic. Duplicate
+        # sessions are harmless (they expire unused); duplicate completions are
+        # deduped by the checkout.session.completed webhook handler. A
+        # time-bucketed key would make Stripe return a cached — possibly
+        # already-completed — session on retry within the window.
+        # @see apps/web/billing/docs/adr-checkout-idempotency-keys.md
+        idempotency_key  = SecureRandom.uuid
         checkout_session = Stripe::Checkout::Session.create(
           session_params,
           { idempotency_key: idempotency_key },
