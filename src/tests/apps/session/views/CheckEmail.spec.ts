@@ -129,6 +129,13 @@ describe('CheckEmail.vue', () => {
     expect(help.attributes('aria-label')).toBe('web.auth.check_email.help');
     expect(help.attributes('title')).toBeUndefined();
     expect(wrapper.text()).toContain('web.auth.check_email.help');
+
+    // The trigger is linked to the tooltip for assistive tech: aria-describedby
+    // points at the tooltip element's id, and that element carries role="tooltip".
+    expect(help.attributes('aria-describedby')).toBe('check-email-help-tooltip');
+    const tooltip = wrapper.find('#check-email-help-tooltip');
+    expect(tooltip.exists()).toBe(true);
+    expect(tooltip.attributes('role')).toBe('tooltip');
   });
 
   it('falls back to generic copy when no email is in state (fresh entry: shared link / new tab)', async () => {

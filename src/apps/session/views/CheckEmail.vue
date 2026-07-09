@@ -114,7 +114,9 @@
               {{ email }}
             </span>
             <span class="group relative shrink-0">
-              <HoverTooltip content-class="w-64 max-w-[calc(100vw-2.5rem)] text-left">
+              <HoverTooltip
+                tooltip-id="check-email-help-tooltip"
+                content-class="w-64 max-w-[calc(100vw-2.5rem)] text-left">
                 {{ t('web.auth.check_email.help') }}
               </HoverTooltip>
               <button
@@ -125,6 +127,7 @@
                        focus-visible:ring-offset-2 dark:text-gray-500
                        dark:hover:text-gray-300 dark:focus-visible:ring-offset-gray-900"
                 :aria-label="t('web.auth.check_email.help')"
+                aria-describedby="check-email-help-tooltip"
                 data-testid="check-email-help">
                 <OIcon
                   collection="heroicons"

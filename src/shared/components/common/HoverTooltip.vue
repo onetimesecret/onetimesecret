@@ -25,9 +25,10 @@
   <div
     :id="id"
     role="tooltip"
-    class="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2
+    class="pointer-events-none invisible absolute bottom-full left-1/2 z-50 mb-2
            -translate-x-1/2 opacity-0 transition-opacity duration-200
-           group-focus-within:opacity-100 group-hover:opacity-100">
+           group-focus-within:visible group-focus-within:opacity-100
+           group-hover:visible group-hover:opacity-100">
     <div class="flex flex-col items-center">
       <div
         :class="[
