@@ -410,27 +410,32 @@ onUnmounted(() => {
           <!-- Domain context + identity chip (role badge or Free plan chip) -->
           <div
             v-if="showDomainContext || identityChip !== 'hidden'"
-            class="group/domain mt-1 flex items-center gap-2">
-            <p
+            class="mt-1 flex items-center gap-2">
+            <!-- Domain + copy button share a tight hover scope so the copy
+                 affordance only reveals when hovering the domain itself,
+                 not the sibling identity chip. -->
+            <div
               v-if="showDomainContext"
-              class="truncate text-sm text-gray-400/80 dark:text-gray-400">
-              {{ currentContext.displayName }}
-            </p>
-            <button
-              v-if="showDomainContext"
-              @click.stop="copyToClipboard(currentContext.displayName, 'domain')"
-              :title="copiedField === 'domain' ? t('web.COMMON.copied') : t('web.COMMON.copy')"
-              class="shrink-0 rounded p-0.5 text-gray-300 transition-all
-                sm:opacity-0 sm:group-hover/domain:opacity-100 sm:focus:opacity-100
-                hover:bg-gray-100 hover:text-gray-500
-                dark:text-gray-500 dark:hover:bg-gray-600 dark:hover:text-gray-300"
-              :class="{ 'text-green-500 opacity-100': copiedField === 'domain' }">
-              <OIcon
-                collection="mdi"
-                :name="copiedField === 'domain' ? 'check' : 'clipboard-text-outline'"
-                class="size-3"
-                aria-hidden="true" />
-            </button>
+              class="group/domain flex min-w-0 items-center gap-2">
+              <p class="truncate text-sm text-gray-400/80 dark:text-gray-400">
+                {{ currentContext.displayName }}
+              </p>
+              <button
+                @click.stop="copyToClipboard(currentContext.displayName, 'domain')"
+                :title="copiedField === 'domain' ? t('web.COMMON.copied') : t('web.COMMON.copy')"
+                :aria-label="t('web.COMMON.copy')"
+                class="shrink-0 rounded p-0.5 text-gray-300 transition-all
+                  sm:opacity-0 sm:group-hover/domain:opacity-100 sm:focus:opacity-100
+                  hover:bg-gray-100 hover:text-gray-500
+                  dark:text-gray-500 dark:hover:bg-gray-600 dark:hover:text-gray-300"
+                :class="{ 'text-green-500 opacity-100': copiedField === 'domain' }">
+                <OIcon
+                  collection="mdi"
+                  :name="copiedField === 'domain' ? 'check' : 'clipboard-text-outline'"
+                  class="size-3"
+                  aria-hidden="true" />
+              </button>
+            </div>
             <!-- Role badge (owner/admin) -->
             <span
               v-if="identityChip === 'role'"

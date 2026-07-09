@@ -200,6 +200,11 @@ export const receiptBaseCanonical = z.object({
 
   // Boolean status flags
   has_passphrase: z.boolean().nullish(),
+  // True once the secret link has been accessed at least once. Backend
+  // #3633: derived from the access timeline (view_count > 0), not from a
+  // mutated 'previewed' lifecycle state — viewing the receipt page no longer
+  // flips this. Legacy receipts still in a 'previewed'/'viewed' state also
+  // report true.
   is_previewed: z.boolean(),
   is_revealed: z.boolean(),
   is_burned: z.boolean(),
@@ -210,6 +215,11 @@ export const receiptBaseCanonical = z.object({
   // Optional metadata
   memo: z.string().nullable().optional(),
   kind: z.enum(['generate', 'conceal']).or(z.literal('')).nullable().optional(),
+
+  // Submission provenance. 'incoming' = guest-submitted through an Incoming
+  // form (share link withheld from the creator); 'standard' = owner-created.
+  // Nullable/optional: legacy receipts predate the field and read as null.
+  source: z.enum(['standard', 'incoming']).nullable().optional(),
 });
 
 /**
@@ -237,10 +247,15 @@ export const receiptCanonical = receiptBaseCanonical.extend({
   // null the whole record and surface "no longer available" (#3424).
   expiration: z.date().nullable(),
   expiration_in_seconds: z.number(),
-  share_path: z.string(),
+  // Nullable: the secret link is withheld (null) for incoming-provenance
+  // receipts so the creator can't spend the one view. A null here is the
+  // intended "link withheld" signal, not a defect — rejecting it would null
+  // the whole receipt (#3424). burn/receipt URLs stay non-null (the creator
+  // still manages the receipt).
+  share_path: z.string().nullable(),
   burn_path: z.string(),
   receipt_path: z.string(),
-  share_url: z.string(),
+  share_url: z.string().nullable(),
   receipt_url: z.string(),
   burn_url: z.string(),
 });

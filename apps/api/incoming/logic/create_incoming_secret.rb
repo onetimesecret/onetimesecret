@@ -77,6 +77,7 @@ module Incoming
 
         # Validate required fields (memo is optional)
         raise_form_error 'Secret content is required' if secret_value.empty?
+        validate_secret_size(secret_value)
         raise_form_error 'Recipient is required' if @recipient_hash.to_s.empty?
 
         # Now safe to perform resolver I/O (entitlement verified)
@@ -84,7 +85,7 @@ module Incoming
 
         # Validate recipient hash exists and maps to valid email
         if @recipient_email.nil?
-          secret_logger.warn "[IncomingSecret] Invalid recipient hash attempted", recipient_hash: @recipient_hash
+          secret_logger.warn '[IncomingSecret] Invalid recipient hash attempted', recipient_hash: @recipient_hash
           raise_form_error 'Invalid recipient'
         end
 
@@ -93,7 +94,7 @@ module Incoming
         # (no DNS) since this runs on every incoming secret creation.
         # Flow: POST /api/incoming/secret -> resolve_recipient_and_config -> here
         unless Truemail.validate(recipient_email.to_s, with: :regex).result.valid?
-          secret_logger.error "[IncomingSecret] Lookup returned invalid email for hash", recipient_hash: @recipient_hash
+          secret_logger.error '[IncomingSecret] Lookup returned invalid email for hash', recipient_hash: @recipient_hash
           raise_form_error 'Invalid recipient configuration'
         end
       end
@@ -201,6 +202,12 @@ module Incoming
         receipt.recipients     = recipient_email
         receipt.recipient_name = lookup_recipient_display_name(@recipient_hash)
 
+        # Provenance: guest submission through an Incoming form. This is the one
+        # authoritative signal for withholding the share link from the creator
+        # (see Receipt#shows_share_link?). spawn_pair already defaulted 'standard';
+        # override it here before the save below.
+        receipt.source = 'incoming'
+
         # Set domain_id for custom domain requests (#2864). Resolved from the
         # same share_domain that spawn_pair persisted, keeping domain_id and
         # share_domain consistent on the receipt. resolved_domain_id memoizes the
@@ -277,7 +284,7 @@ module Incoming
 
         Onetime.secret_logger.info "[IncomingSecret] Notification enqueued for #{OT::Utils.obscure_email(recipient_email)} (receipt: #{receipt.shortid})"
       rescue StandardError => ex
-        secret_logger.error "[IncomingSecret] Failed to enqueue notification", exception: ex
+        secret_logger.error '[IncomingSecret] Failed to enqueue notification', exception: ex
         # Don't raise - email failure shouldn't prevent secret creation
       end
     end

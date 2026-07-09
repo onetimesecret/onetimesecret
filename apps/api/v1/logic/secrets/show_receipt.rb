@@ -54,7 +54,7 @@ module V1::Logic
         @expiration = receipt.secret_expiration
         @expiration_in_seconds = receipt.secret_ttl
 
-        secret = receipt.load_secret
+        secret = @secret
 
         if secret.nil?
 
@@ -91,9 +91,31 @@ module V1::Logic
             # If we can't decrypt the secret (i.e. if we can't access it) then
             # then we leave secret_value nil. We do this so that after creating
             # a secret we can show the received contents on the "/receipt/receipt_key"
-            # page one time. Particularly for generated passwords which are not
+            # page ONE TIME. Particularly for generated passwords which are not
             # shown any other time.
-            @secret_value = secret.decrypted_secret_value if @can_decrypt
+            #
+            # Aligned with V2/V3: only generated values are revealed here, and
+            # only on the first (state :new) view within the configured display
+            # window. Concealed (user-supplied) plaintext is never echoed back
+            # on the receipt — the creator already has it, and reading it back
+            # later would sidestep the at-most-once rule.
+            #
+            # claim_secret_value_display! is the "one time" guarantee: it
+            # atomically claims the display so a repeated or concurrent load
+            # never re-reveals the value (#3633 retired the previewed! state
+            # mutation that used to bound this, so this GET must not lean on a
+            # state change). display_ttl now only bounds *when* the single
+            # reveal may happen. Claim last, so the window/kind checks
+            # short-circuit before we consume the one-shot claim.
+            if @can_decrypt && receipt.state?(:new)
+              receipt_age  = Familia.now.to_i - receipt.created.to_i
+              is_generated = receipt.kind.to_s == 'generate'
+              display_ttl  = OT.conf.dig('site', 'secret_options', 'generated_value_display_ttl').to_i
+              if is_generated && display_ttl.positive? && receipt_age < display_ttl && receipt.claim_secret_value_display!
+                OT.ld "[show_receipt] m:#{receipt_shortid} Decrypting generated secret for creator viewing (age: #{receipt_age}s)"
+                @secret_value = secret.decrypted_secret_value
+              end
+            end
             @is_truncated = secret.truncated?
           end
         end
@@ -158,12 +180,12 @@ module V1::Logic
         OT.ld "[process] Set @share_domain: #{@share_domain}"
         process_uris
 
-        # Dump the receipt attributes before marking as previewed
         @receipt_attributes = self._receipt_attributes
 
-        # We mark the receipt record previewed so that we can support showing the
-        # secret link on the receipt page, just the one time.
-        receipt.previewed! if receipt.state?(:new)
+        # Loading the receipt page is a safe GET (#3633): record a one-time
+        # 'receipt_viewed' audit event but do NOT advance the secret's
+        # lifecycle state. See the v2 ShowReceipt for the full rationale.
+        receipt.record_receipt_view!
       end
 
       def one_liner
@@ -184,8 +206,13 @@ module V1::Logic
         # Start with safe receipt attributes
         attributes = receipt.safe_dump
 
-        # Only include the secret's identifying key when necessary
-        attributes[:secret_key] = secret_key if show_secret
+        # Provenance gate: incoming secrets withhold the share link (and its
+        # bearer key) from the creator. See Receipt#shows_share_link?.
+        link_visible = receipt.shows_share_link?
+
+        # Only include the secret's identifying key when necessary AND when
+        # provenance permits sharing the link.
+        attributes[:secret_key] = secret_key if show_secret && link_visible
 
         # Add additional attributes not included in safe dump
         attributes.merge!({
@@ -193,11 +220,13 @@ module V1::Logic
           natural_expiration: natural_expiration,
           expiration: expiration,
           expiration_in_seconds: expiration_in_seconds,
-          share_path: share_path,
+          # share_path/share_url withheld (null) for incoming provenance; burn
+          # and receipt paths stay for the creator.
+          share_path: link_visible ? share_path : nil,
           burn_path: burn_path,
           receipt_path: receipt_path,
           metadata_path: metadata_path, # maintain public API
-          share_url: share_url,
+          share_url: link_visible ? share_url : nil,
           receipt_url: receipt_url,
           metadata_url: metadata_url, # maintain public API
           burn_url: burn_url,

@@ -267,9 +267,11 @@ RSpec.describe V1::Controllers::Index, type: :request do
       app.generate
     end
 
-    it 'calls previewed! on the receipt after responding' do
+    it 'does not advance receipt state after responding (#3633)' do
       allow(app).to receive(:json)
-      expect(receipt).to receive(:previewed!)
+      # Generation used to flip the fresh receipt to :previewed; a safe read
+      # path no longer mutates lifecycle state.
+      expect(receipt).not_to receive(:previewed!)
       app.generate
     end
 

@@ -15,11 +15,13 @@ module OrganizationAPI::Logic
     #
     #   Event kinds: 'created' (secret concealed/generated), 'status_get'
     #   / 'secret_get' (a third party fetched the status/secret link),
-    #   'creator_status_get' / 'creator_secret_get' (the creator fetched
-    #   their own link), 'receipt_viewed' (the creator's receipt page was
-    #   loaded — shown as "preview" in the UI), 'revealed', 'burned',
-    #   'expired', 'orphaned'. Events carry receipt/secret shortids only —
-    #   never full identifiers, which are capability tokens.
+    #   'previewed' (the creator opened their own secret link — the
+    #   creator-facing "preview" event), 'creator_status_get' (the creator
+    #   checked their own secret's status), 'receipt_viewed' (the creator's
+    #   receipt/metadata page was loaded — distinct from opening the secret
+    #   link itself), 'revealed', 'burned', 'expired', 'orphaned'. Events
+    #   carry receipt/secret shortids only — never full identifiers, which
+    #   are capability tokens.
     class ListAuditEvents < OrganizationAPI::Logic::Base
       DEFAULT_LIMIT = 50
 

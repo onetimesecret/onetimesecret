@@ -162,6 +162,7 @@ module Onetime
           {
             enabled: enabled?,
             memo_max_length: config&.memo_max_length || defaults[:memo_max_length],
+            secret_max_length: secret_max_length,
             default_ttl: config&.default_ttl || defaults[:default_ttl],
             recipients: public_recipients,
           }
@@ -170,6 +171,7 @@ module Onetime
           {
             enabled: enabled?,
             memo_max_length: incoming_config['memo_max_length'] || defaults[:memo_max_length],
+            secret_max_length: secret_max_length,
             default_ttl: incoming_config['default_ttl'] || defaults[:default_ttl],
             recipients: public_recipients,
           }
@@ -180,6 +182,16 @@ module Onetime
 
       def incoming_config
         OT.conf.dig('features', 'incoming') || {}
+      end
+
+      # Server-enforced secret-content ceiling, shared by the regular and
+      # incoming secret paths. Lives under site.secret_options.content (not
+      # per-domain), so both domain strategies read the same global value.
+      # Surfaced in the GetConfig response as the client-side textarea hint.
+      def secret_max_length
+        # to_i guards against a Float slipping through (unquoted YAML/ERB),
+        # which would violate the frontend response's int() contract.
+        (OT.conf.dig('site', 'secret_options', 'content', 'maximum_length') || 10_000).to_i
       end
 
       def site_secret

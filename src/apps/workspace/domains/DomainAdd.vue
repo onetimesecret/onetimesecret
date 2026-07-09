@@ -50,8 +50,8 @@
 </script>
 
 <template>
-  <div class="">
-    <h1 class="mb-6 text-3xl font-bold dark:text-white">
+  <div class="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
+    <h1 class="mb-8 text-3xl font-bold dark:text-white">
       {{ t('web.domains.add_your_domain') }}
     </h1>
 

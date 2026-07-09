@@ -48,7 +48,7 @@ module Billing
         data = {
           planid: org.planid,
           plan_name: Billing::PlanHelpers.plan_name(org.planid),
-          entitlements: org.entitlements_for_request(session),
+          entitlements: org.entitlements,
           limits: build_limits_hash(org),
           is_legacy: Billing::PlanHelpers.legacy_plan?(org.planid),
           cache_stale: plan_cache_stale,
@@ -102,8 +102,8 @@ module Billing
           return json_error('Entitlement parameter required', status: 400)
         end
 
-        # Check entitlement with preview mode support
-        effective_entitlements = org.entitlements_for_request(session)
+        # org.entitlements is preview-aware via the request-scoped context (ADR-020)
+        effective_entitlements = org.entitlements
         allowed                = effective_entitlements.include?(entitlement.to_s)
 
         result = {
@@ -205,18 +205,18 @@ module Billing
       # - Organization has no planid
       # - Entitlements not materialized and plan not found in cache
       #
-      # Preview mode: when a colonel is previewing a plan
-      # (session[:entitlement_preview_planid] is set), the limits come from the
-      # previewed plan instead of the org's actual plan. This mirrors the
-      # entitlements side (org.entitlements_for_request(session)); without it the
-      # previewed plan's entitlements would surface while its limits would not,
-      # leaving limit-gated UI reflecting the wrong plan.
+      # Preview mode: when the request-scoped preview context (ADR-020)
+      # carries a planid, the limits come from the previewed plan instead of
+      # the org's actual plan. The limit_for chokepoint covers per-resource
+      # lookups, but this method emits the plan's full limits hash via raw
+      # storage reads (limits_plan / Plan.load) that sit below the chokepoint,
+      # so the previewed plan must be resolved explicitly here.
       #
       # @param org [Onetime::Organization] Organization instance
       # @return [Hash] Limits with nil for infinity
       def build_limits_hash(org)
-        preview_planid = session_preview_planid
-        return preview_limits_hash(preview_planid) if preview_planid
+        preview = Onetime::EntitlementPreview.context
+        return preview_limits_hash(preview[:planid]) if preview && preview[:planid]
 
         return {} if org.planid.to_s.empty?
 
@@ -236,21 +236,6 @@ module Billing
         limits.transform_values do |value|
           value == Float::INFINITY ? nil : value
         end
-      end
-
-      # Colonel preview plan id from the session, or nil when not previewing.
-      #
-      # Guards against non-hash sessions and treats blank values as "no preview"
-      # (matching limit_for_request / the SetEntitlementPreview clear path).
-      #
-      # @return [String, nil] Preview plan id, or nil
-      def session_preview_planid
-        return nil unless session.respond_to?(:[])
-
-        planid = session[:entitlement_preview_planid]
-        return nil if planid.nil? || planid.to_s.empty?
-
-        planid.to_s
       end
 
       # Build the limits hash for a previewed plan.

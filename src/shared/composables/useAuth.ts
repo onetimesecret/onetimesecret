@@ -301,12 +301,8 @@ export function useAuth() {
         return false;
       }
 
-      // Fetch entitlements to get current subscription status
-      await organizationStore.fetchEntitlements(org.extid);
-
-      // Re-fetch org after entitlements update (it may have been updated in the store)
-      const updatedOrg = organizationStore.organizations.find((o) => o.extid === org.extid);
-      const currentPlanId = updatedOrg?.planid;
+      // The org record from /api/organizations carries the subscription plan
+      const currentPlanId = org.planid;
 
       // Check subscription status - delegate to helper if subscribed
       if (currentPlanId) {

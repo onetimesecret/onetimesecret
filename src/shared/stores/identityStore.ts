@@ -7,6 +7,7 @@ import {
 import {
   DEFAULT_LOGO_COMPONENT,
   NEUTRAL_BRAND_DEFAULTS,
+  RESOLVED_LOGO_COMPONENT,
   resolveProductName,
 } from '@/shared/constants/brand';
 import { cornerStyleClasses, fontFamilyClasses } from '@/shared/utils/brand-helpers';
@@ -262,7 +263,16 @@ export const useProductIdentity = defineStore('productIdentity', () => {
   /**
    * Resolved logo source on the identity axis: the tenant's uploaded logo when
    * present, then the operator's install-wide logo (custom domains excepted,
-   * see installLogoUri), then the neutral `DefaultLogo` component sentinel.
+   * see installLogoUri), then the terminal component sentinel.
+   *
+   * The terminal is `RESOLVED_LOGO_COMPONENT` (the build-time
+   * `VITE_LOGO_COMPONENT` override, else the neutral `DefaultLogo`) on the
+   * install's own contexts, but stays the neutral `DEFAULT_LOGO_COMPONENT` on
+   * custom domains: `installLogoUri` is already null there, so without this
+   * guard the operator's chosen component would surface on a tenant domain that
+   * has no uploaded logo — the same leak `installLogoUri` guards against. The
+   * override thus never affects custom-domain logo display.
+   *
    * Never null or empty, so a consumer can render a lockup without its own
    * "no logo" fallback.
    *
@@ -276,7 +286,10 @@ export const useProductIdentity = defineStore('productIdentity', () => {
    * is no longer read from `ui.header.branding`.
    */
   const logoSource = computed(
-    () => logoUri.value || installLogoUri.value || DEFAULT_LOGO_COMPONENT
+    () =>
+      logoUri.value ||
+      installLogoUri.value ||
+      (isCustom.value ? DEFAULT_LOGO_COMPONENT : RESOLVED_LOGO_COMPONENT)
   );
 
   const cornerClass = computed(() =>

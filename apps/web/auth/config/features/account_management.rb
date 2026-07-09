@@ -107,6 +107,26 @@ module Auth::Config::Features
       # UI sends single password field, not password + confirmation
       auth.require_password_confirmation? false
 
+      # SECURITY: Genericize the "same as current password" error.
+      #
+      # reset_password / change_password run an unconditional
+      # `password_match?(new_password)` check (rodauth reset_password.rb:134,
+      # change_password.rb:48) and, on a match, emit
+      # `same_as_existing_password_message`. Rodauth's default text
+      # ("invalid password, same as current password") is returned verbatim
+      # in the JSON `field-error` tuple and rendered to the user.
+      #
+      # On the *reset* flow this is an information-disclosure oracle: a holder
+      # of a valid reset token can submit a suspected password and have the
+      # response confirm it matches the account's current password — without
+      # changing it — enabling stealthy credential-reuse checks (OWASP
+      # Authentication Cheat Sheet: use generic messages). A generic string
+      # removes the explicit confirmation. The check itself is not iterable
+      # (a non-matching submission completes the reset), so this is the
+      # proportionate remediation; suppressing the check entirely would
+      # require overriding Rodauth's reset internals.
+      auth.same_as_existing_password_message 'invalid password'
+
       # Custom error messages
       # Override Rodauth's default generic error message
       # In JSON mode, this becomes the "error" field in the response

@@ -52,16 +52,15 @@ r2 = s2.revealed!
 [plaintext, r1 ^ r2] # exactly one of r1/r2 is truthy => XOR is true
 #=> ['top secret value', true]
 
-## A losing reveal leaves its instance terminal in-memory, so a trailing
-## `previewed! if state?(:new)` in the controller cannot resurrect the key the
-## winner just destroyed.
+## A losing reveal leaves its instance terminal in-memory: it is no longer
+## :new, so no read-path state write could re-fire and resurrect the key the
+## winner just destroyed (#3633 retired the previewed! mutation entirely).
 receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'race secret'
 s1 = Onetime::Secret.load(secret.identifier)
 s2 = Onetime::Secret.load(secret.identifier)
 r1    = s1.revealed!
 r2    = s2.revealed!
 loser = r1 ? s2 : s1
-loser.previewed! if loser.state?(:new) # must be a no-op -- would resurrect otherwise
 [loser.state?(:new), s1.exists?, s2.exists?]
 #=> [false, false, false]
 
@@ -91,30 +90,6 @@ instances = Array.new(8) { Onetime::Secret.load(secret.identifier) }
 outcomes  = instances.map { |s| Thread.new { s.revealed! } }.map(&:value)
 [outcomes.count(true), instances.first.exists?]
 #=> [1, false]
-
-# ----------------------------------------------------------------
-# previewed! is a non-creating, non-reverting CAS (see the method's docs).
-# The former save_fields(:state) was an unconditional HSET that could
-# resurrect a destroyed key or revert a terminal state.
-# ----------------------------------------------------------------
-
-## previewed! will not resurrect a secret a concurrent reveal already
-## destroyed: a stale in-memory :new instance whose key is gone stays gone.
-receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'race secret'
-stale = Onetime::Secret.load(secret.identifier)    # loads with @state == 'new'
-Onetime::Secret.load(secret.identifier).revealed!  # a concurrent reveal destroys the key
-stale.previewed!                                   # stale still believes it is :new
-stale.exists?
-#=> false
-
-## previewed! reads the PERSISTED state, not just memory: a stale :new instance
-## cannot re-fire or downgrade a secret that has already advanced past :new.
-receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'race secret'
-stale = Onetime::Secret.load(secret.identifier)          # stale @state == 'new'
-Onetime::Secret.load(secret.identifier).previewed!       # persisted advances to 'previewed'
-stale.previewed!                                          # must be a no-op (persisted != new)
-Onetime::Secret.load(secret.identifier).state
-#=> 'previewed'
 
 # ----------------------------------------------------------------
 # reveal! couples the atomic claim with decryption: only the winner gets the

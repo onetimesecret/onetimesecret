@@ -128,8 +128,9 @@ the empty-passphrase preview never accrues attempts.
 Reveal used to load → check `viewable?` → decrypt → `destroy!` with no
 WATCH/Lua/lock, so two concurrent requests inside the window could both
 receive plaintext. `Secret#revealed!`/`#burned!` now perform a Lua
-compare-and-set on the `state` field (`STATE_CAS_SCRIPT` in
-`secret_state_management.rb`), and the plaintext-returning `#reveal!`
+compare-and-set on the `state` field (`STATE_CAS_SCRIPT` in the shared
+`state_cas` feature, `lib/onetime/models/features/state_cas.rb`, used by both
+Secret and Receipt), and the plaintext-returning `#reveal!`
 decrypts only inside the won claim, so a losing racer never computes it.
 All read/burn controllers gate their success path and counters on the
 claim's return value.

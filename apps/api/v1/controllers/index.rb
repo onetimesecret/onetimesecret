@@ -99,7 +99,6 @@ module V1
                                 :value => logic.secret_value,
                                 :secret_ttl => secret.current_expiration,
                                 :passphrase_required => secret && secret.has_passphrase?)
-            logic.receipt.previewed!
           end
         end
       end
@@ -128,7 +127,8 @@ module V1
                                 :passphrase_required => logic.has_passphrase,
                                 :metadata_url => logic.metadata_url)
           end
-          logic.receipt.previewed!
+          # State is not advanced on a receipt-page GET (#3633); the logic
+          # already recorded the 'receipt_viewed' audit event during process.
         end
       end
 

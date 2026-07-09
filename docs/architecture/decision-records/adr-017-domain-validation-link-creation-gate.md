@@ -1,12 +1,12 @@
 ---
 id: "017"
-status: proposed
+status: accepted
 title: "ADR-017: Gate Domain-Dependent Functionality on Ownership Verification"
 ---
 
 ## Status
 
-Proposed
+Accepted
 
 ## Date
 

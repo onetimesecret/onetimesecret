@@ -4,7 +4,10 @@
 
 # Tests for ShowReceipt logic class.
 # Verifies that process uses decrypted_secret_value to reveal
-# v2 secrets stored in the ciphertext field.
+# v2 secrets stored in the ciphertext field, and that the receipt
+# endpoint follows the V2/V3 reveal rules: only generated values,
+# only on first view within the display window. Concealed
+# (user-supplied) plaintext is never revealed on the receipt.
 
 require_relative '../../../application'
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
@@ -28,7 +31,8 @@ RSpec.describe V1::Logic::Secrets::ShowReceipt do
   # to reproduce the exact crash path from Bug #2.
   # ---------------------------------------------------------------
   describe '#process with v2 (ciphertext) secrets' do
-    let(:receipt_and_secret) { Onetime::Receipt.spawn_pair('anon', 3600, 'v2 secret content') }
+    let(:kind) { nil }
+    let(:receipt_and_secret) { Onetime::Receipt.spawn_pair('anon', 3600, 'v2 secret content', kind: kind) }
     let(:receipt) { receipt_and_secret[0] }
     let(:secret)  { receipt_and_secret[1] }
     # ShowReceipt.process_params expects the receipt's identifier (objid),
@@ -52,20 +56,85 @@ RSpec.describe V1::Logic::Secrets::ShowReceipt do
       expect { subject.process }.not_to raise_error
     end
 
-    it 'populates secret_value when ciphertext is present and decryptable' do
-      # Preconditions
-      expect(secret.can_decrypt?).to be true
-      expect(secret.ciphertext.to_s).not_to be_empty
-
-      subject.process
-
-      expect(subject.secret_value).to eq('v2 secret content')
-    end
-
     it 'sets can_decrypt to true for v2 secrets with ciphertext' do
       subject.process
 
       expect(subject.can_decrypt).to be true
+    end
+
+    # Provenance gate (Receipt#shows_share_link?) at the logic layer. safe_dump
+    # doesn't emit share_url/share_path, so these branches are only exercisable
+    # through process → _receipt_attributes with a real receipt.
+    it 'withholds the share link and bearer key for an incoming receipt' do
+      receipt.source = 'incoming'
+      receipt.save
+
+      subject.process
+      attrs = subject.receipt_attributes
+
+      expect(attrs[:share_url]).to be_nil
+      expect(attrs[:share_path]).to be_nil
+      expect(attrs).not_to have_key(:secret_key)
+    end
+
+    it 'ships the share link for a standard receipt even when it has recipients (email-share regression guard)' do
+      receipt.recipients = 'recipient@example.com'
+      receipt.source     = 'standard'
+      receipt.save
+
+      subject.process
+      attrs = subject.receipt_attributes
+
+      expect(attrs[:share_url]).not_to be_nil
+      expect(attrs[:share_path]).not_to be_nil
+      expect(attrs[:secret_key]).to eq(receipt.secret_key)
+    end
+
+    context 'with a concealed (user-supplied) secret' do
+      it 'does not reveal the plaintext on the receipt (aligned with V2/V3)' do
+        # Preconditions: the secret is decryptable, so the old V1 behavior
+        # would have revealed it here.
+        expect(secret.can_decrypt?).to be true
+        expect(secret.ciphertext.to_s).not_to be_empty
+
+        subject.process
+
+        expect(subject.secret_value).to be_nil
+        expect(subject.can_decrypt).to be true
+      end
+    end
+
+    context 'with a generated secret' do
+      let(:kind) { 'generate' }
+
+      it 'reveals the generated value on first view within the display window' do
+        expect(receipt.state?(:new)).to be true
+
+        subject.process
+
+        expect(subject.secret_value).to eq('v2 secret content')
+      end
+
+      it 'does not reveal the value once the one-time display has been claimed' do
+        # #3633 retired the previewed! state; the once-only reveal is now the
+        # atomic claim. Consuming it here simulates a prior reveal.
+        expect(receipt.claim_secret_value_display!).to be true
+
+        subject.process
+
+        expect(subject.secret_value).to be_nil
+      end
+
+      it 'does not reveal the value outside the display window' do
+        display_ttl = OT.conf.dig('site', 'secret_options', 'generated_value_display_ttl').to_i
+        expect(display_ttl).to be_positive, 'generated_value_display_ttl must be > 0 for this test to exercise the age check'
+        receipt.created = Familia.now.to_i - (display_ttl + 10)
+        receipt.save
+
+        subject.process
+
+        expect(subject.secret_value).to be_nil
+      end
     end
   end
 
@@ -98,7 +167,10 @@ RSpec.describe V1::Logic::Secrets::ShowReceipt do
         secret_ttl: 3600,
         share_domain: '',
         state: 'new',
+        kind: 'generate',
+        created: Time.now.to_i,
         owner?: false,
+        shows_share_link?: true, # standard provenance — share link permitted
         safe_dump: { key: 'receipt_xyz', state: 'new' },
         load_secret: nil) # overridden per-test below
     end
@@ -115,7 +187,12 @@ RSpec.describe V1::Logic::Secrets::ShowReceipt do
       # State queries
       allow(receipt).to receive(:state?).and_return(false)
       allow(receipt).to receive(:state?).with(:new).and_return(true)
-      allow(receipt).to receive(:previewed!)
+      # Loading the receipt page records a one-time 'receipt_viewed' audit
+      # event instead of advancing state via previewed! (#3633).
+      allow(receipt).to receive(:record_receipt_view!)
+      # The plaintext value is revealed to the creator at most once, gated on
+      # an atomic claim rather than the retired previewed! state (#3633).
+      allow(receipt).to receive(:claim_secret_value_display!).and_return(true)
 
       # decrypted_secret_value is the CORRECT method - returns plaintext
       allow(secret).to receive(:decrypted_secret_value).and_return('v2 secret content')
@@ -130,6 +207,29 @@ RSpec.describe V1::Logic::Secrets::ShowReceipt do
 
     it 'does not raise when secret has ciphertext but no legacy value' do
       expect { subject.process }.not_to raise_error
+    end
+
+    it 'does not decrypt a concealed secret' do
+      allow(receipt).to receive(:kind).and_return('conceal')
+
+      expect(secret).not_to receive(:decrypted_secret_value)
+
+      subject.process
+      expect(subject.secret_value).to be_nil
+    end
+
+    it 'does not decrypt when generated_value_display_ttl is zero or unset' do
+      # A zero/absent display TTL disables the reveal window entirely, so even
+      # a fresh generated secret must not be decrypted on the receipt.
+      allow(OT.conf).to receive(:dig).and_call_original
+      allow(OT.conf).to receive(:dig)
+        .with('site', 'secret_options', 'generated_value_display_ttl')
+        .and_return(0)
+
+      expect(secret).not_to receive(:decrypted_secret_value)
+
+      subject.process
+      expect(subject.secret_value).to be_nil
     end
   end
 end

@@ -99,6 +99,10 @@ RSpec.describe 'IncomingConfig Logic error_key propagation' do
     )
   end
 
+  # Happy-path default: install-wide incoming flag ON. The flag-off context
+  # below flips this to false to prove the flag never gates custom-domain
+  # incoming — starting from ON makes that override the single variable under
+  # test rather than part of the ambient baseline.
   let(:incoming_enabled_conf) do
     {
       'features' => { 'incoming' => { 'enabled' => true } },
@@ -173,7 +177,11 @@ RSpec.describe 'IncomingConfig Logic error_key propagation' do
       end
     end
 
-    context 'when the incoming feature flag is disabled' do
+    context 'when the install-wide incoming feature flag is disabled' do
+      # The features.incoming.enabled flag gates the canonical domain only.
+      # Custom-domain incoming is authorized by the org's incoming_secrets
+      # entitlement, so a flag-off install must NOT block an entitled domain
+      # (same canonical/custom split as RecipientResolver).
       let(:logic) { described_class.new(strategy_result, params) }
 
       before do
@@ -183,11 +191,24 @@ RSpec.describe 'IncomingConfig Logic error_key propagation' do
         )
       end
 
-      it 'raises FormError tagged with incoming_secrets_disabled' do
-        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
-          expect(error.error_key).to eq('api.domains.errors.incoming_secrets_disabled')
-          expect(error.error_type).to eq(:forbidden)
-        end
+      # This example runs under shared_examples across Get/Delete/Put. The
+      # flag-off path is deliberately non-uniform: Get/Put return normally,
+      # while Delete raises RecordNotFound(incoming_config_not_found) because
+      # the shared before-block stubs find_by_domain_id -> nil. So a bare
+      # `not_to raise_error` (or `not_to raise_error(FormError)`) is wrong here.
+      # Capture the raised key (nil when nothing raised) so the expectation
+      # ALWAYS executes and asserts the one thing that matters: the install
+      # flag never short-circuits into incoming_secrets_disabled.
+      it 'does not raise incoming_secrets_disabled (entitlement governs, not the install flag)' do
+        raised_error_key =
+          begin
+            logic.raise_concerns
+            nil
+          rescue Onetime::FormError, Onetime::RecordNotFound => e
+            e.error_key
+          end
+
+        expect(raised_error_key).not_to eq('api.domains.errors.incoming_secrets_disabled')
       end
     end
 
