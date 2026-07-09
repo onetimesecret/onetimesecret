@@ -20,9 +20,10 @@
    * Pure consumer of the Slice-1 kit + `useAdminCustomers` store (CONTRACT 1):
    * DataTable + FilterBar + KitPagination over `usePaginatedFetch`. One server
    * page per request — never load-all-then-slice. Two server-side filters:
-   * `role` and a debounced email `search` (the list endpoint resolves it via a
-   * bounded scan of the email index — wired exactly like the sessions screen's
-   * search). Columns are non-sortable on purpose: the endpoint returns a
+   * `role` and a debounced `search` (the list endpoint resolves it via a
+   * bounded scan of the email index PLUS exact extid/objid lookups — wired
+   * exactly like the sessions screen's search, so a support agent can paste an
+   * address or an id). Columns are non-sortable on purpose: the endpoint returns a
    * FIXED most-recently-modified ordering (epic #20 CONTRACT 6), so there is no
    * server `sort` param to drive a controlled re-fetch.
    */

@@ -51,19 +51,31 @@ module Auth
       # `find_all_by_role` — a blocking `SMEMBERS` + load-all-then-slice, which
       # was the residual request-path unbounded enumeration flagged on the slice.
       #
-      # ### Email search (bounded cursor HSCAN over the email index)
+      # ### Search (bounded email HSCAN + exact identifier lookups)
       #
       # "Look up the account that just emailed you" is the #1 admin action, so
-      # the op supports a free-text `search` term matched against customer
-      # emails. It never enumerates customer objects: it cursor-HSCANs the
-      # `customer:email_index` hash (email -> objid, emails stored lowercase)
-      # with a server-side `*term*` glob — the same scan-with-match mechanism
-      # the sessions listing uses, but against the index instead of the
-      # keyspace. Bounded twice (CONTRACT 8 / #2211): matches are capped at
-      # SEARCH_MATCH_LIMIT and the scan itself stops after
-      # SEARCH_SCAN_ROUNDS round-trips, so a no-match search over a huge
-      # customer base can never turn one request into an unbounded walk. The
-      # glob term is escaped, so user input cannot inject pattern syntax.
+      # the op supports a free-text `search` term. It resolves three ways and
+      # merges the results (deduped by objid):
+      #
+      # 1. Email substring — a bounded cursor HSCAN over the
+      #    `customer:email_index` hash (email -> objid, emails stored lowercase)
+      #    with a server-side `*term*` glob — the same scan-with-match mechanism
+      #    the sessions listing uses, but against the index instead of the
+      #    keyspace. It never enumerates customer objects. Bounded twice
+      #    (CONTRACT 8 / #2211): matches are capped at SEARCH_MATCH_LIMIT and the
+      #    scan stops after SEARCH_SCAN_ROUNDS round-trips, so a no-match search
+      #    over a huge customer base can never turn one request into an unbounded
+      #    walk. The glob term is escaped, so user input cannot inject pattern
+      #    syntax.
+      # 2. External id (extid, `ur…s`) — an exact `find_by_extid` on the
+      #    extid_lookup unique index.
+      # 3. Internal id (objid, the UUID primary key) — an exact
+      #    `find_by_identifier`.
+      #
+      # The two identifier lookups are O(1) unique-index gets, never scans, so
+      # they add no enumeration cost and are attempted on every search — a
+      # support agent can paste an extid or objid straight into the box and the
+      # non-matching lookups simply return nothing (a garbage term is rescued).
       # Search composes with the role filter (applied in Ruby on the already
       # -bounded matches) and is paginated in memory like the filtered path.
       class List
@@ -112,8 +124,9 @@ module Auth
         #   or :all to load every matching customer in one shot. `:all` is for the
         #   off-request CLI grouping view only — never pass it from a request handler.
         # @param role [String, nil] optional role filter (blank string treated as nil)
-        # @param search [String, nil] optional email substring (case-insensitive;
-        #   blank string treated as nil). Composes with the role filter.
+        # @param search [String, nil] optional search term: an email substring
+        #   (case-insensitive) and/or an exact extid / objid. Blank string
+        #   treated as nil. Composes with the role filter.
         def initialize(page: 1, per_page: DEFAULT_PER_PAGE, role: nil, search: nil)
           @all      = (per_page == :all)
           @page     = [page.to_i, 1].max
@@ -185,12 +198,14 @@ module Auth
           build_result(page, total_count)
         end
 
-        # Email search: bounded cursor HSCAN over the email unique index (see
-        # class docs), then order + slice exactly like the filtered path. The
-        # role filter, when also present, is applied in Ruby on the loaded
-        # matches — the match set is already bounded, so this stays cheap.
+        # Search: bounded cursor HSCAN over the email unique index PLUS exact
+        # extid / objid lookups (see class docs), merged and deduped by objid,
+        # then ordered + sliced exactly like the filtered path. The role filter,
+        # when also present, is applied in Ruby on the loaded matches — the match
+        # set is already bounded, so this stays cheap.
         def call_search
           matches = load(scan_email_index_matches(@search))
+          merge_identifier_matches(matches)
           matches.select! { |cust| cust.role.to_s == @role } if @role
           # Same within-page ordering as the filtered path (created descending);
           # the email index is a hash, so there is no index-native order here.
@@ -231,6 +246,41 @@ module Auth
           end
 
           objids.first(SEARCH_MATCH_LIMIT)
+        end
+
+        # Append the exact extid / objid lookups for the search term to the
+        # already-loaded email matches, skipping any customer already present
+        # (deduped by objid). Both lookups are O(1) unique-index gets — never a
+        # scan — so they cost nothing when they miss. A malformed term (e.g. a
+        # value the identifier index rejects) is rescued to nil rather than
+        # failing the whole search.
+        def merge_identifier_matches(matches)
+          seen = matches.map(&:objid)
+
+          identifier_lookups(@search).each do |cust|
+            next if seen.include?(cust.objid)
+
+            matches << cust
+            seen << cust.objid
+          end
+        end
+
+        # Exact-match customer lookups by external id (extid) and internal id
+        # (objid). Returns a (possibly empty) array of Onetime::Customer.
+        def identifier_lookups(term)
+          [
+            safe_lookup { Onetime::Customer.find_by_extid(term) },
+            safe_lookup { Onetime::Customer.find_by_identifier(term) },
+          ].compact
+        end
+
+        # A unique-index lookup on a free-text term can raise on input the index
+        # cannot parse; swallow that so it degrades to "no match" rather than a
+        # 500 on the search endpoint.
+        def safe_lookup
+          yield
+        rescue StandardError
+          nil
         end
 
         # Escape Redis glob metacharacters so a user-supplied term is always a

@@ -115,6 +115,10 @@ RSpec.describe Auth::Operations::Customers::List do
     before do
       allow(Onetime::Customer).to receive(:email_index).and_return(email_index)
       allow(Onetime::Customer).to receive(:dbclient).and_return(dbclient)
+      # The exact extid/objid lookups run on every search; default them to
+      # misses so the email-substring tests isolate the HSCAN path.
+      allow(Onetime::Customer).to receive(:find_by_extid).and_return(nil)
+      allow(Onetime::Customer).to receive(:find_by_identifier).and_return(nil)
     end
 
     it 'cursor-HSCANs the email index with an escaped, lowercased glob' do
@@ -185,6 +189,70 @@ RSpec.describe Auth::Operations::Customers::List do
       expect(Onetime::Customer).not_to receive(:email_index)
 
       described_class.new(search: '   ').call
+    end
+
+    describe 'exact identifier lookups (extid / objid)' do
+      before do
+        # No email substring hits — isolate the identifier-lookup path.
+        allow(dbclient).to receive(:hscan).and_return(['0', []])
+        allow(Onetime::Customer).to receive(:load_multi).with([]).and_return([])
+      end
+
+      it 'resolves an exact extid via find_by_extid and includes it' do
+        cust = double('cust', role: 'customer', created: 100, objid: 'oid-x')
+        allow(Onetime::Customer).to receive(:find_by_extid).with('ur1234s').and_return(cust)
+        allow(Onetime::Customer).to receive(:find_by_identifier).with('ur1234s').and_return(nil)
+
+        result = described_class.new(search: 'ur1234s').call
+
+        expect(result.customers).to eq([cust])
+        expect(result.total_count).to eq(1)
+      end
+
+      it 'resolves an exact objid via find_by_identifier and includes it' do
+        cust = double('cust', role: 'customer', created: 100, objid: 'the-objid')
+        allow(Onetime::Customer).to receive(:find_by_extid).with('the-objid').and_return(nil)
+        allow(Onetime::Customer).to receive(:find_by_identifier).with('the-objid').and_return(cust)
+
+        result = described_class.new(search: 'the-objid').call
+
+        expect(result.customers).to eq([cust])
+      end
+
+      it 'dedupes an identifier hit already present in the email matches' do
+        cust = double('cust', role: 'customer', created: 100, objid: 'oid-dup')
+        # Email index yields the same customer the extid lookup resolves to.
+        allow(dbclient).to receive(:hscan).and_return(['0', [['a@example.com', 'oid-dup']]])
+        allow(Onetime::Customer).to receive(:load_multi).with(['oid-dup']).and_return([cust])
+        allow(Onetime::Customer).to receive(:find_by_extid).and_return(cust)
+        allow(Onetime::Customer).to receive(:find_by_identifier).and_return(nil)
+
+        result = described_class.new(search: 'oid-dup').call
+
+        expect(result.customers).to eq([cust])
+        expect(result.total_count).to eq(1)
+      end
+
+      it 'degrades a lookup that raises on a malformed term to no match' do
+        allow(Onetime::Customer).to receive(:find_by_extid).and_raise(StandardError, 'bad id')
+        allow(Onetime::Customer).to receive(:find_by_identifier).and_raise(StandardError, 'bad id')
+
+        result = described_class.new(search: '!!!').call
+
+        expect(result.customers).to eq([])
+        expect(result.total_count).to eq(0)
+      end
+
+      it 'applies the role filter to identifier hits too' do
+        admin = double('admin', role: 'admin', created: 100, objid: 'oid-a')
+        allow(Onetime::Customer).to receive(:find_by_extid).and_return(admin)
+        allow(Onetime::Customer).to receive(:find_by_identifier).and_return(nil)
+
+        # Same extid hit, but filtered to a role it does not have -> excluded.
+        result = described_class.new(search: 'ur1s', role: 'colonel').call
+
+        expect(result.customers).to eq([])
+      end
     end
   end
 end

@@ -20,7 +20,7 @@
     "content_hash": "81783303"
   },
   "web.admin.customers.list.searchPlaceholder": {
-    "text": "Search by email",
+    "text": "Search by email, extid, or objid",
     "content_hash": "f2462809"
   },
   "web.admin.customers.list.emptySearch": {
