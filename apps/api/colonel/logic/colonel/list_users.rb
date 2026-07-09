@@ -19,7 +19,7 @@ module ColonelAPI
       class ListUsers < ColonelAPI::Logic::Base
         SCHEMAS = { response: 'colonelUsers' }.freeze
 
-        attr_reader :users, :total_count, :page, :per_page, :total_pages, :role_filter, :search
+        attr_reader :users, :total_count, :page, :per_page, :total_pages, :role_filter, :search, :capped
 
         def process_params
           @page        = (params['page'] || 1).to_i
@@ -55,6 +55,7 @@ module ColonelAPI
 
           @total_count = result.total_count
           @total_pages = result.total_pages
+          @capped      = result.capped
 
           # Format user data (anonymous customers are dropped from the list, as
           # before; total_count above still counts them, matching prior behavior).
@@ -102,6 +103,9 @@ module ColonelAPI
                 per_page: per_page,
                 total_count: total_count,
                 total_pages: total_pages,
+                # true when the role/search scan hit its request-path cap, so
+                # total_count understates the population (more rows exist unseen).
+                capped: capped,
                 role_filter: role_filter,
                 search: search,
               },

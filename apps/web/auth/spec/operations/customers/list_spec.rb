@@ -76,6 +76,8 @@ RSpec.describe Auth::Operations::Customers::List do
       expect(result.customers).to eq([c])
       expect(result.total_count).to eq(1)
       expect(result.role).to eq('admin')
+      # Scan stayed under the cap, so total_count is exact.
+      expect(result.capped).to be(false)
     end
 
     it 'caps the request-path role scan at ROLE_FILTER_SCAN_LIMIT (never loads the whole set)' do
@@ -91,9 +93,11 @@ RSpec.describe Auth::Operations::Customers::List do
       loaded = nil
       allow(Onetime::Customer).to receive(:load_multi) { |ids| loaded = ids; [] }
 
-      described_class.new(role: 'customer', per_page: 10).call
+      result = described_class.new(role: 'customer', per_page: 10).call
 
       expect(loaded.size).to eq(limit)
+      # Scan hit the cap, so total_count understates the population: flag it.
+      expect(result.capped).to be(true)
     end
 
     it 'treats a blank role as no filter (never touches the role_index)' do
@@ -140,6 +144,8 @@ RSpec.describe Auth::Operations::Customers::List do
       expect(captured[2][:match]).to eq('*ali\\[c\\]e\\**')
       expect(result.customers).to eq([cust])
       expect(result.total_count).to eq(1)
+      # Cursor exhausted under the cap → total_count is exact, not capped.
+      expect(result.capped).to be(false)
     end
 
     it 'caps collected matches at SEARCH_MATCH_LIMIT' do
@@ -150,9 +156,11 @@ RSpec.describe Auth::Operations::Customers::List do
       loaded = nil
       allow(Onetime::Customer).to receive(:load_multi) { |ids| loaded = ids; [] }
 
-      described_class.new(search: 'example').call
+      result = described_class.new(search: 'example').call
 
       expect(loaded.size).to eq(limit)
+      # Overflow sliced off the return even though the cursor finished → capped.
+      expect(result.capped).to be(true)
     end
 
     it 'stops scanning after SEARCH_SCAN_ROUNDS round-trips even with no matches' do
@@ -166,6 +174,27 @@ RSpec.describe Auth::Operations::Customers::List do
       described_class.new(search: 'nomatch').call
 
       expect(rounds).to eq(described_class::SEARCH_SCAN_ROUNDS)
+    end
+
+    it 'flags capped when the round cap truncates a scan that still has matches' do
+      # A selective term on an adversarially huge index: one match early, then
+      # the cursor churns empty pages until SEARCH_SCAN_ROUNDS stops the walk.
+      # Collected count stays far below SEARCH_MATCH_LIMIT, so a size >= cap
+      # check would wrongly report "complete" — the round-cap exit is the only
+      # truncation signal here (regression guard for that false negative).
+      first = true
+      allow(dbclient).to receive(:hscan) do
+        entries = first ? [['hit@example.com', 'oid-hit']] : []
+        first = false
+        ['42', entries] # cursor never reaches '0'
+      end
+      cust = double('cust', role: 'customer', created: 100, objid: 'oid-hit')
+      allow(Onetime::Customer).to receive(:load_multi).and_return([cust])
+
+      result = described_class.new(search: 'hit').call
+
+      expect(result.total_count).to be < described_class::SEARCH_MATCH_LIMIT
+      expect(result.capped).to be(true)
     end
 
     it 'composes with the role filter (applied to the bounded match set)' do

@@ -89,6 +89,7 @@ module Auth
           :per_page,      # Integer — clamped page size (0 when :all requested)
           :total_pages,   # Integer — ceil(total_count / per_page), 1 when :all
           :role,          # String, nil — the applied role filter (nil = none)
+          :capped,        # Boolean — scan hit its cap; total_count understates
         )
 
         DEFAULT_PER_PAGE = 50
@@ -180,7 +181,12 @@ module Auth
         # unbounded role set is never fully loaded; `:all` (off-request) reads all.
         def call_filtered
           limit       = @all ? nil : ROLE_FILTER_SCAN_LIMIT
-          matches     = load(scan_role_member_ids(@role, limit: limit))
+          member_ids  = scan_role_member_ids(@role, limit: limit)
+          # capped: on the request path the scan stops at ROLE_FILTER_SCAN_LIMIT, so
+          # a full set is truncated and total_count below understates the real
+          # population. Derive from the scanned ids (pre-`load`, which .compacts).
+          capped      = !@all && member_ids.size >= ROLE_FILTER_SCAN_LIMIT
+          matches     = load(member_ids)
           # Preserve the incumbent within-page ordering for the filtered path
           # (created descending) — the role_index is an unordered set, so there is
           # no index-native order to read here.
@@ -195,7 +201,7 @@ module Auth
             matches[start_idx..end_idx] || []
           end
 
-          build_result(page, total_count)
+          build_result(page, total_count, capped: capped)
         end
 
         # Search: bounded cursor HSCAN over the email unique index PLUS exact
@@ -204,13 +210,19 @@ module Auth
         # when also present, is applied in Ruby on the loaded matches — the match
         # set is already bounded, so this stays cheap.
         def call_search
-          matches = load(scan_email_index_matches(@search))
+          # capped: true when the email HSCAN stopped early — at EITHER the match
+          # cap OR the round cap — so total_count below understates the population.
+          # The identifier lookups merged in next are exact singletons (never
+          # truncated), so they can't add hidden matches; the scan is the only
+          # bounded source.
+          email_ids, capped = scan_email_index_matches(@search)
+          matches           = load(email_ids)
           merge_identifier_matches(matches)
           matches.select! { |cust| cust.role.to_s == @role } if @role
           # Same within-page ordering as the filtered path (created descending);
           # the email index is a hash, so there is no index-native order here.
           matches.sort_by! { |cust| -(cust.created || 0).to_f }
-          total_count = matches.size
+          total_count       = matches.size
 
           page = if @all
             matches
@@ -220,13 +232,20 @@ module Auth
             matches[start_idx..end_idx] || []
           end
 
-          build_result(page, total_count)
+          build_result(page, total_count, capped: capped)
         end
 
         # Non-blocking cursor HSCAN of the email_index hash (email -> objid),
         # matching `*term*` server-side against the lowercased stored emails.
         # Doubly bounded: stops at SEARCH_MATCH_LIMIT collected matches AND at
         # SEARCH_SCAN_ROUNDS round-trips (see the constants above).
+        #
+        # @return [Array(Array<String>, Boolean)] the collected objids (capped at
+        #   SEARCH_MATCH_LIMIT) and a `capped` flag — true when matches were
+        #   dropped, so total_count understates the population. Two ways that
+        #   happens: the walk stopped before exhausting the index (cursor != '0',
+        #   the round or match bound), OR a completed walk still collected more
+        #   than SEARCH_MATCH_LIMIT and we sliced the overflow off the return.
         def scan_email_index_matches(term)
           dbkey    = Onetime::Customer.email_index.dbkey
           dbclient = Onetime::Customer.dbclient
@@ -238,14 +257,15 @@ module Auth
           loop do
             cursor, entries = dbclient.hscan(dbkey, cursor, match: pattern, count: SCAN_COUNT)
             entries.each { |_email, objid| objids << objid }
-            rounds += 1
+            rounds         += 1
 
             break if cursor == '0'
             break if objids.size >= SEARCH_MATCH_LIMIT
             break if rounds >= SEARCH_SCAN_ROUNDS
           end
 
-          objids.first(SEARCH_MATCH_LIMIT)
+          capped = cursor != '0' || objids.size > SEARCH_MATCH_LIMIT
+          [objids.first(SEARCH_MATCH_LIMIT), capped]
         end
 
         # Append the exact extid / objid lookups for the search term to the
@@ -286,7 +306,7 @@ module Auth
         # Escape Redis glob metacharacters so a user-supplied term is always a
         # literal substring match, never pattern syntax.
         def glob_escape(term)
-          term.gsub(/[\*\?\[\]\\]/) { |char| "\\#{char}" }
+          term.gsub(/[*?\[\]\\]/) { |char| "\\#{char}" }
         end
 
         # Non-blocking cursor SSCAN of a role_index set, collecting member objids.
@@ -312,7 +332,7 @@ module Auth
           Onetime::Customer.load_multi(objids).compact
         end
 
-        def build_result(customers, total_count)
+        def build_result(customers, total_count, capped: false)
           total_pages = if @all || @per_page.zero?
             total_count.positive? ? 1 : 0
           else
@@ -326,6 +346,7 @@ module Auth
             per_page: @per_page,
             total_pages: total_pages,
             role: @role,
+            capped: capped,
           )
         end
       end
