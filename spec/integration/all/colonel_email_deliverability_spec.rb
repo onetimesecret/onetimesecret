@@ -100,6 +100,26 @@ RSpec.describe 'Colonel email deliverability endpoints', type: :integration do
       expect(Onetime::EmailSuppression.event_count).to eq(0)
     end
 
+    it "preserves a suppression import's bounce/complaint reason (provider list sync)" do
+      # SyncProviderFeedback emits kind 'suppression' records carrying the real
+      # provider reason so an imported SES/Lettermint list keeps its breakdown.
+      data = ingest(
+        [
+          { 'email' => 'hb@example.com', 'kind' => 'suppression', 'reason' => 'bounce' },
+          { 'email' => 'sc@example.com', 'kind' => 'suppression', 'reason' => 'complaint' },
+          { 'email' => 'weird@example.com', 'kind' => 'suppression', 'reason' => 'nonsense' },
+        ],
+      )
+
+      expect(data[:record][:accepted]).to eq(3)
+      expect(Onetime::EmailSuppression.lookup('hb@example.com')['reason']).to eq('bounce')
+      expect(Onetime::EmailSuppression.lookup('sc@example.com')['reason']).to eq('complaint')
+      # An unrecognized reason falls back to 'manual', never raises.
+      expect(Onetime::EmailSuppression.lookup('weird@example.com')['reason']).to eq('manual')
+      # Import-only: no feed events regardless of reason.
+      expect(Onetime::EmailSuppression.event_count).to eq(0)
+    end
+
     it 'rejects malformed records without failing the batch, describing why' do
       data = ingest(
         [

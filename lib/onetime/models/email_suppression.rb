@@ -50,7 +50,7 @@ module Onetime
     # No SCHEMA constant on purpose (the AdminAuditEvent precedent): this model
     # is never serialised into an API response directly — the deliverability
     # endpoints declare their own wire contracts via SCHEMAS constants, with
-    # Zod shapes at src/schemas/api/account/responses/colonel-deliverability.ts.
+    # Zod shapes at src/schemas/api/internal/responses/colonel-deliverability.ts.
 
     prefix :email_suppression
 

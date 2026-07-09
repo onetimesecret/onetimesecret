@@ -34,9 +34,14 @@ module Onetime
       # - kind 'bounce' / 'complaint': recorded into the event feed AND the
       #   address is suppressed (reason = the kind). ESP-reported hard bounces
       #   and complaints are authoritative "stop mailing this address" signals.
-      # - kind 'suppression': suppress only (reason 'manual'), no feed event —
-      #   used to import an existing ESP suppression list or to manually block
-      #   an address.
+      # - kind 'suppression': suppress only, no feed event — used to import an
+      #   existing ESP suppression list (the SyncProviderFeedback pull path) or
+      #   to manually block an address. The record's `reason`, when it is a valid
+      #   suppression reason (bounce | complaint | manual), is preserved so an
+      #   imported SES/Lettermint list keeps its bounce-vs-complaint breakdown;
+      #   anything else (or absent) falls back to 'manual'. No feed event is
+      #   written, so a periodic re-sync of the provider list is idempotent and
+      #   never floods the bounce/complaint feed.
       #
       # Malformed records are counted + described, never fatal: a feedback
       # pipe must not lose 499 good records over 1 bad row.
@@ -127,7 +132,7 @@ module Onetime
           source = field(record, 'source') || @default_source
 
           if kind == 'suppression'
-            Onetime::EmailSuppression.suppress!(address: address, reason: 'manual', source: source)
+            Onetime::EmailSuppression.suppress!(address: address, reason: suppression_reason(record), source: source)
           else
             Onetime::EmailSuppression.record_event(
               address: address,
@@ -139,6 +144,14 @@ module Onetime
           end
 
           nil
+        end
+
+        # Reason for a 'suppression' import: the record's own reason when it is
+        # a valid {Onetime::EmailSuppression::REASONS} value (so a synced SES/
+        # Lettermint list keeps bounce vs complaint), else 'manual'.
+        def suppression_reason(record)
+          reason = field(record, 'reason').to_s
+          Onetime::EmailSuppression::REASONS.include?(reason) ? reason : 'manual'
         end
 
         # Records arrive as parsed JSON (string keys) from HTTP, but accept

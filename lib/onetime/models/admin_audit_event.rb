@@ -58,7 +58,7 @@ module Onetime
     # OrganizationMembership precedent for non-serialised models. The read API
     # (GET /api/colonel/audit) declares its own wire contract instead: the logic
     # class links `response: 'colonelAuditEvents'`, whose Zod shape lives at
-    # src/schemas/api/account/responses/colonel-audit.ts.
+    # src/schemas/api/internal/responses/colonel-audit.ts.
 
     prefix :admin_audit_event
 
