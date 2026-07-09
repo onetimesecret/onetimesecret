@@ -75,6 +75,27 @@ module Billing
       def create_checkout_session
         org = load_organization(req.params['extid'], require_owner: true)
 
+        # Duplicate-subscription guard (issue #2605). Block creating a second
+        # checkout session when the org already owns a genuinely active,
+        # non-canceling subscription. Currency-migration and post-cancel flows
+        # are exempt (see org_has_blocking_active_subscription?).
+        if org_has_blocking_active_subscription?(org)
+          billing_logger.warn 'Blocked checkout: organization already has an active subscription',
+            {
+              extid: org.extid,
+              stripe_subscription_id: org.stripe_subscription_id,
+              subscription_status: org.subscription_status,
+            }
+          return json_response(
+            {
+              error: true,
+              code: 'active_subscription_exists',
+              message: 'This organization already has an active subscription.',
+            },
+            status: 409,
+          )
+        end
+
         product  = req.params['product']
         interval = req.params['interval']
 

@@ -82,6 +82,23 @@ module Billing
           return
         end
 
+        # Duplicate-subscription guard (issue #2605). A returning subscriber whose
+        # default org already owns a genuinely active, non-canceling subscription
+        # must not create a second checkout session (double charge + orphaned
+        # subscription). Redirect them to the plan-change UI instead. The
+        # currency-migration / resubscribe-after-cancel flows are exempt (the old
+        # subscription is winding down) — see org_has_blocking_active_subscription?.
+        guard_org = default_organization_for(cust)
+        if guard_org && org_has_blocking_active_subscription?(guard_org)
+          billing_logger.info 'Redirect checkout blocked: organization already has an active subscription',
+            {
+              extid: guard_org.extid,
+              stripe_subscription_id: guard_org.stripe_subscription_id,
+            }
+          res.redirect "/billing/#{guard_org.extid}/plans"
+          return
+        end
+
         # Get the price for the requested interval
         interval_sym = interval.to_s.sub(/ly$/, '').to_sym  # 'monthly' -> :month
         price_data   = plan.price_for(interval_sym)
@@ -145,11 +162,7 @@ module Billing
           session_params[:client_reference_id] = cust.extid
 
           # Check for existing Stripe customer on user's default organization
-          orgs = cust.organization_instances.to_a.reject(&:archived?)
-          default_org = if cust.default_org_id.to_s.length.positive?
-            orgs.find { |o| o.objid == cust.default_org_id }
-          end
-          default_org ||= orgs.find { |o| o.is_default }
+          default_org = default_organization_for(cust)
           if default_org&.stripe_customer_id.to_s.length.positive?
             session_params[:customer] = default_org.stripe_customer_id
           else
@@ -319,6 +332,25 @@ module Billing
         # For Phase 1, default to EU
         # Future: Use req.env['HTTP_CF_IPCOUNTRY'] or GeoIP database
         'EU'
+      end
+
+      # Find the customer's default organization WITHOUT creating one.
+      #
+      # Mirrors the customer-reuse lookup in checkout_redirect: prefer the
+      # explicit default_org_id, then any (non-archived) org flagged is_default.
+      # Returns nil when the customer has no default org, so callers (e.g. the
+      # duplicate-subscription guard) can distinguish "no org" from "has org".
+      #
+      # @param customer [Onetime::Customer, nil] Customer instance
+      # @return [Onetime::Organization, nil]
+      def default_organization_for(customer)
+        return nil if customer.nil? || customer.anonymous?
+
+        orgs = customer.organization_instances.to_a.reject(&:archived?)
+        default_org = if customer.default_org_id.to_s.length.positive?
+          orgs.find { |o| o.objid == customer.default_org_id }
+        end
+        default_org || orgs.find { |o| o.is_default }
       end
 
       # Find or create default organization for customer
