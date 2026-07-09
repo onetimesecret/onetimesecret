@@ -12,8 +12,8 @@ cd "$CLAUDE_PROJECT_DIR"
 #
 # rbenv may be installed at RBENV_ROOT, $HOME/.rbenv, or /opt/rbenv
 # depending on the base image; try each rather than assuming one.
-RBENV_BIN="${RBENV_ROOT:-}/bin"
-for candidate in "$RBENV_BIN" "$HOME/.rbenv/bin" "/opt/rbenv/bin"; do
+for candidate in "${RBENV_ROOT:+$RBENV_ROOT/bin}" "$HOME/.rbenv/bin" "/opt/rbenv/bin"; do
+  [ -n "$candidate" ] || continue
   if [ -x "$candidate/rbenv" ]; then
     export PATH="$candidate:$PATH"
     break
@@ -53,7 +53,7 @@ if [ -f "Gemfile" ]; then
     echo "Ruby gems already installed."
   else
     echo "Installing Ruby gems (bundle install)..."
-    bundle install
+    bundle install || echo "Warning: bundle install failed; continuing with remaining setup."
   fi
 else
   echo "Warning: Gemfile not found. Skipping bundle install."
