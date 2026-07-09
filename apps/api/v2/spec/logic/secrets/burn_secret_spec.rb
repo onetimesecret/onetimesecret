@@ -4,6 +4,7 @@
 
 require_relative '../../../application'
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
+require_relative '../../support/actor_attribution_helpers'
 
 # Regression coverage for the v2 burn confirmation flag.
 #
@@ -19,6 +20,8 @@ require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 # Uses real Receipt/Secret objects (spawn_pair) so process -> success_data runs
 # end-to-end without stubbing the URL/serialization helpers.
 RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
+  include ActorAttributionSpecHelpers
+
   before(:all) do
     require 'onetime'
     Onetime.boot! :test
@@ -52,23 +55,6 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
     # process derives cust from strategy_result.user and never calls org, so no
     # accessor stubbing is needed (we exercise process directly, not raise_concerns).
     described_class.new(strategy_result, params)
-  end
-
-  # Persist an org on the receipt so the burn cascade fans the 'burned' event
-  # (with its actor attribution) out to a real, inspectable trail.
-  def link_receipt_to_org!(receipt)
-    org = Onetime::Organization.new(
-      display_name: 'Actor Attribution Org',
-      contact_email: "actor-#{SecureRandom.hex(6)}@example.com",
-    ).tap(&:save)
-    receipt.org_id = org.objid
-    receipt.save_fields(:org_id)
-    org
-  end
-
-  # An authenticated caller who owns `owner_objid`'s secret.
-  def owner_double(owner_objid)
-    double('Customer', custid: owner_objid, objid: owner_objid, anonymous?: false)
   end
 
   # Hold the race window open: both requests loaded the secret before the

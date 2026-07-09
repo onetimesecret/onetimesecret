@@ -4,6 +4,7 @@
 
 require_relative '../../../application'
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
+require_relative '../../support/actor_attribution_helpers'
 
 # Security regression coverage for the double-reveal race (ShowSecret variant).
 #
@@ -15,6 +16,8 @@ require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 # duplicated per controller by design (v1 legacy and each v2 endpoint own their
 # own copy rather than sharing a base implementation).
 RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
+  include ActorAttributionSpecHelpers
+
   before(:all) do
     require 'onetime'
     Onetime.boot! :test
@@ -57,22 +60,6 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
   def flag_as_verification!(secret)
     secret.verification = 'true'
     secret.save_fields(:verification)
-  end
-
-  # Persist an org on the receipt so the reveal cascade fans the 'revealed'
-  # event (with its actor attribution, #3639) out to a real, inspectable trail.
-  def link_receipt_to_org!(receipt)
-    org = Onetime::Organization.new(
-      display_name: 'Actor Attribution Org',
-      contact_email: "actor-#{SecureRandom.hex(6)}@example.com",
-    ).tap(&:save)
-    receipt.org_id = org.objid
-    receipt.save_fields(:org_id)
-    org
-  end
-
-  def owner_double(owner_objid)
-    double('Customer', custid: owner_objid, objid: owner_objid, anonymous?: false)
   end
 
   let!(:pair)   { Onetime::Receipt.spawn_pair(nil, 3600, 'a secret value') }

@@ -4,6 +4,7 @@
 
 require_relative '../../../application'
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
+require_relative '../../support/actor_attribution_helpers'
 
 # Security regression coverage for the double-reveal race.
 #
@@ -18,6 +19,8 @@ require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 # (raise_concerns, which handles guest-gating/entitlements/rate-limits, is out
 # of scope here).
 RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
+  include ActorAttributionSpecHelpers
+
   before(:all) do
     require 'onetime'
     Onetime.boot! :test
@@ -62,25 +65,6 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
   def flag_as_verification!(secret)
     secret.verification = 'true'
     secret.save_fields(:verification)
-  end
-
-  # Persist an org on the receipt so the reveal cascade fans the 'revealed'
-  # event (with its actor attribution) out to a real, inspectable trail. The
-  # cascade reloads the receipt from Redis, so org_id must be saved, not just
-  # set in memory.
-  def link_receipt_to_org!(receipt)
-    org = Onetime::Organization.new(
-      display_name: 'Actor Attribution Org',
-      contact_email: "actor-#{SecureRandom.hex(6)}@example.com",
-    ).tap(&:save)
-    receipt.org_id = org.objid
-    receipt.save_fields(:org_id)
-    org
-  end
-
-  # An authenticated caller who owns `owner_objid`'s secret.
-  def owner_double(owner_objid)
-    double('Customer', custid: owner_objid, objid: owner_objid, anonymous?: false)
   end
 
   let!(:pair)   { Onetime::Receipt.spawn_pair(nil, 3600, 'a secret value') }
