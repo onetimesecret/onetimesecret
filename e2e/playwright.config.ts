@@ -1,6 +1,7 @@
 // e2e/playwright.config.ts
 
 import { defineConfig, devices } from '@playwright/test';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -10,6 +11,20 @@ const DEFAULT_LOCAL_URL = 'http://localhost:7143';
 // Directory containing this config file. package.json is `"type": "module"`,
 // so the config loads as ESM and `__dirname` is unavailable.
 const CONFIG_DIR = path.dirname(fileURLToPath(import.meta.url));
+
+/**
+ * Remote/sandboxed dev environments (e.g. Claude Code on the web) preinstall
+ * Chromium at a fixed path baked into the container image, which can lag
+ * behind the revision this @playwright/test version expects — the default
+ * resolution then tries to download, which these environments block. Point
+ * at the preinstalled binary directly when present; everywhere else (real
+ * CI, local dev) this path doesn't exist and Playwright's normal
+ * resolution applies unchanged.
+ */
+const SANDBOX_CHROMIUM = '/opt/pw-browsers/chromium';
+const sandboxLaunchOptions = existsSync(SANDBOX_CHROMIUM)
+  ? { executablePath: SANDBOX_CHROMIUM }
+  : {};
 
 /**
  * Authenticated session produced by global.setup.ts and consumed by the
@@ -80,6 +95,9 @@ export default defineConfig({
   use: {
     /* Base URL - uses PLAYWRIGHT_BASE_URL if set, otherwise defaults to local server */
     baseURL: process.env.PLAYWRIGHT_BASE_URL || DEFAULT_LOCAL_URL,
+
+    /* See SANDBOX_CHROMIUM above - no-op outside the preinstalled sandbox. */
+    launchOptions: sandboxLaunchOptions,
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
