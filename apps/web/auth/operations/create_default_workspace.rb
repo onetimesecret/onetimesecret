@@ -29,8 +29,24 @@ module Auth
       include Onetime::LoggerMethods
 
       # @param customer [Onetime::Customer] The customer for whom to create workspace
-      def initialize(customer:)
-        @customer = customer
+      # @param require_verification [Boolean] When true, defer claiming a
+      #   pending federated subscription until the customer's email is verified.
+      #   The default workspace is ALWAYS created regardless of this flag; only
+      #   the federated-subscription claim is gated.
+      #
+      #   SECURITY: This flag closes a benefit-theft gap. `apply_pending_federation!`
+      #   runs from the standard email/password `after_create_account` hook —
+      #   BEFORE the user has proven ownership of the email. Without gating, an
+      #   attacker who knows a paying subscriber's email could register that
+      #   email in another region and, at account-creation time, claim and
+      #   destroy the victim's PendingFederatedSubscription. Callers on the
+      #   standard signup path pass `require_verification: true` so the claim is
+      #   deferred to `after_verify_account`. Pre-verified/trusted callers (SSO
+      #   IdP-verified, invite-token, post-payment billing, authenticated lazy
+      #   creation) leave it at the default (false) and claim immediately.
+      def initialize(customer:, require_verification: false)
+        @customer             = customer
+        @require_verification = require_verification
       end
 
       # Executes the workspace creation operation
@@ -53,7 +69,63 @@ module Auth
         { organization: org }
       end
 
+      # Claim a deferred pending federated subscription for a customer whose
+      # default workspace already exists.
+      #
+      # Invoked from `after_verify_account` once a standard email/password
+      # signup proves email ownership. The default workspace was created at
+      # signup (with the federation claim deferred); here we locate that
+      # workspace and apply any pending federated subscription to it.
+      #
+      # Idempotent and safe to call unconditionally:
+      #   - no-op if the customer is missing/unverified,
+      #   - no-op if the customer has no organization,
+      #   - no-op if there is no pending record (or it was already claimed and
+      #     consumed on a prior verification), because the pending record is
+      #     destroyed on first successful claim.
+      #
+      # @param customer [Onetime::Customer] verified customer
+      # @return [Boolean] True if a pending subscription was applied
+      def self.claim_pending_federation_for(customer)
+        new(customer: customer).claim_pending_federation
+      end
+
+      # Instance form of {.claim_pending_federation_for}.
+      #
+      # @return [Boolean] True if a pending subscription was applied
+      def claim_pending_federation
+        return false unless @customer
+
+        # Only claim once the email is verified. This is the whole point of the
+        # deferral: the after_verify_account hook has just marked the customer
+        # verified before calling here.
+        unless @customer.verified?
+          auth_logger.debug '[create-default-workspace] claim_pending_federation: customer not verified, skipping'
+          return false
+        end
+
+        org = default_organization_for(@customer)
+        unless org
+          auth_logger.debug '[create-default-workspace] claim_pending_federation: no organization for customer, skipping'
+          return false
+        end
+
+        apply_pending_federation!(org)
+      end
+
       private
+
+      # Locate the customer's default workspace (created at signup). Falls back
+      # to the customer's first organization when no explicit default is marked.
+      #
+      # @param customer [Onetime::Customer]
+      # @return [Onetime::Organization, nil]
+      def default_organization_for(customer)
+        orgs = customer.organization_instances.to_a
+        return nil if orgs.empty?
+
+        orgs.find { |org| org.is_default == true || org.is_default.to_s == 'true' } || orgs.first
+      end
 
       # Check if customer already has an organization (e.g., via invite)
       # @return [Boolean]
@@ -115,13 +187,34 @@ module Auth
       # Check for and apply pending federated subscription
       #
       # When a Stripe webhook fired before this account existed, the subscription
-      # state was stored keyed by email_hash. Now that the user has verified their
-      # email (by creating an account), we can apply those benefits.
+      # state was stored keyed by email_hash. When a matching account later
+      # appears in this region we can apply those benefits to its organization.
+      #
+      # IMPORTANT: account creation does NOT prove email ownership. For the
+      # standard email/password signup, this method runs from
+      # `after_create_account`, before the verification email is even sent. To
+      # prevent an attacker from claiming a victim's pending subscription by
+      # merely registering the victim's email here, the claim is gated on
+      # verification when the caller sets `require_verification: true` (see
+      # #initialize). Callers on that path receive the benefit once the user
+      # verifies, via `after_verify_account` → {.claim_pending_federation_for}.
+      # Pre-verified callers (SSO, invite, post-payment billing, authenticated
+      # lazy creation) run this immediately with the gate disabled.
       #
       # @param org [Onetime::Organization] Newly created organization
       # @return [Boolean] True if pending subscription was applied
       #
       def apply_pending_federation!(org)
+        # Verification gate: on the standard signup path the email is not yet
+        # verified at account-creation time. Defer the claim (leaving the
+        # PendingFederatedSubscription intact) until the user verifies; the
+        # after_verify_account hook re-invokes the claim once verified.
+        if @require_verification && !@customer&.verified?
+          auth_logger.info '[create-default-workspace] Deferring federated subscription claim until email is verified',
+            { org: org.extid }
+          return false
+        end
+
         # Ensure billing_email is set (may not be set by Organization.create!)
         org.billing_email ||= org.contact_email || @customer.email
         return false if org.billing_email.to_s.empty?
