@@ -4,6 +4,7 @@
 
 require_relative '../../../application'
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
+require 'onetime/security/request_context'
 
 # Security regression coverage for the double-reveal race (ShowSecret variant).
 #
@@ -32,15 +33,22 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
   # customer: overrides the default anonymous caller for the verification
   # branches that depend on who is logged in. Pass params as a braced hash --
   # the customer: kwarg would otherwise swallow a bare trailing hash.
-  def build_logic(params, customer: nil)
+  # ip:/user_agent: model the request context the auth strategy resolves into
+  # StrategyResult metadata (already edge-masked by Otto in production); nil by
+  # default so pre-existing examples run the no-network-context path unchanged.
+  def build_logic(params, customer: nil, ip: nil, user_agent: nil)
     customer ||= double('Customer', custid: 'anon', anonymous?: true, objid: nil)
     org      = double('Organization', objid: "org_#{SecureRandom.hex(4)}")
     allow(org).to receive(:can?).and_return(true)
 
+    metadata = { organization: org }
+    metadata[:ip] = ip if ip
+    metadata[:user_agent] = user_agent if user_agent
+
     strategy_result = double('StrategyResult',
       session: mock_session,
       user: customer,
-      metadata: { organization: org },
+      metadata: metadata,
       auth_method: 'basicauth')
 
     described_class.new(strategy_result, params)
@@ -110,6 +118,61 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
       timeline = Onetime::Receipt.load(owner_pair.first.identifier)
       expect(timeline.access_events.last).to start_with('previewed:')
       expect(Onetime::Secret.load(owner_pair.last.identifier).state).to eq('new')
+    end
+  end
+
+  # End-to-end network context capture (#3640, ADR-022): a metadata fetch
+  # (GET without continue) reads the request IP/UA from StrategyResult metadata,
+  # reduces them to the privacy-safe representation, and threads them through
+  # the receipt to the org trail. A winning reveal is deliberately NOT covered
+  # here: that access is captured as the `revealed` lifecycle event, not as a
+  # `secret_get` (see ShowSecret#process), so it never reaches this path.
+  context 'network context capture (metadata fetch)' do
+    let(:trail_org) do
+      Onetime::Organization.new(
+        display_name: 'Show Trail Org',
+        contact_email: "show-trail-#{SecureRandom.hex(6)}@example.com",
+      ).tap(&:save)
+    end
+
+    let!(:pair) { Onetime::Receipt.spawn_pair(nil, 3600, 'a secret value') }
+
+    before do
+      receipt.org_id = trail_org.objid
+      receipt.save_fields(:org_id)
+    end
+
+    it 'records the masked partial IP, partial UA, and keyed hash on the fetch' do
+      logic = build_logic(
+        { 'identifier' => secret.identifier },
+        ip: '203.0.113.42',
+        user_agent: 'Mozilla/5.0 (X11; Linux x86_64) Chrome/119.0.0.0 Safari/537.36',
+      )
+      logic.process_params
+      logic.process
+
+      event = Onetime::Organization.load(trail_org.objid).audit_events_page.first
+      expect(event['kind']).to eq('secret_get')
+      expect(event['net_ip_partial']).to eq('203.0.113.0')
+      expect(event['net_ip_hash']).to match(/\A[0-9a-f]{64}\z/)
+      expect(event['net_ua_partial']).to include('Chrome')
+      expect(event['net_ua_partial']).not_to include('119.0.0.0')
+    end
+
+    # THE NO-REGRESSION GUARD at the endpoint boundary.
+    it 'never persists the raw IP or full UA sent by the caller' do
+      raw_ip  = '203.0.113.42'
+      full_ua = 'Mozilla/5.0 (X11; Linux x86_64) Chrome/119.0.0.0 Safari/537.36'
+
+      logic = build_logic({ 'identifier' => secret.identifier }, ip: raw_ip, user_agent: full_ua)
+      logic.process_params
+      logic.process
+
+      trail = Onetime::Organization.load(trail_org.objid)
+      raw   = trail.audit_events.membersraw.join
+      expect(raw).not_to include(raw_ip)
+      expect(raw).not_to include(full_ua)
+      expect(raw).not_to include('119.0.0.0')
     end
   end
 
