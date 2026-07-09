@@ -19,7 +19,9 @@ module Billing
       # Uses WebhookValidator for comprehensive security validation:
       # - Signature verification
       # - Timestamp validation (replay attack prevention)
-      # - Atomic duplicate detection
+      # - Duplicate detection: a first-line, best-effort check-then-act
+      #   idempotency lookup here, backed by the worker's atomic claim
+      #   (SET NX) when the message is dequeued for processing
       #
       # POST /billing/webhook
       #

@@ -277,6 +277,117 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
   end
 
   # ============================================================================
+  # Replacement Detection Tests (issue #2605)
+  # ============================================================================
+  #
+  # When a completed checkout produces a subscription id that DIFFERS from the
+  # one already stored on the org, the handler must not silently overwrite it.
+  # It distinguishes a legitimate replacement (stored subscription winding down
+  # — e.g. currency-migration graceful path set cancel_at_period_end before the
+  # new checkout) from an anomalous duplicate (stored subscription still
+  # genuinely active), logging the anomaly loudly with both ids for reconciliation.
+  describe 'replacement detection (different stored subscription id)' do
+    let!(:customer) { create_test_customer(email: test_email) }
+
+    let(:new_subscription_id) { stripe_subscription_id }
+    let(:previous_subscription_id) { 'sub_previous_999' }
+
+    let(:subscription) do
+      build_stripe_subscription(
+        id: new_subscription_id,
+        customer: stripe_customer_id,
+        status: 'active',
+        metadata: { 'customer_extid' => customer.extid },
+      )
+    end
+
+    let!(:existing_org) do
+      org = create_test_organization(customer: customer, default: true)
+      org.stripe_customer_id     = stripe_customer_id
+      org.stripe_subscription_id = previous_subscription_id
+      org.subscription_status    = 'active'
+      org.save
+      org
+    end
+
+    before do
+      allow(Stripe::Subscription).to receive(:retrieve)
+        .with(new_subscription_id)
+        .and_return(subscription)
+    end
+
+    # Build a stored (previous) Stripe subscription with an explicit
+    # cancel_at_period_end flag (build_stripe_subscription omits that field).
+    def build_stored_subscription(cancel_at_period_end:, status: 'active')
+      Stripe::Subscription.construct_from(
+        id: previous_subscription_id,
+        object: 'subscription',
+        customer: stripe_customer_id,
+        status: status,
+        cancel_at_period_end: cancel_at_period_end,
+        items: { object: 'list', data: [{ price: { id: 'price_test' } }] },
+      )
+    end
+
+    context 'when the stored subscription id matches the new one (idempotent replay)' do
+      let(:previous_subscription_id) { new_subscription_id }
+
+      it 'short-circuits without re-applying the subscription' do
+        expect(Billing::Operations::ApplySubscriptionToOrg).not_to receive(:call)
+        expect(operation.call).to eq(:success)
+      end
+    end
+
+    context 'when the stored subscription is winding down (legitimate replacement)' do
+      before do
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .with(previous_subscription_id)
+          .and_return(build_stored_subscription(cancel_at_period_end: true))
+      end
+
+      it 'applies the update and repoints the org at the new subscription' do
+        expect(operation.call).to eq(:success)
+        existing_org.refresh!
+        expect(existing_org.stripe_subscription_id).to eq(new_subscription_id)
+      end
+    end
+
+    context 'when the stored subscription is still genuinely active (anomalous duplicate)' do
+      let(:mock_billing_logger) do
+        instance_double(SemanticLogger::Logger, info: nil, debug: nil, error: nil, warn: nil)
+      end
+
+      before do
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .with(previous_subscription_id)
+          .and_return(build_stored_subscription(cancel_at_period_end: false, status: 'active'))
+      end
+
+      it 'logs an error naming both subscription ids and the org id' do
+        allow_any_instance_of(Onetime::LoggerMethods)
+          .to receive(:billing_logger).and_return(mock_billing_logger)
+
+        expect(mock_billing_logger).to receive(:error).with(
+          a_string_including('Duplicate active subscription'),
+          hash_including(
+            orgid: existing_org.objid,
+            previous_subscription_id: previous_subscription_id,
+            new_subscription_id: new_subscription_id,
+          ),
+        )
+
+        operation.call
+      end
+
+      it 'still applies the update (does not silently discard the new paid subscription)' do
+        expect(operation.call).to eq(:success)
+        existing_org.refresh!
+        expect(existing_org.stripe_subscription_id).to eq(new_subscription_id)
+      end
+    end
+  end
+
+  # ============================================================================
   # Email Hash Federation Tests
   # ============================================================================
   #

@@ -318,6 +318,94 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       debug_info = JSON.parse(session.subscription_data['metadata']['debug_info'])
       expect(debug_info['checkout_region']).not_to be_nil
     end
+
+    # =========================================================================
+    # Idempotency key coverage (Copilot request)
+    # =========================================================================
+    #
+    # Mirrors the two assertions in billing_controller_spec: the redirect path
+    # must send a UUID-format idempotency key and a DISTINCT key per attempt so
+    # rapid retries never receive a cached (possibly already-completed) session.
+    it 'sends a UUID-format idempotency key that differs per checkout attempt' do
+      captured_keys = []
+      allow(Stripe::Checkout::Session).to receive(:create) do |_params, opts|
+        captured_keys << opts&.dig(:idempotency_key)
+        build_checkout_session(
+          'url' => 'https://checkout.stripe.com/c/pay/cs_test_idem',
+          'id' => 'cs_test_idem'
+        )
+      end
+
+      2.times do
+        get "/billing/plans/#{product}/#{interval}"
+        expect(last_response.status).to eq(302)
+      end
+
+      uuid_format = /\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i
+      expect(captured_keys.length).to eq(2)
+      expect(captured_keys).to all(match(uuid_format))
+      expect(captured_keys.uniq.length).to eq(2)
+    end
+
+    # =========================================================================
+    # Duplicate-subscription guard on the redirect path (issue #2605)
+    # =========================================================================
+    #
+    # The same creation-time guard as the API path, expressed as a redirect
+    # (this path serves HTML, not JSON). Only relevant for authenticated
+    # returning subscribers whose default org already owns a subscription.
+    context 'duplicate-subscription guard (issue #2605)' do
+      let(:default_org) do
+        org            = Onetime::Organization.create!('Guard Org', customer, customer.email)
+        org.is_default = true
+        org.save
+        created_organizations << org
+        org
+      end
+
+      it 'redirects an org with a genuinely active (non-canceling) subscription to the plan-change UI instead of Stripe' do
+        default_org.stripe_customer_id     = 'cus_redirect_active'
+        default_org.stripe_subscription_id = 'sub_redirect_active'
+        default_org.subscription_status    = 'active'
+        default_org.save
+
+        active_sub = build_subscription(
+          'id' => 'sub_redirect_active',
+          'status' => 'active',
+          'cancel_at_period_end' => false
+        )
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .with('sub_redirect_active').and_return(active_sub)
+
+        expect(Stripe::Checkout::Session).not_to receive(:create)
+
+        get "/billing/plans/#{product}/#{interval}"
+
+        expect(last_response.status).to eq(302)
+        expect(last_response.location).to eq("/billing/#{default_org.extid}/plans")
+      end
+
+      it 'allows checkout for an org mid currency-migration (subscription scheduled to cancel)' do
+        default_org.stripe_customer_id     = 'cus_redirect_migration'
+        default_org.stripe_subscription_id = 'sub_redirect_migration'
+        default_org.subscription_status    = 'active'
+        default_org.set_currency_migration_intent!('price_test', Time.now.to_i + 86_400)
+
+        get "/billing/plans/#{product}/#{interval}"
+
+        expect(last_response.status).to eq(302)
+        expect(last_response.location).to match(%r{\Ahttps://checkout\.stripe\.com/})
+      end
+
+      it 'allows checkout for an org with no subscription' do
+        default_org # ensure the default org exists (no subscription state)
+
+        get "/billing/plans/#{product}/#{interval}"
+
+        expect(last_response.status).to eq(302)
+        expect(last_response.location).to match(%r{\Ahttps://checkout\.stripe\.com/})
+      end
+    end
   end
 
   describe 'GET /billing/welcome' do
