@@ -71,6 +71,24 @@ invitation; the stricter of the two wins.
    - `price.updated`
 4. Copy signing secret to `STRIPE_WEBHOOK_SECRET`
 
+## Idempotency Keys
+
+Checkout session creation sends a fresh UUID idempotency key on every
+attempt. Sessions are pre-payment and side-effect free — duplicates expire
+unused, and duplicate *completions* are deduplicated by the
+`checkout.session.completed` webhook handler. Do not reintroduce
+deterministic (time-bucketed) keys here: Stripe caches responses by key, so
+a same-window retry returns the original — possibly already-completed —
+session, and the hosted page shows "You're all done here" instead of a new
+checkout.
+
+Mutation calls keep deterministic keys so network retries collapse to one
+applied change (e.g. plan changes use a 5-minute-window SHA256 key for
+`Stripe::Subscription.update`).
+
+See `apps/web/billing/docs/adr-checkout-idempotency-keys.md` for the full
+rationale.
+
 ## Verification
 
 **Backend:**
