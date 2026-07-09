@@ -79,6 +79,9 @@
     "text": "Back to customers",
     "content_hash": "077807fb"
   },
+  "web.admin.customers.detail.openFullPage": {
+    "text": "Open full page"
+  },
   "web.admin.customers.detail.notFound": {
     "text": "Customer not found",
     "content_hash": "5e3f5824"

@@ -103,6 +103,9 @@
     "text": "Admin",
     "content_hash": "c1c224b0"
   },
+  "web.colonel.backToSite": {
+    "text": "Back to Onetime Secret"
+  },
   "web.colonel.activity": {
     "text": "Activity",
     "content_hash": "38da1505"

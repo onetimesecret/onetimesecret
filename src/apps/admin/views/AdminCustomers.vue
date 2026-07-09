@@ -4,9 +4,14 @@
   import { storeToRefs } from 'pinia';
   import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
-  import { useRouter } from 'vue-router';
 
-  import { DataTable, FilterBar, KitPagination } from '@/apps/admin/components/kit';
+  import {
+    DataTable,
+    DetailDrawer,
+    FilterBar,
+    KitPagination,
+    StatCard,
+  } from '@/apps/admin/components/kit';
   import type { DataTableColumn, FilterConfig } from '@/apps/admin/components/kit';
   import { useAdminCustomers } from '@/apps/admin/stores/useAdminCustomers';
   import type { ColonelUser } from '@/schemas/api/internal/responses/colonel';
@@ -28,7 +33,6 @@
    * server `sort` param to drive a controlled re-fetch.
    */
   const { t } = useI18n();
-  const router = useRouter();
 
   const store = useAdminCustomers();
   const { customers, pagination, loading, error } = storeToRefs(store);
@@ -123,10 +127,45 @@
     fetchPage(1);
   }
 
+  // Detail is a slide-over drawer (the console's standard inspect pattern, same
+  // as organizations / sessions) rather than a full-page route, so a row click
+  // never yanks you out of the list you're scanning. The drawer renders from the
+  // row data already in hand — no second fetch — and offers "Open full page" for
+  // the deep, mutating actions that live on AdminCustomerDetail.
+  const drawerOpen = ref(false);
+  const selectedCustomer = ref<ColonelUser | null>(null);
+
+  /** Read-only summary rows for the drawer's field grid. */
+  const drawerFields = computed(() => {
+    const c = selectedCustomer.value;
+    if (!c) return [];
+    return [
+      {
+        key: 'publicId',
+        label: t('web.admin.customers.detail.fields.publicId'),
+        value: c.user_id,
+        mono: true,
+      },
+      {
+        key: 'created',
+        label: t('web.admin.customers.detail.fields.created'),
+        value: formatDisplayDateTime(c.created),
+        mono: false,
+      },
+      {
+        key: 'lastLogin',
+        label: t('web.admin.customers.detail.fields.lastLogin'),
+        value: c.last_login
+          ? formatDisplayDateTime(c.last_login)
+          : t('web.admin.customers.detail.never'),
+        mono: false,
+      },
+    ];
+  });
+
   function openDetail(row: ColonelUser): void {
-    // Route by the customer's PUBLIC id (extid). The list exposes it as both
-    // `user_id` and `extid`; they are identical.
-    router.push({ name: 'AdminCustomerDetail', params: { id: row.user_id } });
+    selectedCustomer.value = row;
+    drawerOpen.value = true;
   }
 
   onMounted(() => fetchPage(1));
@@ -257,5 +296,84 @@
       class="mt-4"
       @update:page="onPageChange"
       @update:per-page="onPerPageChange" />
+
+    <!-- Detail drawer: read-only summary + escalation to the full page. Mirrors
+         the organizations / sessions drawers so every row click behaves alike. -->
+    <DetailDrawer
+      v-model:open="drawerOpen"
+      width-class="max-w-2xl"
+      :title="selectedCustomer?.email"
+      :subtitle="selectedCustomer?.user_id"
+      testid="customers-drawer">
+      <div
+        v-if="selectedCustomer"
+        class="space-y-8">
+        <div
+          v-if="selectedCustomer.suspended"
+          class="rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-800 dark:bg-red-900/20 dark:text-red-200"
+          data-testid="customer-drawer-suspended">
+          {{ t('web.admin.customers.suspended.badge') }}
+        </div>
+
+        <section>
+          <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <StatCard
+              :label="t('web.admin.customers.columns.role')"
+              :value="t(`web.admin.customers.roles.${selectedCustomer.role}`, selectedCustomer.role)"
+              icon="shield-check"
+              testid="customer-stat-role" />
+            <StatCard
+              :label="t('web.admin.customers.columns.verified')"
+              :value="
+                selectedCustomer.verified
+                  ? t('web.admin.customers.detail.yes')
+                  : t('web.admin.customers.detail.no')
+              "
+              icon="check-circle"
+              testid="customer-stat-verified" />
+            <StatCard
+              :label="t('web.admin.customers.columns.plan')"
+              :value="selectedCustomer.planid || t('web.admin.customers.detail.none')"
+              icon="credit-card" />
+            <StatCard
+              :label="t('web.admin.customers.columns.secrets')"
+              :value="selectedCustomer.secrets_count"
+              icon="key"
+              testid="customer-stat-secrets" />
+          </div>
+
+          <dl class="mt-5 grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+            <div
+              v-for="field in drawerFields"
+              :key="field.key"
+              :data-testid="`customer-field-${field.key}`">
+              <dt
+                class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                {{ field.label }}
+              </dt>
+              <dd
+                class="mt-0.5 break-words text-sm text-gray-900 dark:text-gray-100"
+                :class="field.mono ? 'font-mono text-xs' : ''">
+                {{ field.value }}
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        <!-- Escalation: the deep, mutating actions live on the full page. -->
+        <section class="border-t border-gray-200 pt-6 dark:border-gray-800">
+          <router-link
+            :to="{ name: 'AdminCustomerDetail', params: { id: selectedCustomer.user_id } }"
+            class="inline-flex items-center gap-1.5 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 dark:bg-brand-500 dark:hover:bg-brand-600"
+            data-testid="customer-open-full-page">
+            {{ t('web.admin.customers.detail.openFullPage') }}
+            <OIcon
+              collection="heroicons"
+              name="arrow-top-right-on-square"
+              size="4" />
+          </router-link>
+        </section>
+      </div>
+    </DetailDrawer>
   </div>
 </template>

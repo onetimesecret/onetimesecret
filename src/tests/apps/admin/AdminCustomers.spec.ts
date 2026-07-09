@@ -1,7 +1,7 @@
 // src/tests/apps/admin/AdminCustomers.spec.ts
 
 import { createPinia, setActivePinia } from 'pinia';
-import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
+import { flushPromises, mount, RouterLinkStub, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockApi = {
@@ -29,6 +29,15 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
     props: ['collection', 'name', 'class', 'size', 'aria-label'],
   },
 }));
+
+// jsdom has no ResizeObserver; headlessui's Dialog observes the panel when the
+// detail drawer opens. Stub it so the drawer test drives the real open path.
+class ResizeObserverStub {
+  observe(): void {}
+  unobserve(): void {}
+  disconnect(): void {}
+}
+globalThis.ResizeObserver = ResizeObserverStub as unknown as typeof ResizeObserver;
 
 import AdminCustomers from '@/apps/admin/views/AdminCustomers.vue';
 import { FilterBar } from '@/apps/admin/components/kit';
@@ -86,7 +95,15 @@ describe('AdminCustomers (list view — ticket #22)', () => {
   });
   afterEach(() => wrapper?.unmount());
 
-  const mountView = () => mount(AdminCustomers, { global: { plugins: [pinia, i18n] } });
+  const mountView = () =>
+    mount(AdminCustomers, {
+      global: {
+        plugins: [pinia, i18n],
+        // The drawer's "Open full page" link is a router-link; the admin router
+        // isn't mounted here, so use the slot-rendering official stub.
+        stubs: { RouterLink: RouterLinkStub },
+      },
+    });
 
   it('fetches the first page on mount and renders a row per customer', async () => {
     mockApi.get.mockResolvedValue({ data: usersPayload() });
@@ -191,14 +208,28 @@ describe('AdminCustomers (list view — ticket #22)', () => {
     expect(wrapper.find('[data-testid="suspended-badge"]').exists()).toBe(false);
   });
 
-  it('routes to the detail page (by public id) on row click', async () => {
+  it('opens the detail drawer on row click, with a full-page escalation link', async () => {
     mockApi.get.mockResolvedValue({ data: usersPayload() });
     wrapper = mountView();
     await flushPromises();
 
-    await wrapper.find('[data-testid="customers-table"] tbody tr').trigger('click');
+    // Drawer-first (like organizations / sessions): no navigation, no drawer
+    // until a row is clicked.
+    expect(wrapper.find('[data-testid="customers-drawer"]').exists()).toBe(false);
 
-    expect(pushMock).toHaveBeenCalledWith({
+    await wrapper.find('[data-testid="customers-table"] tbody tr').trigger('click');
+    await flushPromises();
+
+    console.log('DBG_HTML_START');console.log(wrapper.html());console.log('DBG_HTML_END');const drawer = wrapper.find('[data-testid="customers-drawer"]');
+    expect(drawer.exists()).toBe(true);
+    expect(drawer.text()).toContain('alice@example.com');
+    expect(drawer.text()).toContain('ur_alice');
+    expect(pushMock).not.toHaveBeenCalled();
+
+    // The deep, mutating actions stay one click away on the full page (by public id).
+    const fullPage = wrapper.findComponent(RouterLinkStub);
+    expect(fullPage.exists()).toBe(true);
+    expect(fullPage.props('to')).toEqual({
       name: 'AdminCustomerDetail',
       params: { id: 'ur_alice' },
     });

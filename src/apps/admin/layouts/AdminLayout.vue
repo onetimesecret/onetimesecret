@@ -82,15 +82,53 @@
           </span>
         </template>
       </nav>
+
+      <!-- Escape hatch: the console is an isolated bundle, so this is a full
+           navigation back to the main site (not a router-link). Pinned to the
+           foot of the rail so it never scrolls out of reach. -->
+      <div class="border-t border-gray-200 p-3 dark:border-gray-800">
+        <a
+          href="/"
+          class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+          data-testid="admin-back-to-site">
+          <OIcon
+            collection="heroicons"
+            name="arrow-left"
+            size="5" />
+          {{ t('web.colonel.backToSite') }}
+        </a>
+      </div>
     </aside>
 
     <!-- Main column -->
     <div class="flex min-w-0 flex-1 flex-col">
       <header
         class="flex h-14 items-center justify-between border-b border-gray-200 bg-white px-4 dark:border-gray-800 dark:bg-gray-950">
-        <h1 class="truncate font-brand text-base font-semibold">
-          {{ route.meta.title ? t(route.meta.title as string) : t('web.colonel.admin') }}
-        </h1>
+        <!-- Breadcrumb, not a page title: the bold page heading lives in each
+             view's body. This is muted wayfinding + a persistent home link, so
+             it no longer echoes the body <h2>. -->
+        <nav
+          class="flex min-w-0 items-center gap-1 text-sm"
+          :aria-label="t('web.colonel.admin')">
+          <router-link
+            to="/colonel"
+            class="shrink-0 rounded text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-gray-400 dark:hover:text-gray-200">
+            {{ t('web.colonel.admin') }}
+          </router-link>
+          <template v-if="route.meta.title && route.path !== '/colonel'">
+            <OIcon
+              collection="heroicons"
+              name="chevron-right"
+              size="4"
+              class="shrink-0 text-gray-300 dark:text-gray-600"
+              aria-hidden="true" />
+            <span
+              class="truncate font-medium text-gray-900 dark:text-white"
+              aria-current="page">
+              {{ t(route.meta.title as string) }}
+            </span>
+          </template>
+        </nav>
         <button
           type="button"
           class="inline-flex size-9 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-gray-400 dark:hover:bg-gray-800"

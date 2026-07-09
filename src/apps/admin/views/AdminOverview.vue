@@ -5,7 +5,6 @@
   import { useI18n } from 'vue-i18n';
 
   import TrendSparkline from '@/apps/admin/components/TrendSparkline.vue';
-  import { StatCard } from '@/apps/admin/components/kit';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
   import type { ColonelTrendPoint } from '@/schemas/api/internal/responses/colonel-trends';
   import {
@@ -212,15 +211,15 @@
       class="mb-8">
       <div
         v-if="statsFailed"
-        class="mb-4 flex items-center justify-between gap-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 dark:border-red-900/50 dark:bg-red-900/20"
+        class="mb-4 flex items-center justify-between gap-4 rounded-md border border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-800/50"
         role="alert"
         data-testid="overview-stats-error">
-        <span class="text-sm text-red-800 dark:text-red-200">
+        <span class="text-sm text-gray-600 dark:text-gray-400">
           {{ t('web.admin.overview.stats.loadError') }}
         </span>
         <button
           type="button"
-          class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
+          class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
           @click="loadStats().catch(() => {})">
           <OIcon
             collection="heroicons"
@@ -230,19 +229,45 @@
         </button>
       </div>
 
+      <!-- One dense readout strip rather than six hero cards: an operator scans
+           these counts, they aren't a billboard. Hairline separators come from a
+           gap-px grid over a tinted background (wrap-safe, unlike divide-x). -->
       <div
         v-else
-        class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        class="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-gray-200 bg-gray-200 shadow-sm sm:grid-cols-3 lg:grid-cols-6 dark:border-gray-800 dark:bg-gray-800"
         data-testid="overview-stats">
-        <StatCard
+        <component
+          :is="tile.to ? 'router-link' : 'div'"
           v-for="tile in statTiles"
           :key="tile.key"
-          :label="tile.label"
-          :value="tile.value"
-          :icon="tile.icon"
-          :loading="statsLoading"
           :to="tile.to"
-          :testid="`overview-stat-${tile.key}`" />
+          :data-testid="`overview-stat-${tile.key}`"
+          class="flex flex-col gap-1 bg-white p-4 transition-colors dark:bg-gray-900"
+          :class="
+            tile.to
+              ? 'hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:hover:bg-gray-800/60'
+              : ''
+          ">
+          <span
+            class="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            <OIcon
+              collection="heroicons"
+              :name="tile.icon"
+              size="4"
+              class="shrink-0 text-gray-400 dark:text-gray-500" />
+            <span class="truncate">{{ tile.label }}</span>
+          </span>
+          <Skeleton
+            v-if="statsLoading"
+            height="h-8"
+            width="w-12"
+            :pulse="true" />
+          <span
+            v-else
+            class="text-2xl font-semibold tabular-nums text-gray-900 dark:text-white">
+            {{ tile.value }}
+          </span>
+        </component>
       </div>
     </section>
 
@@ -261,15 +286,15 @@
 
       <div
         v-if="trendsFailed"
-        class="flex items-center justify-between gap-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 dark:border-red-900/50 dark:bg-red-900/20"
+        class="flex items-center justify-between gap-4 rounded-md border border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-800/50"
         role="alert"
         data-testid="overview-trends-error">
-        <span class="text-sm text-red-800 dark:text-red-200">
+        <span class="text-sm text-gray-600 dark:text-gray-400">
           {{ t('web.admin.overview.trends.loadError') }}
         </span>
         <button
           type="button"
-          class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
+          class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
           @click="loadTrends().catch(() => {})">
           <OIcon
             collection="heroicons"
@@ -350,15 +375,15 @@
 
       <div
         v-if="infoFailed"
-        class="flex items-center justify-between gap-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 dark:border-red-900/50 dark:bg-red-900/20"
+        class="flex items-center justify-between gap-4 rounded-md border border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-800/50"
         role="alert"
         data-testid="overview-feedback-error">
-        <span class="text-sm text-red-800 dark:text-red-200">
+        <span class="text-sm text-gray-600 dark:text-gray-400">
           {{ t('web.admin.overview.feedback.loadError') }}
         </span>
         <button
           type="button"
-          class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
+          class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
           @click="loadInfo().catch(() => {})">
           <OIcon
             collection="heroicons"
