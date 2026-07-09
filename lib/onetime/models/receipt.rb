@@ -15,9 +15,11 @@ module Onetime
       generator: proc { Familia::VerifiableIdentifier.generate_verifiable_id }
     feature :safe_dump_fields
     feature :expiration
+    feature :access_timeline
     feature :relationships
     feature :required_fields
     feature :housekeeping
+    feature :state_cas
     feature :deprecated_fields
 
     # Migration features - REMOVE after v1→v2 migration complete
@@ -39,9 +41,32 @@ module Onetime
     field :has_passphrase
     field :kind
 
+    # Submission provenance — how the underlying secret entered the system.
+    # Stamped once at creation (init defaults 'standard'; Incoming forms set
+    # 'incoming' in create_incoming_secret) and never inferred at read time.
+    # One of SOURCES; drives the share-link withholding gate via
+    # #shows_share_link?.
+    field :source
+
     # Organization and domain tracking for scoped receipt queries
     field :org_id      # Organization objid (current context when created)
     field :domain_id   # CustomDomain objid (when using registered custom domain)
+
+    # Observability only (#3633): epoch seconds of the FIRST receipt/metadata
+    # page load, set once by record_receipt_view!. It bounds the org audit
+    # trail's 'receipt_viewed' events to one per receipt and is NOT a lifecycle
+    # state — it gates nothing (viewable?/reveal/burn are untouched) and does
+    # not feed is_previewed (which derives from the access timeline).
+    field :receipt_viewed_at
+
+    # Consumption gate (#3633): epoch seconds when the secret's plaintext value
+    # was displayed to its creator on the receipt page, claimed exactly once by
+    # claim_secret_value_display! (atomic HSETNX). It enforces the "one time"
+    # guarantee for the creator-side preview — generated passwords are shown
+    # nowhere else, and a repeated or concurrent receipt load must never
+    # re-reveal the value. Like receipt_viewed_at this is NOT a lifecycle state:
+    # it gates only the one-shot value display, never viewable?/reveal/burn.
+    field :secret_value_shown_at
 
     # Familia v2 relationships - enables org.receipts and custom_domain.receipts queries
     # These auto-generate sorted_set collections on the target models
@@ -56,6 +81,25 @@ module Onetime
     field :recipient_name  # Display name for incoming-secret recipients (preferred over obscured email)
     field :memo  # Optional memo/subject for incoming secrets
 
+    # Closed value space for the :source discriminator. Kept as strings to
+    # match the :kind / :state convention; extend here (e.g. 'api', 'import')
+    # without a schema change.
+    SOURCES = %w[standard incoming].freeze
+
+    # Source-dependent behaviour, keyed by :source. The single source of truth
+    # for what each provenance permits; read via #shows_share_link?. Mirrors
+    # CustomDomain::SignupConfig::STRATEGY_METADATA. Unmapped (non-empty)
+    # values fall through to WITHHELD_CAPABILITIES — fail closed.
+    SOURCE_CAPABILITIES = {
+      'standard' => { shows_share_link: true }.freeze,
+      'incoming' => { shows_share_link: false }.freeze,
+    }.freeze
+
+    # Fallback for any :source value not in SOURCE_CAPABILITIES (a typo or an
+    # unshipped future source): withhold the link. A nil/empty source (legacy
+    # pre-field receipt) is handled separately in #shows_share_link?.
+    WITHHELD_CAPABILITIES = { shows_share_link: false }.freeze
+
     # Class-level collections for expiration warning feature
     # Sorted set: score = expiration timestamp, member = receipt identifier
     class_sorted_set :expiration_timeline
@@ -63,7 +107,24 @@ module Onetime
     class_set :warnings_sent
 
     def init
-      self.state ||= 'new'
+      self.state  ||= 'new'
+      self.source ||= 'standard'
+    end
+
+    # Whether this receipt's payload may carry the share link and its
+    # secret_identifier bearer key. Incoming secrets withhold both from their
+    # creator (a guest on a custom domain), so opening the receipt can't spend
+    # the secret's one view.
+    #
+    # Legacy receipts created before the :source field read as nil; they are
+    # overwhelmingly 'standard', so an empty source is treated as standard
+    # (link shown). Any non-empty but unrecognized value fails closed.
+    #
+    # @return [Boolean]
+    def shows_share_link?
+      return true if source.to_s.empty?
+
+      SOURCE_CAPABILITIES.fetch(source.to_s, WITHHELD_CAPABILITIES)[:shows_share_link]
     end
 
     # Clean up class-level collections before destroying the object.
@@ -188,17 +249,23 @@ module Onetime
       # Creates a linked Secret and Receipt pair for secure content storage.
       #
       # SECURITY CONTRACT: Callers must validate domain and passphrase before
-      # calling this method, as both are used as cryptographic inputs:
+      # calling this method:
       #
-      # - domain: Used as Additional Authenticated Data (AAD) for encryption.
-      #   API callers validate via: process_share_domain (format validation),
-      #   validate_domain_access (DB lookup + existence check), and
-      #   validate_domain_permissions (ownership/access rules). Attackers
-      #   cannot bind secrets to arbitrary AAD values.
+      # - domain: NOT a cryptographic input. The AAD for ciphertext is bound
+      #   automatically by Familia's encrypted_field and is exactly
+      #   "Onetime::Secret:ciphertext:<objid>" (class, field, identifier);
+      #   Secret declares no aad_fields, so the share domain is not part of
+      #   the AAD, and ciphertext_domain is a transient field that no code
+      #   reads back. Domain validation (process_share_domain,
+      #   validate_domain_access, validate_domain_permissions) is an
+      #   authorization control, not an encryption binding.
       #
-      # - passphrase: Used for secret access control (encrypted before storage).
-      #   API callers validate via: validate_passphrase (min/max length) and
-      #   validate_passphrase_complexity (when enforce_complexity enabled).
+      # - passphrase: An access-control gate, not an encryption input. It is
+      #   hashed with argon2id (passphrase_hashing feature) and verified
+      #   before decryption is attempted; it does not participate in key
+      #   derivation. API callers validate via: validate_passphrase (min/max
+      #   length) and validate_passphrase_complexity (when enforce_complexity
+      #   enabled).
       #
       # See: apps/api/v2/logic/secrets/base_secret_action.rb for validation.
       #

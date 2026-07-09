@@ -11,6 +11,21 @@ module Auth::Config::Base
     auth.enable :hmac_secret_guard
     auth.hmac_secret_env_key 'AUTH_SECRET'
     auth.hmac_old_secret ENV['AUTH_OLD_SECRET'] if ENV['AUTH_OLD_SECRET']
+
+    # Obfuscate the numeric account id that Rodauth otherwise leaks in
+    # plaintext inside email-link tokens (verify_account, reset_password,
+    # email_auth, verify_login_change, unlock) and the remember-me cookie.
+    # Keyed format-preserving encryption; no schema change (the integer PK is
+    # still used internally, only the value on the wire is swapped). Legacy
+    # plaintext tokens/cookies pass through untouched via the version tag, so
+    # in-flight links keep working. Shares the SecretGuard plumbing with
+    # hmac_secret_guard: ACCOUNT_ID_SECRET (>= 32 bytes) is required in
+    # production (boot raises if missing); an unset RACK_ENV fails closed to
+    # production. Independent of AUTH_SECRET so rotating one never invalidates
+    # the other's in-flight tokens (ADR-008 Category 2).
+    auth.enable :account_id_obfuscation
+    auth.account_id_obfuscation_secret_env_key 'ACCOUNT_ID_SECRET'
+
     auth.enable :internal_request
 
     # Block form defers evaluation until runtime, not class definition time.

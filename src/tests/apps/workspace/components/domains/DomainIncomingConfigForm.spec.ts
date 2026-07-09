@@ -189,7 +189,9 @@ describe('DomainIncomingConfigForm (single-list, plaintext)', () => {
   });
 
   describe('save', () => {
-    it('save button is disabled when there are no unsaved changes', () => {
+    it('save button is hidden when there are no unsaved changes', () => {
+      // Recipients/enabled auto-save at the page level, so the Save button
+      // only appears as a retry affordance when changes remain unsaved.
       const wrapper = mountForm({
         formState: singleRecipientFormState,
         savedFormState: singleRecipientFormState,
@@ -197,7 +199,7 @@ describe('DomainIncomingConfigForm (single-list, plaintext)', () => {
       });
 
       const saveButton = wrapper.find('button[type="submit"]');
-      expect(saveButton.attributes('disabled')).toBeDefined();
+      expect(saveButton.exists()).toBe(false);
     });
 
     it('save button is enabled when there are unsaved changes', () => {

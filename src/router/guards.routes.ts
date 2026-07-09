@@ -34,15 +34,23 @@ export async function setupRouterGuards(router: Router): Promise<void> {
     // titleLogo in AuthView — don't override their layout props.
     if (to.meta.isAuthRoute) return true;
 
-    const hasDomainLogo = !!bootstrapStore.domain_logo;
     const existing = (to.meta.layoutProps ?? {}) as Record<string, unknown>;
 
     // Guard overrides win over route-defined static defaults.
     // Per-route beforeEnter guards run AFTER beforeEach and can
     // still override these values for route-specific needs.
+    //
+    // Masthead is always OFF on custom domains: the top masthead renders a
+    // duplicate logo/title/subtitle band, and each branded page body already
+    // owns its own centred logo + copy (BrandedHomepage, IncomingForm) or is
+    // intentionally distraction-free (secret reveal). This mirrors the
+    // custom-domain layout in public.routes.ts ("logo goes in page content").
+    // Gating it on logo presence previously produced a duplicate header on
+    // /incoming and leaked the masthead onto the reveal page whenever a brand
+    // logo was configured.
     to.meta.layoutProps = {
       ...existing,
-      displayMasthead: hasDomainLogo,
+      displayMasthead: false,
       displayNavigation: false,
       displayFooterLinks: false,
       displayFeedback: false,

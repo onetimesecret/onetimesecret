@@ -31,8 +31,11 @@ module Onetime
       # Check if incoming secrets are enabled for this domain context
       #
       # For custom domains:
-      # - Uses IncomingConfig.enabled? toggle (explicit per-domain toggle).
-      #   Absence of an IncomingConfig record means not enabled.
+      # - Uses IncomingConfig.ready? (enabled toggle AND at least one
+      #   recipient). Absence of an IncomingConfig record means not enabled.
+      #   An enabled config with zero recipients has nowhere to deliver, so
+      #   it reports disabled here rather than serving an unsubmittable form
+      #   (GET /api/incoming/config consumers render their disabled state).
       # - Verifies site_secret is configured (without it, recipient hashes cannot be computed).
       #
       # @return [Boolean]
@@ -41,7 +44,7 @@ module Onetime
         when :canonical, nil
           incoming_config['enabled'] || false
         when :custom
-          is_enabled = custom_domain_record&.incoming_config&.enabled? || false
+          is_enabled = custom_domain_record&.incoming_config&.ready? || false
 
           return false unless is_enabled
 
@@ -159,6 +162,7 @@ module Onetime
           {
             enabled: enabled?,
             memo_max_length: config&.memo_max_length || defaults[:memo_max_length],
+            secret_max_length: secret_max_length,
             default_ttl: config&.default_ttl || defaults[:default_ttl],
             recipients: public_recipients,
           }
@@ -167,6 +171,7 @@ module Onetime
           {
             enabled: enabled?,
             memo_max_length: incoming_config['memo_max_length'] || defaults[:memo_max_length],
+            secret_max_length: secret_max_length,
             default_ttl: incoming_config['default_ttl'] || defaults[:default_ttl],
             recipients: public_recipients,
           }
@@ -177,6 +182,16 @@ module Onetime
 
       def incoming_config
         OT.conf.dig('features', 'incoming') || {}
+      end
+
+      # Server-enforced secret-content ceiling, shared by the regular and
+      # incoming secret paths. Lives under site.secret_options.content (not
+      # per-domain), so both domain strategies read the same global value.
+      # Surfaced in the GetConfig response as the client-side textarea hint.
+      def secret_max_length
+        # to_i guards against a Float slipping through (unquoted YAML/ERB),
+        # which would violate the frontend response's int() contract.
+        (OT.conf.dig('site', 'secret_options', 'content', 'maximum_length') || 10_000).to_i
       end
 
       def site_secret

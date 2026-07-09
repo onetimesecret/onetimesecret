@@ -3,6 +3,7 @@
 import { AsyncHandlerOptions, createError, useAsyncHandler } from '@/shared/composables/useAsyncHandler';
 import { useDomainContext } from '@/shared/composables/useDomainContext';
 import { ApplicationError } from '@/schemas/errors';
+import type { PutHomepageConfigRequest } from '@/schemas/api/domains/requests';
 import type { CustomDomain } from '@/schemas/shapes/v3';
 import { useDomainsStore, useNotificationsStore } from '@/shared/stores';
 import { isApproximatedDomainValidation } from '@/utils/features';
@@ -238,10 +239,22 @@ export function useDomainsManager() {
     },
   });
 
-  const toggleHomepageConfig = async (extid: string, enabled: boolean, orgRole?: string | null) => {
+  /**
+   * Write homepage configuration (enabled + optional secrets_mode).
+   * secrets_mode uses merge semantics — omit it to leave the stored mode
+   * unchanged (binary on/off callers never clobber an incoming selection).
+   */
+  const updateHomepageConfig = async (
+    extid: string,
+    update: PutHomepageConfigRequest,
+    orgRole?: string | null
+  ) => {
     pendingOrgRole.value = orgRole ?? null;
-    return wrapEntitlementAware(async () => await store.putHomepageConfig(extid, enabled));
+    return wrapEntitlementAware(async () => await store.putHomepageConfig(extid, update));
   };
+
+  const toggleHomepageConfig = async (extid: string, enabled: boolean, orgRole?: string | null) =>
+    updateHomepageConfig(extid, { enabled }, orgRole);
 
   /**
    * Refresh domain records for the current organization context.
@@ -269,6 +282,7 @@ export function useDomainsManager() {
     refreshRecords,
     deleteDomain,
     toggleHomepageConfig,
+    updateHomepageConfig,
     goBack,
   };
 }

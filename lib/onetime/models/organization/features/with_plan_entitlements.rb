@@ -165,16 +165,25 @@ module Onetime
           # chain. Calls `super` only when the org has been materialized — that
           # path returns materialized_entitlements directly.
           #
-          # Order is intentional and matches the pre-split behavior:
-          # 1. If billing disabled (standalone mode) -> STANDALONE_ENTITLEMENTS (full access)
-          # 2. If materialized -> super (returns materialized_entitlements)
-          # 3. If no planid set -> FREE_TIER_ENTITLEMENTS
-          # 4. If plan found in cache -> plan.entitlements
-          # 5. If plan not in cache, try billing.yaml config fallback
-          # 6. Final fallback -> raise PlanCacheMissError (fail-closed)
+          # Order is intentional:
+          # 1. If a request-scoped preview is active (ADR-020) -> session-reconciled override
+          # 2. If billing disabled (standalone mode) -> STANDALONE_ENTITLEMENTS (full access)
+          # 3. If materialized -> super (returns materialized_entitlements)
+          # 4. If no planid set -> FREE_TIER_ENTITLEMENTS
+          # 5. If plan found in cache -> plan.entitlements
+          # 6. If plan not in cache, try billing.yaml config fallback
+          # 7. Final fallback -> raise PlanCacheMissError (fail-closed)
           #
           # @return [Array<String>] List of entitlement strings
           def entitlements
+            # Preview override first (ADR-020): the fail-open and Plan.load
+            # branches below return without reaching super, so a guard in the
+            # base alone would be skipped for non-materialized orgs. No-op in
+            # standalone — preview state is only written by the colonel
+            # billing-mode endpoint.
+            preview = preview_entitlements
+            return preview unless preview.nil?
+
             # Fail-open: self-hosted/standalone gets full access
             unless billing_enabled?
               return STANDALONE_ENTITLEMENTS.dup

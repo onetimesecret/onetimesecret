@@ -39,6 +39,8 @@ import {
   createError,
   type AsyncHandlerOptions,
 } from '@/shared/composables/useAsyncHandler';
+import { CHECK_EMAIL_STATE_KEY } from '@/shared/constants/checkEmail';
+import { SIGNIN_VERIFIED_STATE_KEY } from '@/shared/constants/signin';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
@@ -299,12 +301,8 @@ export function useAuth() {
         return false;
       }
 
-      // Fetch entitlements to get current subscription status
-      await organizationStore.fetchEntitlements(org.extid);
-
-      // Re-fetch org after entitlements update (it may have been updated in the store)
-      const updatedOrg = organizationStore.organizations.find((o) => o.extid === org.extid);
-      const currentPlanId = updatedOrg?.planid;
+      // The org record from /api/organizations carries the subscription plan
+      const currentPlanId = org.planid;
 
       // Check subscription status - delegate to helper if subscribed
       if (currentPlanId) {
@@ -451,12 +449,23 @@ export function useAuth() {
         });
       }
 
-      // Success - account created but NOT authenticated yet
-      // User needs to either verify email or sign in
+      // Success - account created but NOT authenticated yet. The user must
+      // click the verification link in their email before they can sign in.
       notificationsStore.show(validated.success, 'success', 'top');
 
-      // Build query params for signin redirect
-      // Preserve billing params and redirect path for subsequent login
+      // Route to a dedicated "Check your email" confirmation page rather than
+      // the sign-in form. The sign-in form is unusable until the account is
+      // verified, and a transient toast is the only cue the user would get
+      // there. The confirmation page persistently echoes the email address,
+      // explains the next step, and offers a resend action.
+      //
+      // The email travels in router history state, NOT the URL: it is PII, and
+      // a query string would leak it through browser history, the Referer
+      // header, proxy/CDN access logs and Sentry (disclosure F6; see
+      // src/utils/pii.ts and src/router/README.md "Query-string policy"). A
+      // plain reload preserves state, but a fresh entry (shared link, new tab)
+      // does not — so the billing params and redirect path ride in the query,
+      // which survives both, keeping the checkout flow intact.
       const redirectPath = getRedirectParam();
       const query: Record<string, string> = {};
 
@@ -469,8 +478,9 @@ export function useAuth() {
       }
 
       await router.push({
-        path: '/signin',
-        query: Object.keys(query).length > 0 ? query : undefined,
+        path: '/check-email',
+        ...(Object.keys(query).length > 0 ? { query } : {}),
+        state: { [CHECK_EMAIL_STATE_KEY]: email },
       });
       return true;
     });
@@ -614,9 +624,16 @@ export function useAuth() {
         throw createError(validated.error, 'human', 'error');
       }
 
-      // Success - show notification and navigate to signin
+      // Success - show notification, then navigate to the sign-in page. The
+      // "just verified" signal is handed over via router history `state`
+      // (SIGNIN_VERIFIED_STATE_KEY), NOT a `?verified=1` query param: it is a
+      // one-shot UI flag, so keeping it out of the URL lets Login.vue clear it
+      // after showing the banner without remounting the fullPath-keyed view
+      // (see Login.vue). The sign-in page renders a persistent success banner
+      // (surviving longer than the transient toast) and defaults to the password
+      // tab so the user re-enters the password they just chose during signup.
       notificationsStore.show(validated.success, 'success', 'top');
-      await router.push('/signin');
+      await router.push({ path: '/signin', state: { [SIGNIN_VERIFIED_STATE_KEY]: true } });
       return true;
     });
 

@@ -114,13 +114,6 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
       billing_enabled: true,
       shrimp: 'new-shrimp-token',
     });
-
-    // Mock entitlements endpoint (matches any org extid)
-    axiosMock.onGet(/\/billing\/api\/entitlements\//).reply(200, {
-      planid: null, // No subscription by default
-      entitlements: null,
-      limits: null,
-    });
   });
 
   afterEach(() => {
@@ -469,13 +462,6 @@ describe('useAuth - Billing Redirect Valid Flag (Future)', () => {
       billing_enabled: true,
       shrimp: 'new-shrimp-token',
     });
-
-    // Mock entitlements endpoint
-    axiosMock.onGet(/\/billing\/api\/entitlements\//).reply(200, {
-      planid: null,
-      entitlements: null,
-      limits: null,
-    });
   });
 
   afterEach(() => {
@@ -516,9 +502,9 @@ describe('useAuth - Billing Redirect Valid Flag (Future)', () => {
 
   it.skip('should redirect to checkout when billing_redirect.valid is true and no subscription', async () => {
     // SKIP REASON: Test infrastructure issue - the handleBillingRedirect flow
-    // catches errors from fetchOrganizations/fetchEntitlements and falls back
-    // to dashboard redirect. The organizationStore needs proper Pinia/Axios
-    // mock integration that preserves the org data through the full flow.
+    // catches errors from fetchOrganizations and falls back to dashboard
+    // redirect. The organizationStore needs proper Pinia/Axios mock
+    // integration that preserves the org data through the full flow.
     // The implementation code works correctly; the test mocking is incomplete.
     setRouteQuery({ product: 'identity', interval: 'month' });
 
@@ -617,13 +603,6 @@ describe('useAuth - Subscription Status Checks', () => {
       count: 1,
     });
 
-    // Entitlements mock - returns the same planid to confirm subscription
-    axiosMock.onGet(/\/billing\/api\/entitlements\//).reply(200, {
-      planid: 'identity',
-      entitlements: null,
-      limits: null,
-    });
-
     await login('test@example.com', 'password123');
 
     // Should redirect to billing overview, not checkout
@@ -648,13 +627,6 @@ describe('useAuth - Subscription Status Checks', () => {
     axiosMock.onGet('/api/organizations').reply(200, {
       records: [org],
       count: 1,
-    });
-
-    // Entitlements mock - returns the current planid
-    axiosMock.onGet(/\/billing\/api\/entitlements\//).reply(200, {
-      planid: 'identity',
-      entitlements: null,
-      limits: null,
     });
 
     await login('test@example.com', 'password123');
@@ -682,13 +654,6 @@ describe('useAuth - Subscription Status Checks', () => {
     axiosMock.onGet('/api/organizations').reply(200, {
       records: [org],
       count: 1,
-    });
-
-    // Entitlements mock - returns the free planid
-    axiosMock.onGet(/\/billing\/api\/entitlements\//).reply(200, {
-      planid: 'free',
-      entitlements: null,
-      limits: null,
     });
 
     await login('test@example.com', 'password123');
@@ -741,7 +706,7 @@ describe('useAuth - Signup Flow Billing Params', () => {
     router.reset();
   });
 
-  it('should preserve billing params when redirecting to signin after signup', async () => {
+  it('should preserve billing params when redirecting to check-email after signup', async () => {
     setRouteQuery({ product: 'identity', interval: 'month' });
 
     const { signup } = useAuth();
@@ -761,14 +726,17 @@ describe('useAuth - Signup Flow Billing Params', () => {
       interval: 'month',
     });
 
-    // Should redirect to signin with billing params preserved
+    // Should redirect to the "check your email" page with billing params
+    // preserved in the query, and the email handed over via router history
+    // state (PII must not ride in the URL — see src/utils/pii.ts).
     expect(router.push).toHaveBeenCalledWith({
-      path: '/signin',
+      path: '/check-email',
       query: { product: 'identity', interval: 'month' },
+      state: { checkEmailAddress: 'test@example.com' },
     });
   });
 
-  it('should redirect to signin without params when no billing params present', async () => {
+  it('should redirect to check-email with only the email when no billing params present', async () => {
     setRouteQuery({});
 
     const { signup } = useAuth();
@@ -779,10 +747,11 @@ describe('useAuth - Signup Flow Billing Params', () => {
 
     await signup('test@example.com', 'password123');
 
-    // Should redirect to plain signin (object form with no query params)
+    // With no billing params, the redirect carries no query at all — just the
+    // email, handed over via router history state (never the URL).
     expect(router.push).toHaveBeenCalledWith({
-      path: '/signin',
-      query: undefined,
+      path: '/check-email',
+      state: { checkEmailAddress: 'test@example.com' },
     });
   });
 });

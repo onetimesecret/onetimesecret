@@ -90,7 +90,7 @@ module Core
         # Loads homepage config from the dedicated model (authoritative source).
         def apply_homepage_config(output, custom_domain)
           homepage_config           = Onetime::CustomDomain::HomepageConfig.find_by_domain_id(custom_domain.identifier)
-          output['homepage_config'] = serialize_homepage_config(homepage_config)
+          output['homepage_config'] = serialize_homepage_config(homepage_config, custom_domain)
 
           app_logger.debug '[DomainSerializer] homepage_config loaded',
             {
@@ -100,14 +100,29 @@ module Core
             }
         end
 
-        def serialize_homepage_config(homepage_config)
+        def serialize_homepage_config(homepage_config, custom_domain)
           return nil unless homepage_config
 
-          domain_id = homepage_config.domain_id
+          domain_id    = homepage_config.domain_id
+          secrets_mode = homepage_config.secrets_mode_value
+
+          # Effective enablement: a homepage pointed at the incoming form is
+          # only interactive while incoming can actually receive secrets.
+          # When that drifts (recipients removed, incoming disabled, config
+          # deleted, feature flag turned off, entitlement lapsed), fail
+          # closed to the non-interactive trust card — never fall open to
+          # the create form the operator deliberately did not select, and
+          # never let anonymous visitors see upgrade/misconfiguration copy
+          # on the branded front door. The stored secrets_mode is preserved
+          # so re-readying incoming restores the operator's intent.
+          # HomepageConfig#effectively_enabled? is the single source of
+          # truth, shared with the homepage-config API responses.
+          effective_enabled = homepage_config.effectively_enabled?(custom_domain: custom_domain)
 
           {
             'domain_id' => domain_id,
-            'enabled' => homepage_config.enabled?,
+            'enabled' => effective_enabled,
+            'secrets_mode' => secrets_mode,
             'signup_enabled' => homepage_config.signup_enabled? && effective_signup_enabled?(domain_id),
             'signin_enabled' => homepage_config.signin_enabled? && effective_signin_enabled?(domain_id),
             'disabled_homepage_variant' => homepage_config.disabled_homepage_variant_value,

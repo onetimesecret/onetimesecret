@@ -8,7 +8,7 @@
 # Includes all secret operations (create, reveal, receipt, burn).
 # No business logic changes needed - only serialization format differs.
 #
-# @see docs/specs/domain-permissions.md for domain permission truth tables
+# @see docs/specs/domain-permissions/domain-permissions.md for domain permission truth tables
 #
 # Guest route gating is enforced for operations that support anonymous access:
 # - ConcealSecret: guest conceal toggle
@@ -123,7 +123,7 @@ module V3
           )
         rescue StandardError => ex
           # Log but don't fail the reveal - notification is non-critical
-          secret_logger.error "[RevealSecret] Failed to notify owner", exception: ex
+          secret_logger.error '[RevealSecret] Failed to notify owner', exception: ex
         end
       end
 
@@ -131,7 +131,8 @@ module V3
       #
       # @api Return metadata about a secret without revealing its value.
       #   Includes state, expiration details, and whether a passphrase is
-      #   required. Marks the secret as previewed on first access.
+      #   required. Records the access as telemetry on the receipt (#3633);
+      #   a metadata GET no longer advances the secret's lifecycle state.
       class ShowSecret < V2::Logic::Secrets::ShowSecret
         include Onetime::Logic::GuestRouteGating
 

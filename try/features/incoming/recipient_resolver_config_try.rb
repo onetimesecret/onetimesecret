@@ -29,6 +29,24 @@ config = resolver.config_data
 config[:memo_max_length]
 #=> 50
 
+## secret_max_length is sourced from site.secret_options.content.maximum_length
+resolver = RecipientResolver.new(domain_strategy: :canonical)
+config = resolver.config_data
+# Global limit shared by regular + incoming paths; default 10000
+config[:secret_max_length]
+#=> 10_000
+
+## secret_max_length is coerced to Integer even if config holds a Float
+@_saved_content = OT.conf.dig('site', 'secret_options', 'content')&.dup
+begin
+  OT.conf['site']['secret_options']['content'] = { 'maximum_length' => 10_000.0 }
+  resolver = RecipientResolver.new(domain_strategy: :canonical)
+  resolver.config_data[:secret_max_length].class
+ensure
+  OT.conf['site']['secret_options']['content'] = @_saved_content
+end
+#=> Integer
+
 ## Nil domain strategy behaves like canonical
 resolver = RecipientResolver.new(domain_strategy: nil)
 config = resolver.config_data

@@ -15,10 +15,17 @@ const { t } = useI18n();
 
 export interface Props {
   locale?: string;
+  /**
+   * Preselect a specific auth tab on first render (contextual default, not a
+   * persisted user choice). Forwarded to the passwordless-first tab UI. Used to
+   * land on "password" when the user returns right after email verification.
+   */
+  initialMode?: 'passkey' | 'passwordless' | 'password';
 }
 
 withDefaults(defineProps<Props>(), {
   locale: 'en',
+  initialMode: undefined,
 });
 
 type AuthMode = 'passwordless' | 'passkey' | 'password';
@@ -112,6 +119,7 @@ defineExpose({ currentMode });
       <PasswordlessFirstSignIn
         v-if="hasPasswordlessMethods"
         :locale="locale"
+        :initial-mode="initialMode"
         :magic-links-enabled="magicLinksEnabled"
         :webauthn-enabled="webauthnEnabled"
         @mode-change="handleModeChange" />

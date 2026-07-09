@@ -342,7 +342,7 @@ describe('SecretForm - Domain Context Integration', () => {
       //   - "context indicator updates when switching domains" (line 264)
       //   - "context switcher allows changing between domains" (line 233)
       // STATUS: E2E tests exist but skipped pending DomainContextSwitcher - component
-      // exists at src/shared/components/navigation/DomainContextSwitcher.vue, tests
+      // exists at src/apps/workspace/components/navigation/DomainContextSwitcher.vue, tests
       // can be enabled once backend fixtures are configured
 
       const mockUpdateField = vi.fn();

@@ -99,7 +99,7 @@
           <textarea
             ref="linkInput"
             readonly
-            :value="record.share_url"
+            :value="record.share_url ?? ''"
             class="w-full resize-none rounded-md
               border-0 bg-slate-50 px-3 py-2.5 font-mono text-sm text-gray-900
               focus:ring-1 focus:ring-green-500
@@ -110,7 +110,7 @@
         <div class="ml-4 shrink-0">
           <CopyButton
             class="ml-auto transition-transform hover:scale-105"
-            :text="record.share_url" />
+            :text="record.share_url ?? ''" />
         </div>
       </div>
 

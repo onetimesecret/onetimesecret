@@ -73,44 +73,24 @@ module Onetime
 
           # Get entitlements from materialized state.
           #
+          # A request-scoped preview context (ADR-020) takes precedence: when
+          # a colonel has an active preview, the session-reconciled override
+          # is returned instead of materialized state.
+          #
           # This portable base returns the materialized set when available,
           # otherwise an empty array. WithPlanEntitlements overrides this
           # method to add the Plan.load fallback chain via `super`.
           #
           # @return [Array<String>] List of entitlement strings
           def entitlements
+            preview = preview_entitlements
+            return preview unless preview.nil?
+
             if respond_to?(:entitlements_materialized?) && entitlements_materialized?
               return materialized_entitlements.to_a
             end
 
             []
-          end
-
-          # Get entitlements with request context for preview mode support
-          #
-          # Call sites that have session access should use this method instead
-          # of `entitlements` when preview mode needs to be respected.
-          #
-          # @param session [Hash, nil] Rack session hash (or hash-like object)
-          # @return [Array<String>] List of entitlement strings
-          #
-          # @example Controller usage
-          #   org.entitlements_for_request(env['rack.session'])
-          #
-          # @example When session has preview keys
-          #   session = { entitlement_preview_grants_key: 'session:abc:grants' }
-          #   org.entitlements_for_request(session)  # => reconciled entitlements
-          def entitlements_for_request(session = nil)
-            return entitlements unless session.respond_to?(:key?)
-
-            grants_key  = session[:entitlement_preview_grants_key]
-            revokes_key = session[:entitlement_preview_revokes_key]
-
-            if (grants_key || revokes_key) && respond_to?(:reconcile_with_session_overrides)
-              return reconcile_with_session_overrides(grants_key, revokes_key)
-            end
-
-            entitlements
           end
 
           # Check if billing system is enabled
@@ -122,6 +102,34 @@ module Onetime
           end
 
           private
+
+          # Resolve the request-scoped preview override, if any (ADR-020).
+          #
+          # Consults the Fiber-local populated by the
+          # EntitlementPreviewContext middleware. Only hosts with a session
+          # reconciler (Organization's WithMaterializedEntitlements) can
+          # apply the override; other hosts fall through to their normal
+          # resolution.
+          #
+          # Guards the top of BOTH this module's #entitlements and
+          # WithPlanEntitlements#entitlements: the override must win before
+          # the standalone fail-open and Plan.load fallback branches, which
+          # return without reaching `super`.
+          #
+          # @return [Array<String>, nil] Reconciled entitlements, or nil when
+          #   no preview is active or this host cannot reconcile
+          def preview_entitlements
+            ctx = Onetime::EntitlementPreview.context
+            return nil unless ctx
+
+            grants_key  = ctx[:grants_key]
+            revokes_key = ctx[:revokes_key]
+            unless (grants_key || revokes_key) && respond_to?(:reconcile_with_session_overrides)
+              return nil
+            end
+
+            reconcile_with_session_overrides(grants_key, revokes_key)
+          end
 
           # Parse a limit value from string/nil to numeric.
           #

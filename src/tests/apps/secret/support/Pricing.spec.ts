@@ -531,11 +531,13 @@ describe('Pricing.vue', () => {
       const planCards = wrapper.findAllComponents({ name: 'PlanCard' });
       expect(planCards.length).toBeGreaterThan(0);
 
-      // Custom needs section exists with proper heading
+      // Custom needs section exists with proper heading. It is an <h2>
+      // (directly under the page <h1>) so the heading order never skips a
+      // level — see the accessibility audit's heading-order fix.
       const customNeedsSection = wrapper.find('.bg-gray-50');
       expect(customNeedsSection.exists()).toBe(true);
-      const h3 = customNeedsSection.find('h3');
-      expect(h3.exists()).toBe(true);
+      const h2 = customNeedsSection.find('h2');
+      expect(h2.exists()).toBe(true);
     });
 
     it('has accessible billing interval group', async () => {
@@ -638,7 +640,7 @@ describe('Pricing.vue', () => {
         id: 'free_v1',
         name: 'Free',
         tier: 'free',
-        interval: null, // Free plans have no interval
+        interval: '', // Free plans have no interval
         amount: 0,
       });
       const paidPlanYearly = createMockPlan({
@@ -662,7 +664,7 @@ describe('Pricing.vue', () => {
       const freePlan = createMockPlan({
         id: 'free_v1',
         tier: 'free',
-        interval: null,
+        interval: '',
       });
 
       mockListPlans.mockResolvedValueOnce({ plans: [freePlan] });
@@ -677,7 +679,7 @@ describe('Pricing.vue', () => {
       const freePlan = createMockPlan({
         id: 'free_v1',
         tier: 'free',
-        interval: null,
+        interval: '',
       });
 
       mockListPlans.mockResolvedValueOnce({ plans: [freePlan] });
@@ -690,7 +692,7 @@ describe('Pricing.vue', () => {
       const freePlan = createMockPlan({
         id: 'free_v1',
         tier: 'free',
-        interval: null,
+        interval: '',
         amount: 0,
       });
 

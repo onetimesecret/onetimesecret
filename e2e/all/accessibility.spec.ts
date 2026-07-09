@@ -1,0 +1,78 @@
+// e2e/all/accessibility.spec.ts
+//
+// Automated accessibility (a11y) regression suite.
+//
+// Data-driven over PUBLIC surfaces × BOTH themes (light + dark). Each test
+// navigates, waits for the SPA to signal readiness (html[data-app-ready]),
+// asserts the intended theme actually applied, then runs axe and compares the
+// result to a committed baseline of KNOWN violations
+// (e2e/accessibility-baseline.json).
+//
+//   Regression policy:
+//     - FAIL on ANY violation whose stable key is not in the baseline.
+//     - HARD-FAIL (called out explicitly) on any new SERIOUS/CRITICAL one.
+//     - When A11Y_UPDATE_BASELINE is set, REWRITE the baseline instead of
+//       asserting (this is `pnpm test:a11y:update`).
+//
+// Runs credential-free in the `chromium` project and is therefore picked up by
+// the existing CI invocation `pnpm test:playwright e2e/all/` (see
+// .github/workflows/e2e.yml). Local sandbox runs point Chromium at a
+// pre-installed binary via the A11Y_CHROME_PATH env var (wired in
+// e2e/playwright.config.ts); CI uses the default managed browser.
+
+import { test, expect } from '@playwright/test';
+import {
+  scanPage,
+  loadBaseline,
+  compareToBaseline,
+  formatFailure,
+  updateBaselineScope,
+  primeTheme,
+  assertThemeApplied,
+  waitForAppReady,
+  IS_UPDATE_BASELINE,
+  type Theme,
+} from '../support/axe';
+
+// See e2e/all/accessibility-interactive.spec.ts for the rationale: the
+// A11Y_UPDATE_BASELINE read-modify-write is only race-free when these tests run
+// serially, so pin serial execution for baseline-regeneration runs only and
+// leave assert runs parallel-friendly with independent per-test reporting.
+if (IS_UPDATE_BASELINE) {
+  test.describe.configure({ mode: 'serial' });
+}
+
+/** Public, credential-free surfaces to scan. */
+const PUBLIC_SURFACES = ['/', '/signin', '/signup', '/forgot', '/pricing', '/feedback'];
+
+const THEMES: Theme[] = ['light', 'dark'];
+
+for (const theme of THEMES) {
+  test.describe(`Accessibility — ${theme} theme`, () => {
+    for (const route of PUBLIC_SURFACES) {
+      test(`${route} has no a11y regressions (${theme})`, async ({ page }, testInfo) => {
+        await primeTheme(page, theme);
+
+        await page.goto(route);
+        await waitForAppReady(page);
+        await assertThemeApplied(page, theme);
+
+        const violations = await scanPage(page, testInfo, { theme, route });
+
+        if (IS_UPDATE_BASELINE) {
+          updateBaselineScope(theme, route, violations);
+          // Surface what got captured in the report/log for this scope.
+          testInfo.annotations.push({
+            type: 'a11y-baseline-updated',
+            description: `${theme} ${route}: ${violations.length} violation(s) captured`,
+          });
+          return;
+        }
+
+        const baseline = loadBaseline();
+        const cmp = compareToBaseline(violations, baseline);
+        expect(cmp.regressions, formatFailure(cmp)).toHaveLength(0);
+      });
+    }
+  });
+}

@@ -148,12 +148,23 @@ module Onetime
 
           # Get effective entitlements for this membership.
           #
-          # If materialized, returns from materialized_entitlements.
-          # Otherwise, computes on-the-fly from org ∩ role (fallback for
-          # memberships created before materialization was wired in).
+          # When a request-scoped preview is active (ADR-020), the
+          # materialized set is deliberately ignored and entitlements are
+          # recomputed as org ∩ role — the org side resolves through the
+          # preview-aware Organization#entitlements, and the role
+          # intersection is preserved so preview simulates a different plan,
+          # never a different role. Materialized and unmaterialized
+          # memberships behave identically during preview.
+          #
+          # Otherwise: if materialized, returns from
+          # materialized_entitlements; else computes on-the-fly from
+          # org ∩ role (fallback for memberships created before
+          # materialization was wired in).
           #
           # @return [Array<String>] List of entitlement strings
           def entitlements
+            return compute_entitlements_from_role if Onetime::EntitlementPreview.active?
+
             if entitlements_materialized?
               return materialized_entitlements.to_a
             end

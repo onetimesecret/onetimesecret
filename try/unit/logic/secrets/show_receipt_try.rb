@@ -163,16 +163,9 @@ logic.process
 logic.natural_expiration
 #=> "2 days"
 
-## Knows that the receipt has been previewed b/c process has been called several times already
-params = {
-  'identifier' => @receipt.identifier
-}
-logic = Logic::Secrets::ShowReceipt.new(@strategy_result, params, 'en')
-logic.process
-[logic.receipt.state, logic.show_secret_link]
-#=> ["previewed", false]
-
-## Shows secret link when previewed for the first time (i.e. processed)
+## Shows secret link on processing a fresh receipt. The receipt GET no longer
+## advances lifecycle state (#3633 retired previewed!), so the receipt stays
+## 'new' and the secret link is shown.
 receipt = @create_receipt.call
 params = {
   'identifier' => receipt.identifier
@@ -180,9 +173,11 @@ params = {
 logic = Logic::Secrets::ShowReceipt.new(@strategy_result, params, 'en')
 logic.process
 [logic.receipt.state, logic.show_secret_link]
-#=> ["previewed", true]
+#=> ["new", true]
 
-## Doesn't show secret link when for the second time though
+## The receipt GET is non-mutating (#3633): processing twice leaves the receipt
+## 'new' and the secret link still visible -- a repeat load no longer hides it
+## via a previewed state transition.
 receipt = @create_receipt.call
 params = {
   'identifier' => receipt.identifier
@@ -191,7 +186,7 @@ logic = Logic::Secrets::ShowReceipt.new(@strategy_result, params, 'en')
 logic.process
 logic.process
 [logic.receipt.state, logic.show_secret_link]
-#=> ["previewed", false]
+#=> ["new", true]
 
 ## Hides secret link when receipt is in revealed state
 receipt = @create_receipt.call

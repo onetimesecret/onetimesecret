@@ -60,8 +60,11 @@ RSpec.describe 'V2 API State Backward Compatibility' do
       end
     end
 
-    context 'when previewed (new internal state)' do
-      before { receipt.previewed! }
+    context 'when previewed (telemetry-derived, #3633)' do
+      # previewed! was retired: viewing a link no longer mutates lifecycle
+      # state. A receipt now reads as "previewed" once its link has been
+      # fetched, i.e. once an access-timeline event exists.
+      before { receipt.record_access_event('secret_get') }
 
       it 'viewed timestamp is populated' do
         dump = receipt.safe_dump
@@ -117,7 +120,7 @@ RSpec.describe 'V2 API State Backward Compatibility' do
 
     context 'when previewed then revealed' do
       before do
-        receipt.previewed!
+        receipt.record_access_event('secret_get')
         @viewed_timestamp = receipt.safe_dump[:viewed]
         receipt.revealed!
       end
@@ -151,22 +154,10 @@ RSpec.describe 'V2 API State Backward Compatibility' do
       receipt.destroy! if receipt.exists?
     end
 
-    describe '#previewed!' do
-      it 'sets state and timestamp' do
-        receipt.previewed!
-        expect(receipt.state).to eq('previewed').or eq('viewed')
-        # Check the new canonical field (safe_dump provides backward compat for :viewed)
-        expect(receipt.previewed.to_i).to be > 0
-      end
-
-      it 'only transitions from :new state' do
-        receipt.state = 'burned'
-        receipt.save
-        receipt.previewed!
-        # Should not change since guard prevents it
-        expect(receipt.state).to eq('burned')
-      end
-    end
+    # #previewed! was retired in #3633: viewing a secret link no longer mutates
+    # lifecycle state. The telemetry-derived "previewed" signal (is_viewed /
+    # viewed timestamp) is covered by the safe_dump contexts above; the
+    # receipt-page-view audit event is covered in organization_audit_trail_spec.
 
     describe '#revealed!' do
       it 'sets state and timestamp' do
@@ -186,8 +177,13 @@ RSpec.describe 'V2 API State Backward Compatibility' do
         expect(receipt.state?(:revealed) || receipt.state?(:received)).to be true
       end
 
-      it 'transitions from :previewed state' do
-        receipt.previewed!
+      it 'transitions from a legacy :previewed state' do
+        # :previewed remains an accepted reveal from-state for legacy receipts
+        # even though no method advances into it anymore (#3633); the CAS still
+        # allows new -> revealed and previewed -> revealed, so construct the
+        # legacy precondition directly.
+        receipt.state = 'previewed'
+        receipt.save
         receipt.revealed!
         expect(receipt.state?(:revealed) || receipt.state?(:received)).to be true
       end
@@ -211,19 +207,9 @@ RSpec.describe 'V2 API State Backward Compatibility' do
       secret.destroy! if secret&.respond_to?(:exists?) && secret.exists?
     end
 
-    describe '#previewed!' do
-      it 'transitions from :new to previewed' do
-        secret.previewed!
-        expect(secret.state?(:previewed) || secret.state?(:viewed)).to be true
-      end
-
-      it 'is idempotent (calling twice is safe)' do
-        secret.previewed!
-        first_state = secret.state
-        secret.previewed!
-        expect(secret.state).to eq(first_state)
-      end
-    end
+    # #previewed! was retired in #3633; a secret no longer advances to a
+    # 'previewed' state on access. Only :new and (legacy) :previewed remain
+    # accepted reveal from-states, exercised below.
 
     describe '#revealed!' do
       it 'transitions from :new and destroys secret' do
@@ -231,8 +217,10 @@ RSpec.describe 'V2 API State Backward Compatibility' do
         expect(secret.state?(:revealed) || secret.state?(:received)).to be true
       end
 
-      it 'transitions from :previewed and destroys secret' do
-        secret.previewed!
+      it 'transitions from a legacy :previewed state and destroys secret' do
+        # See note above: construct the legacy :previewed precondition directly.
+        secret.state = 'previewed'
+        secret.save
         secret.revealed!
         expect(secret.state?(:revealed) || secret.state?(:received)).to be true
       end

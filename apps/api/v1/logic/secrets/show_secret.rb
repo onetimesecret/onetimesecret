@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/security/passphrase_rate_limiter'
+
 module V1::Logic
   module Secrets
 
@@ -10,6 +12,8 @@ module V1::Logic
     # V1 compat: uses load_owner (not load_customer) and
     # decrypted_secret_value for decryption.
     class ShowSecret < V1::Logic::Base
+      include Onetime::Security::PassphraseRateLimiter
+
       attr_reader :key, :passphrase, :continue
       attr_reader :secret, :show_secret, :secret_value, :is_truncated,
                   :original_size, :verification, :correct_passphrase,
@@ -25,6 +29,10 @@ module V1::Logic
 
       def raise_concerns
         raise OT::MissingSecret if secret.nil? || !secret.viewable?
+
+        # Check passphrase rate limit before allowing passphrase attempts
+        # This prevents brute-force attacks on secrets with passphrases
+        check_passphrase_rate_limit!(secret.identifier) if secret.has_passphrase?
       end
 
       def process
@@ -32,6 +40,19 @@ module V1::Logic
         @show_secret = secret.viewable? && correct_passphrase && continue
         @verification = secret.verification.to_s == "true"
         @secret_key = @secret.identifier # Use identifier, not deprecated .key field
+
+        # Track passphrase attempts for rate limiting. Only non-empty
+        # submissions count: the initial preview of a passphrase-protected
+        # secret sends an empty passphrase and must not accrue attempts.
+        if secret.has_passphrase? && !passphrase.empty?
+          if correct_passphrase
+            # Clear rate limit on successful passphrase
+            clear_passphrase_rate_limit!(secret.identifier)
+          else
+            # Record failed attempt
+            record_failed_passphrase_attempt!(secret.identifier)
+          end
+        end
 
         owner = secret.load_owner
 
@@ -107,7 +128,11 @@ module V1::Logic
         @is_owner = secret.owner?(cust)
         @one_liner = one_liner
 
-        secret.previewed! if secret.state?(:new)
+        # A metadata GET must not advance the secret's lifecycle state (#3633).
+        # Previously this flipped :new -> :previewed on every view; the secret
+        # now stays :new until a genuine reveal/burn. Downstream guards
+        # (viewable?, burned!, win_reveal_claim!) already accept :new, so no
+        # behavior depends on the removed transition.
       end
 
       def success_data

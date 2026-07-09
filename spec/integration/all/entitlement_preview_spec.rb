@@ -133,6 +133,17 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementPreview', type: :integ
   after do
     # Clear session data after each test
     session_data.clear
+
+    # The logic mirrors its session writes into the request's Fiber-local
+    # (same-request visibility); outside the middleware there is no ensure
+    # block, so clear it here to keep examples isolated.
+    Onetime::EntitlementPreview.clear
+
+    # Session override sets written to real Redis by set_test_mode
+    Familia.dbclient.del(
+      'session:test_session_123:entitlement_preview_grants',
+      'session:test_session_123:entitlement_preview_revokes',
+    )
   end
 
   describe 'POST /api/colonel/entitlement-preview' do
@@ -499,30 +510,40 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementPreview', type: :integ
     end
   end
 
-  describe 'integration with WithEntitlements' do
-    it 'preview mode affects entitlement checks via session parameter' do
-      # The new flow:
-      # 1. API sets session[:entitlement_preview_planid]
-      # 2. Call sites pass session to entitlements_for_request or limit_for_request
-      # 3. No Thread.current needed - session is passed explicitly
-
+  describe 'integration with the entitlement chokepoints (ADR-020)' do
+    # The chokepoint contract: consumers call org.entitlements / org.limit_for
+    # with no session parameter; the override arrives through the Fiber-local
+    # populated by middleware (per request) and mirrored by this logic
+    # (same-request visibility).
+    it 'setting a preview populates the request-scoped context' do
       logic = create_logic(planid: 'identity_v1')
       logic.process_params
       logic.raise_concerns
       logic.process
 
-      # Session has the override
-      expect(session_data[:entitlement_preview_planid]).to eq('identity_v1')
+      ctx = Onetime::EntitlementPreview.context
+      expect(ctx).not_to be_nil
+      expect(ctx[:planid]).to eq('identity_v1')
+      expect(ctx[:grants_key]).to eq('session:test_session_123:entitlement_preview_grants')
+      expect(ctx[:revokes_key]).to eq('session:test_session_123:entitlement_preview_revokes')
+    end
 
-      # Create test organization
+    it 'limit_for resolves through the still-active context after the flip' do
+      logic = create_logic(planid: 'identity_v1')
+      logic.process_params
+      logic.raise_concerns
+      logic.process
+
+      # Plain plan-chain host (no session parameter anywhere)
       test_class = Class.new do
         include Onetime::Models::Features::WithEntitlements
         include Onetime::Models::Features::WithMaterializedLimits
         include Onetime::Models::Features::WithPlanEntitlements
         attr_accessor :planid, :extid
+
         def initialize(planid)
           @planid = planid
-          @extid = 'test_preview_integration'
+          @extid  = 'test_preview_integration'
         end
 
         def billing_enabled?
@@ -532,17 +553,24 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementPreview', type: :integ
 
       org = test_class.new('free')
 
-      # Without session, uses actual plan
-      expect(org.entitlements).to match_array(%w[create_secrets basic_sharing])
-      expect(org.can?('custom_domains')).to be false
+      # limit_for consults the preview planid; actual plan would give 0
+      expect(org.limit_for('teams')).to eq(1)
+    end
 
-      # With session containing preview planid, limit_for_request uses preview
-      expect(org.limit_for_request('teams', session_data)).to eq(1)
+    it 'clearing the preview clears the request-scoped context' do
+      logic1 = create_logic(planid: 'identity_v1')
+      logic1.process_params
+      logic1.raise_concerns
+      logic1.process
 
-      # entitlements_for_request also respects session (via reconciler when available)
-      # For this mock class without reconciler, it falls back to actual entitlements
-      # In real usage with Organization model that includes WithMaterializedEntitlements,
-      # the reconciler would apply session grants/revokes
+      expect(Onetime::EntitlementPreview.active?).to be true
+
+      logic2 = create_logic(planid: nil)
+      logic2.process_params
+      logic2.raise_concerns
+      logic2.process
+
+      expect(Onetime::EntitlementPreview.context).to be_nil
     end
   end
 end

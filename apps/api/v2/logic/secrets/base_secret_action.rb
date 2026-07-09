@@ -373,6 +373,7 @@ module V2::Logic
 
         receipt.org_id = auth_org.objid
         receipt.add_to_organization_receipts(auth_org)
+        receipt.record_org_audit_event('created', organization: auth_org)
         true
       end
 
@@ -426,16 +427,28 @@ module V2::Logic
         domain_record = Onetime::CustomDomain.from_display_domain(domain)
         raise_form_error "Unknown domain: #{domain}" if domain_record.nil?
 
+        # Resolve the anonymous-creation gate once and thread it into the
+        # permission check below. Both this debug line and
+        # validate_domain_permissions consult allow_public_secret_creation?, and
+        # each call is an independent HomepageConfig read (one Redis HGETALL of
+        # the same record) — two reads per anonymous custom-domain request
+        # (#3631). Passing the resolved value down collapses that to one read
+        # WITHOUT memoizing on the CustomDomain instance: an instance memo goes
+        # stale after an in-request HomepageConfig write, which is why a prior
+        # per-instance cache was reverted and the model predicate stays
+        # read-through.
+        allow_public = domain_record.allow_public_secret_creation?
+
         secret_logger.debug 'Validating domain access',
           {
             domain: domain,
             custom_domain: custom_domain?,
-            allow_public: domain_record.allow_public_homepage?,
+            allow_public: allow_public,
             accessible: domain_record.accessible_by?(@cust),
             user_id: @cust&.objid,
           }
 
-        validate_domain_permissions(domain_record)
+        validate_domain_permissions(domain_record, allow_public)
         validate_domain_verification(domain_record)
       end
 
@@ -465,8 +478,13 @@ module V2::Logic
       # Validates domain permissions based on context and configuration.
       #
       # @param domain_record [CustomDomain] The domain record to validate
+      # @param allow_public [Boolean, nil] Pre-resolved
+      #   domain_record.allow_public_secret_creation? from the caller, to avoid
+      #   a second HomepageConfig read (#3631). nil means "not resolved yet" —
+      #   the anonymous custom-domain branch computes it on demand, so direct
+      #   callers (specs, other logic) may still pass just the record.
       # @raise [Onetime::Forbidden] If access is not permitted
-      # @see docs/specs/domain-permissions.md for the full truth table
+      # @see docs/specs/domain-permissions/domain-permissions.md for the full truth table
       #
       # Validation Rules (issue #3073):
       # - Domain owner / org member: always permitted, regardless of toggle.
@@ -476,7 +494,7 @@ module V2::Logic
       # - Anonymous on a custom domain: gated by the Homepage Secrets toggle.
       # - Anonymous on the canonical domain (with share_domain set to a custom
       #   domain): not permitted.
-      def validate_domain_permissions(domain_record)
+      def validate_domain_permissions(domain_record, allow_public = nil)
         # Any org member can always use the domain.
         return if domain_record.accessible_by?(@cust)
 
@@ -498,9 +516,16 @@ module V2::Logic
           )
         end
 
-        # Anonymous on a custom domain: gated by the Homepage Secrets toggle.
+        # Anonymous on a custom domain: gated by the Homepage Secrets toggle
+        # AND the homepage secrets_mode — a homepage presenting the incoming
+        # form ('incoming' mode) is public but does not authorize anonymous
+        # secret CREATION (visitors send secrets via the incoming API instead).
         if custom_domain?
-          return if domain_record.allow_public_homepage?
+          # Reuse the gate resolved by validate_domain_access when present;
+          # recompute only for direct callers that pass just the record. `false`
+          # is a valid pre-resolved value, so guard on nil, not falsiness.
+          allow_public = domain_record.allow_public_secret_creation? if allow_public.nil?
+          return if allow_public
 
           secret_logger.warn 'Public sharing disabled for domain',
             {

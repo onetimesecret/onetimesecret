@@ -40,7 +40,11 @@
   });
   const size = computed(() => `size-${props.size ?? 5}`);
   const iconId = computed(() => [props.collection, props.name].filter(Boolean).join('-'));
-  const ariaLabel = computed(() => props.ariaLabel ?? `${iconId.value} icon`);
+  // Only expose an accessible name / tooltip when the caller supplies a
+  // meaningful ariaLabel. The old `${iconId} icon` fallback surfaced the raw
+  // icon id (e.g. "mdi-clipboard-text-outline icon") as a hover tooltip via
+  // the SVG <title>, overriding any real title on the parent control.
+  const ariaLabel = computed(() => props.ariaLabel);
 
   // Professional iconist tip:
   // It's very helpful to console log the props here to see what icons

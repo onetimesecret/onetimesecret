@@ -12,13 +12,13 @@ Accepted
 
 ## Context
 
-The application uses six secret values for distinct cryptographic purposes. Prior to this decision, the relationship between these secrets was ad hoc — some derived from a root key via HKDF, some generated independently, and naming mixed algorithm identifiers (`_HMAC_SECRET`) with purpose identifiers (`SESSION_SECRET`).
+The application uses multiple secret values for distinct cryptographic purposes. Prior to this decision, the relationship between these secrets was ad hoc. Some derived from a root key via HKDF, some generated independently, and naming mixed algorithm identifiers (`_HMAC_SECRET`) with purpose identifiers (`SESSION_SECRET`).
 
 Three factors forced a deliberate architecture:
 
 1. **Rotation blast radius.** Rodauth's `hmac_secret` has a sticky rotation problem: TOTP enrollments are HMAC-wrapped with it, and Rodauth intentionally never re-wraps OTP keys. Deriving this from a root key would mean a Familia encryption compromise (requiring root key rotation) forces TOTP re-enrollment as collateral damage.
 
-2. **Federation lifecycle.** The federation secret must be identical across all instances in a federation group. Deriving it from a per-instance root key is incompatible with this requirement.
+2. **Federation lifecycle.** The federation secret must be identical across all instances in a group. Deriving it from a per-instance root key is incompatible with this requirement.
 
 3. **Naming inconsistency.** Three secrets used the `_HMAC_SECRET` suffix — they all use HMAC, so the suffix adds no distinguishing information. The useful axis for operators is *what the secret protects*, not *which algorithm it uses*.
 
@@ -34,6 +34,7 @@ Three factors forced a deliberate architecture:
 | `AUTH_SECRET` | Rodauth token signing and TOTP key wrapping |
 | `ARGON2_SECRET` | Argon2id password hash pepper |
 | `FEDERATION_SECRET` | Cross-region email hashing for billing federation |
+| `ACCOUNT_ID_SECRET` | Obfuscate account IDs in email-link tokens and remember-me cookies |
 
 **Three lifecycle categories.**
 
@@ -46,6 +47,7 @@ The derived/independent split follows from an asymmetry in rotation capability: 
 *Independent per-instance* — generated randomly, must be backed up:
 - `AUTH_SECRET`: Decoupled from root key so Familia rotation doesn't cascade into MFA re-enrollment.
 - `ARGON2_SECRET`: Password re-hashing is a separate operational concern.
+- `ACCOUNT_ID_SECRET`: Kept off AUTH_SECRET so rotating the HMAC secret doesn't invalidate in-flight obfuscated account IDs (version-tagged for its own rotation).
 
 *Shared per-federation-group* — generated once via passforge, distributed to all instances:
 - `FEDERATION_SECRET`: `init.rake` validates presence but does not generate it.

@@ -126,32 +126,29 @@ result = V1::Controllers::Index.receipt_hsh(@receipt)
 result['received'] == now_ts
 #=> true
 
-## TC-15: Sequential lifecycle new→previewed→revealed never leaks v0.24 states
+## TC-15: Sequential lifecycle new→revealed never leaks v0.24 states
+## (#3633 retired the previewed! intermediate transition)
 v024_only = %w[previewed revealed shared]
 @lifecycle_receipt, @lifecycle_secret = Onetime::Receipt.spawn_pair 'anon', 300, 'lifecycle test'
 # Step 1: initial state after creation (new)
 step1 = V1::Controllers::Index.receipt_hsh(@lifecycle_receipt)['state']
-# Step 2: after previewed! transition
-@lifecycle_receipt.previewed!
-step2 = V1::Controllers::Index.receipt_hsh(@lifecycle_receipt)['state']
-# Step 3: after revealed! transition
+# Step 2: after revealed! transition
 @lifecycle_receipt.revealed!
-step3 = V1::Controllers::Index.receipt_hsh(@lifecycle_receipt)['state']
-states = [step1, step2, step3]
+step2 = V1::Controllers::Index.receipt_hsh(@lifecycle_receipt)['state']
+states = [step1, step2]
 [states, states.none? { |s| v024_only.include?(s) }]
-#=> [['new', 'viewed', 'received'], true]
+#=> [['new', 'received'], true]
 
-## TC-16: Sequential lifecycle new→previewed→burned never leaks v0.24 states
+## TC-16: Sequential lifecycle new→burned never leaks v0.24 states
+## (#3633 retired the previewed! intermediate transition)
 v024_only = %w[previewed revealed shared]
 @burn_receipt, @burn_secret = Onetime::Receipt.spawn_pair 'anon', 300, 'burn lifecycle test'
 step1b = V1::Controllers::Index.receipt_hsh(@burn_receipt)['state']
-@burn_receipt.previewed!
-step2b = V1::Controllers::Index.receipt_hsh(@burn_receipt)['state']
 @burn_receipt.burned!
-step3b = V1::Controllers::Index.receipt_hsh(@burn_receipt)['state']
-burn_states = [step1b, step2b, step3b]
+step2b = V1::Controllers::Index.receipt_hsh(@burn_receipt)['state']
+burn_states = [step1b, step2b]
 [burn_states, burn_states.none? { |s| v024_only.include?(s) }]
-#=> [['new', 'viewed', 'burned'], true]
+#=> [['new', 'burned'], true]
 
 # Teardown
 @lifecycle_receipt.destroy!

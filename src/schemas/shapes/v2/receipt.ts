@@ -150,7 +150,9 @@ export const receiptSchema = receiptBaseSchema.merge(
 export const receiptDetailsSchema = receiptDetailsCanonical.extend({
   display_lines: transforms.fromString.number,
   no_cache: transforms.fromString.boolean,
-  view_count: transforms.fromString.number.nullable(),
+  view_count: transforms.fromString.number.nullable().optional(),
+  first_access: transforms.fromString.number.nullable().optional(),
+  last_access: transforms.fromString.number.nullable().optional(),
   has_passphrase: transforms.fromString.boolean,
   can_decrypt: transforms.fromString.boolean,
   show_secret: transforms.fromString.boolean,
