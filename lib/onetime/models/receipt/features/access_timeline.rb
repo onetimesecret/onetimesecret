@@ -48,10 +48,16 @@ module Onetime::Receipt::Features
       #   endpoint was fetched). Kept open-ended so higher-fidelity tiers
       #   (e.g. a client-confirmed render beacon) can append richer kinds.
       # @param at [Numeric] event time as epoch seconds; defaults to now.
+      # @param context [Hash, nil] optional privacy-safe request context to
+      #   attach to the org-trail event (e.g. the masked-partial IP / UA and the
+      #   keyed correlation hash from Onetime::Security::RequestContext; #3640).
+      #   String-keyed and forwarded verbatim to record_org_audit_event, which
+      #   splats it into the org audit event. nil / empty records no extra
+      #   context. Only the fetch/telemetry path supplies this today.
       # @return [String, nil] the recorded member, or nil when nothing was
       #   recorded (blank kind, or the receipt no longer exists -- appending
       #   would orphan a timeline key next to a destroyed/expired receipt).
-      def record_access_event(kind, at: Familia.now)
+      def record_access_event(kind, at: Familia.now, context: nil)
         return if kind.to_s.empty?
         return unless exists?
 
@@ -84,8 +90,11 @@ module Onetime::Receipt::Features
 
         # Fan out to the organization's audit trail (no-op without org
         # context). The org trail is the durable, org-wide view of the same
-        # activity; see Organization::Features::AuditTrail.
-        record_org_audit_event(kind, at: at) unless saturated
+        # activity; see Organization::Features::AuditTrail. Forward any
+        # privacy-safe request context (masked IP / UA, keyed hash; #3640) as
+        # extra string-keyed event attrs.
+        context_attrs = context || {}
+        record_org_audit_event(kind, at: at, **context_attrs) unless saturated
 
         member
       end
@@ -103,8 +112,11 @@ module Onetime::Receipt::Features
       # @param at [Numeric] event time as epoch seconds; defaults to now.
       # @param organization [Onetime::Organization, nil] pass when the
       #   caller already holds the org to skip the extra load.
-      # @param event_attrs [Hash] additional string-keyed context merged into
-      #   the recorded event (e.g. the lifecycle actor discriminator, #3639).
+      # @param event_attrs [Hash] additional string-keyed context spliced into
+      #   the org audit event -- e.g. privacy-safe network context (#3640) or
+      #   actor identity (#3639). Kept additive so independent capture tickets
+      #   compose without touching this method's core. Values must already be
+      #   audit-safe (short, non-sensitive; never raw IPs or capability tokens).
       # @return [Hash, nil] the recorded event, or nil when skipped.
       def record_org_audit_event(kind, at: Familia.now, organization: nil, **event_attrs)
         organization ||= Onetime::Organization.load(org_id) unless org_id.to_s.empty?
