@@ -36,6 +36,17 @@ module Onetime
     #    one operation (mask_ip) and reduced immediately; it never flows into a
     #    second code path.
     #
+    #    KNOWN ISSUE (temporary; tracked in otto#192). The /24 correlation is a
+    #    consequence of the raw IP being unavailable at this layer, not a target
+    #    end state. Otto already computes a full-IP hash (otto.privacy.hashed_ip),
+    #    but keys it with a DAILY-ROTATING key -- unusable for a long-lived audit
+    #    trail -- which is why we fall back to hashing the masked IP with a stable
+    #    app secret. otto#192 asks Otto to expose a stable-keyed full-IP
+    #    correlation hash (computed in IPPrivacyMiddleware before masking). When
+    #    it lands, switch NET_IP_HASH to consume it and correlation upgrades from
+    #    /24 to per-host, with no change to the "raw IP never reaches app code"
+    #    invariant. See ADR-022 Implementation Notes.
+    #
     # 2. Defense in depth. Otto's IPPrivacyMiddleware already masks REMOTE_ADDR /
     #    otto.client_ip and scrubs the User-Agent at the edge, so the values that
     #    reach this layer are typically already reduced. This helper re-applies
@@ -83,6 +94,9 @@ module Onetime
         partial_ip = mask_ip(ip)
         if partial_ip
           attrs[NET_IP_PARTIAL] = partial_ip
+          # KNOWN ISSUE (otto#192, temporary): hashing the PARTIAL IP yields only
+          # /24-granular correlation. Swap to Otto's stable full-IP hash when it
+          # exists (see class docstring note 1 and ADR-022 Implementation Notes).
           correlation           = hash_ip(partial_ip, key)
           attrs[NET_IP_HASH]    = correlation if correlation
         end

@@ -116,6 +116,30 @@ fan-out guard is unchanged.
   the actor-identity capture (#3639), which shares the same
   `record_org_audit_event(**event_attrs)` seam.
 
+## Implementation Notes
+
+### The /24 correlation granularity is temporary (2026-07-09)
+
+Hashing the *partial* IP (Decision: "We hash the partial IP, not the raw") is a
+consequence of the raw IP being architecturally unavailable at this layer, not
+a target end state. It yields only /24-granular correlation. This is a **known,
+tracked limitation**, not a permanent design choice.
+
+The proper fix lives in Otto: **otto#192** requests that Otto expose a
+*stable-keyed* HMAC correlation hash derived from the **full** client IP,
+computed inside `IPPrivacyMiddleware` before masking (the one place the full IP
+briefly exists), so a consumer can get per-host correlation without ever
+handling the raw IP. Otto already computes a full-IP hash (`otto.privacy.hashed_ip`),
+but it is keyed with a **daily-rotating** key — unusable for a long-lived audit
+trail — which is why this ADR fell back to hashing the masked IP with a stable
+app secret.
+
+When otto#192 lands: switch `net_ip_hash` to consume Otto's stable full-IP
+correlation hash, upgrading correlation from /24 to per-host, with no change to
+this pipeline's "raw IP never reaches app code" invariant. Until then, the /24
+granularity stands and is documented inline at the hash site
+(`lib/onetime/security/request_context.rb`).
+
 ## Cross-references
 
 - Ticket #3640 (this work); event-side capture umbrella #3633 / PR #3635.
@@ -123,3 +147,5 @@ fan-out guard is unchanged.
   data lands in.
 - Sibling capture: #3639 (actor identity on revealed/burned), same
   `record_org_audit_event` extension point.
+- Upstream follow-up: otto#192 (stable-keyed full-IP correlation hash) — see
+  Implementation Notes; unblocks per-host correlation.
