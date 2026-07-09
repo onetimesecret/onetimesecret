@@ -121,6 +121,11 @@ RSpec.describe 'SetupConnectionPool (integration)', type: :integration do
     # before(:context) Onetime.boot!, so if it already ran before this
     # example no subsequent boot! rewrites Familia.uri either — the leak
     # sticks across the whole suite.
+    #
+    # As of the boot.rb datastore guard, boot! now aborts before either
+    # mutation happens, so this snapshot/restore is a defensive no-op today.
+    # It is kept so the example stays leak-safe if the guard ever moves after
+    # the initializer pipeline.
     around do |example|
       snapshot = snapshot_familia_pool_config
       original_timeout = ENV['FAMILIA_POOL_TIMEOUT']
@@ -143,15 +148,15 @@ RSpec.describe 'SetupConnectionPool (integration)', type: :integration do
       end
     end
 
-    it 'surfaces a connection error rather than silently succeeding' do
+    it 'is blocked by the test-datastore guard before it can touch a bad datastore' do
       closed_port = ephemeral_closed_port
 
-      # Load config, then rewrite the URI to a closed port before boot runs.
-      # This is cleaner than stubbing VALKEY_URL because config.test.yaml
-      # hardcodes the URI without ERB - the ENV var wouldn't propagate.
-      # OT::Config.after_load would deep_freeze the returned hash if
-      # OT.testing? were false; it stays true here (see ENV stub rationale
-      # below), so the mutation-after-after_load path continues to work.
+      # Load config, then rewrite the URI to a closed, non-:2121 port before
+      # boot runs. This is cleaner than stubbing VALKEY_URL because
+      # config.test.yaml hardcodes the URI without ERB - the ENV var wouldn't
+      # propagate. OT::Config.after_load would deep_freeze the returned hash if
+      # OT.testing? were false; it stays true here (boot!(:test) sets the mode),
+      # so the mutation-after-after_load path continues to work.
       OT::Config.before_load
       raw_conf       = OT::Config.load
       processed_conf = OT::Config.after_load(raw_conf)
@@ -162,26 +167,17 @@ RSpec.describe 'SetupConnectionPool (integration)', type: :integration do
       allow(OT::Config).to receive(:load).and_return(processed_conf)
       allow(OT::Config).to receive(:after_load).and_return(processed_conf)
 
-      # Neutralize the :2121 test-mode guard in ConfigureFamilia, which uses
-      # ENV['RACK_ENV'] (bracket access) at lib/onetime/initializers/
-      # configure_familia.rb:48. We stub only `[]`, NOT `ENV.fetch`, on
-      # purpose: OT.testing? and OT.env read via fetch, and flipping those
-      # to non-test would trigger deep_freeze on config (blocking the URI
-      # mutation above) and retarget boot_guard!'s BOOT_FAILED branch
-      # (raising instead of retrying). The surgical stub keeps the test
-      # hermetic without those side effects. Gemini code review flagged
-      # ENV[] stubbing as leaky in general; in this specific case, leaking
-      # is exactly what we want.
-      allow(ENV).to receive(:[]).and_call_original
-      allow(ENV).to receive(:[]).with('RACK_ENV').and_return('production')
-
-      # Exception matching, not message matching - error messages are an
-      # unstable contract surface. Redis::CannotConnectError covers
-      # ECONNREFUSED from Redis 5.x client; a broader rescue catches driver
-      # variations without coupling to them.
+      # boot!(:test) against a non-:2121 datastore now fails closed at the
+      # boot.rb datastore guard (added in "Enforce datastore safety for tests
+      # and tryouts", boot.rb:161, keyed on OT.mode?(:test)) BEFORE any
+      # initializer runs — so the connection pool is never built and Familia.uri
+      # is never rewritten. This guard supersedes the old ECONNREFUSED-at-the-
+      # pool path: the boot still surfaces the error loudly, just at an earlier,
+      # stronger gate. Match the guard message so an unrelated Onetime::Problem
+      # can't masquerade as a pass.
       expect {
         Onetime.boot!(:test)
-      }.to raise_error(Redis::BaseConnectionError)
+      }.to raise_error(Onetime::Problem, /test datastore/)
     end
   end
 end
