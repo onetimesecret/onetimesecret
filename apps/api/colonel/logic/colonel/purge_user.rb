@@ -36,6 +36,7 @@ module ColonelAPI
           raise_not_found('User not found') unless user&.exists?
 
           raise_form_error('Cannot purge anonymous user', field: :user_id) if user.anonymous?
+          raise_form_error('Cannot purge your own account', field: :user_id) if user.objid == cust.objid
         end
 
         def process

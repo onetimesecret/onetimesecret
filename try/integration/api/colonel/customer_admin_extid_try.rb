@@ -123,6 +123,13 @@ delete "/api/colonel/users/#{@purge_extid}", {}, @colonel_get_headers
 [last_response.status, @purge_resp['record']['deleted'], Onetime::Customer.load(@purge_objid).nil?]
 #=> [200, true, true]
 
+# ---- Self-purge guard ---------------------------------------------------
+
+## DELETE of the acting colonel's own extid is refused (422), account survives
+delete "/api/colonel/users/#{@colonel.extid}", {}, @colonel_get_headers
+[last_response.status, Onetime::Customer.load(@colonel.objid).nil?]
+#=> [422, false]
+
 # ---- 404 still holds for a genuinely unknown identifier -----------------
 
 ## An identifier that is neither a live extid nor objid still 404s
