@@ -53,10 +53,9 @@
   };
 
   // Corner options map to border_radius presets (Square→none, Rounded→md,
-  // Pill→full). Labels reuse borderRadiusDisplayMap (hardcoded English, the same
-  // convention BrandSettingsBar's CycleButton uses). Each shows a single-corner
-  // tabler glyph — the same icons the old brand bar used (cornerStyleIconMap) —
-  // rather than a full box, which reads more clearly as "corner treatment".
+  // Pill→full). Labels reuse borderRadiusDisplayMap (hardcoded English). Each
+  // shows a single-corner tabler glyph (cornerStyleIconMap) rather than a full
+  // box, which reads more clearly as "corner treatment".
   const cornerOptions = [
     { id: 'none', label: borderRadiusDisplayMap.none, icon: 'tabler-border-corner-square' },
     { id: 'md', label: borderRadiusDisplayMap.md, icon: 'tabler-border-corner-rounded' },
@@ -68,12 +67,12 @@
     return radius == null || radius === '' ? null : String(radius);
   });
 
-  // Primary legibility warning, mirroring BrandSettingsBar. Note: checkBrandContrast
-  // reports max(vs-white, vs-black) — the auto-picked button-text contrast — whose
-  // minimum across all hues is ~4.58, just above the 4.5 AA threshold, so passesAA
-  // is effectively always true and this warning is vestigial (kept for parity with
-  // BrandSettingsBar and as a safety net if the threshold ever tightens). Display
-  // only — it never blocks the save (WCAG contrast is not gated on save).
+  // Primary legibility warning. Note: checkBrandContrast reports max(vs-white,
+  // vs-black) — the auto-picked button-text contrast — whose minimum across all
+  // hues is ~4.58, just above the 4.5 AA threshold, so passesAA is effectively
+  // always true and this warning is vestigial (kept as a safety net if the
+  // threshold ever tightens). Display only — it never blocks the save (WCAG
+  // contrast is not gated on save).
   const contrastCheck = computed(() => checkBrandContrast(props.modelValue.primary_color ?? ''));
   const showContrastWarning = computed(() => !contrastCheck.value.passesAA);
   const contrastRatioDisplay = computed(() => contrastCheck.value.ratio.toFixed(1));
@@ -104,7 +103,7 @@
           @update:model-value="(value) => updateBrandSetting('primary_color', value)"
           name="brand[primary_color]"
           variant="sketch"
-          :disable-alpha="false"
+          disable-alpha
           :label="t('web.branding.brand_color')"
           id="simple-brand-color" />
         <span class="text-[11px] text-gray-400">{{ t('web.branding.brand_color_hint') }}</span>

@@ -183,8 +183,10 @@ export const brandSettingsCanonical = z
       .nullish(),
 
     /**
-     * Body text color (hex). Drives `--color-brandtext` at runtime. Validated
-     * for WCAG contrast against background_color server-side.
+     * Body text color (hex). Drives `--color-brandtext` at runtime. Format-only
+     * validation (hex); WCAG contrast against background_color is surfaced as an
+     * advisory warning in the editor UI, not enforced server-side (product
+     * decision 2026-07).
      */
     text_color: z
       .string()

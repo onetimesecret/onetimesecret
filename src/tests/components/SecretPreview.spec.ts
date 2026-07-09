@@ -81,4 +81,21 @@ describe('SecretPreview border_radius fidelity (#3646)', () => {
     expect(wrapper.find('.rounded-brand').exists()).toBe(false);
     expect(wrapper.find('.rounded-none').exists()).toBe(true);
   });
+
+  // Guards the attrs-fallthrough coupling flagged in PR #3694 review: rootStyle
+  // is applied to <BaseSecretDisplay> and only reaches every `rounded-brand`
+  // descendant because that component stays single-root with inheritAttrs:true.
+  // A future refactor making it multi-root (or inheritAttrs:false) would silently
+  // drop --radius-brand off the root and desync the preview from the recipient
+  // page. Asserting the var lands on wrapper.element (the merged root) trips that.
+  it('merges --radius-brand onto the single root element (attrs fallthrough)', () => {
+    const wrapper = mountPreview({ border_radius: 'full' });
+    // The var must sit on the ROOT opening tag — i.e. rootStyle fell through onto
+    // BaseSecretDisplay's single root, scoping it above every rounded-brand
+    // descendant. (jsdom reflects custom props into outerHTML but not into
+    // getAttribute('style'), so read the serialized root tag.)
+    // First element opening tag (regex skips any leading comment node).
+    const rootTag = wrapper.html().match(/<[a-zA-Z][^>]*>/)?.[0] ?? '';
+    expect(rootTag).toContain('--radius-brand: 9999px');
+  });
 });
