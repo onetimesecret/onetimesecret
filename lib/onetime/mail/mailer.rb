@@ -22,6 +22,17 @@ require_relative 'views/magic_link'
 require_relative 'views/email_change_confirmation'
 require_relative 'views/email_change_requested'
 require_relative 'views/email_changed'
+require_relative 'views/new_login_alert'
+require_relative 'views/mfa_enabled'
+require_relative 'views/mfa_disabled'
+require_relative 'views/password_changed'
+require_relative 'views/role_changed'
+require_relative 'views/member_removed'
+require_relative 'views/organization_deleted'
+require_relative 'views/trial_expiring'
+require_relative 'views/payment_failed'
+require_relative 'views/payment_receipt'
+require_relative 'views/subscription_changed'
 
 module Onetime
   module Mail
@@ -201,6 +212,28 @@ module Onetime
             Templates::EmailChangeRequested
           when :email_changed
             Templates::EmailChanged
+          when :new_login_alert
+            Templates::NewLoginAlert
+          when :mfa_enabled
+            Templates::MfaEnabled
+          when :mfa_disabled
+            Templates::MfaDisabled
+          when :password_changed
+            Templates::PasswordChanged
+          when :role_changed
+            Templates::RoleChanged
+          when :member_removed
+            Templates::MemberRemoved
+          when :organization_deleted
+            Templates::OrganizationDeleted
+          when :trial_expiring
+            Templates::TrialExpiring
+          when :payment_failed
+            Templates::PaymentFailed
+          when :payment_receipt
+            Templates::PaymentReceipt
+          when :subscription_changed
+            Templates::SubscriptionChanged
           else
             raise ArgumentError, "Unknown template: #{name}"
           end

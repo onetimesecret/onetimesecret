@@ -95,6 +95,50 @@ Onetime::Mail::Mailer.send(:template_class_for, :password_request)
 Onetime::Mail::Mailer.send(:template_class_for, :incoming_secret)
 #=> Onetime::Mail::Templates::IncomingSecret
 
+## template_class_for :new_login_alert returns NewLoginAlert
+Onetime::Mail::Mailer.send(:template_class_for, :new_login_alert)
+#=> Onetime::Mail::Templates::NewLoginAlert
+
+## template_class_for :mfa_enabled returns MfaEnabled
+Onetime::Mail::Mailer.send(:template_class_for, :mfa_enabled)
+#=> Onetime::Mail::Templates::MfaEnabled
+
+## template_class_for :mfa_disabled returns MfaDisabled
+Onetime::Mail::Mailer.send(:template_class_for, :mfa_disabled)
+#=> Onetime::Mail::Templates::MfaDisabled
+
+## template_class_for :password_changed returns PasswordChanged
+Onetime::Mail::Mailer.send(:template_class_for, :password_changed)
+#=> Onetime::Mail::Templates::PasswordChanged
+
+## template_class_for :role_changed returns RoleChanged
+Onetime::Mail::Mailer.send(:template_class_for, :role_changed)
+#=> Onetime::Mail::Templates::RoleChanged
+
+## template_class_for :member_removed returns MemberRemoved
+Onetime::Mail::Mailer.send(:template_class_for, :member_removed)
+#=> Onetime::Mail::Templates::MemberRemoved
+
+## template_class_for :organization_deleted returns OrganizationDeleted
+Onetime::Mail::Mailer.send(:template_class_for, :organization_deleted)
+#=> Onetime::Mail::Templates::OrganizationDeleted
+
+## template_class_for :trial_expiring returns TrialExpiring
+Onetime::Mail::Mailer.send(:template_class_for, :trial_expiring)
+#=> Onetime::Mail::Templates::TrialExpiring
+
+## template_class_for :payment_failed returns PaymentFailed
+Onetime::Mail::Mailer.send(:template_class_for, :payment_failed)
+#=> Onetime::Mail::Templates::PaymentFailed
+
+## template_class_for :payment_receipt returns PaymentReceipt
+Onetime::Mail::Mailer.send(:template_class_for, :payment_receipt)
+#=> Onetime::Mail::Templates::PaymentReceipt
+
+## template_class_for :subscription_changed returns SubscriptionChanged
+Onetime::Mail::Mailer.send(:template_class_for, :subscription_changed)
+#=> Onetime::Mail::Templates::SubscriptionChanged
+
 ## build_provider_config for logger returns empty hash
 config = Onetime::Mail::Mailer.send(:build_provider_config, 'logger')
 config
