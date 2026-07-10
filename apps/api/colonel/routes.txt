@@ -70,6 +70,8 @@ GET    /usage/export                      ColonelAPI::Logic::Colonel::ExportUsag
 GET    /sessions                          ColonelAPI::Logic::Colonel::ListSessions response=json auth=sessionauth role=colonel scope=internal
 GET    /sessions/:session_id              ColonelAPI::Logic::Colonel::GetSessionDetail response=json auth=sessionauth role=colonel scope=internal
 DELETE /sessions/:session_id              ColonelAPI::Logic::Colonel::DeleteSession response=json auth=sessionauth role=colonel scope=internal
+GET    /users/:user_id/sessions           ColonelAPI::Logic::Colonel::ListCustomerSessions response=json auth=sessionauth role=colonel scope=internal
+DELETE /users/:user_id/sessions/:session_id ColonelAPI::Logic::Colonel::RevokeCustomerSession response=json auth=sessionauth role=colonel scope=internal
 
 # Broadcast Banner (ticket #41)
 GET    /banner                            ColonelAPI::Logic::Colonel::GetBanner response=json auth=sessionauth role=colonel scope=internal
