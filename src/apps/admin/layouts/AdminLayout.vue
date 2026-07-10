@@ -73,24 +73,42 @@
       <!-- Masthead: the lock-up anchors the top of the rail — nothing sits above
            it, so the mark is never pushed down. A proper lock-up, not just an
            icon + word. The heavy bottom rule reads as the header rule of a bound
-           record. The escape hatch lives in the rail footer below. -->
-      <div
-        class="flex h-16 items-center gap-3 border-b-2 border-gray-900 px-5 dark:border-gray-100">
+           record. It doubles as the escape hatch: on hover the mark flips to a
+           back-arrow and the wordmark to a return label, linking to the main
+           site (full navigation — the console is an isolated bundle). A
+           persistent copy also lives in the rail footer below. -->
+      <a
+        href="/"
+        class="group flex h-16 items-center gap-3 border-b-2 border-gray-900 px-5 transition-colors dark:border-gray-100"
+        :aria-label="t('web.colonel.backToSite')"
+        data-testid="admin-masthead-home">
         <span
-          class="flex size-9 shrink-0 items-center justify-center rounded-md bg-brand-600 text-white shadow-sm dark:bg-brand-500">
+          class="flex size-9 shrink-0 items-center justify-center rounded-md bg-brand-600 text-white shadow-sm transition-colors group-hover:bg-gray-900 dark:bg-brand-500 dark:group-hover:bg-gray-100 dark:group-hover:text-gray-900">
           <OIcon
             collection="heroicons"
             name="shield-check"
-            size="5" />
+            size="5"
+            class="group-hover:hidden" />
+          <OIcon
+            collection="heroicons"
+            name="arrow-left"
+            size="5"
+            class="hidden group-hover:block" />
         </span>
-        <span class="flex flex-col leading-none">
+        <!-- Default lock-up; hidden on hover. -->
+        <span class="flex flex-col leading-none group-hover:hidden">
           <span class="font-brand text-lg font-bold tracking-tight">{{ t('web.colonel.admin') }}</span>
           <span
             class="mt-1 font-brand text-[10px] font-semibold tracking-[0.2em] text-gray-400 uppercase dark:text-gray-500">
             {{ t('web.colonel.nav.consoleTag') }}
           </span>
         </span>
-      </div>
+        <!-- Return label; shown on hover. -->
+        <span
+          class="hidden font-brand text-lg font-bold tracking-tight text-gray-900 group-hover:inline dark:text-gray-100">
+          {{ t('web.colonel.backToSite') }}
+        </span>
+      </a>
 
       <nav
         class="flex-1 overflow-y-auto px-3 pb-4"
