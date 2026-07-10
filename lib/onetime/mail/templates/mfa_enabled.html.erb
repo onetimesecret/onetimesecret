@@ -6,7 +6,7 @@
 
 <!-- Body -->
 <div style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; color: #333333;">
-  <p><%= t('email.mfa_enabled.body', product_name: product_name, date: enabled_at_formatted) %></p>
+  <p><%= h(t('email.mfa_enabled.body', product_name: product_name, date: enabled_at_formatted)) %></p>
 
   <p style="color: #1e5631; background-color: #eaf6ec; border-left: 3px solid #3aa561; padding: 12px 14px; border-radius: 4px; margin-top: 24px; font-size: 13px; line-height: 20px;">
     <%= t('email.mfa_enabled.security_notice') %>

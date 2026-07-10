@@ -188,8 +188,26 @@ module Onetime
 
         private
 
+        # Template names whose view classes are only defined when billing is
+        # enabled (each billing view wraps its class in
+        # `if Onetime.billing_config.enabled?`). Referencing the constant while
+        # billing is off raises NameError, so template_class_for rejects these
+        # names with the normal ArgumentError before the case reaches them.
+        BILLING_TEMPLATE_NAMES = %i[
+          trial_expiring
+          payment_failed
+          payment_receipt
+          subscription_changed
+        ].freeze
+
         def template_class_for(name)
-          case name.to_sym
+          sym = name.to_sym
+
+          if BILLING_TEMPLATE_NAMES.include?(sym) && !Onetime.billing_config.enabled?
+            raise ArgumentError, "Unknown template: #{name} (billing disabled)"
+          end
+
+          case sym
           when :secret_link
             Templates::SecretLink
           when :welcome
