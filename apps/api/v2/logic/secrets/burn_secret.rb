@@ -31,6 +31,7 @@ module V2::Logic
       include Onetime::LoggerMethods
       include Onetime::Logic::GuestRouteGating
       include Onetime::Security::PassphraseRateLimiter
+      include ActorAttribution
 
       SCHEMAS = { response: 'receipt' }.freeze
 
@@ -84,12 +85,17 @@ module V2::Logic
           # Clear any rate limit state on successful passphrase entry
           clear_passphrase_rate_limit!(secret.identifier) if secret.has_passphrase?
 
+          # Attribute the burn BEFORE burned! consumes the secret: owner?(cust)
+          # reads the still-in-memory owner_id, so the 'burned' audit event
+          # records who acted (#3639). Anonymous guard in lifecycle_actor_context.
+          actor_context = lifecycle_actor_context(secret)
+
           # Gate all bookkeeping on winning the atomic burn claim: burned!
           # returns true only for the single caller that flips the state. When
           # a concurrent reveal or burn already consumed the secret, this
           # request lost the race -- it must not count the burn, log success,
           # or report success to the client.
-          @greenlighted = secret.burned!
+          @greenlighted = secret.burned!(actor_context: actor_context)
 
           if greenlighted
             owner = secret.load_owner

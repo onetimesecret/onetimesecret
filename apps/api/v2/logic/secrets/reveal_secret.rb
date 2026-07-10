@@ -33,6 +33,7 @@ module V2::Logic
       include Onetime::LoggerMethods
       include Onetime::Logic::GuestRouteGating
       include Onetime::Security::PassphraseRateLimiter
+      include ActorAttribution
 
       SCHEMAS = { response: 'secret' }.freeze
 
@@ -87,6 +88,12 @@ module V2::Logic
 
         owner = secret.load_owner
         if show_secret
+          # Compute the actor attribution BEFORE reveal! consumes the secret:
+          # owner?(cust) reads the still-in-memory owner_id. Threaded into every
+          # reveal! path below so the 'revealed' audit event records who acted
+          # (#3639). The anonymous guard lives in lifecycle_actor_context.
+          actor_context = lifecycle_actor_context(secret)
+
           # Clear any rate limit state on successful passphrase entry
           clear_passphrase_rate_limit!(secret.identifier) if secret.has_passphrase?
 
@@ -131,7 +138,7 @@ module V2::Logic
               # (which updates the receipt record and then expunges the secret
               # record) and allow the user to carry on. reveal! returns the
               # plaintext only if this caller won the one-shot claim.
-              @secret_value = secret.reveal!(passphrase_input: @passphrase)
+              @secret_value = secret.reveal!(passphrase_input: @passphrase, actor_context: actor_context)
 
             elsif owner && (cust&.anonymous? || (cust&.custid == owner.custid && !owner.verified?))
               secret_logger.info 'Owner verification successful',
@@ -147,7 +154,7 @@ module V2::Logic
               owner.reset_secret.delete!
               # Skip for stateless auth (BasicAuth provides empty session)
               sess.clear unless sess.empty?
-              @secret_value     = secret.reveal!(passphrase_input: @passphrase)
+              @secret_value     = secret.reveal!(passphrase_input: @passphrase, actor_context: actor_context)
 
             else
               secret_logger.error 'Invalid verification - user already logged in',
@@ -175,7 +182,7 @@ module V2::Logic
             # nil. The success log and the shared-secret counters are therefore
             # gated on winning, so a losing request neither claims success nor
             # inflates the metrics.
-            @secret_value = secret.reveal!(passphrase_input: @passphrase)
+            @secret_value = secret.reveal!(passphrase_input: @passphrase, actor_context: actor_context)
 
             if @secret_value
               secret_logger.info 'Secret revealed successfully',

@@ -90,6 +90,37 @@ RSpec.describe Onetime::Receipt, type: :integration do
     end
   end
 
+  # Network context threading (#3640): the fetch path passes privacy-safe
+  # request context (masked IP / UA, keyed hash) down to the org-trail fan-out,
+  # which has no request object of its own. record_access_event forwards the
+  # string-keyed context to record_org_audit_event verbatim; when absent it
+  # forwards nothing (backward-compatible with lifecycle callers).
+  describe '#record_access_event context threading' do
+    it 'forwards a present context to the org-trail fan-out' do
+      context = { 'net_ip_partial' => '203.0.113.0', 'net_ip_hash' => 'abc123' }
+
+      expect(receipt).to receive(:record_org_audit_event)
+        .with('status_get', hash_including(at: anything, **context))
+
+      receipt.record_access_event('status_get', context: context)
+    end
+
+    it 'forwards no extra attrs when context is nil (default)' do
+      expect(receipt).to receive(:record_org_audit_event) do |kind, **kwargs|
+        expect(kind).to eq('status_get')
+        expect(kwargs.keys).to contain_exactly(:at)
+      end
+
+      receipt.record_access_event('status_get')
+    end
+
+    it 'still records the member regardless of context' do
+      member = receipt.record_access_event('status_get', context: { 'net_ip_partial' => '203.0.113.0' })
+      expect(member).to start_with('status_get:')
+      expect(receipt.access_count).to eq(1)
+    end
+  end
+
   describe 'lifecycle isolation' do
     it 'recording an access does not touch the receipt or secret state' do
       receipt.record_access_event('secret_get')
