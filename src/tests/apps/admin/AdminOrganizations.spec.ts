@@ -16,6 +16,11 @@ vi.mock('@/shared/stores/notificationsStore', () => ({
   useNotificationsStore: () => ({ show: showMock }),
 }));
 
+// Row click navigates to the detail page (the drawer + investigate/entitlement
+// workflows moved to AdminOrganizationDetail — see AdminOrganizationDetail.spec).
+const pushMock = vi.fn();
+vi.mock('vue-router', () => ({ useRouter: () => ({ push: pushMock }) }));
+
 vi.mock('@/utils/format', () => ({
   formatDisplayDateTime: (d: Date) => `DT:${d.toISOString()}`,
 }));
@@ -98,62 +103,7 @@ function orgsPayload(rows = [orgRow()]) {
   };
 }
 
-function investigatePayload() {
-  return {
-    shrimp: '',
-    record: {
-      org_id: 'org1',
-      extid: 'on_abc123',
-      investigated_at: '2026-07-06 12:00:00 UTC',
-      local: {
-        planid: 'free_v1',
-        stripe_customer_id: 'cus_123',
-        stripe_subscription_id: 'sub_123',
-        subscription_status: 'active',
-        subscription_period_end: null,
-      },
-      stripe: {
-        available: true,
-        reason: null,
-        subscription: {
-          id: 'sub_123',
-          status: 'active',
-          current_period_end: 1735689600,
-          price_id: 'price_1',
-          price_nickname: null,
-          product_id: 'prod_1',
-          product_name: 'Identity Plus',
-          subscription_metadata_plan_id: null,
-          price_metadata_plan_id: 'identity_plus_v1',
-          resolved_plan_id: 'identity_plus_v1',
-        },
-      },
-      comparison: {
-        match: false,
-        verdict: 'mismatch_detected',
-        details: 'planid differs',
-        issues: [{ field: 'planid', local: 'free_v1', stripe: 'identity_plus_v1', severity: 'high' }],
-      },
-    },
-  };
-}
-
-function grantAck() {
-  return {
-    shrimp: '',
-    record: {
-      org_id: 'org1',
-      extid: 'on_abc123',
-      entitlement: 'custom_domains',
-      action: 'granted',
-      effective_entitlements: ['create_secrets', 'custom_domains'],
-      grants: ['custom_domains'],
-      revokes: [],
-    },
-  };
-}
-
-describe('AdminOrganizations (list + investigate + entitlements — ticket #32)', () => {
+describe('AdminOrganizations (list + row navigation — ticket #32)', () => {
   let wrapper: VueWrapper;
   let pinia: ReturnType<typeof createPinia>;
 
@@ -165,8 +115,6 @@ describe('AdminOrganizations (list + investigate + entitlements — ticket #32)'
   afterEach(() => wrapper?.unmount());
 
   const mountView = () => mount(AdminOrganizations, { global: { plugins: [pinia, i18n] } });
-  const dialogInput = (w: VueWrapper) => w.find('#admin-confirm-input');
-  const dialogSubmit = (w: VueWrapper) => w.find('[data-testid="admin-confirm-submit"]');
 
   it('fetches the first page on mount and renders a row per organization', async () => {
     mockApi.get.mockResolvedValue({ data: orgsPayload() });
@@ -178,7 +126,9 @@ describe('AdminOrganizations (list + investigate + entitlements — ticket #32)'
     });
     const table = wrapper.find('[data-testid="organizations-table"]');
     expect(table.exists()).toBe(true);
-    expect(table.text()).toContain('owner@acme.test');
+    // The account email is obscured by default (RevealEmail).
+    expect(table.text()).not.toContain('owner@acme.test');
+    expect(table.text()).toContain('o•••@a•••.test');
   });
 
   it('renders the empty state when there are no organizations', async () => {
@@ -203,63 +153,20 @@ describe('AdminOrganizations (list + investigate + entitlements — ticket #32)'
     });
   });
 
-  it('opens the detail drawer on row click and investigates on demand', async () => {
+  it('navigates to the detail page on row click (drawer superseded by detail page)', async () => {
     mockApi.get.mockResolvedValue({ data: orgsPayload() });
-    mockApi.post.mockResolvedValue({ data: investigatePayload() });
     wrapper = mountView();
     await flushPromises();
 
     await wrapper.find('[data-testid="organizations-table"] tbody tr').trigger('click');
-    await flushPromises();
 
-    const drawer = wrapper.find('[data-testid="organizations-drawer"]');
-    expect(drawer.exists()).toBe(true);
-    expect(drawer.text()).toContain('on_abc123');
-
-    await wrapper.find('[data-testid="org-investigate-button"]').trigger('click');
-    await flushPromises();
-
-    expect(mockApi.post).toHaveBeenCalledWith('/api/colonel/organizations/on_abc123/investigate');
-    const result = wrapper.find('[data-testid="org-investigate-result"]');
-    expect(result.exists()).toBe(true);
-    // #2349 parity: the mismatch verdict + issue field surface in the read-out.
-    expect(wrapper.find('[data-testid="org-investigate-verdict"]').exists()).toBe(true);
-    expect(result.text()).toContain('planid');
-  });
-
-  it('grants an entitlement through a typed-confirmation dialog and shows the new override state', async () => {
-    mockApi.get.mockResolvedValue({ data: orgsPayload() });
-    mockApi.post.mockResolvedValue({ data: grantAck() });
-    wrapper = mountView();
-    await flushPromises();
-
-    await wrapper.find('[data-testid="organizations-table"] tbody tr').trigger('click');
-    await flushPromises();
-
-    // Enter an entitlement and request a grant.
-    await wrapper.find('[data-testid="org-entitlement-input"]').setValue('custom_domains');
-    await wrapper.find('[data-testid="org-entitlement-grant"]').trigger('click');
-    await flushPromises();
-
-    // Typed-confirmation gate: confirm stays disabled until the org's public id
-    // is retyped exactly.
-    expect(dialogSubmit(wrapper).attributes('disabled')).toBeDefined();
-    await dialogInput(wrapper).setValue('on_abc123');
-    expect(dialogSubmit(wrapper).attributes('disabled')).toBeUndefined();
-
-    await dialogSubmit(wrapper).trigger('submit');
-    await flushPromises();
-
-    expect(mockApi.post).toHaveBeenCalledWith(
-      '/api/colonel/organizations/on_abc123/entitlements/grant',
-      { entitlement: 'custom_domains' }
-    );
-    expect(showMock).toHaveBeenCalledTimes(1);
-    expect(showMock.mock.calls[0][1]).toBe('success');
-    // The recomputed override state renders after the mutation.
-    const state = wrapper.find('[data-testid="org-override-state"]');
-    expect(state.exists()).toBe(true);
-    expect(state.text()).toContain('custom_domains');
+    // The in-view drawer is gone; the row routes to AdminOrganizationDetail by
+    // the org's public id (extid), where investigate/entitlements/reconcile live.
+    expect(pushMock).toHaveBeenCalledWith({
+      name: 'AdminOrganizationDetail',
+      params: { id: 'on_abc123' },
+    });
+    expect(wrapper.find('[data-testid="organizations-drawer"]').exists()).toBe(false);
   });
 
   it('shows the error banner + retry on a network failure', async () => {

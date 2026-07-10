@@ -9,7 +9,10 @@ import {
   type PageMeta,
 } from '@/apps/admin/composables/usePaginatedFetch';
 import { colonelSessionsResponseSchema } from '@/schemas/api/internal/responses/colonel-sessions';
-import type { ColonelSession } from '@/schemas/api/internal/responses/colonel-sessions';
+import type {
+  ColonelSession,
+  ColonelSessionScan,
+} from '@/schemas/api/internal/responses/colonel-sessions';
 
 type ColonelSessionsResponse = z.infer<typeof colonelSessionsResponseSchema>;
 
@@ -27,15 +30,27 @@ export const useAdminSessions = defineStore('adminSessions', () => {
   /** Rows for the current page only (one server page — never accumulated). */
   const sessions = ref<ColonelSession[]>([]);
   const pagination = ref<PageMeta | null>(null);
+  /**
+   * Keyspace shape for the current listing. The list shows only identity
+   * sessions; `scan` tells the operator how many keys were scanned, how many
+   * anonymous (CSRF-only) sessions were hidden, and whether the bounded scan was
+   * capped — so a short list never silently reads as "few sessions."
+   */
+  const scan = ref<ColonelSessionScan | null>(null);
 
   const pager = usePaginatedFetch<ColonelSessionsResponse, ColonelSession>({
     url: '/api/colonel/sessions',
     schema: colonelSessionsResponseSchema,
     context: 'ColonelSessionsResponse',
-    select: (data) => ({
-      items: data.details?.sessions ?? [],
-      pagination: data.details?.pagination ?? null,
-    }),
+    // `select` runs with the full validated payload on every successful fetch,
+    // so it is the natural place to keep `scan` in lockstep with the page.
+    select: (data) => {
+      scan.value = data.details?.scan ?? null;
+      return {
+        items: data.details?.sessions ?? [],
+        pagination: data.details?.pagination ?? null,
+      };
+    },
   });
 
   /**
@@ -62,12 +77,14 @@ export const useAdminSessions = defineStore('adminSessions', () => {
         // Schema mismatch: degrade to empty; pager.validationError names the schema.
         sessions.value = [];
         pagination.value = null;
+        scan.value = null;
       }
       return result;
     } catch (err) {
       // Network/HTTP failure: clear stale rows and rethrow for the view to handle.
       sessions.value = [];
       pagination.value = null;
+      scan.value = null;
       throw err;
     }
   }
@@ -76,6 +93,7 @@ export const useAdminSessions = defineStore('adminSessions', () => {
   function $reset(): void {
     sessions.value = [];
     pagination.value = null;
+    scan.value = null;
     pager.reset();
   }
 
@@ -83,6 +101,7 @@ export const useAdminSessions = defineStore('adminSessions', () => {
     // State
     sessions,
     pagination,
+    scan,
     // Fetch state (owned by the shared composable)
     loading: pager.loading,
     error: pager.error,

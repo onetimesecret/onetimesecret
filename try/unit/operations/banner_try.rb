@@ -26,15 +26,17 @@ OT.boot! :test
 
 require 'onetime/operations/banner'
 
-AE  = Onetime::AdminAuditEvent
-KEY = Onetime::Operations::BannerState::KEY
-DB  = Familia.dbclient(Onetime::Operations::BannerState::DB)
+AE        = Onetime::AdminAuditEvent
+KEY       = Onetime::Operations::BannerState::KEY
+SCOPE_KEY = Onetime::Operations::BannerState::SCOPE_KEY
+DB        = Familia.dbclient(Onetime::Operations::BannerState::DB)
 
 @actor = 'ur1colonelpub' # a PUBLIC id (extid-shaped), never an objid
 @msg   = '<a href="/status">Scheduled maintenance Sun 02:00 UTC</a>'
 
 # Clean slate.
 DB.del(KEY)
+DB.del(SCOPE_KEY)
 AE.events.clear
 
 # ---- GetBanner: empty store -------------------------------------------
@@ -43,6 +45,10 @@ AE.events.clear
 @g0 = Onetime::Operations::GetBanner.new.call
 [@g0.active, @g0.content.nil?, @g0.ttl.nil?]
 #=> [false, true, true]
+
+## GetBanner on an empty store reports the DEFAULT audience scope (no sidecar key)
+@g0.scope
+#=> "no_recipient"
 
 ## GetBanner exposes the backing key + database (single source of truth)
 [@g0.key, @g0.database]
@@ -80,6 +86,52 @@ AE.count
 @g1 = Onetime::Operations::GetBanner.new.call
 [@g1.active, @g1.content, @g1.ttl.nil?]
 #=> [true, "<a href=\"/status\">Scheduled maintenance Sun 02:00 UTC</a>", true]
+
+# ---- SetBanner: audience scope ----------------------------------------
+
+## a set without an explicit scope writes the DEFAULT scope sidecar + runtime state
+[DB.get(SCOPE_KEY), Onetime::Runtime.features.global_banner_scope, @g1.scope]
+#=> ["no_recipient", "no_recipient", "no_recipient"]
+
+## SetBanner with an explicit scope stores it (sidecar + Result + GetBanner + runtime)
+AE.events.clear
+@set_scope = Onetime::Operations::SetBanner.new(content: @msg, actor: @actor, scope: 'all').call
+[@set_scope.scope, DB.get(SCOPE_KEY), Onetime::Operations::GetBanner.new.call.scope, Onetime::Runtime.features.global_banner_scope]
+#=> ["all", "all", "all", "all"]
+
+## the audit detail carries the scope
+@sev = AE.recent(1).first
+@sev['detail']['scope']
+#=> "all"
+
+## SetBanner with an invalid scope raises ArgumentError (defensive backstop)
+begin
+  Onetime::Operations::SetBanner.new(content: @msg, actor: @actor, scope: 'bogus').call
+  :no_raise
+rescue ArgumentError
+  :raised
+end
+#=> :raised
+
+## an invalid-scope set recorded NO audit event
+AE.events.clear
+begin
+  Onetime::Operations::SetBanner.new(content: @msg, actor: @actor, scope: 'bogus').call
+rescue ArgumentError
+  nil
+end
+AE.count
+#=> 0
+
+## GetBanner coerces an unknown sidecar value back to the default scope
+DB.set(SCOPE_KEY, 'garbage')
+Onetime::Operations::GetBanner.new.call.scope
+#=> "no_recipient"
+
+## a TTL set expires the scope sidecar in lockstep with the content (both have a positive ttl)
+Onetime::Operations::SetBanner.new(content: 'temp', actor: @actor, ttl: 3600, scope: 'workspace').call
+[DB.ttl(KEY).positive?, DB.ttl(SCOPE_KEY).positive?, DB.get(SCOPE_KEY)]
+#=> [true, true, "workspace"]
 
 # ---- SetBanner: with TTL ----------------------------------------------
 
@@ -145,6 +197,10 @@ AE.events.clear
 [DB.get(KEY).nil?, Onetime::Runtime.features.global_banner.nil?]
 #=> [true, true]
 
+## clearing also deletes the scope sidecar and resets the runtime scope to the default
+[DB.get(SCOPE_KEY).nil?, Onetime::Runtime.features.global_banner_scope]
+#=> [true, "no_recipient"]
+
 ## exactly ONE audit event was recorded for the clear
 AE.count
 #=> 1
@@ -168,5 +224,6 @@ AE.count
 
 # Cleanup
 DB.del(KEY)
+DB.del(SCOPE_KEY)
 AE.events.clear
-Onetime::Runtime.update_features(global_banner: nil)
+Onetime::Runtime.update_features(global_banner: nil, global_banner_scope: 'no_recipient')

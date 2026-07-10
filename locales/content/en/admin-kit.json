@@ -50,5 +50,14 @@
   "web.admin.kit.confirmDialog.mismatchHint": {
     "text": "The entered text must match exactly to continue.",
     "content_hash": "f0cc7389"
+  },
+  "web.admin.kit.revealEmail.reveal": {
+    "text": "Reveal email address"
+  },
+  "web.admin.kit.revealEmail.hide": {
+    "text": "Hide email address"
+  },
+  "web.admin.kit.revealEmail.copy": {
+    "text": "Copy email address"
   }
 }

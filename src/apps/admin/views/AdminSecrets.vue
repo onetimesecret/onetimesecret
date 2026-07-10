@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
 
+  import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
   import { AdminConfirmDialog, JsonViewer } from '@/apps/admin/components/kit';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
@@ -469,7 +470,10 @@
               {{ field.label }}
             </dt>
             <dd class="mt-0.5 text-sm break-words text-gray-900 dark:text-gray-100">
-              {{ field.value }}
+              <RevealEmail
+                v-if="field.key === 'email'"
+                :email="receiptDetails?.owner?.email ?? null" />
+              <template v-else>{{ field.value }}</template>
             </dd>
           </div>
         </dl>

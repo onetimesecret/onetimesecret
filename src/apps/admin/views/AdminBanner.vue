@@ -66,7 +66,20 @@
   const isActive = computed(() => banner.value?.active ?? false);
   const currentContent = computed(() => banner.value?.content ?? '');
   const currentTtl = computed(() => banner.value?.ttl ?? null);
+  const currentScope = computed(() => banner.value?.scope ?? 'no_recipient');
   const loadFailed = computed(() => error.value !== null || validationError.value !== null);
+
+  /** Audience scopes the operator can publish, mirroring the backend VALID_SCOPES. */
+  const SCOPE_OPTIONS = [
+    { value: 'no_recipient', labelKey: 'web.admin.banner.set.scopeNoRecipient' },
+    { value: 'workspace', labelKey: 'web.admin.banner.set.scopeWorkspace' },
+    { value: 'all', labelKey: 'web.admin.banner.set.scopeAll' },
+  ] as const;
+
+  function scopeLabel(scope: string): string {
+    const match = SCOPE_OPTIONS.find((o) => o.value === scope);
+    return match ? t(match.labelKey) : scope;
+  }
 
   function reloadBanner(): void {
     loadBanner().catch(() => {});
@@ -90,6 +103,7 @@
 
   const formContent = ref('');
   const formTtl = ref('');
+  const formScope = ref<string>('no_recipient');
 
   /** Hard cap mirroring the backend SetBanner MAX_CONTENT_LENGTH. */
   const MAX_CONTENT_LENGTH = 2000;
@@ -100,6 +114,7 @@
   function editCurrent(): void {
     formContent.value = currentContent.value;
     formTtl.value = currentTtl.value === null ? '' : String(currentTtl.value);
+    formScope.value = currentScope.value;
   }
 
   // ---- Guarded mutations (D4) ----------------------------------------------
@@ -120,6 +135,7 @@
       const response = await $api.post(BANNER_URL, {
         content: formContent.value,
         ttl: Number.isFinite(ttlNum) && ttlNum > 0 ? ttlNum : undefined,
+        scope: formScope.value,
       });
       gracefulParse(colonelBannerSetResponseSchema, response.data, 'ColonelBannerSetResponse');
     } else {
@@ -176,6 +192,7 @@
       // The live banner is gone; drop the form so it can't be re-published blindly.
       formContent.value = '';
       formTtl.value = '';
+      formScope.value = 'no_recipient';
     }
 
     activeAction.value = null;
@@ -250,7 +267,7 @@
         v-else-if="isActive"
         class="space-y-4"
         data-testid="banner-active">
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <StatCard
             :label="t('web.admin.banner.current.status')"
             :value="t('web.admin.banner.current.live')"
@@ -261,6 +278,11 @@
             :value="ttlLabel"
             icon="clock"
             testid="stat-expiry" />
+          <StatCard
+            :label="t('web.admin.banner.current.audience')"
+            :value="scopeLabel(currentScope)"
+            icon="users"
+            testid="stat-audience" />
         </div>
 
         <!-- Stored content, shown as ESCAPED text (never v-html). -->
@@ -370,6 +392,29 @@
             class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
           <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
             {{ t('web.admin.banner.set.ttlHelp') }}
+          </p>
+        </div>
+
+        <div class="sm:w-1/2">
+          <label
+            for="banner-scope-input"
+            class="mb-1 block text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+            {{ t('web.admin.banner.set.scopeLabel') }}
+          </label>
+          <select
+            id="banner-scope-input"
+            v-model="formScope"
+            data-testid="banner-scope-input"
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+            <option
+              v-for="option in SCOPE_OPTIONS"
+              :key="option.value"
+              :value="option.value">
+              {{ t(option.labelKey) }}
+            </option>
+          </select>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            {{ t('web.admin.banner.set.scopeHelp') }}
           </p>
         </div>
 

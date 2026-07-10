@@ -38,11 +38,16 @@ module ColonelAPI
           # Get user's organizations (if they participate in any). The loaded
           # org objects are kept for the billing read-out below (Stripe ids
           # live on Organization, not Customer).
+          # organization_instances is the Familia participation reverse accessor
+          # (config_name "organization" + "_instances") and returns already-loaded,
+          # existence-checked Organization objects. There is NO bare `organizations`
+          # method on Customer — the prior `respond_to?(:organizations)` guard was
+          # always false, so this block (and the Stripe billing read-out below) was
+          # silently dead. See organization_loader.rb for the canonical accessor.
           @organizations = []
           @org_records   = []
-          if user.respond_to?(:organizations)
-            user.organizations.each do |org_id|
-              org = Onetime::Organization.load(org_id)
+          if user.respond_to?(:organization_instances)
+            user.organization_instances.to_a.each do |org|
               next unless org&.exists?
 
               @org_records << org
@@ -151,9 +156,11 @@ module ColonelAPI
         #
         #   { enabled:, plan_id:, organization: {...}|nil, stripe: {...} }
         #
-        # `plan_id` always comes from the model, so the card renders even when
-        # every Stripe path degrades. The organization block is the customer's
-        # billing org (Stripe identifiers live on Organization — see
+        # `plan_id` comes from the billing org (authoritative — Customer#planid
+        # is deprecated and drifts), falling back to the legacy Customer field
+        # only when the customer participates in no org, so the card renders
+        # even when every Stripe path degrades. The organization block is the
+        # customer's billing org (Stripe identifiers live on Organization — see
         # WithOrganizationBilling): the first org with a stripe_customer_id,
         # falling back to the default/first org for its local plan fields.
         def build_billing_details
@@ -162,7 +169,7 @@ module ColonelAPI
 
           {
             enabled: enabled,
-            plan_id: user.planid,
+            plan_id: org&.planid || user.planid,
             organization: org && {
               extid: org.extid,
               display_name: org.display_name,
@@ -265,7 +272,9 @@ module ColonelAPI
           {
             record: {
               extid: user.extid,
-              email: user.obscure_email,
+              # FULL address (colonel-only, scope=internal); obscured client-side
+              # and revealed on interaction via RevealEmail.vue.
+              email: user.email,
               role: user.role,
               verified: user.verified?,
               suspended: user.suspended?,

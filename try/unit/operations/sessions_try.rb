@@ -117,6 +117,58 @@ subset
 Onetime::Operations::Sessions::List.new(search: "nobody_#{@nonce}").call.sessions
 #=> []
 
+# ---- Decrypt path + anonymous filtering -------------------------------
+
+## Store.load_data decrypts an ENCRYPTED session blob when given a codec
+## (the app stores blobs, not plaintext JSON — without the codec every value
+## fell through to the opaque _raw fallback and showed as Anonymous)
+@codec   = Onetime::SessionCodec.from_config
+@enc_sid = "trysess_enc_#{@nonce}"
+@enc_key = "session:#{@enc_sid}"
+@enc_data = {
+  'authenticated' => true,
+  'email' => "carol+#{@nonce}@example.com",
+  'account_id' => 99,
+  'external_id' => "ext_c_#{@nonce}",
+  'authenticated_at' => 2_000_000_300,
+}
+DB.set(@enc_key, @codec.encode(@enc_data))
+Onetime::Operations::Sessions::Store.load_data(DB, @enc_key, codec: @codec)['email']
+#=> "carol+#{@nonce}@example.com"
+
+## without the codec the SAME encrypted blob is unreadable — the _raw fallback
+Onetime::Operations::Sessions::Store.load_data(DB, @enc_key).keys
+#=> ['_raw']
+
+## Store.identified? is true for a session carrying actor identity
+Onetime::Operations::Sessions::Store.identified?(@enc_data)
+#=> true
+
+## Store.identified? is false for a CSRF-token-only anonymous session
+Onetime::Operations::Sessions::Store.identified?({ 'csrf' => 'abc123' })
+#=> false
+
+## List HIDES a CSRF-only anonymous session but still COUNTS it as anonymous
+@anon_sid = "trysess_anon_#{@nonce}"
+@anon_key = "session:#{@anon_sid}"
+DB.set(@anon_key, @codec.encode({ 'csrf' => "tok_#{@nonce}" }))
+@flt = Onetime::Operations::Sessions::List.new(page: 1, per_page: 50).call
+# hidden from the rows, present in the anonymous tally
+[@flt.sessions.map { |s| s[:session_id] }.include?(@anon_sid), @flt.anonymous_count >= 1]
+#=> [false, true]
+
+## the decrypted identity session DOES surface in the list, with its email + user agent slot
+@enc_row = @flt.sessions.find { |s| s[:session_id] == @enc_sid }
+[@enc_row.nil?, @enc_row && @enc_row[:email]]
+#=> [false, "carol+#{@nonce}@example.com"]
+
+## List reports the keyspace shape: scanned tally and an uncapped bounded scan
+[@flt.scanned >= 2, @flt.scan_capped]
+#=> [true, false]
+
+DB.del(@enc_key)
+DB.del(@anon_key)
+
 # ---- Inspect ----------------------------------------------------------
 
 ## Inspect resolves a live session, returning its key + parsed data

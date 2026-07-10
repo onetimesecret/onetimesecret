@@ -3,11 +3,13 @@
 <script setup lang="ts">
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useTheme } from '@/shared/composables/useTheme';
+  import { useProductIdentity } from '@/shared/stores/identityStore';
+  import { isColorValue } from '@/utils/color-utils';
   import { computed, onMounted } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRoute } from 'vue-router';
 
-  import { CONSOLE_GROUPS, CONSOLE_SECTIONS } from '../console-sections';
+  import { CONSOLE_GROUPS, CONSOLE_SECTIONS } from '../sections';
 
   // App.vue passes the customer chrome layout props via v-bind; this console
   // owns its own chrome, so drop those attrs instead of letting them fall
@@ -22,11 +24,26 @@
   // applied before mount, so the toggle button reflects the real state.
   onMounted(initializeTheme);
 
+  // Watch-tower accent strip, driven by the same brand-identity machinery the
+  // main site's BaseLayout uses: the resolved brand primary is either a Tailwind
+  // class token or a raw colour value, so branch the same way. Falls back to the
+  // brand complement (brandcomp) when the identity store yields nothing.
+  const identityStore = useProductIdentity();
+  const accentColorClass = computed(() => {
+    const currentColor = identityStore.primaryColor;
+    if (isColorValue(currentColor)) return '';
+    return currentColor || 'bg-brandcomp-500';
+  });
+  const accentColorStyle = computed(() => {
+    const currentColor = identityStore.primaryColor;
+    return isColorValue(currentColor) ? { backgroundColor: currentColor } : {};
+  });
+
   /** Sections bucketed into their rail bands, in {@link CONSOLE_GROUPS} order. */
   const navBands = computed(() =>
     CONSOLE_GROUPS.map((band) => ({
       ...band,
-      sections: CONSOLE_SECTIONS.filter((s) => s.group === band.key),
+      sections: CONSOLE_SECTIONS.filter((s) => s.group === band.key && !s.hide),
     })).filter((band) => band.sections.length > 0)
   );
 </script>
@@ -42,11 +59,21 @@
 -->
 <template>
   <div class="flex min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100">
+    <!-- All along the watch tower: the same fixed accent strip the main site
+         wears, driven by the shared brand-identity machinery so the console
+         reads as part of the product. -->
+    <div
+      class="fixed top-0 left-0 z-50 h-1 w-full"
+      :class="accentColorClass"
+      :style="accentColorStyle"></div>
+
     <!-- Persistent left navigation rail -->
     <aside
       class="hidden w-64 shrink-0 flex-col border-r border-gray-200 bg-white md:flex dark:border-gray-800 dark:bg-gray-900">
-      <!-- Masthead: a proper lock-up, not just an icon + word. The heavy bottom
-           rule reads as the header rule of a bound record. -->
+      <!-- Masthead: the lock-up anchors the top of the rail — nothing sits above
+           it, so the mark is never pushed down. A proper lock-up, not just an
+           icon + word. The heavy bottom rule reads as the header rule of a bound
+           record. The escape hatch lives in the rail footer below. -->
       <div
         class="flex h-16 items-center gap-3 border-b-2 border-gray-900 px-5 dark:border-gray-100">
         <span
@@ -72,11 +99,17 @@
           v-for="band in navBands"
           :key="band.key">
           <!-- Rail band eyebrow: slab-serif, tracked — encodes the console's
-               real structure (monitor / accounts / secrets / controls). -->
+               real structure (identity / security / platform / billing). Bands
+               that hold a single item carry no labelKey and render headerless
+               (Overview pinned top, broadcast lever floating bottom). -->
           <p
+            v-if="band.labelKey"
             class="px-3 pt-5 pb-1 font-brand text-[11px] font-semibold tracking-[0.15em] text-gray-400 uppercase first:pt-4 dark:text-gray-500">
             {{ t(band.labelKey) }}
           </p>
+          <div
+            v-else
+            class="pt-4"></div>
 
           <div class="space-y-0.5">
             <router-link
@@ -104,21 +137,20 @@
         </template>
       </nav>
 
-      <!-- Escape hatch: the console is an isolated bundle, so this is a full
-           navigation back to the main site (not a router-link). Pinned to the
-           foot of the rail so it never scrolls out of reach. -->
-      <div class="border-t border-gray-200 p-3 dark:border-gray-800">
-        <a
-          href="/"
-          class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
-          data-testid="admin-back-to-site">
-          <OIcon
-            collection="heroicons"
-            name="arrow-left"
-            size="5" />
-          {{ t('web.colonel.backToSite') }}
-        </a>
-      </div>
+      <!-- Escape hatch, pinned to the rail foot outside the scrolling <nav> so
+           long band lists can never push it out of reach. Full navigation (not a
+           router-link): the console is an isolated bundle. Neutral copy — no
+           product name — to respect the tenant's applied branding. -->
+      <a
+        href="/"
+        class="flex shrink-0 items-center gap-1.5 border-t border-gray-200 px-5 py-3 text-xs font-medium text-gray-400 transition-colors hover:text-gray-700 dark:border-gray-800 dark:text-gray-500 dark:hover:text-gray-200"
+        data-testid="admin-back-to-site">
+        <OIcon
+          collection="heroicons"
+          name="arrow-left"
+          size="4" />
+        {{ t('web.colonel.backToSite') }}
+      </a>
     </aside>
 
     <!-- Main column -->

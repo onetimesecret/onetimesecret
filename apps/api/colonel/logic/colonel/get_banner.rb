@@ -33,6 +33,7 @@ module ColonelAPI
             record: {
               content: result.content,
               ttl: result.ttl,
+              scope: result.scope,
               active: result.active,
             },
             details: {

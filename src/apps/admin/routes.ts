@@ -95,6 +95,20 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
+    // Organization detail (colonel org audit remediation). `:id` is the org's
+    // PUBLIC id (extid). `sentryScrubParams` is OMITTED so the default (scrub all
+    // params) redacts the id from Sentry breadcrumbs, mirroring
+    // `/colonel/customers/:id`.
+    path: '/colonel/organizations/:id',
+    name: 'AdminOrganizationDetail',
+    component: () => import('@/apps/admin/views/AdminOrganizationDetail.vue'),
+    meta: {
+      ...adminDefaultMeta,
+      title: 'web.colonel.titles.organizations',
+    },
+    props: true,
+  },
+  {
     // System monitoring read-out: db / redis / queue metrics (ticket #33).
     path: '/colonel/system',
     name: 'AdminSystem',

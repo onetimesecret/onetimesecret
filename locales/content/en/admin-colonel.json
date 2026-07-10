@@ -104,7 +104,7 @@
     "content_hash": "c1c224b0"
   },
   "web.colonel.backToSite": {
-    "text": "Back to Onetime Secret"
+    "text": "Back to site"
   },
   "web.colonel.activity": {
     "text": "Activity",
@@ -837,16 +837,19 @@
   "web.colonel.nav.consoleTag": {
     "text": "Console"
   },
-  "web.colonel.nav.groups.monitor": {
-    "text": "Monitor"
+  "web.colonel.nav.groups.identity": {
+    "text": "Identity"
   },
-  "web.colonel.nav.groups.accounts": {
-    "text": "Accounts"
+  "web.colonel.nav.groups.security": {
+    "text": "Access & Security"
   },
-  "web.colonel.nav.groups.secrets": {
-    "text": "Secrets & Domains"
+  "web.colonel.nav.groups.platform": {
+    "text": "Platform"
   },
-  "web.colonel.nav.groups.controls": {
-    "text": "Controls"
+  "web.colonel.nav.groups.billing": {
+    "text": "Billing"
+  },
+  "web.colonel.nav.groups.communications": {
+    "text": "Communications"
   }
 }

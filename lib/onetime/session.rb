@@ -10,6 +10,7 @@ require 'openssl'
 require 'familia'
 
 require_relative 'logger_methods'
+require_relative 'session/codec'
 
 module Onetime
   # Onetime::Session - A secure Rack session store using Familia's StringKey DataType
@@ -99,14 +100,12 @@ module Onetime
       @expire_after = options[:expire_after]
       @namespace    = options[:namespace] || 'session'
 
-      # Derive different keys for different purposes from the master secret
-      # HMAC key: Used for signing session data
-      # Encryption key: Used for AES-256-GCM encryption of session data
-      @hmac_key       = derive_key('hmac')
-      @encryption_key = derive_key('encryption')
-
-      # Convert hex-encoded encryption key to raw 32 bytes for AES-256
-      @encryption_key_raw = [@encryption_key].pack('H*')
+      # All crypto (HKDF subkey derivation, AES-256-GCM, HMAC, the at-rest
+      # `base64(...)--hmac` format) lives in the canonical Codec, shared with the
+      # session admin read verbs so encoder and decoder can never drift. The ivar
+      # is kept for parity with callers/tests that read the raw AES key directly.
+      @codec              = SessionCodec.new(@secret)
+      @encryption_key_raw = @codec.encryption_key_raw
     end
 
     private
@@ -189,123 +188,33 @@ module Onetime
     # This ensures the session data hasn't been modified since it was written.
     # If someone tries to change Redis value from {"account_id":123} to
     # {"account_id":456}, the HMAC won't match and session will be rejected.
+    # Delegates to the canonical {Codec}. Kept as a named method for parity with
+    # the session tryout and any caller that verified HMAC directly.
     def valid_hmac?(data, hmac)
-      expected = compute_hmac(data)
-
-      # Type and size validation
-      valid_types = hmac.is_a?(String) && expected.is_a?(String)
-      valid_size  = valid_types && hmac.bytesize == expected.bytesize
-
-      unless valid_types && valid_size
-        session_logger.trace 'HMAC validation failed',
-          {
-            valid_types: valid_types,
-            valid_size: valid_size,
-            hmac_size: hmac&.bytesize,
-            expected_size: expected&.bytesize,
-            operation: 'hmac_validation',
-          }
-
-        return false
-      end
-
-      # Constant-time comparison (prevents timing attacks)
-      result = Rack::Utils.secure_compare(expected, hmac)
-
-      session_logger.trace 'HMAC validation complete',
-        {
-          valid: result,
-          operation: 'hmac_validation',
-        }
-
-      result
+      @codec.valid_hmac?(data, hmac)
     end
 
-    # Derives purpose-specific keys from the session master secret
-    # using HKDF (RFC 5869).
-    #
-    # Input:  @secret = "your-session-secret"
-    # Output: HKDF-derived 32-byte key as hex for "session-hmac" or
-    #         "session-encryption"
-    #
-    # This allows one master secret to generate multiple cryptographically
-    # independent keys for different purposes.
+    # Derives purpose-specific keys from the session master secret using HKDF
+    # (RFC 5869). Delegates to the {Codec} so there is one derivation of record.
     def derive_key(purpose)
-      require 'onetime/key_derivation'
-      Onetime::KeyDerivation.derive_session_subkey(@secret, purpose)
+      @codec.derive_key(purpose)
     end
 
-    # Computes HMAC signature for session data
-    #
-    # Input:  "eyJhY2NvdW50X2lkIjoxMjN9..." (base64 encoded session data)
-    # Output: "a3f5e8d9c2b1..." (SHA256 HMAC signature)
-    #
-    # This signature proves data hasn't been tampered with
+    # Computes the HMAC signature for session data (delegates to {Codec}).
     def compute_hmac(data)
-      OpenSSL::HMAC.hexdigest('SHA256', @hmac_key, data)
+      @codec.compute_hmac(data)
     end
 
-    # Encrypts session data using AES-256-GCM
-    #
-    # Input:  '{"account_id":123}' (JSON string)
-    # Output: "iv:auth_tag:ciphertext" (binary string with : delimiter)
-    #
-    # AES-256-GCM provides:
-    # - Confidentiality: Data is encrypted
-    # - Authenticity: GCM auth tag detects tampering (in addition to HMAC)
-    # - Uniqueness: Random 12-byte IV per encryption
+    # Encrypts session data using AES-256-GCM (delegates to {Codec}).
+    # Output: `iv[12] + auth_tag[16] + ciphertext` (binary).
     def encrypt_data(plaintext)
-      cipher     = OpenSSL::Cipher.new('aes-256-gcm')
-      cipher.encrypt
-      cipher.key = @encryption_key_raw
-
-      # Generate random 12-byte IV (NIST recommendation for GCM)
-      iv        = cipher.random_iv
-      cipher.iv = iv
-
-      # Encrypt the plaintext
-      ciphertext = cipher.update(plaintext) + cipher.final
-
-      # Get the authentication tag (16 bytes)
-      auth_tag = cipher.auth_tag
-
-      # Combine: iv (12 bytes) + auth_tag (16 bytes) + ciphertext
-      iv + auth_tag + ciphertext
+      @codec.encrypt_data(plaintext)
     end
 
-    # Decrypts session data using AES-256-GCM
-    #
-    # Input:  "iv:auth_tag:ciphertext" (binary string)
-    # Output: '{"account_id":123}' (JSON string) or nil if decryption fails
-    #
-    # Returns nil if:
-    # - Data is too short (missing IV or auth tag)
-    # - Auth tag verification fails (tampered data)
-    # - Any decryption error occurs
+    # Decrypts AES-256-GCM session data (delegates to {Codec}). Returns the
+    # plaintext JSON string, or nil on a short/tampered/undecryptable value.
     def decrypt_data(encrypted_data)
-      return nil if encrypted_data.nil? || encrypted_data.bytesize < 28  # 12 + 16 minimum
-
-      cipher     = OpenSSL::Cipher.new('aes-256-gcm')
-      cipher.decrypt
-      cipher.key = @encryption_key_raw
-
-      # Extract components: iv (12 bytes) + auth_tag (16 bytes) + ciphertext
-      iv         = encrypted_data[0, 12]
-      auth_tag   = encrypted_data[12, 16]
-      ciphertext = encrypted_data[28..]
-
-      cipher.iv       = iv
-      cipher.auth_tag = auth_tag
-
-      # Decrypt and verify authenticity
-      cipher.update(ciphertext) + cipher.final
-    rescue OpenSSL::Cipher::CipherError => ex
-      session_logger.warn 'AES-GCM decryption failed',
-        {
-          error: ex.message,
-          operation: 'decrypt',
-        }
-      nil
+      @codec.decrypt_data(encrypted_data)
     end
 
     # READ SESSION FROM REDIS

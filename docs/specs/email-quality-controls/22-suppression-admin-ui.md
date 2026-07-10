@@ -38,7 +38,7 @@ auth layers) → screen on the UI kit.**
   timeline, remove gated by `AdminConfirmDialog` typed confirmation +
   `useAdminMutation` (CONTRACT 3). Route in `src/apps/admin/routes.ts`
   (spread `adminDefaultMeta`), sidebar row in
-  `src/apps/admin/console-sections.ts` (`/colonel/email-suppressions`).
+  `src/apps/admin/sections.ts` (`/colonel/email-suppressions`).
 - Zod: response schemas in `src/schemas/api/account/responses/colonel*` with
   internal re-exports (the colonel-emailtools pattern); model shape for
   `EmailSuppression.safe_dump` under `src/schemas/shapes/`; locales file
@@ -53,7 +53,7 @@ auth layers) → screen on the UI kit.**
 - UI screen template: `src/apps/admin/views/AdminEmailTools.vue` (useApi + gracefulParse + useAdminMutation); BannedIPs screen for the CRUD shape
 - Kit: DataTable, FilterBar, DetailDrawer, ConfirmDialog, JsonViewer; composables `useResourceFetch`/`usePaginatedFetch`/`useAdminMutation`
 - Schemas precedent: `src/schemas/api/account/responses/colonel-emailtools.ts` (+ internal wrapper)
-- Sidebar/localization: `src/apps/admin/console-sections.ts`, `locales/content/en/admin-emailtools.json`
+- Sidebar/localization: `src/apps/admin/sections.ts`, `locales/content/en/admin-emailtools.json`
 
 ## Acceptance criteria
 

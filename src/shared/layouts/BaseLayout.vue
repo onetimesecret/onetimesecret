@@ -7,27 +7,44 @@
   import { useTheme } from '@/shared/composables/useTheme';
   import { storeToRefs } from 'pinia';
   import type { LayoutProps } from '@/types/ui/layouts';
+  import { bannerAudienceAllows } from '@/shared/utils/banner-visibility';
   import { isColorValue } from '@/utils/color-utils';
   import { computed, onMounted } from 'vue';
 
-  defineProps<LayoutProps>();
+  const props = withDefaults(defineProps<LayoutProps>(), {
+    bannerAudience: 'public',
+  });
 
   // Initialize theme early to avoid flash of wrong theme
   const { initializeTheme } = useTheme();
   onMounted(initializeTheme);
 
   const bootstrapStore = useBootstrapStore();
-  const { global_banner } = storeToRefs(bootstrapStore);
+  const { global_banner, global_banner_scope } = storeToRefs(bootstrapStore);
 
   // Component key cannot be null or undefined
   const globalBroadcastKey = computed(() => global_banner.value ? 'globalBroadcast' : 'noBroadcast');
 
   const identityStore = useProductIdentity();
 
-  // If there's a global banner set (in redis), this will be true. The actual
-  // content may not show if the feature is by displayGlobalBroadcast=false.
-  // For example, custom branded pages have the feature disabled altogether.
+  // If there's a global banner set (in redis), this will be true.
   const hasGlobalBanner = computed(() => !!global_banner.value);
+
+  // Whether the banner's stored audience scope permits this page (custom-domain
+  // suppression + recipient/workspace matching live in the shared pure helper).
+  const audienceAllows = computed(() =>
+    bannerAudienceAllows(
+      global_banner_scope.value,
+      props.bannerAudience,
+      identityStore.domainStrategy
+    )
+  );
+
+  // Show the broadcast only when the feature is on for this layout, a banner
+  // exists, AND the banner's audience scope permits this page.
+  const shouldBroadcast = computed(
+    () => props.displayGlobalBroadcast && hasGlobalBanner.value && audienceAllows.value
+  );
 
   // Compute primary color styles based on brand color or prop
   const primaryColorClass = computed(() => {
@@ -51,8 +68,8 @@
 
     <!-- Good morning Vietnam -->
     <GlobalBroadcast
-      v-if="displayGlobalBroadcast"
-      :show="hasGlobalBanner"
+      v-if="shouldBroadcast"
+      :show="true"
       :content="global_banner ?? null"
       :key="globalBroadcastKey"
       :expiration-days="7" />

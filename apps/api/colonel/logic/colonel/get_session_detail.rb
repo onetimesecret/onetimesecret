@@ -52,6 +52,12 @@ module ColonelAPI
               role: data['role'],
               locale: data['locale'],
               ip_address: data['ip_address'],
+              # User agent + the org the session is acting in — the "add more
+              # information" fields the identity blob already carries but the
+              # read-out didn't surface. org_context keys are namespaced
+              # (`org_context:<uuid>`); extract_org_context recovers the id.
+              user_agent: data['user_agent'],
+              org_context: extract_org_context(data),
               authenticated_at: data['authenticated_at'],
               authenticated_by: data['authenticated_by'],
               active_session_id: data['active_session_id'],
@@ -62,6 +68,13 @@ module ColonelAPI
               data: data,
             },
           }
+        end
+
+        # The active org id from the namespaced `org_context:<uuid>` key the
+        # session carries (nil for anonymous / single-org sessions).
+        def extract_org_context(data)
+          key = data.keys.find { |k| k.to_s.start_with?('org_context:') }
+          key&.to_s&.delete_prefix('org_context:')
         end
       end
     end

@@ -188,7 +188,8 @@ describe('AdminCustomerDetail (ticket #22)', () => {
       expect(mockApi.get).toHaveBeenCalledWith('/api/colonel/users/ur_alice', undefined);
       expect(wrapper.find('[data-testid="detail-content"]').exists()).toBe(true);
       // Profile fields, stat tiles, secrets/receipts/orgs are all present.
-      expect(wrapper.find('[data-testid="profile-email"]').text()).toContain('alice@example.com');
+      // Email is obscured by default (RevealEmail); full address hidden until reveal.
+      expect(wrapper.find('[data-testid="profile-email"]').text()).toContain('a•••@e•••.com');
       expect(wrapper.find('[data-testid="profile-publicId"]').text()).toContain(PUBLIC_ID);
       expect(wrapper.find('[data-testid="stat-secrets"]').text()).toContain('1');
       expect(wrapper.find('[data-testid="secrets-table"]').text()).toContain('sh1');

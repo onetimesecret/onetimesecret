@@ -53,9 +53,20 @@ module Onetime
         type: :integer,
         aliases: ['t'],
         desc: 'Auto-expire banner after this many seconds'
+      option :scope,
+        type: :string,
+        default: Onetime::Operations::BannerState::DEFAULT_SCOPE,
+        desc: "Audience scope (#{Onetime::Operations::BannerState::VALID_SCOPES.join(', ')})"
 
-      def call(content: nil, apply: false, file: nil, ttl: nil, **)
+      def call(content: nil, apply: false, file: nil, ttl: nil, scope: nil, **)
         boot_application!
+
+        scope ||= Onetime::Operations::BannerState::DEFAULT_SCOPE
+        unless Onetime::Operations::BannerState::VALID_SCOPES.include?(scope)
+          warn "Error: invalid scope #{scope.inspect} " \
+               "(expected: #{Onetime::Operations::BannerState::VALID_SCOPES.join(', ')})"
+          exit 1
+        end
 
         banner_text = resolve_content(content, file)
 
@@ -72,9 +83,9 @@ module Onetime
         render_preview(banner_text)
 
         if apply
-          write_banner(banner_text, ttl)
+          write_banner(banner_text, ttl, scope)
         else
-          render_dry_run(banner_text, ttl)
+          render_dry_run(banner_text, ttl, scope)
         end
       end
 
@@ -139,31 +150,35 @@ module Onetime
         puts "└#{border_h}┘"
       end
 
-      def render_dry_run(banner_text, ttl)
-        escaped = banner_text.gsub("'", "'\\\\''")
+      def render_dry_run(banner_text, ttl, scope)
+        escaped   = banner_text.gsub("'", "'\\\\''")
+        scope_key = Onetime::Operations::BannerState::SCOPE_KEY
 
         puts
         puts 'Would run (re-run with --apply to write):'
         puts '  # DB 0'
         if ttl
           puts "  SET #{BANNER_KEY} '#{escaped}' EX #{ttl}"
+          puts "  SET #{scope_key} '#{scope}' EX #{ttl}"
         else
           puts "  SET #{BANNER_KEY} '#{escaped}'"
+          puts "  SET #{scope_key} '#{scope}'"
         end
         puts '  # then refresh runtime: Onetime::Runtime.update_features(global_banner: ...)'
       end
 
-      def write_banner(banner_text, ttl)
+      def write_banner(banner_text, ttl, scope)
         # Single implementation: the op owns the Redis write, the runtime refresh,
         # and (new) the admin audit event. Output below is unchanged (golden-master).
         Onetime::Operations::SetBanner.new(
           content: banner_text,
           ttl: ttl,
+          scope: scope,
           actor: CLI_ACTOR,
         ).call
 
         puts
-        puts 'Banner set.'
+        puts "Banner set (audience: #{scope})."
         if ttl
           puts format('  Expires in: %s (%d seconds)', humanize_seconds(ttl), ttl)
         else

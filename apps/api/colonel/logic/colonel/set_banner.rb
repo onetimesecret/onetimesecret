@@ -29,15 +29,19 @@ module ColonelAPI
         # Kept as a constant (not a config key) so no new config surface is added.
         MAX_CONTENT_LENGTH = 2000
 
-        attr_reader :content, :expiration, :result
+        attr_reader :content, :expiration, :scope, :result
 
         def process_params
           # Store raw HTML verbatim (only trim surrounding whitespace, matching the
           # CLI's `--file` strip). Do NOT sanitize here — parity with the CLI.
           @content = params['content'].to_s.strip
 
-          ttl_param = params['ttl']
+          ttl_param   = params['ttl']
           @expiration = ttl_param.to_i unless ttl_param.nil? || ttl_param.to_s.strip.empty?
+
+          # Audience scope; blank falls through to the op's default (no_recipient).
+          scope_param = params['scope'].to_s.strip
+          @scope      = scope_param.empty? ? Onetime::Operations::BannerState::DEFAULT_SCOPE : scope_param
         end
 
         def raise_concerns
@@ -48,12 +52,16 @@ module ColonelAPI
           if content.length > MAX_CONTENT_LENGTH
             raise_form_error(
               "Banner content exceeds the #{MAX_CONTENT_LENGTH}-character limit",
-              field: :content
+              field: :content,
             )
           end
 
           if !expiration.nil? && expiration.negative?
             raise_form_error('TTL must be a positive number of seconds', field: :ttl)
+          end
+
+          unless Onetime::Operations::BannerState::VALID_SCOPES.include?(scope)
+            raise_form_error('Invalid banner audience scope', field: :scope)
           end
         end
 
@@ -63,6 +71,7 @@ module ColonelAPI
           @result = Onetime::Operations::SetBanner.new(
             content: content,
             ttl: (expiration if !expiration.nil? && expiration.positive?),
+            scope: scope,
             actor: cust.extid,
           ).call
 
@@ -74,6 +83,7 @@ module ColonelAPI
             record: {
               content: result.content,
               ttl: result.ttl,
+              scope: result.scope,
               active: true,
             },
             details: {

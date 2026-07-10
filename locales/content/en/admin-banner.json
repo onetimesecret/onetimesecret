@@ -43,6 +43,9 @@
     "text": "Expires in {duration}",
     "content_hash": "f353f9a7"
   },
+  "web.admin.banner.current.audience": {
+    "text": "Audience"
+  },
   "web.admin.banner.current.storedContent": {
     "text": "Stored content",
     "content_hash": "3579f3e6"
@@ -86,6 +89,21 @@
   "web.admin.banner.set.ttlHelp": {
     "text": "Optional. The banner is removed automatically after this many seconds.",
     "content_hash": "ba0237f5"
+  },
+  "web.admin.banner.set.scopeLabel": {
+    "text": "Audience"
+  },
+  "web.admin.banner.set.scopeHelp": {
+    "text": "Which pages show the banner. Custom-domain pages only see it when set to all pages."
+  },
+  "web.admin.banner.set.scopeNoRecipient": {
+    "text": "Everything except recipient pages"
+  },
+  "web.admin.banner.set.scopeWorkspace": {
+    "text": "Workspace pages only"
+  },
+  "web.admin.banner.set.scopeAll": {
+    "text": "All pages (including custom domains)"
   },
   "web.admin.banner.set.publishButton": {
     "text": "Publish banner",

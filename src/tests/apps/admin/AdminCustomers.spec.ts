@@ -115,7 +115,10 @@ describe('AdminCustomers (list view — ticket #22)', () => {
     });
     const table = wrapper.find('[data-testid="customers-table"]');
     expect(table.exists()).toBe(true);
-    expect(table.text()).toContain('alice@example.com');
+    // Emails are obscured by default (RevealEmail); the full address is not
+    // rendered until the operator toggles reveal.
+    expect(table.text()).not.toContain('alice@example.com');
+    expect(table.text()).toContain('a•••@e•••.com');
     // Non-sortable columns: header buttons should NOT be rendered (fixed order).
     expect(table.findAll('thead th button')).toHaveLength(0);
   });

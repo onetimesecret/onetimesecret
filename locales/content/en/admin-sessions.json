@@ -186,5 +186,20 @@
   "web.admin.sessions.detail.ttlSeconds": {
     "text": "{seconds}s remaining",
     "content_hash": "3c9d75ce"
+  },
+  "web.admin.sessions.columns.role": {
+    "text": "Role"
+  },
+  "web.admin.sessions.fields.userAgent": {
+    "text": "User Agent"
+  },
+  "web.admin.sessions.fields.orgContext": {
+    "text": "Org Context"
+  },
+  "web.admin.sessions.scan.summary": {
+    "text": "Showing {shown} authenticated · {anonymous} anonymous hidden · {scanned} scanned"
+  },
+  "web.admin.sessions.scan.capped": {
+    "text": "Scan capped at the first {scanned} keys — authenticated sessions beyond this window aren't listed. Inspect a specific session by ID to reach it."
   }
 }

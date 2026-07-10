@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
 
+  import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
   import { AdminConfirmDialog, DataTable, StatCard } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
@@ -557,7 +558,7 @@
       <!-- Header -->
       <div class="flex flex-wrap items-center gap-3 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
         <h2 class="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-          {{ record.email }}
+          <RevealEmail :email="record.email" />
         </h2>
         <span
           class="inline-flex rounded px-2 py-0.5 text-xs font-medium"
@@ -632,7 +633,10 @@
                 {{ field.label }}
               </dt>
               <dd class="mt-1 text-sm break-words text-gray-900 dark:text-gray-100">
-                {{ field.value }}
+                <RevealEmail
+                  v-if="field.key === 'email'"
+                  :email="record.email" />
+                <template v-else>{{ field.value }}</template>
               </dd>
             </div>
           </dl>

@@ -163,7 +163,8 @@ describe('AdminSecrets (lookup-first inspect + guarded delete — ticket #30)', 
     expect(wrapper.find('[data-testid="secret-field-secretId"]').text()).toContain(SECRET_ID);
     // Receipt + owner sub-sections render from details.
     expect(wrapper.find('[data-testid="receipt-field-receiptId"]').text()).toContain('r1');
-    expect(wrapper.find('[data-testid="owner-field-email"]').text()).toContain('o***@e***.com');
+    // Owner email is obscured by default (RevealEmail).
+    expect(wrapper.find('[data-testid="owner-field-email"]').text()).toContain('o•••@e•••.com');
   });
 
   it('renders the not-found panel on a 404', async () => {
