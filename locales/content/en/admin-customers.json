@@ -403,5 +403,44 @@
   "web.admin.customers.actions.purge.success": {
     "text": "Customer purged.",
     "content_hash": "6145e5c8"
+  },
+  "web.admin.customers.detail.sessions.title": {
+    "text": "Active Sessions"
+  },
+  "web.admin.customers.detail.sessions.empty": {
+    "text": "No active sessions."
+  },
+  "web.admin.customers.detail.sessions.loadError": {
+    "text": "Unable to load sessions."
+  },
+  "web.admin.customers.detail.sessions.unknown": {
+    "text": "Unknown"
+  },
+  "web.admin.customers.detail.sessions.columns.lastActivity": {
+    "text": "Last activity"
+  },
+  "web.admin.customers.detail.sessions.columns.ipAddress": {
+    "text": "IP address"
+  },
+  "web.admin.customers.detail.sessions.columns.device": {
+    "text": "Device"
+  },
+  "web.admin.customers.detail.sessions.columns.authMethod": {
+    "text": "Auth method"
+  },
+  "web.admin.customers.detail.sessions.columns.actions": {
+    "text": "Actions"
+  },
+  "web.admin.customers.detail.sessions.revoke.button": {
+    "text": "Revoke"
+  },
+  "web.admin.customers.detail.sessions.revoke.confirmTitle": {
+    "text": "Revoke session?"
+  },
+  "web.admin.customers.detail.sessions.revoke.confirmDescription": {
+    "text": "This immediately signs the user out of this session. They will need to sign in again."
+  },
+  "web.admin.customers.detail.sessions.revoke.success": {
+    "text": "Session revoked."
   }
 }
