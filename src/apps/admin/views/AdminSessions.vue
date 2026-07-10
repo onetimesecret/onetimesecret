@@ -51,7 +51,7 @@
   const notifications = useNotificationsStore();
 
   const store = useAdminSessions();
-  const { sessions, pagination, loading, error } = storeToRefs(store);
+  const { sessions, pagination, scan, loading, error } = storeToRefs(store);
 
   // ---- List + search --------------------------------------------------------
 
@@ -59,15 +59,29 @@
   const activeSearch = ref('');
   const hasActiveFilters = computed(() => searchTerm.value !== '');
 
+  // The list now shows only identity (authenticated) sessions — the server
+  // filters out CSRF-only anonymous ones — so the near-constant `Auth` column is
+  // dropped in favour of `Role`, which actually varies and aids triage.
   const columns = computed<DataTableColumn<ColonelSession>[]>(() => [
     { key: 'session_id', label: t('web.admin.sessions.columns.sessionId') },
-    { key: 'authenticated', label: t('web.admin.sessions.columns.authenticated'), align: 'center' },
     { key: 'email', label: t('web.admin.sessions.columns.email') },
+    { key: 'role', label: t('web.admin.sessions.columns.role') },
     { key: 'external_id', label: t('web.admin.sessions.columns.externalId') },
     { key: 'ip_address', label: t('web.admin.sessions.columns.ipAddress') },
     { key: 'created_at', label: t('web.admin.sessions.columns.created') },
     { key: 'actions', label: t('web.admin.sessions.columns.actions'), align: 'right' },
   ]);
+
+  /** Keyspace summary line under the table (see the store's `scan`). */
+  const scanSummary = computed(() => {
+    const s = scan.value;
+    if (!s) return '';
+    return t('web.admin.sessions.scan.summary', {
+      shown: pagination.value?.total_count ?? sessions.value.length,
+      anonymous: s.anonymous_count,
+      scanned: s.scanned,
+    });
+  });
 
   /** created_at is a bare Unix-second number (authenticated_at). */
   function createdLabel(createdAt: number | null): string {
@@ -195,6 +209,8 @@
       { key: 'role', label: t('web.admin.sessions.fields.role'), value: none(r.role) },
       { key: 'locale', label: t('web.admin.sessions.fields.locale'), value: none(r.locale) },
       { key: 'ipAddress', label: t('web.admin.sessions.fields.ipAddress'), value: none(r.ip_address) },
+      { key: 'userAgent', label: t('web.admin.sessions.fields.userAgent'), value: none(r.user_agent) },
+      { key: 'orgContext', label: t('web.admin.sessions.fields.orgContext'), value: none(r.org_context) },
       {
         key: 'authenticatedAt',
         label: t('web.admin.sessions.fields.authenticatedAt'),
@@ -205,7 +221,10 @@
       {
         key: 'authenticatedBy',
         label: t('web.admin.sessions.fields.authenticatedBy'),
-        value: none(r.authenticated_by),
+        // Rodauth stores this as a list of methods — join for display.
+        value: Array.isArray(r.authenticated_by)
+          ? r.authenticated_by.join(', ')
+          : none(r.authenticated_by),
       },
       {
         key: 'activeSessionId',
@@ -330,20 +349,6 @@
           <span class="font-mono text-gray-900 dark:text-white">{{ row.session_id }}</span>
         </template>
 
-        <template #cell-authenticated="{ row }">
-          <OIcon
-            v-if="row.authenticated"
-            collection="heroicons"
-            name="check-circle"
-            size="5"
-            class="inline text-green-600 dark:text-green-400"
-            :aria-label="t('web.admin.sessions.status.authenticated')" />
-          <span
-            v-else
-            class="text-gray-400 dark:text-gray-600"
-            :aria-label="t('web.admin.sessions.status.anonymous')">—</span>
-        </template>
-
         <template #cell-email="{ row }">
           <span class="text-gray-900 dark:text-white">
             <RevealEmail
@@ -351,6 +356,10 @@
               :email="row.email" />
             <template v-else>{{ emailLabel(row.email) }}</template>
           </span>
+        </template>
+
+        <template #cell-role="{ row }">
+          <span class="text-sm text-gray-700 dark:text-gray-300">{{ row.role || '—' }}</span>
         </template>
 
         <template #cell-external_id="{ row }">
@@ -375,6 +384,28 @@
           </button>
         </template>
       </DataTable>
+    </div>
+
+    <!-- Keyspace summary: the list shows only authenticated sessions, so make
+         the hidden anonymous count + any scan cap explicit (otherwise a short
+         list reads as "few sessions" when it's "few authenticated sessions"). -->
+    <div
+      v-if="scan"
+      class="mt-3 space-y-1"
+      data-testid="sessions-scan">
+      <p class="text-xs text-gray-500 dark:text-gray-400">
+        {{ scanSummary }}
+      </p>
+      <p
+        v-if="scan.scan_capped"
+        class="flex items-center gap-1 text-xs text-amber-700 dark:text-amber-400"
+        data-testid="sessions-scan-capped">
+        <OIcon
+          collection="heroicons"
+          name="exclamation-triangle"
+          size="4" />
+        {{ t('web.admin.sessions.scan.capped', { scanned: scan.scanned }) }}
+      </p>
     </div>
 
     <!-- Pagination -->

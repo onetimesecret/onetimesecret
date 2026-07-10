@@ -39,13 +39,28 @@ export const colonelSessionSchema = z.object({
   external_id: z.string().nullable(),
   role: z.string().nullable(),
   ip_address: z.string().nullable(),
+  user_agent: z.string().nullable(),
   created_at: z.number().nullable(),
 });
 
-/** Sessions list response details: rows + the shared pagination envelope. */
+/**
+ * Keyspace shape for the listing. The list shows only identity sessions
+ * (`pagination.total_count`); `scanned` is how many session keys were examined,
+ * `anonymous_count` how many CSRF-only sessions were hidden, and `scan_capped`
+ * whether the bounded scan hit its cap (identity sessions beyond the window are
+ * not listed — the by-id inspect path is unaffected).
+ */
+export const colonelSessionScanSchema = z.object({
+  scanned: z.number(),
+  anonymous_count: z.number(),
+  scan_capped: z.boolean(),
+});
+
+/** Sessions list response details: rows + pagination + keyspace scan meta. */
 export const colonelSessionsDetailsSchema = z.object({
   sessions: z.array(colonelSessionSchema),
   pagination: paginationSchema,
+  scan: colonelSessionScanSchema,
 });
 
 // ============================================================================
@@ -70,8 +85,14 @@ export const colonelSessionDetailRecordSchema = z.object({
   role: z.string().nullable(),
   locale: z.string().nullable(),
   ip_address: z.string().nullable(),
+  user_agent: z.string().nullable(),
+  org_context: z.string().nullable(),
   authenticated_at: z.number().nullable(),
-  authenticated_by: z.string().nullable(),
+  // Rodauth records the auth methods as a LIST (e.g. ["password", "totp"]); a
+  // string form is accepted for legacy/plaintext sessions. (This was declared
+  // `z.string()` while the console never decrypted — the field was always null
+  // via the `_raw` fallback, so the array shape only surfaced once decode landed.)
+  authenticated_by: z.union([z.string(), z.array(z.string())]).nullable(),
   active_session_id: z.string().nullable(),
 });
 
@@ -104,6 +125,7 @@ export const colonelSessionDeleteDetailsSchema = z.object({
 // ============================================================================
 
 export type ColonelSession = z.infer<typeof colonelSessionSchema>;
+export type ColonelSessionScan = z.infer<typeof colonelSessionScanSchema>;
 export type ColonelSessionDetailRecord = z.infer<typeof colonelSessionDetailRecordSchema>;
 export type ColonelSessionDetailDetails = z.infer<typeof colonelSessionDetailDetailsSchema>;
 export type ColonelSessionDeleteRecord = z.infer<typeof colonelSessionDeleteRecordSchema>;

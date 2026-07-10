@@ -30,11 +30,15 @@ module Onetime
 
         # @return [Result]
         def call
-          db  = @dbclient || Familia.dbclient
-          key = Store.find_key(db, @session_id)
+          db    = @dbclient || Familia.dbclient
+          key   = Store.find_key(db, @session_id)
           return miss unless key
 
-          data = Store.load_data(db, key)
+          # Decrypt with the shared codec so the read-out shows real identity;
+          # without it the value is the opaque `base64(...)--hmac` blob and every
+          # field reads as nil (the console's "Anonymous / None" bug).
+          codec = Onetime::SessionCodec.from_config
+          data  = Store.load_data(db, key, codec: codec)
           return miss unless data
 
           Result.new(

@@ -4,6 +4,7 @@
 
 require 'json'
 require 'redis' # for Redis::CommandError in the defensive load_data rescue
+require 'onetime/session/codec' # canonical decryptor injected into load_data
 
 module Onetime
   module Operations
@@ -31,7 +32,7 @@ module Onetime
       # fallback. This behaviour is byte-for-byte what `SessionHelpers#load_session_data`
       # guaranteed and what `spec/cli/session_command_security_spec.rb` locks in.
       module Store
-        module_function
+        extend self
 
         # Non-blocking SCAN match for every session key shape (CONTRACT 6 — bounded
         # cursor scan only, never a blocking KEYS on the request path).
@@ -84,8 +85,14 @@ module Onetime
         #
         # @param dbclient [Object]
         # @param key [String]
+        # @param codec [Onetime::SessionCodec, nil] when given, the PRIMARY path:
+        #   session values are AES-256-GCM encrypted + HMAC signed
+        #   (`base64(...)--hmac`), so a plain JSON.parse always failed and every
+        #   session fell through to the `_raw` preview — the colonel console
+        #   therefore showed every session, authenticated ones included, as
+        #   opaque/Anonymous. Decoding first makes identity fields resolve.
         # @return [Hash, nil]
-        def load_data(dbclient, key)
+        def load_data(dbclient, key, codec: nil)
           raw_data = begin
             dbclient.get(key)
           rescue Redis::CommandError
@@ -93,11 +100,37 @@ module Onetime
           end
           return nil unless raw_data
 
+          # Primary: decrypt an authentic session blob to its data hash.
+          if codec
+            decoded = codec.decode(raw_data)
+            return decoded if decoded.is_a?(Hash)
+          end
+
+          # Fallback: legacy plaintext-JSON values and anything that is not an
+          # authentic session blob. NEVER Marshal.load (see the security note
+          # above); non-JSON degrades to a bounded `_raw` preview.
           begin
             JSON.parse(raw_data)
           rescue StandardError
             { '_raw' => raw_data[0..200] }
           end
+        end
+
+        # Identity fields that make a session worth listing for incident
+        # response. A session with none of these carries no actor — in practice
+        # an anonymous visitor session holding only a CSRF token.
+        IDENTITY_FIELDS = %w[account_id external_id account_external_id email].freeze
+
+        # Whether a parsed session has any actor identity. False for the
+        # CSRF-only anonymous sessions that dominate the keyspace (and for the
+        # `_raw` fallback, which has no identity keys either).
+        #
+        # @param data [Hash]
+        # @return [Boolean]
+        def identified?(data)
+          return false unless data.is_a?(Hash)
+
+          IDENTITY_FIELDS.any? { |f| !data[f].to_s.empty? }
         end
 
         # Recover the bare session id from a full key.
@@ -154,6 +187,7 @@ module Onetime
             external_id: data['external_id'] || data['account_external_id'],
             role: data['role'],
             ip_address: data['ip_address'],
+            user_agent: data['user_agent'],
             created_at: data['authenticated_at'],
           }
         end

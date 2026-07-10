@@ -48,6 +48,16 @@ module ColonelAPI
             total_count: result.total_count,
             total_pages: result.total_pages,
           }
+          # Keyspace shape for the console: `total_count` counts only the
+          # identity sessions shown (CSRF-only anonymous ones are excluded), so
+          # surface how many were scanned/hidden and whether the bounded scan
+          # was truncated — otherwise a short list would read as "few sessions"
+          # when the truth is "few authenticated sessions among many."
+          @scan_meta       = {
+            scanned: result.scanned,
+            anonymous_count: result.anonymous_count,
+            scan_capped: result.scan_capped,
+          }
 
           success_data
         end
@@ -58,6 +68,7 @@ module ColonelAPI
             details: {
               sessions: sessions,
               pagination: pagination_meta,
+              scan: @scan_meta,
             },
           }
         end

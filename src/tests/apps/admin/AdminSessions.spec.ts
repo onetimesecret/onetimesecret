@@ -73,6 +73,7 @@ function sessionsPayload(rows = [sessionRow()]) {
     details: {
       sessions: rows,
       pagination: { page: 1, per_page: 50, total_count: rows.length, total_pages: 1 },
+      scan: { scanned: rows.length, anonymous_count: 0, scan_capped: false },
     },
   };
 }
@@ -86,6 +87,7 @@ function sessionRow(overrides: Record<string, unknown> = {}) {
     external_id: 'ext_1',
     role: 'customer',
     ip_address: '203.0.113.7',
+    user_agent: 'Mozilla/5.0',
     created_at: 1700000000,
     ...overrides,
   };
@@ -105,8 +107,10 @@ function detailPayload() {
       role: 'customer',
       locale: 'en',
       ip_address: '203.0.113.7',
+      user_agent: 'Mozilla/5.0',
+      org_context: '019f4ac1-b8d6-7ca9-858d-ba3d7e1e0210',
       authenticated_at: 1700000000,
-      authenticated_by: 'password',
+      authenticated_by: ['password'],
       active_session_id: 'as_1',
     },
     details: { data: { authenticated: true, email: 'alice@example.com' } },
