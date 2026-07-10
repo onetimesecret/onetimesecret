@@ -1,0 +1,16 @@
+<%= t('email.payment_failed.title') %>
+
+<%= t('email.payment_failed.body', product_name: product_name) %>
+
+<%= plan_name %> - <%= formatted_amount %>
+<%= failure_reason %>
+<%- if retry_date_formatted -%>
+<%= retry_date_formatted %>
+<%- end -%>
+<%- if update_payment_url -%>
+
+<%= t('email.payment_failed.update_payment_button') %>:
+<%= update_payment_url %>
+<%- end -%>
+
+<%= signature_name || t('email.payment_failed.signature') %>

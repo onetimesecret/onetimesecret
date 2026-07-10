@@ -1,0 +1,21 @@
+<%
+  _login_time = (Time.parse(login_at.to_s) rescue nil)
+  _login_date = _login_time ? _login_time.strftime('%B %d, %Y') : login_at.to_s
+  _login_clock = _login_time ? _login_time.strftime('%H:%M UTC') : ''
+-%>
+<%= t('email.new_login_alert.title') %>
+
+<%= t('email.new_login_alert.body', product_name: product_name, date: _login_date, time: _login_clock) %>
+
+<%= t('email.new_login_alert.device_label') %> <%= device_info %>
+<%= t('email.new_login_alert.location_label') %> <%= location %>
+<%- if ip_address -%>
+<%= t('email.new_login_alert.ip_address_label') %> <%= ip_address %>
+<%- end -%>
+
+<%= t('email.new_login_alert.secure_account_button') %>:
+<%= baseuri %><%= security_settings_path %>
+
+<%= t('email.new_login_alert.not_you_notice') %>
+
+<%= signature_name || t('email.new_login_alert.signature') %>

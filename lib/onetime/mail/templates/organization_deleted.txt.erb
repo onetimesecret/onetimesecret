@@ -1,0 +1,7 @@
+<%= t('email.organization_deleted.title') %>
+
+<%= t('email.organization_deleted.body', organization_name: organization_name, product_name: product_name) %>
+
+<%= baseuri %><%= support_path %>
+
+<%= signature_name || t('email.organization_deleted.signature') %>

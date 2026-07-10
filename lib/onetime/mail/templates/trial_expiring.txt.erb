@@ -1,0 +1,13 @@
+<%= t('email.trial_expiring.title') %>
+
+<%= t('email.trial_expiring.body', product_name: product_name, days_remaining: days_remaining) %>
+
+<%= plan_name %>
+<%= trial_ends_at_formatted %>
+<%- if upgrade_url -%>
+
+<%= t('email.trial_expiring.upgrade_button') %>:
+<%= upgrade_url %>
+<%- end -%>
+
+<%= signature_name || t('email.trial_expiring.signature') %>

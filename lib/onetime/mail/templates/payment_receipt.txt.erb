@@ -1,0 +1,14 @@
+<%= t('email.payment_receipt.title') %>
+
+<%= t('email.payment_receipt.body') %>
+
+<%= t('email.payment_receipt.amount_label') %> <%= formatted_amount %>
+<%= t('email.payment_receipt.plan_label') %> <%= plan_name %>
+<%= t('email.payment_receipt.date_label') %> <%= paid_at_formatted %>
+<%- if invoice_url -%>
+
+<%= t('email.payment_receipt.invoice_link') %>:
+<%= invoice_url %>
+<%- end -%>
+
+<%= signature_name || t('email.payment_receipt.signature') %>
