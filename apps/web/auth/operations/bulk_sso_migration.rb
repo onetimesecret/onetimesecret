@@ -40,7 +40,7 @@ module Auth
         :organization_extid,
         :personal_org_extid,
         :message,
-        keyword_init: true
+        keyword_init: true,
       )
 
       attr_reader :domain, :organization, :dry_run
@@ -107,21 +107,21 @@ module Auth
         if organization.member?(customer)
           if dry_run
             repair_needed = needs_repair?(customer)
-            status = repair_needed ? :would_repair : :skipped_already_member
-            message = repair_needed ? 'Would repair partial migration state' : 'Already a member of domain organization'
+            status        = repair_needed ? :would_repair : :skipped_already_member
+            message       = repair_needed ? 'Would repair partial migration state' : 'Already a member of domain organization'
           else
-            repaired = false
+            repaired  = false
             repaired |= repair_default_org!(customer)
             repaired |= repair_archive!(customer)
 
             if repaired
-              status = :repaired
+              status  = :repaired
               message = 'Already a member; repaired partial migration state'
             elsif needs_repair?(customer)
-              status = :error
+              status  = :error
               message = 'Repair needed but all repair attempts failed'
             else
-              status = :skipped_already_member
+              status  = :skipped_already_member
               message = 'Already a member of domain organization'
             end
           end

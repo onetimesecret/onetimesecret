@@ -346,7 +346,7 @@ module Billing
       def default_organization_for(customer)
         return nil if customer.nil? || customer.anonymous?
 
-        orgs = customer.organization_instances.to_a.reject(&:archived?)
+        orgs        = customer.organization_instances.to_a.reject(&:archived?)
         default_org = if customer.default_org_id.to_s.length.positive?
           orgs.find { |o| o.objid == customer.default_org_id }
         end

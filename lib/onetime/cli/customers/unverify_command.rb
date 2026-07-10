@@ -71,7 +71,7 @@ module Onetime
         exit 1
       rescue Auth::Operations::SetCustomerVerification::AccountNotFound => ex
         puts "Error: #{ex.message}. " \
-          'Run `bin/ots customers sync-auth-accounts` to reconcile.'
+             'Run `bin/ots customers sync-auth-accounts` to reconcile.'
         exit 1
       end
     end

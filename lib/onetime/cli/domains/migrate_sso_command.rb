@@ -80,12 +80,12 @@ module Onetime
           return
         end
 
-        stats = { total: 0, migrated: 0, repaired: 0, skipped: 0, archive_warnings: 0, errors: [] }
+        stats   = { total: 0, migrated: 0, repaired: 0, skipped: 0, archive_warnings: 0, errors: [] }
         results = []
 
         candidates.each_with_index do |customer, idx|
           stats[:total] += 1
-          label = "[#{idx + 1}/#{candidates.size}]"
+          label          = "[#{idx + 1}/#{candidates.size}]"
 
           result = migration.migrate_customer(customer)
           results << result
@@ -97,7 +97,7 @@ module Onetime
             status: :error,
             customer_extid: customer.extid,
             email_obscured: OT::Utils.obscure_email(customer.email),
-            message: ex.message
+            message: ex.message,
           )
           puts "  #{label} Error: #{ex.message}" unless json
         end
@@ -148,7 +148,7 @@ module Onetime
             archive_warnings: 0,
             errors: 0,
           },
-          results: []
+          results: [],
         )
       end
 
@@ -157,7 +157,7 @@ module Onetime
         when :migrated, :would_migrate
           stats[:migrated] += 1
         when :migrated_archive_failed
-          stats[:migrated] += 1
+          stats[:migrated]         += 1
           stats[:archive_warnings] += 1
         when :repaired, :would_repair
           stats[:repaired] += 1
@@ -241,7 +241,7 @@ module Onetime
               personal_workspace: r.personal_org_extid,
               message: r.message,
             }
-          end
+          end,
         )
       end
 

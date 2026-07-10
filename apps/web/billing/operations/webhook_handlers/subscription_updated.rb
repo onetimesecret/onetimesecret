@@ -37,8 +37,10 @@ module Billing
 
           process_with_federation(subscription) do |org, is_owner|
             if is_owner
+              old_plan = org.planid
               org.update_from_stripe_subscription(subscription)
               org.save
+              new_plan = org.planid
 
               billing_logger.info 'Subscription updated (owner)',
                 {
@@ -46,6 +48,8 @@ module Billing
                   subscription_id: subscription.id,
                   status: subscription.status,
                 }
+
+              notify_subscription_changed(org, old_plan, new_plan) unless skip_notifications?
             else
               first_time = update_federated_org(org, subscription)
 
@@ -65,7 +69,9 @@ module Billing
         # Standard processing without federation
         def process_without_federation(subscription)
           with_organization do |org|
+            old_plan = org.planid
             org.update_from_stripe_subscription(subscription)
+            new_plan = org.planid
 
             billing_logger.info 'Subscription updated',
               {
@@ -73,7 +79,38 @@ module Billing
                 subscription_id: subscription.id,
                 status: subscription.status,
               }
+
+            notify_subscription_changed(org, old_plan, new_plan) unless skip_notifications?
           end
+        end
+
+        # Best-effort notification to the organization owner that their plan
+        # changed. Only sent when the plan id actually changed: subscription
+        # .updated also fires for renewals, status flips, quantity and payment
+        # method changes, and emailing on every one of those would be spam.
+        # Upgrade vs downgrade can't be reliably inferred from plan ids, so the
+        # template renders the neutral "change" copy. A delivery failure must
+        # not fail webhook processing (which would trigger a Stripe retry).
+        def notify_subscription_changed(org, old_plan, new_plan)
+          return if old_plan == new_plan
+
+          owner = org.owner
+          return unless owner&.email
+
+          Onetime::Jobs::Publisher.enqueue_email(
+            :subscription_changed,
+            {
+              email_address: owner.email,
+              old_plan: old_plan,
+              new_plan: new_plan,
+              effective_date: Time.now.utc.iso8601,
+              locale: (owner.respond_to?(:locale) ? owner.locale : nil) || OT.default_locale,
+            },
+            fallback: :async_thread,
+          )
+        rescue StandardError => ex
+          billing_logger.error 'Failed to send subscription_changed email',
+            { orgid: org.objid, error: ex.message }
         end
 
         # Check if federation is enabled

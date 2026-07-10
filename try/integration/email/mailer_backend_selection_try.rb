@@ -95,6 +95,65 @@ Onetime::Mail::Mailer.send(:template_class_for, :password_request)
 Onetime::Mail::Mailer.send(:template_class_for, :incoming_secret)
 #=> Onetime::Mail::Templates::IncomingSecret
 
+## template_class_for :new_login_alert returns NewLoginAlert
+Onetime::Mail::Mailer.send(:template_class_for, :new_login_alert)
+#=> Onetime::Mail::Templates::NewLoginAlert
+
+## template_class_for :mfa_enabled returns MfaEnabled
+Onetime::Mail::Mailer.send(:template_class_for, :mfa_enabled)
+#=> Onetime::Mail::Templates::MfaEnabled
+
+## template_class_for :mfa_disabled returns MfaDisabled
+Onetime::Mail::Mailer.send(:template_class_for, :mfa_disabled)
+#=> Onetime::Mail::Templates::MfaDisabled
+
+## template_class_for :password_changed returns PasswordChanged
+Onetime::Mail::Mailer.send(:template_class_for, :password_changed)
+#=> Onetime::Mail::Templates::PasswordChanged
+
+## template_class_for :role_changed returns RoleChanged
+Onetime::Mail::Mailer.send(:template_class_for, :role_changed)
+#=> Onetime::Mail::Templates::RoleChanged
+
+## template_class_for :member_removed returns MemberRemoved
+Onetime::Mail::Mailer.send(:template_class_for, :member_removed)
+#=> Onetime::Mail::Templates::MemberRemoved
+
+## template_class_for :organization_deleted returns OrganizationDeleted
+Onetime::Mail::Mailer.send(:template_class_for, :organization_deleted)
+#=> Onetime::Mail::Templates::OrganizationDeleted
+
+# Billing templates: their view classes are only defined when billing is
+# enabled, so template_class_for resolves them when billing is on and raises
+# ArgumentError (not NameError) when billing is off. These checks pass in
+# either configuration.
+
+## template_class_for :trial_expiring resolves when billing enabled, else raises ArgumentError
+if OT.billing_config.enabled?
+  Onetime::Mail::Mailer.send(:template_class_for, :trial_expiring) == Onetime::Mail::Templates::TrialExpiring
+else
+  begin
+    Onetime::Mail::Mailer.send(:template_class_for, :trial_expiring)
+    false
+  rescue ArgumentError
+    true
+  end
+end
+#=> true
+
+## template_class_for :subscription_changed resolves when billing enabled, else raises ArgumentError
+if OT.billing_config.enabled?
+  Onetime::Mail::Mailer.send(:template_class_for, :subscription_changed) == Onetime::Mail::Templates::SubscriptionChanged
+else
+  begin
+    Onetime::Mail::Mailer.send(:template_class_for, :subscription_changed)
+    false
+  rescue ArgumentError
+    true
+  end
+end
+#=> true
+
 ## build_provider_config for logger returns empty hash
 config = Onetime::Mail::Mailer.send(:build_provider_config, 'logger')
 config

@@ -59,9 +59,12 @@ module Onetime
         args     = error.respond_to?(:args) ? (error.args || {}) : {}
         fallback = error.message.to_s.empty? ? error.error_key.to_s : error.message
 
-        error.message = I18n.t(error.error_key, locale: locale,
-                                                  default: fallback,
-                                                  **args)
+        error.message = I18n.t(
+          error.error_key,
+          locale: locale,
+          default: fallback,
+          **args,
+        )
         error
       rescue StandardError => ex
         # Fallback: never let i18n failure cause a 500 — leave the error_key

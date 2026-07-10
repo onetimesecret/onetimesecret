@@ -120,7 +120,7 @@ module Onetime
           stats[:valid_config] += 1
         else
           stats[:invalid] += 1
-          entry           = build_invalid_entry(org, planid)
+          entry            = build_invalid_entry(org, planid)
           invalid_orgs << entry
           puts format_verbose_line(entry) if verbose
         end
