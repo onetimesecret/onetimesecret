@@ -5,7 +5,6 @@
 *.txt
 .*.json
 .byebug*
-.ruby-version
 spoom_*
 .commit_hash.txt
 *.sublime-*
