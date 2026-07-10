@@ -662,19 +662,6 @@ export default [
     rules: {
       'playwright/no-networkidle': 'error',
       'playwright/no-wait-for-timeout': 'error',
-
-      // TODO: dead since #3414 scoped the tailwind flat/recommended spread to
-      // src/**/*.vue - these 'off' entries no longer override anything. Kept
-      // only to avoid churning lines the in-flight e2e sweep branch (#3416)
-      // sits next to; remove in the follow-up.
-      'tailwindcss/classnames-order': 'off',
-      'tailwindcss/enforces-negative-arbitrary-values': 'off',
-      'tailwindcss/enforces-shorthand': 'off',
-      'tailwindcss/migration-from-tailwind-2': 'off',
-      'tailwindcss/no-arbitrary-value': 'off',
-      'tailwindcss/no-custom-classname': 'off',
-      'tailwindcss/no-contradicting-classname': 'off',
-      'tailwindcss/no-unnecessary-arbitrary-value': 'off',
     },
   },
 
