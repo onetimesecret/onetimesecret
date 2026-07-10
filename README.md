@@ -13,7 +13,7 @@ When you send sensitive info like passwords via email or chat, copies persist in
 ## Quick Start with Docker
 
 > [!IMPORTANT]
-> **Upgrading from v0.22 or v0.23?** See the [v0.23 Upgrade Guide](https://docs.onetimesecret.com/en/self-hosting/upgrading-v0-23/) and [v0.24 Upgrade Guide](https://docs.onetimesecret.com/en/self-hosting/upgrading-v0-24/) for migration steps.
+> **Upgrading from v0.22, v0.23, or v0.24?** See the [v0.23 Upgrade Guide](https://docs.onetimesecret.com/en/self-hosting/upgrading-v0-23/), [v0.24 Upgrade Guide](https://docs.onetimesecret.com/en/self-hosting/upgrading-v0-24/), and [v0.25 Upgrade Guide](https://docs.onetimesecret.com/en/self-hosting/upgrading-v0-25/) for migration steps.
 
 **1. Start Redis:**
 ```bash
@@ -30,12 +30,13 @@ echo "Secret key saved to .ots_secret (keep this file secure!)"
 # Now run the container using the key
 # ⚠️ WARNING: Set SSL=true for production deployments
 docker run -p 3000:3000 -d \
+  --add-host=host.docker.internal:host-gateway \
   -e REDIS_URL=redis://host.docker.internal:6379/0 \
   -e SECRET="$(cat .ots_secret)" \
   -e HOST=localhost:3000 \
   -e AUTH_REQUIRED=false \
   -e SSL=false \
-  onetimesecret/onetimesecret:v0.24.6
+  onetimesecret/onetimesecret:v0.25.11
 ```
 
 **3. Access:** http://localhost:3000
@@ -69,12 +70,15 @@ See [.env.reference](./.env.reference)
 
 ### Bare-Metal / Manual
 
-Requires Ruby 3.4+, Redis/Valkey, and Node.js 25+ (for building the frontend).
+Requires Ruby 3.4.9 (pinned via `.ruby-version`), Redis/Valkey, Node.js 22, pnpm 11.10.0, and Python 3 (required by the frontend build).
+
+> **Note:** A UTF-8 locale is currently required — boot crashes under a POSIX/`C` locale. Set one (e.g. `export LANG=C.UTF-8`) before starting the server. This is a temporary requirement.
 
 ```bash
 git clone https://github.com/onetimesecret/onetimesecret.git && cd onetimesecret
 ./install.sh init            # Generates .env, secrets, and puma config
 set -a; source .env; set +a  # Export env vars into the shell
+pnpm run build               # Build the frontend assets (required, or the UI is blank)
 bundle exec puma -C etc/puma.rb
 ```
 
@@ -89,7 +93,7 @@ See the [Self-Hosting Guide](https://docs.onetimesecret.com/en/self-hosting/) fo
 
 ### Running Locally
 
-There are three ways to run the application for local development:
+There are two ways to run the application for local development:
 
 **Option A: Overmind (recommended)**
 
@@ -126,11 +130,12 @@ development:
 
 The browser swaps changed modules in place without a full page reload, preserving application state.
 
-### Docker Compose
+## Docker Compose
 
 Docker Compose configurations are included in this repository:
 ```bash
-cp --preserve --update=none .env.example .env
+cp -n .env.example .env
+echo "SECRET=$(openssl rand -hex 32)" >> .env
 docker compose up
 ```
 
@@ -148,7 +153,7 @@ See `docker-compose.yml` for available profiles (simple vs full stack) and `dock
 
 ## AI Development Assistance
 
-This version of Familia was developed with assistance from AI tools. The following tools provided significant help with architecture design, code generation, and documentation:
+This version of One-Time Secret was developed with assistance from AI tools. The following tools provided significant help with architecture design, code generation, and documentation:
 
 - **Claude (Desktop, Code Max plan, Sonnet 4, Opus 4.6)** - Interactive development sessions, debugging, architecture design, code generation, and documentation
 - **Google Gemini** - Refactoring suggestions, code generation, and documentation.
