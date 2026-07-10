@@ -36,7 +36,7 @@ those accounts. Phase 1 below is remediation work.
 - No change to `apps/web/auth/routes/admin.rb` itself as part of this scope
   beyond deleting it once superseded (it's dead-end code, not a foundation).
 
-## Design: graft per-account state onto Customer detail; one fleet surface
+## Design: graft per-account state onto Customer detail; one aggregate surface
 
 Verified: `accounts.external_id` (nullable, unique) is populated by
 `sync_auth_accounts_command.rb` with `customer.extid`, and is kept in step
@@ -52,7 +52,7 @@ Rodauth state is one more tab/panel on a page an admin already reaches by
 searching a customer.
 
 At 200k production accounts, per-account grafting alone is not enough:
-fleet-level questions ("which accounts are locked out right now", "how big is
+aggregate questions ("which accounts are locked out right now", "how big is
 the unverified backlog", "how many SQL accounts have no matching Redis
 customer") can only be answered by a surface you reach *without* already
 knowing the customer. So one new read-only nav entry is in scope after all:
@@ -129,8 +129,9 @@ sequence it accordingly (see phasing below).
 - Routes: new `apps/api/colonel/logic/colonel/*` adapters, thin per the
   existing pattern, guarded by both auth layers.
 - Frontend: one new "Auth" section (`src/apps/admin/sections.ts`, `identity`
-  band) for the fleet surface, plus new conditionally-rendered panel(s) on the
-  existing customer detail view. Orphan-account rows in the fleet lists link
+  band) for the aggregate surface, plus new conditionally-rendered panel(s) on
+  the existing customer detail view. Orphan-account rows in the aggregate
+  lists link
   nowhere initially (no customer page to link to) — display email + status
   inline; a dedicated orphan-account detail view is deferred until Phase 1's
   coverage numbers show whether orphans are a population or a handful.
@@ -143,11 +144,12 @@ sequence it accordingly (see phasing below).
 
 ## Phasing (sequence, not full sub-specs yet)
 
-1. **Fleet visibility** (the immediate ask): the "Auth" section — aggregate
-   stats, sync-coverage/orphan metrics, locked-accounts list. Read-only, no
-   mutations, no joins to build; smallest change that gives operators real
-   numbers for the 200k accounts. Its coverage query also answers the orphan
-   open question below.
+1. **Aggregate visibility** (the immediate ask): the "Auth" section —
+   aggregate stats, sync-coverage/orphan metrics, locked-accounts list.
+   Read-only, no mutations, no joins to build; smallest change that gives
+   operators real numbers for the 200k accounts. Its coverage query also
+   answers the orphan open question below.
+   **Spec: `10-aggregate-visibility.md`.**
 2. **Per-account read-only panels**: account status/MFA/session/SSO panels on
    the customer detail page via the `extid`/`external_id` join,
    `full_enabled?`-gated. Establishes the join and the display shape.
@@ -167,7 +169,8 @@ sequence it accordingly (see phasing below).
   production, ~200k accounts. Phase 1 is remediation.
 - Orphan accounts (no matching `Customer.extid`): Phase 1's coverage query
   produces the actual count; decide on a dedicated orphan detail view (vs.
-  inline-only display in the fleet lists) from that number, not speculation.
+  inline-only display in the aggregate lists) from that number, not
+  speculation.
 - Whether `account_previous_password_hashes` count should be shown at all
   (it's history-count only, never hash material, but confirm no PII-adjacent
   concern from security review before shipping).
