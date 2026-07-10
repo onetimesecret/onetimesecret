@@ -31,8 +31,9 @@
   import { useI18n } from 'vue-i18n';
 
   /**
-   * Domains screen — card grid + per-domain verify (ticket #31, Phase-2 parity
-   * port), plus the admin "attach a domain to a specific organization" flow.
+   * Domains screen — dense domain table + per-domain verify (ticket #31,
+   * Phase-2 parity port), plus the admin "attach a domain to a specific
+   * organization" flow.
    *
    * - LIST via {@link useAdminDomains} (a per-resource paginated store over the
    *   existing `GET /api/colonel/domains`) + {@link KitPagination}.
@@ -105,7 +106,7 @@
     fetchPage(1);
   }
 
-  // ---- Guarded verify action (list cards) -----------------------------------
+  // ---- Guarded verify action (list rows) ------------------------------------
 
   const dialogOpen = ref(false);
   /** The domain awaiting confirmation, or currently being verified. */
@@ -580,183 +581,158 @@
       </p>
     </div>
 
-    <!-- Card grid -->
+    <!-- Domain table — dense, column-aligned so all 50 rows on a page are
+         scannable at once (the card grid was too tall for a 1000-domain
+         install). Low-value fields (brand tagline/homepage, favicon, updated)
+         are dropped from the row; the state badge already conveys
+         verified/resolving so those redundant flags are gone. -->
     <template v-else>
       <div
         data-testid="domains-grid"
-        class="grid gap-6 sm:grid-cols-1 lg:grid-cols-2">
-        <div
-          v-for="domain in domains"
-          :key="domain.domain_id"
-          :data-testid="`domain-card-${domain.extid}`"
-          class="flex flex-col rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900">
-          <!-- Header: logo + domain + verification badge -->
-          <div class="mb-4 flex items-start justify-between gap-3">
-            <div class="flex min-w-0 items-center gap-4">
-              <!-- Logo thumbnail -->
-              <div
-                v-if="domain.has_logo"
-                class="size-16 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
-                <img
-                  :src="domain.logo_url ?? undefined"
-                  :alt="`${domain.display_domain} logo`"
-                  class="size-full object-contain"
-                  loading="lazy" />
-              </div>
-              <div
-                v-else
-                class="flex size-16 flex-shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-700">
-                <span class="text-xs text-gray-400">{{ t('web.colonel.customDomains.noLogo') }}</span>
-              </div>
-
-              <!-- Domain info -->
-              <div class="min-w-0">
-                <h3 class="truncate text-lg font-semibold text-gray-900 dark:text-white">
-                  {{ domain.display_domain }}
-                </h3>
-                <p
-                  v-if="domain.brand.name"
-                  class="truncate text-sm text-gray-600 dark:text-gray-400">
-                  {{ domain.brand.name }}
-                </p>
-              </div>
-            </div>
-
-            <!-- Verification badge + external-tab link -->
-            <div class="flex shrink-0 items-center gap-2">
-              <a
-                :href="domainUrl(domain.display_domain)"
-                target="_blank"
-                rel="noopener noreferrer"
-                :data-testid="`domain-open-${domain.extid}`"
-                :aria-label="t('web.admin.domains.attach.openExternal', { domain: domain.display_domain })"
-                :title="t('web.admin.domains.attach.openExternal', { domain: domain.display_domain })"
-                class="rounded text-gray-400 hover:text-brand-600 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:hover:text-brand-400">
-                <OIcon
-                  collection="heroicons"
-                  name="arrow-top-right-on-square"
-                  size="4" />
-              </a>
-              <span
-                :class="[
-                  'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
-                  stateBadgeClass(domain.verification_state),
-                ]"
-                :data-testid="`domain-state-${domain.extid}`">
-                {{ stateLabel(domain.verification_state) }}
-              </span>
-            </div>
-          </div>
-
-          <!-- Brand details -->
-          <div
-            v-if="domain.brand.tagline || domain.brand.homepage_url"
-            class="mb-4 border-t border-gray-100 pt-4 dark:border-gray-700">
-            <p
-              v-if="domain.brand.tagline"
-              class="text-sm text-gray-600 dark:text-gray-400">
-              {{ domain.brand.tagline }}
-            </p>
-            <a
-              v-if="domain.brand.homepage_url"
-              :href="domain.brand.homepage_url"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="mt-1 inline-block text-sm text-brand-600 hover:text-brand-700 dark:text-brand-400">
-              {{ domain.brand.homepage_url }} ↗
-            </a>
-          </div>
-
-          <!-- Domain details grid -->
-          <div
-            class="grid grid-cols-2 gap-4 border-t border-gray-100 pt-4 text-sm dark:border-gray-700">
-            <div>
-              <span class="text-gray-500 dark:text-gray-400">{{ t('web.colonel.customDomains.labels.organization') }}:</span>
-              <p class="font-medium text-gray-900 dark:text-white">
-                {{ domain.org_name }}
-              </p>
-            </div>
-            <div>
-              <span class="text-gray-500 dark:text-gray-400">{{ t('web.colonel.customDomains.labels.externalId') }}:</span>
-              <p class="font-mono text-xs text-gray-900 dark:text-white">
-                {{ domain.extid }}
-              </p>
-            </div>
-            <div>
-              <span class="text-gray-500 dark:text-gray-400">{{ t('web.colonel.customDomains.labels.created') }}:</span>
-              <p class="text-gray-900 dark:text-white">
+        class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+        <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+          <thead class="bg-gray-50 dark:bg-gray-800/60">
+            <tr>
+              <th
+                scope="col"
+                class="px-4 py-2.5 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                {{ t('web.colonel.customDomains.labels.domain') }}
+              </th>
+              <th
+                scope="col"
+                class="px-4 py-2.5 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                {{ t('web.colonel.customDomains.labels.organization') }}
+              </th>
+              <th
+                scope="col"
+                class="px-4 py-2.5 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                {{ t('web.colonel.customDomains.labels.status') }}
+              </th>
+              <th
+                scope="col"
+                class="px-4 py-2.5 text-left text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                {{ t('web.colonel.customDomains.labels.created') }}
+              </th>
+              <th
+                scope="col"
+                class="px-4 py-2.5 text-right text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                {{ t('web.colonel.customDomains.labels.actions') }}
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr
+              v-for="domain in domains"
+              :key="domain.domain_id"
+              :data-testid="`domain-row-${domain.extid}`"
+              class="bg-white hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-800/50">
+              <!-- Domain: logo + name + extid -->
+              <td class="px-4 py-2.5">
+                <div class="flex items-center gap-3">
+                  <div
+                    v-if="domain.has_logo"
+                    class="size-8 shrink-0 overflow-hidden rounded border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
+                    <img
+                      :src="domain.logo_url ?? undefined"
+                      :alt="`${domain.display_domain} logo`"
+                      class="size-full object-contain"
+                      loading="lazy" />
+                  </div>
+                  <div
+                    v-else
+                    class="flex size-8 shrink-0 items-center justify-center rounded border border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-700">
+                    <OIcon
+                      collection="heroicons"
+                      name="globe-alt"
+                      size="4"
+                      class="text-gray-400" />
+                  </div>
+                  <div class="min-w-0">
+                    <div class="truncate font-medium text-gray-900 dark:text-white">
+                      {{ domain.display_domain }}
+                    </div>
+                    <div class="truncate font-mono text-xs text-gray-400 dark:text-gray-500">
+                      {{ domain.extid }}
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <!-- Organization -->
+              <td class="px-4 py-2.5 text-gray-700 dark:text-gray-300">
+                <span class="block max-w-[16rem] truncate">{{ domain.org_name }}</span>
+              </td>
+              <!-- Status: state badge + non-redundant capability flags -->
+              <td class="px-4 py-2.5">
+                <div class="flex items-center gap-1.5">
+                  <span
+                    :class="[
+                      'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
+                      stateBadgeClass(domain.verification_state),
+                    ]"
+                    :data-testid="`domain-state-${domain.extid}`">
+                    {{ stateLabel(domain.verification_state) }}
+                  </span>
+                  <OIcon
+                    v-if="domain.ready"
+                    collection="heroicons"
+                    name="check-badge"
+                    size="4"
+                    class="text-green-600 dark:text-green-400"
+                    :title="t('web.colonel.customDomains.status.ready')" />
+                  <OIcon
+                    v-if="domain.homepage_config?.enabled"
+                    collection="heroicons"
+                    name="home"
+                    size="4"
+                    class="text-purple-600 dark:text-purple-400"
+                    :title="t('web.colonel.customDomains.status.publicHomepage')" />
+                  <OIcon
+                    v-if="domain.api_config?.enabled"
+                    collection="heroicons"
+                    name="code-bracket"
+                    size="4"
+                    class="text-purple-600 dark:text-purple-400"
+                    :title="t('web.colonel.customDomains.status.publicApi')" />
+                </div>
+              </td>
+              <!-- Created -->
+              <td class="px-4 py-2.5 whitespace-nowrap text-gray-600 dark:text-gray-400">
                 {{ formatDisplayDateTime(domain.created) }}
-              </p>
-            </div>
-            <div>
-              <span class="text-gray-500 dark:text-gray-400">{{ t('web.colonel.customDomains.labels.updated') }}:</span>
-              <p class="text-gray-900 dark:text-white">
-                {{ domain.updated ? formatDisplayDateTime(domain.updated) : '—' }}
-              </p>
-            </div>
-          </div>
-
-          <!-- Status flags -->
-          <div class="mt-4 flex flex-wrap gap-2 border-t border-gray-100 pt-4 dark:border-gray-700">
-            <span
-              v-if="domain.verified"
-              class="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 dark:bg-green-900 dark:text-green-200">
-              ✓ {{ t('web.colonel.customDomains.status.verified') }}
-            </span>
-            <span
-              v-if="domain.resolving"
-              class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900 dark:text-blue-200">
-              ✓ {{ t('web.colonel.customDomains.status.resolving') }}
-            </span>
-            <span
-              v-if="domain.ready"
-              class="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 dark:bg-green-900 dark:text-green-200">
-              ✓ {{ t('web.colonel.customDomains.status.ready') }}
-            </span>
-            <span
-              v-if="domain.homepage_config?.enabled"
-              class="inline-flex items-center rounded-full bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 dark:bg-purple-900 dark:text-purple-200">
-              {{ t('web.colonel.customDomains.status.publicHomepage') }}
-            </span>
-            <span
-              v-if="domain.api_config?.enabled"
-              class="inline-flex items-center rounded-full bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 dark:bg-purple-900 dark:text-purple-200">
-              {{ t('web.colonel.customDomains.status.publicApi') }}
-            </span>
-          </div>
-
-          <!-- Icon preview (if available) -->
-          <div
-            v-if="domain.has_icon"
-            class="mt-4 border-t border-gray-100 pt-4 dark:border-gray-700">
-            <span class="text-xs text-gray-500 dark:text-gray-400">{{ t('web.colonel.customDomains.labels.favicon') }}:</span>
-            <div
-              class="mt-2 inline-block size-8 overflow-hidden rounded border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
-              <img
-                :src="domain.icon_url ?? undefined"
-                :alt="`${domain.display_domain} favicon`"
-                class="size-full object-contain"
-                loading="lazy" />
-            </div>
-          </div>
-
-          <!-- Verify action -->
-          <div class="mt-4 border-t border-gray-100 pt-4 dark:border-gray-700">
-            <button
-              type="button"
-              :data-testid="`domain-verify-${domain.extid}`"
-              :disabled="verifyingExtid === domain.extid"
-              class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-              @click="requestVerify(domain)">
-              <OIcon
-                collection="heroicons"
-                :name="verifyingExtid === domain.extid ? 'arrow-path' : 'shield-check'"
-                size="4"
-                :class="verifyingExtid === domain.extid ? 'animate-spin motion-reduce:animate-none' : ''" />
-              {{ t('web.admin.domains.verify.button') }}
-            </button>
-          </div>
-        </div>
+              </td>
+              <!-- Actions: open external + verify -->
+              <td class="px-4 py-2.5">
+                <div class="flex items-center justify-end gap-1">
+                  <a
+                    :href="domainUrl(domain.display_domain)"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    :data-testid="`domain-open-${domain.extid}`"
+                    :aria-label="t('web.admin.domains.attach.openExternal', { domain: domain.display_domain })"
+                    :title="t('web.admin.domains.attach.openExternal', { domain: domain.display_domain })"
+                    class="rounded p-1.5 text-gray-400 hover:text-brand-600 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:hover:text-brand-400">
+                    <OIcon
+                      collection="heroicons"
+                      name="arrow-top-right-on-square"
+                      size="4" />
+                  </a>
+                  <button
+                    type="button"
+                    :data-testid="`domain-verify-${domain.extid}`"
+                    :disabled="verifyingExtid === domain.extid"
+                    class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                    @click="requestVerify(domain)">
+                    <OIcon
+                      collection="heroicons"
+                      :name="verifyingExtid === domain.extid ? 'arrow-path' : 'shield-check'"
+                      size="4"
+                      :class="verifyingExtid === domain.extid ? 'animate-spin motion-reduce:animate-none' : ''" />
+                    {{ t('web.admin.domains.verify.button') }}
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <!-- Pagination -->

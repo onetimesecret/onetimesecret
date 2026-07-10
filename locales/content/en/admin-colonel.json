@@ -734,6 +734,15 @@
     "text": "Favicon",
     "content_hash": "42955289"
   },
+  "web.colonel.customDomains.labels.domain": {
+    "text": "Domain"
+  },
+  "web.colonel.customDomains.labels.status": {
+    "text": "Status"
+  },
+  "web.colonel.customDomains.labels.actions": {
+    "text": "Actions"
+  },
   "web.colonel.customDomains.status.verified": {
     "text": "Verified",
     "content_hash": "4f783840"

@@ -133,7 +133,7 @@ describe('AdminDomains (card grid + verify — ticket #31)', () => {
 
   const mountView = () => mount(AdminDomains, { global: { plugins: [pinia, i18n] } });
 
-  it('fetches the first page on mount and renders a card per domain', async () => {
+  it('fetches the first page on mount and renders a table row per domain', async () => {
     mockApi.get.mockResolvedValue({ data: domainsPayload() });
     wrapper = mountView();
     await flushPromises();
@@ -144,7 +144,7 @@ describe('AdminDomains (card grid + verify — ticket #31)', () => {
     const grid = wrapper.find('[data-testid="domains-grid"]');
     expect(grid.exists()).toBe(true);
     expect(grid.text()).toContain('secrets.example.com');
-    expect(wrapper.find('[data-testid="domain-card-cd_abc123"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="domain-row-cd_abc123"]').exists()).toBe(true);
   });
 
   it('renders the empty state when there are no domains', async () => {
