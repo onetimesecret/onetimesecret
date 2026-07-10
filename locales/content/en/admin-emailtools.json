@@ -7,6 +7,66 @@
     "text": "Preview email templates, send a delivery test, and monitor deliverability — the diagnostics that previously required SSH.",
     "content_hash": "be85c9e9"
   },
+  "web.admin.emailtools.config.title": {
+    "text": "Mailer configuration",
+    "content_hash": "d2a71028"
+  },
+  "web.admin.emailtools.config.description": {
+    "text": "The standing mail configuration resolved at boot. Credentials are never shown — only whether they are present.",
+    "content_hash": "f0e8a118"
+  },
+  "web.admin.emailtools.config.provider": {
+    "text": "Transport provider",
+    "content_hash": "4f0e5025"
+  },
+  "web.admin.emailtools.config.senderProvider": {
+    "text": "Sender provider",
+    "content_hash": "e881964f"
+  },
+  "web.admin.emailtools.config.senderDiffers": {
+    "text": "Sender differs from transport",
+    "content_hash": "ab78e8f6"
+  },
+  "web.admin.emailtools.config.autoDetected": {
+    "text": "Auto-detected",
+    "content_hash": "a69c7f9e"
+  },
+  "web.admin.emailtools.config.fromAddress": {
+    "text": "From address",
+    "content_hash": "d465bcfa"
+  },
+  "web.admin.emailtools.config.fromName": {
+    "text": "From name",
+    "content_hash": "b28f93ea"
+  },
+  "web.admin.emailtools.config.host": {
+    "text": "SMTP host",
+    "content_hash": "ab328f83"
+  },
+  "web.admin.emailtools.config.port": {
+    "text": "Port",
+    "content_hash": "72e9a59f"
+  },
+  "web.admin.emailtools.config.region": {
+    "text": "Region",
+    "content_hash": "d3a008ef"
+  },
+  "web.admin.emailtools.config.hasCredentials": {
+    "text": "Credentials configured",
+    "content_hash": "1c81633a"
+  },
+  "web.admin.emailtools.config.yes": {
+    "text": "Yes",
+    "content_hash": "85a39ab3"
+  },
+  "web.admin.emailtools.config.no": {
+    "text": "No",
+    "content_hash": "1ea442a1"
+  },
+  "web.admin.emailtools.config.loggerWarning": {
+    "text": "Mail is not being delivered. The transport provider is set to a no-send mode (logger, disabled, or none), so no email leaves this server — outbound messages are written to the application log or dropped.",
+    "content_hash": "57e91f8e"
+  },
   "web.admin.emailtools.preview.title": {
     "text": "Template preview",
     "content_hash": "df89bd92"
@@ -64,8 +124,8 @@
     "content_hash": "472590ae"
   },
   "web.admin.emailtools.test.host": {
-    "text": "Host",
-    "content_hash": "4a823118"
+    "text": "Origin host",
+    "content_hash": "968925cb"
   },
   "web.admin.emailtools.test.from": {
     "text": "From",
@@ -118,6 +178,22 @@
   "web.admin.emailtools.deliverability.summary.loadError": {
     "text": "Could not load the deliverability summary.",
     "content_hash": "0c16ef96"
+  },
+  "web.admin.emailtools.deliverability.sync.title": {
+    "text": "Feedback sync",
+    "content_hash": "d4056915"
+  },
+  "web.admin.emailtools.deliverability.sync.lastSynced": {
+    "text": "last synced",
+    "content_hash": "5a99666b"
+  },
+  "web.admin.emailtools.deliverability.sync.imported": {
+    "text": "{count} imported",
+    "content_hash": "1bc18c45"
+  },
+  "web.admin.emailtools.deliverability.sync.neverRun": {
+    "text": "Provider feedback sync has never run. Bounce and complaint data is not being imported automatically — configure a provider sync, or ingest feedback via the events endpoint.",
+    "content_hash": "d19f5755"
   },
   "web.admin.emailtools.deliverability.suppressions.title": {
     "text": "Suppression list",
@@ -174,6 +250,34 @@
   "web.admin.emailtools.deliverability.suppressions.loadError": {
     "text": "Could not load the suppression list.",
     "content_hash": "2a12c8ba"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.addressLabel": {
+    "text": "Add address",
+    "content_hash": "8be5aa33"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.button": {
+    "text": "Suppress",
+    "content_hash": "60b19987"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.confirmTitle": {
+    "text": "Suppress this address?",
+    "content_hash": "40a0d2a6"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.confirmDescription": {
+    "text": "Outbound mail to {address} will be skipped until the suppression is removed. This is recorded as a manual entry.",
+    "content_hash": "e3d0d799"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.success": {
+    "text": "Address {address} suppressed.",
+    "content_hash": "e2cd2c3b"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.successExisting": {
+    "text": "Address {address} was already suppressed; entry updated.",
+    "content_hash": "0852101e"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.error": {
+    "text": "Could not suppress the address.",
+    "content_hash": "dad9e000"
   },
   "web.admin.emailtools.deliverability.suppressions.remove.button": {
     "text": "Remove",

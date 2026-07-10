@@ -67,6 +67,7 @@ import {
   colonelDomainTransferResponseSchema,
 } from './colonel-domaintoolbox';
 import {
+  colonelEmailConfigResponseSchema,
   colonelEmailTemplatesResponseSchema,
   colonelEmailPreviewResponseSchema,
   colonelEmailTestResponseSchema,
@@ -78,6 +79,7 @@ import {
   colonelEmailDeliverabilityResponseSchema,
   colonelEmailSuppressionsResponseSchema,
   colonelEmailSuppressionRemoveResponseSchema,
+  colonelEmailSuppressionAddResponseSchema,
   colonelEmailDeliverabilityEventsResponseSchema,
   colonelEmailDeliverabilityIngestResponseSchema,
 } from './colonel-deliverability';
@@ -175,6 +177,7 @@ export const responseSchemas = {
   colonelDomainProbe: colonelDomainProbeResponseSchema,
   colonelDomainRepair: colonelDomainRepairResponseSchema,
   colonelDomainTransfer: colonelDomainTransferResponseSchema,
+  colonelEmailConfig: colonelEmailConfigResponseSchema,
   colonelEmailTemplates: colonelEmailTemplatesResponseSchema,
   colonelEmailPreview: colonelEmailPreviewResponseSchema,
   colonelEmailTest: colonelEmailTestResponseSchema,
@@ -184,6 +187,7 @@ export const responseSchemas = {
   colonelEmailDeliverability: colonelEmailDeliverabilityResponseSchema,
   colonelEmailSuppressions: colonelEmailSuppressionsResponseSchema,
   colonelEmailSuppressionRemove: colonelEmailSuppressionRemoveResponseSchema,
+  colonelEmailSuppressionAdd: colonelEmailSuppressionAddResponseSchema,
   colonelEmailDeliverabilityEvents: colonelEmailDeliverabilityEventsResponseSchema,
   colonelEmailDeliverabilityIngest: colonelEmailDeliverabilityIngestResponseSchema,
   colonelBillingCatalog: colonelBillingCatalogResponseSchema,

@@ -43,6 +43,22 @@ export const colonelDeliverabilitySummaryDetailsSchema = z.object({
     recent_complaints: z.number(),
     sends_skipped: z.number(),
   }),
+  /**
+   * ITEM 2 — per-provider last-sync status. Backend ALWAYS emits this key,
+   * emitting an empty object `{}` when nothing has ever synced; `.optional()`
+   * only guards legacy payloads. Empty object OR undefined => never synced
+   * (the frontend warns). `last_synced_at` arrives as Unix-seconds → Date.
+   */
+  sync_status: z
+    .record(
+      z.string(),
+      z.object({
+        last_synced_at: transforms.fromNumber.toDate,
+        imported: z.number(),
+        result: z.string(),
+      })
+    )
+    .optional(),
 });
 
 // ============================================================================
@@ -79,6 +95,25 @@ export const colonelEmailSuppressionRemoveRecordSchema = z.object({
 
 /** RemoveEmailSuppression `details`: an ack message. */
 export const colonelEmailSuppressionRemoveDetailsSchema = z.object({
+  message: z.string(),
+});
+
+// ============================================================================
+// Suppression add (manual) — POST /api/colonel/email/deliverability/suppressions
+// ============================================================================
+
+/**
+ * AddEmailSuppression `record`: the add outcome (ITEM 6). `created` is true on a
+ * new entry, false when the address was already suppressed (upsert). The request
+ * carries ONLY `address` — `reason`/`source` are hardcoded server-side.
+ */
+export const colonelEmailSuppressionAddRecordSchema = z.object({
+  address: z.string(),
+  created: z.boolean(),
+});
+
+/** AddEmailSuppression `details`: an ack message. */
+export const colonelEmailSuppressionAddDetailsSchema = z.object({
   message: z.string(),
 });
 
@@ -156,6 +191,12 @@ export const colonelEmailSuppressionRemoveResponseSchema = createApiResponseSche
   colonelEmailSuppressionRemoveDetailsSchema
 );
 
+// POST /api/colonel/email/deliverability/suppressions → AddEmailSuppression (ITEM 6)
+export const colonelEmailSuppressionAddResponseSchema = createApiResponseSchema(
+  colonelEmailSuppressionAddRecordSchema,
+  colonelEmailSuppressionAddDetailsSchema
+);
+
 // GET /api/colonel/email/deliverability/events → ListEmailDeliverabilityEvents
 export const colonelEmailDeliverabilityEventsResponseSchema = createApiResponseSchema(
   z.object({}),
@@ -176,6 +217,9 @@ export type ColonelEmailSuppressionsResponse = z.infer<
 >;
 export type ColonelEmailSuppressionRemoveResponse = z.infer<
   typeof colonelEmailSuppressionRemoveResponseSchema
+>;
+export type ColonelEmailSuppressionAddResponse = z.infer<
+  typeof colonelEmailSuppressionAddResponseSchema
 >;
 export type ColonelEmailDeliverabilityEventsResponse = z.infer<
   typeof colonelEmailDeliverabilityEventsResponseSchema

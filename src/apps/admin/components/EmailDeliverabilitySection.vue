@@ -21,6 +21,7 @@
   import {
     colonelEmailDeliverabilityEventsResponseSchema,
     colonelEmailDeliverabilityResponseSchema,
+    colonelEmailSuppressionAddResponseSchema,
     colonelEmailSuppressionRemoveResponseSchema,
     colonelEmailSuppressionsResponseSchema,
   } from '@/schemas/api/internal/responses/colonel-deliverability';
@@ -78,6 +79,16 @@
 
   const counts = computed(() => summaryData.value?.details?.counts ?? null);
   const windowDays = computed(() => summaryData.value?.details?.window_days ?? 7);
+
+  // ---- Sync status (ITEM 2, read-only) --------------------------------------
+  // Per-provider last-sync feed from the SAME summary fetch. Backend always
+  // emits `{}` when nothing has ever synced → empty OR undefined = never synced.
+
+  const syncStatus = computed(() => summaryData.value?.details?.sync_status ?? {});
+  const syncEntries = computed(() =>
+    Object.entries(syncStatus.value).map(([provider, status]) => ({ provider, ...status }))
+  );
+  const neverSynced = computed(() => syncEntries.value.length === 0);
 
   function reloadSummary(): void {
     loadSummary().catch(() => {}); // summaryError drives the inline alert
@@ -214,6 +225,64 @@
     resetRemove();
   }
 
+  // ---- Guarded manual add (ITEM 6 — additive, reversible via remove) ---------
+  // The POST body carries ONLY `address`; the backend hardcodes reason='manual'
+  // and source='colonel'. `record.created` picks the success message.
+
+  const addAddress = ref('');
+  const addDialogOpen = ref(false);
+  const addWasCreated = ref(true);
+  /** A minimal e-mail sanity check so the confirm button can't submit garbage. */
+  const addAddressValid = computed(() => /.+@.+\..+/.test(addAddress.value.trim()));
+
+  const {
+    loading: addLoading,
+    error: addError,
+    run: runAdd,
+    reset: resetAdd,
+  } = useAdminMutation(async () => {
+    const response = await $api.post(SUPPRESSIONS_URL, { address: addAddress.value.trim() });
+    const parsed = gracefulParse(
+      colonelEmailSuppressionAddResponseSchema,
+      response.data,
+      'ColonelEmailSuppressionAddResponse'
+    );
+    // 2xx means the address is suppressed regardless of ack shape; the parse
+    // keeps the contract a live tripwire. `created` picks new vs. already-present.
+    addWasCreated.value = parsed.ok ? parsed.data.record.created : true;
+  });
+
+  function requestAdd(): void {
+    if (!addAddressValid.value) return;
+    resetAdd();
+    addDialogOpen.value = true;
+  }
+
+  async function onAddConfirm(): Promise<void> {
+    const ok = await runAdd();
+    if (!ok) return; // Failure message stays in the dialog for retry/cancel.
+
+    addDialogOpen.value = false;
+    notifications.show(
+      t(
+        addWasCreated.value
+          ? 'web.admin.emailtools.deliverability.suppressions.add.success'
+          : 'web.admin.emailtools.deliverability.suppressions.add.successExisting',
+        { address: addAddress.value.trim() }
+      ),
+      'success'
+    );
+    addAddress.value = '';
+    // The list AND the suppressed-total tile both changed.
+    fetchSuppressions(suppressionsMeta.value?.page ?? 1);
+    reloadSummary();
+  }
+
+  function onAddCancel(): void {
+    addDialogOpen.value = false;
+    resetAdd();
+  }
+
   // ---- Recent events feed -----------------------------------------------------
 
   const {
@@ -330,6 +399,50 @@
         testid="deliverability-stat-skipped" />
     </div>
 
+    <!-- ===== Sync status (ITEM 2, read-only) ============================== -->
+    <div
+      class="mt-6"
+      data-testid="deliverability-sync-status">
+      <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300">
+        {{ t('web.admin.emailtools.deliverability.sync.title') }}
+      </h4>
+
+      <!-- Never synced: the feedback sync has not been configured / run. -->
+      <div
+        v-if="neverSynced"
+        class="mt-2 flex items-start gap-3 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-900/50 dark:bg-amber-900/20"
+        role="alert"
+        data-testid="deliverability-sync-never">
+        <OIcon
+          collection="heroicons"
+          name="exclamation-triangle"
+          size="5"
+          class="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" />
+        <span class="text-sm text-amber-800 dark:text-amber-200">
+          {{ t('web.admin.emailtools.deliverability.sync.neverRun') }}
+        </span>
+      </div>
+
+      <!-- Per-provider last-sync time + source. -->
+      <ul
+        v-else
+        class="mt-2 space-y-1">
+        <li
+          v-for="entry in syncEntries"
+          :key="entry.provider"
+          class="text-sm text-gray-600 dark:text-gray-400"
+          :data-testid="`deliverability-sync-${entry.provider}`">
+          <span class="font-medium text-gray-900 dark:text-gray-100">{{ entry.provider }}</span>
+          <span class="text-gray-400 dark:text-gray-500"> — </span>
+          {{ t('web.admin.emailtools.deliverability.sync.lastSynced') }}
+          <span class="font-mono">{{ formatDisplayDateTime(entry.last_synced_at) }}</span>
+          <span class="text-gray-400 dark:text-gray-500">
+            ({{ t('web.admin.emailtools.deliverability.sync.imported', { count: entry.imported }) }})
+          </span>
+        </li>
+      </ul>
+    </div>
+
     <!-- ===== Suppression list ============================================ -->
     <div class="mt-8 border-t border-gray-100 pt-6 dark:border-gray-800">
       <h4 class="text-base font-semibold text-gray-900 dark:text-white">
@@ -338,6 +451,39 @@
       <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.admin.emailtools.deliverability.suppressions.description') }}
       </p>
+
+      <!-- Manual add (ITEM 6 — guarded; body carries ONLY address, backend
+           hardcodes reason='manual'/source='colonel'). Additive/reversible via
+           the per-row remove, so the confirm is a plain (non-danger) dialog. -->
+      <form
+        class="mt-4 flex flex-wrap items-end gap-3"
+        @submit.prevent="requestAdd">
+        <div class="min-w-[18rem] flex-1">
+          <label
+            for="deliverability-add"
+            class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
+            {{ t('web.admin.emailtools.deliverability.suppressions.add.addressLabel') }}
+          </label>
+          <input
+            id="deliverability-add"
+            v-model="addAddress"
+            type="email"
+            data-testid="deliverability-add-input"
+            :placeholder="t('web.admin.emailtools.deliverability.suppressions.searchPlaceholder')"
+            class="w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm text-gray-900 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+        </div>
+        <button
+          type="submit"
+          data-testid="deliverability-add-submit"
+          :disabled="!addAddressValid || addLoading"
+          class="inline-flex items-center gap-1 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50">
+          <OIcon
+            collection="heroicons"
+            name="plus"
+            size="4" />
+          {{ t('web.admin.emailtools.deliverability.suppressions.add.button') }}
+        </button>
+      </form>
 
       <!-- Exact-address lookup (submitted, not live — the endpoint is keyed) -->
       <form
@@ -495,5 +641,23 @@
       :error="removeError"
       @confirm="onRemoveConfirm"
       @cancel="onRemoveCancel" />
+
+    <!-- Manual add: guarded confirm (ITEM 6). Additive/reversible, so a plain
+         (non-danger) dialog. The op audits server-side (CONTRACT 4). -->
+    <AdminConfirmDialog
+      v-model:open="addDialogOpen"
+      :title="t('web.admin.emailtools.deliverability.suppressions.add.confirmTitle')"
+      :description="
+        t('web.admin.emailtools.deliverability.suppressions.add.confirmDescription', {
+          address: addAddress.trim(),
+        })
+      "
+      :confirm-token="undefined"
+      variant="default"
+      :confirm-text="t('web.admin.emailtools.deliverability.suppressions.add.button')"
+      :loading="addLoading"
+      :error="addError"
+      @confirm="onAddConfirm"
+      @cancel="onAddCancel" />
   </section>
 </template>

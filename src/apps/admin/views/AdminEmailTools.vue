@@ -3,13 +3,15 @@
 <script setup lang="ts">
 
   import EmailDeliverabilitySection from '@/apps/admin/components/EmailDeliverabilitySection.vue';
-  import { AdminConfirmDialog } from '@/apps/admin/components/kit';
+  import { AdminConfirmDialog, StatCard } from '@/apps/admin/components/kit';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
+  import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
   import type {
     ColonelEmailTemplate,
     ColonelEmailTestDetails,
   } from '@/schemas/api/internal/responses/colonel-emailtools';
   import {
+    colonelEmailConfigResponseSchema,
     colonelEmailTemplatesResponseSchema,
     colonelEmailPreviewResponseSchema,
     colonelEmailTestResponseSchema,
@@ -46,8 +48,39 @@
   const $api = useApi();
   const notifications = useNotificationsStore();
 
+  const CONFIG_URL = '/api/colonel/email/config';
   const TEMPLATES_URL = '/api/colonel/email/templates';
   const TEST_URL = '/api/colonel/email/test';
+
+  // ---- Mailer configuration (ITEM 1) + safety banner (ITEM 4) ---------------
+  // A single read-only fetch feeds the top-of-page config panel AND the
+  // logger/dropped safety banner (banner reads `details.provider === 'logger'`).
+
+  const {
+    data: configData,
+    loading: configLoading,
+    load: loadConfig,
+  } = useResourceFetch({
+    url: CONFIG_URL,
+    schema: colonelEmailConfigResponseSchema,
+    context: 'ColonelEmailConfigResponse',
+  });
+
+  const config = computed(() => configData.value?.details ?? null);
+  /**
+   * ITEM 4: mail is not delivered. `logger` writes to the app log; `disabled`
+   * and `none` succeed silently with no side effects (see
+   * lib/onetime/mail/delivery/disabled.rb). All three are silent-drop modes an
+   * operator needs warned about, so the banner covers the whole set.
+   */
+  const NON_DELIVERING_MODES = ['logger', 'disabled', 'none'];
+  const isLoggerMode = computed(() =>
+    NON_DELIVERING_MODES.includes(config.value?.provider ?? '')
+  );
+
+  function reloadConfig(): void {
+    loadConfig().catch(() => {}); // read-only; a failure just hides the panel
+  }
 
   // ---- Reference lists (templates) ------------------------------------------
 
@@ -188,12 +221,31 @@
   }
 
   onMounted(() => {
+    reloadConfig();
     loadTemplates();
   });
 </script>
 
 <template>
   <div class="mx-auto max-w-5xl space-y-8">
+    <!-- ITEM 4: send-mode / safety banner. Prominent amber alert shown ONLY when
+         the resolved transport is 'logger' (mail is logged/dropped, not sent).
+         Driven entirely off the ITEM-1 config response. -->
+    <div
+      v-if="isLoggerMode"
+      class="flex items-start gap-3 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-900/50 dark:bg-amber-900/20"
+      role="alert"
+      data-testid="emailtools-logger-banner">
+      <OIcon
+        collection="heroicons"
+        name="exclamation-triangle"
+        size="5"
+        class="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" />
+      <p class="text-sm font-medium text-amber-800 dark:text-amber-200">
+        {{ t('web.admin.emailtools.config.loggerWarning') }}
+      </p>
+    </div>
+
     <!-- Page header -->
     <header class="border-b-2 border-gray-900 pb-4 dark:border-gray-100">
       <h2 class="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
@@ -203,6 +255,99 @@
         {{ t('web.admin.emailtools.description') }}
       </p>
     </header>
+
+    <!-- ===== Mailer configuration (ITEM 1, read-only) ==================== -->
+    <section
+      class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900"
+      data-testid="config-section">
+      <h3 class="mb-3 text-lg font-semibold text-gray-900 dark:text-white">
+        {{ t('web.admin.emailtools.config.title') }}
+      </h3>
+      <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+        {{ t('web.admin.emailtools.config.description') }}
+      </p>
+
+      <div
+        v-if="config || configLoading"
+        class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        data-testid="config-grid">
+        <StatCard
+          :label="t('web.admin.emailtools.config.provider')"
+          :value="config?.provider ?? '—'"
+          icon="server-stack"
+          :loading="configLoading"
+          testid="config-stat-provider" />
+        <StatCard
+          :label="t('web.admin.emailtools.config.senderProvider')"
+          :value="config?.sender_provider ?? '—'"
+          icon="paper-airplane"
+          :loading="configLoading"
+          testid="config-stat-sender-provider" />
+        <StatCard
+          :label="t('web.admin.emailtools.config.senderDiffers')"
+          icon="arrows-right-left"
+          :loading="configLoading"
+          testid="config-stat-sender-differs">
+          <span :class="config?.sender_differs ? 'text-amber-600 dark:text-amber-400' : ''">
+            {{
+              config?.sender_differs
+                ? t('web.admin.emailtools.config.yes')
+                : t('web.admin.emailtools.config.no')
+            }}
+          </span>
+        </StatCard>
+        <StatCard
+          :label="t('web.admin.emailtools.config.fromAddress')"
+          :value="config?.from_address || '—'"
+          icon="at-symbol"
+          :loading="configLoading"
+          testid="config-stat-from-address" />
+        <StatCard
+          :label="t('web.admin.emailtools.config.fromName')"
+          :value="config?.from_name || '—'"
+          icon="identification"
+          :loading="configLoading"
+          testid="config-stat-from-name" />
+        <StatCard
+          :label="t('web.admin.emailtools.config.autoDetected')"
+          :value="
+            config?.auto_detected
+              ? t('web.admin.emailtools.config.yes')
+              : t('web.admin.emailtools.config.no')
+          "
+          icon="sparkles"
+          :loading="configLoading"
+          testid="config-stat-auto-detected" />
+        <StatCard
+          :label="t('web.admin.emailtools.config.host')"
+          :value="config?.provider_config.host ?? '—'"
+          icon="globe-alt"
+          :loading="configLoading"
+          testid="config-stat-host" />
+        <StatCard
+          :label="t('web.admin.emailtools.config.port')"
+          :value="config?.provider_config.port ?? '—'"
+          icon="hashtag"
+          :loading="configLoading"
+          testid="config-stat-port" />
+        <StatCard
+          :label="t('web.admin.emailtools.config.region')"
+          :value="config?.provider_config.region ?? '—'"
+          icon="map-pin"
+          :loading="configLoading"
+          testid="config-stat-region" />
+        <StatCard
+          :label="t('web.admin.emailtools.config.hasCredentials')"
+          :value="
+            config?.provider_config.has_credentials
+              ? t('web.admin.emailtools.config.yes')
+              : t('web.admin.emailtools.config.no')
+          "
+          icon="key"
+          :loading="configLoading"
+          testid="config-stat-has-credentials" />
+      </div>
+    </section>
 
     <!-- ===== Section 1: template preview (read-only) ====================== -->
     <section

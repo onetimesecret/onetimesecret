@@ -86,6 +86,7 @@ POST   /queues/dlq/:queue/purge           ColonelAPI::Logic::Colonel::PurgeDlq r
 GET    /email/templates                       ColonelAPI::Logic::Colonel::ListEmailTemplates response=json auth=sessionauth role=colonel scope=internal
 GET    /email/templates/:template/preview     ColonelAPI::Logic::Colonel::PreviewEmailTemplate response=json auth=sessionauth role=colonel scope=internal
 POST   /email/test                            ColonelAPI::Logic::Colonel::SendTestEmail response=json auth=sessionauth role=colonel scope=internal
+GET    /email/config                          ColonelAPI::Logic::Colonel::GetEmailConfig response=json auth=sessionauth role=colonel scope=internal
 GET    /ratelimit/limiters                    ColonelAPI::Logic::Colonel::ListRateLimiters response=json auth=sessionauth role=colonel scope=internal
 GET    /ratelimit/inspect                     ColonelAPI::Logic::Colonel::InspectRateLimit response=json auth=sessionauth role=colonel scope=internal
 POST   /ratelimit/reset                       ColonelAPI::Logic::Colonel::ResetRateLimit response=json auth=sessionauth role=colonel scope=internal
@@ -95,6 +96,7 @@ POST   /ratelimit/reset                       ColonelAPI::Logic::Colonel::ResetR
 # via CLI/cron; see IngestEmailDeliverabilityEvents for the wire format).
 GET    /email/deliverability                          ColonelAPI::Logic::Colonel::GetEmailDeliverability response=json auth=sessionauth role=colonel scope=internal
 GET    /email/deliverability/suppressions             ColonelAPI::Logic::Colonel::ListEmailSuppressions response=json auth=sessionauth role=colonel scope=internal
+POST   /email/deliverability/suppressions             ColonelAPI::Logic::Colonel::AddEmailSuppression response=json auth=sessionauth role=colonel scope=internal
 DELETE /email/deliverability/suppressions/:address    ColonelAPI::Logic::Colonel::RemoveEmailSuppression response=json auth=sessionauth role=colonel scope=internal
 GET    /email/deliverability/events                   ColonelAPI::Logic::Colonel::ListEmailDeliverabilityEvents response=json auth=sessionauth role=colonel scope=internal
 POST   /email/deliverability/events                   ColonelAPI::Logic::Colonel::IngestEmailDeliverabilityEvents response=json auth=sessionauth role=colonel scope=internal

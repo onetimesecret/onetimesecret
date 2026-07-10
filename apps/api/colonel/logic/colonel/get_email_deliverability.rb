@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'json'
 require_relative '../base'
 require 'onetime/models/email_suppression'
 
@@ -21,7 +22,11 @@ module ColonelAPI
       class GetEmailDeliverability < ColonelAPI::Logic::Base
         SCHEMAS = { response: 'colonelEmailDeliverability' }.freeze
 
-        attr_reader :suppressed_total, :recent_bounces, :recent_complaints, :sends_skipped
+        attr_reader :suppressed_total,
+          :recent_bounces,
+          :recent_complaints,
+          :sends_skipped,
+          :sync_status
 
         def process_params
           # No parameters — the window is fixed (EmailSuppression::RECENT_WINDOW).
@@ -37,11 +42,31 @@ module ColonelAPI
           @recent_bounces    = recent[:bounce]
           @recent_complaints = recent[:complaint]
           @sends_skipped     = Onetime::EmailSuppression.sends_skipped.value
+          @sync_status       = load_sync_status
 
           success_data
         end
 
         private
+
+        # Per-provider last-sync markers. Familia's hgetall deserializes JSON
+        # values, so each is already an object; a defensive JSON.parse guards
+        # any legacy string value so the wire is ALWAYS objects, never strings.
+        # Returns {} when nothing has ever synced (never null/absent).
+        def load_sync_status
+          raw = Onetime::EmailSuppression.sync_status.all || {}
+          raw.transform_values do |value|
+            if value.is_a?(String)
+  begin
+                                    JSON.parse(value)
+  rescue StandardError
+                                    value
+  end
+else
+  value
+end
+          end
+        end
 
         def success_data
           {
@@ -54,6 +79,7 @@ module ColonelAPI
                 recent_complaints: recent_complaints,
                 sends_skipped: sends_skipped,
               },
+              sync_status: sync_status,
             },
           }
         end

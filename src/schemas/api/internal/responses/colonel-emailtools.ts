@@ -82,6 +82,42 @@ export const colonelEmailTestDetailsSchema = z.object({
 });
 
 // ============================================================================
+// Mailer configuration — GET /api/colonel/email/config
+// ============================================================================
+
+/**
+ * GetEmailConfig `details`: the standing mail configuration (ITEM 1). All data
+ * lives in `details`; `record` is `{}` (mirrors GetEmailDeliverability).
+ *
+ * SECURITY: this schema declares ONLY booleans (`has_credentials`) and
+ * non-secret config (host/port/domain/tls/region + from). No user/pass/api_key/
+ * token ever crosses the wire — the shape itself is the tripwire (do not add
+ * secret-bearing fields here).
+ *
+ * `provider_config` is a STABLE superset: all six keys ALWAYS present, `null`
+ * where inapplicable. `sender_provider` is the sender-provisioning provider
+ * (CUSTOM_MAIL_PROVIDER → determine_sender_provider); `sender_differs` is the
+ * server-computed `sender_provider !== provider`. The banner (ITEM 4) reads
+ * `details.provider === 'logger'`.
+ */
+export const colonelEmailConfigDetailsSchema = z.object({
+  provider: z.string(),
+  auto_detected: z.boolean(),
+  from_address: z.string(),
+  from_name: z.string(),
+  provider_config: z.object({
+    host: z.string().nullable(),
+    port: z.number().nullable(),
+    domain: z.string().nullable(),
+    tls: z.boolean().nullable(),
+    region: z.string().nullable(),
+    has_credentials: z.boolean(),
+  }),
+  sender_provider: z.string(),
+  sender_differs: z.boolean(),
+});
+
+// ============================================================================
 // Rate limiters — GET /api/colonel/ratelimit/limiters
 // ============================================================================
 
@@ -149,6 +185,7 @@ export const colonelRateLimitResetDetailsSchema = z.object({
 // Type Exports
 // ============================================================================
 
+export type ColonelEmailConfigDetails = z.infer<typeof colonelEmailConfigDetailsSchema>;
 export type ColonelEmailTemplate = z.infer<typeof colonelEmailTemplateSchema>;
 export type ColonelEmailPreviewDetails = z.infer<typeof colonelEmailPreviewDetailsSchema>;
 export type ColonelEmailTestRecord = z.infer<typeof colonelEmailTestRecordSchema>;
@@ -164,6 +201,13 @@ export type ColonelRateLimitResetDetails = z.infer<typeof colonelRateLimitResetD
 // independently of the registry. The three ratelimit envelopes are
 // registry-only: the inspect/reset UI was removed by design review, but the
 // endpoints remain live and these document their contracts.
+
+// GET /api/colonel/email/config → GetEmailConfig (ITEM 1). Data in `details`,
+// record is `{}` (matches wire + the ITEM-4 banner consumer `details.provider`).
+export const colonelEmailConfigResponseSchema = createApiResponseSchema(
+  z.object({}),
+  colonelEmailConfigDetailsSchema
+);
 
 // GET /api/colonel/email/templates → ListEmailTemplates
 export const colonelEmailTemplatesResponseSchema = createApiResponseSchema(
@@ -201,6 +245,7 @@ export const colonelRateLimitResetResponseSchema = createApiResponseSchema(
   colonelRateLimitResetDetailsSchema
 );
 
+export type ColonelEmailConfigResponse = z.infer<typeof colonelEmailConfigResponseSchema>;
 export type ColonelEmailTemplatesResponse = z.infer<typeof colonelEmailTemplatesResponseSchema>;
 export type ColonelEmailPreviewResponse = z.infer<typeof colonelEmailPreviewResponseSchema>;
 export type ColonelEmailTestResponse = z.infer<typeof colonelEmailTestResponseSchema>;

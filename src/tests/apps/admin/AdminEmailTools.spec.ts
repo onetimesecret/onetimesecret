@@ -59,8 +59,32 @@ import { createTestI18n } from '@tests/setup';
 
 const i18n = createTestI18n();
 
+const CONFIG_URL = '/api/colonel/email/config';
 const TEMPLATES_URL = '/api/colonel/email/templates';
 const TEST_URL = '/api/colonel/email/test';
+
+function configPayload(provider = 'smtp') {
+  return {
+    shrimp: '',
+    record: {},
+    details: {
+      provider,
+      auto_detected: true,
+      from_address: 'secure@onetime.dev',
+      from_name: 'Onetime Secret',
+      provider_config: {
+        host: 'smtp.example.com',
+        port: 587,
+        domain: null,
+        tls: true,
+        region: null,
+        has_credentials: true,
+      },
+      sender_provider: provider,
+      sender_differs: false,
+    },
+  };
+}
 
 function templatesPayload() {
   return {
@@ -98,9 +122,10 @@ function testPayload(status: 'dry_run' | 'sent') {
   };
 }
 
-/** Default happy-path GET router: templates on mount. */
-function primeMountGets() {
+/** Default happy-path GET router: mailer config + templates on mount. */
+function primeMountGets(provider = 'smtp') {
   mockApi.get.mockImplementation((url: string) => {
+    if (url === CONFIG_URL) return Promise.resolve({ data: configPayload(provider) });
     if (url === TEMPLATES_URL) return Promise.resolve({ data: templatesPayload() });
     return Promise.reject(new Error(`unexpected GET ${url}`));
   });
@@ -130,15 +155,18 @@ describe('AdminEmailTools (email tools — ticket #44)', () => {
 
   // ---- Reference lists ------------------------------------------------------
 
-  it('loads the template picker on mount and nothing else', async () => {
+  it('loads the mailer config + template picker on mount and nothing else', async () => {
     primeMountGets();
     wrapper = mountView(pinia);
     await flushPromises();
 
+    // useResourceFetch issues the config GET as get(url, undefined).
+    expect(mockApi.get).toHaveBeenCalledWith(CONFIG_URL, undefined);
     expect(mockApi.get).toHaveBeenCalledWith(TEMPLATES_URL);
     // The rate-limit half was removed by design review: the screen must not
-    // touch the (still live) ratelimit endpoints.
-    expect(mockApi.get).toHaveBeenCalledTimes(1);
+    // touch the (still live) ratelimit endpoints. On mount it reads exactly the
+    // read-only mailer config (ITEM 1) and the template picker.
+    expect(mockApi.get).toHaveBeenCalledTimes(2);
     const options = wrapper.find('[data-testid="preview-template-select"]').findAll('option');
     expect(options.map((o) => o.text())).toEqual(['secret_link', 'welcome']);
   });

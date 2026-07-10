@@ -68,6 +68,12 @@ module Onetime
     # reputation damage did this prevent" number on the deliverability summary.
     class_counter :sends_skipped
 
+    # provider => { last_synced_at, imported, result }. Absent key = never
+    # synced. Written at the END of a real SyncProviderFeedback run (per
+    # provider); read by the deliverability summary so the admin sees whether —
+    # and when — provider feedback was last pulled.
+    class_hashkey :sync_status
+
     # Why an address is suppressed. 'manual' covers operator-supplied imports.
     REASONS = %w[bounce complaint manual].freeze
 
@@ -290,7 +296,7 @@ module Onetime
         counts = EVENT_KINDS.to_h { |kind| [kind.to_sym, 0] }
 
         events.rangebyscore(since, '+inf').each do |event|
-          kind = event['kind'].to_s.to_sym
+          kind          = event['kind'].to_s.to_sym
           counts[kind] += 1 if counts.key?(kind)
         end
 

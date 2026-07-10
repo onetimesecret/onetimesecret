@@ -7,6 +7,7 @@
 # feedback sync is mailer-wide infrastructure, so it lives in the central
 # operations home. Dependencies are required at the call site.
 require 'onetime/operations/email/ingest_feedback'
+require 'onetime/models/email_suppression'
 require 'onetime/mail/feedback/ses'
 require 'onetime/mail/feedback/lettermint'
 
@@ -79,14 +80,28 @@ module Onetime
 
           if @dry_run || records.empty?
             return Result.new(
-              provider: @provider, fetched: records.size,
-              accepted: 0, rejected: 0, errors: [], dry_run: @dry_run
+              provider: @provider,
+              fetched: records.size,
+              accepted: 0,
+              rejected: 0,
+              errors: [],
+              dry_run: @dry_run,
             )
           end
 
           ingest = IngestFeedback.new(
-            records: records, actor: @actor, default_source: @provider
+            records: records, actor: @actor, default_source: @provider,
           ).call
+
+          # Record the last-sync marker for the deliverability summary. Only the
+          # real-run path reaches here — the dry-run / empty early return above
+          # writes NOTHING, so "never synced" (absent key) stays honest. String
+          # keys at the Redis boundary.
+          Onetime::EmailSuppression.sync_status[@provider] = {
+            'last_synced_at' => Familia.now,
+            'imported' => ingest.accepted,
+            'result' => 'ok',
+          }
 
           Result.new(
             provider: @provider,
