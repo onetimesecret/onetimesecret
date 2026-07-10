@@ -17,8 +17,8 @@
 
 set -euo pipefail
 
-if [ -f .env.sh ]; then
-  source .env.sh
+if [ -f .env ]; then
+  set -a; source .env; set +a
 fi
 
 # Resolve the host
