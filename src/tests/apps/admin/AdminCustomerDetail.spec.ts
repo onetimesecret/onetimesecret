@@ -165,7 +165,13 @@ function mutationAck() {
 const mountView = () =>
   mount(AdminCustomerDetail, {
     props: { id: PUBLIC_ID },
-    global: { plugins: [i18n] },
+    global: {
+      plugins: [i18n],
+      // The active-sessions panel is a self-contained child with its own store +
+      // spec (useAdminCustomerSessions.spec.ts); stub it so this view's tests
+      // don't fetch the sessions endpoint or match its error `role="alert"`.
+      stubs: { AdminCustomerSessionsSection: true },
+    },
   });
 
 const dialogInput = (w: VueWrapper) => w.find('#admin-confirm-input');
