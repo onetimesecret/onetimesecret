@@ -82,6 +82,9 @@ import {
   colonelEmailSuppressionAddResponseSchema,
   colonelEmailDeliverabilityEventsResponseSchema,
   colonelEmailDeliverabilityIngestResponseSchema,
+  colonelEmailProviderStatusResponseSchema,
+  colonelEmailRecipientLookupResponseSchema,
+  colonelEmailMessagesResponseSchema,
 } from './colonel-deliverability';
 import { colonelBillingCatalogResponseSchema } from './colonel-billing';
 
@@ -190,6 +193,9 @@ export const responseSchemas = {
   colonelEmailSuppressionAdd: colonelEmailSuppressionAddResponseSchema,
   colonelEmailDeliverabilityEvents: colonelEmailDeliverabilityEventsResponseSchema,
   colonelEmailDeliverabilityIngest: colonelEmailDeliverabilityIngestResponseSchema,
+  colonelEmailProviderStatus: colonelEmailProviderStatusResponseSchema,
+  colonelEmailRecipientLookup: colonelEmailRecipientLookupResponseSchema,
+  colonelEmailMessages: colonelEmailMessagesResponseSchema,
   colonelBillingCatalog: colonelBillingCatalogResponseSchema,
 
   // Colonel / admin — observability (audit reader + trends)

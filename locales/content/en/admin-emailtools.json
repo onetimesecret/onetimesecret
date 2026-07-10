@@ -338,5 +338,152 @@
   "web.admin.emailtools.deliverability.events.kinds.complaint": {
     "text": "complaint",
     "content_hash": "5d08b02d"
+  },
+  "web.admin.emailtools.providerStatus.title": {
+    "text": "Provider status"
+  },
+  "web.admin.emailtools.providerStatus.tier.healthy": {
+    "text": "Healthy"
+  },
+  "web.admin.emailtools.providerStatus.tier.probation": {
+    "text": "Under review"
+  },
+  "web.admin.emailtools.providerStatus.tier.shutdown": {
+    "text": "Sending paused"
+  },
+  "web.admin.emailtools.providerStatus.quota.max24h": {
+    "text": "24h send limit"
+  },
+  "web.admin.emailtools.providerStatus.quota.sent24h": {
+    "text": "Sent (last 24h)"
+  },
+  "web.admin.emailtools.providerStatus.quota.maxRate": {
+    "text": "Max send rate (per sec)"
+  },
+  "web.admin.emailtools.providerStatus.stats.sent": {
+    "text": "Sent ({days}d)"
+  },
+  "web.admin.emailtools.providerStatus.stats.delivered": {
+    "text": "Delivered"
+  },
+  "web.admin.emailtools.providerStatus.stats.hardBounced": {
+    "text": "Hard bounced"
+  },
+  "web.admin.emailtools.providerStatus.stats.complaints": {
+    "text": "Spam complaints"
+  },
+  "web.admin.emailtools.providerStatus.rate.bounce": {
+    "text": "Bounce rate"
+  },
+  "web.admin.emailtools.providerStatus.rate.complaint": {
+    "text": "Complaint rate"
+  },
+  "web.admin.emailtools.providerStatus.rateUnavailable": {
+    "text": "This provider exposes no numeric bounce or complaint rate; the reputation tier above is derived from the enforcement status and sending quota only."
+  },
+  "web.admin.emailtools.providerStatus.complaintsUnavailable": {
+    "text": "Lettermint does not report complaints in its stats API, so the complaint rate is shown as “—” (not reported), not zero. The bounce rate above is complete."
+  },
+  "web.admin.emailtools.providerStatus.unavailable": {
+    "text": "Provider status is temporarily unavailable."
+  },
+  "web.admin.emailtools.providerStatus.notSupported": {
+    "text": "Live provider status is not available on the {provider} transport."
+  },
+  "web.admin.emailtools.providerStatus.error": {
+    "text": "Could not reach the mail provider for status. Try again."
+  },
+  "web.admin.emailtools.deliverability.lookup.title": {
+    "text": "Recipient lookup"
+  },
+  "web.admin.emailtools.deliverability.lookup.description": {
+    "text": "Check whether an address is suppressed, both in the local store and live at the active mail provider. Both are keyed by the same normalized address."
+  },
+  "web.admin.emailtools.deliverability.lookup.addressLabel": {
+    "text": "Recipient address"
+  },
+  "web.admin.emailtools.deliverability.lookup.submit": {
+    "text": "Look up"
+  },
+  "web.admin.emailtools.deliverability.lookup.local": {
+    "text": "Local store"
+  },
+  "web.admin.emailtools.deliverability.lookup.provider": {
+    "text": "Provider"
+  },
+  "web.admin.emailtools.deliverability.lookup.suppressed": {
+    "text": "Suppressed"
+  },
+  "web.admin.emailtools.deliverability.lookup.notSuppressed": {
+    "text": "Not suppressed"
+  },
+  "web.admin.emailtools.deliverability.lookup.reason": {
+    "text": "Reason"
+  },
+  "web.admin.emailtools.deliverability.lookup.source": {
+    "text": "Source"
+  },
+  "web.admin.emailtools.deliverability.lookup.unavailable": {
+    "text": "Live provider lookup is unavailable; the local store above is authoritative."
+  },
+  "web.admin.emailtools.deliverability.messages.title": {
+    "text": "Recent sends"
+  },
+  "web.admin.emailtools.deliverability.messages.description": {
+    "text": "The most recent messages the active mail provider recorded, newest first. Sourced live from the provider — never stored here."
+  },
+  "web.admin.emailtools.deliverability.messages.empty": {
+    "text": "No recent messages returned by the provider."
+  },
+  "web.admin.emailtools.deliverability.messages.notSupported": {
+    "text": "A send log is not available on the {provider} transport, which offers no per-message API."
+  },
+  "web.admin.emailtools.deliverability.messages.error": {
+    "text": "Could not load the send log from the provider. Try again."
+  },
+  "web.admin.emailtools.deliverability.messages.col.status": {
+    "text": "Status"
+  },
+  "web.admin.emailtools.deliverability.messages.col.subject": {
+    "text": "Subject"
+  },
+  "web.admin.emailtools.deliverability.messages.col.to": {
+    "text": "To"
+  },
+  "web.admin.emailtools.deliverability.messages.col.created": {
+    "text": "Sent"
+  },
+  "web.admin.emailtools.deliverability.messages.status.delivered": {
+    "text": "delivered"
+  },
+  "web.admin.emailtools.deliverability.messages.status.opened": {
+    "text": "opened"
+  },
+  "web.admin.emailtools.deliverability.messages.status.clicked": {
+    "text": "clicked"
+  },
+  "web.admin.emailtools.deliverability.messages.status.pending": {
+    "text": "pending"
+  },
+  "web.admin.emailtools.deliverability.messages.status.queued": {
+    "text": "queued"
+  },
+  "web.admin.emailtools.deliverability.messages.status.processed": {
+    "text": "processed"
+  },
+  "web.admin.emailtools.deliverability.messages.status.hard_bounced": {
+    "text": "hard bounced"
+  },
+  "web.admin.emailtools.deliverability.messages.status.soft_bounced": {
+    "text": "soft bounced"
+  },
+  "web.admin.emailtools.deliverability.messages.status.complained": {
+    "text": "complained"
+  },
+  "web.admin.emailtools.deliverability.messages.status.suppressed": {
+    "text": "suppressed"
+  },
+  "web.admin.emailtools.deliverability.messages.status.unsubscribed": {
+    "text": "unsubscribed"
   }
 }

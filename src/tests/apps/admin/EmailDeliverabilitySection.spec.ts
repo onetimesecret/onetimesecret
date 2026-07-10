@@ -66,6 +66,8 @@ const i18n = createTestI18n();
 const SUMMARY_URL = '/api/colonel/email/deliverability';
 const SUPPRESSIONS_URL = '/api/colonel/email/deliverability/suppressions';
 const EVENTS_URL = '/api/colonel/email/deliverability/events';
+const LOOKUP_URL = '/api/colonel/email/deliverability/lookup';
+const MESSAGES_URL = '/api/colonel/email/deliverability/messages';
 
 function summaryPayload(counts = {}) {
   return {
@@ -136,20 +138,93 @@ function removePayload(address = 'bad@example.com') {
   };
 }
 
-/** Happy-path GET router for the three mount fetches. */
+/**
+ * Recent-sends (item 9) payload. Defaults to the Lettermint live-OK shape;
+ * pass overrides for the SES capability=false or the degraded (available=false)
+ * shapes.
+ */
+function recentSendsPayload(
+  overrides: Partial<{
+    provider: string;
+    capability: boolean;
+    available: boolean;
+    error: string | null;
+    messages: unknown[];
+  }> = {}
+) {
+  const messages = overrides.messages ?? [
+    {
+      id: 'msg_abc123',
+      status: 'hard_bounced',
+      subject: 'Your secret link',
+      to: ['recipient@example.com'],
+      from_email: 'noreply@onetimesecret.com',
+      created_at: 1720000000,
+    },
+  ];
+  return {
+    shrimp: '',
+    record: {},
+    details: {
+      provider: 'lettermint',
+      capability: true,
+      available: true,
+      error: null,
+      ...overrides,
+      messages,
+      pagination: { page: 1, per_page: 30, total_count: null, total_pages: null, cursor: null },
+    },
+  };
+}
+
+/** Recipient-lookup (item 10) payload; found in both local + provider by default. */
+function recipientLookupPayload(
+  overrides: Partial<{
+    address: string;
+    provider: string;
+    capability: boolean;
+    available: boolean;
+    error: string | null;
+    local: unknown;
+    provider_result: unknown;
+  }> = {}
+) {
+  return {
+    shrimp: '',
+    record: {},
+    details: {
+      address: 'user@example.com',
+      provider: 'lettermint',
+      capability: true,
+      available: true,
+      error: null,
+      local: { suppressed: true, reason: 'bounce', source: 'ses', created: 1720000000 },
+      provider_result: { suppressed: true, reason: 'BOUNCE', last_update_time: 1719990000 },
+      ...overrides,
+    },
+  };
+}
+
+/** Happy-path GET router for the four mount fetches (+ submit-only lookup). */
 function primeGets({
   summary = summaryPayload(),
   suppressions = suppressionsPayload(),
   events = eventsPayload(),
+  messages = recentSendsPayload(),
+  lookup = recipientLookupPayload(),
 }: {
   summary?: unknown;
   suppressions?: unknown;
   events?: unknown;
+  messages?: unknown;
+  lookup?: unknown;
 } = {}) {
   mockApi.get.mockImplementation((url: string) => {
     if (url === SUMMARY_URL) return Promise.resolve({ data: summary });
     if (url === SUPPRESSIONS_URL) return Promise.resolve({ data: suppressions });
     if (url === EVENTS_URL) return Promise.resolve({ data: events });
+    if (url === MESSAGES_URL) return Promise.resolve({ data: messages });
+    if (url === LOOKUP_URL) return Promise.resolve({ data: lookup });
     return Promise.reject(new Error(`unexpected GET ${url}`));
   });
 }
@@ -180,6 +255,8 @@ describe('EmailDeliverabilitySection (email deliverability)', () => {
       params: { page: 1, per_page: 25 },
     });
     expect(mockApi.get).toHaveBeenCalledWith(EVENTS_URL, { params: { page: 1, per_page: 20 } });
+    // Track B item-9 send log is fetched on mount too (cursor-paginated slice).
+    expect(mockApi.get).toHaveBeenCalledWith(MESSAGES_URL, { params: { page: 1, per_page: 30 } });
   });
 
   it('renders the four summary tiles from the counts payload', async () => {
@@ -199,6 +276,7 @@ describe('EmailDeliverabilitySection (email deliverability)', () => {
       if (url === SUMMARY_URL) return Promise.reject(axiosError(500, { error: 'boom' }));
       if (url === SUPPRESSIONS_URL) return Promise.resolve({ data: suppressionsPayload([]) });
       if (url === EVENTS_URL) return Promise.resolve({ data: eventsPayload([]) });
+      if (url === MESSAGES_URL) return Promise.resolve({ data: recentSendsPayload() });
       return Promise.reject(new Error(`unexpected GET ${url}`));
     });
     wrapper = mountSection(pinia);
@@ -281,7 +359,9 @@ describe('EmailDeliverabilitySection (email deliverability)', () => {
       'success'
     );
     // The list and the summary tiles both refresh after a removal.
-    expect(mockApi.get).toHaveBeenCalledTimes(5);
+    // Mount issues four reads (summary, suppressions, events, messages); the
+    // removal refetches suppressions + summary → six total.
+    expect(mockApi.get).toHaveBeenCalledTimes(6);
   });
 
   it('keeps a failed removal in the dialog and does not notify', async () => {
@@ -318,12 +398,106 @@ describe('EmailDeliverabilitySection (email deliverability)', () => {
       if (url === SUMMARY_URL) return Promise.resolve({ data: summaryPayload() });
       if (url === SUPPRESSIONS_URL) return Promise.resolve({ data: suppressionsPayload() });
       if (url === EVENTS_URL) return Promise.reject(axiosError(500, { error: 'boom' }));
+      if (url === MESSAGES_URL) return Promise.resolve({ data: recentSendsPayload() });
       return Promise.reject(new Error(`unexpected GET ${url}`));
     });
     wrapper = mountSection(pinia);
     await flushPromises();
 
     expect(wrapper.find('[data-testid="deliverability-events-error"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="deliverability-suppressions-table"]').exists()).toBe(true);
+  });
+
+  // ---- Recipient lookup (item 10 — local + live provider) --------------------
+
+  it('looks up an address and shows local + provider results side by side', async () => {
+    primeGets();
+    wrapper = mountSection(pinia);
+    await flushPromises();
+
+    await wrapper.find('[data-testid="deliverability-lookup-input"]').setValue('user@example.com');
+    await wrapper.find('[data-testid="deliverability-lookup-submit"]').trigger('submit');
+    await flushPromises();
+
+    expect(mockApi.get).toHaveBeenCalledWith(LOOKUP_URL, {
+      params: { address: 'user@example.com' },
+    });
+    const result = wrapper.find('[data-testid="deliverability-lookup-result"]');
+    expect(result.exists()).toBe(true);
+    expect(wrapper.find('[data-testid="deliverability-lookup-local-status"]').text()).toContain(
+      'web.admin.emailtools.deliverability.lookup.suppressed'
+    );
+    expect(wrapper.find('[data-testid="deliverability-lookup-provider-result"]').exists()).toBe(
+      true
+    );
+  });
+
+  it('renders the provider-unavailable note on a lookup provider failure (local still shown)', async () => {
+    primeGets({
+      lookup: recipientLookupPayload({
+        provider: 'ses',
+        available: false,
+        error: 'SES get_suppressed_destination failed',
+        provider_result: null,
+      }),
+    });
+    wrapper = mountSection(pinia);
+    await flushPromises();
+
+    await wrapper.find('[data-testid="deliverability-lookup-input"]').setValue('user@example.com');
+    await wrapper.find('[data-testid="deliverability-lookup-submit"]').trigger('submit');
+    await flushPromises();
+
+    // The provider column shows the failure; the local column is still present.
+    expect(wrapper.find('[data-testid="deliverability-lookup-provider-error"]').text()).toContain(
+      'SES get_suppressed_destination failed'
+    );
+    expect(wrapper.find('[data-testid="deliverability-lookup-local-status"]').exists()).toBe(true);
+  });
+
+  // ---- Recent sends feed (item 9 — provider's OWN message API) ---------------
+
+  it('renders the recent sends table with a status badge and recipient', async () => {
+    primeGets();
+    wrapper = mountSection(pinia);
+    await flushPromises();
+
+    const table = wrapper.find('[data-testid="deliverability-messages-table"]');
+    expect(table.exists()).toBe(true);
+    expect(table.text()).toContain('Your secret link');
+    expect(table.text()).toContain('recipient@example.com');
+    expect(table.text()).toContain('web.admin.emailtools.deliverability.messages.status.hard_bounced');
+  });
+
+  it('shows the not-supported empty-state when the transport has no send log (capability=false)', async () => {
+    primeGets({
+      messages: recentSendsPayload({
+        provider: 'ses',
+        capability: false,
+        available: false,
+        messages: [],
+      }),
+    });
+    wrapper = mountSection(pinia);
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="deliverability-messages-unsupported"]').exists()).toBe(true);
+    // No table is rendered when the capability is structurally absent.
+    expect(wrapper.find('[data-testid="deliverability-messages-table"]').exists()).toBe(false);
+  });
+
+  it('shows the send-log error alert on a provider failure without taking down the section', async () => {
+    mockApi.get.mockImplementation((url: string) => {
+      if (url === SUMMARY_URL) return Promise.resolve({ data: summaryPayload() });
+      if (url === SUPPRESSIONS_URL) return Promise.resolve({ data: suppressionsPayload() });
+      if (url === EVENTS_URL) return Promise.resolve({ data: eventsPayload() });
+      if (url === MESSAGES_URL) return Promise.reject(axiosError(500, { error: 'boom' }));
+      return Promise.reject(new Error(`unexpected GET ${url}`));
+    });
+    wrapper = mountSection(pinia);
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="deliverability-messages-error"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="deliverability-suppressions-table"]').exists()).toBe(true);
   });
 });

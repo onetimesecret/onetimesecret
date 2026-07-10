@@ -100,6 +100,9 @@ require_relative 'colonel/add_email_suppression'
 require_relative 'colonel/remove_email_suppression'
 require_relative 'colonel/list_email_deliverability_events'
 require_relative 'colonel/ingest_email_deliverability_events'
+require_relative 'colonel/get_email_provider_status'
+require_relative 'colonel/lookup_email_recipient'
+require_relative 'colonel/list_email_messages'
 
 # Billing catalog (ticket #45)
 require_relative 'colonel/get_billing_catalog'

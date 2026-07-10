@@ -16,6 +16,7 @@
     colonelEmailPreviewResponseSchema,
     colonelEmailTestResponseSchema,
   } from '@/schemas/api/internal/responses/colonel-emailtools';
+  import { colonelEmailProviderStatusResponseSchema } from '@/schemas/api/internal/responses/colonel-deliverability';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useApi } from '@/shared/composables/useApi';
   import { useNotificationsStore } from '@/shared/stores/notificationsStore';
@@ -80,6 +81,99 @@
 
   function reloadConfig(): void {
     loadConfig().catch(() => {}); // read-only; a failure just hides the panel
+  }
+
+  // ---- Provider status (Track B — live read of the ACTIVE transport) --------
+  // Reads Mailer.determine_provider's live status (SES account tier + quota, or
+  // Lettermint 30-day stats). Two orthogonal flags drive the 2×2 render matrix:
+  //   capability=false            → static "not available on <provider>"
+  //   capability=true, avail=false → retry alert with the provider error note
+  //   capability=true, avail=true  → render the provider block
+  // A network throw (useResourceFetch.error) is the SAME UI as a 200 payload
+  // with available=false — both surface the retry alert.
+
+  const PROVIDER_STATUS_URL = '/api/colonel/email/deliverability/provider-status';
+
+  const {
+    data: providerStatusData,
+    loading: providerStatusLoading,
+    error: providerStatusNetworkError,
+    load: loadProviderStatus,
+  } = useResourceFetch({
+    url: PROVIDER_STATUS_URL,
+    schema: colonelEmailProviderStatusResponseSchema,
+    context: 'ColonelEmailProviderStatus',
+  });
+
+  const providerStatus = computed(() => providerStatusData.value?.details ?? null);
+  const psProvider = computed(() => providerStatus.value?.provider ?? '—');
+  const psCapability = computed(() => providerStatus.value?.capability ?? false);
+  /** Structural non-support: the transport has no read API at all. */
+  const psUnsupported = computed(
+    () => providerStatus.value !== null && !psCapability.value
+  );
+  /**
+   * Retry-worthy failure: either the request threw (network/http) OR the live
+   * call failed server-side (capability present, available=false). Both render
+   * the same retry alert.
+   */
+  const psFailed = computed(
+    () =>
+      providerStatusNetworkError.value !== null ||
+      (psCapability.value && providerStatus.value?.available === false)
+  );
+  /** The message shown in the retry alert (server note wins over generic). */
+  const psErrorNote = computed(
+    () =>
+      providerStatus.value?.error ??
+      (providerStatusNetworkError.value
+        ? t('web.admin.emailtools.providerStatus.error')
+        : null)
+  );
+  const psOk = computed(
+    () => psCapability.value && providerStatus.value?.available === true
+  );
+  const psSes = computed(() => (psOk.value ? providerStatus.value?.ses ?? null : null));
+  const psLettermint = computed(() =>
+    psOk.value ? providerStatus.value?.lettermint ?? null : null
+  );
+
+  function reloadProviderStatus(): void {
+    loadProviderStatus().catch(() => {}); // psFailed drives the retry alert
+  }
+
+  /** Reputation-tier badge colour (HEALTHY=green, PROBATION=amber, else red). */
+  function tierClass(status: string): string {
+    const s = (status || '').toUpperCase();
+    if (s === 'HEALTHY') {
+      return 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300';
+    }
+    if (s === 'PROBATION') {
+      return 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300';
+    }
+    // SHUTDOWN, PAUSED, or any unknown enforcement state = hard stop (red).
+    return 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300';
+  }
+
+  function tierLabel(status: string): string {
+    const s = (status || '').toUpperCase();
+    if (s === 'HEALTHY') return t('web.admin.emailtools.providerStatus.tier.healthy');
+    if (s === 'PROBATION') return t('web.admin.emailtools.providerStatus.tier.probation');
+    return t('web.admin.emailtools.providerStatus.tier.shutdown');
+  }
+
+  /** Format a fractional rate (0.0104) as a percentage, or a dash when null. */
+  function formatRate(rate: number | null | undefined): string {
+    if (rate === null || rate === undefined) return '—';
+    return `${(rate * 100).toFixed(2)}%`;
+  }
+
+  /** Amber when a rate crosses a reputation threshold (bounce >5%, complaint >0.1%). */
+  function rateClass(rate: number | null | undefined, threshold: number): string {
+    if (rate !== null && rate !== undefined && rate > threshold) {
+      return 'text-amber-600 dark:text-amber-400';
+    }
+    return '';
   }
 
   // ---- Reference lists (templates) ------------------------------------------
@@ -223,6 +317,7 @@
   onMounted(() => {
     reloadConfig();
     loadTemplates();
+    reloadProviderStatus();
   });
 </script>
 
@@ -346,6 +441,152 @@
           icon="key"
           :loading="configLoading"
           testid="config-stat-has-credentials" />
+      </div>
+    </section>
+
+    <!-- ===== Provider status (Track B — live read of ACTIVE transport) === -->
+    <section
+      class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900"
+      data-testid="provider-status-section">
+      <h3 class="mb-3 text-lg font-semibold text-gray-900 dark:text-white">
+        {{ t('web.admin.emailtools.providerStatus.title') }}
+      </h3>
+
+      <!-- capability=false: this transport has no read API. Static, no retry. -->
+      <div
+        v-if="psUnsupported"
+        class="flex items-start gap-3 rounded-md border border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-800/40"
+        data-testid="provider-status-unsupported">
+        <OIcon
+          collection="heroicons"
+          name="information-circle"
+          size="5"
+          class="mt-0.5 shrink-0 text-gray-400 dark:text-gray-500" />
+        <p class="text-sm text-gray-600 dark:text-gray-300">
+          {{ t('web.admin.emailtools.providerStatus.notSupported', { provider: psProvider }) }}
+        </p>
+      </div>
+
+      <!-- Retry alert: network throw OR a 200 payload with available=false. -->
+      <div
+        v-else-if="psFailed"
+        class="flex items-center justify-between gap-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 dark:border-red-900/50 dark:bg-red-900/20"
+        role="alert"
+        data-testid="provider-status-error">
+        <span class="text-sm text-red-800 dark:text-red-200">
+          {{ psErrorNote ?? t('web.admin.emailtools.providerStatus.unavailable') }}
+        </span>
+        <button
+          type="button"
+          class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
+          @click="reloadProviderStatus">
+          <OIcon
+            collection="heroicons"
+            name="arrow-path"
+            size="4" />
+          {{ t('web.admin.emailtools.deliverability.retry') }}
+        </button>
+      </div>
+
+      <!-- SES: reputation tier + quota. Numeric rates are null on SESv2. -->
+      <div
+        v-else-if="psSes"
+        data-testid="provider-status-ses">
+        <div class="mb-4 flex items-center gap-3">
+          <span
+            class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold"
+            :class="tierClass(psSes.enforcement_status)"
+            data-testid="provider-status-tier">
+            {{ tierLabel(psSes.enforcement_status) }}
+          </span>
+          <span class="text-xs text-gray-500 dark:text-gray-400">{{ psProvider }}</span>
+        </div>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <StatCard
+            :label="t('web.admin.emailtools.providerStatus.quota.max24h')"
+            :value="psSes.max_24_hour_send"
+            icon="inbox-stack"
+            :loading="providerStatusLoading"
+            testid="provider-status-max24h" />
+          <StatCard
+            :label="t('web.admin.emailtools.providerStatus.quota.sent24h')"
+            :value="psSes.sent_last_24_hours"
+            icon="paper-airplane"
+            :loading="providerStatusLoading"
+            testid="provider-status-sent24h" />
+          <StatCard
+            :label="t('web.admin.emailtools.providerStatus.quota.maxRate')"
+            :value="psSes.max_send_rate"
+            icon="bolt"
+            :loading="providerStatusLoading"
+            testid="provider-status-maxrate" />
+        </div>
+        <!-- SESv2 exposes no numeric bounce/complaint rate: partial "degraded"
+             state (available=true, rate_*=null), NOT a failure. -->
+        <p
+          v-if="psSes.rate_note"
+          class="mt-4 text-sm text-gray-500 dark:text-gray-400"
+          data-testid="provider-status-rate-note">
+          {{ t('web.admin.emailtools.providerStatus.rateUnavailable') }}
+        </p>
+      </div>
+
+      <!-- Lettermint: 30-day counts + computed rates. -->
+      <div
+        v-else-if="psLettermint"
+        data-testid="provider-status-lettermint">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <StatCard
+            :label="t('web.admin.emailtools.providerStatus.stats.sent', { days: psLettermint.window_days })"
+            :value="psLettermint.sent"
+            icon="paper-airplane"
+            :loading="providerStatusLoading"
+            testid="provider-status-sent" />
+          <StatCard
+            :label="t('web.admin.emailtools.providerStatus.stats.delivered')"
+            :value="psLettermint.delivered"
+            icon="check-circle"
+            :loading="providerStatusLoading"
+            testid="provider-status-delivered" />
+          <StatCard
+            :label="t('web.admin.emailtools.providerStatus.stats.hardBounced')"
+            :value="psLettermint.hard_bounced"
+            icon="arrow-uturn-left"
+            :loading="providerStatusLoading"
+            testid="provider-status-hardbounced" />
+          <StatCard
+            :label="t('web.admin.emailtools.providerStatus.stats.complaints')"
+            :value="psLettermint.spam_complaints ?? '—'"
+            icon="hand-raised"
+            :loading="providerStatusLoading"
+            testid="provider-status-complaints" />
+          <StatCard
+            :label="t('web.admin.emailtools.providerStatus.rate.bounce')"
+            icon="chart-bar"
+            :loading="providerStatusLoading"
+            testid="provider-status-rate-bounce">
+            <span :class="rateClass(psLettermint.rate_bounce, 0.05)">
+              {{ formatRate(psLettermint.rate_bounce) }}
+            </span>
+          </StatCard>
+          <StatCard
+            :label="t('web.admin.emailtools.providerStatus.rate.complaint')"
+            icon="chart-bar"
+            :loading="providerStatusLoading"
+            testid="provider-status-rate-complaint">
+            <span :class="rateClass(psLettermint.rate_complaint, 0.001)">
+              {{ formatRate(psLettermint.rate_complaint) }}
+            </span>
+          </StatCard>
+        </div>
+        <!-- Lettermint /stats reports no complaint field: the "—" complaint
+             rate is "not reported", NOT zero. rate_note (server) is the signal. -->
+        <p
+          v-if="psLettermint.rate_note"
+          class="mt-4 text-sm text-gray-500 dark:text-gray-400"
+          data-testid="provider-status-lettermint-rate-note">
+          {{ t('web.admin.emailtools.providerStatus.complaintsUnavailable') }}
+        </p>
       </div>
     </section>
 

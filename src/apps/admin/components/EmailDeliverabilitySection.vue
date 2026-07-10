@@ -16,11 +16,14 @@
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
   import type {
     ColonelDeliverabilityEvent,
+    ColonelEmailMessage,
     ColonelEmailSuppression,
   } from '@/schemas/api/internal/responses/colonel-deliverability';
   import {
     colonelEmailDeliverabilityEventsResponseSchema,
     colonelEmailDeliverabilityResponseSchema,
+    colonelEmailMessagesResponseSchema,
+    colonelEmailRecipientLookupResponseSchema,
     colonelEmailSuppressionAddResponseSchema,
     colonelEmailSuppressionRemoveResponseSchema,
     colonelEmailSuppressionsResponseSchema,
@@ -60,9 +63,14 @@
   const SUMMARY_URL = '/api/colonel/email/deliverability';
   const SUPPRESSIONS_URL = '/api/colonel/email/deliverability/suppressions';
   const EVENTS_URL = '/api/colonel/email/deliverability/events';
+  // Track B — live provider reads of the ACTIVE transport (Mailer.determine_provider).
+  const LOOKUP_URL = '/api/colonel/email/deliverability/lookup';
+  const MESSAGES_URL = '/api/colonel/email/deliverability/messages';
 
   /** The "recent" feed shows one newest-first slice (the API also paginates). */
   const EVENTS_LIMIT = 20;
+  /** Item-9 send log slice size (Lettermint is cursor-paginated). */
+  const MESSAGES_LIMIT = 30;
 
   // ---- Summary tiles ---------------------------------------------------------
 
@@ -332,10 +340,129 @@
       : t('web.admin.emailtools.deliverability.events.kinds.bounce');
   }
 
+  // ---- Recipient lookup (item 10 — live provider read + local store) --------
+  // Keys BOTH reads (local store + provider) by the SAME normalized address.
+  // The local store is authoritative and always present; `provider_result` is a
+  // LIVE colonel-only read (recipient PII returned here is exempt from the
+  // at-rest hashing posture: it is never persisted). Submit-driven, not live.
+
+  const lookupAddress = ref('');
+  /** The address actually looked up (submitted, not typed). */
+  const activeLookupAddress = ref('');
+
+  const {
+    data: lookupData,
+    loading: lookupLoading,
+    error: lookupNetworkError,
+    load: loadLookup,
+    reset: resetLookup,
+  } = useResourceFetch({
+    url: LOOKUP_URL,
+    schema: colonelEmailRecipientLookupResponseSchema,
+    context: 'ColonelEmailRecipientLookup',
+  });
+
+  const lookupResult = computed(() => lookupData.value?.details ?? null);
+  const lookupProvider = computed(() => lookupResult.value?.provider ?? '');
+  /** Provider block is retryable-failed on a network throw OR available=false. */
+  const lookupProviderFailed = computed(
+    () =>
+      lookupNetworkError.value !== null ||
+      (lookupResult.value?.capability === true && lookupResult.value?.available === false)
+  );
+  const lookupProviderUnsupported = computed(
+    () => lookupResult.value !== null && lookupResult.value.capability === false
+  );
+
+  function onLookupSubmit(): void {
+    const address = lookupAddress.value.trim();
+    if (!address) return;
+    activeLookupAddress.value = address;
+    loadLookup({ address }).catch(() => {}); // lookupNetworkError drives the alert
+  }
+
+  function onLookupClear(): void {
+    lookupAddress.value = '';
+    activeLookupAddress.value = '';
+    resetLookup();
+  }
+
+  // ---- Recent sends feed (item 9 — provider's OWN message API) --------------
+  // Gated on `capability`: SES is fire-and-forget (no per-message API) → the
+  // block renders a "not available on this transport" empty-state. Subjects and
+  // recipient addresses returned here are a LIVE colonel-only read, never
+  // persisted (exempt from the at-rest address-hashing posture).
+
+  const {
+    data: messagesData,
+    loading: messagesLoading,
+    error: messagesNetworkError,
+    load: loadMessages,
+  } = useResourceFetch({
+    url: MESSAGES_URL,
+    schema: colonelEmailMessagesResponseSchema,
+    context: 'ColonelEmailMessages',
+  });
+
+  const messages = computed<ColonelEmailMessage[]>(
+    () => messagesData.value?.details?.messages ?? []
+  );
+  /** Structural: does the active transport expose a send log at all? */
+  const messagesCapability = computed(
+    () => messagesData.value?.details?.capability ?? true
+  );
+  const messagesProvider = computed(() => messagesData.value?.details?.provider ?? '');
+  /** Retryable failure: network throw OR a 200 payload with available=false. */
+  const messagesFailed = computed(
+    () =>
+      messagesNetworkError.value !== null ||
+      (messagesCapability.value && messagesData.value?.details?.available === false)
+  );
+
+  function reloadMessages(): void {
+    loadMessages({ page: 1, per_page: MESSAGES_LIMIT }).catch(() => {}); // messagesFailed drives the alert
+  }
+
+  const messageColumns = computed<DataTableColumn<ColonelEmailMessage>[]>(() => [
+    { key: 'created_at', label: t('web.admin.emailtools.deliverability.messages.col.created') },
+    { key: 'status', label: t('web.admin.emailtools.deliverability.messages.col.status') },
+    { key: 'subject', label: t('web.admin.emailtools.deliverability.messages.col.subject') },
+    { key: 'to', label: t('web.admin.emailtools.deliverability.messages.col.to') },
+  ]);
+
+  /** Lettermint status vocabulary → badge colour (item-9 mapping, from R2). */
+  const MESSAGE_STATUS_SUCCESS = ['delivered', 'opened', 'clicked'];
+  const MESSAGE_STATUS_INFLIGHT = ['pending', 'queued', 'processed'];
+  const MESSAGE_STATUS_FAILURE = ['hard_bounced', 'soft_bounced', 'complained', 'suppressed'];
+  const MESSAGE_STATUS_VOCAB = [
+    ...MESSAGE_STATUS_SUCCESS,
+    ...MESSAGE_STATUS_INFLIGHT,
+    ...MESSAGE_STATUS_FAILURE,
+    'unsubscribed',
+  ];
+
+  function messageStatusClass(status: string): string {
+    if (MESSAGE_STATUS_SUCCESS.includes(status)) {
+      return 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300';
+    }
+    if (MESSAGE_STATUS_FAILURE.includes(status)) {
+      return 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300';
+    }
+    // In-flight and unsubscribed are informational (neutral gray).
+    return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
+  }
+
+  function messageStatusLabel(status: string): string {
+    return MESSAGE_STATUS_VOCAB.includes(status)
+      ? t(`web.admin.emailtools.deliverability.messages.status.${status}`)
+      : status;
+  }
+
   onMounted(() => {
     reloadSummary();
     fetchSuppressions(1);
     reloadEvents();
+    reloadMessages();
   });
 </script>
 
@@ -575,6 +702,136 @@
       </div>
     </div>
 
+    <!-- ===== Recipient lookup (item 10 — local store + live provider) ==== -->
+    <div class="mt-8 border-t border-gray-100 pt-6 dark:border-gray-800">
+      <h4 class="text-base font-semibold text-gray-900 dark:text-white">
+        {{ t('web.admin.emailtools.deliverability.lookup.title') }}
+      </h4>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        {{ t('web.admin.emailtools.deliverability.lookup.description') }}
+      </p>
+
+      <form
+        class="mt-4 flex flex-wrap items-end gap-3"
+        @submit.prevent="onLookupSubmit">
+        <div class="min-w-[18rem] flex-1">
+          <label
+            for="deliverability-lookup"
+            class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
+            {{ t('web.admin.emailtools.deliverability.lookup.addressLabel') }}
+          </label>
+          <input
+            id="deliverability-lookup"
+            v-model="lookupAddress"
+            type="text"
+            data-testid="deliverability-lookup-input"
+            :placeholder="t('web.admin.emailtools.deliverability.suppressions.searchPlaceholder')"
+            class="w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm text-gray-900 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+        </div>
+        <button
+          type="submit"
+          data-testid="deliverability-lookup-submit"
+          :disabled="lookupLoading"
+          class="inline-flex items-center gap-1 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50">
+          <OIcon
+            collection="heroicons"
+            name="magnifying-glass"
+            size="4" />
+          {{ t('web.admin.emailtools.deliverability.lookup.submit') }}
+        </button>
+        <button
+          v-if="activeLookupAddress"
+          type="button"
+          data-testid="deliverability-lookup-clear"
+          class="rounded-md px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-gray-400 dark:hover:text-gray-200"
+          @click="onLookupClear">
+          {{ t('web.admin.emailtools.deliverability.suppressions.clearButton') }}
+        </button>
+      </form>
+
+      <!-- Local + provider status side by side, both keyed by the SAME
+           normalized address. Local is always readable; the provider column
+           honors capability/available. -->
+      <div
+        v-if="lookupResult"
+        class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2"
+        data-testid="deliverability-lookup-result">
+        <!-- Local store (authoritative, always present). -->
+        <div class="rounded-md border border-gray-200 p-4 dark:border-gray-800">
+          <h5 class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            {{ t('web.admin.emailtools.deliverability.lookup.local') }}
+          </h5>
+          <p class="font-mono text-sm text-gray-900 dark:text-gray-100">{{ lookupResult.address }}</p>
+          <div class="mt-2 flex items-center gap-2">
+            <span
+              class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium"
+              :class="lookupResult.local.suppressed
+                ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
+                : 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'"
+              data-testid="deliverability-lookup-local-status">
+              {{
+                lookupResult.local.suppressed
+                  ? t('web.admin.emailtools.deliverability.lookup.suppressed')
+                  : t('web.admin.emailtools.deliverability.lookup.notSuppressed')
+              }}
+            </span>
+          </div>
+          <p
+            v-if="lookupResult.local.suppressed"
+            class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            {{ t('web.admin.emailtools.deliverability.lookup.reason') }}:
+            <span class="font-mono">{{ lookupResult.local.reason || '—' }}</span>
+            <span class="text-gray-400 dark:text-gray-500"> · </span>
+            {{ t('web.admin.emailtools.deliverability.lookup.source') }}:
+            <span class="font-mono">{{ lookupResult.local.source || '—' }}</span>
+          </p>
+        </div>
+
+        <!-- Live provider read (capability / available gated). -->
+        <div class="rounded-md border border-gray-200 p-4 dark:border-gray-800">
+          <h5 class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            {{ t('web.admin.emailtools.deliverability.lookup.provider') }}
+            <span class="ml-1 font-normal normal-case text-gray-400 dark:text-gray-500">{{ lookupProvider }}</span>
+          </h5>
+
+          <p
+            v-if="lookupProviderUnsupported"
+            class="text-sm text-gray-500 dark:text-gray-400"
+            data-testid="deliverability-lookup-provider-unsupported">
+            {{ t('web.admin.emailtools.deliverability.lookup.unavailable') }}
+          </p>
+          <p
+            v-else-if="lookupProviderFailed"
+            class="text-sm text-red-700 dark:text-red-300"
+            role="alert"
+            data-testid="deliverability-lookup-provider-error">
+            {{ lookupResult.error || t('web.admin.emailtools.deliverability.lookup.unavailable') }}
+          </p>
+          <div
+            v-else-if="lookupResult.provider_result"
+            data-testid="deliverability-lookup-provider-result">
+            <span
+              class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium"
+              :class="lookupResult.provider_result.suppressed
+                ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
+                : 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'">
+              {{
+                lookupResult.provider_result.suppressed
+                  ? t('web.admin.emailtools.deliverability.lookup.suppressed')
+                  : t('web.admin.emailtools.deliverability.lookup.notSuppressed')
+              }}
+            </span>
+            <p
+              v-if="lookupResult.provider_result.suppressed"
+              class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+              {{ t('web.admin.emailtools.deliverability.lookup.reason') }}:
+              <span class="font-mono">{{ lookupResult.provider_result.reason || '—' }}</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ===== Recent events feed ========================================== -->
     <div class="mt-8 border-t border-gray-100 pt-6 dark:border-gray-800">
       <h4 class="text-base font-semibold text-gray-900 dark:text-white">
@@ -621,6 +878,69 @@
           </template>
         </DataTable>
       </div>
+    </div>
+
+    <!-- ===== Recent sends feed (item 9 — provider's OWN message API) ===== -->
+    <div class="mt-8 border-t border-gray-100 pt-6 dark:border-gray-800">
+      <h4 class="text-base font-semibold text-gray-900 dark:text-white">
+        {{ t('web.admin.emailtools.deliverability.messages.title') }}
+      </h4>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        {{ t('web.admin.emailtools.deliverability.messages.description') }}
+      </p>
+
+      <!-- capability=false (e.g. SES has no per-message API): static empty-state,
+           no table, no retry. -->
+      <div
+        v-if="!messagesCapability"
+        class="mt-4 flex items-start gap-3 rounded-md border border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-800/40"
+        data-testid="deliverability-messages-unsupported">
+        <OIcon
+          collection="heroicons"
+          name="information-circle"
+          size="5"
+          class="mt-0.5 shrink-0 text-gray-400 dark:text-gray-500" />
+        <span class="text-sm text-gray-600 dark:text-gray-300">
+          {{ t('web.admin.emailtools.deliverability.messages.notSupported', { provider: messagesProvider }) }}
+        </span>
+      </div>
+
+      <template v-else>
+        <p
+          v-if="messagesFailed"
+          class="mt-3 text-sm text-red-700 dark:text-red-300"
+          role="alert"
+          data-testid="deliverability-messages-error">
+          {{ t('web.admin.emailtools.deliverability.messages.error') }}
+        </p>
+
+        <div class="mt-4">
+          <DataTable
+            :columns="messageColumns"
+            :rows="messages"
+            row-key="id"
+            :loading="messagesLoading"
+            :empty-text="t('web.admin.emailtools.deliverability.messages.empty')"
+            testid="deliverability-messages-table">
+            <template #cell-created_at="{ row }">
+              <span class="text-sm text-gray-500 dark:text-gray-400">{{ row.created_at ? formatDisplayDateTime(row.created_at) : '—' }}</span>
+            </template>
+            <template #cell-status="{ row }">
+              <span
+                class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium"
+                :class="messageStatusClass(row.status)">
+                {{ messageStatusLabel(row.status) }}
+              </span>
+            </template>
+            <template #cell-subject="{ row }">
+              <span class="text-sm text-gray-900 dark:text-gray-100">{{ row.subject || '—' }}</span>
+            </template>
+            <template #cell-to="{ row }">
+              <span class="font-mono text-sm text-gray-500 dark:text-gray-400">{{ row.to.join(', ') || '—' }}</span>
+            </template>
+          </DataTable>
+        </div>
+      </template>
     </div>
 
     <!-- Suppression removal: one-click confirm (the unban idiom). Removing a
