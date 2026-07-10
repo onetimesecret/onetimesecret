@@ -104,7 +104,7 @@ module Onetime
         label          = "[#{idx + 1}/#{total}]"
 
         result = Billing::Operations::GrantProbonoEntitlements.call(
-          cust, dry_run: dry_run, force: force,
+          cust, dry_run: dry_run, force: force
         )
 
         update_stats(stats, result)
@@ -121,8 +121,8 @@ module Onetime
 
       def update_stats(stats, result)
         case result.status
-        when :granted, :would_grant         then stats[:granted] += 1
-        when :skipped_no_org                then stats[:skipped_no_org] += 1
+        when :granted, :would_grant         then stats[:granted]                       += 1
+        when :skipped_no_org                then stats[:skipped_no_org]                += 1
         when :skipped_already_complimentary then stats[:skipped_already_complimentary] += 1
         end
       end

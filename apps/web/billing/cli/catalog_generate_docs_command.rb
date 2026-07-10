@@ -31,7 +31,6 @@ module Onetime
     # without a configured Stripe catalog), the command exits cleanly with
     # an informational line — it is NOT an error.
     class BillingCatalogGenerateDocsCommand < DelayBootCommand
-
       desc 'Generate plan-definitions.md from billing.yaml'
 
       option :output,

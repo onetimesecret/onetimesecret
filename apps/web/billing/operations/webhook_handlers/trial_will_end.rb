@@ -44,7 +44,7 @@ module Billing
           trial_end = @data_object.trial_end
           return unless owner&.email && trial_end
 
-          ends_at = Time.at(trial_end).utc
+          ends_at        = Time.at(trial_end).utc
           days_remaining = [((ends_at - Time.now.utc) / SECONDS_PER_DAY).ceil, 0].max
 
           Onetime::Jobs::Publisher.enqueue_email(

@@ -80,7 +80,7 @@ module Onetime
         # Familia::VerifiableIdentifier.verified_identifier? yet, so tags minted
         # under any prior (committed-fallback or empty) key still resolve. Revisit
         # if verification-on-read is ever introduced -- tracked in issue #3630.
-        identifier_secret = ENV['IDENTIFIER_SECRET'].to_s
+        identifier_secret                  = ENV['IDENTIFIER_SECRET'].to_s
         if identifier_secret.empty?
           identifier_secret = Onetime::KeyDerivation.derive_hex(secret_key, :identifier)
         end
@@ -110,7 +110,7 @@ module Onetime
         # supported via encryption_hkdf_salt_history.
         # (Guarded: the knob only exists in familia >= 2.11.)
         if Familia.config.respond_to?(:encryption_hkdf_salt=)
-          Familia.config.encryption_hkdf_salt = 'FamiliaEncryption'
+          Familia.config.encryption_hkdf_salt         = 'FamiliaEncryption'
           # Defensive: any AES envelope written by an unpinned familia >= 2.11
           # (e.g. a dev build before this initializer pinned the salt) used the
           # library default 'FamilialMatters'. Keeping it in the history makes
