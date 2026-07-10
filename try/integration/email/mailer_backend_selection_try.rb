@@ -141,32 +141,6 @@ else
 end
 #=> true
 
-## template_class_for :payment_failed resolves when billing enabled, else raises ArgumentError
-if OT.billing_config.enabled?
-  Onetime::Mail::Mailer.send(:template_class_for, :payment_failed) == Onetime::Mail::Templates::PaymentFailed
-else
-  begin
-    Onetime::Mail::Mailer.send(:template_class_for, :payment_failed)
-    false
-  rescue ArgumentError
-    true
-  end
-end
-#=> true
-
-## template_class_for :payment_receipt resolves when billing enabled, else raises ArgumentError
-if OT.billing_config.enabled?
-  Onetime::Mail::Mailer.send(:template_class_for, :payment_receipt) == Onetime::Mail::Templates::PaymentReceipt
-else
-  begin
-    Onetime::Mail::Mailer.send(:template_class_for, :payment_receipt)
-    false
-  rescue ArgumentError
-    true
-  end
-end
-#=> true
-
 ## template_class_for :subscription_changed resolves when billing enabled, else raises ArgumentError
 if OT.billing_config.enabled?
   Onetime::Mail::Mailer.send(:template_class_for, :subscription_changed) == Onetime::Mail::Templates::SubscriptionChanged

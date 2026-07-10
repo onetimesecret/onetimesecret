@@ -73,6 +73,8 @@ module OrganizationAPI::Logic
                 "old_role=#{@old_role} new_role=#{@new_role} colonel_override=#{cust.role?(:colonel)} " \
                 "org=#{@organization.extid} timestamp=#{Time.now.utc.iso8601}"
 
+        notify_role_changed
+
         success_data
       end
 
@@ -97,6 +99,26 @@ module OrganizationAPI::Logic
       end
 
       protected
+
+      # Best-effort security notification to the member whose role changed.
+      # Queued via RabbitMQ; a delivery failure must never fail the role change.
+      def notify_role_changed
+        Onetime::Jobs::Publisher.enqueue_email(
+          :role_changed,
+          {
+            email_address: @target_member.email,
+            organization_name: @organization.display_name,
+            old_role: @old_role,
+            new_role: @new_role,
+            changed_by: cust.email,
+            changed_at: Time.now.utc.iso8601,
+            locale: @target_member.locale || OT.default_locale,
+          },
+          fallback: :async_thread,
+        )
+      rescue StandardError => ex
+        OT.le "[UpdateMemberRole] Failed to send role_changed email: #{ex.message}"
+      end
 
       # Load member by external ID
       def load_member(extid)

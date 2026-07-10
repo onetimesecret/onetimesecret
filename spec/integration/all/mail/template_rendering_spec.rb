@@ -33,8 +33,6 @@ require 'onetime/mail/views/organization_deleted'
 # them here is a no-op when billing is off, and the example group that uses
 # them is gated on the same flag below.
 require 'onetime/mail/views/trial_expiring'
-require 'onetime/mail/views/payment_failed'
-require 'onetime/mail/views/payment_receipt'
 require 'onetime/mail/views/subscription_changed'
 
 RSpec.describe 'Email Template Rendering', type: :integration do
@@ -977,21 +975,6 @@ RSpec.describe 'Email Template Rendering', type: :integration do
           plan_name: 'Pro',
           trial_ends_at: '2024-01-20T00:00:00Z',
           days_remaining: 3,
-        },
-        Onetime::Mail::Templates::PaymentFailed => {
-          email_address: 'recipient@example.com',
-          amount: 1999,
-          currency: 'cad',
-          plan_name: 'Pro',
-          failure_reason: 'Card declined',
-        },
-        Onetime::Mail::Templates::PaymentReceipt => {
-          email_address: 'recipient@example.com',
-          amount: 1999,
-          currency: 'cad',
-          plan_name: 'Pro',
-          invoice_id: 'in_123',
-          paid_at: '2024-01-15T10:30:00Z',
         },
         Onetime::Mail::Templates::SubscriptionChanged => {
           email_address: 'recipient@example.com',

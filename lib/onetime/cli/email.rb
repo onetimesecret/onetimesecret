@@ -28,8 +28,6 @@ module Onetime
         :member_removed,
         :organization_deleted,
         :trial_expiring,
-        :payment_failed,
-        :payment_receipt,
         :subscription_changed,
       ].freeze
 

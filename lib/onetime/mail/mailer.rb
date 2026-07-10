@@ -30,8 +30,6 @@ require_relative 'views/role_changed'
 require_relative 'views/member_removed'
 require_relative 'views/organization_deleted'
 require_relative 'views/trial_expiring'
-require_relative 'views/payment_failed'
-require_relative 'views/payment_receipt'
 require_relative 'views/subscription_changed'
 
 module Onetime
@@ -195,8 +193,6 @@ module Onetime
         # names with the normal ArgumentError before the case reaches them.
         BILLING_TEMPLATE_NAMES = %i[
           trial_expiring
-          payment_failed
-          payment_receipt
           subscription_changed
         ].freeze
 
@@ -246,10 +242,6 @@ module Onetime
             Templates::OrganizationDeleted
           when :trial_expiring
             Templates::TrialExpiring
-          when :payment_failed
-            Templates::PaymentFailed
-          when :payment_receipt
-            Templates::PaymentReceipt
           when :subscription_changed
             Templates::SubscriptionChanged
           else
