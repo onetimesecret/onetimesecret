@@ -73,6 +73,12 @@ export function useScopeSwitcherVisibility() {
    * (non-default) org still sees the switcher and org chip — that org is a
    * deliberate choice, not a trivial artifact of signup.
    *
+   * Limited to free-tier plans: this suppression exists to declutter brand-new
+   * *free* signups. A paying customer working solo inside their default
+   * workspace is a deliberate, non-trivial account and must keep the org
+   * context surface. A missing planid is treated as free so the switcher stays
+   * hidden while the list is still loading (matching the member_count guard).
+   *
    * member_count comes from the organizations list safe_dump. When the list
    * hasn't loaded yet (length 0) or the count is unknown, this stays false so
    * the switcher is never hidden prematurely.
@@ -81,6 +87,8 @@ export function useScopeSwitcherVisibility() {
     const orgs = organizationStore.organizations;
     if (orgs.length !== 1) return false;
     if (!orgs[0].is_default) return false;
+    const planid = orgs[0].planid;
+    if (planid && !/^free_v\d+$/.test(planid)) return false;
     const memberCount = orgs[0].member_count;
     return typeof memberCount === 'number' && memberCount <= 1;
   });

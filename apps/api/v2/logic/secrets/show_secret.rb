@@ -17,6 +17,7 @@ module V2::Logic
     #   only be viewed once.
     class ShowSecret < V2::Logic::Base
       include AccessTelemetry
+      include ActorAttribution
       include Onetime::Logic::GuestRouteGating
       include Onetime::Security::PassphraseRateLimiter
 
@@ -152,7 +153,9 @@ module V2::Logic
           # which exposes no public destroy method. clear is the correct call.
           # Skip for stateless auth (BasicAuth provides empty session)
           sess.clear unless sess.empty?
-          secret.reveal!(passphrase_input: passphrase)
+          # actor_context attributes the reveal (#3639); computed before reveal!
+          # consumes the secret so owner?(cust) sees the in-memory owner_id.
+          secret.reveal!(passphrase_input: passphrase, actor_context: lifecycle_actor_context(secret))
         else
           raise_form_error "You can't verify an account when you're already logged in."
         end
@@ -168,7 +171,9 @@ module V2::Logic
       # reveal claim; a request that lost the race gets nil, so the shared-secret
       # counters are gated on winning to avoid inflating them on a lost race.
       def reveal_secret(owner)
-        plaintext = secret.reveal!(passphrase_input: passphrase)
+        # actor_context attributes the reveal (#3639); computed before reveal!
+        # consumes the secret so owner?(cust) sees the in-memory owner_id.
+        plaintext = secret.reveal!(passphrase_input: passphrase, actor_context: lifecycle_actor_context(secret))
         return plaintext if plaintext.nil?
 
         owner&.increment_field :secrets_shared unless owner&.anonymous?

@@ -47,7 +47,7 @@ vi.mock('@/shared/stores/identityStore', () => ({
 // entitlements, and the organizations list for solo-context detection.
 // Wrap in reactive() so refs auto-unwrap when accessed as store properties.
 type MockOrg = { current_user_role?: string | null; entitlements?: string[] | null } | null;
-type MockListOrg = { member_count?: number; is_default?: boolean };
+type MockListOrg = { member_count?: number; is_default?: boolean; planid?: string };
 const mockCurrentOrganization = ref<MockOrg>({
   current_user_role: 'owner',
   entitlements: null,
@@ -593,6 +593,60 @@ describe('useScopeSwitcherVisibility', () => {
       expect(showOrgSwitcher.value).toBe(false);
 
       mockOrganizations.value = [{ member_count: 2, is_default: true }];
+      await nextTick();
+
+      expect(showOrgSwitcher.value).toBe(true);
+    });
+  });
+
+  // The solo-default suppression exists to declutter brand-new *free* signups.
+  // It must never hide the org context for a paying customer, even one who
+  // works solo inside their (single) default workspace — the plan makes them a
+  // deliberate, non-trivial account.
+  describe('solo-default suppression is limited to free-tier plans', () => {
+    beforeEach(() => {
+      mockRoute.meta = { scopesAvailable: { organization: 'show' } };
+      mockCurrentOrganization.value = { current_user_role: 'owner', entitlements: null };
+      mockBillingEnabled.value = false;
+    });
+
+    it('shows the switcher for a paid solo default org (team_plus_v1)', () => {
+      mockOrganizations.value = [{ member_count: 1, is_default: true, planid: 'team_plus_v1' }];
+
+      const { showOrgSwitcher, isSoloDefaultContext } = useScopeSwitcherVisibility();
+      expect(isSoloDefaultContext.value).toBe(false);
+      expect(showOrgSwitcher.value).toBe(true);
+    });
+
+    it('shows the switcher for a paid solo default org (identity_plus_v1)', () => {
+      mockOrganizations.value = [{ member_count: 1, is_default: true, planid: 'identity_plus_v1' }];
+
+      const { isSoloDefaultContext } = useScopeSwitcherVisibility();
+      expect(isSoloDefaultContext.value).toBe(false);
+    });
+
+    it('still hides the switcher for a free solo default org (free_v1)', () => {
+      mockOrganizations.value = [{ member_count: 1, is_default: true, planid: 'free_v1' }];
+
+      const { showOrgSwitcher, isSoloDefaultContext } = useScopeSwitcherVisibility();
+      expect(isSoloDefaultContext.value).toBe(true);
+      expect(showOrgSwitcher.value).toBe(false);
+    });
+
+    it('treats a missing planid as free (hides the solo default) so the list can still be loading', () => {
+      mockOrganizations.value = [{ member_count: 1, is_default: true }];
+
+      const { isSoloDefaultContext } = useScopeSwitcherVisibility();
+      expect(isSoloDefaultContext.value).toBe(true);
+    });
+
+    it('reveals the switcher reactively when a free solo default upgrades to a paid plan', async () => {
+      mockOrganizations.value = [{ member_count: 1, is_default: true, planid: 'free_v1' }];
+
+      const { showOrgSwitcher } = useScopeSwitcherVisibility();
+      expect(showOrgSwitcher.value).toBe(false);
+
+      mockOrganizations.value = [{ member_count: 1, is_default: true, planid: 'team_plus_v1' }];
       await nextTick();
 
       expect(showOrgSwitcher.value).toBe(true);
