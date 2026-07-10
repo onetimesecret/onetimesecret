@@ -1,10 +1,9 @@
 <!-- src/apps/admin/components/kit/KitPagination.vue -->
 
 <script setup lang="ts">
+  import type { PageMeta } from '@/apps/admin/composables/usePaginatedFetch';
   import { computed } from 'vue';
   import { useI18n } from 'vue-i18n';
-
-  import type { PageMeta } from '@/apps/admin/composables/usePaginatedFetch';
 
   /**
    * Admin-bundle pagination control (ticket #11, CONTRACT 5).
@@ -73,7 +72,7 @@
   <div
     class="flex flex-wrap items-center justify-between gap-4 text-sm text-gray-600 dark:text-gray-400">
     <!-- Summary -->
-    <div>
+    <div class="tabular-nums">
       {{
         t('web.colonel.pagination.showing', {
           start: rangeStart,
@@ -95,7 +94,7 @@
           id="kit-per-page-select"
           :value="pagination.per_page"
           :disabled="loading"
-          class="rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
+          class="rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
           @change="handlePerPageChange">
           <option
             v-for="option in perPageChoices"
@@ -107,7 +106,7 @@
       </div>
 
       <!-- Page indicator -->
-      <div>
+      <div class="tabular-nums">
         {{
           t('web.colonel.pagination.pageOf', {
             current: pagination.page,
@@ -121,14 +120,14 @@
         <button
           type="button"
           :disabled="!canGoPrev || loading"
-          class="rounded border border-gray-300 px-3 py-1 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+          class="rounded-md border border-gray-300 px-3 py-1 font-medium text-gray-700 transition-colors hover:border-brand-400 hover:bg-brand-50/50 hover:text-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-gray-300 disabled:hover:bg-transparent disabled:hover:text-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:border-brand-500/60 dark:hover:bg-brand-500/10 dark:hover:text-brand-200"
           @click="handlePrev">
           {{ t('web.COMMON.previous') }}
         </button>
         <button
           type="button"
           :disabled="!canGoNext || loading"
-          class="rounded border border-gray-300 px-3 py-1 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+          class="rounded-md border border-gray-300 px-3 py-1 font-medium text-gray-700 transition-colors hover:border-brand-400 hover:bg-brand-50/50 hover:text-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-gray-300 disabled:hover:bg-transparent disabled:hover:text-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:border-brand-500/60 dark:hover:bg-brand-500/10 dark:hover:text-brand-200"
           @click="handleNext">
           {{ t('web.COMMON.next') }}
         </button>

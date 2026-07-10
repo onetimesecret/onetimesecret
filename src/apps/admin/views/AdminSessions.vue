@@ -1,9 +1,6 @@
 <!-- src/apps/admin/views/AdminSessions.vue -->
 
 <script setup lang="ts">
-  import { storeToRefs } from 'pinia';
-  import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   import {
     AdminConfirmDialog,
@@ -27,6 +24,9 @@
   import { useNotificationsStore } from '@/shared/stores/notificationsStore';
   import { formatDisplayDateTime } from '@/utils/format';
   import { gracefulParse } from '@/utils/schemaValidation';
+  import { storeToRefs } from 'pinia';
+  import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   /**
    * Sessions console (ticket #40) — the first Phase-3 screen: a CLI-only power
@@ -273,14 +273,14 @@
 <template>
   <div class="mx-auto max-w-6xl">
     <!-- Page header -->
-    <div class="mb-6">
-      <h2 class="font-brand text-2xl font-semibold text-gray-900 dark:text-white">
+    <header class="mb-6 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
+      <h2 class="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
         {{ t('web.admin.sessions.title') }}
       </h2>
       <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.admin.sessions.description') }}
       </p>
-    </div>
+    </header>
 
     <!-- Network/HTTP error banner (validation mismatches degrade to empty). -->
     <div
@@ -293,7 +293,7 @@
       </span>
       <button
         type="button"
-        class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
+        class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
         @click="fetchPage(1)">
         <OIcon
           collection="heroicons"
@@ -340,9 +340,7 @@
           <span
             v-else
             class="text-gray-400 dark:text-gray-600"
-            :aria-label="t('web.admin.sessions.status.anonymous')"
-            >—</span
-          >
+            :aria-label="t('web.admin.sessions.status.anonymous')">—</span>
         </template>
 
         <template #cell-email="{ row }">
@@ -365,7 +363,7 @@
           <button
             type="button"
             :data-testid="`revoke-${row.session_id}`"
-            class="text-sm font-medium text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 dark:text-red-400 dark:hover:text-red-300"
+            class="text-sm font-medium text-red-600 hover:text-red-800 focus:ring-2 focus:ring-red-500 focus:outline-none dark:text-red-400 dark:hover:text-red-300"
             @click.stop="requestRevoke(row.session_id)">
             {{ t('web.admin.sessions.revoke.button') }}
           </button>
@@ -437,7 +435,7 @@
         </p>
         <button
           type="button"
-          class="mt-4 inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
+          class="mt-4 inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-medium text-red-800 hover:bg-red-100 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
           @click="loadDetail().catch(() => {})">
           <OIcon
             collection="heroicons"
@@ -454,7 +452,7 @@
         data-testid="session-drawer-content">
         <!-- Session record -->
         <section>
-          <h3 class="mb-2 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+          <h3 class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.sessions.sections.session') }}
           </h3>
           <dl class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
@@ -462,8 +460,10 @@
               v-for="field in sessionFields"
               :key="field.key"
               :data-testid="`session-field-${field.key}`">
-              <dt class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ field.label }}</dt>
-              <dd class="mt-0.5 break-words font-mono text-sm text-gray-900 dark:text-gray-100">
+              <dt class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                {{ field.label }}
+              </dt>
+              <dd class="mt-0.5 font-mono text-sm break-words text-gray-900 dark:text-gray-100">
                 {{ field.value }}
               </dd>
             </div>
@@ -472,7 +472,7 @@
 
         <!-- Raw inspector -->
         <section>
-          <h3 class="mb-2 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+          <h3 class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.sessions.sections.raw') }}
           </h3>
           <JsonViewer
@@ -488,7 +488,7 @@
           type="button"
           data-testid="session-revoke-button"
           :disabled="!selectedSession"
-          class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
+          class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
           @click="selectedSession && requestRevoke(selectedSession.session_id)">
           <OIcon
             collection="heroicons"

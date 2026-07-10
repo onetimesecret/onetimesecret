@@ -1,8 +1,6 @@
 <!-- src/apps/admin/views/AdminBannedIps.vue -->
 
 <script setup lang="ts">
-  import { computed, onMounted, ref } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   import { AdminConfirmDialog, DataTable, StatCard } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
@@ -19,6 +17,8 @@
   import { useNotificationsStore } from '@/shared/stores/notificationsStore';
   import { formatDisplayDateTime } from '@/utils/format';
   import { gracefulParse } from '@/utils/schemaValidation';
+  import { computed, onMounted, ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   /**
    * BannedIPs screen (ticket #33) — list + guarded ban/unban, the Phase-2 parity
@@ -194,9 +194,9 @@
 <template>
   <div class="mx-auto max-w-5xl">
     <!-- Page header -->
-    <div class="mb-6 flex flex-wrap items-start justify-between gap-3">
+    <div class="mb-6 flex flex-wrap items-start justify-between gap-3 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
       <div>
-        <h2 class="font-brand text-2xl font-semibold text-gray-900 dark:text-white">
+        <h2 class="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
           {{ t('web.admin.bannedIps.title') }}
         </h2>
         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -206,7 +206,7 @@
       <button
         type="button"
         data-testid="toggle-ban-form"
-        class="inline-flex shrink-0 items-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
+        class="inline-flex shrink-0 items-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
         @click="toggleBanForm">
         <OIcon
           collection="heroicons"
@@ -227,7 +227,7 @@
       </span>
       <button
         type="button"
-        class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
+        class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
         @click="reloadList">
         <OIcon
           collection="heroicons"
@@ -243,7 +243,7 @@
         class="flex items-center justify-between gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 dark:border-blue-900/50 dark:bg-blue-900/20"
         data-testid="current-ip">
         <div class="min-w-0">
-          <p class="text-xs font-medium uppercase tracking-wider text-blue-700 dark:text-blue-300">
+          <p class="text-xs font-medium tracking-wider text-blue-700 uppercase dark:text-blue-300">
             {{ t('web.admin.bannedIps.currentIp') }}
           </p>
           <p class="mt-0.5 truncate font-mono text-lg font-semibold text-blue-900 dark:text-blue-100">
@@ -254,7 +254,7 @@
           v-if="currentIP && currentIP !== 'unknown'"
           type="button"
           data-testid="quick-ban"
-          class="shrink-0 rounded px-3 py-1.5 text-sm font-medium text-blue-700 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-blue-300 dark:hover:bg-blue-800/50"
+          class="shrink-0 rounded px-3 py-1.5 text-sm font-medium text-blue-700 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:text-blue-300 dark:hover:bg-blue-800/50"
           @click="quickBanCurrent">
           {{ t('web.admin.bannedIps.actions.quickBan') }}
         </button>
@@ -278,7 +278,7 @@
         <div>
           <label
             for="ban-ip"
-            class="mb-1 block text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            class="mb-1 block text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.bannedIps.form.ipLabel') }}
           </label>
           <input
@@ -289,13 +289,13 @@
             placeholder="203.0.113.4"
             autocomplete="off"
             spellcheck="false"
-            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 font-mono text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 font-mono text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white"
             @keyup.enter="requestBan" />
         </div>
         <div>
           <label
             for="ban-reason"
-            class="mb-1 block text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            class="mb-1 block text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.bannedIps.form.reasonLabel') }}
           </label>
           <input
@@ -304,7 +304,7 @@
             type="text"
             data-testid="ban-reason-input"
             :placeholder="t('web.admin.bannedIps.form.reasonPlaceholder')"
-            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
         </div>
       </div>
       <div class="mt-4">
@@ -312,7 +312,7 @@
           type="button"
           data-testid="ban-submit"
           :disabled="!newIP.trim()"
-          class="inline-flex items-center gap-1 rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-700 dark:hover:bg-red-800"
+          class="inline-flex items-center gap-1 rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-700 dark:hover:bg-red-800"
           @click="requestBan">
           <OIcon
             collection="heroicons"
@@ -349,7 +349,7 @@
           <button
             type="button"
             :data-testid="`unban-${row.ip_address}`"
-            class="text-sm font-medium text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 dark:text-red-400 dark:hover:text-red-300"
+            class="text-sm font-medium text-red-600 hover:text-red-800 focus:ring-2 focus:ring-red-500 focus:outline-none dark:text-red-400 dark:hover:text-red-300"
             @click="requestUnban(row.ip_address)">
             {{ t('web.admin.bannedIps.unban.button') }}
           </button>

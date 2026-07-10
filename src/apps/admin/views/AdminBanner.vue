@@ -1,8 +1,6 @@
 <!-- src/apps/admin/views/AdminBanner.vue -->
 
 <script setup lang="ts">
-  import { computed, onMounted, ref } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   import { AdminConfirmDialog, StatCard } from '@/apps/admin/components/kit';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
@@ -16,6 +14,8 @@
   import { useApi } from '@/shared/composables/useApi';
   import { useNotificationsStore } from '@/shared/stores/notificationsStore';
   import { gracefulParse } from '@/utils/schemaValidation';
+  import { computed, onMounted, ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   /**
    * Broadcast Banner screen (ticket #41) — the Phase-3 "operating console" surface
@@ -194,14 +194,14 @@
 <template>
   <div class="mx-auto max-w-3xl">
     <!-- Page header -->
-    <div class="mb-6">
-      <h2 class="font-brand text-2xl font-semibold text-gray-900 dark:text-white">
+    <header class="mb-6 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
+      <h2 class="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
         {{ t('web.admin.banner.title') }}
       </h2>
       <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.admin.banner.description') }}
       </p>
-    </div>
+    </header>
 
     <!-- Load error banner -->
     <div
@@ -214,7 +214,7 @@
       </span>
       <button
         type="button"
-        class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
+        class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
         @click="reloadBanner">
         <OIcon
           collection="heroicons"
@@ -266,12 +266,12 @@
         <!-- Stored content, shown as ESCAPED text (never v-html). -->
         <div
           class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-          <h4 class="mb-2 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+          <h4 class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.banner.current.storedContent') }}
           </h4>
           <pre
             data-testid="banner-content"
-            class="max-h-48 overflow-auto whitespace-pre-wrap break-words rounded bg-gray-50 p-3 font-mono text-sm text-gray-900 dark:bg-gray-800 dark:text-gray-100">{{ currentContent }}</pre>
+            class="max-h-48 overflow-auto rounded bg-gray-50 p-3 font-mono text-sm break-words whitespace-pre-wrap text-gray-900 dark:bg-gray-800 dark:text-gray-100">{{ currentContent }}</pre>
           <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
             {{ t('web.admin.banner.current.htmlNote') }}
           </p>
@@ -282,7 +282,7 @@
           <button
             type="button"
             data-testid="banner-edit"
-            class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800"
+            class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800"
             @click="editCurrent">
             <OIcon
               collection="heroicons"
@@ -293,7 +293,7 @@
           <button
             type="button"
             data-testid="banner-clear"
-            class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
+            class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
             @click="requestClear">
             <OIcon
               collection="heroicons"
@@ -324,7 +324,7 @@
         <div>
           <label
             for="banner-content-input"
-            class="mb-1 block text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            class="mb-1 block text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.banner.set.contentLabel') }}
           </label>
           <textarea
@@ -334,7 +334,7 @@
             rows="4"
             spellcheck="false"
             :placeholder="t('web.admin.banner.set.contentPlaceholder')"
-            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 font-mono text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"></textarea>
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 font-mono text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white"></textarea>
           <div class="mt-1 flex items-center justify-between">
             <p class="text-xs text-gray-500 dark:text-gray-400">
               {{ t('web.admin.banner.set.contentHelp') }}
@@ -351,7 +351,7 @@
         <div class="sm:w-1/2">
           <label
             for="banner-ttl-input"
-            class="mb-1 block text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            class="mb-1 block text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.banner.set.ttlLabel') }}
           </label>
           <!-- max: one year in seconds. The backend accepts any positive TTL;
@@ -367,7 +367,7 @@
             inputmode="numeric"
             data-testid="banner-ttl-input"
             :placeholder="t('web.admin.banner.set.ttlPlaceholder')"
-            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
           <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
             {{ t('web.admin.banner.set.ttlHelp') }}
           </p>
@@ -378,7 +378,7 @@
             type="button"
             data-testid="banner-publish"
             :disabled="!canPublish"
-            class="inline-flex items-center gap-1 rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
+            class="inline-flex items-center gap-1 rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
             @click="requestSet">
             <OIcon
               collection="heroicons"

@@ -1,8 +1,6 @@
 <!-- src/apps/admin/views/AdminSystem.vue -->
 
 <script setup lang="ts">
-  import { computed, onMounted } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   import { DataTable, JsonViewer, StatCard } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
@@ -15,6 +13,8 @@
   } from '@/schemas/api/internal/responses/colonel-system';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { formatDisplayDateTime } from '@/utils/format';
+  import { computed, onMounted } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   /**
    * System screen (ticket #33) — the read-only status/info read-out, a Phase-2
@@ -149,14 +149,14 @@
 <template>
   <div class="mx-auto max-w-6xl">
     <!-- Page header -->
-    <div class="mb-6">
-      <h2 class="font-brand text-2xl font-semibold text-gray-900 dark:text-white">
+    <header class="mb-6 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
+      <h2 class="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
         {{ t('web.admin.system.title') }}
       </h2>
       <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.admin.system.description') }}
       </p>
-    </div>
+    </header>
 
     <!-- ================= Database metrics ================= -->
     <section
@@ -190,7 +190,7 @@
         </span>
         <button
           type="button"
-          class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
+          class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
           @click="loadDb().catch(() => {})">
           <OIcon
             collection="heroicons"
@@ -231,33 +231,57 @@
         <!-- Server info -->
         <div
           class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-          <h4 class="mb-3 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+          <h4 class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.system.database.server') }}
           </h4>
           <dl class="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3">
             <div data-testid="server-version">
-              <dt class="text-xs text-gray-500 dark:text-gray-400">{{ t('web.admin.system.database.fields.version') }}</dt>
-              <dd class="mt-0.5 font-mono text-sm text-gray-900 dark:text-white">{{ engineVersion }}</dd>
+              <dt class="text-xs text-gray-500 dark:text-gray-400">
+                {{ t('web.admin.system.database.fields.version') }}
+              </dt>
+              <dd class="mt-0.5 font-mono text-sm text-gray-900 dark:text-white">
+                {{ engineVersion }}
+              </dd>
             </div>
             <div>
-              <dt class="text-xs text-gray-500 dark:text-gray-400">{{ t('web.admin.system.database.fields.mode') }}</dt>
-              <dd class="mt-0.5 font-mono text-sm text-gray-900 dark:text-white">{{ db.redis_info.redis_mode ?? '—' }}</dd>
+              <dt class="text-xs text-gray-500 dark:text-gray-400">
+                {{ t('web.admin.system.database.fields.mode') }}
+              </dt>
+              <dd class="mt-0.5 font-mono text-sm text-gray-900 dark:text-white">
+                {{ db.redis_info.redis_mode ?? '—' }}
+              </dd>
             </div>
             <div>
-              <dt class="text-xs text-gray-500 dark:text-gray-400">{{ t('web.admin.system.database.fields.uptimeDays') }}</dt>
-              <dd class="mt-0.5 font-mono text-sm text-gray-900 dark:text-white">{{ num(db.redis_info.uptime_in_days) }}</dd>
+              <dt class="text-xs text-gray-500 dark:text-gray-400">
+                {{ t('web.admin.system.database.fields.uptimeDays') }}
+              </dt>
+              <dd class="mt-0.5 font-mono text-sm text-gray-900 dark:text-white">
+                {{ num(db.redis_info.uptime_in_days) }}
+              </dd>
             </div>
             <div>
-              <dt class="text-xs text-gray-500 dark:text-gray-400">{{ t('web.admin.system.database.fields.connectedClients') }}</dt>
-              <dd class="mt-0.5 font-mono text-sm text-gray-900 dark:text-white">{{ num(db.redis_info.connected_clients) }}</dd>
+              <dt class="text-xs text-gray-500 dark:text-gray-400">
+                {{ t('web.admin.system.database.fields.connectedClients') }}
+              </dt>
+              <dd class="mt-0.5 font-mono text-sm text-gray-900 dark:text-white">
+                {{ num(db.redis_info.connected_clients) }}
+              </dd>
             </div>
             <div>
-              <dt class="text-xs text-gray-500 dark:text-gray-400">{{ t('web.admin.system.database.fields.opsPerSec') }}</dt>
-              <dd class="mt-0.5 font-mono text-sm text-gray-900 dark:text-white">{{ num(db.redis_info.instantaneous_ops_per_sec) }}</dd>
+              <dt class="text-xs text-gray-500 dark:text-gray-400">
+                {{ t('web.admin.system.database.fields.opsPerSec') }}
+              </dt>
+              <dd class="mt-0.5 font-mono text-sm text-gray-900 dark:text-white">
+                {{ num(db.redis_info.instantaneous_ops_per_sec) }}
+              </dd>
             </div>
             <div>
-              <dt class="text-xs text-gray-500 dark:text-gray-400">{{ t('web.admin.system.database.fields.totalCommands') }}</dt>
-              <dd class="mt-0.5 font-mono text-sm text-gray-900 dark:text-white">{{ num(db.redis_info.total_commands_processed) }}</dd>
+              <dt class="text-xs text-gray-500 dark:text-gray-400">
+                {{ t('web.admin.system.database.fields.totalCommands') }}
+              </dt>
+              <dd class="mt-0.5 font-mono text-sm text-gray-900 dark:text-white">
+                {{ num(db.redis_info.total_commands_processed) }}
+              </dd>
             </div>
           </dl>
         </div>
@@ -265,25 +289,41 @@
         <!-- Memory -->
         <div
           class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-          <h4 class="mb-3 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+          <h4 class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.system.database.memory') }}
           </h4>
           <dl class="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4">
             <div>
-              <dt class="text-xs text-gray-500 dark:text-gray-400">{{ t('web.admin.system.database.fields.usedMemory') }}</dt>
-              <dd class="mt-0.5 font-mono text-sm text-gray-900 dark:text-white">{{ db.memory_stats.used_memory_human }}</dd>
+              <dt class="text-xs text-gray-500 dark:text-gray-400">
+                {{ t('web.admin.system.database.fields.usedMemory') }}
+              </dt>
+              <dd class="mt-0.5 font-mono text-sm text-gray-900 dark:text-white">
+                {{ db.memory_stats.used_memory_human }}
+              </dd>
             </div>
             <div>
-              <dt class="text-xs text-gray-500 dark:text-gray-400">{{ t('web.admin.system.database.fields.rssMemory') }}</dt>
-              <dd class="mt-0.5 font-mono text-sm text-gray-900 dark:text-white">{{ db.memory_stats.used_memory_rss_human }}</dd>
+              <dt class="text-xs text-gray-500 dark:text-gray-400">
+                {{ t('web.admin.system.database.fields.rssMemory') }}
+              </dt>
+              <dd class="mt-0.5 font-mono text-sm text-gray-900 dark:text-white">
+                {{ db.memory_stats.used_memory_rss_human }}
+              </dd>
             </div>
             <div>
-              <dt class="text-xs text-gray-500 dark:text-gray-400">{{ t('web.admin.system.database.fields.peakMemory') }}</dt>
-              <dd class="mt-0.5 font-mono text-sm text-gray-900 dark:text-white">{{ db.memory_stats.used_memory_peak_human }}</dd>
+              <dt class="text-xs text-gray-500 dark:text-gray-400">
+                {{ t('web.admin.system.database.fields.peakMemory') }}
+              </dt>
+              <dd class="mt-0.5 font-mono text-sm text-gray-900 dark:text-white">
+                {{ db.memory_stats.used_memory_peak_human }}
+              </dd>
             </div>
             <div>
-              <dt class="text-xs text-gray-500 dark:text-gray-400">{{ t('web.admin.system.database.fields.fragmentation') }}</dt>
-              <dd class="mt-0.5 font-mono text-sm text-gray-900 dark:text-white">{{ db.memory_stats.mem_fragmentation_ratio.toFixed(2) }}</dd>
+              <dt class="text-xs text-gray-500 dark:text-gray-400">
+                {{ t('web.admin.system.database.fields.fragmentation') }}
+              </dt>
+              <dd class="mt-0.5 font-mono text-sm text-gray-900 dark:text-white">
+                {{ db.memory_stats.mem_fragmentation_ratio.toFixed(2) }}
+              </dd>
             </div>
           </dl>
         </div>
@@ -292,7 +332,7 @@
         <div
           class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"
           data-testid="system-database-sizes">
-          <h4 class="mb-3 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+          <h4 class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.system.database.databases') }}
           </h4>
           <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -300,12 +340,16 @@
               v-for="row in databaseSizeRows"
               :key="row.name"
               class="rounded border border-gray-200 p-3 dark:border-gray-700">
-              <div class="font-mono text-sm font-semibold text-gray-900 dark:text-white">{{ row.name }}</div>
+              <div class="font-mono text-sm font-semibold text-gray-900 dark:text-white">
+                {{ row.name }}
+              </div>
               <div class="mt-1 text-xs text-gray-600 dark:text-gray-400">
                 <template v-if="row.raw === null">
                   {{ t('web.admin.system.database.dbSummary', { keys: num(row.keys), expires: num(row.expires) }) }}
                 </template>
-                <template v-else>{{ row.raw }}</template>
+                <template v-else>
+                  {{ row.raw }}
+                </template>
               </div>
             </div>
           </div>
@@ -343,7 +387,7 @@
         </span>
         <button
           type="button"
-          class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
+          class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
           @click="loadQueue().catch(() => {})">
           <OIcon
             collection="heroicons"
@@ -446,7 +490,7 @@
         </span>
         <button
           type="button"
-          class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
+          class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
           @click="loadRedis().catch(() => {})">
           <OIcon
             collection="heroicons"

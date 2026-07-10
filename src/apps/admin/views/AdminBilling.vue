@@ -1,8 +1,6 @@
 <!-- src/apps/admin/views/AdminBilling.vue -->
 
 <script setup lang="ts">
-  import { computed, onMounted, ref } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   import { DataTable, DetailDrawer, JsonViewer, StatCard } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
@@ -13,6 +11,8 @@
   } from '@/schemas/api/internal/responses/colonel-billing';
   import { colonelBillingCatalogResponseSchema } from '@/schemas/api/internal/responses/colonel-billing';
   import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { computed, onMounted, ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   /**
    * Billing catalog drift view (ticket #45, Phase 3) — the LAST Phase-3 item and
@@ -153,14 +153,14 @@
 <template>
   <div class="mx-auto max-w-6xl">
     <!-- Page header -->
-    <div class="mb-6">
-      <h2 class="font-brand text-2xl font-semibold text-gray-900 dark:text-white">
+    <header class="mb-6 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
+      <h2 class="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
         {{ t('web.admin.billing.title') }}
       </h2>
       <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.admin.billing.description') }}
       </p>
-    </div>
+    </header>
 
     <!-- Loading -->
     <div
@@ -186,7 +186,7 @@
       </span>
       <button
         type="button"
-        class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
+        class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
         @click="load().catch(() => {})">
         <OIcon
           collection="heroicons"
@@ -294,7 +294,7 @@
             <template #cell-actions="{ row }">
               <button
                 type="button"
-                class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
+                class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
                 :data-testid="`billing-diff-${row.planid}`"
                 @click="openDiff(row.planid)">
                 <OIcon
@@ -317,7 +317,7 @@
       testid="billing-diff-drawer">
       <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div>
-          <h4 class="mb-2 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+          <h4 class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.billing.diff.config') }}
           </h4>
           <div
@@ -336,7 +336,7 @@
           </p>
         </div>
         <div>
-          <h4 class="mb-2 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+          <h4 class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.billing.diff.live') }}
           </h4>
           <div

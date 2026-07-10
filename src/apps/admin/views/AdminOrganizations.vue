@@ -1,9 +1,6 @@
 <!-- src/apps/admin/views/AdminOrganizations.vue -->
 
 <script setup lang="ts">
-  import { storeToRefs } from 'pinia';
-  import { computed, onMounted, ref } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   import {
     AdminConfirmDialog,
@@ -21,8 +18,8 @@
     ColonelOrganization,
     InvestigateOrganizationResult,
   } from '@/schemas/api/internal/responses/colonel';
-  import type { ColonelEntitlementOverrideRecord } from '@/schemas/api/internal/responses/colonel-organizations';
   import { investigateOrganizationResponseSchema } from '@/schemas/api/internal/responses/colonel';
+  import type { ColonelEntitlementOverrideRecord } from '@/schemas/api/internal/responses/colonel-organizations';
   import { colonelEntitlementOverrideResponseSchema } from '@/schemas/api/internal/responses/colonel-organizations';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useApi } from '@/shared/composables/useApi';
@@ -30,6 +27,9 @@
   import { getPlanLabel } from '@/types/billing';
   import { formatDisplayDateTime } from '@/utils/format';
   import { gracefulParse } from '@/utils/schemaValidation';
+  import { storeToRefs } from 'pinia';
+  import { computed, onMounted, ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   /**
    * Organizations screen — billing health monitor + billing-investigate workflow
@@ -425,14 +425,14 @@
 <template>
   <div class="mx-auto max-w-6xl">
     <!-- Page header -->
-    <div class="mb-6">
-      <h2 class="font-brand text-2xl font-semibold text-gray-900 dark:text-white">
+    <header class="mb-6 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
+      <h2 class="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
         {{ t('web.colonel.organizations.title') }}
       </h2>
       <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.colonel.organizations.description') }}
       </p>
-    </div>
+    </header>
 
     <!-- Network/HTTP error banner (validation mismatches degrade to empty). -->
     <div
@@ -445,7 +445,7 @@
       </span>
       <button
         type="button"
-        class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
+        class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
         @click="fetchPage(1)">
         <OIcon
           collection="heroicons"
@@ -467,9 +467,7 @@
         </span>
         <span
           v-if="staleCount > 0 && unknownCount > 0"
-          class="mx-1"
-          >/</span
-        >
+          class="mx-1">/</span>
         <span
           v-if="unknownCount > 0"
           class="text-gray-500 dark:text-gray-400">
@@ -503,7 +501,9 @@
         @row-click="openDetail">
         <!-- Account -->
         <template #cell-account="{ row }">
-          <div class="font-medium text-gray-900 dark:text-white">{{ primaryIdentifier(row) }}</div>
+          <div class="font-medium text-gray-900 dark:text-white">
+            {{ primaryIdentifier(row) }}
+          </div>
           <div
             v-if="row.display_name && row.display_name !== 'Default Workspace'"
             class="text-xs text-gray-500 dark:text-gray-400">
@@ -513,7 +513,9 @@
 
         <!-- Billing (plan + subscription) -->
         <template #cell-billing="{ row }">
-          <div class="text-sm text-gray-900 dark:text-white">{{ planLabel(row.planid) }}</div>
+          <div class="text-sm text-gray-900 dark:text-white">
+            {{ planLabel(row.planid) }}
+          </div>
           <div class="mt-0.5">
             <span
               v-if="needsSubscriptionBadge(row.subscription_status)"
@@ -528,9 +530,7 @@
             </span>
             <span
               v-else
-              class="text-xs text-gray-400 dark:text-gray-500"
-              >—</span
-            >
+              class="text-xs text-gray-400 dark:text-gray-500">—</span>
           </div>
         </template>
 
@@ -543,7 +543,7 @@
             </span>
             <div
               v-if="row.sync_status_reason"
-              class="mt-1 max-w-xs whitespace-normal text-xs text-yellow-700 dark:text-yellow-300">
+              class="mt-1 max-w-xs text-xs whitespace-normal text-yellow-700 dark:text-yellow-300">
               {{ row.sync_status_reason }}
             </div>
           </template>
@@ -554,20 +554,14 @@
           </span>
           <span
             v-else
-            class="text-xs text-gray-400 dark:text-gray-500"
-            >—</span
-          >
+            class="text-xs text-gray-400 dark:text-gray-500">—</span>
         </template>
 
         <!-- Usage (members / domains) -->
         <template #cell-usage="{ row }">
-          <span :title="t('web.colonel.organizations.usage.members', { count: row.member_count })"
-            >{{ row.member_count }}m</span
-          >
+          <span :title="t('web.colonel.organizations.usage.members', { count: row.member_count })">{{ row.member_count }}m</span>
           <span class="mx-1">/</span>
-          <span :title="t('web.colonel.organizations.usage.domains', { count: row.domain_count })"
-            >{{ row.domain_count }}d</span
-          >
+          <span :title="t('web.colonel.organizations.usage.domains', { count: row.domain_count })">{{ row.domain_count }}d</span>
         </template>
 
         <!-- Created -->
@@ -624,11 +618,11 @@
               v-for="field in drawerFields"
               :key="field.key"
               :data-testid="`org-field-${field.key}`">
-              <dt class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              <dt class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
                 {{ field.label }}
               </dt>
               <dd
-                class="mt-0.5 break-words text-sm text-gray-900 dark:text-gray-100"
+                class="mt-0.5 text-sm break-words text-gray-900 dark:text-gray-100"
                 :class="field.mono ? 'font-mono text-xs' : ''">
                 {{ field.value }}
               </dd>
@@ -653,7 +647,7 @@
               type="button"
               data-testid="org-investigate-button"
               :disabled="investigateLoading"
-              class="inline-flex shrink-0 items-center gap-1 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
+              class="inline-flex shrink-0 items-center gap-1 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
               @click="runInvestigate">
               <OIcon
                 collection="heroicons"
@@ -718,15 +712,11 @@
                 </div>
                 <div class="mt-1 grid grid-cols-2 gap-4">
                   <div>
-                    <span class="text-gray-500 dark:text-gray-400"
-                      >{{ t('web.colonel.organizations.investigation.local') }}:</span
-                    >
+                    <span class="text-gray-500 dark:text-gray-400">{{ t('web.colonel.organizations.investigation.local') }}:</span>
                     <code class="ml-1 text-gray-900 dark:text-white">{{ issue.local }}</code>
                   </div>
                   <div>
-                    <span class="text-gray-500 dark:text-gray-400"
-                      >{{ t('web.colonel.organizations.investigation.stripe') }}:</span
-                    >
+                    <span class="text-gray-500 dark:text-gray-400">{{ t('web.colonel.organizations.investigation.stripe') }}:</span>
                     <code class="ml-1 text-gray-900 dark:text-white">{{ issue.stripe }}</code>
                   </div>
                 </div>
@@ -742,33 +732,25 @@
               </h4>
               <div class="grid grid-cols-2 gap-2 text-xs md:grid-cols-4">
                 <div>
-                  <span class="text-gray-500 dark:text-gray-400"
-                    >{{ t('web.colonel.organizations.investigation.statusLabel') }}:</span
-                  >
+                  <span class="text-gray-500 dark:text-gray-400">{{ t('web.colonel.organizations.investigation.statusLabel') }}:</span>
                   <span class="ml-1 font-medium text-gray-900 dark:text-white">{{
                     investigateResult.stripe.subscription.status
                   }}</span>
                 </div>
                 <div>
-                  <span class="text-gray-500 dark:text-gray-400"
-                    >{{ t('web.colonel.organizations.investigation.product') }}:</span
-                  >
+                  <span class="text-gray-500 dark:text-gray-400">{{ t('web.colonel.organizations.investigation.product') }}:</span>
                   <span class="ml-1 font-medium text-gray-900 dark:text-white">{{
                     investigateResult.stripe.subscription.product_name || 'N/A'
                   }}</span>
                 </div>
                 <div>
-                  <span class="text-gray-500 dark:text-gray-400"
-                    >{{ t('web.colonel.organizations.investigation.resolvedPlan') }}:</span
-                  >
+                  <span class="text-gray-500 dark:text-gray-400">{{ t('web.colonel.organizations.investigation.resolvedPlan') }}:</span>
                   <span class="ml-1 font-medium text-gray-900 dark:text-white">{{
                     investigateResult.stripe.subscription.resolved_plan_id || '(none)'
                   }}</span>
                 </div>
                 <div>
-                  <span class="text-gray-500 dark:text-gray-400"
-                    >{{ t('web.colonel.organizations.investigation.priceId') }}:</span
-                  >
+                  <span class="text-gray-500 dark:text-gray-400">{{ t('web.colonel.organizations.investigation.priceId') }}:</span>
                   <code class="ml-1 font-mono text-gray-700 dark:text-gray-300">{{
                     investigateResult.stripe.subscription.price_id || 'N/A'
                   }}</code>
@@ -783,7 +765,7 @@
 
             <!-- Raw payload (AC: JsonViewer replaces the legacy ad-hoc markup) -->
             <div>
-              <h4 class="mb-2 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              <h4 class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
                 {{ t('web.admin.organizations.investigate.rawPayload') }}
               </h4>
               <JsonViewer
@@ -808,7 +790,7 @@
           <div class="mt-4">
             <label
               for="org-entitlement-input"
-              class="block text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              class="block text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
               {{ t('web.admin.organizations.entitlements.inputLabel') }}
             </label>
             <div class="mt-2 flex flex-wrap gap-2">
@@ -820,12 +802,12 @@
                 spellcheck="false"
                 data-testid="org-entitlement-input"
                 :placeholder="t('web.admin.organizations.entitlements.placeholder')"
-                class="min-w-0 flex-1 rounded-md border border-gray-300 px-3 py-2 font-mono text-sm placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+                class="min-w-0 flex-1 rounded-md border border-gray-300 px-3 py-2 font-mono text-sm placeholder:text-gray-400 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
               <button
                 type="button"
                 data-testid="org-entitlement-grant"
                 :disabled="!entitlementInput.trim()"
-                class="inline-flex items-center gap-1 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
+                class="inline-flex items-center gap-1 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
                 @click="requestGrant">
                 {{ t('web.admin.organizations.entitlements.grant') }}
               </button>
@@ -833,7 +815,7 @@
                 type="button"
                 data-testid="org-entitlement-revoke"
                 :disabled="!entitlementInput.trim()"
-                class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
+                class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
                 @click="requestRevoke">
                 {{ t('web.admin.organizations.entitlements.revoke') }}
               </button>
@@ -857,7 +839,7 @@
             class="mt-5 space-y-3"
             data-testid="org-override-state">
             <div>
-              <p class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              <p class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
                 {{ t('web.admin.organizations.entitlements.effective') }}
               </p>
               <div class="mt-1 flex flex-wrap gap-1">
@@ -869,14 +851,12 @@
                 </span>
                 <span
                   v-if="overrideState.effective_entitlements.length === 0"
-                  class="text-xs text-gray-400 dark:text-gray-500"
-                  >—</span
-                >
+                  class="text-xs text-gray-400 dark:text-gray-500">—</span>
               </div>
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <p class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <p class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
                   {{ t('web.admin.organizations.entitlements.grants') }}
                 </p>
                 <div class="mt-1 flex flex-wrap gap-1">
@@ -888,13 +868,11 @@
                   </span>
                   <span
                     v-if="overrideState.grants.length === 0"
-                    class="text-xs text-gray-400 dark:text-gray-500"
-                    >—</span
-                  >
+                    class="text-xs text-gray-400 dark:text-gray-500">—</span>
                 </div>
               </div>
               <div>
-                <p class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <p class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
                   {{ t('web.admin.organizations.entitlements.revokes') }}
                 </p>
                 <div class="mt-1 flex flex-wrap gap-1">
@@ -906,9 +884,7 @@
                   </span>
                   <span
                     v-if="overrideState.revokes.length === 0"
-                    class="text-xs text-gray-400 dark:text-gray-500"
-                    >—</span
-                  >
+                    class="text-xs text-gray-400 dark:text-gray-500">—</span>
                 </div>
               </div>
             </div>

@@ -1,9 +1,6 @@
 <!-- src/apps/admin/views/AdminCustomers.vue -->
 
 <script setup lang="ts">
-  import { storeToRefs } from 'pinia';
-  import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   import {
     DataTable,
@@ -17,6 +14,9 @@
   import type { ColonelUser } from '@/schemas/api/internal/responses/colonel';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { formatDisplayDateTime } from '@/utils/format';
+  import { storeToRefs } from 'pinia';
+  import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   /**
    * Customers list — the filterable, index-backed table that replaces the
@@ -174,14 +174,14 @@
 <template>
   <div class="mx-auto max-w-6xl">
     <!-- Page header -->
-    <div class="mb-6">
-      <h2 class="font-brand text-2xl font-semibold text-gray-900 dark:text-white">
+    <header class="mb-6 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
+      <h2 class="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
         {{ t('web.admin.customers.title') }}
       </h2>
       <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.admin.customers.description') }}
       </p>
-    </div>
+    </header>
 
     <!-- Network/HTTP error banner (validation mismatches degrade to empty). -->
     <div
@@ -194,7 +194,7 @@
       </span>
       <button
         type="button"
-        class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
+        class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
         @click="fetchPage(1)">
         <OIcon
           collection="heroicons"
@@ -236,20 +236,28 @@
           <span class="font-medium text-gray-900 dark:text-white">{{ row.email }}</span>
           <span
             v-if="row.suspended"
-            class="ml-2 inline-flex rounded bg-red-100 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-red-800 dark:bg-red-900/40 dark:text-red-200"
+            class="ml-2 inline-flex rounded bg-red-100 px-2 py-0.5 text-xs font-semibold tracking-wide text-red-800 uppercase dark:bg-red-900/40 dark:text-red-200"
             data-testid="suspended-badge">
             {{ t('web.admin.customers.suspended.badge') }}
           </span>
         </template>
 
         <template #cell-role="{ row }">
+          <!-- Elevated roles are flagged as ATTENTION (amber), not danger:
+               red is reserved for destructive/suspended states. -->
           <span
-            class="inline-flex rounded px-2 py-0.5 text-xs font-medium"
+            class="inline-flex items-center gap-1 rounded px-2 py-0.5 font-brand text-[11px] font-semibold tracking-wide uppercase"
             :class="
               row.role === 'colonel' || row.role === 'admin'
-                ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200'
-                : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+                ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200'
+                : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'
             ">
+            <OIcon
+              v-if="row.role === 'colonel' || row.role === 'admin'"
+              collection="heroicons"
+              name="shield-check"
+              size="3"
+              class="shrink-0" />
             {{ t(`web.admin.customers.roles.${row.role}`, row.role) }}
           </span>
         </template>
@@ -265,9 +273,7 @@
           <span
             v-else
             class="text-gray-400 dark:text-gray-600"
-            :aria-label="t('web.admin.customers.detail.no')"
-            >—</span
-          >
+            :aria-label="t('web.admin.customers.detail.no')">—</span>
         </template>
 
         <template #cell-plan="{ row }">
@@ -275,15 +281,19 @@
         </template>
 
         <template #cell-secrets="{ row }">
-          {{ row.secrets_count }}
+          <span class="font-mono tabular-nums">{{ row.secrets_count }}</span>
         </template>
 
         <template #cell-created="{ row }">
-          {{ formatDisplayDateTime(row.created) }}
+          <span class="text-gray-500 tabular-nums dark:text-gray-400">{{
+            formatDisplayDateTime(row.created)
+          }}</span>
         </template>
 
         <template #cell-lastLogin="{ row }">
-          {{ row.last_login ? formatDisplayDateTime(row.last_login) : t('web.admin.customers.detail.never') }}
+          <span class="text-gray-500 tabular-nums dark:text-gray-400">{{
+            row.last_login ? formatDisplayDateTime(row.last_login) : t('web.admin.customers.detail.never')
+          }}</span>
         </template>
       </DataTable>
     </div>
@@ -348,12 +358,17 @@
               :key="field.key"
               :data-testid="`customer-field-${field.key}`">
               <dt
-                class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                class="font-brand text-[11px] font-semibold tracking-[0.1em] text-gray-500 uppercase dark:text-gray-400">
                 {{ field.label }}
               </dt>
               <dd
-                class="mt-0.5 break-words text-sm text-gray-900 dark:text-gray-100"
-                :class="field.mono ? 'font-mono text-xs' : ''">
+                v-if="field.mono"
+                class="mt-1 inline-block rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs break-all text-gray-700 tabular-nums dark:bg-gray-800 dark:text-gray-300">
+                {{ field.value }}
+              </dd>
+              <dd
+                v-else
+                class="mt-1 text-sm break-words text-gray-900 tabular-nums dark:text-gray-100">
                 {{ field.value }}
               </dd>
             </div>
@@ -364,7 +379,7 @@
         <section class="border-t border-gray-200 pt-6 dark:border-gray-800">
           <router-link
             :to="{ name: 'AdminCustomerDetail', params: { id: selectedCustomer.user_id } }"
-            class="inline-flex items-center gap-1.5 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 dark:bg-brand-500 dark:hover:bg-brand-600"
+            class="inline-flex items-center gap-1.5 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 focus:outline-none dark:bg-brand-500 dark:hover:bg-brand-600"
             data-testid="customer-open-full-page">
             {{ t('web.admin.customers.detail.openFullPage') }}
             <OIcon

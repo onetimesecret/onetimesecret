@@ -1,9 +1,6 @@
 <!-- src/apps/admin/views/AdminCustomerDetail.vue -->
 
 <script setup lang="ts">
-  import { computed, onMounted, ref, watch } from 'vue';
-  import { useI18n } from 'vue-i18n';
-  import { useRouter } from 'vue-router';
 
   import { AdminConfirmDialog, DataTable, StatCard } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
@@ -23,6 +20,9 @@
   import { useNotificationsStore } from '@/shared/stores/notificationsStore';
   import { formatDisplayDateTime } from '@/utils/format';
   import { gracefulParse } from '@/utils/schemaValidation';
+  import { computed, onMounted, ref, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRouter } from 'vue-router';
 
   /**
    * Customer detail — the "support without SSH" read-out plus the guarded
@@ -476,7 +476,7 @@
     <!-- Back link -->
     <button
       type="button"
-      class="mb-4 inline-flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-gray-400 dark:hover:text-gray-200"
+      class="mb-4 inline-flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-700 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-gray-400 dark:hover:text-gray-200"
       data-testid="detail-back"
       @click="goBack">
       <OIcon
@@ -517,7 +517,7 @@
       </p>
       <button
         type="button"
-        class="mt-4 inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+        class="mt-4 inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
         @click="goBack">
         {{ t('web.admin.customers.detail.backToList') }}
       </button>
@@ -539,7 +539,7 @@
       </p>
       <button
         type="button"
-        class="mt-4 inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
+        class="mt-4 inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-medium text-red-800 hover:bg-red-100 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
         @click="loadUser().catch(() => {})">
         <OIcon
           collection="heroicons"
@@ -555,8 +555,8 @@
       class="space-y-6"
       data-testid="detail-content">
       <!-- Header -->
-      <div class="flex flex-wrap items-center gap-3">
-        <h2 class="font-brand text-2xl font-semibold text-gray-900 dark:text-white">
+      <div class="flex flex-wrap items-center gap-3 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
+        <h2 class="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
           {{ record.email }}
         </h2>
         <span
@@ -570,7 +570,7 @@
         </span>
         <span
           v-if="record.verified"
-          class="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200">
+          class="inline-flex items-center gap-1 rounded bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/40 dark:text-green-200">
           <OIcon
             collection="heroicons"
             name="check-circle"
@@ -579,7 +579,7 @@
         </span>
         <span
           v-if="record.suspended"
-          class="inline-flex items-center gap-1 rounded bg-red-100 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-red-800 dark:bg-red-900/40 dark:text-red-200"
+          class="inline-flex items-center gap-1 rounded bg-red-100 px-2 py-0.5 text-xs font-semibold tracking-wide text-red-800 uppercase dark:bg-red-900/40 dark:text-red-200"
           data-testid="suspended-badge">
           <OIcon
             collection="heroicons"
@@ -617,7 +617,7 @@
       <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <!-- Profile -->
         <section
-          class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900 lg:col-span-2">
+          class="rounded-lg border border-gray-200 bg-white shadow-sm lg:col-span-2 dark:border-gray-800 dark:bg-gray-900">
           <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
             <h3 class="text-lg font-medium text-gray-900 dark:text-white">
               {{ t('web.admin.customers.detail.sections.profile') }}
@@ -628,10 +628,10 @@
               v-for="field in profileFields"
               :key="field.key"
               :data-testid="`profile-${field.key}`">
-              <dt class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              <dt class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
                 {{ field.label }}
               </dt>
-              <dd class="mt-1 break-words text-sm text-gray-900 dark:text-gray-100">
+              <dd class="mt-1 text-sm break-words text-gray-900 dark:text-gray-100">
                 {{ field.value }}
               </dd>
             </div>
@@ -652,7 +652,7 @@
             <div>
               <label
                 for="detail-role-select"
-                class="block text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                class="block text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
                 {{ t('web.admin.customers.actions.role.label') }}
               </label>
               <div class="mt-2 flex gap-2">
@@ -660,7 +660,7 @@
                   id="detail-role-select"
                   v-model="pendingRole"
                   data-testid="role-select"
-                  class="min-w-0 flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                  class="min-w-0 flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">
                   <option
                     v-for="role in ROLE_OPTIONS"
                     :key="role"
@@ -672,7 +672,7 @@
                   type="button"
                   data-testid="role-apply"
                   :disabled="pendingRole === record.role"
-                  class="inline-flex shrink-0 items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
+                  class="inline-flex shrink-0 items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
                   @click="requestSetRole">
                   {{ t('web.admin.customers.actions.role.apply') }}
                 </button>
@@ -683,7 +683,7 @@
             <div>
               <label
                 for="detail-plan-select"
-                class="block text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                class="block text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
                 {{ t('web.admin.customers.actions.plan.label') }}
               </label>
               <div class="mt-2 flex gap-2">
@@ -691,7 +691,7 @@
                   id="detail-plan-select"
                   v-model="pendingPlan"
                   data-testid="plan-select"
-                  class="min-w-0 flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                  class="min-w-0 flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">
                   <option
                     v-for="plan in planOptions"
                     :key="plan.planid"
@@ -703,7 +703,7 @@
                   type="button"
                   data-testid="plan-apply"
                   :disabled="pendingPlan === record.planid"
-                  class="inline-flex shrink-0 items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
+                  class="inline-flex shrink-0 items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
                   @click="requestChangePlan">
                   {{ t('web.admin.customers.actions.plan.apply') }}
                 </button>
@@ -722,7 +722,7 @@
               v-if="!record.verified"
               type="button"
               data-testid="verify-button"
-              class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+              class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
               @click="requestAction('verify')">
               <OIcon
                 collection="heroicons"
@@ -734,7 +734,7 @@
               v-else
               type="button"
               data-testid="unverify-button"
-              class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+              class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
               @click="requestAction('unverify')">
               <OIcon
                 collection="heroicons"
@@ -754,7 +754,7 @@
                   <div>
                     <label
                       for="suspend-reason-input"
-                      class="block text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                      class="block text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
                       {{ t('web.admin.customers.actions.suspend.reasonLabel') }}
                     </label>
                     <input
@@ -764,12 +764,12 @@
                       maxlength="255"
                       data-testid="suspend-reason"
                       :placeholder="t('web.admin.customers.actions.suspend.reasonPlaceholder')"
-                      class="mt-2 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:placeholder:text-gray-500" />
+                      class="mt-2 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 placeholder:text-gray-400 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:placeholder:text-gray-500" />
                   </div>
                   <button
                     type="button"
                     data-testid="suspend-button"
-                    class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
+                    class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
                     @click="requestAction('suspend')">
                     <OIcon
                       collection="heroicons"
@@ -783,7 +783,7 @@
                 v-else
                 type="button"
                 data-testid="unsuspend-button"
-                class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+                class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
                 @click="requestAction('unsuspend')">
                 <OIcon
                   collection="heroicons"
@@ -798,7 +798,7 @@
               <button
                 type="button"
                 data-testid="purge-button"
-                class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
+                class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
                 @click="requestAction('purge')">
                 <OIcon
                   collection="heroicons"
@@ -827,10 +827,10 @@
             v-for="field in billingFields"
             :key="field.key"
             :data-testid="`billing-${field.key}`">
-            <dt class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            <dt class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
               {{ field.label }}
             </dt>
-            <dd class="mt-1 break-words text-sm text-gray-900 dark:text-gray-100">
+            <dd class="mt-1 text-sm break-words text-gray-900 dark:text-gray-100">
               {{ field.value }}
             </dd>
           </div>
@@ -843,7 +843,7 @@
             target="_blank"
             rel="noopener noreferrer"
             data-testid="billing-stripe-link"
-            class="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
+            class="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-brand-400 dark:hover:text-brand-300">
             <OIcon
               collection="heroicons"
               name="arrow-top-right-on-square"
@@ -876,9 +876,7 @@
         <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
           <h3 class="text-lg font-medium text-gray-900 dark:text-white">
             {{ t('web.admin.customers.detail.sections.secrets') }}
-            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400"
-              >({{ details.secrets.count }})</span
-            >
+            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400">({{ details.secrets.count }})</span>
           </h3>
         </div>
         <DataTable
@@ -902,9 +900,7 @@
         <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
           <h3 class="text-lg font-medium text-gray-900 dark:text-white">
             {{ t('web.admin.customers.detail.sections.receipts') }}
-            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400"
-              >({{ details.receipts.count }})</span
-            >
+            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400">({{ details.receipts.count }})</span>
           </h3>
         </div>
         <DataTable
@@ -925,9 +921,7 @@
         <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
           <h3 class="text-lg font-medium text-gray-900 dark:text-white">
             {{ t('web.admin.customers.detail.sections.organizations') }}
-            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400"
-              >({{ details.organizations.length }})</span
-            >
+            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400">({{ details.organizations.length }})</span>
           </h3>
         </div>
         <ul

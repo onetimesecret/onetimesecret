@@ -1,9 +1,6 @@
 <!-- src/apps/admin/views/AdminAuditLog.vue -->
 
 <script setup lang="ts">
-  import { storeToRefs } from 'pinia';
-  import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   import { DataTable, FilterBar, KitPagination } from '@/apps/admin/components/kit';
   import type { DataTableColumn, FilterConfig } from '@/apps/admin/components/kit';
@@ -11,6 +8,9 @@
   import type { ColonelAuditEvent } from '@/schemas/api/internal/responses/colonel-audit';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { formatDisplayDateTime } from '@/utils/format';
+  import { storeToRefs } from 'pinia';
+  import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   /**
    * Audit Log screen (observability lane) — the playback for the flight
@@ -155,14 +155,14 @@
 <template>
   <div class="mx-auto max-w-6xl">
     <!-- Page header -->
-    <div class="mb-6">
-      <h2 class="font-brand text-2xl font-semibold text-gray-900 dark:text-white">
+    <header class="mb-6 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
+      <h2 class="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
         {{ t('web.admin.audit.title') }}
       </h2>
       <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.admin.audit.description') }}
       </p>
-    </div>
+    </header>
 
     <!-- Network/HTTP error banner (validation mismatches degrade to empty). -->
     <div
@@ -175,7 +175,7 @@
       </span>
       <button
         type="button"
-        class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
+        class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
         @click="fetchPage(1)">
         <OIcon
           collection="heroicons"
@@ -208,7 +208,7 @@
         :empty-text="t('web.admin.audit.list.empty')"
         testid="audit-table">
         <template #cell-created="{ row }">
-          <span class="whitespace-nowrap text-gray-900 dark:text-white">
+          <span class="whitespace-nowrap text-gray-900 tabular-nums dark:text-white">
             {{ formatDisplayDateTime(row.created) }}
           </span>
         </template>
