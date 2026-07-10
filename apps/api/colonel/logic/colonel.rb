@@ -49,7 +49,9 @@ require_relative 'colonel/verify_custom_domain'
 
 # Organizations
 require_relative 'colonel/list_organizations'
+require_relative 'colonel/get_organization_detail'
 require_relative 'colonel/investigate_organization'
+require_relative 'colonel/reconcile_organization'
 require_relative 'colonel/manage_entitlement_override'
 
 # Usage export

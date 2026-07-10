@@ -65,7 +65,9 @@ module ColonelAPI
             {
               user_id: cust.extid,
               extid: cust.extid,
-              email: cust.obscure_email,
+              # FULL address (colonel-only, scope=internal). The admin table
+              # obscures it client-side and reveals on interaction — RevealEmail.vue.
+              email: cust.email,
               role: cust.role,
               verified: cust.verified?,
               suspended: cust.suspended?,

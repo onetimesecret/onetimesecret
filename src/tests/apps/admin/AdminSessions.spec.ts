@@ -158,7 +158,9 @@ describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40
     const table = wrapper.find('[data-testid="sessions-table"]');
     expect(table.exists()).toBe(true);
     expect(table.text()).toContain(SID);
-    expect(table.text()).toContain('alice@example.com');
+    // Email is obscured by default (RevealEmail); full address hidden until reveal.
+    expect(table.text()).not.toContain('alice@example.com');
+    expect(table.text()).toContain('a•••@e•••.com');
   });
 
   it('debounces the search box into a single filtered fetch', async () => {

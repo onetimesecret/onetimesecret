@@ -63,6 +63,7 @@ export const CONSOLE_SECTIONS: ConsoleSection[] = [
     labelKey: 'web.colonel.titles.index',
     icon: 'home',
     group: 'overview',
+    hide: false,
     to: '/colonel',
   },
 
@@ -70,7 +71,8 @@ export const CONSOLE_SECTIONS: ConsoleSection[] = [
     key: 'customers',
     labelKey: 'web.colonel.titles.users',
     icon: 'users',
-    group: 'identity',
+    group: 'security',
+    hide: false,
     to: '/colonel/customers',
   },
   {
@@ -78,20 +80,23 @@ export const CONSOLE_SECTIONS: ConsoleSection[] = [
     labelKey: 'web.colonel.titles.organizations',
     icon: 'building-office',
     group: 'identity',
+    hide: false,
     to: '/colonel/organizations',
   },
   {
     key: 'sessions',
     labelKey: 'web.admin.sessions.title',
     icon: 'finger-print',
-    group: 'identity',
+    group: 'security',
+    hide: false,
     to: '/colonel/sessions',
   },
   {
     key: 'secrets',
     labelKey: 'web.colonel.titles.secrets',
     icon: 'key',
-    group: 'identity',
+    group: 'platform',
+    hide: false,
     to: '/colonel/secrets',
   },
 
@@ -100,6 +105,7 @@ export const CONSOLE_SECTIONS: ConsoleSection[] = [
     labelKey: 'web.admin.audit.title',
     icon: 'document-text',
     group: 'security',
+    hide: false,
     to: '/colonel/audit',
   },
   {
@@ -107,6 +113,7 @@ export const CONSOLE_SECTIONS: ConsoleSection[] = [
     labelKey: 'web.colonel.titles.bannedIps',
     icon: 'no-symbol',
     group: 'security',
+    hide: true,
     to: '/colonel/banned-ips',
   },
 
@@ -115,13 +122,15 @@ export const CONSOLE_SECTIONS: ConsoleSection[] = [
     labelKey: 'web.colonel.titles.system',
     icon: 'cog-6-tooth',
     group: 'platform',
+    hide: false,
     to: '/colonel/system',
   },
   {
     key: 'domains',
     labelKey: 'web.colonel.titles.domains',
     icon: 'globe-alt',
-    group: 'platform',
+    group: 'identity',
+    hide: false,
     to: '/colonel/domains',
   },
   {
@@ -129,6 +138,7 @@ export const CONSOLE_SECTIONS: ConsoleSection[] = [
     labelKey: 'web.admin.domaintoolbox.title',
     icon: 'shield-exclamation',
     group: 'platform',
+    hide: false,
     to: '/colonel/domain-toolbox',
   },
   {
@@ -136,6 +146,7 @@ export const CONSOLE_SECTIONS: ConsoleSection[] = [
     labelKey: 'web.admin.emailtools.title',
     icon: 'envelope',
     group: 'platform',
+    hide: false,
     to: '/colonel/email-tools',
   },
 
@@ -144,6 +155,7 @@ export const CONSOLE_SECTIONS: ConsoleSection[] = [
     labelKey: 'web.admin.billing.title',
     icon: 'credit-card',
     group: 'billing',
+    hide: false,
     to: '/colonel/billing',
   },
   {
@@ -151,6 +163,7 @@ export const CONSOLE_SECTIONS: ConsoleSection[] = [
     labelKey: 'web.colonel.titles.usage',
     icon: 'rectangle-group',
     group: 'billing',
+    hide: true,
     to: '/colonel/usage',
   },
 
@@ -159,6 +172,7 @@ export const CONSOLE_SECTIONS: ConsoleSection[] = [
     labelKey: 'web.admin.banner.title',
     icon: 'bell',
     group: 'communications',
+    hide: false,
     to: '/colonel/banner',
   },
 ];

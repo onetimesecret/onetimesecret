@@ -272,7 +272,9 @@ module ColonelAPI
           {
             record: {
               extid: user.extid,
-              email: user.obscure_email,
+              # FULL address (colonel-only, scope=internal); obscured client-side
+              # and revealed on interaction via RevealEmail.vue.
+              email: user.email,
               role: user.role,
               verified: user.verified?,
               suspended: user.suspended?,

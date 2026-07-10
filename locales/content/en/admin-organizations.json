@@ -142,5 +142,131 @@
   "web.admin.organizations.entitlements.success.cleared": {
     "text": "All entitlement overrides cleared.",
     "content_hash": "a482743b"
+  },
+  "web.admin.organizations.detail.backToList": {
+    "text": "Back to organizations"
+  },
+  "web.admin.organizations.detail.notFound": {
+    "text": "Organization not found"
+  },
+  "web.admin.organizations.detail.notFoundDescription": {
+    "text": "This organization may have been deleted, or the id is incorrect."
+  },
+  "web.admin.organizations.detail.loadError": {
+    "text": "Could not load this organization."
+  },
+  "web.admin.organizations.detail.none": {
+    "text": "—"
+  },
+  "web.admin.organizations.detail.sections.billing": {
+    "text": "Billing"
+  },
+  "web.admin.organizations.detail.sections.members": {
+    "text": "Members"
+  },
+  "web.admin.organizations.detail.sections.domains": {
+    "text": "Domains"
+  },
+  "web.admin.organizations.detail.sections.investigate": {
+    "text": "Investigate & reconcile"
+  },
+  "web.admin.organizations.detail.badges.default": {
+    "text": "Default workspace"
+  },
+  "web.admin.organizations.detail.badges.archived": {
+    "text": "Archived"
+  },
+  "web.admin.organizations.detail.entitlements.description": {
+    "text": "Effective entitlements resolve to (plan ∪ grants) − revokes. Review the breakdown before making an override."
+  },
+  "web.admin.organizations.detail.entitlements.inSync": {
+    "text": "In sync"
+  },
+  "web.admin.organizations.detail.entitlements.driftBadge": {
+    "text": "Drift"
+  },
+  "web.admin.organizations.detail.entitlements.staleBadge": {
+    "text": "Plan stale"
+  },
+  "web.admin.organizations.detail.entitlements.driftWarning": {
+    "text": "Materialized entitlements do not match the expected set. Reconcile to re-materialize."
+  },
+  "web.admin.organizations.detail.entitlements.driftExtra": {
+    "text": "Extra (materialized, not expected)"
+  },
+  "web.admin.organizations.detail.entitlements.driftMissing": {
+    "text": "Missing (expected, not materialized)"
+  },
+  "web.admin.organizations.detail.entitlements.plan": {
+    "text": "From plan"
+  },
+  "web.admin.organizations.detail.entitlements.materialized": {
+    "text": "Materialized (effective)"
+  },
+  "web.admin.organizations.detail.members.email": {
+    "text": "Member"
+  },
+  "web.admin.organizations.detail.members.role": {
+    "text": "Role"
+  },
+  "web.admin.organizations.detail.members.status": {
+    "text": "Status"
+  },
+  "web.admin.organizations.detail.members.joined": {
+    "text": "Joined"
+  },
+  "web.admin.organizations.detail.members.owner": {
+    "text": "Owner"
+  },
+  "web.admin.organizations.detail.members.empty": {
+    "text": "No members."
+  },
+  "web.admin.organizations.detail.domains.domain": {
+    "text": "Domain"
+  },
+  "web.admin.organizations.detail.domains.state": {
+    "text": "State"
+  },
+  "web.admin.organizations.detail.domains.created": {
+    "text": "Created"
+  },
+  "web.admin.organizations.detail.domains.ready": {
+    "text": "Ready"
+  },
+  "web.admin.organizations.detail.domains.resolving": {
+    "text": "Resolving"
+  },
+  "web.admin.organizations.detail.domains.empty": {
+    "text": "No domains."
+  },
+  "web.admin.organizations.detail.reconcile.button": {
+    "text": "Reconcile"
+  },
+  "web.admin.organizations.detail.reconcile.confirmTitle": {
+    "text": "Reconcile organization billing?"
+  },
+  "web.admin.organizations.detail.reconcile.confirmDescription": {
+    "text": "This re-pulls Stripe and rewrites the billing state and entitlements for {org}. Retype the organization id to confirm."
+  },
+  "web.admin.organizations.detail.reconcile.success": {
+    "text": "Organization reconciled."
+  },
+  "web.admin.organizations.detail.reconcile.resultTitle": {
+    "text": "Reconcile result"
+  },
+  "web.admin.organizations.detail.reconcile.before": {
+    "text": "Before"
+  },
+  "web.admin.organizations.detail.reconcile.after": {
+    "text": "After"
+  },
+  "web.admin.organizations.detail.reconcile.materializedCount": {
+    "text": "Entitlement count"
+  },
+  "web.admin.organizations.detail.reconcile.mode.stripe_sync": {
+    "text": "Stripe sync"
+  },
+  "web.admin.organizations.detail.reconcile.mode.entitlements_only": {
+    "text": "Entitlements only"
   }
 }

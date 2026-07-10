@@ -71,12 +71,17 @@ module ColonelAPI
             org_id: org.objid,
             extid: org.extid,
             display_name: org.display_name,
-            # Masked like owner_email below — the listing needs a recognizable
-            # identifier, not a raw address (QA 2026-07-07: contact_email was
-            # the one email in this payload returned unmasked).
-            contact_email: OT::Utils.obscure_email(org.contact_email),
+            # FULL addresses (colonel-only, scope=internal). The admin table
+            # obscures every email by default and reveals on interaction via
+            # RevealEmail.vue, so all three addresses here — contact, owner and
+            # billing — arrive raw and are masked client-side. This replaces the
+            # earlier server-side masking of contact_email/owner_email, which was
+            # inconsistent (billing_email was always sent raw) and irreversible
+            # (the operator could never see the address even when support work
+            # required it).
+            contact_email: org.contact_email,
             owner_id: org.owner_id,
-            owner_email: owner&.obscure_email,
+            owner_email: owner&.email,
             member_count: org.member_count,
             domain_count: org.domain_count,
             is_default: org.is_default.to_s == 'true',

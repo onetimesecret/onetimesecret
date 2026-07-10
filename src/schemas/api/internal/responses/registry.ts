@@ -33,11 +33,12 @@ import {
   colonelSecretDeleteResponseSchema,
 } from './colonel-secrets';
 import { colonelDomainVerifyResponseSchema } from './colonel-domains';
-import { colonelEntitlementOverrideResponseSchema } from './colonel-organizations';
 import {
-  colonelBanIpResponseSchema,
-  colonelUnbanIpResponseSchema,
-} from './colonel-bannedips';
+  colonelEntitlementOverrideResponseSchema,
+  colonelOrganizationDetailResponseSchema,
+  colonelReconcileOrganizationResponseSchema,
+} from './colonel-organizations';
+import { colonelBanIpResponseSchema, colonelUnbanIpResponseSchema } from './colonel-bannedips';
 
 // Colonel (admin) per-resource schemas — Phase-3 screens (tickets #40-45).
 // The DLQ console and the rate-limit inspect/reset UI were removed by design
@@ -146,7 +147,9 @@ export const responseSchemas = {
   customDomains: colonelCustomDomainsResponseSchema,
   colonelDomainVerify: colonelDomainVerifyResponseSchema,
   colonelOrganizations: colonelOrganizationsResponseSchema,
+  colonelOrganizationDetail: colonelOrganizationDetailResponseSchema,
   investigateOrganization: investigateOrganizationResponseSchema,
+  colonelReconcileOrganization: colonelReconcileOrganizationResponseSchema,
   colonelEntitlementOverride: colonelEntitlementOverrideResponseSchema,
   databaseMetrics: databaseMetricsResponseSchema,
   redisMetrics: redisMetricsResponseSchema,

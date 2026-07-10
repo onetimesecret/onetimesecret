@@ -838,10 +838,10 @@
     "text": "Console"
   },
   "web.colonel.nav.groups.identity": {
-    "text": "Identity & Access"
+    "text": "Identity"
   },
   "web.colonel.nav.groups.security": {
-    "text": "Security"
+    "text": "Access & Security"
   },
   "web.colonel.nav.groups.platform": {
     "text": "Platform"

@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
 
+  import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
   import {
     AdminConfirmDialog,
     DataTable,
@@ -344,7 +345,12 @@
         </template>
 
         <template #cell-email="{ row }">
-          <span class="text-gray-900 dark:text-white">{{ emailLabel(row.email) }}</span>
+          <span class="text-gray-900 dark:text-white">
+            <RevealEmail
+              v-if="row.email"
+              :email="row.email" />
+            <template v-else>{{ emailLabel(row.email) }}</template>
+          </span>
         </template>
 
         <template #cell-external_id="{ row }">
@@ -464,7 +470,10 @@
                 {{ field.label }}
               </dt>
               <dd class="mt-0.5 font-mono text-sm break-words text-gray-900 dark:text-gray-100">
-                {{ field.value }}
+                <RevealEmail
+                  v-if="field.key === 'email' && selectedSession?.email"
+                  :email="selectedSession.email" />
+                <template v-else>{{ field.value }}</template>
               </dd>
             </div>
           </dl>

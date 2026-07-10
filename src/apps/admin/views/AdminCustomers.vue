@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
 
+  import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
   import {
     DataTable,
     DetailDrawer,
@@ -233,7 +234,9 @@
         testid="customers-table"
         @row-click="openDetail">
         <template #cell-email="{ row }">
-          <span class="font-medium text-gray-900 dark:text-white">{{ row.email }}</span>
+          <span class="font-medium text-gray-900 dark:text-white">
+            <RevealEmail :email="row.email" />
+          </span>
           <span
             v-if="row.suspended"
             class="ml-2 inline-flex rounded bg-red-100 px-2 py-0.5 text-xs font-semibold tracking-wide text-red-800 uppercase dark:bg-red-900/40 dark:text-red-200"
