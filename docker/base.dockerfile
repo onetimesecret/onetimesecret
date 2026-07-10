@@ -85,7 +85,8 @@ RUN set -eux && \
     ln -sf /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm && \
     ln -sf /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx && \
     node --version && npm --version && \
-    npm install -g pnpm@10 && \
+    # Keep pnpm version in sync with package.json's "packageManager" field.
+    npm install -g pnpm@11.10.0 && \
     pnpm --version
 
 # Create non-root user
