@@ -7,6 +7,7 @@
   import { useTheme } from '@/shared/composables/useTheme';
   import { storeToRefs } from 'pinia';
   import type { LayoutProps } from '@/types/ui/layouts';
+  import { bannerAudienceAllows } from '@/shared/utils/banner-visibility';
   import { isColorValue } from '@/utils/color-utils';
   import { computed, onMounted } from 'vue';
 
@@ -29,35 +30,15 @@
   // If there's a global banner set (in redis), this will be true.
   const hasGlobalBanner = computed(() => !!global_banner.value);
 
-  /**
-   * Whether the banner's audience scope permits this page.
-   *
-   * The banner carries a scope (set on /colonel/banner). Custom-domain pages are
-   * suppressed UNLESS the operator chose 'all' (truly global), because branded
-   * recipient surfaces shouldn't carry OTS-operator announcements by default.
-   *
-   *   all           → every audience, including custom domains + recipient pages
-   *   no_recipient  → every audience except recipient; not on custom domains
-   *   workspace     → workspace pages only; not on custom domains
-   */
-  const audienceAllows = computed(() => {
-    const scope = global_banner_scope.value ?? 'no_recipient';
-    const audience = props.bannerAudience;
-
-    if (identityStore.domainStrategy === 'custom') {
-      return scope === 'all';
-    }
-
-    switch (scope) {
-      case 'all':
-        return true;
-      case 'workspace':
-        return audience === 'workspace';
-      case 'no_recipient':
-      default:
-        return audience !== 'recipient';
-    }
-  });
+  // Whether the banner's stored audience scope permits this page (custom-domain
+  // suppression + recipient/workspace matching live in the shared pure helper).
+  const audienceAllows = computed(() =>
+    bannerAudienceAllows(
+      global_banner_scope.value,
+      props.bannerAudience,
+      identityStore.domainStrategy
+    )
+  );
 
   // Show the broadcast only when the feature is on for this layout, a banner
   // exists, AND the banner's audience scope permits this page.
