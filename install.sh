@@ -34,7 +34,9 @@ check_version() {
   has "$cmd" || die "$name not found (need $required)"
 
   actual=$(eval "$extractor")
-  [[ "$actual" == "$required" ]] || die "$name version mismatch: have $actual, need $required"
+  if [[ "$actual" != "$required" ]] && [[ "$(printf '%s\n%s\n' "$required" "$actual" | sort -V | head -n1)" != "$required" ]]; then
+    die "$name too old: have $actual, need $required+"
+  fi
 
   info "$name $actual"
 }
@@ -177,7 +179,7 @@ cmd_init() {
   info "Initializing..."
 
   check_version "Ruby" ruby .ruby-version 'ruby -e "puts RUBY_VERSION"'
-  check_version_major "Node" node .nvmrc 'node -v'
+  check_version_major "Node" node .node-version 'node -v'
 
   # Install dependencies first — bundle exec is needed for subsequent steps
   install_gems
@@ -257,7 +259,7 @@ cmd_doctor() {
   info "Checking environment..."
 
   (check_version "Ruby" ruby .ruby-version 'ruby -e "puts RUBY_VERSION"') || true
-  (check_version_major "Node" node .nvmrc 'node -v') || true
+  (check_version_major "Node" node .node-version 'node -v') || true
 
   read -r rhost rport < <(redis_host_port)
   if has valkey-cli && valkey-cli -h "$rhost" -p "$rport" ping &>/dev/null; then

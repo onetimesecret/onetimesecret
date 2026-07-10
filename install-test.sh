@@ -9,7 +9,7 @@
 #   - Picks a datastore CLI/server: valkey-* if present, else redis-* (Valkey
 #     is wire-compatible with Redis, and the test config talks plain redis://)
 #   - Verifies the required toolchain (ruby, bundler, pnpm, a datastore)
-#   - Warns if Ruby is older than the Gemfile floor (>= 3.4.7)
+#   - Warns if Ruby is older than the pinned version in .ruby-version (3.4.9)
 #   - Seeds etc/ config files from etc/defaults/ (mirrors CI)
 #   - Installs Ruby gems and Node dependencies if they are missing
 #   - Starts a throwaway test datastore on port 2121 (no persistence)
@@ -51,7 +51,7 @@ export VALKEY_CLI VALKEY_SERVER
 # --- Required tools ---------------------------------------------------
 
 missing_required=()
-command -v ruby   &>/dev/null || missing_required+=("ruby    (>= 3.4.7):  https://www.ruby-lang.org/")
+command -v ruby   &>/dev/null || missing_required+=("ruby    (>= 3.4.9):  https://www.ruby-lang.org/")
 command -v bundle &>/dev/null || missing_required+=("bundler (gem install bundler)")
 command -v pnpm   &>/dev/null || missing_required+=("pnpm    (Node package manager):  https://pnpm.io/installation")
 if [[ -z "$VALKEY_CLI" || -z "$VALKEY_SERVER" ]]; then
@@ -69,14 +69,14 @@ echo "OK:   datastore -> server '$VALKEY_SERVER', cli '$VALKEY_CLI'"
 
 # --- Ruby version (soft check) ---------------------------------------
 #
-# The Gemfile pins `ruby '>= 3.4.7'`; bundler will refuse to run on anything
-# older. Warn early with an actionable message instead of failing deep inside
-# `bundle install`.
+# The Gemfile pins Ruby via `.ruby-version` (`ruby file: '.ruby-version'`);
+# bundler will refuse to run on anything older. Warn early with an actionable
+# message instead of failing deep inside `bundle install`.
 
-required_ruby="3.4.7"
+required_ruby="$([[ -f .ruby-version ]] && tr -d '[:space:]' < .ruby-version || echo '3.4.9')"
 current_ruby="$(ruby -e 'print RUBY_VERSION')"
 if ! printf '%s\n%s\n' "$required_ruby" "$current_ruby" | sort -V -C; then
-    echo "Warning: Ruby $current_ruby is older than the Gemfile floor ($required_ruby)."
+    echo "Warning: Ruby $current_ruby is older than the pinned .ruby-version ($required_ruby)."
     echo "  Install $required_ruby+ with rbenv/rvm/asdf and re-run, or gems will not install."
 else
     echo "OK:   Ruby $current_ruby satisfies >= $required_ruby"
