@@ -27,6 +27,7 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       custid: 'cust-target-456',
       extid: 'ext-cust-target',
       email: 'member@example.com',
+      locale: 'en',
       anonymous?: false,
       verified?: true
     )
@@ -91,6 +92,9 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
     allow(OT).to receive(:info)
     allow(OT).to receive(:ld)
     allow(Familia).to receive(:now).and_return(Time.now.to_f)
+    # process fires a best-effort role_changed notification; stub the queue so
+    # specs don't reach RabbitMQ.
+    allow(Onetime::Jobs::Publisher).to receive(:enqueue_email)
   end
 
   describe '#process_params' do

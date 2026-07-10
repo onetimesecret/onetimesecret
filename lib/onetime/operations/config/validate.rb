@@ -51,26 +51,46 @@ module Onetime
 
         def call
           unless File.exist?(@config_path)
-            return Result.new(success: false, config_path: @config_path, schema_path: @schema_path,
-                              errors: ["Config file not found: #{@config_path}"])
+            return Result.new(
+              success: false,
+              config_path: @config_path,
+              schema_path: @schema_path,
+              errors: ["Config file not found: #{@config_path}"],
+            )
           end
 
           unless File.exist?(@schema_path)
-            return Result.new(success: false, config_path: @config_path, schema_path: @schema_path,
-                              errors: ["Schema file not found: #{@schema_path} " \
-                                       '(run `pnpm run schemas:json:generate`)'])
+            return Result.new(
+              success: false,
+              config_path: @config_path,
+              schema_path: @schema_path,
+              errors: ["Schema file not found: #{@schema_path} " \
+                       '(run `pnpm run schemas:json:generate`)'],
+            )
           end
 
           report("Validating #{@config_path}")
           report("Schema:    #{@schema_path}")
 
           config = load_config(@config_path)
-          return Result.new(success: false, config_path: @config_path, schema_path: @schema_path,
-                            errors: ['Failed to load config (YAML or ERB syntax error)']) unless config
+          unless config
+            return Result.new(
+              success: false,
+              config_path: @config_path,
+              schema_path: @schema_path,
+              errors: ['Failed to load config (YAML or ERB syntax error)'],
+            )
+          end
 
           schema = load_schema(@schema_path)
-          return Result.new(success: false, config_path: @config_path, schema_path: @schema_path,
-                            errors: ['Failed to load schema (JSON syntax error)']) unless schema
+          unless schema
+            return Result.new(
+              success: false,
+              config_path: @config_path,
+              schema_path: @schema_path,
+              errors: ['Failed to load schema (JSON syntax error)'],
+            )
+          end
 
           errors = []
           validate_with_schema(config, schema, errors)
@@ -83,8 +103,12 @@ module Onetime
             errors: errors,
           )
         rescue StandardError => ex
-          Result.new(success: false, config_path: @config_path, schema_path: @schema_path,
-                     errors: ["#{ex.class}: #{ex.message}"])
+          Result.new(
+            success: false,
+            config_path: @config_path,
+            schema_path: @schema_path,
+            errors: ["#{ex.class}: #{ex.message}"],
+          )
         end
 
         private
@@ -108,7 +132,7 @@ module Onetime
           # (lib/onetime/config.rb) so a config that boots also validates and
           # vice-versa: Date/Time are permitted (#3498), arbitrary Ruby objects
           # stay rejected.
-          parsed = YAML.safe_load(yaml_content, permitted_classes: [Symbol, Date, Time], symbolize_names: false, aliases: true)
+          parsed       = YAML.safe_load(yaml_content, permitted_classes: [Symbol, Date, Time], symbolize_names: false, aliases: true)
           stringify_symbols(parsed)
         rescue Psych::SyntaxError, Psych::DisallowedClass
           nil

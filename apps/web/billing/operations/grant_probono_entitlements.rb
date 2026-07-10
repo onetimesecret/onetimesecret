@@ -16,7 +16,7 @@ module Billing
     GrantProbonoResult = Data.define(:status, :customer_extid, :org_extid, :reason) do
       def granted?     = status == :granted
       def would_grant? = status == :would_grant
-      def skipped?     = %i[skipped_no_org skipped_already_complimentary].include?(status)
+      def skipped?     = [:skipped_no_org, :skipped_already_complimentary].include?(status)
     end
 
     # GrantProbonoEntitlements — Apply pro-bono entitlements to one

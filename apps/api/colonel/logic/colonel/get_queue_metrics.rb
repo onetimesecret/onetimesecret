@@ -88,12 +88,12 @@ module ColonelAPI
             channel = $rmq_conn.create_channel
             { name: queue_name, pending_messages: 0, consumers: 0 }
           rescue Bunny::Exception => ex
-            bunny_logger.error "[GetQueueMetrics] Error checking queue", queue_name: queue_name, exception: ex
+            bunny_logger.error '[GetQueueMetrics] Error checking queue', queue_name: queue_name, exception: ex
             channel = $rmq_conn.create_channel
             { name: queue_name, pending_messages: 0, consumers: 0 }
           end
         rescue Bunny::Exception => ex
-          bunny_logger.error "[GetQueueMetrics] Error fetching queue stats", exception: ex
+          bunny_logger.error '[GetQueueMetrics] Error fetching queue stats', exception: ex
           []
         ensure
           channel&.close if channel&.open?

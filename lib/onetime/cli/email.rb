@@ -20,6 +20,15 @@ module Onetime
         :email_change_confirmation,
         :email_change_requested,
         :email_changed,
+        :new_login_alert,
+        :mfa_enabled,
+        :mfa_disabled,
+        :password_changed,
+        :role_changed,
+        :member_removed,
+        :organization_deleted,
+        :trial_expiring,
+        :subscription_changed,
       ].freeze
 
       SAMPLES_PATH = File.expand_path('../mail/samples', __dir__)

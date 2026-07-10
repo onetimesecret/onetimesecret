@@ -1,0 +1,19 @@
+<%# Body content only. Shared shell, header, and footer come from layout.html.erb. -%>
+<!-- Title -->
+<div style="font-family: Helvetica, Arial, sans-serif; font-size: 24px; color: #374550; margin-bottom: 16px;">
+  <p style="margin: 0;"><%= t('email.role_changed.title') %></p>
+</div>
+
+<!-- Body -->
+<div style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; color: #333333;">
+  <p><%= h(t('email.role_changed.body', organization_name: organization_name, old_role: old_role, new_role: new_role)) %></p>
+
+  <p style="color: #666666; font-size: 12px; margin-top: 16px;">
+    <a href="<%= baseuri %><%= organization_settings_path %>" style="color: <%= brand_color %>;"><%= baseuri %><%= organization_settings_path %></a>
+  </p>
+</div>
+
+<!-- Signature -->
+<div style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; color: #333333; margin-top: 32px; border-top: 1px solid #eeeeee; padding-top: 16px;">
+  <p style="margin: 0;"><%= h(signature_name || t('email.role_changed.signature')) %></p>
+</div>

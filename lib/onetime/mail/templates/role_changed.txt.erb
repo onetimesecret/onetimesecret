@@ -1,0 +1,7 @@
+<%= t('email.role_changed.title') %>
+
+<%= t('email.role_changed.body', organization_name: organization_name, old_role: old_role, new_role: new_role) %>
+
+<%= baseuri %><%= organization_settings_path %>
+
+<%= signature_name || t('email.role_changed.signature') %>

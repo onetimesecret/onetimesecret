@@ -37,6 +37,7 @@ module Auth
         disable_recovery_codes
 
         log_success
+        notify_customer
         true
       rescue StandardError => ex
         log_error(ex)
@@ -51,6 +52,25 @@ module Auth
       end
 
       private
+
+      # Best-effort security notification that MFA was disabled via the console
+      # recovery path. Uses the :sync fallback so the alert is actually
+      # attempted before a one-shot console script exits, but a delivery
+      # failure must not fail (or raise out of) the recovery operation.
+      def notify_customer
+        Onetime::Jobs::Publisher.enqueue_email(
+          :mfa_disabled,
+          {
+            email_address: @email,
+            disabled_at: Time.now.utc.iso8601,
+            locale: (@customer.respond_to?(:locale) ? @customer.locale : nil) || OT.default_locale,
+          },
+          fallback: :sync,
+        )
+      rescue StandardError => ex
+        OT.auth_logger.error '[disable-mfa] Failed to send MFA-disabled email',
+          { email: OT::Utils.obscure_email(@email), error: ex.message }
+      end
 
       # Validates that the customer exists
       # @return [Boolean]

@@ -21,6 +21,19 @@ require 'onetime/mail/views/incoming_secret'
 require 'onetime/mail/views/secret_revealed'
 require 'onetime/mail/views/expiration_warning'
 require 'onetime/mail/views/feedback_email'
+require 'onetime/mail/views/new_login_alert'
+require 'onetime/mail/views/mfa_enabled'
+require 'onetime/mail/views/mfa_disabled'
+require 'onetime/mail/views/password_changed'
+require 'onetime/mail/views/role_changed'
+require 'onetime/mail/views/member_removed'
+require 'onetime/mail/views/organization_deleted'
+# Billing templates only define their classes when billing is enabled (each
+# view wraps its class in `if Onetime.billing_config.enabled?`). Requiring
+# them here is a no-op when billing is off, and the example group that uses
+# them is gated on the same flag below.
+require 'onetime/mail/views/trial_expiring'
+require 'onetime/mail/views/subscription_changed'
 
 RSpec.describe 'Email Template Rendering', type: :integration do
   # Load locale files for i18n translations
@@ -832,6 +845,148 @@ RSpec.describe 'Email Template Rendering', type: :integration do
         locale: 'es'
       )
       expect(template.locale).to eq('es')
+    end
+  end
+
+  # Data-driven coverage for the account, security, and billing notification
+  # templates. These share the same contract, so rather than a hand-written
+  # block per class they run through one shared example group. Adding a new
+  # template to the fixtures below is all it takes to cover it — the intent is
+  # that future notification templates get render regression protection for
+  # free instead of shipping with i18n keys but no rendered-output test.
+  shared_examples 'a rendered notification template' do |template_class, sample_data|
+    subject(:template) { template_class.new(sample_data) }
+
+    describe '#render_text' do
+      it 'renders without error and returns non-empty content' do
+        expect { template.render_text }.not_to raise_error
+        expect(template.render_text).to be_a(String)
+        expect(template.render_text).not_to be_empty
+      end
+
+      it 'contains no raw translation keys or missing-translation markers' do
+        expect(contains_raw_translation_key?(template.render_text)).to be(false)
+      end
+    end
+
+    describe '#render_html' do
+      it 'renders without error and returns non-empty content' do
+        expect { template.render_html }.not_to raise_error
+        expect(template.render_html).to be_a(String)
+        expect(template.render_html).not_to be_empty
+      end
+
+      it 'contains no raw translation keys or missing-translation markers' do
+        expect(contains_raw_translation_key?(template.render_html)).to be(false)
+      end
+    end
+
+    describe '#to_email' do
+      let(:email_hash) { template.to_email(from: from_address) }
+
+      it 'returns a complete email hash with string subject and bodies' do
+        expect(email_hash).to include(:to, :from, :subject, :text_body, :html_body)
+        expect(email_hash[:to]).to eq(test_email)
+        expect(email_hash[:subject]).to be_a(String)
+        expect(email_hash[:subject]).not_to be_empty
+        expect(email_hash[:text_body]).to be_a(String)
+        expect(email_hash[:text_body]).not_to be_empty
+        expect(email_hash[:html_body]).to be_a(String)
+        expect(email_hash[:html_body]).not_to be_empty
+      end
+    end
+  end
+
+  describe 'Account and security notification templates' do
+    {
+      Onetime::Mail::Templates::NewLoginAlert => {
+        email_address: 'recipient@example.com',
+        device_info: 'Chrome on macOS',
+        location: 'San Francisco, CA, USA',
+        login_at: '2024-01-15T10:30:00Z',
+        ip_address: '192.168.1.1',
+      },
+      Onetime::Mail::Templates::MfaEnabled => {
+        email_address: 'recipient@example.com',
+        enabled_at: '2024-01-15T10:30:00Z',
+      },
+      Onetime::Mail::Templates::MfaDisabled => {
+        email_address: 'recipient@example.com',
+        disabled_at: '2024-01-15T10:30:00Z',
+      },
+      Onetime::Mail::Templates::PasswordChanged => {
+        email_address: 'recipient@example.com',
+        changed_at: '2024-01-15T10:30:00Z',
+      },
+      Onetime::Mail::Templates::RoleChanged => {
+        email_address: 'recipient@example.com',
+        organization_name: 'Acme Inc',
+        old_role: 'member',
+        new_role: 'admin',
+      },
+      Onetime::Mail::Templates::MemberRemoved => {
+        email_address: 'recipient@example.com',
+        organization_name: 'Acme Inc',
+        removed_by: 'admin@example.com',
+      },
+      Onetime::Mail::Templates::OrganizationDeleted => {
+        email_address: 'recipient@example.com',
+        organization_name: 'Acme Inc',
+        deleted_by: 'admin@example.com',
+      },
+    }.each do |template_class, sample_data|
+      describe template_class do
+        it_behaves_like 'a rendered notification template', template_class, sample_data
+      end
+    end
+
+    it 'NewLoginAlert splits the login timestamp into date and time' do
+      template = Onetime::Mail::Templates::NewLoginAlert.new({
+        email_address: test_email,
+        device_info: 'Chrome on macOS',
+        location: 'San Francisco, CA, USA',
+        login_at: '2024-01-15T10:30:00Z',
+      })
+      expect(template.login_at_date).to eq('January 15, 2024')
+      expect(template.login_at_time).to eq('10:30 UTC')
+    end
+
+    it 'NewLoginAlert falls back to the raw value for an unparseable timestamp' do
+      template = Onetime::Mail::Templates::NewLoginAlert.new({
+        email_address: test_email,
+        device_info: 'Chrome on macOS',
+        location: 'San Francisco, CA, USA',
+        login_at: 'not-a-timestamp',
+      })
+      expect(template.login_at_date).to eq('not-a-timestamp')
+      expect(template.login_at_time).to eq('')
+    end
+  end
+
+  # Billing notification templates define their classes only when billing is
+  # enabled (see the `if Onetime.billing_config.enabled?` guard in each view),
+  # mirroring the try-tests. Build the group only when billing is on so the
+  # class constants below are guaranteed to exist; otherwise skip entirely.
+  if OT.billing_config.enabled?
+    describe 'Billing notification templates' do
+      {
+        Onetime::Mail::Templates::TrialExpiring => {
+          email_address: 'recipient@example.com',
+          plan_name: 'Pro',
+          trial_ends_at: '2024-01-20T00:00:00Z',
+          days_remaining: 3,
+        },
+        Onetime::Mail::Templates::SubscriptionChanged => {
+          email_address: 'recipient@example.com',
+          old_plan: 'Basic',
+          new_plan: 'Pro',
+          effective_date: '2024-01-15T10:30:00Z',
+        },
+      }.each do |template_class, sample_data|
+        describe template_class do
+          it_behaves_like 'a rendered notification template', template_class, sample_data
+        end
+      end
     end
   end
 end

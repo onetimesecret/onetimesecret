@@ -1,0 +1,16 @@
+<%= t('email.new_login_alert.title') %>
+
+<%= t('email.new_login_alert.body', product_name: product_name, date: login_at_date, time: login_at_time) %>
+
+<%= t('email.new_login_alert.device_label') %> <%= device_info %>
+<%= t('email.new_login_alert.location_label') %> <%= location %>
+<%- if ip_address -%>
+<%= t('email.new_login_alert.ip_address_label') %> <%= ip_address %>
+<%- end -%>
+
+<%= t('email.new_login_alert.secure_account_button') %>:
+<%= baseuri %><%= security_settings_path %>
+
+<%= t('email.new_login_alert.not_you_notice') %>
+
+<%= signature_name || t('email.new_login_alert.signature') %>
