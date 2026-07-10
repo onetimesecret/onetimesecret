@@ -195,6 +195,7 @@ module Onetime
           trial_expiring
           subscription_changed
         ].freeze
+        private_constant :BILLING_TEMPLATE_NAMES
 
         def template_class_for(name)
           sym = name.to_sym
