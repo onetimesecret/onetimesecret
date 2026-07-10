@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/operations/sessions/store'
 require 'onetime/models/session_metadata'
 
 module Onetime
@@ -17,10 +18,15 @@ module Onetime
       # {Onetime::SessionMetadata} record — no scan, no decrypt, no blob read.
       #
       # READ-ONLY w.r.t. sessions: it records NO {Onetime::AdminAuditEvent}
-      # (CONTRACT 4 — audit is for mutations). It DOES self-heal the index: a sid
-      # whose sidecar has expired/been deleted is ZREM'd from active_sessions so a
-      # stale member can't accumulate (the blob can outlive or be deleted
-      # independently of the set — see SessionMetadata's population note).
+      # (CONTRACT 4 — audit is for mutations). It DOES self-heal against BOTH the
+      # sidecar and the live blob, so the console only ever shows sessions that
+      # are actually alive:
+      #   * sidecar gone (its own TTL / explicit destroy) → ZREM the index member.
+      #   * sidecar present but `session:<sid>` blob gone → the session is dead
+      #     (the sidecar's 30d TTL outlives the blob's 24h default), so destroy
+      #     the orphan sidecar + ZREM the member and hide the row.
+      # The blob check is the same no-decrypt EXISTS probe ({Store.find_key}) the
+      # revoke path uses — O(patterns) per sid, no SCAN.
       #
       # Stateless, single `#call`, returns an immutable {Result}.
       class ListForCustomer
@@ -43,6 +49,8 @@ module Onetime
           customer = load_customer
           return Result.new(sessions: [], count: 0) if customer.nil?
 
+          db = @dbclient || Familia.dbclient
+
           # revrange(0, -1) yields members highest-score-first, i.e. newest
           # last-activity first (TrackMetadata scores by last_activity epoch).
           sids = customer.active_sessions.revrange(0, -1)
@@ -53,6 +61,16 @@ module Onetime
               # Self-heal: the sidecar is gone (TTL-expired or the blob was
               # revoked out-of-band) but the index still names it. Drop the stale
               # member so the set converges to live sessions only.
+              customer.active_sessions.remove(sid)
+              next nil
+            end
+
+            # Blob-liveness reconcile: the sidecar (30d TTL) outlives the session
+            # blob (24h default), so a sid whose `session:<sid>` blob is gone is a
+            # DEAD session the sidecar hasn't caught up to. Hide it and converge
+            # the sidecar + index. EXISTS-only probe — no decrypt, no SCAN.
+            if Store.find_key(db, sid).nil?
+              meta.destroy!
               customer.active_sessions.remove(sid)
               next nil
             end
