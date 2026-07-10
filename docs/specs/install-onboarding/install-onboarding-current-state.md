@@ -132,8 +132,11 @@ contributor findings are prefixed CP-/DX- here to avoid ID collisions.
   an internal `cust_…` objid instead of the email — QS-13). The Quick Start
   never mentions SMTP, `AUTH_AUTOVERIFY`, `bin/ots`, or admin/colonel
   creation. The one-command fix (`docker exec CTR bin/ots customers create
-  me@example.com --role colonel`) is documented only in a YAML comment
-  (etc/defaults/config.defaults.yaml:262-269).
+  me@example.com --role colonel`) is documented only in the command's own
+  `--help` usage comment (lib/onetime/cli/customers/create_command.rb:8-9);
+  promoting an *existing* customer to colonel is documented separately
+  (etc/defaults/config.defaults.yaml:269-272, `bin/ots customers role
+  promote`). Neither is linked from any setup doc.
 - **QS-4 [M][P] Version pinning incoherent across surfaces.** README pins
   v0.24.6 (~3.5 months old; one minor + one patch behind v0.25.11); the docs
   site pins differently; compose defaults to `:latest`. No v0.25 upgrade
@@ -260,7 +263,7 @@ message shows objid not email; QS-14 [C] prerequisites contradict themselves
 - **DX-6 [M][P] First-login dead end, silently**: default `autoverify:
   false` + blank SMTP means web signup strands the first user with no error
   anywhere (the send failure is rescued); the CLI escape hatch
-  (`bin/ots apitoken --create`, documented well in
+  (`bin/ots apitoken user@example.com --create`, documented well in
   docs/development/test-accounts.md) is never linked from any setup doc.
 - **DX-10 [M][C] Option A never says to start Valkey/Redis**; Procfile.dev's
   valkey line is commented out; the carefully-copied `etc/puma.rb` is then

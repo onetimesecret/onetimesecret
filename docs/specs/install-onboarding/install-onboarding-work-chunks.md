@@ -111,8 +111,9 @@ Close the "instance up, now what?" gap on every path (the most-reported
 issue shape after install itself: GH-4/GH-5 adjacency).
 
 - Quick starts and install.sh "Next steps" print the admin/account commands
-  (`bin/ots customers create EMAIL --role colonel`, `bin/ots apitoken
-  --create`) — promote from YAML comment and test-accounts.md.
+  (`bin/ots customers create EMAIL --role colonel`, `bin/ots apitoken EMAIL
+  --create`) — promote from the commands' own usage comments and
+  test-accounts.md.
 - A self-host-facing note on `AUTH_AUTOVERIFY` and the SMTP dependency of
   signup; signup UX shows email not objid (QS-13); decide whether
   unverified-signup failure stays silent (DX-6 — minimally: log at warn and
