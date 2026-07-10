@@ -30,13 +30,17 @@ export { systemSettingsDetailsSchema, systemSettingsSchema };
  * An abridged customer record used in the recent list.
  */
 export const recentCustomerSchema = z.object({
-  custid: z.string(), // Not always an email address (e.g. GLOBAL for new installs)
+  // Server-internal objid (GetColonelInfo#process_customers emits `user_id`,
+  // never an email address; e.g. GLOBAL for new installs).
+  user_id: z.string(),
   colonel: z.boolean(),
   secrets_created: z.number(),
   secrets_shared: z.number(),
   emails_sent: z.number(),
   verified: z.boolean(),
-  stamp: z.string(),
+  // Familia `created` timestamp (Unix-epoch number), transformed to Date to
+  // match every other timestamp in this file.
+  created: transforms.fromNumber.toDate,
 });
 
 /**
