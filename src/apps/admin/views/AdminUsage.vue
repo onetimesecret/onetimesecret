@@ -1,13 +1,13 @@
 <!-- src/apps/admin/views/AdminUsage.vue -->
 
 <script setup lang="ts">
-  import { computed, onMounted, ref } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   import { StatCard } from '@/apps/admin/components/kit';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
   import { usageExportResponseSchema } from '@/schemas/api/internal/responses/colonel-usage';
   import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { computed, onMounted, ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   /**
    * Usage screen (ticket #33) — a read-only metrics read-out over a date range,
@@ -144,14 +144,14 @@
 <template>
   <div class="mx-auto max-w-5xl">
     <!-- Page header -->
-    <div class="mb-6">
-      <h2 class="font-brand text-2xl font-semibold text-gray-900 dark:text-white">
+    <header class="mb-6 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
+      <h2 class="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
         {{ t('web.admin.usage.title') }}
       </h2>
       <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.admin.usage.description') }}
       </p>
-    </div>
+    </header>
 
     <!-- Date-range selector -->
     <div
@@ -161,7 +161,7 @@
         <div>
           <label
             for="usage-start"
-            class="mb-1 block text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            class="mb-1 block text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.usage.startDate') }}
           </label>
           <input
@@ -169,12 +169,12 @@
             v-model="startDate"
             type="date"
             data-testid="usage-start"
-            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
         </div>
         <div>
           <label
             for="usage-end"
-            class="mb-1 block text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            class="mb-1 block text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.usage.endDate') }}
           </label>
           <input
@@ -182,14 +182,14 @@
             v-model="endDate"
             type="date"
             data-testid="usage-end"
-            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
         </div>
         <div class="flex items-end">
           <button
             type="button"
             data-testid="usage-fetch"
             :disabled="loading"
-            class="inline-flex w-full items-center justify-center gap-1 rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
+            class="inline-flex w-full items-center justify-center gap-1 rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
             @click="fetchUsage">
             <OIcon
               v-if="loading"
@@ -214,7 +214,7 @@
       </span>
       <button
         type="button"
-        class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
+        class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
         @click="fetchUsage">
         <OIcon
           collection="heroicons"
@@ -234,7 +234,7 @@
         <button
           type="button"
           data-testid="usage-export-json"
-          class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+          class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
           @click="exportJson">
           <OIcon
             collection="heroicons"
@@ -245,7 +245,7 @@
         <button
           type="button"
           data-testid="usage-export-csv"
-          class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+          class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
           @click="exportCsv">
           <OIcon
             collection="heroicons"
@@ -282,7 +282,7 @@
         v-if="secretsByState.length > 0"
         class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"
         data-testid="usage-by-state">
-        <h3 class="mb-3 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+        <h3 class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
           {{ t('web.admin.usage.byState') }}
         </h3>
         <div class="flex flex-wrap gap-2">
@@ -331,7 +331,9 @@
                 <tr
                   v-for="row in secretsByDay"
                   :key="row.date">
-                  <td class="px-5 py-1.5 text-sm text-gray-900 dark:text-white">{{ row.date }}</td>
+                  <td class="px-5 py-1.5 text-sm text-gray-900 dark:text-white">
+                    {{ row.date }}
+                  </td>
                   <td class="px-5 py-1.5 text-right font-mono text-sm text-gray-900 dark:text-white">
                     {{ row.count.toLocaleString() }}
                   </td>
@@ -374,7 +376,9 @@
                 <tr
                   v-for="row in usersByDay"
                   :key="row.date">
-                  <td class="px-5 py-1.5 text-sm text-gray-900 dark:text-white">{{ row.date }}</td>
+                  <td class="px-5 py-1.5 text-sm text-gray-900 dark:text-white">
+                    {{ row.date }}
+                  </td>
                   <td class="px-5 py-1.5 text-right font-mono text-sm text-gray-900 dark:text-white">
                     {{ row.count.toLocaleString() }}
                   </td>

@@ -1,10 +1,9 @@
 <!-- src/apps/admin/components/kit/FilterBar.vue -->
 
 <script setup lang="ts">
+  import OIcon from '@/shared/components/icons/OIcon.vue';
   import { computed } from 'vue';
   import { useI18n } from 'vue-i18n';
-
-  import OIcon from '@/shared/components/icons/OIcon.vue';
 
   import type { FilterConfig } from './types';
 
@@ -102,7 +101,7 @@
           type="search"
           :value="search"
           :placeholder="resolvedSearchPlaceholder"
-          class="block w-full rounded-md border border-gray-300 py-2 pl-10 pr-3 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
+          class="block w-full rounded-md border border-gray-300 py-2 pr-3 pl-10 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
           @input="onSearchInput" />
       </div>
     </div>
@@ -114,15 +113,17 @@
       class="flex flex-col gap-1">
       <label
         :for="`kit-filter-${config.key}`"
-        class="text-xs font-medium text-gray-500 dark:text-gray-400">
+        class="font-brand text-[11px] font-semibold tracking-[0.1em] text-gray-500 uppercase dark:text-gray-400">
         {{ config.label }}
       </label>
       <select
         :id="`kit-filter-${config.key}`"
         :value="config.value ?? ''"
-        class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
+        class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
         @change="onFilterChange(config, $event)">
-        <option value="">{{ config.allLabel ?? t('web.admin.kit.filterBar.all') }}</option>
+        <option value="">
+          {{ config.allLabel ?? t('web.admin.kit.filterBar.all') }}
+        </option>
         <option
           v-for="option in config.options"
           :key="option.value"
@@ -142,7 +143,7 @@
         v-if="showClear"
         type="button"
         :disabled="!hasActiveFilters"
-        class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+        class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
         @click="emit('clear')">
         <OIcon
           collection="heroicons"

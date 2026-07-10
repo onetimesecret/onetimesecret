@@ -1,9 +1,6 @@
 <!-- src/apps/admin/views/AdminDomainToolbox.vue -->
 
 <script setup lang="ts">
-  import { storeToRefs } from 'pinia';
-  import { computed, onMounted, ref } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   import {
     AdminConfirmDialog,
@@ -14,6 +11,7 @@
   import type { DataTableColumn } from '@/apps/admin/components/kit';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useAdminDomainToolbox } from '@/apps/admin/stores/useAdminDomainToolbox';
+  import { colonelDomainVerifyResponseSchema } from '@/schemas/api/internal/responses/colonel-domains';
   import type { ColonelOrphanedDomain } from '@/schemas/api/internal/responses/colonel-domaintoolbox';
   import type {
     ColonelDomainProbeDetails,
@@ -25,12 +23,14 @@
     colonelDomainRepairResponseSchema,
     colonelDomainTransferResponseSchema,
   } from '@/schemas/api/internal/responses/colonel-domaintoolbox';
-  import { colonelDomainVerifyResponseSchema } from '@/schemas/api/internal/responses/colonel-domains';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useApi } from '@/shared/composables/useApi';
   import { useNotificationsStore } from '@/shared/stores/notificationsStore';
   import { formatDisplayDateTime } from '@/utils/format';
   import { gracefulParse } from '@/utils/schemaValidation';
+  import { storeToRefs } from 'pinia';
+  import { computed, onMounted, ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   /**
    * Domain Toolbox (ticket #43) — the Phase-3 payoff that surfaces the CLI-only
@@ -343,14 +343,14 @@
 <template>
   <div class="mx-auto max-w-6xl space-y-8">
     <!-- Page header -->
-    <div>
-      <h2 class="font-brand text-2xl font-semibold text-gray-900 dark:text-white">
+    <header class="border-b-2 border-gray-900 pb-4 dark:border-gray-100">
+      <h2 class="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
         {{ t('web.admin.domaintoolbox.title') }}
       </h2>
       <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.admin.domaintoolbox.description') }}
       </p>
-    </div>
+    </header>
 
     <!-- ===== Orphaned scan (read-only) ===================================== -->
     <section data-testid="orphaned-section">
@@ -371,7 +371,7 @@
         </span>
         <button
           type="button"
-          class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
+          class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
           @click="fetchOrphaned(1)">
           <OIcon
             collection="heroicons"
@@ -409,7 +409,7 @@
             <button
               type="button"
               :data-testid="`orphaned-repair-${row.extid}`"
-              class="text-sm font-medium text-brand-600 hover:text-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-brand-400 dark:hover:text-brand-300"
+              class="text-sm font-medium text-brand-600 hover:text-brand-800 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-brand-400 dark:hover:text-brand-300"
               @click="seedRepair(row)">
               {{ t('web.admin.domaintoolbox.orphaned.repairAction') }}
             </button>
@@ -438,7 +438,7 @@
       </p>
 
       <div class="flex flex-wrap items-end gap-3">
-        <div class="flex-1 min-w-[16rem]">
+        <div class="min-w-[16rem] flex-1">
           <label
             for="probe-extid"
             class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -456,7 +456,7 @@
           type="button"
           data-testid="probe-run"
           :disabled="!probeExtid.trim() || probeLoading"
-          class="inline-flex items-center gap-1 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50"
+          class="inline-flex items-center gap-1 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           @click="onProbe">
           <OIcon
             collection="heroicons"
@@ -469,7 +469,7 @@
           type="button"
           data-testid="reverify-run"
           :disabled="!probeExtid.trim() || verifyLoading"
-          class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+          class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
           @click="onReverify">
           <OIcon
             collection="heroicons"
@@ -531,7 +531,7 @@
       </p>
 
       <div class="flex flex-wrap items-end gap-3">
-        <div class="flex-1 min-w-[14rem]">
+        <div class="min-w-[14rem] flex-1">
           <label
             for="repair-extid"
             class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -544,7 +544,7 @@
             data-testid="repair-extid-input"
             class="w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm text-gray-900 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
         </div>
-        <div class="flex-1 min-w-[14rem]">
+        <div class="min-w-[14rem] flex-1">
           <label
             for="repair-orgid"
             class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -562,7 +562,7 @@
           type="button"
           data-testid="repair-preview"
           :disabled="!repairExtid.trim() || repairPreviewLoading"
-          class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+          class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
           @click="onRepairPreview">
           {{ t('web.admin.domaintoolbox.preview') }}
         </button>
@@ -588,7 +588,9 @@
         <ul
           v-if="repairPlan.issues.length"
           class="ml-4 list-disc space-y-1 text-sm text-gray-700 dark:text-gray-300">
-          <li v-for="(issue, i) in repairPlan.issues" :key="i">{{ issue }}</li>
+          <li v-for="(issue, i) in repairPlan.issues" :key="i">
+            {{ issue }}
+          </li>
         </ul>
         <p v-else class="text-sm text-gray-500 dark:text-gray-400">
           {{ t('web.admin.domaintoolbox.repair.noIssues') }}
@@ -598,7 +600,7 @@
           v-if="repairApplicable"
           type="button"
           data-testid="repair-apply"
-          class="mt-4 inline-flex items-center gap-1 rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          class="mt-4 inline-flex items-center gap-1 rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700 focus:ring-2 focus:ring-amber-500 focus:outline-none"
           @click="requestRepairApply">
           <OIcon
             collection="heroicons"
@@ -667,7 +669,7 @@
         type="button"
         data-testid="transfer-preview"
         :disabled="!transferReady || transferPreviewLoading"
-        class="mt-3 inline-flex items-center gap-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+        class="mt-3 inline-flex items-center gap-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
         @click="onTransferPreview">
         {{ t('web.admin.domaintoolbox.preview') }}
       </button>
@@ -687,13 +689,17 @@
         data-testid="transfer-plan">
         <dl class="grid grid-cols-1 gap-2 sm:grid-cols-2">
           <div>
-            <dt class="text-xs text-gray-500 dark:text-gray-400">{{ t('web.admin.domaintoolbox.transfer.from') }}</dt>
+            <dt class="text-xs text-gray-500 dark:text-gray-400">
+              {{ t('web.admin.domaintoolbox.transfer.from') }}
+            </dt>
             <dd class="font-mono text-gray-900 dark:text-white">
               {{ transferPlan.from_org_id ? `${transferPlan.from_org_name || '—'} (${transferPlan.from_org_id})` : t('web.admin.domaintoolbox.transfer.orphaned') }}
             </dd>
           </div>
           <div>
-            <dt class="text-xs text-gray-500 dark:text-gray-400">{{ t('web.admin.domaintoolbox.transfer.to') }}</dt>
+            <dt class="text-xs text-gray-500 dark:text-gray-400">
+              {{ t('web.admin.domaintoolbox.transfer.to') }}
+            </dt>
             <dd class="font-mono text-gray-900 dark:text-white">
               {{ transferPlan.to_org_name || '—' }} ({{ transferPlan.to_org_id }})
             </dd>
@@ -704,7 +710,7 @@
           v-if="transferApplicable"
           type="button"
           data-testid="transfer-apply"
-          class="mt-4 inline-flex items-center gap-1 rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+          class="mt-4 inline-flex items-center gap-1 rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:outline-none"
           @click="requestTransferApply">
           <OIcon
             collection="heroicons"

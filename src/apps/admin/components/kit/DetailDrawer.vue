@@ -1,6 +1,7 @@
 <!-- src/apps/admin/components/kit/DetailDrawer.vue -->
 
 <script setup lang="ts">
+  import OIcon from '@/shared/components/icons/OIcon.vue';
   import {
     Dialog,
     DialogPanel,
@@ -9,8 +10,6 @@
     TransitionRoot,
   } from '@headlessui/vue';
   import { useI18n } from 'vue-i18n';
-
-  import OIcon from '@/shared/components/icons/OIcon.vue';
 
   /**
    * Right-hand slide-over for inspecting a single record (ticket #11).
@@ -92,27 +91,29 @@
                 :data-testid="testid"
                 :class="widthClass"
                 class="pointer-events-auto flex h-full w-screen flex-col bg-white shadow-xl dark:bg-gray-900">
-                <!-- Sticky header -->
+                <!-- Sticky header. The subtitle is treated as key material
+                     (public id / identifier) — monospace + tabular, the
+                     console's redaction-field convention for verifiable values. -->
                 <div
-                  class="flex items-start justify-between gap-4 border-b border-gray-200 px-4 py-4 dark:border-gray-800 sm:px-6">
+                  class="flex items-start justify-between gap-4 border-b-2 border-gray-900 px-4 py-4 sm:px-6 dark:border-gray-100">
                   <div class="min-w-0">
                     <slot name="header">
                       <DialogTitle
                         v-if="title"
                         as="h2"
-                        class="truncate font-brand text-lg font-semibold text-gray-900 dark:text-white">
+                        class="truncate font-brand text-lg font-bold text-gray-900 dark:text-white">
                         {{ title }}
                       </DialogTitle>
                       <p
                         v-if="subtitle"
-                        class="mt-0.5 truncate text-sm text-gray-500 dark:text-gray-400">
+                        class="mt-1 truncate font-mono text-xs text-gray-500 tabular-nums dark:text-gray-400">
                         {{ subtitle }}
                       </p>
                     </slot>
                   </div>
                   <button
                     type="button"
-                    class="-m-2 shrink-0 rounded-md p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:hover:text-gray-200"
+                    class="-m-2 shrink-0 rounded-md p-2 text-gray-400 hover:text-gray-600 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:hover:text-gray-200"
                     :aria-label="t('web.LABELS.close')"
                     @click="close">
                     <OIcon
@@ -130,7 +131,7 @@
                 <!-- Optional sticky footer -->
                 <div
                   v-if="$slots.footer"
-                  class="border-t border-gray-200 px-4 py-4 dark:border-gray-800 sm:px-6">
+                  class="border-t border-gray-200 px-4 py-4 sm:px-6 dark:border-gray-800">
                   <slot name="footer"></slot>
                 </div>
               </DialogPanel>

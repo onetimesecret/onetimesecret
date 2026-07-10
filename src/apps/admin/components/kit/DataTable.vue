@@ -1,11 +1,10 @@
 <!-- src/apps/admin/components/kit/DataTable.vue -->
 
 <script setup lang="ts" generic="T">
-  import { useI18n } from 'vue-i18n';
-
+  import TableSkeleton from '@/shared/components/closet/TableSkeleton.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import EmptyState from '@/shared/components/ui/EmptyState.vue';
-  import TableSkeleton from '@/shared/components/closet/TableSkeleton.vue';
+  import { useI18n } from 'vue-i18n';
 
   import type { CellAlign, DataTableColumn, SortState } from './types';
 
@@ -134,16 +133,21 @@
       <EmptyState
         :show-action="false"
         :testid="testid ? `${testid}-empty` : undefined">
-        <template #title>{{ emptyText ?? t('web.admin.kit.dataTable.empty') }}</template>
-        <template #description><span></span></template>
+        <template #title>
+          {{ emptyText ?? t('web.admin.kit.dataTable.empty') }}
+        </template>
+        <template #description>
+          <span></span>
+        </template>
       </EmptyState>
     </slot>
 
     <table
       v-else
       :data-testid="testid"
-      class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-      <thead class="bg-gray-50 dark:bg-gray-800">
+      class="min-w-full divide-y divide-gray-100 dark:divide-gray-800">
+      <thead
+        class="border-b-2 border-gray-200 bg-gray-50/80 dark:border-gray-700 dark:bg-gray-800/50">
         <tr>
           <th
             v-for="column in columns"
@@ -151,7 +155,7 @@
             scope="col"
             :aria-sort="ariaSort(column)"
             :class="[
-              'px-6 py-3 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400',
+              'px-6 py-2.5 font-brand text-[11px] font-semibold tracking-[0.1em] text-gray-500 uppercase dark:text-gray-400',
               columnAlign(column),
               column.widthClass,
               column.headerClass,
@@ -164,7 +168,7 @@
                 type="button"
                 :disabled="loading"
                 :aria-label="t('web.admin.kit.dataTable.sortBy', { column: column.label })"
-                class="group inline-flex items-center gap-1 uppercase tracking-wider hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 disabled:cursor-not-allowed dark:hover:text-gray-200"
+                class="group -mx-1 inline-flex items-center gap-1 rounded px-1 font-brand tracking-[0.1em] uppercase hover:text-gray-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 focus:outline-none disabled:cursor-not-allowed dark:hover:text-gray-200"
                 @click="toggleSort(column)">
                 <span>{{ column.label }}</span>
                 <OIcon
@@ -184,13 +188,13 @@
       </thead>
 
       <tbody
-        class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
+        class="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-gray-900">
         <tr
           v-for="row in rows"
           :key="rowIdentity(row)"
           :class="
             clickableRows
-              ? 'cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800'
+              ? 'cursor-pointer transition-colors hover:bg-brand-50/50 dark:hover:bg-brand-500/5'
               : ''
           "
           @click="handleRowClick(row)">
@@ -198,7 +202,7 @@
             v-for="column in columns"
             :key="column.key"
             :class="[
-              'whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-gray-100',
+              'px-6 py-3 text-sm whitespace-nowrap text-gray-700 dark:text-gray-200',
               columnAlign(column),
               column.cellClass,
             ]">

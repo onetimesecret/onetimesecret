@@ -1,8 +1,6 @@
 <!-- src/apps/admin/views/AdminSecrets.vue -->
 
 <script setup lang="ts">
-  import { computed, ref } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   import { AdminConfirmDialog, JsonViewer } from '@/apps/admin/components/kit';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
@@ -16,6 +14,8 @@
   import { useNotificationsStore } from '@/shared/stores/notificationsStore';
   import { formatDisplayDateTime } from '@/utils/format';
   import { gracefulParse } from '@/utils/schemaValidation';
+  import { computed, ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   /**
    * Secrets screen (ticket #30) — LOOKUP-FIRST by design review: on a
@@ -286,14 +286,14 @@
 <template>
   <div class="mx-auto max-w-4xl space-y-8">
     <!-- Page header -->
-    <div>
-      <h2 class="font-brand text-2xl font-semibold text-gray-900 dark:text-white">
+    <header class="border-b-2 border-gray-900 pb-4 dark:border-gray-100">
+      <h2 class="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
         {{ t('web.admin.secrets.title') }}
       </h2>
       <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.admin.secrets.description') }}
       </p>
-    </div>
+    </header>
 
     <!-- Lookup -->
     <section
@@ -322,7 +322,7 @@
           type="submit"
           data-testid="secret-lookup-submit"
           :disabled="!keyReady || receiptLoading"
-          class="inline-flex items-center gap-1 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50">
+          class="inline-flex items-center gap-1 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50">
           <OIcon
             collection="heroicons"
             :name="receiptLoading ? 'arrow-path' : 'magnifying-glass'"
@@ -380,7 +380,7 @@
       </p>
       <button
         type="button"
-        class="mt-4 inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
+        class="mt-4 inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-medium text-red-800 hover:bg-red-100 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
         @click="loadReceipt().catch(() => {})">
         <OIcon
           collection="heroicons"
@@ -408,7 +408,7 @@
 
       <!-- Secret record -->
       <section>
-        <h4 class="mb-2 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+        <h4 class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
           {{ t('web.admin.secrets.sections.secret') }}
         </h4>
         <dl class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
@@ -416,8 +416,10 @@
             v-for="field in secretFields"
             :key="field.key"
             :data-testid="`secret-field-${field.key}`">
-            <dt class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ field.label }}</dt>
-            <dd class="mt-0.5 break-words font-mono text-sm text-gray-900 dark:text-gray-100">
+            <dt class="text-xs font-medium text-gray-500 dark:text-gray-400">
+              {{ field.label }}
+            </dt>
+            <dd class="mt-0.5 font-mono text-sm break-words text-gray-900 dark:text-gray-100">
               {{ field.value }}
             </dd>
           </div>
@@ -426,7 +428,7 @@
 
       <!-- Receipt metadata -->
       <section data-testid="secret-result-receipt">
-        <h4 class="mb-2 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+        <h4 class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
           {{ t('web.admin.secrets.sections.receipt') }}
         </h4>
         <dl
@@ -436,8 +438,10 @@
             v-for="field in receiptFields"
             :key="field.key"
             :data-testid="`receipt-field-${field.key}`">
-            <dt class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ field.label }}</dt>
-            <dd class="mt-0.5 break-words font-mono text-sm text-gray-900 dark:text-gray-100">
+            <dt class="text-xs font-medium text-gray-500 dark:text-gray-400">
+              {{ field.label }}
+            </dt>
+            <dd class="mt-0.5 font-mono text-sm break-words text-gray-900 dark:text-gray-100">
               {{ field.value }}
             </dd>
           </div>
@@ -451,7 +455,7 @@
 
       <!-- Owner -->
       <section data-testid="secret-result-owner">
-        <h4 class="mb-2 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+        <h4 class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
           {{ t('web.admin.secrets.sections.owner') }}
         </h4>
         <dl
@@ -461,8 +465,10 @@
             v-for="field in ownerFields"
             :key="field.key"
             :data-testid="`owner-field-${field.key}`">
-            <dt class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ field.label }}</dt>
-            <dd class="mt-0.5 break-words text-sm text-gray-900 dark:text-gray-100">
+            <dt class="text-xs font-medium text-gray-500 dark:text-gray-400">
+              {{ field.label }}
+            </dt>
+            <dd class="mt-0.5 text-sm break-words text-gray-900 dark:text-gray-100">
               {{ field.value }}
             </dd>
           </div>
@@ -476,7 +482,7 @@
 
       <!-- Raw inspector -->
       <section>
-        <h4 class="mb-2 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+        <h4 class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
           {{ t('web.admin.secrets.sections.raw') }}
         </h4>
         <JsonViewer
@@ -490,7 +496,7 @@
         <button
           type="button"
           data-testid="secret-delete-button"
-          class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
+          class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
           @click="requestDelete">
           <OIcon
             collection="heroicons"

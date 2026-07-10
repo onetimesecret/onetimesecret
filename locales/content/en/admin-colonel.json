@@ -833,5 +833,20 @@
   "web.colonel.pagination.pageOf": {
     "text": "Page {current} of {total}",
     "content_hash": "f0df6412"
+  },
+  "web.colonel.nav.consoleTag": {
+    "text": "Console"
+  },
+  "web.colonel.nav.groups.monitor": {
+    "text": "Monitor"
+  },
+  "web.colonel.nav.groups.accounts": {
+    "text": "Accounts"
+  },
+  "web.colonel.nav.groups.secrets": {
+    "text": "Secrets & Domains"
+  },
+  "web.colonel.nav.groups.controls": {
+    "text": "Controls"
   }
 }

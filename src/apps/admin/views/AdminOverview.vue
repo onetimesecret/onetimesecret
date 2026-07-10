@@ -1,20 +1,20 @@
 <!-- src/apps/admin/views/AdminOverview.vue -->
 
 <script setup lang="ts">
-  import { computed, onMounted } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   import TrendSparkline from '@/apps/admin/components/TrendSparkline.vue';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
-  import type { ColonelTrendPoint } from '@/schemas/api/internal/responses/colonel-trends';
   import {
     colonelInfoResponseSchema,
     colonelStatsResponseSchema,
   } from '@/schemas/api/internal/responses/colonel';
+  import type { ColonelTrendPoint } from '@/schemas/api/internal/responses/colonel-trends';
   import { colonelTrendsResponseSchema } from '@/schemas/api/internal/responses/colonel-trends';
   import Skeleton from '@/shared/components/closet/Skeleton.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { formatDisplayDateTime } from '@/utils/format';
+  import { computed, onMounted } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   /**
    * Overview dashboard (observability lane) — the landing screen is now a real
@@ -199,11 +199,11 @@
 
 <template>
   <div class="mx-auto max-w-6xl">
-    <div class="mb-6 flex items-center gap-3">
-      <h2 class="font-brand text-2xl font-semibold text-gray-900 dark:text-white">
+    <header class="mb-8 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
+      <h2 class="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
         {{ t('web.colonel.titles.index') }}
       </h2>
-    </div>
+    </header>
 
     <!-- ==== Stat tiles ==================================================== -->
     <section
@@ -211,15 +211,20 @@
       class="mb-8">
       <div
         v-if="statsFailed"
-        class="mb-4 flex items-center justify-between gap-4 rounded-md border border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-800/50"
+        class="mb-4 flex items-center justify-between gap-4 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 dark:border-amber-800/60 dark:bg-amber-900/15"
         role="alert"
         data-testid="overview-stats-error">
-        <span class="text-sm text-gray-600 dark:text-gray-400">
+        <span class="flex items-center gap-2 text-sm font-medium text-amber-800 dark:text-amber-200">
+          <OIcon
+            collection="heroicons"
+            name="exclamation-triangle"
+            size="5"
+            class="shrink-0" />
           {{ t('web.admin.overview.stats.loadError') }}
         </span>
         <button
           type="button"
-          class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+          class="inline-flex items-center gap-1 rounded-md border border-amber-300 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-100 focus:ring-2 focus:ring-amber-500 focus:outline-none dark:border-amber-800/60 dark:text-amber-200 dark:hover:bg-amber-900/30"
           @click="loadStats().catch(() => {})">
           <OIcon
             collection="heroicons"
@@ -249,7 +254,7 @@
               : ''
           ">
           <span
-            class="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            class="flex items-center gap-1.5 font-brand text-[11px] font-semibold tracking-[0.1em] text-gray-500 uppercase dark:text-gray-400">
             <OIcon
               collection="heroicons"
               :name="tile.icon"
@@ -264,7 +269,7 @@
             :pulse="true" />
           <span
             v-else
-            class="text-2xl font-semibold tabular-nums text-gray-900 dark:text-white">
+            class="font-brand text-3xl font-bold text-gray-900 tabular-nums dark:text-white">
             {{ tile.value }}
           </span>
         </component>
@@ -275,8 +280,10 @@
     <section
       :aria-label="t('web.admin.overview.trends.title')"
       class="mb-8">
-      <div class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+      <div
+        class="mb-4 flex flex-wrap items-baseline justify-between gap-2 border-b border-gray-200 pb-2 dark:border-gray-800">
+        <h3
+          class="font-brand text-sm font-bold tracking-[0.12em] text-gray-600 uppercase dark:text-gray-300">
           {{ t('web.admin.overview.trends.title') }}
         </h3>
         <p class="text-xs text-gray-500 dark:text-gray-400">
@@ -286,15 +293,20 @@
 
       <div
         v-if="trendsFailed"
-        class="flex items-center justify-between gap-4 rounded-md border border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-800/50"
+        class="flex items-center justify-between gap-4 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 dark:border-amber-800/60 dark:bg-amber-900/15"
         role="alert"
         data-testid="overview-trends-error">
-        <span class="text-sm text-gray-600 dark:text-gray-400">
+        <span class="flex items-center gap-2 text-sm font-medium text-amber-800 dark:text-amber-200">
+          <OIcon
+            collection="heroicons"
+            name="exclamation-triangle"
+            size="5"
+            class="shrink-0" />
           {{ t('web.admin.overview.trends.loadError') }}
         </span>
         <button
           type="button"
-          class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+          class="inline-flex items-center gap-1 rounded-md border border-amber-300 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-100 focus:ring-2 focus:ring-amber-500 focus:outline-none dark:border-amber-800/60 dark:text-amber-200 dark:hover:bg-amber-900/30"
           @click="loadTrends().catch(() => {})">
           <OIcon
             collection="heroicons"
@@ -311,7 +323,7 @@
         <div
           v-for="key in ['signups', 'secretsCreated']"
           :key="key"
-          class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800">
+          class="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
           <Skeleton
             height="h-5"
             width="w-32"
@@ -331,14 +343,15 @@
         <div
           v-for="card in trendCards"
           :key="card.key"
-          class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800"
+          class="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
           :data-testid="`overview-trend-${card.key}`">
           <div class="flex items-baseline justify-between gap-2">
-            <p class="truncate text-sm font-medium text-gray-500 dark:text-gray-400">
+            <p
+              class="truncate font-brand text-[11px] font-semibold tracking-[0.1em] text-gray-500 uppercase dark:text-gray-400">
               {{ card.label }}
             </p>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-              <span class="text-xl font-semibold text-gray-900 dark:text-white">{{
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              <span class="font-brand text-2xl font-bold text-gray-900 tabular-nums dark:text-white">{{
                 card.today.toLocaleString()
               }}</span>
               {{ t('web.admin.overview.trends.today') }}
@@ -361,13 +374,15 @@
 
     <!-- ==== Feedback (V1 parity) ========================================== -->
     <section :aria-label="t('web.admin.overview.feedback.title')">
-      <div class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+      <div
+        class="mb-4 flex flex-wrap items-baseline justify-between gap-2 border-b border-gray-200 pb-2 dark:border-gray-800">
+        <h3
+          class="font-brand text-sm font-bold tracking-[0.12em] text-gray-600 uppercase dark:text-gray-300">
           {{ t('web.admin.overview.feedback.title') }}
         </h3>
         <p
           v-if="feedbackTotal !== null"
-          class="text-xs text-gray-500 dark:text-gray-400"
+          class="text-xs text-gray-500 tabular-nums dark:text-gray-400"
           data-testid="overview-feedback-total">
           {{ t('web.admin.overview.feedback.total', { count: feedbackTotal }) }}
         </p>
@@ -375,15 +390,20 @@
 
       <div
         v-if="infoFailed"
-        class="flex items-center justify-between gap-4 rounded-md border border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-800/50"
+        class="flex items-center justify-between gap-4 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 dark:border-amber-800/60 dark:bg-amber-900/15"
         role="alert"
         data-testid="overview-feedback-error">
-        <span class="text-sm text-gray-600 dark:text-gray-400">
+        <span class="flex items-center gap-2 text-sm font-medium text-amber-800 dark:text-amber-200">
+          <OIcon
+            collection="heroicons"
+            name="exclamation-triangle"
+            size="5"
+            class="shrink-0" />
           {{ t('web.admin.overview.feedback.loadError') }}
         </span>
         <button
           type="button"
-          class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+          class="inline-flex items-center gap-1 rounded-md border border-amber-300 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-100 focus:ring-2 focus:ring-amber-500 focus:outline-none dark:border-amber-800/60 dark:text-amber-200 dark:hover:bg-amber-900/30"
           @click="loadInfo().catch(() => {})">
           <OIcon
             collection="heroicons"
@@ -400,7 +420,7 @@
         <div
           v-for="key in ['today', 'yesterday', 'older']"
           :key="key"
-          class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800">
+          class="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
           <Skeleton
             height="h-5"
             width="w-24"
@@ -425,12 +445,12 @@
         <div
           v-for="group in feedbackGroups"
           :key="group.key"
-          class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800"
+          class="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
           :data-testid="`overview-feedback-${group.key}`">
           <h4
-            class="mb-2 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            class="mb-2 flex items-baseline gap-1.5 font-brand text-[11px] font-semibold tracking-[0.12em] text-gray-500 uppercase dark:text-gray-400">
             {{ group.label }}
-            <span class="ml-1 font-normal normal-case">({{ group.items.length }})</span>
+            <span class="font-mono text-[10px] font-normal text-gray-400 tabular-nums dark:text-gray-500">{{ group.items.length }}</span>
           </h4>
 
           <p
@@ -446,7 +466,9 @@
               v-for="(item, index) in group.items"
               :key="`${group.key}-${index}`"
               class="border-b border-gray-100 pb-2 last:border-b-0 last:pb-0 dark:border-gray-700">
-              <p class="break-words text-sm text-gray-900 dark:text-gray-100">{{ item.msg }}</p>
+              <p class="text-sm break-words text-gray-900 dark:text-gray-100">
+                {{ item.msg }}
+              </p>
               <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
                 {{ formatDisplayDateTime(item.stamp) }}
               </p>

@@ -186,14 +186,14 @@
 <template>
   <div class="mx-auto max-w-6xl">
     <!-- Page header -->
-    <div class="mb-6">
-      <h2 class="font-brand text-2xl font-semibold text-gray-900 dark:text-white">
+    <header class="mb-6 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
+      <h2 class="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
         {{ t('web.colonel.customDomains.title') }}
       </h2>
       <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.colonel.customDomains.description') }}
       </p>
-    </div>
+    </header>
 
     <!-- Network/HTTP error banner (validation mismatches degrade to empty). -->
     <div
@@ -225,7 +225,7 @@
     <!-- Empty -->
     <div
       v-else-if="domains.length === 0"
-      class="rounded-lg border border-gray-200 bg-white p-12 text-center dark:border-gray-700 dark:bg-gray-800"
+      class="rounded-lg border border-gray-200 bg-white p-12 text-center dark:border-gray-700 dark:bg-gray-900"
       data-testid="domains-empty">
       <p class="text-gray-500 dark:text-gray-400">
         {{ t('web.colonel.customDomains.empty') }}
@@ -241,7 +241,7 @@
           v-for="domain in domains"
           :key="domain.domain_id"
           :data-testid="`domain-card-${domain.extid}`"
-          class="flex flex-col rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+          class="flex flex-col rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900">
           <!-- Header: logo + domain + verification badge -->
           <div class="mb-4 flex items-start justify-between gap-3">
             <div class="flex min-w-0 items-center gap-4">

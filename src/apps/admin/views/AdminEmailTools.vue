@@ -1,8 +1,6 @@
 <!-- src/apps/admin/views/AdminEmailTools.vue -->
 
 <script setup lang="ts">
-  import { computed, onMounted, ref } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   import EmailDeliverabilitySection from '@/apps/admin/components/EmailDeliverabilitySection.vue';
   import { AdminConfirmDialog } from '@/apps/admin/components/kit';
@@ -20,6 +18,8 @@
   import { useApi } from '@/shared/composables/useApi';
   import { useNotificationsStore } from '@/shared/stores/notificationsStore';
   import { gracefulParse } from '@/utils/schemaValidation';
+  import { computed, onMounted, ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   /**
    * Email Tools (ticket #44) — the Phase-3 payoff that surfaces the CLI-only
@@ -195,14 +195,14 @@
 <template>
   <div class="mx-auto max-w-5xl space-y-8">
     <!-- Page header -->
-    <div>
-      <h2 class="font-brand text-2xl font-semibold text-gray-900 dark:text-white">
+    <header class="border-b-2 border-gray-900 pb-4 dark:border-gray-100">
+      <h2 class="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
         {{ t('web.admin.emailtools.title') }}
       </h2>
       <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.admin.emailtools.description') }}
       </p>
-    </div>
+    </header>
 
     <!-- ===== Section 1: template preview (read-only) ====================== -->
     <section
@@ -247,7 +247,9 @@
             v-model="previewFormat"
             data-testid="preview-format-select"
             class="rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
-            <option value="text">text</option>
+            <option value="text">
+              text
+            </option>
             <option
               value="html"
               :disabled="!htmlAvailable">
@@ -274,7 +276,7 @@
           type="button"
           data-testid="preview-run"
           :disabled="!selectedTemplate || previewLoading"
-          class="inline-flex items-center gap-1 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50"
+          class="inline-flex items-center gap-1 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           @click="onPreview">
           <OIcon
             collection="heroicons"
@@ -311,7 +313,7 @@
         <pre
           v-else
           data-testid="preview-body"
-          class="max-h-96 overflow-auto whitespace-pre-wrap break-words rounded bg-gray-50 p-4 font-mono text-sm text-gray-900 dark:bg-gray-800 dark:text-gray-100">{{ previewBody }}</pre>
+          class="max-h-96 overflow-auto rounded bg-gray-50 p-4 font-mono text-sm break-words whitespace-pre-wrap text-gray-900 dark:bg-gray-800 dark:text-gray-100">{{ previewBody }}</pre>
       </div>
     </section>
 
@@ -353,7 +355,7 @@
           type="button"
           data-testid="test-preview"
           :disabled="!testToValid || testPreviewLoading"
-          class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+          class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
           @click="onTestPreview">
           {{ t('web.admin.emailtools.test.previewButton') }}
         </button>
@@ -361,7 +363,7 @@
           type="button"
           data-testid="test-send"
           :disabled="!testToValid || sendLoading"
-          class="inline-flex items-center gap-1 rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50"
+          class="inline-flex items-center gap-1 rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           @click="requestSend">
           <OIcon
             collection="heroicons"
@@ -388,11 +390,13 @@
           <div><span class="text-gray-500 dark:text-gray-400">{{ t('web.admin.emailtools.test.provider') }}:</span> <span class="font-mono">{{ testDiagnostic.provider }}</span></div>
           <div><span class="text-gray-500 dark:text-gray-400">{{ t('web.admin.emailtools.test.host') }}:</span> <span class="font-mono">{{ testDiagnostic.host }}</span></div>
           <div><span class="text-gray-500 dark:text-gray-400">{{ t('web.admin.emailtools.test.from') }}:</span> <span class="font-mono">{{ testDiagnostic.from }}</span></div>
-          <div class="sm:col-span-2"><span class="text-gray-500 dark:text-gray-400">{{ t('web.admin.emailtools.test.subject') }}:</span> <span class="font-mono">{{ testDiagnostic.subject }}</span></div>
+          <div class="sm:col-span-2">
+            <span class="text-gray-500 dark:text-gray-400">{{ t('web.admin.emailtools.test.subject') }}:</span> <span class="font-mono">{{ testDiagnostic.subject }}</span>
+          </div>
         </div>
         <pre
           data-testid="test-body"
-          class="max-h-48 overflow-auto whitespace-pre-wrap break-words rounded bg-gray-50 p-3 font-mono text-xs text-gray-900 dark:bg-gray-800 dark:text-gray-100">{{ testDiagnostic.text_body }}</pre>
+          class="max-h-48 overflow-auto rounded bg-gray-50 p-3 font-mono text-xs break-words whitespace-pre-wrap text-gray-900 dark:bg-gray-800 dark:text-gray-100">{{ testDiagnostic.text_body }}</pre>
       </div>
     </section>
 
