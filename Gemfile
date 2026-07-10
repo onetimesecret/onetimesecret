@@ -10,7 +10,7 @@
 #   normal maintenance until: TBD
 #   end of life: 2028-03 (est)
 #
-ruby '>= 3.3.6'
+ruby file: '.ruby-version'
 
 source 'https://rubygems.org/'
 

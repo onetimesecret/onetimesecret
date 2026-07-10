@@ -18,7 +18,7 @@ module OTSInit
     return {} unless File.exist?(path)
 
     pairs = {}
-    File.readlines(path, chomp: true).each do |line|
+    File.readlines(path, chomp: true, encoding: 'UTF-8').each do |line|
       next if line.strip.empty? || line.start_with?('#')
 
       key, value = line.split('=', 2)
@@ -103,7 +103,7 @@ namespace :ots do
     env_path = ENV['ENV_FILE'] || File.join(Dir.pwd, '.env')
 
     existing       = OTSInit.read_env(env_path)
-    existing_lines = File.readlines(env_path, chomp: true)
+    existing_lines = File.readlines(env_path, chomp: true, encoding: 'UTF-8')
 
     secret     = existing['SECRET']
     has_secret = secret && !secret.empty? && secret != 'CHANGEME'

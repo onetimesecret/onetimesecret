@@ -78,6 +78,7 @@ if [ -f .test-mode ]; then
   dotenv_if_exists .env.test
 else
   export OTS_ENV_LOADED=dev
+  export RACK_ENV=development
   dotenv_if_exists
 
   # .env.local overrides happen last if the file exists. And only in dev mode.
@@ -328,6 +329,14 @@ fi
 echo "---"
 echo "Installing Ruby gems..."
 bundle install
+
+echo "---"
+if grep -qE '^SECRET=.+' .env 2>/dev/null && ! grep -qE '^SECRET=CHANGEME' .env 2>/dev/null; then
+    echo "OK:   SECRET already set in .env"
+else
+    echo "SECRET is empty or CHANGEME — generating secrets (rake ots:secrets)..."
+    bundle exec rake ots:secrets || echo "Warning: rake ots:secrets failed — set SECRET manually in .env"
+fi
 
 echo "---"
 echo "Installing Node packages..."

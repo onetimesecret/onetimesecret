@@ -5,7 +5,7 @@
 # ONETIME SECRET - DOCKER IMAGE
 #
 # Multi-stage build optimized for production deployment.
-# See docs/docker.md for detailed usage instructions.
+# See docker/README.md for detailed usage instructions.
 #
 # For general project information, see README.md.
 #
@@ -46,7 +46,7 @@
 #         --detach \
 #         onetimesecret
 #
-# The app will be at http://localhost:3000. For more, see docs/docker.md.
+# The app will be at http://localhost:3000. For more, see docker/README.md.
 #
 #     # Double-check the persistent storage for redis
 #     $ docker exec onetime-maindb ls -la /data
