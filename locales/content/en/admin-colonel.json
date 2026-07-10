@@ -1,852 +1,852 @@
 {
- "web.colonel.customer_secrets_created_customer_secrets_shared_0": {
-  "text": "{0}/{1}/{2} [{3}]",
-  "content_hash": "98ba1771"
- },
- "web.colonel.customer_verified_verified_not_verified_0": {
-  "text": "`+customer.verified ? `verified` : `not verified",
-  "content_hash": "52e93cc0"
- },
- "web.colonel.customers_details_counts_recent_customer_count_o_0": {
-  "text": "Customers ({0} of {1})",
-  "content_hash": "eb88db1d"
- },
- "web.colonel.user_feedback_total_details_counts_feedback_coun_0": {
-  "text": "User Feedback (Total: {0})",
-  "content_hash": "d4a80454"
- },
- "web.colonel.metadata_secrets_details_counts_metadata_count_d_0": {
-  "text": "Metadata / Secrets: {0}/{1} ({2}/{3}/{4} total)",
-  "content_hash": "5a341707"
- },
- "web.colonel.secrets_details_counts_secret_count_0": {
-  "text": "Secrets ({0})",
-  "content_hash": "dd1c471a"
- },
- "web.colonel.active_in_the_past_5_minutes_0": {
-  "text": "(active in the past 5 minutes)",
-  "content_hash": "a2b19058"
- },
- "web.colonel.configEditorTitle": {
-  "text": "Settings",
-  "content_hash": "74a883a0"
- },
- "web.colonel.configEditorDescription": {
-  "text": "Edit system configuration settings. Changes apply immediately after saving.",
-  "content_hash": "6025d269"
- },
- "web.colonel.invalidJson": {
-  "text": "Invalid JSON in {section} section",
-  "content_hash": "a75ac7a3"
- },
- "web.colonel.validationError": {
-  "text": "Validation error",
-  "content_hash": "2aa2d0b4"
- },
- "web.colonel.errorFetchingConfig": {
-  "text": "Error loading configuration",
-  "content_hash": "08baf6d2"
- },
- "web.colonel.errorSavingConfig": {
-  "text": "Error saving configuration",
-  "content_hash": "48df54c7"
- },
- "web.colonel.configSaved": {
-  "text": "Configuration saved successfully",
-  "content_hash": "93b3d3e4"
- },
- "web.colonel.mustBeObject": {
-  "text": "Configuration must be a JSON object",
-  "content_hash": "74e8897e"
- },
- "web.colonel.multipleSectionsInvalid": {
-  "text": "Multiple sections have validation errors: {sections}",
-  "content_hash": "71fdaea1"
- },
- "web.colonel.sectionHasError": {
-  "text": "{section} has validation errors: {error}",
-  "content_hash": "e5e01aa0"
- },
- "web.colonel.sectionSaved": {
-  "text": "{section} saved successfully",
-  "content_hash": "7be1d5d2"
- },
- "web.colonel.saveSection": {
-  "text": "Save {section}",
-  "content_hash": "4a379f10"
- },
- "web.colonel.saveAll": {
-  "text": "Save All",
-  "content_hash": "d3c54e39"
- },
- "web.colonel.unsavedChanges": {
-  "text": "Unsaved changes",
-  "content_hash": "a710c2b9"
- },
- "web.colonel.schemaValidationError": {
-  "text": "Schema validation error: {message} ({path})",
-  "content_hash": "5f838cb2"
- },
- "web.colonel.unknownValidationError": {
-  "text": "Unknown validation error: {error}",
-  "content_hash": "b6cf56ca"
- },
- "web.colonel.sectionEffectivelyEmpty": {
-  "text": "{section} section has no configured values",
-  "content_hash": "efb63b77"
- },
- "web.colonel.dashboard": {
-  "text": "Dashboard",
-  "content_hash": "67b69646"
- },
- "web.colonel.admin": {
-  "text": "Admin",
-  "content_hash": "c1c224b0"
- },
- "web.colonel.backToSite": {
-  "text": "Back to Onetime Secret"
- },
- "web.colonel.activity": {
-  "text": "Activity",
-  "content_hash": "38da1505"
- },
- "web.colonel.accounts": {
-  "text": "Accounts",
-  "content_hash": "8a7c8b67"
- },
- "web.colonel.users": {
-  "text": "Users",
-  "content_hash": "6b0cc904"
- },
- "web.colonel.usersDescription": {
-  "text": "Manage user accounts and permissions",
-  "content_hash": "6cfc012c"
- },
- "web.colonel.domains": {
-  "text": "Domains",
-  "content_hash": "ced67718"
- },
- "web.colonel.settings": {
-  "text": "Settings",
-  "content_hash": "74a883a0"
- },
- "web.colonel.system": {
-  "text": "System",
-  "content_hash": "6725e7bb"
- },
- "web.colonel.welcome": {
-  "text": "Welcome to Colonel",
-  "content_hash": "7881ca9e"
- },
- "web.colonel.welcomeDesc": {
-  "text": "Administrative control panel for OneTimeSecret",
-  "content_hash": "57c1e752"
- },
- "web.colonel.quickActions": {
-  "text": "Quick Actions",
-  "content_hash": "2cc2b6f7"
- },
- "web.colonel.recentActivity": {
-  "text": "Recent Activity",
-  "content_hash": "9ef7d438"
- },
- "web.colonel.viewAll": {
-  "text": "View All",
-  "content_hash": "ff5573a6"
- },
- "web.colonel.activityPlaceholder": {
-  "text": "Activity data will be displayed here",
-  "content_hash": "aaf9e948"
- },
- "web.colonel.stats.totalSecrets": {
-  "text": "Total Secrets",
-  "content_hash": "e17a5459"
- },
- "web.colonel.stats.activeUsers": {
-  "text": "Active Users",
-  "content_hash": "5639b9f1"
- },
- "web.colonel.stats.secretsToday": {
-  "text": "Secrets Today",
-  "content_hash": "aefbd2db"
- },
- "web.colonel.stats.secretsCreated": {
-  "text": "Secrets Created",
-  "content_hash": "a97ee479"
- },
- "web.colonel.stats.secretsShared": {
-  "text": "Secrets Shared",
-  "content_hash": "5deb082c"
- },
- "web.colonel.stats.totalCustomers": {
-  "text": "Total Users",
-  "content_hash": "0ca3aa44"
- },
- "web.colonel.stats.emailsSent": {
-  "text": "Emails Sent",
-  "content_hash": "87cfb3ab"
- },
- "web.colonel.stats.systemHealth": {
-  "text": "System Health",
-  "content_hash": "c3d66242"
- },
- "web.colonel.stats.healthy": {
-  "text": "Healthy",
-  "content_hash": "7f1e323b"
- },
- "web.colonel.actions.viewActivity": {
-  "text": "View Activity",
-  "content_hash": "9c28f55c"
- },
- "web.colonel.actions.viewActivityDesc": {
-  "text": "Monitor system activity and usage",
-  "content_hash": "f88e9eda"
- },
- "web.colonel.actions.manageAccounts": {
-  "text": "Manage Accounts",
-  "content_hash": "9d114268"
- },
- "web.colonel.actions.manageAccountsDesc": {
-  "text": "User account administration",
-  "content_hash": "d73af927"
- },
- "web.colonel.actions.configureDomains": {
-  "text": "Configure Domains",
-  "content_hash": "74402af9"
- },
- "web.colonel.actions.configureDomainsDesc": {
-  "text": "Domain and DNS settings",
-  "content_hash": "1f712094"
- },
- "web.colonel.actions.systemSettings": {
-  "text": "System Settings",
-  "content_hash": "1f87f883"
- },
- "web.colonel.actions.systemSettingsDesc": {
-  "text": "Application configuration",
-  "content_hash": "923dc672"
- },
- "web.colonel.backgroundJobs": {
-  "text": "Background Jobs",
-  "content_hash": "48937049"
- },
- "web.colonel.queueStatus": {
-  "text": "Queue Status",
-  "content_hash": "3421ffa8"
- },
- "web.colonel.queueName": {
-  "text": "Queue",
-  "content_hash": "3b2fe03e"
- },
- "web.colonel.pendingMessages": {
-  "text": "Pending",
-  "content_hash": "331551b0"
- },
- "web.colonel.consumers": {
-  "text": "Consumers",
-  "content_hash": "212b350d"
- },
- "web.colonel.processingRate": {
-  "text": "Rate/sec",
-  "content_hash": "cfde439c"
- },
- "web.colonel.connectionStatus": {
-  "text": "Connection Status",
-  "content_hash": "3693e288"
- },
- "web.colonel.workerHealth": {
-  "text": "Worker Health",
-  "content_hash": "52be3ac1"
- },
- "web.colonel.activeWorkers": {
-  "text": "active workers",
-  "content_hash": "ea68cfee"
- },
- "web.colonel.noQueueData": {
-  "text": "No queue data available",
-  "content_hash": "331ffa6b"
- },
- "web.colonel.loadingQueueData": {
-  "text": "Loading queue data...",
-  "content_hash": "a3762a00"
- },
- "web.colonel.testPlanMode": {
-  "text": "Test Plan Mode",
-  "content_hash": "eba59223"
- },
- "web.colonel.testingAsPlan": {
-  "text": "Testing as {planName}",
-  "content_hash": "b3032f1a"
- },
- "web.colonel.clickToReset": {
-  "text": "Click to reset",
-  "content_hash": "4b25034d"
- },
- "web.colonel.selectTestPlan": {
-  "text": "Select a plan to test",
-  "content_hash": "9e6e12fe"
- },
- "web.colonel.resetToActual": {
-  "text": "Reset to actual plan",
-  "content_hash": "2cea3f92"
- },
- "web.colonel.currentActualPlan": {
-  "text": "Current plan",
-  "content_hash": "37ca715f"
- },
- "web.colonel.previewPlanMode": {
-  "text": "Preview plan mode",
-  "content_hash": "cf53f19d"
- },
- "web.colonel.previewModeDescription": {
-  "text": "Preview the application as it appears to customers on a different plan. This affects your view only and does not change any organization's actual plan.",
-  "content_hash": "6fe23f23"
- },
- "web.colonel.previewModeActive": {
-  "text": "Preview active",
-  "content_hash": "a558d603"
- },
- "web.colonel.availablePlans": {
-  "text": "Available plans",
-  "content_hash": "20efa44d"
- },
- "web.colonel.activateTestMode": {
-  "text": "Activate test mode",
-  "content_hash": "0f469baa"
- },
- "web.colonel.testModeActive": {
-  "text": "Test mode active",
-  "content_hash": "ae2c8dd9"
- },
- "web.colonel.testModeDescription": {
-  "text": "Test your application with different plan entitlements. Changes are temporary and affect only your session.",
-  "content_hash": "be03a409"
- },
- "web.colonel.warningTestMode": {
-  "text": "You are testing with {planName} entitlements (temporary session override).",
-  "content_hash": "1a8aecf1"
- },
- "web.colonel.organizations.title": {
-  "text": "Organizations",
-  "content_hash": "2730183d"
- },
- "web.colonel.organizations.description": {
-  "text": "Monitor org billing sync health",
-  "content_hash": "d8f4398b"
- },
- "web.colonel.organizations.pageTitle": {
-  "text": "Billing Health Monitor",
-  "content_hash": "9ef57da4"
- },
- "web.colonel.organizations.organizationsCount": {
-  "text": "{count} organizations",
-  "content_hash": "bc2feb56"
- },
- "web.colonel.organizations.needAttention": {
-  "text": "{count} need attention",
-  "content_hash": "1c8e5840"
- },
- "web.colonel.organizations.unknownCount": {
-  "text": "{count} unknown",
-  "content_hash": "b7bf2cf1"
- },
- "web.colonel.organizations.noOrganizations": {
-  "text": "No organizations found",
-  "content_hash": "538995db"
- },
- "web.colonel.organizations.filters.syncStatus": {
-  "text": "Sync Status",
-  "content_hash": "b3998276"
- },
- "web.colonel.organizations.filters.subscription": {
-  "text": "Subscription",
-  "content_hash": "4999c6c6"
- },
- "web.colonel.organizations.filters.all": {
-  "text": "All",
-  "content_hash": "a52ace42"
- },
- "web.colonel.organizations.filters.potentiallyStale": {
-  "text": "Potentially Stale",
-  "content_hash": "40137b37"
- },
- "web.colonel.organizations.filters.unknown": {
-  "text": "Unknown",
-  "content_hash": "b764cdc0"
- },
- "web.colonel.organizations.filters.synced": {
-  "text": "Synced",
-  "content_hash": "5da22fe4"
- },
- "web.colonel.organizations.filters.active": {
-  "text": "Active",
-  "content_hash": "92340695"
- },
- "web.colonel.organizations.filters.trialing": {
-  "text": "Trialing",
-  "content_hash": "3792573d"
- },
- "web.colonel.organizations.filters.pastDue": {
-  "text": "Past Due",
-  "content_hash": "2bda1c7b"
- },
- "web.colonel.organizations.filters.canceled": {
-  "text": "Canceled",
-  "content_hash": "13ca2ee2"
- },
- "web.colonel.organizations.columns.account": {
-  "text": "Account",
-  "content_hash": "7e1b0d56"
- },
- "web.colonel.organizations.columns.billing": {
-  "text": "Billing",
-  "content_hash": "3ac8bbca"
- },
- "web.colonel.organizations.columns.status": {
-  "text": "Status",
-  "content_hash": "920e413c"
- },
- "web.colonel.organizations.columns.usage": {
-  "text": "Usage",
-  "content_hash": "8d59829c"
- },
- "web.colonel.organizations.columns.created": {
-  "text": "Created",
-  "content_hash": "d70b9e24"
- },
- "web.colonel.organizations.columns.details": {
-  "text": "Details",
-  "content_hash": "45989de4"
- },
- "web.colonel.organizations.columns.owner": {
-  "text": "Owner",
-  "content_hash": "4b1b8aa3"
- },
- "web.colonel.organizations.columns.plan": {
-  "text": "Plan",
-  "content_hash": "fa8ed0bd"
- },
- "web.colonel.organizations.columns.members": {
-  "text": "Members",
-  "content_hash": "1044a4c0"
- },
- "web.colonel.organizations.columns.domains": {
-  "text": "Domains",
-  "content_hash": "ced67718"
- },
- "web.colonel.organizations.columns.subscription": {
-  "text": "Subscription",
-  "content_hash": "4999c6c6"
- },
- "web.colonel.organizations.columns.default_workspace": {
-  "text": "Default Workspace",
-  "content_hash": "53aa279e"
- },
- "web.colonel.organizations.columns.has_billing": {
-  "text": "Has Billing",
-  "content_hash": "db0628ed"
- },
- "web.colonel.organizations.legacy.title": {
-  "text": "Organizations Billing Admin",
-  "content_hash": "5c7e07e7"
- },
- "web.colonel.organizations.legacy.description": {
-  "text": "Manage organizations and monitor billing sync health ({total} total)",
-  "content_hash": "996b446d"
- },
- "web.colonel.organizations.legacy.empty": {
-  "text": "No organizations found",
-  "content_hash": "538995db"
- },
- "web.colonel.organizations.legacy.potentially_stale": {
-  "text": "potentially stale",
-  "content_hash": "3ddfec45"
- },
- "web.colonel.organizations.status.stale": {
-  "text": "Stale",
-  "content_hash": "40c9e59c"
- },
- "web.colonel.organizations.status.unknown": {
-  "text": "Unknown",
-  "content_hash": "b764cdc0"
- },
- "web.colonel.organizations.status.active": {
-  "text": "active",
-  "content_hash": "96879611"
- },
- "web.colonel.organizations.actions.investigate": {
-  "text": "Investigate",
-  "content_hash": "e2641093"
- },
- "web.colonel.organizations.actions.checking": {
-  "text": "Checking...",
-  "content_hash": "2e5f79bb"
- },
- "web.colonel.organizations.expanded.customer": {
-  "text": "Customer",
-  "content_hash": "bf376338"
- },
- "web.colonel.organizations.expanded.subscription": {
-  "text": "Subscription",
-  "content_hash": "4999c6c6"
- },
- "web.colonel.organizations.expanded.orgId": {
-  "text": "Org ID",
-  "content_hash": "5e6b9932"
- },
- "web.colonel.organizations.investigation.failed": {
-  "text": "Investigation failed",
-  "content_hash": "193aa900"
- },
- "web.colonel.organizations.investigation.result": {
-  "text": "Investigation Result",
-  "content_hash": "2dbc5cc3"
- },
- "web.colonel.organizations.investigation.verifiedSynced": {
-  "text": "Verified Synced",
-  "content_hash": "d92625c2"
- },
- "web.colonel.organizations.investigation.mismatchFound": {
-  "text": "Mismatch Found",
-  "content_hash": "361d22f3"
- },
- "web.colonel.organizations.investigation.unableToCompare": {
-  "text": "Unable to Compare",
-  "content_hash": "64c822ee"
- },
- "web.colonel.organizations.investigation.stripeDetails": {
-  "text": "Stripe Subscription Details",
-  "content_hash": "53a7b0ea"
- },
- "web.colonel.organizations.investigation.statusLabel": {
-  "text": "Status",
-  "content_hash": "920e413c"
- },
- "web.colonel.organizations.investigation.product": {
-  "text": "Product",
-  "content_hash": "fb9ef894"
- },
- "web.colonel.organizations.investigation.resolvedPlan": {
-  "text": "Resolved Plan",
-  "content_hash": "17c5b37a"
- },
- "web.colonel.organizations.investigation.priceId": {
-  "text": "Price ID",
-  "content_hash": "b39a8f3e"
- },
- "web.colonel.organizations.investigation.local": {
-  "text": "Local",
-  "content_hash": "8c31e6e7"
- },
- "web.colonel.organizations.investigation.stripe": {
-  "text": "Stripe",
-  "content_hash": "961a6062"
- },
- "web.colonel.organizations.usage.members": {
-  "text": "{count} members",
-  "content_hash": "201eb3d9"
- },
- "web.colonel.organizations.usage.domains": {
-  "text": "{count} domains",
-  "content_hash": "cf548c8c"
- },
- "web.colonel.secrets.title": {
-  "text": "Secrets",
-  "content_hash": "d8707d41"
- },
- "web.colonel.secrets.description": {
-  "text": "View and manage all secrets",
-  "content_hash": "48f8052e"
- },
- "web.colonel.secrets.columns.shortId": {
-  "text": "Short ID",
-  "content_hash": "7eaeb4a7"
- },
- "web.colonel.secrets.columns.state": {
-  "text": "State",
-  "content_hash": "a3b50c47"
- },
- "web.colonel.secrets.columns.created": {
-  "text": "Created",
-  "content_hash": "d70b9e24"
- },
- "web.colonel.secrets.columns.expiration": {
-  "text": "Expiration",
-  "content_hash": "f38d6e0e"
- },
- "web.colonel.secrets.columns.age": {
-  "text": "Age (days)",
-  "content_hash": "52ae64c6"
- },
- "web.colonel.secrets.empty": {
-  "text": "No secrets found",
-  "content_hash": "28647b3b"
- },
- "web.colonel.secrets.never": {
-  "text": "Never",
-  "content_hash": "6300ef80"
- },
- "web.colonel.secrets.state.new": {
-  "text": "New",
-  "content_hash": "18fdd549"
- },
- "web.colonel.secrets.state.received": {
-  "text": "Received",
-  "content_hash": "49f19bee"
- },
- "web.colonel.secrets.state.viewed": {
-  "text": "Viewed",
-  "content_hash": "1b28d178"
- },
- "web.colonel.bannedIps.title": {
-  "text": "Banned IPs",
-  "content_hash": "0ece5643"
- },
- "web.colonel.bannedIps.description": {
-  "text": "Manage IP ban list",
-  "content_hash": "dd0d2614"
- },
- "web.colonel.bannedIps.columns.ipAddress": {
-  "text": "IP Address",
-  "content_hash": "3c3de0c9"
- },
- "web.colonel.bannedIps.columns.reason": {
-  "text": "Reason",
-  "content_hash": "f81ab834"
- },
- "web.colonel.bannedIps.columns.bannedAt": {
-  "text": "Banned At",
-  "content_hash": "dfbd120e"
- },
- "web.colonel.bannedIps.columns.bannedBy": {
-  "text": "Banned By",
-  "content_hash": "9f47db0e"
- },
- "web.colonel.bannedIps.empty": {
-  "text": "No banned IPs",
-  "content_hash": "bd101143"
- },
- "web.colonel.bannedIps.form.title": {
-  "text": "Ban IP Address",
-  "content_hash": "3f5b3dfa"
- },
- "web.colonel.bannedIps.form.ipLabel": {
-  "text": "IP Address",
-  "content_hash": "3c3de0c9"
- },
- "web.colonel.bannedIps.form.reasonLabel": {
-  "text": "Reason",
-  "content_hash": "f81ab834"
- },
- "web.colonel.bannedIps.form.reasonPlaceholder": {
-  "text": "Optional reason",
-  "content_hash": "956688a5"
- },
- "web.colonel.bannedIps.actions.ban": {
-  "text": "Ban IP",
-  "content_hash": "f91a5285"
- },
- "web.colonel.bannedIps.actions.quickBan": {
-  "text": "Quick Ban",
-  "content_hash": "c32d0943"
- },
- "web.colonel.bannedIps.actions.unban": {
-  "text": "Unban",
-  "content_hash": "25fb5989"
- },
- "web.colonel.bannedIps.actions.cancel": {
-  "text": "Cancel",
-  "content_hash": "19766ed6"
- },
- "web.colonel.bannedIps.currentIp": {
-  "text": "Your Current IP Address",
-  "content_hash": "72f9fefe"
- },
- "web.colonel.bannedIps.confirmUnban": {
-  "text": "Unban {ip}?",
-  "content_hash": "ff009b1c"
- },
- "web.colonel.bannedIps.success.banned": {
-  "text": "IP address {ip} has been banned",
-  "content_hash": "b6f861d5"
- },
- "web.colonel.bannedIps.success.unbanned": {
-  "text": "IP address {ip} has been unbanned",
-  "content_hash": "dbe93550"
- },
- "web.colonel.bannedIps.error.banFailed": {
-  "text": "Failed to ban IP address",
-  "content_hash": "24e94d9b"
- },
- "web.colonel.bannedIps.error.unbanFailed": {
-  "text": "Failed to unban IP address",
-  "content_hash": "66bbac9a"
- },
- "web.colonel.usageExport.title": {
-  "text": "Usage Export",
-  "content_hash": "10a0cb94"
- },
- "web.colonel.usageExport.description": {
-  "text": "Export usage data and statistics",
-  "content_hash": "2fd0a2e2"
- },
- "web.colonel.systemSettings.title": {
-  "text": "System",
-  "content_hash": "6725e7bb"
- },
- "web.colonel.systemSettings.description": {
-  "text": "System settings, databases, and configuration",
-  "content_hash": "7690b296"
- },
- "web.colonel.customDomains.title": {
-  "text": "Custom Domains",
-  "content_hash": "6170ab94"
- },
- "web.colonel.customDomains.description": {
-  "text": "Manage custom domains and branding",
-  "content_hash": "808ee2cb"
- },
- "web.colonel.customDomains.empty": {
-  "text": "No custom domains configured",
-  "content_hash": "e10b39f7"
- },
- "web.colonel.customDomains.noLogo": {
-  "text": "No Logo",
-  "content_hash": "ee5e36ff"
- },
- "web.colonel.customDomains.labels.organization": {
-  "text": "Organization",
-  "content_hash": "d764d425"
- },
- "web.colonel.customDomains.labels.externalId": {
-  "text": "External ID",
-  "content_hash": "69da56ba"
- },
- "web.colonel.customDomains.labels.created": {
-  "text": "Created",
-  "content_hash": "d70b9e24"
- },
- "web.colonel.customDomains.labels.updated": {
-  "text": "Updated",
-  "content_hash": "3a5ecca1"
- },
- "web.colonel.customDomains.labels.favicon": {
-  "text": "Favicon",
-  "content_hash": "42955289"
- },
- "web.colonel.customDomains.status.verified": {
-  "text": "Verified",
-  "content_hash": "4f783840"
- },
- "web.colonel.customDomains.status.resolving": {
-  "text": "Resolving",
-  "content_hash": "3287a034"
- },
- "web.colonel.customDomains.status.ready": {
-  "text": "Ready",
-  "content_hash": "5fa7aac5"
- },
- "web.colonel.customDomains.status.publicHomepage": {
-  "text": "Public Homepage",
-  "content_hash": "2ae3ccba"
- },
- "web.colonel.customDomains.status.publicApi": {
-  "text": "Public API",
-  "content_hash": "ab3aa426"
- },
- "web.colonel.customDomains.status.pending": {
-  "text": "Pending",
-  "content_hash": "331551b0"
- },
- "web.colonel.feedback.send_feedback": {
-  "text": "Send feedback",
-  "content_hash": "8235980b"
- },
- "web.colonel.feedback.sending_ellipses": {
-  "text": "Sending...",
-  "content_hash": "286a3af7"
- },
- "web.colonel.titles.index": {
-  "text": "Administration",
-  "content_hash": "4b42c669"
- },
- "web.colonel.titles.users": {
-  "text": "User Management",
-  "content_hash": "fe45f3a1"
- },
- "web.colonel.titles.secrets": {
-  "text": "Secret Management",
-  "content_hash": "af69773b"
- },
- "web.colonel.titles.domains": {
-  "text": "Custom Domains",
-  "content_hash": "6170ab94"
- },
- "web.colonel.titles.system": {
-  "text": "System",
-  "content_hash": "6725e7bb"
- },
- "web.colonel.titles.maindb": {
-  "text": "Main Database",
-  "content_hash": "c4545e98"
- },
- "web.colonel.titles.authdb": {
-  "text": "Auth Database",
-  "content_hash": "c683c9a6"
- },
- "web.colonel.titles.bannedIps": {
-  "text": "Banned IPs",
-  "content_hash": "0ece5643"
- },
- "web.colonel.titles.usage": {
-  "text": "Usage Export",
-  "content_hash": "10a0cb94"
- },
- "web.colonel.titles.info": {
-  "text": "System Information",
-  "content_hash": "8ad54ec1"
- },
- "web.colonel.titles.organizations": {
-  "text": "Organizations",
-  "content_hash": "2730183d"
- },
- "web.colonel.titles.redis": {
-  "text": "Redis",
-  "content_hash": "a7f64157"
- },
- "web.colonel.feedback.when_you_submit_feedback_well_see": {
-  "text": "When you submit feedback, we'll see:",
-  "content_hash": "fe77172e"
- },
- "web.colonel.pagination.showing": {
-  "text": "Showing {start}–{end} of {total}",
-  "content_hash": "64af6de2"
- },
- "web.colonel.pagination.itemsPerPage": {
-  "text": "Items per page",
-  "content_hash": "766a02e0"
- },
- "web.colonel.pagination.perPage": {
-  "text": "{count} per page",
-  "content_hash": "34671d42"
- },
- "web.colonel.pagination.pageOf": {
-  "text": "Page {current} of {total}",
-  "content_hash": "f0df6412"
- },
- "web.colonel.nav.groups.monitor": {
-  "text": "Monitor"
- },
- "web.colonel.nav.groups.accounts": {
-  "text": "Accounts"
- },
- "web.colonel.nav.groups.secrets": {
-  "text": "Secrets & Domains"
- },
- "web.colonel.nav.groups.controls": {
-  "text": "Controls"
- },
- "web.colonel.nav.consoleTag": {
-  "text": "Console"
- }
+  "web.colonel.customer_secrets_created_customer_secrets_shared_0": {
+    "text": "{0}/{1}/{2} [{3}]",
+    "content_hash": "98ba1771"
+  },
+  "web.colonel.customer_verified_verified_not_verified_0": {
+    "text": "`+customer.verified ? `verified` : `not verified",
+    "content_hash": "52e93cc0"
+  },
+  "web.colonel.customers_details_counts_recent_customer_count_o_0": {
+    "text": "Customers ({0} of {1})",
+    "content_hash": "eb88db1d"
+  },
+  "web.colonel.user_feedback_total_details_counts_feedback_coun_0": {
+    "text": "User Feedback (Total: {0})",
+    "content_hash": "d4a80454"
+  },
+  "web.colonel.metadata_secrets_details_counts_metadata_count_d_0": {
+    "text": "Metadata / Secrets: {0}/{1} ({2}/{3}/{4} total)",
+    "content_hash": "5a341707"
+  },
+  "web.colonel.secrets_details_counts_secret_count_0": {
+    "text": "Secrets ({0})",
+    "content_hash": "dd1c471a"
+  },
+  "web.colonel.active_in_the_past_5_minutes_0": {
+    "text": "(active in the past 5 minutes)",
+    "content_hash": "a2b19058"
+  },
+  "web.colonel.configEditorTitle": {
+    "text": "Settings",
+    "content_hash": "74a883a0"
+  },
+  "web.colonel.configEditorDescription": {
+    "text": "Edit system configuration settings. Changes apply immediately after saving.",
+    "content_hash": "6025d269"
+  },
+  "web.colonel.invalidJson": {
+    "text": "Invalid JSON in {section} section",
+    "content_hash": "a75ac7a3"
+  },
+  "web.colonel.validationError": {
+    "text": "Validation error",
+    "content_hash": "2aa2d0b4"
+  },
+  "web.colonel.errorFetchingConfig": {
+    "text": "Error loading configuration",
+    "content_hash": "08baf6d2"
+  },
+  "web.colonel.errorSavingConfig": {
+    "text": "Error saving configuration",
+    "content_hash": "48df54c7"
+  },
+  "web.colonel.configSaved": {
+    "text": "Configuration saved successfully",
+    "content_hash": "93b3d3e4"
+  },
+  "web.colonel.mustBeObject": {
+    "text": "Configuration must be a JSON object",
+    "content_hash": "74e8897e"
+  },
+  "web.colonel.multipleSectionsInvalid": {
+    "text": "Multiple sections have validation errors: {sections}",
+    "content_hash": "71fdaea1"
+  },
+  "web.colonel.sectionHasError": {
+    "text": "{section} has validation errors: {error}",
+    "content_hash": "e5e01aa0"
+  },
+  "web.colonel.sectionSaved": {
+    "text": "{section} saved successfully",
+    "content_hash": "7be1d5d2"
+  },
+  "web.colonel.saveSection": {
+    "text": "Save {section}",
+    "content_hash": "4a379f10"
+  },
+  "web.colonel.saveAll": {
+    "text": "Save All",
+    "content_hash": "d3c54e39"
+  },
+  "web.colonel.unsavedChanges": {
+    "text": "Unsaved changes",
+    "content_hash": "a710c2b9"
+  },
+  "web.colonel.schemaValidationError": {
+    "text": "Schema validation error: {message} ({path})",
+    "content_hash": "5f838cb2"
+  },
+  "web.colonel.unknownValidationError": {
+    "text": "Unknown validation error: {error}",
+    "content_hash": "b6cf56ca"
+  },
+  "web.colonel.sectionEffectivelyEmpty": {
+    "text": "{section} section has no configured values",
+    "content_hash": "efb63b77"
+  },
+  "web.colonel.dashboard": {
+    "text": "Dashboard",
+    "content_hash": "67b69646"
+  },
+  "web.colonel.admin": {
+    "text": "Admin",
+    "content_hash": "c1c224b0"
+  },
+  "web.colonel.backToSite": {
+    "text": "Back to Onetime Secret"
+  },
+  "web.colonel.activity": {
+    "text": "Activity",
+    "content_hash": "38da1505"
+  },
+  "web.colonel.accounts": {
+    "text": "Accounts",
+    "content_hash": "8a7c8b67"
+  },
+  "web.colonel.users": {
+    "text": "Users",
+    "content_hash": "6b0cc904"
+  },
+  "web.colonel.usersDescription": {
+    "text": "Manage user accounts and permissions",
+    "content_hash": "6cfc012c"
+  },
+  "web.colonel.domains": {
+    "text": "Domains",
+    "content_hash": "ced67718"
+  },
+  "web.colonel.settings": {
+    "text": "Settings",
+    "content_hash": "74a883a0"
+  },
+  "web.colonel.system": {
+    "text": "System",
+    "content_hash": "6725e7bb"
+  },
+  "web.colonel.welcome": {
+    "text": "Welcome to Colonel",
+    "content_hash": "7881ca9e"
+  },
+  "web.colonel.welcomeDesc": {
+    "text": "Administrative control panel for OneTimeSecret",
+    "content_hash": "57c1e752"
+  },
+  "web.colonel.quickActions": {
+    "text": "Quick Actions",
+    "content_hash": "2cc2b6f7"
+  },
+  "web.colonel.recentActivity": {
+    "text": "Recent Activity",
+    "content_hash": "9ef7d438"
+  },
+  "web.colonel.viewAll": {
+    "text": "View All",
+    "content_hash": "ff5573a6"
+  },
+  "web.colonel.activityPlaceholder": {
+    "text": "Activity data will be displayed here",
+    "content_hash": "aaf9e948"
+  },
+  "web.colonel.stats.totalSecrets": {
+    "text": "Total Secrets",
+    "content_hash": "e17a5459"
+  },
+  "web.colonel.stats.activeUsers": {
+    "text": "Active Users",
+    "content_hash": "5639b9f1"
+  },
+  "web.colonel.stats.secretsToday": {
+    "text": "Secrets Today",
+    "content_hash": "aefbd2db"
+  },
+  "web.colonel.stats.secretsCreated": {
+    "text": "Secrets Created",
+    "content_hash": "a97ee479"
+  },
+  "web.colonel.stats.secretsShared": {
+    "text": "Secrets Shared",
+    "content_hash": "5deb082c"
+  },
+  "web.colonel.stats.totalCustomers": {
+    "text": "Total Users",
+    "content_hash": "0ca3aa44"
+  },
+  "web.colonel.stats.emailsSent": {
+    "text": "Emails Sent",
+    "content_hash": "87cfb3ab"
+  },
+  "web.colonel.stats.systemHealth": {
+    "text": "System Health",
+    "content_hash": "c3d66242"
+  },
+  "web.colonel.stats.healthy": {
+    "text": "Healthy",
+    "content_hash": "7f1e323b"
+  },
+  "web.colonel.actions.viewActivity": {
+    "text": "View Activity",
+    "content_hash": "9c28f55c"
+  },
+  "web.colonel.actions.viewActivityDesc": {
+    "text": "Monitor system activity and usage",
+    "content_hash": "f88e9eda"
+  },
+  "web.colonel.actions.manageAccounts": {
+    "text": "Manage Accounts",
+    "content_hash": "9d114268"
+  },
+  "web.colonel.actions.manageAccountsDesc": {
+    "text": "User account administration",
+    "content_hash": "d73af927"
+  },
+  "web.colonel.actions.configureDomains": {
+    "text": "Configure Domains",
+    "content_hash": "74402af9"
+  },
+  "web.colonel.actions.configureDomainsDesc": {
+    "text": "Domain and DNS settings",
+    "content_hash": "1f712094"
+  },
+  "web.colonel.actions.systemSettings": {
+    "text": "System Settings",
+    "content_hash": "1f87f883"
+  },
+  "web.colonel.actions.systemSettingsDesc": {
+    "text": "Application configuration",
+    "content_hash": "923dc672"
+  },
+  "web.colonel.backgroundJobs": {
+    "text": "Background Jobs",
+    "content_hash": "48937049"
+  },
+  "web.colonel.queueStatus": {
+    "text": "Queue Status",
+    "content_hash": "3421ffa8"
+  },
+  "web.colonel.queueName": {
+    "text": "Queue",
+    "content_hash": "3b2fe03e"
+  },
+  "web.colonel.pendingMessages": {
+    "text": "Pending",
+    "content_hash": "331551b0"
+  },
+  "web.colonel.consumers": {
+    "text": "Consumers",
+    "content_hash": "212b350d"
+  },
+  "web.colonel.processingRate": {
+    "text": "Rate/sec",
+    "content_hash": "cfde439c"
+  },
+  "web.colonel.connectionStatus": {
+    "text": "Connection Status",
+    "content_hash": "3693e288"
+  },
+  "web.colonel.workerHealth": {
+    "text": "Worker Health",
+    "content_hash": "52be3ac1"
+  },
+  "web.colonel.activeWorkers": {
+    "text": "active workers",
+    "content_hash": "ea68cfee"
+  },
+  "web.colonel.noQueueData": {
+    "text": "No queue data available",
+    "content_hash": "331ffa6b"
+  },
+  "web.colonel.loadingQueueData": {
+    "text": "Loading queue data...",
+    "content_hash": "a3762a00"
+  },
+  "web.colonel.testPlanMode": {
+    "text": "Test Plan Mode",
+    "content_hash": "eba59223"
+  },
+  "web.colonel.testingAsPlan": {
+    "text": "Testing as {planName}",
+    "content_hash": "b3032f1a"
+  },
+  "web.colonel.clickToReset": {
+    "text": "Click to reset",
+    "content_hash": "4b25034d"
+  },
+  "web.colonel.selectTestPlan": {
+    "text": "Select a plan to test",
+    "content_hash": "9e6e12fe"
+  },
+  "web.colonel.resetToActual": {
+    "text": "Reset to actual plan",
+    "content_hash": "2cea3f92"
+  },
+  "web.colonel.currentActualPlan": {
+    "text": "Current plan",
+    "content_hash": "37ca715f"
+  },
+  "web.colonel.previewPlanMode": {
+    "text": "Preview plan mode",
+    "content_hash": "cf53f19d"
+  },
+  "web.colonel.previewModeDescription": {
+    "text": "Preview the application as it appears to customers on a different plan. This affects your view only and does not change any organization's actual plan.",
+    "content_hash": "6fe23f23"
+  },
+  "web.colonel.previewModeActive": {
+    "text": "Preview active",
+    "content_hash": "a558d603"
+  },
+  "web.colonel.availablePlans": {
+    "text": "Available plans",
+    "content_hash": "20efa44d"
+  },
+  "web.colonel.activateTestMode": {
+    "text": "Activate test mode",
+    "content_hash": "0f469baa"
+  },
+  "web.colonel.testModeActive": {
+    "text": "Test mode active",
+    "content_hash": "ae2c8dd9"
+  },
+  "web.colonel.testModeDescription": {
+    "text": "Test your application with different plan entitlements. Changes are temporary and affect only your session.",
+    "content_hash": "be03a409"
+  },
+  "web.colonel.warningTestMode": {
+    "text": "You are testing with {planName} entitlements (temporary session override).",
+    "content_hash": "1a8aecf1"
+  },
+  "web.colonel.organizations.title": {
+    "text": "Organizations",
+    "content_hash": "2730183d"
+  },
+  "web.colonel.organizations.description": {
+    "text": "Monitor org billing sync health",
+    "content_hash": "d8f4398b"
+  },
+  "web.colonel.organizations.pageTitle": {
+    "text": "Billing Health Monitor",
+    "content_hash": "9ef57da4"
+  },
+  "web.colonel.organizations.organizationsCount": {
+    "text": "{count} organizations",
+    "content_hash": "bc2feb56"
+  },
+  "web.colonel.organizations.needAttention": {
+    "text": "{count} need attention",
+    "content_hash": "1c8e5840"
+  },
+  "web.colonel.organizations.unknownCount": {
+    "text": "{count} unknown",
+    "content_hash": "b7bf2cf1"
+  },
+  "web.colonel.organizations.noOrganizations": {
+    "text": "No organizations found",
+    "content_hash": "538995db"
+  },
+  "web.colonel.organizations.filters.syncStatus": {
+    "text": "Sync Status",
+    "content_hash": "b3998276"
+  },
+  "web.colonel.organizations.filters.subscription": {
+    "text": "Subscription",
+    "content_hash": "4999c6c6"
+  },
+  "web.colonel.organizations.filters.all": {
+    "text": "All",
+    "content_hash": "a52ace42"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "text": "Potentially Stale",
+    "content_hash": "40137b37"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "text": "Unknown",
+    "content_hash": "b764cdc0"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "text": "Synced",
+    "content_hash": "5da22fe4"
+  },
+  "web.colonel.organizations.filters.active": {
+    "text": "Active",
+    "content_hash": "92340695"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "text": "Trialing",
+    "content_hash": "3792573d"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "text": "Past Due",
+    "content_hash": "2bda1c7b"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "text": "Canceled",
+    "content_hash": "13ca2ee2"
+  },
+  "web.colonel.organizations.columns.account": {
+    "text": "Account",
+    "content_hash": "7e1b0d56"
+  },
+  "web.colonel.organizations.columns.billing": {
+    "text": "Billing",
+    "content_hash": "3ac8bbca"
+  },
+  "web.colonel.organizations.columns.status": {
+    "text": "Status",
+    "content_hash": "920e413c"
+  },
+  "web.colonel.organizations.columns.usage": {
+    "text": "Usage",
+    "content_hash": "8d59829c"
+  },
+  "web.colonel.organizations.columns.created": {
+    "text": "Created",
+    "content_hash": "d70b9e24"
+  },
+  "web.colonel.organizations.columns.details": {
+    "text": "Details",
+    "content_hash": "45989de4"
+  },
+  "web.colonel.organizations.columns.owner": {
+    "text": "Owner",
+    "content_hash": "4b1b8aa3"
+  },
+  "web.colonel.organizations.columns.plan": {
+    "text": "Plan",
+    "content_hash": "fa8ed0bd"
+  },
+  "web.colonel.organizations.columns.members": {
+    "text": "Members",
+    "content_hash": "1044a4c0"
+  },
+  "web.colonel.organizations.columns.domains": {
+    "text": "Domains",
+    "content_hash": "ced67718"
+  },
+  "web.colonel.organizations.columns.subscription": {
+    "text": "Subscription",
+    "content_hash": "4999c6c6"
+  },
+  "web.colonel.organizations.columns.default_workspace": {
+    "text": "Default Workspace",
+    "content_hash": "53aa279e"
+  },
+  "web.colonel.organizations.columns.has_billing": {
+    "text": "Has Billing",
+    "content_hash": "db0628ed"
+  },
+  "web.colonel.organizations.legacy.title": {
+    "text": "Organizations Billing Admin",
+    "content_hash": "5c7e07e7"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "Manage organizations and monitor billing sync health ({total} total)",
+    "content_hash": "996b446d"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "No organizations found",
+    "content_hash": "538995db"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "potentially stale",
+    "content_hash": "3ddfec45"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "Stale",
+    "content_hash": "40c9e59c"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "Unknown",
+    "content_hash": "b764cdc0"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "active",
+    "content_hash": "96879611"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "Investigate",
+    "content_hash": "e2641093"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "Checking...",
+    "content_hash": "2e5f79bb"
+  },
+  "web.colonel.organizations.expanded.customer": {
+    "text": "Customer",
+    "content_hash": "bf376338"
+  },
+  "web.colonel.organizations.expanded.subscription": {
+    "text": "Subscription",
+    "content_hash": "4999c6c6"
+  },
+  "web.colonel.organizations.expanded.orgId": {
+    "text": "Org ID",
+    "content_hash": "5e6b9932"
+  },
+  "web.colonel.organizations.investigation.failed": {
+    "text": "Investigation failed",
+    "content_hash": "193aa900"
+  },
+  "web.colonel.organizations.investigation.result": {
+    "text": "Investigation Result",
+    "content_hash": "2dbc5cc3"
+  },
+  "web.colonel.organizations.investigation.verifiedSynced": {
+    "text": "Verified Synced",
+    "content_hash": "d92625c2"
+  },
+  "web.colonel.organizations.investigation.mismatchFound": {
+    "text": "Mismatch Found",
+    "content_hash": "361d22f3"
+  },
+  "web.colonel.organizations.investigation.unableToCompare": {
+    "text": "Unable to Compare",
+    "content_hash": "64c822ee"
+  },
+  "web.colonel.organizations.investigation.stripeDetails": {
+    "text": "Stripe Subscription Details",
+    "content_hash": "53a7b0ea"
+  },
+  "web.colonel.organizations.investigation.statusLabel": {
+    "text": "Status",
+    "content_hash": "920e413c"
+  },
+  "web.colonel.organizations.investigation.product": {
+    "text": "Product",
+    "content_hash": "fb9ef894"
+  },
+  "web.colonel.organizations.investigation.resolvedPlan": {
+    "text": "Resolved Plan",
+    "content_hash": "17c5b37a"
+  },
+  "web.colonel.organizations.investigation.priceId": {
+    "text": "Price ID",
+    "content_hash": "b39a8f3e"
+  },
+  "web.colonel.organizations.investigation.local": {
+    "text": "Local",
+    "content_hash": "8c31e6e7"
+  },
+  "web.colonel.organizations.investigation.stripe": {
+    "text": "Stripe",
+    "content_hash": "961a6062"
+  },
+  "web.colonel.organizations.usage.members": {
+    "text": "{count} members",
+    "content_hash": "201eb3d9"
+  },
+  "web.colonel.organizations.usage.domains": {
+    "text": "{count} domains",
+    "content_hash": "cf548c8c"
+  },
+  "web.colonel.secrets.title": {
+    "text": "Secrets",
+    "content_hash": "d8707d41"
+  },
+  "web.colonel.secrets.description": {
+    "text": "View and manage all secrets",
+    "content_hash": "48f8052e"
+  },
+  "web.colonel.secrets.columns.shortId": {
+    "text": "Short ID",
+    "content_hash": "7eaeb4a7"
+  },
+  "web.colonel.secrets.columns.state": {
+    "text": "State",
+    "content_hash": "a3b50c47"
+  },
+  "web.colonel.secrets.columns.created": {
+    "text": "Created",
+    "content_hash": "d70b9e24"
+  },
+  "web.colonel.secrets.columns.expiration": {
+    "text": "Expiration",
+    "content_hash": "f38d6e0e"
+  },
+  "web.colonel.secrets.columns.age": {
+    "text": "Age (days)",
+    "content_hash": "52ae64c6"
+  },
+  "web.colonel.secrets.empty": {
+    "text": "No secrets found",
+    "content_hash": "28647b3b"
+  },
+  "web.colonel.secrets.never": {
+    "text": "Never",
+    "content_hash": "6300ef80"
+  },
+  "web.colonel.secrets.state.new": {
+    "text": "New",
+    "content_hash": "18fdd549"
+  },
+  "web.colonel.secrets.state.received": {
+    "text": "Received",
+    "content_hash": "49f19bee"
+  },
+  "web.colonel.secrets.state.viewed": {
+    "text": "Viewed",
+    "content_hash": "1b28d178"
+  },
+  "web.colonel.bannedIps.title": {
+    "text": "Banned IPs",
+    "content_hash": "0ece5643"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "Manage IP ban list",
+    "content_hash": "dd0d2614"
+  },
+  "web.colonel.bannedIps.columns.ipAddress": {
+    "text": "IP Address",
+    "content_hash": "3c3de0c9"
+  },
+  "web.colonel.bannedIps.columns.reason": {
+    "text": "Reason",
+    "content_hash": "f81ab834"
+  },
+  "web.colonel.bannedIps.columns.bannedAt": {
+    "text": "Banned At",
+    "content_hash": "dfbd120e"
+  },
+  "web.colonel.bannedIps.columns.bannedBy": {
+    "text": "Banned By",
+    "content_hash": "9f47db0e"
+  },
+  "web.colonel.bannedIps.empty": {
+    "text": "No banned IPs",
+    "content_hash": "bd101143"
+  },
+  "web.colonel.bannedIps.form.title": {
+    "text": "Ban IP Address",
+    "content_hash": "3f5b3dfa"
+  },
+  "web.colonel.bannedIps.form.ipLabel": {
+    "text": "IP Address",
+    "content_hash": "3c3de0c9"
+  },
+  "web.colonel.bannedIps.form.reasonLabel": {
+    "text": "Reason",
+    "content_hash": "f81ab834"
+  },
+  "web.colonel.bannedIps.form.reasonPlaceholder": {
+    "text": "Optional reason",
+    "content_hash": "956688a5"
+  },
+  "web.colonel.bannedIps.actions.ban": {
+    "text": "Ban IP",
+    "content_hash": "f91a5285"
+  },
+  "web.colonel.bannedIps.actions.quickBan": {
+    "text": "Quick Ban",
+    "content_hash": "c32d0943"
+  },
+  "web.colonel.bannedIps.actions.unban": {
+    "text": "Unban",
+    "content_hash": "25fb5989"
+  },
+  "web.colonel.bannedIps.actions.cancel": {
+    "text": "Cancel",
+    "content_hash": "19766ed6"
+  },
+  "web.colonel.bannedIps.currentIp": {
+    "text": "Your Current IP Address",
+    "content_hash": "72f9fefe"
+  },
+  "web.colonel.bannedIps.confirmUnban": {
+    "text": "Unban {ip}?",
+    "content_hash": "ff009b1c"
+  },
+  "web.colonel.bannedIps.success.banned": {
+    "text": "IP address {ip} has been banned",
+    "content_hash": "b6f861d5"
+  },
+  "web.colonel.bannedIps.success.unbanned": {
+    "text": "IP address {ip} has been unbanned",
+    "content_hash": "dbe93550"
+  },
+  "web.colonel.bannedIps.error.banFailed": {
+    "text": "Failed to ban IP address",
+    "content_hash": "24e94d9b"
+  },
+  "web.colonel.bannedIps.error.unbanFailed": {
+    "text": "Failed to unban IP address",
+    "content_hash": "66bbac9a"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "Usage Export",
+    "content_hash": "10a0cb94"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "Export usage data and statistics",
+    "content_hash": "2fd0a2e2"
+  },
+  "web.colonel.systemSettings.title": {
+    "text": "System",
+    "content_hash": "6725e7bb"
+  },
+  "web.colonel.systemSettings.description": {
+    "text": "System settings, databases, and configuration",
+    "content_hash": "7690b296"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "Custom Domains",
+    "content_hash": "6170ab94"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "Manage custom domains and branding",
+    "content_hash": "808ee2cb"
+  },
+  "web.colonel.customDomains.empty": {
+    "text": "No custom domains configured",
+    "content_hash": "e10b39f7"
+  },
+  "web.colonel.customDomains.noLogo": {
+    "text": "No Logo",
+    "content_hash": "ee5e36ff"
+  },
+  "web.colonel.customDomains.labels.organization": {
+    "text": "Organization",
+    "content_hash": "d764d425"
+  },
+  "web.colonel.customDomains.labels.externalId": {
+    "text": "External ID",
+    "content_hash": "69da56ba"
+  },
+  "web.colonel.customDomains.labels.created": {
+    "text": "Created",
+    "content_hash": "d70b9e24"
+  },
+  "web.colonel.customDomains.labels.updated": {
+    "text": "Updated",
+    "content_hash": "3a5ecca1"
+  },
+  "web.colonel.customDomains.labels.favicon": {
+    "text": "Favicon",
+    "content_hash": "42955289"
+  },
+  "web.colonel.customDomains.status.verified": {
+    "text": "Verified",
+    "content_hash": "4f783840"
+  },
+  "web.colonel.customDomains.status.resolving": {
+    "text": "Resolving",
+    "content_hash": "3287a034"
+  },
+  "web.colonel.customDomains.status.ready": {
+    "text": "Ready",
+    "content_hash": "5fa7aac5"
+  },
+  "web.colonel.customDomains.status.publicHomepage": {
+    "text": "Public Homepage",
+    "content_hash": "2ae3ccba"
+  },
+  "web.colonel.customDomains.status.publicApi": {
+    "text": "Public API",
+    "content_hash": "ab3aa426"
+  },
+  "web.colonel.customDomains.status.pending": {
+    "text": "Pending",
+    "content_hash": "331551b0"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "Send feedback",
+    "content_hash": "8235980b"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "Sending...",
+    "content_hash": "286a3af7"
+  },
+  "web.colonel.titles.index": {
+    "text": "Administration",
+    "content_hash": "4b42c669"
+  },
+  "web.colonel.titles.users": {
+    "text": "User Management",
+    "content_hash": "fe45f3a1"
+  },
+  "web.colonel.titles.secrets": {
+    "text": "Secret Management",
+    "content_hash": "af69773b"
+  },
+  "web.colonel.titles.domains": {
+    "text": "Custom Domains",
+    "content_hash": "6170ab94"
+  },
+  "web.colonel.titles.system": {
+    "text": "System",
+    "content_hash": "6725e7bb"
+  },
+  "web.colonel.titles.maindb": {
+    "text": "Main Database",
+    "content_hash": "c4545e98"
+  },
+  "web.colonel.titles.authdb": {
+    "text": "Auth Database",
+    "content_hash": "c683c9a6"
+  },
+  "web.colonel.titles.bannedIps": {
+    "text": "Banned IPs",
+    "content_hash": "0ece5643"
+  },
+  "web.colonel.titles.usage": {
+    "text": "Usage Export",
+    "content_hash": "10a0cb94"
+  },
+  "web.colonel.titles.info": {
+    "text": "System Information",
+    "content_hash": "8ad54ec1"
+  },
+  "web.colonel.titles.organizations": {
+    "text": "Organizations",
+    "content_hash": "2730183d"
+  },
+  "web.colonel.titles.redis": {
+    "text": "Redis",
+    "content_hash": "a7f64157"
+  },
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "When you submit feedback, we'll see:",
+    "content_hash": "fe77172e"
+  },
+  "web.colonel.pagination.showing": {
+    "text": "Showing {start}–{end} of {total}",
+    "content_hash": "64af6de2"
+  },
+  "web.colonel.pagination.itemsPerPage": {
+    "text": "Items per page",
+    "content_hash": "766a02e0"
+  },
+  "web.colonel.pagination.perPage": {
+    "text": "{count} per page",
+    "content_hash": "34671d42"
+  },
+  "web.colonel.pagination.pageOf": {
+    "text": "Page {current} of {total}",
+    "content_hash": "f0df6412"
+  },
+  "web.colonel.nav.consoleTag": {
+    "text": "Console"
+  },
+  "web.colonel.nav.groups.monitor": {
+    "text": "Monitor"
+  },
+  "web.colonel.nav.groups.accounts": {
+    "text": "Accounts"
+  },
+  "web.colonel.nav.groups.secrets": {
+    "text": "Secrets & Domains"
+  },
+  "web.colonel.nav.groups.controls": {
+    "text": "Controls"
+  }
 }
