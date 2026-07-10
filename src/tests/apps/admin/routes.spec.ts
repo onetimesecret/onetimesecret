@@ -1,8 +1,8 @@
 // src/tests/apps/admin/routes.spec.ts
 
-import adminRoutes, { adminDefaultMeta } from '@/apps/admin/routes';
 import { createAdminRouter } from '@/apps/admin/router';
-import { CONSOLE_SECTIONS } from '@/apps/admin/console-sections';
+import adminRoutes, { adminDefaultMeta } from '@/apps/admin/routes';
+import { CONSOLE_SECTIONS } from '@/apps/admin/sections';
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { RouteRecordRaw } from 'vue-router';

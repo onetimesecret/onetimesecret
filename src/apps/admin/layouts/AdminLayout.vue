@@ -9,7 +9,7 @@
   import { useI18n } from 'vue-i18n';
   import { useRoute } from 'vue-router';
 
-  import { CONSOLE_GROUPS, CONSOLE_SECTIONS } from '../console-sections';
+  import { CONSOLE_GROUPS, CONSOLE_SECTIONS } from '../sections';
 
   // App.vue passes the customer chrome layout props via v-bind; this console
   // owns its own chrome, so drop those attrs instead of letting them fall
@@ -43,7 +43,7 @@
   const navBands = computed(() =>
     CONSOLE_GROUPS.map((band) => ({
       ...band,
-      sections: CONSOLE_SECTIONS.filter((s) => s.group === band.key),
+      sections: CONSOLE_SECTIONS.filter((s) => s.group === band.key && !s.hide),
     })).filter((band) => band.sections.length > 0)
   );
 </script>
@@ -70,41 +70,26 @@
     <!-- Persistent left navigation rail -->
     <aside
       class="hidden w-64 shrink-0 flex-col border-r border-gray-200 bg-white md:flex dark:border-gray-800 dark:bg-gray-900">
-      <!-- Header record: the escape hatch and the console lock-up share one
-           bordered block so the back link reads as a deliberate eyebrow rather
-           than a stray line pushing the mark down. The heavy bottom rule closes
-           the record. Full navigation (not a router-link): the console is an
-           isolated bundle. Neutral copy — no product name — to respect the
-           tenant's applied branding. -->
-      <div class="border-b-2 border-gray-900 dark:border-gray-100">
-        <a
-          href="/"
-          class="flex items-center gap-1.5 px-5 pt-3 pb-2 text-xs font-medium text-gray-400 transition-colors hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-200"
-          data-testid="admin-back-to-site">
+      <!-- Masthead: the lock-up anchors the top of the rail — nothing sits above
+           it, so the mark is never pushed down. A proper lock-up, not just an
+           icon + word. The heavy bottom rule reads as the header rule of a bound
+           record. The escape hatch lives in the rail footer below. -->
+      <div
+        class="flex h-16 items-center gap-3 border-b-2 border-gray-900 px-5 dark:border-gray-100">
+        <span
+          class="flex size-9 shrink-0 items-center justify-center rounded-md bg-brand-600 text-white shadow-sm dark:bg-brand-500">
           <OIcon
             collection="heroicons"
-            name="arrow-left"
-            size="4" />
-          {{ t('web.colonel.backToSite') }}
-        </a>
-
-        <!-- Masthead: a proper lock-up, not just an icon + word. -->
-        <div class="flex items-center gap-3 px-5 pt-1 pb-4">
+            name="shield-check"
+            size="5" />
+        </span>
+        <span class="flex flex-col leading-none">
+          <span class="font-brand text-lg font-bold tracking-tight">{{ t('web.colonel.admin') }}</span>
           <span
-            class="flex size-9 shrink-0 items-center justify-center rounded-md bg-brand-600 text-white shadow-sm dark:bg-brand-500">
-            <OIcon
-              collection="heroicons"
-              name="shield-check"
-              size="5" />
+            class="mt-1 font-brand text-[10px] font-semibold tracking-[0.2em] text-gray-400 uppercase dark:text-gray-500">
+            {{ t('web.colonel.nav.consoleTag') }}
           </span>
-          <span class="flex flex-col leading-none">
-            <span class="font-brand text-lg font-bold tracking-tight">{{ t('web.colonel.admin') }}</span>
-            <span
-              class="mt-1 font-brand text-[10px] font-semibold tracking-[0.2em] text-gray-400 uppercase dark:text-gray-500">
-              {{ t('web.colonel.nav.consoleTag') }}
-            </span>
-          </span>
-        </div>
+        </span>
       </div>
 
       <nav
@@ -151,6 +136,21 @@
           </div>
         </template>
       </nav>
+
+      <!-- Escape hatch, pinned to the rail foot outside the scrolling <nav> so
+           long band lists can never push it out of reach. Full navigation (not a
+           router-link): the console is an isolated bundle. Neutral copy — no
+           product name — to respect the tenant's applied branding. -->
+      <a
+        href="/"
+        class="flex shrink-0 items-center gap-1.5 border-t border-gray-200 px-5 py-3 text-xs font-medium text-gray-400 transition-colors hover:text-gray-700 dark:border-gray-800 dark:text-gray-500 dark:hover:text-gray-200"
+        data-testid="admin-back-to-site">
+        <OIcon
+          collection="heroicons"
+          name="arrow-left"
+          size="4" />
+        {{ t('web.colonel.backToSite') }}
+      </a>
     </aside>
 
     <!-- Main column -->
