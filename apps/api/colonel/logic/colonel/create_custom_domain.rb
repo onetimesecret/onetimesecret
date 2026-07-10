@@ -129,8 +129,14 @@ module ColonelAPI
         # safe_dump omits verification_state / resolving / ready (it emits verified
         # but not its siblings), so merge them in — typed to match
         # VerifyCustomDomain's record so the frontend reuses that Zod schema.
+        #
+        # domain_id overrides safe_dump's own `domainid` (no underscore) key —
+        # every other colonel domain response (VerifyCustomDomain, ListCustomDomains,
+        # RepairDomain, TransferDomain) uses `domain_id`, and the frontend Zod
+        # schema (colonelDomainDetailRecordSchema) requires it.
         def domain_record
           custom_domain.safe_dump.merge(
+            domain_id: custom_domain.domainid,
             verification_state: custom_domain.verification_state.to_s,
             resolving: custom_domain.resolving.to_s == 'true',
             ready: custom_domain.ready?,

@@ -120,7 +120,13 @@ post '/api/colonel/domains', { 'org_id' => @org.extid, 'domain' => @domain }, co
 ## Create: record carries the identity + DNS fields the admin panel renders
 @resp = JSON.parse(last_response.body)
 r = @resp['record']
-%w[extid display_domain base_domain trd is_apex txt_validation_host txt_validation_value created updated verified].all? { |k| r.key?(k) }
+%w[domain_id extid display_domain base_domain trd is_apex txt_validation_host txt_validation_value created updated verified].all? { |k| r.key?(k) }
+#=> true
+
+## Create: domain_id is the domain's own id, not safe_dump's un-underscored `domainid` alias
+@resp = JSON.parse(last_response.body)
+r = @resp['record']
+r['domain_id'] == Onetime::CustomDomain.find_by_extid(r['extid']).domainid
 #=> true
 
 ## Create: the three DNS fields safe_dump OMITS are merged in
@@ -195,10 +201,11 @@ r = @resp['record']
   last_response.status,
   r['extid'] == @created_extid,
   r['display_domain'] == @domain,
+  r.key?('domain_id'),
   %w[verification_state resolving ready].all? { |k| r.key?(k) },
   @resp['details'].key?('cluster'),
 ]
-#=> [200, true, true, true, true]
+#=> [200, true, true, true, true, true]
 
 # ----------------------------------------------------------------
 # Teardown
