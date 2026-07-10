@@ -136,6 +136,16 @@ redis_host_port() {
   echo "${host:-127.0.0.1}" "${port:-6379}"
 }
 
+redis_reachable() {
+  local rhost rport
+  read -r rhost rport < <(redis_host_port)
+  if has valkey-cli && valkey-cli -h "$rhost" -p "$rport" ping &>/dev/null; then return 0; fi
+  if has redis-cli  && redis-cli  -h "$rhost" -p "$rport" ping &>/dev/null; then return 0; fi
+  # CLI-free fallback: plain TCP connect (confirms the port is open)
+  (exec 3<>"/dev/tcp/$rhost/$rport") 2>/dev/null && { exec 3>&- 3<&-; return 0; }
+  return 1
+}
+
 auth_mode() {
   # Read from env or .env file, defaulting to simple
   local mode="${AUTHENTICATION_MODE:-}"
@@ -208,16 +218,12 @@ cmd_init() {
 
   if [[ "$mode" == "full" ]]; then
     info "Re-applying RabbitMQ policies and queue declarations..."
-    bin/ots queue init --force
+    bin/ots queue init --force || warn "queue init failed (is RabbitMQ running?) — re-run './install.sh' after starting RabbitMQ"
   fi
 
   # Check Redis/Valkey availability before attempting install mark
   redis_available=false
-  read -r rhost rport < <(redis_host_port)
-  if (has valkey-cli && valkey-cli -h "$rhost" -p "$rport" ping &>/dev/null) || \
-     (has redis-cli && redis-cli -h "$rhost" -p "$rport" ping &>/dev/null); then
-    redis_available=true
-  fi
+  redis_reachable && redis_available=true
 
   if [[ "$redis_available" == true ]]; then
     if bundle exec bin/ots install mark; then
@@ -262,10 +268,8 @@ cmd_doctor() {
   (check_version_major "Node" node .node-version 'node -v') || true
 
   read -r rhost rport < <(redis_host_port)
-  if has valkey-cli && valkey-cli -h "$rhost" -p "$rport" ping &>/dev/null; then
-    info "Valkey responding ($rhost:$rport)"
-  elif has redis-cli && redis-cli -h "$rhost" -p "$rport" ping &>/dev/null; then
-    info "Redis responding ($rhost:$rport)"
+  if redis_reachable; then
+    info "Valkey/Redis responding ($rhost:$rport)"
   else
     warn "Valkey/Redis not responding at $rhost:$rport"
   fi
