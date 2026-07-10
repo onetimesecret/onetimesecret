@@ -71,7 +71,15 @@ module ColonelAPI
               suspended: cust.suspended?,
               created: cust.created,
               last_login: cust.last_login,
-              planid: cust.planid,
+              # Authoritative plan lives on the customer's Organization, not the
+              # deprecated Customer#planid field (which drifts — a legacy value
+              # like "identity" survives on the customer hash even after the org
+              # moved to team_plus_v1). Resolve the billing org's planid per row,
+              # mirroring GetUserDetails#billing_organization; fall back to the
+              # legacy field only when the customer participates in no org. This
+              # is a bounded per-row org load (<= per_page rows, ~1 org each),
+              # consistent with the per-row secrets_count read above.
+              planid: resolve_planid(cust),
               # secrets_count is now read from the maintained per-customer
               # secrets_active counter (#60), resolving the TODO(#60) that #20
               # left in place. This replaces the former per-request SCAN over
@@ -92,6 +100,35 @@ module ColonelAPI
         end
 
         private
+
+        # Resolve a customer's effective plan id from their Organization.
+        #
+        # Selection mirrors GetUserDetails#billing_organization: the first org
+        # with a Stripe customer id (the one actually billed), else the default
+        # workspace, else the first org. Returns that org's planid. Falls back
+        # to the legacy Customer#planid only when the customer has no org (e.g.
+        # legacy Redis-only seed accounts). Any load failure degrades to the
+        # legacy field rather than 500-ing the list.
+        #
+        # @param cust [Onetime::Customer]
+        # @return [String, nil]
+        def resolve_planid(cust)
+          return cust.planid unless cust.respond_to?(:organization_instances)
+
+          # organization_instances is the Familia participation reverse accessor
+          # (config_name "organization" + "_instances"); it returns already-loaded,
+          # existence-checked Organization objects (load_multi.compact). There is
+          # no bare `organizations` method — see organization_loader.rb.
+          orgs = cust.organization_instances.to_a.reject(&:archived?)
+          return cust.planid if orgs.empty?
+
+          billing_org = orgs.find { |org| !org.stripe_customer_id.to_s.empty? } ||
+                        orgs.find(&:is_default) ||
+                        orgs.first
+          billing_org.planid
+        rescue StandardError
+          cust.planid
+        end
 
         def success_data
           {
