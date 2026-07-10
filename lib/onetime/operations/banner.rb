@@ -25,8 +25,34 @@ module Onetime
       # display text (preserved bit-for-bit).
       KEY = 'global_banner'
 
+      # Sidecar key holding the banner AUDIENCE scope. Stored separately (not folded
+      # into the content value) so {KEY} stays a bit-for-bit plain HTML string — the
+      # CLI, the boot initializer, and any external reader keep working unchanged.
+      # Written/expired in lockstep with {KEY} (same TTL) so scope never outlives
+      # the banner it describes.
+      SCOPE_KEY = 'global_banner:scope'
+
+      # Audience scopes the banner can target (surfaced to the frontend, which owns
+      # the page-audience matching). See GlobalBroadcast/BaseLayout:
+      #   all           – every page, including recipient (reveal) + custom domains
+      #   no_recipient  – every page EXCEPT recipient pages; suppressed on custom domains
+      #   workspace     – authenticated workspace pages only
+      VALID_SCOPES = %w[all no_recipient workspace].freeze
+
+      # Scope assumed when the sidecar key is absent/blank/invalid. Chosen so
+      # pre-existing string-only banners (no sidecar) keep off custom domains and
+      # off recipient pages without a migration.
+      DEFAULT_SCOPE = 'no_recipient'
+
       # Database index the banner lives in (DB 0, matching the CLI + initializer).
       DB = 0
+
+      # Coerce a raw sidecar value to a valid scope, collapsing blank/unknown to
+      # {DEFAULT_SCOPE}. Shared by GetBanner (read path) and the initializer.
+      def self.normalize_scope(raw)
+        value = raw.to_s.strip
+        VALID_SCOPES.include?(value) ? value : DEFAULT_SCOPE
+      end
     end
 
     # Read the current broadcast banner. READ-ONLY — records NO audit event
@@ -39,13 +65,16 @@ module Onetime
     class GetBanner
       # @!attribute active [r]
       #   @return [Boolean] true when a non-empty banner is set.
-      Result = Data.define(:content, :ttl, :active, :key, :database)
+      # @!attribute scope [r]
+      #   @return [String] audience scope (always one of {BannerState::VALID_SCOPES}).
+      Result = Data.define(:content, :ttl, :active, :scope, :key, :database)
 
       # @return [Result]
       def call
         db      = Familia.dbclient(BannerState::DB)
         content = db.get(BannerState::KEY)
         ttl     = db.ttl(BannerState::KEY)
+        scope   = BannerState.normalize_scope(db.get(BannerState::SCOPE_KEY))
 
         Result.new(
           content: content,
@@ -53,6 +82,7 @@ module Onetime
           # wire shape is "seconds remaining, or null for persistent/absent".
           ttl: ttl.negative? ? nil : ttl,
           active: !content.nil? && !content.empty?,
+          scope: scope,
           key: BannerState::KEY,
           database: BannerState::DB,
         )
@@ -80,35 +110,47 @@ module Onetime
 
       # @!attribute status [r]
       #   @return [Symbol] :success
-      Result = Data.define(:status, :content, :ttl)
+      Result = Data.define(:status, :content, :ttl, :scope)
 
       # @param content [String] the banner body (raw HTML; stored verbatim).
       # @param actor [String, #extid, #email] acting admin's PUBLIC identity
       #   (colonel extid/email, or the CLI sentinel). Never an internal objid.
       # @param ttl [Integer, nil] optional auto-expiry in seconds; nil = persistent.
-      def initialize(content:, actor:, ttl: nil)
+      # @param scope [String] audience scope; one of {BannerState::VALID_SCOPES}.
+      def initialize(content:, actor:, ttl: nil, scope: BannerState::DEFAULT_SCOPE)
         @content = content
         @actor   = actor
         @ttl     = ttl
+        @scope   = scope
       end
 
       # @return [Result]
-      # @raise [ArgumentError] when content is blank (defensive backstop).
+      # @raise [ArgumentError] when content is blank or scope is invalid
+      #   (defensive backstops mirroring the empty-content guard).
       def call
         text = @content.to_s
         raise ArgumentError, 'banner content is empty' if text.empty?
 
+        scope = @scope.to_s
+        unless BannerState::VALID_SCOPES.include?(scope)
+          raise ArgumentError, "invalid banner scope: #{scope.inspect}"
+        end
+
         db = Familia.dbclient(BannerState::DB)
+        # Write content + scope with IDENTICAL TTL semantics so the sidecar can
+        # never outlive (or persist past) the banner it describes.
         if @ttl
           db.setex(BannerState::KEY, @ttl, text)
+          db.setex(BannerState::SCOPE_KEY, @ttl, scope)
         else
           db.set(BannerState::KEY, text)
+          db.set(BannerState::SCOPE_KEY, scope)
         end
 
         # Refresh THIS process's runtime state (parity with the CLI note that the
         # refresh reaches only the current process; other processes re-read at
         # boot). Kept identical to the extracted CLI behaviour.
-        Onetime::Runtime.update_features(global_banner: text)
+        Onetime::Runtime.update_features(global_banner: text, global_banner_scope: scope)
 
         # One audit event per successful publish. The banner content is
         # non-secret (it is shown to every visitor), so it is safe to record; the
@@ -118,10 +160,10 @@ module Onetime
           verb: AUDIT_VERB,
           target: BannerState::KEY,
           result: :success,
-          detail: { ttl: @ttl, length: text.length, content: text },
+          detail: { ttl: @ttl, scope: scope, length: text.length, content: text },
         )
 
-        Result.new(status: :success, content: text, ttl: @ttl)
+        Result.new(status: :success, content: text, ttl: @ttl, scope: scope)
       end
     end
 
@@ -159,7 +201,8 @@ module Onetime
         end
 
         db.del(BannerState::KEY)
-        Onetime::Runtime.update_features(global_banner: nil)
+        db.del(BannerState::SCOPE_KEY)
+        Onetime::Runtime.update_features(global_banner: nil, global_banner_scope: BannerState::DEFAULT_SCOPE)
 
         # One audit event per successful mutation. No detail: the fact of the clear
         # is the whole record (the cleared content is not re-logged here).

@@ -21,10 +21,17 @@ import { z } from 'zod';
 // GetBanner — current banner (GET /api/colonel/banner)
 // ============================================================================
 
+/** Audience scopes a banner can target — mirrors Onetime::Operations::BannerState::VALID_SCOPES. */
+export const colonelBannerScopeSchema = z.enum(['all', 'no_recipient', 'workspace']);
+export type ColonelBannerScope = z.infer<typeof colonelBannerScopeSchema>;
+
 /** The current banner record (GetBanner `record`), also echoed by SetBanner. */
 export const colonelBannerRecordSchema = z.object({
   content: z.string().nullable(),
   ttl: z.number().nullable(),
+  // GetBanner/SetBanner always emit a normalised scope (never null). Default here
+  // keeps the schema tolerant of an older payload that predates the field.
+  scope: colonelBannerScopeSchema.default('no_recipient'),
   active: z.boolean(),
 });
 

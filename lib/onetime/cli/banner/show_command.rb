@@ -52,6 +52,7 @@ module Onetime
           database: banner.database,
           value: banner.content,
           ttl: banner.ttl,
+          scope: banner.scope,
           active: banner.active,
         }
 
@@ -69,6 +70,7 @@ module Onetime
         puts
         puts format('  %-10s %s', 'Content:', banner.content)
         puts format('  %-10s %d characters', 'Length:', banner.content.length)
+        puts format('  %-10s %s', 'Audience:', banner.scope)
 
         if banner.ttl
           puts format('  %-10s %d seconds (%s)', 'TTL:', banner.ttl, humanize_seconds(banner.ttl))

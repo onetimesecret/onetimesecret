@@ -12,10 +12,16 @@ module Onetime
     #
     # Set by: ConfigureDomains, CheckGlobalBanner, LoadFortunes initializers
     #
+    # Default banner audience scope when none is stored. Mirrors
+    # Operations::BannerState::DEFAULT_SCOPE (kept as a literal here to avoid a
+    # boot-time require cycle: this Data is defined before the ops load).
+    DEFAULT_BANNER_SCOPE = 'no_recipient'
+
     Features = Data.define(
-      :domains_enabled,    # Whether custom domains feature is enabled
-      :global_banner,      # Optional global banner message from Redis
-      :fortunes,           # Array of fortune messages
+      :domains_enabled,      # Whether custom domains feature is enabled
+      :global_banner,        # Optional global banner message from Redis
+      :global_banner_scope,  # Banner audience scope (see Operations::BannerState)
+      :fortunes,             # Array of fortune messages
     ) do
       # Factory method for default state
       #
@@ -25,6 +31,7 @@ module Onetime
         new(
           domains_enabled: false,
           global_banner: nil,
+          global_banner_scope: DEFAULT_BANNER_SCOPE,
           fortunes: [],
         )
       end

@@ -71,6 +71,8 @@ export const layoutPropsSchema = layoutDisplaySchema.partial().extend({
   logo: logoConfigSchema.optional(),
   /** Colonel mode enables admin features */
   colonel: z.boolean().optional(),
+  /** Audience this page belongs to, for global-broadcast scoping. */
+  bannerAudience: z.enum(['public', 'recipient', 'workspace']).optional(),
 });
 
 export type LayoutProps = z.infer<typeof layoutPropsSchema>;
