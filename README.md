@@ -72,7 +72,7 @@ See [.env.reference](./.env.reference)
 
 Requires Ruby 3.4.9 (pinned via `.ruby-version`), Redis/Valkey, Node.js 22, pnpm 11.10.0, and Python 3 (required by the frontend build).
 
-> **Note:** A UTF-8 locale is currently required — boot crashes under a POSIX/`C` locale. Set one (e.g. `export LANG=C.UTF-8`) before starting the server. This is a temporary requirement.
+> **Note:** A UTF-8 locale (e.g. `export LANG=C.UTF-8`) is recommended. The `.env` reader now forces UTF-8, so a POSIX/`C` locale no longer breaks boot, but a UTF-8 locale is still best for correct handling of non-ASCII data.
 
 ```bash
 git clone https://github.com/onetimesecret/onetimesecret.git && cd onetimesecret
@@ -98,6 +98,8 @@ There are two ways to run the application for local development:
 **Option A: Overmind (recommended)**
 
 [Overmind](https://github.com/DarthSim/overmind) runs backend, frontend, and worker from a single command using `Procfile.dev`:
+
+> Requires [direnv](https://direnv.net/) with its [shell hook](https://direnv.net/docs/hook.html) installed. `install-dev.sh` generates `.envrc` and runs `direnv allow`; `bin/dev` loads the environment via direnv.
 
 ```bash
 brew install overmind          # macOS
