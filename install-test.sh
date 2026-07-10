@@ -130,6 +130,14 @@ else
     echo "  Some i18n-dependent tests may fail until locales are generated."
 fi
 
+echo "---"
+echo "Generating JSON schemas..."
+if pnpm run schemas:json:generate; then
+    echo "OK:   JSON schemas generated"
+else
+    echo "Warning: schema generation failed (pnpm run schemas:json:generate) — some specs may fail."
+fi
+
 # --- Test datastore on port 2121 -------------------------------------
 
 echo "---"
@@ -183,9 +191,11 @@ watch_file .test-mode
 
 if [ -f .test-mode ]; then
   export OTS_ENV_LOADED=test
+  echo "direnv: TEST MODE (.test-mode) active - RACK_ENV=test. Exit: ./install-dev.sh" >&2
   dotenv_if_exists .env.test
 else
   export OTS_ENV_LOADED=dev
+  export RACK_ENV=development
   dotenv_if_exists
 
   # .env.local overrides happen last if the file exists. And only in dev mode.
@@ -204,6 +214,14 @@ ENVRC
 
     echo "Activating test mode (.test-mode)..."
     touch .test-mode
+    echo ""
+    echo "  +------------------------------------------------------------+"
+    echo "  |  TEST MODE ACTIVE (.test-mode present)                      |"
+    echo "  |  Every shell in this checkout now loads .env.test and       |"
+    echo "  |  runs with RACK_ENV=test.                                   |"
+    echo "  |  Exit test mode:  ./install-dev.sh   (removes .test-mode)   |"
+    echo "  +------------------------------------------------------------+"
+    echo ""
     direnv allow .
 else
     echo "Skip: direnv not installed — the test suite runs fine without it"
