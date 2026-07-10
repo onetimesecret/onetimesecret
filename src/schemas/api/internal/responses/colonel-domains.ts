@@ -75,3 +75,72 @@ export const colonelDomainVerifyResponseSchema = createApiResponseSchema(
 );
 
 export type ColonelDomainVerifyResponse = z.infer<typeof colonelDomainVerifyResponseSchema>;
+
+// ============================================================================
+// Colonel create-for-org + per-domain detail (admin "attach domain to org").
+//
+// `POST /api/colonel/domains` and `GET /api/colonel/domains/:extid` both return
+// the full domain `safe_dump` as `record` (a superset of the list projection —
+// it carries the DNS-validation fields the operator DNS panel renders) plus the
+// deployment's proxy `cluster` in `details`. New per-resource schemas so the
+// create/detail flow typechecks independently of the list contract.
+//
+// DNS-validation fields are declared nullable/optional: the panel degrades to
+// "—" for any the dump omits rather than failing the parse (it reads through
+// gracefulParse), and unverified/self-hosted domains legitimately lack some.
+// ============================================================================
+
+/** Full domain record returned by the colonel create + detail endpoints. */
+export const colonelDomainDetailRecordSchema = z.object({
+  domain_id: z.string(),
+  extid: z.string(),
+  display_domain: z.string(),
+  base_domain: z.string().nullable().optional(),
+  subdomain: z.string().nullable().optional(),
+  trd: z.string().nullable().optional(),
+  tld: z.string().nullable().optional(),
+  status: z.string().nullable().optional(),
+  verification_state: z.string(),
+  verified: z.boolean(),
+  resolving: z.boolean(),
+  ready: z.boolean(),
+  is_apex: z.boolean().nullable().optional(),
+  // DNS ownership-validation record the operator must publish.
+  txt_validation_host: z.string().nullable().optional(),
+  txt_validation_value: z.string().nullable().optional(),
+  // Owning organization identity (present on the colonel dump).
+  org_id: z.string().nullable().optional(),
+  org_name: z.string().nullable().optional(),
+  created: transforms.fromNumber.toDateNullable.optional(),
+  updated: transforms.fromNumber.toDateNullable.optional(),
+});
+
+/**
+ * The deployment proxy target the DNS records point at. Shape mirrors
+ * `Onetime::DomainValidation::Features.safe_dump`; kept permissive
+ * (`passthrough`) so an added proxy field never trips the parse.
+ */
+export const colonelDomainClusterSchema = z
+  .object({
+    proxy_ip: z.string().nullable().optional(),
+    proxy_host: z.string().nullable().optional(),
+  })
+  .passthrough()
+  .nullable();
+
+export const colonelDomainDetailsSchema = z.object({
+  cluster: colonelDomainClusterSchema,
+});
+
+/**
+ * `POST /api/colonel/domains` and `GET /api/colonel/domains/:extid` →
+ * `{ record: <full safe_dump>, details: { cluster } }`.
+ */
+export const colonelDomainDetailResponseSchema = createApiResponseSchema(
+  colonelDomainDetailRecordSchema,
+  colonelDomainDetailsSchema
+);
+
+export type ColonelDomainDetailRecord = z.infer<typeof colonelDomainDetailRecordSchema>;
+export type ColonelDomainCluster = z.infer<typeof colonelDomainClusterSchema>;
+export type ColonelDomainDetailResponse = z.infer<typeof colonelDomainDetailResponseSchema>;

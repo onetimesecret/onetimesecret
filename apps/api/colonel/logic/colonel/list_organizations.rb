@@ -22,7 +22,14 @@ module ColonelAPI
       class ListOrganizations < ColonelAPI::Logic::Base
         SCHEMAS = { response: 'colonelOrganizations' }.freeze
 
-        attr_reader :organizations, :total_count, :page, :per_page, :total_pages, :status_filter, :sync_status_filter
+        attr_reader :organizations,
+          :total_count,
+          :page,
+          :per_page,
+          :total_pages,
+          :status_filter,
+          :sync_status_filter,
+          :search_term
 
         def process_params
           @page               = (params['page'] || 1).to_i
@@ -31,6 +38,7 @@ module ColonelAPI
           @page               = 1 if @page < 1
           @status_filter      = params['status']      # subscription_status filter
           @sync_status_filter = params['sync_status'] # synced, potentially_stale, unknown
+          @search_term        = params['search'].to_s.strip # objid/extid exact, or email substring
         end
 
         def raise_concerns
@@ -131,7 +139,27 @@ module ColonelAPI
             result = result.select { |data| data[:sync_status] == sync_status_filter }
           end
 
+          # Free-text search: objid/extid exact match, OR case-insensitive
+          # substring across contact/owner/billing emails. Applied in the same
+          # in-memory pass as the other filters (see #process scaling note).
+          if search_term && !search_term.empty?
+            result = result.select { |data| matches_search?(data) }
+          end
+
           result
+        end
+
+        # objid/extid are exact-equality arms; the three emails are substring
+        # arms. All email fields are nil-safe (.to_s) — owner_email/billing_email
+        # can be nil.
+        def matches_search?(data)
+          return true if data[:org_id].to_s == search_term
+          return true if data[:extid].to_s == search_term
+
+          needle = search_term.downcase
+          [:contact_email, :owner_email, :billing_email].any? do |key|
+            data[key].to_s.downcase.include?(needle)
+          end
         end
 
         def success_data
@@ -148,6 +176,7 @@ module ColonelAPI
               filters: {
                 status: status_filter,
                 sync_status: sync_status_filter,
+                search: search_term,
               },
             },
           }

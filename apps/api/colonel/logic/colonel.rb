@@ -46,6 +46,8 @@ require_relative 'colonel/unban_ip'
 # Custom domains
 require_relative 'colonel/list_custom_domains'
 require_relative 'colonel/verify_custom_domain'
+require_relative 'colonel/create_custom_domain'
+require_relative 'colonel/get_custom_domain'
 
 # Organizations
 require_relative 'colonel/list_organizations'

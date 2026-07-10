@@ -38,5 +38,119 @@
   "web.admin.domains.verify.success.done": {
     "text": "Verification complete for {domain}.",
     "content_hash": "ed67e22d"
+  },
+  "web.admin.domains.verify.failed": {
+    "text": "Verification failed. Please try again."
+  },
+  "web.admin.domains.attach.cta": {
+    "text": "Attach domain to organization"
+  },
+  "web.admin.domains.attach.recordEyebrow": {
+    "text": "Working record"
+  },
+  "web.admin.domains.attach.rosterError": {
+    "text": "Could not load this organization's domains."
+  },
+  "web.admin.domains.attach.noDomains": {
+    "text": "No domains attached to this organization yet."
+  },
+  "web.admin.domains.attach.openExternal": {
+    "text": "Open {domain} in a new tab"
+  },
+  "web.admin.domains.addDomain.button": {
+    "text": "Add domain"
+  },
+  "web.admin.domains.addDomain.title": {
+    "text": "Add a custom domain"
+  },
+  "web.admin.domains.addDomain.forOrg": {
+    "text": "Adding a domain for {org}."
+  },
+  "web.admin.domains.addDomain.domainLabel": {
+    "text": "Domain"
+  },
+  "web.admin.domains.addDomain.domainPlaceholder": {
+    "text": "secrets.example.com"
+  },
+  "web.admin.domains.addDomain.strategyLabel": {
+    "text": "Validation strategy"
+  },
+  "web.admin.domains.addDomain.createButton": {
+    "text": "Create"
+  },
+  "web.admin.domains.addDomain.created": {
+    "text": "{domain} was created."
+  },
+  "web.admin.domains.addDomain.strategy.approximated": {
+    "text": "Approximated — DNS ownership check, no proxying."
+  },
+  "web.admin.domains.addDomain.strategy.passthrough": {
+    "text": "Passthrough — you point DNS at this deployment's proxy."
+  },
+  "web.admin.domains.addDomain.strategy.external": {
+    "text": "External — DNS is managed outside this deployment."
+  },
+  "web.admin.domains.addDomain.strategy.caddy_on_demand": {
+    "text": "Caddy on-demand — certificates issued automatically on first request."
+  },
+  "web.admin.domains.addDomain.strategy.caddy": {
+    "text": "Caddy — certificates issued automatically on first request."
+  },
+  "web.admin.domains.addDomain.strategy.unknown": {
+    "text": "Deployment-wide validation strategy."
+  },
+  "web.admin.domains.dns.heading": {
+    "text": "DNS records to publish"
+  },
+  "web.admin.domains.dns.txtStep": {
+    "text": "1. Add a TXT record to prove ownership."
+  },
+  "web.admin.domains.dns.aStep": {
+    "text": "2. Add an A record pointing the apex at the proxy."
+  },
+  "web.admin.domains.dns.cnameStep": {
+    "text": "2. Add a CNAME record pointing the subdomain at the proxy."
+  },
+  "web.admin.domains.dns.propagationNote": {
+    "text": "DNS changes can take a few minutes to propagate before verification succeeds."
+  },
+  "web.admin.domains.dns.toggle": {
+    "text": "DNS details"
+  },
+  "web.admin.domains.dns.loadError": {
+    "text": "Could not load DNS details."
+  },
+  "web.admin.domains.orgPicker.title": {
+    "text": "Select an organization"
+  },
+  "web.admin.domains.orgPicker.searchLabel": {
+    "text": "Organization"
+  },
+  "web.admin.domains.orgPicker.searchPlaceholder": {
+    "text": "Object ID, external ID, or email"
+  },
+  "web.admin.domains.orgPicker.searchHint": {
+    "text": "Search by objid, extid, or a member's email address."
+  },
+  "web.admin.domains.orgPicker.loadError": {
+    "text": "Could not search organizations."
+  },
+  "web.admin.domains.orgPicker.parseError": {
+    "text": "The organization results could not be read."
+  },
+  "web.admin.domains.orgPicker.idle": {
+    "text": "Enter a value above to search."
+  },
+  "web.admin.domains.orgPicker.noResults": {
+    "text": "No organizations match “{term}”."
+  },
+  "web.admin.domains.orgPicker.unnamedOrg": {
+    "text": "Unnamed organization"
+  },
+  "web.admin.domains.orgPicker.domainCount": {
+    "text": "{count} domains"
+  },
+  "web.admin.domains.orgPicker.select": {
+    "text": "Select"
   }
 }

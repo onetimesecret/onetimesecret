@@ -43,12 +43,15 @@ DELETE /banned-ips/:ip                    ColonelAPI::Logic::Colonel::UnbanIP re
 
 # Custom Domains
 GET    /domains                           ColonelAPI::Logic::Colonel::ListCustomDomains response=json auth=sessionauth role=colonel scope=internal
+POST   /domains                           ColonelAPI::Logic::Colonel::CreateCustomDomain response=json auth=sessionauth role=colonel scope=internal
 # Domain toolbox (ticket #43): literal /domains/orphaned MUST precede /domains/:extid so it wins.
 GET    /domains/orphaned                 ColonelAPI::Logic::Colonel::ListOrphanedDomains response=json auth=sessionauth role=colonel scope=internal
 POST   /domains/:extid/verify             ColonelAPI::Logic::Colonel::VerifyCustomDomain response=json auth=sessionauth role=colonel scope=internal
 GET    /domains/:extid/probe             ColonelAPI::Logic::Colonel::ProbeDomain response=json auth=sessionauth role=colonel scope=internal
 POST   /domains/:extid/repair            ColonelAPI::Logic::Colonel::RepairDomain response=json auth=sessionauth role=colonel scope=internal
 POST   /domains/:extid/transfer          ColonelAPI::Logic::Colonel::TransferDomain response=json auth=sessionauth role=colonel scope=internal
+# Per-domain detail (DNS panel + post-verify refresh). Literal /domains/orphaned above still wins.
+GET    /domains/:extid                   ColonelAPI::Logic::Colonel::GetCustomDomain response=json auth=sessionauth role=colonel scope=internal
 
 # Organizations
 GET    /organizations                     ColonelAPI::Logic::Colonel::ListOrganizations response=json auth=sessionauth role=colonel scope=internal
