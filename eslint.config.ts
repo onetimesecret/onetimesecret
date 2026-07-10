@@ -71,8 +71,8 @@ import otsRules from './src/build/eslint';
 if (!pluginVue.configs?.['flat/strongly-recommended']) {
   throw new Error('Vue ESLint plugin flat/strongly-recommended config not found');
 }
-if (!pluginTailwindCSS.configs?.['flat/recommended']) {
-  throw new Error('Tailwind ESLint plugin flat/recommended config not found');
+if (!pluginTailwindCSS.configs?.['recommended']) {
+  throw new Error('Tailwind ESLint plugin recommended config not found');
 }
 
 export default [
@@ -458,34 +458,44 @@ export default [
   },
 
   // Include Tailwind recommended configuration, scoped to Vue SFCs only.
-  // The upstream flat/recommended configs ship without `files`, which would
-  // apply class-name linting to every file in the repo (and crash resolving
-  // the Tailwind v4 config from non-component files). No src/ .ts file uses
-  // the configured callees (classnames/clsx/ctl) or the class attribute
-  // regex, so .vue components are the only place these rules belong.
-  ...pluginTailwindCSS.configs['flat/recommended'].map((config) => ({
-    ...config,
+  // Left unscoped, class-name linting would apply to every file in the repo
+  // (and crash resolving the Tailwind v4 config from non-component files). No
+  // src/ .ts file uses the configured callees (classnames/clsx/ctl) or the
+  // class attribute regex, so .vue components are the only place these rules
+  // belong. In eslint-plugin-tailwindcss 4.0.4 the export is a single flat
+  // config object under `recommended` (the beta shipped an array under
+  // `flat/recommended`); override its `files` to re-scope it.
+  {
+    ...pluginTailwindCSS.configs['recommended'],
     files: ['src/**/*.vue'],
-  })),
+  },
   {
     files: ['src/**/*.vue'],
     settings: {
       tailwindcss: {
-        // These are the default values but feel free to customize
-        callees: ['classnames', 'clsx', 'ctl'],
-        // Tailwind v4: point at the CSS entry — the single source of truth for the
-        // theme. The path must be absolute: the plugin resolves `tailwindcss`
-        // relative to the config's directory, so a relative value fails with
-        // "Could not resolve tailwindcss".
-        config: `${import.meta.dirname}/src/assets/style.css`,
-        cssFiles: ['**/*.css', '!**/node_modules', '!**/.*', '!**/dist', '!**/build'],
-        cssFilesRefreshRate: 5_000,
-        removeDuplicates: true,
-        skipClassAttribute: false,
-        whitelist: [],
-        tags: [], // can be set to e.g. ['tw'] for use in tw`bg-blue`
-        classRegex: '^class(Name)?$', // can be modified to support custom attributes. E.g. "^tw$" for `twin.macro`
+        // eslint-plugin-tailwindcss 4.0.4 renamed the settings API from the
+        // beta: `callees` → `functions`, `config` → `cssConfigPath`. The old
+        // per-file scanning knobs (cssFiles/skipClassAttribute/classRegex/
+        // tags/whitelist/removeDuplicates) were dropped; `attributes` now
+        // controls which props are scanned (default: class/className/ngClass/
+        // @apply). We keep the project's narrow function set.
+        functions: ['classnames', 'clsx', 'ctl'],
+        // Tailwind v4: point at the CSS entry — the single source of truth for
+        // the theme. Absolute path: the plugin resolves `tailwindcss` relative
+        // to this file's directory, so a relative value fails with "Could not
+        // resolve tailwindcss". Required — the plugin's default (src/style.css)
+        // does not exist here.
+        cssConfigPath: `${import.meta.dirname}/src/assets/style.css`,
       },
+    },
+    // Placed after the recommended spread so this override wins. False
+    // positives on the intentional divide+border container pattern:
+    // `divide-{color}` sets border-color on inner separators (& > * + *) while
+    // `border-{color}` sets it on the element itself. Different selectors,
+    // legitimately combined across our list components — but the 4.0.4
+    // detector conflates the shared border-color token and flags them.
+    rules: {
+      'tailwindcss/no-contradicting-classname': 'off',
     },
   },
 
