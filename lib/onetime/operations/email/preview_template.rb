@@ -15,18 +15,27 @@ module Onetime
       # Canonical list of previewable / testable templates. SINGLE source of truth
       # shared by the ops, the colonel API, and the CLI (`lib/onetime/cli/email.rb`
       # aliases its `AVAILABLE_TEMPLATES` to this so the value stays byte-identical).
-      AVAILABLE_TEMPLATES = %i[
-        secret_link
-        welcome
-        password_request
-        incoming_secret
-        feedback_email
-        secret_revealed
-        expiration_warning
-        organization_invitation
-        email_change_confirmation
-        email_change_requested
-        email_changed
+      AVAILABLE_TEMPLATES = [
+        :secret_link,
+        :welcome,
+        :password_request,
+        :incoming_secret,
+        :feedback_email,
+        :secret_revealed,
+        :expiration_warning,
+        :organization_invitation,
+        :email_change_confirmation,
+        :email_change_requested,
+        :email_changed,
+        :new_login_alert,
+        :mfa_enabled,
+        :mfa_disabled,
+        :password_changed,
+        :role_changed,
+        :member_removed,
+        :organization_deleted,
+        :trial_expiring,
+        :subscription_changed,
       ].freeze
 
       # Filesystem home of the per-template sample-data YAML fixtures. Same path the
