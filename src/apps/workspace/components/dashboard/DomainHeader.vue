@@ -81,7 +81,7 @@
         v-if="domain"
         class="flex flex-col">
         <div class="flex items-center justify-between gap-2">
-          <div class="flex min-w-0 items-center gap-3">
+          <div class="flex min-w-0 items-center gap-4">
             <button
               v-if="backVisible"
               type="button"
@@ -96,17 +96,19 @@
             </button>
             <!-- prettier-ignore-attribute class -->
             <h1
-              class="flex min-w-0 items-center truncate text-2xl font-bold
-                text-gray-900 dark:text-white sm:text-3xl">
+              class="mb-0 flex min-w-0 items-center truncate text-2xl font-bold
+                leading-tight text-gray-900 dark:text-white sm:text-3xl">
               <span class="truncate">{{ domain.display_domain }}</span>
               <!-- prettier-ignore-attribute class -->
               <a
                 :href="`https://${domain.display_domain}${externalPath}`"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="ml-1
-                  text-gray-400 hover:text-gray-600
-                  dark:text-gray-500 dark:hover:text-gray-300"
+                class="ml-1 inline-flex shrink-0 items-center rounded p-1
+                  text-gray-400 transition-colors hover:text-gray-600
+                  focus-visible:outline-none focus-visible:ring-2
+                  focus-visible:ring-brand-500 dark:text-gray-500
+                  dark:hover:text-gray-300"
                 :title="t('web.domains.open_domain_in_new_tab')">
                 <OIcon
                   collection="mdi"
@@ -120,7 +122,7 @@
               <!-- prettier-ignore-attribute class -->
               <div
                 v-if="showVerificationStatus"
-                class="rounded-md bg-gray-100 px-3 py-1.5
+                class="inline-flex h-10 items-center rounded-md bg-gray-100 px-3
                   dark:bg-gray-700">
                 <RouterLink
                   :to="verifyRoute"
