@@ -20,6 +20,8 @@ export { default as FilterBar } from './FilterBar.vue';
 export { default as DetailDrawer } from './DetailDrawer.vue';
 export { default as JsonViewer } from './JsonViewer.vue';
 export { default as AdminConfirmDialog } from './AdminConfirmDialog.vue';
+export { default as AdminModal } from './AdminModal.vue';
+export { default as AdminRecordPanel } from './AdminRecordPanel.vue';
 export { default as KitPagination } from './KitPagination.vue';
 
 export type {

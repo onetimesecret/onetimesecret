@@ -2,8 +2,11 @@
 #
 # frozen_string_literal: true
 
+require 'json'
 require_relative '../base'
 require 'onetime/models/email_suppression'
+require 'onetime/mail/mailer'
+require 'onetime/operations/email/sync_provider_feedback'
 
 module ColonelAPI
   module Logic
@@ -21,7 +24,13 @@ module ColonelAPI
       class GetEmailDeliverability < ColonelAPI::Logic::Base
         SCHEMAS = { response: 'colonelEmailDeliverability' }.freeze
 
-        attr_reader :suppressed_total, :recent_bounces, :recent_complaints, :sends_skipped
+        attr_reader :suppressed_total,
+          :recent_bounces,
+          :recent_complaints,
+          :sends_skipped,
+          :sync_status,
+          :active_provider,
+          :sync_capability
 
         def process_params
           # No parameters — the window is fixed (EmailSuppression::RECENT_WINDOW).
@@ -37,11 +46,39 @@ module ColonelAPI
           @recent_bounces    = recent[:bounce]
           @recent_complaints = recent[:complaint]
           @sends_skipped     = Onetime::EmailSuppression.sends_skipped.value
+          @sync_status       = load_sync_status
+          @active_provider   = active_provider_name
+          @sync_capability   = Onetime::Operations::Email::SyncProviderFeedback::PROVIDERS.include?(@active_provider)
 
           success_data
         end
 
         private
+
+        # The active transport, or nil if it can't be determined (e.g. mailer
+        # misconfigured) — mirrors ProviderStatus's fail-soft resolution.
+        def active_provider_name
+          Onetime::Mail::Mailer.determine_provider.to_s.downcase.strip
+        rescue StandardError
+          nil
+        end
+
+        # Per-provider last-sync markers. Familia's hgetall deserializes JSON
+        # values, so each is already an object; a defensive JSON.parse guards
+        # any legacy string value so the wire is ALWAYS objects, never strings.
+        # Returns {} when nothing has ever synced (never null/absent).
+        def load_sync_status
+          raw = Onetime::EmailSuppression.sync_status.all || {}
+          raw.transform_values do |value|
+            next value unless value.is_a?(String)
+
+            begin
+              JSON.parse(value)
+            rescue StandardError
+              {}
+            end
+          end
+        end
 
         def success_data
           {
@@ -54,6 +91,9 @@ module ColonelAPI
                 recent_complaints: recent_complaints,
                 sends_skipped: sends_skipped,
               },
+              sync_status: sync_status,
+              active_provider: active_provider,
+              sync_capability: sync_capability,
             },
           }
         end

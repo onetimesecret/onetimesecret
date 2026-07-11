@@ -133,7 +133,7 @@ describe('AdminDomains (card grid + verify — ticket #31)', () => {
 
   const mountView = () => mount(AdminDomains, { global: { plugins: [pinia, i18n] } });
 
-  it('fetches the first page on mount and renders a card per domain', async () => {
+  it('fetches the first page on mount and renders a table row per domain', async () => {
     mockApi.get.mockResolvedValue({ data: domainsPayload() });
     wrapper = mountView();
     await flushPromises();
@@ -144,7 +144,7 @@ describe('AdminDomains (card grid + verify — ticket #31)', () => {
     const grid = wrapper.find('[data-testid="domains-grid"]');
     expect(grid.exists()).toBe(true);
     expect(grid.text()).toContain('secrets.example.com');
-    expect(wrapper.find('[data-testid="domain-card-cd_abc123"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="domain-row-cd_abc123"]').exists()).toBe(true);
   });
 
   it('renders the empty state when there are no domains', async () => {
@@ -209,5 +209,266 @@ describe('AdminDomains (card grid + verify — ticket #31)', () => {
     await banner.find('button').trigger('click');
     await flushPromises();
     expect(wrapper.find('[data-testid="domains-error"]').exists()).toBe(false);
+  });
+});
+
+// ---- Attach-domain-to-organization flow ------------------------------------
+
+function orgRow(overrides: Record<string, unknown> = {}) {
+  return {
+    org_id: 'org1',
+    extid: 'org_acme',
+    display_name: 'Acme',
+    contact_email: 'a@acme.com',
+    owner_id: 'cust1',
+    owner_email: 'a@acme.com',
+    member_count: 1,
+    domain_count: 1,
+    is_default: false,
+    created: 1700000000,
+    updated: 1700000000,
+    planid: null,
+    stripe_customer_id: null,
+    stripe_subscription_id: null,
+    subscription_status: null,
+    subscription_period_end: null,
+    billing_email: null,
+    sync_status: 'synced',
+    sync_status_reason: null,
+    ...overrides,
+  };
+}
+
+function orgsSearchPayload() {
+  return {
+    shrimp: '',
+    record: {},
+    details: {
+      organizations: [orgRow()],
+      pagination: { page: 1, per_page: 25, total_count: 1, total_pages: 1 },
+      filters: { status: null, sync_status: null },
+    },
+  };
+}
+
+function orgDetailPayload(domains: Array<Record<string, unknown>> = []) {
+  return {
+    shrimp: '',
+    record: {
+      org_id: 'org1',
+      extid: 'org_acme',
+      display_name: 'Acme',
+      description: null,
+      is_default: false,
+      archived: false,
+      archived_at: null,
+      archived_comment: null,
+      contact_email: 'a@acme.com',
+      owner_id: 'cust1',
+      owner_email: 'a@acme.com',
+      billing_email: null,
+      member_count: 1,
+      domain_count: domains.length,
+      created: 1700000000,
+      updated: 1700000000,
+      planid: null,
+      stripe_customer_id: null,
+      stripe_subscription_id: null,
+      subscription_status: null,
+      subscription_period_end: null,
+      billing_email_present: false,
+      sync_status: 'synced',
+      sync_status_reason: null,
+    },
+    details: {
+      entitlements: {
+        plan: [],
+        grants: [],
+        revokes: [],
+        materialized: [],
+        expected: [],
+        materialized_flag: false,
+        materialized_at: null,
+        plan_stale: null,
+        drift: { extra: [], missing: [], in_sync: true },
+      },
+      members: [],
+      domains,
+    },
+  };
+}
+
+function rosterDomain(overrides: Record<string, unknown> = {}) {
+  return {
+    extid: 'cd_exist',
+    domain_id: 'cde',
+    display_domain: 'secrets.acme.com',
+    base_domain: 'acme.com',
+    status: null,
+    verified: true,
+    resolving: true,
+    verification_state: 'verified',
+    ready: true,
+    created: 1700000000,
+    ...overrides,
+  };
+}
+
+/** `{ record, details: { cluster } }` for create + per-domain detail. */
+function domainDetailPayload(extid = 'cd_new') {
+  return {
+    shrimp: '',
+    record: {
+      domain_id: 'cd9',
+      extid,
+      display_domain: 'links.acme.com',
+      base_domain: 'acme.com',
+      trd: 'links',
+      is_apex: false,
+      txt_validation_host: '_ots.links',
+      txt_validation_value: 'ots=abc123',
+      verification_state: 'pending',
+      verified: false,
+      resolving: false,
+      ready: false,
+      created: 1700000000,
+      updated: 1700000000,
+    },
+    details: { cluster: { proxy_ip: '203.0.113.5', proxy_host: 'proxy.ots.example' } },
+  };
+}
+
+/**
+ * The selected org's live domain roster. Reset per test; a create appends to it
+ * so a post-create org-detail refetch returns the new domain (as the backend
+ * does), which is what reveals its DNS records in the panel.
+ */
+let liveRoster: Array<Record<string, unknown>> = [];
+
+/** Route GET by URL across list / org-search / org-detail / domain-detail. */
+function routeGet(url: string) {
+  if (url === '/api/colonel/domains') return { data: domainsPayload() };
+  if (url.startsWith('/api/colonel/domains/')) return { data: domainDetailPayload() };
+  if (url === '/api/colonel/organizations') return { data: orgsSearchPayload() };
+  if (url.startsWith('/api/colonel/organizations/')) {
+    return { data: orgDetailPayload(liveRoster) };
+  }
+  return { data: { shrimp: '', record: {}, details: {} } };
+}
+
+describe('AdminDomains — attach domain to organization', () => {
+  let wrapper: VueWrapper;
+  let pinia: ReturnType<typeof createPinia>;
+
+  beforeEach(() => {
+    pinia = createPinia();
+    setActivePinia(pinia);
+    vi.clearAllMocks();
+    liveRoster = [rosterDomain()];
+    mockApi.get.mockImplementation((url: string) => Promise.resolve(routeGet(url)));
+  });
+  afterEach(() => wrapper?.unmount());
+
+  const mountView = () => mount(AdminDomains, { global: { plugins: [pinia, i18n] } });
+
+  async function openPickerAndSelect(w: VueWrapper) {
+    await w.find('[data-testid="attach-domain-cta"]').trigger('click');
+    await flushPromises();
+    // Bypass the search debounce by submitting the picker form directly.
+    const input = w.find('[data-testid="org-search-input"]');
+    await input.setValue('acme');
+    await w.find('[data-testid="org-search-input"]').element
+      .closest('form')!
+      .dispatchEvent(new Event('submit'));
+    await flushPromises();
+    await w.find('[data-testid="org-select-org_acme"]').trigger('click');
+    await flushPromises();
+  }
+
+  it('CTA → search → select pins the org record panel and loads its domain roster', async () => {
+    wrapper = mountView();
+    await flushPromises();
+
+    await openPickerAndSelect(wrapper);
+
+    // The picker searched with the term as a query param.
+    expect(mockApi.get).toHaveBeenCalledWith('/api/colonel/organizations', {
+      params: { page: 1, per_page: 25, search: 'acme' },
+    });
+    // The chosen org is pinned into the working-record panel.
+    const panel = wrapper.find('[data-testid="selected-org-panel"]');
+    expect(panel.exists()).toBe(true);
+    expect(panel.text()).toContain('org_acme');
+    // Its existing domains loaded via the org-detail endpoint.
+    expect(mockApi.get).toHaveBeenCalledWith('/api/colonel/organizations/org_acme');
+    expect(wrapper.find('[data-testid="panel-domain-cd_exist"]').exists()).toBe(true);
+  });
+
+  it('clearing the panel unpins the organization', async () => {
+    wrapper = mountView();
+    await flushPromises();
+    await openPickerAndSelect(wrapper);
+
+    await wrapper.find('[data-testid="record-panel-clear"]').trigger('click');
+    await flushPromises();
+    expect(wrapper.find('[data-testid="selected-org-panel"]').exists()).toBe(false);
+  });
+
+  it('add domain: POSTs create for the org, notifies, and reveals the DNS records', async () => {
+    // Creating appends the new domain to the org's roster, mirroring the backend
+    // so the post-create org-detail refetch returns it.
+    mockApi.post.mockImplementation((url: string) => {
+      if (url === '/api/colonel/domains') {
+        liveRoster.push(
+          rosterDomain({
+            extid: 'cd_new',
+            domain_id: 'cd9',
+            display_domain: 'links.acme.com',
+            verified: false,
+            resolving: false,
+            verification_state: 'pending',
+            ready: false,
+          })
+        );
+        return Promise.resolve({ data: domainDetailPayload('cd_new') });
+      }
+      return Promise.resolve({ data: verifyAck('verified') });
+    });
+    wrapper = mountView();
+    await flushPromises();
+    await openPickerAndSelect(wrapper);
+
+    // Open the add-domain modal from the panel.
+    await wrapper.find('[data-testid="panel-add-domain"]').trigger('click');
+    await flushPromises();
+
+    await wrapper.find('[data-testid="add-domain-input"]').setValue('links.acme.com');
+    await wrapper.find('[data-testid="add-domain-submit"]').trigger('click');
+    await flushPromises();
+
+    // Create is POSTed for the selected org by its extid.
+    expect(mockApi.post).toHaveBeenCalledWith('/api/colonel/domains', {
+      org_id: 'org_acme',
+      domain: 'links.acme.com',
+    });
+    // Success notification surfaced.
+    expect(showMock).toHaveBeenCalled();
+    expect(showMock.mock.calls.at(-1)?.[1]).toBe('success');
+    // The new domain's DNS detail is fetched and rendered.
+    expect(mockApi.get).toHaveBeenCalledWith('/api/colonel/domains/cd_new');
+    expect(wrapper.find('[data-testid="dns-details"]').exists()).toBe(true);
+  });
+
+  it('re-verifies a panel domain against the colonel verify endpoint', async () => {
+    mockApi.post.mockResolvedValue({ data: verifyAck('verified') });
+    wrapper = mountView();
+    await flushPromises();
+    await openPickerAndSelect(wrapper);
+
+    await wrapper.find('[data-testid="panel-domain-verify-cd_exist"]').trigger('click');
+    await flushPromises();
+
+    expect(mockApi.post).toHaveBeenCalledWith('/api/colonel/domains/cd_exist/verify');
+    expect(showMock).toHaveBeenCalled();
   });
 });

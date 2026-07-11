@@ -59,8 +59,33 @@ import { createTestI18n } from '@tests/setup';
 
 const i18n = createTestI18n();
 
+const CONFIG_URL = '/api/colonel/email/config';
 const TEMPLATES_URL = '/api/colonel/email/templates';
 const TEST_URL = '/api/colonel/email/test';
+const PROVIDER_STATUS_URL = '/api/colonel/email/deliverability/provider-status';
+
+function configPayload(provider = 'smtp') {
+  return {
+    shrimp: '',
+    record: {},
+    details: {
+      provider,
+      auto_detected: true,
+      from_address: 'secure@onetime.dev',
+      from_name: 'Onetime Secret',
+      provider_config: {
+        host: 'smtp.example.com',
+        port: 587,
+        domain: null,
+        tls: true,
+        region: null,
+        has_credentials: true,
+      },
+      sender_provider: provider,
+      sender_differs: false,
+    },
+  };
+}
 
 function templatesPayload() {
   return {
@@ -98,10 +123,61 @@ function testPayload(status: 'dry_run' | 'sent') {
   };
 }
 
-/** Default happy-path GET router: templates on mount. */
-function primeMountGets() {
+/**
+ * Provider-status (Track B) payload. `provider='smtp'` is the non-live
+ * transport shape (capability=false); pass a live provider + block to exercise
+ * the OK path, or `available=false` to exercise the degraded/retry path.
+ */
+function providerStatusPayload(
+  overrides: Partial<{
+    provider: string;
+    capability: boolean;
+    available: boolean;
+    error: string | null;
+    ses: unknown;
+    lettermint: unknown;
+  }> = {}
+) {
+  return {
+    shrimp: '',
+    record: {},
+    details: {
+      provider: 'smtp',
+      capability: false,
+      available: false,
+      error: null,
+      ses: null,
+      lettermint: null,
+      ...overrides,
+    },
+  };
+}
+
+function sesStatusPayload() {
+  return providerStatusPayload({
+    provider: 'ses',
+    capability: true,
+    available: true,
+    ses: {
+      enforcement_status: 'HEALTHY',
+      production_access_enabled: true,
+      sending_enabled: true,
+      max_24_hour_send: 50000,
+      sent_last_24_hours: 1234,
+      max_send_rate: 14,
+      rate_bounce: null,
+      rate_complaint: null,
+      rate_note: 'SESv2 exposes no numeric bounce/complaint rate.',
+    },
+  });
+}
+
+/** Default happy-path GET router: mailer config + templates + provider status. */
+function primeMountGets(provider = 'smtp', providerStatus: unknown = providerStatusPayload()) {
   mockApi.get.mockImplementation((url: string) => {
+    if (url === CONFIG_URL) return Promise.resolve({ data: configPayload(provider) });
     if (url === TEMPLATES_URL) return Promise.resolve({ data: templatesPayload() });
+    if (url === PROVIDER_STATUS_URL) return Promise.resolve({ data: providerStatus });
     return Promise.reject(new Error(`unexpected GET ${url}`));
   });
 }
@@ -130,15 +206,22 @@ describe('AdminEmailTools (email tools — ticket #44)', () => {
 
   // ---- Reference lists ------------------------------------------------------
 
-  it('loads the template picker on mount and nothing else', async () => {
+  it('loads the mailer config + template picker on mount and nothing else', async () => {
     primeMountGets();
     wrapper = mountView(pinia);
     await flushPromises();
 
+    // useResourceFetch issues the config GET as get(url, undefined).
+    expect(mockApi.get).toHaveBeenCalledWith(CONFIG_URL, undefined);
     expect(mockApi.get).toHaveBeenCalledWith(TEMPLATES_URL);
+    // Track B: the provider-status card reads the ACTIVE transport on mount
+    // (no query params → get(url, undefined)).
+    expect(mockApi.get).toHaveBeenCalledWith(PROVIDER_STATUS_URL, undefined);
     // The rate-limit half was removed by design review: the screen must not
-    // touch the (still live) ratelimit endpoints.
-    expect(mockApi.get).toHaveBeenCalledTimes(1);
+    // touch the (still live) ratelimit endpoints. On mount it reads exactly the
+    // read-only mailer config (ITEM 1), the template picker, and the Track-B
+    // provider-status card.
+    expect(mockApi.get).toHaveBeenCalledTimes(3);
     const options = wrapper.find('[data-testid="preview-template-select"]').findAll('option');
     expect(options.map((o) => o.text())).toEqual(['secret_link', 'welcome']);
   });
@@ -157,6 +240,70 @@ describe('AdminEmailTools (email tools — ticket #44)', () => {
     await flushPromises();
 
     expect(wrapper.findComponent({ name: 'EmailDeliverabilitySection' }).exists()).toBe(true);
+  });
+
+  // ---- Provider status (Track B) --------------------------------------------
+
+  it('renders the SES reputation tier + quota on the OK path', async () => {
+    primeMountGets('ses', sesStatusPayload());
+    wrapper = mountView(pinia);
+    await flushPromises();
+
+    const section = wrapper.find('[data-testid="provider-status-section"]');
+    expect(section.exists()).toBe(true);
+    expect(wrapper.find('[data-testid="provider-status-ses"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="provider-status-tier"]').text()).toContain(
+      'web.admin.emailtools.providerStatus.tier.healthy'
+    );
+    expect(wrapper.find('[data-testid="provider-status-max24h"]').text()).toContain('50000');
+    // SESv2 has no numeric rate → the degraded-rate note renders (NOT an error).
+    expect(wrapper.find('[data-testid="provider-status-rate-note"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="provider-status-error"]').exists()).toBe(false);
+  });
+
+  it('renders the not-supported empty-state for a non-live transport (capability=false)', async () => {
+    primeMountGets('smtp'); // default providerStatusPayload() is capability=false
+    wrapper = mountView(pinia);
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="provider-status-unsupported"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="provider-status-error"]').exists()).toBe(false);
+  });
+
+  it('degrades a network failure to the retry alert without unmounting the section', async () => {
+    primeMountGets();
+    mockApi.get.mockImplementation((url: string) => {
+      if (url === CONFIG_URL) return Promise.resolve({ data: configPayload('smtp') });
+      if (url === TEMPLATES_URL) return Promise.resolve({ data: templatesPayload() });
+      if (url === PROVIDER_STATUS_URL) return Promise.reject(axiosError(500, { error: 'boom' }));
+      return Promise.reject(new Error(`unexpected GET ${url}`));
+    });
+    wrapper = mountView(pinia);
+    await flushPromises();
+
+    // The whole page (and section) stays mounted; the card shows a retry alert.
+    expect(wrapper.find('[data-testid="provider-status-section"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="provider-status-error"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="preview-section"]').exists()).toBe(true);
+  });
+
+  it('degrades a 200 available=false payload to the retry alert with the server note', async () => {
+    primeMountGets(
+      'ses',
+      providerStatusPayload({
+        provider: 'ses',
+        capability: true,
+        available: false,
+        error: 'SES get_account timed out after 5s',
+      })
+    );
+    wrapper = mountView(pinia);
+    await flushPromises();
+
+    const alert = wrapper.find('[data-testid="provider-status-error"]');
+    expect(alert.exists()).toBe(true);
+    expect(alert.text()).toContain('SES get_account timed out after 5s');
+    expect(wrapper.find('[data-testid="provider-status-ses"]').exists()).toBe(false);
   });
 
   // ---- Section 1: preview ---------------------------------------------------

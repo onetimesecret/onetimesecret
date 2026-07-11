@@ -67,6 +67,7 @@ import {
   colonelDomainTransferResponseSchema,
 } from './colonel-domaintoolbox';
 import {
+  colonelEmailConfigResponseSchema,
   colonelEmailTemplatesResponseSchema,
   colonelEmailPreviewResponseSchema,
   colonelEmailTestResponseSchema,
@@ -78,8 +79,13 @@ import {
   colonelEmailDeliverabilityResponseSchema,
   colonelEmailSuppressionsResponseSchema,
   colonelEmailSuppressionRemoveResponseSchema,
+  colonelEmailSuppressionAddResponseSchema,
   colonelEmailDeliverabilityEventsResponseSchema,
   colonelEmailDeliverabilityIngestResponseSchema,
+  colonelEmailDeliverabilitySyncResponseSchema,
+  colonelEmailProviderStatusResponseSchema,
+  colonelEmailRecipientLookupResponseSchema,
+  colonelEmailMessagesResponseSchema,
 } from './colonel-deliverability';
 import { colonelBillingCatalogResponseSchema } from './colonel-billing';
 
@@ -175,6 +181,7 @@ export const responseSchemas = {
   colonelDomainProbe: colonelDomainProbeResponseSchema,
   colonelDomainRepair: colonelDomainRepairResponseSchema,
   colonelDomainTransfer: colonelDomainTransferResponseSchema,
+  colonelEmailConfig: colonelEmailConfigResponseSchema,
   colonelEmailTemplates: colonelEmailTemplatesResponseSchema,
   colonelEmailPreview: colonelEmailPreviewResponseSchema,
   colonelEmailTest: colonelEmailTestResponseSchema,
@@ -184,8 +191,13 @@ export const responseSchemas = {
   colonelEmailDeliverability: colonelEmailDeliverabilityResponseSchema,
   colonelEmailSuppressions: colonelEmailSuppressionsResponseSchema,
   colonelEmailSuppressionRemove: colonelEmailSuppressionRemoveResponseSchema,
+  colonelEmailSuppressionAdd: colonelEmailSuppressionAddResponseSchema,
   colonelEmailDeliverabilityEvents: colonelEmailDeliverabilityEventsResponseSchema,
   colonelEmailDeliverabilityIngest: colonelEmailDeliverabilityIngestResponseSchema,
+  colonelEmailDeliverabilitySync: colonelEmailDeliverabilitySyncResponseSchema,
+  colonelEmailProviderStatus: colonelEmailProviderStatusResponseSchema,
+  colonelEmailRecipientLookup: colonelEmailRecipientLookupResponseSchema,
+  colonelEmailMessages: colonelEmailMessagesResponseSchema,
   colonelBillingCatalog: colonelBillingCatalogResponseSchema,
 
   // Colonel / admin — observability (audit reader + trends)

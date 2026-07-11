@@ -18,6 +18,12 @@ export interface OrganizationFilters {
   status?: string;
   /** Billing sync health: synced / potentially_stale / unknown. */
   sync_status?: string;
+  /**
+   * Identifier lookup: matches an org by exact objid or extid, or by
+   * case-insensitive substring of any contact/owner/billing email. Powers the
+   * admin org-picker (attach-domain flow).
+   */
+  search?: string;
 }
 
 /**
@@ -68,6 +74,7 @@ export const useAdminOrganizations = defineStore('adminOrganizations', () => {
       const result = await pager.fetchPage(targetPage, {
         status: filters.status,
         sync_status: filters.sync_status,
+        search: filters.search,
       });
       if (result) {
         organizations.value = result.items;

@@ -7,6 +7,7 @@
 # feedback sync is mailer-wide infrastructure, so it lives in the central
 # operations home. Dependencies are required at the call site.
 require 'onetime/operations/email/ingest_feedback'
+require 'onetime/models/email_suppression'
 require 'onetime/mail/feedback/ses'
 require 'onetime/mail/feedback/lettermint'
 
@@ -35,6 +36,19 @@ module Onetime
       # so re-syncing an unchanged provider list re-writes the same suppression
       # entries and records nothing new in the bounce/complaint feed — a cron can
       # run it as often as it likes.
+      #
+      # ## sync_status vs. audit event
+      #
+      # Every real (non-dry-run) call — including one where the provider list is
+      # empty or unchanged — stamps `EmailSuppression.sync_status[provider]`, so
+      # the deliverability summary's "never synced" banner reflects whether a
+      # sync ever RAN, not whether it ever imported something. The
+      # {Onetime::AdminAuditEvent} is a separate, narrower signal: it comes
+      # transitively from {IngestFeedback} and only fires when a record is
+      # actually accepted (CONTRACT 4 — audit state changes, not no-ops). A
+      # clean run stamps sync_status with `imported: 0` and writes no audit
+      # event; only `dry_run` skips the sync_status write entirely (it makes no
+      # claim about the local suppression list).
       class SyncProviderFeedback
         # Providers with a pollable feedback API (a fetcher under
         # Onetime::Mail::Feedback). Other transports (SMTP, sendgrid, logger,
@@ -77,16 +91,34 @@ module Onetime
 
           records = @limit ? fetcher.fetch(limit: @limit) : fetcher.fetch
 
-          if @dry_run || records.empty?
+          if @dry_run
             return Result.new(
-              provider: @provider, fetched: records.size,
-              accepted: 0, rejected: 0, errors: [], dry_run: @dry_run
+              provider: @provider,
+              fetched: records.size,
+              accepted: 0,
+              rejected: 0,
+              errors: [],
+              dry_run: true,
+            )
+          end
+
+          if records.empty?
+            mark_synced!(imported: 0)
+            return Result.new(
+              provider: @provider,
+              fetched: 0,
+              accepted: 0,
+              rejected: 0,
+              errors: [],
+              dry_run: false,
             )
           end
 
           ingest = IngestFeedback.new(
-            records: records, actor: @actor, default_source: @provider
+            records: records, actor: @actor, default_source: @provider,
           ).call
+
+          mark_synced!(imported: ingest.accepted)
 
           Result.new(
             provider: @provider,
@@ -99,6 +131,17 @@ module Onetime
         end
 
         private
+
+        # Stamp the per-provider last-sync marker. Called on every real run
+        # (imported may be 0) — never on dry_run. String keys at the Redis
+        # boundary.
+        def mark_synced!(imported:)
+          Onetime::EmailSuppression.sync_status[@provider] = {
+            'last_synced_at' => Familia.now,
+            'imported' => imported,
+            'result' => 'ok',
+          }
+        end
 
         def fetcher
           @fetcher ||= case @provider

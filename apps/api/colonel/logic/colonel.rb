@@ -46,6 +46,8 @@ require_relative 'colonel/unban_ip'
 # Custom domains
 require_relative 'colonel/list_custom_domains'
 require_relative 'colonel/verify_custom_domain'
+require_relative 'colonel/create_custom_domain'
+require_relative 'colonel/get_custom_domain'
 
 # Organizations
 require_relative 'colonel/list_organizations'
@@ -86,6 +88,7 @@ require_relative 'colonel/transfer_domain'
 require_relative 'colonel/list_email_templates'
 require_relative 'colonel/preview_email_template'
 require_relative 'colonel/send_test_email'
+require_relative 'colonel/get_email_config'
 require_relative 'colonel/list_rate_limiters'
 require_relative 'colonel/inspect_rate_limit'
 require_relative 'colonel/reset_rate_limit'
@@ -93,9 +96,14 @@ require_relative 'colonel/reset_rate_limit'
 # Email deliverability (bounces / complaints / suppression list)
 require_relative 'colonel/get_email_deliverability'
 require_relative 'colonel/list_email_suppressions'
+require_relative 'colonel/add_email_suppression'
 require_relative 'colonel/remove_email_suppression'
 require_relative 'colonel/list_email_deliverability_events'
 require_relative 'colonel/ingest_email_deliverability_events'
+require_relative 'colonel/sync_email_deliverability'
+require_relative 'colonel/get_email_provider_status'
+require_relative 'colonel/lookup_email_recipient'
+require_relative 'colonel/list_email_messages'
 
 # Billing catalog (ticket #45)
 require_relative 'colonel/get_billing_catalog'

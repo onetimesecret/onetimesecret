@@ -58,7 +58,8 @@ RSpec.describe Onetime::Operations::Email::SyncProviderFeedback do
     expect(result.dry_run).to be(true)
   end
 
-  it 'skips ingestion when the provider list is empty' do
+  it 'skips ingestion when the provider list is empty but still stamps sync_status' do
+    Onetime::EmailSuppression.sync_status.clear
     allow(fetcher).to receive(:fetch).and_return([])
     expect(Onetime::Operations::Email::IngestFeedback).not_to receive(:new)
 
@@ -66,6 +67,16 @@ RSpec.describe Onetime::Operations::Email::SyncProviderFeedback do
 
     expect(result.fetched).to eq(0)
     expect(result.accepted).to eq(0)
+    expect(Onetime::EmailSuppression.sync_status['ses']).to include('imported' => 0, 'result' => 'ok')
+  end
+
+  it 'a dry run never stamps sync_status' do
+    Onetime::EmailSuppression.sync_status.clear
+    allow(fetcher).to receive(:fetch).and_return(records)
+
+    described_class.new(provider: 'ses', dry_run: true).call
+
+    expect(Onetime::EmailSuppression.sync_status['ses']).to be_nil
   end
 
   it 'defaults the provider to the configured delivery provider' do

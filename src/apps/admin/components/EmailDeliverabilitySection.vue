@@ -16,11 +16,16 @@
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
   import type {
     ColonelDeliverabilityEvent,
+    ColonelEmailMessage,
     ColonelEmailSuppression,
   } from '@/schemas/api/internal/responses/colonel-deliverability';
   import {
     colonelEmailDeliverabilityEventsResponseSchema,
     colonelEmailDeliverabilityResponseSchema,
+    colonelEmailDeliverabilitySyncResponseSchema,
+    colonelEmailMessagesResponseSchema,
+    colonelEmailRecipientLookupResponseSchema,
+    colonelEmailSuppressionAddResponseSchema,
     colonelEmailSuppressionRemoveResponseSchema,
     colonelEmailSuppressionsResponseSchema,
   } from '@/schemas/api/internal/responses/colonel-deliverability';
@@ -59,9 +64,15 @@
   const SUMMARY_URL = '/api/colonel/email/deliverability';
   const SUPPRESSIONS_URL = '/api/colonel/email/deliverability/suppressions';
   const EVENTS_URL = '/api/colonel/email/deliverability/events';
+  const SYNC_URL = '/api/colonel/email/deliverability/sync';
+  // Track B — live provider reads of the ACTIVE transport (Mailer.determine_provider).
+  const LOOKUP_URL = '/api/colonel/email/deliverability/lookup';
+  const MESSAGES_URL = '/api/colonel/email/deliverability/messages';
 
   /** The "recent" feed shows one newest-first slice (the API also paginates). */
   const EVENTS_LIMIT = 20;
+  /** Item-9 send log slice size (Lettermint is cursor-paginated). */
+  const MESSAGES_LIMIT = 30;
 
   // ---- Summary tiles ---------------------------------------------------------
 
@@ -79,8 +90,55 @@
   const counts = computed(() => summaryData.value?.details?.counts ?? null);
   const windowDays = computed(() => summaryData.value?.details?.window_days ?? 7);
 
+  // ---- Sync status (ITEM 2, read-only) --------------------------------------
+  // Per-provider last-sync feed from the SAME summary fetch. Backend always
+  // emits `{}` when nothing has ever synced → empty OR undefined = never synced.
+
+  const syncStatus = computed(() => summaryData.value?.details?.sync_status ?? {});
+  const syncEntries = computed(() =>
+    Object.entries(syncStatus.value).map(([provider, status]) => ({ provider, ...status }))
+  );
+  const neverSynced = computed(() => syncEntries.value.length === 0);
+  /** Only ses/lettermint expose a pollable feedback API — see SyncEmailDeliverability. */
+  const syncCapability = computed(() => summaryData.value?.details?.sync_capability ?? false);
+
   function reloadSummary(): void {
     loadSummary().catch(() => {}); // summaryError drives the inline alert
+  }
+
+  // ---- On-demand sync trigger ("Sync now" — the interactive counterpart to
+  // `ots email sync-feedback`). Idempotent (re-syncing an unchanged provider
+  // list writes nothing new), so a plain button, no confirm dialog. -------
+
+  const {
+    loading: syncLoading,
+    error: syncError,
+    run: runSync,
+  } = useAdminMutation(async () => {
+    const response = await $api.post(SYNC_URL, {});
+    const parsed = gracefulParse(
+      colonelEmailDeliverabilitySyncResponseSchema,
+      response.data,
+      'ColonelEmailDeliverabilitySyncResponse'
+    );
+    if (parsed.ok) {
+      const { provider, accepted, rejected, fetched } = parsed.data.record;
+      notifications.show(
+        t('web.admin.emailtools.deliverability.sync.success', {
+          provider,
+          accepted,
+          rejected,
+          fetched,
+        }),
+        'success'
+      );
+    }
+  });
+
+  async function onSyncClick(): Promise<void> {
+    const ok = await runSync();
+    if (!ok) return; // syncError drives the inline alert
+    reloadSummary();
   }
 
   // ---- Suppression list (paginated + exact-address lookup) -------------------
@@ -214,6 +272,64 @@
     resetRemove();
   }
 
+  // ---- Guarded manual add (ITEM 6 — additive, reversible via remove) ---------
+  // The POST body carries ONLY `address`; the backend hardcodes reason='manual'
+  // and source='colonel'. `record.created` picks the success message.
+
+  const addAddress = ref('');
+  const addDialogOpen = ref(false);
+  const addWasCreated = ref(true);
+  /** A minimal e-mail sanity check so the confirm button can't submit garbage. */
+  const addAddressValid = computed(() => /.+@.+\..+/.test(addAddress.value.trim()));
+
+  const {
+    loading: addLoading,
+    error: addError,
+    run: runAdd,
+    reset: resetAdd,
+  } = useAdminMutation(async () => {
+    const response = await $api.post(SUPPRESSIONS_URL, { address: addAddress.value.trim() });
+    const parsed = gracefulParse(
+      colonelEmailSuppressionAddResponseSchema,
+      response.data,
+      'ColonelEmailSuppressionAddResponse'
+    );
+    // 2xx means the address is suppressed regardless of ack shape; the parse
+    // keeps the contract a live tripwire. `created` picks new vs. already-present.
+    addWasCreated.value = parsed.ok ? parsed.data.record.created : true;
+  });
+
+  function requestAdd(): void {
+    if (!addAddressValid.value) return;
+    resetAdd();
+    addDialogOpen.value = true;
+  }
+
+  async function onAddConfirm(): Promise<void> {
+    const ok = await runAdd();
+    if (!ok) return; // Failure message stays in the dialog for retry/cancel.
+
+    addDialogOpen.value = false;
+    notifications.show(
+      t(
+        addWasCreated.value
+          ? 'web.admin.emailtools.deliverability.suppressions.add.success'
+          : 'web.admin.emailtools.deliverability.suppressions.add.successExisting',
+        { address: addAddress.value.trim() }
+      ),
+      'success'
+    );
+    addAddress.value = '';
+    // The list AND the suppressed-total tile both changed.
+    fetchSuppressions(suppressionsMeta.value?.page ?? 1);
+    reloadSummary();
+  }
+
+  function onAddCancel(): void {
+    addDialogOpen.value = false;
+    resetAdd();
+  }
+
   // ---- Recent events feed -----------------------------------------------------
 
   const {
@@ -263,10 +379,129 @@
       : t('web.admin.emailtools.deliverability.events.kinds.bounce');
   }
 
+  // ---- Recipient lookup (item 10 — live provider read + local store) --------
+  // Keys BOTH reads (local store + provider) by the SAME normalized address.
+  // The local store is authoritative and always present; `provider_result` is a
+  // LIVE colonel-only read (recipient PII returned here is exempt from the
+  // at-rest hashing posture: it is never persisted). Submit-driven, not live.
+
+  const lookupAddress = ref('');
+  /** The address actually looked up (submitted, not typed). */
+  const activeLookupAddress = ref('');
+
+  const {
+    data: lookupData,
+    loading: lookupLoading,
+    error: lookupNetworkError,
+    load: loadLookup,
+    reset: resetLookup,
+  } = useResourceFetch({
+    url: LOOKUP_URL,
+    schema: colonelEmailRecipientLookupResponseSchema,
+    context: 'ColonelEmailRecipientLookup',
+  });
+
+  const lookupResult = computed(() => lookupData.value?.details ?? null);
+  const lookupProvider = computed(() => lookupResult.value?.provider ?? '');
+  /** Provider block is retryable-failed on a network throw OR available=false. */
+  const lookupProviderFailed = computed(
+    () =>
+      lookupNetworkError.value !== null ||
+      (lookupResult.value?.capability === true && lookupResult.value?.available === false)
+  );
+  const lookupProviderUnsupported = computed(
+    () => lookupResult.value !== null && lookupResult.value.capability === false
+  );
+
+  function onLookupSubmit(): void {
+    const address = lookupAddress.value.trim();
+    if (!address) return;
+    activeLookupAddress.value = address;
+    loadLookup({ address }).catch(() => {}); // lookupNetworkError drives the alert
+  }
+
+  function onLookupClear(): void {
+    lookupAddress.value = '';
+    activeLookupAddress.value = '';
+    resetLookup();
+  }
+
+  // ---- Recent sends feed (item 9 — provider's OWN message API) --------------
+  // Gated on `capability`: SES is fire-and-forget (no per-message API) → the
+  // block renders a "not available on this transport" empty-state. Subjects and
+  // recipient addresses returned here are a LIVE colonel-only read, never
+  // persisted (exempt from the at-rest address-hashing posture).
+
+  const {
+    data: messagesData,
+    loading: messagesLoading,
+    error: messagesNetworkError,
+    load: loadMessages,
+  } = useResourceFetch({
+    url: MESSAGES_URL,
+    schema: colonelEmailMessagesResponseSchema,
+    context: 'ColonelEmailMessages',
+  });
+
+  const messages = computed<ColonelEmailMessage[]>(
+    () => messagesData.value?.details?.messages ?? []
+  );
+  /** Structural: does the active transport expose a send log at all? */
+  const messagesCapability = computed(
+    () => messagesData.value?.details?.capability ?? true
+  );
+  const messagesProvider = computed(() => messagesData.value?.details?.provider ?? '');
+  /** Retryable failure: network throw OR a 200 payload with available=false. */
+  const messagesFailed = computed(
+    () =>
+      messagesNetworkError.value !== null ||
+      (messagesCapability.value && messagesData.value?.details?.available === false)
+  );
+
+  function reloadMessages(): void {
+    loadMessages({ page: 1, per_page: MESSAGES_LIMIT }).catch(() => {}); // messagesFailed drives the alert
+  }
+
+  const messageColumns = computed<DataTableColumn<ColonelEmailMessage>[]>(() => [
+    { key: 'created_at', label: t('web.admin.emailtools.deliverability.messages.col.created') },
+    { key: 'status', label: t('web.admin.emailtools.deliverability.messages.col.status') },
+    { key: 'subject', label: t('web.admin.emailtools.deliverability.messages.col.subject') },
+    { key: 'to', label: t('web.admin.emailtools.deliverability.messages.col.to') },
+  ]);
+
+  /** Lettermint status vocabulary → badge colour (item-9 mapping, from R2). */
+  const MESSAGE_STATUS_SUCCESS = ['delivered', 'opened', 'clicked'];
+  const MESSAGE_STATUS_INFLIGHT = ['pending', 'queued', 'processed'];
+  const MESSAGE_STATUS_FAILURE = ['hard_bounced', 'soft_bounced', 'complained', 'suppressed'];
+  const MESSAGE_STATUS_VOCAB = [
+    ...MESSAGE_STATUS_SUCCESS,
+    ...MESSAGE_STATUS_INFLIGHT,
+    ...MESSAGE_STATUS_FAILURE,
+    'unsubscribed',
+  ];
+
+  function messageStatusClass(status: string): string {
+    if (MESSAGE_STATUS_SUCCESS.includes(status)) {
+      return 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300';
+    }
+    if (MESSAGE_STATUS_FAILURE.includes(status)) {
+      return 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300';
+    }
+    // In-flight and unsubscribed are informational (neutral gray).
+    return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
+  }
+
+  function messageStatusLabel(status: string): string {
+    return MESSAGE_STATUS_VOCAB.includes(status)
+      ? t(`web.admin.emailtools.deliverability.messages.status.${status}`)
+      : status;
+  }
+
   onMounted(() => {
     reloadSummary();
     fetchSuppressions(1);
     reloadEvents();
+    reloadMessages();
   });
 </script>
 
@@ -330,6 +565,83 @@
         testid="deliverability-stat-skipped" />
     </div>
 
+    <!-- ===== Sync status (ITEM 2) ========================================= -->
+    <div
+      class="mt-6"
+      data-testid="deliverability-sync-status">
+      <div class="flex items-center justify-between gap-3">
+        <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300">
+          {{ t('web.admin.emailtools.deliverability.sync.title') }}
+        </h4>
+        <!-- "Sync now" — only the active transport's own feedback API can be
+             pulled synchronously (ses/lettermint); other transports rely on
+             the events endpoint (see the neverRun copy below). -->
+        <button
+          v-if="syncCapability"
+          type="button"
+          data-testid="deliverability-sync-button"
+          :disabled="syncLoading"
+          class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+          @click="onSyncClick">
+          <OIcon
+            collection="heroicons"
+            name="arrow-path"
+            size="4"
+            :class="{ 'animate-spin': syncLoading }" />
+          {{ t('web.admin.emailtools.deliverability.sync.button') }}
+        </button>
+      </div>
+
+      <p
+        v-if="syncCapability"
+        class="mt-1 text-xs text-gray-400 dark:text-gray-500">
+        {{ t('web.admin.emailtools.deliverability.sync.hint') }}
+      </p>
+
+      <p
+        v-if="syncError"
+        class="mt-2 text-sm text-red-700 dark:text-red-300"
+        role="alert"
+        data-testid="deliverability-sync-error">
+        {{ syncError }}
+      </p>
+
+      <!-- Never synced: the feedback sync has not been configured / run. -->
+      <div
+        v-if="neverSynced"
+        class="mt-2 flex items-start gap-3 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-900/50 dark:bg-amber-900/20"
+        role="alert"
+        data-testid="deliverability-sync-never">
+        <OIcon
+          collection="heroicons"
+          name="exclamation-triangle"
+          size="5"
+          class="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" />
+        <span class="text-sm text-amber-800 dark:text-amber-200">
+          {{ t('web.admin.emailtools.deliverability.sync.neverRun') }}
+        </span>
+      </div>
+
+      <!-- Per-provider last-sync time + source. -->
+      <ul
+        v-else
+        class="mt-2 space-y-1">
+        <li
+          v-for="entry in syncEntries"
+          :key="entry.provider"
+          class="text-sm text-gray-600 dark:text-gray-400"
+          :data-testid="`deliverability-sync-${entry.provider}`">
+          <span class="font-medium text-gray-900 dark:text-gray-100">{{ entry.provider }}</span>
+          <span class="text-gray-400 dark:text-gray-500"> — </span>
+          {{ t('web.admin.emailtools.deliverability.sync.lastSynced') }}
+          <span class="font-mono">{{ formatDisplayDateTime(entry.last_synced_at) }}</span>
+          <span class="text-gray-400 dark:text-gray-500">
+            ({{ t('web.admin.emailtools.deliverability.sync.imported', { count: entry.imported }) }})
+          </span>
+        </li>
+      </ul>
+    </div>
+
     <!-- ===== Suppression list ============================================ -->
     <div class="mt-8 border-t border-gray-100 pt-6 dark:border-gray-800">
       <h4 class="text-base font-semibold text-gray-900 dark:text-white">
@@ -338,6 +650,39 @@
       <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.admin.emailtools.deliverability.suppressions.description') }}
       </p>
+
+      <!-- Manual add (ITEM 6 — guarded; body carries ONLY address, backend
+           hardcodes reason='manual'/source='colonel'). Additive/reversible via
+           the per-row remove, so the confirm is a plain (non-danger) dialog. -->
+      <form
+        class="mt-4 flex flex-wrap items-end gap-3"
+        @submit.prevent="requestAdd">
+        <div class="min-w-[18rem] flex-1">
+          <label
+            for="deliverability-add"
+            class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
+            {{ t('web.admin.emailtools.deliverability.suppressions.add.addressLabel') }}
+          </label>
+          <input
+            id="deliverability-add"
+            v-model="addAddress"
+            type="email"
+            data-testid="deliverability-add-input"
+            :placeholder="t('web.admin.emailtools.deliverability.suppressions.searchPlaceholder')"
+            class="w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm text-gray-900 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+        </div>
+        <button
+          type="submit"
+          data-testid="deliverability-add-submit"
+          :disabled="!addAddressValid || addLoading"
+          class="inline-flex items-center gap-1 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50">
+          <OIcon
+            collection="heroicons"
+            name="plus"
+            size="4" />
+          {{ t('web.admin.emailtools.deliverability.suppressions.add.button') }}
+        </button>
+      </form>
 
       <!-- Exact-address lookup (submitted, not live — the endpoint is keyed) -->
       <form
@@ -429,6 +774,136 @@
       </div>
     </div>
 
+    <!-- ===== Recipient lookup (item 10 — local store + live provider) ==== -->
+    <div class="mt-8 border-t border-gray-100 pt-6 dark:border-gray-800">
+      <h4 class="text-base font-semibold text-gray-900 dark:text-white">
+        {{ t('web.admin.emailtools.deliverability.lookup.title') }}
+      </h4>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        {{ t('web.admin.emailtools.deliverability.lookup.description') }}
+      </p>
+
+      <form
+        class="mt-4 flex flex-wrap items-end gap-3"
+        @submit.prevent="onLookupSubmit">
+        <div class="min-w-[18rem] flex-1">
+          <label
+            for="deliverability-lookup"
+            class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
+            {{ t('web.admin.emailtools.deliverability.lookup.addressLabel') }}
+          </label>
+          <input
+            id="deliverability-lookup"
+            v-model="lookupAddress"
+            type="text"
+            data-testid="deliverability-lookup-input"
+            :placeholder="t('web.admin.emailtools.deliverability.suppressions.searchPlaceholder')"
+            class="w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm text-gray-900 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+        </div>
+        <button
+          type="submit"
+          data-testid="deliverability-lookup-submit"
+          :disabled="lookupLoading"
+          class="inline-flex items-center gap-1 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50">
+          <OIcon
+            collection="heroicons"
+            name="magnifying-glass"
+            size="4" />
+          {{ t('web.admin.emailtools.deliverability.lookup.submit') }}
+        </button>
+        <button
+          v-if="activeLookupAddress"
+          type="button"
+          data-testid="deliverability-lookup-clear"
+          class="rounded-md px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-gray-400 dark:hover:text-gray-200"
+          @click="onLookupClear">
+          {{ t('web.admin.emailtools.deliverability.suppressions.clearButton') }}
+        </button>
+      </form>
+
+      <!-- Local + provider status side by side, both keyed by the SAME
+           normalized address. Local is always readable; the provider column
+           honors capability/available. -->
+      <div
+        v-if="lookupResult"
+        class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2"
+        data-testid="deliverability-lookup-result">
+        <!-- Local store (authoritative, always present). -->
+        <div class="rounded-md border border-gray-200 p-4 dark:border-gray-800">
+          <h5 class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            {{ t('web.admin.emailtools.deliverability.lookup.local') }}
+          </h5>
+          <p class="font-mono text-sm text-gray-900 dark:text-gray-100">{{ lookupResult.address }}</p>
+          <div class="mt-2 flex items-center gap-2">
+            <span
+              class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium"
+              :class="lookupResult.local.suppressed
+                ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
+                : 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'"
+              data-testid="deliverability-lookup-local-status">
+              {{
+                lookupResult.local.suppressed
+                  ? t('web.admin.emailtools.deliverability.lookup.suppressed')
+                  : t('web.admin.emailtools.deliverability.lookup.notSuppressed')
+              }}
+            </span>
+          </div>
+          <p
+            v-if="lookupResult.local.suppressed"
+            class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            {{ t('web.admin.emailtools.deliverability.lookup.reason') }}:
+            <span class="font-mono">{{ lookupResult.local.reason || '—' }}</span>
+            <span class="text-gray-400 dark:text-gray-500"> · </span>
+            {{ t('web.admin.emailtools.deliverability.lookup.source') }}:
+            <span class="font-mono">{{ lookupResult.local.source || '—' }}</span>
+          </p>
+        </div>
+
+        <!-- Live provider read (capability / available gated). -->
+        <div class="rounded-md border border-gray-200 p-4 dark:border-gray-800">
+          <h5 class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            {{ t('web.admin.emailtools.deliverability.lookup.provider') }}
+            <span class="ml-1 font-normal normal-case text-gray-400 dark:text-gray-500">{{ lookupProvider }}</span>
+          </h5>
+
+          <p
+            v-if="lookupProviderUnsupported"
+            class="text-sm text-gray-500 dark:text-gray-400"
+            data-testid="deliverability-lookup-provider-unsupported">
+            {{ t('web.admin.emailtools.deliverability.lookup.unavailable') }}
+          </p>
+          <p
+            v-else-if="lookupProviderFailed"
+            class="text-sm text-red-700 dark:text-red-300"
+            role="alert"
+            data-testid="deliverability-lookup-provider-error">
+            {{ lookupResult.error || t('web.admin.emailtools.deliverability.lookup.unavailable') }}
+          </p>
+          <div
+            v-else-if="lookupResult.provider_result"
+            data-testid="deliverability-lookup-provider-result">
+            <span
+              class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium"
+              :class="lookupResult.provider_result.suppressed
+                ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
+                : 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'">
+              {{
+                lookupResult.provider_result.suppressed
+                  ? t('web.admin.emailtools.deliverability.lookup.suppressed')
+                  : t('web.admin.emailtools.deliverability.lookup.notSuppressed')
+              }}
+            </span>
+            <p
+              v-if="lookupResult.provider_result.suppressed"
+              class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+              {{ t('web.admin.emailtools.deliverability.lookup.reason') }}:
+              <span class="font-mono">{{ lookupResult.provider_result.reason || '—' }}</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ===== Recent events feed ========================================== -->
     <div class="mt-8 border-t border-gray-100 pt-6 dark:border-gray-800">
       <h4 class="text-base font-semibold text-gray-900 dark:text-white">
@@ -477,6 +952,69 @@
       </div>
     </div>
 
+    <!-- ===== Recent sends feed (item 9 — provider's OWN message API) ===== -->
+    <div class="mt-8 border-t border-gray-100 pt-6 dark:border-gray-800">
+      <h4 class="text-base font-semibold text-gray-900 dark:text-white">
+        {{ t('web.admin.emailtools.deliverability.messages.title') }}
+      </h4>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        {{ t('web.admin.emailtools.deliverability.messages.description') }}
+      </p>
+
+      <!-- capability=false (e.g. SES has no per-message API): static empty-state,
+           no table, no retry. -->
+      <div
+        v-if="!messagesCapability"
+        class="mt-4 flex items-start gap-3 rounded-md border border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-800/40"
+        data-testid="deliverability-messages-unsupported">
+        <OIcon
+          collection="heroicons"
+          name="information-circle"
+          size="5"
+          class="mt-0.5 shrink-0 text-gray-400 dark:text-gray-500" />
+        <span class="text-sm text-gray-600 dark:text-gray-300">
+          {{ t('web.admin.emailtools.deliverability.messages.notSupported', { provider: messagesProvider }) }}
+        </span>
+      </div>
+
+      <template v-else>
+        <p
+          v-if="messagesFailed"
+          class="mt-3 text-sm text-red-700 dark:text-red-300"
+          role="alert"
+          data-testid="deliverability-messages-error">
+          {{ t('web.admin.emailtools.deliverability.messages.error') }}
+        </p>
+
+        <div class="mt-4">
+          <DataTable
+            :columns="messageColumns"
+            :rows="messages"
+            row-key="id"
+            :loading="messagesLoading"
+            :empty-text="t('web.admin.emailtools.deliverability.messages.empty')"
+            testid="deliverability-messages-table">
+            <template #cell-created_at="{ row }">
+              <span class="text-sm text-gray-500 dark:text-gray-400">{{ row.created_at ? formatDisplayDateTime(row.created_at) : '—' }}</span>
+            </template>
+            <template #cell-status="{ row }">
+              <span
+                class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium"
+                :class="messageStatusClass(row.status)">
+                {{ messageStatusLabel(row.status) }}
+              </span>
+            </template>
+            <template #cell-subject="{ row }">
+              <span class="text-sm text-gray-900 dark:text-gray-100">{{ row.subject || '—' }}</span>
+            </template>
+            <template #cell-to="{ row }">
+              <span class="font-mono text-sm text-gray-500 dark:text-gray-400">{{ row.to.join(', ') || '—' }}</span>
+            </template>
+          </DataTable>
+        </div>
+      </template>
+    </div>
+
     <!-- Suppression removal: one-click confirm (the unban idiom). Removing a
          suppression re-enables sending to a known-bad address, so the dialog
          copy says exactly that; the op audits server-side (CONTRACT 4). -->
@@ -495,5 +1033,23 @@
       :error="removeError"
       @confirm="onRemoveConfirm"
       @cancel="onRemoveCancel" />
+
+    <!-- Manual add: guarded confirm (ITEM 6). Additive/reversible, so a plain
+         (non-danger) dialog. The op audits server-side (CONTRACT 4). -->
+    <AdminConfirmDialog
+      v-model:open="addDialogOpen"
+      :title="t('web.admin.emailtools.deliverability.suppressions.add.confirmTitle')"
+      :description="
+        t('web.admin.emailtools.deliverability.suppressions.add.confirmDescription', {
+          address: addAddress.trim(),
+        })
+      "
+      :confirm-token="undefined"
+      variant="default"
+      :confirm-text="t('web.admin.emailtools.deliverability.suppressions.add.button')"
+      :loading="addLoading"
+      :error="addError"
+      @confirm="onAddConfirm"
+      @cancel="onAddCancel" />
   </section>
 </template>
