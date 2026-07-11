@@ -188,6 +188,7 @@ describe('AdminBanner (settings screen — ticket #41)', () => {
       expect(mockApi.post).toHaveBeenCalledWith(BANNER_URL, {
         content: 'Heads up',
         ttl: 3600,
+        scope: 'no_recipient',
       });
       expect(showMock).toHaveBeenCalledWith('web.admin.banner.set.success', 'success');
       expect(bannerGetCount()).toBe(before + 1);
@@ -203,6 +204,7 @@ describe('AdminBanner (settings screen — ticket #41)', () => {
       expect(mockApi.post).toHaveBeenCalledWith(BANNER_URL, {
         content: 'Persistent notice',
         ttl: undefined,
+        scope: 'no_recipient',
       });
     });
 

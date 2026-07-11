@@ -2,8 +2,8 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/models/session_metadata'
-require 'onetime/application/organization_loader'
+require_relative '../../models/session_metadata'
+require_relative '../../application/organization_loader'
 
 module Onetime
   module Operations

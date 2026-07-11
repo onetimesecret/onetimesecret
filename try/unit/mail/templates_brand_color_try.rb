@@ -432,12 +432,14 @@ ctx.send(:conf_dig, 'site').is_a?(Hash)
 #=> true
 
 # ============================================================================
-# Email-template purge regression guard
+# Email-template regression guard
 # ============================================================================
 #
-# These tests are FORWARD-LOOKING — they will fail until Task 8 (12-template
-# purge) lands. The guard ensures #dc4a22 and onetime-logo-v3-xl.svg never
-# slip back into shipped HTML email templates.
+# The content guards ensure #dc4a22 and onetime-logo-v3-xl.svg never slip back
+# into shipped HTML email templates. (The 12-template purge originally scoped
+# for Task 8 was superseded: the colonel email-tools work grew the shipped set
+# instead, so the count baseline below tracks the live total rather than a
+# purged target.)
 #
 # Glob is inlined per-test because tryouts evaluates each test case in an
 # evaluator that doesn't see methods defined after `# TRYOUTS`.
@@ -454,9 +456,9 @@ offenders = files.select { |path| File.read(path).include?('onetime-logo-v3-xl.s
 offenders.map { |p| File.basename(p) }.sort
 #=> []
 
-## All 13 expected HTML templates are present (purge audit baseline)
+## All 22 shipped HTML templates are present (count baseline)
 Dir.glob(File.join(ENV.fetch('ONETIME_HOME'), 'lib/onetime/mail/templates/*.html.erb')).size
-#=> 13
+#=> 22
 
 ## [regression guard] no shipped email template hardcodes the 'Delano' sign-off
 files = Dir.glob(File.join(ENV.fetch('ONETIME_HOME'), 'lib/onetime/mail/templates/*.erb'))

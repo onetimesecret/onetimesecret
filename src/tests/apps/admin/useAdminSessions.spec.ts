@@ -29,10 +29,13 @@ function sessionsPayload() {
           external_id: 'ext_1',
           role: 'customer',
           ip_address: '203.0.113.7',
+          user_agent: 'Mozilla/5.0',
           created_at: 1700000000,
         },
       ],
       pagination: { page: 1, per_page: 50, total_count: 1, total_pages: 1 },
+      // Keyspace scan meta (list_sessions.rb success_data.details.scan).
+      scan: { scanned: 64, anonymous_count: 63, scan_capped: false },
     },
   };
 }

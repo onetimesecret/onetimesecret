@@ -31,6 +31,7 @@ function listPayload() {
           external_id: 'ext_1',
           role: 'customer',
           ip_address: '203.0.113.7',
+          user_agent: 'Mozilla/5.0',
           created_at: 1700000000,
         },
         {
@@ -41,10 +42,13 @@ function listPayload() {
           external_id: null,
           role: null,
           ip_address: null,
+          user_agent: null,
           created_at: null,
         },
       ],
       pagination: { page: 1, per_page: 50, total_count: 2, total_pages: 1 },
+      // Keyspace scan meta (list_sessions.rb success_data.details.scan).
+      scan: { scanned: 128, anonymous_count: 126, scan_capped: false },
     },
   };
 }
@@ -84,6 +88,8 @@ describe('colonelSessionDetailResponseSchema (GetSessionDetail)', () => {
         role: 'customer',
         locale: 'en',
         ip_address: '203.0.113.7',
+        user_agent: 'Mozilla/5.0',
+        org_context: 'org_ext_1',
         authenticated_at: 1700000000,
         authenticated_by: 'password',
         active_session_id: 'as_1',

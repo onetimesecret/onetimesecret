@@ -22,12 +22,19 @@ module Onetime
         # One template summary row.
         Entry = Data.define(:name, :klass, :formats)
 
-        # @return [Array<Entry>] one row per {AVAILABLE_TEMPLATES} entry, in order.
+        # @return [Array<Entry>] one row per *available* {AVAILABLE_TEMPLATES}
+        #   entry, in order. Billing-gated templates (e.g. trial_expiring,
+        #   subscription_changed) resolve to no class when billing is disabled;
+        #   template_class_for raises ArgumentError for those, so we skip them
+        #   rather than crash the whole listing. template_class_for is the single
+        #   authority on which names are billing-gated.
         def call
-          AVAILABLE_TEMPLATES.map do |name|
-            template_class = Onetime::Mail::Mailer.send(:template_class_for, name)
-            has_html       = File.exist?(erb_path(name, 'html'))
-            has_text       = File.exist?(erb_path(name, 'txt'))
+          AVAILABLE_TEMPLATES.filter_map do |name|
+            template_class = resolve_class(name)
+            next if template_class.nil?
+
+            has_html = File.exist?(erb_path(name, 'html'))
+            has_text = File.exist?(erb_path(name, 'txt'))
 
             Entry.new(
               name: name.to_s,
@@ -38,6 +45,16 @@ module Onetime
         end
 
         private
+
+        # Resolve a template name to its view class, or nil when the template is
+        # not available in this deployment (billing disabled). AVAILABLE_TEMPLATES
+        # only holds known names, so the only reachable ArgumentError here is the
+        # billing-disabled rejection — never the "Unknown template" else branch.
+        def resolve_class(name)
+          Onetime::Mail::Mailer.send(:template_class_for, name)
+        rescue ArgumentError
+          nil
+        end
 
         def erb_path(name, extension)
           File.join(

@@ -30,6 +30,31 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
   },
 }));
 
+// Render the DetailDrawer's HeadlessUI dialog synchronously and IN-PLACE. The
+// real Dialog teleports its panel to <body>, escaping the mounted wrapper, so
+// `wrapper.find('[data-testid="customers-drawer"]')` would never see it. Mirrors
+// AdminOrganizations.spec / AdminSessions.spec.
+vi.mock('@headlessui/vue', () => ({
+  Dialog: {
+    name: 'Dialog',
+    template: '<div role="dialog" @close="$emit(\'close\')"><slot /></div>',
+    props: ['class'],
+    emits: ['close'],
+  },
+  DialogPanel: {
+    name: 'DialogPanel',
+    template: '<div class="dialog-panel" :data-testid="$attrs[\'data-testid\']"><slot /></div>',
+    props: ['class'],
+  },
+  DialogTitle: { name: 'DialogTitle', template: '<h3><slot /></h3>', props: ['as', 'class'] },
+  TransitionRoot: {
+    name: 'TransitionRoot',
+    template: '<div v-if="show"><slot /></div>',
+    props: ['as', 'show'],
+  },
+  TransitionChild: { name: 'TransitionChild', template: '<div><slot /></div>', props: ['as'] },
+}));
+
 // jsdom has no ResizeObserver; headlessui's Dialog observes the panel when the
 // detail drawer opens. Stub it so the drawer test drives the real open path.
 class ResizeObserverStub {
@@ -223,7 +248,7 @@ describe('AdminCustomers (list view — ticket #22)', () => {
     await wrapper.find('[data-testid="customers-table"] tbody tr').trigger('click');
     await flushPromises();
 
-    console.log('DBG_HTML_START');console.log(wrapper.html());console.log('DBG_HTML_END');const drawer = wrapper.find('[data-testid="customers-drawer"]');
+    const drawer = wrapper.find('[data-testid="customers-drawer"]');
     expect(drawer.exists()).toBe(true);
     expect(drawer.text()).toContain('alice@example.com');
     expect(drawer.text()).toContain('ur_alice');
