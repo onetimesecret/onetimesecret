@@ -110,6 +110,14 @@ jobs:
       - name: Run bin/setup (documented contributor setup, first run)
         run: bin/setup
 
+      # Doctor v2 proof (C9): the environment bin/setup just built must pass
+      # doctor's own diff(manifest, reality) checks with zero failures.
+      # Warnings are fine — contributor tooling (overmind, direnv) is optional
+      # and this runner has no app running; a non-zero exit means a FAIL-level
+      # check regressed.
+      - name: bin/setup --doctor (zero failures on a fresh setup)
+        run: bin/setup --doctor
+
       - name: Run bin/setup --test (documented test lane)
         run: bin/setup --test
 
