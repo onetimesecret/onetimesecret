@@ -161,8 +161,9 @@ Addresses: QS-3, QS-13, BM-07, DX-6, D6. Proof: proof-of-life script
 > `POL_CREATE_ACCOUNT=1` (default off — existing lanes byte-identical);
 > wiring it into the compose-smoke lane is follow-on CI work alongside
 > C7's residuals. **Deferred:** `rake dev:seed` (D6) — the optional bullet,
-> not built; a `.env.reference` comment pair above `AUTH_AUTOVERIFY=false`
-> explaining both polarities is written but awaits that file's owner.
+> not built; and a comment pair above `.env.reference`'s bare
+> `AUTH_AUTOVERIFY=false` explaining both polarities — that file is
+> untouched, and C9 turns it into a generated/CI-checked artifact anyway.
 
 ## C5 — Compose coherence
 
@@ -213,7 +214,8 @@ lane (`config -q` per combo + `up --wait` + proof-of-life).
 > job self-heals by grepping the README at runtime). **CP-3/CP-4:** the
 > crash-looping `jobs worker`/`jobs scheduler` commands fixed to the real
 > top-level subcommands, `JOBS_ENABLED` surfaced (default `false` →
-> synchronous email, the full stack works without touching it), and
+> synchronous email, the full stack works without touching it; documented
+> in `.env.example` alongside `OTS_IMAGE_TAG`), and
 > docker/README gained the required-env table (`ARGON2_SECRET` listed as
 > strongly recommended). **CP-10:** the app service's dead `PUBLIC_DIR`
 > removed from the full stack. **CP-9:** stack switching documented as what
@@ -295,9 +297,11 @@ so registry/runner rot surfaces as a red scheduled run.
 > + puma + proof-of-life under `LANG=C` (the clean-room validation recipe's
 > middle step; today no lane boots the app outside a container image, so the
 > run-8 locale regression is guarded at secret-generation but not at boot);
-> (2) the macOS lane; (3) full-stack compose `up` — only linted today,
-> blocked on C5's `JOBS_ENABLED`/required-env work; (4) `pnpm run build` +
-> asset probe as a lane.
+> (2) the macOS lane; (3) full-stack compose `up` — still only linted; C5
+> cleared the original `JOBS_ENABLED`/required-env blocker, and the
+> remaining blockers are the `/app/data` Dockerfile fix reaching a
+> published tag plus the proxy service being build-only (see C5's status
+> note); (4) `pnpm run build` + asset probe as a lane.
 
 ## C8 — Devcontainer + Codespaces (D5, testing-strategy §5)
 
