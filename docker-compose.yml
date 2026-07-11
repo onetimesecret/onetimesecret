@@ -3,7 +3,7 @@
 #
 # Default: Simple deployment (App + Valkey). Just run:
 #
-#     $ cp --preserve --update=none .env.example .env
+#     $ [ -f .env ] || cp -p .env.example .env
 #     $ docker compose up
 #
 # For the full production stack (Caddy TLS, RabbitMQ, workers,

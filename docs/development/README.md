@@ -183,7 +183,7 @@ docker history onetimesecret --format "table {{.CreatedBy}}\t{{.Size}}"
 Docker Compose configurations are included in this repository. The root `docker-compose.yml` includes a simple profile (app + Valkey) by default, with a full production stack (Caddy, RabbitMQ, workers) available:
 
 ```bash
-cp --preserve --update=none .env.example .env
+[ -f .env ] || cp -p .env.example .env
 docker compose up
 ```
 

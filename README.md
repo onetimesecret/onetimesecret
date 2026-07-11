@@ -47,7 +47,7 @@ docker run -p 3000:3000 -d \
 
 Create `./etc/config.yaml` from the defaults:
 ```bash
-cp -np ./etc/defaults/config.defaults.yaml ./etc/config.yaml
+[ -f ./etc/config.yaml ] || cp -p ./etc/defaults/config.defaults.yaml ./etc/config.yaml
 ```
 
 Key configuration areas:
@@ -136,7 +136,7 @@ The browser swaps changed modules in place without a full page reload, preservin
 
 Docker Compose configurations are included in this repository:
 ```bash
-cp -n .env.example .env
+[ -f .env ] || cp .env.example .env
 echo "SECRET=$(openssl rand -hex 32)" >> .env
 docker compose up
 ```
