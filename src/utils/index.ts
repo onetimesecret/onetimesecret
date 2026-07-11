@@ -6,11 +6,3 @@ export * from './parse';
 export * from './pii';
 export * from './redirect';
 export * from './url';
-
-const detectPlatform = (ua: string = window.navigator.userAgent): 'safari' | 'edge' => {
-  ua = ua.toLowerCase();
-  const isMac = /macintosh|mac os x|iphone|ipad|ipod/.test(ua);
-  return isMac ? 'safari' : 'edge';
-};
-
-export { detectPlatform };
