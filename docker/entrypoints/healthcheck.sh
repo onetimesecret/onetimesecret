@@ -11,6 +11,14 @@
 # This avoids false "unhealthy" status on worker/scheduler containers
 # that don't listen on any port.
 #
+# Health-checker trio, one owner per layer (install-onboarding C9):
+# this script owns CONTAINER LIVENESS only — it parses /health/advanced's
+# top-level status and never re-implements service checks. The app's
+# /health/advanced endpoint (CLI view: `bin/ots status`) owns the runtime
+# service view; `bin/setup --doctor` owns the environment view (pins,
+# files, connectivity) and likewise delegates to /health/advanced when
+# the app answers.
+#
 
 # Parse host and port from an AMQP URL.
 # Handles: amqp://host:port, amqp://user:pass@host:port/vhost

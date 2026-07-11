@@ -73,6 +73,56 @@ check_version_major() {
   info "$name $actual_full"
 }
 
+# --- Generic connectivity probes (doctor v2, BM-05) ---------------------
+#
+# Service availability is decided by CONNECTIVITY, never by whether a client
+# CLI happens to be installed locally — remote/containerized services must
+# read as up (BM-05).
+
+# tcp_probe HOST PORT [TIMEOUT] — plain TCP connect via /dev/tcp.
+# `timeout` guards against filtered hosts that hang the connect; when the
+# binary is absent (stock macOS) we connect directly — localhost probes,
+# the common case, fail fast anyway.
+tcp_probe() {
+  local host="$1" port="$2" t="${3:-5}"
+  if has timeout; then
+    timeout "$t" bash -c 'exec 3<>"/dev/tcp/$0/$1"' "$host" "$port" 2>/dev/null
+  else
+    ( exec 3<>"/dev/tcp/$host/$port" ) 2>/dev/null
+  fi
+}
+
+# url_host_port URL DEFAULT_PORT — strip scheme/userinfo/path, print "host port".
+url_host_port() {
+  local url="$1" default_port="$2" clean host port
+  clean="${url#*://}"
+  [[ "$clean" == *@* ]] && clean="${clean#*@}"
+  clean="${clean%%/*}"
+  clean="${clean%%\?*}"
+  host="${clean%%:*}"
+  if [[ "$clean" == *:* ]]; then
+    port="${clean#*:}"
+  else
+    port=""
+  fi
+  echo "${host:-127.0.0.1}" "${port:-$default_port}"
+}
+
+# dotenv_get VAR — value of VAR from .env (first match wins, like install.sh's
+# historical sed), empty when absent. Comments and quotes stripped.
+dotenv_get() {
+  [[ -f .env ]] || return 0
+  sed -n -E "s/^[[:space:]]*$1[[:space:]]*=[[:space:]]*[\"']?([^\"'#[:space:]]*)[\"']?[[:space:]]*(#.*)?$/\1/p" .env 2>/dev/null | head -1
+}
+
+# env_or_dotenv VAR — process environment wins, .env is the fallback.
+env_or_dotenv() {
+  local name="$1" val
+  val="${!name:-}"
+  [[ -z "$val" ]] && val="$(dotenv_get "$name")"
+  echo "$val"
+}
+
 # --- Datastore discovery and probes ------------------------------------
 #
 # The app and the test config speak plain redis://, and Valkey is
@@ -96,17 +146,7 @@ redis_url() {
 }
 
 redis_host_port() {
-  local url clean host port
-  url=$(redis_url)
-  clean="${url#redis://}"
-  clean="${clean#valkey://}"
-  if [[ "$clean" == *@* ]]; then
-    clean="${clean#*@}"
-  fi
-  host="${clean%%:*}"
-  port="${clean#*:}"
-  port="${port%%/*}"
-  echo "${host:-127.0.0.1}" "${port:-6379}"
+  url_host_port "$(redis_url)" 6379
 }
 
 redis_reachable() {
@@ -276,10 +316,8 @@ ENVRC
 
 auth_mode() {
   # Read from env or .env file, defaulting to simple
-  local mode="${AUTHENTICATION_MODE:-}"
-  if [[ -z "$mode" && -f .env ]]; then
-    mode=$(sed -n -E "s/^[[:space:]]*AUTHENTICATION_MODE[[:space:]]*=[[:space:]]*[\"']?([^\"'#[:space:]]*)[\"']?[[:space:]]*(#.*)?$/\1/p" .env 2>/dev/null | head -1)
-  fi
+  local mode
+  mode="$(env_or_dotenv AUTHENTICATION_MODE)"
   echo "${mode:-simple}"
 }
 
