@@ -59,6 +59,14 @@ export const colonelDeliverabilitySummaryDetailsSchema = z.object({
       })
     )
     .optional(),
+  /**
+   * The active transport (Mailer.determine_provider) and whether it has a
+   * pollable feedback API (ses/lettermint). Gates the "Sync now" button —
+   * other transports (smtp/sendgrid/logger) have no pull API, only the
+   * events-ingest endpoint.
+   */
+  active_provider: z.string().nullable(),
+  sync_capability: z.boolean(),
 });
 
 // ============================================================================

@@ -202,6 +202,24 @@ RSpec.describe 'Colonel email deliverability endpoints', type: :integration do
       expect(data[:details][:window_days]).to eq(7)
     end
 
+    it 'reports sync_capability true for a pull-API transport (ses/lettermint)' do
+      allow(Onetime::Mail::Mailer).to receive(:determine_provider).and_return('ses')
+
+      data = summary
+
+      expect(data[:details][:active_provider]).to eq('ses')
+      expect(data[:details][:sync_capability]).to be(true)
+    end
+
+    it 'reports sync_capability false for a transport with no pull API' do
+      allow(Onetime::Mail::Mailer).to receive(:determine_provider).and_return('smtp')
+
+      data = summary
+
+      expect(data[:details][:active_provider]).to eq('smtp')
+      expect(data[:details][:sync_capability]).to be(false)
+    end
+
     it 'reflects suppressions, recent events, and counted skips' do
       Onetime::EmailSuppression.suppress!(address: 'a@example.com', reason: 'bounce')
       Onetime::EmailSuppression.record_event(address: 'a@example.com', kind: 'bounce')

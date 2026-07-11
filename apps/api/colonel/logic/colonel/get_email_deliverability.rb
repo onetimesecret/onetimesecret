@@ -5,6 +5,8 @@
 require 'json'
 require_relative '../base'
 require 'onetime/models/email_suppression'
+require 'onetime/mail/mailer'
+require 'onetime/operations/email/sync_provider_feedback'
 
 module ColonelAPI
   module Logic
@@ -26,7 +28,9 @@ module ColonelAPI
           :recent_bounces,
           :recent_complaints,
           :sends_skipped,
-          :sync_status
+          :sync_status,
+          :active_provider,
+          :sync_capability
 
         def process_params
           # No parameters — the window is fixed (EmailSuppression::RECENT_WINDOW).
@@ -43,11 +47,21 @@ module ColonelAPI
           @recent_complaints = recent[:complaint]
           @sends_skipped     = Onetime::EmailSuppression.sends_skipped.value
           @sync_status       = load_sync_status
+          @active_provider   = active_provider_name
+          @sync_capability   = Onetime::Operations::Email::SyncProviderFeedback::PROVIDERS.include?(@active_provider)
 
           success_data
         end
 
         private
+
+        # The active transport, or nil if it can't be determined (e.g. mailer
+        # misconfigured) — mirrors ProviderStatus's fail-soft resolution.
+        def active_provider_name
+          Onetime::Mail::Mailer.determine_provider.to_s.downcase.strip
+        rescue StandardError
+          nil
+        end
 
         # Per-provider last-sync markers. Familia's hgetall deserializes JSON
         # values, so each is already an object; a defensive JSON.parse guards
@@ -80,6 +94,8 @@ end
                 sends_skipped: sends_skipped,
               },
               sync_status: sync_status,
+              active_provider: active_provider,
+              sync_capability: sync_capability,
             },
           }
         end
