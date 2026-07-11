@@ -30,6 +30,7 @@ echo "Secret key saved to .ots_secret (keep this file secure!)"
 # Now run the container using the key
 # ⚠️ WARNING: Set SSL=true for production deployments
 docker run -p 3000:3000 -d \
+  --name onetimesecret \
   --add-host=host.docker.internal:host-gateway \
   -e REDIS_URL=redis://host.docker.internal:6379/0 \
   -e SECRET="$(cat .ots_secret)" \
@@ -40,6 +41,31 @@ docker run -p 3000:3000 -d \
 ```
 
 **3. Access:** http://localhost:3000
+
+**4. Create your first account** — see [Create your first account](#create-your-first-account) below.
+
+## Create your first account
+
+Create an admin ("colonel") account from the CLI — it prints a generated password, and CLI-created accounts are verified immediately (no email required).
+
+Docker (container started with `--name onetimesecret` as above):
+```bash
+docker exec onetimesecret bin/ots customers create me@example.com --role colonel
+```
+
+Docker Compose (the app service is named `app`):
+```bash
+docker compose exec app bin/ots customers create me@example.com --role colonel
+```
+
+Bare-metal (Valkey/Redis running and `.env` sourced: `set -a; source .env; set +a`):
+```bash
+bundle exec bin/ots customers create me@example.com --role colonel
+```
+
+For an API token, use `bin/ots apitoken me@example.com` (or `bin/ots apitoken me@example.com --create --role colonel` to create the account and token in one step). See [docs/development/test-accounts.md](./docs/development/test-accounts.md) for more.
+
+> **Self-hosting note:** By default (`AUTH_AUTOVERIFY=false`) new web signups must click a link in a verification email before they can sign in, which requires a working mailer (`EMAILER_MODE`, `SMTP_HOST`/`SMTP_USERNAME`/`SMTP_PASSWORD`, `FROM_EMAIL`). On a fresh install the SMTP host is a placeholder, so the email never arrives and the signup is stranded as pending. For private or team instances, either set `AUTH_AUTOVERIFY=true` (accounts are active immediately at signup) or create accounts from the CLI as above. (Full auth mode, `AUTHENTICATION_MODE=full`, uses Rodauth's verify-account flow via `AUTH_VERIFY_ACCOUNT_ENABLED` instead.)
 
 ## Configuration
 
@@ -80,6 +106,11 @@ git clone https://github.com/onetimesecret/onetimesecret.git && cd onetimesecret
 set -a; source .env; set +a  # Export env vars into the shell
 pnpm run build               # Build the frontend assets (required, or the UI is blank)
 bundle exec puma -C etc/puma.rb
+```
+
+Then, in another terminal (with the env sourced the same way), [create your first account](#create-your-first-account):
+```bash
+bundle exec bin/ots customers create me@example.com --role colonel
 ```
 
 For long-running deployments, use a Procfile runner or the systemd templates in `etc/examples/systemd/`:
@@ -141,7 +172,12 @@ echo "SECRET=$(openssl rand -hex 32)" >> .env
 docker compose up
 ```
 
-See `docker-compose.yml` for available profiles (simple vs full stack) and `docker/README.md` for details.
+Then, in another terminal, [create your first account](#create-your-first-account):
+```bash
+docker compose exec app bin/ots customers create me@example.com --role colonel
+```
+
+See `docker-compose.yml` to switch between the simple and full stacks (edit the `include`), and [docker/README.md](./docker/README.md) for details. The compose stacks default to the same pinned image tag as the quick start above; override it with `OTS_IMAGE_TAG` in `.env`.
 
 ## Community & Support
 

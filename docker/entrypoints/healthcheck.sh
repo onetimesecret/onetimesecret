@@ -41,13 +41,16 @@ parse_amqp_addr() {
 }
 
 # Web server: puma listens on $PORT (default 3000)
-# Try /health/advanced first (verifies Redis + RabbitMQ + auth DB),
-# fall back to /health (lightweight status-only check).
+# Check /health/advanced (verifies Redis + RabbitMQ + auth DB): healthy only
+# if the TOP-LEVEL status is "ok" — a 200-but-degraded response is unhealthy.
+# Fall back to /health (lightweight liveness) only when /health/advanced
+# itself is unreachable or non-2xx (e.g. older images without the endpoint).
 if pgrep -f 'puma' > /dev/null 2>&1; then
   base="http://127.0.0.1:${PORT:-3000}"
-  response=$(curl -sf "${base}/health/advanced")
-  if [ $? -eq 0 ] && echo "$response" | grep -q '"status":"ok"'; then
-    exit 0
+  if response=$(curl -sf "${base}/health/advanced"); then
+    # ruby is guaranteed in the runtime image; jq is not
+    printf '%s' "$response" | ruby -rjson -e 'exit(JSON.parse($stdin.read)["status"] == "ok" ? 0 : 1)' 2>/dev/null
+    exit $?
   fi
   exec curl -sf "${base}/health"
 fi

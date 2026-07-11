@@ -132,7 +132,7 @@ module Core::Logic
               locale: locale,
               default: 'Verification sent to',
             )
-            msg              = "#{verification_msg} #{cust.objid}."
+            msg              = "#{verification_msg} #{cust.email}."
             set_info_message(msg)
           end
 

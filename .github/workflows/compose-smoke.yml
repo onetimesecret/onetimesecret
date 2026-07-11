@@ -68,15 +68,8 @@ jobs:
             -f docker/compose/docker-compose.simple.yml \
             -f docker/compose/docker-compose.mailpit.yml config -q
 
-      # CP-5 workaround: the bind-mounted ./data must be writable by the image's
-      # appuser (uid 1001) or the container can't write to /app/data. The real
-      # fix (named volume or documented chown) is C5; here we just make the lane
-      # honest without blocking on it.
-      - name: Prepare writable data dir (CP-5 workaround, pending C5)
-        run: |
-          mkdir -p data
-          sudo chown -R 1001:1001 data
-
+      # No data-dir prep needed: the simple stack no longer mounts ./data
+      # (CP-5 — simple mode persists everything in the maindb-data volume).
       - name: Bring up the simple stack (--wait on app healthcheck)
         run: |
           docker compose -f docker/compose/docker-compose.simple.yml \

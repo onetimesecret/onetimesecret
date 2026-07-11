@@ -271,10 +271,14 @@ cmd_init() {
     info "  3. Start the app:      bundle exec puma -C etc/puma.rb"
     info "  4. Start workers:      bundle exec bin/ots worker"
     info "  5. Start scheduler:    bundle exec bin/ots scheduler"
+    info "  6. Create an admin:    bundle exec bin/ots customers create you@example.com --role colonel"
+    info "     API token (later):  bundle exec bin/ots apitoken you@example.com"
   else
     info "  1. Start Valkey/Redis"
     info "  2. Source environment:  set -a; source .env; set +a"
     info "  3. Start the app:      bundle exec puma -C etc/puma.rb"
+    info "  4. Create an admin:    bundle exec bin/ots customers create you@example.com --role colonel"
+    info "     API token (later):  bundle exec bin/ots apitoken you@example.com"
   fi
   echo ""
   warn "  With a Procfile runner:         foreman start -f Procfile.production"

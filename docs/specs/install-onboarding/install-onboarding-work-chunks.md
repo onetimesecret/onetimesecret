@@ -139,6 +139,31 @@ issue shape after install itself: GH-4/GH-5 adjacency).
 Addresses: QS-3, QS-13, BM-07, DX-6, D6. Proof: proof-of-life script
 (testing-strategy §4) grows a create-account step; docs paste-through.
 
+> **Status (2026-07-10, shipped):** C4 landed across install.sh, the root
+> README, the signup path, and the proof-of-life harness.
+> **QS-3/BM-07:** both install.sh "Next steps" branches (full and simple)
+> now print the account-creation commands (`bin/ots customers create EMAIL
+> --role colonel` plus the `bin/ots apitoken` follow-on), and the root
+> README gained a "Create your first account" section — `docker exec`,
+> `docker compose exec app`, and bare-metal forms — linked from the Docker
+> quick start, the bare-metal Installation block, and the Docker Compose
+> section, with the self-hosting note on `AUTH_AUTOVERIFY` and signup's
+> SMTP dependency. **QS-13:** the pending-login verification message
+> composes with the customer's email instead of the objid (tryout guard
+> added); the `set_info_message` channel that would show that string to
+> users remains a removed stub — restoring it is out of scope here, the
+> string is fixed at the source. **DX-6, the minimal cut:**
+> `send_verification_email` now reports delivery success/failure and the
+> signup path logs an operator-actionable warn on failure (fix emailer
+> config, set `AUTH_AUTOVERIFY=true`, or `bin/ots customers verify EMAIL`);
+> doctor surfacing stays with C9 as planned. **Proof:** proof-of-life grew
+> an opt-in create-account + authenticated `/api/v2/account` step, gated on
+> `POL_CREATE_ACCOUNT=1` (default off — existing lanes byte-identical);
+> wiring it into the compose-smoke lane is follow-on CI work alongside
+> C7's residuals. **Deferred:** `rake dev:seed` (D6) — the optional bullet,
+> not built; a `.env.reference` comment pair above `AUTH_AUTOVERIFY=false`
+> explaining both polarities is written but awaits that file's owner.
+
 ## C5 — Compose coherence
 
 - App service gets a compose `healthcheck` (prereq for `--wait` everywhere);
@@ -170,6 +195,50 @@ lane (`config -q` per combo + `up --wait` + proof-of-life).
 > ./data` in the workflow) to delete when CP-5 is fixed properly, and the
 > full stack is `config -q`-linted but never booted — C5's CP-3/CP-4 work is
 > what unblocks a full-stack `up` lane.
+
+> **Status (2026-07-10, shipped):** the rest of C5 landed. **CP-6:** the
+> simple stack publishes Valkey on `127.0.0.1:6379` only, with the
+> delete-the-port collision remedy and in-network `valkey-cli` debugging
+> documented (docker/README "Debugging Valkey"); the full stack stays
+> expose-only. (Scout preferred dropping the port entirely; the loopback
+> bind with documented override was the deliberate call.) **CP-5:** the
+> simple stack no longer mounts `./data` at all; the full stack's
+> `/app/data` moved to the shared `onetime_app_data` named volume, with the
+> bind-mount override + Linux chown step and `auth.db` migration documented
+> — the compose-smoke workaround flagged in the note above is deleted.
+> **CP-7/QS-4:** all four image refs default to `${OTS_IMAGE_TAG:-<pin>}`
+> matching the root README's tag, with the lockstep-bump rule in
+> docker/README "Image Version" (release checklist: bumping the README pin
+> now also means bumping the compose defaults; the `docker-run-readme` CI
+> job self-heals by grepping the README at runtime). **CP-3/CP-4:** the
+> crash-looping `jobs worker`/`jobs scheduler` commands fixed to the real
+> top-level subcommands, `JOBS_ENABLED` surfaced (default `false` →
+> synchronous email, the full stack works without touching it), and
+> docker/README gained the required-env table (`ARGON2_SECRET` listed as
+> strongly recommended). **CP-10:** the app service's dead `PUBLIC_DIR`
+> removed from the full stack. **CP-9:** stack switching documented as what
+> it is (include-edit or direct `-f`), *not* migrated to real profiles —
+> simple and full define app/maindb with colliding `container_name`s, so
+> profiles would force a single-file merge breaking every documented
+> invocation and the compose-smoke lint matrix. **CP-13:** the naming
+> convention documented in docker/README (renaming rejected: 6+ reference
+> sites for zero functional gain). **QS-5/QS-12/QS-7 entrypoint hygiene:**
+> dead 2025-07 migration guard deleted; STDOUT_SYNC double-exec removed
+> (the env var itself is still live in app code — only the broken shell
+> gate died, don't scrub it from docs); healthcheck.sh parses
+> `/health/advanced`'s top-level status via `ruby -rjson` (no new image
+> deps), so degraded-but-serving now reports unhealthy — safe for the
+> simple stack because `not_configured` sub-checks (e.g. RabbitMQ with jobs
+> off) are excluded, but worth a CHANGELOG line, and it means the
+> healthcheck requires `ruby` on PATH. All four documented compose combos
+> pass `config -q`. **Still open, routed to owners rather than implied
+> done:** the Dockerfile does not yet create `/app/data`, so the named
+> volume needs the documented one-time chown on current published images;
+> entrypoint.sh's vestigial `/mnt/public` copy block (CP-10's other half);
+> headers cross-referencing `docker-compose.yml` ↔ `compose.test.yml`
+> (CP-13's root-file half); and the full-stack `up --wait` lane (blocked on
+> the Dockerfile fix reaching a published tag, plus the proxy service being
+> build-only) — tracked with C7's residuals.
 
 ## C6 — `bin/setup` consolidation + CONTRIBUTING (D2, D3, D7)
 
@@ -278,9 +347,9 @@ C4 and C5 in parallel (small, independent). **Then:** C6 → C8, with C9 and
 C10 scheduled by appetite. C1+C2+C3 alone convert all three documented
 paths from "fails on a clean machine" to "works"; C7 makes it stay that way.
 
-> **Position (2026-07-11):** C1–C3 done (C3 with the recorded direnv/
-> overmind scope-down), clean-room validated (see
+> **Position (2026-07-10):** C1–C5 done — C3 with the recorded direnv/
+> overmind scope-down, clean-room validated (see
 > [install-onboarding-clean-room-validation.md](./install-onboarding-clean-room-validation.md)),
-> NF-1–NF-5 fixed, C7 shipped (with the residuals listed in its status
-> note), and C5's CP-11 bullet landed early. Next per this sequencing:
-> **C4 and C5 in parallel**, then C6 → C8.
+> NF-1–NF-5 fixed, C7 shipped, and C4 and C5 landed (each with the
+> deferrals and routed residuals listed in its status note). Next per this
+> sequencing: **C6 → C8**, with C9 and C10 scheduled by appetite.
