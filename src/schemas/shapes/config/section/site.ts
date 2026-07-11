@@ -20,6 +20,7 @@ import {
   middlewareSchema,
   securitySchema,
   cspSchema,
+  siteAdminSchema,
 } from '@/schemas/contracts/config/section/site';
 import { augment, type AugmentTree } from '@/schemas/utils/augment';
 
@@ -33,6 +34,7 @@ export {
   middlewareSchema,
   securitySchema,
   cspSchema,
+  siteAdminSchema,
 };
 
 export type {
@@ -40,6 +42,7 @@ export type {
   MiddlewareConfig,
   CspConfig,
   SecurityConfig,
+  SiteAdminConfig,
 } from '@/schemas/contracts/config/section/site';
 
 // ─── Section trees ────────────────────────────────────────────────────────
@@ -68,6 +71,13 @@ const cspTree: AugmentTree = {
 
 const securityTree: AugmentTree = {
   csp: cspTree,
+};
+
+const adminTree: AugmentTree = {
+  // Empty allowlist by default: the AdminNetworkIsolation middleware is a no-op
+  // and both Colonel surfaces stay reachable (self-hosted single-container
+  // default). Populated with private CIDRs on cloud for network isolation.
+  allowed_cidrs: (a) => a.default([]),
 };
 
 const middlewareTree: AugmentTree = {
@@ -122,6 +132,7 @@ const sessionConfigShape = augment(sessionConfigSchema, sessionTree);
 const cspShape = augment(cspSchema, cspTree);
 const securityShape = augment(securitySchema, securityTree);
 const middlewareShape = augment(middlewareSchema, middlewareTree);
+const siteAdminShape = augment(siteAdminSchema, adminTree);
 const passphraseShape = augment(passphraseSchema, passphraseTree);
 const passwordGenerationShape = augment(passwordGenerationSchema, passwordGenerationTree);
 const siteSecretOptionsShape = augment(siteSecretOptionsSchema, siteSecretOptionsTree);
@@ -134,6 +145,7 @@ const siteShape = augment(siteSchema, {
   session: sessionTree,
   middleware: middlewareTree,
   security: securityTree,
+  admin: adminTree,
 });
 
 export {
@@ -146,4 +158,5 @@ export {
   middlewareShape,
   securityShape,
   cspShape,
+  siteAdminShape,
 };

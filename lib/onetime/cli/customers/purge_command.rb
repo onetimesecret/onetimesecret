@@ -33,6 +33,13 @@
 #   bin/ots customers purge --older-than 3y --purge      # Execute
 #   bin/ots customers purge --older-than 5y --refresh    # Force rescan
 
+# Deletion is delegated to the shared Auth::Operations::DeleteCustomer primitive
+# (single implementation): the local path destroys via the model, the remote
+# `--redis-url` path uses DeleteCustomer.delete_customer_keys (folded from this
+# command's former private copy). The CLI runs outside the auth autoloader, so
+# require it explicitly.
+require 'auth/operations/delete_customer'
+
 module Onetime
   module CLI
     class CustomersPurgeCommand < Command # rubocop:disable Metrics/ClassLength
@@ -45,11 +52,6 @@ module Onetime
       # Purge batch size; 50 balances throughput with progress visibility
       # while allowing frequent progress output to the console.
       BATCH_SIZE     = 50
-
-      # Sub-keys to delete when purging a customer directly from Redis.
-      CUSTOMER_SUB_KEYS = %w[object metadata receipts reset_secret
-                             pending_email_change pending_email_delivery_status
-                             feature_flags].freeze
 
       option :older_than,
         type: :string,
@@ -262,14 +264,14 @@ module Onetime
             begin
               if @using_remote
                 # Direct key deletion on remote source (no model, no indexes to clean)
-                delete_customer_keys(source_redis, objid)
+                Auth::Operations::DeleteCustomer.delete_customer_keys(source_redis, objid)
               else
                 cust = record[:_model]
                 unless cust
                   skipped += 1
                   next
                 end
-                cust.destroy!
+                Auth::Operations::DeleteCustomer.new(customer: cust).call
               end
 
               destroyed_ids << objid
@@ -548,17 +550,6 @@ module Onetime
         end
 
         records
-      end
-
-      # Delete customer keys directly from a remote Redis (no model, no index cleanup).
-      # Used when --redis-url points at a pre-migration db where indexes will be abandoned.
-      def delete_customer_keys(redis, objid)
-        keys_to_del = CUSTOMER_SUB_KEYS.map { |suffix| "customer:#{objid}:#{suffix}" }
-        # Also try the bare key (Familia v1 pattern)
-        keys_to_del << "customer:#{objid}"
-
-        # DEL silently ignores non-existent keys; no need to check first
-        redis.del(*keys_to_del)
       end
 
       # Check if customer has any Stripe billing association.

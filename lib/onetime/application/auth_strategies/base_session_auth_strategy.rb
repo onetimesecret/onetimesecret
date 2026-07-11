@@ -43,6 +43,12 @@ module Onetime
           cust = Onetime::Customer.load_by_extid_or_email(external_id)
           return failure('[CUSTOMER_NOT_FOUND] Customer not found') unless cust
 
+          # Suspended accounts are rejected on EVERY request, so a suspension
+          # takes effect immediately even for sessions the suspend-time sweep
+          # could not see (encrypted payloads). Reversible trust & safety
+          # state — see Auth::Operations::Customers::SetSuspension.
+          return failure('[ACCOUNT_SUSPENDED] Account suspended') if cust.suspended?
+
           # Perform additional checks (role, permissions, etc.)
           check_result = additional_checks(cust, env)
           return check_result if check_result.is_a?(Otto::Security::Authentication::AuthFailure)

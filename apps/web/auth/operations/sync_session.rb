@@ -91,6 +91,7 @@ module Auth
             clear_rate_limiting
             customer = ensure_customer_exists
             populate_session(customer)
+            stamp_last_login(customer)
             track_request_metadata
             customer
         rescue StandardError => ex
@@ -236,6 +237,30 @@ module Auth
         # Clear MFA waiting flag - user has completed full authentication
         @session.delete(:awaiting_mfa)
         @session.delete('awaiting_mfa')
+      end
+
+      # Stamps the customer's last_login timestamp on full session sync.
+      #
+      # last_login is not maintained by Rodauth — the authoritative login
+      # activity lives in the auth database (account_activity_times). We mirror
+      # it onto the Customer here, on the post-authentication (post-MFA) sync,
+      # so the colonel console can show it without reaching into authdb per row.
+      #
+      # Uses the single-field fast writer (HSET of just last_login) to avoid a
+      # full object save, and is best-effort: a write failure must never abort
+      # an otherwise-successful login, so it is logged and swallowed rather than
+      # allowed to trip the surrounding rescue-and-reraise.
+      #
+      # @param customer [Onetime::Customer]
+      def stamp_last_login(customer)
+        customer.last_login!(Familia.now.to_f)
+      rescue StandardError => ex
+        Auth::Logging.log_error(
+          :last_login_stamp_failed,
+          exception: ex,
+          account_id: @account_id,
+          correlation_id: @correlation_id,
+        )
       end
 
       # Tracks request metadata in the session

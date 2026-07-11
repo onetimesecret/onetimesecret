@@ -3,35 +3,20 @@
 # frozen_string_literal: true
 
 # Shared module for email CLI commands.
-# Houses the canonical template list and any shared helpers.
+#
+# The canonical template list and sample-data path now live in the extracted
+# central operation {Onetime::Operations::Email::PreviewTemplate} (ticket #44) —
+# the SINGLE source shared by the colonel API, the ops, and this CLI. These
+# aliases keep every existing `Onetime::CLI::Email::AVAILABLE_TEMPLATES` /
+# `SAMPLES_PATH` reference working with a byte-identical value.
+
+require 'onetime/operations/email/preview_template'
 
 module Onetime
   module CLI
     module Email
-      AVAILABLE_TEMPLATES = [
-        :secret_link,
-        :welcome,
-        :password_request,
-        :incoming_secret,
-        :feedback_email,
-        :secret_revealed,
-        :expiration_warning,
-        :organization_invitation,
-        :email_change_confirmation,
-        :email_change_requested,
-        :email_changed,
-        :new_login_alert,
-        :mfa_enabled,
-        :mfa_disabled,
-        :password_changed,
-        :role_changed,
-        :member_removed,
-        :organization_deleted,
-        :trial_expiring,
-        :subscription_changed,
-      ].freeze
-
-      SAMPLES_PATH = File.expand_path('../mail/samples', __dir__)
+      AVAILABLE_TEMPLATES = Onetime::Operations::Email::AVAILABLE_TEMPLATES
+      SAMPLES_PATH        = Onetime::Operations::Email::SAMPLES_PATH
     end
   end
 end

@@ -1,0 +1,205 @@
+{
+  "web.admin.sessions.title": {
+    "text": "Sessions",
+    "content_hash": "6fa3cbf4"
+  },
+  "web.admin.sessions.description": {
+    "text": "Inspect, search and revoke active sessions for incident response.",
+    "content_hash": "784a3a44"
+  },
+  "web.admin.sessions.columns.sessionId": {
+    "text": "Session ID",
+    "content_hash": "cb9ac5c5"
+  },
+  "web.admin.sessions.columns.authenticated": {
+    "text": "Auth",
+    "content_hash": "8eb3ea9b"
+  },
+  "web.admin.sessions.columns.email": {
+    "text": "Email",
+    "content_hash": "969ccbd3"
+  },
+  "web.admin.sessions.columns.externalId": {
+    "text": "External ID",
+    "content_hash": "69da56ba"
+  },
+  "web.admin.sessions.columns.ipAddress": {
+    "text": "IP Address",
+    "content_hash": "3c3de0c9"
+  },
+  "web.admin.sessions.columns.created": {
+    "text": "Authenticated At",
+    "content_hash": "8d6c9b01"
+  },
+  "web.admin.sessions.columns.actions": {
+    "text": "Actions",
+    "content_hash": "ff8059dc"
+  },
+  "web.admin.sessions.search.placeholder": {
+    "text": "Search by email or external ID",
+    "content_hash": "f2dc5c06"
+  },
+  "web.admin.sessions.list.loadError": {
+    "text": "Could not load sessions.",
+    "content_hash": "00c678d9"
+  },
+  "web.admin.sessions.list.retry": {
+    "text": "Retry",
+    "content_hash": "942087cc"
+  },
+  "web.admin.sessions.list.empty": {
+    "text": "No active sessions found",
+    "content_hash": "e35312d6"
+  },
+  "web.admin.sessions.status.authenticated": {
+    "text": "Authenticated",
+    "content_hash": "6ab694cf"
+  },
+  "web.admin.sessions.status.anonymous": {
+    "text": "Anonymous",
+    "content_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.anonymous": {
+    "text": "Anonymous",
+    "content_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.revoke.button": {
+    "text": "Revoke",
+    "content_hash": "87e6d00b"
+  },
+  "web.admin.sessions.revoke.confirmTitle": {
+    "text": "Revoke this session?",
+    "content_hash": "0c6605c1"
+  },
+  "web.admin.sessions.revoke.confirmDescription": {
+    "text": "This logs the user out immediately by deleting session {id}. Type the session ID to confirm.",
+    "content_hash": "9e08b1b8"
+  },
+  "web.admin.sessions.revoke.success": {
+    "text": "Session revoked",
+    "content_hash": "0af5e14d"
+  },
+  "web.admin.sessions.drawer.title": {
+    "text": "Session {id}",
+    "content_hash": "29dcbd66"
+  },
+  "web.admin.sessions.drawer.notFound": {
+    "text": "Session not found",
+    "content_hash": "0969eab8"
+  },
+  "web.admin.sessions.drawer.notFoundDescription": {
+    "text": "This session no longer exists in Redis. It may have expired or already been revoked.",
+    "content_hash": "11e3ef05"
+  },
+  "web.admin.sessions.drawer.loadError": {
+    "text": "Could not load this session.",
+    "content_hash": "82ae90fb"
+  },
+  "web.admin.sessions.drawer.retry": {
+    "text": "Retry",
+    "content_hash": "942087cc"
+  },
+  "web.admin.sessions.sections.session": {
+    "text": "Session",
+    "content_hash": "6959b415"
+  },
+  "web.admin.sessions.sections.raw": {
+    "text": "Raw session data",
+    "content_hash": "c9f11eb4"
+  },
+  "web.admin.sessions.fields.sessionId": {
+    "text": "Session ID",
+    "content_hash": "cb9ac5c5"
+  },
+  "web.admin.sessions.fields.key": {
+    "text": "Redis Key",
+    "content_hash": "0b196725"
+  },
+  "web.admin.sessions.fields.ttl": {
+    "text": "TTL",
+    "content_hash": "76f6014f"
+  },
+  "web.admin.sessions.fields.authenticated": {
+    "text": "Authenticated",
+    "content_hash": "6ab694cf"
+  },
+  "web.admin.sessions.fields.email": {
+    "text": "Email",
+    "content_hash": "969ccbd3"
+  },
+  "web.admin.sessions.fields.externalId": {
+    "text": "External ID",
+    "content_hash": "69da56ba"
+  },
+  "web.admin.sessions.fields.accountId": {
+    "text": "Account ID",
+    "content_hash": "919bb4cb"
+  },
+  "web.admin.sessions.fields.role": {
+    "text": "Role",
+    "content_hash": "14736a2e"
+  },
+  "web.admin.sessions.fields.locale": {
+    "text": "Locale",
+    "content_hash": "ca3dc612"
+  },
+  "web.admin.sessions.fields.ipAddress": {
+    "text": "IP Address",
+    "content_hash": "3c3de0c9"
+  },
+  "web.admin.sessions.fields.authenticatedAt": {
+    "text": "Authenticated At",
+    "content_hash": "8d6c9b01"
+  },
+  "web.admin.sessions.fields.authenticatedBy": {
+    "text": "Authenticated By",
+    "content_hash": "3ebbabfe"
+  },
+  "web.admin.sessions.fields.activeSessionId": {
+    "text": "Active Session ID",
+    "content_hash": "f32b1158"
+  },
+  "web.admin.sessions.detail.yes": {
+    "text": "Yes",
+    "content_hash": "85a39ab3"
+  },
+  "web.admin.sessions.detail.no": {
+    "text": "No",
+    "content_hash": "1ea442a1"
+  },
+  "web.admin.sessions.detail.none": {
+    "text": "None",
+    "content_hash": "dc937b59"
+  },
+  "web.admin.sessions.detail.unknown": {
+    "text": "Unknown",
+    "content_hash": "b764cdc0"
+  },
+  "web.admin.sessions.detail.noExpiry": {
+    "text": "No expiry",
+    "content_hash": "fe06351d"
+  },
+  "web.admin.sessions.detail.expired": {
+    "text": "Expired",
+    "content_hash": "424a2551"
+  },
+  "web.admin.sessions.detail.ttlSeconds": {
+    "text": "{seconds}s remaining",
+    "content_hash": "3c9d75ce"
+  },
+  "web.admin.sessions.columns.role": {
+    "text": "Role"
+  },
+  "web.admin.sessions.fields.userAgent": {
+    "text": "User Agent"
+  },
+  "web.admin.sessions.fields.orgContext": {
+    "text": "Org Context"
+  },
+  "web.admin.sessions.scan.summary": {
+    "text": "Showing {shown} authenticated · {anonymous} anonymous hidden · {scanned} scanned"
+  },
+  "web.admin.sessions.scan.capped": {
+    "text": "Scan capped at the first {scanned} keys — authenticated sessions beyond this window aren't listed. Inspect a specific session by ID to reach it."
+  }
+}

@@ -21,6 +21,8 @@
     displayVersion: false,
     displayToggles: true,
     displayPoweredBy: false,
+    // Reveal is a recipient surface: excluded from all but 'all'-scoped banners.
+    bannerAudience: 'recipient',
   });
 
   const mainClasses = computed(() => {

@@ -2,15 +2,26 @@
 #
 # frozen_string_literal: true
 
-# Tests for CLI command: bin/ots customers doctor
+# Tests for the field-serialization check + repair behind `bin/ots customers doctor`.
 #
 # Focus: the field-serialization check and repair flow added for #3016.
-# Exercises the actual production methods:
-#   - Onetime::CLI::CustomersDoctorCommand#properly_serialized?
-#   - Onetime::CLI::CustomersDoctorCommand#check_field_serialization
+#
+# The check + repair logic was extracted (epic #20) out of the CLI command and
+# into the shared op that the command now delegates to, so these testcases
+# exercise the production methods where they now live:
+#   - Auth::Operations::Customers::Doctor#properly_serialized?
+#   - Auth::Operations::Customers::Doctor#check_field_serialization
+# The CLI command (Onetime::CLI::CustomersDoctorCommand) is a thin adapter over
+# this op, so driving the op here still covers the doctor command's field path.
+#
+# Op signature note: the op takes `customer:`/`repair:` at construction and its
+# private `check_field_serialization(issues, repaired)` appends repair-action
+# hashes to the `repaired` ARRAY (the CLI's old `report[:repaired]` hash slot).
 #
 # Closes the coverage gap between try/unit/models/customer_field_serialization_try.rb
-# (which tests the serializer primitives) and the doctor command code paths.
+# (which tests the serializer primitives) and the doctor check/repair code paths.
+# The sibling try/unit/auth/operations/customers_ops_try.rb covers Doctor's other
+# checks (role_invalid, verified_by repair) but NOT this serialization boundary.
 #
 # Run: bundle exec try try/unit/cli/customers/doctor_command_try.rb
 
@@ -18,6 +29,11 @@ require_relative '../../../support/test_helpers'
 require 'onetime/cli'
 
 OT.boot! :cli
+
+# The op is the single implementation the CLI delegates to; requiring the CLI
+# loads it transitively (doctor_command.rb -> auth/operations/customers/doctor),
+# but require it explicitly so this tryout's dependency is self-evident.
+require 'auth/operations/customers/doctor'
 
 # Clean up any existing test data from previous runs
 Familia.dbclient.flushdb
@@ -27,28 +43,30 @@ OT.info "Cleaned Redis for fresh test run"
 @test_id   = "#{Familia.now.to_i}_#{rand(10000)}"
 @dbclient  = Familia.dbclient
 
+# Build a Doctor op for a customer (or nil, for the pure predicate cases).
+def doctor_op(customer, repair: false)
+  Auth::Operations::Customers::Doctor.new(customer: customer, repair: repair)
+end
+
 # -------------------------------------------------------------------
 # properly_serialized? predicate: boundary cases
+# (pure — does not touch @customer, so a nil-customer op is fine)
 # -------------------------------------------------------------------
 
 ## properly_serialized? returns true for JSON-quoted email string
-cmd = Onetime::CLI::CustomersDoctorCommand.new
-cmd.send(:properly_serialized?, '"a@b.com"')
+doctor_op(nil).send(:properly_serialized?, '"a@b.com"')
 #=> true
 
 ## properly_serialized? returns false for bare (unquoted) string
-cmd = Onetime::CLI::CustomersDoctorCommand.new
-cmd.send(:properly_serialized?, 'a@b.com')
+doctor_op(nil).send(:properly_serialized?, 'a@b.com')
 #=> false
 
 ## properly_serialized? returns true for nil (empty field)
-cmd = Onetime::CLI::CustomersDoctorCommand.new
-cmd.send(:properly_serialized?, nil)
+doctor_op(nil).send(:properly_serialized?, nil)
 #=> true
 
 ## properly_serialized? returns true for empty string (cleared field)
-cmd = Onetime::CLI::CustomersDoctorCommand.new
-cmd.send(:properly_serialized?, '')
+doctor_op(nil).send(:properly_serialized?, '')
 #=> true
 
 # -------------------------------------------------------------------
@@ -59,10 +77,8 @@ cmd.send(:properly_serialized?, '')
 email = "check_#{@test_id}@example.com"
 cust = Onetime::Customer.create!(email: email)
 @dbclient.hset(cust.dbkey(:object), 'email', email)
-cmd = Onetime::CLI::CustomersDoctorCommand.new
 issues = []
-report = { checked: 0, healthy: 0, issues: [], repaired: [] }
-cmd.send(:check_field_serialization, cust, issues, report, repair: false)
+doctor_op(cust, repair: false).send(:check_field_serialization, issues, [])
 cust.delete!
 issues.first.slice(:check, :severity, :repairable)
 #=> { check: :field_serialization, severity: :high, repairable: true }
@@ -71,9 +87,8 @@ issues.first.slice(:check, :severity, :repairable)
 @diag_email = "diag_#{@test_id}@example.com"
 cust = Onetime::Customer.create!(email: @diag_email)
 @dbclient.hset(cust.dbkey(:object), 'email', @diag_email)
-cmd = Onetime::CLI::CustomersDoctorCommand.new
 issues = []
-cmd.send(:check_field_serialization, cust, issues, { repaired: [] }, repair: false)
+doctor_op(cust, repair: false).send(:check_field_serialization, issues, [])
 cust.delete!
 bad = issues.first[:fields].find { |f| f[:field] == 'email' }
 [bad[:field], bad[:value]]
@@ -84,9 +99,8 @@ email = "trunc_#{@test_id}@example.com"
 cust = Onetime::Customer.create!(email: email)
 long_bogus = 'x' * 200
 @dbclient.hset(cust.dbkey(:object), 'email', long_bogus)
-cmd = Onetime::CLI::CustomersDoctorCommand.new
 issues = []
-cmd.send(:check_field_serialization, cust, issues, { repaired: [] }, repair: false)
+doctor_op(cust, repair: false).send(:check_field_serialization, issues, [])
 cust.delete!
 issues.first[:fields].find { |f| f[:field] == 'email' }[:value].length
 #=> 61
@@ -94,9 +108,8 @@ issues.first[:fields].find { |f| f[:field] == 'email' }[:value].length
 ## check_field_serialization emits no issue when all fields are JSON-wrapped
 email = "clean_#{@test_id}@example.com"
 cust = Onetime::Customer.create!(email: email)
-cmd = Onetime::CLI::CustomersDoctorCommand.new
 issues = []
-cmd.send(:check_field_serialization, cust, issues, { repaired: [] }, repair: false)
+doctor_op(cust, repair: false).send(:check_field_serialization, issues, [])
 cust.delete!
 issues
 #=> []
@@ -109,22 +122,19 @@ issues
 @repair_email = "repair_#{@test_id}@example.com"
 cust = Onetime::Customer.create!(email: @repair_email)
 @dbclient.hset(cust.dbkey(:object), 'email', @repair_email)
-cmd = Onetime::CLI::CustomersDoctorCommand.new
-report = { checked: 0, healthy: 0, issues: [], repaired: [] }
-cmd.send(:check_field_serialization, cust, [], report, repair: true)
+doctor_op(cust, repair: true).send(:check_field_serialization, [], [])
 raw_after = @dbclient.hget(cust.dbkey(:object), 'email')
 cust.delete!
 raw_after
 #=> "\"#{@repair_email}\""
 
-## repair: true records :fields_reserialized in report[:repaired]
+## repair: true records :fields_reserialized in the repaired list
 @report_email = "report_#{@test_id}@example.com"
 cust = Onetime::Customer.create!(email: @report_email)
 @dbclient.hset(cust.dbkey(:object), 'email', @report_email)
-cmd = Onetime::CLI::CustomersDoctorCommand.new
-report = { checked: 0, healthy: 0, issues: [], repaired: [] }
-cmd.send(:check_field_serialization, cust, [], report, repair: true)
-entry = report[:repaired].first
+repaired = []
+doctor_op(cust, repair: true).send(:check_field_serialization, [], repaired)
+entry = repaired.first
 @extid_captured = cust.extid
 cust.delete!
 [entry[:action], entry[:customer], entry[:fields]]
@@ -134,10 +144,10 @@ cust.delete!
 @idem_email = "idem_#{@test_id}@example.com"
 cust = Onetime::Customer.create!(email: @idem_email)
 @dbclient.hset(cust.dbkey(:object), 'email', @idem_email)
-cmd = Onetime::CLI::CustomersDoctorCommand.new
-cmd.send(:check_field_serialization, cust, [], { repaired: [] }, repair: true)
+op = doctor_op(cust, repair: true)
+op.send(:check_field_serialization, [], [])
 issues = []
-cmd.send(:check_field_serialization, cust, issues, { repaired: [] }, repair: true)
+op.send(:check_field_serialization, issues, [])
 raw = @dbclient.hget(cust.dbkey(:object), 'email')
 cust.delete!
 [issues.empty?, Familia::JsonSerializer.parse(raw)]
@@ -148,12 +158,11 @@ cust.delete!
 cust = Onetime::Customer.create!(email: @multi_email)
 @dbclient.hset(cust.dbkey(:object), 'email', @multi_email)
 @dbclient.hset(cust.dbkey(:object), 'planid', 'basic')
-cmd = Onetime::CLI::CustomersDoctorCommand.new
-report = { checked: 0, healthy: 0, issues: [], repaired: [] }
-cmd.send(:check_field_serialization, cust, [], report, repair: true)
+repaired = []
+doctor_op(cust, repair: true).send(:check_field_serialization, [], repaired)
 raw_email  = @dbclient.hget(cust.dbkey(:object), 'email')
 raw_planid = @dbclient.hget(cust.dbkey(:object), 'planid')
-fields     = report[:repaired].first[:fields].sort
+fields     = repaired.first[:fields].sort
 cust.delete!
 [fields, raw_email, raw_planid]
 #=> [%w[email planid], "\"#{@multi_email}\"", '"basic"']

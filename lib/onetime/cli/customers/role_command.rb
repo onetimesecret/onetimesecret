@@ -11,6 +11,13 @@
 #   bin/ots customers role demote user@example.com               # Demote to customer
 #   bin/ots customers role list                                  # List all colonels
 #   bin/ots customers role list --role admin                     # List users with specific role
+#
+# The actual role mutation + admin audit event is performed by the shared
+# Auth::Operations::Customers::SetRole op (single implementation); this command
+# owns only CLI concerns (arg parsing, confirmation prompt, output). The CLI runs
+# outside the auth app's autoloader, so require the op explicitly.
+require 'auth/operations/customers/set_role'
+require 'onetime/cli/customers/shared'
 
 module Onetime
   module CLI
@@ -38,8 +45,9 @@ module Onetime
         aliases: ['-f'],
         desc: 'Skip confirmation prompt'
 
-      # Valid roles in hierarchy order (highest to lowest)
-      VALID_ROLES = %w[colonel admin staff customer].freeze
+      # Valid roles in hierarchy order (highest to lowest). Single source of
+      # truth lives on the op; the CLI references it rather than forking a copy.
+      VALID_ROLES = Auth::Operations::Customers::SetRole::VALID_ROLES
 
       def call(action:, email: nil, role: 'colonel', force: false, **)
         boot_application!
@@ -82,8 +90,11 @@ module Onetime
           end
         end
 
-        customer.role = target_role
-        customer.save
+        Auth::Operations::Customers::SetRole.new(
+          customer: customer,
+          role: target_role,
+          actor: Customers::Shared::CLI_ACTOR,
+        ).call
 
         puts "#{obscured}: #{old_role} -> #{target_role}"
         OT.info "[role-change] #{customer.objid} promoted: #{old_role} -> #{target_role}"
@@ -110,8 +121,11 @@ module Onetime
           end
         end
 
-        customer.role = 'customer'
-        customer.save
+        Auth::Operations::Customers::SetRole.new(
+          customer: customer,
+          role: 'customer',
+          actor: Customers::Shared::CLI_ACTOR,
+        ).call
 
         puts "#{obscured}: #{old_role} -> customer"
         OT.info "[role-change] #{customer.objid} demoted: #{old_role} -> customer"

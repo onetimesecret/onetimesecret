@@ -158,6 +158,16 @@ module FullModeSuiteDatabase
 
     def clean_tables_postgres!
       db = @migration_database || @database
+
+      # Fail closed: refuse to TRUNCATE unless the target is a test database
+      # (AUTH_DATABASE_URL comes straight from ENV; a leaked dev value must not
+      # be wiped here). Sanctioned test PG is 127.0.0.1:2132/onetime_auth_test.
+      dbname = db.opts[:database].to_s
+      unless dbname =~ /test/i
+        raise "[FullModeSuiteDatabase] Refusing to TRUNCATE non-test database: " \
+              "#{dbname.empty? ? '<unknown>' : dbname.inspect}. Check AUTH_DATABASE_URL."
+      end
+
       AuthAccountFactory::RODAUTH_TABLES.each do |table|
         next unless db.table_exists?(table)
         db[table].truncate(cascade: true, restart: true)

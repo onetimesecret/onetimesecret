@@ -69,7 +69,9 @@ end,
               owner: if owner
   {
     user_id: owner.objid,
-    email: owner.obscure_email,
+    # FULL address (colonel-only, scope=internal); obscured client-side and
+    # revealed on interaction via RevealEmail.vue.
+    email: owner.email,
     role: owner.role,
     verified: owner.verified?,
   }

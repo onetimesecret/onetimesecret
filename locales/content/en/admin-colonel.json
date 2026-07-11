@@ -103,6 +103,9 @@
     "text": "Admin",
     "content_hash": "c1c224b0"
   },
+  "web.colonel.backToSite": {
+    "text": "Back to site"
+  },
   "web.colonel.activity": {
     "text": "Activity",
     "content_hash": "38da1505"
@@ -731,6 +734,15 @@
     "text": "Favicon",
     "content_hash": "42955289"
   },
+  "web.colonel.customDomains.labels.domain": {
+    "text": "Domain"
+  },
+  "web.colonel.customDomains.labels.status": {
+    "text": "Status"
+  },
+  "web.colonel.customDomains.labels.actions": {
+    "text": "Actions"
+  },
   "web.colonel.customDomains.status.verified": {
     "text": "Verified",
     "content_hash": "4f783840"
@@ -830,5 +842,23 @@
   "web.colonel.pagination.pageOf": {
     "text": "Page {current} of {total}",
     "content_hash": "f0df6412"
+  },
+  "web.colonel.nav.consoleTag": {
+    "text": "Console"
+  },
+  "web.colonel.nav.groups.identity": {
+    "text": "Identity"
+  },
+  "web.colonel.nav.groups.security": {
+    "text": "Access & Security"
+  },
+  "web.colonel.nav.groups.platform": {
+    "text": "Platform"
+  },
+  "web.colonel.nav.groups.billing": {
+    "text": "Billing"
+  },
+  "web.colonel.nav.groups.communications": {
+    "text": "Communications"
   }
 }

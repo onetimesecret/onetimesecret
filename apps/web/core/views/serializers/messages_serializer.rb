@@ -17,7 +17,10 @@ module Core
         output = output_template
 
         output['messages']      = view_vars['messages']
-        output['global_banner'] = OT.global_banner if OT.global_banner
+        if OT.global_banner
+          output['global_banner']       = OT.global_banner
+          output['global_banner_scope'] = OT.global_banner_scope
+        end
 
         output
       end
@@ -30,6 +33,7 @@ module Core
           {
             'messages' => [],
             'global_banner' => nil,
+            'global_banner_scope' => nil,
           }
         end
       end

@@ -1,0 +1,126 @@
+{
+  "web.admin.billing.title": {
+    "text": "Billing Catalog",
+    "content_hash": "bfde7e68"
+  },
+  "web.admin.billing.description": {
+    "text": "Read-only view of configured plans and their entitlements, and any drift from the live Stripe-synced catalog.",
+    "content_hash": "05d5b332"
+  },
+  "web.admin.billing.retry": {
+    "text": "Retry",
+    "content_hash": "942087cc"
+  },
+  "web.admin.billing.loadError": {
+    "text": "Could not load the billing catalog.",
+    "content_hash": "c3110f77"
+  },
+  "web.admin.billing.localConfigWarning": {
+    "text": "The Stripe-synced plan cache is empty, so live plans and drift cannot be evaluated. Showing the configured catalog (billing.yaml) only — typical in dev or when Stripe is not configured.",
+    "content_hash": "905d95f8"
+  },
+  "web.admin.billing.stats.configured": {
+    "text": "Configured plans",
+    "content_hash": "4fda4796"
+  },
+  "web.admin.billing.stats.live": {
+    "text": "Live plans",
+    "content_hash": "faaa88d9"
+  },
+  "web.admin.billing.stats.source": {
+    "text": "Source",
+    "content_hash": "0e570ca6"
+  },
+  "web.admin.billing.stats.drift": {
+    "text": "Drift",
+    "content_hash": "8b4c8240"
+  },
+  "web.admin.billing.source.stripe": {
+    "text": "Stripe cache",
+    "content_hash": "b5577327"
+  },
+  "web.admin.billing.source.localConfig": {
+    "text": "Local config",
+    "content_hash": "49de43d2"
+  },
+  "web.admin.billing.inSync": {
+    "text": "In sync",
+    "content_hash": "5701958c"
+  },
+  "web.admin.billing.driftCount": {
+    "text": "{count} difference(s)",
+    "content_hash": "166538f5"
+  },
+  "web.admin.billing.inSyncDetail": {
+    "text": "The configured catalog matches the live plans. No drift detected.",
+    "content_hash": "57ab60a6"
+  },
+  "web.admin.billing.columns.planid": {
+    "text": "Plan ID",
+    "content_hash": "1f0d4dc6"
+  },
+  "web.admin.billing.columns.name": {
+    "text": "Name",
+    "content_hash": "dcd1d522"
+  },
+  "web.admin.billing.columns.tier": {
+    "text": "Tier",
+    "content_hash": "cb9e8664"
+  },
+  "web.admin.billing.columns.status": {
+    "text": "Status",
+    "content_hash": "920e413c"
+  },
+  "web.admin.billing.plans.title": {
+    "text": "Plans",
+    "content_hash": "dfe8b2f0"
+  },
+  "web.admin.billing.plans.empty": {
+    "text": "No plans found in the catalog.",
+    "content_hash": "39db3c13"
+  },
+  "web.admin.billing.plans.viewDiff": {
+    "text": "View diff",
+    "content_hash": "0e5d6873"
+  },
+  "web.admin.billing.status.in_sync": {
+    "text": "In sync",
+    "content_hash": "5701958c"
+  },
+  "web.admin.billing.status.only_config": {
+    "text": "Config only",
+    "content_hash": "15836cba"
+  },
+  "web.admin.billing.status.only_live": {
+    "text": "Live only",
+    "content_hash": "8f4ed495"
+  },
+  "web.admin.billing.status.changed": {
+    "text": "Changed",
+    "content_hash": "2a6141e4"
+  },
+  "web.admin.billing.diff.title": {
+    "text": "Plan diff: {planid}",
+    "content_hash": "bc86e5f7"
+  },
+  "web.admin.billing.diff.subtitle": {
+    "text": "Configured catalog (billing.yaml) vs live Stripe-synced plan, side by side.",
+    "content_hash": "d92e93ae"
+  },
+  "web.admin.billing.diff.config": {
+    "text": "Configured (billing.yaml)",
+    "content_hash": "6bf2ff04"
+  },
+  "web.admin.billing.diff.live": {
+    "text": "Live (Stripe cache)",
+    "content_hash": "4886945d"
+  },
+  "web.admin.billing.diff.absentConfig": {
+    "text": "This plan is not present in the configured catalog.",
+    "content_hash": "0b594c88"
+  },
+  "web.admin.billing.diff.absentLive": {
+    "text": "This plan is not present in the live Stripe-synced cache.",
+    "content_hash": "c53f31c3"
+  }
+}

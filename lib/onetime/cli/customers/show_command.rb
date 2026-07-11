@@ -13,6 +13,12 @@
 
 require 'json'
 
+# Customer resolution + organization detail are delegated to the shared
+# Auth::Operations::Customers::Show op (single implementation); this command owns
+# CLI concerns (identifier parsing, Rodauth account-id cross-reference, output
+# formatting). The CLI runs outside the auth autoloader, so require it explicitly.
+require 'auth/operations/customers/show'
+
 module Onetime
   module CLI
     class CustomersShowCommand < Command
@@ -43,29 +49,35 @@ module Onetime
           return
         end
 
-        customer = resolve_customer(identifier)
+        # resolve_customer keeps the CLI-specific numeric Rodauth-account-id
+        # lookup; the Show op provides the found?/organizations detail.
+        result = Auth::Operations::Customers::Show.new(
+          customer: resolve_customer(identifier),
+        ).call
 
-        unless customer
+        unless result.found?
           error_exit("Customer not found: #{identifier}", json: json)
           return
         end
+
+        customer = result.customer
 
         # lookup_account_id returns nil in simple mode (no SQL DB) and
         # nil in full mode when the Customer has no linked accounts row.
         account_id = lookup_account_id(customer)
 
         if json
-          output_json(customer, full: full, account_id: account_id)
+          output_json(customer, full: full, account_id: account_id, organizations: result.organizations)
         else
-          output_text(customer, full: full, account_id: account_id)
+          output_text(customer, full: full, account_id: account_id, organizations: result.organizations)
         end
       end
 
       private
 
-      def output_text(customer, full:, account_id:)
+      def output_text(customer, full:, account_id:, organizations:)
         email_display = full ? customer.email : customer.obscure_email
-        orgs          = customer.organization_instances.to_a
+        orgs          = organizations
 
         puts 'Customer Details'
         puts '-' * 40
@@ -93,19 +105,13 @@ module Onetime
           orgs.each do |org|
             next unless org
 
-            puts format('  - %s (%s)', org.display_name || org.objid, org.objid)
+            puts format('  - %s (%s)', org[:display_name] || org[:objid], org[:objid])
           end
         end
       end
 
-      def output_json(customer, full:, account_id:)
-        orgs = customer.organization_instances.to_a.compact.map do |org|
-          {
-            objid: org.objid,
-            extid: org.extid,
-            display_name: org.display_name,
-          }
-        end
+      def output_json(customer, full:, account_id:, organizations:)
+        orgs = organizations
 
         data = {
           extid: customer.extid,
