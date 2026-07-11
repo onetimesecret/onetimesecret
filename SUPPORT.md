@@ -13,6 +13,12 @@ Open a [GitHub issue](https://github.com/onetimesecret/onetimesecret/issues).
 Include your version (or image tag), how you run it (bare metal, Docker,
 compose), and what you expected versus what happened.
 
+Self-hosting from a checkout? Run `bin/setup --doctor --bundle` and attach
+the archive it writes to `tmp/` — a sanitized diagnostic snapshot (versions,
+file presence, env variable *names* only — never values — and a masked log
+excerpt). It answers most back-and-forth questions up front; still, review
+it before posting.
+
 ## Security vulnerabilities
 
 Never report security issues in a public issue. Follow
