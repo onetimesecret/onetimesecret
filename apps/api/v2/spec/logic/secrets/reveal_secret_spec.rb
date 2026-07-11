@@ -329,4 +329,77 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
       end
     end
   end
+  # C10/QS-6: SECRET lifecycle safety.
+  #
+  # Fast-fail: when the boot-time verifier flagged a key mismatch, a
+  # reveal-intent request must be refused in raise_concerns -- before any
+  # atomic claim -- so no secret is consumed by a decrypt that cannot
+  # succeed. Rollback: when a single ciphertext fails to decrypt anyway
+  # (predates an adopted rotation), reveal! returns the claim and the typed
+  # error propagates; the secret survives.
+  context 'when the running SECRET does not match the datastore (C10)' do
+    around do |example|
+      previous_state = Onetime.secret_verifier_state
+      example.run
+    ensure
+      Onetime.secret_verifier_state = previous_state
+    end
+
+    def build_gated_logic(params)
+      logic = build_logic(params)
+      # raise_concerns also gates guest routes / entitlements / rate limits;
+      # neutralize those so the assertion isolates the verifier fast-fail.
+      allow(logic).to receive(:require_guest_route_enabled!)
+      allow(logic).to receive(:require_entitlement!)
+      logic
+    end
+
+    it 'fast-fails a reveal-intent request in raise_concerns without taking the claim' do
+      Onetime.secret_verifier_state = :mismatch
+      logic = build_gated_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+      logic.process_params
+
+      expect { logic.raise_concerns }.to raise_error(Onetime::SecretUndecryptable)
+
+      # No CAS was taken: the secret is untouched and still viewable.
+      reloaded = Onetime::Secret.load(secret.identifier)
+      expect(reloaded.state).to eq('new')
+      expect(reloaded.viewable?).to be true
+    end
+
+    it 'does not gate metadata-only requests (continue absent)' do
+      Onetime.secret_verifier_state = :mismatch
+      logic = build_gated_logic({ 'identifier' => secret.identifier })
+      logic.process_params
+
+      expect { logic.raise_concerns }.not_to raise_error
+    end
+
+    it 'does not gate reveals when the verifier matches' do
+      Onetime.secret_verifier_state = :ok
+      logic = build_gated_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+      logic.process_params
+
+      expect { logic.raise_concerns }.not_to raise_error
+    end
+
+    it 'rolls the claim back when the ciphertext itself cannot be decrypted' do
+      logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+      logic.process_params
+
+      allow(logic.secret).to receive(:decrypted_secret_value)
+        .and_raise(Familia::EncryptionError, 'wrong key')
+
+      expect { logic.process }.to raise_error(Onetime::SecretUndecryptable)
+
+      # The claim was returned: record, ciphertext, and viewability survive.
+      reloaded = Onetime::Secret.load(secret.identifier)
+      expect(reloaded).not_to be_nil
+      expect(reloaded.state).to eq('new')
+      expect(reloaded.viewable?).to be true
+
+      # And with the key restored, a fresh request reveals exactly once.
+      expect(reloaded.reveal!).to eq('a secret value')
+    end
+  end
 end
