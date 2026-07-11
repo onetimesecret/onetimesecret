@@ -22,9 +22,9 @@
  * @param domainExtId - Domain external ID for API calls
  */
 
-import type { ApplicationError } from '@/schemas/errors';
 import type { PutSignupConfigRequest } from '@/schemas/api/domains/requests/signup-config';
 import type { SignupConfigDetails } from '@/schemas/api/domains/responses/signup-config';
+import type { ApplicationError } from '@/schemas/errors';
 import type {
   CustomDomainSignupConfig,
   SignupValidationStrategy,
@@ -34,6 +34,7 @@ import { useNotificationsStore } from '@/shared/stores';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
+
 import { type AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
 import { asExplicitOverride, createAuthOverrideState } from './useAuthOverrideState';
 

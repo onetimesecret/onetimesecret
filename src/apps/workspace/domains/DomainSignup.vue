@@ -7,23 +7,28 @@
  * Page-level component that wires together the signup config composable and
  * form component. Follows the DomainSso page structure: header ->
  * entitlement gate -> form.
+ *
+ * There is exactly ONE availability concept on this page: the effective
+ * state (ADR-024). The banner shows the resolver's output; the form's
+ * signup-enabled control is the single input. The explicit-override flag
+ * (`enabled`) is not user-facing — every save materializes it, and the
+ * form's delete ("remove config") unpins.
  */
-import { useI18n } from 'vue-i18n';
-import { computed, onMounted, ref, watch } from 'vue';
-import { useRouter, onBeforeRouteLeave, RouterLink } from 'vue-router';
-import { storeToRefs } from 'pinia';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
+import DomainAuthOverrideBanner from '@/apps/workspace/components/domains/DomainAuthOverrideBanner.vue';
 import DomainSignupConfigForm from '@/apps/workspace/components/domains/DomainSignupConfigForm.vue';
 import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
+import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
+import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useDomain } from '@/shared/composables/useDomain';
-
-import { useSignupConfig } from '@/shared/composables/useSignupConfig';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { useSignupConfig } from '@/shared/composables/useSignupConfig';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { ENTITLEMENTS } from '@/types/organization';
+import { storeToRefs } from 'pinia';
+import { computed, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRouter, onBeforeRouteLeave, RouterLink } from 'vue-router';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -57,22 +62,14 @@ const { can } = useEntitlements(organization);
 const canCustomSignup = computed(() => can(ENTITLEMENTS.CUSTOM_SIGNUP_VALIDATION));
 const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
 
-// Surface a warning when the per-domain config has no traffic to gate
-// (site.authentication.signup or site.authentication.enabled is false).
-// Operators can still configure ahead of enabling signups, but should
-// know the policy is currently dormant.
-const bootstrapStore = useBootstrapStore();
-const { authentication } = storeToRefs(bootstrapStore);
-const siteSignupsDisabled = computed(() => {
-  const auth = authentication.value;
-  if (!auth) return false;
-  return auth.enabled === false || auth.signup === false;
-});
-
 // ---------------------------------------------------------------------------
 // Signup config composable
 // ---------------------------------------------------------------------------
 
+// The dormant-policy warning (site-level signups off) now comes from the
+// banner's globalEnabled, fed by the API's resolution details (ADR-024) —
+// the same source the runtime gate uses — instead of a separate bootstrap
+// read that could disagree with it.
 const {
   isLoading: signupLoading,
   isInitialized,
@@ -83,6 +80,9 @@ const {
   formState,
   isConfigured,
   hasUnsavedChanges,
+  globalEnabled,
+  effectiveEnabled,
+  isWorkspaceDefault,
   initialize: initializeSignupConfig,
   saveConfig,
   deleteConfig,
@@ -214,36 +214,15 @@ watch(canCustomSignup, async (entitled) => {
           </div>
         </div>
 
-        <div class="p-6 space-y-6">
-          <!-- Site-level signup disabled warning -->
-          <div
-            v-if="siteSignupsDisabled"
-            role="status"
-            aria-live="polite"
-            class="flex items-start gap-3 rounded-md bg-yellow-50 px-4 py-3 dark:bg-yellow-900/20">
-            <OIcon
-              collection="heroicons"
-              name="exclamation-triangle"
-              class="mt-0.5 size-5 flex-shrink-0 text-yellow-500 dark:text-yellow-400"
-              aria-hidden="true" />
-            <p class="flex-1 text-sm text-yellow-700 dark:text-yellow-300">
-              {{ t('web.domains.signup.site_signups_disabled_warning') }}
-            </p>
-          </div>
-
-          <!-- Not configured notice -->
-          <div
-            v-if="!isConfigured"
-            class="flex items-start gap-3 rounded-md bg-blue-50 px-4 py-3 dark:bg-blue-900/20">
-            <OIcon
-              collection="heroicons"
-              name="information-circle"
-              class="mt-0.5 size-5 flex-shrink-0 text-blue-500 dark:text-blue-400"
-              aria-hidden="true" />
-            <p class="flex-1 text-sm text-blue-700 dark:text-blue-300">
-              {{ t('web.domains.signup.not_configured_notice') }}
-            </p>
-          </div>
+        <div class="space-y-6 p-6">
+          <!-- Effective state (ADR-024): resolver output + workspace-default
+               badge + dormant warning. Replaces the old site-signups-disabled
+               warning and not-configured notice. -->
+          <DomainAuthOverrideBanner
+            feature="signup"
+            :effective-enabled="effectiveEnabled"
+            :global-enabled="globalEnabled"
+            :workspace-default="isWorkspaceDefault" />
 
           <DomainSignupConfigForm
             :domain-ext-id="props.extid"

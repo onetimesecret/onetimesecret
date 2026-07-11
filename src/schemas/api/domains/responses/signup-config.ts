@@ -7,10 +7,10 @@
 // - PUT /api/domains/:domain_extid/signup-config
 // - DELETE /api/domains/:domain_extid/signup-config
 
-import { z } from 'zod';
 import { createApiResponseSchema } from '@/schemas/api/base';
 import { authOverrideDetailsSchema } from '@/schemas/api/domains/responses/auth-override';
 import { customDomainSignupConfigSchema } from '@/schemas/shapes/domains/signup-config';
+import { z } from 'zod';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Response-specific details schema
