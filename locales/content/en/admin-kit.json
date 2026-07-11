@@ -52,12 +52,15 @@
     "content_hash": "f0cc7389"
   },
   "web.admin.kit.revealEmail.reveal": {
-    "text": "Reveal email address"
+    "text": "Reveal email address",
+    "content_hash": "f6272277"
   },
   "web.admin.kit.revealEmail.hide": {
-    "text": "Hide email address"
+    "text": "Hide email address",
+    "content_hash": "9755e870"
   },
   "web.admin.kit.revealEmail.copy": {
-    "text": "Copy email address"
+    "text": "Copy email address",
+    "content_hash": "61b94846"
   }
 }

@@ -44,7 +44,8 @@
     "content_hash": "f353f9a7"
   },
   "web.admin.banner.current.audience": {
-    "text": "Audience"
+    "text": "Audience",
+    "content_hash": "545c0235"
   },
   "web.admin.banner.current.storedContent": {
     "text": "Stored content",
@@ -91,19 +92,24 @@
     "content_hash": "ba0237f5"
   },
   "web.admin.banner.set.scopeLabel": {
-    "text": "Audience"
+    "text": "Audience",
+    "content_hash": "545c0235"
   },
   "web.admin.banner.set.scopeHelp": {
-    "text": "Which pages show the banner. Custom-domain pages only see it when set to all pages."
+    "text": "Which pages show the banner. Custom-domain pages only see it when set to all pages.",
+    "content_hash": "28cc3018"
   },
   "web.admin.banner.set.scopeNoRecipient": {
-    "text": "Everything except recipient pages"
+    "text": "Everything except recipient pages",
+    "content_hash": "8575b3c0"
   },
   "web.admin.banner.set.scopeWorkspace": {
-    "text": "Workspace pages only"
+    "text": "Workspace pages only",
+    "content_hash": "563e003e"
   },
   "web.admin.banner.set.scopeAll": {
-    "text": "All pages (including custom domains)"
+    "text": "All pages (including custom domains)",
+    "content_hash": "b9b74870"
   },
   "web.admin.banner.set.publishButton": {
     "text": "Publish banner",

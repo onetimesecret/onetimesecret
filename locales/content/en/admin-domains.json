@@ -40,117 +40,155 @@
     "content_hash": "ed67e22d"
   },
   "web.admin.domains.verify.failed": {
-    "text": "Verification failed. Please try again."
+    "text": "Verification failed. Please try again.",
+    "content_hash": "3c8432b0"
   },
   "web.admin.domains.attach.cta": {
-    "text": "Attach domain to organization"
+    "text": "Attach domain to organization",
+    "content_hash": "736d74ce"
   },
   "web.admin.domains.attach.recordEyebrow": {
-    "text": "Working record"
+    "text": "Working record",
+    "content_hash": "2fadf983"
   },
   "web.admin.domains.attach.rosterError": {
-    "text": "Could not load this organization's domains."
+    "text": "Could not load this organization's domains.",
+    "content_hash": "d3055fed"
   },
   "web.admin.domains.attach.noDomains": {
-    "text": "No domains attached to this organization yet."
+    "text": "No domains attached to this organization yet.",
+    "content_hash": "e9a25fc4"
   },
   "web.admin.domains.attach.openExternal": {
-    "text": "Open {domain} in a new tab"
+    "text": "Open {domain} in a new tab",
+    "content_hash": "c5fbdeaa"
   },
   "web.admin.domains.addDomain.button": {
-    "text": "Add domain"
+    "text": "Add domain",
+    "content_hash": "d86476ae"
   },
   "web.admin.domains.addDomain.title": {
-    "text": "Add a custom domain"
+    "text": "Add a custom domain",
+    "content_hash": "592d3314"
   },
   "web.admin.domains.addDomain.forOrg": {
-    "text": "Adding a domain for {org}."
+    "text": "Adding a domain for {org}.",
+    "content_hash": "f8b8c1ac"
   },
   "web.admin.domains.addDomain.domainLabel": {
-    "text": "Domain"
+    "text": "Domain",
+    "content_hash": "79fa3361"
   },
   "web.admin.domains.addDomain.domainPlaceholder": {
-    "text": "secrets.example.com"
+    "text": "secrets.example.com",
+    "content_hash": "9ea4d0d6"
   },
   "web.admin.domains.addDomain.strategyLabel": {
-    "text": "Validation strategy"
+    "text": "Validation strategy",
+    "content_hash": "a2e95531"
   },
   "web.admin.domains.addDomain.createButton": {
-    "text": "Create"
+    "text": "Create",
+    "content_hash": "4759498a"
   },
   "web.admin.domains.addDomain.created": {
-    "text": "{domain} was created."
+    "text": "{domain} was created.",
+    "content_hash": "2263ec6a"
   },
   "web.admin.domains.addDomain.strategy.approximated": {
-    "text": "Approximated — DNS ownership check, no proxying."
+    "text": "Approximated — DNS ownership check, no proxying.",
+    "content_hash": "79a7245c"
   },
   "web.admin.domains.addDomain.strategy.passthrough": {
-    "text": "Passthrough — you point DNS at this deployment's proxy."
+    "text": "Passthrough — you point DNS at this deployment's proxy.",
+    "content_hash": "9702d758"
   },
   "web.admin.domains.addDomain.strategy.external": {
-    "text": "External — DNS is managed outside this deployment."
+    "text": "External — DNS is managed outside this deployment.",
+    "content_hash": "acaede35"
   },
   "web.admin.domains.addDomain.strategy.caddy_on_demand": {
-    "text": "Caddy on-demand — certificates issued automatically on first request."
+    "text": "Caddy on-demand — certificates issued automatically on first request.",
+    "content_hash": "deb90ae6"
   },
   "web.admin.domains.addDomain.strategy.caddy": {
-    "text": "Caddy — certificates issued automatically on first request."
+    "text": "Caddy — certificates issued automatically on first request.",
+    "content_hash": "a0f3c2dc"
   },
   "web.admin.domains.addDomain.strategy.unknown": {
-    "text": "Deployment-wide validation strategy."
+    "text": "Deployment-wide validation strategy.",
+    "content_hash": "4587f9cf"
   },
   "web.admin.domains.dns.heading": {
-    "text": "DNS records to publish"
+    "text": "DNS records to publish",
+    "content_hash": "e4efbe2b"
   },
   "web.admin.domains.dns.txtStep": {
-    "text": "1. Add a TXT record to prove ownership."
+    "text": "1. Add a TXT record to prove ownership.",
+    "content_hash": "fdcfcfb0"
   },
   "web.admin.domains.dns.aStep": {
-    "text": "2. Add an A record pointing the apex at the proxy."
+    "text": "2. Add an A record pointing the apex at the proxy.",
+    "content_hash": "aedbf197"
   },
   "web.admin.domains.dns.cnameStep": {
-    "text": "2. Add a CNAME record pointing the subdomain at the proxy."
+    "text": "2. Add a CNAME record pointing the subdomain at the proxy.",
+    "content_hash": "5c626f53"
   },
   "web.admin.domains.dns.propagationNote": {
-    "text": "DNS changes can take a few minutes to propagate before verification succeeds."
+    "text": "DNS changes can take a few minutes to propagate before verification succeeds.",
+    "content_hash": "7caf70a7"
   },
   "web.admin.domains.dns.toggle": {
-    "text": "DNS details"
+    "text": "DNS details",
+    "content_hash": "ebf2d44e"
   },
   "web.admin.domains.dns.loadError": {
-    "text": "Could not load DNS details."
+    "text": "Could not load DNS details.",
+    "content_hash": "4c33e23d"
   },
   "web.admin.domains.orgPicker.title": {
-    "text": "Select an organization"
+    "text": "Select an organization",
+    "content_hash": "48326f52"
   },
   "web.admin.domains.orgPicker.searchLabel": {
-    "text": "Organization"
+    "text": "Organization",
+    "content_hash": "d764d425"
   },
   "web.admin.domains.orgPicker.searchPlaceholder": {
-    "text": "Object ID, external ID, or email"
+    "text": "Object ID, external ID, or email",
+    "content_hash": "bb5d0055"
   },
   "web.admin.domains.orgPicker.searchHint": {
-    "text": "Search by objid, extid, or a member's email address."
+    "text": "Search by objid, extid, or a member's email address.",
+    "content_hash": "fdef7332"
   },
   "web.admin.domains.orgPicker.loadError": {
-    "text": "Could not search organizations."
+    "text": "Could not search organizations.",
+    "content_hash": "b9e45dcf"
   },
   "web.admin.domains.orgPicker.parseError": {
-    "text": "The organization results could not be read."
+    "text": "The organization results could not be read.",
+    "content_hash": "44e1b9fd"
   },
   "web.admin.domains.orgPicker.idle": {
-    "text": "Enter a value above to search."
+    "text": "Enter a value above to search.",
+    "content_hash": "0352e6e6"
   },
   "web.admin.domains.orgPicker.noResults": {
-    "text": "No organizations match “{term}”."
+    "text": "No organizations match “{term}”.",
+    "content_hash": "761db594"
   },
   "web.admin.domains.orgPicker.unnamedOrg": {
-    "text": "Unnamed organization"
+    "text": "Unnamed organization",
+    "content_hash": "f218dc9d"
   },
   "web.admin.domains.orgPicker.domainCount": {
-    "text": "{count} domains"
+    "text": "{count} domains",
+    "content_hash": "cf548c8c"
   },
   "web.admin.domains.orgPicker.select": {
-    "text": "Select"
+    "text": "Select",
+    "content_hash": "2a78025d"
   }
 }
