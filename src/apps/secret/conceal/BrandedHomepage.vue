@@ -20,6 +20,7 @@
     homepageSecretsMode,
     primaryColor,
     cornerClass,
+    headingFontClass,
     buttonTextLight,
     logoUri,
     displayName,
@@ -119,7 +120,9 @@
           :alt="displayName"
           @error="handleImageError" />
       </div>
-      <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">
+      <h1
+        :class="headingFontClass"
+        class="text-2xl font-semibold text-gray-900 dark:text-white">
         {{ headline }}
       </h1>
       <p class="mt-2 text-gray-600 dark:text-gray-300">

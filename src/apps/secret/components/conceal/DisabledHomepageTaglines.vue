@@ -10,16 +10,30 @@ const props = defineProps({
   tagline2: {
     type: String,
     required: true
+  },
+  // Brand font utility classes; empty string keeps the surrounding
+  // typography (canonical site, unbranded domains).
+  headingClass: {
+    type: String,
+    default: ''
+  },
+  fontClass: {
+    type: String,
+    default: ''
   }
 });
 </script>
 
 <template>
   <div class="flex flex-col items-center text-center">
-    <h1 class="mb-2 text-2xl text-gray-600 dark:text-gray-100 sm:mx-12 sm:block md:mx-2">
+    <h1
+      class="mb-2 text-2xl text-gray-600 dark:text-gray-100 sm:mx-12 sm:block md:mx-2"
+      :class="props.headingClass">
       {{ props.tagline2 }}
     </h1>
-    <p class="mx-12 mb-6 text-base text-gray-600 dark:text-gray-300 sm:mx-2">
+    <p
+      class="mx-12 mb-6 text-base text-gray-600 dark:text-gray-300 sm:mx-2"
+      :class="props.fontClass">
       {{ props.tagline1 }}
     </p>
   </div>

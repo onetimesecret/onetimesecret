@@ -313,9 +313,9 @@ export const useProductIdentity = defineStore('productIdentity', () => {
   );
 
   // Heading font (#3646): a separate curated font for headings, falling back to
-  // the body font_family when unset.
-  // NOT consumed yet — exposed and ready. To activate: drop `:class="headingFontClass"`
-  // on the <h1>..<h3> of the branded/* views (SecretDisplayCase, BrandedHomepage, …).
+  // the body font_family when unset. Consumed by BrandedHomepage's <h1> and the
+  // branded BaseSecretDisplay <h2> (headingClass prop, via SecretDisplayCase and
+  // SecretConfirmationForm).
   const headingFontClass = computed(() => {
     const heading = state.brand?.heading_font ?? state.brand?.font_family;
     return heading ? fontFamilyClasses[heading] ?? '' : '';

@@ -19,6 +19,7 @@
   import SecretConfirmationForm from '@/apps/secret/components/branded/SecretConfirmationForm.vue';
   import SecretDisplayCase from '@/apps/secret/components/branded/SecretDisplayCase.vue';
   import { useProductIdentity } from '@/shared/stores/identityStore';
+  import { storeToRefs } from 'pinia';
 
   import UnknownSecret from './UnknownSecret.vue';
 
@@ -30,7 +31,10 @@
   }
 
   const productIdentity = useProductIdentity();
-  const brandSettings = productIdentity.brand; // Not reactive
+  // Reactive ref: brand settings can arrive after mount (bootstrap
+  // re-hydration), so a plain property read here would freeze the
+  // pre-brand snapshot into the corner/font bindings below.
+  const { brand: brandSettings } = storeToRefs(productIdentity);
 
   defineProps<Props>();
 </script>

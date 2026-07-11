@@ -24,7 +24,6 @@ import {
   borderRadiusOptions,
   borderRadiusDisplayMap,
   borderRadiusIconMap,
-  brandPresets,
 } from '@/shared/utils/brand-helpers';
 import { describe, expect, it } from 'vitest';
 
@@ -298,31 +297,12 @@ describe('brand-helpers', () => {
     });
 
     it('borderRadiusOptions, displayMap and iconMap stay in sync', () => {
-      // iconMap is required: CycleButton's only visible content is the icon, so
-      // a missing entry renders a generic question mark (review finding #3646).
+      // iconMap is required: the corner control's only visible content is the
+      // icon, so a missing entry renders a generic question mark (review
+      // finding #3646).
       for (const preset of borderRadiusOptions) {
         expect(borderRadiusDisplayMap[preset]).toBeTruthy();
         expect(borderRadiusIconMap[preset]).toBeTruthy();
-      }
-    });
-  });
-
-  describe('brandPresets', () => {
-    it('exposes a curated set of presets with unique ids', () => {
-      expect(brandPresets.length).toBeGreaterThanOrEqual(5);
-      const ids = brandPresets.map((p) => p.id);
-      expect(new Set(ids).size).toBe(ids.length);
-    });
-
-    it('every preset supplies the full cosmetic token set', () => {
-      for (const preset of brandPresets) {
-        expect(preset.tokens.primary_color).toMatch(/^#[0-9A-F]{6}$/i);
-        expect(preset.tokens.secondary_color).toMatch(/^#[0-9A-F]{6}$/i);
-        expect(preset.tokens.background_color).toMatch(/^#[0-9A-F]{6}$/i);
-        expect(preset.tokens.text_color).toMatch(/^#[0-9A-F]{6}$/i);
-        expect(fontFamilyValues).toContain(preset.tokens.font_family);
-        expect(fontFamilyValues).toContain(preset.tokens.heading_font);
-        expect(borderRadiusOptions).toContain(preset.tokens.border_radius);
       }
     });
   });

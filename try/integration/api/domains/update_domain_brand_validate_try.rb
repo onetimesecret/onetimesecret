@@ -352,6 +352,147 @@ end
 @logic_html.instance_variable_get(:@brand_settings)['product_name']
 #=> 'X' * 100
 
+# ============================================================================
+# Extended brand-settings fields (C3 — advanced branding): heading_font,
+# border_radius, expanded colors. Backend validators already exist on this
+# branch; these cases exercise them end-to-end through UpdateDomainBrand and,
+# for the round-trips, back out through the GET safe_dump channel.
+#
+# Key-type reminder:
+#   - @brand_settings uses STRING keys (process_params transform_keys(&:to_s)).
+#   - safe_dump[:brand] / process[:record] uses SYMBOL keys (Data#to_h) and
+#     contains every member (most nil).
+# Normalization reminders:
+#   - validate_border_radius stores radius.to_s.strip.downcase → always String.
+#   - validate_heading_font / validate_corner_style do NOT mutate their value,
+#     so lowercase inputs persist verbatim.
+#   - colors are normalized to 6-digit UPPERCASE at write time.
+# ============================================================================
+
+## TEST 18: heading_font enum accept — a valid expanded-allowlist value ('slab')
+## passes and is stored verbatim (validate_heading_font does not mutate it)
+@logic_heading_ok = build_logic(
+  extid: @extid,
+  brand: { 'heading_font' => 'slab' },
+  strategy_result: @strategy_result,
+)
+@logic_heading_ok.raise_concerns
+@logic_heading_ok.instance_variable_get(:@brand_settings)['heading_font']
+#=> 'slab'
+
+## TEST 19: heading_font enum reject — invalid value raises FormError naming the
+## heading-font problem (message copied from validate_heading_font, update_domain_brand.rb:206)
+@logic_heading_bad = build_logic(
+  extid: @extid,
+  brand: { 'heading_font' => 'comic-sans' },
+  strategy_result: @strategy_result,
+)
+begin
+  @logic_heading_bad.raise_concerns
+  nil
+rescue Onetime::FormError => ex
+  ex.message
+end
+#=> 'Invalid heading font - must be one of: sans, serif, mono, system, slab, rounded, humanist, geometric'
+
+## TEST 20: border_radius named presets (RADII) are accepted and normalized to lowercase
+%w[none sm md lg xl full].map do |preset|
+  logic = build_logic(extid: @extid, brand: { 'border_radius' => preset }, strategy_result: @strategy_result)
+  logic.raise_concerns
+  logic.instance_variable_get(:@brand_settings)['border_radius']
+end
+#=> ['none', 'sm', 'md', 'lg', 'xl', 'full']
+
+## TEST 21: border_radius 0 (min) accepted; both String and Integer inputs
+## normalize to the String '0' (radius.to_s.strip.downcase)
+@radius_zero_str = build_logic(extid: @extid, brand: { 'border_radius' => '0' }, strategy_result: @strategy_result)
+@radius_zero_str.raise_concerns
+@radius_zero_int = build_logic(extid: @extid, brand: { 'border_radius' => 0 }, strategy_result: @strategy_result)
+@radius_zero_int.raise_concerns
+[
+  @radius_zero_str.instance_variable_get(:@brand_settings)['border_radius'],
+  @radius_zero_int.instance_variable_get(:@brand_settings)['border_radius'],
+]
+#=> ['0', '0']
+
+## TEST 22: border_radius 64 (RADIUS_MAX / BORDER_RADIUS_MAX_PX) accepted; normalized to '64'
+@radius_max = build_logic(extid: @extid, brand: { 'border_radius' => 64 }, strategy_result: @strategy_result)
+@radius_max.raise_concerns
+@radius_max.instance_variable_get(:@brand_settings)['border_radius']
+#=> '64'
+
+## TEST 23: border_radius 65 (> RADIUS_MAX) rejected end-to-end
+## (message copied from validate_border_radius, update_domain_brand.rb:225-229)
+@radius_over = build_logic(extid: @extid, brand: { 'border_radius' => 65 }, strategy_result: @strategy_result)
+begin
+  @radius_over.raise_concerns
+  nil
+rescue Onetime::FormError => ex
+  ex.message
+end
+#=> 'Invalid border radius - must be a preset (none, sm, md, lg, xl, full) or a whole number of pixels 0-64'
+
+## TEST 24: negative border_radius rejected — '-1' fails the \A\d+\z digit check in valid_border_radius?
+@radius_neg = build_logic(extid: @extid, brand: { 'border_radius' => -1 }, strategy_result: @strategy_result)
+begin
+  @radius_neg.raise_concerns
+  nil
+rescue Onetime::FormError => ex
+  ex.message
+end
+#=> 'Invalid border radius - must be a preset (none, sm, md, lg, xl, full) or a whole number of pixels 0-64'
+
+## TEST 25: GET/read round-trip — extended fields persist and read back through the
+## same channel GetDomainBrand uses (safe_dump.fetch(:brand, {})). process[:record]
+## is that hash; success_data nils the memoized brand_settings first, so it is a real
+## Redis re-read. Colors come back normalized to 6-digit UPPERCASE. (symbol keys)
+@logic_roundtrip = build_logic(
+  extid: @extid,
+  brand: {
+    'secondary_color'  => '#a1b2c3',
+    'background_color' => '#000',
+    'text_color'       => '#FFFFFF',
+    'heading_font'     => 'serif',
+    'border_radius'    => '22',
+  },
+  strategy_result: @strategy_result,
+)
+@logic_roundtrip.raise_concerns
+@record = @logic_roundtrip.process[:record]
+[
+  @record[:secondary_color],
+  @record[:background_color],
+  @record[:text_color],
+  @record[:heading_font],
+  @record[:border_radius],
+]
+#=> ['#A1B2C3', '#000000', '#FFFFFF', 'serif', '22']
+
+## TEST 26: unknown brand key is dropped by the members-slice allowlist in
+## process_params; a valid key sent alongside it survives (the slice is selective,
+## not blanket). Asserted on @brand_settings — the layer where the drop happens.
+@logic_unknown = build_logic(
+  extid: @extid,
+  brand: { 'primary_color' => '#123456', 'made_up_field' => 'x' },
+  strategy_result: @strategy_result,
+)
+@logic_unknown.raise_concerns
+@bs_unknown = @logic_unknown.instance_variable_get(:@brand_settings)
+[@bs_unknown.key?('made_up_field'), @bs_unknown['primary_color']]
+#=> [false, '#123456']
+
+## TEST 27: corner_style and border_radius coexist — both persist and read back.
+# Pins Q4: saving border_radius does NOT clear legacy corner_style (current behavior).
+@logic_coexist = build_logic(
+  extid: @extid,
+  brand: { 'corner_style' => 'pill', 'border_radius' => '12' },
+  strategy_result: @strategy_result,
+)
+@logic_coexist.raise_concerns
+@coexist_record = @logic_coexist.process[:record]
+[@coexist_record[:corner_style], @coexist_record[:border_radius]]
+#=> ['pill', '12']
+
 # Teardown — uninstall spy and clean up fixtures
 @uninstall_spy.call if @uninstall_spy
 @domain.destroy! if @domain

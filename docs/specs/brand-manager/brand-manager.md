@@ -19,10 +19,13 @@ design, and what's still open.
 - The **editor UI is narrower than originally specified**. Only 3 of the ~9
   planned controls are exposed: `primary_color`, corners (3 of 6
   `border_radius` presets), and `font_family`. `secondary_color`,
-  `background_color`, `text_color`, `heading_font`, and the 10-preset gallery
-  are all built end-to-end (schema → validation → runtime CSS injection) but
-  have **no UI control anywhere** — not deferred-with-a-placeholder, just
-  absent.
+  `background_color`, `text_color`, and `heading_font` are all built
+  end-to-end (schema → validation → runtime CSS injection) but have **no UI
+  control anywhere** — not deferred-with-a-placeholder, just absent.
+- The 10 built-in **theme presets are a separate case: deliberately not
+  surfaced.** A curated-theme gallery models individual aesthetic preference;
+  this feature exists to match an operator's *existing* brand (the Match path).
+  `brandPresets` is therefore abandoned-direction dead code, not a gap (§3).
 - The editor is now a **three-path switcher** (Simple / Match my site /
   Advanced) — a structure this doc's original version didn't anticipate.
   Only Simple is functional; the other two are static, non-interactive
@@ -51,7 +54,7 @@ neither.
 | `border_radius` | ⚠️ 3 hand-rolled buttons (`none`/`md`/`full` only) | ✅ yes | preset keyword **or** integer px `0–64` |
 | `corner_style` (legacy) | ❌ removed from UI (as recommended — §5) | ✅ yes, only if `border_radius` unset | `rounded` / `square` / `pill` |
 | `button_text_light` | ❌ none | ✅ yes (existing behavior, unchanged) | boolean |
-| theme preset | ❌ none — `brandPresets` exists in code, zero UI wiring (§3) | n/a | one of 10 |
+| theme preset | ❌ none — out of scope by decision; `brandPresets` is dead code (§3) | n/a | one of 10 |
 
 ### Curated fonts (`font_family` and `heading_font`)
 
@@ -123,7 +126,7 @@ In-editor advisory feedback (UI side) is narrower than originally specified:
   never built. The locale key for it (`low_contrast_text_bg_warning`) exists
   in `workspace-branding.json` with zero call-sites — dead copy.
 
-## 3. Theme presets — implemented, unreachable
+## 3. Theme presets — implemented, but a superseded direction
 
 The 10 presets described in the original design are fully implemented in
 `src/shared/utils/brand-helpers.ts` (`brandPresets`, from a `// Theme
@@ -142,13 +145,16 @@ presets (#3646)` marker) with the same token values as this table:
 | High Contrast | `#000000` | `#1D4ED8` | `#FFFFFF` | `#000000` | System / System | sm |
 | High Contrast Dark | `#2563EB` | `#FDE047` | `#000000` | `#FFFFFF` | System / System | sm |
 
-**Status: dead code.** `brandPresets` has exactly one non-test reference —
-its own definition. No component imports or renders it; there is no preset
-gallery, swatch row, or picker anywhere in the three-path editor. The
-"preset gallery is the highest-value zero-effort path" opportunity this doc
-originally flagged was not picked up in the rebuild. This is the single
-largest gap between design intent and shipped UI: fully-built, contrast-
-checked, zero-effort presets that a user cannot reach.
+**Status: dead code — and a deliberately abandoned direction, not a gap.**
+`brandPresets` has exactly one non-test reference — its own definition. No
+component imports or renders it; there is no preset gallery, swatch row, or
+picker anywhere in the three-path editor. This is **not** the "highest-value
+zero-effort path" the original doc flagged, because the product goal changed:
+brand customization exists to **match an operator's existing brand** — that's
+what the Match-my-site path is for — **not** to offer a gallery of individual
+theme preferences (Midnight, Forest, Sunset…). A curated-theme picker is the
+wrong model for that goal. `brandPresets` and its `theme_presets` locale key
+are therefore dead code to **remove** (§9), not a surface to build.
 
 ## 4. What renders today vs. what's wired-but-unconsumed
 
@@ -300,10 +306,11 @@ The original file map is stale; `BrandSettingsBar.vue` no longer exists.
 
 ## 10. Remaining work / open decisions
 
-- **Theme presets have no UI.** Highest-value gap: the data and contrast
-  work is done (§3); it needs a picker surfaced somewhere, most likely on
-  the Advanced path once that's built for real, or as a 4th option on
-  Simple.
+- **Theme presets — decided out of scope, not a gap.** Curated theme
+  galleries model individual aesthetic preference; this feature exists to
+  match an operator's *existing* brand (the Match path). `brandPresets` is
+  abandoned-direction dead code — delete it and the `theme_presets` locale
+  key (§9), don't surface it.
 - **`border_radius` UI is capped at 3 of 6 presets**, no px input. Restore
   `sm`/`lg`/`xl` and the numeric escape hatch, or explicitly decide the
   3-value set is the permanent Simple-path scope and document that (in

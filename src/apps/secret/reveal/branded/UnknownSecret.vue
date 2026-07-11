@@ -4,6 +4,7 @@
   import type { BrandSettings } from '@/schemas/shapes/v3/custom-domain';
   import BaseUnknownSecret from '@/shared/components/base/BaseUnknownSecret.vue';
   import { fontFamilyClasses, type FontFamily } from '@/shared/utils/brand-helpers';
+  import { computed } from 'vue';
   import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -13,7 +14,19 @@ const { t } = useI18n();
     branded?: boolean;
   }
 
-  defineProps<Props>();
+  const props = defineProps<Props>();
+
+  const fontClass = computed(() => {
+    const font = props.brandSettings?.font_family;
+    return font ? (fontFamilyClasses[font as FontFamily] ?? '') : '';
+  });
+
+  // Heading ladder mirrors identityStore.headingFontClass:
+  // heading_font wins, font_family backfills, unset inherits.
+  const headingClass = computed(() => {
+    const font = props.brandSettings?.heading_font ?? props.brandSettings?.font_family;
+    return font ? (fontFamilyClasses[font as FontFamily] ?? '') : '';
+  });
 </script>
 
 <template>
@@ -44,12 +57,9 @@ const { t } = useI18n();
           </svg>
         </div>
         <div>
-          <!-- prettier-ignore-attribute class -->
           <h2
             class="text-xl font-semibold text-gray-900 dark:text-white"
-            :class="brandSettings?.font_family
-              ? fontFamilyClasses[brandSettings.font_family as FontFamily]
-              : ''">
+            :class="headingClass">
             {{ t('web.COMMON.not_found') }}
           </h2>
         </div>
@@ -58,7 +68,9 @@ const { t } = useI18n();
 
     <!-- Main message -->
     <template #message="{ }">
-      <p class="text-gray-600 dark:text-gray-300">
+      <p
+        class="text-gray-600 dark:text-gray-300"
+        :class="fontClass">
         <span v-if="brandSettings?.instructions_post_reveal">
           {{ brandSettings?.instructions_post_reveal }}
         </span>
@@ -77,7 +89,10 @@ const { t } = useI18n();
           bg-brand-500 px-4 py-2 transition duration-300 ease-in-out
           hover:bg-brand-600 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none
           dark:focus:ring-brand-400 dark:focus:ring-offset-gray-900"
-        :class="(brandSettings?.button_text_light ?? true) ? 'text-white' : 'text-gray-900'">
+        :class="[
+          fontClass,
+          (brandSettings?.button_text_light ?? true) ? 'text-white' : 'text-gray-900',
+        ]">
         {{ t('web.layout.return_to_home') }}
       </router-link>
     </template>
