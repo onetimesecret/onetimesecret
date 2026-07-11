@@ -62,7 +62,7 @@ services:
       - RACK_ENV=${RACK_ENV:-production}
       - VALKEY_URL=redis://maindb:6379/0
       - AUTH_DATABASE_URL=sqlite://data/auth.db
-      - SECRET=${SECRET:?SECRET must be set — run ./install.sh}
+      - SECRET=${SECRET:?SECRET must be set in .env — add one with 'echo "SECRET=$$(openssl rand -hex 32)" >> .env' (see README)}
       - SESSION_SECRET=${SESSION_SECRET:-}
       - AUTH_SECRET=${AUTH_SECRET:-}
       - AUTHENTICATION_MODE=${AUTHENTICATION_MODE:-full}
