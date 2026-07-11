@@ -29,6 +29,35 @@ module OTSInit
     pairs
   end
 
+  # SECRET-verifier task helpers (C10/QS-6); see the ots:secrets:verify /
+  # ots:secrets:adopt tasks below.
+  MISMATCH_GUIDANCE = <<~MSG
+    Likely causes:
+      - SECRET was changed/regenerated under existing data (lost .env, rerun of secret generation)
+      - the app is pointed at another install's datastore (restored dump, wrong REDIS/VALKEY URL)
+    Fix:
+      - restore the previous SECRET in .env and restart, or
+      - if the rotation was intentional: CONFIRM=yes bundle exec rake ots:secrets:adopt
+  MSG
+
+  # Boot enough of the app to reach the datastore. An enforce-mode mismatch
+  # raises at boot — for the verifier tasks that IS the finding, so swallow
+  # it and let the task report/repair it (Familia is already configured by
+  # the time the check runs). Any other boot failure (typically an
+  # unreachable datastore) is also swallowed: SecretVerifier.status degrades
+  # to :unavailable and the task exits 3 with a message, instead of dying
+  # with a raw boot backtrace.
+  def self.boot_for_verifier!
+    require 'onetime'
+    require 'onetime/models'
+    Onetime.boot! :cli
+  rescue Onetime::SecretVerifierMismatch
+    nil
+  rescue StandardError => ex
+    warn "boot failed (#{ex.class}: #{ex.message}); reporting what can be read without it"
+    nil
+  end
+
   def self.write_env(path, existing_lines, updates)
     updated_keys = Set.new
     output       = existing_lines.map do |line|
@@ -194,5 +223,71 @@ namespace :ots do
     puts 'Back up this file.'
     puts 'Derived secrets can be regenerated from SECRET.'
     puts 'Independent secrets cannot be recovered if lost.'
+  end
+
+  # SECRET lifecycle safety (C10/QS-6): verify/adopt the datastore key
+  # verifier that binds the running SECRET to the data it encrypted.
+  # See docs/runbooks/secret-rotation.md.
+  namespace :secrets do
+    desc 'Verify the running SECRET against the datastore key verifier (exit: 0 ok, 1 mismatch, 2 never adopted, 3 unreachable)'
+    task :verify do
+      OTSInit.boot_for_verifier!
+
+      # Boot itself adopts an absent verifier (CheckSecretVerifier), so
+      # "never adopted" is only observable via the boot state, not a
+      # post-boot read.
+      if Onetime.secret_verifier_state == :adopted
+        puts 'not adopted: no key verifier was stored — this run adopted one for the running SECRET'
+        exit 2
+      end
+
+      case Onetime::SecretVerifier.status
+      when :ok
+        puts 'ok: SECRET matches the datastore key verifier'
+      when :mismatch
+        puts 'MISMATCH: the running SECRET is not the one this datastore\'s data was encrypted with.'
+        puts OTSInit::MISMATCH_GUIDANCE
+        exit 1
+      when :unadopted
+        puts 'not adopted: no key verifier stored yet (first boot adopts one)'
+        exit 2
+      when :unavailable
+        puts 'unreachable: cannot read the key verifier (is the datastore running?)'
+        exit 3
+      end
+    end
+
+    desc 'Re-stamp the key verifier for the running SECRET after an INTENTIONAL rotation (requires CONFIRM=yes)'
+    task :adopt do
+      OTSInit.boot_for_verifier!
+
+      status = Onetime::SecretVerifier.status
+      case status
+      when :ok
+        puts 'ok: verifier already matches the running SECRET — nothing to adopt'
+        next
+      when :unavailable
+        abort 'unreachable: cannot reach the datastore — start it and retry'
+      end
+
+      # Destructive-adjacent: adopting over a mismatch declares every
+      # ciphertext written under the old SECRET expendable (they age out via
+      # TTL; reveals fail safe with secret_undecryptable until then).
+      if status == :mismatch
+        live_secrets = Onetime::Secret.count
+        puts 'The stored verifier was written by a DIFFERENT secret.'
+        puts "Live secret records in this datastore: #{live_secrets}"
+        puts 'Ciphertexts written under the old SECRET will NOT decrypt after adopting;'
+        puts 'they are preserved (reveals fail safe) and age out with their TTLs.'
+      end
+
+      unless ENV['CONFIRM'] == 'yes'
+        abort 'Refusing to adopt without CONFIRM=yes (e.g. CONFIRM=yes bundle exec rake ots:secrets:adopt)'
+      end
+
+      Onetime::SecretVerifier.adopt!
+      puts 'adopted: key verifier re-stamped for the running SECRET'
+      puts 'Restart running app processes so they pick up the new state.'
+    end
   end
 end

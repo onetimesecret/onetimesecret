@@ -42,6 +42,7 @@ SAFE_BOOT
 WORKER_TRACE_PAYLOAD
 
 # Script-/CLI-internal (arguments in env form, not configuration)
+CONFIRM
 DERIVE
 DRY_RUN
 FORCE

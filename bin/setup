@@ -950,6 +950,28 @@ doctor_app() {
   fi
 }
 
+# App-context check (C10/QS-6): does the running SECRET match the verifier
+# stored in the datastore? Delegates to rake so doctor never reimplements
+# the crypto. Exit codes: 0 match, 1 mismatch, 2 never adopted, 3 datastore
+# unreachable. Skipped when there's no .env SECRET or gems aren't installed.
+doctor_secret_verifier() {
+  [[ -f .env ]] || return 0
+  grep -qE '^SECRET=.+' .env 2>/dev/null || return 0
+  has bundle && bundle check &>/dev/null || return 0
+  local status
+  bundle exec rake ots:secrets:verify &>/dev/null && status=0 || status=$?
+  case "$status" in
+    0) doc_ok "SECRET matches the datastore key verifier (rake ots:secrets:verify)" ;;
+    1) doc_fail "SECRET does not match the datastore key verifier — existing secrets cannot be decrypted" \
+         "restore the previous SECRET in .env, or if the rotation was intentional: CONFIRM=yes bundle exec rake ots:secrets:adopt" ;;
+    2) doc_info "Key verifier not adopted yet (first app boot adopts it)" ;;
+    3) doc_down "Datastore unreachable — SECRET verifier not checked" \
+         "start Valkey/Redis (see the service checks above)" ;;
+    *) doc_warn "rake ots:secrets:verify failed unexpectedly (exit $status)" \
+         "bundle exec rake ots:secrets:verify  # run directly for details" ;;
+  esac
+}
+
 doctor_dev_tooling() {
   [[ "$DOCTOR_CONTEXT" == "dev" ]] || return 0
 
@@ -1027,6 +1049,7 @@ doctor_run() {
   doctor_files
   doctor_services
   doctor_app
+  doctor_secret_verifier
   doctor_dev_tooling
   doctor_operator_assets
   echo "---"

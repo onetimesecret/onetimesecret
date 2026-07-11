@@ -143,6 +143,11 @@ const siteSchema = z.object({
   host: z.string().optional(),
   ssl: z.boolean().optional(),
   secret: z.string().nullable().optional(),
+  /**
+   * Boot-time SECRET verifier policy (C10/QS-6).
+   * @sync lib/onetime/secret_verifier.rb — MODES
+   */
+  secret_verifier_mode: z.enum(['warn', 'enforce', 'off']).optional(),
   interface: z.any().optional(), // Defined in ui.ts for mutable config
   secret_options: siteSecretOptionsSchema.optional(),
   authentication: siteAuthenticationSchema.optional(),
