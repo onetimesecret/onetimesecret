@@ -101,17 +101,83 @@
     revokeTarget.value = '';
     resetRevoke();
   }
+
+  // ---- Guarded revoke-all (offboarding / takeover) --------------------------
+
+  const revokeAllDialogOpen = ref(false);
+  /** Kill count from the last successful revoke-all (drives the success toast). */
+  const lastRevokedCount = ref(0);
+  /** True when the last revoke-all's untracked sweep was truncated by the cap. */
+  const lastScanCapped = ref(false);
+
+  const {
+    loading: revokeAllLoading,
+    error: revokeAllError,
+    run: runRevokeAll,
+    reset: resetRevokeAll,
+  } = useAdminMutation(async () => {
+    // run() only returns a boolean, so stash the server's counts for the toast.
+    const record = await store.revokeAll(props.userId);
+    lastRevokedCount.value = record.blobs_deleted;
+    lastScanCapped.value = record.scan_capped;
+  });
+
+  function requestRevokeAll(): void {
+    resetRevokeAll();
+    revokeAllDialogOpen.value = true;
+  }
+
+  async function onRevokeAllConfirm(): Promise<void> {
+    const ok = await runRevokeAll();
+    if (!ok) return; // Failure message stays in the dialog for retry/cancel.
+    revokeAllDialogOpen.value = false;
+    // Tracked sessions are always killed; a capped sweep may leave a pre-sidecar
+    // one alive, so warn instead of a clean success in that case.
+    if (lastScanCapped.value) {
+      notifications.show(
+        t('web.admin.customers.detail.sessions.revokeAll.capped', {
+          count: lastRevokedCount.value,
+        }),
+        'warning'
+      );
+    } else {
+      notifications.show(
+        t('web.admin.customers.detail.sessions.revokeAll.success', {
+          count: lastRevokedCount.value,
+        }),
+        'success'
+      );
+    }
+  }
+
+  function onRevokeAllCancel(): void {
+    revokeAllDialogOpen.value = false;
+    resetRevokeAll();
+  }
 </script>
 
 <template>
   <section
     class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900"
     data-testid="sessions-section">
-    <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
+    <div class="flex items-center justify-between gap-4 border-b border-gray-200 px-6 py-4 dark:border-gray-800">
       <h3 class="text-lg font-medium text-gray-900 dark:text-white">
         {{ t('web.admin.customers.detail.sessions.title') }}
         <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400">({{ sessions.length }})</span>
       </h3>
+      <!-- Offboarding / takeover: kills EVERY session, incl. untracked ones. -->
+      <button
+        type="button"
+        data-testid="sessions-revoke-all"
+        class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/40"
+        :disabled="loading || loadFailed"
+        @click="requestRevokeAll">
+        <OIcon
+          collection="heroicons"
+          name="shield-exclamation"
+          size="4" />
+        {{ t('web.admin.customers.detail.sessions.revokeAll.button') }}
+      </button>
     </div>
 
     <!-- Load error (network/HTTP or contract mismatch). -->
@@ -181,5 +247,18 @@
       :error="revokeError"
       @confirm="onRevokeConfirm"
       @cancel="onRevokeCancel" />
+
+    <!-- Guarded revoke-all (danger). Logs the customer out of EVERY device. -->
+    <AdminConfirmDialog
+      v-model:open="revokeAllDialogOpen"
+      :title="t('web.admin.customers.detail.sessions.revokeAll.confirmTitle')"
+      :description="t('web.admin.customers.detail.sessions.revokeAll.confirmDescription')"
+      variant="danger"
+      :confirm-token="props.userId"
+      :confirm-text="t('web.admin.customers.detail.sessions.revokeAll.button')"
+      :loading="revokeAllLoading"
+      :error="revokeAllError"
+      @confirm="onRevokeAllConfirm"
+      @cancel="onRevokeAllCancel" />
   </section>
 </template>

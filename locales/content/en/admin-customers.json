@@ -442,5 +442,20 @@
   },
   "web.admin.customers.detail.sessions.revoke.success": {
     "text": "Session revoked."
+  },
+  "web.admin.customers.detail.sessions.revokeAll.button": {
+    "text": "Revoke all"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.confirmTitle": {
+    "text": "Revoke every session?"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.confirmDescription": {
+    "text": "This signs the user out of every device and browser — including sessions not shown in this list — and locks out their authenticated routes immediately. Use for offboarding or a suspected account takeover. Type the user's ID to confirm."
+  },
+  "web.admin.customers.detail.sessions.revokeAll.success": {
+    "text": "Revoked all sessions ({count} killed)."
+  },
+  "web.admin.customers.detail.sessions.revokeAll.capped": {
+    "text": "Killed {count} sessions, but the untracked-session sweep was truncated — an older session may remain. Re-run to be sure."
   }
 }

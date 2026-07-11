@@ -26,10 +26,12 @@ import { z } from 'zod';
 
 /**
  * A single per-customer session row — the SessionMetadata safe_dump shape
- * verbatim. Every field except session_id/user_id is nullable: org_id has no
- * reliable source at write time; ip_address/user_agent are copied as-is from the
- * (already Otto-masked) session data; auth_method is 'omniauth' | 'password' |
- * null; mfa_used is a nullable boolean pending an enrichment path. There is NO
+ * verbatim. Every field except session_id/user_id is nullable: org_id is the
+ * active organization objid, resolved per write (null if the customer has no
+ * org); ip_address/user_agent are copied as-is from the (already Otto-masked)
+ * session data; auth_method is the primary login method stamped at auth time
+ * ('password' | 'email_auth' | 'webauthn' | 'omniauth' | null for legacy);
+ * mfa_used is a nullable boolean pending an enrichment path. There is NO
  * email/token field — that absence is the security guarantee.
  */
 export const adminCustomerSessionSchema = z.object({
@@ -66,12 +68,41 @@ export const colonelCustomerSessionRevokeDetailsSchema = z.object({
 });
 
 // ============================================================================
+// RevokeAllCustomerSessions — offboarding / takeover bulk revoke ack
+// ============================================================================
+
+/**
+ * RevokeAllCustomerSessions `record`: the total lockout, with kill counts so the
+ * operator sees how complete the revoke was. `untracked_deleted` is the number of
+ * killed blobs the sidecar index did NOT know about (pre-sidecar sessions the
+ * best-effort scan swept up); `rodauth_rows_deleted` is 0 in simple mode / when no
+ * auth account maps to the customer. `scan_capped` is true when the untracked
+ * sweep hit its scan cap — tracked sessions are always killed, but an untracked
+ * pre-sidecar session MAY have been missed and the operator should be warned.
+ */
+export const colonelCustomerSessionRevokeAllRecordSchema = z.object({
+  revoked: z.boolean(),
+  blobs_deleted: z.number(),
+  untracked_deleted: z.number(),
+  rodauth_rows_deleted: z.number(),
+  scan_capped: z.boolean(),
+});
+
+/** RevokeAllCustomerSessions `details`: a human-readable ack message. */
+export const colonelCustomerSessionRevokeAllDetailsSchema = z.object({
+  message: z.string(),
+});
+
+// ============================================================================
 // Type Exports
 // ============================================================================
 
 export type AdminCustomerSession = z.infer<typeof adminCustomerSessionSchema>;
 export type ColonelCustomerSessionRevokeRecord = z.infer<
   typeof colonelCustomerSessionRevokeRecordSchema
+>;
+export type ColonelCustomerSessionRevokeAllRecord = z.infer<
+  typeof colonelCustomerSessionRevokeAllRecordSchema
 >;
 
 // Wrapped response schemas for the per-customer sessions view.
@@ -89,9 +120,18 @@ export const colonelCustomerSessionRevokeResponseSchema = createApiResponseSchem
   colonelCustomerSessionRevokeDetailsSchema
 );
 
+// POST /api/colonel/users/:user_id/sessions/revoke-all → RevokeAllCustomerSessions
+export const colonelCustomerSessionRevokeAllResponseSchema = createApiResponseSchema(
+  colonelCustomerSessionRevokeAllRecordSchema,
+  colonelCustomerSessionRevokeAllDetailsSchema
+);
+
 export type ColonelCustomerSessionsResponse = z.infer<
   typeof colonelCustomerSessionsResponseSchema
 >;
 export type ColonelCustomerSessionRevokeResponse = z.infer<
   typeof colonelCustomerSessionRevokeResponseSchema
+>;
+export type ColonelCustomerSessionRevokeAllResponse = z.infer<
+  typeof colonelCustomerSessionRevokeAllResponseSchema
 >;

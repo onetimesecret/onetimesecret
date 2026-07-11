@@ -7,8 +7,12 @@ import { useApi } from '@/shared/composables/useApi';
 import {
   colonelCustomerSessionsResponseSchema,
   colonelCustomerSessionRevokeResponseSchema,
+  colonelCustomerSessionRevokeAllResponseSchema,
 } from '@/schemas/api/internal/responses/colonel-customer-sessions';
-import type { AdminCustomerSession } from '@/schemas/api/internal/responses/colonel-customer-sessions';
+import type {
+  AdminCustomerSession,
+  ColonelCustomerSessionRevokeAllRecord,
+} from '@/schemas/api/internal/responses/colonel-customer-sessions';
 import { gracefulParse } from '@/utils/schemaValidation';
 
 /**
@@ -22,12 +26,28 @@ import { gracefulParse } from '@/utils/schemaValidation';
  *
  *   - fetchForCustomer(userId) → GET    /api/colonel/users/:user_id/sessions
  *   - revoke(userId, sessionId) → DELETE /api/colonel/users/:user_id/sessions/:session_id
+ *   - revokeAll(userId) → POST /api/colonel/users/:user_id/sessions/revoke-all
  *
  * `userId` is the customer EXTERNAL id (extid, 'ur…') — the same value the
  * detail view is keyed by. Not paginated: a single customer's active-session
  * list is small and bounded, so it fetches whole. Reads never audit; the revoke
- * mutation is audited SERVER-SIDE.
+ * mutations are audited SERVER-SIDE.
  */
+
+/** Zero-count fallback when the revoke-all ack drifts from its schema. */
+const EMPTY_REVOKE_ALL: ColonelCustomerSessionRevokeAllRecord = {
+  revoked: true,
+  blobs_deleted: 0,
+  untracked_deleted: 0,
+  rodauth_rows_deleted: 0,
+  scan_capped: false,
+};
+
+/** The per-customer sessions collection URL (extid, 'ur…'). */
+function sessionsUrl(userId: string): string {
+  return `/api/colonel/users/${encodeURIComponent(userId)}/sessions`;
+}
+
 export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () => {
   /** The customer's active session rows (whole list — never paginated). */
   const sessions = ref<AdminCustomerSession[]>([]);
@@ -39,10 +59,6 @@ export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () 
   const validationError = ref<string | null>(null);
 
   const $api = useApi();
-
-  function sessionsUrl(userId: string): string {
-    return `/api/colonel/users/${encodeURIComponent(userId)}/sessions`;
-  }
 
   /**
    * Fetch one customer's active sessions.
@@ -84,13 +100,10 @@ export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () 
 
   /**
    * Revoke one of the customer's sessions (logs that user out mid-flight, so the
-   * view gates this behind a confirm dialog). Optimistically drops the row ONLY
-   * after a 2xx — the drop is sequenced after the awaited DELETE, so a failure
-   * throws before it and the row stays. The ack is run through the schema to keep
-   * the contract a live tripwire without failing the action on ack drift.
-   *
-   * @throws the network/HTTP error on failure (the caller — useAdminMutation —
-   *   captures it for the dialog and the row is preserved for retry).
+   * view gates it behind a confirm dialog). Drops the row ONLY after a 2xx — the
+   * drop is sequenced after the awaited DELETE, so a failure throws before it and
+   * the row stays. The ack is schema-checked as a live tripwire (never fails the
+   * action on drift). Throws the network/HTTP error for useAdminMutation to catch.
    */
   async function revoke(userId: string, sessionId: string): Promise<void> {
     const response = await $api.delete(
@@ -102,6 +115,15 @@ export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () 
       'ColonelCustomerSessionRevokeResponse'
     );
     sessions.value = sessions.value.filter((s) => s.session_id !== sessionId);
+  }
+
+  /** Revoke ALL sessions (offboarding/takeover); clears the list, returns kill counts. */
+  async function revokeAll(userId: string): Promise<ColonelCustomerSessionRevokeAllRecord> {
+    const response = await $api.post(`${sessionsUrl(userId)}/revoke-all`);
+    const schema = colonelCustomerSessionRevokeAllResponseSchema;
+    const result = gracefulParse(schema, response.data, 'ColonelCustomerSessionRevokeAllResponse');
+    sessions.value = []; // every session is gone regardless of ack shape
+    return result.ok ? result.data.record : EMPTY_REVOKE_ALL;
   }
 
   /** Explicit manual reset — setup stores have no built-in $reset. */
@@ -121,6 +143,7 @@ export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () 
     // Actions
     fetchForCustomer,
     revoke,
+    revokeAll,
     $reset,
   };
 });

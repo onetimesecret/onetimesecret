@@ -48,6 +48,21 @@ function revokePayload(sessionId = 'sid_1') {
   };
 }
 
+function revokeAllPayload(counts = {}) {
+  return {
+    shrimp: '',
+    record: {
+      revoked: true,
+      blobs_deleted: 3,
+      untracked_deleted: 1,
+      rodauth_rows_deleted: 0,
+      scan_capped: false,
+      ...counts,
+    },
+    details: { message: 'All sessions revoked successfully' },
+  };
+}
+
 describe('useAdminCustomerSessions', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
@@ -130,6 +145,53 @@ describe('useAdminCustomerSessions', () => {
     await store.fetchForCustomer(USER_ID);
 
     await expect(store.revoke(USER_ID, 'sid_1')).rejects.toThrow('403');
+    expect(store.sessions).toHaveLength(2);
+  });
+
+  it('revokeAll POSTs the revoke-all endpoint, clears the list, and returns kill counts', async () => {
+    mockApi.get.mockResolvedValue({ data: sessionsPayload() });
+    mockApi.post.mockResolvedValue({ data: revokeAllPayload() });
+    const store = useAdminCustomerSessions();
+    await store.fetchForCustomer(USER_ID);
+    expect(store.sessions).toHaveLength(2);
+
+    const record = await store.revokeAll(USER_ID);
+
+    // Wrong path 404s in prod but passes a naive mock — assert it. POST, not DELETE.
+    expect(mockApi.post).toHaveBeenCalledWith(
+      '/api/colonel/users/ur_abc123/sessions/revoke-all'
+    );
+    expect(store.sessions).toEqual([]);
+    expect(record.blobs_deleted).toBe(3);
+    expect(record.untracked_deleted).toBe(1);
+  });
+
+  it('revokeAll still clears the list on ack drift (schema-mismatch fallback)', async () => {
+    mockApi.get.mockResolvedValue({ data: sessionsPayload() });
+    mockApi.post.mockResolvedValue({ data: { shrimp: '', record: { revoked: 'yes' }, details: {} } });
+    const store = useAdminCustomerSessions();
+    await store.fetchForCustomer(USER_ID);
+
+    const record = await store.revokeAll(USER_ID);
+
+    expect(store.sessions).toEqual([]);
+    // Drift degrades to the zero-count fallback rather than throwing.
+    expect(record).toEqual({
+      revoked: true,
+      blobs_deleted: 0,
+      untracked_deleted: 0,
+      rodauth_rows_deleted: 0,
+      scan_capped: false,
+    });
+  });
+
+  it('revokeAll rethrows and keeps the list on a network failure', async () => {
+    mockApi.get.mockResolvedValue({ data: sessionsPayload() });
+    mockApi.post.mockRejectedValue(new Error('403'));
+    const store = useAdminCustomerSessions();
+    await store.fetchForCustomer(USER_ID);
+
+    await expect(store.revokeAll(USER_ID)).rejects.toThrow('403');
     expect(store.sessions).toHaveLength(2);
   });
 
