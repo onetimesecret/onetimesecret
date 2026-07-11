@@ -21,6 +21,7 @@
     primaryColor,
     cornerClass,
     headingFontClass,
+    fontFamilyClass,
     buttonTextLight,
     logoUri,
     displayName,
@@ -107,16 +108,30 @@
 </script>
 
 <template>
-  <div class="relative mx-auto w-full max-w-xl px-4">
+  <div
+    :class="fontFamilyClass"
+    class="relative mx-auto w-full max-w-xl px-4">
     <!-- Logo + Taglines (centered brand hero for custom domains) -->
     <div class="mb-8 text-center">
       <!-- Logo with error handling - hides if 404 -->
+      <!--
+        Sizing: a fixed height with `w-auto max-w-full` lets wide, rectangular
+        logos (common when they include the company name) use the full column
+        width instead of being squeezed by a narrow max-width and rendering
+        comically small.
+
+        Corner radius: the logo reflects the brand radius (cornerClass) — a
+        product requirement. The browser clamps `--radius-brand` to half the
+        image's shorter side, so a pill/full radius rounds the ends rather than
+        overflowing.
+      -->
       <div
         v-if="logoUri && !imageError"
-        class="mb-24 flex justify-center">
+        class="mb-8 flex justify-center">
         <img
           :src="logoUri"
-          class="h-16 max-w-[200px] object-contain"
+          :class="cornerClass"
+          class="h-16 w-auto max-w-full object-contain sm:h-20"
           :alt="displayName"
           @error="handleImageError" />
       </div>

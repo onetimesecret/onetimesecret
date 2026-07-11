@@ -43,19 +43,6 @@
 
   const hasImageError = ref(false);
 
-  const cornerStyle = computed(() => {
-    switch (productIdentity.brand?.corner_style) {
-      case 'rounded':
-        return 'rounded-lg';
-      case 'pill':
-        return 'rounded-full';
-      case 'square':
-        return 'rounded-none';
-      default:
-        return 'rounded-lg';
-    }
-  });
-
   const handleImageError = () => {
     hasImageError.value = true;
   };
@@ -78,11 +65,11 @@
     :heading-class="headingFontClass">
     <template #logo>
       <div class="relative mx-auto sm:mx-0">
-        <div :class="[cornerStyle, 'size-14 overflow-hidden sm:size-16']">
+        <div :class="[cornerClass, 'size-14 overflow-hidden sm:size-16']">
           <!-- Background container with matching corner style -->
           <div
             :class="[
-              cornerStyle,
+              cornerClass,
               'absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-700',
               { hidden: logoImage && !hasImageError },
             ]">
@@ -108,7 +95,7 @@
             :src="logoImage"
             :alt="t('web.layout.brand_logo')"
             class="size-full object-contain"
-            :class="cornerStyle"
+            :class="cornerClass"
             @error="handleImageError" />
         </div>
       </div>

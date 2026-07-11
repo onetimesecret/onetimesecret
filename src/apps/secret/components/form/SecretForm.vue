@@ -192,10 +192,16 @@
       class="space-y-6"
       data-testid="secret-form">
       <!-- prettier-ignore-attribute class -->
+      <!--
+        Card radius is fixed (rounded-lg), NOT the brand cornerClass. A pill/full
+        brand radius resolves to --radius-brand: 9999px; applied to this large
+        container it renders as a giant oval. The corner token belongs on the
+        controls inside (inputs, select, button), matching BaseSecretDisplay's
+        fixed-card / branded-controls split.
+      -->
       <div
         ref="div1"
-        :class="[cornerClass]"
-        class="overflow-visible border border-gray-200/50
+        class="overflow-visible rounded-lg border border-gray-200/50
           bg-gradient-to-br from-white to-gray-50/30
           shadow-[0_8px_30px_rgb(0,0,0,0.12),0_2px_8px_rgb(0,0,0,0.08)]
           backdrop-blur-sm
@@ -222,9 +228,9 @@
           </span>
 
           <!-- Generate Password Text -->
+          <!-- Fixed rounded-lg (large container); see the outer card note above. -->
           <div
             v-show="selectedAction === 'generate-password'"
-            :class="[cornerClass]"
             class="relative overflow-hidden rounded-lg border border-brand-200/50 bg-gradient-to-br from-brand-50/80 to-purple-50/40 shadow-[0_4px_20px_rgb(0,0,0,0.08)] backdrop-blur-sm dark:border-brand-700/50 dark:from-brand-900/30 dark:to-purple-900/20 dark:shadow-[0_4px_20px_rgb(0,0,0,0.3)]"
             aria-labelledby="generatedPasswordHeader"
             aria-describedby="generatedPasswordDesc"
