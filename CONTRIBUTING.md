@@ -24,6 +24,12 @@ Then open <http://localhost:3000>. `bin/setup` is idempotent — re-run it any
 time (after a pull, when something feels off) and it converges the checkout.
 It prints exactly what it did and what to do next.
 
+Prefer zero local installs? Open the repo in GitHub Codespaces (or any
+devcontainer runtime) — [`.devcontainer/`](.devcontainer/) runs `bin/setup`
+automatically on create, with a Valkey sidecar already wired up. Same path,
+prebuilt environment. It's optional; the checkout above is never required to
+go through it.
+
 Signup through the web form requires email verification, and a default dev
 environment has no SMTP — so seed your first account from the CLI instead
 (CLI-provisioned accounts are pre-verified):

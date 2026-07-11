@@ -345,6 +345,30 @@ Compose-based devcontainer, `postCreateCommand: bin/setup`, `devcontainers/ci`
 weekly workflow, GHCR prebuild cache. Gives contributors zero-install entry
 and gives *you* the on-demand clean room. Proof: the weekly workflow.
 
+> **Status (2026-07-10, shipped):** `.devcontainer/` landed on
+> `feature/onboarding-proof-of-life`: `devcontainer.json` (features: node 22
+> + pnpm; onCreate installs redis-server + python3;
+> `postCreateCommand: bin/setup` — the Mastodon keystone) +
+> `compose.yaml` (app = `ghcr.io/rails/devcontainer/images/ruby:3.4.9`, the
+> upstream-maintained image per §5's no-hand-rolled-Dockerfile rule; valkey
+> sidecar pinned to the same digest as docker-compose.simple.yml). The
+> sidecar joins the app's network namespace (`network_mode: service:app`),
+> so the datastore is 127.0.0.1:6379 exactly as the seeded `.env` assumes —
+> no devcontainer-specific env divergence; `bin/setup --test` still starts
+> its own :2121 throwaway inside the app container. node_modules routes
+> through a named volume (Discourse's Apple-Silicon I/O fix).
+> `devcontainer-ci.yml`: PR path filter (setup path + pins + lockfiles) +
+> weekly cron; `devcontainer up` exercises onCreate/postCreate, then runCmd
+> runs `bin/setup --test` + rspec:fast. **Deliberate deviation:** no GHCR
+> prebuild-cache push — devcontainers/ci's `imageName`/`cacheFrom` caching
+> doesn't work reliably with compose-based devcontainers
+> (devcontainers/ci#302), and the only built layers are two small features,
+> so rebuild cost is minutes; revisit if Codespaces launch times hurt
+> (Codespaces' own prebuilds are a repo-settings toggle, no workflow
+> needed). Toolchain duplication (node "22" in features, ruby tag in
+> compose) is by necessity — features can't read pin files; candidate for a
+> `check-version-pins.sh` extension (C9).
+
 ## C9 — Doctor v2 + drift guards + support bundle (R0.2, D8)
 
 Doctor = diff(manifest, reality): reads pin files, probes connectivity

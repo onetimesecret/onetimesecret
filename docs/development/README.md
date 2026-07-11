@@ -14,6 +14,11 @@ Both are idempotent and safe to re-run. `bin/setup --doctor` checks the
 environment; `bin/setup --test` switches to the test lane (see
 [Testing](#testing)); `bin/setup --help` lists every lane.
 
+For a zero-install environment, open the repo in GitHub Codespaces or any
+devcontainer runtime: [`.devcontainer/`](../../.devcontainer/) is
+compose-based (app + Valkey) and runs `bin/setup` on create. The
+`devcontainer-ci.yml` workflow rebuilds and smoke-tests it weekly.
+
 ## Running the application
 
 `bin/dev` runs everything via [overmind](https://github.com/DarthSim/overmind)
