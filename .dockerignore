@@ -31,7 +31,6 @@
 .history
 .pnpm/
 .prompts/
-.ruby-version
 .appendonlydir
 .claude
 appendonlydir

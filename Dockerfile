@@ -77,7 +77,7 @@ WORKDIR ${APP_DIR}
 ENV NODE_PATH=${APP_DIR}/node_modules
 
 # Copy dependency manifests
-COPY Gemfile Gemfile.lock package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY .ruby-version Gemfile Gemfile.lock package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 # Install Ruby dependencies
 # BUNDLE_WITHOUT excludes dev/test/optional gems from production image
@@ -259,7 +259,7 @@ COPY --chown=appuser:appuser docker/entrypoints/healthcheck.sh ./bin/
 COPY --chown=appuser:appuser install.sh ./
 COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
 COPY --chown=appuser:appuser --from=build ${APP_DIR}/package.json ./
-COPY --chown=appuser:appuser config.ru Gemfile Gemfile.lock ./
+COPY --chown=appuser:appuser config.ru .ruby-version Gemfile Gemfile.lock ./
 
 # Copy S6 service definitions (as root for proper ownership)
 COPY --chown=root:root docker/s6/services /etc/s6-overlay/s6-rc.d
@@ -370,7 +370,7 @@ COPY --chown=appuser:appuser docker/entrypoints/healthcheck.sh ./bin/
 COPY --chown=appuser:appuser install.sh ./
 COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
 COPY --chown=appuser:appuser --from=build ${APP_DIR}/package.json ./
-COPY --chown=appuser:appuser config.ru Gemfile Gemfile.lock ./
+COPY --chown=appuser:appuser config.ru .ruby-version Gemfile Gemfile.lock ./
 
 # Set production environment
 ENV RACK_ENV=production \
