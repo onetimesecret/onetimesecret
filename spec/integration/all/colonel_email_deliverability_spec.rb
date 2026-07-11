@@ -186,6 +186,78 @@ RSpec.describe 'Colonel email deliverability endpoints', type: :integration do
   end
 
   # ---------------------------------------------------------------------------
+  # 1b. On-demand sync (SyncEmailDeliverability) — the colonel-UI "Sync now"
+  #     trigger. The provider fetcher is stubbed; the pull/ingest wiring itself
+  #     is covered by sync_provider_feedback_spec.rb.
+  # ---------------------------------------------------------------------------
+  describe 'SyncEmailDeliverability' do
+    let(:fetcher) { double('fetcher') }
+
+    before do
+      allow(Onetime::Mail::Mailer).to receive(:determine_provider).and_return('ses')
+      allow(Onetime::Mail::Mailer).to receive(:provider_credentials).and_return({})
+      allow(Onetime::Mail::Feedback::SES).to receive(:new).and_return(fetcher)
+    end
+
+    def sync
+      run_logic(ColonelAPI::Logic::Colonel::SyncEmailDeliverability)
+    end
+
+    it 'ingests the provider list and stamps sync_status' do
+      allow(fetcher).to receive(:fetch).with(limit: 500).and_return(
+        [{ 'email' => 'bounced@example.com', 'kind' => 'suppression', 'reason' => 'bounce' }],
+      )
+
+      data = sync
+
+      expect(data[:record]).to eq(provider: 'ses', fetched: 1, accepted: 1, rejected: 0)
+      expect(Onetime::EmailSuppression.suppressed?('bounced@example.com')).to be(true)
+      expect(Onetime::EmailSuppression.sync_status['ses']).to include('imported' => 1)
+    end
+
+    it 'clears the never-synced state even when the provider list is empty' do
+      allow(fetcher).to receive(:fetch).and_return([])
+
+      data = sync
+
+      expect(data[:record]).to eq(provider: 'ses', fetched: 0, accepted: 0, rejected: 0)
+      expect(Onetime::EmailSuppression.sync_status['ses']).to include('imported' => 0)
+    end
+
+    it 'attributes the audit event to the colonel operator, not the CLI sentinel' do
+      allow(fetcher).to receive(:fetch).and_return(
+        [{ 'email' => 'bounced@example.com', 'kind' => 'suppression', 'reason' => 'bounce' }],
+      )
+
+      sync
+
+      expect(Onetime::AdminAuditEvent.recent(1).first['actor']).to eq(colonel.extid)
+    end
+
+    it 'rejects an active transport with no pull API as a form error' do
+      allow(Onetime::Mail::Mailer).to receive(:determine_provider).and_return('smtp')
+
+      logic = ColonelAPI::Logic::Colonel::SyncEmailDeliverability.new(strategy_result_for(colonel), {})
+      logic.raise_concerns
+      expect { logic.process }.to raise_error(Onetime::FormError, /no feedback API/i)
+    end
+
+    it 'converts a provider fetch failure into a form error instead of 500ing' do
+      allow(fetcher).to receive(:fetch).and_raise(StandardError, 'timeout')
+
+      logic = ColonelAPI::Logic::Colonel::SyncEmailDeliverability.new(strategy_result_for(colonel), {})
+      logic.raise_concerns
+      expect { logic.process }.to raise_error(Onetime::FormError, /sync failed/i)
+    end
+
+    it 'rejects non-colonel actors' do
+      staff = create_customer(email: "staff-#{SecureRandom.hex(4)}@example.com", role: 'staff')
+      logic = ColonelAPI::Logic::Colonel::SyncEmailDeliverability.new(strategy_result_for(staff), {})
+      expect { logic.raise_concerns }.to raise_error(Onetime::Forbidden)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # 2. Summary (GetEmailDeliverability)
   # ---------------------------------------------------------------------------
   describe 'GetEmailDeliverability' do

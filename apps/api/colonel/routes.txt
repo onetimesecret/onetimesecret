@@ -100,6 +100,7 @@ POST   /email/deliverability/suppressions             ColonelAPI::Logic::Colonel
 DELETE /email/deliverability/suppressions/:address    ColonelAPI::Logic::Colonel::RemoveEmailSuppression response=json auth=sessionauth role=colonel scope=internal
 GET    /email/deliverability/events                   ColonelAPI::Logic::Colonel::ListEmailDeliverabilityEvents response=json auth=sessionauth role=colonel scope=internal
 POST   /email/deliverability/events                   ColonelAPI::Logic::Colonel::IngestEmailDeliverabilityEvents response=json auth=sessionauth role=colonel scope=internal
+POST   /email/deliverability/sync                     ColonelAPI::Logic::Colonel::SyncEmailDeliverability response=json auth=sessionauth role=colonel scope=internal
 GET    /email/deliverability/provider-status          ColonelAPI::Logic::Colonel::GetEmailProviderStatus response=json auth=sessionauth role=colonel scope=internal
 GET    /email/deliverability/lookup                    ColonelAPI::Logic::Colonel::LookupEmailRecipient response=json auth=sessionauth role=colonel scope=internal
 GET    /email/deliverability/messages                  ColonelAPI::Logic::Colonel::ListEmailMessages response=json auth=sessionauth role=colonel scope=internal
