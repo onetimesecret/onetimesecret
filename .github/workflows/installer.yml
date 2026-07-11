@@ -20,6 +20,8 @@ name: Installer matrix
 on:
   pull_request:
     paths:
+      - 'bin/setup'
+      - 'scripts/setup/**'
       - 'install.sh'
       - 'install-dev.sh'
       - 'install-test.sh'
@@ -67,14 +69,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
-      # macOS ships bash 3.2. The bare-metal entrypoint and the harness scripts
-      # must at least PARSE there (catches bashisms newer than 3.2). install-dev.sh
-      # is intentionally excluded — it requires bash 4+ by design.
+      # macOS ships bash 3.2. The setup entrypoint and the harness scripts
+      # must at least PARSE there (catches bashisms newer than 3.2). bin/setup
+      # and its lib are 3.2-compatible by design (DX-15: the old install-dev.sh
+      # hard-failed on stock macOS over a single associative array).
       - name: Parse install scripts under bash 3.2
         run: |
           docker run --rm -i -v "$PWD:/src" -w /src bash:3.2 sh -c '
             set -e
-            for f in install.sh install-test.sh \
+            for f in bin/setup scripts/setup/lib.sh \
+                     install.sh install-dev.sh install-test.sh \
                      scripts/test-install/run.sh \
                      scripts/test-install/proof-of-life.sh \
                      scripts/test-install/check-docs-commands.sh; do
