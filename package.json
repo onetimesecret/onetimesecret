@@ -6,7 +6,7 @@
   "packageManager": "pnpm@11.10.0",
   "scripts": {
     "prebuild": "pnpm run locales:sync && pnpm run schemas:json:generate",
-    "build": "vite build --config vite.config.ts",
+    "build": "vite build --config vite.config.ts && VITE_BUILD_TARGET=admin vite build --config vite.config.ts",
     "build:local": "vite build --config vite.config.local.ts",
     "schemas:rhales:generate": "bundle exec rake rhales:schema:generate TEMPLATES_DIR=./apps/web/core/templates OUTPUT_DIR=./public/schemas",
     "schemas:rhales:stats": "bundle exec rake rhales:schema:stats TEMPLATES_DIR=./apps/web/core/templates",
@@ -122,7 +122,7 @@
     "test:rspec:apps:web:billing": "bundle exec rake spec:apps:web_billing",
     "test:rspec:apps:web:core": "bundle exec rake spec:apps:web_core",
     "test:rspec:apps:internal:acme": "bundle exec rake spec:apps:internal_acme",
-    "test:tryouts": "bundle exec try",
+    "test:tryouts": "RACK_ENV=test bundle exec try",
     "test:tryouts:agent": "pnpm test:tryouts --agent",
     "test:tryouts:failures": "pnpm test:tryouts --stack --fails --debug",
     "test:tryouts:clean": "pnpm valkey:clean && pnpm test:tryouts ",

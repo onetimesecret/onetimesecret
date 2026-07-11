@@ -1,0 +1,498 @@
+{
+  "web.admin.emailtools.title": {
+    "text": "Email Tools",
+    "content_hash": "f9643d5a"
+  },
+  "web.admin.emailtools.description": {
+    "text": "Preview email templates, send a delivery test, and monitor deliverability — the diagnostics that previously required SSH.",
+    "content_hash": "be85c9e9"
+  },
+  "web.admin.emailtools.config.title": {
+    "text": "Mailer configuration",
+    "content_hash": "d2a71028"
+  },
+  "web.admin.emailtools.config.description": {
+    "text": "The standing mail configuration resolved at boot. Credentials are never shown — only whether they are present.",
+    "content_hash": "f0e8a118"
+  },
+  "web.admin.emailtools.config.provider": {
+    "text": "Transport provider",
+    "content_hash": "4f0e5025"
+  },
+  "web.admin.emailtools.config.senderProvider": {
+    "text": "Sender provider",
+    "content_hash": "e881964f"
+  },
+  "web.admin.emailtools.config.senderDiffers": {
+    "text": "Sender differs from transport",
+    "content_hash": "ab78e8f6"
+  },
+  "web.admin.emailtools.config.autoDetected": {
+    "text": "Auto-detected",
+    "content_hash": "a69c7f9e"
+  },
+  "web.admin.emailtools.config.fromAddress": {
+    "text": "From address",
+    "content_hash": "d465bcfa"
+  },
+  "web.admin.emailtools.config.fromName": {
+    "text": "From name",
+    "content_hash": "b28f93ea"
+  },
+  "web.admin.emailtools.config.host": {
+    "text": "SMTP host",
+    "content_hash": "ab328f83"
+  },
+  "web.admin.emailtools.config.port": {
+    "text": "Port",
+    "content_hash": "72e9a59f"
+  },
+  "web.admin.emailtools.config.region": {
+    "text": "Region",
+    "content_hash": "d3a008ef"
+  },
+  "web.admin.emailtools.config.hasCredentials": {
+    "text": "Credentials configured",
+    "content_hash": "1c81633a"
+  },
+  "web.admin.emailtools.config.yes": {
+    "text": "Yes",
+    "content_hash": "85a39ab3"
+  },
+  "web.admin.emailtools.config.no": {
+    "text": "No",
+    "content_hash": "1ea442a1"
+  },
+  "web.admin.emailtools.config.loggerWarning": {
+    "text": "Mail is not being delivered. The transport provider is set to a no-send mode (logger, disabled, or none), so no email leaves this server — outbound messages are written to the application log or dropped.",
+    "content_hash": "57e91f8e"
+  },
+  "web.admin.emailtools.preview.title": {
+    "text": "Template preview",
+    "content_hash": "df89bd92"
+  },
+  "web.admin.emailtools.preview.description": {
+    "text": "Render a template with its sample data. Preview has no side effects — no email is sent.",
+    "content_hash": "9b0e40f3"
+  },
+  "web.admin.emailtools.preview.templateLabel": {
+    "text": "Template",
+    "content_hash": "0575f29d"
+  },
+  "web.admin.emailtools.preview.formatLabel": {
+    "text": "Format",
+    "content_hash": "2f343666"
+  },
+  "web.admin.emailtools.preview.localeLabel": {
+    "text": "Locale",
+    "content_hash": "ca3dc612"
+  },
+  "web.admin.emailtools.preview.button": {
+    "text": "Preview",
+    "content_hash": "324b134f"
+  },
+  "web.admin.emailtools.test.title": {
+    "text": "Test send",
+    "content_hash": "5fab5d67"
+  },
+  "web.admin.emailtools.test.description": {
+    "text": "Send a plain-text diagnostic email to verify delivery connectivity. Preview it first, then confirm to send a real email.",
+    "content_hash": "4130741c"
+  },
+  "web.admin.emailtools.test.toLabel": {
+    "text": "Recipient",
+    "content_hash": "51fac985"
+  },
+  "web.admin.emailtools.test.toPlaceholder": {
+    "text": "you{'@'}example.com",
+    "content_hash": "cf0a9acc"
+  },
+  "web.admin.emailtools.test.enqueueLabel": {
+    "text": "Via worker queue",
+    "content_hash": "97897017"
+  },
+  "web.admin.emailtools.test.previewButton": {
+    "text": "Preview (no send)",
+    "content_hash": "747ced83"
+  },
+  "web.admin.emailtools.test.sendButton": {
+    "text": "Send test email",
+    "content_hash": "46ebd7db"
+  },
+  "web.admin.emailtools.test.provider": {
+    "text": "Provider",
+    "content_hash": "472590ae"
+  },
+  "web.admin.emailtools.test.host": {
+    "text": "Origin host",
+    "content_hash": "968925cb"
+  },
+  "web.admin.emailtools.test.from": {
+    "text": "From",
+    "content_hash": "21819769"
+  },
+  "web.admin.emailtools.test.subject": {
+    "text": "Subject",
+    "content_hash": "68971283"
+  },
+  "web.admin.emailtools.test.confirmTitle": {
+    "text": "Send a real test email?",
+    "content_hash": "64a16b62"
+  },
+  "web.admin.emailtools.test.confirmDescription": {
+    "text": "This dispatches a live email to {to} through the configured mailer.",
+    "content_hash": "10114929"
+  },
+  "web.admin.emailtools.test.success": {
+    "text": "Test email sent to {to}.",
+    "content_hash": "daa61a62"
+  },
+  "web.admin.emailtools.deliverability.title": {
+    "text": "Deliverability",
+    "content_hash": "66b4d300"
+  },
+  "web.admin.emailtools.deliverability.description": {
+    "text": "What comes back after sending: bounces, complaints, and the suppression list that protects your sender reputation.",
+    "content_hash": "e8363bb5"
+  },
+  "web.admin.emailtools.deliverability.retry": {
+    "text": "Retry",
+    "content_hash": "942087cc"
+  },
+  "web.admin.emailtools.deliverability.tiles.suppressed": {
+    "text": "Suppressed addresses",
+    "content_hash": "b31a245e"
+  },
+  "web.admin.emailtools.deliverability.tiles.bounces": {
+    "text": "Bounces ({days}d)",
+    "content_hash": "3a4d0f09"
+  },
+  "web.admin.emailtools.deliverability.tiles.complaints": {
+    "text": "Complaints ({days}d)",
+    "content_hash": "16ad856f"
+  },
+  "web.admin.emailtools.deliverability.tiles.skipped": {
+    "text": "Sends skipped",
+    "content_hash": "391467f9"
+  },
+  "web.admin.emailtools.deliverability.summary.loadError": {
+    "text": "Could not load the deliverability summary.",
+    "content_hash": "0c16ef96"
+  },
+  "web.admin.emailtools.deliverability.sync.title": {
+    "text": "Feedback sync",
+    "content_hash": "d4056915"
+  },
+  "web.admin.emailtools.deliverability.sync.lastSynced": {
+    "text": "last synced",
+    "content_hash": "5a99666b"
+  },
+  "web.admin.emailtools.deliverability.sync.imported": {
+    "text": "{count} imported",
+    "content_hash": "1bc18c45"
+  },
+  "web.admin.emailtools.deliverability.sync.neverRun": {
+    "text": "Provider feedback sync has never run. Bounce and complaint data is not being imported automatically — configure a provider sync, or ingest feedback via the events endpoint.",
+    "content_hash": "d19f5755"
+  },
+  "web.admin.emailtools.deliverability.sync.button": {
+    "text": "Sync now"
+  },
+  "web.admin.emailtools.deliverability.sync.success": {
+    "text": "{provider} sync complete: {accepted} imported, {rejected} rejected ({fetched} fetched)."
+  },
+  "web.admin.emailtools.deliverability.sync.hint": {
+    "text": "A manual sync — automatic import still requires a scheduled `ots email sync-feedback` cron."
+  },
+  "web.admin.emailtools.deliverability.suppressions.title": {
+    "text": "Suppression list",
+    "content_hash": "9f3e322f"
+  },
+  "web.admin.emailtools.deliverability.suppressions.description": {
+    "text": "Addresses outbound mail skips. Entries come from ESP feedback ingestion or manual import; removing one resumes delivery.",
+    "content_hash": "3651887e"
+  },
+  "web.admin.emailtools.deliverability.suppressions.searchLabel": {
+    "text": "Exact address",
+    "content_hash": "f4338ff8"
+  },
+  "web.admin.emailtools.deliverability.suppressions.searchPlaceholder": {
+    "text": "user{'@'}example.com",
+    "content_hash": "333f0f15"
+  },
+  "web.admin.emailtools.deliverability.suppressions.searchButton": {
+    "text": "Look up",
+    "content_hash": "504101bc"
+  },
+  "web.admin.emailtools.deliverability.suppressions.clearButton": {
+    "text": "Clear",
+    "content_hash": "83b12c22"
+  },
+  "web.admin.emailtools.deliverability.suppressions.columns.address": {
+    "text": "Address",
+    "content_hash": "56ef8f20"
+  },
+  "web.admin.emailtools.deliverability.suppressions.columns.reason": {
+    "text": "Reason",
+    "content_hash": "f81ab834"
+  },
+  "web.admin.emailtools.deliverability.suppressions.columns.source": {
+    "text": "Source",
+    "content_hash": "0e570ca6"
+  },
+  "web.admin.emailtools.deliverability.suppressions.columns.added": {
+    "text": "Added",
+    "content_hash": "6b02e0d3"
+  },
+  "web.admin.emailtools.deliverability.suppressions.columns.actions": {
+    "text": "Actions",
+    "content_hash": "ff8059dc"
+  },
+  "web.admin.emailtools.deliverability.suppressions.empty": {
+    "text": "No suppressed addresses yet. They will appear here as bounce and complaint feedback is ingested.",
+    "content_hash": "dd3f4d61"
+  },
+  "web.admin.emailtools.deliverability.suppressions.emptySearch": {
+    "text": "No suppression entry for {address}.",
+    "content_hash": "200c361e"
+  },
+  "web.admin.emailtools.deliverability.suppressions.loadError": {
+    "text": "Could not load the suppression list.",
+    "content_hash": "2a12c8ba"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.addressLabel": {
+    "text": "Add address",
+    "content_hash": "8be5aa33"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.button": {
+    "text": "Suppress",
+    "content_hash": "60b19987"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.confirmTitle": {
+    "text": "Suppress this address?",
+    "content_hash": "40a0d2a6"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.confirmDescription": {
+    "text": "Outbound mail to {address} will be skipped until the suppression is removed. This is recorded as a manual entry.",
+    "content_hash": "e3d0d799"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.success": {
+    "text": "Address {address} suppressed.",
+    "content_hash": "e2cd2c3b"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.successExisting": {
+    "text": "Address {address} was already suppressed; entry updated.",
+    "content_hash": "0852101e"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.error": {
+    "text": "Could not suppress the address.",
+    "content_hash": "dad9e000"
+  },
+  "web.admin.emailtools.deliverability.suppressions.remove.button": {
+    "text": "Remove",
+    "content_hash": "c3812fc4"
+  },
+  "web.admin.emailtools.deliverability.suppressions.remove.confirmTitle": {
+    "text": "Remove this suppression?",
+    "content_hash": "0b0aec2e"
+  },
+  "web.admin.emailtools.deliverability.suppressions.remove.confirmDescription": {
+    "text": "Outbound mail to {address} will resume. This address previously bounced or complained — remove it only if you know it is deliverable again.",
+    "content_hash": "09442f9c"
+  },
+  "web.admin.emailtools.deliverability.suppressions.remove.success": {
+    "text": "Suppression removed for {address}.",
+    "content_hash": "bfc0de36"
+  },
+  "web.admin.emailtools.deliverability.events.title": {
+    "text": "Recent events",
+    "content_hash": "8ecce94d"
+  },
+  "web.admin.emailtools.deliverability.events.description": {
+    "text": "The raw bounce and complaint feed, newest first.",
+    "content_hash": "0e7a533b"
+  },
+  "web.admin.emailtools.deliverability.events.columns.time": {
+    "text": "Time",
+    "content_hash": "33b93476"
+  },
+  "web.admin.emailtools.deliverability.events.columns.kind": {
+    "text": "Type",
+    "content_hash": "baaddf70"
+  },
+  "web.admin.emailtools.deliverability.events.columns.address": {
+    "text": "Address",
+    "content_hash": "56ef8f20"
+  },
+  "web.admin.emailtools.deliverability.events.columns.source": {
+    "text": "Source",
+    "content_hash": "0e570ca6"
+  },
+  "web.admin.emailtools.deliverability.events.columns.reason": {
+    "text": "Reason",
+    "content_hash": "f81ab834"
+  },
+  "web.admin.emailtools.deliverability.events.empty": {
+    "text": "No bounce or complaint data yet. Pipe your ESP's feedback in via POST /api/colonel/email/deliverability/events (colonel-authenticated — see the endpoint's docs for the record format). Synchronous SMTP hard bounces are recorded automatically.",
+    "content_hash": "a90f259c"
+  },
+  "web.admin.emailtools.deliverability.events.loadError": {
+    "text": "Could not load recent events.",
+    "content_hash": "02244c61"
+  },
+  "web.admin.emailtools.deliverability.events.kinds.bounce": {
+    "text": "bounce",
+    "content_hash": "4d6723e5"
+  },
+  "web.admin.emailtools.deliverability.events.kinds.complaint": {
+    "text": "complaint",
+    "content_hash": "5d08b02d"
+  },
+  "web.admin.emailtools.providerStatus.title": {
+    "text": "Provider status"
+  },
+  "web.admin.emailtools.providerStatus.tier.healthy": {
+    "text": "Healthy"
+  },
+  "web.admin.emailtools.providerStatus.tier.probation": {
+    "text": "Under review"
+  },
+  "web.admin.emailtools.providerStatus.tier.shutdown": {
+    "text": "Sending paused"
+  },
+  "web.admin.emailtools.providerStatus.quota.max24h": {
+    "text": "24h send limit"
+  },
+  "web.admin.emailtools.providerStatus.quota.sent24h": {
+    "text": "Sent (last 24h)"
+  },
+  "web.admin.emailtools.providerStatus.quota.maxRate": {
+    "text": "Max send rate (per sec)"
+  },
+  "web.admin.emailtools.providerStatus.stats.sent": {
+    "text": "Sent ({days}d)"
+  },
+  "web.admin.emailtools.providerStatus.stats.delivered": {
+    "text": "Delivered"
+  },
+  "web.admin.emailtools.providerStatus.stats.hardBounced": {
+    "text": "Hard bounced"
+  },
+  "web.admin.emailtools.providerStatus.stats.complaints": {
+    "text": "Spam complaints"
+  },
+  "web.admin.emailtools.providerStatus.rate.bounce": {
+    "text": "Bounce rate"
+  },
+  "web.admin.emailtools.providerStatus.rate.complaint": {
+    "text": "Complaint rate"
+  },
+  "web.admin.emailtools.providerStatus.rateUnavailable": {
+    "text": "This provider exposes no numeric bounce or complaint rate; the reputation tier above is derived from the enforcement status and sending quota only."
+  },
+  "web.admin.emailtools.providerStatus.complaintsUnavailable": {
+    "text": "Lettermint does not report complaints in its stats API, so the complaint rate is shown as “—” (not reported), not zero. The bounce rate above is complete."
+  },
+  "web.admin.emailtools.providerStatus.unavailable": {
+    "text": "Provider status is temporarily unavailable."
+  },
+  "web.admin.emailtools.providerStatus.notSupported": {
+    "text": "Live provider status is not available on the {provider} transport."
+  },
+  "web.admin.emailtools.providerStatus.error": {
+    "text": "Could not reach the mail provider for status. Try again."
+  },
+  "web.admin.emailtools.deliverability.lookup.title": {
+    "text": "Recipient lookup"
+  },
+  "web.admin.emailtools.deliverability.lookup.description": {
+    "text": "Check whether an address is suppressed, both in the local store and live at the active mail provider. Both are keyed by the same normalized address."
+  },
+  "web.admin.emailtools.deliverability.lookup.addressLabel": {
+    "text": "Recipient address"
+  },
+  "web.admin.emailtools.deliverability.lookup.submit": {
+    "text": "Look up"
+  },
+  "web.admin.emailtools.deliverability.lookup.local": {
+    "text": "Local store"
+  },
+  "web.admin.emailtools.deliverability.lookup.provider": {
+    "text": "Provider"
+  },
+  "web.admin.emailtools.deliverability.lookup.suppressed": {
+    "text": "Suppressed"
+  },
+  "web.admin.emailtools.deliverability.lookup.notSuppressed": {
+    "text": "Not suppressed"
+  },
+  "web.admin.emailtools.deliverability.lookup.reason": {
+    "text": "Reason"
+  },
+  "web.admin.emailtools.deliverability.lookup.source": {
+    "text": "Source"
+  },
+  "web.admin.emailtools.deliverability.lookup.unavailable": {
+    "text": "Live provider lookup is unavailable; the local store above is authoritative."
+  },
+  "web.admin.emailtools.deliverability.messages.title": {
+    "text": "Recent sends"
+  },
+  "web.admin.emailtools.deliverability.messages.description": {
+    "text": "The most recent messages the active mail provider recorded, newest first. Sourced live from the provider — never stored here."
+  },
+  "web.admin.emailtools.deliverability.messages.empty": {
+    "text": "No recent messages returned by the provider."
+  },
+  "web.admin.emailtools.deliverability.messages.notSupported": {
+    "text": "A send log is not available on the {provider} transport, which offers no per-message API."
+  },
+  "web.admin.emailtools.deliverability.messages.error": {
+    "text": "Could not load the send log from the provider. Try again."
+  },
+  "web.admin.emailtools.deliverability.messages.col.status": {
+    "text": "Status"
+  },
+  "web.admin.emailtools.deliverability.messages.col.subject": {
+    "text": "Subject"
+  },
+  "web.admin.emailtools.deliverability.messages.col.to": {
+    "text": "To"
+  },
+  "web.admin.emailtools.deliverability.messages.col.created": {
+    "text": "Sent"
+  },
+  "web.admin.emailtools.deliverability.messages.status.delivered": {
+    "text": "delivered"
+  },
+  "web.admin.emailtools.deliverability.messages.status.opened": {
+    "text": "opened"
+  },
+  "web.admin.emailtools.deliverability.messages.status.clicked": {
+    "text": "clicked"
+  },
+  "web.admin.emailtools.deliverability.messages.status.pending": {
+    "text": "pending"
+  },
+  "web.admin.emailtools.deliverability.messages.status.queued": {
+    "text": "queued"
+  },
+  "web.admin.emailtools.deliverability.messages.status.processed": {
+    "text": "processed"
+  },
+  "web.admin.emailtools.deliverability.messages.status.hard_bounced": {
+    "text": "hard bounced"
+  },
+  "web.admin.emailtools.deliverability.messages.status.soft_bounced": {
+    "text": "soft bounced"
+  },
+  "web.admin.emailtools.deliverability.messages.status.complained": {
+    "text": "complained"
+  },
+  "web.admin.emailtools.deliverability.messages.status.suppressed": {
+    "text": "suppressed"
+  },
+  "web.admin.emailtools.deliverability.messages.status.unsubscribed": {
+    "text": "unsubscribed"
+  }
+}

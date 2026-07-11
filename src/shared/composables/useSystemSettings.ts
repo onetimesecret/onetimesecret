@@ -1,7 +1,6 @@
 // src/shared/composables/useSystemSettings.ts
 
-import { systemSettingsSchema } from '@/schemas/api/account/responses/colonel';
-import { type SystemSettingsDetails } from '@/schemas/contracts/config';
+import { systemSettingsSchema, type SystemSettingsDetails } from '@/schemas/contracts/config';
 import { useNotificationsStore } from '@/shared/stores';
 import { useSystemSettingsStore } from '@/shared/stores/systemSettingsStore';
 import { computed, nextTick, ref } from 'vue';

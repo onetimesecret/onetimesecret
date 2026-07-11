@@ -3,10 +3,20 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require 'onetime/operations/unban_ip'
 
 module ColonelAPI
   module Logic
     module Colonel
+      # Unban an IP address / CIDR (Colonel).
+      #
+      # Thin adapter over {Onetime::Operations::UnbanIP} — the single, audited
+      # implementation of the unban verb (epic #33). This class keeps only the
+      # HTTP concerns (param validation + the not-banned 404); the op owns the
+      # model mutation and the AdminAuditEvent (CONTRACT 4).
+      #
+      # Security invariant (epic #20): BOTH the router (role=colonel) AND this
+      # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.
       class UnbanIP < ColonelAPI::Logic::Base
         attr_reader :ip_address, :unbanned
 
@@ -25,8 +35,13 @@ module ColonelAPI
         end
 
         def process
-          # Unban the IP
-          @unbanned = Onetime::BannedIP.unban!(ip_address)
+          # Delegate the model mutation + audit to the single op implementation.
+          # actor is the acting colonel's PUBLIC id (never an objid).
+          result   = Onetime::Operations::UnbanIP.new(
+            ip_address: ip_address,
+            actor: cust.extid,
+          ).call
+          @unbanned = result.unbanned
 
           success_data
         end

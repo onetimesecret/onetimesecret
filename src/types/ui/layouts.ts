@@ -56,6 +56,16 @@ export interface LogoConfig {
 }
 
 /**
+ * Audience a page belongs to, for global-broadcast scoping. Each layout declares
+ * its audience; BaseLayout matches it against the banner's stored scope to decide
+ * visibility. See src/shared/layouts/BaseLayout.vue.
+ *   - 'recipient': secret reveal / receive surfaces
+ *   - 'workspace': authenticated workspace (dashboard, settings, account, management)
+ *   - 'public':    everything else (homepage, secret creation, auth)
+ */
+export type BannerAudience = 'public' | 'recipient' | 'workspace';
+
+/**
  * UI display configuration for layout components.
  */
 export interface LayoutDisplay {
@@ -76,6 +86,12 @@ export interface LayoutDisplay {
  */
 export interface LayoutProps {
   displayGlobalBroadcast?: boolean;
+  /**
+   * Audience this page belongs to, used to scope the global broadcast banner.
+   * Defaults to 'public'. Wrapping layouts override it (e.g. SecretRevealLayout
+   * → 'recipient', WorkspaceLayout → 'workspace').
+   */
+  bannerAudience?: BannerAudience;
   /**
    * Whether the layout-level `<header>` chrome renders at all.
    * When false, the entire top header element is omitted (no masthead,

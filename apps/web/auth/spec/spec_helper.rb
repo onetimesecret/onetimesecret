@@ -485,6 +485,16 @@ module ProductionConfigHelper
 
     case db.database_type
     when :postgres
+      # Fail closed: refuse to TRUNCATE unless the target is a test database.
+      # The dbname is the only thing separating the test PG (onetime_auth_test)
+      # from a leaked dev value (onetime_authdb); AUTH_DATABASE_URL is read from
+      # ENV, so a run outside the sanctioned :2132 PG lane must not wipe dev.
+      dbname = db.opts[:database].to_s
+      unless dbname =~ /test/i
+        raise "[auth spec_helper] Refusing to TRUNCATE non-test database: " \
+              "#{dbname.empty? ? '<unknown>' : dbname.inspect}. Check AUTH_DATABASE_URL."
+      end
+
       # Use elevated connection for TRUNCATE if available (CI privilege separation)
       # Prefer existing PostgresModeSuiteDatabase connection to avoid per-test connect overhead
       if defined?(PostgresModeSuiteDatabase) && PostgresModeSuiteDatabase.migration_database

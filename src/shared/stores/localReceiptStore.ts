@@ -21,6 +21,7 @@ export type LocalReceiptStore = {
   _initialized: boolean;
   localReceipts: LocalReceipt[];
   workspaceMode: boolean;
+  preferredTtl: number | null;
 
   // Getters
   isInitialized: boolean;
@@ -37,6 +38,7 @@ export type LocalReceiptStore = {
   clearReceipts: () => void;
   setWorkspaceMode: (enabled: boolean) => void;
   toggleWorkspaceMode: () => void;
+  setPreferredTtl: (ttl: number) => void;
   $reset: () => void;
 } & PiniaCustomProperties;
 
@@ -45,6 +47,7 @@ export type LocalReceiptStore = {
 // which use dot notation).
 const STORAGE_KEY = 'onetimeReceiptCache';
 const WORKSPACE_MODE_KEY = 'onetimeWorkspaceMode';
+const PREFERRED_TTL_KEY = 'onetimePreferredTtl';
 const MAX_STORED_RECEIPTS = 25;
 
 /**
@@ -92,6 +95,23 @@ function loadWorkspaceModePreference(): boolean {
 }
 
 /**
+ * Loads the last-used TTL preference from localStorage
+ * Uses localStorage (not sessionStorage) so preference persists across sessions.
+ * Returns null when unset or invalid so callers fall back to the configured default.
+ */
+function loadPreferredTtl(): number | null {
+  try {
+    const stored = localStorage.getItem(PREFERRED_TTL_KEY);
+    if (stored === null) return null;
+    const parsed = Number(stored);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  } catch (error) {
+    loggingService.error(new Error(`Failed to load preferred TTL: ${error}`));
+  }
+  return null;
+}
+
+/**
  * Store for managing local receipt records during a user session.
  * This store persists links created during the current session so they
  * remain available when navigating between pages and browser refreshes.
@@ -104,6 +124,7 @@ export const useLocalReceiptStore = defineStore('localReceipt', () => {
   const _initialized = ref(false);
   const localReceipts = ref<LocalReceipt[]>(loadFromStorage());
   const workspaceMode = ref(loadWorkspaceModePreference());
+  const preferredTtl = ref<number | null>(loadPreferredTtl());
 
   // Getters
   const isInitialized = computed(() => _initialized.value);
@@ -128,6 +149,19 @@ export const useLocalReceiptStore = defineStore('localReceipt', () => {
       localStorage.setItem(WORKSPACE_MODE_KEY, String(enabled));
     } catch (error) {
       loggingService.error(new Error(`Failed to save workspace mode preference: ${error}`));
+    }
+  });
+
+  // Watch for changes to preferredTtl and save to localStorage
+  watch(preferredTtl, (ttl) => {
+    try {
+      if (ttl === null) {
+        localStorage.removeItem(PREFERRED_TTL_KEY);
+      } else {
+        localStorage.setItem(PREFERRED_TTL_KEY, String(ttl));
+      }
+    } catch (error) {
+      loggingService.error(new Error(`Failed to save preferred TTL: ${error}`));
     }
   });
 
@@ -322,6 +356,15 @@ export const useLocalReceiptStore = defineStore('localReceipt', () => {
   }
 
   /**
+   * Sets the last-used TTL preference so the secret form restores it on reload.
+   *
+   * @param ttl The TTL value in seconds
+   */
+  function setPreferredTtl(ttl: number) {
+    preferredTtl.value = ttl;
+  }
+
+  /**
    * Reset store state to initial values.
    * Implementation of $reset() for setup stores since it's not automatically available.
    * Also clears sessionStorage.
@@ -329,6 +372,7 @@ export const useLocalReceiptStore = defineStore('localReceipt', () => {
   function $reset() {
     clearReceipts();
     workspaceMode.value = false;
+    preferredTtl.value = null;
     _initialized.value = false;
   }
 
@@ -337,6 +381,7 @@ export const useLocalReceiptStore = defineStore('localReceipt', () => {
     _initialized,
     localReceipts,
     workspaceMode,
+    preferredTtl,
 
     // Getters
     isInitialized,
@@ -353,6 +398,7 @@ export const useLocalReceiptStore = defineStore('localReceipt', () => {
     clearReceipts,
     setWorkspaceMode,
     toggleWorkspaceMode,
+    setPreferredTtl,
     $reset,
   };
 });

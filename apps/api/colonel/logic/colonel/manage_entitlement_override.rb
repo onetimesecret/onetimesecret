@@ -73,7 +73,7 @@ module ColonelAPI
         def raise_concerns
           verify_one_of_roles!(colonel: true)
 
-          @org = Onetime::Organization.load(@org_id)
+          @org = load_organization
           raise_not_found('Organization not found') unless @org&.exists?
 
           # Validate entitlement name is known (optional, but helps catch typos)
@@ -96,6 +96,8 @@ module ColonelAPI
             @org.clear_entitlement_overrides
           end
 
+          record_audit_event
+
           success_data
         end
 
@@ -114,6 +116,34 @@ module ColonelAPI
         end
 
         private
+
+        # Resolve the target org by PUBLIC id (extid) first — the admin
+        # organizations screen routes exclusively by extid — then fall back to
+        # objid so existing objid-based callers (CLI, older integrations) keep
+        # working. Mirrors InvestigateOrganization#load_organization.
+        def load_organization
+          org = Onetime::Organization.find_by_extid(@org_id)
+          return org if org
+
+          Onetime::Organization.load(@org_id)
+        end
+
+        # One audit event per successful entitlement-override mutation
+        # (CONTRACT 4 / epic D4). Emitted from the logic layer: this
+        # billing-domain verb has no extracted Operation yet (a dedicated
+        # billing op is deferred to a follow-up per the epic's "improvements
+        # ship as separate PRs"), so the non-negotiable audit backstop lives
+        # here. actor/target are PUBLIC ids (never objids); AdminAuditEvent.record
+        # is best-effort and swallows its own failures, so it never breaks the op.
+        def record_audit_event
+          Onetime::AdminAuditEvent.record(
+            actor: cust.extid,
+            verb: "organization.entitlement.#{@action}",
+            target: @org.extid,
+            result: :success,
+            detail: @action == 'clear' ? {} : { entitlement: @entitlement },
+          )
+        end
 
         def action_past_tense
           ACTION_PAST_TENSE[@action]
