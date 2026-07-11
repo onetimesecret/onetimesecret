@@ -149,6 +149,11 @@ seed_configs() {
 
 # --- Dependencies -------------------------------------------------------
 
+# Installs are FROZEN whenever a committed lockfile exists: setup must never
+# rewrite Gemfile.lock / pnpm-lock.yaml (the fresh-clone CI lane fails on any
+# tracked-file drift, lockfiles included). Updating a lockfile is a deliberate
+# act — run the package manager directly, commit the result.
+
 install_gems() {
   has bundle || gem install bundler
 
@@ -157,14 +162,15 @@ install_gems() {
     return 0
   fi
 
-  local fresh
-  fresh=$([[ -f Gemfile.lock ]] && echo false || echo true)
-  $fresh && info "Fresh clone, generating lockfile..."
-
-  info "Installing Ruby gems (bundle install)..."
-  bundle install --retry 3
-
-  $fresh && warn "Generated Gemfile.lock - consider committing" || true
+  if [[ -f Gemfile.lock ]]; then
+    info "Installing Ruby gems (bundle install, frozen lockfile)..."
+    BUNDLE_FROZEN=true bundle install --retry 3 ||
+      die "bundle install failed in frozen mode. If you changed the Gemfile, run 'bundle install' yourself to update Gemfile.lock, commit it, then re-run bin/setup."
+  else
+    info "Fresh clone, generating lockfile (bundle install)..."
+    bundle install --retry 3
+    warn "Generated Gemfile.lock - consider committing"
+  fi
 }
 
 install_node() {
@@ -173,8 +179,14 @@ install_node() {
     return 0
   fi
   has pnpm || die "pnpm not found — install it first: https://pnpm.io/installation"
-  info "Installing Node dependencies (pnpm install)..."
-  pnpm install
+  if [[ -f pnpm-lock.yaml ]]; then
+    info "Installing Node dependencies (pnpm install --frozen-lockfile)..."
+    pnpm install --frozen-lockfile ||
+      die "pnpm install failed with a frozen lockfile. If you changed package.json, run 'pnpm install' yourself to update pnpm-lock.yaml, commit it, then re-run bin/setup."
+  else
+    info "Installing Node dependencies (pnpm install)..."
+    pnpm install
+  fi
 }
 
 # --- Generated artifacts ------------------------------------------------

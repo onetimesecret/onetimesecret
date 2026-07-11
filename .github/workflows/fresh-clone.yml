@@ -125,29 +125,20 @@ jobs:
       # --- Litter check: the documented setup must leave a clean tree ---------
       # Everything bin/setup writes to app/config/generated paths
       # (etc/*.yaml, generated/**, .test-mode, .env*) is gitignored by design.
-      # The two exceptions are the lockfiles: `bundle install` and (non-frozen)
-      # `pnpm install` legitimately rewrite Gemfile.lock / pnpm-lock.yaml on a
-      # runner whose platform differs from the committer's — expected CI churn,
-      # not the leak this check guards against. So: warn on lockfile drift,
-      # FAIL on anything else (a config/generated file leaking into a tracked
-      # path). Tightening bin/setup to frozen installs is the real fix
-      # for the lockfile churn and belongs to C3/C6, not this lane.
+      # Lockfiles get no carve-out: bin/setup installs frozen when a lockfile
+      # exists (BUNDLE_FROZEN / --frozen-lockfile), so any drift here means
+      # the frozen contract broke — fail, don't warn.
       - name: Litter check (clean working tree after setup)
         run: |
-          lock_drift="$(git status --porcelain -- Gemfile.lock pnpm-lock.yaml)"
-          if [[ -n "$lock_drift" ]]; then
-            echo "::warning::setup rewrote lockfile(s) — expected CI platform churn:"
-            echo "$lock_drift"
-          fi
-          other="$(git status --porcelain -- . ':(exclude)Gemfile.lock' ':(exclude)pnpm-lock.yaml')"
-          if [[ -n "$other" ]]; then
-            echo "::error::bin/setup dirtied tracked files outside the lockfiles"
-            echo "$other"
-            echo "--- git diff (excluding lockfiles) ---"
-            git --no-pager diff -- . ':(exclude)Gemfile.lock' ':(exclude)pnpm-lock.yaml'
+          litter="$(git status --porcelain)"
+          if [[ -n "$litter" ]]; then
+            echo "::error::bin/setup dirtied tracked files"
+            echo "$litter"
+            echo "--- git diff ---"
+            git --no-pager diff
             exit 1
           fi
-          echo "Working tree clean (ignoring expected lockfile churn) after setup + suites + idempotency."
+          echo "Working tree clean after setup + suites + idempotency."
 
       - name: Report contributor-path duration (TTFHW proxy)
         if: always()
