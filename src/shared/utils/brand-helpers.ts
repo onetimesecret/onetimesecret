@@ -155,9 +155,9 @@ export const borderRadiusDisplayMap: Record<BorderRadiusPreset, string> = {
 
 /**
  * Icon class names for border-radius presets. Reuses the tabler corner icons
- * (square → rounded → pill) so the CycleButton shows a meaningful glyph per
- * step — without an icon-map the control renders a generic question mark, since
- * CycleButton's only visible content is the icon.
+ * (square → rounded → pill) so the corner control shows a meaningful glyph per
+ * step — without an icon-map an icon-only control renders a generic question
+ * mark.
  */
 export const borderRadiusIconMap: Record<BorderRadiusPreset, string> = {
   none: 'tabler-border-corner-square',

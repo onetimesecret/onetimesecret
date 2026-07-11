@@ -177,4 +177,25 @@ describe('BrandedHomepage render switch', () => {
 
     expect(wrapper.find('[data-testid="stub-secret-form"]').exists()).toBe(false);
   });
+
+  it('renders the headline in the brand heading font', async () => {
+    const bootstrap = useBootstrapStore();
+    // Patch before mount: identityStore parses domain_branding at creation.
+    bootstrap.$patch({
+      domain_branding: { heading_font: 'slab', font_family: 'mono' },
+    });
+
+    const wrapper = await mountHomepage(homepageConfig());
+
+    expect(wrapper.find('h1').classes()).toContain('font-brand-slab');
+  });
+
+  it('falls back to the body font for the headline when heading_font is unset', async () => {
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ domain_branding: { font_family: 'mono' } });
+
+    const wrapper = await mountHomepage(homepageConfig());
+
+    expect(wrapper.find('h1').classes()).toContain('font-mono');
+  });
 });

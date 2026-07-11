@@ -33,6 +33,7 @@
   // Use computed properties directly from identityStore (already parsed with v3 schema)
   const cornerClass = computed(() => productIdentity.cornerClass);
   const fontFamilyClass = computed(() => productIdentity.fontFamilyClass);
+  const headingFontClass = computed(() => productIdentity.headingFontClass);
 
   const alertClasses = computed(() => ({
     'mb-4 p-4 rounded-md': true,
@@ -82,6 +83,7 @@
     :domain-branding="productIdentity.brand ?? defaultBrandSettings"
     :corner-class="cornerClass"
     :font-class="fontFamilyClass"
+    :heading-class="headingFontClass"
     :is-revealed="isRevealed">
     <!-- Alert display -->
     <div

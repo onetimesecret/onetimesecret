@@ -81,6 +81,14 @@ const fontFamilyClass = computed(() => {
   return fontFamilyClasses[font ?? FontFamily.SANS];
 });
 
+// Mirror identityStore.headingFontClass: heading_font falls back to the body
+// font_family, so the preview heading tracks the recipient page.
+const headingFontClass = computed(() => {
+  const heading = (props.domainBranding?.heading_font ??
+    props.domainBranding?.font_family) as FontFamily | undefined;
+  return fontFamilyClasses[heading ?? FontFamily.SANS];
+});
+
 // Expanded vocabulary (#3646). The preview renders an arbitrary domain's
 // settings (not the editing admin's injected palette). Scope this domain's
 // border_radius to a local --radius-brand so every `rounded-brand` descendant
@@ -111,7 +119,8 @@ const actionButtonStyle = computed<Record<string, string>>(() => ({
     :preview-i18n="previewI18n"
     :is-revealed="isRevealed"
     :corner-class="cornerClass"
-    :font-class="fontFamilyClass">
+    :font-class="fontFamilyClass"
+    :heading-class="headingFontClass">
     <!-- Logo Upload Area -->
     <template #logo>
       <div class="group relative mx-auto sm:mx-0">

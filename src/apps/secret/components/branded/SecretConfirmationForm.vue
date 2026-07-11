@@ -39,6 +39,7 @@
   // Use computed refs from identityStore directly - already parsed with v3 schema
   const cornerClass = computed(() => productIdentity.cornerClass);
   const fontFamilyClass = computed(() => productIdentity.fontFamilyClass);
+  const headingFontClass = computed(() => productIdentity.headingFontClass);
 
   const hasImageError = ref(false);
 
@@ -71,7 +72,8 @@
     :preview-i18n="i18n"
     :domain-branding="productIdentity.brand ?? defaultBrandSettings"
     :corner-class="cornerClass"
-    :font-class="fontFamilyClass">
+    :font-class="fontFamilyClass"
+    :heading-class="headingFontClass">
     <template #logo>
       <div class="relative mx-auto sm:mx-0">
         <div :class="[cornerStyle, 'size-14 overflow-hidden sm:size-16']">
