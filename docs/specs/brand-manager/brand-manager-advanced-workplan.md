@@ -105,7 +105,7 @@ Close:              C12b (←C6,C7,C8,C10,C5b)
 
 ## Open questions (need product/owner decision — do not resolve silently)
 
-Status 2026-07-11: **Q1, Q2, Q5, Q8 resolved** (owner decisions; Q5/Q8 also implemented on fix/brand-token-consumers). Q3, Q4, Q6, Q7, Q9 remain open.
+Status 2026-07-11: **Q1, Q2, Q5, Q8, Q9 resolved** (owner decisions; Q5/Q8 also implemented on fix/brand-token-consumers; Q9 = delano, after C12a). Q3, Q4, Q6, Q7 remain open — none blocks a chunk (Q4 is pinned-either-way in C3, Q7 is copy wording in C4).
 
 1. **Q1 — RESOLVED 2026-07-11: brand wins both themes.** Operator-explicit background/text values apply in light AND dark (conditional class swap, no `dark:` pair); unset domains stay pixel-identical. Q1b resolved with it: the operator background applies to the BrandedHomepage SecretForm card (:152). Derived-dark-pair and explicit-dark-token alternatives rejected (auto-mutated colors the operator never chose; doubled editor surface). Guardrail = the editor WCAG contrast advisory (C7). C6/C7 unblocked.
 
@@ -117,4 +117,4 @@ Status 2026-07-11: **Q1, Q2, Q5, Q8 resolved** (owner decisions; Q5/Q8 also impl
 6. **Q6: Advanced-specific entitlement?** Recommend no — custom_branding gates the whole hash uniformly (update_domain_brand.rb:126-131).
 7. **Q7: path_advanced_tag replacement copy** — reworded mechanically in C4, wording is a product-voice call.
 8. **Q8 — RESOLVED 2026-07-11: fixed** on fix/brand-token-consumers — ShowSecret.vue now takes `brand` via storeToRefs, so post-mount brand arrival propagates to the corner/font bindings and UnknownSecret (distinct from the :61-64 class map C13 migrates, which remains).
-9. **Q9 (new, blocks C14 timing): who reviews the integration→main merge, and when?** Recommended: after C12a (the rebuild has never been browser-verified; main has drifted).
+9. **Q9 — RESOLVED 2026-07-11: delano reviews**, after C12a per the recommendation (the rebuild has never been browser-verified; main has drifted). C14 timing unblocked.
