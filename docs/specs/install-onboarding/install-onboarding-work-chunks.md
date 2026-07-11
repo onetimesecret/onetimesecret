@@ -381,6 +381,54 @@ CI-checked artifact.
 Proof: doctor's own checks run in C7's lanes; bundle format has a golden-file
 test.
 
+> **Status (2026-07-11, shipped):** doctor v2 landed in `bin/setup` (bash,
+> not `bin/ots` — it must work when the app can't boot), with the shared
+> probe helpers in `scripts/setup/lib.sh` (`tcp_probe`, `url_host_port`,
+> `dotenv_get`/`env_or_dotenv`). Every check diffs a pin/manifest or probes
+> a live service. **BM-05 fully:** PostgreSQL (`AUTH_DATABASE_URL`) and
+> RabbitMQ (`RABBITMQ_URL`, gated on `JOBS_ENABLED` — jobs are independent
+> of auth mode) are probed by TCP connectivity; the `has psql`/`has
+> rabbitmqctl` CLI-presence checks are gone. **BM-10:** `--operator`
+> context drops contributor-tooling checks (overmind, direnv, pre-commit,
+> Procfile.dev, generated artifacts) and treats a down service as FAIL
+> rather than warn; `--init`'s trailing doctor runs `--operator`, and the
+> dev lane closes with a `--dev` doctor pass (D8's GDK-style last step —
+> the "first step" half is the version gates cmd_dev already opens with).
+> New dev-context checks: direnv *hook* detection via the `OTS_ENV_LOADED`
+> export (DX-4's installed-but-unhooked trap; skipped in CI), git-hooks
+> presence, generated-artifact presence, test-datastore probe when
+> `.test-mode` is active, and a `check-version-pins.sh` cross-check.
+> **DUP trio reconciled by ownership, not merger:** doctor = environment;
+> `/health/advanced` (+ `bin/ots status` as its CLI view) = runtime
+> services — doctor *delegates* to `/health/advanced` when something
+> answers on `PORT` instead of restating its checks; `healthcheck.sh` =
+> container liveness. Each file's header names the split. **R0.2:**
+> `--doctor --bundle` writes a sanitized tar.gz to `tmp/` (fixed 8-entry
+> format: doctor/system/versions/files/env-names/config/logs/manifest; env
+> var NAMES only, hostname omitted, log excerpt masked for emails/long
+> hex/secret-ish assignments); golden-file spec at
+> `spec/unit/setup/doctor_bundle_spec.rb` runs in `spec:fast`, so the
+> fresh-clone lane proves it; SUPPORT.md tells bug reporters to attach it.
+> **QS-11:** `scripts/check-env-reference.sh` extracts consumed vars (ENV
+> reads in lib/apps/etc/config.ru + `.env.example` + README) and fails on
+> any var neither documented in `.env.reference` nor listed in
+> `scripts/env-reference-ignore.txt` — a RATCHET: the ignore file's
+> INTERNAL section (37 CI/debug/script-internal vars) is permanent, its
+> BACKLOG section (151 user-facing vars) is documentation owed, and new
+> vars can't land undocumented. `AUTH_REQUIRED` (the QS-11 finding) and
+> the C4-deferred `AUTH_AUTOVERIFY` polarity comment are documented in
+> `.env.reference` now. **Drift guards:** `check-version-pins.sh` extended
+> to the devcontainer (compose ruby tag major.minor, node feature major —
+> the C8 lockstep candidate). **Proof wiring:** fresh-clone.yml runs
+> `bin/setup --doctor` (zero-failures assertion) right after `bin/setup`;
+> new `drift-guards.yml` runs both grep-guards on every PR — necessary
+> because validate-config.yml (their other home) is workflow_dispatch-only
+> today. **Deviations:** no GDK-style `--correct` flag (the bin/setup
+> lanes *are* the correction; every finding prints its fix command);
+> `.env.reference` is CI-checked, not generated (the file's prose value
+> exceeds what generation from code is worth); the 151-var documentation
+> backlog is tracked in the ignore file rather than written now.
+
 ## C10 — SECRET lifecycle safety (QS-6)
 
 Needs a short design first: boot-time key fingerprint (e.g., HKDF-derived
@@ -411,11 +459,12 @@ C4 and C5 in parallel (small, independent). **Then:** C6 → C8, with C9 and
 C10 scheduled by appetite. C1+C2+C3 alone convert all three documented
 paths from "fails on a clean machine" to "works"; C7 makes it stay that way.
 
-> **Position (2026-07-10):** C1–C8 done — C3 with the recorded direnv/
+> **Position (2026-07-11):** C1–C9 done — C3 with the recorded direnv/
 > overmind scope-down, clean-room validated (see
 > [install-onboarding-clean-room-validation.md](./install-onboarding-clean-room-validation.md)),
-> NF-1–NF-5 fixed, C7 shipped, C4/C5/C6/C8 landed (each with the
+> NF-1–NF-5 fixed, C7 shipped, C4/C5/C6/C8/C9 landed (each with the
 > deferrals and deviations listed in its status note; the C3/C6
 > frozen-install and D6 dev:seed residuals closed 2026-07-10). Remaining:
-> **C9 and C10**, scheduled by appetite, plus the open CI-lane items
-> tracked in C7's note.
+> **C10** (needs its short design first), the open CI-lane items tracked
+> in C7's note, and C9's env-reference documentation backlog
+> (`scripts/env-reference-ignore.txt` BACKLOG section).
