@@ -1,0 +1,152 @@
+# ==============================================================================
+# Fresh-clone contributor path (install-onboarding testing-strategy §2c)
+# ==============================================================================
+# The "Zulip shape": a CI job that is *nothing but the documented contributor
+# path*, run from zero on a clean runner. If this job needs a step the docs
+# don't state, either the job or the docs is wrong — fix one.
+#
+#   fresh runner
+#     -> ./install-test.sh                      # the documented setup artifact
+#     -> pnpm run test:rspec:fast && pnpm test  # the documented suites
+#     -> ./install-test.sh                      # second run = idempotency (Zulip)
+#     -> git status --porcelain == empty        # litter check (Zulip)
+#
+# Deliberate design choices:
+#   - Toolchain comes from the pinned version FILES (.ruby-version = 3.4.9,
+#     .node-version = 22), NOT hardcoded versions — this lane exists to prove
+#     the *documented* floors work (the Node-22 gate fix is the whole point of
+#     the onboarding branch; the reusable setup-node-env action defaults to 25
+#     and force-installs deps, so it is intentionally NOT used here).
+#   - No config-seeding composite actions and no Valkey service container:
+#     install-test.sh does all app-level setup itself (seeds etc/ from
+#     defaults, installs deps, generates locales + schemas, starts its own
+#     throwaway datastore on :2121). Reproducing those steps in YAML would
+#     test an idealized path, not the artifact a contributor runs.
+#   - No build step before the suite: TR-01 is that the RSpec fast suite is
+#     green on a pristine clone with no `pnpm run build` ever run.
+#
+# The job's DURATION is the TTFHW proxy for the contributor path — surfaced in
+# the step summary and worth charting/alarming on over time.
+# ==============================================================================
+name: Fresh-clone contributor path
+
+on:
+  pull_request:
+    paths:
+      - 'install-test.sh'
+      - 'install-dev.sh'
+      - 'install.sh'
+      - 'Gemfile'
+      - 'Gemfile.lock'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.ruby-version'
+      - '.node-version'
+      - 'etc/defaults/**'
+      - '.github/workflows/fresh-clone.yml'
+  schedule:
+    # Weekly: catches registry/runner/dependency rot with no commit
+    # (the scheduled-lane pattern — Sentry/Supabase run their install paths on
+    # a cron precisely for this).
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fresh-clone:
+    name: install-test.sh from zero
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      # A contributor installs a datastore too. redis-server (Ubuntu 24.04
+      # universe, 7.x) is what the clean-room validation used; install-test.sh
+      # discovers it via `command -v redis-server` and starts its own instance
+      # on :2121, so the apt-started service on :6379 is harmless.
+      - name: Install datastore (redis-server, Valkey-compatible)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y redis-server
+
+      # Toolchain from the pinned version files — the documented floors.
+      # setup-ruby reads .ruby-version by default when no ruby-version is given
+      # (this SHA predates the `ruby-version-file` input), so 3.4.9 is selected
+      # from the file with no extra config.
+      - name: Setup Ruby (.ruby-version)
+        uses: ruby/setup-ruby@97b333846670e3cb692f29c0c5d42b71efc6bc93
+        with:
+          bundler-cache: false  # install-test.sh runs `bundle install` itself
+
+      - name: Setup Node (.node-version)
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version-file: '.node-version'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+
+      - name: Setup Python (locales:sync)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Record start time
+        id: start
+        run: echo "epoch=$(date +%s)" >> "$GITHUB_OUTPUT"
+
+      # --- The documented contributor path, from zero -------------------------
+      - name: Run install-test.sh (documented setup, first run)
+        run: ./install-test.sh
+
+      - name: "RSpec fast suite (TR-01: no build ever run)"
+        run: pnpm run test:rspec:fast
+
+      - name: Vitest suite
+        run: pnpm test
+
+      - name: Run install-test.sh again (idempotency contract)
+        run: ./install-test.sh
+
+      # --- Litter check: the documented setup must leave a clean tree ---------
+      # Everything install-test.sh writes to app/config/generated paths
+      # (etc/*.yaml, generated/**, .test-mode, .env*) is gitignored by design.
+      # The two exceptions are the lockfiles: `bundle install` and (non-frozen)
+      # `pnpm install` legitimately rewrite Gemfile.lock / pnpm-lock.yaml on a
+      # runner whose platform differs from the committer's — expected CI churn,
+      # not the leak this check guards against. So: warn on lockfile drift,
+      # FAIL on anything else (a config/generated file leaking into a tracked
+      # path). Tightening install-test.sh to frozen installs is the real fix
+      # for the lockfile churn and belongs to C3/C6, not this lane.
+      - name: Litter check (clean working tree after setup)
+        run: |
+          lock_drift="$(git status --porcelain -- Gemfile.lock pnpm-lock.yaml)"
+          if [[ -n "$lock_drift" ]]; then
+            echo "::warning::setup rewrote lockfile(s) — expected CI platform churn:"
+            echo "$lock_drift"
+          fi
+          other="$(git status --porcelain -- . ':(exclude)Gemfile.lock' ':(exclude)pnpm-lock.yaml')"
+          if [[ -n "$other" ]]; then
+            echo "::error::install-test.sh dirtied tracked files outside the lockfiles"
+            echo "$other"
+            echo "--- git diff (excluding lockfiles) ---"
+            git --no-pager diff -- . ':(exclude)Gemfile.lock' ':(exclude)pnpm-lock.yaml'
+            exit 1
+          fi
+          echo "Working tree clean (ignoring expected lockfile churn) after setup + suites + idempotency."
+
+      - name: Report contributor-path duration (TTFHW proxy)
+        if: always()
+        env:
+          START_EPOCH: ${{ steps.start.outputs.epoch }}
+        run: |
+          end="$(date +%s)"
+          start="$START_EPOCH"
+          if [[ -n "$start" ]]; then
+            secs=$(( end - start ))
+            printf '### Fresh-clone contributor path: %dm %ds\n' \
+              $(( secs / 60 )) $(( secs % 60 )) >> "$GITHUB_STEP_SUMMARY"
+          fi
