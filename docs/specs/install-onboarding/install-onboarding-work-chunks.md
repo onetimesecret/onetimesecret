@@ -441,6 +441,16 @@ story.
 Proof: unit specs for mismatch behavior + a harness lane that boots with a
 rotated SECRET and asserts the secret survives a failed reveal.
 
+> **Status note (2026-07-11):** The short design is written —
+> [install-onboarding-c10-secret-lifecycle.md](./install-onboarding-c10-secret-lifecycle.md).
+> Core (non-negotiable): boot-time HKDF verifier in Valkey with
+> warn/enforce/off policy, and claim-rollback in `Secret#reveal!` on
+> `Familia::EncryptionError` (no new lifecycle state; ADR-019 preserved —
+> zero plaintext produced means returning the claim is safe). Appetite-gated:
+> `SECRET_PREVIOUS` decrypt-only key chain via the existing Familia key
+> versioning, plus the rotation/backup runbook (which ships docs-only if the
+> buffer runs out). Implementation not started.
+
 ## Not in any chunk (explicitly deferred)
 
 - Runtime-config overlay, web wizard, first-admin web flow — the existing
