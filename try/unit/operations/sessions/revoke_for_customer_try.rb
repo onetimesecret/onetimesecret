@@ -58,6 +58,37 @@ Onetime::Operations::Sessions::TrackMetadata.new(
 DB.set(@key, @codec.encode({ 'authenticated' => true, 'external_id' => @extid,
                              'email' => @cust.email }))
 
+# Owner-mismatch fixtures (used by the mismatch test cases further down). A
+# SECOND customer @other owns @msid; @cust owns @msid2. Both are set up here in
+# the top-level setup region so the values persist to the test cases + teardown.
+@other = Onetime::Customer.create!(email: "revoke_other_#{@nonce}@example.com")
+@other.verified = 'true'
+@other.save
+@other_extid = @other.extid
+
+@msid  = "trymismatch_#{@nonce}"
+@mkey  = "session:#{@msid}"
+@msid2 = "trymatch_#{@nonce}"
+@mkey2 = "session:#{@msid2}"
+SM.load(@msid)&.destroy!
+SM.load(@msid2)&.destroy!
+
+# @msid tracked to @other (sidecar user_id == @other_extid); @msid2 tracked to
+# @cust (matching owner). Mint a real blob for each.
+Onetime::Operations::Sessions::TrackMetadata.new(
+  session_id: @msid,
+  session_data: { 'authenticated' => true, 'external_id' => @other_extid,
+                  'ip_address' => '203.0.113.9', 'user_agent' => 'UA' },
+).call
+DB.set(@mkey, @codec.encode({ 'authenticated' => true, 'external_id' => @other_extid }))
+
+Onetime::Operations::Sessions::TrackMetadata.new(
+  session_id: @msid2,
+  session_data: { 'authenticated' => true, 'external_id' => @extid,
+                  'ip_address' => '203.0.113.10', 'user_agent' => 'UA' },
+).call
+DB.set(@mkey2, @codec.encode({ 'authenticated' => true, 'external_id' => @extid }))
+
 # ---- pre-conditions ---------------------------------------------------
 
 ## before revoke: the live blob, the sidecar, and the index member all exist
@@ -114,9 +145,39 @@ AE.count
 AE.recent(1).first['detail']['blob_deleted']
 #=> false
 
+# ---- owner mismatch: audit records the sidecar's true owner --------------
+# Colonel-only tool, so a revoke via a route custid that does NOT own the sid
+# still deletes the blob (takeover mitigation must not be gated on best-effort
+# sidecar state) — but the audit surfaces the sidecar's recorded owner so the
+# action is not silently mis-attributed to the route customer. Fixtures (@msid
+# owned by @other, @msid2 owned by @cust) are minted in the setup region above.
+
+## revoking @other's sid via @cust (the WRONG owner) still deletes the blob
+AE.events.clear
+@resm = RFC.new(custid: @extid, session_id: @msid, actor: @actor).call
+[@resm.revoked, @resm.blob_deleted, Store.find_key(DB, @msid)]
+#=> [true, true, nil]
+
+## the audit targets the route customer but records the sidecar's true owner
+@evm = AE.recent(1).first
+[@evm['target'], @evm['detail']['session_user_id']]
+#=> ["#{@extid}", "#{@other_extid}"]
+
+## a matching-owner revoke omits session_user_id (only present on mismatch)
+AE.events.clear
+RFC.new(custid: @extid, session_id: @msid2, actor: @actor).call
+AE.recent(1).first['detail'].key?('session_user_id')
+#=> false
+
 # Cleanup
 SM.load(@sid)&.destroy!
 DB.del(@key)
+SM.load(@msid)&.destroy!
+DB.del(@mkey)
+SM.load(@msid2)&.destroy!
+DB.del(@mkey2)
+@other.active_sessions.clear
+@other.destroy!
 @cust.active_sessions.clear
 @cust.destroy!
 AE.events.clear

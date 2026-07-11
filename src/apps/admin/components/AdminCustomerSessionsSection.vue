@@ -170,7 +170,7 @@
         type="button"
         data-testid="sessions-revoke-all"
         class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/40"
-        :disabled="loading || loadFailed"
+        :disabled="loading"
         @click="requestRevokeAll">
         <OIcon
           collection="heroicons"

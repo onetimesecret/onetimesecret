@@ -79,6 +79,7 @@ it disagrees with the table below, **the table is authoritative.**
 - **Backfill gap (by design)** — the sidecar only populates forward, on the next authenticated `write_session`. Pre-existing sessions have no sidecar until they churn; the global console covers them. No backfill script (it would reintroduce the scan+decrypt this feature avoids).
 - **`auth_method` and `org_id` are now populated** — `auth_method` is stamped at `after_login` (primary method from Rodauth `authenticated_by`); `org_id` is resolved per write via `OrganizationLoader`. Both are safe to surface. Only **`mfa_used`** remains latent (always nil) — a second-factor stamp (from `after_two_factor_authentication`) is the follow-up. Legacy sessions minted before this change carry nil `auth_method`/`org_id` until they churn.
 - **Rodauth SQL `active_session_keys` row not tidied on revoke** (mode=full) — harmless orphan that self-expires; optional tidy only if the Rodauth self-service list must stay consistent.
+- **Cross-owner single-revoke audit attribution — HARDENED.** Single-revoke is colonel-only, so it does **not** gate the blob delete on ownership (takeover mitigation must not be blocked by best-effort sidecar state). But when the sidecar's recorded `user_id` differs from the route customer, `RevokeForCustomer` records `session_user_id` in the audit detail so the action is not silently mis-attributed. The true owner's stale index member self-heals via `ListForCustomer`'s blob-liveness prune.
 
 ---
 
