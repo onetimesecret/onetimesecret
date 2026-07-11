@@ -33,11 +33,21 @@
   const notifications = useNotificationsStore();
 
   const store = useAdminCustomerSessions();
-  const { sessions, loading, error, validationError } = storeToRefs(store);
+  const { sessions, currentSessionId, loading, error, validationError } = storeToRefs(store);
 
   const loadFailed = computed(
     () => error.value !== null || validationError.value !== null
   );
+
+  /**
+   * True for the acting colonel's OWN session row. Revoking it is a no-op (Rack
+   * re-persists the current session's blob at the end of the same request), so
+   * the row is badged and its per-row revoke is disabled instead of silently
+   * doing nothing.
+   */
+  function isCurrentSession(sessionId: string): boolean {
+    return currentSessionId.value !== null && sessionId === currentSessionId.value;
+  }
 
   const columns = computed<DataTableColumn<AdminCustomerSession>[]>(() => [
     { key: 'last_activity_at', label: t('web.admin.customers.detail.sessions.columns.lastActivity') },
@@ -226,7 +236,20 @@
       </template>
 
       <template #cell-actions="{ row }">
+        <!-- The colonel's own session: badge it and disable the (no-op) self-revoke. -->
+        <span
+          v-if="isCurrentSession(row.session_id)"
+          :data-testid="`session-current-${row.session_id}`"
+          class="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
+          :title="t('web.admin.customers.detail.sessions.current.tooltip')">
+          <OIcon
+            collection="heroicons"
+            name="check-badge"
+            size="4" />
+          {{ t('web.admin.customers.detail.sessions.current.badge') }}
+        </span>
         <button
+          v-else
           type="button"
           :data-testid="`session-revoke-${row.session_id}`"
           class="text-sm font-medium text-red-600 hover:text-red-800 focus:ring-2 focus:ring-red-500 focus:outline-none dark:text-red-400 dark:hover:text-red-300"

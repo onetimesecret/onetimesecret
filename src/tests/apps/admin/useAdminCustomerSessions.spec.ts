@@ -32,11 +32,14 @@ function sessionRow(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function sessionsPayload(rows = [sessionRow(), sessionRow({ session_id: 'sid_2' })]) {
+function sessionsPayload(
+  rows = [sessionRow(), sessionRow({ session_id: 'sid_2' })],
+  currentSessionId: string | null = null
+) {
   return {
     shrimp: '',
     record: {},
-    details: { sessions: rows, count: rows.length },
+    details: { sessions: rows, count: rows.length, current_session_id: currentSessionId },
   };
 }
 
@@ -89,6 +92,35 @@ describe('useAdminCustomerSessions', () => {
     expect(store.sessions[0].session_id).toBe('sid_1');
     expect(store.sessions[0].ip_address).toBe('203.0.113.7');
     expect(store.validationError).toBeNull();
+  });
+
+  it('exposes details.current_session_id (the colonel viewing their own detail)', async () => {
+    mockApi.get.mockResolvedValue({ data: sessionsPayload(undefined, 'sid_2') });
+    const store = useAdminCustomerSessions();
+
+    await store.fetchForCustomer(USER_ID);
+
+    expect(store.currentSessionId).toBe('sid_2');
+  });
+
+  it('defaults currentSessionId to null when the field is absent', async () => {
+    mockApi.get.mockResolvedValue({ data: sessionsPayload() });
+    const store = useAdminCustomerSessions();
+
+    await store.fetchForCustomer(USER_ID);
+
+    expect(store.currentSessionId).toBeNull();
+  });
+
+  it('clears currentSessionId on a network failure', async () => {
+    mockApi.get.mockResolvedValueOnce({ data: sessionsPayload(undefined, 'sid_2') });
+    const store = useAdminCustomerSessions();
+    await store.fetchForCustomer(USER_ID);
+    expect(store.currentSessionId).toBe('sid_2');
+
+    mockApi.get.mockRejectedValueOnce(new Error('Network Error'));
+    await expect(store.fetchForCustomer(USER_ID)).rejects.toThrow('Network Error');
+    expect(store.currentSessionId).toBeNull();
   });
 
   it('url-encodes the customer id', async () => {

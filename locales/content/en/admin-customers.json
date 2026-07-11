@@ -447,6 +447,12 @@
     "text": "Actions",
     "content_hash": "ff8059dc"
   },
+  "web.admin.customers.detail.sessions.current.badge": {
+    "text": "This session"
+  },
+  "web.admin.customers.detail.sessions.current.tooltip": {
+    "text": "Your current admin session. Revoking it here has no effect — it is re-created for the rest of this request."
+  },
   "web.admin.customers.detail.sessions.revoke.button": {
     "text": "Revoke",
     "content_hash": "87e6d00b"
