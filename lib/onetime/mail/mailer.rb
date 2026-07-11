@@ -22,6 +22,15 @@ require_relative 'views/magic_link'
 require_relative 'views/email_change_confirmation'
 require_relative 'views/email_change_requested'
 require_relative 'views/email_changed'
+require_relative 'views/new_login_alert'
+require_relative 'views/mfa_enabled'
+require_relative 'views/mfa_disabled'
+require_relative 'views/password_changed'
+require_relative 'views/role_changed'
+require_relative 'views/member_removed'
+require_relative 'views/organization_deleted'
+require_relative 'views/trial_expiring'
+require_relative 'views/subscription_changed'
 
 module Onetime
   module Mail
@@ -151,7 +160,7 @@ module Onetime
           if provider.to_s.downcase == 'ses'
             ses_conf = provider_config('ses')
             %w[region access_key_id secret_access_key].each do |key|
-              value = ses_conf[key] || ses_conf[key.to_sym]
+              value       = ses_conf[key] || ses_conf[key.to_sym]
               config[key] = value.to_s unless value.to_s.empty?
             end
           end
@@ -177,8 +186,25 @@ module Onetime
 
         private
 
+        # Template names whose view classes are only defined when billing is
+        # enabled (each billing view wraps its class in
+        # `if Onetime.billing_config.enabled?`). Referencing the constant while
+        # billing is off raises NameError, so template_class_for rejects these
+        # names with the normal ArgumentError before the case reaches them.
+        BILLING_TEMPLATE_NAMES = [
+          :trial_expiring,
+          :subscription_changed,
+        ].freeze
+        private_constant :BILLING_TEMPLATE_NAMES
+
         def template_class_for(name)
-          case name.to_sym
+          sym = name.to_sym
+
+          if BILLING_TEMPLATE_NAMES.include?(sym) && !Onetime.billing_config.enabled?
+            raise ArgumentError, "Unknown template: #{name} (billing disabled)"
+          end
+
+          case sym
           when :secret_link
             Templates::SecretLink
           when :welcome
@@ -201,6 +227,24 @@ module Onetime
             Templates::EmailChangeRequested
           when :email_changed
             Templates::EmailChanged
+          when :new_login_alert
+            Templates::NewLoginAlert
+          when :mfa_enabled
+            Templates::MfaEnabled
+          when :mfa_disabled
+            Templates::MfaDisabled
+          when :password_changed
+            Templates::PasswordChanged
+          when :role_changed
+            Templates::RoleChanged
+          when :member_removed
+            Templates::MemberRemoved
+          when :organization_deleted
+            Templates::OrganizationDeleted
+          when :trial_expiring
+            Templates::TrialExpiring
+          when :subscription_changed
+            Templates::SubscriptionChanged
           else
             raise ArgumentError, "Unknown template: #{name}"
           end

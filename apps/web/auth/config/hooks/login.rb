@@ -197,6 +197,25 @@ module Auth::Config::Hooks
             )
           end
 
+          # Best-effort new-sign-in security alert for password-only logins.
+          # MFA logins fire this from after_two_factor_authentication instead,
+          # so each completed login produces exactly one alert. No geo-IP
+          # service is wired, so the request IP is the best available location.
+          Onetime::ErrorHandler.safe_execute('new_login_alert_email', account_id: account_id) do
+            recipient = Onetime::Customer.find_by_email(account[:email])
+            Onetime::Jobs::Publisher.enqueue_email(
+              :new_login_alert,
+              {
+                email_address: account[:email],
+                device_info: request.user_agent || 'Unknown device',
+                location: request.ip,
+                login_at: Time.now.utc.iso8601,
+                locale: recipient&.locale || OT.default_locale,
+              },
+              fallback: :async_thread,
+            )
+          end
+
           # Invitation acceptance is intentionally not performed here. The
           # frontend issues an explicit POST /api/invite/:token/accept after
           # login completes, giving a single acceptance code path regardless

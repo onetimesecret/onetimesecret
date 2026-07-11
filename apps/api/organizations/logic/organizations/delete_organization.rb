@@ -47,6 +47,13 @@ module OrganizationAPI::Logic
 
         # Remove all members first
         members = @organization.list_members
+
+        # Capture member contact info BEFORE the membership records are removed,
+        # so we can notify everyone once the organization is gone.
+        recipients = members.map do |member|
+          { email: member.email, locale: (member.respond_to?(:locale) ? member.locale : nil) }
+        end.reject { |r| r[:email].to_s.empty? }
+
         members.each do |member|
           @organization.remove_members_instance(member)
         end
@@ -61,7 +68,30 @@ module OrganizationAPI::Logic
 
         OT.info "[DeleteOrganization] Deleted organization #{objid} (#{display_name})"
 
+        notify_members_deleted(recipients, display_name)
+
         success_data
+      end
+
+      # Best-effort notification to former members that the organization was
+      # deleted. Each send is isolated so one failure doesn't skip the rest,
+      # and no failure may affect the (already-completed) deletion.
+      def notify_members_deleted(recipients, display_name)
+        recipients.each do |recipient|
+          Onetime::Jobs::Publisher.enqueue_email(
+            :organization_deleted,
+            {
+              email_address: recipient[:email],
+              organization_name: display_name,
+              deleted_by: cust.email,
+              deleted_at: Time.now.utc.iso8601,
+              locale: recipient[:locale] || OT.default_locale,
+            },
+            fallback: :async_thread,
+          )
+        rescue StandardError => ex
+          OT.le "[DeleteOrganization] Failed to send organization_deleted email: #{ex.message}"
+        end
       end
 
       def success_data

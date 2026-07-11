@@ -62,12 +62,17 @@ module Onetime::Secret::Features
       # gates its own output. Read controllers that must hand back the plaintext
       # should prefer {#reveal!}, which cannot be decoupled from the claim.
       #
+      # @param actor_context [Hash, nil] request-scoped audit context (the actor
+      #   discriminator) forwarded to the receipt cascade and, from there, the
+      #   org audit trail (#3639). Defaults to nil so callers without request
+      #   context (v1, account verification) keep working; a nil actor is
+      #   recorded as anonymous/unknown, never misattributed to the creator.
       # @return [Boolean] true if THIS caller performed the reveal, false if a
       #   concurrent caller won the race or the secret was already terminal.
-      def revealed!
+      def revealed!(actor_context: nil)
         return false unless win_reveal_claim!
 
-        consume_after_reveal!
+        consume_after_reveal!(actor_context: actor_context)
         true
       end
 
@@ -85,20 +90,24 @@ module Onetime::Secret::Features
       #
       # @param passphrase_input [String, nil] passphrase supplied by the caller,
       #   forwarded to decryption.
+      # @param actor_context [Hash, nil] request-scoped audit context forwarded
+      #   to the receipt cascade / org audit trail (#3639); see {#revealed!}.
       # @return [String, nil] the decrypted plaintext for the single winning
       #   caller; nil for a loser or an already-terminal secret.
-      def reveal!(passphrase_input: nil)
+      def reveal!(passphrase_input: nil, actor_context: nil)
         return unless win_reveal_claim!
 
         # Decrypt from the still-in-memory ciphertext BEFORE consume clears it.
         plaintext = decrypted_secret_value(passphrase_input: passphrase_input)
-        consume_after_reveal!
+        consume_after_reveal!(actor_context: actor_context)
         plaintext
       end
 
+      # @param actor_context [Hash, nil] request-scoped audit context forwarded
+      #   to the receipt cascade / org audit trail (#3639); see {#revealed!}.
       # @return [Boolean] true if THIS caller performed the burn, false if a
       #   concurrent caller won the race or the secret was already terminal.
-      def burned!
+      def burned!(actor_context: nil)
         # A guard to allow only a fresh, new secret to be burned. Also ensures that
         # we don't support going from :burned back to something else.
         return false unless state?(:new) || state?(:previewed)
@@ -109,7 +118,7 @@ module Onetime::Secret::Features
         return false unless compare_and_set_state!(:burned, [:new, :previewed])
 
         md               = load_receipt
-        md.burned! unless md.nil?
+        md.burned!(actor_context: actor_context) unless md.nil?
         @passphrase_temp = nil
         destroy!
         true
@@ -165,10 +174,12 @@ module Onetime::Secret::Features
       # payload is not recoverable from this instance; other fields (state,
       # lifespan, ...) remain for safe_dump / success_data.
       #
+      # @param actor_context [Hash, nil] request-scoped audit context forwarded
+      #   to the receipt's revealed! cascade (#3639); see {#revealed!}.
       # @return [void]
-      def consume_after_reveal!
+      def consume_after_reveal!(actor_context: nil)
         md = load_receipt
-        md.revealed! unless md.nil?
+        md.revealed!(actor_context: actor_context) unless md.nil?
 
         @state           = 'revealed'
         @ciphertext      = nil

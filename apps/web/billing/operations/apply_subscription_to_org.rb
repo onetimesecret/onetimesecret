@@ -117,10 +117,10 @@ module Billing
           begin
             membership_result = org.rematerialize_all_memberships!
             Onetime.ents_logger.info 'Re-materialized membership entitlements (free tier)',
-                org_extid: org.extid,
-                success: membership_result[:success],
-                failed: membership_result[:failed],
-                total: membership_result[:total]
+              org_extid: org.extid,
+              success: membership_result[:success],
+              failed: membership_result[:failed],
+              total: membership_result[:total]
 
             # Cross-path consistency with MaterializePlans#handle_cascade_partial:
             # surface a partial cascade as :error so operators learn about drifted
@@ -142,8 +142,8 @@ module Billing
           end
         else
           Onetime.ents_logger.warn 'Free plan not in config, cannot materialize',
-              org_extid: org.extid,
-              planid: Billing::Metadata::FREE_PLAN_ID
+            org_extid: org.extid,
+            planid: Billing::Metadata::FREE_PLAN_ID
         end
       end
 
@@ -203,10 +203,10 @@ module Billing
 
         count = org.materialized_entitlements.size
         Onetime.ents_logger.info 'Materialized entitlements for org',
-            org_extid: org.extid,
-            planid: planid,
-            entitlements_count: count,
-            source: source.to_s
+          org_extid: org.extid,
+          planid: planid,
+          entitlements_count: count,
+          source: source.to_s
 
         # ADR-012 Stage 3: Re-materialize all memberships after org plan change.
         # Each membership's effective entitlements are org.entitlements ∩ ROLE_ENTITLEMENTS[role].
@@ -214,11 +214,11 @@ module Billing
         begin
           membership_result = org.rematerialize_all_memberships!
           Onetime.ents_logger.info 'Re-materialized membership entitlements',
-              org_extid: org.extid,
-              planid: planid,
-              success: membership_result[:success],
-              failed: membership_result[:failed],
-              total: membership_result[:total]
+            org_extid: org.extid,
+            planid: planid,
+            success: membership_result[:success],
+            failed: membership_result[:failed],
+            total: membership_result[:total]
 
           # Cross-path consistency with MaterializePlans#handle_cascade_partial:
           # surface a partial cascade as :error so operators learn about drifted
@@ -281,7 +281,8 @@ module Billing
 
       def self.build_plan_not_found_result(org, planid)
         Onetime.ents_logger.warn 'Plan not found, cannot materialize',
-            org_extid: org.extid, planid: planid
+          org_extid: org.extid,
+          planid: planid
 
         MaterializeResult.new(
           status: :plan_not_found,

@@ -75,16 +75,21 @@ module Onetime
 
         return unless step_push(dry_run: dry_run, force: force, plan: plan, skip_prices: skip_prices)
         return unless step_pull(dry_run: dry_run)
-        materialize_ok = step_materialize(dry_run: dry_run, plan: plan,
-                                          include_memberships: include_memberships,
-                                          verbose: verbose, quiet: quiet)
+
+        materialize_ok = step_materialize(
+          dry_run: dry_run,
+          plan: plan,
+          include_memberships: include_memberships,
+          verbose: verbose,
+          quiet: quiet,
+        )
 
         puts
         puts '=' * 60
         if materialize_ok
-          puts "Catalog sync #{dry_run ? 'preview ' : ''}complete!"
+          puts "Catalog sync #{'preview ' if dry_run}complete!"
         else
-          puts "Catalog sync #{dry_run ? 'preview ' : ''}finished with materialization errors."
+          puts "Catalog sync #{'preview ' if dry_run}finished with materialization errors."
           puts 'Review the errors above. Push and pull succeeded.'
         end
       end
@@ -182,7 +187,7 @@ module Onetime
           return true
         end
 
-        scope = plan ? "organizations on plan '#{plan}'" : 'all organizations'
+        scope  = plan ? "organizations on plan '#{plan}'" : 'all organizations'
         scope += ' + memberships cascade' if include_memberships
 
         if dry_run
@@ -193,11 +198,11 @@ module Onetime
 
         verbosity = resolve_verbosity(verbose: verbose, quiet: quiet)
         renderer  = Billing::MaterializeProgressRenderer.new(
-                      total: total,
-                      verbosity: verbosity,
-                      include_memberships: include_memberships,
-                      indent: 4,
-                    )
+          total: total,
+          verbosity: verbosity,
+          include_memberships: include_memberships,
+          indent: 4,
+        )
 
         result = ::Billing::Operations::MaterializePlans.call(
           plan_filter: plan,
@@ -246,7 +251,6 @@ module Onetime
         print "\r  #{message}\e[K"
         $stdout.flush
       end
-
     end
   end
 end

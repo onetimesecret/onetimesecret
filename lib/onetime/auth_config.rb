@@ -374,7 +374,7 @@ module Onetime
       end
 
       defaults_file = Onetime::Utils::ConfigResolver.defaults_path('auth')
-      base_config = if defaults_file && defaults_file != @path
+      base_config   = if defaults_file && defaults_file != @path
         load_yaml_from(defaults_file)
       else
         {}

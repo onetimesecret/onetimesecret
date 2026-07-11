@@ -57,7 +57,7 @@ module Onetime
       deployment_mode: {
         label: 'Deployment mode',
         description: 'Simple mode uses Redis/Valkey only, no SQL database. ' \
-          'Full mode adds PostgreSQL-backed accounts, teams, and SSO.',
+                     'Full mode adds PostgreSQL-backed accounts, teams, and SSO.',
         type: 'select',
         default: 'simple',
         choices: [
@@ -80,7 +80,7 @@ module Onetime
       sso_enabled: {
         label: 'Single sign-on (SSO)',
         description: 'External identity providers via OmniAuth (OIDC, Entra ID, Google, GitHub). ' \
-          'Requires Full deployment mode.',
+                     'Requires Full deployment mode.',
         type: 'boolean',
         default: false,
         requires: { deployment_mode: 'full' },
@@ -106,7 +106,7 @@ module Onetime
       trusted_proxy_enabled: {
         label: 'Behind a reverse proxy / load balancer',
         description: 'Trust X-Forwarded-For from an upstream proxy (nginx, Caddy, ALB, k8s ingress) ' \
-          'when resolving client IPs.',
+                     'when resolving client IPs.',
         type: 'boolean',
         default: false,
       },
@@ -151,11 +151,11 @@ module Onetime
     private
 
     def normalize(raw_selections)
-      raw_selections = raw_selections || {}
+      raw_selections ||= {}
 
       OPTIONS.each_with_object({}) do |(key, spec), out|
-        raw     = raw_selections[key.to_s]
-        raw     = raw_selections[key] if raw.nil?
+        raw      = raw_selections[key.to_s]
+        raw      = raw_selections[key] if raw.nil?
         out[key] = coerce(raw, spec)
       end
     end
@@ -189,7 +189,7 @@ module Onetime
         unmet = requires.any? { |dep_key, dep_value| selections[dep_key] != dep_value }
         next unless unmet && selections[key] != spec[:default]
 
-        requirement = requires.map { |k, v| "#{k}: #{v.inspect}" }.join(', ')
+        requirement     = requires.map { |k, v| "#{k}: #{v.inspect}" }.join(', ')
         warnings << "#{spec[:label]} requires #{requirement}; ignoring the selected value."
         selections[key] = spec[:default]
       end
@@ -218,7 +218,7 @@ module Onetime
     end
 
     def auth_overrides(selections)
-      overrides = { 'mode' => selections[:deployment_mode] }
+      overrides         = { 'mode' => selections[:deployment_mode] }
       overrides['full'] = { 'features' => { 'sso' => selections[:sso_enabled] } } if selections[:deployment_mode] == 'full'
       overrides
     end

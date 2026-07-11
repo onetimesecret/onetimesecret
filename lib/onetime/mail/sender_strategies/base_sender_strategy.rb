@@ -131,7 +131,7 @@ module Onetime
 
           # Skip optional/advisory records (e.g. DMARC) — they are
           # recommendations, not requirements for verification.
-          required = provisioned.reject { |r| r['optional'] == true || r['optional'] == 'true' }
+          required = provisioned.reject { |r| [true, 'true'].include?(r['optional']) }
 
           results = required.map do |record|
             check_single_dns_record(record, resolver)

@@ -42,10 +42,20 @@ module Onetime
         end
 
         def changed_at_formatted
-          time = Time.parse(changed_at.to_s)
-          time.strftime('%B %d, %Y at %H:%M UTC')
-        rescue ArgumentError
-          changed_at.to_s
+          parsed_changed_at&.strftime('%B %d, %Y at %H:%M UTC') || changed_at.to_s
+        end
+
+        # Calendar date of the change, e.g. "January 15, 2024". Split from the
+        # time so email.password_changed.body can interpolate %{date} and
+        # %{time} separately; falls back to the raw value when unparseable.
+        def changed_at_date
+          parsed_changed_at&.strftime('%B %d, %Y') || changed_at.to_s
+        end
+
+        # Wall-clock time of the change, e.g. "10:30 UTC". Empty when the
+        # timestamp can't be parsed so the body copy degrades gracefully.
+        def changed_at_time
+          parsed_changed_at&.strftime('%H:%M UTC') || ''
         end
 
         def security_settings_path
@@ -58,10 +68,22 @@ module Onetime
 
         private
 
+        # Parsed change timestamp, or nil when the value isn't a valid time.
+        # Memoized so the formatted/date/time helpers parse only once.
+        def parsed_changed_at
+          return @parsed_changed_at if defined?(@parsed_changed_at)
+
+          @parsed_changed_at = Time.parse(changed_at.to_s)
+        rescue ArgumentError
+          @parsed_changed_at = nil
+        end
+
         def template_binding
           computed_data = data.merge(
             changed_at: changed_at,
             changed_at_formatted: changed_at_formatted,
+            changed_at_date: changed_at_date,
+            changed_at_time: changed_at_time,
             security_settings_path: security_settings_path,
             baseuri: baseuri,
           )

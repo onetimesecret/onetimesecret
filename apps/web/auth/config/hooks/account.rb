@@ -454,6 +454,21 @@ module Auth::Config::Hooks
         Onetime::ErrorHandler.safe_execute('update_password_metadata', email: account[:email]) do
           Auth::Operations::UpdatePasswordMetadata.new(account: account).call
         end
+
+        # Best-effort security notification that the password changed. Never
+        # let a delivery problem surface as a password-change failure.
+        Onetime::ErrorHandler.safe_execute('password_changed_email', account_id: account_id) do
+          recipient = Onetime::Customer.find_by_email(account[:email])
+          Onetime::Jobs::Publisher.enqueue_email(
+            :password_changed,
+            {
+              email_address: account[:email],
+              changed_at: Time.now.utc.iso8601,
+              locale: recipient&.locale || OT.default_locale,
+            },
+            fallback: :async_thread,
+          )
+        end
       end
 
       #
