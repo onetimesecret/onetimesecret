@@ -140,11 +140,19 @@ module Core
 
       # Builds an error script tag when asset loading fails.
       #
+      # `message` is developer/config-derived today (a manifest path or a hardcoded
+      # entry name), so this is hardening of an unreachable path, not a live XSS fix.
+      # Still, don't interpolate a bare string into a <script>: JSON-encode it for a
+      # well-formed JS string literal, then neutralize any "</" so an embedded
+      # "</script>" can't close the tag during HTML tokenization. (escape_html is the
+      # WRONG tool here — HTML entities are not decoded inside <script>.)
+      #
       # @param nonce [String] Content Security Policy nonce
       # @param message [String] Error message
       # @return [String] HTML script tag with error message
       def error_script(nonce, message)
-        %(<script nonce="#{nonce}">console.warn("#{message}")</script>)
+        js = message.to_json.gsub('</', '<\/')
+        %(<script nonce="#{nonce}">console.warn(#{js})</script>)
       end
     end
   end
