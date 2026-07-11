@@ -12,7 +12,9 @@ import BaseLayout from './BaseLayout.vue';
 const { t } = useI18n();
 const bootstrapStore = useBootstrapStore();
 const { site_host, brand_product_name } = storeToRefs(bootstrapStore);
-const props = withDefaults(defineProps<LayoutProps>(), {});
+const props = withDefaults(defineProps<LayoutProps>(), {
+  bannerAudience: 'workspace',
+});
 </script>
 
 <template>

@@ -49,6 +49,20 @@ module Onetime
       self.state ||= 'new'
     end
 
+    # Destroy the record and keep the owner's live-secret counter in step.
+    # destroy! is the single application-code chokepoint through which a secret
+    # disappears early — reveal (consume_after_reveal!), burn (burned!), and
+    # the colonel delete all funnel through it — mirroring the increment at the
+    # creation chokepoint (Receipt.spawn_pair → increment_secrets_active).
+    # TTL expiry still runs no application code, so the nightly
+    # SecretCountReconcileJob remains the correctness mechanism for that path.
+    # The helper is fail-open and clamps at zero; see counter_fields.rb (#60).
+    def destroy!
+      result = super
+      Onetime::Customer.decrement_secrets_active(owner_id)
+      result
+    end
+
     def shortid
       identifier.slice(0, 8)
     end

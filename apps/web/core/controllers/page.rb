@@ -9,6 +9,22 @@ module Core
     class Page
       include Controllers::Base
 
+      # GET /colonel and /colonel/* (role=colonel).
+      #
+      # Serves the rebuilt Colonel admin console shell (its own isolated
+      # `admin.ts` Vite entry). Since the cutover
+      # (docs/specs/colonel-ui/50-cutover-hardening.md) this is unconditional:
+      # the admin console is the sole admin frontend and the legacy colonel SPA
+      # has been retired. Reuses this core Page controller rather than a second
+      # Rack app (D2).
+      def colonel
+        # Keep parity with Base#index: the view layer serializes homepage_mode.
+        req.env['onetime.homepage_mode'] = determine_homepage_mode
+
+        view = Core::Views::AdminPoint.new(req)
+        res.body = view.render
+      end
+
       # /imagine/b79b17281be7264f778c/logo.png
       def imagine
         logic = DomainsAPI::Logic::Domains::GetImage.new(strategy_result, req.params, locale)

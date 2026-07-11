@@ -22,16 +22,21 @@
       </span>
     </router-link>
 
-    <router-link
+    <!--
+      Full-page navigation, not a router-link: after the colonel cutover the
+      customer SPA has no /colonel route. The admin console is a separate,
+      backend-served bundle, so it must be reached via a real server round-trip.
+    -->
+    <a
       v-if="colonel"
-      to="/colonel/"
+      href="/colonel/"
       title=""
       class="ml-2 text-gray-400 transition hover:text-gray-300">
       <OIcon
         collection="mdi"
         name="star"
         class="size-4 text-brand-400" />
-    </router-link>
+    </a>
     <span
       class="ml-2 text-gray-400"
       aria-hidden="true"

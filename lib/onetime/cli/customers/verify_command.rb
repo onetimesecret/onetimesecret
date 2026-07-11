@@ -17,8 +17,9 @@
 # The auth app's operations autoloader (apps/web/auth/operations.rb)
 # only runs when the auth Rack app boots for HTTP serving; CLI runs
 # don't go through that path. Load the op explicitly so the call site
-# resolves at runtime.
-require 'auth/operations/set_customer_verification'
+# resolves at runtime. The admin wrapper reuses SetCustomerVerification
+# and adds the AdminAuditEvent for this operator-initiated change.
+require 'auth/operations/customers/set_verification'
 
 module Onetime
   module CLI
@@ -53,9 +54,10 @@ module Onetime
 
         obscured = OT::Utils.obscure_email(customer.email)
 
-        result = Auth::Operations::SetCustomerVerification.new(
+        result = Auth::Operations::Customers::SetVerification.new(
           customer: customer,
           verified: true,
+          actor: Customers::Shared::CLI_ACTOR,
           verified_by: 'cli_provision',
         ).call
 

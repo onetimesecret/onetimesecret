@@ -589,6 +589,14 @@ export const bootstrapSchema = z.object({
   // ─────────────────────────────────────────────────────────────────────────────
   messages: z.array(messageSchema).nullable().default([]),
   global_banner: z.string().nullable().default(null),
+  // Audience scope for the global broadcast banner. Consumed by BaseLayout to
+  // decide which page audiences (and whether custom domains) see the banner.
+  // Mirrors Onetime::Operations::BannerState::VALID_SCOPES. Default 'no_recipient'
+  // keeps legacy string-only banners off recipient pages and custom domains.
+  global_banner_scope: z
+    .enum(['all', 'no_recipient', 'workspace'])
+    .nullable()
+    .default('no_recipient'),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // SystemSerializer fields

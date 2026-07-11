@@ -23,7 +23,79 @@ import {
   usageExportResponseSchema,
   queueMetricsResponseSchema,
   systemSettingsResponseSchema,
+  colonelUserDetailResponseSchema,
+  colonelUserMutationResponseSchema,
 } from './colonel';
+
+// Colonel (admin) per-resource ack schemas — Phase-2 screens (tickets #30-33)
+import {
+  colonelSecretReceiptResponseSchema,
+  colonelSecretDeleteResponseSchema,
+} from './colonel-secrets';
+import { colonelDomainVerifyResponseSchema } from './colonel-domains';
+import {
+  colonelEntitlementOverrideResponseSchema,
+  colonelOrganizationDetailResponseSchema,
+  colonelReconcileOrganizationResponseSchema,
+} from './colonel-organizations';
+import { colonelBanIpResponseSchema, colonelUnbanIpResponseSchema } from './colonel-bannedips';
+
+// Colonel (admin) per-resource schemas — Phase-3 screens (tickets #40-45).
+// The DLQ console and the rate-limit inspect/reset UI were removed by design
+// review; their envelopes stay registry-only as the OpenAPI contract for the
+// still-live endpoints (list_dlqs.rb declares `response: 'colonelDlqList'`).
+import {
+  colonelSessionsResponseSchema,
+  colonelSessionDetailResponseSchema,
+  colonelSessionDeleteResponseSchema,
+} from './colonel-sessions';
+import {
+  colonelCustomerSessionsResponseSchema,
+  colonelCustomerSessionRevokeResponseSchema,
+} from './colonel-customer-sessions';
+import {
+  colonelBannerResponseSchema,
+  colonelBannerSetResponseSchema,
+  colonelBannerClearResponseSchema,
+} from './colonel-banner';
+import {
+  colonelDlqListResponseSchema,
+  colonelDlqMessagesResponseSchema,
+  colonelDlqReplayResponseSchema,
+  colonelDlqPurgeResponseSchema,
+} from './colonel-queue';
+import {
+  colonelDomainsOrphanedResponseSchema,
+  colonelDomainProbeResponseSchema,
+  colonelDomainRepairResponseSchema,
+  colonelDomainTransferResponseSchema,
+} from './colonel-domaintoolbox';
+import {
+  colonelEmailConfigResponseSchema,
+  colonelEmailTemplatesResponseSchema,
+  colonelEmailPreviewResponseSchema,
+  colonelEmailTestResponseSchema,
+  colonelRateLimitersResponseSchema,
+  colonelRateLimitInspectResponseSchema,
+  colonelRateLimitResetResponseSchema,
+} from './colonel-emailtools';
+import {
+  colonelEmailDeliverabilityResponseSchema,
+  colonelEmailSuppressionsResponseSchema,
+  colonelEmailSuppressionRemoveResponseSchema,
+  colonelEmailSuppressionAddResponseSchema,
+  colonelEmailDeliverabilityEventsResponseSchema,
+  colonelEmailDeliverabilityIngestResponseSchema,
+  colonelEmailDeliverabilitySyncResponseSchema,
+  colonelEmailProviderStatusResponseSchema,
+  colonelEmailRecipientLookupResponseSchema,
+  colonelEmailMessagesResponseSchema,
+} from './colonel-deliverability';
+import { colonelBillingCatalogResponseSchema } from './colonel-billing';
+
+// Colonel (admin) observability — audit trail reader + overview trends
+import { colonelAuditEventsResponseSchema } from './colonel-audit';
+import { colonelTrendsResponseSchema } from './colonel-trends';
 
 // Organization schemas — internal-only
 import {
@@ -77,16 +149,66 @@ export const responseSchemas = {
   colonelInfo: colonelInfoResponseSchema,
   colonelStats: colonelStatsResponseSchema,
   colonelUsers: colonelUsersResponseSchema,
+  colonelUserDetail: colonelUserDetailResponseSchema,
+  colonelUserMutation: colonelUserMutationResponseSchema,
   colonelSecrets: colonelSecretsResponseSchema,
+  colonelSecretReceipt: colonelSecretReceiptResponseSchema,
+  colonelSecretDelete: colonelSecretDeleteResponseSchema,
   customDomains: colonelCustomDomainsResponseSchema,
+  colonelDomainVerify: colonelDomainVerifyResponseSchema,
   colonelOrganizations: colonelOrganizationsResponseSchema,
+  colonelOrganizationDetail: colonelOrganizationDetailResponseSchema,
   investigateOrganization: investigateOrganizationResponseSchema,
+  colonelReconcileOrganization: colonelReconcileOrganizationResponseSchema,
+  colonelEntitlementOverride: colonelEntitlementOverrideResponseSchema,
   databaseMetrics: databaseMetricsResponseSchema,
   redisMetrics: redisMetricsResponseSchema,
   bannedIPs: bannedIPsResponseSchema,
+  colonelBanIp: colonelBanIpResponseSchema,
+  colonelUnbanIp: colonelUnbanIpResponseSchema,
   usageExport: usageExportResponseSchema,
   queueMetrics: queueMetricsResponseSchema,
   systemSettings: systemSettingsResponseSchema,
+
+  // Colonel / admin — Phase-3 screens (tickets #40-45)
+  colonelSessions: colonelSessionsResponseSchema,
+  colonelSessionDetail: colonelSessionDetailResponseSchema,
+  colonelSessionDelete: colonelSessionDeleteResponseSchema,
+  colonelCustomerSessions: colonelCustomerSessionsResponseSchema,
+  colonelCustomerSessionRevoke: colonelCustomerSessionRevokeResponseSchema,
+  colonelBanner: colonelBannerResponseSchema,
+  colonelBannerSet: colonelBannerSetResponseSchema,
+  colonelBannerClear: colonelBannerClearResponseSchema,
+  colonelDlqList: colonelDlqListResponseSchema,
+  colonelDlqMessages: colonelDlqMessagesResponseSchema,
+  colonelDlqReplay: colonelDlqReplayResponseSchema,
+  colonelDlqPurge: colonelDlqPurgeResponseSchema,
+  colonelDomainsOrphaned: colonelDomainsOrphanedResponseSchema,
+  colonelDomainProbe: colonelDomainProbeResponseSchema,
+  colonelDomainRepair: colonelDomainRepairResponseSchema,
+  colonelDomainTransfer: colonelDomainTransferResponseSchema,
+  colonelEmailConfig: colonelEmailConfigResponseSchema,
+  colonelEmailTemplates: colonelEmailTemplatesResponseSchema,
+  colonelEmailPreview: colonelEmailPreviewResponseSchema,
+  colonelEmailTest: colonelEmailTestResponseSchema,
+  colonelRateLimiters: colonelRateLimitersResponseSchema,
+  colonelRateLimitInspect: colonelRateLimitInspectResponseSchema,
+  colonelRateLimitReset: colonelRateLimitResetResponseSchema,
+  colonelEmailDeliverability: colonelEmailDeliverabilityResponseSchema,
+  colonelEmailSuppressions: colonelEmailSuppressionsResponseSchema,
+  colonelEmailSuppressionRemove: colonelEmailSuppressionRemoveResponseSchema,
+  colonelEmailSuppressionAdd: colonelEmailSuppressionAddResponseSchema,
+  colonelEmailDeliverabilityEvents: colonelEmailDeliverabilityEventsResponseSchema,
+  colonelEmailDeliverabilityIngest: colonelEmailDeliverabilityIngestResponseSchema,
+  colonelEmailDeliverabilitySync: colonelEmailDeliverabilitySyncResponseSchema,
+  colonelEmailProviderStatus: colonelEmailProviderStatusResponseSchema,
+  colonelEmailRecipientLookup: colonelEmailRecipientLookupResponseSchema,
+  colonelEmailMessages: colonelEmailMessagesResponseSchema,
+  colonelBillingCatalog: colonelBillingCatalogResponseSchema,
+
+  // Colonel / admin — observability (audit reader + trends)
+  colonelAuditEvents: colonelAuditEventsResponseSchema,
+  colonelTrends: colonelTrendsResponseSchema,
 
   // Organizations (internal-only)
   organization: organizationResponseSchema,

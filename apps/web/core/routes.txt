@@ -94,8 +94,11 @@ GET   /welcome                                   Core::Controllers::Welcome#welc
 GET   /account/billing_portal                    Core::Controllers::Welcome#customer_portal_redirect auth=sessionauth
 
 # Colonel routes - require colonel role
-GET   /colonel                                   Core::Controllers::Page#index auth=sessionauth role=colonel
-GET   /colonel/*                                 Core::Controllers::Page#index auth=sessionauth role=colonel
+# Page#colonel serves the rebuilt admin console shell (the sole admin frontend
+# since the cutover, docs/specs/colonel-ui/50-cutover-hardening.md);
+# auth=sessionauth role=colonel.
+GET   /colonel                                   Core::Controllers::Page#colonel auth=sessionauth role=colonel
+GET   /colonel/*                                 Core::Controllers::Page#colonel auth=sessionauth role=colonel
 
 # Image generation - authenticated
 GET   /imagine/:custom_domain_id/:image_type.:image_ext  Core::Controllers::Page#imagine auth=noauth

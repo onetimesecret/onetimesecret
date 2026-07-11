@@ -67,6 +67,22 @@ module Auth::Config::Hooks
         # OmniAuth callback. For password logins it is nil or absent.
         via_omniauth = respond_to?(:omniauth_provider) && !omniauth_provider.to_s.empty?
 
+        # Stamp how this session authenticated, ONCE, at auth time. Rodauth's
+        # login(auth_type) sets authenticated_by = [auth_type] immediately before
+        # this hook fires, so authenticated_by.first is the PRIMARY login method:
+        # 'password', 'email_auth' (magic link), 'webauthn', or 'omniauth'. This is
+        # the only point where the mechanism is reliably known — downstream (e.g.
+        # Session#write_session) cannot re-derive it (the omniauth markers are
+        # deleted later in the callback, and password/magic-link/webauthn leave no
+        # trace in session_data). The value persists in the encrypted session and
+        # is copied verbatim into the SessionMetadata sidecar (spec
+        # docs/specs/colonel-ui/40-*). Second factors (otp, webauthn-as-2FA) append
+        # to authenticated_by later via after_two_factor_authentication; the sidecar
+        # tracks those separately as mfa_used, so first == primary is what we want.
+        # String key matches the app-session convention written by SyncSession.
+        primary_auth           = authenticated_by.first if respond_to?(:authenticated_by)
+        session['auth_method'] = primary_auth || (via_omniauth ? 'omniauth' : 'password')
+
         # Join domain organization for SSO logins on custom domains.
         # Runs BEFORE MFA detection so SSO users with OTP configured (e.g.,
         # legacy password+MFA accounts now using SSO) still get joined. This

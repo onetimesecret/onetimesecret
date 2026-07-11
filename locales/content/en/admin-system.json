@@ -1,0 +1,158 @@
+{
+  "web.admin.system.title": {
+    "text": "System",
+    "content_hash": "6725e7bb"
+  },
+  "web.admin.system.description": {
+    "text": "Database, queue, and infrastructure status.",
+    "content_hash": "0115f495"
+  },
+  "web.admin.system.retry": {
+    "text": "Retry",
+    "content_hash": "942087cc"
+  },
+  "web.admin.system.database.title": {
+    "text": "Main Database ({engine})",
+    "content_hash": "1391230b"
+  },
+  "web.admin.system.database.loadError": {
+    "text": "Could not load database metrics.",
+    "content_hash": "905055c6"
+  },
+  "web.admin.system.database.server": {
+    "text": "Server",
+    "content_hash": "aef7de28"
+  },
+  "web.admin.system.database.memory": {
+    "text": "Memory",
+    "content_hash": "c3963aed"
+  },
+  "web.admin.system.database.databases": {
+    "text": "Databases",
+    "content_hash": "61d2afe2"
+  },
+  "web.admin.system.database.dbSummary": {
+    "text": "{keys} keys, {expires} with TTL",
+    "content_hash": "26b9e17c"
+  },
+  "web.admin.system.database.stats.customers": {
+    "text": "Customers",
+    "content_hash": "aabe76f1"
+  },
+  "web.admin.system.database.stats.secrets": {
+    "text": "Secrets",
+    "content_hash": "d8707d41"
+  },
+  "web.admin.system.database.stats.receipts": {
+    "text": "Receipts",
+    "content_hash": "60a627df"
+  },
+  "web.admin.system.database.stats.totalKeys": {
+    "text": "Total Keys",
+    "content_hash": "4e0d27f5"
+  },
+  "web.admin.system.database.fields.version": {
+    "text": "Version",
+    "content_hash": "dd167905"
+  },
+  "web.admin.system.database.fields.mode": {
+    "text": "Mode",
+    "content_hash": "5e23ec6a"
+  },
+  "web.admin.system.database.fields.uptimeDays": {
+    "text": "Uptime (days)",
+    "content_hash": "7ab314f8"
+  },
+  "web.admin.system.database.fields.connectedClients": {
+    "text": "Connected Clients",
+    "content_hash": "434adc3a"
+  },
+  "web.admin.system.database.fields.opsPerSec": {
+    "text": "Ops/sec",
+    "content_hash": "6634251d"
+  },
+  "web.admin.system.database.fields.totalCommands": {
+    "text": "Total Commands",
+    "content_hash": "c5ce5aaf"
+  },
+  "web.admin.system.database.fields.usedMemory": {
+    "text": "Used Memory",
+    "content_hash": "bac68a65"
+  },
+  "web.admin.system.database.fields.rssMemory": {
+    "text": "RSS Memory",
+    "content_hash": "7fe77d15"
+  },
+  "web.admin.system.database.fields.peakMemory": {
+    "text": "Peak Memory",
+    "content_hash": "9d44afa6"
+  },
+  "web.admin.system.database.fields.fragmentation": {
+    "text": "Fragmentation Ratio",
+    "content_hash": "721494dd"
+  },
+  "web.admin.system.queue.title": {
+    "text": "Queue",
+    "content_hash": "3b2fe03e"
+  },
+  "web.admin.system.queue.loadError": {
+    "text": "Could not load queue metrics.",
+    "content_hash": "715bdc88"
+  },
+  "web.admin.system.queue.empty": {
+    "text": "No queues found",
+    "content_hash": "3cd4eb88"
+  },
+  "web.admin.system.queue.connected": {
+    "text": "Connected",
+    "content_hash": "22965568"
+  },
+  "web.admin.system.queue.disconnected": {
+    "text": "Disconnected",
+    "content_hash": "04dfac36"
+  },
+  "web.admin.system.queue.activeWorkers": {
+    "text": "{count} active workers",
+    "content_hash": "49e6369c"
+  },
+  "web.admin.system.queue.columns.name": {
+    "text": "Queue",
+    "content_hash": "3b2fe03e"
+  },
+  "web.admin.system.queue.columns.pending": {
+    "text": "Pending",
+    "content_hash": "331551b0"
+  },
+  "web.admin.system.queue.columns.consumers": {
+    "text": "Consumers",
+    "content_hash": "212b350d"
+  },
+  "web.admin.system.queue.health.healthy": {
+    "text": "Healthy",
+    "content_hash": "7f1e323b"
+  },
+  "web.admin.system.queue.health.degraded": {
+    "text": "Degraded",
+    "content_hash": "a8494c12"
+  },
+  "web.admin.system.queue.health.unhealthy": {
+    "text": "Unhealthy",
+    "content_hash": "317b1fbc"
+  },
+  "web.admin.system.queue.health.unknown": {
+    "text": "Unknown",
+    "content_hash": "b764cdc0"
+  },
+  "web.admin.system.redis.title": {
+    "text": "Redis INFO",
+    "content_hash": "e762bd3c"
+  },
+  "web.admin.system.redis.loadError": {
+    "text": "Could not load Redis metrics.",
+    "content_hash": "ca5945d6"
+  },
+  "web.admin.system.redis.captured": {
+    "text": "Captured {at}",
+    "content_hash": "57b40c0f"
+  }
+}

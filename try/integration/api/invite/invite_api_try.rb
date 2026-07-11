@@ -34,12 +34,7 @@ def last_response; @test.last_response; end
 
 # Helper to enable domains feature at runtime level
 def enable_runtime_domains!
-  current_features = Onetime::Runtime.features
-  Onetime::Runtime.features = Onetime::Runtime::Features.new(
-    domains_enabled: true,
-    global_banner: current_features.global_banner,
-    fortunes: current_features.fortunes,
-  )
+  Onetime::Runtime.features = Onetime::Runtime.features.with(domains_enabled: true)
 end
 
 # Helper to enable domain context override at middleware level

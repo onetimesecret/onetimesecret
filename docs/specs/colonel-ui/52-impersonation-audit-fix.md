@@ -25,11 +25,54 @@ Part of the Colonel Admin Rebuild epic (Phase 4). The plan flags a possible auth
 
 ## Acceptance criteria
 
-- [ ] Spike documents the exact `authenticate_session.rb` behavior: confirmed, or confirmed-absent.
+- [x] Spike documents the exact `authenticate_session.rb` behavior: confirmed, or confirmed-absent. (confirmed-absent — see "Spike outcome" below)
 - [ ] If confirmed: the implicit colonel-passphrase-as-any-customer path is removed.
 - [ ] If confirmed: an explicit impersonation operation exists, gated by both authz layers, and writes an `AdminAuditEvent` on every invocation (actor colonel, target customer, timestamp).
 - [ ] If confirmed: a test proves a non-audited impersonation path no longer exists.
-- [ ] If not confirmed: finding recorded, issue closed with no code change.
+- [x] If not confirmed: finding recorded (dead `@colonel` branch additionally removed as least-capability hardening).
+
+## Spike outcome: confirmed-absent (then hardened)
+
+Reviewed `apps/web/core/logic/authentication/authenticate_session.rb`. As of the
+spike, `success?` read:
+
+```ruby
+!cust&.anonymous? && (cust.passphrase?(@passwd) || @colonel&.passphrase?(@passwd))
+```
+
+**Finding — the exploitable path was NOT present (confirmed-absent):**
+
+- `@colonel` was never assigned anywhere in `apps/` or `lib/` — that line was its
+  sole reference — so `@colonel&.passphrase?(@passwd)` evaluated `nil&.…` → `nil`
+  → falsey on every real request. The colonel-passphrase-as-any-customer branch
+  was inert.
+- `raise_concerns` additionally bails on `@cust.nil?`, so the branch was doubly
+  unreachable.
+
+No authenticated-as-arbitrary-customer session could be minted via this method,
+so there was no live vulnerability to exploit and no public artifact asserts one.
+
+**Hardening applied (least-capability, zero-risk since the clause was dead):**
+
+The dead `|| @colonel&.passphrase?(@passwd)` clause and the `@colonel` reference
+were removed so `success?` is now simply:
+
+```ruby
+!cust&.anonymous? && cust.passphrase?(@passwd)
+```
+
+Rationale: leaving an unexplained colonel-passphrase branch in the hottest auth
+method was a latent hazard — any future assignment of `@colonel` (an
+impersonation feature, an injecting strategy, `instance_variable_set`) would
+silently re-enable an **unaudited** impersonation path with no `AdminAuditEvent`,
+exactly what this ticket exists to prevent. Per "prefer removal over replacement
+— least capability wins," the branch is deleted rather than replaced. An inline
+comment at the call site records why no such branch belongs there.
+
+No explicit impersonation operation was built: the rebuilt console has no
+impersonation need. If one ever arises it must be an explicit operation gated by
+both authz layers (Otto `role=colonel` + `verify_one_of_roles!(colonel:true)`)
+that writes an `AdminAuditEvent` on every invocation.
 
 ## Notes / risks
 

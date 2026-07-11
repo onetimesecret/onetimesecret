@@ -116,6 +116,14 @@ const viteAdditionalServerAllowedHosts = process.env.VITE_ADDITIONAL_SERVER_ALLO
  *
  * @see 29ffd790d74599bbbe3755d0fcba2b59c2f59ed7
  */
+// Two-pass single-chunk build. Rolldown rejects multiple inputs under
+// output.codeSplitting:false, and our CSP nonce model wants exactly one script
+// tag per shell — so each entry is built as its OWN single-input pass, selected
+// by VITE_BUILD_TARGET (see the `build` npm script). Default pass = the customer
+// bundle (main.ts); the admin pass builds the isolated Colonel console (admin.ts)
+// into the same dist without wiping it, under a separate manifest.
+const isAdminBuild = process.env.VITE_BUILD_TARGET === 'admin';
+
 // eslint-disable-next-line max-lines-per-function
 export default defineConfig(({ command: _command }) => ({
   // Project root is ./src (imports resolve from here, index.html lives here)
@@ -265,7 +273,10 @@ export default defineConfig(({ command: _command }) => ({
     // in going to one or the other machines can continue serving the previous
     // version, and for an hour after the deploy for the redis cache to expire
     // (or be manually deleted). The key is template:global:vite_assets in db 0.
-    emptyOutDir: true,
+    //
+    // The admin pass runs AFTER the main pass and must NOT wipe the customer
+    // bundle it just built, so it appends to dist instead of emptying it.
+    emptyOutDir: !isAdminBuild,
 
     // Single Bundle Strategy
     //
@@ -274,11 +285,15 @@ export default defineConfig(({ command: _command }) => ({
     // management by requiring only one script tag. Code splitting would
     // require generating and tracking nonces for each chunk, adding
     // complexity without significant benefit for our use case.
-    manifest: true,
+    //
+    // Each entry (main.ts, admin.ts) is built in its own pass so it stays a
+    // single self-contained chunk; the passes write separate manifests so the
+    // backend can resolve each shell's assets independently.
+    manifest: isAdminBuild ? '.vite/manifest-admin.json' : true,
     rolldownOptions: {
-      input: {
-        main: 'src/main.ts',
-      },
+      input: isAdminBuild
+        ? { admin: 'src/admin.ts' } // isolated Colonel admin console
+        : { main: 'src/main.ts' }, // customer bundle
       output: {
         // Enforce single chunk output (replaces deprecated inlineDynamicImports)
         codeSplitting: false,

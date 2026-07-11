@@ -63,7 +63,7 @@ GEM
     crack (1.0.1)
       bigdecimal
       rexml
-    crass (1.0.6)
+    crass (1.0.7)
     csv (3.3.5)
     database_cleaner-core (2.0.1)
     database_cleaner-sequel (2.0.2)
@@ -272,7 +272,7 @@ GEM
     openssl-signature_algorithm (1.3.0)
       openssl (> 2.0)
     ostruct (0.6.3)
-    otto (2.5.0)
+    otto (2.6.0)
       concurrent-ruby (~> 1.3, < 2.0)
       logger (~> 1, < 2.0)
       loofah (~> 2.20)
@@ -361,7 +361,7 @@ GEM
     reverse_markdown (3.0.2)
       nokogiri
     rexml (3.4.4)
-    rhales (0.6.2)
+    rhales (0.7.1)
       json_schemer (~> 2)
       logger
       tilt (~> 2)
@@ -630,7 +630,7 @@ DEPENDENCIES
   redis (~> 5.4.0)
   reline
   rerun (~> 0.14)
-  rhales (~> 0.6.2)
+  rhales (~> 0.7.1)
   roda (~> 3.0)
   rodauth (~> 2.0)
   rodauth-omniauth (~> 0.4)

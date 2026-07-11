@@ -4,6 +4,11 @@
 
 # CLI command for previewing rendered email templates.
 #
+# Thin adapter over {Onetime::Operations::Email::PreviewTemplate} (ticket #44) —
+# the SINGLE implementation of the preview verb, shared with the colonel API.
+# The op owns the sample-data resolution + rendering; this command keeps only the
+# CLI concerns (arg/option parsing, --open, and the error messaging).
+#
 # Usage:
 #   ots email preview <template>                  # Text output using sample data
 #   ots email preview <template> --html           # HTML output
@@ -12,7 +17,7 @@
 #   ots email preview <template> --locale fr
 
 require 'json'
-require 'yaml'
+require 'onetime/operations/email/preview_template'
 
 module Onetime
   module CLI
@@ -48,20 +53,24 @@ module Onetime
         def call(template:, html: false, data: nil, locale: 'en', open: false, **)
           boot_application!
 
-          template_data  = load_data(data, template)
-          template_class = resolve_template(template)
-          instance       = template_class.new(template_data, locale: locale)
+          parsed_data = data ? JSON.parse(data).transform_keys(&:to_sym) : nil
 
-          if html
-            body = instance.render_html || '(no HTML template)'
-            if open
-              open_in_browser(body)
-            else
-              puts body
-            end
+          result = Onetime::Operations::Email::PreviewTemplate.new(
+            template: template,
+            data: parsed_data,
+            locale: locale,
+            format: html ? 'html' : 'text',
+          ).call
+
+          if html && open
+            open_in_browser(result.body)
           else
-            puts instance.render_text
+            puts result.body
           end
+        rescue Onetime::Operations::Email::PreviewTemplate::MissingSampleError => ex
+          warn ex.message
+          warn "Create a YAML file there or pass --data '{...}'"
+          exit 1
         rescue ArgumentError => ex
           handle_argument_error(ex, template)
         rescue JSON::ParserError => ex
@@ -70,38 +79,6 @@ module Onetime
         end
 
         private
-
-        def load_data(json_string, template_name)
-          if json_string
-            parsed                       = JSON.parse(json_string)
-            symbolized                   = parsed.transform_keys(&:to_sym)
-            symbolized[:recipient]     ||= 'preview@example.com'
-            symbolized[:email_address] ||= symbolized[:recipient]
-            symbolized
-          else
-            load_sample_data(template_name)
-          end
-        end
-
-        def load_sample_data(template_name)
-          sample_file = File.join(SAMPLES_PATH, "#{template_name}.yml")
-
-          unless File.exist?(sample_file)
-            warn "No sample data found: #{sample_file}"
-            warn "Create a YAML file there or pass --data '{...}'"
-            exit 1
-          end
-
-          parsed                       = YAML.safe_load_file(sample_file, permitted_classes: [Symbol])
-          symbolized                   = parsed.transform_keys(&:to_sym)
-          symbolized[:recipient]     ||= symbolized.delete(:email_address) || 'preview@example.com'
-          symbolized[:email_address] ||= symbolized[:recipient]
-          symbolized
-        end
-
-        def resolve_template(name)
-          Onetime::Mail::Mailer.send(:template_class_for, name.to_sym)
-        end
 
         def open_in_browser(html_body)
           require 'tempfile'

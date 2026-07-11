@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/operations/ratelimit/registry'
+
 module Onetime
   module CLI
     # Emits valkey-cli commands for inspecting or clearing the in-Redis state
@@ -16,24 +18,13 @@ module Onetime
     # Adding a new limiter: add one row to LIMITERS with the key templates
     # used by the module's private *_key methods.
     class RatelimitCommand < DelayBootCommand
-      LIMITERS = {
-        'feedback' => {
-          subject: 'IP address',
-          keys: ['feedback:submissions:%s', 'feedback:locked:%s'],
-        },
-        'passphrase' => {
-          subject: 'secret identifier',
-          keys: ['passphrase:attempts:%s', 'passphrase:locked:%s'],
-        },
-        'invite' => {
-          subject: 'IP address',
-          keys: ['invite_attempts:%s', 'invite_locked:%s'],
-        },
-        'dns' => {
-          subject: 'domain identifier (sanitized)',
-          keys: ['dns:ratelimit:%s'],
-        },
-      }.freeze
+      # SINGLE source of truth for the limiter kinds + key templates, now owned by
+      # the extracted {Onetime::Operations::RateLimit::Registry} (ticket #44) and
+      # shared with the colonel inspect/reset endpoints. Aliased here so every
+      # existing `LIMITERS[...]` / `LIMITERS.keys` reference — and the emitted
+      # valkey-cli output — stays byte-identical. The registry adds a lazy
+      # `:dbclient` proc the CLI simply ignores (it never touches Redis itself).
+      LIMITERS = Onetime::Operations::RateLimit::Registry::LIMITERS
 
       desc 'List known rate limiters and their subject types'
 
@@ -62,14 +53,14 @@ module Onetime
         desc: 'IP, identifier, or other lookup key the limiter uses'
 
       def call(kind:, subject:, **)
-        meta = RatelimitCommand::LIMITERS[kind]
-        unless meta
+        # Key derivation is now written once in the shared registry — the SAME
+        # templates the colonel inspect/reset endpoints expand (ticket #44).
+        keys = Onetime::Operations::RateLimit::Registry.keys_for(kind, subject)
+        unless keys
           warn "Unknown rate limiter: #{kind.inspect}"
           warn "Known: #{RatelimitCommand::LIMITERS.keys.join(', ')}"
           exit 1
         end
-
-        keys = meta[:keys].map { |tmpl| format(tmpl, subject) }
 
         puts '# inspect'
         keys.each do |k|

@@ -1,0 +1,461 @@
+{
+  "web.admin.customers.title": {
+    "text": "Customers",
+    "content_hash": "aabe76f1"
+  },
+  "web.admin.customers.description": {
+    "text": "Find a customer and resolve support issues without SSH.",
+    "content_hash": "c8487e68"
+  },
+  "web.admin.customers.list.roleFilter": {
+    "text": "Role",
+    "content_hash": "14736a2e"
+  },
+  "web.admin.customers.list.empty": {
+    "text": "No customers found",
+    "content_hash": "dc754ec0"
+  },
+  "web.admin.customers.list.loadError": {
+    "text": "Could not load customers.",
+    "content_hash": "81783303"
+  },
+  "web.admin.customers.list.searchPlaceholder": {
+    "text": "Search by email, extid, or objid",
+    "content_hash": "f2462809"
+  },
+  "web.admin.customers.list.emptySearch": {
+    "text": "No customers match this search",
+    "content_hash": "ea7e7012"
+  },
+  "web.admin.customers.roles.colonel": {
+    "text": "Colonel",
+    "content_hash": "02577777"
+  },
+  "web.admin.customers.roles.admin": {
+    "text": "Admin",
+    "content_hash": "c1c224b0"
+  },
+  "web.admin.customers.roles.staff": {
+    "text": "Staff",
+    "content_hash": "681927e3"
+  },
+  "web.admin.customers.roles.customer": {
+    "text": "Customer",
+    "content_hash": "bf376338"
+  },
+  "web.admin.customers.suspended.badge": {
+    "text": "Suspended",
+    "content_hash": "e392a389"
+  },
+  "web.admin.customers.columns.email": {
+    "text": "Email",
+    "content_hash": "969ccbd3"
+  },
+  "web.admin.customers.columns.role": {
+    "text": "Role",
+    "content_hash": "14736a2e"
+  },
+  "web.admin.customers.columns.verified": {
+    "text": "Verified",
+    "content_hash": "4f783840"
+  },
+  "web.admin.customers.columns.plan": {
+    "text": "Plan",
+    "content_hash": "fa8ed0bd"
+  },
+  "web.admin.customers.columns.secrets": {
+    "text": "Secrets",
+    "content_hash": "d8707d41"
+  },
+  "web.admin.customers.columns.created": {
+    "text": "Created",
+    "content_hash": "d70b9e24"
+  },
+  "web.admin.customers.columns.lastLogin": {
+    "text": "Last login",
+    "content_hash": "0d39602d"
+  },
+  "web.admin.customers.detail.backToList": {
+    "text": "Back to customers",
+    "content_hash": "077807fb"
+  },
+  "web.admin.customers.detail.openFullPage": {
+    "text": "Open full page"
+  },
+  "web.admin.customers.detail.notFound": {
+    "text": "Customer not found",
+    "content_hash": "5e3f5824"
+  },
+  "web.admin.customers.detail.notFoundDescription": {
+    "text": "No customer matches this identifier. They may have been purged.",
+    "content_hash": "82b04725"
+  },
+  "web.admin.customers.detail.loadError": {
+    "text": "Could not load this customer.",
+    "content_hash": "cfd1bcca"
+  },
+  "web.admin.customers.detail.retry": {
+    "text": "Retry",
+    "content_hash": "942087cc"
+  },
+  "web.admin.customers.detail.yes": {
+    "text": "Yes",
+    "content_hash": "85a39ab3"
+  },
+  "web.admin.customers.detail.no": {
+    "text": "No",
+    "content_hash": "1ea442a1"
+  },
+  "web.admin.customers.detail.none": {
+    "text": "None",
+    "content_hash": "dc937b59"
+  },
+  "web.admin.customers.detail.never": {
+    "text": "Never",
+    "content_hash": "6300ef80"
+  },
+  "web.admin.customers.detail.sections.profile": {
+    "text": "Profile",
+    "content_hash": "d696a35b"
+  },
+  "web.admin.customers.detail.sections.secrets": {
+    "text": "Secrets",
+    "content_hash": "d8707d41"
+  },
+  "web.admin.customers.detail.sections.receipts": {
+    "text": "Receipts",
+    "content_hash": "60a627df"
+  },
+  "web.admin.customers.detail.sections.organizations": {
+    "text": "Organizations",
+    "content_hash": "2730183d"
+  },
+  "web.admin.customers.detail.sections.actions": {
+    "text": "Actions",
+    "content_hash": "ff8059dc"
+  },
+  "web.admin.customers.detail.sections.billing": {
+    "text": "Billing",
+    "content_hash": "3ac8bbca"
+  },
+  "web.admin.customers.detail.billing.plan": {
+    "text": "Plan",
+    "content_hash": "fa8ed0bd"
+  },
+  "web.admin.customers.detail.billing.organization": {
+    "text": "Billing organization",
+    "content_hash": "90c94ee1"
+  },
+  "web.admin.customers.detail.billing.subscriptionStatus": {
+    "text": "Subscription status",
+    "content_hash": "f0723c4e"
+  },
+  "web.admin.customers.detail.billing.periodEnd": {
+    "text": "Current period ends",
+    "content_hash": "742b8229"
+  },
+  "web.admin.customers.detail.billing.latestInvoice": {
+    "text": "Latest invoice",
+    "content_hash": "7a6133cc"
+  },
+  "web.admin.customers.detail.billing.noInvoices": {
+    "text": "No invoices",
+    "content_hash": "e6b30f93"
+  },
+  "web.admin.customers.detail.billing.openStripe": {
+    "text": "Open in Stripe dashboard",
+    "content_hash": "dfa7c41d"
+  },
+  "web.admin.customers.detail.billing.unavailable": {
+    "text": "Stripe data unavailable: {reason}",
+    "content_hash": "9fe08e49"
+  },
+  "web.admin.customers.detail.billing.notConfigured": {
+    "text": "Billing is not configured on this install.",
+    "content_hash": "6e90375e"
+  },
+  "web.admin.customers.detail.fields.email": {
+    "text": "Email",
+    "content_hash": "969ccbd3"
+  },
+  "web.admin.customers.detail.fields.publicId": {
+    "text": "Public ID",
+    "content_hash": "3705b64f"
+  },
+  "web.admin.customers.detail.fields.role": {
+    "text": "Role",
+    "content_hash": "14736a2e"
+  },
+  "web.admin.customers.detail.fields.verified": {
+    "text": "Verified",
+    "content_hash": "4f783840"
+  },
+  "web.admin.customers.detail.fields.plan": {
+    "text": "Plan",
+    "content_hash": "fa8ed0bd"
+  },
+  "web.admin.customers.detail.fields.locale": {
+    "text": "Locale",
+    "content_hash": "ca3dc612"
+  },
+  "web.admin.customers.detail.fields.created": {
+    "text": "Created",
+    "content_hash": "d70b9e24"
+  },
+  "web.admin.customers.detail.fields.updated": {
+    "text": "Updated",
+    "content_hash": "3a5ecca1"
+  },
+  "web.admin.customers.detail.fields.lastLogin": {
+    "text": "Last login",
+    "content_hash": "0d39602d"
+  },
+  "web.admin.customers.detail.fields.suspendedAt": {
+    "text": "Suspended at",
+    "content_hash": "7227f219"
+  },
+  "web.admin.customers.detail.fields.suspendedBy": {
+    "text": "Suspended by",
+    "content_hash": "e0830524"
+  },
+  "web.admin.customers.detail.fields.suspendedReason": {
+    "text": "Suspension reason",
+    "content_hash": "d6b08d8e"
+  },
+  "web.admin.customers.detail.stats.secretsCreated": {
+    "text": "Secrets created",
+    "content_hash": "7d17719e"
+  },
+  "web.admin.customers.detail.stats.secretsShared": {
+    "text": "Secrets shared",
+    "content_hash": "ba85b265"
+  },
+  "web.admin.customers.detail.stats.emailsSent": {
+    "text": "Emails sent",
+    "content_hash": "be604792"
+  },
+  "web.admin.customers.detail.secretColumns.shortId": {
+    "text": "Short ID",
+    "content_hash": "7eaeb4a7"
+  },
+  "web.admin.customers.detail.secretColumns.state": {
+    "text": "State",
+    "content_hash": "a3b50c47"
+  },
+  "web.admin.customers.detail.secretColumns.created": {
+    "text": "Created",
+    "content_hash": "d70b9e24"
+  },
+  "web.admin.customers.detail.secretColumns.expiration": {
+    "text": "Expiration",
+    "content_hash": "f38d6e0e"
+  },
+  "web.admin.customers.detail.receiptColumns.shortId": {
+    "text": "Short ID",
+    "content_hash": "7eaeb4a7"
+  },
+  "web.admin.customers.detail.receiptColumns.state": {
+    "text": "State",
+    "content_hash": "a3b50c47"
+  },
+  "web.admin.customers.detail.receiptColumns.created": {
+    "text": "Created",
+    "content_hash": "d70b9e24"
+  },
+  "web.admin.customers.detail.secrets.empty": {
+    "text": "No secrets",
+    "content_hash": "c37ab3f7"
+  },
+  "web.admin.customers.detail.receipts.empty": {
+    "text": "No receipts",
+    "content_hash": "fb425a68"
+  },
+  "web.admin.customers.detail.organizations.empty": {
+    "text": "No organizations",
+    "content_hash": "c256efdc"
+  },
+  "web.admin.customers.detail.organizations.default": {
+    "text": "Default",
+    "content_hash": "21b111cb"
+  },
+  "web.admin.customers.actions.role.label": {
+    "text": "Role",
+    "content_hash": "14736a2e"
+  },
+  "web.admin.customers.actions.role.apply": {
+    "text": "Apply",
+    "content_hash": "31e392d1"
+  },
+  "web.admin.customers.actions.role.confirmTitle": {
+    "text": "Change role?",
+    "content_hash": "227f57d7"
+  },
+  "web.admin.customers.actions.role.confirmDescription": {
+    "text": "Change {email} to the {role} role.",
+    "content_hash": "9ba063c6"
+  },
+  "web.admin.customers.actions.role.success": {
+    "text": "Role updated.",
+    "content_hash": "0c33aa24"
+  },
+  "web.admin.customers.actions.plan.label": {
+    "text": "Plan"
+  },
+  "web.admin.customers.actions.plan.apply": {
+    "text": "Apply"
+  },
+  "web.admin.customers.actions.plan.confirmTitle": {
+    "text": "Change plan?"
+  },
+  "web.admin.customers.actions.plan.confirmDescription": {
+    "text": "Change {email} to the {plan} plan."
+  },
+  "web.admin.customers.actions.plan.success": {
+    "text": "Plan updated."
+  },
+  "web.admin.customers.actions.plan.localConfigWarning": {
+    "text": "Plans loaded from local config — Stripe is not configured or unreachable."
+  },
+  "web.admin.customers.actions.verify.button": {
+    "text": "Verify",
+    "content_hash": "eea2745e"
+  },
+  "web.admin.customers.actions.verify.confirmTitle": {
+    "text": "Verify customer?",
+    "content_hash": "43037ce1"
+  },
+  "web.admin.customers.actions.verify.confirmDescription": {
+    "text": "Mark {email} as verified.",
+    "content_hash": "7052d79d"
+  },
+  "web.admin.customers.actions.verify.success": {
+    "text": "Customer verified.",
+    "content_hash": "19e382dc"
+  },
+  "web.admin.customers.actions.unverify.button": {
+    "text": "Unverify",
+    "content_hash": "b0dee41f"
+  },
+  "web.admin.customers.actions.unverify.confirmTitle": {
+    "text": "Unverify customer?",
+    "content_hash": "62ed2854"
+  },
+  "web.admin.customers.actions.unverify.confirmDescription": {
+    "text": "Mark {email} as not verified.",
+    "content_hash": "592ffd27"
+  },
+  "web.admin.customers.actions.unverify.success": {
+    "text": "Customer unverified.",
+    "content_hash": "a9b7bbac"
+  },
+  "web.admin.customers.actions.suspend.button": {
+    "text": "Suspend account",
+    "content_hash": "95a04f27"
+  },
+  "web.admin.customers.actions.suspend.reasonLabel": {
+    "text": "Reason (optional)",
+    "content_hash": "0f7d4664"
+  },
+  "web.admin.customers.actions.suspend.reasonPlaceholder": {
+    "text": "Why is this account being suspended?",
+    "content_hash": "8eca975e"
+  },
+  "web.admin.customers.actions.suspend.confirmTitle": {
+    "text": "Suspend account?",
+    "content_hash": "cbfa275b"
+  },
+  "web.admin.customers.actions.suspend.confirmDescription": {
+    "text": "Blocks {email} from signing in and revokes their active sessions. No data is deleted — this is reversible.",
+    "content_hash": "e5d046bc"
+  },
+  "web.admin.customers.actions.suspend.success": {
+    "text": "Account suspended.",
+    "content_hash": "04c5f996"
+  },
+  "web.admin.customers.actions.unsuspend.button": {
+    "text": "Unsuspend account",
+    "content_hash": "35a10fb5"
+  },
+  "web.admin.customers.actions.unsuspend.confirmTitle": {
+    "text": "Unsuspend account?",
+    "content_hash": "6fd78a72"
+  },
+  "web.admin.customers.actions.unsuspend.confirmDescription": {
+    "text": "Restores sign-in for {email}.",
+    "content_hash": "cb2bb4e0"
+  },
+  "web.admin.customers.actions.unsuspend.success": {
+    "text": "Account unsuspended.",
+    "content_hash": "c5b4377f"
+  },
+  "web.admin.customers.actions.purge.button": {
+    "text": "Purge customer",
+    "content_hash": "ff658f69"
+  },
+  "web.admin.customers.actions.purge.confirmTitle": {
+    "text": "Purge customer?",
+    "content_hash": "9feed9f1"
+  },
+  "web.admin.customers.actions.purge.confirmDescription": {
+    "text": "This permanently deletes {email} and all of their data. This cannot be undone.",
+    "content_hash": "a74dd5d1"
+  },
+  "web.admin.customers.actions.purge.success": {
+    "text": "Customer purged.",
+    "content_hash": "6145e5c8"
+  },
+  "web.admin.customers.detail.sessions.title": {
+    "text": "Active Sessions"
+  },
+  "web.admin.customers.detail.sessions.empty": {
+    "text": "No active sessions."
+  },
+  "web.admin.customers.detail.sessions.loadError": {
+    "text": "Unable to load sessions."
+  },
+  "web.admin.customers.detail.sessions.unknown": {
+    "text": "Unknown"
+  },
+  "web.admin.customers.detail.sessions.columns.lastActivity": {
+    "text": "Last activity"
+  },
+  "web.admin.customers.detail.sessions.columns.ipAddress": {
+    "text": "IP address"
+  },
+  "web.admin.customers.detail.sessions.columns.device": {
+    "text": "Device"
+  },
+  "web.admin.customers.detail.sessions.columns.authMethod": {
+    "text": "Auth method"
+  },
+  "web.admin.customers.detail.sessions.columns.actions": {
+    "text": "Actions"
+  },
+  "web.admin.customers.detail.sessions.revoke.button": {
+    "text": "Revoke"
+  },
+  "web.admin.customers.detail.sessions.revoke.confirmTitle": {
+    "text": "Revoke session?"
+  },
+  "web.admin.customers.detail.sessions.revoke.confirmDescription": {
+    "text": "This immediately signs the user out of this session. They will need to sign in again."
+  },
+  "web.admin.customers.detail.sessions.revoke.success": {
+    "text": "Session revoked."
+  },
+  "web.admin.customers.detail.sessions.revokeAll.button": {
+    "text": "Revoke all"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.confirmTitle": {
+    "text": "Revoke every session?"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.confirmDescription": {
+    "text": "This signs the user out of every device and browser — including sessions not shown in this list — and locks out their authenticated routes immediately. Use for offboarding or a suspected account takeover. Type the user's ID to confirm."
+  },
+  "web.admin.customers.detail.sessions.revokeAll.success": {
+    "text": "Revoked all sessions ({count} killed)."
+  },
+  "web.admin.customers.detail.sessions.revokeAll.capped": {
+    "text": "Killed {count} sessions, but the untracked-session sweep was truncated — an older session may remain. Re-run to be sure."
+  }
+}
