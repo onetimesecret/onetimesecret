@@ -34,7 +34,7 @@
   // Reactive ref: brand settings can arrive after mount (bootstrap
   // re-hydration), so a plain property read here would freeze the
   // pre-brand snapshot into the corner/font bindings below.
-  const { brand: brandSettings } = storeToRefs(productIdentity);
+  const { brand: brandSettings, cornerClass } = storeToRefs(productIdentity);
 
   defineProps<Props>();
 </script>
@@ -61,13 +61,7 @@
 
     <!-- Confirmation slot -->
     <template #confirmation="{ record, details, error, isLoading, onConfirm }">
-      <div
-        :class="{
-          'rounded-lg': brandSettings?.corner_style === 'rounded',
-          'rounded-2xl': brandSettings?.corner_style === 'pill',
-          'rounded-none': brandSettings?.corner_style === 'square',
-          'mx-auto max-w-2xl space-y-20': true,
-        }">
+      <div :class="[cornerClass, 'mx-auto max-w-2xl space-y-20']">
         <SecretConfirmationForm
           :secret-identifier="secretIdentifier"
           :record="record"
