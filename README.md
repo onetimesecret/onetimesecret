@@ -102,7 +102,7 @@ Requires Ruby 3.4.9 (pinned via `.ruby-version`), Redis/Valkey, Node.js 22, pnpm
 
 ```bash
 git clone https://github.com/onetimesecret/onetimesecret.git && cd onetimesecret
-./install.sh init            # Generates .env, secrets, and puma config
+bin/setup --init             # Generates .env, secrets, and puma config
 set -a; source .env; set +a  # Export env vars into the shell
 pnpm run build               # Build the frontend assets (required, or the UI is blank)
 bundle exec puma -C etc/puma.rb
@@ -122,21 +122,19 @@ See the [Self-Hosting Guide](https://docs.onetimesecret.com/en/self-hosting/) fo
 
 ## Development
 
-### Running Locally
-
-There are two ways to run the application for local development:
-
-**Option A: Overmind (recommended)**
-
-[Overmind](https://github.com/DarthSim/overmind) runs backend, frontend, and worker from a single command using `Procfile.dev`:
-
-> Requires [direnv](https://direnv.net/) with its [shell hook](https://direnv.net/docs/hook.html) installed. `install-dev.sh` generates `.envrc` and runs `direnv allow`; `bin/dev` loads the environment via direnv.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor guide. The
+short version — one command sets up the checkout, one command runs it:
 
 ```bash
-brew install overmind          # macOS
-./install-dev.sh               # Link config files + install gems and packages (one-time per checkout)
-bin/dev                        # Start all processes
+bin/setup                      # Deps, config, secrets, generated artifacts, git hooks (idempotent)
+bin/dev                        # Start backend + frontend + worker (needs overmind)
 ```
+
+> [Overmind](https://github.com/DarthSim/overmind) runs the processes from
+> `Procfile.dev`; [direnv](https://direnv.net/) (with its
+> [shell hook](https://direnv.net/docs/hook.html)) auto-loads the environment
+> per checkout. Both are recommended — `bin/setup` tells you what's missing
+> and how to proceed without them.
 
 Control individual processes from a separate terminal:
 ```bash
@@ -144,7 +142,14 @@ overmind connect backend       # Attach for debugger/pry (Ctrl+b,d to detach)
 overmind restart frontend      # Restart a single process
 ```
 
-**Option B: Production-style**
+To run the test suites, switch the checkout to the test lane first:
+```bash
+bin/setup --test               # Throwaway test datastore on :2121 + test mode
+pnpm run test:rspec:fast       # RSpec
+pnpm test                      # Vitest
+```
+
+**Production-style local run**
 
 Build the frontend and serve everything from the backend:
 ```bash
@@ -183,6 +188,8 @@ See `docker-compose.yml` to switch between the simple and full stacks (edit the 
 
 [Latest Release](https://github.com/onetimesecret/onetimesecret/releases/latest) · [Docker Hub](https://hub.docker.com/r/onetimesecret/onetimesecret) · [Build Status](https://github.com/onetimesecret/onetimesecret/actions) · [License](LICENSE.txt)
 
+- [Contributing Guide](./CONTRIBUTING.md) — from clone to green test suite with `bin/setup`
+- [Support](./SUPPORT.md) · [Code of Conduct](./CODE_OF_CONDUCT.md)
 - [Report an issue](https://github.com/onetimesecret/onetimesecret/issues)
 - [Security Statement](./SECURITY.md)
 - [Documentation](https://docs.onetimesecret.com) — usage and self-hosting guides; [`docs/`](./docs/) for developer docs

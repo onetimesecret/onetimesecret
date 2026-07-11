@@ -12,7 +12,7 @@ require 'json'
 #
 # To run integration tests:
 #   pnpm run test:database:start  # Start Valkey on port 2121
-#   pnpm run test:rspec:failures spec/integration/
+#   pnpm run test:rspec:integration   # rake spec:integration:all
 #
 # FakeRedis is NOT used for integration tests because:
 # 1. Integration tests require full application boot (Onetime.boot!)
