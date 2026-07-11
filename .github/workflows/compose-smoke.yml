@@ -1,0 +1,144 @@
+# ==============================================================================
+# Compose / docker smoke (install-onboarding testing-strategy §2a)
+# ==============================================================================
+# The #1 self-host funnel: the documented `docker compose up` and `docker run`
+# quick starts. Two jobs:
+#
+#   compose-smoke      (PR on docker/** changes + weekly cron): lint every
+#                      documented compose combo with `config -q`, then bring up
+#                      the simple stack with `--wait` (the app healthcheck is the
+#                      readiness assertion) and run the shared proof-of-life.
+#   docker-run-readme  (weekly cron + manual): the README `docker run` quick
+#                      start, verbatim, against the exact published tag the
+#                      README shows — the only thing that catches "the docs
+#                      point at a broken/missing tag".
+#
+# Reference shape: Supabase smoke-tests its self-host compose with published
+# pinned images on every docker/** PR; Sentry runs its install path on a cron.
+# ==============================================================================
+name: Compose smoke
+
+on:
+  pull_request:
+    paths:
+      - 'docker-compose.yml'
+      - 'docker/compose/**'
+      - 'scripts/test-install/proof-of-life.sh'
+      - '.github/workflows/compose-smoke.yml'
+  schedule:
+    # Weekly: catches published-image / registry / tag rot with no commit.
+    - cron: '41 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compose-smoke:
+    name: docker compose up (simple)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      # Compose reads SECRET (${SECRET:?...}) even for `config`, so seed a .env
+      # at the repo root (where the compose files' `env_file: ../../.env`
+      # resolves to). A throwaway secret is fine — this stack is torn down.
+      - name: Seed .env with a throwaway SECRET
+        run: echo "SECRET=$(openssl rand -hex 32)" > .env
+
+      # Zero-cost lint of every documented file combination first (Mattermost
+      # pattern) — a broken include/merge fails here before anything is pulled.
+      - name: Lint all documented compose combos (config -q)
+        run: |
+          set -x
+          docker compose config -q
+          docker compose -f docker/compose/docker-compose.simple.yml config -q
+          docker compose -f docker/compose/docker-compose.full.yml config -q
+          docker compose \
+            -f docker/compose/docker-compose.simple.yml \
+            -f docker/compose/docker-compose.mailpit.yml config -q
+
+      # CP-5 workaround: the bind-mounted ./data must be writable by the image's
+      # appuser (uid 1001) or the container can't write to /app/data. The real
+      # fix (named volume or documented chown) is C5; here we just make the lane
+      # honest without blocking on it.
+      - name: Prepare writable data dir (CP-5 workaround, pending C5)
+        run: |
+          mkdir -p data
+          sudo chown -R 1001:1001 data
+
+      - name: Bring up the simple stack (--wait on app healthcheck)
+        run: |
+          docker compose -f docker/compose/docker-compose.simple.yml \
+            up -d --wait --wait-timeout 180 --quiet-pull --renew-anon-volumes
+
+      - name: Proof of life
+        run: ./scripts/test-install/proof-of-life.sh http://127.0.0.1:3000
+
+      - name: Dump logs on failure
+        if: failure()
+        run: docker compose -f docker/compose/docker-compose.simple.yml logs --no-color
+
+      - name: Tear down
+        if: always()
+        run: docker compose -f docker/compose/docker-compose.simple.yml down -v
+
+  docker-run-readme:
+    name: docker run (README verbatim)
+    # Heavy (pulls the full published image); it guards the published quick
+    # start against tag/registry rot, not per-PR compose wiring — so cron only.
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      # Read the exact image tag the README documents so this test can never
+      # drift from the docs (the whole point — testing the documented path).
+      - name: Resolve README docker-run image tag
+        id: tag
+        run: |
+          tag="$(grep -oE 'onetimesecret/onetimesecret:v[0-9]+\.[0-9]+\.[0-9]+' README.md | head -n1)"
+          if [[ -z "$tag" ]]; then
+            echo "::error::could not find a pinned onetimesecret/onetimesecret:vX.Y.Z tag in README.md"
+            exit 1
+          fi
+          echo "image=$tag" >> "$GITHUB_OUTPUT"
+          echo "Testing documented image: $tag"
+
+      # The README quick start, run verbatim (the two `docker run` commands and
+      # the secret-file step from README §Quick start).
+      - name: Start Redis (README step 1)
+        run: docker run -p 6379:6379 -d redis:bookworm
+
+      - name: Generate persistent secret key (README step 2)
+        run: |
+          openssl rand -hex 32 > .ots_secret
+          chmod 600 .ots_secret
+
+      - name: Run the app container (README step 2, verbatim flags)
+        env:
+          OTS_IMAGE: ${{ steps.tag.outputs.image }}
+        run: |
+          docker run -p 3000:3000 -d \
+            --add-host=host.docker.internal:host-gateway \
+            -e REDIS_URL=redis://host.docker.internal:6379/0 \
+            -e SECRET="$(cat .ots_secret)" \
+            -e HOST=localhost:3000 \
+            -e AUTH_REQUIRED=false \
+            -e SSL=false \
+            "$OTS_IMAGE"
+
+      - name: Proof of life
+        run: ./scripts/test-install/proof-of-life.sh http://127.0.0.1:3000
+
+      - name: Dump container logs on failure
+        if: failure()
+        env:
+          OTS_IMAGE: ${{ steps.tag.outputs.image }}
+        run: |
+          docker ps -a
+          docker logs "$(docker ps -aq --filter "ancestor=$OTS_IMAGE" | head -n1)" || true
