@@ -70,15 +70,13 @@ module ColonelAPI
         def load_sync_status
           raw = Onetime::EmailSuppression.sync_status.all || {}
           raw.transform_values do |value|
-            if value.is_a?(String)
-  begin
-                                    JSON.parse(value)
-  rescue StandardError
-                                    value
-  end
-else
-  value
-end
+            next value unless value.is_a?(String)
+
+            begin
+              JSON.parse(value)
+            rescue StandardError
+              {}
+            end
           end
         end
 

@@ -128,9 +128,10 @@
                 </div>
                 <button
                   type="button"
-                  class="-m-2 shrink-0 rounded-md p-2 text-gray-400 hover:text-gray-600 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:hover:text-gray-200"
+                  class="-m-2 shrink-0 rounded-md p-2 text-gray-400 hover:text-gray-600 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:hover:text-gray-200"
                   :aria-label="t('web.LABELS.close')"
-                  @click="requestClose">
+                  :disabled="!dismissable"
+                  @click="onDialogClose(dismissable)">
                   <OIcon
                     collection="heroicons"
                     name="x-mark"
