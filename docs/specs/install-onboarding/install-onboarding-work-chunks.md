@@ -105,6 +105,22 @@ TR-01, TR-02, BM-02, BM-03, BM-05(min), BM-06, CP-12, DUP ghost-file +
 procfile items. Proof: C7's fresh-clone job; until then, rerun the empirical
 suite (runs 3, 4b, 5, 8, 10 all flip to green).
 
+> **Status (2026-07-10, post-#3708 + NF fixes):** C3 landed with one
+> deliberate scope deviation, recorded here so the plan matches reality
+> (clean-room validation §3): **direnv and overmind remain hard
+> prerequisites of the contributor path** — documented in the README —
+> rather than "gates → fallbacks" as specced above. direnv is load-bearing
+> for the standardized env-loading story (.envrc + .test-mode switching);
+> bin/dev requires overmind (or hivemind), and README Option B's
+> production-style boot (`pnpm run build` + puma) is the overmind-free
+> alternative. D1.1's fallback work is deferred: if it returns, it is a new
+> chunk, not a silent C3 reopen. The run-3/4b proof criterion above is
+> amended accordingly (run 3 green *with direnv present*; run 4b resolved
+> via Option B). Ruby-gate semantics (validation NF-5) were also decided:
+> install.sh now enforces the **exact** `.ruby-version`, matching bundler's
+> `ruby file:` pin, so the two gates cannot disagree. The clean-room
+> validation's NF-1–NF-4 are fixed on `fix/onboarding-hell-contd1`.
+
 ## C4 — First account & first secret
 
 Close the "instance up, now what?" gap on every path (the most-reported
