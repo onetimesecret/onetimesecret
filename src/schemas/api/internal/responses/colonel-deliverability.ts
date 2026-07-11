@@ -59,6 +59,14 @@ export const colonelDeliverabilitySummaryDetailsSchema = z.object({
       })
     )
     .optional(),
+  /**
+   * The active transport (Mailer.determine_provider) and whether it has a
+   * pollable feedback API (ses/lettermint). Gates the "Sync now" button —
+   * other transports (smtp/sendgrid/logger) have no pull API, only the
+   * events-ingest endpoint.
+   */
+  active_provider: z.string().nullable(),
+  sync_capability: z.boolean(),
 });
 
 // ============================================================================
@@ -152,6 +160,27 @@ export const colonelDeliverabilityIngestRecordSchema = z.object({
 
 /** IngestEmailDeliverabilityEvents `details`: first rejection reasons. */
 export const colonelDeliverabilityIngestDetailsSchema = z.object({
+  errors: z.array(z.string()),
+});
+
+// ============================================================================
+// On-demand sync — POST /api/colonel/email/deliverability/sync
+// ============================================================================
+
+/**
+ * SyncEmailDeliverability `record`: the tallies from one on-demand pull of
+ * the active provider's feedback list (the colonel-UI "Sync now" trigger,
+ * the interactive counterpart to `ots email sync-feedback`).
+ */
+export const colonelEmailDeliverabilitySyncRecordSchema = z.object({
+  provider: z.string(),
+  fetched: z.number(),
+  accepted: z.number(),
+  rejected: z.number(),
+});
+
+/** SyncEmailDeliverability `details`: first ingest-rejection reasons. */
+export const colonelEmailDeliverabilitySyncDetailsSchema = z.object({
   errors: z.array(z.string()),
 });
 
@@ -389,6 +418,12 @@ export const colonelEmailDeliverabilityIngestResponseSchema = createApiResponseS
   colonelDeliverabilityIngestDetailsSchema
 );
 
+// POST /api/colonel/email/deliverability/sync → SyncEmailDeliverability
+export const colonelEmailDeliverabilitySyncResponseSchema = createApiResponseSchema(
+  colonelEmailDeliverabilitySyncRecordSchema,
+  colonelEmailDeliverabilitySyncDetailsSchema
+);
+
 export type ColonelEmailDeliverabilityResponse = z.infer<
   typeof colonelEmailDeliverabilityResponseSchema
 >;
@@ -406,4 +441,7 @@ export type ColonelEmailDeliverabilityEventsResponse = z.infer<
 >;
 export type ColonelEmailDeliverabilityIngestResponse = z.infer<
   typeof colonelEmailDeliverabilityIngestResponseSchema
+>;
+export type ColonelEmailDeliverabilitySyncResponse = z.infer<
+  typeof colonelEmailDeliverabilitySyncResponseSchema
 >;

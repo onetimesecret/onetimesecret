@@ -22,6 +22,7 @@
   import {
     colonelEmailDeliverabilityEventsResponseSchema,
     colonelEmailDeliverabilityResponseSchema,
+    colonelEmailDeliverabilitySyncResponseSchema,
     colonelEmailMessagesResponseSchema,
     colonelEmailRecipientLookupResponseSchema,
     colonelEmailSuppressionAddResponseSchema,
@@ -63,6 +64,7 @@
   const SUMMARY_URL = '/api/colonel/email/deliverability';
   const SUPPRESSIONS_URL = '/api/colonel/email/deliverability/suppressions';
   const EVENTS_URL = '/api/colonel/email/deliverability/events';
+  const SYNC_URL = '/api/colonel/email/deliverability/sync';
   // Track B — live provider reads of the ACTIVE transport (Mailer.determine_provider).
   const LOOKUP_URL = '/api/colonel/email/deliverability/lookup';
   const MESSAGES_URL = '/api/colonel/email/deliverability/messages';
@@ -97,9 +99,46 @@
     Object.entries(syncStatus.value).map(([provider, status]) => ({ provider, ...status }))
   );
   const neverSynced = computed(() => syncEntries.value.length === 0);
+  /** Only ses/lettermint expose a pollable feedback API — see SyncEmailDeliverability. */
+  const syncCapability = computed(() => summaryData.value?.details?.sync_capability ?? false);
 
   function reloadSummary(): void {
     loadSummary().catch(() => {}); // summaryError drives the inline alert
+  }
+
+  // ---- On-demand sync trigger ("Sync now" — the interactive counterpart to
+  // `ots email sync-feedback`). Idempotent (re-syncing an unchanged provider
+  // list writes nothing new), so a plain button, no confirm dialog. -------
+
+  const {
+    loading: syncLoading,
+    error: syncError,
+    run: runSync,
+  } = useAdminMutation(async () => {
+    const response = await $api.post(SYNC_URL, {});
+    const parsed = gracefulParse(
+      colonelEmailDeliverabilitySyncResponseSchema,
+      response.data,
+      'ColonelEmailDeliverabilitySyncResponse'
+    );
+    if (parsed.ok) {
+      const { provider, accepted, rejected, fetched } = parsed.data.record;
+      notifications.show(
+        t('web.admin.emailtools.deliverability.sync.success', {
+          provider,
+          accepted,
+          rejected,
+          fetched,
+        }),
+        'success'
+      );
+    }
+  });
+
+  async function onSyncClick(): Promise<void> {
+    const ok = await runSync();
+    if (!ok) return; // syncError drives the inline alert
+    reloadSummary();
   }
 
   // ---- Suppression list (paginated + exact-address lookup) -------------------
@@ -526,13 +565,46 @@
         testid="deliverability-stat-skipped" />
     </div>
 
-    <!-- ===== Sync status (ITEM 2, read-only) ============================== -->
+    <!-- ===== Sync status (ITEM 2) ========================================= -->
     <div
       class="mt-6"
       data-testid="deliverability-sync-status">
-      <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300">
-        {{ t('web.admin.emailtools.deliverability.sync.title') }}
-      </h4>
+      <div class="flex items-center justify-between gap-3">
+        <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300">
+          {{ t('web.admin.emailtools.deliverability.sync.title') }}
+        </h4>
+        <!-- "Sync now" — only the active transport's own feedback API can be
+             pulled synchronously (ses/lettermint); other transports rely on
+             the events endpoint (see the neverRun copy below). -->
+        <button
+          v-if="syncCapability"
+          type="button"
+          data-testid="deliverability-sync-button"
+          :disabled="syncLoading"
+          class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+          @click="onSyncClick">
+          <OIcon
+            collection="heroicons"
+            name="arrow-path"
+            size="4"
+            :class="{ 'animate-spin': syncLoading }" />
+          {{ t('web.admin.emailtools.deliverability.sync.button') }}
+        </button>
+      </div>
+
+      <p
+        v-if="syncCapability"
+        class="mt-1 text-xs text-gray-400 dark:text-gray-500">
+        {{ t('web.admin.emailtools.deliverability.sync.hint') }}
+      </p>
+
+      <p
+        v-if="syncError"
+        class="mt-2 text-sm text-red-700 dark:text-red-300"
+        role="alert"
+        data-testid="deliverability-sync-error">
+        {{ syncError }}
+      </p>
 
       <!-- Never synced: the feedback sync has not been configured / run. -->
       <div

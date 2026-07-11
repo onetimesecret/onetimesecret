@@ -452,9 +452,33 @@
         {{ t('web.admin.emailtools.providerStatus.title') }}
       </h3>
 
+      <!-- Initial load: providerStatus is still null and the request is in
+           flight. Without this branch the section renders only its header
+           until the fetch resolves (none of the v-else-if below match yet). -->
+      <div
+        v-if="providerStatusLoading"
+        class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        data-testid="provider-status-loading">
+        <StatCard
+          :label="t('web.admin.emailtools.providerStatus.quota.max24h')"
+          icon="inbox-stack"
+          :loading="true"
+          testid="provider-status-loading-1" />
+        <StatCard
+          :label="t('web.admin.emailtools.providerStatus.quota.sent24h')"
+          icon="paper-airplane"
+          :loading="true"
+          testid="provider-status-loading-2" />
+        <StatCard
+          :label="t('web.admin.emailtools.providerStatus.quota.maxRate')"
+          icon="bolt"
+          :loading="true"
+          testid="provider-status-loading-3" />
+      </div>
+
       <!-- capability=false: this transport has no read API. Static, no retry. -->
       <div
-        v-if="psUnsupported"
+        v-else-if="psUnsupported"
         class="flex items-start gap-3 rounded-md border border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-800/40"
         data-testid="provider-status-unsupported">
         <OIcon
