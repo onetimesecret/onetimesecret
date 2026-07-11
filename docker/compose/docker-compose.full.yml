@@ -5,7 +5,7 @@
 # background workers, and scheduler.
 #
 # App uses pre-built images from Docker Hub. To pin a version:
-#   OTS_IMAGE_TAG=v0.24.6 docker compose up
+#   OTS_IMAGE_TAG=v0.25.11 docker compose up
 #
 # Caddy proxy requires building (plugins: ratelimit, security, transform-encoder):
 #   docker compose build proxy
@@ -26,7 +26,7 @@ services:
     container_name: onetime-proxy
     depends_on:
       app:
-        condition: service_started
+        condition: service_healthy
     environment:
       - DOMAIN=${DOMAIN:-localhost}
       - CERTIFICATE_EMAIL=${CERTIFICATE_EMAIL:-admin@example.com}
@@ -86,6 +86,14 @@ services:
     restart: unless-stopped
     volumes:
       - ../../data:/app/data
+    # Readiness contract (see docker-compose.simple.yml for rationale). Lets the
+    # proxy depend on the app being healthy, not just started.
+    healthcheck:
+      test: ['CMD', 'bin/healthcheck.sh']
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
   maindb:
     image: valkey/valkey:8.1-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571

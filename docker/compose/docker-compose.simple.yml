@@ -5,7 +5,7 @@
 # No reverse proxy, no message queue, no workers.
 #
 # Uses pre-built images from Docker Hub. To pin a version:
-#   OTS_IMAGE_TAG=v0.24.6 docker compose up
+#   OTS_IMAGE_TAG=v0.25.11 docker compose up
 #
 # To build from source instead, use Docker Bake:
 #   docker buildx bake -f docker/bake.hcl main
@@ -43,6 +43,17 @@ services:
     restart: unless-stopped
     volumes:
       - ../../data:/app/data
+    # Explicit readiness contract so `docker compose up --wait` blocks until the
+    # web app is actually serving (not merely "running"). Reuses the image's
+    # role-aware bin/healthcheck.sh (web role -> curl /health/advanced, then
+    # /health); the shorter interval/start_period here just polls faster than
+    # the image's baked-in HEALTHCHECK for quicker readiness in CI and local up.
+    healthcheck:
+      test: ['CMD', 'bin/healthcheck.sh']
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
   maindb:
     image: valkey/valkey:8.1-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
