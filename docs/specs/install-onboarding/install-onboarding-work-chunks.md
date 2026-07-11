@@ -2,7 +2,7 @@
 title: Install Onboarding — Work Chunks
 type: plan
 status: draft
-updated: 2026-07-09
+updated: 2026-07-11
 ---
 
 # Install Onboarding: Work Chunks
@@ -161,6 +161,16 @@ Addresses: QS-3, QS-13, BM-07, DX-6, D6. Proof: proof-of-life script
 Addresses: CP-3…CP-11, CP-13, QS-5, QS-7, QS-12. Proof: C7's compose smoke
 lane (`config -q` per combo + `up --wait` + proof-of-life).
 
+> **Status (2026-07-11, partial):** the first bullet (CP-11) shipped early
+> with C7's compose-smoke lane (PR #3712) because `up --wait` needs it: app
+> `healthcheck` in both compose files, proxy `depends_on` upgraded to
+> `service_healthy`, and the `OTS_IMAGE_TAG` doc comments bumped to v0.25.11
+> in passing. Everything else in C5 is open. Two markers already waiting in
+> the lane: `compose-smoke.yml` carries a CP-5 workaround (`chown 1001
+> ./data` in the workflow) to delete when CP-5 is fixed properly, and the
+> full stack is `config -q`-linted but never booted — C5's CP-3/CP-4 work is
+> what unblocks a full-stack `up` lane.
+
 ## C6 — `bin/setup` consolidation + CONTRIBUTING (D2, D3, D7)
 
 The one-command contributor path, built on install-test.sh's spine; the
@@ -183,6 +193,42 @@ This is R0.1 and R0.3 made concrete, and the permanent guard for C1–C6.
 
 Proof: it *is* the proof mechanism; its own guard is that it runs on cron,
 so registry/runner rot surfaces as a red scheduled run.
+
+> **Status (2026-07-11, shipped):** C7 landed as three PRs on
+> `integration/onboarding`: #3711 (2c — fresh-clone contributor lane +
+> docs-command drift guard), #3712 (2a — compose-smoke lane + the CP-11 app
+> healthcheck it needed; see C5's note), #3713 (2b — installer matrix +
+> `scripts/test-install/run.sh` container harness). What exists:
+> `scripts/test-install/{run.sh,proof-of-life.sh,check-docs-commands.sh}`
+> and four workflows —
+> - `installer.yml`: pinned-image lanes baremetal (`ruby:3.4.9-slim`),
+>   posix-locale (empty `LANG`), ruby-old (`ruby:3.3-slim`, asserted-error),
+>   each with an idempotency re-run; plus a bash-3.2 `bash -n` parse gate.
+> - `compose-smoke.yml`: `config -q` on every documented combo, simple-stack
+>   `up --wait` + proof-of-life on `docker/**` PRs; README `docker run`
+>   verbatim against the README-pinned tag, cron-only.
+> - `fresh-clone.yml`: `install-test.sh` from zero → `test:rspec:fast` with
+>   no build (TR-01) → vitest → second `install-test.sh` (idempotency) →
+>   litter check; duration reported in the step summary as the TTFHW proxy.
+> - `docs-command-drift.yml`: runs `check-docs-commands.sh` on doc/entrypoint
+>   PRs (no cron — it checks repo-internal consistency, nothing rots).
+>
+> The three heavy lanes run weekly crons (the registry/runner-rot guard);
+> `check-version-pins.sh` runs in `validate-config.yml`. Deliberate
+> deviations from the list above: **no macOS runner yet** — the bash-3.2
+> parse gate stands in for testing-strategy §3.2b's `macos-15` lane, which
+> is deferred (a parse gate catches bashisms, not BSD-tool behavior);
+> **no container `docker diff`** litter check (fresh-clone's git-tree litter
+> check covers the contributor-path analogue; it warns rather than fails on
+> lockfile churn — frozen installs are C3/C6 work); duration is a per-run
+> step summary, not charted/alarmed over time. **Still open, tracked here
+> rather than implied done:** (1) a bare-metal boot lane — `rake ots:secrets`
+> + puma + proof-of-life under `LANG=C` (the clean-room validation recipe's
+> middle step; today no lane boots the app outside a container image, so the
+> run-8 locale regression is guarded at secret-generation but not at boot);
+> (2) the macOS lane; (3) full-stack compose `up` — only linted today,
+> blocked on C5's `JOBS_ENABLED`/required-env work; (4) `pnpm run build` +
+> asset probe as a lane.
 
 ## C8 — Devcontainer + Codespaces (D5, testing-strategy §5)
 
@@ -231,3 +277,10 @@ red run in the audit's §1 table should flip. **Week 2:** C7 to lock it in,
 C4 and C5 in parallel (small, independent). **Then:** C6 → C8, with C9 and
 C10 scheduled by appetite. C1+C2+C3 alone convert all three documented
 paths from "fails on a clean machine" to "works"; C7 makes it stay that way.
+
+> **Position (2026-07-11):** C1–C3 done (C3 with the recorded direnv/
+> overmind scope-down), clean-room validated (see
+> [install-onboarding-clean-room-validation.md](./install-onboarding-clean-room-validation.md)),
+> NF-1–NF-5 fixed, C7 shipped (with the residuals listed in its status
+> note), and C5's CP-11 bullet landed early. Next per this sequencing:
+> **C4 and C5 in parallel**, then C6 → C8.

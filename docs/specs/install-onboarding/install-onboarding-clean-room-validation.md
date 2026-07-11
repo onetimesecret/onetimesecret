@@ -23,7 +23,10 @@ missed — plus one deliberate scope deviation worth recording.
 > gate), `5c5ea3517` (NF-1 — seed default configs in `install-dev.sh`),
 > `edec720ff` (NF-3 — compose error text), `eba5ab105` (NF-4 — portable
 > `cp` guard), `d509937eb` (this doc + the work-chunks status note). §4's
-> step 1 and step 2 are done; step 3 (the C7 clean-room harness) is next.
+> step 1 and step 2 are done; step 3 (the C7 clean-room harness) shipped
+> 2026-07-11 as PRs #3711/#3712/#3713 on `integration/onboarding` — see §4
+> for the recipe→lane mapping and the two recipe steps that did *not* get a
+> lane. Next open item: step 4 (C4/C5).
 
 **Environment** (matches the audit's fresh-contributor profile): fresh Ubuntu
 24.04 container, Ruby 3.4.9 via ruby-build (system Ruby 3.3.6 kept for gate
@@ -113,6 +116,13 @@ when that home is under `/home`, and whether `./data` SQLite writes survive
 `ProtectSystem=strict` when full auth is enabled; compose _runtime_ +
 `docker run` networking (QS-1); macOS / bash 3.2.
 
+> **Update (2026-07-11):** the C7 lanes closed the middle gap — compose
+> runtime and the README `docker run` quick start now run in CI with
+> proof-of-life (`compose-smoke.yml`, PR + weekly cron). Still open: real
+> `systemctl start` (both questions above), and the macOS leg — C7 shipped
+> only a bash-3.2 `bash -n` parse gate, not the `macos-15` runner
+> (recorded as a C7 residual in work-chunks).
+
 ## 3. One reconciliation item: the plan and the branch disagree about gates
 
 C3-as-written says "gates → fallbacks: direnv optional… bin/dev falls back
@@ -144,26 +154,37 @@ the same pattern.
 2. ~~**Record the direnv/overmind decision** (§3): one paragraph in
    work-chunks + a C3 status note, or a small D1.1 follow-up chunk.~~ ✅
    **Done 2026-07-11** (commit `d509937eb`) — see §3.
-3. **Build the C7 slice next, before C4/C5.** Today's run is effectively the
-   fresh-clone lane's dry run, and the recipe is now proven end-to-end:
-   Ubuntu 24.04 + ruby-build 3.4.9 + corepack pnpm + redis + `LANG=C`,
-   pristine clone per lane, then: `install.sh init` (Node 22) →
-   `install-test.sh` + `test:rspec:fast` (no build — the TR-01 guard) →
-   `rake ots:secrets` + puma boot + proof-of-life under `LANG=C` →
-   `pnpm run build` + asset probe → `check-version-pins.sh`. Wall-clock
-   ~15 min excluding Ruby install (cacheable). Add the compose-smoke and
-   docker-run lanes there too — they're the two runtime gaps this container
-   couldn't reach. **This is the next open item.**
+3. ~~**Build the C7 slice next, before C4/C5.**~~ ✅ **Done 2026-07-11** —
+   PRs #3711 (fresh-clone lane + docs-command drift guard), #3712
+   (compose-smoke + CP-11 app healthcheck), #3713 (installer matrix +
+   `scripts/test-install/run.sh`), all merged to `integration/onboarding`.
+   How the recipe above mapped to lanes: `install.sh init` from zero →
+   `installer.yml` (pinned-image baremetal/posix-locale/ruby-old lanes with
+   idempotency re-runs — the POSIX lane covers the `LANG=C` secret-generation
+   leg); `install-test.sh` + `test:rspec:fast` (no build, TR-01) →
+   `fresh-clone.yml` (plus vitest, idempotency, litter check, duration as
+   TTFHW proxy); the two runtime gaps this container couldn't reach →
+   `compose-smoke.yml` (compose `up --wait` + proof-of-life on PRs; README
+   `docker run` verbatim against the pinned tag on cron);
+   `check-version-pins.sh` → `validate-config.yml`. **Two recipe steps did
+   not become lanes** and are recorded as C7 residuals in work-chunks:
+   bare-metal `rake ots:secrets` + puma boot + proof-of-life under `LANG=C`
+   (no lane boots the app outside a container image), and `pnpm run build` +
+   asset probe. The macOS leg also remains open (parse gate only).
 4. **Then C4/C5** on a foundation that's demonstrably green and guarded.
+   **← the next open item.**
 
-With NF-1–NF-5 fixed and the §3 decision recorded, the branch's honest
-status moves from "verified static, unproven live" to "demonstrably works
-and stays working" for everything C3 promised — pending the C7 clean-room
-re-run to confirm the fixes hold end-to-end (item 3 above), which was the
-whole point.
+With NF-1–NF-5 fixed, the §3 decision recorded, and the C7 lanes shipped
+and running (PR-triggered + weekly cron), the branch's honest status is
+"demonstrably works and stays working" for everything C3 promised — with
+three caveats the lanes don't yet cover: bare-metal app boot +
+proof-of-life, macOS, and real `systemctl start`. Those live as C7
+residuals in
+[install-onboarding-work-chunks.md](./install-onboarding-work-chunks.md#c7--clean-room-harness--ci-lanes-testing-strategy-24),
+not as silent gaps.
 
 ## Related
 
 - [install-onboarding-current-state.md](./install-onboarding-current-state.md) — the audit this validates against
-- [install-onboarding-work-chunks.md](./install-onboarding-work-chunks.md) — C1–C3 (validated here), C7 (next)
+- [install-onboarding-work-chunks.md](./install-onboarding-work-chunks.md) — C1–C3 (validated here), C7 (shipped 2026-07-11; residuals in its status note)
 - [dev-onboarding-problem-space.md](./dev-onboarding-problem-space.md) — D1.1 (the gate decision, §3)
