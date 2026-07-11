@@ -314,6 +314,19 @@ if [[ ! -e ".env" && ! -e "$OTS_DEV_CONFIG/${LINKS[.env]}" && -f ".env.example" 
     echo "Copy: .env.example -> .env (no shared source)"
 fi
 
+# Seed runtime configs from the tracked defaults when no shared source
+# exists — a clean fork must be able to boot after this script, and the
+# closing "start services manually" hint assumes these files exist. (NF-1)
+for conf in config auth logging; do
+    local_conf="etc/${conf}.yaml"
+    shared_conf="$OTS_DEV_CONFIG/${LINKS[$local_conf]}"
+    if [[ ! -e "$local_conf" && ! -e "$shared_conf" && -f "etc/defaults/${conf}.defaults.yaml" ]]; then
+        [[ -L "$local_conf" ]] && rm "$local_conf"
+        cp "etc/defaults/${conf}.defaults.yaml" "$local_conf"
+        echo "Copy: etc/defaults/${conf}.defaults.yaml -> $local_conf (no shared source)"
+    fi
+done
+
 if [[ ! -e "Procfile.dev" && -f "Procfile.dev.example" ]]; then
     [[ -L "Procfile.dev" ]] && rm "Procfile.dev"
     cp Procfile.dev.example Procfile.dev
