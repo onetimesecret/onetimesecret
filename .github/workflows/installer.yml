@@ -81,6 +81,7 @@ jobs:
                      install.sh install-dev.sh install-test.sh \
                      scripts/test-install/run.sh \
                      scripts/test-install/proof-of-life.sh \
+                     scripts/test-install/secret-rotation.sh \
                      scripts/test-install/check-docs-commands.sh; do
               echo "bash -n $f"
               bash -n "$f"

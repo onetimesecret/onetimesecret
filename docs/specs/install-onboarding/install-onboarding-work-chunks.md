@@ -441,15 +441,19 @@ story.
 Proof: unit specs for mismatch behavior + a harness lane that boots with a
 rotated SECRET and asserts the secret survives a failed reveal.
 
-> **Status note (2026-07-11):** The short design is written —
-> [install-onboarding-c10-secret-lifecycle.md](./install-onboarding-c10-secret-lifecycle.md).
-> Core (non-negotiable): boot-time HKDF verifier in Valkey with
-> warn/enforce/off policy, and claim-rollback in `Secret#reveal!` on
-> `Familia::EncryptionError` (no new lifecycle state; ADR-019 preserved —
-> zero plaintext produced means returning the claim is safe). Appetite-gated:
-> `SECRET_PREVIOUS` decrypt-only key chain via the existing Familia key
-> versioning, plus the rotation/backup runbook (which ships docs-only if the
-> buffer runs out). Implementation not started.
+> **Status note (2026-07-11): SHIPPED**, per the design in
+> [install-onboarding-c10-secret-lifecycle.md](./install-onboarding-c10-secret-lifecycle.md)
+> (see its status header for the minor implementation deltas). Core: HKDF
+> verifier (`Onetime::SecretVerifier` + `CheckSecretVerifier` initializer,
+> warn/enforce/off), claim-rollback in `Secret#reveal!` (ADR-019 preserved),
+> `SecretUndecryptable` → 503, fast-fail in the v2 reveal paths,
+> `rake ots:secrets:verify`/`adopt`, `/health/advanced` sub-check, doctor
+> check. Appetite held for §3.3: `SECRET_PREVIOUS` decrypt-only chain with
+> content-addressed tags shipped too, plus
+> [docs/runbooks/secret-rotation.md](../../runbooks/secret-rotation.md).
+> Proof: 25 new tryout cases + 4 RSpec examples + the
+> `scripts/test-install/secret-rotation.sh` lane (passing end-to-end
+> locally; CI: `.github/workflows/secret-rotation.yml`).
 
 ## Not in any chunk (explicitly deferred)
 
@@ -469,12 +473,13 @@ C4 and C5 in parallel (small, independent). **Then:** C6 → C8, with C9 and
 C10 scheduled by appetite. C1+C2+C3 alone convert all three documented
 paths from "fails on a clean machine" to "works"; C7 makes it stay that way.
 
-> **Position (2026-07-11):** C1–C9 done — C3 with the recorded direnv/
+> **Position (2026-07-11):** C1–C10 done — C3 with the recorded direnv/
 > overmind scope-down, clean-room validated (see
 > [install-onboarding-clean-room-validation.md](./install-onboarding-clean-room-validation.md)),
 > NF-1–NF-5 fixed, C7 shipped, C4/C5/C6/C8/C9 landed (each with the
 > deferrals and deviations listed in its status note; the C3/C6
-> frozen-install and D6 dev:seed residuals closed 2026-07-10). Remaining:
-> **C10** (needs its short design first), the open CI-lane items tracked
-> in C7's note, and C9's env-reference documentation backlog
+> frozen-install and D6 dev:seed residuals closed 2026-07-10), and C10
+> shipped 2026-07-11 including the appetite-gated `SECRET_PREVIOUS` chain.
+> Remaining: the open CI-lane items tracked in C7's note, and C9's
+> env-reference documentation backlog
 > (`scripts/env-reference-ignore.txt` BACKLOG section).

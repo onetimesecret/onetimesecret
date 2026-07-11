@@ -1,12 +1,26 @@
 # C10 — SECRET Lifecycle Safety: Design
 
-> **Status:** Proposed (2026-07-11). This is the "short design first" that
+> **Status:** Shipped (2026-07-11), including the appetite-gated §3.3
+> `SECRET_PREVIOUS` chain (the §3.3 implementation checkpoint passed:
+> familia 2.11.2 resolves envelope `key_version` via symbol/string
+> fallback, so content-addressed tags round-trip — proven live in
+> `try/unit/boot/secret_previous_rotation_try.rb`). This was the "short
+> design first" that
 > [work-chunks C10](./install-onboarding-work-chunks.md#c10--secret-lifecycle-safety-qs-6)
-> requires before implementation. Source finding: QS-6 in
+> required before implementation. Source finding: QS-6 in
 > [install-onboarding-current-state.md](./install-onboarding-current-state.md).
 > Appetite: 2–4 days. Risk class: product code on the crypto path — every
 > change here is gated on the proof plan in §6, and the no-rotation-configured
-> path must be byte-identical to today's behavior.
+> path must be byte-identical to today's behavior (asserted by tryout).
+>
+> Implementation deltas from this design, all minor: the reveal fast-fail is
+> gated on the `continue` param (reveal intent) so metadata-only requests
+> keep answering; `rake ots:secrets:verify` reports "never adopted" via the
+> boot state (boot itself adopts an absent verifier); the health sub-check
+> maps `:unavailable` to `not_configured` so the keydb check owns
+> connectivity failures; CI wiring is a dedicated workflow
+> (`.github/workflows/secret-rotation.yml`) plus the bash-3.2 parse gate.
+> Runbook: [docs/runbooks/secret-rotation.md](../../runbooks/secret-rotation.md).
 
 ## 1. Problem (QS-6)
 
