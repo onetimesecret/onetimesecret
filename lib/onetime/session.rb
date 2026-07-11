@@ -430,7 +430,7 @@ module Onetime
     #
     # 6. Cookie contains just the session ID (not encrypted)
     #    Set-Cookie: onetime.session=c9803eb...
-    def write_session(_request, sid, session_data, _options)
+    def write_session(request, sid, session_data, _options)
       # Extract string ID from SessionId object if needed
       sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
 
@@ -526,6 +526,7 @@ module Onetime
           Onetime::Operations::Sessions::TrackMetadata.new(
             session_id: sid_string,
             session_data: session_data,
+            env: request.respond_to?(:env) ? request.env : nil,
           ).call
         rescue StandardError => ex
           session_logger.error 'Session metadata sidecar failed (swallowed)',

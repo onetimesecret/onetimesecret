@@ -67,13 +67,13 @@ module Onetime
     default_expiration 2_592_000
 
     field :session_id       # plain sid; also the identifier and the blob key name
-    field :org_id           # active org id, or nil (see TrackMetadata — no reliable source at write time)
+    field :org_id           # active ORGANIZATION objid, resolved per write via OrganizationLoader (see TrackMetadata#active_org_id)
     field :user_id          # customer EXTERNAL id (extid, 'ur...'), matching colonel identity everywhere
     field :created_at       # epoch seconds, set once on first observation
     field :last_activity_at # epoch seconds, refreshed every write
     field :ip_address       # copied AS-IS from session_data (already masked upstream by Otto)
     field :user_agent       # copied AS-IS from session_data (already masked upstream by Otto)
-    field :auth_method       # 'omniauth' | 'password' | nil
+    field :auth_method       # primary login method stamped at auth time: 'password' | 'email_auth' | 'webauthn' | 'omniauth' | nil (legacy)
     field :mfa_used          # true | false | nil
 
     # POSITIVE allow-list — the security boundary. No token, no payload, no email.

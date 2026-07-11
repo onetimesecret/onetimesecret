@@ -116,7 +116,39 @@ end
 @ok.nil?
 #=> false
 
+# ---- auth_method copied verbatim; org_id resolved from active org -----
+
+## auth_method is copied verbatim from session_data (stamped once at auth time,
+## NOT re-derived here). Any of password/email_auth/webauthn/omniauth flows.
+@am_sid = "tryam_#{@nonce}"
+SM.load(@am_sid)&.destroy!
+@am = TM.new(session_id: @am_sid,
+            session_data: @auth_session.merge('auth_method' => 'webauthn')).call
+@am.auth_method
+#=> "webauthn"
+
+## org resolution is nil-safe: a customer with no organization writes the sidecar
+## with org_id = nil, never raising (own rescue). (@cust has no org yet.)
+@no_org_sid = "trynoorg_#{@nonce}"
+SM.load(@no_org_sid)&.destroy!
+@no = TM.new(session_id: @no_org_sid, session_data: @auth_session).call
+[@no.nil?, @no.org_id.nil?]
+#=> [false, true]
+
+## org_id resolves to the customer's ACTIVE organization objid (via
+## OrganizationLoader — read-through, so it populates even without a warmed cache)
+@org     = Onetime::Organization.create!("Track Org #{@nonce}", @cust, "trackorg_#{@nonce}@example.com")
+@org_sid = "tryorg_#{@nonce}"
+SM.load(@org_sid)&.destroy!
+@om = TM.new(session_id: @org_sid, session_data: @auth_session).call
+@om.org_id == @org.objid
+#=> true
+
 # Cleanup
 SM.load(@sid)&.destroy!
+SM.load(@am_sid)&.destroy!
+SM.load(@no_org_sid)&.destroy!
+SM.load(@org_sid)&.destroy!
+@org.destroy!
 @cust.active_sessions.clear
 @cust.destroy!
