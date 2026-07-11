@@ -42,8 +42,9 @@ module DomainsAPI::Logic
       ].freeze
 
       # Expanded color vocabulary (#3646): secondary/background/text colors.
-      # Same hex format + normalization as primary_color. WCAG pairing (incl.
-      # text-on-background) is enforced by BrandSettings.validate!.
+      # Same hex format + normalization as primary_color. WCAG contrast is NOT
+      # enforced on save (product decision 2026-07) — BrandSettings.validate!
+      # checks hex format only, not contrast.
       EXTRA_COLOR_FIELDS = %w[secondary_color background_color text_color].freeze
 
       attr_reader :greenlighted, :brand_settings, :display_domain, :custom_domain
@@ -222,9 +223,9 @@ module DomainsAPI::Logic
         unless Onetime::CustomDomain::BrandSettings.valid_border_radius?(radius)
           OT.ld "[UpdateDomainBrand] Error: Invalid border radius '#{radius}'"
           raise_form_error(
-            "Invalid border radius - must be a preset " \
+            'Invalid border radius - must be a preset ' \
             "(#{Onetime::CustomDomain::BrandSettings::RADII.join(', ')}) " \
-            "or a whole number of pixels 0-#{Onetime::CustomDomain::BrandSettings::RADIUS_MAX}"
+            "or a whole number of pixels 0-#{Onetime::CustomDomain::BrandSettings::RADIUS_MAX}",
           )
         end
 

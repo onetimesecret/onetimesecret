@@ -776,6 +776,12 @@
     "text": "Save All",
     "content_hash": "d3c54e39"
   },
+  "web.LABELS.update": {
+    "text": "Update"
+  },
+  "web.LABELS.updating": {
+    "text": "Updating..."
+  },
   "web.LABELS.details": {
     "text": "Details",
     "content_hash": "45989de4"

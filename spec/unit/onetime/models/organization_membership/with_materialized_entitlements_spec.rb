@@ -542,7 +542,93 @@ RSpec.describe 'MembershipMaterializedEntitlements', billing: true do
   end
 
   # ---------------------------------------------------------------------------
-  # Section 10: Content hash determinism
+  # Section 10: Request-scoped preview (ADR-020)
+  # ---------------------------------------------------------------------------
+
+  describe '#entitlements during an active preview' do
+    # org_entitlements stands in for the preview-aware org side: during a
+    # preview, Organization#entitlements resolves through the session
+    # reconciler, so the fake org returns the preview plan's entitlement set
+    # directly. The membership must recompute org ∩ role from that set and
+    # ignore its own materialized state.
+    let(:preview_org_entitlements) { %w[create_secrets api_access custom_domains manage_members] }
+
+    before do
+      preview_org_entitlements.each { |e| membership.org_entitlements.add(e) }
+    end
+
+    it 'ignores the materialized set and recomputes org ∩ role' do
+      membership.role = 'admin'
+      # Stale materialized state from the actual plan
+      membership.entitlements_plan.add('create_secrets')
+      membership.apply_entitlements
+      membership.materialized_entitlements_at = "#{Time.now.to_i}:abc123def456"
+
+      with_entitlement_preview(planid: 'identity_v1') do
+        expect(membership.entitlements).to match_array(preview_org_entitlements)
+      end
+    end
+
+    it 'returns identical entitlements for materialized and non-materialized memberships' do
+      materialized = test_class.new
+      materialized.role = 'admin'
+      preview_org_entitlements.each { |e| materialized.org_entitlements.add(e) }
+      materialized.entitlements_plan.add('create_secrets')
+      materialized.apply_entitlements
+      materialized.materialized_entitlements_at = "#{Time.now.to_i}:abc123def456"
+
+      unmaterialized = test_class.new
+      unmaterialized.role = 'admin'
+      preview_org_entitlements.each { |e| unmaterialized.org_entitlements.add(e) }
+
+      with_entitlement_preview(planid: 'identity_v1') do
+        expect(materialized.entitlements).to match_array(unmaterialized.entitlements)
+      end
+    end
+
+    it 'preserves role masking: a template gap masks a preview-granted entitlement' do
+      membership.role = 'member'
+      membership.materialized_entitlements_at = "#{Time.now.to_i}:abc123def456"
+
+      with_entitlement_preview(planid: 'identity_v1') do
+        # Preview org grants manage_members and custom_domains, but the
+        # member template includes neither — preview simulates a different
+        # plan, never a different role.
+        expect(membership.entitlements).not_to include('manage_members')
+        expect(membership.entitlements).not_to include('custom_domains')
+        expect(membership.can?('manage_members')).to be false
+        expect(membership.entitlements).to include('create_secrets')
+        expect(membership.entitlements).to include('api_access')
+      end
+    end
+
+    it 'reflects the preview through can?' do
+      membership.role = 'admin'
+      membership.entitlements_plan.add('create_secrets')
+      membership.apply_entitlements
+      membership.materialized_entitlements_at = "#{Time.now.to_i}:abc123def456"
+
+      expect(membership.can?('custom_domains')).to be false
+
+      with_entitlement_preview(planid: 'identity_v1') do
+        expect(membership.can?('custom_domains')).to be true
+      end
+    end
+
+    it 'reverts to the materialized set once the context clears' do
+      membership.role = 'admin'
+      membership.entitlements_plan.add('create_secrets')
+      membership.apply_entitlements
+      membership.materialized_entitlements_at = "#{Time.now.to_i}:abc123def456"
+
+      with_entitlement_preview(planid: 'identity_v1') { membership.entitlements }
+
+      expect(membership.entitlements).to contain_exactly('create_secrets')
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Section 11: Content hash determinism
   # ---------------------------------------------------------------------------
 
   describe '.entitlements_content_hash' do

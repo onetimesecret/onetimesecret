@@ -179,8 +179,14 @@ module Core
               'enabled' => features.dig('organizations', 'enabled') || false,
               'sso_enabled' => features.dig('organizations', 'sso_enabled') || false,
               'custom_mail_enabled' => features.dig('organizations', 'custom_mail_enabled') || false,
-              'incoming_secrets_enabled' => (features.dig('incoming', 'enabled') &&
-                                              features.dig('organizations', 'incoming_secrets_enabled')) || false,
+              # Whether domain owners can configure per-domain incoming is
+              # governed solely by ORGS_INCOMING_SECRETS_ENABLED. The
+              # install-wide features.incoming.enabled flag gates the CANONICAL
+              # domain's incoming only; ANDing it here would hide the per-domain
+              # config UI on a flag-off install, so an entitled custom domain
+              # could never reach IncomingConfig.ready?. Same canonical/custom
+              # split as RecipientResolver / HomepageConfig#incoming_available?.
+              'incoming_secrets_enabled' => features.dig('organizations', 'incoming_secrets_enabled') || false,
             },
           }
         end

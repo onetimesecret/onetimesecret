@@ -1,25 +1,21 @@
 <!-- src/apps/workspace/domains/DomainBrand.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
-  import LoadingOverlay from '@/shared/components/common/LoadingOverlay.vue';
-  import BrandSettingsBar from '@/apps/workspace/components/dashboard/BrandSettingsBar.vue';
-  import BrowserPreviewFrame from '@/apps/workspace/components/dashboard/BrowserPreviewFrame.vue';
+  import BrandEditor from '@/apps/workspace/components/dashboard/brand/BrandEditor.vue';
+  import DeliveryPanel from '@/apps/workspace/components/dashboard/DeliveryPanel.vue';
   import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
-  import InstructionsModal from '@/apps/workspace/components/dashboard/InstructionsModal.vue';
-  import LanguageSelector from '@/apps/workspace/components/dashboard/LanguageSelector.vue';
-  import SecretPreview from '@/apps/workspace/components/dashboard/SecretPreview.vue';
+  import { createError } from '@/schemas/errors';
+  import LoadingOverlay from '@/shared/components/common/LoadingOverlay.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useBranding } from '@/shared/composables/useBranding';
   import { useDomain } from '@/shared/composables/useDomain';
   import { useEntitlements } from '@/shared/composables/useEntitlements';
-  import { createError } from '@/schemas/errors';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
   import { ENTITLEMENTS } from '@/types/organization';
   import { storeToRefs } from 'pinia';
-  import { detectPlatform } from '@/utils';
   import { computed, onMounted, ref, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
   import { useRouter, onBeforeRouteLeave } from 'vue-router';
 
   const { t } = useI18n(); // auto-import
@@ -35,7 +31,6 @@
     error,
     brandSettings,
     logoImage,
-    primaryColor,
     previewI18n,
     hasUnsavedChanges,
     isInitialized,
@@ -50,15 +45,6 @@
     initialize: initializeDomain,
   } = useDomain(props.extid);
 
-  const displayDomain = computed(() => customDomainRecord.value?.display_domain);
-
-  const color = computed(() => primaryColor.value);
-  const browserType = ref<'safari' | 'edge'>(detectPlatform());
-
-  const toggleBrowser = () => {
-    browserType.value = browserType.value === 'safari' ? 'edge' : 'safari';
-  };
-
   const bootstrapStore = useBootstrapStore();
   const { i18n_enabled } = storeToRefs(bootstrapStore);
 
@@ -70,33 +56,20 @@
   const { can } = useEntitlements(organization);
   const canBrand = computed(() => can(ENTITLEMENTS.CUSTOM_BRANDING));
 
-  // Instructions fields configuration for the modal
-  const instructionFields = computed(() => [
-    {
-      key: 'instructions_pre_reveal',
-      label: t('web.branding.pre_reveal_instructions'),
-      tooltipContent: t('web.branding.these_instructions_will_be_shown_to_recipients_before'),
-      placeholderKey: t('web.branding.example_pre_reveal_instructions'),
-      value: brandSettings.value?.instructions_pre_reveal || ''
-    },
-    {
-      key: 'instructions_post_reveal',
-      label: t('web.branding.post_reveal_instructions'),
-      tooltipContent: t('web.branding.these_instructions_will_be_shown_to_recipients_after'),
-      placeholderKey: t('web.branding.example_post_reveal_instructions'),
-      value: brandSettings.value?.instructions_post_reveal || ''
-    }
-  ]);
+  const isSaveDisabled = computed(() => isLoading.value || !hasUnsavedChanges.value);
 
-  // Handle instruction updates from the modal
-  const handleInstructionUpdate = (key: string, value: string) => {
-    if (brandSettings.value) {
-      brandSettings.value = {
-        ...brandSettings.value,
-        [key]: value
-      };
-    }
-  };
+  // Domain-settings tabs. Brand = the three-path editor; Delivery = the
+  // recipient-facing language + reveal instructions (companion tab). Both tabs
+  // edit the same brandSettings record and persist via the shared header Save,
+  // so switching between them never loses work. Held here (inside the
+  // isInitialized content block) rather than keyed on isLoading, so a Save —
+  // which flips isLoading — never resets the active tab. Mirrors the activePath
+  // guard inside BrandEditor.
+  const tabs = [
+    { id: 'brand', labelKey: 'web.branding.tab_brand' },
+    { id: 'delivery', labelKey: 'web.branding.tab_delivery' },
+  ] as const;
+  const activeTab = ref<'brand' | 'delivery'>('brand');
 
   // Add loading guard
   watch(
@@ -127,54 +100,20 @@
 <template>
   <div>
     <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <!-- Back button -->
-      <div class="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
-        <div class="mb-4">
-          <button
-            type="button"
-            class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-            @click="handleBack">
-            <OIcon collection="heroicons"
-name="arrow-left"
-class="size-5"
-aria-hidden="true" />
-            {{ t('web.COMMON.back') }}
-          </button>
-        </div>
-      </div>
-
-      <!-- Header Section -->
+      <!-- Header Section. Back + title + Save share one row (opt-in DomainHeader
+           affordances), so there's no separate Back row or Save action bar. -->
       <div class="sticky top-0 z-30">
         <DomainHeader
           :domain="customDomainRecord"
           :has-unsaved-changes="hasUnsavedChanges"
           :orgid="props.orgid"
-          external-path="/" />
-
-        <BrandSettingsBar
-          v-if="canBrand"
-          v-model="brandSettings"
-          :preview-i18n="previewI18n"
-          :is-loading="isLoading"
-          :is-initialized="isInitialized"
-          :has-unsaved-changes="hasUnsavedChanges"
-          @submit="() => saveBranding(brandSettings)">
-          <template #instructions-buttons>
-            <InstructionsModal
-              :instruction-fields="instructionFields"
-              :preview-i18n="previewI18n"
-              @update="handleInstructionUpdate"
-              @save="() => saveBranding(brandSettings)" />
-          </template>
-
-          <template #language-button>
-            <LanguageSelector
-              v-if="i18n_enabled"
-              v-model="brandSettings.locale"
-              :preview-i18n="previewI18n"
-              @update:model-value="(value) => (brandSettings.locale = value)" />
-          </template>
-        </BrandSettingsBar>
+          external-path="/"
+          back-visible
+          :save-visible="canBrand"
+          :save-disabled="isSaveDisabled"
+          :save-loading="isLoading"
+          @back="handleBack"
+          @save="saveBranding(brandSettings)" />
       </div>
 
       <!-- Upgrade banner when custom_branding entitlement is missing -->
@@ -203,88 +142,47 @@ aria-hidden="true" />
         </div>
       </div>
 
-      <!-- Main Content -->
+      <!-- Main Content. Gated on isInitialized (set true after the first load
+           and never reset) rather than !isLoading, so a Save — which flips
+           isLoading during its request — never unmounts the editor and resets
+           the active path / disclosures. LoadingOverlay covers the save. -->
       <div
-        v-if="canBrand"
+        v-if="canBrand && isInitialized"
         class="mx-auto max-w-7xl p-4 sm:px-6 sm:py-8 lg:px-8">
-        <!-- Preview Section -->
-        <div class="relative mb-6 sm:mb-12">
-          <h2
-            id="previewHeading"
-            class="mb-6 text-xl font-semibold text-gray-900 dark:text-gray-100">
-            {{ t('web.branding.preview_and_customize') }}
-          </h2>
-
-          <!-- Instructions for screen readers -->
-          <div
-            class="sr-only"
-            role="note">
-            {{ t('web.branding.this_is_an_interactive_preview_of_how_recipients') }}
-          </div>
-
-          <!-- Visual instructions -->
-          <ul
-            class="mb-4 space-y-1 text-sm sm:mb-6 sm:space-y-2"
-            :aria-hidden="true">
-            <li class="flex items-center gap-2">
-              <OIcon
-                collection="mdi"
-                name="palette-outline"
-                class="size-5"
-                :aria-label="t('web.branding.customization_icon')" />
-              {{ t('web.branding.use_the_controls_above_to_customize_brand_details') }}
-            </li>
-
-            <li class="flex items-center gap-2">
-              <OIcon
-                collection="mdi"
-                name="image-outline"
-                class="size-5"
-                :aria-label="t('web.branding.image_icon')" />
-              {{ t('web.branding.click_the_preview_image_below_to_update_your_logo') }}
-            </li>
-
-            <li class="flex items-center gap-2">
-              <OIcon
-                collection="mdi"
-                name="eye-outline"
-                class="size-5"
-                :aria-label="t('web.branding.eye_icon')" />
-              {{ t('web.branding.preview_how_recipients_will_see_your_secrets') }}
-            </li>
-          </ul>
-
-          <!-- Recipient Preview -->
-          <BrowserPreviewFrame
-            v-if="displayDomain"
-            :domain="displayDomain"
-            :browser-type="browserType"
-            @toggle-browser="toggleBrowser"
-            aria-labelledby="previewHeading">
-            <div
-              class="z-50 h-1 w-full"
-              :style="{ backgroundColor: color ?? undefined }"></div>
-            <SecretPreview
-              v-if="!isLoading"
-              ref="secretPreview"
-              :domain-branding="brandSettings"
-              :logo-image="logoImage"
-              :preview-i18n="previewI18n"
-              :on-logo-upload="handleLogoUpload"
-              :on-logo-remove="removeLogo"
-              secret-identifier="abcd"
-              class="max-w-full transition-all duration-200 hover:scale-[1.02]" />
-          </BrowserPreviewFrame>
-
-          <!-- Loading and Error States -->
-          <div
-            v-if="isLoading"
-            role="status"
-            class="py-8 text-center">
-            <span class="sr-only">{{ t('web.branding.loading_preview') }}</span>
-            <!-- Add isLoading spinner -->
-          </div>
+        <!-- Brand | Delivery tabs — both edit the same brandSettings record. -->
+        <div
+          class="mb-6 flex gap-6 border-b border-gray-200 dark:border-gray-700"
+          role="tablist">
+          <button
+            v-for="tab in tabs"
+            :key="tab.id"
+            type="button"
+            role="tab"
+            :aria-selected="activeTab === tab.id"
+            @click="activeTab = tab.id"
+            class="-mb-px border-b-2 px-1 pb-2.5 text-sm font-medium transition-colors focus:outline-none"
+            :class="activeTab === tab.id
+              ? 'border-brand-600 text-gray-900 dark:border-brand-400 dark:text-gray-100'
+              : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'">
+            {{ t(tab.labelKey) }}
+          </button>
         </div>
+
+        <!-- Brand tab: three-path editor + fixed preview -->
+        <BrandEditor
+          v-if="activeTab === 'brand'"
+          v-model="brandSettings"
+          :logo-image="logoImage"
+          :preview-i18n="previewI18n"
+          :on-logo-upload="handleLogoUpload"
+          :on-logo-remove="removeLogo" />
+
+        <!-- Delivery tab: recipient-facing language + reveal instructions -->
+        <DeliveryPanel
+          v-else
+          v-model="brandSettings"
+          :i18n-enabled="i18n_enabled"
+          :preview-i18n="previewI18n" />
       </div>
 
       <!-- Loading Overlay -->

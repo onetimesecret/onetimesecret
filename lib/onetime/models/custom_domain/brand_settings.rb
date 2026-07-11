@@ -144,13 +144,13 @@ module Onetime
       RADIUS_MAX = 64
 
       # Expanded color vocabulary (#3646): non-primary hex color fields. Each is
-      # format-validated like primary_color; WCAG pairing lives in the accessor
-      # checks. secondary_color is intentionally not contrast-gated (see
-      # validate_color_accessibility!).
-      EXTRA_COLOR_FIELDS = %i[secondary_color background_color text_color].freeze
+      # format-validated like primary_color. WCAG contrast is NOT gated on save
+      # (product decision 2026-07) — only hex format is enforced here.
+      EXTRA_COLOR_FIELDS = [:secondary_color, :background_color, :text_color].freeze
 
       # WCAG AA minimums (contrast ratio). 3:1 for large text / UI components,
-      # 4.5:1 for normal body text.
+      # 4.5:1 for normal body text. Retained for the contrast_ratio primitive
+      # and consumers that compute contrast advisories; NOT enforced on save.
       WCAG_AA_LARGE  = 3.0
       WCAG_AA_NORMAL = 4.5
     end
@@ -239,7 +239,10 @@ module Onetime
 
         validate_color_field!(normalized)
         validate_extra_color_fields!(normalized)
-        validate_color_accessibility!(normalized)
+        # WCAG contrast is intentionally NOT enforced on save (product decision
+        # 2026-07): a low-contrast color must not block saving. Hex-format
+        # validation above still applies. A non-blocking contrast advisory may
+        # return in the UI later.
         validate_font_field!(normalized)
         validate_heading_font_field!(normalized)
         validate_corner_style_field!(normalized)
@@ -260,7 +263,8 @@ module Onetime
       #
       # Format validation for the expanded color vocabulary (secondary, surface
       # background, and body text). Each reuses the same hex validator as
-      # primary_color; the WCAG pairing checks live in validate_color_accessibility!.
+      # primary_color. WCAG contrast is not enforced on save (product decision
+      # 2026-07) — only hex format is checked.
       def self.validate_extra_color_fields!(normalized)
         BrandSettingsConstants::EXTRA_COLOR_FIELDS.each do |field|
           next unless normalized.key?(field) && !normalized[field].nil?
@@ -269,59 +273,6 @@ module Onetime
           label = field.to_s.tr('_', ' ')
           raise Onetime::Problem, "Invalid #{label} format - must be hex code (e.g. #FF0000)"
         end
-      end
-
-      # @api private
-      #
-      # WCAG contrast validation across the color vocabulary:
-      #   - primary_color renders as the main button surface (white text on it),
-      #     so it must clear 3:1 against white — unchanged from the original rule.
-      #   - text_color on background_color, when both are supplied, must clear
-      #     4.5:1 — these form the body text/surface pair, so the stricter
-      #     normal-text threshold applies (#3646).
-      #
-      # secondary_color is deliberately NOT contrast-gated: it's a decorative
-      # accent with no fixed text pairing, and "usable with the better of
-      # white/black text" is mathematically ~always true (best-of is >= ~4.58
-      # for every color), so such a check would be vacuous. It is still format-
-      # validated (validate_extra_color_fields!). The meaningful accessibility
-      # guarantee is the text-on-background pair below.
-      def self.validate_color_accessibility!(normalized)
-        validate_color_vs_white!(normalized, :primary_color, 'primary')
-        validate_text_on_background!(normalized)
-      end
-
-      # @api private
-      def self.validate_color_vs_white!(normalized, field, label)
-        return unless normalized.key?(field) && !normalized[field].nil?
-        return unless valid_color?(normalized[field])
-
-        color          = normalized[field]
-        white_contrast = contrast_ratio(color, '#FFFFFF')
-
-        return if white_contrast >= BrandSettingsConstants::WCAG_AA_LARGE
-
-        raise Onetime::Problem,
-          "#{label.capitalize} color #{color} fails WCAG AA accessibility - contrast " \
-          "#{white_contrast.round(2)}:1 with white " \
-          '(minimum 3:1 for large text, 4.5:1 for normal text). ' \
-          'Try a darker shade or use an online contrast checker.'
-      end
-
-      # @api private
-      def self.validate_text_on_background!(normalized)
-        text = normalized[:text_color]
-        bg   = normalized[:background_color]
-        return if text.nil? || bg.nil?
-        return unless valid_color?(text) && valid_color?(bg)
-
-        ratio = contrast_ratio(text, bg)
-        return if ratio >= BrandSettingsConstants::WCAG_AA_NORMAL
-
-        raise Onetime::Problem,
-          "Text color #{text} on background #{bg} fails WCAG AA accessibility - " \
-          "contrast #{ratio.round(2)}:1 (minimum 4.5:1 for normal text). " \
-          'Choose a darker text or lighter background.'
       end
 
       # @api private
@@ -484,7 +435,7 @@ module Onetime
         return false unless str.match?(/\A\d+\z/)
 
         px = str.to_i
-        px >= 0 && px <= BrandSettingsConstants::RADIUS_MAX
+        px.between?(0, BrandSettingsConstants::RADIUS_MAX)
       end
 
       # Validates a URL string for logo/favicon fields.

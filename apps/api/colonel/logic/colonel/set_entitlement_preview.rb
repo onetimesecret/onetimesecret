@@ -138,6 +138,11 @@ module ColonelAPI
           sess.delete(:entitlement_preview_revokes_key)
           sess.delete(:entitlement_preview_planid) # Legacy, for transition
 
+          # Mirror into the request's Fiber-local: the middleware stashed the
+          # pre-flip context before this handler ran, so without this the
+          # response would serialize from stale preview state (ADR-020).
+          Onetime::EntitlementPreview.clear
+
           {
             status: 'cleared',
             actual_planid: organization&.planid,
@@ -148,6 +153,14 @@ module ColonelAPI
           redis       = Familia.dbclient
           grants_key  = session_grants_key(session_id)
           revokes_key = session_revokes_key(session_id)
+
+          # Drop any in-flight preview context before reading the org:
+          # organization.entitlements is preview-aware (ADR-020), and the
+          # revokes set must capture the org's ACTUAL entitlements. Switching
+          # preview from plan A to plan B would otherwise compute revokes from
+          # plan A's reconciled view, leaking actual entitlements through the
+          # new preview.
+          Onetime::EntitlementPreview.clear
 
           # Get org's current entitlements (what we're "resetting" from)
           current_entitlements = if organization && organization.respond_to?(:entitlements)
@@ -175,6 +188,15 @@ module ColonelAPI
           sess[:entitlement_preview_revokes_key] = revokes_key
           sess[:entitlement_preview_planid]      = @planid
 
+          # Mirror into the request's Fiber-local so this response — and
+          # anything else serialized after the flip — reflects the new
+          # preview state (ADR-020).
+          Onetime::EntitlementPreview.set(
+            planid: @planid,
+            grants_key: grants_key,
+            revokes_key: revokes_key,
+          )
+
           {
             status: 'active',
             test_planid: @planid,
@@ -190,12 +212,20 @@ module ColonelAPI
         def process_without_reconciler
           if @planid.nil? || @planid.empty?
             sess.delete(:entitlement_preview_planid)
+            Onetime::EntitlementPreview.clear
             {
               status: 'cleared',
               actual_planid: organization&.planid,
             }
           else
             sess[:entitlement_preview_planid] = @planid
+            # Planid-only context: limits preview works, entitlement
+            # reconciliation stays inactive (no grants/revokes keys).
+            Onetime::EntitlementPreview.set(
+              planid: @planid,
+              grants_key: nil,
+              revokes_key: nil,
+            )
             {
               status: 'active',
               test_planid: @planid,

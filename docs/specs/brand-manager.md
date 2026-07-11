@@ -15,7 +15,10 @@ what renders today vs. later, and the layout problems to solve.
   primary task is a layout that holds this vocabulary comfortably.
 - Everything is a **closed allowlist** — no custom CSS, no free-form fonts, no
   arbitrary values. This is a deliberate security (XSS) boundary; do not design
-  a "paste your own CSS" affordance.
+  a "paste your own CSS" affordance. This holds for **every** path, including the
+  future **Advanced** tier: its `@theme`-style mockup is an illustrative "coming
+  soon" teaser only — if ever shipped it must still resolve to allowlisted tokens,
+  never raw operator CSS.
 - **Four of the new tokens are configurable but do not render yet**
   (`secondary_color`, `background_color`, `text_color`, `heading_font`). Decide
   how to present controls whose visual effect is deferred — see §4.
@@ -83,9 +86,11 @@ so users never hit a save error for a normal edit:
 
 - **`primary_color`** — must clear **WCAG AA 3:1 vs white** (it's the main
   button surface). Existing amber contrast pill.
-- **`text_color` on `background_color`** — must clear **WCAG AA 4.5:1** (normal
-  text) whenever **both** are set. New amber pill added in this PR; only shown
-  when both halves are present.
+- **`text_color` on `background_color`** — advisory **WCAG AA 4.5:1** (normal
+  text) check whenever **both** are set, surfaced as an amber pill only when both
+  halves are present. Advisory only — **not gated on save** (contrast enforcement
+  was removed server-side; product decision 2026-07). Format (hex) is the only
+  server-side validation.
 - **`secondary_color`** — format-validated only, **no contrast gate** (it's a
   decorative accent with no fixed text pairing). No warning.
 

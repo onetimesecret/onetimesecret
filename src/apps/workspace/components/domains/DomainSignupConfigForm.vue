@@ -43,6 +43,8 @@ const emit = defineEmits<{
   (e: 'delete'): void;
   (e: 'discard'): void;
   (e: 'update:formState', value: SignupConfigFormState): void;
+  /** Whether a save is currently possible — drives the header's Save button. */
+  (e: 'can-save', value: boolean): void;
 }>();
 
 const { t } = useI18n();
@@ -125,6 +127,15 @@ const handleSave = () => {
   if (!isFormValid.value || props.isSaving) return;
   emit('save');
 };
+
+// The primary Save button now lives in the page header, so surface whether a
+// save is possible — same gating the in-form submit used (valid + not busy;
+// signup can save a fresh default config, so it's not gated on unsaved changes)
+// — and let the page relay it to DomainHeader's `save-disabled`.
+const canSave = computed(
+  () => isFormValid.value && !props.isSaving && !props.isDeleting
+);
+watch(canSave, (value) => emit('can-save', value), { immediate: true });
 
 const handleDelete = () => {
   if (props.isDeleting) return;
@@ -441,68 +452,55 @@ class="space-y-6">
         </button>
       </div>
 
-      <!-- Action Buttons -->
-      <div class="flex items-center justify-between border-t border-gray-200 pt-6 dark:border-gray-700">
-        <!-- Left: Delete + Discard -->
-        <div class="flex items-center gap-3">
-          <template v-if="isEditing && !showDeleteConfirm">
-            <button
-              type="button"
-              @click="showDeleteConfirm = true"
-              :disabled="isDeleting || isSaving"
-              class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-red-400 dark:ring-red-700 dark:hover:bg-red-900/20">
-              <OIcon
-                collection="heroicons"
-                name="trash"
-                class="size-4"
-                aria-hidden="true" />
-              {{ t('web.domains.signup.delete_config') }}
-            </button>
-          </template>
-
-          <div v-if="showDeleteConfirm" class="flex items-center gap-2">
-            <span class="text-sm text-gray-600 dark:text-gray-400">
-              {{ t('web.domains.signup.delete_confirm') }}
-            </span>
-            <button
-              type="button"
-              @click="handleDelete"
-              :disabled="isDeleting"
-              class="inline-flex items-center rounded-md bg-red-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-500 dark:hover:bg-red-400">
-              {{ isDeleting ? t('web.COMMON.processing') : t('web.COMMON.yes_delete') }}
-            </button>
-            <button
-              type="button"
-              @click="showDeleteConfirm = false"
-              :disabled="isDeleting"
-              class="inline-flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
-              {{ t('web.COMMON.word_cancel') }}
-            </button>
-          </div>
-
+      <!-- Secondary actions: Delete + Discard. The primary Save ("Update")
+           lives in the page header (opt-in DomainHeader affordance); this row
+           only appears when there's a saved config to delete or an edit to
+           discard. -->
+      <div
+        v-if="isEditing || hasUnsavedChanges || showDeleteConfirm"
+        class="flex items-center gap-3 border-t border-gray-200 pt-6 dark:border-gray-700">
+        <template v-if="isEditing && !showDeleteConfirm">
           <button
-            v-if="hasUnsavedChanges && !showDeleteConfirm"
             type="button"
-            @click="emit('discard')"
-            :disabled="isSaving"
-            class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
-            {{ t('web.domains.email.discard_changes') }}
+            @click="showDeleteConfirm = true"
+            :disabled="isDeleting || isSaving"
+            class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-red-400 dark:ring-red-700 dark:hover:bg-red-900/20">
+            <OIcon
+              collection="heroicons"
+              name="trash"
+              class="size-4"
+              aria-hidden="true" />
+            {{ t('web.domains.signup.delete_config') }}
+          </button>
+        </template>
+
+        <div v-if="showDeleteConfirm" class="flex items-center gap-2">
+          <span class="text-sm text-gray-600 dark:text-gray-400">
+            {{ t('web.domains.signup.delete_confirm') }}
+          </span>
+          <button
+            type="button"
+            @click="handleDelete"
+            :disabled="isDeleting"
+            class="inline-flex items-center rounded-md bg-red-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-500 dark:hover:bg-red-400">
+            {{ isDeleting ? t('web.COMMON.processing') : t('web.COMMON.yes_delete') }}
+          </button>
+          <button
+            type="button"
+            @click="showDeleteConfirm = false"
+            :disabled="isDeleting"
+            class="inline-flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+            {{ t('web.COMMON.word_cancel') }}
           </button>
         </div>
 
-        <!-- Right: Save button -->
         <button
-          type="submit"
-          :disabled="!isFormValid || isSaving || isDeleting"
-          class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
-          <OIcon
-            v-if="isSaving"
-            collection="heroicons"
-            name="arrow-path"
-            class="size-4 animate-spin motion-reduce:animate-none"
-            aria-hidden="true" />
-          <span v-if="isSaving">{{ t('web.COMMON.saving') }}</span>
-          <span v-else>{{ isEditing ? t('web.COMMON.save_changes') : t('web.domains.signup.save_config') }}</span>
+          v-if="hasUnsavedChanges && !showDeleteConfirm"
+          type="button"
+          @click="emit('discard')"
+          :disabled="isSaving"
+          class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+          {{ t('web.domains.email.discard_changes') }}
         </button>
       </div>
     </form>

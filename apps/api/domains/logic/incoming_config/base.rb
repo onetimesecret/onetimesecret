@@ -79,14 +79,10 @@ module DomainsAPI
         # @param domain_id [String] Domain extid
         # @return [void]
         def authorize_domain_incoming!(domain_id)
-          unless OT.conf.dig('features', 'incoming', 'enabled')
-            raise_form_error(
-              'Incoming secrets is not enabled on this instance',
-              error_key: 'api.domains.errors.incoming_secrets_disabled',
-              error_type: :forbidden,
-            )
-          end
-
+          # Custom-domain incoming is governed by ownership + the
+          # incoming_secrets entitlement, NOT the install-wide
+          # features.incoming.enabled flag (which gates the canonical domain
+          # only — see the canonical/custom split in RecipientResolver).
           @custom_domain = load_custom_domain(domain_id)
           @organization  = load_organization_for_domain(@custom_domain)
 

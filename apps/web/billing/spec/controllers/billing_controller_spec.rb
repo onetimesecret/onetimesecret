@@ -374,7 +374,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       )
     end
 
-    it 'uses idempotency key to prevent duplicates' do
+    it 'sends a UUID idempotency key with each request' do
       # Mock Stripe checkout session creation
       mock_session = build_checkout_session(
         'url' => 'https://checkout.stripe.com/c/pay/cs_test_idempotent',
@@ -392,12 +392,41 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
         expect(last_response.status).to eq(200)
       end
 
-      # Verify idempotency key was used in both requests
-      # The key is a SHA256 hash (64 hex chars) of checkout:<org_id>:<plan_id>:<time>
+      # Verify a UUID idempotency key was used in both requests
+      uuid_format = /\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i
       expect(Stripe::Checkout::Session).to have_received(:create).twice.with(
         anything,
-        hash_including(idempotency_key: a_string_matching(/^[a-f0-9]{64}$/))
+        hash_including(idempotency_key: a_string_matching(uuid_format))
       )
+    end
+
+    it 'generates a different idempotency key for each checkout attempt' do
+      # Deterministic time-bucketed keys caused rapid retries to receive a
+      # cached (possibly already-completed) session from Stripe. Unique keys
+      # per attempt guarantee every request creates a fresh session; duplicate
+      # completions are deduped by the checkout.session.completed webhook.
+      mock_session = build_checkout_session(
+        'url' => 'https://checkout.stripe.com/c/pay/cs_test_unique',
+        'id' => 'cs_test_unique'
+      )
+      captured_keys = []
+      allow(Stripe::Checkout::Session).to receive(:create) do |_params, opts|
+        captured_keys << opts[:idempotency_key]
+        mock_session
+      end
+
+      # Two rapid identical requests (same org, same plan, same time window)
+      2.times do
+        post "/billing/api/org/#{organization.extid}/checkout", {
+          product: product,
+          interval: interval,
+        }.to_json, { 'CONTENT_TYPE' => 'application/json' }
+
+        expect(last_response.status).to eq(200)
+      end
+
+      expect(captured_keys.length).to eq(2)
+      expect(captured_keys.uniq.length).to eq(2), 'expected each checkout attempt to use a distinct idempotency key'
     end
 
     it 'returns 403 when customer is not organization owner' do
@@ -435,6 +464,114 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
       expect(last_response.status).to eq(401)
+    end
+
+    # =========================================================================
+    # Duplicate-subscription guard (issue #2605)
+    # =========================================================================
+    #
+    # Issue #2605 replaced the deterministic daily idempotency key with a random
+    # UUID (correct: sessions are pre-payment and expire). That removed the only
+    # accidental same-day guard against an org completing two checkouts. These
+    # tests cover the explicit creation-time guard that replaces it.
+    context 'duplicate-subscription guard (issue #2605)' do
+      it 'blocks checkout with 409 when org has a genuinely active (non-canceling) subscription' do
+        organization.stripe_customer_id     = 'cus_active_guard'
+        organization.stripe_subscription_id = 'sub_active_guard'
+        organization.subscription_status    = 'active'
+        organization.save
+
+        # Existing subscription is NOT scheduled to cancel → genuine duplicate.
+        active_sub = build_subscription(
+          'id' => 'sub_active_guard',
+          'status' => 'active',
+          'cancel_at_period_end' => false
+        )
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .with('sub_active_guard').and_return(active_sub)
+
+        # Must short-circuit before contacting Stripe Checkout.
+        expect(Stripe::Checkout::Session).not_to receive(:create)
+
+        post "/billing/api/org/#{organization.extid}/checkout", {
+          product: product,
+          interval: interval,
+        }.to_json, { 'CONTENT_TYPE' => 'application/json', 'HTTP_X_CSRF_TOKEN' => csrf_token }
+
+        expect(last_response.status).to eq(409)
+        data = JSON.parse(last_response.body)
+        expect(data['code']).to eq('active_subscription_exists')
+      end
+
+      it 'allows checkout during a pending currency migration' do
+        organization.stripe_customer_id     = 'cus_migration_guard'
+        organization.stripe_subscription_id = 'sub_migration_guard'
+        organization.subscription_status    = 'active'
+        # Graceful currency migration: the old subscription was set to
+        # cancel_at_period_end and the intent stored. The new checkout completes
+        # the migration in the target currency and MUST be allowed.
+        organization.set_currency_migration_intent!('price_test', Time.now.to_i + 86_400)
+
+        mock_session = build_checkout_session(
+          'url' => 'https://checkout.stripe.com/c/pay/cs_test_migration',
+          'id' => 'cs_test_migration'
+        )
+        allow(Stripe::Checkout::Session).to receive(:create).and_return(mock_session)
+
+        post "/billing/api/org/#{organization.extid}/checkout", {
+          product: product,
+          interval: interval,
+        }.to_json, { 'CONTENT_TYPE' => 'application/json', 'HTTP_X_CSRF_TOKEN' => csrf_token }
+
+        expect(last_response.status).to eq(200)
+        expect(Stripe::Checkout::Session).to have_received(:create)
+      end
+
+      it 'allows checkout when the active subscription is scheduled to cancel (resubscribe-after-cancel)' do
+        organization.stripe_customer_id     = 'cus_canceling_guard'
+        organization.stripe_subscription_id = 'sub_canceling_guard'
+        organization.subscription_status    = 'active'
+        organization.save
+
+        canceling_sub = build_subscription(
+          'id' => 'sub_canceling_guard',
+          'status' => 'active',
+          'cancel_at_period_end' => true
+        )
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .with('sub_canceling_guard').and_return(canceling_sub)
+
+        mock_session = build_checkout_session(
+          'url' => 'https://checkout.stripe.com/c/pay/cs_test_resub',
+          'id' => 'cs_test_resub'
+        )
+        allow(Stripe::Checkout::Session).to receive(:create).and_return(mock_session)
+
+        post "/billing/api/org/#{organization.extid}/checkout", {
+          product: product,
+          interval: interval,
+        }.to_json, { 'CONTENT_TYPE' => 'application/json', 'HTTP_X_CSRF_TOKEN' => csrf_token }
+
+        expect(last_response.status).to eq(200)
+        expect(Stripe::Checkout::Session).to have_received(:create)
+      end
+
+      it 'allows checkout when org has no subscription' do
+        # organization has no subscription_status → active_subscription? is false.
+        mock_session = build_checkout_session(
+          'url' => 'https://checkout.stripe.com/c/pay/cs_test_nosub',
+          'id' => 'cs_test_nosub'
+        )
+        allow(Stripe::Checkout::Session).to receive(:create).and_return(mock_session)
+
+        post "/billing/api/org/#{organization.extid}/checkout", {
+          product: product,
+          interval: interval,
+        }.to_json, { 'CONTENT_TYPE' => 'application/json', 'HTTP_X_CSRF_TOKEN' => csrf_token }
+
+        expect(last_response.status).to eq(200)
+        expect(Stripe::Checkout::Session).to have_received(:create)
+      end
     end
   end
 

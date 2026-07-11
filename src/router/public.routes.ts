@@ -21,15 +21,28 @@ declare module 'vue-router' {
 function determineComponentMode(): string {
   const bootstrapStore = useBootstrapStore();
 
+  // Deployment-wide UI kill switch — applies to canonical and custom alike.
   if (!bootstrapStore.ui?.enabled) {
     return 'disabled-ui';
   }
 
+  // Custom domains self-govern their homepage via the per-domain
+  // HomepageConfig (surfaced as identityStore.allowPublicHomepage, which
+  // BrandedHomepage consumes to render either the secret form or the private
+  // trust card). The install-wide authentication.required / homepage_mode
+  // flags gate the CANONICAL site only; they must not disable a custom domain
+  // that has enabled its own homepage. Same "canonical and custom never
+  // intermix" precedent as RecipientResolver on the backend.
+  if (bootstrapStore.domain_strategy === 'custom') {
+    return 'normal';
+  }
+
   const hasSession = document.cookie.includes('ots-session');
 
-  // Only show disabled-homepage if user has no session and one of:
+  // Canonical site: only show disabled-homepage if the visitor has no session
+  // and one of:
   //  - auth is required
-  //  - if homepage is in external mode
+  //  - the homepage is in external mode
   if (
     !hasSession &&
     (bootstrapStore.authentication?.required || bootstrapStore.homepage_mode === 'external')

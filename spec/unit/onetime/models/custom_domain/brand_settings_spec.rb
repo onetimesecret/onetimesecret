@@ -296,11 +296,13 @@ RSpec.describe Onetime::CustomDomain::BrandSettings do
       }.to raise_error(Onetime::Problem, /secondary color/i)
     end
 
-    it 'rejects a low-contrast text-on-background pair' do
-      # Near-identical colors → far below the 4.5:1 normal-text threshold.
+    it 'accepts a low-contrast text-on-background pair (contrast no longer gated)' do
+      # Near-identical colors are far below the 4.5:1 normal-text threshold, but
+      # WCAG contrast is no longer enforced on save (product decision 2026-07);
+      # only hex format is validated, so this pair is accepted.
       expect {
         described_class.validate!(text_color: '#EEEEEE', background_color: '#FFFFFF')
-      }.to raise_error(Onetime::Problem, /WCAG/i)
+      }.not_to raise_error
     end
 
     it 'accepts a high-contrast text-on-background pair' do

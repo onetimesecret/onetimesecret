@@ -51,11 +51,9 @@ import publicRoutes, { redirectAuthenticatedToPlans } from '@/router/public.rout
 describe('Public Routes', () => {
   describe('Homepage Route', () => {
     let route: RouteRecordRaw | undefined;
-    let bootstrapStore: ReturnType<typeof useBootstrapStore>;
 
     beforeEach(() => {
       vi.clearAllMocks();
-      bootstrapStore = useBootstrapStore();
       route = publicRoutes.find((route: RouteRecordRaw) => route.path === '/');
     });
 
@@ -70,6 +68,65 @@ describe('Public Routes', () => {
       expect(route?.meta?.layoutProps?.displayMasthead).toBe(true);
       expect(route?.meta?.layoutProps?.displayFooterLinks).toBe(true);
       expect(route?.meta?.layoutProps?.displayFeedback).toBe(true);
+    });
+  });
+
+  // The Home route's beforeEnter guard resolves componentMode. Install-wide
+  // authentication.required / homepage_mode gate the CANONICAL site only;
+  // custom domains self-govern their homepage via the per-domain
+  // HomepageConfig (consumed downstream by BrandedHomepage), so those site
+  // flags must not force a custom domain to the disabled-homepage view. The
+  // deployment-wide UI kill switch stays global.
+  describe('componentMode resolution (site flags vs custom-domain self-governance)', () => {
+    let route: RouteRecordRaw | undefined;
+    let bootstrapStore: ReturnType<typeof useBootstrapStore>;
+
+    const runBeforeEnter = async () => {
+      const to = { meta: { layoutProps: {} } } as unknown as RouteLocationNormalized;
+      await (
+        route as unknown as { beforeEnter: (to: RouteLocationNormalized) => Promise<void> }
+      ).beforeEnter(to);
+      return to.meta.componentMode;
+    };
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+      bootstrapStore = useBootstrapStore();
+      route = publicRoutes.find((r: RouteRecordRaw) => r.path === '/');
+      // No session cookie by default; the site-flag gates only fire for
+      // anonymous visitors.
+      document.cookie = 'ots-session=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+      bootstrapStore.$patch({
+        domain_strategy: 'canonical',
+        ui: { enabled: true },
+        authentication: { required: false },
+        homepage_mode: null,
+      });
+    });
+
+    it('canonical: disables the homepage for anonymous visitors when auth is required', async () => {
+      bootstrapStore.$patch({ authentication: { required: true } });
+      expect(await runBeforeEnter()).toBe('disabled-homepage');
+    });
+
+    it('canonical: disables the homepage for anonymous visitors in external mode', async () => {
+      bootstrapStore.$patch({ homepage_mode: 'external' });
+      expect(await runBeforeEnter()).toBe('disabled-homepage');
+    });
+
+    it('custom: ignores install-wide authentication.required (self-governs via HomepageConfig)', async () => {
+      bootstrapStore.$patch({ domain_strategy: 'custom', authentication: { required: true } });
+      expect(await runBeforeEnter()).toBe('normal');
+    });
+
+    it('custom: ignores install-wide homepage_mode=external', async () => {
+      bootstrapStore.$patch({ domain_strategy: 'custom', homepage_mode: 'external' });
+      expect(await runBeforeEnter()).toBe('normal');
+    });
+
+    it('custom: the deployment-wide UI kill switch still applies', async () => {
+      bootstrapStore.$patch({ domain_strategy: 'custom', ui: { enabled: false } });
+      expect(await runBeforeEnter()).toBe('disabled-ui');
     });
   });
 

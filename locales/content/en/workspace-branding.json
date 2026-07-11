@@ -52,8 +52,7 @@
     "content_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
-    "text": "Preview & Customize",
-    "content_hash": "215d3659"
+    "text": "Customize & Preview"
   },
   "web.branding.switch_to_safari_browser_view": {
     "text": "Switch to Safari browser view",
@@ -214,5 +213,110 @@
   "web.branding.upgrade_to_customize": {
     "text": "Upgrade your plan to customize branding for this domain.",
     "content_hash": "9077bf79"
+  },
+  "web.branding.path_simple": {
+    "text": "Simple"
+  },
+  "web.branding.path_match": {
+    "text": "Match my site"
+  },
+  "web.branding.path_advanced": {
+    "text": "Advanced"
+  },
+  "web.branding.path_simple_tag": {
+    "text": "Your brand essentials."
+  },
+  "web.branding.path_match_tag": {
+    "text": "Copy settings from an existing site."
+  },
+  "web.branding.path_advanced_tag": {
+    "text": "Roll your own Tailwind v4 CSS."
+  },
+  "web.branding.badge_default": {
+    "text": "Default"
+  },
+  "web.branding.badge_coming_soon": {
+    "text": "Coming soon"
+  },
+  "web.branding.your_brand": {
+    "text": "Your brand"
+  },
+  "web.branding.your_brand_subtitle": {
+    "text": "A few quick choices — we handle the rest."
+  },
+  "web.branding.corners": {
+    "text": "Corners"
+  },
+  "web.branding.more_options": {
+    "text": "More options"
+  },
+  "web.branding.brand_color_hint": {
+    "text": "Grab it from your logo or site header."
+  },
+  "web.branding.paths_carryover_hint": {
+    "text": "This is a live preview — your changes won't be visible to visitors until you save."
+  },
+  "web.branding.coming_soon_match_blurb": {
+    "text": "Point us at your website and we'll read its colors and fonts, then close the gap in one click."
+  },
+  "web.branding.coming_soon_advanced_blurb": {
+    "text": "Edit the Tailwind v4 {'@'}theme tokens directly, or paste your own stylesheet."
+  },
+  "web.branding.preview_recipient_page": {
+    "text": "Recipient page"
+  },
+  "web.branding.preview_badge": {
+    "text": "Preview"
+  },
+  "web.branding.preview_homepage_enabled": {
+    "text": "Homepage · enabled"
+  },
+  "web.branding.preview_homepage_disabled": {
+    "text": "Homepage · disabled"
+  },
+  "web.branding.preview_live": {
+    "text": "Live preview"
+  },
+  "web.branding.tile_share_secret": {
+    "text": "Share a secret"
+  },
+  "web.branding.tile_create_link": {
+    "text": "Create secret link"
+  },
+  "web.branding.tile_delivery_only": {
+    "text": "Secure message delivery only"
+  },
+  "web.branding.tile_no_create": {
+    "text": "Visitors can't create secrets here."
+  },
+  "web.branding.recipient_page_content": {
+    "text": "Recipient page content"
+  },
+  "web.branding.recipient_page_content_hint": {
+    "text": "Language and reveal instructions shown to recipients on this domain."
+  },
+  "web.branding.tab_brand": {
+    "text": "Brand"
+  },
+  "web.branding.tab_delivery": {
+    "text": "Delivery"
+  },
+  "web.branding.delivery_language": {
+    "text": "Language"
+  },
+  "web.branding.delivery_language_hint": {
+    "text": "Default for recipient pages and emails on this domain. Recipients can switch language on the page."
+  },
+  "web.branding.delivery_reveal_instructions": {
+    "text": "Reveal instructions"
+  },
+  "web.branding.delivery_reveal_instructions_hint": {
+    "text": "Shown on the recipient page. Leave blank to use the built-in copy in the selected language."
+  },
+  "web.branding.delivery_before_reveal": {
+    "text": "Before reveal"
+  },
+  "web.branding.delivery_after_reveal": {
+    "text": "After reveal"
   }
 }

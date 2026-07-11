@@ -101,6 +101,44 @@ module Billing
             return :success
           end
 
+          # Replacement detection (issue #2605).
+          #
+          # A DIFFERENT, non-empty stored subscription id means this completed
+          # checkout is about to REPLACE an existing live subscription. Overwriting
+          # org.stripe_subscription_id silently would orphan the previous Stripe
+          # subscription (still live, still charging) — a duplicate-charge hazard.
+          #
+          # Distinguish a legitimate replacement (the stored subscription is
+          # winding down — e.g. the currency-migration graceful path set
+          # cancel_at_period_end before this new checkout) from an anomalous
+          # duplicate (the stored subscription is still genuinely active, so a
+          # second checkout produced a distinct, still-charging subscription).
+          #
+          # Policy for the anomalous case: STILL apply the update below so we do
+          # not silently discard the state of the subscription the customer just
+          # paid for, but log LOUDLY (error) with BOTH subscription ids and the
+          # org id so the orphaned subscription can be reconciled (canceled /
+          # refunded) by an operator.
+          previous_subscription_id = org.stripe_subscription_id
+          if previous_subscription_id.to_s.length.positive?
+            if existing_subscription_winding_down?(previous_subscription_id)
+              billing_logger.info 'Replacing winding-down subscription at checkout completion',
+                {
+                  orgid: org.objid,
+                  previous_subscription_id: previous_subscription_id,
+                  new_subscription_id: subscription.id,
+                }
+            else
+              billing_logger.error 'Duplicate active subscription detected at checkout completion — orphaned subscription requires reconciliation',
+                {
+                  orgid: org.objid,
+                  previous_subscription_id: previous_subscription_id,
+                  new_subscription_id: subscription.id,
+                  customer_extid: customer_extid,
+                }
+            end
+          end
+
           org.update_from_stripe_subscription(subscription)
 
           # Set email_hash in Stripe customer metadata for federation
@@ -111,16 +149,6 @@ module Billing
           # Ensure organization has email_hash computed from billing_email
           ensure_org_email_hash!(org)
           warn_if_email_hash_divergence(org, stripe_hash)
-
-          if stripe_hash && org.email_hash.to_s.length.positive? && stripe_hash != org.email_hash
-            billing_logger.warn 'Email hash divergence: Stripe and org hashes differ — federation matching will fail',
-              {
-                orgid: org.objid,
-                stripe_customer_id: stripe_customer_id,
-                stripe_hash_prefix: stripe_hash[0..7],
-                org_hash_prefix: org.email_hash[0..7],
-              }
-          end
 
           billing_logger.info 'Checkout completed - organization subscription activated',
             {
@@ -134,6 +162,30 @@ module Billing
         end
 
         private
+
+        # Determine whether an existing (stored) subscription is winding down —
+        # scheduled to cancel at period end, or already canceled/expired. Used to
+        # tell a legitimate replacement (currency migration graceful path, or
+        # resubscribe-after-cancel) apart from an anomalous duplicate where the
+        # stored subscription is still genuinely active.
+        #
+        # On any Stripe error, returns false (treat as still-active) so the
+        # caller takes the louder, safer "duplicate active" error path.
+        #
+        # @param subscription_id [String] The existing stored Stripe subscription id
+        # @return [Boolean]
+        def existing_subscription_winding_down?(subscription_id)
+          existing = Stripe::Subscription.retrieve(subscription_id)
+          existing.cancel_at_period_end == true ||
+            %w[canceled incomplete_expired].include?(existing.status.to_s)
+        rescue Stripe::StripeError => ex
+          billing_logger.warn 'Could not retrieve existing subscription during replacement detection',
+            {
+              subscription_id: subscription_id,
+              error: ex.message,
+            }
+          false
+        end
 
         def valid_identifier?(value)
           return false unless value.is_a?(String) && value.length <= 255
