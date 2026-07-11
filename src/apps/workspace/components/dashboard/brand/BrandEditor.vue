@@ -57,6 +57,9 @@
         <SimpleBrandPanel
           v-if="activePath === 'simple'"
           :model-value="modelValue"
+          :logo-image="logoImage"
+          :on-logo-upload="onLogoUpload"
+          :on-logo-remove="onLogoRemove"
           @update:model-value="(value) => emit('update:modelValue', value)" />
 
         <ComingSoonPanel

@@ -4,6 +4,7 @@
 import BaseSecretDisplay from '@/apps/secret/components/branded/BaseSecretDisplay.vue';
 import { BrandSettings, ImageProps } from '@/schemas/shapes/v3/custom-domain';
 import OIcon from '@/shared/components/icons/OIcon.vue';
+import { useLogoImage } from '@/shared/composables/useLogoImage';
 import {
 CornerStyle,
 FontFamily,
@@ -29,17 +30,9 @@ const props = defineProps<{
   previewI18n: Composer;
 }>();
 
-// Computed property to validate logo data
-const isValidLogo = computed(() => props.logoImage &&
-    typeof props.logoImage === 'object' &&
-    props.logoImage.encoded &&
-    props.logoImage.content_type);
-
-// Computed property to generate the logo source URL
-const logoSrc = computed(() => {
-  if (!isValidLogo.value) return '';
-  return `data:${props.logoImage?.content_type};base64,${props.logoImage?.encoded}`;
-});
+// Logo validity + data-URL derivation shared with the Simple form's
+// BrandLogoField (useLogoImage), so the two upload entry points can't drift.
+const { isValidLogo, logoSrc, onFileChange } = useLogoImage(() => props.logoImage);
 
 const isRevealed = ref(false);
 const textareaPlaceholder = computed(() => props.previewI18n.t('web.secrets.sample_secret_content_this_could_be_sensitive_data'));
@@ -50,14 +43,7 @@ const ariaLabelText = computed(() =>
     : props.previewI18n.t('web.secrets.view_secret_message')
 )
 
-const handleLogoChange = (event: Event) => {
-  const input = event.target as HTMLInputElement;
-  const file = input.files?.[0];
-  if (file) {
-    props.onLogoUpload(file);
-  }
-  input.value = '';
-};
+const handleLogoChange = (event: Event) => onFileChange(event, props.onLogoUpload);
 
 const toggleReveal = () => {
   isRevealed.value = !isRevealed.value;

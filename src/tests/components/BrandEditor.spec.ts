@@ -38,6 +38,9 @@ const leafStubs = {
   ColorPicker: true,
   OIcon: true,
   BrandPreviewColumn: true,
+  // The logo control has its own focused spec (BrandLogoField.spec.ts); stub it
+  // here so the Simple-panel / editor tests stay about color/corners/font wiring.
+  BrandLogoField: true,
 };
 
 const baseSettings = (over: Partial<BrandSettings> = {}): BrandSettings =>
@@ -65,7 +68,12 @@ describe('BrandPathSwitcher', () => {
 describe('SimpleBrandPanel', () => {
   const mountPanel = (settings: Partial<BrandSettings> = {}) =>
     mount(SimpleBrandPanel, {
-      props: { modelValue: baseSettings(settings) },
+      props: {
+        modelValue: baseSettings(settings),
+        logoImage: null,
+        onLogoUpload: vi.fn(),
+        onLogoRemove: vi.fn(),
+      },
       global: { stubs: leafStubs },
     });
 

@@ -3,10 +3,15 @@
 <script setup lang="ts">
   /**
    * The functional "Simple" path: the quick happy path for branding a domain.
-   * Three choices — brand color, corners, and body font — all inline. Each writes
-   * the shared BrandSettings record via v-model, so switching paths never loses
-   * work. (Heading font is not exposed here; the recipient render falls back to
-   * the body font, and a separate heading choice returns with the Advanced path.)
+   * Logo, brand color, corners, and body font — all inline. Color/corners/font
+   * write the shared BrandSettings record via v-model, so switching paths never
+   * loses work. (Heading font is not exposed here; the recipient render falls
+   * back to the body font, and a separate heading choice returns with the
+   * Advanced path.)
+   *
+   * Logo is the exception: BrandLogoField uploads/removes immediately via the
+   * useBranding callbacks (its own API endpoint), not through v-model/Save. Same
+   * behavior as clicking the preview image — this just surfaces it in the form.
    *
    * secondary_color is intentionally NOT exposed here: it has no live consumer
    * yet (useBrandTheme injects a `--color-brand2-*` scale onto <html>, but no
@@ -18,7 +23,7 @@
    * honors via the locally-scoped `--radius-brand`); `corner_style` is left
    * untouched since `border_radius` supersedes it (identityStore.cornerClass).
    */
-  import type { BrandSettings } from '@/schemas/shapes/v3/custom-domain';
+  import type { BrandSettings, ImageProps } from '@/schemas/shapes/v3/custom-domain';
   import ColorPicker from '@/shared/components/common/ColorPicker.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import {
@@ -33,10 +38,15 @@
   import { computed } from 'vue';
   import { useI18n } from 'vue-i18n';
 
+  import BrandLogoField from './BrandLogoField.vue';
+
   const { t } = useI18n();
 
   const props = defineProps<{
     modelValue: BrandSettings;
+    logoImage?: ImageProps | null;
+    onLogoUpload: (file: File) => Promise<void>;
+    onLogoRemove: () => Promise<void>;
   }>();
 
   const emit = defineEmits<{
@@ -92,6 +102,14 @@
       </span>
     </div>
 
+    <!-- Logo. Upload/Remove apply immediately (not on Save) — see BrandLogoField. -->
+    <div class="mt-3.5">
+      <BrandLogoField
+        :logo-image="logoImage"
+        :on-logo-upload="onLogoUpload"
+        :on-logo-remove="onLogoRemove" />
+    </div>
+
     <!-- Brand color -->
     <div class="mt-3.5">
       <div class="text-xs font-semibold text-gray-700 dark:text-gray-300">
@@ -106,7 +124,6 @@
           disable-alpha
           :label="t('web.branding.brand_color')"
           id="simple-brand-color" />
-        <span class="text-[11px] text-gray-400">{{ t('web.branding.brand_color_hint') }}</span>
       </div>
       <!-- WCAG contrast warning (primary vs white) — advisory only, never blocks save -->
       <div

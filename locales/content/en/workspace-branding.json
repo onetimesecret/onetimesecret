@@ -119,6 +119,15 @@
     "text": "Upload logo",
     "content_hash": "c3330082"
   },
+  "web.branding.logo": {
+    "text": "Logo"
+  },
+  "web.branding.replace_logo": {
+    "text": "Replace"
+  },
+  "web.branding.logo_field_hint": {
+    "text": "PNG, JPG or SVG, 128×128 recommended. Applies immediately."
+  },
   "web.branding.loading_preview": {
     "text": "Loading preview...",
     "content_hash": "c02130fa"
@@ -262,10 +271,6 @@
   "web.branding.more_options": {
     "text": "More options",
     "content_hash": "bc79cdff"
-  },
-  "web.branding.brand_color_hint": {
-    "text": "Grab it from your logo or site header.",
-    "content_hash": "8a0f3ae9"
   },
   "web.branding.paths_carryover_hint": {
     "text": "This is a live preview — your changes won't be visible to visitors until you save.",
