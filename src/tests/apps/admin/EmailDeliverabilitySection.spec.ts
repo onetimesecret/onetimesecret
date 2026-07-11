@@ -69,7 +69,7 @@ const EVENTS_URL = '/api/colonel/email/deliverability/events';
 const LOOKUP_URL = '/api/colonel/email/deliverability/lookup';
 const MESSAGES_URL = '/api/colonel/email/deliverability/messages';
 
-function summaryPayload(counts = {}) {
+function summaryPayload(counts = {}, extra = {}) {
   return {
     shrimp: '',
     record: {},
@@ -82,6 +82,9 @@ function summaryPayload(counts = {}) {
         sends_skipped: 5,
         ...counts,
       },
+      active_provider: 'ses',
+      sync_capability: true,
+      ...extra,
     },
   };
 }
@@ -268,6 +271,56 @@ describe('EmailDeliverabilitySection (email deliverability)', () => {
     expect(wrapper.find('[data-testid="deliverability-stat-bounces"]').text()).toContain('2');
     expect(wrapper.find('[data-testid="deliverability-stat-complaints"]').text()).toContain('1');
     expect(wrapper.find('[data-testid="deliverability-stat-skipped"]').text()).toContain('5');
+  });
+
+  // ---- On-demand sync ("Sync now" button) -------------------------------
+
+  it('shows a Sync now button only when the active provider supports it', async () => {
+    primeGets({ summary: summaryPayload({}, { sync_capability: false }) });
+    wrapper = mountSection(pinia);
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="deliverability-sync-button"]').exists()).toBe(false);
+  });
+
+  it('triggers a sync, notifies with the tallies, and refreshes the summary', async () => {
+    primeGets();
+    mockApi.post.mockResolvedValue({
+      data: {
+        shrimp: '',
+        record: { provider: 'ses', fetched: 4, accepted: 3, rejected: 1 },
+        details: { errors: ['bad-record'] },
+      },
+    });
+    wrapper = mountSection(pinia);
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="deliverability-sync-button"]').exists()).toBe(true);
+    await wrapper.find('[data-testid="deliverability-sync-button"]').trigger('click');
+    await flushPromises();
+
+    expect(mockApi.post).toHaveBeenCalledWith('/api/colonel/email/deliverability/sync', {});
+    expect(showMock).toHaveBeenCalledWith(
+      'web.admin.emailtools.deliverability.sync.success',
+      'success'
+    );
+    // Sync clears the never-synced banner by re-fetching the summary.
+    expect(mockApi.get).toHaveBeenCalledWith(SUMMARY_URL, undefined);
+  });
+
+  it('keeps the sync error inline and does not notify on failure', async () => {
+    primeGets();
+    mockApi.post.mockRejectedValue(axiosError(422, { error: 'no feedback API for provider' }));
+    wrapper = mountSection(pinia);
+    await flushPromises();
+
+    await wrapper.find('[data-testid="deliverability-sync-button"]').trigger('click');
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="deliverability-sync-error"]').text()).toContain(
+      'no feedback API for provider'
+    );
+    expect(showMock).not.toHaveBeenCalled();
   });
 
   it('surfaces a summary failure as an alert with retry (tiles degrade, section stays up)', async () => {

@@ -195,6 +195,15 @@
     "text": "Provider feedback sync has never run. Bounce and complaint data is not being imported automatically — configure a provider sync, or ingest feedback via the events endpoint.",
     "content_hash": "d19f5755"
   },
+  "web.admin.emailtools.deliverability.sync.button": {
+    "text": "Sync now"
+  },
+  "web.admin.emailtools.deliverability.sync.success": {
+    "text": "{provider} sync complete: {accepted} imported, {rejected} rejected ({fetched} fetched)."
+  },
+  "web.admin.emailtools.deliverability.sync.hint": {
+    "text": "A manual sync — automatic import still requires a scheduled `ots email sync-feedback` cron."
+  },
   "web.admin.emailtools.deliverability.suppressions.title": {
     "text": "Suppression list",
     "content_hash": "9f3e322f"
