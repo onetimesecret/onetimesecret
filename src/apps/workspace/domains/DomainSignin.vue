@@ -15,27 +15,26 @@
  * not user-facing — every save materializes it, and "Reset to defaults"
  * unpins.
  */
-import { useI18n } from 'vue-i18n';
-import { computed, onMounted, ref, watch } from 'vue';
-import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
-import { storeToRefs } from 'pinia';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
 import DomainAuthOverrideBanner from '@/apps/workspace/components/domains/DomainAuthOverrideBanner.vue';
 import DomainSigninConfigForm from '@/apps/workspace/components/domains/DomainSigninConfigForm.vue';
 import SsoCredentialsModal from '@/apps/workspace/components/domains/SsoCredentialsModal.vue';
 import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
+import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
+import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useDomain } from '@/shared/composables/useDomain';
-
+import { useEntitlements } from '@/shared/composables/useEntitlements';
 import {
   resolveGlobalMethodAvailability,
   useSigninConfig,
 } from '@/shared/composables/useSigninConfig';
 import { useSsoConfig } from '@/shared/composables/useSsoConfig';
-import { useEntitlements } from '@/shared/composables/useEntitlements';
-import { ENTITLEMENTS } from '@/types/organization';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
+import { ENTITLEMENTS } from '@/types/organization';
+import { storeToRefs } from 'pinia';
+import { computed, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
 
 const { t } = useI18n();
 const route = useRoute();

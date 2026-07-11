@@ -16,9 +16,9 @@
  *   still pins behavior for future default changes — but nothing runs
  *   until the workspace-wide capability is re-enabled.
  */
-import { useI18n } from 'vue-i18n';
-import { computed } from 'vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
   /** Which feature's i18n namespace to use (web.domains.<feature>.*). */
@@ -66,7 +66,7 @@ const dormantNotice = computed(() => t(`web.domains.${props.feature}.dormant_not
       <span
         v-if="workspaceDefault"
         data-testid="workspace-default-badge"
-        class="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:ring-blue-800">
+        class="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-blue-200 ring-inset dark:bg-blue-900/20 dark:text-blue-300 dark:ring-blue-800">
         {{ t('web.domains.auth_override.workspace_default_badge') }}
       </span>
     </div>
