@@ -1,0 +1,85 @@
+# ==============================================================================
+# Installer matrix (install-onboarding testing-strategy §2b)
+# ==============================================================================
+# Runs the Tier-1 clean-room harness (scripts/test-install/run.sh) in CI — the
+# SAME artifact a maintainer runs locally, so local and CI cannot diverge. Each
+# lane installs a documented path from zero inside a pinned base image:
+#
+#   baremetal  ruby:3.4.9-slim  — install.sh init succeeds + is idempotent
+#   posix      ruby:3.4.9-slim, empty locale — the fresh-server locale repro
+#   ruby-old   ruby:3.3-slim    — install.sh init MUST fail with the version gate
+#
+# Plus a cheap bash-3.2 syntax gate (macOS ships bash 3.2; install.sh is the
+# bare-metal entrypoint that must parse there). Path-filtered + weekly cron.
+#
+# Reference: tailscale runs its installer in ~22 distro containers on a daily
+# cron + path-filtered PRs; chezmoi tests the actual piped invocation.
+# ==============================================================================
+name: Installer matrix
+
+on:
+  pull_request:
+    paths:
+      - 'install.sh'
+      - 'install-dev.sh'
+      - 'install-test.sh'
+      - 'Gemfile'
+      - 'Gemfile.lock'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.ruby-version'
+      - '.node-version'
+      - 'etc/defaults/**'
+      - 'scripts/test-install/run.sh'
+      - '.github/workflows/installer.yml'
+  schedule:
+    - cron: '53 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  clean-room:
+    name: "install.sh from zero (${{ matrix.lane }})"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        lane: [baremetal, posix, ruby-old]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      # Docker is preinstalled on ubuntu runners; the harness does the rest
+      # (pinned image + git archive HEAD, no host state leaks in).
+      - name: Run clean-room lane
+        env:
+          LANE: ${{ matrix.lane }}
+        run: ./scripts/test-install/run.sh --lane "$LANE"
+
+  bash-32-gate:
+    name: bash 3.2 syntax gate (macOS parity)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      # macOS ships bash 3.2. The bare-metal entrypoint and the harness scripts
+      # must at least PARSE there (catches bashisms newer than 3.2). install-dev.sh
+      # is intentionally excluded — it requires bash 4+ by design.
+      - name: Parse install scripts under bash 3.2
+        run: |
+          docker run --rm -i -v "$PWD:/src" -w /src bash:3.2 sh -c '
+            set -e
+            for f in install.sh install-test.sh \
+                     scripts/test-install/run.sh \
+                     scripts/test-install/proof-of-life.sh \
+                     scripts/test-install/check-docs-commands.sh; do
+              echo "bash -n $f"
+              bash -n "$f"
+            done
+            echo "all scripts parse under bash 3.2"
+          '
