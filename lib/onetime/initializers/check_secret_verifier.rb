@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/secret_verifier'
+require_relative '../secret_verifier'
 
 module Onetime
   module Initializers

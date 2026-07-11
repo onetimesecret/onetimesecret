@@ -5,7 +5,7 @@
 require 'digest'
 require 'base64'
 
-require 'onetime/key_derivation'
+require_relative '../key_derivation'
 
 module Onetime
   module Initializers
