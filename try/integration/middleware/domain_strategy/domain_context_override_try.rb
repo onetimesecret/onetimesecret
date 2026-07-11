@@ -20,22 +20,12 @@ end
 
 # Helper to enable Runtime.features.domains? - the actual runtime flag
 def enable_runtime_domains!
-  current_features = Onetime::Runtime.features
-  Onetime::Runtime.features = Onetime::Runtime::Features.new(
-    domains_enabled: true,
-    global_banner: current_features.global_banner,
-    fortunes: current_features.fortunes,
-  )
+  Onetime::Runtime.features = Onetime::Runtime.features.with(domains_enabled: true)
 end
 
 # Helper to disable Runtime.features.domains?
 def disable_runtime_domains!
-  current_features = Onetime::Runtime.features
-  Onetime::Runtime.features = Onetime::Runtime::Features.new(
-    domains_enabled: false,
-    global_banner: current_features.global_banner,
-    fortunes: current_features.fortunes,
-  )
+  Onetime::Runtime.features = Onetime::Runtime.features.with(domains_enabled: false)
 end
 
 # Helper to enable both domains (Runtime) and domain context at class level
