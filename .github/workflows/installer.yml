@@ -10,7 +10,11 @@
 #   ruby-old   ruby:3.3-slim    — install.sh init MUST fail with the version gate
 #
 # Plus a cheap bash-3.2 syntax gate (macOS ships bash 3.2; install.sh is the
-# bare-metal entrypoint that must parse there). Path-filtered + weekly cron.
+# bare-metal entrypoint that must parse there), and the real macOS lane
+# (testing-strategy §3.2b): bin/setup + bin/setup --test on a macos-15 runner
+# under /bin/bash — the only honest test of stock bash 3.2 + BSD userland
+# (sed/grep/readlink), which no Linux container can simulate.
+# Path-filtered + weekly cron.
 #
 # Reference: tailscale runs its installer in ~22 distro containers on a daily
 # cron + path-filtered PRs; chezmoi tests the actual piped invocation.
@@ -61,6 +65,59 @@ jobs:
           LANE: ${{ matrix.lane }}
         run: ./scripts/test-install/run.sh --lane "$LANE"
 
+  macos:
+    name: "bin/setup on macOS (bash 3.2 + BSD userland)"
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      # bin/setup --test starts its own throwaway datastore on :2121 and
+      # discovers the binary via `command -v redis-server`.
+      - name: Install datastore (redis, Valkey-compatible)
+        run: brew install redis
+
+      - name: Setup Ruby (.ruby-version)
+        uses: ruby/setup-ruby@97b333846670e3cb692f29c0c5d42b71efc6bc93
+        with:
+          bundler-cache: false  # bin/setup runs `bundle install` itself
+
+      - name: Setup Node (.node-version)
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version-file: '.node-version'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+
+      - name: Setup Python (locales:sync)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      # /bin/bash is deliberate: the runner has a newer Homebrew bash on
+      # PATH, so a bare `bin/setup` (via env) would dodge the very thing
+      # this lane exists to test — execution under stock bash 3.2.
+      # (Caveat, verified in the testing strategy: the runner image is a
+      # poisoned well with preinstalled toolchains; this lane answers "does
+      # the script's code run on macOS", not "does dependency discovery
+      # work on a fresh Mac".)
+      - name: Run bin/setup under /bin/bash (dev lane)
+        run: /bin/bash bin/setup
+
+      - name: Run bin/setup --test under /bin/bash (test lane)
+        run: /bin/bash bin/setup --test
+
+      # One real operation on the result (the Homebrew-installer pattern:
+      # assert a real outcome, not output text) — the fast suite on the
+      # environment the lane just built.
+      - name: RSpec fast suite on the macOS-built environment
+        run: pnpm run test:rspec:fast
+
+      - name: Run bin/setup --test again (idempotency contract)
+        run: /bin/bash bin/setup --test
+
   bash-32-gate:
     name: bash 3.2 syntax gate (macOS parity)
     runs-on: ubuntu-24.04
@@ -82,6 +139,7 @@ jobs:
                      scripts/test-install/run.sh \
                      scripts/test-install/proof-of-life.sh \
                      scripts/test-install/secret-rotation.sh \
+                     scripts/test-install/baremetal-boot.sh \
                      scripts/test-install/check-docs-commands.sh; do
               echo "bash -n $f"
               bash -n "$f"
