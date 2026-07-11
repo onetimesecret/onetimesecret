@@ -89,7 +89,7 @@
 
     <!-- Headline -->
     <h1
-      :class="fontFamilyClass ?? 'font-brand'"
+      :class="headingFontClass ?? fontFamilyClass ?? 'font-brand'"
       class="mt-5 max-w-2xl text-balance text-4xl font-extrabold leading-[1.05] tracking-tight text-gray-900 dark:text-white sm:text-5xl">
       <i18n-t
         v-if="isBranded"

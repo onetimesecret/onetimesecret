@@ -63,7 +63,7 @@
 
     <!-- Headline (smaller than V1, larger than closed) -->
     <h1
-      :class="fontFamilyClass ?? 'font-brand'"
+      :class="headingFontClass ?? fontFamilyClass ?? 'font-brand'"
       class="text-balance text-2xl font-bold leading-tight tracking-tight text-gray-800 dark:text-gray-100 sm:text-3xl">
       <i18n-t
         v-if="isBranded"

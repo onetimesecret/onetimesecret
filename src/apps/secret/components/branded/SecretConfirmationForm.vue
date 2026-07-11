@@ -61,9 +61,11 @@
   };
 
   const buttonText = computed(() => props.isSubmitting ? t('web.COMMON.submitting') : t('web.COMMON.click_to_continue'));
-  // Prepare the standardized path to the logo image.
-  // Note that the file extension needs to be present but is otherwise not used.
-  const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
+  // Brand logo via the backend-computed URL (built with the domain's public
+  // extid). A client-side `/imagine/${domainId}/logo.png` path 404s — the
+  // internal domainId isn't the extid — tripping @error and showing the
+  // placeholder lock even when a logo is configured (see SecretDisplayCase).
+  const logoImage = computed(() => productIdentity.logoUri);
 </script>
 
 <template>

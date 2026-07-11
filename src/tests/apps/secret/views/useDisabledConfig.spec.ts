@@ -38,6 +38,8 @@ interface SetupOptions {
   /** Brand font_family as saved in the raw domain_branding hash. Omitted =
    *  key absent (operator never chose a font). */
   fontFamily?: FontFamily;
+  /** Brand heading_font as saved in the raw hash. Omitted = key absent. */
+  headingFont?: FontFamily;
   /** Brand corner_style as saved in the raw hash. Omitted = key absent. */
   cornerStyle?: CornerStyle;
   /** Brand border_radius (#3646) as saved in the raw hash. Omitted = absent. */
@@ -80,11 +82,13 @@ function setup(opts: SetupOptions = {}) {
   // defaults would make font/corners look chosen on every domain).
   const rawBranding =
     opts.fontFamily === undefined &&
+    opts.headingFont === undefined &&
     opts.cornerStyle === undefined &&
     opts.borderRadius === undefined
       ? null
       : {
           ...(opts.fontFamily ? { font_family: opts.fontFamily } : {}),
+          ...(opts.headingFont ? { heading_font: opts.headingFont } : {}),
           ...(opts.cornerStyle ? { corner_style: opts.cornerStyle } : {}),
           ...(opts.borderRadius ? { border_radius: opts.borderRadius } : {}),
         };
@@ -161,6 +165,7 @@ function setup(opts: SetupOptions = {}) {
               // corner_style fall back to their schema defaults when unsaved.
               corner_style: opts.cornerStyle ?? 'rounded',
               font_family: opts.fontFamily ?? 'sans',
+              heading_font: opts.headingFont ?? null,
               border_radius: opts.borderRadius ?? null,
               instructions_pre_reveal: '',
               instructions_post_reveal: '',
@@ -370,6 +375,7 @@ describe('useDisabledConfig', () => {
     it('delivers null classes on the canonical site (no brand payload)', () => {
       const { config } = setup();
       expect(config.props.fontFamilyClass).toBeNull();
+      expect(config.props.headingFontClass).toBeNull();
       expect(config.props.cornerClass).toBeNull();
     });
 
@@ -379,6 +385,7 @@ describe('useDisabledConfig', () => {
       // variants keep their own display defaults (font-brand, rounded-xl).
       const { config } = setup({ domainStrategy: 'custom', brandDescription: 'Acme' });
       expect(config.props.fontFamilyClass).toBeNull();
+      expect(config.props.headingFontClass).toBeNull();
       expect(config.props.cornerClass).toBeNull();
     });
 
@@ -389,6 +396,26 @@ describe('useDisabledConfig', () => {
         fontFamily: 'mono',
       });
       expect(config.props.fontFamilyClass).toBe('font-mono');
+    });
+
+    it('maps a saved heading_font to its utility class', () => {
+      const { config } = setup({
+        domainStrategy: 'custom',
+        brandDescription: 'Acme',
+        headingFont: 'serif',
+      });
+      expect(config.props.headingFontClass).toBe('font-serif');
+    });
+
+    it('backfills headingFontClass from font_family when heading_font is unsaved', () => {
+      // Mirrors the identityStore ladder: a domain that chose a body font
+      // expects its headings to follow.
+      const { config } = setup({
+        domainStrategy: 'custom',
+        brandDescription: 'Acme',
+        fontFamily: 'mono',
+      });
+      expect(config.props.headingFontClass).toBe('font-mono');
     });
 
     it('maps a saved corner_style to its utility class', () => {

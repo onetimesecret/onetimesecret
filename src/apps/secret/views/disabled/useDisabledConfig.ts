@@ -71,6 +71,12 @@ export interface DisabledHomepageProps {
    */
   fontFamilyClass: string | null;
   /**
+   * Brand heading-font utility class (heading_font, backfilled by
+   * font_family per the identityStore ladder). Null when the domain chose
+   * neither, so variants keep their own heading default (font-brand).
+   */
+  headingFontClass: string | null;
+  /**
    * Brand corner utility class (border_radius / corner_style). Null when the
    * domain hasn't chosen a corner shape, so variants keep their own default
    * radii instead of identityStore's DEFAULT_CORNER_CLASS fallback.
@@ -165,6 +171,14 @@ function useBrandStyleClasses(
   const fontFamilyClass = computed(() =>
     domainBranding.value?.font_family ? identityStore.fontFamilyClass || null : null
   );
+  // heading_font OR font_family counts as an explicit choice: the
+  // identityStore ladder backfills heading_font from font_family, and a
+  // domain that picked a body font expects its headings to follow.
+  const headingFontClass = computed(() =>
+    domainBranding.value?.heading_font || domainBranding.value?.font_family
+      ? identityStore.headingFontClass || null
+      : null
+  );
   const hasCornerPreference = computed(() => {
     const raw = domainBranding.value;
     return (raw?.border_radius != null && raw.border_radius !== '') || !!raw?.corner_style;
@@ -172,7 +186,7 @@ function useBrandStyleClasses(
   const cornerClass = computed(() =>
     hasCornerPreference.value ? identityStore.cornerClass : null
   );
-  return { fontFamilyClass, cornerClass };
+  return { fontFamilyClass, headingFontClass, cornerClass };
 }
 
 /**
@@ -223,7 +237,7 @@ export function useDisabledConfig(): DisabledHomepageBindings {
     (workspaceName.value || displayDomain.value || 'A').trim().charAt(0).toUpperCase()
   );
 
-  const { fontFamilyClass, cornerClass } = useBrandStyleClasses(
+  const { fontFamilyClass, headingFontClass, cornerClass } = useBrandStyleClasses(
     domain_branding,
     identityStore
   );
@@ -310,6 +324,7 @@ export function useDisabledConfig(): DisabledHomepageBindings {
     get monogramInitial() { return monogramInitial.value; },
     get primaryColor() { return primaryColor.value; },
     get fontFamilyClass() { return fontFamilyClass.value; },
+    get headingFontClass() { return headingFontClass.value; },
     get cornerClass() { return cornerClass.value; },
     get logoUri() { return logoUri.value; },
     get displayDomain() { return displayDomain.value; },
