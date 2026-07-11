@@ -5,6 +5,8 @@
 require 'digest'
 require 'base64'
 
+require 'onetime/key_derivation'
+
 module Onetime
   module Initializers
     # ConfigureFamilia initializer
@@ -19,6 +21,63 @@ module Onetime
     class ConfigureFamilia < Onetime::Boot::Initializer
       @depends_on = [:logging]
       @provides   = [:familia_config]
+
+      # Build the Familia encryption-key map and the version tag for new
+      # writes (C10 §3.3 rotation chain). Pure so the mapping is unit-testable
+      # without booting.
+      #
+      # No SECRET_PREVIOUS (the overwhelmingly common case): byte-identical
+      # to the pre-C10 configuration — v1 (legacy SHA-256) and v2 (HKDF)
+      # derive from the current SECRET, writes are tagged :v2.
+      #
+      # SECRET_PREVIOUS set (comma-separated, OLDEST first — append the
+      # outgoing SECRET on each rotation; docs/runbooks/secret-rotation.md):
+      #   - :v1/:v2 map to the OLDEST previous secret's derived keys. Every
+      #     v1/v2-tagged envelope predates the first rotation (each rotation
+      #     moves writes onto a content-addressed tag), so they were all
+      #     written under that secret.
+      #   - every previous secret also registers decrypt-only under its own
+      #     content-addressed tag, so envelopes written between rotations
+      #     keep decrypting.
+      #   - the current SECRET registers under its content-addressed tag,
+      #     which becomes the tag for new writes. Content-addressing (first
+      #     8 hex of the :key_verifier derivation) makes every generation's
+      #     tag unambiguous with no rotation counter to persist.
+      #
+      # @param secret_key [String] the current root SECRET
+      # @param previous_csv [String, nil] comma-separated previous SECRETs
+      # @return [(Hash{Symbol => String}, Symbol)] keys map and current tag
+      def self.build_encryption_keys(secret_key, previous_csv = nil)
+        previous = previous_csv.to_s.split(',').map(&:strip).reject(&:empty?)
+
+        if previous.empty?
+          keys = {
+            v1: Base64.strict_encode64(Digest::SHA256.digest(secret_key)),
+            v2: Onetime::KeyDerivation.derive_base64(secret_key, :familia_enc),
+          }
+          return [keys, :v2]
+        end
+
+        oldest = previous.first
+        keys   = {
+          v1: Base64.strict_encode64(Digest::SHA256.digest(oldest)),
+          v2: Onetime::KeyDerivation.derive_base64(oldest, :familia_enc),
+        }
+        previous.each do |prev|
+          keys[content_tag(prev)] = Onetime::KeyDerivation.derive_base64(prev, :familia_enc)
+        end
+
+        current_tag       = content_tag(secret_key)
+        keys[current_tag] = Onetime::KeyDerivation.derive_base64(secret_key, :familia_enc)
+        [keys, current_tag]
+      end
+
+      # Content-addressed envelope version tag for a secret: :"r<first-8-hex>"
+      # of its :key_verifier derivation (same purpose the boot verifier uses,
+      # so tag and stored verifier stay derivable from one another).
+      def self.content_tag(secret)
+        :"r#{Onetime::KeyDerivation.derive_hex(secret, :key_verifier)[0, 8]}"
+      end
 
       def execute(_context)
         secret_key = OT.conf.dig('site', 'secret')
@@ -54,17 +113,15 @@ module Onetime
         # v1: Legacy SHA-256 derivation (reads existing encrypted data)
         # v2: HKDF derivation (RFC 5869, used for new writes)
         #
-        # Familia expects base64-encoded 32-byte keys.
-        require 'onetime/key_derivation'
-
-        v1_key = Base64.strict_encode64(Digest::SHA256.digest(secret_key))
-        v2_key = Onetime::KeyDerivation.derive_base64(secret_key, :familia_enc)
-
-        Familia.config.encryption_keys     = {
-          v1: v1_key,
-          v2: v2_key,
-        }
-        Familia.config.current_key_version = :v2
+        # SECRET_PREVIOUS (C10 §3.3) registers previous SECRETs' derived keys
+        # decrypt-only so old envelopes keep decrypting across a rotation;
+        # see build_encryption_keys above. Familia expects base64-encoded
+        # 32-byte keys.
+        keys, current_version              = self.class.build_encryption_keys(
+          secret_key, ENV.fetch('SECRET_PREVIOUS', nil)
+        )
+        Familia.config.encryption_keys     = keys
+        Familia.config.current_key_version = current_version
 
         # Identifier signing secret for Familia::VerifiableIdentifier, which HMACs
         # Secret/Receipt objids. Familia >= 2.11 removed its committed fallback key

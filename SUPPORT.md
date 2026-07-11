@@ -19,6 +19,15 @@ file presence, env variable *names* only — never values — and a masked log
 excerpt). It answers most back-and-forth questions up front; still, review
 it before posting.
 
+## Self-hosting: back up your SECRET
+
+`SECRET` in `.env` is the root encryption key — losing it makes every
+stored secret permanently unrecoverable, and the app can only warn you
+after the fact. Store a copy in a secret manager the day you install.
+[docs/runbooks/secret-rotation.md](docs/runbooks/secret-rotation.md)
+covers what derives from it, how the boot-time verifier protects you,
+and how to rotate it safely.
+
 ## Security vulnerabilities
 
 Never report security issues in a public issue. Follow

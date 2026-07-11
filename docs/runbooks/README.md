@@ -14,5 +14,7 @@ happens, and the steps to resolve or verify.
   Verifying the feedback rate limit behaves correctly end-to-end.
 - [raw-email-field-serialization.md](./raw-email-field-serialization.md) —
   Handling raw email field serialization issues.
+- [secret-rotation.md](./secret-rotation.md) — Backing up and rotating the
+  root SECRET; diagnosing and recovering from a SECRET mismatch.
 - [sentry-retention-policy.md](./sentry-retention-policy.md) — Sentry data
   retention policy and its operational implications.
