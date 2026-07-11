@@ -337,6 +337,9 @@ cmd_dev() {
     echo "  bundle exec puma -C etc/puma.rb"
   fi
   echo ""
+  echo "First login (after bin/dev is up):"
+  echo "  bundle exec rake dev:seed  # dev account + sample secrets, prints credentials"
+  echo ""
   echo "To run the test suites: bin/setup --test, then:"
   echo "  pnpm run test:rspec:fast   # RSpec"
   echo "  pnpm test                  # Vitest"

@@ -4,6 +4,15 @@ Create customer accounts and generate Basic Auth API tokens from the CLI for dev
 
 ## Quick Start
 
+For a browser-login account with sample secrets, use the seed task
+(idempotent; defaults to `dev@example.com` / `devpassword`):
+
+```bash
+bundle exec rake dev:seed
+```
+
+For API credentials:
+
 ```bash
 # Create a test account and get curl-ready API credentials
 bin/ots apitoken test@example.com --create

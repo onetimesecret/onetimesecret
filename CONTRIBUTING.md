@@ -24,8 +24,17 @@ Then open <http://localhost:3000>. `bin/setup` is idempotent — re-run it any
 time (after a pull, when something feels off) and it converges the checkout.
 It prints exactly what it did and what to do next.
 
-Signup emails are not sent in a default dev environment, so create your
-first account from the CLI:
+Signup through the web form requires email verification, and a default dev
+environment has no SMTP — so seed your first account from the CLI instead
+(CLI-provisioned accounts are pre-verified):
+
+```bash
+bundle exec rake dev:seed   # dev account + sample secrets, prints credentials
+```
+
+By default that's `dev@example.com` / `devpassword` with a couple of sample
+secrets on the dashboard (override with `EMAIL=`/`PASSWORD=`). For an
+API token instead:
 
 ```bash
 bin/ots apitoken me@example.com --create   # account + curl-ready API token

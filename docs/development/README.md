@@ -5,8 +5,9 @@ Deeper reference for developing Onetime Secret. Start with
 yet — the short version:
 
 ```bash
-bin/setup      # one command: deps, config, secrets, generated artifacts, git hooks
-bin/dev        # backend + frontend + worker (overmind, Procfile.dev)
+bin/setup                   # one command: deps, config, secrets, generated artifacts, git hooks
+bin/dev                     # backend + frontend + worker (overmind, Procfile.dev)
+bundle exec rake dev:seed   # first login: dev account + sample secrets, prints credentials
 ```
 
 Both are idempotent and safe to re-run. `bin/setup --doctor` checks the

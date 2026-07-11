@@ -161,7 +161,12 @@ Addresses: QS-3, QS-13, BM-07, DX-6, D6. Proof: proof-of-life script
 > `POL_CREATE_ACCOUNT=1` (default off — existing lanes byte-identical);
 > wiring it into the compose-smoke lane is follow-on CI work alongside
 > C7's residuals. **Deferred:** `rake dev:seed` (D6) — the optional bullet,
-> not built; and a comment pair above `.env.reference`'s bare
+> not built *(update 2026-07-10: shipped as `lib/tasks/dev.rake` — dev-only
+> guard on RACK_ENV, delegates account provisioning to `bin/ots apitoken`
+> so both auth modes work, seeds two sample secrets via
+> `Receipt.spawn_pair`, idempotent, prints credentials; surfaced in
+> CONTRIBUTING/dev guide/test-accounts.md and bin/setup's next steps)*;
+> and a comment pair above `.env.reference`'s bare
 > `AUTH_AUTOVERIFY=false` explaining both polarities — that file is
 > untouched, and C9 turns it into a generated/CI-checked artifact anyway.
 
@@ -276,10 +281,13 @@ C7's fresh-clone job runs `bin/setup` itself — the Zulip property.
 > docs-drift guard checks bin/setup and cross-checks CONTRIBUTING.md and
 > the dev guide. Verified locally: bash-3.2 parse, drift guard green,
 > `--test` lane end-to-end + delegate idempotency re-run in a clean
-> worktree, spec file green afterwards. **Open:** frozen installs
-> (lockfile churn — C3 residual), `rake dev:seed` (D6, deferred from C4),
-> TR-08 has no definition in the current-state audit (only the list here
-> cites it — treat as spent).
+> worktree, spec file green afterwards. **Open:** TR-08 has no definition
+> in the current-state audit (only the list here cites it — treat as
+> spent). *(Update 2026-07-10: the two former residuals landed — installs
+> are frozen whenever a lockfile exists (`BUNDLE_FROZEN` /
+> `pnpm --frozen-lockfile`, single chokepoint in `scripts/setup/lib.sh`)
+> and the fresh-clone litter check now fails on lockfile drift instead of
+> warning; `rake dev:seed` (D6) shipped — see C4's note.)*
 
 ## C7 — Clean-room harness + CI lanes (testing-strategy §§2–4)
 
@@ -318,8 +326,8 @@ so registry/runner rot surfaces as a red scheduled run.
 > parse gate stands in for testing-strategy §3.2b's `macos-15` lane, which
 > is deferred (a parse gate catches bashisms, not BSD-tool behavior);
 > **no container `docker diff`** litter check (fresh-clone's git-tree litter
-> check covers the contributor-path analogue; it warns rather than fails on
-> lockfile churn — frozen installs are C3/C6 work); duration is a per-run
+> check covers the contributor-path analogue; since 2026-07-10 it fails on
+> any drift, lockfiles included — setup installs frozen); duration is a per-run
 > step summary, not charted/alarmed over time. **Still open, tracked here
 > rather than implied done:** (1) a bare-metal boot lane — `rake ots:secrets`
 > + puma + proof-of-life under `LANG=C` (the clean-room validation recipe's
