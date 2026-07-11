@@ -41,6 +41,32 @@ check_version() {
   info "$name $actual"
 }
 
+# Exact-match variant: bundler enforces the exact version in .ruby-version
+# (Gemfile: `ruby file: '.ruby-version'`), so the early gate must agree —
+# a floor-compare here would pass 3.4.10 only for bundler to reject it. (NF-5)
+check_version_exact() {
+  local name="$1" cmd="$2" file="$3" extractor="$4"
+  local required actual
+
+  required=$(version_from "$file")
+  if [[ -z "$required" ]]; then
+    has "$cmd" || die "$name not found ($(basename "$file") missing — cannot determine required version)"
+    local detected
+    detected=$(eval "$extractor")
+    warn "$name $detected detected but no $(basename "$file") to pin against — version not verified"
+    return 0
+  fi
+
+  has "$cmd" || die "$name not found (need exactly $required — see $(basename "$file"))"
+
+  actual=$(eval "$extractor")
+  if [[ "$actual" != "$required" ]]; then
+    die "$name version mismatch: have $actual, need exactly $required ($(basename "$file"); bundler enforces the same). Install it with e.g. 'rbenv install $required' or 'mise use ruby@$required'."
+  fi
+
+  info "$name $actual"
+}
+
 check_version_major() {
   local name="$1" cmd="$2" file="$3" extractor="$4"
   local required actual_full actual
@@ -188,7 +214,7 @@ cmd_reconcile() {
 cmd_init() {
   info "Initializing..."
 
-  check_version "Ruby" ruby .ruby-version 'ruby -e "puts RUBY_VERSION"'
+  check_version_exact "Ruby" ruby .ruby-version 'ruby -e "puts RUBY_VERSION"'
   check_version_major "Node" node .node-version 'node -v'
 
   # Install dependencies first — bundle exec is needed for subsequent steps
@@ -226,7 +252,9 @@ cmd_init() {
   redis_reachable && redis_available=true
 
   if [[ "$redis_available" == true ]]; then
-    if bundle exec bin/ots install mark; then
+    # Source the .env this init just generated so the app boots with SECRET
+    # et al — without it, install mark dies with "Global secret cannot be nil". (NF-2)
+    if (set -a; . "${ENV_FILE:-.env}"; set +a; bundle exec bin/ots install mark); then
       info "Environment initialized (onetime:install:init_count incremented)"
     else
       warn "install mark failed (exit $?) — see errors above"
@@ -264,7 +292,7 @@ cmd_console() {
 cmd_doctor() {
   info "Checking environment..."
 
-  (check_version "Ruby" ruby .ruby-version 'ruby -e "puts RUBY_VERSION"') || true
+  (check_version_exact "Ruby" ruby .ruby-version 'ruby -e "puts RUBY_VERSION"') || true
   (check_version_major "Node" node .node-version 'node -v') || true
 
   read -r rhost rport < <(redis_host_port)
