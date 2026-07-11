@@ -50,6 +50,10 @@ import {
   colonelSessionDeleteResponseSchema,
 } from './colonel-sessions';
 import {
+  colonelCustomerSessionsResponseSchema,
+  colonelCustomerSessionRevokeResponseSchema,
+} from './colonel-customer-sessions';
+import {
   colonelBannerResponseSchema,
   colonelBannerSetResponseSchema,
   colonelBannerClearResponseSchema,
@@ -170,6 +174,8 @@ export const responseSchemas = {
   colonelSessions: colonelSessionsResponseSchema,
   colonelSessionDetail: colonelSessionDetailResponseSchema,
   colonelSessionDelete: colonelSessionDeleteResponseSchema,
+  colonelCustomerSessions: colonelCustomerSessionsResponseSchema,
+  colonelCustomerSessionRevoke: colonelCustomerSessionRevokeResponseSchema,
   colonelBanner: colonelBannerResponseSchema,
   colonelBannerSet: colonelBannerSetResponseSchema,
   colonelBannerClear: colonelBannerClearResponseSchema,

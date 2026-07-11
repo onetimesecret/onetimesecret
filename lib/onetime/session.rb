@@ -11,6 +11,7 @@ require 'familia'
 
 require_relative 'logger_methods'
 require_relative 'session/codec'
+require_relative 'operations/sessions/track_metadata'
 
 module Onetime
   # Onetime::Session - A secure Rack session store using Familia's StringKey DataType
@@ -429,7 +430,7 @@ module Onetime
     #
     # 6. Cookie contains just the session ID (not encrypted)
     #    Set-Cookie: onetime.session=c9803eb...
-    def write_session(_request, sid, session_data, _options)
+    def write_session(request, sid, session_data, _options)
       # Extract string ID from SessionId object if needed
       sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
 
@@ -507,6 +508,35 @@ module Onetime
             operation: 'write',
           }
 
+      end
+
+      # Best-effort per-customer session sidecar (spec 40; adaptation #2). This
+      # is the ONLY request-path point where the plain sid and the post-login
+      # session_data are both present, and it commits ~per request so the sidecar
+      # refreshes last_activity naturally. Gated to authenticated sessions so
+      # anonymous/CSRF-only writes skip it entirely.
+      #
+      # CRITICAL: wrapped in its OWN begin/rescue so a sidecar failure can NEVER
+      # fall through to this method's outer rescue — that rescue returns `false`,
+      # which Rack reads as "session not persisted" and may drop the cookie,
+      # breaking auth for every request. The sidecar is a convenience index; it
+      # must never be able to fail the session write.
+      if session_data && session_data['authenticated'] && session_data['external_id']
+        begin
+          Onetime::Operations::Sessions::TrackMetadata.new(
+            session_id: sid_string,
+            session_data: session_data,
+            env: request.respond_to?(:env) ? request.env : nil,
+          ).call
+        rescue StandardError => ex
+          session_logger.error 'Session metadata sidecar failed (swallowed)',
+            {
+              session_id: sid_string,
+              error: ex.message,
+              error_class: ex.class.name,
+              operation: 'write',
+            }
+        end
       end
 
       # Calculate session data metrics for logging

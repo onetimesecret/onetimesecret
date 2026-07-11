@@ -96,6 +96,12 @@ module Onetime
     feature :customer_migration_fields
 
     sorted_set :receipts
+    # Per-customer session index for the colonel's per-customer session view.
+    # member = plain sid (== live blob key name `session:<sid>`), score =
+    # last_activity epoch. Makes "this customer's sessions" O(sessions-for-user)
+    # instead of a global SCAN+decrypt. Written best-effort by
+    # Onetime::Operations::Sessions::TrackMetadata; see SessionMetadata.
+    sorted_set :active_sessions
     hashkey :feature_flags # Per-customer feature toggles
 
     # Used to track the current and most recently created password reset secret.

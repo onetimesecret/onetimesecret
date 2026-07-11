@@ -403,5 +403,59 @@
   "web.admin.customers.actions.purge.success": {
     "text": "Customer purged.",
     "content_hash": "6145e5c8"
+  },
+  "web.admin.customers.detail.sessions.title": {
+    "text": "Active Sessions"
+  },
+  "web.admin.customers.detail.sessions.empty": {
+    "text": "No active sessions."
+  },
+  "web.admin.customers.detail.sessions.loadError": {
+    "text": "Unable to load sessions."
+  },
+  "web.admin.customers.detail.sessions.unknown": {
+    "text": "Unknown"
+  },
+  "web.admin.customers.detail.sessions.columns.lastActivity": {
+    "text": "Last activity"
+  },
+  "web.admin.customers.detail.sessions.columns.ipAddress": {
+    "text": "IP address"
+  },
+  "web.admin.customers.detail.sessions.columns.device": {
+    "text": "Device"
+  },
+  "web.admin.customers.detail.sessions.columns.authMethod": {
+    "text": "Auth method"
+  },
+  "web.admin.customers.detail.sessions.columns.actions": {
+    "text": "Actions"
+  },
+  "web.admin.customers.detail.sessions.revoke.button": {
+    "text": "Revoke"
+  },
+  "web.admin.customers.detail.sessions.revoke.confirmTitle": {
+    "text": "Revoke session?"
+  },
+  "web.admin.customers.detail.sessions.revoke.confirmDescription": {
+    "text": "This immediately signs the user out of this session. They will need to sign in again."
+  },
+  "web.admin.customers.detail.sessions.revoke.success": {
+    "text": "Session revoked."
+  },
+  "web.admin.customers.detail.sessions.revokeAll.button": {
+    "text": "Revoke all"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.confirmTitle": {
+    "text": "Revoke every session?"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.confirmDescription": {
+    "text": "This signs the user out of every device and browser — including sessions not shown in this list — and locks out their authenticated routes immediately. Use for offboarding or a suspected account takeover. Type the user's ID to confirm."
+  },
+  "web.admin.customers.detail.sessions.revokeAll.success": {
+    "text": "Revoked all sessions ({count} killed)."
+  },
+  "web.admin.customers.detail.sessions.revokeAll.capped": {
+    "text": "Killed {count} sessions, but the untracked-session sweep was truncated — an older session may remain. Re-run to be sure."
   }
 }

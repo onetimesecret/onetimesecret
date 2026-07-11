@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
 
+  import AdminCustomerSessionsSection from '@/apps/admin/components/AdminCustomerSessionsSection.vue';
   import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
   import { AdminConfirmDialog, DataTable, StatCard } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
@@ -957,6 +958,10 @@
           {{ t('web.admin.customers.detail.organizations.empty') }}
         </p>
       </section>
+
+      <!-- Active sessions (SIDECAR view — SessionMetadata safe_dump, no token/
+           payload can appear). Guarded per-row revoke logs the user out. -->
+      <AdminCustomerSessionsSection :user-id="publicId" />
     </div>
 
     <!-- Shared guarded-action dialog (typed-confirm for purge). -->

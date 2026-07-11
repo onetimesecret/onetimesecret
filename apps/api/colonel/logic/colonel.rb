@@ -67,6 +67,11 @@ require_relative 'colonel/list_sessions'
 require_relative 'colonel/get_session_detail'
 require_relative 'colonel/delete_session'
 
+# Per-customer sessions view — sidecar-backed (spec 40-sessions-metadata-sidecar)
+require_relative 'colonel/list_customer_sessions'
+require_relative 'colonel/revoke_customer_session'
+require_relative 'colonel/revoke_all_customer_sessions'
+
 # Broadcast banner (ticket #41)
 require_relative 'colonel/get_banner'
 require_relative 'colonel/set_banner'
