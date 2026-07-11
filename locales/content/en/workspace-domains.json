@@ -619,6 +619,15 @@
     "text": "Signups are currently disabled at the site level. This per-domain policy is configured but will not gate any traffic until site signups are enabled.",
     "content_hash": "c0e59f86"
   },
+  "web.domains.signup.effective_status_label": {
+    "text": "Signups on this domain"
+  },
+  "web.domains.signup.dormant_notice": {
+    "text": "Signups are turned off workspace-wide, so they are unavailable on every domain. Your settings here are kept and take effect when workspace signups are enabled again."
+  },
+  "web.domains.auth_override.workspace_default_badge": {
+    "text": "Workspace default"
+  },
   "web.domains.signup.strategy_label": {
     "text": "Validation strategy",
     "content_hash": "a2e95531"
@@ -1243,6 +1252,12 @@
   "web.domains.signin.not_configured_notice": {
     "text": "Sign-in configuration is not yet set for this domain. Configure overrides to control which authentication methods are available on this domain's sign-in page.",
     "content_hash": "cb788a2d"
+  },
+  "web.domains.signin.effective_status_label": {
+    "text": "Sign-in on this domain"
+  },
+  "web.domains.signin.dormant_notice": {
+    "text": "Sign-in is turned off workspace-wide, so it is unavailable on every domain. Your settings here are kept and take effect when workspace sign-in is enabled again."
   },
   "web.domains.signin.signin_enabled_label": {
     "text": "Sign-in enabled",

@@ -9,20 +9,29 @@
 
 import { z } from 'zod';
 import { createApiResponseSchema } from '@/schemas/api/base';
-import { customDomainSigninConfigSchema } from '@/schemas/shapes/domains/signin-config';
+import { authOverrideDetailsSchema } from '@/schemas/api/domains/responses/auth-override';
+import {
+  customDomainSigninConfigSchema,
+  signinRestrictToSchema,
+} from '@/schemas/shapes/domains/signin-config';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Response-specific details schema
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Signin config response details schema.
+ * Signin config response details schema (ADR-024).
  *
- * Optional metadata that may accompany signin config responses.
+ * Shared auth-override resolution details plus the install-level method
+ * restriction, so the settings UI can render the inherited mode while the
+ * domain is unconfigured.
  */
-export const signinConfigDetailsSchema = z.object({
-  /** Whether the current user can manage this signin config. */
-  can_manage: z.boolean().optional(),
+export const signinConfigDetailsSchema = authOverrideDetailsSchema.extend({
+  /**
+   * Install-level restrict_to. Resilient parse: an unrecognized value
+   * degrades to null (show all methods) instead of failing the response.
+   */
+  global_restrict_to: signinRestrictToSchema.nullable().catch(null).optional(),
 });
 
 export type SigninConfigDetails = z.infer<typeof signinConfigDetailsSchema>;
@@ -33,9 +42,13 @@ export type SigninConfigDetails = z.infer<typeof signinConfigDetailsSchema>;
 
 /**
  * Response schema for GET /api/domains/:domain_extid/signin-config
+ *
+ * `record` is null when the domain has no signin config — unconfigured is a
+ * first-class state (200, not 404) so `details` can carry the inherited
+ * global state (ADR-024).
  */
 export const getSigninConfigResponseSchema = createApiResponseSchema(
-  customDomainSigninConfigSchema,
+  customDomainSigninConfigSchema.nullable(),
   signinConfigDetailsSchema
 );
 
@@ -53,10 +66,14 @@ export type PutSigninConfigResponse = z.infer<typeof putSigninConfigResponseSche
 
 /**
  * Response schema for DELETE /api/domains/:domain_extid/signin-config
+ *
+ * Carries post-delete resolution details (effective == global) so the
+ * settings UI can re-render without a refetch.
  */
 export const deleteSigninConfigResponseSchema = z.object({
   success: z.boolean(),
   message: z.string().optional(),
+  details: signinConfigDetailsSchema.optional(),
 });
 
 export type DeleteSigninConfigResponse = z.infer<typeof deleteSigninConfigResponseSchema>;

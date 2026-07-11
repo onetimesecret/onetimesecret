@@ -29,6 +29,13 @@
  * login page.
  *
  * Everything auto-saves (PUT is full-replacement); there is no Save button.
+ *
+ * Materialize-on-touch (ADR-024): while the domain follows workspace
+ * defaults the form shows the SEEDED inherited state, and any click on a
+ * mode or method — even one matching what is already shown — persists an
+ * explicit override (the composable forces `enabled: true` on every save).
+ * That's why the no-change early-returns are bypassed when
+ * `workspaceDefault` is true: the value may not change, but the pin must.
  */
 import { useI18n } from 'vue-i18n';
 import { computed, ref, watch } from 'vue';
@@ -49,6 +56,13 @@ const props = defineProps<{
   isSaving: boolean;
   isDeleting: boolean;
   isConfigured: boolean;
+  /**
+   * True while the domain follows workspace defaults (no explicit override,
+   * ADR-024). The form then shows the seeded inherited state, and clicking a
+   * mode/method that matches it must still save (materialize the pin) — the
+   * no-change early-returns are bypassed.
+   */
+  workspaceDefault: boolean;
   ssoConfigured: boolean;
   canManageSso: boolean;
   /**
@@ -250,7 +264,14 @@ const selectModeAny = () => {
   const patch: Partial<SigninConfigFormState> = {};
   if (props.formState.restrict_to !== null) patch.restrict_to = null;
   if (!props.formState.signin_enabled) patch.signin_enabled = true;
-  if (Object.keys(patch).length === 0) return;
+  if (Object.keys(patch).length === 0) {
+    // Nothing changes value-wise; while following workspace defaults the
+    // click still materializes the pin (ADR-024) — an empty patch saves the
+    // seeded snapshot verbatim as an explicit override.
+    if (!props.workspaceDefault) return;
+    emit('auto-save', {}, 'restrict_to');
+    return;
+  }
   // Attribute the saving indicator to restrict_to only when it is actually
   // in the patch; a pure re-enable from "Sign-in disabled" (restrict_to
   // already null) saves signin_enabled alone.
@@ -269,13 +290,24 @@ const selectModeOne = () => {
   oneSelectedIntent.value = true;
   if (!props.formState.signin_enabled) {
     emit('auto-save', { signin_enabled: true }, 'signin_enabled');
+  } else if (props.workspaceDefault && props.formState.restrict_to !== null) {
+    // The inherited state already restricts to a method (seeded from the
+    // global restrict_to), so this mode is pre-active and nothing changes
+    // value-wise — but the click still materializes the pin (ADR-024) via
+    // an empty patch. With restrict_to null nothing persists until a method
+    // is actually picked.
+    emit('auto-save', {}, 'restrict_to');
   }
 };
 
-/** Switch to "Sign-in disabled": persists signin_enabled=false immediately. */
+/**
+ * Switch to "Sign-in disabled": persists signin_enabled=false immediately.
+ * While following workspace defaults, an inherited-disabled state still
+ * saves on click — same value, but it materializes the pin (ADR-024).
+ */
 const selectModeDisabled = () => {
   oneSelectedIntent.value = false;
-  if (props.formState.signin_enabled) {
+  if (props.formState.signin_enabled || props.workspaceDefault) {
     emit('auto-save', { signin_enabled: false }, 'signin_enabled');
   }
 };
@@ -295,6 +327,20 @@ const selectMethod = (value: SigninRestrictTo) => {
   if (value === 'sso') patch.sso_enabled = true;
   if (!props.formState.signin_enabled) patch.signin_enabled = true;
   emit('auto-save', patch, 'restrict_to');
+};
+
+/**
+ * An already-checked radio fires no `change` event on click. While following
+ * workspace defaults the seeded method can be pre-checked, and clicking it
+ * must still materialize the pin (ADR-024) — so route that one case through
+ * selectMethod from `click`. Unchecked radios fall through to `change`
+ * (restrict_to differs at click time), so nothing double-saves.
+ */
+const onMethodClick = (value: SigninRestrictTo) => {
+  if (props.isSaving) return;
+  if (props.workspaceDefault && props.formState.restrict_to === value) {
+    selectMethod(value);
+  }
 };
 
 const handleDelete = () => {
@@ -552,6 +598,7 @@ const handleDelete = () => {
                 :checked="formState.restrict_to === method.value"
                 :disabled="isSaving"
                 @change="selectMethod(method.value)"
+                @click="onMethodClick(method.value)"
                 class="mt-0.5 size-4 border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-gray-600"
                 :aria-describedby="`signin-restrict-${method.value}-description`" />
               <span class="flex flex-1 flex-col">
