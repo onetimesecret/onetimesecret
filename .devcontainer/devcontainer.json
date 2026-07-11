@@ -19,7 +19,7 @@
   // these are duplicated by necessity — keep them in lockstep with the pins.
   "features": {
     "ghcr.io/devcontainers/features/node:1": { "version": "22" },
-    "ghcr.io/devcontainers-extra/features/pnpm:2": {}
+    "ghcr.io/devcontainers-extra/features/pnpm:2": {},
   },
 
   // redis-server: `bin/setup --test` starts its own throwaway datastore on
@@ -33,15 +33,12 @@
   "forwardPorts": [3000, 5173],
   "portsAttributes": {
     "3000": { "label": "Onetime Secret (puma)" },
-    "5173": { "label": "Vite dev server" }
+    "5173": { "label": "Vite dev server" },
   },
 
   "customizations": {
     "vscode": {
-      "extensions": [
-        "Shopify.ruby-lsp",
-        "Vue.volar"
-      ]
-    }
-  }
+      "extensions": ["Shopify.ruby-lsp", "Vue.volar"],
+    },
+  },
 }

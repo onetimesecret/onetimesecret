@@ -76,9 +76,9 @@ repos:
       - id: check-json
         name: Validate JSON files
         files: \.json$
-        # tsconfig*.json and editor .vscode/.zed JSON are JSONC (comments
-        # permitted); the broken.json fixture is an intentionally-malformed input.
-        exclude: '(^|/)tsconfig[^/]*\.json$|^\.(vscode|zed)/[^/]*\.json$|^src/tests/i18n/fixtures/invalid/syntax/broken\.json$'
+        # tsconfig*.json, devcontainer.json, and editor .vscode/.zed JSON are JSONC
+        # (comments permitted); the broken.json fixture is an intentionally-malformed input.
+        exclude: '(^|/)tsconfig[^/]*\.json$|^\.devcontainer/devcontainer\.json$|^\.(vscode|zed)/[^/]*\.json$|^src/tests/i18n/fixtures/invalid/syntax/broken\.json$'
 
       - id: mixed-line-ending
         name: Check line endings
