@@ -42,11 +42,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
-      # Compose reads SECRET (${SECRET:?...}) even for `config`, so seed a .env
-      # at the repo root (where the compose files' `env_file: ../../.env`
-      # resolves to). A throwaway secret is fine — this stack is torn down.
-      - name: Seed .env with a throwaway SECRET
-        run: echo "SECRET=$(openssl rand -hex 32)" > .env
+      # Compose interpolates ${SECRET:?...} even for `config`. Interpolation
+      # variables come from the shell environment and the project-directory
+      # .env — NOT from a service's `env_file:` (that only feeds the container
+      # at runtime). Because `-f docker/compose/<file>` shifts the project dir
+      # to docker/compose/, a repo-root .env alone would be missed. So export
+      # SECRET into the job env (satisfies interpolation for every compose
+      # invocation) AND write repo-root .env (the `env_file: ../../.env` target,
+      # which must exist for `up`). Throwaway secret — the stack is torn down.
+      - name: Seed SECRET (interpolation) and .env (env_file target)
+        run: |
+          secret="$(openssl rand -hex 32)"
+          echo "SECRET=$secret" >> "$GITHUB_ENV"
+          echo "SECRET=$secret" > .env
 
       # Zero-cost lint of every documented file combination first (Mattermost
       # pattern) — a broken include/merge fails here before anything is pulled.
