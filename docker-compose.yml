@@ -14,6 +14,13 @@
 #       - path: docker/compose/docker-compose.full.yml
 #
 # See docker/README.md for complete setup and usage documentation.
+#
+# Root compose files (CP-13 naming convention):
+#   docker-compose.yml  (this file)  — DEPLOYMENT entry point; includes one
+#                                      stack from docker/compose/*.yml.
+#   compose.test.yml                 — TEST-LANE service dependencies only
+#                                      (valkey/postgres/rabbitmq on 21xx
+#                                      ports); never runs the app.
 
 include:
   - path: docker/compose/docker-compose.simple.yml

@@ -84,12 +84,6 @@ else
   >&2 echo "INFO: Skipping bundle install. Use BUNDLE_INSTALL=true to run it."
 fi
 
-if [ -d "/mnt/public" ]; then
-  # By default the static web assets are available at /mnt/public/web
-  # in the container and /var/www/public on the host.
-  cp -r public/web /mnt/public/
-fi
-
 # Test Redis connectivity early to fail fast
 if [ "$ONETIME_DEBUG" = "true" ] || [ "$ONETIME_DEBUG" = "1" ]; then
   datestamp=`date -u`
