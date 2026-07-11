@@ -13,14 +13,40 @@ can't get UI), but the four tokens split into **four very different tiers of
 effort**, and two of them are blocked before any view work. Also: `font_family`
 already renders on the recipient page, so "the 8 fonts" aren't uniformly missing.
 
+## Decisions (2026-07-11) — every open item below is now closed
+
+Owner decisions, recorded here and in brand-manager-advanced-workplan.md
+(Q1/Q2/Q5/Q8) in lockstep:
+
+1. **`heading_font` — wired.** Commit 209d4e67b (BaseSecretDisplay h2 via new
+   `headingClass` prop, BrandedHomepage h1, disabled-variant plumbing) plus
+   fix/brand-token-consumers follow-ups (V1/Minimal h1 ladder, `closed`
+   taglines, UnknownSecret h2). Ready for its Advanced control (workplan C4).
+2. **`secondary_color` → supporting-accent role** (workplan Q2). brand2 owns
+   the soft/decorative accents — icon chips, DisabledV1 eyebrow dot/promo chip,
+   BaseSecretDisplay once-only footer marker — while primary keeps buttons,
+   links, and focus states. Consumers + control ship atomically in C8.
+3. **`background_color`/`text_color` → brand wins both themes** (workplan Q1).
+   An operator-set value applies in light AND dark via a conditional class swap
+   (no `dark:` pair); unset domains stay pixel-identical, so no custom domain
+   loses dark mode. The editor's WCAG contrast advisory is the guardrail.
+   Implemented by C6/C7.
+4. **Disabled `closed` variant → wired** (workplan Q5). Even when the homepage
+   is disabled for a custom domain, it must represent the brand: the default
+   variant now threads the brand font classes into its taglines.
+5. **Residuals fixed** on fix/brand-token-consumers: reactive `brandSettings`
+   (ShowSecret.vue, workplan Q8), UnknownSecret heading ladder + full
+   `font_family` coverage (message + action link), and the confirmation form's
+   404-prone `/imagine/{domainId}/logo.png` → backend-computed `logoUri`.
+
 ## Where each token stands today (verified per-view)
 
-| Token | Recipient page | Homepage (`BrandedHomepage`) | Disabled variants | Verdict |
-|---|---|---|---|---|
-| **`font_family` (8 fonts)** | ✅ **renders** (`fontClass` on h2/p/button; all 8 stacks defined in `style.css`) | ❌ no font class at all | ❌ uses *fixed* `font-brand` (our Zilla Slab), not the domain font | Recipient done; homepage/disabled don't apply it |
-| **`heading_font`** | ❌ (h2 uses body font) | ❌ (h1 hardcoded) | ❌ | **Cleanest to wire.** Zero consumers anywhere |
-| **`secondary_color`** | ❌ — *no element maps to a secondary role* (every accent is `primary`) | ❌ same | ❌ same | **Needs a design decision** (what does it even color?) before a consumer exists |
-| **`background_color`** | ❌ hardcoded `bg-white dark:bg-gray-800` | ❌ surface is body-owned + card over-paints | ❌ | **Blocked on supply side** (below) |
+| Token                       | Recipient page                                                                   | Homepage (`BrandedHomepage`)                | Disabled variants                                                  | Verdict                                                                         |
+| --------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| **`font_family` (8 fonts)** | ✅ **renders** (`fontClass` on h2/p/button; all 8 stacks defined in `style.css`) | ❌ no font class at all                     | ❌ uses _fixed_ `font-brand` (our Zilla Slab), not the domain font | Recipient done; homepage/disabled don't apply it                                |
+| **`heading_font`**          | ❌ (h2 uses body font)                                                           | ❌ (h1 hardcoded)                           | ❌                                                                 | **Cleanest to wire.** Zero consumers anywhere                                   |
+| **`secondary_color`**       | ❌ — _no element maps to a secondary role_ (every accent is `primary`)           | ❌ same                                     | ❌ same                                                            | **Needs a design decision** (what does it even color?) before a consumer exists |
+| **`background_color`**      | ❌ hardcoded `bg-white dark:bg-gray-800`                                         | ❌ surface is body-owned + card over-paints | ❌                                                                 | **Blocked on supply side** (below)                                              |
 
 `text_color` is folded in because it's `background_color`'s inseparable pair —
 you can't brand a background without branding the ink on it.
@@ -30,45 +56,63 @@ you can't brand a background without branding the ink on it.
 `--color-brandbg` (`#ffffff`) and `--color-brandtext` (`#1f2937`) are
 **single-value, light-only** tokens with **no dark-mode pair**
 (`style.css:125-126`). These pages support dark mode and the theme toggle is
-*not* disabled for custom domains. So dropping `bg-brandbg`/`text-brandtext` in
+_not_ disabled for custom domains. So dropping `bg-brandbg`/`text-brandtext` in
 place of the existing `text-gray-900 dark:text-white` pairs yields a **white
 block / unreadable ink in dark mode**. `background_color`/`text_color` are not a
 class swap — they need a supply-side dark-mode story first (derive a dark pair,
 or force branded surfaces light).
 
-## Disabled-page observation — confirmed, with root cause
+**RESOLVED 2026-07-11 (Q1):** operator-explicit values win both schemes — a
+conditional class swap applied only when the brand actually sets the color, so
+unset domains keep their light/dark pairs untouched. See Decisions above;
+implementation is workplan C6.
 
-Corners and font are ignored on **all three** disabled variants because
-**`useDisabledConfig.ts` never exposes `cornerClass` or `fontFamilyClass`** (its
-props bag is only `primaryColor`/`logoUri`/`displayName`/…). So the variants
-*structurally can't* honor them — they hardcode `rounded-xl/2xl/3xl/full` and the
-fixed product `font-brand`. Worse, the **default** variant (`closed`) discards
-the props bag entirely and delegates to `DisabledHomepageTaglines`, so it
-consumes *zero* brand tokens. Rendering the domain font there is arguably a
-**bug** (it shows *our* font on someone else's branded domain), separate from the
-new-token work.
+## Disabled-page observation — confirmed, with root cause (SINCE FIXED)
 
-## Recommendation (ordered by readiness)
+Corners and font were ignored on **all three** disabled variants because
+**`useDisabledConfig.ts` never exposed `cornerClass` or `fontFamilyClass`** (its
+props bag was only `primaryColor`/`logoUri`/`displayName`/…). So the variants
+_structurally couldn't_ honor them — they hardcoded `rounded-xl/2xl/3xl/full` and
+the fixed product `font-brand`. Worse, the **default** variant (`closed`)
+discarded the props bag entirely and delegated to `DisabledHomepageTaglines`, so
+it consumed _zero_ brand tokens — showing _our_ font on someone else's branded
+domain.
 
-1. **`heading_font` → wire now.** Add a `headingClass` prop to
-   `BaseSecretDisplay` (recipient h2) and `:class="headingFontClass"` on
-   `BrandedHomepage` h1. Cheap, unblocked, then safe to add its Simple-path UI.
-   This is the one token ready to earn a control.
-2. **`font_family` on disabled → fix as a bug.** Add `fontFamilyClass` (and
+**Fixed:** 209d4e67b added `fontFamilyClass`/`cornerClass` to the props bag
+(null-when-no-explicit-choice, set-ness from the raw `domain_branding` hash) and
+wired V1/Minimal; fix/brand-token-consumers added `headingFontClass` (workplan
+C11) and threaded the font classes through `closed`'s taglines (Q5).
+
+## Recommendation (ordered by readiness — statuses as of 2026-07-11)
+
+1. **`heading_font` → wire now.** ✅ DONE (209d4e67b + follow-ups). Add a
+   `headingClass` prop to `BaseSecretDisplay` (recipient h2) and
+   `:class="headingFontClass"` on `BrandedHomepage` h1. Cheap, unblocked, then
+   safe to add its Simple-path UI. This is the one token ready to earn a control.
+2. **`font_family` on disabled → fix as a bug.** ✅ DONE (209d4e67b; `closed`
+   variant in fix/brand-token-consumers). Add `fontFamilyClass` (and
    `cornerClass`) to `useDisabledConfig`'s props bag, drop the hardcoded
    `font-brand`. No new UI needed — the `<select>` already exists.
-3. **`secondary_color` → do *not* add UI yet.** No view has a slot for it; every
-   accent is already `primary`. Decide what it styles first — that's design, not
-   wiring.
-4. **`background_color`/`text_color` → do *not* add UI yet.** Blocked on the
-   single-value-vs-dark-mode issue above. Needs a supply-side decision before any
-   view or control.
+3. **`secondary_color`** → role DECIDED (supporting accent, see Decisions);
+   consumers + control ship atomically in workplan C8.
+4. **`background_color`/`text_color`** → dark-mode strategy DECIDED (brand wins
+   both themes when set, see Decisions); consumers + controls in workplan C6/C7.
 
-So: update the recipient page + homepage for **`heading_font`**, fix the disabled
-page's **font/corners** plumbing, and **hold** `secondary_color` and
-`background_color` behind a design and a dark-mode decision respectively.
+So: `heading_font` and the disabled-page font/corner plumbing are shipped;
+`secondary_color` and `background_color`/`text_color` are no longer held —
+their decisions are made and their implementation is scheduled (C8, C6/C7).
 
 ## Per-view detail (verified, with attach points and blockers)
+
+> **Historical audit snapshot.** The detail below reflects the tree BEFORE
+> commit 209d4e67b and the fix/brand-token-consumers follow-ups. Now stale:
+> `BaseSecretDisplay` HAS a `headingClass` prop (both parents pass it);
+> `useDisabledConfig` exposes `fontFamilyClass`/`headingFontClass`/`cornerClass`;
+> `DisabledClosed` consumes the font classes; `UnknownSecret`'s h2 uses the
+> heading ladder and its message/action carry `fontClass`; the
+> `ShowSecret.vue:33` snapshot is reactive; the confirmation-form logo uses
+> `logoUri`. The `secondary_color`/`background_color`/`text_color` attach
+> points remain accurate and are the C6/C8 work list.
 
 ### Homepage variants (secret-creation landing on a custom domain)
 
@@ -199,6 +243,7 @@ utilities) but hit the dark-mode / per-element / no-slot issues.
   container/orchestrator. Owns only slot-wrapper divs; delegates all token
   rendering to children. Reads `brandSettings = productIdentity.brand` as a
   NON-reactive snapshot (line 33). No token applied at this level.
+
 - **`src/apps/secret/reveal/branded/UnknownSecret.vue`** — Branded "secret not
   found / viewed or expired" view.
   - `font_family`: CONSUMED. h2 title (50-52) via
@@ -218,6 +263,7 @@ utilities) but hit the dark-mode / per-element / no-slot issues.
     fight `text_color`; each element must get `text-brandtext`.
   - BLOCKER: `font_family` rides the non-reactive `brandSettings` snapshot
     (`ShowSecret.vue:33`); brand arriving post-mount may not be reflected.
+
 - **`src/apps/secret/components/branded/BaseSecretDisplay.vue`** — Shared inner card
   scaffold used by BOTH confirmation and reveal states. Receives `cornerClass` +
   `fontClass` props (no heading prop).
@@ -235,6 +281,7 @@ utilities) but hit the dark-mode / per-element / no-slot issues.
   - BLOCKER: no `headingClass` prop; only `cornerClass` + `fontClass` are passed.
     bg/text have no dark-mode pair on the supply side while this card is authored as
     light/dark pairs — consuming the brand utilities means brand wins in both themes.
+
 - **`src/apps/secret/components/branded/SecretDisplayCase.vue`** — Revealed-secret
   card. Uses productIdentity computed refs directly.
   - `font_family`: CONSUMED. Passes `:font-class="fontFamilyClass"` to
@@ -246,6 +293,7 @@ utilities) but hit the dark-mode / per-element / no-slot issues.
     `bg-gray-100 dark:bg-gray-800`, logo tile 136).
   - `text_color`: textarea (177, `dark:text-white`) and lock-icon (142) fight it;
     copy-button text is `buttonTextLight`-driven (196).
+
 - **`src/apps/secret/components/branded/SecretConfirmationForm.vue`** —
   Passphrase-entry / confirmation card. Uses productIdentity computed refs directly.
   - `font_family`: CONSUMED. Passes `:font-class="fontFamilyClass"` to
@@ -258,6 +306,7 @@ utilities) but hit the dark-mode / per-element / no-slot issues.
     submit-button text is `buttonTextLight`-driven (179).
   - Aside (not a token finding): `logoImage` (65) uses `/imagine/${domainId}/logo.png`,
     the 404-prone path `SecretDisplayCase:70-73` explicitly warns against.
+
 - **`src/apps/secret/components/layout/BrandedMastHead.vue`** — Branded masthead
   (logo tile + h1 + subtext + optional Sign In/Up). NOTE: NOT rendered on the
   recipient reveal route — `secret.ts:68` sets `displayMasthead:false` and
