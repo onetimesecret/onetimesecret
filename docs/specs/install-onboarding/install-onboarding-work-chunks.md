@@ -411,9 +411,11 @@ C4 and C5 in parallel (small, independent). **Then:** C6 → C8, with C9 and
 C10 scheduled by appetite. C1+C2+C3 alone convert all three documented
 paths from "fails on a clean machine" to "works"; C7 makes it stay that way.
 
-> **Position (2026-07-10):** C1–C5 done — C3 with the recorded direnv/
+> **Position (2026-07-10):** C1–C8 done — C3 with the recorded direnv/
 > overmind scope-down, clean-room validated (see
 > [install-onboarding-clean-room-validation.md](./install-onboarding-clean-room-validation.md)),
-> NF-1–NF-5 fixed, C7 shipped, and C4 and C5 landed (each with the
-> deferrals and routed residuals listed in its status note). Next per this
-> sequencing: **C6 → C8**, with C9 and C10 scheduled by appetite.
+> NF-1–NF-5 fixed, C7 shipped, C4/C5/C6/C8 landed (each with the
+> deferrals and deviations listed in its status note; the C3/C6
+> frozen-install and D6 dev:seed residuals closed 2026-07-10). Remaining:
+> **C9 and C10**, scheduled by appetite, plus the open CI-lane items
+> tracked in C7's note.
