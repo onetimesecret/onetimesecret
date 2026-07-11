@@ -36,6 +36,14 @@ export const customDomainDetailsSchema = z.object({
 // Envelope-wrapped response schemas
 // ─────────────────────────────────────────────────────────────────────────────
 
+// v2-lane brand response. Wraps the v2 wire shape (`brandSettingschema`):
+// string-encoded booleans, and — by design — WITHOUT the #3646 extended tokens
+// (secondary_color, background_color, text_color, heading_font, border_radius).
+// A v2 client parsing them would need string-boolean coercion that the native
+// v3 canonical shape does not provide, so DO NOT retarget this to v3/canonical.
+// The extended tokens ride the v3 lane: `@/schemas/api/v3/responses/domains.ts`
+// wraps the canonical `brandSettingsSchema`, and that is what the Pinia stores
+// (brandStore, domainsStore) actually parse via `@/schemas/api/v3/responses`.
 export const brandSettingsResponseSchema = createApiResponseSchema(brandSettingschema);
 export const customDomainResponseSchema = createApiResponseSchema(
   customDomainCanonical,
