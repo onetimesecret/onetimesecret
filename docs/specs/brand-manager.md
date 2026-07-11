@@ -1,51 +1,62 @@
 # Brand Manager — expanded token vocabulary (design spec)
 
-Status: implemented in PR #3671 (issue #3646). This document is the design
-handoff for updating the Brand Manager editor UI to the expanded branding
-vocabulary. It describes the tokens, their allowed values, validation rules,
-what renders today vs. later, and the layout problems to solve.
+Status: **shipped, superseding this doc's original design**. The token
+vocabulary and backend (§1–§2) landed as designed in PR #3671 (issue #3646).
+The editor UI then went through a **second rebuild** — commit `b09e7086f`,
+"Rebuild Brand Manager as three-path editor" (#3694) — which replaced the
+single `BrandSettingsBar` control row this doc originally specified with a
+Simple / Match / Advanced path switcher. This revision documents what's
+actually in the branch today: what's done, what changed from the original
+design, and what's still open.
 
 > Placed under `docs/specs/` (repo convention) rather than the requested
 > `docs/spec/`, and named kebab-case to match the sibling specs.
 
-## TL;DR for the designer
+## TL;DR
 
-- The editor went from **3 controls → ~9 controls + a preset row**. The
-  existing single horizontal bar (`BrandSettingsBar`) no longer scales — the
-  primary task is a layout that holds this vocabulary comfortably.
-- Everything is a **closed allowlist** — no custom CSS, no free-form fonts, no
-  arbitrary values. This is a deliberate security (XSS) boundary; do not design
-  a "paste your own CSS" affordance. This holds for **every** path, including the
-  future **Advanced** tier: its `@theme`-style mockup is an illustrative "coming
-  soon" teaser only — if ever shipped it must still resolve to allowlisted tokens,
-  never raw operator CSS.
-- **Four of the new tokens are configurable but do not render yet**
-  (`secondary_color`, `background_color`, `text_color`, `heading_font`). Decide
-  how to present controls whose visual effect is deferred — see §4.
-- The feature is gated behind the `custom_branding` entitlement; design the
-  locked/upsell state.
+- The schema/backend vocabulary described below is fully implemented and
+  validated — nothing changed there since the original design.
+- The **editor UI is narrower than originally specified**. Only 3 of the ~9
+  planned controls are exposed: `primary_color`, corners (3 of 6
+  `border_radius` presets), and `font_family`. `secondary_color`,
+  `background_color`, `text_color`, `heading_font`, and the 10-preset gallery
+  are all built end-to-end (schema → validation → runtime CSS injection) but
+  have **no UI control anywhere** — not deferred-with-a-placeholder, just
+  absent.
+- The editor is now a **three-path switcher** (Simple / Match my site /
+  Advanced) — a structure this doc's original version didn't anticipate.
+  Only Simple is functional; the other two are static, non-interactive
+  "coming soon" mockups.
+- Everything remains a **closed allowlist** — no custom CSS, no free-form
+  fonts, no arbitrary values, on every path including Advanced. This is a
+  deliberate security (XSS) boundary and did not change in the rebuild.
+- The feature is still gated behind the `custom_branding` entitlement.
 
 ## 1. Token inventory & allowed values
 
-All tokens live in the per-domain `BrandSettings` schema. Colors are hex only,
-normalized to 6‑digit uppercase on save.
+All tokens live in the per-domain `BrandSettings` schema (unchanged since
+original design). Colors are hex only, normalized to 6-digit uppercase on
+save. The **UI control** column is new in this revision — it's now a
+materially different question from "renders today," since three tokens have
+neither.
 
-| Token | Control | Allowed values | Renders today? |
+| Token | UI control (Simple path) | Renders on recipient page? | Allowed values |
 |---|---|---|---|
-| `primary_color` | color picker | any hex | ✅ yes |
-| `secondary_color` | color picker | any hex | ❌ not yet (§4) |
-| `background_color` | color picker | any hex | ❌ not yet (§4) |
-| `text_color` | color picker | any hex | ❌ not yet (§4) |
-| `font_family` (body) | select/cycle | 8 curated fonts (below) | ✅ yes |
-| `heading_font` | select/cycle | 8 curated fonts; falls back to body font when unset | ❌ not yet (§4) |
-| `border_radius` | select/cycle or slider | preset keyword **or** integer px `0–64` | ✅ yes |
-| `corner_style` (legacy) | select/cycle | `rounded` / `square` / `pill` | ✅ yes (superseded — §5) |
-| `button_text_light` | toggle | boolean (light vs. dark button text) | ✅ yes |
-| theme preset | swatch/gallery | one of 10 (§6) | applies the above |
+| `primary_color` | ✅ ColorPicker | ✅ yes | any hex |
+| `secondary_color` | ❌ none | ❌ no (CSS var live, no consumer — §4) | any hex |
+| `background_color` | ❌ none | ❌ no (CSS var live, no consumer — §4) | any hex |
+| `text_color` | ❌ none | ❌ no (CSS var live, no consumer — §4) | any hex |
+| `font_family` (body) | ✅ native `<select>`, full 8-value vocabulary | ✅ yes | 8 curated fonts (below) |
+| `heading_font` | ❌ none | ❌ no (falls back to `font_family`) | 8 curated fonts; falls back to body font when unset |
+| `border_radius` | ⚠️ 3 hand-rolled buttons (`none`/`md`/`full` only) | ✅ yes | preset keyword **or** integer px `0–64` |
+| `corner_style` (legacy) | ❌ removed from UI (as recommended — §5) | ✅ yes, only if `border_radius` unset | `rounded` / `square` / `pill` |
+| `button_text_light` | ❌ none | ✅ yes (existing behavior, unchanged) | boolean |
+| theme preset | ❌ none — `brandPresets` exists in code, zero UI wiring (§3) | n/a | one of 10 |
 
 ### Curated fonts (`font_family` and `heading_font`)
 
-Closed allowlist of 8. Value → display label:
+Unchanged — closed allowlist of 8, all still valid and implemented backend +
+schema side:
 
 | Value | Label |
 |---|---|
@@ -59,12 +70,14 @@ Closed allowlist of 8. Value → display label:
 | `geometric` | Geometric |
 
 Each maps to a fixed CSS font-family stack (system stacks + self-hosted Zilla
-Slab for `slab`). No web-font upload, no free-form family names.
+Slab for `slab`). No web-font upload, no free-form family names. The Simple
+path's font `<select>` exposes all 8 for `font_family`; there is no
+`heading_font` control anywhere.
 
 ### Border radius (`border_radius`)
 
-Accepts **either** a named preset **or** a whole number of pixels `0–64`.
-Presets and their rendered sizes:
+Schema/backend unchanged — accepts **either** a named preset **or** a whole
+number of pixels `0–64`:
 
 | Value | Label | Rendered |
 |---|---|---|
@@ -75,35 +88,46 @@ Presets and their rendered sizes:
 | `xl` | Extra Rounded | `1rem` |
 | `full` | Pill | `9999px` |
 
-Design choice: presets give the zero-typing path; the numeric px form (0–64) is
-the escape hatch that lifts the old 3-value ceiling. A stepped slider with
-preset stops is one natural way to present both in one control.
+**UI regression from the original design intent**: the Simple path exposes
+only 3 of these 6 presets (Square/`none`, Rounded/`md`, Pill/`full`) as
+fixed buttons — `sm`/`lg`/`xl` and the numeric-px escape hatch this doc
+called for are schema-only, unreachable from any control
+(`SimpleBrandPanel.vue`). This re-imposes close to the old 3-value
+`corner_style` ceiling the expanded token was meant to lift. No numeric
+input or 6-way selector exists yet on any path.
 
-## 2. Validation & inline feedback (must warn before save)
+## 2. Validation & inline feedback
 
-The backend rejects invalid input; the editor must surface these **in-editor**
-so users never hit a save error for a normal edit:
+Backend validation is unchanged and fully implemented
+(`brand_settings.rb`, `validate!`):
 
-- **`primary_color`** — must clear **WCAG AA 3:1 vs white** (it's the main
-  button surface). Existing amber contrast pill.
-- **`text_color` on `background_color`** — advisory **WCAG AA 4.5:1** (normal
-  text) check whenever **both** are set, surfaced as an amber pill only when both
-  halves are present. Advisory only — **not gated on save** (contrast enforcement
-  was removed server-side; product decision 2026-07). Format (hex) is the only
-  server-side validation.
-- **`secondary_color`** — format-validated only, **no contrast gate** (it's a
-  decorative accent with no fixed text pairing). No warning.
+- **`primary_color`** — format-only (hex regex). WCAG contrast is **not**
+  enforced on save (product decision 2026-07;
+  `validate_extra_color_fields!` comment, `brand_settings.rb:242`).
+- **`secondary_color` / `background_color` / `text_color`** — format-only
+  hex validation, same rule, no contrast gate on any of them.
+- **`heading_font`, `border_radius`, `corner_style`** — enum/range
+  validated, no contrast dimension applies.
 
-Design need: a clean way to show up to two independent contrast warnings
-without clutter. Consider attaching each warning to its relevant control rather
-than stacking pills.
+In-editor advisory feedback (UI side) is narrower than originally specified:
 
-## 3. Theme presets
+- **`primary_color` vs. white** — implemented (`SimpleBrandPanel.vue:76-77`,
+  key `web.branding.low_contrast_warning`). Advisory only, never blocks
+  save. Note: the underlying check (`checkBrandContrast`) reports
+  `max(vs-white, vs-black)` — the auto-picked button-text contrast — whose
+  minimum across all hues is ≈4.58, just above the 4.5 AA threshold. The
+  warning is effectively dormant today; it's kept as a safety net in case
+  the threshold tightens.
+- **`text_color` vs. `background_color`** — **has no home**. Neither field
+  has a UI control, so the advisory pill this doc originally specified was
+  never built. The locale key for it (`low_contrast_text_bg_warning`) exists
+  in `workspace-branding.json` with zero call-sites — dead copy.
 
-Ten one-click presets. Applying one is a shallow merge of the cosmetic token
-subset onto current settings — it **never** touches identity fields (logo,
-product name, instructions). The active-preset indicator lights up only when
-the current settings fully match a preset's tokens.
+## 3. Theme presets — implemented, unreachable
+
+The 10 presets described in the original design are fully implemented in
+`src/shared/utils/brand-helpers.ts` (`brandPresets`, from a `// Theme
+presets (#3646)` marker) with the same token values as this table:
 
 | Preset | Primary | Secondary | Background | Text | Body / Heading font | Radius |
 |---|---|---|---|---|---|---|
@@ -118,68 +142,185 @@ the current settings fully match a preset's tokens.
 | High Contrast | `#000000` | `#1D4ED8` | `#FFFFFF` | `#000000` | System / System | sm |
 | High Contrast Dark | `#2563EB` | `#FDE047` | `#000000` | `#FFFFFF` | System / System | sm |
 
-`High Contrast` / `High Contrast Dark` are accessibility presets (21:1 text
-contrast, WCAG AAA). Presets are currently rendered as small circular swatches
-with a primary→secondary gradient; a richer **preset gallery** with real
-miniature previews is a strong opportunity — presets are the highest-value
-zero-effort path.
+**Status: dead code.** `brandPresets` has exactly one non-test reference —
+its own definition. No component imports or renders it; there is no preset
+gallery, swatch row, or picker anywhere in the three-path editor. The
+"preset gallery is the highest-value zero-effort path" opportunity this doc
+originally flagged was not picked up in the rebuild. This is the single
+largest gap between design intent and shipped UI: fully-built, contrast-
+checked, zero-effort presets that a user cannot reach.
 
-## 4. ⚠️ What renders today vs. what's deferred (most important caveat)
+## 4. What renders today vs. what's wired-but-unconsumed
 
-The rendering pipeline is only partly wired:
+This is more nuanced than the original two-state framing ("renders" /
+"doesn't render yet"). The rebuild's `useBrandTheme.ts` wires the full
+expanded vocabulary onto `<html>` as CSS custom properties — the pipe is
+built schema → validate → store → inject; only the last mile (a branded view
+actually using the variable) is missing:
 
-- **Renders now** (visible on the recipient's secret page **and** in the editor
-  preview): `primary_color`, `border_radius`, `font_family`,
-  `button_text_light`.
-- **Configurable, validated, and stored — but not rendered anywhere yet**:
-  `secondary_color`, `background_color`, `text_color`, `heading_font`. The
-  last-mile wiring into the branded recipient views is a separate, deferred
-  change.
+- **Renders now**, editor + recipient page alike: `primary_color`,
+  `border_radius`, `font_family`, `button_text_light`.
+- **Live on `<html>` as a CSS variable, zero consuming views, no UI
+  control**: `secondary_color` → `--color-brand2-*` (11-shade scale),
+  `background_color` → `--color-brandbg`, `text_color` → `--color-brandtext`.
+  Activating any of these needs no JS — just a utility class
+  (`bg-brand2-500`, `bg-brandbg`, `text-brandtext`) on a `branded/*` view —
+  but nothing does that yet, and there's also no way for a user to set them.
+- **Computed and ready, zero consuming views, no UI control**:
+  `heading_font` → `identityStore.headingFontClass`
+  (`identityStore.ts:319`), not applied to any `<h1>`–`<h3>` yet.
+- **Known gotcha for whoever wires the recipient views**: the workspace
+  editor's own preview (`SecretPreview.vue`) reads `domainBranding` inline,
+  not the `<html>` CSS variables `useBrandTheme` sets — wiring a live branded
+  view does not automatically wire the editor preview to match, and
+  vice versa.
 
-Implication for design: if these four are given equal prominence, a user will
-set them and see **no change** in the page or the preview. Recommended options:
-1. Group/flag them as "preview coming soon" until the rendering work lands, or
-2. Sequence the UI rollout so these controls appear only once they render.
+**The decision this doc asked engineering to confirm** ("flag these as
+coming soon" vs. "sequence the rollout") was resolved by neither option —
+the rebuild chose a third path: drop the controls from the UI entirely.
+Defensible (a control with no visible effect is worse than no control), but
+it was a silent resolution of a decision this doc explicitly flagged as
+needing sign-off, not an assumption.
 
-Please treat this as a decision to confirm with engineering, not an assumption.
+## 5. `corner_style` vs `border_radius` — resolved as recommended
 
-## 5. Redundancy to resolve: `corner_style` vs `border_radius`
-
-Both exist. `border_radius` is the richer replacement and **takes precedence
-when both are set**; `corner_style` (3 values) is retained only for
-back-compat. Recommendation: **drop the `corner_style` control from the UI** and
-keep it back-compat-only in the schema. Confirm before removing.
+This doc's recommendation shipped exactly as written: `corner_style` was
+**dropped from the UI**, `border_radius` is what the Simple path's corner
+buttons write, and precedence is `border_radius` first, `corner_style`
+fallback — both in the operator's own theme (`identityStore.ts:300-306`,
+`cornerClass`) and in the recipient preview (`SecretPreview.vue`,
+`cornerClass` computed). `corner_style` remains schema-only for back-compat,
+as specified. No further action needed here.
 
 ## 6. Preview behavior
 
-The live preview (`SecretPreview` inside a Safari/Edge browser chrome frame,
-`BrowserPreviewFrame`) shows the **recipient's** view of the domain being
-edited. It reads the edited domain's settings directly (not the operator's own
-theme). It currently reflects `primary_color`, `border_radius`, and
-`font_family`; like the recipient pages, it does **not** yet reflect
-`secondary_color` / `background_color` / `text_color` / `heading_font` (§4).
+Unchanged in substance, moved in code. The live preview is now
+`BrandPreviewColumn.vue` (not `BrowserPreviewFrame.vue`, which this doc
+originally named and which the rebuild orphaned — see §9). It's a fixed
+right-hand column, wraps `SecretPreview` in a visually distinct "stage"
+(tinted background + persistent "Preview" tag) rather than a browser-chrome
+frame, and still reads the **edited domain's** settings directly, not the
+operator's own injected theme. It reflects `primary_color`, `border_radius`,
+and `font_family` only — same three tokens as the recipient page, per §4.
+`BrandPreviewColumn.vue` explicitly does not render a `secondary_color`
+accent, by design, so the preview doesn't imply a capability that doesn't
+exist yet.
 
-## 7. Hard constraints (cannot be designed around)
+## 7. Hard constraints (unchanged, still hold)
 
-- **Closed vocabulary only** — no custom CSS, no free-form fonts, no arbitrary
-  token maps. Everything is allowlisted (security/XSS boundary).
+- **Closed vocabulary only** — no custom CSS, no free-form fonts, no
+  arbitrary token maps. Everything is allowlisted (security/XSS boundary).
+  Verified intact through the rebuild: the Advanced path's `@theme`-style
+  mockup (`BrandAdvancedTeaser.vue`) is static markup with no real inputs.
 - **Colors are hex only**, normalized to 6-digit uppercase.
-- **Entitlement-gated** behind `custom_branding` — design the locked/upsell
-  state for domains without it.
+- **Entitlement-gated** behind `custom_branding` — the locked/upsell state
+  (`DomainBrand.vue`, amber upgrade banner) is implemented.
 - The editor is fully controlled: every control emits the whole updated
-  `BrandSettings` object; there's no per-field persistence subtlety to design
-  around.
+  `BrandSettings` object; there's no per-field persistence subtlety.
+- **New surface to plan for**: the Match path's mockup
+  (`BrandMatchTeaser.vue`) illustrates reading brand colors from an
+  arbitrary external URL ("Read brand from https://example.com"). It's
+  currently 100% static/decorative — no fetch happens. If this path is ever
+  built for real, fetching and parsing an operator-supplied URL is a new
+  SSRF/untrusted-content surface this doc's original constraints didn't
+  anticipate; scope it before implementation, not after.
 
-## 8. Where things live (for design↔eng handoff)
+## 8. New in this rebuild (not covered by the original design)
 
-- Editor: `src/apps/workspace/components/dashboard/BrandSettingsBar.vue`
-- Live preview: `SecretPreview.vue` + `BrowserPreviewFrame.vue` (same dir)
-- Control primitives: `ColorPicker.vue`, `CycleButton.vue`
-  (`src/shared/components/common/`)
-- Token vocabulary, display/label maps, presets:
-  `src/shared/utils/brand-helpers.ts`
+None of this was anticipated when this doc was written; it's the substance
+of commit `b09e7086f`:
+
+- **Three-path editor** (`BrandPathSwitcher.vue` + `paths.ts`): Simple /
+  Match my site / Advanced. Only Simple (`available: true` in
+  `BRAND_PATHS`) is functional. Switching paths never mutates
+  `brandSettings` — confirmed by test
+  (`BrandEditor.spec.ts`: "switching paths never mutates brandSettings").
+  Match and Advanced render static, hardcoded-English, non-interactive
+  mockups (`BrandMatchTeaser.vue`, `BrandAdvancedTeaser.vue`) inside a
+  generic dimmed/blurred wrapper (`ComingSoonPanel.vue`).
+- **Brand | Delivery tabs** on `DomainBrand.vue`: a new "Delivery" tab
+  (`DeliveryPanel.vue`) holds per-domain language and reveal-instructions
+  (before/after text, 500-char max), moved out of the brand editor. Both
+  tabs edit the same shared `BrandSettings` record; a single header Save
+  persists either. No live preview on the Delivery tab, by design — the
+  Brand tab's preview is considered the shared preview surface.
+- **`DomainHeader.vue` opt-in props**: generic `back-visible`, `save-visible`,
+  `save-disabled`, `save-loading`, `@back`, `@save` — all default off, so the
+  7 other domain pages sharing this header are unaffected. `DomainBrand.vue`
+  is the first consumer, collapsing what used to be a separate back-button
+  row and save action bar into the header.
+
+## 9. Where things live (for design↔eng handoff) — updated
+
+The original file map is stale; `BrandSettingsBar.vue` no longer exists.
+
+- Editor entry point: `src/apps/workspace/domains/DomainBrand.vue` (tabs +
+  entitlement gate)
+- Three-path editor: `src/apps/workspace/components/dashboard/brand/`
+  - `BrandEditor.vue` — orchestrates path switch + two-column layout
+  - `BrandPathSwitcher.vue`, `paths.ts` — the 3-card switcher
+  - `SimpleBrandPanel.vue` — the only functional path (3 controls)
+  - `BrandMatchTeaser.vue`, `BrandAdvancedTeaser.vue` — static mockups
+  - `ComingSoonPanel.vue` — generic dim/blur/overlay wrapper for teasers
+  - `BrandPreviewColumn.vue` — fixed preview column (replaces
+    `BrowserPreviewFrame.vue`)
+- Delivery tab: `src/apps/workspace/components/dashboard/DeliveryPanel.vue`
+- Recipient-page render: `SecretPreview.vue` (same `dashboard/` dir)
+- Control primitives: `ColorPicker.vue`
+  (`src/shared/components/common/`) — `CycleButton.vue` /
+  `CycleButtonText.vue` are **no longer used** anywhere; the corner buttons
+  in `SimpleBrandPanel.vue` are hand-rolled instead.
+- Token vocabulary, display/label maps, presets, runtime CSS-var injection:
+  `src/shared/utils/brand-helpers.ts` (allowlists, `brandPresets`),
+  `src/shared/composables/useBrandTheme.ts` (`<html>` CSS var wiring),
+  `src/shared/stores/identityStore.ts` (`cornerClass`, `headingFontClass`)
 - Contract / allowed values: `src/schemas/contracts/custom-domain/brand-config.ts`
+- Backend model / validation: `lib/onetime/models/custom_domain/brand_settings.rb`
 - Copy strings: `locales/content/en/workspace-branding.json` (keys under
-  `web.branding.*`, e.g. `secondary_color`, `background_color`, `text_color`,
-  `border_radius`, `heading_font`, `theme_presets`, `low_contrast_warning`,
-  `low_contrast_text_bg_warning`)
+  `web.branding.*`)
+- Tests: `src/tests/components/BrandEditor.spec.ts` (path switcher, Simple
+  panel, Delivery panel), `src/tests/shared/utils/brand-helpers.spec.ts`
+  (presets, radius/font helpers)
+
+### Orphaned by the rebuild (safe to delete, currently just unused)
+
+- `src/apps/workspace/components/dashboard/BrowserPreviewFrame.vue` — zero
+  remaining consumers.
+- `src/apps/workspace/components/dashboard/InstructionsModal.vue` — zero
+  remaining consumers (reveal instructions moved into `DeliveryPanel.vue`
+  as inline fields).
+- `detectPlatform()` in `src/utils/index.ts` — was only used to pick the
+  Safari/Edge chrome for the old preview frame; zero consumers now.
+- `CycleButton.vue` / `CycleButtonText.vue` — zero consumers anywhere in
+  `src/`, not just the brand editor.
+- Locale keys with copy but no `t()` call-site in `workspace-branding.json`:
+  `secondary_color`, `background_color`, `text_color`, `heading_font`,
+  `border_radius`, `theme_presets`, `badge_default`,
+  `low_contrast_text_bg_warning`, `preview_and_customize`, `more_options`.
+
+## 10. Remaining work / open decisions
+
+- **Theme presets have no UI.** Highest-value gap: the data and contrast
+  work is done (§3); it needs a picker surfaced somewhere, most likely on
+  the Advanced path once that's built for real, or as a 4th option on
+  Simple.
+- **`border_radius` UI is capped at 3 of 6 presets**, no px input. Restore
+  `sm`/`lg`/`xl` and the numeric escape hatch, or explicitly decide the
+  3-value set is the permanent Simple-path scope and document that (in
+  which case the schema's 6-preset + 0–64px range is over-built for what
+  the UI will ever send).
+- **`secondary_color` / `background_color` / `text_color` / `heading_font`
+  have zero UI path.** The CSS wiring exists and is inert. Needs one of:
+  build a real consuming view (branded recipient page picking up
+  `bg-brandbg`/`text-brandtext`/`bg-brand2-*`/`headingFontClass`) and then
+  add the controls back, or formally park the fields and remove the dead
+  locale keys/composable branches until there's a view to point them at.
+- **Match my site path is 100% mockup.** No fetch, no parsing, no real
+  color extraction. Needs a design + security pass (SSRF, untrusted-HTML
+  parsing) before any real implementation — see §7.
+- **Advanced path is 100% mockup.** Whatever it ends up doing, §7's
+  allowlist-only constraint applies without exception, including to any
+  copy/export affordance the mockup currently implies ("Copy tokens" /
+  "Import .css").
+- **Dead code cleanup** (§9 orphan list) — low-risk, no design input needed,
+  just needs someone to do it.
