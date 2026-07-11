@@ -253,6 +253,34 @@ stale dev docs corrected or deleted (DX-13, DX-14, TR-07, TR-08, TR-11).
 Addresses: D1–D3, D7, DX-3, DX-8, TR-06, DUP console/scripts items. Proof:
 C7's fresh-clone job runs `bin/setup` itself — the Zulip property.
 
+> **Status (2026-07-10, shipped):** `bin/setup` landed on
+> `feature/onboarding-proof-of-life` with the shared spine at
+> `scripts/setup/lib.sh` (bash-3.2-safe — DX-15's associative-array
+> hard-fail is gone; the installer parse gate now covers all three files).
+> Lanes: dev (default; direnv softened from hard-required to
+> recommended-with-fallback so CI/devcontainers can run it), `--test`
+> (absorbs install-test.sh incl. `.test-mode`), `--init` (absorbs
+> install.sh; **deliberate change**: `init` now auto-reconciles when an
+> environment is already initialized, since a forced re-init regenerates
+> secrets), `--reconcile`/`--doctor`/`--console`. The three install-*.sh
+> are deprecation-window delegates; `package.json` gained `setup` and the
+> TR-07 `test:tryouts:clean` fix. CONTRIBUTING.md/SUPPORT.md/
+> CODE_OF_CONDUCT.md written and linked from README (CoC reports route to
+> security@onetimesecret.com — revisit if a conduct-specific channel
+> appears); README + docs/development/README.md present one sequence
+> (DX-5's broken Option B dropped, DX-13 snippet fixed);
+> isolated-environments.md deleted (DX-14 — the whole tree was phantom);
+> stale spec-helper comments fixed (TR-11's "broken link in lanes README"
+> did not reproduce — every reference in that file resolves). fresh-clone.yml
+> now runs `bin/setup` + `bin/setup --test` + suites + idempotency re-run;
+> docs-drift guard checks bin/setup and cross-checks CONTRIBUTING.md and
+> the dev guide. Verified locally: bash-3.2 parse, drift guard green,
+> `--test` lane end-to-end + delegate idempotency re-run in a clean
+> worktree, spec file green afterwards. **Open:** frozen installs
+> (lockfile churn — C3 residual), `rake dev:seed` (D6, deferred from C4),
+> TR-08 has no definition in the current-state audit (only the list here
+> cites it — treat as spent).
+
 ## C7 — Clean-room harness + CI lanes (testing-strategy §§2–4)
 
 `scripts/test-install/` harness (pinned-image lanes, POSIX-locale lane,
