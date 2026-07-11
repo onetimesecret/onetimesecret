@@ -246,6 +246,17 @@ lane (`config -q` per combo + `up --wait` + proof-of-life).
 > (CP-13's root-file half); and the full-stack `up --wait` lane (blocked on
 > the Dockerfile fix reaching a published tag, plus the proxy service being
 > build-only) — tracked with C7's residuals.
+> *(Update 2026-07-11: all four closed. Both `final` stages of the
+> Dockerfile ship `/app/data` owned by appuser, so named volumes
+> self-initialize with uid-1001 ownership — docker/README's one-time
+> chown note now applies only to older published images. The
+> `/mnt/public` copy block is deleted from entrypoint.sh. The root
+> compose headers cross-reference each other and name the
+> deployment/test split. The full-stack lane shipped by sidestepping the
+> published-tag blocker: compose-smoke.yml's `full-stack-smoke` job
+> builds the app image from source via bake and the proxy via
+> `compose build`, guarding the repo's Dockerfile + compose wiring
+> together — see C7's note.)*
 
 ## C6 — `bin/setup` consolidation + CONTRIBUTING (D2, D3, D7)
 
@@ -338,6 +349,37 @@ so registry/runner rot surfaces as a red scheduled run.
 > remaining blockers are the `/app/data` Dockerfile fix reaching a
 > published tag plus the proxy service being build-only (see C5's status
 > note); (4) `pnpm run build` + asset probe as a lane.
+>
+> *(Update 2026-07-11: residuals 1–4 closed.
+> **(1)+(4)** `scripts/test-install/baremetal-boot.sh` +
+> `baremetal-boot.yml` — the whole lane runs under `LANG=C`: a scratch
+> `ENV_FILE` through `rake ots:secrets`, a real `pnpm run build`, a puma
+> production boot with the `.env` sourced the documented `set -a` way,
+> then the shared proof-of-life, whose `/dist/assets/*.js` probe is the
+> asset assertion. Passed end-to-end locally.
+> **(2)** installer.yml gained a `macos-15` job running `bin/setup`,
+> `bin/setup --test`, the RSpec fast suite, and an idempotency re-run —
+> the three `bin/setup` invocations under `/bin/bash` explicitly, because
+> the runner's PATH bash is a newer Homebrew build (the RSpec step is a
+> Ruby process and needs no such pinning); the same commands were
+> verified under real bash 3.2 + BSD userland in a clean worktree on a
+> Darwin machine (incidentally catching two initializer `require` calls
+> — one from C10, one predating it — that only resolved under bundler
+> load paths; both switched to `require_relative`).
+> **(3)** compose-smoke.yml gained `full-stack-smoke`: bake-build the
+> app image from source (which is also what proves the new `/app/data`
+> ownership contract), `compose build proxy`, `up -d --wait` on the full
+> stack — proxy + app + valkey + rabbitmq + worker + scheduler, full
+> auth mode migrating sqlite at boot — then proof-of-life inside the app
+> container and an ingress assertion through Caddy. Source-built
+> deliberately: the published-tag form stays impossible until a fixed
+> image ships, and the source-built form guards what the repo actually
+> controls. Verified locally: all compose combos `config -q`-clean and
+> the `/app/data` ownership contract proven on the exact pinned base
+> image; the assembled job's first full run is pending CI. Still open
+> after this: duration charted/alarmed over time
+> (step summary only), and C4's `POL_CREATE_ACCOUNT` wiring into
+> compose-smoke.)*
 
 ## C8 — Devcontainer + Codespaces (D5, testing-strategy §5)
 
@@ -428,6 +470,17 @@ test.
 > `.env.reference` is CI-checked, not generated (the file's prose value
 > exceeds what generation from code is worth); the 151-var documentation
 > backlog is tracked in the ignore file rather than written now.
+> *(Update 2026-07-11: the backlog is drained — all 151 vars documented
+> in `.env.reference` (each entry code-researched and independently
+> re-verified against its consumption sites: config path, default,
+> polarity, gating). The ignore file's BACKLOG section is empty; the
+> ratchet reports 363 consumed / 343 documented / 38 ignored, all 38
+> being the permanent INTERNAL set (the 37 above plus `CONFIRM`, which
+> C10's adopt task added). Notable finds recorded in the
+> entries themselves: `API_ENABLED` is UI-advisory only — the
+> config.defaults.yaml comment promising 404s for `/api/*` is not
+> implemented; `RODAUTH_HMAC_SECRET` is not consumed (AUTH_SECRET is);
+> `GITHUB_KEY`/`GOOGLE_KEY` are the deprecated pre-CLIENT_ID names.)*
 
 ## C10 — SECRET lifecycle safety (QS-6)
 
@@ -480,6 +533,11 @@ paths from "fails on a clean machine" to "works"; C7 makes it stay that way.
 > deferrals and deviations listed in its status note; the C3/C6
 > frozen-install and D6 dev:seed residuals closed 2026-07-10), and C10
 > shipped 2026-07-11 including the appetite-gated `SECRET_PREVIOUS` chain.
-> Remaining: the open CI-lane items tracked in C7's note, and C9's
-> env-reference documentation backlog
-> (`scripts/env-reference-ignore.txt` BACKLOG section).
+> Residual sweep (2026-07-11, same day): C7's four open CI-lane items
+> (bare-metal LANG=C boot lane, macOS lane, source-built full-stack
+> lane, build+asset-probe), C5's four routed handoffs (Dockerfile
+> `/app/data`, entrypoint `/mnt/public`, root-compose cross-refs, the
+> full-stack lane), and C9's 151-var env-reference backlog are all
+> closed — see each chunk's dated update note. Remaining anywhere:
+> TTFHW duration charting over time, and C4's `POL_CREATE_ACCOUNT`
+> wiring into compose-smoke.
