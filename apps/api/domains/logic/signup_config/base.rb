@@ -43,6 +43,22 @@ module DomainsAPI
           authorize_domain_config!(domain_id)
         end
 
+        # Resolution details accompanying every signup-config response (ADR-024).
+        #
+        # The settings UI displays the resolver's output instead of re-deriving
+        # availability from the raw flag pair — client-side derivation is the
+        # drift ADR-024 exists to kill.
+        #
+        # @param config [Onetime::CustomDomain::SignupConfig, nil] nil when unconfigured
+        # @return [Hash] global_enabled, effective_enabled
+        def signup_override_details(config)
+          global = Onetime::CustomDomain::SignupConfig.global_signup_enabled
+          {
+            global_enabled: global,
+            effective_enabled: Onetime::CustomDomain::SignupConfig.resolve_signup_enabled(global, config),
+          }
+        end
+
         # Parse allowed domains from string or array input.
         #
         # @param value [String, Array, nil] Comma-separated string or array of domains

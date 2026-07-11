@@ -126,7 +126,7 @@
     "text": "Replace"
   },
   "web.branding.logo_field_hint": {
-    "text": "PNG, JPG or SVG, <=1MB. Applies immediately."
+    "text": "PNG, JPG or SVG, <=1MB."
   },
   "web.branding.loading_preview": {
     "text": "Loading preview...",

@@ -81,6 +81,7 @@ module DomainsAPI
           {
             user_id: cust.extid,
             record: serialize_signin_config(@signin_config),
+            details: signin_override_details(@signin_config),
           }
         end
 
