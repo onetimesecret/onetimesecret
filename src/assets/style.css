@@ -129,10 +129,16 @@
   --radius-brand: 0.5rem;
 
   /*
-   * Curated font-family tokens for the expanded font allowlist. sans/serif/mono
-   * reuse Tailwind's built-ins; these five back the font-brand-* utilities
+   * Curated font-family tokens for the expanded font allowlist. serif/mono
+   * reuse Tailwind's built-ins; these six back the font-brand-* utilities
    * (see fontFamilyStacks / fontFamilyClasses in brand-helpers.ts).
+   *
+   * --font-brand-sans is a deterministic neutral grotesque with NO OS-UI
+   * generics (no ui-sans-serif/system-ui/-apple-system): those resolve to the
+   * OS UI font (San Francisco on macOS), which would make `sans` render
+   * identically to `system`. Keeping Helvetica/Arial makes the two distinct.
    */
+  --font-brand-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --font-brand-system: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-brand-slab: 'Zilla Slab', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
   --font-brand-rounded:

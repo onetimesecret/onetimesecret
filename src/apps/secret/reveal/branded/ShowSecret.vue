@@ -14,10 +14,11 @@
    * @see SecretDisplayCase - Displays revealed content using BaseSecretDisplay
    */
 
-  import BaseShowSecret from '@/shared/components/base/BaseShowSecret.vue';
-  import FooterAttribution from '@/apps/secret/components/layout/SecretFooterAttribution.vue';
+  import BrandedHero from '@/apps/secret/components/branded/BrandedHero.vue';
   import SecretConfirmationForm from '@/apps/secret/components/branded/SecretConfirmationForm.vue';
   import SecretDisplayCase from '@/apps/secret/components/branded/SecretDisplayCase.vue';
+  import FooterAttribution from '@/apps/secret/components/layout/SecretFooterAttribution.vue';
+  import BaseShowSecret from '@/shared/components/base/BaseShowSecret.vue';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import { storeToRefs } from 'pinia';
 
@@ -44,12 +45,20 @@
     :secret-identifier="secretIdentifier"
     :branded="true"
     :site-host="siteHost"
-    class="container mx-auto mt-24 px-4">
+    class="container mx-auto px-4">
     <!--
       No #loading slot: BaseShowSecret renders its own <SecretSkeleton> for the
       secret fetch (see BaseShowSecret template). A #loading slot here never
       rendered (the base has no <slot name="loading">), so the old spinner was
       dead markup.
+
+      The brand logo is rendered INSIDE the confirmation/reveal content (stacked
+      above the card via BrandedHero), not in BaseShowSecret's #header slot.
+      #header is a separate grid row; filling it turns the base's 3-row stretch
+      grid into three occupied rows and steals the empty trailing row that
+      balances the card-to-footer gap — the footer then either glues to the card
+      or (with a 1fr override) pins to the viewport bottom. Keeping the logo in
+      the content row preserves the original, moderate footer spacing.
     -->
 
     <!-- Error slot -->
@@ -61,7 +70,12 @@
 
     <!-- Confirmation slot -->
     <template #confirmation="{ record, details, error, isLoading, onConfirm }">
-      <div :class="[cornerClass, 'mx-auto max-w-2xl space-y-20']">
+      <div :class="[cornerClass, 'mx-auto max-w-2xl']">
+        <!-- Brand logo above the case, matching homepage/create/receipt. Logo
+             only — the case owns its own "You have a message" heading. -->
+        <BrandedHero
+          logo-link-to="/"
+          class="mb-8" />
         <SecretConfirmationForm
           :secret-identifier="secretIdentifier"
           :record="record"
@@ -76,6 +90,9 @@
     <!-- Reveal slot -->
     <template #reveal="{ record, details }">
       <div class="mx-auto w-full max-w-2xl">
+        <BrandedHero
+          logo-link-to="/"
+          class="mb-8" />
         <SecretDisplayCase
           aria-labelledby="secret-heading"
           :secret-identifier="secretIdentifier"
@@ -108,15 +125,6 @@
 </template>
 
 <style scoped>
-  .logo-container {
-  transition: all 0.3s ease;
-}
-
-.logo-container img {
-  max-width: 100%;
-  height: auto;
-}
-
 :focus {
   outline: 2px solid currentColor;
   outline-offset: 2px;

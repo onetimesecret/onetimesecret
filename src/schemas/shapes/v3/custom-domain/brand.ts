@@ -6,6 +6,7 @@
 import {
   brandSettingsCanonical,
   imagePropsCanonical,
+  isValidBorderRadius,
 } from '@/schemas/contracts';
 import { z } from 'zod';
 
@@ -57,6 +58,19 @@ export const brandSettingsSchema = brandSettingsCanonical.extend({
   button_text_light: z.boolean().default(true),
   passphrase_required: z.boolean().default(false),
   notify_enabled: z.boolean().default(false),
+
+  // Read-tolerance for a cosmetic field. The canonical contract REJECTS an
+  // invalid border_radius (that strictness is the save/write authority, mirrored
+  // by the Ruby `validate_border_radius_field!` on PUT). But a stale value in an
+  // already-stored brand record (e.g. the retired `'custom'`/`'full'` presets)
+  // must NOT fail the whole domain response and brick loading — the field is
+  // purely visual. On READ we coerce an unrecognized value to `undefined`
+  // (unset → falls back to corner_style/default), exactly as `borderRadiusToCss`
+  // already returns null for it. Valid presets/px pass through untouched.
+  border_radius: z
+    .union([z.string(), z.number()])
+    .transform((val) => (isValidBorderRadius(val) ? val : undefined))
+    .nullish(),
 });
 
 /**

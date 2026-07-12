@@ -99,3 +99,22 @@ describe('SecretPreview border_radius fidelity (#3646)', () => {
     expect(rootTag).toContain('--radius-brand: 1rem');
   });
 });
+
+// BaseSecretDisplay's h2 must carry the heading font token verbatim — any
+// body-font fallback inside the display component re-implements the heading
+// ladder (heading_font backfilled by font_family) and silently drops
+// heading_font when a binding goes missing, which shipped body-font mastheads.
+describe('SecretPreview heading font token', () => {
+  it('puts the heading token — not the body token — on the h2 when they differ', () => {
+    const wrapper = mountPreview({
+      font_family: 'sans',
+      heading_font: 'slab',
+    });
+
+    const heading = wrapper.get('h2');
+    expect(heading.classes()).toContain('font-brand-slab');
+    // Body font `sans` resolves to font-brand-sans; assert it did NOT leak onto
+    // the heading (the ladder must keep heading_font distinct from font_family).
+    expect(heading.classes()).not.toContain('font-brand-sans');
+  });
+});

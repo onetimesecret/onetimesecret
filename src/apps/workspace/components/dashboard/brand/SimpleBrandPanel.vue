@@ -31,7 +31,7 @@
     FontFamily,
     fontDisplayMap,
     fontFamilyStacks,
-    fontOptions,
+    uiFontOptions,
     type FontFamily as FontFamilyType,
   } from '@/shared/utils/brand-helpers';
   import { checkBrandContrast } from '@/utils/brand-palette';
@@ -91,6 +91,13 @@
 
   // Body font falls back to Sans, matching the recipient render.
   const bodyFont = computed(() => props.modelValue.font_family ?? FontFamily.SANS);
+
+  // Picker shows the four curated families. If this domain was previously set
+  // to a now-hidden font (slab/rounded/humanist/geometric), keep it as an
+  // option so the selection stays visible and isn't silently reset on save.
+  const fontChoices = computed<FontFamilyType[]>(() =>
+    uiFontOptions.includes(bodyFont.value) ? uiFontOptions : [bodyFont.value, ...uiFontOptions]
+  );
 </script>
 
 <template>
@@ -187,7 +194,7 @@
             text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500
             focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100">
           <option
-            v-for="font in fontOptions"
+            v-for="font in fontChoices"
             :key="`body-${font}`"
             :value="font"
             :style="{ fontFamily: fontFamilyStacks[font] }">

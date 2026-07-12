@@ -8,10 +8,11 @@ import ImageUploadModal from '@/shared/components/modals/ImageUploadModal.vue';
 import { useLogoImage } from '@/shared/composables/useLogoImage';
 import {
 CornerStyle,
-FontFamily,
 borderRadiusToCss,
 cornerStyleClasses,
-fontFamilyClasses
+fontFamilyClasses,
+resolveBodyFontClass,
+resolveHeadingFontClass
 } from '@/shared/utils/brand-helpers';
 import { computed, ref } from 'vue';
 import { Composer, useI18n } from 'vue-i18n';
@@ -65,26 +66,23 @@ const cornerClass = computed(() => {
   return cornerStyleClasses[style ?? CornerStyle.ROUNDED];
 });
 
-const fontFamilyClass = computed(() => {
-  const font = props.domainBranding?.font_family as FontFamily | undefined;
-  return fontFamilyClasses[font ?? FontFamily.SANS];
-});
+// The preview shows sans when the domain is unset because the dashboard page
+// font differs from the recipient page ('' would inherit the dashboard font).
+const fontFamilyClass = computed(
+  () => resolveBodyFontClass(props.domainBranding) || fontFamilyClasses.sans
+);
 
-// Mirror identityStore.headingFontClass: heading_font falls back to the body
-// font_family, so the preview heading tracks the recipient page.
-const headingFontClass = computed(() => {
-  const heading = (props.domainBranding?.heading_font ??
-    props.domainBranding?.font_family) as FontFamily | undefined;
-  return fontFamilyClasses[heading ?? FontFamily.SANS];
-});
+const headingFontClass = computed(
+  () => resolveHeadingFontClass(props.domainBranding) || fontFamilyClasses.sans
+);
 
 // Expanded vocabulary (#3646). The preview renders an arbitrary domain's
 // settings (not the editing admin's injected palette). Scope this domain's
 // border_radius to a local --radius-brand so every `rounded-brand` descendant
 // (logo, content box, textarea, button, and BaseSecretDisplay's content
 // wrapper) resolves to THIS domain's radius — matching the recipient page.
-// Applied via :style fallthrough on <BaseSecretDisplay>; depends on it staying
-// single-root (fallthrough merges onto that one root element).
+// Applied on the wrapper that holds both the relocated logo AND the card, so
+// the logo above the card inherits the same radius (custom properties cascade).
 const rootStyle = computed<Record<string, string>>(() => {
   const css = borderRadiusToCss(props.domainBranding?.border_radius);
   const style: Record<string, string> = {};
@@ -100,39 +98,36 @@ const actionButtonStyle = computed<Record<string, string>>(() => ({
 </script>
 
 <template>
-  <!-- Updated -->
-  <BaseSecretDisplay
-    :style="rootStyle"
-    :default-title="previewI18n.t('web.secrets.you_have_a_message')"
-    :domain-branding="domainBranding"
-    :preview-i18n="previewI18n"
-    :is-revealed="isRevealed"
-    :corner-class="cornerClass"
-    :font-class="fontFamilyClass"
-    :heading-class="headingFontClass">
-    <!-- Logo Upload Area -->
-    <template #logo>
-      <div class="group relative mx-auto sm:mx-0">
+  <!-- Scope the domain's corner-radius CSS var to the whole preview (logo + card)
+       so the relocated logo above the card rounds to THIS domain, like the card. -->
+  <div :style="rootStyle">
+    <!-- Logo opener: mirrors the recipient page's logo-only BrandedHero (centered
+         above the card, aspect-ratio-tolerant), but stays an interactive upload
+         control — the preview's logo is editable, so keep the click-to-upload
+         affordance and the empty-state prompt instead of hiding a missing logo. -->
+    <div class="mb-3 flex justify-center pt-6">
+      <div class="group relative">
         <button
           type="button"
           class="block cursor-pointer"
           :aria-label="t('web.branding.click_to_upload_a_logo_with_recommendation')"
           @click="isLogoModalOpen = true">
+          <!-- With a logo: fixed height, auto width — wide/rectangular logos use
+               the full width instead of being squished into a square. -->
+          <img
+            v-if="isValidLogo"
+            :src="logoSrc"
+            :alt="logoImage?.filename || t('web.layout.brand_logo')"
+            :class="cornerClass"
+            class="hover:ring-primary-500 h-16 w-auto max-w-full object-contain hover:ring-2 hover:ring-offset-2 sm:h-20" />
+          <!-- Without a logo: a fixed placeholder tile that prompts an upload
+               (wiggles for attention). The real page hides a missing logo; the
+               preview must always offer the affordance. -->
           <div
-            :class="[cornerClass, {
-              'animate-wiggle': !isValidLogo
-            }]"
-            class="hover:ring-primary-500 flex size-14 items-center justify-center overflow-hidden bg-gray-100 hover:ring-2 hover:ring-offset-2 sm:size-16 dark:bg-gray-700">
-            <img
-              v-if="isValidLogo"
-              :src="logoSrc"
-              :alt="logoImage?.filename || t('web.layout.brand_logo')"
-              class="size-16 object-contain"
-              :class="{
-                [cornerClass]: true,
-              }" />
+            v-else
+            :class="[cornerClass, 'animate-wiggle']"
+            class="hover:ring-primary-500 flex size-16 items-center justify-center overflow-hidden bg-gray-100 hover:ring-2 hover:ring-offset-2 sm:size-20 dark:bg-gray-700">
             <svg
-              v-else
               class="size-8 text-gray-400 dark:text-gray-500"
               fill="none"
               stroke="currentColor"
@@ -157,46 +152,55 @@ const actionButtonStyle = computed<Record<string, string>>(() => ({
           :on-remove="onLogoRemove"
           @close="isLogoModalOpen = false" />
       </div>
-    </template>
+    </div>
 
-    <template #content>
-      <textarea
-        v-if="isRevealed"
-        readonly
-        :class="[cornerClass]"
-        class="w-full resize-none border-0 bg-transparent
-            font-mono text-xs text-gray-700
-            focus:ring-0 sm:text-base dark:text-gray-300"
-        rows="3"
-        :aria-label="t('web.secrets.sample_secret_content')"
-        :value="textareaPlaceholder"></textarea>
+    <BaseSecretDisplay
+      :default-title="previewI18n.t('web.secrets.you_have_a_message')"
+      :domain-branding="domainBranding"
+      :preview-i18n="previewI18n"
+      :is-revealed="isRevealed"
+      :corner-class="cornerClass"
+      :font-class="fontFamilyClass"
+      :heading-class="headingFontClass">
+      <template #content>
+        <textarea
+          v-if="isRevealed"
+          readonly
+          :class="[cornerClass]"
+          class="w-full resize-none border-0 bg-transparent
+              font-mono text-xs text-gray-700
+              focus:ring-0 sm:text-base dark:text-gray-300"
+          rows="3"
+          :aria-label="t('web.secrets.sample_secret_content')"
+          :value="textareaPlaceholder"></textarea>
 
-      <div
-        v-else
-        class="flex items-center text-gray-400 dark:text-gray-500"
-        :class="[cornerClass, fontFamilyClass]">
-        <OIcon
-          collection="mdi"
-          name="eye-off"
-          class="mr-2 size-5" />
-        <span class="text-sm">{{ previewI18n.t('web.secrets.content_hidden') }}</span>
-      </div>
-    </template>
+        <div
+          v-else
+          class="flex items-center text-gray-400 dark:text-gray-500"
+          :class="[cornerClass, fontFamilyClass]">
+          <OIcon
+            collection="mdi"
+            name="eye-off"
+            class="mr-2 size-5" />
+          <span class="text-sm">{{ previewI18n.t('web.secrets.content_hidden') }}</span>
+        </div>
+      </template>
 
-    <template #action-button>
-      <!-- Action Button -->
-      <button
-        class="w-full py-3 text-base font-medium transition-colors sm:text-lg"
-        :class="[cornerClass, fontFamilyClass]"
-        :style="actionButtonStyle"
-        @click="toggleReveal"
-        :aria-expanded="isRevealed"
-        aria-controls="secretContent"
-        :aria-label="ariaLabelText">
-        {{ isRevealed ? previewI18n.t('web.secrets.hide_secret') : previewI18n.t('web.COMMON.click_to_continue') }}
-      </button>
-    </template>
-  </BaseSecretDisplay>
+      <template #action-button>
+        <!-- Action Button -->
+        <button
+          class="w-full py-3 text-base font-medium transition-colors sm:text-lg"
+          :class="[cornerClass, fontFamilyClass]"
+          :style="actionButtonStyle"
+          @click="toggleReveal"
+          :aria-expanded="isRevealed"
+          aria-controls="secretContent"
+          :aria-label="ariaLabelText">
+          {{ isRevealed ? previewI18n.t('web.secrets.hide_secret') : previewI18n.t('web.COMMON.click_to_continue') }}
+        </button>
+      </template>
+    </BaseSecretDisplay>
+  </div>
 </template>
 
 <style scoped>
