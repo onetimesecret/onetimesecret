@@ -174,6 +174,22 @@ if [[ -z "${ACCOUNT_ID_SECRET:-}" ]]; then
 fi
 VISUAL_ENV+=("ACCOUNT_ID_SECRET=$ACCOUNT_ID_SECRET")
 
+# tmp/ holds the server log and the ephemeral authdb below. Fresh checkouts
+# (CI) don't have it — and without it the boot's log redirect fails silently.
+mkdir -p "$REPO_ROOT/tmp"
+
+# Full auth mode needs an authdb. An ambient AUTH_DATABASE_URL (dev PG) wins;
+# otherwise use an ephemeral sqlite under tmp/, recreated every run. Two traps
+# this dodges: the default sqlite://data/auth.db lives in data/, which is an
+# untracked dev symlink (absent on fresh checkouts/CI); and a stale sqlite
+# from an older branch can be AHEAD of this code's schema, which fails boot
+# with a down-migration error. The visual pages are all noauth — the authdb
+# only has to exist and migrate for Rodauth to mount.
+if [[ -z "${AUTH_DATABASE_URL:-}" ]]; then
+  rm -f "$REPO_ROOT/tmp/visual-auth.db"
+  VISUAL_ENV+=("AUTH_DATABASE_URL=sqlite://tmp/visual-auth.db")
+fi
+
 # --- Asset staleness (screenshots of stale assets are worse than no run) ------
 if [[ "$MODE" != "seed-only" ]]; then
   if [[ ! -d "$DIST_DIR" ]]; then
@@ -187,9 +203,27 @@ if [[ "$MODE" != "seed-only" ]]; then
   echo "         If frontend code changed since then, run 'pnpm build' first."
 fi
 
+# --- Pin the rendered commit hash -----------------------------------------------
+# The footer version string is "v<pkg> (<hash>)" (lib/onetime/version.rb,
+# reading .commit_hash.txt in preference to git). The hash element is masked
+# in the screenshots, but its RENDERED WIDTH varies per hash (proportional
+# font), shifting the adjacent "Powered by" text a few px — enough to fail
+# the comparison on every commit. Pin the hash for the run; restore after.
+COMMIT_HASH_FILE="$REPO_ROOT/.commit_hash.txt"
+COMMIT_HASH_BAK=""
+if [[ -f "$COMMIT_HASH_FILE" ]]; then
+  COMMIT_HASH_BAK="$(cat "$COMMIT_HASH_FILE")"
+fi
+printf '0000000\n' >"$COMMIT_HASH_FILE"
+
 # --- Server lifecycle ----------------------------------------------------------
 SERVER_PID=""
 cleanup() {
+  if [[ -n "$COMMIT_HASH_BAK" ]]; then
+    printf '%s\n' "$COMMIT_HASH_BAK" >"$COMMIT_HASH_FILE"
+  else
+    rm -f "$COMMIT_HASH_FILE"
+  fi
   if [[ -n "$SERVER_PID" ]] && kill -0 "$SERVER_PID" 2>/dev/null; then
     kill "$SERVER_PID" 2>/dev/null || true
     wait "$SERVER_PID" 2>/dev/null || true
@@ -209,10 +243,6 @@ if [[ "$MODE" != "seed-only" ]]; then
     lsof -nP -iTCP:"$PORT" -sTCP:LISTEN >&2
     exit 1
   fi
-
-  # Fresh checkouts (CI) have no tmp/ — without it the log redirect fails
-  # and the backgrounded boot dies instantly with no log to show.
-  mkdir -p "$(dirname "$SERVER_LOG")"
 
   echo "Booting bin/ots server on :$PORT (log: $SERVER_LOG)..."
   env "${VISUAL_ENV[@]}" bin/ots server --port="$PORT" >"$SERVER_LOG" 2>&1 &
