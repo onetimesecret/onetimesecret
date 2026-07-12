@@ -620,13 +620,16 @@
     "content_hash": "c0e59f86"
   },
   "web.domains.signup.effective_status_label": {
-    "text": "Signups on this domain"
+    "text": "Signups on this domain",
+    "content_hash": "115ab21b"
   },
   "web.domains.signup.dormant_notice": {
-    "text": "Signups are turned off workspace-wide, so they are unavailable on every domain. Your settings here are kept and take effect when workspace signups are enabled again."
+    "text": "Signups are turned off workspace-wide, so they are unavailable on every domain. Your settings here are kept and take effect when workspace signups are enabled again.",
+    "content_hash": "49faefe4"
   },
   "web.domains.auth_override.workspace_default_badge": {
-    "text": "Workspace default"
+    "text": "Workspace default",
+    "content_hash": "da3706ee"
   },
   "web.domains.signup.strategy_label": {
     "text": "Validation strategy",
@@ -1254,10 +1257,12 @@
     "content_hash": "cb788a2d"
   },
   "web.domains.signin.effective_status_label": {
-    "text": "Sign-in on this domain"
+    "text": "Sign-in on this domain",
+    "content_hash": "d8b884c3"
   },
   "web.domains.signin.dormant_notice": {
-    "text": "Sign-in is turned off workspace-wide, so it is unavailable on every domain. Your settings here are kept and take effect when workspace sign-in is enabled again."
+    "text": "Sign-in is turned off workspace-wide, so it is unavailable on every domain. Your settings here are kept and take effect when workspace sign-in is enabled again.",
+    "content_hash": "723d35dc"
   },
   "web.domains.signin.signin_enabled_label": {
     "text": "Sign-in enabled",
