@@ -123,12 +123,23 @@ module Onetime
             return nil if event.nil?
 
             # Scrub sensitive URL paths and query parameters from event data.
-            # This covers both event.request.url and custom context set via
-            # scope.set_context('request', ...) in error handling middleware.
+            # This covers event.request.url, event.transaction (set from raw
+            # PATH_INFO by Sentry::Rack::CaptureExceptions), and custom context
+            # set via scope.set_context('request', ...) in error middleware.
             Onetime::Initializers::SetupDiagnostics.scrub_event_urls(event)
 
             # Return the event if it passes validation
             event
+          end
+
+          # before_send does NOT run for transaction (performance) events —
+          # with traces_sample_rate 0.1, sampled requests to /secret/:id would
+          # otherwise ship raw paths in the transaction name, request URL, and
+          # span data. Scrub them with the same rules as error events.
+          config.before_send_transaction = ->(event, _hint) do
+            return nil if event.nil?
+
+            Onetime::Initializers::SetupDiagnostics.scrub_transaction_event(event)
           end
         end
 
@@ -271,9 +282,10 @@ module Onetime
 
           # Scrub sensitive data from URLs in Sentry events
           #
-          # Handles two URL locations:
+          # Handles three URL locations:
           # 1. event.request.url - Standard Sentry request data
           # 2. event.contexts['request']['url'] - Custom context set by error middleware
+          # 3. event.transaction - Set from raw PATH_INFO by Sentry::Rack::CaptureExceptions
           #
           # @param event [Sentry::Event] The event to scrub
           # @return [Sentry::Event] The scrubbed event
@@ -285,6 +297,19 @@ module Onetime
               if scrubbed_url != original_url
                 event.request.url = scrubbed_url
                 OT.ld '[sentry] Scrubbed request.url'
+              end
+            end
+
+            # Scrub transaction name. The Rack middleware names transactions
+            # from PATH_INFO (source :url), so an error on /secret/<key>
+            # carries the identifier here unless scrubbed. Mirrors the
+            # frontend, which scrubs event.transaction in beforeSend.
+            if event.respond_to?(:transaction) && event.transaction
+              original_txn = event.transaction
+              scrubbed_txn = scrub_url(original_txn)
+              if scrubbed_txn != original_txn
+                event.transaction = scrubbed_txn
+                OT.ld '[sentry] Scrubbed transaction'
               end
             end
 
@@ -306,12 +331,57 @@ module Onetime
             # Note: intentionally not logging ex.message as it may contain URL fragments
             OT.ld "[sentry] URL scrubbing failed: #{ex.class}"
             event.request.url = '[SCRUBBING_FAILED]' if event.request&.url
+            if event.respond_to?(:transaction) && event.transaction
+              event.transaction = '[SCRUBBING_FAILED]'
+            end
             if event.contexts.is_a?(Hash) &&
                event.contexts['request'].is_a?(Hash) &&
                event.contexts['request']['url']
               event.contexts['request']['url'] = '[SCRUBBING_FAILED]'
             end
             event
+          end
+
+          # Scrub sensitive data from transaction (performance) events
+          #
+          # Runs from before_send_transaction, which sentry-ruby invokes
+          # instead of before_send for transaction events. Applies the same
+          # URL rules as error events, plus span-level scrubbing: spans on a
+          # TransactionEvent are already serialized to hashes, and http spans
+          # carry request URLs in :description and data.
+          #
+          # Fail-closed: returns nil (drops the event) if span scrubbing
+          # raises — losing one sampled transaction is cheaper than shipping
+          # an unscrubbed URL.
+          #
+          # @param event [Sentry::TransactionEvent] The transaction event
+          # @return [Sentry::TransactionEvent, nil] The scrubbed event, or nil
+          def scrub_transaction_event(event)
+            # Shared handling: request.url, transaction name, request context
+            scrub_event_urls(event)
+
+            spans = event.respond_to?(:spans) ? event.spans : nil
+            if spans.is_a?(Array)
+              spans.each do |span|
+                next unless span.is_a?(Hash)
+
+                [:description, 'description'].each do |key|
+                  span[key] = scrub_url(span[key]) if span[key].is_a?(String)
+                end
+
+                data = span[:data] || span['data']
+                next unless data.is_a?(Hash)
+
+                ['url', 'http.url', 'url.full', :url].each do |key|
+                  data[key] = scrub_url(data[key]) if data[key].is_a?(String)
+                end
+              end
+            end
+
+            event
+          rescue StandardError => ex
+            OT.ld "[sentry] Transaction scrubbing failed: #{ex.class}"
+            nil
           end
 
           # Scrub sensitive path segments and query parameters from a URL

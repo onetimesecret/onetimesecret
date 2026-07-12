@@ -17,6 +17,7 @@ const {
   mockSetTag,
   mockSetClient,
   mockClientInit,
+  mockSetTransactionName,
   mockGetBootstrapValue,
   MockBrowserClient,
   MockScope,
@@ -25,6 +26,7 @@ const {
   const mockSetClient = vi.fn();
   const mockClientInit = vi.fn();
   const mockClientClose = vi.fn().mockResolvedValue(undefined);
+  const mockSetTransactionName = vi.fn();
   const mockGetBootstrapValue = vi.fn();
 
   class MockBrowserClient {
@@ -35,12 +37,14 @@ const {
   class MockScope {
     setClient = mockSetClient;
     setTag = mockSetTag;
+    setTransactionName = mockSetTransactionName;
   }
 
   return {
     mockSetTag,
     mockSetClient,
     mockClientInit,
+    mockSetTransactionName,
     mockGetBootstrapValue,
     MockBrowserClient,
     MockScope,
@@ -86,6 +90,7 @@ function createMockRouter(): Router {
         meta: {},
       },
     },
+    afterEach: vi.fn(),
   } as unknown as Router;
 }
 
@@ -161,8 +166,9 @@ describe('createDiagnostics jurisdiction tagging', () => {
       router: createMockRouter(),
     });
 
-    expect(mockSetTag).toHaveBeenCalledTimes(1);
+    expect(mockSetTag).toHaveBeenCalledTimes(2);
     expect(mockSetTag).toHaveBeenCalledWith('service', 'web');
+    expect(mockSetTag).toHaveBeenCalledWith('site_host', TEST_HOST);
   });
 
   it('does not set jurisdiction tag when current_jurisdiction is null', () => {
@@ -174,8 +180,9 @@ describe('createDiagnostics jurisdiction tagging', () => {
       router: createMockRouter(),
     });
 
-    expect(mockSetTag).toHaveBeenCalledTimes(1);
+    expect(mockSetTag).toHaveBeenCalledTimes(2);
     expect(mockSetTag).toHaveBeenCalledWith('service', 'web');
+    expect(mockSetTag).toHaveBeenCalledWith('site_host', TEST_HOST);
   });
 
   it('does not set jurisdiction tag when current_jurisdiction is undefined', () => {
@@ -187,8 +194,9 @@ describe('createDiagnostics jurisdiction tagging', () => {
       router: createMockRouter(),
     });
 
-    expect(mockSetTag).toHaveBeenCalledTimes(1);
+    expect(mockSetTag).toHaveBeenCalledTimes(2);
     expect(mockSetTag).toHaveBeenCalledWith('service', 'web');
+    expect(mockSetTag).toHaveBeenCalledWith('site_host', TEST_HOST);
   });
 
   it('does not set jurisdiction tag when regions object is missing', () => {
@@ -200,8 +208,9 @@ describe('createDiagnostics jurisdiction tagging', () => {
       router: createMockRouter(),
     });
 
-    expect(mockSetTag).toHaveBeenCalledTimes(1);
+    expect(mockSetTag).toHaveBeenCalledTimes(2);
     expect(mockSetTag).toHaveBeenCalledWith('service', 'web');
+    expect(mockSetTag).toHaveBeenCalledWith('site_host', TEST_HOST);
   });
 
   it('does not set jurisdiction tag when regions object has no current_jurisdiction property', () => {
@@ -213,8 +222,9 @@ describe('createDiagnostics jurisdiction tagging', () => {
       router: createMockRouter(),
     });
 
-    expect(mockSetTag).toHaveBeenCalledTimes(1);
+    expect(mockSetTag).toHaveBeenCalledTimes(2);
     expect(mockSetTag).toHaveBeenCalledWith('service', 'web');
+    expect(mockSetTag).toHaveBeenCalledWith('site_host', TEST_HOST);
   });
 
   it('initializes Sentry client and scope', () => {
@@ -228,5 +238,47 @@ describe('createDiagnostics jurisdiction tagging', () => {
 
     expect(mockSetClient).toHaveBeenCalled();
     expect(mockClientInit).toHaveBeenCalled();
+  });
+
+  it('names transactions from the matched route record path on navigation', () => {
+    mockGetBootstrapValue.mockReturnValue({ current_jurisdiction: 'eu' });
+    const router = createMockRouter();
+
+    createDiagnostics({
+      host: TEST_HOST,
+      config: baseConfig,
+      router,
+    });
+
+    // Capture the afterEach hook and simulate a navigation to a secret link
+    const afterEachMock = router.afterEach as ReturnType<typeof vi.fn>;
+    expect(afterEachMock).toHaveBeenCalledTimes(1);
+    const hook = afterEachMock.mock.calls[0][0];
+
+    hook({
+      path: '/secret/abc123def456',
+      matched: [{ path: '/secret/:secretKey' }],
+    });
+
+    // Parameterized route path, not the resolved URL with the identifier
+    expect(mockSetTransactionName).toHaveBeenCalledWith('/secret/:secretKey');
+  });
+
+  it('falls back to the resolved path when no route record matched', () => {
+    mockGetBootstrapValue.mockReturnValue({ current_jurisdiction: 'eu' });
+    const router = createMockRouter();
+
+    createDiagnostics({
+      host: TEST_HOST,
+      config: baseConfig,
+      router,
+    });
+
+    const afterEachMock = router.afterEach as ReturnType<typeof vi.fn>;
+    const hook = afterEachMock.mock.calls[0][0];
+
+    hook({ path: '/unknown-page', matched: [] });
+
+    expect(mockSetTransactionName).toHaveBeenCalledWith('/unknown-page');
   });
 });

@@ -14,7 +14,7 @@
 /* eslint-disable max-classes-per-file */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ErrorEvent } from '@sentry/core';
+import type { ErrorEvent, TransactionEvent } from '@sentry/core';
 import type { Router, RouteLocationNormalizedLoaded } from 'vue-router';
 import type { RouteMeta } from '@/types/router';
 
@@ -129,6 +129,7 @@ function createMockRouter(config: {
         meta: config.meta,
       } as RouteLocationNormalizedLoaded,
     },
+    afterEach: vi.fn(),
   } as unknown as Router;
 }
 
@@ -527,5 +528,76 @@ describe('beforeSend handler', () => {
 
       expect(result.breadcrumbs?.[0].message).toBe('Log message');
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// beforeSendTransaction handler
+// ---------------------------------------------------------------------------
+
+describe('beforeSendTransaction handler', () => {
+  const originalConsoleDebug = console.debug;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    resetCapturedOptions();
+    console.debug = vi.fn();
+    mockGetBootstrapValue.mockReturnValue(null);
+  });
+
+  afterEach(() => {
+    console.debug = originalConsoleDebug;
+  });
+
+  function getBeforeSendTransaction(): (event: TransactionEvent) => TransactionEvent | null {
+    const options = getCapturedClientOptions();
+    if (!options) throw new Error('BrowserClient constructor was never called');
+    return options.beforeSendTransaction as (event: TransactionEvent) => TransactionEvent | null;
+  }
+
+  it('is wired into client options', () => {
+    setupWithRouter({ params: {}, meta: {} });
+    expect(getBeforeSendTransaction()).toBeTypeOf('function');
+  });
+
+  it('scrubs raw pageload transaction name and request.url', () => {
+    setupWithRouter({ params: {}, meta: {} });
+    const handler = getBeforeSendTransaction();
+
+    const event = {
+      type: 'transaction',
+      transaction: '/api/v2/secret/abc123def456',
+      request: { url: 'https://eu.onetimesecret.com/api/v2/secret/abc123def456' },
+    } as TransactionEvent;
+
+    const result = handler(event) as TransactionEvent;
+
+    expect(result.transaction).toBe('/api/v2/secret/[REDACTED]');
+    expect(result.request?.url).toBe('https://eu.onetimesecret.com/api/v2/secret/[REDACTED]');
+  });
+
+  it('scrubs span descriptions and URL data attributes', () => {
+    setupWithRouter({ params: {}, meta: {} });
+    const handler = getBeforeSendTransaction();
+
+    const event = {
+      type: 'transaction',
+      transaction: '/secret/:secretKey',
+      spans: [
+        {
+          description: 'GET /api/v2/secret/abc123def456',
+          data: { 'http.url': 'https://eu.onetimesecret.com/api/v2/secret/abc123def456' },
+        },
+      ],
+    } as unknown as TransactionEvent;
+
+    const result = handler(event) as TransactionEvent;
+
+    expect(result.spans?.[0].description).toBe('GET /api/v2/secret/[REDACTED]');
+    expect(result.spans?.[0].data?.['http.url']).toBe(
+      'https://eu.onetimesecret.com/api/v2/secret/[REDACTED]'
+    );
+    // Parameterized route names pass through untouched
+    expect(result.transaction).toBe('/secret/:secretKey');
   });
 });

@@ -5,6 +5,29 @@ import { initDiagnostics } from '@/services/diagnostics.service';
 import type { DiagnosticsConfig } from '@/types/diagnostics';
 import type { RouteMeta } from '@/types/router';
 import { DEBUG } from '@/utils/debug';
+import {
+  BrowserClient,
+  Scope,
+  breadcrumbsIntegration,
+  browserApiErrorsIntegration,
+  dedupeIntegration,
+  defaultStackParser,
+  eventFiltersIntegration,
+  functionToStringIntegration,
+  globalHandlersIntegration,
+  httpContextIntegration,
+  linkedErrorsIntegration,
+  makeFetchTransport,
+} from '@sentry/browser';
+import {
+  type Breadcrumb,
+  type ErrorEvent,
+  type Integration,
+  type TransactionEvent,
+} from '@sentry/core';
+import * as SentryVue from '@sentry/vue';
+import type { App, Plugin } from 'vue';
+import type { Router } from 'vue-router';
 import { collectValuesToRedact, scrubUrlWithValues } from './diagnostics/urlScrubbing';
 // Re-export scrubbing utilities from dependency-free module for backward compatibility
 export {
@@ -14,20 +37,6 @@ export {
   scrubSensitiveStrings,
   scrubUrlWithPatterns,
 } from './diagnostics/scrubbers';
-import {
-  BrowserClient,
-  Scope,
-  breadcrumbsIntegration,
-  dedupeIntegration,
-  defaultStackParser,
-  globalHandlersIntegration,
-  linkedErrorsIntegration,
-  makeFetchTransport,
-} from '@sentry/browser';
-import { type Breadcrumb, type ErrorEvent, type Integration } from '@sentry/core';
-import * as SentryVue from '@sentry/vue';
-import type { App, Plugin } from 'vue';
-import type { Router } from 'vue-router';
 
 export const SENTRY_KEY = Symbol('sentry');
 
@@ -225,6 +234,55 @@ function createBeforeSendHandler(router: Router) {
   };
 }
 
+/**
+ * Creates a Sentry beforeSendTransaction handler that scrubs sensitive URLs
+ * from performance (transaction) events.
+ *
+ * `beforeSend` only runs for error events — transaction events bypass it
+ * entirely. With tracing enabled (tracesSampleRate > 0), pageload/navigation
+ * transactions carry the raw URL in `transaction`, `request.url`, and in
+ * fetch/xhr span descriptions. The router instrumentation usually
+ * parameterizes the transaction name, but the initial pageload name and span
+ * URLs are raw, so everything gets the pattern net here.
+ *
+ * @internal Tested via the options captured by the BrowserClient mock,
+ * same as createBeforeSendHandler.
+ */
+function createBeforeSendTransactionHandler() {
+  return (event: TransactionEvent): TransactionEvent | null => {
+    if (event.transaction) {
+      event.transaction = scrubUrlWithPatterns(event.transaction);
+    }
+
+    if (event.request?.url) {
+      event.request.url = scrubUrlWithPatterns(event.request.url);
+    }
+
+    if (!event.spans) {
+      return event;
+    }
+    for (const span of event.spans) {
+      // Descriptions are free text ("GET /api/v2/secret/<id>"), not URLs —
+      // scrubUrlWithPatterns would route them through the URL parser and
+      // mangle the method prefix, so use the string scrubber.
+      if (span.description) {
+        span.description = scrubSensitiveStrings(span.description);
+      }
+      if (!span.data) {
+        continue;
+      }
+      for (const key of ['url', 'http.url', 'url.full'] as const) {
+        const value = span.data[key];
+        if (typeof value === 'string') {
+          span.data[key] = scrubUrlWithPatterns(value);
+        }
+      }
+    }
+
+    return event;
+  };
+}
+
 interface EnableDiagnosticsOptions {
   // Display domain. This is the domain the user is interacting with, not
   // the Sentry domain. Same meaning as `display_domain`.
@@ -275,6 +333,21 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
     globalHandlersIntegration(),
     linkedErrorsIntegration(),
     dedupeIntegration(),
+    // Attaches request.url (location.href), referrer, and user-agent to every
+    // event. Without this, events arrive with an empty `url` field. The URL
+    // passes through createBeforeSendHandler's scrubbing (route-param values
+    // plus the pattern net), so secret identifiers never reach Sentry.
+    httpContextIntegration(),
+    // Drops known-noise events (browser extension errors, old-browser
+    // garbage, matching denyUrls/ignoreErrors) before they hit the server.
+    // Renamed from inboundFiltersIntegration, deprecated in v10.
+    eventFiltersIntegration(),
+    // Wraps timer/event-listener/XHR callbacks so async errors carry full
+    // synthetic stack traces instead of terminating at the browser API boundary.
+    browserApiErrorsIntegration(),
+    // Preserves original function identity in stack traces for functions
+    // wrapped by browserApiErrors.
+    functionToStringIntegration(),
     SentryVue.browserTracingIntegration({ router }),
 
     /**
@@ -326,6 +399,9 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
     // Scrub sensitive route params from URLs in error events
     beforeSend: createBeforeSendHandler(router),
 
+    // Scrub URLs from performance events (beforeSend does not run for these)
+    beforeSendTransaction: createBeforeSendTransactionHandler(),
+
     // Scrub sensitive URLs from breadcrumbs at capture time
     beforeBreadcrumb: createBeforeBreadcrumbHandler(router),
     ...config.sentry, // includes dsn, environment, etc.
@@ -346,6 +422,29 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
   // Set default service tag for all events from this frontend app
   // @see https://github.com/onetimesecret/onetimesecret/issues/2964
   scope.setTag('service', 'web');
+
+  // Mirror the backend's site_host tag so multi-region / custom-domain
+  // deployments are distinguishable in the shared frontend project.
+  // @see lib/onetime/initializers/setup_diagnostics.rb
+  if (host) {
+    scope.setTag('site_host', host);
+  }
+
+  // Set the event `transaction` field from the matched route record's
+  // parameterized path (e.g. /secret/:secretKey), never the resolved URL.
+  // Inherently free of secret identifiers, so nothing to scrub.
+  //
+  // Why here and not via browserTracingIntegration: this app uses the
+  // isolated-client pattern (own BrowserClient + Scope, no global init).
+  // The router instrumentation names transactions on the *global* current
+  // scope, which events captured through this isolated scope never see —
+  // leaving `transaction` empty on every error event. afterEach fires on the
+  // initial navigation as well, so pageload errors are covered once routing
+  // resolves.
+  router.afterEach((to) => {
+    const parameterized = to.matched.at(-1)?.path ?? to.path;
+    scope.setTransactionName(parameterized);
+  });
 
   // Add jurisdiction tag for region-specific filtering in Sentry
   // Use bootstrap value directly since Pinia is not yet installed when

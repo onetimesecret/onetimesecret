@@ -7,6 +7,7 @@ require 'spec_helper'
 # Create top-level Struct definitions to prevent "already initialized constant" warnings
 MockConfig = Struct.new(:dsn, :environment, :release, :breadcrumbs_logger,
                        :traces_sample_rate, :profiles_sample_rate, :before_send,
+                       :before_send_transaction,
                        :org_id, :strict_trace_continuation,
                        keyword_init: true) unless defined?(MockConfig)
 EventStruct = Struct.new(:request, :contexts, keyword_init: true) unless defined?(EventStruct)
@@ -58,6 +59,7 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
     mock_config.traces_sample_rate = nil
     mock_config.profiles_sample_rate = nil
     mock_config.before_send = nil
+    mock_config.before_send_transaction = nil
     mock_config.org_id = nil
     mock_config.strict_trace_continuation = nil
 
