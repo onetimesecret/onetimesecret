@@ -4,8 +4,7 @@
   import type { BrandSettings } from '@/schemas/shapes/v3/custom-domain';
   import {
     cornerStyleClasses,
-    fontFamilyClasses,
-    type FontFamily,
+    resolveBodyFontClass,
   } from '@/shared/utils/brand-helpers';
   import { computed } from 'vue';
 
@@ -43,7 +42,7 @@
     :class="[
       cornerClass,
       branded ? 'w-full shadow-xl' : 'shadow-md',
-      branded && brandSettings?.font_family ? fontFamilyClasses[brandSettings.font_family as FontFamily] : ''
+      branded ? resolveBodyFontClass(brandSettings) : ''
     ]">
     <!-- Header slot for icon and title -->
     <slot

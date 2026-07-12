@@ -8,10 +8,11 @@ import ImageUploadModal from '@/shared/components/modals/ImageUploadModal.vue';
 import { useLogoImage } from '@/shared/composables/useLogoImage';
 import {
 CornerStyle,
-FontFamily,
 borderRadiusToCss,
 cornerStyleClasses,
-fontFamilyClasses
+fontFamilyClasses,
+resolveBodyFontClass,
+resolveHeadingFontClass
 } from '@/shared/utils/brand-helpers';
 import { computed, ref } from 'vue';
 import { Composer, useI18n } from 'vue-i18n';
@@ -65,18 +66,15 @@ const cornerClass = computed(() => {
   return cornerStyleClasses[style ?? CornerStyle.ROUNDED];
 });
 
-const fontFamilyClass = computed(() => {
-  const font = props.domainBranding?.font_family as FontFamily | undefined;
-  return fontFamilyClasses[font ?? FontFamily.SANS];
-});
+// The preview shows sans when the domain is unset because the dashboard page
+// font differs from the recipient page ('' would inherit the dashboard font).
+const fontFamilyClass = computed(
+  () => resolveBodyFontClass(props.domainBranding) || fontFamilyClasses.sans
+);
 
-// Mirror identityStore.headingFontClass: heading_font falls back to the body
-// font_family, so the preview heading tracks the recipient page.
-const headingFontClass = computed(() => {
-  const heading = (props.domainBranding?.heading_font ??
-    props.domainBranding?.font_family) as FontFamily | undefined;
-  return fontFamilyClasses[heading ?? FontFamily.SANS];
-});
+const headingFontClass = computed(
+  () => resolveHeadingFontClass(props.domainBranding) || fontFamilyClasses.sans
+);
 
 // Expanded vocabulary (#3646). The preview renders an arbitrary domain's
 // settings (not the editing admin's injected palette). Scope this domain's

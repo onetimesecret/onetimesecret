@@ -24,6 +24,8 @@ import {
   borderRadiusOptions,
   borderRadiusDisplayMap,
   borderRadiusIconMap,
+  resolveBodyFontClass,
+  resolveHeadingFontClass,
 } from '@/shared/utils/brand-helpers';
 import { describe, expect, it } from 'vitest';
 
@@ -311,6 +313,67 @@ describe('brand-helpers', () => {
         expect(borderRadiusDisplayMap[preset]).toBeTruthy();
         expect(borderRadiusIconMap[preset]).toBeTruthy();
       }
+    });
+  });
+
+  describe('resolveBodyFontClass', () => {
+    it('maps a known font_family to its utility class', () => {
+      expect(resolveBodyFontClass({ font_family: 'slab' })).toBe('font-brand-slab');
+      expect(resolveBodyFontClass({ font_family: 'sans' })).toBe('font-sans');
+    });
+
+    it('returns empty string when font_family is unset', () => {
+      expect(resolveBodyFontClass({})).toBe('');
+      expect(resolveBodyFontClass({ font_family: null })).toBe('');
+      expect(resolveBodyFontClass({ font_family: '' })).toBe('');
+    });
+
+    it('returns empty string for unknown font values', () => {
+      expect(resolveBodyFontClass({ font_family: 'comic-sans' })).toBe('');
+      // Inherited Object.prototype keys must not resolve to a Function.
+      expect(resolveBodyFontClass({ font_family: 'toString' })).toBe('');
+    });
+
+    it('returns empty string for nullish brand', () => {
+      expect(resolveBodyFontClass(null)).toBe('');
+      expect(resolveBodyFontClass(undefined)).toBe('');
+    });
+  });
+
+  describe('resolveHeadingFontClass', () => {
+    it('heading_font wins over font_family', () => {
+      expect(
+        resolveHeadingFontClass({ font_family: 'sans', heading_font: 'slab' })
+      ).toBe('font-brand-slab');
+    });
+
+    it('font_family backfills when heading_font is unset', () => {
+      expect(resolveHeadingFontClass({ font_family: 'serif' })).toBe('font-serif');
+      expect(
+        resolveHeadingFontClass({ font_family: 'serif', heading_font: null })
+      ).toBe('font-serif');
+    });
+
+    it('returns empty string when both are unset', () => {
+      expect(resolveHeadingFontClass({})).toBe('');
+      expect(
+        resolveHeadingFontClass({ font_family: null, heading_font: null })
+      ).toBe('');
+    });
+
+    it('returns empty string for unknown font values', () => {
+      expect(
+        resolveHeadingFontClass({ font_family: 'sans', heading_font: 'papyrus' })
+      ).toBe('');
+      // Inherited Object.prototype keys must not resolve to a Function.
+      expect(
+        resolveHeadingFontClass({ heading_font: 'constructor' })
+      ).toBe('');
+    });
+
+    it('returns empty string for nullish brand', () => {
+      expect(resolveHeadingFontClass(null)).toBe('');
+      expect(resolveHeadingFontClass(undefined)).toBe('');
     });
   });
 });

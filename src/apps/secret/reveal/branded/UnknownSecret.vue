@@ -3,7 +3,10 @@
 <script setup lang="ts">
   import type { BrandSettings } from '@/schemas/shapes/v3/custom-domain';
   import BaseUnknownSecret from '@/shared/components/base/BaseUnknownSecret.vue';
-  import { fontFamilyClasses, type FontFamily } from '@/shared/utils/brand-helpers';
+  import {
+    resolveBodyFontClass,
+    resolveHeadingFontClass,
+  } from '@/shared/utils/brand-helpers';
   import { computed } from 'vue';
   import { useI18n } from 'vue-i18n';
 
@@ -16,17 +19,9 @@ const { t } = useI18n();
 
   const props = defineProps<Props>();
 
-  const fontClass = computed(() => {
-    const font = props.brandSettings?.font_family;
-    return font ? (fontFamilyClasses[font as FontFamily] ?? '') : '';
-  });
+  const fontClass = computed(() => resolveBodyFontClass(props.brandSettings));
 
-  // Heading ladder mirrors identityStore.headingFontClass:
-  // heading_font wins, font_family backfills, unset inherits.
-  const headingClass = computed(() => {
-    const font = props.brandSettings?.heading_font ?? props.brandSettings?.font_family;
-    return font ? (fontFamilyClasses[font as FontFamily] ?? '') : '';
-  });
+  const headingClass = computed(() => resolveHeadingFontClass(props.brandSettings));
 </script>
 
 <template>

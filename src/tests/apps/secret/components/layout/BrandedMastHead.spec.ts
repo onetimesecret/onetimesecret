@@ -1,6 +1,6 @@
 // src/tests/apps/secret/components/layout/BrandedMastHead.spec.ts
 //
-// Guards two behaviours of the custom-domain masthead:
+// Guards three behaviours of the custom-domain masthead:
 //   1. Logo accessibility: the logo image must carry a meaningful alt (the
 //      brand/workspace display name) rather than an empty alt.
 //   2. Auth nav links default OFF: the Create Account / Sign In links only
@@ -8,6 +8,8 @@
 //      (signup_enabled/signin_enabled === true). A null homepage_config or a
 //      false flag keeps them hidden — recipients and employees arriving via a
 //      shared link should not see account chrome unless an operator enabled it.
+//   3. Heading font: the h1 renders through BrandedHero and carries the
+//      heading font token (heading_font), not the body font_family.
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, afterEach } from 'vitest';
@@ -99,6 +101,31 @@ describe('BrandedMastHead logo accessibility', () => {
     await nextTick();
 
     expect(wrapper.find('img').attributes('alt')).toBe('secrets.acme.com');
+  });
+});
+
+describe('BrandedMastHead heading font', () => {
+  let wrapper: VueWrapper;
+
+  afterEach(() => {
+    if (wrapper) wrapper.unmount();
+  });
+
+  it('binds the heading font token (not the body font) on the h1', async () => {
+    wrapper = mountBranded({
+      domain_branding: {
+        description: 'Acme Corp',
+        primary_color: '#36454F',
+        font_family: 'serif',
+        heading_font: 'slab',
+      },
+    });
+    await nextTick();
+
+    const h1 = wrapper.find('h1');
+    expect(h1.exists()).toBe(true);
+    expect(h1.classes()).toContain('font-brand-slab');
+    expect(h1.classes()).not.toContain('font-serif');
   });
 });
 

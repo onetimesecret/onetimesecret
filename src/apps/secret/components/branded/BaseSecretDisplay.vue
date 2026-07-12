@@ -12,8 +12,11 @@
    * @prop defaultTitle - Fallback title when branding is unavailable
    * @prop instructions - Optional pre-reveal instructions from domain branding
    * @prop domainBranding - Domain-specific styling configuration
-   * @prop headingClass - Heading font class (heading_font); the h2 falls back
-   *   to fontClass when absent so headings track the body font by default
+   * @prop headingClass - Resolved heading font token (the heading_font-
+   *   backfilled-by-font_family ladder lives in resolveHeadingFontClass);
+   *   required so a missing binding is a type error, not a silent body-font
+   *   heading. Callers scope the resolution themselves — the dashboard
+   *   preview resolves the domain being edited, not the page identity.
    *
    * @slot logo - Domain logo or fallback icon
    * @slot content - Main content area (confirmation form or secret content)
@@ -30,7 +33,7 @@
     domainBranding: BrandSettings;
     cornerClass: string;
     fontClass: string;
-    headingClass?: string;
+    headingClass: string;
     defaultTitle?: string;
     previewI18n?: Composer;
     isRevealed?: boolean;
@@ -102,7 +105,7 @@
       <div class="flex-1 text-center sm:text-left">
         <div class="relative min-h-[5.5rem] sm:min-h-24">
           <h2
-            :class="[cornerClass, headingClass || fontClass]"
+            :class="[cornerClass, headingClass]"
             class="mb-2 text-base font-medium leading-normal
               text-gray-900 dark:text-gray-200 sm:mb-3 sm:text-xl">
             <slot name="title">

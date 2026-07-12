@@ -127,6 +127,56 @@ export const cornerStyleClasses: Record<CornerStyle, string> = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Font class resolvers
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Minimal structural view of the brand font fields, so both store state and
+ * BrandSettings schema objects (v2/v3, which type the fields as enum unions)
+ * can be passed without casts.
+ */
+export type BrandFontFields = {
+  font_family?: string | null;
+  heading_font?: string | null;
+} | null | undefined;
+
+/**
+ * Resolves the body font utility class for a brand.
+ *
+ * Returns `''` when the brand is nullish, `font_family` is unset, or the value
+ * is not a known FontFamily — callers bind the result directly and an empty
+ * class inherits the surrounding font. `Object.hasOwn` (not `in`) so inherited
+ * keys like `'toString'` count as unknown rather than resolving to a Function.
+ *
+ * Together with {@link resolveHeadingFontClass}, this is the ONLY place
+ * allowed to index `fontFamilyClasses` by dynamic key (the brand-token guard
+ * spec enforces it): the value→class mapping drifted when hand-copied into
+ * consumers, rendering headings in the body font.
+ */
+export function resolveBodyFontClass(brand: BrandFontFields): string {
+  const font = brand?.font_family;
+  return font && Object.hasOwn(fontFamilyClasses, font)
+    ? fontFamilyClasses[font as FontFamily]
+    : '';
+}
+
+/**
+ * Resolves the heading font utility class for a brand.
+ *
+ * Heading ladder: `heading_font ?? font_family` — a dedicated heading font
+ * wins, the body font backfills when it is unset. Unset/unknown resolve to
+ * `''` with the same fallback semantics as {@link resolveBodyFontClass},
+ * which also documents why dynamic `fontFamilyClasses` indexing lives here
+ * and nowhere else.
+ */
+export function resolveHeadingFontClass(brand: BrandFontFields): string {
+  const font = brand?.heading_font ?? brand?.font_family;
+  return font && Object.hasOwn(fontFamilyClasses, font)
+    ? fontFamilyClasses[font as FontFamily]
+    : '';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Border radius (expanded, #3646)
 // ─────────────────────────────────────────────────────────────────────────────
 
