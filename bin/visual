@@ -294,15 +294,16 @@ if [[ "$MODE" == "update" ]]; then
   UPDATE_ARG="--update-snapshots"
 fi
 
-# Networking differs by runtime:
-# - podman (macOS): gvproxy NATs host.containers.internal to the mac host's
-#   127.0.0.1 (see header comment), so the default bridge network works.
-# - docker (linux CI): host.docker.internal:host-gateway maps to the bridge
-#   gateway, which can NOT reach puma's 127.0.0.1 bind — so share the host's
-#   network namespace instead and resolve the fixture hosts straight to
-#   127.0.0.1.
+# Networking differs by HOST OS, not by runtime (GitHub runners preinstall
+# podman too, so never branch on the runtime name):
+# - macOS: the podman machine's gvproxy NATs host.containers.internal to the
+#   mac host's 127.0.0.1 (see header comment), so the default bridge network
+#   works.
+# - Linux (CI, either runtime): no VM in the middle, and bridge gateways can
+#   NOT reach puma's 127.0.0.1 bind — share the host's network namespace and
+#   resolve the fixture hosts straight to 127.0.0.1.
 NETWORK_ARGS=()
-if [[ "$CONTAINER_RUNTIME" == "docker" && "$(uname -s)" == "Linux" ]]; then
+if [[ "$(uname -s)" == "Linux" ]]; then
   NETWORK_ARGS=(--network host)
   RESOLVER_DEFAULT="127.0.0.1"
 else
