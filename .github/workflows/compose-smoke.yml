@@ -90,7 +90,16 @@ jobs:
           docker compose -f docker/compose/docker-compose.simple.yml \
             up -d --wait --wait-timeout 180 --quiet-pull --renew-anon-volumes
 
-      - name: Proof of life
+      # POL_CREATE_ACCOUNT (the C4 follow-on): proof-of-life's opt-in step 4
+      # creates a first account via bin/ots inside the app container and
+      # asserts an authenticated /api/v2/account round-trip — the documented
+      # "create your first account" path, exercised in simple auth mode.
+      # docker-run-readme below stays default-off: it runs the published
+      # README tag, which may predate the CLI contract this step depends on.
+      - name: Proof of life (incl. first-account step)
+        env:
+          POL_CREATE_ACCOUNT: "1"
+          POL_EXEC: docker compose -f docker/compose/docker-compose.simple.yml exec -T app
         run: ./scripts/test-install/proof-of-life.sh http://127.0.0.1:3000
 
       - name: Dump logs on failure
@@ -146,11 +155,14 @@ jobs:
 
       # The app service publishes no host port (ingress is Caddy-only), so
       # the shared proof-of-life runs inside the app container via stdin —
-      # same assertions as every other lane.
-      - name: Proof of life (inside the app container)
+      # same assertions as every other lane. POL_CREATE_ACCOUNT rides along
+      # (POL_EXEC stays empty: bin/ots runs in-container at /app), which
+      # exercises first-account provisioning against the full-mode sqlite
+      # authdb the entrypoint just migrated.
+      - name: Proof of life (inside the app container, incl. first account)
         run: |
           docker compose -f docker/compose/docker-compose.full.yml \
-            exec -T app bash -s -- http://127.0.0.1:3000 \
+            exec -T -e POL_CREATE_ACCOUNT=1 app bash -s -- http://127.0.0.1:3000 \
             < scripts/test-install/proof-of-life.sh
 
       # Ingress: Caddy serves {$DOMAIN}:443 (DOMAIN=localhost here) with its

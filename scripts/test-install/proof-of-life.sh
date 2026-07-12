@@ -16,7 +16,8 @@
 #      create a secret -> retrieve it once (value matches) -> second retrieval
 #      is gone (at-most-once).
 #   4. (opt-in: POL_CREATE_ACCOUNT=1) first account: `bin/ots apitoken
-#      --create --role colonel` -> authenticated GET /api/v2/account is 200.
+#      --create --role colonel` -> authenticated GET /api/v2/receipt/recent
+#      is 200 (basicauth-only route, so a 200 proves the credentials).
 #      Default off — see the step-4 section below for POL_* env vars.
 #
 # Packaged once so Tier 1 (run.sh), 2a (compose-smoke), 2b (installer-matrix)
@@ -129,8 +130,17 @@ if [[ "${POL_CREATE_ACCOUNT:-0}" == "1" ]]; then
   [[ -n "$pol_token" ]] || die "apitoken output had no 'API Token: ' line: $apitoken_out"
   pass "account $pol_email created with API token"
 
-  auth_code="$(curl_code "$BASE/api/v2/account" -u "$pol_email:$pol_token")"
-  [[ "$auth_code" == "200" ]] || die "authenticated GET /api/v2/account returned $auth_code (want 200)"
+  # /api/v2/receipt/recent is auth=basicauth with no noauth fallback: a 200
+  # can only mean the email:token pair authenticated. Prove that premise
+  # first — anonymous must NOT get a 200 — so the authenticated 200 means
+  # something.
+  noauth_code="$(curl_code "$BASE/api/v2/receipt/recent")"
+  [[ "$noauth_code" != "200" ]] \
+    || die "unauthenticated GET /api/v2/receipt/recent returned 200 — endpoint cannot prove credentials"
+  pass "endpoint rejects anonymous ($noauth_code)"
+
+  auth_code="$(curl_code "$BASE/api/v2/receipt/recent" -u "$pol_email:$pol_token")"
+  [[ "$auth_code" == "200" ]] || die "authenticated GET /api/v2/receipt/recent returned $auth_code (want 200)"
   pass "authenticated API round-trip 200"
 fi
 
