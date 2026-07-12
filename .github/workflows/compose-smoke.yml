@@ -121,10 +121,20 @@ jobs:
 
       # Same interpolation story as compose-smoke above: SECRET into the job
       # env for `${SECRET:?}` interpolation, repo-root .env for `env_file:`.
+      # This job also runs AUTHENTICATION_MODE=full (Rodauth), which enables
+      # rodauth-tools' hmac_secret_guard and account_id_obfuscation — both
+      # fail-closed in production (unset RACK_ENV counts as production) when
+      # AUTH_SECRET / ACCOUNT_ID_SECRET are blank, so seed those into the job
+      # env too (docker-compose.full.yml interpolates them the same way as
+      # SECRET, via `${AUTH_SECRET:-}` / `${ACCOUNT_ID_SECRET:-}`).
       - name: Seed SECRET (interpolation) and .env (env_file target)
         run: |
           secret="$(openssl rand -hex 32)"
+          auth_secret="$(openssl rand -hex 32)"
+          account_id_secret="$(openssl rand -hex 32)"
           echo "SECRET=$secret" >> "$GITHUB_ENV"
+          echo "AUTH_SECRET=$auth_secret" >> "$GITHUB_ENV"
+          echo "ACCOUNT_ID_SECRET=$account_id_secret" >> "$GITHUB_ENV"
           echo "SECRET=$secret" > .env
 
       # Build the app image FROM SOURCE via the same bake config releases
