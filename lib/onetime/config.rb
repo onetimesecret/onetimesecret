@@ -786,6 +786,23 @@ module Onetime
         conf['development']['allow_nil_global_secret'] = false
       end
 
+      # ADR-024: development frontend mode (RACK_ENV=development) makes the app
+      # proxy /dist/* to a Vite dev server. That is a source-editing workflow and
+      # needs the frontend build toolchain, which only a source checkout has. A
+      # deployment artifact — notably the production container image, whose
+      # Dockerfile prunes node_modules — has no toolchain and cannot host or reach
+      # a Vite server, so the proxy surfaces as a per-request 500. Refuse to boot
+      # loudly instead of serving a container that silently 500s every asset.
+      if conf.dig('development', 'enabled') && !frontend_dev_workflow_available?
+        raise OT::ConfigError, <<~MSG.chomp
+          development.enabled is true (RACK_ENV=#{ENV['RACK_ENV'].inspect}) but this build has no Vite frontend toolchain — it is a deployment artifact (e.g. the production container image) that serves pre-built assets and cannot host or proxy a Vite dev server (ADR-024).
+            Fix one of:
+              - Containers: serve the assets baked at build time — unset RACK_ENV or set RACK_ENV=production.
+              - Frontend dev: run on the host where the toolchain lives (bin/dev), not the shipped image.
+            Deliberately proxying to an external Vite? Set ONETIME_ALLOW_DEV_FRONTEND=true to bypass this guard.
+        MSG
+      end
+
       allow_nil     = conf.dig('development', 'allow_nil_global_secret') || false
       global_secret = conf.dig('site', 'secret') || nil
       global_secret = nil if global_secret.to_s.strip == 'CHANGEME'
@@ -814,6 +831,19 @@ module Onetime
       unless conf['mail'].key?('truemail')
         raise OT::ConfigError, 'No TrueMail config found'
       end
+    end
+
+    # True when this process can participate in the Vite dev-server workflow:
+    # either the frontend build toolchain is present (a source checkout) or the
+    # operator has explicitly opted into an external-Vite topology. Used to reject
+    # development frontend mode on a deployment artifact at boot (ADR-024).
+    #
+    # @return [Boolean]
+    def frontend_dev_workflow_available?
+      return true if %w[1 true yes].include?(ENV['ONETIME_ALLOW_DEV_FRONTEND'].to_s.strip.downcase)
+
+      home = ENV.fetch('ONETIME_HOME', '.')
+      File.exist?(File.join(home, 'node_modules', '.bin', 'vite'))
     end
 
     # Detects deprecated configuration keys and environment variables.
