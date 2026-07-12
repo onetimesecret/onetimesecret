@@ -15,13 +15,11 @@ module DomainsAPI
       #   custom_signin_config entitlement.
       #
       # Response includes:
-      # - enabled: Whether per-domain signin config is active
-      # - signin_enabled: Boolean override for AUTH_SIGNIN
-      # - restrict_to: Nullable restriction to a single auth method
-      # - email_auth_enabled: Boolean override for email auth
-      # - sso_enabled: Boolean override for SSO
-      # - created_at: Unix timestamp
-      # - updated_at: Unix timestamp
+      # - record: the raw flag pair + overrides, or null when the domain is
+      #   unconfigured. Unconfigured is a first-class state (200, not 404) so
+      #   the settings UI can render the inherited global state (ADR-024).
+      # - details: global_enabled / effective_enabled / global_restrict_to —
+      #   the resolver's output, which the UI displays instead of re-deriving.
       #
       class GetSigninConfig < Base
         attr_reader :signin_config
@@ -37,7 +35,6 @@ module DomainsAPI
           authorize_domain_signin_config!(@domain_id)
 
           @signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(@custom_domain.identifier)
-          raise_not_found("Signin configuration not found for domain: #{@domain_id}") if @signin_config.nil?
         end
 
         def process
@@ -49,7 +46,8 @@ module DomainsAPI
         def success_data
           {
             user_id: cust.extid,
-            record: serialize_signin_config(@signin_config),
+            record: @signin_config.nil? ? nil : serialize_signin_config(@signin_config),
+            details: signin_override_details(@signin_config),
           }
         end
 

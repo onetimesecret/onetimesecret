@@ -41,31 +41,7 @@
   const fontFamilyClass = computed(() => productIdentity.fontFamilyClass);
   const headingFontClass = computed(() => productIdentity.headingFontClass);
 
-  const hasImageError = ref(false);
-
-  const cornerStyle = computed(() => {
-    switch (productIdentity.brand?.corner_style) {
-      case 'rounded':
-        return 'rounded-lg';
-      case 'pill':
-        return 'rounded-full';
-      case 'square':
-        return 'rounded-none';
-      default:
-        return 'rounded-lg';
-    }
-  });
-
-  const handleImageError = () => {
-    hasImageError.value = true;
-  };
-
   const buttonText = computed(() => props.isSubmitting ? t('web.COMMON.submitting') : t('web.COMMON.click_to_continue'));
-  // Brand logo via the backend-computed URL (built with the domain's public
-  // extid). A client-side `/imagine/${domainId}/logo.png` path 404s — the
-  // internal domainId isn't the extid — tripping @error and showing the
-  // placeholder lock even when a logo is configured (see SecretDisplayCase).
-  const logoImage = computed(() => productIdentity.logoUri);
 </script>
 
 <template>
@@ -76,44 +52,6 @@
     :corner-class="cornerClass"
     :font-class="fontFamilyClass"
     :heading-class="headingFontClass">
-    <template #logo>
-      <div class="relative mx-auto sm:mx-0">
-        <div :class="[cornerStyle, 'size-14 overflow-hidden sm:size-16']">
-          <!-- Background container with matching corner style -->
-          <div
-            :class="[
-              cornerStyle,
-              'absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-700',
-              { hidden: logoImage && !hasImageError },
-            ]">
-            <!-- Default lock icon -->
-            <svg
-              v-if="!logoImage || hasImageError"
-              class="size-8 text-gray-400 dark:text-gray-500"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              aria-hidden="true">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-          </div>
-
-          <!-- Logo -->
-          <img
-            v-if="logoImage && !hasImageError"
-            :src="logoImage"
-            :alt="t('web.layout.brand_logo')"
-            class="size-full object-contain"
-            :class="cornerStyle"
-            @error="handleImageError" />
-        </div>
-      </div>
-    </template>
-
     <template #content>
       <div
         class="flex items-center text-gray-400 dark:text-gray-500"

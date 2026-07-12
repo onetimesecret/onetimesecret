@@ -6,7 +6,7 @@
   import type { Secret, SecretDetails } from '@/schemas/shapes/v3/secret';
   import { useClipboard } from '@/shared/composables/useClipboard';
   import { useProductIdentity } from '@/shared/stores/identityStore';
-  import { ref, computed } from 'vue';
+  import { computed } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   // Default brand settings for when no custom branding is configured
@@ -43,10 +43,8 @@
       props.submissionStatus?.status === 'success',
   }));
 
-  const hasImageError = ref(false);
   const { isCopied, copyToClipboard } = useClipboard();
 
-  const logoAriaLabel = hasImageError.value ? t('web.branding.default_logo_icon') : t('web.layout.brand_logo')
   const copySecretContent = async () => {
     if (props.record?.secret_value === undefined) {
       return;
@@ -63,16 +61,7 @@
     setTimeout(() => announcement.remove(), 1000);
   };
 
-  const handleImageError = () => {
-    hasImageError.value = true;
-  };
   const isCopiedText = computed(() => isCopied ? t('web.STATUS.copied') : t('web.LABELS.copy_to_clipboard') );
-
-  // Brand logo for the reveal card. Use the backend-computed URL (built with
-  // the domain's public extid), not a client-side path from the internal
-  // domainId — the latter 404s, tripping @error and showing the placeholder
-  // lock icon even when a logo is configured. Null (no logo) → placeholder.
-  const logoImage = computed(() => productIdentity.logoUri);
 </script>
 
 <template>
@@ -128,43 +117,6 @@
         </div>
       </div>
     </div>
-
-    <template #logo>
-      <!-- Brand Icon -->
-      <div class="relative mx-auto sm:mx-0">
-        <router-link to="/">
-          <div
-            :class="[cornerClass]"
-            class="flex size-14 items-center justify-center bg-gray-100 sm:size-16 dark:bg-gray-700"
-            role="img"
-            :aria-label="logoAriaLabel">
-            <!-- Default lock icon -->
-            <svg
-              v-if="!logoImage || hasImageError"
-              class="size-8 text-gray-400 dark:text-gray-500"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              aria-hidden="true">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-
-            <!-- Logo -->
-            <img
-              v-if="logoImage && !hasImageError"
-              :src="logoImage"
-              :alt="t('web.layout.brand_logo')"
-              class="size-16 object-contain"
-              :class="[cornerClass]"
-              @error="handleImageError" />
-          </div>
-        </router-link>
-      </div>
-    </template>
 
     <template #content>
       <div class="relative size-full p-0">

@@ -1,6 +1,7 @@
 <!-- src/apps/secret/conceal/BrandedHomepage.vue -->
 
 <script setup lang="ts">
+  import BrandedHero from '@/apps/secret/components/branded/BrandedHero.vue';
   import SecretForm from '@/apps/secret/components/form/SecretForm.vue';
   import IncomingSecretFormBody from '@/apps/secret/components/incoming/IncomingSecretFormBody.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
@@ -20,10 +21,8 @@
     homepageSecretsMode,
     primaryColor,
     cornerClass,
-    headingFontClass,
+    fontFamilyClass,
     buttonTextLight,
-    logoUri,
-    displayName,
   } = storeToRefs(identityStore);
 
   const incomingMode = computed(
@@ -98,37 +97,16 @@
       ? t('web.homepage.deliver_sensitive_information_directly_and_securely')
       : t('web.homepage.send_sensitive_information_that_can_only_be_viewed_once')
   );
-
-  // Handle logo 404 errors gracefully
-  const imageError = ref(false);
-  const handleImageError = () => {
-    imageError.value = true;
-  };
 </script>
 
 <template>
-  <div class="relative mx-auto w-full max-w-xl px-4">
-    <!-- Logo + Taglines (centered brand hero for custom domains) -->
-    <div class="mb-8 text-center">
-      <!-- Logo with error handling - hides if 404 -->
-      <div
-        v-if="logoUri && !imageError"
-        class="mb-24 flex justify-center">
-        <img
-          :src="logoUri"
-          class="h-16 max-w-[200px] object-contain"
-          :alt="displayName"
-          @error="handleImageError" />
-      </div>
-      <h1
-        :class="headingFontClass"
-        class="text-2xl font-semibold text-gray-900 dark:text-white">
-        {{ headline }}
-      </h1>
-      <p class="mt-2 text-gray-600 dark:text-gray-300">
-        {{ subline }}
-      </p>
-    </div>
+  <div
+    :class="fontFamilyClass"
+    class="relative mx-auto w-full max-w-xl px-4">
+    <BrandedHero
+      class="mb-8"
+      :title="headline"
+      :subtitle="subline" />
 
     <!--
       Custom Domain Homepage (branded landing for self-hosted workspaces)

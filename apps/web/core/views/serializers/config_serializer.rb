@@ -215,7 +215,8 @@ module Core
         # instead of the auth form. The runtime POST gate lives in
         # Core::Controllers::Base#signin_enabled? and resolves through the
         # same SigninConfig.resolve_signin_enabled helper, so the rendered
-        # page and the POST handler cannot disagree.
+        # page and the POST handler cannot disagree. Resolution semantics:
+        # ADR-024.
         #
         # @param view_vars [Hash] View variables with request context
         # @return [Boolean] true if sign-in is available

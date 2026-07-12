@@ -69,6 +69,20 @@ export const CornerStyle = {
 export const fontOptions = [...fontFamilyValues];
 
 /**
+ * UI-visible subset of {@link fontOptions} shown in the branding editor.
+ *
+ * The full allowlist (fontFamilyValues) keeps all 8 values for back-compat and
+ * runtime rendering, but the picker only surfaces these four: the three generic
+ * families plus `system`. The extra style-classification fonts (slab, rounded,
+ * humanist, geometric) mostly degrade to the same system fallback across
+ * viewers — only `slab` is deterministic (self-hosted) — so exposing them
+ * over-promised a look the recipient rarely got. Domains already set to a
+ * hidden value keep rendering it; the editor re-adds the current value as an
+ * option so the selection stays visible (see SimpleBrandPanel `fontChoices`).
+ */
+export const uiFontOptions: FontFamily[] = ['serif', 'sans', 'mono', 'system'];
+
+/**
  * Array of valid corner style values for form options.
  */
 export const cornerStyleOptions = [...cornerStyleValues];
@@ -80,13 +94,19 @@ export const cornerStyleOptions = [...cornerStyleValues];
 /**
  * Maps font family values to Tailwind CSS font-family utility classes.
  *
- * The original sans/serif/mono trio reuses Tailwind's built-in families. The
- * expanded values map to `font-brand-*` utilities backed by `--font-brand-*`
- * theme tokens defined in `src/assets/style.css` (@theme static), so the
- * scanner always sees a static class and the utility resolves at runtime.
+ * `serif`/`mono` reuse Tailwind's built-in families. Everything else — including
+ * `sans` — maps to a `font-brand-*` utility backed by a `--font-brand-*` theme
+ * token in `src/assets/style.css` (@theme static), so the scanner always sees a
+ * static class and the utility resolves at runtime.
+ *
+ * `sans` is deliberately NOT `font-sans`: Tailwind's default `font-sans` leads
+ * with `ui-sans-serif, system-ui`, which resolve to the OS UI font (San
+ * Francisco on macOS) — identical to the `system` option. `font-brand-sans`
+ * pins a deterministic neutral grotesque (Helvetica/Arial) so `sans` and
+ * `system` are visibly distinct on every platform.
  */
 export const fontFamilyClasses: Record<FontFamily, string> = {
-  sans: 'font-sans',
+  sans: 'font-brand-sans',
   serif: 'font-serif',
   mono: 'font-mono',
   system: 'font-brand-system',
@@ -107,7 +127,7 @@ export const fontFamilyClasses: Record<FontFamily, string> = {
  * (BrandSettingsConstants::FONTS).
  */
 export const fontFamilyStacks: Record<FontFamily, string> = {
-  sans: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  sans: '"Helvetica Neue", Helvetica, Arial, sans-serif',
   serif: 'ui-serif, Georgia, Cambria, "Times New Roman", Times, serif',
   mono: 'ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace',
   system: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
@@ -127,6 +147,56 @@ export const cornerStyleClasses: Record<CornerStyle, string> = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Font class resolvers
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Minimal structural view of the brand font fields, so both store state and
+ * BrandSettings schema objects (v2/v3, which type the fields as enum unions)
+ * can be passed without casts.
+ */
+export type BrandFontFields = {
+  font_family?: string | null;
+  heading_font?: string | null;
+} | null | undefined;
+
+/**
+ * Resolves the body font utility class for a brand.
+ *
+ * Returns `''` when the brand is nullish, `font_family` is unset, or the value
+ * is not a known FontFamily — callers bind the result directly and an empty
+ * class inherits the surrounding font. `Object.hasOwn` (not `in`) so inherited
+ * keys like `'toString'` count as unknown rather than resolving to a Function.
+ *
+ * Together with {@link resolveHeadingFontClass}, this is the ONLY place
+ * allowed to index `fontFamilyClasses` by dynamic key (the brand-token guard
+ * spec enforces it): the value→class mapping drifted when hand-copied into
+ * consumers, rendering headings in the body font.
+ */
+export function resolveBodyFontClass(brand: BrandFontFields): string {
+  const font = brand?.font_family;
+  return font && Object.hasOwn(fontFamilyClasses, font)
+    ? fontFamilyClasses[font as FontFamily]
+    : '';
+}
+
+/**
+ * Resolves the heading font utility class for a brand.
+ *
+ * Heading ladder: `heading_font ?? font_family` — a dedicated heading font
+ * wins, the body font backfills when it is unset. Unset/unknown resolve to
+ * `''` with the same fallback semantics as {@link resolveBodyFontClass},
+ * which also documents why dynamic `fontFamilyClasses` indexing lives here
+ * and nowhere else.
+ */
+export function resolveHeadingFontClass(brand: BrandFontFields): string {
+  const font = brand?.heading_font ?? brand?.font_family;
+  return font && Object.hasOwn(fontFamilyClasses, font)
+    ? fontFamilyClasses[font as FontFamily]
+    : '';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Border radius (expanded, #3646)
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -137,7 +207,6 @@ export const borderRadiusPresetCss: Record<BorderRadiusPreset, string> = {
   md: '0.5rem',
   lg: '0.75rem',
   xl: '1rem',
-  full: '9999px',
 };
 
 /** Array of named border-radius presets for form options. */
@@ -150,7 +219,6 @@ export const borderRadiusDisplayMap: Record<BorderRadiusPreset, string> = {
   md: 'Rounded',
   lg: 'Very Rounded',
   xl: 'Extra Rounded',
-  full: 'Pill',
 };
 
 /**
@@ -165,7 +233,6 @@ export const borderRadiusIconMap: Record<BorderRadiusPreset, string> = {
   md: 'tabler-border-corner-rounded',
   lg: 'tabler-border-corner-rounded',
   xl: 'tabler-border-corner-pill',
-  full: 'tabler-border-corner-pill',
 };
 
 /**

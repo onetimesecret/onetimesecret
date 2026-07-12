@@ -378,7 +378,7 @@ describe('heading_font (enum nullish)', () => {
 });
 
 describe('border_radius (preset | 0-64 px, string or number)', () => {
-  it.each(['none', 'sm', 'md', 'lg', 'xl', 'full'])('accepts preset %s', (preset) => {
+  it.each(['none', 'sm', 'md', 'lg', 'xl'])('accepts preset %s', (preset) => {
     const result = brandSettingsCanonical.parse({ border_radius: preset });
     expect(result.border_radius).toBe(preset);
   });
@@ -405,6 +405,13 @@ describe('border_radius (preset | 0-64 px, string or number)', () => {
 
   it('rejects an unknown preset', () => {
     const parsed = brandSettingsCanonical.safeParse({ border_radius: 'huge' });
+    expect(parsed.success).toBe(false);
+  });
+
+  it('rejects the removed `full` (pill) preset', () => {
+    // `full` (9999px) was dropped: applied to large content boxes it renders as
+    // a giant oval that clips the secret. `xl` is the rounded ceiling.
+    const parsed = brandSettingsCanonical.safeParse({ border_radius: 'full' });
     expect(parsed.success).toBe(false);
   });
 

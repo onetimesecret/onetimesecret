@@ -3,10 +3,15 @@
 <script setup lang="ts">
   /**
    * The functional "Simple" path: the quick happy path for branding a domain.
-   * Three choices — brand color, corners, and body font — all inline. Each writes
-   * the shared BrandSettings record via v-model, so switching paths never loses
-   * work. (Heading font is not exposed here; the recipient render falls back to
-   * the body font, and a separate heading choice returns with the Advanced path.)
+   * Logo, brand color, corners, and body font — all inline. Color/corners/font
+   * write the shared BrandSettings record via v-model, so switching paths never
+   * loses work. (Heading font is not exposed here; the recipient render falls
+   * back to the body font, and a separate heading choice returns with the
+   * Advanced path.)
+   *
+   * Logo is the exception: BrandLogoField uploads/removes immediately via the
+   * useBranding callbacks (its own API endpoint), not through v-model/Save. Same
+   * behavior as clicking the preview image — this just surfaces it in the form.
    *
    * secondary_color is intentionally NOT exposed here: it has no live consumer
    * yet (useBrandTheme injects a `--color-brand2-*` scale onto <html>, but no
@@ -18,7 +23,7 @@
    * honors via the locally-scoped `--radius-brand`); `corner_style` is left
    * untouched since `border_radius` supersedes it (identityStore.cornerClass).
    */
-  import type { BrandSettings } from '@/schemas/shapes/v3/custom-domain';
+  import type { BrandSettings, ImageProps } from '@/schemas/shapes/v3/custom-domain';
   import ColorPicker from '@/shared/components/common/ColorPicker.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import {
@@ -26,17 +31,22 @@
     FontFamily,
     fontDisplayMap,
     fontFamilyStacks,
-    fontOptions,
+    uiFontOptions,
     type FontFamily as FontFamilyType,
   } from '@/shared/utils/brand-helpers';
   import { checkBrandContrast } from '@/utils/brand-palette';
   import { computed } from 'vue';
   import { useI18n } from 'vue-i18n';
 
+  import BrandLogoField from './BrandLogoField.vue';
+
   const { t } = useI18n();
 
   const props = defineProps<{
     modelValue: BrandSettings;
+    logoImage?: ImageProps | null;
+    onLogoUpload: (file: File) => Promise<unknown>;
+    onLogoRemove: () => Promise<unknown>;
   }>();
 
   const emit = defineEmits<{
@@ -53,13 +63,15 @@
   };
 
   // Corner options map to border_radius presets (Square→none, Rounded→md,
-  // Pill→full). Labels reuse borderRadiusDisplayMap (hardcoded English). Each
-  // shows a single-corner tabler glyph (cornerStyleIconMap) rather than a full
-  // box, which reads more clearly as "corner treatment".
+  // Extra Rounded→xl). Labels reuse borderRadiusDisplayMap (hardcoded English).
+  // Each shows a single-corner tabler glyph (cornerStyleIconMap) rather than a
+  // full box, which reads more clearly as "corner treatment". The `full` (pill,
+  // 9999px) preset is deliberately absent — on large content boxes it renders
+  // as a giant oval that clips the secret, so `xl` is the rounded ceiling here.
   const cornerOptions = [
     { id: 'none', label: borderRadiusDisplayMap.none, icon: 'tabler-border-corner-square' },
     { id: 'md', label: borderRadiusDisplayMap.md, icon: 'tabler-border-corner-rounded' },
-    { id: 'full', label: borderRadiusDisplayMap.full, icon: 'tabler-border-corner-pill' },
+    { id: 'xl', label: borderRadiusDisplayMap.xl, icon: 'tabler-border-corner-pill' },
   ] as const;
 
   const activeCorner = computed(() => {
@@ -79,6 +91,13 @@
 
   // Body font falls back to Sans, matching the recipient render.
   const bodyFont = computed(() => props.modelValue.font_family ?? FontFamily.SANS);
+
+  // Picker shows the four curated families. If this domain was previously set
+  // to a now-hidden font (slab/rounded/humanist/geometric), keep it as an
+  // option so the selection stays visible and isn't silently reset on save.
+  const fontChoices = computed<FontFamilyType[]>(() =>
+    uiFontOptions.includes(bodyFont.value) ? uiFontOptions : [bodyFont.value, ...uiFontOptions]
+  );
 </script>
 
 <template>
@@ -90,6 +109,14 @@
       <span class="text-xs text-gray-500 dark:text-gray-400">
         {{ t('web.branding.your_brand_subtitle') }}
       </span>
+    </div>
+
+    <!-- Logo. Upload/Remove apply immediately (not on Save) — see BrandLogoField. -->
+    <div class="mt-3.5">
+      <BrandLogoField
+        :logo-image="logoImage"
+        :on-logo-upload="onLogoUpload"
+        :on-logo-remove="onLogoRemove" />
     </div>
 
     <!-- Brand color -->
@@ -106,7 +133,6 @@
           disable-alpha
           :label="t('web.branding.brand_color')"
           id="simple-brand-color" />
-        <span class="text-[11px] text-gray-400">{{ t('web.branding.brand_color_hint') }}</span>
       </div>
       <!-- WCAG contrast warning (primary vs white) — advisory only, never blocks save -->
       <div
@@ -168,7 +194,7 @@
             text-gray-900 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500
             focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100">
           <option
-            v-for="font in fontOptions"
+            v-for="font in fontChoices"
             :key="`body-${font}`"
             :value="font"
             :style="{ fontFamily: fontFamilyStacks[font] }">

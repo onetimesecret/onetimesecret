@@ -148,8 +148,9 @@ end
 #=> ['rounded', 'square', 'pill']
 
 ## RADII constant lists the border-radius presets (#3646)
+## `full` (pill) removed — see RADII comment in brand_settings.rb
 @bs::RADII
-#=> ['none', 'sm', 'md', 'lg', 'xl', 'full']
+#=> ['none', 'sm', 'md', 'lg', 'xl']
 
 ## Pattern matching works with new fields
 @pattern = @bs.from_hash(product_name: 'Acme')

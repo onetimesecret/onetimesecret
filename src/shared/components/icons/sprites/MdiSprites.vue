@@ -103,6 +103,8 @@ License: Apache License 2.0
       <symbol viewBox="0 0 24 24" id="mdi-text-box-remove"><path fill="currentColor" d="m14.46 15.88l1.42-1.42L18 16.59l2.12-2.13l1.42 1.42L19.41 18l2.13 2.12l-1.42 1.42L18 19.41l-2.12 2.13l-1.42-1.42L16.59 18zM12 17v-2H7v2zm5-6H7v2h7.69A5.98 5.98 0 0 0 12 18c0 1.09.29 2.12.8 3H5a2 2 0 0 1-2-2V5c0-1.11.89-2 2-2h14a2 2 0 0 1 2 2v7.8c-.88-.51-1.91-.8-3-.8l-1 .08zm0-2V7H7v2z" /></symbol>
       <symbol viewBox="0 0 24 24" id="mdi-text-box-remove-outline"><path fill="currentColor" d="m14.46 15.88l1.42-1.42L18 16.59l2.12-2.13l1.42 1.42L19.41 18l2.13 2.12l-1.42 1.42L18 19.41l-2.12 2.13l-1.42-1.42L16.59 18zM5 3h14c1.11 0 2 .89 2 2v7.8c-.61-.35-1.28-.6-2-.72V5H5v14h7.08c.12.72.37 1.39.72 2H5c-1.11 0-2-.89-2-2V5c0-1.11.89-2 2-2m2 4h10v2H7zm0 4h10v1.08c-.85.14-1.63.46-2.32.92H7zm0 4h5v2H7z" /></symbol>
       <symbol viewBox="0 0 24 24" id="mdi-trash-can"><path fill="currentColor" d="M9 3v1H4v2h1v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6h1V4h-5V3zm0 5h2v9H9zm4 0h2v9h-2z" /></symbol>
+      <symbol viewBox="0 0 24 24" id="mdi-upload"><path fill="currentColor" d="M9 16v-6H5l7-7l7 7h-4v6zm-4 4v-2h14v2z" /></symbol>
+      <symbol viewBox="0 0 24 24" id="mdi-trash-can-outline"><path fill="currentColor" d="M9 3v1H4v2h1v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6h1V4h-5V3zM7 6h10v13H7zm2 2v9h2V8zm4 0v9h2V8z" /></symbol>
     </defs>
   </svg>
 </template>

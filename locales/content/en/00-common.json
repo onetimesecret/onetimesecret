@@ -777,10 +777,12 @@
     "content_hash": "d3c54e39"
   },
   "web.LABELS.update": {
-    "text": "Update"
+    "text": "Update",
+    "content_hash": "c1c1009d"
   },
   "web.LABELS.updating": {
-    "text": "Updating..."
+    "text": "Updating...",
+    "content_hash": "0a4e0b71"
   },
   "web.LABELS.details": {
     "text": "Details",

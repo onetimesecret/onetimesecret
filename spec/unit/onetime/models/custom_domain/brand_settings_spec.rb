@@ -81,7 +81,7 @@ RSpec.describe Onetime::CustomDomain::BrandSettings do
 
     describe 'RADII' do
       it 'includes named border-radius presets' do
-        expect(described_class::RADII).to contain_exactly('none', 'sm', 'md', 'lg', 'xl', 'full')
+        expect(described_class::RADII).to contain_exactly('none', 'sm', 'md', 'lg', 'xl')
       end
 
       it 'is frozen' do
@@ -259,7 +259,10 @@ RSpec.describe Onetime::CustomDomain::BrandSettings do
       it 'accepts named presets (case-insensitive)' do
         expect(described_class.valid_border_radius?('none')).to be true
         expect(described_class.valid_border_radius?('MD')).to be true
-        expect(described_class.valid_border_radius?('full')).to be true
+      end
+
+      it 'rejects the retired `full` pill preset' do
+        expect(described_class.valid_border_radius?('full')).to be false
       end
 
       it 'accepts integers and numeric strings within range' do

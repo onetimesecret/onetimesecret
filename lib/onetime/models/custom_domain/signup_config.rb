@@ -21,6 +21,9 @@
 #
 # See: apps/api/account/logic/account/create_account.rb (signup flow)
 #      apps/web/auth/config/hooks/omniauth.rb (SSO signup flow)
+#      docs/architecture/decision-records/adr-024-custom-domain-auth-override-resolution.md
+#      (source of truth for the two-flag model, resolution invariants, and the
+#      settings API/UI contract built on them)
 #
 module Onetime
   class CustomDomain < Familia::Horreum
@@ -300,6 +303,20 @@ module Onetime
           return global unless config&.enabled?
 
           global && config.signup_enabled?
+        end
+
+        # Install-level signup capability — the `global` input to
+        # resolve_signup_enabled, defined once so the runtime gate
+        # (Core::Controllers::Base#signup_enabled?) and the settings API
+        # (DomainsAPI signup_config details) cannot drift in how they read it
+        # (ADR-024). Strict-boolean like the resolver: anything but true is
+        # treated as off.
+        #
+        # @param auth [Hash, nil] site.authentication settings (injectable for tests)
+        # @return [Boolean]
+        def global_signup_enabled(auth = nil)
+          auth ||= OT.conf.dig('site', 'authentication') || {}
+          (auth['enabled'] && auth['signup']) == true
         end
 
         # Check if a domain has signup config.

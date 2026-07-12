@@ -144,129 +144,171 @@
     "content_hash": "a482743b"
   },
   "web.admin.organizations.detail.backToList": {
-    "text": "Back to organizations"
+    "text": "Back to organizations",
+    "content_hash": "2257dc4a"
   },
   "web.admin.organizations.detail.notFound": {
-    "text": "Organization not found"
+    "text": "Organization not found",
+    "content_hash": "00c50f7a"
   },
   "web.admin.organizations.detail.notFoundDescription": {
-    "text": "This organization may have been deleted, or the id is incorrect."
+    "text": "This organization may have been deleted, or the id is incorrect.",
+    "content_hash": "e5459ef5"
   },
   "web.admin.organizations.detail.loadError": {
-    "text": "Could not load this organization."
+    "text": "Could not load this organization.",
+    "content_hash": "9df8ad50"
   },
   "web.admin.organizations.detail.none": {
-    "text": "—"
+    "text": "—",
+    "content_hash": "bda05058"
   },
   "web.admin.organizations.detail.sections.billing": {
-    "text": "Billing"
+    "text": "Billing",
+    "content_hash": "3ac8bbca"
   },
   "web.admin.organizations.detail.sections.members": {
-    "text": "Members"
+    "text": "Members",
+    "content_hash": "1044a4c0"
   },
   "web.admin.organizations.detail.sections.domains": {
-    "text": "Domains"
+    "text": "Domains",
+    "content_hash": "ced67718"
   },
   "web.admin.organizations.detail.sections.investigate": {
-    "text": "Investigate & reconcile"
+    "text": "Investigate & reconcile",
+    "content_hash": "b05aa349"
   },
   "web.admin.organizations.detail.badges.default": {
-    "text": "Default workspace"
+    "text": "Default workspace",
+    "content_hash": "6d67c6eb"
   },
   "web.admin.organizations.detail.badges.archived": {
-    "text": "Archived"
+    "text": "Archived",
+    "content_hash": "bdb86505"
   },
   "web.admin.organizations.detail.entitlements.description": {
-    "text": "Effective entitlements resolve to (plan ∪ grants) − revokes. Review the breakdown before making an override."
+    "text": "Effective entitlements resolve to (plan ∪ grants) − revokes. Review the breakdown before making an override.",
+    "content_hash": "23080475"
   },
   "web.admin.organizations.detail.entitlements.inSync": {
-    "text": "In sync"
+    "text": "In sync",
+    "content_hash": "5701958c"
   },
   "web.admin.organizations.detail.entitlements.driftBadge": {
-    "text": "Drift"
+    "text": "Drift",
+    "content_hash": "8b4c8240"
   },
   "web.admin.organizations.detail.entitlements.staleBadge": {
-    "text": "Plan stale"
+    "text": "Plan stale",
+    "content_hash": "ffe63800"
   },
   "web.admin.organizations.detail.entitlements.driftWarning": {
-    "text": "Materialized entitlements do not match the expected set. Reconcile to re-materialize."
+    "text": "Materialized entitlements do not match the expected set. Reconcile to re-materialize.",
+    "content_hash": "4859983a"
   },
   "web.admin.organizations.detail.entitlements.driftExtra": {
-    "text": "Extra (materialized, not expected)"
+    "text": "Extra (materialized, not expected)",
+    "content_hash": "08d60730"
   },
   "web.admin.organizations.detail.entitlements.driftMissing": {
-    "text": "Missing (expected, not materialized)"
+    "text": "Missing (expected, not materialized)",
+    "content_hash": "fe12c83a"
   },
   "web.admin.organizations.detail.entitlements.plan": {
-    "text": "From plan"
+    "text": "From plan",
+    "content_hash": "1d346b26"
   },
   "web.admin.organizations.detail.entitlements.materialized": {
-    "text": "Materialized (effective)"
+    "text": "Materialized (effective)",
+    "content_hash": "72ca5f45"
   },
   "web.admin.organizations.detail.members.email": {
-    "text": "Member"
+    "text": "Member",
+    "content_hash": "7c968fb7"
   },
   "web.admin.organizations.detail.members.role": {
-    "text": "Role"
+    "text": "Role",
+    "content_hash": "14736a2e"
   },
   "web.admin.organizations.detail.members.status": {
-    "text": "Status"
+    "text": "Status",
+    "content_hash": "920e413c"
   },
   "web.admin.organizations.detail.members.joined": {
-    "text": "Joined"
+    "text": "Joined",
+    "content_hash": "69318b0c"
   },
   "web.admin.organizations.detail.members.owner": {
-    "text": "Owner"
+    "text": "Owner",
+    "content_hash": "4b1b8aa3"
   },
   "web.admin.organizations.detail.members.empty": {
-    "text": "No members."
+    "text": "No members.",
+    "content_hash": "b99c59dc"
   },
   "web.admin.organizations.detail.domains.domain": {
-    "text": "Domain"
+    "text": "Domain",
+    "content_hash": "79fa3361"
   },
   "web.admin.organizations.detail.domains.state": {
-    "text": "State"
+    "text": "State",
+    "content_hash": "a3b50c47"
   },
   "web.admin.organizations.detail.domains.created": {
-    "text": "Created"
+    "text": "Created",
+    "content_hash": "d70b9e24"
   },
   "web.admin.organizations.detail.domains.ready": {
-    "text": "Ready"
+    "text": "Ready",
+    "content_hash": "5fa7aac5"
   },
   "web.admin.organizations.detail.domains.resolving": {
-    "text": "Resolving"
+    "text": "Resolving",
+    "content_hash": "3287a034"
   },
   "web.admin.organizations.detail.domains.empty": {
-    "text": "No domains."
+    "text": "No domains.",
+    "content_hash": "1b840c7e"
   },
   "web.admin.organizations.detail.reconcile.button": {
-    "text": "Reconcile"
+    "text": "Reconcile",
+    "content_hash": "b59be565"
   },
   "web.admin.organizations.detail.reconcile.confirmTitle": {
-    "text": "Reconcile organization billing?"
+    "text": "Reconcile organization billing?",
+    "content_hash": "fc1a2762"
   },
   "web.admin.organizations.detail.reconcile.confirmDescription": {
-    "text": "This re-pulls Stripe and rewrites the billing state and entitlements for {org}. Retype the organization id to confirm."
+    "text": "This re-pulls Stripe and rewrites the billing state and entitlements for {org}. Retype the organization id to confirm.",
+    "content_hash": "b4ef0850"
   },
   "web.admin.organizations.detail.reconcile.success": {
-    "text": "Organization reconciled."
+    "text": "Organization reconciled.",
+    "content_hash": "caf87844"
   },
   "web.admin.organizations.detail.reconcile.resultTitle": {
-    "text": "Reconcile result"
+    "text": "Reconcile result",
+    "content_hash": "11f4c6b8"
   },
   "web.admin.organizations.detail.reconcile.before": {
-    "text": "Before"
+    "text": "Before",
+    "content_hash": "9bb72500"
   },
   "web.admin.organizations.detail.reconcile.after": {
-    "text": "After"
+    "text": "After",
+    "content_hash": "7b68fe55"
   },
   "web.admin.organizations.detail.reconcile.materializedCount": {
-    "text": "Entitlement count"
+    "text": "Entitlement count",
+    "content_hash": "59cede5c"
   },
   "web.admin.organizations.detail.reconcile.mode.stripe_sync": {
-    "text": "Stripe sync"
+    "text": "Stripe sync",
+    "content_hash": "02f9546c"
   },
   "web.admin.organizations.detail.reconcile.mode.entitlements_only": {
-    "text": "Entitlements only"
+    "text": "Entitlements only",
+    "content_hash": "8cf49a5d"
   }
 }

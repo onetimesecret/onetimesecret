@@ -20,6 +20,10 @@ export const SPLIT_BUTTON_CORNERS = [
   'rounded-l-2xl', 'rounded-r-2xl',
   'rounded-l-3xl', 'rounded-r-3xl',
   'rounded-l-full', 'rounded-r-full',
+  // Brand radius token (#3646): cornerClass resolves to `rounded-brand` when a
+  // domain sets border_radius, so processCornerClass() emits `rounded-l/r-brand`.
+  // Without these the pill/brand radius silently drops on the split CTA button.
+  'rounded-l-brand', 'rounded-r-brand',
 ] as const;
 
 /**

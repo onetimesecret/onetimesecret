@@ -38,6 +38,9 @@ const leafStubs = {
   ColorPicker: true,
   OIcon: true,
   BrandPreviewColumn: true,
+  // The logo control has its own focused spec (BrandLogoField.spec.ts); stub it
+  // here so the Simple-panel / editor tests stay about color/corners/font wiring.
+  BrandLogoField: true,
 };
 
 const baseSettings = (over: Partial<BrandSettings> = {}): BrandSettings =>
@@ -65,11 +68,16 @@ describe('BrandPathSwitcher', () => {
 describe('SimpleBrandPanel', () => {
   const mountPanel = (settings: Partial<BrandSettings> = {}) =>
     mount(SimpleBrandPanel, {
-      props: { modelValue: baseSettings(settings) },
+      props: {
+        modelValue: baseSettings(settings),
+        logoImage: null,
+        onLogoUpload: vi.fn(),
+        onLogoRemove: vi.fn(),
+      },
       global: { stubs: leafStubs },
     });
 
-  it('writes border_radius when a corner is picked (Square→none, Pill→full)', async () => {
+  it('writes border_radius when a corner is picked (Square→none, Extra Rounded→xl)', async () => {
     const wrapper = mountPanel({ border_radius: 'md' });
     const cornerButtons = wrapper.get('[role="group"]').findAll('button');
     expect(cornerButtons).toHaveLength(3);
@@ -79,16 +87,18 @@ describe('SimpleBrandPanel', () => {
       border_radius: 'none',
     });
 
-    await cornerButtons[2].trigger('click'); // Pill
+    // The rounded ceiling is `xl` — the `full` (pill, 9999px) preset was removed
+    // because it renders as a giant oval on large content boxes.
+    await cornerButtons[2].trigger('click'); // Extra Rounded
     expect(wrapper.emitted('update:modelValue')?.at(-1)?.[0]).toMatchObject({
-      border_radius: 'full',
+      border_radius: 'xl',
     });
   });
 
   it('marks the active corner from the current border_radius', () => {
-    const wrapper = mountPanel({ border_radius: 'full' });
+    const wrapper = mountPanel({ border_radius: 'xl' });
     const cornerButtons = wrapper.get('[role="group"]').findAll('button');
-    // Square / Rounded / Pill → none / md / full
+    // Square / Rounded / Extra Rounded → none / md / xl
     expect(cornerButtons[0].attributes('aria-pressed')).toBe('false');
     expect(cornerButtons[2].attributes('aria-pressed')).toBe('true');
   });
@@ -100,9 +110,21 @@ describe('SimpleBrandPanel', () => {
     // Exactly one select: body font. Heading font was removed.
     const selects = wrapper.findAll('select');
     expect(selects).toHaveLength(1);
-    // It exposes the full font vocabulary (not just Sans) — regression guard for
-    // the "both options are Sans-Serif" report.
-    expect(selects[0].findAll('option').length).toBeGreaterThanOrEqual(3);
+    // Picker is trimmed to the four curated families (serif/sans/mono/system);
+    // the style-classification fonts (slab/rounded/humanist/geometric) render
+    // near-identically across viewers, so they no longer appear in the editor.
+    const values = selects[0].findAll('option').map((o) => o.attributes('value'));
+    expect(values).toEqual(['serif', 'sans', 'mono', 'system']);
+  });
+
+  it('keeps a domain’s previously-set hidden font visible as an option', () => {
+    // A domain saved under a now-hidden value (e.g. humanist) must not have its
+    // selection silently dropped: the current value is prepended to the picker.
+    const wrapper = mountPanel({ font_family: 'humanist' } as Partial<BrandSettings>);
+    const select = wrapper.find('select');
+    const values = select.findAll('option').map((o) => o.attributes('value'));
+    expect(values).toEqual(['humanist', 'serif', 'sans', 'mono', 'system']);
+    expect((select.element as HTMLSelectElement).value).toBe('humanist');
   });
 });
 

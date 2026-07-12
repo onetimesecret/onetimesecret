@@ -8,26 +8,33 @@
  * form component. Controls which auth methods are available on the
  * domain's signin page: password, email_auth, webauthn, SSO, or restrict
  * to a single method.
+ *
+ * There is exactly ONE availability concept on this page: the effective
+ * state (ADR-024). The banner shows the resolver's output; the form's mode
+ * switch is the single control. The explicit-override flag (`enabled`) is
+ * not user-facing — every save materializes it, and "Reset to defaults"
+ * unpins.
  */
-import { useI18n } from 'vue-i18n';
-import { computed, onMounted, ref, watch } from 'vue';
-import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
-import { storeToRefs } from 'pinia';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import ToggleWithIcon from '@/shared/components/common/ToggleWithIcon.vue';
-import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
+import DomainAuthOverrideBanner from '@/apps/workspace/components/domains/DomainAuthOverrideBanner.vue';
 import DomainSigninConfigForm from '@/apps/workspace/components/domains/DomainSigninConfigForm.vue';
 import SsoCredentialsModal from '@/apps/workspace/components/domains/SsoCredentialsModal.vue';
 import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
+import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
+import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useDomain } from '@/shared/composables/useDomain';
-
-import { useSigninConfig } from '@/shared/composables/useSigninConfig';
-import { useSsoConfig } from '@/shared/composables/useSsoConfig';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
-import { ENTITLEMENTS } from '@/types/organization';
+import {
+  resolveGlobalMethodAvailability,
+  useSigninConfig,
+} from '@/shared/composables/useSigninConfig';
+import { useSsoConfig } from '@/shared/composables/useSsoConfig';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { ENTITLEMENTS } from '@/types/organization';
+import { storeToRefs } from 'pinia';
+import { computed, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -67,22 +74,9 @@ const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
 // Global method availability (install-level config)
 // ---------------------------------------------------------------------------
 
-// The workspace app runs on the dashboard domain, so bootstrap features reflect
-// the install/global auth config — correct for gating which methods a domain
-// may offer. undefined is treated as available (codebase convention). SSO is a
-// union (boolean | config object); an object's `enabled` flag is authoritative.
-const bootstrapStore = useBootstrapStore();
-const globalAvailability = computed(() => {
-  const features = bootstrapStore.features;
-  const sso = features?.sso;
-  const ssoAvailable =
-    typeof sso === 'object' && sso !== null ? sso.enabled : sso !== false;
-  return {
-    email_auth: features?.email_auth !== false,
-    webauthn: features?.webauthn !== false,
-    sso: ssoAvailable,
-  };
-});
+// Single definition in useSigninConfig (also seeds unconfigured domains);
+// wrapped in a computed so bootstrap feature reads stay reactive.
+const globalAvailability = computed(() => resolveGlobalMethodAvailability());
 
 // ---------------------------------------------------------------------------
 // Signin config composable
@@ -94,13 +88,14 @@ const {
   isSaving,
   isDeleting,
   error: signinError,
-  signinConfig: _signinConfig,
   formState,
   savingField,
   isConfigured,
   hasUnsavedChanges,
+  globalEnabled,
+  effectiveEnabled,
+  isWorkspaceDefault,
   initialize: initializeSigninConfig,
-  autoSaveField,
   autoSaveFields,
   deleteConfig,
 } = useSigninConfig(props.extid);
@@ -281,30 +276,18 @@ watch(canManageSso, async (entitled) => {
                 {{ t('web.domains.signin.config_description') }}
               </p>
             </div>
-            <ToggleWithIcon
-              :enabled="Boolean(formState.enabled)"
-              :disabled="isSaving"
-              :loading="savingField === 'enabled'"
-              :on-label="t('web.COMMON.enabled')"
-              :off-label="t('web.COMMON.disabled')"
-              @update:enabled="autoSaveField('enabled', $event)" />
           </div>
         </div>
 
         <div class="space-y-6 p-6">
-          <!-- Not configured notice -->
-          <div
-            v-if="!isConfigured"
-            class="flex items-start gap-3 rounded-md bg-blue-50 px-4 py-3 dark:bg-blue-900/20">
-            <OIcon
-              collection="heroicons"
-              name="information-circle"
-              class="mt-0.5 size-5 flex-shrink-0 text-blue-500 dark:text-blue-400"
-              aria-hidden="true" />
-            <p class="flex-1 text-sm text-blue-700 dark:text-blue-300">
-              {{ t('web.domains.signin.not_configured_notice') }}
-            </p>
-          </div>
+          <!-- Effective state (ADR-024): resolver output + workspace-default
+               badge + dormant warning. Replaces the old header enabled-toggle
+               and not-configured notice. -->
+          <DomainAuthOverrideBanner
+            feature="signin"
+            :effective-enabled="effectiveEnabled"
+            :global-enabled="globalEnabled"
+            :workspace-default="isWorkspaceDefault" />
 
           <DomainSigninConfigForm
             :domain-ext-id="props.extid"
@@ -313,6 +296,7 @@ watch(canManageSso, async (entitled) => {
             :is-saving="isSaving"
             :is-deleting="isDeleting"
             :is-configured="isConfigured"
+            :workspace-default="isWorkspaceDefault"
             :sso-configured="ssoIsConfigured"
             :can-manage-sso="canManageSso"
             :global-availability="globalAvailability"

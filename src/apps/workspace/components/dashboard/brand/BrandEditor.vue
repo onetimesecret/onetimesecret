@@ -30,8 +30,10 @@
     defineProps<{
       modelValue: BrandSettings;
       logoImage?: ImageProps | null;
-      onLogoUpload: (file: File) => Promise<void>;
-      onLogoRemove: () => Promise<void>;
+      // Return the persisted image / a truthy success flag (or undefined on a
+      // wrapped-handler failure) — ImageUploadModal keys close/keep-open on it.
+      onLogoUpload: (file: File) => Promise<unknown>;
+      onLogoRemove: () => Promise<unknown>;
       previewI18n: Composer;
       secretIdentifier?: string;
     }>(),
@@ -57,6 +59,9 @@
         <SimpleBrandPanel
           v-if="activePath === 'simple'"
           :model-value="modelValue"
+          :logo-image="logoImage"
+          :on-logo-upload="onLogoUpload"
+          :on-logo-remove="onLogoRemove"
           @update:model-value="(value) => emit('update:modelValue', value)" />
 
         <ComingSoonPanel

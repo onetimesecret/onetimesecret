@@ -140,7 +140,12 @@ module Onetime
       # to a single `--radius-brand` CSS variable on the frontend, so no custom
       # CSS surface is opened. Presets keep the zero-typing path; the numeric
       # form lifts the old 3-value corner_style ceiling.
-      RADII      = %w[none sm md lg xl full].freeze
+      #
+      # `full` (9999px pill) is intentionally omitted: the brand corner token is
+      # applied to large content containers (secret reveal/display boxes), where
+      # a pill radius renders as a giant oval that clips the secret. The bounded
+      # ceiling here is `xl` (1rem) plus the 0..64px numeric range.
+      RADII      = %w[none sm md lg xl].freeze
       RADIUS_MAX = 64
 
       # Expanded color vocabulary (#3646): non-primary hex color fields. Each is

@@ -112,7 +112,7 @@ export type CornerStyle = (typeof cornerStyleValues)[number];
  *
  * @category Contracts
  */
-export const borderRadiusPresets = ['none', 'sm', 'md', 'lg', 'xl', 'full'] as const;
+export const borderRadiusPresets = ['none', 'sm', 'md', 'lg', 'xl'] as const;
 export type BorderRadiusPreset = (typeof borderRadiusPresets)[number];
 
 /** Maximum pixel value accepted for a numeric `border_radius`. */
@@ -254,7 +254,7 @@ export const brandSettingsCanonical = z
     corner_style: z.enum(cornerStyleValues).default('rounded'),
 
     /**
-     * Border radius: a named preset (`none|sm|md|lg|xl|full`) or a whole number
+     * Border radius: a named preset (`none|sm|md|lg|xl`) or a whole number
      * of pixels 0–64 (accepted as string or number). Supersedes `corner_style`
      * when set. Stored as-is; mapped to `--radius-brand` on the frontend.
      */

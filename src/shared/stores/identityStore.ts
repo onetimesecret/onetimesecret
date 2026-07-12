@@ -10,7 +10,11 @@ import {
   RESOLVED_LOGO_COMPONENT,
   resolveProductName,
 } from '@/shared/constants/brand';
-import { cornerStyleClasses, fontFamilyClasses } from '@/shared/utils/brand-helpers';
+import {
+  cornerStyleClasses,
+  resolveBodyFontClass,
+  resolveHeadingFontClass,
+} from '@/shared/utils/brand-helpers';
 import { gracefulParse } from '@/utils/schemaValidation';
 import { defineStore, storeToRefs } from 'pinia';
 import { computed, reactive, toRefs, watch } from 'vue';
@@ -306,20 +310,12 @@ export const useProductIdentity = defineStore('productIdentity', () => {
       : DEFAULT_CORNER_CLASS;
   });
 
-  const fontFamilyClass = computed(() =>
-    state.brand?.font_family
-      ? fontFamilyClasses[state.brand.font_family] ?? ''
-      : ''
-  );
+  const fontFamilyClass = computed(() => resolveBodyFontClass(state.brand));
 
-  // Heading font (#3646): a separate curated font for headings, falling back to
-  // the body font_family when unset. Consumed by BrandedHomepage's <h1> and the
-  // branded BaseSecretDisplay <h2> (headingClass prop, via SecretDisplayCase and
-  // SecretConfirmationForm).
-  const headingFontClass = computed(() => {
-    const heading = state.brand?.heading_font ?? state.brand?.font_family;
-    return heading ? fontFamilyClasses[heading] ?? '' : '';
-  });
+  // Heading font (#3646): headings bind headingFontClass, body text binds
+  // fontFamilyClass. The ladder (heading_font wins, font_family backfills)
+  // lives in the brand-helpers resolvers.
+  const headingFontClass = computed(() => resolveHeadingFontClass(state.brand));
 
   const preRevealInstructions = computed(
     () => state.brand?.instructions_pre_reveal?.trim() || t('web.shared.pre_reveal_default')

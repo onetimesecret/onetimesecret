@@ -188,18 +188,23 @@
     "content_hash": "3c9d75ce"
   },
   "web.admin.sessions.columns.role": {
-    "text": "Role"
+    "text": "Role",
+    "content_hash": "14736a2e"
   },
   "web.admin.sessions.fields.userAgent": {
-    "text": "User Agent"
+    "text": "User Agent",
+    "content_hash": "62e01345"
   },
   "web.admin.sessions.fields.orgContext": {
-    "text": "Org Context"
+    "text": "Org Context",
+    "content_hash": "a596d9f2"
   },
   "web.admin.sessions.scan.summary": {
-    "text": "Showing {shown} authenticated · {anonymous} anonymous hidden · {scanned} scanned"
+    "text": "Showing {shown} authenticated · {anonymous} anonymous hidden · {scanned} scanned",
+    "content_hash": "34cb67a4"
   },
   "web.admin.sessions.scan.capped": {
-    "text": "Scan capped at the first {scanned} keys — authenticated sessions beyond this window aren't listed. Inspect a specific session by ID to reach it."
+    "text": "Scan capped at the first {scanned} keys — authenticated sessions beyond this window aren't listed. Inspect a specific session by ID to reach it.",
+    "content_hash": "fa418b4e"
   }
 }

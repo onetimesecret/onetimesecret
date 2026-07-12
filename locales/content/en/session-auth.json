@@ -357,7 +357,8 @@
   },
   "web.auth.field-errors.password": {
     "text": "Password",
-    "context": "Field label prefixing a password validation error (e.g. \"Password: same as current password\")"
+    "context": "Field label prefixing a password validation error (e.g. \"Password: same as current password\")",
+    "content_hash": "e7cf3ef4"
   },
   "web.auth.terms.agree_prefix": {
     "text": "I agree to the",
