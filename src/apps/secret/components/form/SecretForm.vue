@@ -174,6 +174,13 @@
     { immediate: true }
   );
 
+  // On a custom domain the form can only ever target that one domain, so the
+  // "Creating links for <domain>" badge is noise. Only surface it where the
+  // domain context is an actual choice (the workspace multi-domain case).
+  const showDomainContext = computed(
+    () => isContextActive.value && domainStrategy.value !== 'custom'
+  );
+
   // Focus management when switching between Create Link and Generate Password modes
   const generatePasswordSection = ref<HTMLElement | null>(null);
 </script>
@@ -487,7 +494,7 @@
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-4">
               <!-- Domain Context Indicator -->
               <div
-                v-if="isContextActive"
+                v-if="showDomainContext"
                 class="order-1 flex items-center gap-2 text-sm sm:order-1">
                 <span class="text-gray-600 dark:text-gray-400">
                   {{ t('web.LABELS.creating_links_for') }}
