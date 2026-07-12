@@ -39,11 +39,11 @@ Custom Caddy build with rate limiting, security, and DNS plugins for automatic T
 ### Build
 
 ```bash
-# Default: Caddy 2.10.2 with Cloudflare DNS
-docker build -f docker/variants/caddy.dockerfile -t onetime-caddy:v2.10.2 .
+# Default: Caddy 2.11.4 with Cloudflare DNS
+docker build -f docker/variants/caddy.dockerfile -t onetime-caddy:v2.11.4 .
 
 # With different DNS module (e.g., Route53)
-CADDY_VERSION=v2.10.2; docker build -f docker/variants/caddy.dockerfile \
+CADDY_VERSION=v2.11.4; docker build -f docker/variants/caddy.dockerfile \
   --build-arg DNS_MODULE=route53 \
   --build-arg CADDY_VERSION=${CADDY_VERSION} \
   -t onetime-caddy:${CADDY_VERSION} .
@@ -66,7 +66,7 @@ docker run \
   -e DOMAIN=secrets.example.com \
   --restart unless-stopped \
   --detach \
-  onetime-caddy:v2.10.2
+  onetime-caddy:v2.11.4
 ```
 
 ### Included Plugins
