@@ -27,8 +27,10 @@
 #   - No build step before the suite: TR-01 is that the RSpec fast suite is
 #     green on a pristine clone with no `pnpm run build` ever run.
 #
-# The job's DURATION is the TTFHW proxy for the contributor path — surfaced in
-# the step summary and worth charting/alarming on over time.
+# The job's DURATION is the TTFHW proxy for the contributor path — the measured
+# documented-path duration lands in the step summary, and ttfhw-chart.sh charts
+# the job duration against recent successful runs (warning annotation on a
+# regression past the median).
 # ==============================================================================
 name: Fresh-clone contributor path
 
@@ -48,6 +50,7 @@ on:
       - '.node-version'
       - 'etc/defaults/**'
       - '.github/workflows/fresh-clone.yml'
+      - 'scripts/test-install/ttfhw-chart.sh'
   schedule:
     # Weekly: catches registry/runner/dependency rot with no commit
     # (the scheduled-lane pattern — Sentry/Supabase run their install paths on
@@ -57,6 +60,7 @@ on:
 
 permissions:
   contents: read
+  actions: read  # ttfhw-chart.sh reads past run/job durations
 
 jobs:
   fresh-clone:
@@ -160,3 +164,14 @@ jobs:
             printf '### Fresh-clone contributor path: %dm %ds\n' \
               $(( secs / 60 )) $(( secs % 60 )) >> "$GITHUB_STEP_SUMMARY"
           fi
+
+      # TTFHW trend over time (work-chunks C7 residual): chart this job's
+      # duration across recent successful runs and warn when this run
+      # regressed past the median. Telemetry, not a gate — the script exits 0
+      # on every degraded path and continue-on-error backstops the rest.
+      - name: Chart TTFHW trend (regression warning vs median)
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: scripts/test-install/ttfhw-chart.sh
