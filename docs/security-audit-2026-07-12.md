@@ -17,9 +17,11 @@ OneTimeSecret demonstrates strong security engineering in its core product funct
 |----------|-------|
 | Critical | 0 |
 | High | 0 |
-| Medium | 12 |
-| Low | 8 |
+| Medium | 10 |
+| Low | 10 |
 | Informational | 5 |
+
+*(Counts reflect the post-audit re-verification below: M-1 and M-10 were downgraded from Medium to the Low–Medium band after checking source directly.)*
 
 ---
 
@@ -27,16 +29,18 @@ OneTimeSecret demonstrates strong security engineering in its core product funct
 
 ### MEDIUM Severity
 
-#### M-1: Permanent Account Lockout Enables Denial-of-Service
+#### M-1: Account Lockout Enables Time-Bounded Denial-of-Service
 
-**File:** `apps/web/auth/config/features/lockout.rb:16`
+**File:** `apps/web/auth/config/features/lockout.rb:15-16`
 **Category:** Authentication / Availability
 
-The `lockout_expiration_default` is commented out. Rodauth's default behavior is permanent lockout until admin intervention. After 5 failed login attempts against any account, that account is locked indefinitely.
+After 5 failed login attempts (`max_invalid_logins 5`) against any account, Rodauth's `lockout` feature locks that account.
 
-**Exploit scenario:** An attacker who knows a target's email address submits 5 incorrect passwords, permanently locking the victim out until an administrator manually intervenes.
+**Correction (post-audit code verification):** An earlier draft of this finding described the lockout as "permanent until admin intervention." That is inaccurate. The repository's own Rodauth reference (`apps/web/auth/docs/rodauth-reference-2.41+.md:281`) documents `account_lockouts_deadline_interval` defaulting to **86400 seconds (1 day)** of auto-unlock, and the `lockout` feature exposes a self-service `unlock_account` email route (same reference, lines 290–300). The lockout is therefore **time-bounded (~24h) and self-recoverable**, not permanent.
 
-**Remediation:** Uncomment and set `auth.lockout_expiration_default 3600` (or a suitable value) to enable time-based auto-unlock.
+**Exploit scenario:** An attacker who knows target email addresses submits 5 wrong passwords per account, locking each victim out for up to ~24 hours (renewable by repeating). This is a harassment / nuisance availability attack against known users, not a permanent account takeover-adjacent lockout. Users can also self-unlock via the email flow if it is exposed in the UI.
+
+**Remediation:** Uncomment line 16 to shorten the auto-unlock window (e.g., to 1 hour) and reduce the harassment window. Note: verify the exact DSL method name against the installed Rodauth version — the standard setter is `account_lockouts_deadline_interval`; confirm `lockout_expiration_default` resolves (it may be a wrapper/alias) before relying on the commented line. Consider pairing with per-IP rate limiting (M-2) so an attacker cannot cheaply lock many accounts from one source.
 
 ---
 
@@ -153,9 +157,14 @@ The `IMAGE_MIME_TYPES` allowlist includes `image/svg+xml`. SVG files can contain
 
 **Exploit scenario:** An organization admin uploads a malicious SVG logo containing JavaScript. When rendered in other users' browsers via the branded share page (depending on rendering method: `<img>` is safe, `<object>` or inline SVG is not), the embedded script executes in the application's origin.
 
-**Mitigations in place:** Requires organization admin with `custom_branding` entitlement. CSP nonce-based policy may block inline script execution within SVGs. `httponly` cookies prevent direct cookie theft.
+**Mitigations in place (post-audit verification — these substantially lower real-world severity):**
+- **Storage is confirmed unsanitized:** `image/svg+xml` is in the allowlist (`update_domain_image.rb:16`), the content type is client-asserted (`@content_type = @image['type']`, line 74), `FastImage` is used only for dimensions, and the raw bytes are stored Base64 with no SVG sanitization or magic-byte check. This part of the finding holds.
+- **The audience is not the general public via this path.** The read endpoint `GetDomainImage` (`get_domain_image.rb:43-61`) is gated behind the `custom_branding` entitlement **and** org-membership/domain-scope checks, and returns the image as a JSON `record` (base64 `encoded` + `content_type`), not as a directly-served document. Both uploader and viewer through this path are members of the same organization.
+- **Script execution is not established.** Whether the payload runs depends entirely on how the SPA renders the returned data. If it builds a `data:image/svg+xml;base64,…` URI and assigns it to an `<img>` `src` (the typical pattern), embedded scripts do **not** execute. Inline-`<svg>` injection or `<object>`/`<iframe>` rendering would execute. This was not verified and requires tracing the Vue brand-page components. There may also be a separate public serving path for the branded homepage logo; if one exists and renders SVG as a document, severity rises to genuine public stored-XSS.
 
-**Remediation:** Either remove `image/svg+xml` from the allowlist, or implement server-side SVG sanitization (strip `<script>`, event handlers, `<foreignObject>`, etc.) before storage.
+**Revised assessment:** Confirmed input-validation gap (unsanitized SVG accepted and stored). Exploitability as XSS is **unconfirmed and likely low** given the entitlement-gated same-org audience and `<img>`-style rendering assumption. Treat as Low–Medium pending dynamic verification of the SPA render path and any public logo endpoint.
+
+**Remediation:** Still worth fixing defensively — remove `image/svg+xml` from the allowlist, or sanitize server-side (strip `<script>`, event handlers, `<foreignObject>`) before storage, and add magic-byte validation so the stored `content_type` cannot be spoofed. Ensure the SPA renders logos via `<img>`/CSS `background-image`, never inline SVG.
 
 ---
 
@@ -168,9 +177,11 @@ The CSRF `except` lambda returns `true` for ALL paths starting with `/api/`, com
 
 **Exploit scenario:** A user authenticated via session cookie visits a malicious page. That page makes cross-origin POST requests to `/api/v2/secrets` (creating secrets on behalf of the victim). The `SameSite=lax` cookie mitigates most cross-site POST attacks but does not protect against same-site subdomain attacks.
 
-**Mitigations in place:** `SameSite=lax` cookies block cross-site POST requests from third-party origins. Custom domain deployments sharing the same parent domain would be the primary attack vector.
+**Code contradicts its own documented intent (post-audit verification):** The comment block above the lambda (`security.rb:115-117`) states that API v2/v3 session requests "require CSRF tokens unless Basic Auth credentials are provided (the allow_if lambda checks for this)." The actual lambda (line 142) does **not** check for Basic Auth — it returns `true` for every path under `/api/`, unconditionally, regardless of authentication method. So a session-cookie-authenticated state-changing request to `/api/v2/*` is never CSRF-validated. The implementation is weaker than the code comment claims, which is itself evidence the current behavior is unintended.
 
-**Remediation:** Enforce CSRF validation for session-authenticated API requests. The bypass should only apply when `HTTP_AUTHORIZATION` header is present (Basic Auth).
+**Mitigations in place:** `SameSite=lax` cookies block cross-site POST requests from third-party origins, which covers the classic CSRF vector. Residual exposure is same-site (sibling subdomain / custom-domain) requests and any future relaxation of the cookie's SameSite attribute.
+
+**Remediation:** Make the lambda match its documentation: only bypass when an `HTTP_AUTHORIZATION` (Basic Auth) header is present; otherwise fall through to token validation for session-authenticated `/api/` requests.
 
 ---
 
@@ -347,7 +358,7 @@ The following areas demonstrate excellent security engineering:
 
 | ID | Finding | Likelihood | Impact | Risk | CVSS Est. |
 |----|---------|-----------|--------|------|-----------|
-| M-1 | Permanent account lockout DoS | High | Medium | Medium | 5.3 |
+| M-1 | Time-bounded (~24h) account lockout DoS | High | Low | Low–Med | 4.3 |
 | M-2 | No per-IP login rate limiting | High | Medium | Medium | 5.3 |
 | M-3 | Per-secret-only passphrase rate limit | Medium | Medium | Medium | 4.8 |
 | M-4 | Redis without authentication | Medium | High | Medium | 6.5 |
@@ -356,7 +367,7 @@ The following areas demonstrate excellent security engineering:
 | M-7 | No HSTS header | Medium | Medium | Medium | 4.7 |
 | M-8 | Secret verifier warn-only mode | Low | High | Medium | 4.2 |
 | M-9 | Plaintext API tokens in Redis | Low | High | Medium | 5.5 |
-| M-10 | SVG upload without sanitization | Low | High | Medium | 5.0 |
+| M-10 | Unsanitized SVG upload (XSS unconfirmed) | Low | Med* | Low–Med | 4.0 |
 | M-11 | CSRF bypass for session-auth API | Low | Medium | Medium | 4.3 |
 | M-12 | Cookie secure flag not default in prod | Medium | Medium | Medium | 4.7 |
 | L-1 | httponly not forwarded | Low | Low | Low | 2.0 |
@@ -406,6 +417,22 @@ The following areas demonstrate excellent security engineering:
 - Cryptographic design review (key derivation, encryption modes, random generation)
 - Input validation and sanitization path tracing
 - Race condition analysis of concurrent reveal scenarios
+
+## Post-Audit Verification Status
+
+A second pass re-checked the load-bearing findings directly against source (rather than relying on the initial parallel-agent summaries). Results:
+
+| Finding | Status | Note |
+|---------|--------|------|
+| M-1 lockout | **Corrected** | Not "permanent" — Rodauth default is ~24h auto-unlock + self-service email unlock. Impact downgraded. |
+| M-4 Redis no-auth | Confirmed | Compose files start Valkey without `--requirepass`. |
+| M-6 frame_options / M-7 HSTS / M-12 cookie secure | Confirmed | `config.defaults.yaml` defaults all three off/insecure absent explicit env vars. Note: the reference reverse-proxy (Caddy) deployment sets some edge headers, so residual risk is highest for operators who deploy without that edge hardening — these are "insecure-by-default, hardened-if-you-follow-the-deploy-guide" issues. |
+| M-9 plaintext API tokens | Confirmed | `base.field :apitoken` (deprecated_fields.rb:19) is a plain field, not `encrypted_field`. Comparison itself is constant-time. |
+| M-10 SVG upload | **Corrected** | Storage gap confirmed; XSS exploitability unconfirmed and likely low (entitlement-gated same-org audience, `<img>`-render assumption). Needs dynamic verification. |
+| M-11 CSRF /api bypass | **Strengthened** | Confirmed the lambda bypasses all `/api/` unconditionally, contradicting its own code comment which claims a Basic-Auth check exists. |
+| L-3 dead apitoken? | Confirmed | Non-constant-time method in `deprecated_fields.rb:63` is overridden by the secure one in `customer.rb:268` via MRO; unreachable but should be deleted. |
+
+**Items still requiring dynamic (running-instance) verification:** M-10 SPA render path and any public logo endpoint; M-11 same-site subdomain reachability under the production cookie/domain layout; whether the `unlock_account` route (M-1) is actually surfaced in the UI.
 
 ## Scope Limitations
 
