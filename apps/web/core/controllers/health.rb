@@ -25,6 +25,7 @@ module Core
           keydb: check_keydb,
           jobqueue: check_jobqueue,
           authdb: check_authdb,
+          secret_verifier: check_secret_verifier,
         }
 
         # Job queue and auth database are optional - only count configured services
@@ -86,6 +87,41 @@ module Core
         }
       ensure
         conn&.close if defined?(conn) && conn
+      end
+
+      # Boot-time SECRET verifier state (C10/QS-6). Reads the state the
+      # CheckSecretVerifier initializer cached at boot; only a mismatch
+      # degrades the top-level status.
+      #
+      # When boot cached :unavailable (datastore was down at boot), this
+      # process never verified that SECRET matches the datastore. Re-probe
+      # read-only here: if the datastore has since recovered, a wrong SECRET
+      # surfaces as a real mismatch rather than being silently dropped from
+      # required_checks while keydb reports ok. status never adopts, so a
+      # health poll can't paper over the "never verified" condition.
+      def check_secret_verifier
+        state = Onetime.secret_verifier_state
+        state = Onetime::SecretVerifier.status if state == :unavailable
+
+        case state
+        when :ok, :adopted
+          { status: 'ok', state: state.to_s }
+        when :mismatch
+          {
+            status: 'error',
+            state: 'mismatch',
+            error: 'SECRET does not match the datastore key verifier; existing secrets cannot be decrypted',
+          }
+        when :unavailable
+          # Still unreachable — keydb check above owns the connectivity failure;
+          # don't double-report the same outage.
+          { status: 'not_configured', state: 'unavailable' }
+        else
+          # nil: check skipped (site.secret_verifier_mode: off) or never ran.
+          # :unadopted (re-probe found no stored verifier) lands here too — no
+          # baseline to compare against is indistinguishable from first boot.
+          { status: 'not_configured' }
+        end
       end
 
       def check_authdb

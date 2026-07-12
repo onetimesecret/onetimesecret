@@ -8,7 +8,16 @@ site:
   # Be sure to create and store a backup in a secure offsite
   # location. Changing the secret can lead to unforeseen issues
   # like not being able to decrypt existing secrets.
+  # See docs/runbooks/secret-rotation.md before touching it.
   secret: <%= ENV['SECRET'] || nil %>
+  # Boot-time SECRET verifier (QS-6). The app stores an HKDF-derived
+  # verifier in the datastore and checks it on every boot, so a changed
+  # SECRET (or a datastore from another install) is detected instead of
+  # silently making existing secrets undecryptable.
+  #   warn    - log loudly on mismatch, keep booting (default)
+  #   enforce - refuse to boot on mismatch
+  #   off     - skip the check (escape hatch for multi-tenant datastores)
+  secret_verifier_mode: <%= ENV['SECRET_VERIFIER_MODE'] || 'warn' %>
   # API and UI Configuration
   interface:
     ui:

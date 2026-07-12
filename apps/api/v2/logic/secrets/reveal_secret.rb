@@ -64,6 +64,13 @@ module V2::Logic
         require_entitlement!('api_access')
         raise OT::MissingSecret if secret.nil? || !secret.viewable?
 
+        # C10 fast-fail: when the boot-time verifier says the running SECRET
+        # does not match this datastore, no decrypt can succeed — fail before
+        # any reveal claim so no secret pays for the diagnosis. Gated on
+        # continue (the reveal-intent signal) so metadata-only requests keep
+        # answering; the claim rollback in Secret#reveal! is the backstop.
+        raise Onetime::SecretUndecryptable if continue && Onetime.secret_verifier_state == :mismatch
+
         # Check passphrase rate limit before allowing passphrase attempts
         # This prevents brute-force attacks on secrets with passphrases
         check_passphrase_rate_limit!(secret.identifier) if secret.has_passphrase?

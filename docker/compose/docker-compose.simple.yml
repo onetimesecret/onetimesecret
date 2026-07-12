@@ -4,8 +4,9 @@
 # Minimal two-service deployment: App + Valkey (Redis-compatible).
 # No reverse proxy, no message queue, no workers.
 #
-# Uses pre-built images from Docker Hub. To pin a version:
-#   OTS_IMAGE_TAG=v0.24.6 docker compose up
+# Uses pre-built images from Docker Hub, pinned by default to the same
+# release the root README documents. Override with:
+#   OTS_IMAGE_TAG=latest docker compose up
 #
 # To build from source instead, use Docker Bake:
 #   docker buildx bake -f docker/bake.hcl main
@@ -14,7 +15,9 @@
 
 services:
   app:
-    image: onetimesecret/onetimesecret:${OTS_IMAGE_TAG:-latest}
+    # Default tag is kept in lockstep with the README quick-start pin.
+    # Bump both together at release time (see docker/README.md).
+    image: onetimesecret/onetimesecret:${OTS_IMAGE_TAG:-v0.25.11}
     container_name: onetime-app
     depends_on:
       maindb:
@@ -24,7 +27,7 @@ services:
     environment:
       - RACK_ENV=${RACK_ENV:-production}
       - VALKEY_URL=redis://maindb:6379/0
-      - SECRET=${SECRET:?SECRET must be set — run ./install.sh}
+      - SECRET=${SECRET:?SECRET must be set in .env — add one with 'echo "SECRET=$$(openssl rand -hex 32)" >> .env' (see README)}
       - SESSION_SECRET=${SESSION_SECRET:-}
       - AUTHENTICATION_MODE=${AUTHENTICATION_MODE:-simple}
       - ARGON2_SECRET=${ARGON2_SECRET:-}
@@ -41,8 +44,20 @@ services:
     ports:
       - '3000:3000'
     restart: unless-stopped
-    volumes:
-      - ../../data:/app/data
+    # No /app/data mount: in simple mode everything persists in Valkey
+    # (the maindb-data volume below). The full stack mounts a shared
+    # app-data volume for the sqlite auth database.
+    # Explicit readiness contract so `docker compose up --wait` blocks until the
+    # web app is actually serving (not merely "running"). Reuses the image's
+    # role-aware bin/healthcheck.sh (web role -> curl /health/advanced, then
+    # /health); the shorter interval/start_period here just polls faster than
+    # the image's baked-in HEALTHCHECK for quicker readiness in CI and local up.
+    healthcheck:
+      test: ['CMD', 'bin/healthcheck.sh']
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
   maindb:
     image: valkey/valkey:8.1-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
@@ -65,8 +80,13 @@ services:
       options:
         max-size: '60m'
         max-file: '3'
+    # Loopback-only publish, for host-side debugging (redis-cli/valkey-cli,
+    # RedisInsight). Never reachable from other machines. The app talks to
+    # maindb over the compose network, so if this collides with a Redis
+    # already on your host's 6379, delete the ports block —
+    # `docker compose exec maindb valkey-cli` works without it.
     ports:
-      - '6379:6379'
+      - '127.0.0.1:6379:6379'
     restart: unless-stopped
     volumes:
       - maindb-data:/data

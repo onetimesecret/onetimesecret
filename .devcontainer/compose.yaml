@@ -1,0 +1,32 @@
+# .devcontainer/compose.yaml
+#
+# Devcontainer stack (install-onboarding C8): app + Valkey.
+#
+# The valkey sidecar joins the app container's network namespace
+# (network_mode: service:app), so the dev datastore is reachable at
+# 127.0.0.1:6379 — exactly what the seeded .env (from .env.example) and
+# every documented command already assume. Zero devcontainer-specific
+# environment divergence.
+services:
+  app:
+    # Maintained upstream — hand-rolling a Dockerfile here would create a
+    # second rot surface (testing-strategy §5). Tag tracks .ruby-version.
+    image: ghcr.io/rails/devcontainer/images/ruby:3.4.9
+    volumes:
+      - ..:/workspaces/onetimesecret:cached
+      # Named volume: node_modules I/O through a bind mount is painfully slow
+      # on Apple Silicon (the Discourse pattern). Ownership is fixed by
+      # devcontainer.json's onCreateCommand.
+      - node_modules:/workspaces/onetimesecret/node_modules
+    command: sleep infinity
+
+  valkey:
+    # Same pinned image as docker/compose/docker-compose.simple.yml
+    image: valkey/valkey:8.1-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
+    network_mode: service:app
+    volumes:
+      - valkey-data:/data
+
+volumes:
+  node_modules:
+  valkey-data:

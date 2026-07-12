@@ -1,0 +1,296 @@
+# ==============================================================================
+# Compose / docker smoke (install-onboarding testing-strategy §2a)
+# ==============================================================================
+# The #1 self-host funnel: the documented `docker compose up` and `docker run`
+# quick starts. Two jobs:
+#
+#   compose-smoke      (PR on docker/** changes + weekly cron): lint every
+#                      documented compose combo with `config -q`, then bring up
+#                      the simple stack with `--wait` (the app healthcheck is the
+#                      readiness assertion) and run the shared proof-of-life.
+#   full-stack-smoke   (PR on docker/image changes + weekly cron): build the
+#                      app image and Caddy proxy FROM SOURCE (bake), bring up
+#                      the full stack (proxy + app + valkey + rabbitmq +
+#                      worker + scheduler) with `--wait`, run proof-of-life
+#                      inside the app container, and assert ingress through
+#                      Caddy. Source-built so it guards the repo's Dockerfile
+#                      and compose wiring together (and the /app/data named-
+#                      volume ownership contract), not last release's image.
+#   docker-run-readme  (weekly cron + manual): the README `docker run` quick
+#                      start, verbatim, against the exact published tag the
+#                      README shows — the only thing that catches "the docs
+#                      point at a broken/missing tag".
+#
+# Reference shape: Supabase smoke-tests its self-host compose with published
+# pinned images on every docker/** PR; Sentry runs its install path on a cron.
+# ==============================================================================
+name: Compose smoke
+
+on:
+  pull_request:
+    paths:
+      - 'docker-compose.yml'
+      - 'docker/compose/**'
+      - 'scripts/test-install/proof-of-life.sh'
+      - '.github/workflows/compose-smoke.yml'
+      # full-stack-smoke builds from source, so image-definition changes
+      # must exercise it too.
+      - 'Dockerfile'
+      - 'docker/bake.hcl'
+      - 'docker/base.dockerfile'
+      - 'docker/variants/caddy.dockerfile'
+      - 'docker/entrypoints/**'
+  schedule:
+    # Weekly: catches published-image / registry / tag rot with no commit.
+    - cron: '41 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compose-smoke:
+    name: docker compose up (simple)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      # Compose interpolates ${SECRET:?...} even for `config`. Interpolation
+      # variables come from the shell environment and the project-directory
+      # .env — NOT from a service's `env_file:` (that only feeds the container
+      # at runtime). Because `-f docker/compose/<file>` shifts the project dir
+      # to docker/compose/, a repo-root .env alone would be missed. So export
+      # SECRET into the job env (satisfies interpolation for every compose
+      # invocation) AND write repo-root .env (the `env_file: ../../.env` target,
+      # which must exist for `up`). Throwaway secret — the stack is torn down.
+      - name: Seed SECRET (interpolation) and .env (env_file target)
+        run: |
+          secret="$(openssl rand -hex 32)"
+          echo "SECRET=$secret" >> "$GITHUB_ENV"
+          echo "SECRET=$secret" > .env
+
+      # Zero-cost lint of every documented file combination first (Mattermost
+      # pattern) — a broken include/merge fails here before anything is pulled.
+      - name: Lint all documented compose combos (config -q)
+        run: |
+          set -x
+          docker compose config -q
+          docker compose -f docker/compose/docker-compose.simple.yml config -q
+          docker compose -f docker/compose/docker-compose.full.yml config -q
+          docker compose \
+            -f docker/compose/docker-compose.simple.yml \
+            -f docker/compose/docker-compose.mailpit.yml config -q
+
+      # No data-dir prep needed: the simple stack no longer mounts ./data
+      # (CP-5 — simple mode persists everything in the maindb-data volume).
+      - name: Bring up the simple stack (--wait on app healthcheck)
+        run: |
+          docker compose -f docker/compose/docker-compose.simple.yml \
+            up -d --wait --wait-timeout 180 --quiet-pull --renew-anon-volumes
+
+      # POL_CREATE_ACCOUNT (the C4 follow-on): proof-of-life's opt-in step 4
+      # creates a first account via bin/ots inside the app container and
+      # asserts an authenticated /api/v2/receipt/recent round-trip — the
+      # documented "create your first account" path, exercised in simple
+      # auth mode.
+      # docker-run-readme below stays default-off: it runs the published
+      # README tag, which may predate the CLI contract this step depends on.
+      - name: Proof of life (incl. first-account step)
+        env:
+          POL_CREATE_ACCOUNT: "1"
+          POL_EXEC: docker compose -f docker/compose/docker-compose.simple.yml exec -T app
+        run: ./scripts/test-install/proof-of-life.sh http://127.0.0.1:3000
+
+      - name: Dump logs on failure
+        if: failure()
+        run: docker compose -f docker/compose/docker-compose.simple.yml logs --no-color
+
+      - name: Tear down
+        if: always()
+        run: docker compose -f docker/compose/docker-compose.simple.yml down -v
+
+  full-stack-smoke:
+    name: docker compose up (full, source-built)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      # Same interpolation story as compose-smoke above: SECRET into the job
+      # env for `${SECRET:?}` interpolation, repo-root .env for `env_file:`.
+      # This job also runs AUTHENTICATION_MODE=full (Rodauth), which enables
+      # rodauth-tools' hmac_secret_guard and account_id_obfuscation — both
+      # fail-closed in production (unset RACK_ENV counts as production) when
+      # AUTH_SECRET / ACCOUNT_ID_SECRET are blank, so seed those into the job
+      # env too (docker-compose.full.yml interpolates them the same way as
+      # SECRET, via `${AUTH_SECRET:-}` / `${ACCOUNT_ID_SECRET:-}`).
+      - name: Seed SECRET (interpolation) and .env (env_file target)
+        run: |
+          secret="$(openssl rand -hex 32)"
+          auth_secret="$(openssl rand -hex 32)"
+          account_id_secret="$(openssl rand -hex 32)"
+          echo "SECRET=$secret" >> "$GITHUB_ENV"
+          echo "AUTH_SECRET=$auth_secret" >> "$GITHUB_ENV"
+          echo "ACCOUNT_ID_SECRET=$account_id_secret" >> "$GITHUB_ENV"
+          echo "SECRET=$secret" > .env
+
+      # Build the app image FROM SOURCE via the same bake config releases
+      # use, tagged so the compose default `onetimesecret/onetimesecret:
+      # ${OTS_IMAGE_TAG}` resolves to it. The default buildx builder on
+      # GitHub runners is the docker driver, so bake output lands in the
+      # local image store without --load.
+      - name: Build app image from source (bake main)
+        run: |
+          docker buildx bake -f docker/bake.hcl main \
+            --set "*.args.ALLOW_DEV_VERSION=true" \
+            --set "main.tags=onetimesecret/onetimesecret:ci-fullstack"
+
+      # The proxy is build-only by design (custom Caddy plugins) — compose
+      # builds it from docker/variants/caddy.dockerfile.
+      - name: Build Caddy proxy (compose build)
+        run: docker compose -f docker/compose/docker-compose.full.yml build proxy
+
+      # The documented Caddyfile forces the ACME issuer (correct for prod:
+      # no silent fallback to a self-signed cert if ACME fails), but
+      # DOMAIN=localhost here structurally can never get a public
+      # certificate — ACME issuance fails outright ("does not qualify for
+      # a public certificate"), so Caddy never presents a cert and the
+      # ingress check below gets a bare TLS handshake failure. CI-only:
+      # swap the `tls { issuer acme {...} }` block for `tls internal` on
+      # the checked-out copy (never the committed file) so this run gets
+      # an instant self-signed cert instead — curl already runs
+      # --insecure to accept it. Structural (brace-depth) match, not a
+      # literal comment match, so a Caddyfile-example edit that leaves the
+      # `tls {` shape intact won't silently break this; the grep guard
+      # below still catches a shape change that does.
+      - name: Swap Caddy TLS issuer to internal CA (localhost has no public cert)
+        run: |
+          caddyfile=etc/examples/Caddyfile-example
+          awk '
+            BEGIN { skipping=0; depth=0; done=0 }
+            !done && /^\ttls \{$/ {
+              print "\ttls internal"
+              depth=1; skipping=1; done=1
+              next
+            }
+            skipping {
+              line=$0
+              o=gsub(/\{/,"{",line)
+              c=gsub(/\}/,"}",line)
+              depth += o - c
+              if (depth<=0) skipping=0
+              next
+            }
+            { print }
+          ' "$caddyfile" > "$caddyfile.tmp"
+          mv "$caddyfile.tmp" "$caddyfile"
+          if ! grep -q '^	tls internal$' "$caddyfile" || grep -q 'issuer acme' "$caddyfile"; then
+            echo "::error::failed to swap Caddy tls issuer to internal — Caddyfile-example's tls {} block shape changed, update the awk pattern in this step"
+            exit 1
+          fi
+
+      # AUTHENTICATION_MODE defaults to full: the app runs its sqlite
+      # auth.db migrations at boot inside /app/data — the named volume must
+      # self-initialize with uid-1001 ownership from the image's shipped
+      # /app/data directory (the Dockerfile contract this lane guards).
+      - name: Bring up the full stack (--wait on healthchecks)
+        env:
+          OTS_IMAGE_TAG: ci-fullstack
+        run: |
+          docker compose -f docker/compose/docker-compose.full.yml \
+            up -d --wait --wait-timeout 300 --quiet-pull
+
+      # The app service publishes no host port (ingress is Caddy-only), so
+      # the shared proof-of-life runs inside the app container via stdin —
+      # same assertions as every other lane. POL_CREATE_ACCOUNT rides along
+      # (POL_EXEC stays empty: bin/ots runs in-container at /app), which
+      # exercises first-account provisioning against the full-mode sqlite
+      # authdb the entrypoint just migrated.
+      - name: Proof of life (inside the app container, incl. first account)
+        run: |
+          docker compose -f docker/compose/docker-compose.full.yml \
+            exec -T -e POL_CREATE_ACCOUNT=1 app bash -s -- http://127.0.0.1:3000 \
+            < scripts/test-install/proof-of-life.sh
+
+      # Ingress: Caddy serves {$DOMAIN}:443 (DOMAIN=localhost here) with its
+      # internal CA, static-serving only files that exist under PUBLIC_DIR
+      # (none are mounted) and reverse-proxying everything else to app:3000.
+      - name: Ingress through Caddy (https://localhost)
+        run: |
+          code="$(curl --silent --insecure --output /dev/null \
+            --retry 5 --retry-connrefused --retry-delay 2 --max-time 20 \
+            --write-out '%{http_code}' https://localhost/api/v2/status)"
+          if [ "$code" != "200" ]; then
+            echo "::error::GET https://localhost/api/v2/status through Caddy returned $code (want 200)"
+            exit 1
+          fi
+          echo "Caddy ingress OK (200)"
+
+      - name: Dump logs on failure
+        if: failure()
+        run: docker compose -f docker/compose/docker-compose.full.yml logs --no-color
+
+      - name: Tear down
+        if: always()
+        run: docker compose -f docker/compose/docker-compose.full.yml down -v
+
+  docker-run-readme:
+    name: docker run (README verbatim)
+    # Heavy (pulls the full published image); it guards the published quick
+    # start against tag/registry rot, not per-PR compose wiring — so cron only.
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      # Read the exact image tag the README documents so this test can never
+      # drift from the docs (the whole point — testing the documented path).
+      - name: Resolve README docker-run image tag
+        id: tag
+        run: |
+          tag="$(grep -oE 'onetimesecret/onetimesecret:v[0-9]+\.[0-9]+\.[0-9]+' README.md | head -n1)"
+          if [[ -z "$tag" ]]; then
+            echo "::error::could not find a pinned onetimesecret/onetimesecret:vX.Y.Z tag in README.md"
+            exit 1
+          fi
+          echo "image=$tag" >> "$GITHUB_OUTPUT"
+          echo "Testing documented image: $tag"
+
+      # The README quick start, run verbatim (the two `docker run` commands and
+      # the secret-file step from README §Quick start).
+      - name: Start Redis (README step 1)
+        run: docker run -p 6379:6379 -d redis:bookworm
+
+      - name: Generate persistent secret key (README step 2)
+        run: |
+          openssl rand -hex 32 > .ots_secret
+          chmod 600 .ots_secret
+
+      - name: Run the app container (README step 2, verbatim flags)
+        env:
+          OTS_IMAGE: ${{ steps.tag.outputs.image }}
+        run: |
+          docker run -p 3000:3000 -d \
+            --add-host=host.docker.internal:host-gateway \
+            -e REDIS_URL=redis://host.docker.internal:6379/0 \
+            -e SECRET="$(cat .ots_secret)" \
+            -e HOST=localhost:3000 \
+            -e AUTH_REQUIRED=false \
+            -e SSL=false \
+            "$OTS_IMAGE"
+
+      - name: Proof of life
+        run: ./scripts/test-install/proof-of-life.sh http://127.0.0.1:3000
+
+      - name: Dump container logs on failure
+        if: failure()
+        env:
+          OTS_IMAGE: ${{ steps.tag.outputs.image }}
+        run: |
+          docker ps -a
+          docker logs "$(docker ps -aq --filter "ancestor=$OTS_IMAGE" | head -n1)" || true

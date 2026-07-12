@@ -144,6 +144,41 @@ RSpec.describe V2::Logic::Secrets::ShowReceipt, type: :integration do
       expect(Onetime::Receipt.load(receipt.identifier).state).to eq('new')
     end
 
+    it 'skips the generated-value reveal on a SECRET mismatch without burning the one-shot claim (C10)' do
+      # A mismatched SECRET can't decrypt anything, and decrypt raises *after*
+      # claim_secret_value_display! consumes the one-shot slot. Gating the claim
+      # on verifier state must leave the slot intact so the value is still
+      # revealable once SECRET is restored (non-destructive contract).
+      display_ttl = OT.conf.dig('site', 'secret_options', 'generated_value_display_ttl').to_i
+      expect(display_ttl).to be_positive
+
+      receipt.kind = 'generate'
+      receipt.save_fields(:kind)
+
+      original_state = Onetime.secret_verifier_state
+      begin
+        Onetime.secret_verifier_state = :mismatch
+
+        during = build_logic({ 'identifier' => receipt.identifier })
+        during.process_params
+        during.raise_concerns
+        during_details = during.process[:details]
+
+        # Value withheld, page still renders, claim untouched.
+        expect(during_details[:secret_value]).to be_nil
+        expect(Onetime::Receipt.load(receipt.identifier).state).to eq('new')
+
+        # SECRET restored: the reveal is still available within the window.
+        Onetime.secret_verifier_state = :ok
+        after = build_logic({ 'identifier' => receipt.identifier })
+        after.process_params
+        after.raise_concerns
+        expect(after.process[:details][:secret_value]).to eq('a secret value')
+      ensure
+        Onetime.secret_verifier_state = original_state
+      end
+    end
+
     it "records a 'receipt_viewed' audit event on the owning org's trail, exactly once across repeated loads" do
       org = Onetime::Organization.new(
         display_name: 'Receipt View Test Org',

@@ -155,6 +155,20 @@ module Onetime
           with_error_correlation(body, req, error)
         end
 
+        # A secret whose ciphertext cannot be decrypted with the running
+        # SECRET (C10/QS-6): the reveal claim has been rolled back, the record
+        # and ciphertext survive, and the link becomes revealable again the
+        # moment the operator restores the key. 503 is the honest status —
+        # server-side condition, retryable after operator action, same family
+        # as the billing 503s above. The client-side effect of a non-2xx (the
+        # UI reverts to click-to-reveal) is exactly right here: the secret IS
+        # still revealable. log_level :error — this is operator-actionable
+        # (wrong key), not transient.
+        router.register_error_handler(Onetime::SecretUndecryptable, status: 503, log_level: :error) do |error, req|
+          Onetime::Application::ErrorResolver.resolve!(error, req)
+          with_error_correlation(error.to_h, req, error)
+        end
+
         return unless Onetime.debug?
 
         router.on_request_complete do |req, res, duration|

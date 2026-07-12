@@ -55,7 +55,7 @@ tests:
     covers: [SignUpForm, useAuth.signup, /auth/create-account]
     postconditions:
       - Account exists in database
-      - api: GET /api/v2/account/verify-exists
+      - api: GET /api/account/verify-exists
         params:
           email: newuser-{{timestamp}}@example.com
         assert:

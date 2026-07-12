@@ -331,7 +331,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
     end
 
     context 'performance' do
-      it 'completes within 100ms threshold for many initializers' do
+      it 'completes within threshold for many initializers' do
         classes = []
         20.times do |i|
           classes << create_fork_sensitive_initializer("Init#{i}", -> { sleep 0.001 })
@@ -343,7 +343,10 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           registry.cleanup_before_fork
         end
 
-        expect(elapsed).to be < 0.1
+        # 20 initializers with a deliberate 1ms sleep each floor this at ~20ms;
+        # 0.5s leaves generous headroom for CI scheduler jitter (observed up to
+        # ~175ms on loaded macOS runners) while still catching a real regression.
+        expect(elapsed).to be < 0.5
       end
     end
 
@@ -517,7 +520,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
     end
 
     context 'performance' do
-      it 'completes within 100ms threshold for many initializers' do
+      it 'completes within threshold for many initializers' do
         classes = []
         20.times do |i|
           classes << create_fork_sensitive_initializer("Init#{i}", nil, -> { sleep 0.001 })
@@ -529,7 +532,10 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           registry.reconnect_after_fork
         end
 
-        expect(elapsed).to be < 0.1
+        # 20 initializers with a deliberate 1ms sleep each floor this at ~20ms;
+        # 0.5s leaves generous headroom for CI scheduler jitter (observed up to
+        # ~175ms on loaded macOS runners) while still catching a real regression.
+        expect(elapsed).to be < 0.5
       end
     end
 

@@ -88,17 +88,41 @@ module Onetime::Secret::Features
       # reading invariant is enforced here by construction rather than by each
       # call site remembering to check a boolean.
       #
+      # A wrong-key decrypt (Familia::EncryptionError — the SECRET changed
+      # under existing data, C10/QS-6) must not burn the secret: the claim is
+      # rolled back so the record and ciphertext survive, and the secret is
+      # claimable again the moment the key is restored. Zero plaintext was
+      # produced, so returning the claim cannot violate ADR-019's
+      # at-most-once display.
+      #
       # @param passphrase_input [String, nil] passphrase supplied by the caller,
       #   forwarded to decryption.
       # @param actor_context [Hash, nil] request-scoped audit context forwarded
       #   to the receipt cascade / org audit trail (#3639); see {#revealed!}.
       # @return [String, nil] the decrypted plaintext for the single winning
       #   caller; nil for a loser or an already-terminal secret.
+      # @raise [Onetime::SecretUndecryptable] when the ciphertext cannot be
+      #   decrypted with the running key; the reveal claim has been rolled
+      #   back and the secret remains revealable once the key is restored.
       def reveal!(passphrase_input: nil, actor_context: nil)
+        prior_state = state # 'new' or 'previewed', read before the CAS
         return unless win_reveal_claim!
 
         # Decrypt from the still-in-memory ciphertext BEFORE consume clears it.
-        plaintext = decrypted_secret_value(passphrase_input: passphrase_input)
+        begin
+          plaintext = decrypted_secret_value(passphrase_input: passphrase_input)
+        rescue Familia::EncryptionError
+          # Zero plaintext was produced: returning the claim cannot violate
+          # ADR-019's at-most-once display. Only the claim holder can be in
+          # :revealed here, so the CAS back cannot race another winner. The
+          # CAS is a pure Redis Lua boolean (state_cas.rb) that never touches
+          # memory state, so @state must be restored explicitly.
+          compare_and_set_state!(prior_state, [:revealed])
+          @state = prior_state
+          record_reveal_failed_undecryptable
+          raise Onetime::SecretUndecryptable
+        end
+
         consume_after_reveal!(actor_context: actor_context)
         plaintext
       end
@@ -162,6 +186,17 @@ module Onetime::Secret::Features
         # retained here so reveal! can still decrypt; consume clears it.
         @state = 'revealed'
         true
+      end
+
+      # Best-effort observability for a rolled-back reveal (C10): fan the
+      # event out to the org audit trail through the receipt, same
+      # rescue-and-log posture as the rest of AccessTimeline — a failure here
+      # must never mask the SecretUndecryptable the caller is about to see.
+      def record_reveal_failed_undecryptable
+        load_receipt&.record_org_audit_event('reveal_failed_undecryptable')
+      rescue StandardError => ex
+        OT.le "[reveal-rollback] #{ex.class}: #{ex.message} (secret=#{shortid})"
+        nil
       end
 
       # Post-claim consumption shared by {#revealed!} and {#reveal!}: cascade

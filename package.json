@@ -5,6 +5,7 @@
   "type": "module",
   "packageManager": "pnpm@11.10.0",
   "scripts": {
+    "setup": "./bin/setup",
     "prebuild": "pnpm run locales:sync && pnpm run schemas:json:generate",
     "build": "vite build --config vite.config.ts && VITE_BUILD_TARGET=admin vite build --config vite.config.ts",
     "build:local": "vite build --config vite.config.local.ts",
@@ -125,7 +126,7 @@
     "test:tryouts": "RACK_ENV=test bundle exec try",
     "test:tryouts:agent": "pnpm test:tryouts --agent",
     "test:tryouts:failures": "pnpm test:tryouts --stack --fails --debug",
-    "test:tryouts:clean": "pnpm valkey:clean && pnpm test:tryouts ",
+    "test:tryouts:clean": "pnpm test:database:clean && pnpm test:tryouts",
     "test:unit": "pnpm test",
     "test:unit:coverage": "pnpm test:coverage",
     "test:all": "pnpm test:rspec:all && pnpm test:tryouts:agent && pnpm test:unit",
@@ -262,10 +263,5 @@
     "vue-router-mock": "^2.0.2",
     "vue-tsc": "^3.3.2"
   },
-  "signature": "4pSP4pST4pSz4pST4pSP4pST4pSP4pSz4pST4pSz4pSz4pSz4pST4pSP4pSTCuKUg+KUg+KUg+KUg+KUoyAg4pSDIOKUg+KUg+KUg+KUg+KUowrilJfilJvilJvilJfilJfilJsg4pS7IOKUu+KUmyDilJfilJfilJsKCg==",
-  "lint-staged": {
-    "*.{ts,vue,mjs}": [
-      "eslint --quiet --config eslint.config.ts --cache --cache-location ./node_modules/.cache/eslint --fix"
-    ]
-  }
+  "signature": "4pSP4pST4pSz4pST4pSP4pST4pSP4pSz4pST4pSz4pSz4pSz4pST4pSP4pSTCuKUg+KUg+KUg+KUg+KUoyAg4pSDIOKUg+KUg+KUg+KUg+KUowrilJfilJvilJvilJfilJfilJsg4pS7IOKUu+KUmyDilJfilJfilJsKCg=="
 }

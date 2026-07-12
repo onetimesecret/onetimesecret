@@ -32,6 +32,7 @@ require_relative 'initializers/setup_auth_database'     # depends_on: [:logging,
 require_relative 'initializers/setup_rabbitmq'         # depends_on: [:logging]
 require_relative 'initializers/configure_familia'      # depends_on: [:logging]
 require_relative 'initializers/setup_connection_pool'  # depends_on: [:familia_config]
+require_relative 'initializers/check_secret_verifier'  # depends_on: [:familia_config]
 require_relative 'initializers/check_global_banner'    # depends_on: [:database]
 require_relative 'initializers/check_unique_index_format' # depends_on: [:database]
 require_relative 'initializers/print_log_banner'       # depends_on: [:logging]

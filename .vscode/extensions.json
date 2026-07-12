@@ -1,0 +1,15 @@
+{
+  // Recommended extensions for this repo. VS Code prompts to install these on
+  // first open. They move the checks people want *before* commit to save-time —
+  // the cheapest place they can happen (see docs/specs/dx.md, Part 3.4).
+  "recommendations": [
+    "dbaeumer.vscode-eslint", // flat-config-aware ESLint (lint + fix-on-save)
+    "Vue.volar", // Vue 3 + vue-tsc type diagnostics live in the editor
+    "esbenp.prettier-vscode", // format-on-save for TS/Vue/JSON/etc.
+    "Shopify.ruby-lsp" // Ruby language server with RuboCop formatting
+  ],
+  "unwantedRecommendations": [
+    // Vetur is the legacy Vue 2 extension; it conflicts with Volar.
+    "octref.vetur"
+  ]
+}

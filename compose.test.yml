@@ -1,5 +1,9 @@
 # compose.test.yml — service dependencies for the test lanes.
 #
+# Root compose files (CP-13 naming convention): this file starts backing
+# services for the TEST suites only and never runs the app. Deployment
+# stacks live in docker-compose.yml, which includes docker/compose/*.yml.
+#
 # SINGLE SOURCE OF TRUTH for test service images, versions, and host ports.
 # CI and local dev both start services from this file; the lane env files
 # under tests/lanes/ carry the matching URLs.

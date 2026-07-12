@@ -8,6 +8,11 @@ if ! command -v overmind >/dev/null 2>&1; then
   exit 1
 fi
 
+if [[ -z "${OTS_ENV_LOADED:-}" ]]; then
+  echo "Error: OTS_ENV_LOADED is not set — run: direnv allow .  (or re-run ./install-dev.sh)" >&2
+  exit 1
+fi
+
 PORT="${PORT:-7143}"
 
-exec env PORT="$PORT" overmind start -f Procfile.dev -l frontend
+exec env PORT="$PORT" OVERMIND_SKIP_ENV=1 overmind start -f Procfile.dev -l frontend

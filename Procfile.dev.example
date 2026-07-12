@@ -7,9 +7,12 @@
 #   bin/backend       # backend only
 #   bin/frontend      # frontend only
 
-#valkey: valkey-server --port 9111 --save "" --appendonly no
+# Uncomment to run an ephemeral local valkey. Port must match REDIS_URL in .env
+# (default 127.0.0.1:6379).
+#valkey: valkey-server --port 6379 --save "" --appendonly no
 
-backend: bundle exec puma -C etc/examples/puma.example.rb
+# Requires etc/puma.rb (created by install-dev.sh).
+backend: bundle exec puma -C etc/puma.rb
 
 frontend: pnpm run dev
 

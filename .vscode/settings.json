@@ -1,0 +1,35 @@
+{
+  // Project editor settings (see docs/specs/dx.md, Part 3.4).
+  // Goal: run lint --fix and format at SAVE time, so most fixes never reach a
+  // commit hook. eslint.config.ts is the single source of lint truth.
+
+  // --- ESLint (flat config) ---
+  "eslint.useFlatConfig": true,
+  "eslint.options": {
+    "overrideConfigFile": "eslint.config.ts"
+  },
+  "eslint.validate": ["javascript", "typescript", "vue"],
+
+  // Apply ESLint autofixes on every save.
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+
+  // --- Formatting (Prettier for JS/TS/Vue/JSON, format-on-save) ---
+  "editor.formatOnSave": true,
+  "[javascript]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[typescript]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[vue]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[json]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[jsonc]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+
+  // --- Ruby (ruby-lsp drives RuboCop for diagnostics + formatting) ---
+  "[ruby]": {
+    "editor.defaultFormatter": "Shopify.ruby-lsp",
+    "editor.formatOnSave": true
+  },
+  "rubyLsp.formatter": "rubocop",
+
+  // Volar takes over TS/Vue; disable the bundled TS extension for Vue files.
+  "vue.server.hybridMode": true
+}

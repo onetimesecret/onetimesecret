@@ -1,6 +1,7 @@
 // src/shared/stores/languageStore.ts
 
 import { setGlobalLocale } from '@/i18n';
+import { getBootstrapValue } from '@/services/bootstrap.service';
 import type { PiniaPluginOptions } from '@/plugins/pinia/types';
 import { localeCodeSchema } from '@/schemas/i18n/locale';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
@@ -107,11 +108,27 @@ export const useLanguageStore = defineStore('language', () => {
         currentLocale.value = userLocale;
         return getCurrentLocale.value;
       }
-      // Fall back to stored/device locale
+      // An explicit in-session selection (recipient picking a language on the
+      // page) wins over the domain default.
       storedLocale.value = loadStoredLocale();
       if (storedLocale.value && supportedLocales.value.includes(storedLocale.value)) {
         currentLocale.value = storedLocale.value;
-      } else if (deviceLocale.value && supportedLocales.value.includes(deviceLocale.value)) {
+        _initialized.value = true;
+        return getCurrentLocale.value;
+      }
+
+      // Custom-domain recipient pages default to the domain's brand locale,
+      // ahead of the visitor's browser language. Without this, the saved
+      // Delivery language is overwritten by navigator.language / 'en'.
+      const domainLocale = getBootstrapValue('domain_branding')?.locale;
+      if (domainLocale && supportedLocales.value.includes(domainLocale)) {
+        currentLocale.value = domainLocale;
+        _initialized.value = true;
+        return getCurrentLocale.value;
+      }
+
+      // Fall back to device locale, then default
+      if (deviceLocale.value && supportedLocales.value.includes(deviceLocale.value)) {
         // deviceLocale was already normalized by validateAndNormalizeLocale
         // in init(), so it matches the server's format (e.g. "it_IT")
         currentLocale.value = deviceLocale.value;
