@@ -39,3 +39,18 @@ export function useLogoImage(logoImage: MaybeRefOrGetter<ImageProps | null | und
 
   return { isValidLogo, logoSrc, onFileChange };
 }
+
+/**
+ * Read a picked File into a base64 data-URL for local preview — the same shape
+ * as `logoSrc` above, so a staged (not-yet-uploaded) image renders through the
+ * identical `<img :src>` path as a persisted one. Used by ImageUploadModal to
+ * preview before the commit round-trip.
+ */
+export function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error ?? new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
+}

@@ -112,21 +112,68 @@
     "content_hash": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
-    "text": "Click to upload a logo. Recommended size: 128x128 pixels. Maximum file size: 1MB. Supported formats: PNG, JPG, SVG",
-    "content_hash": "a35452bf"
+    "text": "Click to manage your logo. Recommended size: 128x128 pixels. Maximum file size: 1MB. Supported formats: PNG, JPG, SVG",
+    "content_hash": "7bb92395"
   },
   "web.branding.upload_logo": {
     "text": "Upload logo",
     "content_hash": "c3330082"
   },
   "web.branding.logo": {
-    "text": "Logo"
+    "text": "Logo",
+    "content_hash": "d707dc2f"
   },
   "web.branding.replace_logo": {
-    "text": "Replace"
+    "text": "Replace",
+    "content_hash": "95e15439"
   },
   "web.branding.logo_field_hint": {
-    "text": "PNG, JPG or SVG, <=1MB."
+    "text": "Preview before your changes go live.",
+    "content_hash": "e9e222fc"
+  },
+  "web.branding.logo_modal_title": {
+    "text": "Domain logo",
+    "content_hash": "5260dda5"
+  },
+  "web.branding.logo_modal_hint": {
+    "text": "PNG, JPG or SVG. Recommended 128x128px, up to 1MB.",
+    "content_hash": "75d00802"
+  },
+  "web.branding.logo_modal_save": {
+    "text": "Save logo",
+    "content_hash": "8b028a6f"
+  },
+  "web.branding.remove_logo": {
+    "text": "Remove logo",
+    "content_hash": "f1c1afa4"
+  },
+  "web.branding.image_upload_choose": {
+    "text": "Choose an image",
+    "content_hash": "ceed9fd5"
+  },
+  "web.branding.image_upload_drag_hint": {
+    "text": "or drag and drop",
+    "content_hash": "6613b73c"
+  },
+  "web.branding.image_invalid_type": {
+    "text": "That file type isn't supported. Please choose an image.",
+    "content_hash": "50e18866"
+  },
+  "web.branding.image_too_large": {
+    "text": "Image is too large. Maximum size is {max}.",
+    "content_hash": "b50b55e2"
+  },
+  "web.branding.image_will_be_removed": {
+    "text": "This logo will be removed when you save.",
+    "content_hash": "d94fa99a"
+  },
+  "web.branding.image_upload_failed": {
+    "text": "Something went wrong. Please try again.",
+    "content_hash": "3ccd9d65"
+  },
+  "web.branding.undo": {
+    "text": "Undo",
+    "content_hash": "a8283ade"
   },
   "web.branding.loading_preview": {
     "text": "Loading preview...",
