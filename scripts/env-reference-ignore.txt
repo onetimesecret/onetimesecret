@@ -1,0 +1,69 @@
+# scripts/env-reference-ignore.txt  (install-onboarding C9 / QS-11)
+#
+# Env vars consumed by the codebase that scripts/check-env-reference.sh will
+# NOT require in .env.reference. Two kinds live here:
+#
+#   1. INTERNAL — CI, test, debug, and script-internal knobs that are not
+#      operator configuration. These stay here permanently.
+#   2. BACKLOG — user-facing configuration that .env.reference still owes
+#      documentation for. Each of these should MOVE to .env.reference (a
+#      commented '#VAR=' line with a short explanation) and be deleted here.
+#      Do not add new vars to this section: new configuration must be
+#      documented in .env.reference when it is introduced — that is the
+#      ratchet this file implements.
+#
+# Format: one var per line; '#' comments and blank lines are skipped.
+
+# --- 1. INTERNAL (permanent) -------------------------------------------
+
+# CI / test harness
+CI
+CIRCLE_NODE_INDEX
+GITHUB_JOB
+COVERAGE
+RSPEC_OUTPUT_FILE
+TEST_ENV_NUMBER
+VCR_MODE
+STRIPE_TEST_PRICE_ID
+STRIPE_TEST_PRICE_ID_ALT
+ALLOW_NIL_GLOBAL_SECRET
+
+# Debug / boot introspection
+BACKTRACE_LEVEL
+BACKTRACE_LINES
+BOOT_TICKER_TAPE
+TICKER_TAPE_BINDINGS
+DEBUG_BOOT
+DEBUG_CONFIG_RESOLVER
+DEBUG_LOGGERS
+DEBUG_SESSION
+DELAY_BOOT
+SAFE_BOOT
+WORKER_TRACE_PAYLOAD
+
+# Script-/CLI-internal (arguments in env form, not configuration)
+CONFIRM
+DERIVE
+DRY_RUN
+FORCE
+EMAIL
+PASSWORD
+ENV
+ENV_FILE
+ONETIME_HOME
+DETECTED_HOST
+AUTO_DETECT_DOCKER
+IN_DOCKER
+SKIP_RABBITMQ_SETUP
+
+# Dev-workstation only
+DEV_BASIC_AUTH
+DEV_SESSION_AUTH
+DEV_WORKER_ID
+VITE_PORT
+
+# --- 2. BACKLOG (documentation owed in .env.reference) ------------------
+# Drained 2026-07-11: all 151 backlog vars are now documented in
+# .env.reference. This section stays as the landing zone for any future
+# grandfathering — but per the header above, new vars should be documented
+# in .env.reference when introduced, not parked here.

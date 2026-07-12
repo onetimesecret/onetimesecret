@@ -31,6 +31,7 @@ bad()  { printf 'DRIFT: %s\n' "$1" >&2; fail=1; }
 # Each of these is pasted verbatim in README.md or docs/development and is a
 # file in the repo. If a rename lands without updating the docs, this trips.
 declare -a EXECUTABLES=(
+  bin/setup
   install.sh
   install-dev.sh
   install-test.sh
@@ -69,23 +70,26 @@ for t in "${PNPM_TARGETS[@]}"; do
   fi
 done
 
-# --- 3. Every ./install*.sh and bin/<x> literally referenced in README exists --
+# --- 3. Every ./install*.sh and bin/<x> literally referenced in the
+#        contributor-facing docs exists ---------------------------------------
 #
 # Belt-and-suspenders: catch any NEW documented command we forgot to add to
 # the curated list above. Extracts `./install*.sh` and `bin/<word>` tokens
-# from README.md and asserts each resolves to a real file.
-echo "Cross-checking README.md references against the tree..."
-if [[ -f README.md ]]; then
+# from the docs a fresh contributor reads and asserts each resolves to a
+# real file.
+for doc in README.md CONTRIBUTING.md docs/development/README.md; do
+  [[ -f "$doc" ]] || continue
+  echo "Cross-checking $doc references against the tree..."
   # shellcheck disable=SC2013
-  for ref in $(grep -oE '(\./install[a-z-]*\.sh|bin/[a-z][a-z0-9_-]*)' README.md | sort -u); do
+  for ref in $(grep -oE '(\./install[a-z-]*\.sh|bin/[a-z][a-z0-9_-]*)' "$doc" | sort -u); do
     path="${ref#./}"
     if [[ -e "$path" ]]; then
-      note "OK: README references $ref"
+      note "OK: $doc references $ref"
     else
-      bad "README.md references '$ref' but it does not exist"
+      bad "$doc references '$ref' but it does not exist"
     fi
   done
-fi
+done
 
 if (( fail )); then
   echo "" >&2

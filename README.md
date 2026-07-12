@@ -30,6 +30,7 @@ echo "Secret key saved to .ots_secret (keep this file secure!)"
 # Now run the container using the key
 # ⚠️ WARNING: Set SSL=true for production deployments
 docker run -p 3000:3000 -d \
+  --name onetimesecret \
   --add-host=host.docker.internal:host-gateway \
   -e REDIS_URL=redis://host.docker.internal:6379/0 \
   -e SECRET="$(cat .ots_secret)" \
@@ -40,6 +41,31 @@ docker run -p 3000:3000 -d \
 ```
 
 **3. Access:** http://localhost:3000
+
+**4. Create your first account** — see [Create your first account](#create-your-first-account) below.
+
+## Create your first account
+
+Create an admin ("colonel") account from the CLI — it prints a generated password, and CLI-created accounts are verified immediately (no email required).
+
+Docker (container started with `--name onetimesecret` as above):
+```bash
+docker exec onetimesecret bin/ots customers create me@example.com --role colonel
+```
+
+Docker Compose (the app service is named `app`):
+```bash
+docker compose exec app bin/ots customers create me@example.com --role colonel
+```
+
+Bare-metal (Valkey/Redis running and `.env` sourced: `set -a; source .env; set +a`):
+```bash
+bundle exec bin/ots customers create me@example.com --role colonel
+```
+
+For an API token, use `bin/ots apitoken me@example.com` (or `bin/ots apitoken me@example.com --create --role colonel` to create the account and token in one step). See [docs/development/test-accounts.md](./docs/development/test-accounts.md) for more.
+
+> **Self-hosting note:** By default (`AUTH_AUTOVERIFY=false`) new web signups must click a link in a verification email before they can sign in, which requires a working mailer (`EMAILER_MODE`, `SMTP_HOST`/`SMTP_USERNAME`/`SMTP_PASSWORD`, `FROM_EMAIL`). On a fresh install the SMTP host is a placeholder, so the email never arrives and the signup is stranded as pending. For private or team instances, either set `AUTH_AUTOVERIFY=true` (accounts are active immediately at signup) or create accounts from the CLI as above. (Full auth mode, `AUTHENTICATION_MODE=full`, uses Rodauth's verify-account flow via `AUTH_VERIFY_ACCOUNT_ENABLED` instead.)
 
 ## Configuration
 
@@ -76,10 +102,15 @@ Requires Ruby 3.4.9 (pinned via `.ruby-version`), Redis/Valkey, Node.js 22, pnpm
 
 ```bash
 git clone https://github.com/onetimesecret/onetimesecret.git && cd onetimesecret
-./install.sh init            # Generates .env, secrets, and puma config
+bin/setup --init             # Generates .env, secrets, and puma config
 set -a; source .env; set +a  # Export env vars into the shell
 pnpm run build               # Build the frontend assets (required, or the UI is blank)
 bundle exec puma -C etc/puma.rb
+```
+
+Then, in another terminal (with the env sourced the same way), [create your first account](#create-your-first-account):
+```bash
+bundle exec bin/ots customers create me@example.com --role colonel
 ```
 
 For long-running deployments, use a Procfile runner or the systemd templates in `etc/examples/systemd/`:
@@ -91,21 +122,19 @@ See the [Self-Hosting Guide](https://docs.onetimesecret.com/en/self-hosting/) fo
 
 ## Development
 
-### Running Locally
-
-There are two ways to run the application for local development:
-
-**Option A: Overmind (recommended)**
-
-[Overmind](https://github.com/DarthSim/overmind) runs backend, frontend, and worker from a single command using `Procfile.dev`:
-
-> Requires [direnv](https://direnv.net/) with its [shell hook](https://direnv.net/docs/hook.html) installed. `install-dev.sh` generates `.envrc` and runs `direnv allow`; `bin/dev` loads the environment via direnv.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor guide. The
+short version — one command sets up the checkout, one command runs it:
 
 ```bash
-brew install overmind          # macOS
-./install-dev.sh               # Link config files + install gems and packages (one-time per checkout)
-bin/dev                        # Start all processes
+bin/setup                      # Deps, config, secrets, generated artifacts, git hooks (idempotent)
+bin/dev                        # Start backend + frontend + worker (needs overmind)
 ```
+
+> [Overmind](https://github.com/DarthSim/overmind) runs the processes from
+> `Procfile.dev`; [direnv](https://direnv.net/) (with its
+> [shell hook](https://direnv.net/docs/hook.html)) auto-loads the environment
+> per checkout. Both are recommended — `bin/setup` tells you what's missing
+> and how to proceed without them.
 
 Control individual processes from a separate terminal:
 ```bash
@@ -113,7 +142,14 @@ overmind connect backend       # Attach for debugger/pry (Ctrl+b,d to detach)
 overmind restart frontend      # Restart a single process
 ```
 
-**Option B: Production-style**
+To run the test suites, switch the checkout to the test lane first:
+```bash
+bin/setup --test               # Throwaway test datastore on :2121 + test mode
+pnpm run test:rspec:fast       # RSpec
+pnpm test                      # Vitest
+```
+
+**Production-style local run**
 
 Build the frontend and serve everything from the backend:
 ```bash
@@ -141,12 +177,19 @@ echo "SECRET=$(openssl rand -hex 32)" >> .env
 docker compose up
 ```
 
-See `docker-compose.yml` for available profiles (simple vs full stack) and `docker/README.md` for details.
+Then, in another terminal, [create your first account](#create-your-first-account):
+```bash
+docker compose exec app bin/ots customers create me@example.com --role colonel
+```
+
+See `docker-compose.yml` to switch between the simple and full stacks (edit the `include`), and [docker/README.md](./docker/README.md) for details. The compose stacks default to the same pinned image tag as the quick start above; override it with `OTS_IMAGE_TAG` in `.env`.
 
 ## Community & Support
 
 [Latest Release](https://github.com/onetimesecret/onetimesecret/releases/latest) · [Docker Hub](https://hub.docker.com/r/onetimesecret/onetimesecret) · [Build Status](https://github.com/onetimesecret/onetimesecret/actions) · [License](LICENSE.txt)
 
+- [Contributing Guide](./CONTRIBUTING.md) — from clone to green test suite with `bin/setup`
+- [Support](./SUPPORT.md) · [Code of Conduct](./CODE_OF_CONDUCT.md)
 - [Report an issue](https://github.com/onetimesecret/onetimesecret/issues)
 - [Security Statement](./SECURITY.md)
 - [Documentation](https://docs.onetimesecret.com) — usage and self-hosting guides; [`docs/`](./docs/) for developer docs

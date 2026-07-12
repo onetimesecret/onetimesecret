@@ -38,6 +38,9 @@ jobs:
       - name: Assert Docker image tags match version pin files
         run: bash scripts/check-version-pins.sh
 
+      - name: Assert .env.reference documents every consumed env var
+        run: bash scripts/check-env-reference.sh
+
       - name: Set up Ruby
         uses: ruby/setup-ruby@97b333846670e3cb692f29c0c5d42b71efc6bc93
         with:

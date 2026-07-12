@@ -126,7 +126,7 @@ module Core
       def not_found_response(message, **)
         # Simplified: BaseView now extracts everything from req
         view       = Core::Views::VuePoint.new(req)
-        view.add_error(message) unless message&.empty?
+        view.add_error(message) unless message && message.empty?
         res.status = 404
         res.body   = view.render  # Render the entrypoint HTML
       end

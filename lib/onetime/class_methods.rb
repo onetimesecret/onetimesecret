@@ -37,6 +37,19 @@ module Onetime
     attr_accessor :execution_mode
     attr_writer :debug
 
+    # Result of the boot-time SECRET verifier check (C10/QS-6), set by the
+    # CheckSecretVerifier initializer:
+    #   :ok          - stored verifier matches the running SECRET
+    #   :adopted     - no verifier was stored; this boot adopted one
+    #   :mismatch    - stored verifier differs (SECRET changed under existing
+    #                  data, or the app points at another install's datastore)
+    #   :unavailable - datastore unreachable at boot; nothing verified
+    #   nil          - check skipped (site.secret_verifier_mode: off) or not
+    #                  yet run
+    # The reveal fast-fail, /health/advanced, and rake ots:secrets:verify all
+    # read this.
+    attr_accessor :secret_verifier_state
+
     # Returns the current wall clock time as microseconds since Unix epoch
     # using the system's high-precision clock interface. This method provides
     # the most accurate and consistent timestamp available on the platform.

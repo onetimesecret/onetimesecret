@@ -5,6 +5,7 @@
   "type": "module",
   "packageManager": "pnpm@11.10.0",
   "scripts": {
+    "setup": "./bin/setup",
     "prebuild": "pnpm run locales:sync && pnpm run schemas:json:generate",
     "build": "vite build --config vite.config.ts && VITE_BUILD_TARGET=admin vite build --config vite.config.ts",
     "build:local": "vite build --config vite.config.local.ts",
@@ -125,7 +126,7 @@
     "test:tryouts": "RACK_ENV=test bundle exec try",
     "test:tryouts:agent": "pnpm test:tryouts --agent",
     "test:tryouts:failures": "pnpm test:tryouts --stack --fails --debug",
-    "test:tryouts:clean": "pnpm valkey:clean && pnpm test:tryouts ",
+    "test:tryouts:clean": "pnpm test:database:clean && pnpm test:tryouts",
     "test:unit": "pnpm test",
     "test:unit:coverage": "pnpm test:coverage",
     "test:all": "pnpm test:rspec:all && pnpm test:tryouts:agent && pnpm test:unit",

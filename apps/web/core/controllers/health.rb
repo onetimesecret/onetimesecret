@@ -25,6 +25,7 @@ module Core
           keydb: check_keydb,
           jobqueue: check_jobqueue,
           authdb: check_authdb,
+          secret_verifier: check_secret_verifier,
         }
 
         # Job queue and auth database are optional - only count configured services
@@ -86,6 +87,29 @@ module Core
         }
       ensure
         conn&.close if defined?(conn) && conn
+      end
+
+      # Boot-time SECRET verifier state (C10/QS-6). Reads the state the
+      # CheckSecretVerifier initializer cached at boot; only a mismatch
+      # degrades the top-level status. :unavailable maps to not_configured
+      # because the keydb check above already owns connectivity failures —
+      # this sub-check must not double-report the same outage.
+      def check_secret_verifier
+        case Onetime.secret_verifier_state
+        when :ok, :adopted
+          { status: 'ok', state: Onetime.secret_verifier_state.to_s }
+        when :mismatch
+          {
+            status: 'error',
+            state: 'mismatch',
+            error: 'SECRET does not match the datastore key verifier; existing secrets cannot be decrypted',
+          }
+        when :unavailable
+          { status: 'not_configured', state: 'unavailable' }
+        else
+          # nil: check skipped (site.secret_verifier_mode: off) or never ran
+          { status: 'not_configured' }
+        end
       end
 
       def check_authdb

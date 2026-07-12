@@ -2,12 +2,12 @@
 #
 # Expects One-Time Secret to be running as onetime-app on port 3000.
 #
-#   # Build (default Caddy 2.10.2 with Cloudflare DNS)
-#   $ docker build -f Dockerfile-caddy -t onetime-caddy:v2.10.2 .
+#   # Build (default Caddy 2.11.4 with Cloudflare DNS)
+#   $ docker build -f Dockerfile-caddy -t onetime-caddy:v2.11.4 .
 #
 #   # Build with different Caddy version and DNS module (e.g., Route53)
 #   # See available modules: https://github.com/orgs/caddy-dns/repositories?type=all
-#   $ CADDY_VERSION=v2.10.2; docker build -f Dockerfile-caddy \
+#   $ CADDY_VERSION=v2.11.4; docker build -f Dockerfile-caddy \
 #     --build-arg DNS_MODULE=route53 \
 #     --build-arg CADDY_VERSION=${CADDY_VERSION} \
 #     -t onetime-caddy:${CADDY_VERSION} .
@@ -28,7 +28,7 @@
 #     -e UPSTREAM_PORT=3000 \
 #     -e DOMAIN=secrets.example.com \
 #     --detach \
-#     onetime-caddy:v2.10.2
+#     onetime-caddy:v2.11.4
 #
 #   # Double-check the persistent storage
 #   $ docker exec onetime-proxy ls -la /data/caddy
@@ -61,8 +61,14 @@
 FROM golang:1.26-bookworm@sha256:8e8aa801e8417ef0b5c42b504dd34db3db911bb73dba933bd8bde75ed815fdbb AS builder
 
 # Build arguments
-ARG CADDY_VERSION=551f793700fe1550845c824470b623fd1aa03d36 # v2.10.2
+ARG CADDY_VERSION=e2eee6a7fce366321294c9c2a79f3146891dcbdf # v2.11.4
 ARG XCADDY_VERSION=328cac711a1fe80041c3b79db2dfbb4e10330a05 # v0.4.5
+# caddy-security was previously unpinned (floated to latest), which silently
+# broke this build when v1.1.64 started requiring caddy/v2@v2.11.4 while
+# CADDY_VERSION above was still pinned to v2.10.2. Pin it like the other
+# build args so a caddy-security release can't drift the required core
+# version out from under this Dockerfile again.
+ARG CADDY_SECURITY_VERSION=a20b782cd19a11659e71b88ffcce3fdd3437a526 # v1.1.64
 ARG PUBLIC_DIR=/var/www/public
 
 # If DNS_MODULE is set to an empty string, it will attempt to install
@@ -77,7 +83,7 @@ RUN go install github.com/caddyserver/xcaddy/cmd/xcaddy@${XCADDY_VERSION}
 # Build Caddy with plugins
 RUN xcaddy build ${CADDY_VERSION} \
     --with github.com/mholt/caddy-ratelimit \
-    --with github.com/greenpau/caddy-security \
+    --with github.com/greenpau/caddy-security@${CADDY_SECURITY_VERSION} \
     --with github.com/caddyserver/transform-encoder \
     --with github.com/caddy-dns/${DNS_MODULE}
 

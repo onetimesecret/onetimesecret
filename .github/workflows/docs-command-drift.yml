@@ -13,6 +13,7 @@ on:
   pull_request:
     paths:
       - 'README.md'
+      - 'CONTRIBUTING.md'
       - 'docs/development/**'
       - 'install*.sh'
       - 'bin/**'

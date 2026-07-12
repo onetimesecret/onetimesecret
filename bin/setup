@@ -1,0 +1,1246 @@
+#!/usr/bin/env bash
+
+# bin/setup — the one command that prepares this checkout.
+#
+#   bin/setup             Dev environment (contributor default): deps, config,
+#                         secrets, generated artifacts, git hooks, next steps.
+#   bin/setup --test      Test lane: throwaway datastore on :2121, .test-mode
+#                         marker, config smoke test. RSpec/Vitest just work.
+#   bin/setup --init      Self-hosting init: secrets, env, install mark.
+#                         Auto-detects an existing environment and reconciles
+#                         instead (never regenerates a live SECRET).
+#   bin/setup --doctor    Check the environment: diff(manifest, reality) +
+#                         live connectivity probes. --operator drops the
+#                         contributor-tooling checks; --bundle writes a
+#                         sanitized diagnostic archive for support requests.
+#
+# Idempotent: every lane is safe to re-run at any time. Switching lanes is
+# also how you switch modes — `bin/setup --test` enters test mode (creates
+# .test-mode), `bin/setup` returns to dev mode (removes it).
+#
+# CI's fresh-clone workflow runs this same script from zero — if setup needs
+# a step this script doesn't do, either the script or the docs is wrong.
+#
+# The old entry points (install.sh, install-dev.sh, install-test.sh) delegate
+# here during a deprecation window.
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+# shellcheck source=scripts/setup/lib.sh
+source "$ROOT/scripts/setup/lib.sh"
+
+OTS_DEV_CONFIG="${OTS_DEV_CONFIG:-$HOME/.config/onetimesecret-dev}"
+
+# =======================================================================
+# Dev-lane helpers (shared maintainer config, git hooks, Caddy webroot)
+# =======================================================================
+
+# Files/dirs to symlink from OTS_DEV_CONFIG: "local_path:shared_name" pairs.
+# (A plain list, not an associative array — stock macOS bash is 3.2.)
+DEV_LINKS="
+etc/config.yaml:config.yaml
+etc/auth.yaml:auth.yaml
+etc/billing.yaml:billing.yaml
+etc/logging.yaml:logging.yaml
+data:data
+Procfile.dev:Procfile.dev
+Procfile.volatile:Procfile.volatile
+.env:dotenv-main
+.env.test:.env.test
+.env.local:.env.local
+etc/puma.rb:puma.rb
+"
+
+# .env is a shared symlink to OTS_DEV_CONFIG/dotenv-main (the main env file,
+# named without a leading dot so it is visible in the shared config dir).
+# Machine-specific overrides go in .env.local, loaded after .env by .envrc.
+# The in-repo .env.example remains the full reference config to copy from.
+
+link_resource() {
+  local local_path="$1"
+  local shared_name="$2"
+  local target="$OTS_DEV_CONFIG/$shared_name"
+
+  if [[ ! -e "$target" ]]; then
+    # Clean up a dangling local symlink that pointed at this
+    # (now-missing) shared target, so the checkout doesn't rot.
+    if [[ -L "$local_path" && "$(readlink "$local_path")" == "$target" ]]; then
+      rm "$local_path"
+      echo "Removed: $local_path (target $target no longer exists)"
+    else
+      echo "Skip: $target does not exist"
+    fi
+    return
+  fi
+
+  # Already correctly linked
+  if [[ -L "$local_path" && "$(readlink "$local_path")" == "$target" ]]; then
+    echo "OK:   $local_path -> $target"
+    return
+  fi
+
+  # Exists but not a symlink - don't clobber it
+  if [[ -e "$local_path" && ! -L "$local_path" ]]; then
+    echo "Skip: $local_path already exists (not a symlink)"
+    return
+  fi
+
+  # Create parent directory if needed
+  mkdir -p "$(dirname "$local_path")"
+
+  # Atomic replace handles stale symlinks without a missing-link window.
+  ln -snf "$target" "$local_path"
+  echo "Link: $local_path -> $target"
+}
+
+link_dev_resources() {
+  if [[ ! -d "$OTS_DEV_CONFIG" ]]; then
+    echo "Note: no shared dev config at $OTS_DEV_CONFIG — using tracked defaults."
+    echo "      (Fine for contributors. Maintainers: point OTS_DEV_CONFIG at your config dir.)"
+    return 0
+  fi
+
+  echo "Linking dev resources from $OTS_DEV_CONFIG"
+  local pair local_path shared_name
+  for pair in $DEV_LINKS; do
+    local_path="${pair%%:*}"
+    shared_name="${pair#*:}"
+    link_resource "$local_path" "$shared_name"
+  done
+}
+
+# Fall back to local copies when symlink sources are absent. Remove dangling
+# symlinks first — [[ ! -e ]] is true for broken symlinks but cp fails
+# because the link path still exists in the directory.
+seed_dev_fallbacks() {
+  if [[ ! -e ".env" && ! -e "$OTS_DEV_CONFIG/dotenv-main" && -f ".env.example" ]]; then
+    [[ -L ".env" ]] && rm ".env"
+    cp .env.example .env
+    echo "Copy: .env.example -> .env (no shared source)"
+  fi
+
+  if [[ ! -e "Procfile.dev" && -f "Procfile.dev.example" ]]; then
+    [[ -L "Procfile.dev" ]] && rm "Procfile.dev"
+    cp Procfile.dev.example Procfile.dev
+    echo "Copy: Procfile.dev.example -> Procfile.dev (no symlink source)"
+  fi
+}
+
+# Replace the Caddy webroot symlink with this checkout's public/web.
+# Caddy is configured to serve from /var/www/public/web. Optional: skipped
+# entirely when /var/www/public doesn't exist (i.e. everywhere but a
+# maintainer machine fronted by Caddy).
+link_caddy_webroot() {
+  if [[ ! -d "public/web" ]]; then
+    echo "Skip: public/web missing from checkout (unexpected — it is tracked in the repo)"
+    return
+  fi
+
+  local webroot
+  webroot="$(cd public/web && pwd -P)"
+  local caddy_link="/var/www/public/web"
+  local caddy_parent="/var/www/public"
+
+  if [[ ! -d "$caddy_parent" ]]; then
+    echo "Skip: $caddy_parent does not exist — caddy webroot symlink not created"
+    return
+  fi
+
+  # Don't clobber a real directory
+  if [[ -e "$caddy_link" && ! -L "$caddy_link" ]]; then
+    echo "Skip: $caddy_link exists and is not a symlink — not replacing"
+    return
+  fi
+
+  # Already correctly linked? Compare resolved targets so we don't
+  # relink (and prompt for sudo) when an equivalent relative or
+  # non-canonical path is already in place.
+  local prev_target=""
+  if [[ -L "$caddy_link" ]]; then
+    prev_target="$(readlink "$caddy_link")"
+    local prev_resolved
+    prev_resolved="$(readlink -f "$caddy_link" 2>/dev/null || echo "")"
+    if [[ -n "$prev_resolved" && "$prev_resolved" == "$webroot" ]]; then
+      echo "OK:   $caddy_link -> $webroot"
+      return
+    fi
+  fi
+
+  local run=""
+  if [[ ! -w "$caddy_parent" ]]; then
+    run="sudo"
+    echo "Note: $caddy_parent requires elevated privileges (sudo)"
+  fi
+
+  # Atomic replace: ln -snf swaps the symlink in place without a
+  # transient missing-link window between rm and ln.
+  $run ln -snf "$webroot" "$caddy_link"
+
+  if [[ -n "$prev_target" ]]; then
+    echo "Link: $caddy_link -> $webroot"
+    echo "      (was: $prev_target)"
+  else
+    echo "Link: $caddy_link -> $webroot"
+  fi
+}
+
+# Install the pre-commit-managed git hooks and pre-build their isolated
+# tool environments (rubocop, eslint, etc). Two configs are in play:
+#   .pre-commit-config.yaml  -> pre-commit, prepare-commit-msg, post-* hooks
+#                               (hook types come from default_install_hook_types)
+#   .pre-push-config.yaml    -> pre-push hooks (separate config + hook type)
+#
+# --install-hooks pre-builds the hook environments so the first commit/push
+# is not slowed down by a one-time dependency download. Hooks land in the
+# common git dir, so a worktree forest shares one set — re-running here is
+# idempotent.
+install_git_hooks() {
+  if ! has pre-commit; then
+    echo "Skip: pre-commit not installed — git hooks not configured"
+    return
+  fi
+
+  # pre-commit refuses to install while core.hooksPath is set, since it
+  # cannot guarantee git will invoke the hooks it writes. Surface the
+  # one-line fix instead of aborting the whole script.
+  local hooks_path
+  hooks_path="$(git config --get core.hooksPath || true)"
+  if [[ -n "$hooks_path" ]]; then
+    echo ""
+    echo ">>> WARNING: git hooks NOT installed"
+    echo "    pre-commit will not install while core.hooksPath is set."
+    echo "    Current value: $hooks_path"
+
+    # If it merely pins git's own default hooks dir, clearing it
+    # changes nothing — say so, so the user isn't left guessing.
+    local default_hooks resolved_hooks
+    default_hooks="$(cd "$(git rev-parse --git-path hooks)" 2>/dev/null && pwd -P || true)"
+    resolved_hooks="$(cd "$hooks_path" 2>/dev/null && pwd -P || true)"
+    if [[ -n "$default_hooks" && "$resolved_hooks" == "$default_hooks" ]]; then
+      echo "    (This is git's default hooks directory. Clearing the setting for this local checkout is safe.)"
+    fi
+
+    echo "    To enable git hooks, clear it and re-run bin/setup:"
+    echo "      git config --unset-all core.hooksPath"
+    echo ""
+    return
+  fi
+
+  pre-commit install --install-hooks \
+    || { echo "Warning: pre-commit hook install failed — git hooks not configured"; return; }
+  pre-commit install --hook-type pre-push \
+    --config .pre-push-config.yaml --install-hooks \
+    || { echo "Warning: pre-push hook install failed"; return; }
+}
+
+# =======================================================================
+# Lane: dev (default)
+# =======================================================================
+
+cmd_dev() {
+  info "Setting up dev environment..."
+
+  check_version_exact "Ruby" ruby .ruby-version 'ruby -e "puts RUBY_VERSION"'
+  check_version_major "Node" node .node-version 'node -v'
+
+  local missing_required=()
+  has bundle || missing_required+=("bundle  (Ruby Bundler):  https://bundler.io/")
+  has pnpm   || missing_required+=("pnpm    (Node package manager):  https://pnpm.io/installation")
+  if (( ${#missing_required[@]} > 0 )); then
+    echo "Error: Required tools missing:"
+    local tool
+    for tool in "${missing_required[@]}"; do
+      echo "  - $tool"
+    done
+    exit 1
+  fi
+
+  # Optional tooling — warn once here, adapt the closing instructions below.
+  local has_overmind=true has_direnv=true
+  if ! has overmind; then
+    has_overmind=false
+    warn "Overmind not found — required by bin/dev"
+    warn "  Install: https://github.com/DarthSim/overmind#installation"
+  fi
+  if ! has direnv; then
+    has_direnv=false
+    warn "direnv not found — recommended; it auto-loads .env when you cd into the checkout"
+    warn "  Install: https://direnv.net/docs/installation.html"
+  fi
+  if ! has pre-commit; then
+    warn "pre-commit not found — git pre-commit/pre-push hooks will not be installed"
+    warn "  Install: pipx install pre-commit   (or: brew install pre-commit)"
+  fi
+
+  # Generate .envrc for direnv-based env loading, and ensure dev mode
+  # (remove the test-mode marker if present).
+  generate_envrc
+  rm -f .test-mode
+
+  echo "---"
+  link_dev_resources
+  seed_dev_fallbacks
+  seed_configs
+
+  echo "---"
+  install_gems
+
+  echo "---"
+  ensure_secrets
+
+  echo "---"
+  install_node
+
+  echo "---"
+  echo "Installing git hooks (pre-commit, pre-push)..."
+  install_git_hooks
+
+  # Intentionally does NOT run `pnpm run build`. Production assets in
+  # public/web cause confusion about which files are actually being served
+  # during development. `pnpm run clean` removes them so this checkout
+  # starts in a known, consistent state. The Vite dev server (via bin/dev)
+  # serves frontend assets directly.
+  echo "---"
+  echo "Removing frontend build output (public/web/dist)..."
+  pnpm run clean
+
+  echo "---"
+  generate_artifacts
+
+  echo "---"
+  echo "Configuring Caddy webroot..."
+  link_caddy_webroot
+
+  if $has_direnv; then
+    echo "---"
+    echo "Allowing direnv for this checkout..."
+    direnv allow .
+  fi
+
+  # GDK-style closing doctor pass (D8): show the contributor the diff between
+  # manifest and reality now, not on their first failed command.
+  echo "---"
+  cmd_doctor --dev || true
+
+  echo "---"
+  echo "Setup complete."
+  echo ""
+  echo "  Note: pnpm run build was NOT run (intentional)."
+  echo "  Prior build output was removed; the Vite dev server serves assets directly."
+  echo ""
+  if ! $has_direnv; then
+    echo "  Without direnv, export the environment yourself in each shell:"
+    echo "    set -a; source .env; set +a"
+    echo ""
+  fi
+  if $has_overmind; then
+    echo "To start:"
+    echo "  bin/dev                  # standard"
+    echo "  bin/dev --volatile       # ephemeral, no persistent data (useful in alternate checkouts)"
+  else
+    echo "Install overmind to use bin/dev, or start services manually:"
+    echo "  bundle exec puma -C etc/puma.rb"
+  fi
+  echo ""
+  echo "First login (after bin/dev is up):"
+  echo "  bundle exec rake dev:seed  # dev account + sample secrets, prints credentials"
+  echo ""
+  echo "To run the test suites: bin/setup --test, then:"
+  echo "  pnpm run test:rspec:fast   # RSpec"
+  echo "  pnpm test                  # Vitest"
+}
+
+# =======================================================================
+# Lane: test  (absorbs install-test.sh)
+# =======================================================================
+#
+# Switches this checkout to test mode and makes the RSpec suite runnable on
+# a fresh clone, with no maintainer-private files required: throwaway
+# datastore on :2121 (no persistence), config smoke test, optional direnv
+# lane switching and PostgreSQL provisioning for the integration suite.
+
+cmd_test() {
+  info "Setting up test environment..."
+
+  datastore_discover
+
+  local missing_required=()
+  command -v ruby   &>/dev/null || missing_required+=("ruby    (see .ruby-version):  https://www.ruby-lang.org/")
+  has bundle || missing_required+=("bundler (gem install bundler)")
+  has pnpm   || missing_required+=("pnpm    (Node package manager):  https://pnpm.io/installation")
+  if [[ -z "$VALKEY_CLI" || -z "$VALKEY_SERVER" ]]; then
+    missing_required+=("valkey-server/valkey-cli (or redis-server/redis-cli):  https://valkey.io/download/")
+  fi
+  if (( ${#missing_required[@]} > 0 )); then
+    echo "Error: Required tools missing:"
+    local tool
+    for tool in "${missing_required[@]}"; do
+      echo "  - $tool"
+    done
+    exit 1
+  fi
+
+  echo "OK:   datastore -> server '$VALKEY_SERVER', cli '$VALKEY_CLI'"
+
+  check_version_exact "Ruby" ruby .ruby-version 'ruby -e "puts RUBY_VERSION"'
+
+  echo "---"
+  echo "Seeding etc/ config from defaults..."
+  seed_configs
+
+  echo "---"
+  install_gems
+
+  if [[ -d node_modules ]]; then
+    echo "OK:   node_modules present"
+  else
+    install_node
+  fi
+
+  echo "---"
+  generate_artifacts
+
+  # --- Test datastore on port 2121 -------------------------------------
+
+  echo "---"
+  echo "Starting test datastore on port 2121..."
+
+  if "$VALKEY_CLI" -p 2121 ping &>/dev/null; then
+    echo "OK:   Test datastore already running on port 2121"
+  else
+    pnpm run test:database:start
+
+    local started=false _i
+    for _i in 1 2 3 4 5 6 7 8 9 10; do
+      if "$VALKEY_CLI" -p 2121 ping &>/dev/null; then
+        started=true
+        break
+      fi
+      sleep 0.5
+    done
+
+    if $started; then
+      echo "OK:   Test datastore started on port 2121"
+    else
+      echo "Error: Test datastore did not start on port 2121"
+      echo "  Try manually: pnpm run test:database:start:fg"
+      exit 1
+    fi
+  fi
+
+  # --- Optional: direnv lane switching ---------------------------------
+  #
+  # direnv is a convenience, not a requirement. The RSpec suite forces
+  # RACK_ENV=test in spec_helper and the test config hardcodes its values,
+  # so tests run fine without it. When direnv IS installed we wire up the
+  # .envrc/.test-mode flow so `cd` into the checkout selects the test lane.
+
+  echo "---"
+  if has direnv; then
+    generate_envrc
+
+    echo "Activating test mode (.test-mode)..."
+    touch .test-mode
+    echo ""
+    echo "  +------------------------------------------------------------+"
+    echo "  |  TEST MODE ACTIVE (.test-mode present)                      |"
+    echo "  |  Every shell in this checkout now loads .env.test and       |"
+    echo "  |  runs with RACK_ENV=test.                                   |"
+    echo "  |  Exit test mode:  bin/setup   (removes .test-mode)          |"
+    echo "  +------------------------------------------------------------+"
+    echo ""
+    direnv allow .
+  else
+    echo "Skip: direnv not installed — the test suite runs fine without it"
+    echo "      (spec_helper forces RACK_ENV=test and the test config is self-contained)."
+    echo ""
+    echo "Recommended: install direnv to manage environment variables for everyday"
+    echo "  development. It auto-loads .env when you cd into the checkout (dev mode)"
+    echo "  and is the intended way to run the app, the console, and bin/ots:"
+    echo "    - dev setup:  bin/setup"
+    echo "    - dev server: bin/dev   (or bundle exec puma -C etc/puma.rb)"
+    echo "    - console:    bin/console"
+    echo "    - CLI:        bin/ots <command>"
+    echo "  Install direnv: https://direnv.net/docs/installation.html"
+  fi
+
+  # --- Optional: .env.test for integration tests -----------------------
+  #
+  # Only the PostgreSQL-backed integration tests need extra config. Seed a
+  # starting point from the committed .env.test.example when nothing is
+  # present.
+
+  if [[ -f ".env.test" ]]; then
+    echo "OK:   .env.test exists"
+  elif [[ -f "$OTS_DEV_CONFIG/.env.test" ]]; then
+    ln -snf "$OTS_DEV_CONFIG/.env.test" .env.test
+    echo "Link: .env.test -> $OTS_DEV_CONFIG/.env.test"
+  elif [[ -f ".env.test.example" ]]; then
+    cp ".env.test.example" ".env.test"
+    echo "Copy: .env.test (from .env.test.example — fill in for integration tests)"
+  fi
+
+  # --- Optional: PostgreSQL integration database -----------------------
+
+  local pg_superuser_url="${AUTH_DATABASE_URL_TEST_SUPERUSER:-}"
+  if [[ -z "$pg_superuser_url" && -f ".env.test" ]]; then
+    # Fall back to .env.test if direnv hasn't loaded yet
+    pg_superuser_url=$(grep '^AUTH_DATABASE_URL_TEST_SUPERUSER=' .env.test 2>/dev/null | cut -d= -f2- || true)
+  fi
+
+  echo "---"
+  if [[ -n "$pg_superuser_url" ]] && has psql; then
+    echo "Provisioning PostgreSQL test database (integration tests)..."
+
+    # Extract the database name from the superuser URL.
+    # Parse: postgresql://user[:pass]@host[:port]/dbname[?query]
+    # (URI parsing so query params like ?sslmode=require don't leak into the name)
+    local pg_db
+    pg_db=$(ruby -ruri -e 'puts URI(ARGV.fetch(0)).path.sub(%r{\A/}, "")' "$pg_superuser_url")
+
+    # Create the database if it doesn't exist (createdb is idempotent-ish)
+    if psql "$pg_superuser_url" -c "SELECT 1" &>/dev/null; then
+      echo "OK:   Database '$pg_db' exists"
+    else
+      # Connect to 'postgres' maintenance DB to create the test DB
+      # (URI parsing so query params like ?sslmode=require are preserved)
+      local pg_maintenance_url createdb_output
+      pg_maintenance_url=$(ruby -ruri -e 'uri = URI(ARGV.fetch(0)); uri.path = "/postgres"; puts uri.to_s' "$pg_superuser_url")
+      createdb_output=$(psql "$pg_maintenance_url" -c "CREATE DATABASE \"$pg_db\"" 2>&1) || {
+        if echo "$createdb_output" | grep -q "already exists"; then
+          echo "OK:   Database '$pg_db' already exists"
+        else
+          echo "Error: Failed to create database '$pg_db': $createdb_output"
+          exit 1
+        fi
+      }
+      echo "OK:   Created database '$pg_db'"
+    fi
+
+    # Run the shared provisioning script (roles, grants, schema reset)
+    psql "$pg_superuser_url" -f apps/web/auth/migrations/schemas/postgres/initialize_test_db.sql -v ON_ERROR_STOP=1
+    echo "OK:   PostgreSQL roles and grants provisioned"
+  else
+    echo "Skip: PostgreSQL setup (only needed for integration tests)."
+    echo "  Set AUTH_DATABASE_URL_TEST_SUPERUSER (or add it to .env.test) and install psql to enable."
+  fi
+
+  # --- Smoke test ------------------------------------------------------
+
+  echo "---"
+  echo "Verifying test environment config..."
+
+  local smoke_ruby='
+    ENV["RACK_ENV"] = "test"
+    require_relative "lib/onetime"
+    OT::Config.before_load
+    raw  = OT::Config.load
+    conf = OT::Config.after_load(raw)
+    puts conf.dig("redis", "uri")
+  '
+
+  local test_uri
+  if has direnv && [[ -f ".test-mode" ]]; then
+    test_uri=$(direnv exec . ruby -e "$smoke_ruby" || true)
+  else
+    test_uri=$(env RACK_ENV=test ruby -e "$smoke_ruby" || true)
+  fi
+
+  if [[ "$test_uri" == *":2121"* ]]; then
+    echo "OK:   Config resolves to test database ($test_uri)"
+  else
+    echo "Warning: Config did not resolve to port 2121 (got: ${test_uri:-<empty>})"
+    echo "  spec/config.test.yaml should hardcode redis://127.0.0.1:2121/0"
+    echo "  Verify RACK_ENV=test is set and ConfigResolver finds the test config"
+  fi
+
+  echo "---"
+  echo "Test environment ready."
+  echo "  RSpec:  pnpm run test:rspec:fast"
+  echo "  Vitest: pnpm test"
+  echo "  Switch back to dev mode: bin/setup"
+}
+
+# =======================================================================
+# Lane: init / reconcile  (absorbs install.sh — the self-hosting path)
+# =======================================================================
+
+cmd_reconcile() {
+  info "Reconciling environment..."
+
+  install_gems
+  install_node
+  seed_configs
+
+  # Verify .env and SECRET exist before attempting derive
+  if [[ ! -f .env ]]; then
+    die ".env not found — run 'bin/setup --init' first"
+  fi
+  if ! grep -qE '^SECRET=.+' .env 2>/dev/null; then
+    die "SECRET is empty in .env — run 'bin/setup --init' first to generate secrets"
+  fi
+
+  info "Re-deriving child keys from existing SECRET..."
+  DERIVE=1 bundle exec rake ots:secrets || die "Failed to generate secrets"
+  chmod 600 "${ENV_FILE:-.env}" || die "Failed to secure ${ENV_FILE:-.env} file permissions"
+
+  local mode
+  mode=$(auth_mode)
+
+  if [[ "$mode" == "full" ]]; then
+    info "Re-applying RabbitMQ policies and queue declarations..."
+    bin/ots queue init --force
+  fi
+
+  info "Done"
+}
+
+cmd_init() {
+  # Never re-initialize a live environment: init regenerates secrets, and a
+  # regenerated SECRET orphans every encrypted record. Reconcile instead.
+  if is_initialized; then
+    info "Existing environment detected — running reconcile"
+    cmd_reconcile
+    return
+  fi
+
+  info "Initializing..."
+
+  check_version_exact "Ruby" ruby .ruby-version 'ruby -e "puts RUBY_VERSION"'
+  check_version_major "Node" node .node-version 'node -v'
+
+  # Install dependencies first — bundle exec is needed for subsequent steps
+  install_gems
+  install_node
+  seed_configs
+
+  bundle exec rake ots:env:setup
+
+  local mode
+  mode=$(auth_mode)
+
+  if [[ "$mode" == "full" ]]; then
+    echo ""
+    warn "AUTHENTICATION_MODE=full detected. Additional manual setup required before first boot:"
+    echo ""
+    warn "  PostgreSQL (if using PostgreSQL as auth database):"
+    warn "    Run psql -U postgres -f apps/web/auth/migrations/schemas/postgres/initialize_auth_db.sql"
+    warn "    as a PostgreSQL superuser."
+    warn "    (Not required for SQLite.)"
+    echo ""
+  fi
+
+  info "Generating secrets..."
+  bundle exec rake ots:secrets || die "Failed to generate secrets"
+  chmod 600 "${ENV_FILE:-.env}" || die "Failed to secure ${ENV_FILE:-.env} file permissions"
+
+  if [[ "$mode" == "full" ]]; then
+    info "Re-applying RabbitMQ policies and queue declarations..."
+    bin/ots queue init --force || warn "queue init failed (is RabbitMQ running?) — re-run 'bin/setup --init' after starting RabbitMQ"
+  fi
+
+  # Check Redis/Valkey availability before attempting install mark
+  local redis_available=false
+  redis_reachable && redis_available=true
+
+  if [[ "$redis_available" == true ]]; then
+    # Source the .env this init just generated so the app boots with SECRET
+    # et al — without it, install mark dies with "Global secret cannot be nil". (NF-2)
+    if (set -a; . "${ENV_FILE:-.env}"; set +a; bundle exec bin/ots install mark); then
+      info "Environment initialized (onetime:install:init_count incremented)"
+    else
+      warn "install mark failed (exit $?) — see errors above"
+    fi
+  else
+    warn "Redis/Valkey not running — skipping install mark (run 'bin/setup --init' again after starting Valkey)"
+  fi
+
+  echo ""
+  info "Next steps:"
+  if [[ "$mode" == "full" ]]; then
+    info "  1. Start Valkey/Redis and RabbitMQ"
+    info "  2. Source environment:  set -a; source .env; set +a"
+    info "  3. Start the app:      bundle exec puma -C etc/puma.rb"
+    info "  4. Start workers:      bundle exec bin/ots worker"
+    info "  5. Start scheduler:    bundle exec bin/ots scheduler"
+    info "  6. Create an admin:    bundle exec bin/ots customers create you@example.com --role colonel"
+    info "     API token (later):  bundle exec bin/ots apitoken you@example.com"
+  else
+    info "  1. Start Valkey/Redis"
+    info "  2. Source environment:  set -a; source .env; set +a"
+    info "  3. Start the app:      bundle exec puma -C etc/puma.rb"
+    info "  4. Create an admin:    bundle exec bin/ots customers create you@example.com --role colonel"
+    info "     API token (later):  bundle exec bin/ots apitoken you@example.com"
+  fi
+  echo ""
+  warn "  With a Procfile runner:         foreman start -f Procfile.production"
+  warn "  For development with Overmind:  bin/dev"
+  warn "  Check environment health:       bin/setup --doctor --operator"
+  warn "  Support bundle for bug reports: bin/setup --doctor --bundle"
+
+  echo ""
+  cmd_doctor --operator || true
+}
+
+# =======================================================================
+# Lane: doctor  (v2 — diff(manifest, reality); C9: R0.2, D8, BM-05, BM-10)
+# =======================================================================
+#
+# Every check either diffs a declared manifest (pin file, lockfile, seeded
+# config) against live reality, or probes a live service. Doctor never
+# restates a version number — that would be a third copy of the manifest.
+#
+# Health-checker trio, one owner per layer (DUP: three-health-checkers):
+#   bin/setup --doctor            environment: toolchain pins, files, service
+#                                 CONNECTIVITY (never local-CLI presence — a
+#                                 remote Valkey/PostgreSQL/RabbitMQ must read
+#                                 as up; BM-05).
+#   GET /health/advanced          the app's own runtime view (datastore, auth
+#                                 DB, RabbitMQ). Doctor delegates to it when
+#                                 the app answers; `bin/ots status` is the
+#                                 CLI view of the same layer.
+#   docker/entrypoints/healthcheck.sh
+#                                 container liveness only; parses
+#                                 /health/advanced's top-level status.
+#
+# Contexts (BM-10): --dev (default) includes contributor tooling; --operator
+# sticks to what a production instance needs — init's trailing doctor runs
+# --operator so operators never see overmind/direnv warnings. A service
+# that's down is a FAIL for an operator and a warn for a contributor whose
+# checkout isn't running anything yet.
+
+DOCTOR_OK=0
+DOCTOR_WARN=0
+DOCTOR_FAIL=0
+DOCTOR_CONTEXT=dev
+
+doc_ok()   { DOCTOR_OK=$((DOCTOR_OK + 1)); echo "ok    $1"; }
+doc_info() { echo "--    $1"; }
+doc_warn() {
+  DOCTOR_WARN=$((DOCTOR_WARN + 1))
+  yellow "warn  $1"
+  [[ -n "${2:-}" ]] && echo "      fix: $2"
+  return 0
+}
+doc_fail() {
+  DOCTOR_FAIL=$((DOCTOR_FAIL + 1))
+  red "FAIL  $1"
+  [[ -n "${2:-}" ]] && echo "      fix: $2"
+  return 0
+}
+# Down service: operator instances are supposed to be live; contributor
+# checkouts often aren't running anything yet.
+doc_down() {
+  if [[ "$DOCTOR_CONTEXT" == "operator" ]]; then
+    doc_fail "$1" "${2:-}"
+  else
+    doc_warn "$1" "${2:-}"
+  fi
+}
+
+doctor_toolchain() {
+  local req actual
+  req=$(version_from .ruby-version)
+  if ! has ruby; then
+    doc_fail "Ruby not found (pinned: ${req:-unknown})" "rbenv install $req / mise use ruby@$req"
+  else
+    actual=$(ruby -e 'puts RUBY_VERSION' 2>/dev/null || echo "?")
+    if [[ -z "$req" ]]; then
+      doc_warn "Ruby $actual — no .ruby-version to diff against"
+    elif [[ "$actual" == "$req" ]]; then
+      doc_ok "Ruby $actual (= .ruby-version)"
+    else
+      doc_fail "Ruby $actual, pinned $req (.ruby-version; bundler enforces the same pin)" \
+        "rbenv install $req / mise use ruby@$req"
+    fi
+  fi
+
+  req=$(version_from .node-version | sed 's/^v//' | cut -d. -f1)
+  if ! has node; then
+    if [[ "$DOCTOR_CONTEXT" == "operator" ]]; then
+      doc_warn "Node not found (build-time only — needed to rebuild frontend assets)" \
+        "install Node ${req:-22}+ (see .node-version)"
+    else
+      doc_fail "Node not found (pinned major: ${req:-unknown})" "install Node $req (see .node-version)"
+    fi
+  else
+    actual=$(node -v | sed 's/^v//')
+    if [[ -z "$req" ]]; then
+      doc_warn "Node $actual — no .node-version to diff against"
+    elif [[ "$(echo "$actual" | cut -d. -f1)" -ge "$req" ]]; then
+      doc_ok "Node $actual (>= .node-version major $req)"
+    else
+      doc_fail "Node $actual older than pinned major $req (.node-version)" "install Node $req+"
+    fi
+  fi
+
+  if has bundle; then
+    if bundle check &>/dev/null; then
+      doc_ok "Ruby gems match Gemfile.lock (bundle check)"
+    else
+      doc_fail "Ruby gems missing or stale (bundle check)" "bin/setup"
+    fi
+  else
+    doc_fail "Bundler not found" "gem install bundler"
+  fi
+
+  if [[ "$DOCTOR_CONTEXT" == "dev" ]]; then
+    has pnpm || doc_fail "pnpm not found" "https://pnpm.io/installation"
+    if [[ -d node_modules ]]; then
+      doc_ok "node_modules present"
+    else
+      doc_warn "node_modules missing" "bin/setup"
+    fi
+    if [[ -x scripts/check-version-pins.sh ]]; then
+      if scripts/check-version-pins.sh &>/dev/null; then
+        doc_ok "Version pins in sync (Dockerfiles/devcontainer vs pin files)"
+      else
+        doc_fail "Version-pin drift between pin files and Dockerfiles/devcontainer" \
+          "scripts/check-version-pins.sh (run it for details)"
+      fi
+    fi
+  fi
+}
+
+doctor_files() {
+  if [[ -f .env ]]; then
+    doc_ok ".env exists"
+    if grep -qE '^SECRET=.+' .env 2>/dev/null && ! grep -qE '^SECRET=CHANGEME' .env 2>/dev/null; then
+      doc_ok "SECRET set in .env (presence only — value not read)"
+    else
+      if [[ "$DOCTOR_CONTEXT" == "operator" ]]; then
+        doc_fail "SECRET empty or CHANGEME in .env" "bin/setup --init (generates secrets)"
+      else
+        doc_warn "SECRET empty or CHANGEME in .env" "bin/setup (generates secrets)"
+      fi
+    fi
+    if [[ "$DOCTOR_CONTEXT" == "operator" ]]; then
+      local perms
+      perms=$(stat -Lc '%a' .env 2>/dev/null || stat -Lf '%Lp' .env 2>/dev/null || echo "")
+      if [[ -n "$perms" && "$perms" != *00 ]]; then
+        doc_warn ".env is group/world accessible (mode $perms)" "chmod 600 .env"
+      fi
+    fi
+  else
+    doc_down ".env missing" "bin/setup (contributor) or bin/setup --init (self-hosting)"
+  fi
+
+  if [[ -f etc/config.yaml ]]; then
+    doc_ok "etc/config.yaml exists"
+  else
+    doc_fail "etc/config.yaml missing" "bin/setup (seeds it from etc/defaults/)"
+  fi
+  if [[ -f etc/puma.rb ]]; then
+    doc_ok "etc/puma.rb exists"
+  else
+    doc_warn "etc/puma.rb missing" "bin/setup (copies etc/examples/puma.example.rb)"
+  fi
+
+  if [[ -f .test-mode ]]; then
+    if [[ "$DOCTOR_CONTEXT" == "operator" ]]; then
+      doc_fail ".test-mode marker present — shells here run RACK_ENV=test" "rm .test-mode (or bin/setup)"
+    else
+      doc_warn "TEST MODE active (.test-mode) — shells here run RACK_ENV=test" "exit test mode: bin/setup"
+    fi
+  else
+    doc_ok "No .test-mode marker (normal mode)"
+  fi
+}
+
+doctor_services() {
+  local rhost rport
+  read -r rhost rport < <(redis_host_port)
+  if redis_reachable; then
+    doc_ok "Valkey/Redis answering at $rhost:$rport (connectivity probe)"
+  else
+    doc_down "Valkey/Redis not answering at $rhost:$rport (from VALKEY_URL/REDIS_URL/.env)" \
+      "start it, e.g.: valkey-server --daemonize yes"
+  fi
+
+  if [[ "$DOCTOR_CONTEXT" == "dev" && -f .test-mode ]]; then
+    if tcp_probe 127.0.0.1 2121; then
+      doc_ok "Test datastore answering on 127.0.0.1:2121"
+    else
+      doc_warn "Test datastore not running on 127.0.0.1:2121 (test mode is active)" \
+        "bin/setup --test (starts it)"
+    fi
+  fi
+
+  local mode
+  mode=$(auth_mode)
+  doc_info "AUTHENTICATION_MODE: $mode"
+  if [[ "$mode" == "full" ]]; then
+    local db_url
+    db_url=$(env_or_dotenv AUTH_DATABASE_URL)
+    db_url="${db_url:-sqlite://data/auth.db}"
+    case "$db_url" in
+      sqlite*)
+        local db_path="${db_url#sqlite://}"
+        if [[ -f "$db_path" ]]; then
+          doc_ok "Auth DB (SQLite) exists: $db_path"
+        else
+          doc_down "Auth DB (SQLite) not found: $db_path" \
+            "created on first boot/migration — check AUTH_DATABASE_URL if unexpected"
+        fi
+        ;;
+      postgres*)
+        local phost pport
+        read -r phost pport < <(url_host_port "$db_url" 5432)
+        if tcp_probe "$phost" "$pport"; then
+          doc_ok "PostgreSQL reachable at $phost:$pport (connectivity probe)"
+        else
+          doc_down "PostgreSQL not reachable at $phost:$pport (AUTH_DATABASE_URL)" \
+            "start PostgreSQL or fix AUTH_DATABASE_URL"
+        fi
+        ;;
+      *)
+        doc_warn "AUTH_DATABASE_URL has an unrecognized scheme (${db_url%%:*})"
+        ;;
+    esac
+  fi
+
+  # Jobs are independent of auth mode; RabbitMQ is only required when enabled.
+  local jobs
+  jobs=$(env_or_dotenv JOBS_ENABLED)
+  if [[ "$jobs" == "true" ]]; then
+    local mq_url mhost mport
+    mq_url=$(env_or_dotenv RABBITMQ_URL)
+    mq_url="${mq_url:-amqp://127.0.0.1:5672}"
+    read -r mhost mport < <(url_host_port "$mq_url" 5672)
+    if tcp_probe "$mhost" "$mport"; then
+      doc_ok "RabbitMQ reachable at $mhost:$mport (connectivity probe)"
+    else
+      doc_down "RabbitMQ not reachable at $mhost:$mport (RABBITMQ_URL; JOBS_ENABLED=true)" \
+        "start RabbitMQ, or set JOBS_ENABLED=false (email falls back to synchronous)"
+    fi
+  else
+    doc_info "JOBS_ENABLED not true — RabbitMQ not required (email sends synchronously)"
+  fi
+}
+
+# Delegate to the app's own health view instead of restating its checks.
+doctor_app() {
+  local port="${PORT:-3000}" host="127.0.0.1"
+  if ! tcp_probe "$host" "$port" 2; then
+    if [[ "$DOCTOR_CONTEXT" == "operator" ]]; then
+      doc_warn "App not answering on :$port" "start it: bundle exec puma -C etc/puma.rb"
+    else
+      doc_info "App not running on :$port (fine if you haven't started it — bin/dev)"
+    fi
+    return 0
+  fi
+  if ! has curl; then
+    doc_info "Port $port is open; curl not available to query /health/advanced"
+    return 0
+  fi
+  local body
+  if body=$(curl -sf --max-time 5 "http://$host:$port/health/advanced"); then
+    if printf '%s' "$body" | ruby -rjson -e 'exit(JSON.parse($stdin.read)["status"] == "ok" ? 0 : 1)' 2>/dev/null; then
+      doc_ok "App healthy — /health/advanced reports ok (:$port)"
+    else
+      doc_fail "App degraded — /health/advanced top-level status is not ok (:$port)" \
+        "curl -s http://$host:$port/health/advanced  # shows which sub-check is failing"
+    fi
+  else
+    doc_warn "Something is listening on :$port but /health/advanced did not answer" \
+      "another service on this port? (PORT selects the app port)"
+  fi
+}
+
+# App-context check (C10/QS-6): does the running SECRET match the verifier
+# stored in the datastore? Delegates to rake so doctor never reimplements
+# the crypto. Exit codes: 0 match, 1 mismatch, 2 never adopted, 3 datastore
+# unreachable. Skipped when there's no .env SECRET or gems aren't installed.
+doctor_secret_verifier() {
+  [[ -f .env ]] || return 0
+  grep -qE '^SECRET=.+' .env 2>/dev/null || return 0
+  has bundle && bundle check &>/dev/null || return 0
+  local status
+  bundle exec rake ots:secrets:verify &>/dev/null && status=0 || status=$?
+  case "$status" in
+    0) doc_ok "SECRET matches the datastore key verifier (rake ots:secrets:verify)" ;;
+    1) doc_fail "SECRET does not match the datastore key verifier — existing secrets cannot be decrypted" \
+         "restore the previous SECRET in .env, or if the rotation was intentional: CONFIRM=yes bundle exec rake ots:secrets:adopt" ;;
+    2) doc_info "Key verifier not adopted yet (first app boot adopts it)" ;;
+    3) doc_down "Datastore unreachable — SECRET verifier not checked" \
+         "start Valkey/Redis (see the service checks above)" ;;
+    *) doc_warn "rake ots:secrets:verify failed unexpectedly (exit $status)" \
+         "bundle exec rake ots:secrets:verify  # run directly for details" ;;
+  esac
+}
+
+doctor_dev_tooling() {
+  [[ "$DOCTOR_CONTEXT" == "dev" ]] || return 0
+
+  if has overmind || has hivemind; then
+    doc_ok "overmind/hivemind present (bin/dev)"
+  else
+    doc_warn "overmind not found — bin/dev needs it (or hivemind)" \
+      "https://github.com/DarthSim/overmind#installation"
+  fi
+
+  if has direnv; then
+    if [[ -n "${OTS_ENV_LOADED:-}" ]]; then
+      doc_ok "direnv active in this shell (OTS_ENV_LOADED=$OTS_ENV_LOADED)"
+    elif [[ -n "${CI:-}" ]]; then
+      doc_info "direnv installed (shell-hook check skipped in CI)"
+    else
+      # The classic DX-4 trap: installed but the shell hook isn't wired, so
+      # nothing ever loads. .envrc exports OTS_ENV_LOADED when it runs.
+      doc_warn "direnv installed but .envrc is not loaded in this shell" \
+        "add the shell hook (https://direnv.net/docs/hook.html), then: direnv allow"
+    fi
+  else
+    doc_warn "direnv not found — recommended; auto-loads .env when you cd here" \
+      "https://direnv.net/docs/installation.html (without it: set -a; source .env; set +a)"
+  fi
+
+  if has pre-commit; then
+    local hooks_dir
+    hooks_dir="$(git rev-parse --git-path hooks 2>/dev/null || echo .git/hooks)"
+    if [[ -f "$hooks_dir/pre-commit" ]]; then
+      doc_ok "git hooks installed (pre-commit)"
+    else
+      doc_warn "pre-commit installed but git hooks are not set up" "bin/setup (runs pre-commit install)"
+    fi
+  else
+    doc_warn "pre-commit not found — git hooks unavailable" \
+      "pipx install pre-commit (or: brew install pre-commit)"
+  fi
+
+  if [[ -f Procfile.dev ]]; then
+    doc_ok "Procfile.dev exists"
+  else
+    doc_warn "Procfile.dev missing" "bin/setup (copies Procfile.dev.example)"
+  fi
+
+  # Generated backend inputs (TR-01): the Ruby side reads these at runtime.
+  if ls generated/locales/*.json &>/dev/null; then
+    doc_ok "generated/locales present"
+  else
+    doc_warn "generated/locales missing — i18n-dependent code and tests will fail" \
+      "pnpm run locales:sync (bin/setup does this)"
+  fi
+  if [[ -f generated/schemas/manifest.json ]]; then
+    doc_ok "generated/schemas present"
+  else
+    doc_warn "generated/schemas missing — schema-dependent specs will fail" \
+      "pnpm run schemas:json:generate (bin/setup does this)"
+  fi
+}
+
+doctor_operator_assets() {
+  [[ "$DOCTOR_CONTEXT" == "operator" ]] || return 0
+  if [[ -d public/web/dist && -n "$(ls -A public/web/dist 2>/dev/null)" ]]; then
+    doc_ok "Frontend build output present (public/web/dist)"
+  else
+    doc_warn "Frontend build output missing (public/web/dist)" \
+      "pnpm run build (bare-metal production serves prebuilt assets)"
+  fi
+}
+
+doctor_run() {
+  DOCTOR_OK=0 DOCTOR_WARN=0 DOCTOR_FAIL=0
+  info "Doctor (context: $DOCTOR_CONTEXT) — each check diffs a pin/manifest or probes a live service"
+  doctor_toolchain
+  doctor_files
+  doctor_services
+  doctor_app
+  doctor_secret_verifier
+  doctor_dev_tooling
+  doctor_operator_assets
+  echo "---"
+  local summary="Doctor: $DOCTOR_OK ok, $DOCTOR_WARN warning(s), $DOCTOR_FAIL failure(s) [context: $DOCTOR_CONTEXT]"
+  if (( DOCTOR_FAIL > 0 )); then
+    err "$summary"
+    return 1
+  elif (( DOCTOR_WARN > 0 )); then
+    warn "$summary"
+  else
+    info "$summary"
+  fi
+  return 0
+}
+
+# --- Support bundle (R0.2) ----------------------------------------------
+#
+# A sanitized, shareable diagnostic archive: versions, file presence, env
+# var NAMES (never values), mode summary, doctor output, masked log excerpt.
+# The entry list is fixed — spec/unit/setup/doctor_bundle_spec.rb holds the
+# golden manifest; extend both together.
+
+cmd_bundle() {
+  local outroot="${OTS_BUNDLE_DIR:-tmp}"
+  local ts name dir
+  ts=$(date -u +%Y%m%d-%H%M%SZ)
+  name="ots-doctor-bundle-$ts"
+  dir="$outroot/$name"
+  mkdir -p "$dir"
+
+  info "Collecting diagnostic bundle (sanitized — env var names only, never values)..."
+
+  doctor_run > "$dir/doctor.txt" 2>&1 || true
+
+  {
+    echo "# system.txt — OS and kernel (hostname deliberately omitted)"
+    uname -srm
+    [[ -r /etc/os-release ]] && grep -E '^PRETTY_NAME=' /etc/os-release
+    [[ "$(uname -s)" == "Darwin" ]] && sw_vers 2>/dev/null
+  } > "$dir/system.txt" 2>&1 || true
+
+  {
+    echo "# versions.txt — declared pins vs live toolchain"
+    echo "pin .ruby-version:  $(version_from .ruby-version)"
+    echo "pin .node-version:  $(version_from .node-version)"
+    echo "pin packageManager: $(sed -n 's/.*"packageManager": *"\([^"]*\)".*/\1/p' package.json 2>/dev/null | head -1)"
+    echo "ruby:    $(has ruby && ruby -v || echo 'not found')"
+    echo "node:    $(has node && node -v || echo 'not found')"
+    echo "pnpm:    $(has pnpm && pnpm --version || echo 'not found')"
+    echo "bundler: $(has bundle && bundle -v || echo 'not found')"
+    echo "git:     $(git rev-parse --short HEAD 2>/dev/null || echo 'not a git checkout')"
+  } > "$dir/versions.txt" 2>&1 || true
+
+  {
+    echo "# files.txt — presence only, no contents"
+    local f
+    for f in .env .env.local .env.test .envrc .test-mode \
+             etc/config.yaml etc/auth.yaml etc/billing.yaml etc/logging.yaml etc/puma.rb \
+             Procfile.dev Gemfile.lock pnpm-lock.yaml node_modules \
+             public/web/dist generated/locales generated/schemas data; do
+      if [[ -e "$f" ]]; then echo "present  $f"; else echo "absent   $f"; fi
+    done
+  } > "$dir/files.txt" || true
+
+  {
+    echo "# env-names.txt — variable NAMES only; values are never included"
+    echo ""
+    echo "[.env keys]"
+    if [[ -f .env ]]; then
+      sed -n -E 's/^[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=.*/\1/p' .env | sort -u
+    else
+      echo "(no .env file)"
+    fi
+    echo ""
+    echo "[set in process environment]"
+    local v
+    for v in SECRET RACK_ENV HOST PORT SSL VALKEY_URL REDIS_URL AUTHENTICATION_MODE \
+             AUTH_DATABASE_URL AUTH_SECRET ARGON2_SECRET RABBITMQ_URL JOBS_ENABLED \
+             AUTH_REQUIRED AUTH_AUTOVERIFY OTS_ENV_LOADED; do
+      [[ -n "${!v:-}" ]] && echo "$v"
+    done
+    true
+  } > "$dir/env-names.txt" || true
+
+  {
+    echo "# config.txt — effective mode summary (no secret values)"
+    echo "RACK_ENV:            ${RACK_ENV:-<unset>}"
+    echo "AUTHENTICATION_MODE: $(auth_mode)"
+    echo "JOBS_ENABLED:        $(env_or_dotenv JOBS_ENABLED)"
+    local rhost rport
+    read -r rhost rport < <(redis_host_port)
+    echo "datastore:           $rhost:$rport (credentials stripped)"
+    echo "test mode:           $([[ -f .test-mode ]] && echo active || echo off)"
+  } > "$dir/config.txt" || true
+
+  {
+    echo "# logs.txt — newest log excerpt; emails, long hex, and secret-ish assignments masked"
+    local newest
+    newest=$(ls -t log/*.log 2>/dev/null | head -1 || true)
+    if [[ -n "$newest" ]]; then
+      echo "source: $newest (last 200 lines)"
+      echo "---"
+      tail -n 200 "$newest" | sed -E \
+        -e 's/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/<email>/g' \
+        -e 's/[0-9a-fA-F]{32,}/<hex>/g' \
+        -e 's/([Pp]assword|PASSWORD|[Ss]ecret|SECRET|[Tt]oken|TOKEN|[Aa]pi_?[Kk]ey|API_?KEY)([=: ]+)[^[:space:]]+/\1\2<redacted>/g'
+    else
+      echo "no log files found under log/"
+    fi
+  } > "$dir/logs.txt" || true
+
+  {
+    echo "# manifest.txt — bundle contents (fixed list; golden-file tested)"
+    echo "config.txt"
+    echo "doctor.txt"
+    echo "env-names.txt"
+    echo "files.txt"
+    echo "logs.txt"
+    echo "manifest.txt"
+    echo "system.txt"
+    echo "versions.txt"
+  } > "$dir/manifest.txt"
+
+  tar -czf "$outroot/$name.tar.gz" -C "$outroot" "$name"
+  rm -rf "$dir"
+
+  info "Bundle written: $outroot/$name.tar.gz"
+  echo "  Sanitized (names/presence only, no secret values) — still, review before sharing."
+}
+
+cmd_doctor() {
+  local want_bundle=false arg
+  DOCTOR_CONTEXT=dev
+  for arg in "$@"; do
+    case "$arg" in
+      --operator|operator) DOCTOR_CONTEXT=operator ;;
+      --dev|dev)           DOCTOR_CONTEXT=dev ;;
+      --bundle|bundle)     want_bundle=true ;;
+      *) die "Unknown doctor option: $arg (expected --dev, --operator, --bundle)" ;;
+    esac
+  done
+
+  if $want_bundle; then
+    cmd_bundle
+  else
+    doctor_run
+  fi
+}
+
+# =======================================================================
+# Lane: console / help
+# =======================================================================
+
+cmd_help() {
+  cat <<EOF
+Usage: bin/setup [lane]
+
+With no arguments, sets up a dev environment (the contributor default).
+Every lane is idempotent — safe to re-run at any time.
+
+Lanes:
+  --dev        Dev environment: deps, config, secrets, generated artifacts,
+               git hooks. Removes .test-mode (returns to dev mode). [default]
+  --test       Test lane: throwaway datastore on :2121, .test-mode marker,
+               config smoke test. Then: pnpm run test:rspec:fast / pnpm test
+  --init       Self-hosting init: env file, secrets, install mark.
+               Auto-reconciles when an environment already exists.
+  --reconcile  Re-derive child keys and re-apply RabbitMQ policies.
+  --doctor     Check the environment: every check diffs a pin/manifest
+               against reality or probes a live service (connectivity,
+               never local-CLI presence).
+                 --operator   operator context: skips contributor tooling
+                              (overmind, direnv, ...); a down service is a
+                              failure, not a warning. [default: --dev]
+                 --bundle     write a sanitized diagnostic archive to tmp/
+                              (versions, file presence, env var NAMES only,
+                              masked log excerpt) for support requests.
+  --console    Interactive Ruby console with the app loaded.
+  --help       Show this message.
+EOF
+}
+
+require_checkout_root
+
+case "${1:---dev}" in
+  --dev|dev)              cmd_dev ;;
+  --test|test)            cmd_test ;;
+  --init|init|auto)       cmd_init ;;
+  --reconcile|reconcile)  cmd_reconcile ;;
+  --doctor|doctor)        shift; cmd_doctor "$@" ;;
+  --console|console)      exec bin/console ;;
+  --help|-h|help)         cmd_help ;;
+  *)                      cmd_help >&2; die "Unknown lane: $1" ;;
+esac

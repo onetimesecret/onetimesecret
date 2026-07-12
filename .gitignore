@@ -19,7 +19,6 @@ pnpm-debug.log*
 .certs/
 .claude
 .continue/
-.devcontainer
 .gemini*
 .history
 .interface-design

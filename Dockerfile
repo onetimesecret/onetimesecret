@@ -292,7 +292,12 @@ RUN set -eux && \
         fi; \
     done && \
     cp --preserve --update=none etc/examples/puma.example.rb etc/puma.rb && \
-    chmod +x bin/entrypoint.sh bin/healthcheck.sh
+    chmod +x bin/entrypoint.sh bin/healthcheck.sh && \
+    # Ship /app/data owned by appuser so a named volume mounted there
+    # self-initializes with uid 1001 ownership (sqlite auth.db in full
+    # auth mode — see docker/README.md "Data Persistence"). Without this,
+    # Docker creates the mount point root-owned and the app cannot write.
+    install -d -o appuser -g appuser data
 
 EXPOSE 3000
 
@@ -396,7 +401,12 @@ RUN set -eux && \
         fi; \
     done && \
     cp --preserve --update=none etc/examples/puma.example.rb etc/puma.rb && \
-    chmod +x bin/entrypoint.sh bin/healthcheck.sh
+    chmod +x bin/entrypoint.sh bin/healthcheck.sh && \
+    # Ship /app/data owned by appuser so a named volume mounted there
+    # self-initializes with uid 1001 ownership (sqlite auth.db in full
+    # auth mode — see docker/README.md "Data Persistence"). Without this,
+    # Docker creates the mount point root-owned and the app cannot write.
+    install -d -o appuser -g appuser data
 
 EXPOSE 3000
 

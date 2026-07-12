@@ -10,6 +10,10 @@
 #   - docker/base.dockerfile NODE_IMAGE_TAG major == .node-version major
 #   - docker/base.dockerfile RUBY_IMAGE_TAG major.minor == .ruby-version major.minor
 #   - Dockerfile             RUBY_IMAGE_TAG major.minor == .ruby-version major.minor
+#   - .devcontainer/compose.yaml ruby image tag major.minor == .ruby-version major.minor
+#   - .devcontainer/devcontainer.json node feature version == .node-version major
+#     (devcontainer features can't read pin files, so those are duplicated by
+#     necessity — this guard keeps the duplication in lockstep; C8 → C9)
 #
 set -euo pipefail
 
@@ -59,6 +63,36 @@ for df in "$base_df" "Dockerfile"; do
     fail "$df RUBY_IMAGE_TAG ($ruby_tag) does not start with .ruby-version major.minor ($ruby_mm)"
   fi
 done
+
+# --- Devcontainer (compose image + node feature) ----------------------
+dc_compose=".devcontainer/compose.yaml"
+dc_json=".devcontainer/devcontainer.json"
+
+if [[ -f "$dc_compose" ]]; then
+  # e.g. image: ghcr.io/rails/devcontainer/images/ruby:3.4.9
+  dc_ruby_tag="$(grep -Eo 'devcontainer/images/ruby:[0-9][0-9.]*' "$dc_compose" | head -n1 | cut -d: -f2)"
+  [[ -n "$dc_ruby_tag" ]] || fail "ruby image tag not found in $dc_compose"
+  if [[ "$dc_ruby_tag" == "$ruby_mm" || "$dc_ruby_tag" == "$ruby_mm"[.@-]* ]]; then
+    echo "PASS: $dc_compose ruby image tag ($dc_ruby_tag) matches .ruby-version major.minor ($ruby_mm)"
+  else
+    fail "$dc_compose ruby image tag ($dc_ruby_tag) does not start with .ruby-version major.minor ($ruby_mm)"
+  fi
+else
+  fail "$dc_compose not found"
+fi
+
+if [[ -f "$dc_json" ]]; then
+  # e.g. "ghcr.io/devcontainers/features/node:1": { "version": "22" }
+  dc_node="$(grep -A1 'features/node' "$dc_json" | grep -Eo '"version"[[:space:]]*:[[:space:]]*"[0-9]+"' | grep -Eo '[0-9]+' | head -n1)"
+  [[ -n "$dc_node" ]] || fail "node feature version not found in $dc_json"
+  if [[ "$dc_node" == "$node_major" ]]; then
+    echo "PASS: $dc_json node feature version ($dc_node) matches .node-version major ($node_major)"
+  else
+    fail "$dc_json node feature version ($dc_node) does not match .node-version major ($node_major)"
+  fi
+else
+  fail "$dc_json not found"
+fi
 
 echo "PASS: all version pins are in sync"
 exit 0

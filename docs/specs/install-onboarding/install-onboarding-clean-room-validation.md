@@ -171,8 +171,13 @@ the same pattern.
    bare-metal `rake ots:secrets` + puma boot + proof-of-life under `LANG=C`
    (no lane boots the app outside a container image), and `pnpm run build` +
    asset probe. The macOS leg also remains open (parse gate only).
-4. **Then C4/C5** on a foundation that's demonstrably green and guarded.
-   **← the next open item.**
+4. ~~**Then C4/C5** on a foundation that's demonstrably green and guarded.~~
+   ✅ **Done 2026-07-10** — C4 (first account & first secret) and C5
+   (compose coherence) landed on `integration/onboarding`. What shipped,
+   what was deliberately deferred, and the residuals routed to other owners
+   are recorded in their status notes in
+   [install-onboarding-work-chunks.md](./install-onboarding-work-chunks.md).
+   **← the next open item: C6** (`bin/setup` consolidation + CONTRIBUTING).
 
 With NF-1–NF-5 fixed, the §3 decision recorded, and the C7 lanes shipped
 and running (PR-triggered + weekly cron), the branch's honest status is

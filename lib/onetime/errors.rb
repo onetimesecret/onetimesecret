@@ -49,6 +49,47 @@ module Onetime
     include FatalBootError
   end
 
+  # Raised at boot by CheckSecretVerifier when site.secret_verifier_mode is
+  # 'enforce' and the stored key verifier does not match the running SECRET
+  # (C10/QS-6). Fatal even in CLI mode: every pre-rotation ciphertext is
+  # unrecoverable under the wrong key, so continuing silently is the failure
+  # this check exists to prevent.
+  class SecretVerifierMismatch < Problem
+    include FatalBootError
+  end
+
+  # Raised when a secret's ciphertext cannot be decrypted with the running
+  # SECRET (C10/QS-6): either the boot-time verifier already flagged a
+  # mismatch (fast-fail before any reveal claim), or this ciphertext predates
+  # a key rotation (per-secret signal; the reveal claim is rolled back so the
+  # record and ciphertext survive). Maps to HTTP 503 in otto_hooks — a
+  # server-side condition, retryable after the operator restores the key.
+  class SecretUndecryptable < Problem
+    attr_accessor :error_key, :args
+    attr_reader :code
+
+    DEFAULT_MESSAGE = 'This secret cannot be decrypted right now. The link is ' \
+                      'still intact — the site operator must restore the ' \
+                      'encryption key before it can be revealed.'
+
+    def initialize(message = DEFAULT_MESSAGE, code: 'secret_undecryptable',
+                   error_key: 'api.secrets.errors.secret_undecryptable', args: {})
+      super(message)
+      @code      = code
+      @error_key = error_key
+      @args      = args
+    end
+
+    def to_h
+      {
+        error: message,
+        error_type: 'SecretUndecryptable',
+        code: code,
+        error_key: error_key,
+      }.compact
+    end
+  end
+
   class RecordNotFound < Problem
     # i18n shape: error_key + args are resolved at the HTTP edge so logic
     # classes never touch I18n. error_key is the full dotted i18n key (e.g.

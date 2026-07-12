@@ -19,6 +19,13 @@
 #   ots status --watch 5
 #   ots status --quiet
 #
+# Health-checker trio, one owner per layer (install-onboarding C9): this
+# command owns the RUNTIME SERVICE view (same layer as /health/advanced,
+# with per-queue/process detail). `bin/setup --doctor` owns the environment
+# view (toolchain pins, files, connectivity probes) and delegates app-level
+# health to /health/advanced; docker/entrypoints/healthcheck.sh owns
+# container liveness only.
+#
 
 require 'json'
 require 'net/http'

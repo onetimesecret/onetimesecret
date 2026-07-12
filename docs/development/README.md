@@ -1,86 +1,101 @@
 # Development Guide
 
-This guide provides tips and best practices for developing Onetime Secret.
-
-## Debugging
-
-To enable debug logging, set the `ONETIME_DEBUG` environment variable to `true`, `1`, or `yes`. This will provide more verbose output to help troubleshoot issues.
+Deeper reference for developing Onetime Secret. Start with
+[CONTRIBUTING.md](../../CONTRIBUTING.md) if you haven't set up a checkout
+yet — the short version:
 
 ```bash
-export ONETIME_DEBUG=true
-bin/backend
+bin/setup                   # one command: deps, config, secrets, generated artifacts, git hooks
+bin/dev                     # backend + frontend + worker (overmind, Procfile.dev)
+bundle exec rake dev:seed   # first login: dev account + sample secrets, prints credentials
 ```
 
-## Initial Setup
+Both are idempotent and safe to re-run. `bin/setup --doctor` checks the
+environment; `bin/setup --test` switches to the test lane (see
+[Testing](#testing)); `bin/setup --help` lists every lane.
 
-Run `./install.sh init` from the project root to install dependencies, generate secrets, and prepare the `.env` file. Use `./install.sh doctor` to verify your environment.
+For a zero-install environment, open the repo in GitHub Codespaces or any
+devcontainer runtime: [`.devcontainer/`](../../.devcontainer/) is
+compose-based (app + Valkey) and runs `bin/setup` on create. The
+`devcontainer-ci.yml` workflow rebuilds and smoke-tests it weekly.
 
-## Running the Application
+## Running the application
 
-There are three ways to run the application locally for development.
+`bin/dev` runs everything via [overmind](https://github.com/DarthSim/overmind)
+from `Procfile.dev`. The main window is a pure log stream; control individual
+processes from a separate terminal:
 
-### Option A: Overmind (recommended)
-
-[Overmind](https://github.com/DarthSim/overmind) runs backend, frontend, and worker from a single command using `Procfile.dev`:
-
-```bash
-brew install overmind          # macOS (one-time)
-./install-dev.sh               # Link config files + install gems and packages (one-time per checkout)
-bin/dev                        # Start all processes
-```
-
-`install-dev.sh` symlinks config files from the directory set by `$OTS_DEV_CONFIG` (default: `~/.config/onetimesecret-dev/`) into the checkout (e.g., `etc/config.yaml`, `etc/puma.rb`, `Procfile.dev`), then runs `bundle install` and `pnpm install`. Run it once per checkout or worktree.
-
-Control individual processes from a separate terminal:
 ```bash
 overmind connect backend       # Attach for debugger/pry (Ctrl+b,d to detach)
 overmind restart frontend      # Restart a single process
 overmind stop worker           # Stop a specific process
 ```
 
-There is also a `--volatile` flag for ephemeral runs with no persistent data: `bin/dev --volatile`.
+There is also a `--volatile` flag for ephemeral runs with no persistent data:
+`bin/dev --volatile`.
 
-### Option B: Separate terminals
-
-Run the backend and frontend in different terminal windows:
+For a production-style run (no Vite dev server, pre-built assets served
+through Rack):
 
 ```bash
-# Terminal 1: Backend (Puma server)
-bin/backend
-
-# Terminal 2: Frontend (Vite dev server with HMR)
-bin/frontend
+pnpm run build
+RACK_ENV=production bundle exec puma -C etc/examples/puma.example.rb
 ```
 
-Both scripts inherit environment variables from the shell or `.env` file (loaded by overmind).
+## Testing
 
-### Option C: Production-style local
-
-Build the frontend first and serve everything from the backend:
 ```bash
-pnpm build
-RACK_ENV=production bin/backend
+bin/setup --test               # throwaway datastore on :2121, .test-mode marker
+pnpm run test:rspec:fast       # RSpec fast suite
+pnpm test                      # Vitest (frontend)
+bundle exec try                # Tryouts (Ruby behavior tests)
 ```
 
-This skips Vite's dev server and serves pre-built assets through Rack.
+`bin/setup --test` puts the checkout in test mode: with direnv installed,
+every shell in the checkout loads `.env.test` and runs `RACK_ENV=test` until
+you switch back with plain `bin/setup`. Without direnv the suites still work —
+`spec_helper` forces `RACK_ENV=test` itself.
 
-## Frontend Development
+The integration suites (PostgreSQL-backed auth, billing) need extra services;
+see [tests/lanes/](../../tests/lanes/) for the lane matrix CI runs.
 
-For HMR support, enable development mode in `etc/config.yaml`:
+## Debugging
+
+To enable debug logging, set the `ONETIME_DEBUG` environment variable to
+`true`, `1`, or `yes` for more verbose output:
+
+```bash
+ONETIME_DEBUG=true bin/dev
+```
+
+For interactive debugging, add `binding.pry` (or `debugger`) and attach to
+the process with `overmind connect backend`.
+
+## Frontend development
+
+Development mode (Vite dev server + HMR) enables itself when
+`RACK_ENV=development` — the default config reads:
 
 ```yaml
-:development:
-  :enabled: true
-  :frontend_host: 'http://localhost:5173'
+development:
+  enabled: <%= ['development', 'dev'].include?(ENV['RACK_ENV']) %>
 ```
 
-See the [Installation Guide](https://docs.onetimesecret.com/en/self-hosting/installation/) for additional configuration details.
+To pin it explicitly in `etc/config.yaml`, use string keys (the config
+loader ignores symbol-keyed YAML):
 
-### Vite Development Server Security
+```yaml
+development:
+  enabled: true
+  frontend_host: 'http://localhost:5173'
+```
 
-For security, the Vite development server only allows connections from `localhost` by default. If you need to access the dev server from another machine on your network (e.g., a VM or a mobile device), you must explicitly configure `vite.config.ts` to allow your host.
+### Vite development server security
 
-**Example `vite.config.ts`:**
+For security, the Vite development server only allows connections from
+`localhost` by default. If you need to access the dev server from another
+machine on your network (e.g., a VM or a mobile device), you must explicitly
+configure `vite.config.ts` to allow your host:
 
 ```typescript
 // vite.config.ts
@@ -98,49 +113,49 @@ export default defineConfig({
 });
 ```
 
-> **Security Warning:** Never set `server.hmr.host` to a public IP or expose the Vite dev server to the internet, as this can create security vulnerabilities.
+> **Security Warning:** Never set `server.hmr.host` to a public IP or expose
+> the Vite dev server to the internet, as this can create security
+> vulnerabilities.
 
-## Redis/Valkey Setup
+## Redis/Valkey
 
-The application supports both Redis and Valkey servers. Use environment variables to specify which server and CLI tools to use:
+The application supports both Redis and Valkey servers (they are
+wire-compatible). `bin/setup` auto-discovers whichever is installed; to
+override, set the same two variables the `package.json` scripts read:
 
 ```bash
-# Set these in your shell profile or .env file
 export VALKEY_SERVER=valkey-server  # or redis-server
 export VALKEY_CLI=valkey-cli        # or redis-cli
 ```
 
-If not set, defaults to `valkey-server` and `valkey-cli`.
+Dev datastore helpers (default port):
 
-**Package.json scripts:**
 ```bash
 pnpm run database:start     # Start server in daemon mode
 pnpm run database:start:fg  # Start server in foreground
 pnpm run database:stop      # Stop server
 pnpm run database:status    # Check if server is running
-pnpm run database:clean     # Clean database
 ```
 
-## Setting up Pre-commit Hooks
+Test datastore helpers (port 2121, no persistence — started by
+`bin/setup --test`):
 
-We use the `pre-commit` framework to maintain code quality and consistency.
+```bash
+pnpm run test:database:start
+pnpm run test:database:stop
+pnpm run test:database:status
+pnpm run test:database:clean   # Flush the test databases (asks first)
+```
 
-1.  **Install pre-commit:**
-    ```bash
-    pip install pre-commit
-    ```
+## Git hooks and merge drivers
 
-2.  **Install the git hooks:**
-    ```bash
-    pre-commit install
-    ```
+`bin/setup` installs the [pre-commit](https://pre-commit.com)-managed hooks
+(pre-commit, prepare-commit-msg, pre-push) when `pre-commit` is on your PATH.
 
-This will run automated checks before each commit.
+### Git JSON merge driver (recommended)
 
-
-### Git JSON Merge Driver (Recommended)
-
-This repository uses a custom merge driver for locale JSON files to automatically resolve conflicts:
+This repository uses a custom merge driver for locale JSON files to
+automatically resolve conflicts:
 
 1. Install dependencies: `pnpm install`
 2. Configure Git (one-time setup):
@@ -149,14 +164,19 @@ This repository uses a custom merge driver for locale JSON files to automaticall
    git config merge.json.name "Custom 3-way merge driver for JSON files"
    ```
 
-The driver automatically resolves conflicts when multiple branches modify different keys in the same locale file. If a conflict cannot be resolved automatically (e.g., same key modified on both sides), Git falls back to standard conflict markers.
+The driver automatically resolves conflicts when multiple branches modify
+different keys in the same locale file. If a conflict cannot be resolved
+automatically (e.g., same key modified on both sides), Git falls back to
+standard conflict markers.
 
+## Docker-related tips
 
-## Docker-related Tips
+### Container name already in use
 
-### Container Name Already in Use
-
-If you encounter an error like `docker: Error response from daemon: Conflict. The container name "/onetimesecret" is already in use`, it means a container with that name already exists. You can either remove the old container or start a new one with a different name.
+If you encounter an error like `docker: Error response from daemon: Conflict.
+The container name "/onetimesecret" is already in use`, a container with that
+name already exists. Remove the old container or start a new one with a
+different name:
 
 ```bash
 # To remove the existing container
@@ -166,9 +186,10 @@ docker rm onetimesecret
 docker run --name onetimesecret-new ...
 ```
 
-### Optimizing Docker Builds
+### Optimizing Docker builds
 
-To inspect the layers of a Docker image and identify opportunities for optimization, use the `docker history` command:
+To inspect the layers of a Docker image and identify opportunities for
+optimization, use the `docker history` command:
 
 ```bash
 docker history onetimesecret --format "table {{.CreatedBy}}\t{{.Size}}"
@@ -180,11 +201,14 @@ docker history onetimesecret --format "table {{.CreatedBy}}\t{{.Size}}"
 
 ### Docker Compose
 
-Docker Compose configurations are included in this repository. The root `docker-compose.yml` includes a simple profile (app + Valkey) by default, with a full production stack (Caddy, RabbitMQ, workers) available:
+Docker Compose configurations are included in this repository. The root
+`docker-compose.yml` includes a simple profile (app + Valkey) by default,
+with a full production stack (Caddy, RabbitMQ, workers) available:
 
 ```bash
 [ -f .env ] || cp -p .env.example .env
 docker compose up
 ```
 
-See `docker-compose.yml` for profile options and `docker/README.md` for complete setup documentation.
+See `docker-compose.yml` for profile options and
+[docker/README.md](../../docker/README.md) for complete setup documentation.

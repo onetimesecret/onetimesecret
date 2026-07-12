@@ -15,6 +15,10 @@
 #   3. API round-trip (the product's core invariant as a smoke test):
 #      create a secret -> retrieve it once (value matches) -> second retrieval
 #      is gone (at-most-once).
+#   4. (opt-in: POL_CREATE_ACCOUNT=1) first account: `bin/ots apitoken
+#      --create --role colonel` -> authenticated GET /api/v2/receipt/recent
+#      is 200 (basicauth-only route, so a 200 proves the credentials).
+#      Default off — see the step-4 section below for POL_* env vars.
 #
 # Packaged once so Tier 1 (run.sh), 2a (compose-smoke), 2b (installer-matrix)
 # and any future Goss spec call the identical assertion.
@@ -100,5 +104,44 @@ pass "secret revealed once, value matches"
 gone_code="$(curl_code "$BASE/api/v1/secret/$secret_key" -X POST)"
 [[ "$gone_code" == "404" ]] || die "second reveal returned $gone_code (want 404 — at-most-once violated)"
 pass "second reveal is gone (at-most-once holds)"
+
+# --- 4. (opt-in) first account: create -> authenticated API 200 ----------------
+#
+# Strictly opt-in via POL_CREATE_ACCOUNT=1; default off means existing callers
+# see byte-for-byte identical behavior. Env vars:
+#
+#   POL_CREATE_ACCOUNT  "1" enables this step (default: skipped entirely).
+#   POL_EXEC            optional command prefix that reaches a shell where
+#                       bin/ots works, e.g.
+#                         "docker compose -f docker/compose/docker-compose.simple.yml exec -T app"
+#                         "docker exec $CTR"
+#                       Empty (default) runs bin/ots in the current directory
+#                       (bare-metal: Valkey up and .env sourced).
+#   POL_ACCOUNT_EMAIL   optional; must be fresh per run (`apitoken --create`
+#                       exits 1 if the customer exists). Default is randomized.
+if [[ "${POL_CREATE_ACCOUNT:-0}" == "1" ]]; then
+  echo "4. first account (opt-in): create -> authenticated API 200"
+  pol_email="${POL_ACCOUNT_EMAIL:-pol-$$-${RANDOM}@example.com}"
+  # Unquoted POL_EXEC expansion is deliberate: it is a command prefix.
+  # shellcheck disable=SC2086
+  apitoken_out="$(${POL_EXEC:-} bin/ots apitoken "$pol_email" --create --role colonel)" \
+    || die "bin/ots apitoken --create failed for $pol_email"
+  pol_token="$(printf '%s' "$apitoken_out" | grep -E '^API Token: ' | head -n1 | sed 's/^API Token: //')"
+  [[ -n "$pol_token" ]] || die "apitoken output had no 'API Token: ' line: $apitoken_out"
+  pass "account $pol_email created with API token"
+
+  # /api/v2/receipt/recent is auth=basicauth with no noauth fallback: a 200
+  # can only mean the email:token pair authenticated. Prove that premise
+  # first — anonymous must NOT get a 200 — so the authenticated 200 means
+  # something.
+  noauth_code="$(curl_code "$BASE/api/v2/receipt/recent")"
+  [[ "$noauth_code" != "200" ]] \
+    || die "unauthenticated GET /api/v2/receipt/recent returned 200 — endpoint cannot prove credentials"
+  pass "endpoint rejects anonymous ($noauth_code)"
+
+  auth_code="$(curl_code "$BASE/api/v2/receipt/recent" -u "$pol_email:$pol_token")"
+  [[ "$auth_code" == "200" ]] || die "authenticated GET /api/v2/receipt/recent returned $auth_code (want 200)"
+  pass "authenticated API round-trip 200"
+fi
 
 echo "Proof of life: instance is alive and the core secret loop works."

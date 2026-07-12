@@ -19,7 +19,8 @@ module Onetime
   #   SECRET (64 random bytes, operator-provided or generated)
   #       ├── session        ← HKDF(SECRET, info="session",       len=64)  → SESSION_SECRET
   #       ├── verifiable-id  ← HKDF(SECRET, info="verifiable-id", len=32)  → IDENTIFIER_SECRET
-  #       └── familia-enc    ← HKDF(SECRET, info="familia-enc",   len=32)  [runtime only]
+  #       ├── familia-enc    ← HKDF(SECRET, info="familia-enc",   len=32)  [runtime only]
+  #       └── key-verifier   ← HKDF(SECRET, info="key-verifier",  len=32)  [runtime only]
   #
   module KeyDerivation
     SALT = 'onetimesecret-v1'
@@ -36,6 +37,13 @@ module Onetime
       session: { info: 'session', length: 64, env_var: 'SESSION_SECRET' },
       identifier: { info: 'verifiable-id', length: 32, env_var: 'IDENTIFIER_SECRET' },
       familia_enc: { info: 'familia-enc', length: 32 },
+      # Boot-time key verifier (C10/QS-6): stored in the datastore so a boot
+      # can detect that the running SECRET is not the one the data was
+      # encrypted with. One-way and purpose-separated: publishing it reveals
+      # nothing about SECRET or any working key beyond an offline-guessing
+      # oracle, which is irrelevant for the 64-random-byte SECRETs that
+      # `rake ots:secrets` generates.
+      key_verifier: { info: 'key-verifier', length: 32 },
     }.freeze
 
     # Derive raw bytes for a given purpose.
