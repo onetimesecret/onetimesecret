@@ -11,8 +11,13 @@
    * intentionally resolve their own tokens instead of using this component.)
    * Do not fork this markup into page-local variants.
    *
-   * @prop title - Headline text (already translated)
-   * @prop subtitle - Subline text (already translated)
+   * Title and subtitle are optional: omit both for a logo-only opener. The
+   * reveal/confirm case does this — it renders the brand logo at the top like
+   * every other surface but keeps its own "You have a message" heading and
+   * instructions, so the hero here must not duplicate them.
+   *
+   * @prop title - Headline text (already translated); omit for logo-only
+   * @prop subtitle - Subline text (already translated); omit for logo-only
    * @prop logoLinkTo - When set, wraps the logo in a router-link to this route
    */
   import { useProductIdentity } from '@/shared/stores/identityStore';
@@ -21,8 +26,8 @@
   import { RouterLink } from 'vue-router';
 
   defineProps<{
-    title: string;
-    subtitle: string;
+    title?: string;
+    subtitle?: string;
     logoLinkTo?: string;
   }>();
 
@@ -71,11 +76,14 @@
       </component>
     </div>
     <h1
+      v-if="title"
       :class="headingFontClass"
       class="text-2xl font-semibold text-gray-900 dark:text-white">
       {{ title }}
     </h1>
-    <p class="mt-2 text-gray-600 dark:text-gray-300">
+    <p
+      v-if="subtitle"
+      class="mt-2 text-gray-600 dark:text-gray-300">
       {{ subtitle }}
     </p>
   </div>

@@ -97,7 +97,10 @@ describe('brand-helpers', () => {
     });
 
     it('maps to valid Tailwind font classes', () => {
-      expect(fontFamilyClasses.sans).toBe('font-sans');
+      // sans is on its own font-brand-sans token (a deterministic neutral
+      // grotesque), NOT Tailwind's font-sans, so it stays visibly distinct from
+      // the `system` option instead of both resolving to the OS UI font.
+      expect(fontFamilyClasses.sans).toBe('font-brand-sans');
       expect(fontFamilyClasses.serif).toBe('font-serif');
       expect(fontFamilyClasses.mono).toBe('font-mono');
     });
@@ -319,7 +322,7 @@ describe('brand-helpers', () => {
   describe('resolveBodyFontClass', () => {
     it('maps a known font_family to its utility class', () => {
       expect(resolveBodyFontClass({ font_family: 'slab' })).toBe('font-brand-slab');
-      expect(resolveBodyFontClass({ font_family: 'sans' })).toBe('font-sans');
+      expect(resolveBodyFontClass({ font_family: 'sans' })).toBe('font-brand-sans');
     });
 
     it('returns empty string when font_family is unset', () => {

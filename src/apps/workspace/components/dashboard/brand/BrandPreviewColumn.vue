@@ -44,8 +44,9 @@
     <div
       class="rounded-2xl bg-gray-100/80 p-3 ring-1 ring-inset ring-gray-200/80
         dark:bg-gray-900/40 dark:ring-gray-700/60">
-      <!-- Recipient page -->
-      <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <!-- Recipient page. Dashed border (not solid) reads as a sample/preview,
+           not a live surface — reinforcing the PREVIEW badge. -->
+      <div class="overflow-hidden rounded-xl border border-dashed border-gray-300 bg-white shadow-sm dark:border-gray-600 dark:bg-gray-800">
         <div
           class="flex items-center gap-2 border-b border-gray-200 bg-gray-50 px-3.5 py-2
             dark:border-gray-700 dark:bg-gray-700/60">

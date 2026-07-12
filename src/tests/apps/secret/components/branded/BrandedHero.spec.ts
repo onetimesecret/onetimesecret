@@ -178,3 +178,31 @@ describe('BrandedHero logo', () => {
     expect(wrapper.find('a').exists()).toBe(false);
   });
 });
+
+describe('BrandedHero logo-only', () => {
+  let wrapper: VueWrapper;
+
+  afterEach(() => {
+    if (wrapper) wrapper.unmount();
+  });
+
+  // The reveal/confirm case opens with the logo but supplies its own heading
+  // + instructions, so the hero must render the logo alone — no empty h1/p.
+  it('renders the logo alone when title and subtitle are omitted', async () => {
+    wrapper = mountHero({ title: undefined, subtitle: undefined });
+    await nextTick();
+
+    expect(wrapper.find('img').exists()).toBe(true);
+    expect(wrapper.find('h1').exists()).toBe(false);
+    expect(wrapper.find('p').exists()).toBe(false);
+  });
+
+  it('still links the logo when logoLinkTo is passed without title/subtitle', async () => {
+    wrapper = mountHero({ title: undefined, subtitle: undefined, logoLinkTo: '/' });
+    await nextTick();
+
+    const link = wrapper.find('a');
+    expect(link.exists()).toBe(true);
+    expect(link.find('img').exists()).toBe(true);
+  });
+});

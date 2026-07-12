@@ -110,9 +110,21 @@ describe('SimpleBrandPanel', () => {
     // Exactly one select: body font. Heading font was removed.
     const selects = wrapper.findAll('select');
     expect(selects).toHaveLength(1);
-    // It exposes the full font vocabulary (not just Sans) — regression guard for
-    // the "both options are Sans-Serif" report.
-    expect(selects[0].findAll('option').length).toBeGreaterThanOrEqual(3);
+    // Picker is trimmed to the four curated families (serif/sans/mono/system);
+    // the style-classification fonts (slab/rounded/humanist/geometric) render
+    // near-identically across viewers, so they no longer appear in the editor.
+    const values = selects[0].findAll('option').map((o) => o.attributes('value'));
+    expect(values).toEqual(['serif', 'sans', 'mono', 'system']);
+  });
+
+  it('keeps a domain’s previously-set hidden font visible as an option', () => {
+    // A domain saved under a now-hidden value (e.g. humanist) must not have its
+    // selection silently dropped: the current value is prepended to the picker.
+    const wrapper = mountPanel({ font_family: 'humanist' } as Partial<BrandSettings>);
+    const select = wrapper.find('select');
+    const values = select.findAll('option').map((o) => o.attributes('value'));
+    expect(values).toEqual(['humanist', 'serif', 'sans', 'mono', 'system']);
+    expect((select.element as HTMLSelectElement).value).toBe('humanist');
   });
 });
 

@@ -113,6 +113,8 @@ describe('SecretPreview heading font token', () => {
 
     const heading = wrapper.get('h2');
     expect(heading.classes()).toContain('font-brand-slab');
-    expect(heading.classes()).not.toContain('font-sans');
+    // Body font `sans` resolves to font-brand-sans; assert it did NOT leak onto
+    // the heading (the ladder must keep heading_font distinct from font_family).
+    expect(heading.classes()).not.toContain('font-brand-sans');
   });
 });

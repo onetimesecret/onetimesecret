@@ -69,6 +69,20 @@ export const CornerStyle = {
 export const fontOptions = [...fontFamilyValues];
 
 /**
+ * UI-visible subset of {@link fontOptions} shown in the branding editor.
+ *
+ * The full allowlist (fontFamilyValues) keeps all 8 values for back-compat and
+ * runtime rendering, but the picker only surfaces these four: the three generic
+ * families plus `system`. The extra style-classification fonts (slab, rounded,
+ * humanist, geometric) mostly degrade to the same system fallback across
+ * viewers — only `slab` is deterministic (self-hosted) — so exposing them
+ * over-promised a look the recipient rarely got. Domains already set to a
+ * hidden value keep rendering it; the editor re-adds the current value as an
+ * option so the selection stays visible (see SimpleBrandPanel `fontChoices`).
+ */
+export const uiFontOptions: FontFamily[] = ['serif', 'sans', 'mono', 'system'];
+
+/**
  * Array of valid corner style values for form options.
  */
 export const cornerStyleOptions = [...cornerStyleValues];
@@ -80,13 +94,19 @@ export const cornerStyleOptions = [...cornerStyleValues];
 /**
  * Maps font family values to Tailwind CSS font-family utility classes.
  *
- * The original sans/serif/mono trio reuses Tailwind's built-in families. The
- * expanded values map to `font-brand-*` utilities backed by `--font-brand-*`
- * theme tokens defined in `src/assets/style.css` (@theme static), so the
- * scanner always sees a static class and the utility resolves at runtime.
+ * `serif`/`mono` reuse Tailwind's built-in families. Everything else — including
+ * `sans` — maps to a `font-brand-*` utility backed by a `--font-brand-*` theme
+ * token in `src/assets/style.css` (@theme static), so the scanner always sees a
+ * static class and the utility resolves at runtime.
+ *
+ * `sans` is deliberately NOT `font-sans`: Tailwind's default `font-sans` leads
+ * with `ui-sans-serif, system-ui`, which resolve to the OS UI font (San
+ * Francisco on macOS) — identical to the `system` option. `font-brand-sans`
+ * pins a deterministic neutral grotesque (Helvetica/Arial) so `sans` and
+ * `system` are visibly distinct on every platform.
  */
 export const fontFamilyClasses: Record<FontFamily, string> = {
-  sans: 'font-sans',
+  sans: 'font-brand-sans',
   serif: 'font-serif',
   mono: 'font-mono',
   system: 'font-brand-system',
@@ -107,7 +127,7 @@ export const fontFamilyClasses: Record<FontFamily, string> = {
  * (BrandSettingsConstants::FONTS).
  */
 export const fontFamilyStacks: Record<FontFamily, string> = {
-  sans: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  sans: '"Helvetica Neue", Helvetica, Arial, sans-serif',
   serif: 'ui-serif, Georgia, Cambria, "Times New Roman", Times, serif',
   mono: 'ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace',
   system: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
