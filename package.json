@@ -262,10 +262,5 @@
     "vue-router-mock": "^2.0.2",
     "vue-tsc": "^3.3.2"
   },
-  "signature": "4pSP4pST4pSz4pST4pSP4pST4pSP4pSz4pST4pSz4pSz4pSz4pST4pSP4pSTCuKUg+KUg+KUg+KUg+KUoyAg4pSDIOKUg+KUg+KUg+KUg+KUowrilJfilJvilJvilJfilJfilJsg4pS7IOKUu+KUmyDilJfilJfilJsKCg==",
-  "lint-staged": {
-    "*.{ts,vue,mjs}": [
-      "eslint --quiet --config eslint.config.ts --cache --cache-location ./node_modules/.cache/eslint --fix"
-    ]
-  }
+  "signature": "4pSP4pST4pSz4pST4pSP4pST4pSP4pSz4pST4pSz4pSz4pSz4pST4pSP4pSTCuKUg+KUg+KUg+KUg+KUoyAg4pSDIOKUg+KUg+KUg+KUg+KUowrilJfilJvilJvilJfilJfilJsg4pS7IOKUu+KUmyDilJfilJfilJsKCg=="
 }
