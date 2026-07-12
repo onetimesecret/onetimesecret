@@ -186,13 +186,16 @@ services:
       - AUTH_DATABASE_URL=sqlite://data/auth.db
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
       - JOBS_ENABLED=${JOBS_ENABLED:-false}
-    # Top-level CLI command ('ots worker', not 'ots jobs worker').
+    # Top-level CLI command ('ots worker', not 'ots jobs worker'). --queues
+    # filters on the exact Sneakers queue name (worker_command.rb
+    # determine_workers), not a short alias — EmailWorker's is
+    # 'email.message.send' (email_worker.rb from_queue QUEUE_NAME).
     command:
       [
         './bin/ots',
         'worker',
         '--queues',
-        'email',
+        'email.message.send',
         '--concurrency',
         '5',
         '--environment',
