@@ -40,10 +40,9 @@
 
 <template>
   <div class="lg:sticky lg:top-4">
-    <!-- Preview stage: tinted, inset surface so the card reads as a sample -->
-    <div
-      class="rounded-2xl bg-gray-100/80 p-3 ring-1 ring-inset ring-gray-200/80
-        dark:bg-gray-900/40 dark:ring-gray-700/60">
+    <!-- Preview stage: tinted, inset surface so the card reads as a sample.
+         No outer ring — the card's dashed border is the single frame. -->
+    <div class="rounded-2xl bg-gray-100/80 px-[18px] pb-[18px] dark:bg-gray-900/40">
       <!-- Recipient page. Dashed border (not solid) reads as a sample/preview,
            not a live surface — reinforcing the PREVIEW badge. -->
       <div class="overflow-hidden rounded-xl border border-dashed border-gray-300 bg-white shadow-sm dark:border-gray-600 dark:bg-gray-800">
@@ -67,13 +66,24 @@
         <div
           class="h-1 w-full"
           :style="stripeStyle"></div>
-        <SecretPreview
-          :domain-branding="brandSettings"
-          :logo-image="logoImage"
-          :preview-i18n="previewI18n"
-          :on-logo-upload="onLogoUpload"
-          :on-logo-remove="onLogoRemove"
-          :secret-identifier="secretIdentifier" />
+        <!-- De-emphasis veil: a subtle scrim mutes the sample so its
+             recipient-facing "reveal" button doesn't visually compete with the
+             page's Save CTA in the header. pointer-events-none keeps the
+             intentional interactions (logo upload, reveal toggle) usable
+             underneath; a sibling overlay (not an opacity ancestor) so the logo
+             upload modal still layers above it cleanly. -->
+        <div class="relative">
+          <SecretPreview
+            :domain-branding="brandSettings"
+            :logo-image="logoImage"
+            :preview-i18n="previewI18n"
+            :on-logo-upload="onLogoUpload"
+            :on-logo-remove="onLogoRemove"
+            :secret-identifier="secretIdentifier" />
+          <div
+            aria-hidden="true"
+            class="pointer-events-none absolute inset-0 bg-gray-900/[0.08] dark:bg-gray-950/25"></div>
+        </div>
       </div>
     </div>
   </div>

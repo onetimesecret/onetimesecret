@@ -105,7 +105,7 @@ const actionButtonStyle = computed<Record<string, string>>(() => ({
          above the card, aspect-ratio-tolerant), but stays an interactive upload
          control — the preview's logo is editable, so keep the click-to-upload
          affordance and the empty-state prompt instead of hiding a missing logo. -->
-    <div class="mb-8 flex justify-center">
+    <div class="mb-3 flex justify-center pt-6">
       <div class="group relative">
         <button
           type="button"
