@@ -27,27 +27,29 @@
   }>();
 
   const { t } = useI18n();
-  const { currentLocale, supportedLocalesWithNames, updateLanguage, initializeLanguage } = useLanguage();
+  const { currentLocale, supportedLocalesWithNames, updateLanguage, initializeLanguage } =
+    useLanguage();
 
   const isMenuOpen = ref(false);
   const menuItems = ref<HTMLElement[]>([]);
 
-  const ariaLabel = computed(() => t('web.layout.current_language_is_currentlocal', [currentLocaleName.value]));
+  const ariaLabel = computed(() =>
+    t('web.layout.current_language_is_currentlocal', [currentLocaleName.value])
+  );
   const dropdownMode = computed(() => (props.compact ? 'icon' : 'dropdown'));
   const dropdownId = `lang-dropdown-${Math.random().toString(36).slice(2, 11)}`;
 
-  const currentLocaleName = computed(() =>
-    // Safely access the locale name, fallback to the locale code
-     supportedLocalesWithNames.value?.[currentLocale.value] || currentLocale.value
+  const currentLocaleName = computed(
+    () =>
+      // Safely access the locale name, fallback to the locale code
+      supportedLocalesWithNames.value?.[currentLocale.value] || currentLocale.value
   );
 
-  const defaultLocaleName = computed(() =>
-    supportedLocalesWithNames.value?.[DEFAULT_LOCALE] || DEFAULT_LOCALE
+  const defaultLocaleName = computed(
+    () => supportedLocalesWithNames.value?.[DEFAULT_LOCALE] || DEFAULT_LOCALE
   );
 
-  const canResetToDefault = computed(() =>
-    currentLocale.value !== DEFAULT_LOCALE
-  );
+  const canResetToDefault = computed(() => currentLocale.value !== DEFAULT_LOCALE);
 
   const resetToDefault = async () => {
     if (!canResetToDefault.value) return;
@@ -122,7 +124,9 @@
     initializeLanguage();
     // Note: Querying menu items here might be too early if the menu isn't rendered initially.
     // Consider updating menuItems when the menu opens if issues persist.
-    menuItems.value = Array.from(document.querySelectorAll(`[id='${dropdownId}'] [role="menuitem"]`)) as HTMLElement[];
+    menuItems.value = Array.from(
+      document.querySelectorAll(`[id='${dropdownId}'] [role="menuitem"]`)
+    ) as HTMLElement[];
     document.addEventListener('click', handleClickOutside);
     document.addEventListener('keydown', handleEscapeKey);
   });
@@ -145,7 +149,7 @@
       data-testid="language-toggle"
       :class="[
         'inline-flex items-center justify-center rounded-md transition-colors',
-        'focus:outline-none focus:ring-2 focus:ring-brand-600 dark:focus:ring-brand-400',
+        'focus:ring-2 focus:ring-brand-600 focus:outline-none dark:focus:ring-brand-400',
         'focus:ring-offset-2 focus:ring-offset-white dark:ring-offset-gray-900',
         'text-gray-700 dark:text-gray-400',
         'hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-gray-200',
@@ -199,7 +203,7 @@
     <div
       v-if="isMenuOpen"
       :class="[
-        'absolute bottom-full right-0 z-[49] mb-2 w-56 rounded-md',
+        'absolute right-0 bottom-full z-[49] mb-2 w-56 rounded-md',
         'bg-white shadow-lg ring-1 ring-black/5 focus:outline-none',
         'dark:bg-gray-800 dark:ring-white/20',
       ]"
@@ -263,7 +267,9 @@
           <span class="flex min-w-0 flex-1 items-baseline">
             <span
               class="truncate"
-              :title="name">{{ name }}</span>
+              :title="name"
+              >{{ name }}</span
+            >
             <span class="ml-2 shrink-0 text-sm text-gray-500 dark:text-gray-400">
               {{ locale }}
             </span>
