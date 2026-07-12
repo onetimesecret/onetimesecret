@@ -160,7 +160,17 @@ Addresses: QS-3, QS-13, BM-07, DX-6, D6. Proof: proof-of-life script
 > an opt-in create-account + authenticated `/api/v2/account` step, gated on
 > `POL_CREATE_ACCOUNT=1` (default off — existing lanes byte-identical);
 > wiring it into the compose-smoke lane is follow-on CI work alongside
-> C7's residuals. **Deferred:** `rake dev:seed` (D6) — the optional bullet,
+> C7's residuals *(update 2026-07-11: wired into both compose-smoke jobs —
+> simple-stack via a `POL_EXEC` exec-prefix into the app container,
+> full-stack in-container with `-e POL_CREATE_ACCOUNT=1`, which also
+> exercises first-account provisioning against the full-mode authdb; the
+> README `docker run` job stays default-off since it runs the published
+> tag. The step's first end-to-end run found its assertion pointing at a
+> nonexistent `/api/v2/account` (404): it now targets
+> `/api/v2/receipt/recent` — basicauth-only, no noauth fallback — and
+> first proves anonymous is rejected (401) so the authenticated 200
+> actually proves the credentials; full step proven locally against a
+> bare-metal boot)*. **Deferred:** `rake dev:seed` (D6) — the optional bullet,
 > not built *(update 2026-07-10: shipped as `lib/tasks/dev.rake` — dev-only
 > guard on RACK_ENV, delegates account provisioning to `bin/ots apitoken`
 > so both auth modes work, seeds two sample secrets via
@@ -379,7 +389,16 @@ so registry/runner rot surfaces as a red scheduled run.
 > image; the assembled job's first full run is pending CI. Still open
 > after this: duration charted/alarmed over time
 > (step summary only), and C4's `POL_CREATE_ACCOUNT` wiring into
-> compose-smoke.)*
+> compose-smoke.)* *(update 2026-07-11, later same day: both closed —
+> `scripts/test-install/ttfhw-chart.sh` renders the fresh-clone job's
+> duration trend into the step summary from the last successful runs
+> (via the Actions API, `actions: read`; rename-tolerant job matching so
+> the install-test.sh→bin/setup rename keeps its history) and emits a
+> warning annotation when this run exceeds the median by 25% — telemetry,
+> never a gate: every degraded path exits 0 and the step is
+> continue-on-error. And `POL_CREATE_ACCOUNT=1` is wired into both
+> compose-smoke jobs — see C4's note for the `/api/v2/receipt/recent`
+> assertion fix that wiring surfaced.)*
 
 ## C8 — Devcontainer + Codespaces (D5, testing-strategy §5)
 
@@ -538,6 +557,7 @@ paths from "fails on a clean machine" to "works"; C7 makes it stay that way.
 > lane, build+asset-probe), C5's four routed handoffs (Dockerfile
 > `/app/data`, entrypoint `/mnt/public`, root-compose cross-refs, the
 > full-stack lane), and C9's 151-var env-reference backlog are all
-> closed — see each chunk's dated update note. Remaining anywhere:
-> TTFHW duration charting over time, and C4's `POL_CREATE_ACCOUNT`
-> wiring into compose-smoke.
+> closed — see each chunk's dated update note. The last two residuals
+> (TTFHW duration charting, C4's `POL_CREATE_ACCOUNT` wiring into
+> compose-smoke) closed 2026-07-11 as well — nothing in C1–C10 remains
+> open.
