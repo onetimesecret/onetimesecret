@@ -1,0 +1,27 @@
+{
+  // Zed project settings — mirror of .vscode/settings.json intent
+  // (see docs/specs/dx.md, Part 3.4): format + ESLint --fix on save so fixes
+  // land before commit, not in a hook.
+  "format_on_save": "on",
+  "code_actions_on_format": {
+    "source.fixAll.eslint": true
+  },
+  "languages": {
+    "Vue.js": {
+      "formatter": "prettier",
+      "code_actions_on_format": { "source.fixAll.eslint": true }
+    },
+    "TypeScript": {
+      "formatter": "prettier",
+      "code_actions_on_format": { "source.fixAll.eslint": true }
+    },
+    "JavaScript": {
+      "formatter": "prettier",
+      "code_actions_on_format": { "source.fixAll.eslint": true }
+    },
+    "Ruby": {
+      "language_servers": ["ruby-lsp"],
+      "formatter": "language_server"
+    }
+  }
+}
