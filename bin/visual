@@ -63,8 +63,28 @@ VISUAL_ENV=(
   SSL=false
   DOMAINS_ENABLED=true
   "DEFAULT_DOMAIN=$CANONICAL_HOST"
+  # site.host renders into the page (e.g. the homepage "Creating links for"
+  # pill). Unpinned, the ambient dev HOST leaks into every baseline and no
+  # other machine can reproduce them.
+  "HOST=$CANONICAL_HOST:$PORT"
   INCOMING_ENABLED=true
   "INCOMING_RECIPIENT_1=qa-visual-recipient@example.com,QA Recipient"
+  # Every config surface that RENDERS must be pinned, or ambient dev env
+  # leaks into baselines no other machine (or CI) can reproduce. Values are
+  # the config defaults: regions off (no footer region pill), billing off,
+  # signup/signin on (header links).
+  REGIONS_ENABLED=false
+  JURISDICTION=
+  JURISDICTIONS=
+  BILLING_ENABLED=false
+  AUTH_SIGNUP=true
+  AUTH_SIGNIN=true
+  # Pinned for environment determinism (and prod parity — prod runs full).
+  # The noauth visual pages currently render identically across auth modes,
+  # but an ambient mode flip must never become a screenshot variable. The DB
+  # engine behind full mode is free to vary: PG when AUTH_DATABASE_URL is
+  # set (dev), boot-migrated sqlite when unset (CI) — engine never renders.
+  AUTHENTICATION_MODE=full
 )
 # ACCOUNT_ID_SECRET is appended after the environment guards below — it may be
 # derived from SECRET, which is only validated there.
@@ -108,7 +128,21 @@ require_cmd() {
   fi
 }
 
-require_cmd podman "Install: brew install podman && podman machine init && podman machine start"
+# Container runtime: podman (macOS dev) or docker (CI runners). Ambient
+# CONTAINER_RUNTIME wins; otherwise prefer podman (this project's default —
+# see CLAUDE.md/docs) and fall back to docker.
+if [[ -z "${CONTAINER_RUNTIME:-}" ]]; then
+  if command -v podman >/dev/null 2>&1; then
+    CONTAINER_RUNTIME=podman
+  elif command -v docker >/dev/null 2>&1; then
+    CONTAINER_RUNTIME=docker
+  else
+    echo "Error: neither podman nor docker found." >&2
+    echo "  Install: brew install podman && podman machine init && podman machine start" >&2
+    exit 1
+  fi
+fi
+require_cmd "$CONTAINER_RUNTIME" "Set CONTAINER_RUNTIME to an installed runtime (podman or docker)."
 require_cmd pnpm   "Install: brew install pnpm (needed for 'pnpm build' and report viewing)"
 require_cmd bundle "Install Ruby deps: gem install bundler && bundle install"
 require_cmd curl   "Needed for the server readiness probe."
@@ -218,18 +252,35 @@ if [[ "$MODE" == "update" ]]; then
   UPDATE_ARG="--update-snapshots"
 fi
 
-echo "Running Playwright in $PLAYWRIGHT_IMAGE (podman)..."
+# Networking differs by runtime:
+# - podman (macOS): gvproxy NATs host.containers.internal to the mac host's
+#   127.0.0.1 (see header comment), so the default bridge network works.
+# - docker (linux CI): host.docker.internal:host-gateway maps to the bridge
+#   gateway, which can NOT reach puma's 127.0.0.1 bind — so share the host's
+#   network namespace instead and resolve the fixture hosts straight to
+#   127.0.0.1.
+NETWORK_ARGS=()
+if [[ "$CONTAINER_RUNTIME" == "docker" && "$(uname -s)" == "Linux" ]]; then
+  NETWORK_ARGS=(--network host)
+  RESOLVER_DEFAULT="127.0.0.1"
+else
+  RESOLVER_DEFAULT="host.containers.internal"
+fi
+
+echo "Running Playwright in $PLAYWRIGHT_IMAGE ($CONTAINER_RUNTIME)..."
 # --ipc=host: Chromium exhausts /dev/shm without it (playwright.dev/docs/docker).
-# CI is deliberately NOT passed in: podman containers don't inherit host env,
-# so the config's CI-only branches (retries, blob reporter, workers=1) stay off.
-# node_modules is the host's (darwin/arm64) — fine because @playwright/test and
-# playwright are pure JS and the browsers come from the image at /ms-playwright.
-podman run --rm \
+# CI is deliberately NOT passed in: containers don't inherit host env, so the
+# config's CI-only branches (retries, blob reporter, workers=1) stay off and
+# the run behaves identically on a dev machine and a CI runner.
+# node_modules is the host's — fine because @playwright/test and playwright
+# are pure JS and the browsers come from the image at /ms-playwright.
+"$CONTAINER_RUNTIME" run --rm \
   --ipc=host \
+  ${NETWORK_ARGS[@]+"${NETWORK_ARGS[@]}"} \
   -v "$REPO_ROOT":/work \
   -w /work \
   -e "PLAYWRIGHT_BASE_URL=http://$CANONICAL_HOST:$PORT" \
-  -e "VISUAL_RESOLVER_TARGET=${VISUAL_RESOLVER_TARGET:-host.containers.internal}" \
+  -e "VISUAL_RESOLVER_TARGET=${VISUAL_RESOLVER_TARGET:-$RESOLVER_DEFAULT}" \
   "$PLAYWRIGHT_IMAGE" \
   npx playwright test \
     --config=e2e/playwright.config.ts \

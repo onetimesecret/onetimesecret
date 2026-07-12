@@ -191,6 +191,10 @@ export function collectConsoleErrors(page: Page): () => string[] {
  *    followed by a relative-time <p>)
  *  - receipt-status .h-2: the expiration progress bar, whose fill width
  *    tracks wall-clock time since seeding
+ *  - releases/tag link: the footer version string (`v<pkg> (<commit>)`,
+ *    lib/onetime/version.rb) embeds the commit hash — it changes on EVERY
+ *    commit, and across releases the package version changes too (the
+ *    cross-version diffs this suite exists for must not flag it)
  * Locators that match nothing on a given page are ignored by toHaveScreenshot.
  */
 export function visualMasks(page: Page, extra: Locator[] = []): Locator[] {
@@ -200,6 +204,7 @@ export function visualMasks(page: Page, extra: Locator[] = []): Locator[] {
     page.locator('time'),
     page.locator('time + p'),
     page.getByTestId('receipt-status').locator('.h-2'),
+    page.locator('a[href*="/releases/tag/"]'),
     ...extra,
   ];
 }

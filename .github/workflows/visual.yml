@@ -1,0 +1,134 @@
+# ==============================================================================
+# Visual regression lane (PR 2 of docs/specs/qa/visual-regressions/)
+# ==============================================================================
+# Compares the noauth pages (home, secret, receipt, burn, incoming, notfound)
+# across canonical + two branded custom domains against the committed
+# *-linux.png baselines in e2e/visual/*.spec.ts-snapshots/.
+#
+# Same artifact locally and in CI: bin/visual. It boots `bin/ots server`
+# (RACK_ENV=production, DOMAINS_ENABLED=true, AUTHENTICATION_MODE=full —
+# all pinned inside the script; mode changes rendering, see bin/visual),
+# seeds fixtures via `rake qa:visual:seed`, and runs the visual Playwright
+# projects inside the pinned mcr.microsoft.com/playwright container so the
+# comparison happens on the exact browser build + font stack the baselines
+# were generated with. Never run the visual projects bare on the runner:
+# host font rendering drifts from the container image's.
+#
+# Full auth mode here uses the boot-migrated sqlite authdb (AUTH_DATABASE_URL
+# unset — same path compose-smoke guards). The DB engine does not affect
+# rendering, only the auth MODE does; no Postgres sidecar needed.
+# ==============================================================================
+name: Visual regression
+
+on:
+  pull_request:
+    paths:
+      # The suite itself
+      - 'e2e/visual/**'
+      - 'e2e/playwright.config.ts'
+      - 'bin/visual'
+      - 'lib/tasks/qa_visual.rake'
+      # Anything that changes what the pages render
+      - 'src/**'
+      - 'templates/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'vite.config.ts'
+      - '.github/workflows/visual.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  visual:
+    name: bin/visual (compare against committed linux baselines)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    services:
+      valkey:
+        image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping || exit 1"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Setup Ruby (.ruby-version)
+        uses: ruby/setup-ruby@97b333846670e3cb692f29c0c5d42b71efc6bc93
+        with:
+          bundler-cache: false  # bin/setup runs `bundle install` itself
+
+      - name: Setup Node (.node-version)
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version-file: '.node-version'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+
+      - name: Setup Python (locales:sync)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      # Same preflight contract as the bare-metal boot lane: gems,
+      # node_modules, generated/locales, generated/schemas, seeded etc/.
+      - name: Run bin/setup
+        run: bin/setup
+
+      # bin/visual deliberately does NOT auto-build (an unnoticed stale
+      # build could mask what you meant to compare); CI always builds fresh.
+      - name: Build frontend assets
+        run: pnpm run build
+
+      - name: Run visual regression suite
+        run: |
+          # bin/visual's env guards expect a direnv-loaded shell; CI provides
+          # the equivalent env explicitly. SECRET is ephemeral (production-
+          # mode boot requires one; nothing persists past the job).
+          # ACCOUNT_ID_SECRET is derived from it inside bin/visual.
+          export OTS_ENV_LOADED=1
+          SECRET="$(openssl rand -hex 32)"
+          export SECRET
+          export REDIS_URL=redis://127.0.0.1:6379/0
+          # CONTAINER_RUNTIME auto-detects docker; on linux bin/visual runs
+          # the Playwright container with --network host and resolves the
+          # fixture hosts (*.example.com/org) to 127.0.0.1.
+          bin/visual
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: failure()
+        with:
+          name: visual-playwright-report
+          path: e2e/playwright-report/
+          retention-days: 7
+
+      # The diff triptychs (expected/actual/diff PNGs) live here — this is
+      # the artifact you actually open when the lane goes red.
+      - name: Upload visual diffs
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: failure()
+        with:
+          name: visual-test-results
+          path: e2e/test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Server log on failure
+        if: failure()
+        run: |
+          echo "=== tmp/visual-server.log (last 100 lines) ==="
+          tail -n 100 tmp/visual-server.log || true
