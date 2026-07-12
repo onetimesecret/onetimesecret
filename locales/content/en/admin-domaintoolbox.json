@@ -1,0 +1,178 @@
+{
+  "web.admin.domaintoolbox.title": {
+    "text": "Domain Toolbox",
+    "content_hash": "5a9333db"
+  },
+  "web.admin.domaintoolbox.description": {
+    "text": "Diagnose and repair custom-domain relationships: scan orphans, probe DNS/SSL, repair ownership, and transfer between organizations.",
+    "content_hash": "778537aa"
+  },
+  "web.admin.domaintoolbox.retry": {
+    "text": "Retry",
+    "content_hash": "942087cc"
+  },
+  "web.admin.domaintoolbox.preview": {
+    "text": "Preview",
+    "content_hash": "324b134f"
+  },
+  "web.admin.domaintoolbox.fields.extid": {
+    "text": "Domain external ID",
+    "content_hash": "f52af6c5"
+  },
+  "web.admin.domaintoolbox.fields.extidPlaceholder": {
+    "text": "cd_… (domain extid)",
+    "content_hash": "bb9bf49a"
+  },
+  "web.admin.domaintoolbox.orphaned.title": {
+    "text": "Orphaned domains",
+    "content_hash": "ddcea596"
+  },
+  "web.admin.domaintoolbox.orphaned.description": {
+    "text": "Custom domains with no owning organization. Use Repair to reassign one.",
+    "content_hash": "967268f5"
+  },
+  "web.admin.domaintoolbox.orphaned.empty": {
+    "text": "No orphaned domains found.",
+    "content_hash": "06ef9979"
+  },
+  "web.admin.domaintoolbox.orphaned.loadError": {
+    "text": "Could not load orphaned domains.",
+    "content_hash": "ca0e33bf"
+  },
+  "web.admin.domaintoolbox.orphaned.repairAction": {
+    "text": "Repair",
+    "content_hash": "1196b6c5"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.domain": {
+    "text": "Domain",
+    "content_hash": "79fa3361"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.state": {
+    "text": "State",
+    "content_hash": "a3b50c47"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.verified": {
+    "text": "Verified",
+    "content_hash": "4f783840"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.created": {
+    "text": "Created",
+    "content_hash": "d70b9e24"
+  },
+  "web.admin.domaintoolbox.orphaned.columns.actions": {
+    "text": "Actions",
+    "content_hash": "ff8059dc"
+  },
+  "web.admin.domaintoolbox.probe.title": {
+    "text": "Probe (DNS / SSL)",
+    "content_hash": "ec69a087"
+  },
+  "web.admin.domaintoolbox.probe.description": {
+    "text": "Make a live HTTPS request to confirm the domain serves traffic and inspect its TLS certificate. Read-only.",
+    "content_hash": "1eecfa96"
+  },
+  "web.admin.domaintoolbox.probe.button": {
+    "text": "Probe",
+    "content_hash": "3bd51ab9"
+  },
+  "web.admin.domaintoolbox.probe.healthLabel": {
+    "text": "Health",
+    "content_hash": "55898449"
+  },
+  "web.admin.domaintoolbox.reverify.button": {
+    "text": "Re-verify",
+    "content_hash": "0344860a"
+  },
+  "web.admin.domaintoolbox.reverify.success": {
+    "text": "Domain re-verification completed.",
+    "content_hash": "497a2348"
+  },
+  "web.admin.domaintoolbox.repair.title": {
+    "text": "Repair relationship",
+    "content_hash": "0053d07c"
+  },
+  "web.admin.domaintoolbox.repair.description": {
+    "text": "Fix organization-relationship inconsistencies for a domain. Preview first, then apply.",
+    "content_hash": "18ca490b"
+  },
+  "web.admin.domaintoolbox.repair.orgIdLabel": {
+    "text": "Assign organization (if orphaned)",
+    "content_hash": "f95b010a"
+  },
+  "web.admin.domaintoolbox.repair.orgIdPlaceholder": {
+    "text": "org id or extid",
+    "content_hash": "a87d634e"
+  },
+  "web.admin.domaintoolbox.repair.statusLabel": {
+    "text": "Status",
+    "content_hash": "920e413c"
+  },
+  "web.admin.domaintoolbox.repair.noIssues": {
+    "text": "No issues found — relationships are consistent.",
+    "content_hash": "e1a4c49d"
+  },
+  "web.admin.domaintoolbox.repair.applyButton": {
+    "text": "Apply repairs",
+    "content_hash": "3f92b29f"
+  },
+  "web.admin.domaintoolbox.repair.success": {
+    "text": "Repairs applied successfully.",
+    "content_hash": "24f25b9b"
+  },
+  "web.admin.domaintoolbox.repair.confirmTitle": {
+    "text": "Apply domain repairs?",
+    "content_hash": "9429998b"
+  },
+  "web.admin.domaintoolbox.repair.confirmDescription": {
+    "text": "This will modify ownership/relationship state for {domain}. Retype the domain external ID to confirm.",
+    "content_hash": "426d267b"
+  },
+  "web.admin.domaintoolbox.transfer.title": {
+    "text": "Transfer ownership",
+    "content_hash": "3667f939"
+  },
+  "web.admin.domaintoolbox.transfer.description": {
+    "text": "Reassign a domain to a different organization. Highest-blast-radius action — preview and confirm carefully.",
+    "content_hash": "d4e26e03"
+  },
+  "web.admin.domaintoolbox.transfer.toOrgLabel": {
+    "text": "Destination organization",
+    "content_hash": "4e4486eb"
+  },
+  "web.admin.domaintoolbox.transfer.fromOrgLabel": {
+    "text": "Source organization (optional)",
+    "content_hash": "3666815f"
+  },
+  "web.admin.domaintoolbox.transfer.fromOrgPlaceholder": {
+    "text": "assert current owner",
+    "content_hash": "cd9e769c"
+  },
+  "web.admin.domaintoolbox.transfer.from": {
+    "text": "From",
+    "content_hash": "21819769"
+  },
+  "web.admin.domaintoolbox.transfer.to": {
+    "text": "To",
+    "content_hash": "f4b06ef6"
+  },
+  "web.admin.domaintoolbox.transfer.orphaned": {
+    "text": "ORPHANED",
+    "content_hash": "54dc2166"
+  },
+  "web.admin.domaintoolbox.transfer.applyButton": {
+    "text": "Transfer domain",
+    "content_hash": "9517aeb9"
+  },
+  "web.admin.domaintoolbox.transfer.success": {
+    "text": "Domain transferred successfully.",
+    "content_hash": "bbca9de9"
+  },
+  "web.admin.domaintoolbox.transfer.confirmTitle": {
+    "text": "Transfer domain ownership?",
+    "content_hash": "d306a15a"
+  },
+  "web.admin.domaintoolbox.transfer.confirmDescription": {
+    "text": "This reassigns ownership of {domain} to another organization. Retype the domain external ID to confirm.",
+    "content_hash": "edefd97c"
+  }
+}

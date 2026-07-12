@@ -18,9 +18,9 @@ require 'onetime/cli'
 
 # TRYOUTS
 
-## AVAILABLE_TEMPLATES contains exactly 11 templates
+## AVAILABLE_TEMPLATES contains exactly 20 templates
 Onetime::CLI::Email::AVAILABLE_TEMPLATES.size
-#=> 11
+#=> 20
 
 ## AVAILABLE_TEMPLATES includes secret_link
 Onetime::CLI::Email::AVAILABLE_TEMPLATES.include?(:secret_link)

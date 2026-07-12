@@ -24,6 +24,12 @@ DELETE /secrets/:secret_id                ColonelAPI::Logic::Colonel::DeleteSecr
 GET    /users                             ColonelAPI::Logic::Colonel::ListUsers response=json auth=sessionauth role=colonel scope=internal
 GET    /users/:user_id                    ColonelAPI::Logic::Colonel::GetUserDetails response=json auth=sessionauth role=colonel scope=internal
 POST   /users/:user_id/plan               ColonelAPI::Logic::Colonel::UpdateUserPlan response=json auth=sessionauth role=colonel scope=internal
+POST   /users/:user_id/role               ColonelAPI::Logic::Colonel::SetUserRole response=json auth=sessionauth role=colonel scope=internal
+POST   /users/:user_id/verify             ColonelAPI::Logic::Colonel::VerifyUser response=json auth=sessionauth role=colonel scope=internal
+POST   /users/:user_id/unverify           ColonelAPI::Logic::Colonel::UnverifyUser response=json auth=sessionauth role=colonel scope=internal
+POST   /users/:user_id/suspend            ColonelAPI::Logic::Colonel::SuspendUser response=json auth=sessionauth role=colonel scope=internal
+POST   /users/:user_id/unsuspend          ColonelAPI::Logic::Colonel::UnsuspendUser response=json auth=sessionauth role=colonel scope=internal
+DELETE /users/:user_id                    ColonelAPI::Logic::Colonel::PurgeUser response=json auth=sessionauth role=colonel scope=internal
 
 # System Monitoring
 GET    /system/database                   ColonelAPI::Logic::Colonel::GetDatabaseMetrics response=json auth=sessionauth role=colonel scope=internal
@@ -37,10 +43,21 @@ DELETE /banned-ips/:ip                    ColonelAPI::Logic::Colonel::UnbanIP re
 
 # Custom Domains
 GET    /domains                           ColonelAPI::Logic::Colonel::ListCustomDomains response=json auth=sessionauth role=colonel scope=internal
+POST   /domains                           ColonelAPI::Logic::Colonel::CreateCustomDomain response=json auth=sessionauth role=colonel scope=internal
+# Domain toolbox (ticket #43): literal /domains/orphaned MUST precede /domains/:extid so it wins.
+GET    /domains/orphaned                 ColonelAPI::Logic::Colonel::ListOrphanedDomains response=json auth=sessionauth role=colonel scope=internal
+POST   /domains/:extid/verify             ColonelAPI::Logic::Colonel::VerifyCustomDomain response=json auth=sessionauth role=colonel scope=internal
+GET    /domains/:extid/probe             ColonelAPI::Logic::Colonel::ProbeDomain response=json auth=sessionauth role=colonel scope=internal
+POST   /domains/:extid/repair            ColonelAPI::Logic::Colonel::RepairDomain response=json auth=sessionauth role=colonel scope=internal
+POST   /domains/:extid/transfer          ColonelAPI::Logic::Colonel::TransferDomain response=json auth=sessionauth role=colonel scope=internal
+# Per-domain detail (DNS panel + post-verify refresh). Literal /domains/orphaned above still wins.
+GET    /domains/:extid                   ColonelAPI::Logic::Colonel::GetCustomDomain response=json auth=sessionauth role=colonel scope=internal
 
 # Organizations
 GET    /organizations                     ColonelAPI::Logic::Colonel::ListOrganizations response=json auth=sessionauth role=colonel scope=internal
+GET    /organizations/:org_id             ColonelAPI::Logic::Colonel::GetOrganizationDetail response=json auth=sessionauth role=colonel scope=internal
 POST   /organizations/:org_id/investigate ColonelAPI::Logic::Colonel::InvestigateOrganization response=json auth=sessionauth role=colonel scope=internal
+POST   /organizations/:org_id/reconcile   ColonelAPI::Logic::Colonel::ReconcileOrganization response=json auth=sessionauth role=colonel scope=internal
 
 # Entitlement Overrides (Phase 2: grant/revoke per-org entitlements)
 POST   /organizations/:org_id/entitlements/:action  ColonelAPI::Logic::Colonel::ManageEntitlementOverride response=json auth=sessionauth role=colonel scope=internal
@@ -48,3 +65,53 @@ DELETE /organizations/:org_id/entitlements/overrides ColonelAPI::Logic::Colonel:
 
 # Usage Export
 GET    /usage/export                      ColonelAPI::Logic::Colonel::ExportUsage response=json auth=sessionauth role=colonel scope=internal
+
+# Sessions (ticket #40)
+GET    /sessions                          ColonelAPI::Logic::Colonel::ListSessions response=json auth=sessionauth role=colonel scope=internal
+GET    /sessions/:session_id              ColonelAPI::Logic::Colonel::GetSessionDetail response=json auth=sessionauth role=colonel scope=internal
+DELETE /sessions/:session_id              ColonelAPI::Logic::Colonel::DeleteSession response=json auth=sessionauth role=colonel scope=internal
+GET    /users/:user_id/sessions           ColonelAPI::Logic::Colonel::ListCustomerSessions response=json auth=sessionauth role=colonel scope=internal
+# Bulk revoke-all (offboarding/takeover). POST+verb (local convention for bulk-destructive) so it can't collide with the single-revoke DELETE below.
+POST   /users/:user_id/sessions/revoke-all ColonelAPI::Logic::Colonel::RevokeAllCustomerSessions response=json auth=sessionauth role=colonel scope=internal
+DELETE /users/:user_id/sessions/:session_id ColonelAPI::Logic::Colonel::RevokeCustomerSession response=json auth=sessionauth role=colonel scope=internal
+
+# Broadcast Banner (ticket #41)
+GET    /banner                            ColonelAPI::Logic::Colonel::GetBanner response=json auth=sessionauth role=colonel scope=internal
+POST   /banner                            ColonelAPI::Logic::Colonel::SetBanner response=json auth=sessionauth role=colonel scope=internal
+DELETE /banner                            ColonelAPI::Logic::Colonel::ClearBanner response=json auth=sessionauth role=colonel scope=internal
+
+# Queue Dead-Letter Queue (DLQ) console (ticket #42)
+GET    /queues/dlq                        ColonelAPI::Logic::Colonel::ListDlqs response=json auth=sessionauth role=colonel scope=internal
+GET    /queues/dlq/:queue                 ColonelAPI::Logic::Colonel::GetDlqMessages response=json auth=sessionauth role=colonel scope=internal
+POST   /queues/dlq/:queue/replay          ColonelAPI::Logic::Colonel::ReplayDlq response=json auth=sessionauth role=colonel scope=internal
+POST   /queues/dlq/:queue/purge           ColonelAPI::Logic::Colonel::PurgeDlq response=json auth=sessionauth role=colonel scope=internal
+
+# Email + Rate-limit Tools (ticket #44)
+GET    /email/templates                       ColonelAPI::Logic::Colonel::ListEmailTemplates response=json auth=sessionauth role=colonel scope=internal
+GET    /email/templates/:template/preview     ColonelAPI::Logic::Colonel::PreviewEmailTemplate response=json auth=sessionauth role=colonel scope=internal
+POST   /email/test                            ColonelAPI::Logic::Colonel::SendTestEmail response=json auth=sessionauth role=colonel scope=internal
+GET    /email/config                          ColonelAPI::Logic::Colonel::GetEmailConfig response=json auth=sessionauth role=colonel scope=internal
+GET    /ratelimit/limiters                    ColonelAPI::Logic::Colonel::ListRateLimiters response=json auth=sessionauth role=colonel scope=internal
+GET    /ratelimit/inspect                     ColonelAPI::Logic::Colonel::InspectRateLimit response=json auth=sessionauth role=colonel scope=internal
+POST   /ratelimit/reset                       ColonelAPI::Logic::Colonel::ResetRateLimit response=json auth=sessionauth role=colonel scope=internal
+
+# Email deliverability: suppression list + bounce/complaint feed. Ingestion is
+# colonel-authenticated by design (no public webhook — ESP feedback is piped in
+# via CLI/cron; see IngestEmailDeliverabilityEvents for the wire format).
+GET    /email/deliverability                          ColonelAPI::Logic::Colonel::GetEmailDeliverability response=json auth=sessionauth role=colonel scope=internal
+GET    /email/deliverability/suppressions             ColonelAPI::Logic::Colonel::ListEmailSuppressions response=json auth=sessionauth role=colonel scope=internal
+POST   /email/deliverability/suppressions             ColonelAPI::Logic::Colonel::AddEmailSuppression response=json auth=sessionauth role=colonel scope=internal
+DELETE /email/deliverability/suppressions/:address    ColonelAPI::Logic::Colonel::RemoveEmailSuppression response=json auth=sessionauth role=colonel scope=internal
+GET    /email/deliverability/events                   ColonelAPI::Logic::Colonel::ListEmailDeliverabilityEvents response=json auth=sessionauth role=colonel scope=internal
+POST   /email/deliverability/events                   ColonelAPI::Logic::Colonel::IngestEmailDeliverabilityEvents response=json auth=sessionauth role=colonel scope=internal
+POST   /email/deliverability/sync                     ColonelAPI::Logic::Colonel::SyncEmailDeliverability response=json auth=sessionauth role=colonel scope=internal
+GET    /email/deliverability/provider-status          ColonelAPI::Logic::Colonel::GetEmailProviderStatus response=json auth=sessionauth role=colonel scope=internal
+GET    /email/deliverability/lookup                    ColonelAPI::Logic::Colonel::LookupEmailRecipient response=json auth=sessionauth role=colonel scope=internal
+GET    /email/deliverability/messages                  ColonelAPI::Logic::Colonel::ListEmailMessages response=json auth=sessionauth role=colonel scope=internal
+
+# Billing Catalog (ticket #45, read-only plan drift)
+GET    /billing/catalog                   ColonelAPI::Logic::Colonel::GetBillingCatalog response=json auth=sessionauth role=colonel scope=internal
+
+# Observability: audit trail reader + daily activity trends (both read-only)
+GET    /audit                             ColonelAPI::Logic::Colonel::ListAuditEvents response=json auth=sessionauth role=colonel scope=internal
+GET    /trends                            ColonelAPI::Logic::Colonel::GetTrends response=json auth=sessionauth role=colonel scope=internal

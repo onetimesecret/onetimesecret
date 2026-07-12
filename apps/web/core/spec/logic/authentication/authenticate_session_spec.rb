@@ -35,6 +35,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
       role: :customer,
       anonymous?: false,
       pending?: false,
+      suspended?: false,
       argon2_hash?: true,
       passphrase: '$argon2id$...'
     )

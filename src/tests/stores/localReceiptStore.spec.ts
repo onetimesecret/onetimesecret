@@ -377,6 +377,35 @@ describe('localReceiptStore', () => {
     });
   });
 
+  describe('preferred TTL', () => {
+    it('defaults to null when unset', () => {
+      expect(store.preferredTtl).toBeNull();
+    });
+
+    it('setPreferredTtl updates the preference', () => {
+      store.setPreferredTtl(3600);
+      expect(store.preferredTtl).toBe(3600);
+    });
+
+    it('persists preferred TTL to localStorage', async () => {
+      store.setPreferredTtl(86400);
+      await nextTick();
+
+      expect(localStorage.setItem).toHaveBeenCalledWith('onetimePreferredTtl', '86400');
+    });
+
+    it('removes preferred TTL from localStorage on $reset', async () => {
+      store.setPreferredTtl(86400);
+      await nextTick();
+
+      store.$reset();
+      await nextTick();
+
+      expect(store.preferredTtl).toBeNull();
+      expect(localStorage.removeItem).toHaveBeenCalledWith('onetimePreferredTtl');
+    });
+  });
+
   describe('LocalReceipt minimal data structure', () => {
     it('only stores essential fields as defined in the interface', async () => {
       const message = createMockMessage({

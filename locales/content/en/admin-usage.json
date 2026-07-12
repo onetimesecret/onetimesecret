@@ -1,0 +1,78 @@
+{
+  "web.admin.usage.title": {
+    "text": "Usage",
+    "content_hash": "8d59829c"
+  },
+  "web.admin.usage.description": {
+    "text": "Export usage metrics for a date range.",
+    "content_hash": "97bd3325"
+  },
+  "web.admin.usage.startDate": {
+    "text": "Start Date",
+    "content_hash": "4c52faad"
+  },
+  "web.admin.usage.endDate": {
+    "text": "End Date",
+    "content_hash": "e970951c"
+  },
+  "web.admin.usage.fetch": {
+    "text": "Fetch Data",
+    "content_hash": "429532fe"
+  },
+  "web.admin.usage.loadError": {
+    "text": "Could not load usage data.",
+    "content_hash": "ffb557d7"
+  },
+  "web.admin.usage.retry": {
+    "text": "Retry",
+    "content_hash": "942087cc"
+  },
+  "web.admin.usage.empty": {
+    "text": "No data for this range",
+    "content_hash": "5fed1795"
+  },
+  "web.admin.usage.byState": {
+    "text": "Secrets by State",
+    "content_hash": "916bbcb6"
+  },
+  "web.admin.usage.secretsByDay": {
+    "text": "Secrets by Day",
+    "content_hash": "24a01e8e"
+  },
+  "web.admin.usage.usersByDay": {
+    "text": "New Users by Day",
+    "content_hash": "8c1f089f"
+  },
+  "web.admin.usage.columns.date": {
+    "text": "Date",
+    "content_hash": "99c40ab4"
+  },
+  "web.admin.usage.columns.count": {
+    "text": "Count",
+    "content_hash": "37bac495"
+  },
+  "web.admin.usage.stats.totalSecrets": {
+    "text": "Total Secrets",
+    "content_hash": "e17a5459"
+  },
+  "web.admin.usage.stats.newUsers": {
+    "text": "New Users",
+    "content_hash": "d3ee48b0"
+  },
+  "web.admin.usage.stats.avgSecrets": {
+    "text": "Avg Secrets/Day",
+    "content_hash": "948b0701"
+  },
+  "web.admin.usage.stats.avgUsers": {
+    "text": "Avg Users/Day",
+    "content_hash": "491f626d"
+  },
+  "web.admin.usage.exportJson": {
+    "text": "Download JSON",
+    "content_hash": "49e0e6d5"
+  },
+  "web.admin.usage.exportCsv": {
+    "text": "Download CSV",
+    "content_hash": "a4023b89"
+  }
+}

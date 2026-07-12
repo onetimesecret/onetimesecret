@@ -9,6 +9,7 @@
 #   ots email config --format json
 
 require 'json'
+require 'onetime/operations/email/config_summary'
 
 module Onetime
   module CLI
@@ -25,7 +26,9 @@ module Onetime
         def call(format: 'text', **)
           boot_application!
 
-          config   = build_config_summary
+          # Delegate to the single shared summary (also used by the colonel
+          # GET /api/colonel/email/config endpoint) so the two never drift.
+          config   = Onetime::Operations::Email::ConfigSummary.build
           provider = config[:provider]
 
           if format == 'json'
@@ -36,64 +39,6 @@ module Onetime
         end
 
         private
-
-        def build_config_summary
-          provider       = Onetime::Mail::Mailer.send(:determine_provider)
-          raw_config     = Onetime::Mail::Mailer.send(:emailer_config)
-          explicit_mode  = raw_config['mode']&.to_s&.downcase
-          auto_detected  = explicit_mode.nil? || explicit_mode.empty?
-
-          summary = {
-            provider: provider,
-            auto_detected: auto_detected,
-            from_address: Onetime::Mail::Mailer.from_address,
-            from_name: Onetime::Mail::Mailer.from_name,
-          }
-
-          summary[:provider_config] = masked_provider_config(provider, raw_config)
-          summary
-        end
-
-        def masked_provider_config(provider, raw_config)
-          case provider
-          when 'smtp'
-            {
-              host: raw_config['host'] || ENV.fetch('SMTP_HOST', nil),
-              port: raw_config['port'] || ENV.fetch('SMTP_PORT', nil),
-              domain: raw_config['domain'] || ENV.fetch('SMTP_DOMAIN', nil),
-              tls: raw_config['tls'],
-              has_credentials: smtp_credentials?(raw_config),
-            }
-          when 'ses'
-            {
-              region: raw_config['region'] || ENV.fetch('AWS_REGION', nil),
-              has_credentials: ses_credentials?(raw_config),
-            }
-          when 'sendgrid'
-            {
-              has_api_key: sendgrid_key?(raw_config),
-            }
-          else
-            {}
-          end
-        end
-
-        def smtp_credentials?(conf)
-          user = conf['user'] || ENV.fetch('SMTP_USERNAME', nil)
-          pass = conf['pass'] || ENV.fetch('SMTP_PASSWORD', nil)
-          !(user.nil? || user.empty?) && !(pass.nil? || pass.empty?)
-        end
-
-        def ses_credentials?(conf)
-          key    = conf['user'] || ENV.fetch('AWS_ACCESS_KEY_ID', nil)
-          secret = conf['pass'] || ENV.fetch('AWS_SECRET_ACCESS_KEY', nil)
-          !(key.nil? || key.empty?) && !(secret.nil? || secret.empty?)
-        end
-
-        def sendgrid_key?(conf)
-          key = conf['sendgrid_api_key'] || conf['pass'] || ENV.fetch('SENDGRID_API_KEY', nil)
-          !(key.nil? || key.empty?)
-        end
 
         def output_text(config, provider)
           puts format('Provider:       %s%s', provider, config[:auto_detected] ? ' (auto-detected)' : '')

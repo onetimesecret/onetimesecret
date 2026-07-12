@@ -59,8 +59,8 @@ import { test, expect } from '@playwright/test';
  * - Reactive context updates in form
  * - DomainContextSwitcher: src/apps/workspace/components/navigation/DomainContextSwitcher.vue
  *   (Production dropdown with HeadlessUI Menu, route-aware navigation, i18n)
- * - Colonel override tool: src/apps/colonel/components/DomainContextSwitcher.vue
- *   (Admin tool for simulating arbitrary domains - different purpose)
+ *   (The legacy colonel domain-override tool was retired at cutover — see
+ *    docs/specs/colonel-ui/50-cutover-hardening.md.)
  *
  * ## Test Blockers
  *

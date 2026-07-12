@@ -181,7 +181,7 @@ const menuItems = computed<MenuItem[]>(() => [
   { id: 'account', to: '/account', label: t('web.TITLES.account'),
     icon: { collection: 'heroicons', name: 'cog-6-tooth-solid' },
     condition: () => !props.awaitingMfa },
-  { id: 'colonel', to: '/colonel', label: t('web.colonel.admin'),
+  { id: 'colonel', href: '/colonel', label: t('web.colonel.admin'),
     icon: { collection: 'mdi', name: 'star' },
     condition: () => !props.awaitingMfa && props.colonel && !isCustomDomainMember.value },
   {

@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'helpers'
+require 'onetime/operations/domains/orphaned_scan'
 
 module Onetime
   module CLI
@@ -15,12 +16,11 @@ module Onetime
       def call(**)
         boot_application!
 
-        all_domain_ids = Onetime::CustomDomain.instances.all
-        all_domains    = all_domain_ids.map do |did|
-          Onetime::CustomDomain.find_by_identifier(did)
-        end.compact
-
-        orphaned_domains = all_domains.select { |d| d.org_id.to_s.empty? }
+        # Delegate to the single op implementation (read-only, no audit). Passing
+        # per_page: nil returns the full sorted collection — preserving the CLI's
+        # "list all orphaned, sorted by display_domain" output.
+        result           = Onetime::Operations::Domains::OrphanedScan.new(per_page: nil).call
+        orphaned_domains = result.domains
 
         puts "#{orphaned_domains.size} orphaned custom domains found"
         return if orphaned_domains.empty?
@@ -29,14 +29,14 @@ module Onetime
         puts format('%-40s %-12s %-10s %-20s', 'Domain', 'Status', 'Verified', 'Created')
         puts '-' * 85
 
-        orphaned_domains.sort_by(&:display_domain).each do |domain|
-          status   = domain.verification_state || 'unknown'
-          verified = domain.verified || 'false'
-          created  = format_timestamp(domain.created)
+        orphaned_domains.each do |domain|
+          status   = domain[:verification_state].to_s.empty? ? 'unknown' : domain[:verification_state]
+          verified = domain[:verified] ? 'true' : 'false'
+          created  = format_timestamp(domain[:created])
 
           puts format(
             '%-40s %-12s %-10s %-20s',
-            domain.display_domain,
+            domain[:display_domain],
             status,
             verified,
             created,

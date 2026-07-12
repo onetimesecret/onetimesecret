@@ -10,6 +10,7 @@
 #   ots email templates --format json
 
 require 'json'
+require 'onetime/operations/email/list_templates'
 
 module Onetime
   module CLI
@@ -71,16 +72,15 @@ module Onetime
           end
         end
 
+        # Routes through the extracted op (ticket #44) — the SINGLE implementation
+        # of the template list the colonel API also uses. Reshaped to the CLI's
+        # existing hash shape (`:class`) so the rendered/JSON output is unchanged.
         def build_template_list
-          AVAILABLE_TEMPLATES.map do |name|
-            template_class = Onetime::Mail::Mailer.send(:template_class_for, name)
-            has_html       = File.exist?(erb_path(name, 'html'))
-            has_text       = File.exist?(erb_path(name, 'txt'))
-
+          Onetime::Operations::Email::ListTemplates.new.call.map do |entry|
             {
-              name: name.to_s,
-              class: template_class.name.split('::').last,
-              formats: [has_text ? 'text' : nil, has_html ? 'html' : nil].compact,
+              name: entry.name,
+              class: entry.klass,
+              formats: entry.formats,
             }
           end
         end

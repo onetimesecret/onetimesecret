@@ -16,3 +16,6 @@ require_relative 'operations/detect_mfa_requirement'
 require_relative 'operations/mfa_state_checker'
 require_relative 'operations/prepare_mfa_session'
 require_relative 'operations/migrate_password_from_redis'
+
+# Customer admin verbs (colonel API + CLI single implementation, epic #20)
+require_relative 'operations/customers'

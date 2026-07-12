@@ -19,7 +19,7 @@ source 'https://rubygems.org/'
 # ====================================
 
 gem 'otto', '~> 2.5'
-gem 'rhales', '~> 0.6.2'
+gem 'rhales', '~> 0.7.1'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'
 gem 'rodauth-omniauth', '~> 0.4'

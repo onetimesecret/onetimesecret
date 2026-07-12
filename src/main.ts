@@ -13,6 +13,7 @@ import { createApp } from 'vue';
 import 'vite/modulepreload-polyfill';
 import App from './App.vue';
 import './assets/style.css';
+import { createAppRouter } from './router';
 import { AppInitializer } from './plugins/core/appInitializer';
 import { loggingService } from './services/logging.service';
 
@@ -28,7 +29,7 @@ window.addEventListener('vite:preloadError', (event) => {
  * Initialize and mount the Vue application with all required plugins.
  */
 const app = createApp(App);
-app.use(AppInitializer, { debug: false });
+app.use(AppInitializer, { router: createAppRouter(), debug: false });
 app.mount('#app');
 
 /**
