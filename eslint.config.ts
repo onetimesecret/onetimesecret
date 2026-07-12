@@ -189,8 +189,17 @@ export default [
         parser: parserTs,
         ecmaVersion: 'latest',
         sourceType: 'module',
-        project: './tsconfig.json', // Link to TypeScript configuration
-        extraFileExtensions: ['.vue'], // Add this line
+        // Intentionally NO `project`: linting is non-type-aware by design.
+        // No enabled rule reads type information — the active @typescript-eslint
+        // rules (no-unused-vars / no-unused-expressions / no-explicit-any) are
+        // purely syntactic, the custom ots/* rules are AST-only, and no
+        // recommendedTypeChecked set is spread in. Setting `project` only forced
+        // a full ~1,100-file TS program build per invocation for zero lint value
+        // (it dominated commit/push latency). vue-tsc (`pnpm type-check`, run in
+        // pre-push + CI T1) is the real type gate. If a type-aware rule is ever
+        // added, typescript-eslint errors loudly telling you to restore `project`
+        // here — so this is self-correcting, not a silent gap.
+        extraFileExtensions: ['.vue'],
       },
     },
     plugins: {
@@ -203,6 +212,19 @@ export default [
       'ots/no-internal-id-in-url': 'warn',
       // Privacy - no PII (email, token, …) in URL query; use router state
       'ots/no-pii-in-query': 'warn',
+
+      // Disable core `no-undef` for TypeScript (overrides the base src/ block).
+      // typescript-eslint explicitly recommends this: TS itself catches
+      // undefined identifiers far more accurately, and `no-undef` produces
+      // FALSE POSITIVES on ambient DOM lib types used in value/cast position
+      // (e.g. `x as EventListener`) — it only knew about them when the
+      // type-aware parser (`parserOptions.project`) fed it the TS lib globals.
+      // Now that linting is non-type-aware (see parserOptions above), those
+      // globals are gone, so `no-undef` would flag 10+ valid DOM-type casts.
+      // vue-tsc (`pnpm type-check`) remains the real "undefined name" gate.
+      // https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined
+      'no-undef': 'off',
+
       // ...tseslint.configs.recommended.rules,
       '@typescript-eslint/no-unused-vars': [
         'error',
@@ -327,7 +349,7 @@ export default [
       parser: vueEslintParser,
       parserOptions: {
         parser: parserTs,
-        project: './tsconfig.json',
+        // No `project` — non-type-aware by design (see TS block above).
         extraFileExtensions: ['.vue'],
         ecmaVersion: 'latest',
         sourceType: 'module',
@@ -426,7 +448,7 @@ export default [
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
-        project: './tsconfig.json',
+        // No `project` — non-type-aware by design (see TS block above).
       },
     },
     plugins: {
@@ -552,7 +574,7 @@ export default [
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
-        project: ['./tsconfig.json', './tsconfig.test.json'],
+        // No `project` — non-type-aware by design (see TS block above).
         extraFileExtensions: ['.vue'],
       },
       globals: {

@@ -31,11 +31,17 @@ pnpm-debug.log*
 .pytest_cache/
 .ruby-lsp/
 .serena
-.vscode/
+# Ignore personal editor settings but SHARE the project-level config files.
+# Must ignore dir CONTENTS (.vscode/*), not the dir (.vscode/) — git cannot
+# re-include a file whose parent directory is itself excluded.
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
 .idea/
 .cache/
 .temp/
-.zed/
+.zed/*
+!.zed/settings.json
 .appendonlydir/
 .bundle/
 .rspec
