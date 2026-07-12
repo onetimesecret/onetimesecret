@@ -153,6 +153,45 @@ jobs:
       - name: Build Caddy proxy (compose build)
         run: docker compose -f docker/compose/docker-compose.full.yml build proxy
 
+      # The documented Caddyfile forces the ACME issuer (correct for prod:
+      # no silent fallback to a self-signed cert if ACME fails), but
+      # DOMAIN=localhost here structurally can never get a public
+      # certificate — ACME issuance fails outright ("does not qualify for
+      # a public certificate"), so Caddy never presents a cert and the
+      # ingress check below gets a bare TLS handshake failure. CI-only:
+      # swap the `tls { issuer acme {...} }` block for `tls internal` on
+      # the checked-out copy (never the committed file) so this run gets
+      # an instant self-signed cert instead — curl already runs
+      # --insecure to accept it. Structural (brace-depth) match, not a
+      # literal comment match, so a Caddyfile-example edit that leaves the
+      # `tls {` shape intact won't silently break this; the grep guard
+      # below still catches a shape change that does.
+      - name: Swap Caddy TLS issuer to internal CA (localhost has no public cert)
+        run: |
+          caddyfile=etc/examples/Caddyfile-example
+          awk '
+            BEGIN { skipping=0; depth=0; done=0 }
+            !done && /^\ttls \{$/ {
+              print "\ttls internal"
+              depth=1; skipping=1; done=1
+              next
+            }
+            skipping {
+              line=$0
+              o=gsub(/\{/,"{",line)
+              c=gsub(/\}/,"}",line)
+              depth += o - c
+              if (depth<=0) skipping=0
+              next
+            }
+            { print }
+          ' "$caddyfile" > "$caddyfile.tmp"
+          mv "$caddyfile.tmp" "$caddyfile"
+          if ! grep -q '^	tls internal$' "$caddyfile" || grep -q 'issuer acme' "$caddyfile"; then
+            echo "::error::failed to swap Caddy tls issuer to internal — Caddyfile-example's tls {} block shape changed, update the awk pattern in this step"
+            exit 1
+          fi
+
       # AUTHENTICATION_MODE defaults to full: the app runs its sqlite
       # auth.db migrations at boot inside /app/data — the named volume must
       # self-initialize with uid-1001 ownership from the image's shipped
