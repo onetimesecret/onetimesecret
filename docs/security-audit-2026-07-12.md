@@ -17,9 +17,9 @@ OneTimeSecret demonstrates strong security engineering in its core product funct
 |----------|-------|
 | Critical | 0 |
 | High | 0 |
-| Medium | 9 |
-| Low | 7 |
-| Informational | 4 |
+| Medium | 12 |
+| Low | 8 |
+| Informational | 5 |
 
 ---
 
@@ -144,6 +144,49 @@ API tokens (used for HTTP Basic Auth) are stored as plaintext string fields in R
 
 ---
 
+#### M-10: SVG Upload Accepts Arbitrary Content Without Sanitization
+
+**File:** `apps/api/domains/logic/domains/update_domain_image.rb:14-18`
+**Category:** Input Validation / Stored XSS
+
+The `IMAGE_MIME_TYPES` allowlist includes `image/svg+xml`. SVG files can contain embedded JavaScript (`<script>` tags, event handlers like `onload`). The uploaded file content is stored as Base64 without SVG-specific sanitization. The MIME type is client-asserted, not verified by magic bytes.
+
+**Exploit scenario:** An organization admin uploads a malicious SVG logo containing JavaScript. When rendered in other users' browsers via the branded share page (depending on rendering method: `<img>` is safe, `<object>` or inline SVG is not), the embedded script executes in the application's origin.
+
+**Mitigations in place:** Requires organization admin with `custom_branding` entitlement. CSP nonce-based policy may block inline script execution within SVGs. `httponly` cookies prevent direct cookie theft.
+
+**Remediation:** Either remove `image/svg+xml` from the allowlist, or implement server-side SVG sanitization (strip `<script>`, event handlers, `<foreignObject>`, etc.) before storage.
+
+---
+
+#### M-11: CSRF Token Not Validated for Session-Authenticated API Requests
+
+**File:** `lib/onetime/middleware/security.rb:142`
+**Category:** CSRF / API Security
+
+The CSRF `except` lambda returns `true` for ALL paths starting with `/api/`, completely bypassing CSRF validation. V2/V3 APIs support session-based authentication (the SPA uses it). While the frontend voluntarily sends `X-CSRF-Token`, the server does not validate it for `/api/*` paths.
+
+**Exploit scenario:** A user authenticated via session cookie visits a malicious page. That page makes cross-origin POST requests to `/api/v2/secrets` (creating secrets on behalf of the victim). The `SameSite=lax` cookie mitigates most cross-site POST attacks but does not protect against same-site subdomain attacks.
+
+**Mitigations in place:** `SameSite=lax` cookies block cross-site POST requests from third-party origins. Custom domain deployments sharing the same parent domain would be the primary attack vector.
+
+**Remediation:** Enforce CSRF validation for session-authenticated API requests. The bypass should only apply when `HTTP_AUTHORIZATION` header is present (Basic Auth).
+
+---
+
+#### M-12: Cookie `secure` Flag Depends on ENV Variable Without Production Default
+
+**File:** `etc/defaults/config.defaults.yaml:306`
+**Category:** Transport Security
+
+The session cookie's `secure` flag is set to `ENV['SSL'] == 'true' || false`. If a deployment uses TLS termination at a reverse proxy but forgets to set `SSL=true`, session cookies are sent over plain HTTP.
+
+**Exploit scenario:** A production deployment with TLS at the load balancer but without `SSL=true` set will issue non-secure cookies. On any HTTP fallback path, cookies are exposed to network interception.
+
+**Remediation:** Default `secure` to `true` when `RACK_ENV == 'production'`. Only disable explicitly for development.
+
+---
+
 ### LOW Severity
 
 #### L-1: httponly Config Not Forwarded to Session Middleware
@@ -212,7 +255,18 @@ The domain image upload endpoint accepts the client-provided MIME type without s
 
 ---
 
-#### L-7: Redis TLS Not Documented or Surfaced in Defaults
+#### L-7: Argon2 Memory Cost Below Current OWASP Recommendation
+
+**File:** `lib/onetime/models/features/passphrase_hashing.rb:68-74`
+**Category:** Cryptography / Password Hashing
+
+Production Argon2id parameters are `t_cost: 2, m_cost: 16 (64KB), p_cost: 1`. The memory cost of 64KB is below the OWASP 2024 recommendation of 47MB (m_cost: 19). For secret passphrases which users choose and may be weak, higher parameters would provide better resistance against GPU-accelerated offline attacks.
+
+**Remediation:** Consider increasing to `t_cost: 3, m_cost: 19, p_cost: 1` if server resources allow. Existing hashes remain verifiable; new hashes would use stronger parameters.
+
+---
+
+#### L-8: Redis TLS Not Documented or Surfaced in Defaults
 
 **File:** `etc/defaults/config.defaults.yaml:612-619`
 **Category:** Transport Security / Documentation
@@ -255,6 +309,14 @@ Multiple test files under `try/` and `spec/` use `YAML.load` instead of `YAML.sa
 
 ---
 
+#### I-5: Secret Status Endpoint Reveals Metadata Without Authentication
+
+**File:** `apps/api/v2/logic/secrets/show_secret_status.rb:28-30`
+
+The `/secret/:identifier/status` endpoint (noauth) returns state, lifespan, has_passphrase flag, and timestamps given a secret identifier. Since identifiers are 256-bit HMAC-signed values (unguessable), this is a design choice rather than a vulnerability. The identifier itself is the capability token.
+
+---
+
 ## Security Strengths
 
 The following areas demonstrate excellent security engineering:
@@ -294,13 +356,17 @@ The following areas demonstrate excellent security engineering:
 | M-7 | No HSTS header | Medium | Medium | Medium | 4.7 |
 | M-8 | Secret verifier warn-only mode | Low | High | Medium | 4.2 |
 | M-9 | Plaintext API tokens in Redis | Low | High | Medium | 5.5 |
+| M-10 | SVG upload without sanitization | Low | High | Medium | 5.0 |
+| M-11 | CSRF bypass for session-auth API | Low | Medium | Medium | 4.3 |
+| M-12 | Cookie secure flag not default in prod | Medium | Medium | Medium | 4.7 |
 | L-1 | httponly not forwarded | Low | Low | Low | 2.0 |
 | L-2 | 64-bit recovery codes | Low | Low | Low | 2.5 |
 | L-3 | Dead non-constant-time method | Very Low | Medium | Low | 1.5 |
 | L-4 | Recipient lookup timing | Very Low | Low | Low | 1.5 |
 | L-5 | Unpinned gem versions | Low | Medium | Low | 3.0 |
 | L-6 | Upload MIME not validated | Low | Low | Low | 2.5 |
-| L-7 | Redis TLS undocumented | Low | Medium | Low | 3.0 |
+| L-7 | Argon2 memory cost below OWASP 2024 | Low | Medium | Low | 3.0 |
+| L-8 | Redis TLS undocumented | Low | Medium | Low | 3.0 |
 
 ---
 
@@ -311,19 +377,23 @@ The following areas demonstrate excellent security engineering:
 1. **M-1:** Set `lockout_expiration_default` to 1800-3600 seconds
 2. **M-6:** Enable `MIDDLEWARE_FRAME_OPTIONS=true` by default
 3. **M-7:** Enable `MIDDLEWARE_STRICT_TRANSPORT=true` when SSL=true
+4. **M-12:** Default cookie `secure` to `true` when `RACK_ENV == 'production'`
 
 ### Short-term (next sprint)
 
-4. **M-2:** Add per-IP rate limiting middleware for auth endpoints
-5. **M-4:** Add `--requirepass` to Valkey in all compose files
-6. **M-5:** Require RabbitMQ credentials with fail-fast guard
-7. **M-9:** Hash API tokens instead of storing plaintext
+5. **M-2:** Add per-IP rate limiting middleware for auth endpoints
+6. **M-4:** Add `--requirepass` to Valkey in all compose files
+7. **M-5:** Require RabbitMQ credentials with fail-fast guard
+8. **M-9:** Hash API tokens instead of storing plaintext
+9. **M-10:** Remove `image/svg+xml` from upload allowlist or add SVG sanitization
+10. **M-11:** Enforce CSRF for session-auth API calls (bypass only with Basic Auth header)
 
 ### Medium-term (next quarter)
 
-8. **M-3:** Add per-IP dimension to passphrase rate limiting
-9. **M-8:** Document and consider changing verifier default to 'enforce'
-10. **L-7:** Document Redis TLS configuration for production
+11. **M-3:** Add per-IP dimension to passphrase rate limiting
+12. **M-8:** Document and consider changing verifier default to 'enforce'
+13. **L-8:** Document Redis TLS configuration for production
+14. **L-7:** Consider increasing Argon2 memory cost to OWASP 2024 levels
 
 ---
 
