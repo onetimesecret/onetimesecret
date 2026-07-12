@@ -30,8 +30,10 @@
     defineProps<{
       modelValue: BrandSettings;
       logoImage?: ImageProps | null;
-      onLogoUpload: (file: File) => Promise<void>;
-      onLogoRemove: () => Promise<void>;
+      // Return the persisted image / a truthy success flag (or undefined on a
+      // wrapped-handler failure) — ImageUploadModal keys close/keep-open on it.
+      onLogoUpload: (file: File) => Promise<unknown>;
+      onLogoRemove: () => Promise<unknown>;
       previewI18n: Composer;
       secretIdentifier?: string;
     }>(),

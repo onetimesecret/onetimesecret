@@ -4,30 +4,31 @@
   /**
    * The Simple form's logo control — the discoverable, in-form counterpart to
    * the click-the-preview-image affordance in SecretPreview (which stays as a
-   * second entry point). Both share useLogoImage so validity / data-URL /
-   * change handling can't drift.
-   *
-   * Upload/Remove hit the API immediately (useBranding.handleLogoUpload /
-   * removeLogo), independent of the header Save — unlike the color/corner/font
-   * controls, which defer to Save. The hint line says so.
+   * second entry point). Both open the shared ImageUploadModal, which stages the
+   * picked file and commits (upload/remove) only on its confirm CTA — so a logo
+   * change is a deliberate, previewed action rather than an upload-on-pick
+   * surprise. The two entry points share useLogoImage for the thumbnail so their
+   * validity / data-URL handling can't drift.
    */
   import type { ImageProps } from '@/schemas/shapes/v3/custom-domain';
   import OIcon from '@/shared/components/icons/OIcon.vue';
+  import ImageUploadModal from '@/shared/components/modals/ImageUploadModal.vue';
   import { useLogoImage } from '@/shared/composables/useLogoImage';
+  import { ref } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
 
   const props = defineProps<{
     logoImage?: ImageProps | null;
-    onLogoUpload: (file: File) => Promise<void>;
-    onLogoRemove: () => Promise<void>;
+    onLogoUpload: (file: File) => Promise<unknown>;
+    onLogoRemove: () => Promise<unknown>;
   }>();
 
-  // Pass a getter so the composable tracks prop changes (upload/remove swap it).
-  const { isValidLogo, logoSrc, onFileChange } = useLogoImage(() => props.logoImage);
+  // Pass a getter so the composable tracks prop changes (a commit swaps it).
+  const { isValidLogo, logoSrc } = useLogoImage(() => props.logoImage);
 
-  const onChange = (event: Event) => onFileChange(event, props.onLogoUpload);
+  const isModalOpen = ref(false);
 </script>
 
 <template>
@@ -55,44 +56,33 @@
 
       <!-- Controls -->
       <div class="flex flex-col gap-1.5">
-        <div class="flex items-center gap-2">
-          <!-- File input nested in the label: the whole button is the picker
-               target, and focus-within paints the focus ring on keyboard tab. -->
-          <label
-            class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg
-              border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700
-              shadow-sm transition-colors focus-within:ring-1 focus-within:ring-brand-500
-              hover:border-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-            <OIcon
-              collection="mdi"
-              name="upload"
-              class="size-4"
-              aria-hidden="true" />
-            {{ isValidLogo ? t('web.branding.replace_logo') : t('web.branding.upload_logo') }}
-            <input
-              type="file"
-              class="sr-only"
-              accept="image/*"
-              @change="onChange" />
-          </label>
-
-          <button
-            v-if="isValidLogo"
-            type="button"
-            @click="onLogoRemove"
-            class="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold
-              text-red-600 transition-colors hover:bg-red-50 dark:text-red-400
-              dark:hover:bg-red-900/30">
-            <OIcon
-              collection="mdi"
-              name="trash-can-outline"
-              class="size-4"
-              aria-hidden="true" />
-            {{ t('web.COMMON.remove') }}
-          </button>
-        </div>
+        <button
+          type="button"
+          @click="isModalOpen = true"
+          class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3
+            py-1.5 text-xs font-semibold text-gray-700 shadow-sm transition-colors
+            hover:border-gray-400 focus:ring-1 focus:ring-brand-500 focus:outline-none
+            dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+          <OIcon
+            collection="mdi"
+            name="upload"
+            class="size-4"
+            aria-hidden="true" />
+          {{ isValidLogo ? t('web.branding.replace_logo') : t('web.branding.upload_logo') }}
+        </button>
         <span class="text-[11px] text-gray-400">{{ t('web.branding.logo_field_hint') }}</span>
       </div>
     </div>
+
+    <ImageUploadModal
+      :is-open="isModalOpen"
+      :current-image="logoImage"
+      :title="t('web.branding.logo_modal_title')"
+      :hint="t('web.branding.logo_modal_hint')"
+      :save-label="t('web.branding.logo_modal_save')"
+      :remove-label="t('web.branding.remove_logo')"
+      :on-save="onLogoUpload"
+      :on-remove="onLogoRemove"
+      @close="isModalOpen = false" />
   </div>
 </template>

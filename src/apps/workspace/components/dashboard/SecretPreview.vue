@@ -4,6 +4,7 @@
 import BaseSecretDisplay from '@/apps/secret/components/branded/BaseSecretDisplay.vue';
 import { BrandSettings, ImageProps } from '@/schemas/shapes/v3/custom-domain';
 import OIcon from '@/shared/components/icons/OIcon.vue';
+import ImageUploadModal from '@/shared/components/modals/ImageUploadModal.vue';
 import { useLogoImage } from '@/shared/composables/useLogoImage';
 import {
 CornerStyle,
@@ -24,15 +25,19 @@ const RADIUS_BRAND_VAR = '--radius-brand';
 const props = defineProps<{
   domainBranding: BrandSettings;
   logoImage?: ImageProps | null;
-  onLogoUpload: (file: File) => Promise<void>;
-  onLogoRemove: () => Promise<void>;
+  onLogoUpload: (file: File) => Promise<unknown>;
+  onLogoRemove: () => Promise<unknown>;
   secretIdentifier: string;
   previewI18n: Composer;
 }>();
 
 // Logo validity + data-URL derivation shared with the Simple form's
 // BrandLogoField (useLogoImage), so the two upload entry points can't drift.
-const { isValidLogo, logoSrc, onFileChange } = useLogoImage(() => props.logoImage);
+const { isValidLogo, logoSrc } = useLogoImage(() => props.logoImage);
+
+// Clicking the preview logo opens the shared staging modal (same as the Simple
+// form's control) — the commit happens on the modal's confirm, not on pick.
+const isLogoModalOpen = ref(false);
 
 const isRevealed = ref(false);
 const textareaPlaceholder = computed(() => props.previewI18n.t('web.secrets.sample_secret_content_this_could_be_sensitive_data'));
@@ -42,8 +47,6 @@ const ariaLabelText = computed(() =>
     ? props.previewI18n.t('web.secrets.hide_secret_message')
     : props.previewI18n.t('web.secrets.view_secret_message')
 )
-
-const handleLogoChange = (event: Event) => onFileChange(event, props.onLogoUpload);
 
 const toggleReveal = () => {
   isRevealed.value = !isRevealed.value;
@@ -110,10 +113,11 @@ const actionButtonStyle = computed<Record<string, string>>(() => ({
     <!-- Logo Upload Area -->
     <template #logo>
       <div class="group relative mx-auto sm:mx-0">
-        <label
+        <button
+          type="button"
           class="block cursor-pointer"
-          for="logo-upload"
-          role="button">
+          :aria-label="t('web.branding.click_to_upload_a_logo_with_recommendation')"
+          @click="isLogoModalOpen = true">
           <div
             :class="[cornerClass, {
               'animate-wiggle': !isValidLogo
@@ -140,41 +144,18 @@ const actionButtonStyle = computed<Record<string, string>>(() => ({
                 d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
-        </label>
+        </button>
 
-        <!-- Help text -->
-        <div
-          id="logoHelp"
-          class="sr-only">
-          {{ t('web.branding.click_to_upload_a_logo_with_recommendation') }}
-        </div>
-
-        <input
-          id="logo-upload"
-          type="file"
-          class="hidden"
-          accept="image/*"
-          @change="handleLogoChange"
-          aria-labelledby="logoHelp" />
-
-        <!-- Hover/Focus Controls -->
-        <div
-          v-if="isValidLogo"
-          class="absolute inset-0 flex items-center justify-center rounded-lg bg-black/70 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100"
-          role="group"
-          :aria-label="t('web.branding.logo_controls')">
-          <button
-            @click.stop="onLogoRemove"
-            class="rounded-md bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700 focus:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none">
-            <span class="flex items-center gap-1">
-              <OIcon
-                collection="mdi"
-                name="trash-can"
-                class="size-4" />
-              {{ t('web.COMMON.remove') }}
-            </span>
-          </button>
-        </div>
+        <ImageUploadModal
+          :is-open="isLogoModalOpen"
+          :current-image="logoImage"
+          :title="t('web.branding.logo_modal_title')"
+          :hint="t('web.branding.logo_modal_hint')"
+          :save-label="t('web.branding.logo_modal_save')"
+          :remove-label="t('web.branding.remove_logo')"
+          :on-save="onLogoUpload"
+          :on-remove="onLogoRemove"
+          @close="isLogoModalOpen = false" />
       </div>
     </template>
 

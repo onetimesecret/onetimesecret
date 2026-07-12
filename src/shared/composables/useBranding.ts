@@ -224,6 +224,11 @@ export function useBranding(domainId?: string) {
       const uploadedLogo = await store.uploadLogo(extid, file);
       // Update local state with new logo
       logoImage.value = uploadedLogo;
+      // Return the persisted logo as a success signal. wrap() is an error
+      // boundary (it toasts + resolves undefined on failure, never rejects), so
+      // ImageUploadModal reads a truthy result here as "committed, close" and a
+      // falsy one as "failed, stay open for retry".
+      return uploadedLogo;
     });
 
   const removeLogo = async () =>
@@ -238,6 +243,8 @@ export function useBranding(domainId?: string) {
       await store.removeLogo(extid);
       // Clear local logo state
       logoImage.value = null;
+      // Truthy success signal for ImageUploadModal — see handleLogoUpload.
+      return true;
     });
 
   return {

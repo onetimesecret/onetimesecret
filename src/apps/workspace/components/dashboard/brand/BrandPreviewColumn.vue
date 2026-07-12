@@ -28,8 +28,8 @@
   const props = defineProps<{
     brandSettings: BrandSettings;
     logoImage?: ImageProps | null;
-    onLogoUpload: (file: File) => Promise<void>;
-    onLogoRemove: () => Promise<void>;
+    onLogoUpload: (file: File) => Promise<unknown>;
+    onLogoRemove: () => Promise<unknown>;
     secretIdentifier: string;
     previewI18n: Composer;
   }>();

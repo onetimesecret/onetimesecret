@@ -34,7 +34,7 @@ const mountPreview = (branding: Partial<BrandSettings>) =>
       secretIdentifier: 'abc123',
       previewI18n,
     },
-    global: { stubs: { OIcon: true } },
+    global: { stubs: { OIcon: true, ImageUploadModal: true } },
   });
 
 // The always-present action button, keyed by its stable aria wiring.
