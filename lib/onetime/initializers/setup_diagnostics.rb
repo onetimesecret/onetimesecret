@@ -128,6 +128,11 @@ module Onetime
             # set via scope.set_context('request', ...) in error middleware.
             Onetime::Initializers::SetupDiagnostics.scrub_event_urls(event)
 
+            # Scrub emails, identifiers, and sensitive paths interpolated into
+            # exception messages and capture_message strings. Mirrors the
+            # frontend's scrubEventMessages in enableDiagnostics.ts.
+            Onetime::Initializers::SetupDiagnostics.scrub_event_messages(event)
+
             # Return the event if it passes validation
             event
           end
@@ -360,20 +365,25 @@ module Onetime
             # Shared handling: request.url, transaction name, request context
             scrub_event_urls(event)
 
+            # Span shape per sentry-ruby 6.5 Span#to_h: symbol keys, with
+            # data using string-keyed OpenTelemetry conventions — URL lives
+            # in data['url'], query string separately in data['http.query'].
             spans = event.respond_to?(:spans) ? event.spans : nil
             if spans.is_a?(Array)
               spans.each do |span|
                 next unless span.is_a?(Hash)
 
-                [:description, 'description'].each do |key|
-                  span[key] = scrub_url(span[key]) if span[key].is_a?(String)
+                # Descriptions are free text ("GET https://host/secret/<id>")
+                if span[:description].is_a?(String)
+                  span[:description] = scrub_text(span[:description])
                 end
 
-                data = span[:data] || span['data']
+                data = span[:data]
                 next unless data.is_a?(Hash)
 
-                ['url', 'http.url', 'url.full', :url].each do |key|
-                  data[key] = scrub_url(data[key]) if data[key].is_a?(String)
+                data['url'] = scrub_url(data['url']) if data['url'].is_a?(String)
+                if data['http.query'].is_a?(String)
+                  data['http.query'] = scrub_query_string(data['http.query'])
                 end
               end
             end
@@ -410,6 +420,69 @@ module Onetime
             '[SCRUBBING_FAILED]'
           end
 
+          # Scrub sensitive data from free text (exception messages,
+          # capture_message strings, span descriptions).
+          #
+          # Applies, in order: email redaction, exact-length identifier
+          # redaction, then the URL path/query passes (which are gsub-based
+          # and safe on arbitrary text). Mirrors scrubSensitiveStrings in
+          # src/plugins/core/diagnostics/scrubbers.ts.
+          #
+          # @param text [String, nil] The text to scrub
+          # @return [String, nil] The scrubbed text
+          def scrub_text(text)
+            return text if text.nil? || text.empty?
+
+            result = text.gsub(EMAIL_PATTERN, '[EMAIL_REDACTED]')
+            result = result.gsub(IDENTIFIER_TEXT_PATTERN, '[REDACTED]')
+            scrub_url(result)
+          rescue StandardError
+            '[SCRUBBING_FAILED]'
+          end
+
+          # Scrub sensitive parameters from a bare query string (no '?'),
+          # as found in span data['http.query'].
+          #
+          # @param query [String] e.g. "key=abc123&ttl=3600"
+          # @return [String] e.g. "key=[REDACTED]&ttl=3600"
+          def scrub_query_string(query)
+            return query if query.nil? || query.empty?
+
+            scrub_url("?#{query}").delete_prefix('?')
+          end
+
+          # Scrub emails, identifiers, and sensitive paths from exception
+          # messages and standalone messages.
+          #
+          # sentry-ruby 6.5: ErrorEvent#exception is an ExceptionInterface
+          # whose #values are SingleExceptionInterface instances with an
+          # attr_accessor :value holding the message string. Event#message
+          # holds capture_message strings.
+          #
+          # @param event [Sentry::Event] The event to scrub
+          # @return [Sentry::Event] The scrubbed event
+          def scrub_event_messages(event)
+            exception = event.respond_to?(:exception) ? event.exception : nil
+            if exception.respond_to?(:values)
+              Array(exception.values).each do |single|
+                next unless single.respond_to?(:value) && single.value.is_a?(String)
+
+                single.value = scrub_text(single.value)
+              end
+            end
+
+            if event.respond_to?(:message) && event.message.is_a?(String) && !event.message.empty?
+              event.message = scrub_text(event.message)
+            end
+
+            event
+          rescue StandardError => ex
+            # NOTE: intentionally not logging ex.message as it may contain the
+            # very content we failed to scrub
+            OT.ld "[sentry] Message scrubbing failed: #{ex.class}"
+            event
+          end
+
           # Pattern for identifier paths - matches segments >= MIN_IDENTIFIER_LENGTH chars
           # that look like base-36 identifiers (lowercase alphanumeric).
           # This avoids false positives on named paths like /receipt/recent.
@@ -430,6 +503,16 @@ module Onetime
 
           # Query parameter names that contain sensitive data
           SENSITIVE_QUERY_PARAMS = %w[key secret token passphrase].freeze
+
+          # Email addresses in free text (exception messages, breadcrumbs).
+          # Mirrors EMAIL_PATTERN in src/plugins/core/diagnostics/scrubbers.ts.
+          EMAIL_PATTERN = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/
+
+          # Verifiable identifiers in free text. Word-boundary anchored and
+          # length-exact so trace IDs (32 hex) and commit hashes (40 hex) —
+          # which are ops-useful — survive. 62 = v0.24 identifiers, 31 = legacy
+          # v0.23. Mirrors VERIFIABLE_ID_PATTERN in scrubbers.ts.
+          IDENTIFIER_TEXT_PATTERN = /\b(?:[0-9a-z]{62}|[0-9a-z]{31})\b/
 
           private
 
