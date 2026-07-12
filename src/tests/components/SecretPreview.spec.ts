@@ -46,7 +46,7 @@ describe('SecretPreview border_radius fidelity (#3646)', () => {
     const wrapper = mountPreview({
       primary_color: '#4F46E5',
       corner_style: 'square', // deliberately different from the radius
-      border_radius: 'full', // -> 9999px
+      border_radius: 'xl', // -> 1rem
       button_text_light: true,
     });
 
@@ -54,7 +54,7 @@ describe('SecretPreview border_radius fidelity (#3646)', () => {
     // descendant's `rounded-brand` resolves to THIS domain (not the operator's).
     // (Read the serialized style: jsdom's CSSOM doesn't surface custom
     // properties via getPropertyValue, but they render into the style attr.)
-    expect(wrapper.html()).toContain('--radius-brand: 9999px');
+    expect(wrapper.html()).toContain('--radius-brand: 1rem');
 
     // More than one surface rounds together — the whole point of the fix.
     expect(wrapper.findAll('.rounded-brand').length).toBeGreaterThan(1);
@@ -89,13 +89,13 @@ describe('SecretPreview border_radius fidelity (#3646)', () => {
   // drop --radius-brand off the root and desync the preview from the recipient
   // page. Asserting the var lands on wrapper.element (the merged root) trips that.
   it('merges --radius-brand onto the single root element (attrs fallthrough)', () => {
-    const wrapper = mountPreview({ border_radius: 'full' });
+    const wrapper = mountPreview({ border_radius: 'xl' });
     // The var must sit on the ROOT opening tag — i.e. rootStyle fell through onto
     // BaseSecretDisplay's single root, scoping it above every rounded-brand
     // descendant. (jsdom reflects custom props into outerHTML but not into
     // getAttribute('style'), so read the serialized root tag.)
     // First element opening tag (regex skips any leading comment node).
     const rootTag = wrapper.html().match(/<[a-zA-Z][^>]*>/)?.[0] ?? '';
-    expect(rootTag).toContain('--radius-brand: 9999px');
+    expect(rootTag).toContain('--radius-brand: 1rem');
   });
 });

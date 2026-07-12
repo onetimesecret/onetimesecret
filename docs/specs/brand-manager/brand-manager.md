@@ -51,7 +51,7 @@ neither.
 | `text_color` | ❌ none | ❌ no (CSS var live, no consumer — §4) | any hex |
 | `font_family` (body) | ✅ native `<select>`, full 8-value vocabulary | ✅ yes | 8 curated fonts (below) |
 | `heading_font` | ❌ none | ❌ no (falls back to `font_family`) | 8 curated fonts; falls back to body font when unset |
-| `border_radius` | ⚠️ 3 hand-rolled buttons (`none`/`md`/`full` only) | ✅ yes | preset keyword **or** integer px `0–64` |
+| `border_radius` | ⚠️ 3 hand-rolled buttons (`none`/`md`/`xl` only) | ✅ yes | preset keyword **or** integer px `0–64` |
 | `corner_style` (legacy) | ❌ removed from UI (as recommended — §5) | ✅ yes, only if `border_radius` unset | `rounded` / `square` / `pill` |
 | `button_text_light` | ❌ none | ✅ yes (existing behavior, unchanged) | boolean |
 | theme preset | ❌ none — out of scope by decision; `brandPresets` is dead code (§3) | n/a | one of 10 |
@@ -89,15 +89,18 @@ number of pixels `0–64`:
 | `md` | Rounded | `0.5rem` (default) |
 | `lg` | Very Rounded | `0.75rem` |
 | `xl` | Extra Rounded | `1rem` |
-| `full` | Pill | `9999px` |
+
+The `full` (Pill, `9999px`) preset was **removed**: the brand corner token is
+applied to large content containers (the secret reveal/display boxes), where a
+pill radius renders as a giant oval that clips the secret. `xl` is the rounded
+ceiling; the numeric range stays `0–64px`.
 
 **UI regression from the original design intent**: the Simple path exposes
-only 3 of these 6 presets (Square/`none`, Rounded/`md`, Pill/`full`) as
-fixed buttons — `sm`/`lg`/`xl` and the numeric-px escape hatch this doc
-called for are schema-only, unreachable from any control
-(`SimpleBrandPanel.vue`). This re-imposes close to the old 3-value
-`corner_style` ceiling the expanded token was meant to lift. No numeric
-input or 6-way selector exists yet on any path.
+only 3 of these 5 presets (Square/`none`, Rounded/`md`, Extra Rounded/`xl`) as
+fixed buttons — `sm`/`lg` and the numeric-px escape hatch this doc called for
+are schema-only, unreachable from any control (`SimpleBrandPanel.vue`). This
+re-imposes close to the old 3-value `corner_style` ceiling the expanded token
+was meant to lift. No numeric input or full selector exists yet on any path.
 
 ## 2. Validation & inline feedback
 

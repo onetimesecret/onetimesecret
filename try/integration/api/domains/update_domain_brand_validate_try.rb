@@ -396,12 +396,12 @@ end
 #=> 'Invalid heading font - must be one of: sans, serif, mono, system, slab, rounded, humanist, geometric'
 
 ## TEST 20: border_radius named presets (RADII) are accepted and normalized to lowercase
-%w[none sm md lg xl full].map do |preset|
+%w[none sm md lg xl].map do |preset|
   logic = build_logic(extid: @extid, brand: { 'border_radius' => preset }, strategy_result: @strategy_result)
   logic.raise_concerns
   logic.instance_variable_get(:@brand_settings)['border_radius']
 end
-#=> ['none', 'sm', 'md', 'lg', 'xl', 'full']
+#=> ['none', 'sm', 'md', 'lg', 'xl']
 
 ## TEST 21: border_radius 0 (min) accepted; both String and Integer inputs
 ## normalize to the String '0' (radius.to_s.strip.downcase)
@@ -430,7 +430,7 @@ begin
 rescue Onetime::FormError => ex
   ex.message
 end
-#=> 'Invalid border radius - must be a preset (none, sm, md, lg, xl, full) or a whole number of pixels 0-64'
+#=> 'Invalid border radius - must be a preset (none, sm, md, lg, xl) or a whole number of pixels 0-64'
 
 ## TEST 24: negative border_radius rejected — '-1' fails the \A\d+\z digit check in valid_border_radius?
 @radius_neg = build_logic(extid: @extid, brand: { 'border_radius' => -1 }, strategy_result: @strategy_result)
@@ -440,7 +440,7 @@ begin
 rescue Onetime::FormError => ex
   ex.message
 end
-#=> 'Invalid border radius - must be a preset (none, sm, md, lg, xl, full) or a whole number of pixels 0-64'
+#=> 'Invalid border radius - must be a preset (none, sm, md, lg, xl) or a whole number of pixels 0-64'
 
 ## TEST 25: GET/read round-trip — extended fields persist and read back through the
 ## same channel GetDomainBrand uses (safe_dump.fetch(:brand, {})). process[:record]
@@ -492,6 +492,17 @@ end
 @coexist_record = @logic_coexist.process[:record]
 [@coexist_record[:corner_style], @coexist_record[:border_radius]]
 #=> ['pill', '12']
+
+## TEST 28: border_radius 'full' (pill, 9999px) rejected — removed from RADII
+## because it renders as a giant oval that clips the secret on large boxes.
+@radius_full = build_logic(extid: @extid, brand: { 'border_radius' => 'full' }, strategy_result: @strategy_result)
+begin
+  @radius_full.raise_concerns
+  nil
+rescue Onetime::FormError => ex
+  ex.message
+end
+#=> 'Invalid border radius - must be a preset (none, sm, md, lg, xl) or a whole number of pixels 0-64'
 
 # Teardown — uninstall spy and clean up fixtures
 @uninstall_spy.call if @uninstall_spy

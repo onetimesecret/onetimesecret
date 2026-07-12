@@ -274,7 +274,14 @@ describe('brand-helpers', () => {
     it('maps named presets to CSS lengths', () => {
       expect(borderRadiusToCss('none')).toBe('0px');
       expect(borderRadiusToCss('md')).toBe('0.5rem');
-      expect(borderRadiusToCss('full')).toBe('9999px');
+      expect(borderRadiusToCss('xl')).toBe('1rem');
+    });
+
+    it('rejects the removed `full` (pill) preset', () => {
+      // `full` (9999px) was dropped: on large content boxes it renders as a
+      // giant oval that clips the secret. It now falls through to null so the
+      // CSS var clears to the bounded @theme default.
+      expect(borderRadiusToCss('full')).toBeNull();
     });
 
     it('maps numeric px values (number or string)', () => {

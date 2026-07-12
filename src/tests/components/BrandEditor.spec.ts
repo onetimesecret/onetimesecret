@@ -77,7 +77,7 @@ describe('SimpleBrandPanel', () => {
       global: { stubs: leafStubs },
     });
 
-  it('writes border_radius when a corner is picked (Square→none, Pill→full)', async () => {
+  it('writes border_radius when a corner is picked (Square→none, Extra Rounded→xl)', async () => {
     const wrapper = mountPanel({ border_radius: 'md' });
     const cornerButtons = wrapper.get('[role="group"]').findAll('button');
     expect(cornerButtons).toHaveLength(3);
@@ -87,16 +87,18 @@ describe('SimpleBrandPanel', () => {
       border_radius: 'none',
     });
 
-    await cornerButtons[2].trigger('click'); // Pill
+    // The rounded ceiling is `xl` — the `full` (pill, 9999px) preset was removed
+    // because it renders as a giant oval on large content boxes.
+    await cornerButtons[2].trigger('click'); // Extra Rounded
     expect(wrapper.emitted('update:modelValue')?.at(-1)?.[0]).toMatchObject({
-      border_radius: 'full',
+      border_radius: 'xl',
     });
   });
 
   it('marks the active corner from the current border_radius', () => {
-    const wrapper = mountPanel({ border_radius: 'full' });
+    const wrapper = mountPanel({ border_radius: 'xl' });
     const cornerButtons = wrapper.get('[role="group"]').findAll('button');
-    // Square / Rounded / Pill → none / md / full
+    // Square / Rounded / Extra Rounded → none / md / xl
     expect(cornerButtons[0].attributes('aria-pressed')).toBe('false');
     expect(cornerButtons[2].attributes('aria-pressed')).toBe('true');
   });

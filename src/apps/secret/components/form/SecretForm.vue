@@ -200,11 +200,11 @@
       data-testid="secret-form">
       <!-- prettier-ignore-attribute class -->
       <!--
-        Card radius is fixed (rounded-lg), NOT the brand cornerClass. A pill/full
-        brand radius resolves to --radius-brand: 9999px; applied to this large
-        container it renders as a giant oval. The corner token belongs on the
-        controls inside (inputs, select, button), matching BaseSecretDisplay's
-        fixed-card / branded-controls split.
+        Card radius is fixed (rounded-lg), NOT the brand cornerClass. A large
+        brand radius (now capped at xl / 64px since the 9999px `full` preset was
+        removed) still reads as an over-rounded blob on this large container. The
+        corner token belongs on the controls inside (inputs, select, button),
+        matching BaseSecretDisplay's fixed-card / branded-controls split.
       -->
       <div
         ref="div1"

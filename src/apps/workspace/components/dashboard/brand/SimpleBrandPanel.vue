@@ -63,13 +63,15 @@
   };
 
   // Corner options map to border_radius presets (Square→none, Rounded→md,
-  // Pill→full). Labels reuse borderRadiusDisplayMap (hardcoded English). Each
-  // shows a single-corner tabler glyph (cornerStyleIconMap) rather than a full
-  // box, which reads more clearly as "corner treatment".
+  // Extra Rounded→xl). Labels reuse borderRadiusDisplayMap (hardcoded English).
+  // Each shows a single-corner tabler glyph (cornerStyleIconMap) rather than a
+  // full box, which reads more clearly as "corner treatment". The `full` (pill,
+  // 9999px) preset is deliberately absent — on large content boxes it renders
+  // as a giant oval that clips the secret, so `xl` is the rounded ceiling here.
   const cornerOptions = [
     { id: 'none', label: borderRadiusDisplayMap.none, icon: 'tabler-border-corner-square' },
     { id: 'md', label: borderRadiusDisplayMap.md, icon: 'tabler-border-corner-rounded' },
-    { id: 'full', label: borderRadiusDisplayMap.full, icon: 'tabler-border-corner-pill' },
+    { id: 'xl', label: borderRadiusDisplayMap.xl, icon: 'tabler-border-corner-pill' },
   ] as const;
 
   const activeCorner = computed(() => {

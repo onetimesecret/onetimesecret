@@ -112,7 +112,7 @@ export type CornerStyle = (typeof cornerStyleValues)[number];
  *
  * @category Contracts
  */
-export const borderRadiusPresets = ['none', 'sm', 'md', 'lg', 'xl', 'full'] as const;
+export const borderRadiusPresets = ['none', 'sm', 'md', 'lg', 'xl'] as const;
 export type BorderRadiusPreset = (typeof borderRadiusPresets)[number];
 
 /** Maximum pixel value accepted for a numeric `border_radius`. */

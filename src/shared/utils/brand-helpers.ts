@@ -137,7 +137,6 @@ export const borderRadiusPresetCss: Record<BorderRadiusPreset, string> = {
   md: '0.5rem',
   lg: '0.75rem',
   xl: '1rem',
-  full: '9999px',
 };
 
 /** Array of named border-radius presets for form options. */
@@ -150,7 +149,6 @@ export const borderRadiusDisplayMap: Record<BorderRadiusPreset, string> = {
   md: 'Rounded',
   lg: 'Very Rounded',
   xl: 'Extra Rounded',
-  full: 'Pill',
 };
 
 /**
@@ -165,7 +163,6 @@ export const borderRadiusIconMap: Record<BorderRadiusPreset, string> = {
   md: 'tabler-border-corner-rounded',
   lg: 'tabler-border-corner-rounded',
   xl: 'tabler-border-corner-pill',
-  full: 'tabler-border-corner-pill',
 };
 
 /**
