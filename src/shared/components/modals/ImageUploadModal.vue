@@ -269,7 +269,7 @@
                       class="size-8 text-gray-400 dark:text-gray-500"
                       aria-hidden="true" />
                   </div>
-                  <div class="text-sm">
+                  <div class="flex flex-wrap justify-center gap-1 text-sm">
                     <span class="font-semibold text-brand-600 dark:text-brand-400">{{
                       t('web.branding.image_upload_choose')
                     }}</span>
