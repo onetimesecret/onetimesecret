@@ -117,7 +117,7 @@ tests:
         expected: "disabled"
       - selector: "[data-testid='enable-mfa-button']"
         assertion: visible
-      - api: GET /api/v2/account/mfa/status
+      - api: GET /api/account/mfa/status
         assert:
           mfa_enabled: false
           has_recovery_codes: false
@@ -148,7 +148,7 @@ tests:
         assertion: visible
       - selector: "[data-testid='password-error']"
         assertion: visible
-      - api: GET /api/v2/account/mfa/status
+      - api: GET /api/account/mfa/status
         assert:
           mfa_enabled: true
     priority: critical
@@ -174,7 +174,7 @@ tests:
         assertion: contains_text
         expected: "enabled"
       - url: contains /account/security
-      - api: GET /api/v2/account/mfa/status
+      - api: GET /api/account/mfa/status
         assert:
           mfa_enabled: true
     priority: medium
@@ -196,7 +196,7 @@ tests:
       - Keyboard dismissal works
       - selector: "[data-testid='disable-mfa-modal']"
         assertion: hidden
-      - api: GET /api/v2/account/mfa/status
+      - api: GET /api/account/mfa/status
         assert:
           mfa_enabled: true
     priority: low
@@ -326,7 +326,7 @@ tests:
         assertion: visible
       - selector: "[data-testid='disable-mfa-modal']"
         assertion: visible
-      - api: GET /api/v2/account/mfa/status
+      - api: GET /api/account/mfa/status
         assert:
           mfa_enabled: true
     priority: medium
@@ -405,7 +405,7 @@ tests:
         assertion: visible
       - selector: "[data-testid='mfa-qr-code']"
         assertion: visible
-      - api: GET /api/v2/account/mfa/setup
+      - api: GET /api/account/mfa/setup
         assert:
           secret: not_null
           is_new_secret: true

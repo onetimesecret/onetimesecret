@@ -186,7 +186,7 @@ tests:
       - selector: "[data-testid='mfa-status']"
         assertion: contains_text
         expected: "enabled"
-      - api: GET /api/v2/account/mfa/status
+      - api: GET /api/account/mfa/status
         assert:
           mfa_enabled: true
           has_recovery_codes: true
@@ -339,7 +339,7 @@ tests:
       - Warning shown about reduced recovery codes remaining
       - api: GET /bootstrap/me
         assertion: { authenticated: true, mfa_enabled: true, awaiting_mfa: false }
-      - api: GET /api/v2/account/recovery-codes/count
+      - api: GET /api/account/recovery-codes/count
         assertion: { remaining: 7 }
     postconditions:
       - User authenticated

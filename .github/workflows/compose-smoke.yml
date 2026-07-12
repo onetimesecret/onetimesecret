@@ -92,8 +92,9 @@ jobs:
 
       # POL_CREATE_ACCOUNT (the C4 follow-on): proof-of-life's opt-in step 4
       # creates a first account via bin/ots inside the app container and
-      # asserts an authenticated /api/v2/account round-trip — the documented
-      # "create your first account" path, exercised in simple auth mode.
+      # asserts an authenticated /api/v2/receipt/recent round-trip — the
+      # documented "create your first account" path, exercised in simple
+      # auth mode.
       # docker-run-readme below stays default-off: it runs the published
       # README tag, which may predate the CLI contract this step depends on.
       - name: Proof of life (incl. first-account step)

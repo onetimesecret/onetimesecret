@@ -394,7 +394,7 @@ test.describe('SEC-INV-004: Direct API attack with garbage invite_token', () => 
       expect(authData.authenticated).toBeFalsy();
 
       // Also verify: if we try to access protected resources, we're denied
-      const protectedResponse = await page.request.get('/api/v2/account', {
+      const protectedResponse = await page.request.get('/api/account', {
         headers: { Accept: 'application/json' },
       });
       expect([401, 403, 302, 404]).toContain(protectedResponse.status());

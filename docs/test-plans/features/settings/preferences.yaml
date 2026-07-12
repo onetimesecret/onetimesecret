@@ -73,14 +73,14 @@ tests:
         selector: '[data-testid="notify-on-reveal-toggle"]'
         assertion: has_attribute("aria-checked", "true")
       - description: API call updates notify_on_reveal preference
-        api: GET /api/v2/account/cust/preferences
+        api: GET /api/account/cust/preferences
         assertion: json_path("$.notify_on_reveal", true)
       - description: No error message appears on successful update
         selector: '[data-testid="notification-error"]'
         assertion: not_visible
       - description: Setting persists after page reload
         action: reload
-        api: GET /api/v2/account/cust/preferences
+        api: GET /api/account/cust/preferences
         assertion: json_path("$.notify_on_reveal", true)
     priority: high
     type: functional
