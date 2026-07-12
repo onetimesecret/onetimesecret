@@ -4,16 +4,26 @@
  * Composable for managing per-domain sign-in configuration.
  *
  * Follows the useSignupConfig lifecycle pattern:
- * - initialize: fetch current config (404 = unconfigured, not error)
+ * - initialize: fetch current config (record null = unconfigured, not error)
  * - saveConfig: PUT full replacement
  * - deleteConfig: removes config (falls back to global signin policy)
  * - discardChanges: resets form state to last-saved snapshot
  * - hasUnsavedChanges: computed diff between form and saved state
  *
+ * Auth-override semantics (ADR-024, shared with useSignupConfig via
+ * useAuthOverrideState):
+ * - Unconfigured domains are SEEDED from the inherited global state
+ *   (response `details` + bootstrap method availability), so what the form
+ *   shows selected is what actually runs — there is no separate display path.
+ * - Every save materializes an explicit override (`enabled: true` via
+ *   asExplicitOverride). Touching any control pins the domain against future
+ *   changes to the workspace defaults; deleteConfig unpins.
+ *
  * @param domainExtId - Domain external ID for API calls
  */
 
 import type { PutSigninConfigRequest } from '@/schemas/api/domains/requests/signin-config';
+import type { SigninConfigDetails } from '@/schemas/api/domains/responses/signin-config';
 import type { ApplicationError } from '@/schemas/errors';
 import type {
   CustomDomainSigninConfig,
@@ -21,10 +31,13 @@ import type {
 } from '@/schemas/shapes/domains/signin-config';
 import { SigninConfigService } from '@/services/signin-config.service';
 import { useNotificationsStore } from '@/shared/stores';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
+
 import { useAsyncHandler, type AsyncHandlerOptions } from './useAsyncHandler';
+import { asExplicitOverride, createAuthOverrideState } from './useAuthOverrideState';
 
 /**
  * Form state for signin configuration.
@@ -37,13 +50,51 @@ export interface SigninConfigFormState {
   sso_enabled: boolean;
 }
 
-function createDefaultFormState(): SigninConfigFormState {
+/**
+ * Globally-available auth methods (install-level config), read from the
+ * bootstrap. The workspace app runs on the dashboard domain, so bootstrap
+ * features reflect the install/global auth config. undefined is treated as
+ * available (codebase convention). SSO is a union (boolean | config object);
+ * an object's `enabled` flag is authoritative.
+ *
+ * Single definition consumed by both the page (method gating) and this
+ * composable (seeding unconfigured domains).
+ */
+export interface GlobalMethodAvailability {
+  email_auth: boolean;
+  webauthn: boolean;
+  sso: boolean;
+}
+
+export function resolveGlobalMethodAvailability(): GlobalMethodAvailability {
+  const features = useBootstrapStore().features;
+  const sso = features?.sso;
+  const ssoAvailable =
+    typeof sso === 'object' && sso !== null ? sso.enabled : sso !== false;
+  return {
+    email_auth: features?.email_auth !== false,
+    webauthn: features?.webauthn !== false,
+    sso: ssoAvailable,
+  };
+}
+
+/**
+ * Seed form state for an unconfigured domain from the inherited global
+ * state (ADR-024): the selected mode and availability toggles reflect what
+ * actually runs, and the first explicit write materializes this snapshot
+ * plus the user's change — never static defaults that could silently flip
+ * unrelated behavior.
+ */
+function createSeededFormState(
+  details: SigninConfigDetails | null,
+  methods: GlobalMethodAvailability
+): SigninConfigFormState {
   return {
     enabled: false,
-    signin_enabled: true,
-    restrict_to: null,
-    email_auth_enabled: false,
-    sso_enabled: false,
+    signin_enabled: details?.effective_enabled ?? true,
+    restrict_to: details?.global_restrict_to ?? null,
+    email_auth_enabled: methods.email_auth,
+    sso_enabled: methods.sso,
   };
 }
 
@@ -87,11 +138,20 @@ export function useSigninConfig(domainExtId: string) {
    */
   const savingField = ref<keyof SigninConfigFormState | null>(null);
 
-  /** The full config object from the API. Null = unconfigured (404). */
+  /** The full config object from the API. Null = unconfigured. */
   const signinConfig = ref<CustomDomainSigninConfig | null>(null);
 
+  /**
+   * Resolution details from the last API response (ADR-024): the global
+   * capability and the resolver's effective output for this domain. The UI
+   * displays these; it never re-derives them from the raw flags.
+   */
+  const details = ref<SigninConfigDetails | null>(null);
+
   /** Current form state (editable). */
-  const formState = ref<SigninConfigFormState>(createDefaultFormState());
+  const formState = ref<SigninConfigFormState>(
+    createSeededFormState(null, resolveGlobalMethodAvailability())
+  );
 
   /** Snapshot of form state at last save/load. Used for unsaved-changes detection. */
   const savedFormState = ref<SigninConfigFormState | null>(null);
@@ -119,8 +179,14 @@ export function useSigninConfig(domainExtId: string) {
   // Computed
   // ---------------------------------------------------------------------------
 
-  /** Whether a signin config exists for this domain. */
+  /** Whether a signin config record exists for this domain. */
   const isConfigured = computed(() => signinConfig.value !== null);
+
+  /**
+   * Shared auth-override display state (ADR-024): effective/global
+   * availability and the workspace-default flag that drives the badge.
+   */
+  const overrideState = createAuthOverrideState(signinConfig, details);
 
   /** Whether the form has been modified since last save/load. */
   const hasUnsavedChanges = computed(() => {
@@ -140,19 +206,25 @@ export function useSigninConfig(domainExtId: string) {
   // Actions
   // ---------------------------------------------------------------------------
 
+  const seedFormState = () => {
+    formState.value = createSeededFormState(details.value, resolveGlobalMethodAvailability());
+  };
+
   /**
    * Load the current signin config for this domain.
-   * 404 is treated as "unconfigured" (signinConfig = null), not an error.
+   * A null record means "unconfigured" — the form is seeded from the
+   * inherited global state carried in details, not from static defaults.
    */
   const initialize = () =>
     wrap(async () => {
       const response = await SigninConfigService.getConfigForDomain(domainExtId);
       signinConfig.value = response.record;
+      details.value = response.details;
 
       if (response.record) {
         formState.value = configToFormState(response.record);
       } else {
-        formState.value = createDefaultFormState();
+        seedFormState();
       }
       savedFormState.value = { ...formState.value };
       isInitialized.value = true;
@@ -160,6 +232,9 @@ export function useSigninConfig(domainExtId: string) {
 
   /**
    * Save the current form state (PUT — full replacement).
+   *
+   * Always materializes an explicit override: `enabled: true` is forced here
+   * (asExplicitOverride), never at individual call sites (ADR-024).
    */
   const saveConfig = async () => {
     isSaving.value = true;
@@ -167,19 +242,19 @@ export function useSigninConfig(domainExtId: string) {
 
     try {
       const result = await wrapAction(async () => {
-        const payload: PutSigninConfigRequest = {
-          enabled: formState.value.enabled,
+        const payload: PutSigninConfigRequest = asExplicitOverride({
           signin_enabled: formState.value.signin_enabled,
           restrict_to: formState.value.restrict_to,
           email_auth_enabled: formState.value.email_auth_enabled,
           sso_enabled: formState.value.sso_enabled,
-        };
+        });
 
         return await SigninConfigService.putConfigForDomain(domainExtId, payload);
       });
 
       if (result?.record) {
         signinConfig.value = result.record;
+        if (result.details) details.value = result.details;
         formState.value = configToFormState(result.record);
         savedFormState.value = { ...formState.value };
         notifications.show(t('web.domains.signin.update_success'), 'success', 'top');
@@ -228,8 +303,7 @@ export function useSigninConfig(domainExtId: string) {
   /**
    * Update a single field and persist immediately (save-on-change).
    *
-   * Thin wrapper over autoSaveFields for the single-field callers (the header
-   * master `enabled` toggle in DomainSignin.vue still calls this).
+   * Thin wrapper over autoSaveFields for single-field callers.
    */
   const autoSaveField = <K extends keyof SigninConfigFormState>(
     field: K,
@@ -237,7 +311,10 @@ export function useSigninConfig(domainExtId: string) {
   ) => autoSaveFields({ [field]: value } as Partial<SigninConfigFormState>, field);
 
   /**
-   * Delete the signin config for this domain.
+   * Delete the signin config for this domain ("Reset to defaults"): unpins
+   * the domain so it follows the workspace defaults again. The response
+   * carries post-delete resolution details, so the reseeded form reflects
+   * the now-inherited state without a refetch.
    */
   const deleteConfig = async () => {
     isDeleting.value = true;
@@ -245,9 +322,10 @@ export function useSigninConfig(domainExtId: string) {
 
     try {
       await wrapAction(async () => {
-        await SigninConfigService.deleteConfigForDomain(domainExtId);
+        const result = await SigninConfigService.deleteConfigForDomain(domainExtId);
         signinConfig.value = null;
-        formState.value = createDefaultFormState();
+        if (result.details) details.value = result.details;
+        seedFormState();
         savedFormState.value = { ...formState.value };
         notifications.show(t('web.domains.signin.reset_success'), 'success', 'top');
       });
@@ -273,12 +351,20 @@ export function useSigninConfig(domainExtId: string) {
     isDeleting,
     error,
     signinConfig,
+    details,
     formState,
     savingField,
 
     // Computed
     isConfigured,
     hasUnsavedChanges,
+
+    // Auth-override display state (ADR-024)
+    globalEnabled: overrideState.globalEnabled,
+    effectiveEnabled: overrideState.effectiveEnabled,
+    isExplicitlyConfigured: overrideState.isExplicitlyConfigured,
+    isWorkspaceDefault: overrideState.isWorkspaceDefault,
+    isGloballyDisabled: overrideState.isGloballyDisabled,
 
     // Actions
     initialize,

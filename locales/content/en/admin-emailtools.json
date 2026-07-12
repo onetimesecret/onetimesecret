@@ -65,7 +65,7 @@
   },
   "web.admin.emailtools.config.loggerWarning": {
     "text": "Mail is not being delivered. The transport provider is set to a no-send mode (logger, disabled, or none), so no email leaves this server — outbound messages are written to the application log or dropped.",
-    "content_hash": "57e91f8e"
+    "content_hash": "1883dfd5"
   },
   "web.admin.emailtools.preview.title": {
     "text": "Template preview",
@@ -196,13 +196,16 @@
     "content_hash": "d19f5755"
   },
   "web.admin.emailtools.deliverability.sync.button": {
-    "text": "Sync now"
+    "text": "Sync now",
+    "content_hash": "885e8f48"
   },
   "web.admin.emailtools.deliverability.sync.success": {
-    "text": "{provider} sync complete: {accepted} imported, {rejected} rejected ({fetched} fetched)."
+    "text": "{provider} sync complete: {accepted} imported, {rejected} rejected ({fetched} fetched).",
+    "content_hash": "d36f5578"
   },
   "web.admin.emailtools.deliverability.sync.hint": {
-    "text": "A manual sync — automatic import still requires a scheduled `ots email sync-feedback` cron."
+    "text": "A manual sync — automatic import still requires a scheduled `ots email sync-feedback` cron.",
+    "content_hash": "7a509b75"
   },
   "web.admin.emailtools.deliverability.suppressions.title": {
     "text": "Suppression list",
@@ -349,150 +352,199 @@
     "content_hash": "5d08b02d"
   },
   "web.admin.emailtools.providerStatus.title": {
-    "text": "Provider status"
+    "text": "Provider status",
+    "content_hash": "231b7f03"
   },
   "web.admin.emailtools.providerStatus.tier.healthy": {
-    "text": "Healthy"
+    "text": "Healthy",
+    "content_hash": "7f1e323b"
   },
   "web.admin.emailtools.providerStatus.tier.probation": {
-    "text": "Under review"
+    "text": "Under review",
+    "content_hash": "9e8a3b64"
   },
   "web.admin.emailtools.providerStatus.tier.shutdown": {
-    "text": "Sending paused"
+    "text": "Sending paused",
+    "content_hash": "52e6757c"
   },
   "web.admin.emailtools.providerStatus.quota.max24h": {
-    "text": "24h send limit"
+    "text": "24h send limit",
+    "content_hash": "e5ea4c3d"
   },
   "web.admin.emailtools.providerStatus.quota.sent24h": {
-    "text": "Sent (last 24h)"
+    "text": "Sent (last 24h)",
+    "content_hash": "d0c4fe45"
   },
   "web.admin.emailtools.providerStatus.quota.maxRate": {
-    "text": "Max send rate (per sec)"
+    "text": "Max send rate (per sec)",
+    "content_hash": "59e76cf8"
   },
   "web.admin.emailtools.providerStatus.stats.sent": {
-    "text": "Sent ({days}d)"
+    "text": "Sent ({days}d)",
+    "content_hash": "e553b7e1"
   },
   "web.admin.emailtools.providerStatus.stats.delivered": {
-    "text": "Delivered"
+    "text": "Delivered",
+    "content_hash": "90611565"
   },
   "web.admin.emailtools.providerStatus.stats.hardBounced": {
-    "text": "Hard bounced"
+    "text": "Hard bounced",
+    "content_hash": "c76631c0"
   },
   "web.admin.emailtools.providerStatus.stats.complaints": {
-    "text": "Spam complaints"
+    "text": "Spam complaints",
+    "content_hash": "d48953cd"
   },
   "web.admin.emailtools.providerStatus.rate.bounce": {
-    "text": "Bounce rate"
+    "text": "Bounce rate",
+    "content_hash": "9eba32f0"
   },
   "web.admin.emailtools.providerStatus.rate.complaint": {
-    "text": "Complaint rate"
+    "text": "Complaint rate",
+    "content_hash": "430a23a9"
   },
   "web.admin.emailtools.providerStatus.rateUnavailable": {
-    "text": "This provider exposes no numeric bounce or complaint rate; the reputation tier above is derived from the enforcement status and sending quota only."
+    "text": "This provider exposes no numeric bounce or complaint rate; the reputation tier above is derived from the enforcement status and sending quota only.",
+    "content_hash": "1e6b82e9"
   },
   "web.admin.emailtools.providerStatus.complaintsUnavailable": {
-    "text": "Lettermint does not report complaints in its stats API, so the complaint rate is shown as “—” (not reported), not zero. The bounce rate above is complete."
+    "text": "Lettermint does not report complaints in its stats API, so the complaint rate is shown as “—” (not reported), not zero. The bounce rate above is complete.",
+    "content_hash": "72aaa845"
   },
   "web.admin.emailtools.providerStatus.unavailable": {
-    "text": "Provider status is temporarily unavailable."
+    "text": "Provider status is temporarily unavailable.",
+    "content_hash": "8e69ff29"
   },
   "web.admin.emailtools.providerStatus.notSupported": {
-    "text": "Live provider status is not available on the {provider} transport."
+    "text": "Live provider status is not available on the {provider} transport.",
+    "content_hash": "125ed6eb"
   },
   "web.admin.emailtools.providerStatus.error": {
-    "text": "Could not reach the mail provider for status. Try again."
+    "text": "Could not reach the mail provider for status. Try again.",
+    "content_hash": "594ab7b1"
   },
   "web.admin.emailtools.deliverability.lookup.title": {
-    "text": "Recipient lookup"
+    "text": "Recipient lookup",
+    "content_hash": "7569985b"
   },
   "web.admin.emailtools.deliverability.lookup.description": {
-    "text": "Check whether an address is suppressed, both in the local store and live at the active mail provider. Both are keyed by the same normalized address."
+    "text": "Check whether an address is suppressed, both in the local store and live at the active mail provider. Both are keyed by the same normalized address.",
+    "content_hash": "c341d614"
   },
   "web.admin.emailtools.deliverability.lookup.addressLabel": {
-    "text": "Recipient address"
+    "text": "Recipient address",
+    "content_hash": "454d0391"
   },
   "web.admin.emailtools.deliverability.lookup.submit": {
-    "text": "Look up"
+    "text": "Look up",
+    "content_hash": "504101bc"
   },
   "web.admin.emailtools.deliverability.lookup.local": {
-    "text": "Local store"
+    "text": "Local store",
+    "content_hash": "c740d116"
   },
   "web.admin.emailtools.deliverability.lookup.provider": {
-    "text": "Provider"
+    "text": "Provider",
+    "content_hash": "472590ae"
   },
   "web.admin.emailtools.deliverability.lookup.suppressed": {
-    "text": "Suppressed"
+    "text": "Suppressed",
+    "content_hash": "435c7831"
   },
   "web.admin.emailtools.deliverability.lookup.notSuppressed": {
-    "text": "Not suppressed"
+    "text": "Not suppressed",
+    "content_hash": "7b1544d7"
   },
   "web.admin.emailtools.deliverability.lookup.reason": {
-    "text": "Reason"
+    "text": "Reason",
+    "content_hash": "f81ab834"
   },
   "web.admin.emailtools.deliverability.lookup.source": {
-    "text": "Source"
+    "text": "Source",
+    "content_hash": "0e570ca6"
   },
   "web.admin.emailtools.deliverability.lookup.unavailable": {
-    "text": "Live provider lookup is unavailable; the local store above is authoritative."
+    "text": "Live provider lookup is unavailable; the local store above is authoritative.",
+    "content_hash": "aebed0f2"
   },
   "web.admin.emailtools.deliverability.messages.title": {
-    "text": "Recent sends"
+    "text": "Recent sends",
+    "content_hash": "522e089e"
   },
   "web.admin.emailtools.deliverability.messages.description": {
-    "text": "The most recent messages the active mail provider recorded, newest first. Sourced live from the provider — never stored here."
+    "text": "The most recent messages the active mail provider recorded, newest first. Sourced live from the provider — never stored here.",
+    "content_hash": "9970fa0a"
   },
   "web.admin.emailtools.deliverability.messages.empty": {
-    "text": "No recent messages returned by the provider."
+    "text": "No recent messages returned by the provider.",
+    "content_hash": "a7ef4d79"
   },
   "web.admin.emailtools.deliverability.messages.notSupported": {
-    "text": "A send log is not available on the {provider} transport, which offers no per-message API."
+    "text": "A send log is not available on the {provider} transport, which offers no per-message API.",
+    "content_hash": "21e6b6f9"
   },
   "web.admin.emailtools.deliverability.messages.error": {
-    "text": "Could not load the send log from the provider. Try again."
+    "text": "Could not load the send log from the provider. Try again.",
+    "content_hash": "4f671e55"
   },
   "web.admin.emailtools.deliverability.messages.col.status": {
-    "text": "Status"
+    "text": "Status",
+    "content_hash": "920e413c"
   },
   "web.admin.emailtools.deliverability.messages.col.subject": {
-    "text": "Subject"
+    "text": "Subject",
+    "content_hash": "68971283"
   },
   "web.admin.emailtools.deliverability.messages.col.to": {
-    "text": "To"
+    "text": "To",
+    "content_hash": "f4b06ef6"
   },
   "web.admin.emailtools.deliverability.messages.col.created": {
-    "text": "Sent"
+    "text": "Sent",
+    "content_hash": "c16bc82b"
   },
   "web.admin.emailtools.deliverability.messages.status.delivered": {
-    "text": "delivered"
+    "text": "delivered",
+    "content_hash": "373e0712"
   },
   "web.admin.emailtools.deliverability.messages.status.opened": {
-    "text": "opened"
+    "text": "opened",
+    "content_hash": "50236627"
   },
   "web.admin.emailtools.deliverability.messages.status.clicked": {
-    "text": "clicked"
+    "text": "clicked",
+    "content_hash": "d66440b2"
   },
   "web.admin.emailtools.deliverability.messages.status.pending": {
-    "text": "pending"
+    "text": "pending",
+    "content_hash": "62a2fed3"
   },
   "web.admin.emailtools.deliverability.messages.status.queued": {
-    "text": "queued"
+    "text": "queued",
+    "content_hash": "d36be649"
   },
   "web.admin.emailtools.deliverability.messages.status.processed": {
-    "text": "processed"
+    "text": "processed",
+    "content_hash": "58190ffa"
   },
   "web.admin.emailtools.deliverability.messages.status.hard_bounced": {
-    "text": "hard bounced"
+    "text": "hard bounced",
+    "content_hash": "b0aa6fd4"
   },
   "web.admin.emailtools.deliverability.messages.status.soft_bounced": {
-    "text": "soft bounced"
+    "text": "soft bounced",
+    "content_hash": "ac844ff2"
   },
   "web.admin.emailtools.deliverability.messages.status.complained": {
-    "text": "complained"
+    "text": "complained",
+    "content_hash": "c26fe786"
   },
   "web.admin.emailtools.deliverability.messages.status.suppressed": {
-    "text": "suppressed"
+    "text": "suppressed",
+    "content_hash": "f63d5b6b"
   },
   "web.admin.emailtools.deliverability.messages.status.unsubscribed": {
-    "text": "unsubscribed"
+    "text": "unsubscribed",
+    "content_hash": "621e1970"
   }
 }

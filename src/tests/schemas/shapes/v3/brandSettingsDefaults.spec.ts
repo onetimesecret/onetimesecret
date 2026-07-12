@@ -23,3 +23,31 @@ describe('V3 brandSettingsSchema defaults', () => {
     expect(brandSettingsSchema.parse({ button_text_light: true }).button_text_light).toBe(true);
   });
 });
+
+// Read-tolerance: unlike the canonical contract (which REJECTS an invalid
+// border_radius to gate writes), the V3 READ shape must never let a stale
+// cosmetic value fail the whole domain response. A retired/unknown value is
+// coerced to `undefined` (unset) so the domain still loads. See the field
+// comment in shapes/v3/custom-domain/brand.ts.
+describe('V3 brandSettingsSchema border_radius read-tolerance', () => {
+  it('passes valid presets and px through untouched', () => {
+    expect(brandSettingsSchema.parse({ border_radius: 'md' }).border_radius).toBe('md');
+    expect(brandSettingsSchema.parse({ border_radius: 22 }).border_radius).toBe(22);
+    expect(brandSettingsSchema.parse({ border_radius: '22' }).border_radius).toBe('22');
+  });
+
+  it('coerces retired / unknown values to undefined instead of failing', () => {
+    // 'custom' is the stale value observed in stored brand records; 'full' was
+    // retired in WAVE2; 100 is out of the 0-64 range; '22.5' is non-integer.
+    for (const stale of ['custom', 'full', 100, '22.5']) {
+      const parsed = brandSettingsSchema.safeParse({ border_radius: stale });
+      expect(parsed.success).toBe(true);
+      expect(parsed.success && parsed.data.border_radius).toBeUndefined();
+    }
+  });
+
+  it('preserves null and undefined', () => {
+    expect(brandSettingsSchema.parse({ border_radius: null }).border_radius).toBeNull();
+    expect(brandSettingsSchema.parse({}).border_radius).toBeUndefined();
+  });
+});

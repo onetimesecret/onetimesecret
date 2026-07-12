@@ -1,16 +1,18 @@
 // src/tests/composables/useSigninConfig.spec.ts
 //
 // Tests for useSigninConfig composable covering:
-// 1. initialize(): returns null config on 404, populates formState from config
+// 1. initialize(): null record = unconfigured, populates formState from config
 // 2. saveConfig(): PUT full replacement with all 5 boolean/enum fields
-// 3. deleteConfig(): resets to default state
+// 3. deleteConfig(): unpins and reseeds from inherited state
 // 4. hasUnsavedChanges: detects field modifications
 // 5. discardChanges(): restores saved state
-// 6. configToFormState: coerces nullable API fields to concrete defaults
+// 6. ADR-024: seeding from inherited state, writes-materialize pinning, and
+//    the override display state (workspace-default vs explicitly-configured)
 
 import { useSigninConfig } from '@/shared/composables/useSigninConfig';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ref } from 'vue';
 
 import type { CustomDomainSigninConfig } from '@/schemas/shapes/domains/signin-config';
 
@@ -42,6 +44,15 @@ vi.mock('vue-router', () => ({
   useRouter: () => ({
     push: mockRouterPush,
   }),
+}));
+
+// Bootstrap features drive the SEEDED method-availability flags for
+// unconfigured domains (ADR-024). undefined features = every method
+// available (codebase convention: absent flag means enabled).
+const mockFeatures = ref<Record<string, unknown> | undefined>(undefined);
+
+vi.mock('@/shared/stores/bootstrapStore', () => ({
+  useBootstrapStore: () => ({ features: mockFeatures.value }),
 }));
 
 vi.mock('vue-i18n', () => ({
@@ -109,9 +120,11 @@ describe('useSigninConfig', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
     vi.clearAllMocks();
+    mockFeatures.value = undefined; // all methods globally available
 
-    // Default: no existing config (unconfigured)
-    mockGetConfigForDomain.mockResolvedValue({ record: null });
+    // Default: no existing config (unconfigured), no resolution details
+    // (older-backend fallback shape)
+    mockGetConfigForDomain.mockResolvedValue({ record: null, details: null });
     mockPutConfigForDomain.mockResolvedValue({ record: mockSigninConfigData });
     mockDeleteConfigForDomain.mockResolvedValue({ success: true });
   });
@@ -149,8 +162,12 @@ describe('useSigninConfig', () => {
       expect(composable.isConfigured.value).toBe(true);
     });
 
-    it('sets default formState when domain is unconfigured', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
+    it('seeds formState from inherited state when unconfigured (no details: optimistic signin, methods from bootstrap)', async () => {
+      // ADR-024 seeding, older-backend shape (details null): signin_enabled
+      // defaults optimistic, method flags mirror global availability (all
+      // available here) — NOT static false, which would flip methods off on
+      // the first unrelated save.
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: null });
 
       const composable = useSigninConfig('dm-ext-123');
       await composable.initialize();
@@ -159,8 +176,8 @@ describe('useSigninConfig', () => {
         enabled: false,
         signin_enabled: true,
         restrict_to: null,
-        email_auth_enabled: false,
-        sso_enabled: false,
+        email_auth_enabled: true,
+        sso_enabled: true,
       });
     });
 
@@ -477,18 +494,19 @@ describe('useSigninConfig', () => {
     });
 
     it('reverts formState to the saved snapshot when the PUT fails', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: null });
       mockPutConfigForDomain.mockRejectedValue(new Error('Network error'));
 
       const composable = useSigninConfig('dm-ext-123');
       await composable.initialize();
-      // Baseline: unconfigured -> default form state (sso_enabled false).
+      // Baseline: unconfigured -> seeded form state (sso_enabled true, all
+      // methods globally available).
 
-      await composable.autoSaveField('sso_enabled', true);
+      await composable.autoSaveField('sso_enabled', false);
 
       // The optimistic flip is rolled back so the toggle matches server state
       // instead of silently desyncing.
-      expect(composable.formState.value.sso_enabled).toBe(false);
+      expect(composable.formState.value.sso_enabled).toBe(true);
       expect(composable.hasUnsavedChanges.value).toBe(false);
     });
 
@@ -505,11 +523,12 @@ describe('useSigninConfig', () => {
       const composable = useSigninConfig('dm-ext-123');
       await composable.initialize();
 
-      const first = composable.autoSaveField('sso_enabled', true);
-      // Second call while the first is in flight is a no-op.
-      await composable.autoSaveField('email_auth_enabled', true);
+      const first = composable.autoSaveField('sso_enabled', false);
+      // Second call while the first is in flight is a no-op — the seeded
+      // email_auth_enabled (true, globally available) must stay untouched.
+      await composable.autoSaveField('email_auth_enabled', false);
 
-      expect(composable.formState.value.email_auth_enabled).toBe(false);
+      expect(composable.formState.value.email_auth_enabled).toBe(true);
       expect(mockPutConfigForDomain).toHaveBeenCalledTimes(1);
 
       resolveSave!({ record: mockSigninConfigData });
@@ -678,19 +697,21 @@ describe('useSigninConfig', () => {
       expect(composable.isConfigured.value).toBe(false);
     });
 
-    it('resets formState to defaults after deletion', async () => {
+    it('reseeds formState from inherited state after deletion (unpin returns to workspace defaults)', async () => {
       mockGetConfigForDomain.mockResolvedValue({ record: mockSigninConfigData });
       const composable = useSigninConfig('dm-ext-123');
       await composable.initialize();
 
       await composable.deleteConfig();
 
+      // No details on the DELETE response here, so the reseed uses the
+      // optimistic defaults + bootstrap method availability (all available).
       expect(composable.formState.value).toEqual({
         enabled: false,
         signin_enabled: true,
         restrict_to: null,
-        email_auth_enabled: false,
-        sso_enabled: false,
+        email_auth_enabled: true,
+        sso_enabled: true,
       });
     });
 
@@ -928,13 +949,14 @@ describe('useSigninConfig', () => {
       // Should not throw
       composable.discardChanges();
 
-      // formState should remain at defaults
+      // formState remains at the pre-init seed (no details yet: optimistic
+      // signin, method flags from bootstrap availability — all available).
       expect(composable.formState.value).toEqual({
         enabled: false,
         signin_enabled: true,
         restrict_to: null,
-        email_auth_enabled: false,
-        sso_enabled: false,
+        email_auth_enabled: true,
+        sso_enabled: true,
       });
     });
   });
@@ -994,6 +1016,244 @@ describe('useSigninConfig', () => {
       await composable.initialize();
 
       expect(composable.isConfigured.value).toBe(false);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // ADR-024: seeding from inherited state
+  //
+  // An UNCONFIGURED domain's form is seeded from the resolution details the
+  // API returns (what actually runs), never from static defaults. The first
+  // explicit save then materializes this snapshot plus the user's edit.
+  // ---------------------------------------------------------------------------
+
+  describe('ADR-024: seeding from inherited state', () => {
+    it('seeds signin_enabled from details.effective_enabled (inherit: form shows the resolver output, not a static default)', async () => {
+      mockGetConfigForDomain.mockResolvedValue({
+        record: null,
+        details: { global_enabled: false, effective_enabled: false, global_restrict_to: null },
+      });
+
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.formState.value.signin_enabled).toBe(false);
+    });
+
+    it('seeds restrict_to from details.global_restrict_to (inherit: the workspace-wide restriction is pre-selected)', async () => {
+      mockGetConfigForDomain.mockResolvedValue({
+        record: null,
+        details: { global_enabled: true, effective_enabled: true, global_restrict_to: 'sso' },
+      });
+
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.formState.value.restrict_to).toBe('sso');
+    });
+
+    it('seeds method flags from global availability (AND semantics: a globally-off method seeds as off, not on)', async () => {
+      mockFeatures.value = { email_auth: false, webauthn: true, sso: { enabled: false } };
+      mockGetConfigForDomain.mockResolvedValue({
+        record: null,
+        details: { global_enabled: true, effective_enabled: true, global_restrict_to: null },
+      });
+
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.formState.value.email_auth_enabled).toBe(false);
+      expect(composable.formState.value.sso_enabled).toBe(false);
+    });
+
+    it('an explicit record wins over seeding (explicit: formState comes from the stored override, not the inherited state)', async () => {
+      mockGetConfigForDomain.mockResolvedValue({
+        record: { ...mockSigninConfigData, signin_enabled: false },
+        details: { global_enabled: true, effective_enabled: false, global_restrict_to: null },
+      });
+
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.formState.value.signin_enabled).toBe(false);
+      expect(composable.formState.value.enabled).toBe(true);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // ADR-024: writes materialize an explicit override (pinning)
+  //
+  // Every save from the settings UI forces enabled: true through the
+  // asExplicitOverride chokepoint. This is what pins a domain against future
+  // changes to the workspace defaults — and what prevents the latent bug of
+  // enabled=false records the resolver ignores.
+  // ---------------------------------------------------------------------------
+
+  describe('ADR-024: writes materialize an explicit override (pinning)', () => {
+    it('saveConfig forces enabled: true in the PUT even while formState.enabled is false (saving = pinning)', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: null });
+
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+      expect(composable.formState.value.enabled).toBe(false);
+
+      await composable.saveConfig();
+
+      expect(mockPutConfigForDomain).toHaveBeenCalledWith(
+        'dm-ext-123',
+        expect.objectContaining({ enabled: true })
+      );
+    });
+
+    it('autoSave pins too: a single toggle flip on an unconfigured domain sends enabled: true (never an enabled=false record)', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: null });
+
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+
+      await composable.autoSaveField('sso_enabled', false);
+
+      expect(mockPutConfigForDomain).toHaveBeenCalledWith(
+        'dm-ext-123',
+        expect.objectContaining({ enabled: true, sso_enabled: false })
+      );
+    });
+
+    it('an empty autoSaveFields patch still PUTs the full seeded snapshot with enabled: true (pin-without-value-change)', async () => {
+      // The form emits an empty patch when a workspace-default domain's user
+      // clicks the mode that already matches the inherited state.
+      mockGetConfigForDomain.mockResolvedValue({
+        record: null,
+        details: { global_enabled: true, effective_enabled: true, global_restrict_to: null },
+      });
+
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+
+      await composable.autoSaveFields({}, 'restrict_to');
+
+      expect(mockPutConfigForDomain).toHaveBeenCalledWith(
+        'dm-ext-123',
+        expect.objectContaining({ enabled: true, signin_enabled: true, restrict_to: null })
+      );
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // ADR-024: override display state
+  //
+  // The banner never re-derives availability from the raw flag pair; it
+  // renders the resolver output (details) plus the workspace-default flag.
+  // ---------------------------------------------------------------------------
+
+  describe('ADR-024: override display state', () => {
+    it('no record → isWorkspaceDefault (inherit), not explicitly configured', async () => {
+      mockGetConfigForDomain.mockResolvedValue({
+        record: null,
+        details: { global_enabled: true, effective_enabled: true, global_restrict_to: null },
+      });
+
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.isWorkspaceDefault.value).toBe(true);
+      expect(composable.isExplicitlyConfigured.value).toBe(false);
+    });
+
+    it('a legacy record with enabled=false still counts as workspace default (the resolver ignores it)', async () => {
+      mockGetConfigForDomain.mockResolvedValue({
+        record: { ...mockSigninConfigData, enabled: false },
+        details: { global_enabled: true, effective_enabled: true, global_restrict_to: null },
+      });
+
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.isWorkspaceDefault.value).toBe(true);
+      expect(composable.isExplicitlyConfigured.value).toBe(false);
+    });
+
+    it('a record with enabled=true is explicitly configured (pinned)', async () => {
+      mockGetConfigForDomain.mockResolvedValue({
+        record: mockSigninConfigData,
+        details: { global_enabled: true, effective_enabled: true, global_restrict_to: null },
+      });
+
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.isWorkspaceDefault.value).toBe(false);
+      expect(composable.isExplicitlyConfigured.value).toBe(true);
+    });
+
+    it('globalEnabled/effectiveEnabled surface the details verbatim; null before any load', async () => {
+      const composable = useSigninConfig('dm-ext-123');
+      expect(composable.globalEnabled.value).toBeNull();
+      expect(composable.effectiveEnabled.value).toBeNull();
+
+      mockGetConfigForDomain.mockResolvedValue({
+        record: null,
+        details: { global_enabled: true, effective_enabled: false, global_restrict_to: null },
+      });
+      await composable.initialize();
+
+      expect(composable.globalEnabled.value).toBe(true);
+      expect(composable.effectiveEnabled.value).toBe(false);
+    });
+
+    it('isGloballyDisabled tracks the kill switch (global off ⇒ dormant), independent of per-domain flags', async () => {
+      mockGetConfigForDomain.mockResolvedValue({
+        record: { ...mockSigninConfigData, signin_enabled: true },
+        details: { global_enabled: false, effective_enabled: false, global_restrict_to: null },
+      });
+
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.isGloballyDisabled.value).toBe(true);
+    });
+
+    it('PUT response details refresh the display state (effective flips with the save, no refetch)', async () => {
+      mockGetConfigForDomain.mockResolvedValue({
+        record: null,
+        details: { global_enabled: true, effective_enabled: true, global_restrict_to: null },
+      });
+      mockPutConfigForDomain.mockResolvedValue({
+        record: { ...mockSigninConfigData, signin_enabled: false },
+        details: { global_enabled: true, effective_enabled: false, global_restrict_to: null },
+      });
+
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+      expect(composable.effectiveEnabled.value).toBe(true);
+
+      await composable.autoSaveField('signin_enabled', false);
+
+      expect(composable.effectiveEnabled.value).toBe(false);
+      expect(composable.isWorkspaceDefault.value).toBe(false);
+    });
+
+    it('deleteConfig unpins: DELETE response details reseed the form to the inherited state', async () => {
+      mockGetConfigForDomain.mockResolvedValue({
+        record: { ...mockSigninConfigData, signin_enabled: false },
+        details: { global_enabled: true, effective_enabled: false, global_restrict_to: null },
+      });
+      mockDeleteConfigForDomain.mockResolvedValue({
+        success: true,
+        details: { global_enabled: true, effective_enabled: true, global_restrict_to: null },
+      });
+
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+      expect(composable.formState.value.signin_enabled).toBe(false);
+
+      await composable.deleteConfig();
+
+      // Back to workspace defaults: the form reflects the post-delete
+      // resolution (inherited signin available again).
+      expect(composable.isWorkspaceDefault.value).toBe(true);
+      expect(composable.effectiveEnabled.value).toBe(true);
+      expect(composable.formState.value.signin_enabled).toBe(true);
     });
   });
 });

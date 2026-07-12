@@ -1,13 +1,13 @@
 <!-- src/apps/secret/components/branded/SecretDisplayCase.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
   import BaseSecretDisplay from '@/apps/secret/components/branded/BaseSecretDisplay.vue';
-  import { useClipboard } from '@/shared/composables/useClipboard';
-  import type { Secret, SecretDetails } from '@/schemas/shapes/v3/secret';
   import { brandSettingsSchema } from '@/schemas/shapes/v3/custom-domain';
+  import type { Secret, SecretDetails } from '@/schemas/shapes/v3/secret';
+  import { useClipboard } from '@/shared/composables/useClipboard';
   import { useProductIdentity } from '@/shared/stores/identityStore';
-  import { ref, computed } from 'vue';
+  import { computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   // Default brand settings for when no custom branding is configured
   const defaultBrandSettings = brandSettingsSchema.parse({});
@@ -33,6 +33,7 @@
   // Use computed properties directly from identityStore (already parsed with v3 schema)
   const cornerClass = computed(() => productIdentity.cornerClass);
   const fontFamilyClass = computed(() => productIdentity.fontFamilyClass);
+  const headingFontClass = computed(() => productIdentity.headingFontClass);
 
   const alertClasses = computed(() => ({
     'mb-4 p-4 rounded-md': true,
@@ -42,10 +43,8 @@
       props.submissionStatus?.status === 'success',
   }));
 
-  const hasImageError = ref(false);
   const { isCopied, copyToClipboard } = useClipboard();
 
-  const logoAriaLabel = hasImageError.value ? t('web.branding.default_logo_icon') : t('web.layout.brand_logo')
   const copySecretContent = async () => {
     if (props.record?.secret_value === undefined) {
       return;
@@ -62,16 +61,7 @@
     setTimeout(() => announcement.remove(), 1000);
   };
 
-  const handleImageError = () => {
-    hasImageError.value = true;
-  };
   const isCopiedText = computed(() => isCopied ? t('web.STATUS.copied') : t('web.LABELS.copy_to_clipboard') );
-
-  // Brand logo for the reveal card. Use the backend-computed URL (built with
-  // the domain's public extid), not a client-side path from the internal
-  // domainId — the latter 404s, tripping @error and showing the placeholder
-  // lock icon even when a logo is configured. Null (no logo) → placeholder.
-  const logoImage = computed(() => productIdentity.logoUri);
 </script>
 
 <template>
@@ -82,6 +72,7 @@
     :domain-branding="productIdentity.brand ?? defaultBrandSettings"
     :corner-class="cornerClass"
     :font-class="fontFamilyClass"
+    :heading-class="headingFontClass"
     :is-revealed="isRevealed">
     <!-- Alert display -->
     <div
@@ -127,43 +118,6 @@
       </div>
     </div>
 
-    <template #logo>
-      <!-- Brand Icon -->
-      <div class="relative mx-auto sm:mx-0">
-        <router-link to="/">
-          <div
-            :class="[cornerClass]"
-            class="flex size-14 items-center justify-center bg-gray-100 dark:bg-gray-700 sm:size-16"
-            role="img"
-            :aria-label="logoAriaLabel">
-            <!-- Default lock icon -->
-            <svg
-              v-if="!logoImage || hasImageError"
-              class="size-8 text-gray-400 dark:text-gray-500"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              aria-hidden="true">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-
-            <!-- Logo -->
-            <img
-              v-if="logoImage && !hasImageError"
-              :src="logoImage"
-              :alt="t('web.layout.brand_logo')"
-              class="size-16 object-contain"
-              :class="[cornerClass]"
-              @error="handleImageError" />
-          </div>
-        </router-link>
-      </div>
-    </template>
-
     <template #content>
       <div class="relative size-full p-0">
         <div :class="[cornerClass, 'size-full overflow-hidden border border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800']">
@@ -174,7 +128,7 @@
           </label>
           <textarea
             :id="'secret-content-' + record?.identifier"
-            class="block size-full min-h-32 resize-none border-none bg-transparent font-mono text-base focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-white sm:min-h-36"
+            class="block size-full min-h-32 resize-none border-none bg-transparent font-mono text-base focus:ring-2 focus:ring-brand-500 focus:outline-none sm:min-h-36 dark:text-white"
             readonly
             :rows="details?.display_lines ?? 4"
             :value="record?.secret_value"
@@ -189,12 +143,12 @@
       <button
         @click="copySecretContent"
         :title="isCopiedText"
-        class="inline-flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-medium text-brand-700 shadow-sm transition-colors duration-150 ease-in-out hover:shadow focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:text-brand-100"
-        :class="[fontFamilyClass, cornerClass]"
-        :style="{
-          backgroundColor: productIdentity.primaryColor,
-          color: productIdentity.buttonTextLight ? '#ffffff' : '#000000'
-        }"
+        class="inline-flex items-center justify-center rounded-md bg-brand-500 px-4 py-2.5 text-sm font-medium shadow-sm transition-colors duration-150 ease-in-out hover:bg-brand-600 hover:shadow focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+        :class="[
+          fontFamilyClass,
+          cornerClass,
+          productIdentity.buttonTextLight ? 'text-white' : 'text-gray-900',
+        ]"
         aria-live="polite"
         :aria-label="isCopied ? t('web.COMMON.secret_copied_to_clipboard') : t('web.COMMON.copy_secret_to_clipboard')"
         :aria-pressed="isCopied">

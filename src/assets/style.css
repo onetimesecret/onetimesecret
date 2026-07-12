@@ -1,9 +1,9 @@
-@import "tailwindcss" source(none);
+@import 'tailwindcss' source(none);
 /* This file is the v4 design-system entry (CSS-first config — there is no
    tailwind.config.ts). eslint-plugin-tailwindcss points its `config`
    setting here (absolute path; see eslint.config.ts). */
-@plugin "@tailwindcss/forms";
-@plugin "@tailwindcss/typography";
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
 
 /*
  * Class-based dark mode — replaces `darkMode: 'class'` from the former
@@ -22,10 +22,10 @@
  * dynamically-generated classes (e.g. SplitButton corners) that the scanner
  * cannot otherwise detect.
  */
-@source "../*.html";
-@source "../**/*.{vue,js,ts,jsx,tsx,mjs}";
-@source "../../templates/web/**/*.html";
-@source "../../apps/web/auth/views/**/*.erb";
+@source '../*.html';
+@source '../**/*.{vue,js,ts,jsx,tsx,mjs}';
+@source '../../templates/web/**/*.html';
+@source '../../apps/web/auth/views/**/*.erb';
 
 /*
  * `@theme static` (not plain `@theme`) is REQUIRED for runtime branding:
@@ -41,7 +41,7 @@
    * `fontFamily.brand` from the former tailwind.config.ts. The default
    * sans/serif/mono families come from Tailwind's own theme.
    */
-  --font-brand: 'Zilla Slab', ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-brand: 'Zilla Slab', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
 
   /* Brand color palette - 11 shades (neutral blue #3B82F6) */
   /* Runtime injection via useBrandTheme will override these */
@@ -96,13 +96,65 @@
   --color-brandcompdim-900: #65250d;
   --color-brandcompdim-950: #3a1306;
 
+  /*
+   * Expanded brand vocabulary (#3646). useBrandTheme injects per-domain
+   * overrides for each of these; the neutral defaults below keep every
+   * bg-brand2-* / bg-brandbg / text-brandtext / rounded-brand utility
+   * resolving even before (or without) any per-domain branding.
+   *
+   * Wiring note: these tokens are injected but not yet rendered by any view.
+   * Consume them with the matching utility in a branded/* component — e.g.
+   * `bg-brand2-500`, `bg-brandbg`, `text-brandtext`, `rounded-brand`. See the
+   * "WIRING" block in useBrandTheme.ts for the full last-mile checklist.
+   */
+
+  /* Secondary brand color scale (neutral slate default) - 11 shades */
+  --color-brand2-50: #f8fafc;
+  --color-brand2-100: #f1f5f9;
+  --color-brand2-200: #e2e8f0;
+  --color-brand2-300: #cbd5e1;
+  --color-brand2-400: #94a3b8;
+  --color-brand2-500: #64748b;
+  --color-brand2-600: #475569;
+  --color-brand2-700: #334155;
+  --color-brand2-800: #1e293b;
+  --color-brand2-900: #0f172a;
+  --color-brand2-950: #020617;
+
+  /* Surface (background) and body-text (ink) single tokens */
+  --color-brandbg: #ffffff;
+  --color-brandtext: #1f2937;
+
+  /* Brand border radius token (default = "md" preset, 0.5rem) */
+  --radius-brand: 0.5rem;
+
+  /*
+   * Curated font-family tokens for the expanded font allowlist. serif/mono
+   * reuse Tailwind's built-ins; these six back the font-brand-* utilities
+   * (see fontFamilyStacks / fontFamilyClasses in brand-helpers.ts).
+   *
+   * --font-brand-sans is a deterministic neutral grotesque with NO OS-UI
+   * generics (no ui-sans-serif/system-ui/-apple-system): those resolve to the
+   * OS UI font (San Francisco on macOS), which would make `sans` render
+   * identically to `system`. Keeping Helvetica/Arial makes the two distinct.
+   */
+  --font-brand-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-brand-system: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-brand-slab: 'Zilla Slab', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+  --font-brand-rounded:
+    ui-rounded, 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', 'Nunito', system-ui, sans-serif;
+  --font-brand-humanist:
+    'Segoe UI', 'Helvetica Neue', 'Optima', Candara, Calibri, system-ui, sans-serif;
+  --font-brand-geometric: 'Avenir Next', Avenir, 'Century Gothic', 'Futura', system-ui, sans-serif;
+
   /* Custom animations */
   --animate-gradient-x: gradient-x 5s ease-in-out infinite;
 }
 
 /* Custom keyframe animations */
 @keyframes gradient-x {
-  0%, 100% {
+  0%,
+  100% {
     background-size: 200% 100%;
     background-position: left center;
   }
@@ -127,8 +179,9 @@
   /* Zilla Slab font faces */
   @font-face {
     font-family: 'Zilla Slab';
-    src: url('./fonts/zs/ZillaSlab-Regular.woff2') format('woff2'),
-         url('./fonts/zs/ZillaSlab-Regular.woff') format('woff');
+    src:
+      url('./fonts/zs/ZillaSlab-Regular.woff2') format('woff2'),
+      url('./fonts/zs/ZillaSlab-Regular.woff') format('woff');
     font-weight: 400;
     font-style: normal;
     font-display: fallback;
@@ -136,8 +189,9 @@
 
   @font-face {
     font-family: 'Zilla Slab';
-    src: url('./fonts/zs/ZillaSlab-Bold.woff2') format('woff2'),
-         url('./fonts/zs/ZillaSlab-Bold.woff') format('woff');
+    src:
+      url('./fonts/zs/ZillaSlab-Bold.woff2') format('woff2'),
+      url('./fonts/zs/ZillaSlab-Bold.woff') format('woff');
     font-weight: 700;
     font-style: normal;
     font-display: fallback;
@@ -145,8 +199,9 @@
 
   @font-face {
     font-family: 'Zilla Slab';
-    src: url('./fonts/zs/ZillaSlab-Italic.woff2') format('woff2'),
-         url('./fonts/zs/ZillaSlab-Italic.woff') format('woff');
+    src:
+      url('./fonts/zs/ZillaSlab-Italic.woff2') format('woff2'),
+      url('./fonts/zs/ZillaSlab-Italic.woff') format('woff');
     font-weight: 400;
     font-style: italic;
     font-display: fallback;
@@ -154,8 +209,9 @@
 
   @font-face {
     font-family: 'Zilla Slab';
-    src: url('./fonts/zs/ZillaSlab-BoldItalic.woff2') format('woff2'),
-         url('./fonts/zs/ZillaSlab-BoldItalic.woff') format('woff');
+    src:
+      url('./fonts/zs/ZillaSlab-BoldItalic.woff2') format('woff2'),
+      url('./fonts/zs/ZillaSlab-BoldItalic.woff') format('woff');
     font-weight: 700;
     font-style: italic;
     font-display: fallback;
@@ -163,7 +219,7 @@
 
   /* Base element styles */
   html {
-    font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    font-family: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
   }
 
   h1,
@@ -171,13 +227,13 @@
   h3,
   h4,
   h5 {
-    font-family: 'Zilla Slab', ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    font-family: 'Zilla Slab', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
     /*margin: theme('spacing.5') 0;*/
   }
 
   button,
   a.block {
-    font-family: 'Zilla Slab', ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    font-family: 'Zilla Slab', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
   }
 
   h1 {

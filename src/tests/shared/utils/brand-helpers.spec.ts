@@ -17,8 +17,15 @@ import {
   FontFamily,
   fontDisplayMap,
   fontFamilyClasses,
+  fontFamilyStacks,
   fontIconMap,
   fontOptions,
+  borderRadiusToCss,
+  borderRadiusOptions,
+  borderRadiusDisplayMap,
+  borderRadiusIconMap,
+  resolveBodyFontClass,
+  resolveHeadingFontClass,
 } from '@/shared/utils/brand-helpers';
 import { describe, expect, it } from 'vitest';
 
@@ -90,7 +97,10 @@ describe('brand-helpers', () => {
     });
 
     it('maps to valid Tailwind font classes', () => {
-      expect(fontFamilyClasses.sans).toBe('font-sans');
+      // sans is on its own font-brand-sans token (a deterministic neutral
+      // grotesque), NOT Tailwind's font-sans, so it stays visibly distinct from
+      // the `system` option instead of both resolving to the OS UI font.
+      expect(fontFamilyClasses.sans).toBe('font-brand-sans');
       expect(fontFamilyClasses.serif).toBe('font-serif');
       expect(fontFamilyClasses.mono).toBe('font-mono');
     });
@@ -255,6 +265,118 @@ describe('brand-helpers', () => {
     it('all icon maps have matching entry counts', () => {
       expect(Object.keys(fontIconMap).length).toBe(fontFamilyValues.length);
       expect(Object.keys(cornerStyleIconMap).length).toBe(cornerStyleValues.length);
+    });
+
+    it('fontFamilyStacks covers every font value', () => {
+      expect(Object.keys(fontFamilyStacks).length).toBe(fontFamilyValues.length);
+      for (const font of fontFamilyValues) {
+        expect(fontFamilyStacks[font]).toBeTruthy();
+      }
+    });
+  });
+
+  describe('borderRadiusToCss', () => {
+    it('maps named presets to CSS lengths', () => {
+      expect(borderRadiusToCss('none')).toBe('0px');
+      expect(borderRadiusToCss('md')).toBe('0.5rem');
+      expect(borderRadiusToCss('xl')).toBe('1rem');
+    });
+
+    it('rejects the removed `full` (pill) preset', () => {
+      // `full` (9999px) was dropped: on large content boxes it renders as a
+      // giant oval that clips the secret. It now falls through to null so the
+      // CSS var clears to the bounded @theme default.
+      expect(borderRadiusToCss('full')).toBeNull();
+    });
+
+    it('maps numeric px values (number or string)', () => {
+      expect(borderRadiusToCss(12)).toBe('12px');
+      expect(borderRadiusToCss('20')).toBe('20px');
+      expect(borderRadiusToCss(0)).toBe('0px');
+    });
+
+    it('is case-insensitive for presets', () => {
+      expect(borderRadiusToCss('LG')).toBe('0.75rem');
+    });
+
+    it('returns null for unset or invalid input', () => {
+      expect(borderRadiusToCss(null)).toBeNull();
+      expect(borderRadiusToCss(undefined)).toBeNull();
+      expect(borderRadiusToCss('')).toBeNull();
+      expect(borderRadiusToCss('12px')).toBeNull();
+      expect(borderRadiusToCss('huge')).toBeNull();
+      expect(borderRadiusToCss(999)).toBeNull(); // out of range
+    });
+
+    it('borderRadiusOptions, displayMap and iconMap stay in sync', () => {
+      // iconMap is required: the corner control's only visible content is the
+      // icon, so a missing entry renders a generic question mark (review
+      // finding #3646).
+      for (const preset of borderRadiusOptions) {
+        expect(borderRadiusDisplayMap[preset]).toBeTruthy();
+        expect(borderRadiusIconMap[preset]).toBeTruthy();
+      }
+    });
+  });
+
+  describe('resolveBodyFontClass', () => {
+    it('maps a known font_family to its utility class', () => {
+      expect(resolveBodyFontClass({ font_family: 'slab' })).toBe('font-brand-slab');
+      expect(resolveBodyFontClass({ font_family: 'sans' })).toBe('font-brand-sans');
+    });
+
+    it('returns empty string when font_family is unset', () => {
+      expect(resolveBodyFontClass({})).toBe('');
+      expect(resolveBodyFontClass({ font_family: null })).toBe('');
+      expect(resolveBodyFontClass({ font_family: '' })).toBe('');
+    });
+
+    it('returns empty string for unknown font values', () => {
+      expect(resolveBodyFontClass({ font_family: 'comic-sans' })).toBe('');
+      // Inherited Object.prototype keys must not resolve to a Function.
+      expect(resolveBodyFontClass({ font_family: 'toString' })).toBe('');
+    });
+
+    it('returns empty string for nullish brand', () => {
+      expect(resolveBodyFontClass(null)).toBe('');
+      expect(resolveBodyFontClass(undefined)).toBe('');
+    });
+  });
+
+  describe('resolveHeadingFontClass', () => {
+    it('heading_font wins over font_family', () => {
+      expect(
+        resolveHeadingFontClass({ font_family: 'sans', heading_font: 'slab' })
+      ).toBe('font-brand-slab');
+    });
+
+    it('font_family backfills when heading_font is unset', () => {
+      expect(resolveHeadingFontClass({ font_family: 'serif' })).toBe('font-serif');
+      expect(
+        resolveHeadingFontClass({ font_family: 'serif', heading_font: null })
+      ).toBe('font-serif');
+    });
+
+    it('returns empty string when both are unset', () => {
+      expect(resolveHeadingFontClass({})).toBe('');
+      expect(
+        resolveHeadingFontClass({ font_family: null, heading_font: null })
+      ).toBe('');
+    });
+
+    it('returns empty string for unknown font values', () => {
+      expect(
+        resolveHeadingFontClass({ font_family: 'sans', heading_font: 'papyrus' })
+      ).toBe('');
+      // Inherited Object.prototype keys must not resolve to a Function.
+      expect(
+        resolveHeadingFontClass({ heading_font: 'constructor' })
+      ).toBe('');
+    });
+
+    it('returns empty string for nullish brand', () => {
+      expect(resolveHeadingFontClass(null)).toBe('');
+      expect(resolveHeadingFontClass(undefined)).toBe('');
     });
   });
 });

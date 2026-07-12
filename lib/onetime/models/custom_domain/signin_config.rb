@@ -36,6 +36,9 @@
 #
 # See: lib/onetime/auth_config.rb (AuthConfig, restrict_to logic)
 #      etc/defaults/auth.defaults.yaml (install-level defaults)
+#      docs/architecture/decision-records/adr-024-custom-domain-auth-override-resolution.md
+#      (source of truth for the two-flag model, resolution invariants, and the
+#      settings API/UI contract built on them)
 #
 module Onetime
   class CustomDomain < Familia::Horreum
@@ -207,6 +210,20 @@ module Onetime
           return global unless config&.enabled?
 
           global && config.email_auth_enabled?
+        end
+
+        # Install-level sign-in capability — the `global` input to
+        # resolve_signin_enabled, defined once so the runtime gate
+        # (Core::Controllers::Base#signin_enabled?) and the settings API
+        # (DomainsAPI signin_config details) cannot drift in how they read it
+        # (ADR-024). Strict-boolean like the resolver: anything but true is
+        # treated as off.
+        #
+        # @param auth [Hash, nil] site.authentication settings (injectable for tests)
+        # @return [Boolean]
+        def global_signin_enabled(auth = nil)
+          auth ||= OT.conf.dig('site', 'authentication') || {}
+          (auth['enabled'] && auth['signin']) == true
         end
 
         # Check if a domain has signin config.

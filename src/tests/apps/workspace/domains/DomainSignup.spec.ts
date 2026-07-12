@@ -54,7 +54,13 @@ vi.mock('@/apps/workspace/components/domains/DomainSignupConfigForm.vue', () => 
     name: 'DomainSignupConfigForm',
     template: '<div class="domain-signup-config-form" data-testid="domain-signup-config-form" :data-domain-ext-id="domainExtId" />',
     props: ['domainExtId'],
-    emits: ['save', 'delete', 'discard'],
+    // `can-save` drives the header's Save button (the form owns validity and
+    // relays it up). Emit true on mount so the seam test can click an enabled
+    // header Save without reproducing the real form's validation.
+    emits: ['save', 'delete', 'discard', 'can-save'],
+    mounted() {
+      this.$emit('can-save', true);
+    },
   },
 }));
 
@@ -184,6 +190,10 @@ const i18n = createI18n({
           back: 'Back',
           loading: 'Loading...',
         },
+        LABELS: {
+          update: 'Update',
+          updating: 'Updating...',
+        },
       },
     },
   },
@@ -299,6 +309,48 @@ describe('DomainSignup', () => {
 
       expect(wrapper.find('[aria-busy="true"]').exists()).toBe(true);
       expect(wrapper.find('[data-testid="domain-signup-config-form"]').exists()).toBe(false);
+    });
+  });
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Header Save wiring (the page ↔ DomainHeader seam)
+  //
+  // The primary Save ("Update") moved from the config form into the shared
+  // DomainHeader. The form owns validity and relays it via `can-save`; the page
+  // holds `formCanSave` and drives the header's save-visible/save-disabled/@save.
+  // These exercise that seam end-to-end (real DomainHeader, stubbed form).
+  // ───────────────────────────────────────────────────────────────────────────
+
+  describe('Header Save', () => {
+    // DomainHeader's Save button carries the content-save icon; Back carries
+    // arrow-left. OIcon is stubbed to expose `data-icon-name`, so this is
+    // unambiguous.
+    const findHeaderSave = (w: VueWrapper) =>
+      w.findAll('button').find((b) => b.find('[data-icon-name="content-save"]').exists());
+
+    it('renders an enabled header Save and routes clicks to saveConfig when entitled', async () => {
+      mockCanCustomSignup.value = true;
+      mockSignupInitialized.value = true;
+      mockSignupLoading.value = false;
+      mockDomain.value = { display_domain: 'example.com' };
+      wrapper = await mountComponent();
+
+      const saveBtn = findHeaderSave(wrapper);
+      // save-visible = canCustomSignup && isInitialized; the stub form's
+      // mounted can-save=true drives save-disabled off.
+      expect(saveBtn?.exists()).toBe(true);
+      expect(saveBtn!.attributes('disabled')).toBeUndefined();
+
+      await saveBtn!.trigger('click');
+      expect(mockSaveConfig).toHaveBeenCalledTimes(1);
+    });
+
+    it('hides the header Save when unentitled', async () => {
+      mockCanCustomSignup.value = false;
+      mockDomain.value = { display_domain: 'example.com' };
+      wrapper = await mountComponent();
+
+      expect(findHeaderSave(wrapper)).toBeUndefined();
     });
   });
 });
