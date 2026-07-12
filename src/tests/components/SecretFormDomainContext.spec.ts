@@ -137,6 +137,38 @@ describe('SecretForm - Domain Context Integration', () => {
       }
     });
 
+    it('hides context indicator on a custom domain (single fixed domain)', () => {
+      mockIsContextActive.value = true;
+
+      const wrapper = mount(SecretForm, {
+        props: { enabled: true },
+        global: {
+          plugins: [
+            createTestingPinia({
+              createSpy: vi.fn,
+              initialState: {
+                bootstrap: {
+                  domain_strategy: 'custom',
+                  display_domain: 'acme.example.com',
+                  secret_options: {
+                    passphrase: {
+                      required: false,
+                      minimum_length: 8,
+                      enforce_complexity: false,
+                    },
+                  },
+                },
+              },
+            }),
+          ],
+        },
+      });
+
+      // The "Creating links for" badge is noise when only one domain is possible.
+      const indicator = wrapper.find('[role="status"]');
+      expect(indicator.exists()).toBe(false);
+    });
+
     it.skip('displays correct domain name for custom domain', () => {
       // SKIP: Reactive mock computed properties don't propagate to template bindings.
       // The template uses {{ currentContext.displayName }} which evaluates at render time.

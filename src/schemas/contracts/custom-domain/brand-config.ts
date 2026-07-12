@@ -53,6 +53,20 @@ function stripHtmlTags(val: string | null | undefined): string | null | undefine
   return result.replace(/[<>]/g, '').trim();
 }
 
+/**
+ * Normalizes a hex color to 6-digit uppercase, expanding 3-digit shorthand
+ * (`#F00` → `#FF0000`). Assumes the value already passed the hex regex, so it
+ * only handles the 3-vs-6 digit expansion. Mirrors `BrandSettings.normalize_color`.
+ */
+function normalizeHex(val: string | null | undefined): string | null | undefined {
+  if (val == null) return val;
+  if (/^#[0-9A-F]{3}$/i.test(val)) {
+    const [, r, g, b] = val.split('');
+    return `#${r}${r}${g}${g}${b}${b}`.toUpperCase();
+  }
+  return val.toUpperCase();
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Brand settings canonical schema
 // ─────────────────────────────────────────────────────────────────────────────
@@ -60,18 +74,63 @@ function stripHtmlTags(val: string | null | undefined): string | null | undefine
 /**
  * Font family values for brand settings.
  *
+ * Curated allowlist of self-hosted (`slab` = Zilla Slab) and system font
+ * stacks. Kept in lockstep with the Ruby allowlist
+ * (BrandSettingsConstants::FONTS) and the CSS stacks in
+ * `src/shared/utils/brand-helpers.ts` (`fontFamilyStacks`). No free-form
+ * fonts — this stays a closed allowlist so the XSS boundary holds.
+ *
  * @category Contracts
  */
-export const fontFamilyValues = ['sans', 'serif', 'mono'] as const;
+export const fontFamilyValues = [
+  'sans',
+  'serif',
+  'mono',
+  'system',
+  'slab',
+  'rounded',
+  'humanist',
+  'geometric',
+] as const;
 export type FontFamily = (typeof fontFamilyValues)[number];
 
 /**
  * Corner style values for brand settings.
  *
+ * Legacy 3-value vocabulary. Retained for back-compat; `border_radius` (below)
+ * is the richer replacement and takes precedence when both are set.
+ *
  * @category Contracts
  */
 export const cornerStyleValues = ['rounded', 'pill', 'square'] as const;
 export type CornerStyle = (typeof cornerStyleValues)[number];
+
+/**
+ * Named border-radius presets. `border_radius` accepts one of these keywords or
+ * a whole number of pixels (0–64), both of which map to the `--radius-brand`
+ * CSS variable at runtime. Mirrors BrandSettingsConstants::RADII (Ruby).
+ *
+ * @category Contracts
+ */
+export const borderRadiusPresets = ['none', 'sm', 'md', 'lg', 'xl'] as const;
+export type BorderRadiusPreset = (typeof borderRadiusPresets)[number];
+
+/** Maximum pixel value accepted for a numeric `border_radius`. */
+export const BORDER_RADIUS_MAX_PX = 64;
+
+/**
+ * Validates a `border_radius` value: a named preset or an integer 0–64 (px),
+ * accepting numeric strings so HTTP params (always strings) validate the same
+ * as programmatic input. Mirrors `BrandSettings.valid_border_radius?` (Ruby).
+ */
+export function isValidBorderRadius(val: unknown): boolean {
+  if (val == null) return false;
+  const str = String(val).trim().toLowerCase();
+  if ((borderRadiusPresets as readonly string[]).includes(str)) return true;
+  if (!/^\d+$/.test(str)) return false;
+  const px = Number(str);
+  return px >= 0 && px <= BORDER_RADIUS_MAX_PX;
+}
 
 /**
  * Canonical brand settings contract.
@@ -102,6 +161,37 @@ export const brandSettingsCanonical = z
         }
         return val;
       })
+      .nullish(),
+
+    /**
+     * Secondary/accent brand color (hex). Drives the `--color-brand2-*` scale
+     * at runtime. Normalized to 6-digit uppercase like primary_color.
+     */
+    secondary_color: z
+      .string()
+      .regex(/^#(?:[0-9A-F]{6}|[0-9A-F]{3})$/i, 'Invalid hex color')
+      .transform(normalizeHex)
+      .nullish(),
+
+    /**
+     * Surface/background color (hex). Drives `--color-brandbg` at runtime.
+     */
+    background_color: z
+      .string()
+      .regex(/^#(?:[0-9A-F]{6}|[0-9A-F]{3})$/i, 'Invalid hex color')
+      .transform(normalizeHex)
+      .nullish(),
+
+    /**
+     * Body text color (hex). Drives `--color-brandtext` at runtime. Format-only
+     * validation (hex); WCAG contrast against background_color is surfaced as an
+     * advisory warning in the editor UI, not enforced server-side (product
+     * decision 2026-07).
+     */
+    text_color: z
+      .string()
+      .regex(/^#(?:[0-9A-F]{6}|[0-9A-F]{3})$/i, 'Invalid hex color')
+      .transform(normalizeHex)
       .nullish(),
 
     /** Legacy color field (deprecated). */
@@ -151,11 +241,29 @@ export const brandSettingsCanonical = z
     /** Whether button text should be light colored. */
     button_text_light: z.boolean().default(true),
 
-    /** Font family for the interface. */
+    /** Font family for the interface (body text). */
     font_family: z.enum(fontFamilyValues).default('sans'),
 
-    /** Corner style for UI elements. */
+    /**
+     * Optional separate font for headings. Falls back to `font_family` when
+     * unset. Same curated allowlist as `font_family`.
+     */
+    heading_font: z.enum(fontFamilyValues).nullish(),
+
+    /** Corner style for UI elements (legacy; see `border_radius`). */
     corner_style: z.enum(cornerStyleValues).default('rounded'),
+
+    /**
+     * Border radius: a named preset (`none|sm|md|lg|xl`) or a whole number
+     * of pixels 0–64 (accepted as string or number). Supersedes `corner_style`
+     * when set. Stored as-is; mapped to `--radius-brand` on the frontend.
+     */
+    border_radius: z
+      .union([z.string(), z.number()])
+      .refine(isValidBorderRadius, {
+        message: 'Invalid border radius - must be a preset or 0-64 px',
+      })
+      .nullish(),
 
     /** Locale/language code. */
     locale: z.string().default('en'),

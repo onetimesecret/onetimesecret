@@ -327,6 +327,39 @@ export function generateBrandPalette(
 }
 
 /**
+ * Generate a single 11-shade scale for an arbitrary CSS variable group.
+ *
+ * Unlike {@link generateBrandPalette} (which emits four groups from one seed —
+ * brand, branddim, and the two complements), this emits ONE group under the
+ * supplied prefix. Used for the expanded color vocabulary (#3646) where each
+ * additional configured color (e.g. `secondary_color`) gets its own scale
+ * (`--color-brand2-*`) rather than a derived complement.
+ *
+ * Keys are CSS variable names: `--color-<prefix>-500`, etc.
+ * Invalid input falls back to NEUTRAL_BRAND_DEFAULTS.primary_color.
+ *
+ * @param hex Seed color (6-digit hex, with or without leading #)
+ * @param prefix CSS variable group name (e.g. `brand2`)
+ */
+export function generateNamedScale(
+  hex: string | null,
+  prefix: string
+): BrandPalette {
+  const safeHex = (hex && isValidHex(hex))
+    ? normalizeHex(hex)
+    : FALLBACK_HEX;
+
+  const [baseL, baseC, baseH] = hexToOklch(safeHex);
+  const scale = generateScale(baseL, baseC, baseH);
+
+  const palette: BrandPalette = {};
+  for (const step of SHADE_STEPS) {
+    palette[`--color-${prefix}-${step}`] = scale[step];
+  }
+  return palette;
+}
+
+/**
  * Pre-computed default palette for validation and fallback.
  * Generated from the neutral brand fallback color.
  */

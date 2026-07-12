@@ -10,6 +10,10 @@ import { createPinia, setActivePinia } from 'pinia';
 import { nextTick } from 'vue';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+// Reconfigured per-test (mockResolvedValueOnce / mockRejectedValueOnce) to drive
+// the save success/failure paths.
+const mockUpdateSettings = vi.fn();
+
 const mockBrandStore = vi.fn(() => ({
   getSettings: (domainId: string) => {
     if (domainId === 'domain-1') {
@@ -23,6 +27,7 @@ const mockBrandStore = vi.fn(() => ({
     }
     return mockDefaultBranding;
   }),
+  updateSettings: mockUpdateSettings,
 }));
 
 const mockNotificationsStore = vi.fn(() => ({
@@ -31,6 +36,14 @@ const mockNotificationsStore = vi.fn(() => ({
 
 vi.mock('@/shared/stores/brandStore', () => ({
   useBrandStore: () => mockBrandStore(),
+}));
+
+// saveBranding resolves the API extid via the domains store; give it one domain.
+vi.mock('@/shared/stores/domainsStore', () => ({
+  useDomainsStore: () => ({
+    domains: [{ extid: 'domain-1', display_domain: 'domain-1.example.com' }],
+    fetchList: vi.fn(),
+  }),
 }));
 
 vi.mock('@/stores', () => ({
@@ -139,6 +152,31 @@ describe('useBranding', () => {
       brandSettings.value = { ...brandSettings.value, primary_color: '#f' };
       await nextTick();
       expect(brandSettings.value.button_text_light).toBe(false);
+    });
+  });
+
+  describe('saveBranding failure rollback', () => {
+    it('reverts the live preview to the last-saved settings when a save fails', async () => {
+      const saved = { ...mockCustomBrandingRed, primary_color: '#123456' };
+      mockUpdateSettings
+        .mockResolvedValueOnce(saved) // save #1 succeeds → establishes the snapshot
+        .mockRejectedValueOnce(new Error('server down')); // save #2 fails → rollback
+
+      const { brandSettings, saveBranding } = useBranding('domain-1');
+
+      // Save #1 (success) commits the last-saved snapshot.
+      await saveBranding({ primary_color: '#123456' });
+      expect(brandSettings.value.primary_color).toBe('#123456');
+
+      // User edits the working copy (preview updates live), then Save #2 fails.
+      brandSettings.value = { ...brandSettings.value, primary_color: '#ff0000' };
+      await saveBranding({ primary_color: '#ff0000' }).catch(() => {
+        /* wrap re-raises in the test double; the rollback is the assertion */
+      });
+
+      // The preview must snap back to the last-saved color, not linger on the
+      // rejected edit (which would masquerade as a successful save).
+      expect(brandSettings.value.primary_color).toBe('#123456');
     });
   });
 

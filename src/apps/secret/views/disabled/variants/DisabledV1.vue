@@ -57,7 +57,8 @@
       <div
         v-else-if="isBranded"
         :style="monogramStyle"
-        class="flex size-28 items-center justify-center rounded-3xl font-brand text-6xl font-extrabold tracking-tight text-white shadow-sm"
+        :class="[cornerClass ?? 'rounded-3xl', fontFamilyClass ?? 'font-brand']"
+        class="flex size-28 items-center justify-center text-6xl font-extrabold tracking-tight text-white shadow-sm"
         aria-hidden="true">
         {{ monogramInitial }}
       </div>
@@ -88,7 +89,8 @@
 
     <!-- Headline -->
     <h1
-      class="mt-5 max-w-2xl text-balance font-brand text-4xl font-extrabold leading-[1.05] tracking-tight text-gray-900 dark:text-white sm:text-5xl">
+      :class="headingFontClass ?? fontFamilyClass ?? 'font-brand'"
+      class="mt-5 max-w-2xl text-balance text-4xl font-extrabold leading-[1.05] tracking-tight text-gray-900 dark:text-white sm:text-5xl">
       <i18n-t
         v-if="isBranded"
         keypath="homepage_secrets.disabled.team_link_headline"
@@ -129,7 +131,8 @@
         v-if="ssoOneClick"
         type="button"
         data-testid="disabled-homepage-sso"
-        class="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-brand-600 px-7 py-3.5 font-sans text-[15px] font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+        :class="cornerClass ?? 'rounded-xl'"
+        class="inline-flex cursor-pointer items-center gap-2 bg-brand-600 px-7 py-3.5 font-sans text-[15px] font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
         @click="onSsoLogin">
         {{
           ssoProviderName
@@ -145,7 +148,8 @@
         v-else-if="showSignin"
         to="/signin"
         data-testid="disabled-homepage-signin"
-        class="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-7 py-3.5 font-sans text-[15px] font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
+        :class="cornerClass ?? 'rounded-xl'"
+        class="inline-flex items-center gap-2 bg-brand-600 px-7 py-3.5 font-sans text-[15px] font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
         {{ $t('homepage_secrets.disabled.signin_cta') }}
         <OIcon
           collection="heroicons"

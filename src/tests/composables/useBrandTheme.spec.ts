@@ -17,7 +17,7 @@ import {
   vi,
 } from 'vitest';
 import { effectScope, nextTick, ref } from 'vue';
-import { generateBrandPalette } from '@/utils/brand-palette';
+import { generateBrandPalette, generateNamedScale } from '@/utils/brand-palette';
 import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
 
 const NEUTRAL_HEX = NEUTRAL_BRAND_DEFAULTS.primary_color; // '#3B82F6'
@@ -31,7 +31,13 @@ const ALL_KEYS = Object.keys(generateBrandPalette(NEUTRAL_HEX));
 // them through storeToRefs(useProductIdentity()).
 
 const mockPrimaryColor = ref<string | null | undefined>(NEUTRAL_HEX);
-const mockBrand = ref<{ favicon_url?: string | null } | undefined>(undefined);
+const mockBrand = ref<{
+  favicon_url?: string | null;
+  secondary_color?: string | null;
+  background_color?: string | null;
+  text_color?: string | null;
+  border_radius?: string | number | null;
+} | undefined>(undefined);
 
 vi.mock('@/shared/stores/identityStore', () => ({
   useProductIdentity: () => ({}),
@@ -143,6 +149,26 @@ describe('useBrandTheme', () => {
       const greenPalette = generateBrandPalette('#22c55e');
       expect(getVar('--color-brand-500')).toBe(greenPalette['--color-brand-500']);
       expect(getVar('--color-brand-500')).not.toBe(orangePalette['--color-brand-500']);
+
+      scope.stop();
+    });
+
+    it('injects the secondary scale even when secondary_color equals the primary neutral', async () => {
+      // Regression (#3646 review): the secondary scale must NOT be gated against
+      // the PRIMARY neutral default. A domain that sets secondary_color to
+      // #3B82F6 (== NEUTRAL_BRAND_DEFAULTS.primary_color) must still get a
+      // blue-derived --color-brand2-* scale, not the unrelated slate @theme
+      // default it would fall back to if the override were skipped.
+      const scope = effectScope();
+      scope.run(() => useBrandTheme());
+
+      mockBrand.value = { secondary_color: NEUTRAL_HEX };
+      await nextTick();
+
+      const expected = generateNamedScale(NEUTRAL_HEX, 'brand2');
+      expect(getVar('--color-brand2-500')).toBe(expected['--color-brand2-500']);
+      // Sanity: the injected value is the blue-derived scale, not the slate default.
+      expect(getVar('--color-brand2-500')).not.toBe('#64748b');
 
       scope.stop();
     });

@@ -21,7 +21,7 @@
   },
   "web.admin.customers.list.searchPlaceholder": {
     "text": "Search by email, extid, or objid",
-    "content_hash": "f2462809"
+    "content_hash": "c06d5a3b"
   },
   "web.admin.customers.list.emptySearch": {
     "text": "No customers match this search",
@@ -80,7 +80,8 @@
     "content_hash": "077807fb"
   },
   "web.admin.customers.detail.openFullPage": {
-    "text": "Open full page"
+    "text": "Open full page",
+    "content_hash": "a467911c"
   },
   "web.admin.customers.detail.notFound": {
     "text": "Customer not found",
@@ -299,22 +300,28 @@
     "content_hash": "0c33aa24"
   },
   "web.admin.customers.actions.plan.label": {
-    "text": "Plan"
+    "text": "Plan",
+    "content_hash": "fa8ed0bd"
   },
   "web.admin.customers.actions.plan.apply": {
-    "text": "Apply"
+    "text": "Apply",
+    "content_hash": "31e392d1"
   },
   "web.admin.customers.actions.plan.confirmTitle": {
-    "text": "Change plan?"
+    "text": "Change plan?",
+    "content_hash": "910a4de9"
   },
   "web.admin.customers.actions.plan.confirmDescription": {
-    "text": "Change {email} to the {plan} plan."
+    "text": "Change {email} to the {plan} plan.",
+    "content_hash": "83fb4158"
   },
   "web.admin.customers.actions.plan.success": {
-    "text": "Plan updated."
+    "text": "Plan updated.",
+    "content_hash": "ebe8d40c"
   },
   "web.admin.customers.actions.plan.localConfigWarning": {
-    "text": "Plans loaded from local config — Stripe is not configured or unreachable."
+    "text": "Plans loaded from local config — Stripe is not configured or unreachable.",
+    "content_hash": "df83e326"
   },
   "web.admin.customers.actions.verify.button": {
     "text": "Verify",
@@ -405,57 +412,75 @@
     "content_hash": "6145e5c8"
   },
   "web.admin.customers.detail.sessions.title": {
-    "text": "Active Sessions"
+    "text": "Active Sessions",
+    "content_hash": "b58fa4e0"
   },
   "web.admin.customers.detail.sessions.empty": {
-    "text": "No active sessions."
+    "text": "No active sessions.",
+    "content_hash": "6f064eb9"
   },
   "web.admin.customers.detail.sessions.loadError": {
-    "text": "Unable to load sessions."
+    "text": "Unable to load sessions.",
+    "content_hash": "d2884313"
   },
   "web.admin.customers.detail.sessions.unknown": {
-    "text": "Unknown"
+    "text": "Unknown",
+    "content_hash": "b764cdc0"
   },
   "web.admin.customers.detail.sessions.columns.lastActivity": {
-    "text": "Last activity"
+    "text": "Last activity",
+    "content_hash": "06475633"
   },
   "web.admin.customers.detail.sessions.columns.ipAddress": {
-    "text": "IP address"
+    "text": "IP address",
+    "content_hash": "0302a467"
   },
   "web.admin.customers.detail.sessions.columns.device": {
-    "text": "Device"
+    "text": "Device",
+    "content_hash": "6ba0bdec"
   },
   "web.admin.customers.detail.sessions.columns.authMethod": {
-    "text": "Auth method"
+    "text": "Auth method",
+    "content_hash": "bc4ea262"
   },
   "web.admin.customers.detail.sessions.columns.actions": {
-    "text": "Actions"
+    "text": "Actions",
+    "content_hash": "ff8059dc"
   },
   "web.admin.customers.detail.sessions.revoke.button": {
-    "text": "Revoke"
+    "text": "Revoke",
+    "content_hash": "87e6d00b"
   },
   "web.admin.customers.detail.sessions.revoke.confirmTitle": {
-    "text": "Revoke session?"
+    "text": "Revoke session?",
+    "content_hash": "7735d1ef"
   },
   "web.admin.customers.detail.sessions.revoke.confirmDescription": {
-    "text": "This immediately signs the user out of this session. They will need to sign in again."
+    "text": "This immediately signs the user out of this session. They will need to sign in again.",
+    "content_hash": "b4291af0"
   },
   "web.admin.customers.detail.sessions.revoke.success": {
-    "text": "Session revoked."
+    "text": "Session revoked.",
+    "content_hash": "5e4762e5"
   },
   "web.admin.customers.detail.sessions.revokeAll.button": {
-    "text": "Revoke all"
+    "text": "Revoke all",
+    "content_hash": "c6847a4b"
   },
   "web.admin.customers.detail.sessions.revokeAll.confirmTitle": {
-    "text": "Revoke every session?"
+    "text": "Revoke every session?",
+    "content_hash": "a4fa4c65"
   },
   "web.admin.customers.detail.sessions.revokeAll.confirmDescription": {
-    "text": "This signs the user out of every device and browser — including sessions not shown in this list — and locks out their authenticated routes immediately. Use for offboarding or a suspected account takeover. Type the user's ID to confirm."
+    "text": "This signs the user out of every device and browser — including sessions not shown in this list — and locks out their authenticated routes immediately. Use for offboarding or a suspected account takeover. Type the user's ID to confirm.",
+    "content_hash": "483cdd88"
   },
   "web.admin.customers.detail.sessions.revokeAll.success": {
-    "text": "Revoked all sessions ({count} killed)."
+    "text": "Revoked all sessions ({count} killed).",
+    "content_hash": "4e1cce55"
   },
   "web.admin.customers.detail.sessions.revokeAll.capped": {
-    "text": "Killed {count} sessions, but the untracked-session sweep was truncated — an older session may remain. Re-run to be sure."
+    "text": "Killed {count} sessions, but the untracked-session sweep was truncated — an older session may remain. Re-run to be sure.",
+    "content_hash": "e3d295a6"
   }
 }

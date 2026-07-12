@@ -2,19 +2,17 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-  import { useProductIdentity } from '@/shared/stores/identityStore';
+  import BrandedHero from '@/apps/secret/components/branded/BrandedHero.vue';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { isSsoEnabled, isOrgsSsoEnabled } from '@/utils/features';
   import type { LayoutProps } from '@/types/ui/layouts';
-  import { ref, computed } from 'vue';
+  import { computed } from 'vue';
   import { storeToRefs } from 'pinia';
 
   const { t } = useI18n();
 
-  const productIdentity = useProductIdentity();
   const bootstrapStore = useBootstrapStore();
   const { authentication, homepage_config } = storeToRefs(bootstrapStore);
-  const imageError = ref(false);
 
   /**
    * Per-domain gate for the auth nav links. Defaults to disabled — the links
@@ -59,10 +57,6 @@
     && authentication.value?.signup === true
     && domainSignupEnabled.value
   );
-
-  const handleImageError = () => {
-    imageError.value = true;
-  };
 
   interface Props extends LayoutProps {
     headertext: string;
@@ -113,60 +107,10 @@
     </nav>
 
     <div class="container mx-auto max-w-2xl px-4">
-      <div class="flex flex-col items-center gap-8">
-        <!-- Logo Section -->
-        <div
-          class="relative"
-          role="region"
-          :aria-label="t('web.layout.brand_logo')">
-          <router-link to="/">
-            <div
-              :class="[
-                productIdentity.cornerClass,
-                'flex size-16 items-center justify-center overflow-hidden bg-gray-100 transition-all duration-200 dark:bg-gray-800',
-              ]">
-              <img
-                v-if="productIdentity.logoUri && !imageError"
-                :src="productIdentity.logoUri"
-                :alt="productIdentity.displayName"
-                class="size-16 object-contain"
-                :class="productIdentity.cornerClass"
-                @error="handleImageError" />
-              <!-- Updated placeholder icon to match SecretPreview -->
-              <svg
-                v-else
-                class="size-8 text-gray-400 dark:text-gray-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-          </router-link>
-        </div>
-
-        <!-- Content Section -->
-        <div
-          class="space-y-3 text-center"
-          :class="[
-            productIdentity.fontFamilyClass,
-            productIdentity.cornerClass,
-          ]">
-          <h1
-            class="text-2xl font-medium text-gray-900 dark:text-gray-100 sm:text-3xl"
-            :class="productIdentity.fontFamilyClass">
-            {{ headertext }}
-          </h1>
-          <p
-            class="mx-auto max-w-md text-sm text-gray-600 dark:text-gray-300 sm:text-base">
-            {{ subtext }}
-          </p>
-        </div>
-      </div>
+      <BrandedHero
+        :title="headertext"
+        :subtitle="subtext"
+        logo-link-to="/" />
     </div>
   </div>
 </template>

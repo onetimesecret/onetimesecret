@@ -104,7 +104,8 @@
     "content_hash": "c1c224b0"
   },
   "web.colonel.backToSite": {
-    "text": "Back to site"
+    "text": "Back to site",
+    "content_hash": "4ee0f819"
   },
   "web.colonel.activity": {
     "text": "Activity",
@@ -735,13 +736,16 @@
     "content_hash": "42955289"
   },
   "web.colonel.customDomains.labels.domain": {
-    "text": "Domain"
+    "text": "Domain",
+    "content_hash": "79fa3361"
   },
   "web.colonel.customDomains.labels.status": {
-    "text": "Status"
+    "text": "Status",
+    "content_hash": "920e413c"
   },
   "web.colonel.customDomains.labels.actions": {
-    "text": "Actions"
+    "text": "Actions",
+    "content_hash": "ff8059dc"
   },
   "web.colonel.customDomains.status.verified": {
     "text": "Verified",
@@ -844,21 +848,27 @@
     "content_hash": "f0df6412"
   },
   "web.colonel.nav.consoleTag": {
-    "text": "Console"
+    "text": "Console",
+    "content_hash": "29a40861"
   },
   "web.colonel.nav.groups.identity": {
-    "text": "Identity"
+    "text": "Identity",
+    "content_hash": "999f23fc"
   },
   "web.colonel.nav.groups.security": {
-    "text": "Access & Security"
+    "text": "Access & Security",
+    "content_hash": "abb29a3f"
   },
   "web.colonel.nav.groups.platform": {
-    "text": "Platform"
+    "text": "Platform",
+    "content_hash": "c78ffe19"
   },
   "web.colonel.nav.groups.billing": {
-    "text": "Billing"
+    "text": "Billing",
+    "content_hash": "3ac8bbca"
   },
   "web.colonel.nav.groups.communications": {
-    "text": "Communications"
+    "text": "Communications",
+    "content_hash": "919a9253"
   }
 }

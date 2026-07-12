@@ -26,17 +26,27 @@
  *
  * Only globally-available methods are offered in either method mode —
  * otherwise a restrict_to value with no backing method would yield a blank
- * login page.
+ * login page. SSO is additionally gated on the manage-SSO entitlement
+ * (canManageSso): without it the org cannot configure SSO credentials, so
+ * enabling or restricting to SSO could never produce a working method — the
+ * toggle and radio render locked instead.
  *
  * Everything auto-saves (PUT is full-replacement); there is no Save button.
+ *
+ * Materialize-on-touch (ADR-024): while the domain follows workspace
+ * defaults the form shows the SEEDED inherited state, and any click on a
+ * mode or method — even one matching what is already shown — persists an
+ * explicit override (the composable forces `enabled: true` on every save).
+ * That's why the no-change early-returns are bypassed when
+ * `workspaceDefault` is true: the value may not change, but the pin must.
  */
-import { useI18n } from 'vue-i18n';
-import { computed, ref, watch } from 'vue';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import ToggleWithIcon from '@/shared/components/common/ToggleWithIcon.vue';
-import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
 import type { SigninRestrictTo } from '@/schemas/shapes/domains/signin-config';
+import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
+import ToggleWithIcon from '@/shared/components/common/ToggleWithIcon.vue';
+import OIcon from '@/shared/components/icons/OIcon.vue';
 import type { SigninConfigFormState } from '@/shared/composables/useSigninConfig';
+import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // ---------------------------------------------------------------------------
 // Props
@@ -49,6 +59,13 @@ const props = defineProps<{
   isSaving: boolean;
   isDeleting: boolean;
   isConfigured: boolean;
+  /**
+   * True while the domain follows workspace defaults (no explicit override,
+   * ADR-024). The form then shows the seeded inherited state, and clicking a
+   * mode/method that matches it must still save (materialize the pin) — the
+   * no-change early-returns are bypassed.
+   */
+  workspaceDefault: boolean;
   ssoConfigured: boolean;
   canManageSso: boolean;
   /**
@@ -187,6 +204,11 @@ interface MethodRow {
   label: string;
   /** Short descriptor shown in Mode B / as the method blurb. */
   blurb: string;
+  /**
+   * False when the method is listed for visibility but locked — currently
+   * only SSO without the manage-SSO entitlement. Globally-unavailable
+   * methods are omitted from the list entirely, never rendered locked.
+   */
   available: boolean;
 }
 
@@ -213,7 +235,10 @@ const restrictMethods = computed<MethodRow[]>(() => {
       value: 'sso',
       label: t('web.domains.signin.method_sso'),
       blurb: t('web.domains.signin.method_sso_blurb'),
-      available: true,
+      // Kept visible when unentitled (the lock badge is the upgrade prompt)
+      // but not selectable: without the entitlement the org cannot configure
+      // SSO credentials, so restrict_to=sso would dead-end the login page.
+      available: props.canManageSso,
     });
   }
   // WebAuthn / Passkeys listed last.
@@ -250,7 +275,14 @@ const selectModeAny = () => {
   const patch: Partial<SigninConfigFormState> = {};
   if (props.formState.restrict_to !== null) patch.restrict_to = null;
   if (!props.formState.signin_enabled) patch.signin_enabled = true;
-  if (Object.keys(patch).length === 0) return;
+  if (Object.keys(patch).length === 0) {
+    // Nothing changes value-wise; while following workspace defaults the
+    // click still materializes the pin (ADR-024) — an empty patch saves the
+    // seeded snapshot verbatim as an explicit override.
+    if (!props.workspaceDefault) return;
+    emit('auto-save', {}, 'restrict_to');
+    return;
+  }
   // Attribute the saving indicator to restrict_to only when it is actually
   // in the patch; a pure re-enable from "Sign-in disabled" (restrict_to
   // already null) saves signin_enabled alone.
@@ -269,13 +301,24 @@ const selectModeOne = () => {
   oneSelectedIntent.value = true;
   if (!props.formState.signin_enabled) {
     emit('auto-save', { signin_enabled: true }, 'signin_enabled');
+  } else if (props.workspaceDefault && props.formState.restrict_to !== null) {
+    // The inherited state already restricts to a method (seeded from the
+    // global restrict_to), so this mode is pre-active and nothing changes
+    // value-wise — but the click still materializes the pin (ADR-024) via
+    // an empty patch. With restrict_to null nothing persists until a method
+    // is actually picked.
+    emit('auto-save', {}, 'restrict_to');
   }
 };
 
-/** Switch to "Sign-in disabled": persists signin_enabled=false immediately. */
+/**
+ * Switch to "Sign-in disabled": persists signin_enabled=false immediately.
+ * While following workspace defaults, an inherited-disabled state still
+ * saves on click — same value, but it materializes the pin (ADR-024).
+ */
 const selectModeDisabled = () => {
   oneSelectedIntent.value = false;
-  if (props.formState.signin_enabled) {
+  if (props.formState.signin_enabled || props.workspaceDefault) {
     emit('auto-save', { signin_enabled: false }, 'signin_enabled');
   }
 };
@@ -290,11 +333,28 @@ const selectModeDisabled = () => {
  * the user's Mode A settings intact for when they switch back.
  */
 const selectMethod = (value: SigninRestrictTo) => {
+  // Disabled radios fire no events, but guard anyway: restricting to SSO
+  // without the manage-SSO entitlement must be unexpressible.
+  if (value === 'sso' && !props.canManageSso) return;
   const patch: Partial<SigninConfigFormState> = { restrict_to: value };
   if (value === 'email_auth') patch.email_auth_enabled = true;
   if (value === 'sso') patch.sso_enabled = true;
   if (!props.formState.signin_enabled) patch.signin_enabled = true;
   emit('auto-save', patch, 'restrict_to');
+};
+
+/**
+ * An already-checked radio fires no `change` event on click. While following
+ * workspace defaults the seeded method can be pre-checked, and clicking it
+ * must still materialize the pin (ADR-024) — so route that one case through
+ * selectMethod from `click`. Unchecked radios fall through to `change`
+ * (restrict_to differs at click time), so nothing double-saves.
+ */
+const onMethodClick = (value: SigninRestrictTo) => {
+  if (props.isSaving) return;
+  if (props.workspaceDefault && props.formState.restrict_to === value) {
+    selectMethod(value);
+  }
 };
 
 const handleDelete = () => {
@@ -465,7 +525,7 @@ const handleDelete = () => {
               v-if="canManageSso"
               type="button"
               @click="emit('configure-sso')"
-              class="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+              class="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
               <OIcon
                 collection="heroicons"
                 name="cog-6-tooth"
@@ -483,9 +543,13 @@ const handleDelete = () => {
                 aria-hidden="true" />
               {{ t('web.domains.sso.upgrade_required') }}
             </span>
+            <!-- Locked without the manage-SSO entitlement: the org cannot
+                 configure SSO credentials, so the method can never activate —
+                 showing an operable "Enabled" next to the upgrade lock would
+                 contradict it. -->
             <ToggleWithIcon
-              :enabled="Boolean(formState.sso_enabled) && ssoAvailable"
-              :disabled="isSaving || !ssoAvailable"
+              :enabled="Boolean(formState.sso_enabled) && ssoAvailable && canManageSso"
+              :disabled="isSaving || !ssoAvailable || !canManageSso"
               :loading="savingField === 'sso_enabled'"
               :on-label="t('web.COMMON.enabled')"
               :off-label="t('web.COMMON.disabled')"
@@ -538,10 +602,13 @@ const handleDelete = () => {
             v-for="method in restrictMethods"
             :key="method.value"
             :class="[
-              'relative flex cursor-pointer items-center justify-between rounded-lg border p-4 focus-within:ring-2 focus-within:ring-brand-500 focus-within:ring-offset-2',
+              'relative flex items-center justify-between rounded-lg border p-4 focus-within:ring-2 focus-within:ring-brand-500 focus-within:ring-offset-2',
+              method.available ? 'cursor-pointer' : 'cursor-not-allowed opacity-60',
               formState.restrict_to === method.value
                 ? 'border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-900/20'
-                : 'border-gray-300 bg-white hover:border-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:hover:border-gray-500',
+                : method.available
+                  ? 'border-gray-300 bg-white hover:border-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:hover:border-gray-500'
+                  : 'border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-700',
             ]">
             <span class="flex items-start gap-3">
               <input
@@ -550,8 +617,9 @@ const handleDelete = () => {
                 name="restrict_to"
                 :value="method.value"
                 :checked="formState.restrict_to === method.value"
-                :disabled="isSaving"
+                :disabled="isSaving || !method.available"
                 @change="selectMethod(method.value)"
+                @click="onMethodClick(method.value)"
                 class="mt-0.5 size-4 border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-gray-600"
                 :aria-describedby="`signin-restrict-${method.value}-description`" />
               <span class="flex flex-1 flex-col">
@@ -578,7 +646,7 @@ const handleDelete = () => {
                 v-if="canManageSso"
                 type="button"
                 @click.prevent="emit('configure-sso')"
-                class="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+                class="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
                 <OIcon
                   collection="heroicons"
                   name="cog-6-tooth"
@@ -614,7 +682,7 @@ const handleDelete = () => {
             type="button"
             @click="showDeleteConfirm = true"
             :disabled="isDeleting || isSaving"
-            class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+            class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
             <OIcon
               collection="heroicons"
               name="arrow-uturn-left"
@@ -645,7 +713,7 @@ const handleDelete = () => {
               type="button"
               @click="showDeleteConfirm = false"
               :disabled="isDeleting"
-              class="inline-flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+              class="inline-flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
               {{ t('web.COMMON.word_cancel') }}
             </button>
           </div>

@@ -24,7 +24,7 @@ import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { ENTITLEMENTS } from '@/types/organization';
 import { storeToRefs } from 'pinia';
-import { computed, onMounted, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { onBeforeRouteLeave } from 'vue-router';
@@ -112,6 +112,10 @@ const handleFormStateUpdate = (state: EmailConfigFormState) => {
   formState.value = state;
 };
 
+// The primary Save ("Update") lives in the page header. The form owns validity,
+// so it emits `can-save`; the header's Save button is disabled unless it's true.
+const formCanSave = ref(false);
+
 // ---------------------------------------------------------------------------
 // Navigation
 // ---------------------------------------------------------------------------
@@ -155,30 +159,20 @@ watch(hasEntitlement, async (entitled) => {
 
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-    <!-- Back button -->
-    <div class="mx-auto max-w-4xl px-4 pt-4 sm:px-6 lg:px-8">
-      <div class="mb-4">
-        <button
-          type="button"
-          class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-          @click="handleBack">
-          <OIcon
-            collection="heroicons"
-            name="arrow-left"
-            class="size-5"
-            aria-hidden="true" />
-          {{ t('web.COMMON.back') }}
-        </button>
-      </div>
-    </div>
-
-    <!-- Header Section -->
+    <!-- Header Section. Back folded into the header row (opt-in affordance),
+         so there's no separate Back row above it. -->
     <div class="sticky top-0 z-30">
       <DomainHeader
         :domain="customDomainRecord"
         :has-unsaved-changes="hasUnsavedChanges"
         :orgid="props.orgid"
-        external-path="/" />
+        external-path="/"
+        back-visible
+        :save-visible="hasEntitlement && isInitialized"
+        :save-disabled="!formCanSave"
+        :save-loading="isSaving"
+        @back="handleBack"
+        @save="saveConfig" />
     </div>
 
     <!-- Content -->
@@ -268,7 +262,8 @@ watch(hasEntitlement, async (entitled) => {
                 @save="saveConfig"
                 @discard="discardChanges"
                 @delete="deleteConfig"
-                @test="sendTestEmail" />
+                @test="sendTestEmail"
+                @can-save="formCanSave = $event" />
 
               <!-- DNS Records Section (shown when config exists) -->
               <DomainEmailDnsRecords

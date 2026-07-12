@@ -10,11 +10,16 @@ import {
   RESOLVED_LOGO_COMPONENT,
   resolveProductName,
 } from '@/shared/constants/brand';
-import { cornerStyleClasses, fontFamilyClasses } from '@/shared/utils/brand-helpers';
+import {
+  cornerStyleClasses,
+  resolveBodyFontClass,
+  resolveHeadingFontClass,
+} from '@/shared/utils/brand-helpers';
 import { gracefulParse } from '@/utils/schemaValidation';
 import { defineStore, storeToRefs } from 'pinia';
 import { computed, reactive, toRefs, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+
 import { useBootstrapStore } from './bootstrapStore';
 
 export const DEFAULT_CORNER_CLASS = 'rounded-lg';
@@ -292,17 +297,25 @@ export const useProductIdentity = defineStore('productIdentity', () => {
       (isCustom.value ? DEFAULT_LOGO_COMPONENT : RESOLVED_LOGO_COMPONENT)
   );
 
-  const cornerClass = computed(() =>
-    state.brand?.corner_style
+  // border_radius (#3646) supersedes corner_style when set: it resolves to the
+  // `rounded-brand` utility backed by the runtime-injected `--radius-brand`
+  // variable, lifting the old 3-value corner_style ceiling. corner_style is the
+  // back-compat fallback for domains that predate the numeric radius.
+  const cornerClass = computed(() => {
+    if (state.brand?.border_radius != null && state.brand.border_radius !== '') {
+      return 'rounded-brand';
+    }
+    return state.brand?.corner_style
       ? cornerStyleClasses[state.brand.corner_style] ?? DEFAULT_CORNER_CLASS
-      : DEFAULT_CORNER_CLASS
-  );
+      : DEFAULT_CORNER_CLASS;
+  });
 
-  const fontFamilyClass = computed(() =>
-    state.brand?.font_family
-      ? fontFamilyClasses[state.brand.font_family] ?? ''
-      : ''
-  );
+  const fontFamilyClass = computed(() => resolveBodyFontClass(state.brand));
+
+  // Heading font (#3646): headings bind headingFontClass, body text binds
+  // fontFamilyClass. The ladder (heading_font wins, font_family backfills)
+  // lives in the brand-helpers resolvers.
+  const headingFontClass = computed(() => resolveHeadingFontClass(state.brand));
 
   const preRevealInstructions = computed(
     () => state.brand?.instructions_pre_reveal?.trim() || t('web.shared.pre_reveal_default')
@@ -322,6 +335,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     logoUri,
     cornerClass,
     fontFamilyClass,
+    headingFontClass,
     preRevealInstructions,
     postRevealInstructions,
 
