@@ -79,6 +79,18 @@ VISUAL_ENV=(
   BILLING_ENABLED=false
   AUTH_SIGNUP=true
   AUTH_SIGNIN=true
+  # Canonical-install branding + i18n. Unpinned, a bare env (CI) renders the
+  # neutral "Secure Links" fallback with no header logo and no language
+  # toggle, while a dev shell renders whatever its BRAND_* exports say —
+  # either way the baselines stop being reproducible elsewhere.
+  "BRAND_PRODUCT_NAME=Onetime Secret"
+  BRAND_LOGO_URL=img/onetime-logo-v3-xl.svg
+  "BRAND_PRIMARY_COLOR=#3B82F6"
+  BRAND_CORNER_STYLE=square
+  BRAND_FONT_FAMILY=serif
+  BRAND_BUTTON_TEXT_LIGHT=true
+  I18N_ENABLED=true
+  I18N_DEFAULT_LOCALE=en
   # Pinned for environment determinism (and prod parity — prod runs full).
   # The noauth visual pages currently render identically across auth modes,
   # but an ambient mode flip must never become a screenshot variable. The DB
