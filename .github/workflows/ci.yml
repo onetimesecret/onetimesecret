@@ -230,6 +230,51 @@ jobs:
       - name: Run linting
         run: pnpm lint
 
+  # Runs the pre-commit hygiene hooks (whitespace, EOF, private-key,
+  # merge-conflict, large-file) that no other CI job covers — a safety net for
+  # commits pushed with `--no-verify` or without hooks installed. Scoped to the
+  # PR diff (base..head), NOT --all-files, so pre-existing debt in untouched
+  # files never fails the job. ESLint/RuboCop are skipped here (the T1 lint jobs
+  # own them); no-commit-to-branch is a local-only guard.
+  hygiene:
+    name: T1 · Hygiene (pre-commit)
+    timeout-minutes: 3
+    runs-on: *runs-on
+    # Hygiene isn't path-gated (applies to any file type), but needs a PR diff to
+    # scope to — workflow_dispatch has none, so restrict to pull_request.
+    if: github.event_name == 'pull_request'
+    steps:
+      # fetch-depth: 0 — pre-commit's --from-ref/--to-ref needs both the base and
+      # head commits present; the default shallow checkout lacks the base.
+      - name: Checkout code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Cache pre-commit environments
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Run hygiene hooks on the PR diff
+        # SHAs are GitHub-computed hex (not injectable like head.ref/titles), but
+        # routed through env per workflow-injection best practice all the same.
+        env:
+          SKIP: eslint-staged,rubocop,no-commit-to-branch
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          pipx run pre-commit run \
+            --from-ref "$BASE_SHA" \
+            --to-ref "$HEAD_SHA" \
+            --show-diff-on-failure
+
   i18n-validate:
     name: T1 · i18n Validation
     timeout-minutes: 2
