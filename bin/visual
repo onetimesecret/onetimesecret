@@ -210,6 +210,10 @@ if [[ "$MODE" != "seed-only" ]]; then
     exit 1
   fi
 
+  # Fresh checkouts (CI) have no tmp/ — without it the log redirect fails
+  # and the backgrounded boot dies instantly with no log to show.
+  mkdir -p "$(dirname "$SERVER_LOG")"
+
   echo "Booting bin/ots server on :$PORT (log: $SERVER_LOG)..."
   env "${VISUAL_ENV[@]}" bin/ots server --port="$PORT" >"$SERVER_LOG" 2>&1 &
   SERVER_PID=$!
