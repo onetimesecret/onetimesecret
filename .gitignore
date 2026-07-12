@@ -124,6 +124,9 @@ blob-report/
 playwright/.cache/
 # Saved authenticated session (e2e/global.setup.ts) - never commit
 e2e/.auth/
+e2e/visual/.artifacts/
+# Backstop against committing macOS baselines (Linux baselines only)
+e2e/visual/**/*-darwin.png
 *.egg-info/
 
 # Local direnv overlay markers in test lanes (tests/lanes/README.md)

@@ -72,6 +72,7 @@
           :class="cornerClass"
           class="h-16 w-auto max-w-full object-contain sm:h-20"
           :alt="displayName"
+          data-testid="brand-logo"
           @error="handleImageError" />
       </component>
     </div>

@@ -27,6 +27,46 @@ const sandboxLaunchOptions = existsSync(SANDBOX_CHROMIUM)
   : {};
 
 /**
+ * Sandbox/local escape hatch for the a11y suite: when A11Y_CHROME_PATH is
+ * set (e.g. to a pre-installed Chromium in an egress-blocked sandbox),
+ * launch that binary instead of Playwright's managed download. Unset in
+ * real CI, where `playwright install chromium` provisions the pinned
+ * build — CI then falls through to the sandbox detection above (a no-op
+ * there) and uses the default browser.
+ *
+ * Merged into ONE object because an object literal may define
+ * `launchOptions` only once — a second key silently wins and turns the
+ * first into dead code (which is exactly what happened to the sandbox
+ * path before this merge). Explicit A11Y_CHROME_PATH wins over the
+ * baked-in sandbox path.
+ */
+const chromiumLaunchOptions = {
+  ...sandboxLaunchOptions,
+  ...(process.env.A11Y_CHROME_PATH
+    ? { executablePath: process.env.A11Y_CHROME_PATH }
+    : {}),
+};
+
+/**
+ * Visual regression lane (e2e/visual/): branded fixtures live on
+ * *.example.com and the canonical host on *.example.org — distinct
+ * registrable domains on purpose, so the branded hosts classify :custom
+ * rather than same-domain :canonical peers. Chromium resolves both
+ * wildcards to VISUAL_RESOLVER_TARGET (127.0.0.1 locally; bin/visual
+ * points it at the container host for podman) so no /etc/hosts edits are
+ * needed. Spread chromiumLaunchOptions first: a project-level
+ * `use.launchOptions` replaces the shared one wholesale (per-property
+ * shallow override), it does not merge.
+ */
+const visualResolverTarget = process.env.VISUAL_RESOLVER_TARGET || '127.0.0.1';
+const visualLaunchOptions = {
+  ...chromiumLaunchOptions,
+  args: [
+    `--host-resolver-rules=MAP *.example.com ${visualResolverTarget}, MAP *.example.org ${visualResolverTarget}`,
+  ],
+};
+
+/**
  * Authenticated session produced by global.setup.ts and consumed by the
  * `full` / `full-billing` projects via `storageState`. Absolute on purpose
  * so writer (setup script) and readers (project `use` blocks) agree on one
@@ -96,8 +136,10 @@ export default defineConfig({
     /* Base URL - uses PLAYWRIGHT_BASE_URL if set, otherwise defaults to local server */
     baseURL: process.env.PLAYWRIGHT_BASE_URL || DEFAULT_LOCAL_URL,
 
-    /* See SANDBOX_CHROMIUM above - no-op outside the preinstalled sandbox. */
-    launchOptions: sandboxLaunchOptions,
+    /* Sandbox executablePath + A11Y_CHROME_PATH override, merged in ONE
+     * expression — see chromiumLaunchOptions above. No-op outside
+     * preinstalled-browser sandboxes. */
+    launchOptions: chromiumLaunchOptions,
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -116,15 +158,6 @@ export default defineConfig({
 
     /* Global timeout for navigation actions */
     navigationTimeout: 15000,
-
-    /* Sandbox/local escape hatch for the a11y suite: when A11Y_CHROME_PATH is
-     * set (e.g. to a pre-installed Chromium in an egress-blocked sandbox),
-     * launch that binary instead of Playwright's managed download. Unset in
-     * real CI, where `playwright install chromium` provisions the pinned
-     * build — so this stays undefined and CI uses the default browser. */
-    launchOptions: process.env.A11Y_CHROME_PATH
-      ? { executablePath: process.env.A11Y_CHROME_PATH }
-      : undefined,
   },
 
   /* Configure projects.
@@ -158,7 +191,7 @@ export default defineConfig({
       // signup/SSO-CSRF flows). Keep the historical project name so existing
       // `--project=chromium` invocations keep working.
       name: 'chromium',
-      testIgnore: ['full/**', 'full-billing/**'],
+      testIgnore: ['full/**', 'full-billing/**', 'visual/**'],
       use: {
         ...devices['Desktop Chrome'],
         // Extra time for container responses
@@ -187,6 +220,48 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         actionTimeout: 30000,
         storageState: STORAGE_STATE,
+      },
+    },
+
+    /* Visual regression lane (e2e/visual/). Noauth pages only: no `setup`
+     * dependency, no storageState. Explicit viewports with
+     * deviceScaleFactor 1 — device presets ship DSF 3, which would triple
+     * baseline PNG pixel dimensions. The project name lands in the default
+     * snapshot filename, keeping desktop and mobile baselines distinct
+     * without a snapshotPathTemplate. */
+    {
+      name: 'visual-desktop',
+      testMatch: 'visual/**/*.spec.ts',
+      expect: {
+        toHaveScreenshot: { maxDiffPixels: 100 },
+      },
+      use: {
+        viewport: { width: 1280, height: 800 },
+        deviceScaleFactor: 1,
+        reducedMotion: 'reduce',
+        // Extra time for container responses
+        actionTimeout: 30000,
+        launchOptions: visualLaunchOptions,
+      },
+    },
+
+    {
+      name: 'visual-mobile',
+      testMatch: 'visual/**/*.spec.ts',
+      // Cells baselined at desktop only (secret--passphrase,
+      // receipt--viewed, receipt--burned) are tagged @desktop-only;
+      // excluding them here keeps `--list` exact instead of runtime-skipping.
+      grepInvert: /@desktop-only/,
+      expect: {
+        toHaveScreenshot: { maxDiffPixels: 100 },
+      },
+      use: {
+        viewport: { width: 375, height: 812 },
+        deviceScaleFactor: 1,
+        reducedMotion: 'reduce',
+        // Extra time for container responses
+        actionTimeout: 30000,
+        launchOptions: visualLaunchOptions,
       },
     },
 
