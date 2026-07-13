@@ -52,6 +52,7 @@ POST   /domains/:extid/repair            ColonelAPI::Logic::Colonel::RepairDomai
 POST   /domains/:extid/transfer          ColonelAPI::Logic::Colonel::TransferDomain response=json auth=sessionauth role=colonel scope=internal
 # Per-domain detail (DNS panel + post-verify refresh). Literal /domains/orphaned above still wins.
 GET    /domains/:extid                   ColonelAPI::Logic::Colonel::GetCustomDomain response=json auth=sessionauth role=colonel scope=internal
+DELETE /domains/:extid                   ColonelAPI::Logic::Colonel::RemoveCustomDomain response=json auth=sessionauth role=colonel scope=internal
 
 # Organizations
 GET    /organizations                     ColonelAPI::Logic::Colonel::ListOrganizations response=json auth=sessionauth role=colonel scope=internal
@@ -62,6 +63,11 @@ POST   /organizations/:org_id/reconcile   ColonelAPI::Logic::Colonel::ReconcileO
 # Entitlement Overrides (Phase 2: grant/revoke per-org entitlements)
 POST   /organizations/:org_id/entitlements/:action  ColonelAPI::Logic::Colonel::ManageEntitlementOverride response=json auth=sessionauth role=colonel scope=internal
 DELETE /organizations/:org_id/entitlements/overrides ColonelAPI::Logic::Colonel::ManageEntitlementOverride response=json auth=sessionauth role=colonel scope=internal
+
+# Memberships (#3731: add/remove/set-role — op-backed, shared with `bin/ots memberships`)
+POST   /organizations/:org_id/members                   ColonelAPI::Logic::Colonel::AddMembership response=json auth=sessionauth role=colonel scope=internal
+POST   /organizations/:org_id/members/:member_id/role   ColonelAPI::Logic::Colonel::SetMembershipRole response=json auth=sessionauth role=colonel scope=internal
+DELETE /organizations/:org_id/members/:member_id         ColonelAPI::Logic::Colonel::RemoveMembership response=json auth=sessionauth role=colonel scope=internal
 
 # Usage Export
 GET    /usage/export                      ColonelAPI::Logic::Colonel::ExportUsage response=json auth=sessionauth role=colonel scope=internal
