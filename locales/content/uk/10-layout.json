@@ -101,11 +101,11 @@
   },
   "web.footer.product": {
     "text": "Продукт",
-    "source_hash": "7f5540e9"
+    "source_hash": "fb9ef894"
   },
   "web.footer.source_code_purveyor": {
     "text": "Вихідний код",
-    "source_hash": "29c5c68f"
+    "source_hash": "bc47da66"
   },
   "web.navigation.billing": {
     "text": "Оплата",
@@ -149,7 +149,7 @@
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
     "text": "Ви переглядаєте захищене повідомлення, яким з Вами поділилися через {product_name}. Цей вміст відображається лише один раз, а потім остаточно видаляється з наших серверів.",
-    "source_hash": "e0f1a10c"
+    "source_hash": "7a4e9d16"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "Чи можу я переглянути цю таємницю пізніше?",
@@ -265,7 +265,7 @@
   },
   "web.layout.visit_onetime_secret_homepage": {
     "text": "Відвідати головну сторінку {product_name}",
-    "source_hash": "625556d2"
+    "source_hash": "87802af5"
   },
   "web.layout.footer_navigation": {
     "text": "Навігація у підвалі",
@@ -346,5 +346,9 @@
   "web.help.default_content": {
     "text": "Будь ласка, зверніться до служби підтримки по допомогу",
     "source_hash": "752bca14"
+  },
+  "web.layout.colonels_only_badge": {
+    "text": "Лише для Colonels",
+    "source_hash": "3f1e2dbd"
   }
 }

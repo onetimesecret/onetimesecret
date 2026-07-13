@@ -155,8 +155,8 @@
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
-    "text": "Ваша сесія закінчилася. Оновіть сторінку та спробуйте знову.",
-    "source_hash": "a7c3e901"
+    "text": "Термін дії Вашої сесії сплив. Будь ласка, оновіть сторінку та спробуйте ще раз.",
+    "source_hash": "be9ed96d"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "Помилка входу. Будь ласка, спробуйте ще раз.",
