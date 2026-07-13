@@ -156,7 +156,7 @@
   },
   "web.auth.magicLink.sessionExpired": {
     "text": "Tvá relace vypršela. Obnov prosím stránku a zkus to znovu.",
-    "source_hash": "a7c3e901"
+    "source_hash": "be9ed96d"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "Přihlášení selhalo. Zkus to prosím znovu.",

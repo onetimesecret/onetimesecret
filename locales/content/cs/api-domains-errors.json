@@ -34,5 +34,17 @@
   "api.domains.errors.recipients_duplicate": {
     "text": "Duplicitní e-maily příjemců nejsou povoleny",
     "source_hash": "6de22182"
+  },
+  "api.domains.errors.homepage_secrets_mode_invalid": {
+    "text": "Neplatný secrets_mode: %{secrets_mode}",
+    "source_hash": "cf093a04"
+  },
+  "api.domains.errors.homepage_incoming_entitlement_required": {
+    "text": "Režim příchozích tajemství vyžaduje oprávnění incoming_secrets. Přejdi prosím na vyšší plán.",
+    "source_hash": "d68b13d8"
+  },
+  "api.domains.errors.homepage_incoming_not_ready": {
+    "text": "Příchozí tajemství musí být povolena alespoň s jedním příjemcem, než je lze použít jako domovskou stránku.",
+    "source_hash": "556da6e2"
   }
 }

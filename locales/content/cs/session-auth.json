@@ -373,8 +373,8 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Použij možnost Magický odkaz pro přihlášení bez hesla. Po přihlášení můžeš změnit heslo v Nastavení účtu.",
-    "source_hash": "2a058600"
+    "text": "Můžeš požádat o odkaz pro obnovení hesla a vytvořit si nové heslo.",
+    "source_hash": "3c3eabad"
   },
   "web.help.account_locked": {
     "text": "Účet dočasně uzamčen?",
@@ -431,5 +431,57 @@
   "web.login.errors.domain_not_allowed": {
     "text": "Tvoje e-mailová doména není autorizována pro registraci přes SSO. Kontaktuj prosím svého správce.",
     "source_hash": "87603782"
+  },
+  "web.auth.check_email.title": {
+    "text": "Zkontroluj svůj e-mail",
+    "source_hash": "77322879"
+  },
+  "web.auth.check_email.sent_to_generic": {
+    "text": "Na tvou e-mailovou adresu jsme odeslali ověřovací odkaz.",
+    "source_hash": "4e5510af"
+  },
+  "web.auth.check_email.help": {
+    "text": "Na tuto adresu jsme odeslali ověřovací odkaz — otevři e-mail a kliknutím na odkaz aktivuj svůj účet.",
+    "source_hash": "8babedc4"
+  },
+  "web.auth.check_email.spam_hint": {
+    "text": "Nemůžeš jej najít? Zkontroluj složku se spamem.",
+    "source_hash": "d166d9a4"
+  },
+  "web.auth.check_email.wrong_email": {
+    "text": "Zadal jsi nesprávnou adresu?",
+    "source_hash": "0aa863e5"
+  },
+  "web.auth.check_email.start_over": {
+    "text": "Začít znovu",
+    "source_hash": "5eed7e9f"
+  },
+  "web.auth.field-errors.password": {
+    "text": "Heslo",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.auth.verify.resend_help_text": {
+    "text": "Neobdržel jsi ověřovací e-mail? Zadej svůj e-mail k jeho opětovnému odeslání.",
+    "source_hash": "e0df48bb"
+  },
+  "web.auth.verify.resend_button": {
+    "text": "Znovu odeslat ověřovací e-mail",
+    "source_hash": "5173cc04"
+  },
+  "web.auth.verify.resend_sent": {
+    "text": "Pokud účet vyžaduje ověření, byl odeslán nový e-mail. Zkontroluj prosím svou doručenou poštu a složku se spamem.",
+    "source_hash": "6f838ffb"
+  },
+  "web.auth.verify.resend_error": {
+    "text": "Ověřovací e-mail se nepodařilo odeslat. Zkontroluj prosím své připojení a zkus to znovu.",
+    "source_hash": "15149f46"
+  },
+  "web.auth.verify.resend_short": {
+    "text": "Znovu odeslat e-mail",
+    "source_hash": "4f44603e"
+  },
+  "web.login.verified_notice": {
+    "text": "Tvůj e-mail byl ověřen — nyní se můžeš přihlásit.",
+    "source_hash": "c8d4b5a8"
   }
 }
