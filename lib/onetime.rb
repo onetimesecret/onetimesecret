@@ -88,7 +88,17 @@ module Onetime
     explicit = OT.conf.dig('site', 'brand_assets_dir')
     unless explicit.to_s.strip.empty?
       dir = File.absolute_path?(explicit) ? explicit : File.join(HOME, explicit)
-      return Dir.exist?(dir) ? dir : nil
+      return dir if Dir.exist?(dir)
+
+      # Configured but absent (e.g. a volume not yet mounted). Warn ONCE per
+      # distinct path — this resolver runs per favicon/manifest request, not just
+      # at boot — rather than silently serving neutral defaults. Does NOT fall
+      # through to a pack. #3739
+      if @warned_missing_brand_assets_dir != dir
+        OT.le "[brand_overlay_dir] site.brand_assets_dir=#{dir.inspect} configured but missing; serving neutral defaults"
+        @warned_missing_brand_assets_dir = dir
+      end
+      return nil
     end
 
     pack = OT.conf.dig('site', 'brand_pack')

@@ -167,6 +167,10 @@ RUN set -eux && \
 ARG BRAND_PACK=
 RUN set -eux && \
     if [ -n "${BRAND_PACK}" ]; then \
+      case "${BRAND_PACK}" in \
+        *..*|*/*|*\\*) \
+          echo "ERROR: BRAND_PACK must be a simple pack name (no '/', '\\', or '..'): ${BRAND_PACK}" >&2 && exit 1 ;; \
+      esac && \
       if [ -d "public/branding/${BRAND_PACK}" ] && \
          [ -n "$(find "public/branding/${BRAND_PACK}" -type f 2>/dev/null)" ]; then \
         cp -R "public/branding/${BRAND_PACK}/." public/web/ && \
