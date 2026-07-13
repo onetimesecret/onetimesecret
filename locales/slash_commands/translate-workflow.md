@@ -36,12 +36,8 @@ that still reference them.
 Discover, do not assume. Run these yourself in the main loop first:
 
 1. **Does the DB exist?** `tasks.db` is gitignored and may be absent in this
-   worktree. If absent, inspect `locales/db/tasks.db.backup-from-main.txt`
-   (a 12MB *renamed DB snapshot*, not text) and decide:
-   - restore it (`cp` to `locales/db/tasks.db`, then sanity-check with
-     `tasks next <loc> --stats`), **or**
-   - rebuild: `i18n db init` then `i18n db import` (loads committed
-     glossary/session_log).
+   worktree. If absent, rebuild it: `i18n db init` then `i18n db import`
+   (loads committed glossary/session_log).
 2. **Candidate targets.** If `$ARGUMENTS` is non-empty, use those locale codes
    verbatim; otherwise enumerate `locales/content/*` dirs as candidates. (Do NOT
    filter on `pending` yet — a fresh or just-imported DB has no task rows, so an
