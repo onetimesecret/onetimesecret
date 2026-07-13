@@ -34,5 +34,17 @@
   "api.domains.errors.recipients_duplicate": {
     "text": "Les courriels de destinataires en double ne sont pas autorisés",
     "source_hash": "6de22182"
+  },
+  "api.domains.errors.homepage_secrets_mode_invalid": {
+    "text": "secrets_mode invalide : %{secrets_mode}",
+    "source_hash": "cf093a04"
+  },
+  "api.domains.errors.homepage_incoming_entitlement_required": {
+    "text": "Le mode de secrets entrants nécessite le droit incoming_secrets. Veuillez mettre à niveau votre forfait.",
+    "source_hash": "d68b13d8"
+  },
+  "api.domains.errors.homepage_incoming_not_ready": {
+    "text": "Les secrets entrants doivent être activés avec au moins un destinataire avant de pouvoir être utilisés comme page d'accueil.",
+    "source_hash": "556da6e2"
   }
 }
