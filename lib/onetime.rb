@@ -67,6 +67,59 @@ module Onetime
     $LOAD_PATH.unshift(File.join(APPS_ROOT, 'web'))
   end
 
+  # Neutral bundled brand-asset directory (public/web), resolved against the app
+  # root rather than CWD. Centralizes the location that was previously written as
+  # a CWD-relative 'public/web' literal; stays byte-identical when puma's working
+  # dir == HOME. For NEW code only — existing fallbacks keep their literal (see
+  # brand_asset_path below). #3739
+  def self.public_web_dir
+    File.join(HOME, 'public', 'web')
+  end
+
+  # Resolved absolute brand-asset overlay directory, or nil when no overlay is
+  # configured/present. Precedence (per #3739 design):
+  #   1. site.brand_assets_dir — an explicit path (e.g. a runtime mount). When
+  #      set & non-empty it WINS: absolute path used as-is, relative resolved
+  #      against HOME (not CWD — puma's working dir is not guaranteed). Returns
+  #      the dir only if it exists, else nil (does not fall through to a pack).
+  #   2. site.brand_pack — a pack NAME under public/branding/<name>.
+  #   3. nil.
+  def self.brand_overlay_dir
+    explicit = OT.conf.dig('site', 'brand_assets_dir')
+    unless explicit.to_s.strip.empty?
+      dir = File.absolute_path?(explicit) ? explicit : File.join(HOME, explicit)
+      return Dir.exist?(dir) ? dir : nil
+    end
+
+    pack = OT.conf.dig('site', 'brand_pack')
+    unless pack.to_s.strip.empty?
+      # SECURITY: brand_pack is a NAME, not a path. It is joined directly into a
+      # filesystem path, so reject path separators and '..' to prevent traversal
+      # outside public/branding/. #3739
+      return nil if pack.match?(%r{[/\\]|\.\.})
+
+      dir = File.join(HOME, 'public', 'branding', pack)
+      return dir if Dir.exist?(dir)
+    end
+
+    nil
+  end
+
+  # Overlay-first single-file resolver: returns the overlay copy of `name` when
+  # an overlay dir is configured and the file exists there, otherwise the neutral
+  # fallback. #3739
+  def self.brand_asset_path(name)
+    dir = brand_overlay_dir
+    if dir
+      overlay = File.join(dir, name)
+      return overlay if File.exist?(overlay)
+    end
+
+    # Byte-identical fallback: preserve this EXACT literal so no-pack responses
+    # stay identical to today. Do NOT swap this to public_web_dir. #3739
+    File.join(OT.conf.dig('site', 'public_dir') || 'public/web', name)
+  end
+
   require_relative 'onetime/class_methods'
   extend ClassMethods
 

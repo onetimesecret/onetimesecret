@@ -155,8 +155,8 @@ module Core
         end
 
         def serve_default_favicon
-          # Read default favicon from public directory
-          favicon_path = File.join(OT.conf.dig('site', 'public_dir') || 'public/web', 'favicon.ico')
+          # Read default favicon from public directory (overlay-first, #3739)
+          favicon_path = Onetime.brand_asset_path('favicon.ico')
 
           if File.exist?(favicon_path)
             @icon_data      = File.binread(favicon_path)

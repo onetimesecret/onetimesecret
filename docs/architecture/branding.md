@@ -83,6 +83,13 @@ field. No defaults shipped.
 | `BRAND_OG_IMAGE_URL`         | head `og:image` / `twitter:image` (absolute)       |
 | `BRAND_TOTP_ISSUER`          | MFA issuer label (falls back to product name)      |
 | `BRAND_SIGNATURE_NAME`       | email sign-off (see Special cases)                 |
+| `BRAND_PACK`                 | static-asset pack NAME → `public/branding/<name>`  |
+| `BRAND_ASSETS_DIR`           | static-asset pack PATH (wins over `BRAND_PACK`)    |
+
+`BRAND_PACK` / `BRAND_ASSETS_DIR` are the two exceptions to the "populates
+`OT.conf['brand']`" rule above: they populate `site.brand_pack` /
+`site.brand_assets_dir` and drive the static-icon overlay (#3739), not the
+`brand:` value block — see [Static icon assets](#static-icon-assets).
 
 `BRAND_LOGO_URL` is the operator/install logo everywhere: the masthead, email
 templates, and the default for custom domains with no uploaded logo — but it is
@@ -150,9 +157,33 @@ module scope.
 The favicon/social-icon pack is a parallel concern: static files in
 `public/web/` (not resolved strings), generated brand-neutral from one keyhole
 glyph by `scripts/branding/`. Override precedence mirrors the colour chain:
-per-domain icon (Redis) → site-level (`BRAND_*_URL`, or a file dropped in
-`docker/public/` at build / mounted over `public/web` at runtime) → neutral
-default.
+
+```
+per-domain icon (Redis)
+  ↓ BRAND_FAVICON_URL (302 redirect)
+  ↓ brand pack overlay (BRAND_PACK / BRAND_ASSETS_DIR, #3739)
+  ↓ neutral public/web default
+```
+
+A `public/web` runtime mount (Docker/K8s volume) still works and lands in the
+`public/web` rung; a pack overlay is checked ahead of it for the files it
+provides.
+
+**Runtime overlay (#3739).** `BRAND_PACK` (a pack _name_ under
+`public/branding/<name>`) or `BRAND_ASSETS_DIR` (an explicit _path_, e.g. a
+mounted volume; wins over `BRAND_PACK`) select a replacement pack that overlays
+`public/web` at runtime — no rebuild. It is applied at three chokepoints, all
+routed through the shared `Onetime.brand_asset_path(name)` / `brand_overlay_dir`
+helpers (`lib/onetime.rb`):
+
+1. **Static middleware** (`StaticFiles`) — an extra `Rack::Static` layer ahead
+   of the `public/web` one, listing only the overlay files that actually exist
+   (`Rack::Static` matches by URL prefix, not file existence). The stack is
+   built once at boot, so changing packs needs a restart.
+2. **`GetFavicon`** — `serve_default_favicon` resolves `favicon.ico`
+   overlay-first before the `public/web` fallback.
+3. **`GetWebmanifest`** — `load_base_manifest` resolves `site.webmanifest`
+   overlay-first (then `public/web`, then the built-in `NEUTRAL_FALLBACK`).
 
 SVG-favicon gate: browsers prefer an SVG `<link rel="icon">` over `.ico`, so the
 neutral `/favicon.svg` link is emitted **only** for default installs with no
