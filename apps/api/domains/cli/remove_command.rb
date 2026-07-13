@@ -52,8 +52,9 @@ module Onetime
 
         unless force
           print 'Permanently remove this domain? [y/N]: '
-          response = $stdin.gets.chomp
-          unless response.downcase == 'y'
+          # gets returns nil at EOF (closed stdin / piped / CI) — treat as decline.
+          response = $stdin.gets&.chomp
+          unless response&.downcase == 'y'
             puts 'Cancelled'
             return
           end

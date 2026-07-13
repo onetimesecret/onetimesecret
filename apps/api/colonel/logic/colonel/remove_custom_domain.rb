@@ -46,7 +46,9 @@ module ColonelAPI
             dry_run: dry_run,
           ).call
 
-          OT.info "[RemoveCustomDomain] #{custom_domain.display_domain} -> " \
+          # Log from result (snapshotted pre-destroy!) — on the applied path
+          # destroy! nils custom_domain.display_domain in memory.
+          OT.info "[RemoveCustomDomain] #{result.display_domain} -> " \
                   "status=#{result.status}, dry_run=#{dry_run}, org=#{result.org_id}"
 
           # NOTE: no audit here — the op owns the single AdminAuditEvent
