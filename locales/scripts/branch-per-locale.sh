@@ -18,7 +18,7 @@
 
 set -euo pipefail
 
-BASE_BRANCH=develop
+BASE_BRANCH=main
 CONTENT_DIR=locales/content
 DRY_RUN=true
 CHANGED_ONLY=false

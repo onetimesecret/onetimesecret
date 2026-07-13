@@ -239,3 +239,15 @@ When all locales show 0 pending:
 2. Collect + insert glossary candidates (previous section).
 3. User can then run export: `python3 locales/scripts/i18n tasks export <locale>`.
 4. Run validation: `pnpm run locales:sync`.
+5. **Record the round in `session_log`** — once, after the export loop, so the
+   round is preserved in version-controlled SQL (nothing else writes this table):
+
+   ```bash
+   python3 locales/scripts/i18n db session add \
+     --date <YYYY-MM-DD> --tasks <total-completed> \
+     --notes 'N-locale drain; <verbatim notes: recoveries, glossary rows, audit result>'
+   python3 locales/scripts/i18n db export session_log   # persist to db/session_log.sql
+   ```
+
+   Keep `--notes` verbatim (recoveries, restart count, glossary rows inserted,
+   audit outcome) — the schema stores it unsummarized as the round's record.
