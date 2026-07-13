@@ -88,7 +88,7 @@ while [[ $# -gt 0 ]]; do
     --base=*)         BASE_BRANCH="${1#*=}" ;;
     --model)          MODEL="${2:?--model needs a value}"; shift ;;
     --model=*)        MODEL="${1#*=}" ;;
-    --agent-profile)  AGENT_PROFILE="${2:?--agent-profile needs an agent name}"; shift ;;
+    --agent-profile)  AGENT_PROFILE="${2:?--agent-profile needs the name of an existing claude agent definition (from .claude/agents or a plugin), e.g. saas-translator}"; shift ;;
     --agent-profile=*) AGENT_PROFILE="${1#*=}" ;;
     --no-review)      DO_REVIEW=false ;;
     --skip-validation) SKIP_VALIDATION=true ;;
