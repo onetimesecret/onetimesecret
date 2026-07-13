@@ -1267,8 +1267,8 @@
     "source_hash": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
-    "text": "Organisationen",
-    "source_hash": "2730183d"
+    "text": "Arbeitsbereiche",
+    "source_hash": "1377264b"
   },
   "web.TITLES.organization_settings": {
     "text": "Organisationseinstellungen",
@@ -1299,8 +1299,8 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Vergewissere dich immer, dass du dich auf der offiziellen {product_name}-Website befindest. Betrüger erstellen manchmal gefälschte Websites, die genau wie {product_name} aussehen, um deine Geheimnisse zu stehlen. Um Phishing-Angriffe zu vermeiden, überprüfe die Regions-Domain, bevor du neue Links erstellst.",
-    "source_hash": "68ec20f8"
+    "text": "Vergewissere dich immer, dass du dich auf der offiziellen {product_name}-Website befindest. Betrüger erstellen manchmal gefälschte Websites, die genau wie {product_name} aussehen, um deine Geheimnisse zu stehlen. Um Phishing-Angriffe zu vermeiden, überprüfe die Regions-Domain in deiner Adressleiste, bevor du neue Links erstellst.",
+    "source_hash": "2e3b856e"
   },
   "web.pricing.title": {
     "text": "Einfache, transparente Preise",
@@ -1523,5 +1523,21 @@
   "web.TITLES.domain_incoming": {
     "text": "Eingehende Nachrichten",
     "source_hash": "883dbca9"
+  },
+  "web.LABELS.update": {
+    "text": "Aktualisieren",
+    "source_hash": "c1c1009d"
+  },
+  "web.LABELS.updating": {
+    "text": "Wird aktualisiert ...",
+    "source_hash": "0a4e0b71"
+  },
+  "web.TITLES.check_email": {
+    "text": "Überprüfe deine E-Mails",
+    "source_hash": "0e5fc27d"
+  },
+  "web.TITLES.domain_dns": {
+    "text": "DNS-Einrichtung",
+    "source_hash": "6c63df31"
   }
 }
