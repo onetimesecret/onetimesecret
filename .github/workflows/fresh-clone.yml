@@ -39,9 +39,6 @@ on:
     paths:
       - 'bin/setup'
       - 'scripts/setup/**'
-      - 'install-test.sh'
-      - 'install-dev.sh'
-      - 'install.sh'
       - 'Gemfile'
       - 'Gemfile.lock'
       - 'package.json'

@@ -1,6 +1,6 @@
 # Procfile.dev.example
 #
-# Copy to Procfile.dev (or run install-dev.sh to symlink from OTS_DEV_CONFIG).
+# Copy to Procfile.dev (or run bin/setup to symlink from OTS_DEV_CONFIG).
 #
 # Usage:
 #   bin/dev           # all services
@@ -11,7 +11,7 @@
 # (default 127.0.0.1:6379).
 #valkey: valkey-server --port 6379 --save "" --appendonly no
 
-# Requires etc/puma.rb (created by install-dev.sh).
+# Requires etc/puma.rb (created by bin/setup).
 backend: bundle exec puma -C etc/puma.rb
 
 frontend: pnpm run dev

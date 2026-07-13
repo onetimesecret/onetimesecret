@@ -90,7 +90,7 @@ done
 # at the wrong database.
 if [[ -z "${OTS_ENV_LOADED:-}" ]]; then
   echo "Error: OTS_ENV_LOADED is not set — direnv has not loaded the environment."
-  echo "  Run: direnv allow .    (or re-run install-dev.sh)"
+  echo "  Run: direnv allow .    (or re-run bin/setup)"
   exit 1
 fi
 

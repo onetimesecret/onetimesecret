@@ -1,9 +1,8 @@
 # shellcheck shell=bash
 # scripts/setup/lib.sh
 #
-# Shared spine for bin/setup (and, during the deprecation window, the
-# install.sh / install-dev.sh / install-test.sh delegates). Sourced, not
-# executed. Callers run under `set -euo pipefail`.
+# Shared spine for bin/setup. Sourced, not executed. Callers run under
+# `set -euo pipefail`.
 #
 # Bash 3.2 compatible on purpose: macOS ships 3.2, and the old
 # install-dev.sh hard-failed there over a single associative array (DX-15).

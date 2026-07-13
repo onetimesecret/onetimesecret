@@ -20,9 +20,6 @@
 #
 # CI's fresh-clone workflow runs this same script from zero — if setup needs
 # a step this script doesn't do, either the script or the docs is wrong.
-#
-# The old entry points (install.sh, install-dev.sh, install-test.sh) delegate
-# here during a deprecation window.
 
 set -euo pipefail
 
