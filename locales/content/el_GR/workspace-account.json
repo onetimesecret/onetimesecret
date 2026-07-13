@@ -136,8 +136,8 @@
     "source_hash": "05986d95"
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
-    "text": "🔐 Διατηρήστε αυτό το διακριτικό ασφαλές! Παρέχει πλήρη πρόσβαση στον λογαριασμό σας.",
-    "source_hash": "8839aa4d"
+    "text": "Διατηρήστε αυτό το διακριτικό ασφαλές. Μπορεί να χρησιμοποιηθεί για τη δημιουργία και τη διαχείριση μυστικών μέσω του API.",
+    "source_hash": "a63cc8ec"
   },
   "web.account.confirm_with_your_password": {
     "text": "Επιβεβαιώστε με τον κωδικό πρόσβασής σας",
@@ -328,8 +328,8 @@
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "Το email ενημερώθηκε επιτυχώς. Παρακαλώ ελέγξτε τα εισερχόμενά σας για να επαληθεύσετε τη νέα σας διεύθυνση email.",
-    "source_hash": "58de2536"
+    "text": "Στάλθηκε email επαλήθευσης. Παρακαλούμε ελέγξτε τα νέα σας εισερχόμενα και κάντε κλικ στον σύνδεσμο επιβεβαίωσης για να ολοκληρώσετε την αλλαγή.",
+    "source_hash": "45f0a4b5"
   },
   "web.settings.profile.email_change_error": {
     "text": "Αποτυχία ενημέρωσης email. Παρακαλώ δοκιμάστε ξανά.",
@@ -477,7 +477,7 @@
   },
   "web.settings.api.documentation_description": {
     "text": "Μάθετε πώς να ενσωματώσετε το {product_name} στις εφαρμογές σας",
-    "source_hash": "6e8f910f"
+    "source_hash": "9bba1ae8"
   },
   "web.settings.api.rest_api_reference": {
     "text": "Αναφορά REST API",
