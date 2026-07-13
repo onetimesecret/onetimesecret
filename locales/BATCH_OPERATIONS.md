@@ -1,7 +1,111 @@
 # locales/BATCH_OPERATIONS.md
+
 ---
 
 ## Local i18n branch processing
+
+Pipeline order (each step assumes the previous one ran):
+
+1. **Export** — drained DB -> `locales/content/` + shared tables via `export-all.sh`
+   (dry-run by default). Exports every locale with `pending: 0`, skips the rest, then
+   runs `i18n db export` once. Leaves uncommitted changes in the working tree;
+   everything below operates on those. See [README.md](README.md) step 4.
+2. **Create branches** — one `i18n/update-<locale>` branch per changed locale (below).
+3. **Open PRs** — one PR per branch (below).
+4. **Rebase / respond to feedback / merge back** — the original sections that follow.
+
+### Exporting drained locales
+
+`export-all.sh` writes each fully drained locale's DB translations into `locales/content/`, then
+runs `i18n db export` once. Skips any locale with `pending > 0`. Dry-run is the default — pass
+`--execute` to act.
+
+```bash
+# preview: which locales are drained, what it would export
+locales/scripts/export-all.sh
+
+# do it: export every drained locale + shared db tables (once)
+locales/scripts/export-all.sh --execute
+
+# or a specific subset
+locales/scripts/export-all.sh --execute de es fr_FR
+```
+
+Leaves uncommitted changes in the working tree for **Creating the branches** below.
+
+### Exporting the DB (glossary + shared tables)
+
+`export-all.sh` already runs this as its last step. Run it standalone only when re-exporting
+shared tables without re-running the locale exports. Writes `glossary.sql` and the other shared
+db tables **once**, after every locale is drained. `i18n tasks export <locale>` does _not_ touch
+these.
+
+```bash
+python3 locales/scripts/i18n db export
+```
+
+Also record the round in `session_log` — nothing else writes that table, and `db export`
+skips it when empty (so a round leaves no trace unless you add a row):
+
+```bash
+python3 locales/scripts/i18n db session add \
+  --date <YYYY-MM-DD> --tasks <total> \
+  --notes 'N-locale drain; <recoveries, glossary rows, audit result — verbatim>'
+python3 locales/scripts/i18n db export session_log   # persist the row
+python3 locales/scripts/i18n db session list         # verify
+```
+
+### Creating the branches
+
+`branch-per-locale.sh` slices the uncommitted `locales/content/` changes into one branch per
+locale. Bases on **`main`** (line 21). Dry-run is the default — pass `--execute` to act.
+
+```bash
+# preview: which locales, which base, what it would run
+locales/scripts/branch-per-locale.sh --changed
+
+# do it: for each changed locale, checkout main -> branch i18n/update-<locale> ->
+#        add locales/content/<locale>/ -> commit -> push -u origin
+locales/scripts/branch-per-locale.sh --changed --execute
+
+# or a specific subset
+locales/scripts/branch-per-locale.sh --execute de es fr_FR
+```
+
+Safe to re-run: skips locales with no changes and any branch that already exists. Requires a
+clean tree **outside** `locales/`. The commit-msg hook prepends the `[#XXXX]` prefix — don't
+hand-add it.
+
+### Opening the PRs
+
+`pr-per-locale.sh` opens one PR per `i18n/update-<locale>` branch, running a fresh local `claude`
+translation-quality review per locale and baking its summary into the PR body. The review time is
+the natural throttle (no burst of API calls). Bases on **`main`** by default. Dry-run unless
+`--execute`.
+
+```bash
+# preview: prints each review + the exact gh command, creates nothing
+locales/scripts/pr-per-locale.sh
+
+# create all PRs (authenticated gh required)
+locales/scripts/pr-per-locale.sh --execute
+
+# deeper review model, or skip the review for a stats-only body
+locales/scripts/pr-per-locale.sh --execute --model claude-opus-4-8
+locales/scripts/pr-per-locale.sh --execute --no-review
+
+# refresh the body of an already-open PR instead of skipping it
+locales/scripts/pr-per-locale.sh --execute --update de
+```
+
+Capture the resulting PR numbers to rebuild the arrays below — they are per-round and the ones
+listed are stale (a prior batch). Note `--head` is exact-match, not a prefix, so filter with jq
+(the freshly-opened PRs are in the default open state):
+
+```bash
+gh pr list --limit 100 --json number,headRefName \
+  --jq '.[] | select(.headRefName | startswith("i18n/update-")) | "\(.number) \(.headRefName)"'
+```
 
 ### Rebasing on main
 
@@ -24,8 +128,10 @@ git switch "$start"   # rebases pollute @{-1}, so `git switch -` lands wrong
 echo "Rebased cleanly; needs manual attention: ${failed[*]:-none}"
 ```
 
-
 ### Responding to PR feedback
+
+> The `pairs=(…)` numbers below are from a **prior batch** — regenerate them for the current
+> round with the `gh pr list … startswith` command above before running this.
 
 ```bash
 pairs=(
@@ -56,10 +162,10 @@ done
 git switch main
 ```
 
-
 ### Merging back into main
 
-One integration PR, not 29 (or however many branches you have).
+One integration PR, not 29 (or however many branches you have). The `#3574–3602` / `seq 3574 3602`
+references are from a prior batch — swap in the current round's numbers.
 
 ```bash
 # 1. preflight — local must match origin; base must be locale-only (octopus aborts on any conflict)
@@ -70,7 +176,7 @@ for b in $(git branch --list 'i18n/update-*' --format='%(refname:short)'); do
   git diff --name-only "$(git merge-base "$b" "$base")".."$b" | grep -qv '^locales/content/' && echo "NON-LOCALE: $b"
 done
 
-# 2. octopus merge → push → PR
+# 2. octopus merge -> push -> PR
 git switch -c i18n/integration-batch origin/main
 git merge --no-ff $(git branch --list 'i18n/update-*' --format='%(refname:short)')
 git push -u origin i18n/integration-batch
@@ -83,6 +189,7 @@ for pr in $(seq 3574 3602); do gh pr view "$pr" --json number,state --jq '"\(.nu
 ```
 
 Octopus aborts on conflict — run sequentially to find the offender:
+
 ```bash
 for b in $(git branch --list 'i18n/update-*' --format='%(refname:short)'); do
   git merge --no-ff --no-edit "$b" || { echo ">>> conflict on $b"; break; }
@@ -90,6 +197,7 @@ done
 ```
 
 Notes:
+
 - `--no-ff` is redundant for an octopus (multi-head merges never fast-forward) —
   harmless, leave or drop.
 - Reverting a 29-parent octopus is awkward (`git revert -m <n>`); acceptable for

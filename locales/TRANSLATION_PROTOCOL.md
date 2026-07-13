@@ -191,7 +191,9 @@ generated/locales/         # app-consumable JSON (built by `content compile`)
 - `translation_tasks` - translation tasks grouped by JSON level
 - `translation_issues` - QC findings requiring manual review
 - `glossary` - terminology decisions per locale
-- `session_log` - session records with verbatim notes
+- `session_log` - one row per translation round, with verbatim notes. No process
+  writes it automatically — record each round with `i18n db session add` (then
+  `i18n db export session_log`); `i18n db session list` to inspect.
 - `schema_migrations` - applied schema versions
 
 Export committable tables (`glossary`, `session_log`, `translation_issues`) to SQL for version control:
