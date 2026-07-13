@@ -1,21 +1,44 @@
 # locales/BATCH_OPERATIONS.md
+
 ---
 
 ## Local i18n branch processing
 
 Pipeline order (each step assumes the previous one ran):
 
-1. **Export** — drained DB → `locales/content/` + shared tables. See [README.md](README.md) step 4
-   (`i18n tasks export <locale>` per locale, then `i18n db export` once). Leaves uncommitted
-   changes in the working tree; everything below operates on those.
+1. **Export** — drained DB -> `locales/content/` + shared tables via `export-all.sh`
+   (dry-run by default). Exports every locale with `pending: 0`, skips the rest, then
+   runs `i18n db export` once. Leaves uncommitted changes in the working tree;
+   everything below operates on those. See [README.md](README.md) step 4.
 2. **Create branches** — one `i18n/update-<locale>` branch per changed locale (below).
 3. **Open PRs** — one PR per branch (below).
 4. **Rebase / respond to feedback / merge back** — the original sections that follow.
 
+### Exporting drained locales
+
+`export-all.sh` writes each fully drained locale's DB translations into `locales/content/`, then
+runs `i18n db export` once. Skips any locale with `pending > 0`. Dry-run is the default — pass
+`--execute` to act.
+
+```bash
+# preview: which locales are drained, what it would export
+locales/scripts/export-all.sh
+
+# do it: export every drained locale + shared db tables (once)
+locales/scripts/export-all.sh --execute
+
+# or a specific subset
+locales/scripts/export-all.sh --execute de es fr_FR
+```
+
+Leaves uncommitted changes in the working tree for **Creating the branches** below.
+
 ### Exporting the DB (glossary + shared tables)
 
-Run **once**, after every locale is drained. Writes `glossary.sql` and the other shared db
-tables. `i18n tasks export <locale>` does *not* touch these.
+`export-all.sh` already runs this as its last step. Run it standalone only when re-exporting
+shared tables without re-running the locale exports. Writes `glossary.sql` and the other shared
+db tables **once**, after every locale is drained. `i18n tasks export <locale>` does _not_ touch
+these.
 
 ```bash
 python3 locales/scripts/i18n db export
@@ -41,8 +64,8 @@ locale. Bases on **`main`** (line 21). Dry-run is the default — pass `--execut
 # preview: which locales, which base, what it would run
 locales/scripts/branch-per-locale.sh --changed
 
-# do it: for each changed locale, checkout main → branch i18n/update-<locale> →
-#        add locales/content/<locale>/ → commit → push -u origin
+# do it: for each changed locale, checkout main -> branch i18n/update-<locale> ->
+#        add locales/content/<locale>/ -> commit -> push -u origin
 locales/scripts/branch-per-locale.sh --changed --execute
 
 # or a specific subset
@@ -105,7 +128,6 @@ git switch "$start"   # rebases pollute @{-1}, so `git switch -` lands wrong
 echo "Rebased cleanly; needs manual attention: ${failed[*]:-none}"
 ```
 
-
 ### Responding to PR feedback
 
 > The `pairs=(…)` numbers below are from a **prior batch** — regenerate them for the current
@@ -140,7 +162,6 @@ done
 git switch main
 ```
 
-
 ### Merging back into main
 
 One integration PR, not 29 (or however many branches you have). The `#3574–3602` / `seq 3574 3602`
@@ -155,7 +176,7 @@ for b in $(git branch --list 'i18n/update-*' --format='%(refname:short)'); do
   git diff --name-only "$(git merge-base "$b" "$base")".."$b" | grep -qv '^locales/content/' && echo "NON-LOCALE: $b"
 done
 
-# 2. octopus merge → push → PR
+# 2. octopus merge -> push -> PR
 git switch -c i18n/integration-batch origin/main
 git merge --no-ff $(git branch --list 'i18n/update-*' --format='%(refname:short)')
 git push -u origin i18n/integration-batch
@@ -168,6 +189,7 @@ for pr in $(seq 3574 3602); do gh pr view "$pr" --json number,state --jq '"\(.nu
 ```
 
 Octopus aborts on conflict — run sequentially to find the offender:
+
 ```bash
 for b in $(git branch --list 'i18n/update-*' --format='%(refname:short)'); do
   git merge --no-ff --no-edit "$b" || { echo ">>> conflict on $b"; break; }
@@ -175,6 +197,7 @@ done
 ```
 
 Notes:
+
 - `--no-ff` is redundant for an octopus (multi-head merges never fast-forward) —
   harmless, leave or drop.
 - Reverting a 29-parent octopus is awkward (`git revert -m <n>`); acceptable for

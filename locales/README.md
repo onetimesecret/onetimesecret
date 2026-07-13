@@ -27,10 +27,12 @@ python3 locales/scripts/i18n db migrate
 #    translates, verifies; agents report glossary candidates, they don't write them)
 /i18n:translate-parallel-agents        # installed from locales/slash_commands/
 
-# 4. Export each fully drained locale, then the shared tables once
-python3 locales/scripts/i18n tasks next <locale> --stats   # must show pending: 0
-python3 locales/scripts/i18n tasks export <locale>         # per drained locale
-python3 locales/scripts/i18n db export                     # once, after all locales
+# 4. Export every fully drained locale, then the shared tables once
+locales/scripts/export-all.sh                              # preview (dry-run)
+locales/scripts/export-all.sh --execute                   # export drained locales + db export
+# Skips any locale with pending > 0; run per-locale manually if you need finer control:
+#   python3 locales/scripts/i18n tasks export <locale>
+#   python3 locales/scripts/i18n db export
 
 # 5. Commit content + db tables, then split into review branches
 git add locales/content/ locales/db/*.sql
