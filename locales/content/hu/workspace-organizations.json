@@ -663,10 +663,6 @@
     "text": "A szervezet már nem létezik",
     "source_hash": "a5df7d22"
   },
-  "api.organizations.invitations.errors.accept_already_acted": {
-    "text": "A meghívás állapota már: %{status}",
-    "source_hash": "130c87e0"
-  },
   "api.organizations.invitations.errors.accept_expired": {
     "text": "A meghívás lejárt",
     "source_hash": "7186297b"

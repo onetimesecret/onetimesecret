@@ -15,9 +15,19 @@
     "content_hash": "a5df7d22"
   },
   "api.invite.errors.invitation_already_processed": {
-    "text": "Invitation has already been %{status}",
-    "context": "Returned when an invitation has already been accepted/declined/revoked",
-    "content_hash": "130c87e0"
+    "text": "This invitation has already been processed",
+    "context": "Generic fallback when an invitation is no longer pending and its status is not specifically accepted or declined",
+    "content_hash": "4cfedf4f"
+  },
+  "api.invite.errors.invitation_already_accepted": {
+    "text": "This invitation has already been accepted",
+    "context": "Returned when accepting or declining an invitation that was already accepted (status accepted/active)",
+    "content_hash": "8f9daf0f"
+  },
+  "api.invite.errors.invitation_already_declined": {
+    "text": "This invitation has already been declined",
+    "context": "Returned when accepting or declining an invitation that was already declined",
+    "content_hash": "96e0d626"
   },
   "api.invite.errors.invitation_expired": {
     "text": "Invitation has expired",

@@ -663,10 +663,6 @@
     "text": "A organização já não existe",
     "source_hash": "a5df7d22"
   },
-  "api.organizations.invitations.errors.accept_already_acted": {
-    "text": "O convite já foi %{status}",
-    "source_hash": "130c87e0"
-  },
   "api.organizations.invitations.errors.accept_expired": {
     "text": "O convite expirou",
     "source_hash": "7186297b"

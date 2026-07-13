@@ -663,10 +663,6 @@
     "text": "הארגון כבר אינו קיים",
     "source_hash": "a5df7d22"
   },
-  "api.organizations.invitations.errors.accept_already_acted": {
-    "text": "ההזמנה כבר %{status}",
-    "source_hash": "130c87e0"
-  },
   "api.organizations.invitations.errors.accept_expired": {
     "text": "תוקף ההזמנה פג",
     "source_hash": "7186297b"

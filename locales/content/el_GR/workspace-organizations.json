@@ -663,10 +663,6 @@
     "text": "Ο οργανισμός δεν υπάρχει πλέον",
     "source_hash": "a5df7d22"
   },
-  "api.organizations.invitations.errors.accept_already_acted": {
-    "text": "Η πρόσκληση έχει ήδη %{status}",
-    "source_hash": "130c87e0"
-  },
   "api.organizations.invitations.errors.accept_expired": {
     "text": "Η πρόσκληση έχει λήξει",
     "source_hash": "7186297b"

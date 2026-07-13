@@ -855,10 +855,6 @@
     "text": "조직이 더 이상 존재하지 않습니다",
     "source_hash": "a5df7d22"
   },
-  "api.organizations.invitations.errors.accept_already_acted": {
-    "text": "이 초대는 이미 %{status} 상태입니다",
-    "source_hash": "130c87e0"
-  },
   "api.organizations.invitations.errors.accept_expired": {
     "text": "초대가 만료되었습니다",
     "source_hash": "7186297b"
