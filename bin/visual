@@ -91,6 +91,19 @@ VISUAL_ENV=(
   BRAND_BUTTON_TEXT_LIGHT=true
   I18N_ENABLED=true
   I18N_DEFAULT_LOCALE=en
+  # Footer link columns (Legals/Resources/Support) render only when
+  # FOOTER_LINKS=true (config default: false) and the baselines include them.
+  # Unpinned, a bare env (CI) drops the columns and every full-footer
+  # canonical page renders ~178px (desktop) / ~402px (mobile) shorter than
+  # baseline. The URLs are pinned too so ambient dev exports can never leak
+  # into baselines (TERMS_URL/PRIVACY_URL have no config defaults at all).
+  FOOTER_LINKS=true
+  TERMS_URL=https://onetimesecret.com/terms
+  PRIVACY_URL=https://onetimesecret.com/privacy
+  DOCS_URL=https://docs.onetimesecret.com/
+  STATUS_URL=https://status.onetimesecret.com/
+  ABOUT_URL=https://onetimesecret.com/about
+  CONTACT_URL=/feedback
   # Pinned for environment determinism (and prod parity — prod runs full).
   # The noauth visual pages currently render identically across auth modes,
   # but an ambient mode flip must never become a screenshot variable. The DB
