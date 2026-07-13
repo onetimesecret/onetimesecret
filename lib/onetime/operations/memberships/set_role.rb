@@ -72,7 +72,9 @@ module Onetime
             return build(:last_owner, from, @new_role)
           end
 
-          # change_role! re-materializes entitlements (the whole point of #3731).
+          # change_role! re-materializes entitlements (the whole point of #3731)
+          # and PERSISTS the role field itself (via materialize_for_role!). The
+          # save below is solely to stamp updated_at — not to persist the role.
           membership.change_role!(@new_role)
           membership.updated_at = Familia.now.to_f
           membership.save

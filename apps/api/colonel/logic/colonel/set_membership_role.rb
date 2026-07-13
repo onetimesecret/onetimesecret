@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require_relative 'membership_resolvers'
 require 'onetime/operations/memberships/set_role'
 
 module ColonelAPI
@@ -21,6 +22,8 @@ module ColonelAPI
       # Security invariant: BOTH the router (role=colonel) AND this logic
       # (verify_one_of_roles!) enforce the colonel role.
       class SetMembershipRole < ColonelAPI::Logic::Base
+        include MembershipResolvers
+
         attr_reader :org, :customer, :new_role, :result
 
         def process_params
@@ -86,15 +89,6 @@ module ColonelAPI
           when :last_owner
             raise_form_error('Cannot demote the last remaining owner of the organization', field: :role)
           end
-        end
-
-        def resolve_org(identifier)
-          Onetime::Organization.find_by_extid(identifier) ||
-            Onetime::Organization.load(identifier)
-        end
-
-        def resolve_customer(identifier)
-          Onetime::Customer.load_by_extid_or_email(OT::Utils.normalize_email(identifier))
         end
       end
     end

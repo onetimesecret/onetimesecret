@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require_relative 'membership_resolvers'
 require 'onetime/operations/memberships/add'
 
 module ColonelAPI
@@ -23,6 +24,8 @@ module ColonelAPI
       # Security invariant: BOTH the router (role=colonel) AND this logic
       # (verify_one_of_roles!) enforce the colonel role.
       class AddMembership < ColonelAPI::Logic::Base
+        include MembershipResolvers
+
         attr_reader :org, :customer, :role, :result
 
         def process_params
@@ -81,15 +84,6 @@ module ColonelAPI
             "Invalid role '#{role}'. Must be one of: #{Onetime::Operations::Memberships::Add::VALID_ROLES.join(', ')}",
             field: :role,
           )
-        end
-
-        def resolve_org(identifier)
-          Onetime::Organization.find_by_extid(identifier) ||
-            Onetime::Organization.load(identifier)
-        end
-
-        def resolve_customer(identifier)
-          Onetime::Customer.load_by_extid_or_email(OT::Utils.normalize_email(identifier))
         end
       end
     end
