@@ -65,7 +65,7 @@
   },
   "web.translations.the_following_people_have_donated_their_time_to_": {
     "text": "As seguintes pessoas doaram o seu tempo para ajudar a ampliar o alcance do {product_name}:",
-    "source_hash": "85a766af"
+    "source_hash": "6cc876ae"
   },
   "web.translations.translations": {
     "text": "Traduções",
@@ -84,8 +84,8 @@
     "source_hash": "ba5c4395"
   },
   "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
-    "text": "Desde 2012, o {product_name} oferece uma forma segura de partilhar informação sensível em todo o mundo. Com utilizadores em regiões onde o inglês não é a língua principal, traduções rigorosas são essenciais para tornar a comunicação segura acessível a todos.",
-    "source_hash": "87a6e9af"
+    "text": "Desde 2012, o {product_name} tem proporcionado uma forma segura de partilhar informação sensível em todo o mundo. Com utilizadores em regiões onde o inglês não é a língua principal, as traduções rigorosas são essenciais para tornar a comunicação segura acessível a todos.",
+    "source_hash": "ded965d5"
   },
   "web.translations.help_secure_communication_go_global": {
     "text": "Ajuda a comunicação segura a tornar-se global",
