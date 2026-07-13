@@ -39,6 +39,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write  # sticky diff-summary comment (upserted on the PR)
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -94,6 +95,7 @@ jobs:
         run: pnpm run build
 
       - name: Run visual regression suite
+        id: visual
         run: |
           # bin/visual's env guards expect a direnv-loaded shell; CI provides
           # the equivalent env explicitly. SECRET is ephemeral (production-
@@ -107,6 +109,31 @@ jobs:
           # the Playwright container with --network host and resolves the
           # fixture hosts (*.example.com/org) to 127.0.0.1.
           bin/visual
+
+      # PR-artifact half of the dual-artifact archive (PR 3 of the spec).
+      # A fresh render of the full matrix, uploaded on green so reviewers can
+      # eyeball exactly what this PR's pages look like without checking out
+      # the branch. Same directory format the release workflow
+      # (visual-archive.yml) pushes to ghcr.io, so any two sets are
+      # directory-diffable. A second bin/visual invocation re-boots and
+      # re-seeds — required anyway, because the compare pass consumed the
+      # destructive cells (reveal destroys, first receipt view stamps).
+      - name: Render archive set
+        if: success()
+        run: |
+          export OTS_ENV_LOADED=1
+          SECRET="$(openssl rand -hex 32)"
+          export SECRET
+          export REDIS_URL=redis://127.0.0.1:6379/0
+          bin/visual --archive e2e/visual/.artifacts/render
+
+      - name: Upload rendered set
+        if: success()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: visual-render-${{ github.event.pull_request.head.sha || github.sha }}
+          path: e2e/visual/.artifacts/render/
+          retention-days: 30
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -132,3 +159,69 @@ jobs:
         run: |
           echo "=== tmp/visual-server.log (last 100 lines) ==="
           tail -n 100 tmp/visual-server.log || true
+
+      # Upsert one sticky comment on the PR summarizing the run. On failure it
+      # lists the changed shots (globbed from the diff PNGs Playwright wrote)
+      # and links to the artifacts; on success it flips the same comment to a
+      # pass marker so a fixed PR doesn't leave a stale red comment behind.
+      # The PNGs themselves stay in the artifact zip — GitHub can't host them
+      # inline without a screenshots branch, which we deliberately avoid.
+      - name: Comment visual summary on PR
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        env:
+          SUITE_OUTCOME: ${{ steps.visual.outcome }}
+          JOB_STATUS: ${{ job.status }}
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const MARKER = '<!-- visual-regression-report -->';
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const failed = process.env.SUITE_OUTCOME === 'failure';
+
+            // Collect the diff PNGs Playwright emitted (…-diff.png under test-results).
+            const shots = [];
+            const root = 'e2e/test-results';
+            const walk = (dir) => {
+              let entries = [];
+              try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+              for (const e of entries) {
+                const p = path.join(dir, e.name);
+                if (e.isDirectory()) walk(p);
+                else if (e.name.endsWith('-diff.png')) shots.push(p);
+              }
+            };
+            walk(root);
+
+            let body;
+            if (!failed && process.env.JOB_STATUS !== 'success') {
+              // Comparison passed but a later step (archive render/upload)
+              // failed — never post a green comment on a red lane.
+              body = `${MARKER}\n### ⚠️ Visual comparison passed, but the lane failed\nAll shots matched the committed linux baselines; a post-comparison step (archive render/upload) failed. · [run](${runUrl})`;
+            } else if (!failed) {
+              body = `${MARKER}\n### ✅ Visual regression passed\nAll shots matched the committed linux baselines. · [run](${runUrl})`;
+            } else {
+              const list = shots.length
+                ? shots.map((s) => `- \`${path.relative(root, s).replace(/-diff\.png$/, '')}\``).join('\n')
+                : '_No diff PNGs were written — the lane likely failed before comparison (boot/seed/build). Check the run log._';
+              body = [
+                `${MARKER}`,
+                `### ❌ Visual regression failed — ${shots.length} shot(s) changed`,
+                '',
+                list,
+                '',
+                `The expected/actual/diff triptychs are in the **\`visual-test-results\`** artifact (7-day retention).`,
+                `Download → [run summary](${runUrl}) · report → **\`visual-playwright-report\`** artifact.`,
+              ].join('\n');
+            }
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const { data: comments } = await github.rest.issues.listComments({ owner, repo, issue_number, per_page: 100 });
+            const existing = comments.find((c) => c.body && c.body.includes(MARKER));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
