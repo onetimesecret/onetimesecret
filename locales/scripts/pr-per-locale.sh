@@ -37,6 +37,10 @@
 #                        per-locale task prompt, the diff, and --model. Unset by
 #                        default (inline review prompt only).
 #   --no-review          Skip the claude review (PR body carries stats only).
+#   --skip-validation    Skip the up-front variable-validation pass (Stage 0)
+#                        that materializes each branch and writes per-locale
+#                        i18n-validate-<locale>.json files. PR bodies then show
+#                        "Variable validation not run" instead of a mismatch count.
 #   --update             If an open PR already exists for the branch, refresh its
 #                        body instead of skipping it.
 #   --results-dir DIR    Where to write validation JSON + review artifacts
@@ -66,6 +70,7 @@ MODEL=claude-sonnet-5
 AGENT_PROFILE=""
 EXECUTE=false
 DO_REVIEW=true
+SKIP_VALIDATION=false
 UPDATE_EXISTING=false
 REVIEW_TIMEOUT=300
 SLEEP_AFTER=0
@@ -86,6 +91,7 @@ while [[ $# -gt 0 ]]; do
     --agent-profile)  AGENT_PROFILE="${2:?--agent-profile needs an agent name}"; shift ;;
     --agent-profile=*) AGENT_PROFILE="${1#*=}" ;;
     --no-review)      DO_REVIEW=false ;;
+    --skip-validation) SKIP_VALIDATION=true ;;
     --update)         UPDATE_EXISTING=true ;;
     --results-dir)    RESULTS_DIR="${2:?--results-dir needs a path}"; shift ;;
     --results-dir=*)  RESULTS_DIR="${1#*=}" ;;
@@ -137,9 +143,11 @@ else
   BASE_REF="$BASE_BRANCH"
 fi
 
-# jq + python3 gate the optional variable-validation section.
+# jq + python3 gate the optional variable-validation section; --skip-validation
+# turns it off explicitly regardless of tool availability.
 HAVE_VALIDATION=false
-if command -v jq >/dev/null 2>&1 && command -v python3 >/dev/null 2>&1 \
+if ! $SKIP_VALIDATION \
+   && command -v jq >/dev/null 2>&1 && command -v python3 >/dev/null 2>&1 \
    && [[ -f locales/scripts/review-locale-branches.sh ]]; then
   HAVE_VALIDATION=true
 fi
