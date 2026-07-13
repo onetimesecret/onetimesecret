@@ -23,3 +23,15 @@ window.addEventListener('vite:preloadError', (event) => {
 const app = createApp(App);
 app.use(AppInitializer, { debug: false });
 app.mount('#app');
+
+// Visual-archive backport (not in v0.25.11): the visual specs' readiness
+// gate. Same semantics as current main.ts — flag only after the router has
+// resolved and rendered the first navigation.
+const router = app.config.globalProperties.$router;
+if (router?.isReady) {
+  void router.isReady().then(() => {
+    document.documentElement.dataset.appReady = 'true';
+  });
+} else {
+  document.documentElement.dataset.appReady = 'true';
+}

@@ -1,0 +1,147 @@
+{
+  "seededAt": "2026-07-13T05:27:39Z",
+  "canonicalHost": "canonical.example.org",
+  "fixtures": {
+    "canonical": {
+      "host": "canonical.example.org",
+      "custom": false
+    },
+    "branded-full": {
+      "host": "secrets.acme.example.com",
+      "custom": true
+    },
+    "branded-edge": {
+      "host": "secrets.edge.example.com",
+      "custom": true
+    }
+  },
+  "unknownSecretId": "2xcpdqzwggbhkrow2exgykjghs25yk3iqjbiavopkd6a8dnvb1tyc9kwkmf6fu",
+  "cells": {
+    "canonical": {
+      "revealConfirm": {
+        "secretId": "61swyptylub38mw3hqdwhhcoenzmqsxhzudgypf6obbx0r1mxn8amvk7247o4t"
+      },
+      "revealRevealed": {
+        "desktop": {
+          "secretId": "6xlcn464elv1w6y06d6zd0vf6tbold7p72hirb3yuxsv5tko5kcut194nw6m43"
+        },
+        "mobile": {
+          "secretId": "9gsq3y9en35jcspbl5jvr45hul1b96wpjq7rzvbjg04nefpyxz91btrt4ayxuo"
+        }
+      },
+      "revealPassphrase": {
+        "secretId": "0wosk87dchdwsmtbbkivk2unan41ane1f42peevq4juyzctz3krf3bdzfl7wh8",
+        "passphrase": "qa-visual-passphrase"
+      },
+      "receiptFresh": {
+        "desktop": {
+          "receiptId": "8fwpsdz8mg4gmmy375yu4qy4yc8m086fa4n32badl6orjquvwrejyf0pntr16v"
+        },
+        "mobile": {
+          "receiptId": "2yukmocjni8sy1506no92jqh2xbkxs6qae1krjqymvevsppvz1xdt0ps5ir2fz"
+        }
+      },
+      "receiptViewed": {
+        "receiptId": "3s3lo7j3jnafpza6h7b3m8yuat5se3eti2kxjxsl9ax4c61xpg5ohdrptd6eoz"
+      },
+      "receiptBurned": {
+        "receiptId": "g5martev9atfgir6pb0he89wgfmwmnhtvcom343yw98vk8eq3lvjnhgn1jzvyd"
+      },
+      "burnPage": {
+        "desktop": {
+          "receiptId": "glkbrhl48r7tk1a1dq5dnwip9dg7h96xrb4r3waleynzhakaragp7r0aflmbti"
+        },
+        "mobile": {
+          "receiptId": "b5qm98kjkvyuxb0h92vuf553iolh3gp0ujugr67keh6xjui9r2j972kpwrbhsi"
+        }
+      },
+      "incomingSuccess": {
+        "receiptId": "g8vzs6xylzaz28qra5yrjlokzfunkl7mp18louj12e9c1gokwttubikqr8cgb1"
+      }
+    },
+    "branded-full": {
+      "revealConfirm": {
+        "secretId": "k8so0ukm5wcmzy2qriuocwbk3f1nnj07xyuau2jxw8wk0umf196xeud1doj84b"
+      },
+      "revealRevealed": {
+        "desktop": {
+          "secretId": "5hsbtkl3mtbzfka3mq5pzcp80ujyr26ci3ljqb9l6pqks2sn294g7oh4e65l2g"
+        },
+        "mobile": {
+          "secretId": "nwxw95tlp47pds1plkt5h9s5xv204m4aen8qrepf3lvcok17ayst45jyoew8ke"
+        }
+      },
+      "revealPassphrase": {
+        "secretId": "k1fw5t4zqx8uifi8v84pjh0nxzygsdl6jbtp4fcflbjd8s7q5r5elwrgwssth4",
+        "passphrase": "qa-visual-passphrase"
+      },
+      "receiptFresh": {
+        "desktop": {
+          "receiptId": "j3n55s3tw3jk12xj7he4rt8saraiagc01b2u38h4fco83iezx057p8wa5lnfmk"
+        },
+        "mobile": {
+          "receiptId": "kesglu2382rf09kgdku49m276zv80gc878ghky41qhzhebwfeo1edoxuqeivoa"
+        }
+      },
+      "receiptViewed": {
+        "receiptId": "17cejbxkn38j2vrlh2u8fa52jq2z2wxrkgbeg4psar0mfx52pthzi5fahhb8lo"
+      },
+      "receiptBurned": {
+        "receiptId": "ast43s3wx3y51ksb9xplilh4z5fqpw0xqqx5u6fp7fta7jbwv51tar2aiiuxbo"
+      },
+      "burnPage": {
+        "desktop": {
+          "receiptId": "325hsddwmx1uyg9y1xhmchuow5jyxoivfz0rnf2htrjs1wo5ubp2b53g5t7rw0"
+        },
+        "mobile": {
+          "receiptId": "5qe9f70etrjteu566u188wbi9kvrs2er6tvce9exq4g9uzzzkcyv8tmd38ozwr"
+        }
+      },
+      "incomingSuccess": {
+        "receiptId": "glcmt5317raczxqgmgunkhzvx8it17rz6m0kz769dso22j6hu9c1nx2k1s9qyj"
+      }
+    },
+    "branded-edge": {
+      "revealConfirm": {
+        "secretId": "4baksksn91kwgknegq14r5w085ozp1drah1uysi3cq6rdji8pz9njb5kch0rtm"
+      },
+      "revealRevealed": {
+        "desktop": {
+          "secretId": "emt04xkohpbh8qvmjsk2jkbfjt4j3y0kj2247ft42tgsn12eyw8lfxwyneodgq"
+        },
+        "mobile": {
+          "secretId": "9qow2q1kp94brffk4ebz2dxf8wdopipszmqvdx83r0jcc1gjr8zfqj5hi78l9d"
+        }
+      },
+      "revealPassphrase": {
+        "secretId": "9jhylaa7ld14w97czjv8j1c8wf8670gkelvulcb802fi2xfx3423bjtunn893d",
+        "passphrase": "qa-visual-passphrase"
+      },
+      "receiptFresh": {
+        "desktop": {
+          "receiptId": "c8rzhg66h2s8p8uh4pf7knv2iyxf5c0qhtm9sjgr17sdtwn5g1cdfk0kebcina"
+        },
+        "mobile": {
+          "receiptId": "bdnuprblpjcdcj56nm3ywuxxiw73i4xpa3gjgtb83ht1d8ie737xgvp85krpeo"
+        }
+      },
+      "receiptViewed": {
+        "receiptId": "o79jeir4vpjqodkt2hd5qlnt2xq4gmt09p52emvnxeq0onj12jwtysvxx0vu49"
+      },
+      "receiptBurned": {
+        "receiptId": "bcngtrf4drn1dwammuwn863mb7dy6l6kcc3mng6nm0n8mp1gy26qnm8rp6b264"
+      },
+      "burnPage": {
+        "desktop": {
+          "receiptId": "9ipcj3qzct82bfslg8t6xokrnjuh6ffc38xjr1o4ul14r4e2l8nwo96miw6gbj"
+        },
+        "mobile": {
+          "receiptId": "dvv6zvb0kaixsiz5j8ffq12vps4u7cd7k9dr6iinr704srx7sf5c31l3jflhyb"
+        }
+      },
+      "incomingSuccess": {
+        "receiptId": "2llbbheqg7obnavdn03v11tb4k9x2ralre24co5z1nroj0tufsa8wca152p1d6"
+      }
+    }
+  }
+}

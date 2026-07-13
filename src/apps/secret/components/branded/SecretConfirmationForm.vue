@@ -159,6 +159,7 @@
             :id="'passphrase-' + secretIdentifier"
             type="password"
             name="passphrase"
+            data-testid="secret-reveal-passphrase-input"
             :class="[
               cornerClass,
               'w-full border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white',
@@ -173,6 +174,7 @@
         <button
           type="submit"
           :disabled="isSubmitting"
+          data-testid="secret-reveal-submit"
           :class="[
             cornerClass,
             fontFamilyClass,

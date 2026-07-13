@@ -1,9 +1,96 @@
 // e2e/playwright.config.ts
 
 import { defineConfig, devices } from '@playwright/test';
+import { existsSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // Default local server URL (Ruby backend with built assets)
 const DEFAULT_LOCAL_URL = 'http://localhost:7143';
+
+// Directory containing this config file. package.json is `"type": "module"`,
+// so the config loads as ESM and `__dirname` is unavailable.
+const CONFIG_DIR = path.dirname(fileURLToPath(import.meta.url));
+
+/**
+ * Remote/sandboxed dev environments (e.g. Claude Code on the web) preinstall
+ * Chromium at a fixed path baked into the container image, which can lag
+ * behind the revision this @playwright/test version expects — the default
+ * resolution then tries to download, which these environments block. Point
+ * at the preinstalled binary directly when present; everywhere else (real
+ * CI, local dev) this path doesn't exist and Playwright's normal
+ * resolution applies unchanged.
+ */
+const SANDBOX_CHROMIUM = '/opt/pw-browsers/chromium';
+const sandboxLaunchOptions = existsSync(SANDBOX_CHROMIUM)
+  ? { executablePath: SANDBOX_CHROMIUM }
+  : {};
+
+/**
+ * Sandbox/local escape hatch for the a11y suite: when A11Y_CHROME_PATH is
+ * set (e.g. to a pre-installed Chromium in an egress-blocked sandbox),
+ * launch that binary instead of Playwright's managed download. Unset in
+ * real CI, where `playwright install chromium` provisions the pinned
+ * build — CI then falls through to the sandbox detection above (a no-op
+ * there) and uses the default browser.
+ *
+ * Merged into ONE object because an object literal may define
+ * `launchOptions` only once — a second key silently wins and turns the
+ * first into dead code (which is exactly what happened to the sandbox
+ * path before this merge). Explicit A11Y_CHROME_PATH wins over the
+ * baked-in sandbox path.
+ */
+const chromiumLaunchOptions = {
+  ...sandboxLaunchOptions,
+  ...(process.env.A11Y_CHROME_PATH
+    ? { executablePath: process.env.A11Y_CHROME_PATH }
+    : {}),
+};
+
+/**
+ * Visual regression lane (e2e/visual/): branded fixtures live on
+ * *.example.com and the canonical host on *.example.org — distinct
+ * registrable domains on purpose, so the branded hosts classify :custom
+ * rather than same-domain :canonical peers. Chromium resolves both
+ * wildcards to VISUAL_RESOLVER_TARGET (127.0.0.1 locally; bin/visual
+ * points it at the container host for podman) so no /etc/hosts edits are
+ * needed. Spread chromiumLaunchOptions first: a project-level
+ * `use.launchOptions` replaces the shared one wholesale (per-property
+ * shallow override), it does not merge.
+ */
+const visualResolverTarget = process.env.VISUAL_RESOLVER_TARGET || '127.0.0.1';
+const visualLaunchOptions = {
+  ...chromiumLaunchOptions,
+  args: [
+    `--host-resolver-rules=MAP *.example.com ${visualResolverTarget}, MAP *.example.org ${visualResolverTarget}`,
+  ],
+};
+
+/**
+ * Snapshot redirection for the archive/compare modes (bin/visual --archive /
+ * --compare). When VISUAL_SNAPSHOT_DIR is set, the visual projects read and
+ * write snapshots under that directory instead of the committed
+ * e2e/visual/*.spec.ts-snapshots/ baselines. The template preserves the
+ * per-spec-file layout and the default {arg}{-projectName}{-platform} naming,
+ * so an archived set is directory-diffable 1:1 against the committed
+ * baselines. bin/visual always passes an absolute (in-container) path; a
+ * relative value would resolve against this config's directory.
+ */
+const visualSnapshotOverride = process.env.VISUAL_SNAPSHOT_DIR
+  ? {
+      snapshotPathTemplate: `${process.env.VISUAL_SNAPSHOT_DIR}/{testFileName}-snapshots/{arg}{-projectName}{-platform}{ext}`,
+    }
+  : {};
+
+/**
+ * Authenticated session produced by global.setup.ts and consumed by the
+ * `full` / `full-billing` projects via `storageState`. Absolute on purpose
+ * so writer (setup script) and readers (project `use` blocks) agree on one
+ * location regardless of cwd — Playwright path resolution is inconsistent
+ * (e.g. the blob reporter below resolves against cwd, not the config dir).
+ * The .auth/ directory is gitignored.
+ */
+export const STORAGE_STATE = path.join(CONFIG_DIR, '.auth', 'user.json');
 
 /**
  * Playwright configuration for E2E integration testing
@@ -34,17 +121,41 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
 
-  /* Reporter to use. */
-  reporter: [
-    ['html', { outputFolder: 'playwright-report' }],
-    ['github'], // GitHub Actions annotations
-    ['line'], // Terminal output
-  ],
+  /* Reporter to use.
+   *
+   * Environment-aware so nothing needs a `--reporter` CLI override (a CLI
+   * override *replaces* this whole array — that's how CI lost its HTML
+   * report; see e2e/docs/e2e-remediation-plan.md, Phase 1).
+   *
+   * CI additionally emits:
+   *  - json → test-results/results.json, parsed by the workflow's flaky
+   *    gate (a "passed only on retry" outcome fails the job)
+   *  - blob → blob-report/, mergeable across future CI shards
+   */
+  reporter: process.env.CI
+    ? [
+        ['list'], // Terminal output (CI logs)
+        ['github'], // GitHub Actions annotations
+        ['html', { outputFolder: 'playwright-report', open: 'never' }],
+        ['json', { outputFile: 'test-results/results.json' }],
+        // Unlike the other reporters, blob's default outputDir resolves
+        // against process.cwd(), not this config's directory - pin it.
+        ['blob', { outputDir: 'blob-report' }],
+      ]
+    : [
+        ['html', { outputFolder: 'playwright-report', open: 'never' }],
+        ['line'], // Terminal output
+      ],
 
   /* Shared settings for all the projects below. */
   use: {
     /* Base URL - uses PLAYWRIGHT_BASE_URL if set, otherwise defaults to local server */
     baseURL: process.env.PLAYWRIGHT_BASE_URL || DEFAULT_LOCAL_URL,
+
+    /* Sandbox executablePath + A11Y_CHROME_PATH override, merged in ONE
+     * expression — see chromiumLaunchOptions above. No-op outside
+     * preinstalled-browser sandboxes. */
+    launchOptions: chromiumLaunchOptions,
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -65,14 +176,110 @@ export default defineConfig({
     navigationTimeout: 15000,
   },
 
-  /* Configure projects for major browsers */
+  /* Configure projects.
+   *
+   * Auth model (e2e/docs/e2e-remediation-plan.md, Phase 2.1):
+   *  - `setup` registers/signs in the TEST_USER_* account once via the real
+   *    signup + signin UI and saves the session to STORAGE_STATE.
+   *  - `full` and `full-billing` depend on `setup` and start every test
+   *    already authenticated via storageState.
+   *  - `chromium` (all/ + auth/ suites) stays credential-free: no
+   *    dependency on `setup`, no storageState.
+   *
+   * CLI path filters (e.g. `pnpm test:playwright e2e/all e2e/full`) select
+   * which suites run; Playwright always runs dependency projects in full, so
+   * `setup` only executes when a dependent project has matching tests.
+   */
   projects: [
     {
-      name: 'chromium',
+      name: 'setup',
+      // Overrides the top-level testMatch (which only matches *.spec.ts)
+      testMatch: 'global.setup.ts',
       use: {
         ...devices['Desktop Chrome'],
         // Extra time for container responses
         actionTimeout: 30000,
+      },
+    },
+
+    {
+      // Credential-free suites: all/ (runs in CI) and auth/ (unauthenticated
+      // signup/SSO-CSRF flows). Keep the historical project name so existing
+      // `--project=chromium` invocations keep working.
+      name: 'chromium',
+      testIgnore: ['full/**', 'full-billing/**', 'visual/**'],
+      use: {
+        ...devices['Desktop Chrome'],
+        // Extra time for container responses
+        actionTimeout: 30000,
+      },
+    },
+
+    {
+      // Authenticated suite; requires TEST_USER_EMAIL / TEST_USER_PASSWORD.
+      name: 'full',
+      testMatch: 'full/**/*.spec.ts',
+      dependencies: ['setup'],
+      use: {
+        ...devices['Desktop Chrome'],
+        actionTimeout: 30000,
+        storageState: STORAGE_STATE,
+      },
+    },
+
+    {
+      // Authenticated suite + billing enabled on the target server.
+      name: 'full-billing',
+      testMatch: 'full-billing/**/*.spec.ts',
+      dependencies: ['setup'],
+      use: {
+        ...devices['Desktop Chrome'],
+        actionTimeout: 30000,
+        storageState: STORAGE_STATE,
+      },
+    },
+
+    /* Visual regression lane (e2e/visual/). Noauth pages only: no `setup`
+     * dependency, no storageState. Explicit viewports with
+     * deviceScaleFactor 1 — device presets ship DSF 3, which would triple
+     * baseline PNG pixel dimensions. The project name lands in the default
+     * snapshot filename, keeping desktop and mobile baselines distinct
+     * without a snapshotPathTemplate. */
+    {
+      name: 'visual-desktop',
+      testMatch: 'visual/**/*.spec.ts',
+      ...visualSnapshotOverride,
+      expect: {
+        toHaveScreenshot: { maxDiffPixels: 100 },
+      },
+      use: {
+        viewport: { width: 1280, height: 800 },
+        deviceScaleFactor: 1,
+        reducedMotion: 'reduce',
+        // Extra time for container responses
+        actionTimeout: 30000,
+        launchOptions: visualLaunchOptions,
+      },
+    },
+
+    {
+      name: 'visual-mobile',
+      testMatch: 'visual/**/*.spec.ts',
+      ...visualSnapshotOverride,
+      // Cells baselined at desktop only (secret--passphrase,
+      // receipt--viewed, receipt--burned) are tagged @desktop-only;
+      // excluding them here keeps `--list` exact instead of runtime-skipping.
+      grepInvert: /@desktop-only/,
+      expect: {
+        toHaveScreenshot: { maxDiffPixels: 100 },
+      },
+      use: {
+        viewport: { width: 375, height: 812 },
+        deviceScaleFactor: 1,
+        reducedMotion: 'reduce',
+        // Extra time for container responses
+        actionTimeout: 30000,
+        launchOptions: visualLaunchOptions,
       },
     },
 
@@ -91,8 +298,17 @@ export default defineConfig({
   /* Timeout for entire test suite */
   timeout: 60000,
 
-  /* Global timeout for entire test run */
-  globalTimeout: 10 * 60 * 1000, // 10 minutes
+  /* Global timeout for entire test run.
+   *
+   * Sized for the post-Phase-2 reality: CI runs all/ + full/ (~330 tests)
+   * on a single serial worker, which cannot finish inside the old 10-minute
+   * budget - runs aborted at exactly 10.0m with hundreds of tests reported
+   * "did not run" (observed on #3414/#3416 CI). Keep this under the
+   * workflow job's timeout-minutes (30) minus ~4-5 min of container
+   * build/setup overhead. Shrinking this again is a Phase 3 goal
+   * (fullyParallel + more workers), not a budget to win back by hiding
+   * tests. */
+  globalTimeout: 20 * 60 * 1000, // 20 minutes
 
   /* Expect timeout for assertions */
   expect: {
