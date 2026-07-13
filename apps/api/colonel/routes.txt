@@ -52,6 +52,7 @@ POST   /domains/:extid/repair            ColonelAPI::Logic::Colonel::RepairDomai
 POST   /domains/:extid/transfer          ColonelAPI::Logic::Colonel::TransferDomain response=json auth=sessionauth role=colonel scope=internal
 # Per-domain detail (DNS panel + post-verify refresh). Literal /domains/orphaned above still wins.
 GET    /domains/:extid                   ColonelAPI::Logic::Colonel::GetCustomDomain response=json auth=sessionauth role=colonel scope=internal
+DELETE /domains/:extid                   ColonelAPI::Logic::Colonel::RemoveCustomDomain response=json auth=sessionauth role=colonel scope=internal
 
 # Organizations
 GET    /organizations                     ColonelAPI::Logic::Colonel::ListOrganizations response=json auth=sessionauth role=colonel scope=internal
