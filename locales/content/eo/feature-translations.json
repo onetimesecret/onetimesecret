@@ -65,7 +65,7 @@
   },
   "web.translations.the_following_people_have_donated_their_time_to_": {
     "text": "La jenaj homoj donacis sian tempon por helpi vastigi la atingon de {product_name}:",
-    "source_hash": "85a766af"
+    "source_hash": "6cc876ae"
   },
   "web.translations.translations": {
     "text": "Tradukoj",
@@ -84,8 +84,8 @@
     "source_hash": "ba5c4395"
   },
   "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
-    "text": "Ekde 2012, {product_name} provizis sekuran manieron kunhavigi sentemajn informojn tutmonde. Kun uzantoj tra regionoj kie la angla ne estas la ĉefa lingvo, precizaj tradukoj estas esencaj por fari sekuran komunikadon alirebla por ĉiuj.",
-    "source_hash": "87a6e9af"
+    "text": "Ekde 2012, {product_name} provizis sekuran manieron por kunhavigi sentemajn informojn tutmonde. Kun uzantoj tra regionoj kie la angla ne estas la ĉefa lingvo, precizaj tradukoj estas esencaj por fari sekuran komunikadon alirebla por ĉiuj.",
+    "source_hash": "ded965d5"
   },
   "web.translations.help_secure_communication_go_global": {
     "text": "Helpu Sekuran Komunikadon Iri Tutmonda",

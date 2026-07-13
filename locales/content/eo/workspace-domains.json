@@ -76,8 +76,8 @@
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "Ebligita",
-    "source_hash": "92c1cdfd"
+    "text": "Ŝalti",
+    "source_hash": "5342e09f"
   },
   "web.domains.disabled": {
     "text": "Malebligita",
@@ -1358,5 +1358,189 @@
   "web.domains.sso.upgrade_required": {
     "text": "Altniveligu por agordi",
     "source_hash": "571cfa98"
+  },
+  "web.domains.add.field_label": {
+    "text": "Propra domajno",
+    "source_hash": "d7d4c1e4"
+  },
+  "web.domains.add.field_help": {
+    "text": "La preciza gastigantnomo kiun via teamo uzos, kiel {example}.",
+    "source_hash": "3ba71f78"
+  },
+  "web.domains.add.echo_label": {
+    "text": "Viaj sekretaj ligiloj troviĝos ĉe",
+    "source_hash": "ad60b17d"
+  },
+  "web.domains.add.apex_question": {
+    "text": "Tio estas via tuta domajno — kie troviĝu sekretaj ligiloj?",
+    "source_hash": "efacad1b"
+  },
+  "web.domains.add.apex_help": {
+    "text": "Subdomajno lasas la ceteron de {domain} netuŝita.",
+    "source_hash": "0f7e6181"
+  },
+  "web.domains.add.recommended": {
+    "text": "Rekomendita",
+    "source_hash": "d70604e8"
+  },
+  "web.domains.add.no_wrong_answer": {
+    "text": "Ne estas malĝusta elekto — elektu tiun, kiun via teamo rekonos.",
+    "source_hash": "a04f0086"
+  },
+  "web.domains.add.subdomains_label": {
+    "text": "Popularaj subdomajnoj",
+    "source_hash": "d6ee8eac"
+  },
+  "web.domains.add.root_group_label": {
+    "text": "Aŭ uzu vian tutan domajnon",
+    "source_hash": "5c23c007"
+  },
+  "web.domains.add.root_domain_label": {
+    "text": "Uzu mian radikan domajnon",
+    "source_hash": "9fbbe253"
+  },
+  "web.domains.add.root_domain_description": {
+    "text": "Ĉi tio direktas la tutan {domain} al ni — la retejo tie ĉesas solviĝi — kaj bezonas A / ALIAS-registron.",
+    "source_hash": "fae93847"
+  },
+  "web.domains.add.error_unrecognized_suffix": {
+    "text": "“.{0}” ne estas rekonata domajna finaĵo — kontrolu tajperaron (ekz. {1}).",
+    "source_hash": "4b90033d"
+  },
+  "web.domains.add.error_invalid_hostname": {
+    "text": "Enigu validan gastigantnomon — literoj, ciferoj, unuopaj punktoj kaj streketoj (ekz. {0}).",
+    "source_hash": "c4ceabc1"
+  },
+  "web.domains.add.error_empty": {
+    "text": "Bonvolu enigi domajnan nomon.",
+    "source_hash": "d8e2c1e4"
+  },
+  "web.domains.add.continue_with": {
+    "text": "Daŭrigi kun {0}",
+    "source_hash": "73f8ab40"
+  },
+  "web.domains.auth_override.workspace_default_badge": {
+    "text": "Laborspaca defaŭlto",
+    "source_hash": "da3706ee"
+  },
+  "web.domains.detail.dns_title": {
+    "text": "DNS-Agordo",
+    "source_hash": "6c63df31"
+  },
+  "web.domains.detail.dns_description": {
+    "text": "Direktu vian domajnon al ĉi tiu servilo per CNAME-registro",
+    "source_hash": "080f84f0"
+  },
+  "web.domains.dns.title": {
+    "text": "DNS-agordo",
+    "source_hash": "da78c35d"
+  },
+  "web.domains.dns.point_domain_intro": {
+    "text": "Direktu",
+    "source_hash": "2fc0c524"
+  },
+  "web.domains.dns.point_domain_outro": {
+    "text": "al ĉi tiu servilo aldonante la jenan DNS-registron ĉe via provizanto.",
+    "source_hash": "8d260c05"
+  },
+  "web.domains.dns.cname_heading": {
+    "text": "Kreu CNAME-registron",
+    "source_hash": "11aeef5a"
+  },
+  "web.domains.dns.apex_heading": {
+    "text": "Kreu ALIAS- aŭ ANAME-registron",
+    "source_hash": "41135375"
+  },
+  "web.domains.dns.apex_notice": {
+    "text": "Apeksaj (radikaj) domajnoj ne povas uzi CNAME-registron. Uzu anstataŭe la ALIAS- aŭ ANAME-registron de via DNS-provizanto, aŭ direktu A-registron al la IP-adreso de via servilo.",
+    "source_hash": "2d1c3298"
+  },
+  "web.domains.email.from_address_local_placeholder": {
+    "text": "no-reply",
+    "source_hash": "510d274d"
+  },
+  "web.domains.homepage.title": {
+    "text": "Ĉefpaĝo",
+    "source_hash": "9e3391e9"
+  },
+  "web.domains.homepage.description": {
+    "text": "Kion vizitantoj povas fari sur via domajna ĉefpaĝo",
+    "source_hash": "974d159e"
+  },
+  "web.domains.homepage.option_private_title": {
+    "text": "Privata celpaĝo",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.option_private_description": {
+    "text": "Vizitantoj vidas privatan celpaĝon sen interaga formularo",
+    "source_hash": "4d9aaf6f"
+  },
+  "web.domains.homepage.option_create_title": {
+    "text": "Formularo por krei sekreton",
+    "source_hash": "6539dfc1"
+  },
+  "web.domains.homepage.option_create_description": {
+    "text": "Vizitantoj povas krei siajn proprajn sekretajn ligilojn",
+    "source_hash": "884310f4"
+  },
+  "web.domains.homepage.option_incoming_title": {
+    "text": "Formularo por envenantaj sekretoj",
+    "source_hash": "882997bf"
+  },
+  "web.domains.homepage.option_incoming_description": {
+    "text": "Vizitantoj povas sendi sekretojn al viaj agorditaj ricevantoj",
+    "source_hash": "86bdaedb"
+  },
+  "web.domains.homepage.incoming_requires_recipients": {
+    "text": "Postulas ke envenantaj sekretoj estu ŝaltitaj kun almenaŭ unu ricevanto",
+    "source_hash": "0462611d"
+  },
+  "web.domains.homepage.configure_recipients": {
+    "text": "Agordi ricevantojn",
+    "source_hash": "1c3df8b4"
+  },
+  "web.domains.homepage.status_private": {
+    "text": "Privata celpaĝo",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.status_create": {
+    "text": "Publika: vizitantoj kreas sekretojn",
+    "source_hash": "251cfb95"
+  },
+  "web.domains.homepage.status_incoming": {
+    "text": "Publika: vizitantoj sendas al vi sekretojn",
+    "source_hash": "baa926b8"
+  },
+  "web.domains.homepage.status_incoming_unready": {
+    "text": "Envenanta ne preta — montrante privatan celpaĝon",
+    "source_hash": "a5cc237c"
+  },
+  "web.domains.homepage.badge_incoming": {
+    "text": "Envenanta",
+    "source_hash": "e301820a"
+  },
+  "web.domains.homepage.update_success": {
+    "text": "Agordoj de ĉefpaĝo konservitaj",
+    "source_hash": "4eac9f45"
+  },
+  "web.domains.homepage.homepage_uses_incoming_warning": {
+    "text": "La ĉefpaĝo de ĉi tiu domajno nuntempe prezentas la formularon por envenantaj sekretoj. Malŝalti envenantajn sekretojn aŭ forigi ĉiujn ricevantojn ŝanĝos la ĉefpaĝon al privata celpaĝo ĝis envenanta estos denove preta.",
+    "source_hash": "cc0d4997"
+  },
+  "web.domains.signin.effective_status_label": {
+    "text": "Ensaluto sur ĉi tiu domajno",
+    "source_hash": "d8b884c3"
+  },
+  "web.domains.signin.dormant_notice": {
+    "text": "Ensaluto estas malŝaltita tra la tuta laborspaco, do ĝi ne disponeblas sur ĉiu domajno. Viaj agordoj ĉi tie estas konservitaj kaj ekvalidas kiam laborspaca ensaluto estos denove ŝaltita.",
+    "source_hash": "723d35dc"
+  },
+  "web.domains.signup.effective_status_label": {
+    "text": "Registriĝoj sur ĉi tiu domajno",
+    "source_hash": "115ab21b"
+  },
+  "web.domains.signup.dormant_notice": {
+    "text": "Registriĝoj estas malŝaltitaj tra la tuta laborspaco, do ili ne disponeblas sur ĉiu domajno. Viaj agordoj ĉi tie estas konservitaj kaj ekvalidas kiam laborspacaj registriĝoj estos denove ŝaltitaj.",
+    "source_hash": "49faefe4"
   }
 }
