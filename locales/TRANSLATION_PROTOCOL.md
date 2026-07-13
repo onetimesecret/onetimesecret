@@ -63,7 +63,7 @@ Replace `[LOCALE]` with the target locale code (e.g., `eo`, `fr_CA`, `de`).
 ```bash
 python3 locales/scripts/i18n tasks create eo
 ```
-This populates the `translation_tasks` table required by `tasks next`. Run once per locale, or re-run to refresh after English source changes.
+This populates the `translation_tasks` table required by `tasks next`. Run once per locale, or re-run to refresh after English source changes. Add `--missing-only` to enqueue only the keys that still need work — **missing** (untranslated) plus **stale** (translated, but en changed since: the target `source_hash` no longer matches en's `content_hash`) — without re-touching still-current reviewed strings. `tasks next <locale> --stats` prints a `current/stale/missing` coverage block so you can see drift even before enqueuing it.
 
 Tasks are grouped by parent path (e.g., all keys under `web.COMMON.buttons`). This keeps work productive by batching related strings together rather than handling thousands of individual keys. Translators get more context since messages at the same level are usually related.
 
@@ -161,7 +161,7 @@ locales/scripts/
       content.py        # compile, decompile, hashes, add-field
       tasks.py          # create, next, update, export
       store.py          # group "db": init, migrate, query, export, import
-      validate.py       # pr, variables
+      validate.py       # pr, variables, glossary
   create-all.sh         # bulk: generate tasks for every locale
   export-and-commit.sh  # bulk: export completed locales + commit
   pyproject.toml
@@ -278,6 +278,25 @@ python3 locales/scripts/i18n db query \
   "INSERT INTO glossary (locale, term, translation, context, notes)
    VALUES ('de', 'passphrase', 'Passphrase', 'security feature',
            'Keep as loanword - standard in German tech')"
+```
+
+QC (and agent drains) also feed the glossary the other direction: parallel drain
+agents don't write the DB, they report `term → rendering` candidates in their
+final message for the orchestrator to review and insert here.
+
+### Bound-glossary divergence check
+
+Audit translations against the *bound* renderings a locale is supposed to honor
+(`senses[*].target` in `generated/i18n/.resolved/<locale>.json`, distinct from
+the DB glossary above). Advisory and heuristic — flags a translated key whose
+English source uses a bound term but whose translation lacks that term's
+rendering; findings are prompts for review, so eyeball each one.
+
+```bash
+locales/scripts/derive-governance.sh                       # once, if not derived
+python3 locales/scripts/i18n validate glossary de          # one locale
+python3 locales/scripts/i18n validate glossary             # all governed locales
+python3 locales/scripts/i18n validate glossary de --strict # exit non-zero (CI gate)
 ```
 
 ## Monitoring the process

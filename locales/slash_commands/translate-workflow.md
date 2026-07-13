@@ -67,9 +67,12 @@ Discover, do not assume. Run these yourself in the main loop first:
    i18n tasks create <loc> --missing-only      # per eligible target
    i18n tasks next <loc> --stats               # keep targets now showing pending > 0
    ```
-   `tasks create` is still target-blind about *stale* keys (already translated but
-   `en` changed since), so `0 pending` means "no untranslated keys," **not** "fully
-   current" — note that, don't work around it here.
+   `--missing-only` now enqueues both **missing** and **stale** keys (translated
+   but `en` changed since — target `source_hash` ≠ en `content_hash`), so a
+   refreshed queue reflects genuine drift too. `--stats` prints a content-truth
+   `current/stale/missing` coverage block; use that, not just `pending`, to judge
+   "is this locale current?" — `0 pending` on a queue you did not just refresh can
+   still hide stale keys.
 
 Record the scouted (and eligible) target list + per-locale pending counts; pass
 them into the Workflow as `args`.
@@ -88,8 +91,11 @@ and all governance — those are defined in `locales/AGENT_TRANSLATION_PROTOCOL.
 and `generated/i18n/.resolved/<loc>.json`. Keep the per-locale agent prompt short and
 point it at those files; do not re-derive the cycle here.
 
-The glossary pass (step 7 of the manual protocol) is **NOT** part of this drain.
-Leave it.
+Glossary: the agents **do not write** the glossary table (no parallel writers to
+the shared DB). They instead **return** candidate `term → rendering` pairs in
+their result; the main loop reviews and inserts the accepted ones after the
+Workflow returns (see "Done"). This replaces manual step 7 for the drain without
+breaking the one-writer boundary.
 
 ### Workflow skeleton (adapt — fill TARGETS from Phase 0)
 
@@ -110,7 +116,10 @@ const results = await pipeline(
     `Per-locale governance (register, glossary, binding rules, declined decisions): ` +
     `generated/i18n/.resolved/${loc}.json. ` +
     `Preserve all interpolation/markup tokens; brand names stay English. ` +
-    `Loop until 0 pending; do not export or commit. Return final pending/completed counts.`,
+    `Loop until 0 pending; do not export, commit, or write the glossary table. ` +
+    `Return final pending/completed counts AND a "glossary_candidates" list of ` +
+    `{term, rendering, reason} for recurring terms not already fixed by the ` +
+    `bound glossary in generated/i18n/.resolved/${loc}.json (empty if none).`,
     { label: `drain:${loc}`, phase: 'Drain', agentType: 'saas-translator' }
   ),
   (_drained, loc) => agent(
@@ -132,6 +141,12 @@ DONE = every targeted (eligible) locale shows `pending:0` via
 `python3 locales/scripts/i18n tasks next <loc> --stats`. Verify this in the main
 loop after the Workflow returns, then report final per-locale counts (and list any
 locales skipped for missing resolved governance).
+
+Then handle glossary candidates: collect the `glossary_candidates` from each
+locale's result, review them (drop any already bound in the resolved glossary or
+in a `declined` decision), and insert the accepted ones —
+`i18n db query "INSERT INTO glossary (locale, term, translation, notes) VALUES (…)"`.
+Optionally audit with `i18n validate glossary <loc>` (advisory).
 
 Do **not** export, do **not** `pnpm sync`, do **not** commit.
 
