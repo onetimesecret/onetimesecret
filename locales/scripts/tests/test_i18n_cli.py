@@ -290,6 +290,43 @@ class DbRoundTripTest(I18nCliTestCase):
         )
         self.assertIn("sekreto", restored.stdout)
 
+    def test_session_add_list_export_roundtrip(self) -> None:
+        # session_log has no automatic writer: add -> list -> export -> count.
+        notes = "29-locale drain\nrecoveries: bg, nl\naudit clean"
+        self.assertOk(
+            self.run_cli(
+                "db", "session", "add",
+                "--tasks", "6090",
+                "--notes", notes,
+            ),
+            "session add",
+        )
+
+        listed = self.run_cli("db", "session", "list")
+        self.assertOk(listed, "session list")
+        # Embedded newlines must not break the table into extra rows.
+        self.assertIn("(1 rows)", listed.stdout)
+        self.assertIn("6090", listed.stdout)
+
+        self.assertOk(
+            self.run_cli("db", "export", "session_log"), "export session_log"
+        )
+        self.assertTrue((self.db_dir / "session_log.sql").exists())
+
+        count = self.run_cli(
+            "db", "query", "--json",
+            "SELECT COUNT(*) AS c FROM session_log",
+        )
+        self.assertOk(count, "count")
+        self.assertEqual(json.loads(count.stdout)[0]["c"], 1)
+
+    def test_session_add_rejects_bad_date(self) -> None:
+        proc = self.run_cli(
+            "db", "session", "add", "--date", "not-a-date", "--tasks", "1"
+        )
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertIn("invalid iso", (proc.stdout + proc.stderr).lower())
+
     def test_import_rejects_checksum_mismatch(self) -> None:
         self.assertOk(
             self.run_cli(

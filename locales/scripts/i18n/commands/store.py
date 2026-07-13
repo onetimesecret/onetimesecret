@@ -14,6 +14,7 @@ query/export/import logic. Path and table constants come from
 from __future__ import annotations
 
 import argparse
+import datetime
 import hashlib
 import json
 import sqlite3
@@ -244,8 +245,8 @@ def _session_add(args) -> int:
 def _session_list(args) -> int:
     try:
         query(
-            "SELECT id, date, locale, task_count, "
-            "substr(notes, 1, 60) AS notes FROM session_log ORDER BY id"
+            "SELECT id, date, locale, task_count, notes "
+            "FROM session_log ORDER BY id"
         )
     except FileNotFoundError as e:
         print(f"Error: {e}", file=sys.stderr)
@@ -303,7 +304,7 @@ def query(
     if not DB_FILE.exists():
         raise FileNotFoundError(
             f"Database not found: {DB_FILE}\n"
-            "Run 'python store.py init' to create it."
+            "Run 'i18n db init' to create it."
         )
 
     with get_connection() as conn:
@@ -346,7 +347,7 @@ def export_tables(table: Optional[str] = None) -> None:
     if not DB_FILE.exists():
         raise FileNotFoundError(
             f"Database not found: {DB_FILE}\n"
-            "Run 'python store.py init' to create it."
+            "Run 'i18n db init' to create it."
         )
 
     tables_to_export = [table] if table else COMMITTABLE_TABLES
@@ -380,7 +381,7 @@ def export_tables(table: Optional[str] = None) -> None:
             lines = [
                 f"-- Exported from {tbl} table",
                 f"-- {count} rows",
-                f"-- Generated: {__import__('datetime').datetime.now().isoformat()}",
+                f"-- Generated: {datetime.datetime.now(datetime.timezone.utc).isoformat()}",
                 "",
                 f"DELETE FROM {tbl};",
                 "",
@@ -435,21 +436,36 @@ def add_session(
             "Run 'i18n db init' to create it."
         )
 
-    now = __import__("datetime").datetime.now()
+    # Default to UTC to match SQLite's datetime('now') on session_log.created_at.
+    now = datetime.datetime.now(datetime.timezone.utc)
     date = date or now.date().isoformat()
     started_at = started_at or now.isoformat()
     ended_at = ended_at or now.isoformat()
 
-    with get_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO session_log "
-            "(date, locale, started_at, ended_at, task_count, notes) "
-            "VALUES (?, ?, ?, ?, ?, ?)",
-            (date, locale, started_at, ended_at, task_count, notes),
-        )
-        conn.commit()
-        new_id = cursor.lastrowid
+    # Fail early on malformed input rather than storing bad data.
+    try:
+        datetime.date.fromisoformat(date)
+        datetime.datetime.fromisoformat(started_at)
+        datetime.datetime.fromisoformat(ended_at)
+    except ValueError as e:
+        raise RuntimeError(
+            f"Invalid ISO date/timestamp: {e} "
+            "(--date=YYYY-MM-DD, --started/--ended=ISO 8601)"
+        ) from e
+
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO session_log "
+                "(date, locale, started_at, ended_at, task_count, notes) "
+                "VALUES (?, ?, ?, ?, ?, ?)",
+                (date, locale, started_at, ended_at, task_count, notes),
+            )
+            conn.commit()
+            new_id = cursor.lastrowid
+    except sqlite3.Error as e:
+        raise RuntimeError(f"SQL error: {e}") from e
 
     print(
         f"session_log: added row id={new_id} "
@@ -488,7 +504,7 @@ def import_tables(file_path: Optional[str] = None, verify: bool = True) -> None:
     if not DB_FILE.exists():
         raise FileNotFoundError(
             f"Database not found: {DB_FILE}\n"
-            "Run 'python store.py init' to create it."
+            "Run 'i18n db init' to create it."
         )
 
     if file_path:
@@ -559,15 +575,20 @@ def _print_table(rows: list[dict], description: tuple) -> None:
     # Get column names
     columns = [col[0] for col in description]
 
+    def _cell(row, col):
+        # Collapse embedded whitespace (newlines, tabs) so a verbatim
+        # multi-line value (e.g. session_log.notes) stays on one row and
+        # aligned instead of breaking the table.
+        val = " ".join(str(row.get(col, "")).split())
+        if len(val) > 50:
+            val = val[:47] + "..."
+        return val
+
     # Calculate column widths
     widths = {col: len(col) for col in columns}
     for row in rows:
         for col in columns:
-            val = str(row.get(col, ""))
-            # Truncate long values for display
-            if len(val) > 50:
-                val = val[:47] + "..."
-            widths[col] = max(widths[col], len(val))
+            widths[col] = max(widths[col], len(_cell(row, col)))
 
     # Print header
     header = " | ".join(col.ljust(widths[col]) for col in columns)
@@ -577,12 +598,7 @@ def _print_table(rows: list[dict], description: tuple) -> None:
 
     # Print rows
     for row in rows:
-        line_parts = []
-        for col in columns:
-            val = str(row.get(col, ""))
-            if len(val) > 50:
-                val = val[:47] + "..."
-            line_parts.append(val.ljust(widths[col]))
+        line_parts = [_cell(row, col).ljust(widths[col]) for col in columns]
         print(" | ".join(line_parts))
 
     print(f"\n({len(rows)} rows)")
