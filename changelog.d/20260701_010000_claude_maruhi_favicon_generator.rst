@@ -20,8 +20,8 @@ Added
   gen:favicons:maruhi``, ships as the first preset: it renders the "maruhi" mark
   (circled 秘 "secret" glyph) in the current logo's orange/white palette
   (``OnetimeSecretIcon.vue`` / onetime-logo-v3) through the shared generator, no
-  separate code path. Writes the deployable pack to ``docker/public/`` and a
-  reviewable source copy to ``src/assets/branding/maruhi/``, leaving the
+  separate code path. Writes the deployable pack to ``public/branding/maruhi/``
+  and a reviewable source copy to ``src/assets/branding/maruhi/``, leaving the
   brand-neutral defaults in ``public/web/`` untouched (#3048, #3049).
 
 Fixed
