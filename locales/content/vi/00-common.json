@@ -1267,8 +1267,8 @@
     "source_hash": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
-    "text": "Tổ chức",
-    "source_hash": "2730183d"
+    "text": "Không gian làm việc",
+    "source_hash": "1377264b"
   },
   "web.TITLES.organization_settings": {
     "text": "Cài đặt tổ chức",
@@ -1299,8 +1299,8 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Luôn xác minh rằng bạn đang ở trên trang web chính thức của {product_name}. Kẻ gian đôi khi tạo ra các trang web giả mạo trông giống hệt {product_name} để đánh cắp bí mật của bạn. Để tránh các cuộc tấn công lừa đảo (phishing), hãy kiểm tra tên miền khu vực trước khi tạo liên kết mới.",
-    "source_hash": "68ec20f8"
+    "text": "Luôn xác minh rằng bạn đang ở trên trang web chính thức của {product_name}. Kẻ gian đôi khi tạo các trang web giả mạo trông giống hệt {product_name} để đánh cắp bí mật của bạn. Để tránh các cuộc tấn công lừa đảo, hãy xác minh tên miền của khu vực trong thanh địa chỉ trước khi tạo liên kết mới.",
+    "source_hash": "2e3b856e"
   },
   "web.pricing.title": {
     "text": "Bảng giá đơn giản, minh bạch",
@@ -1523,5 +1523,21 @@
   "web.TITLES.domain_incoming": {
     "text": "Bí mật đến",
     "source_hash": "883dbca9"
+  },
+  "web.LABELS.update": {
+    "text": "Cập nhật",
+    "source_hash": "c1c1009d"
+  },
+  "web.LABELS.updating": {
+    "text": "Đang cập nhật...",
+    "source_hash": "0a4e0b71"
+  },
+  "web.TITLES.check_email": {
+    "text": "Kiểm tra email của bạn",
+    "source_hash": "0e5fc27d"
+  },
+  "web.TITLES.domain_dns": {
+    "text": "Thiết lập DNS",
+    "source_hash": "6c63df31"
   }
 }

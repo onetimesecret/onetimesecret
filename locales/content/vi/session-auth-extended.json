@@ -155,8 +155,8 @@
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
-    "text": "Phiên làm việc của bạn đã hết hạn. Vui lòng tải lại trang và thử lại.",
-    "source_hash": "a7c3e901"
+    "text": "Phiên của bạn đã hết hạn. Vui lòng làm mới trang và thử lại.",
+    "source_hash": "be9ed96d"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "Đăng nhập thất bại. Vui lòng thử lại.",
