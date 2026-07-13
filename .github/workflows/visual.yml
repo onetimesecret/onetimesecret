@@ -108,6 +108,31 @@ jobs:
           # fixture hosts (*.example.com/org) to 127.0.0.1.
           bin/visual
 
+      # PR-artifact half of the dual-artifact archive (PR 3 of the spec).
+      # A fresh render of the full matrix, uploaded on green so reviewers can
+      # eyeball exactly what this PR's pages look like without checking out
+      # the branch. Same directory format the release workflow
+      # (visual-archive.yml) pushes to ghcr.io, so any two sets are
+      # directory-diffable. A second bin/visual invocation re-boots and
+      # re-seeds — required anyway, because the compare pass consumed the
+      # destructive cells (reveal destroys, first receipt view stamps).
+      - name: Render archive set
+        if: success()
+        run: |
+          export OTS_ENV_LOADED=1
+          SECRET="$(openssl rand -hex 32)"
+          export SECRET
+          export REDIS_URL=redis://127.0.0.1:6379/0
+          bin/visual --archive e2e/visual/.artifacts/render
+
+      - name: Upload rendered set
+        if: success()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: visual-render-${{ github.event.pull_request.head.sha || github.sha }}
+          path: e2e/visual/.artifacts/render/
+          retention-days: 30
+
       - name: Upload Playwright report
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()

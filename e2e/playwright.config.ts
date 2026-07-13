@@ -67,6 +67,22 @@ const visualLaunchOptions = {
 };
 
 /**
+ * Snapshot redirection for the archive/compare modes (bin/visual --archive /
+ * --compare). When VISUAL_SNAPSHOT_DIR is set, the visual projects read and
+ * write snapshots under that directory instead of the committed
+ * e2e/visual/*.spec.ts-snapshots/ baselines. The template preserves the
+ * per-spec-file layout and the default {arg}{-projectName}{-platform} naming,
+ * so an archived set is directory-diffable 1:1 against the committed
+ * baselines. bin/visual always passes an absolute (in-container) path; a
+ * relative value would resolve against this config's directory.
+ */
+const visualSnapshotOverride = process.env.VISUAL_SNAPSHOT_DIR
+  ? {
+      snapshotPathTemplate: `${process.env.VISUAL_SNAPSHOT_DIR}/{testFileName}-snapshots/{arg}{-projectName}{-platform}{ext}`,
+    }
+  : {};
+
+/**
  * Authenticated session produced by global.setup.ts and consumed by the
  * `full` / `full-billing` projects via `storageState`. Absolute on purpose
  * so writer (setup script) and readers (project `use` blocks) agree on one
@@ -232,6 +248,7 @@ export default defineConfig({
     {
       name: 'visual-desktop',
       testMatch: 'visual/**/*.spec.ts',
+      ...visualSnapshotOverride,
       expect: {
         toHaveScreenshot: { maxDiffPixels: 100 },
       },
@@ -248,6 +265,7 @@ export default defineConfig({
     {
       name: 'visual-mobile',
       testMatch: 'visual/**/*.spec.ts',
+      ...visualSnapshotOverride,
       // Cells baselined at desktop only (secret--passphrase,
       // receipt--viewed, receipt--burned) are tagged @desktop-only;
       // excluding them here keeps `--list` exact instead of runtime-skipping.

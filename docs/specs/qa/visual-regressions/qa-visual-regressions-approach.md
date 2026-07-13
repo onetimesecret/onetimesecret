@@ -143,6 +143,30 @@ Two operational caveats for the two-worktree run:
 - Each worktree seeds through **its own tree's** rake task (the seed boots that tree's models against that tree's config). `v0.25.11` predates `qa:visual:seed`, so copy the task file into the v0.25 worktree before seeding it.
 - v0.25-vs-v0.26 diffs on the branded cells will include rendering of brand fields that didn't exist in v0.25 — expected triage noise, not regression signal. Read those diffs with that in mind before blaming the pipeline.
 
+## 7. Cross-version archives — dual-artifact
+
+§6's two-worktree dance answers "what changed since v0.25?" exactly once, at the cost of a second checkout, seed, and render. The permanent answer is to **archive the rendered set at every release** and diff against archives instead of rebuilding old versions. Two channels, one format (`bin/visual --archive` output: `*-snapshots/` dirs + `metadata.json`):
+
+| Channel | Trigger | Where | Retention | Purpose |
+| --- | --- | --- | --- | --- |
+| PR artifact | green `visual.yml` run | workflow artifact `visual-render-<sha>` | 30 days | reviewers eyeball the PR's actual renders without checking out the branch |
+| OCI release | release published (`visual-archive.yml`) | `ghcr.io/<repo>/visual-baselines:<tag>` | permanent | cross-version diffs |
+
+Consuming an archive:
+
+```bash
+oras pull ghcr.io/onetimesecret/onetimesecret/visual-baselines:v0.26.0 \
+  -o e2e/visual/.artifacts/v0.26.0
+bin/visual --compare e2e/visual/.artifacts/v0.26.0
+```
+
+Every diff in the report is a customer-visible change between that release and your working tree. Mechanically this works by redirecting Playwright's `snapshotPathTemplate` (`VISUAL_SNAPSHOT_DIR`, set by `bin/visual`) — snapshot names are keyed by the path template (`<page>--<state>--<fixture>` + project + platform), which is stable across versions, so the sets line up file-for-file. A cell that exists in the tree but not the archive fails as "snapshot missing" — the correct signal ("this page didn't exist in that version"), triage it as such.
+
+Two caveats:
+
+- **Same Playwright image only.** Compare sets rendered with the same pinned container tag (`metadata.json` records `playwrightImage`); browser/font-stack drift across image versions produces phantom diffs. When bumping the image, regenerate baselines (already required) and expect pre-bump archives to diff noisily.
+- Archives are *renders of a version*, not approval state. The committed `e2e/visual/*-snapshots/` baselines remain the only thing PRs gate on; archives never feed back into them automatically.
+
 ## Component consistency — enforce, don't catalog
 
 Screenshot tests catch pipeline breakage; they don't manage consistency across a growing component surface. Neither does a catalog: Storybook *documents* consistency, and a catalog of 150 stories drifts as fast as the components do. For a solo maintainer the sync tax and the benefit land on the same person — the economics never invert the way they do on a team where one author pays and ten consumers benefit.
