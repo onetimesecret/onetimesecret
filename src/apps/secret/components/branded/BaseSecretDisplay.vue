@@ -84,6 +84,10 @@
 
   onMounted(() => {
     checkTextLength();
+    // Re-measure once webfonts finish loading: scrollHeight measured against
+    // the fallback font can cross the clamp threshold and render a spurious
+    // "Show More" toggle that disappears after the brand font swaps in.
+    document.fonts?.ready.then(checkTextLength);
     window.addEventListener('resize', checkTextLength);
   });
 

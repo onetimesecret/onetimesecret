@@ -63,8 +63,53 @@ VISUAL_ENV=(
   SSL=false
   DOMAINS_ENABLED=true
   "DEFAULT_DOMAIN=$CANONICAL_HOST"
+  # site.host renders into the page (e.g. the homepage "Creating links for"
+  # pill). Unpinned, the ambient dev HOST leaks into every baseline and no
+  # other machine can reproduce them.
+  "HOST=$CANONICAL_HOST:$PORT"
   INCOMING_ENABLED=true
   "INCOMING_RECIPIENT_1=qa-visual-recipient@example.com,QA Recipient"
+  # Every config surface that RENDERS must be pinned, or ambient dev env
+  # leaks into baselines no other machine (or CI) can reproduce. Values are
+  # the config defaults: regions off (no footer region pill), billing off,
+  # signup/signin on (header links).
+  REGIONS_ENABLED=false
+  JURISDICTION=
+  JURISDICTIONS=
+  BILLING_ENABLED=false
+  AUTH_SIGNUP=true
+  AUTH_SIGNIN=true
+  # Canonical-install branding + i18n. Unpinned, a bare env (CI) renders the
+  # neutral "Secure Links" fallback with no header logo and no language
+  # toggle, while a dev shell renders whatever its BRAND_* exports say —
+  # either way the baselines stop being reproducible elsewhere.
+  "BRAND_PRODUCT_NAME=Onetime Secret"
+  BRAND_LOGO_URL=img/onetime-logo-v3-xl.svg
+  "BRAND_PRIMARY_COLOR=#3B82F6"
+  BRAND_CORNER_STYLE=square
+  BRAND_FONT_FAMILY=serif
+  BRAND_BUTTON_TEXT_LIGHT=true
+  I18N_ENABLED=true
+  I18N_DEFAULT_LOCALE=en
+  # Footer link columns (Legals/Resources/Support) render only when
+  # FOOTER_LINKS=true (config default: false) and the baselines include them.
+  # Unpinned, a bare env (CI) drops the columns and every full-footer
+  # canonical page renders ~178px (desktop) / ~402px (mobile) shorter than
+  # baseline. The URLs are pinned too so ambient dev exports can never leak
+  # into baselines (TERMS_URL/PRIVACY_URL have no config defaults at all).
+  FOOTER_LINKS=true
+  TERMS_URL=https://onetimesecret.com/terms
+  PRIVACY_URL=https://onetimesecret.com/privacy
+  DOCS_URL=https://docs.onetimesecret.com/
+  STATUS_URL=https://status.onetimesecret.com/
+  ABOUT_URL=https://onetimesecret.com/about
+  CONTACT_URL=/feedback
+  # Pinned for environment determinism (and prod parity — prod runs full).
+  # The noauth visual pages currently render identically across auth modes,
+  # but an ambient mode flip must never become a screenshot variable. The DB
+  # engine behind full mode is free to vary: PG when AUTH_DATABASE_URL is
+  # set (dev), boot-migrated sqlite when unset (CI) — engine never renders.
+  AUTHENTICATION_MODE=full
 )
 # ACCOUNT_ID_SECRET is appended after the environment guards below — it may be
 # derived from SECRET, which is only validated there.
@@ -108,7 +153,21 @@ require_cmd() {
   fi
 }
 
-require_cmd podman "Install: brew install podman && podman machine init && podman machine start"
+# Container runtime: podman (macOS dev) or docker (CI runners). Ambient
+# CONTAINER_RUNTIME wins; otherwise prefer podman (this project's default —
+# see CLAUDE.md/docs) and fall back to docker.
+if [[ -z "${CONTAINER_RUNTIME:-}" ]]; then
+  if command -v podman >/dev/null 2>&1; then
+    CONTAINER_RUNTIME=podman
+  elif command -v docker >/dev/null 2>&1; then
+    CONTAINER_RUNTIME=docker
+  else
+    echo "Error: neither podman nor docker found." >&2
+    echo "  Install: brew install podman && podman machine init && podman machine start" >&2
+    exit 1
+  fi
+fi
+require_cmd "$CONTAINER_RUNTIME" "Set CONTAINER_RUNTIME to an installed runtime (podman or docker)."
 require_cmd pnpm   "Install: brew install pnpm (needed for 'pnpm build' and report viewing)"
 require_cmd bundle "Install Ruby deps: gem install bundler && bundle install"
 require_cmd curl   "Needed for the server readiness probe."
@@ -140,6 +199,30 @@ if [[ -z "${ACCOUNT_ID_SECRET:-}" ]]; then
 fi
 VISUAL_ENV+=("ACCOUNT_ID_SECRET=$ACCOUNT_ID_SECRET")
 
+# Same story for AUTH_SECRET (Rodauth hmac_secret, apps/web/auth/config/
+# base.rb): required for full-mode production boot, normally direnv-provided,
+# never used by the noauth visual pages. Derive when absent.
+if [[ -z "${AUTH_SECRET:-}" ]]; then
+  AUTH_SECRET="$(printf 'visual-auth:%s' "$SECRET" | shasum -a 256 | cut -d' ' -f1)"
+fi
+VISUAL_ENV+=("AUTH_SECRET=$AUTH_SECRET")
+
+# tmp/ holds the server log and the ephemeral authdb below. Fresh checkouts
+# (CI) don't have it — and without it the boot's log redirect fails silently.
+mkdir -p "$REPO_ROOT/tmp"
+
+# Full auth mode needs an authdb. An ambient AUTH_DATABASE_URL (dev PG) wins;
+# otherwise use an ephemeral sqlite under tmp/, recreated every run. Two traps
+# this dodges: the default sqlite://data/auth.db lives in data/, which is an
+# untracked dev symlink (absent on fresh checkouts/CI); and a stale sqlite
+# from an older branch can be AHEAD of this code's schema, which fails boot
+# with a down-migration error. The visual pages are all noauth — the authdb
+# only has to exist and migrate for Rodauth to mount.
+if [[ -z "${AUTH_DATABASE_URL:-}" ]]; then
+  rm -f "$REPO_ROOT/tmp/visual-auth.db"
+  VISUAL_ENV+=("AUTH_DATABASE_URL=sqlite://tmp/visual-auth.db")
+fi
+
 # --- Asset staleness (screenshots of stale assets are worse than no run) ------
 if [[ "$MODE" != "seed-only" ]]; then
   if [[ ! -d "$DIST_DIR" ]]; then
@@ -153,9 +236,27 @@ if [[ "$MODE" != "seed-only" ]]; then
   echo "         If frontend code changed since then, run 'pnpm build' first."
 fi
 
+# --- Pin the rendered commit hash -----------------------------------------------
+# The footer version string is "v<pkg> (<hash>)" (lib/onetime/version.rb,
+# reading .commit_hash.txt in preference to git). The hash element is masked
+# in the screenshots, but its RENDERED WIDTH varies per hash (proportional
+# font), shifting the adjacent "Powered by" text a few px — enough to fail
+# the comparison on every commit. Pin the hash for the run; restore after.
+COMMIT_HASH_FILE="$REPO_ROOT/.commit_hash.txt"
+COMMIT_HASH_BAK=""
+if [[ -f "$COMMIT_HASH_FILE" ]]; then
+  COMMIT_HASH_BAK="$(cat "$COMMIT_HASH_FILE")"
+fi
+printf '0000000\n' >"$COMMIT_HASH_FILE"
+
 # --- Server lifecycle ----------------------------------------------------------
 SERVER_PID=""
 cleanup() {
+  if [[ -n "$COMMIT_HASH_BAK" ]]; then
+    printf '%s\n' "$COMMIT_HASH_BAK" >"$COMMIT_HASH_FILE"
+  else
+    rm -f "$COMMIT_HASH_FILE"
+  fi
   if [[ -n "$SERVER_PID" ]] && kill -0 "$SERVER_PID" 2>/dev/null; then
     kill "$SERVER_PID" 2>/dev/null || true
     wait "$SERVER_PID" 2>/dev/null || true
@@ -218,18 +319,36 @@ if [[ "$MODE" == "update" ]]; then
   UPDATE_ARG="--update-snapshots"
 fi
 
-echo "Running Playwright in $PLAYWRIGHT_IMAGE (podman)..."
+# Networking differs by HOST OS, not by runtime (GitHub runners preinstall
+# podman too, so never branch on the runtime name):
+# - macOS: the podman machine's gvproxy NATs host.containers.internal to the
+#   mac host's 127.0.0.1 (see header comment), so the default bridge network
+#   works.
+# - Linux (CI, either runtime): no VM in the middle, and bridge gateways can
+#   NOT reach puma's 127.0.0.1 bind — share the host's network namespace and
+#   resolve the fixture hosts straight to 127.0.0.1.
+NETWORK_ARGS=()
+if [[ "$(uname -s)" == "Linux" ]]; then
+  NETWORK_ARGS=(--network host)
+  RESOLVER_DEFAULT="127.0.0.1"
+else
+  RESOLVER_DEFAULT="host.containers.internal"
+fi
+
+echo "Running Playwright in $PLAYWRIGHT_IMAGE ($CONTAINER_RUNTIME)..."
 # --ipc=host: Chromium exhausts /dev/shm without it (playwright.dev/docs/docker).
-# CI is deliberately NOT passed in: podman containers don't inherit host env,
-# so the config's CI-only branches (retries, blob reporter, workers=1) stay off.
-# node_modules is the host's (darwin/arm64) — fine because @playwright/test and
-# playwright are pure JS and the browsers come from the image at /ms-playwright.
-podman run --rm \
+# CI is deliberately NOT passed in: containers don't inherit host env, so the
+# config's CI-only branches (retries, blob reporter, workers=1) stay off and
+# the run behaves identically on a dev machine and a CI runner.
+# node_modules is the host's — fine because @playwright/test and playwright
+# are pure JS and the browsers come from the image at /ms-playwright.
+"$CONTAINER_RUNTIME" run --rm \
   --ipc=host \
+  ${NETWORK_ARGS[@]+"${NETWORK_ARGS[@]}"} \
   -v "$REPO_ROOT":/work \
   -w /work \
   -e "PLAYWRIGHT_BASE_URL=http://$CANONICAL_HOST:$PORT" \
-  -e "VISUAL_RESOLVER_TARGET=${VISUAL_RESOLVER_TARGET:-host.containers.internal}" \
+  -e "VISUAL_RESOLVER_TARGET=${VISUAL_RESOLVER_TARGET:-$RESOLVER_DEFAULT}" \
   "$PLAYWRIGHT_IMAGE" \
   npx playwright test \
     --config=e2e/playwright.config.ts \
