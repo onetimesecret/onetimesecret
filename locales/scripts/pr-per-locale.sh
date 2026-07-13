@@ -333,6 +333,11 @@ process_locale() {
   if $DO_REVIEW; then
     echo "[$locale] running fresh claude review ($MODEL${AGENT_PROFILE:+, agent=$AGENT_PROFILE})..."
     local raw rc=0
+    # Capture claude's stderr and raw stdout to per-locale files. stderr is the
+    # only place API errors (rate-limit, auth, overload) surface; discarding it
+    # is what makes a failed review undiagnosable. The raw stdout is persisted
+    # unconditionally so a review is never lost to a transient/format hiccup.
+    local stderr_file="$RESULTS_DIR/$locale.stderr" raw_file="$RESULTS_DIR/$locale.raw.txt"
     # Optional named agent profile -> `claude --agent NAME`. Expanded with the
     # ${arr[@]+"${arr[@]}"} guard so an unset profile adds no argument even under
     # `set -u`.
@@ -342,10 +347,11 @@ process_locale() {
              --model "$MODEL" \
              ${agent_args[@]+"${agent_args[@]}"} \
              --allowedTools "Read" \
-             --output-format text <"$ctx" 2>/dev/null)" || rc=$?
+             --output-format text <"$ctx" 2>"$stderr_file")" || rc=$?
+    printf '%s' "$raw" >"$raw_file"
     if [[ $rc -ne 0 || -z "$raw" ]]; then
-      echo "[$locale] review did not complete (exit $rc); PR body will note it"
-      review_md="_Automated review did not complete (exit $rc). Review this locale manually._"
+      echo "[$locale] review did not complete (exit $rc); see $stderr_file"
+      review_md="_Automated review did not complete (exit $rc). See \`$stderr_file\` for the error and \`$raw_file\` for any partial output._"
     else
       # Strip any agent preamble/reasoning that leaked ahead of the structured
       # review (some agent profiles emit a "thinking out loud" line first). The
@@ -358,6 +364,8 @@ process_locale() {
         review_md="$raw"
       fi
     fi
+    # Drop an empty stderr file so a clean run leaves no noise behind.
+    [[ -s "$stderr_file" ]] || rm -f "$stderr_file"
     # Persist the review artifact (matches locales/reviews/<date>/<locale>.md).
     { echo "# $locale review — $(basename "$RESULTS_DIR")"; echo; echo "$review_md"; } >"$review_file"
   else
