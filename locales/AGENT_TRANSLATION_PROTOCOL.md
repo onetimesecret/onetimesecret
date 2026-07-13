@@ -56,6 +56,20 @@ translation-rules) as the resolved artifact.
 - **declined decisions** — choices that were considered and rejected; do not
   reintroduce them.
 
+### Register check (run locally)
+
+Catch politeness-level violations (e.g. formal forms in an informal-locked
+locale) before review — same engine as the `validate-register` CI gate. Needs
+the resolved governance above.
+
+```bash
+# exit 0 = clean; 1 = lists each hit
+python3 .translation-rules/lib/resolver/lint_content.py \
+  --resolved generated/i18n/.resolved/<locale>.json \
+  --content-root . \
+  "locales/content/<locale>/*.json"
+```
+
 ## Per-task cycle (one writer per locale, claim-free)
 
 Loop this until the queue is dry:

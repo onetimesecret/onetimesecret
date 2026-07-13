@@ -30,6 +30,9 @@ A task is all sibling keys sharing a parent path. For example, `web.COMMON.butto
 ### Glossary
 Captures terminology decisions as we translate. When we decide "secret" → "sekreto" in Esperanto, that goes in the glossary so future sessions stay consistent.
 
+### Staleness & Watermarks
+en keys carry a `content_hash`; each translated key carries a `source_hash` watermark recording which en hash it translated. A key is **stale** when the two no longer match (English changed after translation). An absent watermark is treated as current (it can't prove drift), so un-watermarked legacy keys are never mass-requeued. Each task snapshots the en `content_hash` per leaf at creation (`source_hashes_json`), and `tasks export` stamps that snapshot onto the target key's `source_hash` — advancing the watermark so the re-translation is marked current, and giving newly created keys a truthful watermark immediately instead of waiting for `content hashes` to seed the *current* en hash (which would mislabel a key that drifted in the interim as fresh). Consequence: `0 pending` does not mean current — a drained queue can still hide stale keys; the `tasks next <locale> --stats` coverage block (current/stale/missing/skipped) is the real signal.
+
 ### Translator Guides
 Locale-specific translation guidance now lives in translation-rules (`_references/local-guides/for-translators/{locale}.md`) and is derived on demand into `generated/i18n/guides/for-translators/{locale}.md` (run `locales/scripts/derive-governance.sh`) — it is no longer vendored under `locales/`. Read once per session to establish context. Mature locales (de, fr) have detailed guides; new locales (eo) build them as we go.
 
@@ -102,6 +105,8 @@ python3 locales/scripts/i18n db export
 ```
 The frontend auto-generates `generated/locales/` on startup from `locales/content/`.
 
+`tasks export` is per-locale — run it once for each finished locale, and only when fully drained (`tasks next <locale> --stats` shows `pending: 0`); a partial locale would write half-translated content. `db export` is locale-independent — it dumps the committable tables (glossary, session_log, translation_issues) to `db/*.sql` and regenerates `checksums.sha256` — so run it once after the per-locale loop, not inside it.
+
 ### 7. Commit
 ```bash
 git add locales/content/eo/ locales/db/*.sql
@@ -128,6 +133,12 @@ Run `/d:review-locale-branches` to orchestrate parallel code-reviewer agents gro
 1. Automated variable validation (catches mechanical issues)
 2. Agent review by family (linguistic/quality checks)
 3. Triage and fix critical findings before merge
+
+#### Review vs Retrospective
+
+Review = raw observation. Prose, no schema, human/agent-authored, lives in BASE_REVIEW_PATH/reviews/<date>-<time>/LOCALE.md. Answers "what did we see?". Can be per locale or cross-locale (e.g. GROUP_NAME.md, with the locales listed in the content). Cross-locale groups are arbitrary but can be by language family (in linguistic terms).
+
+Retrospective = the decision a finding drives. Schema'd frontmatter, lifecycle-tracked (pending→applied), lives in BASE_RETRO_PATH/retrospectives/. Answers "what rule changes because of it, and is it done?"
 
 ## Task Output Format
 
