@@ -86,7 +86,35 @@ SCHEMA_VERSIONS = [
     ("005", "source_status"),
     ("006", "rename_columns"),
     ("007", "translation_issues"),
+    ("008", "task_source_hashes"),
 ]
+
+
+def _ensure_task_columns(conn: sqlite3.Connection) -> list[str]:
+    """Additively backfill columns added to translation_tasks after its creation.
+
+    ``migrate_schema`` re-runs ``schema.sql``, whose ``CREATE TABLE IF NOT
+    EXISTS`` is a no-op once the table exists — so it can NOT add a new column
+    to an existing table. SQLite has no ``ADD COLUMN IF NOT EXISTS`` either, so
+    each additive column is applied by checking ``PRAGMA table_info`` and
+    ``ALTER TABLE`` only when absent. Every column here must be nullable so the
+    ALTER never rewrites existing rows.
+
+    Returns the list of columns actually added (for the migrate summary).
+    """
+    added: list[str] = []
+    cursor = conn.cursor()
+    cursor.execute("PRAGMA table_info(translation_tasks)")
+    existing = {row[1] for row in cursor.fetchall()}
+
+    # 008_task_source_hashes: per-leaf en content_hash snapshot (see schema.sql).
+    if "source_hashes_json" not in existing:
+        cursor.execute(
+            "ALTER TABLE translation_tasks ADD COLUMN source_hashes_json TEXT"
+        )
+        added.append("source_hashes_json")
+
+    return added
 
 
 def init_database(force: bool = False) -> None:
@@ -146,6 +174,10 @@ def migrate_schema() -> None:
         # Apply schema (idempotent due to IF NOT EXISTS)
         conn.executescript(schema)
 
+        # Additive ALTERs that CREATE TABLE IF NOT EXISTS can't apply to an
+        # already-existing table (e.g. a developer's pre-column tasks.db).
+        added_columns = _ensure_task_columns(conn)
+
         # Check which versions are already recorded
         cursor = conn.cursor()
         cursor.execute("SELECT version FROM schema_migrations")
@@ -164,6 +196,8 @@ def migrate_schema() -> None:
         conn.commit()
 
     print(f"Schema applied to: {DB_FILE}")
+    if added_columns:
+        print(f"Columns added: {', '.join(added_columns)}")
     if new_versions:
         print(f"New migrations recorded: {', '.join(new_versions)}")
     else:

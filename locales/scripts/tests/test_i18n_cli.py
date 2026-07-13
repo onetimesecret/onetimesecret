@@ -453,6 +453,335 @@ class TasksFlowTest(I18nCliTestCase):
         self.assertNotIn("Esperanto", proc.stdout)
 
 
+class StaleKeysWatermarkTest(I18nCliTestCase):
+    """Staleness detection + source_hash watermark stamping (schema 008).
+
+    Uses a hand-built controlled tree (literal content_hash / source_hash
+    values) instead of the real en slice, so the missing / stale / current
+    classification is exact and independent of live locale content.
+    """
+
+    def setUp(self) -> None:
+        super().setUp()
+        # Replace the copied real en slice with a controlled 3-key file.
+        en = self.content / "en"
+        for f in en.glob("*.json"):
+            f.unlink()
+        en_doc = {
+            "web.C.tagline": {"text": "Tagline", "content_hash": "aaaa1111"},
+            "web.C.power": {"text": "Powered", "content_hash": "bbbb2222"},
+            "web.C.ok": {"text": "Okay", "content_hash": "cccc3333"},
+        }
+        (en / "00.json").write_text(json.dumps(en_doc), "utf-8")
+
+        de = self.content / "de"
+        de.mkdir(parents=True)
+        de_doc = {
+            # translated but the watermark no longer matches en -> STALE
+            "web.C.tagline": {"text": "Alt", "source_hash": "deadbeef"},
+            # missing entirely -> MISSING
+            # translated and watermark matches en -> CURRENT (must not requeue)
+            "web.C.ok": {"text": "OK", "source_hash": "cccc3333"},
+        }
+        (de / "00.json").write_text(json.dumps(de_doc), "utf-8")
+
+        self.assertOk(self.run_cli("db", "init"), "db init")
+
+    def _enqueued(self) -> set[str]:
+        import sqlite3
+
+        conn = sqlite3.connect(self.db_dir / "tasks.db")
+        rows = conn.execute(
+            "SELECT level_path, keys_json FROM translation_tasks WHERE locale='de'"
+        ).fetchall()
+        conn.close()
+        return {
+            f"{lp}.{leaf}" for lp, kj in rows for leaf in json.loads(kj)
+        }
+
+    def test_missing_only_enqueues_missing_and_stale_not_current(self) -> None:
+        self.assertOk(
+            self.run_cli("tasks", "create", "de", "--missing-only"),
+            "create --missing-only",
+        )
+        self.assertEqual(
+            self._enqueued(),
+            {"web.C.tagline", "web.C.power"},
+            "catch-up should enqueue the stale + missing keys but not the "
+            "current one",
+        )
+
+    def test_snapshot_is_stored_per_leaf(self) -> None:
+        import sqlite3
+
+        self.assertOk(
+            self.run_cli("tasks", "create", "de", "--missing-only"), "create"
+        )
+        conn = sqlite3.connect(self.db_dir / "tasks.db")
+        (snap,) = conn.execute(
+            "SELECT source_hashes_json FROM translation_tasks WHERE locale='de'"
+        ).fetchone()
+        conn.close()
+        snapshot = json.loads(snap)
+        # The snapshot carries the CURRENT en content_hash for each enqueued leaf.
+        self.assertEqual(snapshot.get("tagline"), "aaaa1111")
+        self.assertEqual(snapshot.get("power"), "bbbb2222")
+
+    def test_export_stamps_and_advances_source_hash(self) -> None:
+        self.assertOk(
+            self.run_cli("tasks", "create", "de", "--missing-only"), "create"
+        )
+        nxt = json.loads(self.run_cli("tasks", "next", "de", "--json").stdout)
+        trans = {leaf: f"X-{leaf}" for leaf in nxt["keys"]}
+        self.assertOk(
+            self.run_cli(
+                "tasks", "update", str(nxt["id"]), json.dumps(trans)
+            ),
+            "update",
+        )
+        self.assertOk(self.run_cli("tasks", "export", "de"), "export")
+        de = json.loads((self.content / "de" / "00.json").read_text("utf-8"))
+        # Stale key's watermark advanced from deadbeef to the current en hash,
+        # clearing staleness; the new key got a truthful watermark immediately.
+        self.assertEqual(de["web.C.tagline"]["source_hash"], "aaaa1111")
+        self.assertEqual(de["web.C.power"]["source_hash"], "bbbb2222")
+
+    def test_stats_coverage_reports_stale(self) -> None:
+        proc = self.run_cli("tasks", "next", "de", "--stats")
+        self.assertOk(proc, "stats")
+        self.assertIn("Coverage", proc.stdout)
+        # tagline stale, power missing, ok current.
+        self.assertRegex(proc.stdout, r"stale.*:\s*1")
+        self.assertRegex(proc.stdout, r"missing.*:\s*1")
+        self.assertRegex(proc.stdout, r"current:\s*1")
+
+    def test_recreate_after_completion_freezes_watermark(self) -> None:
+        # The false-'current' trap: complete a translation against en hash H1,
+        # let en drift to H2 without re-translating, then re-create + export.
+        # export must stamp the FROZEN snapshot (H1) — the hash the text was
+        # actually made against — so the key stays correctly stale, instead of
+        # advancing to H2 and reading 'current' forever.
+        import sqlite3
+
+        self.assertOk(
+            self.run_cli("tasks", "create", "de", "--missing-only"), "create"
+        )
+        nxt = json.loads(self.run_cli("tasks", "next", "de", "--json").stdout)
+        trans = {leaf: f"T-{leaf}" for leaf in nxt["keys"]}
+        self.assertOk(
+            self.run_cli("tasks", "update", str(nxt["id"]), json.dumps(trans)),
+            "complete",
+        )
+
+        # en drifts: tagline's content_hash moves aaaa1111 -> newhash1.
+        en = self.content / "en" / "00.json"
+        doc = json.loads(en.read_text("utf-8"))
+        doc["web.C.tagline"]["content_hash"] = "newhash1"
+        en.write_text(json.dumps(doc), "utf-8")
+
+        # Re-create hits the completed level row via ON CONFLICT.
+        self.assertOk(
+            self.run_cli("tasks", "create", "de", "--missing-only"), "re-create"
+        )
+        # The completed row's snapshot must NOT have advanced to newhash1.
+        conn = sqlite3.connect(self.db_dir / "tasks.db")
+        (snap,) = conn.execute(
+            "SELECT source_hashes_json FROM translation_tasks "
+            "WHERE locale='de' AND status='completed'"
+        ).fetchone()
+        conn.close()
+        self.assertEqual(
+            json.loads(snap).get("tagline"),
+            "aaaa1111",
+            "completed row's snapshot was refreshed to the drifted en hash",
+        )
+
+        self.assertOk(self.run_cli("tasks", "export", "de"), "export")
+        de = json.loads((self.content / "de" / "00.json").read_text("utf-8"))
+        self.assertEqual(
+            de["web.C.tagline"]["source_hash"],
+            "aaaa1111",
+            "export stamped the drifted hash instead of the frozen watermark; "
+            "the stale key would read 'current' forever",
+        )
+
+    def test_stats_json_stays_flat_for_consumers(self) -> None:
+        # export-and-commit.sh does sum(d.values()); coverage must NOT leak a
+        # nested value into --json.
+        proc = self.run_cli("tasks", "next", "de", "--stats", "--json")
+        self.assertOk(proc, "stats json")
+        data = json.loads(proc.stdout)
+        self.assertTrue(
+            all(isinstance(v, int) for v in data.values()),
+            f"--stats --json must stay a flat status->int map, got {data}",
+        )
+
+
+class MigrateAddsColumnTest(I18nCliTestCase):
+    """`db migrate` must ADD source_hashes_json to a pre-column translation_tasks.
+
+    CREATE TABLE IF NOT EXISTS can't alter an existing table, so migrate must run
+    the guarded ALTER.
+    """
+
+    def test_migrate_backfills_source_hashes_column(self) -> None:
+        import sqlite3
+
+        legacy = self.db_dir / "legacy.db"
+        conn = sqlite3.connect(legacy)
+        conn.executescript(
+            "CREATE TABLE schema_migrations (version TEXT PRIMARY KEY, "
+            "name TEXT, applied_at TEXT);\n"
+            "CREATE TABLE translation_tasks (id INTEGER PRIMARY KEY, file TEXT, "
+            "level_path TEXT, locale TEXT, status TEXT DEFAULT 'pending', "
+            "keys_json TEXT, translations_json TEXT, notes TEXT, "
+            "created_at TEXT, updated_at TEXT, "
+            "UNIQUE(file, level_path, locale));"
+        )
+        conn.commit()
+        conn.close()
+
+        env = {**self.env, "I18N_DB_FILE": str(legacy)}
+        self.assertOk(
+            self.run_cli("db", "migrate", env=env), "migrate legacy db"
+        )
+        cols = {
+            r[1]
+            for r in sqlite3.connect(legacy).execute(
+                "PRAGMA table_info(translation_tasks)"
+            )
+        }
+        self.assertIn("source_hashes_json", cols)
+
+    def test_create_on_precolumn_db_fails_loud(self) -> None:
+        # tasks create against an un-migrated pre-column DB must FAIL (non-zero +
+        # a 'db migrate' hint), not swallow the per-row "no such column" and
+        # exit 0 with an empty queue.
+        import sqlite3
+
+        legacy = self.db_dir / "legacy.db"
+        conn = sqlite3.connect(legacy)
+        conn.executescript(
+            "CREATE TABLE schema_migrations (version TEXT PRIMARY KEY, "
+            "name TEXT, applied_at TEXT);\n"
+            "CREATE TABLE translation_tasks (id INTEGER PRIMARY KEY, file TEXT, "
+            "level_path TEXT, locale TEXT, status TEXT DEFAULT 'pending', "
+            "keys_json TEXT, translations_json TEXT, notes TEXT, "
+            "created_at TEXT, updated_at TEXT, "
+            "UNIQUE(file, level_path, locale));"
+        )
+        conn.commit()
+        conn.close()
+
+        env = {**self.env, "I18N_DB_FILE": str(legacy)}
+        proc = self.run_cli("tasks", "create", "eo", env=env)
+        self.assertNotEqual(
+            proc.returncode, 0, "create on a pre-column DB must not exit 0"
+        )
+        self.assertIn("migrate", (proc.stdout + proc.stderr).lower())
+
+
+class ValidateGlossaryTest(I18nCliTestCase):
+    """`validate glossary` flags translations missing a bound rendering."""
+
+    def _write_resolved(self, locale: str, glossary: dict) -> Path:
+        resolved_dir = self.tmp / "resolved"
+        resolved_dir.mkdir(parents=True, exist_ok=True)
+        (resolved_dir / f"{locale}.json").write_text(
+            json.dumps({"glossary": glossary}), "utf-8"
+        )
+        return resolved_dir
+
+    def test_flags_missing_bound_rendering(self) -> None:
+        (self.content / "en" / "g.json").write_text(
+            '{"web.x.share": {"text": "Share a secret link"}}', "utf-8"
+        )
+        de = self.content / "de"
+        de.mkdir(parents=True)
+        # Translation drops the bound rendering for "secret" (Geheimnis).
+        (de / "g.json").write_text(
+            '{"web.x.share": {"text": "Teile eine Verbindung"}}', "utf-8"
+        )
+        resolved = self._write_resolved(
+            "de",
+            {"secret": {"en": "secret", "senses": {"n": {"target": "Geheimnis"}}}},
+        )
+        env = {**self.env, "I18N_RESOLVED_DIR": str(resolved)}
+
+        proc = self.run_cli("validate", "glossary", "de", env=env)
+        self.assertOk(proc, "validate glossary (advisory exit 0)")
+        self.assertIn("Geheimnis", proc.stdout)
+        self.assertIn("web.x.share", proc.stdout)
+
+        strict = self.run_cli(
+            "validate", "glossary", "de", "--strict", env=env
+        )
+        self.assertEqual(
+            strict.returncode, 1, "--strict must gate on a divergence"
+        )
+
+    def test_present_rendering_is_not_flagged(self) -> None:
+        (self.content / "en" / "g.json").write_text(
+            '{"web.x.share": {"text": "Share a secret"}}', "utf-8"
+        )
+        de = self.content / "de"
+        de.mkdir(parents=True)
+        (de / "g.json").write_text(
+            '{"web.x.share": {"text": "Teile ein Geheimnis"}}', "utf-8"
+        )
+        resolved = self._write_resolved(
+            "de",
+            {"secret": {"en": "secret", "senses": {"n": {"target": "Geheimnis"}}}},
+        )
+        env = {**self.env, "I18N_RESOLVED_DIR": str(resolved)}
+        proc = self.run_cli("validate", "glossary", "de", "--strict", env=env)
+        self.assertOk(proc, "no divergence -> exit 0 even under --strict")
+        self.assertIn("TOTAL: 0", proc.stdout)
+
+    def test_ungoverned_locale_skips_cleanly(self) -> None:
+        env = {**self.env, "I18N_RESOLVED_DIR": str(self.tmp / "empty")}
+        proc = self.run_cli("validate", "glossary", "de", env=env)
+        self.assertOk(proc, "missing resolved -> skip, not error")
+
+    def test_strict_fails_when_nothing_checked(self) -> None:
+        # A --strict gate that verified zero locales (no resolved governance)
+        # must not read green — it caught nothing.
+        env = {**self.env, "I18N_RESOLVED_DIR": str(self.tmp / "empty")}
+        proc = self.run_cli("validate", "glossary", "de", "--strict", env=env)
+        self.assertEqual(
+            proc.returncode,
+            1,
+            "--strict must fail when no locale could be checked",
+        )
+
+    def test_shared_en_term_merges_renderings(self) -> None:
+        # Two glossary entries sharing en='secret' must both bind; a translation
+        # using EITHER rendering is accepted (no spurious divergence).
+        (self.content / "en" / "g.json").write_text(
+            '{"web.x.a": {"text": "a secret"}, "web.x.b": {"text": "the secret"}}',
+            "utf-8",
+        )
+        de = self.content / "de"
+        de.mkdir(parents=True)
+        (de / "g.json").write_text(
+            '{"web.x.a": {"text": "ein Geheimnis"}, '
+            '"web.x.b": {"text": "das Verborgene"}}',
+            "utf-8",
+        )
+        resolved = self._write_resolved(
+            "de",
+            {
+                "secret_n": {"en": "secret", "senses": {"n": {"target": "Geheimnis"}}},
+                "secret_a": {"en": "secret", "senses": {"a": {"target": "Verborgene"}}},
+            },
+        )
+        env = {**self.env, "I18N_RESOLVED_DIR": str(resolved)}
+        proc = self.run_cli("validate", "glossary", "de", env=env)
+        self.assertOk(proc, "glossary")
+        # Both keys satisfy one of the two merged renderings -> zero divergences.
+        self.assertIn("TOTAL: 0", proc.stdout)
+
+
 class ValidateVariablesTest(I18nCliTestCase):
     def test_variables_json_runs(self) -> None:
         proc = self.run_cli("validate", "variables", "--json")

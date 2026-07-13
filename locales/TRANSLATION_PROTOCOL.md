@@ -30,6 +30,9 @@ A task is all sibling keys sharing a parent path. For example, `web.COMMON.butto
 ### Glossary
 Captures terminology decisions as we translate. When we decide "secret" → "sekreto" in Esperanto, that goes in the glossary so future sessions stay consistent.
 
+### Staleness & Watermarks
+en keys carry a `content_hash`; each translated key carries a `source_hash` watermark recording which en hash it translated. A key is **stale** when the two no longer match (English changed after translation). An absent watermark is treated as current (it can't prove drift), so un-watermarked legacy keys are never mass-requeued. Each task snapshots the en `content_hash` per leaf at creation (`source_hashes_json`), and `tasks export` stamps that snapshot onto the target key's `source_hash` — advancing the watermark so the re-translation is marked current, and giving newly created keys a truthful watermark immediately instead of waiting for `content hashes` to seed the *current* en hash (which would mislabel a key that drifted in the interim as fresh). Consequence: `0 pending` does not mean current — a drained queue can still hide stale keys; the `tasks next <locale> --stats` coverage block (current/stale/missing/skipped) is the real signal.
+
 ### Translator Guides
 Locale-specific translation guidance now lives in translation-rules (`_references/local-guides/for-translators/{locale}.md`) and is derived on demand into `generated/i18n/guides/for-translators/{locale}.md` (run `locales/scripts/derive-governance.sh`) — it is no longer vendored under `locales/`. Read once per session to establish context. Mature locales (de, fr) have detailed guides; new locales (eo) build them as we go.
 
@@ -63,7 +66,7 @@ Replace `[LOCALE]` with the target locale code (e.g., `eo`, `fr_CA`, `de`).
 ```bash
 python3 locales/scripts/i18n tasks create eo
 ```
-This populates the `translation_tasks` table required by `tasks next`. Run once per locale, or re-run to refresh after English source changes.
+This populates the `translation_tasks` table required by `tasks next`. Run once per locale, or re-run to refresh after English source changes. Add `--missing-only` to enqueue only the keys that still need work — **missing** (untranslated) plus **stale** (translated, but en changed since: the target `source_hash` no longer matches en's `content_hash`) — without re-touching still-current reviewed strings. `tasks next <locale> --stats` prints a `current/stale/missing` coverage block so you can see drift even before enqueuing it.
 
 Tasks are grouped by parent path (e.g., all keys under `web.COMMON.buttons`). This keeps work productive by batching related strings together rather than handling thousands of individual keys. Translators get more context since messages at the same level are usually related.
 
@@ -102,6 +105,8 @@ python3 locales/scripts/i18n db export
 ```
 The frontend auto-generates `generated/locales/` on startup from `locales/content/`.
 
+`tasks export` is per-locale — run it once for each finished locale, and only when fully drained (`tasks next <locale> --stats` shows `pending: 0`); a partial locale would write half-translated content. `db export` is locale-independent — it dumps the committable tables (glossary, session_log, translation_issues) to `db/*.sql` and regenerates `checksums.sha256` — so run it once after the per-locale loop, not inside it.
+
 ### 7. Commit
 ```bash
 git add locales/content/eo/ locales/db/*.sql
@@ -128,6 +133,12 @@ Run `/d:review-locale-branches` to orchestrate parallel code-reviewer agents gro
 1. Automated variable validation (catches mechanical issues)
 2. Agent review by family (linguistic/quality checks)
 3. Triage and fix critical findings before merge
+
+#### Review vs Retrospective
+
+Review = raw observation. Prose, no schema, human/agent-authored, lives in BASE_REVIEW_PATH/reviews/<date>-<time>/LOCALE.md. Answers "what did we see?". Can be per locale or cross-locale (e.g. GROUP_NAME.md, with the locales listed in the content). Cross-locale groups are arbitrary but can be by language family (in linguistic terms).
+
+Retrospective = the decision a finding drives. Schema'd frontmatter, lifecycle-tracked (pending→applied), lives in BASE_RETRO_PATH/retrospectives/. Answers "what rule changes because of it, and is it done?"
 
 ## Task Output Format
 
@@ -161,7 +172,7 @@ locales/scripts/
       content.py        # compile, decompile, hashes, add-field
       tasks.py          # create, next, update, export
       store.py          # group "db": init, migrate, query, export, import
-      validate.py       # pr, variables
+      validate.py       # pr, variables, glossary
   create-all.sh         # bulk: generate tasks for every locale
   export-and-commit.sh  # bulk: export completed locales + commit
   pyproject.toml
@@ -278,6 +289,25 @@ python3 locales/scripts/i18n db query \
   "INSERT INTO glossary (locale, term, translation, context, notes)
    VALUES ('de', 'passphrase', 'Passphrase', 'security feature',
            'Keep as loanword - standard in German tech')"
+```
+
+QC (and agent drains) also feed the glossary the other direction: parallel drain
+agents don't write the DB, they report `term → rendering` candidates in their
+final message for the orchestrator to review and insert here.
+
+### Bound-glossary divergence check
+
+Audit translations against the *bound* renderings a locale is supposed to honor
+(`senses[*].target` in `generated/i18n/.resolved/<locale>.json`, distinct from
+the DB glossary above). Advisory and heuristic — flags a translated key whose
+English source uses a bound term but whose translation lacks that term's
+rendering; findings are prompts for review, so eyeball each one.
+
+```bash
+locales/scripts/derive-governance.sh                       # once, if not derived
+python3 locales/scripts/i18n validate glossary de          # one locale
+python3 locales/scripts/i18n validate glossary             # all governed locales
+python3 locales/scripts/i18n validate glossary de --strict # exit non-zero (CI gate)
 ```
 
 ## Monitoring the process

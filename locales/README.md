@@ -1,158 +1,64 @@
 # Translation Service
 
-Orchestration tooling for managing locale translations. Tracks translation tasks in SQLite, coordinates batch processing, and maintains translation quality.
+Locale translations tracked as SQLite tasks, translated by agents, exported back to version-controlled content. All tooling is one CLI: `python3 locales/scripts/i18n <group> <cmd>` (`--help` at any level; groups: `content`, `tasks`, `db`, `validate`).
 
-## Structure
+## Layout
 
-- `content/` - Version-controlled source of truth for all locales (flat keys)
-- `db/` - SQLite schema and task records (ephemeral, hydrated on-demand)
-- `guides/` - Translation guides and exported per-locale references
-- `scripts/` - Python orchestration tooling
+- `content/` — source of truth, all locales, flat keys (`content/en/` is the authoritative source text)
+- `db/` — SQLite task DB (ephemeral working state; hydrated on demand, real only after export)
+- `guides/` — translation guides and per-locale references
+- `scripts/` — orchestration tooling
+- `generated/locales/` — build output the app consumes (never edit; `pnpm run locales:sync`)
 
-## Tooling (unified CLI)
+## The workflow
 
-All locale tooling is one command: `python3 locales/scripts/i18n <group> <cmd>` (run `python3 locales/scripts/i18n --help` to discover it). The four groups are `content` (compile/decompile/hashes/add-field), `tasks` (create/next/update/export), `db` (init/migrate/query/export/import), and `validate` (pr/variables). The pnpm aliases `locales:sync` (= `content compile --all --merged`) and `locales:hashes` (= `content hashes`) remain for the build.
+Run from the repo root. This is the one repeatable path for updating all locales after English changes:
 
-## Content Format
+```bash
+# 1. Hash the English source (new/edited en keys have no content_hash yet)
+pnpm run locales:hashes           # dry-run: shows what would change
+pnpm run locales:hashes:apply     # writes hashes + seeds watermarks
 
-All locales (including English) use the same format in `content/{locale}/*.json`:
+# 2. Ensure the task DB exists and is on the current schema
+python3 locales/scripts/i18n db init      # no-op if DB exists
+python3 locales/scripts/i18n db migrate
+
+# 3. Drain all locales with parallel agents (creates tasks --missing-only,
+#    translates, verifies; agents report glossary candidates, they don't write them)
+/d:translate-parallel-agents
+
+# 4. Export each fully drained locale, then the shared tables once
+python3 locales/scripts/i18n tasks next <locale> --stats   # must show pending: 0
+python3 locales/scripts/i18n tasks export <locale>         # per drained locale
+python3 locales/scripts/i18n db export                     # once, after all locales
+
+# 5. Commit content + db tables, then split into review branches
+git add locales/content/ locales/db/*.sql
+locales/scripts/branch-per-locale.sh --changed --execute   # one i18n/update-{locale} branch each
+/d:review-locale-branches
+```
+
+Two rules that bite:
+
+- **`0 pending` ≠ current.** A drained queue can hide stale keys (English changed after translation). Trust the `--stats` coverage line (current/stale/missing/skipped), not the queue.
+- **Never hand-author hashes.** New en keys are bare `{"text": "..."}`; `locales:hashes:apply` does the rest.
+
+## Content format
+
+Every locale uses the same flat format in `content/{locale}/*.json`:
 
 ```json
 {
-  "web.COMMON.tagline": {
-    "text": "Secure links that only work once"
-  },
-  "web.COMMON.broadcast": {
-    "text": "",
-    "skip": true,
-    "note": "empty source"
-  }
+  "web.COMMON.tagline": { "text": "Secure links that only work once" },
+  "web.COMMON.broadcast": { "text": "", "skip": true, "note": "empty source" }
 }
 ```
 
-Fields:
-- `text` - The translated text for this locale
-- `skip` - (optional) Mark key as intentionally skipped
-- `note` - (optional) Explanation for skip or other metadata
-- `context` - (optional) Translation context from English source
+Preserve keys, translate only `text`, keep placeholders (`{count}`, `{email}`) intact.
 
-English in `content/en/` serves as the authoritative source. When generating translation tasks, English text is looked up from there.
+## Full documentation
 
-## Build Integration
-
-Locale files are synced to `generated/locales/{locale}.json` for consumption by frontend and backend:
-
-```bash
-# Runs automatically on pnpm dev/build
-pnpm run locales:sync
-
-# Or directly
-python3 locales/scripts/i18n content compile --all --merged
-```
-
-The sync script merges all content files for each locale into a single nested JSON file.
-
-## Translation Rules
-
-1. Edit files in `content/` - the source of truth
-2. Use `en/` as reference - match the structure exactly
-3. Preserve keys - only translate values
-4. Keep placeholders intact: `{count}`, `{email}`, `{name}`
-
-Security messages require special handling - see `guides/SECURITY-TRANSLATION-GUIDE.md`.
-
-## Register check (run locally)
-
-Catch politeness-level violations (e.g. formal forms in an informal-locked
-locale) before review — same engine as the `validate-register` CI gate.
-
-```bash
-# 1. derive the resolved registers at the canonical pin (writes generated/i18n/)
-locales/scripts/derive-governance.sh
-
-# 2. check one locale's content (exit 0 = clean; 1 = lists each hit)
-python3 .translation-rules/lib/resolver/lint_content.py \
-  --resolved generated/i18n/.resolved/<locale>.json \
-  --content-root . \
-  "locales/content/<locale>/*.json"
-```
-
-## Testing
-
-```bash
-pnpm test                          # Run i18n validation tests
-pnpm run type-check                # Check TypeScript types
-pnpm run i18n:generate-types       # Regenerate type definitions
-```
-
-## Branch-per-Locale Workflow
-
-After exporting translations, create isolated branches for review:
-
-```bash
-# Preview what would be created (default: dry-run)
-locales/scripts/branch-per-locale.sh --changed
-
-# Actually create branches
-locales/scripts/branch-per-locale.sh --changed --execute
-
-# Specific locales only
-locales/scripts/branch-per-locale.sh ar bg ca_ES --execute
-```
-
-This creates one `i18n/update-{locale}` branch per locale off develop, each containing only that locale's content changes. Branches can be reviewed independently and merged separately.
-
-### Reviewing Branches
-
-Run `/d:review-locale-branches` to:
-1. Validate variables across all branches (automated)
-2. Launch parallel code-reviewer agents by language family
-3. Consolidate findings for triage
-
-#### Review vs Retrospective
-
-Review = raw observation. Prose, no schema, human/agent-authored, lives in BASE_REVIEW_PATH/reviews/<date>-<time>/LOCALE.md. Answers "what did we see?". Can be per locale or cross-locale (e.g. GROUP_NAME.md, with the locales listed in the content). Cross-locale groups are arbitrary but can be by language family (in linguistic terms).
-
-Retrospective = the decision a finding drives. Schema'd frontmatter, lifecycle-tracked (pending→applied), lives in BASE_RETRO_PATH/retrospectives/. Answers "what rule changes because of it, and is it done?"
-
-
-## Translation Workflow
-
-Prep (once, after English source changes)
-
-1. Add/edit English source — new keys as bare {"text": "..."}, no hash. · edit locales/content/en/*.json · human/dev
-2. Generate hashes — writes content_hash on en; seeds missing source_hash watermarks on every translation locale. · pnpm run locales:hashes (= content hashes) · human/dev (preview with :hashes:dry-run)
-3. Compile to app format (optional for translating; needed for the app/types) — merges content/ → generated/. · pnpm run locales:sync (= content compile --all --merged) · human/dev, also auto-runs on pnpm dev/build
-
-Database (once)
-
-- Initialize the task DB before the first session — creates locales/db/tasks.db from schema.sql. · python3 locales/scripts/i18n db init · agent/dev
-- Apply later schema updates to an existing DB — idempotent; does NOT create a missing DB (use init for that). · python3 locales/scripts/i18n db migrate · agent/dev
-
-Session loop (per locale)
-
-4. Generate/refresh tasks — walks en, groups sibling keys by level, writes translation_tasks rows. Re-run to pick up new English. · python3 locales/scripts/i18n tasks create <locale> · agent (run via Bash inside the session) — or orchestrated by /d:translate-parallel-agents for many locales
-5. Check status / claim next task — serves the next pending level as a Key/English/target table. · python3 locales/scripts/i18n tasks next <locale> --stats then --claim · agent
-6. Propose → accept — assistant proposes; on A, writes the batch back to the DB. · python3 locales/scripts/i18n tasks update TASK_ID '{"key":"...",...}' · agent
-7. Record glossary decisions (as needed) — the renderings you settled on for recurring domain/brand terms while translating in step 6 (e.g. "secret" → "sekreto"); persist them so later tasks and sessions reuse the same choice. See "Glossary" note below. · python3 locales/scripts/i18n db query "INSERT INTO glossary ..." · agent
-8. Export to source of truth — SQLite → content/<locale>/, plus committable tables. · python3 locales/scripts/i18n tasks export <locale> + python3 locales/scripts/i18n db export · agent
-9. Commit. · git add locales/content/<locale>/ … · human-approved, assistant runs after OK
-
-Entry points (slash commands): /d:start-translation-session or /d:translate-parallel-agents orchestrate steps 4–8 across locales with background agents; the manual path is opening a session with @locales/TRANSLATION_PROTOCOL.md and claiming tasks one at a time.
-
-Glossary (when & how): entries originate from the terminology choices made while translating in step 6 — there is no separate list that step 7 reads. Record one whenever you fix the target rendering of a recurring domain/brand term (secret, passphrase, burn, email, …) so the next task and the next session stay consistent. Two inputs shape the choice but are not the source of new rows: the locale's translator guide (curated in translation-rules and derived on demand into `generated/i18n/guides/for-translators/<locale>.md`) holds prior agreed terms (read in step 0), and QC reviews surface good renderings after the fact (see TRANSLATION_PROTOCOL.md → "Glossary Updates from QC"), written via the same INSERT INTO glossary. Note the gap: the parallel drain workflows (/d:translate-parallel-agents, /d:start-translation-session orchestration, and the translate-parallel-locales* workflows) do NOT execute step 7 — their agents translate, save, and verify only. To accrue glossary entries for an agent-drained locale, run a manual session or a QC pass afterward.
-
-Export (step 8 — per-locale vs once): `tasks export` takes ONE locale and writes that locale's completed rows to `content/<locale>/`; run it once per finished locale. `db export` is locale-independent — it dumps the committable tables (glossary, session_log, translation_issues) to `db/*.sql` and regenerates `checksums.sha256` — so run it once after the per-locale loop, not inside it. Export only fully drained locales (`python3 locales/scripts/i18n tasks next <locale> --stats` shows `pending: 0`); partial locales would write half-translated content. For a batch (substitute the locales you finished this session):
-
-```bash
-# Change directory to the repo root from anywhere inside it.
-cd "$(git rev-parse --show-toplevel)"
-for loc in de_AT es fr fr_CA ja nl; do
-  python3 locales/scripts/i18n tasks export "$loc"
-done
-python3 locales/scripts/i18n db export    # once, not per-locale
-```
-
-Then stage the exported content dirs plus `locales/db/*.sql` for step 9.
-
-Live gap (from this session): none of these steps create tasks for stale keys (translated but English changed) — the `tasks create` command is target-blind, and harmonization would strip source_hash. That's the change we were about to make to the `tasks create` command.
+- [TRANSLATION_PROTOCOL.md](TRANSLATION_PROTOCOL.md) — session workflow in detail: task model, staleness & watermarks, glossary, export rules, QC protocol, branch review
+- [AGENT_TRANSLATION_PROTOCOL.md](AGENT_TRANSLATION_PROTOCOL.md) — rules the parallel drain agents follow (governance derivation, per-task cycle, glossary boundary, register check)
+- [BATCH_OPERATIONS.md](BATCH_OPERATIONS.md) — rebasing, PR feedback, and merging the per-locale branches
+- `guides/SECURITY-TRANSLATION-GUIDE.md` — required handling for security-sensitive messages
