@@ -136,8 +136,8 @@
     "source_hash": "05986d95"
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
-    "text": "🔐 请妥善保管此令牌。它提供对您账户的完全访问权限。",
-    "source_hash": "8839aa4d"
+    "text": "请妥善保管此令牌。它可用于通过 API 创建和管理内容。",
+    "source_hash": "a63cc8ec"
   },
   "web.account.confirm_with_your_password": {
     "text": "使用密码确认",
@@ -328,8 +328,8 @@
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "邮箱更新成功。请查收邮件以验证您的新邮箱地址。",
-    "source_hash": "58de2536"
+    "text": "验证邮件已发送。请检查您的新收件箱并点击确认链接以完成更改。",
+    "source_hash": "45f0a4b5"
   },
   "web.settings.profile.email_change_error": {
     "text": "更新邮箱失败，请重试。",
@@ -477,7 +477,7 @@
   },
   "web.settings.api.documentation_description": {
     "text": "了解如何将 {product_name} 集成到您的应用程序中",
-    "source_hash": "6e8f910f"
+    "source_hash": "9bba1ae8"
   },
   "web.settings.api.rest_api_reference": {
     "text": "REST API 参考",
