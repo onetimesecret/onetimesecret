@@ -76,8 +76,8 @@
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "활성화됨",
-    "source_hash": "92c1cdfd"
+    "text": "활성화",
+    "source_hash": "5342e09f"
   },
   "web.domains.disabled": {
     "text": "비활성화됨",
@@ -1358,5 +1358,189 @@
   "web.domains.sso.upgrade_required": {
     "text": "구성하려면 업그레이드",
     "source_hash": "571cfa98"
+  },
+  "web.domains.add.field_label": {
+    "text": "사용자 지정 도메인",
+    "source_hash": "d7d4c1e4"
+  },
+  "web.domains.add.field_help": {
+    "text": "팀에서 사용할 정확한 호스트 이름입니다. 예: {example}.",
+    "source_hash": "3ba71f78"
+  },
+  "web.domains.add.echo_label": {
+    "text": "비밀 링크는 다음 위치에 생성됩니다",
+    "source_hash": "ad60b17d"
+  },
+  "web.domains.add.apex_question": {
+    "text": "이것은 전체 도메인입니다 — 비밀 링크를 어디에 두시겠습니까?",
+    "source_hash": "efacad1b"
+  },
+  "web.domains.add.apex_help": {
+    "text": "하위 도메인을 사용하면 {domain}의 나머지 부분은 그대로 유지됩니다.",
+    "source_hash": "0f7e6181"
+  },
+  "web.domains.add.recommended": {
+    "text": "권장",
+    "source_hash": "d70604e8"
+  },
+  "web.domains.add.no_wrong_answer": {
+    "text": "잘못된 선택은 없습니다 — 팀에서 알아볼 수 있는 것을 선택하세요.",
+    "source_hash": "a04f0086"
+  },
+  "web.domains.add.subdomains_label": {
+    "text": "인기 있는 하위 도메인",
+    "source_hash": "d6ee8eac"
+  },
+  "web.domains.add.root_group_label": {
+    "text": "또는 전체 도메인 사용",
+    "source_hash": "5c23c007"
+  },
+  "web.domains.add.root_domain_label": {
+    "text": "루트 도메인 사용",
+    "source_hash": "9fbbe253"
+  },
+  "web.domains.add.root_domain_description": {
+    "text": "이렇게 하면 {domain} 전체가 저희를 가리키게 되며 — 해당 사이트는 더 이상 확인되지 않습니다 — A / ALIAS 레코드가 필요합니다.",
+    "source_hash": "fae93847"
+  },
+  "web.domains.add.error_unrecognized_suffix": {
+    "text": "“.{0}”은(는) 인식되지 않는 도메인 끝입니다 — 오타를 확인하세요 (예: {1}).",
+    "source_hash": "4b90033d"
+  },
+  "web.domains.add.error_invalid_hostname": {
+    "text": "유효한 호스트 이름을 입력하세요 — 문자, 숫자, 단일 점 및 대시 (예: {0}).",
+    "source_hash": "c4ceabc1"
+  },
+  "web.domains.add.error_empty": {
+    "text": "도메인 이름을 입력하세요.",
+    "source_hash": "d8e2c1e4"
+  },
+  "web.domains.add.continue_with": {
+    "text": "{0}(으)로 계속",
+    "source_hash": "73f8ab40"
+  },
+  "web.domains.auth_override.workspace_default_badge": {
+    "text": "워크스페이스 기본값",
+    "source_hash": "da3706ee"
+  },
+  "web.domains.detail.dns_title": {
+    "text": "DNS 설정",
+    "source_hash": "6c63df31"
+  },
+  "web.domains.detail.dns_description": {
+    "text": "CNAME 레코드로 도메인을 이 서버로 지정하세요",
+    "source_hash": "080f84f0"
+  },
+  "web.domains.dns.title": {
+    "text": "DNS 구성",
+    "source_hash": "da78c35d"
+  },
+  "web.domains.dns.point_domain_intro": {
+    "text": "다음 DNS 레코드를 공급자에 추가하여",
+    "source_hash": "2fc0c524"
+  },
+  "web.domains.dns.point_domain_outro": {
+    "text": "을(를) 이 서버로 지정하세요.",
+    "source_hash": "8d260c05"
+  },
+  "web.domains.dns.cname_heading": {
+    "text": "CNAME 레코드 생성",
+    "source_hash": "11aeef5a"
+  },
+  "web.domains.dns.apex_heading": {
+    "text": "ALIAS 또는 ANAME 레코드 생성",
+    "source_hash": "41135375"
+  },
+  "web.domains.dns.apex_notice": {
+    "text": "최상위(루트) 도메인은 CNAME 레코드를 사용할 수 없습니다. 대신 DNS 공급자의 ALIAS 또는 ANAME 레코드를 사용하거나, A 레코드를 서버의 IP 주소로 지정하세요.",
+    "source_hash": "2d1c3298"
+  },
+  "web.domains.email.from_address_local_placeholder": {
+    "text": "no-reply",
+    "source_hash": "510d274d"
+  },
+  "web.domains.homepage.title": {
+    "text": "홈페이지",
+    "source_hash": "9e3391e9"
+  },
+  "web.domains.homepage.description": {
+    "text": "방문자가 도메인 홈페이지에서 할 수 있는 작업",
+    "source_hash": "974d159e"
+  },
+  "web.domains.homepage.option_private_title": {
+    "text": "비공개 랜딩 페이지",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.option_private_description": {
+    "text": "방문자에게 상호작용 양식이 없는 비공개 랜딩 페이지가 표시됩니다",
+    "source_hash": "4d9aaf6f"
+  },
+  "web.domains.homepage.option_create_title": {
+    "text": "비밀 메시지 생성 양식",
+    "source_hash": "6539dfc1"
+  },
+  "web.domains.homepage.option_create_description": {
+    "text": "방문자가 자신의 비밀 링크를 생성할 수 있습니다",
+    "source_hash": "884310f4"
+  },
+  "web.domains.homepage.option_incoming_title": {
+    "text": "수신 비밀 메시지 양식",
+    "source_hash": "882997bf"
+  },
+  "web.domains.homepage.option_incoming_description": {
+    "text": "방문자가 구성된 수신자에게 비밀 메시지를 보낼 수 있습니다",
+    "source_hash": "86bdaedb"
+  },
+  "web.domains.homepage.incoming_requires_recipients": {
+    "text": "수신 비밀 메시지가 하나 이상의 수신자와 함께 활성화되어 있어야 합니다",
+    "source_hash": "0462611d"
+  },
+  "web.domains.homepage.configure_recipients": {
+    "text": "수신자 구성",
+    "source_hash": "1c3df8b4"
+  },
+  "web.domains.homepage.status_private": {
+    "text": "비공개 랜딩 페이지",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.status_create": {
+    "text": "공개: 방문자가 비밀 메시지를 생성합니다",
+    "source_hash": "251cfb95"
+  },
+  "web.domains.homepage.status_incoming": {
+    "text": "공개: 방문자가 비밀 메시지를 보냅니다",
+    "source_hash": "baa926b8"
+  },
+  "web.domains.homepage.status_incoming_unready": {
+    "text": "수신 준비 안 됨 — 비공개 랜딩 페이지 표시 중",
+    "source_hash": "a5cc237c"
+  },
+  "web.domains.homepage.badge_incoming": {
+    "text": "수신",
+    "source_hash": "e301820a"
+  },
+  "web.domains.homepage.update_success": {
+    "text": "홈페이지 설정이 저장되었습니다",
+    "source_hash": "4eac9f45"
+  },
+  "web.domains.homepage.homepage_uses_incoming_warning": {
+    "text": "이 도메인의 홈페이지는 현재 수신 비밀 메시지 양식을 표시하고 있습니다. 수신 비밀 메시지를 비활성화하거나 모든 수신자를 제거하면 수신이 다시 준비될 때까지 홈페이지가 비공개 랜딩 페이지로 전환됩니다.",
+    "source_hash": "cc0d4997"
+  },
+  "web.domains.signin.effective_status_label": {
+    "text": "이 도메인의 로그인",
+    "source_hash": "d8b884c3"
+  },
+  "web.domains.signin.dormant_notice": {
+    "text": "로그인이 워크스페이스 전체에서 꺼져 있어 모든 도메인에서 사용할 수 없습니다. 여기서 설정한 내용은 유지되며 워크스페이스 로그인이 다시 활성화되면 적용됩니다.",
+    "source_hash": "723d35dc"
+  },
+  "web.domains.signup.effective_status_label": {
+    "text": "이 도메인의 가입",
+    "source_hash": "115ab21b"
+  },
+  "web.domains.signup.dormant_notice": {
+    "text": "가입이 워크스페이스 전체에서 꺼져 있어 모든 도메인에서 사용할 수 없습니다. 여기서 설정한 내용은 유지되며 워크스페이스 가입이 다시 활성화되면 적용됩니다.",
+    "source_hash": "49faefe4"
   }
 }

@@ -155,8 +155,8 @@
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
-    "text": "세션이 만료되었습니다. 페이지를 새로고침한 후 다시 시도해 주세요.",
-    "source_hash": "a7c3e901"
+    "text": "세션이 만료되었습니다. 페이지를 새로 고친 후 다시 시도하세요.",
+    "source_hash": "be9ed96d"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "로그인 실패. 다시 시도해 주세요.",

@@ -1,0 +1,78 @@
+{
+  "web.admin.usage.title": {
+    "text": "사용량",
+    "source_hash": "8d59829c"
+  },
+  "web.admin.usage.description": {
+    "text": "날짜 범위에 대한 사용량 지표를 내보냅니다.",
+    "source_hash": "97bd3325"
+  },
+  "web.admin.usage.startDate": {
+    "text": "시작 날짜",
+    "source_hash": "4c52faad"
+  },
+  "web.admin.usage.endDate": {
+    "text": "종료 날짜",
+    "source_hash": "e970951c"
+  },
+  "web.admin.usage.fetch": {
+    "text": "데이터 가져오기",
+    "source_hash": "429532fe"
+  },
+  "web.admin.usage.loadError": {
+    "text": "사용량 데이터를 불러올 수 없습니다.",
+    "source_hash": "ffb557d7"
+  },
+  "web.admin.usage.retry": {
+    "text": "다시 시도",
+    "source_hash": "942087cc"
+  },
+  "web.admin.usage.empty": {
+    "text": "이 범위에 대한 데이터가 없습니다",
+    "source_hash": "5fed1795"
+  },
+  "web.admin.usage.byState": {
+    "text": "상태별 비밀 메시지",
+    "source_hash": "916bbcb6"
+  },
+  "web.admin.usage.secretsByDay": {
+    "text": "일별 비밀 메시지",
+    "source_hash": "24a01e8e"
+  },
+  "web.admin.usage.usersByDay": {
+    "text": "일별 신규 사용자",
+    "source_hash": "8c1f089f"
+  },
+  "web.admin.usage.exportJson": {
+    "text": "JSON 다운로드",
+    "source_hash": "49e0e6d5"
+  },
+  "web.admin.usage.exportCsv": {
+    "text": "CSV 다운로드",
+    "source_hash": "a4023b89"
+  },
+  "web.admin.usage.columns.date": {
+    "text": "날짜",
+    "source_hash": "99c40ab4"
+  },
+  "web.admin.usage.columns.count": {
+    "text": "개수",
+    "source_hash": "37bac495"
+  },
+  "web.admin.usage.stats.totalSecrets": {
+    "text": "총 비밀 메시지",
+    "source_hash": "e17a5459"
+  },
+  "web.admin.usage.stats.newUsers": {
+    "text": "신규 사용자",
+    "source_hash": "d3ee48b0"
+  },
+  "web.admin.usage.stats.avgSecrets": {
+    "text": "일평균 비밀 메시지",
+    "source_hash": "948b0701"
+  },
+  "web.admin.usage.stats.avgUsers": {
+    "text": "일평균 사용자",
+    "source_hash": "491f626d"
+  }
+}
