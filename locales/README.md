@@ -6,7 +6,7 @@ Locale translations tracked as SQLite tasks, translated by agents, exported back
 
 - `content/` — source of truth, all locales, flat keys (`content/en/` is the authoritative source text)
 - `db/` — SQLite task DB (ephemeral working state; hydrated on demand, real only after export)
-- `guides/` — translation guides and per-locale references
+- `guides/` — static shared guides (security, UX); per-locale guides are derived into gitignored `generated/i18n/` by `scripts/derive-governance.sh`, never committed here
 - `scripts/` — orchestration tooling
 - `generated/locales/` — build output the app consumes (never edit; `pnpm run locales:sync`)
 
@@ -25,7 +25,7 @@ python3 locales/scripts/i18n db migrate
 
 # 3. Drain all locales with parallel agents (creates tasks --missing-only,
 #    translates, verifies; agents report glossary candidates, they don't write them)
-/d:translate-parallel-agents
+/i18n:translate-parallel-agents        # installed from locales/slash_commands/
 
 # 4. Export each fully drained locale, then the shared tables once
 python3 locales/scripts/i18n tasks next <locale> --stats   # must show pending: 0
@@ -35,7 +35,7 @@ python3 locales/scripts/i18n db export                     # once, after all loc
 # 5. Commit content + db tables, then split into review branches
 git add locales/content/ locales/db/*.sql
 locales/scripts/branch-per-locale.sh --changed --execute   # one i18n/update-{locale} branch each
-/d:review-locale-branches
+locales/scripts/review-locale-branches.sh validate         # deterministic checks; full agent review: locales/slash_commands/review-locale-branches.md
 ```
 
 Two rules that bite:

@@ -2,8 +2,9 @@
 
 > **Audience: a single automated background translator agent draining one
 > locale.** This is the machine-executable spec the orchestration slash commands
-> (`/d:translate-parallel-agents`, `/d:start-translation-session`,
-> `/d:translate-workflow`) point their `saas-translator` agents at. It is
+> (`translate-parallel-agents`, `start-translation-session`,
+> `translate-workflow` — vendored in `locales/slash_commands/`, installed under a
+> command namespace such as `/i18n:`) point their `saas-translator` agents at. It is
 > self-contained and executable by reference: an agent given a locale and this
 > file has everything it needs to drain that locale's task queue.
 >
@@ -110,7 +111,7 @@ Loop this until the queue is dry:
    ```bash
    python3 locales/scripts/i18n tasks next <LOCALE> --stats
    ```
-   shows **0 pending**.
+   shows `pending: 0`.
 
 ## Translation rules
 
@@ -170,4 +171,4 @@ Do **not** export (`tasks export`), do **not** sync (`pnpm run locales:sync` /
 `content compile`), do **not** commit or create branches, and do **not** write
 the glossary/committable DB tables. Those are human/orchestrator steps
 documented in `TRANSLATION_PROTOCOL.md`. The agent's job ends when the locale
-shows 0 pending, the audit is clean, and the glossary candidates are reported.
+shows `pending: 0`, the audit is clean, and the glossary candidates are reported.

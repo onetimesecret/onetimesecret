@@ -1,7 +1,7 @@
 ---
 description: Translate locale files for a single target language using git diff detection, routed through the agent protocol
 argument-hint: <lang-code>
-allowed-tools: Bash(git diff:*), Bash(cp:*), Bash(ls:*), Bash(cat:*), Bash([ -f:*), Bash(jq:*), Bash(python3 locales/scripts/i18n tasks:*), Task, Read, Glob
+allowed-tools: Bash(git diff:*), Bash(ls:*), Bash([ -f:*), Bash(jq:*), Bash(locales/scripts/derive-governance.sh:*), Bash(python3 locales/scripts/i18n tasks:*), Task, Read, Glob
 ---
 
 # Translate a Single Language
@@ -32,7 +32,8 @@ ls locales/content/en/*.json 2>/dev/null && echo "MODERN_STRUCTURE"
 
 Source of truth is `./locales/content/{lang}/`.
 
-**Paths to IGNORE** (do not edit): `./generate/`, `./src/locales/` — compiled/legacy, not source.
+**Paths to IGNORE** (do not edit): `./generated/locales/`, `./generated/types/` —
+compiled output. `generated/i18n/.resolved/` is required input, not output to ignore.
 
 ## Eligibility gate
 
@@ -67,11 +68,10 @@ If not eligible, stop and report — do not translate without the resolved artif
    git diff --no-index locales/content/en locales/content/{lang} 2>/dev/null || echo "New locale"
    ```
 
-2. **For a brand-new language**, seed the directory from English structure so the
-   keys exist to be drained:
-   ```bash
-   cp -r locales/content/en locales/content/{lang}
-   ```
+2. **For a brand-new language**, do NOT seed the directory by copying
+   `locales/content/en` — that plants ~3,500 English strings as if they were
+   translations. `tasks create` reads only the English source, and `tasks export`
+   creates the per-file target JSON on first write; no seeding is needed.
 
 3. **Build the task queue** so the agent has pending work:
    ```bash
@@ -103,6 +103,6 @@ Verify, then report. Do NOT export or commit — that's a separate human step.
 
 ## For Multiple Locales in Parallel
 
-Use `/d:translate-parallel-agents` to orchestrate multiple `saas-translator`
+Use `/i18n:translate-parallel-agents` to orchestrate multiple `saas-translator`
 background agents translating different locales simultaneously. This is more
 efficient for batch translation work.

@@ -59,10 +59,11 @@ python3 locales/scripts/i18n tasks next fr_CA --stats
 
 ### 1. Create Tasks (if needed)
 
-For each eligible locale that needs tasks generated, enqueue only the keys still
-untranslated in `content/LOCALE` so a DB rebuild never requeues already-translated
-(reviewed) strings. Use `--missing-only` for existing locales; drop it only to
-bootstrap a brand-new, empty locale:
+For each eligible locale that needs tasks generated, enqueue the keys still
+untranslated in `content/LOCALE` **plus** stale ones (translated, but en changed
+since) — already-translated, still-current reviewed strings are never requeued.
+Use `--missing-only` for existing locales; drop it only to bootstrap a
+brand-new, empty locale:
 
 ```bash
 python3 locales/scripts/i18n tasks create LOCALE --missing-only
