@@ -120,4 +120,39 @@ RSpec.describe Onetime::Operations::Memberships::Add do
     expect(result.status).to eq(:invalid_role)
     expect(Onetime::AdminAuditEvent).not_to have_received(:record)
   end
+
+  context 'when ensure_membership returns nil (data-integrity failure)' do
+    before do
+      allow(org).to receive(:member?).with(customer).and_return(false)
+      allow(Onetime::OrganizationMembership)
+        .to receive(:ensure_membership).with(org, customer, role: 'member').and_return(nil)
+    end
+
+    it 'raises Onetime::Problem and records no audit event' do
+      expect do
+        described_class.new(org: org, customer: customer, role: 'member', actor: actor).call
+      end.to raise_error(Onetime::Problem, /Failed to create membership record/)
+
+      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+    end
+  end
+
+  context 'when an already-member record has a blank role (corruption)' do
+    let(:existing) { double('OrganizationMembership', role: '') }
+
+    before do
+      allow(org).to receive(:member?).with(customer).and_return(true)
+      allow(Onetime::OrganizationMembership)
+        .to receive(:find_by_org_customer).with('org-obj-1', 'cust-obj-1').and_return(existing)
+      allow(OT).to receive(:le)
+    end
+
+    it 'is :no_change, logs the anomaly, and echoes the requested role as a fallback' do
+      result = described_class.new(org: org, customer: customer, role: 'member', actor: actor).call
+
+      expect(result.status).to eq(:no_change)
+      expect(result.role).to eq('member') # fallback: blank current role
+      expect(OT).to have_received(:le).with(/active membership has blank role/)
+    end
+  end
 end

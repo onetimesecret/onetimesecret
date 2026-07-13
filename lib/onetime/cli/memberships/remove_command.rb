@@ -21,6 +21,7 @@ module Onetime
   module CLI
     class MembershipsRemoveCommand < Command
       include Customers::Shared
+      include Memberships::Shared
 
       desc 'Remove a member from an organization (clears their entitlements)'
 
@@ -47,7 +48,7 @@ module Onetime
         boot_application!
 
         organization = resolve_org(org, json: json)
-        member       = resolve_member(customer, json: json)
+        member       = resolve_member(customer, action: 'remove', json: json)
 
         unless yes
           if json
@@ -96,24 +97,6 @@ module Onetime
         }
         puts JSON.pretty_generate(payload)
         exit 1 unless result.status == :success
-      end
-
-      def resolve_org(identifier, json:)
-        organization = Onetime::Organization.find_by_extid(identifier.to_s.strip)
-        error_exit("Organization not found: #{identifier}", json: json) unless organization
-        organization
-      end
-
-      def resolve_member(identifier, json:)
-        member = resolve_customer(identifier)
-        error_exit("Customer not found: #{identifier}", json: json) unless member
-        error_exit('Cannot remove anonymous customer', json: json) if member.anonymous?
-        member
-      end
-
-      def error_exit(message, json:)
-        puts(json ? JSON.generate({ error: message }) : "Error: #{message}")
-        exit 1
       end
     end
 

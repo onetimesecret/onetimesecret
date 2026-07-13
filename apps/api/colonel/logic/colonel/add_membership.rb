@@ -77,6 +77,8 @@ module ColonelAPI
 
         private
 
+        # Only :invalid_role is a client error; :no_change is an idempotent 200
+        # (customer is already a member — role changes go through set-role).
         def handle_result_status
           return unless result.status == :invalid_role
 

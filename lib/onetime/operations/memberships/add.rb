@@ -65,8 +65,16 @@ module Onetime
           return build(:invalid_role, @role) unless VALID_ROLES.include?(@role)
 
           if @org.member?(@customer)
-            existing = Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @customer.objid)
-            return build(:no_change, existing&.role || @role)
+            existing     = Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @customer.objid)
+            current_role = existing&.role.to_s
+            # An active membership with a blank role is a data-integrity anomaly:
+            # the :no_change Result would then echo the REQUESTED role, masking the
+            # corruption. Surface it in the log rather than silently papering over.
+            if existing && current_role.empty?
+              OT.le '[Memberships::Add] active membership has blank role ' \
+                    "org=#{@org.extid} member=#{@customer.extid}"
+            end
+            return build(:no_change, current_role.empty? ? @role : current_role)
           end
 
           membership = Onetime::OrganizationMembership.ensure_membership(@org, @customer, role: @role)
