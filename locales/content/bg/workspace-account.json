@@ -136,8 +136,8 @@
     "source_hash": "05986d95"
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
-    "text": "🔐 Пазете този токен в безопасност! Той предоставя пълен достъп до вашия акаунт.",
-    "source_hash": "8839aa4d"
+    "text": "Пазете този токен на сигурно място. Той може да се използва за създаване и управление на тайни чрез API.",
+    "source_hash": "a63cc8ec"
   },
   "web.account.confirm_with_your_password": {
     "text": "Потвърдете с паролата си",
@@ -328,8 +328,8 @@
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "Имейлът е актуализиран успешно. Моля, проверете входящата си кутия, за да потвърдите новия имейл адрес.",
-    "source_hash": "58de2536"
+    "text": "Изпратен е имейл за потвърждение. Моля, проверете новата си входяща кутия и щракнете върху връзката за потвърждение, за да завършите промяната.",
+    "source_hash": "45f0a4b5"
   },
   "web.settings.profile.email_change_error": {
     "text": "Неуспешна актуализация на имейла. Моля, опитайте отново.",
@@ -477,7 +477,7 @@
   },
   "web.settings.api.documentation_description": {
     "text": "Научете как да интегрирате {product_name} в приложенията си",
-    "source_hash": "6e8f910f"
+    "source_hash": "9bba1ae8"
   },
   "web.settings.api.rest_api_reference": {
     "text": "REST API справка",

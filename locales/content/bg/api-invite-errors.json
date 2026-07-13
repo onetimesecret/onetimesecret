@@ -12,8 +12,8 @@
     "source_hash": "a5df7d22"
   },
   "api.invite.errors.invitation_already_processed": {
-    "text": "Поканата вече е %{status}",
-    "source_hash": "130c87e0"
+    "text": "Тази покана вече е обработена",
+    "source_hash": "4cfedf4f"
   },
   "api.invite.errors.invitation_expired": {
     "text": "Поканата е изтекла",
@@ -26,5 +26,13 @@
   "api.invite.errors.already_member": {
     "text": "Вече сте член на тази организация",
     "source_hash": "f56ad547"
+  },
+  "api.invite.errors.invitation_already_accepted": {
+    "text": "Тази покана вече е приета",
+    "source_hash": "8f9daf0f"
+  },
+  "api.invite.errors.invitation_already_declined": {
+    "text": "Тази покана вече е отклонена",
+    "source_hash": "96e0d626"
   }
 }
