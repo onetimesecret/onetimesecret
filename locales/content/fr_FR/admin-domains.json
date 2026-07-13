@@ -1,0 +1,194 @@
+{
+  "web.admin.domains.retry": {
+    "text": "Réessayer",
+    "source_hash": "942087cc"
+  },
+  "web.admin.domains.addDomain.button": {
+    "text": "Ajouter un domaine",
+    "source_hash": "d86476ae"
+  },
+  "web.admin.domains.addDomain.title": {
+    "text": "Ajouter un domaine personnalisé",
+    "source_hash": "592d3314"
+  },
+  "web.admin.domains.addDomain.forOrg": {
+    "text": "Ajout d'un domaine pour {org}.",
+    "source_hash": "f8b8c1ac"
+  },
+  "web.admin.domains.addDomain.domainLabel": {
+    "text": "Domaine",
+    "source_hash": "79fa3361"
+  },
+  "web.admin.domains.addDomain.domainPlaceholder": {
+    "text": "secrets.example.com",
+    "source_hash": "9ea4d0d6"
+  },
+  "web.admin.domains.addDomain.strategyLabel": {
+    "text": "Stratégie de validation",
+    "source_hash": "a2e95531"
+  },
+  "web.admin.domains.addDomain.createButton": {
+    "text": "Créer",
+    "source_hash": "4759498a"
+  },
+  "web.admin.domains.addDomain.created": {
+    "text": "{domain} a été créé.",
+    "source_hash": "2263ec6a"
+  },
+  "web.admin.domains.addDomain.strategy.approximated": {
+    "text": "Approximated — vérification de propriété DNS, sans proxy.",
+    "source_hash": "79a7245c"
+  },
+  "web.admin.domains.addDomain.strategy.passthrough": {
+    "text": "Passthrough — vous pointez le DNS vers le proxy de ce déploiement.",
+    "source_hash": "9702d758"
+  },
+  "web.admin.domains.addDomain.strategy.external": {
+    "text": "External — le DNS est géré en dehors de ce déploiement.",
+    "source_hash": "acaede35"
+  },
+  "web.admin.domains.addDomain.strategy.caddy_on_demand": {
+    "text": "Caddy on-demand — certificats émis automatiquement à la première requête.",
+    "source_hash": "deb90ae6"
+  },
+  "web.admin.domains.addDomain.strategy.caddy": {
+    "text": "Caddy — certificats émis automatiquement à la première requête.",
+    "source_hash": "a0f3c2dc"
+  },
+  "web.admin.domains.addDomain.strategy.unknown": {
+    "text": "Stratégie de validation à l'échelle du déploiement.",
+    "source_hash": "4587f9cf"
+  },
+  "web.admin.domains.attach.cta": {
+    "text": "Rattacher le domaine à l'organisation",
+    "source_hash": "736d74ce"
+  },
+  "web.admin.domains.attach.recordEyebrow": {
+    "text": "Enregistrement en cours",
+    "source_hash": "2fadf983"
+  },
+  "web.admin.domains.attach.rosterError": {
+    "text": "Impossible de charger les domaines de cette organisation.",
+    "source_hash": "d3055fed"
+  },
+  "web.admin.domains.attach.noDomains": {
+    "text": "Aucun domaine n'est encore rattaché à cette organisation.",
+    "source_hash": "e9a25fc4"
+  },
+  "web.admin.domains.attach.openExternal": {
+    "text": "Ouvrir {domain} dans un nouvel onglet",
+    "source_hash": "c5fbdeaa"
+  },
+  "web.admin.domains.dns.heading": {
+    "text": "Enregistrements DNS à publier",
+    "source_hash": "e4efbe2b"
+  },
+  "web.admin.domains.dns.txtStep": {
+    "text": "1. Ajoutez un enregistrement TXT pour prouver la propriété.",
+    "source_hash": "fdcfcfb0"
+  },
+  "web.admin.domains.dns.aStep": {
+    "text": "2. Ajoutez un enregistrement A pointant l'apex vers le proxy.",
+    "source_hash": "aedbf197"
+  },
+  "web.admin.domains.dns.cnameStep": {
+    "text": "2. Ajoutez un enregistrement CNAME pointant le sous-domaine vers le proxy.",
+    "source_hash": "5c626f53"
+  },
+  "web.admin.domains.dns.propagationNote": {
+    "text": "Les modifications DNS peuvent prendre quelques minutes à se propager avant que la vérification n'aboutisse.",
+    "source_hash": "7caf70a7"
+  },
+  "web.admin.domains.dns.toggle": {
+    "text": "Détails DNS",
+    "source_hash": "ebf2d44e"
+  },
+  "web.admin.domains.dns.loadError": {
+    "text": "Impossible de charger les détails DNS.",
+    "source_hash": "4c33e23d"
+  },
+  "web.admin.domains.list.loadError": {
+    "text": "Impossible de charger les domaines.",
+    "source_hash": "548deff8"
+  },
+  "web.admin.domains.orgPicker.title": {
+    "text": "Sélectionner une organisation",
+    "source_hash": "48326f52"
+  },
+  "web.admin.domains.orgPicker.searchLabel": {
+    "text": "Organisation",
+    "source_hash": "d764d425"
+  },
+  "web.admin.domains.orgPicker.searchPlaceholder": {
+    "text": "ID d'objet, ID externe ou e-mail",
+    "source_hash": "bb5d0055"
+  },
+  "web.admin.domains.orgPicker.searchHint": {
+    "text": "Rechercher par objid, extid ou l'adresse e-mail d'un membre.",
+    "source_hash": "fdef7332"
+  },
+  "web.admin.domains.orgPicker.loadError": {
+    "text": "Impossible de rechercher les organisations.",
+    "source_hash": "b9e45dcf"
+  },
+  "web.admin.domains.orgPicker.parseError": {
+    "text": "Les résultats des organisations n'ont pas pu être lus.",
+    "source_hash": "44e1b9fd"
+  },
+  "web.admin.domains.orgPicker.idle": {
+    "text": "Saisissez une valeur ci-dessus pour lancer la recherche.",
+    "source_hash": "0352e6e6"
+  },
+  "web.admin.domains.orgPicker.noResults": {
+    "text": "Aucune organisation ne correspond à « {term} ».",
+    "source_hash": "761db594"
+  },
+  "web.admin.domains.orgPicker.unnamedOrg": {
+    "text": "Organisation sans nom",
+    "source_hash": "f218dc9d"
+  },
+  "web.admin.domains.orgPicker.domainCount": {
+    "text": "{count} domaines",
+    "source_hash": "cf548c8c"
+  },
+  "web.admin.domains.orgPicker.select": {
+    "text": "Sélectionner",
+    "source_hash": "2a78025d"
+  },
+  "web.admin.domains.verify.button": {
+    "text": "Vérifier",
+    "source_hash": "eea2745e"
+  },
+  "web.admin.domains.verify.confirmTitle": {
+    "text": "Vérifier le domaine ?",
+    "source_hash": "07c4dc4f"
+  },
+  "web.admin.domains.verify.confirmDescription": {
+    "text": "Lancer les vérifications DNS et SSL pour {domain}.",
+    "source_hash": "06797824"
+  },
+  "web.admin.domains.verify.failed": {
+    "text": "La vérification a échoué. Veuillez réessayer.",
+    "source_hash": "3c8432b0"
+  },
+  "web.admin.domains.verify.success.verified": {
+    "text": "{domain} est vérifié.",
+    "source_hash": "802b5d1e"
+  },
+  "web.admin.domains.verify.success.resolving": {
+    "text": "{domain} se résout mais n'est pas encore vérifié.",
+    "source_hash": "bc8aecad"
+  },
+  "web.admin.domains.verify.success.pending": {
+    "text": "{domain} est en attente — le DNS ne se résout pas encore.",
+    "source_hash": "0d9f66d5"
+  },
+  "web.admin.domains.verify.success.unverified": {
+    "text": "{domain} n'a pas pu être vérifié.",
+    "source_hash": "630da482"
+  },
+  "web.admin.domains.verify.success.done": {
+    "text": "Vérification terminée pour {domain}.",
+    "source_hash": "ed67e22d"
+  }
+}

@@ -101,11 +101,11 @@
   },
   "web.footer.product": {
     "text": "Produit",
-    "source_hash": "7f5540e9"
+    "source_hash": "fb9ef894"
   },
   "web.footer.source_code_purveyor": {
     "text": "Code source",
-    "source_hash": "29c5c68f"
+    "source_hash": "bc47da66"
   },
   "web.navigation.billing": {
     "text": "Facturation",
@@ -149,7 +149,7 @@
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
     "text": "Vous consultez un message sécurisé qui vous a été partagé via {product_name}. Ce contenu n'est affiché qu'une seule fois, puis définitivement supprimé de nos serveurs.",
-    "source_hash": "e0f1a10c"
+    "source_hash": "7a4e9d16"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "Puis-je consulter ce secret à nouveau plus tard ?",
@@ -265,7 +265,7 @@
   },
   "web.layout.visit_onetime_secret_homepage": {
     "text": "Visiter la page d'accueil de {product_name}",
-    "source_hash": "625556d2"
+    "source_hash": "87802af5"
   },
   "web.layout.footer_navigation": {
     "text": "Navigation du pied de page",
@@ -346,5 +346,9 @@
   "web.help.default_content": {
     "text": "Veuillez contacter le support pour obtenir de l'aide",
     "source_hash": "752bca14"
+  },
+  "web.layout.colonels_only_badge": {
+    "text": "Réservé aux colonels",
+    "source_hash": "3f1e2dbd"
   }
 }

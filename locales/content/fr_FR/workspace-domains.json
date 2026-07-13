@@ -76,8 +76,8 @@
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "Activé",
-    "source_hash": "92c1cdfd"
+    "text": "Activer",
+    "source_hash": "5342e09f"
   },
   "web.domains.disabled": {
     "text": "Désactivé",
@@ -1358,5 +1358,189 @@
   "web.domains.sso.upgrade_required": {
     "text": "Mettre à niveau pour configurer",
     "source_hash": "571cfa98"
+  },
+  "web.domains.add.field_label": {
+    "text": "Domaine personnalisé",
+    "source_hash": "d7d4c1e4"
+  },
+  "web.domains.add.field_help": {
+    "text": "Le nom d'hôte exact que votre équipe utilisera, comme {example}.",
+    "source_hash": "3ba71f78"
+  },
+  "web.domains.add.echo_label": {
+    "text": "Vos liens secrets seront hébergés à",
+    "source_hash": "ad60b17d"
+  },
+  "web.domains.add.apex_question": {
+    "text": "C'est l'intégralité de votre domaine — où les liens secrets doivent-ils être hébergés ?",
+    "source_hash": "efacad1b"
+  },
+  "web.domains.add.apex_help": {
+    "text": "Un sous-domaine laisse le reste de {domain} intact.",
+    "source_hash": "0f7e6181"
+  },
+  "web.domains.add.recommended": {
+    "text": "Recommandé",
+    "source_hash": "d70604e8"
+  },
+  "web.domains.add.no_wrong_answer": {
+    "text": "Il n'y a pas de mauvais choix — choisissez celui que votre équipe reconnaîtra.",
+    "source_hash": "a04f0086"
+  },
+  "web.domains.add.subdomains_label": {
+    "text": "Sous-domaines populaires",
+    "source_hash": "d6ee8eac"
+  },
+  "web.domains.add.root_group_label": {
+    "text": "Ou utilisez l'intégralité de votre domaine",
+    "source_hash": "5c23c007"
+  },
+  "web.domains.add.root_domain_label": {
+    "text": "Utiliser mon domaine racine",
+    "source_hash": "9fbbe253"
+  },
+  "web.domains.add.root_domain_description": {
+    "text": "Cela pointe l'intégralité de {domain} vers nous — le site qui s'y trouve cesse de se résoudre — et nécessite un enregistrement A / ALIAS.",
+    "source_hash": "fae93847"
+  },
+  "web.domains.add.error_unrecognized_suffix": {
+    "text": "« .{0} » n'est pas une terminaison de domaine reconnue — vérifiez s'il y a une faute de frappe (par ex. {1}).",
+    "source_hash": "4b90033d"
+  },
+  "web.domains.add.error_invalid_hostname": {
+    "text": "Saisissez un nom d'hôte valide — lettres, chiffres, points simples et tirets (par ex. {0}).",
+    "source_hash": "c4ceabc1"
+  },
+  "web.domains.add.error_empty": {
+    "text": "Veuillez saisir un nom de domaine.",
+    "source_hash": "d8e2c1e4"
+  },
+  "web.domains.add.continue_with": {
+    "text": "Continuer avec {0}",
+    "source_hash": "73f8ab40"
+  },
+  "web.domains.auth_override.workspace_default_badge": {
+    "text": "Valeur par défaut de l'espace de travail",
+    "source_hash": "da3706ee"
+  },
+  "web.domains.detail.dns_title": {
+    "text": "Configuration DNS",
+    "source_hash": "6c63df31"
+  },
+  "web.domains.detail.dns_description": {
+    "text": "Pointez votre domaine vers ce serveur avec un enregistrement CNAME",
+    "source_hash": "080f84f0"
+  },
+  "web.domains.dns.title": {
+    "text": "Configuration DNS",
+    "source_hash": "da78c35d"
+  },
+  "web.domains.dns.point_domain_intro": {
+    "text": "Pointez",
+    "source_hash": "2fc0c524"
+  },
+  "web.domains.dns.point_domain_outro": {
+    "text": "vers ce serveur en ajoutant l'enregistrement DNS suivant chez votre fournisseur.",
+    "source_hash": "8d260c05"
+  },
+  "web.domains.dns.cname_heading": {
+    "text": "Créer un enregistrement CNAME",
+    "source_hash": "11aeef5a"
+  },
+  "web.domains.dns.apex_heading": {
+    "text": "Créer un enregistrement ALIAS ou ANAME",
+    "source_hash": "41135375"
+  },
+  "web.domains.dns.apex_notice": {
+    "text": "Les domaines apex (racine) ne peuvent pas utiliser d'enregistrement CNAME. Utilisez plutôt l'enregistrement ALIAS ou ANAME de votre fournisseur DNS, ou pointez un enregistrement A vers l'adresse IP de votre serveur.",
+    "source_hash": "2d1c3298"
+  },
+  "web.domains.email.from_address_local_placeholder": {
+    "text": "no-reply",
+    "source_hash": "510d274d"
+  },
+  "web.domains.homepage.title": {
+    "text": "Page d'accueil",
+    "source_hash": "9e3391e9"
+  },
+  "web.domains.homepage.description": {
+    "text": "Ce que les visiteurs peuvent faire sur la page d'accueil de votre domaine",
+    "source_hash": "974d159e"
+  },
+  "web.domains.homepage.option_private_title": {
+    "text": "Page d'atterrissage privée",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.option_private_description": {
+    "text": "Les visiteurs voient une page d'atterrissage privée sans formulaire interactif",
+    "source_hash": "4d9aaf6f"
+  },
+  "web.domains.homepage.option_create_title": {
+    "text": "Formulaire de création de secret",
+    "source_hash": "6539dfc1"
+  },
+  "web.domains.homepage.option_create_description": {
+    "text": "Les visiteurs peuvent créer leurs propres liens secrets",
+    "source_hash": "884310f4"
+  },
+  "web.domains.homepage.option_incoming_title": {
+    "text": "Formulaire de secrets entrants",
+    "source_hash": "882997bf"
+  },
+  "web.domains.homepage.option_incoming_description": {
+    "text": "Les visiteurs peuvent envoyer des secrets à vos destinataires configurés",
+    "source_hash": "86bdaedb"
+  },
+  "web.domains.homepage.incoming_requires_recipients": {
+    "text": "Nécessite que les secrets entrants soient activés avec au moins un destinataire",
+    "source_hash": "0462611d"
+  },
+  "web.domains.homepage.configure_recipients": {
+    "text": "Configurer les destinataires",
+    "source_hash": "1c3df8b4"
+  },
+  "web.domains.homepage.status_private": {
+    "text": "Page d'atterrissage privée",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.status_create": {
+    "text": "Public : les visiteurs créent des secrets",
+    "source_hash": "251cfb95"
+  },
+  "web.domains.homepage.status_incoming": {
+    "text": "Public : les visiteurs vous envoient des secrets",
+    "source_hash": "baa926b8"
+  },
+  "web.domains.homepage.status_incoming_unready": {
+    "text": "Entrants non prêts — affichage de la page d'atterrissage privée",
+    "source_hash": "a5cc237c"
+  },
+  "web.domains.homepage.badge_incoming": {
+    "text": "Entrants",
+    "source_hash": "e301820a"
+  },
+  "web.domains.homepage.update_success": {
+    "text": "Paramètres de la page d'accueil enregistrés",
+    "source_hash": "4eac9f45"
+  },
+  "web.domains.homepage.homepage_uses_incoming_warning": {
+    "text": "La page d'accueil de ce domaine présente actuellement le formulaire de secrets entrants. Désactiver les secrets entrants ou supprimer tous les destinataires fera basculer la page d'accueil vers une page d'atterrissage privée jusqu'à ce que les secrets entrants soient à nouveau prêts.",
+    "source_hash": "cc0d4997"
+  },
+  "web.domains.signin.effective_status_label": {
+    "text": "Connexion sur ce domaine",
+    "source_hash": "d8b884c3"
+  },
+  "web.domains.signin.dormant_notice": {
+    "text": "La connexion est désactivée à l'échelle de l'espace de travail ; elle est donc indisponible sur tous les domaines. Vos paramètres ici sont conservés et prennent effet lorsque la connexion de l'espace de travail est réactivée.",
+    "source_hash": "723d35dc"
+  },
+  "web.domains.signup.effective_status_label": {
+    "text": "Inscriptions sur ce domaine",
+    "source_hash": "115ab21b"
+  },
+  "web.domains.signup.dormant_notice": {
+    "text": "Les inscriptions sont désactivées à l'échelle de l'espace de travail ; elles sont donc indisponibles sur tous les domaines. Vos paramètres ici sont conservés et prennent effet lorsque les inscriptions de l'espace de travail sont réactivées.",
+    "source_hash": "49faefe4"
   }
 }
