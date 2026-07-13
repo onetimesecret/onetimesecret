@@ -457,6 +457,15 @@ site:
     # Example: ["100.64.0.0/10", "10.0.0.0/8"]
     allowed_cidrs: <%= ENV['ADMIN_ALLOWED_CIDRS']&.split(',')&.map(&:strip) || [] %>
 
+  # Runtime brand-asset overlay (#3739). Selects a directory of replacement
+  # root-served brand assets (favicon.ico, icon-*.png, site.webmanifest, etc.)
+  # that overlays the neutral bundled set in public/web at runtime — no image
+  # rebuild. brand_assets_dir (an explicit path, e.g. a runtime mount) wins over
+  # brand_pack (a pack NAME resolved under public/branding/<name>). Unset =
+  # no overlay; the neutral public/web assets are served.
+  brand_pack: <%= ENV['BRAND_PACK']&.to_json %>
+  brand_assets_dir: <%= ENV['BRAND_ASSETS_DIR']&.to_json %>
+
 # Brand block. Each BRAND_* env var is interpolated as a JSON-quoted scalar
 # (`&.to_json`) so the value survives the YAML layer intact. Without quoting, an
 # operator value with YAML-significant characters — a leading '#' (hex color),

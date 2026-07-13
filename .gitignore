@@ -58,6 +58,13 @@ coverage/
 dist/
 public/web/dist/
 public/doc
+# Runtime brand-asset packs (#3739): public/branding/<pack>/ is generator
+# output (pnpm run gen:favicons:<pack>), never committed — the repo stays
+# brand-neutral. Ignore the CONTENTS (not the dir) so the README stays tracked;
+# git cannot re-include a file whose parent directory is itself excluded (see
+# .vscode note above).
+public/branding/*
+!public/branding/README.md
 !tests/data
 
 # Files
