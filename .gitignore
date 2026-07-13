@@ -137,3 +137,7 @@ tests/lanes/**/.overlays
 !tests/lanes/**/.envrc
 !tests/lanes/base.env
 !tests/lanes/overlays/*.env
+
+# Per-run i18n PR-review artifacts (pr-per-locale.sh). Not committed here; may
+# move to the translation-rules repo as an audit trail. See locales/BATCH_OPERATIONS.md.
+locales/reviews/

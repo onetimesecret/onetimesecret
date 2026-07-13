@@ -98,6 +98,13 @@ locales/scripts/pr-per-locale.sh --execute --no-review
 locales/scripts/pr-per-locale.sh --execute --update de
 ```
 
+Each run writes its per-locale artifacts to `locales/reviews/<timestamp>/` (the `<locale>.md`
+quality reviews plus `.raw.txt`/`.stderr`/`i18n-validate-*.json` diagnostics). **This directory is
+gitignored — we do not commit reviews to this repo.** The `.md` reviews are already baked into the
+PR bodies on GitHub; the local copies are bespoke, per-diff quality records we may relocate to the
+**translation-rules** repo as an audit trail. Until that lands, treat `locales/reviews/` as local
+scratch and keep the runs you care about out-of-tree.
+
 Capture the resulting PR numbers to rebuild the arrays below — they are per-round and the ones
 listed are stale (a prior batch). Note `--head` is exact-match, not a prefix, so filter with jq
 (the freshly-opened PRs are in the default open state):
