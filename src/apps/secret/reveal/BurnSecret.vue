@@ -127,6 +127,7 @@
         <button
           type="submit"
           :disabled="isLoading"
+          data-testid="burn-page-submit"
           class="group flex w-full items-center justify-center rounded-md
             bg-amber-400 px-4 py-2 text-gray-800 duration-200
             hover:bg-amber-500

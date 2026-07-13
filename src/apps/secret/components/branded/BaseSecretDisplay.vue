@@ -117,7 +117,8 @@
             <p
               ref="textRef"
               :class="[textClasses, cornerClass, fontClass]"
-              class="pb-4">
+              class="pb-4"
+              data-testid="brand-instructions">
               {{ instructions || displayComposer.t('web.shared.pre_reveal_default') }}
             </p>
 

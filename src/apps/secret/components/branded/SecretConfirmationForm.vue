@@ -122,6 +122,7 @@
             'w-full bg-brand-500 py-3 text-base font-medium transition-colors hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50 sm:text-lg',
           ]"
           class="focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none"
+          data-testid="secret-reveal-submit"
           aria-live="polite">
           <span class="sr-only">{{ buttonText }}</span>
           {{ isSubmitting ? t('web.COMMON.submitting') : t('web.COMMON.click_to_continue') }}
