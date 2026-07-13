@@ -152,8 +152,8 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Se l'email del contatto di fatturazione è diversa dall'email del tuo account {product_name}, utilizza l'email del contatto di fatturazione per il nuovo account regionale per mantenere i vantaggi dell'abbonamento.",
-    "source_hash": "dac1cc28"
+    "text": "Se la tua email di contatto per la fatturazione differisce dall'email del tuo account {product_name}, usa l'email di contatto per la fatturazione per l'account della nuova regione per mantenere i vantaggi del tuo abbonamento.",
+    "source_hash": "d49662b0"
   },
   "web.regions.changing_regions_subscription_note": {
     "text": "I vantaggi dell'abbonamento verranno applicati automaticamente a qualsiasi account creato con l'indirizzo email di fatturazione.",
