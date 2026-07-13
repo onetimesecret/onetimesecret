@@ -400,9 +400,6 @@
     "text": "Tài khoản SSO",
     "source_hash": "b8f4c728"
   },
-  "web.auth.verify._guidance.context": {
-    "text": "Email verification flow after signup"
-  },
   "web.help.reset_password_link": {
     "text": "Đặt lại mật khẩu",
     "source_hash": "e0edfeb3"

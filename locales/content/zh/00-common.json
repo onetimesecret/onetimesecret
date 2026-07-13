@@ -1300,7 +1300,7 @@
   },
   "web.INSTRUCTION.phishing_warning": {
     "text": "请始终确认您访问的是 {product_name} 官方网站。诈骗者有时会创建与 {product_name} 完全相同的虚假网站，以窃取您的机密内容。为避免网络钓鱼攻击，请在创建新链接前核对区域域名。",
-    "source_hash": "b588f5b2"
+    "source_hash": "68ec20f8"
   },
   "web.pricing.title": {
     "text": "简单透明的定价",

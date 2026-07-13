@@ -396,9 +396,6 @@
     "text": "고객 지원 문의",
     "source_hash": "f8d47b82"
   },
-  "web.auth.verify._guidance.context": {
-    "text": "가입 후 이메일 인증 흐름"
-  },
   "web.auth.account.sso_linked": {
     "text": "SSO 계정",
     "source_hash": "b8f4c728"

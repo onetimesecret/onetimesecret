@@ -1300,7 +1300,7 @@
   },
   "web.INSTRUCTION.phishing_warning": {
     "text": "常に公式の{product_name}ウェブサイトにアクセスしていることを確認してください。詐欺師は、シークレットを盗むために{product_name}とまったく同じように見える偽のウェブサイトを作成することがあります。フィッシング攻撃を回避するため、新しいリンクを作成する前にリージョンのドメインを確認してください。",
-    "source_hash": "b588f5b2"
+    "source_hash": "68ec20f8"
   },
   "web.pricing.title": {
     "text": "シンプルで透明な料金",

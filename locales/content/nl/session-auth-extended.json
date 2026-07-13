@@ -711,12 +711,6 @@
     "text": "Herstelcodes",
     "source_hash": "579c7f4e"
   },
-  "web.auth.security._guidance.context": {
-    "text": "⚠️ BEVEILIGINGSKRITISCH: Berichten voorkomen informatielekken. Zie src/locales/SECURITY-TRANSLATION-GUIDE.md"
-  },
-  "web.auth.sessions._guidance.context": {
-    "text": "Beheerpagina voor ingelogde apparaten/browsers van de gebruiker"
-  },
   "web.auth.google": {
     "text": "Google",
     "source_hash": "ce770667"

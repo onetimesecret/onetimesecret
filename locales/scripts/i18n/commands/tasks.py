@@ -323,7 +323,9 @@ def get_source_hashes_from_file(file_path: Path) -> dict[str, str]:
     """
     out: dict[str, str] = {}
     for full_key, entry in load_json_file(file_path).items():
-        if full_key.startswith("_") or not isinstance(entry, dict):
+        if any(part.startswith("_") for part in full_key.split(".")) or not isinstance(
+            entry, dict
+        ):
             continue
         if entry.get("skip"):
             continue

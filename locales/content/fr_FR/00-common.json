@@ -1300,7 +1300,7 @@
   },
   "web.INSTRUCTION.phishing_warning": {
     "text": "Vérifiez toujours que vous êtes sur le site officiel {product_name}. Des fraudeurs créent parfois de faux sites qui ressemblent exactement à {product_name} pour voler vos secrets. Pour éviter les attaques de hameçonnage, vérifiez le domaine de la région avant de créer de nouveaux liens.",
-    "source_hash": "b588f5b2"
+    "source_hash": "68ec20f8"
   },
   "web.pricing.title": {
     "text": "Tarification simple et transparente",

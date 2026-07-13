@@ -711,12 +711,6 @@
     "text": "복구 코드",
     "source_hash": "579c7f4e"
   },
-  "web.auth.security._guidance.context": {
-    "text": "⚠️ 보안 중요: 정보 노출을 방지하는 메시지입니다. src/locales/SECURITY-TRANSLATION-GUIDE.md를 참조하세요"
-  },
-  "web.auth.sessions._guidance.context": {
-    "text": "사용자의 로그인된 기기/브라우저 관리 페이지"
-  },
   "web.auth.google": {
     "text": "Google",
     "source_hash": "ce770667"
