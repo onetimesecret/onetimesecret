@@ -55,8 +55,8 @@ def _register_create(gsub) -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-    python create.py fr_CA           # Generate tasks for Canadian French
-    python create.py eo --dry-run    # Preview without writing
+    python3 locales/scripts/i18n tasks create fr_CA            # Generate tasks for Canadian French
+    python3 locales/scripts/i18n tasks create eo --dry-run     # Preview without writing
         """,
     )
     c.add_argument(
@@ -72,8 +72,9 @@ Examples:
         "--missing-only",
         action="store_true",
         help=(
-            "Enqueue only keys untranslated in content/<locale> (absent, or "
-            "empty text without skip), skipping levels with no work. Catches a "
+            "Enqueue keys untranslated in content/<locale> (absent, or empty "
+            "text without skip) plus stale ones (translated, but the en source "
+            "changed since), skipping levels with no work. Catches a "
             "locale up to a grown English source without re-touching reviewed "
             "translations. Run once per locale (re-running rewrites keys_json)."
         ),
@@ -89,13 +90,13 @@ def _register_next(gsub) -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-    python next.py eo                    # Show next pending task
-    python next.py eo --claim            # Claim task (mark in_progress)
-    python next.py eo --json             # Output as JSON
-    python next.py eo --file auth.json   # Filter by file
-    python next.py eo --filter web.COMMON  # Filter by key path prefix
-    python next.py eo --stats            # Show task statistics
-    python next.py eo --id 42            # Get specific task by ID
+    python3 locales/scripts/i18n tasks next eo                    # Show next pending task
+    python3 locales/scripts/i18n tasks next eo --claim            # Claim task (mark in_progress)
+    python3 locales/scripts/i18n tasks next eo --json             # Output as JSON
+    python3 locales/scripts/i18n tasks next eo --file auth.json   # Filter by file
+    python3 locales/scripts/i18n tasks next eo --filter web.COMMON  # Filter by key path prefix
+    python3 locales/scripts/i18n tasks next eo --stats            # Show task statistics
+    python3 locales/scripts/i18n tasks next eo --id 42            # Get specific task by ID
         """,
     )
     c.add_argument(
@@ -145,11 +146,11 @@ def _register_update(gsub) -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-    python update.py 42 '{"submit": "Sendi", "cancel": "Nuligi"}'
-    python update.py 42 --file translations.json
-    python update.py 42 --skip --note "Not applicable"
-    python update.py 42 --status pending  # Reset to pending
-    python update.py 42 --status in_progress  # Mark as in progress
+    python3 locales/scripts/i18n tasks update 42 '{"submit": "Sendi", "cancel": "Nuligi"}'
+    python3 locales/scripts/i18n tasks update 42 --file translations.json --validate
+    python3 locales/scripts/i18n tasks update 42 --skip --note "Not applicable"
+    python3 locales/scripts/i18n tasks update 42 --status pending  # Reset to pending
+    python3 locales/scripts/i18n tasks update 42 --status in_progress  # Mark as in progress
         """,
     )
     c.add_argument(
@@ -211,9 +212,9 @@ def _register_export(gsub) -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-    python export.py eo --dry-run
-    python export.py eo
-    python export.py eo --file 00-common.json
+    python3 locales/scripts/i18n tasks export eo --dry-run
+    python3 locales/scripts/i18n tasks export eo
+    python3 locales/scripts/i18n tasks export eo --file 00-common.json
         """,
     )
     c.add_argument(
@@ -322,7 +323,9 @@ def get_source_hashes_from_file(file_path: Path) -> dict[str, str]:
     """
     out: dict[str, str] = {}
     for full_key, entry in load_json_file(file_path).items():
-        if full_key.startswith("_") or not isinstance(entry, dict):
+        if any(part.startswith("_") for part in full_key.split(".")) or not isinstance(
+            entry, dict
+        ):
             continue
         if entry.get("skip"):
             continue
@@ -496,7 +499,7 @@ def insert_tasks(tasks: list[TranslationTask]) -> int:
     if not DB_FILE.exists():
         raise FileNotFoundError(
             f"Database not found: {DB_FILE}\n"
-            "Run 'python locales/scripts/store.py init' to create it first."
+            "Run 'python3 locales/scripts/i18n db init' to create it first."
         )
 
     count = 0
@@ -606,7 +609,7 @@ def get_next_task(
     if not DB_FILE.exists():
         raise FileNotFoundError(
             f"Database not found: {DB_FILE}\n"
-            "Run 'python locales/scripts/store.py init' to create it first."
+            "Run 'python3 locales/scripts/i18n db init' to create it first."
         )
 
     with get_connection() as conn:
@@ -713,7 +716,12 @@ def get_task_stats(locale: str) -> dict:
             (locale,),
         )
         rows = cursor.fetchall()
-        return {row[0]: row[1] for row in rows}
+        # Always report pending/completed, even at 0: every documented loop and
+        # monitor condition is "stop when pending: 0", and GROUP BY alone drops
+        # zero-count statuses so that line would otherwise never print.
+        stats = {"pending": 0, "completed": 0}
+        stats.update({row[0]: row[1] for row in rows})
+        return stats
 
 
 def compute_coverage(locale: str) -> dict[str, int]:
@@ -865,7 +873,7 @@ def update_task(
     if not DB_FILE.exists():
         raise FileNotFoundError(
             f"Database not found: {DB_FILE}\n"
-            "Run 'python locales/scripts/store.py init' to create it first."
+            "Run 'python3 locales/scripts/i18n db init' to create it first."
         )
 
     if status and status not in VALID_STATUSES:

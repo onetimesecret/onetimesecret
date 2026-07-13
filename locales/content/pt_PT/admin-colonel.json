@@ -1,32 +1,4 @@
 {
-  "web.colonel.customer_secrets_created_customer_secrets_shared_0": {
-    "text": "{0}/{1}/{2} [{3}]",
-    "source_hash": "98ba1771"
-  },
-  "web.colonel.customer_verified_verified_not_verified_0": {
-    "text": "`+customer.verified ? `verificado` : `não verificado",
-    "source_hash": "52e93cc0"
-  },
-  "web.colonel.customers_details_counts_recent_customer_count_o_0": {
-    "text": "Clientes ({0} de {1})",
-    "source_hash": "eb88db1d"
-  },
-  "web.colonel.user_feedback_total_details_counts_feedback_coun_0": {
-    "text": "Feedback do Utilizador (Total: {0})",
-    "source_hash": "d4a80454"
-  },
-  "web.colonel.metadata_secrets_details_counts_metadata_count_d_0": {
-    "text": "Metadados / Mensagens Secretas: {0}/{1} ({2}/{3}/{4} total)",
-    "source_hash": "5a341707"
-  },
-  "web.colonel.secrets_details_counts_secret_count_0": {
-    "text": "Mensagens Secretas ({0})",
-    "source_hash": "dd1c471a"
-  },
-  "web.colonel.active_in_the_past_5_minutes_0": {
-    "text": "(ativo nos últimos 5 minutos)",
-    "source_hash": "a2b19058"
-  },
   "web.colonel.configEditorTitle": {
     "text": "Definições",
     "source_hash": "74a883a0"

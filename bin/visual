@@ -3,9 +3,25 @@
 # bin/visual - Visual regression suite runner (Playwright screenshots)
 #
 # USAGE:
-#   $ bin/visual               # seed fixtures, boot server, compare against baselines
-#   $ bin/visual --update      # same, but rewrite baselines (--update-snapshots)
-#   $ bin/visual --seed-only   # seed fixtures only (no server boot, no screenshots)
+#   $ bin/visual                  # seed fixtures, boot server, compare against baselines
+#   $ bin/visual --update         # same, but rewrite baselines (--update-snapshots)
+#   $ bin/visual --seed-only      # seed fixtures only (no server boot, no screenshots)
+#   $ bin/visual --archive [DIR]  # render the full set into DIR (default
+#                                 # e2e/visual/.artifacts/render); committed
+#                                 # baselines are not read or written
+#   $ bin/visual --compare DIR    # compare the current tree's render against an
+#                                 # archived set in DIR (e.g. an oras-pulled
+#                                 # release archive) instead of the baselines
+#
+# ARCHIVES (PR 3 of the spec — dual-artifact):
+#   --archive is the producer for both artifact channels: CI uploads the
+#   rendered set as a PR artifact on green runs, and the release workflow
+#   (.github/workflows/visual-archive.yml) pushes the same directory to
+#   ghcr.io as an OCI artifact tagged with the release version. --compare is
+#   the consumer: pull any release's set and every diff is a customer-visible
+#   change between that version and this tree. Cross-version caveat: only
+#   compare sets rendered with the same PLAYWRIGHT_IMAGE tag (metadata.json
+#   records it) — browser/font-stack drift produces phantom diffs.
 #
 # WHAT IT DOES:
 #   1. Boots `bin/ots server` (RACK_ENV=production) on :7143 with the visual
@@ -115,14 +131,18 @@ VISUAL_ENV=(
 # derived from SECRET, which is only validated there.
 
 usage() {
-  echo "Usage: bin/visual [--update | --seed-only]"
-  echo "  (no flag)     seed fixtures, boot server, compare against committed baselines"
-  echo "  --update      same, but rewrite baselines (passes --update-snapshots)"
-  echo "  --seed-only   run the fixture seed task only; no server, no screenshots"
+  echo "Usage: bin/visual [--update | --seed-only | --archive [DIR] | --compare DIR]"
+  echo "  (no flag)        seed fixtures, boot server, compare against committed baselines"
+  echo "  --update         same, but rewrite baselines (passes --update-snapshots)"
+  echo "  --seed-only      run the fixture seed task only; no server, no screenshots"
+  echo "  --archive [DIR]  render the full screenshot set into DIR (default"
+  echo "                   e2e/visual/.artifacts/render); baselines untouched"
+  echo "  --compare DIR    compare against an archived set in DIR instead of baselines"
 }
 
 # --- Argument parsing (fail fast on anything unknown) ------------------------
 MODE="run"
+SNAPSHOT_DIR=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --update)
@@ -131,6 +151,27 @@ while [[ $# -gt 0 ]]; do
       ;;
     --seed-only)
       MODE="seed-only"
+      shift
+      ;;
+    --archive)
+      MODE="archive"
+      shift
+      if [[ $# -gt 0 && "$1" != -* ]]; then
+        SNAPSHOT_DIR="$1"
+        shift
+      else
+        SNAPSHOT_DIR="e2e/visual/.artifacts/render"
+      fi
+      ;;
+    --compare)
+      MODE="compare"
+      shift
+      if [[ $# -eq 0 || "$1" == -* ]]; then
+        echo "Error: --compare requires a directory argument." >&2
+        usage >&2
+        exit 1
+      fi
+      SNAPSHOT_DIR="$1"
       shift
       ;;
     -h|--help)
@@ -144,6 +185,39 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+# The Playwright container mounts only REPO_ROOT (at /work), so the snapshot
+# directory must live inside the repo. Normalize to a repo-relative path and
+# derive the in-container absolute path the config's snapshotPathTemplate
+# needs (a relative VISUAL_SNAPSHOT_DIR would resolve against e2e/, not cwd).
+SNAPSHOT_REL=""
+SNAPSHOT_CONTAINER=""
+if [[ -n "$SNAPSHOT_DIR" ]]; then
+  case "$SNAPSHOT_DIR" in
+    "$REPO_ROOT"/*) SNAPSHOT_REL="${SNAPSHOT_DIR#"$REPO_ROOT"/}" ;;
+    /*)
+      echo "Error: '$SNAPSHOT_DIR' is outside the repository — the Playwright" >&2
+      echo "  container only mounts $REPO_ROOT. Use a path inside the repo" >&2
+      echo "  (e.g. e2e/visual/.artifacts/render)." >&2
+      exit 1
+      ;;
+    *) SNAPSHOT_REL="${SNAPSHOT_DIR#./}" ;;
+  esac
+  if [[ -z "$SNAPSHOT_REL" || "$SNAPSHOT_REL" == "." || "$SNAPSHOT_REL" == *..* ]]; then
+    echo "Error: refusing snapshot directory '$SNAPSHOT_DIR' (must be a subdirectory of the repo)." >&2
+    exit 1
+  fi
+  SNAPSHOT_CONTAINER="/work/$SNAPSHOT_REL"
+
+  if [[ "$MODE" == "compare" ]]; then
+    if ! compgen -G "$REPO_ROOT/$SNAPSHOT_REL"/*-snapshots/*.png >/dev/null; then
+      echo "Error: no archived snapshots found under $SNAPSHOT_REL/*-snapshots/." >&2
+      echo "  Expected the layout produced by 'bin/visual --archive' (or an" >&2
+      echo "  'oras pull' of a visual-baselines release artifact)." >&2
+      exit 1
+    fi
+  fi
+fi
 
 # --- Dependency checks --------------------------------------------------------
 require_cmd() {
@@ -317,6 +391,20 @@ fi
 UPDATE_ARG=""
 if [[ "$MODE" == "update" ]]; then
   UPDATE_ARG="--update-snapshots"
+elif [[ "$MODE" == "archive" ]]; then
+  # Archive = write every snapshot fresh into an empty directory. Stale files
+  # from a previous render would silently mix two versions in one archive.
+  UPDATE_ARG="--update-snapshots"
+  rm -rf "${REPO_ROOT:?}/${SNAPSHOT_REL:?}"
+  mkdir -p "$REPO_ROOT/$SNAPSHOT_REL"
+fi
+
+# VISUAL_SNAPSHOT_DIR redirects snapshot reads/writes away from the committed
+# baselines (see the visual projects in e2e/playwright.config.ts). Only set
+# for archive/compare; the empty-string case must stay unset.
+SNAPSHOT_ENV_ARGS=()
+if [[ -n "$SNAPSHOT_CONTAINER" ]]; then
+  SNAPSHOT_ENV_ARGS=(-e "VISUAL_SNAPSHOT_DIR=$SNAPSHOT_CONTAINER")
 fi
 
 # Networking differs by HOST OS, not by runtime (GitHub runners preinstall
@@ -349,6 +437,7 @@ echo "Running Playwright in $PLAYWRIGHT_IMAGE ($CONTAINER_RUNTIME)..."
   -w /work \
   -e "PLAYWRIGHT_BASE_URL=http://$CANONICAL_HOST:$PORT" \
   -e "VISUAL_RESOLVER_TARGET=${VISUAL_RESOLVER_TARGET:-$RESOLVER_DEFAULT}" \
+  ${SNAPSHOT_ENV_ARGS[@]+"${SNAPSHOT_ENV_ARGS[@]}"} \
   "$PLAYWRIGHT_IMAGE" \
   npx playwright test \
     --config=e2e/playwright.config.ts \
@@ -356,9 +445,35 @@ echo "Running Playwright in $PLAYWRIGHT_IMAGE ($CONTAINER_RUNTIME)..."
     --project=visual-mobile \
     ${UPDATE_ARG:+"$UPDATE_ARG"}
 
+if [[ "$MODE" == "archive" ]]; then
+  # Provenance stamp. The consumer-side contract: --compare is only valid
+  # against a set rendered with the same playwrightImage (font/browser drift
+  # otherwise produces phantom diffs), and `version`/`commit` identify what
+  # the pixels actually show. commit comes from git, not .commit_hash.txt —
+  # that file is pinned to 0000000 during the run (see above).
+  node -e '
+    const fs = require("fs");
+    const meta = {
+      version: require("./package.json").version,
+      commit: process.argv[1],
+      playwrightImage: process.argv[2],
+      platform: "linux",
+      generatedAt: new Date().toISOString(),
+    };
+    fs.writeFileSync(process.argv[3] + "/metadata.json", JSON.stringify(meta, null, 2) + "\n");
+  ' "$(git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null || echo unknown)" \
+    "$PLAYWRIGHT_IMAGE" \
+    "$REPO_ROOT/$SNAPSHOT_REL"
+fi
+
 echo
 echo "HTML report: e2e/playwright-report/  (view: pnpm exec playwright show-report e2e/playwright-report)"
 if [[ "$MODE" == "update" ]]; then
   echo "Baselines updated. Check 'git status': ONLY *-linux.png files should appear."
   echo "Any *-darwin.png means a bare-metal run leaked in — do not commit those."
+elif [[ "$MODE" == "archive" ]]; then
+  count="$(find "$REPO_ROOT/$SNAPSHOT_REL" -name '*.png' | wc -l | tr -d ' ')"
+  echo "Archived $count screenshots to $SNAPSHOT_REL/ (metadata.json alongside)."
+elif [[ "$MODE" == "compare" ]]; then
+  echo "Compared against archived set in $SNAPSHOT_REL/ (not the committed baselines)."
 fi

@@ -1300,7 +1300,7 @@
   },
   "web.INSTRUCTION.phishing_warning": {
     "text": "Controleer altijd of je je op de officiële website van {product_name} bevindt. Fraudeurs maken soms nepwebsites die er precies uitzien als {product_name} om je berichten te stelen. Controleer het regiodomein voordat je nieuwe links aanmaakt om phishingaanvallen te voorkomen.",
-    "source_hash": "b588f5b2"
+    "source_hash": "68ec20f8"
   },
   "web.pricing.title": {
     "text": "Eenvoudige, transparante prijzen",

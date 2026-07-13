@@ -1300,7 +1300,7 @@
   },
   "web.INSTRUCTION.phishing_warning": {
     "text": "Vždy si ověř, že jsi na oficiálním webu {product_name}. Podvodníci někdy vytvářejí falešné weby, které vypadají úplně stejně jako {product_name}, aby ti ukradli tajemství. Abys předešel phishingovým útokům, před vytvořením nových odkazů zkontroluj doménu regionu.",
-    "source_hash": "b588f5b2"
+    "source_hash": "68ec20f8"
   },
   "web.pricing.title": {
     "text": "Jednoduchý a transparentní ceník",

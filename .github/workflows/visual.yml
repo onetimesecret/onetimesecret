@@ -94,21 +94,34 @@ jobs:
       - name: Build frontend assets
         run: pnpm run build
 
+      # bin/visual's env guards expect a direnv-loaded shell; CI provides the
+      # equivalent env explicitly. Provision it ONCE, into $GITHUB_ENV, so the
+      # compare pass and the archive pass below share it. SECRET in particular
+      # MUST be stable across both passes: they run against the one persistent
+      # Valkey service, and the first boot adopts the C10 secret-verifier for
+      # whatever SECRET it saw. A second, different `openssl rand` SECRET for
+      # the archive pass makes that boot's verifier report :mismatch, and
+      # RevealSecret's fast-fail (continue && verifier == :mismatch) then 503s
+      # every reveal — the archive pass's freshly-seeded secrets are encrypted
+      # with the new SECRET and would decrypt fine, but the stale verifier
+      # refuses them before the attempt. One SECRET keeps the verifier :ok.
+      # SECRET is ephemeral (production-mode boot requires one; nothing
+      # persists past the job); ACCOUNT_ID_SECRET is derived from it in
+      # bin/visual.
+      - name: Provision ephemeral visual-lane env
+        run: |
+          {
+            echo "OTS_ENV_LOADED=1"
+            echo "SECRET=$(openssl rand -hex 32)"
+            echo "REDIS_URL=redis://127.0.0.1:6379/0"
+          } >> "$GITHUB_ENV"
+
       - name: Run visual regression suite
         id: visual
-        run: |
-          # bin/visual's env guards expect a direnv-loaded shell; CI provides
-          # the equivalent env explicitly. SECRET is ephemeral (production-
-          # mode boot requires one; nothing persists past the job).
-          # ACCOUNT_ID_SECRET is derived from it inside bin/visual.
-          export OTS_ENV_LOADED=1
-          SECRET="$(openssl rand -hex 32)"
-          export SECRET
-          export REDIS_URL=redis://127.0.0.1:6379/0
-          # CONTAINER_RUNTIME auto-detects docker; on linux bin/visual runs
-          # the Playwright container with --network host and resolves the
-          # fixture hosts (*.example.com/org) to 127.0.0.1.
-          bin/visual
+        # CONTAINER_RUNTIME auto-detects docker; on linux bin/visual runs the
+        # Playwright container with --network host and resolves the fixture
+        # hosts (*.example.com/org) to 127.0.0.1.
+        run: bin/visual
 
       # PR-artifact half of the dual-artifact archive (PR 3 of the spec).
       # A fresh render of the full matrix, uploaded on green so reviewers can
@@ -120,12 +133,10 @@ jobs:
       # destructive cells (reveal destroys, first receipt view stamps).
       - name: Render archive set
         if: success()
-        run: |
-          export OTS_ENV_LOADED=1
-          SECRET="$(openssl rand -hex 32)"
-          export SECRET
-          export REDIS_URL=redis://127.0.0.1:6379/0
-          bin/visual --archive e2e/visual/.artifacts/render
+        # Reuses the SAME SECRET/REDIS_URL provisioned above (see that step's
+        # comment): a fresh SECRET here would trip the secret-verifier and 503
+        # every reveal against the shared Valkey.
+        run: bin/visual --archive e2e/visual/.artifacts/render
 
       - name: Upload rendered set
         if: success()

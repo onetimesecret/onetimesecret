@@ -396,9 +396,6 @@
     "text": "Contactar con soporte",
     "source_hash": "f8d47b82"
   },
-  "web.auth.verify._guidance.context": {
-    "text": "Flujo de verificación de correo electrónico después del registro"
-  },
   "web.auth.account.sso_linked": {
     "text": "Cuenta SSO",
     "source_hash": "b8f4c728"

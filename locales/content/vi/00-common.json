@@ -1300,7 +1300,7 @@
   },
   "web.INSTRUCTION.phishing_warning": {
     "text": "Luôn xác minh rằng bạn đang ở trên trang web chính thức của {product_name}. Kẻ gian đôi khi tạo ra các trang web giả mạo trông giống hệt {product_name} để đánh cắp bí mật của bạn. Để tránh các cuộc tấn công lừa đảo (phishing), hãy kiểm tra tên miền khu vực trước khi tạo liên kết mới.",
-    "source_hash": "b588f5b2"
+    "source_hash": "68ec20f8"
   },
   "web.pricing.title": {
     "text": "Bảng giá đơn giản, minh bạch",

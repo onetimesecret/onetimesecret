@@ -244,8 +244,8 @@
     "content_hash": "0ff55bfa"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "Single Sign-On",
-    "content_hash": "cf7cd744"
+    "text": "Single Sign-On (SSO)",
+    "content_hash": "5db5c812"
   },
   "web.billing.overview.entitlements.priority_support": {
     "text": "Priority Support",
@@ -316,8 +316,8 @@
     "content_hash": "5428d7fe"
   },
   "web.billing.features.sso": {
-    "text": "Single Sign-On (SSO)",
-    "content_hash": "5db5c812"
+    "text": "SSO",
+    "content_hash": "5ba3ac9f"
   },
   "web.billing.features.priority_support": {
     "text": "Priority Support",

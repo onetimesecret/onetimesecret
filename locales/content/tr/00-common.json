@@ -1300,7 +1300,7 @@
   },
   "web.INSTRUCTION.phishing_warning": {
     "text": "Her zaman resmi {product_name} web sitesinde olduğunuzu doğrulayın. Dolandırıcılar bazen gizli mesajlarınızı çalmak için {product_name}'a tıpatıp benzeyen sahte web siteleri oluştururlar. Kimlik avı saldırılarından kaçınmak için yeni bağlantılar oluşturmadan önce bölge alan adını kontrol edin.",
-    "source_hash": "b588f5b2"
+    "source_hash": "68ec20f8"
   },
   "web.pricing.title": {
     "text": "Basit, Şeffaf Fiyatlandırma",

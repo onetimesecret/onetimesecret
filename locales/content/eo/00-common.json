@@ -1300,7 +1300,7 @@
   },
   "web.INSTRUCTION.phishing_warning": {
     "text": "Ĉiam kontrolu ke vi estas sur la oficiala retejo de {product_name}. Friponoj foje kreas falsajn retejojn kiuj aspektas ekzakte kiel {product_name} por ŝteli viajn sekretojn. Por eviti phishing-atakojn, kontrolu la regionan domajnon antaŭ ol krei novajn ligilojn.",
-    "source_hash": "b588f5b2"
+    "source_hash": "68ec20f8"
   },
   "web.pricing.title": {
     "text": "Simplaj, travideblaj prezoj",

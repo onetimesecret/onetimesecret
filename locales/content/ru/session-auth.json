@@ -396,9 +396,6 @@
     "text": "Связаться с поддержкой",
     "source_hash": "f8d47b82"
   },
-  "web.auth.verify._guidance.context": {
-    "text": "Процесс подтверждения электронной почты после регистрации"
-  },
   "web.auth.account.sso_linked": {
     "text": "Аккаунт SSO",
     "source_hash": "b8f4c728"
