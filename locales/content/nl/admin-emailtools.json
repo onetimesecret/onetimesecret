@@ -1,0 +1,550 @@
+{
+  "web.admin.emailtools.title": {
+    "text": "E-mailtools",
+    "source_hash": "f9643d5a"
+  },
+  "web.admin.emailtools.description": {
+    "text": "Bekijk e-mailsjablonen, verstuur een bezorgtest en bewaak de bezorgbaarheid — de diagnostiek waarvoor voorheen SSH nodig was.",
+    "source_hash": "be85c9e9"
+  },
+  "web.admin.emailtools.config.title": {
+    "text": "Mailerconfiguratie",
+    "source_hash": "d2a71028"
+  },
+  "web.admin.emailtools.config.description": {
+    "text": "De vaste mailconfiguratie die bij het opstarten is bepaald. Inloggegevens worden nooit getoond — alleen of ze aanwezig zijn.",
+    "source_hash": "f0e8a118"
+  },
+  "web.admin.emailtools.config.provider": {
+    "text": "Transportprovider",
+    "source_hash": "4f0e5025"
+  },
+  "web.admin.emailtools.config.senderProvider": {
+    "text": "Afzenderprovider",
+    "source_hash": "e881964f"
+  },
+  "web.admin.emailtools.config.senderDiffers": {
+    "text": "Afzender verschilt van transport",
+    "source_hash": "ab78e8f6"
+  },
+  "web.admin.emailtools.config.autoDetected": {
+    "text": "Automatisch gedetecteerd",
+    "source_hash": "a69c7f9e"
+  },
+  "web.admin.emailtools.config.fromAddress": {
+    "text": "Van-adres",
+    "source_hash": "d465bcfa"
+  },
+  "web.admin.emailtools.config.fromName": {
+    "text": "Van-naam",
+    "source_hash": "b28f93ea"
+  },
+  "web.admin.emailtools.config.host": {
+    "text": "SMTP-host",
+    "source_hash": "ab328f83"
+  },
+  "web.admin.emailtools.config.port": {
+    "text": "Poort",
+    "source_hash": "72e9a59f"
+  },
+  "web.admin.emailtools.config.region": {
+    "text": "Regio",
+    "source_hash": "d3a008ef"
+  },
+  "web.admin.emailtools.config.hasCredentials": {
+    "text": "Inloggegevens geconfigureerd",
+    "source_hash": "1c81633a"
+  },
+  "web.admin.emailtools.config.yes": {
+    "text": "Ja",
+    "source_hash": "85a39ab3"
+  },
+  "web.admin.emailtools.config.no": {
+    "text": "Nee",
+    "source_hash": "1ea442a1"
+  },
+  "web.admin.emailtools.config.loggerWarning": {
+    "text": "E-mail wordt niet bezorgd. De transportprovider is ingesteld op een niet-verzendmodus (logger, uitgeschakeld of geen), dus er verlaat geen e-mail deze server — uitgaande berichten worden naar het applicatielogboek geschreven of verwijderd.",
+    "source_hash": "1883dfd5"
+  },
+  "web.admin.emailtools.deliverability.title": {
+    "text": "Bezorgbaarheid",
+    "source_hash": "66b4d300"
+  },
+  "web.admin.emailtools.deliverability.description": {
+    "text": "Wat er terugkomt na het verzenden: bounces, klachten en de onderdrukkingslijst die je afzenderreputatie beschermt.",
+    "source_hash": "e8363bb5"
+  },
+  "web.admin.emailtools.deliverability.retry": {
+    "text": "Opnieuw proberen",
+    "source_hash": "942087cc"
+  },
+  "web.admin.emailtools.deliverability.events.title": {
+    "text": "Recente gebeurtenissen",
+    "source_hash": "8ecce94d"
+  },
+  "web.admin.emailtools.deliverability.events.description": {
+    "text": "De ruwe bounce- en klachtenfeed, nieuwste eerst.",
+    "source_hash": "0e7a533b"
+  },
+  "web.admin.emailtools.deliverability.events.empty": {
+    "text": "Nog geen bounce- of klachtgegevens. Voer de feedback van je ESP door via POST /api/colonel/email/deliverability/events (colonel-geauthenticeerd — zie de documentatie van het endpoint voor het recordformaat). Synchrone SMTP hard bounces worden automatisch vastgelegd.",
+    "source_hash": "a90f259c"
+  },
+  "web.admin.emailtools.deliverability.events.loadError": {
+    "text": "Kon recente gebeurtenissen niet laden.",
+    "source_hash": "02244c61"
+  },
+  "web.admin.emailtools.deliverability.events.columns.time": {
+    "text": "Tijd",
+    "source_hash": "33b93476"
+  },
+  "web.admin.emailtools.deliverability.events.columns.kind": {
+    "text": "Type",
+    "source_hash": "baaddf70"
+  },
+  "web.admin.emailtools.deliverability.events.columns.address": {
+    "text": "Adres",
+    "source_hash": "56ef8f20"
+  },
+  "web.admin.emailtools.deliverability.events.columns.source": {
+    "text": "Bron",
+    "source_hash": "0e570ca6"
+  },
+  "web.admin.emailtools.deliverability.events.columns.reason": {
+    "text": "Reden",
+    "source_hash": "f81ab834"
+  },
+  "web.admin.emailtools.deliverability.events.kinds.bounce": {
+    "text": "bounce",
+    "source_hash": "4d6723e5"
+  },
+  "web.admin.emailtools.deliverability.events.kinds.complaint": {
+    "text": "klacht",
+    "source_hash": "5d08b02d"
+  },
+  "web.admin.emailtools.deliverability.lookup.title": {
+    "text": "Ontvanger opzoeken",
+    "source_hash": "7569985b"
+  },
+  "web.admin.emailtools.deliverability.lookup.description": {
+    "text": "Controleer of een adres is onderdrukt, zowel in de lokale opslag als live bij de actieve mailprovider. Beide worden geïndexeerd op hetzelfde genormaliseerde adres.",
+    "source_hash": "c341d614"
+  },
+  "web.admin.emailtools.deliverability.lookup.addressLabel": {
+    "text": "Ontvangeradres",
+    "source_hash": "454d0391"
+  },
+  "web.admin.emailtools.deliverability.lookup.submit": {
+    "text": "Opzoeken",
+    "source_hash": "504101bc"
+  },
+  "web.admin.emailtools.deliverability.lookup.local": {
+    "text": "Lokale opslag",
+    "source_hash": "c740d116"
+  },
+  "web.admin.emailtools.deliverability.lookup.provider": {
+    "text": "Provider",
+    "source_hash": "472590ae"
+  },
+  "web.admin.emailtools.deliverability.lookup.suppressed": {
+    "text": "Onderdrukt",
+    "source_hash": "435c7831"
+  },
+  "web.admin.emailtools.deliverability.lookup.notSuppressed": {
+    "text": "Niet onderdrukt",
+    "source_hash": "7b1544d7"
+  },
+  "web.admin.emailtools.deliverability.lookup.reason": {
+    "text": "Reden",
+    "source_hash": "f81ab834"
+  },
+  "web.admin.emailtools.deliverability.lookup.source": {
+    "text": "Bron",
+    "source_hash": "0e570ca6"
+  },
+  "web.admin.emailtools.deliverability.lookup.unavailable": {
+    "text": "Live provider-opzoeken is niet beschikbaar; de lokale opslag hierboven is gezaghebbend.",
+    "source_hash": "aebed0f2"
+  },
+  "web.admin.emailtools.deliverability.messages.title": {
+    "text": "Recente verzendingen",
+    "source_hash": "522e089e"
+  },
+  "web.admin.emailtools.deliverability.messages.description": {
+    "text": "De meest recente berichten die de actieve mailprovider heeft vastgelegd, nieuwste eerst. Live opgehaald bij de provider — nooit hier opgeslagen.",
+    "source_hash": "9970fa0a"
+  },
+  "web.admin.emailtools.deliverability.messages.empty": {
+    "text": "Geen recente berichten geretourneerd door de provider.",
+    "source_hash": "a7ef4d79"
+  },
+  "web.admin.emailtools.deliverability.messages.notSupported": {
+    "text": "Een verzendlogboek is niet beschikbaar op het {provider}-transport, dat geen API per bericht biedt.",
+    "source_hash": "21e6b6f9"
+  },
+  "web.admin.emailtools.deliverability.messages.error": {
+    "text": "Kon het verzendlogboek niet laden bij de provider. Probeer het opnieuw.",
+    "source_hash": "4f671e55"
+  },
+  "web.admin.emailtools.deliverability.messages.col.status": {
+    "text": "Status",
+    "source_hash": "920e413c"
+  },
+  "web.admin.emailtools.deliverability.messages.col.subject": {
+    "text": "Onderwerp",
+    "source_hash": "68971283"
+  },
+  "web.admin.emailtools.deliverability.messages.col.to": {
+    "text": "Aan",
+    "source_hash": "f4b06ef6"
+  },
+  "web.admin.emailtools.deliverability.messages.col.created": {
+    "text": "Verzonden",
+    "source_hash": "c16bc82b"
+  },
+  "web.admin.emailtools.deliverability.messages.status.delivered": {
+    "text": "bezorgd",
+    "source_hash": "373e0712"
+  },
+  "web.admin.emailtools.deliverability.messages.status.opened": {
+    "text": "geopend",
+    "source_hash": "50236627"
+  },
+  "web.admin.emailtools.deliverability.messages.status.clicked": {
+    "text": "geklikt",
+    "source_hash": "d66440b2"
+  },
+  "web.admin.emailtools.deliverability.messages.status.pending": {
+    "text": "in behandeling",
+    "source_hash": "62a2fed3"
+  },
+  "web.admin.emailtools.deliverability.messages.status.queued": {
+    "text": "in wachtrij",
+    "source_hash": "d36be649"
+  },
+  "web.admin.emailtools.deliverability.messages.status.processed": {
+    "text": "verwerkt",
+    "source_hash": "58190ffa"
+  },
+  "web.admin.emailtools.deliverability.messages.status.hard_bounced": {
+    "text": "hard gebounced",
+    "source_hash": "b0aa6fd4"
+  },
+  "web.admin.emailtools.deliverability.messages.status.soft_bounced": {
+    "text": "soft gebounced",
+    "source_hash": "ac844ff2"
+  },
+  "web.admin.emailtools.deliverability.messages.status.complained": {
+    "text": "geklaagd",
+    "source_hash": "c26fe786"
+  },
+  "web.admin.emailtools.deliverability.messages.status.suppressed": {
+    "text": "onderdrukt",
+    "source_hash": "f63d5b6b"
+  },
+  "web.admin.emailtools.deliverability.messages.status.unsubscribed": {
+    "text": "afgemeld",
+    "source_hash": "621e1970"
+  },
+  "web.admin.emailtools.deliverability.summary.loadError": {
+    "text": "Kon het bezorgbaarheidsoverzicht niet laden.",
+    "source_hash": "0c16ef96"
+  },
+  "web.admin.emailtools.deliverability.suppressions.title": {
+    "text": "Onderdrukkingslijst",
+    "source_hash": "9f3e322f"
+  },
+  "web.admin.emailtools.deliverability.suppressions.description": {
+    "text": "Adressen die uitgaande mail overslaat. Vermeldingen komen van ESP-feedbackverwerking of handmatige import; een verwijderen hervat de bezorging.",
+    "source_hash": "3651887e"
+  },
+  "web.admin.emailtools.deliverability.suppressions.searchLabel": {
+    "text": "Exact adres",
+    "source_hash": "f4338ff8"
+  },
+  "web.admin.emailtools.deliverability.suppressions.searchPlaceholder": {
+    "text": "user{'@'}example.com",
+    "source_hash": "333f0f15"
+  },
+  "web.admin.emailtools.deliverability.suppressions.searchButton": {
+    "text": "Opzoeken",
+    "source_hash": "504101bc"
+  },
+  "web.admin.emailtools.deliverability.suppressions.clearButton": {
+    "text": "Wissen",
+    "source_hash": "83b12c22"
+  },
+  "web.admin.emailtools.deliverability.suppressions.empty": {
+    "text": "Nog geen onderdrukte adressen. Ze verschijnen hier zodra bounce- en klachtfeedback wordt verwerkt.",
+    "source_hash": "dd3f4d61"
+  },
+  "web.admin.emailtools.deliverability.suppressions.emptySearch": {
+    "text": "Geen onderdrukkingsvermelding voor {address}.",
+    "source_hash": "200c361e"
+  },
+  "web.admin.emailtools.deliverability.suppressions.loadError": {
+    "text": "Kon de onderdrukkingslijst niet laden.",
+    "source_hash": "2a12c8ba"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.addressLabel": {
+    "text": "Adres toevoegen",
+    "source_hash": "8be5aa33"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.button": {
+    "text": "Onderdrukken",
+    "source_hash": "60b19987"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.confirmTitle": {
+    "text": "Dit adres onderdrukken?",
+    "source_hash": "40a0d2a6"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.confirmDescription": {
+    "text": "Uitgaande mail naar {address} wordt overgeslagen totdat de onderdrukking wordt verwijderd. Dit wordt vastgelegd als een handmatige vermelding.",
+    "source_hash": "e3d0d799"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.success": {
+    "text": "Adres {address} onderdrukt.",
+    "source_hash": "e2cd2c3b"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.successExisting": {
+    "text": "Adres {address} was al onderdrukt; vermelding bijgewerkt.",
+    "source_hash": "0852101e"
+  },
+  "web.admin.emailtools.deliverability.suppressions.add.error": {
+    "text": "Kon het adres niet onderdrukken.",
+    "source_hash": "dad9e000"
+  },
+  "web.admin.emailtools.deliverability.suppressions.columns.address": {
+    "text": "Adres",
+    "source_hash": "56ef8f20"
+  },
+  "web.admin.emailtools.deliverability.suppressions.columns.reason": {
+    "text": "Reden",
+    "source_hash": "f81ab834"
+  },
+  "web.admin.emailtools.deliverability.suppressions.columns.source": {
+    "text": "Bron",
+    "source_hash": "0e570ca6"
+  },
+  "web.admin.emailtools.deliverability.suppressions.columns.added": {
+    "text": "Toegevoegd",
+    "source_hash": "6b02e0d3"
+  },
+  "web.admin.emailtools.deliverability.suppressions.columns.actions": {
+    "text": "Acties",
+    "source_hash": "ff8059dc"
+  },
+  "web.admin.emailtools.deliverability.suppressions.remove.button": {
+    "text": "Verwijderen",
+    "source_hash": "c3812fc4"
+  },
+  "web.admin.emailtools.deliverability.suppressions.remove.confirmTitle": {
+    "text": "Deze onderdrukking verwijderen?",
+    "source_hash": "0b0aec2e"
+  },
+  "web.admin.emailtools.deliverability.suppressions.remove.confirmDescription": {
+    "text": "Uitgaande mail naar {address} wordt hervat. Dit adres bouncede of klaagde eerder — verwijder het alleen als je weet dat het weer bezorgbaar is.",
+    "source_hash": "09442f9c"
+  },
+  "web.admin.emailtools.deliverability.suppressions.remove.success": {
+    "text": "Onderdrukking verwijderd voor {address}.",
+    "source_hash": "bfc0de36"
+  },
+  "web.admin.emailtools.deliverability.sync.title": {
+    "text": "Feedbacksynchronisatie",
+    "source_hash": "d4056915"
+  },
+  "web.admin.emailtools.deliverability.sync.lastSynced": {
+    "text": "laatst gesynchroniseerd",
+    "source_hash": "5a99666b"
+  },
+  "web.admin.emailtools.deliverability.sync.imported": {
+    "text": "{count} geïmporteerd",
+    "source_hash": "1bc18c45"
+  },
+  "web.admin.emailtools.deliverability.sync.neverRun": {
+    "text": "Providerfeedbacksynchronisatie is nooit uitgevoerd. Bounce- en klachtgegevens worden niet automatisch geïmporteerd — configureer een providersynchronisatie of verwerk feedback via het events-endpoint.",
+    "source_hash": "d19f5755"
+  },
+  "web.admin.emailtools.deliverability.sync.button": {
+    "text": "Nu synchroniseren",
+    "source_hash": "885e8f48"
+  },
+  "web.admin.emailtools.deliverability.sync.success": {
+    "text": "{provider}-synchronisatie voltooid: {accepted} geïmporteerd, {rejected} geweigerd ({fetched} opgehaald).",
+    "source_hash": "d36f5578"
+  },
+  "web.admin.emailtools.deliverability.sync.hint": {
+    "text": "Een handmatige synchronisatie — automatische import vereist nog steeds een geplande `ots email sync-feedback`-cron.",
+    "source_hash": "7a509b75"
+  },
+  "web.admin.emailtools.deliverability.tiles.suppressed": {
+    "text": "Onderdrukte adressen",
+    "source_hash": "b31a245e"
+  },
+  "web.admin.emailtools.deliverability.tiles.bounces": {
+    "text": "Bounces ({days}d)",
+    "source_hash": "3a4d0f09"
+  },
+  "web.admin.emailtools.deliverability.tiles.complaints": {
+    "text": "Klachten ({days}d)",
+    "source_hash": "16ad856f"
+  },
+  "web.admin.emailtools.deliverability.tiles.skipped": {
+    "text": "Overgeslagen verzendingen",
+    "source_hash": "391467f9"
+  },
+  "web.admin.emailtools.preview.title": {
+    "text": "Sjabloonvoorbeeld",
+    "source_hash": "df89bd92"
+  },
+  "web.admin.emailtools.preview.description": {
+    "text": "Render een sjabloon met de bijbehorende voorbeeldgegevens. Een voorbeeld heeft geen neveneffecten — er wordt geen e-mail verzonden.",
+    "source_hash": "9b0e40f3"
+  },
+  "web.admin.emailtools.preview.templateLabel": {
+    "text": "Sjabloon",
+    "source_hash": "0575f29d"
+  },
+  "web.admin.emailtools.preview.formatLabel": {
+    "text": "Formaat",
+    "source_hash": "2f343666"
+  },
+  "web.admin.emailtools.preview.localeLabel": {
+    "text": "Landinstelling",
+    "source_hash": "ca3dc612"
+  },
+  "web.admin.emailtools.preview.button": {
+    "text": "Voorbeeld",
+    "source_hash": "324b134f"
+  },
+  "web.admin.emailtools.providerStatus.title": {
+    "text": "Providerstatus",
+    "source_hash": "231b7f03"
+  },
+  "web.admin.emailtools.providerStatus.rateUnavailable": {
+    "text": "Deze provider stelt geen numerieke bounce- of klachtratio beschikbaar; het reputatieniveau hierboven is uitsluitend afgeleid van de handhavingsstatus en het verzendquotum.",
+    "source_hash": "1e6b82e9"
+  },
+  "web.admin.emailtools.providerStatus.complaintsUnavailable": {
+    "text": "Lettermint rapporteert geen klachten in zijn stats-API, dus de klachtratio wordt getoond als “—” (niet gerapporteerd), niet nul. De bounceratio hierboven is volledig.",
+    "source_hash": "72aaa845"
+  },
+  "web.admin.emailtools.providerStatus.unavailable": {
+    "text": "Providerstatus is tijdelijk niet beschikbaar.",
+    "source_hash": "8e69ff29"
+  },
+  "web.admin.emailtools.providerStatus.notSupported": {
+    "text": "Live providerstatus is niet beschikbaar op het {provider}-transport.",
+    "source_hash": "125ed6eb"
+  },
+  "web.admin.emailtools.providerStatus.error": {
+    "text": "Kon de mailprovider niet bereiken voor status. Probeer het opnieuw.",
+    "source_hash": "594ab7b1"
+  },
+  "web.admin.emailtools.providerStatus.quota.max24h": {
+    "text": "Verzendlimiet 24u",
+    "source_hash": "e5ea4c3d"
+  },
+  "web.admin.emailtools.providerStatus.quota.sent24h": {
+    "text": "Verzonden (laatste 24u)",
+    "source_hash": "d0c4fe45"
+  },
+  "web.admin.emailtools.providerStatus.quota.maxRate": {
+    "text": "Max. verzendsnelheid (per sec)",
+    "source_hash": "59e76cf8"
+  },
+  "web.admin.emailtools.providerStatus.rate.bounce": {
+    "text": "Bounceratio",
+    "source_hash": "9eba32f0"
+  },
+  "web.admin.emailtools.providerStatus.rate.complaint": {
+    "text": "Klachtratio",
+    "source_hash": "430a23a9"
+  },
+  "web.admin.emailtools.providerStatus.stats.sent": {
+    "text": "Verzonden ({days}d)",
+    "source_hash": "e553b7e1"
+  },
+  "web.admin.emailtools.providerStatus.stats.delivered": {
+    "text": "Bezorgd",
+    "source_hash": "90611565"
+  },
+  "web.admin.emailtools.providerStatus.stats.hardBounced": {
+    "text": "Hard gebounced",
+    "source_hash": "c76631c0"
+  },
+  "web.admin.emailtools.providerStatus.stats.complaints": {
+    "text": "Spamklachten",
+    "source_hash": "d48953cd"
+  },
+  "web.admin.emailtools.providerStatus.tier.healthy": {
+    "text": "Gezond",
+    "source_hash": "7f1e323b"
+  },
+  "web.admin.emailtools.providerStatus.tier.probation": {
+    "text": "In beoordeling",
+    "source_hash": "9e8a3b64"
+  },
+  "web.admin.emailtools.providerStatus.tier.shutdown": {
+    "text": "Verzenden gepauzeerd",
+    "source_hash": "52e6757c"
+  },
+  "web.admin.emailtools.test.title": {
+    "text": "Testverzending",
+    "source_hash": "5fab5d67"
+  },
+  "web.admin.emailtools.test.description": {
+    "text": "Verstuur een diagnostische e-mail in platte tekst om de bezorgconnectiviteit te controleren. Bekijk deze eerst als voorbeeld en bevestig daarna om een echte e-mail te versturen.",
+    "source_hash": "4130741c"
+  },
+  "web.admin.emailtools.test.toLabel": {
+    "text": "Ontvanger",
+    "source_hash": "51fac985"
+  },
+  "web.admin.emailtools.test.toPlaceholder": {
+    "text": "you{'@'}example.com",
+    "source_hash": "cf0a9acc"
+  },
+  "web.admin.emailtools.test.enqueueLabel": {
+    "text": "Via workerwachtrij",
+    "source_hash": "97897017"
+  },
+  "web.admin.emailtools.test.previewButton": {
+    "text": "Voorbeeld (niet verzenden)",
+    "source_hash": "747ced83"
+  },
+  "web.admin.emailtools.test.sendButton": {
+    "text": "Test-e-mail versturen",
+    "source_hash": "46ebd7db"
+  },
+  "web.admin.emailtools.test.provider": {
+    "text": "Provider",
+    "source_hash": "472590ae"
+  },
+  "web.admin.emailtools.test.host": {
+    "text": "Oorsprong-host",
+    "source_hash": "968925cb"
+  },
+  "web.admin.emailtools.test.from": {
+    "text": "Van",
+    "source_hash": "21819769"
+  },
+  "web.admin.emailtools.test.subject": {
+    "text": "Onderwerp",
+    "source_hash": "68971283"
+  },
+  "web.admin.emailtools.test.confirmTitle": {
+    "text": "Een echte test-e-mail versturen?",
+    "source_hash": "64a16b62"
+  },
+  "web.admin.emailtools.test.confirmDescription": {
+    "text": "Dit verstuurt een live e-mail naar {to} via de geconfigureerde mailer.",
+    "source_hash": "10114929"
+  },
+  "web.admin.emailtools.test.success": {
+    "text": "Test-e-mail verzonden naar {to}.",
+    "source_hash": "daa61a62"
+  }
+}

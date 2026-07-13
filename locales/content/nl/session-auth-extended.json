@@ -156,7 +156,7 @@
   },
   "web.auth.magicLink.sessionExpired": {
     "text": "Je sessie is verlopen. Vernieuw de pagina en probeer het opnieuw.",
-    "source_hash": "a7c3e901"
+    "source_hash": "be9ed96d"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "Inloggen mislukt. Probeer het opnieuw.",
