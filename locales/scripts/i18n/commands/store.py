@@ -111,6 +111,53 @@ Examples:
     )
     import_parser.set_defaults(func=_import)
 
+    # session subcommand — record/inspect translation rounds in session_log
+    session_parser = gsub.add_parser(
+        "session",
+        help="Record a translation round in the session_log table",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+    # record the current round (defaults: locale=multi, date/timestamps=now)
+    i18n db session add --tasks 6090 --notes "29-locale drain; audits clean"
+    i18n db session list
+
+Note: 'add' writes to the DB only. Follow with 'i18n db export session_log'
+to persist the row into db/session_log.sql for commit.
+        """,
+    )
+    ssub = session_parser.add_subparsers(dest="session_cmd", required=True)
+
+    add_parser = ssub.add_parser("add", help="Insert a session_log row")
+    add_parser.add_argument(
+        "--locale", default="multi",
+        help="Locale code, or 'multi' for a multi-locale round (default: multi)",
+    )
+    add_parser.add_argument(
+        "--tasks", type=int, default=0,
+        help="Number of translation tasks completed this session (default: 0)",
+    )
+    add_parser.add_argument(
+        "--notes", default="",
+        help="Verbatim session notes (not summarized)",
+    )
+    add_parser.add_argument(
+        "--date", default=None,
+        help="ISO date, e.g. 2026-07-13 (default: today)",
+    )
+    add_parser.add_argument(
+        "--started", default=None,
+        help="ISO start timestamp (default: now)",
+    )
+    add_parser.add_argument(
+        "--ended", default=None,
+        help="ISO end timestamp (default: now)",
+    )
+    add_parser.set_defaults(func=_session_add)
+
+    list_parser = ssub.add_parser("list", help="List session_log rows")
+    list_parser.set_defaults(func=_session_list)
+
 
 # --- handlers -------------------------------------------------------------
 
@@ -166,6 +213,40 @@ def _export(args) -> int:
 def _import(args) -> int:
     try:
         import_tables(file_path=args.file, verify=not args.no_verify)
+    except FileNotFoundError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+    except RuntimeError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+    return 0
+
+
+def _session_add(args) -> int:
+    try:
+        add_session(
+            locale=args.locale,
+            task_count=args.tasks,
+            notes=args.notes,
+            date=args.date,
+            started_at=args.started,
+            ended_at=args.ended,
+        )
+    except FileNotFoundError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+    except RuntimeError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+    return 0
+
+
+def _session_list(args) -> int:
+    try:
+        query(
+            "SELECT id, date, locale, task_count, "
+            "substr(notes, 1, 60) AS notes FROM session_log ORDER BY id"
+        )
     except FileNotFoundError as e:
         print(f"Error: {e}", file=sys.stderr)
         return 1
@@ -328,6 +409,54 @@ def export_tables(table: Optional[str] = None) -> None:
 
     # Generate checksums for exported files
     _generate_checksums()
+
+
+def add_session(
+    locale: str = "multi",
+    task_count: int = 0,
+    notes: str = "",
+    date: Optional[str] = None,
+    started_at: Optional[str] = None,
+    ended_at: Optional[str] = None,
+) -> int:
+    """Insert a row into the session_log table.
+
+    Records one round of translation work. Timestamps and date default to
+    the current time when omitted. Writes to the DB only — run
+    ``i18n db export session_log`` afterward to persist the row to
+    ``db/session_log.sql`` for commit.
+
+    Returns:
+        The autoincrement id of the inserted row.
+    """
+    if not DB_FILE.exists():
+        raise FileNotFoundError(
+            f"Database not found: {DB_FILE}\n"
+            "Run 'i18n db init' to create it."
+        )
+
+    now = __import__("datetime").datetime.now()
+    date = date or now.date().isoformat()
+    started_at = started_at or now.isoformat()
+    ended_at = ended_at or now.isoformat()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO session_log "
+            "(date, locale, started_at, ended_at, task_count, notes) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            (date, locale, started_at, ended_at, task_count, notes),
+        )
+        conn.commit()
+        new_id = cursor.lastrowid
+
+    print(
+        f"session_log: added row id={new_id} "
+        f"({date}, {locale}, {task_count} tasks)"
+    )
+    print("Next: run 'i18n db export session_log' to persist to db/session_log.sql")
+    return new_id
 
 
 def _generate_checksums() -> None:

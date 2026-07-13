@@ -3,6 +3,87 @@
 
 ## Local i18n branch processing
 
+Pipeline order (each step assumes the previous one ran):
+
+1. **Export** — drained DB → `locales/content/` + shared tables. See [README.md](README.md) step 4
+   (`i18n tasks export <locale>` per locale, then `i18n db export` once). Leaves uncommitted
+   changes in the working tree; everything below operates on those.
+2. **Create branches** — one `i18n/update-<locale>` branch per changed locale (below).
+3. **Open PRs** — one PR per branch (below).
+4. **Rebase / respond to feedback / merge back** — the original sections that follow.
+
+### Exporting the DB (glossary + shared tables)
+
+Run **once**, after every locale is drained. Writes `glossary.sql` and the other shared db
+tables. `i18n tasks export <locale>` does *not* touch these.
+
+```bash
+python3 locales/scripts/i18n db export
+```
+
+Also record the round in `session_log` — nothing else writes that table, and `db export`
+skips it when empty (so a round leaves no trace unless you add a row):
+
+```bash
+python3 locales/scripts/i18n db session add \
+  --date <YYYY-MM-DD> --tasks <total> \
+  --notes 'N-locale drain; <recoveries, glossary rows, audit result — verbatim>'
+python3 locales/scripts/i18n db export session_log   # persist the row
+python3 locales/scripts/i18n db session list         # verify
+```
+
+### Creating the branches
+
+`branch-per-locale.sh` slices the uncommitted `locales/content/` changes into one branch per
+locale. Bases on **`main`** (line 21). Dry-run is the default — pass `--execute` to act.
+
+```bash
+# preview: which locales, which base, what it would run
+locales/scripts/branch-per-locale.sh --changed
+
+# do it: for each changed locale, checkout main → branch i18n/update-<locale> →
+#        add locales/content/<locale>/ → commit → push -u origin
+locales/scripts/branch-per-locale.sh --changed --execute
+
+# or a specific subset
+locales/scripts/branch-per-locale.sh --execute de es fr_FR
+```
+
+Safe to re-run: skips locales with no changes and any branch that already exists. Requires a
+clean tree **outside** `locales/`. The commit-msg hook prepends the `[#XXXX]` prefix — don't
+hand-add it.
+
+### Opening the PRs
+
+`pr-per-locale.sh` opens one PR per `i18n/update-<locale>` branch, running a fresh local `claude`
+translation-quality review per locale and baking its summary into the PR body. The review time is
+the natural throttle (no burst of API calls). Bases on **`main`** by default. Dry-run unless
+`--execute`.
+
+```bash
+# preview: prints each review + the exact gh command, creates nothing
+locales/scripts/pr-per-locale.sh
+
+# create all PRs (authenticated gh required)
+locales/scripts/pr-per-locale.sh --execute
+
+# deeper review model, or skip the review for a stats-only body
+locales/scripts/pr-per-locale.sh --execute --model claude-opus-4-8
+locales/scripts/pr-per-locale.sh --execute --no-review
+
+# refresh the body of an already-open PR instead of skipping it
+locales/scripts/pr-per-locale.sh --execute --update de
+```
+
+Capture the resulting PR numbers to rebuild the arrays below — they are per-round and the ones
+listed are stale (a prior batch). Note `--head` is exact-match, not a prefix, so filter with jq
+(the freshly-opened PRs are in the default open state):
+
+```bash
+gh pr list --limit 100 --json number,headRefName \
+  --jq '.[] | select(.headRefName | startswith("i18n/update-")) | "\(.number) \(.headRefName)"'
+```
+
 ### Rebasing on main
 
 Make sure we have the latest everything (including any changes to locale scripts, translation
@@ -26,6 +107,9 @@ echo "Rebased cleanly; needs manual attention: ${failed[*]:-none}"
 
 
 ### Responding to PR feedback
+
+> The `pairs=(…)` numbers below are from a **prior batch** — regenerate them for the current
+> round with the `gh pr list … startswith` command above before running this.
 
 ```bash
 pairs=(
@@ -59,7 +143,8 @@ git switch main
 
 ### Merging back into main
 
-One integration PR, not 29 (or however many branches you have).
+One integration PR, not 29 (or however many branches you have). The `#3574–3602` / `seq 3574 3602`
+references are from a prior batch — swap in the current round's numbers.
 
 ```bash
 # 1. preflight — local must match origin; base must be locale-only (octopus aborts on any conflict)
