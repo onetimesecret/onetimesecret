@@ -145,7 +145,7 @@
   },
   "web.auth.magicLink.sessionExpired": {
     "text": "انتهت صلاحية جلستك. يرجى تحديث الصفحة والمحاولة مرة أخرى.",
-    "source_hash": "a7c3e901"
+    "source_hash": "be9ed96d"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.",
