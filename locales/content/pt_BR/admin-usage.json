@@ -1,0 +1,78 @@
+{
+  "web.admin.usage.title": {
+    "text": "Uso",
+    "source_hash": "8d59829c"
+  },
+  "web.admin.usage.description": {
+    "text": "Exporte métricas de uso para um intervalo de datas.",
+    "source_hash": "97bd3325"
+  },
+  "web.admin.usage.startDate": {
+    "text": "Data inicial",
+    "source_hash": "4c52faad"
+  },
+  "web.admin.usage.endDate": {
+    "text": "Data final",
+    "source_hash": "e970951c"
+  },
+  "web.admin.usage.fetch": {
+    "text": "Obter dados",
+    "source_hash": "429532fe"
+  },
+  "web.admin.usage.loadError": {
+    "text": "Não foi possível carregar os dados de uso.",
+    "source_hash": "ffb557d7"
+  },
+  "web.admin.usage.retry": {
+    "text": "Tentar novamente",
+    "source_hash": "942087cc"
+  },
+  "web.admin.usage.empty": {
+    "text": "Nenhum dado para este intervalo",
+    "source_hash": "5fed1795"
+  },
+  "web.admin.usage.byState": {
+    "text": "Mensagens confidenciais por estado",
+    "source_hash": "916bbcb6"
+  },
+  "web.admin.usage.secretsByDay": {
+    "text": "Mensagens confidenciais por dia",
+    "source_hash": "24a01e8e"
+  },
+  "web.admin.usage.usersByDay": {
+    "text": "Novos usuários por dia",
+    "source_hash": "8c1f089f"
+  },
+  "web.admin.usage.exportJson": {
+    "text": "Baixar JSON",
+    "source_hash": "49e0e6d5"
+  },
+  "web.admin.usage.exportCsv": {
+    "text": "Baixar CSV",
+    "source_hash": "a4023b89"
+  },
+  "web.admin.usage.columns.date": {
+    "text": "Data",
+    "source_hash": "99c40ab4"
+  },
+  "web.admin.usage.columns.count": {
+    "text": "Contagem",
+    "source_hash": "37bac495"
+  },
+  "web.admin.usage.stats.totalSecrets": {
+    "text": "Total de mensagens confidenciais",
+    "source_hash": "e17a5459"
+  },
+  "web.admin.usage.stats.newUsers": {
+    "text": "Novos usuários",
+    "source_hash": "d3ee48b0"
+  },
+  "web.admin.usage.stats.avgSecrets": {
+    "text": "Média de mensagens confidenciais/dia",
+    "source_hash": "948b0701"
+  },
+  "web.admin.usage.stats.avgUsers": {
+    "text": "Média de usuários/dia",
+    "source_hash": "491f626d"
+  }
+}
