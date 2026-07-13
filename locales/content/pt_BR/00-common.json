@@ -1300,7 +1300,7 @@
   },
   "web.INSTRUCTION.phishing_warning": {
     "text": "Sempre verifique se você está no site oficial do {product_name}. Fraudadores às vezes criam sites falsos idênticos ao {product_name} para roubar suas mensagens confidenciais. Para evitar ataques de phishing, confira o domínio da região antes de criar novos links.",
-    "source_hash": "b588f5b2"
+    "source_hash": "68ec20f8"
   },
   "web.pricing.title": {
     "text": "Preços simples e transparentes",

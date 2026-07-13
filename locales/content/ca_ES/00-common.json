@@ -1300,7 +1300,7 @@
   },
   "web.INSTRUCTION.phishing_warning": {
     "text": "Verifica sempre que estàs al lloc web oficial de {product_name}. De vegades, els estafadors creen llocs web falsos que semblen exactament {product_name} per robar-te els secrets. Per evitar atacs de pesca de credencials, comprova el domini de la regió abans de crear nous enllaços.",
-    "source_hash": "b588f5b2"
+    "source_hash": "68ec20f8"
   },
   "web.pricing.title": {
     "text": "Preus simples i transparents",

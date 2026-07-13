@@ -1300,7 +1300,7 @@
   },
   "web.INSTRUCTION.phishing_warning": {
     "text": "Vedno preverite, ali ste na uradnem spletnem mestu {product_name}. Goljufi včasih ustvarijo lažna spletna mesta, ki so videti popolnoma enaka kot {product_name}, da bi vam ukradli skrivnosti. Da se izognete napadom z lažnim predstavljanjem, pred ustvarjanjem novih povezav preverite domeno regije.",
-    "source_hash": "b588f5b2"
+    "source_hash": "68ec20f8"
   },
   "web.pricing.title": {
     "text": "Preprosto, transparentno oblikovanje cen",

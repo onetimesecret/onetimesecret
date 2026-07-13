@@ -307,6 +307,13 @@ jobs:
           # Don't fail build - report only (remove 'exit 0' to enforce)
           exit 0
 
+      # Hash-freshness gate: every en source key's content_hash must match its
+      # text (sha256[:8]). Stale hashes make staleness detection lie downstream
+      # (tasks --missing-only, export watermarks). Enforcing — repair with
+      # `python3 locales/scripts/i18n content hashes`.
+      - name: Verify en content_hash freshness
+        run: python3 locales/scripts/i18n validate hashes
+
       # Executable invariants for the i18n CLI and the on-demand governance
       # derive (no-vendor model, ADR-005). The derive-governance pin-contract
       # tests guard the gate<->script link that silently broke once

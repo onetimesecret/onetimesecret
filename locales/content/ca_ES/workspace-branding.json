@@ -145,15 +145,15 @@
   },
   "web.branding.powered_by_onetime_secret": {
     "text": "Impulsat per {product_name}",
-    "source_hash": "d8e9f0a1"
+    "source_hash": "1f393117"
   },
   "web.branding.low_contrast_warning": {
     "text": "Contrast baix",
-    "source_hash": "a1b2c3d4"
+    "source_hash": "2d6e7516"
   },
   "web.branding.contrast_ratio_label": {
     "text": "Relació de contrast",
-    "source_hash": "e5f6a7b8"
+    "source_hash": "d521a5be"
   },
   "web.branding.heading_logo": {
     "text": "Logotip de {0}",

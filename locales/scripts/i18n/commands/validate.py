@@ -1146,6 +1146,61 @@ def _glossary_handler(args) -> int:
 
 
 # ===========================================================================
+# validate hashes  (en source content_hash freshness gate)
+# ===========================================================================
+
+
+def _hashes_handler(args) -> int:
+    """Verify every en source key's ``content_hash`` matches its ``text``.
+
+    Mirrors the invariant maintained by ``content hashes``
+    (:func:`_hashes_add_to_source`): every entry with non-empty ``text`` in
+    ``locales/content/en/*.json`` must carry ``content_hash`` equal to
+    ``sha256(text.strip())[:8]``. A stale or missing hash means the stamping
+    step lagged a source edit — run ``content hashes`` to repair.
+    """
+    from .content import _hashes_compute_hash
+
+    source_dir = CONTENT_DIR / SOURCE_LOCALE
+    mismatched: list[tuple[str, str, str, str]] = []  # file, key, stored, computed
+    missing: list[tuple[str, str, str]] = []  # file, key, computed
+    checked = 0
+
+    for json_file in sorted(source_dir.glob("*.json")):
+        data = load_json_file(json_file)
+        for key_path, entry in data.items():
+            if not isinstance(entry, dict):
+                continue
+            text = entry.get("text", "")
+            if not isinstance(text, str) or not text:
+                continue
+            checked += 1
+            computed = _hashes_compute_hash(text)
+            stored = entry.get("content_hash")
+            if not stored:
+                missing.append((json_file.name, key_path, computed))
+            elif stored != computed:
+                mismatched.append((json_file.name, key_path, stored, computed))
+
+    for file_name, key, stored, computed in mismatched:
+        print(f"STALE   {file_name} · {key}: stored {stored} != computed {computed}")
+    for file_name, key, computed in missing:
+        print(f"MISSING {file_name} · {key}: no content_hash (computed {computed})")
+
+    print(
+        f"\nChecked {checked} en source key(s): "
+        f"{len(mismatched)} stale, {len(missing)} missing content_hash"
+    )
+    if mismatched or missing:
+        print(
+            "Fix: python3 locales/scripts/i18n content hashes",
+            file=sys.stderr,
+        )
+        return 1
+    return 0
+
+
+# ===========================================================================
 # Registration
 # ===========================================================================
 
@@ -1279,3 +1334,17 @@ Examples:
         help="Exit non-zero when divergences are found (default: advisory, exit 0).",
     )
     glossary.set_defaults(func=_glossary_handler)
+
+    # ----- validate hashes -----
+    hashes = gsub.add_parser(
+        "hashes",
+        help="Verify en source content_hash values match the current text",
+        description=(
+            "CI gate: recompute sha256(text.strip())[:8] for every en source "
+            "key with non-empty text and compare against its stored "
+            "content_hash. Exits non-zero listing stale or missing hashes; "
+            "repair with 'content hashes'."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    hashes.set_defaults(func=_hashes_handler)

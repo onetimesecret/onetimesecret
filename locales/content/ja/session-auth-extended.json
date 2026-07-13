@@ -711,12 +711,6 @@
     "text": "リカバリーコード",
     "source_hash": "579c7f4e"
   },
-  "web.auth.security._guidance.context": {
-    "text": "⚠️ セキュリティ重要: メッセージは情報漏洩を防ぎます。src/locales/SECURITY-TRANSLATION-GUIDE.mdを参照"
-  },
-  "web.auth.sessions._guidance.context": {
-    "text": "ユーザーのログイン済みデバイス/ブラウザ管理ページ"
-  },
   "web.auth.google": {
     "text": "Google",
     "source_hash": "ce770667"

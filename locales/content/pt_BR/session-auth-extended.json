@@ -711,12 +711,6 @@
     "text": "Códigos de recuperação",
     "source_hash": "579c7f4e"
   },
-  "web.auth.security._guidance.context": {
-    "text": "⚠️ SEGURANÇA-CRÍTICA: Mensagens previnem divulgação de informações. Veja src/locales/SECURITY-TRANSLATION-GUIDE.md"
-  },
-  "web.auth.sessions._guidance.context": {
-    "text": "Página de gerenciamento de dispositivos/navegadores conectados do usuário"
-  },
   "web.auth.google": {
     "text": "Google",
     "source_hash": "ce770667"

@@ -1300,7 +1300,7 @@
   },
   "web.INSTRUCTION.phishing_warning": {
     "text": "Me manatoko tonu koe kei runga koe i te paetukutuku mana o {product_name}. He wā tā ngā tāhae e waihanga ana i ngā paetukutuku tinihanga e tino rite ana ki {product_name} hei tāhae i āu karere huna. Hei karo i ngā whakaeke phishing, tirohia te rohe ā-takiwā i mua i te waihanga hononga hou.",
-    "source_hash": "b588f5b2"
+    "source_hash": "68ec20f8"
   },
   "web.pricing.title": {
     "text": "Utu Mārama, Pono",

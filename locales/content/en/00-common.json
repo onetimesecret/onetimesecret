@@ -1387,8 +1387,8 @@
     "content_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Always verify you're on the official {product_name} website. Fraudsters sometimes create fake websites that look exactly like {product_name} to steal your secrets. To avoid phishing attacks, check the region domain before creating new links.",
-    "content_hash": "68ec20f8"
+    "text": "Always verify you're on the official {product_name} website. Fraudsters sometimes create fake websites that look exactly like {product_name} to steal your secrets. To avoid phishing attacks, verify the region's domain in your address bar before creating new links.",
+    "content_hash": "2e3b856e"
   },
   "web.pricing.title": {
     "text": "Simple, Transparent Pricing",
