@@ -34,5 +34,17 @@
   "api.domains.errors.recipients_duplicate": {
     "text": "Дублирующиеся адреса получателей не допускаются",
     "source_hash": "6de22182"
+  },
+  "api.domains.errors.homepage_secrets_mode_invalid": {
+    "text": "Недопустимый secrets_mode: %{secrets_mode}",
+    "source_hash": "cf093a04"
+  },
+  "api.domains.errors.homepage_incoming_entitlement_required": {
+    "text": "Режим входящих секретов требует права доступа incoming_secrets. Пожалуйста, перейдите на более высокий план.",
+    "source_hash": "d68b13d8"
+  },
+  "api.domains.errors.homepage_incoming_not_ready": {
+    "text": "Входящие секреты должны быть включены хотя бы с одним получателем, прежде чем их можно будет использовать в качестве главной страницы.",
+    "source_hash": "556da6e2"
   }
 }

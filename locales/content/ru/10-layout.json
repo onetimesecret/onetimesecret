@@ -101,11 +101,11 @@
   },
   "web.footer.product": {
     "text": "Продукт",
-    "source_hash": "7f5540e9"
+    "source_hash": "fb9ef894"
   },
   "web.footer.source_code_purveyor": {
     "text": "Исходный код",
-    "source_hash": "29c5c68f"
+    "source_hash": "bc47da66"
   },
   "web.navigation.billing": {
     "text": "Оплата",
@@ -149,7 +149,7 @@
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
     "text": "Вы просматриваете защищённое сообщение, которым с вами поделились через {product_name}. Это содержимое отображается только один раз, после чего безвозвратно удаляется с наших серверов.",
-    "source_hash": "e0f1a10c"
+    "source_hash": "7a4e9d16"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "Могу ли я просмотреть этот секрет позже?",
@@ -265,7 +265,7 @@
   },
   "web.layout.visit_onetime_secret_homepage": {
     "text": "Перейти на главную страницу {product_name}",
-    "source_hash": "625556d2"
+    "source_hash": "87802af5"
   },
   "web.layout.footer_navigation": {
     "text": "Навигация в подвале",
@@ -346,5 +346,9 @@
   "web.help.default_content": {
     "text": "Пожалуйста, обратитесь в службу поддержки за помощью",
     "source_hash": "752bca14"
+  },
+  "web.layout.colonels_only_badge": {
+    "text": "Только для Colonel",
+    "source_hash": "3f1e2dbd"
   }
 }
