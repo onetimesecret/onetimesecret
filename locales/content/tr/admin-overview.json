@@ -1,0 +1,94 @@
+{
+  "web.admin.overview.retry": {
+    "text": "Yeniden Dene",
+    "source_hash": "942087cc"
+  },
+  "web.admin.overview.feedback.title": {
+    "text": "Kullanıcı geri bildirimi",
+    "source_hash": "cb7b24c6"
+  },
+  "web.admin.overview.feedback.total": {
+    "text": "Son 30 günde {count}",
+    "source_hash": "b6b9147c"
+  },
+  "web.admin.overview.feedback.today": {
+    "text": "Bugün",
+    "source_hash": "2b065c7c"
+  },
+  "web.admin.overview.feedback.yesterday": {
+    "text": "Dün",
+    "source_hash": "56618125"
+  },
+  "web.admin.overview.feedback.older": {
+    "text": "Daha eski",
+    "source_hash": "03281c88"
+  },
+  "web.admin.overview.feedback.empty": {
+    "text": "Bu dönemde geri bildirim yok",
+    "source_hash": "e09d594d"
+  },
+  "web.admin.overview.feedback.loadError": {
+    "text": "Geri bildirim yüklenemedi.",
+    "source_hash": "4011c408"
+  },
+  "web.admin.overview.stats.heading": {
+    "text": "Platform istatistikleri",
+    "source_hash": "77728e4d"
+  },
+  "web.admin.overview.stats.customers": {
+    "text": "Müşteriler",
+    "source_hash": "aabe76f1"
+  },
+  "web.admin.overview.stats.secrets": {
+    "text": "Etkin gizli mesajlar",
+    "source_hash": "8db4c552"
+  },
+  "web.admin.overview.stats.sessions": {
+    "text": "Etkin oturumlar",
+    "source_hash": "61ad9909"
+  },
+  "web.admin.overview.stats.receipts": {
+    "text": "Makbuzlar",
+    "source_hash": "60a627df"
+  },
+  "web.admin.overview.stats.secretsCreated": {
+    "text": "Oluşturulan gizli mesajlar (tüm zamanlar)",
+    "source_hash": "bdb49794"
+  },
+  "web.admin.overview.stats.emailsSent": {
+    "text": "Gönderilen e-postalar (tüm zamanlar)",
+    "source_hash": "1c9a7518"
+  },
+  "web.admin.overview.stats.loadError": {
+    "text": "Platform istatistikleri yüklenemedi.",
+    "source_hash": "5f13cf7a"
+  },
+  "web.admin.overview.trends.title": {
+    "text": "Son 30 gün",
+    "source_hash": "f8f03fb4"
+  },
+  "web.admin.overview.trends.signups": {
+    "text": "Günlük kayıtlar",
+    "source_hash": "8db399dc"
+  },
+  "web.admin.overview.trends.secretsCreated": {
+    "text": "Günlük oluşturulan gizli mesajlar",
+    "source_hash": "d6852656"
+  },
+  "web.admin.overview.trends.today": {
+    "text": "bugün",
+    "source_hash": "e0f4f767"
+  },
+  "web.admin.overview.trends.collectingNote": {
+    "text": "İlk veri noktasından bu yana toplanıyor — ondan önceki günler sıfır gösterir.",
+    "source_hash": "269ee1eb"
+  },
+  "web.admin.overview.trends.sparklineAria": {
+    "text": "{label}: 30 günlük eğilim, bugün {count}",
+    "source_hash": "eb57a7b2"
+  },
+  "web.admin.overview.trends.loadError": {
+    "text": "Eğilimler yüklenemedi.",
+    "source_hash": "9cf97f63"
+  }
+}

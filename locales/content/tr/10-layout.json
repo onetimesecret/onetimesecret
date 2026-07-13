@@ -101,11 +101,11 @@
   },
   "web.footer.product": {
     "text": "Ürün",
-    "source_hash": "7f5540e9"
+    "source_hash": "fb9ef894"
   },
   "web.footer.source_code_purveyor": {
     "text": "Kaynak Kodu",
-    "source_hash": "29c5c68f"
+    "source_hash": "bc47da66"
   },
   "web.navigation.billing": {
     "text": "Faturalandırma",
@@ -149,7 +149,7 @@
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
     "text": "{product_name} aracılığıyla sizinle paylaşılan güvenli bir mesajı görüntülüyorsunuz. Bu içerik yalnızca bir kez gösterilir ve ardından sunucularımızdan kalıcı olarak silinir.",
-    "source_hash": "e0f1a10c"
+    "source_hash": "7a4e9d16"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "Bu gizli mesajı daha sonra tekrar görüntüleyebilir miyim?",
@@ -265,7 +265,7 @@
   },
   "web.layout.visit_onetime_secret_homepage": {
     "text": "{product_name} ana sayfasını ziyaret edin",
-    "source_hash": "625556d2"
+    "source_hash": "87802af5"
   },
   "web.layout.footer_navigation": {
     "text": "Altbilgi navigasyonu",
@@ -346,5 +346,9 @@
   "web.help.default_content": {
     "text": "Yardım için lütfen destekle iletişime geçin",
     "source_hash": "752bca14"
+  },
+  "web.layout.colonels_only_badge": {
+    "text": "Yalnızca Colonel'lere Özel",
+    "source_hash": "3f1e2dbd"
   }
 }

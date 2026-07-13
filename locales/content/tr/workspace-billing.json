@@ -140,12 +140,12 @@
     "source_hash": "1f981aaf"
   },
   "web.billing.overview.no_organizations_title": {
-    "text": "Kuruluş Yok",
-    "source_hash": "12420110"
+    "text": "Çalışma Alanı Yok",
+    "source_hash": "c7f70723"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "Faturalandırmanızı ve aboneliğinizi yönetmek için bir kuruluş oluşturun",
-    "source_hash": "41e922d2"
+    "text": "Faturalandırmanızı ve aboneliğinizi yönetmek için bir çalışma alanı oluşturun",
+    "source_hash": "e0fd27a5"
   },
   "web.billing.overview.load_error": {
     "text": "Fatura bilgileri yüklenemedi",
@@ -204,8 +204,8 @@
     "source_hash": "883dbca9"
   },
   "web.billing.overview.entitlements.manage_org": {
-    "text": "Kuruluşları Yönet",
-    "source_hash": "be0fe4c3"
+    "text": "Kuruluşu Yönet",
+    "source_hash": "f03a4985"
   },
   "web.billing.overview.entitlements.manage_teams": {
     "text": "Takımları Yönet",
@@ -220,8 +220,8 @@
     "source_hash": "5428d7fe"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "Tek Oturum Açma",
-    "source_hash": "cf7cd744"
+    "text": "Tek Oturum Açma (SSO)",
+    "source_hash": "5db5c812"
   },
   "web.billing.overview.entitlements.priority_support": {
     "text": "Öncelikli Destek",
@@ -281,7 +281,7 @@
   },
   "web.billing.features.sso": {
     "text": "Tek Oturum Açma (SSO)",
-    "source_hash": "5db5c812"
+    "source_hash": "5ba3ac9f"
   },
   "web.billing.features.priority_support": {
     "text": "Öncelikli Destek",
@@ -577,7 +577,7 @@
   },
   "web.billing.invoices.draft": {
     "text": "Taslak",
-    "source_hash": "d2e16e61"
+    "source_hash": "ebf12ef4"
   },
   "web.billing.invoices.open": {
     "text": "Açık",
