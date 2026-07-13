@@ -663,10 +663,6 @@
     "text": "Organisationen finns inte längre",
     "source_hash": "a5df7d22"
   },
-  "api.organizations.invitations.errors.accept_already_acted": {
-    "text": "Inbjudan har redan blivit %{status}",
-    "source_hash": "130c87e0"
-  },
   "api.organizations.invitations.errors.accept_expired": {
     "text": "Inbjudan har gått ut",
     "source_hash": "7186297b"

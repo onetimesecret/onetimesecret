@@ -855,10 +855,6 @@
     "text": "组织不再存在",
     "source_hash": "a5df7d22"
   },
-  "api.organizations.invitations.errors.accept_already_acted": {
-    "text": "邀请已被%{status}",
-    "source_hash": "130c87e0"
-  },
   "api.organizations.invitations.errors.accept_expired": {
     "text": "邀请已过期",
     "source_hash": "7186297b"

@@ -663,10 +663,6 @@
     "text": "Kāore te whakahaere e noho tonu ana",
     "source_hash": "a5df7d22"
   },
-  "api.organizations.invitations.errors.accept_already_acted": {
-    "text": "Kua %{status} kē te tono",
-    "source_hash": "130c87e0"
-  },
   "api.organizations.invitations.errors.accept_expired": {
     "text": "Kua pau te tono",
     "source_hash": "7186297b"
