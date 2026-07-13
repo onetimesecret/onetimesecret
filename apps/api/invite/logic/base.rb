@@ -79,19 +79,27 @@ module InviteAPI
       # can't honour. Each status maps to its own complete sentence key; any
       # unexpected status falls back to the generic "processed" key.
       def raise_already_processed(invitation)
-        error_key, msg =
-          case invitation.status
-          when 'accepted', 'active'
-            ['api.invite.errors.invitation_already_accepted',
-             'This invitation has already been accepted']
-          when 'declined'
-            ['api.invite.errors.invitation_already_declined',
-             'This invitation has already been declined']
-          else
-            ['api.invite.errors.invitation_already_processed',
-             'This invitation has already been processed']
-          end
-        raise_form_error(msg, error_key: error_key, field: :token, error_type: :invalid)
+        opts = { field: :token, error_type: :invalid }
+        case invitation.status
+        when 'accepted', 'active'
+          raise_form_error(
+            'This invitation has already been accepted',
+            error_key: 'api.invite.errors.invitation_already_accepted',
+            **opts,
+          )
+        when 'declined'
+          raise_form_error(
+            'This invitation has already been declined',
+            error_key: 'api.invite.errors.invitation_already_declined',
+            **opts,
+          )
+        else
+          raise_form_error(
+            'This invitation has already been processed',
+            error_key: 'api.invite.errors.invitation_already_processed',
+            **opts,
+          )
+        end
       end
 
       # Serialize brand settings for public API response (guest-safe)
