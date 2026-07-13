@@ -34,5 +34,17 @@
   "api.domains.errors.recipients_duplicate": {
     "text": "Podvojeni e-poštni naslovi prejemnikov niso dovoljeni",
     "source_hash": "6de22182"
+  },
+  "api.domains.errors.homepage_secrets_mode_invalid": {
+    "text": "Neveljaven secrets_mode: %{secrets_mode}",
+    "source_hash": "cf093a04"
+  },
+  "api.domains.errors.homepage_incoming_entitlement_required": {
+    "text": "Način dohodnih skrivnosti zahteva upravičenje incoming_secrets. Nadgradite svoj paket.",
+    "source_hash": "d68b13d8"
+  },
+  "api.domains.errors.homepage_incoming_not_ready": {
+    "text": "Dohodne skrivnosti morajo biti omogočene z vsaj enim prejemnikom, preden jih je mogoče uporabiti kot domačo stran.",
+    "source_hash": "556da6e2"
   }
 }

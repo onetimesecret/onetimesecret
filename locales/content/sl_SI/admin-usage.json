@@ -1,0 +1,78 @@
+{
+  "web.admin.usage.title": {
+    "text": "Uporaba",
+    "source_hash": "8d59829c"
+  },
+  "web.admin.usage.description": {
+    "text": "Izvozite meritve uporabe za časovno obdobje.",
+    "source_hash": "97bd3325"
+  },
+  "web.admin.usage.startDate": {
+    "text": "Začetni datum",
+    "source_hash": "4c52faad"
+  },
+  "web.admin.usage.endDate": {
+    "text": "Končni datum",
+    "source_hash": "e970951c"
+  },
+  "web.admin.usage.fetch": {
+    "text": "Pridobi podatke",
+    "source_hash": "429532fe"
+  },
+  "web.admin.usage.loadError": {
+    "text": "Podatkov o uporabi ni bilo mogoče naložiti.",
+    "source_hash": "ffb557d7"
+  },
+  "web.admin.usage.retry": {
+    "text": "Poskusi znova",
+    "source_hash": "942087cc"
+  },
+  "web.admin.usage.empty": {
+    "text": "Ni podatkov za to obdobje",
+    "source_hash": "5fed1795"
+  },
+  "web.admin.usage.byState": {
+    "text": "Skrivnosti po stanju",
+    "source_hash": "916bbcb6"
+  },
+  "web.admin.usage.secretsByDay": {
+    "text": "Skrivnosti po dnevih",
+    "source_hash": "24a01e8e"
+  },
+  "web.admin.usage.usersByDay": {
+    "text": "Novi uporabniki po dnevih",
+    "source_hash": "8c1f089f"
+  },
+  "web.admin.usage.exportJson": {
+    "text": "Prenesi JSON",
+    "source_hash": "49e0e6d5"
+  },
+  "web.admin.usage.exportCsv": {
+    "text": "Prenesi CSV",
+    "source_hash": "a4023b89"
+  },
+  "web.admin.usage.columns.date": {
+    "text": "Datum",
+    "source_hash": "99c40ab4"
+  },
+  "web.admin.usage.columns.count": {
+    "text": "Število",
+    "source_hash": "37bac495"
+  },
+  "web.admin.usage.stats.totalSecrets": {
+    "text": "Skupaj skrivnosti",
+    "source_hash": "e17a5459"
+  },
+  "web.admin.usage.stats.newUsers": {
+    "text": "Novi uporabniki",
+    "source_hash": "d3ee48b0"
+  },
+  "web.admin.usage.stats.avgSecrets": {
+    "text": "Povpr. skrivnosti/dan",
+    "source_hash": "948b0701"
+  },
+  "web.admin.usage.stats.avgUsers": {
+    "text": "Povpr. uporabnikov/dan",
+    "source_hash": "491f626d"
+  }
+}
