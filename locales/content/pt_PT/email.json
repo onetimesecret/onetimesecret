@@ -315,7 +315,7 @@
     "source_hash": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "Suporte Secret",
+    "text": "Equipa de Suporte do Onetime Secret",
     "renderer": "erb",
     "source_hash": "f6a6c90f"
   },
