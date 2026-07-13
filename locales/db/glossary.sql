@@ -1,6 +1,6 @@
 -- Exported from glossary table
 -- 634 rows
--- Generated: 2026-07-13T09:54:53.736639
+-- Generated: 2026-07-13T19:50:10.613222+00:00
 
 DELETE FROM glossary;
 
