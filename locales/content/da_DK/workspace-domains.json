@@ -76,8 +76,8 @@
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "Aktiveret",
-    "source_hash": "92c1cdfd"
+    "text": "Aktivér",
+    "source_hash": "5342e09f"
   },
   "web.domains.disabled": {
     "text": "Deaktiveret",
@@ -1358,5 +1358,189 @@
   "web.domains.sso.upgrade_required": {
     "text": "Opgrader for at konfigurere",
     "source_hash": "571cfa98"
+  },
+  "web.domains.add.field_label": {
+    "text": "Brugerdefineret domæne",
+    "source_hash": "d7d4c1e4"
+  },
+  "web.domains.add.field_help": {
+    "text": "Det præcise værtsnavn, dit team vil bruge, f.eks. {example}.",
+    "source_hash": "3ba71f78"
+  },
+  "web.domains.add.echo_label": {
+    "text": "Dine besked-links vil ligge på",
+    "source_hash": "ad60b17d"
+  },
+  "web.domains.add.apex_question": {
+    "text": "Det er hele dit domæne — hvor skal besked-links ligge?",
+    "source_hash": "efacad1b"
+  },
+  "web.domains.add.apex_help": {
+    "text": "Et underdomæne lader resten af {domain} være urørt.",
+    "source_hash": "0f7e6181"
+  },
+  "web.domains.add.recommended": {
+    "text": "Anbefalet",
+    "source_hash": "d70604e8"
+  },
+  "web.domains.add.no_wrong_answer": {
+    "text": "Der er ikke noget forkert valg — vælg det, dit team vil genkende.",
+    "source_hash": "a04f0086"
+  },
+  "web.domains.add.subdomains_label": {
+    "text": "Populære underdomæner",
+    "source_hash": "d6ee8eac"
+  },
+  "web.domains.add.root_group_label": {
+    "text": "Eller brug hele dit domæne",
+    "source_hash": "5c23c007"
+  },
+  "web.domains.add.root_domain_label": {
+    "text": "Brug mit roddomæne",
+    "source_hash": "9fbbe253"
+  },
+  "web.domains.add.root_domain_description": {
+    "text": "Dette peger hele {domain} mod os — webstedet der holder op med at slå op — og kræver en A-/ALIAS-post.",
+    "source_hash": "fae93847"
+  },
+  "web.domains.add.error_unrecognized_suffix": {
+    "text": "“.{0}” er ikke en genkendt domæneendelse — tjek for en tastefejl (f.eks. {1}).",
+    "source_hash": "4b90033d"
+  },
+  "web.domains.add.error_invalid_hostname": {
+    "text": "Indtast et gyldigt værtsnavn — bogstaver, tal, enkelte punktummer og bindestreger (f.eks. {0}).",
+    "source_hash": "c4ceabc1"
+  },
+  "web.domains.add.error_empty": {
+    "text": "Indtast et domænenavn.",
+    "source_hash": "d8e2c1e4"
+  },
+  "web.domains.add.continue_with": {
+    "text": "Fortsæt med {0}",
+    "source_hash": "73f8ab40"
+  },
+  "web.domains.auth_override.workspace_default_badge": {
+    "text": "Workspace-standard",
+    "source_hash": "da3706ee"
+  },
+  "web.domains.detail.dns_title": {
+    "text": "DNS-opsætning",
+    "source_hash": "6c63df31"
+  },
+  "web.domains.detail.dns_description": {
+    "text": "Peg dit domæne mod denne server med en CNAME-post",
+    "source_hash": "080f84f0"
+  },
+  "web.domains.dns.title": {
+    "text": "DNS-konfiguration",
+    "source_hash": "da78c35d"
+  },
+  "web.domains.dns.point_domain_intro": {
+    "text": "Peg",
+    "source_hash": "2fc0c524"
+  },
+  "web.domains.dns.point_domain_outro": {
+    "text": "mod denne server ved at tilføje følgende DNS-post hos din udbyder.",
+    "source_hash": "8d260c05"
+  },
+  "web.domains.dns.cname_heading": {
+    "text": "Opret en CNAME-post",
+    "source_hash": "11aeef5a"
+  },
+  "web.domains.dns.apex_heading": {
+    "text": "Opret en ALIAS- eller ANAME-post",
+    "source_hash": "41135375"
+  },
+  "web.domains.dns.apex_notice": {
+    "text": "Apex-domæner (rod) kan ikke bruge en CNAME-post. Brug i stedet din DNS-udbyders ALIAS- eller ANAME-post, eller peg en A-post mod din servers IP-adresse.",
+    "source_hash": "2d1c3298"
+  },
+  "web.domains.email.from_address_local_placeholder": {
+    "text": "no-reply",
+    "source_hash": "510d274d"
+  },
+  "web.domains.homepage.title": {
+    "text": "Hjemmeside",
+    "source_hash": "9e3391e9"
+  },
+  "web.domains.homepage.description": {
+    "text": "Hvad besøgende kan gøre på din domænehjemmeside",
+    "source_hash": "974d159e"
+  },
+  "web.domains.homepage.option_private_title": {
+    "text": "Privat landingsside",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.option_private_description": {
+    "text": "Besøgende ser en privat landingsside uden interaktiv formular",
+    "source_hash": "4d9aaf6f"
+  },
+  "web.domains.homepage.option_create_title": {
+    "text": "Formular til oprettelse af besked",
+    "source_hash": "6539dfc1"
+  },
+  "web.domains.homepage.option_create_description": {
+    "text": "Besøgende kan oprette deres egne besked-links",
+    "source_hash": "884310f4"
+  },
+  "web.domains.homepage.option_incoming_title": {
+    "text": "Formular til indgående beskeder",
+    "source_hash": "882997bf"
+  },
+  "web.domains.homepage.option_incoming_description": {
+    "text": "Besøgende kan sende beskeder til dine konfigurerede modtagere",
+    "source_hash": "86bdaedb"
+  },
+  "web.domains.homepage.incoming_requires_recipients": {
+    "text": "Kræver, at indgående beskeder er aktiveret med mindst én modtager",
+    "source_hash": "0462611d"
+  },
+  "web.domains.homepage.configure_recipients": {
+    "text": "Konfigurer modtagere",
+    "source_hash": "1c3df8b4"
+  },
+  "web.domains.homepage.status_private": {
+    "text": "Privat landingsside",
+    "source_hash": "dfd5bd1c"
+  },
+  "web.domains.homepage.status_create": {
+    "text": "Offentlig: besøgende opretter beskeder",
+    "source_hash": "251cfb95"
+  },
+  "web.domains.homepage.status_incoming": {
+    "text": "Offentlig: besøgende sender dig beskeder",
+    "source_hash": "baa926b8"
+  },
+  "web.domains.homepage.status_incoming_unready": {
+    "text": "Indgående ikke klar — viser privat landingsside",
+    "source_hash": "a5cc237c"
+  },
+  "web.domains.homepage.badge_incoming": {
+    "text": "Indgående",
+    "source_hash": "e301820a"
+  },
+  "web.domains.homepage.update_success": {
+    "text": "Hjemmesideindstillinger gemt",
+    "source_hash": "4eac9f45"
+  },
+  "web.domains.homepage.homepage_uses_incoming_warning": {
+    "text": "Dette domænes hjemmeside præsenterer i øjeblikket formularen til indgående beskeder. Hvis du deaktiverer indgående beskeder eller fjerner alle modtagere, skifter hjemmesiden til en privat landingsside, indtil indgående er klar igen.",
+    "source_hash": "cc0d4997"
+  },
+  "web.domains.signin.effective_status_label": {
+    "text": "Login på dette domæne",
+    "source_hash": "d8b884c3"
+  },
+  "web.domains.signin.dormant_notice": {
+    "text": "Login er slået fra for hele workspacet, så det er utilgængeligt på alle domæner. Dine indstillinger her bevares og træder i kraft, når login for workspacet aktiveres igen.",
+    "source_hash": "723d35dc"
+  },
+  "web.domains.signup.effective_status_label": {
+    "text": "Tilmeldinger på dette domæne",
+    "source_hash": "115ab21b"
+  },
+  "web.domains.signup.dormant_notice": {
+    "text": "Tilmeldinger er slået fra for hele workspacet, så de er utilgængelige på alle domæner. Dine indstillinger her bevares og træder i kraft, når tilmeldinger for workspacet aktiveres igen.",
+    "source_hash": "49faefe4"
   }
 }

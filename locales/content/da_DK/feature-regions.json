@@ -152,8 +152,8 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Hvis din e-mail til faktureringskontakt afviger fra din {product_name}-konto-e-mail, skal du bruge e-mailen til faktureringskontakt for den nye regionskonto for at bevare dine abonnementsfordele.",
-    "source_hash": "dac1cc28"
+    "text": "Hvis din e-mail til faktureringskontakt adskiller sig fra din {product_name}-konto-e-mail, skal du bruge e-mailen til faktureringskontakt for kontoen i den nye region for at bevare dine abonnementsfordele.",
+    "source_hash": "d49662b0"
   },
   "web.regions.changing_regions_subscription_note": {
     "text": "Dine abonnementsfordele gælder automatisk for enhver konto oprettet med din fakturerings-e-mailadresse.",
