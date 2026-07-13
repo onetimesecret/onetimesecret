@@ -64,8 +64,8 @@
     "source_hash": "13131e36"
   },
   "web.translations.the_following_people_have_donated_their_time_to_": {
-    "text": "以下の人々は、{product_name}の影響範囲を拡大するために時間を寄付してくれました：",
-    "source_hash": "85a766af"
+    "text": "以下の方々が、{product_name}の普及を支援するために時間を提供してくださいました:",
+    "source_hash": "6cc876ae"
   },
   "web.translations.translations": {
     "text": "翻訳",
@@ -84,8 +84,8 @@
     "source_hash": "ba5c4395"
   },
   "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
-    "text": "2012年以来、{product_name}は世界中で機密情報を安全に共有する手段を提供してきました。英語が主要言語ではない地域のユーザーも多いため、正確な翻訳は、誰もが安全なコミュニケーションを利用できるようにするうえで不可欠です。",
-    "source_hash": "87a6e9af"
+    "text": "2012年以来、{product_name}は機密情報を世界中で安全に共有する手段を提供してきました。英語が主要言語ではない地域にもユーザーがいるため、誰もが安全なコミュニケーションを利用できるようにするには、正確な翻訳が不可欠です。",
+    "source_hash": "ded965d5"
   },
   "web.translations.help_secure_communication_go_global": {
     "text": "安全なコミュニケーションをグローバルに",

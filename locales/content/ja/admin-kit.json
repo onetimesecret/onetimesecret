@@ -1,0 +1,66 @@
+{
+  "web.admin.kit.confirmDialog.typePrompt": {
+    "text": "確認のため、下に{token}を入力してください",
+    "source_hash": "282445b6"
+  },
+  "web.admin.kit.confirmDialog.inputLabel": {
+    "text": "確認テキスト",
+    "source_hash": "8edc1113"
+  },
+  "web.admin.kit.confirmDialog.mismatchHint": {
+    "text": "続行するには、入力したテキストが完全に一致する必要があります。",
+    "source_hash": "f0cc7389"
+  },
+  "web.admin.kit.dataTable.empty": {
+    "text": "レコードが見つかりません",
+    "source_hash": "6e2ea637"
+  },
+  "web.admin.kit.dataTable.sortBy": {
+    "text": "{column}で並べ替え",
+    "source_hash": "55fb1bf9"
+  },
+  "web.admin.kit.filterBar.search": {
+    "text": "検索",
+    "source_hash": "49c266ba"
+  },
+  "web.admin.kit.filterBar.searchPlaceholder": {
+    "text": "検索…",
+    "source_hash": "7336265a"
+  },
+  "web.admin.kit.filterBar.clearFilters": {
+    "text": "フィルターをクリア",
+    "source_hash": "7179ea00"
+  },
+  "web.admin.kit.filterBar.all": {
+    "text": "すべて",
+    "source_hash": "a52ace42"
+  },
+  "web.admin.kit.jsonViewer.expandAll": {
+    "text": "すべて展開",
+    "source_hash": "a3e586be"
+  },
+  "web.admin.kit.jsonViewer.collapseAll": {
+    "text": "すべて折りたたむ",
+    "source_hash": "25f7b372"
+  },
+  "web.admin.kit.jsonViewer.empty": {
+    "text": "データなし",
+    "source_hash": "3b41ba9c"
+  },
+  "web.admin.kit.jsonViewer.copyLabel": {
+    "text": "JSONをコピー",
+    "source_hash": "7708c6e2"
+  },
+  "web.admin.kit.revealEmail.reveal": {
+    "text": "メールアドレスを表示",
+    "source_hash": "f6272277"
+  },
+  "web.admin.kit.revealEmail.hide": {
+    "text": "メールアドレスを非表示",
+    "source_hash": "9755e870"
+  },
+  "web.admin.kit.revealEmail.copy": {
+    "text": "メールアドレスをコピー",
+    "source_hash": "61b94846"
+  }
+}
