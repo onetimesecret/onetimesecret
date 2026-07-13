@@ -22,6 +22,14 @@ module Onetime
     # this middleware provides fallback capability for simpler deployments.
     #
     class StaticFiles
+      # Root-served brand-pack asset URLs that can be overlaid by a brand pack
+      # (site.brand_pack / site.brand_assets_dir, #3739). /dist, /img, /v3 are
+      # app/build assets and are NEVER overlaid.
+      BRAND_PACK_URLS = %w[
+        /favicon.svg /safari-pinned-tab.svg /apple-touch-icon.png
+        /icon-192.png /icon-512.png /social-preview.png
+      ].freeze
+
       # The wrapped Rack application
       # @return [#call] The Rack application instance passed to this middleware
       attr_reader :app
@@ -63,6 +71,23 @@ module Onetime
           if middleware_settings['static_files']
             Onetime.ld '[StaticFiles] Enabling StaticFiles middleware'
             require 'rack/static'
+
+            # Brand-pack overlay layer (#3739). Mounted BEFORE the base layer so
+            # it is outermost in Rack::Builder and matches first. Only the pack
+            # files that actually EXIST in the overlay dir are listed:
+            # Rack::Static matches by URL prefix, not file existence, so a listed
+            # URL with a missing file would 404 instead of falling through to the
+            # base public/web layer. Existence is resolved once at boot — changing
+            # packs (or adding overlay files) needs a restart.
+            overlay_dir = Onetime.brand_overlay_dir
+            if overlay_dir
+              overlay_urls = BRAND_PACK_URLS.select { |u| File.exist?(File.join(overlay_dir, u)) }
+              unless overlay_urls.empty?
+                Onetime.ld "[StaticFiles] Brand overlay active: #{overlay_dir} (#{overlay_urls.size} file(s))"
+                use Rack::Static, urls: overlay_urls, root: overlay_dir
+              end
+            end
+
             use Rack::Static,
               urls: ['/dist', '/img', '/v3',
                      # Favicon + mobile/social variety pack at the document root.
@@ -70,8 +95,7 @@ module Onetime
                      # omitted: they are served by Core::Controllers::Page routes
                      # so per-custom-domain icons, brand.favicon_url redirects,
                      # and brand-aware manifest fields keep working.
-                     '/favicon.svg', '/safari-pinned-tab.svg', '/apple-touch-icon.png',
-                     '/icon-192.png', '/icon-512.png', '/social-preview.png'],
+                     *BRAND_PACK_URLS],
               root: 'public/web'
           end
 

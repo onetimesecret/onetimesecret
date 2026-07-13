@@ -11,8 +11,9 @@ module Core
       # GetWebmanifest - Serve a brand-aware PWA web manifest.
       #
       # Reads the on-disk neutral manifest (public/web/site.webmanifest, which is
-      # itself overridable via the docker/public build overlay or a runtime
-      # file mount) and overlays the site-level brand fields from OT.conf:
+      # itself overridable via a brand pack overlay (BRAND_PACK /
+      # BRAND_ASSETS_DIR) or a runtime file mount) and overlays the site-level
+      # brand fields from OT.conf:
       #
       #   - name / short_name <- brand.product_name (when set)
       #   - theme_color       <- brand.primary_color (when set)
@@ -73,7 +74,7 @@ module Core
         private
 
         def load_base_manifest
-          path = File.join(OT.conf.dig('site', 'public_dir') || 'public/web', 'site.webmanifest')
+          path = Onetime.brand_asset_path('site.webmanifest')
           JSON.parse(File.read(path))
         rescue StandardError => ex
           OT.le "[GetWebmanifest] Falling back to neutral manifest: #{ex.message}"

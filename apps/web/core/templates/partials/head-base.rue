@@ -20,8 +20,9 @@
        scripts/branding). Operators override per deployment WITHOUT touching
        tracked defaults via either:
          - BRAND_* env URL overrides (favicon/apple-touch/og), or
-         - dropping replacement files into the brand directory
-           (docker/public/ at build time, or public/web at runtime).
+         - selecting a generated brand pack (BRAND_PACK / BRAND_ASSETS_DIR at
+           runtime, or --build-arg BRAND_PACK at build time), or a runtime
+           file mount over public/web.
        The /favicon.ico route additionally honours per-custom-domain icons
        and brand.favicon_url. See docs/product/branding-favicon.md. -->
   {{#if show_default_svg_favicon}}

@@ -156,11 +156,12 @@ For standalone builds (Docker Bake, Podman, CI pipelines), see [Build Architectu
 
 ## Branding Overlay
 
-`docker/public/` bakes favicon/branding assets into the image at build time.
-Empty by default (`.gitignore` only). Drop replacement assets in before
-building — the `Dockerfile` copies them into `public/web/` after the Vite build
-(look for `NOTICE: applied docker/public overlay`). Include only the files you
-want to override; the rest fall back to neutral defaults.
+Generated brand packs live under `public/branding/<name>/` (gitignored). Bake
+one into the image with `--build-arg BRAND_PACK=<name>` — the `Dockerfile`
+copies it over `public/web/` after the Vite build (look for `NOTICE: applied
+brand pack overlay`) and fails the build if the pack was never generated. No
+build arg = neutral defaults. The same pack can also be selected at runtime via
+`BRAND_PACK` / `BRAND_ASSETS_DIR` (no rebuild).
 
 Full asset list and other ways to override:
 [branding-favicon](../docs/product/branding-favicon.md).

@@ -10,9 +10,10 @@
 //
 //   pnpm run gen:favicons:maruhi          # = MARK_PRESET=maruhi ... generate-favicons.mjs
 //
-// It writes to docker/public/ (the gitignored build-time brand overlay) plus a
-// reviewable source copy in src/assets/branding/maruhi/, so it never touches the
-// neutral defaults in public/web (#3048/#3049). Override any value inline, e.g.
+// It writes to public/branding/maruhi/ (the gitignored runtime brand pack,
+// #3739) plus a reviewable source copy in src/assets/branding/maruhi/, so it
+// never touches the neutral defaults in public/web (#3048/#3049). Override any
+// value inline, e.g.
 // MARK_PRIMARY_COLOR='#…' pnpm run gen:favicons:maruhi.
 //
 // The 秘 kanji's fine strokes stop being legible below ~24px, so a true 16px tab
@@ -47,6 +48,7 @@ export default {
   MARK_MASK_COVERAGE: 0.82,
   MARK_OG_COVERAGE: 0.9,
   // Company branding, so it never lands in the neutral default dirs.
-  MARK_OUT_PUBLIC_DIR: 'docker/public',
+  // Runtime brand pack (#3739): resolved against REPO_ROOT by the generator.
+  MARK_OUT_PUBLIC_DIR: 'public/branding/maruhi',
   MARK_OUT_SRC_DIR: 'src/assets/branding/maruhi',
 };
