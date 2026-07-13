@@ -10,6 +10,7 @@ workflow checks etc, and to avoid any conflicts merging back into main)
 
 ```bash
 git fetch origin
+start=$(git branch --show-current)
 failed=()
 for b in $(git branch --list 'i18n/update-*' --format='%(refname:short)'); do
   echo "=== $b ==="
@@ -19,7 +20,7 @@ for b in $(git branch --list 'i18n/update-*' --format='%(refname:short)'); do
     echo ">>> conflict, left $b untouched"
   fi
 done
-git switch chore/i18n-content-hashes-command
+git switch "$start"   # rebases pollute @{-1}, so `git switch -` lands wrong
 echo "Rebased cleanly; needs manual attention: ${failed[*]:-none}"
 ```
 

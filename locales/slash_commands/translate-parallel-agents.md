@@ -29,7 +29,9 @@ setup or retry handling here.
 3. Per-locale governance at `generated/i18n/.resolved/{LOCALE}.json`, derived on
    demand by `locales/scripts/derive-governance.sh` (see eligibility gate).
 4. Source locale JSON at `./locales/content/{locale}/*.json`.
-5. **Paths to IGNORE**: `./generate/`, `./src/locales/` (compiled/legacy, not source).
+5. **Paths to IGNORE**: `./generated/locales/`, `./generated/types/` (compiled
+   output — never edit). `generated/i18n/` is NOT ignorable output: `.resolved/`
+   there is required agent input (see eligibility gate).
 
 ## Arguments
 
@@ -121,7 +123,7 @@ loops.** Proactively run a single poll, read the result, then poll again when re
 ```bash
 for locale in fr_CA de es pt_BR eo; do
   printf "%-6s: " "$locale"
-  python3 locales/scripts/i18n tasks next $locale --stats 2>/dev/null | grep -oE "[0-9]+ pending|[0-9]+ completed" | tr '\n' ' '
+  python3 locales/scripts/i18n tasks next $locale --stats 2>/dev/null | grep -oE "(pending|completed): [0-9]+" | tr '\n' ' '
   echo
 done
 ```
@@ -159,23 +161,23 @@ Do NOT run export until the user explicitly requests it.
 
 ```bash
 # Start fresh with 3 locales, max 5 agents
-/d:translate-parallel-agents fr_CA de es --max-agents 5
+/i18n:translate-parallel-agents fr_CA de es --max-agents 5
 
 # Check progress only
-/d:translate-parallel-agents --stats
+/i18n:translate-parallel-agents --stats
 
 # Resume monitoring after /compact
-/d:translate-parallel-agents --resume
+/i18n:translate-parallel-agents --resume
 
 # Add more locales to existing run
-/d:translate-parallel-agents pt_BR eo --max-agents 5
+/i18n:translate-parallel-agents pt_BR eo --max-agents 5
 ```
 
 ## Common Mistakes (Avoid These)
 
 1. **Wrong table name**: the SQLite table is `translation_tasks`, NOT `tasks`.
 2. **Wrong locale file path**: source translations live in `./locales/content/`,
-   not `src/locales/` or `./generate/`.
+   not `./generated/locales/` (compiled output).
 3. **Passive waiting**: do NOT just wait for completion notifications — actively
    poll with `tasks next LOCALE --stats`.
 4. **Raw database queries**: use the CLI (`tasks next LOCALE --stats`), not raw
@@ -222,7 +224,7 @@ python3 locales/scripts/i18n db query \
    VALUES ('<LOCALE>', '<term>', '<rendering>', '<why>')"
 ```
 
-This is the drain's substitute for the manual step 7; without it, an
+This is the drain's substitute for the manual protocol's glossary step (step 5); without it, an
 agent-drained locale accrues no glossary entries (only the standing QC pass
 would). Optionally audit the drained result against the bound renderings:
 

@@ -129,7 +129,7 @@ Creates `i18n/update-{locale}` branches off develop. Each branch contains only o
 
 ### 9. Review branches
 
-Run `/d:review-locale-branches` to orchestrate parallel code-reviewer agents grouped by language family. The workflow:
+Follow `locales/slash_commands/review-locale-branches.md` (installable as a slash command) to orchestrate parallel code-reviewer agents grouped by language family; it drives `locales/scripts/review-locale-branches.sh` (`validate|consolidate|init|families`) for the deterministic stages. The workflow:
 1. Automated variable validation (catches mechanical issues)
 2. Agent review by family (linguistic/quality checks)
 3. Triage and fix critical findings before merge
