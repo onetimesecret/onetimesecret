@@ -1267,8 +1267,8 @@
     "source_hash": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
-    "text": "ארגונים",
-    "source_hash": "2730183d"
+    "text": "סביבות עבודה",
+    "source_hash": "1377264b"
   },
   "web.TITLES.organization_settings": {
     "text": "הגדרות ארגון",
@@ -1299,8 +1299,8 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "ודא תמיד שאתה נמצא באתר הרשמי של {product_name}. רמאים יוצרים לעיתים אתרים מזויפים שנראים בדיוק כמו {product_name} כדי לגנוב את הסודות שלך. כדי להימנע מהתקפות דיוג, בדוק את דומיין האזור לפני יצירת קישורים חדשים.",
-    "source_hash": "68ec20f8"
+    "text": "ודא תמיד שאתה נמצא באתר הרשמי של {product_name}. רמאים יוצרים לעיתים אתרים מזויפים שנראים בדיוק כמו {product_name} כדי לגנוב את הסודות שלך. כדי להימנע מהתקפות דיוג, בדוק את דומיין האזור בשורת הכתובת לפני יצירת קישורים חדשים.",
+    "source_hash": "2e3b856e"
   },
   "web.pricing.title": {
     "text": "תמחור פשוט ושקוף",
@@ -1523,5 +1523,21 @@
   "web.TITLES.domain_incoming": {
     "text": "סודות נכנסים",
     "source_hash": "883dbca9"
+  },
+  "web.LABELS.update": {
+    "text": "עדכן",
+    "source_hash": "c1c1009d"
+  },
+  "web.LABELS.updating": {
+    "text": "מעדכן...",
+    "source_hash": "0a4e0b71"
+  },
+  "web.TITLES.check_email": {
+    "text": "בדוק את הדוא״ל שלך",
+    "source_hash": "0e5fc27d"
+  },
+  "web.TITLES.domain_dns": {
+    "text": "הגדרת DNS",
+    "source_hash": "6c63df31"
   }
 }
