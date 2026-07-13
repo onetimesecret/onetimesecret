@@ -155,8 +155,8 @@
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
-    "text": "Tu sesión ha expirado. Por favor, actualiza la página e inténtalo de nuevo.",
-    "source_hash": "a7c3e901"
+    "text": "Tu sesión ha caducado. Actualiza la página e inténtalo de nuevo.",
+    "source_hash": "be9ed96d"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "El inicio de sesión falló. Por favor, intenta de nuevo.",
