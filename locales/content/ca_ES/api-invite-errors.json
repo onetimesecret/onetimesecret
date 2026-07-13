@@ -12,8 +12,8 @@
     "source_hash": "a5df7d22"
   },
   "api.invite.errors.invitation_already_processed": {
-    "text": "La invitació ja consta com a %{status}",
-    "source_hash": "130c87e0"
+    "text": "Aquesta invitació ja s'ha processat",
+    "source_hash": "4cfedf4f"
   },
   "api.invite.errors.invitation_expired": {
     "text": "La invitació ha caducat",
@@ -26,5 +26,13 @@
   "api.invite.errors.already_member": {
     "text": "Ja ets membre d'aquesta organització",
     "source_hash": "f56ad547"
+  },
+  "api.invite.errors.invitation_already_accepted": {
+    "text": "Aquesta invitació ja s'ha acceptat",
+    "source_hash": "8f9daf0f"
+  },
+  "api.invite.errors.invitation_already_declined": {
+    "text": "Aquesta invitació ja s'ha rebutjat",
+    "source_hash": "96e0d626"
   }
 }

@@ -4,8 +4,8 @@
     "source_hash": "2730183d"
   },
   "web.organizations.organization": {
-    "text": "Organització",
-    "source_hash": "d764d425"
+    "text": "Espai de treball",
+    "source_hash": "87bb59ba"
   },
   "web.organizations.organization_plural": {
     "text": "Organitzacions",
@@ -16,24 +16,24 @@
     "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
-    "text": "Organitzacions",
-    "source_hash": "2730183d"
+    "text": "Espais de treball",
+    "source_hash": "1377264b"
   },
   "web.organizations.manage_organizations": {
-    "text": "Gestionar organitzacions",
-    "source_hash": "be0fe4c3"
+    "text": "Gestiona els espais de treball",
+    "source_hash": "cc2d65f8"
   },
   "web.organizations.new_organization": {
     "text": "Nova organització",
     "source_hash": "4876e647"
   },
   "web.organizations.no_organizations": {
-    "text": "Encara no hi ha organitzacions",
-    "source_hash": "5b7a7cbd"
+    "text": "Encara no hi ha espais de treball",
+    "source_hash": "97d0b117"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Les organitzacions proporcionen facturació i administració unificades. Comença creant la teva primera organització.",
-    "source_hash": "deab4304"
+    "text": "Els espais de treball ofereixen facturació i administració unificades. Comença creant el teu primer espai de treball.",
+    "source_hash": "f09d4987"
   },
   "web.organizations.no_description": {
     "text": "Cap descripció proporcionada",
@@ -48,24 +48,24 @@
     "source_hash": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "Crear la primera organització",
-    "source_hash": "27bae486"
+    "text": "Crea el primer espai de treball",
+    "source_hash": "98a583b4"
   },
   "web.organizations.create_organization_description": {
-    "text": "Crear una nova organització",
-    "source_hash": "67cd5950"
+    "text": "Crea un espai de treball nou",
+    "source_hash": "6ac2b5fc"
   },
   "web.organizations.create": {
     "text": "Crear",
     "source_hash": "4759498a"
   },
   "web.organizations.create_error": {
-    "text": "No s'ha pogut crear l'organització",
-    "source_hash": "f2204373"
+    "text": "No s'ha pogut crear l'espai de treball",
+    "source_hash": "0a8d4fd6"
   },
   "web.organizations.organization_name": {
-    "text": "Nom de l'organització",
-    "source_hash": "4cbd9073"
+    "text": "Nom de l'espai de treball",
+    "source_hash": "6fa5a5b1"
   },
   "web.organizations.organization_name_placeholder": {
     "text": "p. ex. Acme Corporation",
@@ -92,12 +92,12 @@
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
-    "text": "Selecciona una organització",
-    "source_hash": "48326f52"
+    "text": "Selecciona un espai de treball",
+    "source_hash": "70a8ce66"
   },
   "web.organizations.switcher_locked": {
-    "text": "El canvi d'organització no està disponible en aquesta pàgina",
-    "source_hash": "da0cf810"
+    "text": "El canvi d'espai de treball no està disponible en aquesta pàgina",
+    "source_hash": "c34114ac"
   },
   "web.organizations.not_found": {
     "text": "Organització no trobada",
@@ -208,8 +208,8 @@
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Equip",
-    "source_hash": "5985039f"
+    "text": "Membres",
+    "source_hash": "1044a4c0"
   },
   "web.organizations.tabs.billing": {
     "text": "Facturació",
@@ -468,8 +468,8 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Membre",
-    "source_hash": "7c968fb7"
+    "text": "Membre de l'equip",
+    "source_hash": "d4e55dfa"
   },
   "web.organizations.invitations.roles.admin": {
     "text": "Administrador",
@@ -532,8 +532,8 @@
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Les invitacions de membres de l'equip requereixen un pla amb gestió d'equips. Millora per afegir col·laboradors a la teva organització.",
-    "source_hash": "cf10d623"
+    "text": "Les invitacions de membres requereixen un pla de pagament. Millora el teu pla per afegir col·laboradors a la teva organització.",
+    "source_hash": "47d0eeab"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
@@ -556,8 +556,8 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Has iniciat sessió amb un altre compte",
-    "source_hash": "4a2f91c3"
+    "text": "Hi ha un compte diferent amb la sessió iniciada",
+    "source_hash": "6516362a"
   },
   "web.organizations.invitations.email_mismatch_body": {
     "text": "Aquesta invitació és per a {invitedEmail}. Actualment has iniciat sessió com a {currentEmail}.",
@@ -565,7 +565,7 @@
   },
   "web.organizations.invitations.continue_as_invited_email": {
     "text": "Continua com a {email}",
-    "source_hash": "6c9a1d4e"
+    "source_hash": "ccf9745d"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "{days}d restants",
@@ -1026,5 +1026,9 @@
   "web.organizations.tabs.sso": {
     "text": "SSO",
     "source_hash": "5ba3ac9f"
+  },
+  "web.organizations.create_workspace": {
+    "text": "Crea un espai de treball",
+    "source_hash": "c63c14cf"
   }
 }

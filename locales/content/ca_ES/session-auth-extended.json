@@ -156,7 +156,7 @@
   },
   "web.auth.magicLink.sessionExpired": {
     "text": "La teva sessió ha caducat. Si us plau, actualitza la pàgina i torna-ho a provar.",
-    "source_hash": "a7c3e901"
+    "source_hash": "be9ed96d"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "Inici de sessió fallit. Si us plau, torna-ho a provar.",
